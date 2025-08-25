@@ -33,6 +33,8 @@ public:
 	virtual void setDefinition(MikanComponentDefinitionPtr definition) override;
 
 	// Video Source Interface
+	virtual std::string getDevicePath() const override;
+	virtual std::string getDeviceAPI() const override;
 	virtual bool openVideoSource() override;
 	virtual void closeVideoSource() override;
 	virtual eVideoStreamingStatus startVideoStream() override;

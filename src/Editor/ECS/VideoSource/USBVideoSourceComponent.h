@@ -54,7 +54,9 @@ public:
 	}
 	virtual void setDefinition(MikanComponentDefinitionPtr definition) override;
 
-	// Video Source Interface
+	// VideoSourceComponent Interface
+	virtual std::string getDevicePath() const override;
+	virtual std::string getDeviceAPI() const override;
 	virtual bool openVideoSource() override;
 	virtual void closeVideoSource() override;
 	virtual eVideoStreamingStatus startVideoStream() override;
@@ -67,6 +69,7 @@ public:
 	virtual bool getVideoSettingConstraint(const eVideoSettingType property_type, VideoSettingConstraint& outConstraint) const override;
 	virtual void setVideoSetting(const eVideoSettingType property_type, int desired_value) override;
 	virtual int getVideoSetting(const eVideoSettingType property_type) const override;
+	virtual bool getFrameRate(float& outFrameRate) const override;
 
 	// -- USB Video Mode
 	size_t getAvailableVideoModesCount() const;

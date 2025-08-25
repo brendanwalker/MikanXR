@@ -164,6 +164,21 @@ void USBVideoSourceComponent::setDefinition(MikanComponentDefinitionPtr definiti
 	closeVideoSource();
 }
 
+std::string USBVideoSourceComponent::getDevicePath() const
+{
+	if (m_usbVideoDevice != nullptr)
+	{
+		return m_usbVideoDevice->getDevicePath();
+	}
+
+	return "";
+}
+
+std::string USBVideoSourceComponent::getDeviceAPI() const
+{
+	return "USBVideoSource";
+}
+
 bool USBVideoSourceComponent::openVideoSource()
 {
 	// If the video source is already open, do nothing
@@ -485,6 +500,20 @@ int USBVideoSourceComponent::getVideoSetting(const eVideoSettingType property_ty
 	}
 
 	return -1;
+}
+
+bool USBVideoSourceComponent::getFrameRate(float& outFrameRate) const
+{
+	UsbVideoModeProperties modeProperties;
+	if (getVideoModeProperties(getVideoModeIndex(), modeProperties))
+	{
+		outFrameRate =
+			(float)modeProperties.frame_rate_numerator / 
+			(float)modeProperties.frame_rate_demonenator;
+		return true;
+	}
+
+	return false;
 }
 
 bool USBVideoSourceComponent::getVideoModeName(std::string& outVideoModeName) const

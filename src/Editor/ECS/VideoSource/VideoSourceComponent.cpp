@@ -172,6 +172,11 @@ bool VideoSourceComponent::getPixelDimensions(int& outPixelWidth, int& outPixelH
 	return false;
 }
 
+bool VideoSourceComponent::getFrameRate(float& outFrameRate) const
+{
+	return false;
+}
+
 bool VideoSourceComponent::getCameraIntrinsics(MikanVideoSourceIntrinsics& out_camera_intrinsics) const
 {
 	if (!getVideoSourceDefinition()->hasCameraIntrinsics())

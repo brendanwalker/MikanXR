@@ -59,6 +59,16 @@ void NetworkVideoSourceComponent::setDefinition(MikanComponentDefinitionPtr defi
 	closeVideoSource();
 }
 
+std::string NetworkVideoSourceComponent::getDevicePath() const
+{
+	return "";
+}
+
+std::string NetworkVideoSourceComponent::getDeviceAPI() const
+{
+	return "NetworkVideoSource";
+}
+
 bool NetworkVideoSourceComponent::openVideoSource()
 {
 	return false;

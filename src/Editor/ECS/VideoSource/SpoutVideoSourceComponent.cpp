@@ -53,6 +53,16 @@ void SpoutVideoSourceComponent::setDefinition(MikanComponentDefinitionPtr defini
 	closeVideoSource();
 }
 
+std::string SpoutVideoSourceComponent::getDevicePath() const
+{
+	return "";
+}
+
+std::string SpoutVideoSourceComponent::getDeviceAPI() const
+{
+	return "SpoutVideoSource";
+}
+
 bool SpoutVideoSourceComponent::openVideoSource()
 {
 	return false;

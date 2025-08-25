@@ -52,6 +52,16 @@ void ClientVideoSourceComponent::setDefinition(MikanComponentDefinitionPtr defin
 	closeVideoSource();
 }
 
+std::string ClientVideoSourceComponent::getDevicePath() const
+{
+	return getClientVideoSourceDefinition()->getClientSource();
+}
+
+std::string ClientVideoSourceComponent::getDeviceAPI() const
+{
+	return "ClientVideoSource";
+}
+
 bool ClientVideoSourceComponent::openVideoSource()
 {
 	return false;

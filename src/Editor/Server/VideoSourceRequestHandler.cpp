@@ -6,8 +6,8 @@
 #include "MikanVideoSourceEvents.h"
 #include "MikanVideoSourceRequests.h"
 #include "ServerResponseHelpers.h"
-#include "VideoSourceManager.h"
-#include "VideoSourceView.h"
+#include "VideoSourceSystem.h"
+#include "VideoSourceComponent.h"
 #include "VideoCapabilitiesConfig.h"
 
 #include <functional>
@@ -71,12 +71,12 @@ void VideoSourceRequestHandler::getVideoSourceIntrinsicsHandler(
 		return;
 	}
 
-	VideoSourceViewPtr videoSourceView =
-		VideoSourceManager::getInstance()->getVideoSourceViewById(intrinsicsRequest.video_source_id);
-	if (videoSourceView)
+	VideoSourceComponentPtr videoSourceComponent =
+		VideoSourceSystem::getSystem()->getVideoSourceById(intrinsicsRequest.video_source_id);
+	if (videoSourceComponent)
 	{
 		MikanVideoSourceIntrinsicsResponse intrinsicsResponse;
-		videoSourceView->getCameraIntrinsics(intrinsicsResponse.intrinsics);
+		videoSourceComponent->getCameraIntrinsics(intrinsicsResponse.intrinsics);
 
 		writeTypedJsonResponse(request.requestId, intrinsicsResponse, response);
 	}
@@ -97,33 +97,30 @@ void VideoSourceRequestHandler::getVideoSourceModeHandler(
 		return;
 	}
 
-	VideoSourceViewPtr videoSourceView =
-		VideoSourceManager::getInstance()->getVideoSourceViewById(modeRequest.video_source_id);
-	if (videoSourceView)
+	VideoSourceComponentPtr videoSourceComponent =
+		VideoSourceSystem::getSystem()->getVideoSourceById(modeRequest.video_source_id);
+	if (videoSourceComponent)
 	{
-		const std::string devicePath = videoSourceView->getDevicePath();
-		const IVideoSourceInterface::eDriverType driverType = videoSourceView->getVideoSourceDriverType();
-		const VideoModeConfig* modeConfig = videoSourceView->getVideoMode();
+		const std::string devicePath = videoSourceComponent->getDevicePath();
+		const std::string deviceAPI = videoSourceComponent->getDeviceAPI();
 
-		if (modeConfig != nullptr)
+		std::string videoModeName;
+		int pixelWidth, pixelHeight;
+		float frameRate = 0.0f;
+		if (videoSourceComponent->getVideoModeName(videoModeName) &&
+			videoSourceComponent->getPixelDimensions(pixelWidth, pixelHeight) &&
+			videoSourceComponent->getFrameRate(frameRate))
 		{
 			MikanVideoSourceModeResponse info;
+
 			info.device_path = devicePath;
-			info.frame_rate = modeConfig->frameRate;
-			info.resolution_x = modeConfig->bufferPixelWidth;
-			info.resolution_y = modeConfig->bufferPixelHeight;
-			info.video_mode_name = modeConfig->modeName;
-			switch (driverType)
-			{
-				case IVideoSourceInterface::WindowsMediaFramework:
-					info.video_source_api.setValue("WMF");
-					break;
-				case IVideoSourceInterface::INVALID:
-				default:
-					info.video_source_api.setValue("INVALID");
-					break;
-			}
-			info.video_source_type = videoSourceView->getIsStereoCamera() ? MikanVideoSourceType_STEREO : MikanVideoSourceType_MONO;
+			info.frame_rate = frameRate;
+			info.resolution_x = pixelWidth;
+			info.resolution_y = pixelHeight;
+			info.video_mode_name = videoModeName;
+			info.video_source_api= deviceAPI;
+			// TODO: For the moment we only support monoscopic cameras.
+			info.video_source_type = MikanVideoSourceType_MONO;
 
 			writeTypedJsonResponse(request.requestId, info, response);
 		}

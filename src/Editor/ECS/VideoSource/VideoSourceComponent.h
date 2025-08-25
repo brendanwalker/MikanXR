@@ -80,6 +80,8 @@ public:
 	MikanVideoSourceID getVideoSourceId() const;
 	
 	// Video Source Interface
+	virtual std::string getDevicePath() const = 0;
+	virtual std::string getDeviceAPI() const = 0;
 	virtual bool openVideoSource() = 0;
 	virtual void closeVideoSource() = 0;
 	virtual eVideoStreamingStatus startVideoStream() = 0;
@@ -91,6 +93,7 @@ public:
 
 	virtual bool getVideoModeName(std::string& outVideoModeName) const;
 	virtual bool getPixelDimensions(int& outPixelWidth, int& outPixelHeight) const;
+	virtual bool getFrameRate(float& outFrameRate) const;
 	virtual bool getCameraIntrinsics(MikanVideoSourceIntrinsics& out_camera_intrinsics) const;
 	virtual bool setCameraIntrinsics(const MikanVideoSourceIntrinsics& camera_intrinsics);
 	virtual glm::mat4 getProjectionMatrix() const;
