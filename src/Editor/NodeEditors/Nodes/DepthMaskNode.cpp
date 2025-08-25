@@ -1,5 +1,5 @@
+#include "CameraComponent.h"
 #include "DepthMaskNode.h"
-#include "GlFrameCompositor.h"
 #include "IMkFrameBuffer.h"
 #include "MkMaterial.h"
 #include "MikanRenderModelResource.h"
@@ -167,32 +167,38 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 		bSuccess = false;
 	}
 
-	rebuildDepthMaskLists();
+	int frameWidth, frameHeight;
+	CameraComponentPtr cameraComponent = evaluator.getCurrentCameraComponent();
+	if (bSuccess)
+	{
+		bSuccess = 
+			cameraComponent && 
+			cameraComponent->getAperturePixelDimensions(frameWidth, frameHeight);
+	}
+
 	bool bAnyQuadStencils = !m_quadStencilIds.empty();
 	bool bAnyBoxStencils = !m_boxStencilIds.empty();
 	bool bAnyModelStencils = !m_modelStencilIds.empty();
-	if (!bAnyQuadStencils && !bAnyBoxStencils && !bAnyModelStencils)
+	if (bSuccess)
 	{
-		evaluator.addError(
-			NodeEvaluationError(
-				eNodeEvaluationErrorCode::missingInput,
-				"No stencils",
-				this));
-		bSuccess = false;
+		rebuildDepthMaskLists();
+		if (!bAnyQuadStencils && !bAnyBoxStencils && !bAnyModelStencils)
+		{
+			evaluator.addError(
+				NodeEvaluationError(
+					eNodeEvaluationErrorCode::missingInput,
+					"No stencils",
+					this));
+			bSuccess = false;
+		}
 	}
 
 	if (bSuccess)
 	{
 		// Use the current video source's frame size as the depth texture size
-		int frameWidth, frameHeight;
-		VideoSourceComponentPtr videoSource = evaluator.getCurrentVideoSourceComponent();
-		if (videoSource &&
-			videoSource->getPixelDimensions(frameWidth, frameHeight))
-		{
-			// Does nothing if the frame buffer is already the correct size
-			// Invalidates the frame buffer if it's not the correct size
-			m_linearDepthFrameBuffer->setSize(frameWidth, frameHeight);
-		}
+		// Does nothing if the frame buffer is already the correct size
+		// Invalidates the frame buffer if it's not the correct size
+		m_linearDepthFrameBuffer->setSize(frameWidth, frameHeight);
 
 		// (Re)Initialize the frame buffer if it's in an invalid state
 		if (!m_linearDepthFrameBuffer->isValid())
@@ -229,13 +235,13 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 
 			// Apply any Stencils assigned to the node
 			if (bAnyQuadStencils)
-				evaluateQuadDepthMasks(glState);
+				evaluateQuadDepthMasks(cameraComponent, glState);
 
 			if (bAnyBoxStencils)
-				evaluateBoxDepthMasks(glState);
+				evaluateBoxDepthMasks(cameraComponent, glState);
 
 			if (bAnyModelStencils)
-				evaluateModelDepthMasks(glState);
+				evaluateModelDepthMasks(cameraComponent, glState);
 		}
 		else
 		{
@@ -361,7 +367,9 @@ void DepthMaskNode::rebuildDepthMaskLists()
 	}
 }
 
-void DepthMaskNode::evaluateQuadDepthMasks(IMkState* glState)
+void DepthMaskNode::evaluateQuadDepthMasks(
+	CameraComponentPtr cameraComponent,
+	IMkState* glState)
 {
 	EASY_FUNCTION();
 
@@ -371,13 +379,9 @@ void DepthMaskNode::evaluateQuadDepthMasks(IMkState* glState)
 	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
 	IMkTriangulatedMeshPtr depthQuadMesh = compositorGraph->getDepthQuadMesh();
 
-	GlFrameCompositor* frameCompositor = MainWindow::getInstance()->getFrameCompositor();
-	if (!frameCompositor)
-		return;
-
 	// Get the camera pose matrix for the current tracked video source
 	glm::mat4 cameraXform;
-	if (!frameCompositor->getVideoSourceCameraPose(cameraXform))
+	if (!cameraComponent->getAperturePose(cameraXform))
 		return;
 
 	// Collect stencil in view of the tracked camera
@@ -401,12 +405,12 @@ void DepthMaskNode::evaluateQuadDepthMasks(IMkState* glState)
 	{
 		// Also get the the view matrix for the tracked video source
 		glm::mat4 viewMatrix;
-		if (!frameCompositor->getVideoSourceView(viewMatrix))
+		if (!cameraComponent->getApertureViewMatrix(viewMatrix))
 			return;
 
 		// Also get the the projection matrix for the tracked video source
 		glm::mat4 projectionMatrix;
-		if (!frameCompositor->getVideoSourceProjection(projectionMatrix, true))
+		if (!cameraComponent->getApertureProjectionMatrix(projectionMatrix, true))
 			return;
 
 		// Draw stencil quads first
@@ -446,7 +450,9 @@ void DepthMaskNode::evaluateQuadDepthMasks(IMkState* glState)
 	}
 }
 
-void DepthMaskNode::evaluateBoxDepthMasks(IMkState* glState)
+void DepthMaskNode::evaluateBoxDepthMasks(
+	CameraComponentPtr cameraComponent,
+	IMkState* glState)
 {
 	EASY_FUNCTION();
 
@@ -456,13 +462,9 @@ void DepthMaskNode::evaluateBoxDepthMasks(IMkState* glState)
 	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
 	IMkTriangulatedMeshPtr stencilBoxMesh = compositorGraph->getDepthBoxMesh();
 
-	GlFrameCompositor* frameCompositor = MainWindow::getInstance()->getFrameCompositor();
-	if (!frameCompositor)
-		return;
-
 	// Get the camera pose matrix for the current tracked video source
 	glm::mat4 cameraXform;
-	if (!frameCompositor->getVideoSourceCameraPose(cameraXform))
+	if (!cameraComponent->getAperturePose(cameraXform))
 		return;
 
 	// Collect stencil in view of the tracked camera
@@ -487,12 +489,12 @@ void DepthMaskNode::evaluateBoxDepthMasks(IMkState* glState)
 	{
 		// Also get the the view matrix for the tracked video source
 		glm::mat4 viewMatrix;
-		if (!frameCompositor->getVideoSourceView(viewMatrix))
+		if (!cameraComponent->getApertureViewMatrix(viewMatrix))
 			return;
 
 		// Also get the the projection matrix for the tracked video source
 		glm::mat4 projectionMatrix;
-		if (!frameCompositor->getVideoSourceProjection(projectionMatrix, true))
+		if (!cameraComponent->getApertureProjectionMatrix(projectionMatrix, true))
 			return;
 
 		for (BoxStencilComponentPtr stencil : boxStencilList)
@@ -531,7 +533,9 @@ void DepthMaskNode::evaluateBoxDepthMasks(IMkState* glState)
 	}
 }
 
-void DepthMaskNode::evaluateModelDepthMasks(IMkState* glState)
+void DepthMaskNode::evaluateModelDepthMasks(
+	CameraComponentPtr cameraComponent,
+	IMkState* glState)
 {
 	EASY_FUNCTION();
 
@@ -540,13 +544,9 @@ void DepthMaskNode::evaluateModelDepthMasks(IMkState* glState)
 
 	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
 
-	GlFrameCompositor* frameCompositor = MainWindow::getInstance()->getFrameCompositor();
-	if (!frameCompositor)
-		return;
-
 	// Get the camera pose matrix for the current tracked video source
 	glm::mat4 cameraXform;
-	if (!frameCompositor->getVideoSourceCameraPose(cameraXform))
+	if (!cameraComponent->getAperturePose(cameraXform))
 		return;
 
 	// Collect stencil in view of the tracked camera
@@ -565,12 +565,12 @@ void DepthMaskNode::evaluateModelDepthMasks(IMkState* glState)
 
 	// Also get the the view matrix for the tracked video source
 	glm::mat4 viewMatrix;
-	if (!frameCompositor->getVideoSourceView(viewMatrix))
+	if (!cameraComponent->getApertureViewMatrix(viewMatrix))
 		return;
 
 	// Also get the the projection matrix for the tracked video source
 	glm::mat4 projectionMatrix;
-	if (!frameCompositor->getVideoSourceProjection(projectionMatrix, true))
+	if (!cameraComponent->getApertureProjectionMatrix(projectionMatrix, true))
 		return;
 
 	// Then draw stencil models

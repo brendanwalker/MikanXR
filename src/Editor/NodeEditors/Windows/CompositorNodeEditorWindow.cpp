@@ -59,14 +59,13 @@ void CompositorNodeEditorWindow::update(float deltaSeconds)
 	{
 		if (m_compositorComponent != nullptr)
 		{
-			VideoSourceComponentPtr videoSourceComponent = 
-				m_compositorComponent->getVideoSourceComponent();
+			CameraComponentPtr cameraComponent = m_compositorComponent->getCameraComponent();
 
 			NodeEvaluator evaluator = {};
 			evaluator
 				.setCurrentWindow(this)
 				.setDeltaSeconds(deltaSeconds)
-				.setCurrentVideoSourceComponent(videoSourceComponent);
+				.setCurrentCameraComponent(cameraComponent);
 
 			auto node_graph = std::static_pointer_cast<CompositorNodeGraph>(m_editorState.nodeGraph);
 			if (!node_graph->compositeFrame(evaluator))

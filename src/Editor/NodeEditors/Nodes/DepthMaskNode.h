@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ComponentFwd.h"
 #include "Node.h"
 #include "MikanRendererFwd.h"
 #include "FrameCompositorConstants.h"
@@ -40,9 +41,9 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
-	void evaluateQuadDepthMasks(IMkState* glState);
-	void evaluateBoxDepthMasks(IMkState* glState);
-	void evaluateModelDepthMasks(IMkState* glState);
+	void evaluateQuadDepthMasks(CameraComponentPtr cameraComponent, IMkState* glState);
+	void evaluateBoxDepthMasks(CameraComponentPtr cameraComponent, IMkState* glState);
+	void evaluateModelDepthMasks(CameraComponentPtr cameraComponent, IMkState* glState);
 
 	virtual std::string editorGetTitle() const override { return "Depth Mask"; }
 

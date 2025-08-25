@@ -1,5 +1,5 @@
+#include "CameraComponent.h"
 #include "DrawLayerNode.h"	
-#include "GlFrameCompositor.h"	
 #include "MkMaterial.h"	
 #include "MikanRenderModelResource.h"	
 #include "MikanModelResourceManager.h"	
@@ -242,7 +242,13 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 	if (bSuccess && !evaluateInputs(evaluator))	
 	{	
 		bSuccess= false;	
-	}	
+	}
+
+	CameraComponentPtr cameraComponent = evaluator.getCurrentCameraComponent();
+	if (bSuccess)
+	{
+		bSuccess = cameraComponent != nullptr;
+	}
 
 	if (bSuccess)	
 	{	
@@ -330,9 +336,9 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 			// Apply any Stencils assigned to the node	
 			if (m_stencilMode != eCompositorStencilMode::noStencil)	
 			{	
-				evaluateQuadStencils(mkState);	
-				evaluateBoxStencils(mkState);	
-				evaluateModelStencils(mkState);	
+				evaluateQuadStencils(cameraComponent, mkState);
+				evaluateBoxStencils(cameraComponent, mkState);
+				evaluateModelStencils(cameraComponent, mkState);
 			}	
 
 			// Bind the layer shader program and uniform parameters.	
@@ -648,26 +654,24 @@ void DrawLayerNode::rebuildStencilLists()
 	}	
 }	
 
-void DrawLayerNode::evaluateQuadStencils(IMkState* glParentState)	
+void DrawLayerNode::evaluateQuadStencils(
+	CameraComponentPtr cameraComponent,
+	IMkState* glParentState)	
 {	
 	EASY_FUNCTION();	
 
 	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());	
 	IMkTriangulatedMeshPtr stencilQuadMesh = compositorGraph->getStencilQuadMesh();	
 
-	GlFrameCompositor* frameCompositor= MainWindow::getInstance()->getFrameCompositor();	
-	if (!frameCompositor)	
-		return;	
-
 	// Get the camera pose matrix for the current tracked video source	
 	glm::mat4 cameraXform;	
-	if (!frameCompositor->getVideoSourceCameraPose(cameraXform))	
+	if (!cameraComponent->getAperturePose(cameraXform))
 		return;	
 
 	// Also get the the view-projection matrix for the tracked video source	
 	// (camera view + projection xform used by stencil shader)	
 	glm::mat4 vpMatrix;	
-	if (!frameCompositor->getVideoSourceViewProjection(vpMatrix))	
+	if (!cameraComponent->getApertureViewProjectionMatrix(vpMatrix))
 		return;	
 
 	// Collect stencil in view of the tracked camera	
@@ -771,26 +775,24 @@ void DrawLayerNode::evaluateQuadStencils(IMkState* glParentState)
 	}	
 }	
 
-void DrawLayerNode::evaluateBoxStencils(IMkState* glParentState)	
+void DrawLayerNode::evaluateBoxStencils(
+	CameraComponentPtr cameraComponent, 
+	IMkState* glParentState)
 {	
 	EASY_FUNCTION();	
 
 	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());	
 	IMkTriangulatedMeshPtr stencilBoxMesh= compositorGraph->getStencilBoxMesh();	
 
-	GlFrameCompositor* frameCompositor= MainWindow::getInstance()->getFrameCompositor();	
-	if (!frameCompositor)	
-		return;	
-
 	// Get the camera pose matrix for the current tracked video source	
 	glm::mat4 cameraXform;	
-	if (!frameCompositor->getVideoSourceCameraPose(cameraXform))	
+	if (!cameraComponent->getAperturePose(cameraXform))
 		return;	
 
 	// Also get the the view-projection matrix for the tracked video source	
 	// (camera view + projection xform used by stencil shader)	
 	glm::mat4 vpMatrix;	
-	if (!frameCompositor->getVideoSourceViewProjection(vpMatrix))	
+	if (!cameraComponent->getApertureViewProjectionMatrix(vpMatrix))
 		return;	
 
 	// Collect stencil in view of the tracked camera	
@@ -862,25 +864,23 @@ void DrawLayerNode::evaluateBoxStencils(IMkState* glParentState)
 	}	
 }	
 
-void DrawLayerNode::evaluateModelStencils(IMkState* glParentState)	
+void DrawLayerNode::evaluateModelStencils(
+	CameraComponentPtr cameraComponent,
+	IMkState* glParentState)	
 {	
 	EASY_FUNCTION();	
 
 	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());	
 
-	GlFrameCompositor* frameCompositor = MainWindow::getInstance()->getFrameCompositor();	
-	if (!frameCompositor)	
-		return;	
-
 	// Get the camera pose matrix for the current tracked video source	
 	glm::mat4 cameraXform;	
-	if (!frameCompositor->getVideoSourceCameraPose(cameraXform))	
+	if (!cameraComponent->getAperturePose(cameraXform))
 		return;	
 
 	// Also get the the view-projection matrix for the tracked video source	
 	// (camera view + projection xform used by stencil shader)	
 	glm::mat4 vpMatrix;	
-	if (!frameCompositor->getVideoSourceViewProjection(vpMatrix))	
+	if (!cameraComponent->getApertureViewProjectionMatrix(vpMatrix))
 		return;	
 
 	// Collect stencil in view of the tracked camera	

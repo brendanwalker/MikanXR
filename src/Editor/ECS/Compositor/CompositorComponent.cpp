@@ -412,13 +412,13 @@ IMkTextureConstPtr CompositorComponent::getCompositedFrameTexture() const
 
 void CompositorComponent::updateCompositeFrameNodeGraph()
 {
-	VideoSourceComponentPtr videoSourceComponent= getVideoSourceComponent();
+	CameraComponentPtr cameraComponent= getCameraComponent();
 
-	if (videoSourceComponent)
+	if (cameraComponent)
 	{
 		NodeEvaluator evaluator = {};
 		evaluator
-			.setCurrentVideoSourceComponent(videoSourceComponent)
+			.setCurrentCameraComponent(cameraComponent)
 			.setCurrentWindow(getOwnerWindow())
 			.setDeltaSeconds(m_timeSinceLastFrameComposited);
 

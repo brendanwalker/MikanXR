@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ComponentFwd.h"
 #include "Node.h"
 #include "MikanRendererFwd.h"
 #include "FrameCompositorConstants.h"
@@ -50,9 +51,9 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
-	void evaluateQuadStencils(IMkState* glParentState);
-	void evaluateBoxStencils(IMkState* glParentState);
-	void evaluateModelStencils(IMkState* glParentState);
+	void evaluateQuadStencils(CameraComponentPtr cameraComponent, IMkState* glParentState);
+	void evaluateBoxStencils(CameraComponentPtr cameraComponent, IMkState* glParentState);
+	void evaluateModelStencils(CameraComponentPtr cameraComponent, IMkState* glParentState);
 
 	virtual std::string editorGetTitle() const override { return "Draw Layer"; }
 

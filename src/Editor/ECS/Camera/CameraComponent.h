@@ -90,6 +90,7 @@ public:
 	void setVideoSourceById(MikanVideoSourceID videoSourceId);
 
 	// Helper functions used to fetch camera lens pose properties
+	bool getAperturePixelDimensions(int& outWidth, int& outHeight) const;
 	bool getApertureIntrinsics(struct MikanVideoSourceIntrinsics& outIntrinsics) const;
 	bool getAperturePose(
 		glm::mat4& outCameraPose, 
@@ -97,9 +98,9 @@ public:
 	bool getAperturePose(
 		glm::dmat4& outCameraPose, 
 		eVRDevicePoseSpace space = eVRDevicePoseSpace::MikanScene) const;
-	bool getApertureProjectionMatrix(glm::mat4& outProjectionMatrix) const;
+	bool getApertureProjectionMatrix(glm::mat4& outProjectionMatrix, bool bVerticalFlip = false) const;
 	bool getApertureViewMatrix(glm::mat4& outViewMatrix) const;
-	bool getApertureViewProjectionMatrix(glm::mat4& outVPMatrix) const;
+	bool getApertureViewProjectionMatrix(glm::mat4& outVPMatrix, bool bVerticalFlip =false) const;
 
 	// -- IFunctionInterface ----
 	static const std::string k_alignCameraFunctionId;

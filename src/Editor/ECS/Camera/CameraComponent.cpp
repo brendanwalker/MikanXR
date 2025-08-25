@@ -297,6 +297,17 @@ void CameraComponent::setVideoSourceById(MikanVideoSourceID videoSourceId)
 	cameraDefinition->setVideoSourceId(videoSourceId);
 }
 
+bool CameraComponent::getAperturePixelDimensions(int& outWidth, int& outHeight) const
+{
+	VideoSourceComponentPtr videoSourceComponent = getVideoSourceComponent();
+	if (videoSourceComponent)
+	{
+		return videoSourceComponent->getPixelDimensions(outWidth, outHeight);
+	}
+
+	return false;
+}
+
 bool CameraComponent::getApertureIntrinsics(MikanVideoSourceIntrinsics& outIntrinsics) const
 {
 	VideoSourceComponentPtr videoSourceComponent = getVideoSourceComponent();
@@ -359,12 +370,23 @@ bool CameraComponent::getAperturePose(
 	return false;
 }
 
-bool CameraComponent::getApertureProjectionMatrix(glm::mat4& outProjectionMatrix) const
+bool CameraComponent::getApertureProjectionMatrix(
+	glm::mat4& outProjectionMatrix,
+	bool bVerticalFlip) const
 {
 	VideoSourceComponentPtr videoSourceComponent = getVideoSourceComponent();
 	if (videoSourceComponent)
 	{
 		outProjectionMatrix = videoSourceComponent->getProjectionMatrix();
+
+		if (bVerticalFlip)
+		{
+			// Flip the projection matrix to account for OpenGL's inverted Y-axis
+			outProjectionMatrix =
+				glm::scale(glm::mat4(1.0), glm::vec3(1.f, -1.f, 1.f)) *
+				outProjectionMatrix;
+		}
+
 		return true;
 	}
 
@@ -383,11 +405,13 @@ bool CameraComponent::getApertureViewMatrix(glm::mat4& outViewMatrix) const
 	return false;
 }
 
-bool CameraComponent::getApertureViewProjectionMatrix(glm::mat4& outVPMatrix) const
+bool CameraComponent::getApertureViewProjectionMatrix(
+	glm::mat4& outVPMatrix,
+	bool bVerticalFlip) const
 {
 	glm::mat4 projMatrix;
 	glm::mat4 viewMatrix;
-	if (getApertureProjectionMatrix(projMatrix) && getApertureViewMatrix(viewMatrix))
+	if (getApertureProjectionMatrix(projMatrix, bVerticalFlip) && getApertureViewMatrix(viewMatrix))
 	{
 		outVPMatrix = projMatrix * viewMatrix;
 		return true;
