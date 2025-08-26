@@ -4,7 +4,6 @@
 #include "Graphs/CompositorNodeGraph.h"
 #include "SdlCommon.h"
 #include "MikanShaderCache.h"
-#include "GlFrameCompositor.h"
 #include "MkStateStack.h"
 #include "MkError.h"
 #include "MikanTextRenderer.h"

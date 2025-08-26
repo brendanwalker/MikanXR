@@ -3,7 +3,7 @@
 #include "ComponentFwd.h"
 #include "Shared/RmlModel.h"
 #include "SinglecastDelegate.h"
-#include "FrameCompositorConstants.h"
+#include "CompositorConstants.h"
 
 class RmlModel_CompositorLayers : public RmlModel
 {

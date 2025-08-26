@@ -1,8 +1,8 @@
 #pragma once
 
+#include "CompositorConstants.h"
 #include "Node.h"
 #include "MikanRendererFwd.h"
-#include "FrameCompositorConstants.h"
 
 class ClientColorTextureNodeConfig : public NodeConfig
 {

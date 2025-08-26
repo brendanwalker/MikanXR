@@ -2,7 +2,7 @@
 
 #include "MikanComponent.h"
 #include "MikanStencilTypes.h"
-#include "FrameCompositorConstants.h"
+#include "CompositorConstants.h"
 #include "TransformComponent.h"
 
 #include <string>

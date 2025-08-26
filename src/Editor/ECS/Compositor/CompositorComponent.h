@@ -3,7 +3,7 @@
 #include "AssetFwd.h"
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
-#include "FrameCompositorConstants.h"
+#include "CompositorConstants.h"
 #include "MikanCameraEvents.h"
 #include "MikanComponent.h"
 #include "MikanCoreTypes.h"

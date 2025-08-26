@@ -1,4 +1,4 @@
-#include "FrameCompositorConstants.h"
+#include "CompositorConstants.h"
 #include "opencv2/opencv.hpp"
 
 const std::string g_compositorLayerAlphaStrings[(int)eCompositorLayerAlphaMode::COUNT] = {

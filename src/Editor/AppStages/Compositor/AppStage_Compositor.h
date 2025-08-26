@@ -13,7 +13,7 @@
 
 #include <filesystem>
 #include <memory>
-#include "FrameCompositorConstants.h"
+#include "CompositorConstants.h"
 
 enum class eCompositorViewpointMode : int
 {

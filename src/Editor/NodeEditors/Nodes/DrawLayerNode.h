@@ -1,9 +1,9 @@
 #pragma once
 
 #include "ComponentFwd.h"
+#include "CompositorConstants.h"
 #include "Node.h"
 #include "MikanRendererFwd.h"
-#include "FrameCompositorConstants.h"
 
 #include <array>
 #include <map>

@@ -6,7 +6,7 @@
 #include "AppStage.h"
 #include "CameraObjectSystem.h"
 #include "CameraComponent.h"
-#include "FrameCompositorConstants.h"
+#include "CompositorConstants.h"
 #include "IVRDevice.h"
 #include "Logger.h"
 #include "MainWindow.h"

@@ -36,7 +36,6 @@ public:
 	inline class RmlManager* getRmlManager() const { return m_rmlManager; }
 	inline class GlRmlUiRender* getRmlUiRenderer() const { return m_rmlUiRenderer.get(); }
 	inline class InputManager* getInputManager() const { return m_inputManager; }
-	inline class GlFrameCompositor* getFrameCompositor() const { return m_frameCompositor; }
 	inline class OpenCVManager* getOpenCVManager() const { return m_openCVManager; }
 
 	inline AppStage* getCurrentAppStage() const
@@ -120,9 +119,6 @@ private:
 
 	// Client Source Manager
 	class ClientSourceManager* m_clientSourceManager = nullptr;
-
-	// Used to blend video with client render targets
-	class GlFrameCompositor* m_frameCompositor = nullptr;
 
 	// Input Manager
 	class InputManager* m_inputManager = nullptr;

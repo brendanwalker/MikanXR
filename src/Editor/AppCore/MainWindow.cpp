@@ -11,7 +11,6 @@
 #include "AppStage.h"
 #include "AnchorObjectSystem.h"
 #include "ClientSourceManager.h"
-#include "GlFrameCompositor.h"
 #include "EditorObjectSystem.h"
 #include "InputManager.h"
 #include "SdlCommon.h"
@@ -60,7 +59,6 @@ MainWindow* MainWindow::m_instance = NULL;
 MainWindow::MainWindow()
 	: m_mikanServer(new MikanServer())
 	, m_clientSourceManager(new ClientSourceManager())
-	, m_frameCompositor(new GlFrameCompositor())
 	, m_inputManager(new InputManager())
 	, m_rmlManager(new RmlManager(this))
 	, m_objectSystemManager(std::make_shared<ObjectSystemManager>(this))
@@ -87,7 +85,6 @@ MainWindow::~MainWindow()
 	delete m_rmlManager;
 	delete m_mikanServer;
 	delete m_clientSourceManager;
-	delete m_frameCompositor;
 
 	assert(m_instance == nullptr);
 	assert(m_textRenderer == nullptr);
@@ -221,12 +218,6 @@ bool MainWindow::startup()
 		success = false;
 	}
 
-	if (success && !m_frameCompositor->startup(this))
-	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the frame compositor";
-		success = false;
-	}
-
 	if (success && !m_mikanServer->startup(this))
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the MikanXR server";
@@ -285,9 +276,6 @@ void MainWindow::update(float deltaSeconds)
 
 	// Poll rendered frames from client connections
 	m_mikanServer->update();
-
-	// Update any frame compositing state based on new video frames or client render target updates
-	m_frameCompositor->update(deltaSeconds);
 
 	// Garbage collect stale baked text
 	m_fontManager->garbageCollect();
@@ -352,9 +340,6 @@ void MainWindow::shutdown()
 
 	assert(m_mikanServer != nullptr);
 	m_mikanServer->shutdown();
-
-	assert(m_frameCompositor != nullptr);
-	m_frameCompositor->shutdown();
 
 	assert(m_clientSourceManager != nullptr);
 	m_clientSourceManager->shutdown();

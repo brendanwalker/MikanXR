@@ -4,6 +4,7 @@
 #include "AnchorObjectSystem.h"
 #include "BoxStencilComponent.h"
 #include "CameraComponent.h"
+#include "ClientSourceManager.h"
 #include "Compositor/AppStage_Compositor.h"
 #include "Compositor/RmlModel_Compositor.h"
 #include "Compositor/RmlModel_CompositorCameras.h"
@@ -588,17 +589,17 @@ void AppStage_Compositor::onGraphFileSelectEvent()
 
 void AppStage_Compositor::onScreenshotClientSourceEvent(const std::string& clientSourceName)
 {
-	// TODO
-	//const NamedValueTable<GlFrameCompositor::ClientSource*>& clientSources = m_frameCompositor->getClientSources();
+	auto* clientSourceManager = ClientSourceManager::getInstance();
 
-	//GlFrameCompositor::ClientSource* clientSource= nullptr;
-	//if (clientSources.tryGetValue(clientSourceName, clientSource))
-	//{		
-	//	if (clientSource->colorTexture != nullptr)
-	//	{
-	//		SdlUtility::saveTextureToPNG(clientSource->colorTexture, "layerScreenshot.png");
-	//	}
-	//}
+	const auto& clientSources= clientSourceManager->getClientSources();
+	if (ClientSourceManager::ClientSource* clientSource = nullptr;
+		clientSources.tryGetValue(clientSourceName, clientSource))
+	{
+		if (clientSource->colorTexture != nullptr)
+		{
+			SdlUtility::saveTextureToPNG(clientSource->colorTexture, "layerScreenshot.png");
+		}
+	}
 }
 
 void AppStage_Compositor::hideAllSubWindows()

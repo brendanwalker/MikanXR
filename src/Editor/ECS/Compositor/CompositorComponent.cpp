@@ -566,14 +566,14 @@ void CompositorComponent::handleCompositorNodeGraphChanged(const std::filesystem
 
 		if (m_nodeGraph)
 		{
-			MIKAN_LOG_INFO("GlFrameCompositor::handleCompositorNodeGraphChanged")
+			MIKAN_LOG_INFO("CompositorComponent::handleCompositorNodeGraphChanged")
 				<< "Loaded compositor graph: " << newAssetRefPath;
 
 			m_nodeGraph->bindToCompositorComponent(getSelfPtr<CompositorComponent>());
 		}
 		else
 		{
-			MIKAN_LOG_ERROR("GlFrameCompositor::handleCompositorNodeGraphChanged")
+			MIKAN_LOG_ERROR("CompositorComponent::handleCompositorNodeGraphChanged")
 				<< "Failed to load compositor graph: " << newAssetRefPath;
 		}
 	}

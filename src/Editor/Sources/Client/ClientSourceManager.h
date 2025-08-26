@@ -1,6 +1,6 @@
 #pragma once
 
-#include "FrameCompositorConstants.h"
+#include "CompositorConstants.h"
 #include "MikanAPITypes.h"
 #include "MikanClientTypes.h"
 #include "MulticastDelegate.h"
