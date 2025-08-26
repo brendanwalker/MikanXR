@@ -17,7 +17,7 @@ RmlModel_CameraSettings::RmlModel_CameraSettings()
 
 bool RmlModel_CameraSettings::init(
 	Rml::Context* rmlContext,
-	VideoSourceSystemPtr videoSourceManager)
+	VideoSourceSystemPtr videoSourceSystem)
 {
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "camera_settings");
@@ -41,10 +41,10 @@ bool RmlModel_CameraSettings::init(
 		});
 
 	// Fill in the data model
-	rebuildVideoSourceList(videoSourceManager);
+	rebuildVideoSourceList(videoSourceSystem);
 
 	// Set the current video source ID
-	VideoSourceComponentPtr currentVideoSource= videoSourceManager->getCurrentVideoSource();
+	VideoSourceComponentPtr currentVideoSource= videoSourceSystem->getCurrentVideoSource();
 	m_videoSourceId = currentVideoSource ? currentVideoSource->getVideoSourceId() : -1;
 
 	return true;

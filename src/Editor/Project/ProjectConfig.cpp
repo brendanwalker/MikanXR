@@ -14,7 +14,6 @@
 #include "StringUtils.h"
 #include "SinglecastDelegate.h"
 #include "TrackingSystemsConfig.h"
-#include "VideoSourceManager.h"
 #include "VideoSourceSystemConfig.h"
 #include "VRObjectSystem.h"
 
@@ -87,9 +86,6 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	trackingSystemsConfig = std::make_shared<TrackingSystemsConfig>("tracking_systems");
 	addChildConfig(trackingSystemsConfig);
 
-	videoSourcesConfig= std::make_shared<VideoSourceManagerConfig>("video_sources");
-	addChildConfig(videoSourcesConfig);
-
 	videoSourceSystemConfig = std::make_shared<VideoSourceSystemConfig>("video_source_system");
 	addChildConfig(videoSourceSystemConfig);
 
@@ -160,9 +156,6 @@ configuru::Config ProjectConfig::writeToJSON()
 
 	// Write the tracking systems config
 	pt[trackingSystemsConfig->getConfigName()] = trackingSystemsConfig->writeToJSON();
-
-	// Write the video sources config
-	pt[videoSourcesConfig->getConfigName()] = videoSourcesConfig->writeToJSON();
 
 	// Write the video source system config
 	pt[videoSourceSystemConfig->getConfigName()] = videoSourceSystemConfig->writeToJSON();
@@ -238,12 +231,6 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 	if (pt.has_key(sceneConfig->getConfigName()))
 	{
 		sceneConfig->readFromJSON(pt[sceneConfig->getConfigName()]);
-	}
-
-	// Read the video sources config
-	if (pt.has_key(videoSourcesConfig->getConfigName()))
-	{
-		videoSourcesConfig->readFromJSON(pt[videoSourcesConfig->getConfigName()]);
 	}
 
 	// Read the camera system config

@@ -14,11 +14,11 @@ class RmlModel_CameraSettings : public RmlModel
 public:
 	RmlModel_CameraSettings();
 
-	bool init(Rml::Context* rmlContext, VideoSourceSystemPtr videoSourceManager);
+	bool init(Rml::Context* rmlContext, VideoSourceSystemPtr videoSourceSystem);
 	virtual void dispose() override;
 
 	inline RmlDataBinding_CameraBrightnessPtr getBrightnessDataBinding() const { return m_brightnessDataBinding; }
-	void rebuildVideoSourceList(VideoSourceSystemPtr videoSourceManager);
+	void rebuildVideoSourceList(VideoSourceSystemPtr videoSourceSystem);
 
 	SinglecastDelegate<void(const MikanVideoSourceID videoSourceId)> OnUpdateVideoSourceId;
 

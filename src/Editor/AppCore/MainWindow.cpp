@@ -36,7 +36,6 @@
 #include "SdlWindow.h"
 #include "StencilObjectSystem.h"
 #include "StringUtils.h"
-#include "VideoSourceManager.h"
 
 #include "MainMenu/AppStage_MainMenu.h"
 
@@ -64,7 +63,6 @@ MainWindow::MainWindow()
 	, m_objectSystemManager(std::make_shared<ObjectSystemManager>(this))
 	, m_openCVManager(new OpenCVManager())
 	, m_fontManager(new MikanFontManager())
-	, m_videoSourceManager(new VideoSourceManager())
 	, m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
 	, m_MkStateStack(MkStateStackUniquePtr(new MkStateStack(this)))
 	, m_lineRenderer(createMkLineRenderer(this))
@@ -80,7 +78,6 @@ MainWindow::~MainWindow()
 {
 	m_objectSystemManager = nullptr;
 	delete m_openCVManager;
-	delete m_videoSourceManager;
 	delete m_inputManager;
 	delete m_rmlManager;
 	delete m_mikanServer;
@@ -197,12 +194,6 @@ bool MainWindow::startup()
 		success = false;
 	}
 
-	if (success && !m_videoSourceManager->startup(this))
-	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the video source manager";
-		success = false;
-	}
-
 	if (success)
 	{
 		if (!m_objectSystemManager->startup())
@@ -271,9 +262,6 @@ bool MainWindow::startup()
 
 void MainWindow::update(float deltaSeconds)
 {
-	// Update all connected devices	
-	m_videoSourceManager->update(deltaSeconds);
-
 	// Poll rendered frames from client connections
 	m_mikanServer->update();
 
@@ -347,9 +335,6 @@ void MainWindow::shutdown()
 	// Dispose all ObjectSystems
 	assert(m_objectSystemManager != nullptr);
 	m_objectSystemManager->shutdown();
-
-	assert(m_videoSourceManager != nullptr);
-	m_videoSourceManager->shutdown();
 
 	assert(m_fontManager != nullptr);
 	m_fontManager->shutdown();

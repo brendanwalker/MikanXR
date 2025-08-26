@@ -32,7 +32,6 @@ public:
 	inline class MikanServer* getMikanServer() const { return m_mikanServer; }
 	inline ObjectSystemManagerPtr getObjectSystemManager() const { return m_objectSystemManager; }
 	inline class MikanFontManager* getFontManager() const { return m_fontManager; }
-	inline class VideoSourceManager* getVideoSourceManager() const { return m_videoSourceManager; }
 	inline class RmlManager* getRmlManager() const { return m_rmlManager; }
 	inline class GlRmlUiRender* getRmlUiRenderer() const { return m_rmlUiRenderer.get(); }
 	inline class InputManager* getInputManager() const { return m_inputManager; }
@@ -134,9 +133,6 @@ private:
 
 	// OpenGL/SDL font/baked text string texture cache
 	class MikanFontManager* m_fontManager = nullptr;
-
-	// Keeps track of currently connected camera
-	class VideoSourceManager* m_videoSourceManager = nullptr;
 
 	// App Stages
 	int m_appStageStackIndex = -1;

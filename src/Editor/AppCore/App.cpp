@@ -15,7 +15,6 @@
 #include "ProjectConfig.h"
 #include "SdlManager.h"
 #include "SdlWindow.h"
-#include "VideoSourceManager.h"
 
 //#include "Windows/TestNodeEditorWindow.h"
 #include "Windows/CompositorNodeEditorWindow.h"
