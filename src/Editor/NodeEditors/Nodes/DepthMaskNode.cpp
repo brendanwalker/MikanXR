@@ -167,8 +167,10 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 		bSuccess = false;
 	}
 
-	int frameWidth, frameHeight;
-	CameraComponentPtr cameraComponent = evaluator.getCurrentCameraComponent();
+	int frameWidth = 0;
+	int frameHeight = 0;
+	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
+	CameraComponentPtr cameraComponent = compositorGraph->getBoundCameraComponent();
 	if (bSuccess)
 	{
 		bSuccess = 

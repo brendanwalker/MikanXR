@@ -18,11 +18,6 @@ public:
 	inline class IMkWindow* getCurrentWindow() const 
 	{ return m_currentWindow; }
 
-	inline NodeEvaluator& setCurrentCameraComponent(CameraComponentPtr inCameraComponent)
-	{ m_currentCameraComponent = inCameraComponent; return *this; }
-	inline CameraComponentPtr getCurrentCameraComponent() const
-	{ return m_currentCameraComponent; }
-
 	inline NodeEvaluator& setDeltaSeconds(float inDeltaSeconds) 
 	{ m_deltaSeconds= inDeltaSeconds; return *this; }
 	inline float getDeltaSeconds() const 
@@ -40,7 +35,7 @@ public:
 protected:
 	class IMkWindow* m_currentWindow= nullptr;
 	float m_deltaSeconds= 0.f;
-	CameraComponentPtr m_currentCameraComponent;
+	CompositorComponentPtr m_compositor;
 
 	NodePtr m_currentNode;
 	int m_evaluatedNodeCount= 0;

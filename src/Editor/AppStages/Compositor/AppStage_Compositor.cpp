@@ -19,6 +19,7 @@
 #include "ModalConfirm/ModalDialog_Confirm.h"
 #include "Colors.h"
 #include "CompositorScriptContext.h"
+#include "Graphs/CompositorNodeGraph.h"
 #include "SdlCommon.h"
 #include "MikanCamera.h"
 #include "IMkLineRenderer.h"
@@ -182,15 +183,11 @@ void AppStage_Compositor::enter()
 
 		// TODO
 		// Init Layers UI
-		//m_compositorLayersModel->init(context, m_frameCompositor);
-		//m_compositorLayersModel->OnGraphEditEvent = MakeDelegate(this, &AppStage_Compositor::onGraphEditEvent);
-		//m_compositorLayersModel->OnGraphFileSelectEvent = MakeDelegate(this, &AppStage_Compositor::onGraphFileSelectEvent);
-		//m_compositorLayersModel->OnConfigAddEvent = MakeDelegate(this, &AppStage_Compositor::onConfigAddEvent);
-		//m_compositorLayersModel->OnConfigDeleteEvent = MakeDelegate(this, &AppStage_Compositor::onConfigDeleteEvent);
-		//m_compositorLayersModel->OnConfigNameChangeEvent = MakeDelegate(this, &AppStage_Compositor::onConfigNameChangeEvent);
-		//m_compositorLayersModel->OnConfigSelectEvent = MakeDelegate(this, &AppStage_Compositor::onConfigSelectEvent);
-		//m_compositiorLayersView = addRmlDocument("compositor_layers.rml");
-		//m_compositiorLayersView->Hide();
+		m_compositorLayersModel->init(context, m_frameCompositor);
+		m_compositorLayersModel->OnGraphEditEvent = MakeDelegate(this, &AppStage_Compositor::onGraphEditEvent);
+		m_compositorLayersModel->OnGraphFileSelectEvent = MakeDelegate(this, &AppStage_Compositor::onGraphFileSelectEvent);
+		m_compositiorLayersView = addRmlDocument("compositor_layers.rml");
+		m_compositiorLayersView->Hide();
 
 		// Init Cameras UI
 		m_compositorCamerasModel->init(context);
@@ -566,7 +563,15 @@ void AppStage_Compositor::onGraphEditEvent()
 
 	if (!app->hasWindowOfType<CompositorNodeEditorWindow>())
 	{
-		app->createAppWindow<CompositorNodeEditorWindow>();
+		auto* compositorNodeEditor= app->createAppWindow<CompositorNodeEditorWindow>();
+
+		// Bind the current compositor graph to the editor
+		NodeGraphPtr nodeGraph = compositorNodeEditor->getNodeGraph();
+		if (nodeGraph)
+		{
+			auto compositorNodeGraph = std::static_pointer_cast<CompositorNodeGraph>(nodeGraph);
+			compositorNodeGraph->bindToCompositorComponent(m_frameCompositor);
+		}
 	}
 }
 
@@ -579,75 +584,6 @@ void AppStage_Compositor::onGraphFileSelectEvent()
 	{
 		m_frameCompositor->getCompositorDefinition()->setCompositorGraphPath(path);
 	}
-}
-
-void AppStage_Compositor::onConfigAddEvent()
-{
-	m_bAddingNewConfig= true;
-
-	// TODO
-	//if (m_frameCompositor->addNewPreset())
-	//{	
-	//	// Get the name of the newly created preset
-	//	const std::string newPresetName = m_frameCompositor->getCurrentPresetName();
-
-	//	// Rebuild the layers UI to make sure the new layer exists
-	//	m_compositorLayersModel->rebuild(m_frameCompositor);
-	//	getRmlContext()->Update();
-
-	//	// Force select the new preset (by default RML preserves the current selection)
-	//	Rml::ElementFormControlSelect* select_element= 
-	//		rmlui_dynamic_cast< Rml::ElementFormControlSelect* >(
-	//			m_compositiorLayersView->GetElementById("config_select"));
-	//	if (select_element != nullptr)
-	//	{
-	//		select_element->SetValue(newPresetName);
-	//	}
-	//}
-
-	m_bAddingNewConfig= false;
-}
-
-void AppStage_Compositor::onConfigDeleteEvent()
-{
-	//TODO
-	//CompositorPresetConstPtr preset= m_frameCompositor->getCurrentPresetConfig();
-	//if (preset == nullptr)
-	//	return;
-
-	//char szQuestion[512];
-	//StringUtils::formatString(
-	//	szQuestion, sizeof(szQuestion), 
-	//	"Are you sure you want to delete config \'%s\'", 
-	//	preset->name.c_str());
-
-	//ModalDialog_Confirm::confirmQuestion(
-	//	"Delete Config", szQuestion,
-	//	[this]() {
-	//		if (m_frameCompositor->deleteCurrentPreset())
-	//		{
-	//			m_compositorLayersModel->rebuild(m_frameCompositor);
-	//		}
-	//	});
-}
-
-void AppStage_Compositor::onConfigNameChangeEvent(const std::string& newConfigName)
-{
-	//TODO
-	//if (m_frameCompositor->setCurrentPresetName(newConfigName))
-	//{
-	//	m_compositorLayersModel->rebuild(m_frameCompositor);
-	//}
-}
-
-void AppStage_Compositor::onConfigSelectEvent(const std::string& configName)
-{
-	// Ignore this UI event if we are in the middle of adding a new config
-	if (m_bAddingNewConfig)
-		return;
-
-	// TODO
-	//m_frameCompositor->selectPreset(configName);
 }
 
 void AppStage_Compositor::onScreenshotClientSourceEvent(const std::string& clientSourceName)

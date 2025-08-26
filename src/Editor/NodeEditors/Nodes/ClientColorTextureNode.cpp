@@ -1,7 +1,6 @@
 #include "ClientColorTextureNode.h"
 #include "ClientSourceManager.h"
 #include "MkScopedObjectBinding.h"
-#include "GlFrameCompositor.h"
 #include "IMkFrameBuffer.h"
 #include "IMkWindow.h"
 #include "MkMaterial.h"

@@ -418,9 +418,9 @@ void GlFrameCompositor::stop()
 
 bool GlFrameCompositor::getVideoSourceCameraPose(glm::mat4& outCameraMat) const
 {
-	if (m_videoSourceComponent != nullptr && m_cameraTrackingPuckPoseView != nullptr)
+	if (m_videoSourceView != nullptr && m_cameraTrackingPuckPoseView != nullptr)
 	{
-		return m_videoSourceComponent->getCameraPose(m_cameraTrackingPuckPoseView, outCameraMat);
+		return m_videoSourceView->getCameraPose(m_cameraTrackingPuckPoseView, outCameraMat);
 	}
 	
 	return false;
@@ -428,9 +428,9 @@ bool GlFrameCompositor::getVideoSourceCameraPose(glm::mat4& outCameraMat) const
 
 bool GlFrameCompositor::getVideoSourceView(glm::mat4& outCameraView) const
 {
-	if (m_videoSourceComponent != nullptr && m_cameraTrackingPuckPoseView != nullptr)
+	if (m_videoSourceView != nullptr && m_cameraTrackingPuckPoseView != nullptr)
 	{
-		return m_videoSourceComponent->getCameraViewMatrix(m_cameraTrackingPuckPoseView, outCameraView);
+		return m_videoSourceView->getCameraViewMatrix(m_cameraTrackingPuckPoseView, outCameraView);
 	}
 
 	return false;
@@ -440,9 +440,9 @@ bool GlFrameCompositor::getVideoSourceProjection(
 	glm::mat4& outCameraProjection,
 	bool verticalFlip) const
 {
-	if (m_videoSourceComponent != nullptr)
+	if (m_videoSourceView != nullptr)
 	{
-		outCameraProjection = m_videoSourceComponent->getCameraProjectionMatrix();
+		outCameraProjection = m_videoSourceView->getCameraProjectionMatrix();
 
 		if (verticalFlip)
 		{
@@ -460,9 +460,9 @@ bool GlFrameCompositor::getVideoSourceProjection(
 
 bool GlFrameCompositor::getVideoSourceViewProjection(glm::mat4& outCameraVP) const
 {
-	if (m_videoSourceComponent != nullptr && m_cameraTrackingPuckPoseView != nullptr)
+	if (m_videoSourceView != nullptr && m_cameraTrackingPuckPoseView != nullptr)
 	{
-		return m_videoSourceComponent->getCameraViewProjectionMatrix(m_cameraTrackingPuckPoseView, outCameraVP);
+		return m_videoSourceView->getCameraViewProjectionMatrix(m_cameraTrackingPuckPoseView, outCameraVP);
 	}
 
 	return false;
@@ -470,9 +470,9 @@ bool GlFrameCompositor::getVideoSourceViewProjection(glm::mat4& outCameraVP) con
 
 bool GlFrameCompositor::getVideoSourceZRange(float& outZNear, float& outZFar) const
 {
-	if (m_videoSourceComponent != nullptr)
+	if (m_videoSourceView != nullptr)
 	{
-		m_videoSourceComponent->getZRange(outZNear, outZFar);
+		m_videoSourceView->getZRange(outZNear, outZFar);
 		return true;
 	}
 
@@ -736,7 +736,7 @@ void GlFrameCompositor::updateCompositeFrameNodeGraph()
 	MainWindow* mainWindow = MainWindow::getInstance();
 	NodeEvaluator evaluator = {};
 	evaluator
-		//.setCurrentVideoSourceComponent(m_videoSourceComponent)
+		//.setCurrentVideoSourceComponent(m_videoSourceView)
 		.setCurrentWindow(mainWindow)
 		.setDeltaSeconds(m_timeSinceLastFrameComposited);
 
@@ -777,15 +777,15 @@ bool GlFrameCompositor::openVideoSource()
 	ProjectConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 
 	// Start streaming the video
-	m_videoSourceComponent = VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
-	if (m_videoSourceComponent != nullptr)
+	m_videoSourceView = VideoSourceListIterator(profileConfig->videoSourcePath).getCurrent();
+	if (m_videoSourceView != nullptr)
 	{
 		// Bind video source events
-		m_videoSourceComponent->OnFrameSizeChanged += MakeDelegate(this, &GlFrameCompositor::onVideoFrameSizeChanged);
+		m_videoSourceView->OnFrameSizeChanged += MakeDelegate(this, &GlFrameCompositor::onVideoFrameSizeChanged);
 
-		if (m_videoSourceComponent->startVideoStream() == eVideoStreamingStatus::started)
+		if (m_videoSourceView->startVideoStream() == eVideoStreamingStatus::started)
 		{
-			onVideoFrameSizeChanged(m_videoSourceComponent.get());
+			onVideoFrameSizeChanged(m_videoSourceView.get());
 		}
 
 		return true;
@@ -799,8 +799,8 @@ void GlFrameCompositor::onVideoFrameSizeChanged(const VideoSourceView* videoSour
 	ProjectConfigConstPtr profileConfig = App::getInstance()->getProfileConfig();
 
 	// Create a frame buffer and texture to do the compositing work in
-	uint16_t frameWidth = (uint16_t)m_videoSourceComponent->getFrameWidth();
-	uint16_t frameHeight = (uint16_t)m_videoSourceComponent->getFrameHeight();
+	uint16_t frameWidth = (uint16_t)m_videoSourceView->getFrameWidth();
+	uint16_t frameHeight = (uint16_t)m_videoSourceView->getFrameHeight();
 
 	if (createCompositingTextures(frameWidth, frameHeight))
 	{
@@ -832,11 +832,11 @@ void GlFrameCompositor::closeVideoSource()
 		m_videoDistortionView= nullptr;
 	}
 
-	if (m_videoSourceComponent)
+	if (m_videoSourceView)
 	{
-		m_videoSourceComponent->OnFrameSizeChanged -= MakeDelegate(this, &GlFrameCompositor::onVideoFrameSizeChanged);
-		m_videoSourceComponent->stopVideoStream();
-		m_videoSourceComponent= nullptr;
+		m_videoSourceView->OnFrameSizeChanged -= MakeDelegate(this, &GlFrameCompositor::onVideoFrameSizeChanged);
+		m_videoSourceView->stopVideoStream();
+		m_videoSourceView= nullptr;
 	}
 }
 

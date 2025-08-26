@@ -1,13 +1,14 @@
-#include "App.h"
-#include "GlFrameCompositor.h"
+#include "CompositorComponent.h"
 #include "IMkTexture.h"
 #include "Logger.h"
-#include "MainWindow.h"
 #include "NodeEditorState.h"
 #include "NodeEditorUI.h"
 #include "StringUtils.h"
 #include "VideoTextureNode.h"
+#include "VideoSourceComponent.h"
 
+#include "Graphs/CompositorNodeGraph.h"
+#include "Graphs/NodeEvaluator.h"
 #include "Graphs/NodeGraph.h"
 
 #include "Pins/NodePin.h"
@@ -65,10 +66,11 @@ void VideoTextureNode::saveToConfig(NodeConfigPtr nodeConfig) const
 
 IMkTexturePtr VideoTextureNode::getTextureResource() const
 {
-	GlFrameCompositor* compositor = MainWindow::getInstance()->getFrameCompositor();
-	if (compositor != nullptr)
+	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
+	CompositorComponentPtr compositorComponent= compositorGraph->getBoundCompositorComponent();
+	if (compositorComponent != nullptr)
 	{
-		return compositor->getVideoSourceTexture(m_videoTextureSource);
+		return compositorComponent->getVideoSourceTexture(m_videoTextureSource);
 	}
 
 	return IMkTexturePtr();
@@ -76,10 +78,11 @@ IMkTexturePtr VideoTextureNode::getTextureResource() const
 
 IMkTexturePtr VideoTextureNode::getPreviewTextureResource() const
 {
-	GlFrameCompositor* compositor = MainWindow::getInstance()->getFrameCompositor();
-	if (compositor != nullptr)
+	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
+	CompositorComponentPtr compositorComponent = compositorGraph->getBoundCompositorComponent();
+	if (compositorComponent != nullptr)
 	{
-		return compositor->getVideoPreviewTexture(m_videoTextureSource);
+		return compositorComponent->getVideoPreviewTexture(m_videoTextureSource);
 	}
 
 	return IMkTexturePtr();

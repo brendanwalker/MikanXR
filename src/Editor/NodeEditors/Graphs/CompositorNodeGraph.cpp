@@ -1,4 +1,6 @@
 #include "CompositorNodeGraph.h"
+#include "CompositorComponent.h"
+#include "CameraComponent.h"
 #include "SdlCommon.h"
 #include "IMkFrameBuffer.h"
 #include "MkMaterial.h"
@@ -203,6 +205,52 @@ IMkTextureConstPtr CompositorNodeGraph::getCompositedFrameTexture() const
 void CompositorNodeGraph::setExternalCompositedFrameTexture(IMkTexturePtr externalTexture)
 {
 	m_compositingFrameBuffer->setExternalColorTexture(externalTexture);
+}
+
+bool CompositorNodeGraph::bindToCompositorComponent(CompositorComponentPtr compositorComponent)
+{
+	if (compositorComponent)
+	{
+		m_boundCompositorComponent = compositorComponent;
+		return true;
+	}
+
+	return false;
+}
+
+void CompositorNodeGraph::unbindFromCompositorComponent(CompositorComponentPtr compositorComponent)
+{
+	if (getBoundCompositorComponent() == compositorComponent)
+	{
+		m_boundCompositorComponent.reset();
+	}
+}
+
+CompositorComponentPtr CompositorNodeGraph::getBoundCompositorComponent() const
+{ 
+	return m_boundCompositorComponent.lock(); 
+}
+
+CameraComponentPtr CompositorNodeGraph::getBoundCameraComponent() const
+{
+	CompositorComponentPtr compositorComponent = getBoundCompositorComponent();
+	if (compositorComponent)
+	{
+		return compositorComponent->getCameraComponent();
+	}
+
+	return CameraComponentPtr();
+}
+
+VideoSourceComponentPtr CompositorNodeGraph::getBoundVideoSourceComponent() const
+{
+	CameraComponentPtr cameraComponent = getBoundCameraComponent();
+	if (cameraComponent)
+	{
+		return cameraComponent->getVideoSourceComponent();
+	}
+
+	return VideoSourceComponentPtr();
 }
 
 void CompositorNodeGraph::gatherAllReferencedClientSourceIDs(
@@ -539,11 +587,10 @@ bool CompositorNodeGraph::createBoxMeshes()
 
 void CompositorNodeGraph::updateCompositingFrameBufferSize(NodeEvaluator& evaluator)
 {
-	// Use the current video source's frame size
-	int frameWidth, frameHeight;
-	VideoSourceComponentPtr videoSource = evaluator.getCurrentVideoSourceComponent();
-	if (videoSource && 
-		videoSource->getPixelDimensions(frameWidth, frameHeight))
+	// Use the current video source's frame size	
+	VideoSourceComponentPtr videoSource = getBoundVideoSourceComponent();
+	if (int frameWidth, frameHeight;
+		videoSource && videoSource->getPixelDimensions(frameWidth, frameHeight))
 	{
 		// Does nothing if the frame buffer is already the correct size
 		m_compositingFrameBuffer->setSize(frameWidth, frameHeight);

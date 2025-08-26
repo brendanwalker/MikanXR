@@ -26,9 +26,6 @@ public:
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
 	virtual void saveToConfig(NodeConfigPtr nodeConfig) const override;
 
-	IMkTexturePtr getTextureResource() const;
-	IMkTexturePtr getPreviewTextureResource() const;
-
 	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
 	virtual void editorRenderNode(const NodeEditorState& editorState) override;
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
@@ -36,6 +33,9 @@ public:
 protected:
 	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
 	virtual std::string editorGetTitle() const override { return "Video Texture"; }
+
+	IMkTexturePtr getTextureResource() const;
+	IMkTexturePtr getPreviewTextureResource() const;
 
 protected:
 	eVideoTextureSource m_videoTextureSource= eVideoTextureSource::video_texture;

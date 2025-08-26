@@ -14,6 +14,7 @@
 #include "ObjectFwd.h"
 #include "SceneFwd.h"
 #include "Transform.h"
+#include "VideoDisplayConstants.h"
 
 #include <memory>
 #include <queue>
@@ -72,9 +73,13 @@ public:
 	void stop();
 
 	SceneComponentPtr getOwnerSceneComponent() const;
-	CameraComponentPtr getCameraComponent() const;
 	VideoSourceComponentPtr getVideoSourceComponent() const;
+
+	CameraComponentPtr getCameraComponent() const;
 	void setCameraComponent(CameraComponentPtr cameraComponent);
+
+	std::filesystem::path getCompositorGraphAssetPath() const;
+	void setCompositorGraphAssetPath(const std::filesystem::path& assetRefPath);
 
 	inline CompositorDefinitionPtr getCompositorDefinition() const
 	{
@@ -85,6 +90,8 @@ public:
 		return getCompositorDefinition()->getCompositorId(); 
 	}
 
+	IMkTexturePtr getVideoSourceTexture(eVideoTextureSource textureSource) const;
+	IMkTexturePtr getVideoPreviewTexture(eVideoTextureSource textureSource) const;
 	void setCompositorEvaluatorWindow(eCompositorEvaluatorWindow evalWindow);
 	IMkTexturePtr getEditorWritableFrameTexture() const;
 	IMkTextureConstPtr getCompositedFrameTexture() const;
@@ -101,6 +108,7 @@ public:
 	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
 
 protected:
+	void handleCompositorNodeGraphChanged(const std::filesystem::path& newAssetRefPath);
 	void handleCameraChange(CameraComponentPtr oldCameraComponent, CameraComponentPtr newCameraComponent);
 	void unbindVideoSourceEvents(VideoSourceComponentPtr videoSource);
 	void bindVideoSourceEvents(VideoSourceComponentPtr videoSource);

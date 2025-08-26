@@ -244,7 +244,8 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 		bSuccess= false;	
 	}
 
-	CameraComponentPtr cameraComponent = evaluator.getCurrentCameraComponent();
+	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
+	CameraComponentPtr cameraComponent = compositorGraph->getBoundCameraComponent();
 	if (bSuccess)
 	{
 		bSuccess = cameraComponent != nullptr;

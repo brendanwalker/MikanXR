@@ -85,7 +85,7 @@ public:
 	bool getVideoSourceProjection(glm::mat4& outCameraProjection, bool verticalFlip= false) const;
 	bool getVideoSourceViewProjection(glm::mat4& outCameraVP) const;
 	bool getVideoSourceZRange(float& outZNear, float& outZFar) const;
-	inline VideoSourceViewPtr getVideoSource() const { return m_videoSourceComponent; }
+	inline VideoSourceViewPtr getVideoSource() const { return m_videoSourceView; }
 	IMkTexturePtr getVideoSourceTexture(eVideoTextureSource textureSource) const;
 	IMkTexturePtr getVideoPreviewTexture(eVideoTextureSource textureSource) const;
 
@@ -140,7 +140,7 @@ private:
 
 	std::queue<MikanCameraNewFrameEvent> m_frameEventQueue;
 
-	VideoSourceViewPtr m_videoSourceComponent;
+	VideoSourceViewPtr m_videoSourceView;
 	VideoFrameDistortionView* m_videoDistortionView = nullptr;
 	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
 

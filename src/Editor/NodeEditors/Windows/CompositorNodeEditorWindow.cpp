@@ -64,8 +64,7 @@ void CompositorNodeEditorWindow::update(float deltaSeconds)
 			NodeEvaluator evaluator = {};
 			evaluator
 				.setCurrentWindow(this)
-				.setDeltaSeconds(deltaSeconds)
-				.setCurrentCameraComponent(cameraComponent);
+				.setDeltaSeconds(deltaSeconds);
 
 			auto node_graph = std::static_pointer_cast<CompositorNodeGraph>(m_editorState.nodeGraph);
 			if (!node_graph->compositeFrame(evaluator))

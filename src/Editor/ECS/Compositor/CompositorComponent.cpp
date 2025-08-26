@@ -133,11 +133,19 @@ void CompositorComponent::init()
 {
 	MikanComponent::init();
 
+	m_nodeGraphAssetRef = std::make_shared<NodeGraphAssetReference>();
+	m_editorFrameBufferTexture = CreateMkTexture();
 	m_layerQuadMesh = createFullscreenQuadMesh(getOwnerWindow(), false);
+
+	// Initialize the compositor graph if we have one assigned
+	handleCompositorNodeGraphChanged(getCompositorGraphAssetPath());
 }
 
 void CompositorComponent::dispose()
 {
+	m_editorFrameBufferTexture = nullptr;
+	m_nodeGraph = nullptr;
+	m_nodeGraphAssetRef = nullptr;
 	m_layerQuadMesh= nullptr;
 
 	MikanComponent::dispose();
@@ -377,6 +385,25 @@ void CompositorComponent::updateCompositeFrame()
 	}
 }
 
+IMkTexturePtr CompositorComponent::getVideoSourceTexture(eVideoTextureSource textureSource) const
+{
+	switch (textureSource)
+	{
+	case eVideoTextureSource::video_texture:
+		return (m_videoDistortionView != nullptr) ? m_videoDistortionView->getVideoTexture() : IMkTexturePtr();
+	case eVideoTextureSource::distortion_texture:
+		return (m_videoDistortionView != nullptr) ? m_videoDistortionView->getDistortionTexture() : IMkTexturePtr();
+	}
+
+	return IMkTexturePtr();
+}
+
+IMkTexturePtr CompositorComponent::getVideoPreviewTexture(eVideoTextureSource textureSource) const
+{
+	// For now, just return the same texture as the video source
+	return getVideoSourceTexture(textureSource);
+}
+
 void CompositorComponent::setCompositorEvaluatorWindow(eCompositorEvaluatorWindow evalWindow)
 {
 	if (m_evaluatorWindow != evalWindow)
@@ -412,23 +439,17 @@ IMkTextureConstPtr CompositorComponent::getCompositedFrameTexture() const
 
 void CompositorComponent::updateCompositeFrameNodeGraph()
 {
-	CameraComponentPtr cameraComponent= getCameraComponent();
+	NodeEvaluator evaluator = {};
+	evaluator
+		.setCurrentWindow(getOwnerWindow())
+		.setDeltaSeconds(m_timeSinceLastFrameComposited);
 
-	if (cameraComponent)
+	if (!m_nodeGraph->compositeFrame(evaluator))
 	{
-		NodeEvaluator evaluator = {};
-		evaluator
-			.setCurrentCameraComponent(cameraComponent)
-			.setCurrentWindow(getOwnerWindow())
-			.setDeltaSeconds(m_timeSinceLastFrameComposited);
-
-		if (!m_nodeGraph->compositeFrame(evaluator))
+		for (const NodeEvaluationError& error : evaluator.getErrors())
 		{
-			for (const NodeEvaluationError& error : evaluator.getErrors())
-			{
-				MIKAN_LOG_ERROR("CompositorComponent::updateCompositeFrame")
-					<< "Compositor graph eval error: " << error.errorMessage;
-			}
+			MIKAN_LOG_ERROR("CompositorComponent::updateCompositeFrame")
+				<< "Compositor graph eval error: " << error.errorMessage;
 		}
 	}
 }
@@ -465,56 +486,16 @@ bool CompositorComponent::start()
 	if (getIsRunning())
 		return true;
 
-	// TODO
-	//if (!openVideoSource())
-	//	return false;
-
-	// Initialize layers for any active Mikan client connections
-	{
-		//MikanServer* mikanServer = MikanServer::getInstance();
-
-		//// Create layers for all connected clients with allocated render targets
-		//std::vector<MikanClientConnectionStateConstPtr> clientStateList;
-		//mikanServer->getConnectedClientStateList(clientStateList);
-		//for (MikanClientConnectionStateConstPtr clientState : clientStateList)
-		//{
-		//	RenderTargetClientState* renderTargetClientState = clientState->getRenderTargetClientState();
-
-		//	if (renderTargetClientState->hasAllocatedRenderTarget())
-		//	{
-		//		onClientRenderTargetAllocated(
-		//			clientState->getClientId(),
-		//			clientState->getMikanClientInfo(),
-		//			renderTargetClientState->getRenderTargetReadAccessor());
-		//	}
-		//}
-
-		//// Listen for new render target events
-		//auto* renderTargetClientHandler = mikanServer->getRenderTargetRequestHandler();
-		//renderTargetClientHandler->OnClientRenderTargetAllocated += MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetAllocated);
-		//renderTargetClientHandler->OnClientRenderTargetReleased += MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetReleased);
-		//renderTargetClientHandler->OnClientRenderTargetUpdated += MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetUpdated);
-
-		m_bIsRunning = true;
-		m_timeSinceLastFrameComposited = 0.f;
-	}
+	//TODO: Start the video source?
+	m_bIsRunning = true;
+	m_timeSinceLastFrameComposited = 0.f;
 
 	return true;
 }
 
 void CompositorComponent::stop()
 {
-	// Stop listening to render target events
-	{
-		// TODO
-		//MikanServer* mikanServer = MikanServer::getInstance();
-		//auto* renderTargetClientHandler = mikanServer->getRenderTargetRequestHandler();
-
-		//renderTargetClientHandler->OnClientRenderTargetAllocated -= MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetAllocated);
-		//renderTargetClientHandler->OnClientRenderTargetReleased -= MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetReleased);
-		//renderTargetClientHandler->OnClientRenderTargetUpdated -= MakeDelegate(this, &GlFrameCompositor::onClientRenderTargetUpdated);
-	}
-
+	//TODO: Stop the video source?
 	m_bIsRunning = false;
 }
 
@@ -556,6 +537,49 @@ void CompositorComponent::setCameraComponent(CameraComponentPtr newCameraCompone
 
 		// Update the camera ID in the compositor definition
 		getCompositorDefinition()->setCameraId(newCameraId);
+	}
+}
+
+std::filesystem::path CompositorComponent::getCompositorGraphAssetPath() const
+{
+	return getCompositorDefinition()->getCompositorGraphPath();
+}
+
+void CompositorComponent::setCompositorGraphAssetPath(const std::filesystem::path& assetRefPath)
+{
+	if (getCompositorDefinition()->getCompositorGraphPath() != assetRefPath)
+	{
+		handleCompositorNodeGraphChanged(assetRefPath);
+		getCompositorDefinition()->setCompositorGraphPath(assetRefPath);
+	}
+}
+
+void CompositorComponent::handleCompositorNodeGraphChanged(const std::filesystem::path& newAssetRefPath)
+{
+	m_nodeGraphAssetRef->setAssetPath(newAssetRefPath);
+
+	if (m_nodeGraphAssetRef->isValid())
+	{
+		m_nodeGraph =
+			std::dynamic_pointer_cast<CompositorNodeGraph>(
+				NodeGraphFactory::loadNodeGraph(getOwnerWindow(), newAssetRefPath));
+
+		if (m_nodeGraph)
+		{
+			MIKAN_LOG_INFO("GlFrameCompositor::handleCompositorNodeGraphChanged")
+				<< "Loaded compositor graph: " << newAssetRefPath;
+
+			m_nodeGraph->bindToCompositorComponent(getSelfPtr<CompositorComponent>());
+		}
+		else
+		{
+			MIKAN_LOG_ERROR("GlFrameCompositor::handleCompositorNodeGraphChanged")
+				<< "Failed to load compositor graph: " << newAssetRefPath;
+		}
+	}
+	else
+	{
+		m_nodeGraph = nullptr;
 	}
 }
 

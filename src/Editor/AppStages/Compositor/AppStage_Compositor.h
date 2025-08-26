@@ -84,10 +84,6 @@ protected:
 	// Layers UI Events
 	void onGraphEditEvent();
 	void onGraphFileSelectEvent();
-	void onConfigAddEvent();
-	void onConfigDeleteEvent();
-	void onConfigNameChangeEvent(const std::string& newConfigName);
-	void onConfigSelectEvent(const std::string& configName);
 	void onScreenshotClientSourceEvent(const std::string& clientSourceName);
 
 	// Scripting UI Events

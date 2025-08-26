@@ -61,18 +61,6 @@
 	<body template="window">
         <panel id="controls" data-model="compositor_layers">
             <h1>Config</h1>
-            <div class="tiled-box">
-                <label>Select:</label>
-                <select id="config_select" style="width: 150dp; margin-left: 0; vertical-align: 0dp;"  data-value="current_configuration" data-event-change="select_configuration()">
-                    <option data-for="config_name : configuration_names" data-value="config_name">{{config_name}}</option>
-                </select>
-                <br/>
-                <label>Name:</label>
-                <input type="text" style="width: 150dp; margin-left: 0;	vertical-align: 6dp;" data-event-change="modify_config_name()" data-value="current_configuration"/>
-                <br/>
-                <button data-event-click="add_config()">Add Config</button>
-                <button data-if="!is_builtin_configuration" data-event-click="delete_config()">Delete Config</button>
-            </div>
             <div>
                 <button data-event-click="edit_compositor_graph()">Edit Compositor Graph</button>
             </div>

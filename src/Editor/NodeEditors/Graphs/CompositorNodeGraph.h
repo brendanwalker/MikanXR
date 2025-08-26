@@ -26,6 +26,14 @@ public:
 	IMkTextureConstPtr getCompositedFrameTexture() const;
 	void setExternalCompositedFrameTexture(IMkTexturePtr externalTexture);
 
+	// Compositor Component
+	bool bindToCompositorComponent(CompositorComponentPtr compositorComponent);
+	void unbindFromCompositorComponent(CompositorComponentPtr compositorComponent);
+
+	CompositorComponentPtr getBoundCompositorComponent() const;
+	CameraComponentPtr getBoundCameraComponent() const;
+	VideoSourceComponentPtr getBoundVideoSourceComponent() const;
+
 	// Sources
 	void gatherAllReferencedClientSourceIDs(std::set<std::string>& outClientSourceIds) const;
 
@@ -53,6 +61,7 @@ protected:
 	void onStencilSystemConfigMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
 protected:
+	CompositorComponentWeakPtr m_boundCompositorComponent;
 	IMkFrameBufferPtr m_compositingFrameBuffer;
 	IMkShaderPtr m_vertexOnlyStencilShader;
 	IMkTriangulatedMeshPtr m_stencilQuadMesh;
