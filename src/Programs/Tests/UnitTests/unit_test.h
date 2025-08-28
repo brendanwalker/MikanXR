@@ -1,6 +1,5 @@
 /* Performance measurement structures and functions */
-#ifndef __UNIT_TEST_H
-#define __UNIT_TEST_H
+#pragma once
 
 //-- macros ----
 #define UNIT_TEST_SUITE_BEGIN() \
@@ -47,5 +46,3 @@ else \
 #define UNIT_TEST_COMPLETE() \
  	fprintf(stdout, "    %s - %s\n", __test_name, success ? "PASSED" : "FAILED"); \
 	return success; \
-
-#endif // __UNIT_TEST_H

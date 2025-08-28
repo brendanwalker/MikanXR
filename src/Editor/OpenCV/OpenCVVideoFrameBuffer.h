@@ -1,3 +1,5 @@
+#pragma once
+
 #include "VideoSourceInterface.h"
 #include "OpenCVFwd.h"
 

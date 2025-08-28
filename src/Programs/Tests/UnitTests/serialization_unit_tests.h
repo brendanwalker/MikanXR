@@ -1,4 +1,4 @@
-#pragma	once
+#pragma once
 
 #include "SerializableList.h"
 #include "SerializableMap.h"

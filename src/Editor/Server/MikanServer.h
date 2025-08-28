@@ -1,5 +1,4 @@
-#ifndef MIKAN_SERVER_H
-#define MIKAN_SERVER_H
+#pragma once
 
 //-- includes -----
 #include "CommonConfigFwd.h"
@@ -85,5 +84,3 @@ private:
 
 	std::map<std::string, MikanClientConnectionStatePtr> m_clientConnections;
 };
-
-#endif // MIKAN_SERVER_H
