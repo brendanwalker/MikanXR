@@ -53,7 +53,6 @@
 #include "StencilObjectSystem.h"
 #include "SceneObjectSystem.h"
 #include "TextStyle.h"
-#include "VideoCapabilitiesConfig.h"
 #include "VideoSourceComponent.h"
 #include "Windows/CompositorNodeEditorWindow.h"
 

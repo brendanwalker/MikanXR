@@ -1,7 +1,6 @@
 #pragma once
 
 #include "MikanMathTypes.h"
-#include "DeviceViewFwd.h"
 #include "ObjectSystemConfigFwd.h"
 
 #include "glm/ext/quaternion_double.hpp"

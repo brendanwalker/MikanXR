@@ -4,7 +4,6 @@
 #include "AppStage.h"
 #include "AnchorTriangulator.h"
 #include "Constants_AnchorTriangulation.h"
-#include "DeviceViewFwd.h"
 #include "MikanRendererFwd.h"
 #include "VideoDisplayConstants.h"
 #include <memory>
@@ -46,9 +45,6 @@ private:
 
 	CameraComponentPtr m_currentSceneCameraComponent;
 	VideoSourceComponentPtr m_videoSourceComponent;
-
-	// Tracking puck used for calibration
-	//VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
 
 	AnchorTriangulator* m_anchorTriangulator;
 	class VideoFrameDistortionView* m_monoDistortionView;

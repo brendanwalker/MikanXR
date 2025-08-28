@@ -2,7 +2,6 @@
 
 //-- includes -----
 #include "CommonConfigFwd.h"
-#include "DeviceInterface.h"
 #include "MulticastDelegate.h"
 
 #include <memory>
@@ -368,15 +367,6 @@ public:
 		const configuru::Config& pt,
 		const char* quat_name,
 		struct MikanQuatf& outQuat);
-
-	static void writeDeviceType(
-		configuru::Config& pt,
-		const char* fieldName,
-		const eDeviceType deviceType);
-	static void readDeviceType(
-		const configuru::Config& pt,
-		const char* fieldName,
-        eDeviceType& outDeviceType);
 
 protected:
 	std::vector<CommonConfigPtr> m_childConfigs;

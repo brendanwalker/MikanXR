@@ -1,7 +1,8 @@
 #pragma once
 
-#include "VideoSourceInterface.h"
+#include "IVideoDevice.h"
 #include "OpenCVFwd.h"
+#include "VideoDisplayConstants.h"
 
 #include <atomic>
 #include <mutex>

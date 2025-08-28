@@ -2,7 +2,6 @@
 
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
-#include "DeviceViewFwd.h"
 #include "TransformComponent.h"
 #include "MikanTypeFwd.h"
 #include "MikanCameraTypes.h"

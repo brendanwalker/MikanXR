@@ -1,6 +1,5 @@
 #include "CameraMath.h"
 #include "CameraComponent.h"
-#include "DeviceInterface.h"
 #include "Logger.h"
 #include "MikanMathTypes.h"
 #include "MikanVideoSourceTypes.h"

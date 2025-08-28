@@ -138,35 +138,6 @@ file(GLOB MIKAN_DELEGATES_SRC
 )
 source_group("Delegates" FILES ${MIKAN_DELEGATES_SRC})
 
-# Device
-## Device Enumerator
-file(GLOB MIKAN_DEVICE_ENUM_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Device/Enumerator/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Device/Enumerator/*.h"
-)
-source_group("Device\\Enumerator" FILES ${MIKAN_DEVICE_ENUM_SRC})
-
-## Device Interface
-file(GLOB MIKAN_DEVICE_INTERFACE_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Device/Interface/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Device/Interface/*.h"
-)
-source_group("Device\\Interface" FILES ${MIKAN_DEVICE_INTERFACE_SRC})
-
-## Device Manager
-file(GLOB MIKAN_DEVICE_MANAGER_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Device/Manager/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Device/Manager/*.h"
-)
-source_group("Device\\Manager" FILES ${MIKAN_DEVICE_MANAGER_SRC})
-
-## Device View
-file(GLOB MIKAN_DEVICE_VIEW_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Device/View/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Device/View/*.h"
-)
-source_group("Device\\View" FILES ${MIKAN_DEVICE_VIEW_SRC})
-
 # ECS
 file(GLOB MIKAN_ECS_ROOT_SRC
     "${CMAKE_CURRENT_LIST_DIR}/ECS/*.cpp"
@@ -418,31 +389,6 @@ source_group("Server" FILES ${MIKAN_SERVER_SRC})
 # TinyFileDialogs's source files are included in directly, rather than linking against a lib
 source_group("TinyFileDialogs" FILES ${TINYFILEDIALOGS_SOURCE})
 
-# Video
-file(GLOB MIKAN_VIDEO_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Video/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Video/*.h"
-)
-source_group("Video" FILES ${MIKAN_VIDEO_SRC})
-
-## Video GStreamer
-file(GLOB MIKAN_VIDEO_GSTREAMER_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Video/GStreamer/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Video/GStreamer/*.h"
-)
-source_group("Video\\GStreamer" FILES ${MIKAN_VIDEO_GSTREAMER_SRC})
-
-## Video WMF
-if (WIN32)
-file(GLOB MIKAN_VIDEO_WMF_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Video/WMF/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Video/WMF/*.h"
-)
-source_group("Video\\WMF" FILES ${MIKAN_VIDEO_WMF_SRC})
-else()
-set(MIKAN_VIDEO_WMF_SRC)
-endif()
-
 # Mikan Executable
 set(MIKAN_SRC
     ${MIKAN_APP_CORE_SRC}
@@ -454,10 +400,6 @@ set(MIKAN_SRC
     ${MIKAN_COMPONENTS_SRC}
     ${MIKAN_CONFIG_SRC}
     ${MIKAN_DELEGATES_SRC}
-    ${MIKAN_DEVICE_ENUM_SRC}
-    ${MIKAN_DEVICE_INTERFACE_SRC}
-    ${MIKAN_DEVICE_MANAGER_SRC}
-    ${MIKAN_DEVICE_VIEW_SRC}
     ${MIKAN_ECS_SRC}
     ${MIKAN_INTERPROCESS_SRC}
     ${MIKAN_LOCALIZATION_SRC}
@@ -475,9 +417,6 @@ set(MIKAN_SRC
     ${MIKAN_SDL_SRC}
     ${MIKAN_SERVER_SRC}
     ${MIKAN_SYSTEM_SRC}
-    ${MIKAN_VIDEO_SRC}
-    ${MIKAN_VIDEO_GSTREAMER_SRC}
-    ${MIKAN_VIDEO_WMF_SRC}
     ${IMGUI_SOURCE}
     ${IMNODES_SOURCE}
     ${TINYFILEDIALOGS_SOURCE}
@@ -492,10 +431,6 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Calibration
   ${CMAKE_CURRENT_LIST_DIR}/Config
   ${CMAKE_CURRENT_LIST_DIR}/Delegates
-  ${CMAKE_CURRENT_LIST_DIR}/Device/Enumerator
-  ${CMAKE_CURRENT_LIST_DIR}/Device/Interface
-  ${CMAKE_CURRENT_LIST_DIR}/Device/Manager
-  ${CMAKE_CURRENT_LIST_DIR}/Device/View
   ${CMAKE_CURRENT_LIST_DIR}/ECS
   ${CMAKE_CURRENT_LIST_DIR}/ECS/Anchor
   ${CMAKE_CURRENT_LIST_DIR}/ECS/Camera
@@ -523,9 +458,6 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Sources/Client
   ${CMAKE_CURRENT_LIST_DIR}/Sources/Spout
   ${CMAKE_CURRENT_LIST_DIR}/Sources/Video
-  ${CMAKE_CURRENT_LIST_DIR}/Video
-  ${CMAKE_CURRENT_LIST_DIR}/Video/GStreamer
-  ${CMAKE_CURRENT_LIST_DIR}/Video/WMF
   ${MIKAN_LIBRARIES_DIR}/MikanClientAPI/Public
   ${MIKAN_LIBRARIES_DIR}/MikanClientCore/Public
   ${MIKAN_LIBRARIES_DIR}/MikanCoreApp/Public
@@ -549,7 +481,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${RMLUI_INCLUDE_DIR}
   ${ROOT_DIR}/thirdparty/glm/
   ${CONFIGURU_INCLUDE_DIR}
-  ${NLOHMANN_JSON_INCLUDE_DIR}  
+  ${NLOHMANN_JSON_INCLUDE_DIR}
   ${OpenCV_INCLUDE_DIR} 
   ${OPENVR_INCLUDE_DIR} 
   ${SDL2_INCLUDE_DIR} 
@@ -664,7 +596,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     COMMAND ${CMAKE_COMMAND} -E copy ${OpenCV_DIR}/x64/vc16/bin/opencv_world4100.dll $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanGStreamer>/MikanGStreamer.dll $<TARGET_FILE_DIR:Mikan>)
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanGStreamerVideo>/MikanGStreamerVideo.dll $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanWMFVideo>/MikanWMFVideo.dll $<TARGET_FILE_DIR:Mikan>)

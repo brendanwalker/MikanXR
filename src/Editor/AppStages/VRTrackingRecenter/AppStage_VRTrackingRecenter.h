@@ -3,7 +3,6 @@
 //-- includes -----
 #include "AppStage.h"
 #include "ComponentFwd.h"
-#include "DeviceViewFwd.h"
 #include "Constants_VRTrackingRecenter.h"
 #include "IRemoteControllableAppStage.h"
 #include "MikanTypeFwd.h"

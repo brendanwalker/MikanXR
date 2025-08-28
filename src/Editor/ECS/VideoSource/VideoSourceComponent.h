@@ -2,26 +2,18 @@
 
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
+#include "IVideoDevice.h"
 #include "MikanComponent.h"
 #include "MikanTypeFwd.h"
 #include "MikanVideoSourceTypes.h"
 #include "OpenCVFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectFwd.h"
-#include "VideoSourceInterface.h"
+#include "VideoDisplayConstants.h"
 
 #include <map>
 #include <memory>
 #include <string>
-
-#define LEFT_PROJECTION_INDEX  0
-#define RIGHT_PROJECTION_INDEX 1
-
-#define MONO_PROJECTION_COUNT 1
-#define STEREO_PROJECTION_COUNT 2
-
-#define MAX_PROJECTION_COUNT 2
-#define PRIMARY_PROJECTION_INDEX LEFT_PROJECTION_INDEX
 
 class VideoSourceDefinition : public MikanComponentDefinition
 {

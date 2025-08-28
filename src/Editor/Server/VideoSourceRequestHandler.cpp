@@ -8,7 +8,6 @@
 #include "ServerResponseHelpers.h"
 #include "VideoSourceSystem.h"
 #include "VideoSourceComponent.h"
-#include "VideoCapabilitiesConfig.h"
 
 #include <functional>
 

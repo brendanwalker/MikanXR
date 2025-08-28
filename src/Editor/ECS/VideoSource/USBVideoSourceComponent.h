@@ -38,7 +38,7 @@ public:
 private:
 	std::string m_devicePath;
 	std::string m_videoMode;
-	std::map<std::string, std::array<float, (int)VideoPropertyType::COUNT> > m_videoSettingsMap;
+	std::map<std::string, std::array<float, (int)eVideoSettingType::COUNT> > m_videoSettingsMap;
 };
 
 class USBVideoSourceComponent : public VideoSourceComponent, public IUsbVideoDeviceListener

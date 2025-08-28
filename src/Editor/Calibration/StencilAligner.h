@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ComponentFwd.h"
-#include "DeviceViewFwd.h"
 #include "MikanRendererFwd.h"
 #include "Transform.h"
 

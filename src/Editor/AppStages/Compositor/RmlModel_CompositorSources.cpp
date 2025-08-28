@@ -2,7 +2,6 @@
 #include "CompositorComponent.h"
 #include "StringUtils.h"
 #include "VideoSourceComponent.h"
-#include "VideoCapabilitiesConfig.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>

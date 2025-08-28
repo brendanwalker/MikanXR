@@ -3,7 +3,7 @@
 #include "Constants_AlignmentCalibration.h"
 #include "StringUtils.h"
 #include "VideoFrameDistortionView.h"
-#include "VideoSourceInterface.h"
+#include "VideoDisplayConstants.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>

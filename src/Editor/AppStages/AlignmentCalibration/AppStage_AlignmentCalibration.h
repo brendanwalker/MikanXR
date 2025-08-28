@@ -3,11 +3,12 @@
 //-- includes -----
 #include "AppStage.h"
 #include "ComponentFwd.h"
-#include "DeviceViewFwd.h"
 #include "Constants_AlignmentCalibration.h"
 #include "IRemoteControllableAppStage.h"
 #include "MikanRendererFwd.h"
 #include "VideoDisplayConstants.h"
+#include "VRDevicePoseView.h"
+
 #include <memory>
 
 //-- definitions -----

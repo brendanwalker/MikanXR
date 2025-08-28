@@ -3,7 +3,7 @@
 // -- includes -----
 #include "OpenCVFwd.h"
 #include "ComponentFwd.h"
-#include "VideoSourceInterface.h"
+#include "VideoDisplayConstants.h"
 
 #include "glm/ext/quaternion_float.hpp"
 #include "glm/ext/matrix_float4x4.hpp"

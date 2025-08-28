@@ -192,7 +192,9 @@ void CameraComponent::update(float deltaSeconds)
 	// of the camera in the scene
 	glm::mat4 poseInStageSpace;
 	if (m_trackingMountPoseView_SceneSpace && 
-		m_trackingMountPoseView_SceneSpace->getPose(poseInStageSpace))
+		m_trackingMountPoseView_SceneSpace->getPose(
+			getSelfPtr<CameraComponent>(),
+			poseInStageSpace))
 	{
 		setRelativeTransform(GlmTransform(poseInStageSpace));
 	}
@@ -329,10 +331,14 @@ bool CameraComponent::getAperturePose(
 	switch (space)
 	{
 	case eVRDevicePoseSpace::MikanScene:
-		bValidPose = m_trackingMountPoseView_SceneSpace->getPose(vrDevicePose);
+		bValidPose = m_trackingMountPoseView_SceneSpace->getPose(
+			getSelfPtr<const CameraComponent>(),
+			vrDevicePose);
 		break;
 	case eVRDevicePoseSpace::VRTrackingSystem:
-		bValidPose = m_trackingMountPoseView_VRSpace->getPose(vrDevicePose);
+		bValidPose = m_trackingMountPoseView_VRSpace->getPose(
+			getSelfPtr<const CameraComponent>(),
+			vrDevicePose);
 		break;
 	}
 

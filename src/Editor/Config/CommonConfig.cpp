@@ -637,20 +637,3 @@ void CommonConfig::readQuatf(
 		outQuat.z = 0.f;
 	}
 }
-
-void CommonConfig::writeDeviceType(
-    configuru::Config& pt,
-    const char* fieldName,
-    const eDeviceType deviceType)
-{
-    pt[fieldName] = k_deviceTypeStrings[(int)deviceType];
-}
-
-void CommonConfig::readDeviceType(
-    const configuru::Config& pt,
-    const char* fieldName,
-    eDeviceType& outDeviceType)
-{
-    std::string enumStringValue= pt[fieldName].as_string();
-    outDeviceType= StringUtils::FindEnumValue<eDeviceType>(enumStringValue, k_deviceTypeStrings);
-}

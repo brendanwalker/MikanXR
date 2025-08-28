@@ -48,7 +48,7 @@ configuru::Config USBVideoSourceDefinition::writeToJSON()
 
 	pt["device_path"] = m_devicePath;
 	pt["video_mode"] = m_videoMode;
-	writeStdArrayMap<float, (int)VideoPropertyType::COUNT>(pt, "cameraSettings", m_videoSettingsMap);
+	writeStdArrayMap<float, (int)eVideoSettingType::COUNT>(pt, "cameraSettings", m_videoSettingsMap);
 
 	return pt;
 }
@@ -58,7 +58,7 @@ void USBVideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 	VideoSourceDefinition::readFromJSON(pt);
 	m_devicePath = pt.get_or<std::string>("device_path", m_devicePath);
 	m_videoMode = pt.get_or<std::string>("video_mode", m_videoMode);
-	readStdArrayMap<float, (int)VideoPropertyType::COUNT>(pt, "cameraSettings", m_videoSettingsMap);
+	readStdArrayMap<float, (int)eVideoSettingType::COUNT>(pt, "cameraSettings", m_videoSettingsMap);
 }
 
 void USBVideoSourceDefinition::setDevicePath(const std::string& devicePath)
