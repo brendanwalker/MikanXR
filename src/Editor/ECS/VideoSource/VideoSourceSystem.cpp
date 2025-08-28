@@ -47,7 +47,6 @@ void VideoSourceSystem::dispose()
 	MikanObjectSystem::dispose();
 }
 
-
 void VideoSourceSystem::deleteObjectConfig(MikanObjectPtr objectPtr)
 {
 	auto clientVideoSource = objectPtr->getComponentOfType<ClientVideoSourceComponent>();

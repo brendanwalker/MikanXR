@@ -1,5 +1,9 @@
 #include "App.h"
+#include "INetworkVideoDeviceManager.h"
+#include "INetworkVideoDeviceModule.h"
+#include "Logger.h"
 #include "MikanObject.h"
+#include "MikanModuleManager.h"
 #include "NetworkVideoSourceSystem.h"
 #include "NetworkVideoSourceComponent.h"
 #include "ProjectConfig.h"
@@ -8,6 +12,9 @@
 
 #include <assert.h>
 
+#define GSTREAMER_VIDEO_DEVICE_MODULE_NAME  "MikanGStreamerVideo"
+#define NETWORK_VIDEO_DEVICE_MODULE_NAME    GSTREAMER_VIDEO_DEVICE_MODULE_NAME
+
 bool NetworkVideoSourceSystem::init()
 {
 	MikanObjectSystem::init();
@@ -15,12 +22,29 @@ bool NetworkVideoSourceSystem::init()
     VideoSourceSystemConfigConstPtr videoSourceSystemConfig = 
         App::getInstance()->getProfileConfig()->videoSourceSystemConfig;
 
+	if (!createNetworkVideoDeviceManager(NETWORK_VIDEO_DEVICE_MODULE_NAME))
+	{
+		MIKAN_LOG_ERROR("NetworkVideoSourceSystem::init") <<
+			"Failed to load network video device module " << NETWORK_VIDEO_DEVICE_MODULE_NAME;
+		return false;
+	}
+
     for (const auto& sourceConfig : videoSourceSystemConfig->getNetworkedVideoSourceList())
     {
         createNetworkVideoSourceObject(sourceConfig);
     }
 
     return true;
+}
+
+void NetworkVideoSourceSystem::update(float deltaTime)
+{
+    MikanObjectSystem::update(deltaTime);
+
+    if (m_networkVideoDeviceManager)
+    {
+        m_networkVideoDeviceManager->update(deltaTime);
+	}
 }
 
 void NetworkVideoSourceSystem::dispose()
@@ -95,6 +119,62 @@ bool NetworkVideoSourceSystem::removeNetworkVideoSource(MikanVideoSourceID video
     return
         disposeNetworkVideoSourceObject(videoSourceId) &&
         videoSourceSystemConfig->removeVideoSource(videoSourceId);
+}
+
+bool NetworkVideoSourceSystem::createNetworkVideoDeviceManager(const std::string& moduleName)
+{
+	// Bail if we didn't select a valid runtime type to use
+	if (moduleName.empty())
+		return false;
+
+	// Special case: If GStreamer is selected, see if it is installed
+    if (moduleName == GSTREAMER_VIDEO_DEVICE_MODULE_NAME)
+    {
+		const char* envVar = std::getenv("GSTREAMER_1_0_ROOT_MINGW_X86_64");
+        if (envVar == nullptr)
+        {
+            MIKAN_LOG_WARNING("NetworkVideoSourceSystem::createNetworkVideoDeviceManager") 
+                << "GStreamer not installed. Skipping network video manager init.";
+
+			// Don't treat this as a failure, just skip module loading
+            return true;
+        }
+    }
+
+	// Attempt to load the video device module
+    m_networkVideoDeviceModule = getMikanModuleManager()->getModule<INetworkVideoDeviceModule>(moduleName);
+	if (!m_networkVideoDeviceModule)
+	{
+		MIKAN_LOG_ERROR("NetworkVideoSourceSystem::createNetworkVideoDeviceManager") 
+            << "Failed to load module" << moduleName;
+		return false;
+	}
+
+	// Attempt to create a vr device manager
+    m_networkVideoDeviceManager = m_networkVideoDeviceModule->createNetworkVideoDeviceManager();
+	if (!m_networkVideoDeviceManager)
+	{
+		MIKAN_LOG_WARNING("NetworkVideoSourceSystem::createNetworkVideoDeviceManager") 
+            << "Failed to create UsbVideoDeviceManager";
+		return false;
+	}
+
+    return true;
+}
+
+void NetworkVideoSourceSystem::disposeNetworkVideoDeviceManager()
+{
+	if (m_networkVideoDeviceManager)
+	{
+        m_networkVideoDeviceManager->shutdown();
+        m_networkVideoDeviceManager = nullptr;
+	}
+
+	if (m_networkVideoDeviceModule)
+	{
+		getMikanModuleManager()->disposeModule(m_networkVideoDeviceModule);
+        m_networkVideoDeviceModule = nullptr;
+	}
 }
 
 NetworkVideoSourceComponentPtr NetworkVideoSourceSystem::createNetworkVideoSourceObject(

@@ -1,11 +1,36 @@
+#include "CameraMath.h"
+#include "INetworkVideoDeviceManager.h"
 #include "NetworkVideoSourceComponent.h"
+#include "NetworkVideoSourceSystem.h"
+#include "MikanServer.h"
 #include "MikanVideoSourceTypes.h"
+#include "OpenCVVideoFrameBuffer.h"
+#include "StringUtils.h"
+#include "ThreadUtils.h"
+#include "VideoSourceSystem.h"
+#include "VideoSourceRequestHandler.h"
 
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Variant.h>
 
+#include "opencv2/opencv.hpp"
+#include "opencv2/calib3d/calib3d.hpp"
+
+#include <easy/profiler.h>
+
+#include <assert.h>
+
 // -- NetworkVideoSourceDefinition -----
-const std::string NetworkVideoSourceDefinition::k_urlPropertyId = "url";
+const std::string NetworkVideoSourceDefinition::k_addressPropertyId = "url";
+const std::string NetworkVideoSourceDefinition::k_pathPropertyId = "path";
+const std::string NetworkVideoSourceDefinition::k_protocolPropertyId = "protocol";
+const std::string NetworkVideoSourceDefinition::k_portPropertyId = "port";
+
+const std::string g_NetworkVideoProtocol[(int)eNetworkVideoProtocol::COUNT] = {
+	"RTMP",
+	"RTSP",
+};
+const std::string* k_NetworkVideoProtocol = g_NetworkVideoProtocol;
 
 NetworkVideoSourceDefinition::NetworkVideoSourceDefinition()
 	: VideoSourceDefinition()
@@ -18,14 +43,20 @@ NetworkVideoSourceDefinition::NetworkVideoSourceDefinition(
 		videoSourceId, 
 		videoSourceInfo.network_source_name.getValue(),
 		videoSourceInfo.intrinsics)
-	, m_url(videoSourceInfo.url.getValue())
-{}
+{
+	NetworkVideoSourceDefinition::parseUrl(
+		videoSourceInfo.url.getValue(),
+		m_protocol, m_address, m_port, m_path);
+}
 
 configuru::Config NetworkVideoSourceDefinition::writeToJSON()
 {
 	configuru::Config pt = VideoSourceDefinition::writeToJSON();
 
-	pt["url"] = m_url;
+	pt["protocol"] = k_NetworkVideoProtocol[(int)m_protocol];
+	pt["address"] = m_address;
+	pt["path"] = m_path;
+	pt["port"] = m_port;
 
 	return pt;
 }
@@ -34,22 +65,138 @@ void NetworkVideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 {
 	VideoSourceDefinition::readFromJSON(pt);
 
-	m_url = pt.get_or<std::string>("url", m_url);
+	const std::string protocolString =
+		pt.get_or<std::string>(
+			"protocol",
+			k_NetworkVideoProtocol[(int)eNetworkVideoProtocol::RTMP]);
+	m_protocol =
+		StringUtils::FindEnumValue<eNetworkVideoProtocol>(
+			protocolString, k_NetworkVideoProtocol);
+	m_address = pt.get_or<std::string>("address", m_address);
+	m_path = pt.get_or<std::string>("path", m_path);
+	m_port = pt.get_or<int>("port", m_port);
 }
 
-void NetworkVideoSourceDefinition::setURL(const std::string& url)
+void NetworkVideoSourceDefinition::setAddress(const std::string& address)
 {
-	if (url != m_url)
+	if (address != m_address)
 	{
-		m_url = url;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_urlPropertyId));
+		m_address = address;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_addressPropertyId));
 	}
+}
+
+void NetworkVideoSourceDefinition::setPath(const std::string& path)
+{
+	if (path != m_path)
+	{
+		m_path = path;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_pathPropertyId));
+	}
+}
+
+void NetworkVideoSourceDefinition::setProtocol(eNetworkVideoProtocol protocol)
+{
+	if (protocol != m_protocol)
+	{
+		m_protocol = protocol;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_protocolPropertyId));
+	}
+}
+
+void NetworkVideoSourceDefinition::setPort(int port)
+{
+	if (port != m_port)
+	{
+		m_port = port;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_portPropertyId));
+	}
+}
+
+bool NetworkVideoSourceDefinition::parseUrl(
+	const std::string& url,
+	eNetworkVideoProtocol& outProtocol,
+	std::string& outAddress,
+	int& outPort,
+	std::string& outPath)
+{
+	// Find protocol separator "://"
+	size_t protocolEnd = url.find("://");
+	if (protocolEnd == std::string::npos)
+		return false;
+
+	// Extract and parse protocol
+	std::string protocolStr = url.substr(0, protocolEnd);
+	outProtocol = StringUtils::FindEnumValue<eNetworkVideoProtocol>(protocolStr, k_NetworkVideoProtocol);
+	if (outProtocol == eNetworkVideoProtocol::COUNT)
+		return false;
+
+	// Start parsing after "://"
+	size_t addressStart = protocolEnd + 3;
+	if (addressStart >= url.length())
+		return false;
+
+	// Find path separator "/"
+	size_t pathStart = url.find('/', addressStart);
+	std::string addressAndPort;
+	
+	if (pathStart != std::string::npos)
+	{
+		addressAndPort = url.substr(addressStart, pathStart - addressStart);
+		outPath = url.substr(pathStart);
+	}
+	else
+	{
+		addressAndPort = url.substr(addressStart);
+		outPath = "/";
+	}
+
+	// Parse address and port
+	size_t portStart = addressAndPort.find(':');
+	if (portStart != std::string::npos)
+	{
+		outAddress = addressAndPort.substr(0, portStart);
+		std::string portStr = addressAndPort.substr(portStart + 1);
+		try
+		{
+			outPort = std::stoi(portStr);
+		}
+		catch (const std::exception&)
+		{
+			return false;
+		}
+	}
+	else
+	{
+		outAddress = addressAndPort;
+		// Set default ports based on protocol
+		outPort = (outProtocol == eNetworkVideoProtocol::RTMP) ? 1935 : 554;
+	}
+
+	return true;
 }
 
 // -- NetworkVideoSourceComponent -----
 NetworkVideoSourceComponent::NetworkVideoSourceComponent(MikanObjectWeakPtr owner)
 	: VideoSourceComponent(owner)
-{}
+	, m_lastVideoFrameReadIndex(0)
+	, m_networkVideoDevice(nullptr)
+	, m_projectionMatrix(glm::mat4(1.f))
+{
+	for (int i = 0; i < MAX_PROJECTION_COUNT; ++i)
+	{
+		m_opencv_buffer_state[i] = nullptr;
+	}
+}
+
+void NetworkVideoSourceComponent::dispose()
+{
+	// Close the video source if it is open
+	closeVideoSource();
+
+	// Call the base class dispose method
+	MikanComponent::dispose();
+}
 
 void NetworkVideoSourceComponent::setDefinition(MikanComponentDefinitionPtr definition)
 {
@@ -61,6 +208,11 @@ void NetworkVideoSourceComponent::setDefinition(MikanComponentDefinitionPtr defi
 
 std::string NetworkVideoSourceComponent::getDevicePath() const
 {
+	if (m_networkVideoDevice != nullptr)
+	{
+		return m_networkVideoDevice->getDevicePath();
+	}
+
 	return "";
 }
 
@@ -71,42 +223,369 @@ std::string NetworkVideoSourceComponent::getDeviceAPI() const
 
 bool NetworkVideoSourceComponent::openVideoSource()
 {
-	return false;
+	// If the video source is already open, do nothing
+	if (m_networkVideoDevice != nullptr)
+		return true;
+
+	// If the device path is empty, return false
+	NetworkVideoSourceDefinitionPtr definition = getNetworkVideoSourceDefinition();
+	const std::string& url = definition->getAddress();
+	if (url.empty())
+		return false;
+
+	// Create the network video device
+	auto videoSourceSystem = VideoSourceSystem::getSystem();
+	auto networkedVideoSourceSystem = videoSourceSystem->getNetworkVideoSourceSystem();
+	INetworkVideoDeviceManagerPtr networkVideoDeviceManager =
+		networkedVideoSourceSystem->getNetworkVideoDeviceManager();
+
+	NetworkVideoConnectionSettings connectionSettings;
+	connectionSettings.protocol = definition->getProtocol();
+	connectionSettings.address = definition->getAddress().c_str();
+	connectionSettings.path = definition->getPath().c_str();
+	connectionSettings.port = definition->getPort();
+
+	m_networkVideoDevice = networkVideoDeviceManager->createVideoDevice(connectionSettings);
+	if (m_networkVideoDevice == nullptr)
+		return false;
+
+	// Attempt to open the Network video device
+	if (!m_networkVideoDevice->open())
+		return false;
+
+	// Listen for events from the Network video device
+	m_networkVideoDevice->addListener(this);
+
+	// Apply the side effect of video mode changes 
+	notifyVideoModePropertiesChanged(m_networkVideoDevice.get());
+	if (OnFrameSizeChanged)
+	{
+		OnFrameSizeChanged(getSelfPtr<VideoSourceComponent>());
+	}
+
+	// Let any connected clients know that the video source closed
+	MikanServer::getInstance()->getVideoSourceRequestHandler()->publishVideoSourceOpenedEvent();
+	if (OnOpened)
+	{
+		OnOpened(getSelfPtr<VideoSourceComponent>());
+	}
+
+	return true;
+
 }
 
 void NetworkVideoSourceComponent::closeVideoSource()
 {
+	if (m_networkVideoDevice != nullptr)
+	{
+		// Stop the video stream if it is running
+		stopVideoStream();
 
+		// Close the Network video device
+		m_networkVideoDevice->close();
+
+		// Remove the listener for the Network video device
+		m_networkVideoDevice->removeListener(this);
+
+		// Tell the Network video device manager to destroy the device
+		auto videoSourceSystem = VideoSourceSystem::getSystem();
+		auto networkedVideoSourceSystem = videoSourceSystem->getNetworkVideoSourceSystem();
+		INetworkVideoDeviceManagerPtr networkVideoDeviceManager =
+			networkedVideoSourceSystem->getNetworkVideoDeviceManager();
+		networkVideoDeviceManager->destroyVideoDevice(m_networkVideoDevice);
+
+		// Clear the Network video device pointer
+		m_networkVideoDevice = nullptr;
+	}
+
+	// Release any OpenCV buffer state
+	releaseOpencvBufferState();
+
+	// Let any connected clients know that the video source closed
+	MikanServer::getInstance()->getVideoSourceRequestHandler()->publishVideoSourceClosedEvent();
+	if (OnClosed)
+	{
+		OnClosed(getSelfPtr<VideoSourceComponent>());
+	}
 }
 
 eVideoStreamingStatus NetworkVideoSourceComponent::startVideoStream()
 {
+	if (m_networkVideoDevice != nullptr)
+	{
+		eVideoStreamingStatus status = m_networkVideoDevice->startVideoStream();
+		if (status == eVideoStreamingStatus::started && OnStarted)
+		{
+			OnStarted(getSelfPtr<VideoSourceComponent>());
+		}
+
+		return status;
+	}
+
 	return eVideoStreamingStatus::failed;
 }
 
 eVideoStreamingStatus NetworkVideoSourceComponent::getVideoStreamingStatus() const
 {
+	if (m_networkVideoDevice != nullptr)
+	{
+		return m_networkVideoDevice->getVideoStreamingStatus();
+	}
+
 	return eVideoStreamingStatus::failed;
 }
 
 void NetworkVideoSourceComponent::stopVideoStream()
-{}
+{
+	if (m_networkVideoDevice != nullptr)
+	{
+		m_networkVideoDevice->stopVideoStream();
+
+		if (OnStopped)
+		{
+			OnStopped(getSelfPtr<VideoSourceComponent>());
+		}
+	}
+}
 
 bool NetworkVideoSourceComponent::hasNewVideoFrameAvailable(VideoFrameSection section) const
 {
-	return false;
+	NetworkVideoSourceDefinitionPtr definition = getNetworkVideoSourceDefinition();
+	const MikanVideoSourceIntrinsics& intrinsics = definition->getCameraIntrinsics();
+
+	int64_t lastFrameWriteIndex = 0;
+
+	if (intrinsics.intrinsics_type == STEREO_CAMERA_INTRINSICS)
+	{
+		if ((section == VideoFrameSection::Left || section == VideoFrameSection::Right) &&
+			m_opencv_buffer_state[(int)section] != nullptr)
+		{
+			lastFrameWriteIndex = m_opencv_buffer_state[(int)section]->getLastVideoFrameWriteIndex();
+		}
+	}
+	else
+	{
+		if (section == VideoFrameSection::Primary &&
+			m_opencv_buffer_state[(int)VideoFrameSection::Primary] != nullptr)
+		{
+			lastFrameWriteIndex = m_opencv_buffer_state[(int)VideoFrameSection::Primary]->getLastVideoFrameWriteIndex();
+		}
+	}
+
+	return lastFrameWriteIndex != m_lastVideoFrameReadIndex;
 }
 
 int64_t NetworkVideoSourceComponent::readVideoFrameSectionBuffer(VideoFrameSection section, cv::Mat* outBuffer)
 {
-	return 0;
+	EASY_FUNCTION();
+
+	NetworkVideoSourceDefinitionPtr definition = getNetworkVideoSourceDefinition();
+	const MikanVideoSourceIntrinsics& intrinsics = definition->getCameraIntrinsics();
+
+	if (intrinsics.intrinsics_type == STEREO_CAMERA_INTRINSICS)
+	{
+		if ((section == VideoFrameSection::Left || section == VideoFrameSection::Right) &&
+			m_opencv_buffer_state[(int)section] != nullptr)
+		{
+			m_lastVideoFrameReadIndex =
+				m_opencv_buffer_state[(int)section]->readVideoFrame(
+					outBuffer,
+					m_lastVideoFrameReadIndex);
+		}
+	}
+	else
+	{
+		if (section == VideoFrameSection::Primary &&
+			m_opencv_buffer_state[(int)VideoFrameSection::Primary] != nullptr)
+		{
+			m_lastVideoFrameReadIndex =
+				m_opencv_buffer_state[(int)VideoFrameSection::Primary]->readVideoFrame(
+					outBuffer,
+					m_lastVideoFrameReadIndex);
+		}
+	}
+
+	return m_lastVideoFrameReadIndex;
 }
 
+// -- INetworkVideoDeviceListener ----
+void NetworkVideoSourceComponent::notifyVideoDeviceClosed(
+	const INetworkVideoDevice* device)
+{
+	if (device == m_networkVideoDevice.get())
+	{
+		// The video source is now invalidated, so we can clear the pointer
+		// but we still want to clean up the video source state
+		m_networkVideoDevice = nullptr;
+		closeVideoSource();
+	}
+}
+
+void NetworkVideoSourceComponent::notifyVideoModePropertiesChanged(
+	const INetworkVideoDevice* device)
+{
+	// Make sure the device is the one we are currently using
+	assert(m_networkVideoDevice.get() == device);
+
+	// At the moment, this function should only be called from video sources that
+	// update their video frame size on the main thread.
+	// If this changes, we will need to refactor this function to be thread safe.
+	assert(ThreadUtils::isRunningInMainThread());
+
+	// Allocate the open cv buffers used for tracking filtering
+	reallocateOpencvBufferState();
+
+	// Recompute the projection matrix
+	recomputeCameraProjectionMatrix();
+
+	// Let any listeners know that the video frame sized changed
+	MikanServer::getInstance()->getVideoSourceRequestHandler()->publishVideoSourceModeChangedEvent();
+}
+
+void NetworkVideoSourceComponent::notifyVideoFrameReceived(
+	const NetworkVideoFrameBuffer& bufferInfo)
+{
+	assert(m_networkVideoDevice != nullptr);
+
+	NetworkVideoStreamProperties streamProperties;
+	bool bVaildStream = m_networkVideoDevice->getStreamProperties(streamProperties);
+	assert(bVaildStream);
+
+	NetworkVideoSourceDefinitionPtr definition = getNetworkVideoSourceDefinition();
+	const MikanVideoSourceIntrinsics& intrinsics = definition->getCameraIntrinsics();
+
+	const bool is_frame_flipped = definition->getIsFrameMirrored();
+	const bool is_buffer_flipped = definition->getIsBufferMirrored();
+
+	// Fetch the latest video buffer frame from the device
+	if (intrinsics.intrinsics_type == STEREO_CAMERA_INTRINSICS)
+	{
+		const auto& stereoIntrinsics = intrinsics.getStereoIntrinsics();
+		const int section_width = (int)stereoIntrinsics.pixel_width;
+		const int section_height = (int)stereoIntrinsics.pixel_height;
+
+		cv::Rect left_bounds = cv::Rect(0, 0, section_width, section_height);
+		cv::Rect right_bounds = cv::Rect(section_width, 0, section_width, section_height);
+
+		// Cache the left raw video frame
+		if (m_opencv_buffer_state[(int)VideoFrameSection::Left] != nullptr)
+		{
+			m_opencv_buffer_state[(int)VideoFrameSection::Left]->writeStereoVideoFrameSection(
+				bufferInfo.data,
+				is_buffer_flipped ? right_bounds : left_bounds,
+				is_frame_flipped);
+		}
+
+		// Cache the right raw video frame
+		if (m_opencv_buffer_state[(int)VideoFrameSection::Right] != nullptr)
+		{
+			m_opencv_buffer_state[(int)VideoFrameSection::Right]->writeStereoVideoFrameSection(
+				bufferInfo.data,
+				is_buffer_flipped ? left_bounds : right_bounds,
+				is_frame_flipped);
+		}
+	}
+	else
+	{
+		// Cache the raw video frame
+		if (m_opencv_buffer_state[(int)VideoFrameSection::Primary] != nullptr)
+		{
+			m_opencv_buffer_state[(int)VideoFrameSection::Primary]->writeVideoFrame(
+				bufferInfo.data, is_frame_flipped);
+		}
+	}
+}
+
+bool NetworkVideoSourceComponent::reallocateOpencvBufferState()
+{
+	releaseOpencvBufferState();
+
+	if (m_networkVideoDevice == nullptr)
+		return false;
+
+	NetworkVideoStreamProperties streamProperties;
+	if (!m_networkVideoDevice->getStreamProperties(streamProperties))
+		return false;
+
+	NetworkVideoSourceDefinitionPtr definition = getNetworkVideoSourceDefinition();
+	const MikanVideoSourceIntrinsics& intrinsics = definition->getCameraIntrinsics();
+
+	// Allocate the OpenCV scratch buffers used for finding tracking blobs
+	if (intrinsics.intrinsics_type == STEREO_CAMERA_INTRINSICS)
+	{
+		const MikanStereoIntrinsics& stereoIntrinsics = intrinsics.getStereoIntrinsics();
+
+		m_opencv_buffer_state[(int)VideoFrameSection::Left] =
+			new OpenCVVideoFrameBuffer(
+				streamProperties.width, streamProperties.height,
+				stereoIntrinsics.pixel_width, stereoIntrinsics.pixel_width,
+				VideoFrameSection::Left);
+		m_opencv_buffer_state[(int)VideoFrameSection::Right] =
+			new OpenCVVideoFrameBuffer(
+				streamProperties.width, streamProperties.height,
+				stereoIntrinsics.pixel_width, stereoIntrinsics.pixel_width,
+				VideoFrameSection::Right);
+	}
+	else
+	{
+		const MikanMonoIntrinsics& monoIntrinsics = intrinsics.getMonoIntrinsics();
+
+		m_opencv_buffer_state[(int)VideoFrameSection::Primary] =
+			new OpenCVVideoFrameBuffer(
+				streamProperties.width, streamProperties.height,
+				monoIntrinsics.pixel_width, monoIntrinsics.pixel_width,
+				VideoFrameSection::Primary);
+	}
+
+	return true;
+}
+
+void NetworkVideoSourceComponent::releaseOpencvBufferState()
+{
+	// Delete any existing OpenCV buffers
+	for (int i = 0; i < MAX_PROJECTION_COUNT; ++i)
+	{
+		if (m_opencv_buffer_state[i] != nullptr)
+		{
+			delete m_opencv_buffer_state[i];
+			m_opencv_buffer_state[i] = nullptr;
+		}
+	}
+}
+
+void NetworkVideoSourceComponent::recomputeCameraProjectionMatrix()
+{
+	NetworkVideoSourceDefinitionPtr definition = getNetworkVideoSourceDefinition();
+	const MikanVideoSourceIntrinsics& intrinsics = definition->getCameraIntrinsics();
+
+	switch (intrinsics.intrinsics_type)
+	{
+		case MONO_CAMERA_INTRINSICS:
+		{
+			const MikanMonoIntrinsics& monoIntrinsics = intrinsics.getMonoIntrinsics();
+
+			computeOpenGLProjMatFromCameraIntrinsics(
+				monoIntrinsics,
+				m_projectionMatrix);
+		} break;
+		case STEREO_CAMERA_INTRINSICS:
+		{
+			const MikanStereoIntrinsics& stereoIntrinsics = intrinsics.getStereoIntrinsics();
+
+			computeOpenGLProjMatFromCameraIntrinsics(
+				stereoIntrinsics,
+				eStereoIntrinsicsSide::left,
+				m_projectionMatrix);
+		} break;
+	}
+}
+
+// -- IPropertyInterface ----
 void NetworkVideoSourceComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
 {
 	MikanComponent::getPropertyNames(outPropertyNames);
 
-	outPropertyNames.push_back(NetworkVideoSourceDefinition::k_urlPropertyId);
+	outPropertyNames.push_back(NetworkVideoSourceDefinition::k_addressPropertyId);
 }
 
 bool NetworkVideoSourceComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
@@ -114,9 +593,9 @@ bool NetworkVideoSourceComponent::getPropertyDescriptor(const std::string& prope
 	if (MikanComponent::getPropertyDescriptor(propertyName, outDescriptor))
 		return true;
 
-	if (propertyName == NetworkVideoSourceDefinition::k_urlPropertyId)
+	if (propertyName == NetworkVideoSourceDefinition::k_addressPropertyId)
 	{
-		outDescriptor = {NetworkVideoSourceDefinition::k_urlPropertyId, ePropertyDataType::datatype_string, ePropertySemantic::name};
+		outDescriptor = {NetworkVideoSourceDefinition::k_addressPropertyId, ePropertyDataType::datatype_string, ePropertySemantic::name};
 		return true;
 	}
 
@@ -128,9 +607,9 @@ bool NetworkVideoSourceComponent::getPropertyValue(const std::string& propertyNa
 	if (MikanComponent::getPropertyValue(propertyName, outValue))
 		return true;
 
-	if (propertyName == NetworkVideoSourceDefinition::k_urlPropertyId)
+	if (propertyName == NetworkVideoSourceDefinition::k_addressPropertyId)
 	{
-		outValue = getNetworkVideoSourceDefinition()->getURL();
+		outValue = getNetworkVideoSourceDefinition()->getAddress();
 		return true;
 	}
 
@@ -142,10 +621,10 @@ bool NetworkVideoSourceComponent::setPropertyValue(const std::string& propertyNa
 	if (MikanComponent::setPropertyValue(propertyName, inValue))
 		return true;
 
-	if (propertyName == NetworkVideoSourceDefinition::k_urlPropertyId)
+	if (propertyName == NetworkVideoSourceDefinition::k_addressPropertyId)
 	{
 		std::string url = inValue.Get<std::string>();
-		getNetworkVideoSourceDefinition()->setURL(url);
+		getNetworkVideoSourceDefinition()->setAddress(url);
 		return true;
 	}
 
