@@ -26,7 +26,6 @@ bool RmlModel_CompositorSettings::init(
 	constructor.Bind("render_origin", &m_bRenderOrigin);
 	constructor.Bind("render_anchors", &m_bRenderAnchors);
 	constructor.Bind("render_stencils", &m_bRenderStencils);
-	constructor.Bind("vr_frame_delay", &m_vrFrameDelay);
 
 	// Bind data model callbacks
 	constructor.BindEventCallback(
@@ -62,19 +61,12 @@ bool RmlModel_CompositorSettings::init(
 			m_bRenderStencils = Rml::Utilities::GetBoolValueFromEvent(ev);
 			StencilObjectSystem::getSystem()->setRenderStencilsFlag(m_bRenderStencils);
 		});
-	constructor.BindEventCallback(
-		"update_vr_frame_delay",
-		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			m_vrFrameDelay = Rml::Utilities::GetIntValueFromEvent(ev);
-			m_project->setVRFrameDelay(m_vrFrameDelay);
-		});
 
 	m_bIsStreaming = m_project->getIsSpoutOutputStreaming();
 	m_spoutOutputName= m_project->getSpoutOutputName();
 	m_bRenderOrigin= m_project->getRenderOriginFlag();
 	m_bRenderAnchors= m_project->anchorConfig->getRenderAnchorsFlag();
 	m_bRenderStencils= m_project->stencilConfig->getRenderStencilsFlag();
-	m_vrFrameDelay= m_project->getVRFrameDelay();
 	m_modelHandle.DirtyAllVariables();
 
 	return true;

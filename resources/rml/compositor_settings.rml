@@ -62,12 +62,6 @@
 							<label><input type="checkbox" name="render_stencils_flag" data-event-change="update_render_stencils_flag()" data-checked="render_stencils" />Draw Stencils</label>
 						</td>
 					</tr>
-					<tr class="property_tr">
-						<td>
-							VR Frame Delay&nbsp;
-							<numeric type="int" min="0" max="60" step="1" data-event-submit="update_vr_frame_delay()" data-value="vr_frame_delay"/>
-						</td>
-					</tr>
 				</tbody>
 			</table>
 		</panel>

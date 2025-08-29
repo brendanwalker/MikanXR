@@ -20,44 +20,15 @@
 // -- Profile Config
 const std::string ProjectConfig::k_spoutOutputIsStreamingNamePropertyId= "spoutOutputIsStreaming";
 const std::string ProjectConfig::k_spoutOutputNamePropertyId= "spoutOutputName";
-const std::string ProjectConfig::k_videoSourcePathPropertyId= "videoSourcePath";
-const std::string ProjectConfig::k_cameraVRDevicePathPropertyId= "cameraVRDevicePath";
-const std::string ProjectConfig::k_matVRDevicePathPropertyId= "matVRDevicePath";
 const std::string ProjectConfig::k_renderOriginFlagPropertyId= "renderOrigin";
-const std::string ProjectConfig::k_vrFrameDelayPropertyId= "vrFrameDelay";
-
 
 ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	: CommonConfig(fnamebase)
-	// Pattern Defaults
-	, calibrationPatternType(eCalibrationPatternType::mode_chessboard)
-	, chessbordRows(CHESSBOARD_PATTERN_H)
-	, chessbordCols(CHESSBOARD_PATTERN_W)
-	, squareLengthMM(DEFAULT_SQUARE_LEN_MM)
-	, charucoRows(CHARUCO_PATTERN_H)
-	, charucoCols(CHARUCO_PATTERN_W)
-	, charucoSquareLengthMM(DEFAULT_CHARUCO_SQUARE_LEN_MM)
-	, charucoMarkerLengthMM(DEFAULT_CHARUCO_MARKER_LEN_MM)
-	, charucoDictionaryType(DEFAULT_CHARUCO_DICTIONARY_TYPE)
-	, puckHorizontalOffsetMM(DEFAULT_PUCK_HORIZONTAL_OFFSET_MM)
-	, puckVerticalOffsetMM(DEFAULT_PUCK_VERTICAL_OFFSET_MM)
-	, puckDepthOffsetMM(DEFAULT_PUCK_DEPTH_OFFSET_MM)
-	, vrCenterArucoId(DEFAULT_ORIGIN_MARKER_ID)
-	, vrCenterMarkerLengthMM(DEFAULT_MARKER_SIZE_MM)
 	// Spout Output Defaults
 	, m_bIsSpoutOutputStreaming(false)
 	, m_spoutOutputName(DEFAULT_SPOUT_OUTPUT_NAME)
-	// VideoSource Defaults
-	, videoSourcePath("")
-	// Tracker
-	, cameraVRDevicePath("")
-	, matVRDevicePath("")
-	, vivePuckDefaultComponentName("front_rolled")
-	, videoFrameQueueSize(3)
 	// Compositor
 	, compositorScriptFilePath("")
-	// Output Settings
-	, outputFilePath("")
 {
 	editorConfig = std::make_shared<EditorObjectSystemConfig>("editor");
 	addChildConfig(editorConfig);
@@ -97,36 +68,11 @@ configuru::Config ProjectConfig::writeToJSON()
 {
 	configuru::Config pt= CommonConfig::writeToJSON();
 
-	// Pattern Defaults
-	pt["calibrationPatternType"]= k_patternTypeStrings[(int)calibrationPatternType];
-	pt["chessbordRows"]= chessbordRows;
-	pt["chessbordCols"]= chessbordCols;
-	pt["squareLengthMM"]= squareLengthMM;
-	pt["charucoRows"] = charucoRows;
-	pt["charucoCols"] = charucoCols;
-	pt["charucoSquareLengthMM"] = charucoSquareLengthMM;
-	pt["charucoMarkerLengthMM"] = charucoMarkerLengthMM;
-	pt["charucoDictionaryType"] = k_charucoDictionaryStrings[(int)charucoDictionaryType];
-	pt["puckHorizontalOffsetMM"]= puckHorizontalOffsetMM;
-	pt["puckVerticalOffsetMM"]= puckVerticalOffsetMM;
-	pt["puckDepthOffsetMM"]= puckDepthOffsetMM;
-	pt["vrCenterArucoId"]= vrCenterArucoId;
-	pt["vrCenterMarkerLengthMM"]= vrCenterMarkerLengthMM;
 	// Spout Output Settings
 	pt[k_spoutOutputIsStreamingNamePropertyId]= m_bIsSpoutOutputStreaming;
 	pt[k_spoutOutputNamePropertyId]= m_spoutOutputName;
-	// VideoSource Defaults
-	pt["videoSourcePath"]= videoSourcePath;
-	// Tracker
-	pt["cameraVRDevicePath"]= cameraVRDevicePath;
-	pt["matVRDevicePath"]= matVRDevicePath;
-	pt["vivePuckDefaultComponentName"]= vivePuckDefaultComponentName;
-	pt[k_vrFrameDelayPropertyId]= m_vrFrameDelay;
-	pt["videoFrameQueueSize"]= videoFrameQueueSize;
 	// Compositor
 	pt["compositorScript"]= compositorScriptFilePath.string();
-	// Output Settings
-	pt["outputPath"]= outputFilePath.string();
 	// Renderer Flags
 	pt[k_renderOriginFlagPropertyId]= m_bRenderOrigin;
 
@@ -170,55 +116,12 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
-	// Pattern Defaults
-	const std::string patternString =
-		pt.get_or<std::string>(
-			"calibrationPatternType",
-			k_patternTypeStrings[(int)eCalibrationPatternType::mode_chessboard]);
-	calibrationPatternType = 
-		StringUtils::FindEnumValue<eCalibrationPatternType>(
-			patternString, 
-			k_patternTypeStrings);
-	chessbordRows = pt.get_or<int>("chessbordRows", chessbordRows);
-	chessbordCols = pt.get_or<int>("chessbordCols", chessbordCols);
-	squareLengthMM = pt.get_or<float>("squareLengthMM", squareLengthMM);
-
-	const std::string charcuoDictionaryString =
-		pt.get_or<std::string>(
-			"charucoDictionaryType",
-			k_charucoDictionaryStrings[(int)eCharucoDictionaryType::DICT_6X6]);
-	charucoDictionaryType =
-		StringUtils::FindEnumValue<eCharucoDictionaryType>(
-			charcuoDictionaryString,
-			k_charucoDictionaryStrings);
-	charucoRows = pt.get_or<int>("charucoRows", charucoRows);
-	charucoCols = pt.get_or<int>("charucoCols", charucoCols);
-	charucoSquareLengthMM = pt.get_or<float>("charucoSquareLengthMM", charucoSquareLengthMM);
-	charucoMarkerLengthMM = pt.get_or<float>("charucoMarkerLengthMM", charucoMarkerLengthMM);
-
-	puckHorizontalOffsetMM = pt.get_or<float>("puckHorizontalOffsetMM", puckHorizontalOffsetMM);
-	puckVerticalOffsetMM = pt.get_or<float>("puckVerticalOffsetMM", puckVerticalOffsetMM);
-	puckDepthOffsetMM = pt.get_or<float>("puckDepthOffsetMM", puckDepthOffsetMM);
-
-	vrCenterArucoId = pt.get_or<int>("vrCenterArucoId", vrCenterArucoId);
-	vrCenterMarkerLengthMM = pt.get_or<float>("vrCenterMarkerLengthMM", vrCenterMarkerLengthMM);
-
 	// Spout Output Settings
 	m_bIsSpoutOutputStreaming= pt.get_or<bool>(k_spoutOutputNamePropertyId, m_bIsSpoutOutputStreaming);
 	m_spoutOutputName= pt.get_or<std::string>(k_spoutOutputNamePropertyId, m_spoutOutputName);
 	if (m_spoutOutputName.empty())
 		m_spoutOutputName= DEFAULT_SPOUT_OUTPUT_NAME;
 
-	// VideoSource Defaults
-	videoSourcePath = pt.get_or<std::string>("videoSourcePath", videoSourcePath);
-
-	// VR Devices
-	cameraVRDevicePath = pt.get_or<std::string>("cameraVRDevicePath", cameraVRDevicePath);
-
-	matVRDevicePath = pt.get_or<std::string>("matVRDevicePath", matVRDevicePath);
-	vivePuckDefaultComponentName = pt.get_or<std::string>("vivePuckDefaultComponentName", vivePuckDefaultComponentName);
-	m_vrFrameDelay = pt.get_or<int>(k_vrFrameDelayPropertyId, m_vrFrameDelay);
-	videoFrameQueueSize = int_min(int_max(pt.get_or<int>("videoFrameQueueSize", videoFrameQueueSize), 1), 8);
 	m_bRenderOrigin = pt.get_or<bool>(k_renderOriginFlagPropertyId, m_bRenderOrigin);
 
 	// Read the editor system config
@@ -289,9 +192,6 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 
 	// Compositor
 	compositorScriptFilePath = pt.get_or<std::string>("compositorScript", compositorScriptFilePath.string());
-
-	// Output Path
-	outputFilePath = pt.get_or<std::string>("outputPath", outputFilePath.string());
 }
 
 void ProjectConfig::setIsSpoutOutputStreaming(bool bIsStreaming)
@@ -312,29 +212,11 @@ void ProjectConfig::setSpoutOutputName(const std::string& spoutOutputName)
 	}
 }
 
-std::filesystem::path ProjectConfig::generateTimestampedFilePath(
-	const std::string& prefix, 
-	const std::string& suffix) const
-{
-	const std::filesystem::path parentDir= !outputFilePath.empty() ? outputFilePath : std::filesystem::current_path();
-
-	return PathUtils::makeTimestampedFilePath(parentDir, prefix, suffix);
-}
-
 void ProjectConfig::setRenderOriginFlag(bool flag)
 {
 	if (m_bRenderOrigin != flag)
 	{
 		m_bRenderOrigin = flag;
 		markDirty(ConfigPropertyChangeSet().addPropertyName(k_renderOriginFlagPropertyId));
-	}
-}
-
-void ProjectConfig::setVRFrameDelay(int frameDelay)
-{
-	if (m_vrFrameDelay != frameDelay)
-	{
-		m_vrFrameDelay= frameDelay;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_vrFrameDelayPropertyId));
 	}
 }

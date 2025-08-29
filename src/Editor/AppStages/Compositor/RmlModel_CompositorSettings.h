@@ -18,7 +18,6 @@ private:
 	bool m_bRenderOrigin= false;
 	bool m_bRenderAnchors= false;
 	bool m_bRenderStencils= false;
-	int m_vrFrameDelay= 0;
 
 	ProjectConfigPtr m_project;
 };

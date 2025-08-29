@@ -22,13 +22,6 @@ public:
 	CalibrationPatternFinder(class VideoFrameDistortionView* distortionView);
 	virtual ~CalibrationPatternFinder();
 
-	static CalibrationPatternFinder* allocatePatternFinder(
-		ProjectConfigConstPtr profileConfig,
-		class VideoFrameDistortionView* distortionView);
-	static CalibrationPatternFinderPtr allocatePatternFinderSharedPtr(
-		ProjectConfigConstPtr profileConfig,
-		class VideoFrameDistortionView* distortionView);
-
 	cv::Mat* getGrayscaleVideoFrameInput() const;
 
 	virtual eCalibrationPatternType getCalibrationPatternType() const = 0;

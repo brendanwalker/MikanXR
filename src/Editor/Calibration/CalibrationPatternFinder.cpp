@@ -1,8 +1,5 @@
 // Main implementation file that includes all calibration pattern finder implementations
 #include "CalibrationPatternFinder.h"
-#include "CalibrationPatternFinder_Aruco.h"
-#include "CalibrationPatternFinder_Chessboard.h"
-#include "CalibrationPatternFinder_Charuco.h"
 #include "CalibrationRenderHelpers.h"
 #include "CameraComponent.h"
 #include "Colors.h"
@@ -37,60 +34,6 @@ CalibrationPatternFinder::CalibrationPatternFinder(
 
 CalibrationPatternFinder::~CalibrationPatternFinder()
 {
-}
-
-CalibrationPatternFinder* CalibrationPatternFinder::allocatePatternFinder(
-	ProjectConfigConstPtr profileConfig,
-	VideoFrameDistortionView* distortionView)
-{
-	switch (profileConfig->calibrationPatternType)
-	{
-	case eCalibrationPatternType::mode_chessboard:
-		return
-			new CalibrationPatternFinder_Chessboard(
-				distortionView,
-				profileConfig->chessbordRows,
-				profileConfig->chessbordCols,
-				profileConfig->squareLengthMM);
-	case eCalibrationPatternType::mode_charuco:
-		return
-			new CalibrationPatternFinder_Charuco(
-				distortionView,
-				profileConfig->charucoRows,
-				profileConfig->charucoCols,
-				profileConfig->charucoSquareLengthMM,
-				profileConfig->charucoMarkerLengthMM,
-				profileConfig->charucoDictionaryType);
-	}
-
-	return nullptr;
-}
-
-CalibrationPatternFinderPtr CalibrationPatternFinder::allocatePatternFinderSharedPtr(
-	ProjectConfigConstPtr profileConfig,
-	VideoFrameDistortionView* distortionView)
-{
-	switch (profileConfig->calibrationPatternType)
-	{
-	case eCalibrationPatternType::mode_chessboard:
-		return
-			std::make_shared<CalibrationPatternFinder_Chessboard>(
-				distortionView,
-				profileConfig->chessbordRows,
-				profileConfig->chessbordCols,
-				profileConfig->squareLengthMM);
-	case eCalibrationPatternType::mode_charuco:
-		return
-			std::make_shared<CalibrationPatternFinder_Charuco>(
-				distortionView,
-				profileConfig->charucoRows,
-				profileConfig->charucoCols,
-				profileConfig->charucoSquareLengthMM,
-				profileConfig->charucoMarkerLengthMM,
-				profileConfig->charucoDictionaryType);
-	}
-
-	return nullptr;
 }
 
 cv::Mat* CalibrationPatternFinder::getGrayscaleVideoFrameInput() const
