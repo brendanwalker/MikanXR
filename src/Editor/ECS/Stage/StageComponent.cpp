@@ -1,4 +1,6 @@
+#include "CameraObjectSystem.h"
 #include "StageComponent.h"
+#include "ModalSelectCamera/ModalDialog_SelectCamera.h"
 #include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
@@ -184,11 +186,19 @@ bool StageComponent::invokeFunction(const std::string& functionName)
 
 void StageComponent::alignStage()
 {
-	const MikanStageID stageId = getStageComponentDefinition()->getStageId();
-	AppStage_VRTrackingRecenter* vrTrackingRecenterStage =
-		MainWindow::getInstance()->pushAppStage<AppStage_VRTrackingRecenter>();
+	ModalDialog_SelectCamera::selectCamera(
+		[this](MikanCameraID cameraId) {
+			const MikanStageID stageId = getStageComponentDefinition()->getStageId();
+			CameraComponentPtr cameraComponent= CameraObjectSystem::getSystem()->getCameraById(cameraId);
 
-	vrTrackingRecenterStage->setTargetStageId(stageId);
+			AppStage_VRTrackingRecenter* vrTrackingRecenterStage =
+				MainWindow::getInstance()->pushAppStage<AppStage_VRTrackingRecenter>();
+
+			vrTrackingRecenterStage->setSourceCamera(cameraComponent);
+			vrTrackingRecenterStage->setTargetStageId(stageId);
+		});
+
+
 }
 
 void StageComponent::deleteStage()

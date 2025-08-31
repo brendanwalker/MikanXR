@@ -8,6 +8,7 @@ class CompositorNodeEditorWindow : public NodeEditorWindow
 public:
 	CompositorNodeEditorWindow();
 
+
 	// -- IMkWindow ----
 	virtual bool startup() override;
 	virtual void update(float deltaSeconds) override;
@@ -22,6 +23,9 @@ public:
 	virtual void handleMainFrameDragDrop(const class NodeEditorState& editorState) override;
 
 	virtual void renderToolbar() override;
+
+	// -- CompositorNodeEditorWindow ----
+	bool bindCompositorComponent(CompositorComponentPtr compositorComponent);
 
 protected:
 	CompositorComponentPtr m_compositorComponent;

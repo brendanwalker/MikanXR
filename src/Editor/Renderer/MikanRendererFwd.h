@@ -8,6 +8,7 @@ using GlRmlUiRenderUniquePtr = std::unique_ptr<GlRmlUiRender>;
 
 class MikanCamera;
 using MikanCameraPtr = std::shared_ptr<MikanCamera>;
+using MikanCameraWeakPtr = std::weak_ptr<MikanCamera>;
 using MikanCameraConstPtr = std::shared_ptr<const MikanCamera>;
 
 class MkScene;

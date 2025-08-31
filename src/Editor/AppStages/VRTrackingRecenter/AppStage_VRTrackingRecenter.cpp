@@ -56,14 +56,16 @@ AppStage_VRTrackingRecenter::~AppStage_VRTrackingRecenter()
 	delete m_calibrationModel;
 }
 
+void AppStage_VRTrackingRecenter::setSourceCamera(CameraComponentPtr cameraComponent)
+{
+	// Get the current video source based on the config
+	m_cameraComponent = cameraComponent;
+	m_videoSourceComponent = m_cameraComponent->getVideoSourceComponent();
+}
 
 void AppStage_VRTrackingRecenter::enter()
 {
 	AppStage::enter();
-
-	// Get the current video source based on the config
-	m_cameraComponent = CameraObjectSystem::getSystem()->getCurrentCamera();
-	m_videoSourceComponent = m_cameraComponent->getVideoSourceComponent();
 
 	// Fetch the new camera associated with the viewport
 	m_mkCamera= getFirstViewport()->getCurrentMikanCamera();
@@ -250,7 +252,7 @@ void AppStage_VRTrackingRecenter::update(float deltaSeconds)
 	}
 }
 
-void AppStage_VRTrackingRecenter::render()
+void AppStage_VRTrackingRecenter::render(IMkViewportPtr targetViewport)
 {
 	// Render the scene into the frame buffer
 	if (m_frameBuffer->isValid())

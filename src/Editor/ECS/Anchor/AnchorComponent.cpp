@@ -1,6 +1,8 @@
 #include "AnchorComponent.h"
 #include "AnchorObjectSystem.h"
 #include "AnchorTriangulation/AppStage_AnchorTriangulation.h"
+#include "CameraObjectSystem.h"
+#include "ModalSelectCamera/ModalDialog_SelectCamera.h"
 #include "App.h"
 #include "Colors.h"
 #include "MikanLineRenderer.h"
@@ -174,15 +176,21 @@ void AnchorComponent::editAnchor()
 	AnchorComponentPtr anchorComponent = AnchorObjectSystem::getSystem()->getSpatialAnchorById(anchorId);
 	if (anchorComponent != nullptr)
 	{
-		// Show Anchor Triangulation Tool
-		AppStage_AnchorTriangulation* anchorTriangulation = MainWindow::getInstance()->pushAppStage<AppStage_AnchorTriangulation>();
-		
-		AnchorTriangulatorInfo anchorInfo = {
-			definition->getAnchorId(),
-			definition->getRelativeTransform(),
-			definition->getComponentName()
-		};
-		anchorTriangulation->setTargetAnchor(anchorInfo);
+		ModalDialog_SelectCamera::selectCamera(
+			[this, definition](MikanCameraID cameraId) {
+				// Show Anchor Triangulation Tool
+				AppStage_AnchorTriangulation* anchorTriangulation = MainWindow::getInstance()->pushAppStage<AppStage_AnchorTriangulation>();
+
+				AnchorTriangulatorInfo anchorInfo = {
+					definition->getAnchorId(),
+					definition->getRelativeTransform(),
+					definition->getComponentName()
+				};
+				anchorTriangulation->setSourceCamera(
+					CameraObjectSystem::getSystem()->getCameraById(cameraId));
+				anchorTriangulation->setTargetAnchor(anchorInfo);
+			});
+
 	}
 }
 

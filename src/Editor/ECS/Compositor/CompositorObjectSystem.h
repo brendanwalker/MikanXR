@@ -32,13 +32,8 @@ public:
 	MikanCompositorID addNewCompositor(const std::string& compositorName);
 	bool removeCompositor(MikanCompositorID compositorId);
 
-	static const std::string k_currentCompositorIdPropertyId;
-	inline MikanCompositorID getCurrentCompositorId() const { return m_currentCompositorId; }
-	void setCurrentCompositorId(MikanSceneID sceneId);
-
 private:
 	MikanCompositorID m_nextCompositorId = 0;
-	MikanCompositorID m_currentCompositorId = -1;
 	std::vector<CompositorDefinitionPtr> m_compositorList;
 };
 
@@ -54,8 +49,6 @@ public:
 	CompositorObjectSystemConfigConstPtr getCompositorSystemConfigConst() const;
 	CompositorObjectSystemConfigPtr getCompositorSystemConfig();
 
-	CompositorComponentPtr getCurrentCompositor() const;
-	void setCurrentCompositor(CompositorComponentPtr newCompositor);
 	const CompositorMap& getCompositorMap() const { return m_compositorComponents; }
 	CompositorComponentPtr getCompositorById(MikanCompositorID compositorId) const;
 	CompositorComponentPtr getCompositorByName(const std::string& compositorName) const;
@@ -68,9 +61,6 @@ public:
 protected:
 	CompositorComponentPtr createCompositorObject(CompositorDefinitionPtr compositorConfig);
 	void disposeCompositorObject(MikanCompositorID compositorId);
-
-	void onSceneDeactivated(SceneComponentPtr oldScene);
-	void onSceneActivated(SceneComponentPtr newScene);
 
 private:
 	CompositorMap m_compositorComponents;

@@ -62,16 +62,18 @@ void AppStage_AnchorTriangulation::setBypassCalibrationFlag(bool flag)
 	m_calibrationModel->setBypassCalibrationFlag(flag);
 }
 
+void AppStage_AnchorTriangulation::setSourceCamera(CameraComponentPtr cameraComponent)
+{
+	m_currentSceneCameraComponent = cameraComponent;
+	m_videoSourceComponent = m_currentSceneCameraComponent->getVideoSourceComponent();
+}
+
 void AppStage_AnchorTriangulation::enter()
 {
 	AppStage::enter();
 
 	// Disable depth testing on the line renderer while in this app stage
 	MainWindow::getInstance()->getLineRenderer()->setDisable3dDepth(true);
-
-	// Get the current video source based on the config
-	m_currentSceneCameraComponent = CameraObjectSystem::getSystem()->getCurrentCamera();
-	m_videoSourceComponent = m_currentSceneCameraComponent->getVideoSourceComponent();
 
 	// Create a new camera to view the scene
 	m_mkCamera = getFirstViewport()->getCurrentMikanCamera();
@@ -238,7 +240,7 @@ void AppStage_AnchorTriangulation::update(float deltaSeconds)
 	}
 }
 
-void AppStage_AnchorTriangulation::render()
+void AppStage_AnchorTriangulation::render(IMkViewportPtr targetViewport)
 {
 	switch (m_calibrationModel->getMenuState())
 	{

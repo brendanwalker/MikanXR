@@ -32,7 +32,7 @@ public:
 	virtual void pause();
 	virtual void resume();
 	virtual void update(float deltaSeconds);
-	virtual void render();
+	virtual void render(IMkViewportPtr targetViewport);
 	virtual void renderUI();
 
 	virtual void onSDLEvent(const SDL_Event* event);

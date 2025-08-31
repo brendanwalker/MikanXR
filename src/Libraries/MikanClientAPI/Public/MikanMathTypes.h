@@ -14,19 +14,17 @@
 /// Conversion factor to go from centimeters to meters
 #define MIKAN_CENTIMETERS_TO_METERS  0.01f
 
-/// A 3D vector with double components.
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVector3d
+/// A 2D vector with int components.
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVector2i
 {
 	FIELD()
-	double x;
+	int x;
 	FIELD()
-	double y;
-	FIELD()
-	double z;
+	int y;
 
-	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanVector3d_GENERATED
-	#endif
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanVector2i_GENERATED
+#endif
 };
 
 /// A 2D vector with float components.
@@ -57,6 +55,22 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVec
 	MikanVector3f_GENERATED
 	#endif
 };
+
+/// A 3D vector with double components.
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVector3d
+{
+	FIELD()
+	double x;
+	FIELD()
+	double y;
+	FIELD()
+	double z;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanVector3d_GENERATED
+#endif
+};
+
 
 /// A 3-tuple of Euler angles with float components.
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanRotator3f

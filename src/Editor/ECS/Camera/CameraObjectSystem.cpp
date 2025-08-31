@@ -159,18 +159,6 @@ void CameraObjectSystem::deleteObjectConfig(MikanObjectPtr objectPtr)
 	}
 }
 
-CameraComponentPtr CameraObjectSystem::getCurrentCamera() const
-{
-	CompositorComponentPtr currentCompositor = 
-		CompositorObjectSystem::getSystem()->getCurrentCompositor();
-	if (currentCompositor)
-	{
-		return currentCompositor->getCameraComponent();
-	}
-
-	return CameraComponentPtr();
-}
-
 CameraComponentPtr CameraObjectSystem::getCameraById(MikanCameraID cameraId) const
 {
 	auto iter= m_cameraComponents.find(cameraId);
@@ -267,4 +255,14 @@ CameraObjectSystemConfigConstPtr CameraObjectSystem::getCameraSystemConfigConst(
 CameraObjectSystemConfigPtr CameraObjectSystem::getCameraSystemConfig()
 {
 	return std::const_pointer_cast<CameraObjectSystemConfig>(getCameraSystemConfigConst());
+}
+
+std::vector<MikanCameraID> CameraObjectSystem::getAllCameraIds() const
+{
+	std::vector<MikanCameraID> cameraIds;
+	for (const auto& pair : m_cameraComponents)
+	{
+		cameraIds.push_back(pair.first);
+	}
+	return cameraIds;
 }

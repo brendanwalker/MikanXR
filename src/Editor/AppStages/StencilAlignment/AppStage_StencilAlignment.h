@@ -19,12 +19,13 @@ public:
 	AppStage_StencilAlignment(class MainWindow* ownerWindow);
 	virtual ~AppStage_StencilAlignment();
 
+	inline void setSourceCamera(CameraComponentPtr camera) { m_cameraComponent = camera; }
 	inline void setTargetStencil(ModelStencilComponentPtr stencil) { m_targetStencilComponent= stencil; }
 
 	virtual void enter() override;
 	virtual void exit() override;
 	virtual void update(float deltaSeconds) override;
-	virtual void render() override;
+	virtual void render(IMkViewportPtr targetViewport) override;
 
 protected:
 	void updateXRCamera();

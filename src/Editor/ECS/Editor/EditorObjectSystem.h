@@ -53,6 +53,7 @@ public:
 	SceneComponentConstPtr getEditorScene() const { return m_sceneWeakPtr.lock(); }
 
 	void bindViewport(MikanViewportWeakPtr viewportWeakPtr);
+	void unbindViewport(MikanViewportWeakPtr viewportWeakPtr);
 	void clearViewports();
 
 	SelectionComponentPtr getSelection() const { return m_selectedComponentWeakPtr.lock(); }

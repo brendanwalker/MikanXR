@@ -252,7 +252,7 @@ void AppStage_MonoLensCalibration::update(float deltaSeconds)
 	}
 }
 
-void AppStage_MonoLensCalibration::render()
+void AppStage_MonoLensCalibration::render(IMkViewportPtr targetViewport)
 {
 	eMonoLensCalibrationMenuState menuState = m_calibrationModel->getMenuState();
 

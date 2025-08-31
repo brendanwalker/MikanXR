@@ -4,7 +4,6 @@
 #include "StencilAlignment/RmlModel_StencilAlignment.h"
 #include "App.h"
 #include "CameraComponent.h"
-#include "CompositorComponent.h"
 #include "Colors.h"
 #include "CalibrationRenderHelpers.h"
 #include "MikanCamera.h"
@@ -33,8 +32,6 @@
 #include "ProjectConfig.h"
 #include "StencilObjectSystem.h"
 #include "StencilComponent.h"
-#include "SceneObjectSystem.h"
-#include "SceneComponent.h"
 #include "StringUtils.h"
 #include "TextStyle.h"
 #include "VideoFrameDistortionView.h"
@@ -76,10 +73,6 @@ void AppStage_StencilAlignment::enter()
 {
 	AppStage::enter();
 
-	SceneComponentPtr currentScene= SceneObjectSystem::getSystem()->getCurrentScene();
-	CompositorComponentPtr currentCompositor = currentScene->getOutputCompositor();
-	assert(currentCompositor);
-	m_cameraComponent= currentCompositor->getCameraComponent();
 	assert(m_cameraComponent);
 	m_videoSourceComponent = m_cameraComponent->getVideoSourceComponent();
 	assert(m_videoSourceComponent);
@@ -287,7 +280,7 @@ void AppStage_StencilAlignment::update(float deltaSeconds)
 	}
 }
 
-void AppStage_StencilAlignment::render()
+void AppStage_StencilAlignment::render(IMkViewportPtr targetViewport)
 {
 	// Render the scene into the frame buffer
 	if (m_frameBuffer->isValid())

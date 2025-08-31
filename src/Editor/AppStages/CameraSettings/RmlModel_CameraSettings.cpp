@@ -17,7 +17,7 @@ RmlModel_CameraSettings::RmlModel_CameraSettings()
 
 bool RmlModel_CameraSettings::init(
 	Rml::Context* rmlContext,
-	VideoSourceSystemPtr videoSourceSystem)
+	VideoSourceComponentPtr currentVideoSource)
 {
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "camera_settings");
@@ -41,10 +41,9 @@ bool RmlModel_CameraSettings::init(
 		});
 
 	// Fill in the data model
-	rebuildVideoSourceList(videoSourceSystem);
+	rebuildVideoSourceList();
 
 	// Set the current video source ID
-	VideoSourceComponentPtr currentVideoSource= videoSourceSystem->getCurrentVideoSource();
 	m_videoSourceId = currentVideoSource ? currentVideoSource->getVideoSourceId() : -1;
 
 	return true;
@@ -58,9 +57,9 @@ void RmlModel_CameraSettings::dispose()
 	RmlModel::dispose();
 }
 
-void RmlModel_CameraSettings::rebuildVideoSourceList(VideoSourceSystemPtr videoSourceSystem)
+void RmlModel_CameraSettings::rebuildVideoSourceList()
 {
-	m_videoSourceIdList = videoSourceSystem->getVideoSourceIdList();
+	m_videoSourceIdList = VideoSourceSystem::getSystem()->getVideoSourceIdList();
 	m_modelHandle.DirtyVariable("video_sources");
 }
 

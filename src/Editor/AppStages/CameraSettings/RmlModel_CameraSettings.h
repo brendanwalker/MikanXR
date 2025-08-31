@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MikanTypeFwd.h"
+#include "ComponentFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
 #include "Shared/RmlModel.h"
@@ -14,11 +15,11 @@ class RmlModel_CameraSettings : public RmlModel
 public:
 	RmlModel_CameraSettings();
 
-	bool init(Rml::Context* rmlContext, VideoSourceSystemPtr videoSourceSystem);
+	bool init(Rml::Context* rmlContext, VideoSourceComponentPtr videoSourceComponent);
 	virtual void dispose() override;
 
 	inline RmlDataBinding_CameraBrightnessPtr getBrightnessDataBinding() const { return m_brightnessDataBinding; }
-	void rebuildVideoSourceList(VideoSourceSystemPtr videoSourceSystem);
+	void rebuildVideoSourceList();
 
 	SinglecastDelegate<void(const MikanVideoSourceID videoSourceId)> OnUpdateVideoSourceId;
 

@@ -30,7 +30,6 @@
 #include "IMkWireframeMesh.h"
 #include "IMkTexture.h"
 #include "SharedTextureReader.h"
-#include "SharedTextureWriter.h"
 #include "InputManager.h"
 #include "MainWindow.h"
 #include "MathGLM.h"
@@ -81,14 +80,15 @@ AppStage_Compositor::AppStage_Compositor(MainWindow* window)
 	, m_compositorSelectionModel(new RmlModel_CompositorSelection)
 	, m_compositorSettingsModel(new RmlModel_CompositorSettings)
 	, m_scriptContext(std::make_shared<CompositorScriptContext>())
-	, m_renderTargetWriteAccessor()
+	//, m_renderTargetWriteAccessor()
 {
 }
 
 AppStage_Compositor::~AppStage_Compositor()
 {
-	m_renderTargetWriteAccessor= nullptr;
-	m_viewport= nullptr;
+	//m_renderTargetWriteAccessor= nullptr;
+	m_viewport = nullptr;
+	m_activeCompositors.clear();
 
 	delete m_compositorModel;
 	delete m_compositorLayersModel;
@@ -107,8 +107,8 @@ void AppStage_Compositor::enter()
 
 	// Cache a ref to the project
 	m_project = App::getInstance()->getProfileConfig();
-	m_project->OnMarkedDirty +=
-		MakeDelegate(this, &AppStage_Compositor::onProjectConfigMarkedDirty);
+	//m_project->OnMarkedDirty +=
+	//	MakeDelegate(this, &AppStage_Compositor::onProjectConfigMarkedDirty);
 
 	// Cache object systems we'll be accessing
 	ObjectSystemManagerPtr objectSystemManager = m_ownerWindow->getObjectSystemManager();
@@ -118,32 +118,45 @@ void AppStage_Compositor::enter()
 	m_sceneObjectSystem = objectSystemManager->getSystemOfType<SceneObjectSystem>();
 	m_compositorSystem = objectSystemManager->getSystemOfType<CompositorObjectSystem>();
 
-	// Setup viewport
-	m_viewport = getFirstViewport();
-	const glm::i32vec2 viewportOrigin = {0, 45};
-	const glm::i32vec2 viewportSize = {1280, 720};
-	m_viewport->setViewport(viewportOrigin, viewportSize);
-
-	// Create and bind cameras
-	setupCameras();
-
-	// Register the scene with the primary viewport
-	m_editorSystem->bindViewport(m_viewport);
-
-	// Listen for changes to the current active compositor
+	// Setup Scene viewport
 	{
-		CompositorComponentPtr activeCompositor = m_compositorSystem->getCurrentCompositor();
+		const glm::i32vec2 viewportOrigin = { 0, 45 };
+		const glm::i32vec2 viewportSize = { 1280, 720 };
 
-		m_compositorSystem->OnCompositorActivated +=
-			MakeDelegate(this, &AppStage_Compositor::onCompositorActivated);
-		m_compositorSystem->OnCompositorDeactivated +=
-			MakeDelegate(this, &AppStage_Compositor::onCompositorDeactivated);
+		m_viewport = getFirstViewport();
+		m_viewport->setViewport(viewportOrigin, viewportSize);
+
+		MikanCameraPtr sceneCamera = m_viewport->getCurrentMikanCamera();
+		sceneCamera->setCameraMovementMode(eCameraMovementMode::fly);
+		sceneCamera->setName("scene camera");
+	}
+
+	// Listen for changes to the current active scene
+	{
+		SceneObjectSystemPtr sceneSystem = SceneObjectSystem::getSystem();
+
+		sceneSystem->OnSceneActivated +=
+			MakeDelegate(this, &AppStage_Compositor::onSceneActivated);
+		sceneSystem->OnSceneDeactivated +=
+			MakeDelegate(this, &AppStage_Compositor::onSceneDeactivated);
 		
-		// Apply new compositor settings to the viewports
-		if (activeCompositor)
+		// Rebuild compositor viewports for the active scene
+		SceneComponentPtr activeScene= sceneSystem->getCurrentScene();
+		if (activeScene)
 		{
-			onCompositorActivated(activeCompositor);
+			onSceneActivated(activeScene);
 		}
+	}
+
+	// Setup hotkeys
+	{
+		InputManager* inputManager = InputManager::getInstance();
+
+		// Hotkeys for switching between viewport modes
+		inputManager->fetchOrAddKeyBindings(SDLK_COMMA)->OnKeyPressed +=
+			MakeDelegate(this, &AppStage_Compositor::cyclePreviousCompositorCamera);
+		inputManager->fetchOrAddKeyBindings(SDLK_PERIOD)->OnKeyPressed +=
+			MakeDelegate(this, &AppStage_Compositor::cycleNextCompositorCamera);
 	}
 
 	// Register the script context with the mikan server
@@ -183,11 +196,11 @@ void AppStage_Compositor::enter()
 
 		// TODO
 		// Init Layers UI
-		m_compositorLayersModel->init(context, m_frameCompositor);
-		m_compositorLayersModel->OnGraphEditEvent = MakeDelegate(this, &AppStage_Compositor::onGraphEditEvent);
-		m_compositorLayersModel->OnGraphFileSelectEvent = MakeDelegate(this, &AppStage_Compositor::onGraphFileSelectEvent);
-		m_compositiorLayersView = addRmlDocument("compositor_layers.rml");
-		m_compositiorLayersView->Hide();
+		//m_compositorLayersModel->init(context, m_frameCompositor);
+		//m_compositorLayersModel->OnGraphEditEvent = MakeDelegate(this, &AppStage_Compositor::onGraphEditEvent);
+		//m_compositorLayersModel->OnGraphFileSelectEvent = MakeDelegate(this, &AppStage_Compositor::onGraphFileSelectEvent);
+		//m_compositiorLayersView = addRmlDocument("compositor_layers.rml");
+		//m_compositiorLayersView->Hide();
 
 		// Init Cameras UI
 		m_compositorCamerasModel->init(context);
@@ -215,24 +228,35 @@ void AppStage_Compositor::enter()
 	}
 
 	// Setup render target write accessor
-	m_renderTargetWriteAccessor =
-		createSharedTextureWriteAccessor(m_project->getSpoutOutputName());
-	onSpoutStreamingFlagChanged();
+	//m_renderTargetWriteAccessor =
+	//	createSharedTextureWriteAccessor(m_project->getSpoutOutputName());
+	//onSpoutStreamingFlagChanged();
 }
 
 void AppStage_Compositor::exit()
 {
 	// Stop listening for changes to the current active compositor
-	if (m_frameCompositor)
-	{
-		// Clean up the current compositor state
-		onCompositorDeactivated(m_frameCompositor);
-	}
+	//if (m_frameCompositor)
+	//{
+	//	// Clean up the current compositor state
+	//	onCompositorDeactivated(m_frameCompositor);
+	//}
 
-	m_compositorSystem->OnCompositorActivated -=
-		MakeDelegate(this, &AppStage_Compositor::onCompositorActivated);
-	m_compositorSystem->OnCompositorDeactivated -=
-		MakeDelegate(this, &AppStage_Compositor::onCompositorDeactivated);
+	{
+		SceneObjectSystemPtr sceneSystem = SceneObjectSystem::getSystem();
+
+		// Rebuild compositor viewports for the active scene
+		SceneComponentPtr activeScene = sceneSystem->getCurrentScene();
+		if (activeScene)
+		{
+			onSceneDeactivated(activeScene);
+		}
+
+		sceneSystem->OnSceneActivated -=
+			MakeDelegate(this, &AppStage_Compositor::onSceneActivated);
+		sceneSystem->OnSceneDeactivated -=
+			MakeDelegate(this, &AppStage_Compositor::onSceneDeactivated);
+	}
 
 	// Unregister all viewports from the editor
 	EditorObjectSystemPtr editorSystem = m_ownerWindow->getObjectSystemManager()->getSystemOfType<EditorObjectSystem>();
@@ -242,8 +266,8 @@ void AppStage_Compositor::exit()
 	MikanServer::getInstance()->getScriptRequestHandler()->unbindScriptContect(m_scriptContext);
 
 	// Clean up spout output stream
-	stopStreaming();
-	m_renderTargetWriteAccessor= nullptr;
+	//stopStreaming();
+	//m_renderTargetWriteAccessor= nullptr;
 
 	m_compositorSelectionModel->dispose();
 	m_compositorOutlinerModel->dispose();
@@ -254,8 +278,8 @@ void AppStage_Compositor::exit()
 	m_compositorSettingsModel->dispose();
 
 	// Stop listening for project config changes
-	m_project->OnMarkedDirty -=
-		MakeDelegate(this, &AppStage_Compositor::onProjectConfigMarkedDirty);
+	//m_project->OnMarkedDirty -=
+	//	MakeDelegate(this, &AppStage_Compositor::onProjectConfigMarkedDirty);
 
 	// Clear cached object systems
 	m_anchorObjectSystem = nullptr;
@@ -271,14 +295,14 @@ void AppStage_Compositor::pause()
 {
 	AppStage::pause();
 
-	m_frameCompositor->stop();
+	//m_frameCompositor->stop();
 }
 
 void AppStage_Compositor::resume()
 {
 	AppStage::resume();
 
-	m_frameCompositor->start();
+	//m_frameCompositor->start();
 
 	hideAllSubWindows();
 	m_compositiorOutlinerView->Show();
@@ -289,226 +313,192 @@ void AppStage_Compositor::update(float deltaSeconds)
 	AppStage::update(deltaSeconds);
 
 	// Update the camera pose for the currently active camera
-	updateCamera();
+	updateCompositorCameras();
 
 	// tick the compositor lua script (if any is active)
 	m_scriptContext->updateScript();
 }
 
-bool AppStage_Compositor::startStreaming()
+//bool AppStage_Compositor::startStreaming()
+//{
+//	if (getIsStreaming())
+//		return true;
+//
+//	IMkTextureConstPtr compositorTexture = m_frameCompositor->getCompositedFrameTexture();
+//	if (compositorTexture == nullptr)
+//		return false;
+//
+//	// Compositing buffer should always be RGBA 32BPP
+//	// Spout can only support RGBA32 and BGRA32
+//	assert(compositorTexture->getBufferFormat() == GL_RGBA);
+//
+//	SharedTextureDescriptor sharedTextureDescriptor;
+//	sharedTextureDescriptor.color_buffer_type = SharedColorBufferType::RGBA32;
+//	sharedTextureDescriptor.depth_buffer_type = SharedDepthBufferType::NODEPTH;
+//	sharedTextureDescriptor.width = compositorTexture->getTextureWidth();
+//	sharedTextureDescriptor.height = compositorTexture->getTextureHeight();
+//	sharedTextureDescriptor.graphicsAPI = SharedClientGraphicsApi::OpenGL;
+//
+//	m_renderTargetWriteAccessor->initialize(&sharedTextureDescriptor, true, nullptr);
+//
+//	return true;
+//}
+
+//bool AppStage_Compositor::getIsStreaming()
+//{
+//	return m_renderTargetWriteAccessor->getIsInitialized();
+//}
+
+//void AppStage_Compositor::stopStreaming()
+//{
+//	m_renderTargetWriteAccessor->dispose();
+//}
+
+// Scene
+void AppStage_Compositor::onSceneDeactivated(SceneComponentPtr oldScene)
 {
-	if (getIsStreaming())
-		return true;
-
-	IMkTextureConstPtr compositorTexture = m_frameCompositor->getCompositedFrameTexture();
-	if (compositorTexture == nullptr)
-		return false;
-
-	// Compositing buffer should always be RGBA 32BPP
-	// Spout can only support RGBA32 and BGRA32
-	assert(compositorTexture->getBufferFormat() == GL_RGBA);
-
-	SharedTextureDescriptor sharedTextureDescriptor;
-	sharedTextureDescriptor.color_buffer_type = SharedColorBufferType::RGBA32;
-	sharedTextureDescriptor.depth_buffer_type = SharedDepthBufferType::NODEPTH;
-	sharedTextureDescriptor.width = compositorTexture->getTextureWidth();
-	sharedTextureDescriptor.height = compositorTexture->getTextureHeight();
-	sharedTextureDescriptor.graphicsAPI = SharedClientGraphicsApi::OpenGL;
-
-	m_renderTargetWriteAccessor->initialize(&sharedTextureDescriptor, true, nullptr);
-
-	return true;
+	disposeCompositorCameras();
 }
 
-bool AppStage_Compositor::getIsStreaming()
+void AppStage_Compositor::onSceneActivated(SceneComponentPtr newScene)
 {
-	return m_renderTargetWriteAccessor->getIsInitialized();
+	createCompositorCameras();
 }
 
-void AppStage_Compositor::stopStreaming()
-{
-	m_renderTargetWriteAccessor->dispose();
-}
-
-void AppStage_Compositor::onCompositorDeactivated(CompositorComponentPtr oldCompositor)
-{
-	if (m_frameCompositor != oldCompositor)
-		return;
-
-	// Listen for new frames to write out
-	m_frameCompositor->OnNewFrameComposited -= 
-		MakeDelegate(this, &AppStage_Compositor::onNewStreamingFrameReady);
-	m_frameCompositor = nullptr;
-}
-
-void AppStage_Compositor::onCompositorActivated(CompositorComponentPtr newCompositor)
-{
-	if (newCompositor == nullptr)
-		return;
-
-	// If we already have a compositor, deactivate it first
-	if (m_frameCompositor != nullptr)
-	{
-		onCompositorDeactivated(m_frameCompositor);
-	}
-
-	// Cache the new compositor
-	m_frameCompositor = newCompositor;
-
-	// Apply video source camera intrinsics to the camera
-	VideoSourceComponentPtr videoSourceComponent = m_frameCompositor->getVideoSourceComponent();
-	if (videoSourceComponent != nullptr)
-	{
-		MikanVideoSourceIntrinsics cameraIntrinsics;
-		videoSourceComponent->getCameraIntrinsics(cameraIntrinsics);
-
-		for (MikanViewportPtr viewport : getViewportList())
-		{
-			MikanCameraPtr camera = getViewpointCamera(eCompositorViewpointMode::mixedRealityViewpoint);
-
-			camera->applyMonoCameraIntrinsics(&cameraIntrinsics);
-		}
-	}
-
-	// Listen for new frames to write out
-	m_frameCompositor->OnNewFrameComposited += 
-		MakeDelegate(this, &AppStage_Compositor::onNewStreamingFrameReady);
-
-}
-
-void AppStage_Compositor::onNewStreamingFrameReady()
-{
-	EASY_FUNCTION();
-
-	if (getIsStreaming())
-	{
-		IMkTextureConstPtr frameTexture = m_frameCompositor->getCompositedFrameTexture();
-
-		if (frameTexture != nullptr && m_renderTargetWriteAccessor->getIsInitialized())
-		{
-			GLuint textureId= frameTexture->getGlTextureId();
-
-			m_renderTargetWriteAccessor->writeColorFrameTexture(&textureId);
-		}
-	}
-}
+//void AppStage_Compositor::onNewStreamingFrameReady()
+//{
+//	EASY_FUNCTION();
+//
+//	if (getIsStreaming())
+//	{
+//		IMkTextureConstPtr frameTexture = m_frameCompositor->getCompositedFrameTexture();
+//
+//		if (frameTexture != nullptr && m_renderTargetWriteAccessor->getIsInitialized())
+//		{
+//			GLuint textureId= frameTexture->getGlTextureId();
+//
+//			m_renderTargetWriteAccessor->writeColorFrameTexture(&textureId);
+//		}
+//	}
+//}
 
 // Project Config Events
-void AppStage_Compositor::onProjectConfigMarkedDirty(
-	CommonConfigPtr configPtr,
-	const class ConfigPropertyChangeSet& changedPropertySet)
-{
-	if (changedPropertySet.hasPropertyName(ProjectConfig::k_spoutOutputIsStreamingNamePropertyId))
-	{
-		onSpoutStreamingFlagChanged();
-	}
-	else if (changedPropertySet.hasPropertyName(ProjectConfig::k_spoutOutputNamePropertyId))
-	{
-		onSpoutOutputNameChanged();
-	}
-}
+//void AppStage_Compositor::onProjectConfigMarkedDirty(
+//	CommonConfigPtr configPtr,
+//	const class ConfigPropertyChangeSet& changedPropertySet)
+//{
+//	if (changedPropertySet.hasPropertyName(ProjectConfig::k_spoutOutputIsStreamingNamePropertyId))
+//	{
+//		onSpoutStreamingFlagChanged();
+//	}
+//	else if (changedPropertySet.hasPropertyName(ProjectConfig::k_spoutOutputNamePropertyId))
+//	{
+//		onSpoutOutputNameChanged();
+//	}
+//}
 
 // Spout Streaming Config Events
-void AppStage_Compositor::onSpoutOutputNameChanged()
-{
-	m_renderTargetWriteAccessor->setClientName(m_project->getSpoutOutputName());
-}
+//void AppStage_Compositor::onSpoutOutputNameChanged()
+//{
+//	m_renderTargetWriteAccessor->setClientName(m_project->getSpoutOutputName());
+//}
+//
+//void AppStage_Compositor::onSpoutStreamingFlagChanged()
+//{
+//	const bool bIsStreaming = getIsStreaming();
+//	const bool bWantsStreaming = m_project->getIsSpoutOutputStreaming();
+//
+//	if (!bIsStreaming && bWantsStreaming)
+//	{
+//		startStreaming();
+//	}
+//	else if (bIsStreaming && !bWantsStreaming)
+//	{
+//		stopStreaming();
+//	}
+//}
 
-void AppStage_Compositor::onSpoutStreamingFlagChanged()
+void AppStage_Compositor::createCompositorCameras()
 {
-	const bool bIsStreaming = getIsStreaming();
-	const bool bWantsStreaming = m_project->getIsSpoutOutputStreaming();
+	// Create a camera for each active compositor in the scene
+	for (const CompositorComponentWeakPtr compositorWeakPtr : m_activeCompositors)
+	{
+		CompositorComponentPtr compositor= compositorWeakPtr.lock();
+		MikanCameraPtr mikanCamera= m_viewport->addMikanCamera();
 
-	if (!bIsStreaming && bWantsStreaming)
-	{
-		startStreaming();
-	}
-	else if (bIsStreaming && !bWantsStreaming)
-	{
-		stopStreaming();
-	}
-}
+		mikanCamera->setName(compositor->getName());
 
-// Camera
-void AppStage_Compositor::setupCameras()
-{
-	for (int cameraIndex = 0; cameraIndex < (int)eCompositorViewpointMode::COUNT; ++cameraIndex)
-	{
-		if (cameraIndex == m_viewport->getCameraCount())
+		// Camera transform will be updated each frame in updateCompositorCameras()
+		mikanCamera->setCameraMovementMode(eCameraMovementMode::stationary);
+
+		// Apply video source camera intrinsics to the camera
+		VideoSourceComponentPtr videoSourceComponent = compositor->getVideoSourceComponent();
+		if (videoSourceComponent != nullptr)
 		{
-			m_viewport->addCamera();
+			MikanVideoSourceIntrinsics cameraIntrinsics;
+			videoSourceComponent->getCameraIntrinsics(cameraIntrinsics);
+
+			mikanCamera->applyMonoCameraIntrinsics(&cameraIntrinsics);
 		}
-
-		// Use fly-cam input control for every camera except for the first one (the XR camera)
-		MikanCameraPtr camera= m_viewport->getMikanCameraByIndex(cameraIndex);
-		if (cameraIndex == 0)
-			camera->setCameraMovementMode(eCameraMovementMode::stationary);
-		else
-			camera->setCameraMovementMode(eCameraMovementMode::fly);
-	}
-	
-	// Default to the XR Camera view
-	setCurrentCameraMode(eCompositorViewpointMode::mixedRealityViewpoint);
-
-	// Bind viewpoint hot keys
-	{
-		InputManager* inputManager = InputManager::getInstance();
-
-		inputManager->fetchOrAddKeyBindings(SDLK_1)->OnKeyPressed +=
-			MakeDelegate(this, &AppStage_Compositor::setXRCamera);
-		inputManager->fetchOrAddKeyBindings(SDLK_2)->OnKeyPressed +=
-			MakeDelegate(this, &AppStage_Compositor::setVRCamera);
 	}
 
-	// Set camera names
-	getViewpointCamera(eCompositorViewpointMode::vrViewpoint)->setName("vrViewpoint");
-	getViewpointCamera(eCompositorViewpointMode::mixedRealityViewpoint)->setName("mixedRealityViewpoint");
+	// Apply initial camera transforms from the compositors
+	updateCompositorCameras();
 }
 
-void AppStage_Compositor::setXRCamera()
+void AppStage_Compositor::disposeCompositorCameras()
+{
+	// Remove all but the first camera from the main viewport
+	while (m_viewport->getCameraCount() > 1)
+	{
+		m_viewport->removeCameraByIndex(m_viewport->getCameraCount() - 1);
+	}
+}
+
+void AppStage_Compositor::updateCompositorCameras()
+{
+	for (size_t compositorIndex = 0; compositorIndex < m_activeCompositors.size(); compositorIndex++)
+	{
+		size_t cameraIndex = compositorIndex + 1; // Skip the first camera which is the vr camera
+		CompositorComponentPtr compositor = m_activeCompositors[compositorIndex].lock();
+		MikanCameraPtr camera = m_viewport->getMikanCameraByIndex((int)cameraIndex);
+
+		if (compositor && camera)
+		{
+			CameraComponentPtr cameraComponent = compositor->getCameraComponent();
+			if (cameraComponent)
+			{
+				glm::mat4 cameraXform;
+				if (cameraComponent->getAperturePose(cameraXform))
+				{
+					camera->setCameraTransform(cameraXform);
+				}
+			}
+		}
+	}
+}
+
+void AppStage_Compositor::cyclePreviousCompositorCamera()
 {
 	if (m_viewport->getIsMouseInViewport())
 	{
-		setCurrentCameraMode(eCompositorViewpointMode::mixedRealityViewpoint);
+		int newCameraIndex = m_viewport->getCurrentCameraIndex() - 1;
+		if (newCameraIndex < 0)
+			newCameraIndex = m_viewport->getCameraCount() - 1;
+
+		m_viewport->setCurrentCamera(newCameraIndex);
 	}
 }
 
-void AppStage_Compositor::setVRCamera()
+void AppStage_Compositor::cycleNextCompositorCamera()
 {
 	if (m_viewport->getIsMouseInViewport())
 	{
-		setCurrentCameraMode(eCompositorViewpointMode::vrViewpoint);
-	}
-}
+		int newCameraIndex = m_viewport->getCurrentCameraIndex() + 1;
+		if (newCameraIndex >= m_viewport->getCameraCount())
+			newCameraIndex = 0;
 
-void AppStage_Compositor::setCurrentCameraMode(eCompositorViewpointMode viewportMode)
-{
-	m_viewportMode= viewportMode;
-	m_viewport->setCurrentCamera((int)m_viewportMode);
-}
-
-eCompositorViewpointMode AppStage_Compositor::getCurrentCameraMode() const
-{
-	return (eCompositorViewpointMode)m_viewport->getCurrentCameraIndex();
-}
-
-MikanCameraPtr AppStage_Compositor::getViewpointCamera(eCompositorViewpointMode viewportMode) const
-{
-	return m_viewport->getMikanCameraByIndex((int)viewportMode);
-}
-
-void AppStage_Compositor::updateCamera()
-{
-	// Copy the compositor's camera pose to the app stage's camera for debug rendering
-	MikanCameraPtr mkCamera = getViewpointCamera(eCompositorViewpointMode::mixedRealityViewpoint);
-	if (mkCamera)
-	{
-		glm::mat4 cameraXform;
-		if (CameraComponentPtr cameraComponent= m_frameCompositor->getCameraComponent();
-			cameraComponent->getAperturePose(cameraXform))
-		{
-			mkCamera->setCameraTransform(cameraXform);
-		}
+		m_viewport->setCurrentCamera(newCameraIndex);
 	}
 }
 
@@ -557,34 +547,34 @@ void AppStage_Compositor::onToggleScriptingWindowEvent()
 //-- Deprecated --
 
 // Compositor Layers UI Events
-void AppStage_Compositor::onGraphEditEvent()
-{
-	App* app= App::getInstance();	
+//void AppStage_Compositor::onGraphEditEvent()
+//{
+//	App* app= App::getInstance();	
+//
+//	if (!app->hasWindowOfType<CompositorNodeEditorWindow>())
+//	{
+//		auto* compositorNodeEditor= app->createAppWindow<CompositorNodeEditorWindow>();
+//
+//		// Bind the current compositor graph to the editor
+//		NodeGraphPtr nodeGraph = compositorNodeEditor->getNodeGraph();
+//		if (nodeGraph)
+//		{
+//			auto compositorNodeGraph = std::static_pointer_cast<CompositorNodeGraph>(nodeGraph);
+//			compositorNodeGraph->bindToCompositorComponent(m_frameCompositor);
+//		}
+//	}
+//}
 
-	if (!app->hasWindowOfType<CompositorNodeEditorWindow>())
-	{
-		auto* compositorNodeEditor= app->createAppWindow<CompositorNodeEditorWindow>();
-
-		// Bind the current compositor graph to the editor
-		NodeGraphPtr nodeGraph = compositorNodeEditor->getNodeGraph();
-		if (nodeGraph)
-		{
-			auto compositorNodeGraph = std::static_pointer_cast<CompositorNodeGraph>(nodeGraph);
-			compositorNodeGraph->bindToCompositorComponent(m_frameCompositor);
-		}
-	}
-}
-
-void AppStage_Compositor::onGraphFileSelectEvent()
-{
-	const char* filterItems[1] = {"*.graph"};
-	const char* filterDesc = "Graph Files (*.graph)";
-	auto path = tinyfd_openFileDialog("Load Compositor Graph", "", 1, filterItems, filterDesc, 1);
-	if (path)
-	{
-		m_frameCompositor->getCompositorDefinition()->setCompositorGraphPath(path);
-	}
-}
+//void AppStage_Compositor::onGraphFileSelectEvent()
+//{
+//	const char* filterItems[1] = {"*.graph"};
+//	const char* filterDesc = "Graph Files (*.graph)";
+//	auto path = tinyfd_openFileDialog("Load Compositor Graph", "", 1, filterItems, filterDesc, 1);
+//	if (path)
+//	{
+//		m_frameCompositor->getCompositorDefinition()->setCompositorGraphPath(path);
+//	}
+//}
 
 void AppStage_Compositor::onScreenshotClientSourceEvent(const std::string& clientSourceName)
 {
@@ -669,64 +659,56 @@ void AppStage_Compositor::onInvokeScriptTriggerEvent(const std::string& triggerE
 	}
 }
 
-void AppStage_Compositor::render()
+void AppStage_Compositor::render(IMkViewportPtr targetViewport)
 {
-	MikanCameraPtr currentCamera= m_viewport->getCurrentMikanCamera();
+	SceneComponentConstPtr editorScene= EditorObjectSystem::getSystem()->getEditorScene();
 
-	switch (getCurrentCameraMode())
+	MikanCameraPtr viewportCamera = m_viewport->getCurrentMikanCamera();
+	int viewportCameraIndex = m_viewport->getCurrentCameraIndex();
+
+	// If we are looking through a compositor camera,
+	// we need to render the compositor output to a quad first
+	int compositorIndex = viewportCameraIndex - 1; // Skip the first camera which is the vr camera
+	if (compositorIndex >= 0 && compositorIndex < (int)m_activeCompositors.size())
 	{
-	case eCompositorViewpointMode::mixedRealityViewpoint:
-		{
-			// Render the video frame + composited frame buffers
-			m_frameCompositor->render();
+		CompositorComponentPtr compositor= m_activeCompositors[compositorIndex].lock();
+		compositor->renderToViewportQuad();
+	}
 
-			// Render the editor scene
-			EditorObjectSystem::getSystem()->getEditorScene()->render(
-				currentCamera, 
-				m_ownerWindow->getMkStateStack());
+	// Render the editor scene
+	editorScene->renderEditorScene(
+		viewportCamera,
+		m_ownerWindow->getMkStateStack());
 
-			// Perform component custom rendering
-			m_ownerWindow->getObjectSystemManager()->customRender();
-		}
-		break;
-	case eCompositorViewpointMode::vrViewpoint:
-		{
-			// Render the editor scene
-			EditorObjectSystem::getSystem()->getEditorScene()->render(
-				currentCamera,
-				m_ownerWindow->getMkStateStack());
+	// Perform component custom rendering
+	m_ownerWindow->getObjectSystemManager()->customRender();
 
-			// Perform component custom rendering
-			m_ownerWindow->getObjectSystemManager()->customRender();
+	// Special debug rendering for just the scene view
+	if (compositorIndex == 0)
+	{
+		// Draw the mouse cursor ray from the pov of the xr camera
+		const glm::mat4 glmCameraXform= viewportCamera->getCameraTransformFromViewMatrix();
 
-			// Draw the mouse cursor ray from the pov of the xr camera
-			MikanCameraPtr xrCamera = getViewpointCamera(eCompositorViewpointMode::mixedRealityViewpoint);
-			if (xrCamera)
-			{
-				const glm::mat4 glmCameraXform= xrCamera->getCameraTransformFromViewMatrix();
+		// Draw the frustum for the initial camera pose
+		const float hfov_radians = degrees_to_radians(viewportCamera->getHorizontalFOVDegrees());
+		const float vfov_radians = degrees_to_radians(viewportCamera->getVerticalFOVDegrees());
+		const float zNear = fmaxf(viewportCamera->getZNear(), 0.1f);
+		const float zFar = fminf(viewportCamera->getZFar(), 2.0f);
 
-				// Draw the frustum for the initial camera pose
-				const float hfov_radians = degrees_to_radians(xrCamera->getHorizontalFOVDegrees());
-				const float vfov_radians = degrees_to_radians(xrCamera->getVerticalFOVDegrees());
-				const float zNear = fmaxf(xrCamera->getZNear(), 0.1f);
-				const float zFar = fminf(xrCamera->getZFar(), 2.0f);
+		drawTransformedFrustum(
+			glmCameraXform,
+			hfov_radians, vfov_radians,
+			zNear, zFar,
+			Colors::Yellow);
+		drawTransformedAxes(glmCameraXform, 0.1f);
+		
+		// Draw tracking space
+		drawGrid(glm::mat4(1.f), 10.f, 10.f, 20, 20, Colors::GhostWhite);
+	}
 
-				drawTransformedFrustum(
-					glmCameraXform,
-					hfov_radians, vfov_radians,
-					zNear, zFar,
-					Colors::Yellow);
-				drawTransformedAxes(glmCameraXform, 0.1f);
-			}
-
-			// Draw tracking space
-			drawGrid(glm::mat4(1.f), 10.f, 10.f, 20, 20, Colors::GhostWhite);
-			if (m_project->getRenderOriginFlag())
-			{
-				debugRenderOrigin();
-			}
-		}
-		break;
+	if (m_project->getRenderOriginFlag())
+	{
+		debugRenderOrigin();
 	}
 }
 

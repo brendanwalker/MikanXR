@@ -203,7 +203,7 @@ void AppStage::update(float deltaSeconds)
 	}
 }
 
-void AppStage::render() 
+void AppStage::render(IMkViewportPtr targetViewport)
 {
 	// Override this method in derived classes to render the stage specific 3D geometry
 }

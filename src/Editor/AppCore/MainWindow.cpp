@@ -297,10 +297,13 @@ void MainWindow::render()
 	{
 		m_sdlWindow->renderBegin();
 
-		// Render all 3d viewports for the app state
+		// Render all enabled 3d viewports for the app state
 		for (MikanViewportPtr viewpoint : appStage->getViewportList())
 		{
-			renderStageViewport(appStage, viewpoint);
+			if (viewpoint->getIsRenderingEnabled())
+			{
+				renderStageViewport(appStage, viewpoint);
+			}
 		}
 
 		// Render the UI on top
@@ -505,7 +508,7 @@ void MainWindow::renderStageViewport(AppStage* appStage, IMkViewportPtr targetVi
 		m_isRenderingStage = true;
 
 			// Render the 3d geometry of the AppStage
-			appStage->render();
+			appStage->render(targetViewport);
 
 			// Render any 3D line segments emitted by the AppStage
 			m_lineRenderer->render();

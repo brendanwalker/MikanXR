@@ -31,5 +31,6 @@ public:
 	virtual IMkCameraPtr addCamera() = 0;
 	virtual int getCameraCount() const = 0;
 	virtual IMkCameraPtr getCameraByIndex(int cameraIndex) = 0;
+	virtual bool removeCameraByIndex(int cameraIndex) = 0;
 	virtual void setCurrentCamera(int cameraIndex) = 0;
 };

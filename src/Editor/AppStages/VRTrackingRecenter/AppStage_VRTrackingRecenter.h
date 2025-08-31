@@ -23,12 +23,13 @@ public:
 	AppStage_VRTrackingRecenter(class MainWindow* ownerWindow);
 	virtual ~AppStage_VRTrackingRecenter();
 
+	void setSourceCamera(CameraComponentPtr cameraComponent);
 	inline void setTargetStageId(MikanStageID stageId) { m_targetStageId = stageId; }
 
 	virtual void enter() override;
 	virtual void exit() override;
 	virtual void update(float deltaSeconds) override;
-	virtual void render() override;
+	virtual void render(IMkViewportPtr targetViewport) override;
 
 protected:
 	void setMenuState(eVRTrackingRecenterMenuState newState);

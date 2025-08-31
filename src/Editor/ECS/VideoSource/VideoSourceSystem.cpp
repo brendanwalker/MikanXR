@@ -92,34 +92,6 @@ VideoSourceSystemConfigPtr VideoSourceSystem::getVideoSourceSystemConfig()
 	return std::const_pointer_cast<VideoSourceSystemConfig>(getVideoSourceSystemConfigConst());
 }
 
-VideoSourceComponentPtr VideoSourceSystem::getCurrentVideoSource() const
-{
-	// Get the camera component from the compositor
-	CompositorComponentPtr compositorComponent = 
-		CompositorObjectSystem::getSystem()->getCurrentCompositor();
-	if (compositorComponent)
-	{
-		// Get the video source component from the compositor
-		return compositorComponent->getVideoSourceComponent();
-	}
-
-	return VideoSourceComponentPtr();
-}
-
-bool VideoSourceSystem::setCurrentSceneVideoSourceById(MikanVideoSourceID videoSourceId)
-{
-	// Get the camera component from the compositor
-	CameraComponentPtr cameraComponent = CameraObjectSystem::getSystem()->getCurrentCamera();
-	if (cameraComponent)
-	{
-		// Get the video source component from the camera
-		cameraComponent->setVideoSourceById(videoSourceId);
-		return true;
-	}
-
-	return false;
-}
-
 VideoSourceIdList VideoSourceSystem::getVideoSourceIdList() const
 {
 	VideoSourceIdList videoSourceIdList;

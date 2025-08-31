@@ -55,8 +55,8 @@ public:
 
 	CameraObjectSystemConfigConstPtr getCameraSystemConfigConst() const;
 	CameraObjectSystemConfigPtr getCameraSystemConfig();
+	std::vector<MikanCameraID> getAllCameraIds() const;
 
-	CameraComponentPtr getCurrentCamera() const;
 	const CameraMap& getCameraMap() const { return m_cameraComponents; }
 	CameraComponentPtr getCameraById(MikanCameraID cameraId) const;
 	CameraComponentPtr getCameraByName(const std::string& cameraName) const;

@@ -16,8 +16,8 @@
 #include "MkScopedState.h"
 #include "MkStateStack.h"
 #include "ProjectConfig.h"
-#include "SceneComponent.h"
-#include "SceneObjectSystem.h"
+#include "StageComponent.h"
+#include "StageObjectSystem.h"
 #include "TransformComponent.h"
 #include "StringUtils.h"
 #include "VideoFrameDistortionView.h"
@@ -35,7 +35,7 @@
 // -- CompositorConfig -----
 const std::string CompositorDefinition::k_compositorGraphPathPropertyId = "script_path";
 const std::string CompositorDefinition::k_cameraPropertyId= "camera_id";
-const std::string CompositorDefinition::k_ownerScenePropertyId = "owner_scene_id";
+const std::string CompositorDefinition::k_ownerStagePropertyId = "owner_stage_id";
 
 CompositorDefinition::CompositorDefinition()
 	: MikanComponentDefinition()
@@ -50,7 +50,7 @@ CompositorDefinition::CompositorDefinition(
 	const std::string& compositorName)
 	: MikanComponentDefinition(compositorName)
 	, m_compositorId(compositorId)
-	, m_ownerSceneId(ownerSceneId)
+	, m_ownerStageId(ownerSceneId)
 	, m_nodeGraphAssetRef(std::make_shared<AssetReferenceConfig>())
 {}
 
@@ -60,7 +60,7 @@ configuru::Config CompositorDefinition::writeToJSON()
 
 	pt["id"] = m_compositorId;
 	pt[k_cameraPropertyId] = m_cameraId;
-	pt[k_ownerScenePropertyId] = m_ownerSceneId;
+	pt[k_ownerStagePropertyId] = m_ownerStageId;
 
 	if (m_nodeGraphAssetRef)
 	{
@@ -76,7 +76,7 @@ void CompositorDefinition::readFromJSON(const configuru::Config& pt)
 
 	m_compositorId = pt.get<int>("id");
 	m_cameraId = pt.get_or<int>(k_cameraPropertyId, INVALID_MIKAN_ID);
-	m_ownerSceneId = pt.get_or<int>(k_ownerScenePropertyId, INVALID_MIKAN_ID);
+	m_ownerStageId = pt.get_or<int>(k_ownerStagePropertyId, INVALID_MIKAN_ID);
 
 	m_componentScriptAssetRefConfig = NodeGraphAssetReferenceFactory().allocateAssetReferenceConfig();
 	if (pt.has_key(k_compositorGraphPathPropertyId))
@@ -94,12 +94,12 @@ void CompositorDefinition::setCameraId(MikanCameraID cameraId)
 	}
 }
 
-void CompositorDefinition::setOwnerSceneId(MikanSceneID sceneId)
+void CompositorDefinition::setOwnerStageId(MikanSceneID stageId)
 {
-	if (m_ownerSceneId != sceneId)
+	if (m_ownerStageId != stageId)
 	{
-		m_ownerSceneId = sceneId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_ownerScenePropertyId));
+		m_ownerStageId = stageId;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_ownerStagePropertyId));
 	}
 }
 
@@ -135,7 +135,7 @@ void CompositorComponent::init()
 
 	m_nodeGraphAssetRef = std::make_shared<NodeGraphAssetReference>();
 	m_editorFrameBufferTexture = CreateMkTexture();
-	m_layerQuadMesh = createFullscreenQuadMesh(getOwnerWindow(), false);
+	m_viewportQuadMesh = createFullscreenQuadMesh(getOwnerWindow(), false);
 
 	// Initialize the compositor graph if we have one assigned
 	handleCompositorNodeGraphChanged(getCompositorGraphAssetPath());
@@ -146,7 +146,7 @@ void CompositorComponent::dispose()
 	m_editorFrameBufferTexture = nullptr;
 	m_nodeGraph = nullptr;
 	m_nodeGraphAssetRef = nullptr;
-	m_layerQuadMesh= nullptr;
+	m_viewportQuadMesh= nullptr;
 
 	MikanComponent::dispose();
 }
@@ -454,12 +454,12 @@ void CompositorComponent::updateCompositeFrameNodeGraph()
 	}
 }
 
-void CompositorComponent::render() const
+void CompositorComponent::renderToViewportQuad() const
 {
 	IMkTextureConstPtr compositedFrameTexture = getCompositedFrameTexture();
 	if (compositedFrameTexture)
 	{
-		MkMaterialInstancePtr materialInstance = m_layerQuadMesh->getMaterialInstance();
+		MkMaterialInstancePtr materialInstance = m_viewportQuadMesh->getMaterialInstance();
 		MkMaterialConstPtr material = materialInstance->getMaterial();
 
 		if (auto materialBinding = material->bindMaterial())
@@ -474,11 +474,10 @@ void CompositorComponent::render() const
 					getOwnerWindow()->getMkStateStack().createScopedState("CompositorComponentRender");
 				scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
 
-				m_layerQuadMesh->drawElements();
+				m_viewportQuadMesh->drawElements();
 			}
 		}
 	}
-
 }
 
 bool CompositorComponent::start()
@@ -499,11 +498,11 @@ void CompositorComponent::stop()
 	m_bIsRunning = false;
 }
 
-SceneComponentPtr CompositorComponent::getOwnerSceneComponent() const
+StageComponentPtr CompositorComponent::getOwnerStageComponent() const
 {
-	MikanSceneID ownerSceneId= getCompositorDefinition()->getOwnerSceneId();
+	MikanStageID ownerStageId= getCompositorDefinition()->getOwnerStageId();
 
-	return SceneObjectSystem::getSystem()->getSceneById(ownerSceneId);
+	return StageObjectSystem::getSystem()->getStageById(ownerStageId);
 }
 
 CameraComponentPtr CompositorComponent::getCameraComponent() const

@@ -40,7 +40,6 @@ void AppStage_CameraSettings::enter()
 	AppStage::enter();
 
 	ProjectConfigPtr profileConfig = App::getInstance()->getProfileConfig();
-	auto videoSourceSystem= VideoSourceSystem::getSystem();
 
 	// Create app stage UI models and views
 	// (Auto cleaned up on app state exit)
@@ -48,7 +47,8 @@ void AppStage_CameraSettings::enter()
 		// Init the camera settings model
 		Rml::Context* context = getRmlContext();
 
-		m_cameraSettingsModel->init(context, videoSourceSystem);
+		// TODO: Point this as the video source being edited
+		m_cameraSettingsModel->init(context, VideoSourceComponentPtr());
 
 		// Init the camera settings view now that the model is ready
 		m_cameraSettingsView = addRmlDocument("camera_settings.rml");
@@ -87,9 +87,8 @@ void AppStage_CameraSettings::update(float deltaSeconds)
 	}
 }
 
-void AppStage_CameraSettings::render()
+void AppStage_CameraSettings::render(IMkViewportPtr targetViewport)
 {
-
 	if (m_videoBufferView != nullptr)
 	{
 		const float windowHeight = m_ownerWindow->getHeight();

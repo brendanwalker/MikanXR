@@ -1,5 +1,7 @@
 #include "AnchorObjectSystem.h"
+#include "CameraObjectSystem.h"
 #include "Colors.h"
+#include "ModalSelectCamera/ModalDialog_SelectCamera.h"
 #include "StencilAlignment/AppStage_StencilAlignment.h"
 #include "IMkLineRenderer.h"
 #include "MkMaterialInstance.h"
@@ -533,10 +535,14 @@ bool ModelStencilComponent::invokeFunction(const std::string& functionName)
 
 void ModelStencilComponent::alignStencil()
 {
-	// Show Anchor Triangulation Tool
-	auto* stencilAligner = MainWindow::getInstance()->pushAppStage<AppStage_StencilAlignment>();
-	if (stencilAligner)
-	{
-		stencilAligner->setTargetStencil(getSelfPtr<ModelStencilComponent>());
-	}
+	ModalDialog_SelectCamera::selectCamera(
+		[this](MikanCameraID cameraId) {
+			// Show Anchor Triangulation Tool
+			auto* stencilAligner = MainWindow::getInstance()->pushAppStage<AppStage_StencilAlignment>();
+			if (stencilAligner)
+			{
+				stencilAligner->setTargetStencil(getSelfPtr<ModelStencilComponent>());
+				stencilAligner->setSourceCamera(CameraObjectSystem::getSystem()->getCameraById(cameraId));
+			}
+		});
 }

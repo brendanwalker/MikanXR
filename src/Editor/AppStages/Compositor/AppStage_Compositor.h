@@ -15,16 +15,6 @@
 #include <memory>
 #include "CompositorConstants.h"
 
-enum class eCompositorViewpointMode : int
-{
-	INVALID = -1,
-
-	mixedRealityViewpoint,
-	vrViewpoint,
-
-	COUNT
-};
-
 //-- definitions -----
 class AppStage_Compositor : public AppStage
 {
@@ -41,33 +31,35 @@ public:
 	virtual void pause() override;
 	virtual void resume() override;
 	virtual void update(float deltaSeconds) override;
-	virtual void render() override;
+	virtual void render(IMkViewportPtr targetViewport) override;
 
 protected:
-	bool startStreaming();
-	bool getIsStreaming();
-	void stopStreaming();
+	//bool startStreaming();
+	//bool getIsStreaming();
+	//void stopStreaming();
 
 	// Camera
-	void setupCameras();
-	void setCurrentCameraMode(eCompositorViewpointMode viewportMode);
-	eCompositorViewpointMode getCurrentCameraMode() const;
-	MikanCameraPtr getViewpointCamera(eCompositorViewpointMode viewportMode) const;
-	void updateCamera();
-	void setXRCamera();
-	void setVRCamera();
+	void createCompositorCameras();
+	void disposeCompositorCameras();
+	void updateCompositorCameras();
+	void cyclePreviousCompositorCamera();
+	void cycleNextCompositorCamera();
+
+	// Scene
+	void onSceneDeactivated(SceneComponentPtr oldScene);
+	void onSceneActivated(SceneComponentPtr newScene);
 
 	// Compositor Events
-	void onCompositorDeactivated(CompositorComponentPtr oldCompositor);
-	void onCompositorActivated(CompositorComponentPtr newCompositor);
-	void onNewStreamingFrameReady();
+	//void onCompositorDeactivated(CompositorComponentPtr oldCompositor);
+	//void onCompositorActivated(CompositorComponentPtr newCompositor);
+	//void onNewStreamingFrameReady();
 
 	// Project Config Events
-	void onProjectConfigMarkedDirty(
-		CommonConfigPtr configPtr, 
-		const class ConfigPropertyChangeSet& changedPropertySet);
-	void onSpoutOutputNameChanged();
-	void onSpoutStreamingFlagChanged();
+	//void onProjectConfigMarkedDirty(
+	//	CommonConfigPtr configPtr, 
+	//	const class ConfigPropertyChangeSet& changedPropertySet);
+	//void onSpoutOutputNameChanged();
+	//void onSpoutStreamingFlagChanged();
 
 	// Main Compositor UI Events
 	void onReturnEvent();
@@ -82,8 +74,8 @@ protected:
 	void hideAllSubWindows();
 
 	// Layers UI Events
-	void onGraphEditEvent();
-	void onGraphFileSelectEvent();
+	//void onGraphEditEvent();
+	//void onGraphFileSelectEvent();
 	void onScreenshotClientSourceEvent(const std::string& clientSourceName);
 
 	// Scripting UI Events
@@ -126,12 +118,12 @@ protected:
 	Rml::ElementDocument* m_compositiorSettingsView = nullptr;
 
 	CompositorScriptContextPtr m_scriptContext;
-	CompositorComponentPtr m_frameCompositor;
+	//CompositorComponentPtr m_frameCompositor;
 
 	MikanViewportPtr m_viewport;
-	eCompositorViewpointMode m_viewportMode= eCompositorViewpointMode::mixedRealityViewpoint;
+	std::vector<CompositorComponentWeakPtr> m_activeCompositors;
 
 	bool m_bAddingNewConfig= false;
 
-	ISharedTextureWriteAccessorPtr m_renderTargetWriteAccessor;
+	//ISharedTextureWriteAccessorPtr m_renderTargetWriteAccessor;
 };

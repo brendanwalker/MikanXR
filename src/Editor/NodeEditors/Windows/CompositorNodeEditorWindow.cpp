@@ -19,21 +19,22 @@ CompositorNodeEditorWindow::CompositorNodeEditorWindow() : NodeEditorWindow()
 // -- IMkWindow ----
 bool CompositorNodeEditorWindow::startup()
 {
-	m_compositorComponent = CompositorObjectSystem::getSystem()->getCurrentCompositor();
-	if (!m_compositorComponent)
-	{
-		MIKAN_LOG_ERROR("CompositorNodeEditorWindow::startup") << "No compositor component found.";
-		return false;
-	}
-
-	// Tell the frame compositor to create a texture for the editor compositor to write to
-	m_compositorComponent->setCompositorEvaluatorWindow(eCompositorEvaluatorWindow::editorWindow);
-
 	// Start the node editor window
 	if (!NodeEditorWindow::startup())
 	{
 		return false;
 	}
+
+	return true;
+}
+
+bool CompositorNodeEditorWindow::bindCompositorComponent(CompositorComponentPtr compositorComponent)
+{
+	assert(compositorComponent);
+	m_compositorComponent = compositorComponent;
+
+	// Tell the frame compositor to create a texture for the editor compositor to write to
+	m_compositorComponent->setCompositorEvaluatorWindow(eCompositorEvaluatorWindow::editorWindow);
 
 	// Load the graph from the asset path on the main window's frame compositor (if any)
 	auto graphAssetPath = m_compositorComponent->getCompositorDefinition()->getCompositorGraphPath();
@@ -47,6 +48,11 @@ bool CompositorNodeEditorWindow::startup()
 	{
 		newGraph();
 	}
+
+	// Tell the new node graph about the compositor component it's bound to
+	auto compositorNodeGraph = 
+		std::static_pointer_cast<CompositorNodeGraph>(m_editorState.nodeGraph);
+	compositorNodeGraph->bindToCompositorComponent(m_compositorComponent);
 
 	return true;
 }

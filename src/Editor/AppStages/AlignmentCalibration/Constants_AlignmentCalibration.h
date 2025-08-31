@@ -21,8 +21,8 @@ enum class eAlignmentCalibrationViewpointMode : int
 	INVALID= -1, 
 
 	cameraViewpoint,
-	vrViewpoint,
-	mixedRealityViewpoint,
+	scene,
+	compositor,
 
 	COUNT
 };

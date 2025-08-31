@@ -24,6 +24,9 @@ public:
 	virtual void setViewport(const glm::i32vec2& viewportOrigin, const glm::i32vec2& viewportSize) override;
 	virtual void setBackgroundColor(const glm::vec3& color) override;
 
+	inline void setIsRenderingEnabled(bool enabled) { m_bIsRenderingEnabled = enabled; }
+	inline bool getIsRenderingEnabled() const { return m_bIsRenderingEnabled; }
+
 	void bindInput();
 	void unbindInput();
 
@@ -39,6 +42,7 @@ public:
 	virtual IMkCameraPtr addCamera() override;
 	virtual int getCameraCount() const override;
 	virtual IMkCameraPtr getCameraByIndex(int cameraIndex) override;
+	virtual bool removeCameraByIndex(int cameraIndex) override;
 	virtual void setCurrentCamera(int cameraIndex) override;
 	bool getIsMouseInViewport() const { return m_isMouseInViewport; }
 
@@ -77,6 +81,7 @@ protected:
 	void onDownButtonReleased() { m_isDownPressed= false; }
 
 private:
+	bool m_bIsRenderingEnabled = true;
 	bool m_bIsInputBound= false;
 	bool m_isCameraRotateButtonPressed= false;
 	bool m_isLeftPressed= false;

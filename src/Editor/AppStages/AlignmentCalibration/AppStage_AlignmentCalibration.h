@@ -28,7 +28,7 @@ public:
 	virtual void enter() override;
 	virtual void exit() override;
 	virtual void update(float deltaSeconds) override;
-	virtual void render() override;
+	virtual void render(IMkViewportPtr targetViewport) override;
 
 protected:
 	void updateCamera();

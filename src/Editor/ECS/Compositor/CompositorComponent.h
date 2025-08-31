@@ -7,6 +7,7 @@
 #include "MikanCameraEvents.h"
 #include "MikanComponent.h"
 #include "MikanCoreTypes.h"
+#include "MikanRendererFwd.h"
 #include "MikanTypeFwd.h"
 #include "MkRendererFwd.h"
 #include "NodeFwd.h"
@@ -43,9 +44,9 @@ public:
 	inline MikanCameraID getCameraId() const { return m_cameraId; }
 	void setCameraId(MikanCameraID cameraId);
 
-	static const std::string k_ownerScenePropertyId;
-	inline MikanSceneID getOwnerSceneId() const { return m_ownerSceneId; }
-	void setOwnerSceneId(MikanSceneID sceneId);
+	static const std::string k_ownerStagePropertyId;
+	inline MikanStageID getOwnerStageId() const { return m_ownerStageId; }
+	void setOwnerStageId(MikanStageID stageId);
 
 	static const std::string k_compositorGraphPathPropertyId;
 	bool hasCompositorGraphPath() const;
@@ -54,7 +55,7 @@ public:
 
 private:
 	MikanCompositorID m_compositorId;
-	MikanSceneID m_ownerSceneId = INVALID_MIKAN_ID;
+	MikanStageID m_ownerStageId = INVALID_MIKAN_ID;
 	MikanCameraID m_cameraId = INVALID_MIKAN_ID;
 	AssetReferenceConfigPtr m_nodeGraphAssetRef;
 };
@@ -66,13 +67,13 @@ public:
 	virtual void init() override;
 	virtual void dispose() override;
 	virtual void update(float deltaSeconds) override;
-	void render() const;
+	void renderToViewportQuad() const;
 
 	bool start();
 	bool getIsRunning() const { return m_bIsRunning; }
 	void stop();
 
-	SceneComponentPtr getOwnerSceneComponent() const;
+	StageComponentPtr getOwnerStageComponent() const;
 	VideoSourceComponentPtr getVideoSourceComponent() const;
 
 	CameraComponentPtr getCameraComponent() const;
@@ -122,7 +123,7 @@ protected:
 
 private:
 	// Compositor Rendering
-	IMkTriangulatedMeshPtr m_layerQuadMesh;
+	IMkTriangulatedMeshPtr m_viewportQuadMesh;
 
 	// Pending queue of camera poses awaiting client render
 	std::queue<MikanCameraNewFrameEvent> m_frameEventQueue;

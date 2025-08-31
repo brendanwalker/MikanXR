@@ -167,7 +167,7 @@ void AppStage_AlignmentCalibration::enter()
 		m_cameraSettingsModel->OnVRFrameDelayChanged = MakeDelegate(this, &AppStage_AlignmentCalibration::onVRFrameDelayChanged);
 		if (m_calibrationModel->getBypassCalibrationFlag())
 		{
-			m_cameraSettingsModel->setViewpointMode(eAlignmentCalibrationViewpointMode::mixedRealityViewpoint);
+			m_cameraSettingsModel->setViewpointMode(eAlignmentCalibrationViewpointMode::compositor);
 		}
 		else
 		{
@@ -219,12 +219,12 @@ void AppStage_AlignmentCalibration::updateCamera()
 	switch (m_cameraSettingsModel->getViewpointMode())
 	{
 	case eAlignmentCalibrationViewpointMode::cameraViewpoint:
-	case eAlignmentCalibrationViewpointMode::vrViewpoint:
+	case eAlignmentCalibrationViewpointMode::scene:
 		{
 			// Nothing to do
 		}
 		break;
-	case eAlignmentCalibrationViewpointMode::mixedRealityViewpoint:
+	case eAlignmentCalibrationViewpointMode::compositor:
 		{
 			bool bValidPose= false;
 
@@ -302,7 +302,7 @@ void AppStage_AlignmentCalibration::update(float deltaSeconds)
 
 						// Go to the test calibration state
 						m_cameraSettingsModel->setViewpointMode(
-							eAlignmentCalibrationViewpointMode::mixedRealityViewpoint);
+							eAlignmentCalibrationViewpointMode::compositor);
 						setMenuState(eAlignmentCalibrationMenuState::testCalibration);
 					}
 				}
@@ -317,7 +317,7 @@ void AppStage_AlignmentCalibration::update(float deltaSeconds)
 	}
 }
 
-void AppStage_AlignmentCalibration::render()
+void AppStage_AlignmentCalibration::render(IMkViewportPtr targetViewport)
 {
 	// Render the scene into the frame buffer
 	if (m_frameBuffer->isValid())
@@ -339,11 +339,11 @@ void AppStage_AlignmentCalibration::render()
 								m_monoDistortionView->renderSelectedVideoBuffers();
 								m_trackerPoseCalibrator->renderCameraSpaceCalibrationState();
 								break;
-							case eAlignmentCalibrationViewpointMode::vrViewpoint:
+							case eAlignmentCalibrationViewpointMode::scene:
 								m_trackerPoseCalibrator->renderVRSpaceCalibrationState();
 								renderVRScene();
 								break;
-							case eAlignmentCalibrationViewpointMode::mixedRealityViewpoint:
+							case eAlignmentCalibrationViewpointMode::compositor:
 								m_monoDistortionView->renderSelectedVideoBuffers();
 								renderVRScene();
 								break;
@@ -358,7 +358,7 @@ void AppStage_AlignmentCalibration::render()
 					break;
 				case eAlignmentCalibrationMenuState::testCalibration:
 					{
-						if (m_cameraSettingsModel->getViewpointMode() == eAlignmentCalibrationViewpointMode::mixedRealityViewpoint)
+						if (m_cameraSettingsModel->getViewpointMode() == eAlignmentCalibrationViewpointMode::compositor)
 						{
 							m_monoDistortionView->renderSelectedVideoBuffers();
 						}
@@ -538,11 +538,11 @@ void AppStage_AlignmentCalibration::onViewportModeChanged(eAlignmentCalibrationV
 				m_mkCamera->setCameraMovementMode(eCameraMovementMode::stationary);
 				m_mkCamera->setCameraTransform(glm::mat4(1.f));
 			} break;
-		case eAlignmentCalibrationViewpointMode::vrViewpoint:
+		case eAlignmentCalibrationViewpointMode::scene:
 			{
 				m_mkCamera->setCameraMovementMode(eCameraMovementMode::fly);
 			} break;
-		case eAlignmentCalibrationViewpointMode::mixedRealityViewpoint:
+		case eAlignmentCalibrationViewpointMode::compositor:
 			{
 				m_mkCamera->setCameraMovementMode(eCameraMovementMode::stationary);
 			} break;

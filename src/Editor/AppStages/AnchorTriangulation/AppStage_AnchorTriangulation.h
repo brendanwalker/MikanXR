@@ -18,12 +18,13 @@ public:
 	virtual ~AppStage_AnchorTriangulation();
 
 	void setBypassCalibrationFlag(bool flag);
+	void setSourceCamera(CameraComponentPtr cameraComponent);
 	void setTargetAnchor(const AnchorTriangulatorInfo& anchor) { m_targetAnchor= anchor; }
 
 	virtual void enter() override;
 	virtual void exit() override;
 	virtual void update(float deltaSeconds) override;
-	virtual void render() override;
+	virtual void render(IMkViewportPtr targetViewport) override;
 
 protected:
 	void onVideoSourceReady(VideoSourceComponentPtr videoSourceComponent);

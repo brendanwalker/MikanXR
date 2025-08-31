@@ -27,14 +27,15 @@ public:
 	MikanStageID getParentStageId() const { return m_parentStageId; }
 	void setParentStageId(MikanStageID stageId);
 
-	static const std::string k_outputCompositorPropertyId;
-	MikanCompositorID getOutputCompositorId() const { return m_outputCompositorId; }
-	void setOutputCompositorId(MikanCompositorID stageId);
+	static const std::string k_compositorListPropertyId;
+	const std::vector<MikanCompositorID>& getCompositorIDs() const { return m_compositorIDs; }
+	void addCompositorID(MikanCompositorID compositorId);
+	void removeCompositorID(MikanCompositorID compositorId);
 
 protected:
 	MikanSceneID m_sceneId = INVALID_MIKAN_ID;
 	MikanStageID m_parentStageId = INVALID_MIKAN_ID;
-	MikanCompositorID m_outputCompositorId = INVALID_MIKAN_ID;
+	std::vector<MikanCompositorID> m_compositorIDs;
 };
 
 class SceneComponent final : public TransformComponent
@@ -66,15 +67,16 @@ public:
 
 	// -- SceneComponent ----
 	inline MikanSceneID getSceneId() const { return getSceneComponentDefinition()->getSceneId(); }
-	CompositorComponentPtr getOutputCompositor() const;
+	std::vector<CompositorComponentPtr> getOutputCompositors() const;
 	void attachTransformComponentToStage(MikanStageID newParentId);
 	SelectionComponentPtr findClosestSelectionTarget(
 		const glm::vec3& rayOrigin,
 		const glm::vec3& rayDir,
 		ColliderRaycastHitResult& outRaycastResult) const;
-	void render(MikanCameraConstPtr camera, class MkStateStack& MkStateStack) const;
+	void renderEditorScene(MikanCameraConstPtr camera, class MkStateStack& MkStateStack) const;
 	void deleteScene();
 
 private:
+	// Scene Rendering
 	IMkScenePtr m_mkScene;
 };

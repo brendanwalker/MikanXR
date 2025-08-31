@@ -3,19 +3,15 @@
 #include "CompositorComponent.h"
 #include "CompositorObjectSystem.h"
 #include "ProjectConfig.h"
-#include "SceneObjectSystem.h"
-#include "SceneComponent.h"
 
 // -- CompositorObjectSystemConfig -----
 const std::string CompositorObjectSystemConfig::k_compositorListPropertyId= "compositorList";
-const std::string CompositorObjectSystemConfig::k_currentCompositorIdPropertyId= "currentCompositorId";
 
 configuru::Config CompositorObjectSystemConfig::writeToJSON()
 {
 	configuru::Config pt = CommonConfig::writeToJSON();
 
 	pt["next_compositor_id"] = m_nextCompositorId;
-	pt["current_compositor_id"] = m_currentCompositorId;
 
 	std::vector<configuru::Config> compositorListConfigs;
 	for (auto definitionPtr : m_compositorList)
@@ -32,7 +28,6 @@ void CompositorObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 	CommonConfig::readFromJSON(pt);
 
 	m_nextCompositorId = pt.get_or<int>("next_compositor_id", m_nextCompositorId);
-	m_currentCompositorId = pt.get_or<int>("current_compositor_id", m_currentCompositorId);
 
 	// Read in the compositor definitions
 	m_compositorList.clear();
@@ -119,15 +114,6 @@ bool CompositorObjectSystemConfig::removeCompositor(MikanCompositorID compositor
 	return false;
 }
 
-void CompositorObjectSystemConfig::setCurrentCompositorId(MikanSceneID sceneId)
-{
-	if (m_currentCompositorId != sceneId)
-	{
-		m_currentCompositorId = sceneId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_currentCompositorIdPropertyId));
-	}
-}
-
 // -- CompositorObjectSystem -----
 CompositorObjectSystemWeakPtr CompositorObjectSystem::s_compositorObjectSystem;
 
@@ -137,12 +123,6 @@ bool CompositorObjectSystem::init()
 
 	CompositorObjectSystemConfigConstPtr compositorSystemConfig = getCompositorSystemConfigConst();
 
-	// Listen for scene changes to update the current compositor
-	SceneObjectSystem::getSystem()->OnSceneActivated +=
-		MakeDelegate(this, &CompositorObjectSystem::onSceneActivated);
-	SceneObjectSystem::getSystem()->OnSceneDeactivated +=
-		MakeDelegate(this, &CompositorObjectSystem::onSceneDeactivated);
-
 	s_compositorObjectSystem = std::static_pointer_cast<CompositorObjectSystem>(shared_from_this());
 	return true;
 }
@@ -150,11 +130,6 @@ bool CompositorObjectSystem::init()
 void CompositorObjectSystem::dispose()
 {
 	s_compositorObjectSystem.reset();
-
-	SceneObjectSystem::getSystem()->OnSceneActivated -=
-		MakeDelegate(this, &CompositorObjectSystem::onSceneActivated);
-	SceneObjectSystem::getSystem()->OnSceneDeactivated -=
-		MakeDelegate(this, &CompositorObjectSystem::onSceneDeactivated);
 
 	MikanObjectSystem::dispose();
 }
@@ -167,44 +142,6 @@ CompositorObjectSystemConfigConstPtr CompositorObjectSystem::getCompositorSystem
 CompositorObjectSystemConfigPtr CompositorObjectSystem::getCompositorSystemConfig()
 {
 	return std::const_pointer_cast<CompositorObjectSystemConfig>(getCompositorSystemConfigConst());
-}
-
-CompositorComponentPtr CompositorObjectSystem::getCurrentCompositor() const
-{
-	SceneComponentPtr currentScene= SceneObjectSystem::getSystem()->getCurrentScene();
-	if (currentScene)
-	{
-		return currentScene->getOutputCompositor();
-	}
-
-	return CompositorComponentPtr();
-}
-
-void CompositorObjectSystem::setCurrentCompositor(CompositorComponentPtr newCompositor)
-{
-	CompositorObjectSystemConfigPtr compositorSystemConfig = getCompositorSystemConfig();
-	if (compositorSystemConfig)
-	{
-		MikanCompositorID currentCompositorId = compositorSystemConfig->getCurrentCompositorId();
-		MikanCompositorID newCompositorId = 
-			newCompositor ? newCompositor->getCompositorId() : INVALID_MIKAN_ID;
-
-		if (currentCompositorId != newCompositorId)
-		{
-			CompositorComponentPtr currentCompositor = getCompositorById(currentCompositorId);
-			if (currentCompositor && OnCompositorDeactivated)
-			{
-				OnCompositorDeactivated(currentCompositor);
-			}
-
-			compositorSystemConfig->setCurrentCompositorId(newCompositorId);
-
-			if (newCompositor && OnCompositorActivated)
-			{
-				OnCompositorActivated(newCompositor);
-			}
-		}
-	}
 }
 
 CompositorComponentPtr CompositorObjectSystem::getCompositorById(MikanCompositorID compositorId) const
@@ -292,35 +229,10 @@ void CompositorObjectSystem::disposeCompositorObject(MikanCompositorID composito
 	{
 		CompositorComponentPtr pendingDisposeCompositor = it->second.lock();
 
-		// See if the compositor is currently marked as the current compositor
-		CompositorComponentPtr currentCompositor = getCurrentCompositor();
-		if (currentCompositor && pendingDisposeCompositor == currentCompositor)
-		{
-			setCurrentCompositor(CompositorComponentPtr()); // Clear the current compositor
-		}
-
 		// Remove for component list
 		m_compositorComponents.erase(it);
 
 		// Free the corresponding object
 		deleteObject(pendingDisposeCompositor->getOwnerObject());
-	}
-}
-
-void CompositorObjectSystem::onSceneDeactivated(SceneComponentPtr oldScene)
-{
-	CompositorComponentPtr sceneCompositor= oldScene->getOutputCompositor();
-	CompositorComponentPtr currentCompositor = getCurrentCompositor();
-	if (sceneCompositor && sceneCompositor == currentCompositor)
-	{
-		setCurrentCompositor(CompositorComponentPtr()); // Clear the current compositor
-	}
-}
-
-void CompositorObjectSystem::onSceneActivated(SceneComponentPtr newScene)
-{
-	if (newScene)
-	{
-		setCurrentCompositor(newScene->getOutputCompositor());
 	}
 }

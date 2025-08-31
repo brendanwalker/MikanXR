@@ -156,6 +156,21 @@ IMkCameraPtr MikanViewport::getCameraByIndex(int cameraIndex)
 	return nullptr;
 }
 
+bool MikanViewport::removeCameraByIndex(int cameraIndex)
+{
+	if (cameraIndex >= 0 && cameraIndex < getCameraCount())
+	{
+		m_cameraPool.erase(m_cameraPool.begin() + cameraIndex);
+		if (m_currentCameraIndex >= getCameraCount())
+		{
+			m_currentCameraIndex = getCameraCount() - 1;
+		}
+		return true;
+	}
+
+	return false;
+}
+
 void MikanViewport::setCurrentCamera(int cameraIndex)
 {
 	if (cameraIndex >= 0 && cameraIndex < getCameraCount())

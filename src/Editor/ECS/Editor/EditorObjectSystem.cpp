@@ -217,15 +217,45 @@ EditorObjectSystemConfigPtr EditorObjectSystem::getEditorSystemConfig()
 void EditorObjectSystem::bindViewport(MikanViewportWeakPtr viewportWeakPtr)
 {
 	MikanViewportPtr viewportPtr= viewportWeakPtr.lock();
-	if (!viewportPtr)
-		return;
+	if (viewportPtr)
+	{
+		const auto it = std::find_if(
+			m_viewports.begin(), m_viewports.end(),
+			[viewportPtr](const MikanViewportWeakPtr& entry) {
+				return entry.lock() == viewportPtr;
+			});
+		if (it == m_viewports.end())
+		{
+			viewportPtr->OnMouseExited += MakeDelegate(this, &EditorObjectSystem::onMouseExited);
+			viewportPtr->OnMouseRayChanged += MakeDelegate(this, &EditorObjectSystem::onMouseRayChanged);
+			viewportPtr->OnMouseRayButtonUp += MakeDelegate(this, &EditorObjectSystem::onMouseRayButtonUp);
+			viewportPtr->OnMouseRayButtonDown += MakeDelegate(this, &EditorObjectSystem::onMouseRayButtonDown);
 
-	viewportPtr->OnMouseExited+= MakeDelegate(this, &EditorObjectSystem::onMouseExited);
-	viewportPtr->OnMouseRayChanged+= MakeDelegate(this, &EditorObjectSystem::onMouseRayChanged);
-	viewportPtr->OnMouseRayButtonUp+= MakeDelegate(this, &EditorObjectSystem::onMouseRayButtonUp);
-	viewportPtr->OnMouseRayButtonDown+= MakeDelegate(this, &EditorObjectSystem::onMouseRayButtonDown);
+			m_viewports.push_back(viewportWeakPtr);
+		}
+	}
+}
 
-	m_viewports.push_back(viewportWeakPtr);
+void EditorObjectSystem::unbindViewport(MikanViewportWeakPtr viewportWeakPtr)
+{
+	MikanViewportPtr viewportPtr = viewportWeakPtr.lock();
+	if (viewportPtr)
+	{
+		const auto it = std::find_if(
+			m_viewports.begin(), m_viewports.end(),
+			[viewportPtr](const MikanViewportWeakPtr& entry) {
+				return entry.lock() == viewportPtr;
+			});
+		if (it != m_viewports.end())
+		{
+			viewportPtr->OnMouseExited -= MakeDelegate(this, &EditorObjectSystem::onMouseExited);
+			viewportPtr->OnMouseRayChanged -= MakeDelegate(this, &EditorObjectSystem::onMouseRayChanged);
+			viewportPtr->OnMouseRayButtonUp -= MakeDelegate(this, &EditorObjectSystem::onMouseRayButtonUp);
+			viewportPtr->OnMouseRayButtonDown -= MakeDelegate(this, &EditorObjectSystem::onMouseRayButtonDown);
+
+			m_viewports.erase(it);
+		}
+	}
 }
 
 void EditorObjectSystem::clearViewports()

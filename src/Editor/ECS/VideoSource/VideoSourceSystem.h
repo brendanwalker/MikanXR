@@ -38,8 +38,6 @@ public:
 	VideoSourceSystemConfigConstPtr getVideoSourceSystemConfigConst() const;
 	VideoSourceSystemConfigPtr getVideoSourceSystemConfig();
 
-	VideoSourceComponentPtr getCurrentVideoSource() const;
-	bool setCurrentSceneVideoSourceById(MikanVideoSourceID videoSourceId);
 	VideoSourceIdList getVideoSourceIdList() const;
 	VideoSourceComponentPtr getVideoSourceById(MikanVideoSourceID videoSourceId) const;
 	eVideoSourceType getVideoSourceType(MikanVideoSourceID videoSourceId) const;
