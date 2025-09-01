@@ -9,7 +9,6 @@
 #include "RmlFwd.h"
 #include "SceneFwd.h"
 #include "ScriptingFwd.h"
-#include "SharedTextureFwd.h"
 
 #include <filesystem>
 #include <memory>
@@ -39,8 +38,8 @@ protected:
 	//void stopStreaming();
 
 	// Camera
-	void createCompositorCameras();
-	void disposeCompositorCameras();
+	void createCompositorViewportCameras();
+	void disposeCompositorViewportCameras();
 	void updateCompositorCameras();
 	void cyclePreviousCompositorCamera();
 	void cycleNextCompositorCamera();
@@ -118,12 +117,9 @@ protected:
 	Rml::ElementDocument* m_compositiorSettingsView = nullptr;
 
 	CompositorScriptContextPtr m_scriptContext;
-	//CompositorComponentPtr m_frameCompositor;
 
 	MikanViewportPtr m_viewport;
 	std::vector<CompositorComponentWeakPtr> m_activeCompositors;
 
 	bool m_bAddingNewConfig= false;
-
-	//ISharedTextureWriteAccessorPtr m_renderTargetWriteAccessor;
 };

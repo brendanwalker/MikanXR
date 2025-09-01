@@ -173,8 +173,6 @@ void CameraComponent::init()
 
 	// Listen for changes to the tracking mount definition
 	getCameraDefinition()->OnMarkedDirty += MakeDelegate(this, &CameraComponent::onDefinitionChanged);
-
-
 }
 
 void CameraComponent::dispose()

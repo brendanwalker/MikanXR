@@ -55,6 +55,7 @@ public:
 	CompositorComponentPtr addNewCompositor(const std::string& compositorName);
 	bool removeCompositor(MikanCompositorID compositorId);
 
+	void setActiveCompositors(const std::vector<MikanCompositorID>& activeCompositorIdList);
 	MulticastDelegate<void(CompositorComponentPtr oldCompositor)> OnCompositorDeactivated;
 	MulticastDelegate<void(CompositorComponentPtr newCompositor)> OnCompositorActivated;
 

@@ -137,11 +137,24 @@ bool SceneObjectSystem::init()
 	SceneObjectSystemConfigConstPtr sceneSystemConfig = getSceneSystemConfigConst();
 
 	s_sceneObjectSystem = std::static_pointer_cast<SceneObjectSystem>(shared_from_this());
+
+	SceneComponentPtr sceneComponent= getCurrentScene();
+	if (sceneComponent)
+	{
+		sceneComponent->activateScene();
+	}
+
 	return true;
 }
 
 void SceneObjectSystem::dispose()
 {
+	SceneComponentPtr sceneComponent = getCurrentScene();
+	if (sceneComponent)
+	{
+		sceneComponent->deactivateScene();
+	}
+
 	s_sceneObjectSystem.reset();
 
 	MikanObjectSystem::dispose();
@@ -178,16 +191,26 @@ void SceneObjectSystem::setCurrentScene(SceneComponentPtr newScene)
 		if (currentSceneId != newSceneId)
 		{
 			SceneComponentPtr currentScene = getSceneById(currentSceneId);
-			if (currentScene && OnSceneDeactivated)
+			if (currentScene)
 			{
-				OnSceneDeactivated(currentScene);
+				currentScene->deactivateScene();
+
+				if (OnSceneDeactivated)
+				{
+					OnSceneDeactivated(currentScene);
+				}
 			}
 
 			sceneSystemConfig->setCurrentSceneId(newSceneId);
 
-			if (newScene && OnSceneActivated)
+			if (newScene)
 			{
-				OnSceneActivated(newScene);
+				newScene->activateScene();
+
+				if (OnSceneActivated)
+				{
+					OnSceneActivated(newScene);
+				}
 			}
 		}
 	}

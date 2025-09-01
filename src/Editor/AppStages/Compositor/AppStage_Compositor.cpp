@@ -80,13 +80,11 @@ AppStage_Compositor::AppStage_Compositor(MainWindow* window)
 	, m_compositorSelectionModel(new RmlModel_CompositorSelection)
 	, m_compositorSettingsModel(new RmlModel_CompositorSettings)
 	, m_scriptContext(std::make_shared<CompositorScriptContext>())
-	//, m_renderTargetWriteAccessor()
 {
 }
 
 AppStage_Compositor::~AppStage_Compositor()
 {
-	//m_renderTargetWriteAccessor= nullptr;
 	m_viewport = nullptr;
 	m_activeCompositors.clear();
 
@@ -107,8 +105,6 @@ void AppStage_Compositor::enter()
 
 	// Cache a ref to the project
 	m_project = App::getInstance()->getProfileConfig();
-	//m_project->OnMarkedDirty +=
-	//	MakeDelegate(this, &AppStage_Compositor::onProjectConfigMarkedDirty);
 
 	// Cache object systems we'll be accessing
 	ObjectSystemManagerPtr objectSystemManager = m_ownerWindow->getObjectSystemManager();
@@ -227,22 +223,10 @@ void AppStage_Compositor::enter()
 		m_compositiorSettingsView = addRmlDocument("compositor_settings.rml");
 		m_compositiorSettingsView->Hide();
 	}
-
-	// Setup render target write accessor
-	//m_renderTargetWriteAccessor =
-	//	createSharedTextureWriteAccessor(m_project->getSpoutOutputName());
-	//onSpoutStreamingFlagChanged();
 }
 
 void AppStage_Compositor::exit()
 {
-	// Stop listening for changes to the current active compositor
-	//if (m_frameCompositor)
-	//{
-	//	// Clean up the current compositor state
-	//	onCompositorDeactivated(m_frameCompositor);
-	//}
-
 	{
 		SceneObjectSystemPtr sceneSystem = SceneObjectSystem::getSystem();
 
@@ -266,10 +250,6 @@ void AppStage_Compositor::exit()
 	// Unregister the script context with the mikan server
 	MikanServer::getInstance()->getScriptRequestHandler()->unbindScriptContect(m_scriptContext);
 
-	// Clean up spout output stream
-	//stopStreaming();
-	//m_renderTargetWriteAccessor= nullptr;
-
 	m_compositorSelectionModel->dispose();
 	m_compositorOutlinerModel->dispose();
 	m_compositorLayersModel->dispose();
@@ -277,10 +257,6 @@ void AppStage_Compositor::exit()
 	m_compositorScriptingModel->dispose();
 	m_compositorModel->dispose();
 	m_compositorSettingsModel->dispose();
-
-	// Stop listening for project config changes
-	//m_project->OnMarkedDirty -=
-	//	MakeDelegate(this, &AppStage_Compositor::onProjectConfigMarkedDirty);
 
 	// Clear cached object systems
 	m_anchorObjectSystem = nullptr;
@@ -295,15 +271,11 @@ void AppStage_Compositor::exit()
 void AppStage_Compositor::pause()
 {
 	AppStage::pause();
-
-	//m_frameCompositor->stop();
 }
 
 void AppStage_Compositor::resume()
 {
 	AppStage::resume();
-
-	//m_frameCompositor->start();
 
 	hideAllSubWindows();
 	m_compositiorOutlinerView->Show();
@@ -320,106 +292,18 @@ void AppStage_Compositor::update(float deltaSeconds)
 	m_scriptContext->updateScript();
 }
 
-//bool AppStage_Compositor::startStreaming()
-//{
-//	if (getIsStreaming())
-//		return true;
-//
-//	IMkTextureConstPtr compositorTexture = m_frameCompositor->getCompositedFrameTexture();
-//	if (compositorTexture == nullptr)
-//		return false;
-//
-//	// Compositing buffer should always be RGBA 32BPP
-//	// Spout can only support RGBA32 and BGRA32
-//	assert(compositorTexture->getBufferFormat() == GL_RGBA);
-//
-//	SharedTextureDescriptor sharedTextureDescriptor;
-//	sharedTextureDescriptor.color_buffer_type = SharedColorBufferType::RGBA32;
-//	sharedTextureDescriptor.depth_buffer_type = SharedDepthBufferType::NODEPTH;
-//	sharedTextureDescriptor.width = compositorTexture->getTextureWidth();
-//	sharedTextureDescriptor.height = compositorTexture->getTextureHeight();
-//	sharedTextureDescriptor.graphicsAPI = SharedClientGraphicsApi::OpenGL;
-//
-//	m_renderTargetWriteAccessor->initialize(&sharedTextureDescriptor, true, nullptr);
-//
-//	return true;
-//}
-
-//bool AppStage_Compositor::getIsStreaming()
-//{
-//	return m_renderTargetWriteAccessor->getIsInitialized();
-//}
-
-//void AppStage_Compositor::stopStreaming()
-//{
-//	m_renderTargetWriteAccessor->dispose();
-//}
-
 // Scene
 void AppStage_Compositor::onSceneDeactivated(SceneComponentPtr oldScene)
 {
-	disposeCompositorCameras();
+	disposeCompositorViewportCameras();
 }
 
 void AppStage_Compositor::onSceneActivated(SceneComponentPtr newScene)
 {
-	createCompositorCameras();
+	createCompositorViewportCameras();
 }
 
-//void AppStage_Compositor::onNewStreamingFrameReady()
-//{
-//	EASY_FUNCTION();
-//
-//	if (getIsStreaming())
-//	{
-//		IMkTextureConstPtr frameTexture = m_frameCompositor->getCompositedFrameTexture();
-//
-//		if (frameTexture != nullptr && m_renderTargetWriteAccessor->getIsInitialized())
-//		{
-//			GLuint textureId= frameTexture->getGlTextureId();
-//
-//			m_renderTargetWriteAccessor->writeColorFrameTexture(&textureId);
-//		}
-//	}
-//}
-
-// Project Config Events
-//void AppStage_Compositor::onProjectConfigMarkedDirty(
-//	CommonConfigPtr configPtr,
-//	const class ConfigPropertyChangeSet& changedPropertySet)
-//{
-//	if (changedPropertySet.hasPropertyName(ProjectConfig::k_spoutOutputIsStreamingNamePropertyId))
-//	{
-//		onSpoutStreamingFlagChanged();
-//	}
-//	else if (changedPropertySet.hasPropertyName(ProjectConfig::k_spoutOutputNamePropertyId))
-//	{
-//		onSpoutOutputNameChanged();
-//	}
-//}
-
-// Spout Streaming Config Events
-//void AppStage_Compositor::onSpoutOutputNameChanged()
-//{
-//	m_renderTargetWriteAccessor->setClientName(m_project->getSpoutOutputName());
-//}
-//
-//void AppStage_Compositor::onSpoutStreamingFlagChanged()
-//{
-//	const bool bIsStreaming = getIsStreaming();
-//	const bool bWantsStreaming = m_project->getIsSpoutOutputStreaming();
-//
-//	if (!bIsStreaming && bWantsStreaming)
-//	{
-//		startStreaming();
-//	}
-//	else if (bIsStreaming && !bWantsStreaming)
-//	{
-//		stopStreaming();
-//	}
-//}
-
-void AppStage_Compositor::createCompositorCameras()
+void AppStage_Compositor::createCompositorViewportCameras()
 {
 	// Create a camera for each active compositor in the scene
 	for (const CompositorComponentWeakPtr compositorWeakPtr : m_activeCompositors)
@@ -447,7 +331,7 @@ void AppStage_Compositor::createCompositorCameras()
 	updateCompositorCameras();
 }
 
-void AppStage_Compositor::disposeCompositorCameras()
+void AppStage_Compositor::disposeCompositorViewportCameras()
 {
 	// Remove all but the first camera from the main viewport
 	while (m_viewport->getCameraCount() > 1)

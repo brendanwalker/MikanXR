@@ -151,13 +151,30 @@ void SceneComponent::attachTransformComponentToStage(MikanStageID newParentId)
 void SceneComponent::init()
 {
 	TransformComponent::init();
+
+	// Listen for changes to the scene definition
+	getSceneComponentDefinition()->OnMarkedDirty += MakeDelegate(this, &SceneComponent::onDefinitionChanged);
 }
 
 void SceneComponent::dispose()
 {
+	getSceneComponentDefinition()->OnMarkedDirty -= MakeDelegate(this, &SceneComponent::onDefinitionChanged);
+
 	m_mkScene= nullptr;
 
 	TransformComponent::dispose();
+}
+
+void SceneComponent::onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (changedPropertySet.hasPropertyName(SceneComponentDefinition::k_compositorListPropertyId))
+	{
+		auto CompositorObjectSystemPtr = CompositorObjectSystem::getSystem();
+		const std::vector<MikanCompositorID>& activeCompositorIdList=
+			getSceneComponentDefinition()->getCompositorIDs();
+
+		CompositorObjectSystemPtr->setActiveCompositors(activeCompositorIdList);
+	}
 }
 
 SelectionComponentPtr SceneComponent::findClosestSelectionTarget(
@@ -203,6 +220,21 @@ SelectionComponentPtr SceneComponent::findClosestSelectionTarget(
 	outRaycastResult= raycastQuery.result;
 
 	return raycastQuery.closestSelectionComponent;
+}
+
+void SceneComponent::activateScene()
+{
+	CompositorObjectSystemPtr compositorSystem = CompositorObjectSystem::getSystem();
+	const std::vector<MikanCompositorID>& compositorIDs =
+		getSceneComponentDefinition()->getCompositorIDs();
+
+	// Set active compositors for this scene
+	compositorSystem->setActiveCompositors(compositorIDs);
+}
+
+void SceneComponent::deactivateScene()
+{
+
 }
 
 void SceneComponent::renderEditorScene(MikanCameraConstPtr camera, MkStateStack& MkStateStack) const

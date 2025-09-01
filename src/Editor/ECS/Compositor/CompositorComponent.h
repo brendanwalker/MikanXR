@@ -14,6 +14,7 @@
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectFwd.h"
 #include "SceneFwd.h"
+#include "SharedTextureFwd.h"
 #include "Transform.h"
 #include "VideoDisplayConstants.h"
 
@@ -119,6 +120,14 @@ public:
 	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
 
 protected:
+	void onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
+
+	// Spout Output
+	void updateOutputStreaming();
+	bool startOutputStreaming();
+	bool getIsOutputStreaming() const;
+	void stopOutputStreaming();
+
 	void handleCompositorNodeGraphChanged(const std::filesystem::path& newAssetRefPath);
 	void handleCameraChange(CameraComponentPtr oldCameraComponent, CameraComponentPtr newCameraComponent);
 	void unbindVideoSourceEvents(VideoSourceComponentPtr videoSource);
@@ -148,6 +157,9 @@ private:
 
 	// Undistorted Video Frame Buffer
 	VideoFrameDistortionViewPtr m_videoDistortionView;
+
+	// Output Spout Sender
+	ISharedTextureWriteAccessorPtr m_renderTargetWriteAccessor;
 
 	bool m_bIsRunning = false;
 	int64_t m_lastReadVideoFrameIndex = 0;

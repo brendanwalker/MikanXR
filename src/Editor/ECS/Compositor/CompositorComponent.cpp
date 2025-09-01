@@ -17,6 +17,7 @@
 #include "MkStateStack.h"
 #include "ProjectConfig.h"
 #include "ProjectConfigConstants.h"
+#include "SharedTextureWriter.h"
 #include "StageComponent.h"
 #include "StageObjectSystem.h"
 #include "TransformComponent.h"
@@ -31,6 +32,7 @@
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Variant.h>
 
+#include <assert.h>
 #include <easy/profiler.h>
 
 // -- CompositorConfig -----
@@ -170,10 +172,17 @@ void CompositorComponent::init()
 
 	// Initialize the compositor graph if we have one assigned
 	handleCompositorNodeGraphChanged(getCompositorGraphAssetPath());
+
+	// Listen for changes to the compositor definition
+	getCompositorDefinition()->OnMarkedDirty += MakeDelegate(this, &CompositorComponent::onDefinitionChanged);
 }
 
 void CompositorComponent::dispose()
 {
+	stopOutputStreaming();
+
+	getCompositorDefinition()->OnMarkedDirty -= MakeDelegate(this, &CompositorComponent::onDefinitionChanged);
+
 	m_editorFrameBufferTexture = nullptr;
 	m_nodeGraph = nullptr;
 	m_nodeGraphAssetRef = nullptr;
@@ -475,7 +484,23 @@ void CompositorComponent::updateCompositeFrameNodeGraph()
 		.setCurrentWindow(getOwnerWindow())
 		.setDeltaSeconds(m_timeSinceLastFrameComposited);
 
-	if (!m_nodeGraph->compositeFrame(evaluator))
+	if (m_nodeGraph->compositeFrame(evaluator))
+	{
+		// Publish the composited frame to Spout if streaming is enabled
+		if (getIsOutputStreaming())
+		{
+			IMkTextureConstPtr frameTexture = getCompositedFrameTexture();
+		
+			if (frameTexture != nullptr && m_renderTargetWriteAccessor->getIsInitialized())
+			{
+				// TODO: Make this graphics API agnostic
+				uint32_t textureId= frameTexture->getGlTextureId();
+		
+				m_renderTargetWriteAccessor->writeColorFrameTexture(&textureId);
+			}
+		}
+	}
+	else
 	{
 		for (const NodeEvaluationError& error : evaluator.getErrors())
 		{
@@ -511,6 +536,73 @@ void CompositorComponent::renderToViewportQuad() const
 	}
 }
 
+void CompositorComponent::updateOutputStreaming()
+{
+	CompositorDefinitionConstPtr definition= getCompositorDefinition();
+	const bool bWantsOutput = 
+		definition->getIsSpoutOutputStreaming() && 
+		!definition->getSpoutOutputName().empty();
+	const bool bIsStreaming = getIsOutputStreaming();
+
+	// Create the Spout sender if we don't have one already but want to stream
+	if (bWantsOutput && !bIsStreaming)
+	{
+		startOutputStreaming();
+	}
+	// Stop streaming if we are currently streaming but don't want to anymore
+	else if (!bWantsOutput && bIsStreaming)
+	{
+		stopOutputStreaming();
+	}
+}
+
+bool CompositorComponent::startOutputStreaming()
+{
+	// If we are already streaming, do nothing
+	if (getIsOutputStreaming())
+		return true;
+
+	// Make sure we have a valid texture to stream
+	const std::string& spoutOutputName= getCompositorDefinition()->getSpoutOutputName();
+	if (spoutOutputName.empty())
+		return false;
+
+	IMkTextureConstPtr compositorTexture = getCompositedFrameTexture();
+	if (compositorTexture == nullptr)
+		return false;
+
+	// Compositing buffer should always be RGBA 32BPP
+	// Spout can only support RGBA32 and BGRA32
+	assert(compositorTexture->getBufferFormat() == MK_RGBA);
+
+	SharedTextureDescriptor sharedTextureDescriptor;
+	sharedTextureDescriptor.color_buffer_type = SharedColorBufferType::RGBA32;
+	sharedTextureDescriptor.depth_buffer_type = SharedDepthBufferType::NODEPTH;
+	sharedTextureDescriptor.width = compositorTexture->getTextureWidth();
+	sharedTextureDescriptor.height = compositorTexture->getTextureHeight();
+	sharedTextureDescriptor.graphicsAPI = SharedClientGraphicsApi::OpenGL;
+
+	// Setup render target write accessor
+	m_renderTargetWriteAccessor = createSharedTextureWriteAccessor(spoutOutputName);
+	m_renderTargetWriteAccessor->initialize(&sharedTextureDescriptor, true, nullptr);
+
+	return true;
+}
+
+bool CompositorComponent::getIsOutputStreaming() const
+{
+	return m_renderTargetWriteAccessor && m_renderTargetWriteAccessor->getIsInitialized();
+}
+
+void CompositorComponent::stopOutputStreaming()
+{
+	if (m_renderTargetWriteAccessor)
+	{
+		m_renderTargetWriteAccessor->dispose();
+		m_renderTargetWriteAccessor = nullptr;
+	}
+}
+
 bool CompositorComponent::start()
 {
 	if (getIsRunning())
@@ -520,11 +612,16 @@ bool CompositorComponent::start()
 	m_bIsRunning = true;
 	m_timeSinceLastFrameComposited = 0.f;
 
+	// Update the output streaming state in case it changed while we were stopped
+	updateOutputStreaming();
+
 	return true;
 }
 
 void CompositorComponent::stop()
 {
+	stopOutputStreaming();
+
 	//TODO: Stop the video source?
 	m_bIsRunning = false;
 }
@@ -610,6 +707,20 @@ void CompositorComponent::handleCompositorNodeGraphChanged(const std::filesystem
 	else
 	{
 		m_nodeGraph = nullptr;
+	}
+}
+
+void CompositorComponent::onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (changedPropertySet.hasPropertyName(CompositorDefinition::k_spoutOutputIsStreamingNamePropertyId))
+	{
+		stopOutputStreaming();
+		updateOutputStreaming();
+	}
+	
+	if (changedPropertySet.hasPropertyName(CompositorDefinition::k_spoutOutputNamePropertyId))
+	{
+		updateOutputStreaming();
 	}
 }
 

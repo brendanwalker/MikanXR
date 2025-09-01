@@ -73,8 +73,13 @@ public:
 		const glm::vec3& rayOrigin,
 		const glm::vec3& rayDir,
 		ColliderRaycastHitResult& outRaycastResult) const;
+	void activateScene();
+	void deactivateScene();
 	void renderEditorScene(MikanCameraConstPtr camera, class MkStateStack& MkStateStack) const;
 	void deleteScene();
+
+protected:
+	void onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
 private:
 	// Scene Rendering
