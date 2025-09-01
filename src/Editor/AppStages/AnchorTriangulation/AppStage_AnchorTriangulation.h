@@ -14,7 +14,7 @@ class AppStage_AnchorTriangulation : public AppStage
 public:
 	static const char* APP_STAGE_NAME;
 
-	AppStage_AnchorTriangulation(class MainWindow* ownerWindow);
+	AppStage_AnchorTriangulation(class IEditorWindow* ownerWindow);
 	virtual ~AppStage_AnchorTriangulation();
 
 	void setBypassCalibrationFlag(bool flag);

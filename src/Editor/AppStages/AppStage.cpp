@@ -15,9 +15,9 @@
 #include <filesystem>
 
 AppStage::AppStage(
-	MainWindow* mainWindow,
+	IEditorWindow* ownerWindow,
 	const std::string& stageName)
-	: m_ownerWindow(mainWindow)
+	: m_ownerWindow(ownerWindow)
 	, m_bIsEntered(false)
 	, m_bIsPaused(false)
 	, m_appStageName(stageName)

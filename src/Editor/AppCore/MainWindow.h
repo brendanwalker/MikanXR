@@ -4,7 +4,7 @@
 #include "AppStage.h"
 #include "MikanRendererFwd.h"
 #include "SdlFwd.h"
-#include "ISdlMkWindow.h"
+#include "IEditorWindow.h"
 #include "MulticastDelegate.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
@@ -17,7 +17,7 @@
 #include <assert.h>
 
 //-- definitions -----
-class MainWindow : public ISdlMkWindow
+class MainWindow : public IEditorWindow
 {
 public:
 	MainWindow();
@@ -27,63 +27,6 @@ public:
 	{
 		return m_instance;
 	}
-
-	// -- MainWindow --
-	inline class MikanServer* getMikanServer() const { return m_mikanServer; }
-	inline ObjectSystemManagerPtr getObjectSystemManager() const { return m_objectSystemManager; }
-	inline class MikanFontManager* getFontManager() const { return m_fontManager; }
-	inline class RmlManager* getRmlManager() const { return m_rmlManager; }
-	inline class GlRmlUiRender* getRmlUiRenderer() const { return m_rmlUiRenderer.get(); }
-	inline class InputManager* getInputManager() const { return m_inputManager; }
-	inline class OpenCVManager* getOpenCVManager() const { return m_openCVManager; }
-
-	inline AppStage* getCurrentAppStage() const
-	{
-		return (m_appStageStack.size() > 0) ? m_appStageStack[m_appStageStack.size() - 1] : nullptr;
-	}
-
-	inline AppStage* getParentAppStage() const
-	{
-		return (m_appStageStack.size() > 1) ? m_appStageStack[m_appStageStack.size() - 2] : nullptr;
-	}
-
-	template<typename t_app_stage>
-	t_app_stage* pushAppStage()
-	{
-		assert(bAppStackOperationAllowed);
-		t_app_stage* appStage = new t_app_stage(this);
-		AppStage* parentAppStage =
-			m_appStageStack.size() > 0
-			? m_appStageStack[m_appStageStack.size() - 1]
-			: nullptr;
-
-		m_appStageStack.push_back(appStage);
-		m_pendingAppStageOps.push_back({parentAppStage, appStage, AppStageOperation::enter});
-
-		return appStage;
-	}
-
-	void processPendingAppStageOps();
-
-	void popAppState()
-	{
-		assert(bAppStackOperationAllowed);
-		AppStage* appStage = getCurrentAppStage();
-		if (appStage != nullptr)
-		{
-			m_appStageStack.pop_back();
-
-			AppStage* parentAppStage =
-				m_appStageStack.size() > 0
-				? m_appStageStack[m_appStageStack.size() - 1]
-				: nullptr;
-
-			m_pendingAppStageOps.push_back({parentAppStage, appStage, AppStageOperation::exit});
-		}
-	}
-
-	MulticastDelegate<void(AppStage* oldAppStage, AppStage* newAppStage)> OnAppStageEntered;
-	MulticastDelegate<void(AppStage* oldAppStage, AppStage* newAppStage)> OnAppStageExited;
 
 	// -- IMkWindow ----
 	virtual bool startup() override;
@@ -107,6 +50,22 @@ public:
 	virtual SdlWindow& getSdlWindow() override;
 
 	virtual bool onSDLEvent(const SDL_Event* event) override;
+
+	// -- IEditorWindow ----
+	virtual ObjectSystemManagerPtr getObjectSystemManager() const override { return m_objectSystemManager; }
+	virtual class MikanServer* getMikanServer() const override { return m_mikanServer; }
+	virtual class MikanFontManager* getFontManager() const override { return m_fontManager; }
+	virtual class RmlManager* getRmlManager() const override { return m_rmlManager; }
+	virtual class GlRmlUiRender* getRmlUiRenderer() const override { return m_rmlUiRenderer.get(); }
+	virtual class InputManager* getInputManager() const override { return m_inputManager; }
+	virtual class OpenCVManager* getOpenCVManager() const override { return m_openCVManager; }
+
+	virtual AppStage* getCurrentAppStage() const override;
+	virtual AppStage* getParentAppStage() const override;
+	virtual void pushAppStage(AppStage* appStage) override;
+	virtual void popAppState() override;
+
+	void processPendingAppStageOps();
 
 protected:
 	void renderStageViewport(AppStage* appStage, IMkViewportPtr targetViewport);

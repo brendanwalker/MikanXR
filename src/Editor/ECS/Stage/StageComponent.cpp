@@ -192,7 +192,7 @@ void StageComponent::alignStage()
 			CameraComponentPtr cameraComponent= CameraObjectSystem::getSystem()->getCameraById(cameraId);
 
 			AppStage_VRTrackingRecenter* vrTrackingRecenterStage =
-				MainWindow::getInstance()->pushAppStage<AppStage_VRTrackingRecenter>();
+				MainWindow::getInstance()->pushAppStageOfType<AppStage_VRTrackingRecenter>();
 
 			vrTrackingRecenterStage->setSourceCamera(cameraComponent);
 			vrTrackingRecenterStage->setTargetStageId(stageId);

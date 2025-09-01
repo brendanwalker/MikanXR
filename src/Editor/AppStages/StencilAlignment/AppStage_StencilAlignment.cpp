@@ -51,7 +51,7 @@
 const char* AppStage_StencilAlignment::APP_STAGE_NAME = "StencilAlignment";
 
 //-- public methods -----
-AppStage_StencilAlignment::AppStage_StencilAlignment(MainWindow* ownerWindow)
+AppStage_StencilAlignment::AppStage_StencilAlignment(IEditorWindow* ownerWindow)
 	: AppStage(ownerWindow, AppStage_StencilAlignment::APP_STAGE_NAME)
 	, m_calibrationModel(new RmlModel_StencilAlignment)
 	, m_videoSourceComponent()

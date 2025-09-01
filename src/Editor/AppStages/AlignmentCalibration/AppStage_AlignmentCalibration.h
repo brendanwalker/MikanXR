@@ -19,7 +19,7 @@ class AppStage_AlignmentCalibration :
 public:
 	static const char* APP_STAGE_NAME;
 
-	AppStage_AlignmentCalibration(class MainWindow* ownerWindow);
+	AppStage_AlignmentCalibration(class IEditorWindow* ownerWindow);
 	virtual ~AppStage_AlignmentCalibration();
 
 	void setBypassCalibrationFlag(bool flag);

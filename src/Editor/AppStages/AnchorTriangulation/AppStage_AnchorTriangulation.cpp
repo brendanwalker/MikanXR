@@ -39,7 +39,7 @@
 const char* AppStage_AnchorTriangulation::APP_STAGE_NAME = "AnchorTriangulation";
 
 //-- public methods -----
-AppStage_AnchorTriangulation::AppStage_AnchorTriangulation(MainWindow* ownerWindow)
+AppStage_AnchorTriangulation::AppStage_AnchorTriangulation(IEditorWindow* ownerWindow)
 	: AppStage(ownerWindow, AppStage_AnchorTriangulation::APP_STAGE_NAME)
 	, m_calibrationModel(new RmlModel_AnchorTriangulation)
 	, m_currentSceneCameraComponent()

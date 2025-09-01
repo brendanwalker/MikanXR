@@ -16,7 +16,7 @@ class AppStage_StencilAlignment : public AppStage
 public:
 	static const char* APP_STAGE_NAME;
 
-	AppStage_StencilAlignment(class MainWindow* ownerWindow);
+	AppStage_StencilAlignment(class IEditorWindow* ownerWindow);
 	virtual ~AppStage_StencilAlignment();
 
 	inline void setSourceCamera(CameraComponentPtr camera) { m_cameraComponent = camera; }

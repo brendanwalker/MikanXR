@@ -20,7 +20,7 @@ class AppStage_VRTrackingRecenter :
 public:
 	static const char* APP_STAGE_NAME;
 
-	AppStage_VRTrackingRecenter(class MainWindow* ownerWindow);
+	AppStage_VRTrackingRecenter(class IEditorWindow* ownerWindow);
 	virtual ~AppStage_VRTrackingRecenter();
 
 	void setSourceCamera(CameraComponentPtr cameraComponent);

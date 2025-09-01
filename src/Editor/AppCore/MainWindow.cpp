@@ -254,7 +254,7 @@ bool MainWindow::startup()
 
 	if (success)
 	{
-		pushAppStage<AppStage_MainMenu>();
+		pushAppStageOfType<AppStage_MainMenu>();
 	}
 
 	return success;
@@ -433,6 +433,47 @@ bool MainWindow::onSDLEvent(const SDL_Event* event)
 
 	return bHandled;
 }
+
+inline AppStage* MainWindow::getCurrentAppStage() const
+{
+	return (m_appStageStack.size() > 0) ? m_appStageStack[m_appStageStack.size() - 1] : nullptr;
+}
+
+inline AppStage* MainWindow::getParentAppStage() const
+{
+	return (m_appStageStack.size() > 1) ? m_appStageStack[m_appStageStack.size() - 2] : nullptr;
+}
+
+void MainWindow::pushAppStage(AppStage* appStage)
+{
+	assert(bAppStackOperationAllowed);
+
+	AppStage* parentAppStage =
+		m_appStageStack.size() > 0
+		? m_appStageStack[m_appStageStack.size() - 1]
+		: nullptr;
+
+	m_appStageStack.push_back(appStage);
+	m_pendingAppStageOps.push_back({ parentAppStage, appStage, AppStageOperation::enter });
+}
+
+void MainWindow::popAppState()
+{
+	assert(bAppStackOperationAllowed);
+	AppStage* appStage = getCurrentAppStage();
+	if (appStage != nullptr)
+	{
+		m_appStageStack.pop_back();
+
+		AppStage* parentAppStage =
+			m_appStageStack.size() > 0
+			? m_appStageStack[m_appStageStack.size() - 1]
+			: nullptr;
+
+		m_pendingAppStageOps.push_back({ parentAppStage, appStage, AppStageOperation::exit });
+	}
+}
+
 
 void MainWindow::processPendingAppStageOps()
 {

@@ -31,7 +31,7 @@ const std::string g_monoLensCalibrationMenuStateStrings[(int)eMonoLensCalibratio
 };
 
 //-- public methods -----
-AppStage_MonoLensCalibration::AppStage_MonoLensCalibration(MainWindow* ownerWindow)
+AppStage_MonoLensCalibration::AppStage_MonoLensCalibration(IEditorWindow* ownerWindow)
 	: AppStage(ownerWindow, AppStage_MonoLensCalibration::APP_STAGE_NAME)
 	, m_calibrationModel(new RmlModel_MonoLensCalibration)
 	, m_cameraSettingsModel(new RmlModel_MonoCameraSettings)

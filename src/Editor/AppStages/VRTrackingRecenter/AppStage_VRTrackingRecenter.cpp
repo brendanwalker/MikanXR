@@ -39,7 +39,7 @@
 const char* AppStage_VRTrackingRecenter::APP_STAGE_NAME = "VRTrackingRecenter";
 
 //-- public methods -----
-AppStage_VRTrackingRecenter::AppStage_VRTrackingRecenter(MainWindow* ownerWindow)
+AppStage_VRTrackingRecenter::AppStage_VRTrackingRecenter(IEditorWindow* ownerWindow)
 	: AppStage(ownerWindow, AppStage_VRTrackingRecenter::APP_STAGE_NAME)
 	, m_calibrationModel(new RmlModel_VRTrackingRecenter)
 	, m_videoSourceComponent()

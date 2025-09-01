@@ -179,7 +179,8 @@ void AnchorComponent::editAnchor()
 		ModalDialog_SelectCamera::selectCamera(
 			[this, definition](MikanCameraID cameraId) {
 				// Show Anchor Triangulation Tool
-				AppStage_AnchorTriangulation* anchorTriangulation = MainWindow::getInstance()->pushAppStage<AppStage_AnchorTriangulation>();
+				AppStage_AnchorTriangulation* anchorTriangulation = 
+					MainWindow::getInstance()->pushAppStageOfType<AppStage_AnchorTriangulation>();
 
 				AnchorTriangulatorInfo anchorInfo = {
 					definition->getAnchorId(),

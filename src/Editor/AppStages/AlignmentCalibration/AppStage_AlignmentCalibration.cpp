@@ -54,7 +54,7 @@ static const char* k_calibration_pattern_names[] = {
 };
 
 //-- public methods -----
-AppStage_AlignmentCalibration::AppStage_AlignmentCalibration(MainWindow* ownerWindow)
+AppStage_AlignmentCalibration::AppStage_AlignmentCalibration(IEditorWindow* ownerWindow)
 	: AppStage(ownerWindow, AppStage_AlignmentCalibration::APP_STAGE_NAME)
 	, m_calibrationModel(new RmlModel_AlignmentCalibration)
 	, m_cameraSettingsModel(new RmlModel_AlignmentCameraSettings)

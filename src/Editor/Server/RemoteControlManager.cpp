@@ -32,7 +32,7 @@ public:
 	{
 		MainWindow* MainWindow= App::getInstance()->getMainWindow();
 
-		return MainWindow->pushAppStage<t_app_stage_class>();
+		return MainWindow->pushAppStageOfType<t_app_stage_class>();
 	}
 
 	static RemoteControllableAppStageFactoryPtr createFactory()

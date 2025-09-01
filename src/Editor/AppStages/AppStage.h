@@ -1,7 +1,9 @@
 #pragma once
 
+#include "IEditorWindow.h"
 #include "LocalizationManager.h"
 #include "MikanRendererFwd.h"
+#include "ObjectSystemManager.h"
 #include "RmlFwd.h"
 
 #include <string>
@@ -18,7 +20,7 @@ class AppStage
 {
 public:
 	AppStage(
-		class MainWindow* ownerWindow,
+		IEditorWindow* ownerWindow,
 		const std::string& stageName);
 	virtual ~AppStage();
 
@@ -63,8 +65,14 @@ public:
 
 	void popModalDialog();
 
+	template<class t_system_type>
+	std::shared_ptr<t_system_type> getSystemOfType()
+	{
+		return m_ownerWindow->getObjectSystemManager()->getSystemOfType<t_system_type>();
+	}
+
 protected:
-	class MainWindow* m_ownerWindow;
+	IEditorWindow* m_ownerWindow;
 	bool m_bIsEntered= false;
 	bool m_bIsPaused= false;
 	std::string m_appStageName;

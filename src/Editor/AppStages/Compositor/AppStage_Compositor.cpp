@@ -71,8 +71,8 @@
 const char* AppStage_Compositor::APP_STAGE_NAME = "Compositor";
 
 //-- public methods -----
-AppStage_Compositor::AppStage_Compositor(MainWindow* window)
-	: AppStage(window, AppStage_Compositor::APP_STAGE_NAME)
+AppStage_Compositor::AppStage_Compositor(IEditorWindow* ownerWindow)
+	: AppStage(ownerWindow, AppStage_Compositor::APP_STAGE_NAME)
 	, m_compositorModel(new RmlModel_Compositor)
 	, m_compositorScenesModel(new RmlModel_CompositorScenes)
 	, m_compositorStagesModel(new RmlModel_CompositorStages)

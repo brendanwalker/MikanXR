@@ -538,7 +538,7 @@ void ModelStencilComponent::alignStencil()
 	ModalDialog_SelectCamera::selectCamera(
 		[this](MikanCameraID cameraId) {
 			// Show Anchor Triangulation Tool
-			auto* stencilAligner = MainWindow::getInstance()->pushAppStage<AppStage_StencilAlignment>();
+			auto* stencilAligner = MainWindow::getInstance()->pushAppStageOfType<AppStage_StencilAlignment>();
 			if (stencilAligner)
 			{
 				stencilAligner->setTargetStencil(getSelfPtr<ModelStencilComponent>());

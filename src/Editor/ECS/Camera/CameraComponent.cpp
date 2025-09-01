@@ -513,14 +513,14 @@ void CameraComponent::alignCamera()
 
 	if (vrTrackingMount)
 	{
-		auto* alignmentCalibration = mainWindow->pushAppStage<AppStage_AlignmentCalibration>();
+		auto* alignmentCalibration = mainWindow->pushAppStageOfType<AppStage_AlignmentCalibration>();
 		alignmentCalibration->setTargetCameraComponent(getSelfPtr<CameraComponent>());
 	}
 	else
 	{
 		//TODO
 		//// Show Camera Triangulation Tool
-		//AppStage_CameraTriangulation* CameraTriangulation = MainWindow::getInstance()->pushAppStage<AppStage_CameraTriangulation>();
+		//AppStage_CameraTriangulation* CameraTriangulation = MainWindow::getInstance()->pushAppStageOfType<AppStage_CameraTriangulation>();
 		//CameraTriangulation->setTargetCameraDefinition(getCameraDefinition());
 	}
 }

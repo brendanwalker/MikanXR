@@ -16,7 +16,7 @@
 const char* AppStage_MainMenu::APP_STAGE_NAME = "MainMenu";
 
 //-- public methods -----
-AppStage_MainMenu::AppStage_MainMenu(MainWindow* ownerWindow)
+AppStage_MainMenu::AppStage_MainMenu(IEditorWindow* ownerWindow)
 	: AppStage(ownerWindow, AppStage_MainMenu::APP_STAGE_NAME)
 { 
 }
@@ -32,11 +32,11 @@ void AppStage_MainMenu::onRmlClickEvent(const std::string& value)
 {
 	if (value == "goto_compositor")
 	{
-		m_ownerWindow->pushAppStage<AppStage_Compositor>();
+		m_ownerWindow->pushAppStageOfType<AppStage_Compositor>();
 	}
 	else if (value == "goto_camera_settings")
 	{
-		m_ownerWindow->pushAppStage<AppStage_CameraSettings>();
+		m_ownerWindow->pushAppStageOfType<AppStage_CameraSettings>();
 	}
 	else if (value == "exit_mikan")
 	{

@@ -3,6 +3,7 @@
 //-- includes -----
 #include "AppStage.h"
 #include "CommonConfigFwd.h"
+#include "ComponentFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
 #include "MikanRendererFwd.h"
@@ -20,7 +21,7 @@ class AppStage_Compositor : public AppStage
 public:
 	static const char* APP_STAGE_NAME;
 
-	AppStage_Compositor(class MainWindow* ownerWindow);
+	AppStage_Compositor(class IEditorWindow* ownerWindow);
 	virtual ~AppStage_Compositor();
 
 	inline CompositorScriptContextPtr getCompositorScriptContext() { return m_scriptContext; }

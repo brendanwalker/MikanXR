@@ -17,7 +17,7 @@ using RmlModel_CameraSettingsPtr = std::shared_ptr<RmlModel_CameraSettings>;
 class AppStage_CameraSettings : public AppStage
 {
 public:
-	AppStage_CameraSettings(class MainWindow* ownerWindow);
+	AppStage_CameraSettings(class IEditorWindow* ownerWindow);
 	virtual ~AppStage_CameraSettings();
 
 	virtual void enter() override;

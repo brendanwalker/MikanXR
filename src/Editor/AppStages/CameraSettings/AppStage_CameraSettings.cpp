@@ -23,7 +23,7 @@
 const char* AppStage_CameraSettings::APP_STAGE_NAME = "CameraSettings";
 
 //-- public methods -----
-AppStage_CameraSettings::AppStage_CameraSettings(MainWindow* ownerWindow)
+AppStage_CameraSettings::AppStage_CameraSettings(IEditorWindow* ownerWindow)
 	: AppStage(ownerWindow, AppStage_CameraSettings::APP_STAGE_NAME)
 	, m_cameraSettingsModel(std::make_shared<RmlModel_CameraSettings>())
 { }
@@ -110,11 +110,11 @@ void AppStage_CameraSettings::onRmlClickEvent(const std::string& value)
 {
 	if (value == "goto_mono_tracker_calibration")
 	{
-		m_ownerWindow->pushAppStage<AppStage_MonoLensCalibration>();
+		m_ownerWindow->pushAppStageOfType<AppStage_MonoLensCalibration>();
 	}
 	else if (value == "goto_mono_tracker_test")
 	{
-		m_ownerWindow->pushAppStage<AppStage_MonoLensCalibration>()->setBypassCalibrationFlag(true);
+		m_ownerWindow->pushAppStageOfType<AppStage_MonoLensCalibration>()->setBypassCalibrationFlag(true);
 	}
 	else if (value == "goto_main_menu")
 	{
