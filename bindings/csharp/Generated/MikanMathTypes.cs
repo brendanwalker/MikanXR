@@ -127,6 +127,14 @@ namespace MikanXR
 		public float y;
 	};
 
+	public class MikanVector2i
+	{
+		public static readonly long classId= 4125224092192057639;
+
+		public int x;
+		public int y;
+	};
+
 	public class MikanVector3d
 	{
 		public static readonly long classId= 4126307111145656249;
