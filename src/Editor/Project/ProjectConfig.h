@@ -17,13 +17,6 @@ public:
 	virtual configuru::Config writeToJSON() override;
 	virtual void readFromJSON(const configuru::Config& pt) override;
 
-	static const std::string k_spoutOutputIsStreamingNamePropertyId;
-	inline bool getIsSpoutOutputStreaming() const { return m_bIsSpoutOutputStreaming; }
-	void setIsSpoutOutputStreaming(bool bIsStreaming);
-
-	static const std::string k_spoutOutputNamePropertyId;
-	inline const std::string& getSpoutOutputName() const { return m_spoutOutputName; }
-	void setSpoutOutputName(const std::string& spoutOutputName);
 
 	static const std::string k_renderOriginFlagPropertyId;
 	inline bool getRenderOriginFlag() const { return m_bRenderOrigin; }
@@ -44,8 +37,6 @@ public:
 	VRObjectSystemConfigPtr vrObjectConfig;
 
 protected:
-	bool m_bIsSpoutOutputStreaming= false;
-	std::string m_spoutOutputName;
 	eTrackingRuntime m_trackingRuntime= eTrackingRuntime::SteamVR;
 	bool m_bRenderOrigin= true;
 };

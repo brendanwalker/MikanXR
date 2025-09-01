@@ -53,11 +53,21 @@ public:
 	std::filesystem::path getCompositorGraphPath() const;
 	void setCompositorGraphPath(const std::filesystem::path& graphPath);
 
+	static const std::string k_spoutOutputIsStreamingNamePropertyId;
+	inline bool getIsSpoutOutputStreaming() const { return m_bIsSpoutOutputStreaming; }
+	void setIsSpoutOutputStreaming(bool bIsStreaming);
+
+	static const std::string k_spoutOutputNamePropertyId;
+	inline const std::string& getSpoutOutputName() const { return m_spoutOutputName; }
+	void setSpoutOutputName(const std::string& spoutOutputName);
+
 private:
 	MikanCompositorID m_compositorId;
 	MikanStageID m_ownerStageId = INVALID_MIKAN_ID;
 	MikanCameraID m_cameraId = INVALID_MIKAN_ID;
 	AssetReferenceConfigPtr m_nodeGraphAssetRef;
+	bool m_bIsSpoutOutputStreaming = false;
+	std::string m_spoutOutputName;
 };
 
 class CompositorComponent : public MikanComponent

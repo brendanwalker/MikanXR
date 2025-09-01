@@ -8,7 +8,8 @@ class RmlModel_CompositorSettings : public RmlModel
 public:
 	bool init(
 		Rml::Context* rmlContext,
-		ProjectConfigPtr profileConfig);
+		ProjectConfigPtr profileConfig,
+		CompositorDefinitionPtr compositorDefinition);
 	virtual void dispose() override;
 
 private:
@@ -20,4 +21,5 @@ private:
 	bool m_bRenderStencils= false;
 
 	ProjectConfigPtr m_project;
+	CompositorDefinitionPtr m_compositorDefinition;
 };

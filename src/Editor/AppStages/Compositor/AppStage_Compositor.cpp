@@ -222,7 +222,8 @@ void AppStage_Compositor::enter()
 		m_compositiorScriptingView->Hide();
 
 		// Init Settings UI
-		m_compositorSettingsModel->init(context, m_project);
+		// TODO: Need to pass CompositorDefinition to settings model after refactoring
+		//m_compositorSettingsModel->init(context, m_project, compositorDefinition);
 		m_compositiorSettingsView = addRmlDocument("compositor_settings.rml");
 		m_compositiorSettingsView->Hide();
 	}

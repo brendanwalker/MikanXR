@@ -11,9 +11,11 @@
 
 bool RmlModel_CompositorSettings::init(
 	Rml::Context* rmlContext,
-	ProjectConfigPtr project)
+	ProjectConfigPtr project,
+	CompositorDefinitionPtr compositorDefinition)
 {
 	m_project = project;
+	m_compositorDefinition = compositorDefinition;
 
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "compositor_settings");
@@ -32,7 +34,7 @@ bool RmlModel_CompositorSettings::init(
 		"update_streaming_flag",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
 			m_bIsStreaming= Rml::Utilities::GetBoolValueFromEvent(ev);
-			m_project->setIsSpoutOutputStreaming(m_bIsStreaming);
+			m_compositorDefinition->setIsSpoutOutputStreaming(m_bIsStreaming);
 		});
 	constructor.BindEventCallback(
 		"update_spout_output_name",
@@ -40,7 +42,7 @@ bool RmlModel_CompositorSettings::init(
 			if (Rml::String spoutOutputName;
 				Rml::Utilities::TryGetStringValueFromEvent(ev, spoutOutputName))
 			{
-				m_project->setIsSpoutOutputStreaming(m_bIsStreaming);
+				m_compositorDefinition->setSpoutOutputName(spoutOutputName);
 			}
 		});
 	constructor.BindEventCallback(
@@ -62,8 +64,8 @@ bool RmlModel_CompositorSettings::init(
 			StencilObjectSystem::getSystem()->setRenderStencilsFlag(m_bRenderStencils);
 		});
 
-	m_bIsStreaming = m_project->getIsSpoutOutputStreaming();
-	m_spoutOutputName= m_project->getSpoutOutputName();
+	m_bIsStreaming = m_compositorDefinition->getIsSpoutOutputStreaming();
+	m_spoutOutputName= m_compositorDefinition->getSpoutOutputName();
 	m_bRenderOrigin= m_project->getRenderOriginFlag();
 	m_bRenderAnchors= m_project->anchorConfig->getRenderAnchorsFlag();
 	m_bRenderStencils= m_project->stencilConfig->getRenderStencilsFlag();
@@ -75,6 +77,7 @@ bool RmlModel_CompositorSettings::init(
 void RmlModel_CompositorSettings::dispose()
 {
 	m_project.reset();
+	m_compositorDefinition.reset();
 
 	RmlModel::dispose();
 }

@@ -18,15 +18,10 @@
 #include "VRObjectSystem.h"
 
 // -- Profile Config
-const std::string ProjectConfig::k_spoutOutputIsStreamingNamePropertyId= "spoutOutputIsStreaming";
-const std::string ProjectConfig::k_spoutOutputNamePropertyId= "spoutOutputName";
 const std::string ProjectConfig::k_renderOriginFlagPropertyId= "renderOrigin";
 
 ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	: CommonConfig(fnamebase)
-	// Spout Output Defaults
-	, m_bIsSpoutOutputStreaming(false)
-	, m_spoutOutputName(DEFAULT_SPOUT_OUTPUT_NAME)
 	// Compositor
 	, compositorScriptFilePath("")
 {
@@ -68,9 +63,6 @@ configuru::Config ProjectConfig::writeToJSON()
 {
 	configuru::Config pt= CommonConfig::writeToJSON();
 
-	// Spout Output Settings
-	pt[k_spoutOutputIsStreamingNamePropertyId]= m_bIsSpoutOutputStreaming;
-	pt[k_spoutOutputNamePropertyId]= m_spoutOutputName;
 	// Compositor
 	pt["compositorScript"]= compositorScriptFilePath.string();
 	// Renderer Flags
@@ -116,11 +108,6 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
-	// Spout Output Settings
-	m_bIsSpoutOutputStreaming= pt.get_or<bool>(k_spoutOutputNamePropertyId, m_bIsSpoutOutputStreaming);
-	m_spoutOutputName= pt.get_or<std::string>(k_spoutOutputNamePropertyId, m_spoutOutputName);
-	if (m_spoutOutputName.empty())
-		m_spoutOutputName= DEFAULT_SPOUT_OUTPUT_NAME;
 
 	m_bRenderOrigin = pt.get_or<bool>(k_renderOriginFlagPropertyId, m_bRenderOrigin);
 
@@ -194,23 +181,6 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 	compositorScriptFilePath = pt.get_or<std::string>("compositorScript", compositorScriptFilePath.string());
 }
 
-void ProjectConfig::setIsSpoutOutputStreaming(bool bIsStreaming)
-{
-	if (m_bIsSpoutOutputStreaming != bIsStreaming)
-	{
-		m_bIsSpoutOutputStreaming= bIsStreaming;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_spoutOutputIsStreamingNamePropertyId));
-	}
-}
-
-void ProjectConfig::setSpoutOutputName(const std::string& spoutOutputName)
-{
-	if (m_spoutOutputName != spoutOutputName)
-	{
-		m_spoutOutputName = spoutOutputName;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_spoutOutputNamePropertyId));
-	}
-}
 
 void ProjectConfig::setRenderOriginFlag(bool flag)
 {

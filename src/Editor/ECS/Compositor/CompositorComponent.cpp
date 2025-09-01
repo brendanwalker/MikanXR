@@ -16,6 +16,7 @@
 #include "MkScopedState.h"
 #include "MkStateStack.h"
 #include "ProjectConfig.h"
+#include "ProjectConfigConstants.h"
 #include "StageComponent.h"
 #include "StageObjectSystem.h"
 #include "TransformComponent.h"
@@ -36,11 +37,15 @@
 const std::string CompositorDefinition::k_compositorGraphPathPropertyId = "script_path";
 const std::string CompositorDefinition::k_cameraPropertyId= "camera_id";
 const std::string CompositorDefinition::k_ownerStagePropertyId = "owner_stage_id";
+const std::string CompositorDefinition::k_spoutOutputIsStreamingNamePropertyId = "spoutOutputIsStreaming";
+const std::string CompositorDefinition::k_spoutOutputNamePropertyId = "spoutOutputName";
 
 CompositorDefinition::CompositorDefinition()
 	: MikanComponentDefinition()
 	, m_compositorId(INVALID_MIKAN_ID)
 	, m_nodeGraphAssetRef(std::make_shared<AssetReferenceConfig>())
+	, m_bIsSpoutOutputStreaming(false)
+	, m_spoutOutputName(DEFAULT_SPOUT_OUTPUT_NAME)
 {
 }
 
@@ -52,6 +57,8 @@ CompositorDefinition::CompositorDefinition(
 	, m_compositorId(compositorId)
 	, m_ownerStageId(ownerSceneId)
 	, m_nodeGraphAssetRef(std::make_shared<AssetReferenceConfig>())
+	, m_bIsSpoutOutputStreaming(false)
+	, m_spoutOutputName(DEFAULT_SPOUT_OUTPUT_NAME)
 {}
 
 configuru::Config CompositorDefinition::writeToJSON()
@@ -61,6 +68,8 @@ configuru::Config CompositorDefinition::writeToJSON()
 	pt["id"] = m_compositorId;
 	pt[k_cameraPropertyId] = m_cameraId;
 	pt[k_ownerStagePropertyId] = m_ownerStageId;
+	pt[k_spoutOutputIsStreamingNamePropertyId] = m_bIsSpoutOutputStreaming;
+	pt[k_spoutOutputNamePropertyId] = m_spoutOutputName;
 
 	if (m_nodeGraphAssetRef)
 	{
@@ -77,6 +86,10 @@ void CompositorDefinition::readFromJSON(const configuru::Config& pt)
 	m_compositorId = pt.get<int>("id");
 	m_cameraId = pt.get_or<int>(k_cameraPropertyId, INVALID_MIKAN_ID);
 	m_ownerStageId = pt.get_or<int>(k_ownerStagePropertyId, INVALID_MIKAN_ID);
+	m_bIsSpoutOutputStreaming = pt.get_or<bool>(k_spoutOutputIsStreamingNamePropertyId, m_bIsSpoutOutputStreaming);
+	m_spoutOutputName = pt.get_or<std::string>(k_spoutOutputNamePropertyId, m_spoutOutputName);
+	if (m_spoutOutputName.empty())
+		m_spoutOutputName = DEFAULT_SPOUT_OUTPUT_NAME;
 
 	m_componentScriptAssetRefConfig = NodeGraphAssetReferenceFactory().allocateAssetReferenceConfig();
 	if (pt.has_key(k_compositorGraphPathPropertyId))
@@ -119,6 +132,24 @@ void CompositorDefinition::setCompositorGraphPath(const std::filesystem::path& g
 	{
 		m_nodeGraphAssetRef->assetPath= graphPath.string();
 		markDirty(ConfigPropertyChangeSet().addPropertyName(MikanComponentDefinition::k_componentScriptPathPropertyId));
+	}
+}
+
+void CompositorDefinition::setIsSpoutOutputStreaming(bool bIsStreaming)
+{
+	if (m_bIsSpoutOutputStreaming != bIsStreaming)
+	{
+		m_bIsSpoutOutputStreaming = bIsStreaming;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_spoutOutputIsStreamingNamePropertyId));
+	}
+}
+
+void CompositorDefinition::setSpoutOutputName(const std::string& spoutOutputName)
+{
+	if (m_spoutOutputName != spoutOutputName)
+	{
+		m_spoutOutputName = spoutOutputName;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_spoutOutputNamePropertyId));
 	}
 }
 
