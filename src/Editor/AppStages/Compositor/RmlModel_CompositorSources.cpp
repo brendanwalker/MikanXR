@@ -8,8 +8,7 @@
 #include <RmlUi/Core/Context.h>
 
 bool RmlModel_CompositorSources::init(
-	Rml::Context* rmlContext,
-	CompositorComponentPtr compositor)
+	Rml::Context* rmlContext)
 {
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "compositor_sources");
@@ -22,7 +21,8 @@ bool RmlModel_CompositorSources::init(
 	constructor.Bind("video_mode_name", &m_videoModeName);
 
 	// Bind data model callbacks
-
+	//TODO
+	CompositorComponentPtr compositor;
 	m_videoSource= compositor->getVideoSourceComponent();
 	if (m_videoSource)
 	{

@@ -7,10 +7,10 @@
 class RmlDataBinding_VRDeviceList;
 using RmlDataBinding_VRDeviceListPtr = std::shared_ptr<RmlDataBinding_VRDeviceList>;
 
-class RmlModel_CompositorCameras : public RmlModel
+class RmlModel_CompositorStages : public RmlModel
 {
 public:
-	RmlModel_CompositorCameras();
+	RmlModel_CompositorStages();
 
 	bool init(Rml::Context* rmlContext);
 	virtual void dispose() override;

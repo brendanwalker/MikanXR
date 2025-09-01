@@ -1,4 +1,4 @@
-#include "RmlModel_CompositorCameras.h"
+#include "RmlModel_CompositorStages.h"
 #include "Shared/RmlDataBinding_VRDeviceList.h"
 #include "StringUtils.h"
 #include "VideoSourceComponent.h"
@@ -7,11 +7,11 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
 
-RmlModel_CompositorCameras::RmlModel_CompositorCameras()
+RmlModel_CompositorStages::RmlModel_CompositorStages()
 	: m_vrDeviceBinding(std::make_shared<RmlDataBinding_VRDeviceList>())
 {}
 
-bool RmlModel_CompositorCameras::init(
+bool RmlModel_CompositorStages::init(
 	Rml::Context* rmlContext)
 {
 	// Create Datamodel
@@ -32,7 +32,7 @@ bool RmlModel_CompositorCameras::init(
 	return true;
 }
 
-void RmlModel_CompositorCameras::dispose()
+void RmlModel_CompositorStages::dispose()
 {
 	m_vrDeviceBinding->dispose();
 	RmlModel::dispose();

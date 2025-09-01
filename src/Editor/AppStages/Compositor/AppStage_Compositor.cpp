@@ -7,9 +7,11 @@
 #include "ClientSourceManager.h"
 #include "Compositor/AppStage_Compositor.h"
 #include "Compositor/RmlModel_Compositor.h"
-#include "Compositor/RmlModel_CompositorCameras.h"
+
+#include "Compositor/RmlModel_CompositorScenes.h"
+#include "Compositor/RmlModel_CompositorStages.h"
+
 #include "Compositor/RmlModel_CompositorLayers.h"
-#include "Compositor/RmlModel_CompositorOutliner.h"
 #include "Compositor/RmlModel_CompositorSources.h"
 #include "Compositor/RmlModel_CompositorScripting.h"
 #include "Compositor/RmlModel_CompositorSelection.h"
@@ -72,11 +74,11 @@ const char* AppStage_Compositor::APP_STAGE_NAME = "Compositor";
 AppStage_Compositor::AppStage_Compositor(MainWindow* window)
 	: AppStage(window, AppStage_Compositor::APP_STAGE_NAME)
 	, m_compositorModel(new RmlModel_Compositor)
-	, m_compositorLayersModel(new RmlModel_CompositorLayers)
-	, m_compositorCamerasModel(new RmlModel_CompositorCameras)
-	//, m_compositorSourcesModel(new RmlModel_CompositorSources)
-	, m_compositorScriptingModel(new RmlModel_CompositorScripting)
-	, m_compositorOutlinerModel(new RmlModel_CompositorOutliner)
+	, m_compositorScenesModel(new RmlModel_CompositorScenes)
+	, m_compositorStagesModel(new RmlModel_CompositorStages)
+	, m_compositorSourcesModel(new RmlModel_CompositorSources)
+	// TODO: Tracking
+	// TODO: Markers
 	, m_compositorSelectionModel(new RmlModel_CompositorSelection)
 	, m_compositorSettingsModel(new RmlModel_CompositorSettings)
 	, m_scriptContext(std::make_shared<CompositorScriptContext>())
@@ -89,11 +91,11 @@ AppStage_Compositor::~AppStage_Compositor()
 	m_activeCompositors.clear();
 
 	delete m_compositorModel;
-	delete m_compositorLayersModel;
-	delete m_compositorCamerasModel;
-	//delete m_compositorSourcesModel;
-	delete m_compositorScriptingModel;
-	delete m_compositorOutlinerModel;
+	delete m_compositorStagesModel;
+	delete m_compositorSourcesModel;
+	// TODO: Tracking
+	// TODO: Markers
+	delete m_compositorScenesModel;
 	delete m_compositorSelectionModel;
 	delete m_compositorSettingsModel;
 	m_scriptContext.reset();
@@ -176,46 +178,29 @@ void AppStage_Compositor::enter()
 		// Init main compositor UI
 		m_compositorModel->init(context);
 		m_compositorModel->OnReturnEvent = MakeDelegate(this, &AppStage_Compositor::onReturnEvent);
-		m_compositorModel->OnToggleOutlinerEvent = MakeDelegate(this, &AppStage_Compositor::onToggleOutlinerWindowEvent);
-		m_compositorModel->OnToggleLayersEvent = MakeDelegate(this, &AppStage_Compositor::onToggleLayersWindowEvent);
-		m_compositorModel->OnToggleCamerasEvent = MakeDelegate(this, &AppStage_Compositor::onToggleCamerasWindowEvent);
+		m_compositorModel->OnToggleOutlinerEvent = MakeDelegate(this, &AppStage_Compositor::onToggleScenesWindowEvent);
+		m_compositorModel->OnToggleCamerasEvent = MakeDelegate(this, &AppStage_Compositor::onToggleStagesWindowEvent);
 		m_compositorModel->OnToggleSourcesEvent = MakeDelegate(this, &AppStage_Compositor::onToggleSourcesEvent);
-		m_compositorModel->OnToggleScriptingEvent = MakeDelegate(this, &AppStage_Compositor::onToggleScriptingWindowEvent);
+		// TODO: Tracking
+		// TODO: Markers
 		m_compositorModel->OnToggleSettingsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleSettingsWindowEvent);
 		m_compositiorView = addRmlDocument("compositor.rml");
 
 		// Init Outliner UI
-		m_compositorOutlinerModel->init(context, m_anchorObjectSystem, m_editorSystem, m_stencilObjectSystem);
+		m_compositorScenesModel->init(context, m_anchorObjectSystem, m_editorSystem, m_stencilObjectSystem);
 		m_compositorSelectionModel->init(context, m_anchorObjectSystem, m_editorSystem, m_stencilObjectSystem);
-		m_compositiorOutlinerView = addRmlDocument("compositor_outliner.rml");
-		m_compositiorOutlinerView->Show();
-
-		// TODO
-		// Init Layers UI
-		//m_compositorLayersModel->init(context, m_frameCompositor);
-		//m_compositorLayersModel->OnGraphEditEvent = MakeDelegate(this, &AppStage_Compositor::onGraphEditEvent);
-		//m_compositorLayersModel->OnGraphFileSelectEvent = MakeDelegate(this, &AppStage_Compositor::onGraphFileSelectEvent);
-		//m_compositiorLayersView = addRmlDocument("compositor_layers.rml");
-		//m_compositiorLayersView->Hide();
+		m_compositiorScenesView = addRmlDocument("compositor_outliner.rml");
+		m_compositiorScenesView->Show();
 
 		// Init Cameras UI
-		m_compositorCamerasModel->init(context);
+		m_compositorStagesModel->init(context);
 		m_compositiorSourcesView = addRmlDocument("compositor_cameras.rml");
 		m_compositiorSourcesView->Hide();
 
 		// Init Sources UI
-		//m_compositorSourcesModel->init(context);
-		//m_compositiorSourcesView = addRmlDocument("compositor_sources.rml");
-		//m_compositiorSourcesView->Hide();
-
-		// Init Scripting UI
-		m_compositorScriptingModel->init(context, m_project, m_scriptContext);
-		m_compositorScriptingModel->OnScriptFileChangeEvent = MakeDelegate(this, &AppStage_Compositor::onScriptFileChangeEvent);
-		m_compositorScriptingModel->OnSelectCompositorScriptFileEvent = MakeDelegate(this, &AppStage_Compositor::onSelectCompositorScriptFileEvent);
-		m_compositorScriptingModel->OnReloadCompositorScriptFileEvent = MakeDelegate(this, &AppStage_Compositor::onReloadCompositorScriptFileEvent);
-		m_compositorScriptingModel->OnInvokeScriptTriggerEvent = MakeDelegate(this, &AppStage_Compositor::onInvokeScriptTriggerEvent);
-		m_compositiorScriptingView = addRmlDocument("compositor_scripting.rml");
-		m_compositiorScriptingView->Hide();
+		m_compositorSourcesModel->init(context);
+		m_compositiorSourcesView = addRmlDocument("compositor_sources.rml");
+		m_compositiorSourcesView->Hide();
 
 		// Init Settings UI
 		// TODO: Need to pass CompositorDefinition to settings model after refactoring
@@ -251,12 +236,13 @@ void AppStage_Compositor::exit()
 	MikanServer::getInstance()->getScriptRequestHandler()->unbindScriptContect(m_scriptContext);
 
 	m_compositorSelectionModel->dispose();
-	m_compositorOutlinerModel->dispose();
-	m_compositorLayersModel->dispose();
-	//m_compositorSourcesModel->dispose();
-	m_compositorScriptingModel->dispose();
-	m_compositorModel->dispose();
+	m_compositorScenesModel->dispose();
+	m_compositorStagesModel->dispose();
+	m_compositorSourcesModel->dispose();
+	// TODO: Tracking
+	// TODO: Markers
 	m_compositorSettingsModel->dispose();
+	m_compositorModel->dispose();
 
 	// Clear cached object systems
 	m_anchorObjectSystem = nullptr;
@@ -278,7 +264,7 @@ void AppStage_Compositor::resume()
 	AppStage::resume();
 
 	hideAllSubWindows();
-	m_compositiorOutlinerView->Show();
+	m_compositiorScenesView->Show();
 }
 
 void AppStage_Compositor::update(float deltaSeconds)
@@ -393,10 +379,16 @@ void AppStage_Compositor::onReturnEvent()
 	m_ownerWindow->popAppState();
 }
 
-void AppStage_Compositor::onToggleCamerasWindowEvent()
+void AppStage_Compositor::onToggleScenesWindowEvent()
 {
 	hideAllSubWindows();
-	if (m_compositiorSourcesView) m_compositiorCamerasView->Show();
+	if (m_compositiorScenesView) m_compositiorScenesView->Show();
+}
+
+void AppStage_Compositor::onToggleStagesWindowEvent()
+{
+	hideAllSubWindows();
+	if (m_compositiorSourcesView) m_compositiorStagesView->Show();
 }
 
 void AppStage_Compositor::onToggleSourcesEvent()
@@ -410,56 +402,6 @@ void AppStage_Compositor::onToggleSettingsWindowEvent()
 	hideAllSubWindows();
 	if (m_compositiorSettingsView) m_compositiorSettingsView->Show();
 }
-
-//-- Deprecated --
-void AppStage_Compositor::onToggleOutlinerWindowEvent()
-{
-	hideAllSubWindows();
-	if (m_compositiorOutlinerView) m_compositiorOutlinerView->Show();
-}
-
-void AppStage_Compositor::onToggleLayersWindowEvent()
-{
-	hideAllSubWindows();
-	if (m_compositiorLayersView) m_compositiorLayersView->Show();
-}
-
-void AppStage_Compositor::onToggleScriptingWindowEvent()
-{
-	hideAllSubWindows();
-	if (m_compositiorScriptingView) m_compositiorScriptingView->Show();
-}
-//-- Deprecated --
-
-// Compositor Layers UI Events
-//void AppStage_Compositor::onGraphEditEvent()
-//{
-//	App* app= App::getInstance();	
-//
-//	if (!app->hasWindowOfType<CompositorNodeEditorWindow>())
-//	{
-//		auto* compositorNodeEditor= app->createAppWindow<CompositorNodeEditorWindow>();
-//
-//		// Bind the current compositor graph to the editor
-//		NodeGraphPtr nodeGraph = compositorNodeEditor->getNodeGraph();
-//		if (nodeGraph)
-//		{
-//			auto compositorNodeGraph = std::static_pointer_cast<CompositorNodeGraph>(nodeGraph);
-//			compositorNodeGraph->bindToCompositorComponent(m_frameCompositor);
-//		}
-//	}
-//}
-
-//void AppStage_Compositor::onGraphFileSelectEvent()
-//{
-//	const char* filterItems[1] = {"*.graph"};
-//	const char* filterDesc = "Graph Files (*.graph)";
-//	auto path = tinyfd_openFileDialog("Load Compositor Graph", "", 1, filterItems, filterDesc, 1);
-//	if (path)
-//	{
-//		m_frameCompositor->getCompositorDefinition()->setCompositorGraphPath(path);
-//	}
-//}
 
 void AppStage_Compositor::onScreenshotClientSourceEvent(const std::string& clientSourceName)
 {
@@ -478,70 +420,12 @@ void AppStage_Compositor::onScreenshotClientSourceEvent(const std::string& clien
 
 void AppStage_Compositor::hideAllSubWindows()
 {
-	if (m_compositiorOutlinerView) m_compositiorOutlinerView->Hide();
-	if (m_compositiorLayersView) m_compositiorLayersView->Hide();
+	if (m_compositiorScenesView) m_compositiorScenesView->Hide();
+	if (m_compositiorStagesView) m_compositiorStagesView->Hide();
 	if (m_compositiorSourcesView) m_compositiorSourcesView->Hide();
-	if (m_compositiorScriptingView) m_compositiorScriptingView->Hide();
+	// TODO: Tracking
+	// TODO: Markers
 	if (m_compositiorSettingsView) m_compositiorSettingsView->Hide();
-}
-
-// Scripting UI Events
-void AppStage_Compositor::onScriptFileChangeEvent(
-	const std::filesystem::path& filepath)
-{
-	if (m_scriptContext->loadScript(filepath))
-	{
-		m_project->compositorScriptFilePath = filepath;
-		m_project->save();
-
-		m_compositorScriptingModel->setCompositorScriptPath(filepath);
-	}
-}
-
-void AppStage_Compositor::onSelectCompositorScriptFileEvent()
-{
-	std::string defaultFileAndPath;
-	if (!m_project->compositorScriptFilePath.empty())
-	{
-		defaultFileAndPath= m_project->compositorScriptFilePath.string();
-	}
-	else
-	{
-		defaultFileAndPath= PathUtils::getHomeDirectory().string();
-	}
-
-	const char* filterItems[1] = {"*.lua"};
-	const char* filterDesc = "Scene Scripts (*.lua)";
-	char* path = 
-		tinyfd_openFileDialog(
-			"Select Scene Script", 
-			defaultFileAndPath.c_str(), 
-			1, filterItems, 
-			filterDesc, 
-			0); // Don't allow multiple selects
-	if (path)
-	{
-		onScriptFileChangeEvent(path);
-	}
-}
-
-void AppStage_Compositor::onReloadCompositorScriptFileEvent()
-{
-	if (m_scriptContext->hasScriptFilename())
-	{
-		if (m_scriptContext->reloadScript())
-		{
-			m_compositorScriptingModel->rebuildScriptTriggers();
-		}
-	}
-}
-
-void AppStage_Compositor::onInvokeScriptTriggerEvent(const std::string& triggerEvent)
-{
-	if (m_scriptContext->hasLoadedScript())
-	{
-		m_scriptContext->invokeScriptTrigger(triggerEvent);
-	}
 }
 
 void AppStage_Compositor::render(IMkViewportPtr targetViewport)

@@ -8,7 +8,7 @@
 class RmlModel_CompositorSources : public RmlModel
 {
 public:
-	bool init(Rml::Context* rmlContext, CompositorComponentPtr compositor);
+	bool init(Rml::Context* rmlContext);
 	virtual void dispose() override;
 
 	const Rml::String& getVideoSourceName() const;
