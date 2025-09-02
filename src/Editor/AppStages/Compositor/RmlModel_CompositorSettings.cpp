@@ -2,6 +2,7 @@
 #include "AnchorObjectSystem.h"
 #include "StencilObjectSystem.h"
 #include "CompositorScriptContext.h"
+#include "CompositorComponent.h"
 #include "ProjectConfig.h"
 #include "RmlUtility.h"
 
@@ -12,9 +13,11 @@
 bool RmlModel_CompositorSettings::init(
 	Rml::Context* rmlContext,
 	ProjectConfigPtr project,
+	StencilObjectSystemPtr stencilSystem,
 	CompositorDefinitionPtr compositorDefinition)
 {
 	m_project = project;
+	m_stencilSystem = stencilSystem;
 	m_compositorDefinition = compositorDefinition;
 
 	// Create Datamodel
@@ -61,7 +64,7 @@ bool RmlModel_CompositorSettings::init(
 		"update_render_stencils_flag",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
 			m_bRenderStencils = Rml::Utilities::GetBoolValueFromEvent(ev);
-			StencilObjectSystem::getSystem()->setRenderStencilsFlag(m_bRenderStencils);
+			m_stencilSystem.lock()->setRenderStencilsFlag(m_bRenderStencils);
 		});
 
 	m_bIsStreaming = m_compositorDefinition->getIsSpoutOutputStreaming();

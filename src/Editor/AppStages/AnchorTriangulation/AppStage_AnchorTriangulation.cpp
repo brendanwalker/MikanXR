@@ -369,14 +369,14 @@ void AppStage_AnchorTriangulation::onOkEvent()
 
 				if (m_targetAnchor.anchorId == INVALID_MIKAN_ID)
 				{
-					AnchorObjectSystem::getSystem()->addNewAnchor(
+					getSystemOfType<AnchorObjectSystem>()->addNewAnchor(
 						m_targetAnchor.anchorName, 
 						m_targetAnchor.worldTransform);
 				}
 				else
 				{
 					AnchorComponentPtr anchorComponent=
-						AnchorObjectSystem::getSystem()->getSpatialAnchorById(
+						getSystemOfType<AnchorObjectSystem>()->getSpatialAnchorById(
 							m_targetAnchor.anchorId);
 
 					anchorComponent->setWorldTransform(m_targetAnchor.worldTransform.getMat4());

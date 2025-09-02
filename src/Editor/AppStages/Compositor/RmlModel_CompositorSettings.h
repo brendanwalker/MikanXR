@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ComponentFwd.h"
+#include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "Shared/RmlModel.h"
 
@@ -9,6 +11,7 @@ public:
 	bool init(
 		Rml::Context* rmlContext,
 		ProjectConfigPtr profileConfig,
+		StencilObjectSystemPtr stencilSystem,
 		CompositorDefinitionPtr compositorDefinition);
 	virtual void dispose() override;
 
@@ -21,5 +24,6 @@ private:
 	bool m_bRenderStencils= false;
 
 	ProjectConfigPtr m_project;
+	StencilObjectSystemWeakPtr m_stencilSystem;
 	CompositorDefinitionPtr m_compositorDefinition;
 };

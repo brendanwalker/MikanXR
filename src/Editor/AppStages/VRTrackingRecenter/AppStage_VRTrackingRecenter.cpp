@@ -235,7 +235,7 @@ void AppStage_VRTrackingRecenter::update(float deltaSeconds)
 						glm::mat4 glmVRDevicePoseOffset= glm::inverse(glmXform);
 
 						// Publish the new VR device pose offset to the profile config
-						auto vrSystemConfig = VRObjectSystem::getSystem()->getVRSystemConfig();
+						auto vrSystemConfig = getSystemOfType<VRObjectSystem>()->getVRSystemConfig();
 						vrSystemConfig->setVRDevicePoseOffset(glm_mat4_to_MikanMatrix4f(glmVRDevicePoseOffset));
 
 						setMenuState(eVRTrackingRecenterMenuState::testCalibration);

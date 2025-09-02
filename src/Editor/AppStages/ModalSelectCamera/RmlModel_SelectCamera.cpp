@@ -5,7 +5,9 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
 
-bool RmlModel_SelectCamera::init(Rml::Context* rmlContext)
+bool RmlModel_SelectCamera::init(
+	Rml::Context* rmlContext,
+	CameraObjectSystemPtr cameraSystem)
 {
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "select_camera");
@@ -30,7 +32,7 @@ bool RmlModel_SelectCamera::init(Rml::Context* rmlContext)
 			if (OnCancel) OnCancel();
 		});
 
-	m_cameraIdList = CameraObjectSystem::getSystem()->getAllCameraIds();
+	m_cameraIdList = cameraSystem->getAllCameraIds();
 	m_modelHandle.DirtyVariable("camera_id_list");
 
 	return true;

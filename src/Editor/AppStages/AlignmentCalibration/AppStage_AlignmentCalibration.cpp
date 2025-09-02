@@ -648,8 +648,9 @@ VRDevicePoseViewPtr AppStage_AlignmentCalibration::makeMatPoseViewFromCamera(Cam
 				vrTrackingSystem->getTrackingMountDefinitionConst(matMountId);
 			if (matTrackingMount)
 			{
+				auto vrSystem = getSystemOfType<VRObjectSystem>();
 				VRDeviceComponentPtr matTrackingPuck =
-					VRObjectSystem::getSystem()->getVRDeviceByPath(matTrackingMount->getDevicePath());
+					vrSystem->getVRDeviceByPath(matTrackingMount->getDevicePath());
 
 				if (matTrackingPuck)
 				{

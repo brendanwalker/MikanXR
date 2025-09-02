@@ -131,7 +131,7 @@ void AppStage_Compositor::enter()
 
 	// Listen for changes to the current active scene
 	{
-		SceneObjectSystemPtr sceneSystem = SceneObjectSystem::getSystem();
+		SceneObjectSystemPtr sceneSystem = getSystemOfType<SceneObjectSystem>();
 
 		sceneSystem->OnSceneActivated +=
 			MakeDelegate(this, &AppStage_Compositor::onSceneActivated);
@@ -204,7 +204,11 @@ void AppStage_Compositor::enter()
 
 		// Init Settings UI
 		// TODO: Need to pass CompositorDefinition to settings model after refactoring
-		//m_compositorSettingsModel->init(context, m_project, compositorDefinition);
+		m_compositorSettingsModel->init(
+			context, 
+			m_project, 
+			getSystemOfType<StencilObjectSystem>(),
+			CompositorDefinitionPtr());
 		m_compositiorSettingsView = addRmlDocument("compositor_settings.rml");
 		m_compositiorSettingsView->Hide();
 	}
@@ -213,7 +217,7 @@ void AppStage_Compositor::enter()
 void AppStage_Compositor::exit()
 {
 	{
-		SceneObjectSystemPtr sceneSystem = SceneObjectSystem::getSystem();
+		SceneObjectSystemPtr sceneSystem = getSystemOfType<SceneObjectSystem>();
 
 		// Rebuild compositor viewports for the active scene
 		SceneComponentPtr activeScene = sceneSystem->getCurrentScene();
@@ -430,7 +434,7 @@ void AppStage_Compositor::hideAllSubWindows()
 
 void AppStage_Compositor::render(IMkViewportPtr targetViewport)
 {
-	SceneComponentConstPtr editorScene= EditorObjectSystem::getSystem()->getEditorScene();
+	SceneComponentConstPtr editorScene= getSystemOfType<EditorObjectSystem>()->getEditorScene();
 
 	MikanCameraPtr viewportCamera = m_viewport->getCurrentMikanCamera();
 	int viewportCameraIndex = m_viewport->getCurrentCameraIndex();

@@ -15,7 +15,10 @@ class RmlModel_CameraSettings : public RmlModel
 public:
 	RmlModel_CameraSettings();
 
-	bool init(Rml::Context* rmlContext, VideoSourceComponentPtr videoSourceComponent);
+	bool init(
+		Rml::Context* rmlContext, 
+		VideoSourceSystemPtr videoSourceSystem,
+		VideoSourceComponentPtr videoSourceComponent);
 	virtual void dispose() override;
 
 	inline RmlDataBinding_CameraBrightnessPtr getBrightnessDataBinding() const { return m_brightnessDataBinding; }
@@ -28,6 +31,7 @@ protected:
 
 private:
 	RmlDataBinding_CameraBrightnessPtr m_brightnessDataBinding;
+	VideoSourceSystemWeakPtr m_videoSourceSystem;
 	Rml::Vector<int> m_videoSourceIdList;
 	MikanVideoSourceID m_videoSourceId;
 };

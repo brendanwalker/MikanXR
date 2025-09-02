@@ -1,4 +1,5 @@
 //-- inludes -----
+#include "CameraObjectSystem.h"
 #include "MainWindow.h"
 #include "ModalDialog_SelectCamera.h"
 #include "RmlModel_SelectCamera.h"
@@ -51,8 +52,11 @@ bool ModalDialog_SelectCamera::init(
 	CancelCallback cancelCallback)
 {
 	// Finish model initialization
-	if (!m_selectCameraModel->init(getRmlContext()))
+	CameraObjectSystemPtr cameraSystem = m_ownerAppStage->getSystemOfType<CameraObjectSystem>();
+	if (!m_selectCameraModel->init(getRmlContext(), cameraSystem))
+	{
 		return false;
+	}
 
 	// Bind event delegates to model events
 	m_selectCameraModel->OnOk = MakeDelegate(this, &ModalDialog_SelectCamera::onSelectCamera);

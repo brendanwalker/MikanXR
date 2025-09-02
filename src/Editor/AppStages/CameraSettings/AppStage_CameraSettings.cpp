@@ -39,8 +39,6 @@ void AppStage_CameraSettings::enter()
 {
 	AppStage::enter();
 
-	ProjectConfigPtr profileConfig = App::getInstance()->getProfileConfig();
-
 	// Create app stage UI models and views
 	// (Auto cleaned up on app state exit)
 	{
@@ -48,7 +46,10 @@ void AppStage_CameraSettings::enter()
 		Rml::Context* context = getRmlContext();
 
 		// TODO: Point this as the video source being edited
-		m_cameraSettingsModel->init(context, VideoSourceComponentPtr());
+		m_cameraSettingsModel->init(
+			context, 
+			getSystemOfType<VideoSourceSystem>(),
+			VideoSourceComponentPtr());
 
 		// Init the camera settings view now that the model is ready
 		m_cameraSettingsView = addRmlDocument("camera_settings.rml");
