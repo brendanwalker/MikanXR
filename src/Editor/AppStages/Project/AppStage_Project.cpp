@@ -5,17 +5,14 @@
 #include "BoxStencilComponent.h"
 #include "CameraComponent.h"
 #include "ClientSourceManager.h"
-#include "Compositor/AppStage_Compositor.h"
-#include "Compositor/RmlModel_Compositor.h"
-
-#include "Compositor/RmlModel_CompositorScenes.h"
-#include "Compositor/RmlModel_CompositorStages.h"
-
-#include "Compositor/RmlModel_CompositorLayers.h"
-#include "Compositor/RmlModel_CompositorSources.h"
-#include "Compositor/RmlModel_CompositorScripting.h"
-#include "Compositor/RmlModel_CompositorSelection.h"
-#include "Compositor/RmlModel_CompositorSettings.h"
+#include "Project/AppStage_Project.h"
+#include "Project/RmlModel_Project.h"
+#include "Project/RmlModel_ProjectScenes.h"
+#include "Project/RmlModel_ProjectStages.h"
+#include "Project/RmlModel_CompositorComponent.h"
+#include "Project/RmlModel_ProjectSources.h"
+#include "Project/RmlModel_SceneSelection.h"
+#include "Project/RmlModel_ProjectSettings.h"
 #include "CompositorObjectSystem.h"
 #include "CompositorComponent.h"
 #include "EditorObjectSystem.h"
@@ -68,24 +65,24 @@
 #include "opencv2/opencv.hpp"
 
 //-- statics ----
-const char* AppStage_Compositor::APP_STAGE_NAME = "Compositor";
+const char* AppStage_Project::APP_STAGE_NAME = "Compositor";
 
 //-- public methods -----
-AppStage_Compositor::AppStage_Compositor(IEditorWindow* ownerWindow)
-	: AppStage(ownerWindow, AppStage_Compositor::APP_STAGE_NAME)
+AppStage_Project::AppStage_Project(IEditorWindow* ownerWindow)
+	: AppStage(ownerWindow, AppStage_Project::APP_STAGE_NAME)
 	, m_compositorModel(new RmlModel_Compositor)
-	, m_compositorScenesModel(new RmlModel_CompositorScenes)
-	, m_compositorStagesModel(new RmlModel_CompositorStages)
-	, m_compositorSourcesModel(new RmlModel_CompositorSources)
+	, m_compositorScenesModel(new RmlModel_ProjectScenes)
+	, m_compositorStagesModel(new RmlModel_ProjectStages)
+	, m_compositorSourcesModel(new RmlModel_ProjectSources)
 	// TODO: Tracking
 	// TODO: Markers
-	, m_compositorSelectionModel(new RmlModel_CompositorSelection)
-	, m_compositorSettingsModel(new RmlModel_CompositorSettings)
+	, m_compositorSelectionModel(new RmlModel_SceneSelection)
+	, m_compositorSettingsModel(new RmlModel_ProjectSettings)
 	, m_scriptContext(std::make_shared<CompositorScriptContext>())
 {
 }
 
-AppStage_Compositor::~AppStage_Compositor()
+AppStage_Project::~AppStage_Project()
 {
 	m_viewport = nullptr;
 	m_activeCompositors.clear();
@@ -101,7 +98,7 @@ AppStage_Compositor::~AppStage_Compositor()
 	m_scriptContext.reset();
 }
 
-void AppStage_Compositor::enter()
+void AppStage_Project::enter()
 {
 	AppStage::enter();
 
@@ -134,9 +131,9 @@ void AppStage_Compositor::enter()
 		SceneObjectSystemPtr sceneSystem = getSystemOfType<SceneObjectSystem>();
 
 		sceneSystem->OnSceneActivated +=
-			MakeDelegate(this, &AppStage_Compositor::onSceneActivated);
+			MakeDelegate(this, &AppStage_Project::onSceneActivated);
 		sceneSystem->OnSceneDeactivated +=
-			MakeDelegate(this, &AppStage_Compositor::onSceneDeactivated);
+			MakeDelegate(this, &AppStage_Project::onSceneDeactivated);
 		
 		// Rebuild compositor viewports for the active scene
 		SceneComponentPtr activeScene= sceneSystem->getCurrentScene();
@@ -152,9 +149,9 @@ void AppStage_Compositor::enter()
 
 		// Hotkeys for switching between viewport modes
 		inputManager->fetchOrAddKeyBindings(SDLK_COMMA)->OnKeyPressed +=
-			MakeDelegate(this, &AppStage_Compositor::cyclePreviousCompositorCamera);
+			MakeDelegate(this, &AppStage_Project::cyclePreviousCompositorCamera);
 		inputManager->fetchOrAddKeyBindings(SDLK_PERIOD)->OnKeyPressed +=
-			MakeDelegate(this, &AppStage_Compositor::cycleNextCompositorCamera);
+			MakeDelegate(this, &AppStage_Project::cycleNextCompositorCamera);
 	}
 
 	// Register the script context with the mikan server
@@ -177,13 +174,13 @@ void AppStage_Compositor::enter()
 
 		// Init main compositor UI
 		m_compositorModel->init(context);
-		m_compositorModel->OnReturnEvent = MakeDelegate(this, &AppStage_Compositor::onReturnEvent);
-		m_compositorModel->OnToggleOutlinerEvent = MakeDelegate(this, &AppStage_Compositor::onToggleScenesWindowEvent);
-		m_compositorModel->OnToggleCamerasEvent = MakeDelegate(this, &AppStage_Compositor::onToggleStagesWindowEvent);
-		m_compositorModel->OnToggleSourcesEvent = MakeDelegate(this, &AppStage_Compositor::onToggleSourcesEvent);
+		m_compositorModel->OnReturnEvent = MakeDelegate(this, &AppStage_Project::onReturnEvent);
+		m_compositorModel->OnToggleOutlinerEvent = MakeDelegate(this, &AppStage_Project::onToggleScenesWindowEvent);
+		m_compositorModel->OnToggleCamerasEvent = MakeDelegate(this, &AppStage_Project::onToggleStagesWindowEvent);
+		m_compositorModel->OnToggleSourcesEvent = MakeDelegate(this, &AppStage_Project::onToggleSourcesEvent);
 		// TODO: Tracking
 		// TODO: Markers
-		m_compositorModel->OnToggleSettingsEvent = MakeDelegate(this, &AppStage_Compositor::onToggleSettingsWindowEvent);
+		m_compositorModel->OnToggleSettingsEvent = MakeDelegate(this, &AppStage_Project::onToggleSettingsWindowEvent);
 		m_compositiorView = addRmlDocument("compositor.rml");
 
 		// Init Outliner UI
@@ -214,7 +211,7 @@ void AppStage_Compositor::enter()
 	}
 }
 
-void AppStage_Compositor::exit()
+void AppStage_Project::exit()
 {
 	{
 		SceneObjectSystemPtr sceneSystem = getSystemOfType<SceneObjectSystem>();
@@ -227,9 +224,9 @@ void AppStage_Compositor::exit()
 		}
 
 		sceneSystem->OnSceneActivated -=
-			MakeDelegate(this, &AppStage_Compositor::onSceneActivated);
+			MakeDelegate(this, &AppStage_Project::onSceneActivated);
 		sceneSystem->OnSceneDeactivated -=
-			MakeDelegate(this, &AppStage_Compositor::onSceneDeactivated);
+			MakeDelegate(this, &AppStage_Project::onSceneDeactivated);
 	}
 
 	// Unregister all viewports from the editor
@@ -258,12 +255,12 @@ void AppStage_Compositor::exit()
 	AppStage::exit();
 }
 
-void AppStage_Compositor::pause()
+void AppStage_Project::pause()
 {
 	AppStage::pause();
 }
 
-void AppStage_Compositor::resume()
+void AppStage_Project::resume()
 {
 	AppStage::resume();
 
@@ -271,7 +268,7 @@ void AppStage_Compositor::resume()
 	m_compositiorScenesView->Show();
 }
 
-void AppStage_Compositor::update(float deltaSeconds)
+void AppStage_Project::update(float deltaSeconds)
 {
 	AppStage::update(deltaSeconds);
 
@@ -283,17 +280,17 @@ void AppStage_Compositor::update(float deltaSeconds)
 }
 
 // Scene
-void AppStage_Compositor::onSceneDeactivated(SceneComponentPtr oldScene)
+void AppStage_Project::onSceneDeactivated(SceneComponentPtr oldScene)
 {
 	disposeCompositorViewportCameras();
 }
 
-void AppStage_Compositor::onSceneActivated(SceneComponentPtr newScene)
+void AppStage_Project::onSceneActivated(SceneComponentPtr newScene)
 {
 	createCompositorViewportCameras();
 }
 
-void AppStage_Compositor::createCompositorViewportCameras()
+void AppStage_Project::createCompositorViewportCameras()
 {
 	// Create a camera for each active compositor in the scene
 	for (const CompositorComponentWeakPtr compositorWeakPtr : m_activeCompositors)
@@ -321,7 +318,7 @@ void AppStage_Compositor::createCompositorViewportCameras()
 	updateCompositorCameras();
 }
 
-void AppStage_Compositor::disposeCompositorViewportCameras()
+void AppStage_Project::disposeCompositorViewportCameras()
 {
 	// Remove all but the first camera from the main viewport
 	while (m_viewport->getCameraCount() > 1)
@@ -330,7 +327,7 @@ void AppStage_Compositor::disposeCompositorViewportCameras()
 	}
 }
 
-void AppStage_Compositor::updateCompositorCameras()
+void AppStage_Project::updateCompositorCameras()
 {
 	for (size_t compositorIndex = 0; compositorIndex < m_activeCompositors.size(); compositorIndex++)
 	{
@@ -353,7 +350,7 @@ void AppStage_Compositor::updateCompositorCameras()
 	}
 }
 
-void AppStage_Compositor::cyclePreviousCompositorCamera()
+void AppStage_Project::cyclePreviousCompositorCamera()
 {
 	if (m_viewport->getIsMouseInViewport())
 	{
@@ -365,7 +362,7 @@ void AppStage_Compositor::cyclePreviousCompositorCamera()
 	}
 }
 
-void AppStage_Compositor::cycleNextCompositorCamera()
+void AppStage_Project::cycleNextCompositorCamera()
 {
 	if (m_viewport->getIsMouseInViewport())
 	{
@@ -378,36 +375,36 @@ void AppStage_Compositor::cycleNextCompositorCamera()
 }
 
 // Compositor Model UI Events
-void AppStage_Compositor::onReturnEvent()
+void AppStage_Project::onReturnEvent()
 {
 	m_ownerWindow->popAppState();
 }
 
-void AppStage_Compositor::onToggleScenesWindowEvent()
+void AppStage_Project::onToggleScenesWindowEvent()
 {
 	hideAllSubWindows();
 	if (m_compositiorScenesView) m_compositiorScenesView->Show();
 }
 
-void AppStage_Compositor::onToggleStagesWindowEvent()
+void AppStage_Project::onToggleStagesWindowEvent()
 {
 	hideAllSubWindows();
 	if (m_compositiorSourcesView) m_compositiorStagesView->Show();
 }
 
-void AppStage_Compositor::onToggleSourcesEvent()
+void AppStage_Project::onToggleSourcesEvent()
 {
 	hideAllSubWindows();
 	if (m_compositiorSourcesView) m_compositiorSourcesView->Show();
 }
 
-void AppStage_Compositor::onToggleSettingsWindowEvent()
+void AppStage_Project::onToggleSettingsWindowEvent()
 {
 	hideAllSubWindows();
 	if (m_compositiorSettingsView) m_compositiorSettingsView->Show();
 }
 
-void AppStage_Compositor::onScreenshotClientSourceEvent(const std::string& clientSourceName)
+void AppStage_Project::onScreenshotClientSourceEvent(const std::string& clientSourceName)
 {
 	auto* clientSourceManager = ClientSourceManager::getInstance();
 
@@ -422,7 +419,7 @@ void AppStage_Compositor::onScreenshotClientSourceEvent(const std::string& clien
 	}
 }
 
-void AppStage_Compositor::hideAllSubWindows()
+void AppStage_Project::hideAllSubWindows()
 {
 	if (m_compositiorScenesView) m_compositiorScenesView->Hide();
 	if (m_compositiorStagesView) m_compositiorStagesView->Hide();
@@ -432,7 +429,7 @@ void AppStage_Compositor::hideAllSubWindows()
 	if (m_compositiorSettingsView) m_compositiorSettingsView->Hide();
 }
 
-void AppStage_Compositor::render(IMkViewportPtr targetViewport)
+void AppStage_Project::render(IMkViewportPtr targetViewport)
 {
 	SceneComponentConstPtr editorScene= getSystemOfType<EditorObjectSystem>()->getEditorScene();
 
@@ -485,7 +482,7 @@ void AppStage_Compositor::render(IMkViewportPtr targetViewport)
 	}
 }
 
-void AppStage_Compositor::debugRenderOrigin() const
+void AppStage_Project::debugRenderOrigin() const
 {
 	TextStyle style = getDefaultTextStyle();
 

@@ -10,7 +10,7 @@
 #include "StencilComponent.h"
 #include "TransformComponent.h"
 #include "StencilObjectSystemConfig.h"
-#include "RmlModel_CompositorScenes.h"
+#include "RmlModel_ProjectScenes.h"
 #include "ProjectConfig.h"
 #include "StringUtils.h"
 
@@ -18,9 +18,9 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
 
-bool RmlModel_CompositorScenes::s_bHasRegisteredTypes = false;
+bool RmlModel_ProjectScenes::s_bHasRegisteredTypes = false;
 
-bool RmlModel_CompositorScenes::init(
+bool RmlModel_ProjectScenes::init(
 	Rml::Context* rmlContext,
 	AnchorObjectSystemPtr anchorSystemPtr,
 	EditorObjectSystemPtr editorSystemPtr,
@@ -56,31 +56,31 @@ bool RmlModel_CompositorScenes::init(
 	constructor.Bind("selection_index", &m_selectionIndex);	
 
 	// Bind data model callbacks
-	constructor.BindEventCallback("add_new_anchor",&RmlModel_CompositorScenes::addNewAnchor, this);
-	constructor.BindEventCallback("add_new_quad",&RmlModel_CompositorScenes::addNewQuad, this);
-	constructor.BindEventCallback("add_new_box",&RmlModel_CompositorScenes::addNewBox, this);
-	constructor.BindEventCallback("add_new_model",&RmlModel_CompositorScenes::addNewModel, this);
-	constructor.BindEventCallback("select_object_entry", &RmlModel_CompositorScenes::selectObjectEntry, this);
+	constructor.BindEventCallback("add_new_anchor",&RmlModel_ProjectScenes::addNewAnchor, this);
+	constructor.BindEventCallback("add_new_quad",&RmlModel_ProjectScenes::addNewQuad, this);
+	constructor.BindEventCallback("add_new_box",&RmlModel_ProjectScenes::addNewBox, this);
+	constructor.BindEventCallback("add_new_model",&RmlModel_ProjectScenes::addNewModel, this);
+	constructor.BindEventCallback("select_object_entry", &RmlModel_ProjectScenes::selectObjectEntry, this);
 
 	// Listen for anchor changes
 	m_anchorSystemPtr->getAnchorSystemConfig()->OnMarkedDirty +=
-		MakeDelegate(this, &RmlModel_CompositorScenes::anchorSystemConfigMarkedDirty);
+		MakeDelegate(this, &RmlModel_ProjectScenes::anchorSystemConfigMarkedDirty);
 	m_anchorSystemPtr->OnObjectInitialized +=
-		MakeDelegate(this, &RmlModel_CompositorScenes::onObjectInitialized);
+		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
 	m_anchorSystemPtr->OnObjectDisposed +=
-		MakeDelegate(this, &RmlModel_CompositorScenes::onObjectDisposed);
+		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectDisposed);
 
 	// Listen for selection changes
 	m_editorSystemPtr->OnSelectionChanged += 
-		MakeDelegate(this, &RmlModel_CompositorScenes::updateSelection);
+		MakeDelegate(this, &RmlModel_ProjectScenes::updateSelection);
 
 	// Listen for stencil changes
 	m_stencilSystemPtr->getStencilSystemConfig()->OnMarkedDirty +=
-		MakeDelegate(this, &RmlModel_CompositorScenes::stencilSystemConfigMarkedDirty);
+		MakeDelegate(this, &RmlModel_ProjectScenes::stencilSystemConfigMarkedDirty);
 	m_stencilSystemPtr->OnObjectInitialized +=
-		MakeDelegate(this, &RmlModel_CompositorScenes::onObjectInitialized);
+		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
 	m_stencilSystemPtr->OnObjectDisposed +=
-		MakeDelegate(this, &RmlModel_CompositorScenes::onObjectDisposed);
+		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectDisposed);
 
 	// Fill in the data model
 	rebuildComponentList();
@@ -88,29 +88,29 @@ bool RmlModel_CompositorScenes::init(
 	return true;
 }
 
-void RmlModel_CompositorScenes::dispose()
+void RmlModel_ProjectScenes::dispose()
 {
 	m_stencilSystemPtr->getStencilSystemConfig()->OnMarkedDirty -=
-		MakeDelegate(this, &RmlModel_CompositorScenes::stencilSystemConfigMarkedDirty);
+		MakeDelegate(this, &RmlModel_ProjectScenes::stencilSystemConfigMarkedDirty);
 	m_stencilSystemPtr->OnObjectInitialized -=
-		MakeDelegate(this, &RmlModel_CompositorScenes::onObjectInitialized);
+		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
 	m_stencilSystemPtr->OnObjectDisposed -=
-		MakeDelegate(this, &RmlModel_CompositorScenes::onObjectDisposed);
+		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectDisposed);
 
 	m_editorSystemPtr->OnSelectionChanged -=
-		MakeDelegate(this, &RmlModel_CompositorScenes::updateSelection);
+		MakeDelegate(this, &RmlModel_ProjectScenes::updateSelection);
 
 	m_anchorSystemPtr->getAnchorSystemConfig()->OnMarkedDirty -=
-		MakeDelegate(this, &RmlModel_CompositorScenes::anchorSystemConfigMarkedDirty);
+		MakeDelegate(this, &RmlModel_ProjectScenes::anchorSystemConfigMarkedDirty);
 	m_anchorSystemPtr->OnObjectInitialized -=
-		MakeDelegate(this, &RmlModel_CompositorScenes::onObjectInitialized);
+		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
 	m_anchorSystemPtr->OnObjectDisposed -=
-		MakeDelegate(this, &RmlModel_CompositorScenes::onObjectDisposed);
+		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectDisposed);
 
 	RmlModel::dispose();
 }
 
-void RmlModel_CompositorScenes::anchorSystemConfigMarkedDirty(
+void RmlModel_ProjectScenes::anchorSystemConfigMarkedDirty(
 	CommonConfigPtr configPtr,
 	const ConfigPropertyChangeSet& changedPropertySet)
 {
@@ -120,7 +120,7 @@ void RmlModel_CompositorScenes::anchorSystemConfigMarkedDirty(
 	}
 }
 
-void RmlModel_CompositorScenes::stencilSystemConfigMarkedDirty(
+void RmlModel_ProjectScenes::stencilSystemConfigMarkedDirty(
 	CommonConfigPtr configPtr,
 	const ConfigPropertyChangeSet& changedPropertySet)
 {
@@ -131,21 +131,21 @@ void RmlModel_CompositorScenes::stencilSystemConfigMarkedDirty(
 	}
 }
 
-void RmlModel_CompositorScenes::onObjectInitialized(
+void RmlModel_ProjectScenes::onObjectInitialized(
 	MikanObjectSystemPtr objectSystemPtr, 
 	MikanObjectPtr objectPtr)
 {
 	rebuildComponentList();
 }
 
-void RmlModel_CompositorScenes::onObjectDisposed(
+void RmlModel_ProjectScenes::onObjectDisposed(
 	MikanObjectSystemPtr objectSystemPtr, 
 	MikanObjectConstPtr objectPtr)
 {
 	rebuildComponentList();
 }
 
-void RmlModel_CompositorScenes::rebuildComponentList()
+void RmlModel_ProjectScenes::rebuildComponentList()
 {
 	m_componentOutliner.clear();
 
@@ -210,7 +210,7 @@ void RmlModel_CompositorScenes::rebuildComponentList()
 	updateSelection();
 }
 
-void RmlModel_CompositorScenes::updateSelection()
+void RmlModel_ProjectScenes::updateSelection()
 {
 	// Find the index of the currently selected component (if any)
 	m_selectionIndex = -1;
@@ -227,7 +227,7 @@ void RmlModel_CompositorScenes::updateSelection()
 	m_modelHandle.DirtyVariable("selection_index");
 }
 
-void RmlModel_CompositorScenes::addTransformComponent(TransformComponentPtr transformComponentPtr, int depth)
+void RmlModel_ProjectScenes::addTransformComponent(TransformComponentPtr transformComponentPtr, int depth)
 {
 	if (!transformComponentPtr || transformComponentPtr->getWasDisposed())
 		return;
@@ -260,7 +260,7 @@ void RmlModel_CompositorScenes::addTransformComponent(TransformComponentPtr tran
 	}
 }
 
-void RmlModel_CompositorScenes::addNewAnchor(
+void RmlModel_ProjectScenes::addNewAnchor(
 	Rml::DataModelHandle handle,
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
@@ -273,7 +273,7 @@ void RmlModel_CompositorScenes::addNewAnchor(
 	m_anchorSystemPtr->addNewAnchor(newAnchorName, anchorXform);
 }
 
-void RmlModel_CompositorScenes::addNewQuad(
+void RmlModel_ProjectScenes::addNewQuad(
 	Rml::DataModelHandle handle, 
 	Rml::Event& /*ev*/, 
 	const Rml::VariantList& parameters)
@@ -294,7 +294,7 @@ void RmlModel_CompositorScenes::addNewQuad(
 	m_stencilSystemPtr->addNewQuadStencil(quad);
 }
 
-void RmlModel_CompositorScenes::addNewBox(
+void RmlModel_ProjectScenes::addNewBox(
 	Rml::DataModelHandle handle, 
 	Rml::Event& /*ev*/, 
 	const Rml::VariantList& parameters)
@@ -315,7 +315,7 @@ void RmlModel_CompositorScenes::addNewBox(
 	m_stencilSystemPtr->addNewBoxStencil(box);
 }
 
-void RmlModel_CompositorScenes::addNewModel(
+void RmlModel_ProjectScenes::addNewModel(
 	Rml::DataModelHandle handle, 
 	Rml::Event& /*ev*/, 
 	const Rml::VariantList& parameters)
@@ -334,7 +334,7 @@ void RmlModel_CompositorScenes::addNewModel(
 	m_stencilSystemPtr->addNewModelStencil(model);
 }
 
-void RmlModel_CompositorScenes::selectObjectEntry(
+void RmlModel_ProjectScenes::selectObjectEntry(
 	Rml::DataModelHandle handle,
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)

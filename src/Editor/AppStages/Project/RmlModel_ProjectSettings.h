@@ -5,7 +5,7 @@
 #include "ObjectSystemConfigFwd.h"
 #include "Shared/RmlModel.h"
 
-class RmlModel_CompositorSettings : public RmlModel
+class RmlModel_ProjectSettings : public RmlModel
 {
 public:
 	bool init(

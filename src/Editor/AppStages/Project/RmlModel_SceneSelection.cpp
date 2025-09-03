@@ -7,7 +7,7 @@
 #include "StencilObjectSystem.h"
 #include "TransformComponent.h"
 #include "StencilComponent.h"
-#include "RmlModel_CompositorSelection.h"
+#include "RmlModel_SceneSelection.h"
 #include "PathUtils.h"
 #include "ProjectConfig.h"
 #include "StringUtils.h"
@@ -18,7 +18,7 @@
 
 #include "tinyfiledialogs.h"
 
-bool RmlModel_CompositorSelection::s_bHasRegisteredTypes = false;
+bool RmlModel_SceneSelection::s_bHasRegisteredTypes = false;
 
 // -- RmlModel_ComponentField -----
 bool RmlModel_ComponentField::getBoolean() 
@@ -181,8 +181,8 @@ void RmlModel_ComponentField::setVector4W(float value)
 	}
 }
 
-// -- RmlModel_CompositorSelection ------
-bool RmlModel_CompositorSelection::init(
+// -- RmlModel_SceneSelection ------
+bool RmlModel_SceneSelection::init(
 	Rml::Context* rmlContext,
 	AnchorObjectSystemPtr anchorSystemPtr,
 	EditorObjectSystemPtr editorSystemPtr,
@@ -402,15 +402,15 @@ bool RmlModel_CompositorSelection::init(
 
 	// Listen for anchor config changes
 	m_anchorSystemPtr->getAnchorSystemConfig()->OnMarkedDirty +=
-		MakeDelegate(this, &RmlModel_CompositorSelection::anchorSystemConfigMarkedDirty);
+		MakeDelegate(this, &RmlModel_SceneSelection::anchorSystemConfigMarkedDirty);
 
 	// Listen for selection changes
 	m_editorSystemPtr->OnSelectionChanged +=
-		MakeDelegate(this, &RmlModel_CompositorSelection::updateSelection);
+		MakeDelegate(this, &RmlModel_SceneSelection::updateSelection);
 
 	// Listen for stencil config changes
 	m_stencilSystemPtr->getStencilSystemConfig()->OnMarkedDirty +=
-		MakeDelegate(this, &RmlModel_CompositorSelection::stencilSystemConfigMarkedDirty);
+		MakeDelegate(this, &RmlModel_SceneSelection::stencilSystemConfigMarkedDirty);
 
 	// Rebuild the list of anchors
 	rebuildAnchorList();
@@ -421,21 +421,21 @@ bool RmlModel_CompositorSelection::init(
 	return true;
 }
 
-void RmlModel_CompositorSelection::dispose()
+void RmlModel_SceneSelection::dispose()
 {
 	m_stencilSystemPtr->getStencilSystemConfig()->OnMarkedDirty -=
-		MakeDelegate(this, &RmlModel_CompositorSelection::stencilSystemConfigMarkedDirty);
+		MakeDelegate(this, &RmlModel_SceneSelection::stencilSystemConfigMarkedDirty);
 
 	m_editorSystemPtr->OnSelectionChanged -=
-		MakeDelegate(this, &RmlModel_CompositorSelection::updateSelection);
+		MakeDelegate(this, &RmlModel_SceneSelection::updateSelection);
 
 	m_anchorSystemPtr->getAnchorSystemConfig()->OnMarkedDirty -=
-		MakeDelegate(this, &RmlModel_CompositorSelection::anchorSystemConfigMarkedDirty);
+		MakeDelegate(this, &RmlModel_SceneSelection::anchorSystemConfigMarkedDirty);
 
 	RmlModel::dispose();
 }
 
-void RmlModel_CompositorSelection::anchorSystemConfigMarkedDirty(
+void RmlModel_SceneSelection::anchorSystemConfigMarkedDirty(
 	CommonConfigPtr configPtr,
 	const ConfigPropertyChangeSet& changedPropertySet)
 {
@@ -447,14 +447,14 @@ void RmlModel_CompositorSelection::anchorSystemConfigMarkedDirty(
 	applyConfigChangesToSelection(configPtr, changedPropertySet);
 }
 
-void RmlModel_CompositorSelection::stencilSystemConfigMarkedDirty(
+void RmlModel_SceneSelection::stencilSystemConfigMarkedDirty(
 	CommonConfigPtr configPtr,
 	const ConfigPropertyChangeSet& changedPropertySet)
 {
 	applyConfigChangesToSelection(configPtr, changedPropertySet);
 }
 
-void RmlModel_CompositorSelection::applyConfigChangesToSelection(
+void RmlModel_SceneSelection::applyConfigChangesToSelection(
 	CommonConfigPtr configPtr,
 	const ConfigPropertyChangeSet& changedPropertySet)
 {
@@ -516,7 +516,7 @@ void RmlModel_CompositorSelection::applyConfigChangesToSelection(
 	}
 }
 
-RmlModel_ComponentField* RmlModel_CompositorSelection::getFieldByPropertyName(const std::string& propertyName)
+RmlModel_ComponentField* RmlModel_SceneSelection::getFieldByPropertyName(const std::string& propertyName)
 {
 	auto it= m_fieldNameToFieldMap.find(propertyName);
 	if (it != m_fieldNameToFieldMap.end())
@@ -527,7 +527,7 @@ RmlModel_ComponentField* RmlModel_CompositorSelection::getFieldByPropertyName(co
 	return nullptr;
 }
 
-void RmlModel_CompositorSelection::updateSelection()
+void RmlModel_SceneSelection::updateSelection()
 {
 	TransformComponentPtr oldSelection = m_selectedComponentWeakPtr.lock();
 	TransformComponentPtr newSelection= oldSelection;
@@ -555,7 +555,7 @@ void RmlModel_CompositorSelection::updateSelection()
 	}
 }
 
-void RmlModel_CompositorSelection::rebuildFieldList()
+void RmlModel_SceneSelection::rebuildFieldList()
 {
 	m_componentNameFieldModels.clear();
 	m_componentAnchorIdFieldModels.clear();
@@ -677,7 +677,7 @@ void RmlModel_CompositorSelection::rebuildFieldList()
 	}
 }
 
-void RmlModel_CompositorSelection::appendFieldListToFieldMap(
+void RmlModel_SceneSelection::appendFieldListToFieldMap(
 	Rml::Vector<RmlModel_ComponentField>& fieldList)
 {
 	for (RmlModel_ComponentField& field : fieldList)
@@ -687,7 +687,7 @@ void RmlModel_CompositorSelection::appendFieldListToFieldMap(
 	}
 }
 
-void RmlModel_CompositorSelection::rebuildFunctionList()
+void RmlModel_SceneSelection::rebuildFunctionList()
 {
 	m_componentFunctionModels.clear();
 
@@ -716,7 +716,7 @@ void RmlModel_CompositorSelection::rebuildFunctionList()
 	m_modelHandle.DirtyVariable("component_functions");
 }
 
-void RmlModel_CompositorSelection::rebuildAnchorList()
+void RmlModel_SceneSelection::rebuildAnchorList()
 {
 	m_spatialAnchorIds.clear();
 	auto anchorList = m_anchorSystemPtr->getAnchorSystemConfig()->spatialAnchorList;

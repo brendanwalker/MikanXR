@@ -5,7 +5,7 @@
 #include "SinglecastDelegate.h"
 #include "CompositorConstants.h"
 
-class RmlModel_CompositorSources : public RmlModel
+class RmlModel_ProjectSources : public RmlModel
 {
 public:
 	bool init(Rml::Context* rmlContext);

@@ -1,4 +1,4 @@
-#include "RmlModel_CompositorSources.h"
+#include "RmlModel_ProjectSources.h"
 #include "CompositorComponent.h"
 #include "StringUtils.h"
 #include "VideoSourceComponent.h"
@@ -7,7 +7,7 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
 
-bool RmlModel_CompositorSources::init(
+bool RmlModel_ProjectSources::init(
 	Rml::Context* rmlContext)
 {
 	// Create Datamodel
@@ -28,7 +28,7 @@ bool RmlModel_CompositorSources::init(
 	{
 		m_videoSourceName = m_videoSource->getName();
 		m_videoSource->OnFrameSizeChanged += 
-			MakeDelegate(this, &RmlModel_CompositorSources::onVideoFrameSizeChanged);
+			MakeDelegate(this, &RmlModel_ProjectSources::onVideoFrameSizeChanged);
 		onVideoFrameSizeChanged(m_videoSource);
 
 		m_bHasValidVideoSource= true;
@@ -43,18 +43,18 @@ bool RmlModel_CompositorSources::init(
 	return true;
 }
 
-void RmlModel_CompositorSources::dispose()
+void RmlModel_ProjectSources::dispose()
 {
 	if (m_videoSource)
 	{
 		m_videoSource->OnFrameSizeChanged -= 
-			MakeDelegate(this, &RmlModel_CompositorSources::onVideoFrameSizeChanged);
+			MakeDelegate(this, &RmlModel_ProjectSources::onVideoFrameSizeChanged);
 	}
 
 	RmlModel::dispose();
 }
 
-void RmlModel_CompositorSources::onVideoFrameSizeChanged(VideoSourceComponentPtr videoSourceComponent)
+void RmlModel_ProjectSources::onVideoFrameSizeChanged(VideoSourceComponentPtr videoSourceComponent)
 {
 	if (!videoSourceComponent->getVideoModeName(m_videoModeName))
 	{
@@ -63,12 +63,12 @@ void RmlModel_CompositorSources::onVideoFrameSizeChanged(VideoSourceComponentPtr
 	m_modelHandle.DirtyVariable("video_mode_name");
 }
 
-const Rml::String& RmlModel_CompositorSources::getVideoSourceName() const
+const Rml::String& RmlModel_ProjectSources::getVideoSourceName() const
 {
 	return m_videoSourceName;
 }
 
-void RmlModel_CompositorSources::setVideoSourceName(const Rml::String& newName)
+void RmlModel_ProjectSources::setVideoSourceName(const Rml::String& newName)
 {
 	if (newName != m_videoSourceName)
 	{
@@ -84,12 +84,12 @@ void RmlModel_CompositorSources::setVideoSourceName(const Rml::String& newName)
 	}
 }
 
-const Rml::String& RmlModel_CompositorSources::getVideoModeName() const
+const Rml::String& RmlModel_ProjectSources::getVideoModeName() const
 {
 	return m_videoModeName;
 }
 
-void RmlModel_CompositorSources::setVideoModeName(const Rml::String& newName)
+void RmlModel_ProjectSources::setVideoModeName(const Rml::String& newName)
 {
 	if (newName != m_videoModeName)
 	{

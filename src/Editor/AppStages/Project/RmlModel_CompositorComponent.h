@@ -5,7 +5,7 @@
 #include "SinglecastDelegate.h"
 #include "CompositorConstants.h"
 
-class RmlModel_CompositorLayers : public RmlModel
+class RmlModel_CompositorComponent : public RmlModel
 {
 public:
 	bool init(

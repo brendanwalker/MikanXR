@@ -1,6 +1,6 @@
 #include "AnchorObjectSystem.h"
 #include "App.h"
-#include "Compositor/AppStage_Compositor.h"
+#include "Project/AppStage_Project.h"
 #include "BoxColliderComponent.h"
 #include "DiskColliderComponent.h"
 #include "EditorObjectSystem.h"
@@ -277,7 +277,7 @@ void EditorObjectSystem::clearViewports()
 // App Events
 void EditorObjectSystem::onAppStageEntered(class AppStage* oldAppStage, class AppStage* newAppStage)
 {
-	if (newAppStage->getAppStageName() == AppStage_Compositor::APP_STAGE_NAME)
+	if (newAppStage->getAppStageName() == AppStage_Project::APP_STAGE_NAME)
 	{
 		m_gizmoComponentWeakPtr.lock()->bindInput();
 

@@ -1,4 +1,4 @@
-#include "RmlModel_CompositorScripting.h"
+#include "RmlModel_ComponentScripting.h"
 #include "CompositorScriptContext.h"
 #include "ProjectConfig.h"
 
@@ -7,7 +7,7 @@
 #include <RmlUi/Core/Context.h>
 
 
-bool RmlModel_CompositorScripting::init(
+bool RmlModel_ComponentScripting::init(
 	Rml::Context* rmlContext,
 	ProjectConfigPtr profile,
 	CompositorScriptContextPtr scriptContext)
@@ -65,7 +65,7 @@ bool RmlModel_CompositorScripting::init(
 	return true;
 }
 
-void RmlModel_CompositorScripting::dispose()
+void RmlModel_ComponentScripting::dispose()
 {
 	m_profile.reset();
 	m_scriptContext.reset();
@@ -75,12 +75,12 @@ void RmlModel_CompositorScripting::dispose()
 	RmlModel::dispose();
 }
 
-const std::filesystem::path RmlModel_CompositorScripting::getCompositorScriptPath() const
+const std::filesystem::path RmlModel_ComponentScripting::getCompositorScriptPath() const
 {
 	return m_compositorScriptPath;
 }
 
-void RmlModel_CompositorScripting::setCompositorScriptPath(
+void RmlModel_ComponentScripting::setCompositorScriptPath(
 	const std::filesystem::path& newScriptPath)
 {
 	const std::string newScriptPathString = newScriptPath.string();
@@ -99,7 +99,7 @@ void RmlModel_CompositorScripting::setCompositorScriptPath(
 	}
 }
 
-void RmlModel_CompositorScripting::rebuildScriptTriggers()
+void RmlModel_ComponentScripting::rebuildScriptTriggers()
 {
 	const std::vector<std::string>& sourceTriggers= m_scriptContext->getScriptTriggers();
 	m_scriptTriggers.clear();

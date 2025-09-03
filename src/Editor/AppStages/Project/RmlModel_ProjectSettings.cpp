@@ -1,4 +1,4 @@
-#include "RmlModel_CompositorSettings.h"
+#include "RmlModel_ProjectSettings.h"
 #include "AnchorObjectSystem.h"
 #include "StencilObjectSystem.h"
 #include "CompositorScriptContext.h"
@@ -10,7 +10,7 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
 
-bool RmlModel_CompositorSettings::init(
+bool RmlModel_ProjectSettings::init(
 	Rml::Context* rmlContext,
 	ProjectConfigPtr project,
 	StencilObjectSystemPtr stencilSystem,
@@ -77,7 +77,7 @@ bool RmlModel_CompositorSettings::init(
 	return true;
 }
 
-void RmlModel_CompositorSettings::dispose()
+void RmlModel_ProjectSettings::dispose()
 {
 	m_project.reset();
 	m_compositorDefinition.reset();

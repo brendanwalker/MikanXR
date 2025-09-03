@@ -16,13 +16,13 @@
 #include "CompositorConstants.h"
 
 //-- definitions -----
-class AppStage_Compositor : public AppStage
+class AppStage_Project : public AppStage
 {
 public:
 	static const char* APP_STAGE_NAME;
 
-	AppStage_Compositor(class IEditorWindow* ownerWindow);
-	virtual ~AppStage_Compositor();
+	AppStage_Project(class IEditorWindow* ownerWindow);
+	virtual ~AppStage_Project();
 
 	inline CompositorScriptContextPtr getCompositorScriptContext() { return m_scriptContext; }
 
@@ -72,20 +72,20 @@ protected:
 	class RmlModel_Compositor* m_compositorModel = nullptr;
 	Rml::ElementDocument* m_compositiorView = nullptr;
 
-	class RmlModel_CompositorScenes* m_compositorScenesModel = nullptr;
-	class RmlModel_CompositorSelection* m_compositorSelectionModel = nullptr;
+	class RmlModel_ProjectScenes* m_compositorScenesModel = nullptr;
+	class RmlModel_SceneSelection* m_compositorSelectionModel = nullptr;
 	Rml::ElementDocument* m_compositiorScenesView = nullptr;
 
-	class RmlModel_CompositorStages* m_compositorStagesModel = nullptr;
+	class RmlModel_ProjectStages* m_compositorStagesModel = nullptr;
 	Rml::ElementDocument* m_compositiorStagesView = nullptr;
 
-	class RmlModel_CompositorSources* m_compositorSourcesModel = nullptr;
+	class RmlModel_ProjectSources* m_compositorSourcesModel = nullptr;
 	Rml::ElementDocument* m_compositiorSourcesView = nullptr;
 
 	// TODO: Tracking
 	// TODO: Markers
 
-	class RmlModel_CompositorSettings* m_compositorSettingsModel = nullptr;
+	class RmlModel_ProjectSettings* m_compositorSettingsModel = nullptr;
 	Rml::ElementDocument* m_compositiorSettingsView = nullptr;
 
 	CompositorScriptContextPtr m_scriptContext;

@@ -8,7 +8,7 @@
 #include <filesystem>
 #include <string>
 
-class RmlModel_CompositorScripting : public RmlModel
+class RmlModel_ComponentScripting : public RmlModel
 {
 public:
 	bool init(

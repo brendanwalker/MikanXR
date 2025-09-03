@@ -11,7 +11,7 @@
 
 struct RmlModel_ComponentField
 {
-	class RmlModel_CompositorSelection* parent_model;
+	class RmlModel_SceneSelection* parent_model;
 	int field_index;
 	ePropertyDataType field_type;
 	ePropertySemantic semantic_type;
@@ -60,7 +60,7 @@ struct RmlModel_ComponentFunction
 	Rml::String display_name;
 };
 
-class RmlModel_CompositorSelection : public RmlModel
+class RmlModel_SceneSelection : public RmlModel
 {
 public:
 	bool init(

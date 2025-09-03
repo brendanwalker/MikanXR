@@ -1,5 +1,5 @@
 #include "AssetReference.h"
-#include "RmlModel_CompositorLayers.h"
+#include "RmlModel_CompositorComponent.h"
 #include "CompositorComponent.h"
 #include "StringUtils.h"
 
@@ -10,7 +10,7 @@
 
 #include <vector>
 
-bool RmlModel_CompositorLayers::init(
+bool RmlModel_CompositorComponent::init(
 	Rml::Context* rmlContext,
 	CompositorComponentPtr compositor)
 {
@@ -38,14 +38,14 @@ bool RmlModel_CompositorLayers::init(
 		});
 
 	// Listen for profile config changes
-	m_compositorDefinition->OnMarkedDirty += MakeDelegate(this, &RmlModel_CompositorLayers::onCompositorConfigMarkedDirty);
+	m_compositorDefinition->OnMarkedDirty += MakeDelegate(this, &RmlModel_CompositorComponent::onCompositorConfigMarkedDirty);
 
 	return true;
 }
 
-void RmlModel_CompositorLayers::dispose()
+void RmlModel_CompositorComponent::dispose()
 {
-	m_compositorDefinition->OnMarkedDirty -= MakeDelegate(this, &RmlModel_CompositorLayers::onCompositorConfigMarkedDirty);
+	m_compositorDefinition->OnMarkedDirty -= MakeDelegate(this, &RmlModel_CompositorComponent::onCompositorConfigMarkedDirty);
 	m_compositorDefinition = nullptr;
 
 	m_compositor = nullptr;
@@ -55,18 +55,18 @@ void RmlModel_CompositorLayers::dispose()
 	RmlModel::dispose();
 }
 
-const std::filesystem::path RmlModel_CompositorLayers::getCompositorGraphPath() const
+const std::filesystem::path RmlModel_CompositorComponent::getCompositorGraphPath() const
 {
 	return m_compositorGraphPath;
 }
 
-void RmlModel_CompositorLayers::setCompositorGraphPath(const std::filesystem::path& path)
+void RmlModel_CompositorComponent::setCompositorGraphPath(const std::filesystem::path& path)
 {
 	m_compositorGraphPath= path.string();
 	m_modelHandle.DirtyVariable("compositor_graph_path");
 }
 
-void RmlModel_CompositorLayers::onCompositorConfigMarkedDirty(
+void RmlModel_CompositorComponent::onCompositorConfigMarkedDirty(
 	CommonConfigPtr configPtr, 
 	const ConfigPropertyChangeSet& changedPropertySet)
 {

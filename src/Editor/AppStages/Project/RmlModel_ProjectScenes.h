@@ -12,7 +12,7 @@ struct RmlModel_CompositorObject
 	SelectionComponentWeakPtr selectionComponent;
 };
 
-class RmlModel_CompositorScenes : public RmlModel
+class RmlModel_ProjectScenes : public RmlModel
 {
 public:
 	bool init(
