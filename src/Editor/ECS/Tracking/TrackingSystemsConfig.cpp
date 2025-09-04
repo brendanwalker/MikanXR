@@ -165,14 +165,15 @@ MarkerTrackingSystemDefinitionPtr TrackingSystemsConfig::getMarkerTrackingSystem
 	return std::const_pointer_cast<MarkerTrackingSystemDefinition>(getMarkerTrackingSystemConfigConst(systemId));
 }
 
-MikanTrackingSystemID TrackingSystemsConfig::addMarkerTrakingSystem(const std::string& trackingSystemName)
+MikanTrackingSystemID TrackingSystemsConfig::addMarkerTrakingSystem()
 {
 	if (!canAddTrackingSystemType(eTrackingSystemType::marker))
 		return INVALID_MIKAN_ID;
 
+	const std::string systemName = StringUtils::stringify("Marker System ", m_nextTrackingSystemId);
 	MarkerTrackingSystemDefinitionPtr configPtr = 
 		std::make_shared<MarkerTrackingSystemDefinition>(
-			m_nextTrackingSystemId, trackingSystemName);
+			m_nextTrackingSystemId, systemName);
 	addChildConfig(configPtr);
 	m_nextTrackingSystemId++;
 
@@ -225,17 +226,17 @@ VRTrackingSystemDefinitionPtr TrackingSystemsConfig::getVRTrackingSystemConfig(M
 }
 
 MikanTrackingSystemID TrackingSystemsConfig::addVRTrackingSystem(
-	eTrackingRuntime trackingRuntime,
-	const std::string& trackingSystemName)
+	eTrackingRuntime trackingRuntime)
 {
 	if (!canAddTrackingSystemType(eTrackingSystemType::vr))
 		return INVALID_MIKAN_ID;
 
+	const std::string systemName = StringUtils::stringify("VR System ", m_nextTrackingSystemId);
 	VRTrackingSystemDefinitionPtr configPtr =
 		std::make_shared<VRTrackingSystemDefinition>(
 			trackingRuntime,
 			m_nextTrackingSystemId, 
-			trackingSystemName);
+			systemName);
 	addChildConfig(configPtr);	
 	m_nextTrackingSystemId++;
 

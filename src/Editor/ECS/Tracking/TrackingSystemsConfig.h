@@ -24,15 +24,17 @@ public:
 	bool removeTrackingSystem(MikanTrackingSystemID systemId);
 
 	static const std::string k_markerTrackingSystemListPropertyId;
+	const std::vector<MarkerTrackingSystemDefinitionPtr>& getMarkerTrackingSystemList() const { return m_markerTrackingSystemList; }
 	MarkerTrackingSystemDefinitionConstPtr getMarkerTrackingSystemConfigConst(MikanTrackingSystemID systemId) const;
 	MarkerTrackingSystemDefinitionPtr getMarkerTrackingSystemConfig(MikanTrackingSystemID systemId);
-	MikanTrackingSystemID addMarkerTrakingSystem(const std::string& trackingSystemName);
+	MikanTrackingSystemID addMarkerTrakingSystem();
 	bool removeMarkerTrackingSystem(MikanTrackingSystemID systemId);
 
 	static const std::string k_vrTrackingSystemListPropertyId;
+	const std::vector<VRTrackingSystemDefinitionPtr>& getVRTrackingSystemList() const { return m_vrTrackingSystemList; }
 	VRTrackingSystemDefinitionConstPtr getVRTrackingSystemConfigConst(MikanTrackingSystemID systemId) const;
 	VRTrackingSystemDefinitionPtr getVRTrackingSystemConfig(MikanTrackingSystemID systemId);
-	MikanTrackingSystemID addVRTrackingSystem(eTrackingRuntime trackingRuntime, const std::string& trackingSystemName);
+	MikanTrackingSystemID addVRTrackingSystem(eTrackingRuntime trackingRuntime);
 	bool removeVRTrackingSystem(MikanTrackingSystemID systemId);
 
 protected:

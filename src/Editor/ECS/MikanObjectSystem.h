@@ -1,12 +1,23 @@
 #pragma once
 
+#include "CommonConfig.h"
 #include "ComponentFwd.h"
 #include "MulticastDelegate.h"
 #include "ObjectFwd.h"
+#include "ObjectSystemConfigFwd.h"
 
 #include <vector>
 
 using MikanObjectList = std::vector<MikanObjectPtr>;
+
+class MikanObjectSystemDefinition : public CommonConfig
+{
+public:
+	MikanObjectSystemDefinition(const std::string& configName)
+		: CommonConfig(configName)
+	{
+	}
+};
 
 class MikanObjectSystem : public std::enable_shared_from_this<MikanObjectSystem>
 {
@@ -20,6 +31,12 @@ public:
 	virtual void customRender();
 
 	inline class ObjectSystemManager* getOwnerObjectSystemManager() const { return m_ownerObjectSystemManager; }
+	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const {
+		return MikanObjectSystemDefinitionConstPtr();
+	}
+	virtual MikanObjectSystemDefinitionPtr getObjectSystemConfig() {
+		return std::const_pointer_cast<MikanObjectSystemDefinition>(getObjectSystemConfigConst());
+	}
 
 	MikanObjectPtr newObject();
 	void deleteObject(MikanObjectPtr objectPtr);

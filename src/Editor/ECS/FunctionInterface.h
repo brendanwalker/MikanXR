@@ -12,7 +12,7 @@ struct FunctionDescriptor
 class IFunctionInterface
 {
 public:
-	virtual void getFunctionNames(std::vector<std::string>& outPropertyNames) const = 0;
+	virtual void getFunctionNames(std::vector<std::string>& outFunctionNames) const = 0;
 	virtual bool getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const = 0;
-	virtual bool invokeFunction(const std::string& propertyName) = 0;
+	virtual bool invokeFunction(const std::string& functionName) = 0;
 };

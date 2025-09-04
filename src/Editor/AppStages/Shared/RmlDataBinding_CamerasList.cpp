@@ -34,7 +34,7 @@ bool RmlDataBinding_CamerasList::init(Rml::DataModelConstructor constructor)
 	constructor.Bind("cameras_list", &m_cameraIdList);
 
 	// Fill in the data model
-	rebuildCameraIdList();
+	rebuildComponentIdList();
 
 	return true;
 }
@@ -58,14 +58,14 @@ void RmlDataBinding_CamerasList::onObjectInitialized(
 	MikanObjectSystemPtr objectSystemPtr,
 	MikanObjectPtr objectPtr)
 {
-	rebuildCameraIdList();
+	rebuildComponentIdList();
 }
 
 void RmlDataBinding_CamerasList::onObjectDisposed(
 	MikanObjectSystemPtr objectSystemPtr,
 	MikanObjectConstPtr objectPtr)
 {
-	rebuildCameraIdList();
+	rebuildComponentIdList();
 }
 
 void RmlDataBinding_CamerasList::onCameraSystemConfigMarkedDirty(
@@ -74,11 +74,11 @@ void RmlDataBinding_CamerasList::onCameraSystemConfigMarkedDirty(
 {
 	if (changedPropertySet.hasPropertyName(MikanComponentDefinition::k_componentNamePropertyId))
 	{
-		rebuildCameraIdList();
+		rebuildComponentIdList();
 	}
 }
 
-void RmlDataBinding_CamerasList::rebuildCameraIdList()
+void RmlDataBinding_CamerasList::rebuildComponentIdList()
 {
 	m_cameraIdList.clear();
 	for (const auto& kvpair : CameraObjectSystem::getSystem()->getCameraMap())

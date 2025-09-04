@@ -34,9 +34,10 @@ public:
 	MarkerDefinitionConstPtr getUtilityMarker() const;
 
 	static const std::string k_trackingMountsPropertyId;
+	inline const std::vector<TrackingMountDefinitionPtr>& getTrackingMounts() const { return m_trackingMounts; }
 	TrackingMountDefinitionConstPtr getTrackingMountDefinitionConst(MikanTrackingMountID mountId) const;
 	TrackingMountDefinitionPtr getTrackingMountDefinition(MikanTrackingMountID mountId);
-	MikanTrackingMountID addTrackingMount(const std::string& mountName);
+	MikanTrackingMountID addTrackingMount();
 	bool removeTrackingMount(MikanTrackingMountID mountId);
 
 private:

@@ -22,7 +22,7 @@ protected:
 	void onCameraSystemConfigMarkedDirty(
 		CommonConfigPtr configPtr, 
 		const ConfigPropertyChangeSet& changedPropertySet);
-	void rebuildCameraIdList();
+	void rebuildComponentIdList();
 
 private:
 	Rml::Vector<int> m_cameraIdList;

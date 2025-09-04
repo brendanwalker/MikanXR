@@ -141,9 +141,9 @@ TrackingMountDefinitionPtr VRTrackingSystemDefinition::getTrackingMountDefinitio
 	return std::const_pointer_cast<TrackingMountDefinition>(getTrackingMountDefinitionConst(mountId));
 }
 
-MikanTrackingMountID VRTrackingSystemDefinition::addTrackingMount(
-	const std::string& mountName)
+MikanTrackingMountID VRTrackingSystemDefinition::addTrackingMount()
 {
+	const std::string mountName = StringUtils::stringify("Mount ", m_nextTrackingMountId);
 	TrackingMountDefinitionPtr trackingMountDefinition =
 		std::make_shared<TrackingMountDefinition>(m_nextTrackingMountId, mountName);
 	m_nextTrackingMountId++;

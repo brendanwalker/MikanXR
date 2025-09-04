@@ -7,6 +7,11 @@ using ProjectConfigPtr = std::shared_ptr<ProjectConfig>;
 using ProjectConfigConstPtr = std::shared_ptr<const ProjectConfig>;
 using ProjectConfigWeakPtr = std::weak_ptr<ProjectConfig>;
 
+class MikanObjectSystemDefinition;
+using MikanObjectSystemDefinitionPtr = std::shared_ptr<MikanObjectSystemDefinition>;
+using MikanObjectSystemDefinitionConstPtr = std::shared_ptr<const MikanObjectSystemDefinition>;
+using MikanObjectSystemDefinitionWeakPtr = std::weak_ptr<MikanObjectSystemDefinition>;
+
 class AnchorObjectSystemConfig;
 using AnchorObjectSystemConfigPtr = std::shared_ptr<AnchorObjectSystemConfig>;
 using AnchorObjectSystemConfigConstPtr = std::shared_ptr<const AnchorObjectSystemConfig>;
