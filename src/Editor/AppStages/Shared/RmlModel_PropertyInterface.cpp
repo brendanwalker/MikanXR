@@ -38,6 +38,8 @@ bool RmlModel_PropertyInterface::init(
 					m_propertyInterface->setPropertyValue(propertyName, variant);
 				}
 			});
+
+		m_propertyNames.insert(propertyName);
 	}
 
 	// Binding Functions from Function Interface
@@ -58,10 +60,34 @@ bool RmlModel_PropertyInterface::init(
 
 void RmlModel_PropertyInterface::setPropertyInterface(IPropertyInterface* propertyInterface)
 {
-	m_propertyInterface = propertyInterface;
+	if (propertyInterface != m_propertyInterface)
+	{
+		if (m_propertyInterface)
+		{
+			m_propertyInterface->OnPropertyChanged -= 
+				MakeDelegate(this, &RmlModel_PropertyInterface::onPropertyChanged);
+		}
+
+		if (propertyInterface)
+		{
+			propertyInterface->OnPropertyChanged += 
+				MakeDelegate(this, &RmlModel_PropertyInterface::onPropertyChanged);
+		}
+
+		m_propertyInterface = propertyInterface;
+		m_modelHandle.DirtyAllVariables();
+	}
 }
 
 void RmlModel_PropertyInterface::setFunctionInterface(IFunctionInterface* functionInterface)
 {
 	m_functionInterface = functionInterface;
+}
+
+void RmlModel_PropertyInterface::onPropertyChanged(const std::string& propertyName)
+{
+	if (m_propertyNames.find(propertyName) != m_propertyNames.end())
+	{
+		m_modelHandle.DirtyVariable(propertyName);
+	}
 }

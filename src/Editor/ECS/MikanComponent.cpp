@@ -108,6 +108,11 @@ void MikanComponent::init()
 	{
 		objectSystemPtr->OnComponentInitialized(objectSystemPtr, shared_from_this());
 	}
+
+	if (m_definition)
+	{
+		m_definition->OnMarkedDirty += MakeDelegate(this, &MikanComponent::onDefinitionMarkedDirty);
+	}
 }
 
 void MikanComponent::dispose()
@@ -118,6 +123,11 @@ void MikanComponent::dispose()
 	m_bWasDisposed = true;
 
 	MikanObjectSystemPtr objectSystemPtr= getOwnerObject()->getOwnerSystem();
+
+	if (m_definition)
+	{
+		m_definition->OnMarkedDirty -= MakeDelegate(this, &MikanComponent::onDefinitionMarkedDirty);
+	}
 
 	if (objectSystemPtr->OnComponentDisposed)
 	{
@@ -133,7 +143,6 @@ void MikanComponent::dispose()
 	{
 		objectSystemPtr->onCustomRender -= MakeDelegate(this, &MikanComponent::customRender);
 	}
-
 }
 
 void MikanComponent::setDefinition(MikanComponentDefinitionPtr config)
@@ -143,6 +152,20 @@ void MikanComponent::setDefinition(MikanComponentDefinitionPtr config)
 
 	// Make the component name match the config name
 	m_name = config->getComponentName();
+}
+
+void MikanComponent::onDefinitionMarkedDirty(
+	CommonConfigPtr configPtr, 
+	const ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (OnPropertyChanged)
+	{
+		// TODO: Only notify for property names that are actually exposed in getPropertyNames()
+		for (const std::string& changedPropertyName : changedPropertySet.getSet())
+		{
+			OnPropertyChanged(changedPropertyName);
+		}
+	}
 }
 
 IMkWindow* MikanComponent::getOwnerWindow() const

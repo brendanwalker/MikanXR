@@ -5,7 +5,8 @@
 #include "TrackingMountDefinition.h"
 #include <vector>
 
-class VRTrackingSystemDefinition : public TrackingSystemDefinition
+class VRTrackingSystemDefinition : 
+	public TrackingSystemDefinition
 {
 public:
 	VRTrackingSystemDefinition();
@@ -39,6 +40,13 @@ public:
 	TrackingMountDefinitionPtr getTrackingMountDefinition(MikanTrackingMountID mountId);
 	MikanTrackingMountID addTrackingMount();
 	bool removeTrackingMount(MikanTrackingMountID mountId);
+
+	// -- IPropertyInterface ----
+	static void getPropertyNamesStatic(std::vector<std::string>& outPropertyNames);
+	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
+	virtual bool getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const override;
+	virtual bool getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const override;
+	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
 
 private:
 	eTrackingRuntime m_trackingRuntime = eTrackingRuntime::INVALID;

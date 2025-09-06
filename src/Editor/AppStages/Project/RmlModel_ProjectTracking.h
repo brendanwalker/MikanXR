@@ -10,25 +10,6 @@
 #include "Shared/RmlModel_PropertyInterface.h"
 #include "SinglecastDelegate.h"
 
-struct RmlModel_TrackingSystemObject
-{
-	int systemId= -1;
-	Rml::String name;
-	Rml::String type;
-	int originMarkerId= -1;
-	int utilityMarkerId = -1;
-	int charucoMountId = -1;
-};
-
-struct RmlModel_TrackingMountObject
-{
-	int mountId = -1;
-	int parentSystemId = -1;
-	Rml::String name;
-	Rml::String devicePath;
-	Rml::String socketName;
-};
-
 class RmlModel_ProjectTracking : public RmlModel
 {
 public:
@@ -39,8 +20,10 @@ public:
 
 private:
 	TrackingSystemsConfigPtr getTrackingSystemsConfig();
+	TrackingSystemDefinitionPtr getSelectedTrackingSystem();
 	MarkerTrackingSystemDefinitionPtr getSelectedMarkerTrackingSystem();
 	VRTrackingSystemDefinitionPtr getSelectedVRTrackingSystem();
+	TrackingMountDefinitionPtr getSelectedTrackingMount();
 
 	void addNewSteamVRTrackingSystem(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void addNewMarkerTrackingSystem(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);

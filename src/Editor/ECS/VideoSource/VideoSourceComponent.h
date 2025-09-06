@@ -65,7 +65,7 @@ public:
 
 	inline VideoSourceDefinitionPtr getVideoSourceDefinition() const
 	{
-		return std::static_pointer_cast<VideoSourceDefinition>(m_definition);
+		return std::static_pointer_cast<VideoSourceDefinition>(getDefinition());
 	}
 	virtual void setDefinition(MikanComponentDefinitionPtr definition) override;
 

@@ -69,6 +69,13 @@ void RmlDataBinding_ComponentList::dispose()
 	RmlDataBinding::dispose();
 }
 
+bool RmlDataBinding_ComponentList::contains(int componentId) const
+{
+	return
+		std::find(m_componentIdList.begin(), m_componentIdList.end(), componentId) 
+		!= m_componentIdList.end();
+}
+
 void RmlDataBinding_ComponentList::onConfigMarkedDirty(
 	CommonConfigPtr configPtr,
 	const ConfigPropertyChangeSet& changedPropertySet)

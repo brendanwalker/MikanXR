@@ -9,6 +9,9 @@
 #include "SelectionComponent.h"
 #include "StringUtils.h"
 
+#include <RmlUi/Core/Types.h>
+#include <RmlUi/Core/Variant.h>
+
 // -- TrackingSystemDefinition -----
 const std::string TrackingSystemDefinition::k_originMarkerPropertyId = "originMarker";
 
@@ -63,4 +66,75 @@ MarkerDefinitionConstPtr TrackingSystemDefinition::getOriginMarker() const
 	}
 
 	return MarkerDefinitionConstPtr();
+}
+
+// -- IPropertyInterface ----
+void TrackingSystemDefinition::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
+{
+	outPropertyNames.push_back(MikanComponentDefinition::k_componentNamePropertyId);
+	outPropertyNames.push_back(TrackingSystemDefinition::k_originMarkerPropertyId);
+}
+
+void TrackingSystemDefinition::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+{
+	getPropertyNamesStatic(outPropertyNames);
+}
+
+bool TrackingSystemDefinition::getPropertyDescriptor(
+	const std::string& propertyName, 
+	PropertyDescriptor& outDescriptor) const
+{
+	if (propertyName == MikanComponentDefinition::k_componentNamePropertyId)
+	{
+		outDescriptor = { MikanComponentDefinition::k_componentNamePropertyId, ePropertyDataType::datatype_string, ePropertySemantic::name };
+		return true;
+	}
+	else if (propertyName == TrackingSystemDefinition::k_originMarkerPropertyId)
+	{
+		outDescriptor = { TrackingSystemDefinition::k_originMarkerPropertyId, ePropertyDataType::datatype_int, ePropertySemantic::marker_id };
+		return true;
+	}
+
+	return false;
+}
+
+bool TrackingSystemDefinition::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
+{
+	if (propertyName == MikanComponentDefinition::k_componentNamePropertyId)
+	{
+		outValue = getComponentName();
+		return true;
+	}
+	else if (propertyName == TrackingSystemDefinition::k_originMarkerPropertyId)
+	{
+		outValue = getOriginMarkerId();
+		return true;
+	}
+
+	return false;
+}
+
+bool TrackingSystemDefinition::getPropertyAttribute(const std::string& propertyName, const std::string& attributeName, Rml::Variant& outValue) const
+{	
+	return false;
+}
+
+bool TrackingSystemDefinition::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
+{
+	if (propertyName == MikanComponentDefinition::k_componentNamePropertyId)
+	{
+		setComponentName(inValue.Get<Rml::String>());
+		return true;
+	}
+	else if (propertyName == TrackingSystemDefinition::k_originMarkerPropertyId)
+	{
+		if (inValue.GetType() == Rml::Variant::INT)
+		{
+			MikanMarkerID markerId = inValue.Get<int>();
+			setOriginMarkerId(markerId);
+			return true;
+		}
+	}
+
+	return false;
 }

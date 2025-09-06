@@ -2,6 +2,7 @@
 
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
+#include "PropertyInterface.h"
 #include "MikanComponent.h"
 #include "MikanTypeFwd.h"
 #include "MikanObjectSystem.h"
@@ -17,7 +18,9 @@
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_float4x4.hpp>
 
-class TrackingSystemDefinition : public MikanComponentDefinition
+class TrackingSystemDefinition : 
+	public MikanComponentDefinition,
+	public IPropertyInterface
 {
 public:
 	TrackingSystemDefinition();
@@ -35,6 +38,14 @@ public:
 	inline MikanMarkerID getOriginMarkerId() const { return m_originMarkeId; }
 	MarkerDefinitionConstPtr getOriginMarker() const;
 	void setOriginMarkerId(MikanMarkerID arucoId);
+
+	// -- IPropertyInterface ----
+	static void getPropertyNamesStatic(std::vector<std::string>& outPropertyNames);
+	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
+	virtual bool getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const override;
+	virtual bool getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const override;
+	virtual bool getPropertyAttribute(const std::string& propertyName, const std::string& attributeName, Rml::Variant& outValue) const override;
+	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
 
 private:
 	MikanTrackingSystemID m_trackingSystemId;

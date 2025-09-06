@@ -94,14 +94,14 @@ TrackingSystemDefinitionConstPtr TrackingSystemsConfig::getTrackingSystemDefinit
 	MikanTrackingSystemID systemId) const
 {
 	MarkerTrackingSystemDefinitionConstPtr markerSystemPtr = 
-		getMarkerTrackingSystemConfigConst(systemId);
+		getMarkerTrackingSystemDefinitionConst(systemId);
 	if (markerSystemPtr)
 	{
 		return markerSystemPtr;
 	}
 
 	VRTrackingSystemDefinitionConstPtr vrSystemPtr = 
-		getVRTrackingSystemConfigConst(systemId);
+		getVRTrackingSystemDefinitionConst(systemId);
 	if (vrSystemPtr)
 	{
 		return vrSystemPtr;
@@ -144,7 +144,7 @@ bool TrackingSystemsConfig::removeTrackingSystem(MikanTrackingSystemID systemId)
 	return false;
 }
 
-MarkerTrackingSystemDefinitionConstPtr TrackingSystemsConfig::getMarkerTrackingSystemConfigConst(MikanTrackingSystemID systemId) const
+MarkerTrackingSystemDefinitionConstPtr TrackingSystemsConfig::getMarkerTrackingSystemDefinitionConst(MikanTrackingSystemID systemId) const
 {
 	auto iter = std::find_if(
 		m_markerTrackingSystemList.begin(), m_markerTrackingSystemList.end(),
@@ -160,9 +160,9 @@ MarkerTrackingSystemDefinitionConstPtr TrackingSystemsConfig::getMarkerTrackingS
 	return MarkerTrackingSystemDefinitionConstPtr();
 }
 
-MarkerTrackingSystemDefinitionPtr TrackingSystemsConfig::getMarkerTrackingSystemConfig(MikanTrackingSystemID systemId)
+MarkerTrackingSystemDefinitionPtr TrackingSystemsConfig::getMarkerTrackingSystemDefinition(MikanTrackingSystemID systemId)
 {
-	return std::const_pointer_cast<MarkerTrackingSystemDefinition>(getMarkerTrackingSystemConfigConst(systemId));
+	return std::const_pointer_cast<MarkerTrackingSystemDefinition>(getMarkerTrackingSystemDefinitionConst(systemId));
 }
 
 MikanTrackingSystemID TrackingSystemsConfig::addMarkerTrakingSystem()
@@ -204,7 +204,7 @@ bool TrackingSystemsConfig::removeMarkerTrackingSystem(MikanTrackingSystemID sys
 	return false;
 }
 
-VRTrackingSystemDefinitionConstPtr TrackingSystemsConfig::getVRTrackingSystemConfigConst(MikanTrackingSystemID systemId) const
+VRTrackingSystemDefinitionConstPtr TrackingSystemsConfig::getVRTrackingSystemDefinitionConst(MikanTrackingSystemID systemId) const
 {
 	auto iter = std::find_if(
 		m_vrTrackingSystemList.begin(), m_vrTrackingSystemList.end(),
@@ -220,9 +220,9 @@ VRTrackingSystemDefinitionConstPtr TrackingSystemsConfig::getVRTrackingSystemCon
 	return VRTrackingSystemDefinitionConstPtr();
 }
 
-VRTrackingSystemDefinitionPtr TrackingSystemsConfig::getVRTrackingSystemConfig(MikanTrackingSystemID systemId)
+VRTrackingSystemDefinitionPtr TrackingSystemsConfig::getVRTrackingSystemDefinition(MikanTrackingSystemID systemId)
 {
-	return std::const_pointer_cast<VRTrackingSystemDefinition>(getVRTrackingSystemConfigConst(systemId));
+	return std::const_pointer_cast<VRTrackingSystemDefinition>(getVRTrackingSystemDefinitionConst(systemId));
 }
 
 MikanTrackingSystemID TrackingSystemsConfig::addVRTrackingSystem(

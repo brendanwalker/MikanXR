@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RmlFwd.h"
+#include "MulticastDelegate.h"
 
 #include <string>
 #include <vector>
@@ -25,6 +26,7 @@ enum class ePropertySemantic : int
 	checkbox,
 	enumeration,
 	position,
+	vector,
 	rotation,
 	scale,
 	size3d,
@@ -37,6 +39,7 @@ enum class ePropertySemantic : int
 	marker_id,
 	compositor_id,
 	video_source_id,
+	tracking_mount_id,
 	stencilCullMode,
 
 	COUNT
@@ -58,6 +61,8 @@ public:
 	virtual bool getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const = 0;
 	virtual bool getPropertyAttribute(const std::string& propertyName, const std::string& attributeName, Rml::Variant& outValue) const = 0;
 	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) = 0;
+
+	MulticastDelegate<void(const std::string& propertyName)> OnPropertyChanged;
 };
 
 // Property Attributes

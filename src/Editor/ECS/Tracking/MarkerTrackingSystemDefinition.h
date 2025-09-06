@@ -2,7 +2,8 @@
 
 #include "TrackingSystemDefinition.h"
 
-class MarkerTrackingSystemDefinition : public TrackingSystemDefinition
+class MarkerTrackingSystemDefinition : 
+	public TrackingSystemDefinition
 {
 public:
 	MarkerTrackingSystemDefinition();

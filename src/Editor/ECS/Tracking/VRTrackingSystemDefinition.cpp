@@ -9,6 +9,9 @@
 #include "SelectionComponent.h"
 #include "StringUtils.h"
 
+#include <RmlUi/Core/Types.h>
+#include <RmlUi/Core/Variant.h>
+
 // -- VRTrackingSystemDefinition -----
 const std::string VRTrackingSystemDefinition::k_charucoMountIdPropertyId= "charucoMountId";
 const std::string VRTrackingSystemDefinition::k_charucoMountOffsetPropertyId = "charucoMountOffsetMM";
@@ -136,7 +139,8 @@ TrackingMountDefinitionConstPtr VRTrackingSystemDefinition::getTrackingMountDefi
 	return TrackingMountDefinitionConstPtr();
 }
 
-TrackingMountDefinitionPtr VRTrackingSystemDefinition::getTrackingMountDefinition(MikanTrackingMountID mountId)
+TrackingMountDefinitionPtr VRTrackingSystemDefinition::getTrackingMountDefinition(
+	MikanTrackingMountID mountId)
 {
 	return std::const_pointer_cast<TrackingMountDefinition>(getTrackingMountDefinitionConst(mountId));
 }
@@ -184,4 +188,91 @@ MarkerDefinitionConstPtr VRTrackingSystemDefinition::getUtilityMarker() const
 	}
 
 	return MarkerDefinitionConstPtr();
+}
+
+// -- IPropertyInterface ----
+void VRTrackingSystemDefinition::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
+{
+	TrackingSystemDefinition::getPropertyNamesStatic(outPropertyNames);
+
+	outPropertyNames.push_back(VRTrackingSystemDefinition::k_charucoMountIdPropertyId);
+	outPropertyNames.push_back(VRTrackingSystemDefinition::k_charucoMountOffsetPropertyId);
+	outPropertyNames.push_back(VRTrackingSystemDefinition::k_utilityMarkerIdPropertyId);
+}
+
+void VRTrackingSystemDefinition::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+{
+	VRTrackingSystemDefinition::getPropertyNamesStatic(outPropertyNames);
+}
+
+bool VRTrackingSystemDefinition::getPropertyDescriptor(
+	const std::string& propertyName,
+	PropertyDescriptor& outDescriptor) const
+{
+	if (propertyName == VRTrackingSystemDefinition::k_charucoMountIdPropertyId)
+	{
+		outDescriptor = { VRTrackingSystemDefinition::k_charucoMountIdPropertyId, ePropertyDataType::datatype_int, ePropertySemantic::tracking_mount_id };
+		return true;
+	}
+	else if (propertyName == VRTrackingSystemDefinition::k_charucoMountOffsetPropertyId)
+	{
+		outDescriptor = { VRTrackingSystemDefinition::k_charucoMountOffsetPropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::position };
+		return true;
+	}
+	else if (propertyName == VRTrackingSystemDefinition::k_utilityMarkerIdPropertyId)
+	{
+		outDescriptor = { VRTrackingSystemDefinition::k_utilityMarkerIdPropertyId, ePropertyDataType::datatype_int, ePropertySemantic::marker_id };
+		return true;
+	}
+
+	return TrackingSystemDefinition::getPropertyDescriptor(propertyName, outDescriptor);
+}
+
+bool VRTrackingSystemDefinition::getPropertyValue(
+	const std::string& propertyName, 
+	Rml::Variant& outValue) const
+{
+	if (propertyName == VRTrackingSystemDefinition::k_charucoMountIdPropertyId)
+	{
+		outValue = getCharucoTrackingMountId();
+		return true;
+	}
+	else if (propertyName == VRTrackingSystemDefinition::k_charucoMountOffsetPropertyId)
+	{
+		const MikanVector3f& offset = getCharucoMountOffsetMM();
+		outValue = Rml::Vector3f(offset.x, offset.y, offset.z);
+		return true;
+	}
+	else if (propertyName == VRTrackingSystemDefinition::k_utilityMarkerIdPropertyId)
+	{
+		outValue = getUtilityMarkerId();
+		return true;
+	}
+
+	return TrackingSystemDefinition::getPropertyValue(propertyName, outValue);
+}
+
+bool VRTrackingSystemDefinition::setPropertyValue(
+	const std::string& propertyName, 
+	const Rml::Variant& inValue)
+{
+	if (propertyName == VRTrackingSystemDefinition::k_charucoMountIdPropertyId)
+	{
+		setCharucoTrackingMountId(inValue.Get<int>());
+		return true;
+	}
+	else if (propertyName == VRTrackingSystemDefinition::k_charucoMountOffsetPropertyId)
+	{
+		Rml::Vector3 offset = inValue.Get<Rml::Vector3f>();
+
+		setCharucoMountOffsetMM({ offset.x, offset.y, offset.z });
+		return true;
+	}
+	else if (propertyName == VRTrackingSystemDefinition::k_utilityMarkerIdPropertyId)
+	{
+		setUtilityMarkerId(inValue.Get<int>());
+		return true;
+	}
+
+	return TrackingSystemDefinition::setPropertyValue(propertyName, inValue);
 }

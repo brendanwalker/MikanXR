@@ -23,6 +23,8 @@ public:
 	virtual void dispose() override;
 
 	const Rml::Vector<int>& getComponentIdList() const { return m_componentIdList; }
+	bool isEmpty() const { return m_componentIdList.empty(); }
+	bool contains(int componentId) const;
 
 	MulticastDelegate<void(bool bOwnerChanged)> OnChanged;
 

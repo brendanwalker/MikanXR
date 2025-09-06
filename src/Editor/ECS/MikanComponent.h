@@ -106,6 +106,9 @@ public:
 	virtual bool invokeFunction(const std::string& propertyName) override;
 
 protected:
+	void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
+
+protected:
 	bool m_bWasInitialized= false;
 	bool m_bWasDisposed= false;
 	bool m_bWantsUpdate= false;

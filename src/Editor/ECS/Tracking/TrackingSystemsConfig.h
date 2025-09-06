@@ -25,15 +25,15 @@ public:
 
 	static const std::string k_markerTrackingSystemListPropertyId;
 	const std::vector<MarkerTrackingSystemDefinitionPtr>& getMarkerTrackingSystemList() const { return m_markerTrackingSystemList; }
-	MarkerTrackingSystemDefinitionConstPtr getMarkerTrackingSystemConfigConst(MikanTrackingSystemID systemId) const;
-	MarkerTrackingSystemDefinitionPtr getMarkerTrackingSystemConfig(MikanTrackingSystemID systemId);
+	MarkerTrackingSystemDefinitionConstPtr getMarkerTrackingSystemDefinitionConst(MikanTrackingSystemID systemId) const;
+	MarkerTrackingSystemDefinitionPtr getMarkerTrackingSystemDefinition(MikanTrackingSystemID systemId);
 	MikanTrackingSystemID addMarkerTrakingSystem();
 	bool removeMarkerTrackingSystem(MikanTrackingSystemID systemId);
 
 	static const std::string k_vrTrackingSystemListPropertyId;
 	const std::vector<VRTrackingSystemDefinitionPtr>& getVRTrackingSystemList() const { return m_vrTrackingSystemList; }
-	VRTrackingSystemDefinitionConstPtr getVRTrackingSystemConfigConst(MikanTrackingSystemID systemId) const;
-	VRTrackingSystemDefinitionPtr getVRTrackingSystemConfig(MikanTrackingSystemID systemId);
+	VRTrackingSystemDefinitionConstPtr getVRTrackingSystemDefinitionConst(MikanTrackingSystemID systemId) const;
+	VRTrackingSystemDefinitionPtr getVRTrackingSystemDefinition(MikanTrackingSystemID systemId);
 	MikanTrackingSystemID addVRTrackingSystem(eTrackingRuntime trackingRuntime);
 	bool removeVRTrackingSystem(MikanTrackingSystemID systemId);
 
