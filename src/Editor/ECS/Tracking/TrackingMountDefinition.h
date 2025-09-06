@@ -30,6 +30,7 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
+	virtual void markDirty(const ConfigPropertyChangeSet& changedPropertySet) override;
 
 	inline MikanTrackingMountID getTrackingMountId() const { return m_trackingMountId; }
 

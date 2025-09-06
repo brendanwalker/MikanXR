@@ -51,7 +51,7 @@ public:
 	void addChildConfig(std::shared_ptr<CommonConfig> childConfig);
 	void removeChildConfig(std::shared_ptr<CommonConfig> childConfig);
 	bool isMarkedDirty() const;
-	void markDirty(const ConfigPropertyChangeSet& changedPropertySet);
+	virtual void markDirty(const ConfigPropertyChangeSet& changedPropertySet);
 	MulticastDelegate<void(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet)> OnMarkedDirty;
 
 	const std::string& getConfigName() const { return m_configName; }

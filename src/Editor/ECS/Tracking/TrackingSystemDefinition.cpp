@@ -49,6 +49,20 @@ void TrackingSystemDefinition::readFromJSON(const configuru::Config& pt)
 	m_originMarkeId = pt.get_or<MikanMarkerID>("origin_marker_id", m_originMarkeId);
 }
 
+void TrackingSystemDefinition::markDirty(const ConfigPropertyChangeSet& changedPropertySet)
+{
+	CommonConfig::markDirty(changedPropertySet);
+
+	if (OnPropertyChanged)
+	{
+		// TODO: Only notify for property names that are actually exposed in getPropertyNames()
+		for (const std::string& changedPropertyName : changedPropertySet.getSet())
+		{
+			OnPropertyChanged(changedPropertyName);
+		}
+	}
+}
+
 void TrackingSystemDefinition::setOriginMarkerId(MikanMarkerID arucoId)
 {
 	if (arucoId != m_originMarkeId)

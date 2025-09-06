@@ -48,6 +48,20 @@ void TrackingMountDefinition::readFromJSON(const configuru::Config& pt)
 	m_socketName = pt.get_or<std::string>("socket_name", m_socketName);
 }
 
+void TrackingMountDefinition::markDirty(const ConfigPropertyChangeSet& changedPropertySet)
+{
+	CommonConfig::markDirty(changedPropertySet);
+
+	if (OnPropertyChanged)
+	{
+		// TODO: Only notify for property names that are actually exposed in getPropertyNames()
+		for (const std::string& changedPropertyName : changedPropertySet.getSet())
+		{
+			OnPropertyChanged(changedPropertyName);
+		}
+	}
+}
+
 void TrackingMountDefinition::setDevicePath(const std::string& devicePath)
 {
 	if (devicePath != m_devicePath)
