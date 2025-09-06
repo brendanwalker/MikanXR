@@ -115,6 +115,7 @@ public:
 	void visitAllTransformComponentsConst(TransformComponentConstVisitor visitor) const;
 
 	// -- IPropertyInterface ----
+	static void getPropertyNamesStatic(std::vector<std::string>& outPropertyNames);
 	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
 	virtual bool getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const override;
 	virtual bool getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const override;

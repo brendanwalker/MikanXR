@@ -758,13 +758,18 @@ void USBVideoSourceComponent::notifyVideoFrameReceived(const UsbVideoFrameBuffer
 	}
 }
 
-void USBVideoSourceComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+void USBVideoSourceComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
 {
-	MikanComponent::getPropertyNames(outPropertyNames);
+	VideoSourceComponent::getPropertyNamesStatic(outPropertyNames);
 
 	outPropertyNames.push_back(USBVideoSourceDefinition::k_devicePathPropertyId);
 	outPropertyNames.push_back(USBVideoSourceDefinition::k_videoModePropertyId);
 	outPropertyNames.push_back(USBVideoSourceDefinition::k_cameraSettingsPropertyId);
+}
+
+void USBVideoSourceComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+{
+	getPropertyNamesStatic(outPropertyNames);
 }
 
 bool USBVideoSourceComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
@@ -847,12 +852,17 @@ bool USBVideoSourceComponent::setPropertyValue(const std::string& propertyName, 
 const std::string USBVideoSourceComponent::k_calibrateIntrinsicsFunctionId = "calibrate_intrinsics";
 const std::string USBVideoSourceComponent::k_testIntrinsicsFunctionId = "test_intrinsics";
 
-void USBVideoSourceComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+void USBVideoSourceComponent::getFunctionNamesStatic(std::vector<std::string>& outPropertyNames)
 {
-	MikanComponent::getFunctionNames(outPropertyNames);
+	VideoSourceComponent::getFunctionNamesStatic(outPropertyNames);
 
 	outPropertyNames.push_back(k_calibrateIntrinsicsFunctionId);
 	outPropertyNames.push_back(k_testIntrinsicsFunctionId);
+}
+
+void USBVideoSourceComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+{
+	getFunctionNamesStatic(outPropertyNames);
 }
 
 bool USBVideoSourceComponent::getFunctionDescriptor(

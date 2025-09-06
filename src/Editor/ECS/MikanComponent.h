@@ -92,6 +92,7 @@ public:
 	virtual void customRender() {}
 
 	// -- IPropertyInterface ----
+	static void getPropertyNamesStatic(std::vector<std::string>& outPropertyNames);
 	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
 	virtual bool getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const override;
 	virtual bool getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const override;
@@ -99,6 +100,7 @@ public:
 	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
 
 	// -- IFunctionInterface ----
+	static void getFunctionNamesStatic(std::vector<std::string>& outPropertyNames);
 	virtual void getFunctionNames(std::vector<std::string>& outPropertyNames) const override;
 	virtual bool getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const override;
 	virtual bool invokeFunction(const std::string& propertyName) override;

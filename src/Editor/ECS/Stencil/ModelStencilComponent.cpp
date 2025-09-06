@@ -419,11 +419,16 @@ void ModelStencilComponent::onTransformGizmoUnbound()
 }
 
 // -- IPropertyInterface ----
-void ModelStencilComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+void ModelStencilComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
 {
-	StencilComponent::getPropertyNames(outPropertyNames);
+	StencilComponent::getPropertyNamesStatic(outPropertyNames);
 
 	outPropertyNames.push_back(ModelStencilDefinition::k_modelStencilObjPathPropertyId);
+}
+
+void ModelStencilComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+{
+	getPropertyNamesStatic(outPropertyNames);
 }
 
 bool ModelStencilComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
@@ -499,11 +504,16 @@ bool ModelStencilComponent::setPropertyValue(const std::string& propertyName, co
 // -- IFunctionInterface ----
 const std::string ModelStencilComponent::k_alignStencilFunctionId = "align_stencil";
 
-void ModelStencilComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+void ModelStencilComponent::getFunctionNamesStatic(std::vector<std::string>& outPropertyNames)
 {
-	StencilComponent::getFunctionNames(outPropertyNames);
+	StencilComponent::getFunctionNamesStatic(outPropertyNames);
 
 	outPropertyNames.push_back(k_alignStencilFunctionId);
+}
+
+void ModelStencilComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+{
+	getFunctionNamesStatic(outPropertyNames);
 }
 
 bool ModelStencilComponent::getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const

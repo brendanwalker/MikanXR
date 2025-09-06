@@ -170,13 +170,18 @@ void BoxStencilComponent::updateBoxColliderExtents()
 }
 
 // -- IPropertyInterface ----
-void BoxStencilComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+void BoxStencilComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
 {
-	StencilComponent::getPropertyNames(outPropertyNames);
+	StencilComponent::getPropertyNamesStatic(outPropertyNames);
 
 	outPropertyNames.push_back(BoxStencilDefinition::k_boxStencilXSizePropertyId);
 	outPropertyNames.push_back(BoxStencilDefinition::k_boxStencilYSizePropertyId);
 	outPropertyNames.push_back(BoxStencilDefinition::k_boxStencilZSizePropertyId);
+}
+
+void BoxStencilComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+{
+	getPropertyNamesStatic(outPropertyNames);
 }
 
 bool BoxStencilComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const

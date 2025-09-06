@@ -250,13 +250,18 @@ void VideoSourceComponent::recomputeCameraProjectionMatrix()
 }
 
 // -- IPropertyInterface ----
-void VideoSourceComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+void VideoSourceComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
 {
-	MikanComponent::getPropertyNames(outPropertyNames);
+	MikanComponent::getPropertyNamesStatic(outPropertyNames);
 
 	outPropertyNames.push_back(VideoSourceDefinition::k_videoSourceIdPropertyId);
 	outPropertyNames.push_back(VideoSourceDefinition::k_isFrameMirroredPropertyId);
 	outPropertyNames.push_back(VideoSourceDefinition::k_isBufferMirroredPropertyId);
+}
+
+void VideoSourceComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+{
+	getPropertyNamesStatic(outPropertyNames);
 }
 
 bool VideoSourceComponent::getPropertyDescriptor(
@@ -329,11 +334,16 @@ bool VideoSourceComponent::setPropertyValue(const std::string& propertyName, con
 }
 
 // -- IFunctionInterface ----
-void VideoSourceComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+void VideoSourceComponent::getFunctionNamesStatic(std::vector<std::string>& outPropertyNames)
 {
-	MikanComponent::getFunctionNames(outPropertyNames);
+	MikanComponent::getFunctionNamesStatic(outPropertyNames);
 
 	outPropertyNames.push_back(k_deleteVideoSourceFunctionId);
+}
+
+void VideoSourceComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+{
+	getFunctionNamesStatic(outPropertyNames);
 }
 
 bool VideoSourceComponent::getFunctionDescriptor(

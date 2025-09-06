@@ -127,13 +127,18 @@ void StencilComponent::attachTransformComponentToAnchor(MikanSpatialAnchorID new
 }
 
 // -- IPropertyInterface ----
-void StencilComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+void StencilComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
 {
-	TransformComponent::getPropertyNames(outPropertyNames);
+	TransformComponent::getPropertyNamesStatic(outPropertyNames);
 
 	outPropertyNames.push_back(StencilComponentDefinition::k_stencilDisabledPropertyId);
 	outPropertyNames.push_back(StencilComponentDefinition::k_parentAnchorPropertyId);
 	outPropertyNames.push_back(StencilComponentDefinition::k_stencilCullModePropertyId);
+}
+
+void StencilComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+{
+	getPropertyNamesStatic(outPropertyNames);
 }
 
 bool StencilComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
@@ -217,11 +222,16 @@ bool StencilComponent::setPropertyValue(const std::string& propertyName, const R
 // -- IFunctionInterface ----
 const std::string StencilComponent::k_deleteStencilFunctionId= "delete_stencil";
 
-void StencilComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+void StencilComponent::getFunctionNamesStatic(std::vector<std::string>& outPropertyNames)
 {
-	TransformComponent::getFunctionNames(outPropertyNames);
+	MikanComponent::getFunctionNamesStatic(outPropertyNames);
 
 	outPropertyNames.push_back(k_deleteStencilFunctionId);
+}
+
+void StencilComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+{
+	getFunctionNamesStatic(outPropertyNames);
 }
 
 bool StencilComponent::getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const

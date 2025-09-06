@@ -725,11 +725,16 @@ void CompositorComponent::onDefinitionChanged(CommonConfigPtr configPtr, const C
 }
 
 // -- IPropertyInterface ----
-void CompositorComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+void CompositorComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
 {
-	MikanComponent::getPropertyNames(outPropertyNames);
+	MikanComponent::getPropertyNamesStatic(outPropertyNames);
 
 	outPropertyNames.push_back(CompositorDefinition::k_compositorGraphPathPropertyId);
+}
+
+void CompositorComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+{
+	getPropertyNamesStatic(outPropertyNames);
 }
 
 bool CompositorComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const

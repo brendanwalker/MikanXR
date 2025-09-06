@@ -112,14 +112,17 @@ void AnchorComponent::customRender()
 const std::string AnchorComponent::k_editAnchorFunctionId = "edit_anchor";
 const std::string AnchorComponent::k_deleteAnchorFunctionId = "delete_anchor";
 
-void AnchorComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+void AnchorComponent::getFunctionNamesStatic(std::vector<std::string>& outPropertyNames)
 {
-	TransformComponent::getFunctionNames(outPropertyNames);
-
-	AnchorObjectSystemPtr anchorSystemPtr = AnchorObjectSystem::getSystem();
+	TransformComponent::getFunctionNamesStatic(outPropertyNames);
 
 	outPropertyNames.push_back(k_editAnchorFunctionId);
 	outPropertyNames.push_back(k_deleteAnchorFunctionId);
+}
+
+void AnchorComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+{
+	getFunctionNamesStatic(outPropertyNames);
 }
 
 bool AnchorComponent::getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const

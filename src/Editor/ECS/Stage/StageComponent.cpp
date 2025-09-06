@@ -74,11 +74,16 @@ void StageComponent::dispose()
 	TransformComponent::dispose();
 }
 
-void StageComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+void StageComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
 {
-	TransformComponent::getPropertyNames(outPropertyNames);
+	TransformComponent::getPropertyNamesStatic(outPropertyNames);
 
 	outPropertyNames.push_back(StageComponentDefinition::k_trackingSystemIdPropertyId);
+}
+
+void StageComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+{
+	getPropertyNamesStatic(outPropertyNames);
 }
 
 bool StageComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
@@ -140,12 +145,17 @@ TrackingSystemDefinitionConstPtr StageComponent::getTrackingSystemDefinitionCons
 const std::string StageComponent::k_alignStageFunctionId = "align_stage";
 const std::string StageComponent::k_deleteStageFunctionId = "delete_stage";
 
-void StageComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+void StageComponent::getFunctionNamesStatic(std::vector<std::string>& outPropertyNames)
 {
-	TransformComponent::getFunctionNames(outPropertyNames);
+	MikanComponent::getFunctionNamesStatic(outPropertyNames);
 
 	outPropertyNames.push_back(k_alignStageFunctionId);
 	outPropertyNames.push_back(k_deleteStageFunctionId);
+}
+
+void StageComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+{
+	getFunctionNamesStatic(outPropertyNames);
 }
 
 bool StageComponent::getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const

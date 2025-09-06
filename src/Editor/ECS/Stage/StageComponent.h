@@ -55,6 +55,7 @@ public:
 	virtual void dispose() override;
 
 	// -- IPropertyInterface ----
+	static void getPropertyNamesStatic(std::vector<std::string>& outPropertyNames);
 	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
 	virtual bool getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const override;
 	virtual bool getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const override;
@@ -63,6 +64,7 @@ public:
 	// -- IFunctionInterface ----
 	static const std::string k_alignStageFunctionId;
 	static const std::string k_deleteStageFunctionId;
+	static void getFunctionNamesStatic(std::vector<std::string>& outPropertyNames);
 	virtual void getFunctionNames(std::vector<std::string>& outPropertyNames) const override;
 	virtual bool getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const override;
 	virtual bool invokeFunction(const std::string& functionName) override;

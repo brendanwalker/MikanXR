@@ -166,10 +166,15 @@ void MikanComponent::setName(const std::string& name)
 
 
 // -- IPropertyInterface ----
-void MikanComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+void MikanComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
 {
 	outPropertyNames.push_back(MikanComponentDefinition::k_componentNamePropertyId);
 	outPropertyNames.push_back(MikanComponentDefinition::k_componentScriptPathPropertyId);
+}
+
+void MikanComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+{
+	getPropertyNamesStatic(outPropertyNames);
 }
 
 bool MikanComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
@@ -251,8 +256,13 @@ bool MikanComponent::setPropertyValue(const std::string& propertyName, const Rml
 }
 
 // -- IFunctionInterface ----
+void MikanComponent::getFunctionNamesStatic(std::vector<std::string>& outPropertyNames)
+{
+}
+
 void MikanComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
 {
+	getFunctionNamesStatic(outPropertyNames);
 }
 
 bool MikanComponent::getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const

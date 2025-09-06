@@ -581,11 +581,16 @@ void NetworkVideoSourceComponent::recomputeCameraProjectionMatrix()
 }
 
 // -- IPropertyInterface ----
-void NetworkVideoSourceComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+void NetworkVideoSourceComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
 {
-	MikanComponent::getPropertyNames(outPropertyNames);
+	VideoSourceComponent::getPropertyNamesStatic(outPropertyNames);
 
 	outPropertyNames.push_back(NetworkVideoSourceDefinition::k_addressPropertyId);
+}
+
+void NetworkVideoSourceComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+{
+	getPropertyNamesStatic(outPropertyNames);
 }
 
 bool NetworkVideoSourceComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
@@ -634,12 +639,17 @@ bool NetworkVideoSourceComponent::setPropertyValue(const std::string& propertyNa
 const std::string NetworkVideoSourceComponent::k_calibrateIntrinsicsFunctionId = "calibrate_intrinsics";
 const std::string NetworkVideoSourceComponent::k_testIntrinsicsFunctionId = "test_intrinsics";
 
-void NetworkVideoSourceComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+void NetworkVideoSourceComponent::getFunctionNamesStatic(std::vector<std::string>& outPropertyNames)
 {
-	MikanComponent::getFunctionNames(outPropertyNames);
+	VideoSourceComponent::getFunctionNamesStatic(outPropertyNames);
 
 	outPropertyNames.push_back(k_calibrateIntrinsicsFunctionId);
 	outPropertyNames.push_back(k_testIntrinsicsFunctionId);
+}
+
+void NetworkVideoSourceComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+{
+	getFunctionNamesStatic(outPropertyNames);
 }
 
 bool NetworkVideoSourceComponent::getFunctionDescriptor(

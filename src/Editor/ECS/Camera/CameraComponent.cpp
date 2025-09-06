@@ -462,12 +462,17 @@ void CameraComponent::refreshTrackingMount()
 	}
 }
 
-void CameraComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+void CameraComponent::getFunctionNamesStatic(std::vector<std::string>& outPropertyNames)
 {
-	TransformComponent::getFunctionNames(outPropertyNames);
+	MikanComponent::getFunctionNamesStatic(outPropertyNames);
 
 	outPropertyNames.push_back(k_alignCameraFunctionId);
 	outPropertyNames.push_back(k_deleteCameraFunctionId);
+}
+
+void CameraComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+{
+	getFunctionNamesStatic(outPropertyNames);
 }
 
 bool CameraComponent::getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const

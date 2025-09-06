@@ -170,13 +170,18 @@ void QuadStencilComponent::updateBoxColliderExtents()
 }
 
 // -- IPropertyInterface ----
-void QuadStencilComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+void QuadStencilComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
 {
-	StencilComponent::getPropertyNames(outPropertyNames);
+	StencilComponent::getPropertyNamesStatic(outPropertyNames);
 
 	outPropertyNames.push_back(QuadStencilDefinition::k_quadStencilWidthPropertyId);
 	outPropertyNames.push_back(QuadStencilDefinition::k_quadStencilHeightPropertyId);
 	outPropertyNames.push_back(QuadStencilDefinition::k_quadStencilDoubleSidedPropertyId);
+}
+
+void QuadStencilComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+{
+	getPropertyNamesStatic(outPropertyNames);
 }
 
 bool QuadStencilComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const

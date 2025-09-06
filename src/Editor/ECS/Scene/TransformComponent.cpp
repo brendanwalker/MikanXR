@@ -373,13 +373,18 @@ void TransformComponent::visitAllTransformComponentsConst(TransformComponentCons
 }
 
 // -- IPropertyInterface ----
-void TransformComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+void TransformComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
 {
-	MikanComponent::getPropertyNames(outPropertyNames);
+	MikanComponent::getPropertyNamesStatic(outPropertyNames);
 
 	outPropertyNames.push_back(TransformComponentDefinition::k_relativeScalePropertyId);
 	outPropertyNames.push_back(TransformComponentDefinition::k_relativeRotationPropertyId);
 	outPropertyNames.push_back(TransformComponentDefinition::k_relativePositionPropertyId);
+}
+
+void TransformComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+{
+	getPropertyNamesStatic(outPropertyNames);
 }
 
 bool TransformComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const

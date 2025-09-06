@@ -256,12 +256,17 @@ void SceneComponent::renderEditorScene(MikanCameraConstPtr camera, MkStateStack&
 	mkScene->render(camera, MkStateStack);
 }
 
-void SceneComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+void SceneComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
 {
-	TransformComponent::getPropertyNames(outPropertyNames);
+	TransformComponent::getPropertyNamesStatic(outPropertyNames);
 
 	outPropertyNames.push_back(SceneComponentDefinition::k_parentStagePropertyId);
 	//outPropertyNames.push_back(SceneComponentDefinition::k_outputCompositorPropertyId);
+}
+
+void SceneComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+{
+	getPropertyNamesStatic(outPropertyNames);
 }
 
 bool SceneComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
@@ -327,11 +332,16 @@ bool SceneComponent::setPropertyValue(const std::string& propertyName, const Rml
 // -- IFunctionInterface ----
 const std::string SceneComponent::k_deleteSceneFunctionId = "delete_scene";
 
-void SceneComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+void SceneComponent::getFunctionNamesStatic(std::vector<std::string>& outPropertyNames)
 {
-	TransformComponent::getFunctionNames(outPropertyNames);
+	MikanComponent::getFunctionNamesStatic(outPropertyNames);
 
 	outPropertyNames.push_back(k_deleteSceneFunctionId);
+}
+
+void SceneComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+{
+	getFunctionNamesStatic(outPropertyNames);
 }
 
 bool SceneComponent::getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const
