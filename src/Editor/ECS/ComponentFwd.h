@@ -78,6 +78,11 @@ using TrackingMountDefinitionPtr = std::shared_ptr<TrackingMountDefinition>;
 using TrackingMountDefinitionConstPtr = std::shared_ptr<const TrackingMountDefinition>;
 using TrackingMountDefinitionWeakPtr = std::weak_ptr<TrackingMountDefinition>;
 
+class TrackingMountComponent;
+using TrackingMountComponentPtr = std::shared_ptr<TrackingMountComponent>;
+using TrackingMountComponentConstPtr = std::shared_ptr<const TrackingMountComponent>;
+using TrackingMountComponentWeakPtr = std::weak_ptr<TrackingMountComponent>;
+
 // Video Sources
 class ClientVideoSourceDefinition;
 using ClientVideoSourceDefinitionPtr = std::shared_ptr<ClientVideoSourceDefinition>;

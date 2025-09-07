@@ -2,7 +2,7 @@
 
 #include "MikanMathTypes.h"
 #include "TrackingAPIDefinition.h"
-#include "TrackingMountDefinition.h"
+#include "TrackingMountComponent.h"
 #include <vector>
 
 class VRTrackingAPIDefinition : 

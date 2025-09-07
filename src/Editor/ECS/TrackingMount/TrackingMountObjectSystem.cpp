@@ -1,0 +1,228 @@
+#include "TrackingMountObjectSystem.h"
+#include "App.h"
+#include "Logger.h"
+#include "TrackingMountComponent.h"
+#include "MikanAPITypes.h"
+#include "MikanMathTypes.h"
+#include "MikanObject.h"
+#include "ObjectSystemManager.h"
+#include "ProjectConfig.h"
+#include "SelectionComponent.h"
+#include "StringUtils.h"
+
+// -- TrackingMountObjectSystemConfig -----
+const std::string TrackingMountObjectSystemConfig::k_trackingMountListPropertyId = "trackingMounts";
+
+configuru::Config TrackingMountObjectSystemConfig::writeToJSON()
+{
+	configuru::Config pt = CommonConfig::writeToJSON();
+
+	pt["nextTrackingMountId"] = m_nextTrackingMountId;
+
+	// TrackingMount settings
+	std::vector<configuru::Config> trackingMountConfigs;
+	for (TrackingMountDefinitionPtr trackingMountDefinitionPtr : m_trackingMountList)
+	{
+		trackingMountConfigs.push_back(trackingMountDefinitionPtr->writeToJSON());
+	}
+	pt.insert_or_assign(std::string("trackingMounts"), trackingMountConfigs);
+
+	return pt;
+}
+
+void TrackingMountObjectSystemConfig::readFromJSON(const configuru::Config& pt)
+{
+	CommonConfig::readFromJSON(pt);
+
+	m_nextTrackingMountId = pt.get_or<MikanTrackingMountID>("nextTrackingMountId", m_nextTrackingMountId);
+
+	// TrackingMount settings
+	if (pt.has_key("trackingMounts"))
+	{
+		const configuru::Config& trackingMountConfigs = pt["trackingMounts"];
+
+		if (trackingMountConfigs.is_array())
+		{
+			for (const auto& trackingMountConfig : trackingMountConfigs.as_array())
+			{
+				TrackingMountDefinitionPtr trackingMountDefinition = TrackingMountDefinitionPtr(new TrackingMountDefinition());
+				trackingMountDefinition->readFromJSON(trackingMountConfig);
+
+				m_trackingMountList.push_back(trackingMountDefinition);
+			}
+		}
+	}
+}
+
+TrackingMountDefinitionPtr TrackingMountObjectSystemConfig::getTrackingMountConfig(MikanTrackingMountID trackingMountId) const
+{
+	for (auto trackingMountDefinitionPtr : m_trackingMountList)
+	{
+		if (trackingMountDefinitionPtr->getTrackingMountId() == trackingMountId)
+		{
+			return trackingMountDefinitionPtr;
+		}
+	}
+
+	return TrackingMountDefinitionPtr();
+}
+
+TrackingMountDefinitionPtr TrackingMountObjectSystemConfig::getTrackingMountConfigByName(const std::string& trackingMountName) const
+{
+	for (auto trackingMountDefinitionPtr : m_trackingMountList)
+	{
+		if (trackingMountDefinitionPtr->getComponentName() == trackingMountName)
+		{
+			return trackingMountDefinitionPtr;
+		}
+	}
+
+	return TrackingMountDefinitionPtr();
+}
+
+MikanTrackingMountID TrackingMountObjectSystemConfig::addNewTrackingMount(const std::string& trackingMountName)
+{
+	MikanTrackingMountID newTrackingMountId = m_nextTrackingMountId;
+	TrackingMountDefinitionPtr trackingMountDefinition =
+		TrackingMountDefinitionPtr(new TrackingMountDefinition(newTrackingMountId, trackingMountName));
+
+	m_trackingMountList.push_back(trackingMountDefinition);
+	++m_nextTrackingMountId;
+
+	return newTrackingMountId;
+}
+
+bool TrackingMountObjectSystemConfig::removeTrackingMount(MikanTrackingMountID trackingMountId)
+{
+	auto it = std::find_if(
+		m_trackingMountList.begin(), m_trackingMountList.end(),
+		[trackingMountId](const TrackingMountDefinitionPtr trackingMountDefinition) {
+			return trackingMountDefinition->getTrackingMountId() == trackingMountId;
+		});
+
+	if (it != m_trackingMountList.end())
+	{
+		m_trackingMountList.erase(it);
+		return true;
+	}
+
+	return false;
+}
+
+// -- TrackingMountObjectSystem ----
+bool TrackingMountObjectSystem::init()
+{
+	if (MikanObjectSystem::init())
+	{
+		TrackingMountObjectSystemConfigPtr config = getTrackingMountSystemConfig();
+
+		// Create tracking mount objects from config
+		for (TrackingMountDefinitionPtr trackingMountDefinition : config->getTrackingMountList())
+		{
+			createTrackingMountObject(trackingMountDefinition);
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+void TrackingMountObjectSystem::dispose()
+{
+	m_trackingMountComponents.clear();
+
+	MikanObjectSystem::dispose();
+}
+
+void TrackingMountObjectSystem::deleteObjectConfig(MikanObjectPtr objectPtr)
+{
+	MikanObjectSystem::deleteObjectConfig(objectPtr);
+}
+
+TrackingMountComponentPtr TrackingMountObjectSystem::getTrackingMountById(MikanTrackingMountID trackingMountId) const
+{
+	auto it = m_trackingMountComponents.find(trackingMountId);
+
+	return (it != m_trackingMountComponents.end()) ? it->second.lock() : TrackingMountComponentPtr();
+}
+
+TrackingMountComponentPtr TrackingMountObjectSystem::getTrackingMountByName(const std::string& trackingMountName) const
+{
+	for (auto& pair : m_trackingMountComponents)
+	{
+		TrackingMountComponentPtr trackingMountComponent = pair.second.lock();
+
+		if (trackingMountComponent)
+		{
+			TrackingMountDefinitionPtr trackingMountDefinition = trackingMountComponent->getTrackingMountDefinition();
+
+			if (trackingMountDefinition && trackingMountDefinition->getComponentName() == trackingMountName)
+			{
+				return trackingMountComponent;
+			}
+		}
+	}
+
+	return TrackingMountComponentPtr();
+}
+
+TrackingMountComponentPtr TrackingMountObjectSystem::addNewTrackingMount(const std::string& trackingMountName)
+{
+	TrackingMountObjectSystemConfigPtr config = getTrackingMountSystemConfig();
+	MikanTrackingMountID newTrackingMountId = config->addNewTrackingMount(trackingMountName);
+	TrackingMountDefinitionPtr trackingMountDefinition = config->getTrackingMountConfig(newTrackingMountId);
+
+	return createTrackingMountObject(trackingMountDefinition);
+}
+
+bool TrackingMountObjectSystem::removeTrackingMount(MikanTrackingMountID trackingMountId)
+{
+	TrackingMountObjectSystemConfigPtr config = getTrackingMountSystemConfig();
+
+	disposeTrackingMountObject(trackingMountId);
+
+	return config->removeTrackingMount(trackingMountId);
+}
+
+TrackingMountComponentPtr TrackingMountObjectSystem::createTrackingMountObject(
+	TrackingMountDefinitionPtr trackingMountConfig)
+{
+	MikanObjectPtr mikanObject = newObject();
+	mikanObject->setName(trackingMountConfig->getComponentName());
+
+	// Add marker component to the object
+	TrackingMountComponentPtr componentPtr = mikanObject->addComponent<TrackingMountComponent>();
+	componentPtr->setDefinition(trackingMountConfig);
+	m_trackingMountComponents.insert({ trackingMountConfig->getTrackingMountId(), componentPtr });
+
+	// Init the object once all components are added
+	mikanObject->init();
+
+	return componentPtr;
+}
+
+void TrackingMountObjectSystem::disposeTrackingMountObject(MikanTrackingMountID trackingMountId)
+{
+	auto it = m_trackingMountComponents.find(trackingMountId);
+	if (it != m_trackingMountComponents.end())
+	{
+		TrackingMountComponentPtr componentPtr = it->second.lock();
+
+		// Remove from component list
+		m_trackingMountComponents.erase(it);
+
+		// Free the corresponding object
+		deleteObject(componentPtr->getOwnerObject());
+	}
+}
+
+TrackingMountObjectSystemConfigConstPtr TrackingMountObjectSystem::getTrackingMountSystemConfigConst() const
+{
+	return App::getInstance()->getProfileConfig()->trackingMountSystemConfig;
+}
+
+TrackingMountObjectSystemConfigPtr TrackingMountObjectSystem::getTrackingMountSystemConfig()
+{
+	return std::const_pointer_cast<TrackingMountObjectSystemConfig>(getTrackingMountSystemConfigConst());
+}

@@ -4,23 +4,17 @@
 #include "ComponentFwd.h"
 #include "MikanComponent.h"
 #include "MikanTypeFwd.h"
-#include "MikanObjectSystem.h"
-#include "MulticastDelegate.h"
-#include "ObjectSystemFwd.h"
+#include "ObjectFwd.h"
 #include "ObjectSystemConfigFwd.h"
+#include "ObjectSystemFwd.h"
 #include "ProjectConfigConstants.h"
 #include "PropertyInterface.h"
 
-#include <map>
 #include <memory>
 #include <string>
 
-#include <glm/glm.hpp>
-#include <glm/ext/matrix_float4x4.hpp>
-
 class TrackingMountDefinition : 
-	public MikanComponentDefinition,
-	public IPropertyInterface
+	public MikanComponentDefinition
 {
 public:
 	TrackingMountDefinition();
@@ -30,7 +24,6 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
-	virtual void markDirty(const ConfigPropertyChangeSet& changedPropertySet) override;
 
 	inline MikanTrackingMountID getTrackingMountId() const { return m_trackingMountId; }
 
@@ -42,16 +35,28 @@ public:
 	inline const std::string& getSocketName() const { return m_socketName; }
 	void setSocketName(const std::string& socketName);
 
+private:
+	MikanTrackingMountID m_trackingMountId;
+	std::string m_devicePath;
+	std::string m_socketName;
+};
+
+class TrackingMountComponent : public MikanComponent
+{
+public:
+	TrackingMountComponent(MikanObjectWeakPtr owner);
+	virtual void init() override;
+
+	TrackingMountObjectSystemPtr getOwnerTrackingMountSystem() const;
+	inline TrackingMountDefinitionPtr getTrackingMountDefinition() const
+	{ return std::static_pointer_cast<TrackingMountDefinition>(m_definition); }
+
+	void deleteTrackingMount();
+
 	// -- IPropertyInterface ----
 	static void getPropertyNamesStatic(std::vector<std::string>& outPropertyNames);
 	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
 	virtual bool getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const override;
 	virtual bool getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const override;
-	virtual bool getPropertyAttribute(const std::string& propertyName, const std::string& attributeName, Rml::Variant& outValue) const override;
 	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
-
-private:
-	MikanTrackingMountID m_trackingMountId;
-	std::string m_devicePath;
-	std::string m_socketName;
 };

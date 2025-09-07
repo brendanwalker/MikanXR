@@ -1,4 +1,4 @@
-#include "TrackingMountDefinition.h"
+#include "TrackingMountComponent.h"
 #include "App.h"
 #include "MathTypeConversion.h"
 #include "MikanObject.h"
@@ -7,6 +7,7 @@
 #include "ProjectConfig.h"
 #include "SelectionComponent.h"
 #include "StringUtils.h"
+#include "TrackingMountObjectSystem.h"
 
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Variant.h>
@@ -48,20 +49,6 @@ void TrackingMountDefinition::readFromJSON(const configuru::Config& pt)
 	m_socketName = pt.get_or<std::string>("socket_name", m_socketName);
 }
 
-void TrackingMountDefinition::markDirty(const ConfigPropertyChangeSet& changedPropertySet)
-{
-	CommonConfig::markDirty(changedPropertySet);
-
-	if (OnPropertyChanged)
-	{
-		// TODO: Only notify for property names that are actually exposed in getPropertyNames()
-		for (const std::string& changedPropertyName : changedPropertySet.getSet())
-		{
-			OnPropertyChanged(changedPropertyName);
-		}
-	}
-}
-
 void TrackingMountDefinition::setDevicePath(const std::string& devicePath)
 {
 	if (devicePath != m_devicePath)
@@ -80,29 +67,52 @@ void TrackingMountDefinition::setSocketName(const std::string& socketName)
 	}
 }
 
-// -- IPropertyInterface ----
-void TrackingMountDefinition::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
+// -- TrackingMountComponent -----
+TrackingMountComponent::TrackingMountComponent(MikanObjectWeakPtr owner)
+	: MikanComponent(owner)
 {
-	outPropertyNames.push_back(MikanComponentDefinition::k_componentNamePropertyId);
+
+}
+
+void TrackingMountComponent::init()
+{
+	MikanComponent::init();
+}
+
+TrackingMountObjectSystemPtr TrackingMountComponent::getOwnerTrackingMountSystem() const
+{
+	return std::static_pointer_cast<TrackingMountObjectSystem>(getOwnerObject()->getOwnerSystem());
+}
+
+void TrackingMountComponent::deleteTrackingMount()
+{
+	TrackingMountDefinitionPtr trackingMountDefinition = getTrackingMountDefinition();
+	if (trackingMountDefinition)
+	{
+		const MikanTrackingMountID trackingMountId = trackingMountDefinition->getTrackingMountId();
+		getOwnerTrackingMountSystem()->removeTrackingMount(trackingMountId);
+	}
+}
+
+// -- IPropertyInterface ----
+void TrackingMountComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
+{
+	MikanComponent::getPropertyNamesStatic(outPropertyNames);
+
 	outPropertyNames.push_back(TrackingMountDefinition::k_devicePathPropertyId);
 	outPropertyNames.push_back(TrackingMountDefinition::k_socketNamePropertyId);
 }
 
-void TrackingMountDefinition::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+void TrackingMountComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
 {
-	TrackingMountDefinition::getPropertyNamesStatic(outPropertyNames);
+	TrackingMountComponent::getPropertyNamesStatic(outPropertyNames);
 }
 
-bool TrackingMountDefinition::getPropertyDescriptor(
+bool TrackingMountComponent::getPropertyDescriptor(
 	const std::string& propertyName,
 	PropertyDescriptor& outDescriptor) const
 {
-	if (propertyName == MikanComponentDefinition::k_componentNamePropertyId)
-	{
-		outDescriptor = { MikanComponentDefinition::k_componentNamePropertyId, ePropertyDataType::datatype_string, ePropertySemantic::name };
-		return true;
-	}
-	else if (propertyName == TrackingMountDefinition::k_devicePathPropertyId)
+	if (propertyName == TrackingMountDefinition::k_devicePathPropertyId)
 	{
 		outDescriptor = { TrackingMountDefinition::k_devicePathPropertyId, ePropertyDataType::datatype_string, ePropertySemantic::name };
 		return true;
@@ -113,52 +123,37 @@ bool TrackingMountDefinition::getPropertyDescriptor(
 		return true;
 	}
 
-	return false;
+	return MikanComponent::getPropertyDescriptor(propertyName, outDescriptor);
 }
 
-bool TrackingMountDefinition::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
+bool TrackingMountComponent::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
 {
-	if (propertyName == MikanComponentDefinition::k_componentNamePropertyId)
+	if (propertyName == TrackingMountDefinition::k_devicePathPropertyId)
 	{
-		outValue = getComponentName();
-		return true;
-	}
-	else if (propertyName == TrackingMountDefinition::k_devicePathPropertyId)
-	{
-		outValue = getDevicePath();
+		outValue = getTrackingMountDefinition()->getDevicePath();
 		return true;
 	}
 	else if (propertyName == TrackingMountDefinition::k_socketNamePropertyId)
 	{
-		outValue = getSocketName();
+		outValue = getTrackingMountDefinition()->getSocketName();
 		return true;
 	}
 
-	return false;
+	return MikanComponent::getPropertyValue(propertyName, outValue);
 }
 
-bool TrackingMountDefinition::getPropertyAttribute(const std::string& propertyName, const std::string& attributeName, Rml::Variant& outValue) const
+bool TrackingMountComponent::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
 {
-	return false;
-}
-
-bool TrackingMountDefinition::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
-{
-	if (propertyName == MikanComponentDefinition::k_componentNamePropertyId)
+	if (propertyName == TrackingMountDefinition::k_devicePathPropertyId)
 	{
-		setComponentName(inValue.Get<Rml::String>());
-		return true;
-	}
-	else if (propertyName == TrackingMountDefinition::k_devicePathPropertyId)
-	{
-		setDevicePath(inValue.Get<Rml::String>());
+		getTrackingMountDefinition()->setDevicePath(inValue.Get<Rml::String>());
 		return true;
 	}
 	else if (propertyName == TrackingMountDefinition::k_socketNamePropertyId)
 	{
-		setSocketName(inValue.Get<Rml::String>());
+		getTrackingMountDefinition()->setSocketName(inValue.Get<Rml::String>());
 		return true;
 	}
 
-	return false;
+	return MikanComponent::setPropertyValue(propertyName, inValue);
 }

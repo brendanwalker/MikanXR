@@ -57,6 +57,11 @@ using StencilObjectSystemConfigPtr = std::shared_ptr<StencilObjectSystemConfig>;
 using StencilObjectSystemConfigConstPtr = std::shared_ptr<const StencilObjectSystemConfig>;
 using StencilObjectSystemConfigWeakPtr = std::weak_ptr<StencilObjectSystemConfig>;
 
+class TrackingMountObjectSystemConfig;
+using TrackingMountObjectSystemConfigPtr = std::shared_ptr<TrackingMountObjectSystemConfig>;
+using TrackingMountObjectSystemConfigConstPtr = std::shared_ptr<const TrackingMountObjectSystemConfig>;
+using TrackingMountObjectSystemConfigWeakPtr = std::weak_ptr<TrackingMountObjectSystemConfig>;
+
 class TrackingSystemsConfig;
 using TrackingSystemsConfigPtr = std::shared_ptr<TrackingSystemsConfig>;
 using TrackingSystemsConfigConstPtr = std::shared_ptr<const TrackingSystemsConfig>;

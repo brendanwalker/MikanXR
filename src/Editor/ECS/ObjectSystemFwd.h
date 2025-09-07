@@ -46,6 +46,10 @@ class StencilObjectSystem;
 using StencilObjectSystemPtr = std::shared_ptr<StencilObjectSystem>;
 using StencilObjectSystemWeakPtr = std::weak_ptr<StencilObjectSystem>;
 
+class TrackingMountObjectSystem;
+using TrackingMountObjectSystemPtr = std::shared_ptr<TrackingMountObjectSystem>;
+using TrackingMountObjectSystemWeakPtr = std::weak_ptr<TrackingMountObjectSystem>;
+
 class VideoSourceSystem;
 using VideoSourceSystemPtr = std::shared_ptr<VideoSourceSystem>;
 using VideoSourceSystemWeakPtr = std::weak_ptr<VideoSourceSystem>;

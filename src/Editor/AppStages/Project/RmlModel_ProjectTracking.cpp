@@ -5,7 +5,8 @@
 #include "Shared/RmlModel_PropertyInterface.h"
 #include "StringUtils.h"
 #include "TrackingSystemsConfig.h"
-#include "TrackingMountDefinition.h"
+#include "TrackingMountComponent.h"
+#include "TrackingMountObjectSystem.h"
 #include "VRTrackingAPIDefinition.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
@@ -23,11 +24,13 @@ RmlModel_ProjectTracking::RmlModel_ProjectTracking()
 
 bool RmlModel_ProjectTracking::init(
 	Rml::Context* rmlContext, 
-	ProjectConfigPtr projectConfig)
+	ProjectConfigPtr projectConfig,
+	TrackingMountObjectSystemPtr trackingMountSystem)
 {
 	TrackingSystemsConfigPtr trackingSystemConfig= projectConfig->trackingSystemsConfig;
 
 	m_projectConfig = projectConfig;
+	m_trackingMountSystem = trackingMountSystem;
 
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "tracking_systems");
@@ -162,14 +165,9 @@ VRTrackingAPIDefinitionPtr RmlModel_ProjectTracking::getSelectedVRTrackingSystem
 	return getTrackingSystemsConfig()->getVRTrackingAPIDefinition((MikanTrackingSystemID)m_selectedTrackingSystemId);
 }
 
-TrackingMountDefinitionPtr RmlModel_ProjectTracking::getSelectedTrackingMount()
+TrackingMountComponentPtr RmlModel_ProjectTracking::getSelectedTrackingMount()
 {
-	VRTrackingAPIDefinitionPtr vrSystemPtr = getSelectedVRTrackingSystem();
-	if (vrSystemPtr)
-	{
-		return vrSystemPtr->getTrackingMountDefinition((MikanTrackingMountID)m_selectedTrackingMountId);
-	}
-	return nullptr;
+	return m_trackingMountSystem.lock()->getTrackingMountById((MikanTrackingMountID)m_selectedTrackingMountId);
 }
 
 void RmlModel_ProjectTracking::addNewSteamVRTrackingSystem(
@@ -292,9 +290,9 @@ void RmlModel_ProjectTracking::setSelectedTrackingMountId(MikanTrackingMountID t
 		m_selectedTrackingMountId = (int)trackingMountId;
 		m_modelHandle.DirtyVariable("selected_tracking_mount_id");
 
-		if (TrackingMountDefinitionPtr mountDefinition = getSelectedTrackingMount())
+		if (TrackingMountComponentPtr trackingMount = getSelectedTrackingMount())
 		{
-			m_selectedTrackingMountModel->setPropertyInterface(mountDefinition.get());
+			m_selectedTrackingMountModel->setPropertyInterface(trackingMount.get());
 		}
 		else
 		{

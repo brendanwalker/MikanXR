@@ -15,7 +15,10 @@ class RmlModel_ProjectTracking : public RmlModel
 public:
 	RmlModel_ProjectTracking();
 
-	bool init(Rml::Context* rmlContext, ProjectConfigPtr projectConfig);
+	bool init(
+		Rml::Context* rmlContext, 
+		ProjectConfigPtr projectConfig,
+		TrackingMountObjectSystemPtr trackingMountSystem);
 	virtual void dispose() override;
 
 private:
@@ -23,7 +26,7 @@ private:
 	TrackingAPIDefinitionPtr getSelectedTrackingSystem();
 	MarkerTrackingAPIDefinitionPtr getSelectedMarkerTrackingSystem();
 	VRTrackingAPIDefinitionPtr getSelectedVRTrackingSystem();
-	TrackingMountDefinitionPtr getSelectedTrackingMount();
+	TrackingMountComponentPtr getSelectedTrackingMount();
 
 	void addNewSteamVRTrackingSystem(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void addNewMarkerTrackingSystem(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
@@ -40,6 +43,8 @@ private:
 	void trackingMountIdListChanged(bool bOwnerChanged);
 
 	ProjectConfigWeakPtr m_projectConfig;
+	TrackingMountObjectSystemWeakPtr m_trackingMountSystem;
+
 	RmlDataBinding_ComponentListPtr m_trackingSystemIdList;
 	RmlDataBinding_ComponentListPtr m_trackingMountIdList;
 	RmlModel_PropertyInterfacePtr m_selectedVRTrackingSystemModel;

@@ -294,7 +294,6 @@ bool MarkerObjectSystem::removeMarker(MikanMarkerID markerId)
 
 MarkerComponentPtr MarkerObjectSystem::createMarkerObject(MarkerDefinitionPtr markerConfig)
 {
-	MarkerObjectSystemConfigConstPtr markerSystemConfig = getMarkerSystemConfigConst();
 	MikanObjectPtr markerObject = newObject();
 	markerObject->setName(markerConfig->getComponentName());
 
@@ -302,9 +301,6 @@ MarkerComponentPtr MarkerObjectSystem::createMarkerObject(MarkerDefinitionPtr ma
 	MarkerComponentPtr markerComponentPtr = markerObject->addComponent<MarkerComponent>();
 	markerComponentPtr->setDefinition(markerConfig);
 	m_markerComponents.insert({markerConfig->getMarkerId(), markerComponentPtr});
-
-	// Add a selection component
-	markerObject->addComponent<SelectionComponent>();
 
 	// Init the object once all components are added
 	markerObject->init();

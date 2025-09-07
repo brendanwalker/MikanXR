@@ -33,6 +33,7 @@ public:
 	SceneObjectSystemConfigPtr sceneConfig;
 	StageObjectSystemConfigPtr stageConfig;
 	TrackingSystemsConfigPtr trackingSystemsConfig;
+	TrackingMountObjectSystemConfigPtr trackingMountSystemConfig;
 	VideoSourceSystemConfigPtr videoSourceSystemConfig;
 	VRObjectSystemConfigPtr vrObjectConfig;
 

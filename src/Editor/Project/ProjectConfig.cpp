@@ -14,6 +14,7 @@
 #include "StringUtils.h"
 #include "SinglecastDelegate.h"
 #include "TrackingSystemsConfig.h"
+#include "TrackingMountObjectSystem.h"
 #include "VideoSourceSystemConfig.h"
 #include "VRObjectSystem.h"
 
@@ -51,6 +52,9 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 
 	trackingSystemsConfig = std::make_shared<TrackingSystemsConfig>("tracking_systems");
 	addChildConfig(trackingSystemsConfig);
+
+	trackingMountSystemConfig = std::make_shared<TrackingMountObjectSystemConfig>("tracking_mount_system");
+	addChildConfig(trackingMountSystemConfig);
 
 	videoSourceSystemConfig = std::make_shared<VideoSourceSystemConfig>("video_source_system");
 	addChildConfig(videoSourceSystemConfig);
@@ -94,6 +98,9 @@ configuru::Config ProjectConfig::writeToJSON()
 
 	// Write the tracking systems config
 	pt[trackingSystemsConfig->getConfigName()] = trackingSystemsConfig->writeToJSON();
+
+	// Write the tracking mount system config
+	pt[trackingMountSystemConfig->getConfigName()] = trackingMountSystemConfig->writeToJSON();
 
 	// Write the video source system config
 	pt[videoSourceSystemConfig->getConfigName()] = videoSourceSystemConfig->writeToJSON();
@@ -163,6 +170,12 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 	if (pt.has_key(trackingSystemsConfig->getConfigName()))
 	{
 		trackingSystemsConfig->readFromJSON(pt[trackingSystemsConfig->getConfigName()]);
+	}
+
+	// Read the tracking mount system config
+	if (pt.has_key(trackingMountSystemConfig->getConfigName()))
+	{
+		trackingMountSystemConfig->readFromJSON(pt[trackingMountSystemConfig->getConfigName()]);
 	}
 
 	// Read the video source system config

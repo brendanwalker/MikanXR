@@ -13,6 +13,7 @@
 #include "SpoutVideoSourceSystem.h"
 #include "StencilObjectSystem.h"
 #include "StageObjectSystem.h"
+#include "TrackingMountObjectSystem.h"
 #include "USBVideoSourceSystem.h"
 #include "VideoSourceSystem.h"
 #include "VRObjectSystem.h"
@@ -35,6 +36,7 @@ bool ObjectSystemManager::startup()
 	addSystem<CameraObjectSystem>();
 	addSystem<AnchorObjectSystem>();
 	addSystem<StencilObjectSystem>();
+	addSystem<TrackingMountObjectSystem>();
 	addSystem<VRObjectSystem>();
 
 	for (int i= 0; i < (int)m_systems.size(); i++)
