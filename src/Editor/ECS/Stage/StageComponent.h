@@ -47,7 +47,7 @@ public:
 		return std::static_pointer_cast<StageComponentDefinition>(m_definition);
 	}
 
-	TrackingSystemDefinitionConstPtr getTrackingSystemDefinitionConst() const;
+	TrackingAPIDefinitionConstPtr getTrackingAPIDefinitionConst() const;
 
 	// -- MikanComponent ----
 	virtual void setDefinition(MikanComponentDefinitionPtr definition) override;

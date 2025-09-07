@@ -11,7 +11,7 @@
 #include "MikanTextRenderer.h"
 #include "StageComponent.h"
 #include "TextStyle.h"
-#include "TrackingSystemDefinition.h"
+#include "TrackingAPIDefinition.h"
 #include "VideoFrameDistortionView.h"
 
 #include "opencv2/opencv.hpp"
@@ -43,7 +43,7 @@ CalibrationPatternFinder_Aruco::CalibrationPatternFinder_Aruco(
 {
 	StageComponentConstPtr ownerStage= cameraComponent->getOwnerStageComponent();
 	assert(ownerStage != nullptr);
-	TrackingSystemDefinitionConstPtr trackingSystem = ownerStage->getTrackingSystemDefinitionConst();
+	TrackingAPIDefinitionConstPtr trackingSystem = ownerStage->getTrackingAPIDefinitionConst();
 	assert(trackingSystem != nullptr);
 	MarkerSystemConfigPtr markerSystem= MarkerSystemConfig::getSystemConfig();
 	assert(markerSystem != nullptr);

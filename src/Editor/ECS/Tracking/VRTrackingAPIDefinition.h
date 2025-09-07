@@ -1,16 +1,16 @@
 #pragma once
 
 #include "MikanMathTypes.h"
-#include "TrackingSystemDefinition.h"
+#include "TrackingAPIDefinition.h"
 #include "TrackingMountDefinition.h"
 #include <vector>
 
-class VRTrackingSystemDefinition : 
-	public TrackingSystemDefinition
+class VRTrackingAPIDefinition : 
+	public TrackingAPIDefinition
 {
 public:
-	VRTrackingSystemDefinition();
-	VRTrackingSystemDefinition(
+	VRTrackingAPIDefinition();
+	VRTrackingAPIDefinition(
 		eTrackingRuntime trackingRuntime,
 		MikanTrackingSystemID trackingSystemId,
 		const std::string& trackingSystemName);

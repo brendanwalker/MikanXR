@@ -16,7 +16,7 @@
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceComponent.h"
 #include "VRDeviceComponent.h"
-#include "VRTrackingSystemDefinition.h"
+#include "VRTrackingAPIDefinition.h"
 
 #include <algorithm>
 #include <atomic>
@@ -166,8 +166,8 @@ bool MonoLensTrackerPoseCalibrator::computeCameraToPuckXform()
 
 	// Compute the VR tracking space offset from matPuck to calibration pattern
 	// using the measured offsets on the paper calibration mat
-	VRTrackingSystemDefinitionConstPtr vrTrackingConfig = 
-		m_cameraComponent->getVRTrackingSystemDefinition();
+	VRTrackingAPIDefinitionConstPtr vrTrackingConfig = 
+		m_cameraComponent->getVRTrackingAPIDefinition();
 	MikanVector3f puckOffset= vrTrackingConfig->getCharucoMountOffsetMM();
 	const double puckToPatternX = (double)puckOffset.x * k_millimeters_to_meters;
 	const double puckToPatternY = (double)puckOffset.y * k_millimeters_to_meters;

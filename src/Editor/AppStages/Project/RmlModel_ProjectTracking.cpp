@@ -1,4 +1,4 @@
-#include "MarkerTrackingSystemDefinition.h"
+#include "MarkerTrackingAPIDefinition.h"
 #include "MikanCoreTypes.h"
 #include "ProjectConfig.h"
 #include "RmlModel_ProjectTracking.h"
@@ -6,7 +6,7 @@
 #include "StringUtils.h"
 #include "TrackingSystemsConfig.h"
 #include "TrackingMountDefinition.h"
-#include "VRTrackingSystemDefinition.h"
+#include "VRTrackingAPIDefinition.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
@@ -42,14 +42,14 @@ bool RmlModel_ProjectTracking::init(
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 			TrackingSystemsConfigPtr trackingConfig = m_projectConfig.lock()->trackingSystemsConfig;
 
-			for (const auto& vrSystemPtr : trackingConfig->getVRTrackingSystemList())
+			for (const auto& vrSystemPtr : trackingConfig->getVRTrackingAPIList())
 			{
 				if (vrSystemPtr)
 				{
 					outComponentIdList.push_back((int)vrSystemPtr->getTrackingSystemId());
 				}
 			}
-			for (const auto& markerSystemPtr : trackingConfig->getMarkerTrackingSystemList())
+			for (const auto& markerSystemPtr : trackingConfig->getMarkerTrackingAPIList())
 			{
 				if (markerSystemPtr)
 				{
@@ -64,7 +64,7 @@ bool RmlModel_ProjectTracking::init(
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 			if (ownerConfig)
 			{
-				auto vrTrackingSystemDefinition= std::static_pointer_cast<VRTrackingSystemDefinition>(ownerConfig);
+				auto vrTrackingSystemDefinition= std::static_pointer_cast<VRTrackingAPIDefinition>(ownerConfig);
 				
 				for (const auto& trackingMountPtr : vrTrackingSystemDefinition->getTrackingMounts())
 				{
@@ -81,10 +81,10 @@ bool RmlModel_ProjectTracking::init(
 	constructor.Bind("selected_tracking_mount_id", &m_selectedTrackingMountId);
 
 	// Register Selected Object Models
-	m_selectedVRTrackingSystemModel->init<VRTrackingSystemDefinition>(
+	m_selectedVRTrackingSystemModel->init<VRTrackingAPIDefinition>(
 		rmlContext,
 		"vr_tracking_system_definition");
-	m_selectedMarkerTrackingSystemModel->init<MarkerTrackingSystemDefinition>(
+	m_selectedMarkerTrackingSystemModel->init<MarkerTrackingAPIDefinition>(
 		rmlContext,
 		"marker_tracking_system_definition");
 	m_selectedTrackingMountModel->init<TrackingMountDefinition>(
@@ -147,24 +147,24 @@ TrackingSystemsConfigPtr RmlModel_ProjectTracking::getTrackingSystemsConfig()
 	return m_projectConfig.lock()->trackingSystemsConfig;
 }
 
-TrackingSystemDefinitionPtr RmlModel_ProjectTracking::getSelectedTrackingSystem()
+TrackingAPIDefinitionPtr RmlModel_ProjectTracking::getSelectedTrackingSystem()
 {
-	return getTrackingSystemsConfig()->getTrackingSystemDefinition((MikanTrackingSystemID)m_selectedTrackingSystemId);
+	return getTrackingSystemsConfig()->getTrackingAPIDefinition((MikanTrackingSystemID)m_selectedTrackingSystemId);
 }
 
-MarkerTrackingSystemDefinitionPtr RmlModel_ProjectTracking::getSelectedMarkerTrackingSystem()
+MarkerTrackingAPIDefinitionPtr RmlModel_ProjectTracking::getSelectedMarkerTrackingSystem()
 {
-	return getTrackingSystemsConfig()->getMarkerTrackingSystemDefinition((MikanTrackingSystemID)m_selectedTrackingSystemId);
+	return getTrackingSystemsConfig()->getMarkerTrackingAPIDefinition((MikanTrackingSystemID)m_selectedTrackingSystemId);
 }
 
-VRTrackingSystemDefinitionPtr RmlModel_ProjectTracking::getSelectedVRTrackingSystem()
+VRTrackingAPIDefinitionPtr RmlModel_ProjectTracking::getSelectedVRTrackingSystem()
 {
-	return getTrackingSystemsConfig()->getVRTrackingSystemDefinition((MikanTrackingSystemID)m_selectedTrackingSystemId);
+	return getTrackingSystemsConfig()->getVRTrackingAPIDefinition((MikanTrackingSystemID)m_selectedTrackingSystemId);
 }
 
 TrackingMountDefinitionPtr RmlModel_ProjectTracking::getSelectedTrackingMount()
 {
-	VRTrackingSystemDefinitionPtr vrSystemPtr = getSelectedVRTrackingSystem();
+	VRTrackingAPIDefinitionPtr vrSystemPtr = getSelectedVRTrackingSystem();
 	if (vrSystemPtr)
 	{
 		return vrSystemPtr->getTrackingMountDefinition((MikanTrackingMountID)m_selectedTrackingMountId);
@@ -206,7 +206,7 @@ void RmlModel_ProjectTracking::addNewTrackingMount(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	VRTrackingSystemDefinitionPtr vrSystemPtr = getSelectedVRTrackingSystem();
+	VRTrackingAPIDefinitionPtr vrSystemPtr = getSelectedVRTrackingSystem();
 	if (vrSystemPtr)
 	{
 		vrSystemPtr->addTrackingMount();
@@ -223,7 +223,7 @@ void RmlModel_ProjectTracking::removeTrackingMount(
 
 	const int mountId = parameters[0].Get<int>();
 
-	VRTrackingSystemDefinitionPtr vrSystemPtr = getSelectedVRTrackingSystem();
+	VRTrackingAPIDefinitionPtr vrSystemPtr = getSelectedVRTrackingSystem();
 	if (vrSystemPtr)
 	{
 		vrSystemPtr->removeTrackingMount((MikanTrackingMountID)mountId);
@@ -261,14 +261,14 @@ void RmlModel_ProjectTracking::setSelectedTrackingSystemId(MikanTrackingSystemID
 		m_selectedTrackingSystemId = (int)trackingSystemId;
 		m_modelHandle.DirtyVariable("selected_tracking_system_id");
 
-		if (VRTrackingSystemDefinitionPtr vrTrackingDefinition = getSelectedVRTrackingSystem())
+		if (VRTrackingAPIDefinitionPtr vrTrackingDefinition = getSelectedVRTrackingSystem())
 		{
 			m_selectedVRTrackingSystemModel->setPropertyInterface(vrTrackingDefinition.get());
 			m_selectedMarkerTrackingSystemModel->setPropertyInterface(nullptr);
 
 			m_trackingMountIdList->setOwnerConfig(vrTrackingDefinition);
 		}
-		else if (MarkerTrackingSystemDefinitionPtr markerTrackingDefinition = getSelectedMarkerTrackingSystem())
+		else if (MarkerTrackingAPIDefinitionPtr markerTrackingDefinition = getSelectedMarkerTrackingSystem())
 		{
 			m_selectedVRTrackingSystemModel->setPropertyInterface(nullptr);
 			m_selectedMarkerTrackingSystemModel->setPropertyInterface(markerTrackingDefinition.get());

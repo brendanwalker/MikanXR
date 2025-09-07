@@ -22,14 +22,14 @@ configuru::Config TrackingSystemsConfig::writeToJSON()
 	configuru::Config pt = CommonConfig::writeToJSON();
 
 	std::vector<configuru::Config> markerSystemsConfigs;
-	for (MarkerTrackingSystemDefinitionPtr systemDefinition : m_markerTrackingSystemList)
+	for (MarkerTrackingAPIDefinitionPtr systemDefinition : m_markerTrackingAPIList)
 	{
 		markerSystemsConfigs.push_back(systemDefinition->writeToJSON());
 	}
 	pt.insert_or_assign(std::string("markerTrackingSystems"), markerSystemsConfigs);
 
 	std::vector<configuru::Config> vrSystemsConfigs;
-	for (VRTrackingSystemDefinitionPtr systemDefinition : m_vrTrackingSystemList)
+	for (VRTrackingAPIDefinitionPtr systemDefinition : m_vrTrackingAPIList)
 	{
 		vrSystemsConfigs.push_back(systemDefinition->writeToJSON());
 	}
@@ -46,31 +46,31 @@ void TrackingSystemsConfig::readFromJSON(const configuru::Config& pt)
 
 	m_nextTrackingSystemId = pt.get_or<int>("nextTrackingSystemId", m_nextTrackingSystemId);
 
-	m_markerTrackingSystemList.clear();
+	m_markerTrackingAPIList.clear();
 	if (pt.has_key("markerTrackingSystems"))
 	{
 		for (const configuru::Config& trackingSystemConfig : pt["markerTrackingSystems"].as_array())
 		{
-			MarkerTrackingSystemDefinitionPtr trackingSystemDefinitionPtr = 
-				std::make_shared<MarkerTrackingSystemDefinition>();
+			MarkerTrackingAPIDefinitionPtr trackingSystemDefinitionPtr = 
+				std::make_shared<MarkerTrackingAPIDefinition>();
 
 			trackingSystemDefinitionPtr->readFromJSON(trackingSystemConfig);
-			m_markerTrackingSystemList.push_back(trackingSystemDefinitionPtr);
+			m_markerTrackingAPIList.push_back(trackingSystemDefinitionPtr);
 
 			addChildConfig(trackingSystemDefinitionPtr);
 		}
 	}
 
-	m_vrTrackingSystemList.clear();
+	m_vrTrackingAPIList.clear();
 	if (pt.has_key("vrTrackingSystems"))
 	{
 		for (const configuru::Config& trackingSystemConfig : pt["vrTrackingSystems"].as_array())
 		{
-			VRTrackingSystemDefinitionPtr trackingSystemDefinitionPtr =
-				std::make_shared<VRTrackingSystemDefinition>();
+			VRTrackingAPIDefinitionPtr trackingSystemDefinitionPtr =
+				std::make_shared<VRTrackingAPIDefinition>();
 
 			trackingSystemDefinitionPtr->readFromJSON(trackingSystemConfig);
-			m_vrTrackingSystemList.push_back(trackingSystemDefinitionPtr);
+			m_vrTrackingAPIList.push_back(trackingSystemDefinitionPtr);
 
 			addChildConfig(trackingSystemDefinitionPtr);
 		}
@@ -82,7 +82,7 @@ bool TrackingSystemsConfig::canAddTrackingSystemType(eTrackingSystemType systemT
 	switch (systemType)
 	{
 		case eTrackingSystemType::vr:
-			return m_vrTrackingSystemList.size() == 0;
+			return m_vrTrackingAPIList.size() == 0;
 		case eTrackingSystemType::marker:
 			return true;
 	}
@@ -90,37 +90,37 @@ bool TrackingSystemsConfig::canAddTrackingSystemType(eTrackingSystemType systemT
 	return false;
 }
 
-TrackingSystemDefinitionConstPtr TrackingSystemsConfig::getTrackingSystemDefinitionConst(
+TrackingAPIDefinitionConstPtr TrackingSystemsConfig::getTrackingAPIDefinitionConst(
 	MikanTrackingSystemID systemId) const
 {
-	MarkerTrackingSystemDefinitionConstPtr markerSystemPtr = 
-		getMarkerTrackingSystemDefinitionConst(systemId);
+	MarkerTrackingAPIDefinitionConstPtr markerSystemPtr = 
+		getMarkerTrackingAPIDefinitionConst(systemId);
 	if (markerSystemPtr)
 	{
 		return markerSystemPtr;
 	}
 
-	VRTrackingSystemDefinitionConstPtr vrSystemPtr = 
-		getVRTrackingSystemDefinitionConst(systemId);
+	VRTrackingAPIDefinitionConstPtr vrSystemPtr = 
+		getVRTrackingAPIDefinitionConst(systemId);
 	if (vrSystemPtr)
 	{
 		return vrSystemPtr;
 	}
 
-	return TrackingSystemDefinitionPtr();
+	return TrackingAPIDefinitionPtr();
 }
 
-TrackingSystemDefinitionPtr TrackingSystemsConfig::getTrackingSystemDefinition(
+TrackingAPIDefinitionPtr TrackingSystemsConfig::getTrackingAPIDefinition(
 	MikanTrackingSystemID systemId)
 {
 	return 
-		std::const_pointer_cast<TrackingSystemDefinition>(
-			getTrackingSystemDefinitionConst(systemId));
+		std::const_pointer_cast<TrackingAPIDefinition>(
+			getTrackingAPIDefinitionConst(systemId));
 }
 
 eTrackingSystemType TrackingSystemsConfig::getTrackingSystemType(MikanTrackingSystemID systemId) const
 {
-	TrackingSystemDefinitionConstPtr trackingSystem= getTrackingSystemDefinitionConst(systemId);
+	TrackingAPIDefinitionConstPtr trackingSystem= getTrackingAPIDefinitionConst(systemId);
 	if (trackingSystem)
 	{
 		return trackingSystem->getTrackingSystemType();
@@ -144,25 +144,25 @@ bool TrackingSystemsConfig::removeTrackingSystem(MikanTrackingSystemID systemId)
 	return false;
 }
 
-MarkerTrackingSystemDefinitionConstPtr TrackingSystemsConfig::getMarkerTrackingSystemDefinitionConst(MikanTrackingSystemID systemId) const
+MarkerTrackingAPIDefinitionConstPtr TrackingSystemsConfig::getMarkerTrackingAPIDefinitionConst(MikanTrackingSystemID systemId) const
 {
 	auto iter = std::find_if(
-		m_markerTrackingSystemList.begin(), m_markerTrackingSystemList.end(),
-		[systemId](MarkerTrackingSystemDefinitionPtr configPtr) {
+		m_markerTrackingAPIList.begin(), m_markerTrackingAPIList.end(),
+		[systemId](MarkerTrackingAPIDefinitionPtr configPtr) {
 			return configPtr->getTrackingSystemId() == systemId;
 		});
 
-	if (iter != m_markerTrackingSystemList.end())
+	if (iter != m_markerTrackingAPIList.end())
 	{
-		return MarkerTrackingSystemDefinitionConstPtr(*iter);
+		return MarkerTrackingAPIDefinitionConstPtr(*iter);
 	}
 
-	return MarkerTrackingSystemDefinitionConstPtr();
+	return MarkerTrackingAPIDefinitionConstPtr();
 }
 
-MarkerTrackingSystemDefinitionPtr TrackingSystemsConfig::getMarkerTrackingSystemDefinition(MikanTrackingSystemID systemId)
+MarkerTrackingAPIDefinitionPtr TrackingSystemsConfig::getMarkerTrackingAPIDefinition(MikanTrackingSystemID systemId)
 {
-	return std::const_pointer_cast<MarkerTrackingSystemDefinition>(getMarkerTrackingSystemDefinitionConst(systemId));
+	return std::const_pointer_cast<MarkerTrackingAPIDefinition>(getMarkerTrackingAPIDefinitionConst(systemId));
 }
 
 MikanTrackingSystemID TrackingSystemsConfig::addMarkerTrakingSystem()
@@ -171,13 +171,13 @@ MikanTrackingSystemID TrackingSystemsConfig::addMarkerTrakingSystem()
 		return INVALID_MIKAN_ID;
 
 	const std::string systemName = StringUtils::stringify("Marker System ", m_nextTrackingSystemId);
-	MarkerTrackingSystemDefinitionPtr configPtr = 
-		std::make_shared<MarkerTrackingSystemDefinition>(
+	MarkerTrackingAPIDefinitionPtr configPtr = 
+		std::make_shared<MarkerTrackingAPIDefinition>(
 			m_nextTrackingSystemId, systemName);
 	addChildConfig(configPtr);
 	m_nextTrackingSystemId++;
 
-	m_markerTrackingSystemList.push_back(configPtr);
+	m_markerTrackingAPIList.push_back(configPtr);
 	markDirty(ConfigPropertyChangeSet().addPropertyName(k_markerTrackingSystemListPropertyId));
 
 	return configPtr->getTrackingSystemId();
@@ -186,16 +186,16 @@ MikanTrackingSystemID TrackingSystemsConfig::addMarkerTrakingSystem()
 bool TrackingSystemsConfig::removeMarkerTrackingSystem(MikanTrackingSystemID systemId)
 {
 	auto it = std::find_if(
-		m_markerTrackingSystemList.begin(), m_markerTrackingSystemList.end(),
-		[systemId](MarkerTrackingSystemDefinitionPtr configPtr) {
+		m_markerTrackingAPIList.begin(), m_markerTrackingAPIList.end(),
+		[systemId](MarkerTrackingAPIDefinitionPtr configPtr) {
 			return configPtr->getTrackingSystemId() == systemId;
 		});
 
-	if (it != m_markerTrackingSystemList.end())
+	if (it != m_markerTrackingAPIList.end())
 	{
 		removeChildConfig(*it);
 
-		m_markerTrackingSystemList.erase(it);
+		m_markerTrackingAPIList.erase(it);
 		markDirty(ConfigPropertyChangeSet().addPropertyName(k_markerTrackingSystemListPropertyId));
 
 		return true;
@@ -204,25 +204,25 @@ bool TrackingSystemsConfig::removeMarkerTrackingSystem(MikanTrackingSystemID sys
 	return false;
 }
 
-VRTrackingSystemDefinitionConstPtr TrackingSystemsConfig::getVRTrackingSystemDefinitionConst(MikanTrackingSystemID systemId) const
+VRTrackingAPIDefinitionConstPtr TrackingSystemsConfig::getVRTrackingAPIDefinitionConst(MikanTrackingSystemID systemId) const
 {
 	auto iter = std::find_if(
-		m_vrTrackingSystemList.begin(), m_vrTrackingSystemList.end(),
-		[systemId](VRTrackingSystemDefinitionPtr configPtr) {
+		m_vrTrackingAPIList.begin(), m_vrTrackingAPIList.end(),
+		[systemId](VRTrackingAPIDefinitionPtr configPtr) {
 			return configPtr->getTrackingSystemId() == systemId;
 		});
 
-	if (iter != m_vrTrackingSystemList.end())
+	if (iter != m_vrTrackingAPIList.end())
 	{
-		return VRTrackingSystemDefinitionConstPtr(*iter);
+		return VRTrackingAPIDefinitionConstPtr(*iter);
 	}
 
-	return VRTrackingSystemDefinitionConstPtr();
+	return VRTrackingAPIDefinitionConstPtr();
 }
 
-VRTrackingSystemDefinitionPtr TrackingSystemsConfig::getVRTrackingSystemDefinition(MikanTrackingSystemID systemId)
+VRTrackingAPIDefinitionPtr TrackingSystemsConfig::getVRTrackingAPIDefinition(MikanTrackingSystemID systemId)
 {
-	return std::const_pointer_cast<VRTrackingSystemDefinition>(getVRTrackingSystemDefinitionConst(systemId));
+	return std::const_pointer_cast<VRTrackingAPIDefinition>(getVRTrackingAPIDefinitionConst(systemId));
 }
 
 MikanTrackingSystemID TrackingSystemsConfig::addVRTrackingSystem(
@@ -232,15 +232,15 @@ MikanTrackingSystemID TrackingSystemsConfig::addVRTrackingSystem(
 		return INVALID_MIKAN_ID;
 
 	const std::string systemName = StringUtils::stringify("VR System ", m_nextTrackingSystemId);
-	VRTrackingSystemDefinitionPtr configPtr =
-		std::make_shared<VRTrackingSystemDefinition>(
+	VRTrackingAPIDefinitionPtr configPtr =
+		std::make_shared<VRTrackingAPIDefinition>(
 			trackingRuntime,
 			m_nextTrackingSystemId, 
 			systemName);
 	addChildConfig(configPtr);	
 	m_nextTrackingSystemId++;
 
-	m_vrTrackingSystemList.push_back(configPtr);
+	m_vrTrackingAPIList.push_back(configPtr);
 	markDirty(ConfigPropertyChangeSet().addPropertyName(k_vrTrackingSystemListPropertyId));
 
 	return configPtr->getTrackingSystemId();
@@ -249,16 +249,16 @@ MikanTrackingSystemID TrackingSystemsConfig::addVRTrackingSystem(
 bool TrackingSystemsConfig::removeVRTrackingSystem(MikanTrackingSystemID systemId)
 {
 	auto it = std::find_if(
-		m_vrTrackingSystemList.begin(), m_vrTrackingSystemList.end(),
-		[systemId](VRTrackingSystemDefinitionPtr configPtr) {
+		m_vrTrackingAPIList.begin(), m_vrTrackingAPIList.end(),
+		[systemId](VRTrackingAPIDefinitionPtr configPtr) {
 			return configPtr->getTrackingSystemId() == systemId;
 		});
 
-	if (it != m_vrTrackingSystemList.end())
+	if (it != m_vrTrackingAPIList.end())
 	{
 		removeChildConfig(*it);
 
-		m_vrTrackingSystemList.erase(it);
+		m_vrTrackingAPIList.erase(it);
 		markDirty(ConfigPropertyChangeSet().addPropertyName(k_vrTrackingSystemListPropertyId));
 
 		return true;

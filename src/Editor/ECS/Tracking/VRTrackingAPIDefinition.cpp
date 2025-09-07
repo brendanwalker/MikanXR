@@ -1,4 +1,4 @@
-#include "VRTrackingSystemDefinition.h"
+#include "VRTrackingAPIDefinition.h"
 #include "App.h"
 #include "MarkerSystemConfig.h"
 #include "MathTypeConversion.h"
@@ -12,22 +12,22 @@
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Variant.h>
 
-// -- VRTrackingSystemDefinition -----
-const std::string VRTrackingSystemDefinition::k_charucoMountIdPropertyId= "charucoMountId";
-const std::string VRTrackingSystemDefinition::k_charucoMountOffsetPropertyId = "charucoMountOffsetMM";
-const std::string VRTrackingSystemDefinition::k_utilityMarkerIdPropertyId= "utilityMarkerId";
-const std::string VRTrackingSystemDefinition::k_trackingMountsPropertyId= "trackingMounts";
+// -- VRTrackingAPIDefinition -----
+const std::string VRTrackingAPIDefinition::k_charucoMountIdPropertyId= "charucoMountId";
+const std::string VRTrackingAPIDefinition::k_charucoMountOffsetPropertyId = "charucoMountOffsetMM";
+const std::string VRTrackingAPIDefinition::k_utilityMarkerIdPropertyId= "utilityMarkerId";
+const std::string VRTrackingAPIDefinition::k_trackingMountsPropertyId= "trackingMounts";
 
-VRTrackingSystemDefinition::VRTrackingSystemDefinition()
-	: TrackingSystemDefinition()
+VRTrackingAPIDefinition::VRTrackingAPIDefinition()
+	: TrackingAPIDefinition()
 {
 }
 
-VRTrackingSystemDefinition::VRTrackingSystemDefinition(
+VRTrackingAPIDefinition::VRTrackingAPIDefinition(
 	eTrackingRuntime trackingRuntime,
 	MikanTrackingSystemID trackingSystemId,
 	const std::string& trackingSystemName)
-	: TrackingSystemDefinition(trackingSystemId, trackingSystemName)
+	: TrackingAPIDefinition(trackingSystemId, trackingSystemName)
 	, m_trackingRuntime(trackingRuntime)
 	, m_charucoMountId(INVALID_MIKAN_ID)
 	, m_utilityMarkerId(INVALID_MIKAN_ID)
@@ -39,14 +39,14 @@ VRTrackingSystemDefinition::VRTrackingSystemDefinition(
 {
 }
 
-eTrackingSystemType VRTrackingSystemDefinition::getTrackingSystemType() const
+eTrackingSystemType VRTrackingAPIDefinition::getTrackingSystemType() const
 {
 	return eTrackingSystemType::vr;
 }
 
-configuru::Config VRTrackingSystemDefinition::writeToJSON()
+configuru::Config VRTrackingAPIDefinition::writeToJSON()
 {
-	configuru::Config pt = TrackingSystemDefinition::writeToJSON();
+	configuru::Config pt = TrackingAPIDefinition::writeToJSON();
 
 	pt["tracking_runtime"] = k_trackingRuntimeStrings[(int)m_trackingRuntime];
 	pt["charuco_mount_id"] = m_charucoMountId;
@@ -65,9 +65,9 @@ configuru::Config VRTrackingSystemDefinition::writeToJSON()
 	return pt;
 }
 
-void VRTrackingSystemDefinition::readFromJSON(const configuru::Config& pt)
+void VRTrackingAPIDefinition::readFromJSON(const configuru::Config& pt)
 {
-	TrackingSystemDefinition::readFromJSON(pt);
+	TrackingAPIDefinition::readFromJSON(pt);
 
 	const std::string trackingRuntimeString = 
 		pt.get_or<std::string>("tracking_runtime", k_trackingRuntimeStrings[0]);
@@ -92,7 +92,7 @@ void VRTrackingSystemDefinition::readFromJSON(const configuru::Config& pt)
 	}
 }
 
-void VRTrackingSystemDefinition::setCharucoTrackingMountId(MikanTrackingMountID mountId)
+void VRTrackingAPIDefinition::setCharucoTrackingMountId(MikanTrackingMountID mountId)
 {
 	if (mountId != m_charucoMountId)
 	{
@@ -101,18 +101,18 @@ void VRTrackingSystemDefinition::setCharucoTrackingMountId(MikanTrackingMountID 
 	}
 }
 
-TrackingMountDefinitionConstPtr VRTrackingSystemDefinition::getCharucoTrackingMount() const
+TrackingMountDefinitionConstPtr VRTrackingAPIDefinition::getCharucoTrackingMount() const
 {
 	return getTrackingMountDefinitionConst(m_charucoMountId);
 }
 
-void VRTrackingSystemDefinition::setCharucoMountOffsetMM(const MikanVector3f& offset)
+void VRTrackingAPIDefinition::setCharucoMountOffsetMM(const MikanVector3f& offset)
 {
 	m_charucoMountOffsetMM = offset;
 	markDirty(ConfigPropertyChangeSet().addPropertyName("charucoMountOffsetMM"));
 }
 
-void VRTrackingSystemDefinition::setUtilityMarkerId(MikanMarkerID markerId)
+void VRTrackingAPIDefinition::setUtilityMarkerId(MikanMarkerID markerId)
 {
 	if (markerId != m_utilityMarkerId)
 	{
@@ -121,7 +121,7 @@ void VRTrackingSystemDefinition::setUtilityMarkerId(MikanMarkerID markerId)
 	}
 }
 
-TrackingMountDefinitionConstPtr VRTrackingSystemDefinition::getTrackingMountDefinitionConst(
+TrackingMountDefinitionConstPtr VRTrackingAPIDefinition::getTrackingMountDefinitionConst(
 	MikanTrackingMountID mountId) const
 {
 	auto it=
@@ -139,13 +139,13 @@ TrackingMountDefinitionConstPtr VRTrackingSystemDefinition::getTrackingMountDefi
 	return TrackingMountDefinitionConstPtr();
 }
 
-TrackingMountDefinitionPtr VRTrackingSystemDefinition::getTrackingMountDefinition(
+TrackingMountDefinitionPtr VRTrackingAPIDefinition::getTrackingMountDefinition(
 	MikanTrackingMountID mountId)
 {
 	return std::const_pointer_cast<TrackingMountDefinition>(getTrackingMountDefinitionConst(mountId));
 }
 
-MikanTrackingMountID VRTrackingSystemDefinition::addTrackingMount()
+MikanTrackingMountID VRTrackingAPIDefinition::addTrackingMount()
 {
 	const std::string mountName = StringUtils::stringify("Mount ", m_nextTrackingMountId);
 	TrackingMountDefinitionPtr trackingMountDefinition =
@@ -160,7 +160,7 @@ MikanTrackingMountID VRTrackingSystemDefinition::addTrackingMount()
 	return trackingMountDefinition->getTrackingMountId();
 }
 
-bool VRTrackingSystemDefinition::removeTrackingMount(MikanTrackingMountID mountId)
+bool VRTrackingAPIDefinition::removeTrackingMount(MikanTrackingMountID mountId)
 {
 	auto it = std::find_if(
 		m_trackingMounts.begin(), m_trackingMounts.end(),
@@ -180,7 +180,7 @@ bool VRTrackingSystemDefinition::removeTrackingMount(MikanTrackingMountID mountI
 	return false;
 }
 
-MarkerDefinitionConstPtr VRTrackingSystemDefinition::getUtilityMarker() const
+MarkerDefinitionConstPtr VRTrackingAPIDefinition::getUtilityMarker() const
 {
 	if (m_utilityMarkerId == INVALID_MIKAN_ID)
 	{
@@ -191,88 +191,88 @@ MarkerDefinitionConstPtr VRTrackingSystemDefinition::getUtilityMarker() const
 }
 
 // -- IPropertyInterface ----
-void VRTrackingSystemDefinition::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
+void VRTrackingAPIDefinition::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
 {
-	TrackingSystemDefinition::getPropertyNamesStatic(outPropertyNames);
+	TrackingAPIDefinition::getPropertyNamesStatic(outPropertyNames);
 
-	outPropertyNames.push_back(VRTrackingSystemDefinition::k_charucoMountIdPropertyId);
-	outPropertyNames.push_back(VRTrackingSystemDefinition::k_charucoMountOffsetPropertyId);
-	outPropertyNames.push_back(VRTrackingSystemDefinition::k_utilityMarkerIdPropertyId);
+	outPropertyNames.push_back(VRTrackingAPIDefinition::k_charucoMountIdPropertyId);
+	outPropertyNames.push_back(VRTrackingAPIDefinition::k_charucoMountOffsetPropertyId);
+	outPropertyNames.push_back(VRTrackingAPIDefinition::k_utilityMarkerIdPropertyId);
 }
 
-void VRTrackingSystemDefinition::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+void VRTrackingAPIDefinition::getPropertyNames(std::vector<std::string>& outPropertyNames) const
 {
-	VRTrackingSystemDefinition::getPropertyNamesStatic(outPropertyNames);
+	VRTrackingAPIDefinition::getPropertyNamesStatic(outPropertyNames);
 }
 
-bool VRTrackingSystemDefinition::getPropertyDescriptor(
+bool VRTrackingAPIDefinition::getPropertyDescriptor(
 	const std::string& propertyName,
 	PropertyDescriptor& outDescriptor) const
 {
-	if (propertyName == VRTrackingSystemDefinition::k_charucoMountIdPropertyId)
+	if (propertyName == VRTrackingAPIDefinition::k_charucoMountIdPropertyId)
 	{
-		outDescriptor = { VRTrackingSystemDefinition::k_charucoMountIdPropertyId, ePropertyDataType::datatype_int, ePropertySemantic::tracking_mount_id };
+		outDescriptor = { VRTrackingAPIDefinition::k_charucoMountIdPropertyId, ePropertyDataType::datatype_int, ePropertySemantic::tracking_mount_id };
 		return true;
 	}
-	else if (propertyName == VRTrackingSystemDefinition::k_charucoMountOffsetPropertyId)
+	else if (propertyName == VRTrackingAPIDefinition::k_charucoMountOffsetPropertyId)
 	{
-		outDescriptor = { VRTrackingSystemDefinition::k_charucoMountOffsetPropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::position };
+		outDescriptor = { VRTrackingAPIDefinition::k_charucoMountOffsetPropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::position };
 		return true;
 	}
-	else if (propertyName == VRTrackingSystemDefinition::k_utilityMarkerIdPropertyId)
+	else if (propertyName == VRTrackingAPIDefinition::k_utilityMarkerIdPropertyId)
 	{
-		outDescriptor = { VRTrackingSystemDefinition::k_utilityMarkerIdPropertyId, ePropertyDataType::datatype_int, ePropertySemantic::marker_id };
+		outDescriptor = { VRTrackingAPIDefinition::k_utilityMarkerIdPropertyId, ePropertyDataType::datatype_int, ePropertySemantic::marker_id };
 		return true;
 	}
 
-	return TrackingSystemDefinition::getPropertyDescriptor(propertyName, outDescriptor);
+	return TrackingAPIDefinition::getPropertyDescriptor(propertyName, outDescriptor);
 }
 
-bool VRTrackingSystemDefinition::getPropertyValue(
+bool VRTrackingAPIDefinition::getPropertyValue(
 	const std::string& propertyName, 
 	Rml::Variant& outValue) const
 {
-	if (propertyName == VRTrackingSystemDefinition::k_charucoMountIdPropertyId)
+	if (propertyName == VRTrackingAPIDefinition::k_charucoMountIdPropertyId)
 	{
 		outValue = getCharucoTrackingMountId();
 		return true;
 	}
-	else if (propertyName == VRTrackingSystemDefinition::k_charucoMountOffsetPropertyId)
+	else if (propertyName == VRTrackingAPIDefinition::k_charucoMountOffsetPropertyId)
 	{
 		const MikanVector3f& offset = getCharucoMountOffsetMM();
 		outValue = Rml::Vector3f(offset.x, offset.y, offset.z);
 		return true;
 	}
-	else if (propertyName == VRTrackingSystemDefinition::k_utilityMarkerIdPropertyId)
+	else if (propertyName == VRTrackingAPIDefinition::k_utilityMarkerIdPropertyId)
 	{
 		outValue = getUtilityMarkerId();
 		return true;
 	}
 
-	return TrackingSystemDefinition::getPropertyValue(propertyName, outValue);
+	return TrackingAPIDefinition::getPropertyValue(propertyName, outValue);
 }
 
-bool VRTrackingSystemDefinition::setPropertyValue(
+bool VRTrackingAPIDefinition::setPropertyValue(
 	const std::string& propertyName, 
 	const Rml::Variant& inValue)
 {
-	if (propertyName == VRTrackingSystemDefinition::k_charucoMountIdPropertyId)
+	if (propertyName == VRTrackingAPIDefinition::k_charucoMountIdPropertyId)
 	{
 		setCharucoTrackingMountId(inValue.Get<int>());
 		return true;
 	}
-	else if (propertyName == VRTrackingSystemDefinition::k_charucoMountOffsetPropertyId)
+	else if (propertyName == VRTrackingAPIDefinition::k_charucoMountOffsetPropertyId)
 	{
 		Rml::Vector3 offset = inValue.Get<Rml::Vector3f>();
 
 		setCharucoMountOffsetMM({ offset.x, offset.y, offset.z });
 		return true;
 	}
-	else if (propertyName == VRTrackingSystemDefinition::k_utilityMarkerIdPropertyId)
+	else if (propertyName == VRTrackingAPIDefinition::k_utilityMarkerIdPropertyId)
 	{
 		setUtilityMarkerId(inValue.Get<int>());
 		return true;
 	}
 
-	return TrackingSystemDefinition::setPropertyValue(propertyName, inValue);
+	return TrackingAPIDefinition::setPropertyValue(propertyName, inValue);
 }
