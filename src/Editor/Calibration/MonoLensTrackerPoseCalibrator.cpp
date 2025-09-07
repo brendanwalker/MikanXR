@@ -3,15 +3,18 @@
 #include "CameraComponent.h"
 #include "CameraMath.h"
 #include "Colors.h"
+#include "IEditorWindow.h"
 #include "SdlCommon.h"
 #include "MikanLineRenderer.h"
 #include "MikanTextRenderer.h"
 #include "MathGLM.h"
 #include "MonoLensTrackerPoseCalibrator.h"
-#include "MarkerSystemConfig.h"
+#include "MarkerObjectSystem.h"
 #include "MathTypeConversion.h"
 #include "MathOpenCV.h"
 #include "MathUtility.h"
+#include "ObjectSystemManager.h"
+#include "StageComponent.h"
 #include "TextStyle.h"
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceComponent.h"
@@ -90,7 +93,14 @@ MonoLensTrackerPoseCalibrator::MonoLensTrackerPoseCalibrator(
 	, m_matTrackingPuckPoseView(matTrackingPuckPoseView)
 	, m_distortionView(distortionView)
 {
-	auto markerConfig = MarkerSystemConfig::getSystemConfig();
+	StageComponentConstPtr ownerStage = cameraComponent->getOwnerStageComponent();
+	assert(ownerStage != nullptr);
+	IEditorWindow* ownerWindow = static_cast<IEditorWindow*>(ownerStage->getOwnerWindow());
+	assert(ownerWindow != nullptr);
+	MarkerObjectSystemPtr markerSystem =
+		ownerWindow->getObjectSystemManager()->getSystemOfType<MarkerObjectSystem>();
+
+	auto markerConfig = markerSystem->getMarkerSystemConfigConst();
 	m_patternFinder =
 		new CalibrationPatternFinder_Charuco(
 			distortionView,

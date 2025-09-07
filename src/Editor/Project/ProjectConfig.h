@@ -28,7 +28,7 @@ public:
 	CameraObjectSystemConfigPtr cameraConfig;
 	CompositorObjectSystemConfigPtr compositorConfig;
 	EditorObjectSystemConfigPtr editorConfig;
-	MarkerSystemConfigPtr markerSystemConfig;
+	MarkerObjectSystemConfigPtr markerSystemConfig;
 	StencilObjectSystemConfigPtr stencilConfig;
 	SceneObjectSystemConfigPtr sceneConfig;
 	StageObjectSystemConfigPtr stageConfig;

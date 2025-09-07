@@ -6,7 +6,7 @@
 #include "CameraMath.h"
 #include "MikanTextRenderer.h"
 #include "Logger.h"
-#include "MarkerDefinition.h"
+#include "MarkerComponent.h"
 #include "MathOpenCV.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"

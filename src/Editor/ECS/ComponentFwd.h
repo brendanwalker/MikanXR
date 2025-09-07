@@ -48,6 +48,11 @@ using MarkerDefinitionPtr = std::shared_ptr<MarkerDefinition>;
 using MarkerDefinitionConstPtr = std::shared_ptr<const MarkerDefinition>;
 using MarkerDefinitionWeakPtr = std::weak_ptr<MarkerDefinition>;
 
+class MarkerComponent;
+using MarkerComponentPtr = std::shared_ptr<MarkerComponent>;
+using MarkerComponentConstPtr = std::shared_ptr<const MarkerComponent>;
+using MarkerComponentWeakPtr = std::weak_ptr<MarkerComponent>;
+
 class SelectionComponent;
 using SelectionComponentPtr = std::shared_ptr<SelectionComponent>;
 using SelectionComponentConstPtr = std::shared_ptr<const SelectionComponent>;

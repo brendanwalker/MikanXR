@@ -7,6 +7,7 @@
 #include "CompositorObjectSystem.h"
 #include "EditorObjectSystem.h"
 #include "IMkWindow.h"
+#include "MarkerObjectSystem.h"
 #include "NetworkVideoSourceSystem.h"
 #include "SceneObjectSystem.h"
 #include "SpoutVideoSourceSystem.h"
@@ -27,6 +28,7 @@ bool ObjectSystemManager::startup()
 	addSystem<SpoutVideoSourceSystem>();
 	addSystem<USBVideoSourceSystem>();
 	addSystem<VideoSourceSystem>();
+	addSystem<MarkerObjectSystem>();
 	addSystem<SceneObjectSystem>();
 	addSystem<StageObjectSystem>();
 	addSystem<CompositorObjectSystem>();

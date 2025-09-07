@@ -1,6 +1,6 @@
 #include "TrackingAPIDefinition.h"
 #include "App.h"
-#include "MarkerSystemConfig.h"
+#include "MarkerObjectSystem.h"
 #include "MathTypeConversion.h"
 #include "MikanObject.h"
 #include "MikanAPITypes.h"
@@ -8,6 +8,9 @@
 #include "ProjectConfig.h"
 #include "SelectionComponent.h"
 #include "StringUtils.h"
+
+// TODO: Replace App singleton access
+#include "MainWindow.h"
 
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Variant.h>
@@ -49,6 +52,12 @@ void TrackingAPIDefinition::readFromJSON(const configuru::Config& pt)
 	m_originMarkeId = pt.get_or<MikanMarkerID>("origin_marker_id", m_originMarkeId);
 }
 
+MarkerObjectSystemPtr TrackingAPIDefinition::getMarkerObjectSystem() const
+{
+	// TODO: Replace App singleton access
+	return App::getInstance()->getMainWindow()->getObjectSystemManager()->getSystemOfType<MarkerObjectSystem>();
+}
+
 void TrackingAPIDefinition::markDirty(const ConfigPropertyChangeSet& changedPropertySet)
 {
 	CommonConfig::markDirty(changedPropertySet);
@@ -76,7 +85,7 @@ MarkerDefinitionConstPtr TrackingAPIDefinition::getOriginMarker() const
 {
 	if (m_originMarkeId == INVALID_MIKAN_ID)
 	{
-		return MarkerSystemConfig::getSystemConfig()->getMarkerConfig(m_originMarkeId);
+		return getMarkerObjectSystem()->getMarkerSystemConfig()->getMarkerConfig(m_originMarkeId);
 	}
 
 	return MarkerDefinitionConstPtr();

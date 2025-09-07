@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "MikanVideoSourceTypes.h"
 #include "MikanCameraTypes.h"
@@ -12,7 +13,8 @@ class MonoLensDistortionCalibrator
 {
 public:
 	MonoLensDistortionCalibrator(
-		class VideoFrameDistortionView* distortionView, 
+		MarkerObjectSystemPtr markerObjectSystem,
+		VideoFrameDistortionView* distortionView,
 		int desiredBoardCount);
 	virtual ~MonoLensDistortionCalibrator();
 

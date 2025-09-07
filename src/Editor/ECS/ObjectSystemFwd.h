@@ -26,6 +26,10 @@ class MarkerSystem;
 using MarkerSystemPtr = std::shared_ptr<MarkerSystem>;
 using MarkerSystemWeakPtr = std::weak_ptr<MarkerSystem>;
 
+class MarkerObjectSystem;
+using MarkerObjectSystemPtr = std::shared_ptr<MarkerObjectSystem>;
+using MarkerObjectSystemWeakPtr = std::weak_ptr<MarkerObjectSystem>;
+
 class ObjectSystemManager;
 using ObjectSystemManagerPtr = std::shared_ptr<ObjectSystemManager>;
 using ObjectSystemManagerWeakPtr = std::weak_ptr<ObjectSystemManager>;

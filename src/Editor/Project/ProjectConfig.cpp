@@ -4,7 +4,7 @@
 #include "CompositorObjectSystem.h"
 #include "EditorObjectSystem.h"
 #include "MathUtility.h"
-#include "MarkerSystemConfig.h"
+#include "MarkerObjectSystem.h"
 #include "ProjectConfig.h"
 #include "ProjectConfigConstants.h"
 #include "PathUtils.h"
@@ -46,7 +46,7 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	stencilConfig= std::make_shared<StencilObjectSystemConfig>("stencils");
 	addChildConfig(stencilConfig);
 
-	markerSystemConfig = std::make_shared<MarkerSystemConfig>("marker_system");
+	markerSystemConfig = std::make_shared<MarkerObjectSystemConfig>("marker_system");
 	addChildConfig(markerSystemConfig);
 
 	trackingSystemsConfig = std::make_shared<TrackingSystemsConfig>("tracking_systems");

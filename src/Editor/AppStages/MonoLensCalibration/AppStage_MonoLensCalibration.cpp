@@ -6,6 +6,7 @@
 #include "MonoLensCalibration/RmlModel_MonoCameraSettings.h"
 #include "InputManager.h"
 #include "MainWindow.h"
+#include "MarkerObjectSystem.h"
 #include "MonoLensDistortionCalibrator.h"
 #include "CalibrationPatternFinder.h"
 #include "VideoSourceComponent.h"
@@ -80,6 +81,7 @@ void AppStage_MonoLensCalibration::enter()
 		// Create a calibrator to do the actual pattern recording and calibration
 		m_monoLensCalibrator =
 			new MonoLensDistortionCalibrator(
+				getSystemOfType<MarkerObjectSystem>(),
 				m_monoDistortionView,
 				DESIRED_CAPTURE_BOARD_COUNT);
 

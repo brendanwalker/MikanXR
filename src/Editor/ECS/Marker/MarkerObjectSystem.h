@@ -1,21 +1,30 @@
 #pragma once
 
 #include "CommonConfig.h"
-#include "MarkerDefinition.h"
+#include "ComponentFwd.h"
+#include "MarkerComponent.h"
+#include "MikanObjectSystem.h"
+#include "MikanTypeFwd.h"
+#include "MulticastDelegate.h"
+#include "ObjectSystemConfigFwd.h"
+#include "ObjectSystemFwd.h"
 #include "ProjectConfigConstants.h"
 
 #include <map>
 #include <memory>
 #include <string>
 
-class MarkerSystemConfig : public CommonConfig
+#include <glm/glm.hpp>
+#include <glm/ext/matrix_float4x4.hpp>
+
+using MarkerMap = std::map<MikanMarkerID, MarkerComponentWeakPtr>;
+
+class MarkerObjectSystemConfig : public CommonConfig
 {
 public:
-	MarkerSystemConfig(const std::string& configName)
+	MarkerObjectSystemConfig(const std::string& configName)
 		: CommonConfig(configName)
 	{}
-
-	static MarkerSystemConfigPtr getSystemConfig();
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -26,6 +35,7 @@ public:
 	MarkerDefinitionPtr getMarkerConfigByName(const std::string& MarkerName) const;
 	MikanMarkerID addNewMarker(const std::string& markerName);
 	bool removeMarker(MikanMarkerID markerId);
+	const std::vector<MarkerDefinitionPtr>& getArucoMarkerList() const { return m_arucoMarkerList; }
 
 	static const std::string k_arucoDictionaryTypePropertyId;
 	inline eCharucoDictionaryType getArucoDictionaryType() const { return m_arucoDictionaryType; }
@@ -52,9 +62,9 @@ public:
 	inline eCharucoDictionaryType getCharucoDictionaryType() const { return m_charucoDictionaryType; }
 	void setCharucoDictionaryType(eCharucoDictionaryType charucoDictionaryType);
 
-protected:
-	MikanMarkerID m_nextMarkerId = 0;
+	MikanMarkerID nextMarkerId = 0;
 
+protected:
 	// ArUco Common settings
 	eCharucoDictionaryType m_arucoDictionaryType = DEFAULT_ARUCO_DICTIONARY_TYPE;
 
@@ -67,4 +77,29 @@ protected:
 
 	// List of ArUco markers
 	std::vector<MarkerDefinitionPtr> m_arucoMarkerList;
+};
+
+class MarkerObjectSystem : public MikanObjectSystem
+{
+public:
+	MarkerObjectSystem(class ObjectSystemManager* ownerObjectSystemManager) : MikanObjectSystem(ownerObjectSystemManager) {}
+
+	virtual bool init() override;
+	virtual void dispose() override;
+	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
+
+	MarkerObjectSystemConfigConstPtr getMarkerSystemConfigConst() const;
+	MarkerObjectSystemConfigPtr getMarkerSystemConfig();
+
+	const MarkerMap& getMarkerMap() const { return m_markerComponents; }
+	MarkerComponentPtr getMarkerById(MikanMarkerID markerId) const;
+	MarkerComponentPtr getMarkerByName(const std::string& markerName) const;
+	MarkerComponentPtr addNewMarker(const std::string& markerName);
+	bool removeMarker(MikanMarkerID markerId);
+
+protected:
+	MarkerComponentPtr createMarkerObject(MarkerDefinitionPtr markerConfig);
+	void disposeMarkerObject(MikanMarkerID markerId);
+
+	MarkerMap m_markerComponents;
 };

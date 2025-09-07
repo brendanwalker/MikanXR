@@ -32,6 +32,8 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 	virtual void markDirty(const ConfigPropertyChangeSet& changedPropertySet) override;
 
+	MarkerObjectSystemPtr getMarkerObjectSystem() const;
+
 	virtual eTrackingSystemType getTrackingSystemType() const { return eTrackingSystemType::INVALID; }
 	inline MikanTrackingSystemID getTrackingSystemId() const { return m_trackingSystemId; }
 

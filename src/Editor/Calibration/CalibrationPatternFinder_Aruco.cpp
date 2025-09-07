@@ -3,12 +3,15 @@
 #include "CameraComponent.h"
 #include "CameraMath.h"
 #include "Colors.h"
+#include "IEditorWindow.h"
 #include "MathOpenCV.h"
 #include "MathUtility.h"
 #include "MathTypeConversion.h"
-#include "MarkerDefinition.h"
-#include "MarkerSystemConfig.h"
+#include "MarkerComponent.h"
+#include "MarkerObjectSystem.h"
 #include "MikanTextRenderer.h"
+#include "MikanObjectSystem.h"
+#include "ObjectSystemManager.h"
 #include "StageComponent.h"
 #include "TextStyle.h"
 #include "TrackingAPIDefinition.h"
@@ -43,16 +46,20 @@ CalibrationPatternFinder_Aruco::CalibrationPatternFinder_Aruco(
 {
 	StageComponentConstPtr ownerStage= cameraComponent->getOwnerStageComponent();
 	assert(ownerStage != nullptr);
+	IEditorWindow* ownerWindow= static_cast<IEditorWindow *>(ownerStage->getOwnerWindow());
+	assert(ownerWindow != nullptr);
+	MarkerObjectSystemPtr markerSystem= 
+		ownerWindow->getObjectSystemManager()->getSystemOfType<MarkerObjectSystem>();
+	assert(markerSystem != nullptr);
 	TrackingAPIDefinitionConstPtr trackingSystem = ownerStage->getTrackingAPIDefinitionConst();
 	assert(trackingSystem != nullptr);
-	MarkerSystemConfigPtr markerSystem= MarkerSystemConfig::getSystemConfig();
-	assert(markerSystem != nullptr);
 	MarkerDefinitionConstPtr originMarker= trackingSystem->getOriginMarker();
 	assert(originMarker != nullptr);
 
 	int desiredArucoId = originMarker->getArucoId();
 	float markerLengthMM = originMarker->getLengthMM();
-	eCharucoDictionaryType charucoDictionaryType = markerSystem->getArucoDictionaryType();
+	eCharucoDictionaryType charucoDictionaryType = 
+		markerSystem->getMarkerSystemConfig()->getArucoDictionaryType();
 
 	cv::aruco::PredefinedDictionaryType cvCharucoDictionary = cv::aruco::DICT_6X6_250;
 	switch (charucoDictionaryType)

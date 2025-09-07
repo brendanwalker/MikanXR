@@ -4,7 +4,7 @@
 #include "SdlCommon.h"
 #include "Logger.h"
 #include "MathUtility.h"
-#include "MarkerSystemConfig.h"
+#include "MarkerObjectSystem.h"
 #include "MonoLensDistortionCalibrator.h"
 #include "MathTypeConversion.h"
 #include "VideoFrameDistortionView.h"
@@ -76,12 +76,13 @@ struct MonoLensDistortionCalibrationState
 
 //-- MonoDistortionCalibrator ----
 MonoLensDistortionCalibrator::MonoLensDistortionCalibrator(
+	MarkerObjectSystemPtr markerObjectSystem,
 	VideoFrameDistortionView* distortionView,
 	int desiredBoardCount)
 	: m_calibrationState(new MonoLensDistortionCalibrationState)
 	, m_distortionView(distortionView)
 {
-	auto markerConfig= MarkerSystemConfig::getSystemConfig();
+	auto markerConfig= markerObjectSystem->getMarkerSystemConfig();
 	m_patternFinder= 
 		new CalibrationPatternFinder_Charuco(
 			distortionView,
