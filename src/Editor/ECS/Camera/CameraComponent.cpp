@@ -239,20 +239,20 @@ StageComponentConstPtr CameraComponent::getOwnerStageComponent() const
 	return StageObjectSystem::getSystem()->getStageById(stageId);
 }
 
-VRTrackingAPIDefinitionConstPtr CameraComponent::getVRTrackingAPIDefinition() const
+VRTrackingVolumeDefinitionConstPtr CameraComponent::getVRTrackingVolumeDefinition() const
 {
 	StageComponentConstPtr ownerStage = getOwnerStageComponent();
 	if (ownerStage != nullptr)
 	{
-		TrackingAPIDefinitionConstPtr trackingSystem = ownerStage->getTrackingAPIDefinitionConst();
+		TrackingVolumeDefinitionConstPtr trackingSystem = ownerStage->getTrackingVolumeDefinitionConst();
 		if (trackingSystem != nullptr &&
 			trackingSystem->getTrackingSystemType() == eTrackingSystemType::vr)
 		{
-			return std::static_pointer_cast<const VRTrackingAPIDefinition>(trackingSystem);
+			return std::static_pointer_cast<const VRTrackingVolumeDefinition>(trackingSystem);
 		}
 	}
 
-	return VRTrackingAPIDefinitionConstPtr();
+	return VRTrackingVolumeDefinitionConstPtr();
 }
 
 TrackingMountDefinitionConstPtr CameraComponent::getTrackingMountDefinition() const
@@ -262,7 +262,7 @@ TrackingMountDefinitionConstPtr CameraComponent::getTrackingMountDefinition() co
 
 	if (trackingMountId != INVALID_MIKAN_ID)
 	{
-		VRTrackingAPIDefinitionConstPtr vrTrackingSystem = getVRTrackingAPIDefinition();
+		VRTrackingVolumeDefinitionConstPtr vrTrackingSystem = getVRTrackingVolumeDefinition();
 
 		if (vrTrackingSystem)
 		{

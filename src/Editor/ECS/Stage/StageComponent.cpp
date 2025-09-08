@@ -130,12 +130,12 @@ bool StageComponent::setPropertyValue(const std::string& propertyName, const Rml
 	return false;
 }
 
-TrackingAPIDefinitionConstPtr StageComponent::getTrackingAPIDefinitionConst() const
+TrackingVolumeDefinitionConstPtr StageComponent::getTrackingVolumeDefinitionConst() const
 {
 	MikanTrackingSystemID systemId = getStageComponentDefinitionConst()->getTrackingSystemId();
 	if (systemId != INVALID_MIKAN_ID)
 	{
-		return TrackingSystemsConfig::getSystemConfig()->getTrackingAPIDefinitionConst(systemId);
+		return TrackingSystemsConfig::getSystemConfig()->getTrackingVolumeDefinitionConst(systemId);
 	}
 
 	return nullptr;

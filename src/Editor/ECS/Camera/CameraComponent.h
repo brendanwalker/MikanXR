@@ -82,7 +82,7 @@ public:
 	}
 	inline MikanCameraID getCameraId() const { return getCameraDefinition()->getCameraId(); }
 	StageComponentConstPtr getOwnerStageComponent() const;
-	VRTrackingAPIDefinitionConstPtr getVRTrackingAPIDefinition() const;
+	VRTrackingVolumeDefinitionConstPtr getVRTrackingVolumeDefinition() const;
 	TrackingMountDefinitionConstPtr getTrackingMountDefinition() const;
 	TrackingMountDefinitionPtr getTrackingMountDefinitionMutable();
 	VideoSourceComponentPtr getVideoSourceComponent() const;

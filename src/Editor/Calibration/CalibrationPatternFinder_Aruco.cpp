@@ -14,7 +14,7 @@
 #include "ObjectSystemManager.h"
 #include "StageComponent.h"
 #include "TextStyle.h"
-#include "TrackingAPIDefinition.h"
+#include "TrackingVolumeDefinition.h"
 #include "VideoFrameDistortionView.h"
 
 #include "opencv2/opencv.hpp"
@@ -51,7 +51,7 @@ CalibrationPatternFinder_Aruco::CalibrationPatternFinder_Aruco(
 	MarkerObjectSystemPtr markerSystem= 
 		ownerWindow->getObjectSystemManager()->getSystemOfType<MarkerObjectSystem>();
 	assert(markerSystem != nullptr);
-	TrackingAPIDefinitionConstPtr trackingSystem = ownerStage->getTrackingAPIDefinitionConst();
+	TrackingVolumeDefinitionConstPtr trackingSystem = ownerStage->getTrackingVolumeDefinitionConst();
 	assert(trackingSystem != nullptr);
 	MarkerDefinitionConstPtr originMarker= trackingSystem->getOriginMarker();
 	assert(originMarker != nullptr);

@@ -1,4 +1,4 @@
-#include "TrackingAPIDefinition.h"
+#include "TrackingVolumeDefinition.h"
 #include "App.h"
 #include "MarkerObjectSystem.h"
 #include "MathTypeConversion.h"
@@ -15,17 +15,17 @@
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Variant.h>
 
-// -- TrackingAPIDefinition -----
-const std::string TrackingAPIDefinition::k_originMarkerPropertyId = "originMarker";
+// -- TrackingVolumeDefinition -----
+const std::string TrackingVolumeDefinition::k_originMarkerPropertyId = "originMarker";
 
-TrackingAPIDefinition::TrackingAPIDefinition() 
+TrackingVolumeDefinition::TrackingVolumeDefinition() 
 	: MikanComponentDefinition()
 	, m_trackingSystemId(INVALID_MIKAN_ID)
 	, m_originMarkeId(INVALID_MIKAN_ID)
 {
 }
 
-TrackingAPIDefinition::TrackingAPIDefinition(
+TrackingVolumeDefinition::TrackingVolumeDefinition(
 	MikanTrackingSystemID trackingSystemId,
 	const std::string& trackingSystemName)
 	: MikanComponentDefinition(trackingSystemName)
@@ -34,7 +34,7 @@ TrackingAPIDefinition::TrackingAPIDefinition(
 {
 }
 
-configuru::Config TrackingAPIDefinition::writeToJSON()
+configuru::Config TrackingVolumeDefinition::writeToJSON()
 {
 	configuru::Config pt = MikanComponentDefinition::writeToJSON();
 	
@@ -44,7 +44,7 @@ configuru::Config TrackingAPIDefinition::writeToJSON()
 	return pt;
 }
 
-void TrackingAPIDefinition::readFromJSON(const configuru::Config& pt)
+void TrackingVolumeDefinition::readFromJSON(const configuru::Config& pt)
 {
 	MikanComponentDefinition::readFromJSON(pt);
 
@@ -52,13 +52,13 @@ void TrackingAPIDefinition::readFromJSON(const configuru::Config& pt)
 	m_originMarkeId = pt.get_or<MikanMarkerID>("origin_marker_id", m_originMarkeId);
 }
 
-MarkerObjectSystemPtr TrackingAPIDefinition::getMarkerObjectSystem() const
+MarkerObjectSystemPtr TrackingVolumeDefinition::getMarkerObjectSystem() const
 {
 	// TODO: Replace App singleton access
 	return App::getInstance()->getMainWindow()->getObjectSystemManager()->getSystemOfType<MarkerObjectSystem>();
 }
 
-void TrackingAPIDefinition::markDirty(const ConfigPropertyChangeSet& changedPropertySet)
+void TrackingVolumeDefinition::markDirty(const ConfigPropertyChangeSet& changedPropertySet)
 {
 	CommonConfig::markDirty(changedPropertySet);
 
@@ -72,7 +72,7 @@ void TrackingAPIDefinition::markDirty(const ConfigPropertyChangeSet& changedProp
 	}
 }
 
-void TrackingAPIDefinition::setOriginMarkerId(MikanMarkerID arucoId)
+void TrackingVolumeDefinition::setOriginMarkerId(MikanMarkerID arucoId)
 {
 	if (arucoId != m_originMarkeId)
 	{
@@ -81,7 +81,7 @@ void TrackingAPIDefinition::setOriginMarkerId(MikanMarkerID arucoId)
 	}
 }
 
-MarkerDefinitionConstPtr TrackingAPIDefinition::getOriginMarker() const
+MarkerDefinitionConstPtr TrackingVolumeDefinition::getOriginMarker() const
 {
 	if (m_originMarkeId == INVALID_MIKAN_ID)
 	{
@@ -92,18 +92,18 @@ MarkerDefinitionConstPtr TrackingAPIDefinition::getOriginMarker() const
 }
 
 // -- IPropertyInterface ----
-void TrackingAPIDefinition::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
+void TrackingVolumeDefinition::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
 {
 	outPropertyNames.push_back(MikanComponentDefinition::k_componentNamePropertyId);
-	outPropertyNames.push_back(TrackingAPIDefinition::k_originMarkerPropertyId);
+	outPropertyNames.push_back(TrackingVolumeDefinition::k_originMarkerPropertyId);
 }
 
-void TrackingAPIDefinition::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+void TrackingVolumeDefinition::getPropertyNames(std::vector<std::string>& outPropertyNames) const
 {
 	getPropertyNamesStatic(outPropertyNames);
 }
 
-bool TrackingAPIDefinition::getPropertyDescriptor(
+bool TrackingVolumeDefinition::getPropertyDescriptor(
 	const std::string& propertyName, 
 	PropertyDescriptor& outDescriptor) const
 {
@@ -112,23 +112,23 @@ bool TrackingAPIDefinition::getPropertyDescriptor(
 		outDescriptor = { MikanComponentDefinition::k_componentNamePropertyId, ePropertyDataType::datatype_string, ePropertySemantic::name };
 		return true;
 	}
-	else if (propertyName == TrackingAPIDefinition::k_originMarkerPropertyId)
+	else if (propertyName == TrackingVolumeDefinition::k_originMarkerPropertyId)
 	{
-		outDescriptor = { TrackingAPIDefinition::k_originMarkerPropertyId, ePropertyDataType::datatype_int, ePropertySemantic::marker_id };
+		outDescriptor = { TrackingVolumeDefinition::k_originMarkerPropertyId, ePropertyDataType::datatype_int, ePropertySemantic::marker_id };
 		return true;
 	}
 
 	return false;
 }
 
-bool TrackingAPIDefinition::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
+bool TrackingVolumeDefinition::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
 {
 	if (propertyName == MikanComponentDefinition::k_componentNamePropertyId)
 	{
 		outValue = getComponentName();
 		return true;
 	}
-	else if (propertyName == TrackingAPIDefinition::k_originMarkerPropertyId)
+	else if (propertyName == TrackingVolumeDefinition::k_originMarkerPropertyId)
 	{
 		outValue = getOriginMarkerId();
 		return true;
@@ -137,19 +137,19 @@ bool TrackingAPIDefinition::getPropertyValue(const std::string& propertyName, Rm
 	return false;
 }
 
-bool TrackingAPIDefinition::getPropertyAttribute(const std::string& propertyName, const std::string& attributeName, Rml::Variant& outValue) const
+bool TrackingVolumeDefinition::getPropertyAttribute(const std::string& propertyName, const std::string& attributeName, Rml::Variant& outValue) const
 {	
 	return false;
 }
 
-bool TrackingAPIDefinition::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
+bool TrackingVolumeDefinition::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
 {
 	if (propertyName == MikanComponentDefinition::k_componentNamePropertyId)
 	{
 		setComponentName(inValue.Get<Rml::String>());
 		return true;
 	}
-	else if (propertyName == TrackingAPIDefinition::k_originMarkerPropertyId)
+	else if (propertyName == TrackingVolumeDefinition::k_originMarkerPropertyId)
 	{
 		if (inValue.GetType() == Rml::Variant::INT)
 		{

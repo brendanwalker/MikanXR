@@ -18,13 +18,13 @@
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_float4x4.hpp>
 
-class TrackingAPIDefinition : 
+class TrackingVolumeDefinition : 
 	public MikanComponentDefinition,
 	public IPropertyInterface
 {
 public:
-	TrackingAPIDefinition();
-	TrackingAPIDefinition(
+	TrackingVolumeDefinition();
+	TrackingVolumeDefinition(
 		MikanTrackingSystemID trackingSystemId,
 		const std::string& trackingSystemName);
 

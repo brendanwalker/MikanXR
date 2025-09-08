@@ -23,9 +23,9 @@ public:
 
 private:
 	TrackingSystemsConfigPtr getTrackingSystemsConfig();
-	TrackingAPIDefinitionPtr getSelectedTrackingSystem();
-	MarkerTrackingAPIDefinitionPtr getSelectedMarkerTrackingSystem();
-	VRTrackingAPIDefinitionPtr getSelectedVRTrackingSystem();
+	TrackingVolumeDefinitionPtr getSelectedTrackingSystem();
+	MarkerTrackingVolumeDefinitionPtr getSelectedMarkerTrackingSystem();
+	VRTrackingVolumeDefinitionPtr getSelectedVRTrackingSystem();
 	TrackingMountComponentPtr getSelectedTrackingMount();
 
 	void addNewSteamVRTrackingSystem(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);

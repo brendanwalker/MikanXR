@@ -1,13 +1,13 @@
 #pragma once
 
-#include "TrackingAPIDefinition.h"
+#include "TrackingVolumeDefinition.h"
 
-class MarkerTrackingAPIDefinition : 
-	public TrackingAPIDefinition
+class MarkerTrackingVolumeDefinition : 
+	public TrackingVolumeDefinition
 {
 public:
-	MarkerTrackingAPIDefinition();
-	MarkerTrackingAPIDefinition(
+	MarkerTrackingVolumeDefinition();
+	MarkerTrackingVolumeDefinition(
 		MikanTrackingSystemID trackingSystemId,
 		const std::string& trackingSystemName);
 

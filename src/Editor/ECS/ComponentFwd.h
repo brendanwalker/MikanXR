@@ -58,20 +58,20 @@ using SelectionComponentPtr = std::shared_ptr<SelectionComponent>;
 using SelectionComponentConstPtr = std::shared_ptr<const SelectionComponent>;
 using SelectionComponentWeakPtr = std::weak_ptr<SelectionComponent>;
 
-class TrackingAPIDefinition;
-using TrackingAPIDefinitionPtr = std::shared_ptr<TrackingAPIDefinition>;
-using TrackingAPIDefinitionConstPtr = std::shared_ptr<const TrackingAPIDefinition>;
-using TrackingAPIDefinitionWeakPtr = std::weak_ptr<TrackingAPIDefinition>;
+class TrackingVolumeDefinition;
+using TrackingVolumeDefinitionPtr = std::shared_ptr<TrackingVolumeDefinition>;
+using TrackingVolumeDefinitionConstPtr = std::shared_ptr<const TrackingVolumeDefinition>;
+using TrackingVolumeDefinitionWeakPtr = std::weak_ptr<TrackingVolumeDefinition>;
 
-class MarkerTrackingAPIDefinition;
-using MarkerTrackingAPIDefinitionPtr = std::shared_ptr<MarkerTrackingAPIDefinition>;
-using MarkerTrackingAPIDefinitionConstPtr = std::shared_ptr<const MarkerTrackingAPIDefinition>;
-using MarkerTrackingAPIDefinitionWeakPtr = std::weak_ptr<MarkerTrackingAPIDefinition>;
+class MarkerTrackingVolumeDefinition;
+using MarkerTrackingVolumeDefinitionPtr = std::shared_ptr<MarkerTrackingVolumeDefinition>;
+using MarkerTrackingVolumeDefinitionConstPtr = std::shared_ptr<const MarkerTrackingVolumeDefinition>;
+using MarkerTrackingVolumeDefinitionWeakPtr = std::weak_ptr<MarkerTrackingVolumeDefinition>;
 
-class VRTrackingAPIDefinition;
-using VRTrackingAPIDefinitionPtr = std::shared_ptr<VRTrackingAPIDefinition>;
-using VRTrackingAPIDefinitionConstPtr = std::shared_ptr<const VRTrackingAPIDefinition>;
-using VRTrackingAPIDefinitionWeakPtr = std::weak_ptr<VRTrackingAPIDefinition>;
+class VRTrackingVolumeDefinition;
+using VRTrackingVolumeDefinitionPtr = std::shared_ptr<VRTrackingVolumeDefinition>;
+using VRTrackingVolumeDefinitionConstPtr = std::shared_ptr<const VRTrackingVolumeDefinition>;
+using VRTrackingVolumeDefinitionWeakPtr = std::weak_ptr<VRTrackingVolumeDefinition>;
 
 class TrackingMountDefinition;
 using TrackingMountDefinitionPtr = std::shared_ptr<TrackingMountDefinition>;

@@ -32,7 +32,7 @@
 #include "VideoSourceSystem.h"
 #include "VRObjectSystem.h"
 #include "VRDeviceComponent.h"
-#include "VRTrackingAPIDefinition.h"
+#include "VRTrackingVolumeDefinition.h"
 
 #include "SDL_keycode.h"
 
@@ -635,8 +635,8 @@ bool AppStage_AlignmentCalibration::handleRestartCommand(std::vector<std::string
 
 VRDevicePoseViewPtr AppStage_AlignmentCalibration::makeMatPoseViewFromCamera(CameraComponentPtr m_targetCameraComponent)
 {
-	VRTrackingAPIDefinitionConstPtr vrTrackingSystem =
-		m_targetCameraComponent->getVRTrackingAPIDefinition();
+	VRTrackingVolumeDefinitionConstPtr vrTrackingSystem =
+		m_targetCameraComponent->getVRTrackingVolumeDefinition();
 
 	if (!vrTrackingSystem)
 	{
