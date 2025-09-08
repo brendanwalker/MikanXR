@@ -1,4 +1,3 @@
-#include "TrackingSystemsConfig.h"
 #include "App.h"
 #include "MathTypeConversion.h"
 #include "MikanObject.h"
@@ -7,17 +6,18 @@
 #include "ProjectConfig.h"
 #include "SelectionComponent.h"
 #include "StringUtils.h"
+#include "TrackingVolumeObjectSystem.h"
 
 // -- TrackingSystemsConfig -----
-const std::string TrackingSystemsConfig::k_markerTrackingSystemListPropertyId= "markerTrackingSystemList";
-const std::string TrackingSystemsConfig::k_vrTrackingSystemListPropertyId= "vrTrackingSystemList";
+const std::string TrackingVolumeObjectSystemConfig::k_markerTrackingSystemListPropertyId= "markerTrackingSystemList";
+const std::string TrackingVolumeObjectSystemConfig::k_vrTrackingSystemListPropertyId= "vrTrackingSystemList";
 
-TrackingSystemsConfigPtr TrackingSystemsConfig::getSystemConfig()
+TrackingVolumeObjectSystemConfigPtr TrackingVolumeObjectSystemConfig::getSystemConfig()
 {
-	return App::getInstance()->getProfileConfig()->trackingSystemsConfig;
+	return App::getInstance()->getProfileConfig()->trackingVolumeSystemConfig;
 }
 
-configuru::Config TrackingSystemsConfig::writeToJSON()
+configuru::Config TrackingVolumeObjectSystemConfig::writeToJSON()
 {
 	configuru::Config pt = CommonConfig::writeToJSON();
 
@@ -40,7 +40,7 @@ configuru::Config TrackingSystemsConfig::writeToJSON()
 	return pt;
 }
 
-void TrackingSystemsConfig::readFromJSON(const configuru::Config& pt)
+void TrackingVolumeObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
@@ -77,7 +77,7 @@ void TrackingSystemsConfig::readFromJSON(const configuru::Config& pt)
 	}
 }
 
-bool TrackingSystemsConfig::canAddTrackingSystemType(eTrackingSystemType systemType) const
+bool TrackingVolumeObjectSystemConfig::canAddTrackingSystemType(eTrackingSystemType systemType) const
 {
 	switch (systemType)
 	{
@@ -90,7 +90,7 @@ bool TrackingSystemsConfig::canAddTrackingSystemType(eTrackingSystemType systemT
 	return false;
 }
 
-TrackingVolumeDefinitionConstPtr TrackingSystemsConfig::getTrackingVolumeDefinitionConst(
+TrackingVolumeDefinitionConstPtr TrackingVolumeObjectSystemConfig::getTrackingVolumeDefinitionConst(
 	MikanTrackingSystemID systemId) const
 {
 	MarkerTrackingVolumeDefinitionConstPtr markerSystemPtr = 
@@ -110,7 +110,7 @@ TrackingVolumeDefinitionConstPtr TrackingSystemsConfig::getTrackingVolumeDefinit
 	return TrackingVolumeDefinitionPtr();
 }
 
-TrackingVolumeDefinitionPtr TrackingSystemsConfig::getTrackingVolumeDefinition(
+TrackingVolumeDefinitionPtr TrackingVolumeObjectSystemConfig::getTrackingVolumeDefinition(
 	MikanTrackingSystemID systemId)
 {
 	return 
@@ -118,7 +118,7 @@ TrackingVolumeDefinitionPtr TrackingSystemsConfig::getTrackingVolumeDefinition(
 			getTrackingVolumeDefinitionConst(systemId));
 }
 
-eTrackingSystemType TrackingSystemsConfig::getTrackingSystemType(MikanTrackingSystemID systemId) const
+eTrackingSystemType TrackingVolumeObjectSystemConfig::getTrackingSystemType(MikanTrackingSystemID systemId) const
 {
 	TrackingVolumeDefinitionConstPtr trackingSystem= getTrackingVolumeDefinitionConst(systemId);
 	if (trackingSystem)
@@ -129,7 +129,7 @@ eTrackingSystemType TrackingSystemsConfig::getTrackingSystemType(MikanTrackingSy
 	return eTrackingSystemType::INVALID;
 }
 
-bool TrackingSystemsConfig::removeTrackingSystem(MikanTrackingSystemID systemId)
+bool TrackingVolumeObjectSystemConfig::removeTrackingSystem(MikanTrackingSystemID systemId)
 {
 	switch (getTrackingSystemType(systemId))
 	{
@@ -144,7 +144,7 @@ bool TrackingSystemsConfig::removeTrackingSystem(MikanTrackingSystemID systemId)
 	return false;
 }
 
-MarkerTrackingVolumeDefinitionConstPtr TrackingSystemsConfig::getMarkerTrackingVolumeDefinitionConst(MikanTrackingSystemID systemId) const
+MarkerTrackingVolumeDefinitionConstPtr TrackingVolumeObjectSystemConfig::getMarkerTrackingVolumeDefinitionConst(MikanTrackingSystemID systemId) const
 {
 	auto iter = std::find_if(
 		m_markerTrackingVolumeList.begin(), m_markerTrackingVolumeList.end(),
@@ -160,12 +160,12 @@ MarkerTrackingVolumeDefinitionConstPtr TrackingSystemsConfig::getMarkerTrackingV
 	return MarkerTrackingVolumeDefinitionConstPtr();
 }
 
-MarkerTrackingVolumeDefinitionPtr TrackingSystemsConfig::getMarkerTrackingVolumeDefinition(MikanTrackingSystemID systemId)
+MarkerTrackingVolumeDefinitionPtr TrackingVolumeObjectSystemConfig::getMarkerTrackingVolumeDefinition(MikanTrackingSystemID systemId)
 {
 	return std::const_pointer_cast<MarkerTrackingVolumeDefinition>(getMarkerTrackingVolumeDefinitionConst(systemId));
 }
 
-MikanTrackingSystemID TrackingSystemsConfig::addMarkerTrakingSystem()
+MikanTrackingSystemID TrackingVolumeObjectSystemConfig::addMarkerTrakingSystem()
 {
 	if (!canAddTrackingSystemType(eTrackingSystemType::marker))
 		return INVALID_MIKAN_ID;
@@ -183,7 +183,7 @@ MikanTrackingSystemID TrackingSystemsConfig::addMarkerTrakingSystem()
 	return configPtr->getTrackingSystemId();
 }
 
-bool TrackingSystemsConfig::removeMarkerTrackingSystem(MikanTrackingSystemID systemId)
+bool TrackingVolumeObjectSystemConfig::removeMarkerTrackingSystem(MikanTrackingSystemID systemId)
 {
 	auto it = std::find_if(
 		m_markerTrackingVolumeList.begin(), m_markerTrackingVolumeList.end(),
@@ -204,7 +204,7 @@ bool TrackingSystemsConfig::removeMarkerTrackingSystem(MikanTrackingSystemID sys
 	return false;
 }
 
-VRTrackingVolumeDefinitionConstPtr TrackingSystemsConfig::getVRTrackingVolumeDefinitionConst(MikanTrackingSystemID systemId) const
+VRTrackingVolumeDefinitionConstPtr TrackingVolumeObjectSystemConfig::getVRTrackingVolumeDefinitionConst(MikanTrackingSystemID systemId) const
 {
 	auto iter = std::find_if(
 		m_vrTrackingVolumeList.begin(), m_vrTrackingVolumeList.end(),
@@ -220,12 +220,12 @@ VRTrackingVolumeDefinitionConstPtr TrackingSystemsConfig::getVRTrackingVolumeDef
 	return VRTrackingVolumeDefinitionConstPtr();
 }
 
-VRTrackingVolumeDefinitionPtr TrackingSystemsConfig::getVRTrackingVolumeDefinition(MikanTrackingSystemID systemId)
+VRTrackingVolumeDefinitionPtr TrackingVolumeObjectSystemConfig::getVRTrackingVolumeDefinition(MikanTrackingSystemID systemId)
 {
 	return std::const_pointer_cast<VRTrackingVolumeDefinition>(getVRTrackingVolumeDefinitionConst(systemId));
 }
 
-MikanTrackingSystemID TrackingSystemsConfig::addVRTrackingSystem(
+MikanTrackingSystemID TrackingVolumeObjectSystemConfig::addVRTrackingSystem(
 	eTrackingRuntime trackingRuntime)
 {
 	if (!canAddTrackingSystemType(eTrackingSystemType::vr))
@@ -246,7 +246,7 @@ MikanTrackingSystemID TrackingSystemsConfig::addVRTrackingSystem(
 	return configPtr->getTrackingSystemId();
 }
 
-bool TrackingSystemsConfig::removeVRTrackingSystem(MikanTrackingSystemID systemId)
+bool TrackingVolumeObjectSystemConfig::removeVRTrackingSystem(MikanTrackingSystemID systemId)
 {
 	auto it = std::find_if(
 		m_vrTrackingVolumeList.begin(), m_vrTrackingVolumeList.end(),

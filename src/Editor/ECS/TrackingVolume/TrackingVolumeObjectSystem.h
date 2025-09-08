@@ -5,14 +5,14 @@
 #include "VRTrackingVolumeDefinition.h"
 #include <vector>
 
-class TrackingSystemsConfig : public CommonConfig
+class TrackingVolumeObjectSystemConfig : public CommonConfig
 {
 public:
-	TrackingSystemsConfig(const std::string& configName)
+	TrackingVolumeObjectSystemConfig(const std::string& configName)
 		: CommonConfig(configName)
 	{}
 
-	static TrackingSystemsConfigPtr getSystemConfig();
+	static TrackingVolumeObjectSystemConfigPtr getSystemConfig();
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

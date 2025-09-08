@@ -14,7 +14,7 @@
 #include <RmlUi/Core/Variant.h>
 
 #include <queue>
-#include "TrackingSystemsConfig.h"
+#include "TrackingVolumeObjectSystem.h"
 
 // -- StageComponentDefinition -----
 const std::string StageComponentDefinition::k_trackingSystemIdPropertyId = "tracking_system_id";
@@ -135,7 +135,7 @@ TrackingVolumeDefinitionConstPtr StageComponent::getTrackingVolumeDefinitionCons
 	MikanTrackingSystemID systemId = getStageComponentDefinitionConst()->getTrackingSystemId();
 	if (systemId != INVALID_MIKAN_ID)
 	{
-		return TrackingSystemsConfig::getSystemConfig()->getTrackingVolumeDefinitionConst(systemId);
+		return TrackingVolumeObjectSystemConfig::getSystemConfig()->getTrackingVolumeDefinitionConst(systemId);
 	}
 
 	return nullptr;

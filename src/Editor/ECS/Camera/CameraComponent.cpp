@@ -18,7 +18,7 @@
 #include "StringUtils.h"
 #include "StageObjectSystem.h"
 #include "StageComponent.h"
-#include "TrackingSystemsConfig.h"
+#include "TrackingVolumeObjectSystem.h"
 #include "VideoSourceSystem.h"
 #include "VideoSourceComponent.h"
 #include "VRDeviceComponent.h"

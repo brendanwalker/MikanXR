@@ -4,9 +4,9 @@
 #include "RmlModel_ProjectTracking.h"
 #include "Shared/RmlModel_PropertyInterface.h"
 #include "StringUtils.h"
-#include "TrackingSystemsConfig.h"
 #include "TrackingMountComponent.h"
 #include "TrackingMountObjectSystem.h"
+#include "TrackingVolumeObjectSystem.h"
 #include "VRTrackingVolumeDefinition.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
@@ -27,7 +27,7 @@ bool RmlModel_ProjectTracking::init(
 	ProjectConfigPtr projectConfig,
 	TrackingMountObjectSystemPtr trackingMountSystem)
 {
-	TrackingSystemsConfigPtr trackingSystemConfig= projectConfig->trackingSystemsConfig;
+	TrackingVolumeObjectSystemConfigPtr trackingSystemConfig= projectConfig->trackingVolumeSystemConfig;
 
 	m_projectConfig = projectConfig;
 	m_trackingMountSystem = trackingMountSystem;
@@ -43,7 +43,7 @@ bool RmlModel_ProjectTracking::init(
 		trackingSystemConfig,
 		"tracker_system_ids",
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			TrackingSystemsConfigPtr trackingConfig = m_projectConfig.lock()->trackingSystemsConfig;
+			TrackingVolumeObjectSystemConfigPtr trackingConfig = m_projectConfig.lock()->trackingVolumeSystemConfig;
 
 			for (const auto& vrSystemPtr : trackingConfig->getVRTrackingVolumeList())
 			{
@@ -145,9 +145,9 @@ void RmlModel_ProjectTracking::trackingMountIdListChanged(bool bOwnerChanged)
 	setSelectedTrackingMountId(selectedTrackingMountId);
 }
 
-TrackingSystemsConfigPtr RmlModel_ProjectTracking::getTrackingSystemsConfig()
+TrackingVolumeObjectSystemConfigPtr RmlModel_ProjectTracking::getTrackingSystemsConfig()
 {
-	return m_projectConfig.lock()->trackingSystemsConfig;
+	return m_projectConfig.lock()->trackingVolumeSystemConfig;
 }
 
 TrackingVolumeDefinitionPtr RmlModel_ProjectTracking::getSelectedTrackingSystem()

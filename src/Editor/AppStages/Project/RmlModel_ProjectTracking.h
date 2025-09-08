@@ -22,7 +22,7 @@ public:
 	virtual void dispose() override;
 
 private:
-	TrackingSystemsConfigPtr getTrackingSystemsConfig();
+	TrackingVolumeObjectSystemConfigPtr getTrackingSystemsConfig();
 	TrackingVolumeDefinitionPtr getSelectedTrackingSystem();
 	MarkerTrackingVolumeDefinitionPtr getSelectedMarkerTrackingSystem();
 	VRTrackingVolumeDefinitionPtr getSelectedVRTrackingSystem();

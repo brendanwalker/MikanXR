@@ -62,10 +62,10 @@ using TrackingMountObjectSystemConfigPtr = std::shared_ptr<TrackingMountObjectSy
 using TrackingMountObjectSystemConfigConstPtr = std::shared_ptr<const TrackingMountObjectSystemConfig>;
 using TrackingMountObjectSystemConfigWeakPtr = std::weak_ptr<TrackingMountObjectSystemConfig>;
 
-class TrackingSystemsConfig;
-using TrackingSystemsConfigPtr = std::shared_ptr<TrackingSystemsConfig>;
-using TrackingSystemsConfigConstPtr = std::shared_ptr<const TrackingSystemsConfig>;
-using TrackingSystemsConfigWeakPtr = std::weak_ptr<TrackingSystemsConfig>;
+class TrackingVolumeObjectSystemConfig;
+using TrackingVolumeObjectSystemConfigPtr = std::shared_ptr<TrackingVolumeObjectSystemConfig>;
+using TrackingVolumeObjectSystemConfigConstPtr = std::shared_ptr<const TrackingVolumeObjectSystemConfig>;
+using TrackingVolumeObjectSystemConfigWeakPtr = std::weak_ptr<TrackingVolumeObjectSystemConfig>;
 
 class VideoSourceSystemConfig;
 using VideoSourceSystemConfigPtr = std::shared_ptr<VideoSourceSystemConfig>;

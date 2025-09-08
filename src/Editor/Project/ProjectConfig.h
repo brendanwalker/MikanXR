@@ -32,7 +32,7 @@ public:
 	StencilObjectSystemConfigPtr stencilConfig;
 	SceneObjectSystemConfigPtr sceneConfig;
 	StageObjectSystemConfigPtr stageConfig;
-	TrackingSystemsConfigPtr trackingSystemsConfig;
+	TrackingVolumeObjectSystemConfigPtr trackingVolumeSystemConfig;
 	TrackingMountObjectSystemConfigPtr trackingMountSystemConfig;
 	VideoSourceSystemConfigPtr videoSourceSystemConfig;
 	VRObjectSystemConfigPtr vrObjectConfig;

@@ -13,7 +13,7 @@
 #include "StageObjectSystem.h"
 #include "StringUtils.h"
 #include "SinglecastDelegate.h"
-#include "TrackingSystemsConfig.h"
+#include "TrackingVolumeObjectSystem.h"
 #include "TrackingMountObjectSystem.h"
 #include "VideoSourceSystemConfig.h"
 #include "VRObjectSystem.h"
@@ -50,8 +50,8 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	markerSystemConfig = std::make_shared<MarkerObjectSystemConfig>("marker_system");
 	addChildConfig(markerSystemConfig);
 
-	trackingSystemsConfig = std::make_shared<TrackingSystemsConfig>("tracking_systems");
-	addChildConfig(trackingSystemsConfig);
+	trackingVolumeSystemConfig = std::make_shared<TrackingVolumeObjectSystemConfig>("tracking_volume_system");
+	addChildConfig(trackingVolumeSystemConfig);
 
 	trackingMountSystemConfig = std::make_shared<TrackingMountObjectSystemConfig>("tracking_mount_system");
 	addChildConfig(trackingMountSystemConfig);
@@ -96,8 +96,8 @@ configuru::Config ProjectConfig::writeToJSON()
 	// Write the stencil system config
 	pt[stencilConfig->getConfigName()]= stencilConfig->writeToJSON();
 
-	// Write the tracking systems config
-	pt[trackingSystemsConfig->getConfigName()] = trackingSystemsConfig->writeToJSON();
+	// Write the tracking volume system config
+	pt[trackingVolumeSystemConfig->getConfigName()] = trackingVolumeSystemConfig->writeToJSON();
 
 	// Write the tracking mount system config
 	pt[trackingMountSystemConfig->getConfigName()] = trackingMountSystemConfig->writeToJSON();
@@ -166,10 +166,10 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 		stencilConfig->readFromJSON(pt[stencilConfig->getConfigName()]);
 	}
 
-	// Read the tracking systems config
-	if (pt.has_key(trackingSystemsConfig->getConfigName()))
+	// Read the tracking volume system config
+	if (pt.has_key(trackingVolumeSystemConfig->getConfigName()))
 	{
-		trackingSystemsConfig->readFromJSON(pt[trackingSystemsConfig->getConfigName()]);
+		trackingVolumeSystemConfig->readFromJSON(pt[trackingVolumeSystemConfig->getConfigName()]);
 	}
 
 	// Read the tracking mount system config
