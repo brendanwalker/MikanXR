@@ -14,7 +14,7 @@
 #include "ObjectSystemManager.h"
 #include "StageComponent.h"
 #include "TextStyle.h"
-#include "TrackingVolumeDefinition.h"
+#include "TrackingVolumeComponent.h"
 #include "VideoFrameDistortionView.h"
 
 #include "opencv2/opencv.hpp"

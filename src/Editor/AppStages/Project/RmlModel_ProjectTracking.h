@@ -18,21 +18,23 @@ public:
 	bool init(
 		Rml::Context* rmlContext, 
 		ProjectConfigPtr projectConfig,
+		TrackingVolumeObjectSystemPtr trackingVolumeSystem,
 		TrackingMountObjectSystemPtr trackingMountSystem);
 	virtual void dispose() override;
 
 private:
-	TrackingVolumeObjectSystemConfigPtr getTrackingSystemsConfig();
-	TrackingVolumeDefinitionPtr getSelectedTrackingSystem();
-	MarkerTrackingVolumeDefinitionPtr getSelectedMarkerTrackingSystem();
-	VRTrackingVolumeDefinitionPtr getSelectedVRTrackingSystem();
+	TrackingVolumeObjectSystemPtr getTrackingVolumeSystem();
+	TrackingMountObjectSystemPtr getTrackingMountSystem();
+	TrackingVolumeComponentPtr getSelectedTrackingVolume();
+	MarkerTrackingVolumeComponentPtr getSelectedMarkerTrackingVolume();
+	VRTrackingVolumeComponentPtr getSelectedVRTrackingVolume();
 	TrackingMountComponentPtr getSelectedTrackingMount();
 
 	void addNewSteamVRTrackingSystem(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void addNewMarkerTrackingSystem(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void removeTrackingSystem(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void addNewTrackingMount(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
-	void removeTrackingMount(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void removeTrackingMountID(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void selectTrackingSystemEntry(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void selectTrackingMountEntry(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 
@@ -43,6 +45,7 @@ private:
 	void trackingMountIdListChanged(bool bOwnerChanged);
 
 	ProjectConfigWeakPtr m_projectConfig;
+	TrackingVolumeObjectSystemWeakPtr m_trackingVolumeSystem;
 	TrackingMountObjectSystemWeakPtr m_trackingMountSystem;
 
 	RmlDataBinding_ComponentListPtr m_trackingSystemIdList;

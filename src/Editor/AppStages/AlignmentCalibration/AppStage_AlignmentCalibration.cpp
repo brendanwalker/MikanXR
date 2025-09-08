@@ -27,12 +27,13 @@
 #include "MonoLensTrackerPoseCalibrator.h"
 #include "StageComponent.h"
 #include "TextStyle.h"
+#include "TrackingMountObjectSystem.h"
 #include "VideoSourceComponent.h"
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceSystem.h"
 #include "VRObjectSystem.h"
 #include "VRDeviceComponent.h"
-#include "VRTrackingVolumeDefinition.h"
+#include "VRTrackingVolumeComponent.h"
 
 #include "SDL_keycode.h"
 
@@ -644,13 +645,18 @@ VRDevicePoseViewPtr AppStage_AlignmentCalibration::makeMatPoseViewFromCamera(Cam
 
 		if (matMountId != INVALID_MIKAN_ID)
 		{
-			TrackingMountDefinitionConstPtr matTrackingMount =
-				vrTrackingSystem->getTrackingMountDefinitionConst(matMountId);
-			if (matTrackingMount)
+			auto trackingMountSystem= getSystemOfType<TrackingMountObjectSystem>();
+			TrackingMountComponentPtr trackingMount=
+				trackingMountSystem->getTrackingMountById(matMountId);
+
+			if (trackingMount)
 			{
+				TrackingMountDefinitionConstPtr matTrackingMountDefinition =
+					trackingMount->getTrackingMountDefinition();
+
 				auto vrSystem = getSystemOfType<VRObjectSystem>();
 				VRDeviceComponentPtr matTrackingPuck =
-					vrSystem->getVRDeviceByPath(matTrackingMount->getDevicePath());
+					vrSystem->getVRDeviceByPath(matTrackingMountDefinition->getDevicePath());
 
 				if (matTrackingPuck)
 				{

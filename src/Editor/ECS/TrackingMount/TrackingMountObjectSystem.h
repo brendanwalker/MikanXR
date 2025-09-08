@@ -30,8 +30,8 @@ public:
 	static const std::string k_trackingMountListPropertyId;
 	TrackingMountDefinitionPtr getTrackingMountConfig(MikanTrackingMountID trackingMountId) const;
 	TrackingMountDefinitionPtr getTrackingMountConfigByName(const std::string& trackingMountName) const;
-	MikanTrackingMountID addNewTrackingMount(const std::string& trackingMountName);
-	bool removeTrackingMount(MikanTrackingMountID trackingMountId);
+	MikanTrackingMountID addNewTrackingMount();
+	bool removeTrackingMountID(MikanTrackingMountID trackingMountId);
 	const std::vector<TrackingMountDefinitionPtr>& getTrackingMountList() const { return m_trackingMountList; }
 
 private:
@@ -56,8 +56,8 @@ public:
 	const TrackingMountMap& getTrackingMountMap() const { return m_trackingMountComponents; }
 	TrackingMountComponentPtr getTrackingMountById(MikanTrackingMountID trackingMountId) const;
 	TrackingMountComponentPtr getTrackingMountByName(const std::string& trackingMountName) const;
-	TrackingMountComponentPtr addNewTrackingMount(const std::string& trackingMountName);
-	bool removeTrackingMount(MikanTrackingMountID trackingMountId);
+	TrackingMountComponentPtr addNewTrackingMount();
+	bool removeTrackingMountID(MikanTrackingMountID trackingMountId);
 
 protected:
 	TrackingMountComponentPtr createTrackingMountObject(TrackingMountDefinitionPtr trackingMountConfig);

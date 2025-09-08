@@ -1,4 +1,4 @@
-#include "MarkerTrackingVolumeDefinition.h"
+#include "MarkerTrackingVolumeComponent.h"
 #include "MikanCoreTypes.h"
 #include "ProjectConfig.h"
 #include "RmlModel_ProjectTracking.h"
@@ -7,7 +7,7 @@
 #include "TrackingMountComponent.h"
 #include "TrackingMountObjectSystem.h"
 #include "TrackingVolumeObjectSystem.h"
-#include "VRTrackingVolumeDefinition.h"
+#include "VRTrackingVolumeComponent.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
@@ -25,11 +25,13 @@ RmlModel_ProjectTracking::RmlModel_ProjectTracking()
 bool RmlModel_ProjectTracking::init(
 	Rml::Context* rmlContext, 
 	ProjectConfigPtr projectConfig,
+	TrackingVolumeObjectSystemPtr trackingVolumeSystem,
 	TrackingMountObjectSystemPtr trackingMountSystem)
 {
 	TrackingVolumeObjectSystemConfigPtr trackingSystemConfig= projectConfig->trackingVolumeSystemConfig;
 
 	m_projectConfig = projectConfig;
+	m_trackingVolumeSystem = trackingVolumeSystem;
 	m_trackingMountSystem = trackingMountSystem;
 
 	// Create Datamodel
@@ -45,11 +47,11 @@ bool RmlModel_ProjectTracking::init(
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 			TrackingVolumeObjectSystemConfigPtr trackingConfig = m_projectConfig.lock()->trackingVolumeSystemConfig;
 
-			for (const auto& vrSystemPtr : trackingConfig->getVRTrackingVolumeList())
+			for (const auto& vrTrackingVolumePtr : trackingConfig->getVRTrackingVolumeList())
 			{
-				if (vrSystemPtr)
+				if (vrTrackingVolumePtr)
 				{
-					outComponentIdList.push_back((int)vrSystemPtr->getTrackingSystemId());
+					outComponentIdList.push_back((int)vrTrackingVolumePtr->getTrackingSystemId());
 				}
 			}
 			for (const auto& markerSystemPtr : trackingConfig->getMarkerTrackingVolumeList())
@@ -69,12 +71,9 @@ bool RmlModel_ProjectTracking::init(
 			{
 				auto vrTrackingSystemDefinition= std::static_pointer_cast<VRTrackingVolumeDefinition>(ownerConfig);
 				
-				for (const auto& trackingMountPtr : vrTrackingSystemDefinition->getTrackingMounts())
+				for (const MikanTrackingMountID& trackingMountId : vrTrackingSystemDefinition->getTrackingMountIDs())
 				{
-					if (trackingMountPtr)
-					{
-						outComponentIdList.push_back((int)trackingMountPtr->getTrackingMountId());
-					}
+					outComponentIdList.push_back(trackingMountId);
 				}
 			}
 		});
@@ -99,7 +98,7 @@ bool RmlModel_ProjectTracking::init(
 	constructor.BindEventCallback("add_new_marker_tracking_system", &RmlModel_ProjectTracking::addNewMarkerTrackingSystem, this);
 	constructor.BindEventCallback("remove_tracking_system", &RmlModel_ProjectTracking::removeTrackingSystem, this);
 	constructor.BindEventCallback("add_new_tracking_mount", &RmlModel_ProjectTracking::addNewTrackingMount, this);
-	constructor.BindEventCallback("remove_tracking_mount", &RmlModel_ProjectTracking::removeTrackingMount, this);
+	constructor.BindEventCallback("remove_tracking_mount", &RmlModel_ProjectTracking::removeTrackingMountID, this);
 	constructor.BindEventCallback("select_tracking_system_entry", &RmlModel_ProjectTracking::selectTrackingSystemEntry, this);
 	constructor.BindEventCallback("select_tracking_mount_entry", &RmlModel_ProjectTracking::selectTrackingMountEntry, this);
 
@@ -145,29 +144,34 @@ void RmlModel_ProjectTracking::trackingMountIdListChanged(bool bOwnerChanged)
 	setSelectedTrackingMountId(selectedTrackingMountId);
 }
 
-TrackingVolumeObjectSystemConfigPtr RmlModel_ProjectTracking::getTrackingSystemsConfig()
+TrackingVolumeObjectSystemPtr RmlModel_ProjectTracking::getTrackingVolumeSystem()
 {
-	return m_projectConfig.lock()->trackingVolumeSystemConfig;
+	return m_trackingVolumeSystem.lock();
 }
 
-TrackingVolumeDefinitionPtr RmlModel_ProjectTracking::getSelectedTrackingSystem()
+TrackingMountObjectSystemPtr RmlModel_ProjectTracking::getTrackingMountSystem()
 {
-	return getTrackingSystemsConfig()->getTrackingVolumeDefinition((MikanTrackingSystemID)m_selectedTrackingSystemId);
+	return m_trackingMountSystem.lock();
 }
 
-MarkerTrackingVolumeDefinitionPtr RmlModel_ProjectTracking::getSelectedMarkerTrackingSystem()
+TrackingVolumeComponentPtr RmlModel_ProjectTracking::getSelectedTrackingVolume()
 {
-	return getTrackingSystemsConfig()->getMarkerTrackingVolumeDefinition((MikanTrackingSystemID)m_selectedTrackingSystemId);
+	return getTrackingVolumeSystem()->getTrackingVolumeById((MikanTrackingSystemID)m_selectedTrackingSystemId);
 }
 
-VRTrackingVolumeDefinitionPtr RmlModel_ProjectTracking::getSelectedVRTrackingSystem()
+MarkerTrackingVolumeComponentPtr RmlModel_ProjectTracking::getSelectedMarkerTrackingVolume()
 {
-	return getTrackingSystemsConfig()->getVRTrackingVolumeDefinition((MikanTrackingSystemID)m_selectedTrackingSystemId);
+	return getTrackingVolumeSystem()->getMarkerTrackingVolumeById((MikanTrackingSystemID)m_selectedTrackingSystemId);
+}
+
+VRTrackingVolumeComponentPtr RmlModel_ProjectTracking::getSelectedVRTrackingVolume()
+{
+	return getTrackingVolumeSystem()->getVRTrackingVolumeById((MikanTrackingSystemID)m_selectedTrackingSystemId);
 }
 
 TrackingMountComponentPtr RmlModel_ProjectTracking::getSelectedTrackingMount()
 {
-	return m_trackingMountSystem.lock()->getTrackingMountById((MikanTrackingMountID)m_selectedTrackingMountId);
+	return getTrackingMountSystem()->getTrackingMountById((MikanTrackingMountID)m_selectedTrackingMountId);
 }
 
 void RmlModel_ProjectTracking::addNewSteamVRTrackingSystem(
@@ -175,7 +179,7 @@ void RmlModel_ProjectTracking::addNewSteamVRTrackingSystem(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	getTrackingSystemsConfig()->addVRTrackingSystem(eTrackingRuntime::SteamVR);
+	getTrackingVolumeSystem()->addNewVRTrackingVolume(eTrackingRuntime::SteamVR);
 }
 
 void RmlModel_ProjectTracking::addNewMarkerTrackingSystem(
@@ -183,7 +187,7 @@ void RmlModel_ProjectTracking::addNewMarkerTrackingSystem(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	getTrackingSystemsConfig()->addMarkerTrakingSystem();
+	getTrackingVolumeSystem()->addNewMarkerTrackingVolume();
 }
 
 void RmlModel_ProjectTracking::removeTrackingSystem(
@@ -196,7 +200,7 @@ void RmlModel_ProjectTracking::removeTrackingSystem(
 
 	const int systemId = parameters[0].Get<int>();
 	
-	getTrackingSystemsConfig()->removeTrackingSystem((MikanTrackingSystemID)systemId);
+	getTrackingVolumeSystem()->removeTrackingSystem((MikanTrackingSystemID)systemId);
 }
 
 void RmlModel_ProjectTracking::addNewTrackingMount(
@@ -204,14 +208,17 @@ void RmlModel_ProjectTracking::addNewTrackingMount(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	VRTrackingVolumeDefinitionPtr vrSystemPtr = getSelectedVRTrackingSystem();
-	if (vrSystemPtr)
+	VRTrackingVolumeComponentPtr vrTrackingVolumePtr = getSelectedVRTrackingVolume();
+	if (vrTrackingVolumePtr)
 	{
-		vrSystemPtr->addTrackingMount();
+		TrackingMountComponentPtr trackingMount= getTrackingMountSystem()->addNewTrackingMount();
+
+		vrTrackingVolumePtr->getVRTrackingVolumeDefinition()->addTrackingMountID(
+			trackingMount->getTrackingMountDefinition()->getTrackingMountId());
 	}
 }
 
-void RmlModel_ProjectTracking::removeTrackingMount(
+void RmlModel_ProjectTracking::removeTrackingMountID(
 	Rml::DataModelHandle handle,
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
@@ -221,10 +228,11 @@ void RmlModel_ProjectTracking::removeTrackingMount(
 
 	const int mountId = parameters[0].Get<int>();
 
-	VRTrackingVolumeDefinitionPtr vrSystemPtr = getSelectedVRTrackingSystem();
-	if (vrSystemPtr)
+	VRTrackingVolumeComponentPtr vrTrackingVolumePtr = getSelectedVRTrackingVolume();
+	if (vrTrackingVolumePtr)
 	{
-		vrSystemPtr->removeTrackingMount((MikanTrackingMountID)mountId);
+		vrTrackingVolumePtr->getVRTrackingVolumeDefinition()->removeTrackingMountID((MikanTrackingMountID)mountId);
+		getTrackingMountSystem()->removeTrackingMountID((MikanTrackingMountID)mountId);
 	}
 }
 
@@ -259,14 +267,14 @@ void RmlModel_ProjectTracking::setSelectedTrackingSystemId(MikanTrackingSystemID
 		m_selectedTrackingSystemId = (int)trackingSystemId;
 		m_modelHandle.DirtyVariable("selected_tracking_system_id");
 
-		if (VRTrackingVolumeDefinitionPtr vrTrackingDefinition = getSelectedVRTrackingSystem())
+		if (VRTrackingVolumeComponentPtr vrTrackingComponent = getSelectedVRTrackingVolume())
 		{
-			m_selectedVRTrackingSystemModel->setPropertyInterface(vrTrackingDefinition.get());
+			m_selectedVRTrackingSystemModel->setPropertyInterface(vrTrackingComponent.get());
 			m_selectedMarkerTrackingSystemModel->setPropertyInterface(nullptr);
 
-			m_trackingMountIdList->setOwnerConfig(vrTrackingDefinition);
+			m_trackingMountIdList->setOwnerConfig(vrTrackingComponent->getDefinition());
 		}
-		else if (MarkerTrackingVolumeDefinitionPtr markerTrackingDefinition = getSelectedMarkerTrackingSystem())
+		else if (MarkerTrackingVolumeComponentPtr markerTrackingDefinition = getSelectedMarkerTrackingVolume())
 		{
 			m_selectedVRTrackingSystemModel->setPropertyInterface(nullptr);
 			m_selectedMarkerTrackingSystemModel->setPropertyInterface(markerTrackingDefinition.get());

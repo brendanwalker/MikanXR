@@ -80,9 +80,10 @@ TrackingMountDefinitionPtr TrackingMountObjectSystemConfig::getTrackingMountConf
 	return TrackingMountDefinitionPtr();
 }
 
-MikanTrackingMountID TrackingMountObjectSystemConfig::addNewTrackingMount(const std::string& trackingMountName)
+MikanTrackingMountID TrackingMountObjectSystemConfig::addNewTrackingMount()
 {
 	MikanTrackingMountID newTrackingMountId = m_nextTrackingMountId;
+	const std::string trackingMountName = StringUtils::stringify("mount_", m_nextTrackingMountId);
 	TrackingMountDefinitionPtr trackingMountDefinition =
 		TrackingMountDefinitionPtr(new TrackingMountDefinition(newTrackingMountId, trackingMountName));
 
@@ -92,7 +93,7 @@ MikanTrackingMountID TrackingMountObjectSystemConfig::addNewTrackingMount(const 
 	return newTrackingMountId;
 }
 
-bool TrackingMountObjectSystemConfig::removeTrackingMount(MikanTrackingMountID trackingMountId)
+bool TrackingMountObjectSystemConfig::removeTrackingMountID(MikanTrackingMountID trackingMountId)
 {
 	auto it = std::find_if(
 		m_trackingMountList.begin(), m_trackingMountList.end(),
@@ -167,22 +168,22 @@ TrackingMountComponentPtr TrackingMountObjectSystem::getTrackingMountByName(cons
 	return TrackingMountComponentPtr();
 }
 
-TrackingMountComponentPtr TrackingMountObjectSystem::addNewTrackingMount(const std::string& trackingMountName)
+TrackingMountComponentPtr TrackingMountObjectSystem::addNewTrackingMount()
 {
 	TrackingMountObjectSystemConfigPtr config = getTrackingMountSystemConfig();
-	MikanTrackingMountID newTrackingMountId = config->addNewTrackingMount(trackingMountName);
+	MikanTrackingMountID newTrackingMountId = config->addNewTrackingMount();
 	TrackingMountDefinitionPtr trackingMountDefinition = config->getTrackingMountConfig(newTrackingMountId);
 
 	return createTrackingMountObject(trackingMountDefinition);
 }
 
-bool TrackingMountObjectSystem::removeTrackingMount(MikanTrackingMountID trackingMountId)
+bool TrackingMountObjectSystem::removeTrackingMountID(MikanTrackingMountID trackingMountId)
 {
 	TrackingMountObjectSystemConfigPtr config = getTrackingMountSystemConfig();
 
 	disposeTrackingMountObject(trackingMountId);
 
-	return config->removeTrackingMount(trackingMountId);
+	return config->removeTrackingMountID(trackingMountId);
 }
 
 TrackingMountComponentPtr TrackingMountObjectSystem::createTrackingMountObject(

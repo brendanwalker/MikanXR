@@ -1,12 +1,17 @@
+#include "TrackingVolumeObjectSystem.h"
 #include "App.h"
+#include "Logger.h"
+#include "TrackingVolumeComponent.h"
+#include "MarkerTrackingVolumeComponent.h"
+#include "VRTrackingVolumeComponent.h"
 #include "MathTypeConversion.h"
 #include "MikanObject.h"
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
+#include "ObjectSystemManager.h"
 #include "ProjectConfig.h"
 #include "SelectionComponent.h"
 #include "StringUtils.h"
-#include "TrackingVolumeObjectSystem.h"
 
 // -- TrackingSystemsConfig -----
 const std::string TrackingVolumeObjectSystemConfig::k_markerTrackingSystemListPropertyId= "markerTrackingSystemList";
@@ -265,4 +270,173 @@ bool TrackingVolumeObjectSystemConfig::removeVRTrackingSystem(MikanTrackingSyste
 	}
 
 	return false;
+}
+
+// -- TrackingVolumeObjectSystem -----
+bool TrackingVolumeObjectSystem::init()
+{
+	TrackingVolumeObjectSystemConfigPtr config = getTrackingVolumeSystemConfig();
+	if (config == nullptr)
+		return false;
+
+	// Create tracking volume components for all existing definitions
+	for (MarkerTrackingVolumeDefinitionPtr markerDef : config->getMarkerTrackingVolumeList())
+	{
+		createTrackingVolumeObject(std::static_pointer_cast<TrackingVolumeDefinition>(markerDef));
+	}
+
+	for (VRTrackingVolumeDefinitionPtr vrDef : config->getVRTrackingVolumeList())
+	{
+		createTrackingVolumeObject(std::static_pointer_cast<TrackingVolumeDefinition>(vrDef));
+	}
+
+	return MikanObjectSystem::init();
+}
+
+void TrackingVolumeObjectSystem::dispose()
+{
+	// Clean up all tracking volume components
+	m_trackingVolumeComponents.clear();
+
+	MikanObjectSystem::dispose();
+}
+
+void TrackingVolumeObjectSystem::deleteObjectConfig(MikanObjectPtr objectPtr)
+{
+	// Implementation similar to TrackingMountObjectSystem
+	MikanObjectSystem::deleteObjectConfig(objectPtr);
+}
+
+TrackingVolumeObjectSystemConfigConstPtr TrackingVolumeObjectSystem::getTrackingVolumeSystemConfigConst() const
+{
+	return App::getInstance()->getProfileConfig()->trackingVolumeSystemConfig;
+}
+
+TrackingVolumeObjectSystemConfigPtr TrackingVolumeObjectSystem::getTrackingVolumeSystemConfig()
+{
+	return App::getInstance()->getProfileConfig()->trackingVolumeSystemConfig;
+}
+
+TrackingVolumeComponentPtr TrackingVolumeObjectSystem::getTrackingVolumeById(MikanTrackingSystemID trackingSystemId) const
+{
+	auto it = m_trackingVolumeComponents.find(trackingSystemId);
+	if (it != m_trackingVolumeComponents.end())
+	{
+		return it->second.lock();
+	}
+
+	return TrackingVolumeComponentPtr();
+}
+
+MarkerTrackingVolumeComponentPtr TrackingVolumeObjectSystem::getMarkerTrackingVolumeById(MikanTrackingSystemID trackingSystemId) const
+{
+	TrackingVolumeComponentPtr trackingVolume = getTrackingVolumeById(trackingSystemId);
+	return std::dynamic_pointer_cast<MarkerTrackingVolumeComponent>(trackingVolume);
+}
+
+VRTrackingVolumeComponentPtr TrackingVolumeObjectSystem::getVRTrackingVolumeById(MikanTrackingSystemID trackingSystemId) const
+{
+	TrackingVolumeComponentPtr trackingVolume = getTrackingVolumeById(trackingSystemId);
+	return std::dynamic_pointer_cast<VRTrackingVolumeComponent>(trackingVolume);
+}
+
+MarkerTrackingVolumeComponentPtr TrackingVolumeObjectSystem::addNewMarkerTrackingVolume()
+{
+	TrackingVolumeObjectSystemConfigPtr config = getTrackingVolumeSystemConfig();
+	if (config == nullptr)
+		return MarkerTrackingVolumeComponentPtr();
+
+	MikanTrackingSystemID systemId = config->addMarkerTrakingSystem();
+	if (systemId == INVALID_MIKAN_ID)
+		return MarkerTrackingVolumeComponentPtr();
+
+	MarkerTrackingVolumeDefinitionPtr markerDef = config->getMarkerTrackingVolumeDefinition(systemId);
+	TrackingVolumeComponentPtr trackingVolume = createTrackingVolumeObject(std::static_pointer_cast<TrackingVolumeDefinition>(markerDef));
+
+	return std::dynamic_pointer_cast<MarkerTrackingVolumeComponent>(trackingVolume);
+}
+
+VRTrackingVolumeComponentPtr TrackingVolumeObjectSystem::addNewVRTrackingVolume(eTrackingRuntime trackingRuntime)
+{
+	TrackingVolumeObjectSystemConfigPtr config = getTrackingVolumeSystemConfig();
+	if (config == nullptr)
+		return VRTrackingVolumeComponentPtr();
+
+	MikanTrackingSystemID systemId = config->addVRTrackingSystem(trackingRuntime);
+	if (systemId == INVALID_MIKAN_ID)
+		return VRTrackingVolumeComponentPtr();
+
+	VRTrackingVolumeDefinitionPtr vrDef = config->getVRTrackingVolumeDefinition(systemId);
+	TrackingVolumeComponentPtr trackingVolume = createTrackingVolumeObject(std::static_pointer_cast<TrackingVolumeDefinition>(vrDef));
+
+	return std::dynamic_pointer_cast<VRTrackingVolumeComponent>(trackingVolume);
+}
+
+bool TrackingVolumeObjectSystem::removeTrackingSystem(MikanTrackingSystemID trackingSystemId)
+{
+	TrackingVolumeObjectSystemConfigPtr config = getTrackingVolumeSystemConfig();
+	if (config == nullptr)
+		return false;
+
+	// Remove the component first
+	disposeTrackingVolumeObject(trackingSystemId);
+
+	// Then remove from config
+	return config->removeTrackingSystem(trackingSystemId);
+}
+
+TrackingVolumeComponentPtr TrackingVolumeObjectSystem::createTrackingVolumeObject(TrackingVolumeDefinitionPtr trackingVolumeConfig)
+{
+	MikanTrackingSystemID trackingVolumeId = trackingVolumeConfig->getTrackingSystemId();
+
+	MikanObjectPtr mikanObject = newObject();
+	mikanObject->setName(trackingVolumeConfig->getComponentName());
+
+	// Create appropriate component type based on definition type
+	TrackingVolumeComponentPtr componentPtr;
+	switch (trackingVolumeConfig->getTrackingSystemType())
+	{
+		case eTrackingSystemType::marker:
+		{
+			MarkerTrackingVolumeDefinitionPtr componentDefinition =
+				std::static_pointer_cast<MarkerTrackingVolumeDefinition>(trackingVolumeConfig);
+			componentPtr = mikanObject->addComponent<MarkerTrackingVolumeComponent>();
+			componentPtr->setDefinition(componentDefinition);
+
+			break;
+		}
+		case eTrackingSystemType::vr:
+		{
+			VRTrackingVolumeDefinitionPtr componentDefinition =
+				std::static_pointer_cast<VRTrackingVolumeDefinition>(trackingVolumeConfig);
+			componentPtr = mikanObject->addComponent<VRTrackingVolumeComponent>();
+			componentPtr->setDefinition(componentDefinition);
+			break;
+		}
+	}
+
+	if (componentPtr != nullptr)
+	{
+		m_trackingVolumeComponents.insert({ trackingVolumeId, componentPtr });
+
+		// Init the object once all components are added
+		mikanObject->init();
+	}
+
+	return componentPtr;
+}
+
+void TrackingVolumeObjectSystem::disposeTrackingVolumeObject(MikanTrackingSystemID trackingSystemId)
+{
+	auto it = m_trackingVolumeComponents.find(trackingSystemId);
+	if (it != m_trackingVolumeComponents.end())
+	{
+		TrackingVolumeComponentPtr componentPtr = it->second.lock();
+
+		// Remove from component list
+		m_trackingVolumeComponents.erase(it);
+
+		// Free the corresponding object
+		deleteObject(componentPtr->getOwnerObject());
+	}
 }

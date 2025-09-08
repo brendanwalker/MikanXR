@@ -90,7 +90,7 @@ void TrackingMountComponent::deleteTrackingMount()
 	if (trackingMountDefinition)
 	{
 		const MikanTrackingMountID trackingMountId = trackingMountDefinition->getTrackingMountId();
-		getOwnerTrackingMountSystem()->removeTrackingMount(trackingMountId);
+		getOwnerTrackingMountSystem()->removeTrackingMountID(trackingMountId);
 	}
 }
 

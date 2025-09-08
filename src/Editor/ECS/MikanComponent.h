@@ -7,6 +7,7 @@
 #include "ObjectFwd.h"
 #include "MulticastDelegate.h"
 #include "ObjectSystemConfigFwd.h"
+#include "ObjectSystemManager.h"
 #include "FunctionInterface.h"
 #include "PropertyInterface.h"
 
@@ -57,6 +58,13 @@ public:
 	const std::string& getName() const { return m_name; }
 
 	MikanObjectPtr getOwnerObject() const { return m_ownerObject.lock(); }
+	ObjectSystemManager* getOwnerObjectSystemManager() const;
+
+	template <class t_object_system_type>
+	std::shared_ptr<t_object_system_type> getObjectSystemOfType() const
+	{
+		return getOwnerObjectSystemManager()->getSystemOfType<t_object_system_type>();
+	}
 
 	template <class t_derived_type>
 	std::shared_ptr<t_derived_type> getSelfPtr()

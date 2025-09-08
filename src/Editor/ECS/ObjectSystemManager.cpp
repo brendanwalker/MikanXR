@@ -14,6 +14,7 @@
 #include "StencilObjectSystem.h"
 #include "StageObjectSystem.h"
 #include "TrackingMountObjectSystem.h"
+#include "TrackingVolumeObjectSystem.h"
 #include "USBVideoSourceSystem.h"
 #include "VideoSourceSystem.h"
 #include "VRObjectSystem.h"
@@ -37,6 +38,7 @@ bool ObjectSystemManager::startup()
 	addSystem<AnchorObjectSystem>();
 	addSystem<StencilObjectSystem>();
 	addSystem<TrackingMountObjectSystem>();
+	addSystem<TrackingVolumeObjectSystem>();
 	addSystem<VRObjectSystem>();
 
 	for (int i= 0; i < (int)m_systems.size(); i++)

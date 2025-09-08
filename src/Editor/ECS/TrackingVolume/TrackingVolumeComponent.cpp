@@ -1,0 +1,144 @@
+#include "TrackingVolumeComponent.h"
+#include "App.h"
+#include "MathTypeConversion.h"
+#include "MarkerObjectSystem.h"
+#include "MikanObject.h"
+#include "MikanAPITypes.h"
+#include "MikanMathTypes.h"
+#include "ProjectConfig.h"
+#include "SelectionComponent.h"
+#include "StringUtils.h"
+#include "TrackingVolumeObjectSystem.h"
+
+// TODO: Replace App singleton access
+#include "MainWindow.h"
+
+#include <RmlUi/Core/Types.h>
+#include <RmlUi/Core/Variant.h>
+
+// -- TrackingVolumeDefinition -----
+const std::string TrackingVolumeDefinition::k_originMarkerPropertyId = "originMarker";
+
+TrackingVolumeDefinition::TrackingVolumeDefinition()
+	: MikanComponentDefinition()
+	, m_trackingSystemId(INVALID_MIKAN_ID)
+	, m_originMarkeId(INVALID_MIKAN_ID)
+{
+}
+
+TrackingVolumeDefinition::TrackingVolumeDefinition(
+	MikanTrackingSystemID trackingSystemId,
+	const std::string& trackingSystemName)
+	: MikanComponentDefinition(trackingSystemName)
+	, m_trackingSystemId(trackingSystemId)
+	, m_originMarkeId(INVALID_MIKAN_ID)
+{
+}
+
+configuru::Config TrackingVolumeDefinition::writeToJSON()
+{
+	configuru::Config pt = MikanComponentDefinition::writeToJSON();
+
+	pt["tracking_system_id"] = m_trackingSystemId;
+	pt["origin_marker_id"] = m_originMarkeId;
+
+	return pt;
+}
+
+void TrackingVolumeDefinition::readFromJSON(const configuru::Config& pt)
+{
+	MikanComponentDefinition::readFromJSON(pt);
+
+	m_trackingSystemId = pt.get_or<MikanTrackingSystemID>("tracking_system_id", m_trackingSystemId);
+	m_originMarkeId = pt.get_or<MikanMarkerID>("origin_marker_id", m_originMarkeId);
+}
+
+MarkerObjectSystemPtr TrackingVolumeDefinition::getMarkerObjectSystem() const
+{
+	// TODO: Replace App singleton access
+	return App::getInstance()->getMainWindow()->getObjectSystemManager()->getSystemOfType<MarkerObjectSystem>();
+}
+
+void TrackingVolumeDefinition::setOriginMarkerId(MikanMarkerID arucoId)
+{
+	if (arucoId != m_originMarkeId)
+	{
+		m_originMarkeId = arucoId;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_originMarkerPropertyId));
+	}
+}
+
+MarkerDefinitionConstPtr TrackingVolumeDefinition::getOriginMarker() const
+{
+	if (m_originMarkeId == INVALID_MIKAN_ID)
+	{
+		return getMarkerObjectSystem()->getMarkerSystemConfig()->getMarkerConfig(m_originMarkeId);
+	}
+
+	return MarkerDefinitionConstPtr();
+}
+
+// -- TrackingVolumeComponent -----
+TrackingVolumeComponent::TrackingVolumeComponent(MikanObjectWeakPtr owner)
+	: MikanComponent(owner)
+{
+}
+
+void TrackingVolumeComponent::init()
+{
+	MikanComponent::init();
+}
+
+TrackingVolumeObjectSystemPtr TrackingVolumeComponent::getOwnerTrackingVolumeSystem() const
+{
+	return getObjectSystemOfType<TrackingVolumeObjectSystem>();
+}
+
+void TrackingVolumeComponent::deleteTrackingVolume()
+{
+	TrackingVolumeDefinitionPtr def = getTrackingVolumeDefinition();
+	if (def)
+	{
+		TrackingVolumeObjectSystemPtr system = getOwnerTrackingVolumeSystem();
+		if (system)
+		{
+			system->removeTrackingSystem(def->getTrackingSystemId());
+		}
+	}
+}
+
+// -- IPropertyInterface ----
+void TrackingVolumeComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
+{
+	MikanComponent::getPropertyNamesStatic(outPropertyNames);
+
+	outPropertyNames.push_back(TrackingVolumeDefinition::k_originMarkerPropertyId);
+}
+
+void TrackingVolumeComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+{
+	getPropertyNamesStatic(outPropertyNames);
+}
+
+bool TrackingVolumeComponent::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
+{
+	if (propertyName == TrackingVolumeDefinition::k_originMarkerPropertyId)
+	{
+		outValue = getTrackingVolumeDefinition()->getOriginMarkerId();
+		return true;
+	}
+
+	return MikanComponent::getPropertyValue(propertyName, outValue);
+}
+
+bool TrackingVolumeComponent::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
+{
+	if (propertyName == TrackingVolumeDefinition::k_originMarkerPropertyId)
+	{
+		MikanMarkerID markerId = inValue.Get<int>();
+		getTrackingVolumeDefinition()->setOriginMarkerId(markerId);
+		return true;
+	}
+
+	return MikanComponent::setPropertyValue(propertyName, inValue);
+}

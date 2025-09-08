@@ -19,6 +19,7 @@
 #include "StageObjectSystem.h"
 #include "StageComponent.h"
 #include "TrackingVolumeObjectSystem.h"
+#include "TrackingMountObjectSystem.h"
 #include "VideoSourceSystem.h"
 #include "VideoSourceComponent.h"
 #include "VRDeviceComponent.h"
@@ -262,11 +263,13 @@ TrackingMountDefinitionConstPtr CameraComponent::getTrackingMountDefinition() co
 
 	if (trackingMountId != INVALID_MIKAN_ID)
 	{
-		VRTrackingVolumeDefinitionConstPtr vrTrackingSystem = getVRTrackingVolumeDefinition();
+		auto trackingMountSystem= getObjectSystemOfType<TrackingMountObjectSystem>(); 
+		TrackingMountComponentPtr trackingMount= 
+			trackingMountSystem->getTrackingMountById(trackingMountId);
 
-		if (vrTrackingSystem)
+		if (trackingMount)
 		{
-			return vrTrackingSystem->getTrackingMountDefinitionConst(trackingMountId);
+			return trackingMount->getTrackingMountDefinition();
 		}
 	}
 

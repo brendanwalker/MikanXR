@@ -73,6 +73,21 @@ using VRTrackingVolumeDefinitionPtr = std::shared_ptr<VRTrackingVolumeDefinition
 using VRTrackingVolumeDefinitionConstPtr = std::shared_ptr<const VRTrackingVolumeDefinition>;
 using VRTrackingVolumeDefinitionWeakPtr = std::weak_ptr<VRTrackingVolumeDefinition>;
 
+class TrackingVolumeComponent;
+using TrackingVolumeComponentPtr = std::shared_ptr<TrackingVolumeComponent>;
+using TrackingVolumeComponentConstPtr = std::shared_ptr<const TrackingVolumeComponent>;
+using TrackingVolumeComponentWeakPtr = std::weak_ptr<TrackingVolumeComponent>;
+
+class MarkerTrackingVolumeComponent;
+using MarkerTrackingVolumeComponentPtr = std::shared_ptr<MarkerTrackingVolumeComponent>;
+using MarkerTrackingVolumeComponentConstPtr = std::shared_ptr<const MarkerTrackingVolumeComponent>;
+using MarkerTrackingVolumeComponentWeakPtr = std::weak_ptr<MarkerTrackingVolumeComponent>;
+
+class VRTrackingVolumeComponent;
+using VRTrackingVolumeComponentPtr = std::shared_ptr<VRTrackingVolumeComponent>;
+using VRTrackingVolumeComponentConstPtr = std::shared_ptr<const VRTrackingVolumeComponent>;
+using VRTrackingVolumeComponentWeakPtr = std::weak_ptr<VRTrackingVolumeComponent>;
+
 class TrackingMountDefinition;
 using TrackingMountDefinitionPtr = std::shared_ptr<TrackingMountDefinition>;
 using TrackingMountDefinitionConstPtr = std::shared_ptr<const TrackingMountDefinition>;

@@ -187,6 +187,10 @@ void MikanComponent::setName(const std::string& name)
 		m_definition->setComponentName(name);
 }
 
+ObjectSystemManager* MikanComponent::getOwnerObjectSystemManager() const
+{
+	return getOwnerObject()->getOwnerSystem()->getOwnerObjectSystemManager();
+}
 
 // -- IPropertyInterface ----
 void MikanComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)

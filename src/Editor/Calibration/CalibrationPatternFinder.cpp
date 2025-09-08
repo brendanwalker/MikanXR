@@ -12,7 +12,7 @@
 #include "MathUtility.h"
 #include "StageComponent.h"
 #include "TextStyle.h"
-#include "TrackingVolumeDefinition.h"
+#include "TrackingVolumeComponent.h"
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceComponent.h"
 

@@ -19,7 +19,7 @@
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceComponent.h"
 #include "VRDeviceComponent.h"
-#include "VRTrackingVolumeDefinition.h"
+#include "VRTrackingVolumeComponent.h"
 
 #include <algorithm>
 #include <atomic>
