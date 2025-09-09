@@ -146,19 +146,18 @@ bool AnchorComponent::getFunctionDescriptor(const std::string& functionName, Fun
 
 bool AnchorComponent::invokeFunction(const std::string& functionName)
 {
-	if (TransformComponent::invokeFunction(functionName))
-		return true;
-
 	if (functionName == AnchorComponent::k_editAnchorFunctionId)
 	{
 		editAnchor();
+		return true;
 	}
 	else if (functionName == AnchorComponent::k_deleteAnchorFunctionId)
 	{
 		deleteAnchor();
+		return true;
 	}
 
-	return false;
+	return TransformComponent::invokeFunction(functionName);
 }
 
 void AnchorComponent::extractAnchorInfoForClientAPI(MikanSpatialAnchorInfo& outAnchorInfo) const
