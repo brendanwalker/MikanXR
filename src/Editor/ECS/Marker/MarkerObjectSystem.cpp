@@ -10,6 +10,9 @@
 #include "SelectionComponent.h"
 #include "StringUtils.h"
 
+#include "RmlUi/Core/Variant.h"
+#include "RmlUi/Config/Config.h"
+
 // -- MarkerObjectSystemConfig -----
 const std::string MarkerObjectSystemConfig::k_arucoMarkerListPropertyId= "arucoMarkers";
 const std::string MarkerObjectSystemConfig::k_arucoDictionaryTypePropertyId = "dictionaryType";
@@ -331,4 +334,148 @@ MarkerObjectSystemConfigConstPtr MarkerObjectSystem::getMarkerSystemConfigConst(
 MarkerObjectSystemConfigPtr MarkerObjectSystem::getMarkerSystemConfig()
 {
 	return std::const_pointer_cast<MarkerObjectSystemConfig>(getMarkerSystemConfigConst());
+}
+
+
+// -- IPropertyInterface ----
+void MarkerObjectSystem::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
+{
+	MikanObjectSystem::getPropertyNamesStatic(outPropertyNames);
+
+	MarkerObjectSystemConfig::k_arucoDictionaryTypePropertyId;
+	MarkerObjectSystemConfig::k_charucoDictionaryTypePropertyId;
+	MarkerObjectSystemConfig::k_charucoRowsPropertyId;
+	MarkerObjectSystemConfig::k_charucoColsPropertyId;
+	MarkerObjectSystemConfig::k_charucoSquareLengthMMPropertyId;
+	MarkerObjectSystemConfig::k_charucoMarkerLengthMMPropertyId;
+}
+
+void MarkerObjectSystem::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+{
+	return MarkerObjectSystem::getPropertyNamesStatic(outPropertyNames);
+}
+
+bool MarkerObjectSystem::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
+{
+	if (propertyName == MarkerObjectSystemConfig::k_arucoDictionaryTypePropertyId)
+	{
+		outValue = k_charucoDictionaryStrings[(int)getMarkerSystemConfigConst()->getArucoDictionaryType()];
+		return true;
+	}
+	else if (propertyName == MarkerObjectSystemConfig::k_charucoDictionaryTypePropertyId)
+	{
+		outValue = k_charucoDictionaryStrings[(int)getMarkerSystemConfigConst()->getCharucoDictionaryType()];
+		return true;
+	}
+	else if (propertyName == MarkerObjectSystemConfig::k_charucoRowsPropertyId)
+	{
+		outValue = getMarkerSystemConfigConst()->getCharucoRows();
+		return true;
+	}
+	else if (propertyName == MarkerObjectSystemConfig::k_charucoColsPropertyId)
+	{
+		outValue = getMarkerSystemConfigConst()->getCharucoCols();
+		return true;
+	}
+	else if (propertyName == MarkerObjectSystemConfig::k_charucoSquareLengthMMPropertyId)
+	{
+		outValue = getMarkerSystemConfigConst()->getCharucoSquareLengthMM();
+		return true;
+	}
+	else if (propertyName == MarkerObjectSystemConfig::k_charucoMarkerLengthMMPropertyId)
+	{
+		outValue = getMarkerSystemConfigConst()->getCharucoMarkerLengthMM();
+		return true;
+	}
+
+	return MikanObjectSystem::getPropertyValue(propertyName, outValue);
+}
+
+bool MarkerObjectSystem::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
+{
+	if (propertyName == MarkerObjectSystemConfig::MarkerObjectSystemConfig::k_arucoDictionaryTypePropertyId)
+	{
+		const std::string dictionaryString = inValue.Get<std::string>();
+		eCharucoDictionaryType dictionaryType =
+			StringUtils::FindEnumValue<eCharucoDictionaryType>(
+				dictionaryString,
+				k_charucoDictionaryStrings);
+		getMarkerSystemConfig()->setArucoDictionaryType(dictionaryType);
+		return true;
+	}
+	else if (propertyName == MarkerObjectSystemConfig::k_charucoDictionaryTypePropertyId)
+	{
+		const std::string dictionaryString = inValue.Get<std::string>();
+		eCharucoDictionaryType dictionaryType =
+			StringUtils::FindEnumValue<eCharucoDictionaryType>(
+				dictionaryString,
+				k_charucoDictionaryStrings);
+		getMarkerSystemConfig()->setCharucoDictionaryType(dictionaryType);
+		return true;
+	}
+	else if (propertyName == MarkerObjectSystemConfig::k_charucoRowsPropertyId)
+	{
+		int charucoRows = inValue.Get<int>();
+		getMarkerSystemConfig()->setCharucoRows(charucoRows);
+		return true;
+	}
+	else if (propertyName == MarkerObjectSystemConfig::k_charucoColsPropertyId)
+	{
+		int charucoCols = inValue.Get<int>();
+		getMarkerSystemConfig()->setCharucoCols(charucoCols);
+		return true;
+	}
+	else if (propertyName == MarkerObjectSystemConfig::k_charucoSquareLengthMMPropertyId)
+	{
+		float charucoSquareLengthMM = inValue.Get<float>();
+		getMarkerSystemConfig()->setCharucoSquareLengthMM(charucoSquareLengthMM);
+		return true;
+	}
+	else if (propertyName == MarkerObjectSystemConfig::k_charucoMarkerLengthMMPropertyId)
+	{
+		float charucoMarkerLengthMM = inValue.Get<float>();
+		getMarkerSystemConfig()->setCharucoMarkerLengthMM(charucoMarkerLengthMM);
+		return true;
+	}
+
+	return MikanObjectSystem::setPropertyValue(propertyName, inValue);
+}
+
+// -- IFunctionInterface ----
+const std::string MarkerObjectSystem::k_printCharucoMarkerFunctionId = "print_marker";
+
+void MarkerObjectSystem::getFunctionNamesStatic(std::vector<std::string>& outFunctionNames)
+{
+	MikanObjectSystem::getFunctionNamesStatic(outFunctionNames);
+
+	outFunctionNames.push_back(k_printCharucoMarkerFunctionId);
+}
+
+void MarkerObjectSystem::getFunctionNames(std::vector<std::string>& outFunctionNames) const
+{
+	MarkerObjectSystem::getFunctionNamesStatic(outFunctionNames);
+}
+
+bool MarkerObjectSystem::getFunctionDescriptor(
+	const std::string& functionName, 
+	FunctionDescriptor& outDescriptor) const
+{
+	if (functionName == k_printCharucoMarkerFunctionId)
+	{
+		outDescriptor = { k_printCharucoMarkerFunctionId, "Print Marker" };
+		return true;
+	}
+
+	return MikanObjectSystem::getFunctionDescriptor(functionName, outDescriptor);
+}
+
+bool MarkerObjectSystem::invokeFunction(const std::string& functionName)
+{
+	if (functionName == k_printCharucoMarkerFunctionId)
+	{
+		//TODO
+		return true;
+	}
+
+	return MikanObjectSystem::invokeFunction(functionName);
 }

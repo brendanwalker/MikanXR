@@ -16,11 +16,23 @@ MikanObjectSystem::~MikanObjectSystem()
 
 bool MikanObjectSystem::init()
 {
+	MikanObjectSystemDefinitionPtr definition = getObjectSystemConfig();
+	if (definition)
+	{
+		definition->OnMarkedDirty += MakeDelegate(this, &MikanObjectSystem::onDefinitionMarkedDirty);
+	}
+
 	return true;
 }
 
 void MikanObjectSystem::dispose()
 {
+	MikanObjectSystemDefinitionPtr definition = getObjectSystemConfig();
+	if (definition)
+	{
+		definition->OnMarkedDirty -= MakeDelegate(this, &MikanObjectSystem::onDefinitionMarkedDirty);
+	}
+
 	deleteAllObjects();
 }
 
@@ -65,4 +77,18 @@ void MikanObjectSystem::deleteAllObjects()
 		objectPtr->dispose();
 	}
 	m_objects.clear();
+}
+
+void MikanObjectSystem::onDefinitionMarkedDirty(
+	CommonConfigPtr configPtr,
+	const ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (OnPropertyChanged)
+	{
+		// TODO: Only notify for property names that are actually exposed in getPropertyNames()
+		for (const std::string& changedPropertyName : changedPropertySet.getSet())
+		{
+			OnPropertyChanged(changedPropertyName);
+		}
+	}
 }
