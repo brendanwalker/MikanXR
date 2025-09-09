@@ -13,10 +13,10 @@ public:
 	VRTrackingVolumeDefinition();
 	VRTrackingVolumeDefinition(
 		eTrackingRuntime trackingRuntime,
-		MikanTrackingSystemID trackingSystemId,
-		const std::string& trackingSystemName);
+		MikanTrackingVolumeID trackingVolumeId,
+		const std::string& trackingVolumeName);
 
-	virtual eTrackingSystemType getTrackingSystemType() const override;
+	virtual eTrackingVolumeType getTrackingVolumeType() const override;
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

@@ -17,7 +17,7 @@
 #include <string>
 #include <vector>
 
-using TrackingVolumeMap = std::map<MikanTrackingSystemID, TrackingVolumeComponentWeakPtr>;
+using TrackingVolumeMap = std::map<MikanTrackingVolumeID, TrackingVolumeComponentWeakPtr>;
 
 class TrackingVolumeObjectSystemConfig : public CommonConfig
 {
@@ -31,30 +31,30 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	bool canAddTrackingSystemType(eTrackingSystemType systemType) const;
-	TrackingVolumeDefinitionConstPtr getTrackingVolumeDefinitionConst(MikanTrackingSystemID systemId) const;
-	TrackingVolumeDefinitionPtr getTrackingVolumeDefinition(MikanTrackingSystemID systemId);
-	eTrackingSystemType getTrackingSystemType(MikanTrackingSystemID systemId) const;
-	bool removeTrackingSystem(MikanTrackingSystemID systemId);
+	bool canAddTrackingVolumeType(eTrackingVolumeType systemType) const;
+	TrackingVolumeDefinitionConstPtr getTrackingVolumeDefinitionConst(MikanTrackingVolumeID systemId) const;
+	TrackingVolumeDefinitionPtr getTrackingVolumeDefinition(MikanTrackingVolumeID systemId);
+	eTrackingVolumeType getTrackingVolumeType(MikanTrackingVolumeID systemId) const;
+	bool removeTrackingVolume(MikanTrackingVolumeID systemId);
 
-	static const std::string k_markerTrackingSystemListPropertyId;
+	static const std::string k_markerTrackingVolumeListPropertyId;
 	const std::vector<MarkerTrackingVolumeDefinitionPtr>& getMarkerTrackingVolumeList() const { return m_markerTrackingVolumeList; }
-	MarkerTrackingVolumeDefinitionConstPtr getMarkerTrackingVolumeDefinitionConst(MikanTrackingSystemID systemId) const;
-	MarkerTrackingVolumeDefinitionPtr getMarkerTrackingVolumeDefinition(MikanTrackingSystemID systemId);
-	MikanTrackingSystemID addMarkerTrakingSystem();
-	bool removeMarkerTrackingSystem(MikanTrackingSystemID systemId);
+	MarkerTrackingVolumeDefinitionConstPtr getMarkerTrackingVolumeDefinitionConst(MikanTrackingVolumeID systemId) const;
+	MarkerTrackingVolumeDefinitionPtr getMarkerTrackingVolumeDefinition(MikanTrackingVolumeID systemId);
+	MikanTrackingVolumeID addMarkerTrakingSystem();
+	bool removeMarkerTrackingVolume(MikanTrackingVolumeID systemId);
 
-	static const std::string k_vrTrackingSystemListPropertyId;
+	static const std::string k_vrTrackingVolumeListPropertyId;
 	const std::vector<VRTrackingVolumeDefinitionPtr>& getVRTrackingVolumeList() const { return m_vrTrackingVolumeList; }
-	VRTrackingVolumeDefinitionConstPtr getVRTrackingVolumeDefinitionConst(MikanTrackingSystemID systemId) const;
-	VRTrackingVolumeDefinitionPtr getVRTrackingVolumeDefinition(MikanTrackingSystemID systemId);
-	MikanTrackingSystemID addVRTrackingSystem(eTrackingRuntime trackingRuntime);
-	bool removeVRTrackingSystem(MikanTrackingSystemID systemId);
+	VRTrackingVolumeDefinitionConstPtr getVRTrackingVolumeDefinitionConst(MikanTrackingVolumeID systemId) const;
+	VRTrackingVolumeDefinitionPtr getVRTrackingVolumeDefinition(MikanTrackingVolumeID systemId);
+	MikanTrackingVolumeID addVRTrackingVolume(eTrackingRuntime trackingRuntime);
+	bool removeVRTrackingVolume(MikanTrackingVolumeID systemId);
 
 protected:
 	std::vector<MarkerTrackingVolumeDefinitionPtr> m_markerTrackingVolumeList;
 	std::vector<VRTrackingVolumeDefinitionPtr> m_vrTrackingVolumeList;
-	MikanTrackingSystemID m_nextTrackingSystemId = 0;
+	MikanTrackingVolumeID m_nextTrackingVolumeId = 0;
 };
 
 class TrackingVolumeObjectSystem : public MikanObjectSystem
@@ -70,17 +70,17 @@ public:
 	TrackingVolumeObjectSystemConfigPtr getTrackingVolumeSystemConfig();
 
 	const TrackingVolumeMap& getTrackingVolumeMap() const { return m_trackingVolumeComponents; }
-	TrackingVolumeComponentPtr getTrackingVolumeById(MikanTrackingSystemID trackingSystemId) const;
-	MarkerTrackingVolumeComponentPtr getMarkerTrackingVolumeById(MikanTrackingSystemID trackingSystemId) const;
-	VRTrackingVolumeComponentPtr getVRTrackingVolumeById(MikanTrackingSystemID trackingSystemId) const;
+	TrackingVolumeComponentPtr getTrackingVolumeById(MikanTrackingVolumeID trackingVolumeId) const;
+	MarkerTrackingVolumeComponentPtr getMarkerTrackingVolumeById(MikanTrackingVolumeID trackingVolumeId) const;
+	VRTrackingVolumeComponentPtr getVRTrackingVolumeById(MikanTrackingVolumeID trackingVolumeId) const;
 	
 	MarkerTrackingVolumeComponentPtr addNewMarkerTrackingVolume();
 	VRTrackingVolumeComponentPtr addNewVRTrackingVolume(eTrackingRuntime trackingRuntime);
-	bool removeTrackingSystem(MikanTrackingSystemID trackingSystemId);
+	bool removeTrackingVolume(MikanTrackingVolumeID trackingVolumeId);
 
 protected:
 	TrackingVolumeComponentPtr createTrackingVolumeObject(TrackingVolumeDefinitionPtr trackingVolumeConfig);
-	void disposeTrackingVolumeObject(MikanTrackingSystemID trackingSystemId);
+	void disposeTrackingVolumeObject(MikanTrackingVolumeID trackingVolumeId);
 
 	TrackingVolumeMap m_trackingVolumeComponents;
 };

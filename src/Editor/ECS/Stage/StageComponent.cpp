@@ -17,7 +17,7 @@
 #include "TrackingVolumeObjectSystem.h"
 
 // -- StageComponentDefinition -----
-const std::string StageComponentDefinition::k_trackingSystemIdPropertyId = "tracking_system_id";
+const std::string StageComponentDefinition::k_trackingVolumeIdPropertyId = "tracking_volume_id";
 
 StageComponentDefinition::StageComponentDefinition(
 	MikanStageID sceneId,
@@ -31,7 +31,7 @@ configuru::Config StageComponentDefinition::writeToJSON()
 	configuru::Config pt = TransformComponentDefinition::writeToJSON();
 
 	pt["stage_id"] = m_stageId;
-	pt[k_trackingSystemIdPropertyId] = m_trackingSystemId;
+	pt[k_trackingVolumeIdPropertyId] = m_trackingVolumeId;
 
 	return pt;
 }
@@ -41,15 +41,15 @@ void StageComponentDefinition::readFromJSON(const configuru::Config& pt)
 	TransformComponentDefinition::readFromJSON(pt);
 
 	m_stageId = pt.get<int>("stage_id");
-	m_trackingSystemId = pt.get_or<int>(k_trackingSystemIdPropertyId, INVALID_MIKAN_ID);
+	m_trackingVolumeId = pt.get_or<int>(k_trackingVolumeIdPropertyId, INVALID_MIKAN_ID);
 }
 
-void StageComponentDefinition::setTrackingSystemId(MikanTrackingSystemID systemId)
+void StageComponentDefinition::setTrackingVolumeId(MikanTrackingVolumeID trackingVolumeId)
 {
-	if (m_trackingSystemId != systemId)
+	if (m_trackingVolumeId != trackingVolumeId)
 	{
-		m_trackingSystemId = systemId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_trackingSystemIdPropertyId));
+		m_trackingVolumeId = trackingVolumeId;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_trackingVolumeIdPropertyId));
 	}
 }
 
@@ -78,7 +78,7 @@ void StageComponent::getPropertyNamesStatic(std::vector<std::string>& outPropert
 {
 	TransformComponent::getPropertyNamesStatic(outPropertyNames);
 
-	outPropertyNames.push_back(StageComponentDefinition::k_trackingSystemIdPropertyId);
+	outPropertyNames.push_back(StageComponentDefinition::k_trackingVolumeIdPropertyId);
 }
 
 void StageComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
@@ -91,9 +91,9 @@ bool StageComponent::getPropertyDescriptor(const std::string& propertyName, Prop
 	if (TransformComponent::getPropertyDescriptor(propertyName, outDescriptor))
 		return true;
 
-	if (propertyName == StageComponentDefinition::k_trackingSystemIdPropertyId)
+	if (propertyName == StageComponentDefinition::k_trackingVolumeIdPropertyId)
 	{
-		outDescriptor = {StageComponentDefinition::k_trackingSystemIdPropertyId, ePropertyDataType::datatype_int, ePropertySemantic::enumeration};
+		outDescriptor = {StageComponentDefinition::k_trackingVolumeIdPropertyId, ePropertyDataType::datatype_int, ePropertySemantic::enumeration};
 		return true;
 	}
 
@@ -106,9 +106,9 @@ bool StageComponent::getPropertyValue(const std::string& propertyName, Rml::Vari
 		return true;
 
 	StageComponentDefinitionConstPtr definition = getStageComponentDefinitionConst();
-	if (propertyName == StageComponentDefinition::k_trackingSystemIdPropertyId)
+	if (propertyName == StageComponentDefinition::k_trackingVolumeIdPropertyId)
 	{
-		outValue = (int)definition->getTrackingSystemId();
+		outValue = (int)definition->getTrackingVolumeId();
 		return true;
 	}
 
@@ -121,9 +121,9 @@ bool StageComponent::setPropertyValue(const std::string& propertyName, const Rml
 		return true;
 
 	StageComponentDefinitionPtr definition = getStageComponentDefinition();
-	if (propertyName == StageComponentDefinition::k_trackingSystemIdPropertyId)
+	if (propertyName == StageComponentDefinition::k_trackingVolumeIdPropertyId)
 	{
-		definition->setTrackingSystemId((MikanTrackingSystemID)inValue.Get<int>());
+		definition->setTrackingVolumeId((MikanTrackingVolumeID)inValue.Get<int>());
 		return true;
 	}
 
@@ -132,14 +132,14 @@ bool StageComponent::setPropertyValue(const std::string& propertyName, const Rml
 
 TrackingVolumeDefinitionConstPtr StageComponent::getTrackingVolumeDefinitionConst() const
 {
-	MikanTrackingSystemID systemId = getStageComponentDefinitionConst()->getTrackingSystemId();
-	if (systemId != INVALID_MIKAN_ID)
+	MikanTrackingVolumeID trackingVolumeId = getStageComponentDefinitionConst()->getTrackingVolumeId();
+	if (trackingVolumeId != INVALID_MIKAN_ID)
 	{
 		ObjectSystemManager* systemManager = getOwnerObjectSystemManager();
 		TrackingVolumeObjectSystemPtr trackingVolumeSystem = systemManager->getSystemOfType<TrackingVolumeObjectSystem>();
 		if (trackingVolumeSystem)
 		{
-			return trackingVolumeSystem->getTrackingVolumeSystemConfigConst()->getTrackingVolumeDefinitionConst(systemId);
+			return trackingVolumeSystem->getTrackingVolumeSystemConfigConst()->getTrackingVolumeDefinitionConst(trackingVolumeId);
 		}
 	}
 

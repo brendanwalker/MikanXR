@@ -245,11 +245,11 @@ VRTrackingVolumeDefinitionConstPtr CameraComponent::getVRTrackingVolumeDefinitio
 	StageComponentConstPtr ownerStage = getOwnerStageComponent();
 	if (ownerStage != nullptr)
 	{
-		TrackingVolumeDefinitionConstPtr trackingSystem = ownerStage->getTrackingVolumeDefinitionConst();
-		if (trackingSystem != nullptr &&
-			trackingSystem->getTrackingSystemType() == eTrackingSystemType::vr)
+		TrackingVolumeDefinitionConstPtr trackingVolume = ownerStage->getTrackingVolumeDefinitionConst();
+		if (trackingVolume != nullptr &&
+			trackingVolume->getTrackingVolumeType() == eTrackingVolumeType::vr)
 		{
-			return std::static_pointer_cast<const VRTrackingVolumeDefinition>(trackingSystem);
+			return std::static_pointer_cast<const VRTrackingVolumeDefinition>(trackingVolume);
 		}
 	}
 
@@ -336,7 +336,7 @@ bool CameraComponent::getAperturePose(
 			getSelfPtr<const CameraComponent>(),
 			vrDevicePose);
 		break;
-	case eVRDevicePoseSpace::VRTrackingSystem:
+	case eVRDevicePoseSpace::VRTrackingVolume:
 		bValidPose = m_trackingMountPoseView_VRSpace->getPose(
 			getSelfPtr<const CameraComponent>(),
 			vrDevicePose);
@@ -459,7 +459,7 @@ void CameraComponent::refreshTrackingMount()
 			// Tracking mount pose in the space of the VR tracking system
 			m_trackingMountPoseView_VRSpace =
 				vrDeviceComponent->makePoseView(
-					eVRDevicePoseSpace::VRTrackingSystem,
+					eVRDevicePoseSpace::VRTrackingVolume,
 					trackingMount->getSocketName());
 		}
 	}

@@ -24,13 +24,13 @@ public:
 
 	MikanStageID getStageId() const { return m_stageId; }
 
-	static const std::string k_trackingSystemIdPropertyId;
-	MikanTrackingSystemID getTrackingSystemId() const { return m_trackingSystemId; }
-	void setTrackingSystemId(MikanTrackingSystemID systemId);
+	static const std::string k_trackingVolumeIdPropertyId;
+	MikanTrackingVolumeID getTrackingVolumeId() const { return m_trackingVolumeId; }
+	void setTrackingVolumeId(MikanTrackingVolumeID volumeId);
 
 protected:
 	MikanStageID m_stageId = INVALID_MIKAN_ID;
-	MikanTrackingSystemID m_trackingSystemId = INVALID_MIKAN_ID;
+	MikanTrackingVolumeID m_trackingVolumeId = INVALID_MIKAN_ID;
 };
 
 class StageComponent final : public TransformComponent

@@ -636,12 +636,12 @@ bool AppStage_AlignmentCalibration::handleRestartCommand(std::vector<std::string
 
 VRDevicePoseViewPtr AppStage_AlignmentCalibration::makeMatPoseViewFromCamera(CameraComponentPtr m_targetCameraComponent)
 {
-	VRTrackingVolumeDefinitionConstPtr vrTrackingSystem =
+	VRTrackingVolumeDefinitionConstPtr vrTrackingVolume =
 		m_targetCameraComponent->getVRTrackingVolumeDefinition();
 
-	if (!vrTrackingSystem)
+	if (!vrTrackingVolume)
 	{
-		MikanTrackingMountID matMountId = vrTrackingSystem->getCharucoTrackingMountId();
+		MikanTrackingMountID matMountId = vrTrackingVolume->getCharucoTrackingMountId();
 
 		if (matMountId != INVALID_MIKAN_ID)
 		{
@@ -660,7 +660,7 @@ VRDevicePoseViewPtr AppStage_AlignmentCalibration::makeMatPoseViewFromCamera(Cam
 
 				if (matTrackingPuck)
 				{
-					return matTrackingPuck->makePoseView(eVRDevicePoseSpace::VRTrackingSystem);
+					return matTrackingPuck->makePoseView(eVRDevicePoseSpace::VRTrackingVolume);
 				}
 			}
 		}

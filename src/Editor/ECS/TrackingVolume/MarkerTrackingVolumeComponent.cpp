@@ -7,15 +7,15 @@ MarkerTrackingVolumeDefinition::MarkerTrackingVolumeDefinition()
 }
 
 MarkerTrackingVolumeDefinition::MarkerTrackingVolumeDefinition(
-	MikanTrackingSystemID trackingSystemId,
-	const std::string& trackingSystemName)
-	: TrackingVolumeDefinition(trackingSystemId, trackingSystemName)
+	MikanTrackingVolumeID trackingVolumeId,
+	const std::string& trackingVolumeName)
+	: TrackingVolumeDefinition(trackingVolumeId, trackingVolumeName)
 {
 }
 
-eTrackingSystemType MarkerTrackingVolumeDefinition::getTrackingSystemType() const
+eTrackingVolumeType MarkerTrackingVolumeDefinition::getTrackingVolumeType() const
 {
-	return eTrackingSystemType::marker;
+	return eTrackingVolumeType::marker;
 }
 
 // -- MarkerTrackingVolumeComponent -----

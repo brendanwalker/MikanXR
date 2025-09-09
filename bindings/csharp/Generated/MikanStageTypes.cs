@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	public enum MikanStageTrackingSystem
+	public enum MikanStageTrackingVolume
 	{
 		StaticMarker= 0,
 		SteamVR= 1,
@@ -16,7 +16,7 @@ namespace MikanXR
 
 		public int stage_id;
 		public string stage_name;
-		public MikanStageTrackingSystem tracking_system;
+		public MikanStageTrackingVolume tracking_volume;
 		public int origin_marker_id;
 		public float origin_marker_size;
 		public int utility_marker_id;

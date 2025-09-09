@@ -30,30 +30,30 @@ private:
 	VRTrackingVolumeComponentPtr getSelectedVRTrackingVolume();
 	TrackingMountComponentPtr getSelectedTrackingMount();
 
-	void addNewSteamVRTrackingSystem(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
-	void addNewMarkerTrackingSystem(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
-	void removeTrackingSystem(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void addNewSteamVRTrackingVolume(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void addNewMarkerTrackingVolume(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void removeTrackingVolume(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void addNewTrackingMount(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void removeTrackingMountID(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
-	void selectTrackingSystemEntry(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void selectTrackingVolumeEntry(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void selectTrackingMountEntry(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 
-	void setSelectedTrackingSystemId(MikanTrackingSystemID trackingSystemId);
+	void setSelectedTrackingVolumeId(MikanTrackingVolumeID trackingVolumeId);
 	void setSelectedTrackingMountId(MikanTrackingMountID trackingMountId);
 
-	void trackingSystemIdListChanged(bool bOwnerChanged);
+	void trackingVolumeIdListChanged(bool bOwnerChanged);
 	void trackingMountIdListChanged(bool bOwnerChanged);
 
 	ProjectConfigWeakPtr m_projectConfig;
 	TrackingVolumeObjectSystemWeakPtr m_trackingVolumeSystem;
 	TrackingMountObjectSystemWeakPtr m_trackingMountSystem;
 
-	RmlDataBinding_ComponentListPtr m_trackingSystemIdList;
+	RmlDataBinding_ComponentListPtr m_trackingVolumeIdList;
 	RmlDataBinding_ComponentListPtr m_trackingMountIdList;
-	RmlModel_PropertyInterfacePtr m_selectedVRTrackingSystemModel;
-	RmlModel_PropertyInterfacePtr m_selectedMarkerTrackingSystemModel;
+	RmlModel_PropertyInterfacePtr m_selectedVRTrackingVolumeModel;
+	RmlModel_PropertyInterfacePtr m_selectedMarkerTrackingVolumeModel;
 	RmlModel_PropertyInterfacePtr m_selectedTrackingMountModel;
 
-	int m_selectedTrackingSystemId = -1; // MikanTrackingSystemID
+	int m_selectedTrackingVolumeId = -1; // MikanTrackingVolumeID
 	int m_selectedTrackingMountId = -1; // MikanTrackingMountID
 };

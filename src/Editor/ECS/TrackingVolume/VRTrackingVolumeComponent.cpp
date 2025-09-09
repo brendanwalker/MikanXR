@@ -25,9 +25,9 @@ VRTrackingVolumeDefinition::VRTrackingVolumeDefinition()
 
 VRTrackingVolumeDefinition::VRTrackingVolumeDefinition(
 	eTrackingRuntime trackingRuntime,
-	MikanTrackingSystemID trackingSystemId,
-	const std::string& trackingSystemName)
-	: TrackingVolumeDefinition(trackingSystemId, trackingSystemName)
+	MikanTrackingVolumeID trackingVolumeId,
+	const std::string& trackingVolumeName)
+	: TrackingVolumeDefinition(trackingVolumeId, trackingVolumeName)
 	, m_trackingRuntime(trackingRuntime)
 	, m_charucoMountId(INVALID_MIKAN_ID)
 	, m_utilityMarkerId(INVALID_MIKAN_ID)
@@ -39,9 +39,9 @@ VRTrackingVolumeDefinition::VRTrackingVolumeDefinition(
 {
 }
 
-eTrackingSystemType VRTrackingVolumeDefinition::getTrackingSystemType() const
+eTrackingVolumeType VRTrackingVolumeDefinition::getTrackingVolumeType() const
 {
-	return eTrackingSystemType::vr;
+	return eTrackingVolumeType::vr;
 }
 
 configuru::Config VRTrackingVolumeDefinition::writeToJSON()

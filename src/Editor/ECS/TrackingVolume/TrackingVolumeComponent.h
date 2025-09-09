@@ -21,16 +21,16 @@ class TrackingVolumeDefinition :
 public:
 	TrackingVolumeDefinition();
 	TrackingVolumeDefinition(
-		MikanTrackingSystemID trackingSystemId,
-		const std::string& trackingSystemName);
+		MikanTrackingVolumeID trackingVolumeId,
+		const std::string& trackingVolumeName);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	MarkerObjectSystemPtr getMarkerObjectSystem() const;
 
-	virtual eTrackingSystemType getTrackingSystemType() const { return eTrackingSystemType::INVALID; }
-	inline MikanTrackingSystemID getTrackingSystemId() const { return m_trackingSystemId; }
+	virtual eTrackingVolumeType getTrackingVolumeType() const { return eTrackingVolumeType::INVALID; }
+	inline MikanTrackingVolumeID getTrackingVolumeId() const { return m_trackingVolumeId; }
 
 	static const std::string k_originMarkerPropertyId;
 	inline MikanMarkerID getOriginMarkerId() const { return m_originMarkeId; }
@@ -38,7 +38,7 @@ public:
 	void setOriginMarkerId(MikanMarkerID arucoId);
 
 private:
-	MikanTrackingSystemID m_trackingSystemId;
+	MikanTrackingVolumeID m_trackingVolumeId;
 	MikanMarkerID m_originMarkeId;
 };
 

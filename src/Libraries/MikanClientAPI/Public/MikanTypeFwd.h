@@ -29,8 +29,8 @@ using MikanStencilID = int32_t;
 /// The ID of a tracking mount
 using MikanTrackingMountID = int32_t;
 
-/// The ID of a tracking system
-using MikanTrackingSystemID = int32_t;
+/// The ID of a tracking volume
+using MikanTrackingVolumeID = int32_t;
 
 /// The ID of a video source
 using MikanVideoSourceID = int32_t;

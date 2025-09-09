@@ -9,10 +9,10 @@ class MarkerTrackingVolumeDefinition :
 public:
 	MarkerTrackingVolumeDefinition();
 	MarkerTrackingVolumeDefinition(
-		MikanTrackingSystemID trackingSystemId,
-		const std::string& trackingSystemName);
+		MikanTrackingVolumeID trackingVolumeId,
+		const std::string& trackingVolumeName);
 
-	virtual eTrackingSystemType getTrackingSystemType() const override;
+	virtual eTrackingVolumeType getTrackingVolumeType() const override;
 };
 
 class MarkerTrackingVolumeComponent : public TrackingVolumeComponent

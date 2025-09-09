@@ -11,7 +11,7 @@
 #include "MikanStageTypes.rfkh.h"
 #endif
 
-enum class ENUM(Serialization::CodeGenModule("MikanStageTypes")) MikanStageTrackingSystem
+enum class ENUM(Serialization::CodeGenModule("MikanStageTypes")) MikanStageTrackingVolume
 {
 	StaticMarker ENUMVALUE_STRING("StaticMarker") = 0,
 	SteamVR ENUMVALUE_STRING("SteamVR") = 1
@@ -24,7 +24,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStageTypes")) MikanSt
 	FIELD()
 	Serialization::String stage_name;
 	FIELD()
-	MikanStageTrackingSystem tracking_system;
+	MikanStageTrackingVolume tracking_volume;
 	FIELD()
 	MikanMarkerID origin_marker_id;
 	FIELD()

@@ -41,7 +41,7 @@ enum class eStencilType : int
 extern const char** k_szStencilTypeStrings;
 extern const std::string* k_stencilTypeStrings;
 
-enum class eTrackingSystemType : int
+enum class eTrackingVolumeType : int
 {
 	INVALID = -1,
 
@@ -50,8 +50,8 @@ enum class eTrackingSystemType : int
 
 	COUNT
 };
-extern const char** k_szTrackingSystemTypeStrings;
-extern const std::string* k_trackingSystemTypeStrings;
+extern const char** k_szTrackingVolumeTypeStrings;
+extern const std::string* k_trackingVolumeTypeStrings;
 
 enum class eTrackingRuntime : int
 {

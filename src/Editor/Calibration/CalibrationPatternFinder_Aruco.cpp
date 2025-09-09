@@ -51,9 +51,9 @@ CalibrationPatternFinder_Aruco::CalibrationPatternFinder_Aruco(
 	MarkerObjectSystemPtr markerSystem= 
 		ownerWindow->getObjectSystemManager()->getSystemOfType<MarkerObjectSystem>();
 	assert(markerSystem != nullptr);
-	TrackingVolumeDefinitionConstPtr trackingSystem = ownerStage->getTrackingVolumeDefinitionConst();
-	assert(trackingSystem != nullptr);
-	MarkerDefinitionConstPtr originMarker= trackingSystem->getOriginMarker();
+	TrackingVolumeDefinitionConstPtr trackingVolume = ownerStage->getTrackingVolumeDefinitionConst();
+	assert(trackingVolume != nullptr);
+	MarkerDefinitionConstPtr originMarker= trackingVolume->getOriginMarker();
 	assert(originMarker != nullptr);
 
 	int desiredArucoId = originMarker->getArucoId();
