@@ -1,0 +1,156 @@
+#include "MarkerComponent.h"
+#include "MarkerObjectSystem.h"
+#include "MikanCoreTypes.h"
+#include "ProjectConfig.h"
+#include "RmlModel_ProjectMarkers.h"
+#include "Shared/RmlModel_PropertyInterface.h"
+#include "StringUtils.h"
+
+#include <RmlUi/Core/DataModelHandle.h>
+#include <RmlUi/Core/Core.h>
+#include <RmlUi/Core/Context.h>
+
+RmlModel_ProjectMarkers::RmlModel_ProjectMarkers()
+	: m_markerIdList(std::make_shared<RmlDataBinding_ComponentList>())
+	, m_selectedMarkerModel(std::make_shared<RmlModel_PropertyInterface>())
+{
+}
+
+bool RmlModel_ProjectMarkers::init(
+	Rml::Context* rmlContext, 
+	ProjectConfigPtr projectConfig,
+	MarkerObjectSystemPtr markerSystem)
+{
+	MarkerObjectSystemConfigPtr markerSystemConfig = projectConfig->markerSystemConfig;
+
+	m_projectConfig = projectConfig;
+	m_markerSystem = markerSystem;
+
+	// Create Datamodel
+	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "markers");
+	if (!constructor)
+		return false;
+
+	// Register component lists
+	m_markerIdList->init(
+		constructor, 
+		markerSystemConfig,
+		"marker_ids",
+		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
+			MarkerObjectSystemConfigPtr markerConfig = m_projectConfig.lock()->markerSystemConfig;
+
+			for (const auto& markerPtr : markerConfig->getArucoMarkerList())
+			{
+				if (markerPtr)
+				{
+					outComponentIdList.push_back((int)markerPtr->getMarkerId());
+				}
+			}
+		});
+
+	// Register Data Model Fields
+	constructor.Bind("selected_marker_id", &m_selectedMarkerId);
+
+	// Register Selected Object Models
+	m_selectedMarkerModel->init<MarkerDefinition>(
+		rmlContext,
+		"marker_definition");
+
+	// Bind data model callbacks
+	constructor.BindEventCallback("add_new_marker", &RmlModel_ProjectMarkers::addNewMarker, this);
+	constructor.BindEventCallback("remove_marker", &RmlModel_ProjectMarkers::removeMarker, this);
+	constructor.BindEventCallback("select_marker_entry", &RmlModel_ProjectMarkers::selectMarkerEntry, this);
+
+	// Listen for marker config changes
+	m_markerIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectMarkers::markerIdListChanged);
+
+	return true;
+}
+
+void RmlModel_ProjectMarkers::dispose()
+{
+	m_markerIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectMarkers::markerIdListChanged);
+
+	m_selectedMarkerModel->dispose();
+
+	RmlModel::dispose();
+}
+
+void RmlModel_ProjectMarkers::markerIdListChanged(bool bOwnerChanged)
+{
+	MikanMarkerID selectedMarkerId = INVALID_MIKAN_ID;
+	if (!m_markerIdList->isEmpty() &&
+		!m_markerIdList->contains(m_selectedMarkerId))
+	{
+		selectedMarkerId = m_markerIdList->getComponentIdList()[0];
+	}
+
+	setSelectedMarkerId(selectedMarkerId);
+}
+
+MarkerObjectSystemPtr RmlModel_ProjectMarkers::getMarkerSystem()
+{
+	return m_markerSystem.lock();
+}
+
+MarkerComponentPtr RmlModel_ProjectMarkers::getSelectedMarker()
+{
+	return getMarkerSystem()->getMarkerById((MikanMarkerID)m_selectedMarkerId);
+}
+
+void RmlModel_ProjectMarkers::addNewMarker(
+	Rml::DataModelHandle handle,
+	Rml::Event& /*ev*/,
+	const Rml::VariantList& parameters)
+{
+	std::string markerName = "NewMarker";
+	if (!parameters.empty())
+	{
+		markerName = parameters[0].Get<Rml::String>();
+	}
+	
+	getMarkerSystem()->addNewMarker(markerName);
+}
+
+void RmlModel_ProjectMarkers::removeMarker(
+	Rml::DataModelHandle handle,
+	Rml::Event& /*ev*/,
+	const Rml::VariantList& parameters)
+{
+	if (parameters.empty())
+		return;
+
+	const int markerId = parameters[0].Get<int>();
+	
+	getMarkerSystem()->removeMarker((MikanMarkerID)markerId);
+}
+
+void RmlModel_ProjectMarkers::selectMarkerEntry(
+	Rml::DataModelHandle handle,
+	Rml::Event& /*ev*/,
+	const Rml::VariantList& parameters)
+{
+	if (parameters.empty())
+		return;
+
+	const MikanMarkerID selectedMarkerId = (MikanMarkerID)parameters[0].Get<int>();
+	setSelectedMarkerId(selectedMarkerId);
+}
+
+void RmlModel_ProjectMarkers::setSelectedMarkerId(MikanMarkerID markerId)
+{
+	if (markerId != m_selectedMarkerId)
+	{
+		m_selectedMarkerId = (int)markerId;
+		m_modelHandle.DirtyVariable("selected_marker_id");
+
+		if (MarkerComponentPtr markerComponent = getSelectedMarker())
+		{
+			m_selectedMarkerModel->setPropertyInterface(markerComponent.get());
+		}
+		else
+		{
+			m_selectedMarkerModel->setPropertyInterface(nullptr);
+		}
+	}
+}
