@@ -1,30 +1,53 @@
 #pragma once
 
 #include "ComponentFwd.h"
+#include "MikanTypeFwd.h"
+#include "ObjectFwd.h"
+#include "ObjectSystemFwd.h"
+#include "ObjectSystemConfigFwd.h"
 #include "Shared/RmlModel.h"
+#include "Shared/RmlDataBinding_ComponentList.h"
+#include "Shared/RmlModel_PropertyInterface.h"
 #include "SinglecastDelegate.h"
-#include "CompositorConstants.h"
 
 class RmlModel_ProjectSources : public RmlModel
 {
 public:
-	bool init(Rml::Context* rmlContext);
+	RmlModel_ProjectSources();
+
+	bool init(
+		Rml::Context* rmlContext, 
+		ProjectConfigPtr projectConfig,
+		VideoSourceSystemPtr videoSourceSystem);
 	virtual void dispose() override;
 
-	const Rml::String& getVideoSourceName() const;
-	void setVideoSourceName(const Rml::String& newName);
-
-	const Rml::String& getVideoModeName() const;
-	void setVideoModeName(const Rml::String& newName);
-
-protected:
-	void onVideoFrameSizeChanged(VideoSourceComponentPtr videoSourceComponent);
-
 private:
-	VideoSourceComponentPtr m_videoSource;
+	VideoSourceSystemPtr getVideoSourceSystem();
+	VideoSourceComponentPtr getSelectedVideoSource();
+	ClientVideoSourceComponentPtr getSelectedClientVideoSource();
+	USBVideoSourceComponentPtr getSelectedUSBVideoSource();
+	NetworkVideoSourceComponentPtr getSelectedNetworkVideoSource();
+	SpoutVideoSourceComponentPtr getSelectedSpoutVideoSource();
 
-	// camera UI
-	Rml::String m_videoSourceName;
-	bool m_bHasValidVideoSource= false;
-	Rml::String m_videoModeName;
+	void addNewClientVideoSource(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void addNewUSBVideoSource(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void addNewNetworkVideoSource(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void addNewSpoutVideoSource(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void removeVideoSource(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void selectVideoSourceEntry(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+
+	void setSelectedVideoSourceId(MikanVideoSourceID videoSourceId);
+
+	void videoSourceIdListChanged(bool bOwnerChanged);
+
+	ProjectConfigWeakPtr m_projectConfig;
+	VideoSourceSystemWeakPtr m_videoSourceSystem;
+
+	RmlDataBinding_ComponentListPtr m_videoSourceIdList;
+	RmlModel_PropertyInterfacePtr m_selectedClientVideoSourceModel;
+	RmlModel_PropertyInterfacePtr m_selectedUSBVideoSourceModel;
+	RmlModel_PropertyInterfacePtr m_selectedNetworkVideoSourceModel;
+	RmlModel_PropertyInterfacePtr m_selectedSpoutVideoSourceModel;
+
+	int m_selectedVideoSourceId = -1; // MikanVideoSourceID
 };

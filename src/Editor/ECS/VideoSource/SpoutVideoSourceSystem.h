@@ -23,6 +23,7 @@ public:
     VideoSourceIdList getVideoSourceIdList() const;
     SpoutVideoSourceComponentPtr getSpoutVideoSourceById(MikanVideoSourceID videoSourceId) const;
     SpoutVideoSourceComponentPtr getSpoutVideoSourceByName(const std::string& videoSourceName) const;
+    SpoutVideoSourceComponentPtr addNewSpoutVideoSource();
     SpoutVideoSourceComponentPtr addNewSpoutVideoSource(const MikanSpoutVideoSourceInfo& videoSourceInfo);
     bool removeSpoutVideoSource(MikanVideoSourceID videoSourceId);
 

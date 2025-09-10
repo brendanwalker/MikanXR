@@ -23,6 +23,7 @@ public:
     VideoSourceIdList getVideoSourceIdList() const;
     ClientVideoSourceComponentPtr getClientVideoSourceById(MikanVideoSourceID videoSourceId) const;
     ClientVideoSourceComponentPtr getClientVideoSourceByName(const std::string& videoSourceName) const;
+    ClientVideoSourceComponentPtr addNewClientVideoSource();
     ClientVideoSourceComponentPtr addNewClientVideoSource(const MikanClientVideoSourceInfo& videoSourceInfo);
     bool removeClientVideoSource(MikanVideoSourceID videoSourceId);
 

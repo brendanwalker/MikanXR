@@ -146,6 +146,29 @@ USBVideoSourceComponentPtr USBVideoSourceSystem::getUSBVideoSourceByName(const s
     return USBVideoSourceComponentPtr();
 }
 
+USBVideoSourceComponentPtr USBVideoSourceSystem::addNewUSBVideoSource()
+{
+	USBVideoSourceComponentPtr newVideoSourceComponentPtr;
+
+    MikanUSBVideoSourceInfo videoSourceInfo = {};
+    if (m_usbVideoDeviceManager && m_usbVideoDeviceManager->getDeviceCount() > 0)
+    {
+        // Get the first connected device by default
+        IUsbVideoDevice* usbVideoDevice = m_usbVideoDeviceManager->getDeviceByIndex(0);
+        if (usbVideoDevice)
+        {
+            videoSourceInfo.usb_source_name.setValue(usbVideoDevice->getFriendlyName());
+            videoSourceInfo.device_path.setValue(usbVideoDevice->getDevicePath());
+            videoSourceInfo.video_mode.setValue(usbVideoDevice->getVideoModeName());
+            videoSourceInfo.intrinsics.intrinsics_type= INVALID_CAMERA_INTRINSICS;
+
+            newVideoSourceComponentPtr= addNewUSBVideoSource(videoSourceInfo);
+        }
+	}
+
+    return newVideoSourceComponentPtr;
+}
+
 USBVideoSourceComponentPtr USBVideoSourceSystem::addNewUSBVideoSource(
     const MikanUSBVideoSourceInfo& videoSourceInfo)
 {

@@ -52,6 +52,7 @@
 #include "SceneObjectSystem.h"
 #include "TextStyle.h"
 #include "VideoSourceComponent.h"
+#include "VideoSourceSystem.h"
 #include "Windows/CompositorNodeEditorWindow.h"
 
 #include <RmlUi/Core/Context.h>
@@ -195,7 +196,7 @@ void AppStage_Project::enter()
 		m_compositiorSourcesView->Hide();
 
 		// Init Sources UI
-		m_compositorSourcesModel->init(context);
+		m_compositorSourcesModel->init(context, m_project, getSystemOfType<VideoSourceSystem>());
 		m_compositiorSourcesView = addRmlDocument("compositor_sources.rml");
 		m_compositiorSourcesView->Hide();
 

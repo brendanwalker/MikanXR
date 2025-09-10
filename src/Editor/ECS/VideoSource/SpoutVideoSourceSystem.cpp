@@ -68,6 +68,14 @@ SpoutVideoSourceComponentPtr SpoutVideoSourceSystem::getSpoutVideoSourceByName(c
     return SpoutVideoSourceComponentPtr();
 }
 
+SpoutVideoSourceComponentPtr SpoutVideoSourceSystem::addNewSpoutVideoSource()
+{
+    MikanSpoutVideoSourceInfo videoSourceInfo = {};
+	videoSourceInfo.spout_source_name.setValue("Spout Source Name");
+
+	return addNewSpoutVideoSource(videoSourceInfo);
+}
+
 SpoutVideoSourceComponentPtr SpoutVideoSourceSystem::addNewSpoutVideoSource(
     const MikanSpoutVideoSourceInfo& videoSourceInfo)
 {

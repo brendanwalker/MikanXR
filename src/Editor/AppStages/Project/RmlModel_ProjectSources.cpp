@@ -1,99 +1,275 @@
+#include "ClientVideoSourceComponent.h"
+#include "ClientVideoSourceSystem.h"
 #include "RmlModel_ProjectSources.h"
-#include "CompositorComponent.h"
+#include "MikanCoreTypes.h"
+#include "NetworkVideoSourceComponent.h"
+#include "NetworkVideoSourceSystem.h"
+#include "ProjectConfig.h"
+#include "Shared/RmlModel_PropertyInterface.h"
+#include "SpoutVideoSourceComponent.h"
+#include "SpoutVideoSourceSystem.h"
 #include "StringUtils.h"
+#include "USBVideoSourceComponent.h"
+#include "USBVideoSourceSystem.h"
 #include "VideoSourceComponent.h"
+#include "VideoSourceSystem.h"
+#include "VideoSourceSystemConfig.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
 
-bool RmlModel_ProjectSources::init(
-	Rml::Context* rmlContext)
+RmlModel_ProjectSources::RmlModel_ProjectSources()
+	: m_videoSourceIdList(std::make_shared<RmlDataBinding_ComponentList>())
+	, m_selectedClientVideoSourceModel(std::make_shared<RmlModel_PropertyInterface>())
+	, m_selectedUSBVideoSourceModel(std::make_shared<RmlModel_PropertyInterface>())
+	, m_selectedNetworkVideoSourceModel(std::make_shared<RmlModel_PropertyInterface>())
+	, m_selectedSpoutVideoSourceModel(std::make_shared<RmlModel_PropertyInterface>())
 {
+}
+
+bool RmlModel_ProjectSources::init(
+	Rml::Context* rmlContext, 
+	ProjectConfigPtr projectConfig,
+	VideoSourceSystemPtr videoSourceSystem)
+{
+	VideoSourceSystemConfigPtr videoSourceConfig = projectConfig->videoSourceSystemConfig;
+
+	m_projectConfig = projectConfig;
+	m_videoSourceSystem = videoSourceSystem;
+
 	// Create Datamodel
-	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "compositor_sources");
+	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "video_sources");
 	if (!constructor)
 		return false;
 
+	// Register component lists
+	m_videoSourceIdList->init(
+		constructor, 
+		videoSourceConfig,
+		"video_source_ids",
+		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
+			VideoSourceSystemConfigPtr videoSourceConfig = m_projectConfig.lock()->videoSourceSystemConfig;
+
+			for (const auto& clientVideoSourcePtr : videoSourceConfig->getClientVideoSourceList())
+			{
+				if (clientVideoSourcePtr)
+				{
+					outComponentIdList.push_back((int)clientVideoSourcePtr->getVideoSourceId());
+				}
+			}
+			for (const auto& usbVideoSourcePtr : videoSourceConfig->getUSBVideoSourceList())
+			{
+				if (usbVideoSourcePtr)
+				{
+					outComponentIdList.push_back((int)usbVideoSourcePtr->getVideoSourceId());
+				}
+			}
+			for (const auto& networkVideoSourcePtr : videoSourceConfig->getNetworkedVideoSourceList())
+			{
+				if (networkVideoSourcePtr)
+				{
+					outComponentIdList.push_back((int)networkVideoSourcePtr->getVideoSourceId());
+				}
+			}
+			for (const auto& spoutVideoSourcePtr : videoSourceConfig->getSpoutVideoSourceList())
+			{
+				if (spoutVideoSourcePtr)
+				{
+					outComponentIdList.push_back((int)spoutVideoSourcePtr->getVideoSourceId());
+				}
+			}
+		});
+
 	// Register Data Model Fields
-	constructor.Bind("video_source_name", &m_videoSourceName);
-	constructor.Bind("has_valid_video_source", &m_bHasValidVideoSource);
-	constructor.Bind("video_mode_name", &m_videoModeName);
+	constructor.Bind("selected_video_source_id", &m_selectedVideoSourceId);
+
+	// Register Selected Object Models
+	m_selectedClientVideoSourceModel->init<ClientVideoSourceDefinition>(
+		rmlContext,
+		"client_video_source_definition");
+	m_selectedUSBVideoSourceModel->init<USBVideoSourceDefinition>(
+		rmlContext,
+		"usb_video_source_definition");
+	m_selectedNetworkVideoSourceModel->init<NetworkVideoSourceDefinition>(
+		rmlContext,
+		"network_video_source_definition");
+	m_selectedSpoutVideoSourceModel->init<SpoutVideoSourceDefinition>(
+		rmlContext,
+		"spout_video_source_definition");
 
 	// Bind data model callbacks
-	//TODO
-	CompositorComponentPtr compositor;
-	m_videoSource= compositor->getVideoSourceComponent();
-	if (m_videoSource)
-	{
-		m_videoSourceName = m_videoSource->getName();
-		m_videoSource->OnFrameSizeChanged += 
-			MakeDelegate(this, &RmlModel_ProjectSources::onVideoFrameSizeChanged);
-		onVideoFrameSizeChanged(m_videoSource);
+	constructor.BindEventCallback("add_new_client_video_source", &RmlModel_ProjectSources::addNewClientVideoSource, this);
+	constructor.BindEventCallback("add_new_usb_video_source", &RmlModel_ProjectSources::addNewUSBVideoSource, this);
+	constructor.BindEventCallback("add_new_network_video_source", &RmlModel_ProjectSources::addNewNetworkVideoSource, this);
+	constructor.BindEventCallback("add_new_spout_video_source", &RmlModel_ProjectSources::addNewSpoutVideoSource, this);
+	constructor.BindEventCallback("remove_video_source", &RmlModel_ProjectSources::removeVideoSource, this);
+	constructor.BindEventCallback("select_video_source_entry", &RmlModel_ProjectSources::selectVideoSourceEntry, this);
 
-		m_bHasValidVideoSource= true;
-	}
-	else
-	{
-		m_videoSourceName = "No Video Source";
-		m_videoSourceName = "INVALID";
-		m_bHasValidVideoSource= false;
-	}
+	// Listen for video source config changes
+	m_videoSourceIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectSources::videoSourceIdListChanged);
 
 	return true;
 }
 
 void RmlModel_ProjectSources::dispose()
 {
-	if (m_videoSource)
-	{
-		m_videoSource->OnFrameSizeChanged -= 
-			MakeDelegate(this, &RmlModel_ProjectSources::onVideoFrameSizeChanged);
-	}
+	m_videoSourceIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectSources::videoSourceIdListChanged);
+
+	m_selectedClientVideoSourceModel->dispose();
+	m_selectedUSBVideoSourceModel->dispose();
+	m_selectedNetworkVideoSourceModel->dispose();
+	m_selectedSpoutVideoSourceModel->dispose();
 
 	RmlModel::dispose();
 }
 
-void RmlModel_ProjectSources::onVideoFrameSizeChanged(VideoSourceComponentPtr videoSourceComponent)
+void RmlModel_ProjectSources::videoSourceIdListChanged(bool bOwnerChanged)
 {
-	if (!videoSourceComponent->getVideoModeName(m_videoModeName))
+	MikanVideoSourceID selectedVideoSourceId = INVALID_MIKAN_ID;
+	if (!m_videoSourceIdList->isEmpty() &&
+		!m_videoSourceIdList->contains(m_selectedVideoSourceId))
 	{
-		m_videoModeName = "INVALID";
+		selectedVideoSourceId = m_videoSourceIdList->getComponentIdList()[0];
 	}
-	m_modelHandle.DirtyVariable("video_mode_name");
+
+	setSelectedVideoSourceId(selectedVideoSourceId);
 }
 
-const Rml::String& RmlModel_ProjectSources::getVideoSourceName() const
+VideoSourceSystemPtr RmlModel_ProjectSources::getVideoSourceSystem()
 {
-	return m_videoSourceName;
+	return m_videoSourceSystem.lock();
 }
 
-void RmlModel_ProjectSources::setVideoSourceName(const Rml::String& newName)
+VideoSourceComponentPtr RmlModel_ProjectSources::getSelectedVideoSource()
 {
-	if (newName != m_videoSourceName)
+	return getVideoSourceSystem()->getVideoSourceById((MikanVideoSourceID)m_selectedVideoSourceId);
+}
+
+ClientVideoSourceComponentPtr RmlModel_ProjectSources::getSelectedClientVideoSource()
+{
+	return getVideoSourceSystem()->getClientVideoSourceSystem()->getClientVideoSourceById(
+		(MikanVideoSourceID)m_selectedVideoSourceId);
+}
+
+USBVideoSourceComponentPtr RmlModel_ProjectSources::getSelectedUSBVideoSource()
+{
+	return getVideoSourceSystem()->getUSBVideoSourceSystem()->getUSBVideoSourceById(
+		(MikanVideoSourceID)m_selectedVideoSourceId);
+}
+
+NetworkVideoSourceComponentPtr RmlModel_ProjectSources::getSelectedNetworkVideoSource()
+{
+	return getVideoSourceSystem()->getNetworkVideoSourceSystem()->getNetworkVideoSourceById(
+		(MikanVideoSourceID)m_selectedVideoSourceId);
+}
+
+SpoutVideoSourceComponentPtr RmlModel_ProjectSources::getSelectedSpoutVideoSource()
+{
+	return getVideoSourceSystem()->getSpoutVideoSourceSystem()->getSpoutVideoSourceById(
+		(MikanVideoSourceID)m_selectedVideoSourceId);
+}
+
+void RmlModel_ProjectSources::addNewClientVideoSource(
+	Rml::DataModelHandle handle,
+	Rml::Event& /*ev*/,
+	const Rml::VariantList& parameters)
+{
+	getVideoSourceSystem()->getClientVideoSourceSystem()->addNewClientVideoSource();
+}
+
+void RmlModel_ProjectSources::addNewUSBVideoSource(
+	Rml::DataModelHandle handle,
+	Rml::Event& /*ev*/,
+	const Rml::VariantList& parameters)
+{
+	getVideoSourceSystem()->getUSBVideoSourceSystem()->addNewUSBVideoSource();
+}
+
+void RmlModel_ProjectSources::addNewNetworkVideoSource(
+	Rml::DataModelHandle handle,
+	Rml::Event& /*ev*/,
+	const Rml::VariantList& parameters)
+{
+	getVideoSourceSystem()->getNetworkVideoSourceSystem()->addNewNetworkVideoSource();
+}
+
+void RmlModel_ProjectSources::addNewSpoutVideoSource(
+	Rml::DataModelHandle handle,
+	Rml::Event& /*ev*/,
+	const Rml::VariantList& parameters)
+{
+	getVideoSourceSystem()->getSpoutVideoSourceSystem()->addNewSpoutVideoSource();
+}
+
+void RmlModel_ProjectSources::removeVideoSource(
+	Rml::DataModelHandle handle,
+	Rml::Event& /*ev*/,
+	const Rml::VariantList& parameters)
+{
+	if (parameters.empty())
+		return;
+
+	const int videoSourceId = parameters[0].Get<int>();
+	
+	getVideoSourceSystem()->removeVideoSource((MikanVideoSourceID)videoSourceId);
+}
+
+void RmlModel_ProjectSources::selectVideoSourceEntry(
+	Rml::DataModelHandle handle,
+	Rml::Event& /*ev*/,
+	const Rml::VariantList& parameters)
+{
+	if (parameters.empty())
+		return;
+
+	const MikanVideoSourceID selectedVideoSourceId = (MikanVideoSourceID)parameters[0].Get<int>();
+	setSelectedVideoSourceId(selectedVideoSourceId);
+}
+
+void RmlModel_ProjectSources::setSelectedVideoSourceId(MikanVideoSourceID videoSourceId)
+{
+	if (videoSourceId != m_selectedVideoSourceId)
 	{
-		m_videoSourceName = newName;
-		m_modelHandle.DirtyVariable("video_source_name");
+		m_selectedVideoSourceId = (int)videoSourceId;
+		m_modelHandle.DirtyVariable("selected_video_source_id");
 
-		bool bNewValidSource= m_videoSourceName.size() > 0;
-		if (bNewValidSource != m_bHasValidVideoSource)
+		VideoSourceSystemConfigPtr config = m_projectConfig.lock()->videoSourceSystemConfig;
+		eVideoSourceType sourceType = config->getVideoSourceType(videoSourceId);
+
+		// Reset all models first
+		m_selectedClientVideoSourceModel->setPropertyInterface(nullptr);
+		m_selectedUSBVideoSourceModel->setPropertyInterface(nullptr);
+		m_selectedNetworkVideoSourceModel->setPropertyInterface(nullptr);
+		m_selectedSpoutVideoSourceModel->setPropertyInterface(nullptr);
+
+		// Set the appropriate model based on source type
+		switch (sourceType)
 		{
-			m_bHasValidVideoSource= bNewValidSource;
-			m_modelHandle.DirtyVariable("has_valid_video_source");
+			case eVideoSourceType::client:
+				if (ClientVideoSourceComponentPtr clientSource = getSelectedClientVideoSource())
+				{
+					m_selectedClientVideoSourceModel->setPropertyInterface(clientSource.get());
+				}
+				break;
+			case eVideoSourceType::usb:
+				if (USBVideoSourceComponentPtr usbSource = getSelectedUSBVideoSource())
+				{
+					m_selectedUSBVideoSourceModel->setPropertyInterface(usbSource.get());
+				}
+				break;
+			case eVideoSourceType::networked:
+				if (NetworkVideoSourceComponentPtr networkSource = getSelectedNetworkVideoSource())
+				{
+					m_selectedNetworkVideoSourceModel->setPropertyInterface(networkSource.get());
+				}
+				break;
+			case eVideoSourceType::spout:
+				if (SpoutVideoSourceComponentPtr spoutSource = getSelectedSpoutVideoSource())
+				{
+					m_selectedSpoutVideoSourceModel->setPropertyInterface(spoutSource.get());
+				}
+				break;
 		}
-	}
-}
-
-const Rml::String& RmlModel_ProjectSources::getVideoModeName() const
-{
-	return m_videoModeName;
-}
-
-void RmlModel_ProjectSources::setVideoModeName(const Rml::String& newName)
-{
-	if (newName != m_videoModeName)
-	{
-		m_videoModeName = newName;
-		m_modelHandle.DirtyVariable("video_mode_name");
 	}
 }

@@ -27,6 +27,7 @@ public:
     VideoSourceIdList getVideoSourceIdList() const;
     NetworkVideoSourceComponentPtr getNetworkVideoSourceById(MikanVideoSourceID videoSourceId) const;
     NetworkVideoSourceComponentPtr getNetworkVideoSourceByName(const std::string& videoSourceName) const;
+    NetworkVideoSourceComponentPtr addNewNetworkVideoSource();
     NetworkVideoSourceComponentPtr addNewNetworkVideoSource(const MikanNetworkVideoSourceInfo& videoSourceInfo);
     bool removeNetworkVideoSource(MikanVideoSourceID videoSourceId);
 

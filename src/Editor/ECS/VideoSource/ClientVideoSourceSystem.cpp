@@ -69,6 +69,14 @@ ClientVideoSourceComponentPtr ClientVideoSourceSystem::getClientVideoSourceByNam
     return ClientVideoSourceComponentPtr();
 }
 
+ClientVideoSourceComponentPtr ClientVideoSourceSystem::addNewClientVideoSource()
+{
+    MikanClientVideoSourceInfo videoSourceInfo = {};
+	videoSourceInfo.client_source_name.setValue("New Client Video Source");
+
+	return addNewClientVideoSource(videoSourceInfo);
+}
+
 ClientVideoSourceComponentPtr ClientVideoSourceSystem::addNewClientVideoSource(
     const MikanClientVideoSourceInfo& videoSourceInfo)
 {
