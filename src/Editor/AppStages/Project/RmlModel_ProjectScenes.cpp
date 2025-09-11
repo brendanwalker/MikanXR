@@ -1,11 +1,18 @@
 #include "AnchorComponent.h"
 #include "AnchorObjectSystem.h"
 #include "BoxStencilComponent.h"
+#include "CompositorObjectSystem.h"
+#include "CompositorComponent.h"
 #include "EditorObjectSystem.h"
 #include "MikanObject.h"
 #include "ModelStencilComponent.h"
+#include "MulticastDelegate.h"
 #include "QuadStencilComponent.h"
 #include "SelectionComponent.h"
+#include "SceneComponent.h"
+#include "SceneObjectSystem.h"
+#include "StageComponent.h"
+#include "StageObjectSystem.h"
 #include "StencilObjectSystem.h"
 #include "StencilComponent.h"
 #include "TransformComponent.h"
@@ -20,91 +27,185 @@
 
 bool RmlModel_ProjectScenes::s_bHasRegisteredTypes = false;
 
+RmlModel_ProjectScenes::RmlModel_ProjectScenes()
+	: m_stageIdList(std::make_shared<RmlDataBinding_ComponentList>())
+	, m_sceneIdList(std::make_shared<RmlDataBinding_ComponentList>())
+	, m_compositorIdList(std::make_shared<RmlDataBinding_ComponentList>())
+	, m_selectedAnchorModel(std::make_shared<RmlModel_PropertyInterface>())
+	, m_selectedCompositorModel(std::make_shared<RmlModel_PropertyInterface>())
+	, m_selectedBoxStencilModel(std::make_shared<RmlModel_PropertyInterface>())
+	, m_selectedModelStencilModel(std::make_shared<RmlModel_PropertyInterface>())
+	, m_selectedQuadStencilModel(std::make_shared<RmlModel_PropertyInterface>())
+	, m_selectedSceneModel(std::make_shared<RmlModel_PropertyInterface>())
+{
+}
+
 bool RmlModel_ProjectScenes::init(
 	Rml::Context* rmlContext,
 	AnchorObjectSystemPtr anchorSystemPtr,
+	CompositorObjectSystemPtr compositorSystemPtr,
 	EditorObjectSystemPtr editorSystemPtr,
+	SceneObjectSystemPtr sceneSystemPtr,
+	StageObjectSystemPtr stageSystemPtr,
 	StencilObjectSystemPtr stencilSystemPtr)
 {
-	m_anchorSystemPtr= anchorSystemPtr;
-	m_editorSystemPtr= editorSystemPtr;
-	m_stencilSystemPtr= stencilSystemPtr;
+	m_anchorSystem= anchorSystemPtr;
+	m_compositorSystem= compositorSystemPtr;
+	m_editorSystem= editorSystemPtr;
+	m_sceneSystem= sceneSystemPtr;
+	m_stageSystem= stageSystemPtr;
+	m_stencilSystem= stencilSystemPtr;
 
 	// Create Datamodel
-	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "compositor_outliner");
+	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "project_scenes");
 	if (!constructor)
 		return false;
+
+	// Register component lists
+	m_stageIdList->init(
+		constructor,
+		stageSystemPtr->getStageSystemConfig(),
+		"stage_ids",
+		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
+			if (ownerConfig)
+			{
+				auto stageSystemConfig = std::static_pointer_cast<StageObjectSystemConfig>(ownerConfig);
+
+				for (const StageComponentDefinitionPtr stageComponent : stageSystemConfig->getStageList())
+				{
+					outComponentIdList.push_back((int)stageComponent->getStageId());
+				}
+			}
+		});
+	m_sceneIdList->init(
+		constructor,
+		sceneSystemPtr->getSceneSystemConfig(),
+		"scene_ids",
+		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
+			if (ownerConfig)
+			{
+				auto sceneSystemConfig = std::static_pointer_cast<SceneObjectSystemConfig>(ownerConfig);
+
+				for (const SceneComponentDefinitionPtr sceneComponent : sceneSystemConfig->getSceneList())
+				{
+					if (sceneComponent->getParentStageId() == m_selectedStageId)
+					{
+						outComponentIdList.push_back((int)sceneComponent->getSceneId());
+					}
+				}
+			}
+		});
+	m_compositorIdList->init(
+		constructor,
+		compositorSystemPtr->getCompositorSystemConfig(),
+		"compositor_ids",
+		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
+			if (ownerConfig)
+			{
+				auto sceneSystemConfig = std::static_pointer_cast<SceneObjectSystemConfig>(ownerConfig);
+
+				for (const SceneComponentDefinitionPtr sceneComponent : sceneSystemConfig->getSceneList())
+				{
+					if (sceneComponent->getParentStageId() == m_selectedStageId)
+					{
+						outComponentIdList.push_back((int)sceneComponent->getSceneId());
+					}
+				}
+			}
+		});
 
 	// One time data model types registration
 	if (!s_bHasRegisteredTypes)
 	{
 		// One time registration for compositor layer struct.
-		if (auto layer_model_handle = constructor.RegisterStruct<RmlModel_CompositorObject>())
+		if (auto layer_model_handle = constructor.RegisterStruct<RmlModel_SceneObject>())
 		{
-			layer_model_handle.RegisterMember("name", &RmlModel_CompositorObject::name);
-			layer_model_handle.RegisterMember("depth", &RmlModel_CompositorObject::depth);
+			layer_model_handle.RegisterMember("name", &RmlModel_SceneObject::name);
+			layer_model_handle.RegisterMember("depth", &RmlModel_SceneObject::depth);
 		}
 
 		// One time registration for an array of stencil quads.
-		constructor.RegisterArray<decltype(m_componentOutliner)>();
+		constructor.RegisterArray<decltype(m_sceneOutliner)>();
 
 		s_bHasRegisteredTypes = true;
 	}
 
 	// Register Data Model Fields
-	constructor.Bind("objects", &m_componentOutliner);
-	constructor.Bind("selection_index", &m_selectionIndex);	
+	constructor.Bind("scene_objects", &m_sceneOutliner);
+	constructor.Bind("selected_scene_object_index", &m_selectedSceneObjectIndex);
+	constructor.Bind("selected_stage_id", &m_selectedStageId);
+	constructor.Bind("selected_scene_id", &m_selectedSceneId);
+	constructor.Bind("selected_compositor_id", &m_selectedCompositorId);
 
 	// Bind data model callbacks
 	constructor.BindEventCallback("add_new_anchor",&RmlModel_ProjectScenes::addNewAnchor, this);
+	constructor.BindEventCallback("remove_anchor", &RmlModel_ProjectScenes::removeAnchor, this);
 	constructor.BindEventCallback("add_new_quad",&RmlModel_ProjectScenes::addNewQuad, this);
+	constructor.BindEventCallback("remove_quad", &RmlModel_ProjectScenes::removeQuad, this);
 	constructor.BindEventCallback("add_new_box",&RmlModel_ProjectScenes::addNewBox, this);
+	constructor.BindEventCallback("remove_box", &RmlModel_ProjectScenes::removeBox, this);
 	constructor.BindEventCallback("add_new_model",&RmlModel_ProjectScenes::addNewModel, this);
+	constructor.BindEventCallback("remove_model", &RmlModel_ProjectScenes::removeModel, this);
 	constructor.BindEventCallback("select_object_entry", &RmlModel_ProjectScenes::selectObjectEntry, this);
 
 	// Listen for anchor changes
-	m_anchorSystemPtr->getAnchorSystemConfig()->OnMarkedDirty +=
+	AnchorObjectSystemPtr anchorSystem = m_anchorSystem.lock();
+	anchorSystem->getAnchorSystemConfig()->OnMarkedDirty +=
 		MakeDelegate(this, &RmlModel_ProjectScenes::anchorSystemConfigMarkedDirty);
-	m_anchorSystemPtr->OnObjectInitialized +=
+	anchorSystem->OnObjectInitialized +=
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
-	m_anchorSystemPtr->OnObjectDisposed +=
+	anchorSystem->OnObjectDisposed +=
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectDisposed);
 
 	// Listen for selection changes
-	m_editorSystemPtr->OnSelectionChanged += 
+	EditorObjectSystemPtr editorSystem = m_editorSystem.lock();
+	editorSystem->OnSelectionChanged +=
 		MakeDelegate(this, &RmlModel_ProjectScenes::updateSelection);
 
 	// Listen for stencil changes
-	m_stencilSystemPtr->getStencilSystemConfig()->OnMarkedDirty +=
+	StencilObjectSystemPtr stencilSystem = m_stencilSystem.lock();
+	stencilSystem->getStencilSystemConfig()->OnMarkedDirty +=
 		MakeDelegate(this, &RmlModel_ProjectScenes::stencilSystemConfigMarkedDirty);
-	m_stencilSystemPtr->OnObjectInitialized +=
+	stencilSystem->OnObjectInitialized +=
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
-	m_stencilSystemPtr->OnObjectDisposed +=
+	stencilSystem->OnObjectDisposed +=
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectDisposed);
 
 	// Fill in the data model
-	rebuildComponentList();
+	rebuildSceneComponentList();
+
+	// Listen for stage/scene/compositor list changes
+	m_stageIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectScenes::stageIdListChanged);
+	m_sceneIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectScenes::sceneIdListChanged);
+	m_compositorIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectScenes::compositorIdListChanged);
 
 	return true;
 }
 
 void RmlModel_ProjectScenes::dispose()
 {
-	m_stencilSystemPtr->getStencilSystemConfig()->OnMarkedDirty -=
+	m_stageIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectScenes::stageIdListChanged);
+	m_sceneIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectScenes::sceneIdListChanged);
+	m_compositorIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectScenes::compositorIdListChanged);
+
+	StencilObjectSystemPtr stencilSystem = m_stencilSystem.lock();
+	stencilSystem->getStencilSystemConfig()->OnMarkedDirty -=
 		MakeDelegate(this, &RmlModel_ProjectScenes::stencilSystemConfigMarkedDirty);
-	m_stencilSystemPtr->OnObjectInitialized -=
+	stencilSystem->OnObjectInitialized -=
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
-	m_stencilSystemPtr->OnObjectDisposed -=
+	stencilSystem->OnObjectDisposed -=
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectDisposed);
 
-	m_editorSystemPtr->OnSelectionChanged -=
+	EditorObjectSystemPtr editorSystem = m_editorSystem.lock();
+	editorSystem->OnSelectionChanged -=
 		MakeDelegate(this, &RmlModel_ProjectScenes::updateSelection);
 
-	m_anchorSystemPtr->getAnchorSystemConfig()->OnMarkedDirty -=
+	AnchorObjectSystemPtr anchorSystem = m_anchorSystem.lock();
+	anchorSystem->getAnchorSystemConfig()->OnMarkedDirty -=
 		MakeDelegate(this, &RmlModel_ProjectScenes::anchorSystemConfigMarkedDirty);
-	m_anchorSystemPtr->OnObjectInitialized -=
+	anchorSystem->OnObjectInitialized -=
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
-	m_anchorSystemPtr->OnObjectDisposed -=
+	anchorSystem->OnObjectDisposed -=
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectDisposed);
 
 	RmlModel::dispose();
@@ -116,7 +217,7 @@ void RmlModel_ProjectScenes::anchorSystemConfigMarkedDirty(
 {
 	if (changedPropertySet.hasPropertyName(MikanComponentDefinition::k_componentNamePropertyId))
 	{
-		rebuildComponentList();
+		rebuildSceneComponentList();
 	}
 }
 
@@ -127,7 +228,7 @@ void RmlModel_ProjectScenes::stencilSystemConfigMarkedDirty(
 	if (changedPropertySet.hasPropertyName(StencilComponentDefinition::k_parentAnchorPropertyId) ||
 		changedPropertySet.hasPropertyName(MikanComponentDefinition::k_componentNamePropertyId))
 	{
-		rebuildComponentList();
+		rebuildSceneComponentList();
 	}
 }
 
@@ -135,22 +236,23 @@ void RmlModel_ProjectScenes::onObjectInitialized(
 	MikanObjectSystemPtr objectSystemPtr, 
 	MikanObjectPtr objectPtr)
 {
-	rebuildComponentList();
+	rebuildSceneComponentList();
 }
 
 void RmlModel_ProjectScenes::onObjectDisposed(
 	MikanObjectSystemPtr objectSystemPtr, 
 	MikanObjectConstPtr objectPtr)
 {
-	rebuildComponentList();
+	rebuildSceneComponentList();
 }
 
-void RmlModel_ProjectScenes::rebuildComponentList()
+void RmlModel_ProjectScenes::rebuildSceneComponentList()
 {
-	m_componentOutliner.clear();
+	m_sceneOutliner.clear();
 
 	// Add all root anchors to the outliner
-	for (const auto it : m_anchorSystemPtr->getAnchorMap())
+	AnchorObjectSystemPtr anchorSystem= m_anchorSystem.lock();
+	for (const auto it : anchorSystem->getAnchorMap())
 	{
 		AnchorComponentPtr anchorComponentPtr= it.second.lock();
 		if (anchorComponentPtr)
@@ -165,7 +267,8 @@ void RmlModel_ProjectScenes::rebuildComponentList()
 	}
 
 	// Add all root stencils to the outliner
-	for (const auto it : m_stencilSystemPtr->getQuadStencilMap())
+	StencilObjectSystemPtr stencilSystem = m_stencilSystem.lock();
+	for (const auto it : stencilSystem->getQuadStencilMap())
 	{
 		QuadStencilComponentPtr stencilComponentPtr = it.second.lock();
 		if (stencilComponentPtr)
@@ -177,8 +280,8 @@ void RmlModel_ProjectScenes::rebuildComponentList()
 				addTransformComponent(rootComponent, 0);
 			}
 		}
-	}
-	for (const auto it : m_stencilSystemPtr->getBoxStencilMap())
+	}	
+	for (const auto it : stencilSystem->getBoxStencilMap())
 	{
 		BoxStencilComponentPtr stencilComponentPtr = it.second.lock();
 		if (stencilComponentPtr)
@@ -191,7 +294,7 @@ void RmlModel_ProjectScenes::rebuildComponentList()
 			}
 		}
 	}
-	for (const auto it : m_stencilSystemPtr->getModelStencilMap())
+	for (const auto it : stencilSystem->getModelStencilMap())
 	{
 		ModelStencilComponentPtr stencilComponentPtr= it.second.lock();
 		if (stencilComponentPtr)
@@ -213,18 +316,18 @@ void RmlModel_ProjectScenes::rebuildComponentList()
 void RmlModel_ProjectScenes::updateSelection()
 {
 	// Find the index of the currently selected component (if any)
-	m_selectionIndex = -1;
-	SelectionComponentPtr currentSelection = m_editorSystemPtr->getSelection();
-	for (int list_index = 0; list_index < m_componentOutliner.size(); ++list_index)
+	m_selectedSceneObjectIndex = -1;
+	SelectionComponentPtr currentSelection = m_editorSystem.lock()->getSelection();
+	for (int list_index = 0; list_index < m_sceneOutliner.size(); ++list_index)
 	{
-		SelectionComponentPtr testComponentPtr = m_componentOutliner[list_index].selectionComponent.lock();
+		SelectionComponentPtr testComponentPtr = m_sceneOutliner[list_index].selectionComponent.lock();
 		if (testComponentPtr == currentSelection)
 		{
-			m_selectionIndex = list_index;
+			m_selectedSceneObjectIndex = list_index;
 			break;
 		}
 	}
-	m_modelHandle.DirtyVariable("selection_index");
+	m_modelHandle.DirtyVariable("selected_scene_object_index");
 }
 
 void RmlModel_ProjectScenes::addTransformComponent(TransformComponentPtr transformComponentPtr, int depth)
@@ -238,8 +341,8 @@ void RmlModel_ProjectScenes::addTransformComponent(TransformComponentPtr transfo
 		const std::string& name= ownerObject->getRootComponent()->getName();
 		SelectionComponentPtr selectionComponent= ownerObject->getComponentOfType<SelectionComponent>();
 
-		RmlModel_CompositorObject object = {name.empty() ? "<No Name>" : name, depth, selectionComponent};
-		m_componentOutliner.push_back(object);
+		RmlModel_SceneObject object = {name.empty() ? "<No Name>" : name, depth, selectionComponent};
+		m_sceneOutliner.push_back(object);
 	}
 
 	for (TransformComponentWeakPtr childTransformComponentWeakPtr : transformComponentPtr->getChildComponents())
@@ -260,17 +363,126 @@ void RmlModel_ProjectScenes::addTransformComponent(TransformComponentPtr transfo
 	}
 }
 
+void RmlModel_ProjectScenes::setSelectedStageId(int stageId)
+{
+	if (stageId != m_selectedStageId)
+	{
+		m_selectedStageId = stageId;
+		m_modelHandle.DirtyVariable("selected_stage_id");
+
+		m_sceneIdList->rebuildComponentIdList();
+	}
+}
+
+void RmlModel_ProjectScenes::setSelectedSceneId(int sceneId)
+{
+	if (sceneId != m_selectedSceneId)
+	{
+		m_selectedSceneId = sceneId;
+		m_modelHandle.DirtyVariable("selected_scene_id");
+
+		m_compositorIdList->rebuildComponentIdList();
+
+		if (auto sceneComponent = getSelectedSceneComponent())
+		{
+			m_selectedSceneModel->setPropertyInterface(sceneComponent.get());
+		}
+		else
+		{
+			m_selectedSceneModel->setPropertyInterface(nullptr);
+		}
+
+		rebuildSceneComponentList();
+	}
+}
+
+void RmlModel_ProjectScenes::setSelectedCompositorId(int compositorId)
+{
+	if (compositorId != m_selectedCompositorId)
+	{
+		m_selectedCompositorId = compositorId;
+		m_modelHandle.DirtyVariable("selected_compositor_id");
+
+		if (auto compositorComponent = getSelectedCompositorComponent())
+		{
+			m_selectedCompositorModel->setPropertyInterface(compositorComponent.get());
+		}
+		else
+		{
+			m_selectedCompositorModel->setPropertyInterface(nullptr);
+		}
+	}
+}
+
+void RmlModel_ProjectScenes::stageIdListChanged(bool bOwnerChanged)
+{
+	MikanStageID selectedStageId = INVALID_MIKAN_ID;
+	if (!m_stageIdList->isEmpty() &&
+		!m_stageIdList->contains(m_selectedStageId))
+	{
+		selectedStageId = m_stageIdList->getComponentIdList()[0];
+	}
+
+	setSelectedStageId(selectedStageId);
+}
+
+void RmlModel_ProjectScenes::sceneIdListChanged(bool bOwnerChanged)
+{
+	MikanSceneID selectedSceneId = INVALID_MIKAN_ID;
+	if (!m_sceneIdList->isEmpty() &&
+		!m_sceneIdList->contains(m_selectedStageId))
+	{
+		selectedSceneId = m_sceneIdList->getComponentIdList()[0];
+	}
+
+	setSelectedSceneId(selectedSceneId);
+}
+
+void RmlModel_ProjectScenes::compositorIdListChanged(bool bOwnerChanged)
+{
+	MikanSceneID selectedCompositorId = INVALID_MIKAN_ID;
+	if (!m_compositorIdList->isEmpty() &&
+		!m_compositorIdList->contains(m_selectedCompositorId))
+	{
+		selectedCompositorId = m_compositorIdList->getComponentIdList()[0];
+	}
+
+	setSelectedCompositorId(selectedCompositorId);
+}
+
+StageComponentPtr RmlModel_ProjectScenes::getSelectedStageComponent()
+{
+	return m_stageSystem.lock()->getStageById(m_selectedStageId);
+}
+
+SceneComponentPtr RmlModel_ProjectScenes::getSelectedSceneComponent()
+{
+	return m_sceneSystem.lock()->getSceneById(m_selectedSceneId);
+}
+
+CompositorComponentPtr RmlModel_ProjectScenes::getSelectedCompositorComponent()
+{
+	return m_compositorSystem.lock()->getCompositorById(m_selectedCompositorId);
+}
+
 void RmlModel_ProjectScenes::addNewAnchor(
 	Rml::DataModelHandle handle,
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	const glm::mat4 anchorXform = glm::mat4(1.f);
+	m_anchorSystem.lock()->addNewAnchor();
+}
 
-	AnchorObjectSystemConfigPtr anchorSystemConfig= m_anchorSystemPtr->getAnchorSystemConfig();
-	const std::string newAnchorName= StringUtils::stringify("Anchor ", anchorSystemConfig->nextAnchorId);
+void RmlModel_ProjectScenes::removeAnchor(
+	Rml::DataModelHandle handle, 
+	Rml::Event& /*ev*/, 
+	const Rml::VariantList& parameters)
+{
+	if (parameters.empty())
+		return;
 
-	m_anchorSystemPtr->addNewAnchor(newAnchorName, anchorXform);
+	const int anchorId = parameters[0].Get<int>();
+	m_anchorSystem.lock()->removeAnchor(anchorId);
 }
 
 void RmlModel_ProjectScenes::addNewQuad(
@@ -288,10 +500,23 @@ void RmlModel_ProjectScenes::addNewQuad(
 	quad.quad_width = 0.25f;
 	quad.quad_height = 0.25f;
 
-	StencilObjectSystemConfigPtr stencilSystemConfig = m_stencilSystemPtr->getStencilSystemConfig();
+	StencilObjectSystemPtr stencilSystem= m_stencilSystem.lock();
+	StencilObjectSystemConfigPtr stencilSystemConfig = stencilSystem->getStencilSystemConfig();
 	quad.stencil_name= StringUtils::stringify("Quad ", stencilSystemConfig->nextStencilId);
 
-	m_stencilSystemPtr->addNewQuadStencil(quad);
+	stencilSystem->addNewQuadStencil(quad);
+}
+
+void RmlModel_ProjectScenes::removeQuad(
+	Rml::DataModelHandle handle, 
+	Rml::Event& /*ev*/, 
+	const Rml::VariantList& parameters)
+{
+	if (parameters.empty())
+		return;
+
+	const int quadStencilId = parameters[0].Get<int>();
+	m_stencilSystem.lock()->removeQuadStencil(quadStencilId);
 }
 
 void RmlModel_ProjectScenes::addNewBox(
@@ -309,10 +534,23 @@ void RmlModel_ProjectScenes::addNewBox(
 	box.box_y_size = 0.25f;
 	box.box_z_size = 0.25f;
 
-	StencilObjectSystemConfigPtr stencilSystemConfig= m_stencilSystemPtr->getStencilSystemConfig();
+	StencilObjectSystemPtr stencilSystem = m_stencilSystem.lock();
+	StencilObjectSystemConfigPtr stencilSystemConfig= stencilSystem->getStencilSystemConfig();
 	box.stencil_name= StringUtils::stringify("Box ", stencilSystemConfig->nextStencilId);
 
-	m_stencilSystemPtr->addNewBoxStencil(box);
+	stencilSystem->addNewBoxStencil(box);
+}
+
+void RmlModel_ProjectScenes::removeBox(
+	Rml::DataModelHandle handle,
+	Rml::Event& /*ev*/,
+	const Rml::VariantList& parameters)
+{
+	if (parameters.empty())
+		return;
+
+	const int boxStencilId = parameters[0].Get<int>();
+	m_stencilSystem.lock()->removeQuadStencil(boxStencilId);
 }
 
 void RmlModel_ProjectScenes::addNewModel(
@@ -328,10 +566,23 @@ void RmlModel_ProjectScenes::addNewModel(
 	model.relative_transform.rotation = {1.f, 0.f, 0.f, 0.f};
 	model.relative_transform.scale = {1.f, 1.f, 1.f};
 
-	StencilObjectSystemConfigPtr stencilSystemConfig = m_stencilSystemPtr->getStencilSystemConfig();
+	StencilObjectSystemPtr stencilSystem = m_stencilSystem.lock();
+	StencilObjectSystemConfigPtr stencilSystemConfig = stencilSystem->getStencilSystemConfig();
 	model.stencil_name= StringUtils::stringify("Model ", stencilSystemConfig->nextStencilId);
 
-	m_stencilSystemPtr->addNewModelStencil(model);
+	stencilSystem->addNewModelStencil(model);
+}
+
+void RmlModel_ProjectScenes::removeModel(
+	Rml::DataModelHandle handle,
+	Rml::Event& /*ev*/,
+	const Rml::VariantList& parameters)
+{
+	if (parameters.empty())
+		return;
+
+	const int modelStencilId = parameters[0].Get<int>();
+	m_stencilSystem.lock()->removeModelStencil(modelStencilId);
 }
 
 void RmlModel_ProjectScenes::selectObjectEntry(
@@ -344,13 +595,13 @@ void RmlModel_ProjectScenes::selectObjectEntry(
 
 	// The index of the file/directory being toggled is passed in as the first parameter.
 	const size_t toggle_index = (size_t)parameters[0].Get<int>();
-	if (toggle_index >= m_componentOutliner.size())
+	if (toggle_index >= m_sceneOutliner.size())
 		return;
 
-	const RmlModel_CompositorObject& selectedObject = m_componentOutliner[toggle_index];
+	const RmlModel_SceneObject& selectedObject = m_sceneOutliner[toggle_index];
 	SelectionComponentPtr selectionComponent= selectedObject.selectionComponent.lock();
 	if (selectionComponent)
 	{
-		m_editorSystemPtr->setSelection(selectionComponent);
+		m_editorSystem.lock()->setSelection(selectionComponent);
 	}
 }

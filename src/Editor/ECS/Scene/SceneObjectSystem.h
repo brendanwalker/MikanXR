@@ -36,6 +36,7 @@ public:
 	SceneComponentDefinitionPtr getSceneConfigByName(const std::string& sceneName) const;
 	MikanSpatialAnchorID addNewScene(const std::string& sceneName, MikanStageID parentStageId);
 	bool removeScene(MikanSceneID sceneId);
+	const std::vector<SceneComponentDefinitionPtr>& getSceneList() const { return m_sceneList; }
 
 	static const std::string k_currentSceneIdPropertyId;
 	inline MikanSceneID getCurrentSceneId() const { return m_currentSceneId; }

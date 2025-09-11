@@ -195,7 +195,13 @@ void AppStage_Project::enter()
 
 		// Init Scenes UI
 		m_projectScenesModel->init(
-			context, m_anchorObjectSystem.lock(), m_editorSystem.lock(), m_stencilObjectSystem.lock());
+			context, 
+			m_anchorObjectSystem.lock(),
+			m_compositorSystem.lock(),
+			m_editorSystem.lock(), 
+			m_sceneObjectSystem.lock(),
+			m_stageSystem.lock(),
+			m_stencilObjectSystem.lock());
 		m_projectScenesView = addRmlDocument("project_scenes.rml");
 		m_projectScenesView->Show();
 

@@ -3,7 +3,7 @@
         <link type="text/rcss" href="rml.rcss"/>
         <link type="text/rcss" href="mikan.rcss"/>
         <link type="text/template" href="window.rml" />
-        <title>Outliner</title>
+        <title>Project Scenes</title>
         <style>
             /* Hide the window icon. */
             div#title_bar div#icon {
@@ -57,7 +57,7 @@
         </style>
 	</head>
 	<body template="window">
-        <panel id="scene_outliner" data-model="compositor_outliner">            
+        <panel id="scene_outliner" data-model="project_scenes">
             <div>
                 <button style="width: 80dp; height: 67dp; margin-right: -5dp;" data-event-click="add_new_anchor()"><img sprite="icon-anchor"/></button>
                 <button style="width: 80dp; height: 67dp; margin-right: -5dp;" data-event-click="add_new_quad()"><img sprite="icon-quad"/></button>

@@ -20,6 +20,7 @@ public:
 		const std::string& listName,
 		FillComponentIdList fillFuntion);
 	void setOwnerConfig(CommonConfigPtr newOwnerConfig);
+	void rebuildComponentIdList(bool bOwnerChanged= false);
 	virtual void dispose() override;
 
 	const Rml::Vector<int>& getComponentIdList() const { return m_componentIdList; }
@@ -32,7 +33,6 @@ protected:
 	void onConfigMarkedDirty(
 		CommonConfigPtr configPtr, 
 		const ConfigPropertyChangeSet& changedPropertySet);
-	void rebuildComponentIdList(bool bOwnerChanged);
 
 private:
 	CommonConfigWeakPtr m_ownerConfig;

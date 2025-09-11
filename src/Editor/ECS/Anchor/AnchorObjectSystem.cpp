@@ -95,7 +95,17 @@ AnchorDefinitionPtr AnchorObjectSystemConfig::getSpatialAnchorConfigByName(const
 	return AnchorDefinitionPtr();
 }
 
-MikanSpatialAnchorID AnchorObjectSystemConfig::addNewAnchor(const std::string& anchorName, const MikanTransform& xform)
+MikanSpatialAnchorID AnchorObjectSystemConfig::addNewAnchor()
+{
+	const MikanTransform anchorXform = glm_transform_to_MikanTransform(glm::mat4(1.f));
+	const std::string newAnchorName = StringUtils::stringify("Anchor ", nextAnchorId);
+
+	return addNewAnchor(newAnchorName, anchorXform);
+}
+
+MikanSpatialAnchorID AnchorObjectSystemConfig::addNewAnchor(
+	const std::string& anchorName, 
+	const MikanTransform& xform)
 {
 	if (!canAddAnchor())
 		return INVALID_MIKAN_ID;
@@ -214,14 +224,34 @@ bool AnchorObjectSystem::getSpatialAnchorWorldTransform(MikanSpatialAnchorID anc
 	return false;
 }
 
-AnchorComponentPtr AnchorObjectSystem::addNewAnchor(const std::string& anchorName, const GlmTransform& xform)
+AnchorComponentPtr AnchorObjectSystem::addNewAnchor()
 {
 	AnchorObjectSystemConfigPtr anchorSystemConfig = getAnchorSystemConfig();
 
-	MikanSpatialAnchorID anchorId= anchorSystemConfig->addNewAnchor(anchorName, glm_transform_to_MikanTransform(xform));
+	MikanSpatialAnchorID anchorId= anchorSystemConfig->addNewAnchor();
 	if (anchorId != INVALID_MIKAN_ID)
 	{		
 		AnchorDefinitionPtr anchorConfig= anchorSystemConfig->getSpatialAnchorConfig(anchorId);
+		assert(anchorConfig != nullptr);
+
+		return createAnchorObject(anchorConfig);
+	}
+
+	return AnchorComponentPtr();
+}
+
+AnchorComponentPtr AnchorObjectSystem::addNewAnchor(
+	const std::string& anchorName, 
+	const class GlmTransform& xform)
+{
+	AnchorObjectSystemConfigPtr anchorSystemConfig = getAnchorSystemConfig();
+
+	MikanSpatialAnchorID anchorId = anchorSystemConfig->addNewAnchor(
+		anchorName, 
+		glm_transform_to_MikanTransform(xform));
+	if (anchorId != INVALID_MIKAN_ID)
+	{
+		AnchorDefinitionPtr anchorConfig = anchorSystemConfig->getSpatialAnchorConfig(anchorId);
 		assert(anchorConfig != nullptr);
 
 		return createAnchorObject(anchorConfig);
