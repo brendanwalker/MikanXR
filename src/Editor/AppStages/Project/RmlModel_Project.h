@@ -3,18 +3,18 @@
 #include "Shared/RmlModel.h"
 #include "SinglecastDelegate.h"
 
-class RmlModel_Compositor : public RmlModel
+class RmlModel_Project : public RmlModel
 {
 public:
 	bool init(Rml::Context* rmlContext);
 	virtual void dispose() override;
 
 	SinglecastDelegate<void()> OnReturnEvent;
-	SinglecastDelegate<void()> OnToggleCamerasEvent;
-	SinglecastDelegate<void()> OnToggleOutlinerEvent;
-	SinglecastDelegate<void()> OnToggleLayersEvent;
-	SinglecastDelegate<void()> OnToggleScriptingEvent;
+	SinglecastDelegate<void()> OnToggleScenesEvent;
+	SinglecastDelegate<void()> OnToggleStagesEvent;
 	SinglecastDelegate<void()> OnToggleSourcesEvent;
+	SinglecastDelegate<void()> OnToggleTrackingEvent;
+	SinglecastDelegate<void()> OnToggleMarkersEvent;
 	SinglecastDelegate<void()> OnToggleSettingsEvent;
 
 private:

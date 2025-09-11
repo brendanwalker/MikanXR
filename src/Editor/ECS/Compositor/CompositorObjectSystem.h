@@ -29,8 +29,9 @@ public:
 	CompositorDefinitionPtr getCompositorConfigByName(const std::string& compositorName) const;
 
 	static const std::string k_compositorListPropertyId;
-	MikanCompositorID addNewCompositor(const std::string& compositorName);
+	MikanCompositorID addNewCompositor(MikanStageID ownerStageId);
 	bool removeCompositor(MikanCompositorID compositorId);
+	const std::vector<CompositorDefinitionPtr>& getCompositorList() const { return m_compositorList; }
 
 private:
 	MikanCompositorID m_nextCompositorId = 0;
@@ -52,7 +53,7 @@ public:
 	const CompositorMap& getCompositorMap() const { return m_compositorComponents; }
 	CompositorComponentPtr getCompositorById(MikanCompositorID compositorId) const;
 	CompositorComponentPtr getCompositorByName(const std::string& compositorName) const;
-	CompositorComponentPtr addNewCompositor(const std::string& compositorName);
+	CompositorComponentPtr addNewCompositor(MikanStageID ownerStageId);
 	bool removeCompositor(MikanCompositorID compositorId);
 
 	void setActiveCompositors(const std::vector<MikanCompositorID>& activeCompositorIdList);

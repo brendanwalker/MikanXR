@@ -103,13 +103,7 @@ void RmlModel_ProjectMarkers::addNewMarker(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	std::string markerName = "NewMarker";
-	if (!parameters.empty())
-	{
-		markerName = parameters[0].Get<Rml::String>();
-	}
-	
-	getMarkerSystem()->addNewMarker(markerName);
+	getMarkerSystem()->addNewMarker();
 }
 
 void RmlModel_ProjectMarkers::removeMarker(

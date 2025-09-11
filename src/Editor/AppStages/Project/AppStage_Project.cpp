@@ -4,34 +4,26 @@
 #include "AnchorObjectSystem.h"
 #include "BoxStencilComponent.h"
 #include "CameraComponent.h"
+#include "CameraObjectSystem.h"
 #include "ClientSourceManager.h"
-#include "Project/AppStage_Project.h"
-#include "Project/RmlModel_Project.h"
-#include "Project/RmlModel_ProjectScenes.h"
-#include "Project/RmlModel_ProjectStages.h"
-#include "Project/RmlModel_CompositorComponent.h"
-#include "Project/RmlModel_ProjectSources.h"
-#include "Project/RmlModel_SceneSelection.h"
-#include "Project/RmlModel_ProjectSettings.h"
-#include "CompositorObjectSystem.h"
-#include "CompositorComponent.h"
-#include "EditorObjectSystem.h"
-#include "ModalConfirm/ModalDialog_Confirm.h"
 #include "Colors.h"
+#include "CompositorComponent.h"
+#include "CompositorObjectSystem.h"
 #include "CompositorScriptContext.h"
+#include "EditorObjectSystem.h"
 #include "Graphs/CompositorNodeGraph.h"
-#include "SdlCommon.h"
-#include "MikanCamera.h"
+#include "InputManager.h"
 #include "IMkLineRenderer.h"
 #include "IMkTextRenderer.h"
+#include "IMkTexture.h"
+#include "IMkWireframeMesh.h"
+#include "MathGLM.h"
+#include "MainWindow.h"
+#include "MarkerObjectSystem.h"
+#include "MikanCamera.h"
 #include "MikanRenderModelResource.h"
 #include "MikanViewport.h"
-#include "IMkWireframeMesh.h"
-#include "IMkTexture.h"
-#include "SharedTextureReader.h"
-#include "InputManager.h"
-#include "MainWindow.h"
-#include "MathGLM.h"
+#include "ModalConfirm/ModalDialog_Confirm.h"
 #include "MikanObjectSystem.h"
 #include "MathTypeConversion.h"
 #include "MathMikan.h"
@@ -39,17 +31,30 @@
 #include "MikanTextRenderer.h"
 #include "MikanObject.h"
 #include "MikanServer.h"
-#include "SceneComponent.h"
 #include "ObjectSystemManager.h"
 #include "ProjectConfig.h"
+#include "Project/AppStage_Project.h"
+#include "Project/RmlModel_Project.h"
+#include "Project/RmlModel_ProjectMarkers.h"
+#include "Project/RmlModel_ProjectScenes.h"
+#include "Project/RmlModel_ProjectStages.h"
+#include "Project/RmlModel_ProjectSources.h"
+#include "Project/RmlModel_ProjectTracking.h"
+#include "Project/RmlModel_ProjectSettings.h"
 #include "PathUtils.h"
 #include "RmlUtility.h"
+#include "SceneComponent.h"
+#include "SdlCommon.h"
 #include "SdlUtility.h"
-#include "TransformComponent.h"
 #include "ScriptRequestHandler.h"
-#include "StringUtils.h"
+#include "SharedTextureReader.h"
 #include "StencilObjectSystem.h"
 #include "SceneObjectSystem.h"
+#include "StageObjectSystem.h"
+#include "StringUtils.h"
+#include "TrackingMountObjectSystem.h"
+#include "TrackingVolumeObjectSystem.h"
+#include "TransformComponent.h"
 #include "TextStyle.h"
 #include "VideoSourceComponent.h"
 #include "VideoSourceSystem.h"
@@ -71,14 +76,13 @@ const char* AppStage_Project::APP_STAGE_NAME = "Compositor";
 //-- public methods -----
 AppStage_Project::AppStage_Project(IEditorWindow* ownerWindow)
 	: AppStage(ownerWindow, AppStage_Project::APP_STAGE_NAME)
-	, m_compositorModel(new RmlModel_Compositor)
-	, m_compositorScenesModel(new RmlModel_ProjectScenes)
-	, m_compositorStagesModel(new RmlModel_ProjectStages)
-	, m_compositorSourcesModel(new RmlModel_ProjectSources)
-	// TODO: Tracking
-	// TODO: Markers
-	, m_compositorSelectionModel(new RmlModel_SceneSelection)
-	, m_compositorSettingsModel(new RmlModel_ProjectSettings)
+	, m_projectModel(new RmlModel_Project)
+	, m_projectScenesModel(new RmlModel_ProjectScenes)
+	, m_projectStagesModel(new RmlModel_ProjectStages)
+	, m_projectSourcesModel(new RmlModel_ProjectSources)
+	, m_projectTrackingModel(new RmlModel_ProjectTracking)
+	, m_projectMarkersModel(new RmlModel_ProjectMarkers)
+	, m_projectSettingsModel(new RmlModel_ProjectSettings)
 	, m_scriptContext(std::make_shared<CompositorScriptContext>())
 {
 }
@@ -88,14 +92,13 @@ AppStage_Project::~AppStage_Project()
 	m_viewport = nullptr;
 	m_activeCompositors.clear();
 
-	delete m_compositorModel;
-	delete m_compositorStagesModel;
-	delete m_compositorSourcesModel;
-	// TODO: Tracking
-	// TODO: Markers
-	delete m_compositorScenesModel;
-	delete m_compositorSelectionModel;
-	delete m_compositorSettingsModel;
+	delete m_projectModel;
+	delete m_projectScenesModel;
+	delete m_projectStagesModel;
+	delete m_projectSourcesModel;
+	delete m_projectTrackingModel;
+	delete m_projectMarkersModel;
+	delete m_projectSettingsModel;
 	m_scriptContext.reset();
 }
 
@@ -109,10 +112,16 @@ void AppStage_Project::enter()
 	// Cache object systems we'll be accessing
 	ObjectSystemManagerPtr objectSystemManager = m_ownerWindow->getObjectSystemManager();
 	m_anchorObjectSystem = objectSystemManager->getSystemOfType<AnchorObjectSystem>();
-	m_editorSystem = objectSystemManager->getSystemOfType<EditorObjectSystem>();
-	m_stencilObjectSystem = objectSystemManager->getSystemOfType<StencilObjectSystem>();
-	m_sceneObjectSystem = objectSystemManager->getSystemOfType<SceneObjectSystem>();
+	m_cameraSystem = objectSystemManager->getSystemOfType<CameraObjectSystem>();
 	m_compositorSystem = objectSystemManager->getSystemOfType<CompositorObjectSystem>();
+	m_editorSystem = objectSystemManager->getSystemOfType<EditorObjectSystem>();
+	m_markerObjectSystem = objectSystemManager->getSystemOfType<MarkerObjectSystem>();
+	m_sceneObjectSystem = objectSystemManager->getSystemOfType<SceneObjectSystem>();
+	m_stageSystem = objectSystemManager->getSystemOfType<StageObjectSystem>();
+	m_stencilObjectSystem = objectSystemManager->getSystemOfType<StencilObjectSystem>();
+	m_trackingMountSystem = objectSystemManager->getSystemOfType<TrackingMountObjectSystem>();
+	m_trackingVolumeSystem = objectSystemManager->getSystemOfType<TrackingVolumeObjectSystem>();
+	m_videoObjectSystem = objectSystemManager->getSystemOfType<VideoSourceSystem>();
 
 	// Setup Scene viewport
 	{
@@ -174,48 +183,57 @@ void AppStage_Project::enter()
 		Rml::Context* context = getRmlContext();
 
 		// Init main compositor UI
-		m_compositorModel->init(context);
-		m_compositorModel->OnReturnEvent = MakeDelegate(this, &AppStage_Project::onReturnEvent);
-		m_compositorModel->OnToggleOutlinerEvent = MakeDelegate(this, &AppStage_Project::onToggleScenesWindowEvent);
-		m_compositorModel->OnToggleCamerasEvent = MakeDelegate(this, &AppStage_Project::onToggleStagesWindowEvent);
-		m_compositorModel->OnToggleSourcesEvent = MakeDelegate(this, &AppStage_Project::onToggleSourcesEvent);
-		// TODO: Tracking
-		// TODO: Markers
-		m_compositorModel->OnToggleSettingsEvent = MakeDelegate(this, &AppStage_Project::onToggleSettingsWindowEvent);
-		m_compositiorView = addRmlDocument("compositor.rml");
+		m_projectModel->init(context);
+		m_projectModel->OnReturnEvent = MakeDelegate(this, &AppStage_Project::onReturnEvent);
+		m_projectModel->OnToggleScenesEvent = MakeDelegate(this, &AppStage_Project::onToggleScenesWindowEvent);
+		m_projectModel->OnToggleStagesEvent = MakeDelegate(this, &AppStage_Project::onToggleStagesWindowEvent);
+		m_projectModel->OnToggleSourcesEvent = MakeDelegate(this, &AppStage_Project::onToggleSourcesEvent);
+		m_projectModel->OnToggleTrackingEvent = MakeDelegate(this, &AppStage_Project::onToggleTrackingEvent);
+		m_projectModel->OnToggleMarkersEvent = MakeDelegate(this, &AppStage_Project::onToggleMarkersEvent);
+		m_projectModel->OnToggleSettingsEvent = MakeDelegate(this, &AppStage_Project::onToggleSettingsWindowEvent);
+		m_projectView = addRmlDocument("project.rml");
 
-		// Init Outliner UI
-		m_compositorScenesModel->init(context, m_anchorObjectSystem, m_editorSystem, m_stencilObjectSystem);
-		m_compositorSelectionModel->init(context, m_anchorObjectSystem, m_editorSystem, m_stencilObjectSystem);
-		m_compositiorScenesView = addRmlDocument("compositor_outliner.rml");
-		m_compositiorScenesView->Show();
+		// Init Scenes UI
+		m_projectScenesModel->init(
+			context, m_anchorObjectSystem.lock(), m_editorSystem.lock(), m_stencilObjectSystem.lock());
+		m_projectScenesView = addRmlDocument("project_scenes.rml");
+		m_projectScenesView->Show();
 
-		// Init Cameras UI
-		m_compositorStagesModel->init(context);
-		m_compositiorSourcesView = addRmlDocument("compositor_cameras.rml");
-		m_compositiorSourcesView->Hide();
+		// Init Stages UI
+		m_projectStagesModel->init(
+			context, m_project, m_stageSystem.lock(), m_cameraSystem.lock(), m_compositorSystem.lock());
+		m_projectSourcesView = addRmlDocument("project_stages.rml");
+		m_projectSourcesView->Hide();
 
 		// Init Sources UI
-		m_compositorSourcesModel->init(context, m_project, getSystemOfType<VideoSourceSystem>());
-		m_compositiorSourcesView = addRmlDocument("compositor_sources.rml");
-		m_compositiorSourcesView->Hide();
+		m_projectSourcesModel->init(context, m_project, m_videoObjectSystem.lock());
+		m_projectSourcesView = addRmlDocument("project_sources.rml");
+		m_projectSourcesView->Hide();
+
+		// Init Tracking UI
+		m_projectTrackingModel->init(
+			context, m_project, m_trackingVolumeSystem.lock(), m_trackingMountSystem.lock());
+		m_projectTrackingView = addRmlDocument("project_tracking.rml");
+		m_projectTrackingView->Hide();
+
+		// Init Markers UI
+		m_projectMarkersModel->init(
+			context, m_project, m_markerObjectSystem.lock());
+		m_projectMarkersView = addRmlDocument("project_markers.rml");
+		m_projectMarkersView->Hide();
 
 		// Init Settings UI
-		// TODO: Need to pass CompositorDefinition to settings model after refactoring
-		m_compositorSettingsModel->init(
-			context, 
-			m_project, 
-			getSystemOfType<StencilObjectSystem>(),
-			CompositorDefinitionPtr());
-		m_compositiorSettingsView = addRmlDocument("compositor_settings.rml");
-		m_compositiorSettingsView->Hide();
+		m_projectSettingsModel->init(
+			context, m_project, m_stencilObjectSystem.lock());
+		m_projectSettingsView = addRmlDocument("projecet_settings.rml");
+		m_projectSettingsView->Hide();
 	}
 }
 
 void AppStage_Project::exit()
 {
 	{
-		SceneObjectSystemPtr sceneSystem = getSystemOfType<SceneObjectSystem>();
+		SceneObjectSystemPtr sceneSystem = m_sceneObjectSystem.lock();
 
 		// Rebuild compositor viewports for the active scene
 		SceneComponentPtr activeScene = sceneSystem->getCurrentScene();
@@ -231,27 +249,18 @@ void AppStage_Project::exit()
 	}
 
 	// Unregister all viewports from the editor
-	EditorObjectSystemPtr editorSystem = m_ownerWindow->getObjectSystemManager()->getSystemOfType<EditorObjectSystem>();
-	editorSystem->clearViewports();
+	m_editorSystem.lock()->clearViewports();
 
 	// Unregister the script context with the mikan server
 	MikanServer::getInstance()->getScriptRequestHandler()->unbindScriptContect(m_scriptContext);
 
-	m_compositorSelectionModel->dispose();
-	m_compositorScenesModel->dispose();
-	m_compositorStagesModel->dispose();
-	m_compositorSourcesModel->dispose();
-	// TODO: Tracking
-	// TODO: Markers
-	m_compositorSettingsModel->dispose();
-	m_compositorModel->dispose();
-
-	// Clear cached object systems
-	m_anchorObjectSystem = nullptr;
-	m_editorSystem = nullptr;
-	m_stencilObjectSystem = nullptr;
-	m_sceneObjectSystem = nullptr;
-	m_compositorSystem = nullptr;
+	m_projectScenesModel->dispose();
+	m_projectStagesModel->dispose();
+	m_projectSourcesModel->dispose();
+	m_projectTrackingModel->dispose();
+	m_projectMarkersModel->dispose();
+	m_projectSettingsModel->dispose();
+	m_projectModel->dispose();
 
 	AppStage::exit();
 }
@@ -266,7 +275,7 @@ void AppStage_Project::resume()
 	AppStage::resume();
 
 	hideAllSubWindows();
-	m_compositiorScenesView->Show();
+	m_projectScenesView->Show();
 }
 
 void AppStage_Project::update(float deltaSeconds)
@@ -384,25 +393,37 @@ void AppStage_Project::onReturnEvent()
 void AppStage_Project::onToggleScenesWindowEvent()
 {
 	hideAllSubWindows();
-	if (m_compositiorScenesView) m_compositiorScenesView->Show();
+	if (m_projectScenesView) m_projectScenesView->Show();
 }
 
 void AppStage_Project::onToggleStagesWindowEvent()
 {
 	hideAllSubWindows();
-	if (m_compositiorSourcesView) m_compositiorStagesView->Show();
+	if (m_projectSourcesView) m_projectStagesView->Show();
 }
 
 void AppStage_Project::onToggleSourcesEvent()
 {
 	hideAllSubWindows();
-	if (m_compositiorSourcesView) m_compositiorSourcesView->Show();
+	if (m_projectSourcesView) m_projectSourcesView->Show();
+}
+
+void AppStage_Project::onToggleTrackingEvent()
+{
+	hideAllSubWindows();
+	if (m_projectTrackingView) m_projectTrackingView->Show();
+}
+
+void AppStage_Project::onToggleMarkersEvent()
+{
+	hideAllSubWindows();
+	if (m_projectMarkersView) m_projectMarkersView->Show();
 }
 
 void AppStage_Project::onToggleSettingsWindowEvent()
 {
 	hideAllSubWindows();
-	if (m_compositiorSettingsView) m_compositiorSettingsView->Show();
+	if (m_projectSettingsView) m_projectSettingsView->Show();
 }
 
 void AppStage_Project::onScreenshotClientSourceEvent(const std::string& clientSourceName)
@@ -422,12 +443,12 @@ void AppStage_Project::onScreenshotClientSourceEvent(const std::string& clientSo
 
 void AppStage_Project::hideAllSubWindows()
 {
-	if (m_compositiorScenesView) m_compositiorScenesView->Hide();
-	if (m_compositiorStagesView) m_compositiorStagesView->Hide();
-	if (m_compositiorSourcesView) m_compositiorSourcesView->Hide();
-	// TODO: Tracking
-	// TODO: Markers
-	if (m_compositiorSettingsView) m_compositiorSettingsView->Hide();
+	if (m_projectScenesView) m_projectScenesView->Hide();
+	if (m_projectStagesView) m_projectStagesView->Hide();
+	if (m_projectSourcesView) m_projectSourcesView->Hide();
+	if (m_projectTrackingView) m_projectTrackingView->Hide();
+	if (m_projectMarkersView) m_projectMarkersView->Hide();
+	if (m_projectSettingsView) m_projectSettingsView->Hide();
 }
 
 void AppStage_Project::render(IMkViewportPtr targetViewport)

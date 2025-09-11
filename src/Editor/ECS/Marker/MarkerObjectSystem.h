@@ -33,6 +33,7 @@ public:
 	static const std::string k_arucoMarkerListPropertyId;
 	MarkerDefinitionPtr getMarkerConfig(MikanMarkerID markerId) const;
 	MarkerDefinitionPtr getMarkerConfigByName(const std::string& MarkerName) const;
+	MikanMarkerID addNewMarker();
 	MikanMarkerID addNewMarker(const std::string& markerName);
 	bool removeMarker(MikanMarkerID markerId);
 	const std::vector<MarkerDefinitionPtr>& getArucoMarkerList() const { return m_arucoMarkerList; }
@@ -94,7 +95,7 @@ public:
 	const MarkerMap& getMarkerMap() const { return m_markerComponents; }
 	MarkerComponentPtr getMarkerById(MikanMarkerID markerId) const;
 	MarkerComponentPtr getMarkerByName(const std::string& markerName) const;
-	MarkerComponentPtr addNewMarker(const std::string& markerName);
+	MarkerComponentPtr addNewMarker();
 	bool removeMarker(MikanMarkerID markerId);
 
 	// -- IPropertyInterface ----

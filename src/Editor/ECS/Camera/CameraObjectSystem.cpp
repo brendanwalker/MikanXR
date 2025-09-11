@@ -19,7 +19,7 @@ configuru::Config CameraObjectSystemConfig::writeToJSON()
 {
 	configuru::Config pt = CommonConfig::writeToJSON();
 
-	pt["nextCameraId"] = nextCameraId;
+	pt["m_nextCameraId"] = m_nextCameraId;
 
 	std::vector<configuru::Config> cameraConfigs;
 	for (CameraDefinitionPtr cameraDefinition : cameraList)
@@ -35,7 +35,7 @@ void CameraObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
-	nextCameraId = pt.get_or<int>("nextCameraId", nextCameraId);
+	m_nextCameraId = pt.get_or<int>("m_nextCameraId", m_nextCameraId);
 
 	// Read in the cameras
 	cameraList.clear();
@@ -85,6 +85,14 @@ CameraDefinitionPtr CameraObjectSystemConfig::getCameraConfigByName(const std::s
 	return CameraDefinitionPtr();
 }
 
+MikanCameraID CameraObjectSystemConfig::addNewCamera(MikanStageID ownerStageId)
+{
+	const std::string cameraName = "Camera" + std::to_string(m_nextCameraId);
+	const MikanTransform xform= glm_transform_to_MikanTransform(GlmTransform());
+
+	return addNewCamera(cameraName, xform, ownerStageId);
+}
+
 MikanCameraID CameraObjectSystemConfig::addNewCamera(
 	const std::string& cameraName, 
 	const struct MikanTransform& xform,
@@ -92,8 +100,8 @@ MikanCameraID CameraObjectSystemConfig::addNewCamera(
 {
 	CameraDefinitionPtr cameraDefinition = 
 		std::make_shared<CameraDefinition>(
-			cameraName, xform, nextCameraId, ownerStageId);
-	nextCameraId++;
+			cameraName, xform, m_nextCameraId, ownerStageId);
+	m_nextCameraId++;
 
 	cameraList.push_back(cameraDefinition);
 	addChildConfig(cameraDefinition);
@@ -131,9 +139,9 @@ bool CameraObjectSystem::init()
 {
 	MikanObjectSystem::init();
 
-	CameraObjectSystemConfigConstPtr anchorSystemConfig = getCameraSystemConfigConst();
+	CameraObjectSystemConfigConstPtr cameraSystemConfig = getCameraSystemConfigConst();
 
-	for (CameraDefinitionPtr cameraConfig : anchorSystemConfig->cameraList)
+	for (CameraDefinitionPtr cameraConfig : cameraSystemConfig->getCameraList())
 	{
 		createCameraObject(cameraConfig);
 	}
@@ -185,19 +193,15 @@ CameraComponentPtr CameraObjectSystem::getCameraByName(const std::string& camera
 	return CameraComponentPtr();
 }
 
-CameraComponentPtr CameraObjectSystem::addNewCamera(
-	const std::string& cameraName, 
-	const GlmTransform& xform,
-	const MikanStageID ownerStageId)
+CameraComponentPtr CameraObjectSystem::addNewCamera(const MikanStageID ownerStageId)
 {
-	CameraObjectSystemConfigPtr anchorSystemConfig = getCameraSystemConfig();
+	CameraObjectSystemConfigPtr cameraSystemConfig = getCameraSystemConfig();
 
 	MikanCameraID cameraId= 
-		anchorSystemConfig->addNewCamera(
-			cameraName, glm_transform_to_MikanTransform(xform), ownerStageId);
+		cameraSystemConfig->addNewCamera(ownerStageId);
 	if (cameraId != INVALID_MIKAN_ID)
 	{		
-		CameraDefinitionPtr cameraConfig= anchorSystemConfig->getCameraConfig(cameraId);
+		CameraDefinitionPtr cameraConfig= cameraSystemConfig->getCameraConfig(cameraId);
 		assert(cameraConfig != nullptr);
 
 		return createCameraObject(cameraConfig);
@@ -208,15 +212,18 @@ CameraComponentPtr CameraObjectSystem::addNewCamera(
 
 bool CameraObjectSystem::removeCamera(MikanCameraID cameraId)
 {
-	getCameraSystemConfig()->removeCamera(cameraId);
-	disposeCameraObject(cameraId);
+	if (getCameraSystemConfig()->removeCamera(cameraId))
+	{
+		disposeCameraObject(cameraId);
+		return true;
+	}
 
 	return false;
 }
 
 CameraComponentPtr CameraObjectSystem::createCameraObject(CameraDefinitionPtr cameraConfig)
 {
-	CameraObjectSystemConfigConstPtr anchorSystemConfig = getCameraSystemConfigConst();
+	CameraObjectSystemConfigConstPtr cameraSystemConfig = getCameraSystemConfigConst();
 	MikanObjectPtr cameraObject= newObject();
 	cameraObject->setName(cameraConfig->getComponentName());
 

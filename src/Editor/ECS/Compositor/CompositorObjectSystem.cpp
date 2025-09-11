@@ -78,11 +78,12 @@ CompositorDefinitionPtr CompositorObjectSystemConfig::getCompositorConfigByName(
 }
 
 MikanCompositorID CompositorObjectSystemConfig::addNewCompositor(
-	const std::string& compositorName)
+	MikanStageID ownerStageId)
 {
+	std::string compositorName = "Compositor_" + std::to_string(m_nextCompositorId);
 	auto compositorDefinitionPtr = 
 		std::make_shared<CompositorDefinition>(
-			m_nextCompositorId, INVALID_MIKAN_ID, compositorName);
+			m_nextCompositorId, ownerStageId, compositorName);
 	m_nextCompositorId++;
 
 	m_compositorList.push_back(compositorDefinitionPtr);
@@ -171,13 +172,13 @@ CompositorComponentPtr CompositorObjectSystem::getCompositorByName(const std::st
 }
 
 CompositorComponentPtr CompositorObjectSystem::addNewCompositor(
-	const std::string& compositorName)
+	MikanStageID ownerStageId)
 {
 	CompositorObjectSystemConfigPtr compositorSystemConfig = getCompositorSystemConfig();
 
 	if (compositorSystemConfig)
 	{
-		MikanCompositorID compositorId = compositorSystemConfig->addNewCompositor(compositorName);
+		MikanCompositorID compositorId = compositorSystemConfig->addNewCompositor(ownerStageId);
 		if (compositorId != INVALID_MIKAN_ID)
 		{
 			CompositorDefinitionPtr compositorConfig = compositorSystemConfig->getCompositorConfig(compositorId);

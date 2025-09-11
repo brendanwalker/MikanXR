@@ -23,7 +23,7 @@ public:
 	vr::TrackedDeviceIndex_t getSteamVRDeviceIndex() const { return m_deviceIndex; }
 	vr::ETrackedDeviceClass getSteamVRDeviceClass() const { return m_deviceClass; }
 	const std::string& getDevicePath() const { return m_devicePath; }
-	const std::string& getTrackingSystem() const { return m_trackingSystem; }
+	const std::string& getTrackingSystem() const { return m_trackingVolumeSystem; }
 	const std::string& getTrackingRole() const { return m_trackingRole; }
 	const std::string& getModelLabel() const { return m_modelLabel; }
 	const std::string& getModelNumber() const { return m_modelNumber; }
@@ -52,7 +52,7 @@ private:
 	vr::TrackedDeviceIndex_t m_deviceIndex = 0;
 	vr::ETrackedDeviceClass m_deviceClass = vr::TrackedDeviceClass_Invalid;
 	std::string m_devicePath;
-	std::string m_trackingSystem;
+	std::string m_trackingVolumeSystem;
 	std::string m_trackingRole;
 	std::string m_modelLabel;
 	std::string m_modelNumber;

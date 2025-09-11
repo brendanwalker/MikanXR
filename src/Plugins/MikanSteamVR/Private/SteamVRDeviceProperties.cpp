@@ -15,7 +15,7 @@ void SteamVRDeviceProperties::updateProperties()
 		return;
 
 	m_deviceClass = vrSystem->GetTrackedDeviceClass(m_deviceIndex);
-	m_trackingSystem = fetchStringDeviceProperty(vr::Prop_TrackingSystemName_String, "");
+	m_trackingVolumeSystem = fetchStringDeviceProperty(vr::Prop_TrackingSystemName_String, "");
 	m_modelLabel = fetchStringDeviceProperty(vr::Prop_ModeLabel_String, "");
 	m_modelNumber = fetchStringDeviceProperty(vr::Prop_ModelNumber_String, "");
 	m_manufacturerName = fetchStringDeviceProperty(vr::Prop_ManufacturerName_String, "");
@@ -78,7 +78,7 @@ void SteamVRDeviceProperties::updateProperties()
 
 void SteamVRDeviceProperties::updateResourcesPath()
 {
-	if (m_trackingSystem.size() == 0)
+	if (m_trackingVolumeSystem.size() == 0)
 		return;
 
 	std::filesystem::path resourcesPath = PathUtils::getResourceDirectory();
@@ -100,7 +100,7 @@ bool SteamVRDeviceProperties::updateReadyIconPath()
 		std::string partialIconPath = fetchStringDeviceProperty(vr::Prop_NamedIconPathDeviceReady_String, "");
 		if (partialIconPath.size() != 0)
 		{
-			std::string resourcesToken = "{{" + m_trackingSystem + "}}";
+			std::string resourcesToken = "{{" + m_trackingVolumeSystem + "}}";
 
 			size_t startPos = partialIconPath.find(resourcesToken);
 			if (startPos != std::string::npos)

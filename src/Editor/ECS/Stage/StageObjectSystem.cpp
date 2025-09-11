@@ -78,6 +78,11 @@ StageComponentDefinitionPtr StageObjectSystemConfig::getStageConfigByName(const 
 	return StageComponentDefinitionPtr();
 }
 
+MikanSpatialAnchorID StageObjectSystemConfig::addNewStage()
+{
+	return addNewStage("Stage" + std::to_string(m_nextStageId));
+}
+
 MikanSpatialAnchorID StageObjectSystemConfig::addNewStage(
 	const std::string& stageName)
 {
@@ -171,12 +176,11 @@ StageComponentPtr StageObjectSystem::getStageByName(const std::string& sceneName
 	return StageComponentPtr();
 }
 
-StageComponentPtr StageObjectSystem::addNewStage(
-	const std::string& stageName)
+StageComponentPtr StageObjectSystem::addNewStage()
 {
 	StageObjectSystemConfigPtr stageSystemConfig = getStageSystemConfig();
 
-	MikanStageID stageId = stageSystemConfig->addNewStage(stageName);
+	MikanStageID stageId = stageSystemConfig->addNewStage();
 	if (stageId != INVALID_MIKAN_ID)
 	{
 		StageComponentDefinitionPtr stageConfig = stageSystemConfig->getStageConfig(stageId);

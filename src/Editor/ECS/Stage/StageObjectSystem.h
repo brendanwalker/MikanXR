@@ -25,12 +25,13 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
+	static const std::string k_stageListPropertyId;
 	StageComponentDefinitionPtr getStageConfig(MikanStageID stageId) const;
 	StageComponentDefinitionPtr getStageConfigByName(const std::string& stageName) const;
+	MikanSpatialAnchorID addNewStage();
 	MikanSpatialAnchorID addNewStage(const std::string& stageName);
 	bool removeStage(MikanStageID sceneId);
-
-	static const std::string k_stageListPropertyId;
+	const std::vector<StageComponentDefinitionPtr>& getStageList() const { return m_stageList; }
 
 private:
 	MikanStageID m_nextStageId = 0;
@@ -52,7 +53,7 @@ public:
 	const StageMap& getStageMap() const { return m_stageComponents; }
 	StageComponentPtr getStageById(MikanStageID stageId) const;
 	StageComponentPtr getStageByName(const std::string& stageName) const;
-	StageComponentPtr addNewStage(const std::string& stageName);
+	StageComponentPtr addNewStage();
 	bool removeStage(MikanStageID stageId);
 
 protected:

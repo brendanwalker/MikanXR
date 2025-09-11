@@ -3,7 +3,7 @@
 		<link type="text/rcss" href="rml.rcss" />
 		<link type="text/rcss" href="mikan.rcss" />
 		<link type="text/template" href="window.rml" />
-		<title>Video Controls</title>
+		<title>Project</title>
 		<style>
 			body.window {
 				left: 0dp;
@@ -17,14 +17,14 @@
 	</head>
 
 	<body template="window">
-		<panel id="controls" data-model="compositor">
+		<panel id="controls" data-model="project">
 			<span>
-				<button style="width: 80dp" data-event-click="return">Back</button>
-				<button style="width: 120dp" data-event-click="toggle_outliner">Outliner</button>
-				<button style="width: 120dp" data-event-click="toggle_layers">Layers</button>
-				<button style="width: 120dp" data-event-click="toggle_cameras">Camera</button>
+				<button style="width: 80dp" data-event-click="return">Main Menu</button>
+				<button style="width: 120dp" data-event-click="toggle_scenes">Scenes</button>
+				<button style="width: 120dp" data-event-click="toggle_stages">Stages</button>
 				<button style="width: 120dp" data-event-click="toggle_sources">Sources</button>
-				<button style="width: 120dp" data-event-click="toggle_scripting">Scripting</button>
+				<button style="width: 120dp" data-event-click="toggle_tracking">Tracking</button>
+				<button style="width: 120dp" data-event-click="toggle_markers">Markers</button>
 				<button style="width: 120dp" data-event-click="toggle_settings">Settings</button>
 			</span>
 		</panel>

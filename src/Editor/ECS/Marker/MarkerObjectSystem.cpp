@@ -125,6 +125,11 @@ MarkerDefinitionPtr MarkerObjectSystemConfig::getMarkerConfigByName(const std::s
 	return MarkerDefinitionPtr();
 }
 
+MikanMarkerID MarkerObjectSystemConfig::addNewMarker()
+{
+	return addNewMarker("Marker_" + std::to_string(nextMarkerId));
+}
+
 MikanMarkerID MarkerObjectSystemConfig::addNewMarker(const std::string& markerName)
 {
 	MarkerDefinitionPtr MarkerDefinitionPtr = 
@@ -271,11 +276,11 @@ MarkerComponentPtr MarkerObjectSystem::getMarkerByName(const std::string& marker
 	return MarkerComponentPtr();
 }
 
-MarkerComponentPtr MarkerObjectSystem::addNewMarker(const std::string& markerName)
+MarkerComponentPtr MarkerObjectSystem::addNewMarker()
 {
 	MarkerObjectSystemConfigPtr markerSystemConfig = getMarkerSystemConfig();
 
-	MikanMarkerID markerId = markerSystemConfig->addNewMarker(markerName);
+	MikanMarkerID markerId = markerSystemConfig->addNewMarker();
 	if (markerId != INVALID_MIKAN_ID)
 	{
 		MarkerDefinitionPtr markerConfig = markerSystemConfig->getMarkerConfig(markerId);

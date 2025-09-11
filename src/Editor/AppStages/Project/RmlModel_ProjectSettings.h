@@ -11,19 +11,14 @@ public:
 	bool init(
 		Rml::Context* rmlContext,
 		ProjectConfigPtr profileConfig,
-		StencilObjectSystemPtr stencilSystem,
-		CompositorDefinitionPtr compositorDefinition);
+		StencilObjectSystemPtr stencilSystem);
 	virtual void dispose() override;
 
 private:
-	bool m_bIsStreaming = false;
-	Rml::String m_spoutOutputName;
-
 	bool m_bRenderOrigin= false;
 	bool m_bRenderAnchors= false;
 	bool m_bRenderStencils= false;
 
-	ProjectConfigPtr m_project;
+	ProjectConfigWeakPtr m_project;
 	StencilObjectSystemWeakPtr m_stencilSystem;
-	CompositorDefinitionPtr m_compositorDefinition;
 };

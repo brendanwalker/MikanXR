@@ -1,29 +1,68 @@
 #pragma once
 
 #include "ComponentFwd.h"
+#include "MikanTypeFwd.h"
+#include "ObjectFwd.h"
+#include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
+#include "SceneFwd.h"
 #include "Shared/RmlModel.h"
-
-class RmlDataBinding_VRDeviceList;
-using RmlDataBinding_VRDeviceListPtr = std::shared_ptr<RmlDataBinding_VRDeviceList>;
+#include "Shared/RmlDataBinding_ComponentList.h"
+#include "Shared/RmlModel_PropertyInterface.h"
+#include "SinglecastDelegate.h"
 
 class RmlModel_ProjectStages : public RmlModel
 {
 public:
 	RmlModel_ProjectStages();
 
-	bool init(Rml::Context* rmlContext);
+	bool init(
+		Rml::Context* rmlContext, 
+		ProjectConfigPtr projectConfig,
+		StageObjectSystemPtr stageSystem,
+		CameraObjectSystemPtr cameraSystem,
+		CompositorObjectSystemPtr compositorSystem);
 	virtual void dispose() override;
 
-	//const Rml::String& getVideoSourceName() const;
-	//void setVideoSourceName(const Rml::String& newName);
-
 private:
-	RmlDataBinding_VRDeviceListPtr m_vrDeviceBinding;
-	ProjectConfigPtr m_projectConfigPtr;
-	VideoSourceComponentPtr m_videoSource;
+	StageObjectSystemPtr getStageSystem();
+	CameraObjectSystemPtr getCameraSystem();
+	CompositorObjectSystemPtr getCompositorSystem();
+	StageComponentPtr getSelectedStage();
+	CameraComponentPtr getSelectedCamera();
+	CompositorComponentPtr getSelectedCompositor();
 
-	// Cameras UI
-	Rml::String m_cameraVRDevicePath;
-	Rml::Vector<Rml::String> m_cameraNames;
+	void addNewStage(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void removeStage(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void addNewCamera(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void removeCamera(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void addNewCompositor(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void removeCompositor(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void selectStageEntry(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void selectCameraEntry(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void selectCompositorEntry(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+
+	void setSelectedStageId(MikanStageID stageId);
+	void setSelectedCameraId(MikanCameraID cameraId);
+	void setSelectedCompositorId(MikanCompositorID compositorId);
+
+	void stageIdListChanged(bool bOwnerChanged);
+	void cameraIdListChanged(bool bOwnerChanged);
+	void compositorIdListChanged(bool bOwnerChanged);
+
+	ProjectConfigWeakPtr m_projectConfig;
+	StageObjectSystemWeakPtr m_stageSystem;
+	CameraObjectSystemWeakPtr m_cameraSystem;
+	CompositorObjectSystemWeakPtr m_compositorSystem;
+
+	RmlDataBinding_ComponentListPtr m_stageIdList;
+	RmlDataBinding_ComponentListPtr m_cameraIdList;
+	RmlDataBinding_ComponentListPtr m_compositorIdList;
+	RmlModel_PropertyInterfacePtr m_selectedStageModel;
+	RmlModel_PropertyInterfacePtr m_selectedCameraModel;
+	RmlModel_PropertyInterfacePtr m_selectedCompositorModel;
+
+	int m_selectedStageId = -1; // MikanStageID
+	int m_selectedCameraId = -1; // MikanCameraID
+	int m_selectedCompositorId = -1; // MikanCompositorID
 };

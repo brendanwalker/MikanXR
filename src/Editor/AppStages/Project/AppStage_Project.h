@@ -50,8 +50,8 @@ protected:
 	void onToggleScenesWindowEvent();
 	void onToggleStagesWindowEvent();
 	void onToggleSourcesEvent();
-	// TODO: Tracking
-	// TODO: Markers
+	void onToggleTrackingEvent();
+	void onToggleMarkersEvent();
 	void onToggleSettingsWindowEvent();
 	void hideAllSubWindows();
 
@@ -63,30 +63,38 @@ protected:
 
 	ProjectConfigPtr m_project;
 
-	AnchorObjectSystemPtr m_anchorObjectSystem;
-	StencilObjectSystemPtr m_stencilObjectSystem;
-	EditorObjectSystemPtr m_editorSystem;
-	SceneObjectSystemPtr m_sceneObjectSystem;
-	CompositorObjectSystemPtr m_compositorSystem; 
+	AnchorObjectSystemWeakPtr m_anchorObjectSystem;
+	CameraObjectSystemWeakPtr m_cameraSystem;
+	CompositorObjectSystemWeakPtr m_compositorSystem;
+	EditorObjectSystemWeakPtr m_editorSystem;
+	MarkerObjectSystemWeakPtr m_markerObjectSystem;
+	StencilObjectSystemWeakPtr m_stencilObjectSystem;
+	SceneObjectSystemWeakPtr m_sceneObjectSystem;
+	StageObjectSystemWeakPtr m_stageSystem;
+	TrackingVolumeObjectSystemWeakPtr m_trackingVolumeSystem;
+	TrackingMountObjectSystemWeakPtr m_trackingMountSystem;
+	VideoSourceSystemWeakPtr m_videoObjectSystem;
 
-	class RmlModel_Compositor* m_compositorModel = nullptr;
-	Rml::ElementDocument* m_compositiorView = nullptr;
+	class RmlModel_Project* m_projectModel = nullptr;
+	Rml::ElementDocument* m_projectView = nullptr;
 
-	class RmlModel_ProjectScenes* m_compositorScenesModel = nullptr;
-	class RmlModel_SceneSelection* m_compositorSelectionModel = nullptr;
-	Rml::ElementDocument* m_compositiorScenesView = nullptr;
+	class RmlModel_ProjectScenes* m_projectScenesModel = nullptr;
+	Rml::ElementDocument* m_projectScenesView = nullptr;
 
-	class RmlModel_ProjectStages* m_compositorStagesModel = nullptr;
-	Rml::ElementDocument* m_compositiorStagesView = nullptr;
+	class RmlModel_ProjectStages* m_projectStagesModel = nullptr;
+	Rml::ElementDocument* m_projectStagesView = nullptr;
 
-	class RmlModel_ProjectSources* m_compositorSourcesModel = nullptr;
-	Rml::ElementDocument* m_compositiorSourcesView = nullptr;
+	class RmlModel_ProjectSources* m_projectSourcesModel = nullptr;
+	Rml::ElementDocument* m_projectSourcesView = nullptr;
 
-	// TODO: Tracking
-	// TODO: Markers
+	class RmlModel_ProjectTracking* m_projectTrackingModel = nullptr;
+	Rml::ElementDocument* m_projectTrackingView = nullptr;
 
-	class RmlModel_ProjectSettings* m_compositorSettingsModel = nullptr;
-	Rml::ElementDocument* m_compositiorSettingsView = nullptr;
+	class RmlModel_ProjectMarkers* m_projectMarkersModel = nullptr;
+	Rml::ElementDocument* m_projectMarkersView = nullptr;
+
+	class RmlModel_ProjectSettings* m_projectSettingsModel = nullptr;
+	Rml::ElementDocument* m_projectSettingsView = nullptr;
 
 	CompositorScriptContextPtr m_scriptContext;
 

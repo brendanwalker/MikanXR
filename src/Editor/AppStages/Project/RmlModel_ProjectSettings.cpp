@@ -1,8 +1,6 @@
 #include "RmlModel_ProjectSettings.h"
 #include "AnchorObjectSystem.h"
 #include "StencilObjectSystem.h"
-#include "CompositorScriptContext.h"
-#include "CompositorComponent.h"
 #include "ProjectConfig.h"
 #include "RmlUtility.h"
 
@@ -13,12 +11,10 @@
 bool RmlModel_ProjectSettings::init(
 	Rml::Context* rmlContext,
 	ProjectConfigPtr project,
-	StencilObjectSystemPtr stencilSystem,
-	CompositorDefinitionPtr compositorDefinition)
+	StencilObjectSystemPtr stencilSystem)
 {
 	m_project = project;
 	m_stencilSystem = stencilSystem;
-	m_compositorDefinition = compositorDefinition;
 
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "compositor_settings");
@@ -26,39 +22,22 @@ bool RmlModel_ProjectSettings::init(
 		return false;
 
 	// Register Data Model Fields
-	constructor.Bind("is_streaming", &m_bIsStreaming);
-	constructor.Bind("spout_output_name", &m_spoutOutputName);
 	constructor.Bind("render_origin", &m_bRenderOrigin);
 	constructor.Bind("render_anchors", &m_bRenderAnchors);
 	constructor.Bind("render_stencils", &m_bRenderStencils);
 
 	// Bind data model callbacks
 	constructor.BindEventCallback(
-		"update_streaming_flag",
-		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			m_bIsStreaming= Rml::Utilities::GetBoolValueFromEvent(ev);
-			m_compositorDefinition->setIsSpoutOutputStreaming(m_bIsStreaming);
-		});
-	constructor.BindEventCallback(
-		"update_spout_output_name",
-		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			if (Rml::String spoutOutputName;
-				Rml::Utilities::TryGetStringValueFromEvent(ev, spoutOutputName))
-			{
-				m_compositorDefinition->setSpoutOutputName(spoutOutputName);
-			}
-		});
-	constructor.BindEventCallback(
 		"update_render_origin_flag",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
 			m_bRenderOrigin= Rml::Utilities::GetBoolValueFromEvent(ev);
-			m_project->setRenderOriginFlag(m_bRenderOrigin);
+			m_project.lock()->setRenderOriginFlag(m_bRenderOrigin);
 		});
 	constructor.BindEventCallback(
 		"update_render_anchors_flag",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
 			m_bRenderAnchors = Rml::Utilities::GetBoolValueFromEvent(ev);
-			m_project->anchorConfig->setRenderAnchorsFlag(m_bRenderAnchors);
+			m_project.lock()->anchorConfig->setRenderAnchorsFlag(m_bRenderAnchors);
 		});
 	constructor.BindEventCallback(
 		"update_render_stencils_flag",
@@ -67,11 +46,9 @@ bool RmlModel_ProjectSettings::init(
 			m_stencilSystem.lock()->setRenderStencilsFlag(m_bRenderStencils);
 		});
 
-	m_bIsStreaming = m_compositorDefinition->getIsSpoutOutputStreaming();
-	m_spoutOutputName= m_compositorDefinition->getSpoutOutputName();
-	m_bRenderOrigin= m_project->getRenderOriginFlag();
-	m_bRenderAnchors= m_project->anchorConfig->getRenderAnchorsFlag();
-	m_bRenderStencils= m_project->stencilConfig->getRenderStencilsFlag();
+	m_bRenderOrigin= project->getRenderOriginFlag();
+	m_bRenderAnchors= project->anchorConfig->getRenderAnchorsFlag();
+	m_bRenderStencils= project->stencilConfig->getRenderStencilsFlag();
 	m_modelHandle.DirtyAllVariables();
 
 	return true;
@@ -80,7 +57,6 @@ bool RmlModel_ProjectSettings::init(
 void RmlModel_ProjectSettings::dispose()
 {
 	m_project.reset();
-	m_compositorDefinition.reset();
 
 	RmlModel::dispose();
 }
