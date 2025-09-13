@@ -1,5 +1,4 @@
 //-- includes -----
-#include "CameraSettings/AppStage_CameraSettings.h"
 #include "StencilAlignment/AppStage_StencilAlignment.h"
 #include "StencilAlignment/RmlModel_StencilAlignment.h"
 #include "App.h"

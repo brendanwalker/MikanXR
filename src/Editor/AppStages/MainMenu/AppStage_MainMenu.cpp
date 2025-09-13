@@ -1,7 +1,6 @@
 //-- inludes -----
 #include "Project/AppStage_Project.h"
 #include "MainMenu/AppStage_MainMenu.h"
-#include "CameraSettings/AppStage_CameraSettings.h"
 #include "App.h"
 #include "MainWindow.h"
 #include "PathUtils.h"
@@ -33,10 +32,6 @@ void AppStage_MainMenu::onRmlClickEvent(const std::string& value)
 	if (value == "goto_compositor")
 	{
 		m_ownerWindow->pushAppStageOfType<AppStage_Project>();
-	}
-	else if (value == "goto_camera_settings")
-	{
-		m_ownerWindow->pushAppStageOfType<AppStage_CameraSettings>();
 	}
 	else if (value == "exit_mikan")
 	{
