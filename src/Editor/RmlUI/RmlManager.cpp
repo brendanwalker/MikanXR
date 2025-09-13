@@ -230,20 +230,21 @@ Rml::Mikan::EnumDefinitionConstPtr RmlManager::getEnumDefinition(const std::stri
 }
 
 template <typename t_enum_class>
-static void registerEnumDefinition(const std::string& enumName, const std::string* enumStrings)
+static void registerEnumDefinition(
+	Rml::DataModelConstructor& constructor,
+	const std::string& enumName, 
+	const std::string* enumStrings)
 {
 	Rml::Mikan::EnumDefinitionPtr enumDefinition = std::make_shared<Rml::Mikan::EnumDefinition>();
 	enumDefinition->enum_name = enumName;
 
 	for (int enumIntValue = 0; enumIntValue < (int)t_enum_class::COUNT; ++enumIntValue)
 	{
-		Rml::Mikan::EnumValuePtr enumValue = std::make_shared<Rml::Mikan::EnumValue>();
-		enumValue->enum_string_value = enumStrings[enumIntValue];
-		enumValue->enum_int_value = enumIntValue;
-
-		enumDefinition->enum_values.push_back(enumValue);
+		enumDefinition->enum_string_values.push_back(enumStrings[enumIntValue]);
+		enumDefinition->enum_int_values.push_back(enumIntValue);
 	}
 
+	constructor.Bind(enumName, &enumDefinition->enum_int_values);
 	RmlManager::getInstance()->addEnumDefinition(enumDefinition);
 }
 
@@ -252,7 +253,7 @@ void RmlManager::registerCommonDataModelTypes()
 	Rml::DataModelConstructor constructor = m_rmlUIContext->CreateDataModel("data_model_globals");
 
 	// Enums
-	registerEnumDefinition<eStencilCullMode>("stencil_cull_mode", k_stencilCullModeStrings);
+	registerEnumDefinition<eStencilCullMode>(constructor, "stencil_cull_mode", k_stencilCullModeStrings);
 
 	// String arrays
 	constructor.RegisterArray<Rml::Vector<Rml::String>>();
@@ -388,9 +389,9 @@ void RmlManager::registerCommonDataModelTypes()
 				const std::string enumName = arguments[0].Get<Rml::String>();
 				Rml::Mikan::EnumDefinitionConstPtr enumDefinition= getEnumDefinition(enumName);
 
-				if (enumDefinition && enumIntValue >= 0 && enumIntValue < enumDefinition->enum_values.size())
+				if (enumDefinition && enumIntValue >= 0 && enumIntValue < enumDefinition->enum_string_values.size())
 				{
-					Rml::String enumStringValue= enumDefinition->enum_values[enumIntValue]->enum_string_value;
+					Rml::String enumStringValue= enumDefinition->enum_string_values[enumIntValue];
 					variant = enumStringValue;
 					return true;
 				}

@@ -14,18 +14,11 @@ namespace Rml
 
 	namespace Mikan
 	{
-		struct EnumValue
-		{
-			std::string enum_string_value;
-			int enum_int_value;
-		};
-		using EnumValuePtr= std::shared_ptr<EnumValue>;
-		using EnumValueConstPtr= std::shared_ptr<const EnumValue>;
-
 		struct EnumDefinition
 		{
 			std::string enum_name;
-			std::vector<EnumValueConstPtr> enum_values;
+			std::vector<std::string> enum_string_values;
+			std::vector<int> enum_int_values;
 		};
 		using EnumDefinitionPtr= std::shared_ptr<EnumDefinition>;
 		using EnumDefinitionConstPtr= std::shared_ptr<const EnumDefinition>;
