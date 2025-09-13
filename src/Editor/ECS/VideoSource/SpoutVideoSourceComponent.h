@@ -47,4 +47,12 @@ public:
 	virtual bool getPixelDimensions(int& outPixelWidth, int& outPixelHeight) const override;
 	virtual bool getCameraIntrinsics(MikanVideoSourceIntrinsics& out_camera_intrinsics) const override;
 	virtual bool setCameraIntrinsics(const MikanVideoSourceIntrinsics& camera_intrinsics) override;
+
+	// -- IPropertyInterface ----
+	static void getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
+	{ VideoSourceComponent::getPropertyNamesStatic(outPropertyNames); }
+
+	// -- IFunctionInterface ----
+	static void getFunctionNamesStatic(std::vector<std::string>& outPropertyNames)
+	{ VideoSourceComponent::getFunctionNamesStatic(outPropertyNames); }
 };

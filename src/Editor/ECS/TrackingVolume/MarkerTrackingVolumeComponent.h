@@ -26,4 +26,8 @@ public:
 	// -- IPropertyInterface ----
 	static void getPropertyNamesStatic(std::vector<std::string>& outPropertyNames);
 	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
+
+	// -- IFunctionInterface ----
+	static void getFunctionNamesStatic(std::vector<std::string>& outPropertyNames)
+	{ TrackingVolumeComponent::getFunctionNamesStatic(outPropertyNames); }
 };

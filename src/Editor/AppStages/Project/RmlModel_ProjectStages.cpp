@@ -106,13 +106,13 @@ bool RmlModel_ProjectStages::init(
 	constructor.Bind("selected_compositor_id", &m_selectedCompositorId);
 
 	// Register Selected Object Models
-	m_selectedStageModel->init<StageComponentDefinition>(
+	m_selectedStageModel->init<StageComponent>(
 		rmlContext,
 		"stage_definition");
-	m_selectedCameraModel->init<CameraDefinition>(
+	m_selectedCameraModel->init<CameraComponent>(
 		rmlContext,
 		"camera_definition");
-	m_selectedCompositorModel->init<CompositorDefinition>(
+	m_selectedCompositorModel->init<CompositorComponent>(
 		rmlContext,
 		"compositor_definition");
 

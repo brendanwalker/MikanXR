@@ -130,6 +130,14 @@ bool RmlModel_ProjectScenes::init(
 		s_bHasRegisteredTypes = true;
 	}
 
+	// Register Selected Object Models
+	m_selectedAnchorModel->init<AnchorComponent>(rmlContext, "anchor_model");
+	m_selectedCompositorModel->init<CompositorComponent>(rmlContext, "compositor_model");
+	m_selectedBoxStencilModel->init<BoxStencilComponent>(rmlContext, "box_stencil_model");
+	m_selectedModelStencilModel->init<ModelStencilComponent>(rmlContext, "model_stencil_model");
+	m_selectedQuadStencilModel->init<ModelStencilComponent>(rmlContext, "quad_stencil_model");
+	m_selectedSceneModel->init<SceneComponent>(rmlContext, "scene_model");
+
 	// Register Data Model Fields
 	constructor.Bind("scene_objects", &m_sceneOutliner);
 	constructor.Bind("selected_scene_object_index", &m_selectedSceneObjectIndex);

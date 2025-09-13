@@ -83,13 +83,13 @@ bool RmlModel_ProjectTracking::init(
 	constructor.Bind("selected_tracking_mount_id", &m_selectedTrackingMountId);
 
 	// Register Selected Object Models
-	m_selectedVRTrackingVolumeModel->init<VRTrackingVolumeDefinition>(
+	m_selectedVRTrackingVolumeModel->init<VRTrackingVolumeComponent>(
 		rmlContext,
 		"vr_tracking_system_definition");
-	m_selectedMarkerTrackingVolumeModel->init<MarkerTrackingVolumeDefinition>(
+	m_selectedMarkerTrackingVolumeModel->init<MarkerTrackingVolumeComponent>(
 		rmlContext,
 		"marker_tracking_system_definition");
-	m_selectedTrackingMountModel->init<TrackingMountDefinition>(
+	m_selectedTrackingMountModel->init<TrackingMountComponent>(
 		rmlContext,
 		"tracking_mount_definition");
 

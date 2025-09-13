@@ -52,7 +52,7 @@ bool RmlModel_ProjectMarkers::init(
 	constructor.Bind("selected_marker_id", &m_selectedMarkerId);
 
 	// Register Selected Object Models
-	m_selectedMarkerModel->init<MarkerDefinition>(
+	m_selectedMarkerModel->init<MarkerComponent>(
 		rmlContext,
 		"marker_definition");
 

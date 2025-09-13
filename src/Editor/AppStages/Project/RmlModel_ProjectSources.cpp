@@ -85,16 +85,16 @@ bool RmlModel_ProjectSources::init(
 	constructor.Bind("selected_video_source_id", &m_selectedVideoSourceId);
 
 	// Register Selected Object Models
-	m_selectedClientVideoSourceModel->init<ClientVideoSourceDefinition>(
+	m_selectedClientVideoSourceModel->init<ClientVideoSourceComponent>(
 		rmlContext,
 		"client_video_source_definition");
-	m_selectedUSBVideoSourceModel->init<USBVideoSourceDefinition>(
+	m_selectedUSBVideoSourceModel->init<USBVideoSourceComponent>(
 		rmlContext,
 		"usb_video_source_definition");
-	m_selectedNetworkVideoSourceModel->init<NetworkVideoSourceDefinition>(
+	m_selectedNetworkVideoSourceModel->init<NetworkVideoSourceComponent>(
 		rmlContext,
 		"network_video_source_definition");
-	m_selectedSpoutVideoSourceModel->init<SpoutVideoSourceDefinition>(
+	m_selectedSpoutVideoSourceModel->init<SpoutVideoSourceComponent>(
 		rmlContext,
 		"spout_video_source_definition");
 

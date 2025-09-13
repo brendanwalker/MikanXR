@@ -2,21 +2,10 @@
 
 #include "Shared/RmlModel.h"
 
-#include <concepts>
 #include <filesystem>
 #include <memory>
 #include <string>
 #include <set>
-
-template<typename T>
-concept HasGetPropertyNamesStatic = requires {
-	T::getPropertyNamesStatic(std::declval<std::vector<std::string>&>());
-};
-
-template<typename T>
-concept HasGetFunctionNamesStatic = requires {
-	T::getFunctionNamesStatic(std::declval<std::vector<std::string>&>());
-};
 
 class RmlModel_PropertyInterface : public RmlModel
 {
@@ -27,14 +16,10 @@ public:
 		const std::string& modelName)
 	{
 		std::vector<std::string> propertyNames;
-		if constexpr (HasGetPropertyNamesStatic<t_property_interface>) {
-			t_property_interface::getPropertyNamesStatic(propertyNames);
-		}
+		t_property_interface::getPropertyNamesStatic(propertyNames);
 
 		std::vector<std::string> functionNames;
-		if constexpr (HasGetFunctionNamesStatic<t_property_interface>) {
-			t_property_interface::getFunctionNamesStatic(propertyNames);
-		}
+		t_property_interface::getFunctionNamesStatic(propertyNames);
 
 		return init(
 			rmlContext,
