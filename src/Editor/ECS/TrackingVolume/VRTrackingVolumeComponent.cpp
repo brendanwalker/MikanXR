@@ -129,25 +129,28 @@ VRTrackingVolumeComponent::VRTrackingVolumeComponent(MikanObjectWeakPtr owner)
 {
 }
 
-// -- IPropertyInterface ----
-void VRTrackingVolumeComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
+// -- IRmlPropertyInterface ----
+void VRTrackingVolumeComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
 {
-	TrackingVolumeComponent::getPropertyNamesStatic(outPropertyNames);
+	TrackingVolumeComponent::getRmlPropertyDescriptors(outDescriptors);
 
-	outPropertyNames.push_back(VRTrackingVolumeDefinition::k_charucoMountIdPropertyId);
-	outPropertyNames.push_back(VRTrackingVolumeDefinition::k_charucoMountOffsetPropertyId);
-	outPropertyNames.push_back(VRTrackingVolumeDefinition::k_utilityMarkerIdPropertyId);
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			VRTrackingVolumeDefinition::k_charucoMountIdPropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			VRTrackingVolumeDefinition::k_charucoMountOffsetPropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			VRTrackingVolumeDefinition::k_utilityMarkerIdPropertyId));
 }
 
-void VRTrackingVolumeComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
-{
-	getPropertyNamesStatic(outPropertyNames);
-}
-
-bool VRTrackingVolumeComponent::getPropertyValue(
-	const std::string& propertyName,
+bool VRTrackingVolumeComponent::getPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc, 
 	Rml::Variant& outValue) const
 {
+	const std::string& propertyName = propertyDesc->getName();
+
 	if (propertyName == VRTrackingVolumeDefinition::k_charucoMountIdPropertyId)
 	{
 		outValue = getVRTrackingVolumeDefinition()->getCharucoTrackingMountId();
@@ -165,13 +168,15 @@ bool VRTrackingVolumeComponent::getPropertyValue(
 		return true;
 	}
 
-	return TrackingVolumeComponent::getPropertyValue(propertyName, outValue);
+	return TrackingVolumeComponent::getPropertyValueFromRml(propertyDesc, outValue);
 }
 
-bool VRTrackingVolumeComponent::setPropertyValue(
-	const std::string& propertyName,
+bool VRTrackingVolumeComponent::setPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc,
 	const Rml::Variant& inValue)
 {
+	const std::string& propertyName = propertyDesc->getName();
+
 	if (propertyName == VRTrackingVolumeDefinition::k_charucoMountIdPropertyId)
 	{
 		getVRTrackingVolumeDefinition()->setCharucoTrackingMountId(inValue.Get<int>());
@@ -190,5 +195,5 @@ bool VRTrackingVolumeComponent::setPropertyValue(
 		return true;
 	}
 
-	return TrackingVolumeComponent::setPropertyValue(propertyName, inValue);
+	return TrackingVolumeComponent::setPropertyValueFromRml(propertyDesc, inValue);
 }

@@ -64,6 +64,7 @@ GlmTransform MikanTransform_to_glm_transform(const MikanTransform& in);
 glm::mat4 MikanMatrix4f_to_glm_mat4(const MikanMatrix4f& in);
 glm::quat MikanRotator3f_to_glm_quat(const MikanRotator3f& in);
 glm::quat MikanQuatf_to_glm_quat(const MikanQuatf& in);
+glm::quat MikanQuatd_to_glm_quat(const MikanQuatd& in);
 MikanTransform glm_transform_to_MikanTransform(const GlmTransform& in);
 MikanRotator3f glm_quat_to_MikanRotator3f(const glm::quat& in);
 MikanQuatf glm_quat_to_MikanQuatf(const glm::quat& in);

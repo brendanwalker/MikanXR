@@ -415,6 +415,11 @@ glm::quat MikanQuatf_to_glm_quat(const MikanQuatf& in)
 	return glm::quat(in.w, in.x, in.y, in.z);
 }
 
+glm::quat MikanQuatd_to_glm_quat(const MikanQuatd& in)
+{
+	return glm::quat(in.w, in.x, in.y, in.z);
+}
+
 MikanTransform glm_transform_to_MikanTransform(const GlmTransform& in)
 {
 	MikanTransform xform;

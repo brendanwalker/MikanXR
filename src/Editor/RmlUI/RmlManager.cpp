@@ -13,7 +13,6 @@
 #include "MikanSpatialAnchorTypes.h"
 #include "MikanStencilTypes.h"
 #include "ProjectConfig.h"
-#include "PropertyInterface.h"
 #include "PathUtils.h"
 #include "SdlManager.h"
 #include "StencilComponent.h"
@@ -254,6 +253,7 @@ void RmlManager::registerCommonDataModelTypes()
 
 	// Enums
 	registerEnumDefinition<eStencilCullMode>(constructor, "stencil_cull_mode", k_stencilCullModeStrings);
+	registerEnumDefinition<eCompositorSourceType>(constructor, "compositor_source_type", k_compositorSourceTypeStrings);
 
 	// String arrays
 	constructor.RegisterArray<Rml::Vector<Rml::String>>();

@@ -101,13 +101,16 @@ public:
 	bool getApertureViewMatrix(glm::mat4& outViewMatrix) const;
 	bool getApertureViewProjectionMatrix(glm::mat4& outVPMatrix, bool bVerticalFlip =false) const;
 
-	// -- IFunctionInterface ----
+	// -- IRmlPropertyInterface ----
+	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors);
+	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, Rml::Variant& outValue) const override;
+	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const Rml::Variant& inValue) override;
+	
+	// -- IRmlFunctionInterface ----
 	static const std::string k_alignCameraFunctionId;
 	static const std::string k_deleteCameraFunctionId;
-	static void getFunctionNamesStatic(std::vector<std::string>& outPropertyNames);
-	virtual void getFunctionNames(std::vector<std::string>& outPropertyNames) const override;
-	virtual bool getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const override;
-	virtual bool invokeFunction(const std::string& functionName) override;
+	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outPropertyNames);
+	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
 
 	void alignCamera();
 	void deleteCamera();

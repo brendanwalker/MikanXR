@@ -55,21 +55,17 @@ public:
 	//TODO
 	//void extractMarkerInfoForClientAPI(struct MikanMarkerInfo& outMarkerInfo) const;
 
-	// -- IFunctionInterface ----
+	// -- IRmlPropertyInterface ----
+	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors);
+	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, Rml::Variant& outValue) const override;
+	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const Rml::Variant& inValue) override;
+
+	// -- IRmlFunctionInterface ----
 	static const std::string k_deleteMarkerFunctionId;
-	static void getFunctionNamesStatic(std::vector<std::string>& outPropertyNames);
-	virtual void getFunctionNames(std::vector<std::string>& outPropertyNames) const override;
-	virtual bool getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const override;
-	virtual bool invokeFunction(const std::string& functionName) override;
+	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors);
+	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
 
 	void deleteMarker();
-
-	// -- IPropertyInterface ----
-	static void getPropertyNamesStatic(std::vector<std::string>& outPropertyNames);
-	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
-	virtual bool getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const override;
-	virtual bool getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const override;
-	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
 
 protected:
 	SelectionComponentWeakPtr m_selectionComponent;

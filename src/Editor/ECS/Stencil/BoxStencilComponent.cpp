@@ -169,76 +169,52 @@ void BoxStencilComponent::updateBoxColliderExtents()
 	}
 }
 
-// -- IPropertyInterface ----
-void BoxStencilComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
+// -- IRmlPropertyInterface ----
+void BoxStencilComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
 {
-	StencilComponent::getPropertyNamesStatic(outPropertyNames);
+	StencilComponent::getRmlPropertyDescriptors(outDescriptors);
 
-	outPropertyNames.push_back(BoxStencilDefinition::k_boxStencilXSizePropertyId);
-	outPropertyNames.push_back(BoxStencilDefinition::k_boxStencilYSizePropertyId);
-	outPropertyNames.push_back(BoxStencilDefinition::k_boxStencilZSizePropertyId);
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			BoxStencilDefinition::k_boxStencilXSizePropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			BoxStencilDefinition::k_boxStencilYSizePropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			BoxStencilDefinition::k_boxStencilZSizePropertyId));
 }
 
-void BoxStencilComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+bool BoxStencilComponent::getPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc,
+	Rml::Variant& outValue) const
 {
-	getPropertyNamesStatic(outPropertyNames);
-}
-
-bool BoxStencilComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
-{
-	if (StencilComponent::getPropertyDescriptor(propertyName, outDescriptor))
-		return true;
+	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == BoxStencilDefinition::k_boxStencilXSizePropertyId)
 	{
-		outDescriptor = {BoxStencilDefinition::k_boxStencilXSizePropertyId, ePropertyDataType::datatype_float, ePropertySemantic::size1d};
+		outValue = getBoxStencilDefinition()->getBoxXSize();
 		return true;
 	}
 	else if (propertyName == BoxStencilDefinition::k_boxStencilYSizePropertyId)
 	{
-		outDescriptor = {BoxStencilDefinition::k_boxStencilYSizePropertyId, ePropertyDataType::datatype_float, ePropertySemantic::size1d};
+		outValue = getBoxStencilDefinition()->getBoxYSize();
 		return true;
 	}
 	else if (propertyName == BoxStencilDefinition::k_boxStencilZSizePropertyId)
 	{
-		outDescriptor = {BoxStencilDefinition::k_boxStencilZSizePropertyId, ePropertyDataType::datatype_float, ePropertySemantic::size1d};
+		outValue = getBoxStencilDefinition()->getBoxZSize();
 		return true;
 	}
 
-	return false;
+	return StencilComponent::getPropertyValueFromRml(propertyDesc, outValue);
 }
 
-bool BoxStencilComponent::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
+bool BoxStencilComponent::setPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc,
+	const Rml::Variant& inValue)
 {
-	if (StencilComponent::getPropertyValue(propertyName, outValue))
-		return true;
-
-	if (propertyName == BoxStencilDefinition::k_boxStencilXSizePropertyId)
-	{
-		float xSize = getBoxStencilDefinition()->getBoxXSize();
-		outValue = xSize;
-		return true;
-	}
-	else if (propertyName == BoxStencilDefinition::k_boxStencilYSizePropertyId)
-	{
-		float ySize = getBoxStencilDefinition()->getBoxYSize();
-		outValue = ySize;
-		return true;
-	}
-	else if (propertyName == BoxStencilDefinition::k_boxStencilZSizePropertyId)
-	{
-		float zSize = getBoxStencilDefinition()->getBoxZSize();
-		outValue = zSize;
-		return true;
-	}
-
-	return false;
-}
-
-bool BoxStencilComponent::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
-{
-	if (StencilComponent::setPropertyValue(propertyName, inValue))
-		return true;
+	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == BoxStencilDefinition::k_boxStencilXSizePropertyId)
 	{
@@ -262,5 +238,5 @@ bool BoxStencilComponent::setPropertyValue(const std::string& propertyName, cons
 		return true;
 	}
 
-	return false;
+	return StencilComponent::setPropertyValueFromRml(propertyDesc, inValue);
 }

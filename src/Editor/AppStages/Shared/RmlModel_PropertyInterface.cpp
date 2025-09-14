@@ -1,6 +1,4 @@
 #include "RmlModel_PropertyInterface.h"
-#include "PropertyInterface.h"
-#include "FunctionInterface.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
@@ -10,11 +8,12 @@
 bool RmlModel_PropertyInterface::init(
 	Rml::Context* rmlContext,
 	const std::string& modelName,
-	const std::vector<std::string>& propertyNames,
-	const std::vector<std::string>& functionNames)
+	const std::vector<RmlPropertyDescriptorConstPtr>& propertyDescriptors,
+	const std::vector<RmlFunctionDescriptorConstPtr>& functionDescriptors)
 {
-	m_propertyInterface = nullptr;
-	m_functionInterface = nullptr;
+	m_propertyChangeEventSource.reset();
+	m_propertyInterface.reset();
+	m_functionInterface.reset();
 
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, modelName);
@@ -22,35 +21,57 @@ bool RmlModel_PropertyInterface::init(
 		return false;
 
 	// Bind Properties from Property Interface
-	for (const std::string& propertyName : propertyNames)
+	for (const RmlPropertyDescriptorConstPtr& propertyDescriptor : propertyDescriptors)
 	{
-		constructor.BindFunc(
-			propertyName,
-			[this, propertyName](Rml::Variant& variant) {
-				if (m_propertyInterface)
-				{
-					m_propertyInterface->getPropertyValue(propertyName, variant);
-				}
-			},
-			[this, propertyName](const Rml::Variant& variant) {
-				if (m_propertyInterface)
-				{
-					m_propertyInterface->setPropertyValue(propertyName, variant);
-				}
-			});
+		const std::string& propertyName = propertyDescriptor->getName();
 
-		m_propertyNames.insert(propertyName);
+		if (propertyDescriptor->isReadOnly())
+		{
+			constructor.BindFunc(
+				propertyName,
+				[this, propertyDescriptor](Rml::Variant& variant) {
+					IRmlPropertyInterfacePtr propertyInterface = m_propertyInterface.lock();
+					if (propertyInterface)
+					{
+						propertyInterface->getPropertyValueFromRml(propertyDescriptor, variant);
+					}
+				});
+		}
+		else
+		{
+			constructor.BindFunc(
+				propertyName,
+				[this, propertyDescriptor](Rml::Variant& variant) {
+					IRmlPropertyInterfacePtr propertyInterface = m_propertyInterface.lock();
+					if (propertyInterface)
+					{
+						propertyInterface->getPropertyValueFromRml(propertyDescriptor, variant);
+					}
+				},
+				[this, propertyDescriptor](const Rml::Variant& variant) {
+					IRmlPropertyInterfacePtr propertyInterface = m_propertyInterface.lock();
+					if (propertyInterface)
+					{
+						propertyInterface->setPropertyValueFromRml(propertyDescriptor, variant);
+					}
+				});
+		}
+
+		m_propertyDescriptors.insert({ propertyName, propertyDescriptor });
 	}
 
 	// Binding Functions from Function Interface
-	for (const std::string& functionName : functionNames)
+	for (const RmlFunctionDescriptorConstPtr& functionDescriptor : functionDescriptors)
 	{
+		const std::string& functionName = functionDescriptor->getFunctionName();
+
 		constructor.BindEventCallback(
 			functionName,
-			[this, functionName](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-				if (m_functionInterface)
+			[this, functionDescriptor](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+				IRmlFunctionInterfacePtr functionInterface = m_functionInterface.lock();
+				if (functionInterface)
 				{
-					m_functionInterface->invokeFunction(functionName);
+					functionInterface->invokeFunctionFromRml(functionDescriptor);
 				}
 			});
 	}
@@ -58,36 +79,46 @@ bool RmlModel_PropertyInterface::init(
 	return true;
 }
 
-void RmlModel_PropertyInterface::setPropertyInterface(IPropertyInterface* propertyInterface)
+void RmlModel_PropertyInterface::setPropertyInterface(
+	IRmlPropertyInterfacePtr newPropertyInterface,
+	CommonConfigPtr newPropertyChangeEventSource)
 {
-	if (propertyInterface != m_propertyInterface)
+	IRmlPropertyInterfacePtr oldPropertyInterface = m_propertyInterface.lock();
+	CommonConfigPtr oldPropertyChangeEventSource = m_propertyChangeEventSource.lock();
+
+	if (newPropertyInterface != oldPropertyInterface)
 	{
-		if (m_propertyInterface)
+		if (oldPropertyChangeEventSource)
 		{
-			m_propertyInterface->OnPropertyChanged -= 
-				MakeDelegate(this, &RmlModel_PropertyInterface::onPropertyChanged);
+			oldPropertyChangeEventSource->OnMarkedDirty -=
+				MakeDelegate(this, &RmlModel_PropertyInterface::onPropertiesChanged);
 		}
 
-		if (propertyInterface)
+		if (newPropertyChangeEventSource)
 		{
-			propertyInterface->OnPropertyChanged += 
-				MakeDelegate(this, &RmlModel_PropertyInterface::onPropertyChanged);
+			newPropertyChangeEventSource->OnMarkedDirty +=
+				MakeDelegate(this, &RmlModel_PropertyInterface::onPropertiesChanged);
 		}
 
-		m_propertyInterface = propertyInterface;
+		m_propertyInterface = newPropertyInterface;
 		m_modelHandle.DirtyAllVariables();
 	}
 }
 
-void RmlModel_PropertyInterface::setFunctionInterface(IFunctionInterface* functionInterface)
+void RmlModel_PropertyInterface::setFunctionInterface(IRmlFunctionInterfacePtr functionInterface)
 {
 	m_functionInterface = functionInterface;
 }
 
-void RmlModel_PropertyInterface::onPropertyChanged(const std::string& propertyName)
+void RmlModel_PropertyInterface::onPropertiesChanged(
+	CommonConfigPtr configPtr, 
+	const ConfigPropertyChangeSet& changedPropertySet)
 {
-	if (m_propertyNames.find(propertyName) != m_propertyNames.end())
+	for (const std::string& propertyName : changedPropertySet.getSet())
 	{
-		m_modelHandle.DirtyVariable(propertyName);
+		if (m_propertyDescriptors.find(propertyName) != m_propertyDescriptors.end())
+		{
+			m_modelHandle.DirtyVariable(propertyName);
+		}
 	}
 }

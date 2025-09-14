@@ -25,6 +25,9 @@
 #include "VRDeviceComponent.h"
 #include "VRObjectSystem.h"
 
+#include <RmlUi/Core/Types.h>
+#include <RmlUi/Core/Variant.h>
+
 // -- CameraConfig -----
 const std::string CameraDefinition::k_ownerStageIdPropertyId = "stage_id";
 const std::string CameraDefinition::k_trackingMountIdPropertyId = "tracking_mount_id";
@@ -465,42 +468,92 @@ void CameraComponent::refreshTrackingMount()
 	}
 }
 
-void CameraComponent::getFunctionNamesStatic(std::vector<std::string>& outPropertyNames)
+// -- IRmlPropertyInterface ----
+void CameraComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
 {
-	MikanComponent::getFunctionNamesStatic(outPropertyNames);
+	TransformComponent::getRmlPropertyDescriptors(outDescriptors);
 
-	outPropertyNames.push_back(k_alignCameraFunctionId);
-	outPropertyNames.push_back(k_deleteCameraFunctionId);
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_trackingMountIdPropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_videoSourceIdPropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_trackingFrameDelayPropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_apertureOrientationOffsetPropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_aperturePositionOffsetPropertyId));
 }
 
-void CameraComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+bool CameraComponent::getPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc, 
+	Rml::Variant& outValue) const
 {
-	getFunctionNamesStatic(outPropertyNames);
-}
+	std::string propertyName = propertyDesc->getName();
 
-bool CameraComponent::getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const
-{
-	if (TransformComponent::getFunctionDescriptor(functionName, outDescriptor))
-		return true;
-
-	if (functionName == CameraComponent::k_alignCameraFunctionId)
+	if (propertyName == CameraDefinition::k_trackingMountIdPropertyId)
 	{
-		outDescriptor = {CameraComponent::k_alignCameraFunctionId, "Align Camera"};
+		outValue = getCameraDefinition()->getTrackingMountId();
 		return true;
 	}
-	else if (functionName == CameraComponent::k_deleteCameraFunctionId)
+	else if (propertyName == CameraDefinition::k_videoSourceIdPropertyId)
 	{
-		outDescriptor = {CameraComponent::k_deleteCameraFunctionId, "Delete Camera"};
+		outValue = getCameraDefinition()->getVideoSourceId();
+		return true;
+	}
+	else if (propertyName == CameraDefinition::k_trackingFrameDelayPropertyId)
+	{
+		outValue = getCameraDefinition()->getTrackingFrameDelay();
 		return true;
 	}
 
-	return false;
+	return TransformComponent::getPropertyValueFromRml(propertyDesc, outValue);
 }
 
-bool CameraComponent::invokeFunction(const std::string& functionName)
+bool CameraComponent::setPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc, 
+	const Rml::Variant& inValue)
 {
-	if (TransformComponent::invokeFunction(functionName))
+	const std::string& propertyName = propertyDesc->getName();
+
+	if (propertyName == CameraDefinition::k_trackingMountIdPropertyId)
+	{
+		MikanTrackingMountID trackingMountId = static_cast<MikanTrackingMountID>(inValue.Get<int>());
+		getCameraDefinition()->setTrackingMountId(trackingMountId);
 		return true;
+	}
+	else if (propertyName == CameraDefinition::k_videoSourceIdPropertyId)
+	{
+		MikanVideoSourceID videoSourceId = static_cast<MikanVideoSourceID>(inValue.Get<int>());
+		getCameraDefinition()->setVideoSourceId(videoSourceId);
+		return true;
+	}
+	else if (propertyName == CameraDefinition::k_trackingFrameDelayPropertyId)
+	{
+		int trackingFrameDelay = inValue.Get<int>();
+		getCameraDefinition()->setTrackingFrameDelay(trackingFrameDelay);
+		return true;
+	}
+
+	return TransformComponent::setPropertyValueFromRml(propertyDesc, inValue);
+}
+
+// -- IRmlFunctionInterface ----
+void CameraComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
+{
+	MikanComponent::getRmlFunctionDescriptors(outDescriptors);
+
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_alignCameraFunctionId, "Align Camera"));
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_deleteCameraFunctionId, "Delete Camera"));
+}
+
+bool CameraComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
+{
+	const std::string& functionName = functionDesc->getFunctionName();
 
 	if (functionName == CameraComponent::k_alignCameraFunctionId)
 	{
@@ -511,7 +564,7 @@ bool CameraComponent::invokeFunction(const std::string& functionName)
 		deleteCamera();
 	}
 
-	return false;
+	return TransformComponent::invokeFunctionFromRml(functionDesc);
 }
 
 void CameraComponent::alignCamera()

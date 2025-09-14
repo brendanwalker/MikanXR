@@ -323,7 +323,7 @@ void RmlModel_ProjectStages::setSelectedStageId(MikanStageID stageId)
 		{
 			StageComponentDefinitionPtr stageDefinition= stageComponent->getStageComponentDefinition();
 
-			m_selectedStageModel->setPropertyInterface(stageComponent.get());
+			m_selectedStageModel->setPropertyInterface(stageComponent, stageComponent->getDefinition());
 			
 			m_cameraIdList->setOwnerConfig(stageDefinition);
 			m_compositorIdList->setOwnerConfig(stageDefinition);
@@ -346,7 +346,7 @@ void RmlModel_ProjectStages::setSelectedCameraId(MikanCameraID cameraId)
 
 		if (CameraComponentPtr cameraComponent = getSelectedCamera())
 		{
-			m_selectedCameraModel->setPropertyInterface(cameraComponent.get());
+			m_selectedCameraModel->setPropertyInterface(cameraComponent, cameraComponent->getDefinition());
 		}
 		else
 		{
@@ -364,7 +364,7 @@ void RmlModel_ProjectStages::setSelectedCompositorId(MikanCompositorID composito
 
 		if (CompositorComponentPtr compositorComponent = getSelectedCompositor())
 		{
-			m_selectedCompositorModel->setPropertyInterface(compositorComponent.get());
+			m_selectedCompositorModel->setPropertyInterface(compositorComponent, compositorComponent->getDefinition());
 		}
 		else
 		{

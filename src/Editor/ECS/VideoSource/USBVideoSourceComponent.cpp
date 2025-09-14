@@ -758,49 +758,27 @@ void USBVideoSourceComponent::notifyVideoFrameReceived(const UsbVideoFrameBuffer
 	}
 }
 
-void USBVideoSourceComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
+// -- IRmlPropertyInterface ----
+void USBVideoSourceComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
 {
-	VideoSourceComponent::getPropertyNamesStatic(outPropertyNames);
+	VideoSourceComponent::getRmlPropertyDescriptors(outDescriptors);
 
-	outPropertyNames.push_back(USBVideoSourceDefinition::k_devicePathPropertyId);
-	outPropertyNames.push_back(USBVideoSourceDefinition::k_videoModePropertyId);
-	outPropertyNames.push_back(USBVideoSourceDefinition::k_cameraSettingsPropertyId);
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			USBVideoSourceDefinition::k_devicePathPropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			USBVideoSourceDefinition::k_videoModePropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			USBVideoSourceDefinition::k_cameraSettingsPropertyId));
 }
 
-void USBVideoSourceComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+bool USBVideoSourceComponent::getPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc,
+	Rml::Variant& outValue) const
 {
-	getPropertyNamesStatic(outPropertyNames);
-}
-
-bool USBVideoSourceComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
-{
-	if (MikanComponent::getPropertyDescriptor(propertyName, outDescriptor))
-		return true;
-
-	if (propertyName == USBVideoSourceDefinition::k_devicePathPropertyId)
-	{
-		outDescriptor = {USBVideoSourceDefinition::k_devicePathPropertyId, ePropertyDataType::datatype_string, ePropertySemantic::filename};
-		return true;
-	}
-	else if (propertyName == USBVideoSourceDefinition::k_videoModePropertyId)
-	{
-		outDescriptor = {USBVideoSourceDefinition::k_videoModePropertyId, ePropertyDataType::datatype_string, ePropertySemantic::name};
-		return true;
-	}
-	// TODO Camera settings
-	//else if (propertyName == USBVideoSourceDefinition::k_cameraSettingsPropertyId)
-	//{
-	//	outDescriptor = {USBVideoSourceDefinition::k_cameraSettingsPropertyId, ePropertyDataType::datatype_float, ePropertySemantic::size1d};
-	//	return true;
-	//}
-
-	return false;
-}
-
-bool USBVideoSourceComponent::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
-{
-	if (MikanComponent::getPropertyValue(propertyName, outValue))
-		return true;
+	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == USBVideoSourceDefinition::k_devicePathPropertyId)
 	{
@@ -812,19 +790,17 @@ bool USBVideoSourceComponent::getPropertyValue(const std::string& propertyName, 
 		outValue = getUSBVideoSourceDefinition()->getVideoMode();
 		return true;
 	}
-	// TODO Camera settings
-	//else if (propertyName == USBVideoSourceDefinition::k_brightnessPropertyId)
-	//{
-	//	outValue = getUSBVideoSourceDefinition()->getBrightness();
-	//	return true;
-	//}
-	return false;
+
+	// TODO: k_cameraSettingsPropertyId;
+
+	return VideoSourceComponent::getPropertyValueFromRml(propertyDesc, outValue);
 }
 
-bool USBVideoSourceComponent::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
+bool USBVideoSourceComponent::setPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc,
+	const Rml::Variant& inValue)
 {
-	if (MikanComponent::setPropertyValue(propertyName, inValue))
-		return true;
+	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == USBVideoSourceDefinition::k_devicePathPropertyId)
 	{
@@ -838,57 +814,29 @@ bool USBVideoSourceComponent::setPropertyValue(const std::string& propertyName, 
 		setVideoModeByName(videoMode);
 		return true;
 	}
-	// TODO Camera settings
-	//else if (propertyName == USBVideoSourceDefinition::k_brightnessPropertyId)
-	//{
-	//	float brightness = inValue.Get<float>();
-	//	getUSBVideoSourceDefinition()->setBrightness(brightness);
-	//	return true;
-	//}
 
-	return false;
+	return VideoSourceComponent::setPropertyValueFromRml(propertyDesc, inValue);
 }
 
+// -- IRmlFunctionInterface ----
 const std::string USBVideoSourceComponent::k_calibrateIntrinsicsFunctionId = "calibrate_intrinsics";
 const std::string USBVideoSourceComponent::k_testIntrinsicsFunctionId = "test_intrinsics";
 
-void USBVideoSourceComponent::getFunctionNamesStatic(std::vector<std::string>& outPropertyNames)
+void USBVideoSourceComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
 {
-	VideoSourceComponent::getFunctionNamesStatic(outPropertyNames);
+	VideoSourceComponent::getRmlFunctionDescriptors(outDescriptors);
 
-	outPropertyNames.push_back(k_calibrateIntrinsicsFunctionId);
-	outPropertyNames.push_back(k_testIntrinsicsFunctionId);
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_calibrateIntrinsicsFunctionId, "Calibrate Intrinsics"));
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_testIntrinsicsFunctionId, "Test Intrinsics"));
 }
 
-void USBVideoSourceComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+bool USBVideoSourceComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
 {
-	getFunctionNamesStatic(outPropertyNames);
-}
-
-bool USBVideoSourceComponent::getFunctionDescriptor(
-	const std::string& functionName,
-	FunctionDescriptor& outDescriptor) const
-{
-	if (MikanComponent::getFunctionDescriptor(functionName, outDescriptor))
-		return true;
-
-	if (functionName == k_calibrateIntrinsicsFunctionId)
-	{
-		outDescriptor = {k_calibrateIntrinsicsFunctionId, "Calibrate Intrinsics"};
-		return true;
-	}
-	else if (functionName == k_testIntrinsicsFunctionId)
-	{
-		outDescriptor = {k_testIntrinsicsFunctionId, "Test Intrinsics"};
-		return true;
-	}
-	return false;
-}
-
-bool USBVideoSourceComponent::invokeFunction(const std::string& functionName)
-{
-	if (MikanComponent::invokeFunction(functionName))
-		return true;
+	const std::string& functionName = functionDesc->getFunctionName();
 
 	if (functionName == k_calibrateIntrinsicsFunctionId)
 	{
@@ -900,7 +848,8 @@ bool USBVideoSourceComponent::invokeFunction(const std::string& functionName)
 		testIntrinsics();
 		return true;
 	}
-	return false;
+
+	return VideoSourceComponent::invokeFunctionFromRml(functionDesc);
 }
 
 void USBVideoSourceComponent::calibrateIntrinsics()

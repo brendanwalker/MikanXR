@@ -256,61 +256,35 @@ void SceneComponent::renderEditorScene(MikanCameraConstPtr camera, MkStateStack&
 	mkScene->render(camera, MkStateStack);
 }
 
-void SceneComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
+void SceneComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
 {
-	TransformComponent::getPropertyNamesStatic(outPropertyNames);
+	TransformComponent::getRmlPropertyDescriptors(outDescriptors);
 
-	outPropertyNames.push_back(SceneComponentDefinition::k_parentStagePropertyId);
-	//outPropertyNames.push_back(SceneComponentDefinition::k_outputCompositorPropertyId);
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			SceneComponentDefinition::k_parentStagePropertyId));
 }
 
-void SceneComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+bool SceneComponent::getPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc,
+	Rml::Variant& outValue) const
 {
-	getPropertyNamesStatic(outPropertyNames);
-}
-
-bool SceneComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
-{
-	if (TransformComponent::getPropertyDescriptor(propertyName, outDescriptor))
-		return true;
-
-	if (propertyName == SceneComponentDefinition::k_parentStagePropertyId)
-	{
-		outDescriptor = {SceneComponentDefinition::k_parentStagePropertyId, ePropertyDataType::datatype_int, ePropertySemantic::stage_id};
-		return true;
-	}
-	//else if (propertyName == SceneComponentDefinition::k_outputCompositorPropertyId)
-	//{
-	//	outDescriptor = {SceneComponentDefinition::k_outputCompositorPropertyId, ePropertyDataType::datatype_int, ePropertySemantic::compositor_id};
-	//	return true;
-	//}
-
-	return false;
-}
-
-bool SceneComponent::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
-{
-	if (TransformComponent::getPropertyValue(propertyName, outValue))
-		return true;
+	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == SceneComponentDefinition::k_parentStagePropertyId)
 	{
 		outValue = getSceneComponentDefinition()->getParentStageId();
 		return true;
 	}
-	//else if (propertyName == SceneComponentDefinition::k_outputCompositorPropertyId)
-	//{
-	//	outValue = getSceneComponentDefinition()->getOutputCompositorId();
-	//	return true;
-	//}
 
-	return false;
+	return TransformComponent::getPropertyValueFromRml(propertyDesc, outValue);
 }
 
-bool SceneComponent::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
+bool SceneComponent::setPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc,
+	const Rml::Variant& inValue)
 {
-	if (TransformComponent::setPropertyValue(propertyName, inValue))
-		return true;
+	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == SceneComponentDefinition::k_parentStagePropertyId)
 	{
@@ -319,56 +293,33 @@ bool SceneComponent::setPropertyValue(const std::string& propertyName, const Rml
 		attachTransformComponentToStage(stageId);
 		return true;
 	}
-	//else if (propertyName == SceneComponentDefinition::k_outputCompositorPropertyId)
-	//{
-	//	MikanCompositorID compositorId = inValue.Get<int>();
-	//	getSceneComponentDefinition()->setOutputCompositorId(compositorId);
-	//	return true;
-	//}
 
-	return false;
+	return TransformComponent::setPropertyValueFromRml(propertyDesc, inValue);
 }
 
-// -- IFunctionInterface ----
+// -- IRmlFunctionInterface ----
 const std::string SceneComponent::k_deleteSceneFunctionId = "delete_scene";
 
-void SceneComponent::getFunctionNamesStatic(std::vector<std::string>& outPropertyNames)
+void SceneComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
 {
-	MikanComponent::getFunctionNamesStatic(outPropertyNames);
+	MikanComponent::getRmlFunctionDescriptors(outDescriptors);
 
-	outPropertyNames.push_back(k_deleteSceneFunctionId);
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_deleteSceneFunctionId, "Delete Scene"));
 }
 
-void SceneComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+bool SceneComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
 {
-	getFunctionNamesStatic(outPropertyNames);
-}
+	const std::string& functionId = functionDesc->getFunctionName();
 
-bool SceneComponent::getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const
-{
-	if (TransformComponent::getFunctionDescriptor(functionName, outDescriptor))
-		return true;
-
-	if (functionName == SceneComponent::k_deleteSceneFunctionId)
-	{
-		outDescriptor = {SceneComponent::k_deleteSceneFunctionId, "Delete Scene"};
-		return true;
-	}
-
-	return false;
-}
-
-bool SceneComponent::invokeFunction(const std::string& functionName)
-{
-	if (TransformComponent::invokeFunction(functionName))
-		return true;
-
-	if (functionName == SceneComponent::k_deleteSceneFunctionId)
+	if (functionId == k_deleteSceneFunctionId)
 	{
 		deleteScene();
+		return true;
 	}
 
-	return false;
+	return TransformComponent::invokeFunctionFromRml(functionDesc);
 }
 
 void SceneComponent::deleteScene()

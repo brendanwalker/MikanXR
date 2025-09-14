@@ -108,44 +108,32 @@ void AnchorComponent::customRender()
 	drawTextAtWorldPosition(style, anchorPos, L"%s", wszAnchorName);
 }
 
-// -- IFunctionInterface ----
+// -- IRmlPropertyInterface ----
+void AnchorComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
+{
+	TransformComponent::getRmlPropertyDescriptors(outDescriptors);
+}
+
+// -- IRmlFunctionInterface ----
 const std::string AnchorComponent::k_editAnchorFunctionId = "edit_anchor";
 const std::string AnchorComponent::k_deleteAnchorFunctionId = "delete_anchor";
 
-void AnchorComponent::getFunctionNamesStatic(std::vector<std::string>& outPropertyNames)
+void AnchorComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
 {
-	TransformComponent::getFunctionNamesStatic(outPropertyNames);
+	TransformComponent::getRmlFunctionDescriptors(outDescriptors);
 
-	outPropertyNames.push_back(k_editAnchorFunctionId);
-	outPropertyNames.push_back(k_deleteAnchorFunctionId);
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_editAnchorFunctionId, "Edit Anchor"));
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_deleteAnchorFunctionId, "Delete Anchor"));
 }
 
-void AnchorComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+bool AnchorComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
 {
-	getFunctionNamesStatic(outPropertyNames);
-}
+	const std::string& functionName = functionDesc->getFunctionName();
 
-bool AnchorComponent::getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const
-{
-	if (TransformComponent::getFunctionDescriptor(functionName, outDescriptor))
-		return true;
-
-	if (functionName == AnchorComponent::k_editAnchorFunctionId)
-	{
-		outDescriptor = {AnchorComponent::k_editAnchorFunctionId, "Edit Anchor"};
-		return true;
-	}
-	else if (functionName == AnchorComponent::k_deleteAnchorFunctionId)
-	{
-		outDescriptor = {AnchorComponent::k_deleteAnchorFunctionId, "Delete Anchor"};
-		return true;
-	}
-
-	return false;
-}
-
-bool AnchorComponent::invokeFunction(const std::string& functionName)
-{
 	if (functionName == AnchorComponent::k_editAnchorFunctionId)
 	{
 		editAnchor();
@@ -157,7 +145,7 @@ bool AnchorComponent::invokeFunction(const std::string& functionName)
 		return true;
 	}
 
-	return TransformComponent::invokeFunction(functionName);
+	return TransformComponent::invokeFunctionFromRml(functionDesc);
 }
 
 void AnchorComponent::extractAnchorInfoForClientAPI(MikanSpatialAnchorInfo& outAnchorInfo) const

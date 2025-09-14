@@ -67,3 +67,9 @@ const std::string g_compositorEvaluatorWindow[(int)eCompositorEvaluatorWindow::C
 	"editorWindow"
 };
 const std::string* k_compositorEvaluatorWindow = g_compositorEvaluatorWindow;
+
+const std::string g_compositorSourceTypeStrings[(int)eCompositorEvaluatorWindow::COUNT] = {
+	"videoSource",
+	"camera"
+};
+extern const std::string* k_compositorSourceTypeStrings = g_compositorSourceTypeStrings;

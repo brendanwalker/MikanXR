@@ -33,7 +33,7 @@ enum class eCompositorLayerAlphaMode : int
 };
 extern const std::string* k_compositorLayerAlphaStrings;
 
-enum class eCompositorStencilMode
+enum class eCompositorStencilMode : int
 {
 	INVALID = -1,
 
@@ -45,7 +45,7 @@ enum class eCompositorStencilMode
 };
 extern const std::string* k_compositorStencilModeStrings;
 
-enum class eCompositorBlendMode
+enum class eCompositorBlendMode : int
 {
 	INVALID = -1,
 
@@ -56,7 +56,7 @@ enum class eCompositorBlendMode
 };
 extern const std::string* k_compositorBlendModeStrings;
 
-enum class eStencilCullMode
+enum class eStencilCullMode : int
 {
 	INVALID = -1,
 
@@ -69,7 +69,7 @@ enum class eStencilCullMode
 };
 extern const std::string* k_stencilCullModeStrings;
 
-enum class eClientColorTextureType
+enum class eClientColorTextureType : int
 {
 	INVALID = -1,
 
@@ -80,7 +80,7 @@ enum class eClientColorTextureType
 };
 extern const std::string* k_clientColorTextureTypeStrings;
 
-enum class eClientDepthTextureType
+enum class eClientDepthTextureType : int
 {
 	INVALID = -1,
 
@@ -90,7 +90,7 @@ enum class eClientDepthTextureType
 };
 extern const std::string* k_clientDepthTextureTypeStrings;
 
-enum class eCompositorEvaluatorWindow
+enum class eCompositorEvaluatorWindow : int
 {
 	INVALID = -1,
 
@@ -100,3 +100,14 @@ enum class eCompositorEvaluatorWindow
 	COUNT
 };
 extern const std::string* k_compositorEvaluatorWindow;
+
+enum class eCompositorSourceType : int
+{
+	INVALID = -1,
+
+	videoSource,
+	camera,
+
+	COUNT
+};
+extern const std::string* k_compositorSourceTypeStrings;

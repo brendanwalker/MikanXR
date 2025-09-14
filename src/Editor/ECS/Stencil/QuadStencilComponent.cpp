@@ -169,76 +169,52 @@ void QuadStencilComponent::updateBoxColliderExtents()
 	}
 }
 
-// -- IPropertyInterface ----
-void QuadStencilComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
+// -- IRmlPropertyInterface ----
+void QuadStencilComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
 {
-	StencilComponent::getPropertyNamesStatic(outPropertyNames);
+	StencilComponent::getRmlPropertyDescriptors(outDescriptors);
 
-	outPropertyNames.push_back(QuadStencilDefinition::k_quadStencilWidthPropertyId);
-	outPropertyNames.push_back(QuadStencilDefinition::k_quadStencilHeightPropertyId);
-	outPropertyNames.push_back(QuadStencilDefinition::k_quadStencilDoubleSidedPropertyId);
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			QuadStencilDefinition::k_quadStencilWidthPropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			QuadStencilDefinition::k_quadStencilHeightPropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			QuadStencilDefinition::k_quadStencilDoubleSidedPropertyId));
 }
 
-void QuadStencilComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+bool QuadStencilComponent::getPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc,
+	Rml::Variant& outValue) const
 {
-	getPropertyNamesStatic(outPropertyNames);
-}
-
-bool QuadStencilComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
-{
-	if (StencilComponent::getPropertyDescriptor(propertyName, outDescriptor))
-		return true;
+	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == QuadStencilDefinition::k_quadStencilWidthPropertyId)
 	{
-		outDescriptor = {QuadStencilDefinition::k_quadStencilWidthPropertyId, ePropertyDataType::datatype_float, ePropertySemantic::size1d};
+		outValue = getQuadStencilDefinition()->getQuadWidth();
 		return true;
 	}
 	else if (propertyName == QuadStencilDefinition::k_quadStencilHeightPropertyId)
 	{
-		outDescriptor = {QuadStencilDefinition::k_quadStencilHeightPropertyId, ePropertyDataType::datatype_float, ePropertySemantic::size1d};
+		outValue = getQuadStencilDefinition()->getQuadHeight();
 		return true;
 	}
 	else if (propertyName == QuadStencilDefinition::k_quadStencilDoubleSidedPropertyId)
 	{
-		outDescriptor = {QuadStencilDefinition::k_quadStencilDoubleSidedPropertyId, ePropertyDataType::datatype_bool, ePropertySemantic::checkbox};
+		outValue = getQuadStencilDefinition()->getIsDoubleSided();
 		return true;
 	}
 
-	return false;
+	return StencilComponent::getPropertyValueFromRml(propertyDesc, outValue);
 }
 
-bool QuadStencilComponent::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
+bool QuadStencilComponent::setPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc,
+	const Rml::Variant& inValue)
 {
-	if (StencilComponent::getPropertyValue(propertyName, outValue))
-		return true;
-
-	if (propertyName == QuadStencilDefinition::k_quadStencilWidthPropertyId)
-	{
-		float width= getQuadStencilDefinition()->getQuadWidth();
-		outValue = width;
-		return true;
-	}
-	else if (propertyName == QuadStencilDefinition::k_quadStencilHeightPropertyId)
-	{
-		float height = getQuadStencilDefinition()->getQuadHeight();
-		outValue = height;
-		return true;
-	}
-	else if (propertyName == QuadStencilDefinition::k_quadStencilDoubleSidedPropertyId)
-	{
-		bool isDoubleSided = getQuadStencilDefinition()->getIsDoubleSided();
-		outValue = isDoubleSided;
-		return true;
-	}
-
-	return false;
-}
-
-bool QuadStencilComponent::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
-{
-	if (StencilComponent::setPropertyValue(propertyName, inValue))
-		return true;
+	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == QuadStencilDefinition::k_quadStencilWidthPropertyId)
 	{
@@ -262,5 +238,5 @@ bool QuadStencilComponent::setPropertyValue(const std::string& propertyName, con
 		return true;
 	}
 
-	return false;
+	return StencilComponent::setPropertyValueFromRml(propertyDesc, inValue);
 }

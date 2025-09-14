@@ -45,6 +45,10 @@ public:
 	inline MikanCameraID getCameraId() const { return m_cameraId; }
 	void setCameraId(MikanCameraID cameraId);
 
+	static const std::string k_videoSourceIdPropertyId;
+	inline MikanVideoSourceID getVideoSourceId() const { return m_videoSourceId; }
+	void setVideoSourceId(MikanVideoSourceID videoSourceId);
+
 	static const std::string k_ownerStagePropertyId;
 	inline MikanStageID getOwnerStageId() const { return m_ownerStageId; }
 	void setOwnerStageId(MikanStageID stageId);
@@ -66,6 +70,7 @@ private:
 	MikanCompositorID m_compositorId;
 	MikanStageID m_ownerStageId = INVALID_MIKAN_ID;
 	MikanCameraID m_cameraId = INVALID_MIKAN_ID;
+	MikanVideoSourceID m_videoSourceId = INVALID_MIKAN_ID;
 	AssetReferenceConfigPtr m_nodeGraphAssetRef;
 	bool m_bIsSpoutOutputStreaming = false;
 	std::string m_spoutOutputName;
@@ -111,14 +116,13 @@ public:
 
 	MulticastDelegate<void()> OnNewFrameComposited;
 
+	// -- IRmlPropertyInterface ----
+	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors);
+	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, Rml::Variant& outValue) const override;
+	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const Rml::Variant& inValue) override;
 
-	// -- IPropertyInterface ----
-	static void getPropertyNamesStatic(std::vector<std::string>& outPropertyNames);
-	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
-	virtual bool getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const override;
-	virtual bool getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const override;
-	virtual bool getPropertyAttribute(const std::string& propertyName, const std::string& attributeName, Rml::Variant& outValue) const override;
-	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
+	// -- IRmlFunctionInterface ----
+	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors);
 
 protected:
 	void onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);

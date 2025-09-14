@@ -107,38 +107,43 @@ void TrackingVolumeComponent::deleteTrackingVolume()
 	}
 }
 
-// -- IPropertyInterface ----
-void TrackingVolumeComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
+// -- IRmlPropertyInterface ----
+void TrackingVolumeComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
 {
-	MikanComponent::getPropertyNamesStatic(outPropertyNames);
+	MikanComponent::getRmlPropertyDescriptors(outDescriptors);
 
-	outPropertyNames.push_back(TrackingVolumeDefinition::k_originMarkerPropertyId);
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			TrackingVolumeDefinition::k_originMarkerPropertyId));
 }
 
-void TrackingVolumeComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+bool TrackingVolumeComponent::getPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc,
+	Rml::Variant& outValue) const
 {
-	getPropertyNamesStatic(outPropertyNames);
-}
+	const std::string& propertyId = propertyDesc->getName();
 
-bool TrackingVolumeComponent::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
-{
-	if (propertyName == TrackingVolumeDefinition::k_originMarkerPropertyId)
+	if (propertyId == TrackingVolumeDefinition::k_originMarkerPropertyId)
 	{
-		outValue = getTrackingVolumeDefinition()->getOriginMarkerId();
+		outValue= getTrackingVolumeDefinition()->getTrackingVolumeId();
 		return true;
 	}
 
-	return MikanComponent::getPropertyValue(propertyName, outValue);
+	return MikanComponent::getPropertyValueFromRml(propertyDesc, outValue);
 }
 
-bool TrackingVolumeComponent::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
+bool TrackingVolumeComponent::setPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc,
+	const Rml::Variant& inValue)
 {
-	if (propertyName == TrackingVolumeDefinition::k_originMarkerPropertyId)
+	const std::string& propertyId = propertyDesc->getName();
+
+	if (propertyId == TrackingVolumeDefinition::k_originMarkerPropertyId)
 	{
 		MikanMarkerID markerId = inValue.Get<int>();
 		getTrackingVolumeDefinition()->setOriginMarkerId(markerId);
 		return true;
 	}
 
-	return MikanComponent::setPropertyValue(propertyName, inValue);
+	return MikanComponent::setPropertyValueFromRml(propertyDesc, inValue);
 }

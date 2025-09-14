@@ -2,11 +2,11 @@
 
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
-#include "FunctionInterface.h"
 #include "MulticastDelegate.h"
 #include "ObjectFwd.h"
 #include "ObjectSystemConfigFwd.h"
-#include "PropertyInterface.h"
+#include "RmlFunctionInterface.h"
+#include "RmlPropertyInterface.h"
 
 #include <vector>
 
@@ -23,8 +23,8 @@ public:
 
 class MikanObjectSystem : 
 	public std::enable_shared_from_this<MikanObjectSystem>,
-	public IPropertyInterface,
-	public IFunctionInterface
+	public IRmlPropertyInterface,
+	public IRmlFunctionInterface
 {
 public:
 	MikanObjectSystem(class ObjectSystemManager* ownerObjectSystem);
@@ -54,22 +54,14 @@ public:
 	MulticastDelegate<void(MikanObjectSystemPtr, MikanComponentPtr)> OnComponentInitialized;
 	MulticastDelegate<void(MikanObjectSystemPtr, MikanComponentConstPtr)> OnComponentDisposed;
 
-	// -- IPropertyInterface ----
-	static void getPropertyNamesStatic(std::vector<std::string>& outPropertyNames) {}
-	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override {}
-	virtual bool getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const override { return false; }
-	virtual bool getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const override { return false; }
-	virtual bool getPropertyAttribute(const std::string& propertyName, const std::string& attributeName, Rml::Variant& outValue) const override { return false; }
-	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override { return false; }
+	// -- IRmlPropertyInterface ----
+	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors) {}
+	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, Rml::Variant& outValue) const override { return false; }
+	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const Rml::Variant& inValue) override { return false; }
 
-	// -- IFunctionInterface ----
-	static void getFunctionNamesStatic(std::vector<std::string>& outPropertyNames) {}
-	virtual void getFunctionNames(std::vector<std::string>& outPropertyNames) const override {}
-	virtual bool getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const override { return false; }
-	virtual bool invokeFunction(const std::string& propertyName) override { return false; }
-
-protected:
-	void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
+	// -- IRmlFunctionInterface ----
+	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors) {}
+	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)  override { return false; }
 
 protected:
 	class ObjectSystemManager* m_ownerObjectSystemManager = nullptr;

@@ -269,15 +269,17 @@ void RmlModel_ProjectTracking::setSelectedTrackingVolumeId(MikanTrackingVolumeID
 
 		if (VRTrackingVolumeComponentPtr vrTrackingComponent = getSelectedVRTrackingVolume())
 		{
-			m_selectedVRTrackingVolumeModel->setPropertyInterface(vrTrackingComponent.get());
+			m_selectedVRTrackingVolumeModel->setPropertyInterface(
+				vrTrackingComponent, vrTrackingComponent->getDefinition());
 			m_selectedMarkerTrackingVolumeModel->setPropertyInterface(nullptr);
 
 			m_trackingMountIdList->setOwnerConfig(vrTrackingComponent->getDefinition());
 		}
-		else if (MarkerTrackingVolumeComponentPtr markerTrackingDefinition = getSelectedMarkerTrackingVolume())
+		else if (MarkerTrackingVolumeComponentPtr markerComponent = getSelectedMarkerTrackingVolume())
 		{
 			m_selectedVRTrackingVolumeModel->setPropertyInterface(nullptr);
-			m_selectedMarkerTrackingVolumeModel->setPropertyInterface(markerTrackingDefinition.get());
+			m_selectedMarkerTrackingVolumeModel->setPropertyInterface(
+				markerComponent, markerComponent->getDefinition());
 
 			m_trackingMountIdList->setOwnerConfig(CommonConfigPtr());
 		}
@@ -300,7 +302,8 @@ void RmlModel_ProjectTracking::setSelectedTrackingMountId(MikanTrackingMountID t
 
 		if (TrackingMountComponentPtr trackingMount = getSelectedTrackingMount())
 		{
-			m_selectedTrackingMountModel->setPropertyInterface(trackingMount.get());
+			m_selectedTrackingMountModel->setPropertyInterface(
+				trackingMount, trackingMount->getDefinition());
 		}
 		else
 		{

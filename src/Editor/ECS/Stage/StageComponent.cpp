@@ -74,60 +74,43 @@ void StageComponent::dispose()
 	TransformComponent::dispose();
 }
 
-void StageComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
+void StageComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
 {
-	TransformComponent::getPropertyNamesStatic(outPropertyNames);
+	TransformComponent::getRmlPropertyDescriptors(outDescriptors);
 
-	outPropertyNames.push_back(StageComponentDefinition::k_trackingVolumeIdPropertyId);
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			StageComponentDefinition::k_trackingVolumeIdPropertyId));
 }
 
-void StageComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+bool StageComponent::getPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc,
+	Rml::Variant& outValue) const
 {
-	getPropertyNamesStatic(outPropertyNames);
-}
-
-bool StageComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
-{
-	if (TransformComponent::getPropertyDescriptor(propertyName, outDescriptor))
-		return true;
+	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == StageComponentDefinition::k_trackingVolumeIdPropertyId)
 	{
-		outDescriptor = {StageComponentDefinition::k_trackingVolumeIdPropertyId, ePropertyDataType::datatype_int, ePropertySemantic::enumeration};
+		outValue = (int)getStageComponentDefinitionConst()->getTrackingVolumeId();
 		return true;
 	}
 
-	return false;
+	return TransformComponent::getPropertyValueFromRml(propertyDesc, outValue);
 }
 
-bool StageComponent::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
+bool StageComponent::setPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc,
+	const Rml::Variant& inValue)
 {
-	if (TransformComponent::getPropertyValue(propertyName, outValue))
-		return true;
+	const std::string& propertyName = propertyDesc->getName();
 
-	StageComponentDefinitionConstPtr definition = getStageComponentDefinitionConst();
 	if (propertyName == StageComponentDefinition::k_trackingVolumeIdPropertyId)
 	{
-		outValue = (int)definition->getTrackingVolumeId();
+		getStageComponentDefinition()->setTrackingVolumeId((MikanTrackingVolumeID)inValue.Get<int>());
 		return true;
 	}
 
-	return false;
-}
-
-bool StageComponent::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
-{
-	if (TransformComponent::setPropertyValue(propertyName, inValue))
-		return true;
-
-	StageComponentDefinitionPtr definition = getStageComponentDefinition();
-	if (propertyName == StageComponentDefinition::k_trackingVolumeIdPropertyId)
-	{
-		definition->setTrackingVolumeId((MikanTrackingVolumeID)inValue.Get<int>());
-		return true;
-	}
-
-	return false;
+	return TransformComponent::setPropertyValueFromRml(propertyDesc, inValue);
 }
 
 TrackingVolumeDefinitionConstPtr StageComponent::getTrackingVolumeDefinitionConst() const
@@ -146,57 +129,38 @@ TrackingVolumeDefinitionConstPtr StageComponent::getTrackingVolumeDefinitionCons
 	return nullptr;
 }
 
-// -- IFunctionInterface ----
+// -- IRmlFunctionInterface ----
 const std::string StageComponent::k_alignStageFunctionId = "align_stage";
 const std::string StageComponent::k_deleteStageFunctionId = "delete_stage";
 
-void StageComponent::getFunctionNamesStatic(std::vector<std::string>& outPropertyNames)
+void StageComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
 {
-	MikanComponent::getFunctionNamesStatic(outPropertyNames);
+	MikanComponent::getRmlFunctionDescriptors(outDescriptors);
 
-	outPropertyNames.push_back(k_alignStageFunctionId);
-	outPropertyNames.push_back(k_deleteStageFunctionId);
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_alignStageFunctionId, "Align Stage"));
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_deleteStageFunctionId, "Delete Stage"));
 }
 
-void StageComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+bool StageComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
 {
-	getFunctionNamesStatic(outPropertyNames);
-}
+	const std::string& functionId = functionDesc->getFunctionName();
 
-bool StageComponent::getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const
-{
-	if (TransformComponent::getFunctionDescriptor(functionName, outDescriptor))
-		return true;
-
-	if (functionName == StageComponent::k_alignStageFunctionId)
-	{
-		outDescriptor = {StageComponent::k_alignStageFunctionId, "Align Stage"};
-		return true;
-	}
-	else if (functionName == StageComponent::k_deleteStageFunctionId)
-	{
-		outDescriptor = {StageComponent::k_deleteStageFunctionId, "Delete Stage"};
-		return true;
-	}
-
-	return false;
-}
-
-bool StageComponent::invokeFunction(const std::string& functionName)
-{
-	if (TransformComponent::invokeFunction(functionName))
-		return true;
-
-	if (functionName == StageComponent::k_alignStageFunctionId)
+	if (functionId == k_alignStageFunctionId)
 	{
 		alignStage();
+		return true;
 	}
-	else if (functionName == StageComponent::k_deleteStageFunctionId)
+	else if (functionId == k_deleteStageFunctionId)
 	{
 		deleteStage();
+		return true;
 	}
 
-	return false;
+	return MikanComponent::invokeFunctionFromRml(functionDesc);
 }
 
 void StageComponent::alignStage()

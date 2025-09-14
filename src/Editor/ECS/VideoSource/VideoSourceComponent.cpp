@@ -249,51 +249,27 @@ void VideoSourceComponent::recomputeCameraProjectionMatrix()
 	}
 }
 
-// -- IPropertyInterface ----
-void VideoSourceComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
+// -- IRmlPropertyInterface ----
+void VideoSourceComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
 {
-	MikanComponent::getPropertyNamesStatic(outPropertyNames);
+	MikanComponent::getRmlPropertyDescriptors(outDescriptors);
 
-	outPropertyNames.push_back(VideoSourceDefinition::k_videoSourceIdPropertyId);
-	outPropertyNames.push_back(VideoSourceDefinition::k_isFrameMirroredPropertyId);
-	outPropertyNames.push_back(VideoSourceDefinition::k_isBufferMirroredPropertyId);
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			VideoSourceDefinition::k_isFrameMirroredPropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			VideoSourceDefinition::k_isBufferMirroredPropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			VideoSourceDefinition::k_videoFrameQueueSizePropertyId));
 }
 
-void VideoSourceComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+bool VideoSourceComponent::getPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc, 
+	Rml::Variant& outValue) const
 {
-	getPropertyNamesStatic(outPropertyNames);
-}
-
-bool VideoSourceComponent::getPropertyDescriptor(
-	const std::string& propertyName, 
-	PropertyDescriptor& outDescriptor) const
-{
-	if (MikanComponent::getPropertyDescriptor(propertyName, outDescriptor))
-		return true;
-
-	if (propertyName == VideoSourceDefinition::k_videoSourceIdPropertyId)
-	{
-		outDescriptor = {VideoSourceDefinition::k_videoSourceIdPropertyId, ePropertyDataType::datatype_int, ePropertySemantic::video_source_id};
-		return true;
-	}
-	else if (propertyName == VideoSourceDefinition::k_isFrameMirroredPropertyId)
-	{
-		outDescriptor = { VideoSourceDefinition::k_isFrameMirroredPropertyId, ePropertyDataType::datatype_bool, ePropertySemantic::checkbox };
-		return true;
-	}
-	else if (propertyName == VideoSourceDefinition::k_isBufferMirroredPropertyId)
-	{
-		outDescriptor = { VideoSourceDefinition::k_isBufferMirroredPropertyId, ePropertyDataType::datatype_bool, ePropertySemantic::checkbox };
-		return true;
-	}
-
-	return false;
-}
-
-bool VideoSourceComponent::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
-{
-	if (MikanComponent::getPropertyValue(propertyName, outValue))
-		return true;
+	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == VideoSourceDefinition::k_videoSourceIdPropertyId)
 	{
@@ -310,14 +286,20 @@ bool VideoSourceComponent::getPropertyValue(const std::string& propertyName, Rml
 		outValue = getVideoSourceDefinition()->getIsBufferMirrored();
 		return true;
 	}
+	else if (propertyName == VideoSourceDefinition::k_videoFrameQueueSizePropertyId)
+	{
+		outValue = getVideoSourceDefinition()->getVideoFrameQueueSize();
+		return true;
+	}
 
-	return false;
+	return MikanComponent::getPropertyValueFromRml(propertyDesc, outValue);
 }
 
-bool VideoSourceComponent::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
+bool VideoSourceComponent::setPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc, 
+	const Rml::Variant& inValue)
 {
-	if (MikanComponent::setPropertyValue(propertyName, inValue))
-		return true;
+	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == VideoSourceDefinition::k_isFrameMirroredPropertyId)
 	{
@@ -329,43 +311,28 @@ bool VideoSourceComponent::setPropertyValue(const std::string& propertyName, con
 		getVideoSourceDefinition()->setIsBufferMirrored(inValue.Get<bool>());
 		return true;
 	}
-
-	return false;
-}
-
-// -- IFunctionInterface ----
-void VideoSourceComponent::getFunctionNamesStatic(std::vector<std::string>& outPropertyNames)
-{
-	MikanComponent::getFunctionNamesStatic(outPropertyNames);
-
-	outPropertyNames.push_back(k_deleteVideoSourceFunctionId);
-}
-
-void VideoSourceComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
-{
-	getFunctionNamesStatic(outPropertyNames);
-}
-
-bool VideoSourceComponent::getFunctionDescriptor(
-	const std::string& functionName, 
-	FunctionDescriptor& outDescriptor) const
-{
-	if (MikanComponent::getFunctionDescriptor(functionName, outDescriptor))
-		return true;
-
-	if (functionName == k_deleteVideoSourceFunctionId)
+	else if (propertyName == VideoSourceDefinition::k_videoFrameQueueSizePropertyId)
 	{
-		outDescriptor = {k_deleteVideoSourceFunctionId, "Delete Video Source"};
+		getVideoSourceDefinition()->setVideoFrameQueueSize(inValue.Get<int>());
 		return true;
 	}
 
-	return false;
+	return MikanComponent::setPropertyValueFromRml(propertyDesc, inValue);
 }
 
-bool VideoSourceComponent::invokeFunction(const std::string& functionName)
+// -- IRmlFunctionInterface ----
+void VideoSourceComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
 {
-	if (MikanComponent::invokeFunction(functionName))
-		return true;
+	MikanComponent::getRmlFunctionDescriptors(outDescriptors);
+
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_deleteVideoSourceFunctionId, "Delete Video Source"));
+}
+
+bool VideoSourceComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
+{
+	const std::string& functionName = functionDesc->getFunctionName();
 
 	if (functionName == k_deleteVideoSourceFunctionId)
 	{
@@ -373,7 +340,7 @@ bool VideoSourceComponent::invokeFunction(const std::string& functionName)
 		return true;
 	}
 
-	return false;
+	return MikanComponent::invokeFunctionFromRml(functionDesc);
 }
 
 void VideoSourceComponent::deleteVideoSource()

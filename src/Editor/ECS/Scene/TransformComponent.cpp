@@ -372,49 +372,27 @@ void TransformComponent::visitAllTransformComponentsConst(TransformComponentCons
 	visitAllTransformComponentsHelper(this, visitor);
 }
 
-// -- IPropertyInterface ----
-void TransformComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
+// -- IRmlPropertyInterface ----
+void TransformComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
 {
-	MikanComponent::getPropertyNamesStatic(outPropertyNames);
+	MikanComponent::getRmlPropertyDescriptors(outDescriptors);
 
-	outPropertyNames.push_back(TransformComponentDefinition::k_relativeScalePropertyId);
-	outPropertyNames.push_back(TransformComponentDefinition::k_relativeRotationPropertyId);
-	outPropertyNames.push_back(TransformComponentDefinition::k_relativePositionPropertyId);
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			TransformComponentDefinition::k_relativeScalePropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			TransformComponentDefinition::k_relativeRotationPropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			TransformComponentDefinition::k_relativePositionPropertyId));
 }
 
-void TransformComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+bool TransformComponent::getPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc,
+	Rml::Variant& outValue) const
 {
-	getPropertyNamesStatic(outPropertyNames);
-}
-
-bool TransformComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
-{
-	if (MikanComponent::getPropertyDescriptor(propertyName, outDescriptor))
-		return true;
-
-	if (propertyName == TransformComponentDefinition::k_relativeScalePropertyId)
-	{
-		outDescriptor = {TransformComponentDefinition::k_relativeScalePropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::scale};
-		return true;
-	}
-	else if (propertyName == TransformComponentDefinition::k_relativeRotationPropertyId)
-	{
-		outDescriptor = {TransformComponentDefinition::k_relativeRotationPropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::rotation};
-		return true;
-	}
-	else if (propertyName == TransformComponentDefinition::k_relativePositionPropertyId)
-	{
-		outDescriptor = {TransformComponentDefinition::k_relativePositionPropertyId, ePropertyDataType::datatype_float3, ePropertySemantic::position};
-		return true;
-	}
-
-	return false;
-}
-
-bool TransformComponent::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
-{
-	if (MikanComponent::getPropertyValue(propertyName, outValue))
-		return true;
+	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == TransformComponentDefinition::k_relativeScalePropertyId)
 	{
@@ -442,13 +420,14 @@ bool TransformComponent::getPropertyValue(const std::string& propertyName, Rml::
 		return true;
 	}
 
-	return false;
+	return MikanComponent::getPropertyValueFromRml(propertyDesc, outValue);
 }
 
-bool TransformComponent::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
+bool TransformComponent::setPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc,
+	const Rml::Variant& inValue)
 {
-	if (MikanComponent::setPropertyValue(propertyName, inValue))
-		return true;
+	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == TransformComponentDefinition::k_relativeScalePropertyId)
 	{
@@ -463,9 +442,9 @@ bool TransformComponent::setPropertyValue(const std::string& propertyName, const
 
 		glm::quat quat;
 		glm_euler_angles_to_quat(
-			angles.x * k_degrees_to_radians, 
-			angles.y * k_degrees_to_radians, 
-			angles.z * k_degrees_to_radians, 
+			angles.x * k_degrees_to_radians,
+			angles.y * k_degrees_to_radians,
+			angles.z * k_degrees_to_radians,
 			quat);
 		setRelativeRotation(quat);
 		return true;
@@ -478,5 +457,11 @@ bool TransformComponent::setPropertyValue(const std::string& propertyName, const
 		return true;
 	}
 
-	return false;
+	return MikanComponent::setPropertyValueFromRml(propertyDesc, inValue);
+}
+
+// -- IRmlFunctionInterface ----
+void TransformComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
+{
+	MikanComponent::getRmlFunctionDescriptors(outDescriptors);
 }

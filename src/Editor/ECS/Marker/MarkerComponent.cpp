@@ -109,90 +109,23 @@ MarkerObjectSystemPtr MarkerComponent::getOwnerMarkerSystem() const
 //	}
 //}
 
-void MarkerComponent::getFunctionNamesStatic(std::vector<std::string>& outPropertyNames)
+// -- IRmlPropertyInterface ----
+void MarkerComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
 {
-	MikanComponent::getFunctionNamesStatic(outPropertyNames);
-	outPropertyNames.push_back(k_deleteMarkerFunctionId);
+	MikanComponent::getRmlPropertyDescriptors(outDescriptors);
+
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			MarkerDefinition::k_arucoIdPropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			MarkerDefinition::k_lengthMMPropertyId));
 }
 
-void MarkerComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+bool MarkerComponent::getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, Rml::Variant& outValue) const
 {
-	getFunctionNamesStatic(outPropertyNames);
-}
+	const std::string& propertyName = propertyDesc->getName();
 
-bool MarkerComponent::getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const
-{
-	if (functionName == k_deleteMarkerFunctionId)
-	{
-		outDescriptor = FunctionDescriptor(k_deleteMarkerFunctionId, "Delete Marker");
-		return true;
-	}
-
-	return MikanComponent::getFunctionDescriptor(functionName, outDescriptor);
-}
-
-bool MarkerComponent::invokeFunction(const std::string& functionName)
-{
-	bool bHandled = false;
-
-	if (functionName == k_deleteMarkerFunctionId)
-	{
-		deleteMarker();
-		bHandled = true;
-	}
-
-	if (!bHandled)
-	{
-		bHandled = MikanComponent::invokeFunction(functionName);
-	}
-
-	return bHandled;
-}
-
-void MarkerComponent::deleteMarker()
-{
-	MarkerDefinitionPtr markerDefinition = getMarkerDefinition();
-	if (markerDefinition)
-	{
-		const MikanMarkerID markerId = markerDefinition->getMarkerId();
-
-		getOwnerMarkerSystem()->removeMarker(markerId);
-	}
-}
-
-void MarkerComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
-{
-	MikanComponent::getPropertyNamesStatic(outPropertyNames);
-
-	outPropertyNames.push_back(MarkerDefinition::k_arucoIdPropertyId);
-	outPropertyNames.push_back(MarkerDefinition::k_lengthMMPropertyId);
-}
-
-void MarkerComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
-{
-	getPropertyNamesStatic(outPropertyNames);
-}
-
-bool MarkerComponent::getPropertyDescriptor(
-	const std::string& propertyName,
-	PropertyDescriptor& outDescriptor) const
-{
-	if (propertyName == MarkerDefinition::k_arucoIdPropertyId)
-	{
-		outDescriptor = { MarkerDefinition::k_arucoIdPropertyId, ePropertyDataType::datatype_int, ePropertySemantic::marker_id };
-		return true;
-	}
-	else if (propertyName == MarkerDefinition::k_lengthMMPropertyId)
-	{
-		outDescriptor = { MarkerDefinition::k_lengthMMPropertyId, ePropertyDataType::datatype_float, ePropertySemantic::size1d };
-		return true;
-	}
-
-	return MikanComponent::getPropertyDescriptor(propertyName, outDescriptor);
-}
-
-bool MarkerComponent::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
-{
 	if (propertyName == MarkerDefinition::k_arucoIdPropertyId)
 	{
 		outValue = getMarkerDefinition()->getArucoId();
@@ -204,11 +137,13 @@ bool MarkerComponent::getPropertyValue(const std::string& propertyName, Rml::Var
 		return true;
 	}
 
-	return MikanComponent::getPropertyValue(propertyName, outValue);
+	return MikanComponent::getPropertyValueFromRml(propertyDesc, outValue);
 }
 
-bool MarkerComponent::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
+bool MarkerComponent::setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const Rml::Variant& inValue)
 {
+	const std::string& propertyName = propertyDesc->getName();
+
 	if (propertyName == MarkerDefinition::k_arucoIdPropertyId)
 	{
 		getMarkerDefinition()->setArucoId(inValue.Get<int>());
@@ -220,5 +155,37 @@ bool MarkerComponent::setPropertyValue(const std::string& propertyName, const Rm
 		return true;
 	}
 
-	return MikanComponent::setPropertyValue(propertyName, inValue);
+	return MikanComponent::setPropertyValueFromRml(propertyDesc, inValue);
+}
+
+// -- IRmlFunctionInterface ----
+void MarkerComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
+{
+	MikanComponent::getRmlFunctionDescriptors(outDescriptors);
+
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_deleteMarkerFunctionId, "Delete Marker"));
+}
+
+bool MarkerComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
+{
+	if (functionDesc->getFunctionName() == k_deleteMarkerFunctionId)
+	{
+		deleteMarker();
+		return true;
+	}
+
+	return MikanComponent::invokeFunctionFromRml(functionDesc);
+}
+
+void MarkerComponent::deleteMarker()
+{
+	MarkerDefinitionPtr markerDefinition = getMarkerDefinition();
+	if (markerDefinition)
+	{
+		const MikanMarkerID markerId = markerDefinition->getMarkerId();
+
+		getOwnerMarkerSystem()->removeMarker(markerId);
+	}
 }

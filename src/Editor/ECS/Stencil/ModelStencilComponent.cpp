@@ -39,7 +39,6 @@
 
 // -- ModelStencilConfig -----
 const std::string ModelStencilDefinition::k_modelStencilObjPathPropertyId = "model_path";
-const std::string ModelStencilDefinition::k_modelStencilIsDepthMeshPropertyId = "is_depth_mesh";
 
 ModelStencilDefinition::ModelStencilDefinition()
 	: StencilComponentDefinition()
@@ -60,7 +59,6 @@ configuru::Config ModelStencilDefinition::writeToJSON()
 	configuru::Config pt = StencilComponentDefinition::writeToJSON();
 
 	pt["model_path"] = m_modelPath.string();
-	pt["is_depth_mesh"] = m_bIsDepthMesh;
 
 	return pt;
 }
@@ -70,7 +68,6 @@ void ModelStencilDefinition::readFromJSON(const configuru::Config& pt)
 	StencilComponentDefinition::readFromJSON(pt);
 
 	m_modelPath = pt.get_or<std::string>("model_path", "");
-	m_bIsDepthMesh = pt.get_or<bool>("is_depth_mesh", false);
 }
 
 void ModelStencilDefinition::setModelPath(const std::filesystem::path& path, bool bForceDirty)
@@ -80,25 +77,6 @@ void ModelStencilDefinition::setModelPath(const std::filesystem::path& path, boo
 		m_modelPath = path;
 		markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilObjPathPropertyId));
 	}
-}
-
-void ModelStencilDefinition::setIsDepthMesh(bool isDepthMesh)
-{
-	if (m_bIsDepthMesh != isDepthMesh)
-	{
-		m_bIsDepthMesh = isDepthMesh;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilIsDepthMeshPropertyId));
-	}
-}
-
-bool ModelStencilDefinition::hasValidDepthMesh() const
-{
-	if (m_bIsDepthMesh && !m_modelPath.empty() && std::filesystem::exists(m_modelPath))
-	{
-		return true;
-	}
-
-	return false;
 }
 
 MikanStencilModelInfo ModelStencilDefinition::getModelInfo() const
@@ -418,129 +396,73 @@ void ModelStencilComponent::onTransformGizmoUnbound()
 	updateWireframeMeshColor();
 }
 
-// -- IPropertyInterface ----
-void ModelStencilComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
+// -- IRmlPropertyInterface ----
+void ModelStencilComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
 {
-	StencilComponent::getPropertyNamesStatic(outPropertyNames);
+	StencilComponent::getRmlPropertyDescriptors(outDescriptors);
 
-	outPropertyNames.push_back(ModelStencilDefinition::k_modelStencilObjPathPropertyId);
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			ModelStencilDefinition::k_modelStencilObjPathPropertyId));
 }
 
-void ModelStencilComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+bool ModelStencilComponent::getPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc,
+	Rml::Variant& outValue) const
 {
-	getPropertyNamesStatic(outPropertyNames);
-}
-
-bool ModelStencilComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
-{
-	if (StencilComponent::getPropertyDescriptor(propertyName, outDescriptor))
-		return true;
+	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == ModelStencilDefinition::k_modelStencilObjPathPropertyId)
 	{
-		outDescriptor = {ModelStencilDefinition::k_modelStencilObjPathPropertyId, ePropertyDataType::datatype_string, ePropertySemantic::filename};
+		Rml::String filepath = getModelStencilDefinition()->getModelPath().string();
+
+		outValue = filepath;
 		return true;
 	}
 
-	return false;
+	return StencilComponent::getPropertyValueFromRml(propertyDesc, outValue);
 }
 
-bool ModelStencilComponent::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
+bool ModelStencilComponent::setPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc,
+	const Rml::Variant& inValue)
 {
-	if (StencilComponent::getPropertyValue(propertyName, outValue))
-		return true;
+	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == ModelStencilDefinition::k_modelStencilObjPathPropertyId)
 	{
-		Rml::String filepath= getModelStencilDefinition()->getModelPath().string();
-
-		outValue= filepath;
-		return true;
-	}
-
-	return false;
-}
-
-bool ModelStencilComponent::getPropertyAttribute(const std::string& propertyName, const std::string& attributeName, Rml::Variant& outValue) const
-{
-	if (StencilComponent::getPropertyAttribute(propertyName, attributeName, outValue))
-		return true;
-
-	if (propertyName == ModelStencilDefinition::k_modelStencilObjPathPropertyId)
-	{
-		if (attributeName == *k_PropertyAttributeFileBrowseTitle)
-		{
-			outValue= "Select a model";
-		}
-		else if (attributeName == *k_PropertyAttributeFileBrowseFilter)
-		{
-			outValue = ".obj";
-		}
-		else if (attributeName == *k_PropertyAttributeFileBrowseFilterDesc)
-		{
-			outValue = "Obj Model Files (.obj)";
-		}
-	}
-
-	return false;
-}
-
-bool ModelStencilComponent::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
-{
-	if (StencilComponent::setPropertyValue(propertyName, inValue))
-		return true;
-
-	if (propertyName == ModelStencilDefinition::k_modelStencilObjPathPropertyId)
-	{
-		const Rml::String fileString= inValue.Get<Rml::String>();
+		const Rml::String fileString = inValue.Get<Rml::String>();
 		const std::filesystem::path filePath(fileString);
 
 		setModelPath(filePath);
 		return true;
 	}
 
-	return false;
+	return StencilComponent::setPropertyValueFromRml(propertyDesc, inValue);
 }
-// -- IFunctionInterface ----
+
+// -- IRmlFunctionInterface ----
 const std::string ModelStencilComponent::k_alignStencilFunctionId = "align_stencil";
 
-void ModelStencilComponent::getFunctionNamesStatic(std::vector<std::string>& outPropertyNames)
+void ModelStencilComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
 {
-	StencilComponent::getFunctionNamesStatic(outPropertyNames);
+	StencilComponent::getRmlFunctionDescriptors(outDescriptors);
 
-	outPropertyNames.push_back(k_alignStencilFunctionId);
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_alignStencilFunctionId, "Align Stencil"));
 }
 
-void ModelStencilComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+bool ModelStencilComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
 {
-	getFunctionNamesStatic(outPropertyNames);
-}
-
-bool ModelStencilComponent::getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const
-{
-	if (StencilComponent::getFunctionDescriptor(functionName, outDescriptor))
-		return true;
-
-	if (functionName == ModelStencilComponent::k_alignStencilFunctionId)
-	{
-		outDescriptor = {ModelStencilComponent::k_alignStencilFunctionId, "Align Stencil"};
-		return true;
-	}
-
-	return false;
-}
-
-bool ModelStencilComponent::invokeFunction(const std::string& functionName)
-{
-	if (StencilComponent::invokeFunction(functionName))
-		return true;
+	const std::string& functionName = functionDesc->getFunctionName();
 
 	if (functionName == ModelStencilComponent::k_alignStencilFunctionId)
 	{
 		alignStencil();
 	}
 
-	return false;
+	return StencilComponent::invokeFunctionFromRml(functionDesc);
 }
 
 void ModelStencilComponent::alignStencil()

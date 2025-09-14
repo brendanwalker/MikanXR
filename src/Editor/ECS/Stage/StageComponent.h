@@ -54,20 +54,16 @@ public:
 	virtual void init() override;
 	virtual void dispose() override;
 
-	// -- IPropertyInterface ----
-	static void getPropertyNamesStatic(std::vector<std::string>& outPropertyNames);
-	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
-	virtual bool getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const override;
-	virtual bool getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const override;
-	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
+	// -- IRmlPropertyInterface ----
+	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors);
+	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, Rml::Variant& outValue) const override;
+	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const Rml::Variant& inValue) override;
 
-	// -- IFunctionInterface ----
+	// -- IRmlFunctionInterface ----
 	static const std::string k_alignStageFunctionId;
 	static const std::string k_deleteStageFunctionId;
-	static void getFunctionNamesStatic(std::vector<std::string>& outPropertyNames);
-	virtual void getFunctionNames(std::vector<std::string>& outPropertyNames) const override;
-	virtual bool getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const override;
-	virtual bool invokeFunction(const std::string& functionName) override;
+	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outPropertyNames);
+	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
 
 	// -- StageComponent ----
 	void alignStage();

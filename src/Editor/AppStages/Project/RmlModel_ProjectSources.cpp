@@ -249,25 +249,25 @@ void RmlModel_ProjectSources::setSelectedVideoSourceId(MikanVideoSourceID videoS
 			case eVideoSourceType::client:
 				if (ClientVideoSourceComponentPtr clientSource = getSelectedClientVideoSource())
 				{
-					m_selectedClientVideoSourceModel->setPropertyInterface(clientSource.get());
+					m_selectedClientVideoSourceModel->setPropertyInterface(clientSource, clientSource->getDefinition());
 				}
 				break;
 			case eVideoSourceType::usb:
 				if (USBVideoSourceComponentPtr usbSource = getSelectedUSBVideoSource())
 				{
-					m_selectedUSBVideoSourceModel->setPropertyInterface(usbSource.get());
+					m_selectedUSBVideoSourceModel->setPropertyInterface(usbSource, usbSource->getDefinition());
 				}
 				break;
 			case eVideoSourceType::networked:
 				if (NetworkVideoSourceComponentPtr networkSource = getSelectedNetworkVideoSource())
 				{
-					m_selectedNetworkVideoSourceModel->setPropertyInterface(networkSource.get());
+					m_selectedNetworkVideoSourceModel->setPropertyInterface(networkSource, networkSource->getDefinition());
 				}
 				break;
 			case eVideoSourceType::spout:
 				if (SpoutVideoSourceComponentPtr spoutSource = getSelectedSpoutVideoSource())
 				{
-					m_selectedSpoutVideoSourceModel->setPropertyInterface(spoutSource.get());
+					m_selectedSpoutVideoSourceModel->setPropertyInterface(spoutSource, spoutSource->getDefinition());
 				}
 				break;
 		}

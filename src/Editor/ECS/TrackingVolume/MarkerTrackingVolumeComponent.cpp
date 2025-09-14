@@ -24,13 +24,15 @@ MarkerTrackingVolumeComponent::MarkerTrackingVolumeComponent(MikanObjectWeakPtr 
 {
 }
 
-// -- IPropertyInterface ----
-void MarkerTrackingVolumeComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
+// -- IRmlPropertyInterface ----
+void MarkerTrackingVolumeComponent::getRmlPropertyDescriptors(
+	std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
 {
-	TrackingVolumeComponent::getPropertyNamesStatic(outPropertyNames);
+	TrackingVolumeComponent::getRmlPropertyDescriptors(outDescriptors);
 }
 
-void MarkerTrackingVolumeComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+void MarkerTrackingVolumeComponent::getRmlFunctionDescriptors(
+	std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
 {
-	getPropertyNamesStatic(outPropertyNames);
+	TrackingVolumeComponent::getRmlFunctionDescriptors(outDescriptors);
 }

@@ -393,7 +393,7 @@ void RmlModel_ProjectScenes::setSelectedSceneId(int sceneId)
 
 		if (auto sceneComponent = getSelectedSceneComponent())
 		{
-			m_selectedSceneModel->setPropertyInterface(sceneComponent.get());
+			m_selectedSceneModel->setPropertyInterface(sceneComponent, sceneComponent->getDefinition());
 		}
 		else
 		{
@@ -413,7 +413,7 @@ void RmlModel_ProjectScenes::setSelectedCompositorId(int compositorId)
 
 		if (auto compositorComponent = getSelectedCompositorComponent())
 		{
-			m_selectedCompositorModel->setPropertyInterface(compositorComponent.get());
+			m_selectedCompositorModel->setPropertyInterface(compositorComponent, compositorComponent->getDefinition());
 		}
 		else
 		{

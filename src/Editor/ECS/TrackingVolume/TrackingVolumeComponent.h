@@ -8,7 +8,6 @@
 #include "ObjectFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
-#include "PropertyInterface.h"
 #include "ProjectConfigConstants.h"
 #include "TrackingVolumeComponent.h"
 
@@ -54,13 +53,12 @@ public:
 
 	void deleteTrackingVolume();
 
-	// -- IPropertyInterface ----
-	static void getPropertyNamesStatic(std::vector<std::string>& outPropertyNames);
-	virtual void getPropertyNames(std::vector<std::string>& outPropertyNames) const override;
-	virtual bool getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const override;
-	virtual bool setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue) override;
+	// -- IRmlPropertyInterface ----
+	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors);
+	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, Rml::Variant& outValue) const override;
+	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const Rml::Variant& inValue) override;
 
-	// -- IFunctionInterface ----
-	static void getFunctionNamesStatic(std::vector<std::string>& outPropertyNames)
-	{ MikanComponent::getFunctionNamesStatic(outPropertyNames); }
+	// -- IRmlFunctionInterface ----
+	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
+	{ MikanComponent::getRmlFunctionDescriptors(outDescriptors); }
 };

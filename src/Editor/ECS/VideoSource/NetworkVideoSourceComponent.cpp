@@ -580,37 +580,21 @@ void NetworkVideoSourceComponent::recomputeCameraProjectionMatrix()
 	}
 }
 
-// -- IPropertyInterface ----
-void NetworkVideoSourceComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
+// -- IRmlPropertyInterface ----
+void NetworkVideoSourceComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
 {
-	VideoSourceComponent::getPropertyNamesStatic(outPropertyNames);
+	VideoSourceComponent::getRmlPropertyDescriptors(outDescriptors);
 
-	outPropertyNames.push_back(NetworkVideoSourceDefinition::k_addressPropertyId);
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			NetworkVideoSourceDefinition::k_addressPropertyId));
 }
 
-void NetworkVideoSourceComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+bool NetworkVideoSourceComponent::getPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc,
+	Rml::Variant& outValue) const
 {
-	getPropertyNamesStatic(outPropertyNames);
-}
-
-bool NetworkVideoSourceComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
-{
-	if (MikanComponent::getPropertyDescriptor(propertyName, outDescriptor))
-		return true;
-
-	if (propertyName == NetworkVideoSourceDefinition::k_addressPropertyId)
-	{
-		outDescriptor = {NetworkVideoSourceDefinition::k_addressPropertyId, ePropertyDataType::datatype_string, ePropertySemantic::name};
-		return true;
-	}
-
-	return false;
-}
-
-bool NetworkVideoSourceComponent::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
-{
-	if (MikanComponent::getPropertyValue(propertyName, outValue))
-		return true;
+	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == NetworkVideoSourceDefinition::k_addressPropertyId)
 	{
@@ -618,13 +602,14 @@ bool NetworkVideoSourceComponent::getPropertyValue(const std::string& propertyNa
 		return true;
 	}
 
-	return false;
+	return VideoSourceComponent::getPropertyValueFromRml(propertyDesc, outValue);
 }
 
-bool NetworkVideoSourceComponent::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
+bool NetworkVideoSourceComponent::setPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc,
+	const Rml::Variant& inValue)
 {
-	if (MikanComponent::setPropertyValue(propertyName, inValue))
-		return true;
+	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == NetworkVideoSourceDefinition::k_addressPropertyId)
 	{
@@ -633,49 +618,28 @@ bool NetworkVideoSourceComponent::setPropertyValue(const std::string& propertyNa
 		return true;
 	}
 
-	return false;
+	return VideoSourceComponent::setPropertyValueFromRml(propertyDesc, inValue);
 }
 
+// -- IRmlFunctionInterface ----
 const std::string NetworkVideoSourceComponent::k_calibrateIntrinsicsFunctionId = "calibrate_intrinsics";
 const std::string NetworkVideoSourceComponent::k_testIntrinsicsFunctionId = "test_intrinsics";
 
-void NetworkVideoSourceComponent::getFunctionNamesStatic(std::vector<std::string>& outPropertyNames)
+void NetworkVideoSourceComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
 {
-	VideoSourceComponent::getFunctionNamesStatic(outPropertyNames);
+	VideoSourceComponent::getRmlFunctionDescriptors(outDescriptors);
 
-	outPropertyNames.push_back(k_calibrateIntrinsicsFunctionId);
-	outPropertyNames.push_back(k_testIntrinsicsFunctionId);
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_calibrateIntrinsicsFunctionId, "Calibrate Intrinsics"));
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_testIntrinsicsFunctionId, "Test Intrinsics"));
 }
 
-void NetworkVideoSourceComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
+bool NetworkVideoSourceComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
 {
-	getFunctionNamesStatic(outPropertyNames);
-}
-
-bool NetworkVideoSourceComponent::getFunctionDescriptor(
-	const std::string& functionName,
-	FunctionDescriptor& outDescriptor) const
-{
-	if (MikanComponent::getFunctionDescriptor(functionName, outDescriptor))
-		return true;
-
-	if (functionName == k_calibrateIntrinsicsFunctionId)
-	{
-		outDescriptor = {k_calibrateIntrinsicsFunctionId, "Calibrate Intrinsics"};
-		return true;
-	}
-	else if (functionName == k_testIntrinsicsFunctionId)
-	{
-		outDescriptor = {k_testIntrinsicsFunctionId, "Test Intrinsics"};
-		return true;
-	}
-	return false;
-}
-
-bool NetworkVideoSourceComponent::invokeFunction(const std::string& functionName)
-{
-	if (MikanComponent::invokeFunction(functionName))
-		return true;
+	const std::string& functionName = functionDesc->getFunctionName();
 
 	if (functionName == k_calibrateIntrinsicsFunctionId)
 	{
@@ -687,7 +651,8 @@ bool NetworkVideoSourceComponent::invokeFunction(const std::string& functionName
 		testIntrinsics();
 		return true;
 	}
-	return false;
+
+	return VideoSourceComponent::invokeFunctionFromRml(functionDesc);
 }
 
 void NetworkVideoSourceComponent::calibrateIntrinsics()

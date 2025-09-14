@@ -341,27 +341,37 @@ MarkerObjectSystemConfigPtr MarkerObjectSystem::getMarkerSystemConfig()
 	return std::const_pointer_cast<MarkerObjectSystemConfig>(getMarkerSystemConfigConst());
 }
 
-
-// -- IPropertyInterface ----
-void MarkerObjectSystem::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
+// -- IRmlPropertyInterface ----
+void MarkerObjectSystem::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
 {
-	MikanObjectSystem::getPropertyNamesStatic(outPropertyNames);
+	MikanObjectSystem::getRmlPropertyDescriptors(outDescriptors);
 
-	MarkerObjectSystemConfig::k_arucoDictionaryTypePropertyId;
-	MarkerObjectSystemConfig::k_charucoDictionaryTypePropertyId;
-	MarkerObjectSystemConfig::k_charucoRowsPropertyId;
-	MarkerObjectSystemConfig::k_charucoColsPropertyId;
-	MarkerObjectSystemConfig::k_charucoSquareLengthMMPropertyId;
-	MarkerObjectSystemConfig::k_charucoMarkerLengthMMPropertyId;
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			MarkerObjectSystemConfig::k_arucoDictionaryTypePropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			MarkerObjectSystemConfig::k_charucoDictionaryTypePropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			MarkerObjectSystemConfig::k_charucoRowsPropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			MarkerObjectSystemConfig::k_charucoColsPropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			MarkerObjectSystemConfig::k_charucoSquareLengthMMPropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			MarkerObjectSystemConfig::k_charucoMarkerLengthMMPropertyId));
 }
 
-void MarkerObjectSystem::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+bool MarkerObjectSystem::getPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc, 
+	Rml::Variant& outValue) const
 {
-	return MarkerObjectSystem::getPropertyNamesStatic(outPropertyNames);
-}
+	const std::string& propertyName = propertyDesc->getName();
 
-bool MarkerObjectSystem::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
-{
 	if (propertyName == MarkerObjectSystemConfig::k_arucoDictionaryTypePropertyId)
 	{
 		outValue = k_charucoDictionaryStrings[(int)getMarkerSystemConfigConst()->getArucoDictionaryType()];
@@ -393,11 +403,15 @@ bool MarkerObjectSystem::getPropertyValue(const std::string& propertyName, Rml::
 		return true;
 	}
 
-	return MikanObjectSystem::getPropertyValue(propertyName, outValue);
+	return MikanObjectSystem::getPropertyValueFromRml(propertyDesc, outValue);
 }
 
-bool MarkerObjectSystem::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
+bool MarkerObjectSystem::setPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc, 
+	const Rml::Variant& inValue)
 {
+	const std::string& propertyName = propertyDesc->getName();
+
 	if (propertyName == MarkerObjectSystemConfig::MarkerObjectSystemConfig::k_arucoDictionaryTypePropertyId)
 	{
 		const std::string dictionaryString = inValue.Get<std::string>();
@@ -443,44 +457,30 @@ bool MarkerObjectSystem::setPropertyValue(const std::string& propertyName, const
 		return true;
 	}
 
-	return MikanObjectSystem::setPropertyValue(propertyName, inValue);
+	return MikanObjectSystem::setPropertyValueFromRml(propertyDesc, inValue);
 }
 
-// -- IFunctionInterface ----
+// -- IRmlFunctionInterface ----
 const std::string MarkerObjectSystem::k_printCharucoMarkerFunctionId = "print_marker";
 
-void MarkerObjectSystem::getFunctionNamesStatic(std::vector<std::string>& outFunctionNames)
+void MarkerObjectSystem::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
 {
-	MikanObjectSystem::getFunctionNamesStatic(outFunctionNames);
+	MikanObjectSystem::getRmlFunctionDescriptors(outDescriptors);
 
-	outFunctionNames.push_back(k_printCharucoMarkerFunctionId);
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_printCharucoMarkerFunctionId, "Print Marker"));
 }
 
-void MarkerObjectSystem::getFunctionNames(std::vector<std::string>& outFunctionNames) const
+bool MarkerObjectSystem::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
 {
-	MarkerObjectSystem::getFunctionNamesStatic(outFunctionNames);
-}
+	const std::string& functionName = functionDesc->getFunctionName();
 
-bool MarkerObjectSystem::getFunctionDescriptor(
-	const std::string& functionName, 
-	FunctionDescriptor& outDescriptor) const
-{
-	if (functionName == k_printCharucoMarkerFunctionId)
-	{
-		outDescriptor = { k_printCharucoMarkerFunctionId, "Print Marker" };
-		return true;
-	}
-
-	return MikanObjectSystem::getFunctionDescriptor(functionName, outDescriptor);
-}
-
-bool MarkerObjectSystem::invokeFunction(const std::string& functionName)
-{
 	if (functionName == k_printCharucoMarkerFunctionId)
 	{
 		//TODO
 		return true;
 	}
 
-	return MikanObjectSystem::invokeFunction(functionName);
+	return MikanObjectSystem::invokeFunctionFromRml(functionDesc);
 }

@@ -158,14 +158,6 @@ void MikanComponent::onDefinitionMarkedDirty(
 	CommonConfigPtr configPtr, 
 	const ConfigPropertyChangeSet& changedPropertySet)
 {
-	if (OnPropertyChanged)
-	{
-		// TODO: Only notify for property names that are actually exposed in getPropertyNames()
-		for (const std::string& changedPropertyName : changedPropertySet.getSet())
-		{
-			OnPropertyChanged(changedPropertyName);
-		}
-	}
 }
 
 IMkWindow* MikanComponent::getOwnerWindow() const
@@ -192,36 +184,21 @@ ObjectSystemManager* MikanComponent::getOwnerObjectSystemManager() const
 	return getOwnerObject()->getOwnerSystem()->getOwnerObjectSystemManager();
 }
 
-// -- IPropertyInterface ----
-void MikanComponent::getPropertyNamesStatic(std::vector<std::string>& outPropertyNames)
+// -- IRmlPropertyInterface ----
+void MikanComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
 {
-	outPropertyNames.push_back(MikanComponentDefinition::k_componentNamePropertyId);
-	outPropertyNames.push_back(MikanComponentDefinition::k_componentScriptPathPropertyId);
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			MikanComponentDefinition::k_componentNamePropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			MikanComponentDefinition::k_componentScriptPathPropertyId));
 }
 
-void MikanComponent::getPropertyNames(std::vector<std::string>& outPropertyNames) const
+bool MikanComponent::getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, Rml::Variant& outValue) const
 {
-	getPropertyNamesStatic(outPropertyNames);
-}
+	const std::string& propertyName = propertyDesc->getName();
 
-bool MikanComponent::getPropertyDescriptor(const std::string& propertyName, PropertyDescriptor& outDescriptor) const
-{
-	if (propertyName == MikanComponentDefinition::k_componentNamePropertyId)
-	{
-		outDescriptor= {MikanComponentDefinition::k_componentNamePropertyId, ePropertyDataType::datatype_string, ePropertySemantic::name};
-		return true;
-	}
-	else if (propertyName == MikanComponentDefinition::k_componentScriptPathPropertyId)
-	{
-		outDescriptor = {MikanComponentDefinition::k_componentScriptPathPropertyId, ePropertyDataType::datatype_string, ePropertySemantic::filename};
-		return true;
-	}
-
-	return false;
-}
-
-bool MikanComponent::getPropertyValue(const std::string& propertyName, Rml::Variant& outValue) const
-{
 	if (propertyName == MikanComponentDefinition::k_componentNamePropertyId)
 	{
 		outValue= getName();
@@ -236,29 +213,10 @@ bool MikanComponent::getPropertyValue(const std::string& propertyName, Rml::Vari
 	return false;
 }
 
-bool MikanComponent::getPropertyAttribute(const std::string& propertyName, const std::string& attributeName, Rml::Variant& outValue) const
+bool MikanComponent::setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const Rml::Variant& inValue)
 {
-	if (propertyName == MikanComponentDefinition::k_componentScriptPathPropertyId)
-	{
-		if (attributeName == *k_PropertyAttributeFileBrowseTitle)
-		{
-			outValue = "Select a script";
-		}
-		else if (attributeName == *k_PropertyAttributeFileBrowseFilter)
-		{
-			outValue = ".lua";
-		}
-		else if (attributeName == *k_PropertyAttributeFileBrowseFilterDesc)
-		{
-			outValue = "Lua Script Files (.lua)";
-		}
-	}
+	const std::string& propertyName = propertyDesc->getName();
 
-	return false;
-}
-
-bool MikanComponent::setPropertyValue(const std::string& propertyName, const Rml::Variant& inValue)
-{
 	if (propertyName == MikanComponentDefinition::k_componentNamePropertyId)
 	{
 		setName(inValue.Get<Rml::String>());
@@ -282,22 +240,12 @@ bool MikanComponent::setPropertyValue(const std::string& propertyName, const Rml
 	return false;
 }
 
-// -- IFunctionInterface ----
-void MikanComponent::getFunctionNamesStatic(std::vector<std::string>& outPropertyNames)
+// -- IRmlFunctionInterface ----
+void MikanComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
 {
 }
 
-void MikanComponent::getFunctionNames(std::vector<std::string>& outPropertyNames) const
-{
-	getFunctionNamesStatic(outPropertyNames);
-}
-
-bool MikanComponent::getFunctionDescriptor(const std::string& functionName, FunctionDescriptor& outDescriptor) const
-{
-	return false;
-}
-
-bool MikanComponent::invokeFunction(const std::string& propertyName)
+bool MikanComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
 {
 	return false;
 }

@@ -140,7 +140,7 @@ void RmlModel_ProjectMarkers::setSelectedMarkerId(MikanMarkerID markerId)
 
 		if (MarkerComponentPtr markerComponent = getSelectedMarker())
 		{
-			m_selectedMarkerModel->setPropertyInterface(markerComponent.get());
+			m_selectedMarkerModel->setPropertyInterface(markerComponent, markerComponent->getDefinition());
 		}
 		else
 		{
