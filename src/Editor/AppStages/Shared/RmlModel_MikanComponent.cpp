@@ -19,7 +19,7 @@ bool RmlModel_MikanComponent::init(Rml::Context* rmlContext)
 	return true;
 }
 
-void RmlModel_MikanComponent::setComponent(MikanComponentPtr component)
+bool RmlModel_MikanComponent::setComponent(MikanComponentPtr component)
 {
 	MikanComponentPtr oldComponent = m_component.lock();
 
@@ -28,6 +28,16 @@ void RmlModel_MikanComponent::setComponent(MikanComponentPtr component)
 		m_component = component;
 		m_propertyInterface->setPropertyInterface(component, component->getDefinition());
 		m_propertyInterface->setFunctionInterface(component);
+
+		return true;
 	}
+
+	return false;
+}
+
+void RmlModel_MikanComponent::dispose()
+{
+	m_propertyInterface->dispose();
+	m_component.reset();
 }
 

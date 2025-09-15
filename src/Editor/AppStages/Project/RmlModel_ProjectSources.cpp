@@ -49,36 +49,7 @@ bool RmlModel_ProjectSources::init(
 		videoSourceConfig,
 		"video_source_ids",
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			VideoSourceSystemConfigPtr videoSourceConfig = m_projectConfig.lock()->videoSourceSystemConfig;
-
-			for (const auto& clientVideoSourcePtr : videoSourceConfig->getClientVideoSourceList())
-			{
-				if (clientVideoSourcePtr)
-				{
-					outComponentIdList.push_back((int)clientVideoSourcePtr->getVideoSourceId());
-				}
-			}
-			for (const auto& usbVideoSourcePtr : videoSourceConfig->getUSBVideoSourceList())
-			{
-				if (usbVideoSourcePtr)
-				{
-					outComponentIdList.push_back((int)usbVideoSourcePtr->getVideoSourceId());
-				}
-			}
-			for (const auto& networkVideoSourcePtr : videoSourceConfig->getNetworkedVideoSourceList())
-			{
-				if (networkVideoSourcePtr)
-				{
-					outComponentIdList.push_back((int)networkVideoSourcePtr->getVideoSourceId());
-				}
-			}
-			for (const auto& spoutVideoSourcePtr : videoSourceConfig->getSpoutVideoSourceList())
-			{
-				if (spoutVideoSourcePtr)
-				{
-					outComponentIdList.push_back((int)spoutVideoSourcePtr->getVideoSourceId());
-				}
-			}
+			outComponentIdList= m_videoSourceSystem.lock()->getVideoSourceIdList();
 		});
 
 	// Register Data Model Fields

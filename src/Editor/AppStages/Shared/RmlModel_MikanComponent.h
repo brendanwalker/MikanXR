@@ -12,7 +12,8 @@ public:
 	RmlModel_MikanComponent();
 
 	virtual bool init(Rml::Context* rmlContext);
-	virtual void setComponent(MikanComponentPtr component);
+	virtual bool setComponent(MikanComponentPtr component);
+	virtual void dispose();
 
 protected:
 	MikanComponentWeakPtr m_component;

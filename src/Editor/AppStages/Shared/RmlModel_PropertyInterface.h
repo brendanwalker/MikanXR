@@ -4,6 +4,7 @@
 #include "RmlPropertyInterface.h"
 #include "RmlFunctionInterface.h"
 #include "Shared/RmlModel.h"
+#include "RmlFwd.h"
 
 #include <memory>
 #include <string>
@@ -12,10 +13,13 @@
 class RmlModel_PropertyInterface : public RmlModel
 {
 public:
+	using OnConstruct = std::function<bool(Rml::DataModelConstructor&)>;
+
 	template <class t_property_interface>
 	bool init(
-		Rml::Context* rmlContext,		
-		const std::string& modelName)
+		Rml::Context* rmlContext,
+		const std::string& modelName,
+		OnConstruct onContructCallback = {})
 	{
 		std::vector<RmlPropertyDescriptorConstPtr> propertyNames;
 		t_property_interface::getRmlPropertyDescriptors(propertyNames);
@@ -27,14 +31,16 @@ public:
 			rmlContext,
 			modelName,
 			propertyNames,
-			functionNames);
+			functionNames,
+			onContructCallback);
 	}
 
 	bool init(
 		Rml::Context* rmlContext,
 		const std::string& modelName,
 		const std::vector<RmlPropertyDescriptorConstPtr>& propertyDescriptors,
-		const std::vector<RmlFunctionDescriptorConstPtr>& functionDescriptors);
+		const std::vector<RmlFunctionDescriptorConstPtr>& functionDescriptors,
+		OnConstruct onContructCallback);
 
 	void setPropertyInterface(
 		IRmlPropertyInterfacePtr propertyInterface,

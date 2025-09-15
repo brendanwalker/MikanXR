@@ -9,7 +9,8 @@ bool RmlModel_PropertyInterface::init(
 	Rml::Context* rmlContext,
 	const std::string& modelName,
 	const std::vector<RmlPropertyDescriptorConstPtr>& propertyDescriptors,
-	const std::vector<RmlFunctionDescriptorConstPtr>& functionDescriptors)
+	const std::vector<RmlFunctionDescriptorConstPtr>& functionDescriptors,
+	OnConstruct onContructCallback)
 {
 	m_propertyChangeEventSource.reset();
 	m_propertyInterface.reset();
@@ -74,6 +75,12 @@ bool RmlModel_PropertyInterface::init(
 					functionInterface->invokeFunctionFromRml(functionDescriptor);
 				}
 			});
+	}
+
+	// Handle any custom construction steps
+	if (onContructCallback && !onContructCallback(constructor))
+	{
+		return false;
 	}
 
 	return true;

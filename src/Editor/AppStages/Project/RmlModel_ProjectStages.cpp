@@ -6,6 +6,7 @@
 #include "MikanCoreTypes.h"
 #include "ProjectConfig.h"
 #include "Shared/RmlModel_PropertyInterface.h"
+#include "Shared/RmlModel_CameraComponent.h"
 #include "StageComponent.h"
 #include "StageObjectSystem.h"
 #include "StringUtils.h"
@@ -19,7 +20,7 @@ RmlModel_ProjectStages::RmlModel_ProjectStages()
 	, m_cameraIdList(std::make_shared<RmlDataBinding_ComponentList>())
 	, m_compositorIdList(std::make_shared<RmlDataBinding_ComponentList>())
 	, m_selectedStageModel(std::make_shared<RmlModel_PropertyInterface>())
-	, m_selectedCameraModel(std::make_shared<RmlModel_PropertyInterface>())
+	, m_selectedCameraModel(std::make_shared<RmlModel_CameraComponent>())
 	, m_selectedCompositorModel(std::make_shared<RmlModel_PropertyInterface>())
 {
 }
@@ -109,9 +110,7 @@ bool RmlModel_ProjectStages::init(
 	m_selectedStageModel->init<StageComponent>(
 		rmlContext,
 		"stage_definition");
-	m_selectedCameraModel->init<CameraComponent>(
-		rmlContext,
-		"camera_definition");
+	m_selectedCameraModel->init(rmlContext);
 	m_selectedCompositorModel->init<CompositorComponent>(
 		rmlContext,
 		"compositor_definition");
@@ -346,11 +345,11 @@ void RmlModel_ProjectStages::setSelectedCameraId(MikanCameraID cameraId)
 
 		if (CameraComponentPtr cameraComponent = getSelectedCamera())
 		{
-			m_selectedCameraModel->setPropertyInterface(cameraComponent, cameraComponent->getDefinition());
+			m_selectedCameraModel->setComponent(cameraComponent);
 		}
 		else
 		{
-			m_selectedCameraModel->setPropertyInterface(nullptr);
+			m_selectedCameraModel->setComponent(nullptr);
 		}
 	}
 }

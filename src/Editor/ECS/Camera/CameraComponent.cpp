@@ -259,6 +259,11 @@ VRTrackingVolumeDefinitionConstPtr CameraComponent::getVRTrackingVolumeDefinitio
 	return VRTrackingVolumeDefinitionConstPtr();
 }
 
+VRTrackingVolumeDefinitionPtr CameraComponent::getVRTrackingVolumeDefinitionMutable() 
+{
+	return std::const_pointer_cast<VRTrackingVolumeDefinition>(getVRTrackingVolumeDefinition());
+}
+
 TrackingMountDefinitionConstPtr CameraComponent::getTrackingMountDefinition() const
 {
 	CameraDefinitionPtr cameraDefinition = getCameraDefinition();

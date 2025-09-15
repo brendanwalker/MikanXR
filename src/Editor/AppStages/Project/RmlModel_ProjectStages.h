@@ -11,6 +11,9 @@
 #include "Shared/RmlModel_PropertyInterface.h"
 #include "SinglecastDelegate.h"
 
+class RmlModel_CameraComponent;
+using RmlModel_CameraComponentPtr = std::shared_ptr<RmlModel_CameraComponent>;
+
 class RmlModel_ProjectStages : public RmlModel
 {
 public:
@@ -59,7 +62,7 @@ private:
 	RmlDataBinding_ComponentListPtr m_cameraIdList;
 	RmlDataBinding_ComponentListPtr m_compositorIdList;
 	RmlModel_PropertyInterfacePtr m_selectedStageModel;
-	RmlModel_PropertyInterfacePtr m_selectedCameraModel;
+	RmlModel_CameraComponentPtr m_selectedCameraModel;
 	RmlModel_PropertyInterfacePtr m_selectedCompositorModel;
 
 	int m_selectedStageId = -1; // MikanStageID
