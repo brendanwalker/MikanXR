@@ -7,6 +7,7 @@
 #include "ProjectConfig.h"
 #include "Shared/RmlModel_PropertyInterface.h"
 #include "Shared/RmlModel_CameraComponent.h"
+#include "Shared/RmlModel_StageComponent.h"
 #include "StageComponent.h"
 #include "StageObjectSystem.h"
 #include "StringUtils.h"
@@ -19,7 +20,7 @@ RmlModel_ProjectStages::RmlModel_ProjectStages()
 	: m_stageIdList(std::make_shared<RmlDataBinding_ComponentList>())
 	, m_cameraIdList(std::make_shared<RmlDataBinding_ComponentList>())
 	, m_compositorIdList(std::make_shared<RmlDataBinding_ComponentList>())
-	, m_selectedStageModel(std::make_shared<RmlModel_PropertyInterface>())
+	, m_selectedStageModel(std::make_shared<RmlModel_StageComponent>())
 	, m_selectedCameraModel(std::make_shared<RmlModel_CameraComponent>())
 	, m_selectedCompositorModel(std::make_shared<RmlModel_PropertyInterface>())
 {
@@ -107,9 +108,7 @@ bool RmlModel_ProjectStages::init(
 	constructor.Bind("selected_compositor_id", &m_selectedCompositorId);
 
 	// Register Selected Object Models
-	m_selectedStageModel->init<StageComponent>(
-		rmlContext,
-		"stage_definition");
+	m_selectedStageModel->init(rmlContext);
 	m_selectedCameraModel->init(rmlContext);
 	m_selectedCompositorModel->init<CompositorComponent>(
 		rmlContext,
@@ -322,14 +321,14 @@ void RmlModel_ProjectStages::setSelectedStageId(MikanStageID stageId)
 		{
 			StageComponentDefinitionPtr stageDefinition= stageComponent->getStageComponentDefinition();
 
-			m_selectedStageModel->setPropertyInterface(stageComponent, stageComponent->getDefinition());
-			
+			m_selectedStageModel->setComponent(stageComponent);
+
 			m_cameraIdList->setOwnerConfig(stageDefinition);
 			m_compositorIdList->setOwnerConfig(stageDefinition);
 		}
 		else
 		{
-			m_selectedStageModel->setPropertyInterface(nullptr);
+			m_selectedStageModel->setComponent(nullptr);
 			m_cameraIdList->setOwnerConfig(CommonConfigPtr());
 			m_compositorIdList->setOwnerConfig(CommonConfigPtr());
 		}

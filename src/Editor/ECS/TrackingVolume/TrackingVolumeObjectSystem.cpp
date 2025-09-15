@@ -317,6 +317,17 @@ TrackingVolumeObjectSystemConfigPtr TrackingVolumeObjectSystem::getTrackingVolum
 	return App::getInstance()->getProfileConfig()->trackingVolumeSystemConfig;
 }
 
+TrackingVolumeIdList TrackingVolumeObjectSystem::getTrackingVolumeIdList() const
+{
+	TrackingVolumeIdList trackingVolumeIdList;
+	for (const auto& it : m_trackingVolumeComponents)
+	{
+		trackingVolumeIdList.push_back(it.first);
+	}
+
+	return trackingVolumeIdList;
+}
+
 TrackingVolumeComponentPtr TrackingVolumeObjectSystem::getTrackingVolumeById(MikanTrackingVolumeID trackingVolumeId) const
 {
 	auto it = m_trackingVolumeComponents.find(trackingVolumeId);

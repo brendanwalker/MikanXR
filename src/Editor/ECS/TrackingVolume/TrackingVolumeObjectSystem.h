@@ -18,6 +18,7 @@
 #include <vector>
 
 using TrackingVolumeMap = std::map<MikanTrackingVolumeID, TrackingVolumeComponentWeakPtr>;
+using TrackingVolumeIdList = std::vector<MikanTrackingVolumeID>;
 
 class TrackingVolumeObjectSystemConfig : public CommonConfig
 {
@@ -70,6 +71,7 @@ public:
 	TrackingVolumeObjectSystemConfigPtr getTrackingVolumeSystemConfig();
 
 	const TrackingVolumeMap& getTrackingVolumeMap() const { return m_trackingVolumeComponents; }
+	TrackingVolumeIdList getTrackingVolumeIdList() const;
 	TrackingVolumeComponentPtr getTrackingVolumeById(MikanTrackingVolumeID trackingVolumeId) const;
 	MarkerTrackingVolumeComponentPtr getMarkerTrackingVolumeById(MikanTrackingVolumeID trackingVolumeId) const;
 	VRTrackingVolumeComponentPtr getVRTrackingVolumeById(MikanTrackingVolumeID trackingVolumeId) const;
