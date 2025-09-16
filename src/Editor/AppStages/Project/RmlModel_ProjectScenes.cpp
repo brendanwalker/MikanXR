@@ -19,8 +19,9 @@
 #include "StencilObjectSystemConfig.h"
 #include "RmlModel_ProjectScenes.h"
 #include "ProjectConfig.h"
+#include "Shared/RmlModel_AnchorComponent.h"
 #include "Shared/RmlModel_CompositorComponent.h"
-#include "Shared/RmlModel_TransformComponent.h"
+#include "Shared/RmlModel_StencilComponent.h"
 #include "StringUtils.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
@@ -33,11 +34,11 @@ RmlModel_ProjectScenes::RmlModel_ProjectScenes()
 	: m_stageIdList(std::make_shared<RmlDataBinding_ComponentList>())
 	, m_sceneIdList(std::make_shared<RmlDataBinding_ComponentList>())
 	, m_compositorIdList(std::make_shared<RmlDataBinding_ComponentList>())
-	, m_selectedAnchorModel(std::make_shared<RmlModel_TransformComponent>())
+	, m_selectedAnchorModel(std::make_shared<RmlModel_AnchorComponent>())
 	, m_selectedCompositorModel(std::make_shared<RmlModel_CompositorComponent>())
-	, m_selectedBoxStencilModel(std::make_shared<RmlModel_TransformComponent>())
-	, m_selectedModelStencilModel(std::make_shared<RmlModel_TransformComponent>())
-	, m_selectedQuadStencilModel(std::make_shared<RmlModel_TransformComponent>())
+	, m_selectedBoxStencilModel(std::make_shared<RmlModel_StencilComponent>())
+	, m_selectedModelStencilModel(std::make_shared<RmlModel_StencilComponent>())
+	, m_selectedQuadStencilModel(std::make_shared<RmlModel_StencilComponent>())
 	, m_selectedSceneModel(std::make_shared<RmlModel_PropertyInterface>())
 {
 }

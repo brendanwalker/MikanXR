@@ -7,10 +7,14 @@
 #include "Shared/RmlModel_PropertyInterface.h"
 #include "SinglecastDelegate.h"
 
+class RmlModel_AnchorComponent;
+using RmlModel_AnchorComponentPtr = std::shared_ptr<RmlModel_AnchorComponent>;
+
 class RmlModel_CompositorComponent;
-class RmlModel_TransformComponent;
 using RmlModel_CompositorComponentPtr = std::shared_ptr<RmlModel_CompositorComponent>;
-using RmlModel_TransformComponentPtr = std::shared_ptr<RmlModel_TransformComponent>;
+
+class RmlModel_StencilComponent;
+using RmlModel_StencilComponentPtr = std::shared_ptr<RmlModel_StencilComponent>;
 
 struct RmlModel_SceneObject
 {
@@ -76,11 +80,11 @@ private:
 	RmlDataBinding_ComponentListPtr m_stageIdList;
 	RmlDataBinding_ComponentListPtr m_sceneIdList;
 	RmlDataBinding_ComponentListPtr m_compositorIdList;
-	RmlModel_TransformComponentPtr m_selectedAnchorModel;
+	RmlModel_AnchorComponentPtr m_selectedAnchorModel;
 	RmlModel_CompositorComponentPtr m_selectedCompositorModel;
-	RmlModel_TransformComponentPtr m_selectedBoxStencilModel;
-	RmlModel_TransformComponentPtr m_selectedModelStencilModel;
-	RmlModel_TransformComponentPtr m_selectedQuadStencilModel;
+	RmlModel_StencilComponentPtr m_selectedBoxStencilModel;
+	RmlModel_StencilComponentPtr m_selectedModelStencilModel;
+	RmlModel_StencilComponentPtr m_selectedQuadStencilModel;
 	RmlModel_PropertyInterfacePtr m_selectedSceneModel;
 
 	int m_selectedStageId = -1; // MikanStageID
