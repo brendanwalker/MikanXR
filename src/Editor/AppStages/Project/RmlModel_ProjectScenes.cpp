@@ -19,6 +19,8 @@
 #include "StencilObjectSystemConfig.h"
 #include "RmlModel_ProjectScenes.h"
 #include "ProjectConfig.h"
+#include "Shared/RmlModel_CompositorComponent.h"
+#include "Shared/RmlModel_TransformComponent.h"
 #include "StringUtils.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
@@ -31,11 +33,11 @@ RmlModel_ProjectScenes::RmlModel_ProjectScenes()
 	: m_stageIdList(std::make_shared<RmlDataBinding_ComponentList>())
 	, m_sceneIdList(std::make_shared<RmlDataBinding_ComponentList>())
 	, m_compositorIdList(std::make_shared<RmlDataBinding_ComponentList>())
-	, m_selectedAnchorModel(std::make_shared<RmlModel_PropertyInterface>())
-	, m_selectedCompositorModel(std::make_shared<RmlModel_PropertyInterface>())
-	, m_selectedBoxStencilModel(std::make_shared<RmlModel_PropertyInterface>())
-	, m_selectedModelStencilModel(std::make_shared<RmlModel_PropertyInterface>())
-	, m_selectedQuadStencilModel(std::make_shared<RmlModel_PropertyInterface>())
+	, m_selectedAnchorModel(std::make_shared<RmlModel_TransformComponent>())
+	, m_selectedCompositorModel(std::make_shared<RmlModel_CompositorComponent>())
+	, m_selectedBoxStencilModel(std::make_shared<RmlModel_TransformComponent>())
+	, m_selectedModelStencilModel(std::make_shared<RmlModel_TransformComponent>())
+	, m_selectedQuadStencilModel(std::make_shared<RmlModel_TransformComponent>())
 	, m_selectedSceneModel(std::make_shared<RmlModel_PropertyInterface>())
 {
 }
@@ -131,11 +133,11 @@ bool RmlModel_ProjectScenes::init(
 	}
 
 	// Register Selected Object Models
-	m_selectedAnchorModel->init<AnchorComponent>(rmlContext, "anchor_model");
-	m_selectedCompositorModel->init<CompositorComponent>(rmlContext, "compositor_model");
-	m_selectedBoxStencilModel->init<BoxStencilComponent>(rmlContext, "box_stencil_model");
-	m_selectedModelStencilModel->init<ModelStencilComponent>(rmlContext, "model_stencil_model");
-	m_selectedQuadStencilModel->init<ModelStencilComponent>(rmlContext, "quad_stencil_model");
+	m_selectedAnchorModel->init(rmlContext);
+	m_selectedCompositorModel->init(rmlContext);
+	m_selectedBoxStencilModel->init(rmlContext);
+	m_selectedModelStencilModel->init(rmlContext);
+	m_selectedQuadStencilModel->init(rmlContext);
 	m_selectedSceneModel->init<SceneComponent>(rmlContext, "scene_model");
 
 	// Register Data Model Fields
@@ -413,11 +415,11 @@ void RmlModel_ProjectScenes::setSelectedCompositorId(int compositorId)
 
 		if (auto compositorComponent = getSelectedCompositorComponent())
 		{
-			m_selectedCompositorModel->setPropertyInterface(compositorComponent, compositorComponent->getDefinition());
+			m_selectedCompositorModel->setComponent(compositorComponent);
 		}
 		else
 		{
-			m_selectedCompositorModel->setPropertyInterface(nullptr);
+			m_selectedCompositorModel->setComponent(nullptr);
 		}
 	}
 }
