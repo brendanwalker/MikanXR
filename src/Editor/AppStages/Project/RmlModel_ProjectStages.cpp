@@ -8,6 +8,7 @@
 #include "Shared/RmlModel_PropertyInterface.h"
 #include "Shared/RmlModel_CameraComponent.h"
 #include "Shared/RmlModel_StageComponent.h"
+#include "Shared/RmlModel_CompositorComponent.h"
 #include "StageComponent.h"
 #include "StageObjectSystem.h"
 #include "StringUtils.h"
@@ -22,7 +23,7 @@ RmlModel_ProjectStages::RmlModel_ProjectStages()
 	, m_compositorIdList(std::make_shared<RmlDataBinding_ComponentList>())
 	, m_selectedStageModel(std::make_shared<RmlModel_StageComponent>())
 	, m_selectedCameraModel(std::make_shared<RmlModel_CameraComponent>())
-	, m_selectedCompositorModel(std::make_shared<RmlModel_PropertyInterface>())
+	, m_selectedCompositorModel(std::make_shared<RmlModel_CompositorComponent>())
 {
 }
 
@@ -110,9 +111,7 @@ bool RmlModel_ProjectStages::init(
 	// Register Selected Object Models
 	m_selectedStageModel->init(rmlContext);
 	m_selectedCameraModel->init(rmlContext);
-	m_selectedCompositorModel->init<CompositorComponent>(
-		rmlContext,
-		"compositor_definition");
+	m_selectedCompositorModel->init(rmlContext);
 
 	// Bind data model callbacks
 	constructor.BindEventCallback("add_new_stage", &RmlModel_ProjectStages::addNewStage, this);
@@ -362,11 +361,11 @@ void RmlModel_ProjectStages::setSelectedCompositorId(MikanCompositorID composito
 
 		if (CompositorComponentPtr compositorComponent = getSelectedCompositor())
 		{
-			m_selectedCompositorModel->setPropertyInterface(compositorComponent, compositorComponent->getDefinition());
+			m_selectedCompositorModel->setComponent(compositorComponent);
 		}
 		else
 		{
-			m_selectedCompositorModel->setPropertyInterface(nullptr);
+			m_selectedCompositorModel->setComponent(nullptr);
 		}
 	}
 }

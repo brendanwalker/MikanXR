@@ -17,6 +17,9 @@ using RmlModel_CameraComponentPtr = std::shared_ptr<RmlModel_CameraComponent>;
 class RmlModel_StageComponent;
 using RmlModel_StageComponentPtr = std::shared_ptr<RmlModel_StageComponent>;
 
+class RmlModel_CompositorComponent;
+using RmlModel_CompositorComponentPtr = std::shared_ptr<RmlModel_CompositorComponent>;
+
 class RmlModel_ProjectStages : public RmlModel
 {
 public:
@@ -66,7 +69,7 @@ private:
 	RmlDataBinding_ComponentListPtr m_compositorIdList;
 	RmlModel_StageComponentPtr m_selectedStageModel;
 	RmlModel_CameraComponentPtr m_selectedCameraModel;
-	RmlModel_PropertyInterfacePtr m_selectedCompositorModel;
+	RmlModel_CompositorComponentPtr m_selectedCompositorModel;
 
 	int m_selectedStageId = -1; // MikanStageID
 	int m_selectedCameraId = -1; // MikanCameraID
