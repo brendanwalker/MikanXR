@@ -1,6 +1,7 @@
 #include "TransformComponent.h"
-#include "RmlModel_StencilComponent.h"
+#include "Shared/RmlModel_StencilComponent.h"
 #include "Shared/RmlDataBinding_List.h"
+#include "Shared/RmlModel_PropertyInterface.h"
 #include "StencilObjectSystem.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
