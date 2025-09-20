@@ -77,6 +77,7 @@ public:
 	int getVideoModeIndex() const;
 	bool setVideoModeByName(const std::string& videoModeName);
 	bool setVideoModeByIndex(size_t index);
+	bool getVideoModeNames(std::vector<std::string>& outVideoModeNames) const;
 
 	// -- IUsbVideoDeviceListener ----
 	virtual void notifyVideoDeviceDisconnected(const IUsbVideoDevice* device) override;

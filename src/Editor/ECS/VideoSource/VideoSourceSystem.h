@@ -14,17 +14,6 @@
 
 #include <glm/glm.hpp>
 
-// Forward declarations
-class ClientVideoSourceSystem;
-class NetworkVideoSourceSystem;
-class SpoutVideoSourceSystem;
-class USBVideoSourceSystem;
-
-using ClientVideoSourceSystemPtr = std::shared_ptr<ClientVideoSourceSystem>;
-using NetworkVideoSourceSystemPtr = std::shared_ptr<NetworkVideoSourceSystem>;
-using SpoutVideoSourceSystemPtr = std::shared_ptr<SpoutVideoSourceSystem>;
-using USBVideoSourceSystemPtr = std::shared_ptr<USBVideoSourceSystem>;
-
 class VideoSourceSystem : public MikanObjectSystem
 {
 public:

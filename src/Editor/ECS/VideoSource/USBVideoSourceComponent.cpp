@@ -583,6 +583,28 @@ bool USBVideoSourceComponent::setVideoModeByIndex(size_t index)
 	return false;
 }
 
+bool USBVideoSourceComponent::getVideoModeNames(std::vector<std::string>& outVideoModeNames) const
+{
+	if (m_usbVideoDevice != nullptr)
+	{
+		size_t modeCount = m_usbVideoDevice->getAvailableVideoModesCount();
+		outVideoModeNames.clear();
+		outVideoModeNames.reserve(modeCount);
+		for (size_t i = 0; i < modeCount; ++i)
+		{
+			UsbVideoModeProperties modeProperties;
+			if (m_usbVideoDevice->getVideoModeProperties(i, modeProperties))
+			{
+				outVideoModeNames.push_back(modeProperties.name);
+			}
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
 void USBVideoSourceComponent::notifyVideoDeviceDisconnected(const IUsbVideoDevice* device)
 {
 	if (device == m_usbVideoDevice)

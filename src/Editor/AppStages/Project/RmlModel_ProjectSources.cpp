@@ -6,6 +6,7 @@
 #include "NetworkVideoSourceSystem.h"
 #include "ProjectConfig.h"
 #include "Shared/RmlModel_PropertyInterface.h"
+#include "Shared/RmlModel_USBVideoSourceComponent.h"
 #include "Shared/RmlDataBinding_List.h"
 #include "SpoutVideoSourceComponent.h"
 #include "SpoutVideoSourceSystem.h"
@@ -23,7 +24,7 @@
 RmlModel_ProjectSources::RmlModel_ProjectSources()
 	: m_videoSourceIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 	, m_selectedClientVideoSourceModel(std::make_shared<RmlModel_PropertyInterface>())
-	, m_selectedUSBVideoSourceModel(std::make_shared<RmlModel_PropertyInterface>())
+	, m_selectedUSBVideoSourceModel(std::make_shared<RmlModel_USBVideoSourceComponent>())
 	, m_selectedNetworkVideoSourceModel(std::make_shared<RmlModel_PropertyInterface>())
 	, m_selectedSpoutVideoSourceModel(std::make_shared<RmlModel_PropertyInterface>())
 {
@@ -60,9 +61,7 @@ bool RmlModel_ProjectSources::init(
 	m_selectedClientVideoSourceModel->init<ClientVideoSourceComponent>(
 		rmlContext,
 		"client_video_source_definition");
-	m_selectedUSBVideoSourceModel->init<USBVideoSourceComponent>(
-		rmlContext,
-		"usb_video_source_definition");
+	m_selectedUSBVideoSourceModel->init(rmlContext);
 	m_selectedNetworkVideoSourceModel->init<NetworkVideoSourceComponent>(
 		rmlContext,
 		"network_video_source_definition");
@@ -211,7 +210,7 @@ void RmlModel_ProjectSources::setSelectedVideoSourceId(MikanVideoSourceID videoS
 
 		// Reset all models first
 		m_selectedClientVideoSourceModel->setPropertyInterface(nullptr);
-		m_selectedUSBVideoSourceModel->setPropertyInterface(nullptr);
+		m_selectedUSBVideoSourceModel->setComponent(nullptr);
 		m_selectedNetworkVideoSourceModel->setPropertyInterface(nullptr);
 		m_selectedSpoutVideoSourceModel->setPropertyInterface(nullptr);
 
@@ -227,7 +226,7 @@ void RmlModel_ProjectSources::setSelectedVideoSourceId(MikanVideoSourceID videoS
 			case eVideoSourceType::usb:
 				if (USBVideoSourceComponentPtr usbSource = getSelectedUSBVideoSource())
 				{
-					m_selectedUSBVideoSourceModel->setPropertyInterface(usbSource, usbSource->getDefinition());
+					m_selectedUSBVideoSourceModel->setComponent(usbSource);
 				}
 				break;
 			case eVideoSourceType::networked:

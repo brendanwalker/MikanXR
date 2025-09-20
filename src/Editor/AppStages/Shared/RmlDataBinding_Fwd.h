@@ -17,6 +17,12 @@ using RmlDataBinding_VRDevicePathListPtr = std::shared_ptr<RmlDataBinding_VRDevi
 using RmlDataBinding_SocketNameList = RmlDataBinding_List<std::string>;
 using RmlDataBinding_SocketNameListPtr = std::shared_ptr<RmlDataBinding_SocketNameList>;
 
+using RmlDataBinding_USBDevicePathList = RmlDataBinding_List<std::string>;
+using RmlDataBinding_USBDevicePathListPtr = std::shared_ptr<RmlDataBinding_USBDevicePathList>;
+
+using RmlDataBinding_VideoModeList = RmlDataBinding_List<std::string>;
+using RmlDataBinding_VideoModeListPtr = std::shared_ptr<RmlDataBinding_VideoModeList>;
+
 class RmlModel_AnchorComponent;
 using RmlModel_AnchorComponentPtr = std::shared_ptr<RmlModel_AnchorComponent>;
 
@@ -43,3 +49,6 @@ using RmlModel_TrackingVolumeComponentPtr = std::shared_ptr<RmlModel_TrackingVol
 
 class RmlModel_TrackingMountComponent;
 using RmlModel_TrackingMountComponentPtr = std::shared_ptr<RmlModel_TrackingMountComponent>;
+
+class RmlModel_USBVideoSourceComponent;
+using RmlModel_USBVideoSourceComponentPtr = std::shared_ptr<RmlModel_USBVideoSourceComponent>;

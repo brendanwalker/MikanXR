@@ -10,6 +10,10 @@ class CameraObjectSystem;
 using CameraObjectSystemPtr = std::shared_ptr<CameraObjectSystem>;
 using CameraObjectSystemWeakPtr = std::weak_ptr<CameraObjectSystem>;
 
+class ClientVideoSourceSystem;
+using ClientVideoSourceSystemPtr = std::shared_ptr<ClientVideoSourceSystem>;
+using ClientVideoSourceSystemWeakPtr = std::weak_ptr<ClientVideoSourceSystem>;
+
 class CompositorObjectSystem;
 using CompositorObjectSystemPtr = std::shared_ptr<CompositorObjectSystem>;
 using CompositorObjectSystemWeakPtr = std::weak_ptr<CompositorObjectSystem>;
@@ -30,6 +34,10 @@ class MarkerObjectSystem;
 using MarkerObjectSystemPtr = std::shared_ptr<MarkerObjectSystem>;
 using MarkerObjectSystemWeakPtr = std::weak_ptr<MarkerObjectSystem>;
 
+class NetworkVideoSourceSystem;
+using NetworkVideoSourceSystemPtr = std::shared_ptr<NetworkVideoSourceSystem>;
+using NetworkVideoSourceSystemWeakPtr = std::weak_ptr<NetworkVideoSourceSystem>;
+
 class ObjectSystemManager;
 using ObjectSystemManagerPtr = std::shared_ptr<ObjectSystemManager>;
 using ObjectSystemManagerWeakPtr = std::weak_ptr<ObjectSystemManager>;
@@ -37,6 +45,10 @@ using ObjectSystemManagerWeakPtr = std::weak_ptr<ObjectSystemManager>;
 class SceneObjectSystem;
 using SceneObjectSystemPtr = std::shared_ptr<SceneObjectSystem>;
 using SceneObjectSystemWeakPtr = std::weak_ptr<SceneObjectSystem>;
+
+class SpoutVideoSourceSystem;
+using SpoutVideoSourceSystemPtr = std::shared_ptr<SpoutVideoSourceSystem>;
+using SpoutVideoSourceSystemWeakPtr = std::weak_ptr<SpoutVideoSourceSystem>;
 
 class StageObjectSystem;
 using StageObjectSystemPtr = std::shared_ptr<StageObjectSystem>;
@@ -53,6 +65,10 @@ using TrackingVolumeObjectSystemWeakPtr = std::weak_ptr<TrackingVolumeObjectSyst
 class TrackingMountObjectSystem;
 using TrackingMountObjectSystemPtr = std::shared_ptr<TrackingMountObjectSystem>;
 using TrackingMountObjectSystemWeakPtr = std::weak_ptr<TrackingMountObjectSystem>;
+
+class USBVideoSourceSystem;
+using USBVideoSourceSystemPtr = std::shared_ptr<USBVideoSourceSystem>;
+using USBVideoSourceSystemWeakPtr = std::weak_ptr<USBVideoSourceSystem>;
 
 class VideoSourceSystem;
 using VideoSourceSystemPtr = std::shared_ptr<VideoSourceSystem>;

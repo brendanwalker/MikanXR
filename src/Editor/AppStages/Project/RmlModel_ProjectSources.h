@@ -45,7 +45,7 @@ private:
 
 	RmlDataBinding_ComponentIdListPtr m_videoSourceIdList;
 	RmlModel_PropertyInterfacePtr m_selectedClientVideoSourceModel;
-	RmlModel_PropertyInterfacePtr m_selectedUSBVideoSourceModel;
+	RmlModel_USBVideoSourceComponentPtr m_selectedUSBVideoSourceModel;
 	RmlModel_PropertyInterfacePtr m_selectedNetworkVideoSourceModel;
 	RmlModel_PropertyInterfacePtr m_selectedSpoutVideoSourceModel;
 

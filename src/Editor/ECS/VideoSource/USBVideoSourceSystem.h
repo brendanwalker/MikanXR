@@ -50,5 +50,3 @@ private:
     IUsbVideoDeviceManagerPtr m_usbVideoDeviceManager = nullptr;
     USBVideoSourceMap m_usbVideoSourceComponents;
 };
-
-using USBVideoSourceSystemPtr = std::shared_ptr<USBVideoSourceSystem>;
