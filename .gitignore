@@ -54,6 +54,7 @@ deps
 #vscode
 .vs
 .vscode
+.claude
 
 #Mikan
 imgui.ini
