@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Shared/RmlModel_MikanComponent.h"
-#include "Shared/RmlDataBinding_ComponentList.h"
+#include "Shared/RmlDataBinding_Fwd.h"
 
 class RmlModel_AnchorComponent : public RmlModel_MikanComponent
 {
@@ -16,8 +16,6 @@ protected:
 	AnchorObjectSystemConfigPtr getAnchorObjectSystemConfig() const;
 
 private:
-	RmlDataBinding_ComponentListPtr m_stencilComponentIdList;
+	RmlDataBinding_ComponentIdListPtr m_stencilComponentIdList;
 	AnchorObjectSystemWeakPtr m_anchorObjectSystem;
 };
-
-using RmlModel_AnchorComponentPtr = std::shared_ptr<RmlModel_AnchorComponent>;

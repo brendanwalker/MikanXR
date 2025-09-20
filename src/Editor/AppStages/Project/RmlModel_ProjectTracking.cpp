@@ -4,6 +4,7 @@
 #include "RmlModel_ProjectTracking.h"
 #include "Shared/RmlModel_PropertyInterface.h"
 #include "Shared/RmlModel_TrackingVolumeComponent.h"
+#include "Shared/RmlDataBinding_List.h"
 #include "StringUtils.h"
 #include "TrackingMountComponent.h"
 #include "TrackingMountObjectSystem.h"
@@ -15,8 +16,8 @@
 #include <RmlUi/Core/Context.h>
 
 RmlModel_ProjectTracking::RmlModel_ProjectTracking()
-	: m_trackingVolumeIdList(std::make_shared<RmlDataBinding_ComponentList>())
-	, m_trackingMountIdList(std::make_shared<RmlDataBinding_ComponentList>())
+	: m_trackingVolumeIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
+	, m_trackingMountIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 	, m_selectedVRTrackingVolumeModel(std::make_shared<RmlModel_TrackingVolumeComponent>())
 	, m_selectedMarkerTrackingVolumeModel(std::make_shared<RmlModel_TrackingVolumeComponent>())
 	, m_selectedTrackingMountModel(std::make_shared<RmlModel_PropertyInterface>())
@@ -124,7 +125,7 @@ void RmlModel_ProjectTracking::trackingVolumeIdListChanged(bool bOwnerChanged)
 	if (!m_trackingVolumeIdList->isEmpty() &&
 		!m_trackingVolumeIdList->contains(m_selectedTrackingVolumeId))
 	{
-		selectedTrackingVolumeId = m_trackingVolumeIdList->getComponentIdList()[0];
+		selectedTrackingVolumeId = m_trackingVolumeIdList->getFirstValue();
 	}
 
 	setSelectedTrackingVolumeId(selectedTrackingVolumeId);
@@ -136,7 +137,7 @@ void RmlModel_ProjectTracking::trackingMountIdListChanged(bool bOwnerChanged)
 	if (!m_trackingMountIdList->isEmpty() &&
 		!m_trackingMountIdList->contains(m_selectedTrackingMountId))
 	{
-		selectedTrackingMountId = m_trackingMountIdList->getComponentIdList()[0];
+		selectedTrackingMountId = m_trackingMountIdList->getFirstValue();
 	}
 	setSelectedTrackingMountId(selectedTrackingMountId);
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ComponentFwd.h"
-#include "Shared/RmlModel_PropertyInterface.h"
+#include "Shared/RmlDataBinding_Fwd.h"
 #include "Shared/RmlModel.h"
 
 #include <memory>
@@ -19,5 +19,3 @@ protected:
 	MikanComponentWeakPtr m_component;
 	RmlModel_PropertyInterfacePtr m_propertyInterface;
 };
-
-using RmlModel_MikanComponentPtr = std::shared_ptr<RmlModel_MikanComponent>;

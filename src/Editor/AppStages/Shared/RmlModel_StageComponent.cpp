@@ -1,6 +1,7 @@
 #include "StageComponent.h"
 #include "RmlModel_StageComponent.h"
 #include "TrackingVolumeObjectSystem.h"
+#include "Shared/RmlDataBinding_List.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
@@ -8,7 +9,7 @@
 
 RmlModel_StageComponent::RmlModel_StageComponent()
 	: RmlModel_MikanComponent()
-	, m_trackingVolumeIdList(std::make_shared<RmlDataBinding_ComponentList>())
+	, m_trackingVolumeIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {}
 
 bool RmlModel_StageComponent::init(Rml::Context* rmlContext)
@@ -43,7 +44,7 @@ bool RmlModel_StageComponent::setComponent(MikanComponentPtr component)
 	if (RmlModel_MikanComponent::setComponent(component))
 	{
 		m_trackingVolumeIdList->setOwnerConfig(getTrackingVolumeObjectSystemConfig());
-		m_trackingVolumeIdList->rebuildComponentIdList(true);
+		m_trackingVolumeIdList->rebuildList(true);
 
 		return true;
 	}

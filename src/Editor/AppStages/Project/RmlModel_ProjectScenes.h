@@ -3,7 +3,7 @@
 #include "ObjectFwd.h"
 #include "ObjectSystemFwd.h"
 #include "Shared/RmlModel.h"
-#include "Shared/RmlDataBinding_ComponentList.h"
+#include "Shared/RmlDataBinding_Fwd.h"
 #include "Shared/RmlModel_PropertyInterface.h"
 #include "SinglecastDelegate.h"
 
@@ -77,9 +77,9 @@ private:
 	SceneObjectSystemWeakPtr m_sceneSystem;
 	StencilObjectSystemWeakPtr m_stencilSystem;
 
-	RmlDataBinding_ComponentListPtr m_stageIdList;
-	RmlDataBinding_ComponentListPtr m_sceneIdList;
-	RmlDataBinding_ComponentListPtr m_compositorIdList;
+	RmlDataBinding_ComponentIdListPtr m_stageIdList;
+	RmlDataBinding_ComponentIdListPtr m_sceneIdList;
+	RmlDataBinding_ComponentIdListPtr m_compositorIdList;
 	RmlModel_AnchorComponentPtr m_selectedAnchorModel;
 	RmlModel_CompositorComponentPtr m_selectedCompositorModel;
 	RmlModel_StencilComponentPtr m_selectedBoxStencilModel;

@@ -1,5 +1,6 @@
 #include "TransformComponent.h"
 #include "RmlModel_StencilComponent.h"
+#include "Shared/RmlDataBinding_List.h"
 #include "StencilObjectSystem.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
@@ -8,7 +9,7 @@
 
 RmlModel_StencilComponent::RmlModel_StencilComponent()
 	: RmlModel_MikanComponent()
-	, m_stencilComponentIdList(std::make_shared<RmlDataBinding_ComponentList>())
+	, m_stencilComponentIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {}
 
 bool RmlModel_StencilComponent::init(Rml::Context* rmlContext)
@@ -61,7 +62,7 @@ bool RmlModel_StencilComponent::setComponent(MikanComponentPtr component)
 	if (RmlModel_MikanComponent::setComponent(component))
 	{
 		m_stencilComponentIdList->setOwnerConfig(getStencilObjectSystemConfig());
-		m_stencilComponentIdList->rebuildComponentIdList(true);
+		m_stencilComponentIdList->rebuildList(true);
 
 		return true;
 	}

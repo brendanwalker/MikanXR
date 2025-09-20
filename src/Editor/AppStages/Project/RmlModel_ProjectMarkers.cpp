@@ -4,6 +4,7 @@
 #include "ProjectConfig.h"
 #include "RmlModel_ProjectMarkers.h"
 #include "Shared/RmlModel_PropertyInterface.h"
+#include "Shared/RmlDataBinding_List.h"
 #include "StringUtils.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
@@ -11,7 +12,7 @@
 #include <RmlUi/Core/Context.h>
 
 RmlModel_ProjectMarkers::RmlModel_ProjectMarkers()
-	: m_markerIdList(std::make_shared<RmlDataBinding_ComponentList>())
+	: m_markerIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 	, m_selectedMarkerModel(std::make_shared<RmlModel_PropertyInterface>())
 {
 }
@@ -82,7 +83,7 @@ void RmlModel_ProjectMarkers::markerIdListChanged(bool bOwnerChanged)
 	if (!m_markerIdList->isEmpty() &&
 		!m_markerIdList->contains(m_selectedMarkerId))
 	{
-		selectedMarkerId = m_markerIdList->getComponentIdList()[0];
+		selectedMarkerId = m_markerIdList->getFirstValue();
 	}
 
 	setSelectedMarkerId(selectedMarkerId);

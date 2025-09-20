@@ -9,6 +9,7 @@
 #include "Shared/RmlModel_CameraComponent.h"
 #include "Shared/RmlModel_StageComponent.h"
 #include "Shared/RmlModel_CompositorComponent.h"
+#include "Shared/RmlDataBinding_List.h"
 #include "StageComponent.h"
 #include "StageObjectSystem.h"
 #include "StringUtils.h"
@@ -18,9 +19,9 @@
 #include <RmlUi/Core/Context.h>
 
 RmlModel_ProjectStages::RmlModel_ProjectStages()
-	: m_stageIdList(std::make_shared<RmlDataBinding_ComponentList>())
-	, m_cameraIdList(std::make_shared<RmlDataBinding_ComponentList>())
-	, m_compositorIdList(std::make_shared<RmlDataBinding_ComponentList>())
+	: m_stageIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
+	, m_cameraIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
+	, m_compositorIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 	, m_selectedStageModel(std::make_shared<RmlModel_StageComponent>())
 	, m_selectedCameraModel(std::make_shared<RmlModel_CameraComponent>())
 	, m_selectedCompositorModel(std::make_shared<RmlModel_CompositorComponent>())
@@ -151,7 +152,7 @@ void RmlModel_ProjectStages::stageIdListChanged(bool bOwnerChanged)
 	if (!m_stageIdList->isEmpty() &&
 		!m_stageIdList->contains(m_selectedStageId))
 	{
-		selectedStageId = m_stageIdList->getComponentIdList()[0];
+		selectedStageId = m_stageIdList->getFirstValue();
 	}
 
 	setSelectedStageId(selectedStageId);
@@ -163,7 +164,7 @@ void RmlModel_ProjectStages::cameraIdListChanged(bool bOwnerChanged)
 	if (!m_cameraIdList->isEmpty() &&
 		!m_cameraIdList->contains(m_selectedCameraId))
 	{
-		selectedCameraId = m_cameraIdList->getComponentIdList()[0];
+		selectedCameraId = m_cameraIdList->getRmlValueList()[0];
 	}
 	setSelectedCameraId(selectedCameraId);
 }
@@ -174,7 +175,7 @@ void RmlModel_ProjectStages::compositorIdListChanged(bool bOwnerChanged)
 	if (!m_compositorIdList->isEmpty() &&
 		!m_compositorIdList->contains(m_selectedCompositorId))
 	{
-		selectedCompositorId = m_compositorIdList->getComponentIdList()[0];
+		selectedCompositorId = m_compositorIdList->getFirstValue();
 	}
 	setSelectedCompositorId(selectedCompositorId);
 }

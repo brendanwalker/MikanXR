@@ -22,6 +22,7 @@
 #include "Shared/RmlModel_AnchorComponent.h"
 #include "Shared/RmlModel_CompositorComponent.h"
 #include "Shared/RmlModel_StencilComponent.h"
+#include "Shared/RmlDataBinding_List.h"
 #include "StringUtils.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
@@ -31,9 +32,9 @@
 bool RmlModel_ProjectScenes::s_bHasRegisteredTypes = false;
 
 RmlModel_ProjectScenes::RmlModel_ProjectScenes()
-	: m_stageIdList(std::make_shared<RmlDataBinding_ComponentList>())
-	, m_sceneIdList(std::make_shared<RmlDataBinding_ComponentList>())
-	, m_compositorIdList(std::make_shared<RmlDataBinding_ComponentList>())
+	: m_stageIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
+	, m_sceneIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
+	, m_compositorIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 	, m_selectedAnchorModel(std::make_shared<RmlModel_AnchorComponent>())
 	, m_selectedCompositorModel(std::make_shared<RmlModel_CompositorComponent>())
 	, m_selectedBoxStencilModel(std::make_shared<RmlModel_StencilComponent>())
@@ -381,7 +382,7 @@ void RmlModel_ProjectScenes::setSelectedStageId(int stageId)
 		m_selectedStageId = stageId;
 		m_modelHandle.DirtyVariable("selected_stage_id");
 
-		m_sceneIdList->rebuildComponentIdList();
+		m_sceneIdList->rebuildList();
 	}
 }
 
@@ -392,7 +393,7 @@ void RmlModel_ProjectScenes::setSelectedSceneId(int sceneId)
 		m_selectedSceneId = sceneId;
 		m_modelHandle.DirtyVariable("selected_scene_id");
 
-		m_compositorIdList->rebuildComponentIdList();
+		m_compositorIdList->rebuildList();
 
 		if (auto sceneComponent = getSelectedSceneComponent())
 		{
@@ -431,7 +432,7 @@ void RmlModel_ProjectScenes::stageIdListChanged(bool bOwnerChanged)
 	if (!m_stageIdList->isEmpty() &&
 		!m_stageIdList->contains(m_selectedStageId))
 	{
-		selectedStageId = m_stageIdList->getComponentIdList()[0];
+		selectedStageId = m_stageIdList->getFirstValue();
 	}
 
 	setSelectedStageId(selectedStageId);
@@ -443,7 +444,7 @@ void RmlModel_ProjectScenes::sceneIdListChanged(bool bOwnerChanged)
 	if (!m_sceneIdList->isEmpty() &&
 		!m_sceneIdList->contains(m_selectedStageId))
 	{
-		selectedSceneId = m_sceneIdList->getComponentIdList()[0];
+		selectedSceneId = m_sceneIdList->getFirstValue();
 	}
 
 	setSelectedSceneId(selectedSceneId);
@@ -455,7 +456,7 @@ void RmlModel_ProjectScenes::compositorIdListChanged(bool bOwnerChanged)
 	if (!m_compositorIdList->isEmpty() &&
 		!m_compositorIdList->contains(m_selectedCompositorId))
 	{
-		selectedCompositorId = m_compositorIdList->getComponentIdList()[0];
+		selectedCompositorId = m_compositorIdList->getFirstValue();
 	}
 
 	setSelectedCompositorId(selectedCompositorId);

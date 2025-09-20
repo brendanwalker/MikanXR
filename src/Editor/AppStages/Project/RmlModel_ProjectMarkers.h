@@ -6,7 +6,7 @@
 #include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "Shared/RmlModel.h"
-#include "Shared/RmlDataBinding_ComponentList.h"
+#include "Shared/RmlDataBinding_Fwd.h"
 #include "Shared/RmlModel_PropertyInterface.h"
 #include "SinglecastDelegate.h"
 
@@ -36,7 +36,7 @@ private:
 	ProjectConfigWeakPtr m_projectConfig;
 	MarkerObjectSystemWeakPtr m_markerSystem;
 
-	RmlDataBinding_ComponentListPtr m_markerIdList;
+	RmlDataBinding_ComponentIdListPtr m_markerIdList;
 	RmlModel_PropertyInterfacePtr m_selectedMarkerModel;
 
 	int m_selectedMarkerId = -1; // MikanMarkerID

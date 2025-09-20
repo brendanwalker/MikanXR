@@ -1,5 +1,7 @@
 #include "CompositorComponent.h"
-#include "RmlModel_CompositorComponent.h"
+#include "Shared/RmlModel_CompositorComponent.h"
+#include "Shared/RmlDataBinding_List.h"
+#include "Shared/RmlModel_PropertyInterface.h"
 #include "CameraObjectSystem.h"
 #include "VideoSourceSystem.h"
 
@@ -9,8 +11,8 @@
 
 RmlModel_CompositorComponent::RmlModel_CompositorComponent()
 	: RmlModel_MikanComponent()
-	, m_cameraIdList(std::make_shared<RmlDataBinding_ComponentList>())
-	, m_videoSourceIdList(std::make_shared<RmlDataBinding_ComponentList>())
+	, m_cameraIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
+	, m_videoSourceIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {}
 
 bool RmlModel_CompositorComponent::init(Rml::Context* rmlContext)
@@ -58,10 +60,10 @@ bool RmlModel_CompositorComponent::setComponent(MikanComponentPtr component)
 	if (RmlModel_MikanComponent::setComponent(component))
 	{
 		m_cameraIdList->setOwnerConfig(getCameraObjectSystemConfig());
-		m_cameraIdList->rebuildComponentIdList(true);
+		m_cameraIdList->rebuildList(true);
 
 		m_videoSourceIdList->setOwnerConfig(getVideoSourceSystemConfig());
-		m_videoSourceIdList->rebuildComponentIdList(true);
+		m_videoSourceIdList->rebuildList(true);
 
 		return true;
 	}

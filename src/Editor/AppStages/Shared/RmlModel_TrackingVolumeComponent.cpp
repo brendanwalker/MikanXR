@@ -1,8 +1,10 @@
 #include "TrackingVolumeComponent.h"
 #include "RmlModel_TrackingVolumeComponent.h"
+#include "RmlModel_PropertyInterface.h"
 #include "MarkerObjectSystem.h"
 #include "TrackingMountObjectSystem.h"
 #include "VRTrackingVolumeComponent.h"
+#include "Shared/RmlDataBinding_List.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
@@ -10,8 +12,8 @@
 
 RmlModel_TrackingVolumeComponent::RmlModel_TrackingVolumeComponent()
 	: RmlModel_MikanComponent()
-	, m_markerComponentIdList(std::make_shared<RmlDataBinding_ComponentList>())
-	, m_trackingMountIdList(std::make_shared<RmlDataBinding_ComponentList>())
+	, m_markerComponentIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
+	, m_trackingMountIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {}
 
 bool RmlModel_TrackingVolumeComponent::init(Rml::Context* rmlContext)
@@ -63,10 +65,10 @@ bool RmlModel_TrackingVolumeComponent::setComponent(MikanComponentPtr component)
 	if (RmlModel_MikanComponent::setComponent(component))
 	{
 		m_markerComponentIdList->setOwnerConfig(getMarkerObjectSystemConfig());
-		m_markerComponentIdList->rebuildComponentIdList(true);
+		m_markerComponentIdList->rebuildList(true);
 
 		m_trackingMountIdList->setOwnerConfig(component->getDefinition());
-		m_trackingMountIdList->rebuildComponentIdList(true);
+		m_trackingMountIdList->rebuildList(true);
 
 		return true;
 	}

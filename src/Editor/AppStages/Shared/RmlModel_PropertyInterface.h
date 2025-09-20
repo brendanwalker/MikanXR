@@ -56,5 +56,3 @@ private:
 	IRmlFunctionInterfaceWeakPtr m_functionInterface;
 	std::map<std::string, RmlPropertyDescriptorConstPtr> m_propertyDescriptors;
 };
-
-using RmlModel_PropertyInterfacePtr = std::shared_ptr<RmlModel_PropertyInterface>;

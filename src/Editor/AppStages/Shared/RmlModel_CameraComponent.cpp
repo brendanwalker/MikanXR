@@ -1,5 +1,7 @@
 #include "CameraComponent.h"
 #include "RmlModel_CameraComponent.h"
+#include "Shared/RmlDataBinding_List.h"
+#include "Shared/RmlModel_PropertyInterface.h"
 #include "VRTrackingVolumeComponent.h"
 #include "VideoSourceSystem.h"
 
@@ -9,8 +11,8 @@
 
 RmlModel_CameraComponent::RmlModel_CameraComponent()
 	: RmlModel_MikanComponent() 
-	, m_trackingMountIdList(std::make_shared<RmlDataBinding_ComponentList>())
-	, m_videoSourceIdList(std::make_shared<RmlDataBinding_ComponentList>())
+	, m_trackingMountIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
+	, m_videoSourceIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {}
 
 bool RmlModel_CameraComponent::init(Rml::Context* rmlContext)
@@ -59,10 +61,10 @@ bool RmlModel_CameraComponent::setComponent(MikanComponentPtr component)
 	if (RmlModel_MikanComponent::setComponent(component))
 	{
 		m_trackingMountIdList->setOwnerConfig(getOwnerVRTrackingVolume());
-		m_trackingMountIdList->rebuildComponentIdList(true);
+		m_trackingMountIdList->rebuildList(true);
 
 		m_videoSourceIdList->setOwnerConfig(getVideoSourceSystemConfig());
-		m_videoSourceIdList->rebuildComponentIdList(true);
+		m_videoSourceIdList->rebuildList(true);
 
 		return true;
 	}

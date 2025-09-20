@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Shared/RmlModel_MikanComponent.h"
-#include "Shared/RmlDataBinding_ComponentList.h"
+#include "Shared/RmlDataBinding_Fwd.h"
 
 class RmlModel_StageComponent : public RmlModel_MikanComponent
 {
@@ -16,8 +16,6 @@ protected:
 	TrackingVolumeObjectSystemConfigPtr getTrackingVolumeObjectSystemConfig() const;
 
 private:
-	RmlDataBinding_ComponentListPtr m_trackingVolumeIdList;
+	RmlDataBinding_ComponentIdListPtr m_trackingVolumeIdList;
 	TrackingVolumeObjectSystemWeakPtr m_trackingVolumeObjectSystem;
 };
-
-using RmlModel_StageComponentPtr = std::shared_ptr<RmlModel_StageComponent>;

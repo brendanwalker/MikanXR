@@ -7,7 +7,7 @@
 #include "ObjectSystemConfigFwd.h"
 #include "SceneFwd.h"
 #include "Shared/RmlModel.h"
-#include "Shared/RmlDataBinding_ComponentList.h"
+#include "Shared/RmlDataBinding_Fwd.h"
 #include "Shared/RmlModel_PropertyInterface.h"
 #include "SinglecastDelegate.h"
 
@@ -64,9 +64,9 @@ private:
 	CameraObjectSystemWeakPtr m_cameraSystem;
 	CompositorObjectSystemWeakPtr m_compositorSystem;
 
-	RmlDataBinding_ComponentListPtr m_stageIdList;
-	RmlDataBinding_ComponentListPtr m_cameraIdList;
-	RmlDataBinding_ComponentListPtr m_compositorIdList;
+	RmlDataBinding_ComponentIdListPtr m_stageIdList;
+	RmlDataBinding_ComponentIdListPtr m_cameraIdList;
+	RmlDataBinding_ComponentIdListPtr m_compositorIdList;
 	RmlModel_StageComponentPtr m_selectedStageModel;
 	RmlModel_CameraComponentPtr m_selectedCameraModel;
 	RmlModel_CompositorComponentPtr m_selectedCompositorModel;

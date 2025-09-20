@@ -6,7 +6,7 @@
 #include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "Shared/RmlModel.h"
-#include "Shared/RmlDataBinding_ComponentList.h"
+#include "Shared/RmlDataBinding_Fwd.h"
 #include "Shared/RmlModel_PropertyInterface.h"
 #include "Shared/RmlModel_TrackingVolumeComponent.h"
 #include "SinglecastDelegate.h"
@@ -49,8 +49,8 @@ private:
 	TrackingVolumeObjectSystemWeakPtr m_trackingVolumeSystem;
 	TrackingMountObjectSystemWeakPtr m_trackingMountSystem;
 
-	RmlDataBinding_ComponentListPtr m_trackingVolumeIdList;
-	RmlDataBinding_ComponentListPtr m_trackingMountIdList;
+	RmlDataBinding_ComponentIdListPtr m_trackingVolumeIdList;
+	RmlDataBinding_ComponentIdListPtr m_trackingMountIdList;
 	RmlModel_TrackingVolumeComponentPtr m_selectedVRTrackingVolumeModel;
 	RmlModel_TrackingVolumeComponentPtr m_selectedMarkerTrackingVolumeModel;
 	RmlModel_PropertyInterfacePtr m_selectedTrackingMountModel;

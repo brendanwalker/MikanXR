@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Shared/RmlModel_MikanComponent.h"
-#include "Shared/RmlDataBinding_ComponentList.h"
+#include "Shared/RmlDataBinding_Fwd.h"
 
 class RmlModel_CompositorComponent : public RmlModel_MikanComponent
 {
@@ -18,8 +18,8 @@ protected:
 	VideoSourceSystemConfigPtr getVideoSourceSystemConfig() const;
 
 private:
-	RmlDataBinding_ComponentListPtr m_cameraIdList;
-	RmlDataBinding_ComponentListPtr m_videoSourceIdList;
+	RmlDataBinding_ComponentIdListPtr m_cameraIdList;
+	RmlDataBinding_ComponentIdListPtr m_videoSourceIdList;
 	CameraObjectSystemWeakPtr m_cameraObjectSystem;
 	VideoSourceSystemWeakPtr m_videoSourceSystem;
 };

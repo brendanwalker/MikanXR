@@ -6,6 +6,7 @@
 #include "NetworkVideoSourceSystem.h"
 #include "ProjectConfig.h"
 #include "Shared/RmlModel_PropertyInterface.h"
+#include "Shared/RmlDataBinding_List.h"
 #include "SpoutVideoSourceComponent.h"
 #include "SpoutVideoSourceSystem.h"
 #include "StringUtils.h"
@@ -20,7 +21,7 @@
 #include <RmlUi/Core/Context.h>
 
 RmlModel_ProjectSources::RmlModel_ProjectSources()
-	: m_videoSourceIdList(std::make_shared<RmlDataBinding_ComponentList>())
+	: m_videoSourceIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 	, m_selectedClientVideoSourceModel(std::make_shared<RmlModel_PropertyInterface>())
 	, m_selectedUSBVideoSourceModel(std::make_shared<RmlModel_PropertyInterface>())
 	, m_selectedNetworkVideoSourceModel(std::make_shared<RmlModel_PropertyInterface>())
@@ -101,7 +102,7 @@ void RmlModel_ProjectSources::videoSourceIdListChanged(bool bOwnerChanged)
 	if (!m_videoSourceIdList->isEmpty() &&
 		!m_videoSourceIdList->contains(m_selectedVideoSourceId))
 	{
-		selectedVideoSourceId = m_videoSourceIdList->getComponentIdList()[0];
+		selectedVideoSourceId = m_videoSourceIdList->getFirstValue();
 	}
 
 	setSelectedVideoSourceId(selectedVideoSourceId);

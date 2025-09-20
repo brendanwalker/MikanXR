@@ -1,5 +1,7 @@
 #include "TransformComponent.h"
-#include "RmlModel_AnchorComponent.h"
+#include "Shared/RmlModel_AnchorComponent.h"
+#include "Shared/RmlModel_PropertyInterface.h"
+#include "Shared/RmlDataBinding_List.h"
 #include "AnchorObjectSystem.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
@@ -8,7 +10,7 @@
 
 RmlModel_AnchorComponent::RmlModel_AnchorComponent()
 	: RmlModel_MikanComponent()
-	, m_stencilComponentIdList(std::make_shared<RmlDataBinding_ComponentList>())
+	, m_stencilComponentIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {}
 
 bool RmlModel_AnchorComponent::init(Rml::Context* rmlContext)
@@ -49,7 +51,7 @@ bool RmlModel_AnchorComponent::setComponent(MikanComponentPtr component)
 	if (RmlModel_MikanComponent::setComponent(component))
 	{
 		m_stencilComponentIdList->setOwnerConfig(getAnchorObjectSystemConfig());
-		m_stencilComponentIdList->rebuildComponentIdList(true);
+		m_stencilComponentIdList->rebuildList(true);
 
 		return true;
 	}

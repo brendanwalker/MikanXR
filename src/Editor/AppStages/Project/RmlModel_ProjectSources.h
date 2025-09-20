@@ -6,7 +6,7 @@
 #include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "Shared/RmlModel.h"
-#include "Shared/RmlDataBinding_ComponentList.h"
+#include "Shared/RmlDataBinding_Fwd.h"
 #include "Shared/RmlModel_PropertyInterface.h"
 #include "SinglecastDelegate.h"
 
@@ -43,7 +43,7 @@ private:
 	ProjectConfigWeakPtr m_projectConfig;
 	VideoSourceSystemWeakPtr m_videoSourceSystem;
 
-	RmlDataBinding_ComponentListPtr m_videoSourceIdList;
+	RmlDataBinding_ComponentIdListPtr m_videoSourceIdList;
 	RmlModel_PropertyInterfacePtr m_selectedClientVideoSourceModel;
 	RmlModel_PropertyInterfacePtr m_selectedUSBVideoSourceModel;
 	RmlModel_PropertyInterfacePtr m_selectedNetworkVideoSourceModel;
