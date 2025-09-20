@@ -15,6 +15,7 @@
 
 // -- MarkerObjectSystemConfig -----
 const std::string MarkerObjectSystemConfig::k_arucoMarkerListPropertyId= "arucoMarkers";
+const std::string MarkerObjectSystemConfig::k_arucoIdListPropertyId = "arucoIdList";
 const std::string MarkerObjectSystemConfig::k_arucoDictionaryTypePropertyId = "dictionaryType";
 const std::string MarkerObjectSystemConfig::k_charucoRowsPropertyId = "charucoRows";
 const std::string MarkerObjectSystemConfig::k_charucoColsPropertyId = "charucoCols";
@@ -170,7 +171,36 @@ void MarkerObjectSystemConfig::setArucoDictionaryType(eCharucoDictionaryType dic
 	if (dictionaryType != m_arucoDictionaryType)
 	{
 		m_arucoDictionaryType = dictionaryType;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_arucoDictionaryTypePropertyId));
+		markDirty(ConfigPropertyChangeSet()
+			.addPropertyName(k_arucoDictionaryTypePropertyId)
+			.addPropertyName(k_arucoIdListPropertyId));
+	}
+}
+
+void MarkerObjectSystemConfig::getArucoIdList(std::vector<int>& outMarkerIdList) const
+{
+	outMarkerIdList.clear();
+
+	int arucoMarkerCount = 0;
+	switch (m_arucoDictionaryType)
+	{
+	case eCharucoDictionaryType::DICT_4X4:
+		arucoMarkerCount = 4 * 4;
+		break;
+	case eCharucoDictionaryType::DICT_5X5:
+		arucoMarkerCount = 5 * 5;
+		break;
+	case eCharucoDictionaryType::DICT_6X6:
+		arucoMarkerCount = 6 * 6;
+		break;
+	case eCharucoDictionaryType::DICT_7X7:
+		arucoMarkerCount = 7 * 7;
+		break;
+	}
+
+	for (int i = 0; i < arucoMarkerCount; i++)
+	{
+		outMarkerIdList.push_back(i);
 	}
 }
 

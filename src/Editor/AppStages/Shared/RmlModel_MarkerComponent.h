@@ -1,0 +1,21 @@
+#pragma once
+
+#include "Shared/RmlModel_MikanComponent.h"
+#include "Shared/RmlDataBinding_Fwd.h"
+
+class RmlModel_MarkerComponent : public RmlModel_MikanComponent
+{
+public:
+	RmlModel_MarkerComponent();
+
+	virtual bool init(Rml::Context* rmlContext) override;
+	virtual bool setComponent(MikanComponentPtr component) override;
+
+protected:
+	MarkerObjectSystemPtr getMarkerObjectSystem() const;
+	MarkerObjectSystemConfigPtr getMarkerObjectSystemConfig() const;
+
+private:
+	RmlDataBinding_ArucoIdListPtr m_arucoIdList;
+	MarkerObjectSystemWeakPtr m_markerObjectSystem;
+};

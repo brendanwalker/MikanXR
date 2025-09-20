@@ -37,7 +37,7 @@ private:
 	MarkerObjectSystemWeakPtr m_markerSystem;
 
 	RmlDataBinding_ComponentIdListPtr m_markerIdList;
-	RmlModel_PropertyInterfacePtr m_selectedMarkerModel;
+	RmlModel_MarkerComponentPtr m_selectedMarkerModel;
 
 	int m_selectedMarkerId = -1; // MikanMarkerID
 };

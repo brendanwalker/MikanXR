@@ -3,7 +3,7 @@
 #include "MikanCoreTypes.h"
 #include "ProjectConfig.h"
 #include "RmlModel_ProjectMarkers.h"
-#include "Shared/RmlModel_PropertyInterface.h"
+#include "Shared/RmlModel_MarkerComponent.h"
 #include "Shared/RmlDataBinding_List.h"
 #include "StringUtils.h"
 
@@ -13,7 +13,7 @@
 
 RmlModel_ProjectMarkers::RmlModel_ProjectMarkers()
 	: m_markerIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
-	, m_selectedMarkerModel(std::make_shared<RmlModel_PropertyInterface>())
+	, m_selectedMarkerModel(std::make_shared<RmlModel_MarkerComponent>())
 {
 }
 
@@ -53,9 +53,7 @@ bool RmlModel_ProjectMarkers::init(
 	constructor.Bind("selected_marker_id", &m_selectedMarkerId);
 
 	// Register Selected Object Models
-	m_selectedMarkerModel->init<MarkerComponent>(
-		rmlContext,
-		"marker_definition");
+	m_selectedMarkerModel->init(rmlContext);
 
 	// Bind data model callbacks
 	constructor.BindEventCallback("add_new_marker", &RmlModel_ProjectMarkers::addNewMarker, this);
@@ -141,11 +139,11 @@ void RmlModel_ProjectMarkers::setSelectedMarkerId(MikanMarkerID markerId)
 
 		if (MarkerComponentPtr markerComponent = getSelectedMarker())
 		{
-			m_selectedMarkerModel->setPropertyInterface(markerComponent, markerComponent->getDefinition());
+			m_selectedMarkerModel->setComponent(markerComponent);
 		}
 		else
 		{
-			m_selectedMarkerModel->setPropertyInterface(nullptr);
+			m_selectedMarkerModel->setComponent(nullptr);
 		}
 	}
 }

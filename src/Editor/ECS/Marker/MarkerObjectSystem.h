@@ -42,6 +42,9 @@ public:
 	inline eCharucoDictionaryType getArucoDictionaryType() const { return m_arucoDictionaryType; }
 	void setArucoDictionaryType(eCharucoDictionaryType dictionaryType);
 
+	static const std::string k_arucoIdListPropertyId;
+	void getArucoIdList(std::vector<int>& outMarkerIdList) const;
+
 	// ChArUco Settings
 	static const std::string k_charucoRowsPropertyId;	
 	inline int getCharucoRows() const { return m_charucoRows; }
