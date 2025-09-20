@@ -4,6 +4,7 @@
 #include "RmlModel_ProjectTracking.h"
 #include "Shared/RmlModel_PropertyInterface.h"
 #include "Shared/RmlModel_TrackingVolumeComponent.h"
+#include "Shared/RmlModel_TrackingMountComponent.h"
 #include "Shared/RmlDataBinding_List.h"
 #include "StringUtils.h"
 #include "TrackingMountComponent.h"
@@ -20,7 +21,7 @@ RmlModel_ProjectTracking::RmlModel_ProjectTracking()
 	, m_trackingMountIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 	, m_selectedVRTrackingVolumeModel(std::make_shared<RmlModel_TrackingVolumeComponent>())
 	, m_selectedMarkerTrackingVolumeModel(std::make_shared<RmlModel_TrackingVolumeComponent>())
-	, m_selectedTrackingMountModel(std::make_shared<RmlModel_PropertyInterface>())
+	, m_selectedTrackingMountModel(std::make_shared<RmlModel_TrackingMountComponent>())
 {
 }
 
@@ -87,9 +88,7 @@ bool RmlModel_ProjectTracking::init(
 	// Register Selected Object Models
 	m_selectedVRTrackingVolumeModel->init(rmlContext);
 	m_selectedMarkerTrackingVolumeModel->init(rmlContext);
-	m_selectedTrackingMountModel->init<TrackingMountComponent>(
-		rmlContext,
-		"tracking_mount_definition");
+	m_selectedTrackingMountModel->init(rmlContext);
 
 	// Bind data model callbacks
 	constructor.BindEventCallback("add_new_steamvr_tracking_volume", &RmlModel_ProjectTracking::addNewSteamVRTrackingVolume, this);
@@ -298,12 +297,11 @@ void RmlModel_ProjectTracking::setSelectedTrackingMountId(MikanTrackingMountID t
 
 		if (TrackingMountComponentPtr trackingMount = getSelectedTrackingMount())
 		{
-			m_selectedTrackingMountModel->setPropertyInterface(
-				trackingMount, trackingMount->getDefinition());
+			m_selectedTrackingMountModel->setComponent(trackingMount);
 		}
 		else
 		{
-			m_selectedTrackingMountModel->setPropertyInterface(nullptr);
+			m_selectedTrackingMountModel->setComponent(nullptr);
 		}
 	}
 }

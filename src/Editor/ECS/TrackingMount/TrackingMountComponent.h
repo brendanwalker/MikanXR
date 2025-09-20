@@ -49,6 +49,7 @@ public:
 	TrackingMountObjectSystemPtr getOwnerTrackingMountSystem() const;
 	inline TrackingMountDefinitionPtr getTrackingMountDefinition() const
 	{ return std::static_pointer_cast<TrackingMountDefinition>(m_definition); }
+	VRDeviceComponentPtr getVRDeviceComponent() const;
 
 	void deleteTrackingMount();
 

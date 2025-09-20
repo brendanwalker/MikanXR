@@ -9,6 +9,7 @@
 #include "Shared/RmlDataBinding_Fwd.h"
 #include "Shared/RmlModel_PropertyInterface.h"
 #include "Shared/RmlModel_TrackingVolumeComponent.h"
+#include "Shared/RmlModel_TrackingMountComponent.h"
 #include "SinglecastDelegate.h"
 
 class RmlModel_ProjectTracking : public RmlModel
@@ -53,7 +54,7 @@ private:
 	RmlDataBinding_ComponentIdListPtr m_trackingMountIdList;
 	RmlModel_TrackingVolumeComponentPtr m_selectedVRTrackingVolumeModel;
 	RmlModel_TrackingVolumeComponentPtr m_selectedMarkerTrackingVolumeModel;
-	RmlModel_PropertyInterfacePtr m_selectedTrackingMountModel;
+	RmlModel_TrackingMountComponentPtr m_selectedTrackingMountModel;
 
 	int m_selectedTrackingVolumeId = -1; // MikanTrackingVolumeID
 	int m_selectedTrackingMountId = -1; // MikanTrackingMountID

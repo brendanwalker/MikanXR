@@ -8,6 +8,7 @@
 #include "SelectionComponent.h"
 #include "StringUtils.h"
 #include "TrackingMountObjectSystem.h"
+#include "VRObjectSystem.h"
 
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Variant.h>
@@ -82,6 +83,14 @@ void TrackingMountComponent::init()
 TrackingMountObjectSystemPtr TrackingMountComponent::getOwnerTrackingMountSystem() const
 {
 	return std::static_pointer_cast<TrackingMountObjectSystem>(getOwnerObject()->getOwnerSystem());
+}
+
+VRDeviceComponentPtr TrackingMountComponent::getVRDeviceComponent() const
+{
+	const std::string& vrDevicePath= getTrackingMountDefinition()->getDevicePath();
+	auto vrObjectSystem= getObjectSystemOfType<VRObjectSystem>();
+
+	return vrObjectSystem->getVRDeviceByPath(vrDevicePath);
 }
 
 void TrackingMountComponent::deleteTrackingMount()

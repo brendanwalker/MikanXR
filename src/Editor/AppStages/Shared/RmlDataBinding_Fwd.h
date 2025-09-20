@@ -11,6 +11,9 @@ using RmlDataBinding_ComponentIdListPtr = std::shared_ptr<RmlDataBinding_Compone
 using RmlDataBinding_VRDevicePathList = RmlDataBinding_List<std::string>;
 using RmlDataBinding_VRDevicePathListPtr = std::shared_ptr<RmlDataBinding_VRDevicePathList>;
 
+using RmlDataBinding_SocketNameList = RmlDataBinding_List<std::string>;
+using RmlDataBinding_SocketNameListPtr = std::shared_ptr<RmlDataBinding_SocketNameList>;
+
 class RmlModel_AnchorComponent;
 using RmlModel_AnchorComponentPtr = std::shared_ptr<RmlModel_AnchorComponent>;
 
@@ -31,3 +34,6 @@ using RmlModel_StencilComponentPtr = std::shared_ptr<RmlModel_StencilComponent>;
 
 class RmlModel_TrackingVolumeComponent;
 using RmlModel_TrackingVolumeComponentPtr = std::shared_ptr<RmlModel_TrackingVolumeComponent>;
+
+class RmlModel_TrackingMountComponent;
+using RmlModel_TrackingMountComponentPtr = std::shared_ptr<RmlModel_TrackingMountComponent>;

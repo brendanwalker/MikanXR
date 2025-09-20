@@ -124,6 +124,20 @@ void VRDeviceComponent::rebuildSockets()
 	}
 }
 
+void VRDeviceComponent::getSocketNames(std::vector<std::string>& outSocketNames) const
+{
+	outSocketNames.clear();
+	if (m_vrDeviceInterface != nullptr)
+	{
+		for (int socketIndex = 0; socketIndex < m_vrDeviceInterface->getSocketCount(); socketIndex++)
+		{
+			IVRDeviceSocket* vrDeviceSocket = m_vrDeviceInterface->geSocketByIndex(socketIndex);
+			const std::string socketName = vrDeviceSocket->getName();
+			outSocketNames.push_back(socketName);
+		}
+	}
+}
+
 bool VRDeviceComponent::getSocketRelativePoseByName(const std::string& socketName, glm::mat4& outPose) const
 {
 	glm::mat4 vrTrackingSpacePose = glm::mat4(1.f);
