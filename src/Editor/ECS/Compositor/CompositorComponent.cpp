@@ -56,7 +56,7 @@ CompositorDefinition::CompositorDefinition(
 	MikanCompositorID compositorId,
 	MikanSceneID ownerSceneId,
 	const std::string& compositorName)
-	: MikanComponentDefinition(compositorName)
+	: MikanComponentDefinition(compositorId, compositorName)
 	, m_compositorId(compositorId)
 	, m_ownerStageId(ownerSceneId)
 	, m_nodeGraphAssetRef(std::make_shared<AssetReferenceConfig>())

@@ -9,18 +9,23 @@
 
 
 // -- MikanComponentConfig -----
-const std::string MikanComponentDefinition::k_componentNamePropertyId = "name";
+const std::string MikanComponentDefinition::k_componentIdPropertyId = "component_id";
+const std::string MikanComponentDefinition::k_componentNamePropertyId = "component_name";
 const std::string MikanComponentDefinition::k_componentScriptPathPropertyId= "component_script";
 
 MikanComponentDefinition::MikanComponentDefinition()
-	: m_componentName()
+	: m_componentId(-1)
+	, m_componentName()
 	, m_componentScriptAssetRefConfig(std::make_shared<AssetReferenceConfig>("ComponentScript"))
 {
 
 }
 
-MikanComponentDefinition::MikanComponentDefinition(const std::string& componentName)
-	: m_componentName(componentName)
+MikanComponentDefinition::MikanComponentDefinition(
+	int componentId,
+	const std::string& componentName)
+	: m_componentId(componentId)
+	, m_componentName(componentName)
 	, m_componentScriptAssetRefConfig(std::make_shared<AssetReferenceConfig>("ComponentScript"))
 {
 }
@@ -29,6 +34,7 @@ configuru::Config MikanComponentDefinition::writeToJSON()
 {
 	configuru::Config pt = CommonConfig::writeToJSON();
 
+	pt[k_componentIdPropertyId] = m_componentId;
 	pt[k_componentNamePropertyId] = m_componentName;
 	if (m_componentScriptAssetRefConfig)
 	{
@@ -42,6 +48,7 @@ void MikanComponentDefinition::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
+	m_componentId = pt.get_or<int>(k_componentIdPropertyId, -1);
 	m_componentName = pt.get_or<std::string>(k_componentNamePropertyId, "");
 	m_componentScriptAssetRefConfig = ScriptAssetReferenceFactory().allocateAssetReferenceConfig();
 	if (pt.has_key(k_componentScriptPathPropertyId))
@@ -189,6 +196,9 @@ void MikanComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptor
 {
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
+			MikanComponentDefinition::k_componentIdPropertyId, true)); // read-only
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
 			MikanComponentDefinition::k_componentNamePropertyId));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
@@ -199,7 +209,12 @@ bool MikanComponent::getPropertyValueFromRml(RmlPropertyDescriptorConstPtr prope
 {
 	const std::string& propertyName = propertyDesc->getName();
 
-	if (propertyName == MikanComponentDefinition::k_componentNamePropertyId)
+	if (propertyName == MikanComponentDefinition::k_componentIdPropertyId)
+	{
+		outValue = m_definition->getComponentId();
+		return true;
+	}
+	else if (propertyName == MikanComponentDefinition::k_componentNamePropertyId)
 	{
 		outValue= getName();
 		return true;

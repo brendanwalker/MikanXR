@@ -23,7 +23,10 @@ class TransformComponentDefinition : public MikanComponentDefinition
 {
 public:
 	TransformComponentDefinition();
-	TransformComponentDefinition(const std::string& componentName, const MikanTransform& xform);
+	TransformComponentDefinition(
+		int componentId,
+		const std::string& componentName, 
+		const MikanTransform& xform);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

@@ -25,7 +25,7 @@ MarkerDefinition::MarkerDefinition()
 MarkerDefinition::MarkerDefinition(
 	MikanMarkerID markerId,
 	const std::string& markerName)
-	: MikanComponentDefinition(markerName)
+	: MikanComponentDefinition(markerId, markerName)
 	, m_markerId(markerId)
 {}
 

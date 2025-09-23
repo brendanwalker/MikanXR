@@ -26,7 +26,7 @@ StencilComponentDefinition::StencilComponentDefinition(
 	MikanSpatialAnchorID parentAnchorId,
 	const std::string& componentName, 
 	const MikanTransform& xform)
-	: TransformComponentDefinition(componentName, xform)
+	: TransformComponentDefinition(stencilId, componentName, xform)
 	, m_stencilId(stencilId)
 	, m_parentAnchorId(parentAnchorId)
 	, m_bIsDisabled(false)

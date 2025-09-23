@@ -19,10 +19,13 @@ class MikanComponentDefinition : public CommonConfig
 {
 public:
 	MikanComponentDefinition();
-	MikanComponentDefinition(const std::string& componentName);
+	MikanComponentDefinition(int componentId, const std::string& componentName);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
+
+	static const std::string k_componentIdPropertyId;
+	int getComponentId() const { return m_componentId; }
 
 	static const std::string k_componentNamePropertyId;
 	const std::string& getComponentName() const { return m_componentName; }
@@ -34,6 +37,7 @@ public:
 	void setComponentScriptPath(const std::filesystem::path& scriptPath);
 
 protected:
+	int m_componentId;
 	std::string m_componentName;
 	AssetReferenceConfigPtr m_componentScriptAssetRefConfig;
 };

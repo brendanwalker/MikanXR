@@ -21,7 +21,7 @@ VideoSourceDefinition::VideoSourceDefinition()
 VideoSourceDefinition::VideoSourceDefinition(
 	MikanVideoSourceID videoSourceId,
 	const std::string& videoSourceName)
-	: MikanComponentDefinition(videoSourceName)
+	: MikanComponentDefinition(videoSourceId, videoSourceName)
 	, m_videoSourceId(videoSourceId)
 {}
 
@@ -29,7 +29,7 @@ VideoSourceDefinition::VideoSourceDefinition(
 	MikanVideoSourceID videoSourceId,
 	const std::string& videoSourceName,
 	const MikanVideoSourceIntrinsics& intrinsics)
-	: MikanComponentDefinition(videoSourceName)
+	: MikanComponentDefinition(videoSourceId, videoSourceName)
 	, m_videoSourceId(videoSourceId)
 	, m_intrinsics(intrinsics)
 {}

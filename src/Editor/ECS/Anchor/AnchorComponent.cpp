@@ -28,7 +28,7 @@ AnchorDefinition::AnchorDefinition(
 	MikanSpatialAnchorID anchorId,
 	const std::string& anchorName,
 	const MikanTransform& xform)
-	: TransformComponentDefinition(StringUtils::stringify("Anchor_", anchorId), xform)
+	: TransformComponentDefinition(anchorId, StringUtils::stringify("Anchor_", anchorId), xform)
 	, m_anchorId(anchorId)
 {
 }

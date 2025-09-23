@@ -29,7 +29,7 @@ TrackingVolumeDefinition::TrackingVolumeDefinition()
 TrackingVolumeDefinition::TrackingVolumeDefinition(
 	MikanTrackingVolumeID trackingVolumeId,
 	const std::string& trackingVolumeName)
-	: MikanComponentDefinition(trackingVolumeName)
+	: MikanComponentDefinition(trackingVolumeId, trackingVolumeName)
 	, m_trackingVolumeId(trackingVolumeId)
 	, m_originMarkeId(INVALID_MIKAN_ID)
 {

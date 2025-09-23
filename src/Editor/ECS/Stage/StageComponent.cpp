@@ -22,7 +22,7 @@ const std::string StageComponentDefinition::k_trackingVolumeIdPropertyId = "trac
 StageComponentDefinition::StageComponentDefinition(
 	MikanStageID sceneId,
 	const std::string& componentName)
-	: TransformComponentDefinition(componentName, glm_transform_to_MikanTransform(GlmTransform()))
+	: TransformComponentDefinition(sceneId, componentName, glm_transform_to_MikanTransform(GlmTransform()))
 	, m_stageId(sceneId)
 {}
 

@@ -32,7 +32,7 @@ SceneComponentDefinition::SceneComponentDefinition(
 	MikanSceneID sceneId,
 	MikanStageID parentStageId,
 	const std::string& componentName)
-	: TransformComponentDefinition(componentName, glm_transform_to_MikanTransform(GlmTransform()))
+	: TransformComponentDefinition(sceneId, componentName, glm_transform_to_MikanTransform(GlmTransform()))
 	, m_sceneId(sceneId)
 	, m_parentStageId(parentStageId)
 {}

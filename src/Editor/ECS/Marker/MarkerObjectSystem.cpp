@@ -69,12 +69,12 @@ void MarkerObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 	{
 		for (const configuru::Config& marker_pt : pt["arucoMarkers"].as_array())
 		{
-			MarkerDefinitionPtr MarkerDefinitionPtr = std::make_shared<MarkerDefinition>();
+			MarkerDefinitionPtr markerDefinitionPtr = std::make_shared<MarkerDefinition>();
 
-			MarkerDefinitionPtr->readFromJSON(marker_pt);
-			m_arucoMarkerList.push_back(MarkerDefinitionPtr);
+			markerDefinitionPtr->readFromJSON(marker_pt);
+			m_arucoMarkerList.push_back(markerDefinitionPtr);
 
-			addChildConfig(MarkerDefinitionPtr);
+			addChildConfig(markerDefinitionPtr);
 		}
 	}
 

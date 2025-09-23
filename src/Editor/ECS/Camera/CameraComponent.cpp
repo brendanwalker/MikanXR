@@ -51,7 +51,7 @@ CameraDefinition::CameraDefinition(
 	const struct MikanTransform& xform,
 	MikanCameraID cameraId,
 	MikanStageID stageId)
-	: TransformComponentDefinition(cameraName, xform)
+	: TransformComponentDefinition(cameraId, cameraName, xform)
 	, m_cameraId(cameraId)
 	, m_stageId(stageId)
 	, m_trackingMountId(INVALID_MIKAN_ID)

@@ -25,7 +25,7 @@ TrackingMountDefinition::TrackingMountDefinition()
 TrackingMountDefinition::TrackingMountDefinition(
 	MikanTrackingMountID trackingMountId,
 	const std::string& markerName)
-	: MikanComponentDefinition(markerName)
+	: MikanComponentDefinition(trackingMountId, markerName)
 	, m_trackingMountId(trackingMountId)
 {
 }

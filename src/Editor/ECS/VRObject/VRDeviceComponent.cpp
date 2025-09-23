@@ -29,7 +29,7 @@ VRDeviceDefinition::VRDeviceDefinition(
 	MikanVRDeviceID vrDeviceId,
 	const std::string& vrDevicePath,
 	const MikanTransform& xform)
-	: TransformComponentDefinition(vrDevicePath, xform)
+	: TransformComponentDefinition(vrDeviceId, vrDevicePath, xform)
 	, m_vrDeviceId(vrDeviceId)
 	, m_vrDevicePath(vrDevicePath)
 {}

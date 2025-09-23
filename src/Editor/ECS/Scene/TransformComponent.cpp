@@ -26,9 +26,10 @@ TransformComponentDefinition::TransformComponentDefinition()
 }
 
 TransformComponentDefinition::TransformComponentDefinition(
+	int componentId,
 	const std::string& componentName,
 	const MikanTransform& xform)
-	: MikanComponentDefinition(componentName)
+	: MikanComponentDefinition(componentId, componentName)
 {
 	m_relativeTransform= xform;
 }
