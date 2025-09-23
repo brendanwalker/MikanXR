@@ -40,7 +40,7 @@ RmlModel_ProjectScenes::RmlModel_ProjectScenes()
 	, m_selectedBoxStencilModel(std::make_shared<RmlModel_StencilComponent>())
 	, m_selectedModelStencilModel(std::make_shared<RmlModel_StencilComponent>())
 	, m_selectedQuadStencilModel(std::make_shared<RmlModel_StencilComponent>())
-	, m_selectedSceneModel(std::make_shared<RmlModel_PropertyInterface>())
+	, m_selectedSceneModel(std::make_shared<RmlModel_MikanComponent>())
 {
 }
 
@@ -140,7 +140,7 @@ bool RmlModel_ProjectScenes::init(
 	m_selectedBoxStencilModel->init(rmlContext);
 	m_selectedModelStencilModel->init(rmlContext);
 	m_selectedQuadStencilModel->init(rmlContext);
-	m_selectedSceneModel->init<SceneComponent>(rmlContext, "scene_model");
+	m_selectedSceneModel->init(rmlContext);
 
 	// Register Data Model Fields
 	constructor.Bind("scene_objects", &m_sceneOutliner);
@@ -397,11 +397,11 @@ void RmlModel_ProjectScenes::setSelectedSceneId(int sceneId)
 
 		if (auto sceneComponent = getSelectedSceneComponent())
 		{
-			m_selectedSceneModel->setPropertyInterface(sceneComponent, sceneComponent->getDefinition());
+			m_selectedSceneModel->setComponent(sceneComponent);
 		}
 		else
 		{
-			m_selectedSceneModel->setPropertyInterface(nullptr);
+			m_selectedSceneModel->setComponent(nullptr);
 		}
 
 		rebuildSceneComponentList();

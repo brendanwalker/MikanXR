@@ -11,12 +11,7 @@ RmlModel_MikanComponent::RmlModel_MikanComponent()
 
 bool RmlModel_MikanComponent::init(Rml::Context* rmlContext)
 {
-	if (!m_propertyInterface->init<MikanComponent>(rmlContext, "MikanComponent"))
-	{
-		return false;
-	}
-
-	return true;
+	return m_propertyInterface->init<MikanComponent>(rmlContext, "MikanComponent");
 }
 
 bool RmlModel_MikanComponent::setComponent(MikanComponentPtr component)

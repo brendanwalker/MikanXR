@@ -5,7 +5,7 @@
 #include "NetworkVideoSourceComponent.h"
 #include "NetworkVideoSourceSystem.h"
 #include "ProjectConfig.h"
-#include "Shared/RmlModel_PropertyInterface.h"
+#include "Shared/RmlModel_MikanComponent.h"
 #include "Shared/RmlModel_USBVideoSourceComponent.h"
 #include "Shared/RmlDataBinding_List.h"
 #include "SpoutVideoSourceComponent.h"
@@ -23,10 +23,10 @@
 
 RmlModel_ProjectSources::RmlModel_ProjectSources()
 	: m_videoSourceIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
-	, m_selectedClientVideoSourceModel(std::make_shared<RmlModel_PropertyInterface>())
+	, m_selectedClientVideoSourceModel(std::make_shared<RmlModel_MikanComponent>())
 	, m_selectedUSBVideoSourceModel(std::make_shared<RmlModel_USBVideoSourceComponent>())
-	, m_selectedNetworkVideoSourceModel(std::make_shared<RmlModel_PropertyInterface>())
-	, m_selectedSpoutVideoSourceModel(std::make_shared<RmlModel_PropertyInterface>())
+	, m_selectedNetworkVideoSourceModel(std::make_shared<RmlModel_MikanComponent>())
+	, m_selectedSpoutVideoSourceModel(std::make_shared<RmlModel_MikanComponent>())
 {
 }
 
@@ -58,16 +58,10 @@ bool RmlModel_ProjectSources::init(
 	constructor.Bind("selected_video_source_id", &m_selectedVideoSourceId);
 
 	// Register Selected Object Models
-	m_selectedClientVideoSourceModel->init<ClientVideoSourceComponent>(
-		rmlContext,
-		"client_video_source_definition");
+	m_selectedClientVideoSourceModel->init(rmlContext);
 	m_selectedUSBVideoSourceModel->init(rmlContext);
-	m_selectedNetworkVideoSourceModel->init<NetworkVideoSourceComponent>(
-		rmlContext,
-		"network_video_source_definition");
-	m_selectedSpoutVideoSourceModel->init<SpoutVideoSourceComponent>(
-		rmlContext,
-		"spout_video_source_definition");
+	m_selectedNetworkVideoSourceModel->init(rmlContext);
+	m_selectedSpoutVideoSourceModel->init(rmlContext);
 
 	// Bind data model callbacks
 	constructor.BindEventCallback("add_new_client_video_source", &RmlModel_ProjectSources::addNewClientVideoSource, this);
@@ -209,10 +203,10 @@ void RmlModel_ProjectSources::setSelectedVideoSourceId(MikanVideoSourceID videoS
 		eVideoSourceType sourceType = config->getVideoSourceType(videoSourceId);
 
 		// Reset all models first
-		m_selectedClientVideoSourceModel->setPropertyInterface(nullptr);
+		m_selectedClientVideoSourceModel->setComponent(nullptr);
 		m_selectedUSBVideoSourceModel->setComponent(nullptr);
-		m_selectedNetworkVideoSourceModel->setPropertyInterface(nullptr);
-		m_selectedSpoutVideoSourceModel->setPropertyInterface(nullptr);
+		m_selectedNetworkVideoSourceModel->setComponent(nullptr);
+		m_selectedSpoutVideoSourceModel->setComponent(nullptr);
 
 		// Set the appropriate model based on source type
 		switch (sourceType)
@@ -220,7 +214,7 @@ void RmlModel_ProjectSources::setSelectedVideoSourceId(MikanVideoSourceID videoS
 			case eVideoSourceType::client:
 				if (ClientVideoSourceComponentPtr clientSource = getSelectedClientVideoSource())
 				{
-					m_selectedClientVideoSourceModel->setPropertyInterface(clientSource, clientSource->getDefinition());
+					m_selectedClientVideoSourceModel->setComponent(clientSource);
 				}
 				break;
 			case eVideoSourceType::usb:
@@ -232,13 +226,13 @@ void RmlModel_ProjectSources::setSelectedVideoSourceId(MikanVideoSourceID videoS
 			case eVideoSourceType::networked:
 				if (NetworkVideoSourceComponentPtr networkSource = getSelectedNetworkVideoSource())
 				{
-					m_selectedNetworkVideoSourceModel->setPropertyInterface(networkSource, networkSource->getDefinition());
+					m_selectedNetworkVideoSourceModel->setComponent(networkSource);
 				}
 				break;
 			case eVideoSourceType::spout:
 				if (SpoutVideoSourceComponentPtr spoutSource = getSelectedSpoutVideoSource())
 				{
-					m_selectedSpoutVideoSourceModel->setPropertyInterface(spoutSource, spoutSource->getDefinition());
+					m_selectedSpoutVideoSourceModel->setComponent(spoutSource);
 				}
 				break;
 		}

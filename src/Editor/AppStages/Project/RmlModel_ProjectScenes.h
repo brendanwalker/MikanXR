@@ -4,7 +4,7 @@
 #include "ObjectSystemFwd.h"
 #include "Shared/RmlModel.h"
 #include "Shared/RmlDataBinding_Fwd.h"
-#include "Shared/RmlModel_PropertyInterface.h"
+#include "Shared/RmlModel_MikanComponent.h"
 #include "SinglecastDelegate.h"
 
 class RmlModel_AnchorComponent;
@@ -85,7 +85,7 @@ private:
 	RmlModel_StencilComponentPtr m_selectedBoxStencilModel;
 	RmlModel_StencilComponentPtr m_selectedModelStencilModel;
 	RmlModel_StencilComponentPtr m_selectedQuadStencilModel;
-	RmlModel_PropertyInterfacePtr m_selectedSceneModel;
+	RmlModel_MikanComponentPtr m_selectedSceneModel;
 
 	int m_selectedStageId = -1; // MikanStageID
 	int m_selectedSceneId = -1; // MikanSceneID

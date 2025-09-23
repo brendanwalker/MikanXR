@@ -7,7 +7,7 @@
 #include "ObjectSystemConfigFwd.h"
 #include "Shared/RmlModel.h"
 #include "Shared/RmlDataBinding_Fwd.h"
-#include "Shared/RmlModel_PropertyInterface.h"
+#include "Shared/RmlModel_MikanComponent.h"
 #include "SinglecastDelegate.h"
 
 class RmlModel_ProjectSources : public RmlModel
@@ -44,10 +44,10 @@ private:
 	VideoSourceSystemWeakPtr m_videoSourceSystem;
 
 	RmlDataBinding_ComponentIdListPtr m_videoSourceIdList;
-	RmlModel_PropertyInterfacePtr m_selectedClientVideoSourceModel;
+	RmlModel_MikanComponentPtr m_selectedClientVideoSourceModel;
 	RmlModel_USBVideoSourceComponentPtr m_selectedUSBVideoSourceModel;
-	RmlModel_PropertyInterfacePtr m_selectedNetworkVideoSourceModel;
-	RmlModel_PropertyInterfacePtr m_selectedSpoutVideoSourceModel;
+	RmlModel_MikanComponentPtr m_selectedNetworkVideoSourceModel;
+	RmlModel_MikanComponentPtr m_selectedSpoutVideoSourceModel;
 
 	int m_selectedVideoSourceId = -1; // MikanVideoSourceID
 };
