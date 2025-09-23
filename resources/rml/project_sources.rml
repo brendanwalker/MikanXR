@@ -34,39 +34,42 @@
 				<!-- Selected Video Source Details -->
 				<div data-if="video_sources.selected_video_source_id != -1" class="details-panel">
 					<h4>Selected Source: {{ video_sources.selected_video_source_id }}</h4>
-
-					<!-- Client Video Source Properties -->
-					<div data-if="client_video_source_definition.component_id != -1" data-model="ClientVideoSourceComponent" class="source-details">
-						<h5>Client Video Source</h5>
-						<!-- Client video source specific properties will be handled by the component model -->
-					</div>
-
-					<!-- USB Video Source Properties -->
-					<div data-if="usb_video_source.component_id != -1" data-model="USBVideoSourceComponent" class="source-details">
-						<h5>USB Video Source</h5>
-						<!-- USB video source specific properties will be handled by the component model -->
-					</div>
-
-					<!-- Network Video Source Properties -->
-					<div data-if="network_video_source_definition.component_id != -1" data-model="NetworkVideoSourceComponent" class="source-details">
-						<h5>Network Video Source</h5>
-						<!-- Network video source specific properties will be handled by the component model -->
-					</div>
-
-					<!-- Spout Video Source Properties -->
-					<div data-if="spout_video_source_definition.component_id != -1" data-model="SpoutVideoSourceComponent" class="source-details">
-						<h5>Spout Video Source</h5>
-						<!-- Spout video source specific properties will be handled by the component model -->
-					</div>
 				</div>
+			</div>
+		</div>
 
-				<!-- Empty State -->
-				<div data-if="video_sources.video_source_ids.size == 0" class="empty-state">
-					<p>No video sources configured. Add a video source to get started.</p>
-					<div class="empty-state-buttons">
-						<button onclick="add_new_usb_video_source">Add USB Camera</button>
-						<button onclick="add_new_client_video_source">Add Client Source</button>
-					</div>
+		<!-- Client Video Source Properties (separate data model) -->
+		<div data-model="ClientVideoSourceComponent" data-if="ClientVideoSourceComponent.component_id != -1" class="component-panel">
+			<h5>Client Video Source Properties</h5>
+			<!-- Client video source specific properties will be handled by the component model -->
+		</div>
+
+		<!-- USB Video Source Properties (separate data model) -->
+		<div data-model="USBVideoSourceComponent" data-if="usb_video_source.component_id != -1" class="component-panel">
+			<h5>USB Video Source Properties</h5>
+			<!-- USB video source specific properties will be handled by the component model -->
+		</div>
+
+		<!-- Network Video Source Properties (separate data model) -->
+		<div data-model="NetworkVideoSourceComponent" data-if="NetworkVideoSourceComponent.component_id != -1" class="component-panel">
+			<h5>Network Video Source Properties</h5>
+			<!-- Network video source specific properties will be handled by the component model -->
+		</div>
+
+		<!-- Spout Video Source Properties (separate data model) -->
+		<div data-model="SpoutVideoSourceComponent" data-if="SpoutVideoSourceComponent.component_id != -1" class="component-panel">
+			<h5>Spout Video Source Properties</h5>
+			<!-- Spout video source specific properties will be handled by the component model -->
+		</div>
+
+		<!-- Empty State and Information (back under main window) -->
+		<div data-model="video_sources">
+			<!-- Empty State -->
+			<div data-if="video_sources.video_source_ids.size == 0" class="empty-state">
+				<p>No video sources configured. Add a video source to get started.</p>
+				<div class="empty-state-buttons">
+					<button onclick="add_new_usb_video_source">Add USB Camera</button>
+					<button onclick="add_new_client_video_source">Add Client Source</button>
 				</div>
 			</div>
 
