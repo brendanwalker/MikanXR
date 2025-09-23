@@ -196,7 +196,9 @@ void MikanComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptor
 {
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			MikanComponentDefinition::k_componentIdPropertyId, true)); // read-only
+			MikanComponentDefinition::k_componentIdPropertyId)
+		->setReadOnly()
+		->setDefaultInt(-1));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
 			MikanComponentDefinition::k_componentNamePropertyId));

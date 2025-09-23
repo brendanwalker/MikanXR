@@ -5,23 +5,34 @@
 #include <string>
 #include <memory>
 
-class RmlPropertyDescriptor
+class RmlPropertyDescriptor;
+using RmlPropertyDescriptorPtr = std::shared_ptr<RmlPropertyDescriptor>;
+using RmlPropertyDescriptorConstPtr = std::shared_ptr<const RmlPropertyDescriptor>;
+
+class RmlPropertyDescriptor : public std::enable_shared_from_this<RmlPropertyDescriptor>
 {
 public:
-	RmlPropertyDescriptor() = default;
-	RmlPropertyDescriptor(const std::string& name, bool readOnly = false) 
-		: m_propertyName(name)
-		, m_isReadOnly(readOnly) 
-	{}
+	RmlPropertyDescriptor();
+	RmlPropertyDescriptor(const std::string& name);
 
 	const std::string& getName() const { return m_propertyName; }
 	bool isReadOnly() const { return m_isReadOnly; }
+	RmlPropertyDescriptorPtr setReadOnly()
+	{ 
+		m_isReadOnly = true; 
+		return shared_from_this();
+	}
 
+	RmlPropertyDescriptorPtr setDefaultInt(int value);
+	RmlPropertyDescriptorPtr setDefaultFloat(float value);
+
+	const Rml::Variant& getDefaultValue() const { return *(m_defaultValue.get()); }
+	
 private:
 	std::string m_propertyName;
 	bool m_isReadOnly = false;
+	std::unique_ptr<Rml::Variant> m_defaultValue;
 };
-using RmlPropertyDescriptorConstPtr = std::shared_ptr<const RmlPropertyDescriptor>;
 
 class IRmlPropertyInterface
 {

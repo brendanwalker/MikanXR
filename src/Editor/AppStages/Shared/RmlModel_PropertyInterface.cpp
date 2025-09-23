@@ -36,6 +36,10 @@ bool RmlModel_PropertyInterface::init(
 					{
 						propertyInterface->getPropertyValueFromRml(propertyDescriptor, variant);
 					}
+					else
+					{
+						variant= propertyDescriptor->getDefaultValue();
+					}
 				});
 		}
 		else
@@ -47,6 +51,10 @@ bool RmlModel_PropertyInterface::init(
 					if (propertyInterface)
 					{
 						propertyInterface->getPropertyValueFromRml(propertyDescriptor, variant);
+					}
+					else
+					{
+						variant = propertyDescriptor->getDefaultValue();
 					}
 				},
 				[this, propertyDescriptor](const Rml::Variant& variant) {
