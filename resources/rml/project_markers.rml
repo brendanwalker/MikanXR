@@ -1,0 +1,50 @@
+<rml>
+<head>
+	<title>Project Markers</title>
+	<link type="text/rcss" href="rml.rcss"/>
+	<link type="text/rcss" href="mikan.rcss"/>
+</head>
+<body>
+	<div class="window">
+		<div class="title-bar">
+			<span class="title">Markers</span>
+		</div>
+
+		<div class="content">
+			<!-- Markers Section -->
+			<div class="section">
+				<h3>ArUco Markers</h3>
+
+				<!-- Add New Marker Button -->
+				<div class="button-group">
+					<button onclick="add_new_marker">Add New Marker</button>
+				</div>
+
+				<!-- Marker List -->
+				<div class="list-container">
+					<div data-for="markers.marker_ids" class="list-item" onclick="select_marker_entry({{ it }})">
+						<span>Marker {{ it }}</span>
+						<button class="remove-btn" onclick="remove_marker({{ it }})">×</button>
+					</div>
+				</div>
+
+				<!-- Selected Marker Details -->
+				<div data-if="markers.selected_marker_id != -1" class="details-panel">
+					<h4>Selected Marker: {{ markers.selected_marker_id }}</h4>
+
+					<!-- Marker specific properties will be handled by the component model -->
+					<div data-if="marker.component_id != -1">
+						<!-- Marker component properties like position, rotation, size, etc. -->
+						<!-- These would be defined in the RmlModel_MarkerComponent -->
+					</div>
+				</div>
+
+				<!-- Empty State -->
+				<div data-if="markers.marker_ids.size == 0" class="empty-state">
+					<p>No markers defined. Add a new marker to get started.</p>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</rml>

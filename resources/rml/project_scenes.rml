@@ -1,177 +1,138 @@
 <rml>
-    <head>
-        <link type="text/rcss" href="rml.rcss"/>
-        <link type="text/rcss" href="mikan.rcss"/>
-        <link type="text/template" href="window.rml" />
-        <title>Project Scenes</title>
-        <style>
-            /* Hide the window icon. */
-            div#title_bar div#icon {
-                display: none;
-            }
+<head>
+	<title>Project Scenes</title>
+	<link type="text/rcss" href="rml.rcss"/>
+	<link type="text/rcss" href="mikan.rcss"/>
+</head>
+<body data-model="project_scenes">
+	<div class="window">
+		<div class="title-bar">
+			<span class="title">Scenes</span>
+		</div>
 
-            body
-            {
-                position:absolute; 
-                right:0px;
-                top: -45dp;
-                width: 350dp;
-                height: 100%;
-            }
-           
-            spacer {
-                display: inline-block;
-            }
-            tbody tr {
-                height: 1.5em;
-            }
-            .property_tr {
-                height: 2.5em;
-            }            
-            tbody td
-            {
-                padding-top: 0.0em;
-                height: 1.5em;
-                text-align: left;
-                white-space: nowrap;
-                overflow: hidden;
-            }
-            numeric{
-                width: 60dp;
-                margin-left: 0dp;
-                margin-right: 5dp;
-                vertical-align: -6dp;
-            }
-            highlight_label
-            {
-                decorator: gradient( horizontal #DB6565 #F1B58A );
-                border: 2px #DB6565;
-            }
-            filename
-            {
-                decorator: gradient( vertical #415857 #5990A3 );
-                border: 3dp #415857;
-                font-size: 14dp;
-                vertical-align: 0dp;
-            }
-        </style>
-	</head>
-	<body template="window">
-        <panel id="scene_outliner" data-model="project_scenes">
-            <div>
-                <button style="width: 80dp; height: 67dp; margin-right: -5dp;" data-event-click="add_new_anchor()"><img sprite="icon-anchor"/></button>
-                <button style="width: 80dp; height: 67dp; margin-right: -5dp;" data-event-click="add_new_quad()"><img sprite="icon-quad"/></button>
-                <button style="width: 80dp; height: 67dp; margin-right: -5dp;" data-event-click="add_new_box()"><img sprite="icon-box"/></button>
-                <button style="width: 80dp; height: 67dp; margin-right: -5dp;" data-event-click="add_new_model()"><img sprite="icon-model"/></button>
-            </div>
-            <table>
-                <thead>
-                    <tr><td style="margin-left: 10dp; margin-right: 10dp;"></td></tr>
-                </thead>
-                <tbody>
-                    <tr data-for="object : objects">
-                        <td>
-                            <spacer data-style-width="25 * object.depth + 'dp'"/>
-                            <label data-if="it_index != selection_index" data-event-click="select_object_entry(it_index)">{{ object.name }}</label>
-                            <highlight_label data-if="it_index == selection_index">{{ object.name }}</highlight_label>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </panel>
-        <panel id="scene_selection" data-model="compositor_selection">
-            <div data-if="field_count > 0">
-                <table>
-                    <thead>
-                        <tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
-                    </thead>
-                    <tbody>
-                        <tr data-for="field : name_fields" class="property_tr">
-                            <td>
-                                Name&nbsp;
-                                <input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-event-change="modify_field(field.field_name)" data-value="field.string"/>
-                            </td>
-                        </tr>                                
-                        <tr data-for="field : anchor_id_fields" class="property_tr">
-                            <td>
-                                <label style="vertical-align: 12dp;">Parent Anchor</label>
-                                <select id="select" name="parent_anchor_id" data-value="field.int" data-event-change="modify_field(field.field_name)">
-                                    <option data-for="anchor_id : spatial_anchor_ids" data-value="anchor_id">{{anchor_id | to_anchor_name}}</option>
-                                </select>
-                            </td>
-                        </tr>                                
-                        <tr data-for="field : position_fields" class="property_tr">
-                            <td>
-                                Position&nbsp;
-                                <numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-event-submit="modify_field(field.field_name)" data-value="field.vec3_x"/>
-                                <numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-event-submit="modify_field(field.field_name)" data-value="field.vec3_y"/>
-                                <numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-event-submit="modify_field(field.field_name)" data-value="field.vec3_z"/>                                
-                            </td>
-                        </tr>                                
-                        <tr data-for="field : rotation_fields" class="property_tr">
-                            <td>
-                                Rotation&nbsp;
-                                <numeric type="float" min="-180.0" max="180.0" step="0.5" data-event-submit="modify_field(field.field_name)" data-value="field.vec3_x"/>
-                                <numeric type="float" min="-180.0" max="180.0" step="0.5" data-event-submit="modify_field(field.field_name)" data-value="field.vec3_y"/>
-                                <numeric type="float" min="-180.0" max="180.0" step="0.5" data-event-submit="modify_field(field.field_name)" data-value="field.vec3_z"/>
-                            </td>
-                        </tr>                                
-                        <tr data-for="field : scale_fields" class="property_tr">
-                            <td>
-                                Scale&nbsp;
-                                <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_name)" data-value="field.vec3_x"/>
-                                <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_name)" data-value="field.vec3_y"/>
-                                <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_name)" data-value="field.vec3_z"/>
-                            </td>
-                        </tr>                                                                                 
-                        <tr data-for="field : size3d_fields" class="property_tr">
-                            <td>
-                                Size&nbsp;
-                                <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_name)" data-value="field.vec3_x"/>
-                                <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_name)" data-value="field.vec3_y"/>
-                                <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_name)" data-value="field.vec3_z"/>                                
-                            </td>
-                        </tr>                                
-                        <tr data-for="field : size2d_fields" class="property_tr">
-                            <td>                                
-                                Size&nbsp;
-                                <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_name)" data-value="field.vec2_x"/>
-                                <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_name)" data-value="field.vec2_y"/>
-                            </td>
-                        </tr>                                
-                        <tr data-for="field : side1d_fields" class="property_tr">
-                            <td>                                
-                                {{field.field_name}}&nbsp;
-                                <numeric type="float" min="0.0" max="10.0" step="0.01" data-event-submit="modify_field(field.field_name)" data-value="field.float"/>
-                            </td>
-                        </tr>                                
-                        <tr data-for="field : checkbox_fields" class="property_tr">
-                            <td>                                
-                                <label><input type="checkbox" name="flag" data-event-change="modify_field(field.field_name)" data-checked="field.boolean" />{{field.field_name}}</label>
-                            </td>
-                        </tr>                                
-                        <tr data-for="field : filename_fields" class="property_tr">
-                            <td>                                
-                                Path&nbsp;
-                                <filename>{{field.string | to_short_path(30)}}</filename>
-                                <button style="width: 40dp; padding-top: 0.0dp; vertical-align: -6dp;" data-event-click="select_filepath(field.field_index)">...</button>
-                            </td>
-                        </tr>
-                        <tr data-for="field : stencil_cull_mode_fields" class="property_tr">
-                            <td>                                
-                                Cull Mode&nbsp;
-                                <select id="select" name="cull_mode" data-value="field.int" data-event-change="modify_field(field.field_name)" style="width: 200dp; vertical-align: -12dp">
-                                    <option data-for="enum_value : stencil_cull_mode_values" data-value="enum_value">{{enum_value | to_enum_string('stencil_cull_mode')}}</option>
-                                </select>
-                            </td>
-                        </tr>                        
-                    </tbody>
-                </table>
-            </div>
-            <br/>
-            <div data-for="function : component_functions">
-                <button data-event-click="invoke_function(function.function_index)">{{function.display_name}}</button>
-            </div>            
-        </panel>        
-    </body>
+		<div class="content">
+			<!-- Scene Objects Section -->
+			<div class="section">
+				<h3>Scene Objects</h3>
+
+				<!-- Add Object Buttons -->
+				<div class="button-group">
+					<button onclick="add_new_anchor">Add Anchor</button>
+					<button onclick="add_new_quad">Add Quad Stencil</button>
+					<button onclick="add_new_box">Add Box Stencil</button>
+					<button onclick="add_new_model">Add Model Stencil</button>
+				</div>
+
+				<!-- Scene Object Outliner -->
+				<div class="outliner-container">
+					<div data-for="project_scenes.scene_objects" class="outliner-item" onclick="select_object_entry({{ it_index }})">
+						<div class="outliner-indent" style="margin-left: {{ it.depth * 20 }}px;">
+							<span class="object-name">{{ it.name }}</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- Selected Object Details -->
+				<div data-if="project_scenes.selected_scene_object_index != -1" class="details-panel">
+					<h4>Selected Object Properties</h4>
+
+					<!-- Anchor Component Properties -->
+					<div data-if="anchor.component_id != -1" data-model="AnchorComponent">
+						<h5>Anchor</h5>
+						<!-- Anchor specific properties will be handled by the component model -->
+					</div>
+
+					<!-- Compositor Component Properties -->
+					<div data-if="compositor.component_id != -1" data-model="CompositorComponent">
+						<h5>Compositor</h5>
+						<!-- Compositor specific properties will be handled by the component model -->
+					</div>
+
+					<!-- Box Stencil Component Properties -->
+					<div data-if="box_stencil.component_id != -1" data-model="StencilComponent">
+						<h5>Box Stencil</h5>
+						<!-- Box stencil specific properties will be handled by the component model -->
+					</div>
+
+					<!-- Model Stencil Component Properties -->
+					<div data-if="model_stencil.component_id != -1" data-model="StencilComponent">
+						<h5>Model Stencil</h5>
+						<!-- Model stencil specific properties will be handled by the component model -->
+					</div>
+
+					<!-- Quad Stencil Component Properties -->
+					<div data-if="quad_stencil.component_id != -1" data-model="StencilComponent">
+						<h5>Quad Stencil</h5>
+						<!-- Quad stencil specific properties will be handled by the component model -->
+					</div>
+
+					<!-- Scene Model Properties -->
+					<div data-if="scene_model.component_id != -1" data-model="SceneComponent">
+						<h5>Scene</h5>
+						<!-- Scene specific properties will be handled by the component model -->
+					</div>
+				</div>
+
+				<!-- Empty State -->
+				<div data-if="project_scenes.scene_objects.size == 0" class="empty-state">
+					<p>No objects in the scene. Add anchors or stencils to get started.</p>
+					<div class="empty-state-buttons">
+						<button onclick="add_new_anchor">Add First Anchor</button>
+						<button onclick="add_new_quad">Add First Stencil</button>
+					</div>
+				</div>
+			</div>
+
+			<!-- Scene Hierarchy Information -->
+			<div class="section">
+				<h3>Scene Information</h3>
+				<div class="info-grid">
+					<div class="info-item">
+						<span class="info-label">Stage ID:</span>
+						<span class="info-value">{{ project_scenes.selected_stage_id }}</span>
+					</div>
+					<div class="info-item">
+						<span class="info-label">Scene ID:</span>
+						<span class="info-value">{{ project_scenes.selected_scene_id }}</span>
+					</div>
+					<div class="info-item">
+						<span class="info-label">Compositor ID:</span>
+						<span class="info-value">{{ project_scenes.selected_compositor_id }}</span>
+					</div>
+					<div class="info-item">
+						<span class="info-label">Selected Object:</span>
+						<span class="info-value">
+							{{ project_scenes.selected_scene_object_index != -1 ?
+								project_scenes.scene_objects[project_scenes.selected_scene_object_index].name :
+								"None" }}
+						</span>
+					</div>
+					<div class="info-item">
+						<span class="info-label">Object Count:</span>
+						<span class="info-value">{{ project_scenes.scene_objects.size }}</span>
+					</div>
+				</div>
+			</div>
+
+			<!-- Object Types Information -->
+			<div class="section">
+				<h3>Object Types</h3>
+				<div class="info-grid">
+					<div class="info-item">
+						<strong>Anchor:</strong> Reference points for positioning other objects
+					</div>
+					<div class="info-item">
+						<strong>Quad Stencil:</strong> Rectangular masking/clipping geometry
+					</div>
+					<div class="info-item">
+						<strong>Box Stencil:</strong> 3D box masking/clipping geometry
+					</div>
+					<div class="info-item">
+						<strong>Model Stencil:</strong> Custom 3D model masking/clipping geometry
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
 </rml>

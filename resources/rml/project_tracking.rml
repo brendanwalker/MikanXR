@@ -1,0 +1,74 @@
+<rml>
+<head>
+	<title>Project Tracking</title>
+	<link type="text/rcss" href="rml.rcss"/>
+	<link type="text/rcss" href="mikan.rcss"/>
+</head>
+<body>
+	<div class="window">
+		<div class="title-bar">
+			<span class="title">Tracking Systems</span>
+		</div>
+
+		<div class="content">
+			<!-- Tracking Volumes Section -->
+			<div class="section">
+				<h3>Tracking Volumes</h3>
+
+				<!-- Add New Tracking Volume Buttons -->
+				<div class="button-group">
+					<button onclick="add_new_steamvr_tracking_volume">Add SteamVR Volume</button>
+					<button onclick="add_new_marker_tracking_volume">Add Marker Volume</button>
+				</div>
+
+				<!-- Tracking Volume List -->
+				<div class="list-container">
+					<div data-for="tracking_systems.tracker_volume_ids" class="list-item" onclick="select_tracking_volume_entry({{ it }})">
+						<span>Volume {{ it }}</span>
+						<button class="remove-btn" onclick="remove_tracking_volume({{ it }})">×</button>
+					</div>
+				</div>
+
+				<!-- Selected Tracking Volume Details -->
+				<div data-if="tracking_systems.selected_tracking_volume_id != -1" class="details-panel">
+					<h4>Selected Volume: {{ tracking_systems.selected_tracking_volume_id }}</h4>
+
+					<!-- VR Tracking Volume Properties -->
+					<div data-if="vr_tracking_volume.component_id != -1">
+						<!-- VR tracking volume specific properties will be handled by the component model -->
+					</div>
+
+					<!-- Marker Tracking Volume Properties -->
+					<div data-if="marker_tracking_volume.component_id != -1">
+						<!-- Marker tracking volume specific properties will be handled by the component model -->
+					</div>
+				</div>
+			</div>
+
+			<!-- Tracking Mounts Section -->
+			<div class="section" data-if="tracking_systems.selected_tracking_volume_id != -1">
+				<h3>Tracking Mounts</h3>
+
+				<!-- Add New Tracking Mount Button (only for VR volumes) -->
+				<div data-if="vr_tracking_volume.component_id != -1" class="button-group">
+					<button onclick="add_new_tracking_mount">Add Tracking Mount</button>
+				</div>
+
+				<!-- Tracking Mount List -->
+				<div class="list-container">
+					<div data-for="tracking_systems.tracking_mount_ids" class="list-item" onclick="select_tracking_mount_entry({{ it }})">
+						<span>Mount {{ it }}</span>
+						<button class="remove-btn" onclick="remove_tracking_mount({{ it }})">×</button>
+					</div>
+				</div>
+
+				<!-- Selected Tracking Mount Details -->
+				<div data-if="tracking_systems.selected_tracking_mount_id != -1" class="details-panel">
+					<h4>Selected Mount: {{ tracking_systems.selected_tracking_mount_id }}</h4>
+					<!-- Tracking mount specific properties will be handled by the component model -->
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</rml>

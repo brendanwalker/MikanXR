@@ -1,0 +1,94 @@
+<rml>
+<head>
+	<title>Project Sources</title>
+	<link type="text/rcss" href="rml.rcss"/>
+	<link type="text/rcss" href="mikan.rcss"/>
+</head>
+<body data-model="video_sources">
+	<div class="window">
+		<div class="title-bar">
+			<span class="title">Video Sources</span>
+		</div>
+
+		<div class="content">
+			<!-- Video Sources Section -->
+			<div class="section">
+				<h3>Video Sources</h3>
+
+				<!-- Add New Video Source Buttons -->
+				<div class="button-group">
+					<button onclick="add_new_client_video_source">Add Client Source</button>
+					<button onclick="add_new_usb_video_source">Add USB Source</button>
+					<button onclick="add_new_network_video_source">Add Network Source</button>
+					<button onclick="add_new_spout_video_source">Add Spout Source</button>
+				</div>
+
+				<!-- Video Source List -->
+				<div class="list-container">
+					<div data-for="video_sources.video_source_ids" class="list-item" onclick="select_video_source_entry({{ it }})">
+						<span>Source {{ it }}</span>
+						<button class="remove-btn" onclick="remove_video_source({{ it }})">×</button>
+					</div>
+				</div>
+
+				<!-- Selected Video Source Details -->
+				<div data-if="video_sources.selected_video_source_id != -1" class="details-panel">
+					<h4>Selected Source: {{ video_sources.selected_video_source_id }}</h4>
+
+					<!-- Client Video Source Properties -->
+					<div data-if="client_video_source_definition.component_id != -1" data-model="ClientVideoSourceComponent" class="source-details">
+						<h5>Client Video Source</h5>
+						<!-- Client video source specific properties will be handled by the component model -->
+					</div>
+
+					<!-- USB Video Source Properties -->
+					<div data-if="usb_video_source.component_id != -1" data-model="USBVideoSourceComponent" class="source-details">
+						<h5>USB Video Source</h5>
+						<!-- USB video source specific properties will be handled by the component model -->
+					</div>
+
+					<!-- Network Video Source Properties -->
+					<div data-if="network_video_source_definition.component_id != -1" data-model="NetworkVideoSourceComponent" class="source-details">
+						<h5>Network Video Source</h5>
+						<!-- Network video source specific properties will be handled by the component model -->
+					</div>
+
+					<!-- Spout Video Source Properties -->
+					<div data-if="spout_video_source_definition.component_id != -1" data-model="SpoutVideoSourceComponent" class="source-details">
+						<h5>Spout Video Source</h5>
+						<!-- Spout video source specific properties will be handled by the component model -->
+					</div>
+				</div>
+
+				<!-- Empty State -->
+				<div data-if="video_sources.video_source_ids.size == 0" class="empty-state">
+					<p>No video sources configured. Add a video source to get started.</p>
+					<div class="empty-state-buttons">
+						<button onclick="add_new_usb_video_source">Add USB Camera</button>
+						<button onclick="add_new_client_video_source">Add Client Source</button>
+					</div>
+				</div>
+			</div>
+
+			<!-- Source Type Information -->
+			<div class="section">
+				<h3>Source Types</h3>
+				<div class="info-grid">
+					<div class="info-item">
+						<strong>Client Source:</strong> Video from connected client applications
+					</div>
+					<div class="info-item">
+						<strong>USB Source:</strong> Direct camera feed via USB connection
+					</div>
+					<div class="info-item">
+						<strong>Network Source:</strong> Video stream over network protocols
+					</div>
+					<div class="info-item">
+						<strong>Spout Source:</strong> Real-time video sharing via Spout framework
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</rml>
