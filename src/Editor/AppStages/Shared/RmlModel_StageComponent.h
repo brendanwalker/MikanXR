@@ -14,6 +14,7 @@ public:
 protected:
 	TrackingVolumeObjectSystemPtr getTrackingVolumeObjectSystem() const;
 	TrackingVolumeObjectSystemConfigPtr getTrackingVolumeObjectSystemConfig() const;
+	StageComponentPtr getStageComponent() const;
 
 private:
 	RmlDataBinding_ComponentIdListPtr m_trackingVolumeIdList;

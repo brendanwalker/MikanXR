@@ -4,112 +4,89 @@
 	<link type="text/rcss" href="rml.rcss"/>
 	<link type="text/rcss" href="mikan.rcss"/>
 </head>
-<body data-model="stages">
-	<div class="window">
+<body template="window">
+	<panel>
 		<div class="title-bar">
 			<span class="title">Stages</span>
 		</div>
 
 		<div class="content">
 			<!-- Stages Section -->
-			<div class="section">
+			<div data-model="Stages">
 				<h3>Stages</h3>
-
-				<!-- Add New Stage Button -->
-				<div class="button-group">
-					<button onclick="add_new_stage">Add New Stage</button>
-				</div>
-
-				<!-- Stage List -->
-				<div class="list-container">
-					<div data-for="stages.stage_ids" class="list-item" onclick="select_stage_entry({{ it }})">
-						<span>Stage {{ it }}</span>
-						<button class="remove-btn" onclick="remove_stage({{ it }})">×</button>
-					</div>
-				</div>
-
-				<!-- Selected Stage Details -->
-				<div data-if="stages.selected_stage_id != -1" class="details-panel">
-					<h4>Selected Stage: {{ stages.selected_stage_id }}</h4>
-
-					<!-- Stage specific properties will be handled by the component model -->
-					<div data-if="stage.component_id != -1" data-model="StageComponent">
-						<!-- Stage component properties -->
-					</div>
-				</div>
-
-				<!-- Empty State -->
-				<div data-if="stages.stage_ids.size == 0" class="empty-state">
-					<p>No stages defined. Add a stage to get started.</p>
-				</div>
+				<select id="select" name="select_stage_id" data-value="selected_stage_id" data-event-change="select_stage_entry()">
+					<option data-for="stage_id : stage_ids" data-value="stage_id">{{stage_id | to_stage_name}}</option>
+				</select>				
+				<createcomponent onclick="add_new_stage"></createcomponent>				
+				<deletecomponent onclick="remove_stage"></deletecomponent>
+			</div>
+			<div data-if="component_id != -1" data-model="StageComponent">
+				<table>
+					<thead>
+						<tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
+					</thead>
+					<tbody>
+						<td>
+							Name&nbsp;
+							<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
+						</td>					
+						<td>
+							<label style="vertical-align: 12dp;">Tracking Volume</label>
+							<select id="select" name="select_volume_id" data-value="tracking_volume_id" data-event-change="select_volume()">
+								<option data-for="volume_id : tracking_volume_ids" data-value="anchor_id">{{volume_id | to_volume_name}}</option>
+							</select>
+						</td>
+						<td>
+							<button data-event-click="align_stage()">Align Stage</button>
+						</td>
+					</tbody>
+				</table>
+			</div>
+			<div data-if="component_id == -1" data-model="StageComponent">
+				<p>No stage selected</p>
 			</div>
 
-			<!-- Cameras Section (only shown when a stage is selected) -->
-			<div class="section" data-if="stages.selected_stage_id != -1">
+			<!-- Cameras Section -->
+			<div data-model="Stages">
 				<h3>Cameras</h3>
-
-				<!-- Add New Camera Button -->
-				<div class="button-group">
-					<button onclick="add_new_camera">Add Camera</button>
-				</div>
-
-				<!-- Camera List -->
-				<div class="list-container">
-					<div data-for="stages.camera_ids" class="list-item" onclick="select_camera_entry({{ it }})">
-						<span>Camera {{ it }}</span>
-						<button class="remove-btn" onclick="remove_camera({{ it }})">×</button>
-					</div>
-				</div>
-
-				<!-- Selected Camera Details -->
-				<div data-if="stages.selected_camera_id != -1" class="details-panel">
-					<h4>Selected Camera: {{ stages.selected_camera_id }}</h4>
-
-					<!-- Camera specific properties will be handled by the component model -->
-					<div data-if="camera.component_id != -1" data-model="CameraComponent">
-						<!-- Camera component properties -->
-					</div>
-				</div>
-
-				<!-- Camera Empty State -->
-				<div data-if="stages.camera_ids.size == 0" class="empty-state">
-					<p>No cameras in this stage. Add a camera to capture content.</p>
-				</div>
+				<select id="select" name="select_camera_id" data-value="selected_camera_id" data-event-change="select_camera_entry()">
+					<option data-for="camera_id : camera_ids" data-value="camera_id">{{camera_id | to_camera_name}}</option>
+				</select>				
+				<createcomponent onclick="add_new_camera"></createcomponent>				
+				<deletecomponent onclick="remove_camera"></deletecomponent>
 			</div>
-
-			<!-- Compositors Section (only shown when a stage is selected) -->
-			<div class="section" data-if="stages.selected_stage_id != -1">
-				<h3>Compositors</h3>
-
-				<!-- Add New Compositor Button -->
-				<div class="button-group">
-					<button onclick="add_new_compositor">Add Compositor</button>
-				</div>
-
-				<!-- Compositor List -->
-				<div class="list-container">
-					<div data-for="stages.compositor_ids" class="list-item" onclick="select_compositor_entry({{ it }})">
-						<span>Compositor {{ it }}</span>
-						<button class="remove-btn" onclick="remove_compositor({{ it }})">×</button>
-					</div>
-				</div>
-
-				<!-- Selected Compositor Details -->
-				<div data-if="stages.selected_compositor_id != -1" class="details-panel">
-					<h4>Selected Compositor: {{ stages.selected_compositor_id }}</h4>
-
-					<!-- Compositor specific properties will be handled by the component model -->
-					<div data-if="compositor.component_id != -1" data-model="CompositorComponent">
-						<!-- Compositor component properties -->
-					</div>
-				</div>
-
-				<!-- Compositor Empty State -->
-				<div data-if="stages.compositor_ids.size == 0" class="empty-state">
-					<p>No compositors in this stage. Add a compositor to render content.</p>
-				</div>
+			<div data-if="component_id != -1" data-model="CameraComponent">
+				<table>
+					<thead>
+						<tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
+					</thead>
+					<tbody>
+						<td>
+							Name&nbsp;
+							<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
+						</td>
+						<!-- Mount (if using a vr tracking volume) -->
+						<td>
+							Position&nbsp;
+							<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.x"/>
+							<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.y"/>
+							<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.z"/>                                
+						</td>
+						<!-- Rotation -->
+						<!-- Video Source -->
+						<!-- Frame Delay (if using a vr tracking volume) -->
+						<td>
+							<button data-event-click="align_camera()">Align Camera</button>
+						</td>
+					</tbody>
+				</table>
 			</div>
+			<div data-if="component_id == -1" data-model="CameraComponent">
+				<p>No camera selected</p>
+			</div>			
+
+			<!-- Compositors Section-->
 		</div>
-	</div>
+	</panel>
 </body>
 </rml>

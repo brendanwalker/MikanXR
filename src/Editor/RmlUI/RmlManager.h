@@ -51,6 +51,7 @@ public:
 	}
 
 	inline Rml::Context* getRmlUIContext() const { return m_rmlUIContext; }
+	inline MainWindow* getOwnerWindow() const { return m_ownerWindow; }
 
 	// Enum Reflection
 	bool addEnumDefinition(Rml::Mikan::EnumDefinitionConstPtr enumDefinition);

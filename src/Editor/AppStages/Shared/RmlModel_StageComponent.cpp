@@ -2,6 +2,7 @@
 #include "RmlModel_StageComponent.h"
 #include "TrackingVolumeObjectSystem.h"
 #include "Shared/RmlDataBinding_List.h"
+#include "Shared/RmlModel_PropertyInterface.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
@@ -30,6 +31,17 @@ bool RmlModel_StageComponent::init(Rml::Context* rmlContext)
 						if (trackingVolumeObjectSystem)
 						{
 							outComponentIdList = trackingVolumeObjectSystem->getTrackingVolumeIdList();
+						}
+					});
+
+				constructor.BindEventCallback(
+					"select_volume",
+					[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+						const int newVolumeId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
+						StageComponentPtr stageComponent = getStageComponent();
+						if (stageComponent)
+						{
+							stageComponent->setTrackingVolumeId(newVolumeId);
 						}
 					});
 
@@ -69,6 +81,17 @@ TrackingVolumeObjectSystemConfigPtr RmlModel_StageComponent::getTrackingVolumeOb
 	if (trackingVolumeObjectSystem)
 	{
 		return trackingVolumeObjectSystem->getTrackingVolumeSystemConfig();
+	}
+
+	return nullptr;
+}
+
+StageComponentPtr RmlModel_StageComponent::getStageComponent() const
+{
+	MikanComponentPtr component = m_component.lock();
+	if (component)
+	{
+		return std::dynamic_pointer_cast<StageComponent>(component);
 	}
 
 	return nullptr;

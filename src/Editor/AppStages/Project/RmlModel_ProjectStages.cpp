@@ -223,12 +223,7 @@ void RmlModel_ProjectStages::removeStage(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	if (parameters.empty())
-		return;
-
-	const int stageId = parameters[0].Get<int>();
-	
-	getStageSystem()->removeStage((MikanStageID)stageId);
+	getStageSystem()->removeStage(m_selectedStageId);
 }
 
 void RmlModel_ProjectStages::addNewCamera(
@@ -236,7 +231,6 @@ void RmlModel_ProjectStages::addNewCamera(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {	
-	// Would need GlmTransform parameter - this might need more specific implementation
 	getCameraSystem()->addNewCamera((MikanStageID)m_selectedStageId);
 }
 
@@ -245,12 +239,7 @@ void RmlModel_ProjectStages::removeCamera(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	if (parameters.empty())
-		return;
-
-	const int cameraId = parameters[0].Get<int>();
-	
-	getCameraSystem()->removeCamera((MikanCameraID)cameraId);
+	getCameraSystem()->removeCamera(m_selectedCameraId);
 }
 
 void RmlModel_ProjectStages::addNewCompositor(
@@ -266,48 +255,37 @@ void RmlModel_ProjectStages::removeCompositor(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	if (parameters.empty())
-		return;
-
-	const int compositorId = parameters[0].Get<int>();
-	
-	getCompositorSystem()->removeCompositor((MikanCompositorID)compositorId);
+	getCompositorSystem()->removeCompositor(m_selectedCompositorId);
 }
 
 void RmlModel_ProjectStages::selectStageEntry(
 	Rml::DataModelHandle handle,
-	Rml::Event& /*ev*/,
+	Rml::Event& ev,
 	const Rml::VariantList& parameters)
 {
-	if (parameters.empty())
-		return;
+	const int newStageId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
 
-	const MikanStageID selectedStageId = (MikanStageID)parameters[0].Get<int>();
-	setSelectedStageId(selectedStageId);
+	setSelectedStageId(newStageId);
 }
 
 void RmlModel_ProjectStages::selectCameraEntry(
 	Rml::DataModelHandle handle,
-	Rml::Event& /*ev*/,
+	Rml::Event& ev,
 	const Rml::VariantList& parameters)
 {
-	if (parameters.empty())
-		return;
+	const int newCameraId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
 
-	const MikanCameraID selectedCameraId = (MikanCameraID)parameters[0].Get<int>();
-	setSelectedCameraId(selectedCameraId);
+	setSelectedCameraId(newCameraId);
 }
 
 void RmlModel_ProjectStages::selectCompositorEntry(
 	Rml::DataModelHandle handle,
-	Rml::Event& /*ev*/,
+	Rml::Event& ev,
 	const Rml::VariantList& parameters)
 {
-	if (parameters.empty())
-		return;
+	const int newCompositorId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
 
-	const MikanCompositorID selectedCompositorId = (MikanCompositorID)parameters[0].Get<int>();
-	setSelectedCompositorId(selectedCompositorId);
+	setSelectedCompositorId(newCompositorId);
 }
 
 void RmlModel_ProjectStages::setSelectedStageId(MikanStageID stageId)

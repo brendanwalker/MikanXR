@@ -12,12 +12,17 @@
 #include "MainWindow.h"
 #include "MikanSpatialAnchorTypes.h"
 #include "MikanStencilTypes.h"
+#include "ObjectSystemManager.h"
 #include "ProjectConfig.h"
 #include "PathUtils.h"
 #include "SdlManager.h"
+#include "StageObjectSystem.h"
+#include "StageComponent.h"
 #include "StencilComponent.h"
 #include "StencilObjectSystem.h"
 #include "SceneObjectSystem.h"
+#include "TrackingVolumeObjectSystem.h"
+#include "TrackingVolumeComponent.h"
 #include "VRObjectSystem.h"
 #include "VRDeviceComponent.h"
 #include "VideoSourceSystem.h"
@@ -247,6 +252,14 @@ static void registerEnumDefinition(
 	RmlManager::getInstance()->addEnumDefinition(enumDefinition);
 }
 
+template<class t_system_type>
+std::shared_ptr<t_system_type> rmlGetSystemOfType(RmlManager* rmlManager)
+{
+	ObjectSystemManagerPtr objectSystemManager = rmlManager->getOwnerWindow()->getObjectSystemManager();
+
+	return objectSystemManager->getSystemOfType<t_system_type>();
+}
+
 void RmlManager::registerCommonDataModelTypes()
 {
 	Rml::DataModelConstructor constructor = m_rmlUIContext->CreateDataModel("data_model_globals");
@@ -284,12 +297,14 @@ void RmlManager::registerCommonDataModelTypes()
 	}
 
 	// Transform function for converting anchor id to anchor name
+	RmlManager* rmlManager = this;
 	constructor.RegisterTransformFunc(
 		"to_anchor_name",
-		[this](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
+		[rmlManager](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
 			const MikanSpatialAnchorID anchorId = variant.Get<int>(-1);
 
-			auto anchorComponent= AnchorObjectSystem::getSystem()->getSpatialAnchorById(anchorId);
+			auto anchorObjectSystem = rmlGetSystemOfType<AnchorObjectSystem>(rmlManager);
+			auto anchorComponent= anchorObjectSystem->getSpatialAnchorById(anchorId);
 			if (anchorComponent != nullptr)
 			{
 				variant = Rml::String(anchorComponent->getName());
@@ -298,13 +313,44 @@ void RmlManager::registerCommonDataModelTypes()
 			return false;
 		});
 
+	constructor.RegisterTransformFunc(
+		"to_stage_name",
+		[rmlManager](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
+			const MikanStageID stageId = variant.Get<int>(-1);
+
+			auto stageObjectSystem = rmlGetSystemOfType<StageObjectSystem>(rmlManager);
+			auto stageComponent = stageObjectSystem->getStageById(stageId);
+			if (stageComponent != nullptr)
+			{
+				variant = Rml::String(stageComponent->getName());
+				return true;
+			}
+			return false;
+		});
+
+	constructor.RegisterTransformFunc(
+		"to_volume_name",
+		[rmlManager](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
+			const MikanTrackingVolumeID volumeId = variant.Get<int>(-1);
+
+			auto volumeObjectSystem = rmlGetSystemOfType<TrackingVolumeObjectSystem>(rmlManager);
+			auto volumeComponent = volumeObjectSystem->getTrackingVolumeById(volumeId);
+			if (volumeComponent != nullptr)
+			{
+				variant = Rml::String(volumeComponent->getName());
+				return true;
+			}
+			return false;
+		});
+
 	// Transform function for converting stencil id to stencil name
 	constructor.RegisterTransformFunc(
 		"to_stencil_name",
-		[this](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
+		[rmlManager](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
 			const MikanStencilID stencilId = variant.Get<int>(-1);
 
-			auto stencilComponent= StencilObjectSystem::getSystem()->getStencilById(stencilId);
+			auto stencilObjectSystem = rmlGetSystemOfType<StencilObjectSystem>(rmlManager);
+			auto stencilComponent= stencilObjectSystem->getStencilById(stencilId);
 			if (stencilComponent != nullptr)
 			{
 				variant = stencilComponent->getName();
@@ -316,10 +362,11 @@ void RmlManager::registerCommonDataModelTypes()
 	// Transform function for converting stencil id to stencil name
 	constructor.RegisterTransformFunc(
 		"to_camera_name",
-		[this](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
+		[rmlManager](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
 			const MikanCameraID cameraId = variant.Get<int>(-1);
 
-			auto cameraComponent = CameraObjectSystem::getSystem()->getCameraById(cameraId);
+			auto cameraObjectSystem = rmlGetSystemOfType<CameraObjectSystem>(rmlManager);
+			auto cameraComponent = cameraObjectSystem->getCameraById(cameraId);
 			if (cameraComponent != nullptr)
 			{
 				variant = cameraComponent->getName();
@@ -331,7 +378,7 @@ void RmlManager::registerCommonDataModelTypes()
 	// Transform function for converting full file path to a trimmed path
 	constructor.RegisterTransformFunc(
 		"to_short_path",
-		[this](Rml::Variant& variant, const Rml::VariantList& arguments) -> bool {
+		[](Rml::Variant& variant, const Rml::VariantList& arguments) -> bool {
 			const Rml::String filePath = variant.Get<Rml::String>("");
 			const size_t maxLength = arguments[0].Get<int>(20);
 
@@ -343,29 +390,30 @@ void RmlManager::registerCommonDataModelTypes()
 	// Transform function for converting full file path to a trimmed path
 	constructor.RegisterTransformFunc(
 		"to_video_source_friendly_name",
-		[this](Rml::Variant& variant, const Rml::VariantList& arguments) -> bool {
-		const MikanVideoSourceID videoSourceId = variant.Get<int>(-1);
+		[rmlManager](Rml::Variant& variant, const Rml::VariantList& arguments) -> bool {
+			const MikanVideoSourceID videoSourceId = variant.Get<int>(-1);
 		
-		VideoSourceComponentPtr videoSourceComponent = 
-			VideoSourceSystem::getSystem()->getVideoSourceById(videoSourceId);
-		if (videoSourceComponent)
-		{
-			const Rml::String friendlyName = videoSourceComponent->getName();
+			auto videoSourceSystem = rmlGetSystemOfType<VideoSourceSystem>(rmlManager);
+			auto videoSourceComponent = videoSourceSystem->getVideoSourceById(videoSourceId);
+			if (videoSourceComponent)
+			{
+				const Rml::String friendlyName = videoSourceComponent->getName();
 
-			variant = friendlyName;
-			return true;
-		}
+				variant = friendlyName;
+				return true;
+			}
 
-		return false;
-	});
+			return false;
+		});
 
 	// Transform function for converting full file path to a trimmed path
 	constructor.RegisterTransformFunc(
 		"to_vr_device_friendly_name",
-		[this](Rml::Variant& variant, const Rml::VariantList& arguments) -> bool {
+		[rmlManager](Rml::Variant& variant, const Rml::VariantList& arguments) -> bool {
 			const Rml::String devicePath = variant.Get<Rml::String>("");
 
-			VRDeviceComponentPtr deviceView= VRObjectSystem::getSystem()->getVRDeviceByPath(devicePath);
+			auto vrObjectSystem = rmlGetSystemOfType<VRObjectSystem>(rmlManager);
+			VRDeviceComponentPtr deviceView= vrObjectSystem->getVRDeviceByPath(devicePath);
 			if (deviceView)
 			{
 				const IVRDevice* deviceInterface= deviceView->getVRDeviceInterface();
@@ -382,12 +430,12 @@ void RmlManager::registerCommonDataModelTypes()
 
 	constructor.RegisterTransformFunc(
 		"to_enum_string",
-		[this](Rml::Variant& variant, const Rml::VariantList& arguments) -> bool {
+		[rmlManager](Rml::Variant& variant, const Rml::VariantList& arguments) -> bool {
 			const int enumIntValue = variant.Get<int>(-1);
 			if (enumIntValue != -1 && arguments.size() == 1)
 			{
 				const std::string enumName = arguments[0].Get<Rml::String>();
-				Rml::Mikan::EnumDefinitionConstPtr enumDefinition= getEnumDefinition(enumName);
+				Rml::Mikan::EnumDefinitionConstPtr enumDefinition= rmlManager->getEnumDefinition(enumName);
 
 				if (enumDefinition && enumIntValue >= 0 && enumIntValue < enumDefinition->enum_string_values.size())
 				{

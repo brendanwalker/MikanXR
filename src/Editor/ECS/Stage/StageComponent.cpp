@@ -163,6 +163,11 @@ bool StageComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functio
 	return MikanComponent::invokeFunctionFromRml(functionDesc);
 }
 
+void StageComponent::setTrackingVolumeId(MikanTrackingVolumeID volumeId)
+{
+	getStageComponentDefinition()->setTrackingVolumeId(volumeId);
+}
+
 void StageComponent::alignStage()
 {
 	ModalDialog_SelectCamera::selectCamera(

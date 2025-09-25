@@ -135,8 +135,6 @@
 	progress-fill-l: 110px 302px 6px 34px;
 	progress-fill-c: 140px 302px 6px 34px;
 	progress-fill-r: 170px 302px 6px 34px;
-	gauge: 0px 271px 100px 86px;
-	gauge-fill: 0px 356px 100px 86px;
 
 	numeric-inc: 64px 232px 11px 11px;
 	numeric-inc-hover: 80px 232px 11px 11px;
@@ -144,6 +142,18 @@
 	numeric-dec: 64px 248px 11px 11px;
 	numeric-dec-hover: 80px 248px 11px 11px;
 	numeric-dec-active: 96px 248px 11px 11px;
+
+	create-btn: 407px 140px 30px 30px;
+	create-btn-hover: 407px 170px 30px 30px;
+	create-btn-active: 407px 200px 30px 30px;	
+
+	delete-btn: 437px 140px 30px 30px;
+	delete-btn-hover: 437px 170px 30px 30px;
+	delete-btn-active: 437px 200px 30px 30px;	
+
+	edit-btn: 467px 140px 30px 30px;
+	edit-btn-hover: 467px 170px 30px 30px;
+	edit-btn-active: 467px 200px 30px 30px;			
 }
 
 body {
@@ -289,6 +299,44 @@ input.submit:active {
 	decorator: tiled-horizontal(button-active-l, button-active-c, button-active-r);
 }
 
+createcomponent {
+	decorator: image(create-btn);
+}
+deletecomponent {
+	decorator: image(delete-btn);
+}
+editcomponent {
+	decorator: image(edit-btn);
+}
+
+createcomponent:hover {
+	decorator: image(create-btn-hover);
+}
+deletecomponent:hover {
+	decorator: image(delete-btn-hover);
+}
+editcomponent:hover {
+	decorator: image(edit-btn-hover);
+}
+
+createcomponent:active {
+	decorator: image(create-btn-active);
+}
+deletecomponent:active {
+	decorator: image(delete-btn-active);
+}
+editcomponent:active {
+	decorator: image(edit-btn-active);
+}
+
+filename
+{
+	decorator: gradient( vertical #415857 #5990A3 );
+	border: 3dp #415857;
+	font-size: 14dp;
+	vertical-align: 0dp;
+}
+
 numeric.submit:disabled,
 input.submit:disabled {
 	decorator: image(button);
@@ -313,12 +361,26 @@ textarea {
 	cursor: text;
 }
 
+highlight_label
+{
+	decorator: gradient( horizontal #DB6565 #F1B58A );
+	border: 2px #DB6565;
+}
+
 input.text,
 input.password,
-numeric,
 select,
 dataselect,
 textarea {
+	color: #333;
+	font-size: 12dp;
+}
+
+numeric {
+	width: 60dp;
+	margin-left: 0dp;
+	margin-right: 5dp;
+	vertical-align: -6dp;	
 	color: #333;
 	font-size: 12dp;
 }
@@ -657,13 +719,6 @@ progress {
 	vertical-align: middle;
 }
 
-#gauge {
-	decorator: image(gauge);
-	width: 100dp;
-	height: 86dp;
-	fill-image: gauge-fill;
-}
-
 #progress_horizontal {
 	decorator: tiled-horizontal(progress-l, progress-c, progress-r);
 	width: 150dp;
@@ -683,17 +738,12 @@ progress {
 	margin-bottom: 0;
 }
 
-#gauge_value,
 #progress_value {
 	font-size: 16dp;
 	color: #4ADB2D;
 	text-align: right;
 	width: 53dp;
 	font-effect: outline(2dp #555);
-}
-
-#gauge_value {
-	margin: 34dp 0 0 18dp;
 }
 
 #progress_value {
@@ -765,6 +815,27 @@ scrollbarvertical sliderarrowinc:active {
 scrollbarhorizontal {
 	width: 0;
 	height: 0;
+}
+
+spacer {
+	display: inline-block;
+}
+
+tbody tr {
+	height: 1.5em;
+}
+
+.property_tr {
+	height: 2.5em;
+}            
+
+tbody td
+{
+	padding-top: 0.0em;
+	height: 1.5em;
+	text-align: left;
+	white-space: nowrap;
+	overflow: hidden;
 }
 
 textarea scrollbarvertical {
