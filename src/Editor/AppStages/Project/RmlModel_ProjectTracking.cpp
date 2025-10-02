@@ -235,26 +235,22 @@ void RmlModel_ProjectTracking::removeTrackingMountID(
 
 void RmlModel_ProjectTracking::selectTrackingVolumeEntry(
 	Rml::DataModelHandle handle,
-	Rml::Event& /*ev*/,
+	Rml::Event& ev,
 	const Rml::VariantList& parameters)
 {
-	if (parameters.empty())
-		return;
+	const int newVolumeId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
 
-	const MikanTrackingVolumeID selectedSystemId = (MikanTrackingVolumeID)parameters[0].Get<int>();
-	setSelectedTrackingVolumeId(selectedSystemId);
+	setSelectedTrackingVolumeId(newVolumeId);
 }
 
 void RmlModel_ProjectTracking::selectTrackingMountEntry(
 	Rml::DataModelHandle handle,
-	Rml::Event& /*ev*/,
+	Rml::Event& ev,
 	const Rml::VariantList& parameters)
 {
-	if (parameters.empty())
-		return;
+	const int newMountId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
 
-	const MikanTrackingMountID selectedMountId = (MikanTrackingMountID)parameters[0].Get<int>();
-	setSelectedTrackingMountId(selectedMountId);
+	setSelectedTrackingMountId(newMountId);
 }
 
 void RmlModel_ProjectTracking::setSelectedTrackingVolumeId(MikanTrackingVolumeID trackingVolumeId)

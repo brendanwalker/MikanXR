@@ -16,6 +16,7 @@ protected:
 	CameraObjectSystemConfigPtr getCameraObjectSystemConfig() const;
 	VideoSourceSystemPtr getVideoSourceSystem() const;
 	VideoSourceSystemConfigPtr getVideoSourceSystemConfig() const;
+	CompositorComponentPtr getCompositorComponent() const;
 
 private:
 	RmlDataBinding_ComponentIdListPtr m_cameraIdList;

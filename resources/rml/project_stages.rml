@@ -17,8 +17,8 @@
 				<select id="select" name="select_stage_id" data-value="selected_stage_id" data-event-change="select_stage_entry()">
 					<option data-for="stage_id : stage_ids" data-value="stage_id">{{stage_id | to_stage_name}}</option>
 				</select>				
-				<createcomponent onclick="add_new_stage"></createcomponent>				
-				<deletecomponent onclick="remove_stage"></deletecomponent>
+				<createcomponent data-event-click="add_new_stage"></createcomponent>				
+				<deletecomponent data-event-click="remove_stage"></deletecomponent>
 			</div>
 			<div data-if="component_id != -1" data-model="StageComponent">
 				<table>
@@ -26,19 +26,25 @@
 						<tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
 					</thead>
 					<tbody>
-						<td>
-							Name&nbsp;
-							<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
-						</td>					
-						<td>
-							<label style="vertical-align: 12dp;">Tracking Volume</label>
-							<select id="select" name="select_volume_id" data-value="tracking_volume_id" data-event-change="select_volume()">
-								<option data-for="volume_id : tracking_volume_ids" data-value="anchor_id">{{volume_id | to_volume_name}}</option>
-							</select>
-						</td>
-						<td>
-							<button data-event-click="align_stage()">Align Stage</button>
-						</td>
+	                    <tr class="property_tr">
+							<td>
+								Name&nbsp;
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
+							</td>
+						</tr>				
+	                    <tr class="property_tr">
+							<td>
+								<label style="vertical-align: 12dp;">Tracking Volume</label>
+								<select id="select" name="select_volume_id" data-value="tracking_volume_id" data-event-change="select_volume_entry()">
+									<option data-for="volume_id : tracking_volume_ids" data-value="anchor_id">{{volume_id | to_volume_name}}</option>
+								</select>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<button data-event-click="align_stage()">Align Stage</button>
+							</td>
+						</tr>
 					</tbody>
 				</table>
 			</div>
@@ -51,9 +57,9 @@
 				<h3>Cameras</h3>
 				<select id="select" name="select_camera_id" data-value="selected_camera_id" data-event-change="select_camera_entry()">
 					<option data-for="camera_id : camera_ids" data-value="camera_id">{{camera_id | to_camera_name}}</option>
-				</select>				
-				<createcomponent onclick="add_new_camera"></createcomponent>				
-				<deletecomponent onclick="remove_camera"></deletecomponent>
+				</select>			
+				<createcomponent data-event-click="add_new_camera"></createcomponent>				
+				<deletecomponent data-event-click="remove_camera"></deletecomponent>
 			</div>
 			<div data-if="component_id != -1" data-model="CameraComponent">
 				<table>
@@ -61,23 +67,55 @@
 						<tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
 					</thead>
 					<tbody>
-						<td>
-							Name&nbsp;
-							<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
-						</td>
-						<!-- Mount (if using a vr tracking volume) -->
-						<td>
-							Position&nbsp;
-							<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.x"/>
-							<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.y"/>
-							<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.z"/>                                
-						</td>
-						<!-- Rotation -->
-						<!-- Video Source -->
-						<!-- Frame Delay (if using a vr tracking volume) -->
-						<td>
-							<button data-event-click="align_camera()">Align Camera</button>
-						</td>
+	                    <tr class="property_tr">
+							<td>
+								Name&nbsp;
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
+							</td>
+						</tr>
+	                    <tr class="property_tr">
+							<td data-if="tracking_mount_ids.size > 0">
+								Mount&nbsp;
+								<select id="select" name="select_mount_id" data-value="tracking_mount_id" data-event-change="select_mount_entry()">
+									<option data-for="element_id : tracking_mount_ids" data-value="element_id">{{element_id | to_tracking_mount_name}}</option>
+								</select>
+							</td>
+						</tr>
+						<tr class="property_tr">	
+							<td>
+								Position&nbsp;
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.x"/>
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.y"/>
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.z"/>                                
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Rotation&nbsp;
+								<numeric type="float" precision="3" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.x"/>
+								<numeric type="float" precision="3" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.y"/>
+								<numeric type="float" precision="3" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.z"/>                                
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Video Source&nbsp;
+								<select id="select" name="select_video_source_id" data-value="video_source_id" data-event-change="select_video_source_entry()">
+									<option data-for="element_id : video_source_ids" data-value="element_id">{{element_id | to_video_source_friendly_name}}</option>
+								</select>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td data-if="tracking_mount_ids.size > 0">
+								Frame Delay&nbsp;
+								<numeric type="int" min="0" max="60" step="1" data-value="tracking_frame_delay"/>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<button data-event-click="align_camera()">Align Camera</button>
+							</td>
+						</tr>
 					</tbody>
 				</table>
 			</div>
@@ -86,6 +124,75 @@
 			</div>			
 
 			<!-- Compositors Section-->
+			<div data-model="Stages">
+				<h3>Compositors</h3>
+				<select id="select" name="select_compositor_id" data-value="selected_compositor_id" data-event-change="select_compositor_entry()">
+					<option data-for="compositor_id : compositor_ids" data-value="compositor_id">{{compositor_id | to_compositor_name}}</option>
+				</select>			
+				<createcomponent data-event-click="add_new_compositor"></createcomponent>				
+				<deletecomponent data-event-click="remove_compositor"></deletecomponent>
+			</div>
+			<div data-if="component_id != -1" data-model="CompositorComponent">
+				<table>
+					<thead>
+						<tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
+					</thead>
+					<tbody>
+						<tr class="property_tr">
+							<td>
+								Name&nbsp;
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Type&nbsp;
+								<select id="select" name="select_compositor_type" data-value="source_type" data-event-change="select_compositor_type()">
+									<option data-for="enum_value : compositor_source_type" data-value="enum_value">{{enum_value | to_enum_string('compositor_source_type')}}</option>
+								</select>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td data-if="source_type == 0">
+								Video Source&nbsp;
+								<select id="select" name="select_video_source_id" data-value="video_source_id" data-event-change="select_video_source_entry()">
+									<option data-for="element_id : video_source_ids" data-value="element_id">{{element_id | to_video_source_friendly_name}}</option>
+								</select>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td data-if="source_type == 1">
+								Camera&nbsp;
+								<select id="select" name="select_camera_id" data-value="camera_id" data-event-change="select_camera_entry()">
+									<option data-for="element_id : camera_ids" data-value="element_id">{{element_id | to_camera_name}}</option>
+								</select>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label><input type="checkbox" name="spout_output_flag" data-checked="spout_enable_output" />Enable Spout Output</label>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Output Name&nbsp;
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="spout_output_name"/>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<filename>{{compositor_graph_path | to_short_path(30)}}</filename>
+								<editcomponent data-event-click="edit_compositor_graph()"></editcomponent>
+								<createcomponent data-event-click="add_new_compositor_graph()"></createcomponent>
+								<deletecomponent data-event-click="remove_compositor_graph()"></deletecomponent>						
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div data-if="component_id == -1" data-model="CompositorComponent">
+				<p>No compositor selected</p>
+			</div>				
 		</div>
 	</panel>
 </body>

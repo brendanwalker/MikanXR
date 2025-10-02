@@ -182,13 +182,11 @@ void RmlModel_ProjectSources::removeVideoSource(
 
 void RmlModel_ProjectSources::selectVideoSourceEntry(
 	Rml::DataModelHandle handle,
-	Rml::Event& /*ev*/,
+	Rml::Event& ev,
 	const Rml::VariantList& parameters)
 {
-	if (parameters.empty())
-		return;
-
-	const MikanVideoSourceID selectedVideoSourceId = (MikanVideoSourceID)parameters[0].Get<int>();
+	const int selectedVideoSourceId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
+	
 	setSelectedVideoSourceId(selectedVideoSourceId);
 }
 

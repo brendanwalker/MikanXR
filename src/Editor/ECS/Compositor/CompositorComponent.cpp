@@ -24,6 +24,7 @@
 #include "StringUtils.h"
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceComponent.h"
+#include "Windows/CompositorNodeEditorWindow.h"
 
 #include "NodeGraphAssetReference.h"
 #include "Graphs/CompositorNodeGraph.h"
@@ -37,11 +38,12 @@
 
 // -- CompositorConfig -----
 const std::string CompositorDefinition::k_compositorGraphPathPropertyId = "script_path";
+const std::string CompositorDefinition::k_sourceTypePropertyId = "source_type";
 const std::string CompositorDefinition::k_videoSourceIdPropertyId = "video_source_id";
-const std::string CompositorDefinition::k_cameraPropertyId= "camera_id";
+const std::string CompositorDefinition::k_cameraIdPropertyId= "camera_id";
 const std::string CompositorDefinition::k_ownerStagePropertyId = "owner_stage_id";
-const std::string CompositorDefinition::k_spoutOutputIsStreamingNamePropertyId = "spoutOutputIsStreaming";
-const std::string CompositorDefinition::k_spoutOutputNamePropertyId = "spoutOutputName";
+const std::string CompositorDefinition::k_spoutEnableOutputNamePropertyId = "spout_enable_output";
+const std::string CompositorDefinition::k_spoutOutputNamePropertyId = "spout_output_name";
 
 CompositorDefinition::CompositorDefinition()
 	: MikanComponentDefinition()
@@ -69,9 +71,11 @@ configuru::Config CompositorDefinition::writeToJSON()
 	configuru::Config pt = MikanComponentDefinition::writeToJSON();
 
 	pt["id"] = m_compositorId;
-	pt[k_cameraPropertyId] = m_cameraId;
+	pt[k_sourceTypePropertyId] = k_compositorSourceTypeStrings[(int)m_sourceType];
+	pt[k_cameraIdPropertyId] = m_cameraId;
+	pt[k_videoSourceIdPropertyId] = m_videoSourceId;
 	pt[k_ownerStagePropertyId] = m_ownerStageId;
-	pt[k_spoutOutputIsStreamingNamePropertyId] = m_bIsSpoutOutputStreaming;
+	pt[k_spoutEnableOutputNamePropertyId] = m_bIsSpoutOutputStreaming;
 	pt[k_spoutOutputNamePropertyId] = m_spoutOutputName;
 
 	if (m_nodeGraphAssetRef)
@@ -87,9 +91,16 @@ void CompositorDefinition::readFromJSON(const configuru::Config& pt)
 	MikanComponentDefinition::readFromJSON(pt);
 
 	m_compositorId = pt.get<int>("id");
-	m_cameraId = pt.get_or<int>(k_cameraPropertyId, INVALID_MIKAN_ID);
+
+	const std::string sourceTypeName = 
+		pt.get_or<std::string>(k_sourceTypePropertyId, k_compositorSourceTypeStrings[0]);
+	m_sourceType = 
+		StringUtils::FindEnumValue<eCompositorSourceType>(sourceTypeName, k_compositorSourceTypeStrings);
+
+	m_cameraId = pt.get_or<int>(k_cameraIdPropertyId, INVALID_MIKAN_ID);
+	m_videoSourceId = pt.get_or<int>(k_videoSourceIdPropertyId, INVALID_MIKAN_ID);
 	m_ownerStageId = pt.get_or<int>(k_ownerStagePropertyId, INVALID_MIKAN_ID);
-	m_bIsSpoutOutputStreaming = pt.get_or<bool>(k_spoutOutputIsStreamingNamePropertyId, m_bIsSpoutOutputStreaming);
+	m_bIsSpoutOutputStreaming = pt.get_or<bool>(k_spoutEnableOutputNamePropertyId, m_bIsSpoutOutputStreaming);
 	m_spoutOutputName = pt.get_or<std::string>(k_spoutOutputNamePropertyId, m_spoutOutputName);
 	if (m_spoutOutputName.empty())
 		m_spoutOutputName = DEFAULT_SPOUT_OUTPUT_NAME;
@@ -101,12 +112,21 @@ void CompositorDefinition::readFromJSON(const configuru::Config& pt)
 	}
 }
 
+void CompositorDefinition::setSourceType(eCompositorSourceType sourceType)
+{
+	if (m_sourceType != sourceType)
+	{
+		m_sourceType = sourceType;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_sourceTypePropertyId));
+	}
+}
+
 void CompositorDefinition::setCameraId(MikanCameraID cameraId)
 {
 	if (m_cameraId != cameraId)
 	{
 		m_cameraId = cameraId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_cameraPropertyId));
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_cameraIdPropertyId));
 	}
 }
 
@@ -115,7 +135,7 @@ void CompositorDefinition::setVideoSourceId(MikanVideoSourceID videoSourceId)
 	if (m_videoSourceId != videoSourceId)
 	{
 		m_videoSourceId = videoSourceId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_cameraPropertyId));
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_cameraIdPropertyId));
 	}
 }
 
@@ -152,7 +172,7 @@ void CompositorDefinition::setIsSpoutOutputStreaming(bool bIsStreaming)
 	if (m_bIsSpoutOutputStreaming != bIsStreaming)
 	{
 		m_bIsSpoutOutputStreaming = bIsStreaming;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_spoutOutputIsStreamingNamePropertyId));
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_spoutEnableOutputNamePropertyId));
 	}
 }
 
@@ -487,6 +507,28 @@ IMkTextureConstPtr CompositorComponent::getCompositedFrameTexture() const
 	return IMkTextureConstPtr();
 }
 
+void CompositorComponent::editCompositorGraph()
+{
+	App* app = App::getInstance();
+
+	if (!app->hasWindowOfType<CompositorNodeEditorWindow>())
+	{
+		app->createAppWindow<CompositorNodeEditorWindow>()
+			->bindCompositorComponent(getSelfPtr<CompositorComponent>());
+	}
+}
+
+void CompositorComponent::addNewCompositorGraph()
+{
+	removeCompositorGraph();
+	editCompositorGraph();
+}
+
+void CompositorComponent::removeCompositorGraph()
+{
+	getCompositorDefinition()->setCompositorGraphPath(std::filesystem::path());
+}
+
 void CompositorComponent::updateCompositeFrameNodeGraph()
 {
 	NodeEvaluator evaluator = {};
@@ -722,7 +764,7 @@ void CompositorComponent::handleCompositorNodeGraphChanged(const std::filesystem
 
 void CompositorComponent::onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet)
 {
-	if (changedPropertySet.hasPropertyName(CompositorDefinition::k_spoutOutputIsStreamingNamePropertyId))
+	if (changedPropertySet.hasPropertyName(CompositorDefinition::k_spoutEnableOutputNamePropertyId))
 	{
 		stopOutputStreaming();
 		updateOutputStreaming();
@@ -741,7 +783,10 @@ void CompositorComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescr
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			CompositorDefinition::k_cameraPropertyId));
+			CompositorDefinition::k_sourceTypePropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			CompositorDefinition::k_cameraIdPropertyId));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
 			CompositorDefinition::k_videoSourceIdPropertyId));
@@ -753,7 +798,7 @@ void CompositorComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescr
 			CompositorDefinition::k_compositorGraphPathPropertyId));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			CompositorDefinition::k_spoutOutputIsStreamingNamePropertyId));
+			CompositorDefinition::k_spoutEnableOutputNamePropertyId));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
 			CompositorDefinition::k_spoutOutputNamePropertyId));
@@ -765,7 +810,12 @@ bool CompositorComponent::getPropertyValueFromRml(
 {
 	const std::string& propertyName = propertyDesc->getName();
 
-	if (propertyName == CompositorDefinition::k_cameraPropertyId)
+	if (propertyName == CompositorDefinition::k_sourceTypePropertyId)
+	{
+		outValue = (int)getCompositorDefinition()->getSourceType();
+		return true;
+	}
+	else if (propertyName == CompositorDefinition::k_cameraIdPropertyId)
 	{
 		outValue = getCompositorDefinition()->getCameraId();
 		return true;
@@ -785,7 +835,7 @@ bool CompositorComponent::getPropertyValueFromRml(
 		outValue = getCompositorDefinition()->getCompositorGraphPath().string();
 		return true;
 	}
-	else if (propertyName == CompositorDefinition::k_spoutOutputIsStreamingNamePropertyId)
+	else if (propertyName == CompositorDefinition::k_spoutEnableOutputNamePropertyId)
 	{
 		outValue = getCompositorDefinition()->getIsSpoutOutputStreaming();
 		return true;
@@ -805,7 +855,13 @@ bool CompositorComponent::setPropertyValueFromRml(
 {
 	const std::string& propertyName = propertyDesc->getName();
 
-	if (propertyName == CompositorDefinition::k_cameraPropertyId)
+	if (propertyName == CompositorDefinition::k_sourceTypePropertyId)
+	{
+		const eCompositorSourceType sourceType = (eCompositorSourceType)inValue.Get<int>();
+		getCompositorDefinition()->setSourceType(sourceType);
+		return true;
+	}
+	else if (propertyName == CompositorDefinition::k_cameraIdPropertyId)
 	{
 		const MikanCameraID cameraId = inValue.Get<int>();
 		getCompositorDefinition()->setCameraId(cameraId);
@@ -831,7 +887,7 @@ bool CompositorComponent::setPropertyValueFromRml(
 		getCompositorDefinition()->setCompositorGraphPath(filePath);
 		return true;
 	}
-	else if (propertyName == CompositorDefinition::k_spoutOutputIsStreamingNamePropertyId)
+	else if (propertyName == CompositorDefinition::k_spoutEnableOutputNamePropertyId)
 	{
 		const bool bIsStreaming = inValue.Get<bool>();
 		getCompositorDefinition()->setIsSpoutOutputStreaming(bIsStreaming);

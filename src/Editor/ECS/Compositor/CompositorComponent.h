@@ -41,7 +41,11 @@ public:
 
 	MikanCompositorID getCompositorId() const { return m_compositorId; }
 
-	static const std::string k_cameraPropertyId;
+	static const std::string k_sourceTypePropertyId;
+	inline eCompositorSourceType getSourceType() const { return m_sourceType; }
+	void setSourceType(eCompositorSourceType sourceType);
+
+	static const std::string k_cameraIdPropertyId;
 	inline MikanCameraID getCameraId() const { return m_cameraId; }
 	void setCameraId(MikanCameraID cameraId);
 
@@ -58,7 +62,7 @@ public:
 	std::filesystem::path getCompositorGraphPath() const;
 	void setCompositorGraphPath(const std::filesystem::path& graphPath);
 
-	static const std::string k_spoutOutputIsStreamingNamePropertyId;
+	static const std::string k_spoutEnableOutputNamePropertyId;
 	inline bool getIsSpoutOutputStreaming() const { return m_bIsSpoutOutputStreaming; }
 	void setIsSpoutOutputStreaming(bool bIsStreaming);
 
@@ -69,6 +73,7 @@ public:
 private:
 	MikanCompositorID m_compositorId;
 	MikanStageID m_ownerStageId = INVALID_MIKAN_ID;
+	eCompositorSourceType m_sourceType = eCompositorSourceType::videoSource;
 	MikanCameraID m_cameraId = INVALID_MIKAN_ID;
 	MikanVideoSourceID m_videoSourceId = INVALID_MIKAN_ID;
 	AssetReferenceConfigPtr m_nodeGraphAssetRef;
@@ -113,6 +118,10 @@ public:
 	IMkTexturePtr getEditorWritableFrameTexture() const;
 	IMkTextureConstPtr getCompositedFrameTexture() const;
 	inline int64_t getLastCompositedFrameIndex() const { return m_lastCompositedFrameIndex; }
+
+	void editCompositorGraph();
+	void addNewCompositorGraph();
+	void removeCompositorGraph();
 
 	MulticastDelegate<void()> OnNewFrameComposited;
 

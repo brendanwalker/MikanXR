@@ -15,6 +15,7 @@ protected:
 	VRTrackingVolumeDefinitionPtr getOwnerVRTrackingVolume() const;
 	VideoSourceSystemPtr getVideoSourceSystem() const;
 	VideoSourceSystemConfigPtr getVideoSourceSystemConfig() const;
+	CameraComponentPtr getCameraComponent() const;
 
 private:
 	RmlDataBinding_ComponentIdListPtr m_trackingMountIdList;

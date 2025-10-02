@@ -120,13 +120,11 @@ void RmlModel_ProjectMarkers::removeMarker(
 
 void RmlModel_ProjectMarkers::selectMarkerEntry(
 	Rml::DataModelHandle handle,
-	Rml::Event& /*ev*/,
+	Rml::Event& ev,
 	const Rml::VariantList& parameters)
 {
-	if (parameters.empty())
-		return;
+	const int selectedMarkerId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
 
-	const MikanMarkerID selectedMarkerId = (MikanMarkerID)parameters[0].Get<int>();
 	setSelectedMarkerId(selectedMarkerId);
 }
 

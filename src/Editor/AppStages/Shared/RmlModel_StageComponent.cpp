@@ -35,7 +35,7 @@ bool RmlModel_StageComponent::init(Rml::Context* rmlContext)
 					});
 
 				constructor.BindEventCallback(
-					"select_volume",
+					"select_volume_entry",
 					[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
 						const int newVolumeId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
 						StageComponentPtr stageComponent = getStageComponent();

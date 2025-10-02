@@ -49,6 +49,45 @@ bool RmlModel_CompositorComponent::init(Rml::Context* rmlContext)
 						}
 					});
 
+				constructor.BindEventCallback(
+					"select_compositor_type",
+					[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+						const int sourceTypeInt = ev.GetParameter<int>("value", 0);
+
+						getCompositorComponent()->getCompositorDefinition()->setSourceType(
+							(eCompositorSourceType)sourceTypeInt);
+					});
+				constructor.BindEventCallback(
+					"select_video_source_entry",
+					[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+						const int selectedVideoSourceId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
+
+						getCompositorComponent()->getCompositorDefinition()->setVideoSourceId(selectedVideoSourceId);
+					});
+				constructor.BindEventCallback(
+					"select_camera_entry",
+					[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+						const int selectedVideoSourceId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
+
+						getCompositorComponent()->getCompositorDefinition()->setVideoSourceId(selectedVideoSourceId);
+					});
+
+				constructor.BindEventCallback(
+					"edit_compositor_graph",
+					[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+						getCompositorComponent()->editCompositorGraph();
+					});
+				constructor.BindEventCallback(
+					"add_new_compositor_graph",
+					[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+						getCompositorComponent()->addNewCompositorGraph();
+					});
+				constructor.BindEventCallback(
+					"remove_compositor_graph",
+					[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+						getCompositorComponent()->removeCompositorGraph();
+					});
+
 				return true;
 			});
 
@@ -113,4 +152,9 @@ VideoSourceSystemConfigPtr RmlModel_CompositorComponent::getVideoSourceSystemCon
 	}
 
 	return nullptr;
+}
+
+CompositorComponentPtr RmlModel_CompositorComponent::getCompositorComponent() const
+{
+	return std::static_pointer_cast<CompositorComponent>(m_component.lock());
 }

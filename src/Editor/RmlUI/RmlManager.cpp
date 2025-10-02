@@ -7,6 +7,8 @@
 #include "CameraObjectSystem.h"
 #include "CameraComponent.h"
 #include "CompositorConstants.h"
+#include "CompositorObjectSystem.h"
+#include "CompositorComponent.h"
 #include "IVRDevice.h"
 #include "Logger.h"
 #include "MainWindow.h"
@@ -23,6 +25,8 @@
 #include "SceneObjectSystem.h"
 #include "TrackingVolumeObjectSystem.h"
 #include "TrackingVolumeComponent.h"
+#include "TrackingMountObjectSystem.h"
+#include "TrackingMountComponent.h"
 #include "VRObjectSystem.h"
 #include "VRDeviceComponent.h"
 #include "VideoSourceSystem.h"
@@ -248,7 +252,8 @@ static void registerEnumDefinition(
 		enumDefinition->enum_int_values.push_back(enumIntValue);
 	}
 
-	constructor.Bind(enumName, &enumDefinition->enum_int_values);
+	constructor.Bind(enumName+"_values", &enumDefinition->enum_int_values);
+	constructor.Bind(enumName+"_names", &enumDefinition->enum_string_values);
 	RmlManager::getInstance()->addEnumDefinition(enumDefinition);
 }
 
@@ -314,6 +319,21 @@ void RmlManager::registerCommonDataModelTypes()
 		});
 
 	constructor.RegisterTransformFunc(
+		"to_compositor_name",
+		[rmlManager](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
+			const MikanCompositorID compositorId = variant.Get<int>(-1);
+
+			auto compositorObjectSystem = rmlGetSystemOfType<CompositorObjectSystem>(rmlManager);
+			auto compositorComponent = compositorObjectSystem->getCompositorById(compositorId);
+			if (compositorComponent != nullptr)
+			{
+				variant = Rml::String(compositorComponent->getName());
+				return true;
+			}
+			return false;
+		});
+
+	constructor.RegisterTransformFunc(
 		"to_stage_name",
 		[rmlManager](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
 			const MikanStageID stageId = variant.Get<int>(-1);
@@ -338,6 +358,21 @@ void RmlManager::registerCommonDataModelTypes()
 			if (volumeComponent != nullptr)
 			{
 				variant = Rml::String(volumeComponent->getName());
+				return true;
+			}
+			return false;
+		});
+
+	constructor.RegisterTransformFunc(
+		"to_tracking_mount_name",
+		[rmlManager](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
+			const MikanTrackingMountID mountId = variant.Get<int>(-1);
+
+			auto mountObjectSystem = rmlGetSystemOfType<TrackingMountObjectSystem>(rmlManager);
+			auto mountComponent = mountObjectSystem->getTrackingMountById(mountId);
+			if (mountComponent != nullptr)
+			{
+				variant = Rml::String(mountComponent->getName());
 				return true;
 			}
 			return false;
