@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rml>
+<head>
+	<title>ArUco Marker Test</title>
+	<link type="text/rcss" href="mikan.rcss"/>
+</head>
+<body>
+	<div id="window">
+		<div id="title_bar">
+			<div id="icon"></div>
+			<span>ArUco Marker Test</span>
+		</div>
+		<div id="content">
+			<h1>ArUco Marker Decorator Test</h1>
+			<p>This page demonstrates the custom ArUco marker decorator.</p>
+
+			<h1>Default ArUco Marker (ID: 0)</h1>
+			<div class="aruco-marker"></div>
+
+			<h1>Small ArUco Marker (ID: 1)</h1>
+			<div class="aruco-marker-small"></div>
+
+			<h1>Large ArUco Marker (ID: 2)</h1>
+			<div class="aruco-marker-large"></div>
+
+			<h1>Custom Inline ArUco Marker (ID: 42)</h1>
+			<div style="decorator: aruco-marker; aruco-id: 42; aruco-size: 150px; width: 150px; height: 150px; display: inline-block;"></div>
+		</div>
+	</div>
+</body>
+</rml>

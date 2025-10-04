@@ -879,3 +879,22 @@ textarea scrollbarhorizontal sliderbar:hover {
 textarea scrollbarhorizontal sliderbar:active {
 	background-color: #770000CC;
 }
+
+/* ArUco Marker Decorator Styles */
+.aruco-marker {
+	decorator: aruco-marker;
+	aruco-id: 0;
+	aruco-size: 200px;
+	width: 200px;
+	height: 200px;
+	display: inline-block;
+}
+
+.dynamic-aruco {
+	decorator: aruco-marker;
+	aruco-id: {{marker_id}};
+	aruco-size: 115px;
+	width: 115px;
+	height: 115px;
+	display: inline-block;
+}

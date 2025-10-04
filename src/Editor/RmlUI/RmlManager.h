@@ -64,6 +64,7 @@ private:
 
 	// Rml UI Event processor
 	class RmlMikanEventInstancer* m_rmlEventInstancer = nullptr;
+	struct RmlMikanDecoratorInstancers* m_rmlDecoratorInstancers = nullptr;
 
 	// Rml UI Context
 	Rml::Context* m_rmlUIContext = nullptr;

@@ -20,6 +20,8 @@
 					<button onclick="add_new_marker">Add New Marker</button>
 				</div>
 
+				<div class="dynamic-aruco"></div>
+
 				<!-- Marker List -->
 				<div class="list-container">
 					<div data-for="markers.marker_ids" class="list-item" onclick="select_marker_entry({{ it }})">

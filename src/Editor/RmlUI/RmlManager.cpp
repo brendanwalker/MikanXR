@@ -37,6 +37,9 @@
 #include <RmlUi/Core/FileInterface.h>
 #include <RmlUi/Core/EventListener.h>
 #include <RmlUi/Core/EventListenerInstancer.h>
+#include <RmlUi/Core/Factory.h>
+
+#include "DecoratorInstancerArucoMarker.h"
 
 #include "SDL_clipboard.h"
 #include "SDL_timer.h"
@@ -93,6 +96,11 @@ public:
 
 private:
 	class MainWindow* m_ownerWindow = nullptr;
+};
+
+struct RmlMikanDecoratorInstancers
+{
+	DecoratorInstancerArucoMarker arucoMarkerInstancer;
 };
 
 class RmlMikanFileInterface : public Rml::FileInterface
@@ -154,6 +162,7 @@ RmlManager* RmlManager::m_instance = nullptr;
 RmlManager::RmlManager(MainWindow* ownerWindow)
 	: m_ownerWindow(ownerWindow)
 	, m_rmlEventInstancer(new RmlMikanEventInstancer(ownerWindow))
+	, m_rmlDecoratorInstancers(new RmlMikanDecoratorInstancers)
 {
 
 }
@@ -161,6 +170,7 @@ RmlManager::RmlManager(MainWindow* ownerWindow)
 RmlManager::~RmlManager()
 {
 	delete m_rmlEventInstancer;
+	delete m_rmlDecoratorInstancers;
 }
 
 bool RmlManager::preRendererStartup()
@@ -201,6 +211,9 @@ bool RmlManager::postRendererStartup()
 		int window_height = (int)m_ownerWindow->getHeight();
 		m_rmlUIContext = Rml::CreateContext("main", Rml::Vector2i(window_width, window_height));
 		Rml::Debugger::Initialise(m_rmlUIContext);
+
+		// Register custom decorators
+		Rml::Factory::RegisterDecoratorInstancer("aruco-marker", &m_rmlDecoratorInstancers->arucoMarkerInstancer);
 
 		// Register common data model types shared amongst all UI
 		registerCommonDataModelTypes();
