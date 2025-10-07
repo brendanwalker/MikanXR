@@ -35,6 +35,17 @@ bool RmlModel_MarkerComponent::init(Rml::Context* rmlContext)
 						}
 					});
 
+				constructor.BindEventCallback(
+					"select_aruco_id_entry",
+					[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+						const int newArucoId = ev.GetParameter<int>("value", 0);
+						MarkerComponentPtr markerComponent = getMarkerComponent();
+						if (markerComponent)
+						{
+							markerComponent->getMarkerDefinition()->setArucoId(newArucoId);
+						}
+					});
+
 				return true;
 			});
 
@@ -71,6 +82,17 @@ MarkerObjectSystemConfigPtr RmlModel_MarkerComponent::getMarkerObjectSystemConfi
 	if (markerObjectSystem)
 	{
 		return markerObjectSystem->getMarkerSystemConfig();
+	}
+
+	return nullptr;
+}
+
+MarkerComponentPtr RmlModel_MarkerComponent::getMarkerComponent() const
+{
+	MikanComponentPtr component = m_component.lock();
+	if (component)
+	{
+		return std::static_pointer_cast<MarkerComponent>(component);
 	}
 
 	return nullptr;

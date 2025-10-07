@@ -43,7 +43,7 @@ bool RmlModel_ProjectStages::init(
 	m_compositorSystem = compositorSystem;
 
 	// Create Datamodel
-	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "stages");
+	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "Stages");
 	if (!constructor)
 		return false;
 

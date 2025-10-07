@@ -62,10 +62,12 @@ public:
 
 	// -- IRmlFunctionInterface ----
 	static const std::string k_deleteMarkerFunctionId;
+	static const std::string k_printMarkerFunctionId;
 	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors);
 	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
 
 	void deleteMarker();
+	void printMarker();
 
 protected:
 	SelectionComponentWeakPtr m_selectionComponent;

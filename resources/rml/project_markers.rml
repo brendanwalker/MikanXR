@@ -4,49 +4,62 @@
 	<link type="text/rcss" href="rml.rcss"/>
 	<link type="text/rcss" href="mikan.rcss"/>
 </head>
-<body>
-	<div class="window">
+<body template="window">
+	<panel>
 		<div class="title-bar">
 			<span class="title">Markers</span>
 		</div>
-
 		<div class="content">
 			<!-- Markers Section -->
-			<div class="section">
-				<h3>ArUco Markers</h3>
-
-				<!-- Add New Marker Button -->
-				<div class="button-group">
-					<button onclick="add_new_marker">Add New Marker</button>
-				</div>
-
-				<div class="dynamic-aruco"></div>
-
-				<!-- Marker List -->
-				<div class="list-container">
-					<div data-for="markers.marker_ids" class="list-item" onclick="select_marker_entry({{ it }})">
-						<span>Marker {{ it }}</span>
-						<button class="remove-btn" onclick="remove_marker({{ it }})">×</button>
-					</div>
-				</div>
-
-				<!-- Selected Marker Details -->
-				<div data-if="markers.selected_marker_id != -1" class="details-panel">
-					<h4>Selected Marker: {{ markers.selected_marker_id }}</h4>
-
-					<!-- Marker specific properties will be handled by the component model -->
-					<div data-if="marker.component_id != -1">
-						<!-- Marker component properties like position, rotation, size, etc. -->
-						<!-- These would be defined in the RmlModel_MarkerComponent -->
-					</div>
-				</div>
-
-				<!-- Empty State -->
-				<div data-if="markers.marker_ids.size == 0" class="empty-state">
-					<p>No markers defined. Add a new marker to get started.</p>
-				</div>
+			<div data-model="Markers">
+				<h3>Markers</h3>
+				<select id="select" name="select_marker_id" data-value="selected_marker_id" data-event-change="select_marker_entry()">
+					<option data-for="marker_id : marker_ids" data-value="marker_id">{{marker_id | to_marker_name}}</option>
+				</select>				
+				<createcomponent data-event-click="add_new_marker"></createcomponent>				
+				<deletecomponent data-event-click="remove_marker"></deletecomponent>
 			</div>
+			<div data-if="component_id != -1" data-model="MarkerComponent">
+				<table>
+					<thead>
+						<tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
+					</thead>
+					<tbody>
+	                    <tr class="property_tr">
+							<td>
+								Name&nbsp;
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
+							</td>
+						</tr>				
+	                    <tr class="property_tr">
+							<td>
+								<label style="vertical-align: 12dp;">ArUco Number</label>
+								<select id="select" name="select_aruco_id" data-value="aruco_id" data-event-change="select_aruco_id_entry()">
+									<option data-for="arucoId : arucoIdList" data-value="arucoId">{{arucoId}}</option>
+								</select>
+							</td>
+						</tr>
+	                    <tr class="property_tr">
+							<td>
+								<div class="dynamic-aruco"></div>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<button data-event-click="print_marker()">Print</button>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+			<div data-if="component_id == -1" data-model="MarkerComponent">
+				<p>No stage selected</p>
+			</div>			
+
+			<!-- Aruco Settings -->
+			
+			<!-- Charuco Settings -->			
 		</div>
-	</div>
+	</panel>
 </body>
 </rml>

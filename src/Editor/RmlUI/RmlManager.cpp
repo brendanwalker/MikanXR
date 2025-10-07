@@ -12,6 +12,8 @@
 #include "IVRDevice.h"
 #include "Logger.h"
 #include "MainWindow.h"
+#include "MarkerObjectSystem.h"
+#include "MarkerComponent.h"
 #include "MikanSpatialAnchorTypes.h"
 #include "MikanStencilTypes.h"
 #include "ObjectSystemManager.h"
@@ -341,6 +343,21 @@ void RmlManager::registerCommonDataModelTypes()
 			if (compositorComponent != nullptr)
 			{
 				variant = Rml::String(compositorComponent->getName());
+				return true;
+			}
+			return false;
+		});
+
+	constructor.RegisterTransformFunc(
+		"to_marker_name",
+		[rmlManager](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
+			const MikanMarkerID markerId = variant.Get<int>(-1);
+
+			auto markerObjectSystem = rmlGetSystemOfType<MarkerObjectSystem>(rmlManager);
+			auto markerComponent = markerObjectSystem->getMarkerById(markerId);
+			if (markerComponent != nullptr)
+			{
+				variant = Rml::String(markerComponent->getName());
 				return true;
 			}
 			return false;

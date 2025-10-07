@@ -14,6 +14,7 @@ public:
 protected:
 	MarkerObjectSystemPtr getMarkerObjectSystem() const;
 	MarkerObjectSystemConfigPtr getMarkerObjectSystemConfig() const;
+	MarkerComponentPtr getMarkerComponent() const;
 
 private:
 	RmlDataBinding_ArucoIdListPtr m_arucoIdList;

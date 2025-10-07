@@ -74,6 +74,7 @@ void MarkerDefinition::setLengthMM(float lengthMM)
 
 // -- MarkerComponent -----
 const std::string MarkerComponent::k_deleteMarkerFunctionId = "delete_marker";
+const std::string MarkerComponent::k_printMarkerFunctionId = "print_marker";
 
 MarkerComponent::MarkerComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
@@ -166,11 +167,19 @@ void MarkerComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescripto
 	outDescriptors.push_back(
 		std::make_shared<RmlFunctionDescriptor>(
 			k_deleteMarkerFunctionId, "Delete Marker"));
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_printMarkerFunctionId, "Print Marker"));
 }
 
 bool MarkerComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
 {
 	if (functionDesc->getFunctionName() == k_deleteMarkerFunctionId)
+	{
+		deleteMarker();
+		return true;
+	}
+	else if (functionDesc->getFunctionName() == k_printMarkerFunctionId)
 	{
 		deleteMarker();
 		return true;
@@ -188,4 +197,9 @@ void MarkerComponent::deleteMarker()
 
 		getOwnerMarkerSystem()->removeMarker(markerId);
 	}
+}
+
+void MarkerComponent::printMarker()
+{
+	//TODO
 }

@@ -28,7 +28,7 @@ bool RmlModel_ProjectMarkers::init(
 	m_markerSystem = markerSystem;
 
 	// Create Datamodel
-	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "markers");
+	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "Markers");
 	if (!constructor)
 		return false;
 
