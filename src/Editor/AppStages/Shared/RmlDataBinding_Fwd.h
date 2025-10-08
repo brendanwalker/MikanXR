@@ -32,6 +32,9 @@ using RmlModel_CameraComponentPtr = std::shared_ptr<RmlModel_CameraComponent>;
 class RmlModel_MarkerComponent;
 using RmlModel_MarkerComponentPtr = std::shared_ptr<RmlModel_MarkerComponent>;
 
+class RmlModel_MarkerObjectSystem;
+using RmlModel_MarkerObjectSystemPtr = std::shared_ptr<RmlModel_MarkerObjectSystem>;
+
 class RmlModel_MikanComponent;
 using RmlModel_MikanComponentPtr = std::shared_ptr<RmlModel_MikanComponent>;
 

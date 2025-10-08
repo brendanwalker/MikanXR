@@ -38,6 +38,7 @@ private:
 
 	RmlDataBinding_ComponentIdListPtr m_markerIdList;
 	RmlModel_MarkerComponentPtr m_selectedMarkerModel;
+	RmlModel_MarkerObjectSystemPtr m_markerSystemModel;
 
 	int m_selectedMarkerId = -1; // MikanMarkerID
 };

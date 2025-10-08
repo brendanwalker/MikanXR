@@ -115,5 +115,7 @@ protected:
 	MarkerComponentPtr createMarkerObject(MarkerDefinitionPtr markerConfig);
 	void disposeMarkerObject(MikanMarkerID markerId);
 
+	void printMarker();
+
 	MarkerMap m_markerComponents;
 };

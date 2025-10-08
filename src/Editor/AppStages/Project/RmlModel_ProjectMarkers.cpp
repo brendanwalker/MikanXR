@@ -4,6 +4,7 @@
 #include "ProjectConfig.h"
 #include "RmlModel_ProjectMarkers.h"
 #include "Shared/RmlModel_MarkerComponent.h"
+#include "Shared/RmlModel_MarkerObjectSystem.h"
 #include "Shared/RmlDataBinding_List.h"
 #include "StringUtils.h"
 
@@ -14,6 +15,7 @@
 RmlModel_ProjectMarkers::RmlModel_ProjectMarkers()
 	: m_markerIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 	, m_selectedMarkerModel(std::make_shared<RmlModel_MarkerComponent>())
+	, m_markerSystemModel(std::make_shared<RmlModel_MarkerObjectSystem>())
 {
 }
 
@@ -54,6 +56,7 @@ bool RmlModel_ProjectMarkers::init(
 
 	// Register Selected Object Models
 	m_selectedMarkerModel->init(rmlContext);
+	m_markerSystemModel->init(rmlContext, markerSystem);
 
 	// Bind data model callbacks
 	constructor.BindEventCallback("add_new_marker", &RmlModel_ProjectMarkers::addNewMarker, this);
@@ -71,6 +74,7 @@ void RmlModel_ProjectMarkers::dispose()
 	m_markerIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectMarkers::markerIdListChanged);
 
 	m_selectedMarkerModel->dispose();
+	m_markerSystemModel->dispose();
 
 	RmlModel::dispose();
 }

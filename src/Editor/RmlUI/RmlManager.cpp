@@ -287,6 +287,7 @@ void RmlManager::registerCommonDataModelTypes()
 	// Enums
 	registerEnumDefinition<eStencilCullMode>(constructor, "stencil_cull_mode", k_stencilCullModeStrings);
 	registerEnumDefinition<eCompositorSourceType>(constructor, "compositor_source_type", k_compositorSourceTypeStrings);
+	registerEnumDefinition<eCharucoDictionaryType>(constructor, "marker_dictionary_type", k_charucoDictionaryStrings);
 
 	// String arrays
 	constructor.RegisterArray<Rml::Vector<Rml::String>>();

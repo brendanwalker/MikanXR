@@ -6,6 +6,7 @@
 #include "MikanMathTypes.h"
 #include "MikanObject.h"
 #include "ObjectSystemManager.h"
+#include "OSUtils.h"
 #include "ProjectConfig.h"
 #include "SelectionComponent.h"
 #include "StringUtils.h"
@@ -13,10 +14,16 @@
 #include "RmlUi/Core/Variant.h"
 #include "RmlUi/Config/Config.h"
 
+#include <opencv2/opencv.hpp>
+#include <opencv2/objdetect/aruco_detector.hpp>
+#include <hpdf.h>
+
+#include <filesystem>
+
 // -- MarkerObjectSystemConfig -----
 const std::string MarkerObjectSystemConfig::k_arucoMarkerListPropertyId= "arucoMarkers";
 const std::string MarkerObjectSystemConfig::k_arucoIdListPropertyId = "arucoIdList";
-const std::string MarkerObjectSystemConfig::k_arucoDictionaryTypePropertyId = "dictionaryType";
+const std::string MarkerObjectSystemConfig::k_arucoDictionaryTypePropertyId = "arucoDictionaryType";
 const std::string MarkerObjectSystemConfig::k_charucoRowsPropertyId = "charucoRows";
 const std::string MarkerObjectSystemConfig::k_charucoColsPropertyId = "charucoCols";
 const std::string MarkerObjectSystemConfig::k_charucoSquareLengthMMPropertyId = "charucoSquareLengthMM";
@@ -491,7 +498,7 @@ bool MarkerObjectSystem::setPropertyValueFromRml(
 }
 
 // -- IRmlFunctionInterface ----
-const std::string MarkerObjectSystem::k_printCharucoMarkerFunctionId = "print_marker";
+const std::string MarkerObjectSystem::k_printCharucoMarkerFunctionId = "print_checkerboard";
 
 void MarkerObjectSystem::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
 {
@@ -508,9 +515,138 @@ bool MarkerObjectSystem::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr fun
 
 	if (functionName == k_printCharucoMarkerFunctionId)
 	{
-		//TODO
+		printMarker();
 		return true;
 	}
 
 	return MikanObjectSystem::invokeFunctionFromRml(functionDesc);
+}
+
+void MarkerObjectSystem::printMarker()
+{
+	MarkerObjectSystemConfigPtr markerSystemConfig = getMarkerSystemConfig();
+	if (!markerSystemConfig)
+	{
+		MIKAN_LOG_ERROR("MarkerObjectSystem::printMarker") << "No marker system config found";
+		return;
+	}
+
+	// Get ChArUco board parameters from config
+	const int charucoRows = markerSystemConfig->getCharucoRows();
+	const int charucoCols = markerSystemConfig->getCharucoCols();
+	const float squareLengthMM = markerSystemConfig->getCharucoSquareLengthMM();
+	const float markerLengthMM = markerSystemConfig->getCharucoMarkerLengthMM();
+	const eCharucoDictionaryType charucoDictionaryType = markerSystemConfig->getCharucoDictionaryType();
+
+	// Convert to OpenCV dictionary type
+	cv::aruco::PredefinedDictionaryType cvDictionaryType = cv::aruco::DICT_6X6_250;
+	switch (charucoDictionaryType)
+	{
+		case eCharucoDictionaryType::DICT_4X4:
+			cvDictionaryType = cv::aruco::DICT_4X4_250;
+			break;
+		case eCharucoDictionaryType::DICT_5X5:
+			cvDictionaryType = cv::aruco::DICT_5X5_250;
+			break;
+		case eCharucoDictionaryType::DICT_6X6:
+			cvDictionaryType = cv::aruco::DICT_6X6_250;
+			break;
+		case eCharucoDictionaryType::DICT_7X7:
+			cvDictionaryType = cv::aruco::DICT_7X7_250;
+			break;
+		default:
+			break;
+	}
+
+	// Create ChArUco board
+	cv::aruco::Dictionary dictionary = cv::aruco::getPredefinedDictionary(cvDictionaryType);
+	cv::aruco::CharucoBoard charucoBoard(
+		cv::Size(charucoCols, charucoRows),
+		squareLengthMM,
+		markerLengthMM,
+		dictionary);
+
+	// Generate ChArUco board image
+	cv::Mat boardImage;
+	const int boardSizePixels = 2400; // High resolution for printing
+	charucoBoard.generateImage(cv::Size(boardSizePixels, boardSizePixels), boardImage, 10, 1);
+
+	// Create PDF using libharu
+	HPDF_Doc pdf = HPDF_New(NULL, NULL);
+	if (!pdf)
+	{
+		MIKAN_LOG_ERROR("MarkerObjectSystem::printMarker") << "Failed to create PDF document";
+		return;
+	}
+
+	// Add a page (A4 size, landscape to fit board better)
+	HPDF_Page page = HPDF_AddPage(pdf);
+	HPDF_Page_SetSize(page, HPDF_PAGE_SIZE_A4, HPDF_PAGE_LANDSCAPE);
+
+	// Get page dimensions
+	const float pageWidth = HPDF_Page_GetWidth(page);
+	const float pageHeight = HPDF_Page_GetHeight(page);
+
+	// Calculate board size in points (1mm = 2.83465 points)
+	const float mmToPoints = 2.83465f;
+	const float boardWidthMM = charucoCols * squareLengthMM;
+	const float boardHeightMM = charucoRows * squareLengthMM;
+	const float boardWidthPoints = boardWidthMM * mmToPoints;
+	const float boardHeightPoints = boardHeightMM * mmToPoints;
+
+	// Center the board on the page
+	const float xPos = (pageWidth - boardWidthPoints) / 2.0f;
+	const float yPos = (pageHeight - boardHeightPoints) / 2.0f;
+
+	// Convert OpenCV image to PNG format in memory
+	std::vector<uchar> pngBuffer;
+	cv::imencode(".png", boardImage, pngBuffer);
+
+	// Load image from memory into libharu
+	HPDF_Image image = HPDF_LoadPngImageFromMem(pdf, pngBuffer.data(), (HPDF_UINT)pngBuffer.size());
+	if (!image)
+	{
+		MIKAN_LOG_ERROR("MarkerObjectSystem::printMarker") << "Failed to load board image into PDF";
+		HPDF_Free(pdf);
+		return;
+	}
+
+	// Draw the board image on the page
+	HPDF_Page_DrawImage(page, image, xPos, yPos, boardWidthPoints, boardHeightPoints);
+
+	// Add text label below the board
+	HPDF_Font font = HPDF_GetFont(pdf, "Helvetica", NULL);
+	HPDF_Page_SetFontAndSize(page, font, 12);
+
+	std::string labelText = "ChArUco Board: " + std::to_string(charucoRows) + "x" + std::to_string(charucoCols) +
+	                        " | Square: " + std::to_string((int)squareLengthMM) + "mm" +
+	                        " | Marker: " + std::to_string((int)markerLengthMM) + "mm";
+	const float textWidth = HPDF_Page_TextWidth(page, labelText.c_str());
+	const float textXPos = (pageWidth - textWidth) / 2.0f;
+	const float textYPos = yPos - 30.0f;
+
+	HPDF_Page_BeginText(page);
+	HPDF_Page_TextOut(page, textXPos, textYPos, labelText.c_str());
+	HPDF_Page_EndText(page);
+
+	// Save PDF to temp file
+	std::filesystem::path pdfFilePath = std::filesystem::temp_directory_path() /
+		("MikanCharucoBoard_" + std::to_string(charucoRows) + "x" + std::to_string(charucoCols) + ".pdf");
+
+	HPDF_STATUS status = HPDF_SaveToFile(pdf, pdfFilePath.string().c_str());
+	HPDF_Free(pdf);
+
+	if (status != HPDF_OK)
+	{
+		MIKAN_LOG_ERROR("MarkerObjectSystem::printMarker") << "Failed to save PDF to: " << pdfFilePath.string();
+		return;
+	}
+
+	MIKAN_LOG_INFO("MarkerObjectSystem::printMarker") << "PDF saved to: " << pdfFilePath.string();
+
+	// Open PDF in default viewer (which will have print functionality)
+	if (!OSUtils::openFileWithDefaultApplication(pdfFilePath))
+	{
+		MIKAN_LOG_ERROR("MarkerObjectSystem::printMarker") << "Failed to open PDF viewer";
+	}
 }
