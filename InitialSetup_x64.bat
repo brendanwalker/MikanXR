@@ -190,6 +190,19 @@ IF %ERRORLEVEL% NEQ 0 (
   goto failure
 )
 
+:: Download pre-compiled libharu library (PDF generator)
+echo "Downloading libharu..."
+curl -L https://github.com/MikanXR/libharu/releases/download/2.4.5/libharu-2.4.5-static.zip --output libharu-2.4.5-static.zip
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error downloading libharu-2.4.5-static.zip"
+  goto failure
+)
+%UNZIP_EXE% e libharu-2.4.5-static.zip -y -r -spf -orfk
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error unzipping libharu-2.4.5-static.zip"
+  goto failure
+)
+
 :: NuGet tool used to fetch c# packages
 echo "Downloading nuget..."
 curl -L https://dist.nuget.org/win-x86-commandline/latest/nuget.exe --output nuget.exe

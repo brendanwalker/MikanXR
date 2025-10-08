@@ -73,6 +73,14 @@ else()
   #TODO
 endif()
 
+# libharu (PDF writer)
+set (LIBHARU_INCLUDE_DIRS ${ROOT_DIR}/deps/libharu-2.4.5-static/include)
+set (LIBHARU_LIBRARIES
+  ${ROOT_DIR}/deps/libharu-2.4.5-static/lib/hpdf.lib
+  ${ROOT_DIR}/deps/libharu-2.4.5-static/lib/zlibstatic.lib
+  ${ROOT_DIR}/deps/libharu-2.4.5-static/lib/libpng16_static.lib
+)
+
 # RMLUI
 set (RMLUI_DIR ${ROOT_DIR}/thirdparty/RmlUI)
 set (RMLUI_INCLUDE_DIR ${RMLUI_DIR}/Include)
