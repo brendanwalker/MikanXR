@@ -44,7 +44,7 @@ public:
 protected:
 	bool tryConnect();
 	void disconnect();
-	void addConnectedDeviceIdsOfClass(vr::ETrackedDeviceClass deviceClass);
+	void addConnectedDeviceIdsOfClass(int deviceClassEnumValue);
 	void handleTrackedDeviceActivated(vr::TrackedDeviceIndex_t deviceIndex);
 	void handleTrackedDevicePropertyChanged(vr::TrackedDeviceIndex_t deviceIndex);
 	void handleTrackedDeviceDeactivated(vr::TrackedDeviceIndex_t deviceIndex);

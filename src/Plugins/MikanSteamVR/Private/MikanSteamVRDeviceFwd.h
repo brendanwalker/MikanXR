@@ -3,7 +3,6 @@
 namespace vr
 {
 	typedef uint32_t TrackedDeviceIndex_t;
-	enum ETrackedDeviceClass;
 	struct TrackedDevicePose_t;
 	class IVRSystem;
 };

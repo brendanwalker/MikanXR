@@ -274,5 +274,5 @@ std::string SteamVRDeviceProperties::fetchStringSettingsProperty(
 	vr::EVRSettingsError error = vr::VRSettingsError_None;
 	vrSettings->GetString(sectionName, sectionKey, szResult, (uint32_t)sizeof(szResult), &error);
 
-	return error == vr::TrackedProp_Success ? szResult : default_string;
+	return error == vr::VRSettingsError_None ? szResult : default_string;
 }

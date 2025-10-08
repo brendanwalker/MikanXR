@@ -267,7 +267,7 @@ bool MikanSteamVRManager::tryConnect()
 	const std::filesystem::path actionManifestPath = PathUtils::getResourceDirectory() / "input";
 	const std::string actionManifestPathString= actionManifestPath.string();
 	vr::EVRInputError eVRInputError = vr::VRInput()->SetActionManifestPath(actionManifestPathString.c_str());
-	if (eVRInputError != vr::VRInitError_None)
+	if (eVRInputError != vr::VRInputError_None)
 	{
 		MIKAN_LOG_WARNING("MikanSteamVRManager::startup") << "Failed to set action manifest path: " << eVRInputError;
 	}
@@ -359,8 +359,9 @@ const vr::TrackedDevicePose_t* MikanSteamVRManager::getDevicePose(
 	return nullptr;
 }
 
-void MikanSteamVRManager::addConnectedDeviceIdsOfClass(vr::ETrackedDeviceClass deviceClass)
+void MikanSteamVRManager::addConnectedDeviceIdsOfClass(int deviceClassEnumValue)
 {
+	auto deviceClass = static_cast<vr::ETrackedDeviceClass>(deviceClassEnumValue);
 	vr::TrackedDeviceIndex_t deviceIndices[vr::k_unMaxTrackedDeviceCount];
 	uint32_t deviceCount =
 		vr::VRSystem()->GetSortedTrackedDeviceIndicesOfClass(
