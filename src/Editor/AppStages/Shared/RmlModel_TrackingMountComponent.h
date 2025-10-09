@@ -15,6 +15,7 @@ protected:
 	VRObjectSystemPtr getVRObjectSystem() const;
 	VRObjectSystemConfigPtr getVRObjectSystemConfig() const;
 	VRDeviceComponentPtr getVRDeviceComponent() const;
+	TrackingMountComponentPtr getTrackingMountComponent() const;
 
 private:
 	RmlDataBinding_VRDevicePathListPtr m_vrDevicePathList;

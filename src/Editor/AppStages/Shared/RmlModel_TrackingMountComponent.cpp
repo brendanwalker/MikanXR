@@ -56,6 +56,28 @@ bool RmlModel_TrackingMountComponent::init(Rml::Context* rmlContext)
 						}
 					});
 
+				constructor.BindEventCallback(
+					"select_device_entry",
+					[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+						const Rml::String devicePath = ev.GetParameter<Rml::String>("value", 0);
+						TrackingMountComponentPtr mountComponent = getTrackingMountComponent();
+						if (mountComponent)
+						{
+							mountComponent->getTrackingMountDefinition()->setDevicePath(devicePath);
+						}
+					});
+
+				constructor.BindEventCallback(
+					"select_socket_entry",
+					[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+						const Rml::String socketName = ev.GetParameter<Rml::String>("value", 0);
+						TrackingMountComponentPtr mountComponent = getTrackingMountComponent();
+						if (mountComponent)
+						{
+							mountComponent->getTrackingMountDefinition()->setSocketName(socketName);
+						}
+					});
+
 				return true;
 			});
 
@@ -102,15 +124,21 @@ VRObjectSystemConfigPtr RmlModel_TrackingMountComponent::getVRObjectSystemConfig
 
 VRDeviceComponentPtr RmlModel_TrackingMountComponent::getVRDeviceComponent() const
 {
+	TrackingMountComponentPtr trackingMountComponent = getTrackingMountComponent();
+	if (trackingMountComponent)
+	{
+		return trackingMountComponent->getVRDeviceComponent();
+	}
+
+	return nullptr;
+}
+
+TrackingMountComponentPtr RmlModel_TrackingMountComponent::getTrackingMountComponent() const
+{
 	MikanComponentPtr component = m_component.lock();
 	if (component)
 	{
-		auto trackingMountComponent = std::static_pointer_cast<TrackingMountComponent>(component);
-		if (trackingMountComponent)
-		{
-			return trackingMountComponent->getVRDeviceComponent();
-		}
+		return std::static_pointer_cast<TrackingMountComponent>(component);
 	}
-
 	return nullptr;
 }

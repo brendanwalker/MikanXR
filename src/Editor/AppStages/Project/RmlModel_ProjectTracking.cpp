@@ -3,7 +3,8 @@
 #include "ProjectConfig.h"
 #include "RmlModel_ProjectTracking.h"
 #include "Shared/RmlModel_PropertyInterface.h"
-#include "Shared/RmlModel_TrackingVolumeComponent.h"
+#include "Shared/RmlModel_MarkerTrackingVolumeComponent.h"
+#include "Shared/RmlModel_VRTrackingVolumeComponent.h"
 #include "Shared/RmlModel_TrackingMountComponent.h"
 #include "Shared/RmlDataBinding_List.h"
 #include "StringUtils.h"
@@ -19,8 +20,8 @@
 RmlModel_ProjectTracking::RmlModel_ProjectTracking()
 	: m_trackingVolumeIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 	, m_trackingMountIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
-	, m_selectedVRTrackingVolumeModel(std::make_shared<RmlModel_TrackingVolumeComponent>())
-	, m_selectedMarkerTrackingVolumeModel(std::make_shared<RmlModel_TrackingVolumeComponent>())
+	, m_selectedVRTrackingVolumeModel(std::make_shared<RmlModel_VRTrackingVolumeComponent>())
+	, m_selectedMarkerTrackingVolumeModel(std::make_shared<RmlModel_MarkerTrackingVolumeComponent>())
 	, m_selectedTrackingMountModel(std::make_shared<RmlModel_TrackingMountComponent>())
 {
 }
@@ -38,7 +39,7 @@ bool RmlModel_ProjectTracking::init(
 	m_trackingMountSystem = trackingMountSystem;
 
 	// Create Datamodel
-	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "tracking_systems");
+	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "TrackingSystems");
 	if (!constructor)
 		return false;
 
@@ -191,13 +192,8 @@ void RmlModel_ProjectTracking::removeTrackingVolume(
 	Rml::DataModelHandle handle,
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
-{
-	if (parameters.empty())
-		return;
-
-	const int systemId = parameters[0].Get<int>();
-	
-	getTrackingVolumeSystem()->removeTrackingVolume((MikanTrackingVolumeID)systemId);
+{	
+	getTrackingVolumeSystem()->removeTrackingVolume(m_selectedTrackingVolumeId);
 }
 
 void RmlModel_ProjectTracking::addNewTrackingMount(

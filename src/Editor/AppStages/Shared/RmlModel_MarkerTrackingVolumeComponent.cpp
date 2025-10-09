@@ -1,27 +1,26 @@
-#include "TrackingVolumeComponent.h"
-#include "RmlModel_TrackingVolumeComponent.h"
+#include "MarkerTrackingVolumeComponent.h"
+#include "RmlModel_MarkerTrackingVolumeComponent.h"
 #include "RmlModel_PropertyInterface.h"
 #include "MarkerObjectSystem.h"
 #include "TrackingMountObjectSystem.h"
-#include "VRTrackingVolumeComponent.h"
+#include "MarkerTrackingVolumeComponent.h"
 #include "Shared/RmlDataBinding_List.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
 
-RmlModel_TrackingVolumeComponent::RmlModel_TrackingVolumeComponent()
+RmlModel_MarkerTrackingVolumeComponent::RmlModel_MarkerTrackingVolumeComponent()
 	: RmlModel_MikanComponent()
 	, m_markerComponentIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
-	, m_trackingMountIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {}
 
-bool RmlModel_TrackingVolumeComponent::init(Rml::Context* rmlContext)
+bool RmlModel_MarkerTrackingVolumeComponent::init(Rml::Context* rmlContext)
 {
 	bool bSuccess=
 		m_propertyInterface->init<TrackingVolumeComponent>(
 			rmlContext,
-			"TrackingVolumeComponent",
+			"MarkerTrackingVolumeComponent",
 			[this](Rml::DataModelConstructor& constructor) -> bool {
 
 				// Build the list of all marker component IDs from the MarkerObjectSystem
@@ -40,17 +39,14 @@ bool RmlModel_TrackingVolumeComponent::init(Rml::Context* rmlContext)
 						}
 					});
 
-				// Build the list of all tracking mount IDs from the TrackingMountObjectSystem
-				m_trackingMountIdList->init(
-					constructor,
-					CommonConfigPtr(),
-					"tracking_mount_ids",
-					[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-						auto vrTrackingVolumeDefinition = 
-							dynamic_pointer_cast<VRTrackingVolumeDefinition>(ownerConfig);
-						if (vrTrackingVolumeDefinition)
+				constructor.BindEventCallback(
+					"select_origin_marker_entry",
+					[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+						const int markerId = ev.GetParameter<int>("value", 0);
+						MarkerTrackingVolumeComponentPtr volumeComponent = getMarkerTrackingVolumeComponent();
+						if (volumeComponent)
 						{
-							outComponentIdList= vrTrackingVolumeDefinition->getTrackingMountIDs();
+							volumeComponent->getMarkerTrackingVolumeDefinition()->setOriginMarkerId(markerId);
 						}
 					});
 
@@ -60,15 +56,12 @@ bool RmlModel_TrackingVolumeComponent::init(Rml::Context* rmlContext)
 	return true;
 }
 
-bool RmlModel_TrackingVolumeComponent::setComponent(MikanComponentPtr component)
+bool RmlModel_MarkerTrackingVolumeComponent::setComponent(MikanComponentPtr component)
 {
 	if (RmlModel_MikanComponent::setComponent(component))
 	{
 		m_markerComponentIdList->setOwnerConfig(getMarkerObjectSystemConfig());
 		m_markerComponentIdList->rebuildList(true);
-
-		m_trackingMountIdList->setOwnerConfig(component->getDefinition());
-		m_trackingMountIdList->rebuildList(true);
 
 		return true;
 	}
@@ -76,7 +69,7 @@ bool RmlModel_TrackingVolumeComponent::setComponent(MikanComponentPtr component)
 	return false;
 }
 
-MarkerObjectSystemPtr RmlModel_TrackingVolumeComponent::getMarkerObjectSystem() const
+MarkerObjectSystemPtr RmlModel_MarkerTrackingVolumeComponent::getMarkerObjectSystem() const
 {
 	MikanComponentPtr component = m_component.lock();
 	if (component)
@@ -87,7 +80,7 @@ MarkerObjectSystemPtr RmlModel_TrackingVolumeComponent::getMarkerObjectSystem() 
 	return nullptr;
 }
 
-MarkerObjectSystemConfigPtr RmlModel_TrackingVolumeComponent::getMarkerObjectSystemConfig() const
+MarkerObjectSystemConfigPtr RmlModel_MarkerTrackingVolumeComponent::getMarkerObjectSystemConfig() const
 {
 	auto markerObjectSystem = getMarkerObjectSystem();
 	if (markerObjectSystem)
@@ -98,7 +91,7 @@ MarkerObjectSystemConfigPtr RmlModel_TrackingVolumeComponent::getMarkerObjectSys
 	return nullptr;
 }
 
-TrackingMountObjectSystemPtr RmlModel_TrackingVolumeComponent::getTrackingMountObjectSystem() const
+TrackingMountObjectSystemPtr RmlModel_MarkerTrackingVolumeComponent::getTrackingMountObjectSystem() const
 {
 	MikanComponentPtr component = m_component.lock();
 	if (component)
@@ -109,7 +102,7 @@ TrackingMountObjectSystemPtr RmlModel_TrackingVolumeComponent::getTrackingMountO
 	return nullptr;
 }
 
-TrackingMountObjectSystemConfigPtr RmlModel_TrackingVolumeComponent::getTrackingMountObjectSystemConfig() const
+TrackingMountObjectSystemConfigPtr RmlModel_MarkerTrackingVolumeComponent::getTrackingMountObjectSystemConfig() const
 {
 	auto trackingMountObjectSystem = getTrackingMountObjectSystem();
 	if (trackingMountObjectSystem)
@@ -117,5 +110,15 @@ TrackingMountObjectSystemConfigPtr RmlModel_TrackingVolumeComponent::getTracking
 		return trackingMountObjectSystem->getTrackingMountSystemConfig();
 	}
 
+	return nullptr;
+}
+
+MarkerTrackingVolumeComponentPtr RmlModel_MarkerTrackingVolumeComponent::getMarkerTrackingVolumeComponent() const
+{
+	MikanComponentPtr component = m_component.lock();
+	if (component)
+	{
+		return std::dynamic_pointer_cast<MarkerTrackingVolumeComponent>(component);
+	}
 	return nullptr;
 }

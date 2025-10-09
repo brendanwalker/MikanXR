@@ -23,6 +23,8 @@
 	icon-box: 225px 140px 50px 50px;
 	icon-quad: 275px 140px 50px 50px;
 	icon-model: 325px 140px 50px 50px;
+	icon-steamvr: 407px 230px 54px 54px;
+	icon-aruco: 407px 284px 50px 50px;
 
 	window-tl: 0px 0px 133px 140px;
 	window-t: 134px 0px 1px 140px;

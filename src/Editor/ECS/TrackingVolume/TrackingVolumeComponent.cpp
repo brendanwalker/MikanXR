@@ -17,7 +17,7 @@
 #include <RmlUi/Core/Variant.h>
 
 // -- TrackingVolumeDefinition -----
-const std::string TrackingVolumeDefinition::k_originMarkerPropertyId = "originMarker";
+const std::string TrackingVolumeDefinition::k_originMarkerIdPropertyId = "originMarkerId";
 
 TrackingVolumeDefinition::TrackingVolumeDefinition()
 	: MikanComponentDefinition()
@@ -64,7 +64,7 @@ void TrackingVolumeDefinition::setOriginMarkerId(MikanMarkerID arucoId)
 	if (arucoId != m_originMarkeId)
 	{
 		m_originMarkeId = arucoId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_originMarkerPropertyId));
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_originMarkerIdPropertyId));
 	}
 }
 
@@ -114,7 +114,7 @@ void TrackingVolumeComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyD
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			TrackingVolumeDefinition::k_originMarkerPropertyId));
+			TrackingVolumeDefinition::k_originMarkerIdPropertyId));
 }
 
 bool TrackingVolumeComponent::getPropertyValueFromRml(
@@ -123,7 +123,7 @@ bool TrackingVolumeComponent::getPropertyValueFromRml(
 {
 	const std::string& propertyId = propertyDesc->getName();
 
-	if (propertyId == TrackingVolumeDefinition::k_originMarkerPropertyId)
+	if (propertyId == TrackingVolumeDefinition::k_originMarkerIdPropertyId)
 	{
 		outValue= getTrackingVolumeDefinition()->getTrackingVolumeId();
 		return true;
@@ -138,7 +138,7 @@ bool TrackingVolumeComponent::setPropertyValueFromRml(
 {
 	const std::string& propertyId = propertyDesc->getName();
 
-	if (propertyId == TrackingVolumeDefinition::k_originMarkerPropertyId)
+	if (propertyId == TrackingVolumeDefinition::k_originMarkerIdPropertyId)
 	{
 		MikanMarkerID markerId = inValue.Get<int>();
 		getTrackingVolumeDefinition()->setOriginMarkerId(markerId);

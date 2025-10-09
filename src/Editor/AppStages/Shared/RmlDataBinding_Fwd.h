@@ -47,8 +47,11 @@ using RmlModel_StageComponentPtr = std::shared_ptr<RmlModel_StageComponent>;
 class RmlModel_StencilComponent;
 using RmlModel_StencilComponentPtr = std::shared_ptr<RmlModel_StencilComponent>;
 
-class RmlModel_TrackingVolumeComponent;
-using RmlModel_TrackingVolumeComponentPtr = std::shared_ptr<RmlModel_TrackingVolumeComponent>;
+class RmlModel_MarkerTrackingVolumeComponent;
+using RmlModel_MarkerTrackingVolumeComponentPtr = std::shared_ptr<RmlModel_MarkerTrackingVolumeComponent>;
+
+class RmlModel_VRTrackingVolumeComponent;
+using RmlModel_VRTrackingVolumeComponentPtr = std::shared_ptr<RmlModel_VRTrackingVolumeComponent>;
 
 class RmlModel_TrackingMountComponent;
 using RmlModel_TrackingMountComponentPtr = std::shared_ptr<RmlModel_TrackingMountComponent>;
