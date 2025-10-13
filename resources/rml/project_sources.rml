@@ -4,93 +4,94 @@
 	<link type="text/rcss" href="rml.rcss"/>
 	<link type="text/rcss" href="mikan.rcss"/>
 </head>
-<body data-model="video_sources">
-	<div class="window">
+<body template="window">
+	<panel>
 		<div class="title-bar">
 			<span class="title">Video Sources</span>
 		</div>
 
 		<div class="content">
 			<!-- Video Sources Section -->
-			<div class="section">
-				<h3>Video Sources</h3>
-
-				<!-- Add New Video Source Buttons -->
-				<div class="button-group">
-					<button onclick="add_new_client_video_source">Add Client Source</button>
-					<button onclick="add_new_usb_video_source">Add USB Source</button>
-					<button onclick="add_new_network_video_source">Add Network Source</button>
-					<button onclick="add_new_spout_video_source">Add Spout Source</button>
-				</div>
-
-				<!-- Video Source List -->
-				<div class="list-container">
-					<div data-for="video_sources.video_source_ids" class="list-item" onclick="select_video_source_entry({{ it }})">
-						<span>Source {{ it }}</span>
-						<button class="remove-btn" onclick="remove_video_source({{ it }})">×</button>
-					</div>
-				</div>
-
-				<!-- Selected Video Source Details -->
-				<div data-if="video_sources.selected_video_source_id != -1" class="details-panel">
-					<h4>Selected Source: {{ video_sources.selected_video_source_id }}</h4>
-				</div>
-			</div>
-		</div>
-
-		<!-- Client Video Source Properties (separate data model) -->
-		<div data-model="ClientVideoSourceComponent" data-if="ClientVideoSourceComponent.component_id != -1" class="component-panel">
-			<h5>Client Video Source Properties</h5>
-			<!-- Client video source specific properties will be handled by the component model -->
-		</div>
-
-		<!-- USB Video Source Properties (separate data model) -->
-		<div data-model="USBVideoSourceComponent" data-if="usb_video_source.component_id != -1" class="component-panel">
-			<h5>USB Video Source Properties</h5>
-			<!-- USB video source specific properties will be handled by the component model -->
-		</div>
-
-		<!-- Network Video Source Properties (separate data model) -->
-		<div data-model="NetworkVideoSourceComponent" data-if="NetworkVideoSourceComponent.component_id != -1" class="component-panel">
-			<h5>Network Video Source Properties</h5>
-			<!-- Network video source specific properties will be handled by the component model -->
-		</div>
-
-		<!-- Spout Video Source Properties (separate data model) -->
-		<div data-model="SpoutVideoSourceComponent" data-if="SpoutVideoSourceComponent.component_id != -1" class="component-panel">
-			<h5>Spout Video Source Properties</h5>
-			<!-- Spout video source specific properties will be handled by the component model -->
-		</div>
-
-		<!-- Empty State and Information (back under main window) -->
-		<div data-model="video_sources">
-			<!-- Empty State -->
-			<div data-if="video_sources.video_source_ids.size == 0" class="empty-state">
-				<p>No video sources configured. Add a video source to get started.</p>
-				<div class="empty-state-buttons">
-					<button onclick="add_new_usb_video_source">Add USB Camera</button>
-					<button onclick="add_new_client_video_source">Add Client Source</button>
-				</div>
+			<div data-model="VideoSources">
+				<h3>Add Tracking Volume</h3>
+				<button style="width: 60dp; height: 50dp; margin-right: -5dp;" data-event-click="add_new_usb_video_source()"><img sprite="icon-usb"/></button>
+				<button style="width: 60dp; height: 50dp; margin-right: -5dp;" data-event-click="add_new_network_video_source()"><img sprite="icon-network"/></button>
+				<button style="width: 60dp; height: 50dp; margin-right: -5dp;" data-event-click="add_new_spout_video_source()"><img sprite="icon-spout"/></button>
+				<button style="width: 60dp; height: 50dp; margin-right: -5dp;" data-event-click="add_new_client_video_source()"><img sprite="icon-mikan"/></button>
+				<h3>Video Source</h3>
+				<select id="select" name="select_source_id" data-value="selected_video_source_id" data-event-change="select_video_source_entry()">
+					<option data-for="source_id : video_source_ids" data-value="source_id">{{source_id | to_video_source_friendly_name}}</option>
+				</select>
+				<deletecomponent data-event-click="remove_video_source()"></deletecomponent>
 			</div>
 
-			<!-- Source Type Information -->
-			<div class="section">
-				<h3>Source Types</h3>
-				<div class="info-grid">
-					<div class="info-item">
-						<strong>Client Source:</strong> Video from connected client applications
-					</div>
-					<div class="info-item">
-						<strong>USB Source:</strong> Direct camera feed via USB connection
-					</div>
-					<div class="info-item">
-						<strong>Network Source:</strong> Video stream over network protocols
-					</div>
-					<div class="info-item">
-						<strong>Spout Source:</strong> Real-time video sharing via Spout framework
-					</div>
-				</div>
+			<!-- Client Video Source Properties -->
+			<div data-if="component_id != -1" data-model="ClientVideoSourceComponent">
+				<table>
+					<thead>
+						<tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
+					</thead>
+					<tbody>
+						<tr class="property_tr">
+							<td>
+								Name&nbsp;
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
+							</td>
+						</tr>				
+					</tbody>
+				</table>
 			</div>
+
+			<!-- USB Video Source Properties -->
+			<div data-if="component_id != -1" data-model="USBVideoSourceComponent">
+				<table>
+					<thead>
+						<tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
+					</thead>
+					<tbody>
+						<tr class="property_tr">
+							<td>
+								Name&nbsp;
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
+							</td>
+						</tr>				
+					</tbody>
+				</table>
+			</div>
+
+			<!-- Network Video Source Properties -->
+			<div data-if="component_id != -1" data-model="NetworkVideoSourceComponent">
+				<table>
+					<thead>
+						<tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
+					</thead>
+					<tbody>
+						<tr class="property_tr">
+							<td>
+								Name&nbsp;
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
+							</td>
+						</tr>				
+					</tbody>
+				</table>
+			</div>
+
+			<!-- Spout Video Source Properties -->
+			<div data-if="component_id != -1" data-model="SpoutVideoSourceComponent">
+				<table>
+					<thead>
+						<tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
+					</thead>
+					<tbody>
+						<tr class="property_tr">
+							<td>
+								Name&nbsp;
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
+							</td>
+						</tr>				
+					</tbody>
+				</table>
+			</div>				
 		</div>
 	</div>
 </body>

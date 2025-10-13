@@ -26,6 +26,11 @@
 	icon-steamvr: 407px 230px 54px 54px;
 	icon-aruco: 407px 284px 50px 50px;
 
+	icon-usb: 407px 334px 60px 50px;
+	icon-network: 407px 384px 60px 50px;
+	icon-spout: 467px 334px 46px 50px;
+	icon-mikan: 467px 384px 46px 50px;
+
 	window-tl: 0px 0px 133px 140px;
 	window-t: 134px 0px 1px 140px;
 	window-tr: 136px 0px 10px 140px;
