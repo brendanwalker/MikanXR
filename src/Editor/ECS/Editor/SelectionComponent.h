@@ -11,6 +11,9 @@ class SelectionComponent : public MikanComponent
 public:
 	SelectionComponent(MikanObjectWeakPtr owner);
 
+	inline static const std::string k_componentClassName = "SelectionComponent";
+	virtual std::string getComponentClassName() const override { return k_componentClassName; }
+
 	virtual void init() override;
 	virtual void dispose() override;
 
@@ -54,7 +57,7 @@ protected:
 	std::vector<ColliderComponentWeakPtr> m_colliders;
 	// Interaction Permissions
 	bool m_bIsTransformGizmoAllowed= true;
-	// Interation Flaga
+	// Interaction Flags
 	bool m_bIsHovered = false;
 	bool m_bIsGrabbed = false;
 	bool m_bIsSelected= false;

@@ -20,6 +20,9 @@ class MarkerTrackingVolumeComponent : public TrackingVolumeComponent
 public:
 	MarkerTrackingVolumeComponent(MikanObjectWeakPtr owner);
 
+	inline static const std::string k_componentClassName = "MarkerTrackingVolumeComponent";
+	virtual std::string getComponentClassName() const override { return k_componentClassName; }
+
 	inline MarkerTrackingVolumeDefinitionPtr getMarkerTrackingVolumeDefinition() const
 	{ return std::static_pointer_cast<MarkerTrackingVolumeDefinition>(m_definition); }
 

@@ -42,6 +42,9 @@ public:
 	virtual void customRender() override;
 	virtual void dispose() override;
 
+	inline static const std::string k_componentClassName = "ModelStencilComponent";
+	virtual std::string getComponentClassName() const override { return k_componentClassName; }
+
 	inline ModelStencilDefinitionPtr getModelStencilDefinition() const { 
 		return std::static_pointer_cast<ModelStencilDefinition>(m_definition); 
 	}

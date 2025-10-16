@@ -47,6 +47,9 @@ public:
 	TrackingVolumeComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
 
+	inline static const std::string k_componentClassName = "TrackingVolumeComponent";
+	virtual std::string getComponentClassName() const override { return k_componentClassName; }
+
 	TrackingVolumeObjectSystemPtr getOwnerTrackingVolumeSystem() const;
 	inline TrackingVolumeDefinitionPtr getTrackingVolumeDefinition() const
 	{ return std::static_pointer_cast<TrackingVolumeDefinition>(m_definition); }

@@ -32,6 +32,9 @@ public:
 	}
 	virtual void setDefinition(MikanComponentDefinitionPtr definition) override;
 
+	inline static const std::string k_componentClassName = "SpoutVideoSourceComponent";
+	virtual std::string getComponentClassName() const override { return k_componentClassName; }
+
 	// Video Source Interface
 	virtual std::string getDevicePath() const override;
 	virtual std::string getDeviceAPI() const override;

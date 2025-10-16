@@ -76,6 +76,9 @@ public:
 	virtual void update(float deltaSeconds) override;
 	virtual void customRender() override;
 
+	inline static const std::string k_componentClassName = "CameraComponent";
+	virtual std::string getComponentClassName() const override { return k_componentClassName; }
+
 	inline CameraDefinitionPtr getCameraDefinition() const
 	{
 		return std::static_pointer_cast<CameraDefinition>(m_definition);

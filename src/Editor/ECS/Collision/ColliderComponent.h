@@ -13,6 +13,9 @@ class ColliderComponent : public TransformComponent
 public:
 	ColliderComponent(MikanObjectWeakPtr owner);
 
+	inline static const std::string k_componentClassName = "ColliderComponent";
+	virtual std::string getComponentClassName() const override { return k_componentClassName; }
+
 	inline bool getEnabled() const { return m_bEnabled; }
 	void setEnabled(bool bEnabled);
 

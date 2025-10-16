@@ -42,6 +42,9 @@ public:
 	virtual void init() override;
 	virtual void customRender() override;
 
+	inline static const std::string k_componentClassName = "VRDeviceComponent";
+	virtual std::string getComponentClassName() const override { return k_componentClassName; }
+
 	inline VRDeviceDefinitionPtr getVRDeviceDefinition() const
 	{
 		return std::static_pointer_cast<VRDeviceDefinition>(m_definition);

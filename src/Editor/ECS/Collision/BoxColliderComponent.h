@@ -11,6 +11,9 @@ class BoxColliderComponent : public ColliderComponent
 public:
 	BoxColliderComponent(MikanObjectWeakPtr owner);
 
+	inline static const std::string k_componentClassName = "BoxColliderComponent";
+	virtual std::string getComponentClassName() const override { return k_componentClassName; }
+
 	const glm::vec3 getHalfExtents() const { return m_halfExtents; }
 	void setHalfExtents(const glm::vec3 halfExtents) { m_halfExtents= halfExtents; }
 

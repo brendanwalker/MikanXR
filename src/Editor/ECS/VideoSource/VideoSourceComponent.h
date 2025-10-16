@@ -69,6 +69,9 @@ public:
 	}
 	virtual void setDefinition(MikanComponentDefinitionPtr definition) override;
 
+	inline static const std::string k_componentClassName = "VideoSourceComponent";
+	virtual std::string getComponentClassName() const override { return k_componentClassName; }
+
 	MikanVideoSourceID getVideoSourceId() const;
 	
 	// Video Source Interface

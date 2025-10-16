@@ -58,6 +58,9 @@ public:
 	virtual void setDefinition(MikanComponentDefinitionPtr config);
 	virtual MikanComponentDefinitionPtr getDefinition() const { return m_definition; }
 
+	inline static const std::string k_componentClassName = "MikanComponent";
+	virtual std::string getComponentClassName() const { return k_componentClassName; }
+
 	void setName(const std::string& name);
 	const std::string& getName() const { return m_name; }
 

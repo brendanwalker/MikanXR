@@ -55,6 +55,9 @@ public:
 
 	virtual void setDefinition(MikanComponentDefinitionPtr definition) override;
 
+	inline static const std::string k_componentClassName = "StencilComponent";
+	virtual std::string getComponentClassName() const override { return k_componentClassName; }
+
 	void attachTransformComponentToAnchor(MikanSpatialAnchorID newParentId);
 
 	// -- IRmlPropertyInterface ----

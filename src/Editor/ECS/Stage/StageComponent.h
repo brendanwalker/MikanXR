@@ -47,6 +47,9 @@ public:
 		return std::static_pointer_cast<StageComponentDefinition>(m_definition);
 	}
 
+	inline static const std::string k_componentClassName = "StageComponent";
+	virtual std::string getComponentClassName() const override { return k_componentClassName; }
+
 	TrackingVolumeDefinitionConstPtr getTrackingVolumeDefinitionConst() const;
 
 	// -- MikanComponent ----

@@ -53,6 +53,9 @@ public:
 		return std::static_pointer_cast<QuadStencilDefinition>(m_definition);
 	}
 
+	inline static const std::string k_componentClassName = "QuadStencilComponent";
+	virtual std::string getComponentClassName() const override { return k_componentClassName; }
+
 	// -- IRmlPropertyInterface ----
 	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, Rml::Variant& outValue) const override;

@@ -94,6 +94,9 @@ public:
 	bool getIsRunning() const { return m_bIsRunning; }
 	void stop();
 
+	inline static const std::string k_componentClassName = "CompositorComponent";
+	virtual std::string getComponentClassName() const override { return k_componentClassName; }
+
 	StageComponentPtr getOwnerStageComponent() const;
 	VideoSourceComponentPtr getVideoSourceComponent() const;
 

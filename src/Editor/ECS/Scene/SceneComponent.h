@@ -48,6 +48,9 @@ public:
 		return std::static_pointer_cast<SceneComponentDefinition>(m_definition);
 	}
 
+	inline static const std::string k_componentClassName = "SceneComponent";
+	virtual std::string getComponentClassName() const override { return k_componentClassName; }
+
 	// -- MikanComponent ----
 	virtual void setDefinition(MikanComponentDefinitionPtr definition) override;
 	virtual void init() override;

@@ -46,6 +46,9 @@ public:
 	TrackingMountComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
 
+	inline static const std::string k_componentClassName = "TrackingMountComponent";
+	virtual std::string getComponentClassName() const override { return k_componentClassName; }
+
 	TrackingMountObjectSystemPtr getOwnerTrackingMountSystem() const;
 	inline TrackingMountDefinitionPtr getTrackingMountDefinition() const
 	{ return std::static_pointer_cast<TrackingMountDefinition>(m_definition); }

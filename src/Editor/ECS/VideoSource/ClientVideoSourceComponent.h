@@ -26,6 +26,9 @@ class ClientVideoSourceComponent : public VideoSourceComponent
 public:
 	ClientVideoSourceComponent(MikanObjectWeakPtr owner);
 
+	inline static const std::string k_componentClassName = "ClientVideoSourceComponent";
+	virtual std::string getComponentClassName() const override { return k_componentClassName; }
+
 	inline ClientVideoSourceDefinitionPtr getClientVideoSourceDefinition() const
 	{
 		return std::static_pointer_cast<ClientVideoSourceDefinition>(m_definition);

@@ -81,6 +81,9 @@ public:
 	virtual void init() override;
 	virtual void dispose() override;
 
+	inline static const std::string k_componentClassName = "TransformComponent";
+	virtual std::string getComponentClassName() const override { return k_componentClassName; }
+
 	virtual void setDefinition(MikanComponentDefinitionPtr config) override;
 	inline TransformComponentDefinitionConstPtr getTransformComponentDefinitionConst() const
 	{

@@ -53,6 +53,9 @@ public:
 
 	virtual void dispose() override;
 
+	inline static const std::string k_componentClassName = "NetworkVideoSourceComponent";
+	virtual std::string getComponentClassName() const override { return k_componentClassName; }
+
 	inline NetworkVideoSourceDefinitionPtr getNetworkVideoSourceDefinition() const
 	{
 		return std::static_pointer_cast<NetworkVideoSourceDefinition>(m_definition);

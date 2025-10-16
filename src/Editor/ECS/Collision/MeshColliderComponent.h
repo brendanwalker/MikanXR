@@ -16,6 +16,9 @@ public:
 
 	virtual void dispose() override;
 
+	inline static const std::string k_componentClassName = "MeshColliderComponent";
+	virtual std::string getComponentClassName() const override { return k_componentClassName; }
+
 	void setStaticMeshComponent(StaticMeshComponentWeakPtr meshComponent);
 	inline StaticMeshComponentWeakPtr getStaticMeshComponent() const { return m_staticMeshWeakPtr; }
 
