@@ -46,9 +46,11 @@ public:
 	void setVideoFrameQueueSize(int videoFrameQueueSize);
 
 	static const std::string k_videoSourceIntrinsicsPropertyId;
-	inline bool hasCameraIntrinsics() const { return m_intrinsics.intrinsics_type != INVALID_CAMERA_INTRINSICS; }
 	inline const MikanVideoSourceIntrinsics& getCameraIntrinsics() const { return m_intrinsics; }
 	void setCameraIntrinsics(const MikanVideoSourceIntrinsics& cameraIntrinsics);
+
+	static const std::string k_hasValidIntrinsicsPropertyId;
+	inline bool hasCameraIntrinsics() const { return m_intrinsics.intrinsics_type != INVALID_CAMERA_INTRINSICS; }
 
 private:
 	MikanVideoSourceID m_videoSourceId;
@@ -113,10 +115,14 @@ public:
 
 	// -- IRmlFunctionInterface ----
 	static const std::string k_deleteVideoSourceFunctionId;
+	static const std::string k_calibrateIntrinsicsFunctionId;
+	static const std::string k_testIntrinsicsFunctionId;
 	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outPropertyNames);
 	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
 
 	void deleteVideoSource();
+	void calibrateIntrinsics();
+	void testIntrinsics();
 
 protected:
 	void recomputeCameraProjectionMatrix();

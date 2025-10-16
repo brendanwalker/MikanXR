@@ -1,6 +1,9 @@
 #include "ClientVideoSourceComponent.h"
 #include "MikanVideoSourceTypes.h"
 
+#include <RmlUi/Core/Types.h>
+#include <RmlUi/Core/Variant.h>
+
 // -- ClientVideoSourceDefinition ------
 const std::string ClientVideoSourceDefinition::k_clientSourcePropertyId = "client_source";
 
@@ -110,4 +113,45 @@ bool ClientVideoSourceComponent::setCameraIntrinsics(const MikanVideoSourceIntri
 {
 	// No camera intrinsics for client video sources
 	return false;
+}
+
+// -- IRmlPropertyInterface ----
+void ClientVideoSourceComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
+{
+	VideoSourceComponent::getRmlPropertyDescriptors(outDescriptors);
+
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			ClientVideoSourceDefinition::k_clientSourcePropertyId));
+}
+
+bool ClientVideoSourceComponent::getPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc,
+	Rml::Variant& outValue) const
+{
+	const std::string& propertyName = propertyDesc->getName();
+
+	if (propertyName == ClientVideoSourceDefinition::k_clientSourcePropertyId)
+	{
+		outValue = getClientVideoSourceDefinition()->getClientSource();
+		return true;
+	}
+
+	return VideoSourceComponent::getPropertyValueFromRml(propertyDesc, outValue);
+}
+
+bool ClientVideoSourceComponent::setPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc,
+	const Rml::Variant& inValue)
+{
+	const std::string& propertyName = propertyDesc->getName();
+
+	if (propertyName == ClientVideoSourceDefinition::k_clientSourcePropertyId)
+	{
+		std::string devicePath = inValue.Get<std::string>();
+		getClientVideoSourceDefinition()->setClientSource(devicePath);
+		return true;
+	}
+
+	return VideoSourceComponent::setPropertyValueFromRml(propertyDesc, inValue);
 }

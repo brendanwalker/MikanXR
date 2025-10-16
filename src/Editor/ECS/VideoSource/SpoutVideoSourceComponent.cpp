@@ -1,4 +1,8 @@
 #include "SpoutVideoSourceComponent.h"
+#include "StringUtils.h"
+
+#include <RmlUi/Core/Types.h>
+#include <RmlUi/Core/Variant.h>
 
 // -- SpoutVideoSourceDefinition ------
 const std::string SpoutVideoSourceDefinition::k_spoutSourcePropertyId = "spout_source";
@@ -31,7 +35,7 @@ void SpoutVideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 	m_spoutSource = pt.get_or<std::string>("spout_source", m_spoutSource);
 }
 
-void SpoutVideoSourceDefinition::setClientSource(const std::string& spoutSource)
+void SpoutVideoSourceDefinition::setSpoutSource(const std::string& spoutSource)
 {
 	if (spoutSource != m_spoutSource)
 	{
@@ -55,7 +59,7 @@ void SpoutVideoSourceComponent::setDefinition(MikanComponentDefinitionPtr defini
 
 std::string SpoutVideoSourceComponent::getDevicePath() const
 {
-	return "";
+	return StringUtils::stringify("spout://", getSpoutVideoSourceDefinition()->getSpoutSource());
 }
 
 std::string SpoutVideoSourceComponent::getDeviceAPI() const
@@ -111,4 +115,45 @@ bool SpoutVideoSourceComponent::setCameraIntrinsics(const MikanVideoSourceIntrin
 {
 	// Not supported for Spout video sources
 	return false;
+}
+
+// -- IRmlPropertyInterface ----
+void SpoutVideoSourceComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
+{
+	VideoSourceComponent::getRmlPropertyDescriptors(outDescriptors);
+
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			SpoutVideoSourceDefinition::k_spoutSourcePropertyId));
+}
+
+bool SpoutVideoSourceComponent::getPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc,
+	Rml::Variant& outValue) const
+{
+	const std::string& propertyName = propertyDesc->getName();
+
+	if (propertyName == SpoutVideoSourceDefinition::k_spoutSourcePropertyId)
+	{
+		outValue = getSpoutVideoSourceDefinition()->getSpoutSource();
+		return true;
+	}
+
+	return VideoSourceComponent::getPropertyValueFromRml(propertyDesc, outValue);
+}
+
+bool SpoutVideoSourceComponent::setPropertyValueFromRml(
+	RmlPropertyDescriptorConstPtr propertyDesc,
+	const Rml::Variant& inValue)
+{
+	const std::string& propertyName = propertyDesc->getName();
+
+	if (propertyName == SpoutVideoSourceDefinition::k_spoutSourcePropertyId)
+	{
+		std::string devicePath = inValue.Get<std::string>();
+		getSpoutVideoSourceDefinition()->setSpoutSource(devicePath);
+		return true;
+	}
+
+	return VideoSourceComponent::setPropertyValueFromRml(propertyDesc, inValue);
 }

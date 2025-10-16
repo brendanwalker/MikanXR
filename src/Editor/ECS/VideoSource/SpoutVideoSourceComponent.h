@@ -15,7 +15,7 @@ public:
 
 	static const std::string k_spoutSourcePropertyId;
 	inline const std::string& getSpoutSource() const { return m_spoutSource; }
-	void setClientSource(const std::string& spoutSource);
+	void setSpoutSource(const std::string& spoutSource);
 
 private:
 	std::string m_spoutSource;
@@ -52,8 +52,9 @@ public:
 	virtual bool setCameraIntrinsics(const MikanVideoSourceIntrinsics& camera_intrinsics) override;
 
 	// -- IRmlPropertyInterface ----
-	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
-	{ VideoSourceComponent::getRmlPropertyDescriptors(outDescriptors); }
+	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors);
+	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, Rml::Variant& outValue) const override;
+	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const Rml::Variant& inValue) override;
 
 	// -- IRmlFunctionInterface ----
 	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)

@@ -841,45 +841,12 @@ bool USBVideoSourceComponent::setPropertyValueFromRml(
 }
 
 // -- IRmlFunctionInterface ----
-const std::string USBVideoSourceComponent::k_calibrateIntrinsicsFunctionId = "calibrate_intrinsics";
-const std::string USBVideoSourceComponent::k_testIntrinsicsFunctionId = "test_intrinsics";
-
 void USBVideoSourceComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
 {
 	VideoSourceComponent::getRmlFunctionDescriptors(outDescriptors);
-
-	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
-			k_calibrateIntrinsicsFunctionId, "Calibrate Intrinsics"));
-	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
-			k_testIntrinsicsFunctionId, "Test Intrinsics"));
 }
 
 bool USBVideoSourceComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
 {
-	const std::string& functionName = functionDesc->getFunctionName();
-
-	if (functionName == k_calibrateIntrinsicsFunctionId)
-	{
-		calibrateIntrinsics();
-		return true;
-	}
-	else if (functionName == k_testIntrinsicsFunctionId)
-	{
-		testIntrinsics();
-		return true;
-	}
-
 	return VideoSourceComponent::invokeFunctionFromRml(functionDesc);
-}
-
-void USBVideoSourceComponent::calibrateIntrinsics()
-{
-	//TODO
-}
-
-void USBVideoSourceComponent::testIntrinsics()
-{
-	//TODO
 }

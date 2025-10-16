@@ -37,7 +37,13 @@
 								Name&nbsp;
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
 							</td>
-						</tr>				
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Source&nbsp;
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="client_source"/>
+							</td>
+						</tr>
 					</tbody>
 				</table>
 			</div>
@@ -54,7 +60,24 @@
 								Name&nbsp;
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
 							</td>
-						</tr>				
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Intrinsics&nbsp;
+								<div data-if="!are_intrinsics_valid">
+									Uncalibrated
+								</div>
+								<div data-if="are_intrinsics_valid">
+									Calibrated
+								</div>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<button data-event-click="calibrate_intrinsics()">Calibrate Intrinsics</button>
+								<button data-event-click="test_intrinsics()">Test Intrinsics</button>
+							</td>
+						</tr>
 					</tbody>
 				</table>
 			</div>
@@ -71,7 +94,30 @@
 								Name&nbsp;
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
 							</td>
-						</tr>				
+						</tr>
+						<tr class="property_tr">
+							<td>
+								URL&nbsp;
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="URL"/>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Intrinsics&nbsp;
+								<div data-if="!are_intrinsics_valid">
+									Uncalibrated
+								</div>
+								<div data-if="are_intrinsics_valid">
+									Calibrated
+								</div>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<button data-event-click="calibrate_intrinsics()">Calibrate Intrinsics</button>
+								<button data-event-click="test_intrinsics()">Test Intrinsics</button>
+							</td>
+						</tr>
 					</tbody>
 				</table>
 			</div>
@@ -88,7 +134,13 @@
 								Name&nbsp;
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
 							</td>
-						</tr>				
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Source&nbsp;
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="spout_source"/>
+							</td>
+						</tr>
 					</tbody>
 				</table>
 			</div>				
