@@ -41,6 +41,9 @@ using RmlModel_MikanComponentPtr = std::shared_ptr<RmlModel_MikanComponent>;
 class RmlModel_PropertyInterface;
 using RmlModel_PropertyInterfacePtr = std::shared_ptr<RmlModel_PropertyInterface>;
 
+class RmlModel_SceneComponent;
+using RmlModel_SceneComponentPtr = std::shared_ptr<RmlModel_SceneComponent>;
+
 class RmlModel_StageComponent;
 using RmlModel_StageComponentPtr = std::shared_ptr<RmlModel_StageComponent>;
 
@@ -55,6 +58,15 @@ using RmlModel_VRTrackingVolumeComponentPtr = std::shared_ptr<RmlModel_VRTrackin
 
 class RmlModel_TrackingMountComponent;
 using RmlModel_TrackingMountComponentPtr = std::shared_ptr<RmlModel_TrackingMountComponent>;
+
+class RmlModel_ClientVideoSourceComponent;
+using RmlModel_ClientVideoSourceComponentPtr = std::shared_ptr<RmlModel_ClientVideoSourceComponent>;
+
+class RmlModel_NetworkVideoSourceComponent;
+using RmlModel_NetworkVideoSourceComponentPtr = std::shared_ptr<RmlModel_NetworkVideoSourceComponent>;
+
+class RmlModel_SpoutVideoSourceComponent;
+using RmlModel_SpoutVideoSourceComponentPtr = std::shared_ptr<RmlModel_SpoutVideoSourceComponent>;
 
 class RmlModel_USBVideoSourceComponent;
 using RmlModel_USBVideoSourceComponentPtr = std::shared_ptr<RmlModel_USBVideoSourceComponent>;

@@ -1,5 +1,4 @@
-#include "USBVideoSourceComponent.h"
-#include "RmlModel_USBVideoSourceComponent.h"
+#include "RmlModel_VideoSourceComponent.h"
 #include "Shared/RmlDataBinding_List.h"
 #include "Shared/RmlModel_PropertyInterface.h"
 #include "VideoSourceSystem.h"
@@ -10,61 +9,52 @@
 #include <RmlUi/Core/Context.h>
 
 RmlModel_USBVideoSourceComponent::RmlModel_USBVideoSourceComponent()
-	: RmlModel_MikanComponent()
+	: RmlModel_TypedMikanComponent<USBVideoSourceComponent>()
 	, m_usbDevicePathList(std::make_shared<RmlDataBinding_VRDevicePathList>())
 	, m_videoModeNameList(std::make_shared<RmlDataBinding_SocketNameList>())
 {}
 
-bool RmlModel_USBVideoSourceComponent::init(Rml::Context* rmlContext)
+bool RmlModel_USBVideoSourceComponent::onConstruct(Rml::DataModelConstructor& constructor)
 {
-	bool bSuccess=
-		m_propertyInterface->init<USBVideoSourceComponent>(
-			rmlContext,
-			"USBVideoSourceComponent",
-			[this](Rml::DataModelConstructor& constructor) -> bool {
+	// Build the list of all usb device paths from the USBVideoSourceSystem
+	m_usbDevicePathList->init(
+		constructor,
+		CommonConfigPtr(),
+		"usb_device_paths",
+		[this](CommonConfigPtr ownerConfig, Rml::Vector<std::string>& outDevicePathList) {
+			auto usbVideoSourceSystem = getUSBVideoSourceSystem();
+			if (usbVideoSourceSystem)
+			{
+				const auto& usbVideoSourceMap = usbVideoSourceSystem->getUSBVideoSourceMap();
+				for (const auto& it : usbVideoSourceMap)
+				{
+					if (auto usbVideoSourceComponent = it.second.lock())
+					{
+						outDevicePathList.push_back(usbVideoSourceComponent->getDevicePath());
+					}
+				}
+			}
+		});
 
-				// Build the list of all usb device paths from the USBVideoSourceSystem
-				m_usbDevicePathList->init(
-					constructor,
-					CommonConfigPtr(),
-					"usb_device_paths",
-					[this](CommonConfigPtr ownerConfig, Rml::Vector<std::string>& outDevicePathList) {
-						auto usbVideoSourceSystem = getUSBVideoSourceSystem();
-						if (usbVideoSourceSystem)
-						{
-							const auto& usbVideoSourceMap = usbVideoSourceSystem->getUSBVideoSourceMap();
-							for (const auto& it : usbVideoSourceMap)
-							{
-								if (auto usbVideoSourceComponent = it.second.lock())
-								{
-									outDevicePathList.push_back(usbVideoSourceComponent->getDevicePath());
-								}
-							}
-						}
-					});
-
-				// Build the list of video modes from the currently selected USBVideoSourceComponent
-				m_videoModeNameList->init(
-					constructor,
-					CommonConfigPtr(),
-					"video_modes",
-					[this](CommonConfigPtr ownerConfig, Rml::Vector<std::string>& outVideoModeList) {
-						auto videoSourceComponent = getUSBVideoSourceComponent();
-						if (videoSourceComponent)
-						{
-							videoSourceComponent->getVideoModeNames(outVideoModeList);
-						}
-					});
-
-				return true;
-			});
+	// Build the list of video modes from the currently selected USBVideoSourceComponent
+	m_videoModeNameList->init(
+		constructor,
+		CommonConfigPtr(),
+		"video_modes",
+		[this](CommonConfigPtr ownerConfig, Rml::Vector<std::string>& outVideoModeList) {
+			auto videoSourceComponent = getUSBVideoSourceComponent();
+			if (videoSourceComponent)
+			{
+				videoSourceComponent->getVideoModeNames(outVideoModeList);
+			}
+		});
 
 	return true;
 }
 
 bool RmlModel_USBVideoSourceComponent::setComponent(MikanComponentPtr component)
 {
-	if (RmlModel_MikanComponent::setComponent(component))
+	if (RmlModel_TypedMikanComponent<USBVideoSourceComponent>::setComponent(component))
 	{
 		m_usbDevicePathList->setOwnerConfig(getVideoSourceSystemConfig());
 		m_usbDevicePathList->rebuildList(true);

@@ -6,7 +6,7 @@
 #include "NetworkVideoSourceSystem.h"
 #include "ProjectConfig.h"
 #include "Shared/RmlModel_MikanComponent.h"
-#include "Shared/RmlModel_USBVideoSourceComponent.h"
+#include "Shared/RmlModel_VideoSourceComponent.h"
 #include "Shared/RmlDataBinding_List.h"
 #include "SpoutVideoSourceComponent.h"
 #include "SpoutVideoSourceSystem.h"
@@ -23,10 +23,10 @@
 
 RmlModel_ProjectSources::RmlModel_ProjectSources()
 	: m_videoSourceIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
-	, m_selectedClientVideoSourceModel(std::make_shared<RmlModel_MikanComponent>())
+	, m_selectedClientVideoSourceModel(std::make_shared<RmlModel_ClientVideoSourceComponent>())
 	, m_selectedUSBVideoSourceModel(std::make_shared<RmlModel_USBVideoSourceComponent>())
-	, m_selectedNetworkVideoSourceModel(std::make_shared<RmlModel_MikanComponent>())
-	, m_selectedSpoutVideoSourceModel(std::make_shared<RmlModel_MikanComponent>())
+	, m_selectedNetworkVideoSourceModel(std::make_shared<RmlModel_NetworkVideoSourceComponent>())
+	, m_selectedSpoutVideoSourceModel(std::make_shared<RmlModel_SpoutVideoSourceComponent>())
 {
 }
 

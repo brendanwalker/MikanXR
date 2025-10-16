@@ -21,6 +21,7 @@
 #include "ProjectConfig.h"
 #include "Shared/RmlModel_AnchorComponent.h"
 #include "Shared/RmlModel_CompositorComponent.h"
+#include "Shared/RmlModel_SceneComponent.h"
 #include "Shared/RmlModel_StencilComponent.h"
 #include "Shared/RmlDataBinding_List.h"
 #include "StringUtils.h"
@@ -40,7 +41,7 @@ RmlModel_ProjectScenes::RmlModel_ProjectScenes()
 	, m_selectedBoxStencilModel(std::make_shared<RmlModel_StencilComponent>())
 	, m_selectedModelStencilModel(std::make_shared<RmlModel_StencilComponent>())
 	, m_selectedQuadStencilModel(std::make_shared<RmlModel_StencilComponent>())
-	, m_selectedSceneModel(std::make_shared<RmlModel_MikanComponent>())
+	, m_selectedSceneModel(std::make_shared<RmlModel_SceneComponent>())
 {
 }
 

@@ -10,10 +10,10 @@ RmlModel_MikanObjectSystem::RmlModel_MikanObjectSystem()
 }
 
 bool RmlModel_MikanObjectSystem::init(
-	Rml::Context* rmlContext, 
+	Rml::Context* rmlContext,
 	MikanObjectSystemPtr objectSystem)
 {
-	if (m_propertyInterface->init<MikanObjectSystem>(rmlContext, "MikanObjectSystem")) 
+	if (m_propertyInterface->init<MikanObjectSystem>(rmlContext, "MikanObjectSystem"))
 	{
 		m_objectSystem = objectSystem;
 		m_propertyInterface->setPropertyInterface(objectSystem, objectSystem->getObjectSystemConfig());

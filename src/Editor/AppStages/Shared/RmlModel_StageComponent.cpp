@@ -1,4 +1,3 @@
-#include "StageComponent.h"
 #include "RmlModel_StageComponent.h"
 #include "TrackingVolumeObjectSystem.h"
 #include "Shared/RmlDataBinding_List.h"
@@ -9,51 +8,42 @@
 #include <RmlUi/Core/Context.h>
 
 RmlModel_StageComponent::RmlModel_StageComponent()
-	: RmlModel_MikanComponent()
+	: RmlModel_TypedMikanComponent<StageComponent>()
 	, m_trackingVolumeIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {}
 
-bool RmlModel_StageComponent::init(Rml::Context* rmlContext)
+bool RmlModel_StageComponent::onConstruct(Rml::DataModelConstructor& constructor)
 {
-	bool bSuccess=
-		m_propertyInterface->init<StageComponent>(
-			rmlContext,
-			"StageComponent",
-			[this](Rml::DataModelConstructor& constructor) -> bool {
+	// Build the list of all tracking volume IDs from the TrackingVolumeObjectSystem
+	m_trackingVolumeIdList->init(
+		constructor,
+		CommonConfigPtr(),
+		"tracking_volume_ids",
+		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
+			auto trackingVolumeObjectSystem= getTrackingVolumeObjectSystem();
+			if (trackingVolumeObjectSystem)
+			{
+				outComponentIdList = trackingVolumeObjectSystem->getTrackingVolumeIdList();
+			}
+		});
 
-				// Build the list of all tracking volume IDs from the TrackingVolumeObjectSystem
-				m_trackingVolumeIdList->init(
-					constructor,
-					CommonConfigPtr(),
-					"tracking_volume_ids",
-					[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-						auto trackingVolumeObjectSystem= getTrackingVolumeObjectSystem();
-						if (trackingVolumeObjectSystem)
-						{
-							outComponentIdList = trackingVolumeObjectSystem->getTrackingVolumeIdList();
-						}
-					});
-
-				constructor.BindEventCallback(
-					"select_volume_entry",
-					[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-						const int newVolumeId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
-						StageComponentPtr stageComponent = getStageComponent();
-						if (stageComponent)
-						{
-							stageComponent->setTrackingVolumeId(newVolumeId);
-						}
-					});
-
-				return true;
-			});
+	constructor.BindEventCallback(
+		"select_volume_entry",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			const int newVolumeId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
+			StageComponentPtr stageComponent = getStageComponent();
+			if (stageComponent)
+			{
+				stageComponent->setTrackingVolumeId(newVolumeId);
+			}
+		});
 
 	return true;
 }
 
 bool RmlModel_StageComponent::setComponent(MikanComponentPtr component)
 {
-	if (RmlModel_MikanComponent::setComponent(component))
+	if (RmlModel_TypedMikanComponent<StageComponent>::setComponent(component))
 	{
 		m_trackingVolumeIdList->setOwnerConfig(getTrackingVolumeObjectSystemConfig());
 		m_trackingVolumeIdList->rebuildList(true);

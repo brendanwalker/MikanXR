@@ -2,13 +2,14 @@
 
 #include "Shared/RmlModel_MikanComponent.h"
 #include "Shared/RmlDataBinding_Fwd.h"
+#include "CompositorComponent.h"
 
-class RmlModel_CompositorComponent : public RmlModel_MikanComponent
+class RmlModel_CompositorComponent : public RmlModel_TypedMikanComponent<CompositorComponent>
 {
 public:
 	RmlModel_CompositorComponent();
 
-	virtual bool init(Rml::Context* rmlContext) override;
+	virtual bool onConstruct(Rml::DataModelConstructor& constructor) override;
 	virtual bool setComponent(MikanComponentPtr component) override;
 
 protected:

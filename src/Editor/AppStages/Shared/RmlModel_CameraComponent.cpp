@@ -1,4 +1,3 @@
-#include "CameraComponent.h"
 #include "RmlModel_CameraComponent.h"
 #include "Shared/RmlDataBinding_List.h"
 #include "Shared/RmlModel_PropertyInterface.h"
@@ -10,70 +9,61 @@
 #include <RmlUi/Core/Context.h>
 
 RmlModel_CameraComponent::RmlModel_CameraComponent()
-	: RmlModel_MikanComponent() 
+	: RmlModel_TypedMikanComponent<CameraComponent>()
 	, m_trackingMountIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 	, m_videoSourceIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {}
 
-bool RmlModel_CameraComponent::init(Rml::Context* rmlContext)
+bool RmlModel_CameraComponent::onConstruct(Rml::DataModelConstructor& constructor)
 {
-	bool bSuccess= 
-		m_propertyInterface->init<CameraComponent>(
-			rmlContext, 
-			"CameraComponent",
-			[this](Rml::DataModelConstructor& constructor) -> bool {
+	// Build the list of tracking mount IDs from the associated VRTrackingVolumeDefinition
+	m_trackingMountIdList->init(
+		constructor,
+		CommonConfigPtr(),
+		"tracking_mount_ids",
+		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
+			if (ownerConfig)
+			{
+				auto vrVolumeConfig = std::static_pointer_cast<VRTrackingVolumeDefinition>(ownerConfig);
 
-				// Build the list of tracking mount IDs from the associated VRTrackingVolumeDefinition
-				m_trackingMountIdList->init(
-					constructor,
-					CommonConfigPtr(),
-					"tracking_mount_ids",
-					[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-						if (ownerConfig)
-						{
-							auto vrVolumeConfig = std::static_pointer_cast<VRTrackingVolumeDefinition>(ownerConfig);
+				outComponentIdList = vrVolumeConfig->getTrackingMountIDs();
+			}
+		});
 
-							outComponentIdList = vrVolumeConfig->getTrackingMountIDs();
-						}
-					});
+	// Build the list of all video source IDs from the VideoSourceSystem
+	m_videoSourceIdList->init(
+		constructor,
+		CommonConfigPtr(),
+		"video_source_ids",
+		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
+			auto videoSourceSystem= getVideoSourceSystem();
+			if (videoSourceSystem)
+			{
+				outComponentIdList = videoSourceSystem->getVideoSourceIdList();
+			}
+		});
 
-				// Build the list of all video source IDs from the VideoSourceSystem
-				m_videoSourceIdList->init(
-					constructor,
-					CommonConfigPtr(),
-					"video_source_ids",
-					[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-						auto videoSourceSystem= getVideoSourceSystem();
-						if (videoSourceSystem)
-						{
-							outComponentIdList = videoSourceSystem->getVideoSourceIdList();
-						}
-					});
+	constructor.BindEventCallback(
+		"select_video_source_entry",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			const int selectedVideoSourceId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
 
-				constructor.BindEventCallback(
-					"select_video_source_entry",
-					[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-						const int selectedVideoSourceId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
+			getCameraComponent()->getCameraDefinition()->setVideoSourceId(selectedVideoSourceId);
+		});
+	constructor.BindEventCallback(
+		"select_mount_entry",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			const int selectedMountId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
 
-						getCameraComponent()->getCameraDefinition()->setVideoSourceId(selectedVideoSourceId);
-					});
-				constructor.BindEventCallback(
-					"select_mount_entry",
-					[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-						const int selectedMountId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
-
-						getCameraComponent()->getCameraDefinition()->setTrackingMountId(selectedMountId);
-					});
-
-				return true;
-			});
+			getCameraComponent()->getCameraDefinition()->setTrackingMountId(selectedMountId);
+		});
 
 	return true;
 }
 
 bool RmlModel_CameraComponent::setComponent(MikanComponentPtr component)
 {
-	if (RmlModel_MikanComponent::setComponent(component))
+	if (RmlModel_TypedMikanComponent<CameraComponent>::setComponent(component))
 	{
 		m_trackingMountIdList->setOwnerConfig(getOwnerVRTrackingVolume());
 		m_trackingMountIdList->rebuildList(true);

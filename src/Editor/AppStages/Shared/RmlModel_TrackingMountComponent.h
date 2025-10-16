@@ -2,13 +2,14 @@
 
 #include "Shared/RmlModel_MikanComponent.h"
 #include "Shared/RmlDataBinding_Fwd.h"
+#include "TrackingMountComponent.h"
 
-class RmlModel_TrackingMountComponent : public RmlModel_MikanComponent
+class RmlModel_TrackingMountComponent : public RmlModel_TypedMikanComponent<TrackingMountComponent>
 {
 public:
 	RmlModel_TrackingMountComponent();
 
-	virtual bool init(Rml::Context* rmlContext) override;
+	virtual bool onConstruct(Rml::DataModelConstructor& constructor) override;
 	virtual bool setComponent(MikanComponentPtr component) override;
 
 protected:

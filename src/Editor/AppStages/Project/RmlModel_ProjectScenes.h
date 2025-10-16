@@ -85,7 +85,7 @@ private:
 	RmlModel_StencilComponentPtr m_selectedBoxStencilModel;
 	RmlModel_StencilComponentPtr m_selectedModelStencilModel;
 	RmlModel_StencilComponentPtr m_selectedQuadStencilModel;
-	RmlModel_MikanComponentPtr m_selectedSceneModel;
+	RmlModel_SceneComponentPtr m_selectedSceneModel;
 
 	int m_selectedStageId = -1; // MikanStageID
 	int m_selectedSceneId = -1; // MikanSceneID

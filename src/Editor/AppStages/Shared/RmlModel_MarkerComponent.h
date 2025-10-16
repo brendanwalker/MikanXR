@@ -3,12 +3,12 @@
 #include "Shared/RmlModel_MikanComponent.h"
 #include "Shared/RmlDataBinding_Fwd.h"
 
-class RmlModel_MarkerComponent : public RmlModel_MikanComponent
+class RmlModel_MarkerComponent : public RmlModel_TypedMikanComponent<MarkerComponent>
 {
 public:
 	RmlModel_MarkerComponent();
 
-	virtual bool init(Rml::Context* rmlContext) override;
+	virtual bool onConstruct(Rml::DataModelConstructor& constructor) override;
 	virtual bool setComponent(MikanComponentPtr component) override;
 
 protected:

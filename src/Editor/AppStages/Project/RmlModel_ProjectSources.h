@@ -44,10 +44,10 @@ private:
 	VideoSourceSystemWeakPtr m_videoSourceSystem;
 
 	RmlDataBinding_ComponentIdListPtr m_videoSourceIdList;
-	RmlModel_MikanComponentPtr m_selectedClientVideoSourceModel;
+	RmlModel_ClientVideoSourceComponentPtr m_selectedClientVideoSourceModel;
 	RmlModel_USBVideoSourceComponentPtr m_selectedUSBVideoSourceModel;
-	RmlModel_MikanComponentPtr m_selectedNetworkVideoSourceModel;
-	RmlModel_MikanComponentPtr m_selectedSpoutVideoSourceModel;
+	RmlModel_NetworkVideoSourceComponentPtr m_selectedNetworkVideoSourceModel;
+	RmlModel_SpoutVideoSourceComponentPtr m_selectedSpoutVideoSourceModel;
 
 	int m_selectedVideoSourceId = -1; // MikanVideoSourceID
 };

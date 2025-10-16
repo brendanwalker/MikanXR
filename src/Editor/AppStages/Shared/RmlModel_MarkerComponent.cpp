@@ -9,52 +9,43 @@
 #include <RmlUi/Core/Context.h>
 
 RmlModel_MarkerComponent::RmlModel_MarkerComponent()
-	: RmlModel_MikanComponent()
+	: RmlModel_TypedMikanComponent<MarkerComponent>()
 	, m_arucoIdList(std::make_shared<RmlDataBinding_ArucoIdList>())
 {}
 
-bool RmlModel_MarkerComponent::init(Rml::Context* rmlContext)
+bool RmlModel_MarkerComponent::onConstruct(Rml::DataModelConstructor& constructor)
 {
-	bool bSuccess=
-		m_propertyInterface->init<MarkerComponent>(
-			rmlContext,
-			"MarkerComponent",
-			[this](Rml::DataModelConstructor& constructor) -> bool 
+	// Build the list of all aruco IDs by collecting from the marker system config
+	m_arucoIdList->init(
+		constructor,
+		CommonConfigPtr(),
+		MarkerObjectSystemConfig::k_arucoIdListPropertyId,
+		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outArucoIdList) 
+		{
+			auto markerObjectSystemConfig = getMarkerObjectSystemConfig();
+			if (markerObjectSystemConfig)
 			{
-				// Build the list of all aruco IDs by collecting from the marker system config
-				m_arucoIdList->init(
-					constructor,
-					CommonConfigPtr(),
-					MarkerObjectSystemConfig::k_arucoIdListPropertyId,
-					[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outArucoIdList) 
-					{
-						auto markerObjectSystemConfig = getMarkerObjectSystemConfig();
-						if (markerObjectSystemConfig)
-						{
-							markerObjectSystemConfig->getArucoIdList(outArucoIdList);
-						}
-					});
+				markerObjectSystemConfig->getArucoIdList(outArucoIdList);
+			}
+		});
 
-				constructor.BindEventCallback(
-					"select_aruco_id_entry",
-					[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-						const int newArucoId = ev.GetParameter<int>("value", 0);
-						MarkerComponentPtr markerComponent = getMarkerComponent();
-						if (markerComponent)
-						{
-							markerComponent->getMarkerDefinition()->setArucoId(newArucoId);
-						}
-					});
-
-				return true;
-			});
+	constructor.BindEventCallback(
+		"select_aruco_id_entry",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			const int newArucoId = ev.GetParameter<int>("value", 0);
+			MarkerComponentPtr markerComponent = getMarkerComponent();
+			if (markerComponent)
+			{
+				markerComponent->getMarkerDefinition()->setArucoId(newArucoId);
+			}
+		});
 
 	return true;
 }
 
 bool RmlModel_MarkerComponent::setComponent(MikanComponentPtr component)
 {
-	if (RmlModel_MikanComponent::setComponent(component))
+	if (RmlModel_TypedMikanComponent<MarkerComponent>::setComponent(component))
 	{
 		m_arucoIdList->setOwnerConfig(getMarkerObjectSystemConfig());
 		m_arucoIdList->rebuildList(true);
