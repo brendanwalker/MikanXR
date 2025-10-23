@@ -25,6 +25,7 @@
 #include "StencilComponent.h"
 #include "StencilObjectSystem.h"
 #include "SceneObjectSystem.h"
+#include "SceneComponent.h"
 #include "TrackingVolumeObjectSystem.h"
 #include "TrackingVolumeComponent.h"
 #include "TrackingMountObjectSystem.h"
@@ -374,6 +375,21 @@ void RmlManager::registerCommonDataModelTypes()
 			if (stageComponent != nullptr)
 			{
 				variant = Rml::String(stageComponent->getName());
+				return true;
+			}
+			return false;
+		});
+
+	constructor.RegisterTransformFunc(
+		"to_scene_name",
+		[rmlManager](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
+			const MikanSceneID sceneId = variant.Get<int>(-1);
+
+			auto sceneObjectSystem = rmlGetSystemOfType<SceneObjectSystem>(rmlManager);
+			auto sceneComponent = sceneObjectSystem->getSceneById(sceneId);
+			if (sceneComponent != nullptr)
+			{
+				variant = Rml::String(sceneComponent->getName());
 				return true;
 			}
 			return false;

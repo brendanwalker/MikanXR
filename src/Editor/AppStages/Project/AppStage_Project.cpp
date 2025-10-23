@@ -9,7 +9,6 @@
 #include "Colors.h"
 #include "CompositorComponent.h"
 #include "CompositorObjectSystem.h"
-#include "CompositorScriptContext.h"
 #include "EditorObjectSystem.h"
 #include "Graphs/CompositorNodeGraph.h"
 #include "InputManager.h"
@@ -46,7 +45,6 @@
 #include "SceneComponent.h"
 #include "SdlCommon.h"
 #include "SdlUtility.h"
-#include "ScriptRequestHandler.h"
 #include "SharedTextureReader.h"
 #include "StencilObjectSystem.h"
 #include "SceneObjectSystem.h"
@@ -63,8 +61,6 @@
 #include <RmlUi/Core/Context.h>
 #include "RmlUI/Core/ElementDocument.h"
 #include "RmlUI/Core/Elements/ElementFormControlSelect.h"
-
-#include "tinyfiledialogs.h"
 
 #include <easy/profiler.h>
 
@@ -83,7 +79,6 @@ AppStage_Project::AppStage_Project(IEditorWindow* ownerWindow)
 	, m_projectTrackingModel(new RmlModel_ProjectTracking)
 	, m_projectMarkersModel(new RmlModel_ProjectMarkers)
 	, m_projectSettingsModel(new RmlModel_ProjectSettings)
-	, m_scriptContext(std::make_shared<CompositorScriptContext>())
 {
 }
 
@@ -99,7 +94,6 @@ AppStage_Project::~AppStage_Project()
 	delete m_projectTrackingModel;
 	delete m_projectMarkersModel;
 	delete m_projectSettingsModel;
-	m_scriptContext.reset();
 }
 
 void AppStage_Project::enter()
@@ -162,19 +156,6 @@ void AppStage_Project::enter()
 			MakeDelegate(this, &AppStage_Project::cyclePreviousCompositorCamera);
 		inputManager->fetchOrAddKeyBindings(SDLK_PERIOD)->OnKeyPressed +=
 			MakeDelegate(this, &AppStage_Project::cycleNextCompositorCamera);
-	}
-
-	// Register the script context with the mikan server
-	MikanServer::getInstance()->getScriptRequestHandler()->bindScriptContect(m_scriptContext);
-
-	// Load the compositor script
-	if (!m_project->compositorScriptFilePath.empty())
-	{
-		if (!m_scriptContext->loadScript(m_project->compositorScriptFilePath))
-		{
-			m_project->compositorScriptFilePath = "";
-			m_project->save();
-		}
 	}
 
 	// Create app stage UI models and views
@@ -257,9 +238,6 @@ void AppStage_Project::exit()
 	// Unregister all viewports from the editor
 	m_editorSystem.lock()->clearViewports();
 
-	// Unregister the script context with the mikan server
-	MikanServer::getInstance()->getScriptRequestHandler()->unbindScriptContect(m_scriptContext);
-
 	m_projectScenesModel->dispose();
 	m_projectStagesModel->dispose();
 	m_projectSourcesModel->dispose();
@@ -290,9 +268,6 @@ void AppStage_Project::update(float deltaSeconds)
 
 	// Update the camera pose for the currently active camera
 	updateCompositorCameras();
-
-	// tick the compositor lua script (if any is active)
-	m_scriptContext->updateScript();
 }
 
 // Scene

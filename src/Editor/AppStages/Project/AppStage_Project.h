@@ -9,7 +9,6 @@
 #include "MikanRendererFwd.h"
 #include "RmlFwd.h"
 #include "SceneFwd.h"
-#include "ScriptingFwd.h"
 
 #include <filesystem>
 #include <memory>
@@ -23,8 +22,6 @@ public:
 
 	AppStage_Project(class IEditorWindow* ownerWindow);
 	virtual ~AppStage_Project();
-
-	inline CompositorScriptContextPtr getCompositorScriptContext() { return m_scriptContext; }
 
 	virtual void enter() override;
 	virtual void exit() override;
@@ -95,8 +92,6 @@ protected:
 
 	class RmlModel_ProjectSettings* m_projectSettingsModel = nullptr;
 	Rml::ElementDocument* m_projectSettingsView = nullptr;
-
-	CompositorScriptContextPtr m_scriptContext;
 
 	MikanViewportPtr m_viewport;
 	std::vector<CompositorComponentWeakPtr> m_activeCompositors;

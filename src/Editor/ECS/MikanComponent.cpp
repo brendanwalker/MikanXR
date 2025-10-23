@@ -1,12 +1,16 @@
+#include "ComponentScriptContext.h"
 #include "ScriptAssetReference.h"
 #include "MikanComponent.h"
 #include "MikanObject.h"
 #include "MikanObjectSystem.h"
+#include "MikanServer.h"
 #include "ObjectSystemManager.h"
+#include "ScriptRequestHandler.h"
 
 #include "RmlUi/Core/Variant.h"
 #include "RmlUi/Config/Config.h"
 
+#include "tinyfiledialogs.h"
 
 // -- MikanComponentConfig -----
 const std::string MikanComponentDefinition::k_componentIdPropertyId = "component_id";
@@ -16,7 +20,7 @@ const std::string MikanComponentDefinition::k_componentScriptPathPropertyId= "co
 MikanComponentDefinition::MikanComponentDefinition()
 	: m_componentId(-1)
 	, m_componentName()
-	, m_componentScriptAssetRefConfig(std::make_shared<AssetReferenceConfig>("ComponentScript"))
+	, m_componentScriptAssetRefConfig(ScriptAssetReferenceFactory().allocateAssetReferenceConfig())
 {
 
 }
@@ -26,7 +30,7 @@ MikanComponentDefinition::MikanComponentDefinition(
 	const std::string& componentName)
 	: m_componentId(componentId)
 	, m_componentName(componentName)
-	, m_componentScriptAssetRefConfig(std::make_shared<AssetReferenceConfig>("ComponentScript"))
+	, m_componentScriptAssetRefConfig(ScriptAssetReferenceFactory().allocateAssetReferenceConfig())
 {
 }
 
@@ -71,7 +75,7 @@ bool MikanComponentDefinition::hasComponentScriptPath() const
 	return !m_componentScriptAssetRefConfig->assetPath.empty(); 
 }
 
-const std::filesystem::path MikanComponentDefinition::getComponentScriptPath() const 
+std::filesystem::path MikanComponentDefinition::getComponentScriptPath() const 
 { 
 	return m_componentScriptAssetRefConfig->assetPath; 
 }
@@ -89,6 +93,7 @@ void MikanComponentDefinition::setComponentScriptPath(const std::filesystem::pat
 // -- MikanComponent -----
 MikanComponent::MikanComponent(MikanObjectWeakPtr owner)
 	: m_ownerObject(owner)
+	, m_scriptAssetRef(ScriptAssetReferenceFactory().allocateAssetReference())
 {
 }
 
@@ -118,6 +123,18 @@ void MikanComponent::init()
 
 	if (m_definition)
 	{
+		// If the component definition has a script path, copy it to the script asset ref
+		const std::filesystem::path scriptPath= m_definition->getComponentScriptPath();
+		if (!scriptPath.empty())
+		{
+			// Copy the script path from the definition to the script asset ref
+			m_scriptAssetRef->setAssetPath(scriptPath);
+
+			// Initialize the script context
+			initScriptContext();
+		}
+
+		// Listen for definition changes
 		m_definition->OnMarkedDirty += MakeDelegate(this, &MikanComponent::onDefinitionMarkedDirty);
 	}
 }
@@ -165,6 +182,14 @@ void MikanComponent::onDefinitionMarkedDirty(
 	CommonConfigPtr configPtr, 
 	const ConfigPropertyChangeSet& changedPropertySet)
 {
+	if (changedPropertySet.hasPropertyName(MikanComponentDefinition::k_componentScriptPathPropertyId))
+	{
+		// Copy the script path, if any, from the definition to the script asset ref
+		m_scriptAssetRef->setAssetPath(m_definition->getComponentScriptPath());
+
+		// (Re)Initialize the script context
+		initScriptContext();
+	}
 }
 
 IMkWindow* MikanComponent::getOwnerWindow() const
@@ -189,6 +214,90 @@ void MikanComponent::setName(const std::string& name)
 ObjectSystemManager* MikanComponent::getOwnerObjectSystemManager() const
 {
 	return getOwnerObject()->getOwnerSystem()->getOwnerObjectSystemManager();
+}
+
+// -- Scripting ----
+void MikanComponent::reloadComponentScript()
+{
+	if (m_scriptContext)
+	{
+		m_scriptContext->reloadScript();
+	}
+}
+
+void MikanComponent::addNewComponentScript()
+{
+	ScriptAssetReferenceFactory assetRefFactory;
+	std::filesystem::path newAssetPath =
+		tinyfd_openFileDialog(
+			assetRefFactory.getFileDialogTitle(),
+			assetRefFactory.getDefaultPath(),
+			assetRefFactory.getFilterPatternCount(),
+			assetRefFactory.getFilterPatterns(),
+			assetRefFactory.getFilterDescription(),
+			1);
+
+	if (m_scriptAssetRef->getAssetPath() != newAssetPath)
+	{
+		// Set the new script path in the component definition
+		// This will trigger the script context to be initialized via the definition dirty event
+		getDefinition()->setComponentScriptPath(newAssetPath);
+	}
+}
+
+void MikanComponent::removeComponentScript()
+{
+	disposeScriptContext();
+
+	getDefinition()->setComponentScriptPath(std::filesystem::path());
+}
+
+void MikanComponent::initScriptContext()
+{
+	disposeScriptContext();
+
+	// Get the script path from the component definition
+	std::filesystem::path scriptPath= m_scriptAssetRef->getAssetPath();
+	if (scriptPath.empty())
+		return;
+
+	// Create and load the script context
+	m_scriptContext = std::make_shared<ComponentScriptContext>();
+	if (m_scriptContext->loadScript(scriptPath))
+	{
+		// Failed to load script
+		m_scriptContext = nullptr;
+		return;
+	}
+
+	// Register the script context with the mikan server
+	MikanServer::getInstance()->getScriptRequestHandler()->bindScriptContect(m_scriptContext);
+
+	// Register update callback for script context
+	getOwnerObject()->getOwnerSystem()->onUpdate += MakeDelegate(this, &MikanComponent::updateScriptContext);
+}
+
+void MikanComponent::updateScriptContext(float deltaSeconds)
+{
+	if (m_scriptContext)
+	{
+		m_scriptContext->updateScript(deltaSeconds);
+	}
+}
+
+void MikanComponent::disposeScriptContext()
+{
+	if (!m_scriptContext)
+		return;
+
+	// Unregister update callback for script context
+	getOwnerObject()->getOwnerSystem()->onUpdate -= MakeDelegate(this, &MikanComponent::updateScriptContext);
+
+	// Unregister the script context with the mikan server
+	MikanServer::getInstance()->getScriptRequestHandler()->unbindScriptContect(m_scriptContext);
+
+	// Clean up the script context
+	m_scriptContext = nullptr;
 }
 
 // -- IRmlPropertyInterface ----

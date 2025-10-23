@@ -43,6 +43,10 @@ private:
 	SceneComponentPtr getSelectedSceneComponent();
 	CompositorComponentPtr getSelectedCompositorComponent();
 
+	void selectStageEntry(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void selectSceneEntry(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void addNewScene(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void removeScene(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void addNewAnchor(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void removeAnchor(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void addNewQuad(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);

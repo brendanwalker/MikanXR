@@ -14,6 +14,9 @@ RmlModel_StageComponent::RmlModel_StageComponent()
 
 bool RmlModel_StageComponent::onConstruct(Rml::DataModelConstructor& constructor)
 {
+	if (!RmlModel_TypedMikanComponent<StageComponent>::onConstruct(constructor))
+		return false;
+
 	// Build the list of all tracking volume IDs from the TrackingVolumeObjectSystem
 	m_trackingVolumeIdList->init(
 		constructor,

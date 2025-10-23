@@ -34,7 +34,7 @@ public:
 	static const std::string k_sceneListPropertyId;
 	SceneComponentDefinitionPtr getSceneConfig(MikanSceneID sceneId) const;
 	SceneComponentDefinitionPtr getSceneConfigByName(const std::string& sceneName) const;
-	MikanSpatialAnchorID addNewScene(const std::string& sceneName, MikanStageID parentStageId);
+	MikanSpatialAnchorID addNewScene(MikanStageID parentStageId);
 	bool removeScene(MikanSceneID sceneId);
 	const std::vector<SceneComponentDefinitionPtr>& getSceneList() const { return m_sceneList; }
 
@@ -65,7 +65,7 @@ public:
 	const SceneMap& getSceneMap() const { return m_sceneComponents; }
 	SceneComponentPtr getSceneById(MikanSceneID sceneId) const;
 	SceneComponentPtr getSceneByName(const std::string& sceneName) const;
-	SceneComponentPtr addNewScene(const std::string& sceneName, MikanStageID parentStageId);
+	SceneComponentPtr addNewScene(MikanStageID parentStageId);
 	bool removeScene(MikanSceneID sceneId);
 
 	MulticastDelegate<void(SceneComponentPtr oldScene)> OnSceneDeactivated;

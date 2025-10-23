@@ -16,6 +16,9 @@ RmlModel_USBVideoSourceComponent::RmlModel_USBVideoSourceComponent()
 
 bool RmlModel_USBVideoSourceComponent::onConstruct(Rml::DataModelConstructor& constructor)
 {
+	if (!RmlModel_TypedMikanComponent<USBVideoSourceComponent>::onConstruct(constructor))
+		return false;
+
 	// Build the list of all usb device paths from the USBVideoSourceSystem
 	m_usbDevicePathList->init(
 		constructor,

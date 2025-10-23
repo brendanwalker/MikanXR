@@ -18,7 +18,7 @@ public:
 	bool loadScript(const std::filesystem::path& scriptPath);
 	bool reloadScript();
 	void disposeScriptState();
-	void updateScript();
+	void updateScript(float deltaSeconds);
 	inline bool hasScriptFilename() const { return !m_scriptFilename.empty(); }
 	inline bool hasLoadedScript() const { return m_luaState != nullptr; }
 

@@ -3,11 +3,11 @@
 #include "CommonScriptContext.h"
 
 //-- definitions -----
-class CompositorScriptContext : public CommonScriptContext
+class ComponentScriptContext : public CommonScriptContext
 {
 public:
-	CompositorScriptContext();
-	virtual ~CompositorScriptContext();
+	ComponentScriptContext();
+	virtual ~ComponentScriptContext();
 
 protected:
 	virtual bool bindContextFunctions() override;

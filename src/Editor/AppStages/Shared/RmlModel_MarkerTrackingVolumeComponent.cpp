@@ -16,6 +16,9 @@ RmlModel_MarkerTrackingVolumeComponent::RmlModel_MarkerTrackingVolumeComponent()
 
 bool RmlModel_MarkerTrackingVolumeComponent::onConstruct(Rml::DataModelConstructor& constructor)
 {
+	if (!RmlModel_TypedMikanComponent<MarkerTrackingVolumeComponent>::onConstruct(constructor))
+		return false;
+
 	// Build the list of all marker component IDs from the MarkerObjectSystem
 	m_markerComponentIdList->init(
 		constructor,

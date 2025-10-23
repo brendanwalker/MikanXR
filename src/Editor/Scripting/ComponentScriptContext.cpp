@@ -1,19 +1,19 @@
-#include "CompositorScriptContext.h"
+#include "ComponentScriptContext.h"
 #include "LuaMath.h"
 #include "LuaStencil.h"
 
-CompositorScriptContext::CompositorScriptContext()
+ComponentScriptContext::ComponentScriptContext()
 	: CommonScriptContext()
 {
 
 }
 
-CompositorScriptContext::~CompositorScriptContext()
+ComponentScriptContext::~ComponentScriptContext()
 {
 
 }
 
-bool CompositorScriptContext::bindContextFunctions()
+bool ComponentScriptContext::bindContextFunctions()
 {
 	if (!CommonScriptContext::bindContextFunctions())
 		return false;
@@ -23,7 +23,7 @@ bool CompositorScriptContext::bindContextFunctions()
 	return true;
 }
 
-void CompositorScriptContext::bindStencilFunctions()
+void ComponentScriptContext::bindStencilFunctions()
 {
 	LuaQuadStencilList::bindFunctions(m_luaState);
 	LuaBoxStencilList::bindFunctions(m_luaState);

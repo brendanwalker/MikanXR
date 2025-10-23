@@ -14,6 +14,9 @@ RmlModel_StencilComponent::RmlModel_StencilComponent()
 
 bool RmlModel_StencilComponent::onConstruct(Rml::DataModelConstructor& constructor)
 {
+	if (!RmlModel_TypedMikanComponent<StencilComponent>::onConstruct(constructor))
+		return false;
+
 	// Build the list of all stencil component IDs by collecting from stencil systems
 	m_stencilComponentIdList->init(
 		constructor,

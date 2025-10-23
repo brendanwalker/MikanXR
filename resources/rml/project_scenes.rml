@@ -4,6 +4,69 @@
 	<link type="text/rcss" href="rml.rcss"/>
 	<link type="text/rcss" href="mikan.rcss"/>
 </head>
+<body template="window">
+	<panel>
+		<div class="title-bar">
+			<span class="title">Scenes</span>
+		</div>
+
+		<div class="content">
+			<!-- Stages Section -->
+			<div data-model="Stages">
+				<h3>Stages</h3>
+				<select id="select" name="select_stage_id" data-value="selected_stage_id" data-event-change="select_stage_entry()">
+					<option data-for="stage_id : stage_ids" data-value="stage_id">{{stage_id | to_stage_name}}</option>
+				</select>				
+			</div>
+			
+			<!-- Scene Section -->
+			<div data-model="Scenes">
+				<h3>Scene</h3>
+				<select id="select" name="select_scene_id" data-value="selected_scene_id" data-event-change="select_scene_entry()">
+					<option data-for="scene_id : scene_ids" data-value="scene_id">{{scene_id | to_scene_name}}</option>
+				</select>			
+				<createcomponent data-event-click="add_new_scene"></createcomponent>
+				<deletecomponent data-event-click="remove_scene"></deletecomponent>
+			</div>
+			<div data-if="component_id != -1" data-model="SceneComponent">
+				<table>
+					<thead>
+						<tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
+					</thead>
+					<tbody>
+	                    <tr class="property_tr">
+							<td>
+								Name&nbsp;
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<filename>{{component_script | to_short_path(30)}}</filename>
+								<editcomponent data-event-click="reload_script()"></editcomponent>
+								<createcomponent data-event-click="add_new_script()"></createcomponent>
+								<deletecomponent data-event-click="remove_script()"></deletecomponent>						
+							</td>
+						</tr>						
+					</tbody>
+				</table>
+				<br/>
+				<div data-for="script_trigger : script_triggers">
+                	<button data-event-click="invoke_script_trigger(script_trigger)">{{script_trigger}}</button>
+            	</div>				
+			</div>		
+
+			<!-- Compositors Section-->
+			<div data-model="Scenes">
+				<h3>Compositors</h3>
+				<select id="select" name="select_compositor_id" data-value="selected_compositor_id" data-event-change="select_compositor_entry()">
+					<option data-for="compositor_id : compositor_ids" data-value="compositor_id">{{compositor_id | to_compositor_name}}</option>
+				</select>			
+				<createcomponent data-event-click="add_new_compositor_ref"></createcomponent>				
+				<deletecomponent data-event-click="remove_compositor_ref"></deletecomponent>
+			</div>
+	</panel>
+</body>
 <body data-model="project_scenes">
 	<div class="window">
 		<div class="title-bar">

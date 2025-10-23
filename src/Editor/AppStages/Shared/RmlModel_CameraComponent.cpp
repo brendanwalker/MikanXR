@@ -16,6 +16,9 @@ RmlModel_CameraComponent::RmlModel_CameraComponent()
 
 bool RmlModel_CameraComponent::onConstruct(Rml::DataModelConstructor& constructor)
 {
+	if (!RmlModel_TypedMikanComponent<CameraComponent>::onConstruct(constructor))
+		return false;
+
 	// Build the list of tracking mount IDs from the associated VRTrackingVolumeDefinition
 	m_trackingMountIdList->init(
 		constructor,

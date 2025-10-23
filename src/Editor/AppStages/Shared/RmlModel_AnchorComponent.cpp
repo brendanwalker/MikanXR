@@ -15,6 +15,9 @@ RmlModel_AnchorComponent::RmlModel_AnchorComponent()
 
 bool RmlModel_AnchorComponent::onConstruct(Rml::DataModelConstructor& constructor)
 {
+	if (!RmlModel_TypedMikanComponent<AnchorComponent>::onConstruct(constructor))
+		return false;
+
 	// Build the list of all anchor component IDs by collecting from the anchor systems
 	m_stencilComponentIdList->init(
 		constructor,

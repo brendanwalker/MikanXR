@@ -16,6 +16,9 @@ RmlModel_TrackingMountComponent::RmlModel_TrackingMountComponent()
 
 bool RmlModel_TrackingMountComponent::onConstruct(Rml::DataModelConstructor& constructor)
 {
+	if (!RmlModel_TypedMikanComponent<TrackingMountComponent>::onConstruct(constructor))
+		return false;
+
 	// Build the list of all VR device paths from the VRObjectSystem
 	m_vrDevicePathList->init(
 		constructor,

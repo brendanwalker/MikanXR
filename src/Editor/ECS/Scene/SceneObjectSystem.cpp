@@ -90,9 +90,9 @@ SceneComponentDefinitionPtr SceneObjectSystemConfig::getSceneConfigByName(const 
 }
 
 MikanSpatialAnchorID SceneObjectSystemConfig::addNewScene(
-	const std::string& sceneName,
 	MikanStageID parentStageId)
 {
+	const std::string sceneName= "Scene_" + std::to_string(m_nextSceneId);
 	auto sceneDefinitionPtr = 
 		std::make_shared<SceneComponentDefinition>(
 			m_nextSceneId, parentStageId, sceneName);
@@ -243,12 +243,11 @@ SceneComponentPtr SceneObjectSystem::getSceneByName(const std::string& sceneName
 }
 
 SceneComponentPtr SceneObjectSystem::addNewScene(
-	const std::string& sceneName, 
 	MikanStageID parentStageId)
 {
 	SceneObjectSystemConfigPtr sceneSystemConfig = getSceneSystemConfig();
 
-	MikanSceneID sceneId = sceneSystemConfig->addNewScene(sceneName, parentStageId);
+	MikanSceneID sceneId = sceneSystemConfig->addNewScene(parentStageId);
 	if (sceneId != INVALID_MIKAN_ID)
 	{
 		SceneComponentDefinitionPtr sceneConfig = sceneSystemConfig->getSceneConfig(sceneId);

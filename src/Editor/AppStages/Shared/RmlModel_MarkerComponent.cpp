@@ -15,6 +15,9 @@ RmlModel_MarkerComponent::RmlModel_MarkerComponent()
 
 bool RmlModel_MarkerComponent::onConstruct(Rml::DataModelConstructor& constructor)
 {
+	if (!RmlModel_TypedMikanComponent<MarkerComponent>::onConstruct(constructor))
+		return false;
+
 	// Build the list of all aruco IDs by collecting from the marker system config
 	m_arucoIdList->init(
 		constructor,

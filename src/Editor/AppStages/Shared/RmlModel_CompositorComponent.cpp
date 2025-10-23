@@ -16,6 +16,9 @@ RmlModel_CompositorComponent::RmlModel_CompositorComponent()
 
 bool RmlModel_CompositorComponent::onConstruct(Rml::DataModelConstructor& constructor)
 {
+	if (!RmlModel_TypedMikanComponent<CompositorComponent>::onConstruct(constructor))
+		return false;
+
 	// Build the list of all camera IDs from the CameraObjectSystem
 	m_cameraIdList->init(
 		constructor,

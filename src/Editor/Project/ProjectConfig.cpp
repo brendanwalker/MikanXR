@@ -23,8 +23,6 @@ const std::string ProjectConfig::k_renderOriginFlagPropertyId= "renderOrigin";
 
 ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	: CommonConfig(fnamebase)
-	// Compositor
-	, compositorScriptFilePath("")
 {
 	editorConfig = std::make_shared<EditorObjectSystemConfig>("editor");
 	addChildConfig(editorConfig);
@@ -67,8 +65,6 @@ configuru::Config ProjectConfig::writeToJSON()
 {
 	configuru::Config pt= CommonConfig::writeToJSON();
 
-	// Compositor
-	pt["compositorScript"]= compositorScriptFilePath.string();
 	// Renderer Flags
 	pt[k_renderOriginFlagPropertyId]= m_bRenderOrigin;
 
@@ -189,9 +185,6 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 	{
 		vrObjectConfig->readFromJSON(pt[vrObjectConfig->getConfigName()]);
 	}
-
-	// Compositor
-	compositorScriptFilePath = pt.get_or<std::string>("compositorScript", compositorScriptFilePath.string());
 }
 
 

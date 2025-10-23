@@ -129,7 +129,7 @@ bool CommonScriptContext::reloadScript()
 	return false;
 }
 
-void CommonScriptContext::updateScript()
+void CommonScriptContext::updateScript(float deltaSeconds)
 {
 	EASY_FUNCTION();
 

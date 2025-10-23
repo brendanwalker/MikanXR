@@ -17,12 +17,9 @@ public:
 	virtual configuru::Config writeToJSON() override;
 	virtual void readFromJSON(const configuru::Config& pt) override;
 
-
 	static const std::string k_renderOriginFlagPropertyId;
 	inline bool getRenderOriginFlag() const { return m_bRenderOrigin; }
 	void setRenderOriginFlag(bool flag);
-
-	std::filesystem::path compositorScriptFilePath;
 
 	AnchorObjectSystemConfigPtr anchorConfig;
 	CameraObjectSystemConfigPtr cameraConfig;

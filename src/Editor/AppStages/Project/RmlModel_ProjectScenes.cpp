@@ -62,7 +62,7 @@ bool RmlModel_ProjectScenes::init(
 	m_stencilSystem= stencilSystemPtr;
 
 	// Create Datamodel
-	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "project_scenes");
+	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "Scenes");
 	if (!constructor)
 		return false;
 
@@ -151,6 +151,10 @@ bool RmlModel_ProjectScenes::init(
 	constructor.Bind("selected_compositor_id", &m_selectedCompositorId);
 
 	// Bind data model callbacks
+	constructor.BindEventCallback("select_stage_entry", &RmlModel_ProjectScenes::selectStageEntry, this);
+	constructor.BindEventCallback("select_scene_entry", &RmlModel_ProjectScenes::selectSceneEntry, this);
+	constructor.BindEventCallback("add_new_scene", &RmlModel_ProjectScenes::addNewScene, this);
+	constructor.BindEventCallback("remove_scene", &RmlModel_ProjectScenes::removeScene, this);
 	constructor.BindEventCallback("add_new_anchor",&RmlModel_ProjectScenes::addNewAnchor, this);
 	constructor.BindEventCallback("remove_anchor", &RmlModel_ProjectScenes::removeAnchor, this);
 	constructor.BindEventCallback("add_new_quad",&RmlModel_ProjectScenes::addNewQuad, this);
@@ -476,6 +480,49 @@ SceneComponentPtr RmlModel_ProjectScenes::getSelectedSceneComponent()
 CompositorComponentPtr RmlModel_ProjectScenes::getSelectedCompositorComponent()
 {
 	return m_compositorSystem.lock()->getCompositorById(m_selectedCompositorId);
+}
+
+void RmlModel_ProjectScenes::selectStageEntry(
+	Rml::DataModelHandle handle,
+	Rml::Event& ev,
+	const Rml::VariantList& parameters)
+{
+	const int newStageId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
+
+	setSelectedStageId(newStageId);
+}
+
+void RmlModel_ProjectScenes::selectSceneEntry(
+	Rml::DataModelHandle handle,
+	Rml::Event& ev,
+	const Rml::VariantList& parameters)
+{
+	const int newSceneId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
+
+	setSelectedSceneId(newSceneId);
+}
+
+void RmlModel_ProjectScenes::addNewScene(
+	Rml::DataModelHandle handle,
+	Rml::Event& /*ev*/,
+	const Rml::VariantList& parameters)
+{
+	if (m_selectedSceneId != INVALID_MIKAN_ID)
+	{
+		m_sceneSystem.lock()->addNewScene(m_selectedSceneId);
+	}
+}
+
+void RmlModel_ProjectScenes::removeScene(
+	Rml::DataModelHandle handle,
+	Rml::Event& /*ev*/,
+	const Rml::VariantList& parameters)
+{
+	if (parameters.empty())
+		return;
+
+	const int sceneId = parameters[0].Get<int>();
+	m_sceneSystem.lock()->removeScene(sceneId);
 }
 
 void RmlModel_ProjectScenes::addNewAnchor(

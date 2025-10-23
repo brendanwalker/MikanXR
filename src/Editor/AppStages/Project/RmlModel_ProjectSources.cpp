@@ -41,7 +41,7 @@ bool RmlModel_ProjectSources::init(
 	m_videoSourceSystem = videoSourceSystem;
 
 	// Create Datamodel
-	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "video_sources");
+	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "VideoSources");
 	if (!constructor)
 		return false;
 

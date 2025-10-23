@@ -10,6 +10,7 @@
 #include "ObjectSystemManager.h"
 #include "RmlFunctionInterface.h"
 #include "RmlPropertyInterface.h"
+#include "ScriptingFwd.h"
 
 #include <filesystem>
 #include <memory>
@@ -33,7 +34,7 @@ public:
 
 	static const std::string k_componentScriptPathPropertyId;
 	bool hasComponentScriptPath() const;
-	const std::filesystem::path getComponentScriptPath() const;
+	std::filesystem::path getComponentScriptPath() const;
 	void setComponentScriptPath(const std::filesystem::path& scriptPath);
 
 protected:
@@ -106,6 +107,12 @@ public:
 	// set m_bWantsCustomRender to true in constructor to make this function be called
 	virtual void customRender() {}
 
+	// -- Scripting ----
+	inline ComponentScriptContextPtr getScriptContext() { return m_scriptContext; }
+	void reloadComponentScript();
+	void addNewComponentScript();
+	void removeComponentScript();
+
 	// -- IRmlPropertyInterface ----
 	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, Rml::Variant& outValue) const override;
@@ -116,6 +123,9 @@ public:
 	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
 
 protected:
+	void initScriptContext();
+	void disposeScriptContext();
+	void updateScriptContext(float deltaSeconds);
 	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
 protected:
@@ -126,6 +136,8 @@ protected:
 	std::string m_name;
 	MikanObjectWeakPtr m_ownerObject;
 	MikanComponentDefinitionPtr m_definition;
+	AssetReferencePtr m_scriptAssetRef;
+	ComponentScriptContextPtr m_scriptContext;
 };
 
 template<class t_derived_type>

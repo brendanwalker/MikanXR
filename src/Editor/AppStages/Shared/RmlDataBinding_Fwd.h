@@ -8,6 +8,9 @@ template <typename t_element_type> class RmlDataBinding_List;
 using RmlDataBinding_ComponentIdList = RmlDataBinding_List<int>;
 using RmlDataBinding_ComponentIdListPtr = std::shared_ptr<RmlDataBinding_ComponentIdList>;
 
+using RmlDataBinding_ScriptTriggerList = RmlDataBinding_List<std::string>;
+using RmlDataBinding_ScriptTriggerListPtr = std::shared_ptr<RmlDataBinding_ScriptTriggerList>;
+
 using RmlDataBinding_ArucoIdList = RmlDataBinding_List<int>;
 using RmlDataBinding_ArucoIdListPtr = std::shared_ptr<RmlDataBinding_ArucoIdList>;
 
