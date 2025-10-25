@@ -67,7 +67,7 @@ bool ModalDialog_SelectCamera::init(
 	m_cancelCallback = cancelCallback;
 
 	// Create the view now that the model is safely initialized
-	m_selectCameraView = m_ownerAppStage->addRmlDocument("modal_confirm.rml", false);
+	m_selectCameraView = m_ownerAppStage->addRmlDocument("select_camera.rml", false);
 
 	return true;
 }
