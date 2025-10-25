@@ -68,7 +68,6 @@ private:
 
 	void setSelectedStageId(int stageId);
 	void setSelectedSceneId(int sceneId);
-	void setSelectedCompositorId(int compositorId);
 
 	void stageIdListChanged(bool bOwnerChanged);
 	void sceneIdListChanged(bool bOwnerChanged);
@@ -83,9 +82,7 @@ private:
 
 	RmlDataBinding_ComponentIdListPtr m_stageIdList;
 	RmlDataBinding_ComponentIdListPtr m_sceneIdList;
-	RmlDataBinding_ComponentIdListPtr m_compositorIdList;
 	RmlModel_AnchorComponentPtr m_selectedAnchorModel;
-	RmlModel_CompositorComponentPtr m_selectedCompositorModel;
 	RmlModel_StencilComponentPtr m_selectedBoxStencilModel;
 	RmlModel_StencilComponentPtr m_selectedModelStencilModel;
 	RmlModel_StencilComponentPtr m_selectedQuadStencilModel;
@@ -93,7 +90,6 @@ private:
 
 	int m_selectedStageId = -1; // MikanStageID
 	int m_selectedSceneId = -1; // MikanSceneID
-	int m_selectedCompositorId = -1; // MikanCompositorID
 	int m_selectedSceneObjectIndex = -1;
 	Rml::Vector<RmlModel_SceneObject> m_sceneOutliner;
 

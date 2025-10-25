@@ -1,6 +1,7 @@
 #include "CompositorObjectSystem.h"
 #include "CompositorComponent.h"
 #include "IMkSceneRenderable.h"
+#include "ModalSceneAddCompositor/ModalDialog_SceneAddCompositor.h"
 #include "MikanObject.h"
 #include "MkScene.h"
 #include "MathTypeConversion.h"
@@ -22,6 +23,7 @@
 // -- SceneComponentDefinition -----
 const std::string SceneComponentDefinition::k_parentStagePropertyId = "parent_stage_id";
 const std::string SceneComponentDefinition::k_compositorListPropertyId = "compositor_list";
+const std::string SceneComponentDefinition::k_displayCompositorIdPropertyId = "display_compositor_id";
 
 SceneComponentDefinition::SceneComponentDefinition()
 	: m_sceneId(INVALID_MIKAN_ID)
@@ -44,6 +46,7 @@ configuru::Config SceneComponentDefinition::writeToJSON()
 	pt["scene_id"] = m_sceneId;
 	pt[k_parentStagePropertyId] = m_parentStageId;
 	readStdValueVector(pt, "compositors", m_compositorIDs);
+	pt[k_displayCompositorIdPropertyId] = m_displayCompositorId;
 
 	return pt;
 }
@@ -55,6 +58,7 @@ void SceneComponentDefinition::readFromJSON(const configuru::Config& pt)
 	m_sceneId = pt.get<int>("scene_id");
 	m_parentStageId = pt.get_or<int>(k_parentStagePropertyId, INVALID_MIKAN_ID);
 	readStdValueVector(pt, "compositors", m_compositorIDs);
+	m_displayCompositorId = pt.get_or<int>(k_displayCompositorIdPropertyId, INVALID_MIKAN_ID);
 }
 
 void SceneComponentDefinition::setParentStageId(MikanStageID stageId)
@@ -81,8 +85,36 @@ void SceneComponentDefinition::removeCompositorID(MikanCompositorID compositorId
 	auto it = std::find(m_compositorIDs.begin(), m_compositorIDs.end(), compositorId);
 	if (it != m_compositorIDs.end())
 	{
+		ConfigPropertyChangeSet changeSet;
+
 		m_compositorIDs.erase(it);
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_compositorListPropertyId));
+		changeSet.addPropertyName(k_compositorListPropertyId);
+
+		// Update the display compositor ID if we are deleting the reference to the current one
+		if (compositorId == m_displayCompositorId)
+		{
+			if (!m_compositorIDs.empty())
+			{
+				m_displayCompositorId = m_compositorIDs[0];
+			}
+			else
+			{
+				m_displayCompositorId = INVALID_MIKAN_ID;
+			}
+
+			changeSet.addPropertyName(k_compositorListPropertyId);
+		}
+
+		markDirty(changeSet);
+	}
+}
+
+void SceneComponentDefinition::setDisplayCompositorId(MikanCompositorID compositorId)
+{
+	if (m_displayCompositorId != compositorId)
+	{
+		m_displayCompositorId = compositorId;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_displayCompositorIdPropertyId));
 	}
 }
 
@@ -103,16 +135,32 @@ void SceneComponent::setDefinition(MikanComponentDefinitionPtr definition)
 	attachTransformComponentToStage(currentParentId);
 }
 
+StageComponentPtr SceneComponent::getParentStage() const
+{
+	MikanStageID parentStageId= getSceneComponentDefinition()->getParentStageId();
+	if (parentStageId != INVALID_MIKAN_ID)
+	{
+		return getObjectSystemOfType<StageObjectSystem>()->getStageById(parentStageId);
+	}
+
+	return StageComponentPtr();
+}
+
+const std::vector<MikanCompositorID>& SceneComponent::getOutputCompositorIDs() const
+{
+	return getSceneComponentDefinition()->getCompositorIDs();
+}
+
 std::vector<CompositorComponentPtr> SceneComponent::getOutputCompositors() const
 {
 	std::vector<CompositorComponentPtr> outputCompositors;
 
-	const std::vector<MikanCompositorID>& compositorIDs =
-		getSceneComponentDefinition()->getCompositorIDs();
+	const std::vector<MikanCompositorID>& compositorIDs = getOutputCompositorIDs();
 	for (MikanCompositorID compositorId : compositorIDs)
 	{
-		CompositorComponentPtr compositor =
-			CompositorObjectSystem::getSystem()->getCompositorById(compositorId);
+		auto compositorSystem= getObjectSystemOfType<CompositorObjectSystem>();
+		CompositorComponentPtr compositor = compositorSystem->getCompositorById(compositorId);
+
 		if (compositor)
 		{
 			outputCompositors.push_back(compositor);
@@ -126,7 +174,8 @@ void SceneComponent::attachTransformComponentToStage(MikanStageID newParentId)
 {
 	if (newParentId != INVALID_MIKAN_ID)
 	{
-		StageComponentPtr stage = StageObjectSystem::getSystem()->getStageById(newParentId);
+		auto stageSystem = getObjectSystemOfType<StageObjectSystem>();
+		StageComponentPtr stage = stageSystem->getStageById(newParentId);
 
 		if (stage)
 		{
@@ -299,6 +348,8 @@ bool SceneComponent::setPropertyValueFromRml(
 
 // -- IRmlFunctionInterface ----
 const std::string SceneComponent::k_deleteSceneFunctionId = "delete_scene";
+const std::string SceneComponent::k_addCompositorRefFunctionId = "add_compositor_ref";
+const std::string SceneComponent::k_removeCompositorRefFunctionId = "remove_compositor_ref";
 
 void SceneComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
 {
@@ -307,6 +358,12 @@ void SceneComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptor
 	outDescriptors.push_back(
 		std::make_shared<RmlFunctionDescriptor>(
 			k_deleteSceneFunctionId, "Delete Scene"));
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_addCompositorRefFunctionId, "Add Compositor Reference"));
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_removeCompositorRefFunctionId, "Remove Compositor Reference"));
 }
 
 bool SceneComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
@@ -318,6 +375,16 @@ bool SceneComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functio
 		deleteScene();
 		return true;
 	}
+	else if (functionId == k_addCompositorRefFunctionId)
+	{
+		addCompositorRef();
+		return true;
+	}
+	else if (functionId == k_removeCompositorRefFunctionId)
+	{
+		removeCompositorRef();
+		return true;
+	}
 
 	return TransformComponent::invokeFunctionFromRml(functionDesc);
 }
@@ -325,4 +392,23 @@ bool SceneComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functio
 void SceneComponent::deleteScene()
 {
 	getOwnerObject()->deleteSelfConfig();
+}
+
+void SceneComponent::addCompositorRef()
+{
+	ModalDialog_SceneAddCompositor::selectNewCompositor(
+		getSelfPtr<SceneComponent>(),
+		[this](MikanCompositorID compositorId) {
+			getSceneComponentDefinition()->addCompositorID(compositorId);
+		});
+}
+
+void SceneComponent::removeCompositorRef()
+{
+	auto definition= getSceneComponentDefinition();
+	MikanCompositorID selectedCompositorId= definition->getDisplayCompositorId();
+	if (selectedCompositorId != INVALID_MIKAN_ID)
+	{
+		definition->removeCompositorID(selectedCompositorId);
+	}
 }

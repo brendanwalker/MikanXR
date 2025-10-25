@@ -42,28 +42,29 @@
 						</tr>
 						<tr class="property_tr">
 							<td>
+								Script&nbsp;
 								<filename>{{component_script | to_short_path(30)}}</filename>
 								<editcomponent data-event-click="reload_script()"></editcomponent>
 								<createcomponent data-event-click="add_new_script()"></createcomponent>
 								<deletecomponent data-event-click="remove_script()"></deletecomponent>						
 							</td>
-						</tr>						
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Compositor&nbsp;
+								<select id="select" name="select_compositor_id" data-value="display_compositor_id" data-event-change="select_compositor_entry()">
+									<option data-for="compositor_id : compositor_ids" data-value="compositor_id">{{compositor_id | to_compositor_name}}</option>
+								</select>	
+								<createcomponent data-event-click="add_compositor_ref()"></createcomponent>
+								<deletecomponent data-event-click="remove_compositor_ref()"></deletecomponent>						
+							</td>
+						</tr>												
 					</tbody>
 				</table>
 				<br/>
 				<div data-for="script_trigger : script_triggers">
                 	<button data-event-click="invoke_script_trigger(script_trigger)">{{script_trigger}}</button>
             	</div>				
-			</div>		
-
-			<!-- Compositors Section-->
-			<div data-model="Scenes">
-				<h3>Compositors</h3>
-				<select id="select" name="select_compositor_id" data-value="selected_compositor_id" data-event-change="select_compositor_entry()">
-					<option data-for="compositor_id : compositor_ids" data-value="compositor_id">{{compositor_id | to_compositor_name}}</option>
-				</select>			
-				<createcomponent data-event-click="add_new_compositor_ref"></createcomponent>				
-				<deletecomponent data-event-click="remove_compositor_ref"></deletecomponent>
 			</div>
 	</panel>
 </body>

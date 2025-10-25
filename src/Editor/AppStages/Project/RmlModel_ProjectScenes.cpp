@@ -35,9 +35,7 @@ bool RmlModel_ProjectScenes::s_bHasRegisteredTypes = false;
 RmlModel_ProjectScenes::RmlModel_ProjectScenes()
 	: m_stageIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 	, m_sceneIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
-	, m_compositorIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 	, m_selectedAnchorModel(std::make_shared<RmlModel_AnchorComponent>())
-	, m_selectedCompositorModel(std::make_shared<RmlModel_CompositorComponent>())
 	, m_selectedBoxStencilModel(std::make_shared<RmlModel_StencilComponent>())
 	, m_selectedModelStencilModel(std::make_shared<RmlModel_StencilComponent>())
 	, m_selectedQuadStencilModel(std::make_shared<RmlModel_StencilComponent>())
@@ -100,24 +98,6 @@ bool RmlModel_ProjectScenes::init(
 				}
 			}
 		});
-	m_compositorIdList->init(
-		constructor,
-		compositorSystemPtr->getCompositorSystemConfig(),
-		"compositor_ids",
-		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			if (ownerConfig)
-			{
-				auto sceneSystemConfig = std::static_pointer_cast<SceneObjectSystemConfig>(ownerConfig);
-
-				for (const SceneComponentDefinitionPtr sceneComponent : sceneSystemConfig->getSceneList())
-				{
-					if (sceneComponent->getParentStageId() == m_selectedStageId)
-					{
-						outComponentIdList.push_back((int)sceneComponent->getSceneId());
-					}
-				}
-			}
-		});
 
 	// One time data model types registration
 	if (!s_bHasRegisteredTypes)
@@ -137,7 +117,6 @@ bool RmlModel_ProjectScenes::init(
 
 	// Register Selected Object Models
 	m_selectedAnchorModel->init(rmlContext);
-	m_selectedCompositorModel->init(rmlContext);
 	m_selectedBoxStencilModel->init(rmlContext);
 	m_selectedModelStencilModel->init(rmlContext);
 	m_selectedQuadStencilModel->init(rmlContext);
@@ -148,7 +127,6 @@ bool RmlModel_ProjectScenes::init(
 	constructor.Bind("selected_scene_object_index", &m_selectedSceneObjectIndex);
 	constructor.Bind("selected_stage_id", &m_selectedStageId);
 	constructor.Bind("selected_scene_id", &m_selectedSceneId);
-	constructor.Bind("selected_compositor_id", &m_selectedCompositorId);
 
 	// Bind data model callbacks
 	constructor.BindEventCallback("select_stage_entry", &RmlModel_ProjectScenes::selectStageEntry, this);
@@ -194,7 +172,6 @@ bool RmlModel_ProjectScenes::init(
 	// Listen for stage/scene/compositor list changes
 	m_stageIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectScenes::stageIdListChanged);
 	m_sceneIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectScenes::sceneIdListChanged);
-	m_compositorIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectScenes::compositorIdListChanged);
 
 	return true;
 }
@@ -203,7 +180,6 @@ void RmlModel_ProjectScenes::dispose()
 {
 	m_stageIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectScenes::stageIdListChanged);
 	m_sceneIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectScenes::sceneIdListChanged);
-	m_compositorIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectScenes::compositorIdListChanged);
 
 	StencilObjectSystemPtr stencilSystem = m_stencilSystem.lock();
 	stencilSystem->getStencilSystemConfig()->OnMarkedDirty -=
@@ -398,8 +374,6 @@ void RmlModel_ProjectScenes::setSelectedSceneId(int sceneId)
 		m_selectedSceneId = sceneId;
 		m_modelHandle.DirtyVariable("selected_scene_id");
 
-		m_compositorIdList->rebuildList();
-
 		if (auto sceneComponent = getSelectedSceneComponent())
 		{
 			m_selectedSceneModel->setComponent(sceneComponent);
@@ -410,24 +384,6 @@ void RmlModel_ProjectScenes::setSelectedSceneId(int sceneId)
 		}
 
 		rebuildSceneComponentList();
-	}
-}
-
-void RmlModel_ProjectScenes::setSelectedCompositorId(int compositorId)
-{
-	if (compositorId != m_selectedCompositorId)
-	{
-		m_selectedCompositorId = compositorId;
-		m_modelHandle.DirtyVariable("selected_compositor_id");
-
-		if (auto compositorComponent = getSelectedCompositorComponent())
-		{
-			m_selectedCompositorModel->setComponent(compositorComponent);
-		}
-		else
-		{
-			m_selectedCompositorModel->setComponent(nullptr);
-		}
 	}
 }
 
@@ -455,18 +411,6 @@ void RmlModel_ProjectScenes::sceneIdListChanged(bool bOwnerChanged)
 	setSelectedSceneId(selectedSceneId);
 }
 
-void RmlModel_ProjectScenes::compositorIdListChanged(bool bOwnerChanged)
-{
-	MikanSceneID selectedCompositorId = INVALID_MIKAN_ID;
-	if (!m_compositorIdList->isEmpty() &&
-		!m_compositorIdList->contains(m_selectedCompositorId))
-	{
-		selectedCompositorId = m_compositorIdList->getFirstValue();
-	}
-
-	setSelectedCompositorId(selectedCompositorId);
-}
-
 StageComponentPtr RmlModel_ProjectScenes::getSelectedStageComponent()
 {
 	return m_stageSystem.lock()->getStageById(m_selectedStageId);
@@ -475,11 +419,6 @@ StageComponentPtr RmlModel_ProjectScenes::getSelectedStageComponent()
 SceneComponentPtr RmlModel_ProjectScenes::getSelectedSceneComponent()
 {
 	return m_sceneSystem.lock()->getSceneById(m_selectedSceneId);
-}
-
-CompositorComponentPtr RmlModel_ProjectScenes::getSelectedCompositorComponent()
-{
-	return m_compositorSystem.lock()->getCompositorById(m_selectedCompositorId);
 }
 
 void RmlModel_ProjectScenes::selectStageEntry(

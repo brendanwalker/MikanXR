@@ -678,18 +678,21 @@ void CompositorComponent::stop()
 	m_bIsRunning = false;
 }
 
+MikanStageID CompositorComponent::getOwnerStageId() const
+{
+	return getCompositorDefinition()->getOwnerStageId();
+}
+
 StageComponentPtr CompositorComponent::getOwnerStageComponent() const
 {
-	MikanStageID ownerStageId= getCompositorDefinition()->getOwnerStageId();
-
-	return StageObjectSystem::getSystem()->getStageById(ownerStageId);
+	return getObjectSystemOfType<StageObjectSystem>()->getStageById(getOwnerStageId());
 }
 
 CameraComponentPtr CompositorComponent::getCameraComponent() const
 {
 	MikanCameraID cameraId = getCompositorDefinition()->getCameraId();
 
-	return CameraObjectSystem::getSystem()->getCameraById(cameraId);
+	return getObjectSystemOfType<CameraObjectSystem>()->getCameraById(cameraId);
 }
 
 VideoSourceComponentPtr CompositorComponent::getVideoSourceComponent() const

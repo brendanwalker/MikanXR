@@ -53,6 +53,7 @@ public:
 	const CompositorMap& getCompositorMap() const { return m_compositorComponents; }
 	CompositorComponentPtr getCompositorById(MikanCompositorID compositorId) const;
 	CompositorComponentPtr getCompositorByName(const std::string& compositorName) const;
+	std::vector<MikanCompositorID> getCompositorIdListForStage(MikanStageID stageId) const;
 	CompositorComponentPtr addNewCompositor(MikanStageID ownerStageId);
 	bool removeCompositor(MikanCompositorID compositorId);
 

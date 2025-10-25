@@ -69,6 +69,7 @@ public:
 	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
 
 	// -- StageComponent ----
+	MikanStageID getStageId() const;
 	void setTrackingVolumeId(MikanTrackingVolumeID volumeId);
 	void alignStage();
 	void deleteStage();

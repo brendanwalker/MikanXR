@@ -97,6 +97,7 @@ public:
 	inline static const std::string k_componentClassName = "CompositorComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
+	MikanStageID getOwnerStageId() const;
 	StageComponentPtr getOwnerStageComponent() const;
 	VideoSourceComponentPtr getVideoSourceComponent() const;
 

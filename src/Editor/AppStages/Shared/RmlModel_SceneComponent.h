@@ -5,4 +5,15 @@
 
 class RmlModel_SceneComponent : public RmlModel_TypedMikanComponent<SceneComponent>
 {
+public:
+	RmlModel_SceneComponent();
+
+	virtual bool onConstruct(Rml::DataModelConstructor& constructor) override;
+	virtual bool setComponent(MikanComponentPtr component) override;
+
+protected:
+	SceneComponentPtr getSceneComponent() const;
+
+private:
+	RmlDataBinding_ComponentIdListPtr m_compositorIdList;
 };

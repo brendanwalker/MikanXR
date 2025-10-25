@@ -171,6 +171,23 @@ CompositorComponentPtr CompositorObjectSystem::getCompositorByName(const std::st
 	return CompositorComponentPtr();
 }
 
+std::vector<MikanCompositorID> CompositorObjectSystem::getCompositorIdListForStage(MikanStageID stageId) const
+{
+	std::vector<MikanCompositorID> compositorIdList;
+
+	for (auto it = m_compositorComponents.begin(); it != m_compositorComponents.end(); it++)
+	{
+		CompositorComponentPtr componentPtr = it->second.lock();
+
+		if (componentPtr && componentPtr->getOwnerStageId() == stageId)
+		{
+			compositorIdList.push_back(it->first);
+		}
+	}
+
+	return compositorIdList;
+}
+
 CompositorComponentPtr CompositorObjectSystem::addNewCompositor(
 	MikanStageID ownerStageId)
 {

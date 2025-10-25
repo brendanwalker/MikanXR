@@ -163,6 +163,11 @@ bool StageComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functio
 	return MikanComponent::invokeFunctionFromRml(functionDesc);
 }
 
+MikanStageID StageComponent::getStageId() const
+{
+	return getStageComponentDefinitionConst()->getStageId();
+}
+
 void StageComponent::setTrackingVolumeId(MikanTrackingVolumeID volumeId)
 {
 	getStageComponentDefinition()->setTrackingVolumeId(volumeId);

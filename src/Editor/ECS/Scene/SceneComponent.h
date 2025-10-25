@@ -32,10 +32,15 @@ public:
 	void addCompositorID(MikanCompositorID compositorId);
 	void removeCompositorID(MikanCompositorID compositorId);
 
+	static const std::string k_displayCompositorIdPropertyId;
+	MikanCompositorID getDisplayCompositorId() const { return m_displayCompositorId; }
+	void setDisplayCompositorId(MikanCompositorID compositorId);
+
 protected:
 	MikanSceneID m_sceneId = INVALID_MIKAN_ID;
 	MikanStageID m_parentStageId = INVALID_MIKAN_ID;
 	std::vector<MikanCompositorID> m_compositorIDs;
+	MikanCompositorID m_displayCompositorId = INVALID_MIKAN_ID;
 };
 
 class SceneComponent final : public TransformComponent
@@ -63,11 +68,15 @@ public:
 
 	// -- IRmlFunctionInterface ----
 	static const std::string k_deleteSceneFunctionId;
+	static const std::string k_addCompositorRefFunctionId;
+	static const std::string k_removeCompositorRefFunctionId;
 	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors);
 	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
 
 	// -- SceneComponent ----
 	inline MikanSceneID getSceneId() const { return getSceneComponentDefinition()->getSceneId(); }
+	StageComponentPtr getParentStage() const;
+	const std::vector<MikanCompositorID>& getOutputCompositorIDs() const;
 	std::vector<CompositorComponentPtr> getOutputCompositors() const;
 	void attachTransformComponentToStage(MikanStageID newParentId);
 	SelectionComponentPtr findClosestSelectionTarget(
@@ -77,10 +86,15 @@ public:
 	void activateScene();
 	void deactivateScene();
 	void renderEditorScene(MikanCameraConstPtr camera, class MkStateStack& MkStateStack) const;
-	void deleteScene();
+
 
 protected:
 	void onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
+
+	// IRmlFunctionInterface handlers
+	void deleteScene();
+	void addCompositorRef();
+	void removeCompositorRef();
 
 private:
 	// Scene Rendering
