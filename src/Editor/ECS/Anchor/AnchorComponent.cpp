@@ -12,16 +12,20 @@
 #include "ProjectConfig.h"
 #include "TransformComponent.h"
 #include "SelectionComponent.h"
+#include "StageObjectSystem.h"
 #include "MikanObject.h"
 #include "MikanSpatialAnchorTypes.h"
 #include "MathTypeConversion.h"
 #include "StringUtils.h"
 
 // -- AnchorConfig -----
+const std::string AnchorDefinition::k_ownerStageIdPropertyId = "stage_id";
+
 AnchorDefinition::AnchorDefinition()
 	: TransformComponentDefinition()
 {
 	m_anchorId = INVALID_MIKAN_ID;
+	m_stageId = INVALID_MIKAN_ID;
 }
 
 AnchorDefinition::AnchorDefinition(
@@ -38,6 +42,7 @@ configuru::Config AnchorDefinition::writeToJSON()
 	configuru::Config pt = TransformComponentDefinition::writeToJSON();
 
 	pt["id"] = m_anchorId;
+	pt[k_ownerStageIdPropertyId] = m_stageId;
 
 	return pt;
 }
@@ -50,6 +55,17 @@ void AnchorDefinition::readFromJSON(const configuru::Config& pt)
 	{
 		m_anchorId = pt.get<int>("id");
 		m_configName = StringUtils::stringify("Anchor_", m_anchorId);
+	}
+
+	m_stageId = pt.get_or<int>(k_ownerStageIdPropertyId, m_stageId);
+}
+
+void AnchorDefinition::setOwnerStageId(MikanStageID stageId)
+{
+	if (stageId != m_stageId)
+	{
+		m_stageId = stageId;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_ownerStageIdPropertyId));
 	}
 }
 
@@ -148,6 +164,13 @@ bool AnchorComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functi
 	return TransformComponent::invokeFunctionFromRml(functionDesc);
 }
 
+StageComponentConstPtr AnchorComponent::getOwnerStageComponent() const
+{
+	MikanStageID stageId = getAnchorDefinition()->getOwnerStageId();
+
+	return getObjectSystemOfType<StageObjectSystem>()->getStageById(stageId);
+}
+
 void AnchorComponent::extractAnchorInfoForClientAPI(MikanSpatialAnchorInfo& outAnchorInfo) const
 {
 	const std::string anchorName = getName();
@@ -174,6 +197,7 @@ void AnchorComponent::editAnchor()
 
 				AnchorTriangulatorInfo anchorInfo = {
 					definition->getAnchorId(),
+					definition->getOwnerStageId(),
 					definition->getRelativeTransform(),
 					definition->getComponentName()
 				};

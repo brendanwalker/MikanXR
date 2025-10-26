@@ -32,8 +32,8 @@ public:
 	bool canAddAnchor() const;
 	AnchorDefinitionPtr getSpatialAnchorConfig(MikanSpatialAnchorID anchorId) const;
 	AnchorDefinitionPtr getSpatialAnchorConfigByName(const std::string& anchorName) const;
-	MikanSpatialAnchorID addNewAnchor();
-	MikanSpatialAnchorID addNewAnchor(const std::string& anchorName, const struct MikanTransform& xform);
+	MikanSpatialAnchorID addNewAnchor(MikanSceneID ownerSceneId);
+	MikanSpatialAnchorID addNewAnchor(MikanSceneID ownerSceneId, const std::string& anchorName, const struct MikanTransform& xform);
 	bool removeAnchor(MikanSpatialAnchorID anchorId);
 
 	static const std::string k_anchorVRDevicePathPropertyId;
@@ -69,8 +69,8 @@ public:
 	AnchorComponentPtr getSpatialAnchorById(MikanSpatialAnchorID anchorId) const;
 	AnchorComponentPtr getSpatialAnchorByName(const std::string& anchorName) const;
 	bool getSpatialAnchorWorldTransform(MikanSpatialAnchorID anchorId, glm::mat4& outXform) const;
-	AnchorComponentPtr addNewAnchor();
-	AnchorComponentPtr addNewAnchor(const std::string& anchorName, const class GlmTransform& xform);
+	AnchorComponentPtr addNewAnchor(MikanStageID ownerStageId);
+	AnchorComponentPtr addNewAnchor(MikanStageID ownerStageId, const std::string& anchorName, const class GlmTransform& xform);
 	bool removeAnchor(MikanSpatialAnchorID anchorId);
 
 protected:

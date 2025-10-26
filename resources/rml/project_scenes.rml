@@ -34,19 +34,10 @@
 						<tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
 					</thead>
 					<tbody>
-	                    <tr class="property_tr">
+						<tr class="property_tr">
 							<td>
 								Name&nbsp;
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
-							</td>
-						</tr>
-						<tr class="property_tr">
-							<td>
-								Script&nbsp;
-								<filename>{{component_script | to_short_path(30)}}</filename>
-								<editcomponent data-event-click="reload_script()"></editcomponent>
-								<createcomponent data-event-click="add_new_script()"></createcomponent>
-								<deletecomponent data-event-click="remove_script()"></deletecomponent>						
 							</td>
 						</tr>
 						<tr class="property_tr">
@@ -59,144 +50,115 @@
 								<deletecomponent data-event-click="remove_compositor_ref()"></deletecomponent>						
 							</td>
 						</tr>												
+						<tr class="property_tr">
+							<td>
+								Script&nbsp;
+								<filename>{{component_script | to_short_path(30)}}</filename>
+								<editcomponent data-event-click="reload_script()"></editcomponent>
+								<createcomponent data-event-click="add_new_script()"></createcomponent>
+								<deletecomponent data-event-click="remove_script()"></deletecomponent>						
+							</td>
+						</tr>						
 					</tbody>
 				</table>
 				<br/>
 				<div data-for="script_trigger : script_triggers">
-                	<button data-event-click="invoke_script_trigger(script_trigger)">{{script_trigger}}</button>
-            	</div>				
+					<button data-event-click="invoke_script_trigger(script_trigger)">{{script_trigger}}</button>
+				</div>				
 			</div>
+
+			<!-- Scene Outliner -->
+			<panel id="scene_outliner" data-model="Stages">            
+				<h3>Actors</h3>
+				<div>
+					<button style="width: 80dp; height: 67dp; margin-right: -5dp;" data-event-click="add_new_anchor()"><img sprite="icon-anchor"/></button>
+					<button style="width: 80dp; height: 67dp; margin-right: -5dp;" data-event-click="add_new_quad()"><img sprite="icon-quad"/></button>
+					<button style="width: 80dp; height: 67dp; margin-right: -5dp;" data-event-click="add_new_box()"><img sprite="icon-box"/></button>
+					<button style="width: 80dp; height: 67dp; margin-right: -5dp;" data-event-click="add_new_model()"><img sprite="icon-model"/></button>
+				</div>
+				<table>
+					<thead>
+						<tr><td style="margin-left: 10dp; margin-right: 10dp;"></td></tr>
+					</thead>
+					<tbody>
+						<tr data-for="object : scene_objects">
+							<td>
+								<spacer data-style-width="25 * object.depth + 'dp'"/>
+								<label data-if="it_index != selection_index" data-event-click="select_object_entry(it_index)">{{ object.name }}</label>
+								<highlight_label data-if="it_index == selection_index">{{ object.name }}</highlight_label>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</panel>
+
+			<!-- Anchor Component Properties -->
+			<div data-if="anchor.component_id != -1" data-model="AnchorComponent">
+				<h5>Anchor</h5>
+				<table>
+					<thead>
+						<tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
+					</thead>
+					<tbody>
+						<tr class="property_tr">
+							<td>
+								Name&nbsp;
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
+								<deletecomponent data-event-click="delete_anchor"></deletecomponent>
+							</td>
+						</tr>
+						<tr class="property_tr">	
+							<td>
+								Position&nbsp;
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.x"/>
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.y"/>
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.z"/>                                
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Rotation&nbsp;
+								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.x"/>
+								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.y"/>
+								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.z"/>                                
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Scale&nbsp;
+                                <numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.x"/>
+                                <numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.y"/>
+                                <numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.z"/>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<button data-event-click="edit_anchor()">Align Anchor</button>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<!-- Box Stencil Component Properties -->
+			<div data-if="box_stencil.component_id != -1" data-model="StencilComponent">
+				<h5>Box Stencil</h5>
+				<!-- Box stencil specific properties will be handled by the component model -->
+			</div>
+
+			<!-- Model Stencil Component Properties -->
+			<div data-if="model_stencil.component_id != -1" data-model="StencilComponent">
+				<h5>Model Stencil</h5>
+				<!-- Model stencil specific properties will be handled by the component model -->
+			</div>
+
+			<!-- Quad Stencil Component Properties -->
+			<div data-if="quad_stencil.component_id != -1" data-model="StencilComponent">
+				<h5>Quad Stencil</h5>
+				<!-- Quad stencil specific properties will be handled by the component model -->
+			</div>	
+
+		</div>
 	</panel>
-</body>
-<body data-model="project_scenes">
-	<div class="window">
-		<div class="title-bar">
-			<span class="title">Scenes</span>
-		</div>
-
-		<div class="content">
-			<!-- Scene Objects Section -->
-			<div class="section">
-				<h3>Scene Objects</h3>
-
-				<!-- Add Object Buttons -->
-				<div class="button-group">
-					<button onclick="add_new_anchor">Add Anchor</button>
-					<button onclick="add_new_quad">Add Quad Stencil</button>
-					<button onclick="add_new_box">Add Box Stencil</button>
-					<button onclick="add_new_model">Add Model Stencil</button>
-				</div>
-
-				<!-- Scene Object Outliner -->
-				<div class="outliner-container">
-					<div data-for="project_scenes.scene_objects" class="outliner-item" onclick="select_object_entry({{ it_index }})">
-						<div class="outliner-indent" style="margin-left: {{ it.depth * 20 }}px;">
-							<span class="object-name">{{ it.name }}</span>
-						</div>
-					</div>
-				</div>
-
-				<!-- Selected Object Details -->
-				<div data-if="project_scenes.selected_scene_object_index != -1" class="details-panel">
-					<h4>Selected Object Properties</h4>
-
-					<!-- Anchor Component Properties -->
-					<div data-if="anchor.component_id != -1" data-model="AnchorComponent">
-						<h5>Anchor</h5>
-						<!-- Anchor specific properties will be handled by the component model -->
-					</div>
-
-					<!-- Compositor Component Properties -->
-					<div data-if="compositor.component_id != -1" data-model="CompositorComponent">
-						<h5>Compositor</h5>
-						<!-- Compositor specific properties will be handled by the component model -->
-					</div>
-
-					<!-- Box Stencil Component Properties -->
-					<div data-if="box_stencil.component_id != -1" data-model="StencilComponent">
-						<h5>Box Stencil</h5>
-						<!-- Box stencil specific properties will be handled by the component model -->
-					</div>
-
-					<!-- Model Stencil Component Properties -->
-					<div data-if="model_stencil.component_id != -1" data-model="StencilComponent">
-						<h5>Model Stencil</h5>
-						<!-- Model stencil specific properties will be handled by the component model -->
-					</div>
-
-					<!-- Quad Stencil Component Properties -->
-					<div data-if="quad_stencil.component_id != -1" data-model="StencilComponent">
-						<h5>Quad Stencil</h5>
-						<!-- Quad stencil specific properties will be handled by the component model -->
-					</div>
-
-					<!-- Scene Model Properties -->
-					<div data-if="scene_model.component_id != -1" data-model="SceneComponent">
-						<h5>Scene</h5>
-						<!-- Scene specific properties will be handled by the component model -->
-					</div>
-				</div>
-
-				<!-- Empty State -->
-				<div data-if="project_scenes.scene_objects.size == 0" class="empty-state">
-					<p>No objects in the scene. Add anchors or stencils to get started.</p>
-					<div class="empty-state-buttons">
-						<button onclick="add_new_anchor">Add First Anchor</button>
-						<button onclick="add_new_quad">Add First Stencil</button>
-					</div>
-				</div>
-			</div>
-
-			<!-- Scene Hierarchy Information -->
-			<div class="section">
-				<h3>Scene Information</h3>
-				<div class="info-grid">
-					<div class="info-item">
-						<span class="info-label">Stage ID:</span>
-						<span class="info-value">{{ project_scenes.selected_stage_id }}</span>
-					</div>
-					<div class="info-item">
-						<span class="info-label">Scene ID:</span>
-						<span class="info-value">{{ project_scenes.selected_scene_id }}</span>
-					</div>
-					<div class="info-item">
-						<span class="info-label">Compositor ID:</span>
-						<span class="info-value">{{ project_scenes.selected_compositor_id }}</span>
-					</div>
-					<div class="info-item">
-						<span class="info-label">Selected Object:</span>
-						<span class="info-value">
-							{{ project_scenes.selected_scene_object_index != -1 ?
-								project_scenes.scene_objects[project_scenes.selected_scene_object_index].name :
-								"None" }}
-						</span>
-					</div>
-					<div class="info-item">
-						<span class="info-label">Object Count:</span>
-						<span class="info-value">{{ project_scenes.scene_objects.size }}</span>
-					</div>
-				</div>
-			</div>
-
-			<!-- Object Types Information -->
-			<div class="section">
-				<h3>Object Types</h3>
-				<div class="info-grid">
-					<div class="info-item">
-						<strong>Anchor:</strong> Reference points for positioning other objects
-					</div>
-					<div class="info-item">
-						<strong>Quad Stencil:</strong> Rectangular masking/clipping geometry
-					</div>
-					<div class="info-item">
-						<strong>Box Stencil:</strong> 3D box masking/clipping geometry
-					</div>
-					<div class="info-item">
-						<strong>Model Stencil:</strong> Custom 3D model masking/clipping geometry
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
 </body>
 </rml>

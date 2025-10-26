@@ -469,7 +469,10 @@ void RmlModel_ProjectScenes::addNewAnchor(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	m_anchorSystem.lock()->addNewAnchor();
+	if (m_selectedSceneId != INVALID_MIKAN_ID)
+	{
+		m_anchorSystem.lock()->addNewAnchor(m_selectedSceneId);
+	}
 }
 
 void RmlModel_ProjectScenes::removeAnchor(

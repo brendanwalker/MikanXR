@@ -28,8 +28,13 @@ public:
 
 	MikanSpatialAnchorID getAnchorId() const { return m_anchorId; }
 
+	static const std::string k_ownerStageIdPropertyId;
+	inline MikanStageID getOwnerStageId() const { return m_stageId; }
+	void setOwnerStageId(MikanStageID stageId);
+
 private:
 	MikanSpatialAnchorID m_anchorId;
+	MikanStageID m_stageId;
 };
 
 class AnchorComponent : public TransformComponent
@@ -46,6 +51,7 @@ public:
 	{
 		return std::static_pointer_cast<AnchorDefinition>(m_definition);
 	}
+	StageComponentConstPtr getOwnerStageComponent() const;
 
 	void extractAnchorInfoForClientAPI(struct MikanSpatialAnchorInfo& outAnchorInfo) const;
 

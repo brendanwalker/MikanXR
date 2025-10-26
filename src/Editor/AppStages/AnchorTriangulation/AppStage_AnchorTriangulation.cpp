@@ -369,6 +369,7 @@ void AppStage_AnchorTriangulation::onOkEvent()
 				if (m_targetAnchor.anchorId == INVALID_MIKAN_ID)
 				{
 					getSystemOfType<AnchorObjectSystem>()->addNewAnchor(
+						m_targetAnchor.ownerStageId,
 						m_targetAnchor.anchorName, 
 						m_targetAnchor.worldTransform);
 				}

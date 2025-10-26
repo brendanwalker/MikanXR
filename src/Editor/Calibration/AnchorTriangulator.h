@@ -15,6 +15,7 @@ typedef int32_t MikanSpatialAnchorID;
 struct AnchorTriangulatorInfo
 {
 	MikanSpatialAnchorID anchorId;
+	MikanStageID ownerStageId;
 	GlmTransform worldTransform;
 	std::string anchorName;
 };

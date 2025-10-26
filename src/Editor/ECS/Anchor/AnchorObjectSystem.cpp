@@ -95,15 +95,16 @@ AnchorDefinitionPtr AnchorObjectSystemConfig::getSpatialAnchorConfigByName(const
 	return AnchorDefinitionPtr();
 }
 
-MikanSpatialAnchorID AnchorObjectSystemConfig::addNewAnchor()
+MikanSpatialAnchorID AnchorObjectSystemConfig::addNewAnchor(MikanSceneID ownerSceneId)
 {
 	const MikanTransform anchorXform = glm_transform_to_MikanTransform(glm::mat4(1.f));
 	const std::string newAnchorName = StringUtils::stringify("Anchor ", nextAnchorId);
 
-	return addNewAnchor(newAnchorName, anchorXform);
+	return addNewAnchor(ownerSceneId, newAnchorName, anchorXform);
 }
 
 MikanSpatialAnchorID AnchorObjectSystemConfig::addNewAnchor(
+	MikanSceneID ownerSceneId,
 	const std::string& anchorName, 
 	const MikanTransform& xform)
 {
@@ -224,11 +225,11 @@ bool AnchorObjectSystem::getSpatialAnchorWorldTransform(MikanSpatialAnchorID anc
 	return false;
 }
 
-AnchorComponentPtr AnchorObjectSystem::addNewAnchor()
+AnchorComponentPtr AnchorObjectSystem::addNewAnchor(MikanStageID ownerStageId)
 {
 	AnchorObjectSystemConfigPtr anchorSystemConfig = getAnchorSystemConfig();
 
-	MikanSpatialAnchorID anchorId= anchorSystemConfig->addNewAnchor();
+	MikanSpatialAnchorID anchorId= anchorSystemConfig->addNewAnchor(ownerStageId);
 	if (anchorId != INVALID_MIKAN_ID)
 	{		
 		AnchorDefinitionPtr anchorConfig= anchorSystemConfig->getSpatialAnchorConfig(anchorId);
@@ -241,12 +242,14 @@ AnchorComponentPtr AnchorObjectSystem::addNewAnchor()
 }
 
 AnchorComponentPtr AnchorObjectSystem::addNewAnchor(
+	MikanStageID ownerStageId,
 	const std::string& anchorName, 
 	const class GlmTransform& xform)
 {
 	AnchorObjectSystemConfigPtr anchorSystemConfig = getAnchorSystemConfig();
 
 	MikanSpatialAnchorID anchorId = anchorSystemConfig->addNewAnchor(
+		ownerStageId,
 		anchorName, 
 		glm_transform_to_MikanTransform(xform));
 	if (anchorId != INVALID_MIKAN_ID)

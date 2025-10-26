@@ -9,7 +9,7 @@
 #include "ObjectFwd.h"
 #include "SceneFwd.h"
 #include "Transform.h"
-#include  "VRDeviceComponent.h"
+#include "VRDeviceComponent.h"
 
 #include <memory>
 #include <string>

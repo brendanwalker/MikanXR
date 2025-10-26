@@ -41,7 +41,6 @@ public:
 private:
 	StageComponentPtr getSelectedStageComponent();
 	SceneComponentPtr getSelectedSceneComponent();
-	CompositorComponentPtr getSelectedCompositorComponent();
 
 	void selectStageEntry(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void selectSceneEntry(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
