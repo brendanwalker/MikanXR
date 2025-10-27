@@ -119,6 +119,9 @@ public:
 	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const Rml::Variant& inValue) override;
 
 	// -- IRmlFunctionInterface ----
+	static const std::string k_reloadScriptFunctionId;
+	static const std::string k_addNewScriptFunctionId;
+	static const std::string k_removeScriptFunctionId;
 	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors);
 	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
 

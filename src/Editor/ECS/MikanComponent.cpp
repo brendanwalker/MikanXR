@@ -367,11 +367,42 @@ bool MikanComponent::setPropertyValueFromRml(RmlPropertyDescriptorConstPtr prope
 }
 
 // -- IRmlFunctionInterface ----
+const std::string MikanComponent::k_reloadScriptFunctionId = "reload_script";
+const std::string MikanComponent::k_addNewScriptFunctionId = "add_new_script";
+const std::string MikanComponent::k_removeScriptFunctionId = "remove_script";
+
 void MikanComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
 {
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_reloadScriptFunctionId, "Reload Script"));
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_addNewScriptFunctionId, "Add New Script"));
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_removeScriptFunctionId, "Remove Script"));
 }
 
 bool MikanComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
 {
+	const std::string& functionName = functionDesc->getFunctionName();
+
+	if (functionName == MikanComponent::k_reloadScriptFunctionId)
+	{
+		reloadComponentScript();
+		return true;
+	}
+	else if (functionName == MikanComponent::k_addNewScriptFunctionId)
+	{
+		addNewComponentScript();
+		return true;
+	}
+	else if (functionName == MikanComponent::k_removeScriptFunctionId)
+	{
+		removeComponentScript();
+		return true;
+	}
+
 	return false;
 }

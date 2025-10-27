@@ -48,16 +48,6 @@ public:
 			});
 
 		constructor.BindEventCallback(
-			"reload_script",
-			[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-				getComponent()->reloadComponentScript();
-			});
-		constructor.BindEventCallback(
-			"add_new_script",
-			[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-				getComponent()->addNewComponentScript();
-			});
-		constructor.BindEventCallback(
 			"invoke_script_trigger",
 			[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
 				ComponentScriptContextPtr scriptContext = getComponent()->getScriptContext();
