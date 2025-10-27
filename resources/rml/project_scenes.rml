@@ -126,11 +126,19 @@
 						<tr class="property_tr">
 							<td>
 								Scale&nbsp;
-                                <numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.x"/>
-                                <numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.y"/>
-                                <numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.z"/>
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.x"/>
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.y"/>
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.z"/>
 							</td>
 						</tr>
+						<tr class="property_tr">
+							<td>
+								Cull Mode&nbsp;
+								<select id="select" name="cull_mode_list" data-value="cull_mode" data-event-change="select_cull_mode_entry()" style="width: 200dp; vertical-align: -12dp">
+									<option data-for="enum_value : stencil_cull_mode_values" data-value="enum_value">{{enum_value | to_enum_string('stencil_cull_mode')}}</option>
+								</select>
+							</td>
+						</tr>						
 						<tr class="property_tr">
 							<td>
 								<button data-event-click="edit_anchor()">Align Anchor</button>
@@ -143,21 +151,229 @@
 			<!-- Box Stencil Component Properties -->
 			<div data-if="box_stencil.component_id != -1" data-model="StencilComponent">
 				<h5>Box Stencil</h5>
-				<!-- Box stencil specific properties will be handled by the component model -->
+				<table>
+					<thead>
+						<tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
+					</thead>
+					<tbody>
+						<tr class="property_tr">
+							<td>
+								Name&nbsp;
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
+								<deletecomponent data-event-click="delete_anchor"></deletecomponent>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Anchor&nbsp;
+								<select id="select" name="select_anchor_id" data-value="parent_anchor_id" data-event-change="select_anchor_entry()">
+									<option data-for="anchor_id : anchor_ids" data-value="anchor_id">{{anchor_id | to_anchor_name}}</option>
+								</select>
+							</td>
+						</tr>						
+						<tr class="property_tr">	
+							<td>
+								Position&nbsp;
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.x"/>
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.y"/>
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.z"/>                                
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Rotation&nbsp;
+								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.x"/>
+								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.y"/>
+								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.z"/>                                
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Scale&nbsp;
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.x"/>
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.y"/>
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.z"/>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Box Size&nbsp;
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="box_x_size"/>
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="box_y_size"/>
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="box_z_size"/>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Cull Mode&nbsp;
+								<select id="select" name="cull_mode_list" data-value="cull_mode" data-event-change="select_cull_mode_entry()" style="width: 200dp; vertical-align: -12dp">
+									<option data-for="enum_value : stencil_cull_mode_values" data-value="enum_value">{{enum_value | to_enum_string('stencil_cull_mode')}}</option>
+								</select>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label><input type="checkbox" name="stencil_disable_flag" data-checked="is_disabled" />Disabled</label>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<button data-event-click="edit_anchor()">Align Anchor</button>
+							</td>
+						</tr>
+					</tbody>
+				</table>
 			</div>
 
 			<!-- Model Stencil Component Properties -->
 			<div data-if="model_stencil.component_id != -1" data-model="StencilComponent">
 				<h5>Model Stencil</h5>
-				<!-- Model stencil specific properties will be handled by the component model -->
+				<table>
+					<thead>
+						<tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
+					</thead>
+					<tbody>
+						<tr class="property_tr">
+							<td>
+								Name&nbsp;
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
+								<deletecomponent data-event-click="delete_anchor"></deletecomponent>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Anchor&nbsp;
+								<select id="select" name="select_anchor_id" data-value="parent_anchor_id" data-event-change="select_anchor_entry()">
+									<option data-for="anchor_id : anchor_ids" data-value="anchor_id">{{anchor_id | to_anchor_name}}</option>
+								</select>
+							</td>
+						</tr>						
+						<tr class="property_tr">	
+							<td>
+								Position&nbsp;
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.x"/>
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.y"/>
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.z"/>                                
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Rotation&nbsp;
+								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.x"/>
+								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.y"/>
+								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.z"/>                                
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Scale&nbsp;
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.x"/>
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.y"/>
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.z"/>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Model&nbsp;
+								<filename>{{model_path | to_short_path(30)}}</filename>
+								<createcomponent data-event-click="add_new_model()"></createcomponent>
+								<deletecomponent data-event-click="remove_model()"></deletecomponent>						
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Cull Mode&nbsp;
+								<select id="select" name="cull_mode_list" data-value="cull_mode" data-event-change="select_cull_mode_entry()" style="width: 200dp; vertical-align: -12dp">
+									<option data-for="enum_value : stencil_cull_mode_values" data-value="enum_value">{{enum_value | to_enum_string('stencil_cull_mode')}}</option>
+								</select>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label><input type="checkbox" name="stencil_disable_flag" data-checked="is_disabled" />Disabled</label>
+							</td>
+						</tr>		
+						<tr class="property_tr">
+							<td>
+								<button data-event-click="edit_anchor()">Align Anchor</button>
+							</td>
+						</tr>
+					</tbody>
+				</table>
 			</div>
 
 			<!-- Quad Stencil Component Properties -->
 			<div data-if="quad_stencil.component_id != -1" data-model="StencilComponent">
 				<h5>Quad Stencil</h5>
-				<!-- Quad stencil specific properties will be handled by the component model -->
+				<table>
+					<thead>
+						<tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
+					</thead>
+					<tbody>
+						<tr class="property_tr">
+							<td>
+								Name&nbsp;
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
+								<deletecomponent data-event-click="delete_anchor"></deletecomponent>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Anchor&nbsp;
+								<select id="select" name="select_anchor_id" data-value="parent_anchor_id" data-event-change="select_anchor_entry()">
+									<option data-for="anchor_id : anchor_ids" data-value="anchor_id">{{anchor_id | to_anchor_name}}</option>
+								</select>
+							</td>
+						</tr>						
+						<tr class="property_tr">	
+							<td>
+								Position&nbsp;
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.x"/>
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.y"/>
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.z"/>                                
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Rotation&nbsp;
+								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.x"/>
+								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.y"/>
+								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.z"/>                                
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Scale&nbsp;
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.x"/>
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.y"/>
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.z"/>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								Quad Size&nbsp;
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="quad_width"/>
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="quad_height"/>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label><input type="checkbox" name="stencil_disable_flag" data-checked="is_disabled" />Disabled</label>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label><input type="checkbox" name="stencil_double_sided_flag" data-checked="is_double_sided" />Double Sided</label>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<button data-event-click="edit_anchor()">Align Anchor</button>
+							</td>
+						</tr>
+					</tbody>
+				</table>
 			</div>	
-
 		</div>
 	</panel>
 </body>

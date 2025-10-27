@@ -27,6 +27,7 @@
 #include "MikanTextRenderer.h"
 #include "MikanObject.h"
 #include "MikanStencilTypes.h"
+#include "ModelAssetReference.h"
 #include "ModelStencilComponent.h"
 #include "MulticastDelegate.h"
 #include "StringUtils.h"
@@ -37,11 +38,14 @@
 
 #include <glm/gtx/matrix_decompose.hpp>
 
+#include "tinyfiledialogs.h"
+
 // -- ModelStencilConfig -----
 const std::string ModelStencilDefinition::k_modelStencilObjPathPropertyId = "model_path";
 
 ModelStencilDefinition::ModelStencilDefinition()
 	: StencilComponentDefinition()
+	, m_modelAssetRefConfig(ModelAssetReferenceFactory().allocateAssetReferenceConfig())
 {
 }
 
@@ -51,6 +55,7 @@ ModelStencilDefinition::ModelStencilDefinition(const MikanStencilModelInfo& mode
 		modelInfo.parent_anchor_id, 
 		modelInfo.stencil_name.getValue(), 
 		modelInfo.relative_transform)
+	, m_modelAssetRefConfig(ModelAssetReferenceFactory().allocateAssetReferenceConfig())
 {
 }
 
@@ -58,7 +63,10 @@ configuru::Config ModelStencilDefinition::writeToJSON()
 {
 	configuru::Config pt = StencilComponentDefinition::writeToJSON();
 
-	pt["model_path"] = m_modelPath.string();
+	if (m_modelAssetRefConfig)
+	{
+		pt[k_modelStencilObjPathPropertyId] = m_modelAssetRefConfig->writeToJSON();
+	}
 
 	return pt;
 }
@@ -67,14 +75,27 @@ void ModelStencilDefinition::readFromJSON(const configuru::Config& pt)
 {
 	StencilComponentDefinition::readFromJSON(pt);
 
-	m_modelPath = pt.get_or<std::string>("model_path", "");
+	if (pt.has_key(k_modelStencilObjPathPropertyId))
+	{
+		m_modelAssetRefConfig->readFromJSON(pt[k_modelStencilObjPathPropertyId]);
+	}
+}
+
+bool ModelStencilDefinition::hasModelPath() const
+{
+	return !m_modelAssetRefConfig->assetPath.empty();
+}
+
+const std::filesystem::path ModelStencilDefinition::getModelPath() const
+{
+	return m_modelAssetRefConfig->assetPath;
 }
 
 void ModelStencilDefinition::setModelPath(const std::filesystem::path& path, bool bForceDirty)
 {
-	if (path != m_modelPath || bForceDirty)
+	if (bForceDirty || path.string() != m_modelAssetRefConfig->assetPath)
 	{
-		m_modelPath = path;
+		m_modelAssetRefConfig->assetPath = path.string();
 		markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilObjPathPropertyId));
 	}
 }
@@ -97,6 +118,7 @@ MikanStencilModelInfo ModelStencilDefinition::getModelInfo() const
 // -- ModelStencilComponent -----
 ModelStencilComponent::ModelStencilComponent(MikanObjectWeakPtr owner)
 	: StencilComponent(owner)
+	, m_modelAssetRef(ModelAssetReferenceFactory().allocateAssetReference())
 {
 	m_bWantsCustomRender= true;
 }
@@ -105,9 +127,19 @@ void ModelStencilComponent::init()
 {
 	StencilComponent::init();
 
-	// Listen for stencil model path changes
-	getModelStencilDefinition()->OnMarkedDirty+=
-		MakeDelegate(this, &ModelStencilComponent::onStencilDefinitionMarkedDirty);
+	ModelStencilDefinitionPtr modelStencilDefinition = getModelStencilDefinition();
+	if (modelStencilDefinition)
+	{
+		// If the component definition has a model path, copy it to the model asset ref
+		const std::filesystem::path modelPath = modelStencilDefinition->getModelPath();
+		if (!modelPath.empty())
+		{
+			m_modelAssetRef->setAssetPath(modelPath);
+		}
+
+		// Listen for definition changes
+		m_definition->OnMarkedDirty += MakeDelegate(this, &ModelStencilComponent::onStencilDefinitionMarkedDirty);
+	}
 
 	// Create a selection component so that we can selection the mesh collision geometry
 	SelectionComponentPtr selectionComponentPtr = getOwnerObject()->getComponentOfType<SelectionComponent>();
@@ -218,6 +250,10 @@ void ModelStencilComponent::onStencilDefinitionMarkedDirty(
 	{
 		if (changedPropertySet.hasPropertyName(ModelStencilDefinition::k_modelStencilObjPathPropertyId))
 		{
+			// Copy the model path, if any, from the definition to the asset ref
+			m_modelAssetRef->setAssetPath(modelStencilConfig->getModelPath());
+
+			// (Re)Initialize the mesh components
 			rebuildMeshComponents();
 		}
 	}
@@ -442,12 +478,20 @@ bool ModelStencilComponent::setPropertyValueFromRml(
 }
 
 // -- IRmlFunctionInterface ----
+const std::string ModelStencilComponent::k_addNewModelFunctionId = "add_new_model";
+const std::string ModelStencilComponent::k_removeModelFunctionId = "remove_model";
 const std::string ModelStencilComponent::k_alignStencilFunctionId = "align_stencil";
 
 void ModelStencilComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
 {
 	StencilComponent::getRmlFunctionDescriptors(outDescriptors);
 
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_addNewModelFunctionId, "Add New Model"));
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_removeModelFunctionId, "Remove Model"));
 	outDescriptors.push_back(
 		std::make_shared<RmlFunctionDescriptor>(
 			k_alignStencilFunctionId, "Align Stencil"));
@@ -457,12 +501,44 @@ bool ModelStencilComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr 
 {
 	const std::string& functionName = functionDesc->getFunctionName();
 
-	if (functionName == ModelStencilComponent::k_alignStencilFunctionId)
+	if (functionName == ModelStencilComponent::k_addNewModelFunctionId)
+	{
+		addNewModel();
+	}
+	else if (functionName == ModelStencilComponent::k_removeModelFunctionId)
+	{
+		removeModel();
+	}
+	else if (functionName == ModelStencilComponent::k_alignStencilFunctionId)
 	{
 		alignStencil();
 	}
 
 	return StencilComponent::invokeFunctionFromRml(functionDesc);
+}
+
+void ModelStencilComponent::addNewModel()
+{
+	ModelAssetReferenceFactory assetRefFactory;
+	std::filesystem::path newAssetPath =
+		tinyfd_openFileDialog(
+			assetRefFactory.getFileDialogTitle(),
+			assetRefFactory.getDefaultPath(),
+			assetRefFactory.getFilterPatternCount(),
+			assetRefFactory.getFilterPatterns(),
+			assetRefFactory.getFilterDescription(),
+			1);
+
+	if (m_modelAssetRef->getAssetPath() != newAssetPath)
+	{
+		// This will trigger the model to be initialized via the definition dirty event
+		setModelPath(newAssetPath);
+	}
+}
+
+void ModelStencilComponent::removeModel()
+{
+	setModelPath(std::filesystem::path());
 }
 
 void ModelStencilComponent::alignStencil()

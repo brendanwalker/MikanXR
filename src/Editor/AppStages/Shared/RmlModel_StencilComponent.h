@@ -13,10 +13,11 @@ public:
 	virtual bool setComponent(MikanComponentPtr component) override;
 
 protected:
-	StencilObjectSystemPtr getStencilObjectSystem() const;
-	StencilObjectSystemConfigPtr getStencilObjectSystemConfig() const;
+	AnchorObjectSystemPtr getAnchorObjectSystem() const;
+	AnchorObjectSystemConfigPtr getAnchorObjectSystemConfig() const;
+	StencilComponentPtr getStencilComponent() const;
 
 private:
-	RmlDataBinding_ComponentIdListPtr m_stencilComponentIdList;
-	StencilObjectSystemWeakPtr m_stencilObjectSystem;
+	RmlDataBinding_ComponentIdListPtr m_anchorComponentIdList;
+	AnchorObjectSystemWeakPtr m_stencilObjectSystem;
 };

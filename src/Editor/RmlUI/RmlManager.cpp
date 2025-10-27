@@ -288,7 +288,7 @@ void RmlManager::registerCommonDataModelTypes()
 	// Enums
 	registerEnumDefinition<eStencilCullMode>(constructor, "stencil_cull_mode", k_stencilCullModeStrings);
 	registerEnumDefinition<eCompositorSourceType>(constructor, "compositor_source_type", k_compositorSourceTypeStrings);
-	registerEnumDefinition<eCharucoDictionaryType>(constructor, "marker_dictionary_type", k_charucoDictionaryStrings);
+	registerEnumDefinition<eCharucoDictionaryType>(constructor, "marker_dictionary", k_charucoDictionaryStrings);
 
 	// String arrays
 	constructor.RegisterArray<Rml::Vector<Rml::String>>();
@@ -326,10 +326,18 @@ void RmlManager::registerCommonDataModelTypes()
 			const MikanSpatialAnchorID anchorId = variant.Get<int>(-1);
 
 			auto anchorObjectSystem = rmlGetSystemOfType<AnchorObjectSystem>(rmlManager);
-			auto anchorComponent= anchorObjectSystem->getSpatialAnchorById(anchorId);
-			if (anchorComponent != nullptr)
+			if (anchorId != INVALID_MIKAN_ID)
 			{
-				variant = Rml::String(anchorComponent->getName());
+				auto anchorComponent = anchorObjectSystem->getSpatialAnchorById(anchorId);
+				if (anchorComponent != nullptr)
+				{
+					variant = Rml::String(anchorComponent->getName());
+					return true;
+				}
+			}
+			else
+			{
+				variant = Rml::String("<None>");
 				return true;
 			}
 			return false;

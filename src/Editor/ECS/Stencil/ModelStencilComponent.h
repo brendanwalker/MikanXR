@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AssetFwd.h"
 #include "ColliderQuery.h"
 #include "ComponentFwd.h"
 #include "MikanStencilTypes.h"
@@ -26,12 +27,12 @@ public:
 	MikanStencilModelInfo getModelInfo() const;
 
 	static const std::string k_modelStencilObjPathPropertyId;
-	const std::filesystem::path& getModelPath() const { return m_modelPath; }
+	bool hasModelPath() const;
+	const std::filesystem::path getModelPath() const;
 	void setModelPath(const std::filesystem::path& path, bool bForceDirty= false);
 
 private:
-	std::filesystem::path m_modelPath;
-	std::filesystem::path m_texturePath;
+	AssetReferenceConfigPtr m_modelAssetRefConfig;
 };
 
 class ModelStencilComponent : public StencilComponent
@@ -79,10 +80,14 @@ public:
 	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const Rml::Variant& inValue) override;
 
 	// -- IRmlFunctionInterface ----
+	static const std::string k_addNewModelFunctionId;
+	static const std::string k_removeModelFunctionId;
 	static const std::string k_alignStencilFunctionId;
 	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors);
 	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
 
+	void addNewModel();
+	void removeModel();
 	void alignStencil();
 
 protected:
@@ -90,6 +95,7 @@ protected:
 	void onStencilDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
 protected:
+	AssetReferencePtr m_modelAssetRef;
 	SelectionComponentWeakPtr m_selectionComponentWeakPtr;
 	std::vector<IMkStaticMeshInstancePtr> m_wireframeMeshes;
 	std::vector<TransformComponentPtr> m_meshComponents;
