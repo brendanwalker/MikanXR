@@ -6,10 +6,9 @@
 class ComponentScriptContext : public CommonScriptContext
 {
 public:
-	ComponentScriptContext();
-	virtual ~ComponentScriptContext();
+	ComponentScriptContext() = default;
+	virtual ~ComponentScriptContext() {}
 
 protected:
 	virtual bool bindContextFunctions() override;
-	void bindStencilFunctions();
 };

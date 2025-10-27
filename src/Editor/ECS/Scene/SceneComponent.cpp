@@ -8,6 +8,7 @@
 #include "MathUtility.h"
 #include "MikanCamera.h"
 #include "SceneComponent.h"
+#include "SceneComponentScriptContext.h"
 #include "SelectionComponent.h"
 #include "StageComponent.h"
 #include "StageObjectSystem.h"
@@ -212,6 +213,11 @@ void SceneComponent::dispose()
 	m_mkScene= nullptr;
 
 	TransformComponent::dispose();
+}
+
+ComponentScriptContextPtr SceneComponent::allocateScriptContext()
+{
+	return std::make_shared<SceneComponentScriptContext>();
 }
 
 void SceneComponent::onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet)

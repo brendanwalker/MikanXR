@@ -252,6 +252,12 @@ void MikanComponent::removeComponentScript()
 	getDefinition()->setComponentScriptPath(std::filesystem::path());
 }
 
+ComponentScriptContextPtr MikanComponent::allocateScriptContext()
+{
+	// Only overridden components will provide custom script context implementations
+	return ComponentScriptContextPtr();
+}
+
 void MikanComponent::initScriptContext()
 {
 	disposeScriptContext();
@@ -262,7 +268,7 @@ void MikanComponent::initScriptContext()
 		return;
 
 	// Create and load the script context
-	m_scriptContext = std::make_shared<ComponentScriptContext>();
+	m_scriptContext = allocateScriptContext();
 	if (m_scriptContext->loadScript(scriptPath))
 	{
 		// Failed to load script

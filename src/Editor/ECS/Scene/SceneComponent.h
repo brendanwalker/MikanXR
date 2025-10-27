@@ -89,6 +89,8 @@ public:
 
 
 protected:
+	virtual ComponentScriptContextPtr allocateScriptContext() override;
+
 	void onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
 	// IRmlFunctionInterface handlers

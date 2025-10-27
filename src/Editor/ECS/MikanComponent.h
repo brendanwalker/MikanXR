@@ -126,6 +126,7 @@ public:
 	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
 
 protected:
+	virtual ComponentScriptContextPtr allocateScriptContext();
 	void initScriptContext();
 	void disposeScriptContext();
 	void updateScriptContext(float deltaSeconds);
