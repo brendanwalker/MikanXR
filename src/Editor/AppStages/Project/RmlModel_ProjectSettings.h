@@ -5,6 +5,9 @@
 #include "ObjectSystemConfigFwd.h"
 #include "Shared/RmlModel.h"
 
+#include <vector>
+#include <string>
+
 class RmlModel_ProjectSettings : public RmlModel
 {
 public:
@@ -15,10 +18,8 @@ public:
 	virtual void dispose() override;
 
 private:
-	bool m_bRenderOrigin= false;
-	bool m_bRenderAnchors= false;
-	bool m_bRenderStencils= false;
-
 	ProjectConfigWeakPtr m_project;
 	StencilObjectSystemWeakPtr m_stencilSystem;
+	std::vector<std::string> m_languageIdList;
+	std::string m_selectedLangugeId;
 };

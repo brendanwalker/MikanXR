@@ -4,70 +4,46 @@
 	<link type="text/rcss" href="rml.rcss"/>
 	<link type="text/rcss" href="mikan.rcss"/>
 </head>
-<body>
-	<div class="window">
+<body template="window">
+	<panel>
 		<div class="title-bar">
-			<span class="title">Compositor Settings</span>
+			<span class="title">Settings</span>
 		</div>
-
 		<div class="content">
-			<!-- Rendering Options Section -->
-			<div class="section">
-				<h3>Rendering Options</h3>
-
-				<!-- Render Origin Setting -->
-				<div class="setting-row">
-					<label>
-						<input type="checkbox"
-							   data-checked="compositor_settings.render_origin"
-							   onchange="update_render_origin_flag" />
-						Render Origin
-					</label>
-					<p class="setting-description">Show coordinate system origin (0,0,0) in the scene</p>
-				</div>
-
-				<!-- Render Anchors Setting -->
-				<div class="setting-row">
-					<label>
-						<input type="checkbox"
-							   data-checked="compositor_settings.render_anchors"
-							   onchange="update_render_anchors_flag" />
-						Render Anchors
-					</label>
-					<p class="setting-description">Display anchor points in the scene</p>
-				</div>
-
-				<!-- Render Stencils Setting -->
-				<div class="setting-row">
-					<label>
-						<input type="checkbox"
-							   data-checked="compositor_settings.render_stencils"
-							   onchange="update_render_stencils_flag" />
-						Render Stencils
-					</label>
-					<p class="setting-description">Show stencil geometry for masking and clipping</p>
-				</div>
-			</div>
-
-			<!-- Debug Information Section -->
-			<div class="section">
-				<h3>Debug Information</h3>
-				<div class="info-grid">
-					<div class="info-item">
-						<span class="info-label">Origin Rendering:</span>
-						<span class="info-value">{{ compositor_settings.render_origin ? "Enabled" : "Disabled" }}</span>
-					</div>
-					<div class="info-item">
-						<span class="info-label">Anchor Rendering:</span>
-						<span class="info-value">{{ compositor_settings.render_anchors ? "Enabled" : "Disabled" }}</span>
-					</div>
-					<div class="info-item">
-						<span class="info-label">Stencil Rendering:</span>
-						<span class="info-value">{{ compositor_settings.render_stencils ? "Enabled" : "Disabled" }}</span>
-					</div>
-				</div>
-			</div>
+			<div data-model="Settings">
+				<h3>Settings</h3>
+				<table>
+					<thead>
+						<tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
+					</thead>
+					<tbody>		
+						<tr class="property_tr">
+							<td>
+								<label><input type="checkbox" name="render_origin_flag" data-checked="render_origin"/>Draw Origin</label>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label><input type="checkbox" name="render_anchor_flag" data-checked="render_anchors"/>Draw Origin</label>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label><input type="checkbox" name="render_stencil_flag" data-checked="render_stencils"/>Draw Origin</label>
+							</td>
+						</tr>												
+						<tr class="property_tr">
+							<td>
+								Language&nbsp;
+								<select id="select" name="select_language" data-value="selected_language_id" data-event-change="select_language_entry()">
+									<option data-for="language_id : language_id_list" data-value="language_id">language_id</option>
+								</select>
+							</td>
+						</tr>
+					</tbody>
+				</table>						
+			</div>	
 		</div>
-	</div>
+	</panel>
 </body>
 </rml>

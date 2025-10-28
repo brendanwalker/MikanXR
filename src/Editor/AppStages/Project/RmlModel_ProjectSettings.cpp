@@ -1,5 +1,6 @@
 #include "RmlModel_ProjectSettings.h"
 #include "AnchorObjectSystem.h"
+#include "LocalizationManager.h"
 #include "StencilObjectSystem.h"
 #include "ProjectConfig.h"
 #include "RmlUtility.h"
@@ -13,42 +14,60 @@ bool RmlModel_ProjectSettings::init(
 	ProjectConfigPtr project,
 	StencilObjectSystemPtr stencilSystem)
 {
+	auto* localizationManager = LocalizationManager::getInstance();
+	m_selectedLangugeId = localizationManager->getLanguage();
+	m_languageIdList = localizationManager->getSupportedLanguages();
+
 	m_project = project;
 	m_stencilSystem = stencilSystem;
 
 	// Create Datamodel
-	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "compositor_settings");
+	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "Settings");
 	if (!constructor)
 		return false;
 
-	// Register Data Model Fields
-	constructor.Bind("render_origin", &m_bRenderOrigin);
-	constructor.Bind("render_anchors", &m_bRenderAnchors);
-	constructor.Bind("render_stencils", &m_bRenderStencils);
-
-	// Bind data model callbacks
-	constructor.BindEventCallback(
-		"update_render_origin_flag",
-		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			m_bRenderOrigin= Rml::Utilities::GetBoolValueFromEvent(ev);
-			m_project.lock()->setRenderOriginFlag(m_bRenderOrigin);
-		});
-	constructor.BindEventCallback(
-		"update_render_anchors_flag",
-		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			m_bRenderAnchors = Rml::Utilities::GetBoolValueFromEvent(ev);
-			m_project.lock()->anchorConfig->setRenderAnchorsFlag(m_bRenderAnchors);
-		});
-	constructor.BindEventCallback(
-		"update_render_stencils_flag",
-		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			m_bRenderStencils = Rml::Utilities::GetBoolValueFromEvent(ev);
-			m_stencilSystem.lock()->setRenderStencilsFlag(m_bRenderStencils);
+	constructor.BindFunc(
+		"render_origin",
+		[this](Rml::Variant& variant) {
+			bool value = m_project.lock()->getRenderOriginFlag();
+			variant = Rml::Variant(value);
+		},
+		[this](const Rml::Variant& variant) {
+			bool value = variant.Get<bool>();
+			m_project.lock()->setRenderOriginFlag(value);
 		});
 
-	m_bRenderOrigin= project->getRenderOriginFlag();
-	m_bRenderAnchors= project->anchorConfig->getRenderAnchorsFlag();
-	m_bRenderStencils= project->stencilConfig->getRenderStencilsFlag();
+	constructor.BindFunc(
+		"render_anchors",
+		[this](Rml::Variant& variant) {
+			bool value = m_project.lock()->anchorConfig->getRenderAnchorsFlag();
+			variant = Rml::Variant(value);
+		},
+		[this](const Rml::Variant& variant) {
+			bool value = variant.Get<bool>();
+			m_project.lock()->anchorConfig->setRenderAnchorsFlag(value);
+		});
+
+	constructor.BindFunc(
+		"render_stencils",
+		[this](Rml::Variant& variant) {
+			bool value= m_stencilSystem.lock()->getStencilSystemConfig()->getRenderStencilsFlag();
+			variant = Rml::Variant(value);
+		},
+		[this](const Rml::Variant& variant) {
+			bool value = variant.Get<bool>();
+			m_stencilSystem.lock()->getStencilSystemConfig()->setRenderStencilsFlag(value);
+		});
+
+	constructor.Bind("language_id_list", &m_languageIdList);
+	constructor.Bind("selected_language_id", &m_selectedLangugeId);
+	constructor.BindEventCallback(
+		"select_language_entry",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			const std::string newLanguage = ev.GetParameter<std::string>("value", "");
+			LocalizationManager::getInstance()->setLanguage(newLanguage);
+		});
+
 	m_modelHandle.DirtyAllVariables();
 
 	return true;
@@ -57,6 +76,7 @@ bool RmlModel_ProjectSettings::init(
 void RmlModel_ProjectSettings::dispose()
 {
 	m_project.reset();
+	m_stencilSystem.reset();
 
 	RmlModel::dispose();
 }
