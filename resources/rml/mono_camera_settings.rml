@@ -35,7 +35,7 @@
                 <radioblock>
                     <label><input type="radio" name="viewpoint mode" value="BGR" data-checked="video_display_mode" data-event-change="viewpoint_mode_changed()"/>Original</label>
                     <label><input type="radio" name="viewpoint mode" value="Undistorted" data-checked="video_display_mode" data-event-change="viewpoint_mode_changed()"/>Undistorted</label>
-                    <label><input type="radio" name="viewpoint mode" value="Grayscale" data-checked="video_display_mode" data-event-change="viewpoint_mode_changed()""/>Grayscale</label>
+                    <label><input type="radio" name="viewpoint mode" value="Grayscale" data-checked="video_display_mode" data-event-change="viewpoint_mode_changed()"/>Grayscale</label>
                 </radioblock>
             </div>
         </panel>
