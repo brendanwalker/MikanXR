@@ -256,7 +256,7 @@ void CameraObjectSystem::disposeCameraObject(MikanCameraID cameraId)
 
 CameraObjectSystemConfigConstPtr CameraObjectSystem::getCameraSystemConfigConst() const
 {
-	return App::getInstance()->getProfileConfig()->cameraConfig;
+	return getProjectConfig()->cameraConfig;
 }
 
 CameraObjectSystemConfigPtr CameraObjectSystem::getCameraSystemConfig()

@@ -9,6 +9,7 @@
 #include "IMkWindow.h"
 #include "MarkerObjectSystem.h"
 #include "NetworkVideoSourceSystem.h"
+#include "ProjectConfig.h"
 #include "SceneObjectSystem.h"
 #include "SpoutVideoSourceSystem.h"
 #include "StencilObjectSystem.h"
@@ -18,6 +19,13 @@
 #include "USBVideoSourceSystem.h"
 #include "VideoSourceSystem.h"
 #include "VRObjectSystem.h"
+
+#define PROJECT_SAVE_COOLDOWN	3.f
+
+ObjectSystemManager::ObjectSystemManager(IMkWindow* ownerWindow)
+	: m_ownerWindow(ownerWindow)
+{
+}
 
 bool ObjectSystemManager::startup()
 {
@@ -41,20 +49,96 @@ bool ObjectSystemManager::startup()
 	addSystem<TrackingVolumeObjectSystem>();
 	addSystem<VRObjectSystem>();
 
-	for (int i= 0; i < (int)m_systems.size(); i++)
-	{
-		MikanObjectSystemPtr system = m_systems[i];
-
-		if (!system->init())
-		{
-			return false;
-		}
-	}
-
 	return true;
 }
 
 void ObjectSystemManager::shutdown()
+{
+	unloadProject();
+	m_systems.clear();
+}
+
+void ObjectSystemManager::update(float deltaSeconds)
+{
+	for (MikanObjectSystemPtr system : m_systems)
+	{
+		system->update(deltaSeconds);
+	}
+
+	updateAutoSave(deltaSeconds);
+}
+
+void ObjectSystemManager::customRender()
+{
+	for (MikanObjectSystemPtr system : m_systems)
+	{
+		system->customRender();
+	}
+}
+
+bool ObjectSystemManager::hasLoadedProject() const
+{
+	return m_projectConfig != nullptr;
+}
+
+bool ObjectSystemManager::newProject(const std::string& projectFilePath)
+{
+	auto newProjectConfig = std::make_shared<ProjectConfig>();
+	newProjectConfig->save(projectFilePath);
+
+	return loadProject(projectFilePath);
+}
+
+bool ObjectSystemManager::loadProject(const std::string& projectFilePath)
+{
+	// Early out if the requested project path isn't new
+	if (hasLoadedProject() && m_projectConfig->getLoadedConfigPath() == projectFilePath)
+	{
+		return true;
+	}
+
+	// Unload the existing project first
+	unloadProject();
+
+	// Attempt to load and init the new project
+	m_projectConfig = std::make_shared<ProjectConfig>();		
+	bool bSuccess = m_projectConfig->load(projectFilePath);
+	if (bSuccess)
+	{
+		// Initialize all systems using the loaded project config
+		for (int i = 0; i < (int)m_systems.size(); i++)
+		{
+			MikanObjectSystemPtr system = m_systems[i];
+
+			if (!system->init())
+			{
+				bSuccess = false;
+				break;
+			}
+		}
+	}
+
+	// Unload if we failed to load or init
+	if (!bSuccess)
+	{
+		unloadProject();
+	}
+
+	return bSuccess;
+}
+
+bool ObjectSystemManager::saveProject(const std::string& projectFilePath)
+{
+	if (hasLoadedProject())
+	{
+		m_projectConfig->save(projectFilePath);
+		return true;
+	}
+
+	return false;
+}
+
+void ObjectSystemManager::unloadProject()
 {
 	// Call dispose in reverse order 
 	// so that Editor system gets component destroy events
@@ -65,21 +149,32 @@ void ObjectSystemManager::shutdown()
 
 		system->dispose();
 	}
-	m_systems.clear();
+
+	m_projectConfig = nullptr;
 }
 
-void ObjectSystemManager::update(float deltaSeconds)
+void ObjectSystemManager::updateAutoSave(float deltaSeconds)
 {
-	for (MikanObjectSystemPtr system : m_systems)
+	// We change the profile constantly as changes are made in the UI
+	// Put the save to disk on a cooldown so we aren't writing to disk constantly
+	if (m_projectSaveCooldown >= 0.f)
 	{
-		system->update(deltaSeconds);
+		if (m_projectConfig->isMarkedDirty())
+		{
+			m_projectSaveCooldown -= deltaSeconds;
+			if (m_projectSaveCooldown < 0.f)
+			{
+				m_projectConfig->save();
+				m_projectSaveCooldown = -1.f;
+			}
+		}
+		else
+		{
+			m_projectSaveCooldown = -1.f;
+		}
 	}
-}
-
-void ObjectSystemManager::customRender()
-{
-	for (MikanObjectSystemPtr system : m_systems)
+	else if (m_projectConfig->isMarkedDirty())
 	{
-		system->customRender();
+		m_projectSaveCooldown = PROJECT_SAVE_COOLDOWN;
 	}
 }

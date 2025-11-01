@@ -316,7 +316,7 @@ void AnchorObjectSystem::disposeAnchorObject(MikanSpatialAnchorID anchorId)
 
 AnchorObjectSystemConfigConstPtr AnchorObjectSystem::getAnchorSystemConfigConst() const
 {
-	return App::getInstance()->getProfileConfig()->anchorConfig;
+	return getProjectConfig()->anchorConfig;
 }
 
 AnchorObjectSystemConfigPtr AnchorObjectSystem::getAnchorSystemConfig()

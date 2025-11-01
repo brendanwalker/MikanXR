@@ -142,7 +142,7 @@ void StageObjectSystem::dispose()
 
 StageObjectSystemConfigConstPtr StageObjectSystem::getStageSystemConfigConst() const
 {
-	return App::getInstance()->getProfileConfig()->stageConfig;
+	return getProjectConfig()->stageConfig;
 }
 
 StageObjectSystemConfigPtr StageObjectSystem::getStageSystemConfig()

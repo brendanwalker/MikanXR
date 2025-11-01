@@ -36,6 +36,11 @@ void MikanObjectSystem::customRender()
 		onCustomRender();
 }
 
+ProjectConfigPtr MikanObjectSystem::getProjectConfig() const
+{
+	return m_ownerObjectSystemManager->getProjectConfig();
+}
+
 MikanObjectPtr MikanObjectSystem::newObject()
 {
 	MikanObjectPtr objectPtr = std::make_shared<MikanObject>(shared_from_this());

@@ -6,7 +6,7 @@
 class SceneComponentScriptContext : public ComponentScriptContext
 {
 public:
-	SceneComponentScriptContext() = default;
+	SceneComponentScriptContext(MikanComponentPtr ownerComponent);
 	virtual ~SceneComponentScriptContext() {};
 
 protected:

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "ObjectSystemConfigFwd.h"
+
 #include <map>
 #include <string>
 #include <vector>
@@ -14,7 +16,7 @@ public:
 
 	static LocalizationManager* getInstance() { return m_instance; }
 
-	bool startup();
+	bool startup(AppSettingsConfigPtr m_appSettings);
 	void reloadLangages();
 	void shutdown();
 

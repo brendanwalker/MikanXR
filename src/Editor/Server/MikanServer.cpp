@@ -4,6 +4,7 @@
 #include "JsonDeserializer.h"
 #include "JsonSerializer.h"
 #include "Logger.h"
+#include "MainWindow.h"
 #include "MikanAPITypes.h"
 #include "MikanClientConnectionState.h"
 #include "MikanClientRequests.h"
@@ -75,6 +76,8 @@ MikanServer::~MikanServer()
 bool MikanServer::startup(MainWindow* mainWindow)
 {
 	EASY_FUNCTION();
+
+	m_projectConfig = mainWindow->getObjectSystemManager()->getProjectConfig();
 
 	if (!m_messageServer->initialize())
 	{
@@ -178,6 +181,11 @@ void MikanServer::shutdown()
 	m_renderTargetRequestHandler->shutdown();
 	m_videoSourceRequestHandler->shutdown();
 	m_vrDeviceRequestHandler->shutdown();
+}
+
+ProjectConfigPtr MikanServer::getProjectConfig() const
+{
+	return m_projectConfig.lock();
 }
 
 void MikanServer::publishMikanJsonEvent(const std::string& mikanJsonEvent)

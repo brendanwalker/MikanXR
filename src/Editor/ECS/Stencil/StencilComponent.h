@@ -71,4 +71,7 @@ public:
 	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
 
 	void deleteStencil();
+
+	// -- Lua Binding ----
+	static void bindLuaFunctions(struct lua_State* L);
 };

@@ -66,6 +66,9 @@ public:
 	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outPropertyNames)
 	{ StencilComponent::getRmlFunctionDescriptors(outPropertyNames); }
 
+	// -- Lua Binding ----
+	static void bindLuaFunctions(struct lua_State* L);
+
 protected:
 	void updateBoxColliderExtents();
 

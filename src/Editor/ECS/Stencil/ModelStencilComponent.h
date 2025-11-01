@@ -90,6 +90,9 @@ public:
 	void removeModel();
 	void alignStencil();
 
+	// -- Lua Binding ----
+	static void bindLuaFunctions(struct lua_State* L);
+
 protected:
 	void updateWireframeMeshColor();
 	void onStencilDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);

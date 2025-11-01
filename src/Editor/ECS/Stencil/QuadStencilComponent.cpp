@@ -18,6 +18,9 @@
 #include "glm/ext/vector_float4.hpp"
 #include "glm/ext/matrix_float4x4_precision.hpp"
 
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
+
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Variant.h>
 
@@ -239,4 +242,33 @@ bool QuadStencilComponent::setPropertyValueFromRml(
 	}
 
 	return StencilComponent::setPropertyValueFromRml(propertyDesc, inValue);
+}
+
+// -- Lua Binding ----
+void QuadStencilComponent::bindLuaFunctions(lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.deriveClass<QuadStencilComponent, StencilComponent>("QuadStencilComponent")
+		.addProperty("quadWidth",
+			[](QuadStencilComponent* component) -> float {
+				return component->getQuadStencilDefinition()->getQuadWidth();
+			},
+			[](QuadStencilComponent* component, float value) {
+				component->getQuadStencilDefinition()->setQuadWidth(value);
+			})
+		.addProperty("quadHeight",
+			[](QuadStencilComponent* component) -> float {
+				return component->getQuadStencilDefinition()->getQuadHeight();
+			},
+			[](QuadStencilComponent* component, float value) {
+				component->getQuadStencilDefinition()->setQuadHeight(value);
+			})
+		.addProperty("isDoubleSided",
+			[](QuadStencilComponent* component) -> bool {
+				return component->getQuadStencilDefinition()->getIsDoubleSided();
+			},
+			[](QuadStencilComponent* component, bool isDoubleSided) {
+				component->getQuadStencilDefinition()->setIsDoubleSided(isDoubleSided);
+			})
+		.endClass();
 }

@@ -14,6 +14,7 @@
 #include "MikanVideoSourceEvents.h"
 #include "MikanVRDeviceEvents.h"
 #include "MulticastDelegate.h"
+#include "ObjectSystemConfigFwd.h"
 #include "glm/ext/matrix_float4x4.hpp"
 #include "stdint.h"
 
@@ -32,6 +33,7 @@ public:
 	virtual ~MikanServer();
 
 	static MikanServer* getInstance() { return m_instance; }
+	ProjectConfigPtr getProjectConfig() const;
 	inline class IInterprocessMessageServer* getMessageServer() { return m_messageServer; }
 	inline class CameraRequestHandler* getCameraRequestHandler() const { return m_cameraRequestHandler; }
 	inline class ScriptRequestHandler* getScriptRequestHandler() const { return m_scriptRequestHandler; }
@@ -81,6 +83,8 @@ private:
 	class StencilRequestHandler* m_stencilRequestHandler;
 	class VideoSourceRequestHandler* m_videoSourceRequestHandler;
 	class VRDeviceRequestHandler* m_vrDeviceRequestHandler;
+
+	ProjectConfigWeakPtr m_projectConfig;
 
 	std::map<std::string, MikanClientConnectionStatePtr> m_clientConnections;
 };

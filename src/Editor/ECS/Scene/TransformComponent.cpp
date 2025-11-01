@@ -10,6 +10,9 @@
 #include <RmlUi/Core/Variant.h>
 #include <RmlUi/Core/Vector3.h>
 
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
+
 #include <queue>
 
 // -- ModelStencilConfig -----
@@ -465,4 +468,33 @@ bool TransformComponent::setPropertyValueFromRml(
 void TransformComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
 {
 	MikanComponent::getRmlFunctionDescriptors(outDescriptors);
+}
+
+// -- Lua Binding ----
+void TransformComponent::bindLuaFunctions(struct lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.deriveClass<TransformComponent, MikanComponent>("TransformComponent")
+			.addProperty("relativePosition", 
+				[](TransformComponent* component) -> LuaVec3f {
+					return LuaVec3f(component->getRelativePosition());
+				},
+				[](TransformComponent* component, const LuaVec3f& position) {
+					component->setRelativePosition(position.toGlmVec3f());
+				})
+			.addProperty("relativeRotation",
+				[](TransformComponent* component) -> LuaVec3f {
+					return LuaVec3f(glm_quat_to_MikanRotator3f(component->getRelativeRotation()));
+				},
+				[](TransformComponent* component, const LuaVec3f& rotator) {
+					component->setRelativeRotation(MikanRotator3f_to_glm_quat(rotator.toMikanRotator3f()));
+				})
+			.addProperty("relativeScale",
+				[](TransformComponent* component) -> LuaVec3f {
+					return LuaVec3f(component->getRelativeScale());
+				},
+				[](TransformComponent* component, const LuaVec3f& scale) {
+					component->setRelativePosition(scale.toGlmVec3f());
+				})
+		.endClass();
 }

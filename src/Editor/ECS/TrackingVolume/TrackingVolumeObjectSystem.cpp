@@ -17,11 +17,6 @@
 const std::string TrackingVolumeObjectSystemConfig::k_markerTrackingVolumeListPropertyId= "markerTrackingVolumeList";
 const std::string TrackingVolumeObjectSystemConfig::k_vrTrackingVolumeListPropertyId= "vrTrackingVolumeList";
 
-TrackingVolumeObjectSystemConfigPtr TrackingVolumeObjectSystemConfig::getSystemConfig()
-{
-	return App::getInstance()->getProfileConfig()->trackingVolumeSystemConfig;
-}
-
 configuru::Config TrackingVolumeObjectSystemConfig::writeToJSON()
 {
 	configuru::Config pt = CommonConfig::writeToJSON();
@@ -309,12 +304,12 @@ void TrackingVolumeObjectSystem::deleteObjectConfig(MikanObjectPtr objectPtr)
 
 TrackingVolumeObjectSystemConfigConstPtr TrackingVolumeObjectSystem::getTrackingVolumeSystemConfigConst() const
 {
-	return App::getInstance()->getProfileConfig()->trackingVolumeSystemConfig;
+	return getProjectConfig()->trackingVolumeSystemConfig;
 }
 
 TrackingVolumeObjectSystemConfigPtr TrackingVolumeObjectSystem::getTrackingVolumeSystemConfig()
 {
-	return App::getInstance()->getProfileConfig()->trackingVolumeSystemConfig;
+	return getProjectConfig()->trackingVolumeSystemConfig;
 }
 
 TrackingVolumeIdList TrackingVolumeObjectSystem::getTrackingVolumeIdList() const

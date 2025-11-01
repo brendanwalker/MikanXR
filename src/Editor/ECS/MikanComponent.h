@@ -125,6 +125,9 @@ public:
 	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors);
 	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
 
+	// -- Lua Binding ----
+	static void bindLuaFunctions(struct lua_State* L);
+
 protected:
 	virtual ComponentScriptContextPtr allocateScriptContext();
 	void initScriptContext();

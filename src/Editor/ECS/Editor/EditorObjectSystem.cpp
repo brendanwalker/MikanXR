@@ -206,7 +206,7 @@ void EditorObjectSystem::dispose()
 
 EditorObjectSystemConfigConstPtr EditorObjectSystem::getEditorSystemConfigConst() const
 {
-	return App::getInstance()->getProfileConfig()->editorConfig;
+	return getProjectConfig()->editorConfig;
 }
 
 EditorObjectSystemConfigPtr EditorObjectSystem::getEditorSystemConfig()

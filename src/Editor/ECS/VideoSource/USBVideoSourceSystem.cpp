@@ -18,7 +18,7 @@ bool USBVideoSourceSystem::init()
 	MikanObjectSystem::init();
 
     VideoSourceSystemConfigConstPtr videoSourceSystemConfig = 
-        App::getInstance()->getProfileConfig()->videoSourceSystemConfig;
+        getProjectConfig()->videoSourceSystemConfig;
 
     if (!createUsbVideoDeviceManager(USB_VIDEO_DEVICE_MODULE_NAME))
     {
@@ -173,7 +173,7 @@ USBVideoSourceComponentPtr USBVideoSourceSystem::addNewUSBVideoSource(
     const MikanUSBVideoSourceInfo& videoSourceInfo)
 {
     VideoSourceSystemConfigPtr videoSourceSystemConfig = 
-        App::getInstance()->getProfileConfig()->videoSourceSystemConfig;
+        getProjectConfig()->videoSourceSystemConfig;
 
     MikanVideoSourceID videoSourceId = videoSourceSystemConfig->addUSBVideoSource(videoSourceInfo);
     if (videoSourceId != INVALID_MIKAN_ID)
@@ -190,7 +190,7 @@ USBVideoSourceComponentPtr USBVideoSourceSystem::addNewUSBVideoSource(
 bool USBVideoSourceSystem::removeUSBVideoSource(MikanVideoSourceID videoSourceId)
 {
     VideoSourceSystemConfigPtr videoSourceSystemConfig = 
-        App::getInstance()->getProfileConfig()->videoSourceSystemConfig;
+        getProjectConfig()->videoSourceSystemConfig;
 
     return
         disposeUSBVideoSourceObject(videoSourceId) &&

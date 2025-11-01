@@ -26,7 +26,7 @@ bool StencilRequestHandler::startup(MainWindow* mainWindow)
 	IInterprocessMessageServer* messageServer = m_owner->getMessageServer();
 
 	// Stencil Events
-	StencilObjectSystem::getSystem()->getStencilSystemConfig()->OnMarkedDirty +=
+	getProjectConfig()->stencilConfig->OnMarkedDirty +=
 		MakeDelegate(this, &StencilRequestHandler::handleStencilSystemConfigChange);
 
 	// Stencil Requests
@@ -114,7 +114,7 @@ void StencilRequestHandler::getQuadStencilListHandler(
 {
 	MikanStencilListResponse stencilListResult = {};
 
-	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
+	auto stencilSystemConfig = getProjectConfig()->stencilConfig;
 	for (QuadStencilDefinitionPtr quadConfig : stencilSystemConfig->quadStencilList)
 	{
 		stencilListResult.stencil_id_list.push_back(quadConfig->getStencilId());
@@ -134,7 +134,7 @@ void StencilRequestHandler::getQuadStencilHandler(
 		return;
 	}
 
-	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
+	auto stencilSystemConfig = getProjectConfig()->stencilConfig;
 	auto quadConfig = stencilSystemConfig->getQuadStencilConfigConst(stencilRequest.stencilId);
 	if (quadConfig != nullptr)
 	{
@@ -155,7 +155,7 @@ void StencilRequestHandler::getBoxStencilListHandler(
 {
 	MikanStencilListResponse stencilListResult = {};
 
-	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
+	auto stencilSystemConfig = getProjectConfig()->stencilConfig;
 	for (BoxStencilDefinitionPtr boxConfig : stencilSystemConfig->boxStencilList)
 	{
 		stencilListResult.stencil_id_list.push_back(boxConfig->getStencilId());
@@ -175,7 +175,7 @@ void StencilRequestHandler::getBoxStencilHandler(
 		return;
 	}
 
-	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
+	auto stencilSystemConfig = getProjectConfig()->stencilConfig;
 	auto boxConfig = stencilSystemConfig->getBoxStencilConfigConst(stencilRequest.stencilId);
 	if (boxConfig != nullptr)
 	{
@@ -196,7 +196,7 @@ void StencilRequestHandler::getModelStencilListHandler(
 {
 	MikanStencilListResponse stencilListResult = {};
 
-	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
+	auto stencilSystemConfig = getProjectConfig()->stencilConfig;
 	for (ModelStencilDefinitionPtr modelConfig : stencilSystemConfig->modelStencilList)
 	{
 		stencilListResult.stencil_id_list.push_back(modelConfig->getStencilId());
@@ -216,7 +216,7 @@ void StencilRequestHandler::getModelStencilHandler(
 		return;
 	}
 
-	auto stencilSystemConfig = App::getInstance()->getProfileConfig()->stencilConfig;
+	auto stencilSystemConfig = getProjectConfig()->stencilConfig;
 	auto modelConfig = stencilSystemConfig->getModelStencilConfigConst(stencilRequest.stencilId);
 	if (modelConfig != nullptr)
 	{

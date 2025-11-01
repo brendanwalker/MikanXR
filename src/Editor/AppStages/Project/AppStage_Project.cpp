@@ -101,7 +101,7 @@ void AppStage_Project::enter()
 	AppStage::enter();
 
 	// Cache a ref to the project
-	m_project = App::getInstance()->getProfileConfig();
+	m_project = getProjectConfig();
 
 	// Cache object systems we'll be accessing
 	ObjectSystemManagerPtr objectSystemManager = m_ownerWindow->getObjectSystemManager();

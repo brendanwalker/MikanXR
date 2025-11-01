@@ -220,7 +220,7 @@ void TrackingMountObjectSystem::disposeTrackingMountObject(MikanTrackingMountID 
 
 TrackingMountObjectSystemConfigConstPtr TrackingMountObjectSystem::getTrackingMountSystemConfigConst() const
 {
-	return App::getInstance()->getProfileConfig()->trackingMountSystemConfig;
+	return getProjectConfig()->trackingMountSystemConfig;
 }
 
 TrackingMountObjectSystemConfigPtr TrackingMountObjectSystem::getTrackingMountSystemConfig()

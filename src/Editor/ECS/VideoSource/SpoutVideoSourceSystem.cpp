@@ -12,7 +12,7 @@ bool SpoutVideoSourceSystem::init()
 {
 	MikanObjectSystem::init();
     VideoSourceSystemConfigConstPtr videoSourceSystemConfig = 
-        App::getInstance()->getProfileConfig()->videoSourceSystemConfig;
+        getProjectConfig()->videoSourceSystemConfig;
 
     for (const auto& sourceConfig : videoSourceSystemConfig->getSpoutVideoSourceList())
     {
@@ -80,7 +80,7 @@ SpoutVideoSourceComponentPtr SpoutVideoSourceSystem::addNewSpoutVideoSource(
     const MikanSpoutVideoSourceInfo& videoSourceInfo)
 {
     VideoSourceSystemConfigPtr videoSourceSystemConfig = 
-        App::getInstance()->getProfileConfig()->videoSourceSystemConfig;
+        getProjectConfig()->videoSourceSystemConfig;
 
     MikanVideoSourceID videoSourceId = videoSourceSystemConfig->addSpoutVideoSource(videoSourceInfo);
     if (videoSourceId != INVALID_MIKAN_ID)
@@ -97,7 +97,7 @@ SpoutVideoSourceComponentPtr SpoutVideoSourceSystem::addNewSpoutVideoSource(
 bool SpoutVideoSourceSystem::removeSpoutVideoSource(MikanVideoSourceID videoSourceId)
 {
     VideoSourceSystemConfigPtr videoSourceSystemConfig = 
-        App::getInstance()->getProfileConfig()->videoSourceSystemConfig;
+        getProjectConfig()->videoSourceSystemConfig;
 
     return
         disposeSpoutVideoSourceObject(videoSourceId) &&

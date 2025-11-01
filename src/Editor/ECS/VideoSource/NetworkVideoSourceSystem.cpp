@@ -19,8 +19,7 @@ bool NetworkVideoSourceSystem::init()
 {
 	MikanObjectSystem::init();
 
-    VideoSourceSystemConfigConstPtr videoSourceSystemConfig = 
-        App::getInstance()->getProfileConfig()->videoSourceSystemConfig;
+    VideoSourceSystemConfigConstPtr videoSourceSystemConfig = getProjectConfig()->videoSourceSystemConfig;
 
 	if (!createNetworkVideoDeviceManager(NETWORK_VIDEO_DEVICE_MODULE_NAME))
 	{
@@ -107,7 +106,7 @@ NetworkVideoSourceComponentPtr NetworkVideoSourceSystem::addNewNetworkVideoSourc
     const MikanNetworkVideoSourceInfo& videoSourceInfo)
 {
     VideoSourceSystemConfigPtr videoSourceSystemConfig = 
-        App::getInstance()->getProfileConfig()->videoSourceSystemConfig;
+        getProjectConfig()->videoSourceSystemConfig;
 
     MikanVideoSourceID videoSourceId = videoSourceSystemConfig->addNetworkedVideoSource(videoSourceInfo);
     if (videoSourceId != INVALID_MIKAN_ID)
@@ -124,7 +123,7 @@ NetworkVideoSourceComponentPtr NetworkVideoSourceSystem::addNewNetworkVideoSourc
 bool NetworkVideoSourceSystem::removeNetworkVideoSource(MikanVideoSourceID videoSourceId)
 {
     VideoSourceSystemConfigPtr videoSourceSystemConfig = 
-        App::getInstance()->getProfileConfig()->videoSourceSystemConfig;
+        getProjectConfig()->videoSourceSystemConfig;
 
     return
         disposeNetworkVideoSourceObject(videoSourceId) &&

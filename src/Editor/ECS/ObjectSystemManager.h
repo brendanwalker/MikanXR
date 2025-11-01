@@ -1,16 +1,17 @@
 #pragma once
 
+#include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
 
+#include <string>
 #include <vector>
 
 class ObjectSystemManager
 {
 public:
-	ObjectSystemManager(class IMkWindow* ownerWindow)
-		: m_ownerWindow(ownerWindow)
-	{}
+	ObjectSystemManager(class IMkWindow* ownerWindow);
 
+	inline ProjectConfigPtr getProjectConfig() const { return m_projectConfig; }
 	inline class IMkWindow* getOwnerWindow() const { return m_ownerWindow; }
 
 	template <class t_system_type>
@@ -42,7 +43,20 @@ public:
 	void update(float deltaSeconds);
 	void customRender();
 
+	bool hasLoadedProject() const;
+	bool newProject(const std::string& projectFilePath);
+	bool loadProject(const std::string& projectFilePath);
+	bool saveProject(const std::string& projectFilePath);
+	void unloadProject();
+
 protected:
+	void updateAutoSave(float deltaSeconds);
+
+private:
 	class IMkWindow* m_ownerWindow = nullptr;
 	std::vector<MikanObjectSystemPtr> m_systems;
+
+	// Project Config
+	ProjectConfigPtr m_projectConfig;
+	float m_projectSaveCooldown = -1.f;
 };

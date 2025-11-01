@@ -17,6 +17,9 @@
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Variant.h>
 
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
+
 #include <easy/profiler.h>
 
 #include <queue>
@@ -217,7 +220,7 @@ void SceneComponent::dispose()
 
 ComponentScriptContextPtr SceneComponent::allocateScriptContext()
 {
-	return std::make_shared<SceneComponentScriptContext>();
+	return std::make_shared<SceneComponentScriptContext>(getSelfPtr<SceneComponent>());
 }
 
 void SceneComponent::onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet)
@@ -417,4 +420,59 @@ void SceneComponent::removeCompositorRef()
 	{
 		definition->removeCompositorID(selectedCompositorId);
 	}
+}
+
+// -- Lua Binding ----
+void SceneComponent::bindLuaFunctions(struct lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.deriveClass<SceneComponent, TransformComponent>("SceneComponent")
+		.addProperty("parentStageId",
+			[](SceneComponent* component) -> int {
+				return component->getSceneComponentDefinition()->getParentStageId();
+			})
+		//TODO
+		//.addProperty("parentStage",
+		//	[](SceneComponent* component) -> StageComponent* {
+		//		return component->getParentStage().get();
+		//	})
+		.addProperty("compositorCount",
+			[](SceneComponent* component) -> int {
+				return component->getSceneComponentDefinition()->getCompositorCount();
+			})
+		//TODO
+		//.addFunction("getCompositorByIndex",
+		//	[](int index) -> CompositorComponent* {
+		//		return component->getCompositorByIndex(index).get();
+		//	})
+		.addProperty("displayCompositorId",
+			[](SceneComponent* component) -> LuaVec3f {
+				return LuaVec3f(component->getRelativeScale());
+			})
+		//TODO
+		//.addProperty("quadStencilCount",
+		//	[](SceneComponent* component) -> int {
+		//		return component->getQuadStencilCount();
+		//	})
+		//.addFunction("getQuadStencilByIndex",
+		//	[](int index) -> QuadStencilComponent* {
+		//		return component->getQuadStencilByIndex(index).get();
+		//	})
+		//.addProperty("boxStencilCount",
+		//	[](SceneComponent* component) -> int {
+		//		return component->getBoxStencilCount();
+		//	})
+		//.addFunction("getBoxStencilByIndex",
+		//	[](int index) -> BoxStencilComponent* {
+		//		return component->getBoxStencilByIndex(index).get();
+		//	})
+		//.addProperty("modelStencilCount",
+		//	[](SceneComponent* component) -> int {
+		//		return component->getModelStencilCount();
+		//	})
+		//.addFunction("getModelStencilByIndex",
+		//	[](int index) -> ModelStencilComponent* {
+		//		return component->getModelStencilByIndex(index).get();
+		//	})
+		.endClass();
 }

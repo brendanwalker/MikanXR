@@ -1,4 +1,5 @@
 #include "CommonScriptContext.h"
+#include "CompositorConstants.h"
 #include "MathGLM.h"
 #include "LuaMath.h"
 #include "Logger.h"
@@ -269,10 +270,28 @@ bool CommonScriptContext::addLuaCoroutineScheduler()
 	return checkLuaResult(ret, __FILE__, __LINE__);
 }
 
+template<typename t_enum_class>
+static void addEnumToLua(
+	luabridge::Namespace& globalNamespace, 
+	const std::string& enumName, 
+	const std::string* enumStrings)
+{
+	auto enumNamespace= globalNamespace.beginNamespace(enumName.c_str());
+
+	for (int enumIntValue = 0; enumIntValue < (int)t_enum_class::COUNT; ++enumIntValue)
+	{
+		const std::string enumString = enumStrings[enumIntValue];
+
+		enumNamespace.addProperty(enumString.c_str(), [enumIntValue]() { return enumIntValue; });
+	}
+		
+	enumNamespace.endNamespace();
+}
+
 void CommonScriptContext::bindCommonScriptFunctions()
 {
-	luabridge::getGlobalNamespace(m_luaState)
-		.beginNamespace("ScriptContext")
+	auto globalNamespace= luabridge::getGlobalNamespace(m_luaState);
+	globalNamespace.beginNamespace("ScriptContext")
 			.addFunction("registerTrigger", [this](const char* functionName) {
 				m_triggers.push_back(functionName);
 			})
@@ -284,6 +303,9 @@ void CommonScriptContext::bindCommonScriptFunctions()
 					OnScriptMessage(message);
 			})
 		.endNamespace();
+
+	// Register enums
+	addEnumToLua<eStencilCullMode>(globalNamespace, "CullMode", k_stencilCullModeStrings);
 }
 
 void CommonScriptContext::disposeScriptState()

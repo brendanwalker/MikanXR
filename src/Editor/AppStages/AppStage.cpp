@@ -28,6 +28,11 @@ AppStage::~AppStage()
 {
 }
 
+ProjectConfigPtr AppStage::getProjectConfig() const
+{
+	return m_ownerWindow->getObjectSystemManager()->getProjectConfig();
+}
+
 MikanViewportPtr AppStage::addViewport()
 {
 	auto viewport= 

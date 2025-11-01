@@ -14,7 +14,7 @@ class MonoLensDistortionCalibrator
 public:
 	MonoLensDistortionCalibrator(
 		MarkerObjectSystemPtr markerObjectSystem,
-		VideoFrameDistortionView* distortionView,
+		class VideoFrameDistortionView* distortionView,
 		int desiredBoardCount);
 	virtual ~MonoLensDistortionCalibrator();
 

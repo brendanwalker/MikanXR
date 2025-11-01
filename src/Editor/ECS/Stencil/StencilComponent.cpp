@@ -6,6 +6,9 @@
 #include "MikanObject.h"
 #include "StringUtils.h"
 
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
+
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Variant.h>
 
@@ -227,4 +230,35 @@ bool StencilComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr funct
 void StencilComponent::deleteStencil()
 {
 	getOwnerObject()->deleteSelfConfig();
+}
+
+// -- Lua Binding ----
+void StencilComponent::bindLuaFunctions(lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.deriveClass<StencilComponent, TransformComponent>("StencilComponent")
+		.addProperty("parentAnchorId",
+			[](StencilComponent* component) -> int {
+				return component->getStencilComponentDefinition()->getParentAnchorId();
+			})
+		//TODO
+		//.addProperty("parentAnchor",
+		//	[](SceneComponent* component) -> AnchorComponent* {
+		//		return component->getParentAnchor().get();
+		//	})
+		.addProperty("isDisabled",
+			[](StencilComponent* component) -> bool {
+				return component->getStencilComponentDefinition()->getIsDisabled();
+			},
+			[](StencilComponent* component, bool isDisabled) {
+				component->getStencilComponentDefinition()->setIsDisabled(isDisabled);
+			})
+		.addProperty("cullMode",
+			[](StencilComponent* component) -> eStencilCullMode {
+				return component->getStencilComponentDefinition()->getCullMode();
+			},
+			[](StencilComponent* component, eStencilCullMode cullMode) {
+				component->getStencilComponentDefinition()->setCullMode(cullMode);
+			})
+		.endClass();
 }

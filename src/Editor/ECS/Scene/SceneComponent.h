@@ -28,6 +28,7 @@ public:
 	void setParentStageId(MikanStageID stageId);
 
 	static const std::string k_compositorListPropertyId;
+	inline int getCompositorCount() const { return static_cast<int>(m_compositorIDs.size()); }
 	const std::vector<MikanCompositorID>& getCompositorIDs() const { return m_compositorIDs; }
 	void addCompositorID(MikanCompositorID compositorId);
 	void removeCompositorID(MikanCompositorID compositorId);
@@ -73,6 +74,9 @@ public:
 	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors);
 	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
 
+	// -- Lua Binding ----
+	static void bindLuaFunctions(struct lua_State* L);
+
 	// -- SceneComponent ----
 	inline MikanSceneID getSceneId() const { return getSceneComponentDefinition()->getSceneId(); }
 	StageComponentPtr getParentStage() const;
@@ -86,7 +90,6 @@ public:
 	void activateScene();
 	void deactivateScene();
 	void renderEditorScene(MikanCameraConstPtr camera, class MkStateStack& MkStateStack) const;
-
 
 protected:
 	virtual ComponentScriptContextPtr allocateScriptContext() override;

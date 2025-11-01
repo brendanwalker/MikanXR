@@ -84,7 +84,7 @@ void AnchorRequestHandler::getSpatialAnchorListHandler(
 {
 	MikanSpatialAnchorListResponse anchorListResult = {};
 
-	auto anchorSystemConfig = App::getInstance()->getProfileConfig()->anchorConfig;
+	auto anchorSystemConfig = getProjectConfig()->anchorConfig;
 	for (AnchorDefinitionPtr spatialAnchor : anchorSystemConfig->spatialAnchorList)
 	{
 		anchorListResult.spatial_anchor_id_list.push_back(spatialAnchor->getAnchorId());

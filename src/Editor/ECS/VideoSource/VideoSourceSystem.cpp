@@ -84,7 +84,7 @@ void VideoSourceSystem::deleteObjectConfig(MikanObjectPtr objectPtr)
 
 VideoSourceSystemConfigConstPtr VideoSourceSystem::getVideoSourceSystemConfigConst() const
 {
-	return App::getInstance()->getProfileConfig()->videoSourceSystemConfig;
+	return getProjectConfig()->videoSourceSystemConfig;
 }
 
 VideoSourceSystemConfigPtr VideoSourceSystem::getVideoSourceSystemConfig()

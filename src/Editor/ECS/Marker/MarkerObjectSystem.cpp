@@ -370,7 +370,7 @@ void MarkerObjectSystem::disposeMarkerObject(MikanMarkerID markerId)
 
 MarkerObjectSystemConfigConstPtr MarkerObjectSystem::getMarkerSystemConfigConst() const
 {
-	return App::getInstance()->getProfileConfig()->markerSystemConfig;
+	return getProjectConfig()->markerSystemConfig;
 }
 
 MarkerObjectSystemConfigPtr MarkerObjectSystem::getMarkerSystemConfig()

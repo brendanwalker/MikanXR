@@ -2,6 +2,11 @@
 
 #include <memory>
 
+class AppSettingsConfig;
+using AppSettingsConfigPtr = std::shared_ptr<AppSettingsConfig>;
+using AppSettingsConfigConstPtr = std::shared_ptr<const AppSettingsConfig>;
+using AppSettingsConfigWeakPtr = std::weak_ptr<AppSettingsConfig>;
+
 class ProjectConfig;
 using ProjectConfigPtr = std::shared_ptr<ProjectConfig>;
 using ProjectConfigConstPtr = std::shared_ptr<const ProjectConfig>;

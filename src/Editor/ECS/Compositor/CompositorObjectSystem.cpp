@@ -137,7 +137,7 @@ void CompositorObjectSystem::dispose()
 
 CompositorObjectSystemConfigConstPtr CompositorObjectSystem::getCompositorSystemConfigConst() const
 {
-	return App::getInstance()->getProfileConfig()->compositorConfig;
+	return getProjectConfig()->compositorConfig;
 }
 
 CompositorObjectSystemConfigPtr CompositorObjectSystem::getCompositorSystemConfig()

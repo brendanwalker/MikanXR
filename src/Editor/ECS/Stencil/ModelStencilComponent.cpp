@@ -33,6 +33,9 @@
 #include "StringUtils.h"
 #include "TextStyle.h"
 
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
+
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Variant.h>
 
@@ -553,4 +556,16 @@ void ModelStencilComponent::alignStencil()
 				stencilAligner->setSourceCamera(CameraObjectSystem::getSystem()->getCameraById(cameraId));
 			}
 		});
+}
+
+// -- Lua Binding ----
+void ModelStencilComponent::bindLuaFunctions(lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.deriveClass<ModelStencilComponent, StencilComponent>("ModelStencilComponent")
+		.addProperty("modelPath",
+			[](ModelStencilComponent* component) -> std::string {
+				return component->getModelStencilDefinition()->getModelPath().string();
+			})
+		.endClass();
 }

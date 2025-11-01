@@ -178,7 +178,7 @@ bool VRObjectSystem::init()
 	s_VRObjectSystem = std::static_pointer_cast<VRObjectSystem>(shared_from_this());
 
 	// Listen for project config changes
-	ProjectConfigPtr projectConfig = App::getInstance()->getProfileConfig();
+	ProjectConfigPtr projectConfig = getProjectConfig();
 	projectConfig->OnMarkedDirty +=
 		MakeDelegate(this, &VRObjectSystem::onProjectConfigMarkedDirty);
 	m_projectConfigWeakPtr= projectConfig;
@@ -471,17 +471,6 @@ void VRObjectSystem::disposeAllVRObjects()
 {
 	deleteAllObjects();
 	getVRSystemConfig()->removeAllVRDevice();
-}
-
-const ProjectConfig* VRObjectSystem::getProjectConfig() const
-{
-	ProjectConfigPtr projectConfigPtr= m_projectConfigWeakPtr.lock();
-	if (projectConfigPtr)
-	{
-		return projectConfigPtr.get();
-	}
-
-	return nullptr;
 }
 
 VRObjectSystemConfigConstPtr VRObjectSystem::getVRSystemConfigConst() const

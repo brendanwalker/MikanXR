@@ -1,5 +1,6 @@
 //-- includes -----
 #include "App.h"
+#include "AppSettingsConfig.h"
 #include "FrameTimer.h"
 #include "Graphs/CompositorNodeGraph.h"
 #include "SdlCommon.h"
@@ -27,14 +28,14 @@
 #include "Objbase.h"
 #endif //_WIN32
 
-#define PROFILE_SAVE_COOLDOWN	3.f
+#define SETTINGS_SAVE_COOLDOWN	3.f
 
 //-- static members -----
 App* App::m_instance= nullptr;
 
 //-- App -----
 App::App()
-	: m_profileConfig(std::make_shared<ProjectConfig>())
+	: m_appSettings(std::make_shared<AppSettingsConfig>())
 	, m_localizationManager(new LocalizationManager())	
 	, m_sdlManager(new SdlManager)
 	, m_bShutdownRequested(false)
@@ -49,7 +50,7 @@ App::~App()
 	delete m_sdlManager;
 	delete m_localizationManager;
 
-	m_profileConfig.reset();
+	m_appSettings.reset();
 
 	m_instance= nullptr;
 }
@@ -112,14 +113,14 @@ bool App::startup(int argc, char** argv)
 		success = false;
 	}
 
-	// Load any saved config
-	if (success && !m_profileConfig->load())
+	// Load any saved app settings config
+	if (success && !m_appSettings->load())
 	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to load profile config!";
+		MIKAN_LOG_ERROR("App::init") << "Failed to load app settings config!";
 		success = false;
 	}
 
-	if (success && !m_localizationManager->startup())
+	if (success && !m_localizationManager->startup(m_appSettings))
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize localization manager!";
 		success = false;
@@ -318,26 +319,25 @@ void App::popCurrentGlContext(ISdlMkWindow* window)
 
 void App::updateAutoSave(float deltaSeconds)
 {
-	// We change the profile constantly as changes are made in the UI
 	// Put the save to disk on a cooldown so we aren't writing to disk constantly
-	if (m_profileSaveCooldown >= 0.f)
+	if (m_appSettingsSaveCooldown >= 0.f)
 	{
-		if (m_profileConfig->isMarkedDirty())
+		if (m_appSettings->isMarkedDirty())
 		{
-			m_profileSaveCooldown -= deltaSeconds;
-			if (m_profileSaveCooldown < 0.f)
+			m_appSettingsSaveCooldown -= deltaSeconds;
+			if (m_appSettingsSaveCooldown < 0.f)
 			{
-				m_profileConfig->save();
-				m_profileSaveCooldown = -1.f;
+				m_appSettings->save();
+				m_appSettingsSaveCooldown = -1.f;
 			}
 		}
 		else
 		{
-			m_profileSaveCooldown = -1.f;
+			m_appSettingsSaveCooldown = -1.f;
 		}
 	}
-	else if (m_profileConfig->isMarkedDirty())
+	else if (m_appSettings->isMarkedDirty())
 	{
-		m_profileSaveCooldown = PROFILE_SAVE_COOLDOWN;
+		m_appSettingsSaveCooldown = SETTINGS_SAVE_COOLDOWN;
 	}
 }

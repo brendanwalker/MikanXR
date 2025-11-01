@@ -15,6 +15,9 @@
 #include "StringUtils.h"
 #include "TextStyle.h"
 
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
+
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Variant.h>
 
@@ -239,4 +242,33 @@ bool BoxStencilComponent::setPropertyValueFromRml(
 	}
 
 	return StencilComponent::setPropertyValueFromRml(propertyDesc, inValue);
+}
+
+// -- Lua Binding ----
+void BoxStencilComponent::bindLuaFunctions(lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.deriveClass<BoxStencilComponent, StencilComponent>("BoxStencilComponent")
+		.addProperty("boxXSize",
+			[](BoxStencilComponent* component) -> float {
+				return component->getBoxStencilDefinition()->getBoxXSize();
+			},
+			[](BoxStencilComponent* component, float value) {
+				component->getBoxStencilDefinition()->setBoxXSize(value);
+			})
+		.addProperty("boxYSize",
+			[](BoxStencilComponent* component) -> float {
+				return component->getBoxStencilDefinition()->getBoxYSize();
+			},
+			[](BoxStencilComponent* component, float value) {
+				component->getBoxStencilDefinition()->setBoxYSize(value);
+			})
+		.addProperty("boxZSize",
+			[](BoxStencilComponent* component) -> float {
+				return component->getBoxStencilDefinition()->getBoxZSize();
+			},
+			[](BoxStencilComponent* component, float value) {
+				component->getBoxStencilDefinition()->setBoxZSize(value);
+			})
+		.endClass();
 }

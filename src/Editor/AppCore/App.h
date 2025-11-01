@@ -19,7 +19,7 @@ public:
 
 	static App* getInstance() { return m_instance; }
 
-	inline ProjectConfigPtr getProfileConfig() const { return m_profileConfig; }
+	inline AppSettingsConfigPtr getAppSettings() const { return m_appSettings; }
 	inline class MainWindow* getMainWindow() const { return m_mainWindow; }
 	inline class SdlManager* getSdlManager() const { return m_sdlManager; }
 	inline class ISdlMkWindow* getCurrentlyRenderingWindow() const { return m_renderingWindow; }
@@ -116,9 +116,9 @@ protected:
 private:
 	static App* m_instance;
 
-	// Profile Config
-	ProjectConfigPtr m_profileConfig;
-	float m_profileSaveCooldown= -1.f;
+	// App Settings Config
+	AppSettingsConfigPtr m_appSettings;
+	float m_appSettingsSaveCooldown = -1.f;
 
 	// Localization manager
 	class LocalizationManager* m_localizationManager= nullptr;

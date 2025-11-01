@@ -53,7 +53,7 @@ void CameraRequestHandler::getCameraListHandler(
 {
 	MikanCameraListResponse cameraListResult = {};
 
-	auto cameraSystemConfig = App::getInstance()->getProfileConfig()->cameraConfig;
+	auto cameraSystemConfig = getProjectConfig()->cameraConfig;
 	for (CameraDefinitionPtr cameraConfig : cameraSystemConfig->getCameraList())
 	{
 		cameraListResult.camera_id_list.push_back(cameraConfig->getCameraId());
@@ -98,7 +98,7 @@ void CameraRequestHandler::getCameraInfoHandler(
 		return;
 	}
 
-	auto cameraSystemConfig = App::getInstance()->getProfileConfig()->cameraConfig;
+	auto cameraSystemConfig = getProjectConfig()->cameraConfig;
 	auto cameraConfig = cameraSystemConfig->getCameraConfig(cameraInfoRequest.camera_id);
 	if (cameraConfig != nullptr)
 	{

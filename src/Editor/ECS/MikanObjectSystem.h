@@ -42,6 +42,7 @@ public:
 	virtual MikanObjectSystemDefinitionPtr getObjectSystemConfig() {
 		return std::const_pointer_cast<MikanObjectSystemDefinition>(getObjectSystemConfigConst());
 	}
+	ProjectConfigPtr getProjectConfig() const;
 
 	MikanObjectPtr newObject();
 	void deleteObject(MikanObjectPtr objectPtr);
@@ -65,6 +66,7 @@ public:
 
 protected:
 	class ObjectSystemManager* m_ownerObjectSystemManager = nullptr;
+
 	MikanObjectList m_objects;
 
 	MulticastDelegate<void(float deltaSeconds)> onUpdate;

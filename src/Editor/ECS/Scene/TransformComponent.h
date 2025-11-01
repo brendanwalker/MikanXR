@@ -2,12 +2,12 @@
 
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
+#include "LuaMath.h"
 #include "MikanComponent.h"
 #include "MikanMathTypes.h"
 #include "ObjectSystemConfigFwd.h"
 #include "Transform.h"
 #include "IMkSceneRenderable.h"
-#include "ComponentFwd.h"
 #include "ObjectFwd.h"
 #include "SceneFwd.h"
 
@@ -127,6 +127,9 @@ public:
 
 	// -- IRmlFunctionInterface ----
 	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors);
+
+	// -- Lua Binding ----
+	static void bindLuaFunctions(struct lua_State* L);
 
 protected:
 	enum class eTransformChangeType : int

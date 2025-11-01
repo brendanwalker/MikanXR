@@ -162,7 +162,7 @@ void SceneObjectSystem::dispose()
 
 SceneObjectSystemConfigConstPtr SceneObjectSystem::getSceneSystemConfigConst() const
 {
-	return App::getInstance()->getProfileConfig()->sceneConfig;
+	return getProjectConfig()->sceneConfig;
 }
 
 SceneObjectSystemConfigPtr SceneObjectSystem::getSceneSystemConfig()

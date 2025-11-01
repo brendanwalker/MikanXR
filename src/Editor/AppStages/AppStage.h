@@ -24,6 +24,7 @@ public:
 		const std::string& stageName);
 	virtual ~AppStage();
 
+	ProjectConfigPtr getProjectConfig() const;
 	const std::string getAppStageName() const { return m_appStageName; }
 	bool getHasEntered() const { return m_bIsEntered; }
 	bool getIsPaused() const { return m_bIsPaused; }

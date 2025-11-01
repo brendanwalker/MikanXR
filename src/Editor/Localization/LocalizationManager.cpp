@@ -1,3 +1,4 @@
+#include "AppSettingsConfig.h"
 #include "LocalizationManager.h"
 #include "Logger.h"
 #include "PathUtils.h"
@@ -40,17 +41,21 @@ LocalizationManager::~LocalizationManager()
 	m_instance= nullptr;
 }
 
-bool LocalizationManager::startup()
+bool LocalizationManager::startup(AppSettingsConfigPtr m_appSettings)
 {
 	EASY_FUNCTION();
 
 	reloadLangages();
 
-	if (!setLanguage(getSystemLanguage()))
+	// Try to set the language in order: user setting, system language, default language
+	if (!setLanguage(m_appSettings->getAppLanguage()))
 	{
-		if (!setLanguage(getDefaultLanguage()))
+		if (!setLanguage(getSystemLanguage()))
 		{
-			return false;
+			if (!setLanguage(getDefaultLanguage()))
+			{
+				return false;
+			}
 		}
 	}
 

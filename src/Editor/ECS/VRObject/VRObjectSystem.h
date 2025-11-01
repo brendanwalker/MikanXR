@@ -73,7 +73,6 @@ public:
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
 
-	const ProjectConfig* getProjectConfig() const;
 	VRObjectSystemConfigConstPtr getVRSystemConfigConst() const;
 	VRObjectSystemConfigPtr getVRSystemConfig();
 

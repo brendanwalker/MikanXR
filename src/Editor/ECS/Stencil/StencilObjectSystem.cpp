@@ -593,7 +593,7 @@ bool StencilObjectSystem::disposeModelStencilObject(MikanStencilID stencilId)
 
 StencilObjectSystemConfigConstPtr StencilObjectSystem::getStencilSystemConfigConst() const
 {
-	return App::getInstance()->getProfileConfig()->stencilConfig;
+	return getProjectConfig()->stencilConfig;
 }
 
 StencilObjectSystemConfigPtr StencilObjectSystem::getStencilSystemConfig()

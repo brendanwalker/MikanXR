@@ -10,6 +10,9 @@
 #include "RmlUi/Core/Variant.h"
 #include "RmlUi/Config/Config.h"
 
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
+
 #include "tinyfiledialogs.h"
 
 // -- MikanComponentConfig -----
@@ -411,4 +414,14 @@ bool MikanComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functio
 	}
 
 	return false;
+}
+
+// -- Lua Binding ----
+void MikanComponent::bindLuaFunctions(struct lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.beginClass<MikanComponent>("MikanComponent")
+			.addProperty("name", &MikanComponent::getName, &MikanComponent::setName)
+			.addProperty("className", &MikanComponent::getComponentClassName)
+		.endClass();
 }

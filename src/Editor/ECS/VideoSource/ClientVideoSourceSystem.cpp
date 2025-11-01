@@ -13,7 +13,7 @@ bool ClientVideoSourceSystem::init()
 	MikanObjectSystem::init();
 
     VideoSourceSystemConfigConstPtr videoSourceSystemConfig = 
-        App::getInstance()->getProfileConfig()->videoSourceSystemConfig;
+        getProjectConfig()->videoSourceSystemConfig;
 
     for (const auto& sourceConfig : videoSourceSystemConfig->getClientVideoSourceList())
     {
@@ -81,7 +81,7 @@ ClientVideoSourceComponentPtr ClientVideoSourceSystem::addNewClientVideoSource(
     const MikanClientVideoSourceInfo& videoSourceInfo)
 {
     VideoSourceSystemConfigPtr videoSourceSystemConfig = 
-        App::getInstance()->getProfileConfig()->videoSourceSystemConfig;
+        getProjectConfig()->videoSourceSystemConfig;
 
     MikanVideoSourceID videoSourceId = videoSourceSystemConfig->addClientVideoSource(videoSourceInfo);
     if (videoSourceId != INVALID_MIKAN_ID)
@@ -98,7 +98,7 @@ ClientVideoSourceComponentPtr ClientVideoSourceSystem::addNewClientVideoSource(
 bool ClientVideoSourceSystem::removeClientVideoSource(MikanVideoSourceID videoSourceId)
 {
     VideoSourceSystemConfigPtr videoSourceSystemConfig = 
-        App::getInstance()->getProfileConfig()->videoSourceSystemConfig;
+        getProjectConfig()->videoSourceSystemConfig;
 
     return
         disposeClientVideoSourceObject(videoSourceId) &&

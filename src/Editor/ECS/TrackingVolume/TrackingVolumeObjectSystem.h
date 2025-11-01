@@ -27,8 +27,6 @@ public:
 		: CommonConfig(configName)
 	{}
 
-	static TrackingVolumeObjectSystemConfigPtr getSystemConfig();
-
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
