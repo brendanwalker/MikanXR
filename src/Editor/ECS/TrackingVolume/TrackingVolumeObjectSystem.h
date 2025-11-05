@@ -59,7 +59,7 @@ protected:
 class TrackingVolumeObjectSystem : public MikanObjectSystem
 {
 public:
-	TrackingVolumeObjectSystem(class ObjectSystemManager* ownerObjectSystemManager) : MikanObjectSystem(ownerObjectSystemManager) {}
+	TrackingVolumeObjectSystem(class ProjectManager* ownerObjectSystemManager) : MikanObjectSystem(ownerObjectSystemManager) {}
 
 	virtual bool init() override;
 	virtual void dispose() override;

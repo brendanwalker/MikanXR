@@ -7,7 +7,7 @@
 class IEditorWindow : public ISdlMkWindow
 {
 public:
-	virtual ObjectSystemManagerPtr getObjectSystemManager() const = 0;
+	virtual ProjectManagerPtr getObjectSystemManager() const = 0;
 	virtual class MikanServer* getMikanServer() const = 0;
 	virtual class MikanFontManager* getFontManager() const = 0;
 	virtual class RmlManager* getRmlManager() const = 0;

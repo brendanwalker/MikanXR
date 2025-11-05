@@ -11,7 +11,7 @@
 #include "MarkerObjectSystem.h"
 #include "MikanTextRenderer.h"
 #include "MikanObjectSystem.h"
-#include "ObjectSystemManager.h"
+#include "ProjectManager.h"
 #include "StageComponent.h"
 #include "TextStyle.h"
 #include "TrackingVolumeComponent.h"

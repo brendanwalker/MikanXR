@@ -41,7 +41,7 @@ private:
 class StageObjectSystem : public MikanObjectSystem
 {
 public:
-	StageObjectSystem(class ObjectSystemManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
+	StageObjectSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 	static StageObjectSystemPtr getSystem() { return s_sceneObjectSystem.lock(); }
 
 	virtual bool init() override;

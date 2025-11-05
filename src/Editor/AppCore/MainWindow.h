@@ -52,7 +52,7 @@ public:
 	virtual bool onSDLEvent(const SDL_Event* event) override;
 
 	// -- IEditorWindow ----
-	virtual ObjectSystemManagerPtr getObjectSystemManager() const override { return m_objectSystemManager; }
+	virtual ProjectManagerPtr getObjectSystemManager() const override { return m_objectSystemManager; }
 	virtual class MikanServer* getMikanServer() const override { return m_mikanServer; }
 	virtual class MikanFontManager* getFontManager() const override { return m_fontManager; }
 	virtual class RmlManager* getRmlManager() const override { return m_rmlManager; }
@@ -85,7 +85,7 @@ private:
 	class RmlManager* m_rmlManager = nullptr;
 
 	// Object System manager
-	ObjectSystemManagerPtr m_objectSystemManager;
+	ProjectManagerPtr m_objectSystemManager;
 
 	// OpenCV management
 	class OpenCVManager* m_openCVManager;

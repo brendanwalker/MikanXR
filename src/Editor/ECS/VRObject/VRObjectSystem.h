@@ -64,7 +64,7 @@ protected:
 class VRObjectSystem : public MikanObjectSystem, public IVRDeviceManagerListener
 {
 public:
-	VRObjectSystem(class ObjectSystemManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
+	VRObjectSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 
 	static VRObjectSystemPtr getSystem() { return s_VRObjectSystem.lock(); }
 

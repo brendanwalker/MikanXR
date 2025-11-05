@@ -8,7 +8,7 @@
 #include "MikanObject.h"
 #include "NetworkVideoSourceSystem.h"
 #include "NetworkVideoSourceComponent.h"
-#include "ObjectSystemManager.h"
+#include "ProjectManager.h"
 #include "SceneObjectSystem.h"
 #include "SceneComponent.h"
 #include "SpoutVideoSourceSystem.h"

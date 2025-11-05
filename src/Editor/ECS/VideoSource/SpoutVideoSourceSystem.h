@@ -14,7 +14,7 @@ using SpoutVideoSourceMap = std::map<MikanVideoSourceID, SpoutVideoSourceCompone
 class SpoutVideoSourceSystem : public MikanObjectSystem
 {
 public:  
-    SpoutVideoSourceSystem(class ObjectSystemManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
+    SpoutVideoSourceSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 
     virtual bool init() override;
     virtual void dispose() override;

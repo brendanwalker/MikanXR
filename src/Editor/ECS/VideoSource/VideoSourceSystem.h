@@ -17,7 +17,7 @@
 class VideoSourceSystem : public MikanObjectSystem
 {
 public:
-	VideoSourceSystem(class ObjectSystemManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
+	VideoSourceSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 	static VideoSourceSystemPtr getSystem() { return s_VideoSourceSystem.lock(); }
 
 	virtual bool init() override;

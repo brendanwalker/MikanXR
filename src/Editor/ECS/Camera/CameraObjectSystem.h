@@ -48,7 +48,7 @@ protected:
 class CameraObjectSystem : public MikanObjectSystem
 {
 public:
-	CameraObjectSystem(class ObjectSystemManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
+	CameraObjectSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 	static CameraObjectSystemPtr getSystem() { return s_cameraObjectSystem.lock(); }
 
 	virtual bool init() override;

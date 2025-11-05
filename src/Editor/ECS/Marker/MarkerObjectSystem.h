@@ -86,7 +86,7 @@ protected:
 class MarkerObjectSystem : public MikanObjectSystem
 {
 public:
-	MarkerObjectSystem(class ObjectSystemManager* ownerObjectSystemManager) : MikanObjectSystem(ownerObjectSystemManager) {}
+	MarkerObjectSystem(class ProjectManager* ownerObjectSystemManager) : MikanObjectSystem(ownerObjectSystemManager) {}
 
 	virtual bool init() override;
 	virtual void dispose() override;

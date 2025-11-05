@@ -4,7 +4,7 @@
 #include "MikanObject.h"
 #include "MikanObjectSystem.h"
 #include "MikanServer.h"
-#include "ObjectSystemManager.h"
+#include "ProjectManager.h"
 #include "ScriptRequestHandler.h"
 
 #include "RmlUi/Core/Variant.h"
@@ -214,7 +214,7 @@ void MikanComponent::setName(const std::string& name)
 		m_definition->setComponentName(name);
 }
 
-ObjectSystemManager* MikanComponent::getOwnerObjectSystemManager() const
+ProjectManager* MikanComponent::getOwnerObjectSystemManager() const
 {
 	return getOwnerObject()->getOwnerSystem()->getOwnerObjectSystemManager();
 }

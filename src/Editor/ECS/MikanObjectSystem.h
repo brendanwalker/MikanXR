@@ -27,7 +27,7 @@ class MikanObjectSystem :
 	public IRmlFunctionInterface
 {
 public:
-	MikanObjectSystem(class ObjectSystemManager* ownerObjectSystem);
+	MikanObjectSystem(class ProjectManager* ownerObjectSystem);
 	virtual ~MikanObjectSystem();
 
 	virtual bool init();
@@ -35,7 +35,7 @@ public:
 	virtual void update(float deltaSeconds);
 	virtual void customRender();
 
-	inline class ObjectSystemManager* getOwnerObjectSystemManager() const { return m_ownerObjectSystemManager; }
+	inline class ProjectManager* getOwnerObjectSystemManager() const { return m_ownerObjectSystemManager; }
 	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const {
 		return MikanObjectSystemDefinitionConstPtr();
 	}
@@ -65,7 +65,7 @@ public:
 	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)  override { return false; }
 
 protected:
-	class ObjectSystemManager* m_ownerObjectSystemManager = nullptr;
+	class ProjectManager* m_ownerObjectSystemManager = nullptr;
 
 	MikanObjectList m_objects;
 

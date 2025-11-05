@@ -6,10 +6,10 @@
 #include <string>
 #include <vector>
 
-class ObjectSystemManager
+class ProjectManager
 {
 public:
-	ObjectSystemManager(class IMkWindow* ownerWindow);
+	ProjectManager(class IMkWindow* ownerWindow);
 
 	inline ProjectConfigPtr getProjectConfig() const { return m_projectConfig; }
 	inline class IMkWindow* getOwnerWindow() const { return m_ownerWindow; }

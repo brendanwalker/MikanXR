@@ -2,7 +2,7 @@
 #include "ColliderComponent.h"
 #include "MikanObject.h"
 #include "SelectionComponent.h"
-#include "ObjectSystemManager.h"
+#include "ProjectManager.h"
 
 SelectionComponent::SelectionComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)

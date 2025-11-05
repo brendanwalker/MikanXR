@@ -38,9 +38,9 @@ class NetworkVideoSourceSystem;
 using NetworkVideoSourceSystemPtr = std::shared_ptr<NetworkVideoSourceSystem>;
 using NetworkVideoSourceSystemWeakPtr = std::weak_ptr<NetworkVideoSourceSystem>;
 
-class ObjectSystemManager;
-using ObjectSystemManagerPtr = std::shared_ptr<ObjectSystemManager>;
-using ObjectSystemManagerWeakPtr = std::weak_ptr<ObjectSystemManager>;
+class ProjectManager;
+using ProjectManagerPtr = std::shared_ptr<ProjectManager>;
+using ProjectManagerWeakPtr = std::weak_ptr<ProjectManager>;
 
 class SceneObjectSystem;
 using SceneObjectSystemPtr = std::shared_ptr<SceneObjectSystem>;

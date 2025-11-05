@@ -1,6 +1,5 @@
 #pragma once
 
-#include "ObjectSystemManager.h"
 #include "AnchorObjectSystem.h"
 #include "ClientVideoSourceSystem.h"
 #include "CameraObjectSystem.h"
@@ -10,6 +9,7 @@
 #include "MarkerObjectSystem.h"
 #include "NetworkVideoSourceSystem.h"
 #include "ProjectConfig.h"
+#include "ProjectManager.h"
 #include "SceneObjectSystem.h"
 #include "SpoutVideoSourceSystem.h"
 #include "StencilObjectSystem.h"
@@ -22,12 +22,12 @@
 
 #define PROJECT_SAVE_COOLDOWN	3.f
 
-ObjectSystemManager::ObjectSystemManager(IMkWindow* ownerWindow)
+ProjectManager::ProjectManager(IMkWindow* ownerWindow)
 	: m_ownerWindow(ownerWindow)
 {
 }
 
-bool ObjectSystemManager::startup()
+bool ProjectManager::startup()
 {
 	// Allocate all systems, in the order we want to perform init and updates
 	// Init EditorSystem first so that it get component creation events 
@@ -52,13 +52,13 @@ bool ObjectSystemManager::startup()
 	return true;
 }
 
-void ObjectSystemManager::shutdown()
+void ProjectManager::shutdown()
 {
 	unloadProject();
 	m_systems.clear();
 }
 
-void ObjectSystemManager::update(float deltaSeconds)
+void ProjectManager::update(float deltaSeconds)
 {
 	for (MikanObjectSystemPtr system : m_systems)
 	{
@@ -68,7 +68,7 @@ void ObjectSystemManager::update(float deltaSeconds)
 	updateAutoSave(deltaSeconds);
 }
 
-void ObjectSystemManager::customRender()
+void ProjectManager::customRender()
 {
 	for (MikanObjectSystemPtr system : m_systems)
 	{
@@ -76,12 +76,12 @@ void ObjectSystemManager::customRender()
 	}
 }
 
-bool ObjectSystemManager::hasLoadedProject() const
+bool ProjectManager::hasLoadedProject() const
 {
 	return m_projectConfig != nullptr;
 }
 
-bool ObjectSystemManager::newProject(const std::string& projectFilePath)
+bool ProjectManager::newProject(const std::string& projectFilePath)
 {
 	auto newProjectConfig = std::make_shared<ProjectConfig>();
 	newProjectConfig->save(projectFilePath);
@@ -89,7 +89,7 @@ bool ObjectSystemManager::newProject(const std::string& projectFilePath)
 	return loadProject(projectFilePath);
 }
 
-bool ObjectSystemManager::loadProject(const std::string& projectFilePath)
+bool ProjectManager::loadProject(const std::string& projectFilePath)
 {
 	// Early out if the requested project path isn't new
 	if (hasLoadedProject() && m_projectConfig->getLoadedConfigPath() == projectFilePath)
@@ -127,7 +127,7 @@ bool ObjectSystemManager::loadProject(const std::string& projectFilePath)
 	return bSuccess;
 }
 
-bool ObjectSystemManager::saveProject(const std::string& projectFilePath)
+bool ProjectManager::saveProject(const std::string& projectFilePath)
 {
 	if (hasLoadedProject())
 	{
@@ -138,7 +138,7 @@ bool ObjectSystemManager::saveProject(const std::string& projectFilePath)
 	return false;
 }
 
-void ObjectSystemManager::unloadProject()
+void ProjectManager::unloadProject()
 {
 	// Call dispose in reverse order 
 	// so that Editor system gets component destroy events
@@ -153,7 +153,7 @@ void ObjectSystemManager::unloadProject()
 	m_projectConfig = nullptr;
 }
 
-void ObjectSystemManager::updateAutoSave(float deltaSeconds)
+void ProjectManager::updateAutoSave(float deltaSeconds)
 {
 	// We change the profile constantly as changes are made in the UI
 	// Put the save to disk on a cooldown so we aren't writing to disk constantly

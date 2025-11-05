@@ -55,7 +55,7 @@ protected:
 class AnchorObjectSystem : public MikanObjectSystem
 {
 public:
-	AnchorObjectSystem(class ObjectSystemManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
+	AnchorObjectSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 	static AnchorObjectSystemPtr getSystem() { return s_anchorObjectSystem.lock(); }
 
 	virtual bool init() override;

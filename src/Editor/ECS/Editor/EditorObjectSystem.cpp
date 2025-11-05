@@ -10,7 +10,7 @@
 #include "GizmoTranslateComponent.h"
 #include "MikanViewport.h"
 #include "InputManager.h"
-#include "ObjectSystemManager.h"
+#include "ProjectManager.h"
 #include "MainWindow.h"
 #include "MathUtility.h"
 #include "MikanObject.h"
@@ -72,7 +72,7 @@ bool EditorObjectSystem::init()
 
 	MainWindow::getInstance()->OnAppStageEntered += MakeDelegate(this, &EditorObjectSystem::onAppStageEntered);
 
-	ObjectSystemManagerPtr objSystemMgr= MainWindow::getInstance()->getObjectSystemManager();
+	ProjectManagerPtr objSystemMgr= MainWindow::getInstance()->getObjectSystemManager();
 
 	SceneObjectSystemPtr sceneObjectSystem = objSystemMgr->getSystemOfType<SceneObjectSystem>();
 	sceneObjectSystem->OnComponentDisposed+= MakeDelegate(this, &EditorObjectSystem::onSceneDisposed);

@@ -17,7 +17,7 @@ using USBVideoSourceMap = std::map<MikanVideoSourceID, USBVideoSourceComponentWe
 class USBVideoSourceSystem : public MikanObjectSystem, public IUsbVideoDeviceManagerListener
 {
 public:
-    USBVideoSourceSystem(class ObjectSystemManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
+    USBVideoSourceSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 
     virtual bool init() override;
     virtual void dispose() override;

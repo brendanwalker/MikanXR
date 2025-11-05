@@ -30,8 +30,8 @@
 #include "MikanTextRenderer.h"
 #include "MikanObject.h"
 #include "MikanServer.h"
-#include "ObjectSystemManager.h"
 #include "ProjectConfig.h"
+#include "ProjectManager.h"
 #include "Project/AppStage_Project.h"
 #include "Project/RmlModel_Project.h"
 #include "Project/RmlModel_ProjectMarkers.h"
@@ -104,7 +104,7 @@ void AppStage_Project::enter()
 	m_project = getProjectConfig();
 
 	// Cache object systems we'll be accessing
-	ObjectSystemManagerPtr objectSystemManager = m_ownerWindow->getObjectSystemManager();
+	ProjectManagerPtr objectSystemManager = m_ownerWindow->getObjectSystemManager();
 	m_anchorObjectSystem = objectSystemManager->getSystemOfType<AnchorObjectSystem>();
 	m_cameraSystem = objectSystemManager->getSystemOfType<CameraObjectSystem>();
 	m_compositorSystem = objectSystemManager->getSystemOfType<CompositorObjectSystem>();

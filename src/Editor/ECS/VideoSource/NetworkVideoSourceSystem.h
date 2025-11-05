@@ -15,7 +15,7 @@ using NetworkVideoSourceMap = std::map<MikanVideoSourceID, NetworkVideoSourceCom
 class NetworkVideoSourceSystem : public MikanObjectSystem
 {
 public:   
-    NetworkVideoSourceSystem(class ObjectSystemManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
+    NetworkVideoSourceSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 
     virtual bool init() override;
 	virtual void update(float deltaTime) override;

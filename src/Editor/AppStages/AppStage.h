@@ -3,7 +3,7 @@
 #include "IEditorWindow.h"
 #include "LocalizationManager.h"
 #include "MikanRendererFwd.h"
-#include "ObjectSystemManager.h"
+#include "ProjectManager.h"
 #include "RmlFwd.h"
 
 #include <string>

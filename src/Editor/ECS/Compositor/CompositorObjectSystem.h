@@ -41,7 +41,7 @@ private:
 class CompositorObjectSystem : public MikanObjectSystem
 {
 public:
-	CompositorObjectSystem(class ObjectSystemManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
+	CompositorObjectSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 	static CompositorObjectSystemPtr getSystem() { return s_compositorObjectSystem.lock(); }
 
 	virtual bool init() override;

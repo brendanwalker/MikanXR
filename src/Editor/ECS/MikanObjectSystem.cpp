@@ -3,7 +3,7 @@
 
 #include "assert.h"
 
-MikanObjectSystem::MikanObjectSystem(ObjectSystemManager* ownerObjectSystem)
+MikanObjectSystem::MikanObjectSystem(ProjectManager* ownerObjectSystem)
 	: m_ownerObjectSystemManager(ownerObjectSystem)
 {
 

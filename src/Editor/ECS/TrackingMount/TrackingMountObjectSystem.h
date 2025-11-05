@@ -44,7 +44,7 @@ private:
 class TrackingMountObjectSystem : public MikanObjectSystem
 {
 public:
-	TrackingMountObjectSystem(class ObjectSystemManager* ownerObjectSystemManager) : MikanObjectSystem(ownerObjectSystemManager) {}
+	TrackingMountObjectSystem(class ProjectManager* ownerObjectSystemManager) : MikanObjectSystem(ownerObjectSystemManager) {}
 
 	virtual bool init() override;
 	virtual void dispose() override;

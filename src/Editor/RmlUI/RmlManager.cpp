@@ -16,8 +16,8 @@
 #include "MarkerComponent.h"
 #include "MikanSpatialAnchorTypes.h"
 #include "MikanStencilTypes.h"
-#include "ObjectSystemManager.h"
 #include "ProjectConfig.h"
+#include "ProjectManager.h"
 #include "PathUtils.h"
 #include "SdlManager.h"
 #include "StageObjectSystem.h"
@@ -276,7 +276,7 @@ static void registerEnumDefinition(
 template<class t_system_type>
 std::shared_ptr<t_system_type> rmlGetSystemOfType(RmlManager* rmlManager)
 {
-	ObjectSystemManagerPtr objectSystemManager = rmlManager->getOwnerWindow()->getObjectSystemManager();
+	ProjectManagerPtr objectSystemManager = rmlManager->getOwnerWindow()->getObjectSystemManager();
 
 	return objectSystemManager->getSystemOfType<t_system_type>();
 }

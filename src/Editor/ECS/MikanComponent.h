@@ -7,7 +7,7 @@
 #include "ObjectFwd.h"
 #include "MulticastDelegate.h"
 #include "ObjectSystemConfigFwd.h"
-#include "ObjectSystemManager.h"
+#include "ProjectManager.h"
 #include "RmlFunctionInterface.h"
 #include "RmlPropertyInterface.h"
 #include "ScriptingFwd.h"
@@ -66,7 +66,7 @@ public:
 	const std::string& getName() const { return m_name; }
 
 	MikanObjectPtr getOwnerObject() const { return m_ownerObject.lock(); }
-	ObjectSystemManager* getOwnerObjectSystemManager() const;
+	ProjectManager* getOwnerObjectSystemManager() const;
 
 	template <class t_object_system_type>
 	std::shared_ptr<t_object_system_type> getObjectSystemOfType() const

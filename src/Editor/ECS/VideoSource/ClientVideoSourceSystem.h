@@ -14,7 +14,7 @@ using ClientVideoSourceMap = std::map<MikanVideoSourceID, ClientVideoSourceCompo
 class ClientVideoSourceSystem : public MikanObjectSystem
 {
 public:   
-    ClientVideoSourceSystem(class ObjectSystemManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
+    ClientVideoSourceSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 
     virtual bool init() override;
     virtual void dispose() override;

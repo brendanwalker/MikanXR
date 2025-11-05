@@ -26,7 +26,7 @@ protected:
 
 private:
 	AppSettingsConfigPtr m_appSettingsConfig;
-	ObjectSystemManagerPtr m_projectManager;
+	ProjectManagerPtr m_projectManager;
 
 	class RmlModel_MainMenu* m_mainMenuModel = nullptr;
 	Rml::ElementDocument* m_mainMenuView = nullptr;

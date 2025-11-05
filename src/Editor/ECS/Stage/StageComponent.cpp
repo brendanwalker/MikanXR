@@ -118,7 +118,7 @@ TrackingVolumeDefinitionConstPtr StageComponent::getTrackingVolumeDefinitionCons
 	MikanTrackingVolumeID trackingVolumeId = getStageComponentDefinitionConst()->getTrackingVolumeId();
 	if (trackingVolumeId != INVALID_MIKAN_ID)
 	{
-		ObjectSystemManager* systemManager = getOwnerObjectSystemManager();
+		ProjectManager* systemManager = getOwnerObjectSystemManager();
 		TrackingVolumeObjectSystemPtr trackingVolumeSystem = systemManager->getSystemOfType<TrackingVolumeObjectSystem>();
 		if (trackingVolumeSystem)
 		{

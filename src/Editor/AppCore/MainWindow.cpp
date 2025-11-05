@@ -30,7 +30,7 @@
 #include "MikanModelResourceManager.h"
 #include "MkStateStack.h"
 #include "MkStateModifiers.h"
-#include "ObjectSystemManager.h"
+#include "ProjectManager.h"
 #include "OpenCVManager.h"
 #include "RmlManager.h"
 #include "SdlWindow.h"
@@ -60,7 +60,7 @@ MainWindow::MainWindow()
 	, m_clientSourceManager(new ClientSourceManager())
 	, m_inputManager(new InputManager())
 	, m_rmlManager(new RmlManager(this))
-	, m_objectSystemManager(std::make_shared<ObjectSystemManager>(this))
+	, m_objectSystemManager(std::make_shared<ProjectManager>(this))
 	, m_openCVManager(new OpenCVManager())
 	, m_fontManager(new MikanFontManager())
 	, m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
