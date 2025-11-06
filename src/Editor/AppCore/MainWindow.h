@@ -52,13 +52,14 @@ public:
 	virtual bool onSDLEvent(const SDL_Event* event) override;
 
 	// -- IEditorWindow ----
-	virtual ProjectManagerPtr getObjectSystemManager() const override { return m_objectSystemManager; }
 	virtual class MikanServer* getMikanServer() const override { return m_mikanServer; }
-	virtual class MikanFontManager* getFontManager() const override { return m_fontManager; }
-	virtual class RmlManager* getRmlManager() const override { return m_rmlManager; }
-	virtual class GlRmlUiRender* getRmlUiRenderer() const override { return m_rmlUiRenderer.get(); }
+	virtual class ClientSourceManager* getClientSourceManager() const { return m_clientSourceManager; }
 	virtual class InputManager* getInputManager() const override { return m_inputManager; }
+	virtual class RmlManager* getRmlManager() const override { return m_rmlManager; }
+	virtual ProjectManagerPtr getProjectManager() const override { return m_projectManager; }
 	virtual class OpenCVManager* getOpenCVManager() const override { return m_openCVManager; }
+	virtual class MikanFontManager* getFontManager() const override { return m_fontManager; }
+	virtual class GlRmlUiRender* getRmlUiRenderer() const override { return m_rmlUiRenderer.get(); }
 
 	virtual AppStage* getCurrentAppStage() const override;
 	virtual AppStage* getParentAppStage() const override;
@@ -85,7 +86,7 @@ private:
 	class RmlManager* m_rmlManager = nullptr;
 
 	// Object System manager
-	ProjectManagerPtr m_objectSystemManager;
+	ProjectManagerPtr m_projectManager;
 
 	// OpenCV management
 	class OpenCVManager* m_openCVManager;

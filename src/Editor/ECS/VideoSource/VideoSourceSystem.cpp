@@ -25,7 +25,7 @@ bool VideoSourceSystem::init()
 	MikanObjectSystem::init();
 
 	// Create subsystems
-	auto* owner= getOwnerObjectSystemManager();
+	auto* owner= getOwnerProjectManager();
 	m_clientVideoSourceSystem = owner->getSystemOfType<ClientVideoSourceSystem>();
 	m_networkVideoSourceSystem = owner->getSystemOfType<NetworkVideoSourceSystem>();
 	m_spoutVideoSourceSystem = owner->getSystemOfType<SpoutVideoSourceSystem>();

@@ -77,7 +77,7 @@ bool MikanServer::startup(MainWindow* mainWindow)
 {
 	EASY_FUNCTION();
 
-	m_projectConfig = mainWindow->getObjectSystemManager()->getProjectConfig();
+	m_projectConfig = mainWindow->getProjectManager()->getProjectConfig();
 
 	if (!m_messageServer->initialize())
 	{

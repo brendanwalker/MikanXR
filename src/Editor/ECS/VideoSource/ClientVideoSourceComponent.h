@@ -1,6 +1,8 @@
 #pragma once
 
+#include "CompositorConstants.h"
 #include "VideoSourceComponent.h"
+#include "MkRendererFwd.h"
 
 class ClientVideoSourceDefinition : public VideoSourceDefinition
 {
@@ -35,6 +37,10 @@ public:
 	}
 	virtual void setDefinition(MikanComponentDefinitionPtr definition) override;
 
+	// Client Video Source Interface
+	IMkTexturePtr getClientColorSourceTexture(eClientColorTextureType clientTextureType) const;
+	IMkTexturePtr getClientDepthSourceTexture(eClientDepthTextureType clientTextureType) const;
+
 	// Video Source Interface
 	virtual std::string getDevicePath() const override;
 	virtual std::string getDeviceAPI() const override;
@@ -44,12 +50,12 @@ public:
 	virtual eVideoStreamingStatus getVideoStreamingStatus() const override;
 	virtual void stopVideoStream() override;
 
-	virtual bool hasNewVideoFrameAvailable(VideoFrameSection section) const override;
-	virtual int64_t readVideoFrameSectionBuffer(VideoFrameSection section, cv::Mat* outBuffer) override;
+	virtual bool getVideoPixelDimensions(int& outPixelWidth, int& outPixelHeight) const override;
 
-	virtual bool getPixelDimensions(int& outPixelWidth, int& outPixelHeight) const override;
-	virtual bool getCameraIntrinsics(MikanVideoSourceIntrinsics& out_camera_intrinsics) const override;
-	virtual bool setCameraIntrinsics(const MikanVideoSourceIntrinsics& camera_intrinsics) override;
+	//TODO
+	// -- IClientVideoSourceListener ----
+	//virtual void notifyClientVideoSourceClosed(const class INetworkVideoDevice* device) override;
+	//virtual void notifyClientVideoFrameReceived(const NetworkVideoFrameBuffer& bufferInfo) override;
 
 	// -- IRmlPropertyInterface ----
 	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors);
@@ -59,4 +65,8 @@ public:
 	// -- IRmlFunctionInterface ----
 	static void getFunctionNamesStatic(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
 	{ VideoSourceComponent::getRmlFunctionDescriptors(outDescriptors); }
+
+protected:
+	class ClientSourceManager* getClientSourceManager() const;
+	const std::string& getClientSourceName() const;
 };

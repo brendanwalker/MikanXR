@@ -65,9 +65,8 @@ public:
 	virtual eVideoStreamingStatus startVideoStream() override;
 	virtual eVideoStreamingStatus getVideoStreamingStatus() const override;
 	virtual void stopVideoStream() override;
-	virtual bool hasNewVideoFrameAvailable(VideoFrameSection section) const override;
-	virtual int64_t readVideoFrameSectionBuffer(VideoFrameSection section, cv::Mat* outBuffer) override;	
 	virtual bool getVideoModeName(std::string& outVideoModeName) const override;
+	virtual bool getVideoPixelDimensions(int& outPixelWidth, int& outPixelHeight) const override;
 	virtual bool isVideoSettingSupported(const eVideoSettingType property_type) const override;
 	virtual bool getVideoSettingConstraint(const eVideoSettingType property_type, VideoSettingConstraint& outConstraint) const override;
 	virtual void setVideoSetting(const eVideoSettingType property_type, int desired_value) override;
@@ -99,13 +98,7 @@ public:
 protected:
 	bool updateVideoMode();
 	void updateCameraSettings();
-	bool reallocateOpencvBufferState();
-	void releaseOpencvBufferState();
-	void recomputeCameraProjectionMatrix();	
 
 protected:
-	int64_t m_lastVideoFrameReadIndex;
-	class OpenCVVideoFrameBuffer* m_opencv_buffer_state[MAX_PROJECTION_COUNT];
 	IUsbVideoDevice* m_usbVideoDevice;
-	glm::mat4 m_projectionMatrix;
 };

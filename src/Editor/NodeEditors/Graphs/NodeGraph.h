@@ -5,6 +5,7 @@
 #include "CommonConfig.h"
 #include "NodeFwd.h"
 #include "Nodes/Node.h"
+#include "ObjectSystemFwd.h"
 #include "Pins/NodePin.h"
 #include "Pins/NodePinConstants.h"
 #include "Properties/GraphProperty.h"
@@ -51,6 +52,9 @@ public:
 
 	inline void setOwnerWindow(class IMkWindow* window) { m_ownerWindow= window; }
 	inline class IMkWindow* getOwnerWindow() const { return m_ownerWindow; }
+	class IEditorWindow* getOwnerEditorWindow() const;
+
+	ProjectManagerPtr getOwnerProject() const;
 
 	virtual bool createResources() { return true; }
 	virtual void disposeResources() {}

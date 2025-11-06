@@ -2,6 +2,7 @@
 
 #include "NodeFwd.h"
 #include "CommonConfig.h"
+#include "ObjectSystemFwd.h"
 #include "Pins/NodePinConstants.h"
 #include "glm/ext/vector_float2.hpp"
 
@@ -52,6 +53,8 @@ public:
 
 	inline void setId(t_node_id id) { m_id = id; }
 	inline int getId() const { return m_id; }
+
+	ProjectManagerPtr getOwnerProject() const;
 
 	virtual void setOwnerGraph(NodeGraphPtr ownerGraph);
 	inline NodeGraphPtr getOwnerGraph() const { return m_ownerGraph; }	

@@ -104,7 +104,7 @@ void AppStage_Project::enter()
 	m_project = getProjectConfig();
 
 	// Cache object systems we'll be accessing
-	ProjectManagerPtr objectSystemManager = m_ownerWindow->getObjectSystemManager();
+	ProjectManagerPtr objectSystemManager = m_ownerWindow->getProjectManager();
 	m_anchorObjectSystem = objectSystemManager->getSystemOfType<AnchorObjectSystem>();
 	m_cameraSystem = objectSystemManager->getSystemOfType<CameraObjectSystem>();
 	m_compositorSystem = objectSystemManager->getSystemOfType<CompositorObjectSystem>();
@@ -409,7 +409,7 @@ void AppStage_Project::onToggleSettingsWindowEvent()
 
 void AppStage_Project::onScreenshotClientSourceEvent(const std::string& clientSourceName)
 {
-	auto* clientSourceManager = ClientSourceManager::getInstance();
+	auto* clientSourceManager = getOwnerWindow()->getClientSourceManager();
 
 	const auto& clientSources= clientSourceManager->getClientSources();
 	if (ClientSourceManager::ClientSource* clientSource = nullptr;
@@ -454,7 +454,7 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 		m_ownerWindow->getMkStateStack());
 
 	// Perform component custom rendering
-	m_ownerWindow->getObjectSystemManager()->customRender();
+	m_ownerWindow->getProjectManager()->customRender();
 
 	// Special debug rendering for just the scene view
 	if (compositorIndex == 0)

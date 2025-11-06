@@ -41,17 +41,9 @@ public:
 
 	MikanCompositorID getCompositorId() const { return m_compositorId; }
 
-	static const std::string k_sourceTypePropertyId;
-	inline eCompositorSourceType getSourceType() const { return m_sourceType; }
-	void setSourceType(eCompositorSourceType sourceType);
-
 	static const std::string k_cameraIdPropertyId;
 	inline MikanCameraID getCameraId() const { return m_cameraId; }
 	void setCameraId(MikanCameraID cameraId);
-
-	static const std::string k_videoSourceIdPropertyId;
-	inline MikanVideoSourceID getVideoSourceId() const { return m_videoSourceId; }
-	void setVideoSourceId(MikanVideoSourceID videoSourceId);
 
 	static const std::string k_ownerStagePropertyId;
 	inline MikanStageID getOwnerStageId() const { return m_ownerStageId; }
@@ -73,9 +65,7 @@ public:
 private:
 	MikanCompositorID m_compositorId;
 	MikanStageID m_ownerStageId = INVALID_MIKAN_ID;
-	eCompositorSourceType m_sourceType = eCompositorSourceType::videoSource;
 	MikanCameraID m_cameraId = INVALID_MIKAN_ID;
-	MikanVideoSourceID m_videoSourceId = INVALID_MIKAN_ID;
 	AssetReferenceConfigPtr m_nodeGraphAssetRef;
 	bool m_bIsSpoutOutputStreaming = false;
 	std::string m_spoutOutputName;

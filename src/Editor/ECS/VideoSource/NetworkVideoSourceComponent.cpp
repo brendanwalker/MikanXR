@@ -179,14 +179,8 @@ bool NetworkVideoSourceDefinition::parseUrl(
 // -- NetworkVideoSourceComponent -----
 NetworkVideoSourceComponent::NetworkVideoSourceComponent(MikanObjectWeakPtr owner)
 	: VideoSourceComponent(owner)
-	, m_lastVideoFrameReadIndex(0)
 	, m_networkVideoDevice(nullptr)
-	, m_projectionMatrix(glm::mat4(1.f))
 {
-	for (int i = 0; i < MAX_PROJECTION_COUNT; ++i)
-	{
-		m_opencv_buffer_state[i] = nullptr;
-	}
 }
 
 void NetworkVideoSourceComponent::dispose()
@@ -348,64 +342,20 @@ void NetworkVideoSourceComponent::stopVideoStream()
 	}
 }
 
-bool NetworkVideoSourceComponent::hasNewVideoFrameAvailable(VideoFrameSection section) const
+bool NetworkVideoSourceComponent::getVideoPixelDimensions(int& outPixelWidth, int& outPixelHeight) const
 {
-	NetworkVideoSourceDefinitionPtr definition = getNetworkVideoSourceDefinition();
-	const MikanVideoSourceIntrinsics& intrinsics = definition->getCameraIntrinsics();
-
-	int64_t lastFrameWriteIndex = 0;
-
-	if (intrinsics.intrinsics_type == STEREO_CAMERA_INTRINSICS)
+	if (m_networkVideoDevice != nullptr)
 	{
-		if ((section == VideoFrameSection::Left || section == VideoFrameSection::Right) &&
-			m_opencv_buffer_state[(int)section] != nullptr)
+		NetworkVideoStreamProperties streamProperties;
+		if (m_networkVideoDevice->getStreamProperties(streamProperties))
 		{
-			lastFrameWriteIndex = m_opencv_buffer_state[(int)section]->getLastVideoFrameWriteIndex();
-		}
-	}
-	else
-	{
-		if (section == VideoFrameSection::Primary &&
-			m_opencv_buffer_state[(int)VideoFrameSection::Primary] != nullptr)
-		{
-			lastFrameWriteIndex = m_opencv_buffer_state[(int)VideoFrameSection::Primary]->getLastVideoFrameWriteIndex();
+			outPixelWidth = streamProperties.width;
+			outPixelHeight = streamProperties.height;
+			return true;
 		}
 	}
 
-	return lastFrameWriteIndex != m_lastVideoFrameReadIndex;
-}
-
-int64_t NetworkVideoSourceComponent::readVideoFrameSectionBuffer(VideoFrameSection section, cv::Mat* outBuffer)
-{
-	EASY_FUNCTION();
-
-	NetworkVideoSourceDefinitionPtr definition = getNetworkVideoSourceDefinition();
-	const MikanVideoSourceIntrinsics& intrinsics = definition->getCameraIntrinsics();
-
-	if (intrinsics.intrinsics_type == STEREO_CAMERA_INTRINSICS)
-	{
-		if ((section == VideoFrameSection::Left || section == VideoFrameSection::Right) &&
-			m_opencv_buffer_state[(int)section] != nullptr)
-		{
-			m_lastVideoFrameReadIndex =
-				m_opencv_buffer_state[(int)section]->readVideoFrame(
-					outBuffer,
-					m_lastVideoFrameReadIndex);
-		}
-	}
-	else
-	{
-		if (section == VideoFrameSection::Primary &&
-			m_opencv_buffer_state[(int)VideoFrameSection::Primary] != nullptr)
-		{
-			m_lastVideoFrameReadIndex =
-				m_opencv_buffer_state[(int)VideoFrameSection::Primary]->readVideoFrame(
-					outBuffer,
-					m_lastVideoFrameReadIndex);
-		}
-	}
-
-	return m_lastVideoFrameReadIndex;
+	return false;
 }
 
 // -- INetworkVideoDeviceListener ----
@@ -493,90 +443,6 @@ void NetworkVideoSourceComponent::notifyVideoFrameReceived(
 			m_opencv_buffer_state[(int)VideoFrameSection::Primary]->writeVideoFrame(
 				bufferInfo.data, is_frame_flipped);
 		}
-	}
-}
-
-bool NetworkVideoSourceComponent::reallocateOpencvBufferState()
-{
-	releaseOpencvBufferState();
-
-	if (m_networkVideoDevice == nullptr)
-		return false;
-
-	NetworkVideoStreamProperties streamProperties;
-	if (!m_networkVideoDevice->getStreamProperties(streamProperties))
-		return false;
-
-	NetworkVideoSourceDefinitionPtr definition = getNetworkVideoSourceDefinition();
-	const MikanVideoSourceIntrinsics& intrinsics = definition->getCameraIntrinsics();
-
-	// Allocate the OpenCV scratch buffers used for finding tracking blobs
-	if (intrinsics.intrinsics_type == STEREO_CAMERA_INTRINSICS)
-	{
-		const MikanStereoIntrinsics& stereoIntrinsics = intrinsics.getStereoIntrinsics();
-
-		m_opencv_buffer_state[(int)VideoFrameSection::Left] =
-			new OpenCVVideoFrameBuffer(
-				streamProperties.width, streamProperties.height,
-				stereoIntrinsics.pixel_width, stereoIntrinsics.pixel_width,
-				VideoFrameSection::Left);
-		m_opencv_buffer_state[(int)VideoFrameSection::Right] =
-			new OpenCVVideoFrameBuffer(
-				streamProperties.width, streamProperties.height,
-				stereoIntrinsics.pixel_width, stereoIntrinsics.pixel_width,
-				VideoFrameSection::Right);
-	}
-	else
-	{
-		const MikanMonoIntrinsics& monoIntrinsics = intrinsics.getMonoIntrinsics();
-
-		m_opencv_buffer_state[(int)VideoFrameSection::Primary] =
-			new OpenCVVideoFrameBuffer(
-				streamProperties.width, streamProperties.height,
-				monoIntrinsics.pixel_width, monoIntrinsics.pixel_width,
-				VideoFrameSection::Primary);
-	}
-
-	return true;
-}
-
-void NetworkVideoSourceComponent::releaseOpencvBufferState()
-{
-	// Delete any existing OpenCV buffers
-	for (int i = 0; i < MAX_PROJECTION_COUNT; ++i)
-	{
-		if (m_opencv_buffer_state[i] != nullptr)
-		{
-			delete m_opencv_buffer_state[i];
-			m_opencv_buffer_state[i] = nullptr;
-		}
-	}
-}
-
-void NetworkVideoSourceComponent::recomputeCameraProjectionMatrix()
-{
-	NetworkVideoSourceDefinitionPtr definition = getNetworkVideoSourceDefinition();
-	const MikanVideoSourceIntrinsics& intrinsics = definition->getCameraIntrinsics();
-
-	switch (intrinsics.intrinsics_type)
-	{
-		case MONO_CAMERA_INTRINSICS:
-		{
-			const MikanMonoIntrinsics& monoIntrinsics = intrinsics.getMonoIntrinsics();
-
-			computeOpenGLProjMatFromCameraIntrinsics(
-				monoIntrinsics,
-				m_projectionMatrix);
-		} break;
-		case STEREO_CAMERA_INTRINSICS:
-		{
-			const MikanStereoIntrinsics& stereoIntrinsics = intrinsics.getStereoIntrinsics();
-
-			computeOpenGLProjMatFromCameraIntrinsics(
-				stereoIntrinsics,
-				eStereoIntrinsicsSide::left,
-				m_projectionMatrix);
-		} break;
 	}
 }
 

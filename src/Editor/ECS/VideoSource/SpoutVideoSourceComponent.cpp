@@ -90,31 +90,9 @@ eVideoStreamingStatus SpoutVideoSourceComponent::getVideoStreamingStatus() const
 void SpoutVideoSourceComponent::stopVideoStream()
 {}
 
-bool SpoutVideoSourceComponent::hasNewVideoFrameAvailable(VideoFrameSection section) const
-{
-	return false;
-}
-
-int64_t SpoutVideoSourceComponent::readVideoFrameSectionBuffer(VideoFrameSection section, cv::Mat* outBuffer)
-{
-	return 0;
-}
-
-bool SpoutVideoSourceComponent::getPixelDimensions(int& outPixelWidth, int& outPixelHeight) const
+bool SpoutVideoSourceComponent::getVideoPixelDimensions(int& outPixelWidth, int& outPixelHeight) const
 {
 	return true;
-}
-
-bool SpoutVideoSourceComponent::getCameraIntrinsics(MikanVideoSourceIntrinsics& out_camera_intrinsics) const
-{
-	// Not supported for Spout video sources
-	return false;
-}
-
-bool SpoutVideoSourceComponent::setCameraIntrinsics(const MikanVideoSourceIntrinsics& camera_intrinsics)
-{
-	// Not supported for Spout video sources
-	return false;
 }
 
 // -- IRmlPropertyInterface ----

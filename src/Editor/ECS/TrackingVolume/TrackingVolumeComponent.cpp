@@ -56,7 +56,7 @@ void TrackingVolumeDefinition::readFromJSON(const configuru::Config& pt)
 MarkerObjectSystemPtr TrackingVolumeDefinition::getMarkerObjectSystem() const
 {
 	// TODO: Replace App singleton access
-	return App::getInstance()->getMainWindow()->getObjectSystemManager()->getSystemOfType<MarkerObjectSystem>();
+	return App::getInstance()->getMainWindow()->getProjectManager()->getSystemOfType<MarkerObjectSystem>();
 }
 
 void TrackingVolumeDefinition::setOriginMarkerId(MikanMarkerID arucoId)

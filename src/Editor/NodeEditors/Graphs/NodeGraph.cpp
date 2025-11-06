@@ -1,4 +1,5 @@
 #include "AssetReference.h"
+#include "IEditorWindow.h"
 #include "NodeGraph.h"
 #include "Logger.h"
 #include "NodeEditorState.h"
@@ -1013,6 +1014,22 @@ void NodeGraph::editorRender(const NodeEditorState& editorState)
 
 		link->editorRender(editorState);
 	}
+}
+
+IEditorWindow* NodeGraph::getOwnerEditorWindow() const
+{
+	return dynamic_cast<IEditorWindow*>(getOwnerWindow());
+}
+
+ProjectManagerPtr NodeGraph::getOwnerProject() const
+{
+	IEditorWindow* editorWindow = getOwnerEditorWindow();
+	if (editorWindow)
+	{
+		return editorWindow->getProjectManager();
+	}
+
+	return ProjectManagerPtr();
 }
 
 int NodeGraph::allocateId()

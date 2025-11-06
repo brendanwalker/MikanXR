@@ -30,7 +30,7 @@ AppStage::~AppStage()
 
 ProjectConfigPtr AppStage::getProjectConfig() const
 {
-	return m_ownerWindow->getObjectSystemManager()->getProjectConfig();
+	return m_ownerWindow->getProjectManager()->getProjectConfig();
 }
 
 MikanViewportPtr AppStage::addViewport()

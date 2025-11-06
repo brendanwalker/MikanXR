@@ -146,22 +146,6 @@
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Type&nbsp;
-								<select id="select" name="select_compositor_type" data-value="source_type" data-event-change="select_compositor_type()">
-									<option data-for="enum_value : compositor_source_type_values" data-value="enum_value">{{enum_value | to_enum_string('compositor_source_type')}}</option>
-								</select>
-							</td>
-						</tr>
-						<tr class="property_tr">
-							<td data-if="source_type == 0">
-								Video Source&nbsp;
-								<select id="select" name="select_video_source_id" data-value="video_source_id" data-event-change="select_video_source_entry()">
-									<option data-for="element_id : video_source_ids" data-value="element_id">{{element_id | to_video_source_friendly_name}}</option>
-								</select>
-							</td>
-						</tr>
-						<tr class="property_tr">
-							<td data-if="source_type == 1">
 								Camera&nbsp;
 								<select id="select" name="select_camera_id" data-value="camera_id" data-event-change="select_camera_entry()">
 									<option data-for="element_id : camera_ids" data-value="element_id">{{element_id | to_camera_name}}</option>

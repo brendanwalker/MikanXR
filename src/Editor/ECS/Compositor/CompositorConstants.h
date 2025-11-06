@@ -100,14 +100,3 @@ enum class eCompositorEvaluatorWindow : int
 	COUNT
 };
 extern const std::string* k_compositorEvaluatorWindow;
-
-enum class eCompositorSourceType : int
-{
-	INVALID = -1,
-
-	videoSource,
-	camera,
-
-	COUNT
-};
-extern const std::string* k_compositorSourceTypeStrings;

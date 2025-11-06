@@ -1,19 +1,45 @@
 #include "ClientListDataSource.h"
-#include "ClientSourceManager.h"
+#include "ClientVideoSourceSystem.h"
+#include "ClientVideoSourceComponent.h"
 
-ClientListDataSource::ClientListDataSource()
+ClientListDataSource::ClientListDataSource(ClientVideoSourceSystemPtr clientVideoSourceSystem)
 {
-	auto* clientSourceManager = ClientSourceManager::getInstance();
-
-	if (clientSourceManager != nullptr)
+	if (clientVideoSourceSystem != nullptr)
 	{
-		auto& clientSources= clientSourceManager->getClientSources();
+		auto& clientSourcesMap= clientVideoSourceSystem->getClientVideoSourceMap();
 
-		for (auto it = clientSources.getMap().begin(); it != clientSources.getMap().end(); it++)
+		for (auto it = clientSourcesMap.begin(); it != clientSourcesMap.end(); it++)
 		{
-			ClientSourceManager::ClientSource* clientSource= it->second;
+			ClientVideoSourceComponentPtr clientVideoSourceComponent= it->second.lock();
 
-			comboEntries.push_back(clientSource->clientId);
+			comboEntrieValues.push_back(clientVideoSourceComponent);
+			comboEntrieNames.push_back(clientVideoSourceComponent->getDevicePath());
 		}
 	}
+}
+
+int ClientListDataSource::getEntryIndex(ClientVideoSourceComponentPtr videoSourceComponent) const
+{
+	auto it = std::find(comboEntrieValues.begin(), comboEntrieValues.end(), videoSourceComponent);
+	if (it != comboEntrieValues.end())
+	{
+		return static_cast<int>(std::distance(comboEntrieValues.begin(), it));
+	}
+
+	return -1;
+}
+
+int ClientListDataSource::getEntryCount()
+{
+	return (int)comboEntrieValues.size();
+}
+
+ClientVideoSourceComponentPtr ClientListDataSource::getEntryAtIndex(int index) const
+{ 
+	return comboEntrieValues[index];
+}
+
+const std::string& ClientListDataSource::getEntryDisplayString(int index)
+{
+	return comboEntrieNames[index];
 }

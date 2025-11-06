@@ -98,7 +98,7 @@ MonoLensTrackerPoseCalibrator::MonoLensTrackerPoseCalibrator(
 	IEditorWindow* ownerWindow = static_cast<IEditorWindow*>(ownerStage->getOwnerWindow());
 	assert(ownerWindow != nullptr);
 	MarkerObjectSystemPtr markerSystem =
-		ownerWindow->getObjectSystemManager()->getSystemOfType<MarkerObjectSystem>();
+		ownerWindow->getProjectManager()->getSystemOfType<MarkerObjectSystem>();
 
 	auto markerConfig = markerSystem->getMarkerSystemConfigConst();
 	m_patternFinder =

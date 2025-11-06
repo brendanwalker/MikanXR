@@ -15,15 +15,12 @@ public:
 protected:
 	CameraObjectSystemPtr getCameraObjectSystem() const;
 	CameraObjectSystemConfigPtr getCameraObjectSystemConfig() const;
-	VideoSourceSystemPtr getVideoSourceSystem() const;
-	VideoSourceSystemConfigPtr getVideoSourceSystemConfig() const;
 	CompositorComponentPtr getCompositorComponent() const;
 
 private:
 	RmlDataBinding_ComponentIdListPtr m_cameraIdList;
 	RmlDataBinding_ComponentIdListPtr m_videoSourceIdList;
 	CameraObjectSystemWeakPtr m_cameraObjectSystem;
-	VideoSourceSystemWeakPtr m_videoSourceSystem;
 };
 
 using RmlModel_CompositorComponentPtr = std::shared_ptr<RmlModel_CompositorComponent>;

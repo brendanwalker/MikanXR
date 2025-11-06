@@ -72,7 +72,7 @@ bool EditorObjectSystem::init()
 
 	MainWindow::getInstance()->OnAppStageEntered += MakeDelegate(this, &EditorObjectSystem::onAppStageEntered);
 
-	ProjectManagerPtr objSystemMgr= MainWindow::getInstance()->getObjectSystemManager();
+	ProjectManagerPtr objSystemMgr= MainWindow::getInstance()->getProjectManager();
 
 	SceneObjectSystemPtr sceneObjectSystem = objSystemMgr->getSystemOfType<SceneObjectSystem>();
 	sceneObjectSystem->OnComponentDisposed+= MakeDelegate(this, &EditorObjectSystem::onSceneDisposed);

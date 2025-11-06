@@ -590,7 +590,7 @@ void CompositorNodeGraph::updateCompositingFrameBufferSize(NodeEvaluator& evalua
 	// Use the current video source's frame size	
 	VideoSourceComponentPtr videoSource = getBoundVideoSourceComponent();
 	if (int frameWidth, frameHeight;
-		videoSource && videoSource->getPixelDimensions(frameWidth, frameHeight))
+		videoSource && videoSource->getVideoPixelDimensions(frameWidth, frameHeight))
 	{
 		// Does nothing if the frame buffer is already the correct size
 		m_compositingFrameBuffer->setSize(frameWidth, frameHeight);

@@ -1,7 +1,9 @@
 #pragma once
 
 #include "CompositorConstants.h"
+#include "ComponentFwd.h"
 #include "Node.h"
+#include "MikanTypeFwd.h"
 #include "MikanRendererFwd.h"
 
 class ClientColorTextureNodeConfig : public NodeConfig
@@ -13,7 +15,7 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	eClientColorTextureType clientTextureType;
-	std::string clientId;
+	MikanVideoSourceID clientVideoSourceId;
 	bool bVerticalFlip;
 };
 
@@ -28,14 +30,16 @@ public:
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
 	virtual void saveToConfig(NodeConfigPtr nodeConfig) const override;
 
-	inline const std::string& getClientId() const { return m_clientId; }
+	ClientVideoSourceComponentPtr getClientVideoSourceComponent() const;
 	IMkTexturePtr getTextureResource() const;
+	std::string getClientId() const;
 
 	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
 	virtual void editorRenderNode(const NodeEditorState& editorState) override;
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
+	ClientVideoSourceSystemPtr getClientVideoSourceSystem() const;
 	IMkTexturePtr getClientColorSourceTexture() const;
 	void updateColorFrameBuffer(NodeEvaluator& evaluator, IMkTexturePtr clientTexture);
 	void evaluateFlippedColorTexture(IMkState* glState, IMkTexturePtr depthTexture);
@@ -47,7 +51,7 @@ protected:
 	IMkFrameBufferPtr m_colorFrameBuffer;
 	MkMaterialInstancePtr m_colorMaterialInstance;
 	eClientColorTextureType m_clientTextureType= eClientColorTextureType::colorRGB;
-	std::string m_clientId;
+	ClientVideoSourceComponentWeakPtr m_clientVideoSourceComponent;
 	bool m_bVerticalFlip= false;
 };
 

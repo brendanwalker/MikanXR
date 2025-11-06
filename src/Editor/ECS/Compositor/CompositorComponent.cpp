@@ -38,8 +38,6 @@
 
 // -- CompositorConfig -----
 const std::string CompositorDefinition::k_compositorGraphPathPropertyId = "script_path";
-const std::string CompositorDefinition::k_sourceTypePropertyId = "source_type";
-const std::string CompositorDefinition::k_videoSourceIdPropertyId = "video_source_id";
 const std::string CompositorDefinition::k_cameraIdPropertyId= "camera_id";
 const std::string CompositorDefinition::k_ownerStagePropertyId = "owner_stage_id";
 const std::string CompositorDefinition::k_spoutEnableOutputNamePropertyId = "spout_enable_output";
@@ -71,9 +69,7 @@ configuru::Config CompositorDefinition::writeToJSON()
 	configuru::Config pt = MikanComponentDefinition::writeToJSON();
 
 	pt["id"] = m_compositorId;
-	pt[k_sourceTypePropertyId] = k_compositorSourceTypeStrings[(int)m_sourceType];
 	pt[k_cameraIdPropertyId] = m_cameraId;
-	pt[k_videoSourceIdPropertyId] = m_videoSourceId;
 	pt[k_ownerStagePropertyId] = m_ownerStageId;
 	pt[k_spoutEnableOutputNamePropertyId] = m_bIsSpoutOutputStreaming;
 	pt[k_spoutOutputNamePropertyId] = m_spoutOutputName;
@@ -92,13 +88,7 @@ void CompositorDefinition::readFromJSON(const configuru::Config& pt)
 
 	m_compositorId = pt.get<int>("id");
 
-	const std::string sourceTypeName = 
-		pt.get_or<std::string>(k_sourceTypePropertyId, k_compositorSourceTypeStrings[0]);
-	m_sourceType = 
-		StringUtils::FindEnumValue<eCompositorSourceType>(sourceTypeName, k_compositorSourceTypeStrings);
-
 	m_cameraId = pt.get_or<int>(k_cameraIdPropertyId, INVALID_MIKAN_ID);
-	m_videoSourceId = pt.get_or<int>(k_videoSourceIdPropertyId, INVALID_MIKAN_ID);
 	m_ownerStageId = pt.get_or<int>(k_ownerStagePropertyId, INVALID_MIKAN_ID);
 	m_bIsSpoutOutputStreaming = pt.get_or<bool>(k_spoutEnableOutputNamePropertyId, m_bIsSpoutOutputStreaming);
 	m_spoutOutputName = pt.get_or<std::string>(k_spoutOutputNamePropertyId, m_spoutOutputName);
@@ -112,29 +102,11 @@ void CompositorDefinition::readFromJSON(const configuru::Config& pt)
 	}
 }
 
-void CompositorDefinition::setSourceType(eCompositorSourceType sourceType)
-{
-	if (m_sourceType != sourceType)
-	{
-		m_sourceType = sourceType;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_sourceTypePropertyId));
-	}
-}
-
 void CompositorDefinition::setCameraId(MikanCameraID cameraId)
 {
 	if (m_cameraId != cameraId)
 	{
 		m_cameraId = cameraId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_cameraIdPropertyId));
-	}
-}
-
-void CompositorDefinition::setVideoSourceId(MikanVideoSourceID videoSourceId)
-{
-	if (m_videoSourceId != videoSourceId)
-	{
-		m_videoSourceId = videoSourceId;
 		markDirty(ConfigPropertyChangeSet().addPropertyName(k_cameraIdPropertyId));
 	}
 }
@@ -229,10 +201,10 @@ void CompositorComponent::update(float deltaSeconds)
 		return;
 
 	CameraComponentPtr cameraComponent= getCameraComponent();
-	if (!cameraComponent)
-		return;
-
-	const glm::mat4 cameraXform= cameraComponent->getWorldTransform();
+	const glm::mat4 cameraXform= 
+		cameraComponent != nullptr 
+		? cameraComponent->getWorldTransform()
+		: glm::mat4(1.f);
 
 	// Keep track of how long it's been since the last frame has been composited
 	// This is used to update the timer in compositorNodeGraph
@@ -246,7 +218,7 @@ void CompositorComponent::update(float deltaSeconds)
 		m_nodeGraph->gatherAllReferencedClientSourceIDs(activeClientSourceIds);
 
 		// See if all client render targets have been updated
-		auto* clientSourceManager = ClientSourceManager::getInstance();
+		auto* clientSourceManager = getOwnerEditorWindow()->getClientSourceManager();
 		size_t clientSourceReadyCount = 0;
 		for (const std::string& clientSourceId : activeClientSourceIds)
 		{
@@ -318,7 +290,7 @@ void CompositorComponent::update(float deltaSeconds)
 		MikanCameraNewFrameEvent newFrameEvent = m_frameEventQueue.front();
 
 		// Mark all client sources as pending
-		auto* clientSourceManager = ClientSourceManager::getInstance();
+		auto* clientSourceManager = getOwnerEditorWindow()->getClientSourceManager();
 		for (const std::string& clientSourceId : activeClientSourceIds)
 		{
 			clientSourceManager->markSourceAsPendingRender(clientSourceId);
@@ -412,7 +384,7 @@ void CompositorComponent::onVideoFrameSizeChanged(VideoSourceComponentPtr videoS
 
 	// Create a frame buffer and texture to do the compositing work in
 	int frameWidth, frameHeight;
-	if (videoSource->getPixelDimensions(frameWidth, frameHeight))
+	if (videoSource->getVideoPixelDimensions(frameWidth, frameHeight))
 	{
 		createCompositingTextures(frameWidth, frameHeight);
 		allocateVideoBuffers(videoSource);
@@ -786,13 +758,7 @@ void CompositorComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescr
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			CompositorDefinition::k_sourceTypePropertyId));
-	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
 			CompositorDefinition::k_cameraIdPropertyId));
-	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
-			CompositorDefinition::k_videoSourceIdPropertyId));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
 			CompositorDefinition::k_ownerStagePropertyId));
@@ -813,19 +779,9 @@ bool CompositorComponent::getPropertyValueFromRml(
 {
 	const std::string& propertyName = propertyDesc->getName();
 
-	if (propertyName == CompositorDefinition::k_sourceTypePropertyId)
-	{
-		outValue = (int)getCompositorDefinition()->getSourceType();
-		return true;
-	}
-	else if (propertyName == CompositorDefinition::k_cameraIdPropertyId)
+	if (propertyName == CompositorDefinition::k_cameraIdPropertyId)
 	{
 		outValue = getCompositorDefinition()->getCameraId();
-		return true;
-	}
-	else if (propertyName == CompositorDefinition::k_videoSourceIdPropertyId)
-	{
-		outValue = getCompositorDefinition()->getVideoSourceId();
 		return true;
 	}
 	else if (propertyName == CompositorDefinition::k_ownerStagePropertyId)
@@ -858,22 +814,10 @@ bool CompositorComponent::setPropertyValueFromRml(
 {
 	const std::string& propertyName = propertyDesc->getName();
 
-	if (propertyName == CompositorDefinition::k_sourceTypePropertyId)
-	{
-		const eCompositorSourceType sourceType = (eCompositorSourceType)inValue.Get<int>();
-		getCompositorDefinition()->setSourceType(sourceType);
-		return true;
-	}
-	else if (propertyName == CompositorDefinition::k_cameraIdPropertyId)
+	if (propertyName == CompositorDefinition::k_cameraIdPropertyId)
 	{
 		const MikanCameraID cameraId = inValue.Get<int>();
 		getCompositorDefinition()->setCameraId(cameraId);
-		return true;
-	}
-	else if (propertyName == CompositorDefinition::k_videoSourceIdPropertyId)
-	{
-		const MikanVideoSourceID videoSourceId = inValue.Get<int>();
-		getCompositorDefinition()->setVideoSourceId(videoSourceId);
 		return true;
 	}
 	else if (propertyName == CompositorDefinition::k_ownerStagePropertyId)

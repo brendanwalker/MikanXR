@@ -1,34 +1,22 @@
 #pragma once
 
 #include "NodeEditorUI.h"
+#include "ComponentFwd.h"
+#include "ObjectSystemFwd.h"
 #include <vector>
 
 class ClientListDataSource : public NodeEditorUI::ComboBoxDataSource
 {
 public:
-	ClientListDataSource();
+	ClientListDataSource(ClientVideoSourceSystemPtr clientVideoSourceSystem);
 
-	int getEntryIndex(const std::string& entryName) const
-	{
-		auto it= std::find(comboEntries.begin(), comboEntries.end(), entryName);
-		if (it != comboEntries.end())
-		{
-			return static_cast<int>(std::distance(comboEntries.begin(), it));
-		}
+	int getEntryIndex(ClientVideoSourceComponentPtr videoSourceComponent) const;
+	ClientVideoSourceComponentPtr getEntryAtIndex(int index) const;
 
-		return -1;
-	}
-
-	virtual int getEntryCount() override
-	{
-		return (int)comboEntries.size();
-	}
-
-	virtual const std::string& getEntryDisplayString(int index) override
-	{
-		return comboEntries[index];
-	}
+	virtual int getEntryCount() override;
+	virtual const std::string& getEntryDisplayString(int index) override;
 
 private:
-	std::vector<std::string> comboEntries;
+	std::vector<ClientVideoSourceComponentPtr> comboEntrieValues;
+	std::vector<std::string> comboEntrieNames;
 };

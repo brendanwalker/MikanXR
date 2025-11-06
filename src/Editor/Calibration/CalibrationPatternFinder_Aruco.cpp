@@ -49,7 +49,7 @@ CalibrationPatternFinder_Aruco::CalibrationPatternFinder_Aruco(
 	IEditorWindow* ownerWindow= static_cast<IEditorWindow *>(ownerStage->getOwnerWindow());
 	assert(ownerWindow != nullptr);
 	MarkerObjectSystemPtr markerSystem= 
-		ownerWindow->getObjectSystemManager()->getSystemOfType<MarkerObjectSystem>();
+		ownerWindow->getProjectManager()->getSystemOfType<MarkerObjectSystem>();
 	assert(markerSystem != nullptr);
 	TrackingVolumeDefinitionConstPtr trackingVolume = ownerStage->getTrackingVolumeDefinitionConst();
 	assert(trackingVolume != nullptr);

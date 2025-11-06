@@ -44,12 +44,7 @@ public:
 	virtual eVideoStreamingStatus getVideoStreamingStatus() const override;
 	virtual void stopVideoStream() override;
 
-	virtual bool hasNewVideoFrameAvailable(VideoFrameSection section) const override;
-	virtual int64_t readVideoFrameSectionBuffer(VideoFrameSection section, cv::Mat* outBuffer) override;
-
-	virtual bool getPixelDimensions(int& outPixelWidth, int& outPixelHeight) const override;
-	virtual bool getCameraIntrinsics(MikanVideoSourceIntrinsics& out_camera_intrinsics) const override;
-	virtual bool setCameraIntrinsics(const MikanVideoSourceIntrinsics& camera_intrinsics) override;
+	virtual bool getVideoPixelDimensions(int& outPixelWidth, int& outPixelHeight) const override;
 
 	// -- IRmlPropertyInterface ----
 	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors);

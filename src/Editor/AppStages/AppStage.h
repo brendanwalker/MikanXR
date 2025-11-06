@@ -24,6 +24,7 @@ public:
 		const std::string& stageName);
 	virtual ~AppStage();
 
+	IEditorWindow* getOwnerWindow() const { return m_ownerWindow; }
 	ProjectConfigPtr getProjectConfig() const;
 	const std::string getAppStageName() const { return m_appStageName; }
 	bool getHasEntered() const { return m_bIsEntered; }
@@ -69,7 +70,7 @@ public:
 	template<class t_system_type>
 	std::shared_ptr<t_system_type> getSystemOfType()
 	{
-		return m_ownerWindow->getObjectSystemManager()->getSystemOfType<t_system_type>();
+		return m_ownerWindow->getProjectManager()->getSystemOfType<t_system_type>();
 	}
 
 protected:

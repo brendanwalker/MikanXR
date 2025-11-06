@@ -86,7 +86,7 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	// It's possible that the video source doesn't have a valid size yet if it's a stream source
 	// So we'll have to resize once the first valid frame is read.
 	int pixelWidth, pixelHeight;
-	videoSourceComponent->getPixelDimensions(pixelWidth, pixelHeight);
+	videoSourceComponent->getVideoPixelDimensions(pixelWidth, pixelHeight);
 	ensureFrameBufferSize(pixelWidth, pixelHeight);
 
 	// Create a mesh used to render the video frame
@@ -252,7 +252,7 @@ int64_t VideoFrameDistortionView::readNextVideoFrame()
 		// Reallocate the frame buffer if the video source has changed resolution
 		// (This can happen on streaming video sources)
 		int frameWidth, frameHeight;
-		m_videoSourceComponent->getPixelDimensions(frameWidth, frameHeight);
+		m_videoSourceComponent->getVideoPixelDimensions(frameWidth, frameHeight);
 		ensureFrameBufferSize(frameWidth, frameHeight);
 
 		cv::Mat* bgrSourceBuffer = m_bgrSourceBuffers[m_bgrSourceBufferWriteIndex].bgrSourceBuffer;

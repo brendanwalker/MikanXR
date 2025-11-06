@@ -37,7 +37,7 @@ void AppStage_MainMenu::enter()
 
 	App* app = App::getInstance();
 	m_appSettingsConfig= app->getAppSettings();
-	m_projectManager = app->getMainWindow()->getObjectSystemManager();
+	m_projectManager = app->getMainWindow()->getProjectManager();
 
 	// Create app stage UI models and views
 	// (Auto cleaned up on app state exit)

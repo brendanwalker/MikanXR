@@ -313,7 +313,7 @@ bool CameraComponent::getAperturePixelDimensions(int& outWidth, int& outHeight) 
 	VideoSourceComponentPtr videoSourceComponent = getVideoSourceComponent();
 	if (videoSourceComponent)
 	{
-		return videoSourceComponent->getPixelDimensions(outWidth, outHeight);
+		return videoSourceComponent->getVideoPixelDimensions(outWidth, outHeight);
 	}
 
 	return false;

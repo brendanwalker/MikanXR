@@ -49,7 +49,7 @@ struct MonoLensDistortionCalibrationState
 		VideoSourceComponentPtr videoSourceComponent, 
 		int patternCount)
 	{
-		videoSourceComponent->getPixelDimensions(frameWidth, frameHeight);
+		videoSourceComponent->getVideoPixelDimensions(frameWidth, frameHeight);
 		desiredPatternCount = patternCount;
 		
 		patternFinder->getOpenCVLensCalibrationGeometry(&calibrationGeometry);

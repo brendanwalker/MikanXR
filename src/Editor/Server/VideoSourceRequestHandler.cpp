@@ -107,7 +107,7 @@ void VideoSourceRequestHandler::getVideoSourceModeHandler(
 		int pixelWidth, pixelHeight;
 		float frameRate = 0.0f;
 		if (videoSourceComponent->getVideoModeName(videoModeName) &&
-			videoSourceComponent->getPixelDimensions(pixelWidth, pixelHeight) &&
+			videoSourceComponent->getVideoPixelDimensions(pixelWidth, pixelHeight) &&
 			videoSourceComponent->getFrameRate(frameRate))
 		{
 			MikanVideoSourceModeResponse info;

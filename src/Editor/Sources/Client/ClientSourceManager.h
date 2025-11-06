@@ -23,15 +23,15 @@ public:
 		bool bIsPendingRender = false;
 	};
 
-	static ClientSourceManager* getInstance() { return m_instance; }
-
-	ClientSourceManager();
-	virtual ~ClientSourceManager();
+	ClientSourceManager() = default;
+	virtual ~ClientSourceManager() = default;
 
 	bool startup(class IMkWindow* ownerWindow);
 	void shutdown();
 
 	inline const NamedValueTable<ClientSource*>& getClientSources() const { return m_clientSources; }
+	bool hasClientSource(const std::string& clientId) const;
+	bool getClientSourceDimensions(const std::string& clientId, int& outWidth, int& outHeight) const;
 	IMkTexturePtr getClientColorSourceTexture(const std::string& clientId, eClientColorTextureType clientTextureType) const;
 	IMkTexturePtr getClientDepthSourceTexture(const std::string& clientId, eClientDepthTextureType clientTextureType) const;
 	bool getIsSourcePendingRender(const std::string& clientId) const;
@@ -47,8 +47,6 @@ protected:
 	void onClientRenderTargetUpdated(const std::string& clientId, int64_t frameIndex);
 
 private:
-	static ClientSourceManager* m_instance;
-
 	class IMkWindow* m_ownerWindow= nullptr;
 
 	// Data sources used by the compositor layers

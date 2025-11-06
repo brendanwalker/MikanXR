@@ -1,5 +1,7 @@
 #include "ClientColorTextureNode.h"
 #include "ClientSourceManager.h"
+#include "ClientVideoSourceSystem.h"
+#include "ClientVideoSourceComponent.h"
 #include "MkScopedObjectBinding.h"
 #include "IMkFrameBuffer.h"
 #include "IMkWindow.h"
@@ -14,6 +16,8 @@
 #include "NodeEditorState.h"
 #include "NodeEditorUI.h"
 #include "StringUtils.h"
+#include "ProjectManager.h"
+#include "VideoSourceSystem.h"
 
 #include "DataSources/ClientListDataSource.h"
 
@@ -35,7 +39,7 @@ configuru::Config ClientColorTextureNodeConfig::writeToJSON()
 	configuru::Config pt = NodeConfig::writeToJSON();
 
 	pt["client_texture_type"] = k_clientColorTextureTypeStrings[(int)clientTextureType];
-	pt["client_id"] = clientId;
+	pt["client_video_source_id"] = clientVideoSourceId;
 	pt["vertical_flip"] = bVerticalFlip;
 
 	return pt;
@@ -54,7 +58,7 @@ void ClientColorTextureNodeConfig::readFromJSON(const configuru::Config& pt)
 			clientTextureTypeString, k_clientColorTextureTypeStrings);
 	bVerticalFlip = pt.get_or<bool>("vertical_flip", false);
 
-	clientId= pt.get_or<std::string>("client_id", 0);
+	clientVideoSourceId = pt.get_or<int>("client_video_source_id", INVALID_MIKAN_ID);
 }
 
 // -- ClientTextureNode -----
@@ -64,9 +68,17 @@ bool ClientColorTextureNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 	{
 		auto clientTextureNodeConfig = std::static_pointer_cast<const ClientColorTextureNodeConfig>(nodeConfig);
 
-		m_clientTextureType= clientTextureNodeConfig->clientTextureType;
-		m_clientId= clientTextureNodeConfig->clientId;
+		m_clientTextureType= clientTextureNodeConfig->clientTextureType;		
 		m_bVerticalFlip= clientTextureNodeConfig->bVerticalFlip;
+
+		// Get the client video source component corresponding to the saved video source id
+		ClientVideoSourceSystemPtr clientVideoSourceSystem= getClientVideoSourceSystem();
+		if (clientVideoSourceSystem)
+		{
+			m_clientVideoSourceComponent =
+				clientVideoSourceSystem->getClientVideoSourceById(
+					clientTextureNodeConfig->clientVideoSourceId);
+		}
 
 		return true;
 	}
@@ -77,11 +89,21 @@ bool ClientColorTextureNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 void ClientColorTextureNode::saveToConfig(NodeConfigPtr nodeConfig) const
 {
 	auto clientTextureNodeConfig = std::static_pointer_cast<ClientColorTextureNodeConfig>(nodeConfig);
+	ClientVideoSourceComponentPtr clientVideoSource= getClientVideoSourceComponent();
+
 	clientTextureNodeConfig->clientTextureType = m_clientTextureType;
-	clientTextureNodeConfig->clientId = m_clientId;
 	clientTextureNodeConfig->bVerticalFlip = m_bVerticalFlip;
+	clientTextureNodeConfig->clientVideoSourceId =
+		clientVideoSource 
+		? clientVideoSource->getVideoSourceId() 
+		: INVALID_MIKAN_ID;
 
 	Node::saveToConfig(nodeConfig);
+}
+
+ClientVideoSourceComponentPtr ClientColorTextureNode::getClientVideoSourceComponent() const
+{
+	return m_clientVideoSourceComponent.lock();
 }
 
 IMkTexturePtr ClientColorTextureNode::getTextureResource() const
@@ -110,12 +132,34 @@ bool ClientColorTextureNode::evaluateNode(NodeEvaluator& evaluator)
 	return true;
 }
 
+ClientVideoSourceSystemPtr ClientColorTextureNode::getClientVideoSourceSystem() const
+{
+	ProjectManagerPtr ownerProject = getOwnerProject();
+	if (ownerProject)
+	{
+		return ownerProject->getSystemOfType<VideoSourceSystem>()->getClientVideoSourceSystem();
+	}
+
+	return ClientVideoSourceSystemPtr();
+}
+
+std::string ClientColorTextureNode::getClientId() const
+{
+	ClientVideoSourceComponentPtr clientVideoSourceComponent = getClientVideoSourceComponent();
+
+	return
+		clientVideoSourceComponent
+		? clientVideoSourceComponent->getDevicePath()
+		: "<INVALID>";
+}
+
 IMkTexturePtr ClientColorTextureNode::getClientColorSourceTexture() const
 {
-	auto* clientSourceManager = ClientSourceManager::getInstance();
-	if (clientSourceManager != nullptr)
+	ClientVideoSourceComponentPtr clientVideoSourceComponent = getClientVideoSourceComponent();
+	if (clientVideoSourceComponent)
 	{
-		IMkTexturePtr clientTexture = clientSourceManager->getClientColorSourceTexture(m_clientId, m_clientTextureType);
+		IMkTexturePtr clientTexture = 
+			clientVideoSourceComponent->getClientColorSourceTexture(m_clientTextureType);
 
 		// If the client texture is not available, return a black texture
 		if (clientTexture)
@@ -257,7 +301,9 @@ std::string ClientColorTextureNode::editorGetTitle() const
 {
 	if (!isDefaultNode())
 	{ 
-		return StringUtils::stringify("Client Color ", m_clientId);
+		std::string clientId = getClientId();
+
+		return StringUtils::stringify("Client Color ", clientId);
 	}
 
 	return "Client Color";
@@ -305,16 +351,18 @@ void ClientColorTextureNode::editorRenderPropertySheet(const NodeEditorState& ed
 		}
 
 		// Texture Type
-		ClientListDataSource dataSource;
+		ClientListDataSource dataSource(getClientVideoSourceSystem());
 		if (dataSource.getEntryCount() > 0)
 		{
-			int selectedIndex = dataSource.getEntryIndex(m_clientId);
+			ClientVideoSourceComponentPtr videoSourceComponent = getClientVideoSourceComponent();
+
+			int selectedIndex = dataSource.getEntryIndex(videoSourceComponent);
 			NodeEditorUI::DrawComboBoxProperty(
 				"clientSourceIndex",
 				"Source",
 				&dataSource,
 				selectedIndex);
-			m_clientId= dataSource.getEntryDisplayString(selectedIndex);
+			m_clientVideoSourceComponent = dataSource.getEntryAtIndex(selectedIndex);
 		}
 
 		// Vertical Flip

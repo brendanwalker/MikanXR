@@ -70,9 +70,7 @@ public:
 	virtual eVideoStreamingStatus startVideoStream() override;
 	virtual eVideoStreamingStatus getVideoStreamingStatus() const override;
 	virtual void stopVideoStream() override;
-
-	virtual bool hasNewVideoFrameAvailable(VideoFrameSection section) const override;
-	virtual int64_t readVideoFrameSectionBuffer(VideoFrameSection section, cv::Mat* outBuffer) override;
+	virtual bool getVideoPixelDimensions(int& outPixelWidth, int& outPixelHeight) const override;
 
 	// -- INetworkVideoDeviceListener ----
 	virtual void notifyVideoDeviceClosed(const class INetworkVideoDevice* device) override;
@@ -93,14 +91,6 @@ public:
 	void calibrateIntrinsics();
 	void testIntrinsics();
 
-protected:
-	bool reallocateOpencvBufferState();
-	void releaseOpencvBufferState();
-	void recomputeCameraProjectionMatrix();
-
 private:
-	int64_t m_lastVideoFrameReadIndex;
-	class OpenCVVideoFrameBuffer* m_opencv_buffer_state[MAX_PROJECTION_COUNT];
 	INetworkVideoDevicePtr m_networkVideoDevice = nullptr;
-	glm::mat4 m_projectionMatrix;
 };

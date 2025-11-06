@@ -52,6 +52,7 @@ public:
 	MikanComponent(MikanObjectWeakPtr owner);
 
 	class IMkWindow* getOwnerWindow() const;
+	class IEditorWindow* getOwnerEditorWindow() const;
 
 	inline bool getWasInitialized() const { return m_bWasInitialized; }
 	inline bool getWasDisposed() const { return m_bWasDisposed; }
@@ -66,12 +67,12 @@ public:
 	const std::string& getName() const { return m_name; }
 
 	MikanObjectPtr getOwnerObject() const { return m_ownerObject.lock(); }
-	ProjectManager* getOwnerObjectSystemManager() const;
+	ProjectManager* getOwnerProjectManager() const;
 
 	template <class t_object_system_type>
 	std::shared_ptr<t_object_system_type> getObjectSystemOfType() const
 	{
-		return getOwnerObjectSystemManager()->getSystemOfType<t_object_system_type>();
+		return getOwnerProjectManager()->getSystemOfType<t_object_system_type>();
 	}
 
 	template <class t_derived_type>

@@ -35,7 +35,7 @@ public:
 	virtual void update(float deltaSeconds);
 	virtual void customRender();
 
-	inline class ProjectManager* getOwnerObjectSystemManager() const { return m_ownerObjectSystemManager; }
+	inline class ProjectManager* getOwnerProjectManager() const { return m_ownerObjectSystemManager; }
 	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const {
 		return MikanObjectSystemDefinitionConstPtr();
 	}

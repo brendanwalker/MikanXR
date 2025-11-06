@@ -108,6 +108,11 @@ void Node::setOwnerGraph(NodeGraphPtr ownerGraph)
 	m_ownerGraph = ownerGraph; 
 }
 
+ProjectManagerPtr Node::getOwnerProject() const
+{
+	return getOwnerGraph()->getOwnerProject();
+}
+
 NodePinPtr Node::addPinByClassName(const std::string& className, const std::string& name, eNodePinDirection direction)
 {
 	NodePtr ownerNode = shared_from_this();

@@ -6,18 +6,6 @@
 #include "SharedTextureReader.h"
 #include "RenderTargetRequestHandler.h"
 
-ClientSourceManager* ClientSourceManager::m_instance= nullptr;
-
-ClientSourceManager::ClientSourceManager()
-{
-	m_instance = this;
-}
-
-ClientSourceManager::~ClientSourceManager()
-{
-	m_instance = nullptr;
-}
-
 bool ClientSourceManager::startup(IMkWindow* ownerWindow)
 {
 	m_ownerWindow= ownerWindow;
@@ -70,6 +58,24 @@ void ClientSourceManager::shutdown()
 		delete clientSource;
 	}
 	m_clientSources.clear();
+}
+
+bool ClientSourceManager::hasClientSource(const std::string& clientId) const
+{
+	return m_clientSources.hasValue(clientId);
+}
+
+bool ClientSourceManager::getClientSourceDimensions(const std::string& clientId, int& outWidth, int& outHeight) const
+{
+	ClientSource* clientSource = nullptr;
+	if (m_clientSources.tryGetValue(clientId, clientSource))
+	{
+		outWidth = clientSource->desc.width;
+		outHeight = clientSource->desc.height;
+		return true;
+	}
+
+	return false;
 }
 
 IMkTexturePtr ClientSourceManager::getClientColorSourceTexture(

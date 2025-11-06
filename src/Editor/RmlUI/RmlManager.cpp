@@ -276,7 +276,7 @@ static void registerEnumDefinition(
 template<class t_system_type>
 std::shared_ptr<t_system_type> rmlGetSystemOfType(RmlManager* rmlManager)
 {
-	ProjectManagerPtr objectSystemManager = rmlManager->getOwnerWindow()->getObjectSystemManager();
+	ProjectManagerPtr objectSystemManager = rmlManager->getOwnerWindow()->getProjectManager();
 
 	return objectSystemManager->getSystemOfType<t_system_type>();
 }
@@ -287,7 +287,6 @@ void RmlManager::registerCommonDataModelTypes()
 
 	// Enums
 	registerEnumDefinition<eStencilCullMode>(constructor, "stencil_cull_mode", k_stencilCullModeStrings);
-	registerEnumDefinition<eCompositorSourceType>(constructor, "compositor_source_type", k_compositorSourceTypeStrings);
 	registerEnumDefinition<eCharucoDictionaryType>(constructor, "marker_dictionary", k_charucoDictionaryStrings);
 
 	// String arrays
@@ -455,13 +454,22 @@ void RmlManager::registerCommonDataModelTypes()
 		[rmlManager](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
 			const MikanCameraID cameraId = variant.Get<int>(-1);
 
-			auto cameraObjectSystem = rmlGetSystemOfType<CameraObjectSystem>(rmlManager);
-			auto cameraComponent = cameraObjectSystem->getCameraById(cameraId);
-			if (cameraComponent != nullptr)
+			if (cameraId == INVALID_MIKAN_ID)
 			{
-				variant = cameraComponent->getName();
+				variant = Rml::String("<None>");
 				return true;
 			}
+			else
+			{
+				auto cameraObjectSystem = rmlGetSystemOfType<CameraObjectSystem>(rmlManager);
+				auto cameraComponent = cameraObjectSystem->getCameraById(cameraId);
+				if (cameraComponent != nullptr)
+				{
+					variant = cameraComponent->getName();
+					return true;
+				}
+			}
+
 			return false;
 		});
 

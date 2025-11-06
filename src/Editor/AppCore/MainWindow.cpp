@@ -60,7 +60,7 @@ MainWindow::MainWindow()
 	, m_clientSourceManager(new ClientSourceManager())
 	, m_inputManager(new InputManager())
 	, m_rmlManager(new RmlManager(this))
-	, m_objectSystemManager(std::make_shared<ProjectManager>(this))
+	, m_projectManager(std::make_shared<ProjectManager>(this))
 	, m_openCVManager(new OpenCVManager())
 	, m_fontManager(new MikanFontManager())
 	, m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
@@ -76,7 +76,7 @@ MainWindow::MainWindow()
 
 MainWindow::~MainWindow()
 {
-	m_objectSystemManager = nullptr;
+	m_projectManager = nullptr;
 	delete m_openCVManager;
 	delete m_inputManager;
 	delete m_rmlManager;
@@ -196,7 +196,7 @@ bool MainWindow::startup()
 
 	if (success)
 	{
-		if (!m_objectSystemManager->startup())
+		if (!m_projectManager->startup())
 		{			
 			MIKAN_LOG_ERROR("App::init") << "Failed to initialize the object system manager";
 			success = false;
@@ -275,7 +275,7 @@ void MainWindow::update(float deltaSeconds)
 	m_sdlWindow->handleSDLEvents();
 
 	// Update objects in the object system
-	m_objectSystemManager->update(deltaSeconds);
+	m_projectManager->update(deltaSeconds);
 
 	// Update the current app stage last
 	AppStage* appStage = getCurrentAppStage();
@@ -336,8 +336,8 @@ void MainWindow::shutdown()
 	m_clientSourceManager->shutdown();
 
 	// Dispose all ObjectSystems
-	assert(m_objectSystemManager != nullptr);
-	m_objectSystemManager->shutdown();
+	assert(m_projectManager != nullptr);
+	m_projectManager->shutdown();
 
 	assert(m_fontManager != nullptr);
 	m_fontManager->shutdown();

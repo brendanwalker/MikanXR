@@ -11,7 +11,6 @@
 RmlModel_CompositorComponent::RmlModel_CompositorComponent()
 	: RmlModel_TypedMikanComponent<CompositorComponent>()
 	, m_cameraIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
-	, m_videoSourceIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {}
 
 bool RmlModel_CompositorComponent::onConstruct(Rml::DataModelConstructor& constructor)
@@ -29,43 +28,16 @@ bool RmlModel_CompositorComponent::onConstruct(Rml::DataModelConstructor& constr
 			if (cameraObjectSystem)
 			{
 				outComponentIdList = cameraObjectSystem->getAllCameraIds();
+				outComponentIdList.insert(outComponentIdList.begin(), INVALID_MIKAN_ID); // Add "No Camera" option
 			}
 		});
 
-	// Build the list of all video source IDs from the VideoSourceSystem
-	m_videoSourceIdList->init(
-		constructor,
-		CommonConfigPtr(),
-		"video_source_ids",
-		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			auto videoSourceSystem= getVideoSourceSystem();
-			if (videoSourceSystem)
-			{
-				outComponentIdList = videoSourceSystem->getVideoSourceIdList();
-			}
-		});
-
-	constructor.BindEventCallback(
-		"select_compositor_type",
-		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			const int sourceTypeInt = ev.GetParameter<int>("value", 0);
-
-			getCompositorComponent()->getCompositorDefinition()->setSourceType(
-				(eCompositorSourceType)sourceTypeInt);
-		});
-	constructor.BindEventCallback(
-		"select_video_source_entry",
-		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			const int selectedVideoSourceId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
-
-			getCompositorComponent()->getCompositorDefinition()->setVideoSourceId(selectedVideoSourceId);
-		});
 	constructor.BindEventCallback(
 		"select_camera_entry",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			const int selectedVideoSourceId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
+			const int selectedCameraId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
 
-			getCompositorComponent()->getCompositorDefinition()->setVideoSourceId(selectedVideoSourceId);
+			getCompositorComponent()->getCompositorDefinition()->setCameraId(selectedCameraId);
 		});
 
 	constructor.BindEventCallback(
@@ -94,9 +66,6 @@ bool RmlModel_CompositorComponent::setComponent(MikanComponentPtr component)
 		m_cameraIdList->setOwnerConfig(getCameraObjectSystemConfig());
 		m_cameraIdList->rebuildList(true);
 
-		m_videoSourceIdList->setOwnerConfig(getVideoSourceSystemConfig());
-		m_videoSourceIdList->rebuildList(true);
-
 		return true;
 	}
 
@@ -120,28 +89,6 @@ CameraObjectSystemConfigPtr RmlModel_CompositorComponent::getCameraObjectSystemC
 	if (cameraObjectSystem)
 	{
 		return cameraObjectSystem->getCameraSystemConfig();
-	}
-
-	return nullptr;
-}
-
-VideoSourceSystemPtr RmlModel_CompositorComponent::getVideoSourceSystem() const
-{
-	MikanComponentPtr component = m_component.lock();
-	if (component)
-	{
-		return component->getObjectSystemOfType<VideoSourceSystem>();
-	}
-
-	return nullptr;
-}
-
-VideoSourceSystemConfigPtr RmlModel_CompositorComponent::getVideoSourceSystemConfig() const
-{
-	auto videoSourceSystem = getVideoSourceSystem();
-	if (videoSourceSystem)
-	{
-		return videoSourceSystem->getVideoSourceSystemConfig();
 	}
 
 	return nullptr;

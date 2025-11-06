@@ -85,11 +85,11 @@ public:
 	virtual eVideoStreamingStatus getVideoStreamingStatus() const = 0;
 	virtual void stopVideoStream() = 0;
 
-	virtual bool hasNewVideoFrameAvailable(VideoFrameSection section) const = 0;
-	virtual int64_t readVideoFrameSectionBuffer(VideoFrameSection section, cv::Mat* outBuffer) = 0;
+	virtual bool getVideoPixelDimensions(int& outPixelWidth, int& outPixelHeight) const;
+	virtual bool hasNewVideoFrameAvailable(VideoFrameSection section) const;
+	virtual int64_t readVideoFrameSectionBuffer(VideoFrameSection section, cv::Mat* outBuffer);
 
 	virtual bool getVideoModeName(std::string& outVideoModeName) const;
-	virtual bool getPixelDimensions(int& outPixelWidth, int& outPixelHeight) const;
 	virtual bool getFrameRate(float& outFrameRate) const;
 	virtual bool getCameraIntrinsics(MikanVideoSourceIntrinsics& out_camera_intrinsics) const;
 	virtual bool setCameraIntrinsics(const MikanVideoSourceIntrinsics& camera_intrinsics);
@@ -125,8 +125,12 @@ public:
 	void testIntrinsics();
 
 protected:
+	bool reallocateOpencvBufferState();
+	void releaseOpencvBufferState();
 	void recomputeCameraProjectionMatrix();
 
-private:
+protected:
+	int64_t m_lastVideoFrameReadIndex;
+	class OpenCVVideoFrameBuffer* m_opencv_buffer_state[MAX_PROJECTION_COUNT];
 	glm::mat4 m_projectionMatrix;
 };

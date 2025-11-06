@@ -1,4 +1,5 @@
 #include "ComponentScriptContext.h"
+#include "IEditorWindow.h"
 #include "ScriptAssetReference.h"
 #include "MikanComponent.h"
 #include "MikanObject.h"
@@ -200,10 +201,15 @@ IMkWindow* MikanComponent::getOwnerWindow() const
 	MikanObjectPtr ownerObject = m_ownerObject.lock();
 	if (ownerObject)
 	{
-		return ownerObject->getOwnerSystem()->getOwnerObjectSystemManager()->getOwnerWindow();
+		return ownerObject->getOwnerSystem()->getOwnerProjectManager()->getOwnerWindow();
 	}
 
 	return nullptr;
+}
+
+IEditorWindow* MikanComponent::getOwnerEditorWindow() const
+{
+	return dynamic_cast<IEditorWindow*>(getOwnerWindow());
 }
 
 void MikanComponent::setName(const std::string& name)
@@ -214,9 +220,9 @@ void MikanComponent::setName(const std::string& name)
 		m_definition->setComponentName(name);
 }
 
-ProjectManager* MikanComponent::getOwnerObjectSystemManager() const
+ProjectManager* MikanComponent::getOwnerProjectManager() const
 {
-	return getOwnerObject()->getOwnerSystem()->getOwnerObjectSystemManager();
+	return getOwnerObject()->getOwnerSystem()->getOwnerProjectManager();
 }
 
 // -- Scripting ----
