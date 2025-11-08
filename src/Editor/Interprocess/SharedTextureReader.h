@@ -35,3 +35,4 @@ private:
 	IMkTexturePtr m_depthTexture;
 	struct RenderTargetReaderImpl* m_readerImpl;
 };
+using SharedTextureReadAccessorPtr = std::shared_ptr<SharedTextureReadAccessor>;

@@ -2,6 +2,8 @@
 
 #include "TextureSourceComponent.h"
 
+using SharedTextureReadAccessorPtr = std::shared_ptr<class SharedTextureReadAccessor>;
+
 class SpoutTextureSourceDefinition : public TextureSourceDefinition
 {
 public:
@@ -31,6 +33,7 @@ public:
 		return std::static_pointer_cast<SpoutTextureSourceDefinition>(m_definition);
 	}
 	virtual void setDefinition(MikanComponentDefinitionPtr definition) override;
+	virtual void update(float deltaSeconds) override;
 
 	inline static const std::string k_componentClassName = "SpoutTextureSourceComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
@@ -46,4 +49,12 @@ public:
 	// -- IRmlFunctionInterface ----
 	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
 	{ TextureSourceComponent::getRmlFunctionDescriptors(outDescriptors); }
+
+protected:
+	void closeTextureSource();
+	void openTextureSource();
+
+private:
+	SharedTextureReadAccessorPtr m_colorTextureReadAccessor;
+	int64_t m_frameIndex = 0;
 };

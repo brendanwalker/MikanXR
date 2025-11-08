@@ -1,3 +1,4 @@
+#include "SharedTextureReader.h"
 #include "SpoutTextureSourceComponent.h"
 #include "StringUtils.h"
 #include "MikanTextureSourceTypes.h"
@@ -48,21 +49,35 @@ void SpoutTextureSourceDefinition::setSpoutSource(const std::string& spoutSource
 // -- SpoutTextureSourceComponent -----
 SpoutTextureSourceComponent::SpoutTextureSourceComponent(MikanObjectWeakPtr owner)
 	: TextureSourceComponent(owner)
-{}
+{
+	m_bWantsUpdate = true;
+}
 
 void SpoutTextureSourceComponent::setDefinition(MikanComponentDefinitionPtr definition)
 {
 	MikanComponent::setDefinition(definition);
 
-	// Close any open video source that was open
-	//closeTextureSource();
+	// re-open the texture source
+	openTextureSource();
+}
+
+void SpoutTextureSourceComponent::update(float deltaSeconds)
+{
+	if (m_colorTextureReadAccessor &&
+		m_colorTextureReadAccessor->readRenderTargetTextures(m_frameIndex))
+	{
+		m_frameIndex++;
+	}
 }
 
 // Texture Source Interface
 IMkTexturePtr SpoutTextureSourceComponent::getClientColorSourceTexture(
 	eTextureSourceColorType textureSourceColorType) const
 {
-	return IMkTexturePtr();
+	return 
+		m_colorTextureReadAccessor 
+		? m_colorTextureReadAccessor->getColorTexture()
+		: IMkTexturePtr();
 }
 
 // -- IRmlPropertyInterface ----
@@ -104,4 +119,28 @@ bool SpoutTextureSourceComponent::setPropertyValueFromRml(
 	}
 
 	return TextureSourceComponent::setPropertyValueFromRml(propertyDesc, inValue);
+}
+
+void SpoutTextureSourceComponent::closeTextureSource()
+{
+	if (m_colorTextureReadAccessor)
+	{
+		m_colorTextureReadAccessor->dispose();
+		m_colorTextureReadAccessor.reset();
+	}
+}
+
+void SpoutTextureSourceComponent::openTextureSource()
+{
+	closeTextureSource();
+
+	const std::string& spoutSourceName = getSpoutTextureSourceDefinition()->getSpoutSource();
+	m_colorTextureReadAccessor = std::make_shared<SharedTextureReadAccessor>(spoutSourceName);
+
+	MikanRenderTargetDescriptor desc = {};
+	desc.color_buffer_type = MikanColorBuffer_RGBA32;
+	desc.depth_buffer_type = MikanDepthBuffer_NODEPTH;
+	desc.graphicsAPI = MikanClientGraphicsApi_OpenGL;
+
+	m_colorTextureReadAccessor->initialize(&desc);
 }
