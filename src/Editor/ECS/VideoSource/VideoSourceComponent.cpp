@@ -270,6 +270,11 @@ int VideoSourceComponent::getVideoSetting(const eVideoSettingType property_type)
 	return -1;
 }
 
+bool VideoSourceComponent::hasAllocatedOpencvBufferState() const
+{
+	return m_opencv_buffer_state[0] != nullptr;
+}
+
 bool VideoSourceComponent::reallocateOpencvBufferState()
 {
 	releaseOpencvBufferState();

@@ -80,14 +80,14 @@ bool ClientSourceManager::getClientSourceDimensions(const std::string& clientId,
 
 IMkTexturePtr ClientSourceManager::getClientColorSourceTexture(
 	const std::string& clientId,
-	eClientColorTextureType clientTextureType) const
+	eTextureSourceColorType clientTextureType) const
 {
 	ClientSource* clientSource= nullptr;
 	if (m_clientSources.tryGetValue(clientId, clientSource))
 	{
 		switch (clientTextureType)
 		{
-			case eClientColorTextureType::colorRGB:
+			case eTextureSourceColorType::colorRGB:
 				if (clientSource->colorTexture &&
 					(clientSource->colorTexture->getTextureFormat() == MK_RGB ||
 						clientSource->colorTexture->getTextureFormat() == MK_BGR))
@@ -95,7 +95,7 @@ IMkTexturePtr ClientSourceManager::getClientColorSourceTexture(
 					return clientSource->colorTexture;
 				}
 				return clientSource->colorTexture;
-			case eClientColorTextureType::colorRGBA:
+			case eTextureSourceColorType::colorRGBA:
 				if (clientSource->colorTexture &&
 					(clientSource->colorTexture->getTextureFormat() == MK_RGBA ||
 						clientSource->colorTexture->getTextureFormat() == MK_BGRA))
@@ -110,14 +110,14 @@ IMkTexturePtr ClientSourceManager::getClientColorSourceTexture(
 
 IMkTexturePtr ClientSourceManager::getClientDepthSourceTexture(
 	const std::string& clientId,
-	eClientDepthTextureType clientTextureType) const
+	eTextureSourceDepthType clientTextureType) const
 {
 	ClientSource* clientSource = nullptr;
 	if (m_clientSources.tryGetValue(clientId, clientSource))
 	{
 		switch (clientTextureType)
 		{
-			case eClientDepthTextureType::depthPackRGBA:
+			case eTextureSourceDepthType::depthPackRGBA:
 				return clientSource->depthTexture;
 		}
 	}
@@ -158,6 +158,7 @@ bool ClientSourceManager::addClientSource(
 		return false;
 
 	ClientSource* clientSource = new ClientSource();
+	bool bSuccess = true;
 
 	const MikanRenderTargetDescriptor& desc = readAccessor->getRenderTargetDescriptor();
 	clientSource->clientId = clientId;
@@ -192,7 +193,7 @@ bool ClientSourceManager::addClientSource(
 			desc.graphicsAPI == MikanClientGraphicsApi_UNKNOWN
 			? IMkTexture::PixelBufferObjectMode::DoublePBOWrite
 			: IMkTexture::PixelBufferObjectMode::NoPBO);
-		clientSource->colorTexture->createTexture();
+		bSuccess&= clientSource->colorTexture->createTexture();
 
 		readAccessor->setColorTexture(clientSource->colorTexture);
 	}
@@ -219,15 +220,35 @@ bool ClientSourceManager::addClientSource(
 			desc.graphicsAPI == MikanClientGraphicsApi_UNKNOWN
 			? IMkTexture::PixelBufferObjectMode::DoublePBOWrite
 			: IMkTexture::PixelBufferObjectMode::NoPBO);
-		clientSource->depthTexture->createTexture();
+		bSuccess &= clientSource->depthTexture->createTexture();
 
 		readAccessor->setDepthTexture(clientSource->depthTexture);
 	}
 
-	// Add the client source to the data source table
-	m_clientSources.setValue(clientId, clientSource);
+	if (bSuccess)
+	{
+		// Add the client source to the data source table
+		m_clientSources.setValue(clientId, clientSource);
 
-	return true;
+		// Notify listeners that a new client source has connected
+		if (OnClientSourceConnected)
+		{
+			OnClientSourceConnected(clientId);
+		}
+	}
+	else
+	{
+		// Clean up on failure
+		clientSource->colorTexture = nullptr;
+		readAccessor->setColorTexture(nullptr);
+
+		clientSource->depthTexture = nullptr;
+		readAccessor->setDepthTexture(nullptr);
+
+		delete clientSource;
+	}
+
+	return bSuccess;
 }
 
 bool ClientSourceManager::removeClientSource(
@@ -248,6 +269,12 @@ bool ClientSourceManager::removeClientSource(
 	m_clientSources.removeValue(clientId);
 
 	delete clientSource;
+
+	// Notify listeners that a new client source has disconnected
+	if (OnClientSourceDisconnected)
+	{
+		OnClientSourceDisconnected(clientId);
+	}
 
 	return true;
 }

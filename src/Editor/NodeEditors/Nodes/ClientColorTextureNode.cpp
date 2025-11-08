@@ -1,7 +1,7 @@
 #include "ClientColorTextureNode.h"
 #include "ClientSourceManager.h"
-#include "ClientVideoSourceSystem.h"
-#include "ClientVideoSourceComponent.h"
+#include "ClientTextureSourceSystem.h"
+#include "ClientTextureSourceComponent.h"
 #include "MkScopedObjectBinding.h"
 #include "IMkFrameBuffer.h"
 #include "IMkWindow.h"
@@ -17,7 +17,7 @@
 #include "NodeEditorUI.h"
 #include "StringUtils.h"
 #include "ProjectManager.h"
-#include "VideoSourceSystem.h"
+#include "TextureSourceSystem.h"
 
 #include "DataSources/ClientListDataSource.h"
 
@@ -38,8 +38,8 @@ configuru::Config ClientColorTextureNodeConfig::writeToJSON()
 {
 	configuru::Config pt = NodeConfig::writeToJSON();
 
-	pt["client_texture_type"] = k_clientColorTextureTypeStrings[(int)clientTextureType];
-	pt["client_video_source_id"] = clientVideoSourceId;
+	pt["client_texture_type"] = k_textureSourceColorTypeStrings[(int)clientTextureType];
+	pt["client_video_source_id"] = clientTextureSourceId;
 	pt["vertical_flip"] = bVerticalFlip;
 
 	return pt;
@@ -52,13 +52,13 @@ void ClientColorTextureNodeConfig::readFromJSON(const configuru::Config& pt)
 	const std::string clientTextureTypeString =
 		pt.get_or<std::string>(
 			"client_texture_type",
-			k_clientColorTextureTypeStrings[(int)eClientColorTextureType::colorRGB]);
+			k_textureSourceColorTypeStrings[(int)eTextureSourceColorType::colorRGB]);
 	clientTextureType =
-		StringUtils::FindEnumValue<eClientColorTextureType>(
-			clientTextureTypeString, k_clientColorTextureTypeStrings);
+		StringUtils::FindEnumValue<eTextureSourceColorType>(
+			clientTextureTypeString, k_textureSourceColorTypeStrings);
 	bVerticalFlip = pt.get_or<bool>("vertical_flip", false);
 
-	clientVideoSourceId = pt.get_or<int>("client_video_source_id", INVALID_MIKAN_ID);
+	clientTextureSourceId = pt.get_or<int>("client_video_source_id", INVALID_MIKAN_ID);
 }
 
 // -- ClientTextureNode -----
@@ -72,12 +72,12 @@ bool ClientColorTextureNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 		m_bVerticalFlip= clientTextureNodeConfig->bVerticalFlip;
 
 		// Get the client video source component corresponding to the saved video source id
-		ClientVideoSourceSystemPtr clientVideoSourceSystem= getClientVideoSourceSystem();
-		if (clientVideoSourceSystem)
+		ClientTextureSourceSystemPtr ClientTextureSourceSystem= getClientTextureSourceSystem();
+		if (ClientTextureSourceSystem)
 		{
-			m_clientVideoSourceComponent =
-				clientVideoSourceSystem->getClientVideoSourceById(
-					clientTextureNodeConfig->clientVideoSourceId);
+			m_clientTextureSourceComponent =
+				ClientTextureSourceSystem->getClientTextureSourceById(
+					clientTextureNodeConfig->clientTextureSourceId);
 		}
 
 		return true;
@@ -89,21 +89,21 @@ bool ClientColorTextureNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 void ClientColorTextureNode::saveToConfig(NodeConfigPtr nodeConfig) const
 {
 	auto clientTextureNodeConfig = std::static_pointer_cast<ClientColorTextureNodeConfig>(nodeConfig);
-	ClientVideoSourceComponentPtr clientVideoSource= getClientVideoSourceComponent();
+	ClientTextureSourceComponentPtr clientTextureSource= getClientTextureSourceComponent();
 
 	clientTextureNodeConfig->clientTextureType = m_clientTextureType;
 	clientTextureNodeConfig->bVerticalFlip = m_bVerticalFlip;
-	clientTextureNodeConfig->clientVideoSourceId =
-		clientVideoSource 
-		? clientVideoSource->getVideoSourceId() 
+	clientTextureNodeConfig->clientTextureSourceId =
+		clientTextureSource 
+		? clientTextureSource->getTextureSourceId() 
 		: INVALID_MIKAN_ID;
 
 	Node::saveToConfig(nodeConfig);
 }
 
-ClientVideoSourceComponentPtr ClientColorTextureNode::getClientVideoSourceComponent() const
+ClientTextureSourceComponentPtr ClientColorTextureNode::getClientTextureSourceComponent() const
 {
-	return m_clientVideoSourceComponent.lock();
+	return m_clientTextureSourceComponent.lock();
 }
 
 IMkTexturePtr ClientColorTextureNode::getTextureResource() const
@@ -132,34 +132,34 @@ bool ClientColorTextureNode::evaluateNode(NodeEvaluator& evaluator)
 	return true;
 }
 
-ClientVideoSourceSystemPtr ClientColorTextureNode::getClientVideoSourceSystem() const
+ClientTextureSourceSystemPtr ClientColorTextureNode::getClientTextureSourceSystem() const
 {
 	ProjectManagerPtr ownerProject = getOwnerProject();
 	if (ownerProject)
 	{
-		return ownerProject->getSystemOfType<VideoSourceSystem>()->getClientVideoSourceSystem();
+		return ownerProject->getSystemOfType<TextureSourceSystem>()->getClientTextureSourceSystem();
 	}
 
-	return ClientVideoSourceSystemPtr();
+	return ClientTextureSourceSystemPtr();
 }
 
 std::string ClientColorTextureNode::getClientId() const
 {
-	ClientVideoSourceComponentPtr clientVideoSourceComponent = getClientVideoSourceComponent();
+	ClientTextureSourceComponentPtr clientTextureSourceComponent = getClientTextureSourceComponent();
 
 	return
-		clientVideoSourceComponent
-		? clientVideoSourceComponent->getDevicePath()
+		clientTextureSourceComponent
+		? clientTextureSourceComponent->getClientSourceName()
 		: "<INVALID>";
 }
 
 IMkTexturePtr ClientColorTextureNode::getClientColorSourceTexture() const
 {
-	ClientVideoSourceComponentPtr clientVideoSourceComponent = getClientVideoSourceComponent();
-	if (clientVideoSourceComponent)
+	ClientTextureSourceComponentPtr clientTextureSourceComponent = getClientTextureSourceComponent();
+	if (clientTextureSourceComponent)
 	{
 		IMkTexturePtr clientTexture = 
-			clientVideoSourceComponent->getClientColorSourceTexture(m_clientTextureType);
+			clientTextureSourceComponent->getClientColorSourceTexture(m_clientTextureType);
 
 		// If the client texture is not available, return a black texture
 		if (clientTexture)
@@ -170,7 +170,7 @@ IMkTexturePtr ClientColorTextureNode::getClientColorSourceTexture() const
 		{
 			auto* textureCache = getOwnerGraph()->getOwnerWindow()->getTextureCache();
 
-			if (m_clientTextureType == eClientColorTextureType::colorRGBA)
+			if (m_clientTextureType == eTextureSourceColorType::colorRGBA)
 			{
 				return textureCache->tryGetTextureByName(INTERNAL_TEXTURE_BLACK_RGBA);
 			}
@@ -188,8 +188,8 @@ void ClientColorTextureNode::updateColorFrameBuffer(NodeEvaluator& evaluator, IM
 {
 	IMkWindow* ownerWindow = evaluator.getCurrentWindow();
 
-	assert(m_clientTextureType == eClientColorTextureType::colorRGBA || 
-		   m_clientTextureType == eClientColorTextureType::colorRGB);
+	assert(m_clientTextureType == eTextureSourceColorType::colorRGBA || 
+		   m_clientTextureType == eTextureSourceColorType::colorRGB);
 
 	// Create the color frame buffer if it doesn't exist yet and we want to flip the Y axis
 	if (m_colorFrameBuffer == nullptr && m_bVerticalFlip)
@@ -199,10 +199,10 @@ void ClientColorTextureNode::updateColorFrameBuffer(NodeEvaluator& evaluator, IM
 
 		switch (m_clientTextureType)
 		{
-		case eClientColorTextureType::colorRGB:
+		case eTextureSourceColorType::colorRGB:
 			m_colorFrameBuffer->setColorFormat(IMkFrameBuffer::eColorFormat::RGB);
 			break;
-		case eClientColorTextureType::colorRGBA:
+		case eTextureSourceColorType::colorRGBA:
 			m_colorFrameBuffer->setColorFormat(IMkFrameBuffer::eColorFormat::RGBA);
 			break;
 		}
@@ -229,7 +229,7 @@ void ClientColorTextureNode::updateColorFrameBuffer(NodeEvaluator& evaluator, IM
 
 			// Re-create the render material instance
 			const std::string colorMaterialName =
-				m_clientTextureType == eClientColorTextureType::colorRGBA
+				m_clientTextureType == eTextureSourceColorType::colorRGBA
 				? INTERNAL_MATERIAL_PT_FULLSCREEN_RGBA_TEXTURE
 				: INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE;
 			MkMaterialConstPtr colorMaterial =
@@ -271,7 +271,7 @@ void ClientColorTextureNode::evaluateFlippedColorTexture(IMkState* glState, IMkT
 	if (auto materialBinding = material->bindMaterial())
 	{
 		// Bind the color texture
-		if (m_clientTextureType == eClientColorTextureType::colorRGBA)
+		if (m_clientTextureType == eTextureSourceColorType::colorRGBA)
 		{
 			m_colorMaterialInstance->setTextureBySemantic(eUniformSemantic::rgbaTexture, colorTexture);
 		}
@@ -347,22 +347,22 @@ void ClientColorTextureNode::editorRenderPropertySheet(const NodeEditorState& ed
 			"colorRGB\0colorRGBA\0",
 			iTextureType))
 		{
-			m_clientTextureType= (eClientColorTextureType)iTextureType;
+			m_clientTextureType= (eTextureSourceColorType)iTextureType;
 		}
 
 		// Texture Type
-		ClientListDataSource dataSource(getClientVideoSourceSystem());
+		ClientListDataSource dataSource(getClientTextureSourceSystem());
 		if (dataSource.getEntryCount() > 0)
 		{
-			ClientVideoSourceComponentPtr videoSourceComponent = getClientVideoSourceComponent();
+			ClientTextureSourceComponentPtr TextureSourceComponent = getClientTextureSourceComponent();
 
-			int selectedIndex = dataSource.getEntryIndex(videoSourceComponent);
+			int selectedIndex = dataSource.getEntryIndex(TextureSourceComponent);
 			NodeEditorUI::DrawComboBoxProperty(
 				"clientSourceIndex",
 				"Source",
 				&dataSource,
 				selectedIndex);
-			m_clientVideoSourceComponent = dataSource.getEntryAtIndex(selectedIndex);
+			m_clientTextureSourceComponent = dataSource.getEntryAtIndex(selectedIndex);
 		}
 
 		// Vertical Flip

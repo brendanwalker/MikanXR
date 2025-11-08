@@ -23,6 +23,7 @@
 #include "ServerResponseHelpers.h"
 #include "StencilRequestHandler.h"
 #include "StringUtils.h"
+#include "TextureSourceRequestHandler.h"
 #include "VideoSourceRequestHandler.h"
 #include "VRDeviceRequestHandler.h"
 #include "Version.h"
@@ -52,6 +53,7 @@ MikanServer::MikanServer()
 	, m_renderTargetRequestHandler(new RenderTargetRequestHandler(this))
 	, m_scriptRequestHandler(new ScriptRequestHandler(this))
 	, m_stencilRequestHandler(new StencilRequestHandler(this))
+	, m_textureSourceRequestHandler(new TextureSourceRequestHandler(this))
 	, m_videoSourceRequestHandler(new VideoSourceRequestHandler(this))
 	, m_vrDeviceRequestHandler(new VRDeviceRequestHandler(this))
 {
@@ -62,6 +64,7 @@ MikanServer::~MikanServer()
 {
 	delete m_vrDeviceRequestHandler;
 	delete m_videoSourceRequestHandler;
+	delete m_textureSourceRequestHandler;
 	delete m_stencilRequestHandler;
 	delete m_scriptRequestHandler;
 	delete m_remoteControlManager;
@@ -118,6 +121,12 @@ bool MikanServer::startup(MainWindow* mainWindow)
 	if (!m_remoteControlManager->startup(mainWindow))
 	{
 		MIKAN_LOG_ERROR("MikanServer::startup()") << "Failed to bind remote control request handlers";
+		return false;
+	}
+
+	if (!m_textureSourceRequestHandler->startup(mainWindow))
+	{
+		MIKAN_LOG_ERROR("MikanServer::startup()") << "Failed to bind texture source request handlers";
 		return false;
 	}
 
@@ -179,6 +188,7 @@ void MikanServer::shutdown()
 	m_stencilRequestHandler->shutdown();
 	m_remoteControlManager->shutdown();
 	m_renderTargetRequestHandler->shutdown();
+	m_textureSourceRequestHandler->shutdown();
 	m_videoSourceRequestHandler->shutdown();
 	m_vrDeviceRequestHandler->shutdown();
 }

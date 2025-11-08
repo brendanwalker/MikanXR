@@ -44,17 +44,25 @@ const std::string g_trackingRuntimeStrings[(int)eTrackingRuntime::COUNT] = {
 };
 const std::string* k_trackingRuntimeStrings = g_trackingRuntimeStrings;
 
-const char* g_szVideoSourceTypeStrings[(int)eVideoSourceType::COUNT] = {
+
+const char* g_szTextureSourceTypeStrings[(int)eTextureSourceType::COUNT] = {
 	"client",
-	"usb",
-	"networked",
 	"spout"
+};
+const std::string g_textureSourceTypeStrings[(int)eTextureSourceType::COUNT] = {
+	g_szTextureSourceTypeStrings[0],
+	g_szTextureSourceTypeStrings[1]
+};
+extern const char** k_szTextureSourceTypeStrings = g_szTextureSourceTypeStrings;
+extern const std::string* k_textureSourceTypeStrings= g_textureSourceTypeStrings;
+
+const char* g_szVideoSourceTypeStrings[(int)eVideoSourceType::COUNT] = {
+	"usb",
+	"networked"
 };
 const std::string g_videoSourceTypeStrings[(int)eVideoSourceType::COUNT] = {
 	g_szVideoSourceTypeStrings[0],
-	g_szVideoSourceTypeStrings[1],
-	g_szVideoSourceTypeStrings[2],
-	g_szVideoSourceTypeStrings[3]
+	g_szVideoSourceTypeStrings[1]
 };
 extern const char** k_szVideoSourceTypeStrings = g_szVideoSourceTypeStrings;
 extern const std::string* k_videoSourceTypeStrings= g_videoSourceTypeStrings;

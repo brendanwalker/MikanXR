@@ -50,6 +50,7 @@
 #include "SceneObjectSystem.h"
 #include "StageObjectSystem.h"
 #include "StringUtils.h"
+#include "TextureSourceSystem.h"
 #include "TrackingMountObjectSystem.h"
 #include "TrackingVolumeObjectSystem.h"
 #include "TransformComponent.h"
@@ -113,6 +114,7 @@ void AppStage_Project::enter()
 	m_sceneObjectSystem = objectSystemManager->getSystemOfType<SceneObjectSystem>();
 	m_stageSystem = objectSystemManager->getSystemOfType<StageObjectSystem>();
 	m_stencilObjectSystem = objectSystemManager->getSystemOfType<StencilObjectSystem>();
+	m_textureSourceSystem = objectSystemManager->getSystemOfType<TextureSourceSystem>();
 	m_trackingMountSystem = objectSystemManager->getSystemOfType<TrackingMountObjectSystem>();
 	m_trackingVolumeSystem = objectSystemManager->getSystemOfType<TrackingVolumeObjectSystem>();
 	m_videoObjectSystem = objectSystemManager->getSystemOfType<VideoSourceSystem>();
@@ -193,7 +195,7 @@ void AppStage_Project::enter()
 		m_projectSourcesView->Hide();
 
 		// Init Sources UI
-		m_projectSourcesModel->init(context, m_project, m_videoObjectSystem.lock());
+		m_projectSourcesModel->init(context, m_project, m_textureSourceSystem.lock(), m_videoObjectSystem.lock());
 		m_projectSourcesView = addRmlDocument("project_sources.rml");
 		m_projectSourcesView->Hide();
 

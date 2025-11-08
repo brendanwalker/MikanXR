@@ -20,6 +20,6 @@ protected:
 
 private:
 	RmlDataBinding_ComponentIdListPtr m_trackingMountIdList;
-	RmlDataBinding_ComponentIdListPtr m_videoSourceIdList;
+	RmlDataBinding_ComponentIdListPtr m_textureSourceIdList;
 	VideoSourceSystemWeakPtr m_videoSourceSystem;
 };

@@ -15,7 +15,7 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	eClientDepthTextureType clientTextureType;
+	eTextureSourceDepthType clientTextureType;
 	MikanVideoSourceID clientVideoSourceId;
 	bool bVerticalFlip;
 };
@@ -31,7 +31,7 @@ public:
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
 	virtual void saveToConfig(NodeConfigPtr nodeConfig) const override;
 
-	ClientVideoSourceComponentPtr getClientVideoSourceComponent() const;
+	ClientTextureSourceComponentPtr getClientTextureSourceComponent() const;
 	IMkTexturePtr getTextureResource() const;
 	std::string getClientId() const;
 
@@ -40,7 +40,7 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
-	ClientVideoSourceSystemPtr getClientVideoSourceSystem() const;
+	ClientTextureSourceSystemPtr getClientTextureSourceSystem() const;
 	IMkTexturePtr getClientDepthSourceTexture() const;
 	void updateLinearDepthFrameBuffer(NodeEvaluator& evaluator, IMkTexturePtr clientTexture);
 	void evaluateDepthTexture(IMkState* glState, IMkTexturePtr depthTexture);
@@ -51,8 +51,8 @@ protected:
 protected:
 	IMkFrameBufferPtr m_linearDepthFrameBuffer;
 	MkMaterialInstancePtr m_depthMaterialInstance;
-	eClientDepthTextureType m_clientTextureType= eClientDepthTextureType::depthPackRGBA;
-	ClientVideoSourceComponentWeakPtr m_clientVideoSourceComponent;
+	eTextureSourceDepthType m_clientTextureType= eTextureSourceDepthType::depthPackRGBA;
+	ClientTextureSourceComponentWeakPtr m_ClientTextureSourceComponent;
 	bool m_bVerticalFlip= false;
 };
 

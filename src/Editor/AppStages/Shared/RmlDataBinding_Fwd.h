@@ -62,14 +62,14 @@ using RmlModel_VRTrackingVolumeComponentPtr = std::shared_ptr<RmlModel_VRTrackin
 class RmlModel_TrackingMountComponent;
 using RmlModel_TrackingMountComponentPtr = std::shared_ptr<RmlModel_TrackingMountComponent>;
 
-class RmlModel_ClientVideoSourceComponent;
-using RmlModel_ClientVideoSourceComponentPtr = std::shared_ptr<RmlModel_ClientVideoSourceComponent>;
+class RmlModel_ClientTextureSourceComponent;
+using RmlModel_ClientTextureSourceComponentPtr = std::shared_ptr<RmlModel_ClientTextureSourceComponent>;
 
 class RmlModel_NetworkVideoSourceComponent;
 using RmlModel_NetworkVideoSourceComponentPtr = std::shared_ptr<RmlModel_NetworkVideoSourceComponent>;
 
-class RmlModel_SpoutVideoSourceComponent;
-using RmlModel_SpoutVideoSourceComponentPtr = std::shared_ptr<RmlModel_SpoutVideoSourceComponent>;
+class RmlModel_SpoutTextureSourceComponent;
+using RmlModel_SpoutTextureSourceComponentPtr = std::shared_ptr<RmlModel_SpoutTextureSourceComponent>;
 
 class RmlModel_USBVideoSourceComponent;
 using RmlModel_USBVideoSourceComponentPtr = std::shared_ptr<RmlModel_USBVideoSourceComponent>;

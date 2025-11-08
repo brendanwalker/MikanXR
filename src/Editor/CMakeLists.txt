@@ -205,6 +205,12 @@ file(GLOB MIKAN_ECS_STENCIL_SRC
     "${CMAKE_CURRENT_LIST_DIR}/ECS/Stencil/*.h"
 )
 source_group("ECS\\Stencil" FILES ${MIKAN_ECS_STENCIL_SRC})
+## Texture Source
+file(GLOB MIKAN_ECS_TEXTURE_SOURCE_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/ECS/TextureSource/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/ECS/TextureSource/*.h"
+)
+source_group("ECS\\TextureSource" FILES ${MIKAN_ECS_TEXTURE_SOURCE_SRC})
 ## TrackingMount
 file(GLOB MIKAN_ECS_TRACKINGMOUNT_SRC
     "${CMAKE_CURRENT_LIST_DIR}/ECS/TrackingMount/*.cpp"
@@ -241,6 +247,7 @@ set(MIKAN_ECS_SRC
     ${MIKAN_ECS_SCENE_SRC}
     ${MIKAN_ECS_STAGE_SRC}
     ${MIKAN_ECS_STENCIL_SRC}
+    ${MIKAN_ECS_TEXTURE_SOURCE_SRC}
     ${MIKAN_ECS_TRACKINGMOUNT_SRC}
     ${MIKAN_ECS_TRACKINGVOLUME_SRC}
     ${MIKAN_ECS_VROBJECT_SRC}
@@ -357,28 +364,6 @@ file(GLOB MIKAN_RMLUI_SRC
 )
 source_group("RmlUI" FILES ${MIKAN_RMLUI_SRC})
 
-# Sources
-## Client Sources
-file(GLOB MIKAN_SOURCES_CLIENT_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Sources/Client/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Sources/Client/*.h"
-)
-source_group("Sources\\Client" FILES ${MIKAN_SOURCES_CLIENT_SRC})
-
-## Spout Sources
-file(GLOB MIKAN_SOURCES_SPOUT_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Sources/Spout/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Sources/Spout/*.h"
-)
-source_group("Sources\\Spout" FILES ${MIKAN_SOURCES_SPOUT_SRC})
-
-## Video Sources
-file(GLOB MIKAN_SOURCES_VIDEO_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/Sources/Video/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/Sources/Video/*.h"
-)
-source_group("Sources\\Video" FILES ${MIKAN_SOURCES_VIDEO_SRC})
-
 # Scripting
 file(GLOB MIKAN_SCRIPTING_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Scripting/*.cpp"
@@ -425,9 +410,6 @@ set(MIKAN_SRC
     ${MIKAN_RENDERER_SRC}
     ${MIKAN_RMLUI_SRC}
     ${MIKAN_SCRIPTING_SRC}
-    ${MIKAN_SOURCES_CLIENT_SRC}
-    ${MIKAN_SOURCES_SPOUT_SRC}
-    ${MIKAN_SOURCES_VIDEO_SRC}
     ${MIKAN_SDL_SRC}
     ${MIKAN_SERVER_SRC}
     ${MIKAN_SYSTEM_SRC}
@@ -455,6 +437,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/ECS/Scene
   ${CMAKE_CURRENT_LIST_DIR}/ECS/Stage
   ${CMAKE_CURRENT_LIST_DIR}/ECS/Stencil
+  ${CMAKE_CURRENT_LIST_DIR}/ECS/TextureSource
   ${CMAKE_CURRENT_LIST_DIR}/ECS/TrackingMount
   ${CMAKE_CURRENT_LIST_DIR}/ECS/TrackingVolume
   ${CMAKE_CURRENT_LIST_DIR}/ECS/VRObject
@@ -470,9 +453,6 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/SDL
   ${CMAKE_CURRENT_LIST_DIR}/Server
   ${CMAKE_CURRENT_LIST_DIR}/Scripting
-  ${CMAKE_CURRENT_LIST_DIR}/Sources/Client
-  ${CMAKE_CURRENT_LIST_DIR}/Sources/Spout
-  ${CMAKE_CURRENT_LIST_DIR}/Sources/Video
   ${MIKAN_LIBRARIES_DIR}/MikanClientAPI/Public
   ${MIKAN_LIBRARIES_DIR}/MikanClientCore/Public
   ${MIKAN_LIBRARIES_DIR}/MikanCoreApp/Public

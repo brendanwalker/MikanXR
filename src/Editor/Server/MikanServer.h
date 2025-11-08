@@ -40,6 +40,7 @@ public:
 	inline class RemoteControlManager* getRemoteControlManager() const { return m_remoteControlManager; }
 	inline class RenderTargetRequestHandler* getRenderTargetRequestHandler() const { return m_renderTargetRequestHandler; }
 	inline class StencilRequestHandler* getStencilRequestHandler() const { return m_stencilRequestHandler; }
+	inline class TextureSourceRequestHandler* getTextureSourceRequestHandler() const { return m_textureSourceRequestHandler; }
 	inline class VideoSourceRequestHandler* getVideoSourceRequestHandler() const { return m_videoSourceRequestHandler; }
 
 	bool startup(class MainWindow* mainWindow);
@@ -81,6 +82,7 @@ private:
 	class RenderTargetRequestHandler* m_renderTargetRequestHandler;
 	class ScriptRequestHandler* m_scriptRequestHandler;
 	class StencilRequestHandler* m_stencilRequestHandler;
+	class TextureSourceRequestHandler* m_textureSourceRequestHandler;
 	class VideoSourceRequestHandler* m_videoSourceRequestHandler;
 	class VRDeviceRequestHandler* m_vrDeviceRequestHandler;
 

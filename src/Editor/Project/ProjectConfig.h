@@ -31,6 +31,7 @@ public:
 	StageObjectSystemConfigPtr stageConfig;
 	TrackingVolumeObjectSystemConfigPtr trackingVolumeSystemConfig;
 	TrackingMountObjectSystemConfigPtr trackingMountSystemConfig;
+	TextureSourceSystemConfigPtr textureSourceSystemConfig;
 	VideoSourceSystemConfigPtr videoSourceSystemConfig;
 	VRObjectSystemConfigPtr vrObjectConfig;
 

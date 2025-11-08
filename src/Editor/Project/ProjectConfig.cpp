@@ -15,6 +15,7 @@
 #include "SinglecastDelegate.h"
 #include "TrackingVolumeObjectSystem.h"
 #include "TrackingMountObjectSystem.h"
+#include "TextureSourceSystemConfig.h"
 #include "VideoSourceSystemConfig.h"
 #include "VRObjectSystem.h"
 
@@ -53,6 +54,9 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 
 	trackingMountSystemConfig = std::make_shared<TrackingMountObjectSystemConfig>("tracking_mount_system");
 	addChildConfig(trackingMountSystemConfig);
+
+	textureSourceSystemConfig = std::make_shared<TextureSourceSystemConfig>("texture_source_system");
+	addChildConfig(textureSourceSystemConfig);
 
 	videoSourceSystemConfig = std::make_shared<VideoSourceSystemConfig>("video_source_system");
 	addChildConfig(videoSourceSystemConfig);
@@ -97,6 +101,9 @@ configuru::Config ProjectConfig::writeToJSON()
 
 	// Write the tracking mount system config
 	pt[trackingMountSystemConfig->getConfigName()] = trackingMountSystemConfig->writeToJSON();
+
+	// Write the texture source system config
+	pt[textureSourceSystemConfig->getConfigName()] = textureSourceSystemConfig->writeToJSON();
 
 	// Write the video source system config
 	pt[videoSourceSystemConfig->getConfigName()] = videoSourceSystemConfig->writeToJSON();
@@ -172,6 +179,12 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 	if (pt.has_key(trackingMountSystemConfig->getConfigName()))
 	{
 		trackingMountSystemConfig->readFromJSON(pt[trackingMountSystemConfig->getConfigName()]);
+	}
+
+	// Read the texture source system config
+	if (pt.has_key(textureSourceSystemConfig->getConfigName()))
+	{
+		textureSourceSystemConfig->readFromJSON(pt[textureSourceSystemConfig->getConfigName()]);
 	}
 
 	// Read the video source system config

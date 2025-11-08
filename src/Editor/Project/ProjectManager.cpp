@@ -1,7 +1,7 @@
 #pragma once
 
 #include "AnchorObjectSystem.h"
-#include "ClientVideoSourceSystem.h"
+#include "ClientTextureSourceSystem.h"
 #include "CameraObjectSystem.h"
 #include "CompositorObjectSystem.h"
 #include "EditorObjectSystem.h"
@@ -11,9 +11,10 @@
 #include "ProjectConfig.h"
 #include "ProjectManager.h"
 #include "SceneObjectSystem.h"
-#include "SpoutVideoSourceSystem.h"
+#include "SpoutTextureSourceSystem.h"
 #include "StencilObjectSystem.h"
 #include "StageObjectSystem.h"
+#include "TextureSourceSystem.h"
 #include "TrackingMountObjectSystem.h"
 #include "TrackingVolumeObjectSystem.h"
 #include "USBVideoSourceSystem.h"
@@ -33,9 +34,9 @@ bool ProjectManager::startup()
 	// Init EditorSystem first so that it get component creation events 
 	// from Anchor and Stencil Systems triggered during init call
 	addSystem<EditorObjectSystem>();
-	addSystem<ClientVideoSourceSystem>();
+	addSystem<ClientTextureSourceSystem>();
+	addSystem<SpoutTextureSourceSystem>();
 	addSystem<NetworkVideoSourceSystem>();
-	addSystem<SpoutVideoSourceSystem>();
 	addSystem<USBVideoSourceSystem>();
 	addSystem<VideoSourceSystem>();
 	addSystem<MarkerObjectSystem>();

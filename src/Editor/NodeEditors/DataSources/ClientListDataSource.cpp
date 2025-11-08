@@ -1,26 +1,26 @@
 #include "ClientListDataSource.h"
-#include "ClientVideoSourceSystem.h"
-#include "ClientVideoSourceComponent.h"
+#include "ClientTextureSourceSystem.h"
+#include "ClientTextureSourceComponent.h"
 
-ClientListDataSource::ClientListDataSource(ClientVideoSourceSystemPtr clientVideoSourceSystem)
+ClientListDataSource::ClientListDataSource(ClientTextureSourceSystemPtr ClientTextureSourceSystem)
 {
-	if (clientVideoSourceSystem != nullptr)
+	if (ClientTextureSourceSystem != nullptr)
 	{
-		auto& clientSourcesMap= clientVideoSourceSystem->getClientVideoSourceMap();
+		auto& clientSourcesMap= ClientTextureSourceSystem->getClientTextureSourceMap();
 
 		for (auto it = clientSourcesMap.begin(); it != clientSourcesMap.end(); it++)
 		{
-			ClientVideoSourceComponentPtr clientVideoSourceComponent= it->second.lock();
+			ClientTextureSourceComponentPtr clientTextureSourceComponent= it->second.lock();
 
-			comboEntrieValues.push_back(clientVideoSourceComponent);
-			comboEntrieNames.push_back(clientVideoSourceComponent->getDevicePath());
+			comboEntrieValues.push_back(clientTextureSourceComponent);
+			comboEntrieNames.push_back(clientTextureSourceComponent->getClientSourceName());
 		}
 	}
 }
 
-int ClientListDataSource::getEntryIndex(ClientVideoSourceComponentPtr videoSourceComponent) const
+int ClientListDataSource::getEntryIndex(ClientTextureSourceComponentPtr TextureSourceComponent) const
 {
-	auto it = std::find(comboEntrieValues.begin(), comboEntrieValues.end(), videoSourceComponent);
+	auto it = std::find(comboEntrieValues.begin(), comboEntrieValues.end(), TextureSourceComponent);
 	if (it != comboEntrieValues.end())
 	{
 		return static_cast<int>(std::distance(comboEntrieValues.begin(), it));
@@ -34,7 +34,7 @@ int ClientListDataSource::getEntryCount()
 	return (int)comboEntrieValues.size();
 }
 
-ClientVideoSourceComponentPtr ClientListDataSource::getEntryAtIndex(int index) const
+ClientTextureSourceComponentPtr ClientListDataSource::getEntryAtIndex(int index) const
 { 
 	return comboEntrieValues[index];
 }

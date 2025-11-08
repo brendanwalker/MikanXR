@@ -68,6 +68,7 @@ protected:
 	StencilObjectSystemWeakPtr m_stencilObjectSystem;
 	SceneObjectSystemWeakPtr m_sceneObjectSystem;
 	StageObjectSystemWeakPtr m_stageSystem;
+	TextureSourceSystemWeakPtr m_textureSourceSystem;
 	TrackingVolumeObjectSystemWeakPtr m_trackingVolumeSystem;
 	TrackingMountObjectSystemWeakPtr m_trackingMountSystem;
 	VideoSourceSystemWeakPtr m_videoObjectSystem;

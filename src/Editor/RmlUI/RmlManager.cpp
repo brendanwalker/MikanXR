@@ -26,6 +26,8 @@
 #include "StencilObjectSystem.h"
 #include "SceneObjectSystem.h"
 #include "SceneComponent.h"
+#include "TextureSourceSystem.h"
+#include "TextureSourceComponent.h"
 #include "TrackingVolumeObjectSystem.h"
 #include "TrackingVolumeComponent.h"
 #include "TrackingMountObjectSystem.h"
@@ -485,7 +487,26 @@ void RmlManager::registerCommonDataModelTypes()
 			return true;
 		});
 
-	// Transform function for converting full file path to a trimmed path
+	// Transform function for converting texture source id to friendly name
+	constructor.RegisterTransformFunc(
+		"to_texture_source_name",
+		[rmlManager](Rml::Variant& variant, const Rml::VariantList& arguments) -> bool {
+			const MikanTextureSourceID textureSourceId = variant.Get<int>(-1);
+
+			auto textureSourceSystem = rmlGetSystemOfType<TextureSourceSystem>(rmlManager);
+			auto textureSourceComponent = textureSourceSystem->getTextureSourceById(textureSourceId);
+			if (textureSourceComponent)
+			{
+				const Rml::String friendlyName = textureSourceComponent->getName();
+
+				variant = friendlyName;
+				return true;
+			}
+
+			return false;
+		});
+
+	// Transform function for converting video source id to friendly name
 	constructor.RegisterTransformFunc(
 		"to_video_source_friendly_name",
 		[rmlManager](Rml::Variant& variant, const Rml::VariantList& arguments) -> bool {

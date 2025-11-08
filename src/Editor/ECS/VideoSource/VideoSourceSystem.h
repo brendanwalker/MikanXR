@@ -32,16 +32,11 @@ public:
 	eVideoSourceType getVideoSourceType(MikanVideoSourceID videoSourceId) const;
 	bool removeVideoSource(MikanVideoSourceID videoSourceId);
 
-	// Client Video Source Methods - delegate to ClientVideoSourceSystem
-	ClientVideoSourceSystemPtr getClientVideoSourceSystem() const { return m_clientVideoSourceSystem; }
 	NetworkVideoSourceSystemPtr getNetworkVideoSourceSystem() const { return m_networkVideoSourceSystem; }
-	SpoutVideoSourceSystemPtr getSpoutVideoSourceSystem() const { return m_spoutVideoSourceSystem; }
 	USBVideoSourceSystemPtr getUSBVideoSourceSystem() const { return m_usbVideoSourceSystem; }
 
 private:
-	ClientVideoSourceSystemPtr m_clientVideoSourceSystem;
 	NetworkVideoSourceSystemPtr m_networkVideoSourceSystem;
-	SpoutVideoSourceSystemPtr m_spoutVideoSourceSystem;
 	USBVideoSourceSystemPtr m_usbVideoSourceSystem;
 
 	static VideoSourceSystemWeakPtr s_VideoSourceSystem;

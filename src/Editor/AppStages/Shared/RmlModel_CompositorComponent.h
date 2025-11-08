@@ -19,7 +19,7 @@ protected:
 
 private:
 	RmlDataBinding_ComponentIdListPtr m_cameraIdList;
-	RmlDataBinding_ComponentIdListPtr m_videoSourceIdList;
+	RmlDataBinding_ComponentIdListPtr m_textureSourceIdList;
 	CameraObjectSystemWeakPtr m_cameraObjectSystem;
 };
 

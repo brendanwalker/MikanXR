@@ -10,9 +10,9 @@ class CameraObjectSystem;
 using CameraObjectSystemPtr = std::shared_ptr<CameraObjectSystem>;
 using CameraObjectSystemWeakPtr = std::weak_ptr<CameraObjectSystem>;
 
-class ClientVideoSourceSystem;
-using ClientVideoSourceSystemPtr = std::shared_ptr<ClientVideoSourceSystem>;
-using ClientVideoSourceSystemWeakPtr = std::weak_ptr<ClientVideoSourceSystem>;
+class ClientTextureSourceSystem;
+using ClientTextureSourceSystemPtr = std::shared_ptr<ClientTextureSourceSystem>;
+using ClientTextureSourceSystemWeakPtr = std::weak_ptr<ClientTextureSourceSystem>;
 
 class CompositorObjectSystem;
 using CompositorObjectSystemPtr = std::shared_ptr<CompositorObjectSystem>;
@@ -46,9 +46,9 @@ class SceneObjectSystem;
 using SceneObjectSystemPtr = std::shared_ptr<SceneObjectSystem>;
 using SceneObjectSystemWeakPtr = std::weak_ptr<SceneObjectSystem>;
 
-class SpoutVideoSourceSystem;
-using SpoutVideoSourceSystemPtr = std::shared_ptr<SpoutVideoSourceSystem>;
-using SpoutVideoSourceSystemWeakPtr = std::weak_ptr<SpoutVideoSourceSystem>;
+class SpoutTextureSourceSystem;
+using SpoutTextureSourceSystemPtr = std::shared_ptr<SpoutTextureSourceSystem>;
+using SpoutTextureSourceSystemWeakPtr = std::weak_ptr<SpoutTextureSourceSystem>;
 
 class StageObjectSystem;
 using StageObjectSystemPtr = std::shared_ptr<StageObjectSystem>;
@@ -57,6 +57,10 @@ using StageObjectSystemWeakPtr = std::weak_ptr<StageObjectSystem>;
 class StencilObjectSystem;
 using StencilObjectSystemPtr = std::shared_ptr<StencilObjectSystem>;
 using StencilObjectSystemWeakPtr = std::weak_ptr<StencilObjectSystem>;
+
+class TextureSourceSystem;
+using TextureSourceSystemPtr = std::shared_ptr<TextureSourceSystem>;
+using TextureSourceSystemWeakPtr = std::weak_ptr<TextureSourceSystem>;
 
 class TrackingVolumeObjectSystem;
 using TrackingVolumeObjectSystemPtr = std::shared_ptr<TrackingVolumeObjectSystem>;

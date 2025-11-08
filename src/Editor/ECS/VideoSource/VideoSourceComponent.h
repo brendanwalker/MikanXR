@@ -125,6 +125,7 @@ public:
 	void testIntrinsics();
 
 protected:
+	bool hasAllocatedOpencvBufferState() const;
 	bool reallocateOpencvBufferState();
 	void releaseOpencvBufferState();
 	void recomputeCameraProjectionMatrix();

@@ -4,23 +4,11 @@
 #include "ObjectSystemConfigFwd.h"
 #include "Shared/RmlModel_MikanComponent.h"
 #include "Shared/RmlDataBinding_Fwd.h"
-#include "ClientVideoSourceComponent.h"
 #include "NetworkVideoSourceComponent.h"
-#include "SpoutVideoSourceComponent.h"
 #include "USBVideoSourceComponent.h"
-
-class RmlModel_ClientVideoSourceComponent : 
-	public RmlModel_TypedMikanComponent<ClientVideoSourceComponent>
-{
-};
 
 class RmlModel_NetworkVideoSourceComponent : 
 	public RmlModel_TypedMikanComponent<NetworkVideoSourceComponent>
-{
-};
-
-class RmlModel_SpoutVideoSourceComponent :
-	public RmlModel_TypedMikanComponent<SpoutVideoSourceComponent>
 {
 };
 

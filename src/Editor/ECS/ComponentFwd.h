@@ -98,17 +98,38 @@ using TrackingMountComponentPtr = std::shared_ptr<TrackingMountComponent>;
 using TrackingMountComponentConstPtr = std::shared_ptr<const TrackingMountComponent>;
 using TrackingMountComponentWeakPtr = std::weak_ptr<TrackingMountComponent>;
 
+// Texture Sources
+class ClientTextureSourceDefinition;
+using ClientTextureSourceDefinitionPtr = std::shared_ptr<ClientTextureSourceDefinition>;
+using ClientTextureSourceDefinitionConstPtr = std::shared_ptr<const ClientTextureSourceDefinition>;
+using ClientTextureSourceDefinitionWeakPtr = std::weak_ptr<ClientTextureSourceDefinition>;
+
+class ClientTextureSourceComponent;
+using ClientTextureSourceComponentPtr = std::shared_ptr<ClientTextureSourceComponent>;
+using ClientTextureSourceComponentConstPtr = std::shared_ptr<const ClientTextureSourceComponent>;
+using ClientTextureSourceComponentWeakPtr = std::weak_ptr<ClientTextureSourceComponent>;
+
+class SpoutTextureSourceDefinition;
+using SpoutTextureSourceDefinitionPtr = std::shared_ptr<SpoutTextureSourceDefinition>;
+using SpoutTextureSourceDefinitionConstPtr = std::shared_ptr<const SpoutTextureSourceDefinition>;
+using SpoutTextureSourceDefinitionWeakPtr = std::weak_ptr<SpoutTextureSourceDefinition>;
+
+class SpoutTextureSourceComponent;
+using SpoutTextureSourceComponentPtr = std::shared_ptr<SpoutTextureSourceComponent>;
+using SpoutTextureSourceComponentConstPtr = std::shared_ptr<const SpoutTextureSourceComponent>;
+using SpoutTextureSourceComponentWeakPtr = std::weak_ptr<SpoutTextureSourceComponent>;
+
+class TextureSourceDefinition;
+using TextureSourceDefinitionPtr = std::shared_ptr<TextureSourceDefinition>;
+using TextureSourceDefinitionConstPtr = std::shared_ptr<const TextureSourceDefinition>;
+using TextureSourceDefinitionWeakPtr = std::weak_ptr<TextureSourceDefinition>;
+
+class TextureSourceComponent;
+using TextureSourceComponentPtr = std::shared_ptr<TextureSourceComponent>;
+using TextureSourceComponentConstPtr = std::shared_ptr<const TextureSourceComponent>;
+using TextureSourceComponentWeakPtr = std::weak_ptr<TextureSourceComponent>;
+
 // Video Sources
-class ClientVideoSourceDefinition;
-using ClientVideoSourceDefinitionPtr = std::shared_ptr<ClientVideoSourceDefinition>;
-using ClientVideoSourceDefinitionConstPtr = std::shared_ptr<const ClientVideoSourceDefinition>;
-using ClientVideoSourceDefinitionWeakPtr = std::weak_ptr<ClientVideoSourceDefinition>;
-
-class ClientVideoSourceComponent;
-using ClientVideoSourceComponentPtr = std::shared_ptr<ClientVideoSourceComponent>;
-using ClientVideoSourceComponentConstPtr = std::shared_ptr<const ClientVideoSourceComponent>;
-using ClientVideoSourceComponentWeakPtr = std::weak_ptr<ClientVideoSourceComponent>;
-
 class NetworkVideoSourceDefinition;
 using NetworkVideoSourceDefinitionPtr = std::shared_ptr<NetworkVideoSourceDefinition>;
 using NetworkVideoSourceDefinitionConstPtr = std::shared_ptr<const NetworkVideoSourceDefinition>;
@@ -118,16 +139,6 @@ class NetworkVideoSourceComponent;
 using NetworkVideoSourceComponentPtr = std::shared_ptr<NetworkVideoSourceComponent>;
 using NetworkVideoSourceComponentConstPtr = std::shared_ptr<const NetworkVideoSourceComponent>;
 using NetworkVideoSourceComponentWeakPtr = std::weak_ptr<NetworkVideoSourceComponent>;
-
-class SpoutVideoSourceDefinition;
-using SpoutVideoSourceDefinitionPtr = std::shared_ptr<SpoutVideoSourceDefinition>;
-using SpoutVideoSourceDefinitionConstPtr = std::shared_ptr<const SpoutVideoSourceDefinition>;
-using SpoutVideoSourceDefinitionWeakPtr = std::weak_ptr<SpoutVideoSourceDefinition>;
-
-class SpoutVideoSourceComponent;
-using SpoutVideoSourceComponentPtr = std::shared_ptr<SpoutVideoSourceComponent>;
-using SpoutVideoSourceComponentConstPtr = std::shared_ptr<const SpoutVideoSourceComponent>;
-using SpoutVideoSourceComponentWeakPtr = std::weak_ptr<SpoutVideoSourceComponent>;
 
 class USBVideoSourceDefinition;
 using USBVideoSourceDefinitionPtr = std::shared_ptr<USBVideoSourceDefinition>;

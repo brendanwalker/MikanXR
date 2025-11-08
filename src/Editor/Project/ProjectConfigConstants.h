@@ -63,14 +63,24 @@ enum class eTrackingRuntime : int
 };
 extern const std::string* k_trackingRuntimeStrings;
 
-enum class eVideoSourceType : int
+enum class eTextureSourceType : int
 {
 	INVALID = -1,
 
 	client,
+	spout,
+
+	COUNT
+};
+extern const char** k_szTextureSourceTypeStrings;
+extern const std::string* k_textureSourceTypeStrings;
+
+enum class eVideoSourceType : int
+{
+	INVALID = -1,
+
 	usb,
 	networked,
-	spout,
 
 	COUNT
 };

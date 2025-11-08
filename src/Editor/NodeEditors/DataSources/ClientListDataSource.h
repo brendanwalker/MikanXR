@@ -8,15 +8,15 @@
 class ClientListDataSource : public NodeEditorUI::ComboBoxDataSource
 {
 public:
-	ClientListDataSource(ClientVideoSourceSystemPtr clientVideoSourceSystem);
+	ClientListDataSource(ClientTextureSourceSystemPtr ClientTextureSourceSystem);
 
-	int getEntryIndex(ClientVideoSourceComponentPtr videoSourceComponent) const;
-	ClientVideoSourceComponentPtr getEntryAtIndex(int index) const;
+	int getEntryIndex(ClientTextureSourceComponentPtr TextureSourceComponent) const;
+	ClientTextureSourceComponentPtr getEntryAtIndex(int index) const;
 
 	virtual int getEntryCount() override;
 	virtual const std::string& getEntryDisplayString(int index) override;
 
 private:
-	std::vector<ClientVideoSourceComponentPtr> comboEntrieValues;
+	std::vector<ClientTextureSourceComponentPtr> comboEntrieValues;
 	std::vector<std::string> comboEntrieNames;
 };

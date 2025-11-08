@@ -14,8 +14,8 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	eClientColorTextureType clientTextureType;
-	MikanVideoSourceID clientVideoSourceId;
+	eTextureSourceColorType clientTextureType;
+	MikanTextureSourceID clientTextureSourceId;
 	bool bVerticalFlip;
 };
 
@@ -30,7 +30,7 @@ public:
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
 	virtual void saveToConfig(NodeConfigPtr nodeConfig) const override;
 
-	ClientVideoSourceComponentPtr getClientVideoSourceComponent() const;
+	ClientTextureSourceComponentPtr getClientTextureSourceComponent() const;
 	IMkTexturePtr getTextureResource() const;
 	std::string getClientId() const;
 
@@ -39,7 +39,7 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
-	ClientVideoSourceSystemPtr getClientVideoSourceSystem() const;
+	ClientTextureSourceSystemPtr getClientTextureSourceSystem() const;
 	IMkTexturePtr getClientColorSourceTexture() const;
 	void updateColorFrameBuffer(NodeEvaluator& evaluator, IMkTexturePtr clientTexture);
 	void evaluateFlippedColorTexture(IMkState* glState, IMkTexturePtr depthTexture);
@@ -50,8 +50,8 @@ protected:
 protected:
 	IMkFrameBufferPtr m_colorFrameBuffer;
 	MkMaterialInstancePtr m_colorMaterialInstance;
-	eClientColorTextureType m_clientTextureType= eClientColorTextureType::colorRGB;
-	ClientVideoSourceComponentWeakPtr m_clientVideoSourceComponent;
+	eTextureSourceColorType m_clientTextureType= eTextureSourceColorType::colorRGB;
+	ClientTextureSourceComponentWeakPtr m_clientTextureSourceComponent;
 	bool m_bVerticalFlip= false;
 };
 

@@ -200,26 +200,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 	#endif // MIKANAPI_REFLECTION_ENABLED
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanClientVideoSourceInfo
-{
-	FIELD()
-	Serialization::String client_source_name; ///< The name of the client video source
-
-	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanClientVideoSourceInfo_GENERATED
-	#endif // MIKANAPI_REFLECTION_ENABLED
-};
-
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanSpoutVideoSourceInfo
-{
-	FIELD()
-	Serialization::String spout_source_name; ///< The name of the spout video source
-
-	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanSpoutVideoSourceInfo_GENERATED
-	#endif // MIKANAPI_REFLECTION_ENABLED
-};
-
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanNetworkVideoSourceInfo
 {
 	FIELD()

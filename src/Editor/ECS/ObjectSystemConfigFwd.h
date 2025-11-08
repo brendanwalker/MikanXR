@@ -72,6 +72,11 @@ using TrackingVolumeObjectSystemConfigPtr = std::shared_ptr<TrackingVolumeObject
 using TrackingVolumeObjectSystemConfigConstPtr = std::shared_ptr<const TrackingVolumeObjectSystemConfig>;
 using TrackingVolumeObjectSystemConfigWeakPtr = std::weak_ptr<TrackingVolumeObjectSystemConfig>;
 
+class TextureSourceSystemConfig;
+using TextureSourceSystemConfigPtr = std::shared_ptr<TextureSourceSystemConfig>;
+using TextureSourceSystemConfigConstPtr = std::shared_ptr<const TextureSourceSystemConfig>;
+using TextureSourceSystemConfigWeakPtr = std::weak_ptr<TextureSourceSystemConfig>;
+
 class VideoSourceSystemConfig;
 using VideoSourceSystemConfigPtr = std::shared_ptr<VideoSourceSystemConfig>;
 using VideoSourceSystemConfigConstPtr = std::shared_ptr<const VideoSourceSystemConfig>;

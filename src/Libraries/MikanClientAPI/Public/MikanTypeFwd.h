@@ -26,6 +26,9 @@ using MikanStageID = int32_t;
 /// The ID of a stencil
 using MikanStencilID = int32_t;
 
+/// The ID of a texture source
+using MikanTextureSourceID = int32_t;
+
 /// The ID of a tracking mount
 using MikanTrackingMountID = int32_t;
 

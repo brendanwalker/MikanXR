@@ -11,7 +11,7 @@
 RmlModel_CameraComponent::RmlModel_CameraComponent()
 	: RmlModel_TypedMikanComponent<CameraComponent>()
 	, m_trackingMountIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
-	, m_videoSourceIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
+	, m_textureSourceIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {}
 
 bool RmlModel_CameraComponent::onConstruct(Rml::DataModelConstructor& constructor)
@@ -34,7 +34,7 @@ bool RmlModel_CameraComponent::onConstruct(Rml::DataModelConstructor& constructo
 		});
 
 	// Build the list of all video source IDs from the VideoSourceSystem
-	m_videoSourceIdList->init(
+	m_textureSourceIdList->init(
 		constructor,
 		CommonConfigPtr(),
 		"video_source_ids",
@@ -71,8 +71,8 @@ bool RmlModel_CameraComponent::setComponent(MikanComponentPtr component)
 		m_trackingMountIdList->setOwnerConfig(getOwnerVRTrackingVolume());
 		m_trackingMountIdList->rebuildList(true);
 
-		m_videoSourceIdList->setOwnerConfig(getVideoSourceSystemConfig());
-		m_videoSourceIdList->rebuildList(true);
+		m_textureSourceIdList->setOwnerConfig(getVideoSourceSystemConfig());
+		m_textureSourceIdList->rebuildList(true);
 
 		return true;
 	}

@@ -32,10 +32,14 @@ public:
 	inline const NamedValueTable<ClientSource*>& getClientSources() const { return m_clientSources; }
 	bool hasClientSource(const std::string& clientId) const;
 	bool getClientSourceDimensions(const std::string& clientId, int& outWidth, int& outHeight) const;
-	IMkTexturePtr getClientColorSourceTexture(const std::string& clientId, eClientColorTextureType clientTextureType) const;
-	IMkTexturePtr getClientDepthSourceTexture(const std::string& clientId, eClientDepthTextureType clientTextureType) const;
+	IMkTexturePtr getClientColorSourceTexture(const std::string& clientId, eTextureSourceColorType clientTextureType) const;
+	IMkTexturePtr getClientDepthSourceTexture(const std::string& clientId, eTextureSourceDepthType clientTextureType) const;
 	bool getIsSourcePendingRender(const std::string& clientId) const;
 	bool markSourceAsPendingRender(const std::string& clientId);
+
+	MulticastDelegate<void(const std::string& clientId) > OnClientSourceConnected;
+	MulticastDelegate<void(const std::string& clientId) > OnClientSourceUpdated;
+	MulticastDelegate<void(const std::string& clientId)> OnClientSourceDisconnected;
 
 protected:
 	bool addClientSource(const std::string& clientId, const MikanClientInfo& clientInfo, class SharedTextureReadAccessor* readAccessor);

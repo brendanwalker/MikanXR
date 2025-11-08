@@ -1,18 +1,22 @@
-#include "ClientVideoSourceComponent.h"
-#include "ClientVideoSourceSystem.h"
+#include "ClientTextureSourceComponent.h"
+#include "ClientTextureSourceSystem.h"
 #include "RmlModel_ProjectSources.h"
 #include "MikanCoreTypes.h"
 #include "NetworkVideoSourceComponent.h"
 #include "NetworkVideoSourceSystem.h"
 #include "ProjectConfig.h"
 #include "Shared/RmlModel_MikanComponent.h"
+#include "Shared/RmlModel_TextureSourceComponent.h"
 #include "Shared/RmlModel_VideoSourceComponent.h"
 #include "Shared/RmlDataBinding_List.h"
-#include "SpoutVideoSourceComponent.h"
-#include "SpoutVideoSourceSystem.h"
+#include "SpoutTextureSourceComponent.h"
+#include "SpoutTextureSourceSystem.h"
 #include "StringUtils.h"
 #include "USBVideoSourceComponent.h"
 #include "USBVideoSourceSystem.h"
+#include "TextureSourceComponent.h"
+#include "TextureSourceSystem.h"
+#include "TextureSourceSystemConfig.h"
 #include "VideoSourceComponent.h"
 #include "VideoSourceSystem.h"
 #include "VideoSourceSystemConfig.h"
@@ -23,30 +27,40 @@
 
 RmlModel_ProjectSources::RmlModel_ProjectSources()
 	: m_videoSourceIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
-	, m_selectedClientVideoSourceModel(std::make_shared<RmlModel_ClientVideoSourceComponent>())
 	, m_selectedUSBVideoSourceModel(std::make_shared<RmlModel_USBVideoSourceComponent>())
 	, m_selectedNetworkVideoSourceModel(std::make_shared<RmlModel_NetworkVideoSourceComponent>())
-	, m_selectedSpoutVideoSourceModel(std::make_shared<RmlModel_SpoutVideoSourceComponent>())
+	, m_textureSourceIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
+	, m_selectedClientVideoSourceModel(std::make_shared<RmlModel_ClientTextureSourceComponent>())
+	, m_selectedSpoutVideoSourceModel(std::make_shared<RmlModel_SpoutTextureSourceComponent>())
 {
 }
 
 bool RmlModel_ProjectSources::init(
 	Rml::Context* rmlContext, 
 	ProjectConfigPtr projectConfig,
+	TextureSourceSystemPtr textureSourceSystem,
 	VideoSourceSystemPtr videoSourceSystem)
 {
 	VideoSourceSystemConfigPtr videoSourceConfig = projectConfig->videoSourceSystemConfig;
 
 	m_projectConfig = projectConfig;
+	m_textureSourceSystem = textureSourceSystem;
 	m_videoSourceSystem = videoSourceSystem;
 
 	// Create Datamodel
-	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "VideoSources");
+	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "Sources");
 	if (!constructor)
 		return false;
 
 	// Register component lists
-	m_videoSourceIdList->init(
+	m_textureSourceIdList->init(
+		constructor,
+		videoSourceConfig,
+		"texture_source_ids",
+		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
+			outComponentIdList = m_textureSourceSystem.lock()->getTextureSourceIdList();
+		});
+	m_textureSourceIdList->init(
 		constructor, 
 		videoSourceConfig,
 		"video_source_ids",
@@ -64,22 +78,26 @@ bool RmlModel_ProjectSources::init(
 	m_selectedSpoutVideoSourceModel->init(rmlContext);
 
 	// Bind data model callbacks
-	constructor.BindEventCallback("add_new_client_video_source", &RmlModel_ProjectSources::addNewClientVideoSource, this);
 	constructor.BindEventCallback("add_new_usb_video_source", &RmlModel_ProjectSources::addNewUSBVideoSource, this);
 	constructor.BindEventCallback("add_new_network_video_source", &RmlModel_ProjectSources::addNewNetworkVideoSource, this);
-	constructor.BindEventCallback("add_new_spout_video_source", &RmlModel_ProjectSources::addNewSpoutVideoSource, this);
 	constructor.BindEventCallback("remove_video_source", &RmlModel_ProjectSources::removeVideoSource, this);
 	constructor.BindEventCallback("select_video_source_entry", &RmlModel_ProjectSources::selectVideoSourceEntry, this);
+	constructor.BindEventCallback("add_new_client_texture_source", &RmlModel_ProjectSources::addNewClientTextureSource, this);
+	constructor.BindEventCallback("add_new_spout_texture_source", &RmlModel_ProjectSources::addNewSpoutTextureSource, this);
+	constructor.BindEventCallback("remove_texture_source", &RmlModel_ProjectSources::removeTextureSource, this);
+	constructor.BindEventCallback("select_texture_source_entry", &RmlModel_ProjectSources::selectTextureSourceEntry, this);
 
 	// Listen for video source config changes
-	m_videoSourceIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectSources::videoSourceIdListChanged);
+	m_textureSourceIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectSources::videoSourceIdListChanged);
+	m_textureSourceIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectSources::textureSourceIdListChanged);
 
 	return true;
 }
 
 void RmlModel_ProjectSources::dispose()
 {
-	m_videoSourceIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectSources::videoSourceIdListChanged);
+	m_textureSourceIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectSources::videoSourceIdListChanged);
+	m_textureSourceIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectSources::textureSourceIdListChanged);
 
 	m_selectedClientVideoSourceModel->dispose();
 	m_selectedUSBVideoSourceModel->dispose();
@@ -89,16 +107,33 @@ void RmlModel_ProjectSources::dispose()
 	RmlModel::dispose();
 }
 
+void RmlModel_ProjectSources::textureSourceIdListChanged(bool bOwnerChanged)
+{
+	MikanVideoSourceID selectedTextureSourceId = INVALID_MIKAN_ID;
+	if (!m_textureSourceIdList->isEmpty() &&
+		!m_textureSourceIdList->contains(m_selectedTextureSourceId))
+	{
+		selectedTextureSourceId = m_textureSourceIdList->getFirstValue();
+	}
+
+	setSelectedTextureSourceId(selectedTextureSourceId);
+}
+
 void RmlModel_ProjectSources::videoSourceIdListChanged(bool bOwnerChanged)
 {
 	MikanVideoSourceID selectedVideoSourceId = INVALID_MIKAN_ID;
-	if (!m_videoSourceIdList->isEmpty() &&
-		!m_videoSourceIdList->contains(m_selectedVideoSourceId))
+	if (!m_textureSourceIdList->isEmpty() &&
+		!m_textureSourceIdList->contains(m_selectedVideoSourceId))
 	{
-		selectedVideoSourceId = m_videoSourceIdList->getFirstValue();
+		selectedVideoSourceId = m_textureSourceIdList->getFirstValue();
 	}
 
 	setSelectedVideoSourceId(selectedVideoSourceId);
+}
+
+TextureSourceSystemPtr RmlModel_ProjectSources::getTextureSourceSystem()
+{
+	return m_textureSourceSystem.lock();
 }
 
 VideoSourceSystemPtr RmlModel_ProjectSources::getVideoSourceSystem()
@@ -106,15 +141,26 @@ VideoSourceSystemPtr RmlModel_ProjectSources::getVideoSourceSystem()
 	return m_videoSourceSystem.lock();
 }
 
+TextureSourceComponentPtr RmlModel_ProjectSources::getSelectedTextureSource()
+{
+	return getTextureSourceSystem()->getTextureSourceById((MikanTextureSourceID)m_selectedTextureSourceId);
+}
+
 VideoSourceComponentPtr RmlModel_ProjectSources::getSelectedVideoSource()
 {
 	return getVideoSourceSystem()->getVideoSourceById((MikanVideoSourceID)m_selectedVideoSourceId);
 }
 
-ClientVideoSourceComponentPtr RmlModel_ProjectSources::getSelectedClientVideoSource()
+ClientTextureSourceComponentPtr RmlModel_ProjectSources::getSelectedClientTextureSource()
 {
-	return getVideoSourceSystem()->getClientVideoSourceSystem()->getClientVideoSourceById(
-		(MikanVideoSourceID)m_selectedVideoSourceId);
+	return getTextureSourceSystem()->getClientTextureSourceSystem()->getClientTextureSourceById(
+		(MikanTextureSourceID)m_selectedVideoSourceId);
+}
+
+SpoutTextureSourceComponentPtr RmlModel_ProjectSources::getSelectedSpoutTextureSource()
+{
+	return getTextureSourceSystem()->getSpoutTextureSourceSystem()->getSpoutTextureSourceById(
+		(MikanTextureSourceID)m_selectedVideoSourceId);
 }
 
 USBVideoSourceComponentPtr RmlModel_ProjectSources::getSelectedUSBVideoSource()
@@ -129,18 +175,20 @@ NetworkVideoSourceComponentPtr RmlModel_ProjectSources::getSelectedNetworkVideoS
 		(MikanVideoSourceID)m_selectedVideoSourceId);
 }
 
-SpoutVideoSourceComponentPtr RmlModel_ProjectSources::getSelectedSpoutVideoSource()
-{
-	return getVideoSourceSystem()->getSpoutVideoSourceSystem()->getSpoutVideoSourceById(
-		(MikanVideoSourceID)m_selectedVideoSourceId);
-}
-
-void RmlModel_ProjectSources::addNewClientVideoSource(
+void RmlModel_ProjectSources::addNewClientTextureSource(
 	Rml::DataModelHandle handle,
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	getVideoSourceSystem()->getClientVideoSourceSystem()->addNewClientVideoSource();
+	getTextureSourceSystem()->getClientTextureSourceSystem()->addNewClientTextureSource();
+}
+
+void RmlModel_ProjectSources::addNewSpoutTextureSource(
+	Rml::DataModelHandle handle,
+	Rml::Event& /*ev*/,
+	const Rml::VariantList& parameters)
+{
+	getTextureSourceSystem()->getSpoutTextureSourceSystem()->addNewSpoutTextureSource();
 }
 
 void RmlModel_ProjectSources::addNewUSBVideoSource(
@@ -157,14 +205,6 @@ void RmlModel_ProjectSources::addNewNetworkVideoSource(
 	const Rml::VariantList& parameters)
 {
 	getVideoSourceSystem()->getNetworkVideoSourceSystem()->addNewNetworkVideoSource();
-}
-
-void RmlModel_ProjectSources::addNewSpoutVideoSource(
-	Rml::DataModelHandle handle,
-	Rml::Event& /*ev*/,
-	const Rml::VariantList& parameters)
-{
-	getVideoSourceSystem()->getSpoutVideoSourceSystem()->addNewSpoutVideoSource();
 }
 
 void RmlModel_ProjectSources::removeVideoSource(
@@ -201,20 +241,12 @@ void RmlModel_ProjectSources::setSelectedVideoSourceId(MikanVideoSourceID videoS
 		eVideoSourceType sourceType = config->getVideoSourceType(videoSourceId);
 
 		// Reset all models first
-		m_selectedClientVideoSourceModel->setComponent(nullptr);
 		m_selectedUSBVideoSourceModel->setComponent(nullptr);
 		m_selectedNetworkVideoSourceModel->setComponent(nullptr);
-		m_selectedSpoutVideoSourceModel->setComponent(nullptr);
 
 		// Set the appropriate model based on source type
 		switch (sourceType)
 		{
-			case eVideoSourceType::client:
-				if (ClientVideoSourceComponentPtr clientSource = getSelectedClientVideoSource())
-				{
-					m_selectedClientVideoSourceModel->setComponent(clientSource);
-				}
-				break;
 			case eVideoSourceType::usb:
 				if (USBVideoSourceComponentPtr usbSource = getSelectedUSBVideoSource())
 				{
@@ -227,12 +259,62 @@ void RmlModel_ProjectSources::setSelectedVideoSourceId(MikanVideoSourceID videoS
 					m_selectedNetworkVideoSourceModel->setComponent(networkSource);
 				}
 				break;
-			case eVideoSourceType::spout:
-				if (SpoutVideoSourceComponentPtr spoutSource = getSelectedSpoutVideoSource())
-				{
-					m_selectedSpoutVideoSourceModel->setComponent(spoutSource);
-				}
-				break;
+		}
+	}
+}
+
+void RmlModel_ProjectSources::removeTextureSource(
+	Rml::DataModelHandle handle,
+	Rml::Event& /*ev*/,
+	const Rml::VariantList& parameters)
+{
+	if (parameters.empty())
+		return;
+
+	const int textureSourceId = parameters[0].Get<int>();
+
+	getTextureSourceSystem()->removeTextureSource((MikanTextureSourceID)textureSourceId);
+}
+
+void RmlModel_ProjectSources::selectTextureSourceEntry(
+	Rml::DataModelHandle handle,
+	Rml::Event& ev,
+	const Rml::VariantList& parameters)
+{
+	const int selectedTextureSourceId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
+
+	setSelectedTextureSourceId(selectedTextureSourceId);
+}
+
+void RmlModel_ProjectSources::setSelectedTextureSourceId(MikanTextureSourceID textureSourceId)
+{
+	if (textureSourceId != m_selectedTextureSourceId)
+	{
+		m_selectedTextureSourceId = (int)textureSourceId;
+		m_modelHandle.DirtyVariable("selected_texture_source_id");
+
+		TextureSourceSystemConfigPtr config = m_projectConfig.lock()->textureSourceSystemConfig;
+		eTextureSourceType sourceType = config->getTextureSourceType(textureSourceId);
+
+		// Reset all models first
+		m_selectedClientVideoSourceModel->setComponent(nullptr);
+		m_selectedSpoutVideoSourceModel->setComponent(nullptr);
+
+		// Set the appropriate model based on source type
+		switch (sourceType)
+		{
+		case eTextureSourceType::client:
+			if (ClientTextureSourceComponentPtr clientSource = getSelectedClientTextureSource())
+			{
+				m_selectedClientVideoSourceModel->setComponent(clientSource);
+			}
+			break;
+		case eTextureSourceType::spout:
+			if (SpoutTextureSourceComponentPtr spoutSource = getSelectedSpoutTextureSource())
+			{
+				m_selectedSpoutVideoSourceModel->setComponent(spoutSource);
+			}
+			break;
 		}
 	}
 }

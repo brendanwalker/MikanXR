@@ -18,36 +18,47 @@ public:
 	bool init(
 		Rml::Context* rmlContext, 
 		ProjectConfigPtr projectConfig,
+		TextureSourceSystemPtr textureSourceSystem,
 		VideoSourceSystemPtr videoSourceSystem);
 	virtual void dispose() override;
 
 private:
 	VideoSourceSystemPtr getVideoSourceSystem();
 	VideoSourceComponentPtr getSelectedVideoSource();
-	ClientVideoSourceComponentPtr getSelectedClientVideoSource();
 	USBVideoSourceComponentPtr getSelectedUSBVideoSource();
 	NetworkVideoSourceComponentPtr getSelectedNetworkVideoSource();
-	SpoutVideoSourceComponentPtr getSelectedSpoutVideoSource();
 
-	void addNewClientVideoSource(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void addNewUSBVideoSource(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void addNewNetworkVideoSource(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
-	void addNewSpoutVideoSource(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void removeVideoSource(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void selectVideoSourceEntry(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
-
 	void setSelectedVideoSourceId(MikanVideoSourceID videoSourceId);
-
 	void videoSourceIdListChanged(bool bOwnerChanged);
 
+	TextureSourceSystemPtr getTextureSourceSystem();
+	TextureSourceComponentPtr getSelectedTextureSource();
+	ClientTextureSourceComponentPtr getSelectedClientTextureSource();
+	SpoutTextureSourceComponentPtr getSelectedSpoutTextureSource();
+
+	void addNewClientTextureSource(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void addNewSpoutTextureSource(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void removeTextureSource(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void selectTextureSourceEntry(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
+	void setSelectedTextureSourceId(MikanTextureSourceID textureSourceId);
+	void textureSourceIdListChanged(bool bOwnerChanged);
+
 	ProjectConfigWeakPtr m_projectConfig;
+	TextureSourceSystemWeakPtr m_textureSourceSystem;
 	VideoSourceSystemWeakPtr m_videoSourceSystem;
 
 	RmlDataBinding_ComponentIdListPtr m_videoSourceIdList;
-	RmlModel_ClientVideoSourceComponentPtr m_selectedClientVideoSourceModel;
 	RmlModel_USBVideoSourceComponentPtr m_selectedUSBVideoSourceModel;
 	RmlModel_NetworkVideoSourceComponentPtr m_selectedNetworkVideoSourceModel;
-	RmlModel_SpoutVideoSourceComponentPtr m_selectedSpoutVideoSourceModel;
+
+	RmlDataBinding_ComponentIdListPtr m_textureSourceIdList;
+	RmlModel_ClientTextureSourceComponentPtr m_selectedClientVideoSourceModel;
+	RmlModel_SpoutTextureSourceComponentPtr m_selectedSpoutVideoSourceModel;
 
 	int m_selectedVideoSourceId = -1; // MikanVideoSourceID
+	int m_selectedTextureSourceId = -1; // MikanTextureSourceID
 };
