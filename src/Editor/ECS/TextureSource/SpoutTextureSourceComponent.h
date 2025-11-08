@@ -34,9 +34,11 @@ public:
 	}
 	virtual void setDefinition(MikanComponentDefinitionPtr definition) override;
 	virtual void update(float deltaSeconds) override;
+	virtual void dispose() override;
 
 	inline static const std::string k_componentClassName = "SpoutTextureSourceComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
+	const std::string& getSpoutSourceName() const;
 
 	// Texture Source Interface
 	virtual IMkTexturePtr getClientColorSourceTexture(eTextureSourceColorType textureSourceColorType) const;
@@ -51,10 +53,12 @@ public:
 	{ TextureSourceComponent::getRmlFunctionDescriptors(outDescriptors); }
 
 protected:
+	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet) override;
 	void closeTextureSource();
 	void openTextureSource();
 
 private:
 	SharedTextureReadAccessorPtr m_colorTextureReadAccessor;
-	int64_t m_frameIndex = 0;
+	IMkTexturePtr m_colorTexture;
+	struct SPOUTLIBRARY* m_spoutColorFrame;
 };
