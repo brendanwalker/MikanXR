@@ -27,6 +27,7 @@ public:
 	TextureSourceSystemConfigConstPtr getTextureSourceSystemConfigConst() const;
 	TextureSourceSystemConfigPtr getTextureSourceSystemConfig();
 
+	TextureSourceComponentList getTextureSourceComponentList() const;
 	TextureSourceIdList getTextureSourceIdList() const;
 	TextureSourceComponentPtr getTextureSourceById(MikanTextureSourceID TextureSourceId) const;
 	eTextureSourceType getTextureSourceType(MikanTextureSourceID TextureSourceId) const;

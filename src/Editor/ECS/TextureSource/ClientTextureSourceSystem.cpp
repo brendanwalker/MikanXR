@@ -30,18 +30,32 @@ void ClientTextureSourceSystem::dispose()
 	MikanObjectSystem::dispose();
 }
 
+TextureSourceComponentList ClientTextureSourceSystem::getTextureSourceComponentList() const
+{
+    TextureSourceComponentList textureSourceComponentList;
+    for (const auto& it : m_clientTextureSourceComponents)
+    {
+        TextureSourceComponentPtr componentPtr = it.second.lock();
+        if (componentPtr)
+        {
+            textureSourceComponentList.push_back(componentPtr);
+        }
+    }
+	return textureSourceComponentList;
+}
+
 TextureSourceIdList ClientTextureSourceSystem::getTextureSourceIdList() const
 {
-	TextureSourceIdList TextureSourceIdList;
+	TextureSourceIdList textureSourceIdList;
     for (const auto& it : m_clientTextureSourceComponents)
     {
         ClientTextureSourceComponentPtr componentPtr = it.second.lock();
         if (componentPtr)
         {
-            TextureSourceIdList.push_back(componentPtr->getTextureSourceId());
+            textureSourceIdList.push_back(componentPtr->getTextureSourceId());
         }
     }
-	return TextureSourceIdList;
+	return textureSourceIdList;
 }
 
 ClientTextureSourceComponentPtr ClientTextureSourceSystem::getClientTextureSourceById(MikanTextureSourceID TextureSourceId) const

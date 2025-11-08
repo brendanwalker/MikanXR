@@ -49,8 +49,8 @@ public:
 
 	// Texture Source Interface
 	MikanTextureSourceID getTextureSourceId() const;
-	virtual IMkTexturePtr getClientColorSourceTexture(eTextureSourceColorType clientTextureType) const;
-	virtual IMkTexturePtr getClientDepthSourceTexture(eTextureSourceDepthType clientTextureType) const;
+	virtual IMkTexturePtr getClientColorSourceTexture(eTextureSourceColorType textureSourceColorType) const;
+	virtual IMkTexturePtr getClientDepthSourceTexture(eTextureSourceDepthType textureSourceColorType) const;
 	
 	// Video Source Events
 	MulticastDelegate<void(TextureSourceComponentPtr TextureSource)> OnOpened;

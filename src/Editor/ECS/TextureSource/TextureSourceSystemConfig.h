@@ -19,6 +19,7 @@
 #include <configuru.hpp>
 
 using TextureSourceIdList = std::vector<MikanTextureSourceID>;
+using TextureSourceComponentList = std::vector<TextureSourceComponentPtr>;
 
 class TextureSourceSystemConfig : public CommonConfig
 {

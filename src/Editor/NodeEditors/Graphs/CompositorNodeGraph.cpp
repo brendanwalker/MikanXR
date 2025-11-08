@@ -1,6 +1,7 @@
 #include "CompositorNodeGraph.h"
 #include "CompositorComponent.h"
 #include "CameraComponent.h"
+#include "ClientTextureSourceComponent.h"
 #include "SdlCommon.h"
 #include "IMkFrameBuffer.h"
 #include "MkMaterial.h"
@@ -35,8 +36,8 @@
 
 // Nodes
 #include "Nodes/ArrayNode.h"
-#include "Nodes/ClientColorTextureNode.h"
-#include "Nodes/ClientDepthTextureNode.h"
+#include "Nodes/ColorTextureSourceNode.h"
+#include "Nodes/DepthTextureSourceNode.h"
 #include "Nodes/DepthMaskNode.h"
 #include "Nodes/DrawLayerNode.h"
 #include "Nodes/EventNode.h"
@@ -70,8 +71,8 @@ CompositorNodeGraph::CompositorNodeGraph() : NodeGraph()
 
 	// Nodes this graph can spawn
 	addNodeFactory<ArrayNodeFactory>();
-	addNodeFactory<ClientColorTextureNodeFactory>();
-	addNodeFactory<ClientDepthTextureNodeFactory>();
+	addNodeFactory<ColorTextureSourceNodeFactory>();
+	addNodeFactory<DepthTextureSourceNodeFactory>();
 	addNodeFactory<DrawLayerNodeFactory>();
 	addNodeFactory<DepthMaskNodeFactory>();
 	addNodeFactory<EventNodeFactory>();
@@ -258,13 +259,28 @@ void CompositorNodeGraph::gatherAllReferencedClientSourceIDs(
 {
 	visitAllNodes(
 		[&outClientSourceIds](NodeConstPtr node) {
-			if (auto clientSourceNode = std::dynamic_pointer_cast<const ClientColorTextureNode>(node))
+
+			// Check if this node is a texture source node
+			TextureSourceComponentPtr textureSourceComponent;
+			if (auto clientSourceNode = std::dynamic_pointer_cast<const ColorTextureSourceNode>(node))
 			{
-				outClientSourceIds.insert(clientSourceNode->getClientId());
+				textureSourceComponent= clientSourceNode->getTextureSourceComponent();
 			}
-			else if (auto clientDepthNode = std::dynamic_pointer_cast<const ClientDepthTextureNode>(node))
+			else if (auto clientDepthNode = std::dynamic_pointer_cast<const DepthTextureSourceNode>(node))
 			{
-				outClientSourceIds.insert(clientDepthNode->getClientId());
+				textureSourceComponent = clientDepthNode->getTextureSourceComponent();
+			}
+
+			// If it is, see if it's a client texture source component and gather the client source ID
+			if (textureSourceComponent)
+			{
+				auto clientTextureSourceComponent =
+					std::dynamic_pointer_cast<ClientTextureSourceComponent>(textureSourceComponent);
+
+				if (clientTextureSourceComponent)
+				{
+					outClientSourceIds.insert(clientTextureSourceComponent->getClientSourceName());
+				}
 			}
 		});
 }

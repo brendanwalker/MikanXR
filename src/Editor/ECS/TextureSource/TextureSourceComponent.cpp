@@ -57,12 +57,12 @@ MikanTextureSourceID TextureSourceComponent::getTextureSourceId() const
 	return getTextureSourceDefinition()->getTextureSourceId();
 }
 
-IMkTexturePtr TextureSourceComponent::getClientColorSourceTexture(eTextureSourceColorType clientTextureType) const
+IMkTexturePtr TextureSourceComponent::getClientColorSourceTexture(eTextureSourceColorType textureSourceColorType) const
 {
 	return IMkTexturePtr();
 }
 
-IMkTexturePtr TextureSourceComponent::getClientDepthSourceTexture(eTextureSourceDepthType clientTextureType) const
+IMkTexturePtr TextureSourceComponent::getClientDepthSourceTexture(eTextureSourceDepthType textureSourceColorType) const
 {
 	return IMkTexturePtr();
 }

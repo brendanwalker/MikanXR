@@ -60,7 +60,7 @@ void SpoutTextureSourceComponent::setDefinition(MikanComponentDefinitionPtr defi
 
 // Texture Source Interface
 IMkTexturePtr SpoutTextureSourceComponent::getClientColorSourceTexture(
-	eTextureSourceColorType clientTextureType) const
+	eTextureSourceColorType textureSourceColorType) const
 {
 	return IMkTexturePtr();
 }

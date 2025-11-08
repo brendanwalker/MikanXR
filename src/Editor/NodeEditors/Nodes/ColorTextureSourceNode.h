@@ -6,41 +6,40 @@
 #include "MikanTypeFwd.h"
 #include "MikanRendererFwd.h"
 
-class ClientColorTextureNodeConfig : public NodeConfig
+class ColorTextureSourceNodeConfig : public NodeConfig
 {
 public:
-	ClientColorTextureNodeConfig() = default;
+	ColorTextureSourceNodeConfig() = default;
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	eTextureSourceColorType clientTextureType;
-	MikanTextureSourceID clientTextureSourceId;
+	eTextureSourceColorType textureSourceColorType;
+	MikanTextureSourceID textureSourceId;
 	bool bVerticalFlip;
 };
 
-class ClientColorTextureNode : public Node
+class ColorTextureSourceNode : public Node
 {
 public:
-	ClientColorTextureNode() = default;
+	ColorTextureSourceNode() = default;
 
-	inline static const std::string k_nodeClassName = "ClientColorTextureNode";
+	inline static const std::string k_nodeClassName = "ColorTextureSourceNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
 	virtual void saveToConfig(NodeConfigPtr nodeConfig) const override;
 
-	ClientTextureSourceComponentPtr getClientTextureSourceComponent() const;
+	TextureSourceComponentPtr getTextureSourceComponent() const;
 	IMkTexturePtr getTextureResource() const;
-	std::string getClientId() const;
 
 	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
 	virtual void editorRenderNode(const NodeEditorState& editorState) override;
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
-	ClientTextureSourceSystemPtr getClientTextureSourceSystem() const;
-	IMkTexturePtr getClientColorSourceTexture() const;
+	TextureSourceSystemPtr getTextureSourceSystem() const;
+	IMkTexturePtr getColorSourceTexture() const;
 	void updateColorFrameBuffer(NodeEvaluator& evaluator, IMkTexturePtr clientTexture);
 	void evaluateFlippedColorTexture(IMkState* glState, IMkTexturePtr depthTexture);
 
@@ -51,14 +50,14 @@ protected:
 	IMkFrameBufferPtr m_colorFrameBuffer;
 	MkMaterialInstancePtr m_colorMaterialInstance;
 	eTextureSourceColorType m_clientTextureType= eTextureSourceColorType::colorRGB;
-	ClientTextureSourceComponentWeakPtr m_clientTextureSourceComponent;
+	TextureSourceComponentWeakPtr m_textureSourceComponent;
 	bool m_bVerticalFlip= false;
 };
 
-class ClientColorTextureNodeFactory : public TypedNodeFactory<ClientColorTextureNode, ClientColorTextureNodeConfig>
+class ColorTextureSourceNodeFactory : public TypedNodeFactory<ColorTextureSourceNode, ColorTextureSourceNodeConfig>
 {
 public:
-	ClientColorTextureNodeFactory() = default;
+	ColorTextureSourceNodeFactory() = default;
 
 	virtual NodePtr createNode(const NodeEditorState& editorState) const override;
 };

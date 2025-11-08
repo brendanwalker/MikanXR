@@ -36,7 +36,7 @@ public:
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	// Texture Source Interface
-	virtual IMkTexturePtr getClientColorSourceTexture(eTextureSourceColorType clientTextureType) const;
+	virtual IMkTexturePtr getClientColorSourceTexture(eTextureSourceColorType textureSourceColorType) const;
 
 	// -- IRmlPropertyInterface ----
 	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors);

@@ -68,16 +68,28 @@ TextureSourceSystemConfigPtr TextureSourceSystem::getTextureSourceSystemConfig()
 	return std::const_pointer_cast<TextureSourceSystemConfig>(getTextureSourceSystemConfigConst());
 }
 
+TextureSourceComponentList TextureSourceSystem::getTextureSourceComponentList() const
+{
+	TextureSourceComponentList componentList;
+
+	auto clientTextureSourceIds = m_clientTextureSourceSystem->getTextureSourceComponentList();
+	componentList.insert(componentList.end(), clientTextureSourceIds.begin(), clientTextureSourceIds.end());
+	auto spoutTextureSourceIds = m_spoutTextureSourceSystem->getTextureSourceComponentList();
+	componentList.insert(componentList.end(), spoutTextureSourceIds.begin(), spoutTextureSourceIds.end());
+
+	return componentList;
+}
+
 TextureSourceIdList TextureSourceSystem::getTextureSourceIdList() const
 {
-	TextureSourceIdList TextureSourceIdList;
+	TextureSourceIdList textureSourceIdList;
 	
 	auto clientTextureSourceIds = m_clientTextureSourceSystem->getTextureSourceIdList();
-	TextureSourceIdList.insert(TextureSourceIdList.end(), clientTextureSourceIds.begin(), clientTextureSourceIds.end());
+	textureSourceIdList.insert(textureSourceIdList.end(), clientTextureSourceIds.begin(), clientTextureSourceIds.end());
 	auto spoutTextureSourceIds = m_spoutTextureSourceSystem->getTextureSourceIdList();
-	TextureSourceIdList.insert(TextureSourceIdList.end(), spoutTextureSourceIds.begin(), spoutTextureSourceIds.end());
+	textureSourceIdList.insert(textureSourceIdList.end(), spoutTextureSourceIds.begin(), spoutTextureSourceIds.end());
 
-	return TextureSourceIdList;
+	return textureSourceIdList;
 }
 
 TextureSourceComponentPtr TextureSourceSystem::getTextureSourceById(MikanTextureSourceID TextureSourceId) const

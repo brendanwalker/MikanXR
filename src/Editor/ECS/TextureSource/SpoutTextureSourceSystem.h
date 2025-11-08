@@ -20,6 +20,7 @@ public:
     virtual void dispose() override;
 
     const SpoutTextureSourceMap& getSpoutTextureSourceMap() const { return m_spoutTextureSourceComponents; }
+    TextureSourceComponentList getTextureSourceComponentList() const;
     TextureSourceIdList getTextureSourceIdList() const;
     SpoutTextureSourceComponentPtr getSpoutTextureSourceById(MikanTextureSourceID TextureSourceId) const;
     SpoutTextureSourceComponentPtr getSpoutTextureSourceByName(const std::string& TextureSourceName) const;

@@ -20,6 +20,7 @@ public:
     virtual void dispose() override;
 
     const ClientTextureSourceMap& getClientTextureSourceMap() const { return m_clientTextureSourceComponents; }
+	TextureSourceComponentList getTextureSourceComponentList() const;
     TextureSourceIdList getTextureSourceIdList() const;
     ClientTextureSourceComponentPtr getClientTextureSourceById(MikanTextureSourceID TextureSourceId) const;
     ClientTextureSourceComponentPtr getClientTextureSourceByName(const std::string& TextureSourceName) const;

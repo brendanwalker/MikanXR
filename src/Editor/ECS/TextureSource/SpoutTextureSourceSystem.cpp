@@ -29,18 +29,32 @@ void SpoutTextureSourceSystem::dispose()
 	MikanObjectSystem::dispose();
 }
 
+TextureSourceComponentList SpoutTextureSourceSystem::getTextureSourceComponentList() const
+{
+	TextureSourceComponentList textureSourceComponentList;
+	for (const auto& it : m_spoutTextureSourceComponents)
+	{
+		TextureSourceComponentPtr componentPtr = it.second.lock();
+		if (componentPtr)
+		{
+			textureSourceComponentList.push_back(componentPtr);
+		}
+	}
+	return textureSourceComponentList;
+}
+
 TextureSourceIdList SpoutTextureSourceSystem::getTextureSourceIdList() const
 {
-	TextureSourceIdList TextureSourceIdList;
+	TextureSourceIdList textureSourceIdList;
 	for (const auto& it : m_spoutTextureSourceComponents)
 	{
         SpoutTextureSourceComponentPtr componentPtr = it.second.lock();
 		if (componentPtr)
 		{
-			TextureSourceIdList.push_back(componentPtr->getTextureSourceId());
+            textureSourceIdList.push_back(componentPtr->getTextureSourceId());
 		}
 	}
-	return TextureSourceIdList;
+	return textureSourceIdList;
 }
 
 SpoutTextureSourceComponentPtr SpoutTextureSourceSystem::getSpoutTextureSourceById(MikanTextureSourceID TextureSourceId) const

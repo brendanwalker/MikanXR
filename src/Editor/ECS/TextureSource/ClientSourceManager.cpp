@@ -80,12 +80,12 @@ bool ClientSourceManager::getClientSourceDimensions(const std::string& clientId,
 
 IMkTexturePtr ClientSourceManager::getClientColorSourceTexture(
 	const std::string& clientId,
-	eTextureSourceColorType clientTextureType) const
+	eTextureSourceColorType textureSourceColorType) const
 {
 	ClientSource* clientSource= nullptr;
 	if (m_clientSources.tryGetValue(clientId, clientSource))
 	{
-		switch (clientTextureType)
+		switch (textureSourceColorType)
 		{
 			case eTextureSourceColorType::colorRGB:
 				if (clientSource->colorTexture &&
@@ -110,12 +110,12 @@ IMkTexturePtr ClientSourceManager::getClientColorSourceTexture(
 
 IMkTexturePtr ClientSourceManager::getClientDepthSourceTexture(
 	const std::string& clientId,
-	eTextureSourceDepthType clientTextureType) const
+	eTextureSourceDepthType textureSourceColorType) const
 {
 	ClientSource* clientSource = nullptr;
 	if (m_clientSources.tryGetValue(clientId, clientSource))
 	{
-		switch (clientTextureType)
+		switch (textureSourceColorType)
 		{
 			case eTextureSourceDepthType::depthPackRGBA:
 				return clientSource->depthTexture;

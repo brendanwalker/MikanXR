@@ -60,13 +60,13 @@ void ClientTextureSourceComponent::setDefinition(MikanComponentDefinitionPtr def
 }
 
 IMkTexturePtr ClientTextureSourceComponent::getClientColorSourceTexture(
-	eTextureSourceColorType clientTextureType) const
+	eTextureSourceColorType textureSourceColorType) const
 {
 	auto* clientSourceManager = getClientSourceManager();
 
 	if (clientSourceManager != nullptr)
 	{
-		return clientSourceManager->getClientColorSourceTexture(getClientSourceName(), clientTextureType);
+		return clientSourceManager->getClientColorSourceTexture(getClientSourceName(), textureSourceColorType);
 	}
 
 	return IMkTexturePtr();

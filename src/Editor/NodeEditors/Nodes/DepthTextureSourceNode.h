@@ -7,41 +7,40 @@
 #include "MikanRendererFwd.h"
 #include "MikanTypeFwd.h"
 
-class ClientDepthTextureNodeConfig : public NodeConfig
+class DepthTextureSourceNodeConfig : public NodeConfig
 {
 public:
-	ClientDepthTextureNodeConfig() = default;
+	DepthTextureSourceNodeConfig() = default;
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	eTextureSourceDepthType clientTextureType;
-	MikanVideoSourceID clientVideoSourceId;
+	eTextureSourceDepthType textureSourceColorType;
+	MikanVideoSourceID textureVideoSourceId;
 	bool bVerticalFlip;
 };
 
-class ClientDepthTextureNode : public Node
+class DepthTextureSourceNode : public Node
 {
 public:
-	ClientDepthTextureNode() = default;
+	DepthTextureSourceNode() = default;
 
-	inline static const std::string k_nodeClassName = "ClientDepthTextureNode";
+	inline static const std::string k_nodeClassName = "DepthTextureSourceNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
 	virtual void saveToConfig(NodeConfigPtr nodeConfig) const override;
 
-	ClientTextureSourceComponentPtr getClientTextureSourceComponent() const;
+	TextureSourceComponentPtr getTextureSourceComponent() const;
 	IMkTexturePtr getTextureResource() const;
-	std::string getClientId() const;
 
 	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
 	virtual void editorRenderNode(const NodeEditorState& editorState) override;
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
-	ClientTextureSourceSystemPtr getClientTextureSourceSystem() const;
-	IMkTexturePtr getClientDepthSourceTexture() const;
+	TextureSourceSystemPtr getTextureSourceSystem() const;
+	IMkTexturePtr getDepthSourceTexture() const;
 	void updateLinearDepthFrameBuffer(NodeEvaluator& evaluator, IMkTexturePtr clientTexture);
 	void evaluateDepthTexture(IMkState* glState, IMkTexturePtr depthTexture);
 
@@ -52,14 +51,14 @@ protected:
 	IMkFrameBufferPtr m_linearDepthFrameBuffer;
 	MkMaterialInstancePtr m_depthMaterialInstance;
 	eTextureSourceDepthType m_clientTextureType= eTextureSourceDepthType::depthPackRGBA;
-	ClientTextureSourceComponentWeakPtr m_ClientTextureSourceComponent;
+	TextureSourceComponentWeakPtr m_textureSourceComponent;
 	bool m_bVerticalFlip= false;
 };
 
-class ClientDepthTextureNodeFactory : public TypedNodeFactory<ClientDepthTextureNode, ClientDepthTextureNodeConfig>
+class DepthTextureSourceNodeFactory : public TypedNodeFactory<DepthTextureSourceNode, DepthTextureSourceNodeConfig>
 {
 public:
-	ClientDepthTextureNodeFactory() = default;
+	DepthTextureSourceNodeFactory() = default;
 
 	virtual NodePtr createNode(const NodeEditorState& editorState) const override;
 };

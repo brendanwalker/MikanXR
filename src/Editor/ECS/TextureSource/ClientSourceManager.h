@@ -32,8 +32,8 @@ public:
 	inline const NamedValueTable<ClientSource*>& getClientSources() const { return m_clientSources; }
 	bool hasClientSource(const std::string& clientId) const;
 	bool getClientSourceDimensions(const std::string& clientId, int& outWidth, int& outHeight) const;
-	IMkTexturePtr getClientColorSourceTexture(const std::string& clientId, eTextureSourceColorType clientTextureType) const;
-	IMkTexturePtr getClientDepthSourceTexture(const std::string& clientId, eTextureSourceDepthType clientTextureType) const;
+	IMkTexturePtr getClientColorSourceTexture(const std::string& clientId, eTextureSourceColorType textureSourceColorType) const;
+	IMkTexturePtr getClientDepthSourceTexture(const std::string& clientId, eTextureSourceDepthType textureSourceColorType) const;
 	bool getIsSourcePendingRender(const std::string& clientId) const;
 	bool markSourceAsPendingRender(const std::string& clientId);
 

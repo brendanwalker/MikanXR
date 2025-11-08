@@ -201,10 +201,10 @@ void CompositorComponent::update(float deltaSeconds)
 		return;
 
 	CameraComponentPtr cameraComponent= getCameraComponent();
-	const glm::mat4 cameraXform= 
-		cameraComponent != nullptr 
-		? cameraComponent->getWorldTransform()
-		: glm::mat4(1.f);
+	if (!cameraComponent)
+		return;
+
+	const glm::mat4 cameraXform = cameraComponent->getWorldTransform();
 
 	// Keep track of how long it's been since the last frame has been composited
 	// This is used to update the timer in compositorNodeGraph

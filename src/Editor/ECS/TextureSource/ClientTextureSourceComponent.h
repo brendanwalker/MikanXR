@@ -39,8 +39,8 @@ public:
 	const std::string& getClientSourceName() const;
 
 	// Texture Source Interface
-	IMkTexturePtr getClientColorSourceTexture(eTextureSourceColorType clientTextureType) const;
-	IMkTexturePtr getClientDepthSourceTexture(eTextureSourceDepthType clientTextureType) const;
+	IMkTexturePtr getClientColorSourceTexture(eTextureSourceColorType textureSourceColorType) const;
+	IMkTexturePtr getClientDepthSourceTexture(eTextureSourceDepthType textureSourceColorType) const;
 
 	// -- IRmlPropertyInterface ----
 	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors);
