@@ -20,11 +20,11 @@
 using TrackingVolumeMap = std::map<MikanTrackingVolumeID, TrackingVolumeComponentWeakPtr>;
 using TrackingVolumeIdList = std::vector<MikanTrackingVolumeID>;
 
-class TrackingVolumeObjectSystemConfig : public CommonConfig
+class TrackingVolumeObjectSystemConfig : public MikanObjectSystemDefinition
 {
 public:
 	TrackingVolumeObjectSystemConfig(const std::string& configName)
-		: CommonConfig(configName)
+		: MikanObjectSystemDefinition(configName)
 	{}
 
 	virtual configuru::Config writeToJSON();
@@ -65,6 +65,9 @@ public:
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
 
+	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const override {
+		return getTrackingVolumeSystemConfigConst();
+	}
 	TrackingVolumeObjectSystemConfigConstPtr getTrackingVolumeSystemConfigConst() const;
 	TrackingVolumeObjectSystemConfigPtr getTrackingVolumeSystemConfig();
 

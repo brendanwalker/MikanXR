@@ -19,11 +19,11 @@
 
 using MarkerMap = std::map<MikanMarkerID, MarkerComponentWeakPtr>;
 
-class MarkerObjectSystemConfig : public CommonConfig
+class MarkerObjectSystemConfig : public MikanObjectSystemDefinition
 {
 public:
 	MarkerObjectSystemConfig(const std::string& configName)
-		: CommonConfig(configName)
+		: MikanObjectSystemDefinition(configName)
 	{}
 
 	virtual configuru::Config writeToJSON();
@@ -92,6 +92,9 @@ public:
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
 
+	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const override {
+		return getMarkerSystemConfigConst();
+	}
 	MarkerObjectSystemConfigConstPtr getMarkerSystemConfigConst() const;
 	MarkerObjectSystemConfigPtr getMarkerSystemConfig();
 

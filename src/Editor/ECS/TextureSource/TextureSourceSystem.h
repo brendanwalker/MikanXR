@@ -24,6 +24,9 @@ public:
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
 
+	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const override {
+		return getTextureSourceSystemConfigConst();
+	}
 	TextureSourceSystemConfigConstPtr getTextureSourceSystemConfigConst() const;
 	TextureSourceSystemConfigPtr getTextureSourceSystemConfig();
 

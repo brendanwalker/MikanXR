@@ -15,11 +15,11 @@
 
 using StageMap = std::map<MikanStageID, StageComponentWeakPtr>;
 
-class StageObjectSystemConfig : public CommonConfig
+class StageObjectSystemConfig : public MikanObjectSystemDefinition
 {
 public:
 	StageObjectSystemConfig(const std::string& configName)
-		: CommonConfig(configName)
+		: MikanObjectSystemDefinition(configName)
 	{}
 
 	virtual configuru::Config writeToJSON();
@@ -47,6 +47,9 @@ public:
 	virtual bool init() override;
 	virtual void dispose() override;
 
+	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const override {
+		return getStageSystemConfigConst();
+	}
 	StageObjectSystemConfigConstPtr getStageSystemConfigConst() const;
 	StageObjectSystemConfigPtr getStageSystemConfig();
 

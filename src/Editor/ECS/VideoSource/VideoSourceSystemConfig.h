@@ -20,11 +20,11 @@
 
 using VideoSourceIdList = std::vector<MikanVideoSourceID>;
 
-class VideoSourceSystemConfig : public CommonConfig
+class VideoSourceSystemConfig : public MikanObjectSystemDefinition
 {
 public:
 	VideoSourceSystemConfig(const std::string& configName)
-		: CommonConfig(configName)
+		: MikanObjectSystemDefinition(configName)
 	{}
 
 	virtual configuru::Config writeToJSON();

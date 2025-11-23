@@ -21,11 +21,11 @@ class GlmTransform;
 
 using SceneMap = std::map<MikanSceneID, SceneComponentWeakPtr>;
 
-class SceneObjectSystemConfig : public CommonConfig
+class SceneObjectSystemConfig : public MikanObjectSystemDefinition
 {
 public:
 	SceneObjectSystemConfig(const std::string& configName)
-		: CommonConfig(configName)
+		: MikanObjectSystemDefinition(configName)
 	{}
 
 	virtual configuru::Config writeToJSON();
@@ -57,6 +57,9 @@ public:
 	virtual bool init() override;
 	virtual void dispose() override;
 
+	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const override {
+		return getSceneSystemConfigConst();
+	}
 	SceneObjectSystemConfigConstPtr getSceneSystemConfigConst() const;
 	SceneObjectSystemConfigPtr getSceneSystemConfig();
 

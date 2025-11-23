@@ -19,11 +19,11 @@ class GlmTransform;
 
 using AnchorMap = std::map<MikanSpatialAnchorID, AnchorComponentWeakPtr>;
 
-class AnchorObjectSystemConfig : public CommonConfig
+class AnchorObjectSystemConfig : public MikanObjectSystemDefinition
 {
 public:
 	AnchorObjectSystemConfig(const std::string& configName)
-		: CommonConfig(configName)
+		: MikanObjectSystemDefinition(configName)
 	{}
 
 	virtual configuru::Config writeToJSON();
@@ -62,6 +62,9 @@ public:
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
 
+	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const override {
+		return getAnchorSystemConfigConst();
+	}
 	AnchorObjectSystemConfigConstPtr getAnchorSystemConfigConst() const;
 	AnchorObjectSystemConfigPtr getAnchorSystemConfig();
 

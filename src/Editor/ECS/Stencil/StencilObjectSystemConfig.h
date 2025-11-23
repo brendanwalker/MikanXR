@@ -2,6 +2,7 @@
 
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
+#include "MikanObjectSystem.h"
 #include "MikanStencilTypes.h"
 #include "MulticastDelegate.h"
 #include "ObjectSystemConfigFwd.h"
@@ -10,11 +11,11 @@
 #include <filesystem>
 
 
-class StencilObjectSystemConfig : public CommonConfig
+class StencilObjectSystemConfig : public MikanObjectSystemDefinition
 {
 public:
 	StencilObjectSystemConfig(const std::string& fnamebase = "StencilObjectSystemConfig")
-		: CommonConfig(fnamebase)
+		: MikanObjectSystemDefinition(fnamebase)
 	{}
 
 	virtual configuru::Config writeToJSON();

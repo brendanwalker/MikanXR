@@ -23,7 +23,7 @@ const std::string VRObjectSystemConfig::k_vrDevicePoseOffsetPropertyId = "vrDevi
 const std::string VRObjectSystemConfig::k_vrDeviceListPropertyId = "vrDeviceList";
 
 VRObjectSystemConfig::VRObjectSystemConfig(const std::string& configName)
-	: CommonConfig(configName)
+	: MikanObjectSystemDefinition(configName)
 {
 	m_vrDevicePoseOffset = {
 		1.f, 0.f, 0.f, 0.f,

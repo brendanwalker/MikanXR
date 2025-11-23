@@ -23,7 +23,7 @@ class GlmTransform;
 
 using VRDeviceMap = std::map<MikanVRDeviceID, VRDeviceComponentWeakPtr>;
 
-class VRObjectSystemConfig : public CommonConfig
+class VRObjectSystemConfig : public MikanObjectSystemDefinition
 {
 public:
 	VRObjectSystemConfig(const std::string& configName);
@@ -73,6 +73,9 @@ public:
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
 
+	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const override {
+		return getVRSystemConfigConst();
+	}
 	VRObjectSystemConfigConstPtr getVRSystemConfigConst() const;
 	VRObjectSystemConfigPtr getVRSystemConfig();
 

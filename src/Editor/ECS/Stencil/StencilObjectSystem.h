@@ -28,6 +28,9 @@ public:
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
 
+	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const override {
+		return getStencilSystemConfigConst();
+	}
 	StencilObjectSystemConfigConstPtr getStencilSystemConfigConst() const;
 	StencilObjectSystemConfigPtr getStencilSystemConfig();
 

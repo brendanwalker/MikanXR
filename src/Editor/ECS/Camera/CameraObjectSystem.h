@@ -19,11 +19,11 @@ class GlmTransform;
 
 using CameraMap = std::map<MikanCameraID, CameraComponentWeakPtr>;
 
-class CameraObjectSystemConfig : public CommonConfig
+class CameraObjectSystemConfig : public MikanObjectSystemDefinition
 {
 public:
 	CameraObjectSystemConfig(const std::string& configName)
-		: CommonConfig(configName)
+		: MikanObjectSystemDefinition(configName)
 	{}
 
 	virtual configuru::Config writeToJSON();
@@ -55,6 +55,9 @@ public:
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
 
+	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const override {
+		return getCameraSystemConfigConst();
+	}
 	CameraObjectSystemConfigConstPtr getCameraSystemConfigConst() const;
 	CameraObjectSystemConfigPtr getCameraSystemConfig();
 	std::vector<MikanCameraID> getAllCameraIds() const;

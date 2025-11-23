@@ -15,11 +15,11 @@
 
 using CompositorMap = std::map<MikanCompositorID, CompositorComponentWeakPtr>;
 
-class CompositorObjectSystemConfig : public CommonConfig
+class CompositorObjectSystemConfig : public MikanObjectSystemDefinition
 {
 public:
 	CompositorObjectSystemConfig(const std::string& configName)
-		: CommonConfig(configName)
+		: MikanObjectSystemDefinition(configName)
 	{}
 
 	virtual configuru::Config writeToJSON();
@@ -47,6 +47,9 @@ public:
 	virtual bool init() override;
 	virtual void dispose() override;
 
+	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const override {
+		return getCompositorSystemConfigConst();
+	}
 	CompositorObjectSystemConfigConstPtr getCompositorSystemConfigConst() const;
 	CompositorObjectSystemConfigPtr getCompositorSystemConfig();
 

@@ -21,11 +21,11 @@
 using TextureSourceIdList = std::vector<MikanTextureSourceID>;
 using TextureSourceComponentList = std::vector<TextureSourceComponentPtr>;
 
-class TextureSourceSystemConfig : public CommonConfig
+class TextureSourceSystemConfig : public MikanObjectSystemDefinition
 {
 public:
 	TextureSourceSystemConfig(const std::string& configName)
-		: CommonConfig(configName)
+		: MikanObjectSystemDefinition(configName)
 	{}
 
 	virtual configuru::Config writeToJSON();
