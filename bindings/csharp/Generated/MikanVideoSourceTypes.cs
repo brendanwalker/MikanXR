@@ -30,13 +30,6 @@ namespace MikanXR
 		public double zfar;
 	};
 
-	public class MikanClientVideoSourceInfo
-	{
-		public static readonly long classId= 2304025741573747984;
-
-		public string client_source_name;
-	};
-
 	public class MikanDistortionCoefficients
 	{
 		public static readonly long classId= -2596555002374434624;
@@ -67,13 +60,6 @@ namespace MikanXR
 		public string network_source_name;
 		public string url;
 		public MikanVideoSourceIntrinsics intrinsics;
-	};
-
-	public class MikanSpoutVideoSourceInfo
-	{
-		public static readonly long classId= -1556884157476677884;
-
-		public string spout_source_name;
 	};
 
 	public class MikanStereoIntrinsics : MikanBaseIntrinsics
