@@ -155,6 +155,7 @@ namespace ObjUtils
 	MkMaterialInstancePtr createTriMeshMaterialInstance(
 		IMkWindow* ownerWindow,
 		MkMaterialConstPtr material,
+		const fastObjMesh* objMesh,
 		const fastObjMaterial& objMaterial);
 	IMkTriangulatedMeshPtr createTriangulatedMeshResource(
 		IMkWindow* ownerWindow,
@@ -212,6 +213,7 @@ MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 					ObjUtils::createTriMeshMaterialInstance(
 						ownerWindow,
 						triMeshMaterial,
+						objData,
 						objMaterial);
 				ObjUtils::MaterialTriMeshDataPtr triMeshData =
 					std::make_shared<ObjUtils::MaterialTriMeshData>(
@@ -238,6 +240,7 @@ MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 				ObjUtils::createTriMeshMaterialInstance(
 					ownerWindow,
 					triMeshMaterial,
+					objData,
 					defaultObjMaterial);
 			ObjUtils::MaterialTriMeshDataPtr triMeshData =
 				std::make_shared<ObjUtils::MaterialTriMeshData>(
@@ -320,7 +323,8 @@ namespace ObjUtils
 	bool addTextureToMaterialInstance(
 		MikanTextureCache* textureCache,
 		MkMaterialInstancePtr materialInstance,
-		const fastObjTexture& objTexture,
+		const fastObjMesh* objMesh,
+		unsigned int textureIndex,
 		const eUniformSemantic semantic)
 	{
 		IMkShaderPtr program = materialInstance->getMaterial()->getProgram();
@@ -332,9 +336,14 @@ namespace ObjUtils
 		{
 			// Try loading the texture using the relative path
 			IMkTexturePtr texture;
-			if (objTexture.path != nullptr && objTexture.path[0] != '\0')
+			// Texture index 0 is a dummy/invalid texture, valid indices start at 1
+			if (textureIndex > 0 && textureIndex < objMesh->texture_count)
 			{
-				texture = textureCache->loadTexturePath(objTexture.path);
+				const fastObjTexture& objTexture = objMesh->textures[textureIndex];
+				if (objTexture.path != nullptr && objTexture.path[0] != '\0')
+				{
+					texture = textureCache->loadTexturePath(objTexture.path);
+				}
 			}
 
 			// If that fails, fallback to the default white texture
@@ -364,6 +373,7 @@ namespace ObjUtils
 	MkMaterialInstancePtr createTriMeshMaterialInstance(
 		IMkWindow* ownerWindow,
 		MkMaterialConstPtr material,
+		const fastObjMesh* objMesh,
 		const fastObjMaterial& objMaterial)
 	{
 		MikanTextureCache* textureCache = static_cast<MikanTextureCache *>(ownerWindow->getTextureCache());
@@ -390,22 +400,22 @@ namespace ObjUtils
 
 		// Ambient Texture Map
 		addTextureToMaterialInstance(
-			textureCache, materialInstance, objMaterial.map_Ka, eUniformSemantic::ambientTexture);
+			textureCache, materialInstance, objMesh, objMaterial.map_Ka, eUniformSemantic::ambientTexture);
 		// Diffuse Texture Map
 		addTextureToMaterialInstance(
-			textureCache, materialInstance, objMaterial.map_Kd, eUniformSemantic::diffuseTexture);
+			textureCache, materialInstance, objMesh, objMaterial.map_Kd, eUniformSemantic::diffuseTexture);
 		// Specular Texture Map
 		addTextureToMaterialInstance(
-			textureCache, materialInstance, objMaterial.map_Ks, eUniformSemantic::specularTexture);
+			textureCache, materialInstance, objMesh, objMaterial.map_Ks, eUniformSemantic::specularTexture);
 		// Specular Hightlight Map
 		addTextureToMaterialInstance(
-			textureCache, materialInstance, objMaterial.map_Ns, eUniformSemantic::specularHightlightTexture);
+			textureCache, materialInstance, objMesh, objMaterial.map_Ns, eUniformSemantic::specularHightlightTexture);
 		// Alpha Texture Map
 		addTextureToMaterialInstance(
-			textureCache, materialInstance, objMaterial.map_d, eUniformSemantic::alphaTexture);
+			textureCache, materialInstance, objMesh, objMaterial.map_d, eUniformSemantic::alphaTexture);
 		// Bump Map
 		addTextureToMaterialInstance(
-			textureCache, materialInstance, objMaterial.map_bump, eUniformSemantic::bumpTexture);
+			textureCache, materialInstance, objMesh, objMaterial.map_bump, eUniformSemantic::bumpTexture);
 
 		return materialInstance;
 	}
