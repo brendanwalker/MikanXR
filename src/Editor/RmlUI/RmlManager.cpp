@@ -167,7 +167,6 @@ RmlManager* RmlManager::m_instance = nullptr;
 RmlManager::RmlManager(MainWindow* ownerWindow)
 	: m_ownerWindow(ownerWindow)
 	, m_rmlEventInstancer(new RmlMikanEventInstancer(ownerWindow))
-	, m_rmlDecoratorInstancers(new RmlMikanDecoratorInstancers)
 {
 
 }
@@ -175,7 +174,6 @@ RmlManager::RmlManager(MainWindow* ownerWindow)
 RmlManager::~RmlManager()
 {
 	delete m_rmlEventInstancer;
-	delete m_rmlDecoratorInstancers;
 }
 
 bool RmlManager::preRendererStartup()
@@ -218,6 +216,7 @@ bool RmlManager::postRendererStartup()
 		Rml::Debugger::Initialise(m_rmlUIContext);
 
 		// Register custom decorators
+		m_rmlDecoratorInstancers = std::make_shared<RmlMikanDecoratorInstancers>();
 		Rml::Factory::RegisterDecoratorInstancer("aruco-marker", &m_rmlDecoratorInstancers->arucoMarkerInstancer);
 
 		// Register common data model types shared amongst all UI

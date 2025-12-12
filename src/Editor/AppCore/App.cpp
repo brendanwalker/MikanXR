@@ -116,8 +116,7 @@ bool App::startup(int argc, char** argv)
 	// Load any saved app settings config
 	if (success && !m_appSettings->load())
 	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to load app settings config!";
-		success = false;
+		MIKAN_LOG_INFO("App::init") << "Failed to load app settings config. Creating new settings.";
 	}
 
 	if (success && !m_localizationManager->startup(m_appSettings))
@@ -132,15 +131,18 @@ bool App::startup(int argc, char** argv)
 		success = false;
 	}
 
-	// Register node graph factories spawned by windows
-	NodeGraphFactory::registerFactory<CompositorNodeGraphFactory>();
-
-	// Create the main window
-	m_mainWindow= createAppWindow<MainWindow>();
-	if (success && m_mainWindow == nullptr)
+	if (success)
 	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize Main App Window!";
-		success = false;
+		// Register node graph factories spawned by windows
+		NodeGraphFactory::registerFactory<CompositorNodeGraphFactory>();
+
+		// Create the main window
+		m_mainWindow = createAppWindow<MainWindow>();
+		if (m_mainWindow == nullptr)
+		{
+			MIKAN_LOG_ERROR("App::init") << "Failed to initialize Main App Window!";
+			success = false;
+		}
 	}
 
 	if (success)
