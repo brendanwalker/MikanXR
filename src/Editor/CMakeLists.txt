@@ -575,14 +575,13 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_custom_command(
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanSerialization>/MikanSerialization.dll $<TARGET_FILE_DIR:Mikan>)
-  set( MIKANSERIALIZATION_PDB_COPY_CMD 
+  set( MIKANSERIALIZATION_PDB_COPY_CMD
     ${CMAKE_COMMAND} -E
-    copy 
+    copy
     "$<TARGET_FILE_DIR:MikanSerialization>/$<TARGET_FILE_BASE_NAME:MikanSerialization>.pdb"
     "$<TARGET_FILE_DIR:Mikan>")
-  add_custom_command( TARGET Mikan POST_BUILD 
+  add_custom_command( TARGET Mikan POST_BUILD
     COMMAND "$<$<CONFIG:Debug,RelWithDebInfo>:${MIKANSERIALIZATION_PDB_COPY_CMD}>"
-    DEPENDS MikanSerialization
     COMMAND_EXPAND_LISTS)
   add_custom_command(
     TARGET Mikan POST_BUILD

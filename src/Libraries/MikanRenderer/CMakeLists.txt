@@ -55,10 +55,11 @@ set_target_properties(MikanRenderer PROPERTIES FOLDER MikanLibraries)
 set_target_properties(MikanRenderer PROPERTIES PUBLIC_HEADER "${MIKAN_RENDERER_HEADER}")
 
 # Install - copy runtime dependencies to dist folder (for release)
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   install(TARGETS MikanRenderer
       RUNTIME DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
       LIBRARY DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
-      ARCHIVE DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib)
+      ARCHIVE DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
+      PUBLIC_HEADER DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/include)
 ELSE() #Linux/Darwin
 ENDIF()

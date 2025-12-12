@@ -48,10 +48,11 @@ set_target_properties(MikanGStreamerVideo PROPERTIES CXX_VISIBILITY_PRESET hidde
 target_compile_definitions(MikanGStreamerVideo PRIVATE MIKAN_GSTREAMER_VIDEO_EXPORTS)
 
 # Install - copy runtime dependencies to dist folder (for release)
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	install(TARGETS MikanGStreamerVideo
 		RUNTIME DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
 		LIBRARY DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
-		ARCHIVE DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib)
+		ARCHIVE DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
+		PUBLIC_HEADER DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/include)
 ELSE() #Linux/Darwin
 ENDIF()

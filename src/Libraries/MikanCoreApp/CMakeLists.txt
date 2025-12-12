@@ -42,10 +42,11 @@ set_target_properties(MikanCoreApp PROPERTIES PUBLIC_HEADER "${MIKAN_CORE_APP_HE
 add_dependencies(MikanCoreApp MikanUtility)
 
 # Install - copy runtime dependencies to dist folder (for release)
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   install(TARGETS MikanCoreApp
       RUNTIME DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
       LIBRARY DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
-      ARCHIVE DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib)
+      ARCHIVE DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
+      PUBLIC_HEADER DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/include)
 ELSE() #Linux/Darwin
 ENDIF()

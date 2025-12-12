@@ -49,10 +49,11 @@ set_target_properties(MikanSharedTexture PROPERTIES C_VISIBILITY_PRESET hidden)
 target_compile_definitions(MikanSharedTexture PRIVATE MIKAN_SHAREDTEXTURE_EXPORTS)
 
 # Install - copy runtime dependencies to dist folder (for release)
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   install(TARGETS MikanSharedTexture
       RUNTIME DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
       LIBRARY DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
-      ARCHIVE DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib)
+      ARCHIVE DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
+      PUBLIC_HEADER DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/include)
 ELSE() #Linux/Darwin
 ENDIF()
