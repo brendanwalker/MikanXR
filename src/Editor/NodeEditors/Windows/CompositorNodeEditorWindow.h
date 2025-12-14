@@ -6,8 +6,7 @@
 class CompositorNodeEditorWindow : public NodeEditorWindow
 {
 public:
-	CompositorNodeEditorWindow();
-
+	CompositorNodeEditorWindow(class App* ownerApp);
 
 	// -- IMkWindow ----
 	virtual bool startup() override;
@@ -28,6 +27,7 @@ public:
 	bool bindCompositorComponent(CompositorComponentPtr compositorComponent);
 
 protected:
+	class App* m_ownerApp = nullptr;
 	CompositorComponentPtr m_compositorComponent;
 	bool m_isRunningCompositor= true;
 };

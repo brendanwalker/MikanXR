@@ -89,7 +89,9 @@ void AnchorComponent::init()
 
 void AnchorComponent::customRender()
 {	
-	if (!AnchorObjectSystem::getSystem()->getAnchorSystemConfig()->getRenderAnchorsFlag())
+	auto anchorObjectSystem= getObjectSystemOfType<AnchorObjectSystem>();
+	const auto anchorSystemConfig= anchorObjectSystem->getAnchorSystemConfigConst();
+	if (!anchorSystemConfig->getRenderAnchorsFlag())
 		return;
 
 	TextStyle style = getDefaultTextStyle();
@@ -186,7 +188,8 @@ void AnchorComponent::editAnchor()
 {
 	AnchorDefinitionPtr definition= getAnchorDefinition();
 	MikanSpatialAnchorID anchorId= definition->getAnchorId();
-	AnchorComponentPtr anchorComponent = AnchorObjectSystem::getSystem()->getSpatialAnchorById(anchorId);
+	AnchorComponentPtr anchorComponent = 
+		getObjectSystemOfType<AnchorObjectSystem>()->getSpatialAnchorById(anchorId);
 	if (anchorComponent != nullptr)
 	{
 		ModalDialog_SelectCamera::selectCamera(

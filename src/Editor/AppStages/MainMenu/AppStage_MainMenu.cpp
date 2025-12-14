@@ -77,14 +77,14 @@ void AppStage_MainMenu::onResumeProject()
 void AppStage_MainMenu::onOpenProject()
 {
 	std::string defaultPath = (PathUtils::getHomeDirectory() / "").string();
-	static const char* filterItems[1] = { "*.project" };
+	static const char* filterItems[1] = { "*.mikanproj" };
 	std::filesystem::path projectFilePath =
 		tinyfd_openFileDialog(
 			"Open Project",
 			defaultPath.c_str(),
 			1,
 			filterItems,
-			"Project Files (*.project)",
+			"Project Files (*.mikanproj)",
 			1);
 
 	if (!projectFilePath.empty())
@@ -102,14 +102,14 @@ void AppStage_MainMenu::onOpenProject()
 void AppStage_MainMenu::onNewProject()
 {
 	std::string defaultPath = (PathUtils::getHomeDirectory() / "").string();
-	static const char* filterItems[1] = { "*.project" };
+	static const char* filterItems[1] = { "*.mikanproj" };
 	std::filesystem::path projectFilePath =
 		tinyfd_saveFileDialog(
 			"New Project",
 			defaultPath.c_str(),
 			1,
 			filterItems,
-			"Project Files (*.project)");
+			"Project Files (*.mikanproj)");
 
 	if (m_projectManager->newProject(projectFilePath.string()))
 	{

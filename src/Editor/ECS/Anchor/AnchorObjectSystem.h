@@ -56,7 +56,6 @@ class AnchorObjectSystem : public MikanObjectSystem
 {
 public:
 	AnchorObjectSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
-	static AnchorObjectSystemPtr getSystem() { return s_anchorObjectSystem.lock(); }
 
 	virtual bool init() override;
 	virtual void dispose() override;
@@ -81,6 +80,4 @@ protected:
 	void disposeAnchorObject(MikanSpatialAnchorID anchorId);
 
 	AnchorMap m_anchorComponents;
-
-	static AnchorObjectSystemWeakPtr s_anchorObjectSystem;
 };

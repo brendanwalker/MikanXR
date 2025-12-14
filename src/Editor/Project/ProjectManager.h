@@ -3,6 +3,7 @@
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
 
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -38,10 +39,13 @@ public:
 		return nullptr;
 	}
 	
-	bool startup();
+	bool startup(class MainWindow* mainWindow);
 	void shutdown();
 	void update(float deltaSeconds);
 	void customRender();
+
+	static std::filesystem::path getDefaultProjectFolder();
+	static const char* k_mikanProjectFileExtension;
 
 	bool hasLoadedProject() const;
 	bool newProject(const std::string& projectFilePath);

@@ -107,7 +107,7 @@ void StencilComponent::attachTransformComponentToAnchor(MikanSpatialAnchorID new
 {
 	if (newParentId != INVALID_MIKAN_ID)
 	{
-		AnchorComponentPtr anchor = AnchorObjectSystem::getSystem()->getSpatialAnchorById(newParentId);
+		AnchorComponentPtr anchor = getObjectSystemOfType<AnchorObjectSystem>()->getSpatialAnchorById(newParentId);
 
 		if (anchor)
 		{

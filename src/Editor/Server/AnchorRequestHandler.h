@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CommonConfigFwd.h"
+#include "ObjectSystemConfigFwd.h"
 #include "IServerRequestHandler.h"
 
 class AnchorRequestHandler : public IServerRequestHandler
@@ -12,6 +13,8 @@ public:
 	virtual void shutdown() override;
 
 protected:
+	AnchorObjectSystemConfigPtr getAnchorConfig();
+
 	// Anchor Events
 	void handleAnchorSystemConfigChange(
 		CommonConfigPtr configPtr,
@@ -21,4 +24,6 @@ protected:
 	void getSpatialAnchorListHandler(const struct ClientRequest& request, struct ClientResponse& response);
 	void getSpatialAnchorInfoHandler(const struct ClientRequest& request, struct ClientResponse& response);
 	void findSpatialAnchorInfoByNameHandler(const struct ClientRequest& request, struct ClientResponse& response);
+
+	AnchorObjectSystemWeakPtr m_anchorSystem;
 };

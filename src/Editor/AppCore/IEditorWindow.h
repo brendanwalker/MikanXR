@@ -16,6 +16,7 @@ public:
 	virtual class OpenCVManager* getOpenCVManager() const = 0;
 	virtual class ClientSourceManager* getClientSourceManager() const = 0;
 
+	virtual class App* getOwnerApp() const = 0;
 	virtual class AppStage* getCurrentAppStage() const = 0;
 	virtual class AppStage* getParentAppStage() const = 0;
 	virtual void pushAppStage(class AppStage* appStage) = 0;

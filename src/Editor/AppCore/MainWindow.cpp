@@ -55,8 +55,9 @@ static const glm::vec3 k_frustum_color = glm::vec3(0.1f, 0.7f, 0.3f);
 MainWindow* MainWindow::m_instance = NULL;
 
 //-- public methods -----
-MainWindow::MainWindow()
-	: m_mikanServer(new MikanServer())
+MainWindow::MainWindow(App* ownerApp)
+	: m_ownerApp(ownerApp)
+	, m_mikanServer(new MikanServer())
 	, m_clientSourceManager(new ClientSourceManager())
 	, m_inputManager(new InputManager())
 	, m_rmlManager(new RmlManager(this))
@@ -196,7 +197,7 @@ bool MainWindow::startup()
 
 	if (success)
 	{
-		if (!m_projectManager->startup())
+		if (!m_projectManager->startup(this))
 		{			
 			MIKAN_LOG_ERROR("App::init") << "Failed to initialize the object system manager";
 			success = false;

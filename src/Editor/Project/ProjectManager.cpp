@@ -1,13 +1,17 @@
 #pragma once
 
+#include "App.h"
+#include "AppSettingsConfig.h"
 #include "AnchorObjectSystem.h"
 #include "ClientTextureSourceSystem.h"
 #include "CameraObjectSystem.h"
 #include "CompositorObjectSystem.h"
 #include "EditorObjectSystem.h"
 #include "IMkWindow.h"
+#include "MainWindow.h"
 #include "MarkerObjectSystem.h"
 #include "NetworkVideoSourceSystem.h"
+#include "PathUtils.h"
 #include "ProjectConfig.h"
 #include "ProjectManager.h"
 #include "SceneObjectSystem.h"
@@ -23,13 +27,33 @@
 
 #define PROJECT_SAVE_COOLDOWN	3.f
 
+const char* ProjectManager::k_mikanProjectFileExtension= ".mikanproj";
+
 ProjectManager::ProjectManager(IMkWindow* ownerWindow)
 	: m_ownerWindow(ownerWindow)
 {
 }
 
-bool ProjectManager::startup()
+bool ProjectManager::startup(MainWindow* mainWindow)
 {
+	// Create a default project if we can't load the last opened one
+	AppSettingsConfigPtr appSettings= mainWindow->getOwnerApp()->getAppSettings();
+	if (!loadProject(appSettings->getLastProjectPath().string()))
+	{
+		const std::filesystem::path defaultProjectPath =
+			PathUtils::makeTimestampedFilePath(
+				getDefaultProjectFolder(), "Default", k_mikanProjectFileExtension);
+
+		if (newProject(defaultProjectPath.string()))
+		{
+			appSettings->setLastProjectPath(defaultProjectPath);
+		}
+		else
+		{
+			return false;
+		}
+	}
+
 	// Allocate all systems, in the order we want to perform init and updates
 	// Init EditorSystem first so that it get component creation events 
 	// from Anchor and Stencil Systems triggered during init call
@@ -77,6 +101,11 @@ void ProjectManager::customRender()
 	}
 }
 
+std::filesystem::path ProjectManager::getDefaultProjectFolder()
+{
+	return PathUtils::getHomeDirectory() / "Mikan";
+}
+
 bool ProjectManager::hasLoadedProject() const
 {
 	return m_projectConfig != nullptr;
@@ -92,6 +121,12 @@ bool ProjectManager::newProject(const std::string& projectFilePath)
 
 bool ProjectManager::loadProject(const std::string& projectFilePath)
 {
+	// Early out if the project file path is invalid
+	if (projectFilePath.empty() || !std::filesystem::exists(projectFilePath))
+	{
+		return false;
+	}
+
 	// Early out if the requested project path isn't new
 	if (hasLoadedProject() && m_projectConfig->getLoadedConfigPath() == projectFilePath)
 	{

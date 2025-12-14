@@ -153,8 +153,6 @@ void AnchorObjectSystemConfig::setRenderAnchorsFlag(bool flag)
 }
 
 // -- AnchorObjectSystem -----
-AnchorObjectSystemWeakPtr AnchorObjectSystem::s_anchorObjectSystem;
-
 bool AnchorObjectSystem::init()
 {
 	MikanObjectSystem::init();
@@ -166,13 +164,11 @@ bool AnchorObjectSystem::init()
 		createAnchorObject(anchorConfig);
 	}
 
-	s_anchorObjectSystem = std::static_pointer_cast<AnchorObjectSystem>(shared_from_this());
 	return true;
 }
 
 void AnchorObjectSystem::dispose()
 {
-	s_anchorObjectSystem.reset();
 	m_anchorComponents.clear();
 
 	MikanObjectSystem::dispose();

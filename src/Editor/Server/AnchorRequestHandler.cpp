@@ -20,8 +20,11 @@ bool AnchorRequestHandler::startup(MainWindow* mainWindow)
 {
 	IInterprocessMessageServer* messageServer = m_owner->getMessageServer();
 
-	AnchorObjectSystem::getSystem()->getAnchorSystemConfig()->OnMarkedDirty +=
-		MakeDelegate(this, &AnchorRequestHandler::handleAnchorSystemConfigChange);
+	// Save a reference to the Anchor Object System
+	m_anchorSystem = mainWindow->getProjectManager()->getSystemOfType<AnchorObjectSystem>();
+
+	// Listen for Anchor System config changes
+	getAnchorConfig()->OnMarkedDirty += MakeDelegate(this, &AnchorRequestHandler::handleAnchorSystemConfigChange);
 
 	// Spatial Anchor Requests
 	messageServer->setRequestHandler(
@@ -39,8 +42,7 @@ bool AnchorRequestHandler::startup(MainWindow* mainWindow)
 
 void AnchorRequestHandler::shutdown()
 {
-	AnchorObjectSystem::getSystem()->getAnchorSystemConfig()->OnMarkedDirty -=
-		MakeDelegate(this, &AnchorRequestHandler::handleAnchorSystemConfigChange);
+	getAnchorConfig()->OnMarkedDirty -= MakeDelegate(this, &AnchorRequestHandler::handleAnchorSystemConfigChange);
 }
 
 void AnchorRequestHandler::handleAnchorSystemConfigChange(
@@ -77,6 +79,10 @@ void AnchorRequestHandler::handleAnchorSystemConfigChange(
 	}
 }
 
+AnchorObjectSystemConfigPtr AnchorRequestHandler::getAnchorConfig()
+{
+	return m_anchorSystem.lock()->getAnchorSystemConfig();
+}
 
 void AnchorRequestHandler::getSpatialAnchorListHandler(
 	const ClientRequest& request,
@@ -104,7 +110,7 @@ void AnchorRequestHandler::getSpatialAnchorInfoHandler(
 		return;
 	}
 
-	AnchorComponentPtr anchorPtr = AnchorObjectSystem::getSystem()->getSpatialAnchorById(anchorRequest.anchorId);
+	AnchorComponentPtr anchorPtr = m_anchorSystem.lock()->getSpatialAnchorById(anchorRequest.anchorId);
 	if (anchorPtr == nullptr)
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::InvalidAnchorID, response);
@@ -129,7 +135,7 @@ void AnchorRequestHandler::findSpatialAnchorInfoByNameHandler(
 	}
 
 	const std::string& anchorName = anchorRequest.anchorName.getValue();
-	AnchorComponentPtr anchorPtr = AnchorObjectSystem::getSystem()->getSpatialAnchorByName(anchorName);
+	AnchorComponentPtr anchorPtr = m_anchorSystem.lock()->getSpatialAnchorByName(anchorName);
 	if (anchorPtr == nullptr)
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::InvalidAnchorID, response);

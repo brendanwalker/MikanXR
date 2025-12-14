@@ -12,7 +12,9 @@
 
 #include "IconsForkAwesome.h"
 
-CompositorNodeEditorWindow::CompositorNodeEditorWindow() : NodeEditorWindow()
+CompositorNodeEditorWindow::CompositorNodeEditorWindow(App* ownerApp)
+	: NodeEditorWindow()
+	, m_ownerApp(ownerApp)
 {
 }
 

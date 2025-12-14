@@ -20,7 +20,7 @@
 class MainWindow : public IEditorWindow
 {
 public:
-	MainWindow();
+	MainWindow(class App* ownerApp);
 	~MainWindow();
 
 	static MainWindow* getInstance()
@@ -61,6 +61,7 @@ public:
 	virtual class MikanFontManager* getFontManager() const override { return m_fontManager; }
 	virtual class GlRmlUiRender* getRmlUiRenderer() const override { return m_rmlUiRenderer.get(); }
 
+	virtual class App* getOwnerApp() const override { return m_ownerApp; }
 	virtual AppStage* getCurrentAppStage() const override;
 	virtual AppStage* getParentAppStage() const override;
 	virtual void pushAppStage(AppStage* appStage) override;
@@ -73,6 +74,9 @@ protected:
 	void renderStageUI(AppStage* appStage);
 
 private:
+	// App that owns this window
+	class App* m_ownerApp = nullptr;
+
 	// Mikan API Server
 	class MikanServer* m_mikanServer = nullptr;
 

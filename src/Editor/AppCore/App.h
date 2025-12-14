@@ -36,7 +36,7 @@ public:
 	template<typename t_app_window>
 	t_app_window* createAppWindow()
 	{
-		t_app_window* appWindow= new t_app_window();
+		t_app_window* appWindow= new t_app_window(this);
 		
 		if (appWindow->startup())
 		{
