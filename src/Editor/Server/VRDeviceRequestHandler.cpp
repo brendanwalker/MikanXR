@@ -21,7 +21,10 @@ using namespace std::placeholders;
 // -- VRDeviceClientState -- //
 VRDeviceClientState::VRDeviceClientState(class MikanClientConnectionState* owner)
 	: m_owner(owner)
-{}
+	, m_vrObjectSystem(
+		owner->getOwnerServer()->getOwnerWindow()->getProjectManager()->getSystemOfType<VRObjectSystem>())
+{
+}
 
 void VRDeviceClientState::subscribeToVRDevicePoseUpdatesHandler(MikanVRDeviceID deviceId)
 {
@@ -40,7 +43,7 @@ void VRDeviceClientState::unsubscribeFromVRDevicePoseUpdatesHandler(MikanVRDevic
 void VRDeviceClientState::publishVRDevicePoses(int64_t newVRFrameIndex)
 {	
 	const int vrFrameDelay = 0; // Use the latest pose for client publishing
-	auto vrObjectSystem = VRObjectSystem::getSystem();
+	auto vrObjectSystem = m_vrObjectSystem.lock();
 
 	for (auto deviceId : m_subscribedVRDevices)
 	{
@@ -68,8 +71,8 @@ bool VRDeviceRequestHandler::startup(MainWindow* mainWindow)
 	IInterprocessMessageServer* messageServer = m_owner->getMessageServer();
 
 	// Listen for VR Device events directly from the vr device manager interface
-	auto vrObjectSystem = VRObjectSystem::getSystem();
-	IVRDeviceManagerPtr vrDeviceManager= vrObjectSystem->getVRDeviceManager();
+	m_vrObjectSystem = mainWindow->getProjectManager()->getSystemOfType<VRObjectSystem>();
+	IVRDeviceManagerPtr vrDeviceManager= m_vrObjectSystem.lock()->getVRDeviceManager();
 	if (vrDeviceManager)
 	{
 		vrDeviceManager->addListener(this);
@@ -95,7 +98,7 @@ bool VRDeviceRequestHandler::startup(MainWindow* mainWindow)
 
 void VRDeviceRequestHandler::shutdown()
 {
-	auto vrObjectSystem = VRObjectSystem::getSystem();
+	auto vrObjectSystem = m_vrObjectSystem.lock();
 	IVRDeviceManagerPtr vrDeviceManager = vrObjectSystem->getVRDeviceManager();
 	if (vrDeviceManager)
 	{
@@ -131,7 +134,7 @@ void VRDeviceRequestHandler::getVRDeviceListHandler(
 	ClientResponse& response)
 {
 	MikanVRDeviceListResponse vrDeviceListResult = {};
-	auto vrObjectSystem = VRObjectSystem::getSystem();
+	auto vrObjectSystem = m_vrObjectSystem.lock();
 	for (const auto& kvpair : vrObjectSystem->getVRDeviceMap())
 	{
 		VRDeviceComponentPtr deviceComponent= kvpair.second.lock();
@@ -157,7 +160,7 @@ void VRDeviceRequestHandler::getVRDeviceInfoHandler(
 		return;
 	}
 
-	auto vrObjectSystem = VRObjectSystem::getSystem();
+	auto vrObjectSystem = m_vrObjectSystem.lock();
 	VRDeviceComponentPtr vrDeviceComponent= vrObjectSystem->getVRDeviceById(deviceRequest.deviceId);
 	if (!vrDeviceComponent)
 	{

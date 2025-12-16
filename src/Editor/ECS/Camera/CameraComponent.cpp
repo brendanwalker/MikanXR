@@ -453,8 +453,9 @@ void CameraComponent::refreshTrackingMount()
 	TrackingMountDefinitionConstPtr trackingMount = getTrackingMountDefinition();
 	if (trackingMount)
 	{
-		VRDeviceComponentPtr vrDeviceComponent =
-			VRObjectSystem::getSystem()->getVRDeviceByPath(trackingMount->getDevicePath());
+		auto vrObjectSystem = getObjectSystemOfType<VRObjectSystem>();
+		VRDeviceComponentPtr vrDeviceComponent = 
+			vrObjectSystem->getVRDeviceByPath(trackingMount->getDevicePath());
 
 		if (vrDeviceComponent)
 		{

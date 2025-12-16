@@ -73,8 +73,8 @@ bool VRDevicePoseView::getPose(
 
 		// Convert the VR Tracking Space Xform into the desired tracking space
 		if (m_poseSpace == eVRDevicePoseSpace::MikanScene)
-		{
-			auto config = VRObjectSystem::getSystem()->getVRSystemConfigConst();
+		{			
+			auto config = cameraContext->getObjectSystemOfType<VRObjectSystem>()->getVRSystemConfigConst();
 			const glm::mat4 glmVRDevicePoseOffset = MikanMatrix4f_to_glm_mat4(config->getVRDevicePoseOffset());
 
 			// Convert the vr tracking space pose to Mikan scene space

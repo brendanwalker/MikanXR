@@ -170,12 +170,9 @@ void VRObjectSystemConfig::removeAllVRDevice()
 }
 
 // -- VRObjectSystem -----
-VRObjectSystemWeakPtr VRObjectSystem::s_VRObjectSystem;
-
 bool VRObjectSystem::init()
 {
 	MikanObjectSystem::init();
-	s_VRObjectSystem = std::static_pointer_cast<VRObjectSystem>(shared_from_this());
 
 	// Listen for project config changes
 	ProjectConfigPtr projectConfig = getProjectConfig();
@@ -208,7 +205,6 @@ void VRObjectSystem::dispose()
 	projectConfigPtr->OnMarkedDirty -=
 		MakeDelegate(this, &VRObjectSystem::onProjectConfigMarkedDirty);
 
-	s_VRObjectSystem.reset();
 	m_vrDeviceComponents.clear();
 
 	MikanObjectSystem::dispose();
@@ -484,12 +480,11 @@ VRObjectSystemConfigPtr VRObjectSystem::getVRSystemConfig()
 }
 
 // -- Utility Methods
-void addAllVRDevicesToMkScene(IMkScenePtr mkScenePtr)
+void addAllVRDevicesToMkScene(VRObjectSystemPtr vrObjectSystem, IMkScenePtr mkScenePtr)
 {
 	IMkScenePtr scene= mkScenePtr;
-	auto vrDeviceSystem = VRObjectSystem::getSystem();
 
-	for (const auto& kvpair : vrDeviceSystem->getVRDeviceMap())
+	for (const auto& kvpair : vrObjectSystem->getVRDeviceMap())
 	{
 		VRDeviceComponentPtr vrDeviceComponent = kvpair.second.lock();
 

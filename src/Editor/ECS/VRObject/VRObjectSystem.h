@@ -66,8 +66,6 @@ class VRObjectSystem : public MikanObjectSystem, public IVRDeviceManagerListener
 public:
 	VRObjectSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 
-	static VRObjectSystemPtr getSystem() { return s_VRObjectSystem.lock(); }
-
 	virtual bool init() override;
 	virtual void update(float deltaSeconds) override;
 	virtual void dispose() override;
@@ -115,9 +113,7 @@ private:
 	class IVRDeviceModule* m_vrDeviceModule= nullptr;
 	IVRDeviceManagerPtr m_vrDeviceManager= nullptr;
 	VRDeviceMap m_vrDeviceComponents;
-
-	static VRObjectSystemWeakPtr s_VRObjectSystem;
 };
 
 // -- Utility Methods
-void addAllVRDevicesToMkScene(IMkScenePtr mkScenePtr);
+void addAllVRDevicesToMkScene(VRObjectSystemPtr vrObjectSystem, IMkScenePtr mkScenePtr);

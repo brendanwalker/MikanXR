@@ -80,6 +80,7 @@ bool MikanServer::startup(MainWindow* mainWindow)
 {
 	EASY_FUNCTION();
 
+	m_ownerWindow = mainWindow;
 	m_projectConfig = mainWindow->getProjectManager()->getProjectConfig();
 
 	if (!m_messageServer->initialize())
@@ -191,6 +192,8 @@ void MikanServer::shutdown()
 	m_textureSourceRequestHandler->shutdown();
 	m_videoSourceRequestHandler->shutdown();
 	m_vrDeviceRequestHandler->shutdown();
+
+	m_ownerWindow = nullptr;
 }
 
 ProjectConfigPtr MikanServer::getProjectConfig() const
@@ -245,8 +248,8 @@ MikanClientConnectionStatePtr MikanServer::allocateClientConnectionState(
 		// Create a new client state
 		clientState =
 			std::make_shared<MikanClientConnectionState>(
-				connectionId,
-				m_messageServer);
+				this,
+				connectionId);
 
 		m_clientConnections.insert({connectionId, clientState});
 	}

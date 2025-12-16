@@ -18,6 +18,7 @@ public:
 
 protected:
 	class MikanClientConnectionState* m_owner= nullptr;
+	VRObjectSystemWeakPtr m_vrObjectSystem;
 	std::set<MikanVRDeviceID> m_subscribedVRDevices;
 };
 
@@ -40,4 +41,7 @@ protected:
 	void getVRDeviceInfoHandler(const ClientRequest& request, ClientResponse& response);
 	void subscribeToVRDevicePoseUpdatesHandler(const ClientRequest& request, ClientResponse& response);
 	void unsubscribeFromVRDevicePoseUpdatesHandler(const ClientRequest& request, ClientResponse& response);
+
+private:
+	VRObjectSystemWeakPtr m_vrObjectSystem;
 };

@@ -162,7 +162,7 @@ bool VRDeviceComponent::getDefaultSocketRelativePose(glm::mat4& outPose) const
 {
 	if (m_vrDeviceInterface != nullptr)
 	{
-		auto config = VRObjectSystem::getSystem()->getVRSystemConfigConst();
+		auto config = getObjectSystemOfType<VRObjectSystem>()->getVRSystemConfigConst();
 		if (config)
 		{
 			// Get the default pose in VR Tracking space

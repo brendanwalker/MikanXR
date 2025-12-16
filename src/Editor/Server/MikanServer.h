@@ -33,6 +33,7 @@ public:
 	virtual ~MikanServer();
 
 	static MikanServer* getInstance() { return m_instance; }
+	class MainWindow* getOwnerWindow() const { return m_ownerWindow; }
 	ProjectConfigPtr getProjectConfig() const;
 	inline class IInterprocessMessageServer* getMessageServer() { return m_messageServer; }
 	inline class CameraRequestHandler* getCameraRequestHandler() const { return m_cameraRequestHandler; }
@@ -73,6 +74,7 @@ protected:
 
 private:
 	static MikanServer* m_instance;
+	class MainWindow* m_ownerWindow = nullptr;
 
 	class IInterprocessMessageServer* m_messageServer;
 

@@ -10,10 +10,11 @@ class MikanClientConnectionState
 {
 public:
 	MikanClientConnectionState(
-		const std::string& connectionId,
-		class IInterprocessMessageServer* messageServer);
+		class MikanServer* ownerServer,
+		const std::string& connectionId);
 	virtual ~MikanClientConnectionState();
 
+	inline class MikanServer* getOwnerServer() const { return m_ownerServer; }
 	inline const std::string& getConnectionId() const { return m_connectionId; }
 	inline const struct MikanClientInfo& getMikanClientInfo() const { return m_clientInfo; }
 	const std::string& getClientId() const;
@@ -28,9 +29,9 @@ public:
 	void publishMikanJsonEvent(const std::string& mikanJsonEvent);
 
 private:
+	class MikanServer* m_ownerServer;
 	std::string m_connectionId;
 	MikanClientInfo m_clientInfo;
-	class IInterprocessMessageServer* m_messageServer = nullptr;
 	class RenderTargetClientState* m_renderTargetClientState = nullptr;
 	class VRDeviceClientState* m_vrDeviceClientState = nullptr;
 };

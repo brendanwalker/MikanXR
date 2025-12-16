@@ -28,9 +28,14 @@ AppStage::~AppStage()
 {
 }
 
+ProjectManagerPtr AppStage::getProjectManager() const
+{
+	return m_ownerWindow->getProjectManager();
+}
+
 ProjectConfigPtr AppStage::getProjectConfig() const
 {
-	return m_ownerWindow->getProjectManager()->getProjectConfig();
+	return getProjectManager()->getProjectConfig();
 }
 
 MikanViewportPtr AppStage::addViewport()

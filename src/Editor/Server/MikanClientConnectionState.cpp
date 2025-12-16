@@ -1,13 +1,14 @@
 #include "InterprocessMessageServerInterface.h"
 #include "MikanClientConnectionState.h"
+#include "MikanServer.h"
 #include "RenderTargetRequestHandler.h"
 #include "VRDeviceRequestHandler.h"
 
 MikanClientConnectionState::MikanClientConnectionState(
-	const std::string& connectionId,
-	IInterprocessMessageServer* messageServer)
-	: m_connectionId(connectionId)
-	, m_messageServer(messageServer)
+	MikanServer* ownerServer,
+	const std::string& connectionId)
+	: m_ownerServer(ownerServer)
+	, m_connectionId(connectionId)
 	, m_renderTargetClientState(new RenderTargetClientState(this))
 	, m_vrDeviceClientState(new VRDeviceClientState(this))
 {}
@@ -46,5 +47,5 @@ void MikanClientConnectionState::clearMikanClientInfo()
 
 void MikanClientConnectionState::publishMikanJsonEvent(const std::string& mikanJsonEvent)
 {
-	m_messageServer->sendMessageToClient(m_connectionId, mikanJsonEvent);
+	m_ownerServer->getMessageServer()->sendMessageToClient(m_connectionId, mikanJsonEvent);
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CommonConfigFwd.h"
+#include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "IServerRequestHandler.h"
 

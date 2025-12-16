@@ -399,12 +399,13 @@ void AppStage_AlignmentCalibration::render(IMkViewportPtr targetViewport)
 void AppStage_AlignmentCalibration::renderVRScene()
 {
 	MkScene* scene= m_scene.get();
+	
 
 	// Rebuild list of renderables
 	scene->removeAllInstances();
 
 	// Add all renderable VR objects
-	addAllVRDevicesToMkScene(m_scene);
+	addAllVRDevicesToMkScene(getObjectSystemOfType<VRObjectSystem>(), m_scene);
 
 	// Render the scene
 	scene->render(m_mkCamera, m_ownerWindow->getMkStateStack());
