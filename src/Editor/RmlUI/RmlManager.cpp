@@ -286,13 +286,13 @@ void RmlManager::registerCommonDataModelTypes()
 {
 	Rml::DataModelConstructor constructor = m_rmlUIContext->CreateDataModel("data_model_globals");
 
+	// Primitive Array Types
+	constructor.RegisterArray<Rml::Vector<Rml::String>>();
+	constructor.RegisterArray<Rml::Vector<int>>();
+
 	// Enums
 	registerEnumDefinition<eStencilCullMode>(constructor, "stencil_cull_mode", k_stencilCullModeStrings);
 	registerEnumDefinition<eCharucoDictionaryType>(constructor, "marker_dictionary", k_charucoDictionaryStrings);
-
-	// String arrays
-	constructor.RegisterArray<Rml::Vector<Rml::String>>();
-	constructor.RegisterArray<Rml::Vector<int>>();
 
 	// Vector2f
 	if (auto struct_handle = constructor.RegisterStruct<Rml::Vector2f>())
