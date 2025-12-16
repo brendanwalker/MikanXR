@@ -192,6 +192,10 @@ bool RmlManager::postRendererStartup()
 {
 	if (Rml::Initialise())
 	{
+		// Register custom decorators IMMEDIATELY after Rml::Initialise() before loading any stylesheets
+		m_rmlDecoratorInstancers = std::make_shared<RmlMikanDecoratorInstancers>();
+		Rml::Factory::RegisterDecoratorInstancer("aruco-marker", &m_rmlDecoratorInstancers->arucoMarkerInstancer);
+
 		struct FontFace
 		{
 			const char* filename;
@@ -214,10 +218,6 @@ bool RmlManager::postRendererStartup()
 		int window_height = (int)m_ownerWindow->getHeight();
 		m_rmlUIContext = Rml::CreateContext("main", Rml::Vector2i(window_width, window_height));
 		Rml::Debugger::Initialise(m_rmlUIContext);
-
-		// Register custom decorators
-		m_rmlDecoratorInstancers = std::make_shared<RmlMikanDecoratorInstancers>();
-		Rml::Factory::RegisterDecoratorInstancer("aruco-marker", &m_rmlDecoratorInstancers->arucoMarkerInstancer);
 
 		// Register common data model types shared amongst all UI
 		registerCommonDataModelTypes();

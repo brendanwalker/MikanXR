@@ -8,6 +8,10 @@ DecoratorInstancerArucoMarker::DecoratorInstancerArucoMarker()
 	// Register CSS properties for ArUco marker configuration
 	m_idArucoId = RegisterProperty("aruco-id", "0").AddParser("number").GetId();
 	m_idArucoSize = RegisterProperty("aruco-size", "200").AddParser("number").GetId();
+
+	// Register shorthand to allow using properties in decorator declaration
+	// Using RecursiveCommaSeparated to properly parse comma-separated parameters
+	RegisterShorthand("decorator", "aruco-id, aruco-size", Rml::ShorthandType::RecursiveCommaSeparated);
 }
 
 DecoratorInstancerArucoMarker::~DecoratorInstancerArucoMarker()
