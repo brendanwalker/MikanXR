@@ -17,8 +17,11 @@
 #endif
 
 // -- GlViewport --
-MikanViewport::MikanViewport(const glm::i32vec2& windowSize)
-	: m_windowSize(windowSize)
+MikanViewport::MikanViewport(
+	const class IEditorWindow* ownerWindow,
+	const glm::i32vec2& windowSize)
+	: m_ownerWindow(ownerWindow)
+	, m_windowSize(windowSize)
 	, m_backgroundColor(Colors::CornflowerBlue, 1.f)
 {
 	setViewport(glm::i32vec2(0, 0), m_windowSize);
@@ -94,7 +97,8 @@ void MikanViewport::update(float deltaSeconds)
 
 	if (camera->getCameraMovementMode() == fly)
 	{
-		const float cameraSpeed = EditorObjectSystem::getSystem()->getEditorSystemConfig()->getCameraSpeed();
+		auto editorObjectSystem= m_ownerWindow->getProjectManager()->getSystemOfType<EditorObjectSystem>();
+		const float cameraSpeed = editorObjectSystem->getEditorSystemConfig()->getCameraSpeed();
 		const float moveDelta = cameraSpeed * deltaSeconds;
 
 		if (m_isLeftPressed || m_isRightPressed)
@@ -198,7 +202,7 @@ void MikanViewport::bindInput()
 {
 	if (!m_bIsInputBound)
 	{
-		InputManager* inputManager= InputManager::getInstance();
+		InputManager* inputManager= m_ownerWindow->getInputManager();
 		EventBindingSet* bindingSet = inputManager->getCurrentEventBindingSet();
 
 		bindingSet->OnMouseButtonPressedEvent += MakeDelegate(this, &MikanViewport::onMouseButtonPressed);
@@ -241,7 +245,7 @@ void MikanViewport::unbindInput()
 {
 	if (m_bIsInputBound)
 	{
-		InputManager* inputManager = InputManager::getInstance();
+		InputManager* inputManager = m_ownerWindow->getInputManager();
 		EventBindingSet* bindingSet = inputManager->getCurrentEventBindingSet();
 
 		bindingSet->OnMouseButtonPressedEvent -= MakeDelegate(this, &MikanViewport::onMouseButtonPressed);
@@ -283,7 +287,7 @@ void MikanViewport::unbindInput()
 bool MikanViewport::getCursorViewportPixelPos(glm::vec2& outViewportLocation) const
 {
 	int mouse_x, mouse_y;
-	InputManager::getInstance()->getMouseScreenPosition(mouse_x, mouse_y);
+	m_ownerWindow->getInputManager()->getMouseScreenPosition(mouse_x, mouse_y);
 
 	const int min_x = m_viewportOrigin.x;
 	const int min_y = m_viewportOrigin.y;

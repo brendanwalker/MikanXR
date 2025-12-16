@@ -250,6 +250,7 @@ bool MainWindow::startup()
 		// Create a fullscreen viewport for the UI (which creates it's own camera)
 		m_uiViewport = 
 			std::make_shared<MikanViewport>(
+				this,
 				glm::i32vec2(k_window_pixel_width, k_window_pixel_height));
 	}
 

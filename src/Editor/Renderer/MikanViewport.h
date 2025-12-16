@@ -15,7 +15,7 @@
 class MikanViewport : public std::enable_shared_from_this<MikanViewport>, public IMkViewport
 {
 public:
-	MikanViewport(const glm::i32vec2& windowSize);
+	MikanViewport(const class IEditorWindow* ownerWindow, const glm::i32vec2& windowSize);
 	virtual ~MikanViewport();
 
 	virtual glm::i32vec2 getViewportOrigin() const override { return m_viewportOrigin; }
@@ -81,6 +81,8 @@ protected:
 	void onDownButtonReleased() { m_isDownPressed= false; }
 
 private:
+	const IEditorWindow* m_ownerWindow;
+
 	bool m_bIsRenderingEnabled = true;
 	bool m_bIsInputBound= false;
 	bool m_isCameraRotateButtonPressed= false;

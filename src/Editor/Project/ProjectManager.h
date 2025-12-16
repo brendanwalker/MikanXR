@@ -24,7 +24,7 @@ public:
 	}
 
 	template<class t_system_type>
-	std::shared_ptr<t_system_type> getSystemOfType()
+	std::shared_ptr<t_system_type> getSystemOfType() const
 	{
 		for (MikanObjectSystemPtr system : m_systems)
 		{

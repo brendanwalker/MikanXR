@@ -62,8 +62,6 @@ void EditorObjectSystemConfig::setCurrentSceneName(const std::string& sceneName)
 }
 
 // -- EditorObjectSystem -----
-EditorObjectSystemWeakPtr EditorObjectSystem::s_editorObjectSystem;
-
 bool EditorObjectSystem::init()
 {
 	MikanObjectSystem::init();
@@ -109,7 +107,6 @@ bool EditorObjectSystem::init()
 
 	createTransformGizmo();
 
-	s_editorObjectSystem = std::static_pointer_cast<EditorObjectSystem>(shared_from_this());
 	return true;
 }
 
@@ -195,8 +192,6 @@ void EditorObjectSystem::createGizmoDiskCollider(
 
 void EditorObjectSystem::dispose()
 {
-	s_editorObjectSystem.reset();
-
 	m_gizmoObjectWeakPtr.reset();
 	m_gizmoComponentWeakPtr.reset();
 	m_sceneWeakPtr.reset();

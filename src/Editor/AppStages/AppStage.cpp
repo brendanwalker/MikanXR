@@ -42,6 +42,7 @@ MikanViewportPtr AppStage::addViewport()
 {
 	auto viewport= 
 		std::make_shared<MikanViewport>(
+			m_ownerWindow,
 			glm::i32vec2(m_ownerWindow->getWidth(), m_ownerWindow->getHeight()));
 	m_viewports.push_back(viewport);
 

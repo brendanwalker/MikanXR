@@ -43,7 +43,6 @@ class EditorObjectSystem : public MikanObjectSystem
 {
 public:
 	EditorObjectSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
-	static EditorObjectSystemPtr getSystem() { return s_editorObjectSystem.lock(); }
 
 	virtual bool init() override;
 	virtual void dispose() override;
@@ -110,6 +109,4 @@ protected:
 	SelectionComponentPtr findClosestSelectionTarget(
 		const glm::vec3& rayOrigin, const glm::vec3& rayDir,
 		ColliderRaycastHitResult& outRaycastResult) const;
-
-	static EditorObjectSystemWeakPtr s_editorObjectSystem;
 };
