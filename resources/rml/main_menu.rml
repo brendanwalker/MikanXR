@@ -47,7 +47,7 @@
 
 		</style>
 	</head>
-	<body template="window">
+	<body template="window" data-model="MainMenu">
 		<div id="title_bar">
 			<handle move_target="#document">
 				<div id="icon"></div>
@@ -55,14 +55,20 @@
 			</handle>
 		</div>
 		<div style="height: 40dp" />
-		<div>
-			<button onclick="goto_compositor">video_compositor</button>
+		<div data-if="has_existing_project">
+			<button data-event-click="resume_project">Resume Project</button>
 		</div>
 		<div>
-			<button onclick="goto_camera_settings">camera_settings</button>
+			<button data-event-click="open_project">Open Project</button>
 		</div>
 		<div>
-			<button onclick="exit_mikan">exit</button>
+			<button data-event-click="new_project">New Project</button>
+		</div>
+		<div>
+			<button data-event-click="launch_tutorial">Tutorial</button>
+		</div>
+		<div>
+			<button data-event-click="exit">Exit</button>
 		</div>
 	</body>
 </rml>

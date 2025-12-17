@@ -36,7 +36,7 @@ bool RmlModel_MainMenu::init(
 	constructor.BindEventCallback(
 		"new_project",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-			if (OnOpenProject) OnOpenProject();
+			if (OnNewProject) OnNewProject();
 		});
 	constructor.BindEventCallback(
 		"launch_tutorial",
@@ -46,7 +46,7 @@ bool RmlModel_MainMenu::init(
 	constructor.BindEventCallback(
 		"exit",
 		[this](Rml::DataModelHandle model, Rml::Event& /*ev*/, const Rml::VariantList& arguments) {
-			if (OnTutorial) OnTutorial();
+			if (OnExit) OnExit();
 		});
 
 
