@@ -42,23 +42,31 @@ bool RmlModel_CompositorComponent::onConstruct(Rml::DataModelConstructor& constr
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
 			const int selectedCameraId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
 
-			getCompositorComponent()->getCompositorDefinition()->setCameraId(selectedCameraId);
+			CompositorComponentPtr compositorComponent= getCompositorComponent();
+			if (compositorComponent)
+				compositorComponent->getCompositorDefinition()->setCameraId(selectedCameraId);
 		});
 
 	constructor.BindEventCallback(
 		"edit_compositor_graph",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			getCompositorComponent()->editCompositorGraph();
+			CompositorComponentPtr compositorComponent = getCompositorComponent();
+			if (compositorComponent)
+				compositorComponent->editCompositorGraph();
 		});
 	constructor.BindEventCallback(
 		"add_new_compositor_graph",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			getCompositorComponent()->addNewCompositorGraph();
+			CompositorComponentPtr compositorComponent = getCompositorComponent();
+			if (compositorComponent)
+				compositorComponent->addNewCompositorGraph();
 		});
 	constructor.BindEventCallback(
 		"remove_compositor_graph",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			getCompositorComponent()->removeCompositorGraph();
+			CompositorComponentPtr compositorComponent = getCompositorComponent();
+			if (compositorComponent)
+				compositorComponent->removeCompositorGraph();
 		});
 
 	return true;

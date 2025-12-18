@@ -56,14 +56,18 @@ bool RmlModel_CameraComponent::onConstruct(Rml::DataModelConstructor& constructo
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
 			const int selectedVideoSourceId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
 
-			getCameraComponent()->getCameraDefinition()->setVideoSourceId(selectedVideoSourceId);
+			CameraComponentPtr cameraComponent= getCameraComponent();
+			if (cameraComponent)
+				cameraComponent->getCameraDefinition()->setVideoSourceId(selectedVideoSourceId);
 		});
 	constructor.BindEventCallback(
 		"select_mount_entry",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
 			const int selectedMountId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
 
-			getCameraComponent()->getCameraDefinition()->setTrackingMountId(selectedMountId);
+			CameraComponentPtr cameraComponent = getCameraComponent();
+			if (cameraComponent)
+				cameraComponent->getCameraDefinition()->setTrackingMountId(selectedMountId);
 		});
 
 	return true;

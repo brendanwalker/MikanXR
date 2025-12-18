@@ -60,22 +60,28 @@ bool RmlModel_TrackingMountComponent::onConstruct(Rml::DataModelConstructor& con
 	constructor.BindEventCallback(
 		"select_device_entry",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			const Rml::String devicePath = ev.GetParameter<Rml::String>("value", 0);
-			TrackingMountComponentPtr mountComponent = getTrackingMountComponent();
-			if (mountComponent)
+			const Rml::String devicePath = ev.GetParameter<Rml::String>("value", "");
+			if (!devicePath.empty())
 			{
-				mountComponent->getTrackingMountDefinition()->setDevicePath(devicePath);
+				TrackingMountComponentPtr mountComponent = getTrackingMountComponent();
+				if (mountComponent)
+				{
+					mountComponent->getTrackingMountDefinition()->setDevicePath(devicePath);
+				}
 			}
 		});
 
 	constructor.BindEventCallback(
 		"select_socket_entry",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			const Rml::String socketName = ev.GetParameter<Rml::String>("value", 0);
-			TrackingMountComponentPtr mountComponent = getTrackingMountComponent();
-			if (mountComponent)
+			const Rml::String socketName = ev.GetParameter<Rml::String>("value", "");
+			if (!socketName.empty())
 			{
-				mountComponent->getTrackingMountDefinition()->setSocketName(socketName);
+				TrackingMountComponentPtr mountComponent = getTrackingMountComponent();
+				if (mountComponent)
+				{
+					mountComponent->getTrackingMountDefinition()->setSocketName(socketName);
+				}
 			}
 		});
 
