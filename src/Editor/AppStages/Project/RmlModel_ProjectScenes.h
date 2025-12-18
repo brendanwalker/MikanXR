@@ -7,15 +7,6 @@
 #include "Shared/RmlModel_MikanComponent.h"
 #include "SinglecastDelegate.h"
 
-class RmlModel_AnchorComponent;
-using RmlModel_AnchorComponentPtr = std::shared_ptr<RmlModel_AnchorComponent>;
-
-class RmlModel_CompositorComponent;
-using RmlModel_CompositorComponentPtr = std::shared_ptr<RmlModel_CompositorComponent>;
-
-class RmlModel_StencilComponent;
-using RmlModel_StencilComponentPtr = std::shared_ptr<RmlModel_StencilComponent>;
-
 struct RmlModel_SceneObject
 {
 	Rml::String name;
@@ -82,9 +73,9 @@ private:
 	RmlDataBinding_ComponentIdListPtr m_stageIdList;
 	RmlDataBinding_ComponentIdListPtr m_sceneIdList;
 	RmlModel_AnchorComponentPtr m_selectedAnchorModel;
-	RmlModel_StencilComponentPtr m_selectedBoxStencilModel;
-	RmlModel_StencilComponentPtr m_selectedModelStencilModel;
-	RmlModel_StencilComponentPtr m_selectedQuadStencilModel;
+	RmlModel_BoxStencilComponentPtr m_selectedBoxStencilModel;
+	RmlModel_ModelStencilComponentPtr m_selectedModelStencilModel;
+	RmlModel_QuadStencilComponentPtr m_selectedQuadStencilModel;
 	RmlModel_SceneComponentPtr m_selectedSceneModel;
 
 	int m_selectedStageId = -1; // MikanStageID

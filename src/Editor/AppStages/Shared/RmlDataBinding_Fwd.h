@@ -29,8 +29,17 @@ using RmlDataBinding_VideoModeListPtr = std::shared_ptr<RmlDataBinding_VideoMode
 class RmlModel_AnchorComponent;
 using RmlModel_AnchorComponentPtr = std::shared_ptr<RmlModel_AnchorComponent>;
 
+class RmlModel_BoxStencilComponent;
+using RmlModel_BoxStencilComponentPtr = std::shared_ptr<RmlModel_BoxStencilComponent>;
+
 class RmlModel_CameraComponent;
 using RmlModel_CameraComponentPtr = std::shared_ptr<RmlModel_CameraComponent>;
+
+class RmlModel_ClientTextureSourceComponent;
+using RmlModel_ClientTextureSourceComponentPtr = std::shared_ptr<RmlModel_ClientTextureSourceComponent>;
+
+class RmlModel_CompositorComponent;
+using RmlModel_CompositorComponentPtr = std::shared_ptr<RmlModel_CompositorComponent>;
 
 class RmlModel_MarkerComponent;
 using RmlModel_MarkerComponentPtr = std::shared_ptr<RmlModel_MarkerComponent>;
@@ -38,38 +47,38 @@ using RmlModel_MarkerComponentPtr = std::shared_ptr<RmlModel_MarkerComponent>;
 class RmlModel_MarkerObjectSystem;
 using RmlModel_MarkerObjectSystemPtr = std::shared_ptr<RmlModel_MarkerObjectSystem>;
 
-class RmlModel_MikanComponent;
-using RmlModel_MikanComponentPtr = std::shared_ptr<RmlModel_MikanComponent>;
-
-class RmlModel_PropertyInterface;
-using RmlModel_PropertyInterfacePtr = std::shared_ptr<RmlModel_PropertyInterface>;
-
-class RmlModel_SceneComponent;
-using RmlModel_SceneComponentPtr = std::shared_ptr<RmlModel_SceneComponent>;
-
-class RmlModel_StageComponent;
-using RmlModel_StageComponentPtr = std::shared_ptr<RmlModel_StageComponent>;
-
-class RmlModel_StencilComponent;
-using RmlModel_StencilComponentPtr = std::shared_ptr<RmlModel_StencilComponent>;
-
 class RmlModel_MarkerTrackingVolumeComponent;
 using RmlModel_MarkerTrackingVolumeComponentPtr = std::shared_ptr<RmlModel_MarkerTrackingVolumeComponent>;
 
-class RmlModel_VRTrackingVolumeComponent;
-using RmlModel_VRTrackingVolumeComponentPtr = std::shared_ptr<RmlModel_VRTrackingVolumeComponent>;
+class RmlModel_MikanComponent;
+using RmlModel_MikanComponentPtr = std::shared_ptr<RmlModel_MikanComponent>;
 
-class RmlModel_TrackingMountComponent;
-using RmlModel_TrackingMountComponentPtr = std::shared_ptr<RmlModel_TrackingMountComponent>;
-
-class RmlModel_ClientTextureSourceComponent;
-using RmlModel_ClientTextureSourceComponentPtr = std::shared_ptr<RmlModel_ClientTextureSourceComponent>;
+class RmlModel_ModelStencilComponent;
+using RmlModel_ModelStencilComponentPtr = std::shared_ptr<RmlModel_ModelStencilComponent>;
 
 class RmlModel_NetworkVideoSourceComponent;
 using RmlModel_NetworkVideoSourceComponentPtr = std::shared_ptr<RmlModel_NetworkVideoSourceComponent>;
 
+class RmlModel_PropertyInterface;
+using RmlModel_PropertyInterfacePtr = std::shared_ptr<RmlModel_PropertyInterface>;
+
+class RmlModel_QuadStencilComponent;
+using RmlModel_QuadStencilComponentPtr = std::shared_ptr<RmlModel_QuadStencilComponent>;
+
+class RmlModel_SceneComponent;
+using RmlModel_SceneComponentPtr = std::shared_ptr<RmlModel_SceneComponent>;
+
 class RmlModel_SpoutTextureSourceComponent;
 using RmlModel_SpoutTextureSourceComponentPtr = std::shared_ptr<RmlModel_SpoutTextureSourceComponent>;
 
+class RmlModel_StageComponent;
+using RmlModel_StageComponentPtr = std::shared_ptr<RmlModel_StageComponent>;
+
+class RmlModel_TrackingMountComponent;
+using RmlModel_TrackingMountComponentPtr = std::shared_ptr<RmlModel_TrackingMountComponent>;
+
 class RmlModel_USBVideoSourceComponent;
 using RmlModel_USBVideoSourceComponentPtr = std::shared_ptr<RmlModel_USBVideoSourceComponent>;
+
+class RmlModel_VRTrackingVolumeComponent;
+using RmlModel_VRTrackingVolumeComponentPtr = std::shared_ptr<RmlModel_VRTrackingVolumeComponent>;

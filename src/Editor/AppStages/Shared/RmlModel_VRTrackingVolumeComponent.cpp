@@ -9,14 +9,19 @@
 #include <RmlUi/Core/Context.h>
 
 RmlModel_VRTrackingVolumeComponent::RmlModel_VRTrackingVolumeComponent()
-	: RmlModel_TypedMikanComponent<VRTrackingVolumeComponent>()
+	: RmlModel_MikanComponent()
 	, m_markerComponentIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 	, m_trackingMountIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {}
 
+bool RmlModel_VRTrackingVolumeComponent::init(Rml::Context* rmlContext)
+{
+	return initTypedPropertyInterface<VRTrackingVolumeComponent>(rmlContext);
+}
+
 bool RmlModel_VRTrackingVolumeComponent::onConstruct(Rml::DataModelConstructor& constructor)
 {
-	if (!RmlModel_TypedMikanComponent<VRTrackingVolumeComponent>::onConstruct(constructor))
+	if (!RmlModel_MikanComponent::onConstruct(constructor))
 		return false;
 
 	// Build the list of all marker component IDs from the MarkerObjectSystem
@@ -87,7 +92,7 @@ bool RmlModel_VRTrackingVolumeComponent::onConstruct(Rml::DataModelConstructor& 
 
 bool RmlModel_VRTrackingVolumeComponent::setComponent(MikanComponentPtr component)
 {
-	if (RmlModel_TypedMikanComponent<VRTrackingVolumeComponent>::setComponent(component))
+	if (RmlModel_MikanComponent::setComponent(component))
 	{
 		m_markerComponentIdList->setOwnerConfig(getMarkerObjectSystemConfig());
 		m_markerComponentIdList->rebuildList(true);

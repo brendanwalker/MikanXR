@@ -4,7 +4,8 @@
 #include "Shared/RmlDataBinding_Fwd.h"
 #include "StencilComponent.h"
 
-class RmlModel_StencilComponent : public RmlModel_TypedMikanComponent<StencilComponent>
+// Abstract base class for Rml data models for stencil components
+class RmlModel_StencilComponent : public RmlModel_MikanComponent
 {
 public:
 	RmlModel_StencilComponent();
@@ -20,4 +21,28 @@ protected:
 private:
 	RmlDataBinding_ComponentIdListPtr m_anchorComponentIdList;
 	AnchorObjectSystemWeakPtr m_stencilObjectSystem;
+};
+
+class RmlModel_QuadStencilComponent : public RmlModel_StencilComponent
+{
+public:
+	RmlModel_QuadStencilComponent()= default;
+
+	virtual bool init(Rml::Context* rmlContext) override;
+};
+
+class RmlModel_BoxStencilComponent : public RmlModel_StencilComponent
+{
+public:
+	RmlModel_BoxStencilComponent() = default;
+
+	virtual bool init(Rml::Context* rmlContext) override;
+};
+
+class RmlModel_ModelStencilComponent : public RmlModel_StencilComponent
+{
+public:
+	RmlModel_ModelStencilComponent() = default;
+
+	virtual bool init(Rml::Context* rmlContext) override;
 };

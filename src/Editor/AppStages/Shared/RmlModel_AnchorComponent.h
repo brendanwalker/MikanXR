@@ -4,11 +4,12 @@
 #include "Shared/RmlDataBinding_Fwd.h"
 #include "AnchorComponent.h"
 
-class RmlModel_AnchorComponent : public RmlModel_TypedMikanComponent<AnchorComponent>
+class RmlModel_AnchorComponent : public RmlModel_MikanComponent
 {
 public:
 	RmlModel_AnchorComponent();
 
+	virtual bool init(Rml::Context* rmlContext) override;
 	virtual bool onConstruct(Rml::DataModelConstructor& constructor) override;
 	virtual bool setComponent(MikanComponentPtr component) override;
 

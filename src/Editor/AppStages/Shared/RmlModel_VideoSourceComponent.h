@@ -4,20 +4,19 @@
 #include "ObjectSystemConfigFwd.h"
 #include "Shared/RmlModel_MikanComponent.h"
 #include "Shared/RmlDataBinding_Fwd.h"
-#include "NetworkVideoSourceComponent.h"
-#include "USBVideoSourceComponent.h"
 
-class RmlModel_NetworkVideoSourceComponent : 
-	public RmlModel_TypedMikanComponent<NetworkVideoSourceComponent>
+class RmlModel_NetworkVideoSourceComponent : public RmlModel_MikanComponent
 {
+public:
+	virtual bool init(Rml::Context* rmlContext) override;
 };
 
-class RmlModel_USBVideoSourceComponent : 
-	public RmlModel_TypedMikanComponent<USBVideoSourceComponent>
+class RmlModel_USBVideoSourceComponent : public RmlModel_MikanComponent
 {
 public:
 	RmlModel_USBVideoSourceComponent();
 
+	virtual bool init(Rml::Context* rmlContext) override;
 	virtual bool onConstruct(Rml::DataModelConstructor& constructor) override;
 	virtual bool setComponent(MikanComponentPtr component) override;
 

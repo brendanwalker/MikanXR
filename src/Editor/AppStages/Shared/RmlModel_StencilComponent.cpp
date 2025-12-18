@@ -2,19 +2,23 @@
 #include "Shared/RmlDataBinding_List.h"
 #include "Shared/RmlModel_PropertyInterface.h"
 #include "AnchorObjectSystem.h"
+#include "QuadStencilComponent.h"
+#include "BoxStencilComponent.h"
+#include "ModelStencilComponent.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
 
+// -- RmlModel_StencilComponent -----
 RmlModel_StencilComponent::RmlModel_StencilComponent()
-	: RmlModel_TypedMikanComponent<StencilComponent>()
+	: RmlModel_MikanComponent()
 	, m_anchorComponentIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {}
 
 bool RmlModel_StencilComponent::onConstruct(Rml::DataModelConstructor& constructor)
 {
-	if (!RmlModel_TypedMikanComponent<StencilComponent>::onConstruct(constructor))
+	if (!RmlModel_MikanComponent::onConstruct(constructor))
 		return false;
 
 	// Build the list of all stencil component IDs by collecting from stencil systems
@@ -22,14 +26,14 @@ bool RmlModel_StencilComponent::onConstruct(Rml::DataModelConstructor& construct
 		constructor,
 		CommonConfigPtr(),
 		"anchor_ids",
-		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) 
+		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList)
 		{
 			// Collect transform components from stencil system
 			auto anchorObjectSystem = getAnchorObjectSystem();
 			if (anchorObjectSystem)
 			{
 				// Add "none" option first
-				outComponentIdList.push_back(INVALID_MIKAN_ID); 
+				outComponentIdList.push_back(INVALID_MIKAN_ID);
 
 				// Add anchor IDs
 				for (const auto& it : anchorObjectSystem->getAnchorMap())
@@ -60,7 +64,7 @@ bool RmlModel_StencilComponent::onConstruct(Rml::DataModelConstructor& construct
 
 bool RmlModel_StencilComponent::setComponent(MikanComponentPtr component)
 {
-	if (RmlModel_TypedMikanComponent<StencilComponent>::setComponent(component))
+	if (RmlModel_MikanComponent::setComponent(component))
 	{
 		m_anchorComponentIdList->setOwnerConfig(getAnchorObjectSystemConfig());
 		m_anchorComponentIdList->rebuildList(true);
@@ -101,4 +105,22 @@ AnchorObjectSystemConfigPtr RmlModel_StencilComponent::getAnchorObjectSystemConf
 	}
 
 	return nullptr;
+}
+
+//-- RmlModel_QuadStencilComponent -----
+bool RmlModel_QuadStencilComponent::init(Rml::Context* rmlContext)
+{
+	return initTypedPropertyInterface<QuadStencilComponent>(rmlContext);
+}
+
+//-- RmlModel_BoxStencilComponent -----
+bool RmlModel_BoxStencilComponent::init(Rml::Context* rmlContext)
+{
+	return initTypedPropertyInterface<BoxStencilComponent>(rmlContext);
+}
+
+//-- RmlModel_ModelStencilComponent -----
+bool RmlModel_ModelStencilComponent::init(Rml::Context* rmlContext)
+{
+	return initTypedPropertyInterface<ModelStencilComponent>(rmlContext);
 }

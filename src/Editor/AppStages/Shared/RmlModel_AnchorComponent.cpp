@@ -9,13 +9,18 @@
 #include <RmlUi/Core/Context.h>
 
 RmlModel_AnchorComponent::RmlModel_AnchorComponent()
-	: RmlModel_TypedMikanComponent<AnchorComponent>()
+	: RmlModel_MikanComponent()
 	, m_stencilComponentIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {}
 
+bool RmlModel_AnchorComponent::init(Rml::Context* rmlContext)
+{
+	return initTypedPropertyInterface<AnchorComponent>(rmlContext);
+}
+
 bool RmlModel_AnchorComponent::onConstruct(Rml::DataModelConstructor& constructor)
 {
-	if (!RmlModel_TypedMikanComponent<AnchorComponent>::onConstruct(constructor))
+	if (!RmlModel_MikanComponent::onConstruct(constructor))
 		return false;
 
 	// Build the list of all anchor component IDs by collecting from the anchor systems
@@ -42,7 +47,7 @@ bool RmlModel_AnchorComponent::onConstruct(Rml::DataModelConstructor& constructo
 
 bool RmlModel_AnchorComponent::setComponent(MikanComponentPtr component)
 {
-	if (RmlModel_TypedMikanComponent<AnchorComponent>::setComponent(component))
+	if (RmlModel_MikanComponent::setComponent(component))
 	{
 		m_stencilComponentIdList->setOwnerConfig(getAnchorObjectSystemConfig());
 		m_stencilComponentIdList->rebuildList(true);

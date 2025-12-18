@@ -3,11 +3,12 @@
 #include "Shared/RmlModel_MikanComponent.h"
 #include "SceneComponent.h"
 
-class RmlModel_SceneComponent : public RmlModel_TypedMikanComponent<SceneComponent>
+class RmlModel_SceneComponent : public RmlModel_MikanComponent
 {
 public:
 	RmlModel_SceneComponent();
 
+	virtual bool init(Rml::Context* rmlContext) override;
 	virtual bool onConstruct(Rml::DataModelConstructor& constructor) override;
 	virtual bool setComponent(MikanComponentPtr component) override;
 

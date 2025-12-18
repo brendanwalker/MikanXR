@@ -36,9 +36,9 @@ RmlModel_ProjectScenes::RmlModel_ProjectScenes()
 	: m_stageIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 	, m_sceneIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 	, m_selectedAnchorModel(std::make_shared<RmlModel_AnchorComponent>())
-	, m_selectedBoxStencilModel(std::make_shared<RmlModel_StencilComponent>())
-	, m_selectedModelStencilModel(std::make_shared<RmlModel_StencilComponent>())
-	, m_selectedQuadStencilModel(std::make_shared<RmlModel_StencilComponent>())
+	, m_selectedBoxStencilModel(std::make_shared<RmlModel_BoxStencilComponent>())
+	, m_selectedModelStencilModel(std::make_shared<RmlModel_ModelStencilComponent>())
+	, m_selectedQuadStencilModel(std::make_shared<RmlModel_QuadStencilComponent>())
 	, m_selectedSceneModel(std::make_shared<RmlModel_SceneComponent>())
 {
 }

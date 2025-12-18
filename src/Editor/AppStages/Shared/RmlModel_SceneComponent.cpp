@@ -7,13 +7,18 @@
 #include <RmlUi/Core/Context.h>
 
 RmlModel_SceneComponent::RmlModel_SceneComponent()
-	: RmlModel_TypedMikanComponent<SceneComponent>()
+	: RmlModel_MikanComponent()
 	, m_compositorIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {}
 
+bool RmlModel_SceneComponent::init(Rml::Context* rmlContext)
+{
+	return initTypedPropertyInterface<SceneComponent>(rmlContext);
+}
+
 bool RmlModel_SceneComponent::onConstruct(Rml::DataModelConstructor& constructor)
 {
-	if (!RmlModel_TypedMikanComponent<SceneComponent>::onConstruct(constructor))
+	if (!RmlModel_MikanComponent::onConstruct(constructor))
 		return false;
 
 	// Build the list of all compositor IDs this scene component can output to
@@ -45,7 +50,7 @@ bool RmlModel_SceneComponent::onConstruct(Rml::DataModelConstructor& constructor
 
 bool RmlModel_SceneComponent::setComponent(MikanComponentPtr component)
 {
-	if (RmlModel_TypedMikanComponent<SceneComponent>::setComponent(component))
+	if (RmlModel_MikanComponent::setComponent(component))
 	{
 		m_compositorIdList->setOwnerConfig(getSceneComponent()->getSceneComponentDefinition());
 		m_compositorIdList->rebuildList(true);

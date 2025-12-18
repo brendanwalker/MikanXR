@@ -1,27 +1,31 @@
 #pragma once
 
 #include "ComponentFwd.h"
-#include "ComponentScriptContext.h"
-#include "MikanComponent.h"
-#include "RmlModel_MikanComponent.h"
 #include "Shared/RmlDataBinding_Fwd.h"
-#include "Shared/RmlModel.h"
 #include "Shared/RmlModel_PropertyInterface.h"
 
-#include <memory>
+namespace Rml
+{
+	class Context;
+	class DataModelConstructor;
+}
 
-template <class t_component_type>
-class RmlModel_TypedMikanComponent
+class RmlModel_MikanComponent
 {
 public:
-	RmlModel_TypedMikanComponent()
-		: m_component()
-		, m_propertyInterface(std::make_shared<RmlModel_PropertyInterface>())
-		, m_scriptTriggerList(std::make_shared<RmlDataBinding_ScriptTriggerList>())
-	{
-	}
+	RmlModel_MikanComponent();
+	virtual ~RmlModel_MikanComponent() = default;
 
-	bool init(Rml::Context* rmlContext)
+	virtual bool init(Rml::Context* rmlContext) = 0;
+	virtual bool onConstruct(Rml::DataModelConstructor& constructor);
+
+	MikanComponentPtr getComponent() const;
+	virtual bool setComponent(MikanComponentPtr component);
+	void dispose();
+
+protected:
+	template <class t_component_type>
+	bool initTypedPropertyInterface(Rml::Context* rmlContext)
 	{
 		return
 			m_propertyInterface->init<t_component_type>(
@@ -33,61 +37,6 @@ public:
 				});
 	}
 
-	virtual bool onConstruct(Rml::DataModelConstructor& constructor)
-	{
-		m_scriptTriggerList->init(
-			constructor,
-			CommonConfigPtr(),
-			"script_triggers",
-			[this](CommonConfigPtr ownerConfig, Rml::Vector<std::string>& outScriptTriggerList) {				
-				ComponentScriptContextPtr scriptContext = getComponent()->getScriptContext();
-				if (scriptContext)
-				{
-					outScriptTriggerList= scriptContext->getScriptTriggers();
-				}
-			});
-
-		constructor.BindEventCallback(
-			"invoke_script_trigger",
-			[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-				ComponentScriptContextPtr scriptContext = getComponent()->getScriptContext();
-				if (arguments.size() == 1 && scriptContext)
-				{
-					scriptContext->invokeScriptTrigger(arguments[0].Get<Rml::String>());
-				}
-			});
-
-		return true; 
-	}
-
-	MikanComponentPtr getComponent() const
-	{
-		return m_component.lock();
-	}
-
-	virtual bool setComponent(MikanComponentPtr component)
-	{
-		MikanComponentPtr oldComponent = m_component.lock();
-
-		if (component != oldComponent)
-		{
-			m_component = component;
-			m_propertyInterface->setPropertyInterface(component, component->getDefinition());
-			m_propertyInterface->setFunctionInterface(component);
-
-			return true;
-		}
-
-		return false;
-	}
-
-	void dispose()
-	{
-		m_propertyInterface->dispose();
-		m_component.reset();
-	}
-
-protected:
 	MikanComponentWeakPtr m_component;
 	RmlModel_PropertyInterfacePtr m_propertyInterface;
 	RmlDataBinding_ScriptTriggerListPtr m_scriptTriggerList;

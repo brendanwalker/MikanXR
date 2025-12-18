@@ -1,6 +1,8 @@
 #include "RmlModel_VideoSourceComponent.h"
 #include "Shared/RmlDataBinding_List.h"
 #include "Shared/RmlModel_PropertyInterface.h"
+#include "NetworkVideoSourceComponent.h"
+#include "USBVideoSourceComponent.h"
 #include "VideoSourceSystem.h"
 #include "USBVideoSourceSystem.h"
 
@@ -8,15 +10,27 @@
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
 
+// -- RmlModel_NetworkVideoSourceComponent -----
+bool RmlModel_NetworkVideoSourceComponent::init(Rml::Context* rmlContext)
+{
+	return initTypedPropertyInterface<NetworkVideoSourceComponent>(rmlContext);
+}
+
+// -- RmlModel_USBVideoSourceComponent -----
 RmlModel_USBVideoSourceComponent::RmlModel_USBVideoSourceComponent()
-	: RmlModel_TypedMikanComponent<USBVideoSourceComponent>()
+	: RmlModel_MikanComponent()
 	, m_usbDevicePathList(std::make_shared<RmlDataBinding_VRDevicePathList>())
 	, m_videoModeNameList(std::make_shared<RmlDataBinding_SocketNameList>())
 {}
 
+bool RmlModel_USBVideoSourceComponent::init(Rml::Context* rmlContext)
+{
+	return initTypedPropertyInterface<USBVideoSourceComponent>(rmlContext);
+}
+
 bool RmlModel_USBVideoSourceComponent::onConstruct(Rml::DataModelConstructor& constructor)
 {
-	if (!RmlModel_TypedMikanComponent<USBVideoSourceComponent>::onConstruct(constructor))
+	if (!RmlModel_MikanComponent::onConstruct(constructor))
 		return false;
 
 	// Build the list of all usb device paths from the USBVideoSourceSystem
@@ -57,7 +71,7 @@ bool RmlModel_USBVideoSourceComponent::onConstruct(Rml::DataModelConstructor& co
 
 bool RmlModel_USBVideoSourceComponent::setComponent(MikanComponentPtr component)
 {
-	if (RmlModel_TypedMikanComponent<USBVideoSourceComponent>::setComponent(component))
+	if (RmlModel_MikanComponent::setComponent(component))
 	{
 		m_usbDevicePathList->setOwnerConfig(getVideoSourceSystemConfig());
 		m_usbDevicePathList->rebuildList(true);

@@ -9,14 +9,19 @@
 #include <RmlUi/Core/Context.h>
 
 RmlModel_CameraComponent::RmlModel_CameraComponent()
-	: RmlModel_TypedMikanComponent<CameraComponent>()
+	: RmlModel_MikanComponent()
 	, m_trackingMountIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 	, m_textureSourceIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {}
 
+bool RmlModel_CameraComponent::init(Rml::Context* rmlContext)
+{
+	return initTypedPropertyInterface<CameraComponent>(rmlContext);
+}
+
 bool RmlModel_CameraComponent::onConstruct(Rml::DataModelConstructor& constructor)
 {
-	if (!RmlModel_TypedMikanComponent<CameraComponent>::onConstruct(constructor))
+	if (!RmlModel_MikanComponent::onConstruct(constructor))
 		return false;
 
 	// Build the list of tracking mount IDs from the associated VRTrackingVolumeDefinition
@@ -66,7 +71,7 @@ bool RmlModel_CameraComponent::onConstruct(Rml::DataModelConstructor& constructo
 
 bool RmlModel_CameraComponent::setComponent(MikanComponentPtr component)
 {
-	if (RmlModel_TypedMikanComponent<CameraComponent>::setComponent(component))
+	if (RmlModel_MikanComponent::setComponent(component))
 	{
 		m_trackingMountIdList->setOwnerConfig(getOwnerVRTrackingVolume());
 		m_trackingMountIdList->rebuildList(true);

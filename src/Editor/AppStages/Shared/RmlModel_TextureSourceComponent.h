@@ -4,15 +4,15 @@
 #include "ObjectSystemConfigFwd.h"
 #include "Shared/RmlModel_MikanComponent.h"
 #include "Shared/RmlDataBinding_Fwd.h"
-#include "ClientTextureSourceComponent.h"
-#include "SpoutTextureSourceComponent.h"
 
-class RmlModel_ClientTextureSourceComponent :
-	public RmlModel_TypedMikanComponent<ClientTextureSourceComponent>
+class RmlModel_ClientTextureSourceComponent : public RmlModel_MikanComponent
 {
+public:
+	virtual bool init(Rml::Context* rmlContext) override;
 };
 
-class RmlModel_SpoutTextureSourceComponent :
-	public RmlModel_TypedMikanComponent<SpoutTextureSourceComponent>
+class RmlModel_SpoutTextureSourceComponent : public RmlModel_MikanComponent
 {
+public:
+	virtual bool init(Rml::Context* rmlContext) override;
 };

@@ -4,12 +4,12 @@
 #include "Shared/RmlDataBinding_Fwd.h"
 #include "MarkerTrackingVolumeComponent.h"
 
-class RmlModel_MarkerTrackingVolumeComponent : 
-	public RmlModel_TypedMikanComponent<MarkerTrackingVolumeComponent>
+class RmlModel_MarkerTrackingVolumeComponent : public RmlModel_MikanComponent
 {
 public:
 	RmlModel_MarkerTrackingVolumeComponent();
 
+	virtual bool init(Rml::Context* rmlContext) override;
 	virtual bool onConstruct(Rml::DataModelConstructor& constructor) override;
 	virtual bool setComponent(MikanComponentPtr component) override;
 

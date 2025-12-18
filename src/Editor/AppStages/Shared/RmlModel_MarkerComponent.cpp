@@ -9,13 +9,18 @@
 #include <RmlUi/Core/Context.h>
 
 RmlModel_MarkerComponent::RmlModel_MarkerComponent()
-	: RmlModel_TypedMikanComponent<MarkerComponent>()
+	: RmlModel_MikanComponent()
 	, m_arucoIdList(std::make_shared<RmlDataBinding_ArucoIdList>())
 {}
 
+bool RmlModel_MarkerComponent::init(Rml::Context* rmlContext)
+{
+	return initTypedPropertyInterface<MarkerComponent>(rmlContext);
+}
+
 bool RmlModel_MarkerComponent::onConstruct(Rml::DataModelConstructor& constructor)
 {
-	if (!RmlModel_TypedMikanComponent<MarkerComponent>::onConstruct(constructor))
+	if (!RmlModel_MikanComponent::onConstruct(constructor))
 		return false;
 
 	// Build the list of all aruco IDs by collecting from the marker system config
@@ -48,7 +53,7 @@ bool RmlModel_MarkerComponent::onConstruct(Rml::DataModelConstructor& constructo
 
 bool RmlModel_MarkerComponent::setComponent(MikanComponentPtr component)
 {
-	if (RmlModel_TypedMikanComponent<MarkerComponent>::setComponent(component))
+	if (RmlModel_MikanComponent::setComponent(component))
 	{
 		m_arucoIdList->setOwnerConfig(getMarkerObjectSystemConfig());
 		m_arucoIdList->rebuildList(true);

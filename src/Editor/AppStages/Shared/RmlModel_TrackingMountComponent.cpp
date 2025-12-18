@@ -9,14 +9,19 @@
 #include <RmlUi/Core/Context.h>
 
 RmlModel_TrackingMountComponent::RmlModel_TrackingMountComponent()
-	: RmlModel_TypedMikanComponent<TrackingMountComponent>()
+	: RmlModel_MikanComponent()
 	, m_vrDevicePathList(std::make_shared<RmlDataBinding_VRDevicePathList>())
 	, m_socketNameList(std::make_shared<RmlDataBinding_SocketNameList>())
 {}
 
+bool RmlModel_TrackingMountComponent::init(Rml::Context* rmlContext)
+{
+	return initTypedPropertyInterface<TrackingMountComponent>(rmlContext);
+}
+
 bool RmlModel_TrackingMountComponent::onConstruct(Rml::DataModelConstructor& constructor)
 {
-	if (!RmlModel_TypedMikanComponent<TrackingMountComponent>::onConstruct(constructor))
+	if (!RmlModel_MikanComponent::onConstruct(constructor))
 		return false;
 
 	// Build the list of all VR device paths from the VRObjectSystem
@@ -79,7 +84,7 @@ bool RmlModel_TrackingMountComponent::onConstruct(Rml::DataModelConstructor& con
 
 bool RmlModel_TrackingMountComponent::setComponent(MikanComponentPtr component)
 {
-	if (RmlModel_TypedMikanComponent<TrackingMountComponent>::setComponent(component))
+	if (RmlModel_MikanComponent::setComponent(component))
 	{
 		m_vrDevicePathList->setOwnerConfig(getVRObjectSystemConfig());
 		m_vrDevicePathList->rebuildList(true);

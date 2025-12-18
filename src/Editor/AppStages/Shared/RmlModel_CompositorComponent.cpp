@@ -9,13 +9,18 @@
 #include <RmlUi/Core/Context.h>
 
 RmlModel_CompositorComponent::RmlModel_CompositorComponent()
-	: RmlModel_TypedMikanComponent<CompositorComponent>()
+	: RmlModel_MikanComponent()
 	, m_cameraIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {}
 
+bool RmlModel_CompositorComponent::init(Rml::Context* rmlContext)
+{
+	return initTypedPropertyInterface<CompositorComponent>(rmlContext);
+}
+
 bool RmlModel_CompositorComponent::onConstruct(Rml::DataModelConstructor& constructor)
 {
-	if (!RmlModel_TypedMikanComponent<CompositorComponent>::onConstruct(constructor))
+	if (!RmlModel_MikanComponent::onConstruct(constructor))
 		return false;
 
 	// Build the list of all camera IDs from the CameraObjectSystem
@@ -61,7 +66,7 @@ bool RmlModel_CompositorComponent::onConstruct(Rml::DataModelConstructor& constr
 
 bool RmlModel_CompositorComponent::setComponent(MikanComponentPtr component)
 {
-	if (RmlModel_TypedMikanComponent<CompositorComponent>::setComponent(component))
+	if (RmlModel_MikanComponent::setComponent(component))
 	{
 		m_cameraIdList->setOwnerConfig(getCameraObjectSystemConfig());
 		m_cameraIdList->rebuildList(true);
