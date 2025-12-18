@@ -165,7 +165,7 @@ void AppStage_Project::enter()
 	{
 		Rml::Context* context = getRmlContext();
 
-		// Init main compositor UI
+		// Init Data Models
 		m_projectModel->init(context);
 		m_projectModel->OnReturnEvent = MakeDelegate(this, &AppStage_Project::onReturnEvent);
 		m_projectModel->OnToggleScenesEvent = MakeDelegate(this, &AppStage_Project::onToggleScenesWindowEvent);
@@ -174,9 +174,7 @@ void AppStage_Project::enter()
 		m_projectModel->OnToggleTrackingEvent = MakeDelegate(this, &AppStage_Project::onToggleTrackingEvent);
 		m_projectModel->OnToggleMarkersEvent = MakeDelegate(this, &AppStage_Project::onToggleMarkersEvent);
 		m_projectModel->OnToggleSettingsEvent = MakeDelegate(this, &AppStage_Project::onToggleSettingsWindowEvent);
-		m_projectView = addRmlDocument("project.rml");
 
-		// Init Scenes UI
 		m_projectScenesModel->init(
 			context, 
 			m_anchorObjectSystem.lock(),
@@ -185,36 +183,37 @@ void AppStage_Project::enter()
 			m_sceneObjectSystem.lock(),
 			m_stageSystem.lock(),
 			m_stencilObjectSystem.lock());
-		m_projectScenesView = addRmlDocument("project_scenes.rml");
-		m_projectScenesView->Show();
 
-		// Init Stages UI
 		m_projectStagesModel->init(
 			context, m_project, m_stageSystem.lock(), m_cameraSystem.lock(), m_compositorSystem.lock());
-		m_projectSourcesView = addRmlDocument("project_stages.rml");
-		m_projectSourcesView->Hide();
 
-		// Init Sources UI
-		m_projectSourcesModel->init(context, m_project, m_textureSourceSystem.lock(), m_videoObjectSystem.lock());
-		m_projectSourcesView = addRmlDocument("project_sources.rml");
-		m_projectSourcesView->Hide();
+		m_projectSourcesModel->init(
+			context, m_project, m_textureSourceSystem.lock(), m_videoObjectSystem.lock());
 
-		// Init Tracking UI
 		m_projectTrackingModel->init(
 			context, m_project, m_trackingVolumeSystem.lock(), m_trackingMountSystem.lock());
-		m_projectTrackingView = addRmlDocument("project_tracking.rml");
-		m_projectTrackingView->Hide();
 
-		// Init Markers UI
 		m_projectMarkersModel->init(
 			context, m_project, m_markerObjectSystem.lock());
-		m_projectMarkersView = addRmlDocument("project_markers.rml");
-		m_projectMarkersView->Hide();
 
-		// Init Settings UI
 		m_projectSettingsModel->init(
 			context, m_project, m_stencilObjectSystem.lock());
-		m_projectSettingsView = addRmlDocument("projecet_settings.rml");
+
+		// Load the Rml views
+		m_projectView = addRmlDocument("project.rml");
+		m_projectScenesView = addRmlDocument("project_scenes.rml");
+		m_projectSourcesView = addRmlDocument("project_stages.rml");
+		m_projectSourcesView = addRmlDocument("project_sources.rml");
+		m_projectTrackingView = addRmlDocument("project_tracking.rml");
+		m_projectMarkersView = addRmlDocument("project_markers.rml");
+		m_projectSettingsView = addRmlDocument("project_settings.rml");
+
+		// Show the main project view by default
+		m_projectScenesView->Show();
+		m_projectSourcesView->Hide();
+		m_projectSourcesView->Hide();
+		m_projectTrackingView->Hide();
+		m_projectMarkersView->Hide();
 		m_projectSettingsView->Hide();
 	}
 }
