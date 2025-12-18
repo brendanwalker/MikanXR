@@ -321,6 +321,9 @@ void SceneComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptor
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
 			SceneComponentDefinition::k_parentStagePropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			SceneComponentDefinition::k_displayCompositorIdPropertyId));
 }
 
 bool SceneComponent::getPropertyValueFromRml(
