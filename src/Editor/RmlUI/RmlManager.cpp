@@ -231,7 +231,7 @@ bool RmlManager::postRendererStartup()
 	}
 }
 
-bool RmlManager::addEnumDefinition(Rml::Mikan::EnumDefinitionConstPtr enumDefinition)
+bool RmlManager::addEnumDefinition(Rml::Mikan::EnumDefinitionPtr enumDefinition)
 {
 	auto it = m_enumDefinitions.find(enumDefinition->enum_name);
 	if (it == m_enumDefinitions.end())
@@ -256,7 +256,7 @@ Rml::Mikan::EnumDefinitionConstPtr RmlManager::getEnumDefinition(const std::stri
 
 template <typename t_enum_class>
 static void registerEnumDefinition(
-	Rml::DataModelConstructor& constructor,
+	RmlManager* rmlManager,
 	const std::string& enumName, 
 	const std::string* enumStrings)
 {
@@ -269,9 +269,17 @@ static void registerEnumDefinition(
 		enumDefinition->enum_int_values.push_back(enumIntValue);
 	}
 
-	constructor.Bind(enumName+"_values", &enumDefinition->enum_int_values);
-	constructor.Bind(enumName+"_names", &enumDefinition->enum_string_values);
-	RmlManager::getInstance()->addEnumDefinition(enumDefinition);
+	rmlManager->addEnumDefinition(enumDefinition);
+}
+
+void RmlManager::bindEnumDefinitionsToDataModel(Rml::DataModelConstructor& constructor)
+{
+	for (auto& it : m_enumDefinitions)
+	{
+		Rml::Mikan::EnumDefinitionPtr enumDefinition = it.second;
+		constructor.Bind(enumDefinition->enum_name + "_values", &enumDefinition->enum_int_values);
+		constructor.Bind(enumDefinition->enum_name + "_names", &enumDefinition->enum_string_values);
+	}
 }
 
 template<class t_system_type>
@@ -291,8 +299,9 @@ void RmlManager::registerCommonDataModelTypes()
 	constructor.RegisterArray<Rml::Vector<int>>();
 
 	// Enums
-	registerEnumDefinition<eStencilCullMode>(constructor, "stencil_cull_mode", k_stencilCullModeStrings);
-	registerEnumDefinition<eCharucoDictionaryType>(constructor, "marker_dictionary", k_charucoDictionaryStrings);
+	registerEnumDefinition<eStencilCullMode>(this, "stencil_cull_mode", k_stencilCullModeStrings);
+	registerEnumDefinition<eCharucoDictionaryType>(this, "marker_dictionary", k_charucoDictionaryStrings);
+	bindEnumDefinitionsToDataModel(constructor);
 
 	// Vector2f
 	if (auto struct_handle = constructor.RegisterStruct<Rml::Vector2f>())

@@ -130,15 +130,7 @@
 								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_y"/>
 								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_z"/>
 							</td>
-						</tr>
-						<tr class="property_tr">
-							<td>
-								Cull Mode&nbsp;
-								<select id="select" name="cull_mode_list" data-value="cull_mode" data-event-change="select_cull_mode_entry()" style="width: 200dp; vertical-align: -12dp">
-									<option data-for="enum_value : stencil_cull_mode_values" data-value="enum_value">{{enum_value | to_enum_string('stencil_cull_mode')}}</option>
-								</select>
-							</td>
-						</tr>						
+						</tr>					
 						<tr class="property_tr">
 							<td>
 								<button data-event-click="edit_anchor()">Align Anchor</button>
@@ -149,7 +141,7 @@
 			</div>
 
 			<!-- Box Stencil Component Properties -->
-			<div data-if="component_id != -1" data-model="StencilComponent">
+			<div data-if="component_id != -1" data-model="BoxStencilComponent">
 				<h5>Box Stencil</h5>
 				<table>
 					<thead>
@@ -226,7 +218,7 @@
 			</div>
 
 			<!-- Model Stencil Component Properties -->
-			<div data-if="component_id != -1" data-model="StencilComponent">
+			<div data-if="component_id != -1" data-model="ModelStencilComponent">
 				<h5>Model Stencil</h5>
 				<table>
 					<thead>
@@ -303,7 +295,7 @@
 			</div>
 
 			<!-- Quad Stencil Component Properties -->
-			<div data-if="component_id != -1" data-model="StencilComponent">
+			<div data-if="component_id != -1" data-model="QuadStencilComponent">
 				<h5>Quad Stencil</h5>
 				<table>
 					<thead>

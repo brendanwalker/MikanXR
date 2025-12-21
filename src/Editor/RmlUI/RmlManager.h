@@ -11,6 +11,7 @@
 namespace Rml
 {
 	class Context;
+	class DataModelConstructor;
 
 	namespace Mikan
 	{
@@ -54,8 +55,9 @@ public:
 	inline MainWindow* getOwnerWindow() const { return m_ownerWindow; }
 
 	// Enum Reflection
-	bool addEnumDefinition(Rml::Mikan::EnumDefinitionConstPtr enumDefinition);
+	bool addEnumDefinition(Rml::Mikan::EnumDefinitionPtr enumDefinition);
 	Rml::Mikan::EnumDefinitionConstPtr getEnumDefinition(const std::string& enumName);
+	void bindEnumDefinitionsToDataModel(Rml::DataModelConstructor& constructor);
 
 private:
 	void registerCommonDataModelTypes();
@@ -68,7 +70,7 @@ private:
 
 	// Rml UI Context
 	Rml::Context* m_rmlUIContext = nullptr;
-	std::map<std::string, Rml::Mikan::EnumDefinitionConstPtr> m_enumDefinitions;
+	std::map<std::string, Rml::Mikan::EnumDefinitionPtr> m_enumDefinitions;
 
 	static RmlManager* m_instance;
 };

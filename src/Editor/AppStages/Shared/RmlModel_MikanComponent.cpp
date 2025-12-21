@@ -1,6 +1,7 @@
 #include "RmlModel_MikanComponent.h"
 #include "ComponentScriptContext.h"
 #include "Shared/RmlDataBinding_List.h"
+#include "RmlManager.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 
@@ -13,6 +14,8 @@ RmlModel_MikanComponent::RmlModel_MikanComponent()
 
 bool RmlModel_MikanComponent::onConstruct(Rml::DataModelConstructor& constructor)
 {
+	RmlManager::getInstance()->bindEnumDefinitionsToDataModel(constructor);
+
 	m_scriptTriggerList->init(
 		constructor,
 		CommonConfigPtr(),
