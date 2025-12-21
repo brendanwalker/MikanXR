@@ -12,65 +12,66 @@ RmlModel_MarkerObjectSystem::RmlModel_MarkerObjectSystem()
 {}
 
 bool RmlModel_MarkerObjectSystem::init(
-	Rml::Context* rmlContext,
-	MikanObjectSystemPtr objectSystem)
+	Rml::Context* rmlContext)
 {
-	bool bSuccess=
-		m_propertyInterface->init<MarkerObjectSystem>(
-			rmlContext,
-			"MarkerObjectSystem",
-			[this](Rml::DataModelConstructor& constructor) -> bool
+	return initTypedPropertyInterface<MarkerObjectSystem>(rmlContext);
+}
+
+bool RmlModel_MarkerObjectSystem::onConstruct(
+	Rml::DataModelConstructor& constructor)
+{
+	if (!RmlModel_MikanObjectSystem::onConstruct(constructor))
+	{
+		return false;
+	}
+
+	constructor.BindEventCallback(
+		"select_aruco_dictionary",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			const int enumValue = ev.GetParameter<int>("value", 0);
+			const auto dictionaryType = static_cast<eCharucoDictionaryType>(enumValue);
+			MarkerObjectSystemConfigPtr systemConfig = getMarkerObjectSystemConfig();
+			if (systemConfig)
 			{
-				constructor.BindEventCallback(
-					"select_aruco_dictionary",
-					[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-						const int enumValue = ev.GetParameter<int>("value", 0);
-						const auto dictionaryType = static_cast<eCharucoDictionaryType>(enumValue);
-						MarkerObjectSystemConfigPtr systemConfig = getMarkerObjectSystemConfig();
-						if (systemConfig)
-						{
-							systemConfig->setArucoDictionaryType(dictionaryType);
-						}
-					});
+				systemConfig->setArucoDictionaryType(dictionaryType);
+			}
+		});
 
-				constructor.BindEventCallback(
-					"select_charuco_dictionary",
-					[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-						const int enumValue = ev.GetParameter<int>("value", 0);
-						const auto dictionaryType = static_cast<eCharucoDictionaryType>(enumValue);
-						MarkerObjectSystemConfigPtr systemConfig = getMarkerObjectSystemConfig();
-						if (systemConfig)
-						{
-							systemConfig->setCharucoDictionaryType(dictionaryType);
-						}
-					});
+	constructor.BindEventCallback(
+		"select_charuco_dictionary",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			const int enumValue = ev.GetParameter<int>("value", 0);
+			const auto dictionaryType = static_cast<eCharucoDictionaryType>(enumValue);
+			MarkerObjectSystemConfigPtr systemConfig = getMarkerObjectSystemConfig();
+			if (systemConfig)
+			{
+				systemConfig->setCharucoDictionaryType(dictionaryType);
+			}
+		});
 
-				constructor.BindEventCallback(
-					"select_charuco_rows",
-					[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-						const int rowCount = ev.GetParameter<int>("value", 0);
-						MarkerObjectSystemConfigPtr systemConfig = getMarkerObjectSystemConfig();
-						if (systemConfig)
-						{
-							systemConfig->setCharucoRows(rowCount);
-						}
-					});
+	constructor.BindEventCallback(
+		"select_charuco_rows",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			const int rowCount = ev.GetParameter<int>("value", 0);
+			MarkerObjectSystemConfigPtr systemConfig = getMarkerObjectSystemConfig();
+			if (systemConfig)
+			{
+				systemConfig->setCharucoRows(rowCount);
+			}
+		});
 
-				constructor.BindEventCallback(
-					"select_charuco_cols",
-					[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-						const int colCount = ev.GetParameter<int>("value", 0);
-						MarkerObjectSystemConfigPtr systemConfig = getMarkerObjectSystemConfig();
-						if (systemConfig)
-						{
-							systemConfig->setCharucoCols(colCount);
-						}
-					});
+	constructor.BindEventCallback(
+		"select_charuco_cols",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			const int colCount = ev.GetParameter<int>("value", 0);
+			MarkerObjectSystemConfigPtr systemConfig = getMarkerObjectSystemConfig();
+			if (systemConfig)
+			{
+				systemConfig->setCharucoCols(colCount);
+			}
+		});
 
-				return true;
-			});
-
-	return bSuccess;
+	return true;
 }
 
 MarkerObjectSystemPtr RmlModel_MarkerObjectSystem::getMarkerObjectSystem() const

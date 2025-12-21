@@ -24,6 +24,9 @@ public:
 	StencilObjectSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 	static StencilObjectSystemPtr getSystem() { return s_stencilObjectSystem.lock(); }
 
+	inline static const std::string k_objectSystemClassName = "StencilObjectSystem";
+	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
+
 	virtual bool init() override;
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;

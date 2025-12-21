@@ -37,7 +37,7 @@
 #include <easy/profiler.h>
 
 // -- CompositorConfig -----
-const std::string CompositorDefinition::k_compositorGraphPathPropertyId = "script_path";
+const std::string CompositorDefinition::k_compositorGraphPathPropertyId = "compositor_graph_path";
 const std::string CompositorDefinition::k_cameraIdPropertyId= "camera_id";
 const std::string CompositorDefinition::k_ownerStagePropertyId = "owner_stage_id";
 const std::string CompositorDefinition::k_spoutEnableOutputNamePropertyId = "spout_enable_output";

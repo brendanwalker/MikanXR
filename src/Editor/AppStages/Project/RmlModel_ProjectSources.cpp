@@ -70,6 +70,7 @@ bool RmlModel_ProjectSources::init(
 
 	// Register Data Model Fields
 	constructor.Bind("selected_video_source_id", &m_selectedVideoSourceId);
+	constructor.Bind("selected_texture_source_id", &m_selectedTextureSourceId);
 
 	// Register Selected Object Models
 	m_selectedClientVideoSourceModel->init(rmlContext);

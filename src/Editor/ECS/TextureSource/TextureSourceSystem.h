@@ -20,6 +20,9 @@ public:
 	TextureSourceSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 	static TextureSourceSystemPtr getSystem() { return s_TextureSourceSystem.lock(); }
 
+	inline static const std::string k_objectSystemClassName = "TextureSourceSystem";
+	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
+
 	virtual bool init() override;
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;

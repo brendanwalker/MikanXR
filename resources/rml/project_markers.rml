@@ -68,7 +68,7 @@
 							<td>
 								<label style="vertical-align: 12dp;">ArUco Number</label>
 								<select id="select" name="select_aruco_dict" data-value="arucoDictionaryType" data-event-change="select_aruco_dictionary()">
-									<option data-for="enum_value : marker_dictionary_type" data-value="enum_value">{{enum_value | to_enum_string('marker_dictionary_type')}}</option>
+									<option data-for="enum_value : marker_dictionary_type_values" data-value="enum_value">{{enum_value | to_enum_string('marker_dictionary_type')}}</option>
 								</select>
 							</td>
 						</tr>
@@ -88,7 +88,7 @@
 							<td>
 								ArUco Number&nbsp;
 								<select id="select" name="select_aruco_dict" data-value="charucoDictionaryType" data-event-change="select_charuco_dictionary()">
-									<option data-for="enum_value : marker_dictionary_type" data-value="enum_value">{{enum_value | to_enum_string('marker_dictionary_type')}}</option>
+									<option data-for="enum_value : marker_dictionary_type_values" data-value="enum_value">{{enum_value | to_enum_string('marker_dictionary_type')}}</option>
 								</select>
 							</td>
 						</tr>

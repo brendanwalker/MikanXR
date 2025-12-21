@@ -88,6 +88,9 @@ class MarkerObjectSystem : public MikanObjectSystem
 public:
 	MarkerObjectSystem(class ProjectManager* ownerObjectSystemManager) : MikanObjectSystem(ownerObjectSystemManager) {}
 
+	inline static const std::string k_objectSystemClassName = "MarkerObjectSystem";
+	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
+
 	virtual bool init() override;
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;

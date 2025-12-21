@@ -54,6 +54,9 @@ public:
 	SceneObjectSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 	static SceneObjectSystemPtr getSystem() { return s_sceneObjectSystem.lock(); }
 
+	inline static const std::string k_objectSystemClassName = "SceneObjectSystem";
+	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
+
 	virtual bool init() override;
 	virtual void dispose() override;
 

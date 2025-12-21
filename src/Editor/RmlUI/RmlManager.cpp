@@ -300,7 +300,7 @@ void RmlManager::registerCommonDataModelTypes()
 
 	// Enums
 	registerEnumDefinition<eStencilCullMode>(this, "stencil_cull_mode", k_stencilCullModeStrings);
-	registerEnumDefinition<eCharucoDictionaryType>(this, "marker_dictionary", k_charucoDictionaryStrings);
+	registerEnumDefinition<eCharucoDictionaryType>(this, "marker_dictionary_type", k_charucoDictionaryStrings);
 	bindEnumDefinitionsToDataModel(constructor);
 
 	// Vector2f

@@ -61,6 +61,9 @@ class TrackingVolumeObjectSystem : public MikanObjectSystem
 public:
 	TrackingVolumeObjectSystem(class ProjectManager* ownerObjectSystemManager) : MikanObjectSystem(ownerObjectSystemManager) {}
 
+	inline static const std::string k_objectSystemClassName = "TrackingVolumeObjectSystem";
+	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
+
 	virtual bool init() override;
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;

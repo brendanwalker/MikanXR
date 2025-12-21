@@ -46,6 +46,9 @@ class TrackingMountObjectSystem : public MikanObjectSystem
 public:
 	TrackingMountObjectSystem(class ProjectManager* ownerObjectSystemManager) : MikanObjectSystem(ownerObjectSystemManager) {}
 
+	inline static const std::string k_objectSystemClassName = "TrackingMountObjectSystem";
+	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
+
 	virtual bool init() override;
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;

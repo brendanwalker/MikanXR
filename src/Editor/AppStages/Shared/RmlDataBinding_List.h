@@ -49,7 +49,13 @@ public:
 
 	virtual void dispose() override
 	{
-		setOwnerConfig(CommonConfigPtr());
+		CommonConfigPtr ownerConfig = m_ownerConfig.lock();
+		if (ownerConfig)
+		{
+			// Stop listening for object system changes
+			ownerConfig->OnMarkedDirty -=
+				MakeDelegate(this, &RmlDataBinding_List<t_element_type>::onConfigMarkedDirty);
+		}
 
 		RmlDataBinding::dispose();
 	}

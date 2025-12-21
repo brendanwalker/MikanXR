@@ -61,6 +61,9 @@ public:
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
 
+	inline static const std::string k_objectSystemClassName = "AnchorObjectSystem";
+	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
+
 	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const override {
 		return getAnchorSystemConfigConst();
 	}

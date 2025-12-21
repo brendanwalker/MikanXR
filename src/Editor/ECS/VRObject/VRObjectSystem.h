@@ -66,6 +66,9 @@ class VRObjectSystem : public MikanObjectSystem, public IVRDeviceManagerListener
 public:
 	VRObjectSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 
+	inline static const std::string k_objectSystemClassName = "VRObjectSystem";
+	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
+
 	virtual bool init() override;
 	virtual void update(float deltaSeconds) override;
 	virtual void dispose() override;

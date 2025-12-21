@@ -35,6 +35,9 @@ public:
 	virtual void update(float deltaSeconds);
 	virtual void customRender();
 
+	inline static const std::string k_objectSystemClassName = "MikanObjectSystem";
+	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
+
 	inline class ProjectManager* getOwnerProjectManager() const { return m_ownerObjectSystemManager; }
 	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const {
 		return MikanObjectSystemDefinitionConstPtr();

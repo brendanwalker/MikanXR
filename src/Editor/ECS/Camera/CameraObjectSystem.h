@@ -51,6 +51,9 @@ public:
 	CameraObjectSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 	static CameraObjectSystemPtr getSystem() { return s_cameraObjectSystem.lock(); }
 
+	inline static const std::string k_objectSystemClassName = "CameraObjectSystem";
+	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
+
 	virtual bool init() override;
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;

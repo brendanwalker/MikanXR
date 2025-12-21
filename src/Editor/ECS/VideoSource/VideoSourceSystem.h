@@ -20,6 +20,9 @@ public:
 	VideoSourceSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 	static VideoSourceSystemPtr getSystem() { return s_VideoSourceSystem.lock(); }
 
+	inline static const std::string k_objectSystemClassName = "VideoSourceSystem";
+	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
+
 	virtual bool init() override;
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;

@@ -16,6 +16,9 @@ class SpoutTextureSourceSystem : public MikanObjectSystem
 public:  
     SpoutTextureSourceSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 
+	inline static const std::string k_objectSystemClassName = "SpoutTextureSourceSystem";
+	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
+
     virtual bool init() override;
     virtual void dispose() override;
 

@@ -56,7 +56,8 @@ bool RmlModel_ProjectMarkers::init(
 
 	// Register Selected Object Models
 	m_selectedMarkerModel->init(rmlContext);
-	m_markerSystemModel->init(rmlContext, markerSystem);
+	m_markerSystemModel->init(rmlContext);
+	m_markerSystemModel->setObjectSystem(markerSystem);
 
 	// Bind data model callbacks
 	constructor.BindEventCallback("add_new_marker", &RmlModel_ProjectMarkers::addNewMarker, this);

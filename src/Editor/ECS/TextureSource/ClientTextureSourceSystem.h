@@ -16,6 +16,9 @@ class ClientTextureSourceSystem : public MikanObjectSystem
 public:   
     ClientTextureSourceSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 
+	inline static const std::string k_objectSystemClassName = "ClientTextureSourceSystem";
+	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
+
     virtual bool init() override;
     virtual void dispose() override;
 

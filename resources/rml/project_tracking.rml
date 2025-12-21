@@ -38,7 +38,7 @@
 							<td>
 								ChArUco Mount&nbsp;
 								<select id="select" name="select_charuco_mount" data-value="charucoMountId" data-event-change="select_charuco_mount_entry()">
-									<option data-for="volume_id : trackingMountIds" data-value="anchor_id">{{volume_id | to_volume_name}}</option>
+									<option data-for="mount_id : tracking_mount_ids" data-value="mount_id">{{mount_id | to_tracking_mount_name}}</option>
 								</select>
 							</td>
 						</tr>
@@ -99,7 +99,7 @@
 				<select id="select" name="select_mount_id" data-value="selected_tracking_mount_id" data-event-change="select_tracking_mount_entry()">
 					<option data-for="mount_id : tracking_mount_ids" data-value="mount_id">{{mount_id | to_tracking_mount_name}}</option>
 				</select>
-				<createcomponent data-event-click="add_new_tracking_mount"></createcomponent>
+				<createcomponent data-event-click="add_new_tracking_mount()"></createcomponent>
 				<deletecomponent data-event-click="remove_tracking_mount()"></deletecomponent>
 			</div>
 			<div data-if="component_id != -1" data-model="TrackingMountComponent">

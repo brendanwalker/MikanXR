@@ -69,7 +69,7 @@
 						<tr class="property_tr">
 							<td>
 								URL&nbsp;
-								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="URL"/>
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="url"/>
 							</td>
 						</tr>
 						<tr class="property_tr">
@@ -151,6 +151,6 @@
 				</table>
 			</div>				
 		</div>
-	</div>
+	</panel>
 </body>
 </rml>

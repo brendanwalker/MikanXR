@@ -203,7 +203,7 @@ void AppStage_Project::enter()
 		// Load the Rml views
 		m_projectView = addRmlDocument("project.rml");
 		m_projectScenesView = addRmlDocument("project_scenes.rml");
-		m_projectSourcesView = addRmlDocument("project_stages.rml");
+		m_projectStagesView = addRmlDocument("project_stages.rml");
 		m_projectSourcesView = addRmlDocument("project_sources.rml");
 		m_projectTrackingView = addRmlDocument("project_tracking.rml");
 		m_projectMarkersView = addRmlDocument("project_markers.rml");
@@ -384,7 +384,7 @@ void AppStage_Project::onToggleScenesWindowEvent()
 void AppStage_Project::onToggleStagesWindowEvent()
 {
 	hideAllSubWindows();
-	if (m_projectSourcesView) m_projectStagesView->Show();
+	if (m_projectStagesView) m_projectStagesView->Show();
 }
 
 void AppStage_Project::onToggleSourcesEvent()
