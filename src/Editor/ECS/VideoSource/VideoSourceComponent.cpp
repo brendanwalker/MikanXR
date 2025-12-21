@@ -440,8 +440,6 @@ bool VideoSourceComponent::setPropertyValueFromRml(
 
 // -- IRmlFunctionInterface ----
 const std::string VideoSourceComponent::k_deleteVideoSourceFunctionId = "delete_video_source";
-const std::string VideoSourceComponent::k_calibrateIntrinsicsFunctionId = "calibrate_intrinsics";
-const std::string VideoSourceComponent::k_testIntrinsicsFunctionId = "test_intrinsics";
 
 void VideoSourceComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
 {
@@ -450,12 +448,6 @@ void VideoSourceComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDesc
 	outDescriptors.push_back(
 		std::make_shared<RmlFunctionDescriptor>(
 			k_deleteVideoSourceFunctionId, "Delete Video Source"));
-	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
-			k_calibrateIntrinsicsFunctionId, "Calibrate Intrinsics"));
-	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
-			k_testIntrinsicsFunctionId, "Test Intrinsics"));
 }
 
 bool VideoSourceComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
@@ -467,16 +459,6 @@ bool VideoSourceComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr f
 		deleteVideoSource();
 		return true;
 	}
-	else if (functionName == k_calibrateIntrinsicsFunctionId)
-	{
-		calibrateIntrinsics();
-		return true;
-	}
-	else if (functionName == k_testIntrinsicsFunctionId)
-	{
-		testIntrinsics();
-		return true;
-	}
 
 	return MikanComponent::invokeFunctionFromRml(functionDesc);
 }
@@ -484,14 +466,4 @@ bool VideoSourceComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr f
 void VideoSourceComponent::deleteVideoSource()
 {
 	getOwnerObject()->deleteSelfConfig();
-}
-
-void VideoSourceComponent::calibrateIntrinsics()
-{
-	//TODO
-}
-
-void VideoSourceComponent::testIntrinsics()
-{
-	//TODO
 }

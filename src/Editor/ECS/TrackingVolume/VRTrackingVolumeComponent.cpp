@@ -139,7 +139,8 @@ void VRTrackingVolumeComponent::getRmlPropertyDescriptors(std::vector<RmlPropert
 			VRTrackingVolumeDefinition::k_charucoMountIdPropertyId));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			VRTrackingVolumeDefinition::k_charucoMountOffsetPropertyId));
+			VRTrackingVolumeDefinition::k_charucoMountOffsetPropertyId)
+		->setDefaultValue(Rml::Vector3f(0.f)));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
 			VRTrackingVolumeDefinition::k_utilityMarkerIdPropertyId));

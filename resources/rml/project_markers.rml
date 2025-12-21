@@ -41,7 +41,7 @@
 						</tr>
 	                    <tr class="property_tr">
 							<td>
-								<div style="decorator: aruco-marker({{aruco_id}}, 115); width: 115px; height: 115px; display: inline-block;"></div>
+								<div id="aruco_preview" style="width: 115px; height: 115px; display: inline-block;"></div>
 							</td>
 						</tr>
 						<tr class="property_tr">

@@ -195,6 +195,7 @@ void AppStage_Project::enter()
 
 		m_projectMarkersModel->init(
 			context, m_project, m_markerObjectSystem.lock());
+		m_projectMarkersModel->OnMarkerSelected = MakeDelegate(this, &AppStage_Project::onMarkerSelected);
 
 		m_projectSettingsModel->init(
 			context, m_project, m_stencilObjectSystem.lock());
@@ -238,6 +239,8 @@ void AppStage_Project::exit()
 
 	// Unregister all viewports from the editor
 	m_editorSystem.lock()->clearViewports();
+
+	m_projectMarkersModel->OnMarkerSelected.Clear();
 
 	m_projectScenesModel->dispose();
 	m_projectStagesModel->dispose();
@@ -423,6 +426,20 @@ void AppStage_Project::onScreenshotClientSourceEvent(const std::string& clientSo
 	}
 }
 
+void AppStage_Project::onMarkerSelected(int arucoId)
+{
+	// Update the ArUco preview decorator in the project_markers view
+	if (m_projectMarkersView)
+	{
+		if (auto element = m_projectMarkersView->GetElementById("aruco_preview"))
+		{
+			// Set the decorator with the specific aruco_id
+			std::string decoratorValue = "aruco-marker(" + std::to_string(arucoId) + ", 115)";
+			element->SetProperty("decorator", decoratorValue.c_str());
+		}
+	}
+}
+
 void AppStage_Project::hideAllSubWindows()
 {
 	if (m_projectScenesView) m_projectScenesView->Hide();
@@ -435,8 +452,6 @@ void AppStage_Project::hideAllSubWindows()
 
 void AppStage_Project::render(IMkViewportPtr targetViewport)
 {
-	SceneComponentConstPtr editorScene= getSystemOfType<EditorObjectSystem>()->getEditorScene();
-
 	MikanCameraPtr viewportCamera = m_viewport->getCurrentMikanCamera();
 	int viewportCameraIndex = m_viewport->getCurrentCameraIndex();
 
@@ -450,9 +465,13 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 	}
 
 	// Render the editor scene
-	editorScene->renderEditorScene(
-		viewportCamera,
-		m_ownerWindow->getMkStateStack());
+	SceneComponentConstPtr editorScene = getSystemOfType<EditorObjectSystem>()->getEditorScene();
+	if (editorScene)
+	{
+		editorScene->renderEditorScene(
+			viewportCamera,
+			m_ownerWindow->getMkStateStack());
+	}
 
 	// Perform component custom rendering
 	m_ownerWindow->getProjectManager()->customRender();

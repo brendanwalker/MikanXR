@@ -16,10 +16,12 @@ public:
 	RmlModel_ProjectMarkers();
 
 	bool init(
-		Rml::Context* rmlContext, 
+		Rml::Context* rmlContext,
 		ProjectConfigPtr projectConfig,
 		MarkerObjectSystemPtr markerSystem);
 	virtual void dispose() override;
+
+	SinglecastDelegate<void(int arucoId)> OnMarkerSelected;
 
 private:
 	MarkerObjectSystemPtr getMarkerSystem();
@@ -32,6 +34,7 @@ private:
 	void setSelectedMarkerId(MikanMarkerID markerId);
 
 	void markerIdListChanged(bool bOwnerChanged);
+	void onMarkerSelectedFromComponent(int arucoId);
 
 	ProjectConfigWeakPtr m_projectConfig;
 	MarkerObjectSystemWeakPtr m_markerSystem;

@@ -81,20 +81,20 @@
 								</select>
 							</td>
 						</tr>
-						<tr class="property_tr">	
+						<tr class="property_tr">
 							<td>
 								Position&nbsp;
-								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.x"/>
-								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.y"/>
-								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.z"/>                                
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_x"/>
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_y"/>
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_z"/>
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
 								Rotation&nbsp;
-								<numeric type="float" precision="3" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.x"/>
-								<numeric type="float" precision="3" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.y"/>
-								<numeric type="float" precision="3" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.z"/>                                
+								<numeric type="float" precision="3" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_x"/>
+								<numeric type="float" precision="3" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_y"/>
+								<numeric type="float" precision="3" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_z"/>
 							</td>
 						</tr>
 						<tr class="property_tr">

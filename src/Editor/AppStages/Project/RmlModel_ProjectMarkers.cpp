@@ -66,12 +66,16 @@ bool RmlModel_ProjectMarkers::init(
 	// Listen for marker config changes
 	m_markerIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectMarkers::markerIdListChanged);
 
+	// Forward marker selection events from the marker component model
+	m_selectedMarkerModel->OnMarkerSelected = MakeDelegate(this, &RmlModel_ProjectMarkers::onMarkerSelectedFromComponent);
+
 	return true;
 }
 
 void RmlModel_ProjectMarkers::dispose()
 {
 	m_markerIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectMarkers::markerIdListChanged);
+	m_selectedMarkerModel->OnMarkerSelected.Clear();
 
 	m_selectedMarkerModel->dispose();
 	m_markerSystemModel->dispose();
@@ -147,5 +151,14 @@ void RmlModel_ProjectMarkers::setSelectedMarkerId(MikanMarkerID markerId)
 		{
 			m_selectedMarkerModel->setComponent(nullptr);
 		}
+	}
+}
+
+void RmlModel_ProjectMarkers::onMarkerSelectedFromComponent(int arucoId)
+{
+	// Forward the event to listeners of this model
+	if (OnMarkerSelected)
+	{
+		OnMarkerSelected(arucoId);
 	}
 }

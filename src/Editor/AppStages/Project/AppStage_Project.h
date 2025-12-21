@@ -55,6 +55,9 @@ protected:
 	// Layers UI Events
 	void onScreenshotClientSourceEvent(const std::string& clientSourceName);
 
+	// Marker UI Events
+	void onMarkerSelected(int arucoId);
+
 	// Debug Rendering
 	void debugRenderOrigin() const;
 

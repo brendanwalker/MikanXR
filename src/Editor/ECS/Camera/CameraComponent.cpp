@@ -486,9 +486,11 @@ void CameraComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescripto
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_trackingFrameDelayPropertyId));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_apertureOrientationOffsetPropertyId));
+		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_apertureOrientationOffsetPropertyId)
+		->setDefaultValue(Rml::Vector3f(0.f)));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_aperturePositionOffsetPropertyId));
+		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_aperturePositionOffsetPropertyId)
+		->setDefaultValue(Rml::Vector3f(0.f)));
 }
 
 bool CameraComponent::getPropertyValueFromRml(

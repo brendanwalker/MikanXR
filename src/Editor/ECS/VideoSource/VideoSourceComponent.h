@@ -115,14 +115,10 @@ public:
 
 	// -- IRmlFunctionInterface ----
 	static const std::string k_deleteVideoSourceFunctionId;
-	static const std::string k_calibrateIntrinsicsFunctionId;
-	static const std::string k_testIntrinsicsFunctionId;
 	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outPropertyNames);
 	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
 
 	void deleteVideoSource();
-	void calibrateIntrinsics();
-	void testIntrinsics();
 
 protected:
 	bool hasAllocatedOpencvBufferState() const;

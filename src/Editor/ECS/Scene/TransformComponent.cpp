@@ -383,13 +383,16 @@ void TransformComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescri
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			TransformComponentDefinition::k_relativeScalePropertyId));
+			TransformComponentDefinition::k_relativeScalePropertyId)
+			->setDefaultValue(Rml::Vector3f(1.f)));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			TransformComponentDefinition::k_relativeRotationPropertyId));
+			TransformComponentDefinition::k_relativeRotationPropertyId)
+			->setDefaultValue(Rml::Vector3f(0.f)));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			TransformComponentDefinition::k_relativePositionPropertyId));
+			TransformComponentDefinition::k_relativePositionPropertyId)
+			->setDefaultValue(Rml::Vector3f(0.f)));
 }
 
 bool TransformComponent::getPropertyValueFromRml(

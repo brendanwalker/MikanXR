@@ -23,9 +23,12 @@ public:
 		return shared_from_this();
 	}
 
-	RmlPropertyDescriptorPtr setDefaultInt(int value);
-	RmlPropertyDescriptorPtr setDefaultFloat(float value);
-
+	template <typename t_value_type>
+	RmlPropertyDescriptorPtr setDefaultValue(t_value_type value)
+	{
+		*m_defaultValue = value;
+		return shared_from_this();
+	}
 	const Rml::Variant& getDefaultValue() const { return *(m_defaultValue.get()); }
 	
 private:

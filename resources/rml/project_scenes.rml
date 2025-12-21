@@ -12,7 +12,7 @@
 
 		<div class="content">
 			<!-- Stages Section -->
-			<div data-model="Stages">
+			<div data-model="Scenes">
 				<h3>Stages</h3>
 				<select id="select" name="select_stage_id" data-value="selected_stage_id" data-event-change="select_stage_entry()">
 					<option data-for="stage_id : stage_ids" data-value="stage_id">{{stage_id | to_stage_name}}</option>
@@ -68,7 +68,7 @@
 			</div>
 
 			<!-- Scene Outliner -->
-			<panel id="scene_outliner" data-model="Stages">            
+			<panel id="scene_outliner" data-model="Scenes">            
 				<h3>Actors</h3>
 				<div>
 					<button style="width: 80dp; height: 67dp; margin-right: -5dp;" data-event-click="add_new_anchor()"><img sprite="icon-anchor"/></button>
@@ -93,7 +93,7 @@
 			</panel>
 
 			<!-- Anchor Component Properties -->
-			<div data-if="anchor.component_id != -1" data-model="AnchorComponent">
+			<div data-if="component_id != -1" data-model="AnchorComponent">
 				<h5>Anchor</h5>
 				<table>
 					<thead>
@@ -110,25 +110,25 @@
 						<tr class="property_tr">	
 							<td>
 								Position&nbsp;
-								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.x"/>
-								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.y"/>
-								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.z"/>                                
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_x"/>
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_y"/>
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_z"/>                                
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
 								Rotation&nbsp;
-								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.x"/>
-								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.y"/>
-								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.z"/>                                
+								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_x"/>
+								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_y"/>
+								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_z"/>                                
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
 								Scale&nbsp;
-								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.x"/>
-								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.y"/>
-								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.z"/>
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_x"/>
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_y"/>
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_z"/>
 							</td>
 						</tr>
 						<tr class="property_tr">
@@ -149,7 +149,7 @@
 			</div>
 
 			<!-- Box Stencil Component Properties -->
-			<div data-if="box_stencil.component_id != -1" data-model="StencilComponent">
+			<div data-if="component_id != -1" data-model="StencilComponent">
 				<h5>Box Stencil</h5>
 				<table>
 					<thead>
@@ -174,25 +174,25 @@
 						<tr class="property_tr">	
 							<td>
 								Position&nbsp;
-								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.x"/>
-								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.y"/>
-								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.z"/>                                
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_x"/>
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_y"/>
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_z"/>                                
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
 								Rotation&nbsp;
-								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.x"/>
-								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.y"/>
-								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.z"/>                                
+								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_x"/>
+								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_y"/>
+								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_z"/>                                
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
 								Scale&nbsp;
-								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.x"/>
-								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.y"/>
-								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.z"/>
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_x"/>
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_y"/>
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_z"/>
 							</td>
 						</tr>
 						<tr class="property_tr">
@@ -226,7 +226,7 @@
 			</div>
 
 			<!-- Model Stencil Component Properties -->
-			<div data-if="model_stencil.component_id != -1" data-model="StencilComponent">
+			<div data-if="component_id != -1" data-model="StencilComponent">
 				<h5>Model Stencil</h5>
 				<table>
 					<thead>
@@ -251,25 +251,25 @@
 						<tr class="property_tr">	
 							<td>
 								Position&nbsp;
-								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.x"/>
-								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.y"/>
-								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.z"/>                                
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_x"/>
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_y"/>
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_z"/>                                
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
 								Rotation&nbsp;
-								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.x"/>
-								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.y"/>
-								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.z"/>                                
+								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_x"/>
+								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_y"/>
+								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_z"/>                                
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
 								Scale&nbsp;
-								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.x"/>
-								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.y"/>
-								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.z"/>
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_x"/>
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_y"/>
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_z"/>
 							</td>
 						</tr>
 						<tr class="property_tr">
@@ -303,7 +303,7 @@
 			</div>
 
 			<!-- Quad Stencil Component Properties -->
-			<div data-if="quad_stencil.component_id != -1" data-model="StencilComponent">
+			<div data-if="component_id != -1" data-model="StencilComponent">
 				<h5>Quad Stencil</h5>
 				<table>
 					<thead>
@@ -328,25 +328,25 @@
 						<tr class="property_tr">	
 							<td>
 								Position&nbsp;
-								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.x"/>
-								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.y"/>
-								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position.z"/>                                
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_x"/>
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_y"/>
+								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_z"/>                                
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
 								Rotation&nbsp;
-								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.x"/>
-								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.y"/>
-								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation.z"/>                                
+								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_x"/>
+								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_y"/>
+								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_z"/>                                
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
 								Scale&nbsp;
-								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.x"/>
-								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.y"/>
-								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale.z"/>
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_x"/>
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_y"/>
+								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_z"/>
 							</td>
 						</tr>
 						<tr class="property_tr">

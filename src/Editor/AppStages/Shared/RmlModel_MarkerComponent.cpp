@@ -45,6 +45,12 @@ bool RmlModel_MarkerComponent::onConstruct(Rml::DataModelConstructor& constructo
 			if (markerComponent)
 			{
 				markerComponent->getMarkerDefinition()->setArucoId(newArucoId);
+
+				// Notify listeners that a marker was selected
+				if (OnMarkerSelected)
+				{
+					OnMarkerSelected(newArucoId);
+				}
 			}
 		});
 
@@ -57,6 +63,13 @@ bool RmlModel_MarkerComponent::setComponent(MikanComponentPtr component)
 	{
 		m_arucoIdList->setOwnerConfig(getMarkerObjectSystemConfig());
 		m_arucoIdList->rebuildList(true);
+
+		// Notify listeners that a marker was selected
+		MarkerComponentPtr markerComponent = getMarkerComponent();
+		if (markerComponent && OnMarkerSelected)
+		{
+			OnMarkerSelected(markerComponent->getMarkerDefinition()->getArucoId());
+		}
 
 		return true;
 	}

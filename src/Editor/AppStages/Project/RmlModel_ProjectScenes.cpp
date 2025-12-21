@@ -301,7 +301,7 @@ void RmlModel_ProjectScenes::rebuildSceneComponentList()
 		}
 	}
 
-	m_modelHandle.DirtyVariable("objects");
+	m_modelHandle.DirtyVariable("scene_objects");
 
 	updateSelection();
 }

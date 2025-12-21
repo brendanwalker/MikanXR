@@ -2,6 +2,7 @@
 
 #include "Shared/RmlModel_MikanComponent.h"
 #include "Shared/RmlDataBinding_Fwd.h"
+#include "SinglecastDelegate.h"
 
 class RmlModel_MarkerComponent : public RmlModel_MikanComponent
 {
@@ -11,6 +12,8 @@ public:
 	virtual bool init(Rml::Context* rmlContext) override;
 	virtual bool onConstruct(Rml::DataModelConstructor& constructor) override;
 	virtual bool setComponent(MikanComponentPtr component) override;
+
+	SinglecastDelegate<void(int arucoId)> OnMarkerSelected;
 
 protected:
 	MarkerObjectSystemPtr getMarkerObjectSystem() const;

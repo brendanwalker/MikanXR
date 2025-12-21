@@ -45,9 +45,9 @@
 						<tr class="property_tr">	
 							<td>
 								ChArUco Offset&nbsp;
-								<numeric type="float" precision="1" min="-100.0" max="100.0" step="0.1" data-value="charucoMountOffsetMM.x"/>
-								<numeric type="float" precision="1" min="-100.0" max="100.0" step="0.1" data-value="charucoMountOffsetMM.y"/>
-								<numeric type="float" precision="1" min="-100.0" max="100.0" step="0.1" data-value="charucoMountOffsetMM.z"/>                                
+								<numeric type="float" precision="1" min="-100.0" max="100.0" step="0.1" data-value="charucoMountOffsetMM_x"/>
+								<numeric type="float" precision="1" min="-100.0" max="100.0" step="0.1" data-value="charucoMountOffsetMM_y"/>
+								<numeric type="float" precision="1" min="-100.0" max="100.0" step="0.1" data-value="charucoMountOffsetMM_z"/>                                
 							</td>
 						</tr>
 						<tr class="property_tr">
