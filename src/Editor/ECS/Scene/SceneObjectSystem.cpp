@@ -162,7 +162,8 @@ void SceneObjectSystem::dispose()
 
 SceneObjectSystemConfigConstPtr SceneObjectSystem::getSceneSystemConfigConst() const
 {
-	return getProjectConfig()->sceneConfig;
+	auto config= getProjectConfig();
+	return config ? getProjectConfig()->sceneConfig : SceneObjectSystemConfigConstPtr();
 }
 
 SceneObjectSystemConfigPtr SceneObjectSystem::getSceneSystemConfig()

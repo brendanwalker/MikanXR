@@ -53,7 +53,7 @@ public:
 
 	virtual bool disposeModule(IMikanModule* moduleIterface) override
 	{
-		for (auto it = m_modules.begin(); it != m_modules.end();)
+		for (auto it = m_modules.begin(); it != m_modules.end(); it++)
 		{
 			MikanModule* module= it->second;
 

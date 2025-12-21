@@ -29,7 +29,7 @@ bool MikanModule::load()
 		// Assume plugin module is in the same place as the executable
 		std::string modulePath = PathUtils::getModulePath().string();
 
-		// Load the GStreamer library
+		// Load the module file
 		m_module = new dylib(modulePath.c_str(), m_moduleName);
 
 		// Fetch the functions we need

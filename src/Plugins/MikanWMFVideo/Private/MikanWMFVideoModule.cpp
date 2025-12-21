@@ -19,8 +19,9 @@ public:
 	bool startup() override
 	{
 		MIKAN_LOG_INFO("MikanWMFVideoModule") << "Initializing MikanWMFVideoModule";
+		m_bIsInitialized = true;
 
-		return m_bIsInitialized;
+		return true;
 	}
 
 	void shutdown() override

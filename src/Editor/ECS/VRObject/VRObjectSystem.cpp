@@ -202,8 +202,11 @@ void VRObjectSystem::dispose()
 	disposeVRDeviceManager();
 
 	ProjectConfigPtr projectConfigPtr = m_projectConfigWeakPtr.lock();
-	projectConfigPtr->OnMarkedDirty -=
-		MakeDelegate(this, &VRObjectSystem::onProjectConfigMarkedDirty);
+	if (projectConfigPtr)
+	{
+		projectConfigPtr->OnMarkedDirty -=
+			MakeDelegate(this, &VRObjectSystem::onProjectConfigMarkedDirty);
+	}
 
 	m_vrDeviceComponents.clear();
 
@@ -466,12 +469,18 @@ void VRObjectSystem::disposeVRObject(MikanVRDeviceID VRId)
 void VRObjectSystem::disposeAllVRObjects()
 {
 	deleteAllObjects();
-	getVRSystemConfig()->removeAllVRDevice();
+	
+	auto config = getVRSystemConfig();
+	if (config)
+	{
+		config->removeAllVRDevice();
+	}
 }
 
 VRObjectSystemConfigConstPtr VRObjectSystem::getVRSystemConfigConst() const
 {
-	return getProjectConfig()->vrObjectConfig;
+	auto projectConfig= getProjectConfig();
+	return projectConfig ? projectConfig->vrObjectConfig : VRObjectSystemConfigConstPtr();
 }
 
 VRObjectSystemConfigPtr VRObjectSystem::getVRSystemConfig()

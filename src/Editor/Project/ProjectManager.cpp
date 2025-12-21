@@ -36,24 +36,6 @@ ProjectManager::ProjectManager(IMkWindow* ownerWindow)
 
 bool ProjectManager::startup(MainWindow* mainWindow)
 {
-	// Create a default project if we can't load the last opened one
-	AppSettingsConfigPtr appSettings= mainWindow->getOwnerApp()->getAppSettings();
-	if (!loadProject(appSettings->getLastProjectPath().string()))
-	{
-		const std::filesystem::path defaultProjectPath =
-			PathUtils::makeTimestampedFilePath(
-				getDefaultProjectFolder(), "Default", k_mikanProjectFileExtension);
-
-		if (newProject(defaultProjectPath.string()))
-		{
-			appSettings->setLastProjectPath(defaultProjectPath);
-		}
-		else
-		{
-			return false;
-		}
-	}
-
 	// Allocate all systems, in the order we want to perform init and updates
 	// Init EditorSystem first so that it get component creation events 
 	// from Anchor and Stencil Systems triggered during init call
@@ -73,6 +55,24 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	addSystem<TrackingMountObjectSystem>();
 	addSystem<TrackingVolumeObjectSystem>();
 	addSystem<VRObjectSystem>();
+
+	// Create a default project if we can't load the last opened one
+	AppSettingsConfigPtr appSettings= mainWindow->getOwnerApp()->getAppSettings();
+	if (!loadProject(appSettings->getLastProjectPath().string()))
+	{
+		const std::filesystem::path defaultProjectPath =
+			PathUtils::makeTimestampedFilePath(
+				getDefaultProjectFolder(), "Default", k_mikanProjectFileExtension);
+
+		if (newProject(defaultProjectPath.string()))
+		{
+			appSettings->setLastProjectPath(defaultProjectPath);
+		}
+		else
+		{
+			return false;
+		}
+	}
 
 	return true;
 }
