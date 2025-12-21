@@ -14,8 +14,6 @@
 #include "QuadStencilComponent.h"
 #include "StencilObjectSystem.h"
 
-StencilObjectSystemWeakPtr StencilObjectSystem::s_stencilObjectSystem;
-
 bool StencilObjectSystem::init()
 {
 	MikanObjectSystem::init();
@@ -37,13 +35,11 @@ bool StencilObjectSystem::init()
 		createModelStencilObject(modelConfig);
 	}
 
-	s_stencilObjectSystem = std::static_pointer_cast<StencilObjectSystem>(shared_from_this());
 	return true;
 }
 
 void StencilObjectSystem::dispose()
 {
-	s_stencilObjectSystem.reset();
 	m_quadStencilComponents.clear();
 	m_boxStencilComponents.clear();
 	m_modelStencilComponents.clear();

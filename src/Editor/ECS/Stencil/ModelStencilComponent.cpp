@@ -169,7 +169,7 @@ void ModelStencilComponent::customRender()
 	ModelStencilDefinitionPtr modelStencilDefinition= getModelStencilDefinition();
 
 	if (!modelStencilDefinition->getIsDisabled() &&
-		StencilObjectSystem::getSystem()->getStencilSystemConfig()->getRenderStencilsFlag())
+		getObjectSystemOfType<StencilObjectSystem>()->getStencilSystemConfigConst()->getRenderStencilsFlag())
 	{
 		TextStyle style = getDefaultTextStyle();
 

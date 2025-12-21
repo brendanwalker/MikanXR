@@ -22,7 +22,6 @@ class StencilObjectSystem : public MikanObjectSystem
 {
 public:
 	StencilObjectSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
-	static StencilObjectSystemPtr getSystem() { return s_stencilObjectSystem.lock(); }
 
 	inline static const std::string k_objectSystemClassName = "StencilObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
@@ -93,6 +92,4 @@ protected:
 	QuadStencilMap m_quadStencilComponents;
 	BoxStencilMap m_boxStencilComponents;
 	ModelStencilMap m_modelStencilComponents;
-
-	static StencilObjectSystemWeakPtr s_stencilObjectSystem;
 };

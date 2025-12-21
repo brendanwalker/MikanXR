@@ -1,7 +1,13 @@
 #include "IServerRequestHandler.h"
 #include "MikanServer.h"
+#include "MainWindow.h"
 
-ProjectConfigPtr IServerRequestHandler::getProjectConfig()
+ProjectManagerPtr IServerRequestHandler::getProjectManager() const
+{
+	return m_owner->getOwnerWindow()->getProjectManager();
+}
+
+ProjectConfigPtr IServerRequestHandler::getProjectConfig() const
 {
 	return m_owner->getProjectConfig();
 }

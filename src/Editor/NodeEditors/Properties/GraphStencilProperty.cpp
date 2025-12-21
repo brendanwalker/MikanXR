@@ -26,7 +26,7 @@ public:
 		StencilComponentPtr stencilComponent,
 		eStencilType stencilType)
 	{
-		auto stencilSystem = StencilObjectSystem::getSystem();
+		auto stencilSystem = stencilComponent->getObjectSystemOfType<StencilObjectSystem>();
 		int listIndex = 0;
 
 		// TODO: Need this overly complicated wrapper so that we can iterate over available
@@ -151,7 +151,7 @@ bool GraphStencilProperty::loadFromConfig(
 		const auto& stencilPropConfig = std::static_pointer_cast<const GraphStencilPropertyConfig>(propConfig);
 		if (!stencilPropConfig->stencilName.empty() && stencilPropConfig->stencilType != eStencilType::INVALID)
 		{
-			auto stencilSystem= StencilObjectSystem::getSystem();
+			auto stencilSystem= getOwnerGraph()->getObjectSystemOfType<StencilObjectSystem>();
 
 			switch (stencilPropConfig->stencilType)
 			{
@@ -190,7 +190,7 @@ bool GraphStencilProperty::loadFromConfig(
 void GraphStencilProperty::saveToConfig(GraphPropertyConfigPtr config) const
 {
 	auto stencilPropConfig = std::static_pointer_cast<GraphStencilPropertyConfig>(config);
-	auto stencilSystem= StencilObjectSystem::getSystem();
+	auto stencilSystem = getOwnerGraph()->getObjectSystemOfType<StencilObjectSystem>();
 
 	if (m_stencilComponent != nullptr)
 	{

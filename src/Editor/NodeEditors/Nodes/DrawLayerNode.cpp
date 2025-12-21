@@ -680,7 +680,7 @@ void DrawLayerNode::evaluateQuadStencils(
 	const glm::vec3 cameraPosition(cameraXform[3]);	
 
 	std::vector<QuadStencilComponentPtr> quadStencilList;	
-	StencilObjectSystem::getSystem()->getRelevantQuadStencilList(	
+	getObjectSystemOfType<StencilObjectSystem>()->getRelevantQuadStencilList(
 		&m_quadStencilIds,	
 		cameraPosition,	
 		cameraForward,	
@@ -801,7 +801,7 @@ void DrawLayerNode::evaluateBoxStencils(
 	const glm::vec3 cameraPosition(cameraXform[3]);	
 
 	std::vector<BoxStencilComponentPtr> boxStencilList;	
-	StencilObjectSystem::getSystem()->getRelevantBoxStencilList(	
+	getObjectSystemOfType<StencilObjectSystem>()->getRelevantBoxStencilList(
 		&m_boxStencilIds,	
 		cameraPosition,	
 		cameraForward,	
@@ -889,7 +889,7 @@ void DrawLayerNode::evaluateModelStencils(
 	const glm::vec3 cameraPosition(cameraXform[3]);	
 
 	std::vector<ModelStencilComponentPtr> modelStencilList;	
-	StencilObjectSystem::getSystem()->getRelevantModelStencilList(	
+	getObjectSystemOfType<StencilObjectSystem>()->getRelevantModelStencilList(
 		&m_modelStencilIds,	
 		cameraPosition,	
 		cameraForward,	

@@ -57,7 +57,7 @@ bool StencilRequestHandler::startup(MainWindow* mainWindow)
 
 void StencilRequestHandler::shutdown()
 {
-	StencilObjectSystem::getSystem()->getStencilSystemConfig()->OnMarkedDirty -=
+	getProjectConfig()->stencilConfig->OnMarkedDirty -=
 		MakeDelegate(this, &StencilRequestHandler::handleStencilSystemConfigChange);
 }
 
@@ -241,7 +241,7 @@ void StencilRequestHandler::getModelStencilRenderGeometryHandler(const ClientReq
 	}
 
 	ModelStencilComponentPtr modelStencil =
-		StencilObjectSystem::getSystem()->getModelStencilById(stencilRequest.stencilId);
+		getObjectSystemOfType<StencilObjectSystem>()->getModelStencilById(stencilRequest.stencilId);
 	if (modelStencil)
 	{
 		MikanStencilModelRenderGeometryResponse renderGeometryResponse = {};

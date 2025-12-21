@@ -55,6 +55,11 @@ public:
 	class IEditorWindow* getOwnerEditorWindow() const;
 
 	ProjectManagerPtr getOwnerProject() const;
+	template <class t_object_system_type>
+	std::shared_ptr<t_object_system_type> getObjectSystemOfType() const
+	{
+		return getOwnerProject()->getSystemOfType<t_object_system_type>();
+	}
 
 	virtual bool createResources() { return true; }
 	virtual void disposeResources() {}

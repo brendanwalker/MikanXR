@@ -2,6 +2,7 @@
 
 #include "NodeFwd.h"
 #include "CommonConfig.h"
+#include "ProjectManager.h"
 #include "ObjectSystemFwd.h"
 #include "Pins/NodePinConstants.h"
 #include "glm/ext/vector_float2.hpp"
@@ -55,6 +56,11 @@ public:
 	inline int getId() const { return m_id; }
 
 	ProjectManagerPtr getOwnerProject() const;
+	template <class t_object_system_type>
+	std::shared_ptr<t_object_system_type> getObjectSystemOfType() const
+	{
+		return getOwnerProject()->getSystemOfType<t_object_system_type>();
+	}
 
 	virtual void setOwnerGraph(NodeGraphPtr ownerGraph);
 	inline NodeGraphPtr getOwnerGraph() const { return m_ownerGraph; }	

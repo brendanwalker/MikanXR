@@ -139,7 +139,7 @@ void QuadStencilComponent::customRender()
 	QuadStencilDefinitionPtr quadDefinition= getQuadStencilDefinition();
 
 	if (!quadDefinition->getIsDisabled() &&
-		StencilObjectSystem::getSystem()->getStencilSystemConfig()->getRenderStencilsFlag())
+		getObjectSystemOfType<StencilObjectSystem>()->getStencilSystemConfigConst()->getRenderStencilsFlag())
 	{
 		TextStyle style = getDefaultTextStyle();
 

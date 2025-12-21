@@ -391,7 +391,7 @@ void DepthMaskNode::evaluateQuadDepthMasks(
 	const glm::vec3 cameraPosition(cameraXform[3]);
 
 	std::vector<QuadStencilComponentPtr> quadStencilList;
-	StencilObjectSystem::getSystem()->getRelevantQuadStencilList(
+	getObjectSystemOfType<StencilObjectSystem>()->getRelevantQuadStencilList(
 		&m_quadStencilIds,
 		cameraPosition,
 		cameraForward,
@@ -474,7 +474,7 @@ void DepthMaskNode::evaluateBoxDepthMasks(
 	const glm::vec3 cameraPosition(cameraXform[3]);
 
 	std::vector<BoxStencilComponentPtr> boxStencilList;
-	StencilObjectSystem::getSystem()->getRelevantBoxStencilList(
+	getObjectSystemOfType<StencilObjectSystem>()->getRelevantBoxStencilList(
 		&m_boxStencilIds,
 		cameraPosition,
 		cameraForward,
@@ -556,7 +556,7 @@ void DepthMaskNode::evaluateModelDepthMasks(
 	const glm::vec3 cameraPosition(cameraXform[3]);
 
 	std::vector<ModelStencilComponentPtr> modelStencilList;
-	StencilObjectSystem::getSystem()->getRelevantModelStencilList(
+	getObjectSystemOfType<StencilObjectSystem>()->getRelevantModelStencilList(
 		&m_modelStencilIds,
 		cameraPosition,
 		cameraForward,
