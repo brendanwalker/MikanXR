@@ -211,7 +211,7 @@ void AppStage_Project::enter()
 
 		// Show the main project view by default
 		m_projectScenesView->Show();
-		m_projectSourcesView->Hide();
+		m_projectStagesView->Hide();
 		m_projectSourcesView->Hide();
 		m_projectTrackingView->Hide();
 		m_projectMarkersView->Hide();

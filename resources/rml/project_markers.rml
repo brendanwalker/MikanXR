@@ -3,6 +3,13 @@
 	<title>Project Markers</title>
 	<link type="text/rcss" href="rml.rcss"/>
 	<link type="text/rcss" href="mikan.rcss"/>
+	<style>
+		body {
+			position: absolute;
+			right: 0;
+			width: 350dp;
+		}
+	</style>
 </head>
 <body template="window">
 	<panel>
