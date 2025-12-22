@@ -1,24 +1,16 @@
 <rml>
 <head>
 	<title>Project Sources</title>
-	<link type="text/rcss" href="rml.rcss"/>
-	<link type="text/rcss" href="mikan.rcss"/>
-	<style>
-		body {
-			position: absolute;
-			right: 0;
-			width: 350dp;
-		}
-	</style>
+	<link type="text/template" href="project_panel.rml"/>
 </head>
-<body template="window">
+<body template="project_panel">
 	<panel>
 		<div class="content">
 			<!-- Video Sources Section -->
 			<div data-model="Sources">
 				<h3>Add Tracking Volume</h3>
-				<button style="width: 60dp; height: 50dp; margin-right: -5dp;" data-event-click="add_new_usb_video_source()"><img sprite="icon-usb"/></button>
-				<button style="width: 60dp; height: 50dp; margin-right: -5dp;" data-event-click="add_new_network_video_source()"><img sprite="icon-network"/></button>
+				<button class="icon-button" data-event-click="add_new_usb_video_source()"><img sprite="icon-usb"/></button>
+				<button class="icon-button" data-event-click="add_new_network_video_source()"><img sprite="icon-network"/></button>
 				<h3>Video Source</h3>
 				<select id="select" name="select_source_id" data-value="selected_video_source_id" data-event-change="select_video_source_entry()">
 					<option data-for="source_id : video_source_ids" data-value="source_id">{{source_id | to_video_source_friendly_name}}</option>
@@ -103,8 +95,8 @@
 			<!-- Texture Sources Section -->
 			<div data-model="Sources">
 				<h3>Add Texture Source</h3>
-				<button style="width: 60dp; height: 50dp; margin-right: -5dp;" data-event-click="add_new_spout_video_source()"><img sprite="icon-spout"/></button>
-				<button style="width: 60dp; height: 50dp; margin-right: -5dp;" data-event-click="add_new_client_video_source()"><img sprite="icon-mikan"/></button>
+				<button class="icon-button" data-event-click="add_new_spout_video_source()"><img sprite="icon-spout"/></button>
+				<button class="icon-button" data-event-click="add_new_client_video_source()"><img sprite="icon-mikan"/></button>
 				<h3>Texture Source</h3>
 				<select id="select" name="select_source_id" data-value="selected_texture_source_id" data-event-change="select_texture_source_entry()">
 					<option data-for="source_id : texture_source_ids" data-value="source_id">{{source_id | to_texture_source_name}}</option>

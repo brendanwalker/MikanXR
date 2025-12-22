@@ -1,32 +1,35 @@
 <rml>
 	<head>
-		<link type="text/rcss" href="rml.rcss" />
-		<link type="text/rcss" href="mikan.rcss" />
-		<link type="text/template" href="window.rml" />
+	<link type="text/rcss" href="rml.rcss"/>
+	<link type="text/rcss" href="mikan.rcss"/>
 		<title>Project</title>
 		<style>
 			body.window {
-				left: 0dp;
-				right: 0dp;
-				top: -45dp;
-				bottom: 0dp;
-				max-width: 1280dp;
-				max-height: 45dp;
-			}     
+				position: absolute;
+				top: 0;
+				right: 0;
+				width: 350dp;
+				padding-top: 0;
+			}
+
+			#main-menu-tab {
+				display: block;
+				width: 100%;
+			}
 		</style>
 	</head>
 
 	<body template="window">
 		<panel id="controls" data-model="project">
-			<span>
-				<button style="width: 80dp" data-event-click="return">Main Menu</button>
-				<button style="width: 120dp" data-event-click="toggle_scenes">Scenes</button>
-				<button style="width: 120dp" data-event-click="toggle_stages">Stages</button>
-				<button style="width: 120dp" data-event-click="toggle_sources">Sources</button>
-				<button style="width: 120dp" data-event-click="toggle_tracking">Tracking</button>
-				<button style="width: 120dp" data-event-click="toggle_markers">Markers</button>
-				<button style="width: 120dp" data-event-click="toggle_settings">Settings</button>
-			</span>
+			<tabset>
+				<tab data-event-click="toggle_scenes">Scenes</tab>
+				<tab data-event-click="toggle_stages">Stages</tab>
+				<tab data-event-click="toggle_sources">Sources</tab>
+				<tab data-event-click="toggle_tracking">Tracking</tab>
+				<tab data-event-click="toggle_markers">Markers</tab>
+				<tab data-event-click="toggle_settings">Settings</tab>
+				<tab id="main-menu-tab" data-event-click="return">Main Menu</tab>
+			</tabset>
 		</panel>
 	</body>
 </rml>

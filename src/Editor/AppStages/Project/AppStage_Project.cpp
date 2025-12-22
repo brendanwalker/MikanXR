@@ -201,7 +201,6 @@ void AppStage_Project::enter()
 			context, m_project, m_stencilObjectSystem.lock());
 
 		// Load the Rml views
-		m_projectView = addRmlDocument("project.rml");
 		m_projectScenesView = addRmlDocument("project_scenes.rml");
 		m_projectStagesView = addRmlDocument("project_stages.rml");
 		m_projectSourcesView = addRmlDocument("project_sources.rml");

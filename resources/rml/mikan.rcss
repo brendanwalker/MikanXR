@@ -288,6 +288,15 @@ input.submit {
 	decorator: tiled-horizontal(button-l, button-c, button-r);
 }
 
+button.icon-button {
+	padding: 0;
+	text-align: center;
+	line-height: 1;
+	width: 80dp; 
+	height: 80dp; 
+	margin-right: -5dp;
+}
+
 button:focus,
 numeric.submit:focus,
 input.submit:focus {
@@ -304,6 +313,11 @@ button:active,
 numeric.submit:active,
 input.submit:active {
 	decorator: tiled-horizontal(button-active-l, button-active-c, button-active-r);
+}
+
+button.icon-button img {
+	display: block;
+	margin: auto;
 }
 
 createcomponent {
@@ -885,6 +899,29 @@ textarea scrollbarhorizontal sliderbar:hover {
 
 textarea scrollbarhorizontal sliderbar:active {
 	background-color: #770000CC;
+}
+
+/* Tab Styles */
+tab {
+	display: inline-block;
+	width: auto;
+	padding: 12dp 15dp;
+	margin-right: 2dp;
+
+	font-size: 14dp;
+	text-align: center;
+	color: white;
+
+	decorator: tiled-horizontal(button-l, button-c, button-r);
+	cursor: pointer;
+}
+
+tab:hover {
+	decorator: tiled-horizontal(button-hover-l, button-hover-c, button-hover-r);
+}
+
+tab:active {
+	decorator: tiled-horizontal(button-active-l, button-active-c, button-active-r);
 }
 
 /* ArUco Marker Decorator Styles */

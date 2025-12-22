@@ -1,0 +1,41 @@
+<template name="project_panel" content="content">
+<head>
+	<link type="text/rcss" href="rml.rcss"/>
+	<link type="text/rcss" href="mikan.rcss"/>
+	<style>
+		body {
+			position: absolute;
+			top: 0;
+			right: 0;
+			width: 350dp;
+		}
+
+		#project-tabs {
+			display: block;
+			width: auto;
+			padding: 10dp;
+			margin-bottom: 10dp;
+			decorator: tiled-box(
+				window-tl, window-t, window-tr,
+				window-l, window-c, window-r,
+				window-bl, window-b, window-br
+			);
+		}
+	</style>
+</head>
+<body>
+	<tabset id="project-tabs" data-model="project">
+		<tab data-event-click="toggle_scenes">Scenes</tab>
+		<tab data-event-click="toggle_stages">Stages</tab>
+		<tab data-event-click="toggle_sources">Sources</tab>
+		<tab data-event-click="toggle_tracking">Tracking</tab>
+		<tab data-event-click="toggle_markers">Markers</tab>
+		<tab data-event-click="toggle_settings">Settings</tab>
+		<tab data-event-click="return">Exit</tab>
+	</tabset>
+	<div id="window">
+		<div id="content">
+		</div>
+	</div>
+</body>
+</template>

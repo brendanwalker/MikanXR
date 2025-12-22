@@ -77,7 +77,6 @@ protected:
 	VideoSourceSystemWeakPtr m_videoObjectSystem;
 
 	class RmlModel_Project* m_projectModel = nullptr;
-	Rml::ElementDocument* m_projectView = nullptr;
 
 	class RmlModel_ProjectScenes* m_projectScenesModel = nullptr;
 	Rml::ElementDocument* m_projectScenesView = nullptr;

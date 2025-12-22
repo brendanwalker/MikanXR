@@ -1,17 +1,9 @@
 <rml>
 <head>
 	<title>Project Settings</title>
-	<link type="text/rcss" href="rml.rcss"/>
-	<link type="text/rcss" href="mikan.rcss"/>
-	<style>
-		body {
-			position: absolute;
-			right: 0;
-			width: 350dp;
-		}
-	</style>
+	<link type="text/template" href="project_panel.rml"/>
 </head>
-<body template="window">
+<body template="project_panel">
 	<panel>
 		<div class="title-bar">
 			<span class="title">Settings</span>
