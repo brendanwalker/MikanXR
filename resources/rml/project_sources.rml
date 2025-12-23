@@ -13,9 +13,10 @@
 				<button class="icon-button" data-event-click="add_new_network_video_source()"><img sprite="icon-network"/></button>
 				<h3>Video Source</h3>
 				<select id="select" name="select_source_id" data-value="selected_video_source_id" data-event-change="select_video_source_entry()">
+					<option value="-1">-- None --</option>
 					<option data-for="source_id : video_source_ids" data-value="source_id">{{source_id | to_video_source_friendly_name}}</option>
 				</select>
-				<deletecomponent data-event-click="remove_video_source()"></deletecomponent>
+				<div class="deletecomponent" data-event-click="remove_video_source()"></div>
 			</div>
 
 			<!-- USB Video Source Properties -->
@@ -27,13 +28,13 @@
 					<tbody>
 						<tr class="property_tr">
 							<td>
-								Name&nbsp;
+								<label>Name</label>
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Intrinsics&nbsp;
+								<label>Intrinsics</label>
 								<div data-if="!are_intrinsics_valid">
 									Uncalibrated
 								</div>
@@ -61,19 +62,19 @@
 					<tbody>
 						<tr class="property_tr">
 							<td>
-								Name&nbsp;
+								<label>Name</label>
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
-								URL&nbsp;
+								<label>URL</label>
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="url"/>
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Intrinsics&nbsp;
+								<label>Intrinsics</label>
 								<div data-if="!are_intrinsics_valid">
 									Uncalibrated
 								</div>
@@ -99,9 +100,10 @@
 				<button class="icon-button" data-event-click="add_new_client_video_source()"><img sprite="icon-mikan"/></button>
 				<h3>Texture Source</h3>
 				<select id="select" name="select_source_id" data-value="selected_texture_source_id" data-event-change="select_texture_source_entry()">
+					<option value="-1">-- None --</option>
 					<option data-for="source_id : texture_source_ids" data-value="source_id">{{source_id | to_texture_source_name}}</option>
 				</select>
-				<deletecomponent data-event-click="remove_texture_source()"></deletecomponent>
+				<div class="deletecomponent"  data-event-click="remove_texture_source()"></div>
 			</div>
 
 			<!-- Client Texture Source Properties -->
@@ -113,13 +115,13 @@
 					<tbody>
 						<tr class="property_tr">
 							<td>
-								Name&nbsp;
+								<label>Name</label>
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Source&nbsp;
+								<label>Source</label>
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="client_source"/>
 							</td>
 						</tr>
@@ -136,13 +138,13 @@
 					<tbody>
 						<tr class="property_tr">
 							<td>
-								Name&nbsp;
+								<label>Name</label>
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Source&nbsp;
+								<label>Source</label>
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="spout_source"/>
 							</td>
 						</tr>

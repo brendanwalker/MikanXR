@@ -17,9 +17,10 @@
 				<button class="icon-button" data-event-click="add_new_marker_tracking_volume()"><img sprite="icon-aruco"/></button>
 				<h3>Tracking Volume</h3>
 				<select id="select" name="select_volume_id" data-value="selected_tracking_volume_id" data-event-change="select_tracking_volume_entry()">
+					<option value="-1">-- None --</option>
 					<option data-for="volume_id : tracker_volume_ids" data-value="volume_id">{{volume_id | to_volume_name}}</option>
 				</select>
-				<deletecomponent data-event-click="remove_tracking_volume()"></deletecomponent>
+				<div class="deletecomponent" data-event-click="remove_tracking_volume()"></div>
 			</div>
 			<div data-if="component_id != -1" data-model="VRTrackingVolumeComponent">
 				<table>
@@ -29,21 +30,22 @@
 					<tbody>
 						<tr class="property_tr">
 							<td>
-								Volume Name&nbsp;
+								<label>Volume Name</label>
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
 							</td>
 						</tr>				
 						<tr class="property_tr">
 							<td>
-								ChArUco Mount&nbsp;
+								<label>ChArUco Mount</label>
 								<select id="select" name="select_charuco_mount" data-value="charucoMountId" data-event-change="select_charuco_mount_entry()">
+									<option value="-1">-- None --</option>
 									<option data-for="mount_id : tracking_mount_ids" data-value="mount_id">{{mount_id | to_tracking_mount_name}}</option>
 								</select>
 							</td>
 						</tr>
 						<tr class="property_tr">	
 							<td>
-								ChArUco Offset&nbsp;
+								<label>ChArUco Offset</label>
 								<numeric type="float" precision="1" min="-100.0" max="100.0" step="0.1" data-value="charucoMountOffsetMM_x"/>
 								<numeric type="float" precision="1" min="-100.0" max="100.0" step="0.1" data-value="charucoMountOffsetMM_y"/>
 								<numeric type="float" precision="1" min="-100.0" max="100.0" step="0.1" data-value="charucoMountOffsetMM_z"/>                                
@@ -51,16 +53,18 @@
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Origin Marker&nbsp;
+								<label>Origin Marker</label>
 								<select id="select" name="select_origin_marker" data-value="originMarkerId" data-event-change="select_origin_marker_entry()">
+									<option value="-1">-- None --</option>
 									<option data-for="marker_id : marker_component_ids" data-value="marker_id">{{marker_id | to_marker_name}}</option>
 								</select>
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Utility Marker&nbsp;
+								<label>Utility Marker</label>
 								<select id="select" name="select_utility_marker" data-value="utilityMarkerId" data-event-change="select_utility_marker_entry()">
+									<option value="-1">-- None --</option>
 									<option data-for="marker_id : marker_component_ids" data-value="marker_id">{{marker_id | to_marker_name}}</option>
 								</select>
 							</td>
@@ -76,14 +80,15 @@
 					<tbody>
 						<tr class="property_tr">
 							<td>
-								Volume Name&nbsp;
+								<label>Volume Name</label>
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
 							</td>
 						</tr>				
 						<tr class="property_tr">
 							<td>
-								Origin Marker&nbsp;
+								<label>Origin Marker</label>
 								<select id="select" name="select_origin_marker" data-value="originMarkerId" data-event-change="select_origin_marker_entry()">
+									<option value="-1">-- None --</option>
 									<option data-for="marker_id : marker_component_ids" data-value="marker_id">{{marker_id | to_marker_name}}</option>
 								</select>
 							</td>
@@ -96,10 +101,11 @@
 			<div data-model="TrackingSystems">
 				<h3>Tracking Mounts</h3>
 				<select id="select" name="select_mount_id" data-value="selected_tracking_mount_id" data-event-change="select_tracking_mount_entry()">
+					<option value="-1">-- None --</option>
 					<option data-for="mount_id : tracking_mount_ids" data-value="mount_id">{{mount_id | to_tracking_mount_name}}</option>
 				</select>
-				<createcomponent data-event-click="add_new_tracking_mount()"></createcomponent>
-				<deletecomponent data-event-click="remove_tracking_mount()"></deletecomponent>
+				<div class="createcomponent" data-event-click="add_new_tracking_mount()"></div>
+				<div class="deletecomponent" data-event-click="remove_tracking_mount()"></div>
 			</div>
 			<div data-if="component_id != -1" data-model="TrackingMountComponent">
 				<table>
@@ -109,22 +115,24 @@
 					<tbody>
 						<tr class="property_tr">
 							<td>
-								Name&nbsp;
+								<label>Name</label>
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
 							</td>
 						</tr>				
 						<tr class="property_tr">
 							<td>
-								Device&nbsp;
+								<label>Device</label>
 								<select id="select" name="select_device" data-value="devicePath" data-event-change="select_device_entry()">
+									<option value="-1">-- None --</option>
 									<option data-for="device_path : vr_device_paths" data-value="device_path">{{devicePath | to_vr_device_friendly_name}}</option>
 								</select>
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Socket&nbsp;
+								<label>Socket</label>
 								<select id="select" name="select_socket" data-value="socketName" data-event-change="select_socket_entry()">
+									<option value="-1">-- None --</option>
 									<option data-for="socket_name : socket_names" data-value="socket_name">{{socket_name}}</option>
 								</select>
 							</td>

@@ -14,6 +14,7 @@
 			<div data-model="Scenes">
 				<h3>Stages</h3>
 				<select id="select" name="select_stage_id" data-value="selected_stage_id" data-event-change="select_stage_entry()">
+					<option value="-1">-- None --</option>
 					<option data-for="stage_id : stage_ids" data-value="stage_id">{{stage_id | to_stage_name}}</option>
 				</select>				
 			</div>
@@ -22,10 +23,11 @@
 			<div data-model="Scenes">
 				<h3>Scene</h3>
 				<select id="select" name="select_scene_id" data-value="selected_scene_id" data-event-change="select_scene_entry()">
+					<option value="-1">-- None --</option>
 					<option data-for="scene_id : scene_ids" data-value="scene_id">{{scene_id | to_scene_name}}</option>
 				</select>			
-				<createcomponent data-event-click="add_new_scene"></createcomponent>
-				<deletecomponent data-event-click="remove_scene"></deletecomponent>
+				<div class="createcomponent" data-event-click="add_new_scene"></div>
+				<div class="deletecomponent" data-event-click="remove_scene"></div>
 			</div>
 			<div data-if="component_id != -1" data-model="SceneComponent">
 				<table>
@@ -35,27 +37,28 @@
 					<tbody>
 						<tr class="property_tr">
 							<td>
-								Name&nbsp;
+								<label>Name</label>
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Compositor&nbsp;
+								<label>Compositor</label>
 								<select id="select" name="select_compositor_id" data-value="display_compositor_id" data-event-change="select_compositor_entry()">
+									<option value="-1">-- None --</option>
 									<option data-for="compositor_id : compositor_ids" data-value="compositor_id">{{compositor_id | to_compositor_name}}</option>
 								</select>	
-								<createcomponent data-event-click="add_compositor_ref()"></createcomponent>
-								<deletecomponent data-event-click="remove_compositor_ref()"></deletecomponent>						
+								<div class="createcomponent" data-event-click="add_compositor_ref()"></div>
+								<div class="deletecomponent" data-event-click="remove_compositor_ref()"></div>						
 							</td>
 						</tr>												
 						<tr class="property_tr">
 							<td>
-								Script&nbsp;
+								<label>Script</label>
 								<filename>{{component_script | to_short_path(30)}}</filename>
-								<editcomponent data-event-click="reload_script()"></editcomponent>
-								<createcomponent data-event-click="add_new_script()"></createcomponent>
-								<deletecomponent data-event-click="remove_script()"></deletecomponent>						
+								<div class="editcomponent" data-event-click="reload_script()"></div>
+								<div class="createcomponent" data-event-click="add_new_script()"></div>
+								<div class="deletecomponent" data-event-click="remove_script()"></div>						
 							</td>
 						</tr>						
 					</tbody>
@@ -101,14 +104,14 @@
 					<tbody>
 						<tr class="property_tr">
 							<td>
-								Name&nbsp;
+								<label>Name</label>
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
-								<deletecomponent data-event-click="delete_anchor"></deletecomponent>
+								<div class="deletecomponent" data-event-click="delete_anchor"></div>
 							</td>
 						</tr>
 						<tr class="property_tr">	
 							<td>
-								Position&nbsp;
+								<label>Position</label>
 								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_x"/>
 								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_y"/>
 								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_z"/>                                
@@ -116,7 +119,7 @@
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Rotation&nbsp;
+								<label>Rotation</label>
 								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_x"/>
 								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_y"/>
 								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_z"/>                                
@@ -124,7 +127,7 @@
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Scale&nbsp;
+								<label>Scale</label>
 								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_x"/>
 								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_y"/>
 								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_z"/>
@@ -149,22 +152,23 @@
 					<tbody>
 						<tr class="property_tr">
 							<td>
-								Name&nbsp;
+								<label>Name</label>
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
-								<deletecomponent data-event-click="delete_anchor"></deletecomponent>
+								<div class="deletecomponent" data-event-click="delete_anchor"></div>
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Anchor&nbsp;
+								<label>Anchor</label>
 								<select id="select" name="select_anchor_id" data-value="parent_anchor_id" data-event-change="select_anchor_entry()">
+									<option value="-1">-- None --</option>
 									<option data-for="anchor_id : anchor_ids" data-value="anchor_id">{{anchor_id | to_anchor_name}}</option>
 								</select>
 							</td>
 						</tr>						
 						<tr class="property_tr">	
 							<td>
-								Position&nbsp;
+								<label>Position</label>
 								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_x"/>
 								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_y"/>
 								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_z"/>                                
@@ -172,7 +176,7 @@
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Rotation&nbsp;
+								<label>Rotation</label>
 								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_x"/>
 								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_y"/>
 								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_z"/>                                
@@ -180,7 +184,7 @@
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Scale&nbsp;
+								<label>Scale</label>
 								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_x"/>
 								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_y"/>
 								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_z"/>
@@ -188,7 +192,7 @@
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Box Size&nbsp;
+								<label>Box Size</label>
 								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="box_x_size"/>
 								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="box_y_size"/>
 								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="box_z_size"/>
@@ -196,7 +200,7 @@
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Cull Mode&nbsp;
+								<label>Cull Mode</label>
 								<select id="select" name="cull_mode_list" data-value="cull_mode" data-event-change="select_cull_mode_entry()" style="width: 200dp; vertical-align: -12dp">
 									<option data-for="enum_value : stencil_cull_mode_values" data-value="enum_value">{{enum_value | to_enum_string('stencil_cull_mode')}}</option>
 								</select>
@@ -226,22 +230,23 @@
 					<tbody>
 						<tr class="property_tr">
 							<td>
-								Name&nbsp;
+								<label>Name</label>
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
-								<deletecomponent data-event-click="delete_anchor"></deletecomponent>
+								<div class="deletecomponent" data-event-click="delete_anchor"></div>
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Anchor&nbsp;
+								<label>Anchor</label>
 								<select id="select" name="select_anchor_id" data-value="parent_anchor_id" data-event-change="select_anchor_entry()">
+									<option value="-1">-- None --</option>
 									<option data-for="anchor_id : anchor_ids" data-value="anchor_id">{{anchor_id | to_anchor_name}}</option>
 								</select>
 							</td>
 						</tr>						
 						<tr class="property_tr">	
 							<td>
-								Position&nbsp;
+								<label>Position</label>
 								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_x"/>
 								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_y"/>
 								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_z"/>                                
@@ -249,7 +254,7 @@
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Rotation&nbsp;
+								<label>Rotation</label>
 								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_x"/>
 								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_y"/>
 								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_z"/>                                
@@ -257,7 +262,7 @@
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Scale&nbsp;
+								<label>Scale</label>
 								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_x"/>
 								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_y"/>
 								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_z"/>
@@ -265,15 +270,15 @@
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Model&nbsp;
+								<label>Model</label>
 								<filename>{{model_path | to_short_path(30)}}</filename>
-								<createcomponent data-event-click="add_new_model()"></createcomponent>
-								<deletecomponent data-event-click="remove_model()"></deletecomponent>						
+								<div class="createcomponent" data-event-click="add_new_model()"></div>
+								<div class="deletecomponent" data-event-click="remove_model()"></div>						
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Cull Mode&nbsp;
+								<label>Cull Mode</label>
 								<select id="select" name="cull_mode_list" data-value="cull_mode" data-event-change="select_cull_mode_entry()" style="width: 200dp; vertical-align: -12dp">
 									<option data-for="enum_value : stencil_cull_mode_values" data-value="enum_value">{{enum_value | to_enum_string('stencil_cull_mode')}}</option>
 								</select>
@@ -303,22 +308,23 @@
 					<tbody>
 						<tr class="property_tr">
 							<td>
-								Name&nbsp;
+								<label>Name</label>
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
-								<deletecomponent data-event-click="delete_anchor"></deletecomponent>
+								<div class="deletecomponent" data-event-click="delete_anchor"></div>
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Anchor&nbsp;
+								<label>Anchor</label>
 								<select id="select" name="select_anchor_id" data-value="parent_anchor_id" data-event-change="select_anchor_entry()">
+									<option value="-1">-- None --</option>
 									<option data-for="anchor_id : anchor_ids" data-value="anchor_id">{{anchor_id | to_anchor_name}}</option>
 								</select>
 							</td>
 						</tr>						
 						<tr class="property_tr">	
 							<td>
-								Position&nbsp;
+								<label>Position</label>
 								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_x"/>
 								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_y"/>
 								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_z"/>                                
@@ -326,7 +332,7 @@
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Rotation&nbsp;
+								<label>Rotation</label>
 								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_x"/>
 								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_y"/>
 								<numeric type="float" precision="1" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_z"/>                                
@@ -334,7 +340,7 @@
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Scale&nbsp;
+								<label>Scale</label>
 								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_x"/>
 								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_y"/>
 								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="relative_scale_z"/>
@@ -342,7 +348,7 @@
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Quad Size&nbsp;
+								<label>Quad Size</label>
 								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="quad_width"/>
 								<numeric type="float" precision="2" min="0.0" max="10.0" step="0.01" data-value="quad_height"/>
 							</td>

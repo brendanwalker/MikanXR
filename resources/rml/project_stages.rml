@@ -14,10 +14,11 @@
 			<div data-model="Stages">
 				<h3>Stages</h3>
 				<select id="select" name="select_stage_id" data-value="selected_stage_id" data-event-change="select_stage_entry()">
+					<option value="-1">-- None --</option>
 					<option data-for="stage_id : stage_ids" data-value="stage_id">{{stage_id | to_stage_name}}</option>
-				</select>				
-				<createcomponent data-event-click="add_new_stage"></createcomponent>				
-				<deletecomponent data-event-click="remove_stage"></deletecomponent>
+				</select>
+				<div class="createcomponent" data-event-click="add_new_stage"></div>
+				<div class="deletecomponent" data-event-click="remove_stage"></div>
 			</div>
 			<div data-if="component_id != -1" data-model="StageComponent">
 				<table>
@@ -27,7 +28,7 @@
 					<tbody>
 	                    <tr class="property_tr">
 							<td>
-								Name&nbsp;
+								<label>Name</label>
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
 							</td>
 						</tr>				
@@ -35,6 +36,7 @@
 							<td>
 								<label style="vertical-align: 12dp;">Tracking Volume</label>
 								<select id="select" name="select_volume_id" data-value="tracking_volume_id" data-event-change="select_volume_entry()">
+									<option value="-1">-- None --</option>
 									<option data-for="volume_id : tracking_volume_ids" data-value="anchor_id">{{volume_id | to_volume_name}}</option>
 								</select>
 							</td>
@@ -55,10 +57,11 @@
 			<div data-model="Stages">
 				<h3>Cameras</h3>
 				<select id="select" name="select_camera_id" data-value="selected_camera_id" data-event-change="select_camera_entry()">
+					<option value="-1">-- None --</option>
 					<option data-for="camera_id : camera_ids" data-value="camera_id">{{camera_id | to_camera_name}}</option>
 				</select>			
-				<createcomponent data-event-click="add_new_camera"></createcomponent>
-				<deletecomponent data-event-click="remove_camera"></deletecomponent>
+				<div class="createcomponent" data-event-click="add_new_camera"></div>
+				<div class="deletecomponent" data-event-click="remove_camera"></div>
 			</div>
 			<div data-if="component_id != -1" data-model="CameraComponent">
 				<table>
@@ -68,21 +71,22 @@
 					<tbody>
 	                    <tr class="property_tr">
 							<td>
-								Name&nbsp;
+								<label>Name</label>
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
 							</td>
 						</tr>
 	                    <tr class="property_tr">
 							<td data-if="tracking_mount_ids.size > 0">
-								Mount&nbsp;
+								<label>Mount</label>
 								<select id="select" name="select_mount_id" data-value="tracking_mount_id" data-event-change="select_mount_entry()">
+									<option value="-1">-- None --</option>
 									<option data-for="element_id : tracking_mount_ids" data-value="element_id">{{element_id | to_tracking_mount_name}}</option>
 								</select>
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Position&nbsp;
+								<label>Position</label>
 								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_x"/>
 								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_y"/>
 								<numeric type="float" precision="3" min="-10.0" max="10.0" step="0.001" data-value="relative_position_z"/>
@@ -90,7 +94,7 @@
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Rotation&nbsp;
+								<label>Rotation</label>
 								<numeric type="float" precision="3" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_x"/>
 								<numeric type="float" precision="3" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_y"/>
 								<numeric type="float" precision="3" min="-180.0" max="180.0" step="0.5" data-value="relative_rotation_z"/>
@@ -98,15 +102,16 @@
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Video Source&nbsp;
+								<label>Video Source</label>
 								<select id="select" name="select_video_source_id" data-value="video_source_id" data-event-change="select_video_source_entry()">
+									<option value="-1">-- None --</option>
 									<option data-for="element_id : video_source_ids" data-value="element_id">{{element_id | to_video_source_friendly_name}}</option>
 								</select>
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td data-if="tracking_mount_ids.size > 0">
-								Frame Delay&nbsp;
+								<label>Frame Delay</label>
 								<numeric type="int" min="0" max="60" step="1" data-value="tracking_frame_delay"/>
 							</td>
 						</tr>
@@ -126,10 +131,11 @@
 			<div data-model="Stages">
 				<h3>Compositors</h3>
 				<select id="select" name="select_compositor_id" data-value="selected_compositor_id" data-event-change="select_compositor_entry()">
+					<option value="-1">-- None --</option>
 					<option data-for="compositor_id : compositor_ids" data-value="compositor_id">{{compositor_id | to_compositor_name}}</option>
 				</select>			
-				<createcomponent data-event-click="add_new_compositor"></createcomponent>				
-				<deletecomponent data-event-click="remove_compositor"></deletecomponent>
+				<div class="createcomponent" data-event-click="add_new_compositor"></div>
+				<div class="deletecomponent" data-event-click="remove_compositor"></div>
 			</div>
 			<div data-if="component_id != -1" data-model="CompositorComponent">
 				<table>
@@ -139,14 +145,15 @@
 					<tbody>
 						<tr class="property_tr">
 							<td>
-								Name&nbsp;
+								<label>Name</label>
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Camera&nbsp;
+								<label>Camera</label>
 								<select id="select" name="select_camera_id" data-value="camera_id" data-event-change="select_camera_entry()">
+									<option value="-1">-- None --</option>
 									<option data-for="element_id : camera_ids" data-value="element_id">{{element_id | to_camera_name}}</option>
 								</select>
 							</td>
@@ -158,16 +165,16 @@
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Output Name&nbsp;
+								<label>Output Name</label>
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="spout_output_name"/>
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
 								<filename>{{compositor_graph_path | to_short_path(30)}}</filename>
-								<editcomponent data-event-click="edit_compositor_graph()"></editcomponent>
-								<createcomponent data-event-click="add_new_compositor_graph()"></createcomponent>
-								<deletecomponent data-event-click="remove_compositor_graph()"></deletecomponent>						
+								<div class="editcomponent" data-event-click="edit_compositor_graph()"></div>
+								<div class="createcomponent" data-event-click="add_new_compositor_graph()"></div>
+								<div class="deletecomponent" data-event-click="remove_compositor_graph()"></div>						
 							</td>
 						</tr>
 					</tbody>

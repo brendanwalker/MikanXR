@@ -33,7 +33,7 @@
 						</tr>												
 						<tr class="property_tr">
 							<td>
-								Language&nbsp;
+								<label>Language</label>
 								<select id="select" name="select_language" data-value="selected_language_id" data-event-change="select_language_entry()">
 									<option data-for="language_id : language_id_list" data-value="language_id">language_id</option>
 								</select>

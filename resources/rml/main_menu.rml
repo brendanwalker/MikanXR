@@ -36,6 +36,10 @@
 
 				margin: auto;
 				animation: 0.25s cubic-out slidein;
+				text-align: center;
+			}
+			div {
+				text-align: center;
 			}
 			button {
 				transition: transform 0.25s elastic-out;

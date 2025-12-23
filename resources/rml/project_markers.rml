@@ -13,10 +13,11 @@
 			<div data-model="Markers">
 				<h3>Markers</h3>
 				<select id="select" name="select_marker_id" data-value="selected_marker_id" data-event-change="select_marker_entry()">
+					<option value="-1">-- None --</option>
 					<option data-for="marker_id : marker_ids" data-value="marker_id">{{marker_id | to_marker_name}}</option>
 				</select>				
-				<createcomponent data-event-click="add_new_marker"></createcomponent>				
-				<deletecomponent data-event-click="remove_marker"></deletecomponent>
+				<div class="createcomponent" data-event-click="add_new_marker"></div>
+				<div class="deletecomponent" data-event-click="remove_marker"></div>
 			</div>
 			<div data-if="component_id != -1" data-model="MarkerComponent">
 				<table>
@@ -34,6 +35,7 @@
 							<td>
 								<label style="vertical-align: 12dp;">ArUco Number</label>
 								<select id="select" name="select_aruco_id" data-value="aruco_id" data-event-change="select_aruco_id_entry()">
+									<option value="-1">-- None --</option>
 									<option data-for="arucoId : arucoIdList" data-value="arucoId">{{arucoId}}</option>
 								</select>
 							</td>
@@ -65,8 +67,9 @@
 					<tbody>		
 	                    <tr class="property_tr">
 							<td>
-								<label style="vertical-align: 12dp;">ArUco Number</label>
+								<label>ArUco Number</label>
 								<select id="select" name="select_aruco_dict" data-value="arucoDictionaryType" data-event-change="select_aruco_dictionary()">
+									<option value="-1">-- None --</option>
 									<option data-for="enum_value : marker_dictionary_type_values" data-value="enum_value">{{enum_value | to_enum_string('marker_dictionary_type')}}</option>
 								</select>
 							</td>
@@ -85,15 +88,16 @@
 					<tbody>		
 						<tr class="property_tr">
 							<td>
-								ArUco Number&nbsp;
+								<label>ArUco Number</label>
 								<select id="select" name="select_aruco_dict" data-value="charucoDictionaryType" data-event-change="select_charuco_dictionary()">
+									<option value="-1">-- None --</option>
 									<option data-for="enum_value : marker_dictionary_type_values" data-value="enum_value">{{enum_value | to_enum_string('marker_dictionary_type')}}</option>
 								</select>
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Rows&nbsp;
+								<label>Rows</label>
 								<select name="select_row" data-value="charucoRows" data-event-change="select_charuco_rows()">
 									<option value="4">4</option>
 									<option value="5">5</option>
@@ -112,7 +116,7 @@
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Cols&nbsp;
+								<label>Cols</label>
 								<select name="select_col" data-value="charucoCols" data-event-change="select_charuco_cols()">
 									<option value="4">4</option>
 									<option value="5">5</option>
@@ -131,16 +135,16 @@
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Square Length&nbsp;
-								<input type="text" style="width: 50dp; margin-left: 0; vertical-align: -2dp;" data-value="charucoSquareLengthMM"/>
-								&nbsp;MM
+								<label>Square Length</label>&nbsp;
+								<input type="text" style="width: 50dp; margin-left: 0; vertical-align: 10dp;" data-value="charucoSquareLengthMM"/>
+								&nbsp;<label>MM</label>
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
-								Marker Length&nbsp;
-								<input type="text" style="width: 50dp; margin-left: 0; vertical-align: -2dp;" data-value="charucoMarkerLengthMM"/>
-								&nbsp;MM
+								<label>Marker Length</label>&nbsp;
+								<input type="text" style="width: 50dp; margin-left: 0; vertical-align: 10dp;" data-value="charucoMarkerLengthMM"/>
+								&nbsp;<label>MM</label>
 							</td>
 						</tr>
 						<tr class="property_tr">

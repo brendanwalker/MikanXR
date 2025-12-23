@@ -233,7 +233,7 @@ div#content {
 
 	overflow: hidden auto;
 
-	text-align: center;
+	text-align: left;
 }
 
 
@@ -266,6 +266,38 @@ dataselect {
 numeric.submit,
 input.submit {
 	margin-left: 0;
+}
+
+h3 + div select,
+h3 + div dataselect,
+h3 + select,
+h3 + dataselect {
+	margin-left: 0;
+}
+
+div#content div[data-model] {
+	text-align: left;
+	display: block;
+}
+
+div#content div[data-model] > * {
+	text-align: left;
+}
+
+h3 {
+	margin-left: 0;
+	margin-bottom: 0.4em;
+}
+
+div#content h3 {
+	display: block;
+	width: 100%;
+	text-align: left;
+}
+
+div#content select,
+div#content dataselect {
+	display: inline-block;
 }
 
 
@@ -320,33 +352,54 @@ button.icon-button img {
 	margin: auto;
 }
 
-createcomponent {
+createcomponent,
+.createcomponent {
+	display: inline-block;
+	width: 30dp;
+	height: 30dp;
 	decorator: image(create-btn);
+	cursor: pointer;
 }
-deletecomponent {
+deletecomponent,
+.deletecomponent {
+	display: inline-block;
+	width: 30dp;
+	height: 30dp;
 	decorator: image(delete-btn);
+	cursor: pointer;
 }
-editcomponent {
+editcomponent,
+.editcomponent {
+	display: inline-block;
+	width: 30dp;
+	height: 30dp;
 	decorator: image(edit-btn);
+	cursor: pointer;
 }
 
-createcomponent:hover {
+createcomponent:hover,
+.createcomponent:hover {
 	decorator: image(create-btn-hover);
 }
-deletecomponent:hover {
+deletecomponent:hover,
+.deletecomponent:hover {
 	decorator: image(delete-btn-hover);
 }
-editcomponent:hover {
+editcomponent:hover,
+.editcomponent:hover {
 	decorator: image(edit-btn-hover);
 }
 
-createcomponent:active {
+createcomponent:active,
+.createcomponent:active {
 	decorator: image(create-btn-active);
 }
-deletecomponent:active {
+deletecomponent:active,
+.deletecomponent:active {
 	decorator: image(delete-btn-active);
 }
-editcomponent:active {
+editcomponent:active,
+.editcomponent:active {
 	decorator: image(edit-btn-active);
 }
 
@@ -459,8 +512,14 @@ table input.text {
 
 select,
 dataselect {
-	width: 175dp;
+	width: 150dp;
 	height: 37dp;
+}
+
+/* Override margin for selects in data-model divs */
+div.content select,
+div.content dataselect {
+	margin-left: 0dp;
 }
 
 select selectvalue,
@@ -678,6 +737,10 @@ tbody tr {
 	margin-left: 9dp;
 	margin-right: 8dp;
 	color: black;
+}
+
+td label {
+	vertical-align: 12dp;
 }
 
 datagrid datagridheader {

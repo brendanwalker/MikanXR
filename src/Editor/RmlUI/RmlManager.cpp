@@ -387,12 +387,20 @@ void RmlManager::registerCommonDataModelTypes()
 		[rmlManager](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
 			const MikanStageID stageId = variant.Get<int>(-1);
 
-			auto stageObjectSystem = rmlGetSystemOfType<StageObjectSystem>(rmlManager);
-			auto stageComponent = stageObjectSystem->getStageById(stageId);
-			if (stageComponent != nullptr)
+			if (stageId == INVALID_MIKAN_ID)
 			{
-				variant = Rml::String(stageComponent->getName());
+				variant = Rml::String("<None>");
 				return true;
+			}
+			else
+			{
+				auto stageObjectSystem = rmlGetSystemOfType<StageObjectSystem>(rmlManager);
+				auto stageComponent = stageObjectSystem->getStageById(stageId);
+				if (stageComponent != nullptr)
+				{
+					variant = Rml::String(stageComponent->getName());
+					return true;
+				}
 			}
 			return false;
 		});
