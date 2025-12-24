@@ -241,7 +241,6 @@ MikanTrackingVolumeID TrackingVolumeObjectSystemConfig::addVRTrackingVolume(
 	m_nextTrackingVolumeId++;
 
 	m_vrTrackingVolumeList.push_back(configPtr);
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_vrTrackingVolumeListPropertyId));
 
 	return configPtr->getTrackingVolumeId();
 }
@@ -374,6 +373,10 @@ VRTrackingVolumeComponentPtr TrackingVolumeObjectSystem::addNewVRTrackingVolume(
 
 	VRTrackingVolumeDefinitionPtr vrDef = config->getVRTrackingVolumeDefinition(volumeId);
 	TrackingVolumeComponentPtr trackingVolume = createTrackingVolumeObject(std::static_pointer_cast<TrackingVolumeDefinition>(vrDef));
+
+	// Mark config as dirty
+	config->markDirty(ConfigPropertyChangeSet().addPropertyName(
+		TrackingVolumeObjectSystemConfig::k_vrTrackingVolumeListPropertyId));
 
 	return std::dynamic_pointer_cast<VRTrackingVolumeComponent>(trackingVolume);
 }

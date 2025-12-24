@@ -66,6 +66,11 @@ bool RmlModel_ProjectTracking::init(
 					outComponentIdList.push_back((int)markerSystemPtr->getTrackingVolumeId());
 				}
 			}
+		},
+		[this](const ConfigPropertyChangeSet& changedPropertySet) {
+			return 
+				changedPropertySet.hasPropertyName(TrackingVolumeObjectSystemConfig::k_vrTrackingVolumeListPropertyId) ||
+				changedPropertySet.hasPropertyName(TrackingVolumeObjectSystemConfig::k_markerTrackingVolumeListPropertyId);
 		});
 	m_trackingMountIdList->init(
 		constructor,

@@ -17,6 +17,7 @@ class RmlDataBinding_List : public RmlDataBinding
 public:
 	using RmlValueList = Rml::Vector<t_element_type>;
 	using FillPropertyList = std::function<void(CommonConfigPtr, RmlValueList&)>;
+	using RebuildOnPropertyChangeFunc = std::function<bool(const ConfigPropertyChangeSet&)>;
 
 	RmlDataBinding_List()= default;
 	virtual ~RmlDataBinding_List()
@@ -28,10 +29,12 @@ public:
 		Rml::DataModelConstructor constructor,
 		CommonConfigPtr ownerConfig,
 		const std::string& listName,
-		FillPropertyList fillFuntion)
+		FillPropertyList fillFuntion,
+		RebuildOnPropertyChangeFunc rebuildOnPropertyChangeFunc = nullptr)
 	{
 		m_objectListName = listName;
 		m_fillFunction = fillFuntion;
+		m_rebuildOnPropertyChangeFunc = rebuildOnPropertyChangeFunc;
 
 		if (!RmlDataBinding::init(constructor))
 		{
@@ -124,7 +127,14 @@ protected:
 		CommonConfigPtr configPtr, 
 		const ConfigPropertyChangeSet& changedPropertySet)
 	{
-		if (changedPropertySet.hasPropertyName(m_objectListName))
+		if (m_rebuildOnPropertyChangeFunc)
+		{
+			if (m_rebuildOnPropertyChangeFunc(changedPropertySet))
+			{
+				rebuildList(false);
+			}
+		}
+		else if (changedPropertySet.hasPropertyName(m_objectListName))
 		{
 			rebuildList(false);
 		}
@@ -134,5 +144,6 @@ private:
 	CommonConfigWeakPtr m_ownerConfig;
 	std::string m_objectListName;
 	FillPropertyList m_fillFunction;
+	RebuildOnPropertyChangeFunc m_rebuildOnPropertyChangeFunc;
 	RmlValueList m_rmlValueList;
 };

@@ -173,8 +173,12 @@ TrackingMountComponentPtr TrackingMountObjectSystem::addNewTrackingMount()
 	TrackingMountObjectSystemConfigPtr config = getTrackingMountSystemConfig();
 	MikanTrackingMountID newTrackingMountId = config->addNewTrackingMount();
 	TrackingMountDefinitionPtr trackingMountDefinition = config->getTrackingMountConfig(newTrackingMountId);
+	TrackingMountComponentPtr trackingMount= createTrackingMountObject(trackingMountDefinition);
 
-	return createTrackingMountObject(trackingMountDefinition);
+	config->markDirty(
+		ConfigPropertyChangeSet().addPropertyName(TrackingMountObjectSystemConfig::k_trackingMountListPropertyId));
+
+	return trackingMount;
 }
 
 bool TrackingMountObjectSystem::removeTrackingMountID(MikanTrackingMountID trackingMountId)

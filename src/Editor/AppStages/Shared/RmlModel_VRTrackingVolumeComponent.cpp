@@ -97,7 +97,7 @@ bool RmlModel_VRTrackingVolumeComponent::setComponent(MikanComponentPtr componen
 		m_markerComponentIdList->setOwnerConfig(getMarkerObjectSystemConfig());
 		m_markerComponentIdList->rebuildList(true);
 
-		m_trackingMountIdList->setOwnerConfig(component->getDefinition());
+		m_trackingMountIdList->setOwnerConfig(component ? component->getDefinition() : CommonConfigPtr());
 		m_trackingMountIdList->rebuildList(true);
 
 		return true;
