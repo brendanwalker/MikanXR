@@ -5,7 +5,7 @@
 #include "ProjectConfig.h"
 
 // -- StageObjectSystemConfig -----
-const std::string StageObjectSystemConfig::k_stageListPropertyId= "stageList";
+const std::string StageObjectSystemConfig::k_stageListPropertyId= "stage_ids";
 
 configuru::Config StageObjectSystemConfig::writeToJSON()
 {
@@ -78,12 +78,12 @@ StageComponentDefinitionPtr StageObjectSystemConfig::getStageConfigByName(const 
 	return StageComponentDefinitionPtr();
 }
 
-MikanSpatialAnchorID StageObjectSystemConfig::addNewStage()
+MikanStageID StageObjectSystemConfig::addNewStage()
 {
 	return addNewStage("Stage" + std::to_string(m_nextStageId));
 }
 
-MikanSpatialAnchorID StageObjectSystemConfig::addNewStage(
+MikanStageID StageObjectSystemConfig::addNewStage(
 	const std::string& stageName)
 {
 	auto stageDefinitionPtr = 
@@ -93,8 +93,6 @@ MikanSpatialAnchorID StageObjectSystemConfig::addNewStage(
 
 	m_stageList.push_back(stageDefinitionPtr);
 	addChildConfig(stageDefinitionPtr);
-
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_stageListPropertyId));
 
 	return stageDefinitionPtr->getStageId();
 }
@@ -112,7 +110,6 @@ bool StageObjectSystemConfig::removeStage(MikanStageID stageId)
 		removeChildConfig(*it);
 
 		m_stageList.erase(it);
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_stageListPropertyId));
 
 		return true;
 	}
@@ -186,7 +183,13 @@ StageComponentPtr StageObjectSystem::addNewStage()
 		StageComponentDefinitionPtr stageConfig = stageSystemConfig->getStageConfig(stageId);
 		assert(stageConfig != nullptr);
 
-		return createStageObject(stageConfig);
+		StageComponentPtr stageComponent= createStageObject(stageConfig);
+
+		// Broadcast that the stage list has changed
+		stageSystemConfig->markDirty(
+			ConfigPropertyChangeSet().addPropertyName(StageObjectSystemConfig::k_stageListPropertyId));
+
+		return stageComponent;
 	}
 
 	return StageComponentPtr();
@@ -194,8 +197,13 @@ StageComponentPtr StageObjectSystem::addNewStage()
 
 bool StageObjectSystem::removeStage(MikanStageID stageId)
 {
-	bool bValidStage= getStageSystemConfig()->removeStage(stageId);
+	StageObjectSystemConfigPtr stageSystemConfig = getStageSystemConfig();
+
+	bool bValidStage= stageSystemConfig->removeStage(stageId);
 	disposeStageObject(stageId);
+
+	stageSystemConfig->markDirty(
+		ConfigPropertyChangeSet().addPropertyName(StageObjectSystemConfig::k_stageListPropertyId));
 
 	return bValidStage;
 }

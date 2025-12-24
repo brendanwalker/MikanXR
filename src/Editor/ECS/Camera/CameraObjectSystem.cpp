@@ -13,7 +13,7 @@
 #include "SceneFwd.h"
 
 // -- CameraObjectSystemConfig -----
-const std::string CameraObjectSystemConfig::k_cameraListPropertyId= "cameras";
+const std::string CameraObjectSystemConfig::k_cameraListPropertyId= "camera_ids";
 
 configuru::Config CameraObjectSystemConfig::writeToJSON()
 {

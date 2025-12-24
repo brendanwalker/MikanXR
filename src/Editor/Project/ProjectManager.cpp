@@ -44,6 +44,7 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	addSystem<SpoutTextureSourceSystem>();
 	addSystem<NetworkVideoSourceSystem>();
 	addSystem<USBVideoSourceSystem>();
+	addSystem<TextureSourceSystem>();
 	addSystem<VideoSourceSystem>();
 	addSystem<MarkerObjectSystem>();
 	addSystem<SceneObjectSystem>();

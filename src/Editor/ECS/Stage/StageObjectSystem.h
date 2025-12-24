@@ -28,8 +28,8 @@ public:
 	static const std::string k_stageListPropertyId;
 	StageComponentDefinitionPtr getStageConfig(MikanStageID stageId) const;
 	StageComponentDefinitionPtr getStageConfigByName(const std::string& stageName) const;
-	MikanSpatialAnchorID addNewStage();
-	MikanSpatialAnchorID addNewStage(const std::string& stageName);
+	MikanStageID addNewStage();
+	MikanStageID addNewStage(const std::string& stageName);
 	bool removeStage(MikanStageID sceneId);
 	const std::vector<StageComponentDefinitionPtr>& getStageList() const { return m_stageList; }
 

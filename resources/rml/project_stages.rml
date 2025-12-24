@@ -5,10 +5,6 @@
 </head>
 <body template="project_panel">
 	<panel>
-		<div class="title-bar">
-			<span class="title">Stages</span>
-		</div>
-
 		<div class="content">
 			<!-- Stages Section -->
 			<div data-model="Stages">

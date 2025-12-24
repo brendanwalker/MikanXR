@@ -33,6 +33,7 @@ bool RmlModel_ProjectTracking::init(
 	TrackingMountObjectSystemPtr trackingMountSystem)
 {
 	TrackingVolumeObjectSystemConfigPtr trackingVolumeConfig= projectConfig->trackingVolumeSystemConfig;
+	TrackingMountObjectSystemConfigPtr trackingMountConfig= projectConfig->trackingMountSystemConfig;
 
 	m_projectConfig = projectConfig;
 	m_trackingVolumeSystem = trackingVolumeSystem;
@@ -47,7 +48,7 @@ bool RmlModel_ProjectTracking::init(
 	m_trackingVolumeIdList->init(
 		constructor, 
 		trackingVolumeConfig,
-		"tracker_volume_ids",
+		"tracker_volume_ids", // virtual property name since this is a composite list
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 			TrackingVolumeObjectSystemConfigPtr trackingConfig = m_projectConfig.lock()->trackingVolumeSystemConfig;
 
@@ -69,7 +70,7 @@ bool RmlModel_ProjectTracking::init(
 	m_trackingMountIdList->init(
 		constructor,
 		CommonConfigPtr(),
-		"tracking_mount_ids",
+		VRTrackingVolumeDefinition::k_trackingMountIdsPropertyId,
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 			if (ownerConfig)
 			{

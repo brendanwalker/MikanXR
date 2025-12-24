@@ -92,7 +92,7 @@ public:
 		m_rmlValueList.clear();
 
 		CommonConfigPtr ownerConfig = m_ownerConfig.lock();
-		if (!ownerConfig)
+		if (ownerConfig)
 		{
 			m_fillFunction(ownerConfig, m_rmlValueList);
 		}

@@ -5,7 +5,7 @@
 #include "ProjectConfig.h"
 
 // -- CompositorObjectSystemConfig -----
-const std::string CompositorObjectSystemConfig::k_compositorListPropertyId= "compositorList";
+const std::string CompositorObjectSystemConfig::k_compositorListPropertyId= "compositor_ids";
 
 configuru::Config CompositorObjectSystemConfig::writeToJSON()
 {

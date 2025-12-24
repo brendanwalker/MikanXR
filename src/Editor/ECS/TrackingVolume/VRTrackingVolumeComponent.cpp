@@ -16,7 +16,7 @@
 const std::string VRTrackingVolumeDefinition::k_charucoMountIdPropertyId = "charucoMountId";
 const std::string VRTrackingVolumeDefinition::k_charucoMountOffsetPropertyId = "charucoMountOffsetMM";
 const std::string VRTrackingVolumeDefinition::k_utilityMarkerIdPropertyId = "utilityMarkerId";
-const std::string VRTrackingVolumeDefinition::k_trackingMountIdsPropertyId = "trackingMountIds";
+const std::string VRTrackingVolumeDefinition::k_trackingMountIdsPropertyId = "tracking_mount_ids";
 
 VRTrackingVolumeDefinition::VRTrackingVolumeDefinition()
 	: TrackingVolumeDefinition()

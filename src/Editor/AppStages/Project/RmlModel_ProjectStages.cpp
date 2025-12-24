@@ -36,6 +36,8 @@ bool RmlModel_ProjectStages::init(
 	CompositorObjectSystemPtr compositorSystem)
 {
 	StageObjectSystemConfigPtr stageConfig = projectConfig->stageConfig;
+	CameraObjectSystemConfigPtr cameraConfig = projectConfig->cameraConfig;
+	CompositorObjectSystemConfigPtr compositorConfig = projectConfig->compositorConfig;
 
 	m_projectConfig = projectConfig;
 	m_stageSystem = stageSystem;
@@ -51,9 +53,10 @@ bool RmlModel_ProjectStages::init(
 	m_stageIdList->init(
 		constructor, 
 		stageConfig,
-		"stage_ids",
+		StageObjectSystemConfig::k_stageListPropertyId,
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			StageObjectSystemConfigPtr stageConfig = m_projectConfig.lock()->stageConfig;
+			StageObjectSystemConfigConstPtr stageConfig = 
+				std::static_pointer_cast<StageObjectSystemConfig>(ownerConfig);
 
 			for (const auto& stagePtr : stageConfig->getStageList())
 			{
@@ -66,40 +69,34 @@ bool RmlModel_ProjectStages::init(
 
 	m_cameraIdList->init(
 		constructor,
-		CommonConfigPtr(),
-		"camera_ids",
+		cameraConfig,
+		CameraObjectSystemConfig::k_cameraListPropertyId,
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			if (ownerConfig)
+			CameraObjectSystemConfigConstPtr cameraConfig =
+				std::static_pointer_cast<CameraObjectSystemConfig>(ownerConfig);
+			
+			for (const auto& cameraPtr : cameraConfig->getCameraList())
 			{
-				auto stageDefinition = std::static_pointer_cast<StageComponentDefinition>(ownerConfig);
-				
-				CameraObjectSystemConfigPtr cameraConfig = m_projectConfig.lock()->cameraConfig;
-				for (const auto& cameraPtr : cameraConfig->getCameraList())
+				if (cameraPtr && cameraPtr->getOwnerStageId() == m_selectedStageId)
 				{
-					if (cameraPtr && cameraPtr->getOwnerStageId() == stageDefinition->getStageId())
-					{
-						outComponentIdList.push_back((int)cameraPtr->getCameraId());
-					}
+					outComponentIdList.push_back((int)cameraPtr->getCameraId());
 				}
 			}
 		});
 
 	m_compositorIdList->init(
 		constructor,
-		CommonConfigPtr(),
-		"compositor_ids",
+		compositorConfig,
+		CompositorObjectSystemConfig::k_compositorListPropertyId,
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			if (ownerConfig)
-			{
-				auto stageDefinition = std::static_pointer_cast<StageComponentDefinition>(ownerConfig);
+			CompositorObjectSystemConfigConstPtr compositorConfig =
+				std::static_pointer_cast<CompositorObjectSystemConfig>(ownerConfig);
 				
-				CompositorObjectSystemConfigPtr compositorConfig = m_projectConfig.lock()->compositorConfig;
-				for (const auto& compositorPtr : compositorConfig->getCompositorList())
+			for (const auto& compositorPtr : compositorConfig->getCompositorList())
+			{
+				if (compositorPtr && compositorPtr->getOwnerStageId() == m_selectedStageId)
 				{
-					if (compositorPtr && compositorPtr->getOwnerStageId() == stageDefinition->getStageId())
-					{
-						outComponentIdList.push_back((int)compositorPtr->getCompositorId());
-					}
+					outComponentIdList.push_back((int)compositorPtr->getCompositorId());
 				}
 			}
 		});
@@ -300,16 +297,14 @@ void RmlModel_ProjectStages::setSelectedStageId(MikanStageID stageId)
 			StageComponentDefinitionPtr stageDefinition= stageComponent->getStageComponentDefinition();
 
 			m_selectedStageModel->setComponent(stageComponent);
-
-			m_cameraIdList->setOwnerConfig(stageDefinition);
-			m_compositorIdList->setOwnerConfig(stageDefinition);
 		}
 		else
 		{
 			m_selectedStageModel->setComponent(nullptr);
-			m_cameraIdList->setOwnerConfig(CommonConfigPtr());
-			m_compositorIdList->setOwnerConfig(CommonConfigPtr());
 		}
+
+		m_cameraIdList->rebuildList();
+		m_compositorIdList->rebuildList();
 	}
 }
 

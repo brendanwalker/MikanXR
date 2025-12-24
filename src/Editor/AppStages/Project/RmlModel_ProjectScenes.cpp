@@ -68,33 +68,27 @@ bool RmlModel_ProjectScenes::init(
 	m_stageIdList->init(
 		constructor,
 		stageSystemPtr->getStageSystemConfig(),
-		"stage_ids",
+		StageObjectSystemConfig::k_stageListPropertyId,
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			if (ownerConfig)
-			{
-				auto stageSystemConfig = std::static_pointer_cast<StageObjectSystemConfig>(ownerConfig);
+			auto stageSystemConfig = std::static_pointer_cast<StageObjectSystemConfig>(ownerConfig);
 
-				for (const StageComponentDefinitionPtr stageComponent : stageSystemConfig->getStageList())
-				{
-					outComponentIdList.push_back((int)stageComponent->getStageId());
-				}
+			for (const StageComponentDefinitionPtr stageComponent : stageSystemConfig->getStageList())
+			{
+				outComponentIdList.push_back((int)stageComponent->getStageId());
 			}
 		});
 	m_sceneIdList->init(
 		constructor,
 		sceneSystemPtr->getSceneSystemConfig(),
-		"scene_ids",
+		SceneObjectSystemConfig::k_sceneListPropertyId,
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			if (ownerConfig)
-			{
-				auto sceneSystemConfig = std::static_pointer_cast<SceneObjectSystemConfig>(ownerConfig);
+			auto sceneSystemConfig = std::static_pointer_cast<SceneObjectSystemConfig>(ownerConfig);
 
-				for (const SceneComponentDefinitionPtr sceneComponent : sceneSystemConfig->getSceneList())
+			for (const SceneComponentDefinitionPtr sceneComponent : sceneSystemConfig->getSceneList())
+			{
+				if (sceneComponent->getParentStageId() == m_selectedStageId)
 				{
-					if (sceneComponent->getParentStageId() == m_selectedStageId)
-					{
-						outComponentIdList.push_back((int)sceneComponent->getSceneId());
-					}
+					outComponentIdList.push_back((int)sceneComponent->getSceneId());
 				}
 			}
 		});

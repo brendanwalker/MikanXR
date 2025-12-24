@@ -14,8 +14,8 @@
 #include "StringUtils.h"
 
 // -- TrackingVolumeObjectSystemConfig -----
-const std::string TrackingVolumeObjectSystemConfig::k_markerTrackingVolumeListPropertyId= "markerTrackingVolumeList";
-const std::string TrackingVolumeObjectSystemConfig::k_vrTrackingVolumeListPropertyId= "vrTrackingVolumeList";
+const std::string TrackingVolumeObjectSystemConfig::k_markerTrackingVolumeListPropertyId= "marker_tracker_volume_ids";
+const std::string TrackingVolumeObjectSystemConfig::k_vrTrackingVolumeListPropertyId= "vr_tracker_volume_ids";
 
 configuru::Config TrackingVolumeObjectSystemConfig::writeToJSON()
 {

@@ -56,14 +56,14 @@ bool RmlModel_ProjectSources::init(
 	m_textureSourceIdList->init(
 		constructor,
 		videoSourceConfig,
-		"texture_source_ids",
+		"texture_source_ids", // virtual list since this is a combination of multiple source types
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 			outComponentIdList = m_textureSourceSystem.lock()->getTextureSourceIdList();
 		});
 	m_textureSourceIdList->init(
 		constructor, 
 		videoSourceConfig,
-		"video_source_ids",
+		"video_source_ids", // virtual list since this is a combination of multiple source types
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 			outComponentIdList= m_videoSourceSystem.lock()->getVideoSourceIdList();
 		});

@@ -53,7 +53,9 @@ bool RmlModel_MikanComponent::setComponent(MikanComponentPtr component)
 	if (component != oldComponent)
 	{
 		m_component = component;
-		m_propertyInterface->setPropertyInterface(component, component->getDefinition());
+		m_propertyInterface->setPropertyInterface(
+			component, 
+			component ? component->getDefinition() : CommonConfigPtr());
 		m_propertyInterface->setFunctionInterface(component);
 
 		return true;

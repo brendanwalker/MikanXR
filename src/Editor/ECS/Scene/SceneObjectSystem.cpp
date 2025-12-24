@@ -5,15 +5,15 @@
 #include "ProjectConfig.h"
 
 // -- SceneObjectSystemConfig -----
-const std::string SceneObjectSystemConfig::k_sceneListPropertyId= "sceneList";
-const std::string SceneObjectSystemConfig::k_currentSceneIdPropertyId = "currentSceneId";
+const std::string SceneObjectSystemConfig::k_sceneListPropertyId= "scene_ids";
+const std::string SceneObjectSystemConfig::k_currentSceneIdPropertyId = "current_scene_id";
 
 configuru::Config SceneObjectSystemConfig::writeToJSON()
 {
 	configuru::Config pt = CommonConfig::writeToJSON();
 
 	pt["next_scene_id"] = m_nextSceneId;
-	pt["current_scene_id"] = m_currentSceneId;
+	pt[SceneObjectSystemConfig::k_currentSceneIdPropertyId] = m_currentSceneId;
 
 	std::vector<configuru::Config> sceneListConfigs;
 	for (auto definitionPtr : m_sceneList)
@@ -30,7 +30,9 @@ void SceneObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 	CommonConfig::readFromJSON(pt);
 
 	m_nextSceneId = pt.get_or<int>("next_scene_id", m_nextSceneId);
-	m_currentSceneId = pt.get_or<MikanSceneID>("current_scene_id", m_currentSceneId);
+	m_currentSceneId = 
+		pt.get_or<MikanSceneID>(
+			SceneObjectSystemConfig::k_currentSceneIdPropertyId, m_currentSceneId);
 
 	// Read in the client video sources
 	m_sceneList.clear();
@@ -101,8 +103,6 @@ MikanSpatialAnchorID SceneObjectSystemConfig::addNewScene(
 	m_sceneList.push_back(sceneDefinitionPtr);
 	addChildConfig(sceneDefinitionPtr);
 
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_sceneListPropertyId));
-
 	return sceneDefinitionPtr->getSceneId();
 }
 
@@ -119,7 +119,6 @@ bool SceneObjectSystemConfig::removeScene(MikanSceneID sceneId)
 		removeChildConfig(*it);
 
 		m_sceneList.erase(it);
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_sceneListPropertyId));
 
 		return true;
 	}
@@ -254,7 +253,13 @@ SceneComponentPtr SceneObjectSystem::addNewScene(
 		SceneComponentDefinitionPtr sceneConfig = sceneSystemConfig->getSceneConfig(sceneId);
 		assert(sceneConfig != nullptr);
 
-		return createSceneObject(sceneConfig);
+		SceneComponentPtr sceneComponent= createSceneObject(sceneConfig);
+
+		// Mark the scene list as dirty
+		sceneSystemConfig->markDirty(
+			ConfigPropertyChangeSet().addPropertyName(SceneObjectSystemConfig::k_sceneListPropertyId));
+
+		return sceneComponent;
 	}
 
 	return SceneComponentPtr();
@@ -262,8 +267,13 @@ SceneComponentPtr SceneObjectSystem::addNewScene(
 
 bool SceneObjectSystem::removeScene(MikanSceneID sceneId)
 {
-	bool bValidScene= getSceneSystemConfig()->removeScene(sceneId);
+	SceneObjectSystemConfigPtr sceneSystemConfig = getSceneSystemConfig();
+
+	bool bValidScene= sceneSystemConfig->removeScene(sceneId);
 	disposeSceneObject(sceneId);
+
+	sceneSystemConfig->markDirty(
+		ConfigPropertyChangeSet().addPropertyName(SceneObjectSystemConfig::k_sceneListPropertyId));
 
 	return bValidScene;
 }
