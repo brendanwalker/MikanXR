@@ -41,7 +41,6 @@ const char* AppStage_VRTrackingRecenter::APP_STAGE_NAME = "VRTrackingRecenter";
 //-- public methods -----
 AppStage_VRTrackingRecenter::AppStage_VRTrackingRecenter(IEditorWindow* ownerWindow)
 	: AppStage(ownerWindow, AppStage_VRTrackingRecenter::APP_STAGE_NAME)
-	, m_calibrationModel(new RmlModel_VRTrackingRecenter)
 	, m_videoSourceComponent()
 	, m_markerPoseSampler(nullptr)
 	, m_monoDistortionView(nullptr)
@@ -53,7 +52,6 @@ AppStage_VRTrackingRecenter::AppStage_VRTrackingRecenter(IEditorWindow* ownerWin
 
 AppStage_VRTrackingRecenter::~AppStage_VRTrackingRecenter()
 {
-	delete m_calibrationModel;
 }
 
 void AppStage_VRTrackingRecenter::setSourceCamera(CameraComponentPtr cameraComponent)
@@ -115,6 +113,7 @@ void AppStage_VRTrackingRecenter::enter()
 		Rml::Context* context = getRmlContext();
 
 		// Init calibration model
+		m_calibrationModel = addRmlModel<RmlModel_VRTrackingRecenter>();
 		m_calibrationModel->init(context);
 		m_calibrationModel->OnBeginEvent = MakeDelegate(this, &AppStage_VRTrackingRecenter::onBeginEvent);
 		m_calibrationModel->OnRestartEvent = MakeDelegate(this, &AppStage_VRTrackingRecenter::onRestartEvent);

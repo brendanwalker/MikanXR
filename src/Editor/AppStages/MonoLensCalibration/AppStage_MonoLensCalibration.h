@@ -53,10 +53,10 @@ protected:
 	bool handleCaptureCommand(std::vector<std::string>& outResults);
 
 private:
-	class RmlModel_MonoLensCalibration* m_calibrationModel = nullptr;
+	class RmlModel_MonoLensCalibration* m_calibrationModel;
 	Rml::ElementDocument* m_calibrationView= nullptr;
 
-	class RmlModel_MonoCameraSettings* m_cameraSettingsModel = nullptr;
+	class RmlModel_MonoCameraSettings* m_cameraSettingsModel;
 	Rml::ElementDocument* m_cameraSettingsView= nullptr;
 
 	VideoSourceComponentPtr m_videoSourceComponent;

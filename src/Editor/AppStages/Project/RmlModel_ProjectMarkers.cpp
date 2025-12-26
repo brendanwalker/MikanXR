@@ -93,7 +93,10 @@ void RmlModel_ProjectMarkers::markerIdListChanged(bool bOwnerChanged)
 		selectedMarkerId = m_markerIdList->getFirstValue();
 	}
 
-	setSelectedMarkerId(selectedMarkerId);
+	// Defer the selection update to post view update after element list refreshes
+	addModelUpdateCallback([this, selectedMarkerId]() {
+		setSelectedMarkerId(selectedMarkerId);
+	});
 }
 
 MarkerObjectSystemPtr RmlModel_ProjectMarkers::getMarkerSystem()

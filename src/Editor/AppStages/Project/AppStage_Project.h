@@ -76,24 +76,24 @@ protected:
 	TrackingMountObjectSystemWeakPtr m_trackingMountSystem;
 	VideoSourceSystemWeakPtr m_videoObjectSystem;
 
-	class RmlModel_Project* m_projectModel = nullptr;
+	class RmlModel_Project* m_projectModel;
 
-	class RmlModel_ProjectScenes* m_projectScenesModel = nullptr;
+	class RmlModel_ProjectScenes* m_projectScenesModel;
 	Rml::ElementDocument* m_projectScenesView = nullptr;
 
-	class RmlModel_ProjectStages* m_projectStagesModel = nullptr;
+	class RmlModel_ProjectStages* m_projectStagesModel;
 	Rml::ElementDocument* m_projectStagesView = nullptr;
 
-	class RmlModel_ProjectSources* m_projectSourcesModel = nullptr;
+	class RmlModel_ProjectSources* m_projectSourcesModel;
 	Rml::ElementDocument* m_projectSourcesView = nullptr;
 
-	class RmlModel_ProjectTracking* m_projectTrackingModel = nullptr;
+	class RmlModel_ProjectTracking* m_projectTrackingModel;
 	Rml::ElementDocument* m_projectTrackingView = nullptr;
 
-	class RmlModel_ProjectMarkers* m_projectMarkersModel = nullptr;
+	class RmlModel_ProjectMarkers* m_projectMarkersModel;
 	Rml::ElementDocument* m_projectMarkersView = nullptr;
 
-	class RmlModel_ProjectSettings* m_projectSettingsModel = nullptr;
+	class RmlModel_ProjectSettings* m_projectSettingsModel;
 	Rml::ElementDocument* m_projectSettingsView = nullptr;
 
 	MikanViewportPtr m_viewport;

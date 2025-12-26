@@ -62,10 +62,10 @@ protected:
 	VRDevicePoseViewPtr makeMatPoseViewFromCamera(CameraComponentPtr m_targetCameraComponent);
 	
 private:
-	class RmlModel_AlignmentCalibration* m_calibrationModel = nullptr;
+	class RmlModel_AlignmentCalibration* m_calibrationModel;
 	Rml::ElementDocument* m_calibrationView = nullptr;
 
-	class RmlModel_AlignmentCameraSettings* m_cameraSettingsModel = nullptr;
+	class RmlModel_AlignmentCameraSettings* m_cameraSettingsModel;
 	Rml::ElementDocument* m_cameraSettingsView = nullptr;
 
 	CameraComponentPtr m_targetCameraComponent;

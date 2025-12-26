@@ -34,8 +34,6 @@ const std::string g_monoLensCalibrationMenuStateStrings[(int)eMonoLensCalibratio
 //-- public methods -----
 AppStage_MonoLensCalibration::AppStage_MonoLensCalibration(IEditorWindow* ownerWindow)
 	: AppStage(ownerWindow, AppStage_MonoLensCalibration::APP_STAGE_NAME)
-	, m_calibrationModel(new RmlModel_MonoLensCalibration)
-	, m_cameraSettingsModel(new RmlModel_MonoCameraSettings)
 	, m_videoSourceComponent()
 	, m_monoLensCalibrator(nullptr)
 	, m_monoDistortionView(nullptr)
@@ -44,8 +42,6 @@ AppStage_MonoLensCalibration::AppStage_MonoLensCalibration(IEditorWindow* ownerW
 
 AppStage_MonoLensCalibration::~AppStage_MonoLensCalibration()
 {
-	delete m_calibrationModel;
-	delete m_cameraSettingsModel;
 }
 
 void AppStage_MonoLensCalibration::setBypassCalibrationFlag(bool flag)
@@ -108,14 +104,16 @@ void AppStage_MonoLensCalibration::enter()
 		Rml::Context* context = getRmlContext();
 
 		// Init calibration model
+		m_calibrationModel = addRmlModel<RmlModel_MonoLensCalibration>();
 		m_calibrationModel->init(context);
 		m_calibrationModel->OnCancelEvent = MakeDelegate(this, &AppStage_MonoLensCalibration::onCancelEvent);
 		m_calibrationModel->OnRestartEvent = MakeDelegate(this, &AppStage_MonoLensCalibration::onRestartEvent);
 		m_calibrationModel->OnReturnEvent = MakeDelegate(this, &AppStage_MonoLensCalibration::onReturnEvent);
-		m_calibrationModel->OnImagePointStabilityChangedEvent = 
+		m_calibrationModel->OnImagePointStabilityChangedEvent =
 			MakeDelegate(this, &AppStage_MonoLensCalibration::onImagePointStabilityChangedEvent);
 
 		// Init camera settings model
+		m_cameraSettingsModel = addRmlModel<RmlModel_MonoCameraSettings>();
 		m_cameraSettingsModel->init(context);
 		m_cameraSettingsModel->OnVideoDisplayModeChanged = MakeDelegate(this, &AppStage_MonoLensCalibration::onVideoDisplayModeChanged);
 

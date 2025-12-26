@@ -52,7 +52,6 @@ const char* AppStage_StencilAlignment::APP_STAGE_NAME = "StencilAlignment";
 //-- public methods -----
 AppStage_StencilAlignment::AppStage_StencilAlignment(IEditorWindow* ownerWindow)
 	: AppStage(ownerWindow, AppStage_StencilAlignment::APP_STAGE_NAME)
-	, m_calibrationModel(new RmlModel_StencilAlignment)
 	, m_videoSourceComponent()
 	, m_stencilAligner(nullptr)
 	, m_monoDistortionView(nullptr)
@@ -65,7 +64,6 @@ AppStage_StencilAlignment::AppStage_StencilAlignment(IEditorWindow* ownerWindow)
 
 AppStage_StencilAlignment::~AppStage_StencilAlignment()
 {
-	delete m_calibrationModel;
 }
 
 void AppStage_StencilAlignment::enter()
@@ -143,6 +141,7 @@ void AppStage_StencilAlignment::enter()
 		Rml::Context* context = getRmlContext();
 
 		// Init calibration model
+		m_calibrationModel = addRmlModel<RmlModel_StencilAlignment>();
 		m_calibrationModel->init(context);
 		m_calibrationModel->OnOkEvent = MakeDelegate(this, &AppStage_StencilAlignment::onOkEvent);
 		m_calibrationModel->OnRedoEvent = MakeDelegate(this, &AppStage_StencilAlignment::onRedoEvent);

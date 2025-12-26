@@ -3,6 +3,8 @@
 #include "RmlFwd.h"
 #include <RmlUi/Config/Config.h>
 #include <RmlUi/Core/DataModelHandle.h>
+#include <functional>
+#include <vector>
 
 class RmlModel
 {
@@ -15,10 +17,13 @@ public:
 
 	Rml::DataModelConstructor init(Rml::Context* rmlContext, const Rml::String& modelName);
 	virtual void dispose();
-	virtual void update() {}
+	virtual void update();
+
+	void addModelUpdateCallback(std::function<void()> callback);
 
 protected:
 	Rml::Context* m_context= nullptr;
 	Rml::DataModelHandle m_modelHandle;
 	Rml::String m_modelName;
+	std::vector<std::function<void()>> m_modelUpdateCallbacks;
 };

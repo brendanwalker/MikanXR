@@ -152,7 +152,10 @@ void RmlModel_ProjectStages::stageIdListChanged(bool bOwnerChanged)
 		selectedStageId = m_stageIdList->getFirstValue();
 	}
 
-	setSelectedStageId(selectedStageId);
+	// Defer the selection update to post view update after element list refreshes
+	addModelUpdateCallback([this, selectedStageId]() {
+		setSelectedStageId(selectedStageId);
+	});
 }
 
 void RmlModel_ProjectStages::cameraIdListChanged(bool bOwnerChanged)
@@ -163,7 +166,11 @@ void RmlModel_ProjectStages::cameraIdListChanged(bool bOwnerChanged)
 	{
 		selectedCameraId = m_cameraIdList->getRmlValueList()[0];
 	}
-	setSelectedCameraId(selectedCameraId);
+
+	// Defer the selection update to post view update after element list refreshes
+	addModelUpdateCallback([this, selectedCameraId]() {
+		setSelectedCameraId(selectedCameraId);
+	});
 }
 
 void RmlModel_ProjectStages::compositorIdListChanged(bool bOwnerChanged)
@@ -174,7 +181,11 @@ void RmlModel_ProjectStages::compositorIdListChanged(bool bOwnerChanged)
 	{
 		selectedCompositorId = m_compositorIdList->getFirstValue();
 	}
-	setSelectedCompositorId(selectedCompositorId);
+
+	// Defer the selection update to post view update after element list refreshes
+	addModelUpdateCallback([this, selectedCompositorId]() {
+		setSelectedCompositorId(selectedCompositorId);
+	});
 }
 
 StageObjectSystemPtr RmlModel_ProjectStages::getStageSystem()

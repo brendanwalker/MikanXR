@@ -5,9 +5,11 @@
 #include "MikanRendererFwd.h"
 #include "ProjectManager.h"
 #include "RmlFwd.h"
+#include "Shared/RmlModel.h"
 
 #include <string>
 #include <vector>
+#include <memory>
 
 //-- typedefs -----
 typedef union SDL_Event SDL_Event;
@@ -58,6 +60,14 @@ public:
 	bool removeRmlDocument(Rml::ElementDocument* doc);
 	virtual void onRmlClickEvent(const std::string& value) {}
 
+	template<typename t_rml_model>
+	t_rml_model* addRmlModel()
+	{
+		t_rml_model* model = new t_rml_model();
+		m_rmlModels.push_back(model);
+		return model;
+	}
+
 	inline ModalDialog* getCurrentModalDialog() const
 	{
 		return (m_modalDialogStack.size() > 0) ? m_modalDialogStack[m_modalDialogStack.size() - 1] : nullptr;
@@ -87,5 +97,6 @@ protected:
 	std::string m_appStageName;
 	MikanViewportList m_viewports;
 	std::vector<Rml::ElementDocument*> m_rmlDocuments;
+	std::vector<RmlModel*> m_rmlModels;
 	std::vector<class ModalDialog*> m_modalDialogStack;
 };

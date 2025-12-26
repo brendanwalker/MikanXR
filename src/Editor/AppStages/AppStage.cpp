@@ -102,6 +102,14 @@ void AppStage::exit()
 		}
 		m_rmlDocuments.clear();
 
+		// Dispose and delete all registered RmlModels
+		for (RmlModel* model : m_rmlModels)
+		{
+			model->dispose();
+			delete model;
+		}
+		m_rmlModels.clear();
+
 		// Force an update to clear all deleted documents
 		getRmlContext()->Update();
 
@@ -211,6 +219,12 @@ void AppStage::update(float deltaSeconds)
 	if (getRmlContext() != nullptr)
 	{
 		getRmlContext()->Update();
+
+		// Update all registered RmlModels after RmlUI context update
+		for (RmlModel* model : m_rmlModels)
+		{
+			model->update();
+		}
 	}
 }
 

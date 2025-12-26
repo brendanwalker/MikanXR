@@ -390,7 +390,10 @@ void RmlModel_ProjectScenes::stageIdListChanged(bool bOwnerChanged)
 		selectedStageId = m_stageIdList->getFirstValue();
 	}
 
-	setSelectedStageId(selectedStageId);
+	// Defer the selection update to post view update after element list refreshes
+	addModelUpdateCallback([this, selectedStageId]() {
+		setSelectedStageId(selectedStageId);
+	});
 }
 
 void RmlModel_ProjectScenes::sceneIdListChanged(bool bOwnerChanged)
@@ -402,7 +405,10 @@ void RmlModel_ProjectScenes::sceneIdListChanged(bool bOwnerChanged)
 		selectedSceneId = m_sceneIdList->getFirstValue();
 	}
 
-	setSelectedSceneId(selectedSceneId);
+	// Defer the selection update to post view update after element list refreshes
+	addModelUpdateCallback([this, selectedSceneId]() {
+		setSelectedSceneId(selectedSceneId);
+	});
 }
 
 StageComponentPtr RmlModel_ProjectScenes::getSelectedStageComponent()

@@ -128,13 +128,19 @@ void RmlModel_ProjectTracking::dispose()
 void RmlModel_ProjectTracking::trackingVolumeIdListChanged(bool bOwnerChanged)
 {
 	MikanTrackingVolumeID selectedTrackingVolumeId = INVALID_MIKAN_ID;
-	if (!m_trackingVolumeIdList->isEmpty() &&
-		!m_trackingVolumeIdList->contains(m_selectedTrackingVolumeId))
+	if (m_trackingVolumeIdList->isEmpty())
+	{
+		selectedTrackingVolumeId = INVALID_MIKAN_ID;
+	}
+	else if (!m_trackingVolumeIdList->contains(m_selectedTrackingVolumeId))
 	{
 		selectedTrackingVolumeId = m_trackingVolumeIdList->getFirstValue();
 	}
 
-	setSelectedTrackingVolumeId(selectedTrackingVolumeId);
+	// Defer the selection update to post view update after element list refreshes
+	addModelUpdateCallback([this, selectedTrackingVolumeId]() {
+		setSelectedTrackingVolumeId(selectedTrackingVolumeId);
+	});
 }
 
 void RmlModel_ProjectTracking::trackingMountIdListChanged(bool bOwnerChanged)
@@ -145,7 +151,11 @@ void RmlModel_ProjectTracking::trackingMountIdListChanged(bool bOwnerChanged)
 	{
 		selectedTrackingMountId = m_trackingMountIdList->getFirstValue();
 	}
-	setSelectedTrackingMountId(selectedTrackingMountId);
+
+	// Defer the selection update to post view update after element list refreshes
+	addModelUpdateCallback([this, selectedTrackingMountId]() {
+		setSelectedTrackingMountId(selectedTrackingMountId);
+	});
 }
 
 TrackingVolumeObjectSystemPtr RmlModel_ProjectTracking::getTrackingVolumeSystem()

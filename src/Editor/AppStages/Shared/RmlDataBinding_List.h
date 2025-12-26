@@ -100,12 +100,12 @@ public:
 			m_fillFunction(ownerConfig, m_rmlValueList);
 		}
 
+		m_modelHandle.DirtyVariable(m_objectListName);
+
 		if (OnChanged)
 		{
 			OnChanged(bOwnerChanged);
 		}
-
-		m_modelHandle.DirtyVariable(m_objectListName);
 	}
 
 	const Rml::Vector<t_element_type>& getRmlValueList() const { return m_rmlValueList; }

@@ -28,11 +28,27 @@ Rml::DataModelConstructor RmlModel::init(Rml::Context* rmlContext, const Rml::St
 }
 
 void RmlModel::dispose()
-{	
+{
 	if (m_context != nullptr && m_modelHandle)
 	{
 		m_context->RemoveDataModel(m_modelName);
 		m_modelHandle = Rml::DataModelHandle(nullptr);
 		m_context= nullptr;
 	}
+
+	m_modelUpdateCallbacks.clear();
+}
+
+void RmlModel::update()
+{
+	for (auto& callback : m_modelUpdateCallbacks)
+	{
+		callback();
+	}
+	m_modelUpdateCallbacks.clear();
+}
+
+void RmlModel::addModelUpdateCallback(std::function<void()> callback)
+{
+	m_modelUpdateCallbacks.push_back(callback);
 }

@@ -43,7 +43,7 @@ protected:
 	void onCancelEvent();
 
 private:
-	class RmlModel_StencilAlignment* m_calibrationModel = nullptr;
+	class RmlModel_StencilAlignment* m_calibrationModel;
 	Rml::ElementDocument* m_calibrationView = nullptr;
 
 	CameraComponentPtr m_cameraComponent;

@@ -117,7 +117,10 @@ void RmlModel_ProjectSources::textureSourceIdListChanged(bool bOwnerChanged)
 		selectedTextureSourceId = m_textureSourceIdList->getFirstValue();
 	}
 
-	setSelectedTextureSourceId(selectedTextureSourceId);
+	// Defer the selection update to post view update after element list refreshes
+	addModelUpdateCallback([this, selectedTextureSourceId]() {
+		setSelectedTextureSourceId(selectedTextureSourceId);
+	});
 }
 
 void RmlModel_ProjectSources::videoSourceIdListChanged(bool bOwnerChanged)
@@ -129,7 +132,10 @@ void RmlModel_ProjectSources::videoSourceIdListChanged(bool bOwnerChanged)
 		selectedVideoSourceId = m_textureSourceIdList->getFirstValue();
 	}
 
-	setSelectedVideoSourceId(selectedVideoSourceId);
+	// Defer the selection update to post view update after element list refreshes
+	addModelUpdateCallback([this, selectedVideoSourceId]() {
+		setSelectedVideoSourceId(selectedVideoSourceId);
+	});
 }
 
 TextureSourceSystemPtr RmlModel_ProjectSources::getTextureSourceSystem()

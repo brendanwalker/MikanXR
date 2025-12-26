@@ -56,8 +56,6 @@ static const char* k_calibration_pattern_names[] = {
 //-- public methods -----
 AppStage_AlignmentCalibration::AppStage_AlignmentCalibration(IEditorWindow* ownerWindow)
 	: AppStage(ownerWindow, AppStage_AlignmentCalibration::APP_STAGE_NAME)
-	, m_calibrationModel(new RmlModel_AlignmentCalibration)
-	, m_cameraSettingsModel(new RmlModel_AlignmentCameraSettings)
 	, m_targetCameraComponent()
 	, m_videoSourceComponent()
 	, m_trackerPoseCalibrator(nullptr)
@@ -71,8 +69,6 @@ AppStage_AlignmentCalibration::AppStage_AlignmentCalibration(IEditorWindow* owne
 
 AppStage_AlignmentCalibration::~AppStage_AlignmentCalibration()
 {
-	delete m_calibrationModel;
-	delete m_cameraSettingsModel;
 }
 
 void AppStage_AlignmentCalibration::setBypassCalibrationFlag(bool flag)
@@ -153,15 +149,17 @@ void AppStage_AlignmentCalibration::enter()
 		Rml::Context* context = getRmlContext();
 
 		// Init calibration model
+		m_calibrationModel = addRmlModel<RmlModel_AlignmentCalibration>();
 		m_calibrationModel->init(context);
 		m_calibrationModel->OnBeginEvent = MakeDelegate(this, &AppStage_AlignmentCalibration::onBeginEvent);
 		m_calibrationModel->OnRestartEvent = MakeDelegate(this, &AppStage_AlignmentCalibration::onRestartEvent);
 		m_calibrationModel->OnCancelEvent = MakeDelegate(this, &AppStage_AlignmentCalibration::onCancelEvent);
 		m_calibrationModel->OnReturnEvent = MakeDelegate(this, &AppStage_AlignmentCalibration::onReturnEvent);
-		m_calibrationModel->OnChessboardStabilityChangedEvent = 
+		m_calibrationModel->OnChessboardStabilityChangedEvent =
 			MakeDelegate(this, &AppStage_AlignmentCalibration::onChessboardStabilityChangedEvent);
 
 		// Init camera settings model
+		m_cameraSettingsModel = addRmlModel<RmlModel_AlignmentCameraSettings>();
 		m_cameraSettingsModel->init(context, m_targetCameraComponent->getCameraDefinition());
 		m_cameraSettingsModel->OnViewpointModeChanged = MakeDelegate(this, &AppStage_AlignmentCalibration::onViewportModeChanged);
 		m_cameraSettingsModel->OnVRFrameDelayChanged = MakeDelegate(this, &AppStage_AlignmentCalibration::onVRFrameDelayChanged);

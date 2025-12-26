@@ -56,7 +56,7 @@ protected:
 	bool handleRestartCommand(std::vector<std::string>& outResults);
 	
 private:
-	class RmlModel_VRTrackingRecenter* m_calibrationModel = nullptr;
+	class RmlModel_VRTrackingRecenter* m_calibrationModel;
 	Rml::ElementDocument* m_calibrationView = nullptr;
 
 	MikanStageID m_targetStageId = INVALID_MIKAN_ID;

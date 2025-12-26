@@ -16,7 +16,7 @@ public:
 	RmlModel_ProjectTracking();
 
 	bool init(
-		Rml::Context* rmlContext, 
+		Rml::Context* rmlContext,
 		ProjectConfigPtr projectConfig,
 		TrackingVolumeObjectSystemPtr trackingVolumeSystem,
 		TrackingMountObjectSystemPtr trackingMountSystem);
