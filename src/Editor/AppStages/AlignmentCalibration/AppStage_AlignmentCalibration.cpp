@@ -658,7 +658,7 @@ VRDevicePoseViewPtr AppStage_AlignmentCalibration::makeMatPoseViewFromCamera(Cam
 
 				if (matTrackingPuck)
 				{
-					return matTrackingPuck->makePoseView(eVRDevicePoseSpace::VRTrackingVolume);
+					return matTrackingPuck->makePoseView(eVRDevicePoseSpace::VRTrackingSystemPose);
 				}
 			}
 		}

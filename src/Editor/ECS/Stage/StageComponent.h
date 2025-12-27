@@ -50,6 +50,7 @@ public:
 	inline static const std::string k_componentClassName = "StageComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
+	TrackingVolumeComponentConstPtr getTrackingVolumeConst() const;
 	TrackingVolumeDefinitionConstPtr getTrackingVolumeDefinitionConst() const;
 
 	// -- MikanComponent ----
@@ -63,7 +64,6 @@ public:
 	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const Rml::Variant& inValue) override;
 
 	// -- IRmlFunctionInterface ----
-	static const std::string k_alignStageFunctionId;
 	static const std::string k_deleteStageFunctionId;
 	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outPropertyNames);
 	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
@@ -71,6 +71,5 @@ public:
 	// -- StageComponent ----
 	MikanStageID getStageId() const;
 	void setTrackingVolumeId(MikanTrackingVolumeID volumeId);
-	void alignStage();
 	void deleteStage();
 };

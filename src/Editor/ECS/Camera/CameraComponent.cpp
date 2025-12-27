@@ -339,12 +339,12 @@ bool CameraComponent::getAperturePose(
 	glm::mat4 vrDevicePose;
 	switch (space)
 	{
-	case eVRDevicePoseSpace::MikanScene:
+	case eVRDevicePoseSpace::MikanTrackingVolumePose:
 		bValidPose = m_trackingMountPoseView_SceneSpace->getPose(
 			getSelfPtr<const CameraComponent>(),
 			vrDevicePose);
 		break;
-	case eVRDevicePoseSpace::VRTrackingVolume:
+	case eVRDevicePoseSpace::VRTrackingSystemPose:
 		bValidPose = m_trackingMountPoseView_VRSpace->getPose(
 			getSelfPtr<const CameraComponent>(),
 			vrDevicePose);
@@ -462,13 +462,13 @@ void CameraComponent::refreshTrackingMount()
 			// Tracking mount pose in the space of the stage the camera is in
 			m_trackingMountPoseView_SceneSpace = 
 				vrDeviceComponent->makePoseView(
-					eVRDevicePoseSpace::MikanScene,
+					eVRDevicePoseSpace::MikanTrackingVolumePose,
 					trackingMount->getSocketName());
 
 			// Tracking mount pose in the space of the VR tracking system
 			m_trackingMountPoseView_VRSpace =
 				vrDeviceComponent->makePoseView(
-					eVRDevicePoseSpace::VRTrackingVolume,
+					eVRDevicePoseSpace::VRTrackingSystemPose,
 					trackingMount->getSocketName());
 		}
 	}

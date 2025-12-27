@@ -1,25 +1,35 @@
 #include "VRTrackingVolumeComponent.h"
-#include "App.h"
+#include "CameraObjectSystem.h"
 #include "MarkerObjectSystem.h"
+#include "MathGLM.h"
 #include "MathTypeConversion.h"
 #include "MikanObject.h"
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
+#include "ModalSelectCamera/ModalDialog_SelectCamera.h"
 #include "ProjectConfig.h"
 #include "SelectionComponent.h"
 #include "StringUtils.h"
+#include "VRTrackingRecenter/AppStage_VRTrackingRecenter.h"
 
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Variant.h>
 
 // -- VRTrackingVolumeDefinition -----
-const std::string VRTrackingVolumeDefinition::k_charucoMountIdPropertyId = "charucoMountId";
-const std::string VRTrackingVolumeDefinition::k_charucoMountOffsetPropertyId = "charucoMountOffsetMM";
-const std::string VRTrackingVolumeDefinition::k_utilityMarkerIdPropertyId = "utilityMarkerId";
+const std::string VRTrackingVolumeDefinition::k_trackingRuntimePropertyId = "tracking_runtime";
+const std::string VRTrackingVolumeDefinition::k_charucoMountIdPropertyId = "charuco_mount_id";
+const std::string VRTrackingVolumeDefinition::k_charucoMountOffsetPropertyId = "charuco_mount_offset_mm";
+const std::string VRTrackingVolumeDefinition::k_utilityMarkerIdPropertyId = "utility_marker_id";
 const std::string VRTrackingVolumeDefinition::k_trackingMountIdsPropertyId = "tracking_mount_ids";
+const std::string VRTrackingVolumeDefinition::k_vrDevicePoseOffsetPropertyId = "vr_device_pose_offset";
 
 VRTrackingVolumeDefinition::VRTrackingVolumeDefinition()
 	: TrackingVolumeDefinition()
+	, m_vrDevicePoseOffset({
+		1.f, 0.f, 0.f, 0.f,
+		0.f, 1.f, 0.f, 0.f,
+		0.f, 0.f, 1.f, 0.f,
+		0.f, 0.f, 0.f, 1.f})
 {
 }
 
@@ -36,6 +46,11 @@ VRTrackingVolumeDefinition::VRTrackingVolumeDefinition(
 		DEFAULT_PUCK_VERTICAL_OFFSET_MM,
 		DEFAULT_PUCK_DEPTH_OFFSET_MM
 		})
+	, m_vrDevicePoseOffset({
+		1.f, 0.f, 0.f, 0.f,
+		0.f, 1.f, 0.f, 0.f,
+		0.f, 0.f, 1.f, 0.f,
+		0.f, 0.f, 0.f, 1.f })
 {
 }
 
@@ -48,12 +63,13 @@ configuru::Config VRTrackingVolumeDefinition::writeToJSON()
 {
 	configuru::Config pt = TrackingVolumeDefinition::writeToJSON();
 
-	pt["tracking_runtime"] = k_trackingRuntimeStrings[(int)m_trackingRuntime];
-	pt["charuco_mount_id"] = m_charucoMountId;
-	pt["utility_marker_id"] = m_utilityMarkerId;
+	pt[k_trackingRuntimePropertyId] = k_trackingRuntimeStrings[(int)m_trackingRuntime];
+	pt[k_charucoMountIdPropertyId] = m_charucoMountId;
+	pt[k_utilityMarkerIdPropertyId] = m_utilityMarkerId;
 
-	writeVector3f(pt, "charuco_mount_offset_mm", m_charucoMountOffsetMM);
-	writeStdValueVector(pt, "tracking_mount_ids", m_trackingMountIDs);
+	writeVector3f(pt, k_charucoMountOffsetPropertyId.c_str(), m_charucoMountOffsetMM);
+	writeStdValueVector(pt, k_trackingMountIdsPropertyId.c_str(), m_trackingMountIDs);
+	writeMatrix4f(pt, k_vrDevicePoseOffsetPropertyId.c_str(), m_vrDevicePoseOffset);
 
 	return pt;
 }
@@ -63,14 +79,24 @@ void VRTrackingVolumeDefinition::readFromJSON(const configuru::Config& pt)
 	TrackingVolumeDefinition::readFromJSON(pt);
 
 	const std::string trackingRuntimeString =
-		pt.get_or<std::string>("tracking_runtime", k_trackingRuntimeStrings[0]);
+		pt.get_or<std::string>(k_trackingRuntimePropertyId.c_str(), k_trackingRuntimeStrings[0]);
 	m_trackingRuntime =
 		StringUtils::FindEnumValue<eTrackingRuntime>(trackingRuntimeString, k_trackingRuntimeStrings);
-	m_charucoMountId = pt.get_or<MikanTrackingMountID>("charuco_mount_id", INVALID_MIKAN_ID);
-	m_utilityMarkerId = pt.get_or<MikanMarkerID>("utility_marker_id", INVALID_MIKAN_ID);
+	m_charucoMountId = pt.get_or<MikanTrackingMountID>(k_charucoMountIdPropertyId.c_str(), INVALID_MIKAN_ID);
+	m_utilityMarkerId = pt.get_or<MikanMarkerID>(k_utilityMarkerIdPropertyId.c_str(), INVALID_MIKAN_ID);
 
-	readVector3f(pt, "charuco_mount_offset_mm", m_charucoMountOffsetMM);
-	readStdValueVector(pt, "tracking_mount_ids", m_trackingMountIDs);
+	readVector3f(pt, k_charucoMountOffsetPropertyId.c_str(), m_charucoMountOffsetMM);
+	readStdValueVector(pt, k_trackingMountIdsPropertyId.c_str(), m_trackingMountIDs);
+	readMatrix4f(pt, k_vrDevicePoseOffsetPropertyId.c_str(), m_vrDevicePoseOffset);
+}
+
+void VRTrackingVolumeDefinition::setTrackingRuntime(eTrackingRuntime runtime)
+{
+	if (runtime != m_trackingRuntime)
+	{
+		m_trackingRuntime = runtime;
+		markDirty(ConfigPropertyChangeSet().addPropertyName(k_trackingRuntimePropertyId));
+	}
 }
 
 void VRTrackingVolumeDefinition::setCharucoTrackingMountId(MikanTrackingMountID mountId)
@@ -123,17 +149,41 @@ bool VRTrackingVolumeDefinition::removeTrackingMountID(MikanTrackingMountID moun
 	return false;
 }
 
+void VRTrackingVolumeDefinition::setVRDevicePoseOffset(const MikanMatrix4f& poseOffset)
+{
+	m_vrDevicePoseOffset = poseOffset;
+	markDirty(ConfigPropertyChangeSet().addPropertyName(k_vrDevicePoseOffsetPropertyId));
+}
+
 // -- VRTrackingVolumeComponent -----
 VRTrackingVolumeComponent::VRTrackingVolumeComponent(MikanObjectWeakPtr owner)
 	: TrackingVolumeComponent(owner)
 {
 }
 
+glm::mat4 VRTrackingVolumeComponent::getVRDevicePoseOffset() const
+{ 
+	return m_vrDevicePoseOffset.getMat4(); 
+}
+
+void VRTrackingVolumeComponent::setVRDevicePoseOffset(const glm::mat4& poseOffset)
+{
+	m_vrDevicePoseOffset = GlmTransform(poseOffset);
+	getVRTrackingVolumeDefinition()->setVRDevicePoseOffset(glm_mat4_to_MikanMatrix4f(poseOffset));
+}
+
 // -- IRmlPropertyInterface ----
+const std::string VRTrackingVolumeComponent::k_vrDevicePositionOffsetPropertyId= "vr_device_position_offset";
+const std::string VRTrackingVolumeComponent::k_vrDeviceRotationOffsetPropertyId= "vr_device_rotation_offset";
+
 void VRTrackingVolumeComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
 {
 	TrackingVolumeComponent::getRmlPropertyDescriptors(outDescriptors);
 
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			VRTrackingVolumeDefinition::k_trackingRuntimePropertyId)
+		->setReadOnly());
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
 			VRTrackingVolumeDefinition::k_charucoMountIdPropertyId));
@@ -144,6 +194,15 @@ void VRTrackingVolumeComponent::getRmlPropertyDescriptors(std::vector<RmlPropert
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
 			VRTrackingVolumeDefinition::k_utilityMarkerIdPropertyId));
+
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(k_vrDevicePositionOffsetPropertyId)
+		->setDefaultValue(Rml::Vector3f(0.f))
+		->setReadOnly());
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(k_vrDeviceRotationOffsetPropertyId)
+		->setDefaultValue(Rml::Vector3f(0.f))
+		->setReadOnly());
 }
 
 bool VRTrackingVolumeComponent::getPropertyValueFromRml(
@@ -152,7 +211,12 @@ bool VRTrackingVolumeComponent::getPropertyValueFromRml(
 {
 	const std::string& propertyName = propertyDesc->getName();
 
-	if (propertyName == VRTrackingVolumeDefinition::k_charucoMountIdPropertyId)
+	if (propertyName == VRTrackingVolumeDefinition::k_trackingRuntimePropertyId)
+	{
+		outValue = (int)getVRTrackingVolumeDefinition()->getTrackingRuntime();
+		return true;
+	}
+	else if (propertyName == VRTrackingVolumeDefinition::k_charucoMountIdPropertyId)
 	{
 		outValue = getVRTrackingVolumeDefinition()->getCharucoTrackingMountId();
 		return true;
@@ -168,6 +232,23 @@ bool VRTrackingVolumeComponent::getPropertyValueFromRml(
 		outValue = getVRTrackingVolumeDefinition()->getUtilityMarkerId();
 		return true;
 	}
+	else if (propertyName == k_vrDevicePositionOffsetPropertyId)
+	{
+		const glm::vec3 positionOffset = m_vrDevicePoseOffset.getPosition();
+		outValue = Rml::Vector3f(positionOffset.x, positionOffset.y, positionOffset.z);
+		return true;
+	}
+	else if (propertyName == k_vrDeviceRotationOffsetPropertyId)
+	{
+		float angles[3]{};
+		glm_quat_to_euler_angles(m_vrDevicePoseOffset.getRotation(), angles[0], angles[1], angles[2]);
+		angles[0] *= k_radians_to_degrees;
+		angles[1] *= k_radians_to_degrees;
+		angles[2] *= k_radians_to_degrees;
+
+		outValue = Rml::Vector3f(angles[0], angles[1], angles[2]);
+		return true;
+	}
 
 	return TrackingVolumeComponent::getPropertyValueFromRml(propertyDesc, outValue);
 }
@@ -178,7 +259,12 @@ bool VRTrackingVolumeComponent::setPropertyValueFromRml(
 {
 	const std::string& propertyName = propertyDesc->getName();
 
-	if (propertyName == VRTrackingVolumeDefinition::k_charucoMountIdPropertyId)
+	if (propertyName == VRTrackingVolumeDefinition::k_trackingRuntimePropertyId)
+	{
+		getVRTrackingVolumeDefinition()->setTrackingRuntime((eTrackingRuntime)inValue.Get<int>());
+		return true;
+	}
+	else if (propertyName == VRTrackingVolumeDefinition::k_charucoMountIdPropertyId)
 	{
 		getVRTrackingVolumeDefinition()->setCharucoTrackingMountId(inValue.Get<int>());
 		return true;
@@ -197,4 +283,44 @@ bool VRTrackingVolumeComponent::setPropertyValueFromRml(
 	}
 
 	return TrackingVolumeComponent::setPropertyValueFromRml(propertyDesc, inValue);
+}
+
+// -- IRmlFunctionInterface ----
+const std::string VRTrackingVolumeComponent::k_alignTrackingVolumeFunctionId= "align_tracking_volume";
+
+void VRTrackingVolumeComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
+{
+	TrackingVolumeComponent::getRmlFunctionDescriptors(outDescriptors);
+
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_alignTrackingVolumeFunctionId, "Align Tracking Volume"));
+}
+
+bool VRTrackingVolumeComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
+{
+	const std::string& functionId = functionDesc->getFunctionName();
+
+	if (functionId == k_alignTrackingVolumeFunctionId)
+	{
+		alignTrackingVolume();
+		return true;
+	}
+
+	return TrackingVolumeComponent::invokeFunctionFromRml(functionDesc);
+}
+
+void VRTrackingVolumeComponent::alignTrackingVolume()
+{
+	ModalDialog_SelectCamera::selectCamera(
+		[this](MikanCameraID cameraId) {
+			const MikanTrackingVolumeID volumeId = getTrackingVolumeDefinition()->getTrackingVolumeId();
+			CameraComponentPtr cameraComponent = getObjectSystemOfType<CameraObjectSystem>()->getCameraById(cameraId);
+
+			AppStage_VRTrackingRecenter* vrTrackingRecenterStage =
+				getOwnerEditorWindow()->pushAppStageOfType<AppStage_VRTrackingRecenter>();
+
+			vrTrackingRecenterStage->setSourceCamera(cameraComponent);
+			vrTrackingRecenterStage->setTargetVRTrackingVolumeId(volumeId);
+		});
 }

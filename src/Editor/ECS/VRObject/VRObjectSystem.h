@@ -35,14 +35,6 @@ public:
 	eTrackingRuntime getTrackingRuntimeType() const { return m_trackingRuntime; }
 	void setTrackingRuntimeType(eTrackingRuntime runtimeType);
 
-	// TODO: Remove this
-	const std::string& getDefaultVRObjectSocketName() const;
-
-	// TODO: Move this to stage
-	static const std::string k_vrDevicePoseOffsetPropertyId;
-	MikanMatrix4f getVRDevicePoseOffset() const { return m_vrDevicePoseOffset; }
-	void setVRDevicePoseOffset(const MikanMatrix4f& poseOffset);
-
 	static const std::string k_vrDeviceListPropertyId;
 	std::vector<VRDeviceDefinitionPtr> vrDeviceList;
 
@@ -57,7 +49,6 @@ public:
 protected:
 	eTrackingRuntime m_trackingRuntime = eTrackingRuntime::INVALID;
 	MikanVRDeviceID m_nextVRDeviceId= 0;
-	MikanMatrix4f m_vrDevicePoseOffset;
 	bool m_bDebugRenderVRs = true;
 };
 

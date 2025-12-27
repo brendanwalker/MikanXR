@@ -1,14 +1,10 @@
-#include "CameraObjectSystem.h"
 #include "StageComponent.h"
-#include "ModalSelectCamera/ModalDialog_SelectCamera.h"
 #include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
-#include "MikanCamera.h"
 #include "MikanObject.h"
 #include "SelectionComponent.h"
 #include "TransformComponent.h"
-#include "VRTrackingRecenter/AppStage_VRTrackingRecenter.h"
 
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Variant.h>
@@ -113,7 +109,7 @@ bool StageComponent::setPropertyValueFromRml(
 	return TransformComponent::setPropertyValueFromRml(propertyDesc, inValue);
 }
 
-TrackingVolumeDefinitionConstPtr StageComponent::getTrackingVolumeDefinitionConst() const
+TrackingVolumeComponentConstPtr StageComponent::getTrackingVolumeConst() const
 {
 	MikanTrackingVolumeID trackingVolumeId = getStageComponentDefinitionConst()->getTrackingVolumeId();
 	if (trackingVolumeId != INVALID_MIKAN_ID)
@@ -122,24 +118,31 @@ TrackingVolumeDefinitionConstPtr StageComponent::getTrackingVolumeDefinitionCons
 		TrackingVolumeObjectSystemPtr trackingVolumeSystem = systemManager->getSystemOfType<TrackingVolumeObjectSystem>();
 		if (trackingVolumeSystem)
 		{
-			return trackingVolumeSystem->getTrackingVolumeSystemConfigConst()->getTrackingVolumeDefinitionConst(trackingVolumeId);
+			return trackingVolumeSystem->getTrackingVolumeById(trackingVolumeId);
 		}
 	}
 
-	return nullptr;
+	return TrackingVolumeComponentConstPtr();
+}
+
+TrackingVolumeDefinitionConstPtr StageComponent::getTrackingVolumeDefinitionConst() const
+{
+	TrackingVolumeComponentConstPtr trackingVolume= getTrackingVolumeConst();
+	if (trackingVolume)
+	{
+		return trackingVolume->getTrackingVolumeDefinition();
+	}
+
+	return TrackingVolumeDefinitionConstPtr();
 }
 
 // -- IRmlFunctionInterface ----
-const std::string StageComponent::k_alignStageFunctionId = "align_stage";
 const std::string StageComponent::k_deleteStageFunctionId = "delete_stage";
 
 void StageComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
 {
 	MikanComponent::getRmlFunctionDescriptors(outDescriptors);
 
-	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
-			k_alignStageFunctionId, "Align Stage"));
 	outDescriptors.push_back(
 		std::make_shared<RmlFunctionDescriptor>(
 			k_deleteStageFunctionId, "Delete Stage"));
@@ -149,12 +152,7 @@ bool StageComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functio
 {
 	const std::string& functionId = functionDesc->getFunctionName();
 
-	if (functionId == k_alignStageFunctionId)
-	{
-		alignStage();
-		return true;
-	}
-	else if (functionId == k_deleteStageFunctionId)
+	if (functionId == k_deleteStageFunctionId)
 	{
 		deleteStage();
 		return true;
@@ -171,23 +169,6 @@ MikanStageID StageComponent::getStageId() const
 void StageComponent::setTrackingVolumeId(MikanTrackingVolumeID volumeId)
 {
 	getStageComponentDefinition()->setTrackingVolumeId(volumeId);
-}
-
-void StageComponent::alignStage()
-{
-	ModalDialog_SelectCamera::selectCamera(
-		[this](MikanCameraID cameraId) {
-			const MikanStageID stageId = getStageComponentDefinition()->getStageId();
-			CameraComponentPtr cameraComponent= CameraObjectSystem::getSystem()->getCameraById(cameraId);
-
-			AppStage_VRTrackingRecenter* vrTrackingRecenterStage =
-				MainWindow::getInstance()->pushAppStageOfType<AppStage_VRTrackingRecenter>();
-
-			vrTrackingRecenterStage->setSourceCamera(cameraComponent);
-			vrTrackingRecenterStage->setTargetStageId(stageId);
-		});
-
-
 }
 
 void StageComponent::deleteStage()

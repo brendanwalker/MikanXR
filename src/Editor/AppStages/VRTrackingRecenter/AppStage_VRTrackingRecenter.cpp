@@ -23,6 +23,7 @@
 #include "MathGLM.h"
 #include "CalibrationPatternFinder.h"
 #include "TextStyle.h"
+#include "TrackingVolumeObjectSystem.h"
 #include "VideoFrameDistortionView.h"
 #include "VRObjectSystem.h"
 #include "VideoSourceComponent.h"
@@ -175,7 +176,7 @@ void AppStage_VRTrackingRecenter::updateCameraPose()
 			{
 				// Use the re-centered scene space for the camera
 				glm::mat4 cameraPose;
-				if (m_cameraComponent->getAperturePose(cameraPose, eVRDevicePoseSpace::MikanScene))
+				if (m_cameraComponent->getAperturePose(cameraPose, eVRDevicePoseSpace::MikanTrackingVolumePose))
 				{
 					m_mkCamera->setCameraTransform(cameraPose);
 				}
@@ -233,9 +234,15 @@ void AppStage_VRTrackingRecenter::update(float deltaSeconds)
 						glm::mat4 glmXform= glm_mat4_from_pose(glmOrientation, glmPosition);
 						glm::mat4 glmVRDevicePoseOffset= glm::inverse(glmXform);
 
-						// Publish the new VR device pose offset to the profile config
-						auto vrSystemConfig = getSystemOfType<VRObjectSystem>()->getVRSystemConfig();
-						vrSystemConfig->setVRDevicePoseOffset(glm_mat4_to_MikanMatrix4f(glmVRDevicePoseOffset));
+						// Publish the new VR device pose offset to the target tracking volume
+						if (m_targetVolumeId != INVALID_MIKAN_ID)
+						{
+							auto trackingVolumeSystem = getSystemOfType<TrackingVolumeObjectSystem>();
+							VRTrackingVolumeComponentPtr trackingVolume =
+								trackingVolumeSystem->getVRTrackingVolumeById(m_targetVolumeId);
+
+							trackingVolume->setVRDevicePoseOffset(glmVRDevicePoseOffset);
+						}
 
 						setMenuState(eVRTrackingRecenterMenuState::testCalibration);
 					}

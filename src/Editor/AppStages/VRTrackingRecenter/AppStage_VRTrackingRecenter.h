@@ -24,7 +24,7 @@ public:
 	virtual ~AppStage_VRTrackingRecenter();
 
 	void setSourceCamera(CameraComponentPtr cameraComponent);
-	inline void setTargetStageId(MikanStageID stageId) { m_targetStageId = stageId; }
+	inline void setTargetVRTrackingVolumeId(MikanTrackingVolumeID volumeId) { m_targetVolumeId = volumeId; }
 
 	virtual void enter() override;
 	virtual void exit() override;
@@ -59,7 +59,7 @@ private:
 	class RmlModel_VRTrackingRecenter* m_calibrationModel;
 	Rml::ElementDocument* m_calibrationView = nullptr;
 
-	MikanStageID m_targetStageId = INVALID_MIKAN_ID;
+	MikanTrackingVolumeID m_targetVolumeId = INVALID_MIKAN_ID;
 	bool m_bHasModifiedCameraSettings= false;
 
 	CameraComponentPtr m_cameraComponent;

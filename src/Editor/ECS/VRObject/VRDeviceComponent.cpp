@@ -158,24 +158,6 @@ bool VRDeviceComponent::getSocketRelativePoseByName(const std::string& socketNam
 	return false;
 }
 
-bool VRDeviceComponent::getDefaultSocketRelativePose(glm::mat4& outPose) const
-{
-	if (m_vrDeviceInterface != nullptr)
-	{
-		auto config = getObjectSystemOfType<VRObjectSystem>()->getVRSystemConfigConst();
-		if (config)
-		{
-			// Get the default pose in VR Tracking space
-			return 
-				getSocketRelativePoseByName(
-					config->getDefaultVRObjectSocketName(),
-					outPose);
-		}
-	}
-
-	return false;
-}
-
 VRDevicePoseViewPtr VRDeviceComponent::makePoseView(
 	eVRDevicePoseSpace space,
 	const std::string& socketName) const

@@ -152,12 +152,12 @@ bool MonoLensTrackerPoseCalibrator::computeCameraToPuckXform()
 
 	// Fetch the calibration poses from the devices
 	glm::dmat4 cameraPuckXform_VRSpace;
-	if (!m_cameraComponent->getAperturePose(cameraPuckXform_VRSpace, eVRDevicePoseSpace::VRTrackingVolume))
+	if (!m_cameraComponent->getAperturePose(cameraPuckXform_VRSpace, eVRDevicePoseSpace::VRTrackingSystemPose))
 	{
 		return false;
 	}
 	glm::dmat4 matPuckXform_VRSpace;
-	assert(m_matTrackingPuckPoseView->getPoseSpace() == eVRDevicePoseSpace::VRTrackingVolume);
+	assert(m_matTrackingPuckPoseView->getPoseSpace() == eVRDevicePoseSpace::VRTrackingSystemPose);
 	if (!m_matTrackingPuckPoseView->getPose(m_cameraComponent, matPuckXform_VRSpace))
 	{
 		return false;
@@ -233,7 +233,7 @@ bool MonoLensTrackerPoseCalibrator::getLastCameraPose(
 	glm::mat4& outCameraPose) const
 {
 	assert(attachedVRDevicePtr);
-	assert(attachedVRDevicePtr->getPoseSpace() == eVRDevicePoseSpace::VRTrackingVolume);
+	assert(attachedVRDevicePtr->getPoseSpace() == eVRDevicePoseSpace::VRTrackingSystemPose);
 
 	glm::mat4 vrDevicePose;
 	if (attachedVRDevicePtr->getPose(m_cameraComponent, vrDevicePose))
@@ -315,7 +315,7 @@ void MonoLensTrackerPoseCalibrator::renderVRSpaceCalibrationState()
 
 	// Draw the camera puck transform
 	glm::mat4 cameraPuckXform;
-	if (m_cameraComponent->getAperturePose(cameraPuckXform, eVRDevicePoseSpace::VRTrackingVolume))
+	if (m_cameraComponent->getAperturePose(cameraPuckXform, eVRDevicePoseSpace::VRTrackingSystemPose))
 	{
 		drawTransformedAxes(cameraPuckXform, 0.1f);
 	}

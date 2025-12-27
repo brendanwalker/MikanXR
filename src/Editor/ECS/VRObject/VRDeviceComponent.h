@@ -59,7 +59,6 @@ public:
 	void rebuildSockets();
 	void getSocketNames(std::vector<std::string>& outSocketNames) const;
 	bool getSocketRelativePoseByName(const std::string& socketName, glm::mat4& outPose) const;
-	bool getDefaultSocketRelativePose(glm::mat4& outPose) const;
 	VRDevicePoseViewPtr makePoseView(
 		eVRDevicePoseSpace space,
 		const std::string& socketName= "") const;

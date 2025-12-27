@@ -19,18 +19,11 @@
 
 // -- VRObjectSystemConfig -----
 const std::string VRObjectSystemConfig::k_trackerRuntimePropertyId = "currentTrackingRuntime";
-const std::string VRObjectSystemConfig::k_vrDevicePoseOffsetPropertyId = "vrDevicePoseOffset";
 const std::string VRObjectSystemConfig::k_vrDeviceListPropertyId = "vrDeviceList";
 
 VRObjectSystemConfig::VRObjectSystemConfig(const std::string& configName)
 	: MikanObjectSystemDefinition(configName)
 {
-	m_vrDevicePoseOffset = {
-		1.f, 0.f, 0.f, 0.f,
-		0.f, 1.f, 0.f, 0.f,
-		0.f, 0.f, 1.f, 0.f,
-		0.f, 0.f, 0.f, 1.f,
-	};
 }
 
 configuru::Config VRObjectSystemConfig::writeToJSON()
@@ -39,7 +32,6 @@ configuru::Config VRObjectSystemConfig::writeToJSON()
 
 	// Tracker
 	pt[k_trackerRuntimePropertyId] = k_trackingRuntimeStrings[(int)m_trackingRuntime];
-	writeMatrix4f(pt, "vrDevicePoseOffset", m_vrDevicePoseOffset);
 
 	return pt;
 }
@@ -57,8 +49,6 @@ void VRObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 		StringUtils::FindEnumValue<eTrackingRuntime>(
 			trackingRuntimeString,
 			k_trackingRuntimeStrings);
-
-	readMatrix4f(pt, "vrDevicePoseOffset", m_vrDevicePoseOffset);
 }
 
 void VRObjectSystemConfig::setTrackingRuntimeType(eTrackingRuntime runtimeType)
@@ -68,26 +58,6 @@ void VRObjectSystemConfig::setTrackingRuntimeType(eTrackingRuntime runtimeType)
 		m_trackingRuntime= runtimeType;
 		markDirty(ConfigPropertyChangeSet().addPropertyName(k_trackerRuntimePropertyId));
 	}
-}
-
-const std::string& VRObjectSystemConfig::getDefaultVRObjectSocketName() const
-{
-	static std::string kDefaultInvalidSocketName= "";
-	static std::string kDefaultSteamVRSocketName= "front_rolled";
-
-	switch (m_trackingRuntime)
-	{
-		case eTrackingRuntime::SteamVR:
-			return kDefaultSteamVRSocketName;
-		default:
-			return kDefaultInvalidSocketName;
-	}
-}
-
-void VRObjectSystemConfig::setVRDevicePoseOffset(const MikanMatrix4f& poseOffset)
-{
-	m_vrDevicePoseOffset= poseOffset;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_vrDevicePoseOffsetPropertyId));
 }
 
 VRDeviceDefinitionPtr VRObjectSystemConfig::getVRDeviceConfig(MikanVRDeviceID vrDeviceId) const

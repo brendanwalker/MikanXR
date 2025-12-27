@@ -17,8 +17,8 @@ enum class eVRDevicePoseSpace : int
 {
 	INVALID,
 
-	VRTrackingVolume,
-	MikanScene,
+	VRTrackingSystemPose,
+	MikanTrackingVolumePose,
 
 	COUNT,
 };

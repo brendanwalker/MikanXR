@@ -124,7 +124,7 @@ bool ArucoMarkerPoseSampler::computeVRSpaceMarkerXform()
 
 	// Compute the camera pose in VRSpace
 	glm::dmat4 cameraXform_VRSpace;
-	if (!m_calibrationCamera->getAperturePose(cameraXform_VRSpace, eVRDevicePoseSpace::VRTrackingVolume))
+	if (!m_calibrationCamera->getAperturePose(cameraXform_VRSpace, eVRDevicePoseSpace::VRTrackingSystemPose))
 	{
 		return false;
 	}
@@ -212,7 +212,7 @@ void ArucoMarkerPoseSampler::renderVRSpaceCalibrationState()
 {
 	// Compute the camera pose in VRSpace
 	glm::dmat4 cameraXform_VRSpace;
-	if (m_calibrationCamera->getAperturePose(cameraXform_VRSpace, eVRDevicePoseSpace::VRTrackingVolume))
+	if (m_calibrationCamera->getAperturePose(cameraXform_VRSpace, eVRDevicePoseSpace::VRTrackingSystemPose))
 	{
 		// Draw the marker transform
 		const glm::mat4 markerXform = glm::mat4(m_calibrationState->vrSpaceMarkerXform);

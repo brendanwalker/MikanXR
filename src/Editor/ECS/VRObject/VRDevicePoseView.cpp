@@ -1,10 +1,12 @@
 #include "CameraComponent.h"
 #include "MathGLM.h"
 #include "MathTypeConversion.h"
+#include "StageComponent.h"
 #include "StringUtils.h"
 #include "VRDeviceComponent.h"
 #include "VRObjectSystem.h"
 #include "VRDeviceMath.h"
+#include "VRTrackingVolumeComponent.h"
 
 // -- VRDevicePoseView -----
 VRDevicePoseView::VRDevicePoseView()
@@ -63,19 +65,18 @@ bool VRDevicePoseView::getPose(
 		{
 			deviceComponent->getSocketRelativePoseByName(m_socketName, relativeSocketXform);
 		}
-		else
-		{
-			deviceComponent->getDefaultSocketRelativePose(relativeSocketXform);
-		}
 
 		// Compute the vr tracking space transform of the socket
 		glm::mat4 vrTrackingSpaceXform = glm_composite_xform(relativeSocketXform, vrDeviceXform);
 
 		// Convert the VR Tracking Space Xform into the desired tracking space
-		if (m_poseSpace == eVRDevicePoseSpace::MikanScene)
+		if (m_poseSpace == eVRDevicePoseSpace::MikanTrackingVolumePose)
 		{			
-			auto config = cameraContext->getObjectSystemOfType<VRObjectSystem>()->getVRSystemConfigConst();
-			const glm::mat4 glmVRDevicePoseOffset = MikanMatrix4f_to_glm_mat4(config->getVRDevicePoseOffset());
+			const auto stageComponent = cameraContext->getOwnerStageComponent();
+			const auto trackingVolumeDefinition= 
+				std::static_pointer_cast<const VRTrackingVolumeComponent>(
+					stageComponent->getTrackingVolumeConst());			
+			const glm::mat4 glmVRDevicePoseOffset = trackingVolumeDefinition->getVRDevicePoseOffset();
 
 			// Convert the vr tracking space pose to Mikan scene space
 			outXformInSpace = glm_composite_xform(vrTrackingSpaceXform, glmVRDevicePoseOffset);

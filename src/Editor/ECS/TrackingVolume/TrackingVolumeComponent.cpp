@@ -17,7 +17,7 @@
 #include <RmlUi/Core/Variant.h>
 
 // -- TrackingVolumeDefinition -----
-const std::string TrackingVolumeDefinition::k_originMarkerIdPropertyId = "originMarkerId";
+const std::string TrackingVolumeDefinition::k_originMarkerIdPropertyId = "origin_marker_id";
 
 TrackingVolumeDefinition::TrackingVolumeDefinition()
 	: MikanComponentDefinition()
@@ -40,7 +40,7 @@ configuru::Config TrackingVolumeDefinition::writeToJSON()
 	configuru::Config pt = MikanComponentDefinition::writeToJSON();
 
 	pt["tracking_volume_id"] = m_trackingVolumeId;
-	pt["origin_marker_id"] = m_originMarkeId;
+	pt[k_originMarkerIdPropertyId.c_str()] = m_originMarkeId;
 
 	return pt;
 }
@@ -50,7 +50,7 @@ void TrackingVolumeDefinition::readFromJSON(const configuru::Config& pt)
 	MikanComponentDefinition::readFromJSON(pt);
 
 	m_trackingVolumeId = pt.get_or<MikanTrackingVolumeID>("tracking_volume_id", m_trackingVolumeId);
-	m_originMarkeId = pt.get_or<MikanMarkerID>("origin_marker_id", m_originMarkeId);
+	m_originMarkeId = pt.get_or<MikanMarkerID>(k_originMarkerIdPropertyId.c_str(), m_originMarkeId);
 }
 
 MarkerObjectSystemPtr TrackingVolumeDefinition::getMarkerObjectSystem() const

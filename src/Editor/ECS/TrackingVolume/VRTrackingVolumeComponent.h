@@ -3,6 +3,7 @@
 #include "MikanMathTypes.h"
 #include "TrackingMountComponent.h"
 #include "TrackingVolumeComponent.h"
+#include "Transform.h"
 #include "VRTrackingVolumeComponent.h"
 
 #include <vector>
@@ -21,6 +22,10 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
+	static const std::string k_trackingRuntimePropertyId;
+	inline eTrackingRuntime getTrackingRuntime() const { return m_trackingRuntime; }
+	void setTrackingRuntime(eTrackingRuntime runtime);
+
 	static const std::string k_charucoMountIdPropertyId;
 	inline MikanTrackingMountID getCharucoTrackingMountId() const { return m_charucoMountId; }
 	void setCharucoTrackingMountId(MikanTrackingMountID mountId);
@@ -38,12 +43,17 @@ public:
 	bool addTrackingMountID(MikanTrackingMountID mountId);
 	bool removeTrackingMountID(MikanTrackingMountID mountId);
 
+	static const std::string k_vrDevicePoseOffsetPropertyId;
+	MikanMatrix4f getVRDevicePoseOffset() const { return m_vrDevicePoseOffset; }
+	void setVRDevicePoseOffset(const MikanMatrix4f& poseOffset);
+
 private:
 	eTrackingRuntime m_trackingRuntime = eTrackingRuntime::INVALID;
 	MikanTrackingMountID m_charucoMountId;
 	MikanVector3f m_charucoMountOffsetMM;
 	MikanMarkerID m_utilityMarkerId;
 	std::vector<MikanTrackingMountID> m_trackingMountIDs;
+	MikanMatrix4f m_vrDevicePoseOffset;
 };
 
 class VRTrackingVolumeComponent : public TrackingVolumeComponent
@@ -57,12 +67,24 @@ public:
 	inline static const std::string k_componentClassName = "VRTrackingVolumeComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
+	glm::mat4 getVRDevicePoseOffset() const;
+	void setVRDevicePoseOffset(const glm::mat4& poseOffset);
+
 	// -- IRmlPropertyInterface ----
+	static const std::string k_vrDevicePositionOffsetPropertyId;
+	static const std::string k_vrDeviceRotationOffsetPropertyId;
 	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, Rml::Variant& outValue) const override;
 	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const Rml::Variant& inValue) override;
 
 	// -- IRmlFunctionInterface ----
-	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
-	{ TrackingVolumeComponent::getRmlFunctionDescriptors(outDescriptors); }
+	static const std::string k_alignTrackingVolumeFunctionId;
+	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outPropertyNames);
+	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
+
+protected:
+	void alignTrackingVolume();
+
+private:
+	GlmTransform m_vrDevicePoseOffset;
 };

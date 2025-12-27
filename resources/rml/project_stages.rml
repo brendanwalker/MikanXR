@@ -37,11 +37,6 @@
 								</select>
 							</td>
 						</tr>
-						<tr class="property_tr">
-							<td>
-								<button data-event-click="align_stage()">Align Stage</button>
-							</td>
-						</tr>
 					</tbody>
 				</table>
 			</div>
