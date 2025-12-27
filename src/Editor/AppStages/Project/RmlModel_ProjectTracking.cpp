@@ -232,16 +232,16 @@ void RmlModel_ProjectTracking::removeTrackingMountID(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	if (parameters.size() < 1)
-		return;
-
-	const int mountId = parameters[0].Get<int>();
-
-	VRTrackingVolumeComponentPtr vrTrackingVolumePtr = getSelectedVRTrackingVolume();
-	if (vrTrackingVolumePtr)
+	if (m_selectedTrackingMountId != INVALID_MIKAN_ID)
 	{
-		vrTrackingVolumePtr->getVRTrackingVolumeDefinition()->removeTrackingMountID((MikanTrackingMountID)mountId);
-		getTrackingMountSystem()->removeTrackingMountID((MikanTrackingMountID)mountId);
+		VRTrackingVolumeComponentPtr vrTrackingVolumePtr = getSelectedVRTrackingVolume();
+		if (vrTrackingVolumePtr)
+		{
+			const auto definition= vrTrackingVolumePtr->getVRTrackingVolumeDefinition();
+
+			definition->removeTrackingMountID((MikanTrackingMountID)m_selectedTrackingMountId);
+			getTrackingMountSystem()->removeTrackingMountID((MikanTrackingMountID)m_selectedTrackingMountId);
+		}
 	}
 }
 

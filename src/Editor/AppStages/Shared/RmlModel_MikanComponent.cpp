@@ -50,13 +50,20 @@ bool RmlModel_MikanComponent::setComponent(MikanComponentPtr component)
 {
 	MikanComponentPtr oldComponent = m_component.lock();
 
-	if (component != oldComponent)
+	if (component != oldComponent || m_component.expired())
 	{
+		if (component)
+		{
+			m_propertyInterface->setPropertyInterface(component, component->getDefinition());
+			m_propertyInterface->setFunctionInterface(component);
+		}
+		else
+		{
+			m_propertyInterface->setPropertyInterface(nullptr, CommonConfigPtr());
+			m_propertyInterface->setFunctionInterface(nullptr);
+		}
+
 		m_component = component;
-		m_propertyInterface->setPropertyInterface(
-			component, 
-			component ? component->getDefinition() : CommonConfigPtr());
-		m_propertyInterface->setFunctionInterface(component);
 
 		return true;
 	}

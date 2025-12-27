@@ -20,7 +20,7 @@
 					<option value="-1">-- None --</option>
 					<option data-for="volume_id : tracker_volume_ids" data-value="volume_id">{{volume_id | to_volume_name}}</option>
 				</select>
-				<div class="deletecomponent" data-event-click="remove_tracking_volume()"></div>
+				<div data-if="selected_tracking_volume_id != -1" class="deletecomponent" data-event-click="remove_tracking_volume()"></div>
 			</div>
 			<div data-if="component_id != -1" data-model="VRTrackingVolumeComponent">
 				<table>
@@ -98,7 +98,7 @@
 			</div>
 			
 			<!-- Tracking Mounts Section -->
-			<div data-model="TrackingSystems">
+			<div data-if="selected_tracking_volume_id != -1" data-model="TrackingSystems">
 				<h3>Tracking Mounts</h3>
 				<select id="select" name="select_mount_id" data-value="selected_tracking_mount_id" data-event-change="select_tracking_mount_entry()">
 					<option value="-1">-- None --</option>

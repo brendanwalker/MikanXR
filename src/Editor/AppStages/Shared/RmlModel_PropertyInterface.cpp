@@ -184,7 +184,7 @@ void RmlModel_PropertyInterface::setPropertyInterface(
 	IRmlPropertyInterfacePtr oldPropertyInterface = m_propertyInterface.lock();
 	CommonConfigPtr oldPropertyChangeEventSource = m_propertyChangeEventSource.lock();
 
-	if (newPropertyInterface != oldPropertyInterface)
+	if (newPropertyInterface != oldPropertyInterface || m_propertyInterface.expired())
 	{
 		if (oldPropertyChangeEventSource)
 		{
