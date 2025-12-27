@@ -5,9 +5,6 @@
 </head>
 <body template="project_panel">
 	<panel>
-		<div class="title-bar">
-			<span class="title">Markers</span>
-		</div>
 		<div class="content">
 			<!-- Markers Section -->
 			<div data-model="Markers">
@@ -17,7 +14,7 @@
 					<option data-for="marker_id : marker_ids" data-value="marker_id">{{marker_id | to_marker_name}}</option>
 				</select>				
 				<div class="createcomponent" data-event-click="add_new_marker"></div>
-				<div class="deletecomponent" data-event-click="remove_marker"></div>
+				<div class="deletecomponent" data-if="selected_marker_id != -1" data-event-click="remove_marker"></div>
 			</div>
 			<div data-if="component_id != -1" data-model="MarkerComponent">
 				<table>
@@ -52,10 +49,7 @@
 						</tr>
 					</tbody>
 				</table>
-			</div>
-			<div data-if="component_id == -1" data-model="MarkerComponent">
-				<p>No stage selected</p>
-			</div>			
+			</div>		
 
 			<!-- Aruco Settings -->
 			<div data-model="MarkerObjectSystem">
@@ -69,7 +63,6 @@
 							<td>
 								<label>ArUco Number</label>
 								<select id="select" name="select_aruco_dict" data-value="arucoDictionaryType" data-event-change="select_aruco_dictionary()">
-									<option value="-1">-- None --</option>
 									<option data-for="enum_value : marker_dictionary_type_values" data-value="enum_value">{{enum_value | to_enum_string('marker_dictionary_type')}}</option>
 								</select>
 							</td>
@@ -90,7 +83,6 @@
 							<td>
 								<label>ArUco Number</label>
 								<select id="select" name="select_aruco_dict" data-value="charucoDictionaryType" data-event-change="select_charuco_dictionary()">
-									<option value="-1">-- None --</option>
 									<option data-for="enum_value : marker_dictionary_type_values" data-value="enum_value">{{enum_value | to_enum_string('marker_dictionary_type')}}</option>
 								</select>
 							</td>

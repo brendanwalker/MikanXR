@@ -5,9 +5,6 @@
 </head>
 <body template="project_panel">
 	<panel>
-		<div class="title-bar">
-			<span class="title">Settings</span>
-		</div>
 		<div class="content">
 			<div data-model="Settings">
 				<h3>Settings</h3>

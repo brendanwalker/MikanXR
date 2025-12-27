@@ -16,7 +16,7 @@
 			</div>
 			
 			<!-- Scene Section -->
-			<div data-model="Scenes">
+			<div data-if="selected_stage_id != -1" data-model="Scenes">
 				<h3>Scene</h3>
 				<select id="select" name="select_scene_id" data-value="selected_scene_id" data-event-change="select_scene_entry()">
 					<option value="-1">-- None --</option>
@@ -66,7 +66,7 @@
 			</div>
 
 			<!-- Scene Outliner -->
-			<panel id="scene_outliner" data-model="Scenes">            
+			<panel id="scene_outliner" data-if="selected_stage_id != -1" data-model="Scenes">            
 				<h3>Actors</h3>
 				<div>
 					<button class="icon-button" data-event-click="add_new_anchor()"><img sprite="icon-anchor"/></button>

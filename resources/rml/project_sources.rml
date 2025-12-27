@@ -16,7 +16,7 @@
 					<option value="-1">-- None --</option>
 					<option data-for="source_id : video_source_ids" data-value="source_id">{{source_id | to_video_source_friendly_name}}</option>
 				</select>
-				<div class="deletecomponent" data-event-click="remove_video_source()"></div>
+				<div class="deletecomponent" data-if="selected_video_source_id != -1" data-event-click="remove_video_source()"></div>
 			</div>
 
 			<!-- USB Video Source Properties -->
@@ -103,7 +103,7 @@
 					<option value="-1">-- None --</option>
 					<option data-for="source_id : texture_source_ids" data-value="source_id">{{source_id | to_texture_source_name}}</option>
 				</select>
-				<div class="deletecomponent"  data-event-click="remove_texture_source()"></div>
+				<div class="deletecomponent" data-if="selected_texture_source_id != -1" data-event-click="remove_texture_source()"></div>
 			</div>
 
 			<!-- Client Texture Source Properties -->
