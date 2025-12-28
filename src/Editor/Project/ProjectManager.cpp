@@ -53,9 +53,9 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	addSystem<CameraObjectSystem>();
 	addSystem<AnchorObjectSystem>();
 	addSystem<StencilObjectSystem>();
+	addSystem<VRObjectSystem>();
 	addSystem<TrackingMountObjectSystem>();
 	addSystem<TrackingVolumeObjectSystem>();
-	addSystem<VRObjectSystem>();
 
 	// Create a default project if we can't load the last opened one
 	AppSettingsConfigPtr appSettings= mainWindow->getOwnerApp()->getAppSettings();

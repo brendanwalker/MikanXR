@@ -261,8 +261,12 @@ bool TrackingVolumeObjectSystem::init()
 		createTrackingVolumeObject(std::static_pointer_cast<TrackingVolumeDefinition>(markerDef));
 	}
 
+	auto vrObjectSystem = getOwnerProjectManager()->getSystemOfType<VRObjectSystem>();
 	for (VRTrackingVolumeDefinitionPtr vrDef : config->getVRTrackingVolumeList())
 	{
+		// Ensure the VRObjectSystem has a runtime for this type
+		vrObjectSystem->createTrackingRuntime(vrDef->getTrackingRuntime());
+
 		createTrackingVolumeObject(std::static_pointer_cast<TrackingVolumeDefinition>(vrDef));
 	}
 

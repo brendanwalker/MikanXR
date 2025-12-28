@@ -109,6 +109,12 @@ bool RmlModel_ProjectTracking::init(
 	m_trackingVolumeIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectTracking::trackingVolumeIdListChanged);
 	m_trackingMountIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectTracking::trackingMountIdListChanged);
 
+	// Auto-select first items if available
+	if (!m_trackingVolumeIdList->isEmpty())
+	{
+		setSelectedTrackingVolumeId(m_trackingVolumeIdList->getFirstValue());
+	}
+
 	return true;
 }
 

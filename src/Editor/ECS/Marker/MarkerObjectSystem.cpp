@@ -37,7 +37,7 @@ configuru::Config MarkerObjectSystemConfig::writeToJSON()
 	pt["nextMarkerId"] = nextMarkerId;
 
 	// ArUco settings
-	pt["dictionaryType"] = k_charucoDictionaryStrings[(int)m_arucoDictionaryType];
+	pt["dictionaryType"] = k_charucoDictionaryStrings[(int)m_arucoDictionaryType].c_str();
 	std::vector<configuru::Config> markerConfigs;
 	for (MarkerDefinitionPtr MarkerDefinitionPtr : m_arucoMarkerList)
 	{
@@ -50,7 +50,7 @@ configuru::Config MarkerObjectSystemConfig::writeToJSON()
 	pt["charucoCols"] = m_charucoCols;
 	pt["charucoSquareLengthMM"] = m_charucoSquareLengthMM;
 	pt["charucoMarkerLengthMM"] = m_charucoMarkerLengthMM;
-	pt["charucoDictionaryType"] = k_charucoDictionaryStrings[(int)m_charucoDictionaryType];
+	pt["charucoDictionaryType"] = k_charucoDictionaryStrings[(int)m_charucoDictionaryType].c_str();
 
 	return pt;
 }

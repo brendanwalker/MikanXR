@@ -122,7 +122,14 @@ void CommonConfig::updateAutoSave(float deltaSeconds)
 
 void CommonConfig::save()
 {
-    save(getDefaultConfigPath());
+    if (!m_configFullFilePath.empty())
+    {
+		save(m_configFullFilePath);
+    }
+    else
+    {
+		save(getDefaultConfigPath());
+    }
 }
 
 void CommonConfig::save(const std::filesystem::path& path)
