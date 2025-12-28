@@ -285,7 +285,7 @@ bool MikanSteamVRManager::tryConnect()
 	{
 		for (IVRDeviceManagerListener* listener : m_listeners)
 		{
-			listener->onActiveDeviceListChanged();
+			listener->onActiveDeviceListChanged(this);
 		}
 	}
 
@@ -374,7 +374,11 @@ void MikanSteamVRManager::addConnectedDeviceIdsOfClass(int deviceClassEnumValue)
 		const vr::TrackedDeviceIndex_t steamVRDeviceId= deviceIndices[index];
 
 		m_activeSteamVRDeviceIdSet.insert(steamVRDeviceId);
-		m_activeSteamVRDeviceList.push_back(std::make_shared<MikanSteamVRDevice>(this, steamVRDeviceId));
+		
+		auto devicePtr = std::make_shared<MikanSteamVRDevice>(this, steamVRDeviceId);
+		devicePtr->updateProperties();
+
+		m_activeSteamVRDeviceList.push_back(devicePtr);
 	}
 }
 
@@ -387,11 +391,15 @@ void MikanSteamVRManager::handleTrackedDeviceActivated(vr::TrackedDeviceIndex_t 
 		deviceClass == vr::TrackedDeviceClass_GenericTracker)
 	{
 		m_activeSteamVRDeviceIdSet.insert(steamVRDeviceId);
-		m_activeSteamVRDeviceList.push_back(std::make_shared<MikanSteamVRDevice>(this, steamVRDeviceId));
+
+		auto devicePtr = std::make_shared<MikanSteamVRDevice>(this, steamVRDeviceId);
+		devicePtr->updateProperties();
+
+		m_activeSteamVRDeviceList.push_back(devicePtr);
 
 		for (IVRDeviceManagerListener* listener : m_listeners)
 		{
-			listener->onActiveDeviceListChanged();
+			listener->onActiveDeviceListChanged(this);
 		}
 	}
 }
@@ -413,7 +421,7 @@ void MikanSteamVRManager::handleTrackedDeviceDeactivated(vr::TrackedDeviceIndex_
 
 		for (IVRDeviceManagerListener* listener : m_listeners)
 		{
-			listener->onActiveDeviceListChanged();
+			listener->onActiveDeviceListChanged(this);
 		}
 	}
 }
@@ -428,10 +436,15 @@ void MikanSteamVRManager::handleTrackedDevicePropertyChanged(vr::TrackedDeviceIn
 
 	if (it != m_activeSteamVRDeviceList.end())
 	{
+		// Refresh the device properties
 		it->get()->updateProperties();
+
+		// Tell any listeners that the device properties changed for this device index
+		for (IVRDeviceManagerListener* listener : m_listeners)
+		{
+			listener->onDevicePropertyChanged(this, deviceIndex);
+		}
 	}
-	//TODO: need a vr::TrackedDeviceIndex_t -> deviceIndex mapping
-	//m_eventListener->onDevicePropertyChanged((int)deviceIndex);
 }
 
 void MikanSteamVRManager::updateDevicePoses()
@@ -458,6 +471,6 @@ void MikanSteamVRManager::updateDevicePoses()
 	// Tell the VRDeviceManager that the poses changed
 	for (IVRDeviceManagerListener* listener : m_listeners)
 	{
-		listener->onDevicePosesChanged(m_vrFrameCounter);
+		listener->onDevicePosesChanged(this, m_vrFrameCounter);
 	}
 }

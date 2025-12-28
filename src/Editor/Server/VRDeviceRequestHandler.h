@@ -22,7 +22,7 @@ protected:
 	std::set<MikanVRDeviceID> m_subscribedVRDevices;
 };
 
-class VRDeviceRequestHandler : public IServerRequestHandler, public IVRDeviceManagerListener
+class VRDeviceRequestHandler : public IServerRequestHandler
 {
 public:
 	VRDeviceRequestHandler(class MikanServer* owner) : IServerRequestHandler(owner) {}
@@ -32,9 +32,9 @@ public:
 
 protected:
 	// IVRDeviceManagerListener
-	virtual void onActiveDeviceListChanged() override;
-	virtual void onDevicePropertyChanged(int deviceId) override;
-	virtual void onDevicePosesChanged(int64_t newFrameId) override;
+	void onActiveDeviceListChanged(eTrackingRuntime runtime);
+	void onDevicePropertyChanged(eTrackingRuntime runtime, MikanVRDeviceID deviceId);
+	void onDevicePosesChanged(eTrackingRuntime runtime, int64_t newFrameId);
 
 	// VRDevice Requests
 	void getVRDeviceListHandler(const ClientRequest& request, ClientResponse& response);

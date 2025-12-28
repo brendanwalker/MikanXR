@@ -547,20 +547,30 @@ void RmlManager::registerCommonDataModelTypes()
 		[rmlManager](Rml::Variant& variant, const Rml::VariantList& arguments) -> bool {
 			const Rml::String devicePath = variant.Get<Rml::String>("");
 
-			auto vrObjectSystem = rmlGetSystemOfType<VRObjectSystem>(rmlManager);
-			VRDeviceComponentPtr deviceView= vrObjectSystem->getVRDeviceByPath(devicePath);
-			if (deviceView)
+			if (!devicePath.empty())
 			{
-				const IVRDevice* deviceInterface= deviceView->getVRDeviceInterface();
-				const std::string trackerRole= deviceInterface->getTrackerRole();
-				const std::string serialNumber = deviceInterface->getSerialNumber();
-				const Rml::String friendlyName = trackerRole + " - " + serialNumber;
+				auto vrObjectSystem = rmlGetSystemOfType<VRObjectSystem>(rmlManager);
+				VRDeviceComponentPtr deviceView = vrObjectSystem->getVRDeviceByPath(devicePath);
+				if (deviceView)
+				{
+					const IVRDevice* deviceInterface = deviceView->getVRDeviceInterface();
+					const std::string trackerRole = deviceInterface->getTrackerRole();
+					const std::string serialNumber = deviceInterface->getSerialNumber();
+					const Rml::String friendlyName = trackerRole + " - " + serialNumber;
 
-				variant= friendlyName;
-				return true;
+					variant = friendlyName;
+				}
+				else
+				{
+					variant = devicePath;
+				}
+			}
+			else
+			{
+				variant = Rml::String("<None>");
 			}
 
-			return false;
+			return true;
 		});
 
 	constructor.RegisterTransformFunc(

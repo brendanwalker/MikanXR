@@ -8,9 +8,9 @@ class IVRDeviceManagerListener
 public:
 	virtual ~IVRDeviceManagerListener() {};
 
-	virtual void onActiveDeviceListChanged() = 0;
-	virtual void onDevicePropertyChanged(int deviceId) = 0;
-	virtual void onDevicePosesChanged(int64_t newFrameId) = 0;
+	virtual void onActiveDeviceListChanged(class IVRDeviceManager* deviceManager) = 0;
+	virtual void onDevicePropertyChanged(class IVRDeviceManager* deviceManager, int deviceId) = 0;
+	virtual void onDevicePosesChanged(class IVRDeviceManager* deviceManager, int64_t newFrameId) = 0;
 };
 
 class IVRDeviceManager

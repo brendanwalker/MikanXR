@@ -56,7 +56,7 @@ public:
 		if (material &&
 			material->getProgram()->getVertexDefinition()->getVertexSize() == m_vertexSize)
 		{
-			m_materialInstance = std::make_shared<MkMaterialInstance>(material);
+			m_materialInstance = createMkMaterialInstance(material);
 			return true;
 		}
 

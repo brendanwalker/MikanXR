@@ -71,14 +71,15 @@ bool VRDeviceRequestHandler::startup(MainWindow* mainWindow)
 	IInterprocessMessageServer* messageServer = m_owner->getMessageServer();
 
 	// Listen for VR Device events directly from the vr device manager interface
-	m_vrObjectSystem = mainWindow->getProjectManager()->getSystemOfType<VRObjectSystem>();
-	IVRDeviceManagerPtr vrDeviceManager= m_vrObjectSystem.lock()->getVRDeviceManager();
-	if (vrDeviceManager)
-	{
-		vrDeviceManager->addListener(this);
-	}
-	// TODO: listen for VR System API changes
-
+	auto vrObjectSystem = mainWindow->getProjectManager()->getSystemOfType<VRObjectSystem>();
+	vrObjectSystem->OnActiveDeviceListChanged +=
+		MakeDelegate(this, &VRDeviceRequestHandler::onActiveDeviceListChanged);
+	vrObjectSystem->OnDevicePropertyChanged +=
+		MakeDelegate(this, &VRDeviceRequestHandler::onDevicePropertyChanged);
+	vrObjectSystem->OnDevicePosesChanged +=
+		MakeDelegate(this, &VRDeviceRequestHandler::onDevicePosesChanged);
+	m_vrObjectSystem = vrObjectSystem;
+	
 	// VR Device Requests
 	messageServer->setRequestHandler(
 		GetVRDeviceList::staticGetArchetype().getId(),
@@ -99,26 +100,27 @@ bool VRDeviceRequestHandler::startup(MainWindow* mainWindow)
 void VRDeviceRequestHandler::shutdown()
 {
 	auto vrObjectSystem = m_vrObjectSystem.lock();
-	IVRDeviceManagerPtr vrDeviceManager = vrObjectSystem->getVRDeviceManager();
-	if (vrDeviceManager)
-	{
-		vrDeviceManager->removeListener(this);
-	}
+	vrObjectSystem->OnActiveDeviceListChanged -=
+		MakeDelegate(this, &VRDeviceRequestHandler::onActiveDeviceListChanged);
+	vrObjectSystem->OnDevicePropertyChanged -=
+		MakeDelegate(this, &VRDeviceRequestHandler::onDevicePropertyChanged);
+	vrObjectSystem->OnDevicePosesChanged -=
+		MakeDelegate(this, &VRDeviceRequestHandler::onDevicePosesChanged);
 }
 
-void VRDeviceRequestHandler::onActiveDeviceListChanged()
+void VRDeviceRequestHandler::onActiveDeviceListChanged(eTrackingRuntime trackingRuntime)
 {
 	MikanVRDeviceListUpdateEvent listChangedEvent = {};
 
 	m_owner->publishMikanJsonEvent(mikanTypeToJsonString(listChangedEvent));
 }
 
-void VRDeviceRequestHandler::onDevicePropertyChanged(int deviceId)
+void VRDeviceRequestHandler::onDevicePropertyChanged(eTrackingRuntime trackingRuntime, MikanVRDeviceID deviceId)
 {
-
+	//TODO: Send device property changed event to clients
 }
 
-void VRDeviceRequestHandler::onDevicePosesChanged(int64_t newFrameIndex)
+void VRDeviceRequestHandler::onDevicePosesChanged(eTrackingRuntime trackingRuntime, int64_t newFrameIndex)
 {
 	std::vector<MikanClientConnectionStateConstPtr> clienStatetList;
 	m_owner->getConnectedClientStateList(clienStatetList);
@@ -174,7 +176,7 @@ void VRDeviceRequestHandler::getVRDeviceInfoHandler(
 	IVRDevice* vrDeviceInterface= vrDeviceComponent->getVRDeviceInterface();
 	info.device_path = vrDeviceInterface->getDevicePath();
 
-	switch (vrObjectSystem->getVRSystemConfigConst()->getTrackingRuntimeType())
+	switch (vrDeviceComponent->getVRDeviceDefinition()->getTrackingRuntimeType())
 	{
 		case eTrackingRuntime::SteamVR:
 			info.vr_device_api = MikanVRDeviceApi_STEAM_VR;

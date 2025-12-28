@@ -12,6 +12,7 @@
 #include "ProjectManager.h"
 #include "SelectionComponent.h"
 #include "StringUtils.h"
+#include "VRObjectSystem.h"
 
 // -- TrackingVolumeObjectSystemConfig -----
 const std::string TrackingVolumeObjectSystemConfig::k_markerTrackingVolumeListPropertyId= "marker_tracker_volume_ids";
@@ -75,19 +76,6 @@ void TrackingVolumeObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 			addChildConfig(trackingVolumeDefinitionPtr);
 		}
 	}
-}
-
-bool TrackingVolumeObjectSystemConfig::canAddTrackingVolumeType(eTrackingVolumeType systemType) const
-{
-	switch (systemType)
-	{
-		case eTrackingVolumeType::vr:
-			return m_vrTrackingVolumeList.size() == 0;
-		case eTrackingVolumeType::marker:
-			return true;
-	}
-
-	return false;
 }
 
 TrackingVolumeDefinitionConstPtr TrackingVolumeObjectSystemConfig::getTrackingVolumeDefinitionConst(
@@ -167,9 +155,6 @@ MarkerTrackingVolumeDefinitionPtr TrackingVolumeObjectSystemConfig::getMarkerTra
 
 MikanTrackingVolumeID TrackingVolumeObjectSystemConfig::addMarkerTrakingSystem()
 {
-	if (!canAddTrackingVolumeType(eTrackingVolumeType::marker))
-		return INVALID_MIKAN_ID;
-
 	const std::string systemName = StringUtils::stringify("Marker System ", m_nextTrackingVolumeId);
 	MarkerTrackingVolumeDefinitionPtr configPtr = 
 		std::make_shared<MarkerTrackingVolumeDefinition>(
@@ -228,9 +213,6 @@ VRTrackingVolumeDefinitionPtr TrackingVolumeObjectSystemConfig::getVRTrackingVol
 MikanTrackingVolumeID TrackingVolumeObjectSystemConfig::addVRTrackingVolume(
 	eTrackingRuntime trackingRuntime)
 {
-	if (!canAddTrackingVolumeType(eTrackingVolumeType::vr))
-		return INVALID_MIKAN_ID;
-
 	const std::string volumeName = StringUtils::stringify("VR System ", m_nextTrackingVolumeId);
 	VRTrackingVolumeDefinitionPtr configPtr =
 		std::make_shared<VRTrackingVolumeDefinition>(
@@ -363,6 +345,13 @@ MarkerTrackingVolumeComponentPtr TrackingVolumeObjectSystem::addNewMarkerTrackin
 
 VRTrackingVolumeComponentPtr TrackingVolumeObjectSystem::addNewVRTrackingVolume(eTrackingRuntime trackingRuntime)
 {
+	// Ensure the VRObjectSystem has a runtime for this type
+	auto vrObjectSystem = getOwnerProjectManager()->getSystemOfType<VRObjectSystem>();
+	if (!vrObjectSystem->createTrackingRuntime(trackingRuntime))
+	{
+		return VRTrackingVolumeComponentPtr();
+	}
+
 	TrackingVolumeObjectSystemConfigPtr config = getTrackingVolumeSystemConfig();
 	if (config == nullptr)
 		return VRTrackingVolumeComponentPtr();
@@ -372,7 +361,9 @@ VRTrackingVolumeComponentPtr TrackingVolumeObjectSystem::addNewVRTrackingVolume(
 		return VRTrackingVolumeComponentPtr();
 
 	VRTrackingVolumeDefinitionPtr vrDef = config->getVRTrackingVolumeDefinition(volumeId);
-	TrackingVolumeComponentPtr trackingVolume = createTrackingVolumeObject(std::static_pointer_cast<TrackingVolumeDefinition>(vrDef));
+	TrackingVolumeComponentPtr trackingVolume = 
+		createTrackingVolumeObject(
+			std::static_pointer_cast<TrackingVolumeDefinition>(vrDef));
 
 	// Mark config as dirty
 	config->markDirty(ConfigPropertyChangeSet().addPropertyName(

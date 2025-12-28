@@ -196,7 +196,7 @@ void DepthTextureSourceNode::updateLinearDepthFrameBuffer(NodeEvaluator& evaluat
 
 		if (depthUnpackMaterial != nullptr)
 		{
-			m_depthMaterialInstance = std::make_shared<MkMaterialInstance>(depthUnpackMaterial);
+			m_depthMaterialInstance = createMkMaterialInstance(depthUnpackMaterial);
 		}
 
 		if (m_depthMaterialInstance)

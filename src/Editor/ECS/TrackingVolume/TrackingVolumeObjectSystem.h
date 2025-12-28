@@ -30,7 +30,6 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	bool canAddTrackingVolumeType(eTrackingVolumeType systemType) const;
 	TrackingVolumeDefinitionConstPtr getTrackingVolumeDefinitionConst(MikanTrackingVolumeID systemId) const;
 	TrackingVolumeDefinitionPtr getTrackingVolumeDefinition(MikanTrackingVolumeID systemId);
 	eTrackingVolumeType getTrackingVolumeType(MikanTrackingVolumeID systemId) const;

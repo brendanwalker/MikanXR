@@ -377,7 +377,7 @@ namespace ObjUtils
 		const fastObjMaterial& objMaterial)
 	{
 		MikanTextureCache* textureCache = static_cast<MikanTextureCache *>(ownerWindow->getTextureCache());
-		MkMaterialInstancePtr materialInstance = std::make_shared<MkMaterialInstance>(material);
+		MkMaterialInstancePtr materialInstance = createMkMaterialInstance(material);
 
 		materialInstance->setVec3BySemantic(
 			eUniformSemantic::ambientColorRGB,

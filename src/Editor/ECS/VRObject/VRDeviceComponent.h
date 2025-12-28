@@ -7,6 +7,7 @@
 #include "MikanTypeFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectFwd.h"
+#include "ProjectConfigConstants.h"
 #include "SceneFwd.h"
 #include "Transform.h"
 
@@ -22,14 +23,17 @@ class VRDeviceDefinition : public TransformComponentDefinition
 public:
 	VRDeviceDefinition() = default;
 	VRDeviceDefinition(
+		eTrackingRuntime trackingRuntime,
 		MikanVRDeviceID vrDeviceId,
 		const std::string& vrDevicePath,
 		const MikanTransform& xform);
 
+	eTrackingRuntime getTrackingRuntimeType() const { return m_trackingRuntime; }
 	inline MikanVRDeviceID getVRDeviceId() const { return m_vrDeviceId; }
 	inline const std::string getVRDevicePath() const { return m_vrDevicePath; }
 
 private:
+	eTrackingRuntime m_trackingRuntime = eTrackingRuntime::INVALID;
 	MikanVRDeviceID m_vrDeviceId= -1;
 	std::string m_vrDevicePath;
 };

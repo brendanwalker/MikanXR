@@ -606,3 +606,13 @@ void MkMaterialInstance::unbindMaterialInstance() const
 		}
 	}
 }
+
+MkMaterialInstancePtr createMkMaterialInstance(MkMaterialConstPtr material)
+{
+	return std::make_shared<MkMaterialInstance>(material);
+}
+
+MkMaterialInstancePtr createMkMaterialInstance(MkMaterialInstanceConstPtr materialInstance)
+{
+	return std::make_shared<MkMaterialInstance>(materialInstance);
+}

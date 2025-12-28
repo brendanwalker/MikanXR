@@ -21,10 +21,26 @@ void SteamVRDeviceProperties::updateProperties()
 	m_manufacturerName = fetchStringDeviceProperty(vr::Prop_ManufacturerName_String, "");
 	m_serialNumber = fetchStringDeviceProperty(vr::Prop_SerialNumber_String, "");
 
+	// Generate unique device path using fallback hierarchy
 	std::string registeredDeviceType = fetchStringDeviceProperty(vr::Prop_RegisteredDeviceType_String, "");
 	if (registeredDeviceType.size() > 0)
 	{
-		m_devicePath = "/devices/" + registeredDeviceType;
+		// Preferred: Use the official registered device type
+		m_devicePath = m_trackingVolumeSystem + "/" + registeredDeviceType;
+	}
+	else
+	{
+		// Fallback: Use tracking system, device class, and index
+		std::string deviceClassName;
+		switch (m_deviceClass)
+		{
+			case vr::TrackedDeviceClass_HMD: deviceClassName = "hmd"; break;
+			case vr::TrackedDeviceClass_Controller: deviceClassName = "controller"; break;
+			case vr::TrackedDeviceClass_GenericTracker: deviceClassName = "tracker"; break;
+			case vr::TrackedDeviceClass_TrackingReference: deviceClassName = "base_station"; break;
+			default: deviceClassName = "device"; break;
+		}
+		m_devicePath = m_trackingVolumeSystem + "/" + deviceClassName + "/" + std::to_string(m_deviceIndex);
 	}
 
 	// Determine the tracking role of the device

@@ -225,7 +225,7 @@ void DrawLayerNode::setMaterial(MkMaterialConstPtr inMaterial)
 	m_material = inMaterial;	
 	m_materialInstance = 	
 		m_material 	
-		? std::make_shared<MkMaterialInstance>(inMaterial)	
+		? createMkMaterialInstance(inMaterial)	
 		: MkMaterialInstancePtr();	
 }	
 

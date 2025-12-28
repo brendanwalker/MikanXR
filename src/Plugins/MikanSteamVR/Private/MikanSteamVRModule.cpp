@@ -17,20 +17,17 @@ public:
 	bool startup() override
 	{
 		MIKAN_LOG_INFO("MikanSteamVRModule") << "Initializing MikanSteamVRPlugin";
+		m_bIsInitialized = true;
 
 		return m_bIsInitialized;
 	}
 
 	void shutdown() override
 	{
-		// Clean up the GStreamer library
-		if (m_bIsInitialized)
-		{
-			m_bIsInitialized= false;
-		}
+		m_bIsInitialized= false;
 	}
 
-	IVRDeviceManagerPtr createVRDeviceManager() override
+	IVRDeviceManagerPtr createTrackingRuntime() override
 	{
 		if (m_bIsInitialized)
 		{

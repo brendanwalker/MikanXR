@@ -108,7 +108,7 @@ public:
 		}
 
 		// create a material instance from the default wireframe material
-		m_materialInstance = std::make_shared<MkMaterialInstance>(material);
+		m_materialInstance = createMkMaterialInstance(material);
 		m_materialInstance->setVec4BySemantic(eUniformSemantic::diffuseColorRGBA, glm::vec4(1.f));
 
 		// create and bind a Vertex Array Object(VAO) to hold state for this model

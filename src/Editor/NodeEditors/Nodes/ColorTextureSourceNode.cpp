@@ -226,7 +226,7 @@ void ColorTextureSourceNode::updateColorFrameBuffer(NodeEvaluator& evaluator, IM
 				ownerWindow->getShaderCache()->getMaterialByName(colorMaterialName);
 			if (colorMaterial != nullptr)
 			{
-				m_colorMaterialInstance = std::make_shared<MkMaterialInstance>(colorMaterial);
+				m_colorMaterialInstance = createMkMaterialInstance(colorMaterial);
 			}
 			else
 			{

@@ -87,3 +87,7 @@ protected:
 private:
 	struct MkMaterialInstanceImpl* m_impl;
 };
+
+// Use these factory functions to create MkMaterialInstance objects on the same heap as the renderer module
+MIKAN_RENDERER_FUNC(MkMaterialInstancePtr) createMkMaterialInstance(MkMaterialConstPtr material);
+MIKAN_RENDERER_FUNC(MkMaterialInstancePtr) createMkMaterialInstance(MkMaterialInstanceConstPtr materialInstance);

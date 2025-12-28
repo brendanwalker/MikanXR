@@ -8,5 +8,5 @@ class IVRDeviceModule : public IMikanModule
 public:
 	IVRDeviceModule() = default;
 
-	virtual IVRDeviceManagerPtr createVRDeviceManager() = 0;
+	virtual IVRDeviceManagerPtr createTrackingRuntime() = 0;
 };

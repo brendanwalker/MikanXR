@@ -26,10 +26,12 @@
 
 // -- VRDeviceConfig -----
 VRDeviceDefinition::VRDeviceDefinition(
+	eTrackingRuntime trackingRuntime,
 	MikanVRDeviceID vrDeviceId,
 	const std::string& vrDevicePath,
 	const MikanTransform& xform)
 	: TransformComponentDefinition(vrDeviceId, vrDevicePath, xform)
+	, m_trackingRuntime(trackingRuntime)
 	, m_vrDeviceId(vrDeviceId)
 	, m_vrDevicePath(vrDevicePath)
 {}

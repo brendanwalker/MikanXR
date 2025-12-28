@@ -54,6 +54,7 @@ private:
 	RmlModel_MarkerTrackingVolumeComponentPtr m_selectedMarkerTrackingVolumeModel;
 	RmlModel_TrackingMountComponentPtr m_selectedTrackingMountModel;
 
+	bool m_isVRTrackingVolume = false;
 	int m_selectedTrackingVolumeId = -1; // MikanTrackingVolumeID
 	int m_selectedTrackingMountId = -1; // MikanTrackingMountID
 };

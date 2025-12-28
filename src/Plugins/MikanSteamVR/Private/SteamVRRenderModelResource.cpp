@@ -157,7 +157,7 @@ MkMaterialInstancePtr SteamVRRenderModelResource::createMaterialInstance(
 	IMkShaderCache* shaderCache = m_ownerWindow->getShaderCache();
 	MkMaterialConstPtr material = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED);
 	assert(material != nullptr);
-	MkMaterialInstancePtr materialInstance = std::make_shared<MkMaterialInstance>(material);
+	MkMaterialInstancePtr materialInstance = createMkMaterialInstance(material);
 
 	// Fill in material parameter defaults
 	if (texture)

@@ -61,28 +61,14 @@ bool RmlModel_TrackingMountComponent::onConstruct(Rml::DataModelConstructor& con
 		"select_device_entry",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
 			const Rml::String devicePath = ev.GetParameter<Rml::String>("value", "");
-			if (!devicePath.empty())
-			{
-				TrackingMountComponentPtr mountComponent = getTrackingMountComponent();
-				if (mountComponent)
-				{
-					mountComponent->getTrackingMountDefinition()->setDevicePath(devicePath);
-				}
-			}
+			setDevicePath(devicePath);
 		});
 
 	constructor.BindEventCallback(
 		"select_socket_entry",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
 			const Rml::String socketName = ev.GetParameter<Rml::String>("value", "");
-			if (!socketName.empty())
-			{
-				TrackingMountComponentPtr mountComponent = getTrackingMountComponent();
-				if (mountComponent)
-				{
-					mountComponent->getTrackingMountDefinition()->setSocketName(socketName);
-				}
-			}
+			setSocketName(socketName);
 		});
 
 	return true;
@@ -92,11 +78,8 @@ bool RmlModel_TrackingMountComponent::setComponent(MikanComponentPtr component)
 {
 	if (RmlModel_MikanComponent::setComponent(component))
 	{
-		m_vrDevicePathList->setOwnerConfig(getVRObjectSystemConfig());
-		m_vrDevicePathList->rebuildList(true);
-
-		m_socketNameList->setOwnerConfig(component ? component->getDefinition() : CommonConfigPtr());
-		m_socketNameList->rebuildList(true);
+		refreshVRDevicePathList();
+		refreshSocketNames();
 
 		return true;
 	}
@@ -144,5 +127,44 @@ TrackingMountComponentPtr RmlModel_TrackingMountComponent::getTrackingMountCompo
 	{
 		return std::static_pointer_cast<TrackingMountComponent>(component);
 	}
+
 	return nullptr;
+}
+
+void RmlModel_TrackingMountComponent::setDevicePath(const std::string& devicePath)
+{
+	TrackingMountComponentPtr mountComponent = getTrackingMountComponent();
+	if (mountComponent)
+	{
+		mountComponent->getTrackingMountDefinition()->setDevicePath(devicePath);
+	}
+
+	// Clear the current socket now that the device change
+	setSocketName("");
+
+	// Rebuild the list of available sockets for the current device
+	refreshSocketNames();
+}
+
+void RmlModel_TrackingMountComponent::setSocketName(const std::string& socketName)
+{
+	TrackingMountComponentPtr mountComponent = getTrackingMountComponent();
+	if (mountComponent)
+	{
+		mountComponent->getTrackingMountDefinition()->setSocketName(socketName);
+	}
+}
+
+void RmlModel_TrackingMountComponent::refreshVRDevicePathList()
+{
+	m_vrDevicePathList->setOwnerConfig(getVRObjectSystemConfig());
+	m_vrDevicePathList->rebuildList(true);
+}
+
+void RmlModel_TrackingMountComponent::refreshSocketNames()
+{
+	TrackingMountComponentPtr trackingMountComponent = getTrackingMountComponent();
+
+	m_socketNameList->setOwnerConfig(trackingMountComponent ? trackingMountComponent->getDefinition() : CommonConfigPtr());
+	m_socketNameList->rebuildList(true);
 }

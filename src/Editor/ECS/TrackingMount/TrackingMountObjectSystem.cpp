@@ -49,6 +49,7 @@ void TrackingMountObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 				trackingMountDefinition->readFromJSON(trackingMountConfig);
 
 				m_trackingMountList.push_back(trackingMountDefinition);
+				addChildConfig(trackingMountDefinition);
 			}
 		}
 	}
@@ -88,6 +89,7 @@ MikanTrackingMountID TrackingMountObjectSystemConfig::addNewTrackingMount()
 		TrackingMountDefinitionPtr(new TrackingMountDefinition(newTrackingMountId, trackingMountName));
 
 	m_trackingMountList.push_back(trackingMountDefinition);
+	addChildConfig(trackingMountDefinition);
 	++m_nextTrackingMountId;
 
 	return newTrackingMountId;
@@ -103,6 +105,8 @@ bool TrackingMountObjectSystemConfig::removeTrackingMountID(MikanTrackingMountID
 
 	if (it != m_trackingMountList.end())
 	{
+		removeChildConfig(*it);
+
 		m_trackingMountList.erase(it);
 		return true;
 	}

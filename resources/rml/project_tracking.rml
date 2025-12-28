@@ -5,20 +5,16 @@
 </head>
 <body template="project_panel">
 	<panel>
-		<div class="title-bar">
-			<span class="title">Tracking Systems</span>
-		</div>
-
 		<div class="content">
 			<!-- Volumes Section -->
 			<div data-model="TrackingSystems">
-				<h3>Add Tracking Volume</h3>
+				<h1>Add Tracking Volume</h1>
 				<button class="icon-button" data-event-click="add_new_steamvr_tracking_volume()"><img sprite="icon-steamvr"/></button>
 				<button class="icon-button" data-event-click="add_new_marker_tracking_volume()"><img sprite="icon-aruco"/></button>
-				<h3>Tracking Volume</h3>
+				<h1>Tracking Volume</h1>
 				<select id="select" name="select_volume_id" data-value="selected_tracking_volume_id" data-event-change="select_tracking_volume_entry()">
 					<option value="-1">-- None --</option>
-					<option data-for="volume_id : tracker_volume_ids" data-value="volume_id">{{volume_id | to_volume_name}}</option>
+					<option data-for="volume_id : tracker_volume_ids" data-value="volume_id">Tracking Volume {{volume_id}}</option>
 				</select>
 				<div data-if="selected_tracking_volume_id != -1" class="deletecomponent" data-event-click="remove_tracking_volume()"></div>
 			</div>
@@ -36,7 +32,7 @@
 						</tr>				
 						<tr class="property_tr">
 							<td>
-								<label>ChArUco Mount</label>
+								<label>Mount</label>
 								<select id="select" name="select_charuco_mount" data-value="charuco_mount_id" data-event-change="select_charuco_mount_entry()">
 									<option value="-1">-- None --</option>
 									<option data-for="mount_id : tracking_mount_ids" data-value="mount_id">{{mount_id | to_tracking_mount_name}}</option>
@@ -45,7 +41,7 @@
 						</tr>
 						<tr class="property_tr">	
 							<td>
-								<label>ChArUco Offset</label>
+								<label>Mount Offset</label>
 								<numeric type="float" precision="1" min="-100.0" max="100.0" step="0.1" data-value="charuco_mount_offset_mm_x"/>
 								<numeric type="float" precision="1" min="-100.0" max="100.0" step="0.1" data-value="charuco_mount_offset_mm_y"/>
 								<numeric type="float" precision="1" min="-100.0" max="100.0" step="0.1" data-value="charuco_mount_offset_mm_z"/>                                
@@ -103,11 +99,11 @@
 			</div>
 			
 			<!-- Tracking Mounts Section -->
-			<div data-if="selected_tracking_volume_id != -1" data-model="TrackingSystems">
-				<h3>Tracking Mounts</h3>
+			<div data-if="is_vr_tracking_volume" data-model="TrackingSystems">
+				<h1>Tracking Mounts</h1>
 				<select id="select" name="select_mount_id" data-value="selected_tracking_mount_id" data-event-change="select_tracking_mount_entry()">
 					<option value="-1">-- None --</option>
-					<option data-for="mount_id : tracking_mount_ids" data-value="mount_id">{{mount_id | to_tracking_mount_name}}</option>
+					<option data-for="mount_id : tracking_mount_ids" data-value="mount_id">Tracking Mount {{mount_id}}</option>
 				</select>
 				<div class="createcomponent" data-event-click="add_new_tracking_mount()"></div>
 				<div class="deletecomponent" data-event-click="remove_tracking_mount()"></div>
@@ -128,8 +124,8 @@
 							<td>
 								<label>Device</label>
 								<select id="select" name="select_device" data-value="devicePath" data-event-change="select_device_entry()">
-									<option value="-1">-- None --</option>
-									<option data-for="device_path : vr_device_paths" data-value="device_path">{{devicePath | to_vr_device_friendly_name}}</option>
+									<option value="">-- None --</option>
+									<option data-for="device_path : vr_device_paths" data-value="device_path">{{device_path | to_vr_device_friendly_name}}</option>
 								</select>
 							</td>
 						</tr>
@@ -137,7 +133,7 @@
 							<td>
 								<label>Socket</label>
 								<select id="select" name="select_socket" data-value="socketName" data-event-change="select_socket_entry()">
-									<option value="-1">-- None --</option>
+									<option value="">-- None --</option>
 									<option data-for="socket_name : socket_names" data-value="socket_name">{{socket_name}}</option>
 								</select>
 							</td>

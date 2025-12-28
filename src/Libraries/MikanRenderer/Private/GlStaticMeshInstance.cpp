@@ -17,7 +17,7 @@ public:
 		: m_name(name)
 		, m_visible(true)
 		, m_mesh(mesh)
-		, m_materialInstance(std::make_shared<MkMaterialInstance>(mesh->getMaterialInstance()))
+		, m_materialInstance(createMkMaterialInstance(mesh->getMaterialInstance()))
 		, m_modelMatrix(glm::mat4(1.f))
 		, m_normalMatrix(glm::mat4(1.f))
 	{}

@@ -31,25 +31,20 @@ public:
 	virtual configuru::Config writeToJSON() override;
 	virtual void readFromJSON(const configuru::Config& pt) override;
 
-	static const std::string k_trackerRuntimePropertyId;
-	eTrackingRuntime getTrackingRuntimeType() const { return m_trackingRuntime; }
-	void setTrackingRuntimeType(eTrackingRuntime runtimeType);
-
 	static const std::string k_vrDeviceListPropertyId;
 	std::vector<VRDeviceDefinitionPtr> vrDeviceList;
 
 	VRDeviceDefinitionPtr getVRDeviceConfig(MikanVRDeviceID vrDeviceId) const;
 	VRDeviceDefinitionPtr getVRDeviceConfigByPath(const std::string& vrDevicePath) const;
 	MikanVRDeviceID addNewVRDevice(
+		eTrackingRuntime trackingRuntime,
 		const std::string& vrDevicePath,
 		const struct MikanTransform& xform);
 	bool removeVRDevice(MikanVRDeviceID vrDeviceId);
 	void removeAllVRDevice();
 
 protected:
-	eTrackingRuntime m_trackingRuntime = eTrackingRuntime::INVALID;
 	MikanVRDeviceID m_nextVRDeviceId= 0;
-	bool m_bDebugRenderVRs = true;
 };
 
 class VRObjectSystem : public MikanObjectSystem, public IVRDeviceManagerListener
@@ -71,20 +66,28 @@ public:
 	VRObjectSystemConfigConstPtr getVRSystemConfigConst() const;
 	VRObjectSystemConfigPtr getVRSystemConfig();
 
-	IVRDeviceManagerPtr getVRDeviceManager() const { return m_vrDeviceManager; }
+	bool createTrackingRuntime(eTrackingRuntime desiredRuntime);
 	const VRDeviceMap& getVRDeviceMap() const { return m_vrDeviceComponents; }
 	VRDeviceComponentPtr getVRDeviceById(MikanVRDeviceID vrDeviceId) const;
 	VRDeviceComponentPtr getVRDeviceByPath(const std::string& VRDevicePath) const;
 
+	MulticastDelegate<void(eTrackingRuntime runtime)> OnActiveDeviceListChanged;
+	MulticastDelegate<void(eTrackingRuntime runtime, MikanVRDeviceID deviceId)> OnDevicePropertyChanged;
+	MulticastDelegate<void(eTrackingRuntime runtime, int64_t newFrameId)> OnDevicePosesChanged;
+
 protected:
-	void createVRDeviceManager(eTrackingRuntime desiredRuntime);
-	void disposeVRDeviceManager();
+	eTrackingRuntime findTrackingRuntimeForDeviceManager(const IVRDeviceManager* deviceManager) const;
+	bool findMikanDeviceIdForDeviceIndex(
+		const IVRDeviceManager* deviceManager, 
+		const int deviceIndex,
+		eTrackingRuntime& outRuntime, 
+		MikanVRDeviceID& outMikanDeviceId) const;
 
 	VRDeviceComponentPtr createVRObject(VRDeviceDefinitionPtr vrDeviceDefinition, IVRDevice* vrDeviceInterface);
 	void disposeVRObject(MikanVRDeviceID vrDeviceId);
 	void disposeAllVRObjects();
 
-	VRDeviceComponentPtr addNewVRDevice(class IVRDevice* vrDeviceInterfac);
+	VRDeviceComponentPtr addNewVRDevice(eTrackingRuntime trackingRuntime, class IVRDevice* vrDeviceInterfac);
 	bool removeVRDevice(MikanVRDeviceID VRDeviceId);
 
 	// Project Config Events
@@ -98,15 +101,15 @@ protected:
 		const class ConfigPropertyChangeSet& changedPropertySet);
 
 	// IVRDeviceManagerListener
-	virtual void onActiveDeviceListChanged() override;
-	virtual void onDevicePropertyChanged(int deviceId) override;
-	virtual void onDevicePosesChanged(int64_t newFrameId) override;
+	virtual void onActiveDeviceListChanged(IVRDeviceManager* deviceManager) override;
+	virtual void onDevicePropertyChanged(IVRDeviceManager* deviceManager, int deviceId) override;
+	virtual void onDevicePosesChanged(IVRDeviceManager* deviceManager, int64_t newFrameId) override;
 
 private:
-	ProjectConfigWeakPtr m_projectConfigWeakPtr;
-	class IVRDeviceModule* m_vrDeviceModule= nullptr;
-	IVRDeviceManagerPtr m_vrDeviceManager= nullptr;
+	using VRTrackingRuntimePtr = std::shared_ptr<class VRTrackingRuntime>;
+	std::map<eTrackingRuntime, VRTrackingRuntimePtr> m_trackingRuntimes;
 	VRDeviceMap m_vrDeviceComponents;
+	ProjectConfigWeakPtr m_projectConfigWeakPtr;
 };
 
 // -- Utility Methods

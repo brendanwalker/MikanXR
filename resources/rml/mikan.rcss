@@ -454,14 +454,12 @@ numeric {
 	width: 60dp;
 	margin-left: 0dp;
 	margin-right: 5dp;
-	vertical-align: -6dp;	
 	color: #333;
 	font-size: 12dp;
 }
 
 numeric sliderarrowdec,
 numeric sliderarrowinc {
-	z-index: 2;
 	width: 11dp;
 	height: 11dp;
 }

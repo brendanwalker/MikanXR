@@ -41,7 +41,7 @@ public:
 			return false;
 		}
 
-		m_textMaterialInstance = std::make_shared<MkMaterialInstance>(m_textMaterial);
+		m_textMaterialInstance = createMkMaterialInstance(m_textMaterial);
 
 		glGenVertexArrays(1, &m_textQuadVAO);
 		glGenBuffers(1, &m_textQuadVBO);

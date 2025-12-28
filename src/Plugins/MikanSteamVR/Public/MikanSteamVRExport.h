@@ -37,5 +37,3 @@
         #define MIKAN_STEAMVR_CLASS
     #endif
 #endif
-
-#pragma once

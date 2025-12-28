@@ -42,7 +42,8 @@ target_link_libraries(MikanSteamVR PRIVATE ${MIKAN_GSTREAMER_REQ_LIBS})
 set_target_properties(MikanSteamVR PROPERTIES FOLDER Plugins)
 set_target_properties(MikanSteamVR PROPERTIES PUBLIC_HEADER "${MIKAN_STEAMVR_HEADER}")
 set_target_properties(MikanSteamVR PROPERTIES CXX_VISIBILITY_PRESET hidden)
-target_compile_definitions(MikanSteamVR PRIVATE MIKAN_GSTREAMER_EXPORTS)
+target_compile_definitions(MikanSteamVR PRIVATE MIKAN_STEAMVR_EXPORTS)
+
 
 # Install - copy runtime dependencies to dist folder (for release)
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

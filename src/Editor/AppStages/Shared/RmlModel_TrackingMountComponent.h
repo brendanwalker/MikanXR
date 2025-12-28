@@ -18,6 +18,12 @@ protected:
 	VRObjectSystemConfigPtr getVRObjectSystemConfig() const;
 	VRDeviceComponentPtr getVRDeviceComponent() const;
 	TrackingMountComponentPtr getTrackingMountComponent() const;
+	
+	void setDevicePath(const std::string& devicePath);
+	void setSocketName(const std::string& socketName);
+
+	void refreshVRDevicePathList();
+	void refreshSocketNames();
 
 private:
 	RmlDataBinding_VRDevicePathListPtr m_vrDevicePathList;
