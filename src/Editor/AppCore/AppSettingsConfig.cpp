@@ -34,7 +34,7 @@ void AppSettingsConfig::setLastProjectPath(const std::filesystem::path& projectP
 	if (m_lastProjectPath != projectPath)
 	{
 		m_lastProjectPath = projectPath;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_lastProjectPathPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_lastProjectPathPropertyId));
 	}
 }
 
@@ -43,6 +43,6 @@ void AppSettingsConfig::setAppLanguage(const std::string& appLanguage)
 	if (m_appLanguage != appLanguage)
 	{
 		m_appLanguage = appLanguage;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_appLanguagePropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_appLanguagePropertyId));
 	}
 }

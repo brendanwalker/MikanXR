@@ -188,13 +188,13 @@ void RmlModel_PropertyInterface::setPropertyInterface(
 	{
 		if (oldPropertyChangeEventSource)
 		{
-			oldPropertyChangeEventSource->OnMarkedDirty -=
+			oldPropertyChangeEventSource->OnPropertyChanged -=
 				MakeDelegate(this, &RmlModel_PropertyInterface::onPropertiesChanged);
 		}
 
 		if (newPropertyChangeEventSource)
 		{
-			newPropertyChangeEventSource->OnMarkedDirty +=
+			newPropertyChangeEventSource->OnPropertyChanged +=
 				MakeDelegate(this, &RmlModel_PropertyInterface::onPropertiesChanged);
 		}
 

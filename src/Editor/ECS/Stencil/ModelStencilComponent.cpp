@@ -99,7 +99,7 @@ void ModelStencilDefinition::setModelPath(const std::filesystem::path& path, boo
 	if (bForceDirty || path.string() != m_modelAssetRefConfig->assetPath)
 	{
 		m_modelAssetRefConfig->assetPath = path.string();
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilObjPathPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_modelStencilObjPathPropertyId));
 	}
 }
 
@@ -141,7 +141,7 @@ void ModelStencilComponent::init()
 		}
 
 		// Listen for definition changes
-		m_definition->OnMarkedDirty += MakeDelegate(this, &ModelStencilComponent::onStencilDefinitionMarkedDirty);
+		m_definition->OnPropertyChanged += MakeDelegate(this, &ModelStencilComponent::onStencilDefinitionMarkedDirty);
 	}
 
 	// Create a selection component so that we can selection the mesh collision geometry
@@ -183,7 +183,7 @@ void ModelStencilComponent::customRender()
 
 void ModelStencilComponent::dispose()
 {
-	getModelStencilDefinition()->OnMarkedDirty -=
+	getModelStencilDefinition()->OnPropertyChanged -=
 		MakeDelegate(this, &ModelStencilComponent::onStencilDefinitionMarkedDirty);
 
 	SelectionComponentPtr selectionComponentPtr = m_selectionComponentWeakPtr.lock();

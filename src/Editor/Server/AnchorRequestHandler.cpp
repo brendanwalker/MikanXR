@@ -24,7 +24,7 @@ bool AnchorRequestHandler::startup(MainWindow* mainWindow)
 	m_anchorSystem = mainWindow->getProjectManager()->getSystemOfType<AnchorObjectSystem>();
 
 	// Listen for Anchor System config changes
-	getAnchorConfig()->OnMarkedDirty += MakeDelegate(this, &AnchorRequestHandler::handleAnchorSystemConfigChange);
+	getAnchorConfig()->OnPropertyChanged += MakeDelegate(this, &AnchorRequestHandler::handleAnchorSystemConfigChange);
 
 	// Spatial Anchor Requests
 	messageServer->setRequestHandler(
@@ -42,7 +42,7 @@ bool AnchorRequestHandler::startup(MainWindow* mainWindow)
 
 void AnchorRequestHandler::shutdown()
 {
-	getAnchorConfig()->OnMarkedDirty -= MakeDelegate(this, &AnchorRequestHandler::handleAnchorSystemConfigChange);
+	getAnchorConfig()->OnPropertyChanged -= MakeDelegate(this, &AnchorRequestHandler::handleAnchorSystemConfigChange);
 }
 
 void AnchorRequestHandler::handleAnchorSystemConfigChange(

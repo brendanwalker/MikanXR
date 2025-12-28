@@ -45,7 +45,7 @@ void ClientTextureSourceDefinition::setClientSource(const std::string& clientSou
 	if (clientSource != m_clientSource)
 	{
 		m_clientSource = clientSource;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_clientSourcePropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_clientSourcePropertyId));
 	}
 }
 

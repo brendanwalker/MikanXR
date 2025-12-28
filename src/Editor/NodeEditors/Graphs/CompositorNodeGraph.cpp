@@ -94,7 +94,7 @@ bool CompositorNodeGraph::createResources()
 	m_compositingFrameBuffer->setColorFormat(IMkFrameBuffer::eColorFormat::RGBA);
 
 	// Start listening for Model stencil changes
-	getObjectSystemOfType<StencilObjectSystem>()->getStencilSystemConfig()->OnMarkedDirty +=
+	getObjectSystemOfType<StencilObjectSystem>()->getStencilSystemConfig()->OnPropertyChanged +=
 		MakeDelegate(this, &CompositorNodeGraph::onStencilSystemConfigMarkedDirty);
 
 	// Create triangulated mesh used to render the layer onto
@@ -113,7 +113,7 @@ void CompositorNodeGraph::disposeResources()
 	m_compositingFrameBuffer = nullptr;
 
 	// Stop listening for Model stencil changes
-	getObjectSystemOfType<StencilObjectSystem>()->getStencilSystemConfig()->OnMarkedDirty -=
+	getObjectSystemOfType<StencilObjectSystem>()->getStencilSystemConfig()->OnPropertyChanged -=
 		MakeDelegate(this, &CompositorNodeGraph::onStencilSystemConfigMarkedDirty);
 
 	// Free rendering resources

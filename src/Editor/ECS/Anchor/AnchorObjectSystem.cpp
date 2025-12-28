@@ -117,7 +117,7 @@ MikanSpatialAnchorID AnchorObjectSystemConfig::addNewAnchor(
 	spatialAnchorList.push_back(AnchorDefinitionPtr);
 	addChildConfig(AnchorDefinitionPtr);
 
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_anchorListPropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_anchorListPropertyId));
 
 	return AnchorDefinitionPtr->getAnchorId();
 }
@@ -135,7 +135,7 @@ bool AnchorObjectSystemConfig::removeAnchor(MikanSpatialAnchorID anchorId)
 		removeChildConfig(*it);
 
 		spatialAnchorList.erase(it);
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_anchorListPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_anchorListPropertyId));
 
 		return true;
 	}
@@ -148,7 +148,7 @@ void AnchorObjectSystemConfig::setRenderAnchorsFlag(bool flag)
 	if (m_bDebugRenderAnchors != flag)
 	{
 		m_bDebugRenderAnchors = flag;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_renderAnchorsPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderAnchorsPropertyId));
 	}
 }
 

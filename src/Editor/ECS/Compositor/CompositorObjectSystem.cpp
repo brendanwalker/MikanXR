@@ -89,7 +89,7 @@ MikanCompositorID CompositorObjectSystemConfig::addNewCompositor(
 	m_compositorList.push_back(compositorDefinitionPtr);
 	addChildConfig(compositorDefinitionPtr);
 
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_compositorListPropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_compositorListPropertyId));
 
 	return compositorDefinitionPtr->getCompositorId();
 }
@@ -107,7 +107,7 @@ bool CompositorObjectSystemConfig::removeCompositor(MikanCompositorID compositor
 		removeChildConfig(*it);
 
 		m_compositorList.erase(it);
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_compositorListPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_compositorListPropertyId));
 
 		return true;
 	}

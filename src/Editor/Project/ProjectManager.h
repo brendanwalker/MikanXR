@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CommonConfigFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
 
@@ -53,14 +54,10 @@ public:
 	bool saveProject(const std::string& projectFilePath);
 	void unloadProject();
 
-protected:
-	void updateAutoSave(float deltaSeconds);
-
 private:
 	class IMkWindow* m_ownerWindow = nullptr;
 	std::vector<MikanObjectSystemPtr> m_systems;
 
 	// Project Config
 	ProjectConfigPtr m_projectConfig;
-	float m_projectSaveCooldown = -1.f;
 };

@@ -91,7 +91,10 @@ void ProjectManager::update(float deltaSeconds)
 		system->update(deltaSeconds);
 	}
 
-	updateAutoSave(deltaSeconds);
+	if (m_projectConfig)
+	{
+		m_projectConfig->updateAutoSave(deltaSeconds);
+	}
 }
 
 void ProjectManager::customRender()
@@ -155,9 +158,14 @@ bool ProjectManager::loadProject(const std::string& projectFilePath)
 		}
 	}
 
-	// Unload if we failed to load or init
-	if (!bSuccess)
+	if (bSuccess)
 	{
+		// Enable auto-save
+		m_projectConfig->setAutoSaveCooldownDuration(PROJECT_SAVE_COOLDOWN);
+	}
+	else
+	{
+		// Unload if we failed to load or init
 		unloadProject();
 	}
 
@@ -177,7 +185,7 @@ bool ProjectManager::saveProject(const std::string& projectFilePath)
 
 void ProjectManager::unloadProject()
 {
-	// Call dispose in reverse order 
+	// Call dispose in reverse order
 	// so that Editor system gets component destroy events
 	// from the Anchor and Stencil Systems triggered during dispose call
 	for (int i = (int)m_systems.size() - 1; i >= 0; i--)
@@ -188,30 +196,4 @@ void ProjectManager::unloadProject()
 	}
 
 	m_projectConfig = nullptr;
-}
-
-void ProjectManager::updateAutoSave(float deltaSeconds)
-{
-	// We change the profile constantly as changes are made in the UI
-	// Put the save to disk on a cooldown so we aren't writing to disk constantly
-	if (m_projectSaveCooldown >= 0.f)
-	{
-		if (m_projectConfig->isMarkedDirty())
-		{
-			m_projectSaveCooldown -= deltaSeconds;
-			if (m_projectSaveCooldown < 0.f)
-			{
-				m_projectConfig->save();
-				m_projectSaveCooldown = -1.f;
-			}
-		}
-		else
-		{
-			m_projectSaveCooldown = -1.f;
-		}
-	}
-	else if (m_projectConfig->isMarkedDirty())
-	{
-		m_projectSaveCooldown = PROJECT_SAVE_COOLDOWN;
-	}
 }

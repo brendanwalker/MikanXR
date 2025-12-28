@@ -55,7 +55,7 @@ void TrackingMountDefinition::setDevicePath(const std::string& devicePath)
 	if (devicePath != m_devicePath)
 	{
 		m_devicePath = devicePath;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_devicePathPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_devicePathPropertyId));
 	}
 }
 
@@ -64,7 +64,7 @@ void TrackingMountDefinition::setSocketName(const std::string& socketName)
 	if (socketName != m_socketName)
 	{
 		m_socketName = socketName;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_socketNamePropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_socketNamePropertyId));
 	}
 }
 

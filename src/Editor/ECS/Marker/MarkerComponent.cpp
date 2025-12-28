@@ -66,7 +66,7 @@ void MarkerDefinition::setArucoId(int arucoId)
 	if (arucoId != m_arucoId)
 	{
 		m_arucoId = arucoId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_arucoIdPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_arucoIdPropertyId));
 	}
 }
 
@@ -75,7 +75,7 @@ void MarkerDefinition::setLengthMM(float lengthMM)
 	if (lengthMM != m_lengthMM)
 	{
 		m_lengthMM = lengthMM;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_lengthMMPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_lengthMMPropertyId));
 	}
 }
 

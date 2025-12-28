@@ -45,7 +45,7 @@ void StageComponentDefinition::setTrackingVolumeId(MikanTrackingVolumeID trackin
 	if (m_trackingVolumeId != trackingVolumeId)
 	{
 		m_trackingVolumeId = trackingVolumeId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_trackingVolumeIdPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_trackingVolumeIdPropertyId));
 	}
 }
 

@@ -106,7 +106,7 @@ MikanCameraID CameraObjectSystemConfig::addNewCamera(
 	cameraList.push_back(cameraDefinition);
 	addChildConfig(cameraDefinition);
 
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_cameraListPropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_cameraListPropertyId));
 
 	return cameraDefinition->getCameraId();
 }
@@ -124,7 +124,7 @@ bool CameraObjectSystemConfig::removeCamera(MikanCameraID cameraId)
 		removeChildConfig(*it);
 
 		cameraList.erase(it);
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_cameraListPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_cameraListPropertyId));
 
 		return true;
 	}

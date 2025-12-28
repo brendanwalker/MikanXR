@@ -50,14 +50,18 @@ public:
 
 	void addChildConfig(std::shared_ptr<CommonConfig> childConfig);
 	void removeChildConfig(std::shared_ptr<CommonConfig> childConfig);
-	bool isMarkedDirty() const;
-	virtual void markDirty(const ConfigPropertyChangeSet& changedPropertySet);
-	MulticastDelegate<void(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet)> OnMarkedDirty;
+	virtual void notifyPropertyChanged(const ConfigPropertyChangeSet& changedPropertySet);
+	virtual bool wantsSaveForPropertyChange(const ConfigPropertyChangeSet& changedPropertySet) const { return true; }
+	MulticastDelegate<void(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet)> OnPropertyChanged;
+
+	void setAutoSaveCooldownDuration(float cooldownDuration);
+	float getAutoSaveCooldownDuration() const { return m_autoSaveCooldownDuration; }
+	void updateAutoSave(float deltaSeconds);
 
 	const std::string& getConfigName() const { return m_configName; }
 	const std::filesystem::path getDefaultConfigPath() const;
     const std::filesystem::path& getLoadedConfigPath() const { return m_configFullFilePath; }
-    void save();
+	void save();
 	void save(const std::filesystem::path& path);
     bool load();
 	bool load(const std::filesystem::path& path);
@@ -379,10 +383,11 @@ public:
 
 protected:
 	std::vector<CommonConfigPtr> m_childConfigs;
-	void onChildConfigMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
-	void clearDirty();
+	void onChildConfigPropertyChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
-	bool m_bIsDirty= false;
 	std::string m_configName;
 	std::filesystem::path m_configFullFilePath;
+
+	float m_autoSaveCooldownDuration = -1.f;
+	float m_autoSaveCooldownTimer = -1.f;
 };

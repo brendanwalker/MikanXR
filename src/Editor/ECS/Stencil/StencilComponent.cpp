@@ -65,7 +65,7 @@ void StencilComponentDefinition::setParentAnchorId(MikanSpatialAnchorID anchorId
 	if (m_parentAnchorId != anchorId)
 	{
 		m_parentAnchorId = anchorId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_parentAnchorPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_parentAnchorPropertyId));
 	}
 }
 
@@ -74,7 +74,7 @@ void StencilComponentDefinition::setIsDisabled(bool flag)
 	if (m_bIsDisabled != flag)
 	{
 		m_bIsDisabled = flag;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_stencilDisabledPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_stencilDisabledPropertyId));
 	}
 }
 
@@ -83,7 +83,7 @@ void StencilComponentDefinition::setCullMode(eStencilCullMode mode)
 	if (m_cullMode != mode)
 	{
 		m_cullMode= mode;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_stencilCullModePropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_stencilCullModePropertyId));
 	}
 }
 

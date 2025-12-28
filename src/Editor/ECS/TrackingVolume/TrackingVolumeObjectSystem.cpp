@@ -163,7 +163,7 @@ MikanTrackingVolumeID TrackingVolumeObjectSystemConfig::addMarkerTrakingSystem()
 	m_nextTrackingVolumeId++;
 
 	m_markerTrackingVolumeList.push_back(configPtr);
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_markerTrackingVolumeListPropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_markerTrackingVolumeListPropertyId));
 
 	return configPtr->getTrackingVolumeId();
 }
@@ -181,7 +181,7 @@ bool TrackingVolumeObjectSystemConfig::removeMarkerTrackingVolume(MikanTrackingV
 		removeChildConfig(*it);
 
 		m_markerTrackingVolumeList.erase(it);
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_markerTrackingVolumeListPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_markerTrackingVolumeListPropertyId));
 
 		return true;
 	}
@@ -240,7 +240,7 @@ bool TrackingVolumeObjectSystemConfig::removeVRTrackingVolume(MikanTrackingVolum
 		removeChildConfig(*it);
 
 		m_vrTrackingVolumeList.erase(it);
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_vrTrackingVolumeListPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_vrTrackingVolumeListPropertyId));
 
 		return true;
 	}
@@ -366,7 +366,7 @@ VRTrackingVolumeComponentPtr TrackingVolumeObjectSystem::addNewVRTrackingVolume(
 			std::static_pointer_cast<TrackingVolumeDefinition>(vrDef));
 
 	// Mark config as dirty
-	config->markDirty(ConfigPropertyChangeSet().addPropertyName(
+	config->notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(
 		TrackingVolumeObjectSystemConfig::k_vrTrackingVolumeListPropertyId));
 
 	return std::dynamic_pointer_cast<VRTrackingVolumeComponent>(trackingVolume);

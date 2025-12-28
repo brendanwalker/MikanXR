@@ -95,7 +95,7 @@ void VRTrackingVolumeDefinition::setTrackingRuntime(eTrackingRuntime runtime)
 	if (runtime != m_trackingRuntime)
 	{
 		m_trackingRuntime = runtime;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_trackingRuntimePropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_trackingRuntimePropertyId));
 	}
 }
 
@@ -104,14 +104,14 @@ void VRTrackingVolumeDefinition::setCharucoTrackingMountId(MikanTrackingMountID 
 	if (mountId != m_charucoMountId)
 	{
 		m_charucoMountId = mountId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_charucoMountIdPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_charucoMountIdPropertyId));
 	}
 }
 
 void VRTrackingVolumeDefinition::setCharucoMountOffsetMM(const MikanVector3f& offset)
 {
 	m_charucoMountOffsetMM = offset;
-	markDirty(ConfigPropertyChangeSet().addPropertyName("charucoMountOffsetMM"));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName("charucoMountOffsetMM"));
 }
 
 void VRTrackingVolumeDefinition::setUtilityMarkerId(MikanMarkerID markerId)
@@ -119,7 +119,7 @@ void VRTrackingVolumeDefinition::setUtilityMarkerId(MikanMarkerID markerId)
 	if (markerId != m_utilityMarkerId)
 	{
 		m_utilityMarkerId = markerId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_utilityMarkerIdPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_utilityMarkerIdPropertyId));
 	}
 }
 
@@ -129,7 +129,7 @@ bool VRTrackingVolumeDefinition::addTrackingMountID(MikanTrackingMountID mountId
 	if (it == m_trackingMountIDs.end())
 	{
 		m_trackingMountIDs.push_back(mountId);
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_trackingMountIdsPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_trackingMountIdsPropertyId));
 		return true;
 	}
 
@@ -142,7 +142,7 @@ bool VRTrackingVolumeDefinition::removeTrackingMountID(MikanTrackingMountID moun
 	if (it != m_trackingMountIDs.end())
 	{
 		m_trackingMountIDs.erase(it);
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_trackingMountIdsPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_trackingMountIdsPropertyId));
 		return true;
 	}
 
@@ -152,7 +152,7 @@ bool VRTrackingVolumeDefinition::removeTrackingMountID(MikanTrackingMountID moun
 void VRTrackingVolumeDefinition::setVRDevicePoseOffset(const MikanMatrix4f& poseOffset)
 {
 	m_vrDevicePoseOffset = poseOffset;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_vrDevicePoseOffsetPropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_vrDevicePoseOffsetPropertyId));
 }
 
 // -- VRTrackingVolumeComponent -----

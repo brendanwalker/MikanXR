@@ -107,7 +107,7 @@ void CompositorDefinition::setCameraId(MikanCameraID cameraId)
 	if (m_cameraId != cameraId)
 	{
 		m_cameraId = cameraId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_cameraIdPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_cameraIdPropertyId));
 	}
 }
 
@@ -116,7 +116,7 @@ void CompositorDefinition::setOwnerStageId(MikanSceneID stageId)
 	if (m_ownerStageId != stageId)
 	{
 		m_ownerStageId = stageId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_ownerStagePropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_ownerStagePropertyId));
 	}
 }
 
@@ -135,7 +135,7 @@ void CompositorDefinition::setCompositorGraphPath(const std::filesystem::path& g
 	if (graphPath != m_nodeGraphAssetRef->assetPath)
 	{
 		m_nodeGraphAssetRef->assetPath= graphPath.string();
-		markDirty(ConfigPropertyChangeSet().addPropertyName(MikanComponentDefinition::k_componentScriptPathPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(MikanComponentDefinition::k_componentScriptPathPropertyId));
 	}
 }
 
@@ -144,7 +144,7 @@ void CompositorDefinition::setIsSpoutOutputStreaming(bool bIsStreaming)
 	if (m_bIsSpoutOutputStreaming != bIsStreaming)
 	{
 		m_bIsSpoutOutputStreaming = bIsStreaming;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_spoutEnableOutputNamePropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_spoutEnableOutputNamePropertyId));
 	}
 }
 
@@ -153,7 +153,7 @@ void CompositorDefinition::setSpoutOutputName(const std::string& spoutOutputName
 	if (m_spoutOutputName != spoutOutputName)
 	{
 		m_spoutOutputName = spoutOutputName;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_spoutOutputNamePropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_spoutOutputNamePropertyId));
 	}
 }
 
@@ -176,14 +176,14 @@ void CompositorComponent::init()
 	handleCompositorNodeGraphChanged(getCompositorGraphAssetPath());
 
 	// Listen for changes to the compositor definition
-	getCompositorDefinition()->OnMarkedDirty += MakeDelegate(this, &CompositorComponent::onDefinitionChanged);
+	getCompositorDefinition()->OnPropertyChanged += MakeDelegate(this, &CompositorComponent::onDefinitionChanged);
 }
 
 void CompositorComponent::dispose()
 {
 	stopOutputStreaming();
 
-	getCompositorDefinition()->OnMarkedDirty -= MakeDelegate(this, &CompositorComponent::onDefinitionChanged);
+	getCompositorDefinition()->OnPropertyChanged -= MakeDelegate(this, &CompositorComponent::onDefinitionChanged);
 
 	m_editorFrameBufferTexture = nullptr;
 	m_nodeGraph = nullptr;

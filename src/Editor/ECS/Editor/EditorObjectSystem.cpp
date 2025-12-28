@@ -48,7 +48,7 @@ void EditorObjectSystemConfig::setCameraSpeed(float speed)
 	if (cameraSpeed != speed)
 	{
 		cameraSpeed = speed;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_cameraSpeedPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_cameraSpeedPropertyId));
 	}
 }
 
@@ -57,7 +57,7 @@ void EditorObjectSystemConfig::setCurrentSceneName(const std::string& sceneName)
 	if (currentSceneName != sceneName)
 	{
 		currentSceneName = sceneName;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_currentSceneNamePropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_currentSceneNamePropertyId));
 	}
 }
 

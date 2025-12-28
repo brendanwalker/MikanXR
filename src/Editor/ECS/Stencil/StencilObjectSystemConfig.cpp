@@ -116,7 +116,7 @@ bool StencilObjectSystemConfig::removeStencil(MikanStencilID stencilId)
 			removeChildConfig(*it);
 
 			quadStencilList.erase(it);
-			markDirty(ConfigPropertyChangeSet().addPropertyName(k_quadStencilListPropertyId));
+			notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_quadStencilListPropertyId));
 
 			return true;
 		}
@@ -135,7 +135,7 @@ bool StencilObjectSystemConfig::removeStencil(MikanStencilID stencilId)
 			removeChildConfig(*it);
 
 			boxStencilList.erase(it);
-			markDirty(ConfigPropertyChangeSet().addPropertyName(k_boxStencilListPropertyId));
+			notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_boxStencilListPropertyId));
 
 			return true;
 		}
@@ -154,7 +154,7 @@ bool StencilObjectSystemConfig::removeStencil(MikanStencilID stencilId)
 			removeChildConfig(*it);
 
 			modelStencilList.erase(it);
-			markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilListPropertyId));
+			notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_modelStencilListPropertyId));
 
 			return true;
 		}
@@ -245,7 +245,7 @@ MikanStencilID StencilObjectSystemConfig::addNewQuadStencil(const MikanStencilQu
 	addChildConfig(configPtr);
 
 	quadStencilList.push_back(configPtr);
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_quadStencilListPropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_quadStencilListPropertyId));
 
 	return configPtr->getStencilId();
 }
@@ -284,7 +284,7 @@ MikanStencilID StencilObjectSystemConfig::addNewBoxStencil(const MikanStencilBox
 	addChildConfig(configPtr);
 
 	boxStencilList.push_back(configPtr);
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_boxStencilListPropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_boxStencilListPropertyId));
 
 	return configPtr->getStencilId();
 }
@@ -326,7 +326,7 @@ MikanStencilID StencilObjectSystemConfig::addNewModelStencil(const MikanStencilM
 	addChildConfig(configPtr);
 
 	modelStencilList.push_back(configPtr);
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_modelStencilListPropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_modelStencilListPropertyId));
 
 	return configPtr->getStencilId();
 }
@@ -336,6 +336,6 @@ void StencilObjectSystemConfig::setRenderStencilsFlag(bool flag)
 	if (m_bDebugRenderStencils != flag)
 	{
 		m_bDebugRenderStencils = flag;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_renderStencilsPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderStencilsPropertyId));
 	}
 }

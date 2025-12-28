@@ -198,7 +198,7 @@ void GizmoTransformComponent::setSelectionTarget(SelectionComponentPtr selection
 		applyTransformToGizmo();
 
 		// Listen for scene component transform changes committed by the UI
-		transformTarget->getDefinition()->OnMarkedDirty +=
+		transformTarget->getDefinition()->OnPropertyChanged +=
 			MakeDelegate(this, &GizmoTransformComponent::onTransformTargetConfigChange);
 	}
 	else
@@ -222,7 +222,7 @@ void GizmoTransformComponent::clearSelectionTarget()
 	// Stop listen for scene component transform changes committed by the UI
 	if (oldTransformTarget)
 	{
-		oldTransformTarget->getDefinition()->OnMarkedDirty -=
+		oldTransformTarget->getDefinition()->OnPropertyChanged -=
 			MakeDelegate(this, &GizmoTransformComponent::onTransformTargetConfigChange);
 	}
 

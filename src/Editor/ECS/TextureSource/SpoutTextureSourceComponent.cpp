@@ -46,7 +46,7 @@ void SpoutTextureSourceDefinition::setSpoutSource(const std::string& spoutSource
 	if (spoutSource != m_spoutSource)
 	{
 		m_spoutSource = spoutSource;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_spoutSourcePropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_spoutSourcePropertyId));
 	}
 }
 

@@ -140,7 +140,7 @@ MikanVideoSourceID VideoSourceSystemConfig::addNetworkedVideoSource(
 	m_networkedVideoSourceList.push_back(videoSourcePtr);
 	addChildConfig(videoSourcePtr);
 
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_networkedVideoSourceListPropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_networkedVideoSourceListPropertyId));
 
 	return videoSourcePtr->getVideoSourceId();
 }
@@ -158,7 +158,7 @@ bool VideoSourceSystemConfig::removeNetworkedVideoSource(MikanVideoSourceID vide
 		removeChildConfig(*it);
 
 		m_networkedVideoSourceList.erase(it);
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_networkedVideoSourceListPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_networkedVideoSourceListPropertyId));
 
 		return true;
 	}
@@ -200,7 +200,7 @@ MikanVideoSourceID VideoSourceSystemConfig::addUSBVideoSource(
 	m_usbVideoSourceList.push_back(videoSourcePtr);
 	addChildConfig(videoSourcePtr);
 
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_usbVideoSourceListPropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_usbVideoSourceListPropertyId));
 
 	return videoSourcePtr->getVideoSourceId();
 }
@@ -218,7 +218,7 @@ bool VideoSourceSystemConfig::removeUSBVideoSource(MikanVideoSourceID videoSourc
 		removeChildConfig(*it);
 
 		m_usbVideoSourceList.erase(it);
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_usbVideoSourceListPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_usbVideoSourceListPropertyId));
 
 		return true;
 	}

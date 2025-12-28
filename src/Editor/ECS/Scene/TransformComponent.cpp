@@ -87,7 +87,7 @@ void TransformComponentDefinition::setRelativeTransform(const GlmTransform& tran
 	m_relativeTransform.rotation = glm_quat_to_MikanQuatf(transform.getRotation());
 	m_relativeTransform.scale = glm_vec3_to_MikanVector3f(transform.getScale());
 
-	markDirty(ConfigPropertyChangeSet()
+	notifyPropertyChanged(ConfigPropertyChangeSet()
 			  .addPropertyName(k_relativeScalePropertyId)
 			  .addPropertyName(k_relativeRotationPropertyId)
 			  .addPropertyName(k_relativePositionPropertyId));
@@ -96,19 +96,19 @@ void TransformComponentDefinition::setRelativeTransform(const GlmTransform& tran
 void TransformComponentDefinition::setRelativeScale(const MikanVector3f& scale)
 {
 	m_relativeTransform.scale = scale;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_relativeScalePropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_relativeScalePropertyId));
 }
 
 void TransformComponentDefinition::setRelativeRotation(const MikanQuatf& quat)
 {
 	m_relativeTransform.rotation = quat;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_relativeRotationPropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_relativeRotationPropertyId));
 }
 
 void TransformComponentDefinition::setRelativePosition(const MikanVector3f& translation)
 {
 	m_relativeTransform.position = translation;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_relativePositionPropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_relativePositionPropertyId));
 }
 
 // -- Scene Component -----

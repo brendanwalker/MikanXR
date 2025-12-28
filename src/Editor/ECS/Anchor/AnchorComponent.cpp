@@ -65,7 +65,7 @@ void AnchorDefinition::setOwnerStageId(MikanStageID stageId)
 	if (stageId != m_stageId)
 	{
 		m_stageId = stageId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_ownerStageIdPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_ownerStageIdPropertyId));
 	}
 }
 

@@ -70,7 +70,7 @@ void MikanComponentDefinition::setComponentName(const std::string& name)
 	if (name != m_componentName)
 	{
 		m_componentName = name;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(MikanComponentDefinition::k_componentNamePropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(MikanComponentDefinition::k_componentNamePropertyId));
 	}
 }
 
@@ -89,7 +89,7 @@ void MikanComponentDefinition::setComponentScriptPath(const std::filesystem::pat
 	if (scriptPath.string() != m_componentScriptAssetRefConfig->assetPath)
 	{
 		m_componentScriptAssetRefConfig->assetPath= scriptPath.string();
-		markDirty(ConfigPropertyChangeSet().addPropertyName(MikanComponentDefinition::k_componentScriptPathPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(MikanComponentDefinition::k_componentScriptPathPropertyId));
 	}
 }
 
@@ -139,7 +139,7 @@ void MikanComponent::init()
 		}
 
 		// Listen for definition changes
-		m_definition->OnMarkedDirty += MakeDelegate(this, &MikanComponent::onDefinitionMarkedDirty);
+		m_definition->OnPropertyChanged += MakeDelegate(this, &MikanComponent::onDefinitionMarkedDirty);
 	}
 }
 
@@ -154,7 +154,7 @@ void MikanComponent::dispose()
 
 	if (m_definition)
 	{
-		m_definition->OnMarkedDirty -= MakeDelegate(this, &MikanComponent::onDefinitionMarkedDirty);
+		m_definition->OnPropertyChanged -= MakeDelegate(this, &MikanComponent::onDefinitionMarkedDirty);
 	}
 
 	if (objectSystemPtr->OnComponentDisposed)

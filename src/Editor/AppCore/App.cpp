@@ -119,6 +119,9 @@ bool App::startup(int argc, char** argv)
 		MIKAN_LOG_INFO("App::init") << "Failed to load app settings config. Creating new settings.";
 	}
 
+	// Enable auto-save on a cooldown when settings are changed
+	m_appSettings->setAutoSaveCooldownDuration(SETTINGS_SAVE_COOLDOWN);
+
 	if (success && !m_localizationManager->startup(m_appSettings))
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize localization manager!";
@@ -212,8 +215,8 @@ void App::tick()
 	// Tick the sim and then render each window
 	tickWindows(deltaSeconds);
 
-	// Update profile auto-save
-	updateAutoSave(deltaSeconds);
+	// Update app settings auto-save
+	m_appSettings->updateAutoSave(deltaSeconds);
 }
 
 void App::tickWindows(const float deltaSeconds)
@@ -312,34 +315,9 @@ void App::popCurrentGlContext(ISdlMkWindow* window)
 	}
 	else
 	{
-		MIKAN_LOG_ERROR("App::popCurrentWindow") 
-			<< "Unable to pop window " 
+		MIKAN_LOG_ERROR("App::popCurrentWindow")
+			<< "Unable to pop window "
 			<< window->getSdlWindow().getTitle()
 			<< " (not current)";
-	}
-}
-
-void App::updateAutoSave(float deltaSeconds)
-{
-	// Put the save to disk on a cooldown so we aren't writing to disk constantly
-	if (m_appSettingsSaveCooldown >= 0.f)
-	{
-		if (m_appSettings->isMarkedDirty())
-		{
-			m_appSettingsSaveCooldown -= deltaSeconds;
-			if (m_appSettingsSaveCooldown < 0.f)
-			{
-				m_appSettings->save();
-				m_appSettingsSaveCooldown = -1.f;
-			}
-		}
-		else
-		{
-			m_appSettingsSaveCooldown = -1.f;
-		}
-	}
-	else if (m_appSettings->isMarkedDirty())
-	{
-		m_appSettingsSaveCooldown = SETTINGS_SAVE_COOLDOWN;
 	}
 }

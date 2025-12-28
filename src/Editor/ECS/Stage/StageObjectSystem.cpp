@@ -186,7 +186,7 @@ StageComponentPtr StageObjectSystem::addNewStage()
 		StageComponentPtr stageComponent= createStageObject(stageConfig);
 
 		// Broadcast that the stage list has changed
-		stageSystemConfig->markDirty(
+		stageSystemConfig->notifyPropertyChanged(
 			ConfigPropertyChangeSet().addPropertyName(StageObjectSystemConfig::k_stageListPropertyId));
 
 		return stageComponent;
@@ -202,7 +202,7 @@ bool StageObjectSystem::removeStage(MikanStageID stageId)
 	bool bValidStage= stageSystemConfig->removeStage(stageId);
 	disposeStageObject(stageId);
 
-	stageSystemConfig->markDirty(
+	stageSystemConfig->notifyPropertyChanged(
 		ConfigPropertyChangeSet().addPropertyName(StageObjectSystemConfig::k_stageListPropertyId));
 
 	return bValidStage;

@@ -64,7 +64,7 @@ void USBVideoSourceDefinition::setDevicePath(const std::string& devicePath)
 	if (devicePath != m_devicePath)
 	{
 		m_devicePath = devicePath;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_devicePathPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_devicePathPropertyId));
 	}
 }
 
@@ -73,7 +73,7 @@ void USBVideoSourceDefinition::setVideoMode(const std::string& videoMode)
 	if (videoMode != m_videoMode)
 	{
 		m_videoMode = videoMode;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_videoModePropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_videoModePropertyId));
 	}
 }
 
@@ -97,9 +97,9 @@ void USBVideoSourceDefinition::setCameraSettingValue(
 	const std::string& modeName,
 	eVideoSettingType settingType,
 	float value,
-	bool bBroadcastMarkDirty)
+	bool bBroadcastPropertyChange)
 {
-	bool bIsDirty = false;
+	bool bSettingsChanged = false;
 
 	auto it = m_videoSettingsMap.find(modeName);
 	if (it == m_videoSettingsMap.end())
@@ -108,7 +108,7 @@ void USBVideoSourceDefinition::setCameraSettingValue(
 
 		 settings[(int)settingType] = value;
 		 m_videoSettingsMap[modeName] = settings;
-		 bIsDirty = true;
+		 bSettingsChanged = true;
 	}
 	else
 	{
@@ -117,19 +117,19 @@ void USBVideoSourceDefinition::setCameraSettingValue(
 		if (settings[(int)settingType] != value)
 		{
 			settings[(int)settingType] = value;
-			bIsDirty = true;
+			bSettingsChanged = true;
 		}
 	}
 
-	if (bIsDirty && bBroadcastMarkDirty)
+	if (bSettingsChanged && bBroadcastPropertyChange)
 	{
-		markCameraSettingsDirty();
+		notifyCameraSettingsChanged();
 	}
 }
 
-void USBVideoSourceDefinition::markCameraSettingsDirty()
+void USBVideoSourceDefinition::notifyCameraSettingsChanged()
 {
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_cameraSettingsPropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_cameraSettingsPropertyId));
 }
 
 // -- USBVideoSourceComponent -----
@@ -325,7 +325,7 @@ void USBVideoSourceComponent::updateCameraSettings()
 	if (bModifiedCameraSettings)
 	{
 		// Mark the camera settings as dirty if any settings were modified
-		definition->markCameraSettingsDirty();
+		definition->notifyCameraSettingsChanged();
 	}
 }
 

@@ -111,14 +111,12 @@ protected:
 
 	void tick();
 	void tickWindows(const float deltaSeconds);
-	void updateAutoSave(float deltaSeconds);
 
 private:
 	static App* m_instance;
 
 	// App Settings Config
 	AppSettingsConfigPtr m_appSettings;
-	float m_appSettingsSaveCooldown = -1.f;
 
 	// Localization manager
 	class LocalizationManager* m_localizationManager= nullptr;

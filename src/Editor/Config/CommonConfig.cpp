@@ -38,18 +38,24 @@ CommonConfig::CommonConfig(const std::string &fnamebase)
 {
 }
 
-void CommonConfig::onChildConfigMarkedDirty(
+void CommonConfig::onChildConfigPropertyChanged(
     CommonConfigPtr configPtr,
-    const ConfigPropertyChangeSet& changedPropertySet) 
-{ 
-	m_bIsDirty = true;
-	if (OnMarkedDirty)
-		OnMarkedDirty(configPtr, changedPropertySet);
+    const ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (configPtr->wantsSaveForPropertyChange(changedPropertySet) &&
+		m_autoSaveCooldownDuration >= 0.f &&
+		m_autoSaveCooldownTimer < 0.f)
+	{
+		m_autoSaveCooldownTimer = m_autoSaveCooldownDuration;
+	}
+
+	if (OnPropertyChanged)
+		OnPropertyChanged(configPtr, changedPropertySet);
 }
 
 void CommonConfig::addChildConfig(std::shared_ptr<CommonConfig> childConfig)
 {
-	childConfig->OnMarkedDirty += MakeDelegate(this, &CommonConfig::onChildConfigMarkedDirty);
+	childConfig->OnPropertyChanged += MakeDelegate(this, &CommonConfig::onChildConfigPropertyChanged);
 	m_childConfigs.push_back(childConfig);
 }
 
@@ -62,26 +68,17 @@ void CommonConfig::removeChildConfig(std::shared_ptr<CommonConfig> childConfig)
     }
 }
 
-bool CommonConfig::isMarkedDirty() const 
-{ 
-    return m_bIsDirty; 
-}
-
-void CommonConfig::markDirty(const ConfigPropertyChangeSet& changedPropertySet) 
-{ 
-	m_bIsDirty = true;
-
-	if (OnMarkedDirty)
-		OnMarkedDirty(shared_from_this(), changedPropertySet);
-}
-
-void CommonConfig::clearDirty()
+void CommonConfig::notifyPropertyChanged(const ConfigPropertyChangeSet& changedPropertySet)
 {
-    m_bIsDirty= false;
-    for (CommonConfigPtr childConfigPtr : m_childConfigs)
-    {
-        childConfigPtr->clearDirty();
-    }
+	if (wantsSaveForPropertyChange(changedPropertySet) &&
+		m_autoSaveCooldownDuration >= 0.f &&
+		m_autoSaveCooldownTimer < 0.f)
+	{
+		m_autoSaveCooldownTimer = m_autoSaveCooldownDuration;
+	}
+
+	if (OnPropertyChanged)
+		OnPropertyChanged(shared_from_this(), changedPropertySet);
 }
 
 const std::filesystem::path CommonConfig::getDefaultConfigPath() const
@@ -103,6 +100,26 @@ const std::filesystem::path CommonConfig::getDefaultConfigPath() const
     return config_filepath;
 }
 
+void CommonConfig::setAutoSaveCooldownDuration(float cooldownDuration)
+{
+	m_autoSaveCooldownDuration = cooldownDuration;
+}
+
+void CommonConfig::updateAutoSave(float deltaSeconds)
+{
+	// We change the config constantly as changes are made in the UI
+	// Put the save to disk on a cooldown so we aren't writing to disk constantly
+	if (m_autoSaveCooldownTimer >= 0.f)
+	{
+		m_autoSaveCooldownTimer -= deltaSeconds;
+		if (m_autoSaveCooldownTimer < 0.f)
+		{
+			save();
+			m_autoSaveCooldownTimer = -1.f;
+		}
+	}
+}
+
 void CommonConfig::save()
 {
     save(getDefaultConfigPath());
@@ -113,7 +130,6 @@ void CommonConfig::save(const std::filesystem::path& path)
     m_configFullFilePath= path;
 
 	configuru::dump_file(path.string(), writeToJSON(), configuru::JSON);
-    clearDirty();
 }
 
 bool CommonConfig::load()
@@ -133,7 +149,6 @@ bool CommonConfig::load(const std::filesystem::path& path)
         {
 			configuru::Config cfg = configuru::parse_file(path.string(), configuru::JSON);
 			readFromJSON(cfg);
-			clearDirty();
 			bLoadedOk = true;
         }
         catch (std::exception& e)

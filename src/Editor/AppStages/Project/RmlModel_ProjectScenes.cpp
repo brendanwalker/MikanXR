@@ -139,7 +139,7 @@ bool RmlModel_ProjectScenes::init(
 
 	// Listen for anchor changes
 	AnchorObjectSystemPtr anchorSystem = m_anchorSystem.lock();
-	anchorSystem->getAnchorSystemConfig()->OnMarkedDirty +=
+	anchorSystem->getAnchorSystemConfig()->OnPropertyChanged +=
 		MakeDelegate(this, &RmlModel_ProjectScenes::anchorSystemConfigMarkedDirty);
 	anchorSystem->OnObjectInitialized +=
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
@@ -153,7 +153,7 @@ bool RmlModel_ProjectScenes::init(
 
 	// Listen for stencil changes
 	StencilObjectSystemPtr stencilSystem = m_stencilSystem.lock();
-	stencilSystem->getStencilSystemConfig()->OnMarkedDirty +=
+	stencilSystem->getStencilSystemConfig()->OnPropertyChanged +=
 		MakeDelegate(this, &RmlModel_ProjectScenes::stencilSystemConfigMarkedDirty);
 	stencilSystem->OnObjectInitialized +=
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
@@ -176,7 +176,7 @@ void RmlModel_ProjectScenes::dispose()
 	m_sceneIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectScenes::sceneIdListChanged);
 
 	StencilObjectSystemPtr stencilSystem = m_stencilSystem.lock();
-	stencilSystem->getStencilSystemConfig()->OnMarkedDirty -=
+	stencilSystem->getStencilSystemConfig()->OnPropertyChanged -=
 		MakeDelegate(this, &RmlModel_ProjectScenes::stencilSystemConfigMarkedDirty);
 	stencilSystem->OnObjectInitialized -=
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
@@ -188,7 +188,7 @@ void RmlModel_ProjectScenes::dispose()
 		MakeDelegate(this, &RmlModel_ProjectScenes::updateSelection);
 
 	AnchorObjectSystemPtr anchorSystem = m_anchorSystem.lock();
-	anchorSystem->getAnchorSystemConfig()->OnMarkedDirty -=
+	anchorSystem->getAnchorSystemConfig()->OnPropertyChanged -=
 		MakeDelegate(this, &RmlModel_ProjectScenes::anchorSystemConfigMarkedDirty);
 	anchorSystem->OnObjectInitialized -=
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);

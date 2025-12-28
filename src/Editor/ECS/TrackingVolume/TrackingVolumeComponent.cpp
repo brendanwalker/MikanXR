@@ -64,7 +64,7 @@ void TrackingVolumeDefinition::setOriginMarkerId(MikanMarkerID arucoId)
 	if (arucoId != m_originMarkeId)
 	{
 		m_originMarkeId = arucoId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_originMarkerIdPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_originMarkerIdPropertyId));
 	}
 }
 

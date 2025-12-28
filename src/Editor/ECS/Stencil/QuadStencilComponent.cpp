@@ -90,20 +90,20 @@ MikanStencilQuadInfo QuadStencilDefinition::getQuadInfo() const
 void QuadStencilDefinition::setQuadWidth(float width)
 {
 	m_quadWidth = width;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_quadStencilWidthPropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_quadStencilWidthPropertyId));
 }
 
 void QuadStencilDefinition::setQuadHeight(float height)
 {
 	m_quadHeight = height;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_quadStencilHeightPropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_quadStencilHeightPropertyId));
 }
 
 void QuadStencilDefinition::setQuadSize(float width, float height)
 {
 	m_quadWidth = width;
 	m_quadHeight = height;
-	markDirty(ConfigPropertyChangeSet()
+	notifyPropertyChanged(ConfigPropertyChangeSet()
 				.addPropertyName(k_quadStencilWidthPropertyId)
 				.addPropertyName(k_quadStencilHeightPropertyId));
 }
@@ -111,7 +111,7 @@ void QuadStencilDefinition::setQuadSize(float width, float height)
 void QuadStencilDefinition::setIsDoubleSided(bool flag)
 {
 	m_bIsDoubleSided = flag;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_quadStencilDoubleSidedPropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_quadStencilDoubleSidedPropertyId));
 }
 
 // -- QuadStencilComponent -----

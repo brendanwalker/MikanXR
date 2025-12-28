@@ -111,7 +111,7 @@ void CameraDefinition::setOwnerStageId(MikanStageID stageId)
 	if (stageId != m_stageId)
 	{
 		m_stageId = stageId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_ownerStageIdPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_ownerStageIdPropertyId));
 	}
 }
 
@@ -120,7 +120,7 @@ void CameraDefinition::setTrackingMountId(MikanTrackingMountID trackingMountId)
 	if (trackingMountId != m_trackingMountId)
 	{
 		m_trackingMountId = trackingMountId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_trackingMountIdPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_trackingMountIdPropertyId));
 	}
 }
 
@@ -129,7 +129,7 @@ void CameraDefinition::setVideoSourceId(MikanVideoSourceID videoSourceId)
 	if (videoSourceId != m_videoSourceId)
 	{
 		m_videoSourceId = videoSourceId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_videoSourceIdPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_videoSourceIdPropertyId));
 	}
 }
 
@@ -138,7 +138,7 @@ void CameraDefinition::setTrackingFrameDelay(int trackingFrameDelay)
 	if (trackingFrameDelay != m_trackingFrameDelay)
 	{
 		m_trackingFrameDelay = trackingFrameDelay;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_trackingFrameDelayPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_trackingFrameDelayPropertyId));
 	}
 }
 
@@ -146,7 +146,7 @@ void CameraDefinition::setAperturePoseOffset(const MikanQuatd& q, const MikanVec
 {
 	m_apertureOrientationOffset = q;
 	m_aperturePositionOffset = p;
-	markDirty(ConfigPropertyChangeSet()
+	notifyPropertyChanged(ConfigPropertyChangeSet()
 		.addPropertyName(k_apertureOrientationOffsetPropertyId)
 		.addPropertyName(k_aperturePositionOffsetPropertyId));
 }
@@ -176,12 +176,12 @@ void CameraComponent::init()
 	propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
 
 	// Listen for changes to the tracking mount definition
-	getCameraDefinition()->OnMarkedDirty += MakeDelegate(this, &CameraComponent::onDefinitionChanged);
+	getCameraDefinition()->OnPropertyChanged += MakeDelegate(this, &CameraComponent::onDefinitionChanged);
 }
 
 void CameraComponent::dispose()
 {
-	getCameraDefinition()->OnMarkedDirty -= MakeDelegate(this, &CameraComponent::onDefinitionChanged);
+	getCameraDefinition()->OnPropertyChanged -= MakeDelegate(this, &CameraComponent::onDefinitionChanged);
 
 	TransformComponent::dispose();
 }

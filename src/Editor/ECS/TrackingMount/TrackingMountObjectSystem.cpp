@@ -179,7 +179,7 @@ TrackingMountComponentPtr TrackingMountObjectSystem::addNewTrackingMount()
 	TrackingMountDefinitionPtr trackingMountDefinition = config->getTrackingMountConfig(newTrackingMountId);
 	TrackingMountComponentPtr trackingMount= createTrackingMountObject(trackingMountDefinition);
 
-	config->markDirty(
+	config->notifyPropertyChanged(
 		ConfigPropertyChangeSet().addPropertyName(TrackingMountObjectSystemConfig::k_trackingMountListPropertyId));
 
 	return trackingMount;

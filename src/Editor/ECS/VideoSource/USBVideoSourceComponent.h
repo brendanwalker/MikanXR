@@ -32,8 +32,8 @@ public:
 		const std::string& modeName,
 		eVideoSettingType settingType,
 		float value,
-		bool bBroadcastMarkDirty = true);
-	void markCameraSettingsDirty();
+		bool bBroadcastPropertyChange = true);
+	void notifyCameraSettingsChanged();
 
 private:
 	std::string m_devicePath;

@@ -206,6 +206,6 @@ void ProjectConfig::setRenderOriginFlag(bool flag)
 	if (m_bRenderOrigin != flag)
 	{
 		m_bRenderOrigin = flag;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_renderOriginFlagPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderOriginFlagPropertyId));
 	}
 }

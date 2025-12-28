@@ -26,7 +26,7 @@ bool StencilRequestHandler::startup(MainWindow* mainWindow)
 	IInterprocessMessageServer* messageServer = m_owner->getMessageServer();
 
 	// Stencil Events
-	getProjectConfig()->stencilConfig->OnMarkedDirty +=
+	getProjectConfig()->stencilConfig->OnPropertyChanged +=
 		MakeDelegate(this, &StencilRequestHandler::handleStencilSystemConfigChange);
 
 	// Stencil Requests
@@ -57,7 +57,7 @@ bool StencilRequestHandler::startup(MainWindow* mainWindow)
 
 void StencilRequestHandler::shutdown()
 {
-	getProjectConfig()->stencilConfig->OnMarkedDirty -=
+	getProjectConfig()->stencilConfig->OnPropertyChanged -=
 		MakeDelegate(this, &StencilRequestHandler::handleStencilSystemConfigChange);
 }
 

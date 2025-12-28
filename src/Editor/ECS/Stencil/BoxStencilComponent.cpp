@@ -84,19 +84,19 @@ MikanStencilBoxInfo BoxStencilDefinition::getBoxInfo() const
 void BoxStencilDefinition::setBoxXSize(float size)
 {
 	m_boxSize.x = size;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_boxStencilXSizePropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_boxStencilXSizePropertyId));
 }
 
 void BoxStencilDefinition::setBoxYSize(float size)
 {
 	m_boxSize.y = size;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_boxStencilYSizePropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_boxStencilYSizePropertyId));
 }
 
 void BoxStencilDefinition::setBoxZSize(float size)
 {
 	m_boxSize.z = size;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_boxStencilZSizePropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_boxStencilZSizePropertyId));
 }
 
 void BoxStencilDefinition::setBoxSize(float xSize, float ySize, float zSize)
@@ -104,7 +104,7 @@ void BoxStencilDefinition::setBoxSize(float xSize, float ySize, float zSize)
 	m_boxSize.x = xSize;
 	m_boxSize.y = ySize;
 	m_boxSize.z = zSize;
-	markDirty(ConfigPropertyChangeSet()
+	notifyPropertyChanged(ConfigPropertyChangeSet()
 				.addPropertyName(k_boxStencilXSizePropertyId)
 				.addPropertyName(k_boxStencilYSizePropertyId)
 				.addPropertyName(k_boxStencilZSizePropertyId));

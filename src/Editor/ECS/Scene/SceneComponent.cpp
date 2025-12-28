@@ -70,7 +70,7 @@ void SceneComponentDefinition::setParentStageId(MikanStageID stageId)
 	if (m_parentStageId != stageId)
 	{
 		m_parentStageId = stageId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_parentStagePropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_parentStagePropertyId));
 	}
 }
 
@@ -80,7 +80,7 @@ void SceneComponentDefinition::addCompositorID(MikanCompositorID compositorId)
 	if (it == m_compositorIDs.end())
 	{
 		m_compositorIDs.push_back(compositorId);
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_compositorListPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_compositorListPropertyId));
 	}
 }
 
@@ -109,7 +109,7 @@ void SceneComponentDefinition::removeCompositorID(MikanCompositorID compositorId
 			changeSet.addPropertyName(k_compositorListPropertyId);
 		}
 
-		markDirty(changeSet);
+		notifyPropertyChanged(changeSet);
 	}
 }
 
@@ -118,7 +118,7 @@ void SceneComponentDefinition::setDisplayCompositorId(MikanCompositorID composit
 	if (m_displayCompositorId != compositorId)
 	{
 		m_displayCompositorId = compositorId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_displayCompositorIdPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_displayCompositorIdPropertyId));
 	}
 }
 
@@ -206,12 +206,12 @@ void SceneComponent::init()
 	TransformComponent::init();
 
 	// Listen for changes to the scene definition
-	getSceneComponentDefinition()->OnMarkedDirty += MakeDelegate(this, &SceneComponent::onDefinitionChanged);
+	getSceneComponentDefinition()->OnPropertyChanged += MakeDelegate(this, &SceneComponent::onDefinitionChanged);
 }
 
 void SceneComponent::dispose()
 {
-	getSceneComponentDefinition()->OnMarkedDirty -= MakeDelegate(this, &SceneComponent::onDefinitionChanged);
+	getSceneComponentDefinition()->OnPropertyChanged -= MakeDelegate(this, &SceneComponent::onDefinitionChanged);
 
 	m_mkScene= nullptr;
 

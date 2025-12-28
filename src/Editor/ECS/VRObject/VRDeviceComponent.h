@@ -32,6 +32,9 @@ public:
 	inline MikanVRDeviceID getVRDeviceId() const { return m_vrDeviceId; }
 	inline const std::string getVRDevicePath() const { return m_vrDevicePath; }
 
+	// VRDeviceDefinition is runtime only and isn't saved to the project file
+	virtual bool wantsSaveForPropertyChange(const ConfigPropertyChangeSet& changedPropertySet) const { return false; }
+
 private:
 	eTrackingRuntime m_trackingRuntime = eTrackingRuntime::INVALID;
 	MikanVRDeviceID m_vrDeviceId= -1;

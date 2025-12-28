@@ -28,6 +28,7 @@ class VRObjectSystemConfig : public MikanObjectSystemDefinition
 public:
 	VRObjectSystemConfig(const std::string& configName);
 
+	virtual bool wantsSaveForPropertyChange(const ConfigPropertyChangeSet& changedPropertySet) const override;
 	virtual configuru::Config writeToJSON() override;
 	virtual void readFromJSON(const configuru::Config& pt) override;
 
@@ -44,6 +45,7 @@ public:
 	void removeAllVRDevice();
 
 protected:
+	static const std::string k_nextVRDeviceIdPropertyId;
 	MikanVRDeviceID m_nextVRDeviceId= 0;
 };
 

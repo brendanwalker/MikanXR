@@ -18,6 +18,7 @@
 #include "VRDeviceComponent.h"
 
 // -- VRObjectSystemConfig -----
+const std::string VRObjectSystemConfig::k_nextVRDeviceIdPropertyId = "next_vr_device_id";
 const std::string VRObjectSystemConfig::k_vrDeviceListPropertyId = "vrDeviceList";
 
 VRObjectSystemConfig::VRObjectSystemConfig(const std::string& configName)
@@ -25,11 +26,23 @@ VRObjectSystemConfig::VRObjectSystemConfig(const std::string& configName)
 {
 }
 
+bool VRObjectSystemConfig::wantsSaveForPropertyChange(
+	const ConfigPropertyChangeSet& changedPropertySet) const
+{
+	// We only serialized out change to the next property id
+	if (changedPropertySet.hasPropertyName(k_nextVRDeviceIdPropertyId))
+	{
+		return true;
+	}
+
+	return false;
+}
+
 configuru::Config VRObjectSystemConfig::writeToJSON()
 {
 	configuru::Config pt = CommonConfig::writeToJSON();
 
-	pt["next_vr_device_id"] = m_nextVRDeviceId;
+	pt[k_nextVRDeviceIdPropertyId] = m_nextVRDeviceId;
 
 	return pt;
 }
@@ -38,7 +51,7 @@ void VRObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
-	m_nextVRDeviceId = pt.get_or<MikanVRDeviceID>("next_vr_device_id", m_nextVRDeviceId);
+	m_nextVRDeviceId = pt.get_or<MikanVRDeviceID>(k_nextVRDeviceIdPropertyId, m_nextVRDeviceId);
 }
 
 VRDeviceDefinitionPtr VRObjectSystemConfig::getVRDeviceConfig(MikanVRDeviceID vrDeviceId) const
@@ -86,7 +99,7 @@ MikanVRDeviceID VRObjectSystemConfig::addNewVRDevice(
 	vrDeviceList.push_back(vrDeviceDefinition);
 	addChildConfig(vrDeviceDefinition);
 
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_vrDeviceListPropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_vrDeviceListPropertyId));
 
 	return vrDeviceDefinition->getVRDeviceId();
 }
@@ -104,7 +117,7 @@ bool VRObjectSystemConfig::removeVRDevice(MikanVRDeviceID vrDeviceId)
 		removeChildConfig(*it);
 
 		vrDeviceList.erase(it);
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_vrDeviceListPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_vrDeviceListPropertyId));
 
 		return true;
 	}
@@ -117,7 +130,7 @@ void VRObjectSystemConfig::removeAllVRDevice()
 	if (vrDeviceList.size() > 0)
 	{
 		vrDeviceList.clear();
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_vrDeviceListPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_vrDeviceListPropertyId));
 	}
 }
 
@@ -183,12 +196,12 @@ bool VRObjectSystem::init()
 
 	// Listen for project config changes
 	ProjectConfigPtr projectConfig = getProjectConfig();
-	projectConfig->OnMarkedDirty +=
+	projectConfig->OnPropertyChanged +=
 		MakeDelegate(this, &VRObjectSystem::onProjectConfigMarkedDirty);
 	m_projectConfigWeakPtr= projectConfig;
 
 	VRObjectSystemConfigPtr vrSystemConfig= projectConfig->vrObjectConfig;
-	vrSystemConfig->OnMarkedDirty+= 
+	vrSystemConfig->OnPropertyChanged+= 
 		MakeDelegate(this, &VRObjectSystem::onVRSystemConfigMarkedDirty);
 
 	return true;
@@ -207,7 +220,7 @@ void VRObjectSystem::dispose()
 	ProjectConfigPtr projectConfigPtr = m_projectConfigWeakPtr.lock();
 	if (projectConfigPtr)
 	{
-		projectConfigPtr->OnMarkedDirty -=
+		projectConfigPtr->OnPropertyChanged -=
 			MakeDelegate(this, &VRObjectSystem::onProjectConfigMarkedDirty);
 	}
 

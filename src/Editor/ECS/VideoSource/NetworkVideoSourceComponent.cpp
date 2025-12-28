@@ -82,7 +82,7 @@ void NetworkVideoSourceDefinition::setAddress(const std::string& address)
 	if (address != m_address)
 	{
 		m_address = address;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_addressPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_addressPropertyId));
 	}
 }
 
@@ -91,7 +91,7 @@ void NetworkVideoSourceDefinition::setPath(const std::string& path)
 	if (path != m_path)
 	{
 		m_path = path;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_pathPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_pathPropertyId));
 	}
 }
 
@@ -100,7 +100,7 @@ void NetworkVideoSourceDefinition::setProtocol(eNetworkVideoProtocol protocol)
 	if (protocol != m_protocol)
 	{
 		m_protocol = protocol;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_protocolPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_protocolPropertyId));
 	}
 }
 
@@ -109,7 +109,7 @@ void NetworkVideoSourceDefinition::setPort(int port)
 	if (port != m_port)
 	{
 		m_port = port;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_portPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_portPropertyId));
 	}
 }
 

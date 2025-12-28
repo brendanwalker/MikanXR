@@ -55,7 +55,7 @@ void SceneObjectSystemConfig::setCurrentSceneId(MikanSceneID sceneId)
 	if (sceneId != m_currentSceneId)
 	{
 		m_currentSceneId = sceneId;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_currentSceneIdPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_currentSceneIdPropertyId));
 	}
 }
 
@@ -256,7 +256,7 @@ SceneComponentPtr SceneObjectSystem::addNewScene(
 		SceneComponentPtr sceneComponent= createSceneObject(sceneConfig);
 
 		// Mark the scene list as dirty
-		sceneSystemConfig->markDirty(
+		sceneSystemConfig->notifyPropertyChanged(
 			ConfigPropertyChangeSet().addPropertyName(SceneObjectSystemConfig::k_sceneListPropertyId));
 
 		return sceneComponent;
@@ -272,7 +272,7 @@ bool SceneObjectSystem::removeScene(MikanSceneID sceneId)
 	bool bValidScene= sceneSystemConfig->removeScene(sceneId);
 	disposeSceneObject(sceneId);
 
-	sceneSystemConfig->markDirty(
+	sceneSystemConfig->notifyPropertyChanged(
 		ConfigPropertyChangeSet().addPropertyName(SceneObjectSystemConfig::k_sceneListPropertyId));
 
 	return bValidScene;

@@ -137,7 +137,7 @@ MikanTextureSourceID TextureSourceSystemConfig::addClientTextureSource(
 	m_clientTextureSourceList.push_back(TextureSourcePtr);
 	addChildConfig(TextureSourcePtr);
 
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_clientTextureSourceListPropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_clientTextureSourceListPropertyId));
 
 	return TextureSourcePtr->getTextureSourceId();
 }
@@ -156,7 +156,7 @@ bool TextureSourceSystemConfig::removeClientTextureSource(
 		removeChildConfig(*it);
 
 		m_clientTextureSourceList.erase(it);
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_clientTextureSourceListPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_clientTextureSourceListPropertyId));
 
 		return true;
 	}
@@ -198,7 +198,7 @@ MikanTextureSourceID TextureSourceSystemConfig::addSpoutTextureSource(
 	m_spoutTextureSourceList.push_back(TextureSourcePtr);
 	addChildConfig(TextureSourcePtr);
 
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_spoutTextureSourceListPropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_spoutTextureSourceListPropertyId));
 
 	return TextureSourcePtr->getTextureSourceId();
 }
@@ -216,7 +216,7 @@ bool TextureSourceSystemConfig::removeSpoutTextureSource(MikanTextureSourceID Te
 		removeChildConfig(*it);
 
 		m_spoutTextureSourceList.erase(it);
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_spoutTextureSourceListPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_spoutTextureSourceListPropertyId));
 
 		return true;
 	}

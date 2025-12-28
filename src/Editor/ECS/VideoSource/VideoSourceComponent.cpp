@@ -96,13 +96,13 @@ void VideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 void VideoSourceDefinition::setIsFrameMirrored(bool isFrameMirrored)
 {
 	m_bIsFrameMirrored = isFrameMirrored;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_isFrameMirroredPropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_isFrameMirroredPropertyId));
 }
 
 void VideoSourceDefinition::setIsBufferMirrored(bool isBufferMirrored)
 {
 	m_bIsBufferMirrored = isBufferMirrored;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_isBufferMirroredPropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_isBufferMirroredPropertyId));
 }
 
 void VideoSourceDefinition::setVideoFrameQueueSize(int videoFrameQueueSize)
@@ -110,7 +110,7 @@ void VideoSourceDefinition::setVideoFrameQueueSize(int videoFrameQueueSize)
 	if (m_videoFrameQueueSize != videoFrameQueueSize)
 	{
 		m_videoFrameQueueSize = videoFrameQueueSize;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_videoFrameQueueSizePropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_videoFrameQueueSizePropertyId));
 	}
 }
 
@@ -118,7 +118,7 @@ void VideoSourceDefinition::setCameraIntrinsics(
 	const MikanVideoSourceIntrinsics& cameraIntrinsics)
 {
 	m_intrinsics = cameraIntrinsics;
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_videoSourceIntrinsicsPropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_videoSourceIntrinsicsPropertyId));
 }
 
 // -- VideoSourceComponent -----

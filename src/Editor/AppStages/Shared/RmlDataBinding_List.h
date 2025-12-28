@@ -56,7 +56,7 @@ public:
 		if (ownerConfig)
 		{
 			// Stop listening for object system changes
-			ownerConfig->OnMarkedDirty -=
+			ownerConfig->OnPropertyChanged -=
 				MakeDelegate(this, &RmlDataBinding_List<t_element_type>::onConfigMarkedDirty);
 		}
 
@@ -72,14 +72,14 @@ public:
 			if (oldOwnerConfig)
 			{
 				// Stop listening for object system changes
-				oldOwnerConfig->OnMarkedDirty -=
+				oldOwnerConfig->OnPropertyChanged -=
 					MakeDelegate(this, &RmlDataBinding_List<t_element_type>::onConfigMarkedDirty);
 			}
 
 			if (newOwnerConfig)
 			{
 				// Start listening for object system changes
-				newOwnerConfig->OnMarkedDirty +=
+				newOwnerConfig->OnPropertyChanged +=
 					MakeDelegate(this, &RmlDataBinding_List<t_element_type>::onConfigMarkedDirty);
 			}
 

@@ -147,7 +147,7 @@ MikanMarkerID MarkerObjectSystemConfig::addNewMarker(const std::string& markerNa
 	m_arucoMarkerList.push_back(MarkerDefinitionPtr);
 	addChildConfig(MarkerDefinitionPtr);
 
-	markDirty(ConfigPropertyChangeSet().addPropertyName(k_arucoMarkerListPropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_arucoMarkerListPropertyId));
 
 	return MarkerDefinitionPtr->getMarkerId();
 }
@@ -165,7 +165,7 @@ bool MarkerObjectSystemConfig::removeMarker(MikanMarkerID markerId)
 		removeChildConfig(*it);
 
 		m_arucoMarkerList.erase(it);
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_arucoMarkerListPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_arucoMarkerListPropertyId));
 
 		return true;
 	}
@@ -178,7 +178,7 @@ void MarkerObjectSystemConfig::setArucoDictionaryType(eCharucoDictionaryType dic
 	if (dictionaryType != m_arucoDictionaryType)
 	{
 		m_arucoDictionaryType = dictionaryType;
-		markDirty(ConfigPropertyChangeSet()
+		notifyPropertyChanged(ConfigPropertyChangeSet()
 			.addPropertyName(k_arucoDictionaryTypePropertyId)
 			.addPropertyName(k_arucoIdListPropertyId));
 	}
@@ -216,7 +216,7 @@ void MarkerObjectSystemConfig::setCharucoRows(int charucoRows)
 	if (charucoRows != m_charucoRows)
 	{
 		m_charucoRows = charucoRows;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_charucoRowsPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_charucoRowsPropertyId));
 	}
 }
 
@@ -225,7 +225,7 @@ void MarkerObjectSystemConfig::setCharucoCols(int charucoCols)
 	if (charucoCols != m_charucoCols)
 	{
 		m_charucoCols = charucoCols;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_charucoColsPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_charucoColsPropertyId));
 	}
 }
 
@@ -234,7 +234,7 @@ void MarkerObjectSystemConfig::setCharucoSquareLengthMM(float charucoSquareLengt
 	if (charucoSquareLengthMM != m_charucoSquareLengthMM)
 	{
 		m_charucoSquareLengthMM = charucoSquareLengthMM;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_charucoSquareLengthMMPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_charucoSquareLengthMMPropertyId));
 	}
 }
 
@@ -243,7 +243,7 @@ void MarkerObjectSystemConfig::setCharucoMarkerLengthMM(float charucoMarkerLengt
 	if (charucoMarkerLengthMM != m_charucoMarkerLengthMM)
 	{
 		m_charucoMarkerLengthMM = charucoMarkerLengthMM;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_charucoMarkerLengthMMPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_charucoMarkerLengthMMPropertyId));
 	}
 }
 
@@ -252,7 +252,7 @@ void MarkerObjectSystemConfig::setCharucoDictionaryType(eCharucoDictionaryType c
 	if (charucoDictionaryType != m_charucoDictionaryType)
 	{
 		m_charucoDictionaryType = charucoDictionaryType;
-		markDirty(ConfigPropertyChangeSet().addPropertyName(k_charucoDictionaryTypePropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_charucoDictionaryTypePropertyId));
 	}
 }
 
