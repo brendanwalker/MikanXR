@@ -1,5 +1,6 @@
 #include "MarkerObjectSystem.h"
 #include "App.h"
+#include "CalibrationPatternFinder.h"
 #include "Logger.h"
 #include "MarkerComponent.h"
 #include "MikanAPITypes.h"
@@ -529,11 +530,9 @@ bool MarkerObjectSystem::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr fun
 void MarkerObjectSystem::printMarker()
 {
 	MarkerObjectSystemConfigPtr markerSystemConfig = getMarkerSystemConfig();
-	if (!markerSystemConfig)
-	{
-		MIKAN_LOG_ERROR("MarkerObjectSystem::printMarker") << "No marker system config found";
-		return;
-	}
+	ArucoDictionaryPtr dictionary =
+		CalibrationPatternFinder::getArucoDictionary(
+			markerSystemConfig->getArucoDictionaryType());
 
 	// Get ChArUco board parameters from config
 	const int charucoRows = markerSystemConfig->getCharucoRows();
@@ -542,33 +541,12 @@ void MarkerObjectSystem::printMarker()
 	const float markerLengthMM = markerSystemConfig->getCharucoMarkerLengthMM();
 	const eCharucoDictionaryType charucoDictionaryType = markerSystemConfig->getCharucoDictionaryType();
 
-	// Convert to OpenCV dictionary type
-	cv::aruco::PredefinedDictionaryType cvDictionaryType = cv::aruco::DICT_6X6_250;
-	switch (charucoDictionaryType)
-	{
-		case eCharucoDictionaryType::DICT_4X4:
-			cvDictionaryType = cv::aruco::DICT_4X4_250;
-			break;
-		case eCharucoDictionaryType::DICT_5X5:
-			cvDictionaryType = cv::aruco::DICT_5X5_250;
-			break;
-		case eCharucoDictionaryType::DICT_6X6:
-			cvDictionaryType = cv::aruco::DICT_6X6_250;
-			break;
-		case eCharucoDictionaryType::DICT_7X7:
-			cvDictionaryType = cv::aruco::DICT_7X7_250;
-			break;
-		default:
-			break;
-	}
-
 	// Create ChArUco board
-	cv::aruco::Dictionary dictionary = cv::aruco::getPredefinedDictionary(cvDictionaryType);
 	cv::aruco::CharucoBoard charucoBoard(
 		cv::Size(charucoCols, charucoRows),
 		squareLengthMM,
 		markerLengthMM,
-		dictionary);
+		*dictionary.get());
 
 	// Generate ChArUco board image
 	cv::Mat boardImage;

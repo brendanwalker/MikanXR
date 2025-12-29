@@ -42,6 +42,8 @@ public:
 	virtual void renderCalibrationPattern2D() const;
 	virtual void renderSolvePnPPattern3D(const glm::mat4& xform) const;
 
+	static ArucoDictionaryPtr getArucoDictionary(eCharucoDictionaryType dictionaryType);
+
 protected:
 	// Video buffer state
 	class VideoFrameDistortionView* m_distortionView;

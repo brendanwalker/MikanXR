@@ -78,31 +78,12 @@ CalibrationPatternFinder_Charuco::CalibrationPatternFinder_Charuco(
 		}
 	}
 
-	cv::aruco::PredefinedDictionaryType cvCharucoDictionary= cv::aruco::DICT_6X6_250;
-	switch (charucoDictionaryType)
-	{
-		case eCharucoDictionaryType::DICT_4X4:
-			cvCharucoDictionary= cv::aruco::DICT_4X4_250;
-			break;
-		case eCharucoDictionaryType::DICT_5X5:
-			cvCharucoDictionary= cv::aruco::DICT_5X5_250;
-			break;
-		case eCharucoDictionaryType::DICT_6X6:
-			cvCharucoDictionary= cv::aruco::DICT_6X6_250;
-			break;
-		case eCharucoDictionaryType::DICT_7X7:
-			cvCharucoDictionary= cv::aruco::DICT_7X7_250;
-			break;
-		default:
-			break;
-	}
-
-	cv::aruco::Dictionary dictionary= cv::aruco::getPredefinedDictionary(cvCharucoDictionary);
+	ArucoDictionaryPtr dictionary = getArucoDictionary(charucoDictionaryType);
 	cv::aruco::CharucoBoard board(
 		cv::Size(charucoCols, charucoRows),
 		charucoSquareLengthMM * k_millimeters_to_meters, 
 		charucoMarkerLengthMM * k_millimeters_to_meters,
-		dictionary);
+		*dictionary.get());
 	m_markerData->detector = cv::makePtr<cv::aruco::CharucoDetector>(board);
 	m_markerData->rows = charucoRows;
 	m_markerData->cols = charucoCols;

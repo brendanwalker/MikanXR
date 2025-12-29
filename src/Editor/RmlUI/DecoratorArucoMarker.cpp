@@ -12,6 +12,8 @@
 #include "opencv2/opencv.hpp"
 #include "opencv2/objdetect/aruco_detector.hpp"
 
+#include "CalibrationPatternFinder.h"
+#include "ProjectConfigConstants.h"
 #include "Logger.h"
 
 DecoratorArucoMarker::DecoratorArucoMarker()
@@ -24,15 +26,17 @@ DecoratorArucoMarker::~DecoratorArucoMarker()
 {
 }
 
-bool DecoratorArucoMarker::Initialise(int markerId, int markerSize)
+bool DecoratorArucoMarker::Initialise(
+	int dictionaryTypeInt, 
+	int markerId, 
+	int markerSize)
 {
 	m_markerId = markerId;
 	m_markerSize = markerSize;
 
-	// Initialize the ArUco dictionary (6x6, 250 markers)
-	// TODO: Pass in the dictionary type as a parameter
-	m_dictionary = std::make_shared<cv::aruco::Dictionary>(cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250));
-
+	m_dictionary =
+		CalibrationPatternFinder::getArucoDictionary(
+			(eCharucoDictionaryType)dictionaryTypeInt);
 	if (!m_dictionary)
 	{
 		MIKAN_LOG_ERROR("DecoratorArucoMarker::Initialise") << "Failed to create ArUco dictionary";

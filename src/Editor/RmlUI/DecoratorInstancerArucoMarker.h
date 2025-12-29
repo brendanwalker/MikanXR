@@ -19,6 +19,7 @@ public:
 		const Rml::DecoratorInstancerInterface& instancer_interface) override;
 
 private:
+	Rml::PropertyId m_idDictionaryType;
 	Rml::PropertyId m_idArucoId;
 	Rml::PropertyId m_idArucoSize;
 };

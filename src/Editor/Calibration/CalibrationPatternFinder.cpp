@@ -126,3 +126,31 @@ void CalibrationPatternFinder::renderSolvePnPPattern3D(const glm::mat4& xform) c
 			true);
 	}
 }
+
+ArucoDictionaryPtr CalibrationPatternFinder::getArucoDictionary(eCharucoDictionaryType dictionaryType)
+{
+	cv::aruco::PredefinedDictionaryType cvDictionaryType;
+
+	switch (dictionaryType)
+	{
+	case eCharucoDictionaryType::DICT_4X4:
+		cvDictionaryType = cv::aruco::DICT_4X4_250;
+		break;
+	case eCharucoDictionaryType::DICT_5X5:
+		cvDictionaryType = cv::aruco::DICT_5X5_250;
+		break;
+	case eCharucoDictionaryType::DICT_6X6:
+		cvDictionaryType = cv::aruco::DICT_6X6_250;
+		break;
+	case eCharucoDictionaryType::DICT_7X7:
+		cvDictionaryType = cv::aruco::DICT_7X7_250;
+		break;
+	default:
+		cvDictionaryType = cv::aruco::DICT_6X6_250;
+		break;
+	}
+
+	return 
+		std::make_shared<cv::aruco::Dictionary>(
+			cv::aruco::getPredefinedDictionary(cvDictionaryType));
+}

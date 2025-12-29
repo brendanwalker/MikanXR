@@ -2,14 +2,8 @@
 
 #include <RmlUi/Config/Config.h>
 #include <RmlUi/Core/Decorator.h>
-#include <memory>
 
-namespace cv {
-	class Mat;
-	namespace aruco {
-		class Dictionary;
-	}
-}
+#include "OpenCVFwd.h"
 
 namespace Rml {
 	struct Vertex;
@@ -21,8 +15,8 @@ public:
 	DecoratorArucoMarker();
 	virtual ~DecoratorArucoMarker();
 
-	/// Initialize the decorator with ArUco marker ID and size
-	bool Initialise(int markerId, int markerSize);
+	/// Initialize the decorator with ArUco dictionary type, marker ID and physical size
+	bool Initialise(int dictionaryTypeInt, int markerId, int markerSize);
 
 	/// Called on a decorator to generate any required per-element data for a newly decorated element.
 	/// @param element[in] The newly decorated element.
@@ -55,5 +49,5 @@ private:
 	int m_markerSize;
 
 	/// ArUco dictionary (DICT_6X6_250)
-	std::shared_ptr<cv::aruco::Dictionary> m_dictionary;
+	ArucoDictionaryPtr m_dictionary;
 };

@@ -58,28 +58,9 @@ CalibrationPatternFinder_Aruco::CalibrationPatternFinder_Aruco(
 
 	int desiredArucoId = originMarker->getArucoId();
 	float markerLengthMM = originMarker->getLengthMM();
-	eCharucoDictionaryType charucoDictionaryType = 
-		markerSystem->getMarkerSystemConfig()->getArucoDictionaryType();
-
-	cv::aruco::PredefinedDictionaryType cvCharucoDictionary = cv::aruco::DICT_6X6_250;
-	switch (charucoDictionaryType)
-	{
-		case eCharucoDictionaryType::DICT_4X4:
-			cvCharucoDictionary = cv::aruco::DICT_4X4_250;
-			break;
-		case eCharucoDictionaryType::DICT_5X5:
-			cvCharucoDictionary = cv::aruco::DICT_5X5_250;
-			break;
-		case eCharucoDictionaryType::DICT_6X6:
-			cvCharucoDictionary = cv::aruco::DICT_6X6_250;
-			break;
-		case eCharucoDictionaryType::DICT_7X7:
-			cvCharucoDictionary = cv::aruco::DICT_7X7_250;
-			break;
-		default:
-			break;
-	}
-	cv::aruco::Dictionary dictionary = cv::aruco::getPredefinedDictionary(cvCharucoDictionary);
+	ArucoDictionaryPtr dictionary= 
+		getArucoDictionary(
+			markerSystem->getMarkerSystemConfig()->getArucoDictionaryType());
 
 	// Use corner refinement to get the best possible corner locations
 	cv::aruco::DetectorParameters detectorParams;
@@ -87,7 +68,7 @@ CalibrationPatternFinder_Aruco::CalibrationPatternFinder_Aruco(
 
 	m_markerData->desiredArucoId = desiredArucoId;
 	m_markerData->markerLengthMM = markerLengthMM;
-	m_markerData->detector = cv::makePtr<cv::aruco::ArucoDetector>(dictionary, detectorParams);
+	m_markerData->detector = cv::makePtr<cv::aruco::ArucoDetector>(*dictionary.get(), detectorParams);
 
 	// The Aruco board is a square, so we can hardcode the points in ARUCO_CCW_CENTER style
 	// Solve PnP points are on the XZ Plane

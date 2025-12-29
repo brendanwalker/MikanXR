@@ -1,5 +1,6 @@
 #include "MarkerComponent.h"
 #include "App.h"
+#include "CalibrationPatternFinder.h"
 #include "Logger.h"
 #include "MarkerObjectSystem.h"
 #include "MikanAPITypes.h"
@@ -201,52 +202,19 @@ void MarkerComponent::deleteMarker()
 
 void MarkerComponent::printMarker()
 {
-	MarkerDefinitionPtr markerDefinition = getMarkerDefinition();
-	if (!markerDefinition)
-	{
-		MIKAN_LOG_ERROR("MarkerComponent::printMarker") << "No marker definition found";
-		return;
-	}
+	MarkerObjectSystemPtr markerSystem = getOwnerMarkerSystem();
+	ArucoDictionaryPtr dictionary =
+		CalibrationPatternFinder::getArucoDictionary(
+			markerSystem->getMarkerSystemConfig()->getArucoDictionaryType());
 
+	MarkerDefinitionPtr markerDefinition = getMarkerDefinition();
 	const int arucoId = markerDefinition->getArucoId();
 	const float lengthMM = markerDefinition->getLengthMM();
 
-	// Get the ArUco dictionary type from the marker system
-	MarkerObjectSystemPtr markerSystem = getOwnerMarkerSystem();
-	if (!markerSystem)
-	{
-		MIKAN_LOG_ERROR("MarkerComponent::printMarker") << "No marker system found";
-		return;
-	}
-
-	eCharucoDictionaryType charucoDictionaryType =
-		markerSystem->getMarkerSystemConfig()->getArucoDictionaryType();
-
-	// Convert to OpenCV dictionary type
-	cv::aruco::PredefinedDictionaryType cvDictionaryType = cv::aruco::DICT_6X6_250;
-	switch (charucoDictionaryType)
-	{
-		case eCharucoDictionaryType::DICT_4X4:
-			cvDictionaryType = cv::aruco::DICT_4X4_250;
-			break;
-		case eCharucoDictionaryType::DICT_5X5:
-			cvDictionaryType = cv::aruco::DICT_5X5_250;
-			break;
-		case eCharucoDictionaryType::DICT_6X6:
-			cvDictionaryType = cv::aruco::DICT_6X6_250;
-			break;
-		case eCharucoDictionaryType::DICT_7X7:
-			cvDictionaryType = cv::aruco::DICT_7X7_250;
-			break;
-		default:
-			break;
-	}
-
 	// Generate ArUco marker image using OpenCV
-	cv::aruco::Dictionary dictionary = cv::aruco::getPredefinedDictionary(cvDictionaryType);
 	cv::Mat markerImage;
 	const int markerSizePixels = 600; // High resolution for printing
-	cv::aruco::generateImageMarker(dictionary, arucoId, markerSizePixels, markerImage, 1);
+	cv::aruco::generateImageMarker(*dictionary.get(), arucoId, markerSizePixels, markerImage, 1);
 
 	// Create PDF using libharu
 	HPDF_Doc pdf = HPDF_New(NULL, NULL);

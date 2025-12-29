@@ -438,8 +438,20 @@ void AppStage_Project::onMarkerSelected(int arucoId)
 	{
 		if (auto element = m_projectMarkersView->GetElementById("aruco_preview"))
 		{
+			auto markerObjectSystem= getObjectSystemOfType<MarkerObjectSystem>();
+			const auto markerSystemConfig= markerObjectSystem->getMarkerSystemConfigConst();
+			const int dictionaryType= (int)markerSystemConfig->getArucoDictionaryType();
+			const int markerUIPixelSize = 115;
+
 			// Set the decorator with the specific aruco_id
-			std::string decoratorValue = "aruco-marker(" + std::to_string(arucoId) + ", 115)";
+			std::string decoratorValue =
+				"aruco-marker(" 
+				+ std::to_string(dictionaryType)
+				+ ", "
+				+ std::to_string(arucoId) 
+				+ ", "
+				+ std::to_string(markerUIPixelSize)
+				+")";
 			element->SetProperty("decorator", decoratorValue.c_str());
 		}
 	}

@@ -987,7 +987,7 @@ tab:active {
 
 /* ArUco Marker Decorator Styles */
 .aruco-marker {
-	decorator: aruco-marker(0, 200);
+	decorator: aruco-marker(0, 0, 115);
 	width: 200px;
 	height: 200px;
 	display: inline-block;
