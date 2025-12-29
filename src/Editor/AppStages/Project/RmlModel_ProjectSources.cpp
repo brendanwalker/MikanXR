@@ -228,12 +228,7 @@ void RmlModel_ProjectSources::removeVideoSource(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	if (parameters.empty())
-		return;
-
-	const int videoSourceId = parameters[0].Get<int>();
-	
-	getVideoSourceSystem()->removeVideoSource((MikanVideoSourceID)videoSourceId);
+	getVideoSourceSystem()->removeVideoSource((MikanVideoSourceID)m_selectedVideoSourceId);
 }
 
 void RmlModel_ProjectSources::selectVideoSourceEntry(
@@ -284,12 +279,7 @@ void RmlModel_ProjectSources::removeTextureSource(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	if (parameters.empty())
-		return;
-
-	const int textureSourceId = parameters[0].Get<int>();
-
-	getTextureSourceSystem()->removeTextureSource((MikanTextureSourceID)textureSourceId);
+	getTextureSourceSystem()->removeTextureSource((MikanTextureSourceID)m_selectedTextureSourceId);
 }
 
 void RmlModel_ProjectSources::selectTextureSourceEntry(
