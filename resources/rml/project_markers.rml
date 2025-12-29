@@ -8,10 +8,10 @@
 		<div class="content">
 			<!-- Markers Section -->
 			<div data-model="Markers">
-				<h3>Markers</h3>
+				<h1>Markers</h1>
 				<select id="select" name="select_marker_id" data-value="selected_marker_id" data-event-change="select_marker_entry()">
 					<option value="-1">-- None --</option>
-					<option data-for="marker_id : marker_ids" data-value="marker_id">{{marker_id | to_marker_name}}</option>
+					<option data-for="marker_id : arucoMarkers" data-value="marker_id">{{marker_id | to_marker_name}}</option>
 				</select>				
 				<div class="createcomponent" data-event-click="add_new_marker"></div>
 				<div class="deletecomponent" data-if="selected_marker_id != -1" data-event-click="remove_marker"></div>
@@ -24,22 +24,30 @@
 					<tbody>
 						<tr class="property_tr">
 							<td>
-								Name&nbsp;
+								<label>Name</label>
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
 							</td>
 						</tr>				
 	                    <tr class="property_tr">
 							<td>
-								<label style="vertical-align: 12dp;">ArUco Number</label>
+								<label>ArUco Number</label>
 								<select id="select" name="select_aruco_id" data-value="aruco_id" data-event-change="select_aruco_id_entry()">
 									<option value="-1">-- None --</option>
 									<option data-for="arucoId : arucoIdList" data-value="arucoId">{{arucoId}}</option>
 								</select>
 							</td>
 						</tr>
-	                    <tr class="property_tr">
-							<td>
+	                    <tr style="height: auto">
+							<td style="height: auto; overflow: visible;">
+								<label>ArUco Marker</label>&nbsp;
 								<div id="aruco_preview" style="width: 115px; height: 115px; display: inline-block;"></div>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label>Size</label>&nbsp;
+								<input type="text" style="width: 50dp; margin-left: 0; vertical-align: 10dp;" data-value="length_mm"/>
+								&nbsp;<label>mm</label>
 							</td>
 						</tr>
 						<tr class="property_tr">
@@ -53,7 +61,7 @@
 
 			<!-- Aruco Settings -->
 			<div data-model="MarkerObjectSystem">
-				<h3>ArUco Settings</h3>
+				<h1>ArUco Settings</h1>
 				<table>
 					<thead>
 						<tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
@@ -61,7 +69,7 @@
 					<tbody>		
 	                    <tr class="property_tr">
 							<td>
-								<label>ArUco Number</label>
+								<label>Dictionary</label>
 								<select id="select" name="select_aruco_dict" data-value="arucoDictionaryType" data-event-change="select_aruco_dictionary()">
 									<option data-for="enum_value : marker_dictionary_type_values" data-value="enum_value">{{enum_value | to_enum_string('marker_dictionary_type')}}</option>
 								</select>
@@ -73,7 +81,7 @@
 			
 			<!-- Charuco Settings -->
 			<div data-model="MarkerObjectSystem">
-				<h3>ChArUco Settings</h3>
+				<h1>ChArUco Settings</h1>
 				<table>
 					<thead>
 						<tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
@@ -81,7 +89,7 @@
 					<tbody>		
 						<tr class="property_tr">
 							<td>
-								<label>ArUco Number</label>
+								<label>Dictionary</label>
 								<select id="select" name="select_aruco_dict" data-value="charucoDictionaryType" data-event-change="select_charuco_dictionary()">
 									<option data-for="enum_value : marker_dictionary_type_values" data-value="enum_value">{{enum_value | to_enum_string('marker_dictionary_type')}}</option>
 								</select>
@@ -129,14 +137,14 @@
 							<td>
 								<label>Square Length</label>&nbsp;
 								<input type="text" style="width: 50dp; margin-left: 0; vertical-align: 10dp;" data-value="charucoSquareLengthMM"/>
-								&nbsp;<label>MM</label>
+								&nbsp;<label>mm</label>
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
 								<label>Marker Length</label>&nbsp;
 								<input type="text" style="width: 50dp; margin-left: 0; vertical-align: 10dp;" data-value="charucoMarkerLengthMM"/>
-								&nbsp;<label>MM</label>
+								&nbsp;<label>mm</label>
 							</td>
 						</tr>
 						<tr class="property_tr">

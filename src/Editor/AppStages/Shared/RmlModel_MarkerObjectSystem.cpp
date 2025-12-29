@@ -28,7 +28,7 @@ bool RmlModel_MarkerObjectSystem::onConstruct(
 	constructor.BindEventCallback(
 		"select_aruco_dictionary",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			const int enumValue = ev.GetParameter<int>("value", 0);
+			const int enumValue = ev.GetParameter<int>("value", -1);
 			const auto dictionaryType = static_cast<eCharucoDictionaryType>(enumValue);
 			MarkerObjectSystemConfigPtr systemConfig = getMarkerObjectSystemConfig();
 			if (systemConfig)
@@ -40,7 +40,7 @@ bool RmlModel_MarkerObjectSystem::onConstruct(
 	constructor.BindEventCallback(
 		"select_charuco_dictionary",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			const int enumValue = ev.GetParameter<int>("value", 0);
+			const int enumValue = ev.GetParameter<int>("value", -1);
 			const auto dictionaryType = static_cast<eCharucoDictionaryType>(enumValue);
 			MarkerObjectSystemConfigPtr systemConfig = getMarkerObjectSystemConfig();
 			if (systemConfig)

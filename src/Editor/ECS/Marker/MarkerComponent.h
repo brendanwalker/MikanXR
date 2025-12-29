@@ -37,14 +37,12 @@ private:
 	MikanMarkerID m_markerId;
 	int m_arucoId;
 	float m_lengthMM;
-	eCharucoDictionaryType m_arucoDictionaryType;
 };
 
 class MarkerComponent : public MikanComponent
 {
 public:
 	MarkerComponent(MikanObjectWeakPtr owner);
-	virtual void init() override;
 
 	inline static const std::string k_componentClassName = "MarkerComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
@@ -71,7 +69,4 @@ public:
 
 	void deleteMarker();
 	void printMarker();
-
-protected:
-	SelectionComponentWeakPtr m_selectionComponent;
 };

@@ -25,8 +25,11 @@ const std::string MarkerDefinition::k_lengthMMPropertyId= "length_mm";
 
 MarkerDefinition::MarkerDefinition()
 	: MikanComponentDefinition()
+	, m_markerId(INVALID_MIKAN_ID)
+	, m_arucoId(DEFAULT_ORIGIN_MARKER_ID)
+	, m_lengthMM(DEFAULT_MARKER_SIZE_MM)
 {
-	m_markerId = INVALID_MIKAN_ID;
+	
 }
 
 MarkerDefinition::MarkerDefinition(
@@ -34,6 +37,8 @@ MarkerDefinition::MarkerDefinition(
 	const std::string& markerName)
 	: MikanComponentDefinition(markerId, markerName)
 	, m_markerId(markerId)
+	, m_arucoId(DEFAULT_ORIGIN_MARKER_ID)
+	, m_lengthMM(DEFAULT_MARKER_SIZE_MM)
 {}
 
 configuru::Config MarkerDefinition::writeToJSON()
@@ -41,8 +46,8 @@ configuru::Config MarkerDefinition::writeToJSON()
 	configuru::Config pt = MikanComponentDefinition::writeToJSON();
 
 	pt["id"] = m_markerId;
-	pt["aruco_id"] = m_arucoId;
-	pt["length_mm"] = m_lengthMM;
+	pt[MarkerDefinition::k_arucoIdPropertyId] = m_arucoId;
+	pt[MarkerDefinition::k_lengthMMPropertyId] = m_lengthMM;
 
 	return pt;
 }
@@ -54,8 +59,8 @@ void MarkerDefinition::readFromJSON(const configuru::Config& pt)
 	if (pt.has_key("id"))
 	{
 		m_markerId = pt.get<int>("id");
-		m_arucoId = pt.get_or<int>("aruco_id", 0);
-		m_lengthMM = pt.get_or<float>("length_mm", 100.0f); // Default length is 100mm
+		m_arucoId = pt.get_or<int>(MarkerDefinition::k_arucoIdPropertyId, m_arucoId);
+		m_lengthMM = pt.get_or<float>(MarkerDefinition::k_lengthMMPropertyId, m_lengthMM);
 
 		m_configName = StringUtils::stringify("Marker_", m_markerId);
 	}
@@ -86,18 +91,6 @@ const std::string MarkerComponent::k_printMarkerFunctionId = "print_marker";
 MarkerComponent::MarkerComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
 {
-}
-
-void MarkerComponent::init()
-{
-	MikanComponent::init();
-
-	// Get the selection component that should be on the same object
-	MikanObjectPtr ownerObject = getOwnerObject();
-	if (ownerObject)
-	{
-		m_selectionComponent = ownerObject->getComponentOfType<SelectionComponent>();
-	}
 }
 
 MarkerObjectSystemPtr MarkerComponent::getOwnerMarkerSystem() const

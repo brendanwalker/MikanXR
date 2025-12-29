@@ -1,10 +1,13 @@
 #include "DecoratorArucoMarker.h"
 
+#include <RmlUi/Core/ComputedValues.h>
 #include <RmlUi/Core/Element.h>
 #include <RmlUi/Core/Property.h>
 #include <RmlUi/Core/Texture.h>
 #include <RmlUi/Core/RenderInterface.h>
 #include <RmlUi/Core/Geometry.h>
+#include <RmlUi/Core/GeometryUtilities.h>
+#include <RmlUi/Core/Vertex.h>
 
 #include "opencv2/opencv.hpp"
 #include "opencv2/objdetect/aruco_detector.hpp"
@@ -40,12 +43,57 @@ bool DecoratorArucoMarker::Initialise(int markerId, int markerSize)
 	return GenerateMarkerTexture(m_markerId, m_markerSize);
 }
 
+
 Rml::DecoratorDataHandle DecoratorArucoMarker::GenerateElementData(Rml::Element* element) const
 {
 	Rml::Geometry* geometry = new Rml::Geometry(element);
 	geometry->SetTexture(GetTexture());
 
+	GenerateGeometry(
+		geometry->GetVertices(),
+		geometry->GetIndices(),
+		element);
+
 	return reinterpret_cast<Rml::DecoratorDataHandle>(geometry);
+}
+
+// Generates geometry to render this tile across a surface.
+void DecoratorArucoMarker::GenerateGeometry(
+	Rml::Vector< Rml::Vertex >& vertices,
+	Rml::Vector< int >& indices, 
+	Rml::Element* element) const
+{
+	const Rml::Vector2f surface_dimensions = element->GetBox().GetSize(Rml::Box::PADDING);
+	if (surface_dimensions.x <= 0 || surface_dimensions.y <= 0)
+		return;
+
+	const auto& computed = element->GetComputedValues();
+	float opacity = computed.opacity();
+	Rml::Colourb quad_colour = computed.image_color();
+
+	// Apply opacity
+	quad_colour.alpha = (Rml::byte)(opacity * (float)quad_colour.alpha);
+
+	// Resize the vertex and index arrays to fit the new geometry.
+	int index_offset = (int)vertices.size();
+	vertices.resize(vertices.size() + 4);
+	Rml::Vertex* new_vertices = &vertices[0] + index_offset;
+
+	size_t num_indices = indices.size();
+	indices.resize(indices.size() + 6);
+	int* new_indices = &indices[0] + num_indices;
+
+	// Generate the vertices for the tiled surface.
+	Rml::Vector2f tile_position = Rml::Vector2f(0, 0);
+	Rml::Vector2f tile_dimensions = surface_dimensions;
+	Rml::Math::SnapToPixelGrid(tile_position, tile_dimensions);
+
+	Rml::GeometryUtilities::GenerateQuad(
+		new_vertices, new_indices, 
+		tile_position, tile_dimensions, 
+		quad_colour, 
+		Rml::Vector2f(0, 0), Rml::Vector2f(1, 1),
+		index_offset);
 }
 
 void DecoratorArucoMarker::ReleaseElementData(Rml::DecoratorDataHandle element_data) const

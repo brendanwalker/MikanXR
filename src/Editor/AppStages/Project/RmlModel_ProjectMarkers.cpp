@@ -38,7 +38,7 @@ bool RmlModel_ProjectMarkers::init(
 	m_markerIdList->init(
 		constructor, 
 		markerSystemConfig,
-		"marker_ids",
+		MarkerObjectSystemConfig::k_arucoMarkerListPropertyId,
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 			MarkerObjectSystemConfigPtr markerConfig = m_projectConfig.lock()->markerSystemConfig;
 
@@ -70,6 +70,12 @@ bool RmlModel_ProjectMarkers::init(
 	// Forward marker selection events from the marker component model
 	m_selectedMarkerModel->OnMarkerSelected = MakeDelegate(this, &RmlModel_ProjectMarkers::onMarkerSelectedFromComponent);
 
+	// Auto-select first items if available
+	if (!m_markerIdList->isEmpty())
+	{
+		setSelectedMarkerId(m_markerIdList->getFirstValue());
+	}
+
 	return true;
 }
 
@@ -86,17 +92,23 @@ void RmlModel_ProjectMarkers::dispose()
 
 void RmlModel_ProjectMarkers::markerIdListChanged(bool bOwnerChanged)
 {
-	MikanMarkerID selectedMarkerId = INVALID_MIKAN_ID;
-	if (!m_markerIdList->isEmpty() &&
-		!m_markerIdList->contains(m_selectedMarkerId))
+	MikanMarkerID newSelectedMarkerId = m_selectedMarkerId;
+	if (m_markerIdList->isEmpty())
 	{
-		selectedMarkerId = m_markerIdList->getFirstValue();
+		newSelectedMarkerId = INVALID_MIKAN_ID;
+	}
+	else if (!m_markerIdList->contains(m_selectedMarkerId))
+	{
+		newSelectedMarkerId = m_markerIdList->getFirstValue();
 	}
 
 	// Defer the selection update to post view update after element list refreshes
-	addModelUpdateCallback([this, selectedMarkerId]() {
-		setSelectedMarkerId(selectedMarkerId);
-	});
+	if (newSelectedMarkerId != m_selectedMarkerId)
+	{
+		addModelUpdateCallback([this, newSelectedMarkerId]() {
+			setSelectedMarkerId(newSelectedMarkerId);
+		});
+	}
 }
 
 MarkerObjectSystemPtr RmlModel_ProjectMarkers::getMarkerSystem()
@@ -114,7 +126,12 @@ void RmlModel_ProjectMarkers::addNewMarker(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	getMarkerSystem()->addNewMarker();
+	MarkerComponentPtr markerComponent= getMarkerSystem()->addNewMarker();
+	MikanMarkerID markerId = markerComponent->getMarkerDefinition()->getMarkerId();
+
+	addModelUpdateCallback([this, markerId]() {
+		setSelectedMarkerId(markerId);
+	});
 }
 
 void RmlModel_ProjectMarkers::removeMarker(
@@ -163,6 +180,9 @@ void RmlModel_ProjectMarkers::onMarkerSelectedFromComponent(int arucoId)
 	// Forward the event to listeners of this model
 	if (OnMarkerSelected)
 	{
-		OnMarkerSelected(arucoId);
+		// Defer until next model update to the the view a chance to be loaded
+		addModelUpdateCallback([this, arucoId]() {
+			OnMarkerSelected(arucoId);
+		});
 	}
 }

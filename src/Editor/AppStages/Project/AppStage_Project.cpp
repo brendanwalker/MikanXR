@@ -201,12 +201,13 @@ void AppStage_Project::enter()
 		m_projectSettingsView = addRmlDocument("project_settings.rml");
 
 		// Show the main project view by default
-		m_projectScenesView->Show();
 		m_projectStagesView->Hide();
 		m_projectSourcesView->Hide();
 		m_projectTrackingView->Hide();
 		m_projectMarkersView->Hide();
 		m_projectSettingsView->Hide();
+		m_projectScenesView->Show();
+		m_projectScenesView->PullToFront();
 	}
 }
 
@@ -247,7 +248,9 @@ void AppStage_Project::resume()
 	AppStage::resume();
 
 	hideAllSubWindows();
+
 	m_projectScenesView->Show();
+	m_projectScenesView->PullToFront();
 }
 
 void AppStage_Project::update(float deltaSeconds)
@@ -362,37 +365,55 @@ void AppStage_Project::onReturnEvent()
 void AppStage_Project::onToggleScenesWindowEvent()
 {
 	hideAllSubWindows();
-	if (m_projectScenesView) m_projectScenesView->Show();
+	if (m_projectScenesView) {
+		m_projectScenesView->Show();
+		m_projectScenesView->PullToFront();
+	}
 }
 
 void AppStage_Project::onToggleStagesWindowEvent()
 {
 	hideAllSubWindows();
-	if (m_projectStagesView) m_projectStagesView->Show();
+	if (m_projectStagesView) {
+		m_projectStagesView->Show();
+		m_projectStagesView->PullToFront();
+	}
 }
 
 void AppStage_Project::onToggleSourcesEvent()
 {
 	hideAllSubWindows();
-	if (m_projectSourcesView) m_projectSourcesView->Show();
+	if (m_projectSourcesView) {
+		m_projectSourcesView->Show();
+		m_projectSourcesView->PullToFront();
+	}
 }
 
 void AppStage_Project::onToggleTrackingEvent()
 {
 	hideAllSubWindows();
-	if (m_projectTrackingView) m_projectTrackingView->Show();
+	if (m_projectTrackingView) {
+		m_projectTrackingView->Show();
+		m_projectTrackingView->PullToFront();
+	}
 }
 
 void AppStage_Project::onToggleMarkersEvent()
 {
 	hideAllSubWindows();
-	if (m_projectMarkersView) m_projectMarkersView->Show();
+	if (m_projectMarkersView) {
+		m_projectMarkersView->Show();
+		m_projectMarkersView->PullToFront();
+	}
 }
 
 void AppStage_Project::onToggleSettingsWindowEvent()
 {
 	hideAllSubWindows();
-	if (m_projectSettingsView) m_projectSettingsView->Show();
+	if (m_projectSettingsView) {
+		m_projectSettingsView->Show();
+		m_projectSettingsView->PullToFront();
+	}
 }
 
 void AppStage_Project::onScreenshotClientSourceEvent(const std::string& clientSourceName)

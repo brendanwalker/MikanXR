@@ -1,5 +1,6 @@
 #pragma once
 
+#include <RmlUi/Config/Config.h>
 #include <RmlUi/Core/Decorator.h>
 #include <memory>
 
@@ -8,6 +9,10 @@ namespace cv {
 	namespace aruco {
 		class Dictionary;
 	}
+}
+
+namespace Rml {
+	struct Vertex;
 }
 
 class DecoratorArucoMarker : public Rml::Decorator
@@ -34,6 +39,11 @@ public:
 	void RenderElement(Rml::Element* element, Rml::DecoratorDataHandle element_data) const override;
 
 private:
+	void GenerateGeometry(
+		Rml::Vector< Rml::Vertex >& vertices,
+		Rml::Vector< int >& indices, 
+		Rml::Element* element) const;
+
 	/// Generate ArUco marker texture for the given marker ID and size
 	bool GenerateMarkerTexture(int markerId, int markerSize);
 

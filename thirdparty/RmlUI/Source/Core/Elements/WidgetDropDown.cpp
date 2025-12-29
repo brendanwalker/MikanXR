@@ -99,22 +99,32 @@ void WidgetDropDown::OnUpdate()
 		//  1. First option with 'selected' attribute.
 		//  2. An option whose 'value' attribute matches the select 'value' attribute.
 		//  3. The first option.
+		//@MIKAN_BEGIN
+		//  Updated to only matching select element with matching 'value' attribute
+		//@MIKAN_BEGIN
 		// The select element's value may change as a result of this.
 		const String select_value = parent_element->GetAttribute("value", String());
 		Element* select_option = selection_element->GetFirstChild();
+		//Element* select_option = nullptr;
 
 		const int num_options = selection_element->GetNumChildren();
 		for (int i = 0; i < num_options; i++)
 		{
 			Element* option = selection_element->GetChild(i);
+			//@MIKAN_BEGIN
 			if (option->HasAttribute("selected"))
 			{
 				select_option = option;
 				break;
 			}
 			else if (!select_value.empty() && select_value == option->GetAttribute("value", String()))
+			//if (select_value == option->GetAttribute("value", String()))
+			//@MIKAN_END
 			{
 				select_option = option;
+				//@MIKAN_BEGIN
+				//break;
+				//@MIKAN_END
 			}
 		}
 

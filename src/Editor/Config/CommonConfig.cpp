@@ -46,6 +46,13 @@ void CommonConfig::onChildConfigPropertyChanged(
 		m_autoSaveCooldownDuration >= 0.f &&
 		m_autoSaveCooldownTimer < 0.f)
 	{
+        for (const auto& propertyName : changedPropertySet.getSet())
+        {
+            MIKAN_LOG_INFO("CommonConfig::onChildConfigPropertyChanged") << 
+                "AutoSave Request: Child config '" << configPtr->m_configName 
+                << "' changed property: " << propertyName;
+		}
+
 		m_autoSaveCooldownTimer = m_autoSaveCooldownDuration;
 	}
 
