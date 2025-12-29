@@ -15,6 +15,7 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
+	bool isValid() const;
 
 	std::string className;
 	std::string assetPath;

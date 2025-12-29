@@ -44,7 +44,7 @@ configuru::Config MikanComponentDefinition::writeToJSON()
 
 	pt[k_componentIdPropertyId] = m_componentId;
 	pt[k_componentNamePropertyId] = m_componentName;
-	if (m_componentScriptAssetRefConfig)
+	if (m_componentScriptAssetRefConfig && m_componentScriptAssetRefConfig->isValid())
 	{
 		pt[k_componentScriptPathPropertyId] = m_componentScriptAssetRefConfig->writeToJSON();
 	}

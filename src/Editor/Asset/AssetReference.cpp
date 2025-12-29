@@ -19,6 +19,11 @@ void AssetReferenceConfig::readFromJSON(const configuru::Config& pt)
 	assetPath = pt.get_or<std::string>("asset_path", "");
 }
 
+bool AssetReferenceConfig::isValid() const
+{
+	return !className.empty() && !assetPath.empty();
+}
+
 // -- Asset Reference -----
 AssetReference::~AssetReference()
 {
