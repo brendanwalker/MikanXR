@@ -144,24 +144,64 @@ bool NetworkVideoSourceSystem::createNetworkVideoDeviceManager(const std::string
     }
 
 	// Attempt to load the video device module
-    m_networkVideoDeviceModule = getMikanModuleManager()->getModule<INetworkVideoDeviceModule>(moduleName);
-	if (!m_networkVideoDeviceModule)
+	bool bSuccess = false;
+	m_networkVideoDeviceModule = getMikanModuleManager()->getModule<INetworkVideoDeviceModule>(moduleName);
+	if (m_networkVideoDeviceModule)
 	{
-		MIKAN_LOG_ERROR("NetworkVideoSourceSystem::createNetworkVideoDeviceManager") 
-            << "Failed to load module" << moduleName;
-		return false;
+		MIKAN_LOG_INFO("NetworkVideoSourceSystem::createNetworkVideoDeviceManager")
+			<< "Loaded module " << moduleName;
+
+		// Attempt to create a device manager
+		m_networkVideoDeviceManager = m_networkVideoDeviceModule->createNetworkVideoDeviceManager();
+		if (m_networkVideoDeviceManager)
+		{
+			MIKAN_LOG_INFO("NetworkVideoSourceSystem::createNetworkVideoDeviceManager")
+				<< "Allocated network video device manager for " << moduleName;
+
+			// Attempt to startup the network video device manager
+			if (m_networkVideoDeviceManager->startup())
+			{
+				MIKAN_LOG_INFO("NetworkVideoSourceSystem::createNetworkVideoDeviceManager")
+					<< "Started NetworkVideoDeviceManger for " << moduleName;
+
+				// Listen for device manager changes
+				bSuccess = true;
+			}
+			else
+			{
+				MIKAN_LOG_WARNING("NetworkVideoSourceSystem::createNetworkVideoDeviceManager")
+					<< "Failed to startup UsbVideoDeviceManger for " << moduleName;
+			}
+		}
+		else
+		{
+			MIKAN_LOG_WARNING("NetworkVideoSourceSystem::createNetworkVideoDeviceManager")
+				<< "Failed to allocate UsbVideoDeviceManger for " << moduleName;
+		}
+	}
+	else
+	{
+		MIKAN_LOG_ERROR("NetworkVideoSourceSystem::createNetworkVideoDeviceManager")
+			<< "Failed to load module" << moduleName;
 	}
 
-	// Attempt to create a vr device manager
-    m_networkVideoDeviceManager = m_networkVideoDeviceModule->createNetworkVideoDeviceManager();
-	if (!m_networkVideoDeviceManager)
+	// Clean up if anything failed
+	if (!bSuccess)
 	{
-		MIKAN_LOG_WARNING("NetworkVideoSourceSystem::createNetworkVideoDeviceManager") 
-            << "Failed to create UsbVideoDeviceManager";
-		return false;
+		if (m_networkVideoDeviceManager)
+		{
+			m_networkVideoDeviceManager->shutdown();
+			m_networkVideoDeviceManager = nullptr;
+		}
+
+		if (m_networkVideoDeviceModule)
+		{
+			getMikanModuleManager()->disposeModule(m_networkVideoDeviceModule);
+			m_networkVideoDeviceModule = nullptr;
+		}
 	}
 
-    return true;
+	return bSuccess;
 }
 
 void NetworkVideoSourceSystem::disposeNetworkVideoDeviceManager()

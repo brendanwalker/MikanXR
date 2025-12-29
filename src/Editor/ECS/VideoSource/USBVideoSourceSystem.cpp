@@ -44,30 +44,73 @@ void USBVideoSourceSystem::dispose()
 
 bool USBVideoSourceSystem::createUsbVideoDeviceManager(const std::string& moduleName)
 {
-    // Bail if we didn't select a valid runtime type to use
+	// Bail if we didn't select a valid runtime type to use
     if (moduleName.empty())
-        return false;
+    {
+		MIKAN_LOG_ERROR("USBVideoSourceSystem::createUsbVideoDeviceManager")
+			<< "Missing USB video device module name";
+		return false;
+    }
 
-    // Attempt to load the vr device module
+	// Attempt to load the usb device module
+	bool bSuccess = false;
     m_usbVideoDeviceModule = getMikanModuleManager()->getModule<IUsbVideoDeviceModule>(moduleName);
-    if (!m_usbVideoDeviceModule)
-    {
-        MIKAN_LOG_ERROR("USBVideoSourceSystem::createUsbVideoDeviceManager") << "Failed to load module" << moduleName;
-        return false;
-    }
+	if (m_usbVideoDeviceModule)
+	{
+		MIKAN_LOG_INFO("USBVideoSourceSystem::createUsbVideoDeviceManager")
+			<< "Loaded module " << moduleName;
 
-    // Attempt to create a vr device manager
-    m_usbVideoDeviceManager = m_usbVideoDeviceModule->createUsbVideoDeviceManager();
-    if (!m_usbVideoDeviceManager)
-    {
-        MIKAN_LOG_WARNING("USBVideoSourceSystem::createUsbVideoDeviceManager") << "Failed to create UsbVideoDeviceManager";
-        return false;
-    }
+		// Attempt to create a device manager
+        m_usbVideoDeviceManager = m_usbVideoDeviceModule->createUsbVideoDeviceManager();
+		if (m_usbVideoDeviceManager)
+		{
+			MIKAN_LOG_INFO("USBVideoSourceSystem::createUsbVideoDeviceManager")
+				<< "Allocated USB device manager for " << moduleName;
 
-    // Listen for device manager changes
-    m_usbVideoDeviceManager->addListener(this);
+			// Attempt to startup the usb device manager
+			if (m_usbVideoDeviceManager->startup())
+			{
+				MIKAN_LOG_INFO("USBVideoSourceSystem::createUsbVideoDeviceManager")
+					<< "Started USBDeviceManger for " << moduleName;
 
-    return true;
+				// Listen for device manager changes
+				m_usbVideoDeviceManager->addListener(this);
+
+				bSuccess = true;
+			}
+			else
+			{
+				MIKAN_LOG_WARNING("USBVideoSourceSystem::createUsbVideoDeviceManager")
+					<< "Failed to startup UsbVideoDeviceManger for " << moduleName;
+			}
+		}
+		else
+		{
+			MIKAN_LOG_WARNING("USBVideoSourceSystem::createUsbVideoDeviceManager")
+				<< "Failed to allocate UsbVideoDeviceManger for " << moduleName;
+		}
+	}
+	else
+	{
+		MIKAN_LOG_ERROR("USBVideoSourceSystem::createUsbVideoDeviceManager")
+			<< "Failed to load module" << moduleName;
+	}
+
+	// Clean up if anything failed
+	if (!bSuccess)
+	{
+		if (m_usbVideoDeviceManager)
+		{
+            m_usbVideoDeviceManager->shutdown();
+            m_usbVideoDeviceManager = nullptr;
+		}
+
+		if (m_usbVideoDeviceModule)
+		{
+			getMikanModuleManager()->disposeModule(m_usbVideoDeviceModule);
+            m_usbVideoDeviceModule = nullptr;
+		}
+	}
 }
 
 void USBVideoSourceSystem::disposeUsbVideoDeviceManager()
@@ -152,12 +195,31 @@ USBVideoSourceComponentPtr USBVideoSourceSystem::addNewUSBVideoSource()
     MikanUSBVideoSourceInfo videoSourceInfo = {};
     if (m_usbVideoDeviceManager && m_usbVideoDeviceManager->getDeviceCount() > 0)
     {
-        IUsbVideoDevice* usbVideoDevice = m_usbVideoDeviceManager->getDeviceByIndex(0);
+		// Find the first valid device with at least one video mode
+		int firstValidDeviceIdex = -1;
+        for (int deviceIndex = 0; deviceIndex < m_usbVideoDeviceManager->getDeviceCount(); deviceIndex++)
+        {
+            IUsbVideoDevice* testVideoDevice = m_usbVideoDeviceManager->getDeviceByIndex(deviceIndex);
+            if (testVideoDevice && testVideoDevice->getAvailableVideoModesCount() > 0)
+            {
+                if (testVideoDevice->getVideoModeIndex() < 0)
+                {
+					testVideoDevice->setVideoModeByIndex(0);
+                }
+
+                firstValidDeviceIdex = deviceIndex;
+                break;
+			}
+        }
+
+        IUsbVideoDevice* usbVideoDevice = m_usbVideoDeviceManager->getDeviceByIndex(firstValidDeviceIdex);
         if (usbVideoDevice)
         {
+            const char* videoModeName = usbVideoDevice->getVideoModeName();
+
             videoSourceInfo.usb_source_name.setValue(usbVideoDevice->getFriendlyName());
             videoSourceInfo.device_path.setValue(usbVideoDevice->getDevicePath());
-            videoSourceInfo.video_mode.setValue(usbVideoDevice->getVideoModeName());
+            videoSourceInfo.video_mode.setValue(videoModeName ? videoModeName : "<INVALID>");
             videoSourceInfo.intrinsics.intrinsics_type= INVALID_CAMERA_INTRINSICS;
         }
 	}
