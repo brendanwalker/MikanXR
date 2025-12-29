@@ -33,7 +33,7 @@
 								<label style="vertical-align: 12dp;">Tracking Volume</label>
 								<select id="select" name="select_volume_id" data-value="tracking_volume_id" data-event-change="select_volume_entry()">
 									<option value="-1">-- None --</option>
-									<option data-for="volume_id : tracking_volume_ids" data-value="anchor_id">{{volume_id | to_volume_name}}</option>
+									<option data-for="volume_id : tracking_volume_ids" data-value="volume_id">{{volume_id | to_volume_name}}</option>
 								</select>
 							</td>
 						</tr>

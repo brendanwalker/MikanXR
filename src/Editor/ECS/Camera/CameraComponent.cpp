@@ -44,6 +44,8 @@ CameraDefinition::CameraDefinition()
 	, m_videoSourceId(INVALID_MIKAN_ID)
 	, m_trackingFrameDelay(0)
 {
+	m_apertureOrientationOffset = MikanQuatd{ 1, 0, 0, 0 };
+	m_aperturePositionOffset = MikanVector3d{ 0, 0, 0 };
 }
 
 CameraDefinition::CameraDefinition(
@@ -240,7 +242,7 @@ StageComponentConstPtr CameraComponent::getOwnerStageComponent() const
 {
 	MikanStageID stageId = getCameraDefinition()->getOwnerStageId();
 
-	return StageObjectSystem::getSystem()->getStageById(stageId);
+	return getObjectSystemOfType<StageObjectSystem>()->getStageById(stageId);
 }
 
 VRTrackingVolumeDefinitionConstPtr CameraComponent::getVRTrackingVolumeDefinition() const

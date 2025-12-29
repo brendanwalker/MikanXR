@@ -42,7 +42,6 @@ class StageObjectSystem : public MikanObjectSystem
 {
 public:
 	StageObjectSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
-	static StageObjectSystemPtr getSystem() { return s_sceneObjectSystem.lock(); }
 
 	inline static const std::string k_objectSystemClassName = "StageObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
@@ -67,5 +66,4 @@ protected:
 	void disposeStageObject(MikanStageID sceneId);
 
 	StageMap m_stageComponents;
-	static StageObjectSystemWeakPtr s_sceneObjectSystem;
 };

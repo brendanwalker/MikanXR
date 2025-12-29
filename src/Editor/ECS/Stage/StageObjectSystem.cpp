@@ -118,21 +118,22 @@ bool StageObjectSystemConfig::removeStage(MikanStageID stageId)
 }
 
 // -- StageObjectSystem -----
-StageObjectSystemWeakPtr StageObjectSystem::s_sceneObjectSystem;
-
 bool StageObjectSystem::init()
 {
 	MikanObjectSystem::init();
 
 	StageObjectSystemConfigConstPtr sceneSystemConfig = getStageSystemConfigConst();
+	for (StageComponentDefinitionPtr stageDefinition : sceneSystemConfig->getStageList())
+	{
+		createStageObject(stageDefinition);
+	}
 
-	s_sceneObjectSystem = std::static_pointer_cast<StageObjectSystem>(shared_from_this());
 	return true;
 }
 
 void StageObjectSystem::dispose()
 {
-	s_sceneObjectSystem.reset();
+	m_stageComponents.clear();
 
 	MikanObjectSystem::dispose();
 }
