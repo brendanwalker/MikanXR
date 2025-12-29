@@ -109,4 +109,5 @@ extern const std::string* k_videoSourceTypeStrings;
 #define MIN_CHARUCO_CORNER_COUNT			4
 #define MAX_CHARUCO_CORNER_COUNT			15
 
+#define DEFAULT_VIDEO_FRAME_QUEUE_SIZE		2
 #define DEFAULT_SPOUT_OUTPUT_NAME			"MikanXR"

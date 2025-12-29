@@ -95,19 +95,12 @@ ClientTextureSourceComponentPtr ClientTextureSourceSystem::addNewClientTextureSo
 ClientTextureSourceComponentPtr ClientTextureSourceSystem::addNewClientTextureSource(
     const MikanClientTextureSourceInfo& TextureSourceInfo)
 {
-    TextureSourceSystemConfigPtr TextureSourceSystemConfig = 
+    TextureSourceSystemConfigPtr TextureSourceSystemConfig =
         getProjectConfig()->textureSourceSystemConfig;
 
-    MikanTextureSourceID TextureSourceId = TextureSourceSystemConfig->addClientTextureSource(TextureSourceInfo);
-    if (TextureSourceId != INVALID_MIKAN_ID)
-    {
-        ClientTextureSourceDefinitionPtr configPtr = TextureSourceSystemConfig->getClientTextureSourceConfig(TextureSourceId);
-        assert(configPtr != nullptr);
-
-        return createClientTextureSourceObject(configPtr);
-    }
-
-    return ClientTextureSourceComponentPtr();
+    return
+        createClientTextureSourceObject(
+            TextureSourceSystemConfig->allocateClientTextureSourceDefinition(TextureSourceInfo));
 }
 
 bool ClientTextureSourceSystem::removeClientTextureSource(MikanTextureSourceID TextureSourceId)
@@ -135,6 +128,9 @@ ClientTextureSourceComponentPtr ClientTextureSourceSystem::createClientTextureSo
 
     // Keep track of all the client video sources in the system
     m_clientTextureSourceComponents.insert({TextureSourceDefinition->getTextureSourceId(), TextureSourceComponentPtr});
+
+    // Register the definition with the texture source system
+    getProjectConfig()->textureSourceSystemConfig->addClientTextureSourceDefinition(TextureSourceDefinition);
 
     return TextureSourceComponentPtr;
 }

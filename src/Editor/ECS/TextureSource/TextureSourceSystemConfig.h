@@ -38,15 +38,17 @@ public:
 	const std::vector<ClientTextureSourceDefinitionPtr>& getClientTextureSourceList() const { return m_clientTextureSourceList; }
 	ClientTextureSourceDefinitionConstPtr getClientTextureSourceConfigConst(MikanTextureSourceID TextureSourceId) const;
 	ClientTextureSourceDefinitionPtr getClientTextureSourceConfig(MikanTextureSourceID TextureSourceId);
-	MikanTextureSourceID addClientTextureSource(const struct MikanClientTextureSourceInfo& TextureSourceInfo);
-	bool removeClientTextureSource(MikanTextureSourceID TextureSourceId);
+	ClientTextureSourceDefinitionPtr allocateClientTextureSourceDefinition(const struct MikanClientTextureSourceInfo& TextureSourceInfo);
+	bool addClientTextureSourceDefinition(ClientTextureSourceDefinitionPtr TextureSourcePtr);
+	bool removeClientTextureSourceDefinition(MikanTextureSourceID TextureSourceId);
 
 	static const std::string k_spoutTextureSourceListPropertyId;
 	const std::vector<SpoutTextureSourceDefinitionPtr>& getSpoutTextureSourceList() const { return m_spoutTextureSourceList; }
 	SpoutTextureSourceDefinitionConstPtr getSpoutTextureSourceConfigConst(MikanTextureSourceID TextureSourceId) const;
 	SpoutTextureSourceDefinitionPtr getSpoutTextureSourceConfig(MikanTextureSourceID TextureSourceId);
-	MikanTextureSourceID addSpoutTextureSource(const struct MikanSpoutTextureSourceInfo& TextureSourceInfo);
-	bool removeSpoutTextureSource(MikanTextureSourceID TextureSourceId);
+	SpoutTextureSourceDefinitionPtr allocateSpoutTextureSourceDefinition(const struct MikanSpoutTextureSourceInfo& TextureSourceInfo);
+	bool addSpoutTextureSourceDefinition(SpoutTextureSourceDefinitionPtr TextureSourcePtr);
+	bool removeSpoutTextureSourceDefinition(MikanTextureSourceID TextureSourceId);
 
 protected:
 	std::vector<ClientTextureSourceDefinitionPtr> m_clientTextureSourceList;

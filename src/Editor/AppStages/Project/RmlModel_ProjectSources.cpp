@@ -37,13 +37,12 @@ RmlModel_ProjectSources::RmlModel_ProjectSources()
 
 bool RmlModel_ProjectSources::init(
 	Rml::Context* rmlContext, 
-	ProjectConfigPtr projectConfig,
 	TextureSourceSystemPtr textureSourceSystem,
 	VideoSourceSystemPtr videoSourceSystem)
 {
-	VideoSourceSystemConfigPtr videoSourceConfig = projectConfig->videoSourceSystemConfig;
+	VideoSourceSystemConfigPtr videoSourceConfig = videoSourceSystem->getVideoSourceSystemConfig();
+	TextureSourceSystemConfigPtr textureSourceConfig = textureSourceSystem->getTextureSourceSystemConfig();
 
-	m_projectConfig = projectConfig;
 	m_textureSourceSystem = textureSourceSystem;
 	m_videoSourceSystem = videoSourceSystem;
 
@@ -59,13 +58,23 @@ bool RmlModel_ProjectSources::init(
 		"texture_source_ids", // virtual list since this is a combination of multiple source types
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 			outComponentIdList = m_textureSourceSystem.lock()->getTextureSourceIdList();
+		},
+		[this](const ConfigPropertyChangeSet& changedPropertySet) {
+			return
+				changedPropertySet.hasPropertyName(TextureSourceSystemConfig::k_clientTextureSourceListPropertyId) ||
+				changedPropertySet.hasPropertyName(TextureSourceSystemConfig::k_spoutTextureSourceListPropertyId);
 		});
-	m_textureSourceIdList->init(
+	m_videoSourceIdList->init(
 		constructor, 
 		videoSourceConfig,
 		"video_source_ids", // virtual list since this is a combination of multiple source types
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 			outComponentIdList= m_videoSourceSystem.lock()->getVideoSourceIdList();
+		},
+		[this](const ConfigPropertyChangeSet& changedPropertySet) {
+			return
+				changedPropertySet.hasPropertyName(VideoSourceSystemConfig::k_usbVideoSourceListPropertyId) ||
+				changedPropertySet.hasPropertyName(VideoSourceSystemConfig::k_networkedVideoSourceListPropertyId);
 		});
 
 	// Register Data Model Fields
@@ -244,7 +253,7 @@ void RmlModel_ProjectSources::setSelectedVideoSourceId(MikanVideoSourceID videoS
 		m_selectedVideoSourceId = (int)videoSourceId;
 		m_modelHandle.DirtyVariable("selected_video_source_id");
 
-		VideoSourceSystemConfigPtr config = m_projectConfig.lock()->videoSourceSystemConfig;
+		VideoSourceSystemConfigPtr config = getVideoSourceSystem()->getVideoSourceSystemConfig();
 		eVideoSourceType sourceType = config->getVideoSourceType(videoSourceId);
 
 		// Reset all models first
@@ -300,7 +309,7 @@ void RmlModel_ProjectSources::setSelectedTextureSourceId(MikanTextureSourceID te
 		m_selectedTextureSourceId = (int)textureSourceId;
 		m_modelHandle.DirtyVariable("selected_texture_source_id");
 
-		TextureSourceSystemConfigPtr config = m_projectConfig.lock()->textureSourceSystemConfig;
+		TextureSourceSystemConfigPtr config = getTextureSourceSystem()->getTextureSourceSystemConfig();
 		eTextureSourceType sourceType = config->getTextureSourceType(textureSourceId);
 
 		// Reset all models first

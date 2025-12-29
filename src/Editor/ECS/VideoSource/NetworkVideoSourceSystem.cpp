@@ -105,19 +105,12 @@ NetworkVideoSourceComponentPtr NetworkVideoSourceSystem::addNewNetworkVideoSourc
 NetworkVideoSourceComponentPtr NetworkVideoSourceSystem::addNewNetworkVideoSource(
     const MikanNetworkVideoSourceInfo& videoSourceInfo)
 {
-    VideoSourceSystemConfigPtr videoSourceSystemConfig = 
+    VideoSourceSystemConfigPtr videoSourceSystemConfig =
         getProjectConfig()->videoSourceSystemConfig;
 
-    MikanVideoSourceID videoSourceId = videoSourceSystemConfig->addNetworkedVideoSource(videoSourceInfo);
-    if (videoSourceId != INVALID_MIKAN_ID)
-    {
-        NetworkVideoSourceDefinitionPtr configPtr = videoSourceSystemConfig->getNetworkedVideoSourceConfig(videoSourceId);
-        assert(configPtr != nullptr);
-
-        return createNetworkVideoSourceObject(configPtr);
-    }
-
-    return NetworkVideoSourceComponentPtr();
+    return
+        createNetworkVideoSourceObject(
+            videoSourceSystemConfig->allocateNetworkedVideoSourceDefinition(videoSourceInfo));
 }
 
 bool NetworkVideoSourceSystem::removeNetworkVideoSource(MikanVideoSourceID videoSourceId)
@@ -201,6 +194,9 @@ NetworkVideoSourceComponentPtr NetworkVideoSourceSystem::createNetworkVideoSourc
 
     // Keep track of all the network video sources in the system
     m_networkVideoSourceComponents.insert({ videoSourceDefinition->getVideoSourceId(), videoSourceComponentPtr });
+
+    // Register the definition with the video source system
+    getProjectConfig()->videoSourceSystemConfig->addNetworkedVideoSourceDefinition(videoSourceDefinition);
 
     return videoSourceComponentPtr;
 }

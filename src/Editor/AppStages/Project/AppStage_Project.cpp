@@ -177,7 +177,7 @@ void AppStage_Project::enter()
 
 		m_projectSourcesModel = addRmlModel<RmlModel_ProjectSources>();
 		m_projectSourcesModel->init(
-			context, m_project, m_textureSourceSystem.lock(), m_videoObjectSystem.lock());
+			context, m_textureSourceSystem.lock(), m_videoObjectSystem.lock());
 
 		m_projectTrackingModel = addRmlModel<RmlModel_ProjectTracking>();
 		m_projectTrackingModel->init(

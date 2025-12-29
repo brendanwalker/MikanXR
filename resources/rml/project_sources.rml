@@ -46,9 +46,13 @@
 						<tr class="property_tr">
 							<td>
 								<button data-event-click="calibrate_intrinsics()">Calibrate Intrinsics</button>
-								<button data-event-click="test_intrinsics()">Test Intrinsics</button>
 							</td>
 						</tr>
+						<tr class="property_tr">
+							<td>
+								<button data-event-click="test_intrinsics()">Test Intrinsics</button>
+							</td>
+						</tr>						
 					</tbody>
 				</table>
 			</div>
@@ -86,9 +90,13 @@
 						<tr class="property_tr">
 							<td>
 								<button data-event-click="calibrate_intrinsics()">Calibrate Intrinsics</button>
-								<button data-event-click="test_intrinsics()">Test Intrinsics</button>
 							</td>
 						</tr>
+						<tr class="property_tr">
+							<td>
+								<button data-event-click="test_intrinsics()">Test Intrinsics</button>
+							</td>
+						</tr>						
 					</tbody>
 				</table>
 			</div>

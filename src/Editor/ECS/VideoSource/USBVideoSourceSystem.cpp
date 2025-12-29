@@ -148,12 +148,10 @@ USBVideoSourceComponentPtr USBVideoSourceSystem::getUSBVideoSourceByName(const s
 
 USBVideoSourceComponentPtr USBVideoSourceSystem::addNewUSBVideoSource()
 {
-	USBVideoSourceComponentPtr newVideoSourceComponentPtr;
-
+	// If available, get the first connected device by default
     MikanUSBVideoSourceInfo videoSourceInfo = {};
     if (m_usbVideoDeviceManager && m_usbVideoDeviceManager->getDeviceCount() > 0)
     {
-        // Get the first connected device by default
         IUsbVideoDevice* usbVideoDevice = m_usbVideoDeviceManager->getDeviceByIndex(0);
         if (usbVideoDevice)
         {
@@ -161,30 +159,20 @@ USBVideoSourceComponentPtr USBVideoSourceSystem::addNewUSBVideoSource()
             videoSourceInfo.device_path.setValue(usbVideoDevice->getDevicePath());
             videoSourceInfo.video_mode.setValue(usbVideoDevice->getVideoModeName());
             videoSourceInfo.intrinsics.intrinsics_type= INVALID_CAMERA_INTRINSICS;
-
-            newVideoSourceComponentPtr= addNewUSBVideoSource(videoSourceInfo);
         }
 	}
 
-    return newVideoSourceComponentPtr;
+    return addNewUSBVideoSource(videoSourceInfo);
 }
 
 USBVideoSourceComponentPtr USBVideoSourceSystem::addNewUSBVideoSource(
     const MikanUSBVideoSourceInfo& videoSourceInfo)
 {
-    VideoSourceSystemConfigPtr videoSourceSystemConfig = 
-        getProjectConfig()->videoSourceSystemConfig;
+    VideoSourceSystemConfigPtr videoSourceSystemConfig = getProjectConfig()->videoSourceSystemConfig;
 
-    MikanVideoSourceID videoSourceId = videoSourceSystemConfig->addUSBVideoSource(videoSourceInfo);
-    if (videoSourceId != INVALID_MIKAN_ID)
-    {
-        USBVideoSourceDefinitionPtr configPtr = videoSourceSystemConfig->getUSBVideoSourceConfig(videoSourceId);
-        assert(configPtr != nullptr);
-
-        return createUSBVideoSourceObject(configPtr);
-    }
-
-    return USBVideoSourceComponentPtr();
+    return 
+        createUSBVideoSourceObject(
+            videoSourceSystemConfig->allocateUSBVideoSourceDefinition(videoSourceInfo));
 }
 
 bool USBVideoSourceSystem::removeUSBVideoSource(MikanVideoSourceID videoSourceId)
@@ -212,6 +200,9 @@ USBVideoSourceComponentPtr USBVideoSourceSystem::createUSBVideoSourceObject(
 
     // Keep track of all the usb video sources in the system
     m_usbVideoSourceComponents.insert({ videoSourceDefinition->getVideoSourceId(), videoSourceComponentPtr });
+
+	// Register the definition with the video source system
+    getProjectConfig()->videoSourceSystemConfig->addUSBVideoSourceDefinition(videoSourceDefinition);
 
     return videoSourceComponentPtr;
 }

@@ -17,7 +17,6 @@ public:
 
 	bool init(
 		Rml::Context* rmlContext, 
-		ProjectConfigPtr projectConfig,
 		TextureSourceSystemPtr textureSourceSystem,
 		VideoSourceSystemPtr videoSourceSystem);
 	virtual void dispose() override;
@@ -47,7 +46,6 @@ private:
 	void setSelectedTextureSourceId(MikanTextureSourceID textureSourceId);
 	void textureSourceIdListChanged(bool bOwnerChanged);
 
-	ProjectConfigWeakPtr m_projectConfig;
 	TextureSourceSystemWeakPtr m_textureSourceSystem;
 	VideoSourceSystemWeakPtr m_videoSourceSystem;
 

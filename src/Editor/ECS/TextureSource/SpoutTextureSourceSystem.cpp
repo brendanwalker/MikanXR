@@ -94,19 +94,12 @@ SpoutTextureSourceComponentPtr SpoutTextureSourceSystem::addNewSpoutTextureSourc
 SpoutTextureSourceComponentPtr SpoutTextureSourceSystem::addNewSpoutTextureSource(
     const MikanSpoutTextureSourceInfo& TextureSourceInfo)
 {
-    TextureSourceSystemConfigPtr TextureSourceSystemConfig = 
+    TextureSourceSystemConfigPtr TextureSourceSystemConfig =
         getProjectConfig()->textureSourceSystemConfig;
 
-    MikanTextureSourceID TextureSourceId = TextureSourceSystemConfig->addSpoutTextureSource(TextureSourceInfo);
-    if (TextureSourceId != INVALID_MIKAN_ID)
-    {
-        SpoutTextureSourceDefinitionPtr configPtr = TextureSourceSystemConfig->getSpoutTextureSourceConfig(TextureSourceId);
-        assert(configPtr != nullptr);
-
-        return createSpoutTextureSourceObject(configPtr);
-    }
-
-    return SpoutTextureSourceComponentPtr();
+    return
+        createSpoutTextureSourceObject(
+            TextureSourceSystemConfig->allocateSpoutTextureSourceDefinition(TextureSourceInfo));
 }
 
 bool SpoutTextureSourceSystem::removeSpoutTextureSource(MikanTextureSourceID TextureSourceId)
@@ -134,6 +127,9 @@ SpoutTextureSourceComponentPtr SpoutTextureSourceSystem::createSpoutTextureSourc
 
     // Keep track of all the spout video sources in the system
     m_spoutTextureSourceComponents.insert({ TextureSourceDefinition->getTextureSourceId(), TextureSourceComponentPtr });
+
+    // Register the definition with the texture source system
+    getProjectConfig()->textureSourceSystemConfig->addSpoutTextureSourceDefinition(TextureSourceDefinition);
 
     return TextureSourceComponentPtr;
 }

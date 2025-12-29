@@ -93,9 +93,9 @@ bool TextureSourceSystemConfig::removeTextureSource(MikanTextureSourceID Texture
 	switch (getTextureSourceType(TextureSourceId))
 	{
 		case eTextureSourceType::client:
-			return removeClientTextureSource(TextureSourceId);
+			return removeClientTextureSourceDefinition(TextureSourceId);
 		case eTextureSourceType::spout:
-			return removeSpoutTextureSource(TextureSourceId);
+			return removeSpoutTextureSourceDefinition(TextureSourceId);
 		default:
 			return false;
 	}
@@ -127,22 +127,32 @@ ClientTextureSourceDefinitionPtr TextureSourceSystemConfig::getClientTextureSour
 	return ClientTextureSourceDefinitionPtr();
 }
 
-MikanTextureSourceID TextureSourceSystemConfig::addClientTextureSource(
+ClientTextureSourceDefinitionPtr TextureSourceSystemConfig::allocateClientTextureSourceDefinition(
 	const MikanClientTextureSourceInfo& TextureSourceInfo)
 {
 	ClientTextureSourceDefinitionPtr TextureSourcePtr =
 		std::make_shared<ClientTextureSourceDefinition>(m_nextTextureSourceId, TextureSourceInfo);
 	m_nextTextureSourceId++;
 
-	m_clientTextureSourceList.push_back(TextureSourcePtr);
-	addChildConfig(TextureSourcePtr);
-
-	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_clientTextureSourceListPropertyId));
-
-	return TextureSourcePtr->getTextureSourceId();
+	return TextureSourcePtr;
 }
 
-bool TextureSourceSystemConfig::removeClientTextureSource(
+bool TextureSourceSystemConfig::addClientTextureSourceDefinition(
+	ClientTextureSourceDefinitionPtr TextureSourceDefinitionPtr)
+{
+	if (!getClientTextureSourceConfig(TextureSourceDefinitionPtr->getTextureSourceId()))
+	{
+		m_clientTextureSourceList.push_back(TextureSourceDefinitionPtr);
+		addChildConfig(TextureSourceDefinitionPtr);
+
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_clientTextureSourceListPropertyId));
+		return true;
+	}
+
+	return false;
+}
+
+bool TextureSourceSystemConfig::removeClientTextureSourceDefinition(
 	MikanTextureSourceID TextureSourceId)
 {
 	auto it = std::find_if(
@@ -188,22 +198,32 @@ SpoutTextureSourceDefinitionPtr TextureSourceSystemConfig::getSpoutTextureSource
 		getSpoutTextureSourceConfigConst(TextureSourceId));
 }
 
-MikanTextureSourceID TextureSourceSystemConfig::addSpoutTextureSource(
+SpoutTextureSourceDefinitionPtr TextureSourceSystemConfig::allocateSpoutTextureSourceDefinition(
 	const MikanSpoutTextureSourceInfo& TextureSourceInfo)
 {
 	SpoutTextureSourceDefinitionPtr TextureSourcePtr =
 		std::make_shared<SpoutTextureSourceDefinition>(m_nextTextureSourceId, TextureSourceInfo);
 	m_nextTextureSourceId++;
 
-	m_spoutTextureSourceList.push_back(TextureSourcePtr);
-	addChildConfig(TextureSourcePtr);
-
-	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_spoutTextureSourceListPropertyId));
-
-	return TextureSourcePtr->getTextureSourceId();
+	return TextureSourcePtr;
 }
 
-bool TextureSourceSystemConfig::removeSpoutTextureSource(MikanTextureSourceID TextureSourceId)
+bool TextureSourceSystemConfig::addSpoutTextureSourceDefinition(
+	SpoutTextureSourceDefinitionPtr TextureSourceDefinitionPtr)
+{
+	if (!getSpoutTextureSourceConfig(TextureSourceDefinitionPtr->getTextureSourceId()))
+	{
+		m_spoutTextureSourceList.push_back(TextureSourceDefinitionPtr);
+		addChildConfig(TextureSourceDefinitionPtr);
+
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_spoutTextureSourceListPropertyId));
+		return true;
+	}
+
+	return false;
+}
+
+bool TextureSourceSystemConfig::removeSpoutTextureSourceDefinition(MikanTextureSourceID TextureSourceId)
 {
 	auto it = std::find_if(
 		m_spoutTextureSourceList.begin(), m_spoutTextureSourceList.end(),

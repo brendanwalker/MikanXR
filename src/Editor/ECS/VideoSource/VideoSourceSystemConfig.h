@@ -37,15 +37,17 @@ public:
 	const std::vector<NetworkVideoSourceDefinitionPtr>& getNetworkedVideoSourceList() const { return m_networkedVideoSourceList; }
 	NetworkVideoSourceDefinitionConstPtr getNetworkedVideoSourceConfigConst(MikanVideoSourceID videoSourceId) const;
 	NetworkVideoSourceDefinitionPtr getNetworkedVideoSourceConfig(MikanVideoSourceID videoSourceId);
-	MikanVideoSourceID addNetworkedVideoSource(const struct MikanNetworkVideoSourceInfo& videoSourceInfo);
-	bool removeNetworkedVideoSource(MikanVideoSourceID videoSourceId);
+	NetworkVideoSourceDefinitionPtr allocateNetworkedVideoSourceDefinition(const struct MikanNetworkVideoSourceInfo& videoSourceInfo);
+	bool addNetworkedVideoSourceDefinition(NetworkVideoSourceDefinitionPtr videoSourcePtr);
+	bool removeNetworkedVideoSourceDefinition(MikanVideoSourceID videoSourceId);
 
 	static const std::string k_usbVideoSourceListPropertyId;
 	const std::vector<USBVideoSourceDefinitionPtr>& getUSBVideoSourceList() const { return m_usbVideoSourceList; }
 	USBVideoSourceDefinitionConstPtr getUSBVideoSourceConfigConst(MikanVideoSourceID videoSourceId) const;
 	USBVideoSourceDefinitionPtr getUSBVideoSourceConfig(MikanVideoSourceID videoSourceId);
-	MikanVideoSourceID addUSBVideoSource(const struct MikanUSBVideoSourceInfo& videoSourceInfo);
-	bool removeUSBVideoSource(MikanVideoSourceID videoSourceId);
+	USBVideoSourceDefinitionPtr allocateUSBVideoSourceDefinition(const struct MikanUSBVideoSourceInfo& videoSourceInfo);
+	bool addUSBVideoSourceDefinition(USBVideoSourceDefinitionPtr videoSourcePtr);
+	bool removeUSBVideoSourceDefinition(MikanVideoSourceID videoSourceId);
 
 protected:
 	std::vector<USBVideoSourceDefinitionPtr> m_usbVideoSourceList;

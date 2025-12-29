@@ -20,6 +20,7 @@ const std::string VideoSourceDefinition::k_videoFrameQueueSizePropertyId = "vide
 VideoSourceDefinition::VideoSourceDefinition()
 	: MikanComponentDefinition()
 	, m_videoSourceId(INVALID_MIKAN_ID)
+	, m_intrinsics()
 {}
 
 VideoSourceDefinition::VideoSourceDefinition(
@@ -42,10 +43,10 @@ configuru::Config VideoSourceDefinition::writeToJSON()
 {
 	configuru::Config pt = MikanComponentDefinition::writeToJSON();
 
-	pt["video_source_id"] = m_videoSourceId;
-	pt["is_frame_mirrored"] = m_bIsFrameMirrored;
-	pt["is_buffer_mirrored"] = m_bIsBufferMirrored;
-	pt["video_frame_queue_size"] = m_videoFrameQueueSize;
+	pt[VideoSourceDefinition::k_videoSourceIdPropertyId] = m_videoSourceId;
+	pt[VideoSourceDefinition::k_isFrameMirroredPropertyId] = m_bIsFrameMirrored;
+	pt[VideoSourceDefinition::k_isBufferMirroredPropertyId] = m_bIsBufferMirrored;
+	pt[VideoSourceDefinition::k_videoFrameQueueSizePropertyId] = m_videoFrameQueueSize;
 
 	switch (m_intrinsics.intrinsics_type)
 	{

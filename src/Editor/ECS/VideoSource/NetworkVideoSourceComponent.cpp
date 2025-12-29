@@ -53,10 +53,10 @@ configuru::Config NetworkVideoSourceDefinition::writeToJSON()
 {
 	configuru::Config pt = VideoSourceDefinition::writeToJSON();
 
-	pt["protocol"] = k_NetworkVideoProtocol[(int)m_protocol];
-	pt["address"] = m_address;
-	pt["path"] = m_path;
-	pt["port"] = m_port;
+	pt[NetworkVideoSourceDefinition::k_protocolPropertyId] = k_NetworkVideoProtocol[(int)m_protocol];
+	pt[NetworkVideoSourceDefinition::k_addressPropertyId] = m_address;
+	pt[NetworkVideoSourceDefinition::k_pathPropertyId] = m_path;
+	pt[NetworkVideoSourceDefinition::k_portPropertyId] = m_port;
 
 	return pt;
 }
@@ -67,14 +67,14 @@ void NetworkVideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 
 	const std::string protocolString =
 		pt.get_or<std::string>(
-			"protocol",
+			NetworkVideoSourceDefinition::k_protocolPropertyId,
 			k_NetworkVideoProtocol[(int)eNetworkVideoProtocol::RTMP]);
 	m_protocol =
 		StringUtils::FindEnumValue<eNetworkVideoProtocol>(
 			protocolString, k_NetworkVideoProtocol);
-	m_address = pt.get_or<std::string>("address", m_address);
-	m_path = pt.get_or<std::string>("path", m_path);
-	m_port = pt.get_or<int>("port", m_port);
+	m_address = pt.get_or<std::string>(NetworkVideoSourceDefinition::k_addressPropertyId, m_address);
+	m_path = pt.get_or<std::string>(NetworkVideoSourceDefinition::k_pathPropertyId, m_path);
+	m_port = pt.get_or<int>(NetworkVideoSourceDefinition::k_portPropertyId, m_port);
 }
 
 void NetworkVideoSourceDefinition::setAddress(const std::string& address)

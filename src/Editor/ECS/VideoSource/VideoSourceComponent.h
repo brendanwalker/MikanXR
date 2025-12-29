@@ -9,6 +9,7 @@
 #include "OpenCVFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectFwd.h"
+#include "ProjectConfigConstants.h"
 #include "VideoDisplayConstants.h"
 
 #include <map>
@@ -53,10 +54,10 @@ public:
 	inline bool hasCameraIntrinsics() const { return m_intrinsics.intrinsics_type != INVALID_CAMERA_INTRINSICS; }
 
 private:
-	MikanVideoSourceID m_videoSourceId;
-	bool m_bIsFrameMirrored;
-	bool m_bIsBufferMirrored;
-	int m_videoFrameQueueSize;
+	MikanVideoSourceID m_videoSourceId= INVALID_MIKAN_ID;
+	bool m_bIsFrameMirrored= false;
+	bool m_bIsBufferMirrored= false;
+	int m_videoFrameQueueSize = DEFAULT_VIDEO_FRAME_QUEUE_SIZE;
 	MikanVideoSourceIntrinsics m_intrinsics;
 };
 

@@ -98,9 +98,9 @@ bool VideoSourceSystemConfig::removeVideoSource(MikanVideoSourceID videoSourceId
 	switch (getVideoSourceType(videoSourceId))
 	{
 		case eVideoSourceType::usb:
-			return removeUSBVideoSource(videoSourceId);
+			return removeUSBVideoSourceDefinition(videoSourceId);
 		case eVideoSourceType::networked:
-			return removeNetworkedVideoSource(videoSourceId);
+			return removeNetworkedVideoSourceDefinition(videoSourceId);
 		default:
 			return false;
 	}
@@ -130,22 +130,32 @@ NetworkVideoSourceDefinitionPtr VideoSourceSystemConfig::getNetworkedVideoSource
 		getNetworkedVideoSourceConfigConst(videoSourceId));
 }
 
-MikanVideoSourceID VideoSourceSystemConfig::addNetworkedVideoSource(
+NetworkVideoSourceDefinitionPtr VideoSourceSystemConfig::allocateNetworkedVideoSourceDefinition(
 	const MikanNetworkVideoSourceInfo& videoSourceInfo)
 {
 	NetworkVideoSourceDefinitionPtr videoSourcePtr =
 		std::make_shared<NetworkVideoSourceDefinition>(m_nextVideoSourceId, videoSourceInfo);
 	m_nextVideoSourceId++;
 
-	m_networkedVideoSourceList.push_back(videoSourcePtr);
-	addChildConfig(videoSourcePtr);
-
-	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_networkedVideoSourceListPropertyId));
-
-	return videoSourcePtr->getVideoSourceId();
+	return videoSourcePtr;
 }
 
-bool VideoSourceSystemConfig::removeNetworkedVideoSource(MikanVideoSourceID videoSourceId)
+bool VideoSourceSystemConfig::addNetworkedVideoSourceDefinition(
+	NetworkVideoSourceDefinitionPtr videoSourceDefinitionPtr)
+{
+	if (!getNetworkedVideoSourceConfig(videoSourceDefinitionPtr->getVideoSourceId()))
+	{
+		m_networkedVideoSourceList.push_back(videoSourceDefinitionPtr);
+		addChildConfig(videoSourceDefinitionPtr);
+
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_networkedVideoSourceListPropertyId));
+		return true;
+	}
+
+	return false;
+}
+
+bool VideoSourceSystemConfig::removeNetworkedVideoSourceDefinition(MikanVideoSourceID videoSourceId)
 {
 	auto it = std::find_if(
 		m_networkedVideoSourceList.begin(), m_networkedVideoSourceList.end(),
@@ -190,22 +200,32 @@ USBVideoSourceDefinitionPtr VideoSourceSystemConfig::getUSBVideoSourceConfig(
 		getUSBVideoSourceConfigConst(videoSourceId));
 }
 
-MikanVideoSourceID VideoSourceSystemConfig::addUSBVideoSource(
+USBVideoSourceDefinitionPtr VideoSourceSystemConfig::allocateUSBVideoSourceDefinition(
 	const MikanUSBVideoSourceInfo& videoSourceInfo)
 {
 	USBVideoSourceDefinitionPtr videoSourcePtr =
 		std::make_shared<USBVideoSourceDefinition>(m_nextVideoSourceId, videoSourceInfo);
 	m_nextVideoSourceId++;
 
-	m_usbVideoSourceList.push_back(videoSourcePtr);
-	addChildConfig(videoSourcePtr);
-
-	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_usbVideoSourceListPropertyId));
-
-	return videoSourcePtr->getVideoSourceId();
+	return videoSourcePtr;
 }
 
-bool VideoSourceSystemConfig::removeUSBVideoSource(MikanVideoSourceID videoSourceId)
+bool VideoSourceSystemConfig::addUSBVideoSourceDefinition(
+	USBVideoSourceDefinitionPtr videoSourceDefinitionPtr)
+{
+	if (!getUSBVideoSourceConfig(videoSourceDefinitionPtr->getVideoSourceId()))
+	{
+		m_usbVideoSourceList.push_back(videoSourceDefinitionPtr);
+		addChildConfig(videoSourceDefinitionPtr);
+
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_usbVideoSourceListPropertyId));
+		return true;
+	}
+
+	return false;
+}
+
+bool VideoSourceSystemConfig::removeUSBVideoSourceDefinition(MikanVideoSourceID videoSourceId)
 {
 	auto it = std::find_if(
 		m_usbVideoSourceList.begin(), m_usbVideoSourceList.end(),
