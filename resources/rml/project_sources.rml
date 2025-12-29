@@ -8,10 +8,10 @@
 		<div class="content">
 			<!-- Video Sources Section -->
 			<div data-model="Sources">
-				<h3>Add Tracking Volume</h3>
+				<h1>Add Tracking Volume</h1>
 				<button class="icon-button" data-event-click="add_new_usb_video_source()"><img sprite="icon-usb"/></button>
 				<button class="icon-button" data-event-click="add_new_network_video_source()"><img sprite="icon-network"/></button>
-				<h3>Video Source</h3>
+				<h1>Video Source</h1>
 				<select id="select" name="select_source_id" data-value="selected_video_source_id" data-event-change="select_video_source_entry()">
 					<option value="-1">-- None --</option>
 					<option data-for="source_id : video_source_ids" data-value="source_id">{{source_id | to_video_source_friendly_name}}</option>
@@ -32,15 +32,14 @@
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
 							</td>
 						</tr>
-						<tr class="property_tr">
+						<tr data-if="are_intrinsics_valid" class="property_tr">
 							<td>
-								<label>Intrinsics</label>
-								<div data-if="!are_intrinsics_valid">
-									Uncalibrated
-								</div>
-								<div data-if="are_intrinsics_valid">
-									Calibrated
-								</div>
+								<label>Intrinsics: Calibrated</label>									
+							</td>
+						</tr>
+						<tr data-if="!are_intrinsics_valid" class="property_tr">
+							<td>
+								<label>Intrinsics: Uncalibrated</label>
 							</td>
 						</tr>
 						<tr class="property_tr">
@@ -48,7 +47,7 @@
 								<button data-event-click="calibrate_intrinsics()">Calibrate Intrinsics</button>
 							</td>
 						</tr>
-						<tr class="property_tr">
+						<tr data-if="are_intrinsics_valid" class="property_tr">
 							<td>
 								<button data-event-click="test_intrinsics()">Test Intrinsics</button>
 							</td>
@@ -103,10 +102,10 @@
 
 			<!-- Texture Sources Section -->
 			<div data-model="Sources">
-				<h3>Add Texture Source</h3>
+				<h1>Add Texture Source</h1>
 				<button class="icon-button" data-event-click="add_new_spout_video_source()"><img sprite="icon-spout"/></button>
 				<button class="icon-button" data-event-click="add_new_client_video_source()"><img sprite="icon-mikan"/></button>
-				<h3>Texture Source</h3>
+				<h1>Texture Source</h1>
 				<select id="select" name="select_source_id" data-value="selected_texture_source_id" data-event-change="select_texture_source_entry()">
 					<option value="-1">-- None --</option>
 					<option data-for="source_id : texture_source_ids" data-value="source_id">{{source_id | to_texture_source_name}}</option>
