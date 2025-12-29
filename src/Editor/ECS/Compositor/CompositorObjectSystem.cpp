@@ -116,21 +116,22 @@ bool CompositorObjectSystemConfig::removeCompositor(MikanCompositorID compositor
 }
 
 // -- CompositorObjectSystem -----
-CompositorObjectSystemWeakPtr CompositorObjectSystem::s_compositorObjectSystem;
-
 bool CompositorObjectSystem::init()
 {
 	MikanObjectSystem::init();
 
 	CompositorObjectSystemConfigConstPtr compositorSystemConfig = getCompositorSystemConfigConst();
+	for (CompositorDefinitionPtr compositorDefinition : compositorSystemConfig->getCompositorList())
+	{
+		createCompositorObject(compositorDefinition);
+	}
 
-	s_compositorObjectSystem = std::static_pointer_cast<CompositorObjectSystem>(shared_from_this());
 	return true;
 }
 
 void CompositorObjectSystem::dispose()
 {
-	s_compositorObjectSystem.reset();
+	m_compositorComponents.clear();
 
 	MikanObjectSystem::dispose();
 }

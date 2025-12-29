@@ -42,7 +42,6 @@ class CompositorObjectSystem : public MikanObjectSystem
 {
 public:
 	CompositorObjectSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
-	static CompositorObjectSystemPtr getSystem() { return s_compositorObjectSystem.lock(); }
 
 	inline static const std::string k_objectSystemClassName = "CompositorObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
@@ -73,5 +72,4 @@ protected:
 
 private:
 	CompositorMap m_compositorComponents;
-	static CompositorObjectSystemWeakPtr s_compositorObjectSystem;
 };

@@ -227,7 +227,7 @@ void SceneComponent::onDefinitionChanged(CommonConfigPtr configPtr, const Config
 {
 	if (changedPropertySet.hasPropertyName(SceneComponentDefinition::k_compositorListPropertyId))
 	{
-		auto CompositorObjectSystemPtr = CompositorObjectSystem::getSystem();
+		auto CompositorObjectSystemPtr = getObjectSystemOfType<CompositorObjectSystem>();
 		const std::vector<MikanCompositorID>& activeCompositorIdList=
 			getSceneComponentDefinition()->getCompositorIDs();
 
@@ -282,7 +282,7 @@ SelectionComponentPtr SceneComponent::findClosestSelectionTarget(
 
 void SceneComponent::activateScene()
 {
-	CompositorObjectSystemPtr compositorSystem = CompositorObjectSystem::getSystem();
+	CompositorObjectSystemPtr compositorSystem = getObjectSystemOfType<CompositorObjectSystem>();
 	const std::vector<MikanCompositorID>& compositorIDs =
 		getSceneComponentDefinition()->getCompositorIDs();
 
