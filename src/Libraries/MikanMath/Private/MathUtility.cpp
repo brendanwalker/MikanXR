@@ -33,21 +33,29 @@ float remap_float_to_float(
 	float outA, float outB,
 	float inValue)
 {
-	if (inB > inA)
+	if (fabsf(inB - inA) > k_real_epsilon)
 	{
-		float clampedValue = fmaxf(fminf(inValue, inB), inA);
-		float u = (clampedValue - inA) / (inB - inA);
-		float rempappedValue = ((1.f - u) * outA + u * outB);
+		if (inB > inA)
+		{
+			float clampedValue = fmaxf(fminf(inValue, inB), inA);
+			float u = (clampedValue - inA) / (inB - inA);
+			float rempappedValue = ((1.f - u) * outA + u * outB);
 
-		return rempappedValue;
+			return rempappedValue;
+		}
+		else
+		{
+			float clampedValue = fmaxf(fminf(inValue, inA), inB);
+			float u = (clampedValue - inB) / (inA - inB);
+			float rempappedValue = (u * outA + (1.f - u) * outB);
+
+			return rempappedValue;
+		}
 	}
 	else
 	{
-		float clampedValue = fmaxf(fminf(inValue, inA), inB);
-		float u = (clampedValue - inB) / (inA - inB);
-		float rempappedValue = (u * outA + (1.f - u) * outB);
-
-		return rempappedValue;
+		// If the input range is zero, return the average of the output range
+		return (outA + outB) * 0.5f;
 	}
 }
 
