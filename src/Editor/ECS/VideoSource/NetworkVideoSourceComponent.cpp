@@ -2,6 +2,7 @@
 #include "INetworkVideoDeviceManager.h"
 #include "NetworkVideoSourceComponent.h"
 #include "NetworkVideoSourceSystem.h"
+#include "MikanObject.h"
 #include "MikanServer.h"
 #include "MikanVideoSourceTypes.h"
 #include "OpenCVVideoFrameBuffer.h"
@@ -9,6 +10,7 @@
 #include "ThreadUtils.h"
 #include "VideoSourceSystem.h"
 #include "VideoSourceRequestHandler.h"
+#include "ProjectConfigConstants.h"
 
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Variant.h>
@@ -21,7 +23,7 @@
 #include <assert.h>
 
 // -- NetworkVideoSourceDefinition -----
-const std::string NetworkVideoSourceDefinition::k_addressPropertyId = "url";
+const std::string NetworkVideoSourceDefinition::k_addressPropertyId = "ip_address";
 const std::string NetworkVideoSourceDefinition::k_pathPropertyId = "path";
 const std::string NetworkVideoSourceDefinition::k_protocolPropertyId = "protocol";
 const std::string NetworkVideoSourceDefinition::k_portPropertyId = "port";
@@ -95,13 +97,29 @@ void NetworkVideoSourceDefinition::setPath(const std::string& path)
 	}
 }
 
+const std::string NetworkVideoSourceDefinition::getProtocolString() const
+{
+	return 
+		m_protocol != eNetworkVideoProtocol::INVALID 
+		? k_NetworkVideoProtocol[(int)m_protocol] 
+		: "";
+}
+
 void NetworkVideoSourceDefinition::setProtocol(eNetworkVideoProtocol protocol)
 {
-	if (protocol != m_protocol)
+	if (protocol != m_protocol && protocol != eNetworkVideoProtocol::INVALID)
 	{
 		m_protocol = protocol;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_protocolPropertyId));
 	}
+}
+
+void NetworkVideoSourceDefinition::setProtocol(const std::string& protocolString)
+{
+	eNetworkVideoProtocol protocol =
+		StringUtils::FindEnumValue<eNetworkVideoProtocol>(
+			protocolString, k_NetworkVideoProtocol);
+	setProtocol(protocol);
 }
 
 void NetworkVideoSourceDefinition::setPort(int port)
@@ -183,6 +201,15 @@ NetworkVideoSourceComponent::NetworkVideoSourceComponent(MikanObjectWeakPtr owne
 {
 }
 
+
+void NetworkVideoSourceComponent::init()
+{
+	MikanComponent::init();
+
+	// Attempt to open the video source
+	openVideoSource();
+}
+
 void NetworkVideoSourceComponent::dispose()
 {
 	// Close the video source if it is open
@@ -223,19 +250,19 @@ bool NetworkVideoSourceComponent::openVideoSource()
 
 	// If the device path is empty, return false
 	NetworkVideoSourceDefinitionPtr definition = getNetworkVideoSourceDefinition();
-	const std::string& url = definition->getAddress();
-	if (url.empty())
+	const std::string& address = definition->getAddress();
+	if (address.empty())
 		return false;
 
 	// Create the network video device
-	auto videoSourceSystem = VideoSourceSystem::getSystem();
-	auto networkedVideoSourceSystem = videoSourceSystem->getNetworkVideoSourceSystem();
-	INetworkVideoDeviceManagerPtr networkVideoDeviceManager =
-		networkedVideoSourceSystem->getNetworkVideoDeviceManager();
+	auto networkVideoSourceSystem = 
+		std::static_pointer_cast<NetworkVideoSourceSystem>(getOwnerObject()->getOwnerSystem());
+	INetworkVideoDeviceManagerPtr networkVideoDeviceManager = 
+		networkVideoSourceSystem->getNetworkVideoDeviceManager();
 
 	NetworkVideoConnectionSettings connectionSettings;
 	connectionSettings.protocol = definition->getProtocol();
-	connectionSettings.address = definition->getAddress().c_str();
+	connectionSettings.address = address.c_str();
 	connectionSettings.path = definition->getPath().c_str();
 	connectionSettings.port = definition->getPort();
 
@@ -272,20 +299,20 @@ void NetworkVideoSourceComponent::closeVideoSource()
 {
 	if (m_networkVideoDevice != nullptr)
 	{
+		// Remove the listener for the Network video device
+		m_networkVideoDevice->removeListener(this);
+
 		// Stop the video stream if it is running
 		stopVideoStream();
 
 		// Close the Network video device
 		m_networkVideoDevice->close();
 
-		// Remove the listener for the Network video device
-		m_networkVideoDevice->removeListener(this);
-
 		// Tell the Network video device manager to destroy the device
-		auto videoSourceSystem = VideoSourceSystem::getSystem();
-		auto networkedVideoSourceSystem = videoSourceSystem->getNetworkVideoSourceSystem();
+		auto networkVideoSourceSystem =
+			std::static_pointer_cast<NetworkVideoSourceSystem>(getOwnerObject()->getOwnerSystem());
 		INetworkVideoDeviceManagerPtr networkVideoDeviceManager =
-			networkedVideoSourceSystem->getNetworkVideoDeviceManager();
+			networkVideoSourceSystem->getNetworkVideoDeviceManager();
 		networkVideoDeviceManager->destroyVideoDevice(m_networkVideoDevice);
 
 		// Clear the Network video device pointer
@@ -453,7 +480,20 @@ void NetworkVideoSourceComponent::getRmlPropertyDescriptors(std::vector<RmlPrope
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			NetworkVideoSourceDefinition::k_addressPropertyId));
+			NetworkVideoSourceDefinition::k_addressPropertyId)
+		->setDefaultValue("192.168.1.1"));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			NetworkVideoSourceDefinition::k_pathPropertyId)
+		->setDefaultValue(""));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			NetworkVideoSourceDefinition::k_protocolPropertyId)
+		->setDefaultValue(k_NetworkVideoProtocol[(int)eNetworkVideoProtocol::RTSP]));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			NetworkVideoSourceDefinition::k_portPropertyId)
+		->setDefaultValue(DEFAULT_RTSP_PORT));
 }
 
 bool NetworkVideoSourceComponent::getPropertyValueFromRml(
@@ -465,6 +505,21 @@ bool NetworkVideoSourceComponent::getPropertyValueFromRml(
 	if (propertyName == NetworkVideoSourceDefinition::k_addressPropertyId)
 	{
 		outValue = getNetworkVideoSourceDefinition()->getAddress();
+		return true;
+	}
+	else if (propertyName == NetworkVideoSourceDefinition::k_pathPropertyId)
+	{
+		outValue = getNetworkVideoSourceDefinition()->getPath();
+		return true;
+	}
+	else if (propertyName == NetworkVideoSourceDefinition::k_protocolPropertyId)
+	{
+		outValue = getNetworkVideoSourceDefinition()->getProtocolString();
+		return true;
+	}
+	else if (propertyName == NetworkVideoSourceDefinition::k_portPropertyId)
+	{
+		outValue = getNetworkVideoSourceDefinition()->getPort();
 		return true;
 	}
 
@@ -481,6 +536,24 @@ bool NetworkVideoSourceComponent::setPropertyValueFromRml(
 	{
 		std::string url = inValue.Get<std::string>();
 		getNetworkVideoSourceDefinition()->setAddress(url);
+		return true;
+	}
+	else if (propertyName == NetworkVideoSourceDefinition::k_portPropertyId)
+	{
+		int port = inValue.Get<int>();
+		getNetworkVideoSourceDefinition()->setPort(port);
+		return true;
+	}
+	else if (propertyName == NetworkVideoSourceDefinition::k_protocolPropertyId)
+	{
+		std::string protocolString = inValue.Get<std::string>();
+		getNetworkVideoSourceDefinition()->setProtocol(protocolString);
+		return true;
+	}
+	else if (propertyName == NetworkVideoSourceDefinition::k_pathPropertyId)
+	{
+		std::string path = inValue.Get<std::string>();
+		getNetworkVideoSourceDefinition()->setPath(path);
 		return true;
 	}
 
@@ -529,4 +602,23 @@ void NetworkVideoSourceComponent::calibrateIntrinsics()
 void NetworkVideoSourceComponent::testIntrinsics()
 {
 	//TODO
+}
+
+void NetworkVideoSourceComponent::onDefinitionMarkedDirty(
+	CommonConfigPtr configPtr,
+	const ConfigPropertyChangeSet& changedPropertySet)
+{
+	// If the device path changed, reopen the video source
+	if (changedPropertySet.hasPropertyName(NetworkVideoSourceDefinition::k_addressPropertyId) ||
+		changedPropertySet.hasPropertyName(NetworkVideoSourceDefinition::k_pathPropertyId) || 
+		changedPropertySet.hasPropertyName(NetworkVideoSourceDefinition::k_protocolPropertyId) || 
+		changedPropertySet.hasPropertyName(NetworkVideoSourceDefinition::k_portPropertyId))
+	{
+		closeVideoSource();
+		openVideoSource();
+	}
+	else
+	{
+		VideoSourceComponent::onDefinitionMarkedDirty(configPtr, changedPropertySet);
+	}
 }

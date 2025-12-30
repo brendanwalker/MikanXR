@@ -9,6 +9,10 @@ class RmlModel_NetworkVideoSourceComponent : public RmlModel_MikanComponent
 {
 public:
 	virtual bool init(Rml::Context* rmlContext) override;
+	virtual bool onConstruct(Rml::DataModelConstructor& constructor) override;
+
+protected:
+	NetworkVideoSourceComponentPtr getNetworkVideoSourceComponent() const;
 };
 
 class RmlModel_USBVideoSourceComponent : public RmlModel_MikanComponent

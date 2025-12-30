@@ -89,8 +89,29 @@
 						</tr>
 						<tr class="property_tr">
 							<td>
-								<label>URL</label>
-								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="url"/>
+								<label>Protocol</label>
+								<select name="select_protocol" data-value="protocol" data-event-change="select_protocol()">
+									<option value="RTMP">rtmp</option>
+									<option value="RTSP">rtsp</option>
+								</select>								
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label>IP Address</label>
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="ip_address"/>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label>Port</label>
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="port"/>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label>Path</label>
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="path"/>
 							</td>
 						</tr>
 						<tr class="property_tr">

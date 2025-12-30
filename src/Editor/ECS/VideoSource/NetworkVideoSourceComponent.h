@@ -26,7 +26,9 @@ public:
 
 	static const std::string k_protocolPropertyId;
 	inline eNetworkVideoProtocol getProtocol() const { return m_protocol; }
+	const std::string getProtocolString() const;
 	void setProtocol(eNetworkVideoProtocol protocol);
+	void setProtocol(const std::string& protocolString);
 
 	static const std::string k_portPropertyId;
 	inline int getPort() const { return m_port; }
@@ -51,6 +53,7 @@ class NetworkVideoSourceComponent : public VideoSourceComponent, public INetwork
 public:
 	NetworkVideoSourceComponent(MikanObjectWeakPtr owner);
 
+	virtual void init() override;
 	virtual void dispose() override;
 
 	inline static const std::string k_componentClassName = "NetworkVideoSourceComponent";
@@ -90,6 +93,9 @@ public:
 
 	void calibrateIntrinsics();
 	void testIntrinsics();
+
+protected:
+	void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
 private:
 	INetworkVideoDevicePtr m_networkVideoDevice = nullptr;

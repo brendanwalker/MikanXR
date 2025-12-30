@@ -111,3 +111,5 @@ extern const std::string* k_videoSourceTypeStrings;
 
 #define DEFAULT_VIDEO_FRAME_QUEUE_SIZE		2
 #define DEFAULT_SPOUT_OUTPUT_NAME			"MikanXR"
+
+#define DEFAULT_RTSP_PORT					8554 // Default RTSP port for networked cameras
