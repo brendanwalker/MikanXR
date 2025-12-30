@@ -260,13 +260,55 @@ static HRESULT BuildCaptureFormatList(IMFMediaSource *pSource, WMFDeviceInfo &de
 }
 
 // -- WMF Format Table Helper Functions -----
+static std::string makeVideoModeName(const WMFDeviceFormatInfo& result)
+{
+	std::ostringstream ss;
+
+	ss << result.width << "x" << result.height;
+	if (result.frame_rate_denominator != 0) 
+	{
+		const double fps = static_cast<double>(result.frame_rate_numerator) / result.frame_rate_denominator;
+
+		ss << "@" << std::fixed << std::setprecision(0) << fps;
+	}
+
+	// Add interlace info if relevant
+	if (result.interlace_mode == MFVideoInterlace_FieldInterleavedUpperFirst)
+	{ 
+		ss << "i";
+	}
+	else if (result.interlace_mode == MFVideoInterlace_FieldInterleavedLowerFirst)
+	{ 		
+		ss << "i";
+	}
+	else 
+	{
+		ss << "p";
+	}
+
+	if (!result.sub_type_name.empty() && result.sub_type_name.find('{') == std::string::npos) 
+	{
+		std::string format_name = result.sub_type_name;
+
+		// Strip "MFVideoFormat_" prefix if present
+		const std::string prefix = "MFVideoFormat_";
+		if (format_name.find(prefix) == 0) 
+		{
+			format_name = format_name.substr(prefix.length());
+		}
+
+		ss << " (" << format_name << ")";
+	}
+
+	return ss.str();
+}
+
 static WMFDeviceFormatInfo ParseWMFFormatType(int mediaTypeIndex, IMFMediaType *pWMFMediaType)
 {
 	UINT32 count = 0;
 	HRESULT hr = S_OK;
-	WMFDeviceFormatInfo result;
+	WMFDeviceFormatInfo result = {};
 
-	memset(&result, 0, sizeof(WMFDeviceFormatInfo));
 	result.device_format_index= mediaTypeIndex;
 
 	hr = pWMFMediaType->LockStore();
@@ -296,6 +338,8 @@ static WMFDeviceFormatInfo ParseWMFFormatType(int mediaTypeIndex, IMFMediaType *
     {
         return result;
     }
+
+	result.format_friendly_name = makeVideoModeName(result);
 
     return result;
 }

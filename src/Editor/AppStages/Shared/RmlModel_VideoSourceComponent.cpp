@@ -42,14 +42,7 @@ bool RmlModel_USBVideoSourceComponent::onConstruct(Rml::DataModelConstructor& co
 			auto usbVideoSourceSystem = getUSBVideoSourceSystem();
 			if (usbVideoSourceSystem)
 			{
-				const auto& usbVideoSourceMap = usbVideoSourceSystem->getUSBVideoSourceMap();
-				for (const auto& it : usbVideoSourceMap)
-				{
-					if (auto usbVideoSourceComponent = it.second.lock())
-					{
-						outDevicePathList.push_back(usbVideoSourceComponent->getDevicePath());
-					}
-				}
+				usbVideoSourceSystem->getConnectedUSBVideoSourcePaths(outDevicePathList);
 			}
 		});
 
@@ -63,6 +56,31 @@ bool RmlModel_USBVideoSourceComponent::onConstruct(Rml::DataModelConstructor& co
 			if (videoSourceComponent)
 			{
 				videoSourceComponent->getVideoModeNames(outVideoModeList);
+			}
+		});
+
+	constructor.BindEventCallback(
+		"select_video_device_entry",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			const auto newDevicePath = ev.GetParameter<Rml::String>("value", "");
+			auto videoSourceComponent = getUSBVideoSourceComponent();
+			if (videoSourceComponent)
+			{
+				videoSourceComponent->getUSBVideoSourceDefinition()->setDevicePath(newDevicePath);
+
+				// Refresh the video mode list for the newly selected device				
+				m_videoModeNameList->rebuildList(true);
+			}
+		});
+
+	constructor.BindEventCallback(
+		"select_video_mode_entry",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			const auto newVideoMode = ev.GetParameter<Rml::String>("value", "");
+			auto videoSourceComponent = getUSBVideoSourceComponent();
+			if (videoSourceComponent)
+			{
+				videoSourceComponent->getUSBVideoSourceDefinition()->setVideoMode(newVideoMode);
 			}
 		});
 

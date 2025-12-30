@@ -6,7 +6,7 @@ int WMFDeviceInfo::findDeviceFormatByName(const std::string& format_name) const
 {
 	for (const WMFDeviceFormatInfo& info : deviceAvailableFormats)
 	{
-		if (info.am_format_type_name == format_name)
+		if (info.format_friendly_name == format_name)
 		{
 			return info.device_format_index;
 		}

@@ -41,14 +41,19 @@ const char* MikanWMFVideoDevice::getFriendlyName() const
 }
 
 // -- Device Activation
+bool MikanWMFVideoDevice::getIsOpen() const
+{
+	return m_mediaSource != nullptr;
+}
+
 bool MikanWMFVideoDevice::open()
 {
 	HRESULT hr;
 
-	// Close the device if it's currently open
+	// Early ourt if already open
 	if (getIsOpen())
 	{
-		close();
+		return true;
 	}
 
 	if (m_currentVideoModeIndex >= 0 && m_currentVideoModeIndex < m_deviceInfo.deviceAvailableFormats.size())
@@ -186,7 +191,7 @@ bool MikanWMFVideoDevice::getVideoModeProperties(size_t index, UsbVideoModePrope
 	if(index < m_deviceInfo.deviceAvailableFormats.size())
 	{
 		const WMFDeviceFormatInfo& formatInfo = m_deviceInfo.deviceAvailableFormats[index];
-		outProperties.name = formatInfo.am_format_type_name.c_str();
+		outProperties.name = formatInfo.format_friendly_name.c_str();
 		outProperties.width = formatInfo.width;
 		outProperties.height = formatInfo.height;
 		outProperties.stride = abs(formatInfo.default_stride);
@@ -209,7 +214,7 @@ const char* MikanWMFVideoDevice::getVideoModeName() const
 	if (m_currentVideoModeIndex >= 0 && 
 		m_currentVideoModeIndex < (int)m_deviceInfo.deviceAvailableFormats.size())
 	{
-		return m_deviceInfo.deviceAvailableFormats[m_currentVideoModeIndex].am_format_type_name.c_str();
+		return m_deviceInfo.deviceAvailableFormats[m_currentVideoModeIndex].format_friendly_name.c_str();
 	}
 
 	return nullptr;
@@ -234,10 +239,19 @@ bool MikanWMFVideoDevice::setVideoModeByIndex(size_t desiredFormatIndex)
 		desiredFormatIndex < (int)m_deviceInfo.deviceAvailableFormats.size())
 	{
 		m_currentVideoModeIndex = (int)desiredFormatIndex;
+
+		// Close the device if open
+		if (getIsOpen())
+		{
+			close();
+		}
+
+		// Re-open with the new format
 		if (!open())
 		{
 			m_currentVideoModeIndex = -1;
 		}
+
 		notifyVideoModePropertiesChanged();
 		return true;
 	}
@@ -286,7 +300,7 @@ bool MikanWMFVideoDevice::getVideoSettingConstraint(
 	case eVideoSettingType::GreenBalance:
 	case eVideoSettingType::BlueBalance:
 		memset(&outConstraint, 0, sizeof(VideoSettingConstraint));
-		bSuccess = true;
+		bSuccess = false;
 		break;
 	case eVideoSettingType::Gain:
 		bSuccess = getProcAmpRange(VideoProcAmp_Gain, outConstraint);

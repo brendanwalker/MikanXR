@@ -32,6 +32,24 @@
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
 							</td>
 						</tr>
+						<tr class="property_tr">
+							<td>
+								<label>Video Device</label>
+								<select id="select" name="select_device" data-value="devicePath" data-event-change="select_video_device_entry()">
+									<option value="">-- None --</option>
+									<option data-for="device_path : usb_device_paths" data-value="device_path">{{device_path | to_usb_camera_friendly_name}}</option>
+								</select>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label>Video Mode</label>
+								<select id="select" name="select_mode" data-value="videoMode" data-event-change="select_video_mode_entry()">
+									<option value="">-- None --</option>
+									<option data-for="video_mode : video_modes" data-value="video_mode">{{video_mode}}</option>
+								</select>
+							</td>
+						</tr>						
 						<tr data-if="are_intrinsics_valid" class="property_tr">
 							<td>
 								<label>Intrinsics: Calibrated</label>									

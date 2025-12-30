@@ -111,6 +111,8 @@ bool USBVideoSourceSystem::createUsbVideoDeviceManager(const std::string& module
             m_usbVideoDeviceModule = nullptr;
 		}
 	}
+
+    return bSuccess;
 }
 
 void USBVideoSourceSystem::disposeUsbVideoDeviceManager()
@@ -189,8 +191,24 @@ USBVideoSourceComponentPtr USBVideoSourceSystem::getUSBVideoSourceByName(const s
     return USBVideoSourceComponentPtr();
 }
 
+USBVideoSourceComponentPtr USBVideoSourceSystem::getUSBVideoSourceByPath(const std::string& videoSourcePath) const
+{
+    for (auto it = m_usbVideoSourceComponents.begin(); it != m_usbVideoSourceComponents.end(); it++)
+    {
+        USBVideoSourceComponentPtr componentPtr = it->second.lock();
+        if (componentPtr && componentPtr->getUSBVideoSourceDefinition()->getDevicePath() == videoSourcePath)
+        {
+            return componentPtr;
+        }
+    }
+
+	return USBVideoSourceComponentPtr();
+}
+
 USBVideoSourceComponentPtr USBVideoSourceSystem::addNewUSBVideoSource()
 {
+	USBVideoSourceComponentPtr newVideoSourceComponentPtr;
+
 	// If available, get the first connected device by default
     MikanUSBVideoSourceInfo videoSourceInfo = {};
     if (m_usbVideoDeviceManager && m_usbVideoDeviceManager->getDeviceCount() > 0)
@@ -222,9 +240,11 @@ USBVideoSourceComponentPtr USBVideoSourceSystem::addNewUSBVideoSource()
             videoSourceInfo.video_mode.setValue(videoModeName ? videoModeName : "<INVALID>");
             videoSourceInfo.intrinsics.intrinsics_type= INVALID_CAMERA_INTRINSICS;
         }
+
+        newVideoSourceComponentPtr = addNewUSBVideoSource(videoSourceInfo);
 	}
 
-    return addNewUSBVideoSource(videoSourceInfo);
+    return newVideoSourceComponentPtr;
 }
 
 USBVideoSourceComponentPtr USBVideoSourceSystem::addNewUSBVideoSource(

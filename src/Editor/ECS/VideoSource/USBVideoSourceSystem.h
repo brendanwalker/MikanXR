@@ -32,6 +32,7 @@ public:
     VideoSourceIdList getVideoSourceIdList() const;
     USBVideoSourceComponentPtr getUSBVideoSourceById(MikanVideoSourceID videoSourceId) const;
     USBVideoSourceComponentPtr getUSBVideoSourceByName(const std::string& videoSourceName) const;
+    USBVideoSourceComponentPtr getUSBVideoSourceByPath(const std::string& videoSourcePath) const;
     USBVideoSourceComponentPtr addNewUSBVideoSource();
     USBVideoSourceComponentPtr addNewUSBVideoSource(const MikanUSBVideoSourceInfo& videoSourceInfo);
     bool removeUSBVideoSource(MikanVideoSourceID videoSourceId);

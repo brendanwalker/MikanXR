@@ -46,6 +46,7 @@ class USBVideoSourceComponent : public VideoSourceComponent, public IUsbVideoDev
 public:
 	USBVideoSourceComponent(MikanObjectWeakPtr owner);
 
+	virtual void init() override;
 	virtual void dispose() override;
 
 	inline USBVideoSourceDefinitionPtr getUSBVideoSourceDefinition() const
@@ -56,6 +57,8 @@ public:
 
 	inline static const std::string k_componentClassName = "USBVideoSourceComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
+
+	std::string getDeviceFriendlyName() const;
 
 	// VideoSourceComponent Interface
 	virtual std::string getDevicePath() const override;
@@ -96,6 +99,7 @@ public:
 	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
 
 protected:
+	void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet) override;
 	bool updateVideoMode();
 	void updateCameraSettings();
 

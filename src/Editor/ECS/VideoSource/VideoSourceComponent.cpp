@@ -304,7 +304,7 @@ bool VideoSourceComponent::reallocateOpencvBufferState()
 				stereoIntrinsics.pixel_width, stereoIntrinsics.pixel_width,
 				VideoFrameSection::Right);
 	}
-	else
+	else if (intrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS)
 	{
 		const MikanMonoIntrinsics& monoIntrinsics = intrinsics.getMonoIntrinsics();
 
@@ -312,6 +312,14 @@ bool VideoSourceComponent::reallocateOpencvBufferState()
 			new OpenCVVideoFrameBuffer(
 				videoPixelWidth, videoPixelHeight,
 				monoIntrinsics.pixel_width, monoIntrinsics.pixel_width,
+				VideoFrameSection::Primary);
+	}
+	else
+	{
+		m_opencv_buffer_state[(int)VideoFrameSection::Primary] =
+			new OpenCVVideoFrameBuffer(
+				videoPixelWidth, videoPixelHeight,
+				videoPixelWidth, videoPixelHeight, // Frame Size == Buffer Size
 				VideoFrameSection::Primary);
 	}
 

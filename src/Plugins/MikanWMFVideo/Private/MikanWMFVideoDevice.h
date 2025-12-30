@@ -97,7 +97,7 @@ public:
 	virtual const char* getFriendlyName() const override;
 
 	// -- Device Activation
-	virtual bool getIsOpen() const override { return m_ownerDeviceManager != nullptr; }
+	virtual bool getIsOpen() const override;
 	virtual bool open() override;
 	virtual void close() override;
 

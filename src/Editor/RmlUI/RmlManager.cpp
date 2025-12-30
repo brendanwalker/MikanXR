@@ -32,6 +32,8 @@
 #include "TrackingVolumeComponent.h"
 #include "TrackingMountObjectSystem.h"
 #include "TrackingMountComponent.h"
+#include "USBVideoSourceSystem.h"
+#include "USBVideoSourceComponent.h"
 #include "VRObjectSystem.h"
 #include "VRDeviceComponent.h"
 #include "VideoSourceSystem.h"
@@ -539,6 +541,35 @@ void RmlManager::registerCommonDataModelTypes()
 			}
 
 			return false;
+		});
+
+	// Transform function for converting full file path to a trimmed path
+	constructor.RegisterTransformFunc(
+		"to_usb_camera_friendly_name",
+		[rmlManager](Rml::Variant& variant, const Rml::VariantList& arguments) -> bool {
+			const Rml::String devicePath = variant.Get<Rml::String>("");
+
+			if (!devicePath.empty())
+			{
+				auto videoObjectSystem = rmlGetSystemOfType<USBVideoSourceSystem>(rmlManager);
+				IUsbVideoDeviceManagerPtr videoDeviceManager= videoObjectSystem->getUSBVideoDeviceManager();
+				IUsbVideoDevice* videoDevice = videoDeviceManager->getDeviceByPath(devicePath.c_str());
+
+				if (videoDevice)
+				{
+					variant = videoDevice->getFriendlyName();
+				}
+				else
+				{
+					variant = devicePath;
+				}
+			}
+			else
+			{
+				variant = Rml::String("<None>");
+			}
+
+			return true;
 		});
 
 	// Transform function for converting full file path to a trimmed path

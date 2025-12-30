@@ -1,6 +1,7 @@
 #include "CameraMath.h"
 #include "MathUtility.h"
 #include "MikanServer.h"
+#include "MikanObject.h"
 #include "OpenCVVideoFrameBuffer.h"
 #include "ThreadUtils.h"
 #include "USBVideoSourceComponent.h"
@@ -33,7 +34,7 @@ USBVideoSourceDefinition::USBVideoSourceDefinition(
 	const MikanUSBVideoSourceInfo& videoSourceInfo)
 	: VideoSourceDefinition(
 		videoSourceId, 
-		videoSourceInfo.usb_source_name.getValue(),
+		"VideoSource_"+std::to_string(videoSourceId),
 		videoSourceInfo.intrinsics)
 	, m_devicePath(videoSourceInfo.device_path.getValue())
 	, m_videoMode(videoSourceInfo.video_mode.getValue())
@@ -139,6 +140,14 @@ USBVideoSourceComponent::USBVideoSourceComponent(MikanObjectWeakPtr owner)
 {
 }
 
+void USBVideoSourceComponent::init()
+{
+	MikanComponent::init();
+
+	// Attempt to open the video source
+	openVideoSource();
+}
+
 void USBVideoSourceComponent::dispose()
 {
 	// Close the video source if it is open
@@ -154,6 +163,16 @@ void USBVideoSourceComponent::setDefinition(MikanComponentDefinitionPtr definiti
 
 	// Close any open video source that was open
 	closeVideoSource();
+}
+
+std::string USBVideoSourceComponent::getDeviceFriendlyName() const
+{
+	if (m_usbVideoDevice != nullptr)
+	{
+		return m_usbVideoDevice->getFriendlyName();
+	}
+
+	return "";
 }
 
 std::string USBVideoSourceComponent::getDevicePath() const
@@ -184,20 +203,19 @@ bool USBVideoSourceComponent::openVideoSource()
 		return false;
 
 	// Find the USB video device by its path
-	VideoSourceSystemPtr videoSourceSystem= VideoSourceSystem::getSystem();
-	USBVideoSourceSystemPtr usbVideoSourceSystem= videoSourceSystem->getUSBVideoSourceSystem();
+	auto usbVideoSourceSystem = std::static_pointer_cast<USBVideoSourceSystem>(getOwnerObject()->getOwnerSystem());
 	IUsbVideoDeviceManagerPtr usbVideoDeviceManager = usbVideoSourceSystem->getUSBVideoDeviceManager();
 
 	m_usbVideoDevice= usbVideoDeviceManager->getDeviceByPath(devicePath.c_str());
 	if (m_usbVideoDevice == nullptr)
 		return false;
 
-	// Attempt to open the USB video device
-	if (!m_usbVideoDevice->open())
-		return false;
-
 	// Apply the desired video mode from the definition to the USB video device
 	if (!updateVideoMode())
+		return false;
+
+	// Attempt to open the USB video device
+	if (!m_usbVideoDevice->open())
 		return false;
 
 	// Apply camera settings from the definition to the USB video device
@@ -223,6 +241,32 @@ bool USBVideoSourceComponent::openVideoSource()
 	return true;
 }
 
+void USBVideoSourceComponent::USBVideoSourceComponent::onDefinitionMarkedDirty(
+	CommonConfigPtr configPtr, 
+	const ConfigPropertyChangeSet& changedPropertySet)
+{
+	// If the device path changed, reopen the video source
+	if (changedPropertySet.hasPropertyName(USBVideoSourceDefinition::k_devicePathPropertyId))
+	{
+		closeVideoSource();
+		openVideoSource();
+	}
+	// If the video mode changed, update the video mode
+	else if (changedPropertySet.hasPropertyName(USBVideoSourceDefinition::k_videoModePropertyId))
+	{
+		updateVideoMode();
+	}
+	// If camera settings changed, update the camera settings
+	else if (changedPropertySet.hasPropertyName(USBVideoSourceDefinition::k_cameraSettingsPropertyId))
+	{
+		updateCameraSettings();
+	}
+	else
+	{
+		VideoSourceComponent::onDefinitionMarkedDirty(configPtr, changedPropertySet);
+	}
+}
+
 bool USBVideoSourceComponent::updateVideoMode()
 {
 	if (m_usbVideoDevice == nullptr)
@@ -230,7 +274,8 @@ bool USBVideoSourceComponent::updateVideoMode()
 
 	USBVideoSourceDefinitionPtr definition = getUSBVideoSourceDefinition();
 	const std::string desiredVideoMode = definition->getVideoMode();
-	const std::string currentVideoMode = m_usbVideoDevice->getVideoModeName();
+	const char* szCurrentVideoMode = m_usbVideoDevice->getVideoModeName();
+	const std::string currentVideoMode = szCurrentVideoMode ? szCurrentVideoMode : "";
 	if (desiredVideoMode != currentVideoMode)
 	{
 		// If no video mode is set, then set the first available video mode
@@ -286,7 +331,8 @@ void USBVideoSourceComponent::updateCameraSettings()
 		const eVideoSettingType prop_type = (eVideoSettingType)prop_index;
 		
 		if (VideoSettingConstraint constraint;
-			m_usbVideoDevice->getVideoSettingConstraint(prop_type, constraint))
+			m_usbVideoDevice->getVideoSettingConstraint(prop_type, constraint) &&
+			constraint.max_value > constraint.min_value)
 		{
 			float desiredFloatValue = 0.f;
 			if (definition->getVideoSettingValue(
