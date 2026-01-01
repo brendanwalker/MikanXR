@@ -130,7 +130,7 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	ensureFrameBufferSize(pixelWidth, pixelHeight);
 
 	// Create a mesh used to render the video frame
-	m_fullscreenQuad= createFullscreenQuadMesh(m_ownerWindow, true);
+	m_fullscreenRGBQuad= createFullscreenQuadMesh(m_ownerWindow, true);
 }
 
 VideoFrameDistortionView::~VideoFrameDistortionView()
@@ -478,9 +478,9 @@ void VideoFrameDistortionView::rebuildDistortionMap()
 
 void VideoFrameDistortionView::renderSelectedVideoBuffers()
 {
-	if (m_videoTexture != nullptr && m_fullscreenQuad != nullptr)
+	if (m_videoTexture != nullptr && m_fullscreenRGBQuad != nullptr)
 	{
-		MkMaterialInstancePtr materialInstance= m_fullscreenQuad->getMaterialInstance();
+		MkMaterialInstancePtr materialInstance= m_fullscreenRGBQuad->getMaterialInstance();
 		MkMaterialConstPtr material = materialInstance->getMaterial();
 
 		if (auto materialBinding = material->bindMaterial())
@@ -491,7 +491,7 @@ void VideoFrameDistortionView::renderSelectedVideoBuffers()
 			// Draw the color texture
 			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
 			{
-				m_fullscreenQuad->drawElements();
+				m_fullscreenRGBQuad->drawElements();
 			}
 		}
 	}

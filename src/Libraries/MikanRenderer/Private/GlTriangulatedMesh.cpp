@@ -226,11 +226,18 @@ IMkTriangulatedMeshPtr createMkTriangulatedMesh(
 		bOwnsVertexData);
 }
 
-IMkTriangulatedMeshPtr createFullscreenQuadMesh(IMkWindow* ownerWindow, bool vFlipped)
+IMkTriangulatedMeshPtr createFullscreenQuadMesh(
+	IMkWindow* ownerWindow, 
+	bool vFlipped,
+	bool bHasAlpha)
 {
 	static uint16_t x_indices[] = {0, 1, 2, 0, 2, 3};
 
-	auto material = ownerWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE);
+	auto shaderCache= ownerWindow->getShaderCache();
+	auto material = 
+		bHasAlpha ?
+		shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_FULLSCREEN_RGBA_TEXTURE) :
+		shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE);
 	assert(material);
 
 	struct QuadVertex

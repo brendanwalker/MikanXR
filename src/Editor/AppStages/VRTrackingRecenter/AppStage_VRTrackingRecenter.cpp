@@ -47,7 +47,7 @@ AppStage_VRTrackingRecenter::AppStage_VRTrackingRecenter(IEditorWindow* ownerWin
 	, m_monoDistortionView(nullptr)
 	, m_mkCamera(nullptr)
 	, m_frameBuffer(createMkFrameBuffer())
-	, m_fullscreenQuad(createFullscreenQuadMesh(ownerWindow, false))
+	, m_fullscreenRGBQuad(createFullscreenQuadMesh(ownerWindow, false))
 {
 }
 
@@ -303,7 +303,7 @@ void AppStage_VRTrackingRecenter::render(IMkViewportPtr targetViewport)
 	// Render the frame buffer to the screen
 	if (m_frameBuffer->isValid())
 	{
-		MkMaterialInstancePtr materialInstance = m_fullscreenQuad->getMaterialInstance();
+		MkMaterialInstancePtr materialInstance = m_fullscreenRGBQuad->getMaterialInstance();
 		MkMaterialConstPtr material = materialInstance->getMaterial();
 
 		if (auto materialBinding = material->bindMaterial())
@@ -316,7 +316,7 @@ void AppStage_VRTrackingRecenter::render(IMkViewportPtr targetViewport)
 			// Draw the color texture
 			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
 			{
-				m_fullscreenQuad->drawElements();
+				m_fullscreenRGBQuad->drawElements();
 			}
 		}
 	}

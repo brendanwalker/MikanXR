@@ -61,5 +61,5 @@ private:
 	MkScenePtr m_scene;
 	MikanCameraPtr m_mkCamera;
 	IMkFrameBufferPtr m_frameBuffer;
-	IMkTriangulatedMeshPtr m_fullscreenQuad;
+	IMkTriangulatedMeshPtr m_fullscreenRGBQuad;
 };

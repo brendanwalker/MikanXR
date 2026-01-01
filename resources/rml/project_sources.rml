@@ -114,7 +114,7 @@
 							<td>
 								<button data-event-click="show_video_source_settings()">Settings</button>
 							</td>
-						</tr>					
+						</tr>
 					</tbody>
 				</table>
 			</div>
@@ -122,8 +122,8 @@
 			<!-- Texture Sources Section -->
 			<div data-model="Sources">
 				<h1>Add Texture Source</h1>
-				<button class="icon-button" data-event-click="add_new_spout_video_source()"><img sprite="icon-spout"/></button>
-				<button class="icon-button" data-event-click="add_new_client_video_source()"><img sprite="icon-mikan"/></button>
+				<button class="icon-button" data-event-click="add_new_spout_texture_source()"><img sprite="icon-spout"/></button>
+				<button class="icon-button" data-event-click="add_new_client_texture_source()"><img sprite="icon-mikan"/></button>
 				<h1>Texture Source</h1>
 				<select id="select" name="select_source_id" data-value="selected_texture_source_id" data-event-change="select_texture_source_entry()">
 					<option value="-1">-- None --</option>
@@ -148,7 +148,12 @@
 						<tr class="property_tr">
 							<td>
 								<label>Source</label>
-								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="client_source"/>
+								<label>{{client_source}}</label>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<button data-event-click="show_texture_source_settings()">Settings</button>
 							</td>
 						</tr>
 					</tbody>
@@ -171,7 +176,12 @@
 						<tr class="property_tr">
 							<td>
 								<label>Source</label>
-								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="spout_source"/>
+								<label>{{spout_source}}</label>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<button data-event-click="show_texture_source_settings()">Settings</button>
 							</td>
 						</tr>
 					</tbody>

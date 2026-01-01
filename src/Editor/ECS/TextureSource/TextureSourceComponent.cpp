@@ -1,3 +1,4 @@
+#include "TextureSourceSettings/AppStage_TextureSourceSettings.h"
 #include "CameraMath.h"
 #include "MikanCoreTypes.h"
 #include "MikanObject.h"
@@ -97,6 +98,7 @@ bool TextureSourceComponent::setPropertyValueFromRml(
 
 // -- IRmlFunctionInterface ----
 const std::string TextureSourceComponent::k_deleteTextureSourceFunctionId = "delete_video_source";
+const std::string TextureSourceComponent::k_showTextureSourceSettingsFunctionId = "show_texture_source_settings";
 
 void TextureSourceComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
 {
@@ -105,6 +107,9 @@ void TextureSourceComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDe
 	outDescriptors.push_back(
 		std::make_shared<RmlFunctionDescriptor>(
 			k_deleteTextureSourceFunctionId, "Delete Video Source"));
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_showTextureSourceSettingsFunctionId, "Show Texture Source Settings"));
 }
 
 bool TextureSourceComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
@@ -116,6 +121,11 @@ bool TextureSourceComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr
 		deleteTextureSource();
 		return true;
 	}
+	else if (functionName == k_showTextureSourceSettingsFunctionId)
+	{
+		showTextureSourceSettings();
+		return true;
+	}
 
 	return MikanComponent::invokeFunctionFromRml(functionDesc);
 }
@@ -123,4 +133,10 @@ bool TextureSourceComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr
 void TextureSourceComponent::deleteTextureSource()
 {
 	getOwnerObject()->deleteSelfConfig();
+}
+
+void TextureSourceComponent::showTextureSourceSettings()
+{
+	getOwnerEditorWindow()->pushAppStageOfType<AppStage_TextureSourceSettings>()
+		->setTextureSourceComponent(getSelfPtr<TextureSourceComponent>());
 }

@@ -63,8 +63,10 @@ public:
 
 	// -- IRmlFunctionInterface ----
 	static const std::string k_deleteTextureSourceFunctionId;
+	static const std::string k_showTextureSourceSettingsFunctionId;
 	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outPropertyNames);
 	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
 
 	void deleteTextureSource();
+	void showTextureSourceSettings();
 };
