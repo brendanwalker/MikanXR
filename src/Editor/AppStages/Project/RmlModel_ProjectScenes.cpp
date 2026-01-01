@@ -19,6 +19,8 @@
 #include "StencilObjectSystemConfig.h"
 #include "RmlModel_ProjectScenes.h"
 #include "ProjectConfig.h"
+#include "Project/AppStage_Project.h"
+#include "Project/ProjectRmlModelContext.h"
 #include "Shared/RmlModel_AnchorComponent.h"
 #include "Shared/RmlModel_CompositorComponent.h"
 #include "Shared/RmlModel_SceneComponent.h"
@@ -35,29 +37,21 @@ bool RmlModel_ProjectScenes::s_bHasRegisteredTypes = false;
 RmlModel_ProjectScenes::RmlModel_ProjectScenes()
 	: m_stageIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 	, m_sceneIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
-	, m_selectedAnchorModel(std::make_shared<RmlModel_AnchorComponent>())
-	, m_selectedBoxStencilModel(std::make_shared<RmlModel_BoxStencilComponent>())
-	, m_selectedModelStencilModel(std::make_shared<RmlModel_ModelStencilComponent>())
-	, m_selectedQuadStencilModel(std::make_shared<RmlModel_QuadStencilComponent>())
-	, m_selectedSceneModel(std::make_shared<RmlModel_SceneComponent>())
 {
 }
 
-bool RmlModel_ProjectScenes::init(
-	Rml::Context* rmlContext,
-	AnchorObjectSystemPtr anchorSystemPtr,
-	CompositorObjectSystemPtr compositorSystemPtr,
-	EditorObjectSystemPtr editorSystemPtr,
-	SceneObjectSystemPtr sceneSystemPtr,
-	StageObjectSystemPtr stageSystemPtr,
-	StencilObjectSystemPtr stencilSystemPtr)
+bool RmlModel_ProjectScenes::init(ProjectRmlModelContext* context)
 {
-	m_anchorSystem= anchorSystemPtr;
-	m_compositorSystem= compositorSystemPtr;
-	m_editorSystem= editorSystemPtr;
-	m_sceneSystem= sceneSystemPtr;
-	m_stageSystem= stageSystemPtr;
-	m_stencilSystem= stencilSystemPtr;
+	AppStage_Project* ownerAppStage = context->getOwnerAppStage();
+	Rml::Context* rmlContext = ownerAppStage->getRmlContext();
+
+	m_projectRmlModelContext = context;
+	m_anchorSystem= ownerAppStage->getObjectSystemOfType<AnchorObjectSystem>();
+	m_compositorSystem= ownerAppStage->getObjectSystemOfType<CompositorObjectSystem>();
+	m_editorSystem= ownerAppStage->getObjectSystemOfType<EditorObjectSystem>();
+	m_sceneSystem= ownerAppStage->getObjectSystemOfType<SceneObjectSystem>();
+	m_stageSystem= ownerAppStage->getObjectSystemOfType<StageObjectSystem>();
+	m_stencilSystem= ownerAppStage->getObjectSystemOfType<StencilObjectSystem>();
 
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "Scenes");
@@ -67,7 +61,7 @@ bool RmlModel_ProjectScenes::init(
 	// Register component lists
 	m_stageIdList->init(
 		constructor,
-		stageSystemPtr->getStageSystemConfig(),
+		m_stageSystem.lock()->getStageSystemConfig(),
 		StageObjectSystemConfig::k_stageListPropertyId,
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 			auto stageSystemConfig = std::static_pointer_cast<StageObjectSystemConfig>(ownerConfig);
@@ -79,7 +73,7 @@ bool RmlModel_ProjectScenes::init(
 		});
 	m_sceneIdList->init(
 		constructor,
-		sceneSystemPtr->getSceneSystemConfig(),
+		m_sceneSystem.lock()->getSceneSystemConfig(),
 		SceneObjectSystemConfig::k_sceneListPropertyId,
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 			auto sceneSystemConfig = std::static_pointer_cast<SceneObjectSystemConfig>(ownerConfig);
@@ -108,13 +102,6 @@ bool RmlModel_ProjectScenes::init(
 
 		s_bHasRegisteredTypes = true;
 	}
-
-	// Register Selected Object Models
-	m_selectedAnchorModel->init(rmlContext);
-	m_selectedBoxStencilModel->init(rmlContext);
-	m_selectedModelStencilModel->init(rmlContext);
-	m_selectedQuadStencilModel->init(rmlContext);
-	m_selectedSceneModel->init(rmlContext);
 
 	// Register Data Model Fields
 	constructor.Bind("scene_objects", &m_sceneOutliner);
@@ -370,11 +357,11 @@ void RmlModel_ProjectScenes::setSelectedSceneId(int sceneId)
 
 		if (auto sceneComponent = getSelectedSceneComponent())
 		{
-			m_selectedSceneModel->setComponent(sceneComponent);
+			m_projectRmlModelContext->getSceneModel()->setComponent(sceneComponent);
 		}
 		else
 		{
-			m_selectedSceneModel->setComponent(nullptr);
+			m_projectRmlModelContext->getSceneModel()->setComponent(nullptr);
 		}
 
 		rebuildSceneComponentList();

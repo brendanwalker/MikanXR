@@ -3,6 +3,7 @@
 #include "ComponentFwd.h"
 #include "Shared/RmlDataBinding_Fwd.h"
 #include "Shared/RmlModel_PropertyInterface.h"
+#include "Shared/RmlModelInterface.h"
 
 namespace Rml
 {
@@ -10,7 +11,7 @@ namespace Rml
 	class DataModelConstructor;
 }
 
-class RmlModel_MikanComponent
+class RmlModel_MikanComponent : public IRmlModel
 {
 public:
 	RmlModel_MikanComponent();
@@ -19,9 +20,19 @@ public:
 	virtual bool init(Rml::Context* rmlContext) = 0;
 	virtual bool onConstruct(Rml::DataModelConstructor& constructor);
 
+	inline RmlModel_PropertyInterfacePtr getPropertyInterface() const { return m_propertyInterface; }
+
 	MikanComponentPtr getComponent() const;
 	virtual bool setComponent(MikanComponentPtr component);
-	void dispose();
+
+	// IRmlModel
+	virtual Rml::Context* getContext() override;
+	virtual Rml::DataModelHandle& getModelHandle() override;
+
+	virtual void dispose() override;
+	virtual void update() override;
+
+	virtual void addModelUpdateCallback(std::function<void()> callback) override;
 
 protected:
 	template <class t_component_type>

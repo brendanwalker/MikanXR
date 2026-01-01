@@ -26,6 +26,12 @@ using RmlDataBinding_USBDevicePathListPtr = std::shared_ptr<RmlDataBinding_USBDe
 using RmlDataBinding_VideoModeList = RmlDataBinding_List<std::string>;
 using RmlDataBinding_VideoModeListPtr = std::shared_ptr<RmlDataBinding_VideoModeList>;
 
+class RmlDataBinding_VideoSourceSetting;
+using RmlDataBinding_VideoSourceSettingPtr = std::shared_ptr<RmlDataBinding_VideoSourceSetting>;
+
+class RmlModel_VideoSourceSettings;
+using RmlModel_VideoSourceSettingsPtr = std::shared_ptr<RmlModel_VideoSourceSettings>;
+
 class RmlModel_AnchorComponent;
 using RmlModel_AnchorComponentPtr = std::shared_ptr<RmlModel_AnchorComponent>;
 

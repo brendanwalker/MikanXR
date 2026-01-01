@@ -5,7 +5,7 @@
 #include "MikanRendererFwd.h"
 #include "ProjectManager.h"
 #include "RmlFwd.h"
-#include "Shared/RmlModel.h"
+#include "Shared/RmlModelInterface.h"
 
 #include <string>
 #include <vector>
@@ -96,7 +96,8 @@ protected:
 	bool m_bIsPaused= false;
 	std::string m_appStageName;
 	MikanViewportList m_viewports;
+	Rml::Context* m_rmlContext = nullptr;
 	std::vector<Rml::ElementDocument*> m_rmlDocuments;
-	std::vector<RmlModel*> m_rmlModels;
+	std::vector<IRmlModel*> m_rmlModels;
 	std::vector<class ModalDialog*> m_modalDialogStack;
 };

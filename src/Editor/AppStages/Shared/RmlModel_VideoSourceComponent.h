@@ -1,5 +1,6 @@
 #pragma once
 
+#include "IVideoDevice.h"
 #include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "Shared/RmlModel_MikanComponent.h"
@@ -30,7 +31,10 @@ protected:
 	USBVideoSourceSystemPtr getUSBVideoSourceSystem() const;
 	USBVideoSourceComponentPtr getUSBVideoSourceComponent() const;
 
+	void refreshSettings();
+
 private:
+	RmlDataBinding_VideoSourceSettingPtr m_videoSourceSettings[(int)eVideoSettingType::COUNT];
 	RmlDataBinding_USBDevicePathListPtr m_usbDevicePathList;
 	RmlDataBinding_VideoModeListPtr m_videoModeNameList;
 };

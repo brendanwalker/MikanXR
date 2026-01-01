@@ -25,12 +25,7 @@ class RmlModel_ProjectStages : public RmlModel
 public:
 	RmlModel_ProjectStages();
 
-	bool init(
-		Rml::Context* rmlContext, 
-		ProjectConfigPtr projectConfig,
-		StageObjectSystemPtr stageSystem,
-		CameraObjectSystemPtr cameraSystem,
-		CompositorObjectSystemPtr compositorSystem);
+	bool init(class ProjectRmlModelContext* context);
 	virtual void dispose() override;
 
 private:
@@ -59,7 +54,7 @@ private:
 	void cameraIdListChanged(bool bOwnerChanged);
 	void compositorIdListChanged(bool bOwnerChanged);
 
-	ProjectConfigWeakPtr m_projectConfig;
+	class ProjectRmlModelContext* m_projectRmlModelContext = nullptr;
 	StageObjectSystemWeakPtr m_stageSystem;
 	CameraObjectSystemWeakPtr m_cameraSystem;
 	CompositorObjectSystemWeakPtr m_compositorSystem;
@@ -67,9 +62,6 @@ private:
 	RmlDataBinding_ComponentIdListPtr m_stageIdList;
 	RmlDataBinding_ComponentIdListPtr m_cameraIdList;
 	RmlDataBinding_ComponentIdListPtr m_compositorIdList;
-	RmlModel_StageComponentPtr m_selectedStageModel;
-	RmlModel_CameraComponentPtr m_selectedCameraModel;
-	RmlModel_CompositorComponentPtr m_selectedCompositorModel;
 
 	int m_selectedStageId = -1; // MikanStageID
 	int m_selectedCameraId = -1; // MikanCameraID

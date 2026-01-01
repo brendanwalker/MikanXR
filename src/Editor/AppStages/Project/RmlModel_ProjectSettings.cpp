@@ -3,23 +3,27 @@
 #include "LocalizationManager.h"
 #include "StencilObjectSystem.h"
 #include "ProjectConfig.h"
+#include "Project/AppStage_Project.h"
+#include "Project/ProjectRmlModelContext.h"
 #include "RmlUtility.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
 
-bool RmlModel_ProjectSettings::init(
-	Rml::Context* rmlContext,
-	ProjectConfigPtr project,
-	StencilObjectSystemPtr stencilSystem)
+bool RmlModel_ProjectSettings::init(ProjectRmlModelContext* context)
 {
 	auto* localizationManager = LocalizationManager::getInstance();
 	m_selectedLangugeId = localizationManager->getLanguage();
 	m_languageIdList = localizationManager->getSupportedLanguages();
 
-	m_project = project;
-	m_stencilSystem = stencilSystem;
+	AppStage_Project* ownerAppStage = context->getOwnerAppStage();
+	Rml::Context* rmlContext = ownerAppStage->getRmlContext();
+
+	m_projectRmlModelContext = context;
+	m_project = ownerAppStage->getProjectConfig();
+	m_anchorSystem = ownerAppStage->getObjectSystemOfType<AnchorObjectSystem>();
+	m_stencilSystem = ownerAppStage->getObjectSystemOfType<StencilObjectSystem>();
 
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "Settings");
@@ -40,12 +44,12 @@ bool RmlModel_ProjectSettings::init(
 	constructor.BindFunc(
 		"render_anchors",
 		[this](Rml::Variant& variant) {
-			bool value = m_project.lock()->anchorConfig->getRenderAnchorsFlag();
+			bool value = m_anchorSystem.lock()->getAnchorSystemConfig()->getRenderAnchorsFlag();
 			variant = Rml::Variant(value);
 		},
 		[this](const Rml::Variant& variant) {
 			bool value = variant.Get<bool>();
-			m_project.lock()->anchorConfig->setRenderAnchorsFlag(value);
+			m_anchorSystem.lock()->getAnchorSystemConfig()->setRenderAnchorsFlag(value);
 		});
 
 	constructor.BindFunc(
@@ -71,12 +75,4 @@ bool RmlModel_ProjectSettings::init(
 	m_modelHandle.DirtyAllVariables();
 
 	return true;
-}
-
-void RmlModel_ProjectSettings::dispose()
-{
-	m_project.reset();
-	m_stencilSystem.reset();
-
-	RmlModel::dispose();
 }

@@ -1,6 +1,9 @@
 #include "CameraMath.h"
+#include "IEditorWindow.h"
 #include "MikanCoreTypes.h"
 #include "MikanObject.h"
+#include "MonoLensCalibration/AppStage_MonoLensCalibration.h"
+#include "VideoSourceSettings/AppStage_VideoSourceSettings.h"
 #include "OpenCVVideoFrameBuffer.h"
 #include "VideoSourceComponent.h"
 
@@ -449,6 +452,9 @@ bool VideoSourceComponent::setPropertyValueFromRml(
 
 // -- IRmlFunctionInterface ----
 const std::string VideoSourceComponent::k_deleteVideoSourceFunctionId = "delete_video_source";
+const std::string VideoSourceComponent::k_showVideoSourceSettingsFunctionId = "show_video_source_settings";
+const std::string VideoSourceComponent::k_calibrateIntrinsicsFunctionId = "calibrate_intrinsics";
+const std::string VideoSourceComponent::k_testIntrinsicsFunctionId = "test_intrinsics";
 
 void VideoSourceComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
 {
@@ -457,6 +463,15 @@ void VideoSourceComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDesc
 	outDescriptors.push_back(
 		std::make_shared<RmlFunctionDescriptor>(
 			k_deleteVideoSourceFunctionId, "Delete Video Source"));
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_showVideoSourceSettingsFunctionId, "Show Video Source Settings"));
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_calibrateIntrinsicsFunctionId, "Calibrate Intrinsics"));
+	outDescriptors.push_back(
+		std::make_shared<RmlFunctionDescriptor>(
+			k_testIntrinsicsFunctionId, "Test Intrinsics"));
 }
 
 bool VideoSourceComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
@@ -468,6 +483,21 @@ bool VideoSourceComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr f
 		deleteVideoSource();
 		return true;
 	}
+	else if (functionName == k_showVideoSourceSettingsFunctionId)
+	{
+		showVideoSourceSettings();
+		return true;
+	}
+	else if (functionName == k_calibrateIntrinsicsFunctionId)
+	{
+		calibrateIntrinsics();
+		return true;
+	}
+	else if (functionName == k_testIntrinsicsFunctionId)
+	{
+		testIntrinsics();
+		return true;
+	}
 
 	return MikanComponent::invokeFunctionFromRml(functionDesc);
 }
@@ -475,4 +505,21 @@ bool VideoSourceComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr f
 void VideoSourceComponent::deleteVideoSource()
 {
 	getOwnerObject()->deleteSelfConfig();
+}
+
+void VideoSourceComponent::showVideoSourceSettings()
+{
+	getOwnerEditorWindow()->pushAppStageOfType<AppStage_VideoSourceSettings>()
+		->setVideoSourceComponent(getSelfPtr<VideoSourceComponent>());
+}
+
+void VideoSourceComponent::calibrateIntrinsics()
+{
+	getOwnerEditorWindow()->pushAppStageOfType<AppStage_MonoLensCalibration>();
+}
+
+void VideoSourceComponent::testIntrinsics()
+{
+	getOwnerEditorWindow()->pushAppStageOfType<AppStage_MonoLensCalibration>()
+		->setBypassCalibrationFlag(true);
 }

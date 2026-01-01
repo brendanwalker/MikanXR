@@ -625,6 +625,10 @@ void USBVideoSourceComponent::notifyVideoModePropertiesChanged(const class IUsbV
 
 	// Let any listeners know that the video frame sized changed
 	MikanServer::getInstance()->getVideoSourceRequestHandler()->publishVideoSourceModeChangedEvent();
+	if (OnFrameSizeChanged)
+	{
+		OnFrameSizeChanged(getSelfPtr<VideoSourceComponent>());
+	}
 }
 
 void USBVideoSourceComponent::notifyVideoFrameReceived(const UsbVideoFrameBuffer& bufferInfo)
@@ -716,8 +720,6 @@ bool USBVideoSourceComponent::getPropertyValueFromRml(
 		return true;
 	}
 
-	// TODO: k_cameraSettingsPropertyId;
-
 	return VideoSourceComponent::getPropertyValueFromRml(propertyDesc, outValue);
 }
 
@@ -741,15 +743,4 @@ bool USBVideoSourceComponent::setPropertyValueFromRml(
 	}
 
 	return VideoSourceComponent::setPropertyValueFromRml(propertyDesc, inValue);
-}
-
-// -- IRmlFunctionInterface ----
-void USBVideoSourceComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
-{
-	VideoSourceComponent::getRmlFunctionDescriptors(outDescriptors);
-}
-
-bool USBVideoSourceComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
-{
-	return VideoSourceComponent::invokeFunctionFromRml(functionDesc);
 }

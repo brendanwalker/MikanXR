@@ -94,10 +94,6 @@ public:
 	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, Rml::Variant& outValue) const override;
 	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const Rml::Variant& inValue) override;
 
-	// -- IRmlFunctionInterface ----
-	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors);
-	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
-
 protected:
 	void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet) override;
 	bool updateVideoMode();

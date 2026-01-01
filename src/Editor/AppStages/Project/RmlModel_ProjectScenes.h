@@ -19,14 +19,7 @@ class RmlModel_ProjectScenes : public RmlModel
 public:
 	RmlModel_ProjectScenes();
 
-	bool init(
-		Rml::Context* rmlContext,
-		AnchorObjectSystemPtr anchorSystemPtr,
-		CompositorObjectSystemPtr compositorSystemPtr,
-		EditorObjectSystemPtr editorSystemPtr,
-		SceneObjectSystemPtr sceneSystemPtr,
-		StageObjectSystemPtr stageSystemPtr,
-		StencilObjectSystemPtr stencilSystemPtr);
+	bool init(class ProjectRmlModelContext* context);
 	virtual void dispose() override;
 
 private:
@@ -63,6 +56,7 @@ private:
 	void sceneIdListChanged(bool bOwnerChanged);
 	void compositorIdListChanged(bool bOwnerChanged);
 
+	class ProjectRmlModelContext* m_projectRmlModelContext= nullptr;
 	AnchorObjectSystemWeakPtr m_anchorSystem;
 	CompositorObjectSystemWeakPtr m_compositorSystem;
 	EditorObjectSystemWeakPtr m_editorSystem;
@@ -72,11 +66,6 @@ private:
 
 	RmlDataBinding_ComponentIdListPtr m_stageIdList;
 	RmlDataBinding_ComponentIdListPtr m_sceneIdList;
-	RmlModel_AnchorComponentPtr m_selectedAnchorModel;
-	RmlModel_BoxStencilComponentPtr m_selectedBoxStencilModel;
-	RmlModel_ModelStencilComponentPtr m_selectedModelStencilModel;
-	RmlModel_QuadStencilComponentPtr m_selectedQuadStencilModel;
-	RmlModel_SceneComponentPtr m_selectedSceneModel;
 
 	int m_selectedStageId = -1; // MikanStageID
 	int m_selectedSceneId = -1; // MikanSceneID

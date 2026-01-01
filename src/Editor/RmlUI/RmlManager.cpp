@@ -216,14 +216,6 @@ bool RmlManager::postRendererStartup()
 			Rml::LoadFontFace(face.filename, face.fallback_face);
 		}
 
-		int window_width = (int)m_ownerWindow->getWidth();
-		int window_height = (int)m_ownerWindow->getHeight();
-		m_rmlUIContext = Rml::CreateContext("main", Rml::Vector2i(window_width, window_height));
-		Rml::Debugger::Initialise(m_rmlUIContext);
-
-		// Register common data model types shared amongst all UI
-		registerCommonDataModelTypes();
-
 		return true;
 	}
 	else
@@ -292,9 +284,9 @@ std::shared_ptr<t_system_type> rmlGetSystemOfType(RmlManager* rmlManager)
 	return objectSystemManager->getSystemOfType<t_system_type>();
 }
 
-void RmlManager::registerCommonDataModelTypes()
+void RmlManager::registerCommonDataModelTypes(Rml::Context* context)
 {
-	Rml::DataModelConstructor constructor = m_rmlUIContext->CreateDataModel("data_model_globals");
+	Rml::DataModelConstructor constructor = context->CreateDataModel("data_model_globals");
 
 	// Primitive Array Types
 	constructor.RegisterArray<Rml::Vector<Rml::String>>();
@@ -624,18 +616,78 @@ void RmlManager::registerCommonDataModelTypes()
 		});
 }
 
+Rml::Context* RmlManager::pushContext(const std::string& contextName)
+{
+	int window_width = (int)m_ownerWindow->getWidth();
+	int window_height = (int)m_ownerWindow->getHeight();
+	Rml::Context* rmlUIContext = Rml::CreateContext(contextName, Rml::Vector2i(window_width, window_height));
+	if (rmlUIContext == nullptr)
+	{
+		MIKAN_LOG_ERROR("RmlManager::pushContext") << "Failed to create Rml UI Context: " << contextName;
+		return nullptr;
+	}
+
+	if (m_rmlUIContextStack.empty())
+	{
+		// First context created, enable the debugger
+		Rml::Debugger::Initialise(rmlUIContext);
+	}
+
+	// Register common data model types shared amongst all UI
+	registerCommonDataModelTypes(rmlUIContext);
+
+	m_rmlUIContextStack.push_back(rmlUIContext);
+
+	return rmlUIContext;
+}
+
+Rml::Context* RmlManager::getRmlUIContext() const
+{
+	if (!m_rmlUIContextStack.empty())
+	{
+		return m_rmlUIContextStack.back();
+	}
+
+	return nullptr;
+}
+
+void RmlManager::popContext(Rml::Context* context)
+{
+	if (!m_rmlUIContextStack.empty())
+	{
+		Rml::Context* rmlUIContext = m_rmlUIContextStack.back();
+		if (rmlUIContext == context)
+		{
+			m_rmlUIContextStack.pop_back();
+
+			Rml::RemoveContext(rmlUIContext->GetName());
+
+			if (m_rmlUIContextStack.empty())
+			{
+				// Last context removed, shutdown the debugger
+				Rml::Debugger::Shutdown();
+			}
+		}
+	}
+}
+
 void RmlManager::update()
 {
-	if (m_rmlUIContext != nullptr)
+	if (!m_rmlUIContextStack.empty())
 	{
-		m_rmlUIContext->Update();
+		getRmlUIContext()->Update();
 	}
 }
 
 void RmlManager::shutdown()
 {
 	Rml::Shutdown();
-	m_rmlUIContext = nullptr;
+	
+	while (!m_rmlUIContextStack.empty())
+	{
+		popContext(getRmlUIContext());
+	}
+
 	m_instance= nullptr;
 }
 

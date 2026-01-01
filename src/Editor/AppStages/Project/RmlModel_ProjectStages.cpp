@@ -5,6 +5,8 @@
 #include "CompositorObjectSystem.h"
 #include "MikanCoreTypes.h"
 #include "ProjectConfig.h"
+#include "Project/AppStage_Project.h"
+#include "Project/ProjectRmlModelContext.h"
 #include "Shared/RmlModel_PropertyInterface.h"
 #include "Shared/RmlModel_CameraComponent.h"
 #include "Shared/RmlModel_StageComponent.h"
@@ -22,27 +24,18 @@ RmlModel_ProjectStages::RmlModel_ProjectStages()
 	: m_stageIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 	, m_cameraIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 	, m_compositorIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
-	, m_selectedStageModel(std::make_shared<RmlModel_StageComponent>())
-	, m_selectedCameraModel(std::make_shared<RmlModel_CameraComponent>())
-	, m_selectedCompositorModel(std::make_shared<RmlModel_CompositorComponent>())
 {
 }
 
-bool RmlModel_ProjectStages::init(
-	Rml::Context* rmlContext, 
-	ProjectConfigPtr projectConfig,
-	StageObjectSystemPtr stageSystem,
-	CameraObjectSystemPtr cameraSystem,
-	CompositorObjectSystemPtr compositorSystem)
+bool RmlModel_ProjectStages::init(ProjectRmlModelContext* context)
 {
-	StageObjectSystemConfigPtr stageConfig = projectConfig->stageConfig;
-	CameraObjectSystemConfigPtr cameraConfig = projectConfig->cameraConfig;
-	CompositorObjectSystemConfigPtr compositorConfig = projectConfig->compositorConfig;
+	AppStage_Project* ownerAppStage = context->getOwnerAppStage();
+	Rml::Context* rmlContext = ownerAppStage->getRmlContext();
 
-	m_projectConfig = projectConfig;
-	m_stageSystem = stageSystem;
-	m_cameraSystem = cameraSystem;
-	m_compositorSystem = compositorSystem;
+	m_projectRmlModelContext = context;
+	m_compositorSystem = ownerAppStage->getObjectSystemOfType<CompositorObjectSystem>();
+	m_stageSystem = ownerAppStage->getObjectSystemOfType<StageObjectSystem>();
+	m_cameraSystem = ownerAppStage->getObjectSystemOfType<CameraObjectSystem>();
 
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "Stages");
@@ -52,7 +45,7 @@ bool RmlModel_ProjectStages::init(
 	// Register component lists
 	m_stageIdList->init(
 		constructor, 
-		stageConfig,
+		m_stageSystem.lock()->getStageSystemConfig(),
 		StageObjectSystemConfig::k_stageListPropertyId,
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 			StageObjectSystemConfigConstPtr stageConfig = 
@@ -69,7 +62,7 @@ bool RmlModel_ProjectStages::init(
 
 	m_cameraIdList->init(
 		constructor,
-		cameraConfig,
+		m_cameraSystem.lock()->getCameraSystemConfig(),
 		CameraObjectSystemConfig::k_cameraListPropertyId,
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 			CameraObjectSystemConfigConstPtr cameraConfig =
@@ -86,7 +79,7 @@ bool RmlModel_ProjectStages::init(
 
 	m_compositorIdList->init(
 		constructor,
-		compositorConfig,
+		m_compositorSystem.lock()->getCompositorSystemConfig(),
 		CompositorObjectSystemConfig::k_compositorListPropertyId,
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 			CompositorObjectSystemConfigConstPtr compositorConfig =
@@ -105,11 +98,6 @@ bool RmlModel_ProjectStages::init(
 	constructor.Bind("selected_stage_id", &m_selectedStageId);
 	constructor.Bind("selected_camera_id", &m_selectedCameraId);
 	constructor.Bind("selected_compositor_id", &m_selectedCompositorId);
-
-	// Register Selected Object Models
-	m_selectedStageModel->init(rmlContext);
-	m_selectedCameraModel->init(rmlContext);
-	m_selectedCompositorModel->init(rmlContext);
 
 	// Bind data model callbacks
 	constructor.BindEventCallback("add_new_stage", &RmlModel_ProjectStages::addNewStage, this);
@@ -135,10 +123,6 @@ void RmlModel_ProjectStages::dispose()
 	m_stageIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectStages::stageIdListChanged);
 	m_cameraIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectStages::cameraIdListChanged);
 	m_compositorIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectStages::compositorIdListChanged);
-
-	m_selectedStageModel->dispose();
-	m_selectedCameraModel->dispose();
-	m_selectedCompositorModel->dispose();
 
 	RmlModel::dispose();
 }
@@ -307,11 +291,11 @@ void RmlModel_ProjectStages::setSelectedStageId(MikanStageID stageId)
 		{
 			StageComponentDefinitionPtr stageDefinition= stageComponent->getStageComponentDefinition();
 
-			m_selectedStageModel->setComponent(stageComponent);
+			m_projectRmlModelContext->getStageModel()->setComponent(stageComponent);
 		}
 		else
 		{
-			m_selectedStageModel->setComponent(nullptr);
+			m_projectRmlModelContext->getStageModel()->setComponent(nullptr);
 		}
 
 		m_cameraIdList->rebuildList();
@@ -328,11 +312,11 @@ void RmlModel_ProjectStages::setSelectedCameraId(MikanCameraID cameraId)
 
 		if (CameraComponentPtr cameraComponent = getSelectedCamera())
 		{
-			m_selectedCameraModel->setComponent(cameraComponent);
+			m_projectRmlModelContext->getCameraModel()->setComponent(cameraComponent);
 		}
 		else
 		{
-			m_selectedCameraModel->setComponent(nullptr);
+			m_projectRmlModelContext->getCameraModel()->setComponent(nullptr);
 		}
 	}
 }
@@ -346,11 +330,11 @@ void RmlModel_ProjectStages::setSelectedCompositorId(MikanCompositorID composito
 
 		if (CompositorComponentPtr compositorComponent = getSelectedCompositor())
 		{
-			m_selectedCompositorModel->setComponent(compositorComponent);
+			m_projectRmlModelContext->getCompositorModel()->setComponent(compositorComponent);
 		}
 		else
 		{
-			m_selectedCompositorModel->setComponent(nullptr);
+			m_projectRmlModelContext->getCompositorModel()->setComponent(nullptr);
 		}
 	}
 }

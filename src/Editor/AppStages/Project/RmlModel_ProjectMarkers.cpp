@@ -3,6 +3,8 @@
 #include "MikanCoreTypes.h"
 #include "ProjectConfig.h"
 #include "RmlModel_ProjectMarkers.h"
+#include "Project/AppStage_Project.h"
+#include "Project/ProjectRmlModelContext.h"
 #include "Shared/RmlModel_MarkerComponent.h"
 #include "Shared/RmlModel_MarkerObjectSystem.h"
 #include "Shared/RmlDataBinding_List.h"
@@ -14,20 +16,17 @@
 
 RmlModel_ProjectMarkers::RmlModel_ProjectMarkers()
 	: m_markerIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
-	, m_selectedMarkerModel(std::make_shared<RmlModel_MarkerComponent>())
-	, m_markerSystemModel(std::make_shared<RmlModel_MarkerObjectSystem>())
 {
 }
 
 bool RmlModel_ProjectMarkers::init(
-	Rml::Context* rmlContext, 
-	ProjectConfigPtr projectConfig,
-	MarkerObjectSystemPtr markerSystem)
+	ProjectRmlModelContext* context)
 {
-	MarkerObjectSystemConfigPtr markerSystemConfig = projectConfig->markerSystemConfig;
+	AppStage_Project* ownerAppStage = context->getOwnerAppStage();
+	Rml::Context* rmlContext = ownerAppStage->getRmlContext();
 
-	m_projectConfig = projectConfig;
-	m_markerSystem = markerSystem;
+	m_projectRmlModelContext = context;
+	m_markerSystem = ownerAppStage->getObjectSystemOfType<MarkerObjectSystem>();
 
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "Markers");
@@ -37,10 +36,10 @@ bool RmlModel_ProjectMarkers::init(
 	// Register component lists
 	m_markerIdList->init(
 		constructor, 
-		markerSystemConfig,
+		m_markerSystem.lock()->getMarkerSystemConfig(),
 		MarkerObjectSystemConfig::k_arucoMarkerListPropertyId,
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			MarkerObjectSystemConfigPtr markerConfig = m_projectConfig.lock()->markerSystemConfig;
+			MarkerObjectSystemConfigPtr markerConfig = m_markerSystem.lock()->getMarkerSystemConfig();
 
 			for (const auto& markerPtr : markerConfig->getArucoMarkerList())
 			{
@@ -54,11 +53,6 @@ bool RmlModel_ProjectMarkers::init(
 	// Register Data Model Fields
 	constructor.Bind("selected_marker_id", &m_selectedMarkerId);
 
-	// Register Selected Object Models
-	m_selectedMarkerModel->init(rmlContext);
-	m_markerSystemModel->init(rmlContext);
-	m_markerSystemModel->setObjectSystem(markerSystem);
-
 	// Bind data model callbacks
 	constructor.BindEventCallback("add_new_marker", &RmlModel_ProjectMarkers::addNewMarker, this);
 	constructor.BindEventCallback("remove_marker", &RmlModel_ProjectMarkers::removeMarker, this);
@@ -66,9 +60,6 @@ bool RmlModel_ProjectMarkers::init(
 
 	// Listen for marker config changes
 	m_markerIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectMarkers::markerIdListChanged);
-
-	// Forward marker selection events from the marker component model
-	m_selectedMarkerModel->OnMarkerSelected = MakeDelegate(this, &RmlModel_ProjectMarkers::onMarkerSelectedFromComponent);
 
 	// Auto-select first items if available
 	if (!m_markerIdList->isEmpty())
@@ -82,10 +73,6 @@ bool RmlModel_ProjectMarkers::init(
 void RmlModel_ProjectMarkers::dispose()
 {
 	m_markerIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectMarkers::markerIdListChanged);
-	m_selectedMarkerModel->OnMarkerSelected.Clear();
-
-	m_selectedMarkerModel->dispose();
-	m_markerSystemModel->dispose();
 
 	RmlModel::dispose();
 }
@@ -165,24 +152,12 @@ void RmlModel_ProjectMarkers::setSelectedMarkerId(MikanMarkerID markerId)
 		m_modelHandle.DirtyVariable("selected_marker_id");
 
 		if (MarkerComponentPtr markerComponent = getSelectedMarker())
-		{
-			m_selectedMarkerModel->setComponent(markerComponent);
+		{			
+			m_projectRmlModelContext->getMarkerModel()->setComponent(markerComponent);
 		}
 		else
 		{
-			m_selectedMarkerModel->setComponent(nullptr);
+			m_projectRmlModelContext->getMarkerModel()->setComponent(nullptr);
 		}
-	}
-}
-
-void RmlModel_ProjectMarkers::onMarkerSelectedFromComponent(int arucoId)
-{
-	// Forward the event to listeners of this model
-	if (OnMarkerSelected)
-	{
-		// Defer until next model update to the the view a chance to be loaded
-		addModelUpdateCallback([this, arucoId]() {
-			OnMarkerSelected(arucoId);
-		});
 	}
 }

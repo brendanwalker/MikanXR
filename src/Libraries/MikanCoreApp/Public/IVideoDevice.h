@@ -15,6 +15,8 @@ enum class eVideoStreamingStatus : int
 /// The list of possible camera drivers used by Mikan
 enum class eVideoSettingType : int
 {
+	INVALID = -1,
+
 	Brightness,
 	Contrast,
 	Hue,

@@ -17,12 +17,6 @@ bool RmlModel_MikanObjectSystem::onConstruct(
 	return true;
 }
 
-void RmlModel_MikanObjectSystem::dispose()
-{
-	m_propertyInterface->dispose();
-	m_objectSystem.reset();
-}
-
 MikanObjectSystemPtr RmlModel_MikanObjectSystem::getObjectSystem() const
 {
 	return m_objectSystem.lock();
@@ -33,4 +27,31 @@ void RmlModel_MikanObjectSystem::setObjectSystem(MikanObjectSystemPtr objectSyst
 	m_objectSystem = objectSystem;
 	m_propertyInterface->setPropertyInterface(objectSystem, objectSystem->getObjectSystemConfig());
 	m_propertyInterface->setFunctionInterface(objectSystem);
+}
+
+// IRmlModel
+Rml::Context* RmlModel_MikanObjectSystem::getContext()
+{
+	return m_propertyInterface->getContext();
+}
+
+Rml::DataModelHandle& RmlModel_MikanObjectSystem::getModelHandle()
+{
+	return m_propertyInterface->getModelHandle();
+}
+
+void RmlModel_MikanObjectSystem::dispose()
+{
+	m_propertyInterface->dispose();
+	m_objectSystem.reset();
+}
+
+void RmlModel_MikanObjectSystem::update()
+{
+	m_propertyInterface->update();
+}
+
+void RmlModel_MikanObjectSystem::addModelUpdateCallback(std::function<void()> callback)
+{
+	m_propertyInterface->addModelUpdateCallback(callback);
 }

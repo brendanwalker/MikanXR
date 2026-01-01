@@ -3,6 +3,7 @@
 #include "IServerRequestHandler.h"
 #include "IVRDeviceManager.h"
 #include "MikanTypeFwd.h"
+#include "ProjectConfigConstants.h"
 
 #include <set>
 

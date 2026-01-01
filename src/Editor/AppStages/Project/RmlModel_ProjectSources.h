@@ -15,10 +15,7 @@ class RmlModel_ProjectSources : public RmlModel
 public:
 	RmlModel_ProjectSources();
 
-	bool init(
-		Rml::Context* rmlContext, 
-		TextureSourceSystemPtr textureSourceSystem,
-		VideoSourceSystemPtr videoSourceSystem);
+	bool init(class ProjectRmlModelContext* context);
 	virtual void dispose() override;
 
 private:
@@ -46,16 +43,12 @@ private:
 	void setSelectedTextureSourceId(MikanTextureSourceID textureSourceId);
 	void textureSourceIdListChanged(bool bOwnerChanged);
 
+	class ProjectRmlModelContext* m_projectRmlModelContext = nullptr;
 	TextureSourceSystemWeakPtr m_textureSourceSystem;
 	VideoSourceSystemWeakPtr m_videoSourceSystem;
 
 	RmlDataBinding_ComponentIdListPtr m_videoSourceIdList;
-	RmlModel_USBVideoSourceComponentPtr m_selectedUSBVideoSourceModel;
-	RmlModel_NetworkVideoSourceComponentPtr m_selectedNetworkVideoSourceModel;
-
 	RmlDataBinding_ComponentIdListPtr m_textureSourceIdList;
-	RmlModel_ClientTextureSourceComponentPtr m_selectedClientVideoSourceModel;
-	RmlModel_SpoutTextureSourceComponentPtr m_selectedSpoutVideoSourceModel;
 
 	int m_selectedVideoSourceId = -1; // MikanVideoSourceID
 	int m_selectedTextureSourceId = -1; // MikanTextureSourceID

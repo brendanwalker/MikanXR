@@ -85,15 +85,6 @@ public:
 	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, Rml::Variant& outValue) const override;
 	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const Rml::Variant& inValue) override;
 
-	// -- IRmlFunctionInterface ----
-	static const std::string k_calibrateIntrinsicsFunctionId;
-	static const std::string k_testIntrinsicsFunctionId;
-	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors);
-	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
-
-	void calibrateIntrinsics();
-	void testIntrinsics();
-
 protected:
 	void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 

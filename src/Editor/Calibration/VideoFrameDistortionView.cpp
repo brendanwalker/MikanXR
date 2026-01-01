@@ -28,6 +28,34 @@ struct OpenCVMonoCameraIntrinsics
 	cv::Matx81d distortion_coeffs;
 	cv::Matx33d undistorted_intrinsic_matrix;
 
+	void init(int pixelWidth, int pixelHeight, double focalLength)
+	{
+		// Camera intrinsic matrix with principal point at image center
+		double cx = pixelWidth * 0.5;
+		double cy = pixelHeight * 0.5;
+
+		distorted_intrinsic_matrix = cv::Matx33d(
+			focalLength, 0.0, cx,
+			0.0, focalLength, cy,
+			0.0, 0.0, 1.0);
+
+		// No distortion coefficients
+		distortion_coeffs = cv::Matx81d(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+
+		// Undistorted intrinsic matrix same as distorted when no distortion
+		undistorted_intrinsic_matrix = distorted_intrinsic_matrix;
+	}
+
+	void init(int pixelWidth, int pixelHeight)
+	{
+		// Estimate focal length assuming typical webcam horizontal FOV of 70 degrees
+		// focalLength = (pixelWidth / 2) / tan(hfov / 2)
+		// For 70 degrees: focalLength ≈ pixelWidth * 1.1917
+		double focalLength = pixelWidth * 1.2;
+
+		init(pixelWidth, pixelHeight, focalLength);
+	}
+
 	void init(const MikanMonoIntrinsics& monoIntrinsics)
 	{
 		distorted_intrinsic_matrix = MikanMatrix3d_to_cv_mat33d(monoIntrinsics.distorted_camera_matrix);
@@ -67,10 +95,24 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	, m_distortionTextureMap(nullptr)
 	, m_videoTexture(nullptr)
 {
+	// Get the current video source pixel dimensions
+	int pixelWidth, pixelHeight;
+	videoSourceComponent->getVideoPixelDimensions(pixelWidth, pixelHeight);
+
 	// Get the current camera intrinsics being used by the video source
 	MikanVideoSourceIntrinsics mikanIntrinsics;
 	m_videoSourceComponent->getCameraIntrinsics(mikanIntrinsics);
-	m_intrinsics->init(mikanIntrinsics.getMonoIntrinsics());
+	if (mikanIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS)
+	{
+		m_intrinsics->init(mikanIntrinsics.getMonoIntrinsics());
+	}
+	else
+	{
+		m_intrinsics->init(pixelWidth, pixelHeight); 
+		MIKAN_LOG_WARNING("VideoFrameDistortionView") 
+			<< "VideoSource " << videoSourceComponent->getDevicePath() 
+			<< " is not distortion calibrated. Using estimated focal length and no distortion.";
+	}
 
 	// Source Video Frame data
 	m_bgrSourceBuffers = new SourceBufferEntry[m_bgrSourceBufferCount];
@@ -85,8 +127,6 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	// Resize all desired video frame buffers to match the current video source view size
 	// It's possible that the video source doesn't have a valid size yet if it's a stream source
 	// So we'll have to resize once the first valid frame is read.
-	int pixelWidth, pixelHeight;
-	videoSourceComponent->getVideoPixelDimensions(pixelWidth, pixelHeight);
 	ensureFrameBufferSize(pixelWidth, pixelHeight);
 
 	// Create a mesh used to render the video frame

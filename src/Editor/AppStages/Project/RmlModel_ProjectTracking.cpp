@@ -2,6 +2,8 @@
 #include "MikanCoreTypes.h"
 #include "ProjectConfig.h"
 #include "RmlModel_ProjectTracking.h"
+#include "Project/AppStage_Project.h"
+#include "Project/ProjectRmlModelContext.h"
 #include "Shared/RmlModel_PropertyInterface.h"
 #include "Shared/RmlModel_MarkerTrackingVolumeComponent.h"
 #include "Shared/RmlModel_VRTrackingVolumeComponent.h"
@@ -20,21 +22,17 @@
 RmlModel_ProjectTracking::RmlModel_ProjectTracking()
 	: m_trackingVolumeIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 	, m_trackingMountIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
-	, m_selectedVRTrackingVolumeModel(std::make_shared<RmlModel_VRTrackingVolumeComponent>())
-	, m_selectedMarkerTrackingVolumeModel(std::make_shared<RmlModel_MarkerTrackingVolumeComponent>())
-	, m_selectedTrackingMountModel(std::make_shared<RmlModel_TrackingMountComponent>())
 {
 }
 
-bool RmlModel_ProjectTracking::init(
-	Rml::Context* rmlContext, 
-	ProjectConfigPtr projectConfig,
-	TrackingVolumeObjectSystemPtr trackingVolumeSystem,
-	TrackingMountObjectSystemPtr trackingMountSystem)
+bool RmlModel_ProjectTracking::init(ProjectRmlModelContext* context)
 {
-	m_projectConfig = projectConfig;
-	m_trackingVolumeSystem = trackingVolumeSystem;
-	m_trackingMountSystem = trackingMountSystem;
+	AppStage_Project* ownerAppStage = context->getOwnerAppStage();
+	Rml::Context* rmlContext = ownerAppStage->getRmlContext();
+
+	m_projectRmlModelContext = context;
+	m_trackingVolumeSystem = ownerAppStage->getObjectSystemOfType<TrackingVolumeObjectSystem>();
+	m_trackingMountSystem = ownerAppStage->getObjectSystemOfType<TrackingMountObjectSystem>();
 
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "TrackingSystems");
@@ -44,10 +42,10 @@ bool RmlModel_ProjectTracking::init(
 	// Register component lists
 	m_trackingVolumeIdList->init(
 		constructor, 
-		trackingVolumeSystem->getTrackingVolumeSystemConfig(),
+		m_trackingVolumeSystem.lock()->getTrackingVolumeSystemConfig(),
 		"tracker_volume_ids", // virtual property name since this is a composite list
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			TrackingVolumeObjectSystemConfigPtr trackingConfig = m_projectConfig.lock()->trackingVolumeSystemConfig;
+			auto trackingConfig = std::static_pointer_cast<TrackingVolumeObjectSystemConfig>(ownerConfig);
 
 			for (const auto& vrTrackingVolumePtr : trackingConfig->getVRTrackingVolumeList())
 			{
@@ -90,11 +88,6 @@ bool RmlModel_ProjectTracking::init(
 	constructor.Bind("selected_tracking_volume_id", &m_selectedTrackingVolumeId);
 	constructor.Bind("selected_tracking_mount_id", &m_selectedTrackingMountId);
 
-	// Register Selected Object Models
-	m_selectedVRTrackingVolumeModel->init(rmlContext);
-	m_selectedMarkerTrackingVolumeModel->init(rmlContext);
-	m_selectedTrackingMountModel->init(rmlContext);
-
 	// Bind data model callbacks
 	constructor.BindEventCallback("add_new_steamvr_tracking_volume", &RmlModel_ProjectTracking::addNewSteamVRTrackingVolume, this);
 	constructor.BindEventCallback("add_new_marker_tracking_volume", &RmlModel_ProjectTracking::addNewMarkerTrackingVolume, this);
@@ -105,7 +98,8 @@ bool RmlModel_ProjectTracking::init(
 	constructor.BindEventCallback("select_tracking_mount_entry", &RmlModel_ProjectTracking::selectTrackingMountEntry, this);
 
 	// Listen for tracking system config changes
-	TrackingMountObjectSystemConfigPtr trackingMountConfig = trackingMountSystem->getTrackingMountSystemConfig();
+	TrackingMountObjectSystemConfigPtr trackingMountConfig = 
+		m_trackingMountSystem.lock()->getTrackingMountSystemConfig();
 	m_trackingVolumeIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectTracking::trackingVolumeIdListChanged);
 	m_trackingMountIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectTracking::trackingMountIdListChanged);
 
@@ -125,10 +119,6 @@ void RmlModel_ProjectTracking::dispose()
 
 	m_trackingVolumeIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectTracking::trackingVolumeIdListChanged);
 	m_trackingMountIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectTracking::trackingMountIdListChanged);
-
-	m_selectedVRTrackingVolumeModel->dispose();
-	m_selectedMarkerTrackingVolumeModel->dispose();
-	m_selectedTrackingMountModel->dispose();
 
 	RmlModel::dispose();
 }
@@ -307,24 +297,24 @@ void RmlModel_ProjectTracking::setSelectedTrackingVolumeId(MikanTrackingVolumeID
 		if (VRTrackingVolumeComponentPtr vrTrackingComponent = getSelectedVRTrackingVolume())
 		{
 			m_isVRTrackingVolume = true;
-			m_selectedVRTrackingVolumeModel->setComponent(vrTrackingComponent);
-			m_selectedMarkerTrackingVolumeModel->setComponent(nullptr);
+			m_projectRmlModelContext->getVRTrackingVolumeModel()->setComponent(vrTrackingComponent);
+			m_projectRmlModelContext->getMarkerTrackingVolumeModel()->setComponent(nullptr);
 
 			m_trackingMountIdList->setOwnerConfig(vrTrackingComponent->getDefinition());
 		}
 		else if (MarkerTrackingVolumeComponentPtr markerComponent = getSelectedMarkerTrackingVolume())
 		{
 			m_isVRTrackingVolume = false;
-			m_selectedVRTrackingVolumeModel->setComponent(nullptr);
-			m_selectedMarkerTrackingVolumeModel->setComponent(markerComponent);
+			m_projectRmlModelContext->getVRTrackingVolumeModel()->setComponent(nullptr);
+			m_projectRmlModelContext->getMarkerTrackingVolumeModel()->setComponent(markerComponent);
 
 			m_trackingMountIdList->setOwnerConfig(CommonConfigPtr());
 		}
 		else
 		{
 			m_isVRTrackingVolume = false;
-			m_selectedVRTrackingVolumeModel->setComponent(nullptr);
-			m_selectedMarkerTrackingVolumeModel->setComponent(nullptr);
+			m_projectRmlModelContext->getVRTrackingVolumeModel()->setComponent(nullptr);
+			m_projectRmlModelContext->getMarkerTrackingVolumeModel()->setComponent(nullptr);
 
 			m_trackingMountIdList->setOwnerConfig(CommonConfigPtr());
 		}
@@ -341,12 +331,12 @@ void RmlModel_ProjectTracking::setSelectedTrackingMountId(MikanTrackingMountID t
 		m_modelHandle.DirtyVariable("selected_tracking_mount_id");
 
 		if (TrackingMountComponentPtr trackingMount = getSelectedTrackingMount())
-		{
-			m_selectedTrackingMountModel->setComponent(trackingMount);
+		{			
+			m_projectRmlModelContext->getTrackingMountModel()->setComponent(trackingMount);
 		}
 		else
 		{
-			m_selectedTrackingMountModel->setComponent(nullptr);
+			m_projectRmlModelContext->getTrackingMountModel()->setComponent(nullptr);
 		}
 	}
 }

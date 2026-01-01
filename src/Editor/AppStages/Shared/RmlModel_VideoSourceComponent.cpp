@@ -3,8 +3,9 @@
 #include "Shared/RmlModel_PropertyInterface.h"
 #include "NetworkVideoSourceComponent.h"
 #include "USBVideoSourceComponent.h"
-#include "VideoSourceSystem.h"
 #include "USBVideoSourceSystem.h"
+#include "VideoSourceSystem.h"
+#include "VideoSourceSettings/RmlDataBinding_VideoSourceSetting.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
@@ -51,7 +52,14 @@ RmlModel_USBVideoSourceComponent::RmlModel_USBVideoSourceComponent()
 	: RmlModel_MikanComponent()
 	, m_usbDevicePathList(std::make_shared<RmlDataBinding_VRDevicePathList>())
 	, m_videoModeNameList(std::make_shared<RmlDataBinding_SocketNameList>())
-{}
+{
+	for (int settingIndex = 0; settingIndex < (int)eVideoSettingType::COUNT; ++settingIndex)
+	{
+		m_videoSourceSettings[settingIndex] =
+			std::make_shared<RmlDataBinding_VideoSourceSetting>(
+				static_cast<eVideoSettingType>(settingIndex));
+	}
+}
 
 bool RmlModel_USBVideoSourceComponent::init(Rml::Context* rmlContext)
 {
@@ -62,6 +70,16 @@ bool RmlModel_USBVideoSourceComponent::onConstruct(Rml::DataModelConstructor& co
 {
 	if (!RmlModel_MikanComponent::onConstruct(constructor))
 		return false;
+
+	// Register Video Setting Data Bindings
+	for (int settingIndex = 0; settingIndex < (int)eVideoSettingType::COUNT; ++settingIndex)
+	{
+		auto& videoSettingBinding = m_videoSourceSettings[settingIndex];
+		if (!videoSettingBinding->init(constructor))
+		{
+			return false;
+		}
+	}
 
 	// Build the list of all usb device paths from the USBVideoSourceSystem
 	m_usbDevicePathList->init(
@@ -100,6 +118,9 @@ bool RmlModel_USBVideoSourceComponent::onConstruct(Rml::DataModelConstructor& co
 
 				// Refresh the video mode list for the newly selected device				
 				m_videoModeNameList->rebuildList(true);
+
+				// Refresh all video settings for the new device
+				refreshSettings();
 			}
 		});
 
@@ -111,6 +132,9 @@ bool RmlModel_USBVideoSourceComponent::onConstruct(Rml::DataModelConstructor& co
 			if (videoSourceComponent)
 			{
 				videoSourceComponent->getUSBVideoSourceDefinition()->setVideoMode(newVideoMode);
+
+				// Refresh all video settings for the new video mode
+				refreshSettings();
 			}
 		});
 
@@ -121,12 +145,22 @@ bool RmlModel_USBVideoSourceComponent::setComponent(MikanComponentPtr component)
 {
 	if (RmlModel_MikanComponent::setComponent(component))
 	{
+		auto usbVideoSourceComponent = std::static_pointer_cast<USBVideoSourceComponent>(component);
+
+		// Update all video setting bindings with the new component
+		for (int settingIndex = 0; settingIndex < (int)eVideoSettingType::COUNT; ++settingIndex)
+		{
+			RmlDataBinding_VideoSourceSettingPtr videoSettingBinding = m_videoSourceSettings[settingIndex];
+
+			videoSettingBinding->setVideoSourceComponent(usbVideoSourceComponent);
+		}
+
 		m_usbDevicePathList->setOwnerConfig(getVideoSourceSystemConfig());
 		m_usbDevicePathList->rebuildList(true);
 
 		m_videoModeNameList->setOwnerConfig(component ? component->getDefinition() : CommonConfigPtr());
 		m_videoModeNameList->rebuildList(true);
-
+		
 		return true;
 	}
 
@@ -175,4 +209,14 @@ USBVideoSourceComponentPtr RmlModel_USBVideoSourceComponent::getUSBVideoSourceCo
 	}
 
 	return nullptr;
+}
+
+void RmlModel_USBVideoSourceComponent::refreshSettings()
+{
+	for (int settingIndex = 0; settingIndex < (int)eVideoSettingType::COUNT; ++settingIndex)
+	{
+		RmlDataBinding_VideoSourceSettingPtr videoSettingBinding = m_videoSourceSettings[settingIndex];
+
+		videoSettingBinding->refreshDataBinding();
+	}
 }

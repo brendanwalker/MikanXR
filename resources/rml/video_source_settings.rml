@@ -1,0 +1,236 @@
+<rml>
+<head>
+	<link type="text/rcss" href="rml.rcss"/>
+	<link type="text/rcss" href="mikan.rcss"/>
+	<style>
+		body {
+			position: absolute;
+			top: 0;
+			right: 0;
+			bottom: 0;
+			width: 350dp;
+		}
+
+		#header-buttons {
+			display: block;
+			width: auto;
+			padding: 10dp;
+			margin-bottom: 10dp;
+			decorator: tiled-box(
+				window-tl, window-t, window-tr,
+				window-l, window-c, window-r,
+				window-bl, window-b, window-br
+			);
+		}
+
+		#window {
+			position: absolute;
+			top: 100dp;
+			bottom: 0;
+			left: 0;
+			right: 0;
+		}
+
+		#content {
+			height: 100%;
+			overflow: hidden auto;
+		}
+	</style>
+</head>
+<body>
+  <div id="header-buttons" data-model="VideoSourceSettings">
+    <button data-event-click="return()">Return</button>
+  </div>
+	<div id="window">
+		<div class="content">
+			<!-- USB Video Source Properties -->
+			<div data-if="component_id != -1" data-model="USBVideoSourceComponent">
+				<table>
+					<thead>
+						<tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
+					</thead>
+					<tbody>
+						<tr class="property_tr">
+							<td>
+								<label>Name</label>
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label>Video Device</label>
+								<select id="select" name="select_device" data-value="devicePath" data-event-change="select_video_device_entry()">
+									<option value="">-- None --</option>
+									<option data-for="device_path : usb_device_paths" data-value="device_path">{{device_path | to_usb_camera_friendly_name}}</option>
+								</select>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label>Video Mode</label>
+								<select id="select" name="select_mode" data-value="videoMode" data-event-change="select_video_mode_entry()">
+									<option value="">-- None --</option>
+									<option data-for="video_mode : video_modes" data-value="video_mode">{{video_mode}}</option>
+								</select>
+							</td>
+						</tr>
+						<tr data-if="brightness_valid" class="property_tr">
+							<td>
+								<label>Brightness</label>
+								<input type="range" name="brightness" min="0" max="100" step="1" value="50" data-value="brightness_percent" data-event-change="brightness_changed()"/> {{brightness_percent}}
+							</td>
+						</tr>
+						<tr data-if="contrast_valid" class="property_tr">
+							<td>
+								<label>Contrast</label>
+								<input type="range" name="contrast" min="0" max="100" step="1" value="50" data-value="contrast_percent" data-event-change="contrast_changed()"/> {{contrast_percent}}
+							</td>
+						</tr>
+						<tr data-if="hue_valid" class="property_tr">
+							<td>
+								<label>Hue</label>
+								<input type="range" name="hue" min="0" max="100" step="1" value="50" data-value="hue_percent" data-event-change="hue_changed()"/> {{hue_percent}}
+							</td>
+						</tr>
+						<tr data-if="saturation_valid" class="property_tr">
+							<td>
+								<label>Saturation</label>
+								<input type="range" name="saturation" min="0" max="100" step="1" value="50" data-value="saturation_percent" data-event-change="saturation_changed()"/> {{saturation_percent}}
+							</td>
+						</tr>
+						<tr data-if="sharpness_valid" class="property_tr">
+							<td>
+								<label>Sharpness</label>
+								<input type="range" name="sharpness" min="0" max="100" step="1" value="50" data-value="sharpness_percent" data-event-change="sharpness_changed()"/> {{sharpness_percent}}
+							</td>
+						</tr>
+						<tr data-if="gamma_valid" class="property_tr">
+							<td>
+								<label>Gamma</label>
+								<input type="range" name="gamma" min="0" max="100" step="1" value="50" data-value="gamma_percent" data-event-change="gamma_changed()"/> {{gamma_percent}}
+							</td>
+						</tr>
+						<tr data-if="white_balance_valid" class="property_tr">
+							<td>
+								<label>White Balance</label>
+								<input type="range" name="white_balance" min="0" max="100" step="1" value="50" data-value="white_balance_percent" data-event-change="white_balance_changed()"/> {{white_balance_percent}}
+							</td>
+						</tr>
+						<tr data-if="red_balance_valid" class="property_tr">
+							<td>
+								<label>Red Balance</label>
+								<input type="range" name="red_balance" min="0" max="100" step="1" value="50" data-value="red_balance_percent" data-event-change="red_balance_changed()"/> {{red_balance_percent}}
+							</td>
+						</tr>
+						<tr data-if="green_balance_valid" class="property_tr">
+							<td>
+								<label>Green Balance</label>
+								<input type="range" name="green_balance" min="0" max="100" step="1" value="50" data-value="green_balance_percent" data-event-change="green_balance_changed()"/> {{green_balance_percent}}
+							</td>
+						</tr>
+						<tr data-if="blue_balance_valid" class="property_tr">
+							<td>
+								<label>Blue Balance</label>
+								<input type="range" name="blue_balance" min="0" max="100" step="1" value="50" data-value="blue_balance_percent" data-event-change="blue_balance_changed()"/> {{blue_balance_percent}}
+							</td>
+						</tr>
+						<tr data-if="gain_valid" class="property_tr">
+							<td>
+								<label>Gain</label>
+								<input type="range" name="gain" min="0" max="100" step="1" value="50" data-value="gain_percent" data-event-change="gain_changed()"/> {{gain_percent}}
+							</td>
+						</tr>
+						<tr data-if="pan_valid" class="property_tr">
+							<td>
+								<label>Pan</label>
+								<input type="range" name="pan" min="0" max="100" step="1" value="50" data-value="pan_percent" data-event-change="pan_changed()"/> {{pan_percent}}
+							</td>
+						</tr>
+						<tr data-if="tilt_valid" class="property_tr">
+							<td>
+								<label>Tilt</label>
+								<input type="range" name="tilt" min="0" max="100" step="1" value="50" data-value="tilt_percent" data-event-change="tilt_changed()"/> {{tilt_percent}}
+							</td>
+						</tr>
+						<tr data-if="roll_valid" class="property_tr">
+							<td>
+								<label>Roll</label>
+								<input type="range" name="roll" min="0" max="100" step="1" value="50" data-value="roll_percent" data-event-change="roll_changed()"/> {{roll_percent}}
+							</td>
+						</tr>
+						<tr data-if="zoom_valid" class="property_tr">
+							<td>
+								<label>Zoom</label>
+								<input type="range" name="zoom" min="0" max="100" step="1" value="50" data-value="zoom_percent" data-event-change="zoom_changed()"/> {{zoom_percent}}
+							</td>
+						</tr>
+						<tr data-if="exposure_valid" class="property_tr">
+							<td>
+								<label>Exposure</label>
+								<input type="range" name="exposure" min="0" max="100" step="1" value="50" data-value="exposure_percent" data-event-change="exposure_changed()"/> {{exposure_percent}}
+							</td>
+						</tr>
+						<tr data-if="iris_valid" class="property_tr">
+							<td>
+								<label>Iris</label>
+								<input type="range" name="iris" min="0" max="100" step="1" value="50" data-value="iris_percent" data-event-change="iris_changed()"/> {{iris_percent}}
+							</td>
+						</tr>
+						<tr data-if="focus_valid" class="property_tr">
+							<td>
+								<label>Focus</label>
+								<input type="range" name="focus" min="0" max="100" step="1" value="50" data-value="focus_percent" data-event-change="focus_changed()"/> {{focus_percent}}
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<!-- Network Video Source Properties -->
+			<div data-if="component_id != -1" data-model="NetworkVideoSourceComponent">
+				<table>
+					<thead>
+						<tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
+					</thead>
+					<tbody>
+						<tr class="property_tr">
+							<td>
+								<label>Name</label>
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label>Protocol</label>
+								<select name="select_protocol" data-value="protocol" data-event-change="select_protocol()">
+									<option value="RTMP">rtmp</option>
+									<option value="RTSP">rtsp</option>
+								</select>								
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label>IP Address</label>
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="ip_address"/>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label>Port</label>
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="port"/>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label>Path</label>
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="path"/>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</body>
+</rml>
+

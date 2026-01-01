@@ -11,14 +11,12 @@
 class RmlModel_ProjectSettings : public RmlModel
 {
 public:
-	bool init(
-		Rml::Context* rmlContext,
-		ProjectConfigPtr profileConfig,
-		StencilObjectSystemPtr stencilSystem);
-	virtual void dispose() override;
+	bool init(class ProjectRmlModelContext* context);
 
 private:
+	class ProjectRmlModelContext* m_projectRmlModelContext = nullptr;
 	ProjectConfigWeakPtr m_project;
+	AnchorObjectSystemWeakPtr m_anchorSystem;
 	StencilObjectSystemWeakPtr m_stencilSystem;
 	std::vector<std::string> m_languageIdList;
 	std::string m_selectedLangugeId;

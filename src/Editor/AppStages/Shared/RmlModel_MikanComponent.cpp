@@ -71,8 +71,29 @@ bool RmlModel_MikanComponent::setComponent(MikanComponentPtr component)
 	return false;
 }
 
+// IRmlModel
+Rml::Context* RmlModel_MikanComponent::getContext()
+{
+	return m_propertyInterface->getContext();
+}
+
+Rml::DataModelHandle& RmlModel_MikanComponent::getModelHandle()
+{
+	return m_propertyInterface->getModelHandle();
+}
+
 void RmlModel_MikanComponent::dispose()
 {
 	m_propertyInterface->dispose();
 	m_component.reset();
+}
+
+void RmlModel_MikanComponent::update()
+{
+	m_propertyInterface->update();
+}
+
+void RmlModel_MikanComponent::addModelUpdateCallback(std::function<void()> callback)
+{
+	m_propertyInterface->addModelUpdateCallback(callback);
 }

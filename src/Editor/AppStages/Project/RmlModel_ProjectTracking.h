@@ -15,11 +15,7 @@ class RmlModel_ProjectTracking : public RmlModel
 public:
 	RmlModel_ProjectTracking();
 
-	bool init(
-		Rml::Context* rmlContext,
-		ProjectConfigPtr projectConfig,
-		TrackingVolumeObjectSystemPtr trackingVolumeSystem,
-		TrackingMountObjectSystemPtr trackingMountSystem);
+	bool init(class ProjectRmlModelContext* context);
 	virtual void dispose() override;
 
 private:
@@ -44,15 +40,13 @@ private:
 	void trackingVolumeIdListChanged(bool bOwnerChanged);
 	void trackingMountIdListChanged(bool bOwnerChanged);
 
+	class ProjectRmlModelContext* m_projectRmlModelContext = nullptr;
 	ProjectConfigWeakPtr m_projectConfig;
 	TrackingVolumeObjectSystemWeakPtr m_trackingVolumeSystem;
 	TrackingMountObjectSystemWeakPtr m_trackingMountSystem;
 
 	RmlDataBinding_ComponentIdListPtr m_trackingVolumeIdList;
 	RmlDataBinding_ComponentIdListPtr m_trackingMountIdList;
-	RmlModel_VRTrackingVolumeComponentPtr m_selectedVRTrackingVolumeModel;
-	RmlModel_MarkerTrackingVolumeComponentPtr m_selectedMarkerTrackingVolumeModel;
-	RmlModel_TrackingMountComponentPtr m_selectedTrackingMountModel;
 
 	bool m_isVRTrackingVolume = false;
 	int m_selectedTrackingVolumeId = -1; // MikanTrackingVolumeID

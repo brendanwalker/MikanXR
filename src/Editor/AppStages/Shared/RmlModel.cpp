@@ -27,6 +27,16 @@ Rml::DataModelConstructor RmlModel::init(Rml::Context* rmlContext, const Rml::St
 	return constructor;
 }
 
+Rml::Context* RmlModel::getContext()
+{
+	return m_context;
+}
+
+Rml::DataModelHandle& RmlModel::getModelHandle()
+{
+	return m_modelHandle;
+}
+
 void RmlModel::dispose()
 {
 	if (m_context != nullptr && m_modelHandle)

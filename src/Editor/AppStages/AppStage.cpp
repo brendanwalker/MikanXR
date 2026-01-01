@@ -59,11 +59,14 @@ MikanViewportConstPtr AppStage::getRenderingViewport() const
 
 Rml::Context* AppStage::getRmlContext() const 
 {
-	return m_ownerWindow->getRmlManager()->getRmlUIContext(); 
+	return m_rmlContext;
 }
 
 void AppStage::enter() 
 {
+	// Allocate a dedicated RmlUi context for this app stage
+	m_rmlContext = m_ownerWindow->getRmlManager()->pushContext(m_appStageName);
+
 	if (!m_bIsEntered)
 	{
 		// Add a default fullscreen viewport for each appstage
@@ -103,7 +106,7 @@ void AppStage::exit()
 		m_rmlDocuments.clear();
 
 		// Dispose and delete all registered RmlModels
-		for (RmlModel* model : m_rmlModels)
+		for (IRmlModel* model : m_rmlModels)
 		{
 			model->dispose();
 			delete model;
@@ -112,6 +115,10 @@ void AppStage::exit()
 
 		// Force an update to clear all deleted documents
 		getRmlContext()->Update();
+
+		// Deallocate the RmlUi context
+		m_ownerWindow->getRmlManager()->popContext(m_rmlContext);
+		m_rmlContext = nullptr;
 
 		m_bIsEntered = false;
 	}
@@ -221,7 +228,7 @@ void AppStage::update(float deltaSeconds)
 		getRmlContext()->Update();
 
 		// Update all registered RmlModels after RmlUI context update
-		for (RmlModel* model : m_rmlModels)
+		for (IRmlModel* model : m_rmlModels)
 		{
 			model->update();
 		}

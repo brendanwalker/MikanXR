@@ -51,8 +51,11 @@ public:
 		return m_instance;
 	}
 
-	inline Rml::Context* getRmlUIContext() const { return m_rmlUIContext; }
-	inline MainWindow* getOwnerWindow() const { return m_ownerWindow; }
+	Rml::Context* pushContext(const std::string& contextName);
+	Rml::Context* getRmlUIContext() const;
+	void popContext(Rml::Context* context);
+
+	inline class MainWindow* getOwnerWindow() const { return m_ownerWindow; }
 
 	// Enum Reflection
 	bool addEnumDefinition(Rml::Mikan::EnumDefinitionPtr enumDefinition);
@@ -60,7 +63,7 @@ public:
 	void bindEnumDefinitionsToDataModel(Rml::DataModelConstructor& constructor);
 
 private:
-	void registerCommonDataModelTypes();
+	void registerCommonDataModelTypes(Rml::Context* context);
 	
 	class MainWindow* m_ownerWindow= nullptr;
 
@@ -69,7 +72,7 @@ private:
 	std::shared_ptr<struct RmlMikanDecoratorInstancers> m_rmlDecoratorInstancers;
 
 	// Rml UI Context
-	Rml::Context* m_rmlUIContext = nullptr;
+	std::vector<Rml::Context*> m_rmlUIContextStack;
 	std::map<std::string, Rml::Mikan::EnumDefinitionPtr> m_enumDefinitions;
 
 	static RmlManager* m_instance;

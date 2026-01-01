@@ -76,7 +76,10 @@ protected:
 	TrackingMountObjectSystemWeakPtr m_trackingMountSystem;
 	VideoSourceSystemWeakPtr m_videoObjectSystem;
 
-	class RmlModel_Project* m_projectModel;
+	// Shared context for component and object system models used in project panels
+	class ProjectRmlModelContext* m_projectRmlModelContext = nullptr;
+
+	class RmlModel_Project* m_projectModel= nullptr;
 
 	class RmlModel_ProjectScenes* m_projectScenesModel;
 	Rml::ElementDocument* m_projectScenesView = nullptr;

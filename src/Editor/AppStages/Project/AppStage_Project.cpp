@@ -33,6 +33,7 @@
 #include "ProjectConfig.h"
 #include "ProjectManager.h"
 #include "Project/AppStage_Project.h"
+#include "Project/ProjectRmlModelContext.h"
 #include "Project/RmlModel_Project.h"
 #include "Project/RmlModel_ProjectMarkers.h"
 #include "Project/RmlModel_ProjectScenes.h"
@@ -40,6 +41,7 @@
 #include "Project/RmlModel_ProjectSources.h"
 #include "Project/RmlModel_ProjectTracking.h"
 #include "Project/RmlModel_ProjectSettings.h"
+#include "Shared/RmlModel_MarkerComponent.h"
 #include "PathUtils.h"
 #include "RmlUtility.h"
 #include "SceneComponent.h"
@@ -72,7 +74,7 @@ const char* AppStage_Project::APP_STAGE_NAME = "Compositor";
 
 //-- public methods -----
 AppStage_Project::AppStage_Project(IEditorWindow* ownerWindow)
-	: AppStage(ownerWindow, AppStage_Project::APP_STAGE_NAME)
+	: AppStage(ownerWindow, AppStage_Project::APP_STAGE_NAME)	
 {
 }
 
@@ -150,7 +152,14 @@ void AppStage_Project::enter()
 	{
 		Rml::Context* context = getRmlContext();
 
-		// Init Data Models
+		m_projectRmlModelContext = new ProjectRmlModelContext(this);
+		m_projectRmlModelContext->init();
+
+		// Register Component Models
+		m_projectRmlModelContext->getMarkerModel()->OnMarkerSelected = 
+			MakeDelegate(this, &AppStage_Project::onMarkerSelected);
+
+		// Register Project Panel Models
 		m_projectModel = addRmlModel<RmlModel_Project>();
 		m_projectModel->init(context);
 		m_projectModel->OnReturnEvent = MakeDelegate(this, &AppStage_Project::onReturnEvent);
@@ -162,35 +171,22 @@ void AppStage_Project::enter()
 		m_projectModel->OnToggleSettingsEvent = MakeDelegate(this, &AppStage_Project::onToggleSettingsWindowEvent);
 
 		m_projectScenesModel = addRmlModel<RmlModel_ProjectScenes>();
-		m_projectScenesModel->init(
-			context,
-			m_anchorObjectSystem.lock(),
-			m_compositorSystem.lock(),
-			m_editorSystem.lock(),
-			m_sceneObjectSystem.lock(),
-			m_stageSystem.lock(),
-			m_stencilObjectSystem.lock());
+		m_projectScenesModel->init(m_projectRmlModelContext);
 
 		m_projectStagesModel = addRmlModel<RmlModel_ProjectStages>();
-		m_projectStagesModel->init(
-			context, m_project, m_stageSystem.lock(), m_cameraSystem.lock(), m_compositorSystem.lock());
+		m_projectStagesModel->init(m_projectRmlModelContext);
 
 		m_projectSourcesModel = addRmlModel<RmlModel_ProjectSources>();
-		m_projectSourcesModel->init(
-			context, m_textureSourceSystem.lock(), m_videoObjectSystem.lock());
+		m_projectSourcesModel->init(m_projectRmlModelContext);
 
 		m_projectTrackingModel = addRmlModel<RmlModel_ProjectTracking>();
-		m_projectTrackingModel->init(
-			context, m_project, m_trackingVolumeSystem.lock(), m_trackingMountSystem.lock());
+		m_projectTrackingModel->init(m_projectRmlModelContext);
 
 		m_projectMarkersModel = addRmlModel<RmlModel_ProjectMarkers>();
-		m_projectMarkersModel->init(
-			context, m_project, m_markerObjectSystem.lock());
-		m_projectMarkersModel->OnMarkerSelected = MakeDelegate(this, &AppStage_Project::onMarkerSelected);
+		m_projectMarkersModel->init(m_projectRmlModelContext);
 
 		m_projectSettingsModel = addRmlModel<RmlModel_ProjectSettings>();
-		m_projectSettingsModel->init(
-			context, m_project, m_stencilObjectSystem.lock());
+		m_projectSettingsModel->init(m_projectRmlModelContext);
 
 		// Load the Rml views
 		m_projectScenesView = addRmlDocument("project_scenes.rml");
@@ -213,6 +209,10 @@ void AppStage_Project::enter()
 
 void AppStage_Project::exit()
 {
+	// Clean up the Rml Model Context
+	delete m_projectRmlModelContext;
+	m_projectRmlModelContext = nullptr;
+
 	{
 		SceneObjectSystemPtr sceneSystem = m_sceneObjectSystem.lock();
 
@@ -231,8 +231,6 @@ void AppStage_Project::exit()
 
 	// Unregister all viewports from the editor
 	m_editorSystem.lock()->clearViewports();
-
-	m_projectMarkersModel->OnMarkerSelected.Clear();
 
 	// RmlModels are now disposed automatically by AppStage::exit()
 	AppStage::exit();

@@ -560,58 +560,14 @@ bool NetworkVideoSourceComponent::setPropertyValueFromRml(
 	return VideoSourceComponent::setPropertyValueFromRml(propertyDesc, inValue);
 }
 
-// -- IRmlFunctionInterface ----
-const std::string NetworkVideoSourceComponent::k_calibrateIntrinsicsFunctionId = "calibrate_intrinsics";
-const std::string NetworkVideoSourceComponent::k_testIntrinsicsFunctionId = "test_intrinsics";
-
-void NetworkVideoSourceComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
-{
-	VideoSourceComponent::getRmlFunctionDescriptors(outDescriptors);
-
-	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
-			k_calibrateIntrinsicsFunctionId, "Calibrate Intrinsics"));
-	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
-			k_testIntrinsicsFunctionId, "Test Intrinsics"));
-}
-
-bool NetworkVideoSourceComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
-{
-	const std::string& functionName = functionDesc->getFunctionName();
-
-	if (functionName == k_calibrateIntrinsicsFunctionId)
-	{
-		calibrateIntrinsics();
-		return true;
-	}
-	else if (functionName == k_testIntrinsicsFunctionId)
-	{
-		testIntrinsics();
-		return true;
-	}
-
-	return VideoSourceComponent::invokeFunctionFromRml(functionDesc);
-}
-
-void NetworkVideoSourceComponent::calibrateIntrinsics()
-{
-	//TODO
-}
-
-void NetworkVideoSourceComponent::testIntrinsics()
-{
-	//TODO
-}
-
 void NetworkVideoSourceComponent::onDefinitionMarkedDirty(
 	CommonConfigPtr configPtr,
 	const ConfigPropertyChangeSet& changedPropertySet)
 {
 	// If the device path changed, reopen the video source
 	if (changedPropertySet.hasPropertyName(NetworkVideoSourceDefinition::k_addressPropertyId) ||
-		changedPropertySet.hasPropertyName(NetworkVideoSourceDefinition::k_pathPropertyId) || 
-		changedPropertySet.hasPropertyName(NetworkVideoSourceDefinition::k_protocolPropertyId) || 
+		changedPropertySet.hasPropertyName(NetworkVideoSourceDefinition::k_pathPropertyId) ||
+		changedPropertySet.hasPropertyName(NetworkVideoSourceDefinition::k_protocolPropertyId) ||
 		changedPropertySet.hasPropertyName(NetworkVideoSourceDefinition::k_portPropertyId))
 	{
 		closeVideoSource();

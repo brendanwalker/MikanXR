@@ -5,6 +5,8 @@
 #include "NetworkVideoSourceComponent.h"
 #include "NetworkVideoSourceSystem.h"
 #include "ProjectConfig.h"
+#include "Project/AppStage_Project.h"
+#include "Project/ProjectRmlModelContext.h"
 #include "Shared/RmlModel_MikanComponent.h"
 #include "Shared/RmlModel_TextureSourceComponent.h"
 #include "Shared/RmlModel_VideoSourceComponent.h"
@@ -27,24 +29,18 @@
 
 RmlModel_ProjectSources::RmlModel_ProjectSources()
 	: m_videoSourceIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
-	, m_selectedUSBVideoSourceModel(std::make_shared<RmlModel_USBVideoSourceComponent>())
-	, m_selectedNetworkVideoSourceModel(std::make_shared<RmlModel_NetworkVideoSourceComponent>())
 	, m_textureSourceIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
-	, m_selectedClientVideoSourceModel(std::make_shared<RmlModel_ClientTextureSourceComponent>())
-	, m_selectedSpoutVideoSourceModel(std::make_shared<RmlModel_SpoutTextureSourceComponent>())
 {
 }
 
-bool RmlModel_ProjectSources::init(
-	Rml::Context* rmlContext, 
-	TextureSourceSystemPtr textureSourceSystem,
-	VideoSourceSystemPtr videoSourceSystem)
+bool RmlModel_ProjectSources::init(ProjectRmlModelContext* context)
 {
-	VideoSourceSystemConfigPtr videoSourceConfig = videoSourceSystem->getVideoSourceSystemConfig();
-	TextureSourceSystemConfigPtr textureSourceConfig = textureSourceSystem->getTextureSourceSystemConfig();
+	AppStage_Project* ownerAppStage = context->getOwnerAppStage();
+	Rml::Context* rmlContext = ownerAppStage->getRmlContext();
 
-	m_textureSourceSystem = textureSourceSystem;
-	m_videoSourceSystem = videoSourceSystem;
+	m_projectRmlModelContext = context;
+	m_textureSourceSystem = ownerAppStage->getObjectSystemOfType<TextureSourceSystem>();
+	m_videoSourceSystem = ownerAppStage->getObjectSystemOfType<VideoSourceSystem>();
 
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "Sources");
@@ -54,7 +50,7 @@ bool RmlModel_ProjectSources::init(
 	// Register component lists
 	m_textureSourceIdList->init(
 		constructor,
-		videoSourceConfig,
+		m_textureSourceSystem.lock()->getTextureSourceSystemConfig(),
 		"texture_source_ids", // virtual list since this is a combination of multiple source types
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 			outComponentIdList = m_textureSourceSystem.lock()->getTextureSourceIdList();
@@ -66,7 +62,7 @@ bool RmlModel_ProjectSources::init(
 		});
 	m_videoSourceIdList->init(
 		constructor, 
-		videoSourceConfig,
+		m_videoSourceSystem.lock()->getVideoSourceSystemConfig(),
 		"video_source_ids", // virtual list since this is a combination of multiple source types
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 			outComponentIdList= m_videoSourceSystem.lock()->getVideoSourceIdList();
@@ -80,12 +76,6 @@ bool RmlModel_ProjectSources::init(
 	// Register Data Model Fields
 	constructor.Bind("selected_video_source_id", &m_selectedVideoSourceId);
 	constructor.Bind("selected_texture_source_id", &m_selectedTextureSourceId);
-
-	// Register Selected Object Models
-	m_selectedClientVideoSourceModel->init(rmlContext);
-	m_selectedUSBVideoSourceModel->init(rmlContext);
-	m_selectedNetworkVideoSourceModel->init(rmlContext);
-	m_selectedSpoutVideoSourceModel->init(rmlContext);
 
 	// Bind data model callbacks
 	constructor.BindEventCallback("add_new_usb_video_source", &RmlModel_ProjectSources::addNewUSBVideoSource, this);
@@ -108,11 +98,6 @@ void RmlModel_ProjectSources::dispose()
 {
 	m_textureSourceIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectSources::videoSourceIdListChanged);
 	m_textureSourceIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectSources::textureSourceIdListChanged);
-
-	m_selectedClientVideoSourceModel->dispose();
-	m_selectedUSBVideoSourceModel->dispose();
-	m_selectedNetworkVideoSourceModel->dispose();
-	m_selectedSpoutVideoSourceModel->dispose();
 
 	RmlModel::dispose();
 }
@@ -252,8 +237,8 @@ void RmlModel_ProjectSources::setSelectedVideoSourceId(MikanVideoSourceID videoS
 		eVideoSourceType sourceType = config->getVideoSourceType(videoSourceId);
 
 		// Reset all models first
-		m_selectedUSBVideoSourceModel->setComponent(nullptr);
-		m_selectedNetworkVideoSourceModel->setComponent(nullptr);
+		m_projectRmlModelContext->getUSBVideoSourceModel()->setComponent(nullptr);
+		m_projectRmlModelContext->getNetworkVideoSourceModel()->setComponent(nullptr);
 
 		// Set the appropriate model based on source type
 		switch (sourceType)
@@ -261,13 +246,13 @@ void RmlModel_ProjectSources::setSelectedVideoSourceId(MikanVideoSourceID videoS
 			case eVideoSourceType::usb:
 				if (USBVideoSourceComponentPtr usbSource = getSelectedUSBVideoSource())
 				{
-					m_selectedUSBVideoSourceModel->setComponent(usbSource);
+					m_projectRmlModelContext->getUSBVideoSourceModel()->setComponent(usbSource);
 				}
 				break;
 			case eVideoSourceType::networked:
 				if (NetworkVideoSourceComponentPtr networkSource = getSelectedNetworkVideoSource())
 				{
-					m_selectedNetworkVideoSourceModel->setComponent(networkSource);
+					m_projectRmlModelContext->getNetworkVideoSourceModel()->setComponent(networkSource);
 				}
 				break;
 		}
@@ -303,8 +288,8 @@ void RmlModel_ProjectSources::setSelectedTextureSourceId(MikanTextureSourceID te
 		eTextureSourceType sourceType = config->getTextureSourceType(textureSourceId);
 
 		// Reset all models first
-		m_selectedClientVideoSourceModel->setComponent(nullptr);
-		m_selectedSpoutVideoSourceModel->setComponent(nullptr);
+		m_projectRmlModelContext->getClientTextureSourceModel()->setComponent(nullptr);
+		m_projectRmlModelContext->getSpoutTextureSourceModel()->setComponent(nullptr);
 
 		// Set the appropriate model based on source type
 		switch (sourceType)
@@ -312,13 +297,13 @@ void RmlModel_ProjectSources::setSelectedTextureSourceId(MikanTextureSourceID te
 		case eTextureSourceType::client:
 			if (ClientTextureSourceComponentPtr clientSource = getSelectedClientTextureSource())
 			{
-				m_selectedClientVideoSourceModel->setComponent(clientSource);
+				m_projectRmlModelContext->getClientTextureSourceModel()->setComponent(clientSource);
 			}
 			break;
 		case eTextureSourceType::spout:
 			if (SpoutTextureSourceComponentPtr spoutSource = getSelectedSpoutTextureSource())
 			{
-				m_selectedSpoutVideoSourceModel->setComponent(spoutSource);
+				m_projectRmlModelContext->getSpoutTextureSourceModel()->setComponent(spoutSource);
 			}
 			break;
 		}

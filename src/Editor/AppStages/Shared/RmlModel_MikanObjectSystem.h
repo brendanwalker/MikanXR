@@ -2,22 +2,30 @@
 
 #include "ObjectFwd.h"
 #include "Shared/RmlDataBinding_Fwd.h"
-#include "Shared/RmlModel.h"
+#include "Shared/RmlModelInterface.h"
 #include "Shared/RmlModel_PropertyInterface.h"
 
 #include <memory>
 
-class RmlModel_MikanObjectSystem
+class RmlModel_MikanObjectSystem : public IRmlModel
 {
 public:
 	RmlModel_MikanObjectSystem();
 
 	virtual bool init(Rml::Context* rmlContext) = 0;
 	virtual bool onConstruct(Rml::DataModelConstructor& constructor);
-	virtual void dispose();
 
 	MikanObjectSystemPtr getObjectSystem() const;
 	void setObjectSystem(MikanObjectSystemPtr objectSystem);
+
+	// IRmlModel
+	virtual Rml::Context* getContext() override;
+	virtual Rml::DataModelHandle& getModelHandle() override;
+
+	virtual void dispose() override;
+	virtual void update() override;
+
+	virtual void addModelUpdateCallback(std::function<void()> callback) override;
 
 protected:
 	template <class t_object_system_type>
