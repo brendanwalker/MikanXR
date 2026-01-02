@@ -84,7 +84,24 @@ void SpoutTextureSourceComponent::update(float deltaSeconds)
 	{
 		EASY_BLOCK("SpoutTextureSource: receive color texture");
 
+		// Try and (re)initialize the receiver info if
+		// * We haven't created a texture yet
+		// * The sender has changed properties
 		if (!m_colorTexture || m_spoutColorFrame->IsUpdated())
+		{
+			m_spoutColorFrame->ReceiveTexture();
+		}
+
+		// Fetch the (now hopefully valid) sender size
+		const int senderWidth = m_spoutColorFrame->GetSenderWidth();
+		const int senderHeight = m_spoutColorFrame->GetSenderHeight();
+
+		// Get the current texture size
+		const int textureWidth = m_colorTexture ? m_colorTexture->getTextureWidth() : 0;
+		const int textureHeight = m_colorTexture ? m_colorTexture->getTextureHeight() : 0;
+
+		// If the read texture size doesn't match the sender size, reallocate it
+		if (senderWidth != textureWidth || senderHeight != textureHeight)
 		{
 			// Free any existing texture
 			if (m_colorTexture)
@@ -94,18 +111,26 @@ void SpoutTextureSourceComponent::update(float deltaSeconds)
 			}
 
 			// Allocate a new texture to match the spout source shared texture
-			m_colorTexture= CreateMkTexture();
-			m_colorTexture->setSize(m_spoutColorFrame->GetSenderWidth(), m_spoutColorFrame->GetSenderHeight());
-			m_colorTexture->setTextureFormat(MK_RGBA);
-			m_colorTexture->setBufferFormat(MK_RGBA);
-			m_colorTexture->createTexture();
+			// (unless the sender size is new invalid)
+			if (senderWidth > 0 && senderHeight > 0)
+			{
+				m_colorTexture = CreateMkTexture();
+				m_colorTexture->setSize(senderWidth, senderHeight);
+				m_colorTexture->setTextureFormat(MK_RGBA);
+				m_colorTexture->setBufferFormat(MK_RGBA);
+				m_colorTexture->createTexture();
+			}
 		}
 
-		// TODO: This assumes we are reading into an OpenGL texture
-		GLuint textureId= m_colorTexture->getGlTextureId();
-		if (textureId != 0)
+		// Read in the shared texture from Spout
+		if (m_colorTexture)
 		{
-			m_spoutColorFrame->ReceiveTexture(textureId, GL_TEXTURE_2D);
+			const GLuint textureId = m_colorTexture->getGlTextureId();
+
+			if (textureId != 0)
+			{
+				m_spoutColorFrame->ReceiveTexture(textureId, GL_TEXTURE_2D);
+			}
 		}
 	}
 }
@@ -126,6 +151,7 @@ void SpoutTextureSourceComponent::closeTextureSource()
 {
 	if (m_spoutColorFrame)
 	{
+		m_spoutColorFrame->ReleaseReceiver();
 		m_spoutColorFrame->Release();
 		m_spoutColorFrame = nullptr;
 	}
@@ -150,6 +176,8 @@ void SpoutTextureSourceComponent::openTextureSource()
 		{
 
 			m_spoutColorFrame->EnableSpoutLog();
+			//m_spoutColorFrame->EnableSpoutLogFile("Mikan.log");
+			//m_spoutColorFrame->ShowSpoutLogs();
 			m_spoutColorFrame->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
 			m_spoutColorFrame->SetReceiverName(spoutSourceName.c_str());
 		}
