@@ -38,8 +38,8 @@ bool USBVideoSourceSystem::init()
 void USBVideoSourceSystem::dispose()
 {
     m_usbVideoSourceComponents.clear();
-    disposeUsbVideoDeviceManager();
 	MikanObjectSystem::dispose();
+	disposeUsbVideoDeviceManager();
 }
 
 bool USBVideoSourceSystem::createUsbVideoDeviceManager(const std::string& moduleName)
