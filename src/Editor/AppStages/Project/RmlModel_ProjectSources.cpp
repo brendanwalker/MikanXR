@@ -155,13 +155,13 @@ VideoSourceComponentPtr RmlModel_ProjectSources::getSelectedVideoSource()
 ClientTextureSourceComponentPtr RmlModel_ProjectSources::getSelectedClientTextureSource()
 {
 	return getTextureSourceSystem()->getClientTextureSourceSystem()->getClientTextureSourceById(
-		(MikanTextureSourceID)m_selectedVideoSourceId);
+		(MikanTextureSourceID)m_selectedTextureSourceId);
 }
 
 SpoutTextureSourceComponentPtr RmlModel_ProjectSources::getSelectedSpoutTextureSource()
 {
 	return getTextureSourceSystem()->getSpoutTextureSourceSystem()->getSpoutTextureSourceById(
-		(MikanTextureSourceID)m_selectedVideoSourceId);
+		(MikanTextureSourceID)m_selectedTextureSourceId);
 }
 
 USBVideoSourceComponentPtr RmlModel_ProjectSources::getSelectedUSBVideoSource()
