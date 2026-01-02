@@ -27,10 +27,10 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	static const std::string k_TextureSourceIdPropertyId;
-	inline MikanTextureSourceID getTextureSourceId() const { return m_TextureSourceId; }
+	inline MikanTextureSourceID getTextureSourceId() const { return m_textureSourceId; }
 
 private:
-	MikanTextureSourceID m_TextureSourceId;
+	MikanTextureSourceID m_textureSourceId;
 };
 
 class TextureSourceComponent : public MikanComponent

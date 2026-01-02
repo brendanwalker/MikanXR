@@ -14,21 +14,21 @@ const std::string TextureSourceDefinition::k_TextureSourceIdPropertyId = "textur
 
 TextureSourceDefinition::TextureSourceDefinition()
 	: MikanComponentDefinition()
-	, m_TextureSourceId(INVALID_MIKAN_ID)
+	, m_textureSourceId(INVALID_MIKAN_ID)
 {}
 
 TextureSourceDefinition::TextureSourceDefinition(
-	MikanTextureSourceID TextureSourceId,
-	const std::string& TextureSourceName)
-	: MikanComponentDefinition(TextureSourceId, TextureSourceName)
-	, m_TextureSourceId(TextureSourceId)
+	MikanTextureSourceID textureSourceId,
+	const std::string& textureSourceName)
+	: MikanComponentDefinition(textureSourceId, textureSourceName)
+	, m_textureSourceId(textureSourceId)
 {}
 
 configuru::Config TextureSourceDefinition::writeToJSON()
 {
 	configuru::Config pt = MikanComponentDefinition::writeToJSON();
 
-	pt[k_TextureSourceIdPropertyId] = m_TextureSourceId;
+	pt[k_TextureSourceIdPropertyId] = m_textureSourceId;
 
 	return pt;
 }
@@ -37,7 +37,7 @@ void TextureSourceDefinition::readFromJSON(const configuru::Config& pt)
 {
 	MikanComponentDefinition::readFromJSON(pt);
 
-	m_TextureSourceId = pt.get_or<MikanTextureSourceID>("video_source_id", m_TextureSourceId);
+	m_textureSourceId = pt.get_or<MikanTextureSourceID>(k_TextureSourceIdPropertyId, m_textureSourceId);
 }
 
 // -- TextureSourceComponent -----

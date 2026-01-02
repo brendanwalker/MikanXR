@@ -95,10 +95,7 @@ public:
 		m_rmlValueList.clear();
 
 		CommonConfigPtr ownerConfig = m_ownerConfig.lock();
-		if (ownerConfig)
-		{
-			m_fillFunction(ownerConfig, m_rmlValueList);
-		}
+		m_fillFunction(ownerConfig, m_rmlValueList);
 
 		m_modelHandle.DirtyVariable(m_objectListName);
 
