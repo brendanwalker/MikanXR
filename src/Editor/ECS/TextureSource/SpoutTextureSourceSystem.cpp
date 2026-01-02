@@ -7,7 +7,14 @@
 #include "TextureSourceSystemConfig.h"
 #include "TextureSourceSystem.h"
 
+#include "SpoutLibrary.h"
+
 #include <assert.h>
+
+SpoutTextureSourceSystem::SpoutTextureSourceSystem(ProjectManager* ownerObjectSystem) 
+    : MikanObjectSystem(ownerObjectSystem)
+{
+}
 
 bool SpoutTextureSourceSystem::init()
 {
@@ -20,11 +27,19 @@ bool SpoutTextureSourceSystem::init()
         createSpoutTextureSourceObject(sourceConfig);
     }
 
+    m_spoutLibrary = GetSpout();
+
     return true;
 }
 
 void SpoutTextureSourceSystem::dispose()
 {
+    if (m_spoutLibrary)
+    {
+        m_spoutLibrary->Release();
+		m_spoutLibrary = nullptr;
+    }
+
     m_spoutTextureSourceComponents.clear();
 	MikanObjectSystem::dispose();
 }
@@ -151,4 +166,19 @@ bool SpoutTextureSourceSystem::disposeSpoutTextureSourceObject(MikanTextureSourc
     }
 
     return false;
+}
+
+void SpoutTextureSourceSystem::getAvailableSpoutSenderNames(std::vector<std::string>& outSenderNames) const
+{
+    if (m_spoutLibrary != nullptr)
+    {
+        for (int i = 0; i < m_spoutLibrary->GetSenderCount(); i++)
+        {
+            char sendername[256];
+            if (m_spoutLibrary->GetSender(i, sendername, 256))
+            {
+                outSenderNames.push_back(std::string(sendername));
+            }
+		}
+    }
 }

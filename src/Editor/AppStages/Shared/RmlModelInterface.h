@@ -14,7 +14,7 @@ public:
 	virtual Rml::DataModelHandle& getModelHandle() = 0;
 
 	virtual void dispose()= 0;
-	virtual void update()= 0;
+	virtual void update(float deltaSeconds)= 0;
 
 	virtual void addModelUpdateCallback(std::function<void()> callback) = 0;
 };

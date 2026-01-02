@@ -46,9 +46,9 @@ void RmlModel_MikanObjectSystem::dispose()
 	m_objectSystem.reset();
 }
 
-void RmlModel_MikanObjectSystem::update()
+void RmlModel_MikanObjectSystem::update(float deltaSeconds)
 {
-	m_propertyInterface->update();
+	m_propertyInterface->update(deltaSeconds);
 }
 
 void RmlModel_MikanObjectSystem::addModelUpdateCallback(std::function<void()> callback)

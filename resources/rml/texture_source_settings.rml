@@ -85,6 +85,14 @@
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="spout_source"/>
 							</td>
 						</tr>
+						<tr data-if="spout_sender_names.size > 0" class="property_tr">
+							<td>
+								<label>Sources</label>
+								<select id="select" name="select_sender" data-value="spout_source" data-event-change="select_spout_source()">
+									<option data-for="sender_name : spout_sender_names" data-value="sender_name">{{sender_name}}</option>
+								</select>
+							</td>
+						</tr>						
 					</tbody>
 				</table>
 			</div>

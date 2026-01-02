@@ -23,7 +23,7 @@ public:
 	virtual Rml::DataModelHandle& getModelHandle() override;
 
 	virtual void dispose() override;
-	virtual void update() override;
+	virtual void update(float deltaSeconds) override;
 
 	virtual void addModelUpdateCallback(std::function<void()> callback) override;
 

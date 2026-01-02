@@ -5,6 +5,7 @@
 #include "MikanTextureSourceTypes.h"
 #include "ObjectSystemConfigFwd.h"
 #include "TextureSourceSystemConfig.h"
+#include "Shared/RmlDataBinding_Fwd.h"
 
 #include <map>
 #include <string>
@@ -14,7 +15,7 @@ using SpoutTextureSourceMap = std::map<MikanTextureSourceID, SpoutTextureSourceC
 class SpoutTextureSourceSystem : public MikanObjectSystem
 {
 public:  
-    SpoutTextureSourceSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
+    SpoutTextureSourceSystem(class ProjectManager* ownerObjectSystem);
 
 	inline static const std::string k_objectSystemClassName = "SpoutTextureSourceSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
@@ -30,13 +31,16 @@ public:
     SpoutTextureSourceComponentPtr addNewSpoutTextureSource();
     SpoutTextureSourceComponentPtr addNewSpoutTextureSource(const MikanSpoutTextureSourceInfo& TextureSourceInfo);
     bool removeSpoutTextureSource(MikanTextureSourceID TextureSourceId);
+	void getAvailableSpoutSenderNames(std::vector<std::string>& outSenderNames) const;
 
 protected:
     SpoutTextureSourceComponentPtr createSpoutTextureSourceObject(SpoutTextureSourceDefinitionPtr sourceConfig);
     bool disposeSpoutTextureSourceObject(MikanTextureSourceID TextureSourceId);
 
 private:
+    struct SPOUTLIBRARY* m_spoutLibrary= nullptr;
     SpoutTextureSourceMap m_spoutTextureSourceComponents;
+    RmlDataBinding_SpoutSourceListPtr m_spoutSourceList;
 };
 
 using SpoutTextureSourceSystemPtr = std::shared_ptr<SpoutTextureSourceSystem>;

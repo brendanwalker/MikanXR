@@ -230,7 +230,7 @@ void AppStage::update(float deltaSeconds)
 		// Update all registered RmlModels after RmlUI context update
 		for (IRmlModel* model : m_rmlModels)
 		{
-			model->update();
+			model->update(deltaSeconds);
 		}
 	}
 }

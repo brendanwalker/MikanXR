@@ -20,6 +20,9 @@ using RmlDataBinding_VRDevicePathListPtr = std::shared_ptr<RmlDataBinding_VRDevi
 using RmlDataBinding_SocketNameList = RmlDataBinding_List<std::string>;
 using RmlDataBinding_SocketNameListPtr = std::shared_ptr<RmlDataBinding_SocketNameList>;
 
+using RmlDataBinding_SpoutSourceList = RmlDataBinding_List<std::string>;
+using RmlDataBinding_SpoutSourceListPtr = std::shared_ptr<RmlDataBinding_SpoutSourceList>;
+
 using RmlDataBinding_USBDevicePathList = RmlDataBinding_List<std::string>;
 using RmlDataBinding_USBDevicePathListPtr = std::shared_ptr<RmlDataBinding_USBDevicePathList>;
 

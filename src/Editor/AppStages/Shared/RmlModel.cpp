@@ -49,7 +49,7 @@ void RmlModel::dispose()
 	m_modelUpdateCallbacks.clear();
 }
 
-void RmlModel::update()
+void RmlModel::update(float deltaSeconds)
 {
 	for (auto& callback : m_modelUpdateCallbacks)
 	{
