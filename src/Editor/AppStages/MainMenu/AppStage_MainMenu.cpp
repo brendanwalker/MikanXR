@@ -22,13 +22,7 @@ const char* AppStage_MainMenu::APP_STAGE_NAME = "MainMenu";
 //-- public methods -----
 AppStage_MainMenu::AppStage_MainMenu(IEditorWindow* ownerWindow)
 	: AppStage(ownerWindow, AppStage_MainMenu::APP_STAGE_NAME)
-	, m_mainMenuModel(new RmlModel_MainMenu)
 { 
-}
-
-AppStage_MainMenu::~AppStage_MainMenu()
-{
-	delete m_mainMenuModel;
 }
 
 void AppStage_MainMenu::enter()
@@ -45,15 +39,16 @@ void AppStage_MainMenu::enter()
 		Rml::Context* context = getRmlContext();
 
 		// Init calibration model
-		m_mainMenuModel->init(context, m_appSettingsConfig);
-		m_mainMenuModel->OnResumeProject = MakeDelegate(this, &AppStage_MainMenu::onResumeProject);
-		m_mainMenuModel->OnOpenProject = MakeDelegate(this, &AppStage_MainMenu::onOpenProject);
-		m_mainMenuModel->OnNewProject = MakeDelegate(this, &AppStage_MainMenu::onNewProject);
-		m_mainMenuModel->OnTutorial = MakeDelegate(this, &AppStage_MainMenu::onTutorial);
-		m_mainMenuModel->OnExit = MakeDelegate(this, &AppStage_MainMenu::onExit);
+		auto* mainMenuModel = addRmlModel<RmlModel_MainMenu>();
+		mainMenuModel->init(context, m_appSettingsConfig);
+		mainMenuModel->OnResumeProject = MakeDelegate(this, &AppStage_MainMenu::onResumeProject);
+		mainMenuModel->OnOpenProject = MakeDelegate(this, &AppStage_MainMenu::onOpenProject);
+		mainMenuModel->OnNewProject = MakeDelegate(this, &AppStage_MainMenu::onNewProject);
+		mainMenuModel->OnTutorial = MakeDelegate(this, &AppStage_MainMenu::onTutorial);
+		mainMenuModel->OnExit = MakeDelegate(this, &AppStage_MainMenu::onExit);
 
 		// Init calibration view now that the dependent model has been created
-		m_mainMenuView = addRmlDocument("main_menu.rml");;
+		addRmlDocument("main_menu.rml");
 	}
 }
 
