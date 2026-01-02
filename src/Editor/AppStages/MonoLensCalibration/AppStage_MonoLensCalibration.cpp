@@ -156,10 +156,6 @@ void AppStage_MonoLensCalibration::update(float deltaSeconds)
 {
 	AppStage::update(deltaSeconds);
 
-	// Update data bindings on child models
-	m_calibrationModel->update();
-	m_cameraSettingsModel->update();
-
 	// Update the calibration state machine
 	switch (m_calibrationModel->getMenuState())
 	{
