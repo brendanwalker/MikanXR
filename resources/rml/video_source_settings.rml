@@ -59,18 +59,18 @@
 						<tr class="property_tr">
 							<td>
 								<label>Video Device</label>
-								<select id="select" name="select_device" data-value="devicePath" data-event-change="select_video_device_entry()">
+								<select id="select" name="select_device" data-value="device_path" data-event-change="select_video_device_entry()">
 									<option value="">-- None --</option>
-									<option data-for="device_path : usb_device_paths" data-value="device_path">{{device_path | to_usb_camera_friendly_name}}</option>
+									<option data-for="device_path_entry : usb_device_paths" data-value="device_path_entry">{{device_path_entry | to_usb_camera_friendly_name}}</option>
 								</select>
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
 								<label>Video Mode</label>
-								<select id="select" name="select_mode" data-value="videoMode" data-event-change="select_video_mode_entry()">
+								<select id="select" name="select_mode" data-value="video_mode" data-event-change="select_video_mode_entry()">
 									<option value="">-- None --</option>
-									<option data-for="video_mode : video_modes" data-value="video_mode">{{video_mode}}</option>
+									<option data-for="video_mode_entry : video_modes" data-value="video_mode_entry">{{video_mode_entry}}</option>
 								</select>
 							</td>
 						</tr>
@@ -180,6 +180,11 @@
 							<td>
 								<label>Focus</label>
 								<input type="range" name="focus" min="0" max="100" step="1" value="50" data-value="focus_percent" data-event-change="focus_changed()"/> {{focus_percent}}
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<button data-event-click="reset_settings()">Reset To Defaults</button>
 							</td>
 						</tr>
 					</tbody>

@@ -260,18 +260,14 @@ bool VideoSourceComponent::isVideoSettingSupported(const eVideoSettingType prope
 	return false;
 }
 
-bool VideoSourceComponent::getVideoSettingConstraint(const eVideoSettingType property_type, VideoSettingConstraint& outConstraint) const
+bool VideoSourceComponent::setVideoSetting(const eVideoSettingType property_type, float desired_value)
 {
 	return false;
 }
 
-void VideoSourceComponent::setVideoSetting(const eVideoSettingType property_type, int desired_value)
+bool VideoSourceComponent::getVideoSetting(const eVideoSettingType property_type, float& outFractionValue) const
 {
-}
-
-int VideoSourceComponent::getVideoSetting(const eVideoSettingType property_type) const
-{
-	return -1;
+	return false;
 }
 
 bool VideoSourceComponent::hasAllocatedOpencvBufferState() const

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ComponentFwd.h"
+#include "CommonConfigFwd.h"
 #include "IVideoDevice.h"
 #include "Shared\RmlDataBinding.h"
 
@@ -11,8 +12,8 @@ public:
 
 	virtual bool init(Rml::DataModelConstructor constructor) override;
 
-	int getPropertyIntValue() const;
-	void setPropertyIntValue(int newValue);
+	float getPropertyPercentValue() const;
+	void setPropertyPercentValue(float newValue);
 
 	VideoSourceComponentPtr getVideoSourceComponent() const;
 	void setVideoSourceComponent(VideoSourceComponentPtr videoSourceComponent);
@@ -30,8 +31,5 @@ private:
 
 	VideoSourceComponentPtr m_videoSourceComponent;
 	float m_propertyPercentValue = 0.f;
-	int m_propertyIntValue = 0;
-	int m_propertyIntMinValue = 0;
-	int m_propertyIntMaxValue = 0;
 	bool m_propertyIdValid= false;
 };

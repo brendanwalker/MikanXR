@@ -4,6 +4,9 @@
 #include "IUsbVideoDevice.h"
 #include "MulticastDelegate.h"
 
+using USBVideoSettingsArray = std::array<float, (int)eVideoSettingType::COUNT>;
+using USBVideoConstraintArray = std::array<VideoSettingConstraint, (int)eVideoSettingType::COUNT>;
+
 class USBVideoSourceDefinition : public VideoSourceDefinition
 {
 public:
@@ -24,21 +27,19 @@ public:
 	void setVideoMode(const std::string& videoMode);
 
 	static const std::string k_cameraSettingsPropertyId;
-	bool getVideoSettingValue(
-		const std::string& modeName, 
-		eVideoSettingType settingType,
-		float& outValue) const;
-	void setCameraSettingValue(
+	bool getVideoSettingsForMode(
 		const std::string& modeName,
-		eVideoSettingType settingType,
-		float value,
-		bool bBroadcastPropertyChange = true);
+		USBVideoSettingsArray& outSettings) const;
+	void setCameraSettingsForMode(
+		const std::string& modeName,
+		const USBVideoSettingsArray& settings);
+	bool hasVideoSettingsForMode(const std::string& videoModeName) const;
 	void notifyCameraSettingsChanged();
 
 private:
 	std::string m_devicePath;
 	std::string m_videoMode;
-	std::map<std::string, std::array<float, (int)eVideoSettingType::COUNT> > m_videoSettingsMap;
+	std::map<std::string, USBVideoSettingsArray> m_videoSettingsMap;
 };
 
 class USBVideoSourceComponent : public VideoSourceComponent, public IUsbVideoDeviceListener
@@ -71,9 +72,8 @@ public:
 	virtual bool getVideoModeName(std::string& outVideoModeName) const override;
 	virtual bool getVideoPixelDimensions(int& outPixelWidth, int& outPixelHeight) const override;
 	virtual bool isVideoSettingSupported(const eVideoSettingType property_type) const override;
-	virtual bool getVideoSettingConstraint(const eVideoSettingType property_type, VideoSettingConstraint& outConstraint) const override;
-	virtual void setVideoSetting(const eVideoSettingType property_type, int desired_value) override;
-	virtual int getVideoSetting(const eVideoSettingType property_type) const override;
+	virtual bool setVideoSetting(const eVideoSettingType property_type, float desiredFraction) override;
+	virtual bool getVideoSetting(const eVideoSettingType property_type, float& outFractionValue) const override;
 	virtual bool getFrameRate(float& outFrameRate) const override;
 
 	// -- USB Video Mode
@@ -94,11 +94,24 @@ public:
 	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, Rml::Variant& outValue) const override;
 	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const Rml::Variant& inValue) override;
 
+	// -- IRmlFunctionInterface ----
+	static const std::string k_resetToDefaultsFunctionId;
+	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outPropertyNames);
+	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
+
 protected:
 	void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet) override;
 	bool updateVideoMode();
-	void updateCameraSettings();
+	bool handleVideoModeUpdated();
+	void handleVideoModeSettingUpdated();
+	void saveVideoSettingDefaultsFromCurrentMode();
+	void restoreVideoSettingsToCurrentMode();
+	void resetToDefaultSettings();
+	bool getVideoSettingAsFloatFraction(eVideoSettingType settingType, float& outFloatFraction) const;
+	bool setVideoSettingAsFloatFraction(eVideoSettingType settingType, float outFloatFraction);
 
 protected:
 	IUsbVideoDevice* m_usbVideoDevice;
+	USBVideoSettingsArray m_currentVideoSettings;
+	USBVideoConstraintArray m_currentVideoConstraints;
 };

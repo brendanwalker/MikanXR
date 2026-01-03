@@ -42,11 +42,11 @@ enum class eVideoSettingType : int
 /// Constraints on the values for a single tracker property
 struct VideoSettingConstraint
 {
-	int min_value;
-	int max_value;
-	int stepping_delta;
-	int default_value;
-	bool is_automatic;
+	int min_value= 0;
+	int max_value= 0;
+	int stepping_delta= 0;
+	int default_value= 0;
+	bool is_automatic= false;
 };
 
 // VideoDevice interface

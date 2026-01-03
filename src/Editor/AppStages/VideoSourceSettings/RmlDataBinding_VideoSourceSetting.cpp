@@ -1,5 +1,7 @@
 #include "RmlDataBinding_VideoSourceSetting.h"
 #include "MathUtility.h"
+#include "MulticastDelegate.h"
+#include "USBVideoSourceComponent.h"
 #include "VideoSourceComponent.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
@@ -64,22 +66,16 @@ bool RmlDataBinding_VideoSourceSetting::init(Rml::DataModelConstructor construct
 	return true;
 }
 
-int RmlDataBinding_VideoSourceSetting::getPropertyIntValue() const
+float RmlDataBinding_VideoSourceSetting::getPropertyPercentValue() const
 {
-	return m_propertyIntValue;
+	return m_propertyPercentValue;
 }
 
-void RmlDataBinding_VideoSourceSetting::setPropertyIntValue(int newIntValue)
+void RmlDataBinding_VideoSourceSetting::setPropertyPercentValue(float newPercentValue)
 {
-	if (newIntValue != m_propertyIntValue)
+	if (newPercentValue != m_propertyPercentValue)
 	{
-		m_propertyIntValue = newIntValue;
-		m_propertyPercentValue= 
-			remap_int_to_int(
-				m_propertyIntMinValue, m_propertyIntMaxValue, 
-				0, 100, 
-				m_propertyIntValue);
-
+		m_propertyPercentValue = newPercentValue;
 		m_modelHandle.DirtyVariable(m_propertyPercentValueName);
 	}
 }
@@ -101,42 +97,40 @@ void RmlDataBinding_VideoSourceSetting::setVideoSourceComponent(VideoSourceCompo
 
 void RmlDataBinding_VideoSourceSetting::refreshDataBinding()
 {
-	VideoSettingConstraint constraint;
+	bool propertyValid = false;
 
-	if (m_videoSourceComponent != nullptr &&
-		m_videoSourceComponent->getVideoSettingConstraint(m_videoSettingType, constraint))
+	if (float fractionValue= 0.f;
+		m_videoSourceComponent != nullptr &&
+		m_videoSourceComponent->getVideoSetting(m_videoSettingType, fractionValue))
 	{
-		m_propertyIdValid = true;
-		m_propertyIntMinValue = constraint.min_value;
-		m_propertyIntMaxValue = constraint.max_value;
+		const float percentValue = clampf(fractionValue * 100.f, 0.f, 100.f);
 
-		const int currentIntValue = m_videoSourceComponent->getVideoSetting(m_videoSettingType);
-		setPropertyIntValue(currentIntValue);
+		setPropertyPercentValue(percentValue);
+		propertyValid = true;
 	}
 	else
 	{
-		m_propertyIdValid = false;
+		propertyValid = false;
 	}
 
-	m_modelHandle.DirtyVariable(m_propertyValidName);
+	if (m_propertyIdValid != propertyValid)
+	{
+		m_propertyIdValid = propertyValid;
+		m_modelHandle.DirtyVariable(m_propertyValidName);
+	}
 }
 
 void RmlDataBinding_VideoSourceSetting::handlePercentValueChanged(float newPercentValue)
 {
-	const int propertyIntValue = 
-		remap_int_to_int(
-			0, 100, 
-			m_propertyIntMinValue, m_propertyIntMaxValue, 
-			newPercentValue);
-
-	if (propertyIntValue != m_propertyIntValue)
+	if (fabsf(newPercentValue - m_propertyPercentValue) > 0.001f)
 	{
-		m_propertyIntValue = propertyIntValue;
 		m_propertyPercentValue = newPercentValue;
 
 		if (m_videoSourceComponent != nullptr)
 		{
-			m_videoSourceComponent->setVideoSetting(m_videoSettingType, m_propertyIntValue);
+			const float fractionValue = clampf01(newPercentValue / 100.f);
+
+			m_videoSourceComponent->setVideoSetting(m_videoSettingType, fractionValue);
 		}
 	}
 }

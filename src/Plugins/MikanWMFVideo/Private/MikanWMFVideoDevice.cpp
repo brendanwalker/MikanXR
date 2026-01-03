@@ -328,6 +328,11 @@ bool MikanWMFVideoDevice::getVideoSettingConstraint(
 		break;
 	}
 
+	if (bSuccess)
+	{
+		bSuccess = outConstraint.max_value > outConstraint.min_value;
+	}
+
 	return bSuccess;
 }
 

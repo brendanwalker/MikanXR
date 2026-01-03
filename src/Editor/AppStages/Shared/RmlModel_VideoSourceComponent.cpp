@@ -50,8 +50,8 @@ NetworkVideoSourceComponentPtr RmlModel_NetworkVideoSourceComponent::getNetworkV
 // -- RmlModel_USBVideoSourceComponent -----
 RmlModel_USBVideoSourceComponent::RmlModel_USBVideoSourceComponent()
 	: RmlModel_MikanComponent()
-	, m_usbDevicePathList(std::make_shared<RmlDataBinding_VRDevicePathList>())
-	, m_videoModeNameList(std::make_shared<RmlDataBinding_SocketNameList>())
+	, m_usbDevicePathList(std::make_shared<RmlDataBinding_USBDevicePathList>())
+	, m_videoModeNameList(std::make_shared<RmlDataBinding_VideoModeList>())
 {
 	for (int settingIndex = 0; settingIndex < (int)eVideoSettingType::COUNT; ++settingIndex)
 	{

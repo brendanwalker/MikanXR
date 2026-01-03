@@ -35,13 +35,13 @@
 						<tr class="property_tr">
 							<td>
 								<label>Video Device</label>
-								<label>{{devicePath | to_usb_camera_friendly_name}}</label>
+								<label>{{device_path | to_usb_camera_friendly_name}}</label>
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
 								<label>Video Mode</label>
-								<label>{{videoMode}}</label>
+								<label>{{video_mode}}</label>
 							</td>
 						</tr>						
 						<tr data-if="are_intrinsics_valid" class="property_tr">

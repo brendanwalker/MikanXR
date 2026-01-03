@@ -97,9 +97,8 @@ public:
 	virtual glm::mat4 getProjectionMatrix() const;
 
 	virtual bool isVideoSettingSupported(const eVideoSettingType property_type) const;
-	virtual bool getVideoSettingConstraint(const eVideoSettingType property_type, VideoSettingConstraint& outConstraint) const;
-	virtual void setVideoSetting(const eVideoSettingType property_type, int desired_value);
-	virtual int getVideoSetting(const eVideoSettingType property_type) const;
+	virtual bool setVideoSetting(const eVideoSettingType property_type, float desiredFraction);
+	virtual bool getVideoSetting(const eVideoSettingType property_type, float& outFractionValue) const;
 
 	// Video Source Events
 	MulticastDelegate<void(VideoSourceComponentPtr videoSource)> OnOpened;
