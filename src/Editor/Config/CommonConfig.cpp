@@ -50,6 +50,7 @@ void CommonConfig::onChildConfigPropertyChanged(
     CommonConfigPtr configPtr,
     const ConfigPropertyChangeSet& changedPropertySet)
 {
+	//TODO: Ignore read-only property changes for autosave
 	if (configPtr->wantsSaveForPropertyChange(changedPropertySet) &&
 		m_autoSaveCooldownDuration >= 0.f &&
 		m_autoSaveCooldownTimer < 0.f)

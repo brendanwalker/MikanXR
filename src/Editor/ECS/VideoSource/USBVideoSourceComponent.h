@@ -15,10 +15,11 @@ public:
 		MikanVideoSourceID videoSourceId,
 		const MikanUSBVideoSourceInfo& videoSourceInfo);
 
+	virtual bool wantsSaveForPropertyChange(const ConfigPropertyChangeSet& changedPropertySet) const;
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	static const std::string k_devicePathPropertyId;
+	static const std::string k_desiredDevicePathPropertyId;
 	inline const std::string& getDevicePath() const { return m_devicePath; }
 	void setDevicePath(const std::string& devicePath);
 
@@ -26,7 +27,7 @@ public:
 	inline const std::string& getVideoMode() const { return m_videoMode; }
 	void setVideoMode(const std::string& videoMode);
 
-	static const std::string k_cameraSettingsPropertyId;
+	static const std::string k_videoSettingsPropertyId;
 	bool getVideoSettingsForMode(
 		const std::string& modeName,
 		USBVideoSettingsArray& outSettings) const;
@@ -91,6 +92,7 @@ public:
 	virtual void notifyVideoFrameReceived(const UsbVideoFrameBuffer& bufferInfo) override;
 
 	// -- IRmlPropertyInterface ----
+	static const std::string k_currentDevicePathPropertyId;
 	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, Rml::Variant& outValue) const override;
 	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const Rml::Variant& inValue) override;
@@ -109,7 +111,7 @@ protected:
 	void saveVideoSettingDefaultsFromCurrentMode();
 	void restoreVideoSettingsToCurrentMode();
 	bool getVideoSettingAsFloatFraction(eVideoSettingType settingType, float& outFloatFraction) const;
-	bool setVideoSettingAsFloatFraction(eVideoSettingType settingType, float outFloatFraction);
+	bool setVideoSettingAsFloatFraction(eVideoSettingType settingType, float outFloatFraction, bool bForce= false);
 
 protected:
 	IUsbVideoDevice* m_usbVideoDevice;

@@ -35,6 +35,34 @@
 			height: 100%;
 			overflow: hidden auto;
 		}
+
+		.property_tr td {
+			display: table-cell;
+		}
+
+		.property_tr label:first-child {
+			display: inline-block;
+			width: 90dp;
+			vertical-align: -10dp;
+		}
+
+		.property_tr select {
+			vertical-align: -20dp;
+      width: 190dp;
+		}
+
+		.property_tr input.range {
+			width: 150dp;
+      vertical-align: -15dp;
+		}
+
+		.property_tr label:last-child {
+			display: inline-block;
+			width: 40dp;
+			margin-left: 5dp;
+			vertical-align: -10dp;
+			text-align: right;
+		}
 	</style>
 </head>
 <body>
@@ -42,7 +70,7 @@
     <button data-event-click="return()">Return</button>
   </div>
 	<div id="window">
-		<div class="content">
+		<div id="content">
 			<!-- USB Video Source Properties -->
 			<div data-if="component_id != -1" data-model="USBVideoSourceComponent">
 				<table>
@@ -59,7 +87,7 @@
 						<tr class="property_tr">
 							<td>
 								<label>Video Device</label>
-								<select id="select" name="select_device" data-value="device_path" data-event-change="select_video_device_entry()">
+								<select id="select" name="select_device" data-value="desired_device_path" data-event-change="select_video_device_entry()">
 									<option value="">-- None --</option>
 									<option data-for="device_path_entry : usb_device_paths" data-value="device_path_entry">{{device_path_entry | to_usb_camera_friendly_name}}</option>
 								</select>
@@ -77,109 +105,109 @@
 						<tr data-if="brightness_valid" class="property_tr">
 							<td>
 								<label>Brightness</label>
-								<input type="range" name="brightness" min="0" max="100" step="1" value="50" data-value="brightness_percent" data-event-change="brightness_changed()"/> {{brightness_percent}}
+								<input type="range" name="brightness" min="0" max="100" step="1" value="50" data-value="brightness_percent" data-event-change="brightness_changed()"/> {{brightness_percent | round}}
 							</td>
 						</tr>
 						<tr data-if="contrast_valid" class="property_tr">
 							<td>
 								<label>Contrast</label>
-								<input type="range" name="contrast" min="0" max="100" step="1" value="50" data-value="contrast_percent" data-event-change="contrast_changed()"/> {{contrast_percent}}
+								<input type="range" name="contrast" min="0" max="100" step="1" value="50" data-value="contrast_percent" data-event-change="contrast_changed()"/> {{contrast_percent | round}}
 							</td>
 						</tr>
 						<tr data-if="hue_valid" class="property_tr">
 							<td>
 								<label>Hue</label>
-								<input type="range" name="hue" min="0" max="100" step="1" value="50" data-value="hue_percent" data-event-change="hue_changed()"/> {{hue_percent}}
+								<input type="range" name="hue" min="0" max="100" step="1" value="50" data-value="hue_percent" data-event-change="hue_changed()"/> {{hue_percent | round}}
 							</td>
 						</tr>
 						<tr data-if="saturation_valid" class="property_tr">
 							<td>
 								<label>Saturation</label>
-								<input type="range" name="saturation" min="0" max="100" step="1" value="50" data-value="saturation_percent" data-event-change="saturation_changed()"/> {{saturation_percent}}
+								<input type="range" name="saturation" min="0" max="100" step="1" value="50" data-value="saturation_percent" data-event-change="saturation_changed()"/> {{saturation_percent | round}}
 							</td>
 						</tr>
 						<tr data-if="sharpness_valid" class="property_tr">
 							<td>
 								<label>Sharpness</label>
-								<input type="range" name="sharpness" min="0" max="100" step="1" value="50" data-value="sharpness_percent" data-event-change="sharpness_changed()"/> {{sharpness_percent}}
+								<input type="range" name="sharpness" min="0" max="100" step="1" value="50" data-value="sharpness_percent" data-event-change="sharpness_changed()"/> {{sharpness_percent | round}}
 							</td>
 						</tr>
 						<tr data-if="gamma_valid" class="property_tr">
 							<td>
 								<label>Gamma</label>
-								<input type="range" name="gamma" min="0" max="100" step="1" value="50" data-value="gamma_percent" data-event-change="gamma_changed()"/> {{gamma_percent}}
+								<input type="range" name="gamma" min="0" max="100" step="1" value="50" data-value="gamma_percent" data-event-change="gamma_changed()"/> {{gamma_percent | round}}
 							</td>
 						</tr>
 						<tr data-if="white_balance_valid" class="property_tr">
 							<td>
 								<label>White Balance</label>
-								<input type="range" name="white_balance" min="0" max="100" step="1" value="50" data-value="white_balance_percent" data-event-change="white_balance_changed()"/> {{white_balance_percent}}
+								<input type="range" name="white_balance" min="0" max="100" step="1" value="50" data-value="white_balance_percent" data-event-change="white_balance_changed()"/> {{white_balance_percent | round}}
 							</td>
 						</tr>
 						<tr data-if="red_balance_valid" class="property_tr">
 							<td>
 								<label>Red Balance</label>
-								<input type="range" name="red_balance" min="0" max="100" step="1" value="50" data-value="red_balance_percent" data-event-change="red_balance_changed()"/> {{red_balance_percent}}
+								<input type="range" name="red_balance" min="0" max="100" step="1" value="50" data-value="red_balance_percent" data-event-change="red_balance_changed()"/> {{red_balance_percent | round}}
 							</td>
 						</tr>
 						<tr data-if="green_balance_valid" class="property_tr">
 							<td>
 								<label>Green Balance</label>
-								<input type="range" name="green_balance" min="0" max="100" step="1" value="50" data-value="green_balance_percent" data-event-change="green_balance_changed()"/> {{green_balance_percent}}
+								<input type="range" name="green_balance" min="0" max="100" step="1" value="50" data-value="green_balance_percent" data-event-change="green_balance_changed()"/> {{green_balance_percent | round}}
 							</td>
 						</tr>
 						<tr data-if="blue_balance_valid" class="property_tr">
 							<td>
 								<label>Blue Balance</label>
-								<input type="range" name="blue_balance" min="0" max="100" step="1" value="50" data-value="blue_balance_percent" data-event-change="blue_balance_changed()"/> {{blue_balance_percent}}
+								<input type="range" name="blue_balance" min="0" max="100" step="1" value="50" data-value="blue_balance_percent" data-event-change="blue_balance_changed()"/> {{blue_balance_percent | round}}
 							</td>
 						</tr>
 						<tr data-if="gain_valid" class="property_tr">
 							<td>
 								<label>Gain</label>
-								<input type="range" name="gain" min="0" max="100" step="1" value="50" data-value="gain_percent" data-event-change="gain_changed()"/> {{gain_percent}}
+								<input type="range" name="gain" min="0" max="100" step="1" value="50" data-value="gain_percent" data-event-change="gain_changed()"/> {{gain_percent | round}}
 							</td>
 						</tr>
 						<tr data-if="pan_valid" class="property_tr">
 							<td>
 								<label>Pan</label>
-								<input type="range" name="pan" min="0" max="100" step="1" value="50" data-value="pan_percent" data-event-change="pan_changed()"/> {{pan_percent}}
+								<input type="range" name="pan" min="0" max="100" step="1" value="50" data-value="pan_percent" data-event-change="pan_changed()"/> {{pan_percent | round}}
 							</td>
 						</tr>
 						<tr data-if="tilt_valid" class="property_tr">
 							<td>
 								<label>Tilt</label>
-								<input type="range" name="tilt" min="0" max="100" step="1" value="50" data-value="tilt_percent" data-event-change="tilt_changed()"/> {{tilt_percent}}
+								<input type="range" name="tilt" min="0" max="100" step="1" value="50" data-value="tilt_percent" data-event-change="tilt_changed()"/> {{tilt_percent | round}}
 							</td>
 						</tr>
 						<tr data-if="roll_valid" class="property_tr">
 							<td>
 								<label>Roll</label>
-								<input type="range" name="roll" min="0" max="100" step="1" value="50" data-value="roll_percent" data-event-change="roll_changed()"/> {{roll_percent}}
+								<input type="range" name="roll" min="0" max="100" step="1" value="50" data-value="roll_percent" data-event-change="roll_changed()"/> {{roll_percent | round}}
 							</td>
 						</tr>
 						<tr data-if="zoom_valid" class="property_tr">
 							<td>
 								<label>Zoom</label>
-								<input type="range" name="zoom" min="0" max="100" step="1" value="50" data-value="zoom_percent" data-event-change="zoom_changed()"/> {{zoom_percent}}
+								<input type="range" name="zoom" min="0" max="100" step="1" value="50" data-value="zoom_percent" data-event-change="zoom_changed()"/> {{zoom_percent | round}}
 							</td>
 						</tr>
 						<tr data-if="exposure_valid" class="property_tr">
 							<td>
 								<label>Exposure</label>
-								<input type="range" name="exposure" min="0" max="100" step="1" value="50" data-value="exposure_percent" data-event-change="exposure_changed()"/> {{exposure_percent}}
+								<input type="range" name="exposure" min="0" max="100" step="1" value="50" data-value="exposure_percent" data-event-change="exposure_changed()"/> {{exposure_percent | round}}
 							</td>
 						</tr>
 						<tr data-if="iris_valid" class="property_tr">
 							<td>
 								<label>Iris</label>
-								<input type="range" name="iris" min="0" max="100" step="1" value="50" data-value="iris_percent" data-event-change="iris_changed()"/> {{iris_percent}}
+								<input type="range" name="iris" min="0" max="100" step="1" value="50" data-value="iris_percent" data-event-change="iris_changed()"/> {{iris_percent | round}}
 							</td>
 						</tr>
 						<tr data-if="focus_valid" class="property_tr">
 							<td>
 								<label>Focus</label>
-								<input type="range" name="focus" min="0" max="100" step="1" value="50" data-value="focus_percent" data-event-change="focus_changed()"/> {{focus_percent}}
+								<input type="range" name="focus" min="0" max="100" step="1" value="50" data-value="focus_percent" data-event-change="focus_changed()"/> {{focus_percent | round}}
 							</td>
 						</tr>
 						<tr class="property_tr">

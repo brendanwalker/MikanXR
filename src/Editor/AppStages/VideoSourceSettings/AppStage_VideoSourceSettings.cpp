@@ -188,7 +188,7 @@ void AppStage_VideoSourceSettings::render(IMkViewportPtr targetViewport)
 	drawTextAtScreenPosition(
 		style,
 		glm::vec2(0.f, m_ownerWindow->getHeight() - 1),
-		L"Camera %.1ffps", m_videoBufferView->getFPS());
+		L"Camera %.1ffps", m_videoBufferView ? m_videoBufferView->getFPS() : 0.f);
 }
 
 void AppStage_VideoSourceSettings::onReturnEvent()

@@ -22,9 +22,9 @@
 #define DEFAULT_DESIRED_FRAME_RATE			30
 
 // -- USBVideoSourceDefinition -----
-const std::string USBVideoSourceDefinition::k_devicePathPropertyId = "device_path";
+const std::string USBVideoSourceDefinition::k_desiredDevicePathPropertyId = "desired_device_path";
 const std::string USBVideoSourceDefinition::k_videoModePropertyId = "video_mode";
-const std::string USBVideoSourceDefinition::k_cameraSettingsPropertyId = "camera_settings";
+const std::string USBVideoSourceDefinition::k_videoSettingsPropertyId = "video_settings";
 
 USBVideoSourceDefinition::USBVideoSourceDefinition()
 	: VideoSourceDefinition()
@@ -45,13 +45,27 @@ USBVideoSourceDefinition::USBVideoSourceDefinition(
 {
 }
 
+bool USBVideoSourceDefinition::wantsSaveForPropertyChange(
+	const ConfigPropertyChangeSet& changedPropertySet) const 
+{
+	// Current device path is read-only, don't trigger save on change
+	// TODO: All read-only properties should be ignored for save triggers
+	if (changedPropertySet.hasPropertyName(USBVideoSourceComponent::k_currentDevicePathPropertyId) &&
+		changedPropertySet.getSet().size() == 1)
+	{
+		return false;
+	}
+
+	return VideoSourceDefinition::wantsSaveForPropertyChange(changedPropertySet);
+}
+
 configuru::Config USBVideoSourceDefinition::writeToJSON()
 {
 	configuru::Config pt = VideoSourceDefinition::writeToJSON();
 
-	pt[k_devicePathPropertyId] = m_devicePath;
+	pt[k_desiredDevicePathPropertyId] = m_devicePath;
 	pt[k_videoModePropertyId] = m_videoMode;
-	writeStdArrayMap<float, (int)eVideoSettingType::COUNT>(pt, k_cameraSettingsPropertyId, m_videoSettingsMap);
+	writeStdArrayMap<float, (int)eVideoSettingType::COUNT>(pt, k_videoSettingsPropertyId, m_videoSettingsMap);
 
 	return pt;
 }
@@ -59,9 +73,9 @@ configuru::Config USBVideoSourceDefinition::writeToJSON()
 void USBVideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 {
 	VideoSourceDefinition::readFromJSON(pt);
-	m_devicePath = pt.get_or<std::string>(k_devicePathPropertyId, m_devicePath);
+	m_devicePath = pt.get_or<std::string>(k_desiredDevicePathPropertyId, m_devicePath);
 	m_videoMode = pt.get_or<std::string>(k_videoModePropertyId, m_videoMode);
-	readStdArrayMap<float, (int)eVideoSettingType::COUNT>(pt, k_cameraSettingsPropertyId, m_videoSettingsMap);
+	readStdArrayMap<float, (int)eVideoSettingType::COUNT>(pt, k_videoSettingsPropertyId, m_videoSettingsMap);
 }
 
 void USBVideoSourceDefinition::setDevicePath(const std::string& devicePath)
@@ -69,7 +83,7 @@ void USBVideoSourceDefinition::setDevicePath(const std::string& devicePath)
 	if (devicePath != m_devicePath)
 	{
 		m_devicePath = devicePath;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_devicePathPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_desiredDevicePathPropertyId));
 	}
 }
 
@@ -115,7 +129,7 @@ bool USBVideoSourceDefinition::hasVideoSettingsForMode(const std::string& videoM
 
 void USBVideoSourceDefinition::notifyCameraSettingsChanged()
 {
-	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_cameraSettingsPropertyId));
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_videoSettingsPropertyId));
 }
 
 // -- USBVideoSourceComponent -----
@@ -239,6 +253,10 @@ bool USBVideoSourceComponent::openVideoSource()
 	// Listen for events from the USB video device
 	m_usbVideoDevice->addListener(this);
 
+	// Signal to the RmlModel to rebuild the video mode list
+	getDefinition()->notifyPropertyChanged(
+		ConfigPropertyChangeSet().addPropertyName(k_currentDevicePathPropertyId));
+
 	// Update settings (brightness, exposure, etc) for the current video mode
 	handleVideoModeUpdated();
 
@@ -257,7 +275,7 @@ void USBVideoSourceComponent::USBVideoSourceComponent::onDefinitionMarkedDirty(
 	const ConfigPropertyChangeSet& changedPropertySet)
 {
 	// If the device path changed, reopen the video source
-	if (changedPropertySet.hasPropertyName(USBVideoSourceDefinition::k_devicePathPropertyId))
+	if (changedPropertySet.hasPropertyName(USBVideoSourceDefinition::k_desiredDevicePathPropertyId))
 	{
 		m_bDeviceChanged = true;
 	}
@@ -267,7 +285,7 @@ void USBVideoSourceComponent::USBVideoSourceComponent::onDefinitionMarkedDirty(
 		m_bModeChanged = true;
 	}
 	// If camera settings changed, update the camera settings
-	else if (changedPropertySet.hasPropertyName(USBVideoSourceDefinition::k_cameraSettingsPropertyId))
+	else if (changedPropertySet.hasPropertyName(USBVideoSourceDefinition::k_videoSettingsPropertyId))
 	{
 		m_bSettingsChanged = true;
 	}
@@ -444,8 +462,6 @@ void USBVideoSourceComponent::handleVideoModeSettingUpdated()
 
 void USBVideoSourceComponent::saveVideoSettingDefaultsFromCurrentMode()
 {
-	m_currentVideoSettings = std::array<float, (int)eVideoSettingType::COUNT>{};
-
 	for (int settingIndex = 0; settingIndex < (int)eVideoSettingType::COUNT; ++settingIndex)
 	{
 		const eVideoSettingType settingType = (eVideoSettingType)settingIndex;
@@ -461,7 +477,8 @@ void USBVideoSourceComponent::saveVideoSettingDefaultsFromCurrentMode()
 
 			setVideoSettingAsFloatFraction(
 				settingType,
-				defaultFloatvalue);
+				defaultFloatvalue, 
+				true); // force apply the default value even if it matches current cached value
 		}
 	}
 
@@ -478,8 +495,6 @@ void USBVideoSourceComponent::saveVideoSettingDefaultsFromCurrentMode()
 
 void USBVideoSourceComponent::restoreVideoSettingsToCurrentMode()
 {
-	m_currentVideoSettings = std::array<float, (int)eVideoSettingType::COUNT>{};
-
 	if (m_usbVideoDevice != nullptr)
 	{
 		const char* szVideoModeName = m_usbVideoDevice->getVideoModeName();
@@ -506,12 +521,15 @@ void USBVideoSourceComponent::restoreVideoSettingsToCurrentMode()
 			USBVideoSourceDefinitionPtr definition = getUSBVideoSourceDefinition();
 			if (definition->getVideoSettingsForMode(szVideoModeName, videoSettings))
 			{
-				for (int prop_index = 0; prop_index < (int)eVideoSettingType::COUNT; ++prop_index)
+				for (int settingIndex = 0; settingIndex < (int)eVideoSettingType::COUNT; ++settingIndex)
 				{
-					const eVideoSettingType prop_type = (eVideoSettingType)prop_index;
-					const float desiredFloatValue = videoSettings[prop_index];
+					const eVideoSettingType settingType = (eVideoSettingType)settingIndex;
+					const float desiredFloatValue = videoSettings[settingIndex];
 
-					setVideoSettingAsFloatFraction(prop_type, desiredFloatValue);
+					setVideoSettingAsFloatFraction(
+						settingType, 
+						desiredFloatValue, 
+						true); // force apply the default value even if it matches current cached value
 				}
 			}
 		}
@@ -544,7 +562,8 @@ bool USBVideoSourceComponent::getVideoSettingAsFloatFraction(
 
 bool USBVideoSourceComponent::setVideoSettingAsFloatFraction(
 	eVideoSettingType settingType,
-	float desiredFloatValue)
+	float desiredFloatValue, 
+	bool bForce)
 {
 	const VideoSettingConstraint& constraint = m_currentVideoConstraints[(int)settingType];
 	const int valueIntRange = constraint.max_value - constraint.min_value;
@@ -556,7 +575,7 @@ bool USBVideoSourceComponent::setVideoSettingAsFloatFraction(
 
 		// Make sure the the desired value is different enough from the current value
 		// to bother with setting it on the USB video device
-		if (fabsf(currentFloatValue - desiredFloatValue) > minDelta)
+		if (bForce || fabsf(currentFloatValue - desiredFloatValue) > minDelta)
 		{
 			const int desiredIntValue =
 				remap_float_to_int(
@@ -570,7 +589,7 @@ bool USBVideoSourceComponent::setVideoSettingAsFloatFraction(
 				m_usbVideoDevice->setVideoSetting(settingType, desiredIntValue);
 			}
 
-			// Remember the current setting value
+			// Update the cached setting value
 			m_currentVideoSettings[(int)settingType] = desiredFloatValue;
 		}
 
@@ -661,39 +680,22 @@ bool USBVideoSourceComponent::isVideoSettingSupported(const eVideoSettingType pr
 
 bool USBVideoSourceComponent::setVideoSetting(const eVideoSettingType settingType, float desiredFloatValue)
 {
-	const VideoSettingConstraint& constraint = m_currentVideoConstraints[(int)settingType];
-	const int valueIntRange = constraint.max_value - constraint.min_value;
-
-	if (m_usbVideoDevice != nullptr && valueIntRange > 0)
-	{
-		const float currentFloatValue = m_currentVideoSettings[(int)settingType];
-		const float minDelta = (float)constraint.stepping_delta / (float)valueIntRange;
-
-		// Make sure the the desired value is different enough from the current value
-		// to bother with setting it on the USB video device
-		if (fabsf(currentFloatValue - desiredFloatValue) > minDelta)
-		{
-			const int desiredIntValue =
-				remap_float_to_int(
-					0.f, 1.f,
-					constraint.min_value, constraint.max_value,
-					desiredFloatValue);
-
-			// Set the camera setting on the USB video device
-			m_usbVideoDevice->setVideoSetting(settingType, desiredIntValue);
-		}
-
-		return true;
-	}
-
-	return false;
+	return setVideoSettingAsFloatFraction(settingType, desiredFloatValue);
 }
 
-bool USBVideoSourceComponent::getVideoSetting(const eVideoSettingType property_type, float& outFractionValue) const
+bool USBVideoSourceComponent::getVideoSetting(const eVideoSettingType settingType, float& outFractionValue) const
 {
 	if (m_usbVideoDevice != nullptr)
 	{
-		return getVideoSettingAsFloatFraction(property_type, outFractionValue);
+		const VideoSettingConstraint& constraint = m_currentVideoConstraints[(int)settingType];
+
+		// Only return valid settings
+		if (constraint.max_value > constraint.min_value)
+		{
+			// Return the cached current setting value
+			outFractionValue = m_currentVideoSettings[(int)settingType];
+			return true;
+		}
 	}
 
 	return false;
@@ -907,19 +909,25 @@ void USBVideoSourceComponent::notifyVideoFrameReceived(const UsbVideoFrameBuffer
 }
 
 // -- IRmlPropertyInterface ----
+const std::string USBVideoSourceComponent::k_currentDevicePathPropertyId = "current_device_path";
+
 void USBVideoSourceComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
 {
 	VideoSourceComponent::getRmlPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			USBVideoSourceDefinition::k_devicePathPropertyId));
+			USBVideoSourceDefinition::k_desiredDevicePathPropertyId));
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			USBVideoSourceComponent::k_currentDevicePathPropertyId)
+		->setReadOnly());
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
 			USBVideoSourceDefinition::k_videoModePropertyId));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			USBVideoSourceDefinition::k_cameraSettingsPropertyId));
+			USBVideoSourceDefinition::k_videoSettingsPropertyId));
 }
 
 bool USBVideoSourceComponent::getPropertyValueFromRml(
@@ -928,9 +936,14 @@ bool USBVideoSourceComponent::getPropertyValueFromRml(
 {
 	const std::string& propertyName = propertyDesc->getName();
 
-	if (propertyName == USBVideoSourceDefinition::k_devicePathPropertyId)
+	if (propertyName == USBVideoSourceDefinition::k_desiredDevicePathPropertyId)
 	{
 		outValue = getUSBVideoSourceDefinition()->getDevicePath();
+		return true;
+	}
+	else if (propertyName == USBVideoSourceComponent::k_currentDevicePathPropertyId)
+	{
+		outValue = getDevicePath();
 		return true;
 	}
 	else if (propertyName == USBVideoSourceDefinition::k_videoModePropertyId)
@@ -948,7 +961,7 @@ bool USBVideoSourceComponent::setPropertyValueFromRml(
 {
 	const std::string& propertyName = propertyDesc->getName();
 
-	if (propertyName == USBVideoSourceDefinition::k_devicePathPropertyId)
+	if (propertyName == USBVideoSourceDefinition::k_desiredDevicePathPropertyId)
 	{
 		std::string devicePath = inValue.Get<std::string>();
 		getUSBVideoSourceDefinition()->setDevicePath(devicePath);

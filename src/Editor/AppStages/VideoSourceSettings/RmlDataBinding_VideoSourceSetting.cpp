@@ -1,6 +1,7 @@
 #include "RmlDataBinding_VideoSourceSetting.h"
 #include "MathUtility.h"
 #include "MulticastDelegate.h"
+#include "Shared/RmlModel_VideoSourceComponent.h"
 #include "USBVideoSourceComponent.h"
 #include "VideoSourceComponent.h"
 
@@ -30,8 +31,10 @@ const std::string RmlDataBinding_VideoSourceSetting::k_videoSettingTypeStrings[(
 };
 
 RmlDataBinding_VideoSourceSetting::RmlDataBinding_VideoSourceSetting(
+	class RmlModel_USBVideoSourceComponent* ownerComponentModel,
 	eVideoSettingType videoSettingType)
 	: RmlDataBinding()
+	, m_ownerComponentModel(ownerComponentModel)
 	, m_videoSettingType(videoSettingType)
 {
 }
@@ -80,28 +83,14 @@ void RmlDataBinding_VideoSourceSetting::setPropertyPercentValue(float newPercent
 	}
 }
 
-VideoSourceComponentPtr RmlDataBinding_VideoSourceSetting::getVideoSourceComponent() const
-{
-	return m_videoSourceComponent;
-}
-
-void RmlDataBinding_VideoSourceSetting::setVideoSourceComponent(VideoSourceComponentPtr videoSourceComponent)
-{
-	if (m_videoSourceComponent != videoSourceComponent)
-	{
-		m_videoSourceComponent = videoSourceComponent;
-
-		refreshDataBinding();
-	}
-}
-
 void RmlDataBinding_VideoSourceSetting::refreshDataBinding()
 {
 	bool propertyValid = false;
+	auto videoSourceComponent = m_ownerComponentModel->getUSBVideoSourceComponent();
 
 	if (float fractionValue= 0.f;
-		m_videoSourceComponent != nullptr &&
-		m_videoSourceComponent->getVideoSetting(m_videoSettingType, fractionValue))
+		videoSourceComponent != nullptr &&
+		videoSourceComponent->getVideoSetting(m_videoSettingType, fractionValue))
 	{
 		const float percentValue = clampf(fractionValue * 100.f, 0.f, 100.f);
 
@@ -126,11 +115,12 @@ void RmlDataBinding_VideoSourceSetting::handlePercentValueChanged(float newPerce
 	{
 		m_propertyPercentValue = newPercentValue;
 
-		if (m_videoSourceComponent != nullptr)
+		auto videoSourceComponent = m_ownerComponentModel->getUSBVideoSourceComponent();
+		if (videoSourceComponent != nullptr)
 		{
 			const float fractionValue = clampf01(newPercentValue / 100.f);
 
-			m_videoSourceComponent->setVideoSetting(m_videoSettingType, fractionValue);
+			videoSourceComponent->setVideoSetting(m_videoSettingType, fractionValue);
 		}
 	}
 }

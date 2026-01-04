@@ -26,7 +26,7 @@ public:
 
 	inline MikanTrackingMountID getTrackingMountId() const { return m_trackingMountId; }
 
-	static const std::string k_devicePathPropertyId;
+	static const std::string k_desiredDevicePathPropertyId;
 	inline const std::string& getDevicePath() const { return m_devicePath; }
 	void setDevicePath(const std::string& devicePath);
 

@@ -7,7 +7,7 @@
 
 RmlModel_MikanComponent::RmlModel_MikanComponent()
 	: m_component()
-	, m_entityWeakAccessor(std::make_shared<RmlModel_EntityAccessor>())
+	, m_entityAccessor(std::make_shared<RmlModel_EntityAccessor>())
 	, m_scriptTriggerList(std::make_shared<RmlDataBinding_ScriptTriggerList>())
 {
 }
@@ -15,6 +15,11 @@ RmlModel_MikanComponent::RmlModel_MikanComponent()
 bool RmlModel_MikanComponent::onConstruct(Rml::DataModelConstructor& constructor)
 {
 	RmlManager::getInstance()->bindEnumDefinitionsToDataModel(constructor);
+
+	// Listen for property changes
+	m_entityAccessor->OnEntityPropertyChanged += MakeDelegate(
+			this,
+			&RmlModel_MikanComponent::onComponentPropertyChanged);
 
 	m_scriptTriggerList->init(
 		constructor,
@@ -54,11 +59,11 @@ bool RmlModel_MikanComponent::setComponent(MikanComponentPtr component)
 	{
 		if (component)
 		{
-			m_entityWeakAccessor->setEntityAccessor(component);
+			m_entityAccessor->setEntityAccessor(component);
 		}
 		else
 		{
-			m_entityWeakAccessor->setEntityAccessor(nullptr);
+			m_entityAccessor->setEntityAccessor(nullptr);
 		}
 
 		m_component = component;
@@ -72,26 +77,30 @@ bool RmlModel_MikanComponent::setComponent(MikanComponentPtr component)
 // IRmlModel
 Rml::Context* RmlModel_MikanComponent::getContext()
 {
-	return m_entityWeakAccessor->getContext();
+	return m_entityAccessor->getContext();
 }
 
 Rml::DataModelHandle& RmlModel_MikanComponent::getModelHandle()
 {
-	return m_entityWeakAccessor->getModelHandle();
+	return m_entityAccessor->getModelHandle();
 }
 
 void RmlModel_MikanComponent::dispose()
 {
-	m_entityWeakAccessor->dispose();
+	m_entityAccessor->OnEntityPropertyChanged -= MakeDelegate(
+		this,
+		&RmlModel_MikanComponent::onComponentPropertyChanged);
+	m_entityAccessor->dispose();
+
 	m_component.reset();
 }
 
 void RmlModel_MikanComponent::update(float deltaSeconds)
 {
-	m_entityWeakAccessor->update(deltaSeconds);
+	m_entityAccessor->update(deltaSeconds);
 }
 
 void RmlModel_MikanComponent::addModelUpdateCallback(std::function<void()> callback)
 {
-	m_entityWeakAccessor->addModelUpdateCallback(callback);
+	m_entityAccessor->addModelUpdateCallback(callback);
 }

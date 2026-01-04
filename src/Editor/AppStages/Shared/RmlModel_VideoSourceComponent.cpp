@@ -57,6 +57,7 @@ RmlModel_USBVideoSourceComponent::RmlModel_USBVideoSourceComponent()
 	{
 		m_videoSourceSettings[settingIndex] =
 			std::make_shared<RmlDataBinding_VideoSourceSetting>(
+				this,
 				static_cast<eVideoSettingType>(settingIndex));
 	}
 }
@@ -105,6 +106,10 @@ bool RmlModel_USBVideoSourceComponent::onConstruct(Rml::DataModelConstructor& co
 			{
 				videoSourceComponent->getVideoModeNames(outVideoModeList);
 			}
+		},
+		[this](const ConfigPropertyChangeSet& changedPropertySet) -> bool {
+			// We can not rebuild the video mode list if the current device path just updated changed
+			return changedPropertySet.hasPropertyName(USBVideoSourceComponent::k_currentDevicePathPropertyId);
 		});
 
 	constructor.BindEventCallback(
@@ -115,12 +120,6 @@ bool RmlModel_USBVideoSourceComponent::onConstruct(Rml::DataModelConstructor& co
 			if (videoSourceComponent)
 			{
 				videoSourceComponent->getUSBVideoSourceDefinition()->setDevicePath(newDevicePath);
-
-				// Refresh the video mode list for the newly selected device				
-				m_videoModeNameList->rebuildList(true);
-
-				// Refresh all video settings for the new device
-				refreshSettings();
 			}
 		});
 
@@ -132,9 +131,6 @@ bool RmlModel_USBVideoSourceComponent::onConstruct(Rml::DataModelConstructor& co
 			if (videoSourceComponent)
 			{
 				videoSourceComponent->getUSBVideoSourceDefinition()->setVideoMode(newVideoMode);
-
-				// Refresh all video settings for the new video mode
-				refreshSettings();
 			}
 		});
 
@@ -147,24 +143,41 @@ bool RmlModel_USBVideoSourceComponent::setComponent(MikanComponentPtr component)
 	{
 		auto usbVideoSourceComponent = std::static_pointer_cast<USBVideoSourceComponent>(component);
 
-		// Update all video setting bindings with the new component
-		for (int settingIndex = 0; settingIndex < (int)eVideoSettingType::COUNT; ++settingIndex)
-		{
-			RmlDataBinding_VideoSourceSettingPtr videoSettingBinding = m_videoSourceSettings[settingIndex];
-
-			videoSettingBinding->setVideoSourceComponent(usbVideoSourceComponent);
-		}
-
 		m_usbDevicePathList->setOwnerConfig(getVideoSourceSystemConfig());
 		m_usbDevicePathList->rebuildList(true);
 
 		m_videoModeNameList->setOwnerConfig(component ? component->getDefinition() : CommonConfigPtr());
 		m_videoModeNameList->rebuildList(true);
+
+		// Update all video setting bindings with the new component
+		for (int settingIndex = 0; settingIndex < (int)eVideoSettingType::COUNT; ++settingIndex)
+		{
+			RmlDataBinding_VideoSourceSettingPtr videoSettingBinding = m_videoSourceSettings[settingIndex];
+
+			videoSettingBinding->refreshDataBinding();
+		}
 		
 		return true;
 	}
 
 	return false;
+}
+
+void RmlModel_USBVideoSourceComponent::onComponentPropertyChanged(
+	IEntityAccessorPtr accessorPtr,
+	const ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (changedPropertySet.hasPropertyName(USBVideoSourceDefinition::k_videoSettingsPropertyId))
+	{
+		for (int settingIndex = 0; settingIndex < (int)eVideoSettingType::COUNT; ++settingIndex)
+		{
+			m_videoSourceSettings[settingIndex]->refreshDataBinding();
+		}
+	}
+	else
+	{
+		RmlModel_MikanComponent::onComponentPropertyChanged(accessorPtr, changedPropertySet);
+	}
 }
 
 VideoSourceSystemPtr RmlModel_USBVideoSourceComponent::getVideoSourceSystem() const

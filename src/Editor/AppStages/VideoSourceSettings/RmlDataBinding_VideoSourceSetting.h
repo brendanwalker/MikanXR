@@ -8,15 +8,15 @@
 class RmlDataBinding_VideoSourceSetting : public RmlDataBinding
 {
 public:
-	RmlDataBinding_VideoSourceSetting(eVideoSettingType videoSettingType);
+	RmlDataBinding_VideoSourceSetting(
+		class RmlModel_USBVideoSourceComponent* ownerComponentModel,
+		eVideoSettingType videoSettingType);
 
 	virtual bool init(Rml::DataModelConstructor constructor) override;
 
 	float getPropertyPercentValue() const;
 	void setPropertyPercentValue(float newValue);
 
-	VideoSourceComponentPtr getVideoSourceComponent() const;
-	void setVideoSourceComponent(VideoSourceComponentPtr videoSourceComponent);
 	void refreshDataBinding();
 
 protected:
@@ -29,7 +29,7 @@ private:
 	Rml::String m_propertyPercentValueName;
 	Rml::String m_propertyValidName;
 
-	VideoSourceComponentPtr m_videoSourceComponent;
+	class RmlModel_USBVideoSourceComponent* m_ownerComponentModel;
 	float m_propertyPercentValue = 0.f;
 	bool m_propertyIdValid= false;
 };

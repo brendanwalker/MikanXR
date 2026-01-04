@@ -5,7 +5,7 @@
 
 RmlModel_MikanObjectSystem::RmlModel_MikanObjectSystem()
 	: m_objectSystem()
-	, m_entityWeakAccessor(std::make_shared<RmlModel_EntityAccessor>())
+	, m_entityAccessor(std::make_shared<RmlModel_EntityAccessor>())
 {
 }
 
@@ -25,32 +25,32 @@ MikanObjectSystemPtr RmlModel_MikanObjectSystem::getObjectSystem() const
 void RmlModel_MikanObjectSystem::setObjectSystem(MikanObjectSystemPtr objectSystem)
 {
 	m_objectSystem = objectSystem;
-	m_entityWeakAccessor->setEntityAccessor(objectSystem);
+	m_entityAccessor->setEntityAccessor(objectSystem);
 }
 
 // IRmlModel
 Rml::Context* RmlModel_MikanObjectSystem::getContext()
 {
-	return m_entityWeakAccessor->getContext();
+	return m_entityAccessor->getContext();
 }
 
 Rml::DataModelHandle& RmlModel_MikanObjectSystem::getModelHandle()
 {
-	return m_entityWeakAccessor->getModelHandle();
+	return m_entityAccessor->getModelHandle();
 }
 
 void RmlModel_MikanObjectSystem::dispose()
 {
-	m_entityWeakAccessor->dispose();
+	m_entityAccessor->dispose();
 	m_objectSystem.reset();
 }
 
 void RmlModel_MikanObjectSystem::update(float deltaSeconds)
 {
-	m_entityWeakAccessor->update(deltaSeconds);
+	m_entityAccessor->update(deltaSeconds);
 }
 
 void RmlModel_MikanObjectSystem::addModelUpdateCallback(std::function<void()> callback)
 {
-	m_entityWeakAccessor->addModelUpdateCallback(callback);
+	m_entityAccessor->addModelUpdateCallback(callback);
 }

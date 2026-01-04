@@ -21,16 +21,20 @@ class RmlModel_USBVideoSourceComponent : public RmlModel_MikanComponent
 public:
 	RmlModel_USBVideoSourceComponent();
 
-	virtual bool init(Rml::Context* rmlContext) override;
-	virtual bool onConstruct(Rml::DataModelConstructor& constructor) override;
-	virtual bool setComponent(MikanComponentPtr component) override;
-
-protected:
 	VideoSourceSystemPtr getVideoSourceSystem() const;
 	VideoSourceSystemConfigPtr getVideoSourceSystemConfig() const;
 	USBVideoSourceSystemPtr getUSBVideoSourceSystem() const;
 	USBVideoSourceComponentPtr getUSBVideoSourceComponent() const;
 
+	// -- RmlModel_MikanComponent --
+	virtual bool init(Rml::Context* rmlContext) override;
+	virtual bool onConstruct(Rml::DataModelConstructor& constructor) override;
+	virtual bool setComponent(MikanComponentPtr component) override;
+	virtual void onComponentPropertyChanged(
+		IEntityAccessorPtr accessorPtr,
+		const ConfigPropertyChangeSet& changedPropertySet) override;
+
+protected:
 	void refreshSettings();
 
 private:

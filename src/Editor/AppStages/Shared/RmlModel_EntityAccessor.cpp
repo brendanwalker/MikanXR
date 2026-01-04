@@ -101,15 +101,15 @@ bool RmlModel_EntityAccessor::init(
 		// Vector types need special handling to bind individual components
 		if (variantType == Rml::Variant::VECTOR2)
 		{
-			bindVectorComponents<Rml::Vector2f, 2>(constructor, propertyName, propertyDescriptor, m_entityWeakAccessor);
+			bindVectorComponents<Rml::Vector2f, 2>(constructor, propertyName, propertyDescriptor, m_entityAccessor);
 		}
 		else if (variantType == Rml::Variant::VECTOR3)
 		{
-			bindVectorComponents<Rml::Vector3f, 3>(constructor, propertyName, propertyDescriptor, m_entityWeakAccessor);
+			bindVectorComponents<Rml::Vector3f, 3>(constructor, propertyName, propertyDescriptor, m_entityAccessor);
 		}
 		else if (variantType == Rml::Variant::VECTOR4)
 		{
-			bindVectorComponents<Rml::Vector4f, 4>(constructor, propertyName, propertyDescriptor, m_entityWeakAccessor);
+			bindVectorComponents<Rml::Vector4f, 4>(constructor, propertyName, propertyDescriptor, m_entityAccessor);
 		}
 		// All other types can be bound directly
 		else
@@ -119,7 +119,7 @@ bool RmlModel_EntityAccessor::init(
 				constructor.BindFunc(
 					propertyName,
 					[this, propertyDescriptor](Rml::Variant& variant) {
-						IRmlPropertyInterfacePtr propertyInterface = m_entityWeakAccessor.lock();
+						IRmlPropertyInterfacePtr propertyInterface = m_entityAccessor.lock();
 						if (propertyInterface)
 						{
 							propertyInterface->getPropertyValueFromRml(propertyDescriptor, variant);
@@ -135,7 +135,7 @@ bool RmlModel_EntityAccessor::init(
 				constructor.BindFunc(
 					propertyName,
 					[this, propertyDescriptor](Rml::Variant& variant) {
-						IRmlPropertyInterfacePtr propertyInterface = m_entityWeakAccessor.lock();
+						IRmlPropertyInterfacePtr propertyInterface = m_entityAccessor.lock();
 						if (propertyInterface)
 						{
 							propertyInterface->getPropertyValueFromRml(propertyDescriptor, variant);
@@ -146,7 +146,7 @@ bool RmlModel_EntityAccessor::init(
 						}
 					},
 					[this, propertyDescriptor](const Rml::Variant& variant) {
-						IRmlPropertyInterfacePtr propertyInterface = m_entityWeakAccessor.lock();
+						IRmlPropertyInterfacePtr propertyInterface = m_entityAccessor.lock();
 						if (propertyInterface)
 						{
 							propertyInterface->setPropertyValueFromRml(propertyDescriptor, variant);
@@ -164,7 +164,7 @@ bool RmlModel_EntityAccessor::init(
 		constructor.BindEventCallback(
 			functionName,
 			[this, functionDescriptor](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-				IRmlFunctionInterfacePtr functionInterface = m_entityWeakAccessor.lock();
+				IRmlFunctionInterfacePtr functionInterface = m_entityAccessor.lock();
 				if (functionInterface)
 				{
 					functionInterface->invokeFunctionFromRml(functionDescriptor);
@@ -183,7 +183,7 @@ bool RmlModel_EntityAccessor::init(
 
 void RmlModel_EntityAccessor::clearEntityAccessor()
 {
-	IEntityAccessorPtr oldEntityAccessor = m_entityWeakAccessor.lock();
+	IEntityAccessorPtr oldEntityAccessor = m_entityAccessor.lock();
 
 	if (oldEntityAccessor)
 	{
@@ -195,7 +195,7 @@ void RmlModel_EntityAccessor::clearEntityAccessor()
 		oldEntityConfig->OnPropertyChanged -=
 			MakeDelegate(this, &RmlModel_EntityAccessor::onEntityConfigChanged);
 
-		m_entityWeakAccessor.reset();
+		m_entityAccessor.reset();
 		m_bWasAccessorSet = false;
 	}
 	else
@@ -208,7 +208,7 @@ void RmlModel_EntityAccessor::clearEntityAccessor()
 void RmlModel_EntityAccessor::setEntityAccessor(
 	IEntityAccessorPtr newEntityAccessor)
 {
-	IEntityAccessorPtr oldEntityAccessor = m_entityWeakAccessor.lock();
+	IEntityAccessorPtr oldEntityAccessor = m_entityAccessor.lock();
 
 	if (newEntityAccessor != oldEntityAccessor)
 	{
@@ -228,7 +228,7 @@ void RmlModel_EntityAccessor::setEntityAccessor(
 			m_bWasAccessorSet = true;
 		}
 
-		m_entityWeakAccessor = newEntityAccessor;
+		m_entityAccessor = newEntityAccessor;
 
 		m_modelHandle.DirtyAllVariables();
 	}
@@ -243,6 +243,14 @@ void RmlModel_EntityAccessor::onEntityConfigChanged(
 	CommonConfigPtr configPtr,
 	const ConfigPropertyChangeSet& changedPropertySet)
 {
+	IEntityAccessorPtr entityAccessor = m_entityAccessor.lock();
+	assert(entityAccessor);
+	assert(entityAccessor->getEntityConfig() == configPtr);
+	if (OnEntityPropertyChanged)
+	{
+		OnEntityPropertyChanged(entityAccessor, changedPropertySet);
+	}
+
 	for (const std::string& propertyName : changedPropertySet.getSet())
 	{
 		auto it = m_propertyDescriptors.find(propertyName);

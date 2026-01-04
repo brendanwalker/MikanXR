@@ -14,7 +14,7 @@
 #include <RmlUi/Core/Variant.h>
 
 // -- TrackingMountDefinition -----
-const std::string TrackingMountDefinition::k_devicePathPropertyId = "devicePath";
+const std::string TrackingMountDefinition::k_desiredDevicePathPropertyId = "devicePath";
 const std::string TrackingMountDefinition::k_socketNamePropertyId = "socketName";
 
 TrackingMountDefinition::TrackingMountDefinition() 
@@ -55,7 +55,7 @@ void TrackingMountDefinition::setDevicePath(const std::string& devicePath)
 	if (devicePath != m_devicePath)
 	{
 		m_devicePath = devicePath;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_devicePathPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_desiredDevicePathPropertyId));
 	}
 }
 
@@ -110,7 +110,7 @@ void TrackingMountComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDe
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			TrackingMountDefinition::k_devicePathPropertyId));
+			TrackingMountDefinition::k_desiredDevicePathPropertyId));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
 			TrackingMountDefinition::k_socketNamePropertyId));
@@ -122,7 +122,7 @@ bool TrackingMountComponent::getPropertyValueFromRml(
 {
 	const std::string& propertyName = propertyDesc->getName();
 
-	if (propertyName == TrackingMountDefinition::k_devicePathPropertyId)
+	if (propertyName == TrackingMountDefinition::k_desiredDevicePathPropertyId)
 	{
 		outValue = getTrackingMountDefinition()->getDevicePath();
 		return true;
@@ -142,7 +142,7 @@ bool TrackingMountComponent::setPropertyValueFromRml(
 {
 	const std::string& propertyName = propertyDesc->getName();
 
-	if (propertyName == TrackingMountDefinition::k_devicePathPropertyId)
+	if (propertyName == TrackingMountDefinition::k_desiredDevicePathPropertyId)
 	{
 		getTrackingMountDefinition()->setDevicePath(inValue.Get<Rml::String>());
 		return true;

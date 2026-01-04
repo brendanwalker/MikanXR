@@ -20,10 +20,13 @@ public:
 	virtual bool init(Rml::Context* rmlContext) = 0;
 	virtual bool onConstruct(Rml::DataModelConstructor& constructor);
 
-	inline RmlModel_EntityAccessorPtr getPropertyInterface() const { return m_entityWeakAccessor; }
+	inline RmlModel_EntityAccessorPtr getPropertyInterface() const { return m_entityAccessor; }
 
 	MikanComponentPtr getComponent() const;
 	virtual bool setComponent(MikanComponentPtr component);
+	virtual void onComponentPropertyChanged(
+		IEntityAccessorPtr accessorPtr,
+		const ConfigPropertyChangeSet& changedPropertySet) {}
 
 	// IRmlModel
 	virtual Rml::Context* getContext() override;
@@ -39,7 +42,7 @@ protected:
 	bool initTypedPropertyInterface(Rml::Context* rmlContext)
 	{
 		return
-			m_entityWeakAccessor->init<t_component_type>(
+			m_entityAccessor->init<t_component_type>(
 				rmlContext,
 				t_component_type::k_componentClassName,
 				[this](Rml::DataModelConstructor& constructor) -> bool
@@ -49,6 +52,6 @@ protected:
 	}
 
 	MikanComponentWeakPtr m_component;
-	RmlModel_EntityAccessorPtr m_entityWeakAccessor;
+	RmlModel_EntityAccessorPtr m_entityAccessor;
 	RmlDataBinding_ScriptTriggerListPtr m_scriptTriggerList;
 };

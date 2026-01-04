@@ -3,6 +3,7 @@
 #include "CommonConfig.h"
 #include "IEntityAccessor.h"
 #include "Shared/RmlModel.h"
+#include "MulticastDelegate.h"
 #include "RmlFwd.h"
 
 #include <memory>
@@ -46,12 +47,14 @@ public:
 	void clearEntityAccessor();
 	void setEntityAccessor(IEntityAccessorPtr newEntityAccessor);
 
+	MulticastDelegate<void(IEntityAccessorPtr accessorPtr, const ConfigPropertyChangeSet& changedPropertySet)> OnEntityPropertyChanged;
+
 protected:
 	void onEntityConfigDestroyed(const CommonConfig* selfPtr);
 	void onEntityConfigChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
 private:
 	bool m_bWasAccessorSet = false;
-	IEntityAccessorWeakPtr m_entityWeakAccessor;
+	IEntityAccessorWeakPtr m_entityAccessor;
 	std::map<std::string, RmlPropertyDescriptorConstPtr> m_propertyDescriptors;
 };

@@ -35,7 +35,7 @@
 						<tr class="property_tr">
 							<td>
 								<label>Video Device</label>
-								<label>{{device_path | to_usb_camera_friendly_name}}</label>
+								<label>{{desired_device_path | to_usb_camera_friendly_name}}</label>
 							</td>
 						</tr>
 						<tr class="property_tr">

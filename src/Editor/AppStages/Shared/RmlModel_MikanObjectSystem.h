@@ -32,7 +32,7 @@ protected:
 	bool initTypedPropertyInterface(Rml::Context* rmlContext)
 	{
 		return
-			m_entityWeakAccessor->init<t_object_system_type>(
+			m_entityAccessor->init<t_object_system_type>(
 				rmlContext,
 				t_object_system_type::k_objectSystemClassName,
 				[this](Rml::DataModelConstructor& constructor) -> bool
@@ -43,5 +43,5 @@ protected:
 
 protected:
 	MikanObjectSystemWeakPtr m_objectSystem;
-	RmlModel_EntityAccessorPtr m_entityWeakAccessor;
+	RmlModel_EntityAccessorPtr m_entityAccessor;
 };

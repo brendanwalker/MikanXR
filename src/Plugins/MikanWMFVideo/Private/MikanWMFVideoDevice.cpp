@@ -244,10 +244,23 @@ bool MikanWMFVideoDevice::setVideoModeByIndex(size_t desiredFormatIndex)
 		// Close the device if open
 		if (getIsOpen())
 		{
+			// Remember what the streaming status was before closing
+			eVideoStreamingStatus prevStreamingStatus= getVideoStreamingStatus();
+
+			// Stop streaming and close device
 			close();
 
 			// Re-open with the new format
-			if (!open())
+			if (open())
+			{
+				// Start streaming again
+				if (prevStreamingStatus == eVideoStreamingStatus::pendingStart ||
+					prevStreamingStatus == eVideoStreamingStatus::started)
+				{
+					startVideoStream();
+				}
+			}
+			else
 			{
 				// Failed to open with the new format, reset to invalid
 				m_currentVideoModeIndex = -1;
