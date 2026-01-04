@@ -95,39 +95,42 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	, m_distortionTextureMap(nullptr)
 	, m_videoTexture(nullptr)
 {
-	// Get the current video source pixel dimensions
-	int pixelWidth, pixelHeight;
-	videoSourceComponent->getVideoPixelDimensions(pixelWidth, pixelHeight);
-
-	// Get the current camera intrinsics being used by the video source
-	MikanVideoSourceIntrinsics mikanIntrinsics;
-	m_videoSourceComponent->getCameraIntrinsics(mikanIntrinsics);
-	if (mikanIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS)
-	{
-		m_intrinsics->init(mikanIntrinsics.getMonoIntrinsics());
-	}
-	else
-	{
-		m_intrinsics->init(pixelWidth, pixelHeight); 
-		MIKAN_LOG_WARNING("VideoFrameDistortionView") 
-			<< "VideoSource " << videoSourceComponent->getDevicePath() 
-			<< " is not distortion calibrated. Using estimated focal length and no distortion.";
-	}
 
 	// Source Video Frame data
 	m_bgrSourceBuffers = new SourceBufferEntry[m_bgrSourceBufferCount];
 	for (unsigned int queueIndex = 0; queueIndex < m_bgrSourceBufferCount; ++queueIndex)
 	{
-		SourceBufferEntry& frameEntry= m_bgrSourceBuffers[queueIndex];
+		SourceBufferEntry& frameEntry = m_bgrSourceBuffers[queueIndex];
 
 		frameEntry.bgrSourceBuffer = nullptr;
-		frameEntry.frameIndex= 0;
+		frameEntry.frameIndex = 0;
 	}
 
-	// Resize all desired video frame buffers to match the current video source view size
-	// It's possible that the video source doesn't have a valid size yet if it's a stream source
-	// So we'll have to resize once the first valid frame is read.
-	ensureFrameBufferSize(pixelWidth, pixelHeight);
+	// Get the current video source pixel dimensions
+	int pixelWidth = 0;
+	int pixelHeight = 0;
+	if (videoSourceComponent->getVideoPixelDimensions(pixelWidth, pixelHeight))
+	{
+		// Get the current camera intrinsics being used by the video source
+		MikanVideoSourceIntrinsics mikanIntrinsics;
+		m_videoSourceComponent->getCameraIntrinsics(mikanIntrinsics);
+		if (mikanIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS)
+		{
+			m_intrinsics->init(mikanIntrinsics.getMonoIntrinsics());
+		}
+		else
+		{
+			m_intrinsics->init(pixelWidth, pixelHeight);
+			MIKAN_LOG_WARNING("VideoFrameDistortionView")
+				<< "VideoSource " << videoSourceComponent->getDevicePath()
+				<< " is not distortion calibrated. Using estimated focal length and no distortion.";
+		}
+
+		// Resize all desired video frame buffers to match the current video source view size
+		// It's possible that the video source doesn't have a valid size yet if it's a stream source
+		// So we'll have to resize once the first valid frame is read.
+		ensureFrameBufferSize(pixelWidth, pixelHeight);
+	}
 
 	// Create a mesh used to render the video frame
 	m_fullscreenRGBQuad= createFullscreenQuadMesh(m_ownerWindow, true);

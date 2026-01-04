@@ -95,8 +95,8 @@ NetworkVideoSourceComponentPtr NetworkVideoSourceSystem::getNetworkVideoSourceBy
 NetworkVideoSourceComponentPtr NetworkVideoSourceSystem::addNewNetworkVideoSource()
 {
     MikanNetworkVideoSourceInfo defaultInfo = {};
-	defaultInfo.network_source_name.setValue("New Network Video Source");
-    defaultInfo.url.setValue("rtsp://<username>:<password>@<IP_address>:<port>/<stream_path>");
+	defaultInfo.network_source_name.setValue("NetworkVideo");
+    defaultInfo.url.setValue("");
     defaultInfo.intrinsics.intrinsics_type = INVALID_CAMERA_INTRINSICS;
 
 	return addNewNetworkVideoSource(defaultInfo);

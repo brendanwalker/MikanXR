@@ -36,7 +36,12 @@ const std::string* k_NetworkVideoProtocol = g_NetworkVideoProtocol;
 
 NetworkVideoSourceDefinition::NetworkVideoSourceDefinition()
 	: VideoSourceDefinition()
-{}
+	, m_protocol(eNetworkVideoProtocol::RTSP)
+	, m_address(DEFAULT_NETWORKED_CAMERA_ADDRESS)
+	, m_path(DEFAULT_NETWORKED_CAMERA_PATH)
+	, m_port(DEFAULT_RTSP_PORT)
+{
+}
 
 NetworkVideoSourceDefinition::NetworkVideoSourceDefinition(
 	MikanVideoSourceID videoSourceId,
@@ -46,16 +51,27 @@ NetworkVideoSourceDefinition::NetworkVideoSourceDefinition(
 		videoSourceInfo.network_source_name.getValue(),
 		videoSourceInfo.intrinsics)
 {
-	NetworkVideoSourceDefinition::parseUrl(
+	if (!NetworkVideoSourceDefinition::parseUrl(
 		videoSourceInfo.url.getValue(),
-		m_protocol, m_address, m_port, m_path);
+		m_protocol, m_address, m_port, m_path))
+	{
+		// If URL parsing fails, fall back to defaults
+		m_protocol = eNetworkVideoProtocol::RTSP;
+		m_address = DEFAULT_NETWORKED_CAMERA_ADDRESS;
+		m_path = DEFAULT_NETWORKED_CAMERA_PATH;
+		m_port = DEFAULT_RTSP_PORT;
+	}
 }
 
 configuru::Config NetworkVideoSourceDefinition::writeToJSON()
 {
 	configuru::Config pt = VideoSourceDefinition::writeToJSON();
 
-	pt[NetworkVideoSourceDefinition::k_protocolPropertyId] = k_NetworkVideoProtocol[(int)m_protocol];
+	const std::string protocolString = 
+		m_protocol != eNetworkVideoProtocol::INVALID 
+		? k_NetworkVideoProtocol[(int)m_protocol] 
+		: k_NetworkVideoProtocol[(int)eNetworkVideoProtocol::RTSP];
+	pt[NetworkVideoSourceDefinition::k_protocolPropertyId] = protocolString;
 	pt[NetworkVideoSourceDefinition::k_addressPropertyId] = m_address;
 	pt[NetworkVideoSourceDefinition::k_pathPropertyId] = m_path;
 	pt[NetworkVideoSourceDefinition::k_portPropertyId] = m_port;
@@ -70,7 +86,7 @@ void NetworkVideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 	const std::string protocolString =
 		pt.get_or<std::string>(
 			NetworkVideoSourceDefinition::k_protocolPropertyId,
-			k_NetworkVideoProtocol[(int)eNetworkVideoProtocol::RTMP]);
+			k_NetworkVideoProtocol[(int)eNetworkVideoProtocol::RTSP]);
 	m_protocol =
 		StringUtils::FindEnumValue<eNetworkVideoProtocol>(
 			protocolString, k_NetworkVideoProtocol);
@@ -188,7 +204,7 @@ bool NetworkVideoSourceDefinition::parseUrl(
 	{
 		outAddress = addressAndPort;
 		// Set default ports based on protocol
-		outPort = (outProtocol == eNetworkVideoProtocol::RTMP) ? 1935 : 554;
+		outPort = (outProtocol == eNetworkVideoProtocol::RTMP) ? DEFAULT_RTMP_PORT : 554;
 	}
 
 	return true;
@@ -493,7 +509,7 @@ void NetworkVideoSourceComponent::getRmlPropertyDescriptors(std::vector<RmlPrope
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
 			NetworkVideoSourceDefinition::k_portPropertyId)
-		->setDefaultValue(DEFAULT_RTSP_PORT));
+		->setDefaultValue(DEFAULT_RTMP_PORT));
 }
 
 bool NetworkVideoSourceComponent::getPropertyValueFromRml(
