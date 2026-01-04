@@ -265,39 +265,24 @@ static std::string makeVideoModeName(const WMFDeviceFormatInfo& result)
 	std::ostringstream ss;
 
 	ss << result.width << "x" << result.height;
+
+	// Add interlace info if relevant
+	if (result.interlace_mode == MFVideoInterlace_FieldInterleavedUpperFirst ||
+		result.interlace_mode == MFVideoInterlace_FieldInterleavedLowerFirst)
+	{
+		ss << "i";
+	}
+
 	if (result.frame_rate_denominator != 0) 
 	{
 		const double fps = static_cast<double>(result.frame_rate_numerator) / result.frame_rate_denominator;
 
-		ss << "@" << std::fixed << std::setprecision(0) << fps;
-	}
-
-	// Add interlace info if relevant
-	if (result.interlace_mode == MFVideoInterlace_FieldInterleavedUpperFirst)
-	{ 
-		ss << "i";
-	}
-	else if (result.interlace_mode == MFVideoInterlace_FieldInterleavedLowerFirst)
-	{ 		
-		ss << "i";
-	}
-	else 
-	{
-		ss << "p";
+		ss << "@" << std::fixed << std::setprecision(0) << fps << "fps";
 	}
 
 	if (!result.sub_type_name.empty() && result.sub_type_name.find('{') == std::string::npos) 
 	{
-		std::string format_name = result.sub_type_name;
-
-		// Strip "MFVideoFormat_" prefix if present
-		const std::string prefix = "MFVideoFormat_";
-		if (format_name.find(prefix) == 0) 
-		{
-			format_name = format_name.substr(prefix.length());
-		}
-
-		ss << " (" << format_name << ")";
+		ss << " (" << result.sub_type_name << ")";
 	}
 
 	return ss.str();
@@ -455,12 +440,21 @@ static HRESULT ParseWMFFormatTypeAttributeByIndex(IMFAttributes *pAttr, DWORD in
 
 					if(guid == MF_MT_SUBTYPE)
 					{
-						std::wstring sub_type_name;
-						hr = GetGUIDNameCopy(*var.puuid, sub_type_name);
+						std::wstring ws_sub_type_name;
+						hr = GetGUIDNameCopy(*var.puuid, ws_sub_type_name);
 						if (hr == S_OK)
 						{
-							outMediaType.sub_type_name =
-								StringUtils::convertWStringToUTF8String(sub_type_name);
+							std::string sub_type_name =
+								StringUtils::convertWStringToUTF8String(ws_sub_type_name);
+
+							// Strip "MFVideoFormat_" prefix if present
+							const std::string prefix = "MFVideoFormat_";
+							if (sub_type_name.find(prefix) == 0)
+							{
+								sub_type_name = sub_type_name.substr(prefix.length());
+							}
+
+							outMediaType.sub_type_name = sub_type_name;
 						}
 					}
 				} break;

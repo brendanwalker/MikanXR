@@ -48,6 +48,7 @@ public:
 	USBVideoSourceComponent(MikanObjectWeakPtr owner);
 
 	virtual void init() override;
+	virtual void update(float deltaSeconds) override;
 	virtual void dispose() override;
 
 	inline USBVideoSourceDefinitionPtr getUSBVideoSourceDefinition() const
@@ -102,11 +103,11 @@ public:
 protected:
 	void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet) override;
 	bool updateVideoMode();
+	int findBestVideoModeIndex(int w, int h, int frameRate) const;
 	bool handleVideoModeUpdated();
 	void handleVideoModeSettingUpdated();
 	void saveVideoSettingDefaultsFromCurrentMode();
 	void restoreVideoSettingsToCurrentMode();
-	void resetToDefaultSettings();
 	bool getVideoSettingAsFloatFraction(eVideoSettingType settingType, float& outFloatFraction) const;
 	bool setVideoSettingAsFloatFraction(eVideoSettingType settingType, float outFloatFraction);
 
@@ -114,4 +115,7 @@ protected:
 	IUsbVideoDevice* m_usbVideoDevice;
 	USBVideoSettingsArray m_currentVideoSettings;
 	USBVideoConstraintArray m_currentVideoConstraints;
+	bool m_bDeviceChanged= false;
+	bool m_bModeChanged = false;
+	bool m_bSettingsChanged = false;
 };

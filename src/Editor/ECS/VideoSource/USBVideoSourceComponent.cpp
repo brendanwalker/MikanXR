@@ -17,6 +17,10 @@
 
 #include <assert.h>
 
+#define DEFAULT_DESIRED_VIDEO_WIDTH			1280
+#define DEFAULT_DESIRED_VIDEO_HEIGHT		720
+#define DEFAULT_DESIRED_FRAME_RATE			30
+
 // -- USBVideoSourceDefinition -----
 const std::string USBVideoSourceDefinition::k_devicePathPropertyId = "device_path";
 const std::string USBVideoSourceDefinition::k_videoModePropertyId = "video_mode";
@@ -121,14 +125,45 @@ USBVideoSourceComponent::USBVideoSourceComponent(MikanObjectWeakPtr owner)
 {
 	m_currentVideoSettings = {};
 	m_currentVideoConstraints = {};
+	m_bWantsUpdate = true;
 }
 
 void USBVideoSourceComponent::init()
 {
 	MikanComponent::init();
 
-	// Attempt to open the video source
-	openVideoSource();
+	// Attempt to open the video source during update (may fail if device not connected)
+	m_bDeviceChanged = true;
+}
+
+void USBVideoSourceComponent::update(float deltaSeconds)
+{
+	VideoSourceComponent::update(deltaSeconds);
+
+	// If the device path changed, reopen the video source
+	if (m_bDeviceChanged)
+	{
+		m_bDeviceChanged = false;
+
+		closeVideoSource();
+		openVideoSource();
+	}
+	// If the video mode changed, update the video mode
+	else if (m_bModeChanged)
+	{
+		m_bModeChanged = false;
+
+		if (updateVideoMode())
+		{
+			handleVideoModeUpdated();
+		}
+	}
+	// If camera settings changed, update the camera settings
+	else if (m_bSettingsChanged)
+	{
+		m_bSettingsChanged = false;
+		handleVideoModeSettingUpdated();
+	}
 }
 
 void USBVideoSourceComponent::dispose()
@@ -224,21 +259,17 @@ void USBVideoSourceComponent::USBVideoSourceComponent::onDefinitionMarkedDirty(
 	// If the device path changed, reopen the video source
 	if (changedPropertySet.hasPropertyName(USBVideoSourceDefinition::k_devicePathPropertyId))
 	{
-		closeVideoSource();
-		openVideoSource();
+		m_bDeviceChanged = true;
 	}
 	// If the video mode changed, update the video mode
 	else if (changedPropertySet.hasPropertyName(USBVideoSourceDefinition::k_videoModePropertyId))
 	{
-		if (updateVideoMode())
-		{
-			handleVideoModeUpdated();
-		}
+		m_bModeChanged = true;
 	}
 	// If camera settings changed, update the camera settings
 	else if (changedPropertySet.hasPropertyName(USBVideoSourceDefinition::k_cameraSettingsPropertyId))
 	{
-		handleVideoModeSettingUpdated();
+		m_bSettingsChanged = true;
 	}
 	else
 	{
@@ -252,46 +283,99 @@ bool USBVideoSourceComponent::updateVideoMode()
 		return false;
 
 	USBVideoSourceDefinitionPtr definition = getUSBVideoSourceDefinition();
-	const std::string desiredVideoMode = definition->getVideoMode();
+	std::string desiredVideoMode = definition->getVideoMode();
 	const char* szCurrentVideoMode = m_usbVideoDevice->getVideoModeName();
-	const std::string currentVideoMode = szCurrentVideoMode ? szCurrentVideoMode : "";
-	if (desiredVideoMode != currentVideoMode)
+	std::string currentVideoMode = szCurrentVideoMode ? szCurrentVideoMode : "";
+	if (desiredVideoMode != currentVideoMode || currentVideoMode.empty())
 	{
-		// If no video mode is set, then set the first available video mode
-		if (currentVideoMode.empty() && desiredVideoMode.empty())
+		bool bHasValidMode = !currentVideoMode.empty();
+
+		// If we have a desired video mode, try to set it first
+		if (!desiredVideoMode.empty())
 		{
-			// Set the first available video mode
-			UsbVideoModeProperties modeProperties;
-			if (m_usbVideoDevice->getVideoModeProperties(0, modeProperties) &&
-				m_usbVideoDevice->setVideoModeByIndex(0))
+			if (m_usbVideoDevice->setVideoModeByName(desiredVideoMode.c_str()))
 			{
-				// Update the definition with the video mode name
-				definition->setVideoMode(modeProperties.name);
-			}
-			else
-			{
-				// If no video modes are available, return false
-				return false;
+				currentVideoMode = desiredVideoMode;
+				bHasValidMode = true;
 			}
 		}
-		// If we have a valid desired video mode, apply it
-		else if (!desiredVideoMode.empty())
+
+		// If we don't have a valid desired video mode yet, try to set a default one
+		if (!bHasValidMode)
 		{
-			if (!m_usbVideoDevice->setVideoModeByName(desiredVideoMode.c_str()))
+			const int videoFormatIndex =
+				findBestVideoModeIndex(
+					DEFAULT_DESIRED_VIDEO_WIDTH,
+					DEFAULT_DESIRED_VIDEO_HEIGHT,
+					DEFAULT_DESIRED_FRAME_RATE);
+			if (videoFormatIndex != -1 && m_usbVideoDevice->setVideoModeByIndex(videoFormatIndex))
 			{
-				// If the desired video mode could not be set, return false
-				definition->setVideoMode("");
-				return false;
+				currentVideoMode = m_usbVideoDevice->getVideoModeName();
+				bHasValidMode = true;
 			}
 		}
-		// If we have a valid current video mode, update the definition
-		else
+
+		// If we succeeded in setting a valid video mode, 
+		// update the definition to track which mode is currently set
+		if (bHasValidMode)
 		{
 			definition->setVideoMode(currentVideoMode);
 		}
 	}
 
 	return true;
+}
+
+int USBVideoSourceComponent::findBestVideoModeIndex(
+	int w,
+	int h,
+	int frameRate) const
+{
+	assert(m_usbVideoDevice != nullptr);
+	int result_id = -1;
+
+	size_t numFormats= m_usbVideoDevice->getAvailableVideoModesCount();
+	if (numFormats > 0)
+	{
+		for (int attempt = 0; attempt < 2; ++attempt)
+		{
+			for (size_t testDeviceIndex = 0; testDeviceIndex < numFormats; ++testDeviceIndex)
+			{
+				if (UsbVideoModeProperties modeInfo;
+					m_usbVideoDevice->getVideoModeProperties(testDeviceIndex, modeInfo) &&
+					modeInfo.frame_rate_demonenator > 0)
+				{
+					int rounded_frame_rate = modeInfo.frame_rate_numerator / modeInfo.frame_rate_demonenator;
+
+					if ((w == -1 || modeInfo.width == w) &&
+						(h == -1 || modeInfo.height == h) &&
+						(frameRate == -1 || rounded_frame_rate == frameRate))
+					{
+						result_id = (int)testDeviceIndex;
+						break;
+					}
+				}
+			}
+
+			if (result_id != -1)
+			{
+				break;
+			}
+			else if (attempt == 0)
+			{
+				// Fallback to no FPS restriction on second pass
+				frameRate = -1;
+			}
+		}
+
+		if (result_id == -1)
+		{
+			// If we didn't find an exact match, just return the first available mode
+			result_id = 0;
+		}
+	}
+
+	return result_id;
 }
 
 bool USBVideoSourceComponent::handleVideoModeUpdated()
@@ -500,6 +584,13 @@ void USBVideoSourceComponent::closeVideoSource()
 {
 	if (m_usbVideoDevice != nullptr)
 	{
+		// Let any connected clients know that the video source closed
+		MikanServer::getInstance()->getVideoSourceRequestHandler()->publishVideoSourceClosedEvent();
+		if (OnClosed)
+		{
+			OnClosed(getSelfPtr<VideoSourceComponent>());
+		}
+
 		// Stop the video stream if it is running
 		stopVideoStream();
 
@@ -515,13 +606,6 @@ void USBVideoSourceComponent::closeVideoSource()
 
 	// Release any OpenCV buffer state
 	releaseOpencvBufferState();
-
-	// Let any connected clients know that the video source closed
-	MikanServer::getInstance()->getVideoSourceRequestHandler()->publishVideoSourceClosedEvent();
-	if (OnClosed)
-	{
-		OnClosed(getSelfPtr<VideoSourceComponent>());
-	}
 }
 
 eVideoStreamingStatus USBVideoSourceComponent::startVideoStream()
@@ -823,8 +907,6 @@ void USBVideoSourceComponent::notifyVideoFrameReceived(const UsbVideoFrameBuffer
 }
 
 // -- IRmlPropertyInterface ----
-
-
 void USBVideoSourceComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
 {
 	VideoSourceComponent::getRmlPropertyDescriptors(outDescriptors);

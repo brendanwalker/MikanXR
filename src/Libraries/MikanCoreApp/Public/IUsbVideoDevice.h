@@ -5,6 +5,7 @@
 
 struct UsbVideoModeProperties
 {
+	size_t index; // index of the video mode in the device's list of available modes
 	const char* name; // name of the video mode (e.g., "1080p30", "720p60")
 	int width; // width of the video frame in pixels
 	int height; // height of the video frame in pixels

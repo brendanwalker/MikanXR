@@ -191,6 +191,7 @@ bool MikanWMFVideoDevice::getVideoModeProperties(size_t index, UsbVideoModePrope
 	if(index < m_deviceInfo.deviceAvailableFormats.size())
 	{
 		const WMFDeviceFormatInfo& formatInfo = m_deviceInfo.deviceAvailableFormats[index];
+		outProperties.index = index;
 		outProperties.name = formatInfo.format_friendly_name.c_str();
 		outProperties.width = formatInfo.width;
 		outProperties.height = formatInfo.height;
@@ -244,12 +245,13 @@ bool MikanWMFVideoDevice::setVideoModeByIndex(size_t desiredFormatIndex)
 		if (getIsOpen())
 		{
 			close();
-		}
 
-		// Re-open with the new format
-		if (!open())
-		{
-			m_currentVideoModeIndex = -1;
+			// Re-open with the new format
+			if (!open())
+			{
+				// Failed to open with the new format, reset to invalid
+				m_currentVideoModeIndex = -1;
+			}
 		}
 
 		notifyVideoModePropertiesChanged();
@@ -271,8 +273,14 @@ bool MikanWMFVideoDevice::getVideoSettingConstraint(
 	const eVideoSettingType property_type,
 	VideoSettingConstraint& outConstraint) const
 {
-	bool bSuccess = false;
+	if (!getIsOpen())
+	{
+		MIKAN_LOG_ERROR("MikanWMFVideoDevice::getVideoSettingConstraint") 
+			<< "Unable to get video setting constraint: Device not open: " << m_deviceInfo.deviceFriendlyName;
+		return false;
+	}
 
+	bool bSuccess = false;
 	switch (property_type)
 	{
 	case eVideoSettingType::Brightness:
@@ -338,6 +346,14 @@ bool MikanWMFVideoDevice::getVideoSettingConstraint(
 
 void MikanWMFVideoDevice::setVideoSetting(const eVideoSettingType property_type, int desired_value)
 {
+	if (!getIsOpen())
+	{
+		MIKAN_LOG_ERROR("MikanWMFVideoDevice::setVideoSetting")
+			<< "Unable to set video setting: Device not open: " << m_deviceInfo.deviceFriendlyName;
+
+		return;
+	}
+
 	switch (property_type)
 	{
 	case eVideoSettingType::Brightness:
@@ -395,8 +411,14 @@ void MikanWMFVideoDevice::setVideoSetting(const eVideoSettingType property_type,
 
 int MikanWMFVideoDevice::getVideoSetting(const eVideoSettingType property_type) const
 {
-	int value = 0;
+	if (!getIsOpen())
+	{
+		MIKAN_LOG_ERROR("MikanWMFVideoDevice::getVideoSetting")
+			<< "Unable to get video setting: Device not open: " << m_deviceInfo.deviceFriendlyName;
+		return 0;
+	}
 
+	int value = 0;
 	switch (property_type)
 	{
 	case eVideoSettingType::Brightness:
