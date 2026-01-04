@@ -4,12 +4,11 @@
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
 #include "CommonConfigFwd.h"
+#include "IEntityAccessor.h"
 #include "ObjectFwd.h"
 #include "MulticastDelegate.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ProjectManager.h"
-#include "RmlFunctionInterface.h"
-#include "RmlPropertyInterface.h"
 #include "ScriptingFwd.h"
 
 #include <filesystem>
@@ -45,8 +44,7 @@ protected:
 
 class MikanComponent : 
 	public std::enable_shared_from_this<MikanComponent>,
-	public IRmlPropertyInterface,
-	public IRmlFunctionInterface
+	public IEntityAccessor
 {
 public:
 	MikanComponent(MikanObjectWeakPtr owner);
@@ -113,6 +111,9 @@ public:
 	void reloadComponentScript();
 	void addNewComponentScript();
 	void removeComponentScript();
+
+	// -- IEntityAccessor ----
+	virtual CommonConfigPtr getEntityConfig() override { return m_definition; }
 
 	// -- IRmlPropertyInterface ----
 	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors);

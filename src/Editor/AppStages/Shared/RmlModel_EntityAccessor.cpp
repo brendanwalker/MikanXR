@@ -1,8 +1,14 @@
-#include "RmlModel_PropertyInterface.h"
+#include "RmlModel_EntityAccessor.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
+
+RmlModel_EntityAccessor::~RmlModel_EntityAccessor()
+{
+	// Clear property interface to remove any bound callbacks on m_propertyChangeEventSource
+	clearEntityAccessor();
+}
 
 // Template helper function to bind vector component accessors
 template<typename VectorType, int ComponentCount>
@@ -68,16 +74,14 @@ void bindVectorComponents(
 	}
 }
 
-bool RmlModel_PropertyInterface::init(
+bool RmlModel_EntityAccessor::init(
 	Rml::Context* rmlContext,
 	const std::string& modelName,
 	const std::vector<RmlPropertyDescriptorConstPtr>& propertyDescriptors,
 	const std::vector<RmlFunctionDescriptorConstPtr>& functionDescriptors,
 	OnConstruct onContructCallback)
 {
-	m_propertyChangeEventSource.reset();
-	m_propertyInterface.reset();
-	m_functionInterface.reset();
+	clearEntityAccessor();
 
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, modelName);
@@ -97,15 +101,15 @@ bool RmlModel_PropertyInterface::init(
 		// Vector types need special handling to bind individual components
 		if (variantType == Rml::Variant::VECTOR2)
 		{
-			bindVectorComponents<Rml::Vector2f, 2>(constructor, propertyName, propertyDescriptor, m_propertyInterface);
+			bindVectorComponents<Rml::Vector2f, 2>(constructor, propertyName, propertyDescriptor, m_entityWeakAccessor);
 		}
 		else if (variantType == Rml::Variant::VECTOR3)
 		{
-			bindVectorComponents<Rml::Vector3f, 3>(constructor, propertyName, propertyDescriptor, m_propertyInterface);
+			bindVectorComponents<Rml::Vector3f, 3>(constructor, propertyName, propertyDescriptor, m_entityWeakAccessor);
 		}
 		else if (variantType == Rml::Variant::VECTOR4)
 		{
-			bindVectorComponents<Rml::Vector4f, 4>(constructor, propertyName, propertyDescriptor, m_propertyInterface);
+			bindVectorComponents<Rml::Vector4f, 4>(constructor, propertyName, propertyDescriptor, m_entityWeakAccessor);
 		}
 		// All other types can be bound directly
 		else
@@ -115,7 +119,7 @@ bool RmlModel_PropertyInterface::init(
 				constructor.BindFunc(
 					propertyName,
 					[this, propertyDescriptor](Rml::Variant& variant) {
-						IRmlPropertyInterfacePtr propertyInterface = m_propertyInterface.lock();
+						IRmlPropertyInterfacePtr propertyInterface = m_entityWeakAccessor.lock();
 						if (propertyInterface)
 						{
 							propertyInterface->getPropertyValueFromRml(propertyDescriptor, variant);
@@ -131,7 +135,7 @@ bool RmlModel_PropertyInterface::init(
 				constructor.BindFunc(
 					propertyName,
 					[this, propertyDescriptor](Rml::Variant& variant) {
-						IRmlPropertyInterfacePtr propertyInterface = m_propertyInterface.lock();
+						IRmlPropertyInterfacePtr propertyInterface = m_entityWeakAccessor.lock();
 						if (propertyInterface)
 						{
 							propertyInterface->getPropertyValueFromRml(propertyDescriptor, variant);
@@ -142,7 +146,7 @@ bool RmlModel_PropertyInterface::init(
 						}
 					},
 					[this, propertyDescriptor](const Rml::Variant& variant) {
-						IRmlPropertyInterfacePtr propertyInterface = m_propertyInterface.lock();
+						IRmlPropertyInterfacePtr propertyInterface = m_entityWeakAccessor.lock();
 						if (propertyInterface)
 						{
 							propertyInterface->setPropertyValueFromRml(propertyDescriptor, variant);
@@ -160,7 +164,7 @@ bool RmlModel_PropertyInterface::init(
 		constructor.BindEventCallback(
 			functionName,
 			[this, functionDescriptor](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-				IRmlFunctionInterfacePtr functionInterface = m_functionInterface.lock();
+				IRmlFunctionInterfacePtr functionInterface = m_entityWeakAccessor.lock();
 				if (functionInterface)
 				{
 					functionInterface->invokeFunctionFromRml(functionDescriptor);
@@ -177,38 +181,65 @@ bool RmlModel_PropertyInterface::init(
 	return true;
 }
 
-void RmlModel_PropertyInterface::setPropertyInterface(
-	IRmlPropertyInterfacePtr newPropertyInterface,
-	CommonConfigPtr newPropertyChangeEventSource)
+void RmlModel_EntityAccessor::clearEntityAccessor()
 {
-	IRmlPropertyInterfacePtr oldPropertyInterface = m_propertyInterface.lock();
-	CommonConfigPtr oldPropertyChangeEventSource = m_propertyChangeEventSource.lock();
+	IEntityAccessorPtr oldEntityAccessor = m_entityWeakAccessor.lock();
 
-	if (newPropertyInterface != oldPropertyInterface || m_propertyInterface.expired())
+	if (oldEntityAccessor)
 	{
-		if (oldPropertyChangeEventSource)
+		CommonConfigPtr oldEntityConfig = oldEntityAccessor->getEntityConfig();
+		assert(m_bWasAccessorSet);
+
+		oldEntityConfig->OnDestroyed -=
+			MakeDelegate(this, &RmlModel_EntityAccessor::onEntityConfigDestroyed);
+		oldEntityConfig->OnPropertyChanged -=
+			MakeDelegate(this, &RmlModel_EntityAccessor::onEntityConfigChanged);
+
+		m_entityWeakAccessor.reset();
+		m_bWasAccessorSet = false;
+	}
+	else
+	{
+		// If this fires the entity accessor was destroyed without us being notified
+		assert(!m_bWasAccessorSet);
+	}
+}
+
+void RmlModel_EntityAccessor::setEntityAccessor(
+	IEntityAccessorPtr newEntityAccessor)
+{
+	IEntityAccessorPtr oldEntityAccessor = m_entityWeakAccessor.lock();
+
+	if (newEntityAccessor != oldEntityAccessor)
+	{
+		clearEntityAccessor();
+
+		if (newEntityAccessor)
 		{
-			oldPropertyChangeEventSource->OnPropertyChanged -=
-				MakeDelegate(this, &RmlModel_PropertyInterface::onPropertiesChanged);
+			CommonConfigPtr newEntityConfig = newEntityAccessor->getEntityConfig();
+
+			newEntityConfig->OnDestroyed +=
+				MakeDelegate(this, &RmlModel_EntityAccessor::onEntityConfigDestroyed);
+			newEntityConfig->OnPropertyChanged +=
+				MakeDelegate(this, &RmlModel_EntityAccessor::onEntityConfigChanged);
+
+			// For debugging purposes we track whether an accessor was ever set to a valid accessor
+			// This helps catch cases where the accessor was destroyed without notification
+			m_bWasAccessorSet = true;
 		}
 
-		if (newPropertyChangeEventSource)
-		{
-			newPropertyChangeEventSource->OnPropertyChanged +=
-				MakeDelegate(this, &RmlModel_PropertyInterface::onPropertiesChanged);
-		}
+		m_entityWeakAccessor = newEntityAccessor;
 
-		m_propertyInterface = newPropertyInterface;
 		m_modelHandle.DirtyAllVariables();
 	}
 }
 
-void RmlModel_PropertyInterface::setFunctionInterface(IRmlFunctionInterfacePtr functionInterface)
+void RmlModel_EntityAccessor::onEntityConfigDestroyed(const CommonConfig* selfPtr)
 {
-	m_functionInterface = functionInterface;
+	clearEntityAccessor();
 }
 
-void RmlModel_PropertyInterface::onPropertiesChanged(
+void RmlModel_EntityAccessor::onEntityConfigChanged(
 	CommonConfigPtr configPtr,
 	const ConfigPropertyChangeSet& changedPropertySet)
 {

@@ -1,6 +1,6 @@
 #include "TransformComponent.h"
 #include "Shared/RmlModel_AnchorComponent.h"
-#include "Shared/RmlModel_PropertyInterface.h"
+#include "Shared/RmlModel_EntityAccessor.h"
 #include "Shared/RmlDataBinding_List.h"
 #include "AnchorObjectSystem.h"
 

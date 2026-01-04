@@ -8,7 +8,7 @@
 #include "SceneFwd.h"
 #include "Shared/RmlModel.h"
 #include "Shared/RmlDataBinding_Fwd.h"
-#include "Shared/RmlModel_PropertyInterface.h"
+#include "Shared/RmlModel_EntityAccessor.h"
 #include "SinglecastDelegate.h"
 
 class RmlModel_CameraComponent;

@@ -7,7 +7,7 @@
 
 RmlModel_MikanComponent::RmlModel_MikanComponent()
 	: m_component()
-	, m_propertyInterface(std::make_shared<RmlModel_PropertyInterface>())
+	, m_entityWeakAccessor(std::make_shared<RmlModel_EntityAccessor>())
 	, m_scriptTriggerList(std::make_shared<RmlDataBinding_ScriptTriggerList>())
 {
 }
@@ -54,13 +54,11 @@ bool RmlModel_MikanComponent::setComponent(MikanComponentPtr component)
 	{
 		if (component)
 		{
-			m_propertyInterface->setPropertyInterface(component, component->getDefinition());
-			m_propertyInterface->setFunctionInterface(component);
+			m_entityWeakAccessor->setEntityAccessor(component);
 		}
 		else
 		{
-			m_propertyInterface->setPropertyInterface(nullptr, CommonConfigPtr());
-			m_propertyInterface->setFunctionInterface(nullptr);
+			m_entityWeakAccessor->setEntityAccessor(nullptr);
 		}
 
 		m_component = component;
@@ -74,26 +72,26 @@ bool RmlModel_MikanComponent::setComponent(MikanComponentPtr component)
 // IRmlModel
 Rml::Context* RmlModel_MikanComponent::getContext()
 {
-	return m_propertyInterface->getContext();
+	return m_entityWeakAccessor->getContext();
 }
 
 Rml::DataModelHandle& RmlModel_MikanComponent::getModelHandle()
 {
-	return m_propertyInterface->getModelHandle();
+	return m_entityWeakAccessor->getModelHandle();
 }
 
 void RmlModel_MikanComponent::dispose()
 {
-	m_propertyInterface->dispose();
+	m_entityWeakAccessor->dispose();
 	m_component.reset();
 }
 
 void RmlModel_MikanComponent::update(float deltaSeconds)
 {
-	m_propertyInterface->update(deltaSeconds);
+	m_entityWeakAccessor->update(deltaSeconds);
 }
 
 void RmlModel_MikanComponent::addModelUpdateCallback(std::function<void()> callback)
 {
-	m_propertyInterface->addModelUpdateCallback(callback);
+	m_entityWeakAccessor->addModelUpdateCallback(callback);
 }

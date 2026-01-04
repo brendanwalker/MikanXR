@@ -1,8 +1,7 @@
 #pragma once
 
 #include "CommonConfig.h"
-#include "RmlPropertyInterface.h"
-#include "RmlFunctionInterface.h"
+#include "IEntityAccessor.h"
 #include "Shared/RmlModel.h"
 #include "RmlFwd.h"
 
@@ -10,9 +9,11 @@
 #include <string>
 #include <map>
 
-class RmlModel_PropertyInterface : public RmlModel
+class RmlModel_EntityAccessor : public RmlModel
 {
 public:
+	virtual ~RmlModel_EntityAccessor();
+
 	using OnConstruct = std::function<bool(Rml::DataModelConstructor&)>;
 
 	template <class t_property_interface>
@@ -42,17 +43,15 @@ public:
 		const std::vector<RmlFunctionDescriptorConstPtr>& functionDescriptors,
 		OnConstruct onContructCallback);
 
-	void setPropertyInterface(
-		IRmlPropertyInterfacePtr propertyInterface,
-		CommonConfigPtr propertyChangeEventSource = CommonConfigPtr());
-	void setFunctionInterface(IRmlFunctionInterfacePtr functionInterface);
+	void clearEntityAccessor();
+	void setEntityAccessor(IEntityAccessorPtr newEntityAccessor);
 
 protected:
-	void onPropertiesChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
+	void onEntityConfigDestroyed(const CommonConfig* selfPtr);
+	void onEntityConfigChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
 private:
-	CommonConfigWeakPtr m_propertyChangeEventSource;
-	IRmlPropertyInterfaceWeakPtr m_propertyInterface;
-	IRmlFunctionInterfaceWeakPtr m_functionInterface;
+	bool m_bWasAccessorSet = false;
+	IEntityAccessorWeakPtr m_entityWeakAccessor;
 	std::map<std::string, RmlPropertyDescriptorConstPtr> m_propertyDescriptors;
 };

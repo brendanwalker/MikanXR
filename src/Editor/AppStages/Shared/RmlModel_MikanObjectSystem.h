@@ -3,7 +3,7 @@
 #include "ObjectFwd.h"
 #include "Shared/RmlDataBinding_Fwd.h"
 #include "Shared/RmlModelInterface.h"
-#include "Shared/RmlModel_PropertyInterface.h"
+#include "Shared/RmlModel_EntityAccessor.h"
 
 #include <memory>
 
@@ -32,7 +32,7 @@ protected:
 	bool initTypedPropertyInterface(Rml::Context* rmlContext)
 	{
 		return
-			m_propertyInterface->init<t_object_system_type>(
+			m_entityWeakAccessor->init<t_object_system_type>(
 				rmlContext,
 				t_object_system_type::k_objectSystemClassName,
 				[this](Rml::DataModelConstructor& constructor) -> bool
@@ -43,5 +43,5 @@ protected:
 
 protected:
 	MikanObjectSystemWeakPtr m_objectSystem;
-	RmlModel_PropertyInterfacePtr m_propertyInterface;
+	RmlModel_EntityAccessorPtr m_entityWeakAccessor;
 };

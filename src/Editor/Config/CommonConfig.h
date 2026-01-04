@@ -47,6 +47,8 @@ class CommonConfig : public std::enable_shared_from_this<CommonConfig>
 {
 public:
     CommonConfig(const std::string &configName = std::string("CommonConfig"));
+	virtual ~CommonConfig();
+	MulticastDelegate<void(const CommonConfig* selfPtr)> OnDestroyed;
 
 	void addChildConfig(std::shared_ptr<CommonConfig> childConfig);
 	void removeChildConfig(std::shared_ptr<CommonConfig> childConfig);

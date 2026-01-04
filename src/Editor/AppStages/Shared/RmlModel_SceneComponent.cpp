@@ -1,6 +1,6 @@
 #include "RmlModel_SceneComponent.h"
 #include "Shared/RmlDataBinding_List.h"
-#include "Shared/RmlModel_PropertyInterface.h"
+#include "Shared/RmlModel_EntityAccessor.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>

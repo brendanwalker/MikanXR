@@ -1,6 +1,6 @@
 #include "Shared/RmlModel_StencilComponent.h"
 #include "Shared/RmlDataBinding_List.h"
-#include "Shared/RmlModel_PropertyInterface.h"
+#include "Shared/RmlModel_EntityAccessor.h"
 #include "AnchorObjectSystem.h"
 #include "QuadStencilComponent.h"
 #include "BoxStencilComponent.h"

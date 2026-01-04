@@ -68,8 +68,8 @@ using RmlModel_ModelStencilComponentPtr = std::shared_ptr<RmlModel_ModelStencilC
 class RmlModel_NetworkVideoSourceComponent;
 using RmlModel_NetworkVideoSourceComponentPtr = std::shared_ptr<RmlModel_NetworkVideoSourceComponent>;
 
-class RmlModel_PropertyInterface;
-using RmlModel_PropertyInterfacePtr = std::shared_ptr<RmlModel_PropertyInterface>;
+class RmlModel_EntityAccessor;
+using RmlModel_EntityAccessorPtr = std::shared_ptr<RmlModel_EntityAccessor>;
 
 class RmlModel_QuadStencilComponent;
 using RmlModel_QuadStencilComponentPtr = std::shared_ptr<RmlModel_QuadStencilComponent>;

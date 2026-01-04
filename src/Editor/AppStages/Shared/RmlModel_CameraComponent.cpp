@@ -1,6 +1,6 @@
 #include "RmlModel_CameraComponent.h"
 #include "Shared/RmlDataBinding_List.h"
-#include "Shared/RmlModel_PropertyInterface.h"
+#include "Shared/RmlModel_EntityAccessor.h"
 #include "VRTrackingVolumeComponent.h"
 #include "VideoSourceSystem.h"
 

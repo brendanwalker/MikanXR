@@ -7,7 +7,7 @@
 #include "ProjectConfig.h"
 #include "Project/AppStage_Project.h"
 #include "Project/ProjectRmlModelContext.h"
-#include "Shared/RmlModel_PropertyInterface.h"
+#include "Shared/RmlModel_EntityAccessor.h"
 #include "Shared/RmlModel_CameraComponent.h"
 #include "Shared/RmlModel_StageComponent.h"
 #include "Shared/RmlModel_CompositorComponent.h"

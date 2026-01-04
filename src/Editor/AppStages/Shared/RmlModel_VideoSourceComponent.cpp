@@ -1,6 +1,6 @@
 #include "RmlModel_VideoSourceComponent.h"
 #include "Shared/RmlDataBinding_List.h"
-#include "Shared/RmlModel_PropertyInterface.h"
+#include "Shared/RmlModel_EntityAccessor.h"
 #include "NetworkVideoSourceComponent.h"
 #include "USBVideoSourceComponent.h"
 #include "USBVideoSourceSystem.h"

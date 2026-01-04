@@ -38,6 +38,14 @@ CommonConfig::CommonConfig(const std::string &fnamebase)
 {
 }
 
+CommonConfig::~CommonConfig()
+{
+    if (OnDestroyed)
+    {
+        OnDestroyed(this);
+    }
+}
+
 void CommonConfig::onChildConfigPropertyChanged(
     CommonConfigPtr configPtr,
     const ConfigPropertyChangeSet& changedPropertySet)

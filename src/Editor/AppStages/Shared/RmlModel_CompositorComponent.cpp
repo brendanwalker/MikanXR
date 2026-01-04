@@ -1,6 +1,6 @@
 #include "Shared/RmlModel_CompositorComponent.h"
 #include "Shared/RmlDataBinding_List.h"
-#include "Shared/RmlModel_PropertyInterface.h"
+#include "Shared/RmlModel_EntityAccessor.h"
 #include "CameraObjectSystem.h"
 #include "VideoSourceSystem.h"
 

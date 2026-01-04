@@ -2,7 +2,7 @@
 
 #include "ComponentFwd.h"
 #include "Shared/RmlDataBinding_Fwd.h"
-#include "Shared/RmlModel_PropertyInterface.h"
+#include "Shared/RmlModel_EntityAccessor.h"
 #include "Shared/RmlModelInterface.h"
 
 namespace Rml
@@ -20,7 +20,7 @@ public:
 	virtual bool init(Rml::Context* rmlContext) = 0;
 	virtual bool onConstruct(Rml::DataModelConstructor& constructor);
 
-	inline RmlModel_PropertyInterfacePtr getPropertyInterface() const { return m_propertyInterface; }
+	inline RmlModel_EntityAccessorPtr getPropertyInterface() const { return m_entityWeakAccessor; }
 
 	MikanComponentPtr getComponent() const;
 	virtual bool setComponent(MikanComponentPtr component);
@@ -39,7 +39,7 @@ protected:
 	bool initTypedPropertyInterface(Rml::Context* rmlContext)
 	{
 		return
-			m_propertyInterface->init<t_component_type>(
+			m_entityWeakAccessor->init<t_component_type>(
 				rmlContext,
 				t_component_type::k_componentClassName,
 				[this](Rml::DataModelConstructor& constructor) -> bool
@@ -49,6 +49,6 @@ protected:
 	}
 
 	MikanComponentWeakPtr m_component;
-	RmlModel_PropertyInterfacePtr m_propertyInterface;
+	RmlModel_EntityAccessorPtr m_entityWeakAccessor;
 	RmlDataBinding_ScriptTriggerListPtr m_scriptTriggerList;
 };

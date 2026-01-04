@@ -1,6 +1,6 @@
 #include "MarkerTrackingVolumeComponent.h"
 #include "RmlModel_MarkerTrackingVolumeComponent.h"
-#include "RmlModel_PropertyInterface.h"
+#include "RmlModel_EntityAccessor.h"
 #include "MarkerObjectSystem.h"
 #include "TrackingMountObjectSystem.h"
 #include "Shared/RmlDataBinding_List.h"

@@ -1,6 +1,6 @@
 #include "MarkerObjectSystem.h"
 #include "Shared/RmlModel_MarkerObjectSystem.h"
-#include "Shared/RmlModel_PropertyInterface.h"
+#include "Shared/RmlModel_EntityAccessor.h"
 #include "Shared/RmlDataBinding_List.h"
 
 #include <RmlUi/Core/DataModelHandle.h>

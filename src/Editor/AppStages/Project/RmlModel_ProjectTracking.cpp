@@ -4,7 +4,7 @@
 #include "RmlModel_ProjectTracking.h"
 #include "Project/AppStage_Project.h"
 #include "Project/ProjectRmlModelContext.h"
-#include "Shared/RmlModel_PropertyInterface.h"
+#include "Shared/RmlModel_EntityAccessor.h"
 #include "Shared/RmlModel_MarkerTrackingVolumeComponent.h"
 #include "Shared/RmlModel_VRTrackingVolumeComponent.h"
 #include "Shared/RmlModel_TrackingMountComponent.h"

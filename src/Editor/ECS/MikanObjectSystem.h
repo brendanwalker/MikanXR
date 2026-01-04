@@ -2,11 +2,10 @@
 
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
+#include "IEntityAccessor.h"
 #include "MulticastDelegate.h"
 #include "ObjectFwd.h"
 #include "ObjectSystemConfigFwd.h"
-#include "RmlFunctionInterface.h"
-#include "RmlPropertyInterface.h"
 
 #include <vector>
 
@@ -23,8 +22,7 @@ public:
 
 class MikanObjectSystem : 
 	public std::enable_shared_from_this<MikanObjectSystem>,
-	public IRmlPropertyInterface,
-	public IRmlFunctionInterface
+	public IEntityAccessor
 {
 public:
 	MikanObjectSystem(class ProjectManager* ownerObjectSystem);
@@ -57,6 +55,9 @@ public:
 	MulticastDelegate<void(MikanObjectSystemPtr, MikanObjectConstPtr)> OnObjectDisposed;
 	MulticastDelegate<void(MikanObjectSystemPtr, MikanComponentPtr)> OnComponentInitialized;
 	MulticastDelegate<void(MikanObjectSystemPtr, MikanComponentConstPtr)> OnComponentDisposed;
+
+	// -- IEntityAccessor ----
+	virtual CommonConfigPtr getEntityConfig() override { return getObjectSystemConfig(); }
 
 	// -- IRmlPropertyInterface ----
 	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors) {}
