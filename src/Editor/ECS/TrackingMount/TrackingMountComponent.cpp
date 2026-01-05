@@ -101,20 +101,20 @@ void TrackingMountComponent::deleteTrackingMount()
 }
 
 // -- IRmlPropertyInterface ----
-void TrackingMountComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
+void TrackingMountComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	MikanComponent::getRmlPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			TrackingMountDefinition::k_desiredDevicePathPropertyId, MikanVariantType::STRING));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			TrackingMountDefinition::k_socketNamePropertyId, MikanVariantType::STRING));
 }
 
-bool TrackingMountComponent::getPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc,
+bool TrackingMountComponent::getPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc,
 	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -130,11 +130,11 @@ bool TrackingMountComponent::getPropertyValueFromRml(
 		return true;
 	}
 
-	return MikanComponent::getPropertyValueFromRml(propertyDesc, outValue);
+	return MikanComponent::getPropertyValue(propertyDesc, outValue);
 }
 
-bool TrackingMountComponent::setPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc,
+bool TrackingMountComponent::setPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc,
 	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -150,5 +150,5 @@ bool TrackingMountComponent::setPropertyValueFromRml(
 		return true;
 	}
 
-	return MikanComponent::setPropertyValueFromRml(propertyDesc, inValue);
+	return MikanComponent::setPropertyValue(propertyDesc, inValue);
 }

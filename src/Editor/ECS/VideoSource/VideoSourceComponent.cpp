@@ -364,28 +364,28 @@ void VideoSourceComponent::recomputeCameraProjectionMatrix()
 }
 
 // -- IRmlPropertyInterface ----
-void VideoSourceComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
+void VideoSourceComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	MikanComponent::getRmlPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			VideoSourceDefinition::k_isFrameMirroredPropertyId, MikanVariantType::BOOL));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			VideoSourceDefinition::k_isBufferMirroredPropertyId, MikanVariantType::BOOL));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			VideoSourceDefinition::k_videoFrameQueueSizePropertyId, MikanVariantType::INT)
 			->setDefaultValue(DEFAULT_VIDEO_FRAME_QUEUE_SIZE));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			VideoSourceDefinition::k_hasValidIntrinsicsPropertyId, MikanVariantType::BOOL)
 		->setReadOnly());
 }
 
-bool VideoSourceComponent::getPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc, 
+bool VideoSourceComponent::getPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc, 
 	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -416,11 +416,11 @@ bool VideoSourceComponent::getPropertyValueFromRml(
 		return true;
 	}
 
-	return MikanComponent::getPropertyValueFromRml(propertyDesc, outValue);
+	return MikanComponent::getPropertyValue(propertyDesc, outValue);
 }
 
-bool VideoSourceComponent::setPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc, 
+bool VideoSourceComponent::setPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc, 
 	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -441,7 +441,7 @@ bool VideoSourceComponent::setPropertyValueFromRml(
 		return true;
 	}
 
-	return MikanComponent::setPropertyValueFromRml(propertyDesc, inValue);
+	return MikanComponent::setPropertyValue(propertyDesc, inValue);
 }
 
 // -- IRmlFunctionInterface ----
@@ -450,25 +450,25 @@ const std::string VideoSourceComponent::k_showVideoSourceSettingsFunctionId = "s
 const std::string VideoSourceComponent::k_calibrateIntrinsicsFunctionId = "calibrate_intrinsics";
 const std::string VideoSourceComponent::k_testIntrinsicsFunctionId = "test_intrinsics";
 
-void VideoSourceComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
+void VideoSourceComponent::getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
 	MikanComponent::getRmlFunctionDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
+		std::make_shared<FunctionDescriptor>(
 			k_deleteVideoSourceFunctionId, "Delete Video Source"));
 	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
+		std::make_shared<FunctionDescriptor>(
 			k_showVideoSourceSettingsFunctionId, "Show Video Source Settings"));
 	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
+		std::make_shared<FunctionDescriptor>(
 			k_calibrateIntrinsicsFunctionId, "Calibrate Intrinsics"));
 	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
+		std::make_shared<FunctionDescriptor>(
 			k_testIntrinsicsFunctionId, "Test Intrinsics"));
 }
 
-bool VideoSourceComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
+bool VideoSourceComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
 {
 	const std::string& functionName = functionDesc->getFunctionName();
 
@@ -493,7 +493,7 @@ bool VideoSourceComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr f
 		return true;
 	}
 
-	return MikanComponent::invokeFunctionFromRml(functionDesc);
+	return MikanComponent::invokeFunction(functionDesc);
 }
 
 void VideoSourceComponent::deleteVideoSource()

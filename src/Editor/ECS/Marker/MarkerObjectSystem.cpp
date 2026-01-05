@@ -395,38 +395,38 @@ MarkerObjectSystemConfigPtr MarkerObjectSystem::getMarkerSystemConfig()
 }
 
 // -- IRmlPropertyInterface ----
-void MarkerObjectSystem::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
+void MarkerObjectSystem::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	MikanObjectSystem::getRmlPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			MarkerObjectSystemConfig::k_arucoDictionaryTypePropertyId, MikanVariantType::INT)
 		->setDefaultValue((int)DEFAULT_ARUCO_DICTIONARY_TYPE));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			MarkerObjectSystemConfig::k_charucoDictionaryTypePropertyId, MikanVariantType::INT)
 		->setDefaultValue((int)DEFAULT_CHARUCO_DICTIONARY_TYPE));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			MarkerObjectSystemConfig::k_charucoRowsPropertyId, MikanVariantType::INT)
 		->setDefaultValue(CHARUCO_PATTERN_H));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			MarkerObjectSystemConfig::k_charucoColsPropertyId, MikanVariantType::INT)
 		->setDefaultValue(CHARUCO_PATTERN_W));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			MarkerObjectSystemConfig::k_charucoSquareLengthMMPropertyId, MikanVariantType::FLOAT)
 		->setDefaultValue(DEFAULT_CHARUCO_SQUARE_LEN_MM));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			MarkerObjectSystemConfig::k_charucoMarkerLengthMMPropertyId, MikanVariantType::FLOAT)
 		->setDefaultValue(DEFAULT_CHARUCO_MARKER_LEN_MM));
 }
 
-bool MarkerObjectSystem::getPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc, 
+bool MarkerObjectSystem::getPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc, 
 	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -462,11 +462,11 @@ bool MarkerObjectSystem::getPropertyValueFromRml(
 		return true;
 	}
 
-	return MikanObjectSystem::getPropertyValueFromRml(propertyDesc, outValue);
+	return MikanObjectSystem::getPropertyValue(propertyDesc, outValue);
 }
 
-bool MarkerObjectSystem::setPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc, 
+bool MarkerObjectSystem::setPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc, 
 	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -508,7 +508,7 @@ bool MarkerObjectSystem::setPropertyValueFromRml(
 		return true;
 	}
 
-	return MikanObjectSystem::setPropertyValueFromRml(propertyDesc, inValue);
+	return MikanObjectSystem::setPropertyValue(propertyDesc, inValue);
 }
 
 void MarkerObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
@@ -520,16 +520,16 @@ void MarkerObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr pr
 // -- IRmlFunctionInterface ----
 const std::string MarkerObjectSystem::k_printCharucoMarkerFunctionId = "print_checkerboard";
 
-void MarkerObjectSystem::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
+void MarkerObjectSystem::getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
 	MikanObjectSystem::getRmlFunctionDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
+		std::make_shared<FunctionDescriptor>(
 			k_printCharucoMarkerFunctionId, "Print Marker"));
 }
 
-bool MarkerObjectSystem::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
+bool MarkerObjectSystem::invokeFunction(FunctionDescriptorConstPtr functionDesc)
 {
 	const std::string& functionName = functionDesc->getFunctionName();
 
@@ -539,7 +539,7 @@ bool MarkerObjectSystem::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr fun
 		return true;
 	}
 
-	return MikanObjectSystem::invokeFunctionFromRml(functionDesc);
+	return MikanObjectSystem::invokeFunction(functionDesc);
 }
 
 void MarkerObjectSystem::printMarker()

@@ -1,12 +1,12 @@
 #pragma once
 
 #include "CommonConfigFwd.h"
-#include "RmlFunctionInterface.h"
-#include "RmlPropertyInterface.h"
+#include "FunctionInterface.h"
+#include "PropertyInterface.h"
 
 class IEntityAccessor :
-	public IRmlPropertyInterface,
-	public IRmlFunctionInterface
+	public IPropertyInterface,
+	public IFunctionInterface
 {
 public:
 	virtual CommonConfigPtr getEntityConfig() = 0;

@@ -170,23 +170,23 @@ void QuadStencilComponent::updateBoxColliderExtents()
 }
 
 // -- IRmlPropertyInterface ----
-void QuadStencilComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
+void QuadStencilComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	StencilComponent::getRmlPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			QuadStencilDefinition::k_quadStencilWidthPropertyId, MikanVariantType::FLOAT));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			QuadStencilDefinition::k_quadStencilHeightPropertyId, MikanVariantType::FLOAT));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			QuadStencilDefinition::k_quadStencilDoubleSidedPropertyId, MikanVariantType::BOOL));
 }
 
-bool QuadStencilComponent::getPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc,
+bool QuadStencilComponent::getPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc,
 	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -207,11 +207,11 @@ bool QuadStencilComponent::getPropertyValueFromRml(
 		return true;
 	}
 
-	return StencilComponent::getPropertyValueFromRml(propertyDesc, outValue);
+	return StencilComponent::getPropertyValue(propertyDesc, outValue);
 }
 
-bool QuadStencilComponent::setPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc,
+bool QuadStencilComponent::setPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc,
 	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -238,7 +238,7 @@ bool QuadStencilComponent::setPropertyValueFromRml(
 		return true;
 	}
 
-	return StencilComponent::setPropertyValueFromRml(propertyDesc, inValue);
+	return StencilComponent::setPropertyValue(propertyDesc, inValue);
 }
 
 // -- Lua Binding ----

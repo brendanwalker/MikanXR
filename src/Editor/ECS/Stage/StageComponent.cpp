@@ -67,18 +67,18 @@ void StageComponent::dispose()
 	TransformComponent::dispose();
 }
 
-void StageComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
+void StageComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	TransformComponent::getRmlPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			StageComponentDefinition::k_trackingVolumeIdPropertyId, MikanVariantType::INT)
 			->setDefaultValue(-1));
 }
 
-bool StageComponent::getPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc,
+bool StageComponent::getPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc,
 	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -89,11 +89,11 @@ bool StageComponent::getPropertyValueFromRml(
 		return true;
 	}
 
-	return TransformComponent::getPropertyValueFromRml(propertyDesc, outValue);
+	return TransformComponent::getPropertyValue(propertyDesc, outValue);
 }
 
-bool StageComponent::setPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc,
+bool StageComponent::setPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc,
 	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -104,7 +104,7 @@ bool StageComponent::setPropertyValueFromRml(
 		return true;
 	}
 
-	return TransformComponent::setPropertyValueFromRml(propertyDesc, inValue);
+	return TransformComponent::setPropertyValue(propertyDesc, inValue);
 }
 
 TrackingVolumeComponentConstPtr StageComponent::getTrackingVolumeConst() const
@@ -137,16 +137,16 @@ TrackingVolumeDefinitionConstPtr StageComponent::getTrackingVolumeDefinitionCons
 // -- IRmlFunctionInterface ----
 const std::string StageComponent::k_deleteStageFunctionId = "delete_stage";
 
-void StageComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
+void StageComponent::getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
 	MikanComponent::getRmlFunctionDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
+		std::make_shared<FunctionDescriptor>(
 			k_deleteStageFunctionId, "Delete Stage"));
 }
 
-bool StageComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
+bool StageComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
 {
 	const std::string& functionId = functionDesc->getFunctionName();
 
@@ -156,7 +156,7 @@ bool StageComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functio
 		return true;
 	}
 
-	return MikanComponent::invokeFunctionFromRml(functionDesc);
+	return MikanComponent::invokeFunction(functionDesc);
 }
 
 MikanStageID StageComponent::getStageId() const

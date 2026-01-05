@@ -43,12 +43,12 @@ public:
 	IMkTexturePtr getClientDepthSourceTexture(eTextureSourceDepthType textureSourceColorType) const;
 
 	// -- IRmlPropertyInterface ----
-	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors);
-	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override;
-	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue) override;
+	static void getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
+	virtual bool getPropertyValue(PropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override;
+	virtual bool setPropertyValue(PropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue) override;
 
 	// -- IRmlFunctionInterface ----
-	static void getFunctionNamesStatic(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
+	static void getFunctionNamesStatic(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 	{ TextureSourceComponent::getRmlFunctionDescriptors(outDescriptors); }
 
 protected:

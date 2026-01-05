@@ -487,30 +487,30 @@ void NetworkVideoSourceComponent::notifyVideoFrameReceived(
 }
 
 // -- IRmlPropertyInterface ----
-void NetworkVideoSourceComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
+void NetworkVideoSourceComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	VideoSourceComponent::getRmlPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			NetworkVideoSourceDefinition::k_addressPropertyId, MikanVariantType::STRING)
 		->setDefaultValue("192.168.1.1"));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			NetworkVideoSourceDefinition::k_pathPropertyId, MikanVariantType::STRING)
 		->setDefaultValue(""));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			NetworkVideoSourceDefinition::k_protocolPropertyId, MikanVariantType::STRING)
 		->setDefaultValue(k_NetworkVideoProtocol[(int)eNetworkVideoProtocol::RTSP]));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			NetworkVideoSourceDefinition::k_portPropertyId, MikanVariantType::INT)
 		->setDefaultValue(DEFAULT_RTMP_PORT));
 }
 
-bool NetworkVideoSourceComponent::getPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc,
+bool NetworkVideoSourceComponent::getPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc,
 	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -536,11 +536,11 @@ bool NetworkVideoSourceComponent::getPropertyValueFromRml(
 		return true;
 	}
 
-	return VideoSourceComponent::getPropertyValueFromRml(propertyDesc, outValue);
+	return VideoSourceComponent::getPropertyValue(propertyDesc, outValue);
 }
 
-bool NetworkVideoSourceComponent::setPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc,
+bool NetworkVideoSourceComponent::setPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc,
 	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -570,7 +570,7 @@ bool NetworkVideoSourceComponent::setPropertyValueFromRml(
 		return true;
 	}
 
-	return VideoSourceComponent::setPropertyValueFromRml(propertyDesc, inValue);
+	return VideoSourceComponent::setPropertyValue(propertyDesc, inValue);
 }
 
 void NetworkVideoSourceComponent::onDefinitionMarkedDirty(

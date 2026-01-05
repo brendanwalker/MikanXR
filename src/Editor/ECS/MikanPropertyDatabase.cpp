@@ -13,7 +13,7 @@ void MikanPropertyDatabase::clear()
 void MikanPropertyDatabase::registerProperty(
 	const std::string& systemName,
 	const std::string& componentClassName,
-	RmlPropertyDescriptorConstPtr descriptor)
+	PropertyDescriptorConstPtr descriptor)
 {
 	const int propertyIndex = (int)m_properties.size();
 	m_properties.push_back(MikanPropertyEntry(propertyIndex, systemName, componentClassName, descriptor));
@@ -60,7 +60,7 @@ const MikanPropertyEntry* MikanPropertyDatabase::getPropertyByIndex(int property
 	return nullptr;
 }
 
-RmlPropertyDescriptorConstPtr MikanPropertyDatabase::findPropertyDescriptor(
+PropertyDescriptorConstPtr MikanPropertyDatabase::findPropertyDescriptor(
 	const std::string& systemName,
 	const std::string& componentClassName,
 	const std::string& propertyName) const

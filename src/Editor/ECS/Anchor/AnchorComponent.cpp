@@ -130,19 +130,19 @@ void AnchorComponent::customRender()
 const std::string AnchorComponent::k_editAnchorFunctionId = "edit_anchor";
 const std::string AnchorComponent::k_deleteAnchorFunctionId = "delete_anchor";
 
-void AnchorComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
+void AnchorComponent::getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
 	TransformComponent::getRmlFunctionDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
+		std::make_shared<FunctionDescriptor>(
 			k_editAnchorFunctionId, "Edit Anchor"));
 	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
+		std::make_shared<FunctionDescriptor>(
 			k_deleteAnchorFunctionId, "Delete Anchor"));
 }
 
-bool AnchorComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
+bool AnchorComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
 {
 	const std::string& functionName = functionDesc->getFunctionName();
 
@@ -157,7 +157,7 @@ bool AnchorComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functi
 		return true;
 	}
 
-	return TransformComponent::invokeFunctionFromRml(functionDesc);
+	return TransformComponent::invokeFunction(functionDesc);
 }
 
 StageComponentConstPtr AnchorComponent::getOwnerStageComponent() const

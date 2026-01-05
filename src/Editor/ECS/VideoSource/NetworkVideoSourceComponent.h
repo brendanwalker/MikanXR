@@ -81,9 +81,9 @@ public:
 	virtual void notifyVideoFrameReceived(const NetworkVideoFrameBuffer& bufferInfo) override;
 
 	// -- IRmlPropertyInterface ----
-	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors);
-	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override;
-	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue) override;
+	static void getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
+	virtual bool getPropertyValue(PropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override;
+	virtual bool setPropertyValue(PropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue) override;
 
 protected:
 	void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);

@@ -76,7 +76,7 @@ void PropertyRequestHandler::setPropertyValueHandler(
 			return;
 		}
 
-		RmlPropertyDescriptorConstPtr propertyDescriptor =
+		PropertyDescriptorConstPtr propertyDescriptor =
 			propertyDatabase->findPropertyDescriptor(
 				setValueRequest.ownerSystem.getValue(),
 				componentPtr->getComponentClassName(),
@@ -88,7 +88,7 @@ void PropertyRequestHandler::setPropertyValueHandler(
 		}
 
 		// Set the property value on the component
-		if (!componentPtr->setPropertyValueFromRml(propertyDescriptor, variantValue))
+		if (!componentPtr->setPropertyValue(propertyDescriptor, variantValue))
 		{
 			writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 			return;
@@ -96,7 +96,7 @@ void PropertyRequestHandler::setPropertyValueHandler(
 	}
 	else
 	{
-		RmlPropertyDescriptorConstPtr propertyDescriptor =
+		PropertyDescriptorConstPtr propertyDescriptor =
 			propertyDatabase->findPropertyDescriptor(
 				setValueRequest.ownerSystem.getValue(),
 				"",
@@ -108,7 +108,7 @@ void PropertyRequestHandler::setPropertyValueHandler(
 		}
 
 		// Set the property value on the system
-		if (!objectSystem->setPropertyValueFromRml(propertyDescriptor, variantValue))
+		if (!objectSystem->setPropertyValue(propertyDescriptor, variantValue))
 		{
 			writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 			return;
@@ -155,7 +155,7 @@ void PropertyRequestHandler::getPropertyValueHandler(
 			return;
 		}
 
-		RmlPropertyDescriptorConstPtr propertyDescriptor =
+		PropertyDescriptorConstPtr propertyDescriptor =
 			propertyDatabase->findPropertyDescriptor(
 				getValueRequest.ownerSystem.getValue(),
 				componentPtr->getComponentClassName(),
@@ -167,7 +167,7 @@ void PropertyRequestHandler::getPropertyValueHandler(
 		}
 
 		// Get the property value from the component
-		if (!componentPtr->getPropertyValueFromRml(propertyDescriptor, getValueResponse.propertyValue.fieldValue))
+		if (!componentPtr->getPropertyValue(propertyDescriptor, getValueResponse.propertyValue.fieldValue))
 		{
 			writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 			return;
@@ -175,7 +175,7 @@ void PropertyRequestHandler::getPropertyValueHandler(
 	}
 	else
 	{
-		RmlPropertyDescriptorConstPtr propertyDescriptor =
+		PropertyDescriptorConstPtr propertyDescriptor =
 			propertyDatabase->findPropertyDescriptor(
 				getValueRequest.ownerSystem.getValue(),
 				"", // No component class name for system properties
@@ -187,7 +187,7 @@ void PropertyRequestHandler::getPropertyValueHandler(
 		}
 
 		// Get the property value from the system
-		if (!objectSystem->getPropertyValueFromRml(propertyDescriptor, getValueResponse.propertyValue.fieldValue))
+		if (!objectSystem->getPropertyValue(propertyDescriptor, getValueResponse.propertyValue.fieldValue))
 		{
 			writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 			return;

@@ -83,17 +83,17 @@ IMkTexturePtr ClientTextureSourceComponent::getClientDepthSourceTexture(
 }
 
 // -- IRmlPropertyInterface ----
-void ClientTextureSourceComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
+void ClientTextureSourceComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	TextureSourceComponent::getRmlPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			ClientTextureSourceDefinition::k_clientSourcePropertyId, MikanVariantType::STRING));
 }
 
-bool ClientTextureSourceComponent::getPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc,
+bool ClientTextureSourceComponent::getPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc,
 	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -104,11 +104,11 @@ bool ClientTextureSourceComponent::getPropertyValueFromRml(
 		return true;
 	}
 
-	return TextureSourceComponent::getPropertyValueFromRml(propertyDesc, outValue);
+	return TextureSourceComponent::getPropertyValue(propertyDesc, outValue);
 }
 
-bool ClientTextureSourceComponent::setPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc,
+bool ClientTextureSourceComponent::setPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc,
 	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -120,7 +120,7 @@ bool ClientTextureSourceComponent::setPropertyValueFromRml(
 		return true;
 	}
 
-	return TextureSourceComponent::setPropertyValueFromRml(propertyDesc, inValue);
+	return TextureSourceComponent::setPropertyValue(propertyDesc, inValue);
 }
 
 ClientSourceManager* ClientTextureSourceComponent::getClientSourceManager() const

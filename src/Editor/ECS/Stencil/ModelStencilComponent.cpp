@@ -433,17 +433,17 @@ void ModelStencilComponent::onTransformGizmoUnbound()
 }
 
 // -- IRmlPropertyInterface ----
-void ModelStencilComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
+void ModelStencilComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	StencilComponent::getRmlPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			ModelStencilDefinition::k_modelStencilObjPathPropertyId, MikanVariantType::STRING));
 }
 
-bool ModelStencilComponent::getPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc,
+bool ModelStencilComponent::getPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc,
 	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -456,11 +456,11 @@ bool ModelStencilComponent::getPropertyValueFromRml(
 		return true;
 	}
 
-	return StencilComponent::getPropertyValueFromRml(propertyDesc, outValue);
+	return StencilComponent::getPropertyValue(propertyDesc, outValue);
 }
 
-bool ModelStencilComponent::setPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc,
+bool ModelStencilComponent::setPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc,
 	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -474,7 +474,7 @@ bool ModelStencilComponent::setPropertyValueFromRml(
 		return true;
 	}
 
-	return StencilComponent::setPropertyValueFromRml(propertyDesc, inValue);
+	return StencilComponent::setPropertyValue(propertyDesc, inValue);
 }
 
 // -- IRmlFunctionInterface ----
@@ -482,22 +482,22 @@ const std::string ModelStencilComponent::k_addNewModelFunctionId = "add_new_mode
 const std::string ModelStencilComponent::k_removeModelFunctionId = "remove_model";
 const std::string ModelStencilComponent::k_alignStencilFunctionId = "align_stencil";
 
-void ModelStencilComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
+void ModelStencilComponent::getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
 	StencilComponent::getRmlFunctionDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
+		std::make_shared<FunctionDescriptor>(
 			k_addNewModelFunctionId, "Add New Model"));
 	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
+		std::make_shared<FunctionDescriptor>(
 			k_removeModelFunctionId, "Remove Model"));
 	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
+		std::make_shared<FunctionDescriptor>(
 			k_alignStencilFunctionId, "Align Stencil"));
 }
 
-bool ModelStencilComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
+bool ModelStencilComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
 {
 	const std::string& functionName = functionDesc->getFunctionName();
 
@@ -514,7 +514,7 @@ bool ModelStencilComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr 
 		alignStencil();
 	}
 
-	return StencilComponent::invokeFunctionFromRml(functionDesc);
+	return StencilComponent::invokeFunction(functionDesc);
 }
 
 void ModelStencilComponent::addNewModel()

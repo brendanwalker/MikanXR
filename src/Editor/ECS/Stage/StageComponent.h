@@ -59,14 +59,14 @@ public:
 	virtual void dispose() override;
 
 	// -- IRmlPropertyInterface ----
-	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors);
-	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override;
-	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue) override;
+	static void getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
+	virtual bool getPropertyValue(PropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override;
+	virtual bool setPropertyValue(PropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue) override;
 
 	// -- IRmlFunctionInterface ----
 	static const std::string k_deleteStageFunctionId;
-	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outPropertyNames);
-	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
+	static void getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames);
+	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
 
 	// -- StageComponent ----
 	MikanStageID getStageId() const;

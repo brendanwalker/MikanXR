@@ -66,19 +66,19 @@ IMkTexturePtr TextureSourceComponent::getClientDepthSourceTexture(eTextureSource
 }
 
 // -- IRmlPropertyInterface ----
-void TextureSourceComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
+void TextureSourceComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	MikanComponent::getRmlPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			TextureSourceDefinition::k_TextureSourceIdPropertyId, MikanVariantType::INT)
 		->setReadOnly()
 		->setDefaultValue(-1));
 }
 
-bool TextureSourceComponent::getPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc, 
+bool TextureSourceComponent::getPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc, 
 	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -89,33 +89,33 @@ bool TextureSourceComponent::getPropertyValueFromRml(
 		return true;
 	}
 
-	return MikanComponent::getPropertyValueFromRml(propertyDesc, outValue);
+	return MikanComponent::getPropertyValue(propertyDesc, outValue);
 }
 
-bool TextureSourceComponent::setPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc, 
+bool TextureSourceComponent::setPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc, 
 	const MikanVariant& inValue)
 {
-	return MikanComponent::setPropertyValueFromRml(propertyDesc, inValue);
+	return MikanComponent::setPropertyValue(propertyDesc, inValue);
 }
 
 // -- IRmlFunctionInterface ----
 const std::string TextureSourceComponent::k_deleteTextureSourceFunctionId = "delete_video_source";
 const std::string TextureSourceComponent::k_showTextureSourceSettingsFunctionId = "show_texture_source_settings";
 
-void TextureSourceComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
+void TextureSourceComponent::getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
 	MikanComponent::getRmlFunctionDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
+		std::make_shared<FunctionDescriptor>(
 			k_deleteTextureSourceFunctionId, "Delete Video Source"));
 	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
+		std::make_shared<FunctionDescriptor>(
 			k_showTextureSourceSettingsFunctionId, "Show Texture Source Settings"));
 }
 
-bool TextureSourceComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
+bool TextureSourceComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
 {
 	const std::string& functionName = functionDesc->getFunctionName();
 
@@ -130,7 +130,7 @@ bool TextureSourceComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr
 		return true;
 	}
 
-	return MikanComponent::invokeFunctionFromRml(functionDesc);
+	return MikanComponent::invokeFunction(functionDesc);
 }
 
 void TextureSourceComponent::deleteTextureSource()

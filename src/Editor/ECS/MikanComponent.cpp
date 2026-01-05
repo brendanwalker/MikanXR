@@ -314,22 +314,22 @@ void MikanComponent::disposeScriptContext()
 }
 
 // -- IRmlPropertyInterface ----
-void MikanComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
+void MikanComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			MikanComponentDefinition::k_componentIdPropertyId, MikanVariantType::INT)
 		->setReadOnly()
 		->setDefaultValue(-1));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			MikanComponentDefinition::k_componentNamePropertyId, MikanVariantType::STRING));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			MikanComponentDefinition::k_componentScriptPathPropertyId, MikanVariantType::STRING));
 }
 
-bool MikanComponent::getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const
+bool MikanComponent::getPropertyValue(PropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
 
@@ -352,7 +352,7 @@ bool MikanComponent::getPropertyValueFromRml(RmlPropertyDescriptorConstPtr prope
 	return false;
 }
 
-bool MikanComponent::setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue)
+bool MikanComponent::setPropertyValue(PropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
 
@@ -384,20 +384,20 @@ const std::string MikanComponent::k_reloadScriptFunctionId = "reload_script";
 const std::string MikanComponent::k_addNewScriptFunctionId = "add_new_script";
 const std::string MikanComponent::k_removeScriptFunctionId = "remove_script";
 
-void MikanComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
+void MikanComponent::getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
 	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
+		std::make_shared<FunctionDescriptor>(
 			k_reloadScriptFunctionId, "Reload Script"));
 	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
+		std::make_shared<FunctionDescriptor>(
 			k_addNewScriptFunctionId, "Add New Script"));
 	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
+		std::make_shared<FunctionDescriptor>(
 			k_removeScriptFunctionId, "Remove Script"));
 }
 
-bool MikanComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
+bool MikanComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
 {
 	const std::string& functionName = functionDesc->getFunctionName();
 

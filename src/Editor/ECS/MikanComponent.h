@@ -120,16 +120,16 @@ public:
 	virtual CommonConfigPtr getEntityConfig() override { return m_definition; }
 
 	// -- IRmlPropertyInterface ----
-	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors);
-	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override;
-	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue) override;
+	static void getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
+	virtual bool getPropertyValue(PropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override;
+	virtual bool setPropertyValue(PropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue) override;
 
 	// -- IRmlFunctionInterface ----
 	static const std::string k_reloadScriptFunctionId;
 	static const std::string k_addNewScriptFunctionId;
 	static const std::string k_removeScriptFunctionId;
-	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors);
-	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
+	static void getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
+	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
 
 	// -- Lua Binding ----
 	static void bindLuaFunctions(struct lua_State* L);

@@ -101,18 +101,18 @@ void TrackingVolumeComponent::deleteTrackingVolume()
 }
 
 // -- IRmlPropertyInterface ----
-void TrackingVolumeComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
+void TrackingVolumeComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	MikanComponent::getRmlPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			TrackingVolumeDefinition::k_originMarkerIdPropertyId, MikanVariantType::INT)
 			->setDefaultValue(-1));
 }
 
-bool TrackingVolumeComponent::getPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc,
+bool TrackingVolumeComponent::getPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc,
 	MikanVariant& outValue) const
 {
 	const std::string& propertyId = propertyDesc->getName();
@@ -123,11 +123,11 @@ bool TrackingVolumeComponent::getPropertyValueFromRml(
 		return true;
 	}
 
-	return MikanComponent::getPropertyValueFromRml(propertyDesc, outValue);
+	return MikanComponent::getPropertyValue(propertyDesc, outValue);
 }
 
-bool TrackingVolumeComponent::setPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc,
+bool TrackingVolumeComponent::setPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc,
 	const MikanVariant& inValue)
 {
 	const std::string& propertyId = propertyDesc->getName();
@@ -139,5 +139,5 @@ bool TrackingVolumeComponent::setPropertyValueFromRml(
 		return true;
 	}
 
-	return MikanComponent::setPropertyValueFromRml(propertyDesc, inValue);
+	return MikanComponent::setPropertyValue(propertyDesc, inValue);
 }

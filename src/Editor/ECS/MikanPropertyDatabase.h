@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RmlPropertyInterface.h"
+#include "PropertyInterface.h"
 
 #include <memory>
 #include <string>
@@ -16,13 +16,13 @@ struct MikanPropertyEntry
 	int propertyIndex;
 	std::string systemName;
 	std::string componentClassName;
-	RmlPropertyDescriptorConstPtr descriptor;
+	PropertyDescriptorConstPtr descriptor;
 
 	MikanPropertyEntry(
 		int inPropertyIndex,
 		const std::string& inSystemName,
 		const std::string& inComponentClassName,
-		RmlPropertyDescriptorConstPtr inDescriptor)
+		PropertyDescriptorConstPtr inDescriptor)
 		: propertyIndex(inPropertyIndex)
 		, systemName(inSystemName)
 		, componentClassName(inComponentClassName)
@@ -39,10 +39,10 @@ public:
 	template <class t_system_class>
 	void registerPropertiesForSystem()
 	{
-		std::vector<RmlPropertyDescriptorConstPtr> descriptors;
+		std::vector<PropertyDescriptorConstPtr> descriptors;
 		t_system_class::getRmlPropertyDescriptors(descriptors);
 
-		for (const RmlPropertyDescriptorConstPtr& descriptor : descriptors)
+		for (const PropertyDescriptorConstPtr& descriptor : descriptors)
 		{
 			registerProperty(t_system_class::k_objectSystemClassName, "", descriptor);
 		}
@@ -51,10 +51,10 @@ public:
 	template <class t_system_class, class t_component_class>
 	void registerPropertiesForComponent()
 	{
-		std::vector<RmlPropertyDescriptorConstPtr> descriptors;
+		std::vector<PropertyDescriptorConstPtr> descriptors;
 		t_component_class::getRmlPropertyDescriptors(descriptors);
 
-		for (const RmlPropertyDescriptorConstPtr& descriptor : descriptors)
+		for (const PropertyDescriptorConstPtr& descriptor : descriptors)
 		{
 			registerProperty(
 				t_system_class::k_objectSystemClassName, 
@@ -67,7 +67,7 @@ public:
 	void registerProperty(
 		const std::string& systemName,
 		const std::string& componentClassName,
-		RmlPropertyDescriptorConstPtr descriptor);
+		PropertyDescriptorConstPtr descriptor);
 
 	const std::vector<MikanPropertyEntry>& getAllProperties() const { return m_properties; }
 
@@ -77,7 +77,7 @@ public:
 		const std::string& propertyName) const;
 	const MikanPropertyEntry* getPropertyByIndex(int propertyIndex) const;
 
-	RmlPropertyDescriptorConstPtr findPropertyDescriptor(
+	PropertyDescriptorConstPtr findPropertyDescriptor(
 		const std::string& systemName,
 		const std::string& componentClassName,
 		const std::string& propertyName) const;

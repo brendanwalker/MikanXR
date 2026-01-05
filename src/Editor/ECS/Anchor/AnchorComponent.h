@@ -58,8 +58,8 @@ public:
 	// -- IRmlFunctionInterface ----
 	static const std::string k_editAnchorFunctionId;
 	static const std::string k_deleteAnchorFunctionId;
-	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors);
-	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
+	static void getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
+	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
 
 	void editAnchor();
 	void deleteAnchor();

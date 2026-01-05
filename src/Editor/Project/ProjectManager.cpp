@@ -8,7 +8,7 @@
 #include "CompositorObjectSystem.h"
 #include "EditorObjectSystem.h"
 #include "IMkWindow.h"
-#include "RmlPropertyInterface.h"
+#include "PropertyInterface.h"
 #include "MainWindow.h"
 #include "MarkerObjectSystem.h"
 #include "MikanPropertyDatabase.h"

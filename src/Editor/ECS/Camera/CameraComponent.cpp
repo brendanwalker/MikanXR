@@ -474,29 +474,29 @@ void CameraComponent::refreshTrackingMount()
 }
 
 // -- IRmlPropertyInterface ----
-void CameraComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
+void CameraComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	TransformComponent::getRmlPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_trackingMountIdPropertyId, MikanVariantType::INT)
+		std::make_shared<PropertyDescriptor>(CameraDefinition::k_trackingMountIdPropertyId, MikanVariantType::INT)
 		->setDefaultValue(-1));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_videoSourceIdPropertyId, MikanVariantType::INT)
+		std::make_shared<PropertyDescriptor>(CameraDefinition::k_videoSourceIdPropertyId, MikanVariantType::INT)
 		->setDefaultValue(-1));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_trackingFrameDelayPropertyId, MikanVariantType::INT)
+		std::make_shared<PropertyDescriptor>(CameraDefinition::k_trackingFrameDelayPropertyId, MikanVariantType::INT)
 		->setDefaultValue(0));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_apertureOrientationOffsetPropertyId, MikanVariantType::VECTOR3F)
+		std::make_shared<PropertyDescriptor>(CameraDefinition::k_apertureOrientationOffsetPropertyId, MikanVariantType::VECTOR3F)
 		->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f)));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_aperturePositionOffsetPropertyId, MikanVariantType::VECTOR3F)
+		std::make_shared<PropertyDescriptor>(CameraDefinition::k_aperturePositionOffsetPropertyId, MikanVariantType::VECTOR3F)
 		->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f)));
 }
 
-bool CameraComponent::getPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc, 
+bool CameraComponent::getPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc, 
 	MikanVariant& outValue) const
 {
 	std::string propertyName = propertyDesc->getName();
@@ -517,11 +517,11 @@ bool CameraComponent::getPropertyValueFromRml(
 		return true;
 	}
 
-	return TransformComponent::getPropertyValueFromRml(propertyDesc, outValue);
+	return TransformComponent::getPropertyValue(propertyDesc, outValue);
 }
 
-bool CameraComponent::setPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc, 
+bool CameraComponent::setPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc, 
 	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -545,23 +545,23 @@ bool CameraComponent::setPropertyValueFromRml(
 		return true;
 	}
 
-	return TransformComponent::setPropertyValueFromRml(propertyDesc, inValue);
+	return TransformComponent::setPropertyValue(propertyDesc, inValue);
 }
 
 // -- IRmlFunctionInterface ----
-void CameraComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
+void CameraComponent::getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
 	MikanComponent::getRmlFunctionDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
+		std::make_shared<FunctionDescriptor>(
 			k_alignCameraFunctionId, "Align Camera"));
 	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
+		std::make_shared<FunctionDescriptor>(
 			k_deleteCameraFunctionId, "Delete Camera"));
 }
 
-bool CameraComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
+bool CameraComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
 {
 	const std::string& functionName = functionDesc->getFunctionName();
 
@@ -574,7 +574,7 @@ bool CameraComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functi
 		deleteCamera();
 	}
 
-	return TransformComponent::invokeFunctionFromRml(functionDesc);
+	return TransformComponent::invokeFunction(functionDesc);
 }
 
 void CameraComponent::alignCamera()

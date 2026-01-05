@@ -194,17 +194,17 @@ IMkTexturePtr SpoutTextureSourceComponent::getClientColorSourceTexture(
 }
 
 // -- IRmlPropertyInterface ----
-void SpoutTextureSourceComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
+void SpoutTextureSourceComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	TextureSourceComponent::getRmlPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			SpoutTextureSourceDefinition::k_spoutSourcePropertyId, MikanVariantType::STRING));
 }
 
-bool SpoutTextureSourceComponent::getPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc,
+bool SpoutTextureSourceComponent::getPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc,
 	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -215,11 +215,11 @@ bool SpoutTextureSourceComponent::getPropertyValueFromRml(
 		return true;
 	}
 
-	return TextureSourceComponent::getPropertyValueFromRml(propertyDesc, outValue);
+	return TextureSourceComponent::getPropertyValue(propertyDesc, outValue);
 }
 
-bool SpoutTextureSourceComponent::setPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc,
+bool SpoutTextureSourceComponent::setPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc,
 	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -231,5 +231,5 @@ bool SpoutTextureSourceComponent::setPropertyValueFromRml(
 		return true;
 	}
 
-	return TextureSourceComponent::setPropertyValueFromRml(propertyDesc, inValue);
+	return TextureSourceComponent::setPropertyValue(propertyDesc, inValue);
 }

@@ -1,6 +1,6 @@
-#include "RmlPropertyInterface.h"
+#include "PropertyInterface.h"
 
-RmlPropertyDescriptor::RmlPropertyDescriptor()
+PropertyDescriptor::PropertyDescriptor()
 	: m_propertyName("")
 	, m_dataType(MikanVariantType::INVALID)
 	, m_bIsReadable(false)
@@ -8,7 +8,7 @@ RmlPropertyDescriptor::RmlPropertyDescriptor()
 	, m_defaultValue(std::make_unique<MikanVariant>())
 {}
 
-RmlPropertyDescriptor::RmlPropertyDescriptor(const std::string& name)
+PropertyDescriptor::PropertyDescriptor(const std::string& name)
 	: m_propertyName(name)
 	, m_dataType(MikanVariantType::INVALID)
 	, m_bIsReadable(false)
@@ -17,7 +17,7 @@ RmlPropertyDescriptor::RmlPropertyDescriptor(const std::string& name)
 {
 }
 
-RmlPropertyDescriptor::RmlPropertyDescriptor(const std::string& name, MikanVariantType type)
+PropertyDescriptor::PropertyDescriptor(const std::string& name, MikanVariantType type)
 	: m_propertyName(name)
 	, m_dataType(type)
 	, m_bIsReadable(true)
@@ -25,14 +25,14 @@ RmlPropertyDescriptor::RmlPropertyDescriptor(const std::string& name, MikanVaria
 	, m_defaultValue(std::make_unique<MikanVariant>())
 {}
 
-RmlPropertyDescriptor::RmlPropertyDescriptor(const RmlPropertyDescriptor& other)
+PropertyDescriptor::PropertyDescriptor(const PropertyDescriptor& other)
 	: m_propertyName(other.m_propertyName)
 	, m_bIsReadable(other.m_bIsReadable)
 	, m_bIsWritable(other.m_bIsWritable)
 	, m_defaultValue(std::make_unique<MikanVariant>(*(other.m_defaultValue.get())))
 {}
 
-RmlPropertyDescriptorPtr RmlPropertyDescriptor::setReadOnly()
+PropertyDescriptorPtr PropertyDescriptor::setReadOnly()
 {
 	assert(m_dataType != MikanVariantType::INVALID);
 	m_bIsReadable = true;

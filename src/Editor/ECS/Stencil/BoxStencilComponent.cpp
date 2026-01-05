@@ -170,23 +170,23 @@ void BoxStencilComponent::updateBoxColliderExtents()
 }
 
 // -- IRmlPropertyInterface ----
-void BoxStencilComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
+void BoxStencilComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	StencilComponent::getRmlPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			BoxStencilDefinition::k_boxStencilXSizePropertyId, MikanVariantType::FLOAT));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			BoxStencilDefinition::k_boxStencilYSizePropertyId, MikanVariantType::FLOAT));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			BoxStencilDefinition::k_boxStencilZSizePropertyId, MikanVariantType::FLOAT));
 }
 
-bool BoxStencilComponent::getPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc,
+bool BoxStencilComponent::getPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc,
 	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -207,11 +207,11 @@ bool BoxStencilComponent::getPropertyValueFromRml(
 		return true;
 	}
 
-	return StencilComponent::getPropertyValueFromRml(propertyDesc, outValue);
+	return StencilComponent::getPropertyValue(propertyDesc, outValue);
 }
 
-bool BoxStencilComponent::setPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc,
+bool BoxStencilComponent::setPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc,
 	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -238,7 +238,7 @@ bool BoxStencilComponent::setPropertyValueFromRml(
 		return true;
 	}
 
-	return StencilComponent::setPropertyValueFromRml(propertyDesc, inValue);
+	return StencilComponent::setPropertyValue(propertyDesc, inValue);
 }
 
 // -- Lua Binding ----

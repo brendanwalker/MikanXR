@@ -23,10 +23,10 @@ public:
 		const std::string& modelName,
 		OnConstruct onContructCallback = {})
 	{
-		std::vector<RmlPropertyDescriptorConstPtr> propertyNames;
+		std::vector<PropertyDescriptorConstPtr> propertyNames;
 		t_property_interface::getRmlPropertyDescriptors(propertyNames);
 
-		std::vector<RmlFunctionDescriptorConstPtr> functionNames;
+		std::vector<FunctionDescriptorConstPtr> functionNames;
 		t_property_interface::getRmlFunctionDescriptors(functionNames);
 
 		return init(
@@ -40,8 +40,8 @@ public:
 	bool init(
 		Rml::Context* rmlContext,
 		const std::string& modelName,
-		const std::vector<RmlPropertyDescriptorConstPtr>& propertyDescriptors,
-		const std::vector<RmlFunctionDescriptorConstPtr>& functionDescriptors,
+		const std::vector<PropertyDescriptorConstPtr>& propertyDescriptors,
+		const std::vector<FunctionDescriptorConstPtr>& functionDescriptors,
 		OnConstruct onContructCallback);
 
 	void clearEntityAccessor();
@@ -56,5 +56,5 @@ protected:
 private:
 	bool m_bWasAccessorSet = false;
 	IEntityAccessorWeakPtr m_entityAccessor;
-	std::map<std::string, RmlPropertyDescriptorConstPtr> m_propertyDescriptors;
+	std::map<std::string, PropertyDescriptorConstPtr> m_propertyDescriptors;
 };

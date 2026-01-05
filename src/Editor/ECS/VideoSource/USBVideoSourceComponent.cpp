@@ -908,29 +908,29 @@ void USBVideoSourceComponent::notifyVideoFrameReceived(const UsbVideoFrameBuffer
 // -- IRmlPropertyInterface ----
 const std::string USBVideoSourceComponent::k_currentDevicePathPropertyId = "current_device_path";
 
-void USBVideoSourceComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
+void USBVideoSourceComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	VideoSourceComponent::getRmlPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			USBVideoSourceDefinition::k_desiredDevicePathPropertyId, MikanVariantType::STRING));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			USBVideoSourceComponent::k_currentDevicePathPropertyId, MikanVariantType::STRING)
 		->setReadOnly());
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			USBVideoSourceDefinition::k_videoModePropertyId, MikanVariantType::STRING));
 
 	// Non-read/writable properties used to signal settings changes
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			USBVideoSourceDefinition::k_videoSettingsPropertyId));
 }
 
-bool USBVideoSourceComponent::getPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc,
+bool USBVideoSourceComponent::getPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc,
 	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -951,11 +951,11 @@ bool USBVideoSourceComponent::getPropertyValueFromRml(
 		return true;
 	}
 
-	return VideoSourceComponent::getPropertyValueFromRml(propertyDesc, outValue);
+	return VideoSourceComponent::getPropertyValue(propertyDesc, outValue);
 }
 
-bool USBVideoSourceComponent::setPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc,
+bool USBVideoSourceComponent::setPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc,
 	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -973,22 +973,22 @@ bool USBVideoSourceComponent::setPropertyValueFromRml(
 		return true;
 	}
 
-	return VideoSourceComponent::setPropertyValueFromRml(propertyDesc, inValue);
+	return VideoSourceComponent::setPropertyValue(propertyDesc, inValue);
 }
 
 // -- IRmlFunctionInterface ----
 const std::string USBVideoSourceComponent::k_resetToDefaultsFunctionId = "reset_settings";
 
-void USBVideoSourceComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outPropertyNames)
+void USBVideoSourceComponent::getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames)
 {
 	VideoSourceComponent::getRmlFunctionDescriptors(outPropertyNames);
 
 	outPropertyNames.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
+		std::make_shared<FunctionDescriptor>(
 			k_resetToDefaultsFunctionId, "Reset to Defaults"));
 }
 
-bool USBVideoSourceComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
+bool USBVideoSourceComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
 {
 	const std::string& functionName = functionDesc->getFunctionName();
 
@@ -998,5 +998,5 @@ bool USBVideoSourceComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPt
 		return true;
 	}
 
-	return VideoSourceComponent::invokeFunctionFromRml(functionDesc);
+	return VideoSourceComponent::invokeFunction(functionDesc);
 }

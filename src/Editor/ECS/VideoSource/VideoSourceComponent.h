@@ -109,17 +109,17 @@ public:
 	MulticastDelegate<void(VideoSourceComponentPtr videoSource)> OnIntrinsicsChanged;
 
 	// -- IRmlPropertyInterface ----
-	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors);
-	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override;
-	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue) override;
+	static void getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
+	virtual bool getPropertyValue(PropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override;
+	virtual bool setPropertyValue(PropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue) override;
 
 	// -- IRmlFunctionInterface ----
 	static const std::string k_deleteVideoSourceFunctionId;
 	static const std::string k_showVideoSourceSettingsFunctionId;
 	static const std::string k_calibrateIntrinsicsFunctionId;
 	static const std::string k_testIntrinsicsFunctionId;
-	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outPropertyNames);
-	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc) override;
+	static void getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames);
+	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
 
 	void deleteVideoSource();
 	void showVideoSourceSettings();

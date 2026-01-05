@@ -173,40 +173,40 @@ void VRTrackingVolumeComponent::setVRDevicePoseOffset(const glm::mat4& poseOffse
 const std::string VRTrackingVolumeComponent::k_vrDevicePositionOffsetPropertyId= "vr_device_position_offset";
 const std::string VRTrackingVolumeComponent::k_vrDeviceRotationOffsetPropertyId= "vr_device_rotation_offset";
 
-void VRTrackingVolumeComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
+void VRTrackingVolumeComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	TrackingVolumeComponent::getRmlPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			VRTrackingVolumeDefinition::k_trackingRuntimePropertyId, MikanVariantType::INT)
 		->setDefaultValue(-1)
 		->setReadOnly());
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			VRTrackingVolumeDefinition::k_charucoMountIdPropertyId, MikanVariantType::INT)
 		->setDefaultValue(-1));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			VRTrackingVolumeDefinition::k_charucoMountOffsetPropertyId, MikanVariantType::VECTOR3F)
 		->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f)));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(
+		std::make_shared<PropertyDescriptor>(
 			VRTrackingVolumeDefinition::k_utilityMarkerIdPropertyId, MikanVariantType::INT)
 		->setDefaultValue(-1));
 
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(k_vrDevicePositionOffsetPropertyId, MikanVariantType::VECTOR3F)
+		std::make_shared<PropertyDescriptor>(k_vrDevicePositionOffsetPropertyId, MikanVariantType::VECTOR3F)
 		->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f))
 		->setReadOnly());
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(k_vrDeviceRotationOffsetPropertyId, MikanVariantType::VECTOR3F)
+		std::make_shared<PropertyDescriptor>(k_vrDeviceRotationOffsetPropertyId, MikanVariantType::VECTOR3F)
 		->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f))
 		->setReadOnly());
 }
 
-bool VRTrackingVolumeComponent::getPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc, 
+bool VRTrackingVolumeComponent::getPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc, 
 	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -249,11 +249,11 @@ bool VRTrackingVolumeComponent::getPropertyValueFromRml(
 		return true;
 	}
 
-	return TrackingVolumeComponent::getPropertyValueFromRml(propertyDesc, outValue);
+	return TrackingVolumeComponent::getPropertyValue(propertyDesc, outValue);
 }
 
-bool VRTrackingVolumeComponent::setPropertyValueFromRml(
-	RmlPropertyDescriptorConstPtr propertyDesc,
+bool VRTrackingVolumeComponent::setPropertyValue(
+	PropertyDescriptorConstPtr propertyDesc,
 	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
@@ -281,22 +281,22 @@ bool VRTrackingVolumeComponent::setPropertyValueFromRml(
 		return true;
 	}
 
-	return TrackingVolumeComponent::setPropertyValueFromRml(propertyDesc, inValue);
+	return TrackingVolumeComponent::setPropertyValue(propertyDesc, inValue);
 }
 
 // -- IRmlFunctionInterface ----
 const std::string VRTrackingVolumeComponent::k_alignTrackingVolumeFunctionId= "align_tracking_volume";
 
-void VRTrackingVolumeComponent::getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors)
+void VRTrackingVolumeComponent::getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
 	TrackingVolumeComponent::getRmlFunctionDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<RmlFunctionDescriptor>(
+		std::make_shared<FunctionDescriptor>(
 			k_alignTrackingVolumeFunctionId, "Align Tracking Volume"));
 }
 
-bool VRTrackingVolumeComponent::invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)
+bool VRTrackingVolumeComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
 {
 	const std::string& functionId = functionDesc->getFunctionName();
 
@@ -306,7 +306,7 @@ bool VRTrackingVolumeComponent::invokeFunctionFromRml(RmlFunctionDescriptorConst
 		return true;
 	}
 
-	return TrackingVolumeComponent::invokeFunctionFromRml(functionDesc);
+	return TrackingVolumeComponent::invokeFunction(functionDesc);
 }
 
 void VRTrackingVolumeComponent::alignTrackingVolume()
