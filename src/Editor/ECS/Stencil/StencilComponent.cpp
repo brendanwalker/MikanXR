@@ -9,9 +9,6 @@
 #include "lua.hpp"
 #include "LuaBridge/LuaBridge.h"
 
-#include <RmlUi/Core/Types.h>
-#include <RmlUi/Core/Variant.h>
-
 // -- StencilComponentConfig -----
 const std::string StencilComponentDefinition::k_parentAnchorPropertyId = "parent_anchor_id";
 const std::string StencilComponentDefinition::k_stencilDisabledPropertyId = "is_disabled";
@@ -136,18 +133,20 @@ void StencilComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescript
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			StencilComponentDefinition::k_stencilDisabledPropertyId));
+			StencilComponentDefinition::k_stencilDisabledPropertyId, MikanVariantType::BOOL));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			StencilComponentDefinition::k_parentAnchorPropertyId));
+			StencilComponentDefinition::k_parentAnchorPropertyId, MikanVariantType::INT)
+		->setDefaultValue(-1));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			StencilComponentDefinition::k_stencilCullModePropertyId));
+			StencilComponentDefinition::k_stencilCullModePropertyId, MikanVariantType::INT)
+		->setDefaultValue((int)eStencilCullMode::none));
 }
 
 bool StencilComponent::getPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	Rml::Variant& outValue) const
+	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
 
@@ -172,27 +171,27 @@ bool StencilComponent::getPropertyValueFromRml(
 
 bool StencilComponent::setPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	const Rml::Variant& inValue)
+	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == StencilComponentDefinition::k_stencilDisabledPropertyId)
 	{
-		bool bIsDisabled = inValue.Get<bool>();
+		bool bIsDisabled = inValue.getBoolValue();
 
 		getStencilComponentDefinition()->setIsDisabled(bIsDisabled);
 		return true;
 	}
 	else if (propertyName == StencilComponentDefinition::k_parentAnchorPropertyId)
 	{
-		MikanSpatialAnchorID anchorId = inValue.Get<int>();
+		MikanSpatialAnchorID anchorId = inValue.getIntValue();
 
 		attachTransformComponentToAnchor(anchorId);
 		return true;
 	}
 	else if (propertyName == StencilComponentDefinition::k_stencilCullModePropertyId)
 	{
-		eStencilCullMode cullMode = (eStencilCullMode)inValue.Get<int>();
+		eStencilCullMode cullMode = (eStencilCullMode)inValue.getIntValue();
 
 		getStencilComponentDefinition()->setCullMode(cullMode);
 		return true;

@@ -10,6 +10,7 @@
 #include <vector>
 
 using MikanObjectList = std::vector<MikanObjectPtr>;
+using MikanPropertyDatabasePtr = std::shared_ptr<class MikanPropertyDatabase>;
 
 class MikanObjectSystemDefinition : public CommonConfig
 {
@@ -18,6 +19,12 @@ public:
 		: CommonConfig(configName)
 	{
 	}
+
+	MikanObjectSystemPtr getOwnerSystem() const { return m_ownerSystem.lock(); }
+	void setOwnerSystem(MikanObjectSystemPtr ownerSystem) { m_ownerSystem = ownerSystem; }
+
+protected:
+	MikanObjectSystemWeakPtr m_ownerSystem;
 };
 
 class MikanObjectSystem : 
@@ -45,6 +52,9 @@ public:
 	}
 	ProjectConfigPtr getProjectConfig() const;
 
+	const std::string& getSystemName() const { return m_systemName; };
+	virtual MikanComponentPtr getComponentById(int componentId) const = 0;
+
 	MikanObjectPtr newObject();
 	void deleteObject(MikanObjectPtr objectPtr);
 	void deleteAllObjects();
@@ -56,21 +66,24 @@ public:
 	MulticastDelegate<void(MikanObjectSystemPtr, MikanComponentPtr)> OnComponentInitialized;
 	MulticastDelegate<void(MikanObjectSystemPtr, MikanComponentConstPtr)> OnComponentDisposed;
 
+	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase);
+	
 	// -- IEntityAccessor ----
 	virtual CommonConfigPtr getEntityConfig() override { return getObjectSystemConfig(); }
 
 	// -- IRmlPropertyInterface ----
 	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors) {}
-	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, Rml::Variant& outValue) const override { return false; }
-	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const Rml::Variant& inValue) override { return false; }
+	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override { return false; }
+	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue) override { return false; }
 
 	// -- IRmlFunctionInterface ----
 	static void getRmlFunctionDescriptors(std::vector<RmlFunctionDescriptorConstPtr>& outDescriptors) {}
 	virtual bool invokeFunctionFromRml(RmlFunctionDescriptorConstPtr functionDesc)  override { return false; }
-
+		
 protected:
 	class ProjectManager* m_ownerObjectSystemManager = nullptr;
 
+	std::string m_systemName;
 	MikanObjectList m_objects;
 
 	MulticastDelegate<void(float deltaSeconds)> onUpdate;

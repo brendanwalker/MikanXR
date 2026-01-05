@@ -55,6 +55,8 @@ public:
 	CompositorObjectSystemConfigConstPtr getCompositorSystemConfigConst() const;
 	CompositorObjectSystemConfigPtr getCompositorSystemConfig();
 
+	virtual MikanComponentPtr getComponentById(int componentId) const override;
+
 	const CompositorMap& getCompositorMap() const { return m_compositorComponents; }
 	CompositorComponentPtr getCompositorById(MikanCompositorID compositorId) const;
 	CompositorComponentPtr getCompositorByName(const std::string& compositorName) const;
@@ -65,6 +67,8 @@ public:
 	void setActiveCompositors(const std::vector<MikanCompositorID>& activeCompositorIdList);
 	MulticastDelegate<void(CompositorComponentPtr oldCompositor)> OnCompositorDeactivated;
 	MulticastDelegate<void(CompositorComponentPtr newCompositor)> OnCompositorActivated;
+
+	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
 
 protected:
 	CompositorComponentPtr createCompositorObject(CompositorDefinitionPtr compositorConfig);

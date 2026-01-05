@@ -6,10 +6,6 @@
 
 #include <glm/gtx/matrix_decompose.hpp>
 
-#include <RmlUi/Core/Types.h>
-#include <RmlUi/Core/Variant.h>
-#include <RmlUi/Core/Vector3.h>
-
 #include "lua.hpp"
 #include "LuaBridge/LuaBridge.h"
 
@@ -383,28 +379,28 @@ void TransformComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescri
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			TransformComponentDefinition::k_relativeScalePropertyId)
-			->setDefaultValue(Rml::Vector3f(1.f)));
+			TransformComponentDefinition::k_relativeScalePropertyId, MikanVariantType::VECTOR3F)
+			->setDefaultValue(MikanVector3f(1.f)));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			TransformComponentDefinition::k_relativeRotationPropertyId)
-			->setDefaultValue(Rml::Vector3f(0.f)));
+			TransformComponentDefinition::k_relativeRotationPropertyId, MikanVariantType::VECTOR3F)
+			->setDefaultValue(MikanVector3f(0.f)));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			TransformComponentDefinition::k_relativePositionPropertyId)
-			->setDefaultValue(Rml::Vector3f(0.f)));
+			TransformComponentDefinition::k_relativePositionPropertyId, MikanVariantType::VECTOR3F)
+			->setDefaultValue(MikanVector3f(0.f)));
 }
 
 bool TransformComponent::getPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	Rml::Variant& outValue) const
+	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == TransformComponentDefinition::k_relativeScalePropertyId)
 	{
 		const glm::vec3& scale = getRelativeScale();
-		outValue = Rml::Vector3f(scale.x, scale.y, scale.z);
+		outValue = glm_vec3_to_MikanVector3f(scale);
 		return true;
 	}
 	else if (propertyName == TransformComponentDefinition::k_relativeRotationPropertyId)
@@ -417,13 +413,13 @@ bool TransformComponent::getPropertyValueFromRml(
 		angles[1] *= k_radians_to_degrees;
 		angles[2] *= k_radians_to_degrees;
 
-		outValue = Rml::Vector3f(angles[0], angles[1], angles[2]);
+		outValue = MikanVector3f(angles[0], angles[1], angles[2]);
 		return true;
 	}
 	else if (propertyName == TransformComponentDefinition::k_relativePositionPropertyId)
 	{
 		const glm::vec3& pos = getRelativePosition();
-		outValue = Rml::Vector3f(pos.x, pos.y, pos.z);
+		outValue = glm_vec3_to_MikanVector3f(pos);
 		return true;
 	}
 
@@ -432,20 +428,20 @@ bool TransformComponent::getPropertyValueFromRml(
 
 bool TransformComponent::setPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	const Rml::Variant& inValue)
+	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == TransformComponentDefinition::k_relativeScalePropertyId)
 	{
-		Rml::Vector3 scale = inValue.Get<Rml::Vector3f>();
+		MikanVector3f scale = inValue.getVector3fValue();
 
 		setRelativeScale(glm::vec3(scale.x, scale.y, scale.z));
 		return true;
 	}
 	else if (propertyName == TransformComponentDefinition::k_relativeRotationPropertyId)
 	{
-		Rml::Vector3 angles = inValue.Get<Rml::Vector3f>();
+		MikanVector3f angles = inValue.getVector3fValue();
 
 		glm::quat quat;
 		glm_euler_angles_to_quat(
@@ -458,7 +454,7 @@ bool TransformComponent::setPropertyValueFromRml(
 	}
 	else if (propertyName == TransformComponentDefinition::k_relativePositionPropertyId)
 	{
-		Rml::Vector3 pos = inValue.Get<Rml::Vector3f>();
+		MikanVector3f pos = inValue.getVector3fValue();
 
 		setRelativePosition(glm::vec3(pos.x, pos.y, pos.z));
 		return true;

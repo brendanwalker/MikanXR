@@ -7,9 +7,6 @@
 #include "OpenCVVideoFrameBuffer.h"
 #include "VideoSourceComponent.h"
 
-#include <RmlUi/Core/Types.h>
-#include <RmlUi/Core/Variant.h>
-
 #include <easy/profiler.h>
 
 // -- VideoSourceDefinition -----
@@ -373,22 +370,23 @@ void VideoSourceComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDesc
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			VideoSourceDefinition::k_isFrameMirroredPropertyId));
+			VideoSourceDefinition::k_isFrameMirroredPropertyId, MikanVariantType::BOOL));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			VideoSourceDefinition::k_isBufferMirroredPropertyId));
+			VideoSourceDefinition::k_isBufferMirroredPropertyId, MikanVariantType::BOOL));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			VideoSourceDefinition::k_videoFrameQueueSizePropertyId));
+			VideoSourceDefinition::k_videoFrameQueueSizePropertyId, MikanVariantType::INT)
+			->setDefaultValue(DEFAULT_VIDEO_FRAME_QUEUE_SIZE));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			VideoSourceDefinition::k_hasValidIntrinsicsPropertyId)
+			VideoSourceDefinition::k_hasValidIntrinsicsPropertyId, MikanVariantType::BOOL)
 		->setReadOnly());
 }
 
 bool VideoSourceComponent::getPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc, 
-	Rml::Variant& outValue) const
+	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
 
@@ -423,23 +421,23 @@ bool VideoSourceComponent::getPropertyValueFromRml(
 
 bool VideoSourceComponent::setPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc, 
-	const Rml::Variant& inValue)
+	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == VideoSourceDefinition::k_isFrameMirroredPropertyId)
 	{
-		getVideoSourceDefinition()->setIsFrameMirrored(inValue.Get<bool>());
+		getVideoSourceDefinition()->setIsFrameMirrored(inValue.getBoolValue());
 		return true;
 	}
 	else if (propertyName == VideoSourceDefinition::k_isBufferMirroredPropertyId)
 	{
-		getVideoSourceDefinition()->setIsBufferMirrored(inValue.Get<bool>());
+		getVideoSourceDefinition()->setIsBufferMirrored(inValue.getBoolValue());
 		return true;
 	}
 	else if (propertyName == VideoSourceDefinition::k_videoFrameQueueSizePropertyId)
 	{
-		getVideoSourceDefinition()->setVideoFrameQueueSize(inValue.Get<int>());
+		getVideoSourceDefinition()->setVideoFrameQueueSize(inValue.getIntValue());
 		return true;
 	}
 

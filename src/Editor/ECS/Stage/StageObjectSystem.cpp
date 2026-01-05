@@ -1,5 +1,6 @@
 #include "App.h"
 #include "MikanObject.h"
+#include "MikanPropertyDatabase.h"
 #include "StageComponent.h"
 #include "StageObjectSystem.h"
 #include "ProjectConfig.h"
@@ -138,6 +139,11 @@ void StageObjectSystem::dispose()
 	MikanObjectSystem::dispose();
 }
 
+MikanComponentPtr StageObjectSystem::getComponentById(int componentId) const
+{
+	return getStageById(componentId);
+}
+
 StageObjectSystemConfigConstPtr StageObjectSystem::getStageSystemConfigConst() const
 {
 	return getProjectConfig()->stageConfig;
@@ -240,4 +246,10 @@ void StageObjectSystem::disposeStageObject(MikanStageID stageId)
 		// Free the corresponding object
 		deleteObject(sceneComponentPtr->getOwnerObject());
 	}
+}
+
+void StageObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
+{
+	propertyDatabase->registerPropertiesForSystem<StageObjectSystem>();
+	propertyDatabase->registerPropertiesForComponent<StageObjectSystem, StageComponent>();
 }

@@ -73,6 +73,8 @@ public:
 	TrackingVolumeObjectSystemConfigConstPtr getTrackingVolumeSystemConfigConst() const;
 	TrackingVolumeObjectSystemConfigPtr getTrackingVolumeSystemConfig();
 
+	virtual MikanComponentPtr getComponentById(int componentId) const override;
+
 	const TrackingVolumeMap& getTrackingVolumeMap() const { return m_trackingVolumeComponents; }
 	TrackingVolumeIdList getTrackingVolumeIdList() const;
 	TrackingVolumeComponentPtr getTrackingVolumeById(MikanTrackingVolumeID trackingVolumeId) const;
@@ -82,6 +84,8 @@ public:
 	MarkerTrackingVolumeComponentPtr addNewMarkerTrackingVolume();
 	VRTrackingVolumeComponentPtr addNewVRTrackingVolume(eTrackingRuntime trackingRuntime);
 	bool removeTrackingVolume(MikanTrackingVolumeID trackingVolumeId);
+
+	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
 
 protected:
 	TrackingVolumeComponentPtr createTrackingVolumeObject(TrackingVolumeDefinitionPtr trackingVolumeConfig);

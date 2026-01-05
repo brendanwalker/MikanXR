@@ -6,6 +6,7 @@
 #include "CompositorComponent.h"
 #include "CompositorObjectSystem.h"
 #include "MikanObject.h"
+#include "MikanPropertyDatabase.h"
 #include "ProjectManager.h"
 #include "SceneObjectSystem.h"
 #include "SceneComponent.h"
@@ -56,6 +57,11 @@ void TextureSourceSystem::deleteObjectConfig(MikanObjectPtr objectPtr)
 			spoutTextureSource->getTextureSourceDefinition()->getTextureSourceId());
 		return;
 	}
+}
+
+MikanComponentPtr TextureSourceSystem::getComponentById(int componentId) const
+{
+	return getTextureSourceById(componentId);
 }
 
 TextureSourceSystemConfigConstPtr TextureSourceSystem::getTextureSourceSystemConfigConst() const
@@ -139,4 +145,9 @@ bool TextureSourceSystem::removeTextureSource(MikanTextureSourceID TextureSource
 	}
 
 	return false;
+}
+
+void TextureSourceSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
+{
+	propertyDatabase->registerPropertiesForSystem<TextureSourceSystem>();
 }

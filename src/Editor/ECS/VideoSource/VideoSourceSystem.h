@@ -26,6 +26,7 @@ public:
 	virtual bool init() override;
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
+	virtual MikanComponentPtr getComponentById(int componentId) const override;
 
 	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const override {
 		return getVideoSourceSystemConfigConst();

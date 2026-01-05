@@ -101,16 +101,20 @@ public:
 	MarkerObjectSystemConfigConstPtr getMarkerSystemConfigConst() const;
 	MarkerObjectSystemConfigPtr getMarkerSystemConfig();
 
+	virtual MikanComponentPtr getComponentById(int componentId) const override;
+
 	const MarkerMap& getMarkerMap() const { return m_markerComponents; }
 	MarkerComponentPtr getMarkerById(MikanMarkerID markerId) const;
 	MarkerComponentPtr getMarkerByName(const std::string& markerName) const;
 	MarkerComponentPtr addNewMarker();
 	bool removeMarker(MikanMarkerID markerId);
 
+	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
+
 	// -- IRmlPropertyInterface ----
 	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors);
-	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, Rml::Variant& outValue) const override;
-	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const Rml::Variant& inValue) override;
+	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override;
+	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue) override;
 
 	// -- IRmlFunctionInterface ----
 	static const std::string k_printCharucoMarkerFunctionId;

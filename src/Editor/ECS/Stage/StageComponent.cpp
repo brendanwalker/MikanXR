@@ -6,9 +6,6 @@
 #include "SelectionComponent.h"
 #include "TransformComponent.h"
 
-#include <RmlUi/Core/Types.h>
-#include <RmlUi/Core/Variant.h>
-
 #include <queue>
 #include "TrackingVolumeObjectSystem.h"
 
@@ -76,12 +73,13 @@ void StageComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptor
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			StageComponentDefinition::k_trackingVolumeIdPropertyId));
+			StageComponentDefinition::k_trackingVolumeIdPropertyId, MikanVariantType::INT)
+			->setDefaultValue(-1));
 }
 
 bool StageComponent::getPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	Rml::Variant& outValue) const
+	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
 
@@ -96,13 +94,13 @@ bool StageComponent::getPropertyValueFromRml(
 
 bool StageComponent::setPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	const Rml::Variant& inValue)
+	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == StageComponentDefinition::k_trackingVolumeIdPropertyId)
 	{
-		getStageComponentDefinition()->setTrackingVolumeId((MikanTrackingVolumeID)inValue.Get<int>());
+		getStageComponentDefinition()->setTrackingVolumeId((MikanTrackingVolumeID)inValue.getIntValue());
 		return true;
 	}
 

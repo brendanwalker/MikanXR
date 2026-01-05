@@ -55,6 +55,9 @@ public:
 	}
 	EditorObjectSystemConfigConstPtr getEditorSystemConfigConst() const;
 	EditorObjectSystemConfigPtr getEditorSystemConfig();
+
+	virtual MikanComponentPtr getComponentById(int componentId) const override;
+
 	SceneComponentConstPtr getEditorScene() const { return m_sceneWeakPtr.lock(); }
 
 	void bindViewport(MikanViewportWeakPtr viewportWeakPtr);
@@ -66,6 +69,8 @@ public:
 	MulticastDelegate<void()> OnSelectionChanged;
 
 	inline MikanObjectPtr getGizmoObject() const { return m_gizmoObjectWeakPtr.lock(); }
+
+	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
 
 protected:
 

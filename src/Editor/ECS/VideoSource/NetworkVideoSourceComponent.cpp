@@ -12,9 +12,6 @@
 #include "VideoSourceRequestHandler.h"
 #include "ProjectConfigConstants.h"
 
-#include <RmlUi/Core/Types.h>
-#include <RmlUi/Core/Variant.h>
-
 #include "opencv2/opencv.hpp"
 #include "opencv2/calib3d/calib3d.hpp"
 
@@ -496,25 +493,25 @@ void NetworkVideoSourceComponent::getRmlPropertyDescriptors(std::vector<RmlPrope
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			NetworkVideoSourceDefinition::k_addressPropertyId)
+			NetworkVideoSourceDefinition::k_addressPropertyId, MikanVariantType::STRING)
 		->setDefaultValue("192.168.1.1"));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			NetworkVideoSourceDefinition::k_pathPropertyId)
+			NetworkVideoSourceDefinition::k_pathPropertyId, MikanVariantType::STRING)
 		->setDefaultValue(""));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			NetworkVideoSourceDefinition::k_protocolPropertyId)
+			NetworkVideoSourceDefinition::k_protocolPropertyId, MikanVariantType::STRING)
 		->setDefaultValue(k_NetworkVideoProtocol[(int)eNetworkVideoProtocol::RTSP]));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			NetworkVideoSourceDefinition::k_portPropertyId)
+			NetworkVideoSourceDefinition::k_portPropertyId, MikanVariantType::INT)
 		->setDefaultValue(DEFAULT_RTMP_PORT));
 }
 
 bool NetworkVideoSourceComponent::getPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	Rml::Variant& outValue) const
+	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
 
@@ -544,31 +541,31 @@ bool NetworkVideoSourceComponent::getPropertyValueFromRml(
 
 bool NetworkVideoSourceComponent::setPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	const Rml::Variant& inValue)
+	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == NetworkVideoSourceDefinition::k_addressPropertyId)
 	{
-		std::string url = inValue.Get<std::string>();
+		std::string url = inValue.getStringValue();
 		getNetworkVideoSourceDefinition()->setAddress(url);
 		return true;
 	}
 	else if (propertyName == NetworkVideoSourceDefinition::k_portPropertyId)
 	{
-		int port = inValue.Get<int>();
+		int port = inValue.getIntValue();
 		getNetworkVideoSourceDefinition()->setPort(port);
 		return true;
 	}
 	else if (propertyName == NetworkVideoSourceDefinition::k_protocolPropertyId)
 	{
-		std::string protocolString = inValue.Get<std::string>();
+		std::string protocolString = inValue.getStringValue();
 		getNetworkVideoSourceDefinition()->setProtocol(protocolString);
 		return true;
 	}
 	else if (propertyName == NetworkVideoSourceDefinition::k_pathPropertyId)
 	{
-		std::string path = inValue.Get<std::string>();
+		std::string path = inValue.getStringValue();
 		getNetworkVideoSourceDefinition()->setPath(path);
 		return true;
 	}

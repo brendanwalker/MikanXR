@@ -55,11 +55,15 @@ public:
 	StageObjectSystemConfigConstPtr getStageSystemConfigConst() const;
 	StageObjectSystemConfigPtr getStageSystemConfig();
 
+	virtual MikanComponentPtr getComponentById(int componentId) const override;
+
 	const StageMap& getStageMap() const { return m_stageComponents; }
 	StageComponentPtr getStageById(MikanStageID stageId) const;
 	StageComponentPtr getStageByName(const std::string& stageName) const;
 	StageComponentPtr addNewStage();
 	bool removeStage(MikanStageID stageId);
+
+	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
 
 protected:
 	StageComponentPtr createStageObject(StageComponentDefinitionPtr sceneConfig);

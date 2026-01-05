@@ -9,9 +9,6 @@
 #include "VideoSourceRequestHandler.h"
 #include "VideoSourceSystem.h"
 
-#include <RmlUi/Core/Types.h>
-#include <RmlUi/Core/Variant.h>
-
 #include "opencv2/opencv.hpp"
 #include "opencv2/calib3d/calib3d.hpp"
 
@@ -917,14 +914,16 @@ void USBVideoSourceComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyD
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			USBVideoSourceDefinition::k_desiredDevicePathPropertyId));
+			USBVideoSourceDefinition::k_desiredDevicePathPropertyId, MikanVariantType::STRING));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			USBVideoSourceComponent::k_currentDevicePathPropertyId)
+			USBVideoSourceComponent::k_currentDevicePathPropertyId, MikanVariantType::STRING)
 		->setReadOnly());
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			USBVideoSourceDefinition::k_videoModePropertyId));
+			USBVideoSourceDefinition::k_videoModePropertyId, MikanVariantType::STRING));
+
+	// Non-read/writable properties used to signal settings changes
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
 			USBVideoSourceDefinition::k_videoSettingsPropertyId));
@@ -932,7 +931,7 @@ void USBVideoSourceComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyD
 
 bool USBVideoSourceComponent::getPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	Rml::Variant& outValue) const
+	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
 
@@ -957,19 +956,19 @@ bool USBVideoSourceComponent::getPropertyValueFromRml(
 
 bool USBVideoSourceComponent::setPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	const Rml::Variant& inValue)
+	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == USBVideoSourceDefinition::k_desiredDevicePathPropertyId)
 	{
-		std::string devicePath = inValue.Get<std::string>();
+		std::string devicePath = inValue.getStringValue();
 		getUSBVideoSourceDefinition()->setDevicePath(devicePath);
 		return true;
 	}
 	else if (propertyName == USBVideoSourceDefinition::k_videoModePropertyId)
 	{
-		std::string videoMode = inValue.Get<std::string>();
+		std::string videoMode = inValue.getStringValue();
 		setVideoModeByName(videoMode);
 		return true;
 	}

@@ -14,9 +14,6 @@
 #include "StageObjectSystem.h"
 #include "TransformComponent.h"
 
-#include <RmlUi/Core/Types.h>
-#include <RmlUi/Core/Variant.h>
-
 #include "lua.hpp"
 #include "LuaBridge/LuaBridge.h"
 
@@ -320,15 +317,17 @@ void SceneComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptor
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			SceneComponentDefinition::k_parentStagePropertyId));
+			SceneComponentDefinition::k_parentStagePropertyId, MikanVariantType::INT)
+		->setDefaultValue(-1));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			SceneComponentDefinition::k_displayCompositorIdPropertyId));
+			SceneComponentDefinition::k_displayCompositorIdPropertyId, MikanVariantType::INT)
+		->setDefaultValue(-1));
 }
 
 bool SceneComponent::getPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	Rml::Variant& outValue) const
+	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
 
@@ -337,19 +336,24 @@ bool SceneComponent::getPropertyValueFromRml(
 		outValue = getSceneComponentDefinition()->getParentStageId();
 		return true;
 	}
+	else if (propertyName == SceneComponentDefinition::k_displayCompositorIdPropertyId)
+	{
+		outValue = getSceneComponentDefinition()->getDisplayCompositorId();
+		return true;
+	}
 
 	return TransformComponent::getPropertyValueFromRml(propertyDesc, outValue);
 }
 
 bool SceneComponent::setPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	const Rml::Variant& inValue)
+	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == SceneComponentDefinition::k_parentStagePropertyId)
 	{
-		MikanStageID stageId = inValue.Get<int>();
+		MikanStageID stageId = inValue.getIntValue();
 
 		attachTransformComponentToStage(stageId);
 		return true;

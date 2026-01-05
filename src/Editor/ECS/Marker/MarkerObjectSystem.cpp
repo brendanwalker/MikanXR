@@ -6,14 +6,12 @@
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
 #include "MikanObject.h"
+#include "MikanPropertyDatabase.h"
 #include "ProjectManager.h"
 #include "OSUtils.h"
 #include "ProjectConfig.h"
 #include "SelectionComponent.h"
 #include "StringUtils.h"
-
-#include "RmlUi/Core/Variant.h"
-#include "RmlUi/Config/Config.h"
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/objdetect/aruco_detector.hpp>
@@ -291,6 +289,11 @@ void MarkerObjectSystem::dispose()
 	MikanObjectSystem::dispose();
 }
 
+MikanComponentPtr MarkerObjectSystem::getComponentById(int componentId) const
+{
+	return getMarkerById(componentId);
+}
+
 void MarkerObjectSystem::deleteObjectConfig(MikanObjectPtr objectPtr)
 {
 	MarkerComponentPtr markerComponent = objectPtr->getComponentOfType<MarkerComponent>();
@@ -398,27 +401,33 @@ void MarkerObjectSystem::getRmlPropertyDescriptors(std::vector<RmlPropertyDescri
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			MarkerObjectSystemConfig::k_arucoDictionaryTypePropertyId));
+			MarkerObjectSystemConfig::k_arucoDictionaryTypePropertyId, MikanVariantType::INT)
+		->setDefaultValue((int)DEFAULT_ARUCO_DICTIONARY_TYPE));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			MarkerObjectSystemConfig::k_charucoDictionaryTypePropertyId));
+			MarkerObjectSystemConfig::k_charucoDictionaryTypePropertyId, MikanVariantType::INT)
+		->setDefaultValue((int)DEFAULT_CHARUCO_DICTIONARY_TYPE));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			MarkerObjectSystemConfig::k_charucoRowsPropertyId));
+			MarkerObjectSystemConfig::k_charucoRowsPropertyId, MikanVariantType::INT)
+		->setDefaultValue(CHARUCO_PATTERN_H));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			MarkerObjectSystemConfig::k_charucoColsPropertyId));
+			MarkerObjectSystemConfig::k_charucoColsPropertyId, MikanVariantType::INT)
+		->setDefaultValue(CHARUCO_PATTERN_W));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			MarkerObjectSystemConfig::k_charucoSquareLengthMMPropertyId));
+			MarkerObjectSystemConfig::k_charucoSquareLengthMMPropertyId, MikanVariantType::FLOAT)
+		->setDefaultValue(DEFAULT_CHARUCO_SQUARE_LEN_MM));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			MarkerObjectSystemConfig::k_charucoMarkerLengthMMPropertyId));
+			MarkerObjectSystemConfig::k_charucoMarkerLengthMMPropertyId, MikanVariantType::FLOAT)
+		->setDefaultValue(DEFAULT_CHARUCO_MARKER_LEN_MM));
 }
 
 bool MarkerObjectSystem::getPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc, 
-	Rml::Variant& outValue) const
+	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
 
@@ -458,48 +467,54 @@ bool MarkerObjectSystem::getPropertyValueFromRml(
 
 bool MarkerObjectSystem::setPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc, 
-	const Rml::Variant& inValue)
+	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == MarkerObjectSystemConfig::MarkerObjectSystemConfig::k_arucoDictionaryTypePropertyId)
 	{
-		const auto dictionaryType = (eCharucoDictionaryType)inValue.Get<int>();
+		const auto dictionaryType = (eCharucoDictionaryType)inValue.getIntValue();
 		getMarkerSystemConfig()->setArucoDictionaryType(dictionaryType);
 		return true;
 	}
 	else if (propertyName == MarkerObjectSystemConfig::k_charucoDictionaryTypePropertyId)
 	{
-		const auto dictionaryType = (eCharucoDictionaryType)inValue.Get<int>();
+		const auto dictionaryType = (eCharucoDictionaryType)inValue.getIntValue();
 		getMarkerSystemConfig()->setCharucoDictionaryType(dictionaryType);
 		return true;
 	}
 	else if (propertyName == MarkerObjectSystemConfig::k_charucoRowsPropertyId)
 	{
-		int charucoRows = inValue.Get<int>();
+		int charucoRows = inValue.getIntValue();
 		getMarkerSystemConfig()->setCharucoRows(charucoRows);
 		return true;
 	}
 	else if (propertyName == MarkerObjectSystemConfig::k_charucoColsPropertyId)
 	{
-		int charucoCols = inValue.Get<int>();
+		int charucoCols = inValue.getIntValue();
 		getMarkerSystemConfig()->setCharucoCols(charucoCols);
 		return true;
 	}
 	else if (propertyName == MarkerObjectSystemConfig::k_charucoSquareLengthMMPropertyId)
 	{
-		float charucoSquareLengthMM = inValue.Get<float>();
+		float charucoSquareLengthMM = inValue.getFloatValue();
 		getMarkerSystemConfig()->setCharucoSquareLengthMM(charucoSquareLengthMM);
 		return true;
 	}
 	else if (propertyName == MarkerObjectSystemConfig::k_charucoMarkerLengthMMPropertyId)
 	{
-		float charucoMarkerLengthMM = inValue.Get<float>();
+		float charucoMarkerLengthMM = inValue.getFloatValue();
 		getMarkerSystemConfig()->setCharucoMarkerLengthMM(charucoMarkerLengthMM);
 		return true;
 	}
 
 	return MikanObjectSystem::setPropertyValueFromRml(propertyDesc, inValue);
+}
+
+void MarkerObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
+{
+	propertyDatabase->registerPropertiesForSystem<MarkerObjectSystem>();
+	propertyDatabase->registerPropertiesForComponent<MarkerObjectSystem, MarkerComponent>();
 }
 
 // -- IRmlFunctionInterface ----

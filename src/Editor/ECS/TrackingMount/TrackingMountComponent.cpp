@@ -10,9 +10,6 @@
 #include "TrackingMountObjectSystem.h"
 #include "VRObjectSystem.h"
 
-#include <RmlUi/Core/Types.h>
-#include <RmlUi/Core/Variant.h>
-
 // -- TrackingMountDefinition -----
 const std::string TrackingMountDefinition::k_desiredDevicePathPropertyId = "devicePath";
 const std::string TrackingMountDefinition::k_socketNamePropertyId = "socketName";
@@ -110,15 +107,15 @@ void TrackingMountComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDe
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			TrackingMountDefinition::k_desiredDevicePathPropertyId));
+			TrackingMountDefinition::k_desiredDevicePathPropertyId, MikanVariantType::STRING));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			TrackingMountDefinition::k_socketNamePropertyId));
+			TrackingMountDefinition::k_socketNamePropertyId, MikanVariantType::STRING));
 }
 
 bool TrackingMountComponent::getPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	Rml::Variant& outValue) const
+	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
 
@@ -138,18 +135,18 @@ bool TrackingMountComponent::getPropertyValueFromRml(
 
 bool TrackingMountComponent::setPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	const Rml::Variant& inValue)
+	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == TrackingMountDefinition::k_desiredDevicePathPropertyId)
 	{
-		getTrackingMountDefinition()->setDevicePath(inValue.Get<Rml::String>());
+		getTrackingMountDefinition()->setDevicePath(inValue.getStringValue());
 		return true;
 	}
 	else if (propertyName == TrackingMountDefinition::k_socketNamePropertyId)
 	{
-		getTrackingMountDefinition()->setSocketName(inValue.Get<Rml::String>());
+		getTrackingMountDefinition()->setSocketName(inValue.getStringValue());
 		return true;
 	}
 

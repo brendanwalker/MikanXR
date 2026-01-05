@@ -22,6 +22,7 @@ public:
 
     virtual bool init() override;
     virtual void dispose() override;
+    virtual MikanComponentPtr getComponentById(int componentId) const override;
 
     const SpoutTextureSourceMap& getSpoutTextureSourceMap() const { return m_spoutTextureSourceComponents; }
     TextureSourceComponentList getTextureSourceComponentList() const;
@@ -32,6 +33,8 @@ public:
     SpoutTextureSourceComponentPtr addNewSpoutTextureSource(const MikanSpoutTextureSourceInfo& TextureSourceInfo);
     bool removeSpoutTextureSource(MikanTextureSourceID TextureSourceId);
 	void getAvailableSpoutSenderNames(std::vector<std::string>& outSenderNames) const;
+
+    virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
 
 protected:
     SpoutTextureSourceComponentPtr createSpoutTextureSourceObject(SpoutTextureSourceDefinitionPtr sourceConfig);

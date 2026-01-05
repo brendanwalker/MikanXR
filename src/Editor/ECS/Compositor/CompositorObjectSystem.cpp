@@ -1,5 +1,6 @@
 #include "App.h"
 #include "MikanObject.h"
+#include "MikanPropertyDatabase.h"
 #include "CompositorComponent.h"
 #include "CompositorObjectSystem.h"
 #include "ProjectConfig.h"
@@ -134,6 +135,11 @@ void CompositorObjectSystem::dispose()
 	m_compositorComponents.clear();
 
 	MikanObjectSystem::dispose();
+}
+
+MikanComponentPtr CompositorObjectSystem::getComponentById(int componentId) const
+{
+	return getCompositorById(componentId);
 }
 
 CompositorObjectSystemConfigConstPtr CompositorObjectSystem::getCompositorSystemConfigConst() const
@@ -287,4 +293,10 @@ void CompositorObjectSystem::disposeCompositorObject(MikanCompositorID composito
 		// Free the corresponding object
 		deleteObject(pendingDisposeCompositor->getOwnerObject());
 	}
+}
+
+void CompositorObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
+{
+	propertyDatabase->registerPropertiesForSystem<CompositorObjectSystem>();
+	propertyDatabase->registerPropertiesForComponent<CompositorObjectSystem, CompositorComponent>();
 }

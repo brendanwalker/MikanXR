@@ -18,9 +18,6 @@
 #include "lua.hpp"
 #include "LuaBridge/LuaBridge.h"
 
-#include <RmlUi/Core/Types.h>
-#include <RmlUi/Core/Variant.h>
-
 // -- BoxStencilComponent -----
 const std::string BoxStencilDefinition::k_boxStencilXSizePropertyId = "box_x_size";
 const std::string BoxStencilDefinition::k_boxStencilYSizePropertyId = "box_y_size";
@@ -179,18 +176,18 @@ void BoxStencilComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescr
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			BoxStencilDefinition::k_boxStencilXSizePropertyId));
+			BoxStencilDefinition::k_boxStencilXSizePropertyId, MikanVariantType::FLOAT));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			BoxStencilDefinition::k_boxStencilYSizePropertyId));
+			BoxStencilDefinition::k_boxStencilYSizePropertyId, MikanVariantType::FLOAT));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			BoxStencilDefinition::k_boxStencilZSizePropertyId));
+			BoxStencilDefinition::k_boxStencilZSizePropertyId, MikanVariantType::FLOAT));
 }
 
 bool BoxStencilComponent::getPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	Rml::Variant& outValue) const
+	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
 
@@ -215,27 +212,27 @@ bool BoxStencilComponent::getPropertyValueFromRml(
 
 bool BoxStencilComponent::setPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	const Rml::Variant& inValue)
+	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == BoxStencilDefinition::k_boxStencilXSizePropertyId)
 	{
-		float xSize = inValue.Get<float>();
+		float xSize = inValue.getFloatValue();
 
 		getBoxStencilDefinition()->setBoxXSize(xSize);
 		return true;
 	}
 	else if (propertyName == BoxStencilDefinition::k_boxStencilYSizePropertyId)
 	{
-		float ySize = inValue.Get<float>();
+		float ySize = inValue.getFloatValue();
 
 		getBoxStencilDefinition()->setBoxYSize(ySize);
 		return true;
 	}
 	else if (propertyName == BoxStencilDefinition::k_boxStencilZSizePropertyId)
 	{
-		float zSize = inValue.Get<float>();
+		float zSize = inValue.getFloatValue();
 
 		getBoxStencilDefinition()->setBoxZSize(zSize);
 		return true;

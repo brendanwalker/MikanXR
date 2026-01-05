@@ -5,9 +5,6 @@
 #include "MikanServer.h"
 #include "TextureSourceRequestHandler.h"
 
-#include <RmlUi/Core/Types.h>
-#include <RmlUi/Core/Variant.h>
-
 #include "opencv2/opencv.hpp"
 #include "opencv2/calib3d/calib3d.hpp"
 
@@ -92,12 +89,12 @@ void ClientTextureSourceComponent::getRmlPropertyDescriptors(std::vector<RmlProp
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			ClientTextureSourceDefinition::k_clientSourcePropertyId));
+			ClientTextureSourceDefinition::k_clientSourcePropertyId, MikanVariantType::STRING));
 }
 
 bool ClientTextureSourceComponent::getPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	Rml::Variant& outValue) const
+	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
 
@@ -112,13 +109,13 @@ bool ClientTextureSourceComponent::getPropertyValueFromRml(
 
 bool ClientTextureSourceComponent::setPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	const Rml::Variant& inValue)
+	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == ClientTextureSourceDefinition::k_clientSourcePropertyId)
 	{
-		std::string devicePath = inValue.Get<std::string>();
+		std::string devicePath = inValue.getStringValue();
 		getClientTextureSourceDefinition()->setClientSource(devicePath);
 		return true;
 	}

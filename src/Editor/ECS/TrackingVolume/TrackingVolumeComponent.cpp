@@ -10,12 +10,6 @@
 #include "StringUtils.h"
 #include "TrackingVolumeObjectSystem.h"
 
-// TODO: Replace App singleton access
-#include "MainWindow.h"
-
-#include <RmlUi/Core/Types.h>
-#include <RmlUi/Core/Variant.h>
-
 // -- TrackingVolumeDefinition -----
 const std::string TrackingVolumeDefinition::k_originMarkerIdPropertyId = "origin_marker_id";
 
@@ -55,8 +49,7 @@ void TrackingVolumeDefinition::readFromJSON(const configuru::Config& pt)
 
 MarkerObjectSystemPtr TrackingVolumeDefinition::getMarkerObjectSystem() const
 {
-	// TODO: Replace App singleton access
-	return App::getInstance()->getMainWindow()->getProjectManager()->getSystemOfType<MarkerObjectSystem>();
+	return getOwnerComponent()->getObjectSystemOfType<MarkerObjectSystem>();
 }
 
 void TrackingVolumeDefinition::setOriginMarkerId(MikanMarkerID arucoId)
@@ -114,12 +107,13 @@ void TrackingVolumeComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyD
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			TrackingVolumeDefinition::k_originMarkerIdPropertyId));
+			TrackingVolumeDefinition::k_originMarkerIdPropertyId, MikanVariantType::INT)
+			->setDefaultValue(-1));
 }
 
 bool TrackingVolumeComponent::getPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	Rml::Variant& outValue) const
+	MikanVariant& outValue) const
 {
 	const std::string& propertyId = propertyDesc->getName();
 
@@ -134,13 +128,13 @@ bool TrackingVolumeComponent::getPropertyValueFromRml(
 
 bool TrackingVolumeComponent::setPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	const Rml::Variant& inValue)
+	const MikanVariant& inValue)
 {
 	const std::string& propertyId = propertyDesc->getName();
 
 	if (propertyId == TrackingVolumeDefinition::k_originMarkerIdPropertyId)
 	{
-		MikanMarkerID markerId = inValue.Get<int>();
+		MikanMarkerID markerId = inValue.getIntValue();
 		getTrackingVolumeDefinition()->setOriginMarkerId(markerId);
 		return true;
 	}

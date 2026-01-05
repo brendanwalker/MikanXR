@@ -1,5 +1,6 @@
 #include "App.h"
 #include "MikanObject.h"
+#include "MikanPropertyDatabase.h"
 #include "SceneComponent.h"
 #include "SceneObjectSystem.h"
 #include "ProjectConfig.h"
@@ -159,6 +160,11 @@ void SceneObjectSystem::dispose()
 	MikanObjectSystem::dispose();
 }
 
+MikanComponentPtr SceneObjectSystem::getComponentById(int componentId) const
+{
+	return getSceneById(componentId);
+}
+
 SceneObjectSystemConfigConstPtr SceneObjectSystem::getSceneSystemConfigConst() const
 {
 	auto config= getProjectConfig();
@@ -309,4 +315,10 @@ void SceneObjectSystem::disposeSceneObject(MikanSceneID sceneId)
 		// Free the corresponding object
 		deleteObject(sceneComponentPtr->getOwnerObject());
 	}
+}
+
+void SceneObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
+{
+	propertyDatabase->registerPropertiesForSystem<SceneObjectSystem>();
+	propertyDatabase->registerPropertiesForComponent<SceneObjectSystem, SceneComponent>();
 }

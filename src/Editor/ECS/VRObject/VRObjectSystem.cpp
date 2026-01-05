@@ -10,6 +10,7 @@
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
 #include "MikanModuleManager.h"
+#include "MikanPropertyDatabase.h"
 #include "MulticastDelegate.h"
 #include "ProjectConfig.h"
 #include "SelectionComponent.h"
@@ -232,6 +233,11 @@ void VRObjectSystem::dispose()
 
 	// Clean up all tracking modules
 	m_trackingRuntimes.clear();
+}
+
+MikanComponentPtr VRObjectSystem::getComponentById(int componentId) const
+{
+	return getVRDeviceById(componentId);
 }
 
 void VRObjectSystem::onProjectConfigMarkedDirty(
@@ -649,4 +655,10 @@ void addAllVRDevicesToMkScene(VRObjectSystemPtr vrObjectSystem, IMkScenePtr mkSc
 			});
 		}
 	}
+}
+
+void VRObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
+{
+	propertyDatabase->registerPropertiesForSystem<VRObjectSystem>();
+	propertyDatabase->registerPropertiesForComponent<VRObjectSystem, VRDeviceComponent>();
 }

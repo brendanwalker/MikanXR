@@ -30,9 +30,6 @@
 #include "Graphs/CompositorNodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
 
-#include <RmlUi/Core/Types.h>
-#include <RmlUi/Core/Variant.h>
-
 #include <assert.h>
 #include <easy/profiler.h>
 
@@ -758,24 +755,26 @@ void CompositorComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescr
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			CompositorDefinition::k_cameraIdPropertyId));
+			CompositorDefinition::k_cameraIdPropertyId, MikanVariantType::INT)
+		->setDefaultValue(-1));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			CompositorDefinition::k_ownerStagePropertyId));
+			CompositorDefinition::k_ownerStagePropertyId, MikanVariantType::INT)
+		->setDefaultValue(-1));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			CompositorDefinition::k_compositorGraphPathPropertyId));
+			CompositorDefinition::k_compositorGraphPathPropertyId, MikanVariantType::INT));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			CompositorDefinition::k_spoutEnableOutputNamePropertyId));
+			CompositorDefinition::k_spoutEnableOutputNamePropertyId, MikanVariantType::BOOL));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			CompositorDefinition::k_spoutOutputNamePropertyId));
+			CompositorDefinition::k_spoutOutputNamePropertyId, MikanVariantType::STRING));
 }
 
 bool CompositorComponent::getPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	Rml::Variant& outValue) const
+	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
 
@@ -810,25 +809,25 @@ bool CompositorComponent::getPropertyValueFromRml(
 
 bool CompositorComponent::setPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	const Rml::Variant& inValue)
+	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == CompositorDefinition::k_cameraIdPropertyId)
 	{
-		const MikanCameraID cameraId = inValue.Get<int>();
+		const MikanCameraID cameraId = inValue.getIntValue();
 		getCompositorDefinition()->setCameraId(cameraId);
 		return true;
 	}
 	else if (propertyName == CompositorDefinition::k_ownerStagePropertyId)
 	{
-		const MikanStageID stageId = inValue.Get<int>();
+		const MikanStageID stageId = inValue.getIntValue();
 		getCompositorDefinition()->setOwnerStageId(stageId);
 		return true;
 	}
 	else if (propertyName == CompositorDefinition::k_compositorGraphPathPropertyId)
 	{
-		const Rml::String fileString = inValue.Get<Rml::String>();
+		const std::string fileString = inValue.getStringValue();
 		const std::filesystem::path filePath(fileString);
 
 		getCompositorDefinition()->setCompositorGraphPath(filePath);
@@ -836,13 +835,13 @@ bool CompositorComponent::setPropertyValueFromRml(
 	}
 	else if (propertyName == CompositorDefinition::k_spoutEnableOutputNamePropertyId)
 	{
-		const bool bIsStreaming = inValue.Get<bool>();
+		const bool bIsStreaming = inValue.getBoolValue();
 		getCompositorDefinition()->setIsSpoutOutputStreaming(bIsStreaming);
 		return true;
 	}
 	else if (propertyName == CompositorDefinition::k_spoutOutputNamePropertyId)
 	{
-		const Rml::String spoutOutputName = inValue.Get<Rml::String>();
+		const std::string spoutOutputName = inValue.getStringValue();
 		getCompositorDefinition()->setSpoutOutputName(spoutOutputName);
 		return true;
 	}

@@ -126,12 +126,6 @@ void AnchorComponent::customRender()
 	drawTextAtWorldPosition(style, anchorPos, L"%s", wszAnchorName);
 }
 
-// -- IRmlPropertyInterface ----
-void AnchorComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
-{
-	TransformComponent::getRmlPropertyDescriptors(outDescriptors);
-}
-
 // -- IRmlFunctionInterface ----
 const std::string AnchorComponent::k_editAnchorFunctionId = "edit_anchor";
 const std::string AnchorComponent::k_deleteAnchorFunctionId = "delete_anchor";

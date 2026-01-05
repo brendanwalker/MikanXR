@@ -6,6 +6,7 @@
 #include "BoxColliderComponent.h"
 #include "MeshColliderComponent.h"
 #include "MikanObject.h"
+#include "MikanPropertyDatabase.h"
 #include "TransformComponent.h"
 #include "SelectionComponent.h"
 #include "StaticMeshComponent.h"
@@ -45,6 +46,11 @@ void StencilObjectSystem::dispose()
 	m_modelStencilComponents.clear();
 
 	MikanObjectSystem::dispose();
+}
+
+MikanComponentPtr StencilObjectSystem::getComponentById(int componentId) const
+{
+	return getStencilById(componentId);
 }
 
 void StencilObjectSystem::deleteObjectConfig(MikanObjectPtr objectPtr)
@@ -629,4 +635,12 @@ bool StencilObjectSystem::isStencilFacingCamera(
 	return 
 		glm::dot(cameraToStencil, cameraForward) > 0.f &&
 		glm::dot(stencilToCamera, stencilForward) > 0.f;
+}
+
+void StencilObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
+{
+	propertyDatabase->registerPropertiesForSystem<StencilObjectSystem>();
+	propertyDatabase->registerPropertiesForComponent<StencilObjectSystem, BoxStencilComponent>();
+	propertyDatabase->registerPropertiesForComponent<StencilObjectSystem, ModelStencilComponent>();
+	propertyDatabase->registerPropertiesForComponent<StencilObjectSystem, QuadStencilComponent>();
 }

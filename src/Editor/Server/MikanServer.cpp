@@ -17,6 +17,7 @@
 #include "MikanVideoSourceRequests.h"
 #include "MikanVRDeviceRequests.h"
 #include "ProjectConfig.h"
+#include "PropertyRequestHandler.h"
 #include "RemoteControlManager.h"
 #include "RenderTargetRequestHandler.h"
 #include "ScriptRequestHandler.h"
@@ -49,6 +50,7 @@ MikanServer::MikanServer()
 	: m_messageServer(new WebsocketInterprocessMessageServer())
 	, m_anchorRequestHandler(new AnchorRequestHandler(this))
 	, m_cameraRequestHandler(new CameraRequestHandler(this))
+	, m_propertyRequestHandler(new PropertyRequestHandler(this))
 	, m_remoteControlManager(new RemoteControlManager(this))
 	, m_renderTargetRequestHandler(new RenderTargetRequestHandler(this))
 	, m_scriptRequestHandler(new ScriptRequestHandler(this))
@@ -69,6 +71,7 @@ MikanServer::~MikanServer()
 	delete m_scriptRequestHandler;
 	delete m_remoteControlManager;
 	delete m_renderTargetRequestHandler;
+	delete m_propertyRequestHandler;
 	delete m_cameraRequestHandler;
 	delete m_anchorRequestHandler;
 	delete m_messageServer;
@@ -98,6 +101,12 @@ bool MikanServer::startup(MainWindow* mainWindow)
 	if (!m_cameraRequestHandler->startup(mainWindow))
 	{
 		MIKAN_LOG_ERROR("MikanServer::startup()") << "Failed to bind camera request handlers";
+		return false;
+	}
+
+	if (!m_propertyRequestHandler->startup(mainWindow))
+	{
+		MIKAN_LOG_ERROR("MikanServer::startup()") << "Failed to bind property request handlers";
 		return false;
 	}
 
@@ -185,6 +194,7 @@ void MikanServer::shutdown()
 
 	m_anchorRequestHandler->shutdown();
 	m_cameraRequestHandler->shutdown();
+	m_propertyRequestHandler->shutdown();
 	m_scriptRequestHandler->shutdown();
 	m_stencilRequestHandler->shutdown();
 	m_remoteControlManager->shutdown();
@@ -194,6 +204,11 @@ void MikanServer::shutdown()
 	m_vrDeviceRequestHandler->shutdown();
 
 	m_ownerWindow = nullptr;
+}
+
+ProjectManagerPtr MikanServer::getProjectManager() const
+{
+	return m_ownerWindow->getProjectManager();
 }
 
 ProjectConfigPtr MikanServer::getProjectConfig() const

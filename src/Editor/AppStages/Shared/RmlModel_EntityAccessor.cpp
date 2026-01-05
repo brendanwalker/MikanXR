@@ -1,4 +1,5 @@
 #include "RmlModel_EntityAccessor.h"
+#include "RmlUtility.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
@@ -11,7 +12,7 @@ RmlModel_EntityAccessor::~RmlModel_EntityAccessor()
 }
 
 // Template helper function to bind vector component accessors
-template<typename VectorType, int ComponentCount>
+template<int ComponentCount>
 void bindVectorComponents(
 	Rml::DataModelConstructor& constructor,
 	const std::string& propertyName,
@@ -21,39 +22,41 @@ void bindVectorComponents(
 	static const char* componentNames[] = { "x", "y", "z", "w" };
 	static_assert(ComponentCount >= 2 && ComponentCount <= 4, "Component count must be 2, 3, or 4");
 
-	for (int i = 0; i < ComponentCount; ++i)
+	for (size_t componentIndex = 0; componentIndex < ComponentCount; ++componentIndex)
 	{
-		const std::string componentName = propertyName + "_" + componentNames[i];
-		const int componentIndex = i;
+		const std::string componentName = propertyName + "_" + componentNames[componentIndex];
 
 		if (propertyDescriptor->isReadOnly())
 		{
 			constructor.BindFunc(
 				componentName,
-				[propertyInterface, propertyDescriptor, componentIndex](Rml::Variant& variant) {
+				[propertyInterface, propertyDescriptor, componentIndex](Rml::Variant& outVariant) {
 					IRmlPropertyInterfacePtr propInterface = propertyInterface.lock();
 					if (propInterface)
 					{
-						Rml::Variant vectorVariant;
+						MikanVariant vectorVariant;
 						if (propInterface->getPropertyValueFromRml(propertyDescriptor, vectorVariant))
 						{
-							variant = vectorVariant.Get<VectorType>()[componentIndex];
+							const float componentValue = vectorVariant.getVectorComponentValue(componentIndex);
+							outVariant = componentValue;
 						}
 					}
 				});
 		}
 		else
 		{
+			assert(propertyDescriptor->isReadable() && propertyDescriptor->isWritable());
+
 			constructor.BindFunc(
 				componentName,
-				[propertyInterface, propertyDescriptor, componentIndex](Rml::Variant& variant) {
+				[propertyInterface, propertyDescriptor, componentIndex](Rml::Variant& outVariant) {
 					IRmlPropertyInterfacePtr propInterface = propertyInterface.lock();
 					if (propInterface)
 					{
-						Rml::Variant vectorVariant;
+						MikanVariant vectorVariant;
 						if (propInterface->getPropertyValueFromRml(propertyDescriptor, vectorVariant))
 						{
-							variant = vectorVariant.Get<VectorType>()[componentIndex];
+							outVariant = vectorVariant.getVectorComponentValue(componentIndex);
 						}
 					}
 				},
@@ -61,12 +64,13 @@ void bindVectorComponents(
 					IRmlPropertyInterfacePtr propInterface = propertyInterface.lock();
 					if (propInterface)
 					{
-						Rml::Variant vectorVariant;
+						MikanVariant vectorVariant;
 						if (propInterface->getPropertyValueFromRml(propertyDescriptor, vectorVariant))
-						{
-							VectorType vec = vectorVariant.Get<VectorType>();
-							vec[componentIndex] = variant.Get<float>();
-							propInterface->setPropertyValueFromRml(propertyDescriptor, Rml::Variant(vec));
+						{							
+							const float newComponentValue= variant.Get<float>();
+
+							vectorVariant.setVectorComponentValue(componentIndex, newComponentValue);
+							propInterface->setPropertyValueFromRml(propertyDescriptor, vectorVariant);
 						}
 					}
 				});
@@ -92,24 +96,24 @@ bool RmlModel_EntityAccessor::init(
 	for (const RmlPropertyDescriptorConstPtr& propertyDescriptor : propertyDescriptors)
 	{
 		const std::string& propertyName = propertyDescriptor->getName();
-		const Rml::Variant& defaultValue = propertyDescriptor->getDefaultValue();
-		const Rml::Variant::Type variantType = defaultValue.GetType();
+		const MikanVariant& defaultValue = propertyDescriptor->getDefaultValue();
+		const MikanVariantType variantType = defaultValue.value_type;
 
 		// Keep track of property descriptors for change notifications
 		m_propertyDescriptors.insert({ propertyName, propertyDescriptor });
 
 		// Vector types need special handling to bind individual components
-		if (variantType == Rml::Variant::VECTOR2)
+		if (variantType == MikanVariantType::VECTOR2F)
 		{
-			bindVectorComponents<Rml::Vector2f, 2>(constructor, propertyName, propertyDescriptor, m_entityAccessor);
+			bindVectorComponents<2>(constructor, propertyName, propertyDescriptor, m_entityAccessor);
 		}
-		else if (variantType == Rml::Variant::VECTOR3)
+		else if (variantType == MikanVariantType::VECTOR3F)
 		{
-			bindVectorComponents<Rml::Vector3f, 3>(constructor, propertyName, propertyDescriptor, m_entityAccessor);
+			bindVectorComponents<3>(constructor, propertyName, propertyDescriptor, m_entityAccessor);
 		}
-		else if (variantType == Rml::Variant::VECTOR4)
+		else if (variantType == MikanVariantType::VECTOR4F)
 		{
-			bindVectorComponents<Rml::Vector4f, 4>(constructor, propertyName, propertyDescriptor, m_entityAccessor);
+			bindVectorComponents<4>(constructor, propertyName, propertyDescriptor, m_entityAccessor);
 		}
 		// All other types can be bound directly
 		else
@@ -118,38 +122,49 @@ bool RmlModel_EntityAccessor::init(
 			{
 				constructor.BindFunc(
 					propertyName,
-					[this, propertyDescriptor](Rml::Variant& variant) {
+					[this, propertyDescriptor](Rml::Variant& outRmlVariant) {
 						IRmlPropertyInterfacePtr propertyInterface = m_entityAccessor.lock();
+
+						MikanVariant mikanVariant;
 						if (propertyInterface)
 						{
-							propertyInterface->getPropertyValueFromRml(propertyDescriptor, variant);
+							propertyInterface->getPropertyValueFromRml(propertyDescriptor, mikanVariant);
 						}
 						else
 						{
-							variant = propertyDescriptor->getDefaultValue();
+							mikanVariant = propertyDescriptor->getDefaultValue();
 						}
+
+						Rml::Utilities::MikanVariantToRmlVariant(mikanVariant, outRmlVariant);
 					});
 			}
-			else
+			else if (propertyDescriptor->isReadable() && propertyDescriptor->isWritable())
 			{
 				constructor.BindFunc(
 					propertyName,
-					[this, propertyDescriptor](Rml::Variant& variant) {
+					[this, propertyDescriptor](Rml::Variant& outRmlVariant) {
 						IRmlPropertyInterfacePtr propertyInterface = m_entityAccessor.lock();
+
+						MikanVariant mikanVariant;
 						if (propertyInterface)
 						{
-							propertyInterface->getPropertyValueFromRml(propertyDescriptor, variant);
+							propertyInterface->getPropertyValueFromRml(propertyDescriptor, mikanVariant);
 						}
 						else
 						{
-							variant = propertyDescriptor->getDefaultValue();
+							mikanVariant = propertyDescriptor->getDefaultValue();
 						}
+
+						Rml::Utilities::MikanVariantToRmlVariant(mikanVariant, outRmlVariant);
 					},
-					[this, propertyDescriptor](const Rml::Variant& variant) {
+					[this, propertyDescriptor](const Rml::Variant& inRmlVariant) {
 						IRmlPropertyInterfacePtr propertyInterface = m_entityAccessor.lock();
 						if (propertyInterface)
 						{
-							propertyInterface->setPropertyValueFromRml(propertyDescriptor, variant);
+							MikanVariant mikanVariant= 
+								Rml::Utilities::RmlVariantToMikanVariant(
+									inRmlVariant, propertyDescriptor->getDataType());
+							propertyInterface->setPropertyValueFromRml(propertyDescriptor, mikanVariant);
 						}
 					});
 			}
@@ -258,21 +273,21 @@ void RmlModel_EntityAccessor::onEntityConfigChanged(
 		{
 			// Also dirty component variables for vector types
 			const RmlPropertyDescriptorConstPtr& propertyDescriptor = it->second;
-			const Rml::Variant& defaultValue = propertyDescriptor->getDefaultValue();
-			const Rml::Variant::Type variantType = defaultValue.GetType();
+			const MikanVariant& defaultValue = propertyDescriptor->getDefaultValue();
+			const MikanVariantType variantType = propertyDescriptor->getDataType();
 
-			if (variantType == Rml::Variant::VECTOR2)
+			if (variantType == MikanVariantType::VECTOR2F)
 			{
 				m_modelHandle.DirtyVariable(propertyName + "_x");
 				m_modelHandle.DirtyVariable(propertyName + "_y");
 			}
-			else if (variantType == Rml::Variant::VECTOR3)
+			else if (variantType == MikanVariantType::VECTOR3F)
 			{
 				m_modelHandle.DirtyVariable(propertyName + "_x");
 				m_modelHandle.DirtyVariable(propertyName + "_y");
 				m_modelHandle.DirtyVariable(propertyName + "_z");
 			}
-			else if (variantType == Rml::Variant::VECTOR4)
+			else if (variantType == MikanVariantType::VECTOR4F)
 			{
 				m_modelHandle.DirtyVariable(propertyName + "_x");
 				m_modelHandle.DirtyVariable(propertyName + "_y");

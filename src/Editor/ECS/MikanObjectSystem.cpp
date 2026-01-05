@@ -1,5 +1,7 @@
 #include "MikanObjectSystem.h"
 #include "MikanObject.h"
+#include "MikanPropertyDatabase.h"
+#include "MikanVariantTypes.h"
 
 #include "assert.h"
 
@@ -16,6 +18,13 @@ MikanObjectSystem::~MikanObjectSystem()
 
 bool MikanObjectSystem::init()
 {
+	// Assign this system as owner to it's corresponding definition
+	auto systemConfig= getObjectSystemConfig();
+	if (systemConfig)
+	{
+		systemConfig->setOwnerSystem(shared_from_this());
+	}
+
 	return true;
 }
 
@@ -70,4 +79,9 @@ void MikanObjectSystem::deleteAllObjects()
 		objectPtr->dispose();
 	}
 	m_objects.clear();
+}
+
+void MikanObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
+{
+	propertyDatabase->registerPropertiesForSystem<MikanObjectSystem>();
 }

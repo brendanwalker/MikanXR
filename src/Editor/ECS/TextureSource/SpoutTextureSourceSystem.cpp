@@ -1,6 +1,7 @@
 #include "App.h"
 #include "MikanCoreTypes.h"
 #include "MikanObject.h"
+#include "MikanPropertyDatabase.h"
 #include "ProjectConfig.h"
 #include "SpoutTextureSourceComponent.h"
 #include "SpoutTextureSourceSystem.h"
@@ -42,6 +43,11 @@ void SpoutTextureSourceSystem::dispose()
 
     m_spoutTextureSourceComponents.clear();
 	MikanObjectSystem::dispose();
+}
+
+MikanComponentPtr SpoutTextureSourceSystem::getComponentById(int componentId) const
+{
+	return getSpoutTextureSourceById(componentId);
 }
 
 TextureSourceComponentList SpoutTextureSourceSystem::getTextureSourceComponentList() const
@@ -181,4 +187,10 @@ void SpoutTextureSourceSystem::getAvailableSpoutSenderNames(std::vector<std::str
             }
 		}
     }
+}
+
+void SpoutTextureSourceSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
+{
+	propertyDatabase->registerPropertiesForSystem<SpoutTextureSourceSystem>();
+	propertyDatabase->registerPropertiesForComponent<SpoutTextureSourceSystem, SpoutTextureSourceComponent>();
 }

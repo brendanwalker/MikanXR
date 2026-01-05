@@ -9,6 +9,7 @@
 #include "GizmoTransformComponent.h"
 #include "GizmoTranslateComponent.h"
 #include "MikanViewport.h"
+#include "MikanPropertyDatabase.h"
 #include "InputManager.h"
 #include "ProjectManager.h"
 #include "MainWindow.h"
@@ -201,12 +202,20 @@ void EditorObjectSystem::dispose()
 
 EditorObjectSystemConfigConstPtr EditorObjectSystem::getEditorSystemConfigConst() const
 {
-	return getProjectConfig()->editorConfig;
+	auto projectConfig= getProjectConfig();
+
+	return projectConfig ? projectConfig->editorConfig : EditorObjectSystemConfigConstPtr();
 }
 
 EditorObjectSystemConfigPtr EditorObjectSystem::getEditorSystemConfig()
 {
 	return std::const_pointer_cast<EditorObjectSystemConfig>(getEditorSystemConfigConst());
+}
+
+MikanComponentPtr EditorObjectSystem::getComponentById(int componentId) const
+{
+	// EditorObjectSystem doesn't manage components by ID
+	return MikanComponentPtr();
 }
 
 void EditorObjectSystem::bindViewport(MikanViewportWeakPtr viewportWeakPtr)
@@ -477,4 +486,9 @@ SelectionComponentPtr EditorObjectSystem::findClosestSelectionTarget(
 	}
 
 	return closestSelectionComponent;
+}
+
+void EditorObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
+{
+	propertyDatabase->registerPropertiesForSystem<EditorObjectSystem>();
 }

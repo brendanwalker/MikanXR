@@ -3,6 +3,7 @@
 #include "USBVideoSourceComponent.h"
 #include "IUsbVideoDeviceModule.h"
 #include "Logger.h"
+#include "MikanPropertyDatabase.h"
 #include "MikanModuleManager.h"
 #include "App.h"
 #include "ProjectConfig.h"
@@ -40,6 +41,11 @@ void USBVideoSourceSystem::dispose()
     m_usbVideoSourceComponents.clear();
 	MikanObjectSystem::dispose();
 	disposeUsbVideoDeviceManager();
+}
+
+MikanComponentPtr USBVideoSourceSystem::getComponentById(int componentId) const
+{
+	return getUSBVideoSourceById(componentId);
 }
 
 bool USBVideoSourceSystem::createUsbVideoDeviceManager(const std::string& moduleName)
@@ -315,4 +321,10 @@ void USBVideoSourceSystem::onConnectedDeviceListChanged()
 	{
 		OnVideoSourceListChanged();
 	}
+}
+
+void USBVideoSourceSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
+{
+	propertyDatabase->registerPropertiesForSystem<USBVideoSourceSystem>();
+	propertyDatabase->registerPropertiesForComponent<USBVideoSourceSystem, USBVideoSourceComponent>();
 }

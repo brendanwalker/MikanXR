@@ -7,6 +7,10 @@
 #include <filesystem>
 #include <string>
 #include <vector>
+#include <map>
+
+using MikanPropertyDatabasePtr = std::shared_ptr<class MikanPropertyDatabase>;
+using MikanPropertyDatabaseConstPtr = std::shared_ptr<const class MikanPropertyDatabase>;
 
 class ProjectManager
 {
@@ -15,11 +19,13 @@ public:
 
 	inline ProjectConfigPtr getProjectConfig() const { return m_projectConfig; }
 	inline class IMkWindow* getOwnerWindow() const { return m_ownerWindow; }
+	inline MikanPropertyDatabasePtr getPropertyDatabase() { return m_propertyDatabase; }
+	inline MikanPropertyDatabaseConstPtr getPropertyDatabaseConst() const { return m_propertyDatabase; }
 
 	template <class t_system_type>
 	std::shared_ptr<t_system_type> addSystem() { 
 		std::shared_ptr<t_system_type> systemPtr= std::make_shared<t_system_type>(this);
-		m_systems.push_back(systemPtr); 
+		registerSystem(systemPtr);
 
 		return systemPtr;
 	}
@@ -39,6 +45,8 @@ public:
 
 		return nullptr;
 	}
+
+	MikanObjectSystemPtr getSystemByName(const std::string name) const;
 	
 	bool startup(class MainWindow* mainWindow);
 	void shutdown();
@@ -54,9 +62,14 @@ public:
 	bool saveProject(const std::string& projectFilePath);
 	void unloadProject();
 
+protected:
+	void registerSystem(MikanObjectSystemPtr system);
+
 private:
 	class IMkWindow* m_ownerWindow = nullptr;
 	std::vector<MikanObjectSystemPtr> m_systems;
+	std::map<std::string, int> m_systemNameToIndexMap;
+	MikanPropertyDatabasePtr m_propertyDatabase;
 
 	// Project Config
 	ProjectConfigPtr m_projectConfig;

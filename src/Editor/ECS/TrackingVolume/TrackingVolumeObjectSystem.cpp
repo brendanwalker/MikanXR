@@ -8,6 +8,7 @@
 #include "MikanObject.h"
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
+#include "MikanPropertyDatabase.h"
 #include "ProjectConfig.h"
 #include "ProjectManager.h"
 #include "SelectionComponent.h"
@@ -281,6 +282,11 @@ void TrackingVolumeObjectSystem::dispose()
 	MikanObjectSystem::dispose();
 }
 
+MikanComponentPtr TrackingVolumeObjectSystem::getComponentById(int componentId) const
+{
+	return getTrackingVolumeById(componentId);
+}
+
 void TrackingVolumeObjectSystem::deleteObjectConfig(MikanObjectPtr objectPtr)
 {
 	// Implementation similar to TrackingMountObjectSystem
@@ -443,4 +449,12 @@ void TrackingVolumeObjectSystem::disposeTrackingVolumeObject(MikanTrackingVolume
 		// Free the corresponding object
 		deleteObject(componentPtr->getOwnerObject());
 	}
+}
+
+void TrackingVolumeObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
+{
+	propertyDatabase->registerPropertiesForSystem<TrackingVolumeObjectSystem>();
+	propertyDatabase->registerPropertiesForComponent<TrackingVolumeObjectSystem, TrackingVolumeComponent>();
+	propertyDatabase->registerPropertiesForComponent<TrackingVolumeObjectSystem, MarkerTrackingVolumeComponent>();
+	propertyDatabase->registerPropertiesForComponent<TrackingVolumeObjectSystem, VRTrackingVolumeComponent>();
 }

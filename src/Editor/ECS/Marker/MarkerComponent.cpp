@@ -11,9 +11,6 @@
 #include "SelectionComponent.h"
 #include "StringUtils.h"
 
-#include <RmlUi/Core/Types.h>
-#include <RmlUi/Core/Variant.h>
-
 #include <opencv2/opencv.hpp>
 #include <opencv2/objdetect/aruco_detector.hpp>
 #include <hpdf.h>
@@ -118,13 +115,15 @@ void MarkerComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescripto
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			MarkerDefinition::k_arucoIdPropertyId));
+			MarkerDefinition::k_arucoIdPropertyId, MikanVariantType::INT)
+			->setDefaultValue(DEFAULT_ORIGIN_MARKER_ID));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			MarkerDefinition::k_lengthMMPropertyId));
+			MarkerDefinition::k_lengthMMPropertyId, MikanVariantType::FLOAT)
+			->setDefaultValue(DEFAULT_MARKER_SIZE_MM));
 }
 
-bool MarkerComponent::getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, Rml::Variant& outValue) const
+bool MarkerComponent::getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
 
@@ -142,18 +141,18 @@ bool MarkerComponent::getPropertyValueFromRml(RmlPropertyDescriptorConstPtr prop
 	return MikanComponent::getPropertyValueFromRml(propertyDesc, outValue);
 }
 
-bool MarkerComponent::setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const Rml::Variant& inValue)
+bool MarkerComponent::setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == MarkerDefinition::k_arucoIdPropertyId)
 	{
-		getMarkerDefinition()->setArucoId(inValue.Get<int>());
+		getMarkerDefinition()->setArucoId(inValue.getIntValue());
 		return true;
 	}
 	else if (propertyName == MarkerDefinition::k_lengthMMPropertyId)
 	{
-		getMarkerDefinition()->setLengthMM(inValue.Get<float>());
+		getMarkerDefinition()->setLengthMM(inValue.getFloatValue());
 		return true;
 	}
 

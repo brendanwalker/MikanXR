@@ -7,6 +7,7 @@
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 #include "MikanAPITypes.rfks.h"
+#include "MikanVariantTypes.rfks.h"
 #include "MikanRenderTargetRequests.rfks.h"
 #include "MikanCameraEvents.rfks.h"
 #include "MikanCameraTypes.rfks.h"
@@ -15,6 +16,9 @@
 #include "MikanClientTypes.rfks.h"
 #include "MikanClientRequests.rfks.h"
 #include "MikanMathTypes.rfks.h"
+#include "MikanPropertyEvents.rfks.h"
+#include "MikanPropertyTypes.rfks.h"
+#include "MikanPropertyRequests.rfks.h"
 #include "MikanRemoteControlEvents.rfks.h"
 #include "MikanRemoteControlTypes.rfks.h"
 #include "MikanRemoteControlRequests.rfks.h"

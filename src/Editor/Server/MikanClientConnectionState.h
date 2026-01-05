@@ -2,9 +2,13 @@
 
 #include "MikanCoreTypes.h"
 #include "MikanClientTypes.h"
+#include "MikanPropertyTypes.h"
 #include "MikanTypeFwd.h"
 
 #include <string>
+
+class PropertyNotifyDatabase;
+using PropertyNotifyDatabasePtr = std::shared_ptr<class PropertyNotifyDatabase>;
 
 class MikanClientConnectionState
 {
@@ -28,10 +32,19 @@ public:
 	// Event Publishing
 	void publishMikanJsonEvent(const std::string& mikanJsonEvent);
 
+	// Property Events
+	bool setPropertyNotifyMode(
+		const std::string& systemFilter,
+		const std::string& componentFilter,
+		const std::string& propertyFilter,
+		MikanPropertyNotifyMode notifyMode);
+	void publishPropertyChangedEvent(const MikanPropertyValue& propertyValue);
+
 private:
 	class MikanServer* m_ownerServer;
 	std::string m_connectionId;
 	MikanClientInfo m_clientInfo;
 	class RenderTargetClientState* m_renderTargetClientState = nullptr;
 	class VRDeviceClientState* m_vrDeviceClientState = nullptr;
+	PropertyNotifyDatabasePtr m_propertyNotifyDatabase;
 };

@@ -5,9 +5,6 @@
 #include "SpoutLibrary.h"
 #include "StringUtils.h"
 
-#include <RmlUi/Core/Types.h>
-#include <RmlUi/Core/Variant.h>
-
 #include <easy/profiler.h>
 
 // -- SpoutTextureSourceDefinition ------
@@ -203,12 +200,12 @@ void SpoutTextureSourceComponent::getRmlPropertyDescriptors(std::vector<RmlPrope
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			SpoutTextureSourceDefinition::k_spoutSourcePropertyId));
+			SpoutTextureSourceDefinition::k_spoutSourcePropertyId, MikanVariantType::STRING));
 }
 
 bool SpoutTextureSourceComponent::getPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	Rml::Variant& outValue) const
+	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
 
@@ -223,13 +220,13 @@ bool SpoutTextureSourceComponent::getPropertyValueFromRml(
 
 bool SpoutTextureSourceComponent::setPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	const Rml::Variant& inValue)
+	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == SpoutTextureSourceDefinition::k_spoutSourcePropertyId)
 	{
-		std::string devicePath = inValue.Get<std::string>();
+		std::string devicePath = inValue.getStringValue();
 		getSpoutTextureSourceDefinition()->setSpoutSource(devicePath);
 		return true;
 	}

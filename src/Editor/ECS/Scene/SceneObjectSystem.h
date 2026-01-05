@@ -66,6 +66,8 @@ public:
 	SceneObjectSystemConfigConstPtr getSceneSystemConfigConst() const;
 	SceneObjectSystemConfigPtr getSceneSystemConfig();
 
+	virtual MikanComponentPtr getComponentById(int componentId) const override;
+
 	SceneComponentPtr getCurrentScene() const;
 	void setCurrentScene(SceneComponentPtr scene);
 	const SceneMap& getSceneMap() const { return m_sceneComponents; }
@@ -76,6 +78,8 @@ public:
 
 	MulticastDelegate<void(SceneComponentPtr oldScene)> OnSceneDeactivated;
 	MulticastDelegate<void(SceneComponentPtr newScene)> OnSceneActivated;
+
+	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
 
 protected:
 	SceneComponentPtr createSceneObject(SceneComponentDefinitionPtr sceneConfig);

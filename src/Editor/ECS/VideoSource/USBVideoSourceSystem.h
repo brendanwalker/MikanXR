@@ -24,6 +24,7 @@ public:
 
     virtual bool init() override;
     virtual void dispose() override;
+    virtual MikanComponentPtr getComponentById(int componentId) const override;
 
 	IUsbVideoDeviceManagerPtr getUSBVideoDeviceManager() const { return m_usbVideoDeviceManager; }
 
@@ -38,6 +39,8 @@ public:
     bool removeUSBVideoSource(MikanVideoSourceID videoSourceId);
 
     MulticastDelegate<void()> OnVideoSourceListChanged;
+
+    virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
 
 protected:
     bool createUsbVideoDeviceManager(const std::string& moduleName);

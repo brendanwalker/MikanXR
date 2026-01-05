@@ -21,6 +21,9 @@ public:
 	MikanComponentDefinition();
 	MikanComponentDefinition(int componentId, const std::string& componentName);
 
+	MikanComponentPtr getOwnerComponent() const { return m_ownerComponent.lock(); }
+	void setOwnerComponent(MikanComponentPtr ownerComponent) { m_ownerComponent = ownerComponent; }
+
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
@@ -37,6 +40,7 @@ public:
 	void setComponentScriptPath(const std::filesystem::path& scriptPath);
 
 protected:
+	MikanComponentWeakPtr m_ownerComponent;
 	int m_componentId;
 	std::string m_componentName;
 	AssetReferenceConfigPtr m_componentScriptAssetRefConfig;
@@ -117,8 +121,8 @@ public:
 
 	// -- IRmlPropertyInterface ----
 	static void getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors);
-	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, Rml::Variant& outValue) const override;
-	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const Rml::Variant& inValue) override;
+	virtual bool getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override;
+	virtual bool setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue) override;
 
 	// -- IRmlFunctionInterface ----
 	static const std::string k_reloadScriptFunctionId;

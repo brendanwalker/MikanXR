@@ -23,6 +23,7 @@ public:
     virtual bool init() override;
 	virtual void update(float deltaTime) override;
     virtual void dispose() override;
+    virtual MikanComponentPtr getComponentById(int componentId) const override;
 
     INetworkVideoDeviceManagerPtr getNetworkVideoDeviceManager() const { return m_networkVideoDeviceManager; }
 
@@ -33,6 +34,8 @@ public:
     NetworkVideoSourceComponentPtr addNewNetworkVideoSource();
     NetworkVideoSourceComponentPtr addNewNetworkVideoSource(const MikanNetworkVideoSourceInfo& videoSourceInfo);
     bool removeNetworkVideoSource(MikanVideoSourceID videoSourceId);
+
+    virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
 
 protected:
 	bool createNetworkVideoDeviceManager(const std::string& moduleName);

@@ -22,6 +22,8 @@ public:
     virtual bool init() override;
     virtual void dispose() override;
 
+    virtual MikanComponentPtr getComponentById(int componentId) const override;
+
     const ClientTextureSourceMap& getClientTextureSourceMap() const { return m_clientTextureSourceComponents; }
 	TextureSourceComponentList getTextureSourceComponentList() const;
     TextureSourceIdList getTextureSourceIdList() const;
@@ -30,6 +32,8 @@ public:
     ClientTextureSourceComponentPtr addNewClientTextureSource();
     ClientTextureSourceComponentPtr addNewClientTextureSource(const MikanClientTextureSourceInfo& TextureSourceInfo);
     bool removeClientTextureSource(MikanTextureSourceID TextureSourceId);
+
+    virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
 
 protected:
     ClientTextureSourceComponentPtr createClientTextureSourceObject(ClientTextureSourceDefinitionPtr sourceConfig);

@@ -36,6 +36,8 @@ public:
 	StencilObjectSystemConfigConstPtr getStencilSystemConfigConst() const;
 	StencilObjectSystemConfigPtr getStencilSystemConfig();
 
+	virtual MikanComponentPtr getComponentById(int componentId) const override;
+
 	StencilComponentPtr getStencilById(MikanStencilID stencilId) const;
 	eStencilType getStencilType(MikanStencilID stencilId) const;
 	bool getStencilWorldTransform(MikanStencilID parentStencilId, glm::mat4& outXform) const;
@@ -74,6 +76,8 @@ public:
 		const glm::vec3& cameraPosition,
 		const glm::vec3& cameraForward,
 		std::vector<ModelStencilComponentPtr>& outStencilList) const;
+
+	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
 
 protected:
 	static bool isStencilFacingCamera(

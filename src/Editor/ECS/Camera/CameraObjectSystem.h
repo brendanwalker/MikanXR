@@ -63,6 +63,9 @@ public:
 	}
 	CameraObjectSystemConfigConstPtr getCameraSystemConfigConst() const;
 	CameraObjectSystemConfigPtr getCameraSystemConfig();
+
+	virtual MikanComponentPtr getComponentById(int componentId) const override;
+
 	std::vector<MikanCameraID> getAllCameraIds() const;
 
 	const CameraMap& getCameraMap() const { return m_cameraComponents; }
@@ -70,6 +73,8 @@ public:
 	CameraComponentPtr getCameraByName(const std::string& cameraName) const;
 	CameraComponentPtr addNewCamera(const MikanStageID ownerStageId);
 	bool removeCamera(MikanCameraID anchorId);
+
+	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
 
 protected:
 	CameraComponentPtr createCameraObject(CameraDefinitionPtr cameraConfig);

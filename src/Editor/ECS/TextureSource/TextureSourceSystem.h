@@ -26,6 +26,7 @@ public:
 	virtual bool init() override;
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
+	virtual MikanComponentPtr getComponentById(int componentId) const override;
 
 	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const override {
 		return getTextureSourceSystemConfigConst();
@@ -41,6 +42,8 @@ public:
 
 	ClientTextureSourceSystemPtr getClientTextureSourceSystem() const { return m_clientTextureSourceSystem; }
 	SpoutTextureSourceSystemPtr getSpoutTextureSourceSystem() const { return m_spoutTextureSourceSystem; }
+
+	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
 
 private:
 	ClientTextureSourceSystemPtr m_clientTextureSourceSystem;

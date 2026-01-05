@@ -6,6 +6,7 @@
 #include "TextureSourceSystemConfig.h"
 #include "MikanObject.h"
 #include "MikanCoreTypes.h"
+#include "MikanPropertyDatabase.h"
 
 #include <assert.h>
 
@@ -28,6 +29,11 @@ void ClientTextureSourceSystem::dispose()
 {
     m_clientTextureSourceComponents.clear();
 	MikanObjectSystem::dispose();
+}
+
+MikanComponentPtr ClientTextureSourceSystem::getComponentById(int componentId) const
+{
+    return getClientTextureSourceById(componentId);
 }
 
 TextureSourceComponentList ClientTextureSourceSystem::getTextureSourceComponentList() const
@@ -152,4 +158,10 @@ bool ClientTextureSourceSystem::disposeClientTextureSourceObject(MikanTextureSou
     }
 
     return false;
+}
+
+void ClientTextureSourceSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
+{
+	propertyDatabase->registerPropertiesForSystem<ClientTextureSourceSystem>();
+	propertyDatabase->registerPropertiesForComponent<ClientTextureSourceSystem, ClientTextureSourceComponent>();
 }

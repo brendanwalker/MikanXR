@@ -8,8 +8,10 @@
 #include "CompositorObjectSystem.h"
 #include "EditorObjectSystem.h"
 #include "IMkWindow.h"
+#include "RmlPropertyInterface.h"
 #include "MainWindow.h"
 #include "MarkerObjectSystem.h"
+#include "MikanPropertyDatabase.h"
 #include "NetworkVideoSourceSystem.h"
 #include "PathUtils.h"
 #include "ProjectConfig.h"
@@ -31,6 +33,7 @@ const char* ProjectManager::k_mikanProjectFileExtension= ".mikanproj";
 
 ProjectManager::ProjectManager(IMkWindow* ownerWindow)
 	: m_ownerWindow(ownerWindow)
+	, m_propertyDatabase(std::make_shared<MikanPropertyDatabase>())
 {
 }
 
@@ -57,6 +60,12 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	addSystem<TrackingMountObjectSystem>();
 	addSystem<TrackingVolumeObjectSystem>();
 
+	// Gather all property descriptors from all the systems and add them to the database
+	for (int i = 0; i < (int)m_systems.size(); i++)
+	{
+		m_systems[i]->registerPropertyDescriptors(m_propertyDatabase);
+	}
+
 	// Create a default project if we can't load the last opened one
 	AppSettingsConfigPtr appSettings= mainWindow->getOwnerApp()->getAppSettings();
 	if (!loadProject(appSettings->getLastProjectPath().string()))
@@ -78,10 +87,33 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	return true;
 }
 
+void ProjectManager::registerSystem(MikanObjectSystemPtr system)
+{
+	const int systemIndex = (int)m_systems.size();
+
+	m_systemNameToIndexMap.insert({ system->getSystemName(), systemIndex });
+	m_systems.push_back(system);
+}
+
+MikanObjectSystemPtr ProjectManager::getSystemByName(const std::string name) const
+{
+	auto it = m_systemNameToIndexMap.find(name);
+	if (it != m_systemNameToIndexMap.end())
+	{
+		const int systemIndex = it->second;
+		assert(systemIndex >= 0 && systemIndex < (int)m_systems.size());
+
+		return m_systems[systemIndex];
+	}
+
+	return MikanObjectSystemPtr();
+}
+
 void ProjectManager::shutdown()
 {
 	unloadProject();
 	m_systems.clear();
+	m_propertyDatabase->clear();
 }
 
 void ProjectManager::update(float deltaSeconds)

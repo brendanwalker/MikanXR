@@ -36,9 +36,6 @@
 #include "lua.hpp"
 #include "LuaBridge/LuaBridge.h"
 
-#include <RmlUi/Core/Types.h>
-#include <RmlUi/Core/Variant.h>
-
 #include <glm/gtx/matrix_decompose.hpp>
 
 #include "tinyfiledialogs.h"
@@ -442,18 +439,18 @@ void ModelStencilComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDes
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			ModelStencilDefinition::k_modelStencilObjPathPropertyId));
+			ModelStencilDefinition::k_modelStencilObjPathPropertyId, MikanVariantType::STRING));
 }
 
 bool ModelStencilComponent::getPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	Rml::Variant& outValue) const
+	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == ModelStencilDefinition::k_modelStencilObjPathPropertyId)
 	{
-		Rml::String filepath = getModelStencilDefinition()->getModelPath().string();
+		std::string filepath = getModelStencilDefinition()->getModelPath().string();
 
 		outValue = filepath;
 		return true;
@@ -464,13 +461,13 @@ bool ModelStencilComponent::getPropertyValueFromRml(
 
 bool ModelStencilComponent::setPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	const Rml::Variant& inValue)
+	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == ModelStencilDefinition::k_modelStencilObjPathPropertyId)
 	{
-		const Rml::String fileString = inValue.Get<Rml::String>();
+		const std::string fileString = inValue.getStringValue();
 		const std::filesystem::path filePath(fileString);
 
 		setModelPath(filePath);

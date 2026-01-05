@@ -8,6 +8,7 @@
 #include "MikanObject.h"
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
+#include "MikanPropertyDatabase.h"
 #include "ProjectConfig.h"
 #include "StringUtils.h"
 #include "SceneFwd.h"
@@ -158,6 +159,11 @@ void CameraObjectSystem::dispose()
 	MikanObjectSystem::dispose();
 }
 
+MikanComponentPtr CameraObjectSystem::getComponentById(int componentId) const
+{
+	return getCameraById(componentId);
+}
+
 void CameraObjectSystem::deleteObjectConfig(MikanObjectPtr objectPtr)
 {
 	CameraComponentPtr anchorComponent= objectPtr->getComponentOfType<CameraComponent>();
@@ -272,4 +278,10 @@ std::vector<MikanCameraID> CameraObjectSystem::getAllCameraIds() const
 		cameraIds.push_back(pair.first);
 	}
 	return cameraIds;
+}
+
+void CameraObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
+{
+	propertyDatabase->registerPropertiesForSystem<CameraObjectSystem>();
+	propertyDatabase->registerPropertiesForComponent<CameraObjectSystem, CameraComponent>();
 }

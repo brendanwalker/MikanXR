@@ -5,6 +5,7 @@
 #include "TransformComponent.h"
 #include "MathTypeConversion.h"
 #include "MikanObject.h"
+#include "MikanPropertyDatabase.h"
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
 #include "ProjectConfig.h"
@@ -174,6 +175,11 @@ void AnchorObjectSystem::dispose()
 	MikanObjectSystem::dispose();
 }
 
+MikanComponentPtr AnchorObjectSystem::getComponentById(int componentId) const
+{
+	return getSpatialAnchorById(componentId);
+}
+
 void AnchorObjectSystem::deleteObjectConfig(MikanObjectPtr objectPtr)
 {
 	AnchorComponentPtr anchorComponent= objectPtr->getComponentOfType<AnchorComponent>();
@@ -318,4 +324,10 @@ AnchorObjectSystemConfigConstPtr AnchorObjectSystem::getAnchorSystemConfigConst(
 AnchorObjectSystemConfigPtr AnchorObjectSystem::getAnchorSystemConfig()
 {
 	return std::const_pointer_cast<AnchorObjectSystemConfig>(getAnchorSystemConfigConst());
+}
+
+void AnchorObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
+{
+	propertyDatabase->registerPropertiesForSystem<AnchorObjectSystem>();
+	propertyDatabase->registerPropertiesForComponent<AnchorObjectSystem, AnchorComponent>();
 }

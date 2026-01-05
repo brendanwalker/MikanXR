@@ -4,9 +4,6 @@
 #include "MikanObject.h"
 #include "TextureSourceComponent.h"
 
-#include <RmlUi/Core/Types.h>
-#include <RmlUi/Core/Variant.h>
-
 #include <easy/profiler.h>
 
 // -- TextureSourceDefinition -----
@@ -72,11 +69,17 @@ IMkTexturePtr TextureSourceComponent::getClientDepthSourceTexture(eTextureSource
 void TextureSourceComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptorConstPtr>& outDescriptors)
 {
 	MikanComponent::getRmlPropertyDescriptors(outDescriptors);
+
+	outDescriptors.push_back(
+		std::make_shared<RmlPropertyDescriptor>(
+			TextureSourceDefinition::k_TextureSourceIdPropertyId, MikanVariantType::INT)
+		->setReadOnly()
+		->setDefaultValue(-1));
 }
 
 bool TextureSourceComponent::getPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc, 
-	Rml::Variant& outValue) const
+	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
 
@@ -91,7 +94,7 @@ bool TextureSourceComponent::getPropertyValueFromRml(
 
 bool TextureSourceComponent::setPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc, 
-	const Rml::Variant& inValue)
+	const MikanVariant& inValue)
 {
 	return MikanComponent::setPropertyValueFromRml(propertyDesc, inValue);
 }

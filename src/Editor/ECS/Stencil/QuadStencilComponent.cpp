@@ -21,9 +21,6 @@
 #include "lua.hpp"
 #include "LuaBridge/LuaBridge.h"
 
-#include <RmlUi/Core/Types.h>
-#include <RmlUi/Core/Variant.h>
-
 // -- QuadConfig -----
 const std::string QuadStencilDefinition::k_quadStencilWidthPropertyId = "quad_width";
 const std::string QuadStencilDefinition::k_quadStencilHeightPropertyId = "quad_height";
@@ -179,18 +176,18 @@ void QuadStencilComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDesc
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			QuadStencilDefinition::k_quadStencilWidthPropertyId));
+			QuadStencilDefinition::k_quadStencilWidthPropertyId, MikanVariantType::FLOAT));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			QuadStencilDefinition::k_quadStencilHeightPropertyId));
+			QuadStencilDefinition::k_quadStencilHeightPropertyId, MikanVariantType::FLOAT));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			QuadStencilDefinition::k_quadStencilDoubleSidedPropertyId));
+			QuadStencilDefinition::k_quadStencilDoubleSidedPropertyId, MikanVariantType::BOOL));
 }
 
 bool QuadStencilComponent::getPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	Rml::Variant& outValue) const
+	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
 
@@ -215,27 +212,27 @@ bool QuadStencilComponent::getPropertyValueFromRml(
 
 bool QuadStencilComponent::setPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	const Rml::Variant& inValue)
+	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == QuadStencilDefinition::k_quadStencilWidthPropertyId)
 	{
-		float width = inValue.Get<float>();
+		float width = inValue.getFloatValue();
 
 		getQuadStencilDefinition()->setQuadWidth(width);
 		return true;
 	}
 	else if (propertyName == QuadStencilDefinition::k_quadStencilHeightPropertyId)
 	{
-		float height = inValue.Get<float>();
+		float height = inValue.getFloatValue();
 
 		getQuadStencilDefinition()->setQuadHeight(height);
 		return true;
 	}
 	else if (propertyName == QuadStencilDefinition::k_quadStencilDoubleSidedPropertyId)
 	{
-		bool isDoubleSided = inValue.Get<bool>();
+		bool isDoubleSided = inValue.getBoolValue();
 
 		getQuadStencilDefinition()->setIsDoubleSided(isDoubleSided);
 		return true;

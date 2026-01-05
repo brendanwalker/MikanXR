@@ -59,11 +59,15 @@ public:
 	TrackingMountObjectSystemConfigConstPtr getTrackingMountSystemConfigConst() const;
 	TrackingMountObjectSystemConfigPtr getTrackingMountSystemConfig();
 
+	virtual MikanComponentPtr getComponentById(int componentId) const override;
+
 	const TrackingMountMap& getTrackingMountMap() const { return m_trackingMountComponents; }
 	TrackingMountComponentPtr getTrackingMountById(MikanTrackingMountID trackingMountId) const;
 	TrackingMountComponentPtr getTrackingMountByName(const std::string& trackingMountName) const;
 	TrackingMountComponentPtr addNewTrackingMount();
 	bool removeTrackingMountID(MikanTrackingMountID trackingMountId);
+
+	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
 
 protected:
 	TrackingMountComponentPtr createTrackingMountObject(TrackingMountDefinitionPtr trackingMountConfig);

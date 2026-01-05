@@ -25,9 +25,6 @@
 #include "VRDeviceComponent.h"
 #include "VRObjectSystem.h"
 
-#include <RmlUi/Core/Types.h>
-#include <RmlUi/Core/Variant.h>
-
 // -- CameraConfig -----
 const std::string CameraDefinition::k_ownerStageIdPropertyId = "stage_id";
 const std::string CameraDefinition::k_trackingMountIdPropertyId = "tracking_mount_id";
@@ -482,22 +479,25 @@ void CameraComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescripto
 	TransformComponent::getRmlPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_trackingMountIdPropertyId));
+		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_trackingMountIdPropertyId, MikanVariantType::INT)
+		->setDefaultValue(-1));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_videoSourceIdPropertyId));
+		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_videoSourceIdPropertyId, MikanVariantType::INT)
+		->setDefaultValue(-1));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_trackingFrameDelayPropertyId));
+		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_trackingFrameDelayPropertyId, MikanVariantType::INT)
+		->setDefaultValue(0));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_apertureOrientationOffsetPropertyId)
-		->setDefaultValue(Rml::Vector3f(0.f)));
+		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_apertureOrientationOffsetPropertyId, MikanVariantType::VECTOR3F)
+		->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f)));
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_aperturePositionOffsetPropertyId)
-		->setDefaultValue(Rml::Vector3f(0.f)));
+		std::make_shared<RmlPropertyDescriptor>(CameraDefinition::k_aperturePositionOffsetPropertyId, MikanVariantType::VECTOR3F)
+		->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f)));
 }
 
 bool CameraComponent::getPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc, 
-	Rml::Variant& outValue) const
+	MikanVariant& outValue) const
 {
 	std::string propertyName = propertyDesc->getName();
 
@@ -522,25 +522,25 @@ bool CameraComponent::getPropertyValueFromRml(
 
 bool CameraComponent::setPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc, 
-	const Rml::Variant& inValue)
+	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == CameraDefinition::k_trackingMountIdPropertyId)
 	{
-		MikanTrackingMountID trackingMountId = static_cast<MikanTrackingMountID>(inValue.Get<int>());
+		MikanTrackingMountID trackingMountId = static_cast<MikanTrackingMountID>(inValue.getIntValue());
 		getCameraDefinition()->setTrackingMountId(trackingMountId);
 		return true;
 	}
 	else if (propertyName == CameraDefinition::k_videoSourceIdPropertyId)
 	{
-		MikanVideoSourceID videoSourceId = static_cast<MikanVideoSourceID>(inValue.Get<int>());
+		MikanVideoSourceID videoSourceId = static_cast<MikanVideoSourceID>(inValue.getIntValue());
 		getCameraDefinition()->setVideoSourceId(videoSourceId);
 		return true;
 	}
 	else if (propertyName == CameraDefinition::k_trackingFrameDelayPropertyId)
 	{
-		int trackingFrameDelay = inValue.Get<int>();
+		int trackingFrameDelay = inValue.getIntValue();
 		getCameraDefinition()->setTrackingFrameDelay(trackingFrameDelay);
 		return true;
 	}

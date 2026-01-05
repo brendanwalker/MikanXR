@@ -70,6 +70,8 @@ public:
 	AnchorObjectSystemConfigConstPtr getAnchorSystemConfigConst() const;
 	AnchorObjectSystemConfigPtr getAnchorSystemConfig();
 
+	virtual MikanComponentPtr getComponentById(int componentId) const override;
+
 	const AnchorMap& getAnchorMap() const { return m_anchorComponents; }
 	AnchorComponentPtr getSpatialAnchorById(MikanSpatialAnchorID anchorId) const;
 	AnchorComponentPtr getSpatialAnchorByName(const std::string& anchorName) const;
@@ -77,6 +79,8 @@ public:
 	AnchorComponentPtr addNewAnchor(MikanStageID ownerStageId);
 	AnchorComponentPtr addNewAnchor(MikanStageID ownerStageId, const std::string& anchorName, const class GlmTransform& xform);
 	bool removeAnchor(MikanSpatialAnchorID anchorId);
+
+	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
 
 protected:
 	AnchorComponentPtr createAnchorObject(AnchorDefinitionPtr anchorConfig);

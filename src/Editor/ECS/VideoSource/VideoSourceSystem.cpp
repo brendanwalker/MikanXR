@@ -58,6 +58,11 @@ void VideoSourceSystem::deleteObjectConfig(MikanObjectPtr objectPtr)
 	}
 }
 
+MikanComponentPtr VideoSourceSystem::getComponentById(int componentId) const
+{
+	return getVideoSourceById(componentId);
+}
+
 VideoSourceSystemConfigConstPtr VideoSourceSystem::getVideoSourceSystemConfigConst() const
 {
 	return getProjectConfig()->videoSourceSystemConfig;

@@ -12,9 +12,6 @@
 #include "StringUtils.h"
 #include "VRTrackingRecenter/AppStage_VRTrackingRecenter.h"
 
-#include <RmlUi/Core/Types.h>
-#include <RmlUi/Core/Variant.h>
-
 // -- VRTrackingVolumeDefinition -----
 const std::string VRTrackingVolumeDefinition::k_trackingRuntimePropertyId = "tracking_runtime";
 const std::string VRTrackingVolumeDefinition::k_charucoMountIdPropertyId = "charuco_mount_id";
@@ -182,32 +179,35 @@ void VRTrackingVolumeComponent::getRmlPropertyDescriptors(std::vector<RmlPropert
 
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			VRTrackingVolumeDefinition::k_trackingRuntimePropertyId)
+			VRTrackingVolumeDefinition::k_trackingRuntimePropertyId, MikanVariantType::INT)
+		->setDefaultValue(-1)
 		->setReadOnly());
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			VRTrackingVolumeDefinition::k_charucoMountIdPropertyId));
+			VRTrackingVolumeDefinition::k_charucoMountIdPropertyId, MikanVariantType::INT)
+		->setDefaultValue(-1));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			VRTrackingVolumeDefinition::k_charucoMountOffsetPropertyId)
-		->setDefaultValue(Rml::Vector3f(0.f)));
+			VRTrackingVolumeDefinition::k_charucoMountOffsetPropertyId, MikanVariantType::VECTOR3F)
+		->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f)));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			VRTrackingVolumeDefinition::k_utilityMarkerIdPropertyId));
+			VRTrackingVolumeDefinition::k_utilityMarkerIdPropertyId, MikanVariantType::INT)
+		->setDefaultValue(-1));
 
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(k_vrDevicePositionOffsetPropertyId)
-		->setDefaultValue(Rml::Vector3f(0.f))
+		std::make_shared<RmlPropertyDescriptor>(k_vrDevicePositionOffsetPropertyId, MikanVariantType::VECTOR3F)
+		->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f))
 		->setReadOnly());
 	outDescriptors.push_back(
-		std::make_shared<RmlPropertyDescriptor>(k_vrDeviceRotationOffsetPropertyId)
-		->setDefaultValue(Rml::Vector3f(0.f))
+		std::make_shared<RmlPropertyDescriptor>(k_vrDeviceRotationOffsetPropertyId, MikanVariantType::VECTOR3F)
+		->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f))
 		->setReadOnly());
 }
 
 bool VRTrackingVolumeComponent::getPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc, 
-	Rml::Variant& outValue) const
+	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
 
@@ -223,8 +223,7 @@ bool VRTrackingVolumeComponent::getPropertyValueFromRml(
 	}
 	else if (propertyName == VRTrackingVolumeDefinition::k_charucoMountOffsetPropertyId)
 	{
-		const MikanVector3f& offset = getVRTrackingVolumeDefinition()->getCharucoMountOffsetMM();
-		outValue = Rml::Vector3f(offset.x, offset.y, offset.z);
+		outValue = getVRTrackingVolumeDefinition()->getCharucoMountOffsetMM();
 		return true;
 	}
 	else if (propertyName == VRTrackingVolumeDefinition::k_utilityMarkerIdPropertyId)
@@ -235,7 +234,7 @@ bool VRTrackingVolumeComponent::getPropertyValueFromRml(
 	else if (propertyName == k_vrDevicePositionOffsetPropertyId)
 	{
 		const glm::vec3 positionOffset = m_vrDevicePoseOffset.getPosition();
-		outValue = Rml::Vector3f(positionOffset.x, positionOffset.y, positionOffset.z);
+		outValue = glm_vec3_to_MikanVector3f(positionOffset);
 		return true;
 	}
 	else if (propertyName == k_vrDeviceRotationOffsetPropertyId)
@@ -246,7 +245,7 @@ bool VRTrackingVolumeComponent::getPropertyValueFromRml(
 		angles[1] *= k_radians_to_degrees;
 		angles[2] *= k_radians_to_degrees;
 
-		outValue = Rml::Vector3f(angles[0], angles[1], angles[2]);
+		outValue = glm_vec3_to_MikanVector3f(glm::vec3(angles[0], angles[1], angles[2]));
 		return true;
 	}
 
@@ -255,30 +254,30 @@ bool VRTrackingVolumeComponent::getPropertyValueFromRml(
 
 bool VRTrackingVolumeComponent::setPropertyValueFromRml(
 	RmlPropertyDescriptorConstPtr propertyDesc,
-	const Rml::Variant& inValue)
+	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == VRTrackingVolumeDefinition::k_trackingRuntimePropertyId)
 	{
-		getVRTrackingVolumeDefinition()->setTrackingRuntime((eTrackingRuntime)inValue.Get<int>());
+		getVRTrackingVolumeDefinition()->setTrackingRuntime((eTrackingRuntime)inValue.getIntValue());
 		return true;
 	}
 	else if (propertyName == VRTrackingVolumeDefinition::k_charucoMountIdPropertyId)
 	{
-		getVRTrackingVolumeDefinition()->setCharucoTrackingMountId(inValue.Get<int>());
+		getVRTrackingVolumeDefinition()->setCharucoTrackingMountId(inValue.getIntValue());
 		return true;
 	}
 	else if (propertyName == VRTrackingVolumeDefinition::k_charucoMountOffsetPropertyId)
 	{
-		Rml::Vector3 offset = inValue.Get<Rml::Vector3f>();
+		MikanVector3f offset = inValue.getVector3fValue();
 
 		getVRTrackingVolumeDefinition()->setCharucoMountOffsetMM({ offset.x, offset.y, offset.z });
 		return true;
 	}
 	else if (propertyName == VRTrackingVolumeDefinition::k_utilityMarkerIdPropertyId)
 	{
-		getVRTrackingVolumeDefinition()->setUtilityMarkerId(inValue.Get<int>());
+		getVRTrackingVolumeDefinition()->setUtilityMarkerId(inValue.getIntValue());
 		return true;
 	}
 

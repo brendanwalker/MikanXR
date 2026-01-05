@@ -68,6 +68,8 @@ public:
 	VRObjectSystemConfigConstPtr getVRSystemConfigConst() const;
 	VRObjectSystemConfigPtr getVRSystemConfig();
 
+	virtual MikanComponentPtr getComponentById(int componentId) const override;
+
 	bool createTrackingRuntime(eTrackingRuntime desiredRuntime);
 	const VRDeviceMap& getVRDeviceMap() const { return m_vrDeviceComponents; }
 	VRDeviceComponentPtr getVRDeviceById(MikanVRDeviceID vrDeviceId) const;
@@ -76,6 +78,8 @@ public:
 	MulticastDelegate<void(eTrackingRuntime runtime)> OnActiveDeviceListChanged;
 	MulticastDelegate<void(eTrackingRuntime runtime, MikanVRDeviceID deviceId)> OnDevicePropertyChanged;
 	MulticastDelegate<void(eTrackingRuntime runtime, int64_t newFrameId)> OnDevicePosesChanged;
+
+	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
 
 protected:
 	eTrackingRuntime findTrackingRuntimeForDeviceManager(const IVRDeviceManager* deviceManager) const;

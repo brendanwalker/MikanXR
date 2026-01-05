@@ -4,6 +4,7 @@
 #include "Logger.h"
 #include "MikanObject.h"
 #include "MikanModuleManager.h"
+#include "MikanPropertyDatabase.h"
 #include "NetworkVideoSourceSystem.h"
 #include "NetworkVideoSourceComponent.h"
 #include "ProjectConfig.h"
@@ -50,6 +51,11 @@ void NetworkVideoSourceSystem::dispose()
 {
     m_networkVideoSourceComponents.clear();
 	MikanObjectSystem::dispose();
+}
+
+MikanComponentPtr NetworkVideoSourceSystem::getComponentById(int componentId) const
+{
+	return getNetworkVideoSourceById(componentId);
 }
 
 VideoSourceIdList NetworkVideoSourceSystem::getVideoSourceIdList() const
@@ -258,4 +264,10 @@ bool NetworkVideoSourceSystem::disposeNetworkVideoSourceObject(MikanVideoSourceI
     }
 
     return false;
+}
+
+void NetworkVideoSourceSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
+{
+	propertyDatabase->registerPropertiesForSystem<NetworkVideoSourceSystem>();
+	propertyDatabase->registerPropertiesForComponent<NetworkVideoSourceSystem, NetworkVideoSourceComponent>();
 }

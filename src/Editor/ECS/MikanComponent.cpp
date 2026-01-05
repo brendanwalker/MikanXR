@@ -8,9 +8,6 @@
 #include "ProjectManager.h"
 #include "ScriptRequestHandler.h"
 
-#include "RmlUi/Core/Variant.h"
-#include "RmlUi/Config/Config.h"
-
 #include "lua.hpp"
 #include "LuaBridge/LuaBridge.h"
 
@@ -177,6 +174,7 @@ void MikanComponent::setDefinition(MikanComponentDefinitionPtr config)
 {
 	assert(!m_bWasInitialized);
 	m_definition = config;
+	m_definition->setOwnerComponent(getSelfPtr<MikanComponent>());
 
 	// Make the component name match the config name
 	m_name = config->getComponentName();
@@ -320,18 +318,18 @@ void MikanComponent::getRmlPropertyDescriptors(std::vector<RmlPropertyDescriptor
 {
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			MikanComponentDefinition::k_componentIdPropertyId)
+			MikanComponentDefinition::k_componentIdPropertyId, MikanVariantType::INT)
 		->setReadOnly()
 		->setDefaultValue(-1));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			MikanComponentDefinition::k_componentNamePropertyId));
+			MikanComponentDefinition::k_componentNamePropertyId, MikanVariantType::STRING));
 	outDescriptors.push_back(
 		std::make_shared<RmlPropertyDescriptor>(
-			MikanComponentDefinition::k_componentScriptPathPropertyId));
+			MikanComponentDefinition::k_componentScriptPathPropertyId, MikanVariantType::STRING));
 }
 
-bool MikanComponent::getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, Rml::Variant& outValue) const
+bool MikanComponent::getPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
 
@@ -354,24 +352,24 @@ bool MikanComponent::getPropertyValueFromRml(RmlPropertyDescriptorConstPtr prope
 	return false;
 }
 
-bool MikanComponent::setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const Rml::Variant& inValue)
+bool MikanComponent::setPropertyValueFromRml(RmlPropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
 
 	if (propertyName == MikanComponentDefinition::k_componentNamePropertyId)
 	{
-		setName(inValue.Get<Rml::String>());
+		setName(inValue.getStringValue());
 		return true;
 	}
 	else if (propertyName == MikanComponentDefinition::k_componentScriptPathPropertyId)
 	{
-		if (inValue.GetType() == Rml::Variant::STRING)
+		if (inValue.value_type == MikanVariantType::STRING)
 		{
-			std::filesystem::path scriptPath = inValue.Get<Rml::String>();
+			std::filesystem::path scriptPath = inValue.getStringValue();
 			m_definition->setComponentScriptPath(scriptPath);
 			return true;
 		}
-		else if (inValue.GetType() == Rml::Variant::NONE)
+		else if (inValue.value_type == MikanVariantType::INVALID)
 		{
 			m_definition->setComponentScriptPath(std::filesystem::path());
 			return true;

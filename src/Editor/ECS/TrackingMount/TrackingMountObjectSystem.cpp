@@ -5,6 +5,7 @@
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
 #include "MikanObject.h"
+#include "MikanPropertyDatabase.h"
 #include "ProjectConfig.h"
 #include "ProjectManager.h"
 #include "SelectionComponent.h"
@@ -140,6 +141,11 @@ void TrackingMountObjectSystem::dispose()
 	MikanObjectSystem::dispose();
 }
 
+MikanComponentPtr TrackingMountObjectSystem::getComponentById(int componentId) const
+{
+	return getTrackingMountById(componentId);
+}
+
 void TrackingMountObjectSystem::deleteObjectConfig(MikanObjectPtr objectPtr)
 {
 	MikanObjectSystem::deleteObjectConfig(objectPtr);
@@ -234,4 +240,10 @@ TrackingMountObjectSystemConfigConstPtr TrackingMountObjectSystem::getTrackingMo
 TrackingMountObjectSystemConfigPtr TrackingMountObjectSystem::getTrackingMountSystemConfig()
 {
 	return std::const_pointer_cast<TrackingMountObjectSystemConfig>(getTrackingMountSystemConfigConst());
+}
+
+void TrackingMountObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
+{
+	propertyDatabase->registerPropertiesForSystem<TrackingMountObjectSystem>();
+	propertyDatabase->registerPropertiesForComponent<TrackingMountObjectSystem, TrackingMountComponent>();
 }

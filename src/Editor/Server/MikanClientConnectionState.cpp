@@ -1,7 +1,10 @@
 #include "InterprocessMessageServerInterface.h"
 #include "MikanClientConnectionState.h"
 #include "MikanServer.h"
+#include "MikanPropertyEvents.h"
+#include "PropertyNotifyDatabase.h"
 #include "RenderTargetRequestHandler.h"
+#include "ServerResponseHelpers.h"
 #include "VRDeviceRequestHandler.h"
 
 MikanClientConnectionState::MikanClientConnectionState(
@@ -11,6 +14,9 @@ MikanClientConnectionState::MikanClientConnectionState(
 	, m_connectionId(connectionId)
 	, m_renderTargetClientState(new RenderTargetClientState(this))
 	, m_vrDeviceClientState(new VRDeviceClientState(this))
+	, m_propertyNotifyDatabase(
+		std::make_shared<PropertyNotifyDatabase>(
+			ownerServer->getProjectManager()->getPropertyDatabaseConst()))
 {}
 
 MikanClientConnectionState::~MikanClientConnectionState()
@@ -48,4 +54,40 @@ void MikanClientConnectionState::clearMikanClientInfo()
 void MikanClientConnectionState::publishMikanJsonEvent(const std::string& mikanJsonEvent)
 {
 	m_ownerServer->getMessageServer()->sendMessageToClient(m_connectionId, mikanJsonEvent);
+}
+
+// Property Events
+bool MikanClientConnectionState::setPropertyNotifyMode(
+	const std::string& systemFilter,
+	const std::string& componentFilter,
+	const std::string& propertyFilter,
+	MikanPropertyNotifyMode notifyMode)
+{
+	return m_propertyNotifyDatabase->setPropertyNotifyMode(
+		systemFilter, componentFilter, propertyFilter, notifyMode);
+}
+
+void MikanClientConnectionState::publishPropertyChangedEvent(const MikanPropertyValue& propertyValue)
+{
+	MikanPropertyNotifyMode notifyMode =
+		m_propertyNotifyDatabase->getPropertyNotifyMode(
+			propertyValue, m_ownerServer->getProjectManager());
+
+	if (notifyMode != MikanPropertyNotifyMode::NONE)
+	{
+		MikanPropertyUpdateEvent propertyUpdateEvent = {};
+		propertyUpdateEvent.propertyValue.ownerSystem = propertyValue.ownerSystem;
+		propertyUpdateEvent.propertyValue.componentId = propertyValue.componentId;
+		propertyUpdateEvent.propertyValue.fieldName = propertyValue.fieldName;
+
+		if (notifyMode == MikanPropertyNotifyMode::NAME_AND_VALUE)
+		{
+			propertyUpdateEvent.propertyValue.fieldValue = propertyValue.fieldValue;
+		}
+
+		m_ownerServer->getMessageServer()->sendMessageToClient(
+			getConnectionId(), 
+			mikanTypeToJsonString(propertyUpdateEvent));
+
+	}
 }

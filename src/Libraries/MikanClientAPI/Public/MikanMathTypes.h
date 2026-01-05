@@ -87,6 +87,23 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanRot
 	#endif
 };
 
+/// A 4D vector with float components.
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVector4f
+{
+	FIELD()
+	float x;
+	FIELD()
+	float y;
+	FIELD()
+	float z;
+	FIELD()
+	float w;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanVector4f_GENERATED
+#endif
+};
+
 /** A 4x4 matrix with float components
     storage is column major order:
 
