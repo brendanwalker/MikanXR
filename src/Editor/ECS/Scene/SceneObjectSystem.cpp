@@ -6,52 +6,42 @@
 #include "ProjectConfig.h"
 
 // -- SceneObjectSystemConfig -----
-const std::string SceneObjectSystemConfig::k_sceneListPropertyId= "scene_ids";
-const std::string SceneObjectSystemConfig::k_currentSceneIdPropertyId = "current_scene_id";
+const std::string SceneObjectSystemDefinition::k_scenePoolPropertyId= "scene_pool";
+const std::string SceneObjectSystemDefinition::k_currentSceneIdPropertyId = "current_scene_id";
 
-configuru::Config SceneObjectSystemConfig::writeToJSON()
+SceneObjectSystemDefinition::SceneObjectSystemDefinition(const std::string& configName)
+	: MikanObjectSystemDefinition(configName)
 {
-	configuru::Config pt = CommonConfig::writeToJSON();
+	m_scenePoolDefinition = std::make_shared<ScenePoolDefinition>(k_scenePoolPropertyId);
+	addChildConfig(m_scenePoolDefinition);
+}
 
-	pt["next_scene_id"] = m_nextSceneId;
-	pt[SceneObjectSystemConfig::k_currentSceneIdPropertyId] = m_currentSceneId;
+configuru::Config SceneObjectSystemDefinition::writeToJSON()
+{
+	configuru::Config pt = MikanObjectSystemDefinition::writeToJSON();
 
-	std::vector<configuru::Config> sceneListConfigs;
-	for (auto definitionPtr : m_sceneList)
-	{
-		sceneListConfigs.push_back(definitionPtr->writeToJSON());
-	}
-	pt.insert_or_assign(std::string("scenes"), sceneListConfigs);
+	pt[k_currentSceneIdPropertyId] = m_currentSceneId;
+	pt[k_scenePoolPropertyId] = m_scenePoolDefinition->writeToJSON();
 
 	return pt;
 }
 
-void SceneObjectSystemConfig::readFromJSON(const configuru::Config& pt)
+void SceneObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 {
-	CommonConfig::readFromJSON(pt);
+	MikanObjectSystemDefinition::readFromJSON(pt);
 
-	m_nextSceneId = pt.get_or<int>("next_scene_id", m_nextSceneId);
-	m_currentSceneId = 
+	m_currentSceneId =
 		pt.get_or<MikanSceneID>(
-			SceneObjectSystemConfig::k_currentSceneIdPropertyId, m_currentSceneId);
+			SceneObjectSystemDefinition::k_currentSceneIdPropertyId, m_currentSceneId);
 
-	// Read in the client video sources
-	m_sceneList.clear();
-	if (pt.has_key("scenes"))
+	// Read the scene pool definition
+	if (pt.has_key(k_scenePoolPropertyId))
 	{
-		for (const configuru::Config& videoSource_pt : pt["scenes"].as_array())
-		{
-			auto definitionPtr = std::make_shared<SceneComponentDefinition>();
-
-			definitionPtr->readFromJSON(videoSource_pt);
-			m_sceneList.push_back(definitionPtr);
-
-			addChildConfig(definitionPtr);
-		}
+		m_scenePoolDefinition->readFromJSON(pt[k_scenePoolPropertyId]);
 	}
 }
 
-void SceneObjectSystemConfig::setCurrentSceneId(MikanSceneID sceneId)
+void SceneObjectSystemDefinition::setCurrentSceneId(MikanSceneID sceneId)
 {
 	if (sceneId != m_currentSceneId)
 	{
@@ -60,85 +50,59 @@ void SceneObjectSystemConfig::setCurrentSceneId(MikanSceneID sceneId)
 	}
 }
 
-SceneComponentDefinitionPtr SceneObjectSystemConfig::getSceneConfig(MikanSceneID sceneId) const
+SceneComponentDefinitionPtr SceneObjectSystemDefinition::getSceneDefinition(MikanSceneID sceneId) const
 {
-	auto it = std::find_if(
-		m_sceneList.begin(), m_sceneList.end(),
-		[sceneId](SceneComponentDefinitionPtr configPtr) {
-			return configPtr->getSceneId() == sceneId;
-		});
-
-	if (it != m_sceneList.end())
-	{
-		return SceneComponentDefinitionPtr(*it);
-	}
-
-	return SceneComponentDefinitionPtr();
+	return m_scenePoolDefinition->getById(sceneId);
 }
 
-SceneComponentDefinitionPtr SceneObjectSystemConfig::getSceneConfigByName(const std::string& sceneName) const
+SceneComponentDefinitionPtr SceneObjectSystemDefinition::getSceneDefinitionByName(const std::string& sceneName) const
 {
-	auto it = std::find_if(
-		m_sceneList.begin(), m_sceneList.end(),
-		[sceneName](SceneComponentDefinitionPtr configPtr) {
-			return configPtr->getComponentName() == sceneName;
-		});
-
-	if (it != m_sceneList.end())
-	{
-		return SceneComponentDefinitionPtr(*it);
-	}
-
-	return SceneComponentDefinitionPtr();
+	return m_scenePoolDefinition->getByName(sceneName);
 }
 
-MikanSpatialAnchorID SceneObjectSystemConfig::addNewScene(
+const std::vector<SceneComponentDefinitionPtr>& SceneObjectSystemDefinition::getSceneList() const
+{
+	return m_scenePoolDefinition->getAll();
+}
+
+SceneComponentDefinitionPtr SceneObjectSystemDefinition::allocateNewScene(
 	MikanStageID parentStageId)
 {
-	const std::string sceneName= "Scene_" + std::to_string(m_nextSceneId);
-	auto sceneDefinitionPtr = 
-		std::make_shared<SceneComponentDefinition>(
-			m_nextSceneId, parentStageId, sceneName);
-	m_nextSceneId++;
+	MikanSceneID nextId = m_scenePoolDefinition->allocateNextId();
+	const std::string sceneName = "Scene_" + std::to_string(nextId);
 
-	m_sceneList.push_back(sceneDefinitionPtr);
-	addChildConfig(sceneDefinitionPtr);
-
-	return sceneDefinitionPtr->getSceneId();
+	return std::make_shared<SceneComponentDefinition>(nextId, parentStageId, sceneName);
 }
 
-bool SceneObjectSystemConfig::removeScene(MikanSceneID sceneId)
+bool SceneObjectSystemDefinition::addScene(
+	SceneComponentDefinitionPtr sceneDefinitionPtr)
 {
-	auto it = std::find_if(
-		m_sceneList.begin(), m_sceneList.end(),
-		[sceneId](SceneComponentDefinitionPtr configPtr) {
-			return configPtr->getSceneId() == sceneId;
-		});
-
-	if (it != m_sceneList.end())
-	{
-		removeChildConfig(*it);
-
-		m_sceneList.erase(it);
-
-		return true;
-	}
-
-	return false;
+	return m_scenePoolDefinition->addDefinition(sceneDefinitionPtr);
 }
 
-// -- SceneObjectSystem -----
-SceneObjectSystemWeakPtr SceneObjectSystem::s_sceneObjectSystem;
+bool SceneObjectSystemDefinition::removeScene(MikanSceneID sceneId)
+{
+	return m_scenePoolDefinition->removeDefinition(sceneId);
+}
+
+SceneObjectSystem::SceneObjectSystem(class ProjectManager* ownerObjectSystem)
+	: MikanObjectSystem(ownerObjectSystem)
+	, m_scenePool(
+		this,
+		[this](auto def) { return this->createSceneObject(def); }) // scene factory lambda
+{
+}
 
 bool SceneObjectSystem::init()
 {
 	MikanObjectSystem::init();
 
-	SceneObjectSystemConfigConstPtr sceneSystemConfig = getSceneSystemConfigConst();
+	SceneObjectSystemDefinitionConstPtr sceneSystemConfig = getSceneSystemConfigConst();
 
-	s_sceneObjectSystem = std::static_pointer_cast<SceneObjectSystem>(shared_from_this());
+	// Create scene objects from definitions
+	m_scenePool.initializeFromDefinitions(sceneSystemConfig->m_scenePoolDefinition);
 
-	SceneComponentPtr sceneComponent= getCurrentScene();
+	SceneComponentPtr sceneComponent = getCurrentScene();
 	if (sceneComponent)
 	{
 		sceneComponent->activateScene();
@@ -155,8 +119,6 @@ void SceneObjectSystem::dispose()
 		sceneComponent->deactivateScene();
 	}
 
-	s_sceneObjectSystem.reset();
-
 	MikanObjectSystem::dispose();
 }
 
@@ -165,20 +127,20 @@ MikanComponentPtr SceneObjectSystem::getComponentById(int componentId) const
 	return getSceneById(componentId);
 }
 
-SceneObjectSystemConfigConstPtr SceneObjectSystem::getSceneSystemConfigConst() const
+SceneObjectSystemDefinitionConstPtr SceneObjectSystem::getSceneSystemConfigConst() const
 {
 	auto config= getProjectConfig();
-	return config ? getProjectConfig()->sceneConfig : SceneObjectSystemConfigConstPtr();
+	return config ? getProjectConfig()->sceneConfig : SceneObjectSystemDefinitionConstPtr();
 }
 
-SceneObjectSystemConfigPtr SceneObjectSystem::getSceneSystemConfig()
+SceneObjectSystemDefinitionPtr SceneObjectSystem::getSceneSystemDefinition()
 {
-	return std::const_pointer_cast<SceneObjectSystemConfig>(getSceneSystemConfigConst());
+	return std::const_pointer_cast<SceneObjectSystemDefinition>(getSceneSystemConfigConst());
 }
 
 SceneComponentPtr SceneObjectSystem::getCurrentScene() const
 {
-	SceneObjectSystemConfigConstPtr sceneSystemConfigPtr = getSceneSystemConfigConst();
+	SceneObjectSystemDefinitionConstPtr sceneSystemConfigPtr = getSceneSystemConfigConst();
 	if (sceneSystemConfigPtr)
 	{
 		return getSceneById(sceneSystemConfigPtr->getCurrentSceneId());
@@ -188,7 +150,7 @@ SceneComponentPtr SceneObjectSystem::getCurrentScene() const
 
 void SceneObjectSystem::setCurrentScene(SceneComponentPtr newScene)
 {
-	SceneObjectSystemConfigPtr sceneSystemConfig = getSceneSystemConfig();
+	SceneObjectSystemDefinitionPtr sceneSystemConfig = getSceneSystemDefinition();
 	if (sceneSystemConfig)
 	{
 		MikanSceneID currentSceneId = sceneSystemConfig->getCurrentSceneId();
@@ -222,71 +184,40 @@ void SceneObjectSystem::setCurrentScene(SceneComponentPtr newScene)
 	}
 }
 
+const SceneObjectSystem::ScenePool::ComponentMap& SceneObjectSystem::getSceneMap() const
+{
+	return m_scenePool.getAll();
+}
+
 SceneComponentPtr SceneObjectSystem::getSceneById(MikanSceneID sceneId) const
 {
-	auto iter = m_sceneComponents.find(sceneId);
-	if (iter != m_sceneComponents.end())
-	{
-		return iter->second.lock();
-	}
-
-	return SceneComponentPtr();
+	return m_scenePool.getById(sceneId);
 }
 
 SceneComponentPtr SceneObjectSystem::getSceneByName(const std::string& sceneName) const
 {
-	for (auto it = m_sceneComponents.begin(); it != m_sceneComponents.end(); it++)
-	{
-		SceneComponentPtr componentPtr = it->second.lock();
-
-		if (componentPtr && componentPtr->getName() == sceneName)
-		{
-			return componentPtr;
-		}
-	}
-
-	return SceneComponentPtr();
+	return m_scenePool.getByName(sceneName);
 }
 
 SceneComponentPtr SceneObjectSystem::addNewScene(
 	MikanStageID parentStageId)
 {
-	SceneObjectSystemConfigPtr sceneSystemConfig = getSceneSystemConfig();
+	SceneObjectSystemDefinitionPtr systemDefinition = getSceneSystemDefinition();
 
-	MikanSceneID sceneId = sceneSystemConfig->addNewScene(parentStageId);
-	if (sceneId != INVALID_MIKAN_ID)
-	{
-		SceneComponentDefinitionPtr sceneConfig = sceneSystemConfig->getSceneConfig(sceneId);
-		assert(sceneConfig != nullptr);
-
-		SceneComponentPtr sceneComponent= createSceneObject(sceneConfig);
-
-		// Mark the scene list as dirty
-		sceneSystemConfig->notifyPropertyChanged(
-			ConfigPropertyChangeSet().addPropertyName(SceneObjectSystemConfig::k_sceneListPropertyId));
-
-		return sceneComponent;
-	}
-
-	return SceneComponentPtr();
+	return createSceneObject(systemDefinition->allocateNewScene(parentStageId));
 }
 
 bool SceneObjectSystem::removeScene(MikanSceneID sceneId)
 {
-	SceneObjectSystemConfigPtr sceneSystemConfig = getSceneSystemConfig();
+	SceneObjectSystemDefinitionPtr sceneSystemConfig = getSceneSystemDefinition();
 
-	bool bValidScene= sceneSystemConfig->removeScene(sceneId);
-	disposeSceneObject(sceneId);
-
-	sceneSystemConfig->notifyPropertyChanged(
-		ConfigPropertyChangeSet().addPropertyName(SceneObjectSystemConfig::k_sceneListPropertyId));
-
-	return bValidScene;
+	return
+		m_scenePool.dispose(sceneId) &&
+		sceneSystemConfig->removeScene(sceneId);
 }
 
 SceneComponentPtr SceneObjectSystem::createSceneObject(SceneComponentDefinitionPtr sceneConfig)
 {
-	SceneObjectSystemConfigConstPtr sceneSystemConfig = getSceneSystemConfigConst();
 	MikanObjectPtr sceneObject = newObject();
 	sceneObject->setName(sceneConfig->getComponentName());
 
@@ -294,27 +225,11 @@ SceneComponentPtr SceneObjectSystem::createSceneObject(SceneComponentDefinitionP
 	SceneComponentPtr sceneComponentPtr = sceneObject->addComponent<SceneComponent>();
 	sceneObject->setRootComponent(sceneComponentPtr);
 	sceneComponentPtr->setDefinition(sceneConfig);
-	m_sceneComponents.insert({sceneConfig->getSceneId(), sceneComponentPtr});
 
 	// Init the object once all components are added
 	sceneObject->init();
 
 	return sceneComponentPtr;
-}
-
-void SceneObjectSystem::disposeSceneObject(MikanSceneID sceneId)
-{
-	auto it = m_sceneComponents.find(sceneId);
-	if (it != m_sceneComponents.end())
-	{
-		SceneComponentPtr sceneComponentPtr = it->second.lock();
-
-		// Remove for component list
-		m_sceneComponents.erase(it);
-
-		// Free the corresponding object
-		deleteObject(sceneComponentPtr->getOwnerObject());
-	}
 }
 
 void SceneObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)

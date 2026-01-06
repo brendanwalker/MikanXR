@@ -87,12 +87,12 @@ bool EditorObjectSystem::init()
 	// If we don't have a current scene selected, pick the first one
 	if (!currentScene)
 	{
-		const SceneMap& sceneMap = sceneObjectSystem->getSceneMap();
+		const auto& sceneMap = sceneObjectSystem->getSceneMap();
 
 		if (sceneMap.size() > 0)
 		{
-			auto it= sceneMap.begin();
-			currentScene= it->second.lock();
+			auto it = sceneMap.begin();
+			currentScene = it->second.lock();
 
 			if (currentScene)
 			{

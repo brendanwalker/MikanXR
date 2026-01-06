@@ -27,7 +27,7 @@ public:
 	EditorObjectSystemConfigPtr editorConfig;
 	MarkerObjectSystemConfigPtr markerSystemConfig;
 	StencilObjectSystemConfigPtr stencilConfig;
-	SceneObjectSystemConfigPtr sceneConfig;
+	SceneObjectSystemDefinitionPtr sceneConfig;
 	StageObjectSystemConfigPtr stageConfig;
 	TrackingVolumeObjectSystemConfigPtr trackingVolumeSystemConfig;
 	TrackingMountObjectSystemConfigPtr trackingMountSystemConfig;

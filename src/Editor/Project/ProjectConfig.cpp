@@ -28,7 +28,7 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	editorConfig = std::make_shared<EditorObjectSystemConfig>("editor");
 	addChildConfig(editorConfig);
 
-	sceneConfig = std::make_shared<SceneObjectSystemConfig>("scenes");
+	sceneConfig = std::make_shared<SceneObjectSystemDefinition>("scenes");
 	addChildConfig(sceneConfig);
 
 	cameraConfig = std::make_shared<CameraObjectSystemConfig>("cameras");

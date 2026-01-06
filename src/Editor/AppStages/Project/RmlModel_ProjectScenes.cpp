@@ -73,10 +73,10 @@ bool RmlModel_ProjectScenes::init(ProjectRmlModelContext* context)
 		});
 	m_sceneIdList->init(
 		constructor,
-		m_sceneSystem.lock()->getSceneSystemConfig(),
-		SceneObjectSystemConfig::k_sceneListPropertyId,
+		m_sceneSystem.lock()->getSceneSystemDefinition(),
+		"scene_ids", // virtual list since this is filtered by selected stage
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			auto sceneSystemConfig = std::static_pointer_cast<SceneObjectSystemConfig>(ownerConfig);
+			auto sceneSystemConfig = std::static_pointer_cast<SceneObjectSystemDefinition>(ownerConfig);
 
 			for (const SceneComponentDefinitionPtr sceneComponent : sceneSystemConfig->getSceneList())
 			{
@@ -85,6 +85,9 @@ bool RmlModel_ProjectScenes::init(ProjectRmlModelContext* context)
 					outComponentIdList.push_back((int)sceneComponent->getSceneId());
 				}
 			}
+		},
+		[this](const ConfigPropertyChangeSet& changedPropertySet) {
+			return changedPropertySet.hasPropertyName(SceneObjectSystemDefinition::k_scenePoolPropertyId);
 		});
 
 	// One time data model types registration

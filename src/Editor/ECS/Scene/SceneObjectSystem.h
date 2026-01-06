@@ -4,6 +4,8 @@
 #include "ComponentFwd.h"
 #include "MikanTypeFwd.h"
 #include "MikanObjectSystem.h"
+#include "MikanTypedObjectPoolDefinition.h"
+#include "MikanTypedObjectPool.h"
 #include "MulticastDelegate.h"
 #include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
@@ -19,40 +21,41 @@
 
 class GlmTransform;
 
-using SceneMap = std::map<MikanSceneID, SceneComponentWeakPtr>;
-
-class SceneObjectSystemConfig : public MikanObjectSystemDefinition
+class SceneObjectSystemDefinition : public MikanObjectSystemDefinition
 {
 public:
-	SceneObjectSystemConfig(const std::string& configName)
-		: MikanObjectSystemDefinition(configName)
-	{}
+	using ScenePoolDefinition = MikanTypedObjectPoolDefinition<SceneComponentDefinition, MikanSceneID>;
+	using ScenePoolDefinitionPtr = std::shared_ptr<ScenePoolDefinition>;
+
+	SceneObjectSystemDefinition(const std::string& configName);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	static const std::string k_sceneListPropertyId;
-	SceneComponentDefinitionPtr getSceneConfig(MikanSceneID sceneId) const;
-	SceneComponentDefinitionPtr getSceneConfigByName(const std::string& sceneName) const;
-	MikanSpatialAnchorID addNewScene(MikanStageID parentStageId);
+	static const std::string k_scenePoolPropertyId;
+	SceneComponentDefinitionPtr getSceneDefinition(MikanSceneID sceneId) const;
+	SceneComponentDefinitionPtr getSceneDefinitionByName(const std::string& sceneName) const;
+	SceneComponentDefinitionPtr allocateNewScene(MikanStageID parentStageId);
+	bool addScene(SceneComponentDefinitionPtr sceneDefinitionPtr);
 	bool removeScene(MikanSceneID sceneId);
-	const std::vector<SceneComponentDefinitionPtr>& getSceneList() const { return m_sceneList; }
+	const std::vector<SceneComponentDefinitionPtr>& getSceneList() const;
 
 	static const std::string k_currentSceneIdPropertyId;
 	inline MikanSceneID getCurrentSceneId() const { return m_currentSceneId; }
 	void setCurrentSceneId(MikanSceneID sceneId);
 
+	ScenePoolDefinitionPtr m_scenePoolDefinition;
+
 private:
-	MikanSceneID m_nextSceneId = 0;
 	MikanSceneID m_currentSceneId = -1;
-	std::vector<SceneComponentDefinitionPtr> m_sceneList;
 };
 
 class SceneObjectSystem : public MikanObjectSystem
 {
 public:
-	SceneObjectSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
-	static SceneObjectSystemPtr getSystem() { return s_sceneObjectSystem.lock(); }
+	using ScenePool = MikanTypedObjectPool<SceneComponent, SceneComponentDefinition, MikanSceneID>;
+
+	SceneObjectSystem(class ProjectManager* ownerObjectSystem);
 
 	inline static const std::string k_objectSystemClassName = "SceneObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
@@ -63,14 +66,14 @@ public:
 	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const override {
 		return getSceneSystemConfigConst();
 	}
-	SceneObjectSystemConfigConstPtr getSceneSystemConfigConst() const;
-	SceneObjectSystemConfigPtr getSceneSystemConfig();
+	SceneObjectSystemDefinitionConstPtr getSceneSystemConfigConst() const;
+	SceneObjectSystemDefinitionPtr getSceneSystemDefinition();
 
 	virtual MikanComponentPtr getComponentById(int componentId) const override;
 
 	SceneComponentPtr getCurrentScene() const;
 	void setCurrentScene(SceneComponentPtr scene);
-	const SceneMap& getSceneMap() const { return m_sceneComponents; }
+	const ScenePool::ComponentMap& getSceneMap() const;
 	SceneComponentPtr getSceneById(MikanSceneID sceneId) const;
 	SceneComponentPtr getSceneByName(const std::string& sceneName) const;
 	SceneComponentPtr addNewScene(MikanStageID parentStageId);
@@ -83,8 +86,5 @@ public:
 
 protected:
 	SceneComponentPtr createSceneObject(SceneComponentDefinitionPtr sceneConfig);
-	void disposeSceneObject(MikanSceneID sceneId);
-
-	SceneMap m_sceneComponents;
-	static SceneObjectSystemWeakPtr s_sceneObjectSystem;
+	ScenePool m_scenePool;
 };

@@ -47,10 +47,10 @@ using MarkerObjectSystemConfigPtr = std::shared_ptr<MarkerObjectSystemConfig>;
 using MarkerObjectSystemConfigConstPtr = std::shared_ptr<const MarkerObjectSystemConfig>;
 using MarkerObjectSystemConfigWeakPtr = std::weak_ptr<MarkerObjectSystemConfig>;
 
-class SceneObjectSystemConfig;
-using SceneObjectSystemConfigPtr = std::shared_ptr<SceneObjectSystemConfig>;
-using SceneObjectSystemConfigConstPtr = std::shared_ptr<const SceneObjectSystemConfig>;
-using SceneObjectSystemConfigWeakPtr = std::weak_ptr<SceneObjectSystemConfig>;
+class SceneObjectSystemDefinition;
+using SceneObjectSystemDefinitionPtr = std::shared_ptr<SceneObjectSystemDefinition>;
+using SceneObjectSystemDefinitionConstPtr = std::shared_ptr<const SceneObjectSystemDefinition>;
+using SceneObjectSystemDefinitionWeakPtr = std::weak_ptr<SceneObjectSystemDefinition>;
 
 class StageObjectSystemConfig;
 using StageObjectSystemConfigPtr = std::shared_ptr<StageObjectSystemConfig>;
