@@ -153,4 +153,14 @@ namespace MikanXR
 		public float z;
 	};
 
+	public class MikanVector4f
+	{
+		public static readonly long classId= 4123224080540720280;
+
+		public float x;
+		public float y;
+		public float z;
+		public float w;
+	};
+
 }

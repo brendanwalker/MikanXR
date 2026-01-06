@@ -91,6 +91,12 @@ namespace MikanXR
 		public MikanVideoSourceIntrinsics intrinsics;
 	};
 
+	public class MikanVariantBase : PolymorphicStruct
+	{
+		public static new readonly long classId= 5706978007370628991;
+
+	};
+
 	public class MikanVideoSourceIntrinsics
 	{
 		public static readonly long classId= -5073913459979558727;
