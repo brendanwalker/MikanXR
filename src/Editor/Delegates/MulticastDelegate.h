@@ -19,8 +19,18 @@ public:
 	~MulticastDelegate() { Clear(); }
 
 	RetType operator()(Args... args) {
-		for (Delegate<RetType(Args...)>* delegate : m_delegates)
-			(*delegate)(args...);	// Invoke delegate callback
+		// Use manual iteration to safely handle delegates that remove themselves during callback
+		auto it = m_delegates.begin();
+		while (it != m_delegates.end())
+		{
+			// Get current delegate and advance iterator BEFORE invoking
+			// This makes it safe for the delegate to remove itself during the callback
+			Delegate<RetType(Args...)>* delegate = *it;
+			++it;
+
+			// Invoke delegate callback
+			(*delegate)(args...);
+		}
 	}
 
 	void operator+=(const Delegate<RetType(Args...)>& delegate) {
