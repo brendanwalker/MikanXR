@@ -50,7 +50,7 @@ public:
 	MulticastDelegate<void(IEntityAccessorPtr accessorPtr, const ConfigPropertyChangeSet& changedPropertySet)> OnEntityPropertyChanged;
 
 protected:
-	void onEntityConfigDestroyed(const CommonConfig* selfPtr);
+	void onEntityDisposed(const IEntityAccessor* selfPtr);
 	void onEntityConfigChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
 private:

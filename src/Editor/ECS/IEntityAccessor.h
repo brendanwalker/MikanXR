@@ -3,12 +3,15 @@
 #include "CommonConfigFwd.h"
 #include "FunctionInterface.h"
 #include "PropertyInterface.h"
+#include "MulticastDelegate.h"
 
 class IEntityAccessor :
 	public IPropertyInterface,
 	public IFunctionInterface
 {
 public:
+	MulticastDelegate<void(const IEntityAccessor* selfPtr)> onDisposed;
+
 	virtual CommonConfigPtr getEntityConfig() = 0;
 };
 using IEntityAccessorPtr = std::shared_ptr<IEntityAccessor>;

@@ -168,6 +168,11 @@ void MikanComponent::dispose()
 	{
 		objectSystemPtr->onCustomRender -= MakeDelegate(this, &MikanComponent::customRender);
 	}
+
+	if (onDisposed)
+	{
+		onDisposed(this);
+	}
 }
 
 void MikanComponent::setDefinition(MikanComponentDefinitionPtr config)

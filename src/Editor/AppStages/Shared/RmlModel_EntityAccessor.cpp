@@ -205,8 +205,8 @@ void RmlModel_EntityAccessor::clearEntityAccessor()
 		CommonConfigPtr oldEntityConfig = oldEntityAccessor->getEntityConfig();
 		assert(m_bWasAccessorSet);
 
-		oldEntityConfig->OnDestroyed -=
-			MakeDelegate(this, &RmlModel_EntityAccessor::onEntityConfigDestroyed);
+		oldEntityAccessor->onDisposed -=
+			MakeDelegate(this, &RmlModel_EntityAccessor::onEntityDisposed);
 		oldEntityConfig->OnPropertyChanged -=
 			MakeDelegate(this, &RmlModel_EntityAccessor::onEntityConfigChanged);
 
@@ -233,8 +233,8 @@ void RmlModel_EntityAccessor::setEntityAccessor(
 		{
 			CommonConfigPtr newEntityConfig = newEntityAccessor->getEntityConfig();
 
-			newEntityConfig->OnDestroyed +=
-				MakeDelegate(this, &RmlModel_EntityAccessor::onEntityConfigDestroyed);
+			newEntityAccessor->onDisposed +=
+				MakeDelegate(this, &RmlModel_EntityAccessor::onEntityDisposed);
 			newEntityConfig->OnPropertyChanged +=
 				MakeDelegate(this, &RmlModel_EntityAccessor::onEntityConfigChanged);
 
@@ -249,7 +249,7 @@ void RmlModel_EntityAccessor::setEntityAccessor(
 	}
 }
 
-void RmlModel_EntityAccessor::onEntityConfigDestroyed(const CommonConfig* selfPtr)
+void RmlModel_EntityAccessor::onEntityDisposed(const IEntityAccessor* selfPtr)
 {
 	clearEntityAccessor();
 }

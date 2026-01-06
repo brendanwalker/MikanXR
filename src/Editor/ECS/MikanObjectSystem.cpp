@@ -31,6 +31,11 @@ bool MikanObjectSystem::init()
 void MikanObjectSystem::dispose()
 {
 	deleteAllObjects();
+
+	if (onDisposed)
+	{
+		onDisposed(this);
+	}
 }
 
 void MikanObjectSystem::update(float deltaSeconds)
