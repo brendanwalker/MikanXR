@@ -63,13 +63,10 @@ public:
 	inline static const std::string k_objectSystemClassName = "TrackingVolumeObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
-	virtual bool init() override;
+	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
 
-	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const override {
-		return getTrackingVolumeSystemConfigConst();
-	}
 	TrackingVolumeObjectSystemConfigConstPtr getTrackingVolumeSystemConfigConst() const;
 	TrackingVolumeObjectSystemConfigPtr getTrackingVolumeSystemConfig();
 

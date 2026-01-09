@@ -181,8 +181,10 @@ bool ProjectManager::loadProject(const std::string& projectFilePath)
 		for (int i = 0; i < (int)m_systems.size(); i++)
 		{
 			MikanObjectSystemPtr system = m_systems[i];
+			MikanObjectSystemDefinitionPtr systemDefinition= 
+				m_projectConfig->getDefinitionForSystem(system);
 
-			if (!system->init())
+			if (!system->init(systemDefinition))
 			{
 				bSuccess = false;
 				break;

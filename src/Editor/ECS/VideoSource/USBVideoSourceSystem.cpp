@@ -14,9 +14,9 @@
 
 #define USB_VIDEO_DEVICE_MODULE_NAME "MikanWMFVideo"
 
-bool USBVideoSourceSystem::init()
+bool USBVideoSourceSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
-	MikanObjectSystem::init();
+	MikanObjectSystem::init(definitionPtr);
 
     VideoSourceSystemConfigConstPtr videoSourceSystemConfig = 
         getProjectConfig()->videoSourceSystemConfig;

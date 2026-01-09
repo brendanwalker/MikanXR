@@ -26,13 +26,10 @@ public:
 	inline static const std::string k_objectSystemClassName = "StencilObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
-	virtual bool init() override;
+	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
 
-	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const override {
-		return getStencilSystemConfigConst();
-	}
 	StencilObjectSystemConfigConstPtr getStencilSystemConfigConst() const;
 	StencilObjectSystemConfigPtr getStencilSystemConfig();
 

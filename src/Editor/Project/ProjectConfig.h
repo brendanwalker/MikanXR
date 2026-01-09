@@ -3,6 +3,7 @@
 // -- includes -----
 #include "CommonConfig.h"
 #include "MikanMathTypes.h"
+#include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ProjectConfigConstants.h"
 
@@ -20,6 +21,8 @@ public:
 	static const std::string k_renderOriginFlagPropertyId;
 	inline bool getRenderOriginFlag() const { return m_bRenderOrigin; }
 	void setRenderOriginFlag(bool flag);
+
+	MikanObjectSystemDefinitionPtr getDefinitionForSystem(MikanObjectSystemPtr systemPtr) const;
 
 	AnchorObjectSystemConfigPtr anchorConfig;
 	CameraObjectSystemConfigPtr cameraConfig;

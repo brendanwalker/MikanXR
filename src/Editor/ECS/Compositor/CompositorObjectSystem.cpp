@@ -117,9 +117,9 @@ bool CompositorObjectSystemConfig::removeCompositor(MikanCompositorID compositor
 }
 
 // -- CompositorObjectSystem -----
-bool CompositorObjectSystem::init()
+bool CompositorObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
-	MikanObjectSystem::init();
+	MikanObjectSystem::init(definitionPtr);
 
 	CompositorObjectSystemConfigConstPtr compositorSystemConfig = getCompositorSystemConfigConst();
 	for (CompositorDefinitionPtr compositorDefinition : compositorSystemConfig->getCompositorList())

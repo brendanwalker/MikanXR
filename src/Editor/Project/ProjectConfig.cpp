@@ -15,8 +15,8 @@
 #include "SinglecastDelegate.h"
 #include "TrackingVolumeObjectSystem.h"
 #include "TrackingMountObjectSystem.h"
-#include "TextureSourceSystemConfig.h"
-#include "VideoSourceSystemConfig.h"
+#include "TextureSourceSystem.h"
+#include "VideoSourceSystem.h"
 #include "VRObjectSystem.h"
 
 // -- Profile Config
@@ -28,7 +28,7 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	editorConfig = std::make_shared<EditorObjectSystemConfig>("editor");
 	addChildConfig(editorConfig);
 
-	sceneConfig = std::make_shared<SceneObjectSystemDefinition>("scenes");
+	sceneConfig = std::make_shared<SceneObjectSystemDefinition>();
 	addChildConfig(sceneConfig);
 
 	cameraConfig = std::make_shared<CameraObjectSystemConfig>("cameras");
@@ -207,4 +207,64 @@ void ProjectConfig::setRenderOriginFlag(bool flag)
 		m_bRenderOrigin = flag;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderOriginFlagPropertyId));
 	}
+}
+
+MikanObjectSystemDefinitionPtr ProjectConfig::getDefinitionForSystem(MikanObjectSystemPtr systemPtr) const
+{
+	const std::string systemClassName = systemPtr->getObjectSystemClassName();
+
+	if (systemClassName == AnchorObjectSystem::k_objectSystemClassName)
+	{
+		return anchorConfig;
+	}
+	else if (systemClassName == CameraObjectSystem::k_objectSystemClassName)
+	{
+		return cameraConfig;
+	}
+	else if (systemClassName == CompositorObjectSystem::k_objectSystemClassName)
+	{
+		return compositorConfig;
+	}
+	else if (systemClassName == EditorObjectSystem::k_objectSystemClassName)
+	{
+		return editorConfig;
+	}
+	else if (systemClassName == MarkerObjectSystem::k_objectSystemClassName)
+	{
+		return markerSystemConfig;
+	}
+	else if (systemClassName == StencilObjectSystem::k_objectSystemClassName)
+	{
+		return stencilConfig;
+	}
+	else if (systemClassName == SceneObjectSystem::k_objectSystemClassName)
+	{
+		return sceneConfig;
+	}
+	else if (systemClassName == StageObjectSystem::k_objectSystemClassName)
+	{
+		return stageConfig;
+	}
+	else if (systemClassName == TrackingVolumeObjectSystem::k_objectSystemClassName)
+	{
+		return trackingVolumeSystemConfig;
+	}
+	else if (systemClassName == TrackingMountObjectSystem::k_objectSystemClassName)
+	{
+		return trackingMountSystemConfig;
+	}
+	else if (systemClassName == TextureSourceSystem::k_objectSystemClassName)
+	{
+		return textureSourceSystemConfig;
+	}
+	else if (systemClassName == VideoSourceSystem::k_objectSystemClassName)
+	{
+		return videoSourceSystemConfig;
+	}
+	else if (systemClassName == VRObjectSystem::k_objectSystemClassName)
+	{
+		return vrObjectConfig;
+	}
+
+	return nullptr;
 }

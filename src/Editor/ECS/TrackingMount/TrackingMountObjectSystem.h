@@ -49,13 +49,10 @@ public:
 	inline static const std::string k_objectSystemClassName = "TrackingMountObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
-	virtual bool init() override;
+	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
 
-	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const override {
-		return getTrackingMountSystemConfigConst();
-	}
 	TrackingMountObjectSystemConfigConstPtr getTrackingMountSystemConfigConst() const;
 	TrackingMountObjectSystemConfigPtr getTrackingMountSystemConfig();
 

@@ -250,7 +250,7 @@ bool TrackingVolumeObjectSystemConfig::removeVRTrackingVolume(MikanTrackingVolum
 }
 
 // -- TrackingVolumeObjectSystem -----
-bool TrackingVolumeObjectSystem::init()
+bool TrackingVolumeObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
 	TrackingVolumeObjectSystemConfigPtr config = getTrackingVolumeSystemConfig();
 	if (config == nullptr)
@@ -271,7 +271,7 @@ bool TrackingVolumeObjectSystem::init()
 		createTrackingVolumeObject(std::static_pointer_cast<TrackingVolumeDefinition>(vrDef));
 	}
 
-	return MikanObjectSystem::init();
+	return MikanObjectSystem::init(definitionPtr);
 }
 
 void TrackingVolumeObjectSystem::dispose()

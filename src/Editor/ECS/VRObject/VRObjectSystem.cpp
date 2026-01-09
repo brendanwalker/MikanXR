@@ -191,9 +191,9 @@ private:
 };
 
 // -- VRObjectSystem -----
-bool VRObjectSystem::init()
+bool VRObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
-	MikanObjectSystem::init();
+	MikanObjectSystem::init(definitionPtr);
 
 	// Listen for project config changes
 	ProjectConfigPtr projectConfig = getProjectConfig();

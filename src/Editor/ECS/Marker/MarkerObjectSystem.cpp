@@ -268,9 +268,9 @@ void MarkerObjectSystemConfig::setCharucoDictionaryType(eCharucoDictionaryType c
 }
 
 // -- MarkerObjectSystem -----
-bool MarkerObjectSystem::init()
+bool MarkerObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
-	MikanObjectSystem::init();
+	MikanObjectSystem::init(definitionPtr);
 
 	MarkerObjectSystemConfigConstPtr markerSystemConfig = getMarkerSystemConfigConst();
 

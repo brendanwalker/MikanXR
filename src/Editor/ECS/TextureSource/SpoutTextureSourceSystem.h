@@ -20,7 +20,7 @@ public:
 	inline static const std::string k_objectSystemClassName = "SpoutTextureSourceSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
-    virtual bool init() override;
+    virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
     virtual void dispose() override;
     virtual MikanComponentPtr getComponentById(int componentId) const override;
 

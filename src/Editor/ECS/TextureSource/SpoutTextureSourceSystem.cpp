@@ -17,9 +17,9 @@ SpoutTextureSourceSystem::SpoutTextureSourceSystem(ProjectManager* ownerObjectSy
 {
 }
 
-bool SpoutTextureSourceSystem::init()
+bool SpoutTextureSourceSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
-	MikanObjectSystem::init();
+	MikanObjectSystem::init(definitionPtr);
     TextureSourceSystemConfigConstPtr TextureSourceSystemConfig = 
         getProjectConfig()->textureSourceSystemConfig;
 

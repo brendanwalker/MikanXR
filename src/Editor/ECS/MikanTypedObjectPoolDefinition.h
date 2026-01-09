@@ -17,13 +17,13 @@ template<class t_component_definition, typename t_id_type>
 class MikanTypedObjectPoolDefinition : public CommonConfig
 {
 public:
-	using DefinitionPtr = std::shared_ptr<t_component_definition>;
+	using ComponentDefinitionPtr = std::shared_ptr<t_component_definition>;
 	using DefinitionConstPtr = std::shared_ptr<const t_component_definition>;
-	using DefinitionList = std::vector<DefinitionPtr>;
+	using DefinitionList = std::vector<ComponentDefinitionPtr>;
 	using DefinitionListConstIter = typename DefinitionList::const_iterator;
 
 	MikanTypedObjectPoolDefinition(
-		const std::string& listPropertyId,
+		const std::string& poolPropertyId,
 		int32_t initialNextId = 0)
 		: CommonConfig("ComponentPool")
 		, m_nextId(initialNextId)
@@ -69,10 +69,10 @@ public:
 	// Config accessors
 	const std::string& getListPropertyId() const 
 	{ 
-		return m_listPropertyId; 
+		return m_poolPropertyId; 
 	}
 
-	DefinitionPtr getById(int32_t id) const
+	ComponentDefinitionPtr getById(int32_t id) const
 	{
 		auto it = findDefinitionIteratorById(id);
 
@@ -81,10 +81,10 @@ public:
 			return *it;
 		}
 
-		return DefinitionPtr();
+		return ComponentDefinitionPtr();
 	}
 
-	DefinitionPtr getByName(const std::string& name) const
+	ComponentDefinitionPtr getByName(const std::string& name) const
 	{
 		auto it = std::find_if(
 			m_definitions.begin(), m_definitions.end(),
@@ -97,20 +97,21 @@ public:
 			return *it;
 		}
 
-		return DefinitionPtr();
+		return ComponentDefinitionPtr();
 	}
 
 	const DefinitionList& getAll() const { return m_definitions; }
 
 	// Config mutations
-	t_id_type allocateNextId()
+	ComponentDefinitionPtr allocateDefinition()
 	{
-		int newId = m_nextId;
+		t_id_type nextId = m_nextId;
 		m_nextId++;
-		return newId;
+
+		return std::make_shared<t_component_definition>(nextId);
 	}
 
-	bool addDefinition(DefinitionPtr definition)
+	bool addDefinition(ComponentDefinitionPtr definition)
 	{
 		t_id_type id = definition->getComponentId();
 
@@ -154,7 +155,7 @@ public:
 
 	void notifyDefinitionsChanged()
 	{
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(m_listPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(m_poolPropertyId));
 	}
 
 protected:
@@ -170,5 +171,5 @@ protected:
 private:
 	t_id_type m_nextId;
 	DefinitionList m_definitions;
-	std::string m_listPropertyId;     // Property ID for change notifications
+	std::string m_poolPropertyId;     // Property ID for change notifications
 };

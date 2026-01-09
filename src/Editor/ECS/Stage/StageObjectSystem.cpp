@@ -119,9 +119,9 @@ bool StageObjectSystemConfig::removeStage(MikanStageID stageId)
 }
 
 // -- StageObjectSystem -----
-bool StageObjectSystem::init()
+bool StageObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
-	MikanObjectSystem::init();
+	MikanObjectSystem::init(definitionPtr);
 
 	StageObjectSystemConfigConstPtr sceneSystemConfig = getStageSystemConfigConst();
 	for (StageComponentDefinitionPtr stageDefinition : sceneSystemConfig->getStageList())

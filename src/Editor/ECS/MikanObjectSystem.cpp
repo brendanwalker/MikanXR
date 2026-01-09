@@ -16,13 +16,12 @@ MikanObjectSystem::~MikanObjectSystem()
 	assert(m_objects.empty());
 }
 
-bool MikanObjectSystem::init()
+bool MikanObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
-	// Assign this system as owner to it's corresponding definition
-	auto systemConfig= getObjectSystemConfig();
-	if (systemConfig)
+	m_definitionWeakPtr = definitionPtr;
+	if (definitionPtr)
 	{
-		systemConfig->setOwnerSystem(shared_from_this());
+		definitionPtr->setOwnerSystem(shared_from_this());
 	}
 
 	return true;

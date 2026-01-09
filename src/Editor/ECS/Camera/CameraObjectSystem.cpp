@@ -136,9 +136,9 @@ bool CameraObjectSystemConfig::removeCamera(MikanCameraID cameraId)
 // -- CameraObjectSystem -----
 CameraObjectSystemWeakPtr CameraObjectSystem::s_cameraObjectSystem;
 
-bool CameraObjectSystem::init()
+bool CameraObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
-	MikanObjectSystem::init();
+	MikanObjectSystem::init(definitionPtr);
 
 	CameraObjectSystemConfigConstPtr cameraSystemConfig = getCameraSystemConfigConst();
 

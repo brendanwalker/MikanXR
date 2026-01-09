@@ -46,12 +46,9 @@ public:
 	inline static const std::string k_objectSystemClassName = "CompositorObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
-	virtual bool init() override;
+	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
 	virtual void dispose() override;
 
-	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const override {
-		return getCompositorSystemConfigConst();
-	}
 	CompositorObjectSystemConfigConstPtr getCompositorSystemConfigConst() const;
 	CompositorObjectSystemConfigPtr getCompositorSystemConfig();
 

@@ -116,9 +116,9 @@ bool TrackingMountObjectSystemConfig::removeTrackingMountID(MikanTrackingMountID
 }
 
 // -- TrackingMountObjectSystem ----
-bool TrackingMountObjectSystem::init()
+bool TrackingMountObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
-	if (MikanObjectSystem::init())
+	if (MikanObjectSystem::init(definitionPtr))
 	{
 		TrackingMountObjectSystemConfigPtr config = getTrackingMountSystemConfig();
 

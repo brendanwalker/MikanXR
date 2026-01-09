@@ -17,9 +17,9 @@
 
 TextureSourceSystemWeakPtr TextureSourceSystem::s_TextureSourceSystem;
 
-bool TextureSourceSystem::init()
+bool TextureSourceSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
-	MikanObjectSystem::init();
+	MikanObjectSystem::init(definitionPtr);
 
 	// Create subsystems
 	auto* owner= getOwnerProjectManager();

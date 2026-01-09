@@ -16,9 +16,9 @@
 
 VideoSourceSystemWeakPtr VideoSourceSystem::s_VideoSourceSystem;
 
-bool VideoSourceSystem::init()
+bool VideoSourceSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
-	MikanObjectSystem::init();
+	MikanObjectSystem::init(definitionPtr);
 
 	// Create subsystems
 	auto* owner= getOwnerProjectManager();

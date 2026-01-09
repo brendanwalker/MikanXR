@@ -16,9 +16,9 @@
 #define GSTREAMER_VIDEO_DEVICE_MODULE_NAME  "MikanGStreamerVideo"
 #define NETWORK_VIDEO_DEVICE_MODULE_NAME    GSTREAMER_VIDEO_DEVICE_MODULE_NAME
 
-bool NetworkVideoSourceSystem::init()
+bool NetworkVideoSourceSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
-	MikanObjectSystem::init();
+	MikanObjectSystem::init(definitionPtr);
 
     VideoSourceSystemConfigConstPtr videoSourceSystemConfig = getProjectConfig()->videoSourceSystemConfig;
 

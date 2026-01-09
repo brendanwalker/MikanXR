@@ -15,9 +15,9 @@
 #include "QuadStencilComponent.h"
 #include "StencilObjectSystem.h"
 
-bool StencilObjectSystem::init()
+bool StencilObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
-	MikanObjectSystem::init();
+	MikanObjectSystem::init(definitionPtr);
 
 	StencilObjectSystemConfigConstPtr stencilSystemConfig = getStencilSystemConfigConst();
 

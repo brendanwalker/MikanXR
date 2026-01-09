@@ -18,10 +18,10 @@ public:
 	using ComponentPtr = std::shared_ptr<t_component_class>;
 	using ComponentWeakPtr = std::weak_ptr<t_component_class>;
 	using ComponentMap = std::map<t_id_type, ComponentWeakPtr>;
-	using DefinitionPtr = std::shared_ptr<t_definition_class>;
+	using ComponentDefinitionPtr = std::shared_ptr<t_definition_class>;
 	using DefinitionConstPtr = std::shared_ptr<const t_definition_class>;
 	using PoolDefinitionPtr = std::shared_ptr<MikanTypedObjectPoolDefinition<t_definition_class, t_id_type>>;
-	using FactoryFunction = std::function<ComponentPtr(DefinitionPtr)>;
+	using FactoryFunction = std::function<ComponentPtr(ComponentDefinitionPtr)>;
 
 	MikanTypedObjectPool(
 		MikanObjectSystem* ownerSystem,
@@ -61,7 +61,7 @@ public:
 	const ComponentMap& getAll() const { return m_components; }
 
 	// Lifecycle operations
-	ComponentPtr create(DefinitionPtr definition)
+	ComponentPtr create(ComponentDefinitionPtr definition)
 	{
 		ComponentPtr component = m_factory(definition);
 		if (component)
@@ -114,9 +114,8 @@ public:
 	}
 
 	// Initialization from definition pool
-	void initializeFromDefinitions(PoolDefinitionPtr poolDefinition)
+	void initializeFromDefinitions(const std::vector<ComponentDefinitionPtr>& definitions)
 	{
-		const auto& definitions = poolDefinition->getAll();
 		for (auto definitionPtr : definitions)
 		{
 			t_id_type id = definitionPtr->getComponentId();

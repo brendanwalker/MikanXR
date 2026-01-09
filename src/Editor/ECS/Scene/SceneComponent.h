@@ -13,10 +13,7 @@ class SceneComponentDefinition : public TransformComponentDefinition
 {
 public:
 	SceneComponentDefinition();
-	SceneComponentDefinition(
-		MikanSceneID sceneId,
-		MikanStageID parentStageId,
-		const std::string& componentName);
+	SceneComponentDefinition(MikanSceneID sceneId);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

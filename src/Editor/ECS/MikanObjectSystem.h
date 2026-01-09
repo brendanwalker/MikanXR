@@ -35,7 +35,7 @@ public:
 	MikanObjectSystem(class ProjectManager* ownerObjectSystem);
 	virtual ~MikanObjectSystem();
 
-	virtual bool init();
+	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr);
 	virtual void dispose();
 	virtual void update(float deltaSeconds);
 	virtual void customRender();
@@ -44,12 +44,13 @@ public:
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
 	inline class ProjectManager* getOwnerProjectManager() const { return m_ownerObjectSystemManager; }
-	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const {
-		return MikanObjectSystemDefinitionConstPtr();
+	inline MikanObjectSystemDefinitionConstPtr getDefinitionConst() const {
+		return m_definitionWeakPtr.lock();
 	}
-	virtual MikanObjectSystemDefinitionPtr getObjectSystemConfig() {
-		return std::const_pointer_cast<MikanObjectSystemDefinition>(getObjectSystemConfigConst());
+	inline MikanObjectSystemDefinitionPtr getDefinition() {
+		return m_definitionWeakPtr.lock();
 	}
+
 	ProjectConfigPtr getProjectConfig() const;
 
 	const std::string& getSystemName() const { return m_systemName; };
@@ -69,7 +70,7 @@ public:
 	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase);
 	
 	// -- IEntityAccessor ----
-	virtual CommonConfigPtr getEntityConfig() override { return getObjectSystemConfig(); }
+	virtual CommonConfigPtr getEntityConfig() override { return getDefinition(); }
 
 	// -- IRmlPropertyInterface ----
 	static void getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors) {}
@@ -82,6 +83,7 @@ public:
 		
 protected:
 	class ProjectManager* m_ownerObjectSystemManager = nullptr;
+	MikanObjectSystemDefinitionWeakPtr m_definitionWeakPtr;
 
 	std::string m_systemName;
 	MikanObjectList m_objects;

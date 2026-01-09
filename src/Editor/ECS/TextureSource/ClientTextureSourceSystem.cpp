@@ -10,9 +10,9 @@
 
 #include <assert.h>
 
-bool ClientTextureSourceSystem::init()
+bool ClientTextureSourceSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
-	MikanObjectSystem::init();
+	MikanObjectSystem::init(definitionPtr);
 
     TextureSourceSystemConfigConstPtr TextureSourceSystemConfig = 
         getProjectConfig()->textureSourceSystemConfig;

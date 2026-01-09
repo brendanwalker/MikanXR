@@ -27,17 +27,16 @@ const std::string SceneComponentDefinition::k_compositorListPropertyId = "compos
 const std::string SceneComponentDefinition::k_displayCompositorIdPropertyId = "display_compositor_id";
 
 SceneComponentDefinition::SceneComponentDefinition()
-	: m_sceneId(INVALID_MIKAN_ID)
+	: TransformComponentDefinition()
+	, m_sceneId(INVALID_MIKAN_ID)
 	, m_parentStageId(INVALID_MIKAN_ID)
 {}
 
 SceneComponentDefinition::SceneComponentDefinition(
-	MikanSceneID sceneId,
-	MikanStageID parentStageId,
-	const std::string& componentName)
-	: TransformComponentDefinition(sceneId, componentName, glm_transform_to_MikanTransform(GlmTransform()))
+	MikanSceneID sceneId)
+	: TransformComponentDefinition(sceneId, "", glm_transform_to_MikanTransform(GlmTransform()))
 	, m_sceneId(sceneId)
-	, m_parentStageId(parentStageId)
+	, m_parentStageId(INVALID_MIKAN_ID)
 {}
 
 configuru::Config SceneComponentDefinition::writeToJSON()

@@ -63,9 +63,9 @@ void EditorObjectSystemConfig::setCurrentSceneName(const std::string& sceneName)
 }
 
 // -- EditorObjectSystem -----
-bool EditorObjectSystem::init()
+bool EditorObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
-	MikanObjectSystem::init();
+	MikanObjectSystem::init(definitionPtr);
 
 	auto editorConfig= getEditorSystemConfig();
 
@@ -87,7 +87,7 @@ bool EditorObjectSystem::init()
 	// If we don't have a current scene selected, pick the first one
 	if (!currentScene)
 	{
-		const auto& sceneMap = sceneObjectSystem->getSceneMap();
+		const auto& sceneMap = sceneObjectSystem->getComponentMap();
 
 		if (sceneMap.size() > 0)
 		{

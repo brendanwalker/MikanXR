@@ -154,9 +154,9 @@ void AnchorObjectSystemConfig::setRenderAnchorsFlag(bool flag)
 }
 
 // -- AnchorObjectSystem -----
-bool AnchorObjectSystem::init()
+bool AnchorObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
-	MikanObjectSystem::init();
+	MikanObjectSystem::init(definitionPtr);
 
 	AnchorObjectSystemConfigConstPtr anchorSystemConfig = getAnchorSystemConfigConst();
 

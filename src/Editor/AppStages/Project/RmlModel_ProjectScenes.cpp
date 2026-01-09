@@ -73,12 +73,12 @@ bool RmlModel_ProjectScenes::init(ProjectRmlModelContext* context)
 		});
 	m_sceneIdList->init(
 		constructor,
-		m_sceneSystem.lock()->getSceneSystemDefinition(),
+		m_sceneSystem.lock()->getTypedDefinition(),
 		"scene_ids", // virtual list since this is filtered by selected stage
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 			auto sceneSystemConfig = std::static_pointer_cast<SceneObjectSystemDefinition>(ownerConfig);
 
-			for (const SceneComponentDefinitionPtr sceneComponent : sceneSystemConfig->getSceneList())
+			for (const SceneComponentDefinitionPtr sceneComponent : sceneSystemConfig->getAllDefinitions())
 			{
 				if (sceneComponent->getParentStageId() == m_selectedStageId)
 				{
@@ -438,7 +438,9 @@ void RmlModel_ProjectScenes::addNewScene(
 {
 	if (m_selectedSceneId != INVALID_MIKAN_ID)
 	{
-		m_sceneSystem.lock()->addNewScene(m_selectedSceneId);
+		m_sceneSystem.lock()->addNewObject([this](auto sceneDefinition) {
+			sceneDefinition->setParentStageId(m_selectedStageId);
+		});
 	}
 }
 
@@ -451,7 +453,7 @@ void RmlModel_ProjectScenes::removeScene(
 		return;
 
 	const int sceneId = parameters[0].Get<int>();
-	m_sceneSystem.lock()->removeScene(sceneId);
+	m_sceneSystem.lock()->removeObject(sceneId);
 }
 
 void RmlModel_ProjectScenes::addNewAnchor(

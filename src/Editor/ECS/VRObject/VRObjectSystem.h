@@ -57,14 +57,11 @@ public:
 	inline static const std::string k_objectSystemClassName = "VRObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
-	virtual bool init() override;
+	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
 	virtual void update(float deltaSeconds) override;
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
 
-	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const override {
-		return getVRSystemConfigConst();
-	}
 	VRObjectSystemConfigConstPtr getVRSystemConfigConst() const;
 	VRObjectSystemConfigPtr getVRSystemConfig();
 

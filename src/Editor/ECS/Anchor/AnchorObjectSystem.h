@@ -57,16 +57,13 @@ class AnchorObjectSystem : public MikanObjectSystem
 public:
 	AnchorObjectSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 
-	virtual bool init() override;
+	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
 
 	inline static const std::string k_objectSystemClassName = "AnchorObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
-	virtual MikanObjectSystemDefinitionConstPtr getObjectSystemConfigConst() const override {
-		return getAnchorSystemConfigConst();
-	}
 	AnchorObjectSystemConfigConstPtr getAnchorSystemConfigConst() const;
 	AnchorObjectSystemConfigPtr getAnchorSystemConfig();
 
