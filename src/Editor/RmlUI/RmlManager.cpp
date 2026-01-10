@@ -28,7 +28,7 @@
 #include "SceneComponent.h"
 #include "TextureSourceQueries.h"
 #include "TextureSourceComponent.h"
-#include "TrackingVolumeObjectSystem.h"
+#include "TrackingVolumeQueries.h"
 #include "TrackingVolumeComponent.h"
 #include "TrackingMountObjectSystem.h"
 #include "TrackingMountComponent.h"
@@ -419,8 +419,8 @@ void RmlManager::registerCommonDataModelTypes(Rml::Context* context)
 		[rmlManager](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
 			const MikanTrackingVolumeID volumeId = variant.Get<int>(-1);
 
-			auto volumeObjectSystem = rmlGetSystemOfType<TrackingVolumeObjectSystem>(rmlManager);
-			auto volumeComponent = volumeObjectSystem->getTrackingVolumeById(volumeId);
+			ProjectManagerPtr projectManager = rmlManager->getOwnerWindow()->getProjectManager();
+			auto volumeComponent = TrackingVolumeQueries::getTrackingVolumeById(projectManager, volumeId);
 			if (volumeComponent != nullptr)
 			{
 				variant = Rml::String(volumeComponent->getName());

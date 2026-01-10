@@ -6,6 +6,7 @@
 #include "EditorObjectSystem.h"
 #include "MathUtility.h"
 #include "MarkerObjectSystem.h"
+#include "MarkerTrackingVolumeSystem.h"
 #include "NetworkVideoSourceSystem.h"
 #include "ProjectConfig.h"
 #include "ProjectConfigConstants.h"
@@ -16,10 +17,10 @@
 #include "SpoutTextureSourceSystem.h"
 #include "StringUtils.h"
 #include "SinglecastDelegate.h"
-#include "TrackingVolumeObjectSystem.h"
 #include "TrackingMountObjectSystem.h"
 #include "USBVideoSourceSystem.h"
 #include "VRObjectSystem.h"
+#include "VRTrackingVolumeSystem.h"
 
 // -- Profile Config
 const std::string ProjectConfig::k_renderOriginFlagPropertyId= "renderOrigin";
@@ -33,15 +34,16 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	compositorConfig = addTypedDefinition<CompositorObjectSystemConfig, CompositorObjectSystem>();
 	editorConfig = addTypedDefinition<EditorObjectSystemConfig, EditorObjectSystem>();
 	markerSystemConfig = addTypedDefinition<MarkerObjectSystemConfig, MarkerObjectSystem>();
+	markerTrackingVolumeConfig = addTypedDefinition<MarkerTrackingVolumeSystemDefinition, MarkerTrackingVolumeSystem>();
 	stencilConfig = addTypedDefinition<StencilObjectSystemConfig, StencilObjectSystem>();
 	sceneConfig = addTypedDefinition<SceneObjectSystemDefinition, SceneObjectSystem>();
 	stageConfig = addTypedDefinition<StageObjectSystemConfig, StageObjectSystem>();
 	spoutConfig = addTypedDefinition<SpoutTextureSourceSystemConfig, SpoutTextureSourceSystem>();
-	trackingVolumeSystemConfig = addTypedDefinition<TrackingVolumeObjectSystemConfig, TrackingVolumeObjectSystem>();
 	trackingMountSystemConfig = addTypedDefinition<TrackingMountObjectSystemConfig, TrackingMountObjectSystem>();
 	networkVideoSourceSystemConfig = addTypedDefinition<NetworkVideoSourceSystemConfig, NetworkVideoSourceSystem>();
 	usbVideoSourceSystemConfig = addTypedDefinition<USBVideoSourceSystemConfig, USBVideoSourceSystem>();
 	vrObjectConfig= addTypedDefinition<VRObjectSystemConfig, VRObjectSystem>();
+	vrTrackingVolumeConfig = addTypedDefinition<VRTrackingVolumeSystemDefinition, VRTrackingVolumeSystem>();
 };
 
 configuru::Config ProjectConfig::writeToJSON()

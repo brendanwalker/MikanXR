@@ -1,6 +1,8 @@
 #include "MarkerTrackingVolumeComponent.h"
+#include "MarkerTrackingVolumeSystem.h"
 #include "MikanCoreTypes.h"
 #include "ProjectConfig.h"
+#include "ProjectManager.h"
 #include "RmlModel_ProjectTracking.h"
 #include "Project/AppStage_Project.h"
 #include "Project/ProjectRmlModelContext.h"
@@ -12,8 +14,9 @@
 #include "StringUtils.h"
 #include "TrackingMountComponent.h"
 #include "TrackingMountObjectSystem.h"
-#include "TrackingVolumeObjectSystem.h"
+#include "TrackingVolumeQueries.h"
 #include "VRTrackingVolumeComponent.h"
+#include "VRTrackingVolumeSystem.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
@@ -31,7 +34,6 @@ bool RmlModel_ProjectTracking::init(ProjectRmlModelContext* context)
 	Rml::Context* rmlContext = ownerAppStage->getRmlContext();
 
 	m_projectRmlModelContext = context;
-	m_trackingVolumeSystem = ownerAppStage->getObjectSystemOfType<TrackingVolumeObjectSystem>();
 	m_trackingMountSystem = ownerAppStage->getObjectSystemOfType<TrackingMountObjectSystem>();
 
 	// Create Datamodel
@@ -39,33 +41,23 @@ bool RmlModel_ProjectTracking::init(ProjectRmlModelContext* context)
 	if (!constructor)
 		return false;
 
+	// Get project manager for tracking volume queries
+	ProjectManagerPtr projectManager = ownerAppStage->getProjectManager();
+	auto vrTrackingVolumeSystem = projectManager->getSystemOfType<VRTrackingVolumeSystem>();
+	auto markerTrackingVolumeSystem = projectManager->getSystemOfType<MarkerTrackingVolumeSystem>();
+
 	// Register component lists
 	m_trackingVolumeIdList->init(
-		constructor, 
-		m_trackingVolumeSystem.lock()->getTrackingVolumeSystemConfig(),
+		constructor,
+		vrTrackingVolumeSystem->getVRTrackingVolumeSystemConfig(),
 		"tracker_volume_ids", // virtual property name since this is a composite list
-		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			auto trackingConfig = std::static_pointer_cast<TrackingVolumeObjectSystemConfig>(ownerConfig);
-
-			for (const auto& vrTrackingVolumePtr : trackingConfig->getVRTrackingVolumeList())
-			{
-				if (vrTrackingVolumePtr)
-				{
-					outComponentIdList.push_back((int)vrTrackingVolumePtr->getTrackingVolumeId());
-				}
-			}
-			for (const auto& markerSystemPtr : trackingConfig->getMarkerTrackingVolumeList())
-			{
-				if (markerSystemPtr)
-				{
-					outComponentIdList.push_back((int)markerSystemPtr->getTrackingVolumeId());
-				}
-			}
+		[projectManager](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
+			outComponentIdList = TrackingVolumeQueries::getTrackingVolumeIdList(projectManager);
 		},
 		[this](const ConfigPropertyChangeSet& changedPropertySet) {
-			return 
-				changedPropertySet.hasPropertyName(TrackingVolumeObjectSystemConfig::k_vrTrackingVolumeListPropertyId) ||
-				changedPropertySet.hasPropertyName(TrackingVolumeObjectSystemConfig::k_markerTrackingVolumeListPropertyId);
+			return
+				changedPropertySet.hasPropertyName(VRTrackingVolumeSystemDefinition::k_vrTrackingVolumeListPropertyId) ||
+				changedPropertySet.hasPropertyName(MarkerTrackingVolumeSystemDefinition::k_markerTrackingVolumeListPropertyId);
 		});
 	m_trackingMountIdList->init(
 		constructor,
@@ -165,29 +157,23 @@ void RmlModel_ProjectTracking::trackingMountIdListChanged(bool bOwnerChanged)
 	}
 }
 
-TrackingVolumeObjectSystemPtr RmlModel_ProjectTracking::getTrackingVolumeSystem()
-{
-	return m_trackingVolumeSystem.lock();
-}
-
 TrackingMountObjectSystemPtr RmlModel_ProjectTracking::getTrackingMountSystem()
 {
 	return m_trackingMountSystem.lock();
 }
 
-TrackingVolumeComponentPtr RmlModel_ProjectTracking::getSelectedTrackingVolume()
-{
-	return getTrackingVolumeSystem()->getTrackingVolumeById((MikanTrackingVolumeID)m_selectedTrackingVolumeId);
-}
-
 MarkerTrackingVolumeComponentPtr RmlModel_ProjectTracking::getSelectedMarkerTrackingVolume()
 {
-	return getTrackingVolumeSystem()->getMarkerTrackingVolumeById((MikanTrackingVolumeID)m_selectedTrackingVolumeId);
+	ProjectManagerPtr projectManager = m_projectRmlModelContext->getOwnerAppStage()->getProjectManager();
+	auto markerTrackingVolumeSystem = projectManager->getSystemOfType<MarkerTrackingVolumeSystem>();
+	return markerTrackingVolumeSystem->getMarkerTrackingVolumeById((MikanTrackingVolumeID)m_selectedTrackingVolumeId);
 }
 
 VRTrackingVolumeComponentPtr RmlModel_ProjectTracking::getSelectedVRTrackingVolume()
 {
-	return getTrackingVolumeSystem()->getVRTrackingVolumeById((MikanTrackingVolumeID)m_selectedTrackingVolumeId);
+	ProjectManagerPtr projectManager = m_projectRmlModelContext->getOwnerAppStage()->getProjectManager();
+	auto vrTrackingVolumeSystem = projectManager->getSystemOfType<VRTrackingVolumeSystem>();
+	return vrTrackingVolumeSystem->getVRTrackingVolumeById((MikanTrackingVolumeID)m_selectedTrackingVolumeId);
 }
 
 TrackingMountComponentPtr RmlModel_ProjectTracking::getSelectedTrackingMount()
@@ -200,8 +186,10 @@ void RmlModel_ProjectTracking::addNewSteamVRTrackingVolume(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	VRTrackingVolumeComponentPtr trackingVolume= 
-		getTrackingVolumeSystem()->addNewVRTrackingVolume(eTrackingRuntime::SteamVR);
+	ProjectManagerPtr projectManager = m_projectRmlModelContext->getOwnerAppStage()->getProjectManager();
+	auto vrTrackingVolumeSystem = projectManager->getSystemOfType<VRTrackingVolumeSystem>();
+	VRTrackingVolumeComponentPtr trackingVolume=
+		vrTrackingVolumeSystem->addNewVRTrackingVolume(eTrackingRuntime::SteamVR);
 	MikanTrackingVolumeID volumeId = trackingVolume->getVRTrackingVolumeDefinition()->getTrackingVolumeId();
 
 	addModelUpdateCallback([this, volumeId]() {
@@ -214,7 +202,9 @@ void RmlModel_ProjectTracking::addNewMarkerTrackingVolume(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	MarkerTrackingVolumeComponentPtr trackingVolume= getTrackingVolumeSystem()->addNewMarkerTrackingVolume();
+	ProjectManagerPtr projectManager = m_projectRmlModelContext->getOwnerAppStage()->getProjectManager();
+	auto markerTrackingVolumeSystem = projectManager->getSystemOfType<MarkerTrackingVolumeSystem>();
+	MarkerTrackingVolumeComponentPtr trackingVolume= markerTrackingVolumeSystem->addNewMarkerTrackingVolume();
 	MikanTrackingVolumeID volumeId= trackingVolume->getMarkerTrackingVolumeDefinition()->getTrackingVolumeId();
 
 	addModelUpdateCallback([this, volumeId]() {
@@ -226,8 +216,9 @@ void RmlModel_ProjectTracking::removeTrackingVolume(
 	Rml::DataModelHandle handle,
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
-{	
-	getTrackingVolumeSystem()->removeTrackingVolume(m_selectedTrackingVolumeId);
+{
+	ProjectManagerPtr projectManager = m_projectRmlModelContext->getOwnerAppStage()->getProjectManager();
+	TrackingVolumeQueries::removeTrackingVolume(projectManager, m_selectedTrackingVolumeId);
 }
 
 void RmlModel_ProjectTracking::addNewTrackingMount(

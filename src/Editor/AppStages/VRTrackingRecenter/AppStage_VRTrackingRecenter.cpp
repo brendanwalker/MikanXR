@@ -23,9 +23,9 @@
 #include "MathGLM.h"
 #include "CalibrationPatternFinder.h"
 #include "TextStyle.h"
-#include "TrackingVolumeObjectSystem.h"
 #include "VideoFrameDistortionView.h"
 #include "VRObjectSystem.h"
+#include "VRTrackingVolumeSystem.h"
 #include "VideoSourceComponent.h"
 
 #include "SDL_keycode.h"
@@ -237,9 +237,9 @@ void AppStage_VRTrackingRecenter::update(float deltaSeconds)
 						// Publish the new VR device pose offset to the target tracking volume
 						if (m_targetVolumeId != INVALID_MIKAN_ID)
 						{
-							auto trackingVolumeSystem = getSystemOfType<TrackingVolumeObjectSystem>();
+							auto vrTrackingVolumeSystem = getSystemOfType<VRTrackingVolumeSystem>();
 							VRTrackingVolumeComponentPtr trackingVolume =
-								trackingVolumeSystem->getVRTrackingVolumeById(m_targetVolumeId);
+								vrTrackingVolumeSystem->getVRTrackingVolumeById(m_targetVolumeId);
 
 							trackingVolume->setVRDevicePoseOffset(glmVRDevicePoseOffset);
 						}

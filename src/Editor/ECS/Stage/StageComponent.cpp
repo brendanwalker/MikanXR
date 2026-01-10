@@ -3,11 +3,12 @@
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
 #include "MikanObject.h"
+#include "ProjectManager.h"
 #include "SelectionComponent.h"
+#include "TrackingVolumeQueries.h"
 #include "TransformComponent.h"
 
 #include <queue>
-#include "TrackingVolumeObjectSystem.h"
 
 // -- StageComponentDefinition -----
 const std::string StageComponentDefinition::k_trackingVolumeIdPropertyId = "tracking_volume_id";
@@ -112,12 +113,8 @@ TrackingVolumeComponentConstPtr StageComponent::getTrackingVolumeConst() const
 	MikanTrackingVolumeID trackingVolumeId = getStageComponentDefinitionConst()->getTrackingVolumeId();
 	if (trackingVolumeId != INVALID_MIKAN_ID)
 	{
-		ProjectManagerPtr systemManager = getOwnerProjectManager();
-		TrackingVolumeObjectSystemPtr trackingVolumeSystem = systemManager->getSystemOfType<TrackingVolumeObjectSystem>();
-		if (trackingVolumeSystem)
-		{
-			return trackingVolumeSystem->getTrackingVolumeById(trackingVolumeId);
-		}
+		ProjectManagerPtr projectManager = getOwnerProjectManager();
+		return TrackingVolumeQueries::getTrackingVolumeById(projectManager, trackingVolumeId);
 	}
 
 	return TrackingVolumeComponentConstPtr();

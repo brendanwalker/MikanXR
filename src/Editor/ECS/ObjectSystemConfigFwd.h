@@ -52,6 +52,11 @@ using MarkerObjectSystemConfigPtr = std::shared_ptr<MarkerObjectSystemConfig>;
 using MarkerObjectSystemConfigConstPtr = std::shared_ptr<const MarkerObjectSystemConfig>;
 using MarkerObjectSystemConfigWeakPtr = std::weak_ptr<MarkerObjectSystemConfig>;
 
+class MarkerTrackingVolumeSystemDefinition;
+using MarkerTrackingVolumeSystemDefinitionPtr = std::shared_ptr<MarkerTrackingVolumeSystemDefinition>;
+using MarkerTrackingVolumeSystemDefinitionConstPtr = std::shared_ptr<const MarkerTrackingVolumeSystemDefinition>;
+using MarkerTrackingVolumeSystemDefinitionWeakPtr = std::weak_ptr<MarkerTrackingVolumeSystemDefinition>;
+
 class NetworkVideoSourceSystemConfig;
 using NetworkVideoSourceSystemConfigPtr = std::shared_ptr<NetworkVideoSourceSystemConfig>;
 using NetworkVideoSourceSystemConfigConstPtr = std::shared_ptr<const NetworkVideoSourceSystemConfig>;
@@ -82,11 +87,6 @@ using TrackingMountObjectSystemConfigPtr = std::shared_ptr<TrackingMountObjectSy
 using TrackingMountObjectSystemConfigConstPtr = std::shared_ptr<const TrackingMountObjectSystemConfig>;
 using TrackingMountObjectSystemConfigWeakPtr = std::weak_ptr<TrackingMountObjectSystemConfig>;
 
-class TrackingVolumeObjectSystemConfig;
-using TrackingVolumeObjectSystemConfigPtr = std::shared_ptr<TrackingVolumeObjectSystemConfig>;
-using TrackingVolumeObjectSystemConfigConstPtr = std::shared_ptr<const TrackingVolumeObjectSystemConfig>;
-using TrackingVolumeObjectSystemConfigWeakPtr = std::weak_ptr<TrackingVolumeObjectSystemConfig>;
-
 class USBVideoSourceSystemConfig;
 using USBVideoSourceSystemConfigPtr = std::shared_ptr<USBVideoSourceSystemConfig>;
 using USBVideoSourceSystemConfigConstPtr = std::shared_ptr<const USBVideoSourceSystemConfig>;
@@ -96,3 +96,8 @@ class VRObjectSystemConfig;
 using VRObjectSystemConfigPtr = std::shared_ptr<VRObjectSystemConfig>;
 using VRObjectSystemConfigConstPtr = std::shared_ptr<const VRObjectSystemConfig>;
 using VRObjectSystemConfigWeakPtr = std::weak_ptr<VRObjectSystemConfig>;
+
+class VRTrackingVolumeSystemDefinition;
+using VRTrackingVolumeSystemDefinitionPtr = std::shared_ptr<VRTrackingVolumeSystemDefinition>;
+using VRTrackingVolumeSystemDefinitionConstPtr = std::shared_ptr<const VRTrackingVolumeSystemDefinition>;
+using VRTrackingVolumeSystemDefinitionWeakPtr = std::weak_ptr<VRTrackingVolumeSystemDefinition>;

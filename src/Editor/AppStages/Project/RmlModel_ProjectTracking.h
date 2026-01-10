@@ -19,9 +19,7 @@ public:
 	virtual void dispose() override;
 
 private:
-	TrackingVolumeObjectSystemPtr getTrackingVolumeSystem();
 	TrackingMountObjectSystemPtr getTrackingMountSystem();
-	TrackingVolumeComponentPtr getSelectedTrackingVolume();
 	MarkerTrackingVolumeComponentPtr getSelectedMarkerTrackingVolume();
 	VRTrackingVolumeComponentPtr getSelectedVRTrackingVolume();
 	TrackingMountComponentPtr getSelectedTrackingMount();
@@ -42,7 +40,6 @@ private:
 
 	class ProjectRmlModelContext* m_projectRmlModelContext = nullptr;
 	ProjectConfigWeakPtr m_projectConfig;
-	TrackingVolumeObjectSystemWeakPtr m_trackingVolumeSystem;
 	TrackingMountObjectSystemWeakPtr m_trackingMountSystem;
 
 	RmlDataBinding_ComponentIdListPtr m_trackingVolumeIdList;

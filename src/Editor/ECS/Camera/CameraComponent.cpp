@@ -18,12 +18,13 @@
 #include "StringUtils.h"
 #include "StageObjectSystem.h"
 #include "StageComponent.h"
-#include "TrackingVolumeObjectSystem.h"
+#include "TrackingVolumeComponent.h"
 #include "TrackingMountObjectSystem.h"
 #include "VideoSourceComponent.h"
 #include "VRDeviceComponent.h"
 #include "VRObjectSystem.h"
 #include "VideoSourceQueries.h"
+#include "VRTrackingVolumeComponent.h"
 
 // -- CameraConfig -----
 const std::string CameraDefinition::k_ownerStageIdPropertyId = "stage_id";

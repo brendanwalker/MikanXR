@@ -6,9 +6,10 @@
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
 #include "ProjectConfig.h"
+#include "ProjectManager.h"
 #include "SelectionComponent.h"
 #include "StringUtils.h"
-#include "TrackingVolumeObjectSystem.h"
+#include "TrackingVolumeQueries.h"
 
 // -- TrackingVolumeDefinition -----
 const std::string TrackingVolumeDefinition::k_originMarkerIdPropertyId = "origin_marker_id";
@@ -82,21 +83,13 @@ void TrackingVolumeComponent::init()
 	MikanComponent::init();
 }
 
-TrackingVolumeObjectSystemPtr TrackingVolumeComponent::getOwnerTrackingVolumeSystem() const
-{
-	return getObjectSystemOfType<TrackingVolumeObjectSystem>();
-}
-
 void TrackingVolumeComponent::deleteTrackingVolume()
 {
 	TrackingVolumeDefinitionPtr def = getTrackingVolumeDefinition();
 	if (def)
 	{
-		TrackingVolumeObjectSystemPtr system = getOwnerTrackingVolumeSystem();
-		if (system)
-		{
-			system->removeTrackingVolume(def->getTrackingVolumeId());
-		}
+		ProjectManagerPtr projectManager = getOwnerProjectManager();
+		TrackingVolumeQueries::removeTrackingVolume(projectManager, def->getTrackingVolumeId());
 	}
 }
 

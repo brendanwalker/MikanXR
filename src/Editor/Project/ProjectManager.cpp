@@ -21,7 +21,8 @@
 #include "StencilObjectSystem.h"
 #include "StageObjectSystem.h"
 #include "TrackingMountObjectSystem.h"
-#include "TrackingVolumeObjectSystem.h"
+#include "MarkerTrackingVolumeSystem.h"
+#include "VRTrackingVolumeSystem.h"
 #include "USBVideoSourceSystem.h"
 #include "VRObjectSystem.h"
 
@@ -54,7 +55,8 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	addSystem<StencilObjectSystem>();
 	addSystem<VRObjectSystem>();
 	addSystem<TrackingMountObjectSystem>();
-	addSystem<TrackingVolumeObjectSystem>();
+	addSystem<MarkerTrackingVolumeSystem>();
+	addSystem<VRTrackingVolumeSystem>();
 
 	// Gather all property descriptors from all the systems and add them to the database
 	for (int i = 0; i < (int)m_systems.size(); i++)

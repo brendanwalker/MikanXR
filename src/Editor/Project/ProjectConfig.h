@@ -40,15 +40,16 @@ public:
 	CompositorObjectSystemConfigPtr compositorConfig;
 	EditorObjectSystemConfigPtr editorConfig;
 	MarkerObjectSystemConfigPtr markerSystemConfig;
+	MarkerTrackingVolumeSystemDefinitionPtr markerTrackingVolumeConfig;
 	StencilObjectSystemConfigPtr stencilConfig;
 	SceneObjectSystemDefinitionPtr sceneConfig;
 	SpoutTextureSourceSystemConfigPtr spoutConfig;
 	StageObjectSystemConfigPtr stageConfig;
-	TrackingVolumeObjectSystemConfigPtr trackingVolumeSystemConfig;
 	TrackingMountObjectSystemConfigPtr trackingMountSystemConfig;
 	NetworkVideoSourceSystemConfigPtr networkVideoSourceSystemConfig;
 	USBVideoSourceSystemConfigPtr usbVideoSourceSystemConfig;
 	VRObjectSystemConfigPtr vrObjectConfig;
+	VRTrackingVolumeSystemDefinitionPtr vrTrackingVolumeConfig;
 
 protected:
 	eTrackingRuntime m_trackingRuntime= eTrackingRuntime::SteamVR;

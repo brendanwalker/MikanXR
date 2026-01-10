@@ -1,5 +1,6 @@
 #include "RmlModel_StageComponent.h"
-#include "TrackingVolumeObjectSystem.h"
+#include "ProjectManager.h"
+#include "TrackingVolumeQueries.h"
 #include "Shared/RmlDataBinding_List.h"
 #include "Shared/RmlModel_EntityAccessor.h"
 
@@ -22,16 +23,17 @@ bool RmlModel_StageComponent::onConstruct(Rml::DataModelConstructor& constructor
 	if (!RmlModel_MikanComponent::onConstruct(constructor))
 		return false;
 
-	// Build the list of all tracking volume IDs from the TrackingVolumeObjectSystem
+	// Build the list of all tracking volume IDs from TrackingVolumeQueries
 	m_trackingVolumeIdList->init(
 		constructor,
 		CommonConfigPtr(),
 		"tracking_volume_ids",
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			auto trackingVolumeObjectSystem= getTrackingVolumeObjectSystem();
-			if (trackingVolumeObjectSystem)
+			MikanComponentPtr component = m_component.lock();
+			if (component)
 			{
-				outComponentIdList = trackingVolumeObjectSystem->getTrackingVolumeIdList();
+				ProjectManagerPtr projectManager = component->getOwnerProjectManager();
+				outComponentIdList = TrackingVolumeQueries::getTrackingVolumeIdList(projectManager);
 			}
 		});
 
@@ -53,35 +55,13 @@ bool RmlModel_StageComponent::setComponent(MikanComponentPtr component)
 {
 	if (RmlModel_MikanComponent::setComponent(component))
 	{
-		m_trackingVolumeIdList->setOwnerConfig(getTrackingVolumeObjectSystemConfig());
+		m_trackingVolumeIdList->setOwnerConfig(CommonConfigPtr());
 		m_trackingVolumeIdList->rebuildList(true);
 
 		return true;
 	}
 
 	return false;
-}
-
-TrackingVolumeObjectSystemPtr RmlModel_StageComponent::getTrackingVolumeObjectSystem() const
-{
-	MikanComponentPtr component = m_component.lock();
-	if (component)
-	{
-		return component->getObjectSystemOfType<TrackingVolumeObjectSystem>();
-	}
-
-	return nullptr;
-}
-
-TrackingVolumeObjectSystemConfigPtr RmlModel_StageComponent::getTrackingVolumeObjectSystemConfig() const
-{
-	auto trackingVolumeObjectSystem = getTrackingVolumeObjectSystem();
-	if (trackingVolumeObjectSystem)
-	{
-		return trackingVolumeObjectSystem->getTrackingVolumeSystemConfig();
-	}
-
-	return nullptr;
 }
 
 StageComponentPtr RmlModel_StageComponent::getStageComponent() const

@@ -34,6 +34,10 @@ class MarkerObjectSystem;
 using MarkerObjectSystemPtr = std::shared_ptr<MarkerObjectSystem>;
 using MarkerObjectSystemWeakPtr = std::weak_ptr<MarkerObjectSystem>;
 
+class MarkerTrackingVolumeSystem;
+using MarkerTrackingVolumeSystemPtr = std::shared_ptr<MarkerTrackingVolumeSystem>;
+using MarkerTrackingVolumeSystemWeakPtr = std::weak_ptr<MarkerTrackingVolumeSystem>;
+
 class NetworkVideoSourceSystem;
 using NetworkVideoSourceSystemPtr = std::shared_ptr<NetworkVideoSourceSystem>;
 using NetworkVideoSourceSystemWeakPtr = std::weak_ptr<NetworkVideoSourceSystem>;
@@ -59,10 +63,6 @@ class StencilObjectSystem;
 using StencilObjectSystemPtr = std::shared_ptr<StencilObjectSystem>;
 using StencilObjectSystemWeakPtr = std::weak_ptr<StencilObjectSystem>;
 
-class TrackingVolumeObjectSystem;
-using TrackingVolumeObjectSystemPtr = std::shared_ptr<TrackingVolumeObjectSystem>;
-using TrackingVolumeObjectSystemWeakPtr = std::weak_ptr<TrackingVolumeObjectSystem>;
-
 class TrackingMountObjectSystem;
 using TrackingMountObjectSystemPtr = std::shared_ptr<TrackingMountObjectSystem>;
 using TrackingMountObjectSystemWeakPtr = std::weak_ptr<TrackingMountObjectSystem>;
@@ -74,3 +74,7 @@ using USBVideoSourceSystemWeakPtr = std::weak_ptr<USBVideoSourceSystem>;
 class VRObjectSystem;
 using VRObjectSystemPtr = std::shared_ptr<VRObjectSystem>;
 using VRObjectSystemWeakPtr = std::weak_ptr<VRObjectSystem>;
+
+class VRTrackingVolumeSystem;
+using VRTrackingVolumeSystemPtr = std::shared_ptr<VRTrackingVolumeSystem>;
+using VRTrackingVolumeSystemWeakPtr = std::weak_ptr<VRTrackingVolumeSystem>;

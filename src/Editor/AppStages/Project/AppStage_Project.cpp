@@ -53,7 +53,6 @@
 #include "StageObjectSystem.h"
 #include "StringUtils.h"
 #include "TrackingMountObjectSystem.h"
-#include "TrackingVolumeObjectSystem.h"
 #include "TransformComponent.h"
 #include "TextStyle.h"
 #include "VideoSourceComponent.h"
