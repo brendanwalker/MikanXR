@@ -1,16 +1,8 @@
-#include "RmlModel_TextureSourceComponent.h"
-#include "ClientTextureSourceComponent.h"
+#include "RmlModel_SpoutTextureSourceComponent.h"
 #include "SpoutTextureSourceComponent.h"
 #include "SpoutTextureSourceSystem.h"
 #include "Shared/RmlDataBinding_List.h"
 
-// -- RmlModel_ClientTextureSourceComponent -----
-bool RmlModel_ClientTextureSourceComponent::init(Rml::Context* rmlContext)
-{
-	return initTypedPropertyInterface<ClientTextureSourceComponent>(rmlContext);
-}
-
-// -- RmlModel_SpoutTextureSourceComponent -----
 RmlModel_SpoutTextureSourceComponent::RmlModel_SpoutTextureSourceComponent()
 	: m_spoutSourceList(std::make_shared<RmlDataBinding_SpoutSourceList>())
 {
