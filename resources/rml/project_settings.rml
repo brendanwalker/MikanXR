@@ -25,9 +25,19 @@
 						</tr>
 						<tr class="property_tr">
 							<td>
-								<label><input type="checkbox" name="render_stencil_flag" data-checked="render_stencils"/>Draw Origin</label>
+								<label><input type="checkbox" name="render_quad_stencil_flag" data-checked="render_quad_stencils"/>Draw Quad Stencils</label>
 							</td>
-						</tr>												
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label><input type="checkbox" name="render_box_stencil_flag" data-checked="render_box_stencils"/>Draw Box Stencils</label>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label><input type="checkbox" name="render_model_stencil_flag" data-checked="render_model_stencils"/>Draw Model Stencils</label>
+							</td>
+						</tr>
 						<tr class="property_tr">
 							<td>
 								<label>Language</label>

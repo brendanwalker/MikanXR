@@ -10,8 +10,7 @@
 #include "MikanObject.h"
 #include "QuadStencilComponent.h"
 #include "SelectionComponent.h"
-#include "StencilObjectSystemConfig.h"
-#include "StencilObjectSystem.h"
+#include "QuadStencilSystem.h"
 #include "StringUtils.h"
 #include "TextStyle.h"
 
@@ -134,9 +133,10 @@ void QuadStencilComponent::init()
 void QuadStencilComponent::customRender()
 {
 	QuadStencilDefinitionPtr quadDefinition= getQuadStencilDefinition();
+	QuadStencilSystemPtr quadStencilSystem = getObjectSystemOfType<QuadStencilSystem>();
 
 	if (!quadDefinition->getIsDisabled() &&
-		getObjectSystemOfType<StencilObjectSystem>()->getStencilSystemConfigConst()->getRenderStencilsFlag())
+		quadStencilSystem && quadStencilSystem->getQuadStencilSystemDefinitionConst()->getRenderStencilsFlag())
 	{
 		TextStyle style = getDefaultTextStyle();
 

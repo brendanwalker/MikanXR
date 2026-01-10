@@ -48,7 +48,6 @@
 #include "SdlCommon.h"
 #include "SdlUtility.h"
 #include "SharedTextureReader.h"
-#include "StencilObjectSystem.h"
 #include "SceneObjectSystem.h"
 #include "StageObjectSystem.h"
 #include "StringUtils.h"

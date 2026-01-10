@@ -19,7 +19,9 @@
 #include "ISdlMkWindow.h"
 #include "Logger.h"
 #include "ModelStencilComponent.h"
-#include "StencilObjectSystem.h"
+#include "QuadStencilSystem.h"
+#include "BoxStencilSystem.h"
+#include "ModelStencilSystem.h"
 #include "VideoSourceComponent.h"
 
 // Assets References
@@ -93,8 +95,12 @@ bool CompositorNodeGraph::createResources()
 	m_compositingFrameBuffer->setFrameBufferType(IMkFrameBuffer::eFrameBufferType::COLOR);
 	m_compositingFrameBuffer->setColorFormat(IMkFrameBuffer::eColorFormat::RGBA);
 
-	// Start listening for Model stencil changes
-	getObjectSystemOfType<StencilObjectSystem>()->getStencilSystemConfig()->OnPropertyChanged +=
+	// Start listening for stencil changes
+	getObjectSystemOfType<QuadStencilSystem>()->getQuadStencilSystemDefinition()->OnPropertyChanged +=
+		MakeDelegate(this, &CompositorNodeGraph::onStencilSystemConfigMarkedDirty);
+	getObjectSystemOfType<BoxStencilSystem>()->getBoxStencilSystemDefinition()->OnPropertyChanged +=
+		MakeDelegate(this, &CompositorNodeGraph::onStencilSystemConfigMarkedDirty);
+	getObjectSystemOfType<ModelStencilSystem>()->getModelStencilSystemDefinition()->OnPropertyChanged +=
 		MakeDelegate(this, &CompositorNodeGraph::onStencilSystemConfigMarkedDirty);
 
 	// Create triangulated mesh used to render the layer onto
@@ -112,8 +118,12 @@ void CompositorNodeGraph::disposeResources()
 	// Clean up the frame buffer
 	m_compositingFrameBuffer = nullptr;
 
-	// Stop listening for Model stencil changes
-	getObjectSystemOfType<StencilObjectSystem>()->getStencilSystemConfig()->OnPropertyChanged -=
+	// Stop listening for stencil changes
+	getObjectSystemOfType<QuadStencilSystem>()->getQuadStencilSystemDefinition()->OnPropertyChanged -=
+		MakeDelegate(this, &CompositorNodeGraph::onStencilSystemConfigMarkedDirty);
+	getObjectSystemOfType<BoxStencilSystem>()->getBoxStencilSystemDefinition()->OnPropertyChanged -=
+		MakeDelegate(this, &CompositorNodeGraph::onStencilSystemConfigMarkedDirty);
+	getObjectSystemOfType<ModelStencilSystem>()->getModelStencilSystemDefinition()->OnPropertyChanged -=
 		MakeDelegate(this, &CompositorNodeGraph::onStencilSystemConfigMarkedDirty);
 
 	// Free rendering resources

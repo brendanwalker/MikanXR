@@ -77,10 +77,20 @@ using StageObjectSystemConfigPtr = std::shared_ptr<StageObjectSystemConfig>;
 using StageObjectSystemConfigConstPtr = std::shared_ptr<const StageObjectSystemConfig>;
 using StageObjectSystemConfigWeakPtr = std::weak_ptr<StageObjectSystemConfig>;
 
-class StencilObjectSystemConfig;
-using StencilObjectSystemConfigPtr = std::shared_ptr<StencilObjectSystemConfig>;
-using StencilObjectSystemConfigConstPtr = std::shared_ptr<const StencilObjectSystemConfig>;
-using StencilObjectSystemConfigWeakPtr = std::weak_ptr<StencilObjectSystemConfig>;
+class BoxStencilSystemDefinition;
+using BoxStencilSystemDefinitionPtr = std::shared_ptr<BoxStencilSystemDefinition>;
+using BoxStencilSystemDefinitionConstPtr = std::shared_ptr<const BoxStencilSystemDefinition>;
+using BoxStencilSystemDefinitionWeakPtr = std::weak_ptr<BoxStencilSystemDefinition>;
+
+class ModelStencilSystemDefinition;
+using ModelStencilSystemDefinitionPtr = std::shared_ptr<ModelStencilSystemDefinition>;
+using ModelStencilSystemDefinitionConstPtr = std::shared_ptr<const ModelStencilSystemDefinition>;
+using ModelStencilSystemDefinitionWeakPtr = std::weak_ptr<ModelStencilSystemDefinition>;
+
+class QuadStencilSystemDefinition;
+using QuadStencilSystemDefinitionPtr = std::shared_ptr<QuadStencilSystemDefinition>;
+using QuadStencilSystemDefinitionConstPtr = std::shared_ptr<const QuadStencilSystemDefinition>;
+using QuadStencilSystemDefinitionWeakPtr = std::weak_ptr<QuadStencilSystemDefinition>;
 
 class TrackingMountObjectSystemConfig;
 using TrackingMountObjectSystemConfigPtr = std::shared_ptr<TrackingMountObjectSystemConfig>;

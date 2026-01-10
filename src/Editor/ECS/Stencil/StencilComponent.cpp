@@ -1,7 +1,6 @@
 #include "AnchorObjectSystem.h"
 #include "AnchorComponent.h"
 #include "StencilComponent.h"
-#include "StencilObjectSystem.h"
 #include "TransformComponent.h"
 #include "MikanObject.h"
 #include "StringUtils.h"

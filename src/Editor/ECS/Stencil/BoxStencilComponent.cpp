@@ -10,8 +10,7 @@
 #include "MikanObject.h"
 #include "MathTypeConversion.h"
 #include "SelectionComponent.h"
-#include "StencilObjectSystem.h"
-#include "StencilObjectSystemConfig.h"
+#include "BoxStencilSystem.h"
 #include "StringUtils.h"
 #include "TextStyle.h"
 
@@ -125,9 +124,10 @@ void BoxStencilComponent::init()
 void BoxStencilComponent::customRender()
 {
 	BoxStencilDefinitionPtr boxDefinition= getBoxStencilDefinition();
+	BoxStencilSystemPtr boxStencilSystem = getObjectSystemOfType<BoxStencilSystem>();
 
 	if (!boxDefinition->getIsDisabled() &&
-		getObjectSystemOfType<StencilObjectSystem>()->getStencilSystemConfigConst()->getRenderStencilsFlag())
+		boxStencilSystem && boxStencilSystem->getBoxStencilSystemDefinitionConst()->getRenderStencilsFlag())
 	{
 		TextStyle style = getDefaultTextStyle();
 

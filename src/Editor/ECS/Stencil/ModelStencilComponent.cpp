@@ -16,8 +16,8 @@
 #include "TransformComponent.h"
 #include "SelectionComponent.h"
 #include "StaticMeshComponent.h"
-#include "StencilObjectSystem.h"
-#include "StencilObjectSystemConfig.h"
+#include "StencilUtils.h"
+#include "ModelStencilSystem.h"
 #include "MathGLM.h"
 #include "MathMikan.h"
 #include "MainWindow.h"
@@ -164,9 +164,10 @@ void ModelStencilComponent::init()
 void ModelStencilComponent::customRender()
 {
 	ModelStencilDefinitionPtr modelStencilDefinition= getModelStencilDefinition();
+	ModelStencilSystemPtr modelStencilSystem = getObjectSystemOfType<ModelStencilSystem>();
 
 	if (!modelStencilDefinition->getIsDisabled() &&
-		getObjectSystemOfType<StencilObjectSystem>()->getStencilSystemConfigConst()->getRenderStencilsFlag())
+		modelStencilSystem && modelStencilSystem->getModelStencilSystemDefinitionConst()->getRenderStencilsFlag())
 	{
 		TextStyle style = getDefaultTextStyle();
 

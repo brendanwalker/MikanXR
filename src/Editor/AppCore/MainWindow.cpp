@@ -34,7 +34,7 @@
 #include "OpenCVManager.h"
 #include "RmlManager.h"
 #include "SdlWindow.h"
-#include "StencilObjectSystem.h"
+#include "StencilUtils.h"
 #include "StringUtils.h"
 
 #include "MainMenu/AppStage_MainMenu.h"

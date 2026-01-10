@@ -1,5 +1,6 @@
 // -- includes -----
 #include "AnchorObjectSystem.h"
+#include "BoxStencilSystem.h"
 #include "CameraObjectSystem.h"
 #include "ClientTextureSourceSystem.h"
 #include "CompositorObjectSystem.h"
@@ -7,11 +8,12 @@
 #include "MathUtility.h"
 #include "MarkerObjectSystem.h"
 #include "MarkerTrackingVolumeSystem.h"
+#include "ModelStencilSystem.h"
 #include "NetworkVideoSourceSystem.h"
 #include "ProjectConfig.h"
 #include "ProjectConfigConstants.h"
 #include "PathUtils.h"
-#include "StencilObjectSystem.h"
+#include "QuadStencilSystem.h"
 #include "SceneObjectSystem.h"
 #include "StageObjectSystem.h"
 #include "SpoutTextureSourceSystem.h"
@@ -29,13 +31,15 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	: CommonConfig(fnamebase)
 {
 	anchorConfig = addTypedDefinition<AnchorObjectSystemConfig, AnchorObjectSystem>();
+	boxStencilSystemDefinition = addTypedDefinition<BoxStencilSystemDefinition, BoxStencilSystem>();
 	cameraConfig = addTypedDefinition<CameraObjectSystemConfig, CameraObjectSystem>();
 	clientConfig = addTypedDefinition<ClientTextureSourceSystemConfig, ClientTextureSourceSystem>();
 	compositorConfig = addTypedDefinition<CompositorObjectSystemConfig, CompositorObjectSystem>();
 	editorConfig = addTypedDefinition<EditorObjectSystemConfig, EditorObjectSystem>();
 	markerSystemConfig = addTypedDefinition<MarkerObjectSystemConfig, MarkerObjectSystem>();
 	markerTrackingVolumeConfig = addTypedDefinition<MarkerTrackingVolumeSystemDefinition, MarkerTrackingVolumeSystem>();
-	stencilConfig = addTypedDefinition<StencilObjectSystemConfig, StencilObjectSystem>();
+	modelStencilSystemDefinition = addTypedDefinition<ModelStencilSystemDefinition, ModelStencilSystem>();
+	quadStencilSystemDefinition = addTypedDefinition<QuadStencilSystemDefinition, QuadStencilSystem>();
 	sceneConfig = addTypedDefinition<SceneObjectSystemDefinition, SceneObjectSystem>();
 	stageConfig = addTypedDefinition<StageObjectSystemConfig, StageObjectSystem>();
 	spoutConfig = addTypedDefinition<SpoutTextureSourceSystemConfig, SpoutTextureSourceSystem>();

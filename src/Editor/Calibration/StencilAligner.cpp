@@ -1,5 +1,5 @@
 #include "StencilComponent.h"
-#include "StencilObjectSystem.h"
+#include "StencilUtils.h"
 #include "CalibrationRenderHelpers.h"
 #include "CalibrationPatternFinder.h"
 #include "CameraComponent.h"

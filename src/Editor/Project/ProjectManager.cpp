@@ -18,7 +18,9 @@
 #include "ProjectManager.h"
 #include "SceneObjectSystem.h"
 #include "SpoutTextureSourceSystem.h"
-#include "StencilObjectSystem.h"
+#include "BoxStencilSystem.h"
+#include "ModelStencilSystem.h"
+#include "QuadStencilSystem.h"
 #include "StageObjectSystem.h"
 #include "TrackingMountObjectSystem.h"
 #include "MarkerTrackingVolumeSystem.h"
@@ -52,7 +54,9 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	addSystem<CompositorObjectSystem>();
 	addSystem<CameraObjectSystem>();
 	addSystem<AnchorObjectSystem>();
-	addSystem<StencilObjectSystem>();
+	addSystem<QuadStencilSystem>();
+	addSystem<BoxStencilSystem>();
+	addSystem<ModelStencilSystem>();
 	addSystem<VRObjectSystem>();
 	addSystem<TrackingMountObjectSystem>();
 	addSystem<MarkerTrackingVolumeSystem>();

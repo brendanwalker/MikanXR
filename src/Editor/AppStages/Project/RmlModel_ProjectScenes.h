@@ -62,7 +62,9 @@ private:
 	EditorObjectSystemWeakPtr m_editorSystem;
 	StageObjectSystemWeakPtr m_stageSystem;
 	SceneObjectSystemWeakPtr m_sceneSystem;
-	StencilObjectSystemWeakPtr m_stencilSystem;
+	QuadStencilSystemWeakPtr m_quadStencilSystem;
+	BoxStencilSystemWeakPtr m_boxStencilSystem;
+	ModelStencilSystemWeakPtr m_modelStencilSystem;
 
 	RmlDataBinding_ComponentIdListPtr m_stageIdList;
 	RmlDataBinding_ComponentIdListPtr m_sceneIdList;

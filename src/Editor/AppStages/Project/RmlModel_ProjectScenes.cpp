@@ -13,10 +13,11 @@
 #include "SceneObjectSystem.h"
 #include "StageComponent.h"
 #include "StageObjectSystem.h"
-#include "StencilObjectSystem.h"
+#include "QuadStencilSystem.h"
+#include "BoxStencilSystem.h"
+#include "ModelStencilSystem.h"
 #include "StencilComponent.h"
 #include "TransformComponent.h"
-#include "StencilObjectSystemConfig.h"
 #include "RmlModel_ProjectScenes.h"
 #include "ProjectConfig.h"
 #include "Project/AppStage_Project.h"
@@ -51,7 +52,9 @@ bool RmlModel_ProjectScenes::init(ProjectRmlModelContext* context)
 	m_editorSystem= ownerAppStage->getObjectSystemOfType<EditorObjectSystem>();
 	m_sceneSystem= ownerAppStage->getObjectSystemOfType<SceneObjectSystem>();
 	m_stageSystem= ownerAppStage->getObjectSystemOfType<StageObjectSystem>();
-	m_stencilSystem= ownerAppStage->getObjectSystemOfType<StencilObjectSystem>();
+	m_quadStencilSystem= ownerAppStage->getObjectSystemOfType<QuadStencilSystem>();
+	m_boxStencilSystem= ownerAppStage->getObjectSystemOfType<BoxStencilSystem>();
+	m_modelStencilSystem= ownerAppStage->getObjectSystemOfType<ModelStencilSystem>();
 
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "Scenes");
@@ -142,12 +145,28 @@ bool RmlModel_ProjectScenes::init(ProjectRmlModelContext* context)
 		MakeDelegate(this, &RmlModel_ProjectScenes::updateSelection);
 
 	// Listen for stencil changes
-	StencilObjectSystemPtr stencilSystem = m_stencilSystem.lock();
-	stencilSystem->getStencilSystemConfig()->OnPropertyChanged +=
+	QuadStencilSystemPtr quadStencilSystem = m_quadStencilSystem.lock();
+	quadStencilSystem->getQuadStencilSystemDefinition()->OnPropertyChanged +=
 		MakeDelegate(this, &RmlModel_ProjectScenes::stencilSystemConfigMarkedDirty);
-	stencilSystem->OnObjectInitialized +=
+	quadStencilSystem->OnObjectInitialized +=
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
-	stencilSystem->OnObjectDisposed +=
+	quadStencilSystem->OnObjectDisposed +=
+		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectDisposed);
+
+	BoxStencilSystemPtr boxStencilSystem = m_boxStencilSystem.lock();
+	boxStencilSystem->getBoxStencilSystemDefinition()->OnPropertyChanged +=
+		MakeDelegate(this, &RmlModel_ProjectScenes::stencilSystemConfigMarkedDirty);
+	boxStencilSystem->OnObjectInitialized +=
+		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
+	boxStencilSystem->OnObjectDisposed +=
+		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectDisposed);
+
+	ModelStencilSystemPtr modelStencilSystem = m_modelStencilSystem.lock();
+	modelStencilSystem->getModelStencilSystemDefinition()->OnPropertyChanged +=
+		MakeDelegate(this, &RmlModel_ProjectScenes::stencilSystemConfigMarkedDirty);
+	modelStencilSystem->OnObjectInitialized +=
+		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
+	modelStencilSystem->OnObjectDisposed +=
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectDisposed);
 
 	// Fill in the data model
@@ -165,12 +184,28 @@ void RmlModel_ProjectScenes::dispose()
 	m_stageIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectScenes::stageIdListChanged);
 	m_sceneIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectScenes::sceneIdListChanged);
 
-	StencilObjectSystemPtr stencilSystem = m_stencilSystem.lock();
-	stencilSystem->getStencilSystemConfig()->OnPropertyChanged -=
+	QuadStencilSystemPtr quadStencilSystem = m_quadStencilSystem.lock();
+	quadStencilSystem->getQuadStencilSystemDefinition()->OnPropertyChanged -=
 		MakeDelegate(this, &RmlModel_ProjectScenes::stencilSystemConfigMarkedDirty);
-	stencilSystem->OnObjectInitialized -=
+	quadStencilSystem->OnObjectInitialized -=
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
-	stencilSystem->OnObjectDisposed -=
+	quadStencilSystem->OnObjectDisposed -=
+		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectDisposed);
+
+	BoxStencilSystemPtr boxStencilSystem = m_boxStencilSystem.lock();
+	boxStencilSystem->getBoxStencilSystemDefinition()->OnPropertyChanged -=
+		MakeDelegate(this, &RmlModel_ProjectScenes::stencilSystemConfigMarkedDirty);
+	boxStencilSystem->OnObjectInitialized -=
+		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
+	boxStencilSystem->OnObjectDisposed -=
+		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectDisposed);
+
+	ModelStencilSystemPtr modelStencilSystem = m_modelStencilSystem.lock();
+	modelStencilSystem->getModelStencilSystemDefinition()->OnPropertyChanged -=
+		MakeDelegate(this, &RmlModel_ProjectScenes::stencilSystemConfigMarkedDirty);
+	modelStencilSystem->OnObjectInitialized -=
+		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
+	modelStencilSystem->OnObjectDisposed -=
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectDisposed);
 
 	EditorObjectSystemPtr editorSystem = m_editorSystem.lock();
@@ -243,9 +278,9 @@ void RmlModel_ProjectScenes::rebuildSceneComponentList()
 		}
 	}
 
-	// Add all root stencils to the outliner
-	StencilObjectSystemPtr stencilSystem = m_stencilSystem.lock();
-	for (const auto it : stencilSystem->getQuadStencilMap())
+	// Add all root quad stencils to the outliner
+	QuadStencilSystemPtr quadStencilSystem = m_quadStencilSystem.lock();
+	for (const auto it : quadStencilSystem->getQuadStencilMap())
 	{
 		QuadStencilComponentPtr stencilComponentPtr = it.second.lock();
 		if (stencilComponentPtr)
@@ -257,8 +292,11 @@ void RmlModel_ProjectScenes::rebuildSceneComponentList()
 				addTransformComponent(rootComponent, 0);
 			}
 		}
-	}	
-	for (const auto it : stencilSystem->getBoxStencilMap())
+	}
+
+	// Add all root box stencils to the outliner
+	BoxStencilSystemPtr boxStencilSystem = m_boxStencilSystem.lock();
+	for (const auto it : boxStencilSystem->getBoxStencilMap())
 	{
 		BoxStencilComponentPtr stencilComponentPtr = it.second.lock();
 		if (stencilComponentPtr)
@@ -271,7 +309,10 @@ void RmlModel_ProjectScenes::rebuildSceneComponentList()
 			}
 		}
 	}
-	for (const auto it : stencilSystem->getModelStencilMap())
+
+	// Add all root model stencils to the outliner
+	ModelStencilSystemPtr modelStencilSystem = m_modelStencilSystem.lock();
+	for (const auto it : modelStencilSystem->getModelStencilMap())
 	{
 		ModelStencilComponentPtr stencilComponentPtr= it.second.lock();
 		if (stencilComponentPtr)
@@ -493,24 +534,22 @@ void RmlModel_ProjectScenes::addNewQuad(
 	quad.relative_transform.scale = {1.f, 1.f, 1.f};
 	quad.quad_width = 0.25f;
 	quad.quad_height = 0.25f;
+	quad.stencil_name= "Quad";
 
-	StencilObjectSystemPtr stencilSystem= m_stencilSystem.lock();
-	StencilObjectSystemConfigPtr stencilSystemConfig = stencilSystem->getStencilSystemConfig();
-	quad.stencil_name= StringUtils::stringify("Quad ", stencilSystemConfig->nextStencilId);
-
-	stencilSystem->addNewQuadStencil(quad);
+	QuadStencilSystemPtr quadStencilSystem= m_quadStencilSystem.lock();
+	quadStencilSystem->addNewQuadStencil(quad);
 }
 
 void RmlModel_ProjectScenes::removeQuad(
-	Rml::DataModelHandle handle, 
-	Rml::Event& /*ev*/, 
+	Rml::DataModelHandle handle,
+	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
 	if (parameters.empty())
 		return;
 
 	const int quadStencilId = parameters[0].Get<int>();
-	m_stencilSystem.lock()->removeQuadStencil(quadStencilId);
+	m_quadStencilSystem.lock()->removeQuadStencil(quadStencilId);
 }
 
 void RmlModel_ProjectScenes::addNewBox(
@@ -527,12 +566,10 @@ void RmlModel_ProjectScenes::addNewBox(
 	box.box_x_size = 0.25f;
 	box.box_y_size = 0.25f;
 	box.box_z_size = 0.25f;
+	box.stencil_name= "Box";
 
-	StencilObjectSystemPtr stencilSystem = m_stencilSystem.lock();
-	StencilObjectSystemConfigPtr stencilSystemConfig= stencilSystem->getStencilSystemConfig();
-	box.stencil_name= StringUtils::stringify("Box ", stencilSystemConfig->nextStencilId);
-
-	stencilSystem->addNewBoxStencil(box);
+	BoxStencilSystemPtr boxStencilSystem = m_boxStencilSystem.lock();
+	boxStencilSystem->addNewBoxStencil(box);
 }
 
 void RmlModel_ProjectScenes::removeBox(
@@ -544,7 +581,7 @@ void RmlModel_ProjectScenes::removeBox(
 		return;
 
 	const int boxStencilId = parameters[0].Get<int>();
-	m_stencilSystem.lock()->removeQuadStencil(boxStencilId);
+	m_boxStencilSystem.lock()->removeBoxStencil(boxStencilId);
 }
 
 void RmlModel_ProjectScenes::addNewModel(
@@ -559,12 +596,10 @@ void RmlModel_ProjectScenes::addNewModel(
 	model.relative_transform.position = {0.f, 0.f, 0.f};
 	model.relative_transform.rotation = {1.f, 0.f, 0.f, 0.f};
 	model.relative_transform.scale = {1.f, 1.f, 1.f};
+	model.stencil_name= "Model";
 
-	StencilObjectSystemPtr stencilSystem = m_stencilSystem.lock();
-	StencilObjectSystemConfigPtr stencilSystemConfig = stencilSystem->getStencilSystemConfig();
-	model.stencil_name= StringUtils::stringify("Model ", stencilSystemConfig->nextStencilId);
-
-	stencilSystem->addNewModelStencil(model);
+	ModelStencilSystemPtr modelStencilSystem = m_modelStencilSystem.lock();
+	modelStencilSystem->addNewModelStencil(model);
 }
 
 void RmlModel_ProjectScenes::removeModel(
@@ -576,7 +611,7 @@ void RmlModel_ProjectScenes::removeModel(
 		return;
 
 	const int modelStencilId = parameters[0].Get<int>();
-	m_stencilSystem.lock()->removeModelStencil(modelStencilId);
+	m_modelStencilSystem.lock()->removeModelStencil(modelStencilId);
 }
 
 void RmlModel_ProjectScenes::selectObjectEntry(

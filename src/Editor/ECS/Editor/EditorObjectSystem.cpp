@@ -19,7 +19,9 @@
 #include "SceneComponent.h"
 #include "ProjectConfig.h"
 #include "SelectionComponent.h"
-#include "StencilObjectSystem.h"
+#include "QuadStencilSystem.h"
+#include "BoxStencilSystem.h"
+#include "ModelStencilSystem.h"
 #include "Transform.h"
 
 // -- AnchorObjectSystemConfig -----
@@ -79,8 +81,14 @@ bool EditorObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 	AnchorObjectSystemPtr anchorObjectSystem= objSystemMgr->getSystemOfType<AnchorObjectSystem>();
 	anchorObjectSystem->OnComponentDisposed+= MakeDelegate(this, &EditorObjectSystem::onSceneObjectDisposed);
 
-	StencilObjectSystemPtr stencilObjectSystem= objSystemMgr->getSystemOfType<StencilObjectSystem>();
-	stencilObjectSystem->OnComponentDisposed += MakeDelegate(this, &EditorObjectSystem::onSceneObjectDisposed);
+	QuadStencilSystemPtr quadStencilSystem= objSystemMgr->getSystemOfType<QuadStencilSystem>();
+	quadStencilSystem->OnComponentDisposed += MakeDelegate(this, &EditorObjectSystem::onSceneObjectDisposed);
+
+	BoxStencilSystemPtr boxStencilSystem= objSystemMgr->getSystemOfType<BoxStencilSystem>();
+	boxStencilSystem->OnComponentDisposed += MakeDelegate(this, &EditorObjectSystem::onSceneObjectDisposed);
+
+	ModelStencilSystemPtr modelStencilSystem= objSystemMgr->getSystemOfType<ModelStencilSystem>();
+	modelStencilSystem->OnComponentDisposed += MakeDelegate(this, &EditorObjectSystem::onSceneObjectDisposed);
 
 	SceneComponentPtr currentScene = sceneObjectSystem->getSceneByName(editorConfig->getCurrentSceneName());
 

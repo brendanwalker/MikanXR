@@ -21,7 +21,9 @@
 #include "QuadStencilComponent.h"
 #include "BoxStencilComponent.h"
 #include "ModelStencilComponent.h"
-#include "StencilObjectSystem.h"
+#include "QuadStencilSystem.h"
+#include "BoxStencilSystem.h"
+#include "ModelStencilSystem.h"
 
 #include "Graphs/CompositorNodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
@@ -391,7 +393,7 @@ void DepthMaskNode::evaluateQuadDepthMasks(
 	const glm::vec3 cameraPosition(cameraXform[3]);
 
 	std::vector<QuadStencilComponentPtr> quadStencilList;
-	getObjectSystemOfType<StencilObjectSystem>()->getRelevantQuadStencilList(
+	getObjectSystemOfType<QuadStencilSystem>()->getRelevantQuadStencilList(
 		&m_quadStencilIds,
 		cameraPosition,
 		cameraForward,
@@ -474,7 +476,7 @@ void DepthMaskNode::evaluateBoxDepthMasks(
 	const glm::vec3 cameraPosition(cameraXform[3]);
 
 	std::vector<BoxStencilComponentPtr> boxStencilList;
-	getObjectSystemOfType<StencilObjectSystem>()->getRelevantBoxStencilList(
+	getObjectSystemOfType<BoxStencilSystem>()->getRelevantBoxStencilList(
 		&m_boxStencilIds,
 		cameraPosition,
 		cameraForward,
@@ -556,7 +558,7 @@ void DepthMaskNode::evaluateModelDepthMasks(
 	const glm::vec3 cameraPosition(cameraXform[3]);
 
 	std::vector<ModelStencilComponentPtr> modelStencilList;
-	getObjectSystemOfType<StencilObjectSystem>()->getRelevantModelStencilList(
+	getObjectSystemOfType<ModelStencilSystem>()->getRelevantModelStencilList(
 		&m_modelStencilIds,
 		cameraPosition,
 		cameraForward,

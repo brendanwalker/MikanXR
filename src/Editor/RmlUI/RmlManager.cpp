@@ -23,7 +23,7 @@
 #include "StageObjectSystem.h"
 #include "StageComponent.h"
 #include "StencilComponent.h"
-#include "StencilObjectSystem.h"
+#include "StencilUtils.h"
 #include "SceneObjectSystem.h"
 #include "SceneComponent.h"
 #include "TextureSourceQueries.h"
@@ -450,8 +450,8 @@ void RmlManager::registerCommonDataModelTypes(Rml::Context* context)
 		[rmlManager](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
 			const MikanStencilID stencilId = variant.Get<int>(-1);
 
-			auto stencilObjectSystem = rmlGetSystemOfType<StencilObjectSystem>(rmlManager);
-			auto stencilComponent= stencilObjectSystem->getStencilById(stencilId);
+			auto projectManager = rmlManager->getOwnerWindow()->getProjectManager();
+			auto stencilComponent= StencilUtils::getStencilById(projectManager, stencilId);
 			if (stencilComponent != nullptr)
 			{
 				variant = stencilComponent->getName();

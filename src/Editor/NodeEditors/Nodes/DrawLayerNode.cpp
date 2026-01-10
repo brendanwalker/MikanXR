@@ -17,10 +17,12 @@
 #include "NodeEditorState.h"	
 #include "NodeEditorUI.h"	
 
-#include "QuadStencilComponent.h"	
-#include "BoxStencilComponent.h"	
-#include "ModelStencilComponent.h"	
-#include "StencilObjectSystem.h"	
+#include "QuadStencilComponent.h"
+#include "BoxStencilComponent.h"
+#include "ModelStencilComponent.h"
+#include "QuadStencilSystem.h"
+#include "BoxStencilSystem.h"
+#include "ModelStencilSystem.h"	
 
 #include "Graphs/CompositorNodeGraph.h"	
 #include "Graphs/NodeEvaluator.h"	
@@ -679,11 +681,11 @@ void DrawLayerNode::evaluateQuadStencils(
 	const glm::vec3 cameraForward(cameraXform[2] * -1.f); // Camera forward is along negative z-axis	
 	const glm::vec3 cameraPosition(cameraXform[3]);	
 
-	std::vector<QuadStencilComponentPtr> quadStencilList;	
-	getObjectSystemOfType<StencilObjectSystem>()->getRelevantQuadStencilList(
-		&m_quadStencilIds,	
-		cameraPosition,	
-		cameraForward,	
+	std::vector<QuadStencilComponentPtr> quadStencilList;
+	getObjectSystemOfType<QuadStencilSystem>()->getRelevantQuadStencilList(
+		&m_quadStencilIds,
+		cameraPosition,
+		cameraForward,
 		quadStencilList);	
 
 	if (quadStencilList.size() == 0)	
@@ -800,11 +802,11 @@ void DrawLayerNode::evaluateBoxStencils(
 	const glm::vec3 cameraForward(cameraXform[2] * -1.f); // Camera forward is along negative z-axis	
 	const glm::vec3 cameraPosition(cameraXform[3]);	
 
-	std::vector<BoxStencilComponentPtr> boxStencilList;	
-	getObjectSystemOfType<StencilObjectSystem>()->getRelevantBoxStencilList(
-		&m_boxStencilIds,	
-		cameraPosition,	
-		cameraForward,	
+	std::vector<BoxStencilComponentPtr> boxStencilList;
+	getObjectSystemOfType<BoxStencilSystem>()->getRelevantBoxStencilList(
+		&m_boxStencilIds,
+		cameraPosition,
+		cameraForward,
 		boxStencilList);	
 
 	if (boxStencilList.size() == 0)	
@@ -888,11 +890,11 @@ void DrawLayerNode::evaluateModelStencils(
 	const glm::vec3 cameraForward(cameraXform[2] * -1.f); // Camera forward is along negative z-axis	
 	const glm::vec3 cameraPosition(cameraXform[3]);	
 
-	std::vector<ModelStencilComponentPtr> modelStencilList;	
-	getObjectSystemOfType<StencilObjectSystem>()->getRelevantModelStencilList(
-		&m_modelStencilIds,	
-		cameraPosition,	
-		cameraForward,	
+	std::vector<ModelStencilComponentPtr> modelStencilList;
+	getObjectSystemOfType<ModelStencilSystem>()->getRelevantModelStencilList(
+		&m_modelStencilIds,
+		cameraPosition,
+		cameraForward,
 		modelStencilList);	
 
 	if (modelStencilList.size() == 0)	

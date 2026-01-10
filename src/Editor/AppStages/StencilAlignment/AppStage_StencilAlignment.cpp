@@ -29,7 +29,7 @@
 #include "MeshColliderComponent.h"
 #include "ModelStencilComponent.h"
 #include "ProjectConfig.h"
-#include "StencilObjectSystem.h"
+#include "StencilUtils.h"
 #include "StencilComponent.h"
 #include "StringUtils.h"
 #include "TextStyle.h"

@@ -59,9 +59,17 @@ class StageObjectSystem;
 using StageObjectSystemPtr = std::shared_ptr<StageObjectSystem>;
 using StageObjectSystemWeakPtr = std::weak_ptr<StageObjectSystem>;
 
-class StencilObjectSystem;
-using StencilObjectSystemPtr = std::shared_ptr<StencilObjectSystem>;
-using StencilObjectSystemWeakPtr = std::weak_ptr<StencilObjectSystem>;
+class BoxStencilSystem;
+using BoxStencilSystemPtr = std::shared_ptr<BoxStencilSystem>;
+using BoxStencilSystemWeakPtr = std::weak_ptr<BoxStencilSystem>;
+
+class ModelStencilSystem;
+using ModelStencilSystemPtr = std::shared_ptr<ModelStencilSystem>;
+using ModelStencilSystemWeakPtr = std::weak_ptr<ModelStencilSystem>;
+
+class QuadStencilSystem;
+using QuadStencilSystemPtr = std::shared_ptr<QuadStencilSystem>;
+using QuadStencilSystemWeakPtr = std::weak_ptr<QuadStencilSystem>;
 
 class TrackingMountObjectSystem;
 using TrackingMountObjectSystemPtr = std::shared_ptr<TrackingMountObjectSystem>;

@@ -35,13 +35,15 @@ public:
 	MikanObjectSystemDefinitionPtr getDefinitionForSystem(MikanObjectSystemPtr systemPtr) const;
 
 	AnchorObjectSystemConfigPtr anchorConfig;
+	BoxStencilSystemDefinitionPtr boxStencilSystemDefinition;
 	CameraObjectSystemConfigPtr cameraConfig;
 	ClientTextureSourceSystemConfigPtr clientConfig;
 	CompositorObjectSystemConfigPtr compositorConfig;
 	EditorObjectSystemConfigPtr editorConfig;
 	MarkerObjectSystemConfigPtr markerSystemConfig;
 	MarkerTrackingVolumeSystemDefinitionPtr markerTrackingVolumeConfig;
-	StencilObjectSystemConfigPtr stencilConfig;
+	ModelStencilSystemDefinitionPtr modelStencilSystemDefinition;
+	QuadStencilSystemDefinitionPtr quadStencilSystemDefinition;
 	SceneObjectSystemDefinitionPtr sceneConfig;
 	SpoutTextureSourceSystemConfigPtr spoutConfig;
 	StageObjectSystemConfigPtr stageConfig;

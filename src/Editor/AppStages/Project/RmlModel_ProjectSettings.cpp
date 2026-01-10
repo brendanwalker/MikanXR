@@ -1,7 +1,10 @@
 #include "RmlModel_ProjectSettings.h"
 #include "AnchorObjectSystem.h"
 #include "LocalizationManager.h"
-#include "StencilObjectSystem.h"
+#include "QuadStencilSystem.h"
+#include "BoxStencilSystem.h"
+#include "ModelStencilSystem.h"
+#include "StencilUtils.h"
 #include "ProjectConfig.h"
 #include "Project/AppStage_Project.h"
 #include "Project/ProjectRmlModelContext.h"
@@ -23,7 +26,9 @@ bool RmlModel_ProjectSettings::init(ProjectRmlModelContext* context)
 	m_projectRmlModelContext = context;
 	m_project = ownerAppStage->getProjectConfig();
 	m_anchorSystem = ownerAppStage->getObjectSystemOfType<AnchorObjectSystem>();
-	m_stencilSystem = ownerAppStage->getObjectSystemOfType<StencilObjectSystem>();
+	m_quadStencilSystem = ownerAppStage->getObjectSystemOfType<QuadStencilSystem>();
+	m_boxStencilSystem = ownerAppStage->getObjectSystemOfType<BoxStencilSystem>();
+	m_modelStencilSystem = ownerAppStage->getObjectSystemOfType<ModelStencilSystem>();
 
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "Settings");
@@ -53,15 +58,44 @@ bool RmlModel_ProjectSettings::init(ProjectRmlModelContext* context)
 		});
 
 	constructor.BindFunc(
-		"render_stencils",
+		"render_quad_stencils",
 		[this](Rml::Variant& variant) {
-			bool value= m_stencilSystem.lock()->getStencilSystemConfig()->getRenderStencilsFlag();
+			// Get the flag from any stencil system (they should all be in sync)
+			QuadStencilSystemPtr quadStencilSystem = m_quadStencilSystem.lock();
+			bool value= quadStencilSystem->getQuadStencilSystemDefinitionConst()->getRenderStencilsFlag();
 			variant = Rml::Variant(value);
 		},
 		[this](const Rml::Variant& variant) {
 			bool value = variant.Get<bool>();
-			m_stencilSystem.lock()->getStencilSystemConfig()->setRenderStencilsFlag(value);
+			m_quadStencilSystem.lock()->getQuadStencilSystemDefinition()->setRenderStencilsFlag(value);
 		});
+
+	constructor.BindFunc(
+		"render_box_stencils",
+		[this](Rml::Variant& variant) {
+			// Get the flag from any stencil system (they should all be in sync)
+			BoxStencilSystemPtr boxStencilSystem = m_boxStencilSystem.lock();
+			bool value = boxStencilSystem->getBoxStencilSystemDefinitionConst()->getRenderStencilsFlag();
+			variant = Rml::Variant(value);
+		},
+		[this](const Rml::Variant& variant) {
+			bool value = variant.Get<bool>();
+			m_boxStencilSystem.lock()->getBoxStencilSystemDefinition()->setRenderStencilsFlag(value);
+		});
+
+	constructor.BindFunc(
+		"render_model_stencils",
+		[this](Rml::Variant& variant) {
+			// Get the flag from any stencil system (they should all be in sync)
+			ModelStencilSystemPtr modelStencilSystem = m_modelStencilSystem.lock();
+			bool value = modelStencilSystem->getModelStencilSystemDefinitionConst()->getRenderStencilsFlag();
+			variant = Rml::Variant(value);
+		},
+		[this](const Rml::Variant& variant) {
+			bool value = variant.Get<bool>();
+			m_modelStencilSystem.lock()->getModelStencilSystemDefinition()->setRenderStencilsFlag(value);
+		});
+
 
 	constructor.Bind("language_id_list", &m_languageIdList);
 	constructor.Bind("selected_language_id", &m_selectedLangugeId);
