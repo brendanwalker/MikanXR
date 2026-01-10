@@ -49,6 +49,7 @@ public:
     CommonConfig(const std::string &configName = std::string("CommonConfig"));
 
 	void addChildConfig(std::shared_ptr<CommonConfig> childConfig);
+	std::shared_ptr<CommonConfig> getChildConfig(const std::string& configName) const;
 	void removeChildConfig(std::shared_ptr<CommonConfig> childConfig);
 	virtual void notifyPropertyChanged(const ConfigPropertyChangeSet& changedPropertySet);
 	virtual bool wantsSaveForPropertyChange(const ConfigPropertyChangeSet& changedPropertySet) const { return true; }

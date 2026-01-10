@@ -1,7 +1,7 @@
 #include "RmlDataBinding_VideoSourceSetting.h"
 #include "MathUtility.h"
 #include "MulticastDelegate.h"
-#include "Shared/RmlModel_VideoSourceComponent.h"
+#include "Shared/RmlModel_USBVideoSourceComponent.h"
 #include "USBVideoSourceComponent.h"
 #include "VideoSourceComponent.h"
 

@@ -5,20 +5,48 @@
 #include "MikanObjectSystem.h"
 #include "MikanVideoSourceTypes.h"
 #include "ObjectSystemConfigFwd.h"
-#include "VideoSourceSystemConfig.h"
+#include "VideoSourceQueries.h"
 
 #include <map>
 #include <string>
 
 using NetworkVideoSourceMap = std::map<MikanVideoSourceID, NetworkVideoSourceComponentWeakPtr>;
 
+class NetworkVideoSourceSystemConfig : public MikanObjectSystemDefinition
+{
+public:
+	NetworkVideoSourceSystemConfig(const std::string& configName)
+		: MikanObjectSystemDefinition(configName)
+	{
+	}
+
+	virtual configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+
+	static const std::string k_networkedVideoSourceListPropertyId;
+	const std::vector<NetworkVideoSourceDefinitionPtr>& getNetworkedVideoSourceList() const { return m_networkedVideoSourceList; }
+	NetworkVideoSourceDefinitionConstPtr getNetworkedVideoSourceConfigConst(MikanVideoSourceID videoSourceId) const;
+	NetworkVideoSourceDefinitionPtr getNetworkedVideoSourceConfig(MikanVideoSourceID videoSourceId);
+	NetworkVideoSourceDefinitionPtr allocateNetworkedVideoSourceDefinition(const struct MikanNetworkVideoSourceInfo& videoSourceInfo);
+	bool addNetworkedVideoSourceDefinition(NetworkVideoSourceDefinitionPtr videoSourcePtr);
+	bool removeNetworkedVideoSourceDefinition(MikanVideoSourceID videoSourceId);
+
+protected:
+	std::vector<USBVideoSourceDefinitionPtr> m_usbVideoSourceList;
+	std::vector<NetworkVideoSourceDefinitionPtr> m_networkedVideoSourceList;
+	MikanVideoSourceID m_nextVideoSourceId = 0;
+};
+
 class NetworkVideoSourceSystem : public MikanObjectSystem
 {
 public:   
-    NetworkVideoSourceSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
+    NetworkVideoSourceSystem(ProjectManagerPtr ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 
 	inline static const std::string k_objectSystemClassName = "NetworkVideoObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
+
+	NetworkVideoSourceSystemConfigConstPtr getNetworkVideoSourceSystemConfigConst() const;
+	NetworkVideoSourceSystemConfigPtr getNetworkVideoSourceSystemConfig();
 
     virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
 	virtual void update(float deltaTime) override;

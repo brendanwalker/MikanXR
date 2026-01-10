@@ -74,7 +74,6 @@ protected:
 	TextureSourceSystemWeakPtr m_textureSourceSystem;
 	TrackingVolumeObjectSystemWeakPtr m_trackingVolumeSystem;
 	TrackingMountObjectSystemWeakPtr m_trackingMountSystem;
-	VideoSourceSystemWeakPtr m_videoObjectSystem;
 
 	// Shared context for component and object system models used in project panels
 	class ProjectRmlModelContext* m_projectRmlModelContext = nullptr;

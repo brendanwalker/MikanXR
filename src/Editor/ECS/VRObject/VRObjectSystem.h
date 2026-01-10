@@ -52,7 +52,7 @@ protected:
 class VRObjectSystem : public MikanObjectSystem, public IVRDeviceManagerListener
 {
 public:
-	VRObjectSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
+	VRObjectSystem(ProjectManagerPtr ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 
 	inline static const std::string k_objectSystemClassName = "VRObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }

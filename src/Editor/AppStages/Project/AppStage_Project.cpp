@@ -58,7 +58,6 @@
 #include "TransformComponent.h"
 #include "TextStyle.h"
 #include "VideoSourceComponent.h"
-#include "VideoSourceSystem.h"
 #include "Windows/CompositorNodeEditorWindow.h"
 
 #include <RmlUi/Core/Context.h>
@@ -104,7 +103,6 @@ void AppStage_Project::enter()
 	m_textureSourceSystem = objectSystemManager->getSystemOfType<TextureSourceSystem>();
 	m_trackingMountSystem = objectSystemManager->getSystemOfType<TrackingMountObjectSystem>();
 	m_trackingVolumeSystem = objectSystemManager->getSystemOfType<TrackingVolumeObjectSystem>();
-	m_videoObjectSystem = objectSystemManager->getSystemOfType<VideoSourceSystem>();
 
 	// Setup Scene viewport
 	{

@@ -8,7 +8,6 @@
 #include "OpenCVVideoFrameBuffer.h"
 #include "StringUtils.h"
 #include "ThreadUtils.h"
-#include "VideoSourceSystem.h"
 #include "VideoSourceRequestHandler.h"
 #include "ProjectConfigConstants.h"
 

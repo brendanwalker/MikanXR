@@ -26,7 +26,7 @@ public:
 	using DefinitionInitFunction = std::function<void(ComponentDefinitionPtr)>;
 
 	MikanTypedObjectSystem(
-		class ProjectManager* ownerObjectSystem)
+		ProjectManagerPtr ownerObjectSystem)
 		: MikanObjectSystem(ownerObjectSystem)
 		, m_pool(
 			this, 

@@ -36,7 +36,7 @@
 #include "USBVideoSourceComponent.h"
 #include "VRObjectSystem.h"
 #include "VRDeviceComponent.h"
-#include "VideoSourceSystem.h"
+#include "VideoSourceQueries.h"
 #include "VideoSourceComponent.h"
 
 #include <RmlUi/Core.h>
@@ -521,9 +521,9 @@ void RmlManager::registerCommonDataModelTypes(Rml::Context* context)
 		"to_video_source_friendly_name",
 		[rmlManager](Rml::Variant& variant, const Rml::VariantList& arguments) -> bool {
 			const MikanVideoSourceID videoSourceId = variant.Get<int>(-1);
-		
-			auto videoSourceSystem = rmlGetSystemOfType<VideoSourceSystem>(rmlManager);
-			auto videoSourceComponent = videoSourceSystem->getVideoSourceById(videoSourceId);
+
+			ProjectManagerPtr projectManager = rmlManager->getOwnerWindow()->getProjectManager();
+			auto videoSourceComponent = VideoSourceQueries::getVideoSourceById(projectManager, videoSourceId);
 			if (videoSourceComponent)
 			{
 				const Rml::String friendlyName = videoSourceComponent->getName();

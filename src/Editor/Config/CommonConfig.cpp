@@ -67,6 +67,18 @@ void CommonConfig::addChildConfig(std::shared_ptr<CommonConfig> childConfig)
 	m_childConfigs.push_back(childConfig);
 }
 
+std::shared_ptr<CommonConfig> CommonConfig::getChildConfig(const std::string& configName) const
+{
+    for (const auto& childConfig : m_childConfigs)
+    {
+        if (childConfig->getConfigName() == configName)
+        {
+            return childConfig;
+        }
+    }
+    return nullptr;
+}
+
 void CommonConfig::removeChildConfig(std::shared_ptr<CommonConfig> childConfig)
 {
     auto it= std::find(m_childConfigs.begin(), m_childConfigs.end(), childConfig);

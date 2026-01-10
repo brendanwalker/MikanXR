@@ -1,7 +1,8 @@
 //-- inludes -----
 #include "VideoSourceSettings/AppStage_VideoSourceSettings.h"
 #include "VideoSourceSettings/RmlModel_VideoSourceSettings.h"
-#include "Shared/RmlModel_VideoSourceComponent.h"
+#include "Shared/RmlModel_NetworkVideoSourceComponent.h"
+#include "Shared/RmlModel_USBVideoSourceComponent.h"
 #include "MonoLensCalibration/AppStage_MonoLensCalibration.h"
 #include "MainMenu/AppStage_MainMenu.h"
 #include "App.h"
@@ -12,7 +13,6 @@
 #include "ProjectConfig.h"
 #include "TextStyle.h"
 #include "VideoSourceComponent.h"
-#include "VideoSourceSystem.h"
 #include "VideoFrameDistortionView.h"
 #include "USBVideoSourceComponent.h"
 

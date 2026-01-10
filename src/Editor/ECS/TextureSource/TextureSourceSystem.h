@@ -17,7 +17,7 @@
 class TextureSourceSystem : public MikanObjectSystem
 {
 public:
-	TextureSourceSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
+	TextureSourceSystem(ProjectManagerPtr ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 	static TextureSourceSystemPtr getSystem() { return s_TextureSourceSystem.lock(); }
 
 	inline static const std::string k_objectSystemClassName = "TextureSourceSystem";

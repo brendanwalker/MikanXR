@@ -24,7 +24,6 @@
 #include "TrackingMountObjectSystem.h"
 #include "TrackingVolumeObjectSystem.h"
 #include "USBVideoSourceSystem.h"
-#include "VideoSourceSystem.h"
 #include "VRObjectSystem.h"
 
 #define PROJECT_SAVE_COOLDOWN	3.f
@@ -48,7 +47,6 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	addSystem<NetworkVideoSourceSystem>();
 	addSystem<USBVideoSourceSystem>();
 	addSystem<TextureSourceSystem>();
-	addSystem<VideoSourceSystem>();
 	addSystem<MarkerObjectSystem>();
 	addSystem<SceneObjectSystem>();
 	addSystem<StageObjectSystem>();

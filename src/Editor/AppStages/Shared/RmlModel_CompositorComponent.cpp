@@ -2,7 +2,6 @@
 #include "Shared/RmlDataBinding_List.h"
 #include "Shared/RmlModel_EntityAccessor.h"
 #include "CameraObjectSystem.h"
-#include "VideoSourceSystem.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>

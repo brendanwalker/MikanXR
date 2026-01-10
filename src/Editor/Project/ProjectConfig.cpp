@@ -5,6 +5,7 @@
 #include "EditorObjectSystem.h"
 #include "MathUtility.h"
 #include "MarkerObjectSystem.h"
+#include "NetworkVideoSourceSystem.h"
 #include "ProjectConfig.h"
 #include "ProjectConfigConstants.h"
 #include "PathUtils.h"
@@ -16,7 +17,7 @@
 #include "TrackingVolumeObjectSystem.h"
 #include "TrackingMountObjectSystem.h"
 #include "TextureSourceSystem.h"
-#include "VideoSourceSystem.h"
+#include "USBVideoSourceSystem.h"
 #include "VRObjectSystem.h"
 
 // -- Profile Config
@@ -25,44 +26,20 @@ const std::string ProjectConfig::k_renderOriginFlagPropertyId= "renderOrigin";
 ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	: CommonConfig(fnamebase)
 {
-	editorConfig = std::make_shared<EditorObjectSystemConfig>("editor");
-	addChildConfig(editorConfig);
-
-	sceneConfig = std::make_shared<SceneObjectSystemDefinition>();
-	addChildConfig(sceneConfig);
-
-	cameraConfig = std::make_shared<CameraObjectSystemConfig>("cameras");
-	addChildConfig(cameraConfig);
-
-	compositorConfig = std::make_shared<CompositorObjectSystemConfig>("compositors");
-	addChildConfig(compositorConfig);
-
-	stageConfig = std::make_shared<StageObjectSystemConfig>("stages");
-	addChildConfig(stageConfig);
-
-	anchorConfig= std::make_shared<AnchorObjectSystemConfig>("anchors");
-	addChildConfig(anchorConfig);
-
-	stencilConfig= std::make_shared<StencilObjectSystemConfig>("stencils");
-	addChildConfig(stencilConfig);
-
-	markerSystemConfig = std::make_shared<MarkerObjectSystemConfig>("marker_system");
-	addChildConfig(markerSystemConfig);
-
-	trackingVolumeSystemConfig = std::make_shared<TrackingVolumeObjectSystemConfig>("tracking_volume_system");
-	addChildConfig(trackingVolumeSystemConfig);
-
-	trackingMountSystemConfig = std::make_shared<TrackingMountObjectSystemConfig>("tracking_mount_system");
-	addChildConfig(trackingMountSystemConfig);
-
-	textureSourceSystemConfig = std::make_shared<TextureSourceSystemConfig>("texture_source_system");
-	addChildConfig(textureSourceSystemConfig);
-
-	videoSourceSystemConfig = std::make_shared<VideoSourceSystemConfig>("video_source_system");
-	addChildConfig(videoSourceSystemConfig);
-
-	vrObjectConfig= std::make_shared<VRObjectSystemConfig>("vr_objects");
-	addChildConfig(vrObjectConfig);
+	anchorConfig = addTypedDefinition<AnchorObjectSystemConfig, AnchorObjectSystem>();
+	cameraConfig = addTypedDefinition<CameraObjectSystemConfig, CameraObjectSystem>();
+	compositorConfig = addTypedDefinition<CompositorObjectSystemConfig, CompositorObjectSystem>();
+	editorConfig = addTypedDefinition<EditorObjectSystemConfig, EditorObjectSystem>();
+	markerSystemConfig = addTypedDefinition<MarkerObjectSystemConfig, MarkerObjectSystem>();
+	stencilConfig = addTypedDefinition<StencilObjectSystemConfig, StencilObjectSystem>();
+	sceneConfig = addTypedDefinition<SceneObjectSystemDefinition, SceneObjectSystem>();
+	stageConfig = addTypedDefinition<StageObjectSystemConfig, StageObjectSystem>();
+	trackingVolumeSystemConfig = addTypedDefinition<TrackingVolumeObjectSystemConfig, TrackingVolumeObjectSystem>();
+	trackingMountSystemConfig = addTypedDefinition<TrackingMountObjectSystemConfig, TrackingMountObjectSystem>();
+	textureSourceSystemConfig = addTypedDefinition<TextureSourceSystemConfig, TextureSourceSystem>();
+	networkVideoSourceSystemConfig = addTypedDefinition<NetworkVideoSourceSystemConfig, NetworkVideoSourceSystem>();
+	usbVideoSourceSystemConfig = addTypedDefinition<USBVideoSourceSystemConfig, USBVideoSourceSystem>();
+	vrObjectConfig= addTypedDefinition<VRObjectSystemConfig, VRObjectSystem>();
 };
 
 configuru::Config ProjectConfig::writeToJSON()
@@ -72,44 +49,11 @@ configuru::Config ProjectConfig::writeToJSON()
 	// Renderer Flags
 	pt[k_renderOriginFlagPropertyId]= m_bRenderOrigin;
 
-	// Write the editor system config
-	pt[editorConfig->getConfigName()] = editorConfig->writeToJSON();
-
-	// Write the scene system config
-	pt[sceneConfig->getConfigName()] = sceneConfig->writeToJSON();
-
-	// Write the camera system config
-	pt[cameraConfig->getConfigName()] = cameraConfig->writeToJSON();
-
-	// Write the compositor system config
-	pt[compositorConfig->getConfigName()] = compositorConfig->writeToJSON();
-
-	// Write the stage system config
-	pt[stageConfig->getConfigName()] = stageConfig->writeToJSON();
-
-	// Write the anchor system config
-	pt[anchorConfig->getConfigName()]= anchorConfig->writeToJSON();
-
-	// Write the marker system config
-	pt[markerSystemConfig->getConfigName()] = markerSystemConfig->writeToJSON();
-
-	// Write the stencil system config
-	pt[stencilConfig->getConfigName()]= stencilConfig->writeToJSON();
-
-	// Write the tracking volume system config
-	pt[trackingVolumeSystemConfig->getConfigName()] = trackingVolumeSystemConfig->writeToJSON();
-
-	// Write the tracking mount system config
-	pt[trackingMountSystemConfig->getConfigName()] = trackingMountSystemConfig->writeToJSON();
-
-	// Write the texture source system config
-	pt[textureSourceSystemConfig->getConfigName()] = textureSourceSystemConfig->writeToJSON();
-
-	// Write the video source system config
-	pt[videoSourceSystemConfig->getConfigName()] = videoSourceSystemConfig->writeToJSON();
-
-	// Write the vr object system config
-	pt[vrObjectConfig->getConfigName()] = vrObjectConfig->writeToJSON();
+	// Write out all child configs
+	for (const auto& childConfigPtr : m_childConfigs)
+	{
+		pt[childConfigPtr->getConfigName()] = childConfigPtr->writeToJSON();
+	}
 
 	return pt;
 }
@@ -120,85 +64,17 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 
 	m_bRenderOrigin = pt.get_or<bool>(k_renderOriginFlagPropertyId, m_bRenderOrigin);
 
-	// Read the editor system config
-	if (pt.has_key(editorConfig->getConfigName()))
+	// Read all child configs
+	for (const auto& childConfigPtr : m_childConfigs)
 	{
-		editorConfig->readFromJSON(pt[editorConfig->getConfigName()]);
-	}
+		if (pt.has_key(childConfigPtr->getConfigName()))
+		{
+			const configuru::Config& child_pt = pt[childConfigPtr->getConfigName()];
 
-	// Read the scene system config
-	if (pt.has_key(sceneConfig->getConfigName()))
-	{
-		sceneConfig->readFromJSON(pt[sceneConfig->getConfigName()]);
-	}
-
-	// Read the camera system config
-	if (pt.has_key(cameraConfig->getConfigName()))
-	{
-		cameraConfig->readFromJSON(pt[cameraConfig->getConfigName()]);
-	}
-
-	// Read the compositor system config
-	if (pt.has_key(compositorConfig->getConfigName()))
-	{
-		compositorConfig->readFromJSON(pt[compositorConfig->getConfigName()]);
-	}
-
-	// Read the stage system config
-	if (pt.has_key(stageConfig->getConfigName()))
-	{
-		stageConfig->readFromJSON(pt[stageConfig->getConfigName()]);
-	}
-
-	// Read the anchor system config
-	if (pt.has_key(anchorConfig->getConfigName()))
-	{
-		anchorConfig->readFromJSON(pt[anchorConfig->getConfigName()]);
-	}
-
-	// Read the marker system config
-	if (pt.has_key(markerSystemConfig->getConfigName()))
-	{
-		markerSystemConfig->readFromJSON(pt[markerSystemConfig->getConfigName()]);
-	}
-
-	// Read the stencil system config
-	if (pt.has_key(stencilConfig->getConfigName()))
-	{
-		stencilConfig->readFromJSON(pt[stencilConfig->getConfigName()]);
-	}
-
-	// Read the tracking volume system config
-	if (pt.has_key(trackingVolumeSystemConfig->getConfigName()))
-	{
-		trackingVolumeSystemConfig->readFromJSON(pt[trackingVolumeSystemConfig->getConfigName()]);
-	}
-
-	// Read the tracking mount system config
-	if (pt.has_key(trackingMountSystemConfig->getConfigName()))
-	{
-		trackingMountSystemConfig->readFromJSON(pt[trackingMountSystemConfig->getConfigName()]);
-	}
-
-	// Read the texture source system config
-	if (pt.has_key(textureSourceSystemConfig->getConfigName()))
-	{
-		textureSourceSystemConfig->readFromJSON(pt[textureSourceSystemConfig->getConfigName()]);
-	}
-
-	// Read the video source system config
-	if (pt.has_key(videoSourceSystemConfig->getConfigName()))
-	{
-		videoSourceSystemConfig->readFromJSON(pt[videoSourceSystemConfig->getConfigName()]);
-	}
-
-	// Read the vr object system config
-	if (pt.has_key(vrObjectConfig->getConfigName()))
-	{
-		vrObjectConfig->readFromJSON(pt[vrObjectConfig->getConfigName()]);
+			childConfigPtr->readFromJSON(child_pt);
+		}
 	}
 }
-
 
 void ProjectConfig::setRenderOriginFlag(bool flag)
 {
@@ -212,58 +88,11 @@ void ProjectConfig::setRenderOriginFlag(bool flag)
 MikanObjectSystemDefinitionPtr ProjectConfig::getDefinitionForSystem(MikanObjectSystemPtr systemPtr) const
 {
 	const std::string systemClassName = systemPtr->getObjectSystemClassName();
+	std::shared_ptr<CommonConfig> systemConfig= getChildConfig(systemClassName);
 
-	if (systemClassName == AnchorObjectSystem::k_objectSystemClassName)
+	if (systemConfig)
 	{
-		return anchorConfig;
-	}
-	else if (systemClassName == CameraObjectSystem::k_objectSystemClassName)
-	{
-		return cameraConfig;
-	}
-	else if (systemClassName == CompositorObjectSystem::k_objectSystemClassName)
-	{
-		return compositorConfig;
-	}
-	else if (systemClassName == EditorObjectSystem::k_objectSystemClassName)
-	{
-		return editorConfig;
-	}
-	else if (systemClassName == MarkerObjectSystem::k_objectSystemClassName)
-	{
-		return markerSystemConfig;
-	}
-	else if (systemClassName == StencilObjectSystem::k_objectSystemClassName)
-	{
-		return stencilConfig;
-	}
-	else if (systemClassName == SceneObjectSystem::k_objectSystemClassName)
-	{
-		return sceneConfig;
-	}
-	else if (systemClassName == StageObjectSystem::k_objectSystemClassName)
-	{
-		return stageConfig;
-	}
-	else if (systemClassName == TrackingVolumeObjectSystem::k_objectSystemClassName)
-	{
-		return trackingVolumeSystemConfig;
-	}
-	else if (systemClassName == TrackingMountObjectSystem::k_objectSystemClassName)
-	{
-		return trackingMountSystemConfig;
-	}
-	else if (systemClassName == TextureSourceSystem::k_objectSystemClassName)
-	{
-		return textureSourceSystemConfig;
-	}
-	else if (systemClassName == VideoSourceSystem::k_objectSystemClassName)
-	{
-		return videoSourceSystemConfig;
-	}
-	else if (systemClassName == VRObjectSystem::k_objectSystemClassName)
-	{
-		return vrObjectConfig;
+		return std::static_pointer_cast<MikanObjectSystemDefinition>(systemConfig);
 	}
 
 	return nullptr;

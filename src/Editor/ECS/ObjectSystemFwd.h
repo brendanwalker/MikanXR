@@ -40,6 +40,7 @@ using NetworkVideoSourceSystemWeakPtr = std::weak_ptr<NetworkVideoSourceSystem>;
 
 class ProjectManager;
 using ProjectManagerPtr = std::shared_ptr<ProjectManager>;
+using ProjectManagerConstPtr = std::shared_ptr<const ProjectManager>;
 using ProjectManagerWeakPtr = std::weak_ptr<ProjectManager>;
 
 class SceneObjectSystem;
@@ -73,10 +74,6 @@ using TrackingMountObjectSystemWeakPtr = std::weak_ptr<TrackingMountObjectSystem
 class USBVideoSourceSystem;
 using USBVideoSourceSystemPtr = std::shared_ptr<USBVideoSourceSystem>;
 using USBVideoSourceSystemWeakPtr = std::weak_ptr<USBVideoSourceSystem>;
-
-class VideoSourceSystem;
-using VideoSourceSystemPtr = std::shared_ptr<VideoSourceSystem>;
-using VideoSourceSystemWeakPtr = std::weak_ptr<VideoSourceSystem>;
 
 class VRObjectSystem;
 using VRObjectSystemPtr = std::shared_ptr<VRObjectSystem>;

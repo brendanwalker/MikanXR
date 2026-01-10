@@ -15,7 +15,7 @@ using SpoutTextureSourceMap = std::map<MikanTextureSourceID, SpoutTextureSourceC
 class SpoutTextureSourceSystem : public MikanObjectSystem
 {
 public:  
-    SpoutTextureSourceSystem(class ProjectManager* ownerObjectSystem);
+    SpoutTextureSourceSystem(ProjectManagerPtr ownerObjectSystem);
 
 	inline static const std::string k_objectSystemClassName = "SpoutTextureSourceSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }

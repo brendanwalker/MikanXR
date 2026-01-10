@@ -22,7 +22,7 @@ bool TextureSourceSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 	MikanObjectSystem::init(definitionPtr);
 
 	// Create subsystems
-	auto* owner= getOwnerProjectManager();
+	ProjectManagerPtr owner= getOwnerProjectManager();
 	m_clientTextureSourceSystem = owner->getSystemOfType<ClientTextureSourceSystem>();
 	m_spoutTextureSourceSystem = owner->getSystemOfType<SpoutTextureSourceSystem>();
 

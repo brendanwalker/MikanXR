@@ -7,12 +7,13 @@
 #include "Shared/RmlModel_MarkerObjectSystem.h"
 #include "Shared/RmlModel_MarkerTrackingVolumeComponent.h"
 #include "Shared/RmlModel_MarkerComponent.h"
+#include "Shared/RmlModel_NetworkVideoSourceComponent.h"
 #include "Shared/RmlModel_SceneComponent.h"
 #include "Shared/RmlModel_StencilComponent.h"
 #include "Shared/RmlModel_StageComponent.h"
 #include "Shared/RmlModel_TextureSourceComponent.h"
 #include "Shared/RmlModel_TrackingMountComponent.h"
-#include "Shared/RmlModel_VideoSourceComponent.h"
+#include "Shared/RmlModel_USBVideoSourceComponent.h"
 #include "Shared/RmlModel_VRTrackingVolumeComponent.h"
 
 ProjectRmlModelContext::ProjectRmlModelContext(AppStage_Project* ownerAppStage)

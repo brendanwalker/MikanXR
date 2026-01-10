@@ -223,7 +223,7 @@ void MikanComponent::setName(const std::string& name)
 		m_definition->setComponentName(name);
 }
 
-ProjectManager* MikanComponent::getOwnerProjectManager() const
+ProjectManagerPtr MikanComponent::getOwnerProjectManager() const
 {
 	return getOwnerObject()->getOwnerSystem()->getOwnerProjectManager();
 }

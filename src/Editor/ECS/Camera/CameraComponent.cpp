@@ -20,10 +20,10 @@
 #include "StageComponent.h"
 #include "TrackingVolumeObjectSystem.h"
 #include "TrackingMountObjectSystem.h"
-#include "VideoSourceSystem.h"
 #include "VideoSourceComponent.h"
 #include "VRDeviceComponent.h"
 #include "VRObjectSystem.h"
+#include "VideoSourceQueries.h"
 
 // -- CameraConfig -----
 const std::string CameraDefinition::k_ownerStageIdPropertyId = "stage_id";
@@ -294,7 +294,7 @@ VideoSourceComponentPtr CameraComponent::getVideoSourceComponent() const
 	MikanVideoSourceID videoSourceId = cameraDefinition->getVideoSourceId();
 	if (videoSourceId != INVALID_MIKAN_ID)
 	{
-		return VideoSourceSystem::getSystem()->getVideoSourceById(videoSourceId);
+		return VideoSourceQueries::getVideoSourceById(getOwnerProjectManager(), videoSourceId);
 	}
 
 	return VideoSourceComponentPtr();

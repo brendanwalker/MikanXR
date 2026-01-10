@@ -12,7 +12,7 @@
 
 #include <assert.h>
 
-SpoutTextureSourceSystem::SpoutTextureSourceSystem(ProjectManager* ownerObjectSystem) 
+SpoutTextureSourceSystem::SpoutTextureSourceSystem(ProjectManagerPtr ownerObjectSystem) 
     : MikanObjectSystem(ownerObjectSystem)
 {
 }

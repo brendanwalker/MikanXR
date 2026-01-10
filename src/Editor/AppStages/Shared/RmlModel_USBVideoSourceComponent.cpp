@@ -1,51 +1,14 @@
-#include "RmlModel_VideoSourceComponent.h"
+#include "RmlModel_USBVideoSourceComponent.h"
 #include "Shared/RmlDataBinding_List.h"
 #include "Shared/RmlModel_EntityAccessor.h"
 #include "NetworkVideoSourceComponent.h"
 #include "USBVideoSourceComponent.h"
 #include "USBVideoSourceSystem.h"
-#include "VideoSourceSystem.h"
 #include "VideoSourceSettings/RmlDataBinding_VideoSourceSetting.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
-
-// -- RmlModel_NetworkVideoSourceComponent -----
-bool RmlModel_NetworkVideoSourceComponent::init(Rml::Context* rmlContext)
-{
-	return initTypedPropertyInterface<NetworkVideoSourceComponent>(rmlContext);
-}
-
-bool RmlModel_NetworkVideoSourceComponent::onConstruct(Rml::DataModelConstructor& constructor)
-{
-	if (!RmlModel_MikanComponent::onConstruct(constructor))
-		return false;
-
-	constructor.BindEventCallback(
-		"select_protocol",
-		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			const auto newProtocol = ev.GetParameter<Rml::String>("value", "");
-			auto videoSourceComponent = getNetworkVideoSourceComponent();
-			if (videoSourceComponent)
-			{
-				videoSourceComponent->getNetworkVideoSourceDefinition()->setProtocol(newProtocol);
-			}
-		});
-
-	return true;
-}
-
-NetworkVideoSourceComponentPtr RmlModel_NetworkVideoSourceComponent::getNetworkVideoSourceComponent() const
-{
-	MikanComponentPtr component = m_component.lock();
-	if (component)
-	{
-		return std::static_pointer_cast<NetworkVideoSourceComponent>(component);
-	}
-
-	return nullptr;
-}
 
 // -- RmlModel_USBVideoSourceComponent -----
 RmlModel_USBVideoSourceComponent::RmlModel_USBVideoSourceComponent()
@@ -143,7 +106,7 @@ bool RmlModel_USBVideoSourceComponent::setComponent(MikanComponentPtr component)
 	{
 		auto usbVideoSourceComponent = std::static_pointer_cast<USBVideoSourceComponent>(component);
 
-		m_usbDevicePathList->setOwnerConfig(getVideoSourceSystemConfig());
+		m_usbDevicePathList->setOwnerConfig(getUSBVideoSourceSystemConfig());
 		m_usbDevicePathList->rebuildList(true);
 
 		m_videoModeNameList->setOwnerConfig(component ? component->getDefinition() : CommonConfigPtr());
@@ -180,34 +143,23 @@ void RmlModel_USBVideoSourceComponent::onComponentPropertyChanged(
 	}
 }
 
-VideoSourceSystemPtr RmlModel_USBVideoSourceComponent::getVideoSourceSystem() const
+USBVideoSourceSystemPtr RmlModel_USBVideoSourceComponent::getUSBVideoSourceSystem() const
 {
 	MikanComponentPtr component = m_component.lock();
 	if (component)
 	{
-		return component->getObjectSystemOfType<VideoSourceSystem>();
+		return component->getObjectSystemOfType<USBVideoSourceSystem>();
 	}
 
 	return nullptr;
 }
 
-VideoSourceSystemConfigPtr RmlModel_USBVideoSourceComponent::getVideoSourceSystemConfig() const
+USBVideoSourceSystemConfigPtr RmlModel_USBVideoSourceComponent::getUSBVideoSourceSystemConfig() const
 {
-	auto videoSourceSystem = getVideoSourceSystem();
+	auto videoSourceSystem = getUSBVideoSourceSystem();
 	if (videoSourceSystem)
 	{
-		return videoSourceSystem->getVideoSourceSystemConfig();
-	}
-
-	return nullptr;
-}
-
-USBVideoSourceSystemPtr RmlModel_USBVideoSourceComponent::getUSBVideoSourceSystem() const
-{
-	auto videoSourceSystem = getVideoSourceSystem();
-	if (videoSourceSystem)
-	{
-		return videoSourceSystem->getUSBVideoSourceSystem();
+		return videoSourceSystem->getUSBVideoSourceSystemConfig();
 	}
 
 	return nullptr;

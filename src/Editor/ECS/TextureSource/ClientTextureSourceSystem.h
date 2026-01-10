@@ -14,7 +14,7 @@ using ClientTextureSourceMap = std::map<MikanTextureSourceID, ClientTextureSourc
 class ClientTextureSourceSystem : public MikanObjectSystem
 {
 public:   
-    ClientTextureSourceSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
+    ClientTextureSourceSystem(ProjectManagerPtr ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 
 	inline static const std::string k_objectSystemClassName = "ClientTextureSourceSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }

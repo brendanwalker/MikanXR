@@ -58,7 +58,7 @@ protected:
 class TrackingVolumeObjectSystem : public MikanObjectSystem
 {
 public:
-	TrackingVolumeObjectSystem(class ProjectManager* ownerObjectSystemManager) : MikanObjectSystem(ownerObjectSystemManager) {}
+	TrackingVolumeObjectSystem(ProjectManagerPtr ownerObjectSystemManager) : MikanObjectSystem(ownerObjectSystemManager) {}
 
 	inline static const std::string k_objectSystemClassName = "TrackingVolumeObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }

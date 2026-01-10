@@ -5,7 +5,7 @@
 
 #include "assert.h"
 
-MikanObjectSystem::MikanObjectSystem(ProjectManager* ownerObjectSystem)
+MikanObjectSystem::MikanObjectSystem(ProjectManagerPtr ownerObjectSystem)
 	: m_ownerObjectSystemManager(ownerObjectSystem)
 {
 
@@ -51,7 +51,7 @@ void MikanObjectSystem::customRender()
 
 ProjectConfigPtr MikanObjectSystem::getProjectConfig() const
 {
-	return m_ownerObjectSystemManager->getProjectConfig();
+	return getOwnerProjectManager()->getProjectConfig();
 }
 
 MikanObjectPtr MikanObjectSystem::newObject()

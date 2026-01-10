@@ -47,6 +47,11 @@ using MarkerObjectSystemConfigPtr = std::shared_ptr<MarkerObjectSystemConfig>;
 using MarkerObjectSystemConfigConstPtr = std::shared_ptr<const MarkerObjectSystemConfig>;
 using MarkerObjectSystemConfigWeakPtr = std::weak_ptr<MarkerObjectSystemConfig>;
 
+class NetworkVideoSourceSystemConfig;
+using NetworkVideoSourceSystemConfigPtr = std::shared_ptr<NetworkVideoSourceSystemConfig>;
+using NetworkVideoSourceSystemConfigConstPtr = std::shared_ptr<const NetworkVideoSourceSystemConfig>;
+using NetworkVideoSourceSystemConfigWeakPtr = std::weak_ptr<NetworkVideoSourceSystemConfig>;
+
 class SceneObjectSystemDefinition;
 using SceneObjectSystemDefinitionPtr = std::shared_ptr<SceneObjectSystemDefinition>;
 using SceneObjectSystemDefinitionConstPtr = std::shared_ptr<const SceneObjectSystemDefinition>;
@@ -77,10 +82,10 @@ using TextureSourceSystemConfigPtr = std::shared_ptr<TextureSourceSystemConfig>;
 using TextureSourceSystemConfigConstPtr = std::shared_ptr<const TextureSourceSystemConfig>;
 using TextureSourceSystemConfigWeakPtr = std::weak_ptr<TextureSourceSystemConfig>;
 
-class VideoSourceSystemConfig;
-using VideoSourceSystemConfigPtr = std::shared_ptr<VideoSourceSystemConfig>;
-using VideoSourceSystemConfigConstPtr = std::shared_ptr<const VideoSourceSystemConfig>;
-using VideoSourceSystemConfigWeakPtr = std::weak_ptr<VideoSourceSystemConfig>;
+class USBVideoSourceSystemConfig;
+using USBVideoSourceSystemConfigPtr = std::shared_ptr<USBVideoSourceSystemConfig>;
+using USBVideoSourceSystemConfigConstPtr = std::shared_ptr<const USBVideoSourceSystemConfig>;
+using USBVideoSourceSystemConfigWeakPtr = std::weak_ptr<USBVideoSourceSystemConfig>;
 
 class VRObjectSystemConfig;
 using VRObjectSystemConfigPtr = std::shared_ptr<VRObjectSystemConfig>;

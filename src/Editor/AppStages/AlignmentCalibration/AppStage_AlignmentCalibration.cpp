@@ -29,7 +29,6 @@
 #include "TrackingMountObjectSystem.h"
 #include "VideoSourceComponent.h"
 #include "VideoFrameDistortionView.h"
-#include "VideoSourceSystem.h"
 #include "VRObjectSystem.h"
 #include "VRDeviceComponent.h"
 #include "VRTrackingVolumeComponent.h"

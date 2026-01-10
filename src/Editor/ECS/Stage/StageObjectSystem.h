@@ -41,7 +41,7 @@ private:
 class StageObjectSystem : public MikanObjectSystem
 {
 public:
-	StageObjectSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
+	StageObjectSystem(ProjectManagerPtr ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 
 	inline static const std::string k_objectSystemClassName = "StageObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }

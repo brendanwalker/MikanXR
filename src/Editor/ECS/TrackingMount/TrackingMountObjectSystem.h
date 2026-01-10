@@ -44,7 +44,7 @@ private:
 class TrackingMountObjectSystem : public MikanObjectSystem
 {
 public:
-	TrackingMountObjectSystem(class ProjectManager* ownerObjectSystemManager) : MikanObjectSystem(ownerObjectSystemManager) {}
+	TrackingMountObjectSystem(ProjectManagerPtr ownerObjectSystemManager) : MikanObjectSystem(ownerObjectSystemManager) {}
 
 	inline static const std::string k_objectSystemClassName = "TrackingMountObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }

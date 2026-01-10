@@ -23,7 +23,6 @@
 #include "StringUtils.h"
 #include "TextStyle.h"
 #include "VideoSourceComponent.h"
-#include "VideoSourceSystem.h"
 #include "VideoFrameDistortionView.h"
 
 #include "SDL_keycode.h"

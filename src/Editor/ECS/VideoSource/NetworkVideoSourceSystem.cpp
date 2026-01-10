@@ -8,19 +8,140 @@
 #include "NetworkVideoSourceSystem.h"
 #include "NetworkVideoSourceComponent.h"
 #include "ProjectConfig.h"
-#include "VideoSourceSystemConfig.h"
-#include "VideoSourceSystem.h"
 
 #include <assert.h>
 
 #define GSTREAMER_VIDEO_DEVICE_MODULE_NAME  "MikanGStreamerVideo"
 #define NETWORK_VIDEO_DEVICE_MODULE_NAME    GSTREAMER_VIDEO_DEVICE_MODULE_NAME
 
+// -- VideoSourceSystemConfig -----
+const std::string NetworkVideoSourceSystemConfig::k_networkedVideoSourceListPropertyId = "networkVideoSourceList";
+
+configuru::Config NetworkVideoSourceSystemConfig::writeToJSON()
+{
+	configuru::Config pt = CommonConfig::writeToJSON();
+
+	pt["next_video_source_id"] = m_nextVideoSourceId;
+
+	std::vector<configuru::Config> networkedVideoSourceConfigs;
+	for (auto videoSource : m_networkedVideoSourceList)
+	{
+		networkedVideoSourceConfigs.push_back(videoSource->writeToJSON());
+	}
+	pt.insert_or_assign(std::string("networked_video_sources"), networkedVideoSourceConfigs);
+
+	return pt;
+}
+
+void NetworkVideoSourceSystemConfig::readFromJSON(const configuru::Config& pt)
+{
+	CommonConfig::readFromJSON(pt);
+
+	m_nextVideoSourceId = pt.get_or<int>("next_video_source_id", m_nextVideoSourceId);
+
+	// Read in the networked video sources
+	m_networkedVideoSourceList.clear();
+	if (pt.has_key("networked_video_sources"))
+	{
+		for (const configuru::Config& videoSource_pt : pt["networked_video_sources"].as_array())
+		{
+			auto definitionPtr = std::make_shared<NetworkVideoSourceDefinition>();
+
+			definitionPtr->readFromJSON(videoSource_pt);
+			m_networkedVideoSourceList.push_back(definitionPtr);
+
+			addChildConfig(definitionPtr);
+		}
+	}
+}
+
+NetworkVideoSourceDefinitionConstPtr NetworkVideoSourceSystemConfig::getNetworkedVideoSourceConfigConst(
+	MikanVideoSourceID videoSourceId) const
+{
+	auto it = std::find_if(
+		m_networkedVideoSourceList.begin(), m_networkedVideoSourceList.end(),
+		[videoSourceId](NetworkVideoSourceDefinitionPtr configPtr) {
+			return configPtr->getVideoSourceId() == videoSourceId;
+		});
+
+	if (it != m_networkedVideoSourceList.end())
+	{
+		return NetworkVideoSourceDefinitionConstPtr(*it);
+	}
+
+	return NetworkVideoSourceDefinitionConstPtr();
+}
+
+NetworkVideoSourceDefinitionPtr NetworkVideoSourceSystemConfig::getNetworkedVideoSourceConfig(
+	MikanVideoSourceID videoSourceId)
+{
+	return std::const_pointer_cast<NetworkVideoSourceDefinition>(
+		getNetworkedVideoSourceConfigConst(videoSourceId));
+}
+
+NetworkVideoSourceDefinitionPtr NetworkVideoSourceSystemConfig::allocateNetworkedVideoSourceDefinition(
+	const MikanNetworkVideoSourceInfo& videoSourceInfo)
+{
+	NetworkVideoSourceDefinitionPtr videoSourcePtr =
+		std::make_shared<NetworkVideoSourceDefinition>(m_nextVideoSourceId, videoSourceInfo);
+	m_nextVideoSourceId++;
+
+	return videoSourcePtr;
+}
+
+bool NetworkVideoSourceSystemConfig::addNetworkedVideoSourceDefinition(
+	NetworkVideoSourceDefinitionPtr videoSourceDefinitionPtr)
+{
+	if (!getNetworkedVideoSourceConfig(videoSourceDefinitionPtr->getVideoSourceId()))
+	{
+		m_networkedVideoSourceList.push_back(videoSourceDefinitionPtr);
+		addChildConfig(videoSourceDefinitionPtr);
+
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_networkedVideoSourceListPropertyId));
+		return true;
+	}
+
+	return false;
+}
+
+bool NetworkVideoSourceSystemConfig::removeNetworkedVideoSourceDefinition(MikanVideoSourceID videoSourceId)
+{
+	auto it = std::find_if(
+		m_networkedVideoSourceList.begin(), m_networkedVideoSourceList.end(),
+		[videoSourceId](NetworkVideoSourceDefinitionPtr configPtr) {
+			return configPtr->getVideoSourceId() == videoSourceId;
+		});
+
+	if (it != m_networkedVideoSourceList.end())
+	{
+		removeChildConfig(*it);
+
+		m_networkedVideoSourceList.erase(it);
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_networkedVideoSourceListPropertyId));
+
+		return true;
+	}
+
+	return false;
+}
+
+// -- NetworkVideoSourceSystem -----
+NetworkVideoSourceSystemConfigConstPtr NetworkVideoSourceSystem::getNetworkVideoSourceSystemConfigConst() const
+{
+	return std::static_pointer_cast<const NetworkVideoSourceSystemConfig>(getDefinitionConst());
+}
+
+NetworkVideoSourceSystemConfigPtr NetworkVideoSourceSystem::getNetworkVideoSourceSystemConfig()
+{
+	return std::static_pointer_cast<NetworkVideoSourceSystemConfig>(getDefinition());
+}
+
 bool NetworkVideoSourceSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
 	MikanObjectSystem::init(definitionPtr);
 
-    VideoSourceSystemConfigConstPtr videoSourceSystemConfig = getProjectConfig()->videoSourceSystemConfig;
+    NetworkVideoSourceSystemConfigConstPtr videoSourceSystemConfig = 
+		getProjectConfig()->networkVideoSourceSystemConfig;
 
 	if (!createNetworkVideoDeviceManager(NETWORK_VIDEO_DEVICE_MODULE_NAME))
 	{
@@ -111,8 +232,8 @@ NetworkVideoSourceComponentPtr NetworkVideoSourceSystem::addNewNetworkVideoSourc
 NetworkVideoSourceComponentPtr NetworkVideoSourceSystem::addNewNetworkVideoSource(
     const MikanNetworkVideoSourceInfo& videoSourceInfo)
 {
-    VideoSourceSystemConfigPtr videoSourceSystemConfig =
-        getProjectConfig()->videoSourceSystemConfig;
+    NetworkVideoSourceSystemConfigPtr videoSourceSystemConfig =
+        getProjectConfig()->networkVideoSourceSystemConfig;
 
     return
         createNetworkVideoSourceObject(
@@ -121,12 +242,12 @@ NetworkVideoSourceComponentPtr NetworkVideoSourceSystem::addNewNetworkVideoSourc
 
 bool NetworkVideoSourceSystem::removeNetworkVideoSource(MikanVideoSourceID videoSourceId)
 {
-    VideoSourceSystemConfigPtr videoSourceSystemConfig = 
-        getProjectConfig()->videoSourceSystemConfig;
+    NetworkVideoSourceSystemConfigPtr videoSourceSystemConfig = 
+        getProjectConfig()->networkVideoSourceSystemConfig;
 
     return
         disposeNetworkVideoSourceObject(videoSourceId) &&
-        videoSourceSystemConfig->removeVideoSource(videoSourceId);
+        videoSourceSystemConfig->removeNetworkedVideoSourceDefinition(videoSourceId);
 }
 
 bool NetworkVideoSourceSystem::createNetworkVideoDeviceManager(const std::string& moduleName)
@@ -242,7 +363,7 @@ NetworkVideoSourceComponentPtr NetworkVideoSourceSystem::createNetworkVideoSourc
     m_networkVideoSourceComponents.insert({ videoSourceDefinition->getVideoSourceId(), videoSourceComponentPtr });
 
     // Register the definition with the video source system
-    getProjectConfig()->videoSourceSystemConfig->addNetworkedVideoSourceDefinition(videoSourceDefinition);
+    getProjectConfig()->networkVideoSourceSystemConfig->addNetworkedVideoSourceDefinition(videoSourceDefinition);
 
     return videoSourceComponentPtr;
 }

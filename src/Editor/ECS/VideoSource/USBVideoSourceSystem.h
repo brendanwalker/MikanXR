@@ -6,7 +6,7 @@
 #include "MikanVideoSourceTypes.h"
 #include "MulticastDelegate.h"
 #include "ObjectSystemConfigFwd.h"
-#include "VideoSourceSystemConfig.h"
+#include "VideoSourceQueries.h"
 
 #include <map>
 #include <string>
@@ -14,13 +14,40 @@
 using USBVideoSourcePathList = std::vector<std::string>;
 using USBVideoSourceMap = std::map<MikanVideoSourceID, USBVideoSourceComponentWeakPtr>;
 
+class USBVideoSourceSystemConfig : public MikanObjectSystemDefinition
+{
+public:
+	USBVideoSourceSystemConfig(const std::string& configName)
+		: MikanObjectSystemDefinition(configName)
+	{
+	}
+
+	virtual configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+
+	static const std::string k_usbVideoSourceListPropertyId;
+	const std::vector<USBVideoSourceDefinitionPtr>& getUSBVideoSourceList() const { return m_usbVideoSourceList; }
+	USBVideoSourceDefinitionConstPtr getUSBVideoSourceConfigConst(MikanVideoSourceID videoSourceId) const;
+	USBVideoSourceDefinitionPtr getUSBVideoSourceConfig(MikanVideoSourceID videoSourceId);
+	USBVideoSourceDefinitionPtr allocateUSBVideoSourceDefinition(const struct MikanUSBVideoSourceInfo& videoSourceInfo);
+	bool addUSBVideoSourceDefinition(USBVideoSourceDefinitionPtr videoSourcePtr);
+	bool removeUSBVideoSourceDefinition(MikanVideoSourceID videoSourceId);
+
+protected:
+	std::vector<USBVideoSourceDefinitionPtr> m_usbVideoSourceList;
+	MikanVideoSourceID m_nextVideoSourceId = 0;
+};
+
 class USBVideoSourceSystem : public MikanObjectSystem, public IUsbVideoDeviceManagerListener
 {
 public:
-    USBVideoSourceSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
+    USBVideoSourceSystem(ProjectManagerPtr ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 
 	inline static const std::string k_objectSystemClassName = "USBVideoSourceSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
+
+	USBVideoSourceSystemConfigConstPtr getUSBVideoSourceSystemConfigConst() const;
+	USBVideoSourceSystemConfigPtr getUSBVideoSourceSystemConfig();
 
     virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
     virtual void dispose() override;

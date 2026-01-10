@@ -48,7 +48,7 @@ protected:
 class CameraObjectSystem : public MikanObjectSystem
 {
 public:
-	CameraObjectSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
+	CameraObjectSystem(ProjectManagerPtr ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 	static CameraObjectSystemPtr getSystem() { return s_cameraObjectSystem.lock(); }
 
 	inline static const std::string k_objectSystemClassName = "CameraObjectSystem";

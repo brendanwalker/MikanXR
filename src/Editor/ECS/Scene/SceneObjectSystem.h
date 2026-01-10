@@ -28,7 +28,7 @@ class SceneObjectSystemDefinition :
 public:
 	using Super = MikanTypedObjectSystemDefinition<SceneComponentDefinition, MikanSceneID>;
 
-	SceneObjectSystemDefinition();
+	SceneObjectSystemDefinition(const std::string& configName);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -55,7 +55,7 @@ public:
 		MikanSceneID,
 		SceneObjectSystem, SceneObjectSystemDefinition>;
 
-	SceneObjectSystem(class ProjectManager* ownerObjectSystem);
+	SceneObjectSystem(ProjectManagerPtr ownerObjectSystem);
 
 	inline static const std::string k_objectSystemClassName = "SceneObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }

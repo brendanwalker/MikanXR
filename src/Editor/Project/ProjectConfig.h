@@ -22,6 +22,16 @@ public:
 	inline bool getRenderOriginFlag() const { return m_bRenderOrigin; }
 	void setRenderOriginFlag(bool flag);
 
+	template<class t_system_config_type, class t_system_type>
+	std::shared_ptr<t_system_config_type> addTypedDefinition()
+	{
+		std::shared_ptr<t_system_config_type> newConfig =
+			std::make_shared<t_system_config_type>(
+				t_system_type::k_objectSystemClassName);
+
+		addChildConfig(newConfig);
+		return newConfig;
+	}
 	MikanObjectSystemDefinitionPtr getDefinitionForSystem(MikanObjectSystemPtr systemPtr) const;
 
 	AnchorObjectSystemConfigPtr anchorConfig;
@@ -35,7 +45,8 @@ public:
 	TrackingVolumeObjectSystemConfigPtr trackingVolumeSystemConfig;
 	TrackingMountObjectSystemConfigPtr trackingMountSystemConfig;
 	TextureSourceSystemConfigPtr textureSourceSystemConfig;
-	VideoSourceSystemConfigPtr videoSourceSystemConfig;
+	NetworkVideoSourceSystemConfigPtr networkVideoSourceSystemConfig;
+	USBVideoSourceSystemConfigPtr usbVideoSourceSystemConfig;
 	VRObjectSystemConfigPtr vrObjectConfig;
 
 protected:

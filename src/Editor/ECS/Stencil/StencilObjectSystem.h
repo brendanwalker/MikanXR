@@ -21,7 +21,7 @@ using ModelStencilMap = std::map<MikanStencilID, ModelStencilComponentWeakPtr>;
 class StencilObjectSystem : public MikanObjectSystem
 {
 public:
-	StencilObjectSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
+	StencilObjectSystem(ProjectManagerPtr ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 
 	inline static const std::string k_objectSystemClassName = "StencilObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }

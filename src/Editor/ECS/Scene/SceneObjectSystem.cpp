@@ -9,8 +9,8 @@
 const std::string SceneObjectSystemDefinition::k_scenePoolPropertyId = "scene_pool";
 const std::string SceneObjectSystemDefinition::k_currentSceneIdPropertyId = "current_scene_id";
 
-SceneObjectSystemDefinition::SceneObjectSystemDefinition()
-	: Super::MikanTypedObjectSystemDefinition("scenes", k_scenePoolPropertyId)
+SceneObjectSystemDefinition::SceneObjectSystemDefinition(const std::string& configName)
+	: Super::MikanTypedObjectSystemDefinition(configName, k_scenePoolPropertyId)
 {
 }
 
@@ -25,7 +25,7 @@ configuru::Config SceneObjectSystemDefinition::writeToJSON()
 
 void SceneObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 {
-	MikanObjectSystemDefinition::readFromJSON(pt);
+	Super::readFromJSON(pt);
 
 	m_currentSceneId =
 		pt.get_or<MikanSceneID>(
@@ -42,7 +42,7 @@ void SceneObjectSystemDefinition::setCurrentSceneId(MikanSceneID sceneId)
 }
 
 // -- SceneObjectSystem -----
-SceneObjectSystem::SceneObjectSystem(class ProjectManager* ownerObjectSystem)
+SceneObjectSystem::SceneObjectSystem(ProjectManagerPtr ownerObjectSystem)
 	: Super::MikanTypedObjectSystem(ownerObjectSystem)
 {
 }

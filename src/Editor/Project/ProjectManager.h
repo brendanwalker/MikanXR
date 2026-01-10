@@ -12,7 +12,7 @@
 using MikanPropertyDatabasePtr = std::shared_ptr<class MikanPropertyDatabase>;
 using MikanPropertyDatabaseConstPtr = std::shared_ptr<const class MikanPropertyDatabase>;
 
-class ProjectManager
+class ProjectManager : public std::enable_shared_from_this<ProjectManager>
 {
 public:
 	ProjectManager(class IMkWindow* ownerWindow);
@@ -24,7 +24,7 @@ public:
 
 	template <class t_system_type>
 	std::shared_ptr<t_system_type> addSystem() { 
-		std::shared_ptr<t_system_type> systemPtr= std::make_shared<t_system_type>(this);
+		std::shared_ptr<t_system_type> systemPtr= std::make_shared<t_system_type>(shared_from_this());
 		registerSystem(systemPtr);
 
 		return systemPtr;

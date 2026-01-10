@@ -69,7 +69,7 @@ public:
 	const std::string& getName() const { return m_name; }
 
 	MikanObjectPtr getOwnerObject() const { return m_ownerObject.lock(); }
-	ProjectManager* getOwnerProjectManager() const;
+	ProjectManagerPtr getOwnerProjectManager() const;
 
 	template <class t_object_system_type>
 	std::shared_ptr<t_object_system_type> getObjectSystemOfType() const

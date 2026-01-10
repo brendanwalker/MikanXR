@@ -41,7 +41,7 @@ private:
 class CompositorObjectSystem : public MikanObjectSystem
 {
 public:
-	CompositorObjectSystem(class ProjectManager* ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
+	CompositorObjectSystem(ProjectManagerPtr ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
 
 	inline static const std::string k_objectSystemClassName = "CompositorObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }

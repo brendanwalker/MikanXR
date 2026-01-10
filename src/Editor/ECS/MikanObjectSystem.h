@@ -5,6 +5,7 @@
 #include "IEntityAccessor.h"
 #include "MulticastDelegate.h"
 #include "ObjectFwd.h"
+#include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
 
 #include <vector>
@@ -32,7 +33,7 @@ class MikanObjectSystem :
 	public IEntityAccessor
 {
 public:
-	MikanObjectSystem(class ProjectManager* ownerObjectSystem);
+	MikanObjectSystem(ProjectManagerPtr ownerObjectSystem);
 	virtual ~MikanObjectSystem();
 
 	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr);
@@ -43,7 +44,7 @@ public:
 	inline static const std::string k_objectSystemClassName = "MikanObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
-	inline class ProjectManager* getOwnerProjectManager() const { return m_ownerObjectSystemManager; }
+	inline ProjectManagerPtr getOwnerProjectManager() const { return m_ownerObjectSystemManager.lock(); }
 	inline MikanObjectSystemDefinitionConstPtr getDefinitionConst() const {
 		return m_definitionWeakPtr.lock();
 	}
@@ -82,7 +83,7 @@ public:
 	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc)  override { return false; }
 		
 protected:
-	class ProjectManager* m_ownerObjectSystemManager = nullptr;
+	ProjectManagerWeakPtr m_ownerObjectSystemManager;
 	MikanObjectSystemDefinitionWeakPtr m_definitionWeakPtr;
 
 	std::string m_systemName;

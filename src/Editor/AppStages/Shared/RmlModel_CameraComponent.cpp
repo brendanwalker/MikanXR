@@ -1,8 +1,9 @@
 #include "RmlModel_CameraComponent.h"
 #include "Shared/RmlDataBinding_List.h"
 #include "Shared/RmlModel_EntityAccessor.h"
+#include "ProjectManager.h"
 #include "VRTrackingVolumeComponent.h"
-#include "VideoSourceSystem.h"
+#include "VideoSourceQueries.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
@@ -38,16 +39,17 @@ bool RmlModel_CameraComponent::onConstruct(Rml::DataModelConstructor& constructo
 			}
 		});
 
-	// Build the list of all video source IDs from the VideoSourceSystem
+	// Build the list of all video source IDs from the VideoSourceQueries
 	m_textureSourceIdList->init(
 		constructor,
 		CommonConfigPtr(),
 		"video_source_ids",
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			auto videoSourceSystem= getVideoSourceSystem();
-			if (videoSourceSystem)
+			MikanComponentPtr component = m_component.lock();
+			if (component)
 			{
-				outComponentIdList = videoSourceSystem->getVideoSourceIdList();
+				ProjectManagerPtr projectManager = component->getOwnerProjectManager();
+				outComponentIdList = VideoSourceQueries::getVideoSourceIdList(projectManager);
 			}
 		});
 
@@ -80,7 +82,7 @@ bool RmlModel_CameraComponent::setComponent(MikanComponentPtr component)
 		m_trackingMountIdList->setOwnerConfig(getOwnerVRTrackingVolume());
 		m_trackingMountIdList->rebuildList(true);
 
-		m_textureSourceIdList->setOwnerConfig(getVideoSourceSystemConfig());
+		m_textureSourceIdList->setOwnerConfig(CommonConfigPtr());
 		m_textureSourceIdList->rebuildList(true);
 
 		return true;
@@ -97,28 +99,6 @@ VRTrackingVolumeDefinitionPtr RmlModel_CameraComponent::getOwnerVRTrackingVolume
 	{
 		auto cameraComponent = std::static_pointer_cast<CameraComponent>(component);
 		return cameraComponent->getVRTrackingVolumeDefinitionMutable();
-	}
-
-	return nullptr;
-}
-
-VideoSourceSystemPtr RmlModel_CameraComponent::getVideoSourceSystem() const
-{
-	MikanComponentPtr component = m_component.lock();
-	if (component)
-	{
-		return component->getObjectSystemOfType<VideoSourceSystem>();
-	}
-
-	return nullptr;
-}
-
-VideoSourceSystemConfigPtr RmlModel_CameraComponent::getVideoSourceSystemConfig() const
-{
-	auto videoSourceSystem = getVideoSourceSystem();
-	if (videoSourceSystem)
-	{
-		return videoSourceSystem->getVideoSourceSystemConfig();
 	}
 
 	return nullptr;

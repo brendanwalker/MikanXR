@@ -19,7 +19,6 @@ public:
 	virtual void dispose() override;
 
 private:
-	VideoSourceSystemPtr getVideoSourceSystem();
 	VideoSourceComponentPtr getSelectedVideoSource();
 	USBVideoSourceComponentPtr getSelectedUSBVideoSource();
 	NetworkVideoSourceComponentPtr getSelectedNetworkVideoSource();
@@ -44,8 +43,8 @@ private:
 	void textureSourceIdListChanged(bool bOwnerChanged);
 
 	class ProjectRmlModelContext* m_projectRmlModelContext = nullptr;
+	ProjectManagerWeakPtr m_projectManager;
 	TextureSourceSystemWeakPtr m_textureSourceSystem;
-	VideoSourceSystemWeakPtr m_videoSourceSystem;
 
 	RmlDataBinding_ComponentIdListPtr m_videoSourceIdList;
 	RmlDataBinding_ComponentIdListPtr m_textureSourceIdList;

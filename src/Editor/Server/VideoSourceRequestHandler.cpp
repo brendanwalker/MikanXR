@@ -5,8 +5,9 @@
 #include "MikanServer.h"
 #include "MikanVideoSourceEvents.h"
 #include "MikanVideoSourceRequests.h"
+#include "ProjectManager.h"
 #include "ServerResponseHelpers.h"
-#include "VideoSourceSystem.h"
+#include "VideoSourceQueries.h"
 #include "VideoSourceComponent.h"
 
 #include <functional>
@@ -71,7 +72,9 @@ void VideoSourceRequestHandler::getVideoSourceIntrinsicsHandler(
 	}
 
 	VideoSourceComponentPtr videoSourceComponent =
-		VideoSourceSystem::getSystem()->getVideoSourceById(intrinsicsRequest.video_source_id);
+		VideoSourceQueries::getVideoSourceById(
+			getProjectManager(),
+			intrinsicsRequest.video_source_id);
 	if (videoSourceComponent)
 	{
 		MikanVideoSourceIntrinsicsResponse intrinsicsResponse;
@@ -97,7 +100,9 @@ void VideoSourceRequestHandler::getVideoSourceModeHandler(
 	}
 
 	VideoSourceComponentPtr videoSourceComponent =
-		VideoSourceSystem::getSystem()->getVideoSourceById(modeRequest.video_source_id);
+		VideoSourceQueries::getVideoSourceById(
+			getProjectManager(),
+			modeRequest.video_source_id);
 	if (videoSourceComponent)
 	{
 		const std::string devicePath = videoSourceComponent->getDevicePath();
