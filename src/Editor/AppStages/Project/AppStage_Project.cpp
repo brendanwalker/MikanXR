@@ -52,7 +52,6 @@
 #include "SceneObjectSystem.h"
 #include "StageObjectSystem.h"
 #include "StringUtils.h"
-#include "TextureSourceSystem.h"
 #include "TrackingMountObjectSystem.h"
 #include "TrackingVolumeObjectSystem.h"
 #include "TransformComponent.h"
@@ -92,17 +91,8 @@ void AppStage_Project::enter()
 
 	// Cache object systems we'll be accessing
 	ProjectManagerPtr objectSystemManager = m_ownerWindow->getProjectManager();
-	m_anchorObjectSystem = objectSystemManager->getSystemOfType<AnchorObjectSystem>();
-	m_cameraSystem = objectSystemManager->getSystemOfType<CameraObjectSystem>();
-	m_compositorSystem = objectSystemManager->getSystemOfType<CompositorObjectSystem>();
 	m_editorSystem = objectSystemManager->getSystemOfType<EditorObjectSystem>();
-	m_markerObjectSystem = objectSystemManager->getSystemOfType<MarkerObjectSystem>();
 	m_sceneObjectSystem = objectSystemManager->getSystemOfType<SceneObjectSystem>();
-	m_stageSystem = objectSystemManager->getSystemOfType<StageObjectSystem>();
-	m_stencilObjectSystem = objectSystemManager->getSystemOfType<StencilObjectSystem>();
-	m_textureSourceSystem = objectSystemManager->getSystemOfType<TextureSourceSystem>();
-	m_trackingMountSystem = objectSystemManager->getSystemOfType<TrackingMountObjectSystem>();
-	m_trackingVolumeSystem = objectSystemManager->getSystemOfType<TrackingVolumeObjectSystem>();
 
 	// Setup Scene viewport
 	{

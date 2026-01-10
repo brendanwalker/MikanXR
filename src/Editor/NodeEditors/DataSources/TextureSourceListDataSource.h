@@ -2,13 +2,14 @@
 
 #include "NodeEditorUI.h"
 #include "ComponentFwd.h"
+#include "MikanTypeFwd.h"
 #include "ObjectSystemFwd.h"
 #include <vector>
 
 class TextureSourceListDataSource : public NodeEditorUI::ComboBoxDataSource
 {
 public:
-	TextureSourceListDataSource(TextureSourceSystemPtr textureSourceSystem);
+	TextureSourceListDataSource(ProjectManagerPtr projectManager);
 
 	int getEntryIndex(TextureSourceComponentPtr textureSourceComponent) const;
 	TextureSourceComponentPtr getEntryAtIndex(int index) const;

@@ -63,17 +63,8 @@ protected:
 
 	ProjectConfigPtr m_project;
 
-	AnchorObjectSystemWeakPtr m_anchorObjectSystem;
-	CameraObjectSystemWeakPtr m_cameraSystem;
-	CompositorObjectSystemWeakPtr m_compositorSystem;
 	EditorObjectSystemWeakPtr m_editorSystem;
-	MarkerObjectSystemWeakPtr m_markerObjectSystem;
-	StencilObjectSystemWeakPtr m_stencilObjectSystem;
 	SceneObjectSystemWeakPtr m_sceneObjectSystem;
-	StageObjectSystemWeakPtr m_stageSystem;
-	TextureSourceSystemWeakPtr m_textureSourceSystem;
-	TrackingVolumeObjectSystemWeakPtr m_trackingVolumeSystem;
-	TrackingMountObjectSystemWeakPtr m_trackingMountSystem;
 
 	// Shared context for component and object system models used in project panels
 	class ProjectRmlModelContext* m_projectRmlModelContext = nullptr;

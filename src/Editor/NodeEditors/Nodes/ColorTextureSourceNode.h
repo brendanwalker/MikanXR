@@ -38,7 +38,6 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
-	TextureSourceSystemPtr getTextureSourceSystem() const;
 	IMkTexturePtr getColorSourceTexture() const;
 	void updateColorFrameBuffer(NodeEvaluator& evaluator, IMkTexturePtr clientTexture);
 	void evaluateFlippedColorTexture(IMkState* glState, IMkTexturePtr depthTexture);

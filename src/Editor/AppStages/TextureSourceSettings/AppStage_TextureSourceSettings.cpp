@@ -13,7 +13,6 @@
 #include "SpoutTextureSourceComponent.h"
 #include "ProjectConfig.h"
 #include "TextureSourceComponent.h"
-#include "TextureSourceSystem.h"
 
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>

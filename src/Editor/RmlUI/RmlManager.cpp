@@ -26,7 +26,7 @@
 #include "StencilObjectSystem.h"
 #include "SceneObjectSystem.h"
 #include "SceneComponent.h"
-#include "TextureSourceSystem.h"
+#include "TextureSourceQueries.h"
 #include "TextureSourceComponent.h"
 #include "TrackingVolumeObjectSystem.h"
 #include "TrackingVolumeComponent.h"
@@ -503,8 +503,8 @@ void RmlManager::registerCommonDataModelTypes(Rml::Context* context)
 		[rmlManager](Rml::Variant& variant, const Rml::VariantList& arguments) -> bool {
 			const MikanTextureSourceID textureSourceId = variant.Get<int>(-1);
 
-			auto textureSourceSystem = rmlGetSystemOfType<TextureSourceSystem>(rmlManager);
-			auto textureSourceComponent = textureSourceSystem->getTextureSourceById(textureSourceId);
+			ProjectManagerPtr projectManager = rmlManager->getOwnerWindow()->getProjectManager();
+			auto textureSourceComponent = TextureSourceQueries::getTextureSourceById(projectManager, textureSourceId);
 			if (textureSourceComponent)
 			{
 				const Rml::String friendlyName = textureSourceComponent->getName();

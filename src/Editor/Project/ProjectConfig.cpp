@@ -1,6 +1,7 @@
 // -- includes -----
 #include "AnchorObjectSystem.h"
 #include "CameraObjectSystem.h"
+#include "ClientTextureSourceSystem.h"
 #include "CompositorObjectSystem.h"
 #include "EditorObjectSystem.h"
 #include "MathUtility.h"
@@ -12,11 +13,11 @@
 #include "StencilObjectSystem.h"
 #include "SceneObjectSystem.h"
 #include "StageObjectSystem.h"
+#include "SpoutTextureSourceSystem.h"
 #include "StringUtils.h"
 #include "SinglecastDelegate.h"
 #include "TrackingVolumeObjectSystem.h"
 #include "TrackingMountObjectSystem.h"
-#include "TextureSourceSystem.h"
 #include "USBVideoSourceSystem.h"
 #include "VRObjectSystem.h"
 
@@ -28,15 +29,16 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 {
 	anchorConfig = addTypedDefinition<AnchorObjectSystemConfig, AnchorObjectSystem>();
 	cameraConfig = addTypedDefinition<CameraObjectSystemConfig, CameraObjectSystem>();
+	clientConfig = addTypedDefinition<ClientTextureSourceSystemConfig, ClientTextureSourceSystem>();
 	compositorConfig = addTypedDefinition<CompositorObjectSystemConfig, CompositorObjectSystem>();
 	editorConfig = addTypedDefinition<EditorObjectSystemConfig, EditorObjectSystem>();
 	markerSystemConfig = addTypedDefinition<MarkerObjectSystemConfig, MarkerObjectSystem>();
 	stencilConfig = addTypedDefinition<StencilObjectSystemConfig, StencilObjectSystem>();
 	sceneConfig = addTypedDefinition<SceneObjectSystemDefinition, SceneObjectSystem>();
 	stageConfig = addTypedDefinition<StageObjectSystemConfig, StageObjectSystem>();
+	spoutConfig = addTypedDefinition<SpoutTextureSourceSystemConfig, SpoutTextureSourceSystem>();
 	trackingVolumeSystemConfig = addTypedDefinition<TrackingVolumeObjectSystemConfig, TrackingVolumeObjectSystem>();
 	trackingMountSystemConfig = addTypedDefinition<TrackingMountObjectSystemConfig, TrackingMountObjectSystem>();
-	textureSourceSystemConfig = addTypedDefinition<TextureSourceSystemConfig, TextureSourceSystem>();
 	networkVideoSourceSystemConfig = addTypedDefinition<NetworkVideoSourceSystemConfig, NetworkVideoSourceSystem>();
 	usbVideoSourceSystemConfig = addTypedDefinition<USBVideoSourceSystemConfig, USBVideoSourceSystem>();
 	vrObjectConfig= addTypedDefinition<VRObjectSystemConfig, VRObjectSystem>();

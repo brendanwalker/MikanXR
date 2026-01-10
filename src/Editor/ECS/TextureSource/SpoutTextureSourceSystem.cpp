@@ -1,16 +1,140 @@
-#include "App.h"
-#include "MikanCoreTypes.h"
-#include "MikanObject.h"
-#include "MikanPropertyDatabase.h"
-#include "ProjectConfig.h"
-#include "SpoutTextureSourceComponent.h"
 #include "SpoutTextureSourceSystem.h"
-#include "TextureSourceSystemConfig.h"
-#include "TextureSourceSystem.h"
+#include "SpoutTextureSourceComponent.h"
+#include "App.h"
+#include "ProjectConfig.h"
+#include "MikanObject.h"
+#include "MikanCoreTypes.h"
+#include "MikanPropertyDatabase.h"
 
 #include "SpoutLibrary.h"
 
 #include <assert.h>
+
+// -- SpoutTextureSourceSystemConfig -----
+const std::string SpoutTextureSourceSystemConfig::k_spoutTextureSourceListPropertyId = "spoutTextureSourceList";
+
+configuru::Config SpoutTextureSourceSystemConfig::writeToJSON()
+{
+	configuru::Config pt = MikanObjectSystemDefinition::writeToJSON();
+
+	pt["next_texture_source_id"] = m_nextTextureSourceId;
+
+	std::vector<configuru::Config> spoutTextureSourceConfigs;
+	for (auto textureSource : m_spoutTextureSourceList)
+	{
+		spoutTextureSourceConfigs.push_back(textureSource->writeToJSON());
+	}
+	pt.insert_or_assign(k_spoutTextureSourceListPropertyId, spoutTextureSourceConfigs);
+
+	return pt;
+}
+
+void SpoutTextureSourceSystemConfig::readFromJSON(const configuru::Config& pt)
+{
+	MikanObjectSystemDefinition::readFromJSON(pt);
+
+	m_nextTextureSourceId = pt.get_or<int>("next_texture_source_id", m_nextTextureSourceId);
+
+	// Read in the spout texture sources
+	m_spoutTextureSourceList.clear();
+	if (pt.has_key(k_spoutTextureSourceListPropertyId))
+	{
+		for (const configuru::Config& textureSource_pt : pt[k_spoutTextureSourceListPropertyId].as_array())
+		{
+			auto definitionPtr = std::make_shared<SpoutTextureSourceDefinition>();
+
+			definitionPtr->readFromJSON(textureSource_pt);
+			m_spoutTextureSourceList.push_back(definitionPtr);
+
+			addChildConfig(definitionPtr);
+		}
+	}
+}
+
+SpoutTextureSourceDefinitionConstPtr SpoutTextureSourceSystemConfig::getSpoutTextureSourceConfigConst(
+	MikanTextureSourceID textureSourceId) const
+{
+	auto it = std::find_if(
+		m_spoutTextureSourceList.begin(), m_spoutTextureSourceList.end(),
+		[textureSourceId](SpoutTextureSourceDefinitionPtr configPtr) {
+			return configPtr->getTextureSourceId() == textureSourceId;
+		});
+	if (it != m_spoutTextureSourceList.end())
+	{
+		return SpoutTextureSourceDefinitionConstPtr(*it);
+	}
+	return SpoutTextureSourceDefinitionConstPtr();
+}
+
+SpoutTextureSourceDefinitionPtr SpoutTextureSourceSystemConfig::getSpoutTextureSourceConfig(
+	MikanTextureSourceID textureSourceId)
+{
+	auto constPtr = getSpoutTextureSourceConfigConst(textureSourceId);
+	if (constPtr)
+	{
+		return std::const_pointer_cast<SpoutTextureSourceDefinition>(constPtr);
+	}
+	return SpoutTextureSourceDefinitionPtr();
+}
+
+SpoutTextureSourceDefinitionPtr SpoutTextureSourceSystemConfig::allocateSpoutTextureSourceDefinition(
+	const MikanSpoutTextureSourceInfo& textureSourceInfo)
+{
+	SpoutTextureSourceDefinitionPtr textureSourcePtr =
+		std::make_shared<SpoutTextureSourceDefinition>(m_nextTextureSourceId, textureSourceInfo);
+	m_nextTextureSourceId++;
+
+	return textureSourcePtr;
+}
+
+bool SpoutTextureSourceSystemConfig::addSpoutTextureSourceDefinition(
+	SpoutTextureSourceDefinitionPtr textureSourceDefinitionPtr)
+{
+	if (!getSpoutTextureSourceConfig(textureSourceDefinitionPtr->getTextureSourceId()))
+	{
+		m_spoutTextureSourceList.push_back(textureSourceDefinitionPtr);
+		addChildConfig(textureSourceDefinitionPtr);
+
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_spoutTextureSourceListPropertyId));
+		return true;
+	}
+
+	return false;
+}
+
+bool SpoutTextureSourceSystemConfig::removeSpoutTextureSourceDefinition(
+	MikanTextureSourceID textureSourceId)
+{
+	auto it = std::find_if(
+		m_spoutTextureSourceList.begin(), m_spoutTextureSourceList.end(),
+		[textureSourceId](SpoutTextureSourceDefinitionPtr configPtr) {
+			return configPtr->getTextureSourceId() == textureSourceId;
+		});
+
+	if (it != m_spoutTextureSourceList.end())
+	{
+		removeChildConfig(*it);
+
+		m_spoutTextureSourceList.erase(it);
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_spoutTextureSourceListPropertyId));
+
+		return true;
+	}
+
+	return false;
+}
+
+// -- SpoutTextureSourceSystem -----
+
+SpoutTextureSourceSystemConfigConstPtr SpoutTextureSourceSystem::getSpoutTextureSourceSystemConfigConst() const
+{
+	return std::static_pointer_cast<const SpoutTextureSourceSystemConfig>(getDefinitionConst());
+}
+
+SpoutTextureSourceSystemConfigPtr SpoutTextureSourceSystem::getSpoutTextureSourceSystemConfig()
+{
+	return std::static_pointer_cast<SpoutTextureSourceSystemConfig>(getDefinition());
+}
 
 SpoutTextureSourceSystem::SpoutTextureSourceSystem(ProjectManagerPtr ownerObjectSystem) 
     : MikanObjectSystem(ownerObjectSystem)
@@ -20,10 +144,10 @@ SpoutTextureSourceSystem::SpoutTextureSourceSystem(ProjectManagerPtr ownerObject
 bool SpoutTextureSourceSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
 	MikanObjectSystem::init(definitionPtr);
-    TextureSourceSystemConfigConstPtr TextureSourceSystemConfig = 
-        getProjectConfig()->textureSourceSystemConfig;
 
-    for (const auto& sourceConfig : TextureSourceSystemConfig->getSpoutTextureSourceList())
+    SpoutTextureSourceSystemConfigConstPtr systemConfig = getSpoutTextureSourceSystemConfigConst();
+
+    for (const auto& sourceConfig : systemConfig->getSpoutTextureSourceList())
     {
         createSpoutTextureSourceObject(sourceConfig);
     }
@@ -115,22 +239,20 @@ SpoutTextureSourceComponentPtr SpoutTextureSourceSystem::addNewSpoutTextureSourc
 SpoutTextureSourceComponentPtr SpoutTextureSourceSystem::addNewSpoutTextureSource(
     const MikanSpoutTextureSourceInfo& TextureSourceInfo)
 {
-    TextureSourceSystemConfigPtr TextureSourceSystemConfig =
-        getProjectConfig()->textureSourceSystemConfig;
+    SpoutTextureSourceSystemConfigPtr systemConfig = getSpoutTextureSourceSystemConfig();
 
     return
         createSpoutTextureSourceObject(
-            TextureSourceSystemConfig->allocateSpoutTextureSourceDefinition(TextureSourceInfo));
+            systemConfig->allocateSpoutTextureSourceDefinition(TextureSourceInfo));
 }
 
 bool SpoutTextureSourceSystem::removeSpoutTextureSource(MikanTextureSourceID TextureSourceId)
 {
-    TextureSourceSystemConfigPtr TextureSourceSystemConfig = 
-        getProjectConfig()->textureSourceSystemConfig;
+    SpoutTextureSourceSystemConfigPtr systemConfig = getSpoutTextureSourceSystemConfig();
 
     return
         disposeSpoutTextureSourceObject(TextureSourceId) &&
-        TextureSourceSystemConfig->removeTextureSource(TextureSourceId);
+        systemConfig->removeSpoutTextureSourceDefinition(TextureSourceId);
 }
 
 SpoutTextureSourceComponentPtr SpoutTextureSourceSystem::createSpoutTextureSourceObject(
@@ -149,8 +271,8 @@ SpoutTextureSourceComponentPtr SpoutTextureSourceSystem::createSpoutTextureSourc
     // Keep track of all the spout video sources in the system
     m_spoutTextureSourceComponents.insert({ TextureSourceDefinition->getTextureSourceId(), TextureSourceComponentPtr });
 
-    // Register the definition with the texture source system
-    getProjectConfig()->textureSourceSystemConfig->addSpoutTextureSourceDefinition(TextureSourceDefinition);
+    // Register the definition with the system config
+    getSpoutTextureSourceSystemConfig()->addSpoutTextureSourceDefinition(TextureSourceDefinition);
 
     return TextureSourceComponentPtr;
 }

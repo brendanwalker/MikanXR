@@ -20,7 +20,6 @@
 #include "SpoutTextureSourceSystem.h"
 #include "StencilObjectSystem.h"
 #include "StageObjectSystem.h"
-#include "TextureSourceSystem.h"
 #include "TrackingMountObjectSystem.h"
 #include "TrackingVolumeObjectSystem.h"
 #include "USBVideoSourceSystem.h"
@@ -46,7 +45,6 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	addSystem<SpoutTextureSourceSystem>();
 	addSystem<NetworkVideoSourceSystem>();
 	addSystem<USBVideoSourceSystem>();
-	addSystem<TextureSourceSystem>();
 	addSystem<MarkerObjectSystem>();
 	addSystem<SceneObjectSystem>();
 	addSystem<StageObjectSystem>();

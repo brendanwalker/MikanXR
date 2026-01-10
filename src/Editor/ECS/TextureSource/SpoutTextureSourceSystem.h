@@ -4,13 +4,37 @@
 #include "MikanObjectSystem.h"
 #include "MikanTextureSourceTypes.h"
 #include "ObjectSystemConfigFwd.h"
-#include "TextureSourceSystemConfig.h"
 #include "Shared/RmlDataBinding_Fwd.h"
+#include "TextureSourceQueries.h"
 
 #include <map>
 #include <string>
 
 using SpoutTextureSourceMap = std::map<MikanTextureSourceID, SpoutTextureSourceComponentWeakPtr>;
+
+class SpoutTextureSourceSystemConfig : public MikanObjectSystemDefinition
+{
+public:
+	SpoutTextureSourceSystemConfig(const std::string& configName)
+		: MikanObjectSystemDefinition(configName)
+	{
+	}
+
+	virtual configuru::Config writeToJSON();
+	virtual void readFromJSON(const configuru::Config& pt);
+
+	static const std::string k_spoutTextureSourceListPropertyId;
+	const std::vector<SpoutTextureSourceDefinitionPtr>& getSpoutTextureSourceList() const { return m_spoutTextureSourceList; }
+	SpoutTextureSourceDefinitionConstPtr getSpoutTextureSourceConfigConst(MikanTextureSourceID textureSourceId) const;
+	SpoutTextureSourceDefinitionPtr getSpoutTextureSourceConfig(MikanTextureSourceID textureSourceId);
+	SpoutTextureSourceDefinitionPtr allocateSpoutTextureSourceDefinition(const struct MikanSpoutTextureSourceInfo& textureSourceInfo);
+	bool addSpoutTextureSourceDefinition(SpoutTextureSourceDefinitionPtr textureSourcePtr);
+	bool removeSpoutTextureSourceDefinition(MikanTextureSourceID textureSourceId);
+
+protected:
+	std::vector<SpoutTextureSourceDefinitionPtr> m_spoutTextureSourceList;
+	MikanTextureSourceID m_nextTextureSourceId = 0;
+};
 
 class SpoutTextureSourceSystem : public MikanObjectSystem
 {
@@ -19,6 +43,9 @@ public:
 
 	inline static const std::string k_objectSystemClassName = "SpoutTextureSourceSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
+
+	SpoutTextureSourceSystemConfigConstPtr getSpoutTextureSourceSystemConfigConst() const;
+	SpoutTextureSourceSystemConfigPtr getSpoutTextureSourceSystemConfig();
 
     virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
     virtual void dispose() override;

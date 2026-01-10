@@ -30,7 +30,6 @@ private:
 	void setSelectedVideoSourceId(MikanVideoSourceID videoSourceId);
 	void videoSourceIdListChanged(bool bOwnerChanged);
 
-	TextureSourceSystemPtr getTextureSourceSystem();
 	TextureSourceComponentPtr getSelectedTextureSource();
 	ClientTextureSourceComponentPtr getSelectedClientTextureSource();
 	SpoutTextureSourceComponentPtr getSelectedSpoutTextureSource();
@@ -44,7 +43,6 @@ private:
 
 	class ProjectRmlModelContext* m_projectRmlModelContext = nullptr;
 	ProjectManagerWeakPtr m_projectManager;
-	TextureSourceSystemWeakPtr m_textureSourceSystem;
 
 	RmlDataBinding_ComponentIdListPtr m_videoSourceIdList;
 	RmlDataBinding_ComponentIdListPtr m_textureSourceIdList;

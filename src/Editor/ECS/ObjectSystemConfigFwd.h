@@ -27,6 +27,11 @@ using CameraObjectSystemConfigPtr = std::shared_ptr<CameraObjectSystemConfig>;
 using CameraObjectSystemConfigConstPtr = std::shared_ptr<const CameraObjectSystemConfig>;
 using CameraObjectSystemConfigWeakPtr = std::weak_ptr<CameraObjectSystemConfig>;
 
+class ClientTextureSourceSystemConfig;
+using ClientTextureSourceSystemConfigPtr = std::shared_ptr<ClientTextureSourceSystemConfig>;
+using ClientTextureSourceSystemConfigConstPtr = std::shared_ptr<const ClientTextureSourceSystemConfig>;
+using ClientTextureSourceSystemConfigWeakPtr = std::weak_ptr<ClientTextureSourceSystemConfig>;
+
 class CompositorObjectSystemConfig;
 using CompositorObjectSystemConfigPtr = std::shared_ptr<CompositorObjectSystemConfig>;
 using CompositorObjectSystemConfigConstPtr = std::shared_ptr<const CompositorObjectSystemConfig>;
@@ -57,6 +62,11 @@ using SceneObjectSystemDefinitionPtr = std::shared_ptr<SceneObjectSystemDefiniti
 using SceneObjectSystemDefinitionConstPtr = std::shared_ptr<const SceneObjectSystemDefinition>;
 using SceneObjectSystemDefinitionWeakPtr = std::weak_ptr<SceneObjectSystemDefinition>;
 
+class SpoutTextureSourceSystemConfig;
+using SpoutTextureSourceSystemConfigPtr = std::shared_ptr<SpoutTextureSourceSystemConfig>;
+using SpoutTextureSourceSystemConfigConstPtr = std::shared_ptr<const SpoutTextureSourceSystemConfig>;
+using SpoutTextureSourceSystemConfigWeakPtr = std::weak_ptr<SpoutTextureSourceSystemConfig>;
+
 class StageObjectSystemConfig;
 using StageObjectSystemConfigPtr = std::shared_ptr<StageObjectSystemConfig>;
 using StageObjectSystemConfigConstPtr = std::shared_ptr<const StageObjectSystemConfig>;
@@ -76,11 +86,6 @@ class TrackingVolumeObjectSystemConfig;
 using TrackingVolumeObjectSystemConfigPtr = std::shared_ptr<TrackingVolumeObjectSystemConfig>;
 using TrackingVolumeObjectSystemConfigConstPtr = std::shared_ptr<const TrackingVolumeObjectSystemConfig>;
 using TrackingVolumeObjectSystemConfigWeakPtr = std::weak_ptr<TrackingVolumeObjectSystemConfig>;
-
-class TextureSourceSystemConfig;
-using TextureSourceSystemConfigPtr = std::shared_ptr<TextureSourceSystemConfig>;
-using TextureSourceSystemConfigConstPtr = std::shared_ptr<const TextureSourceSystemConfig>;
-using TextureSourceSystemConfigWeakPtr = std::weak_ptr<TextureSourceSystemConfig>;
 
 class USBVideoSourceSystemConfig;
 using USBVideoSourceSystemConfigPtr = std::shared_ptr<USBVideoSourceSystemConfig>;

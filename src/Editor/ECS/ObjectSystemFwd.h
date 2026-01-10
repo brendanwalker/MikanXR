@@ -59,10 +59,6 @@ class StencilObjectSystem;
 using StencilObjectSystemPtr = std::shared_ptr<StencilObjectSystem>;
 using StencilObjectSystemWeakPtr = std::weak_ptr<StencilObjectSystem>;
 
-class TextureSourceSystem;
-using TextureSourceSystemPtr = std::shared_ptr<TextureSourceSystem>;
-using TextureSourceSystemWeakPtr = std::weak_ptr<TextureSourceSystem>;
-
 class TrackingVolumeObjectSystem;
 using TrackingVolumeObjectSystemPtr = std::shared_ptr<TrackingVolumeObjectSystem>;
 using TrackingVolumeObjectSystemWeakPtr = std::weak_ptr<TrackingVolumeObjectSystem>;

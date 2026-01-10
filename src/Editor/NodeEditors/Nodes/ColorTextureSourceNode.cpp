@@ -15,7 +15,7 @@
 #include "NodeEditorUI.h"
 #include "ProjectManager.h"
 #include "StringUtils.h"
-#include "TextureSourceSystem.h"
+#include "TextureSourceQueries.h"
 #include "TextureSourceComponent.h"
 
 #include "DataSources/TextureSourceListDataSource.h"
@@ -67,15 +67,16 @@ bool ColorTextureSourceNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 	{
 		auto textureSourceNodeConfig = std::static_pointer_cast<const ColorTextureSourceNodeConfig>(nodeConfig);
 
-		m_clientTextureType= textureSourceNodeConfig->textureSourceColorType;		
+		m_clientTextureType= textureSourceNodeConfig->textureSourceColorType;
 		m_bVerticalFlip= textureSourceNodeConfig->bVerticalFlip;
 
 		// Get the client video source component corresponding to the saved video source id
-		TextureSourceSystemPtr textureSourceSystem= getTextureSourceSystem();
-		if (textureSourceSystem)
+		ProjectManagerPtr projectManager = getOwnerProject();
+		if (projectManager)
 		{
 			m_textureSourceComponent =
-				textureSourceSystem->getTextureSourceById(
+				TextureSourceQueries::getTextureSourceById(
+					projectManager,
 					textureSourceNodeConfig->textureSourceId);
 		}
 
@@ -129,18 +130,6 @@ bool ColorTextureSourceNode::evaluateNode(NodeEvaluator& evaluator)
 	outputPin->setValue(getTextureResource());
 
 	return true;
-}
-
-
-TextureSourceSystemPtr ColorTextureSourceNode::getTextureSourceSystem() const
-{
-	ProjectManagerPtr ownerProject = getOwnerProject();
-	if (ownerProject)
-	{
-		return ownerProject->getSystemOfType<TextureSourceSystem>();
-	}
-
-	return TextureSourceSystemPtr();
 }
 
 IMkTexturePtr ColorTextureSourceNode::getColorSourceTexture() const
@@ -341,7 +330,8 @@ void ColorTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& ed
 		}
 
 		// Texture Type
-		TextureSourceListDataSource dataSource(getTextureSourceSystem());
+		ProjectManagerPtr projectManager = getOwnerProject();
+		TextureSourceListDataSource dataSource(projectManager);
 		if (dataSource.getEntryCount() > 0)
 		{
 			TextureSourceComponentPtr TextureSourceComponent = getTextureSourceComponent();

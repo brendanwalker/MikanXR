@@ -1,23 +1,146 @@
 #include "ClientTextureSourceSystem.h"
-#include "TextureSourceSystem.h"
 #include "ClientTextureSourceComponent.h"
 #include "App.h"
 #include "ProjectConfig.h"
-#include "TextureSourceSystemConfig.h"
 #include "MikanObject.h"
 #include "MikanCoreTypes.h"
 #include "MikanPropertyDatabase.h"
 
 #include <assert.h>
 
+// -- ClientTextureSourceSystemConfig -----
+const std::string ClientTextureSourceSystemConfig::k_clientTextureSourceListPropertyId = "clientTextureSourceList";
+
+configuru::Config ClientTextureSourceSystemConfig::writeToJSON()
+{
+	configuru::Config pt = MikanObjectSystemDefinition::writeToJSON();
+
+	pt["next_texture_source_id"] = m_nextTextureSourceId;
+
+	std::vector<configuru::Config> clientTextureSourceConfigs;
+	for (auto textureSource : m_clientTextureSourceList)
+	{
+		clientTextureSourceConfigs.push_back(textureSource->writeToJSON());
+	}
+	pt.insert_or_assign(k_clientTextureSourceListPropertyId, clientTextureSourceConfigs);
+
+	return pt;
+}
+
+void ClientTextureSourceSystemConfig::readFromJSON(const configuru::Config& pt)
+{
+	MikanObjectSystemDefinition::readFromJSON(pt);
+
+	m_nextTextureSourceId = pt.get_or<int>("next_texture_source_id", m_nextTextureSourceId);
+
+	// Read in the client texture sources
+	m_clientTextureSourceList.clear();
+	if (pt.has_key(k_clientTextureSourceListPropertyId))
+	{
+		for (const configuru::Config& textureSource_pt : pt[k_clientTextureSourceListPropertyId].as_array())
+		{
+			auto definitionPtr = std::make_shared<ClientTextureSourceDefinition>();
+
+			definitionPtr->readFromJSON(textureSource_pt);
+			m_clientTextureSourceList.push_back(definitionPtr);
+
+			addChildConfig(definitionPtr);
+		}
+	}
+}
+
+ClientTextureSourceDefinitionConstPtr ClientTextureSourceSystemConfig::getClientTextureSourceConfigConst(
+	MikanTextureSourceID textureSourceId) const
+{
+	auto it = std::find_if(
+		m_clientTextureSourceList.begin(), m_clientTextureSourceList.end(),
+		[textureSourceId](ClientTextureSourceDefinitionPtr configPtr) {
+			return configPtr->getTextureSourceId() == textureSourceId;
+		});
+	if (it != m_clientTextureSourceList.end())
+	{
+		return ClientTextureSourceDefinitionConstPtr(*it);
+	}
+	return ClientTextureSourceDefinitionConstPtr();
+}
+
+ClientTextureSourceDefinitionPtr ClientTextureSourceSystemConfig::getClientTextureSourceConfig(
+	MikanTextureSourceID textureSourceId)
+{
+	auto constPtr = getClientTextureSourceConfigConst(textureSourceId);
+	if (constPtr)
+	{
+		return std::const_pointer_cast<ClientTextureSourceDefinition>(constPtr);
+	}
+	return ClientTextureSourceDefinitionPtr();
+}
+
+ClientTextureSourceDefinitionPtr ClientTextureSourceSystemConfig::allocateClientTextureSourceDefinition(
+	const MikanClientTextureSourceInfo& textureSourceInfo)
+{
+	ClientTextureSourceDefinitionPtr textureSourcePtr =
+		std::make_shared<ClientTextureSourceDefinition>(m_nextTextureSourceId, textureSourceInfo);
+	m_nextTextureSourceId++;
+
+	return textureSourcePtr;
+}
+
+bool ClientTextureSourceSystemConfig::addClientTextureSourceDefinition(
+	ClientTextureSourceDefinitionPtr textureSourceDefinitionPtr)
+{
+	if (!getClientTextureSourceConfig(textureSourceDefinitionPtr->getTextureSourceId()))
+	{
+		m_clientTextureSourceList.push_back(textureSourceDefinitionPtr);
+		addChildConfig(textureSourceDefinitionPtr);
+
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_clientTextureSourceListPropertyId));
+		return true;
+	}
+
+	return false;
+}
+
+bool ClientTextureSourceSystemConfig::removeClientTextureSourceDefinition(
+	MikanTextureSourceID textureSourceId)
+{
+	auto it = std::find_if(
+		m_clientTextureSourceList.begin(), m_clientTextureSourceList.end(),
+		[textureSourceId](ClientTextureSourceDefinitionPtr configPtr) {
+			return configPtr->getTextureSourceId() == textureSourceId;
+		});
+
+	if (it != m_clientTextureSourceList.end())
+	{
+		removeChildConfig(*it);
+
+		m_clientTextureSourceList.erase(it);
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_clientTextureSourceListPropertyId));
+
+		return true;
+	}
+
+	return false;
+}
+
+// -- ClientTextureSourceSystem -----
+
+ClientTextureSourceSystemConfigConstPtr ClientTextureSourceSystem::getClientTextureSourceSystemConfigConst() const
+{
+	return std::static_pointer_cast<const ClientTextureSourceSystemConfig>(getDefinitionConst());
+}
+
+ClientTextureSourceSystemConfigPtr ClientTextureSourceSystem::getClientTextureSourceSystemConfig()
+{
+	return std::static_pointer_cast<ClientTextureSourceSystemConfig>(getDefinition());
+}
+
 bool ClientTextureSourceSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
 	MikanObjectSystem::init(definitionPtr);
 
-    TextureSourceSystemConfigConstPtr TextureSourceSystemConfig = 
-        getProjectConfig()->textureSourceSystemConfig;
+    ClientTextureSourceSystemConfigConstPtr systemConfig = getClientTextureSourceSystemConfigConst();
 
-    for (const auto& sourceConfig : TextureSourceSystemConfig->getClientTextureSourceList())
+    for (const auto& sourceConfig : systemConfig->getClientTextureSourceList())
     {
         createClientTextureSourceObject(sourceConfig);
     }
@@ -101,22 +224,20 @@ ClientTextureSourceComponentPtr ClientTextureSourceSystem::addNewClientTextureSo
 ClientTextureSourceComponentPtr ClientTextureSourceSystem::addNewClientTextureSource(
     const MikanClientTextureSourceInfo& TextureSourceInfo)
 {
-    TextureSourceSystemConfigPtr TextureSourceSystemConfig =
-        getProjectConfig()->textureSourceSystemConfig;
+    ClientTextureSourceSystemConfigPtr systemConfig = getClientTextureSourceSystemConfig();
 
     return
         createClientTextureSourceObject(
-            TextureSourceSystemConfig->allocateClientTextureSourceDefinition(TextureSourceInfo));
+            systemConfig->allocateClientTextureSourceDefinition(TextureSourceInfo));
 }
 
 bool ClientTextureSourceSystem::removeClientTextureSource(MikanTextureSourceID TextureSourceId)
 {
-    TextureSourceSystemConfigPtr TextureSourceSystemConfig = 
-        getProjectConfig()->textureSourceSystemConfig;
+    ClientTextureSourceSystemConfigPtr systemConfig = getClientTextureSourceSystemConfig();
 
     return
         disposeClientTextureSourceObject(TextureSourceId) &&
-        TextureSourceSystemConfig->removeTextureSource(TextureSourceId);
+        systemConfig->removeClientTextureSourceDefinition(TextureSourceId);
 }
 
 ClientTextureSourceComponentPtr ClientTextureSourceSystem::createClientTextureSourceObject(
@@ -132,11 +253,11 @@ ClientTextureSourceComponentPtr ClientTextureSourceSystem::createClientTextureSo
     // Init the object once all components are added
     TextureSourceObject->init();
 
-    // Keep track of all the client video sources in the system
+    // Keep track of all the client texture sources in the system
     m_clientTextureSourceComponents.insert({TextureSourceDefinition->getTextureSourceId(), TextureSourceComponentPtr});
 
-    // Register the definition with the texture source system
-    getProjectConfig()->textureSourceSystemConfig->addClientTextureSourceDefinition(TextureSourceDefinition);
+    // Register the definition with the system config
+    getClientTextureSourceSystemConfig()->addClientTextureSourceDefinition(TextureSourceDefinition);
 
     return TextureSourceComponentPtr;
 }

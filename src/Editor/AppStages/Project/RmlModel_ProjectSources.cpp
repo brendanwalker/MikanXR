@@ -19,8 +19,7 @@
 #include "USBVideoSourceComponent.h"
 #include "USBVideoSourceSystem.h"
 #include "TextureSourceComponent.h"
-#include "TextureSourceSystem.h"
-#include "TextureSourceSystemConfig.h"
+#include "TextureSourceQueries.h"
 #include "VideoSourceComponent.h"
 #include "VideoSourceQueries.h"
 
@@ -41,7 +40,6 @@ bool RmlModel_ProjectSources::init(ProjectRmlModelContext* context)
 
 	m_projectRmlModelContext = context;
 	m_projectManager = ownerAppStage->getProjectManager();
-	m_textureSourceSystem = ownerAppStage->getObjectSystemOfType<TextureSourceSystem>();
 
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "Sources");
@@ -51,15 +49,15 @@ bool RmlModel_ProjectSources::init(ProjectRmlModelContext* context)
 	// Register component lists
 	m_textureSourceIdList->init(
 		constructor,
-		m_textureSourceSystem.lock()->getTextureSourceSystemConfig(),
+		CommonConfigPtr(), // No single owner config since this is a virtual list
 		"texture_source_ids", // virtual list since this is a combination of multiple source types
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			outComponentIdList = m_textureSourceSystem.lock()->getTextureSourceIdList();
+			outComponentIdList = TextureSourceQueries::getTextureSourceIdList(m_projectManager.lock());
 		},
 		[this](const ConfigPropertyChangeSet& changedPropertySet) {
 			return
-				changedPropertySet.hasPropertyName(TextureSourceSystemConfig::k_clientTextureSourceListPropertyId) ||
-				changedPropertySet.hasPropertyName(TextureSourceSystemConfig::k_spoutTextureSourceListPropertyId);
+				changedPropertySet.hasPropertyName(ClientTextureSourceSystemConfig::k_clientTextureSourceListPropertyId) ||
+				changedPropertySet.hasPropertyName(SpoutTextureSourceSystemConfig::k_spoutTextureSourceListPropertyId);
 		});
 	m_videoSourceIdList->init(
 		constructor,
@@ -133,14 +131,11 @@ void RmlModel_ProjectSources::videoSourceIdListChanged(bool bOwnerChanged)
 	});
 }
 
-TextureSourceSystemPtr RmlModel_ProjectSources::getTextureSourceSystem()
-{
-	return m_textureSourceSystem.lock();
-}
-
 TextureSourceComponentPtr RmlModel_ProjectSources::getSelectedTextureSource()
 {
-	return getTextureSourceSystem()->getTextureSourceById((MikanTextureSourceID)m_selectedTextureSourceId);
+	return TextureSourceQueries::getTextureSourceById(
+		m_projectManager.lock(),
+		(MikanTextureSourceID)m_selectedTextureSourceId);
 }
 
 VideoSourceComponentPtr RmlModel_ProjectSources::getSelectedVideoSource()
@@ -152,13 +147,17 @@ VideoSourceComponentPtr RmlModel_ProjectSources::getSelectedVideoSource()
 
 ClientTextureSourceComponentPtr RmlModel_ProjectSources::getSelectedClientTextureSource()
 {
-	return getTextureSourceSystem()->getClientTextureSourceSystem()->getClientTextureSourceById(
+	auto projectManager = m_projectManager.lock();
+	auto clientTextureSourceSystem = projectManager->getSystemOfType<ClientTextureSourceSystem>();
+	return clientTextureSourceSystem->getClientTextureSourceById(
 		(MikanTextureSourceID)m_selectedTextureSourceId);
 }
 
 SpoutTextureSourceComponentPtr RmlModel_ProjectSources::getSelectedSpoutTextureSource()
 {
-	return getTextureSourceSystem()->getSpoutTextureSourceSystem()->getSpoutTextureSourceById(
+	auto projectManager = m_projectManager.lock();
+	auto spoutTextureSourceSystem = projectManager->getSystemOfType<SpoutTextureSourceSystem>();
+	return spoutTextureSourceSystem->getSpoutTextureSourceById(
 		(MikanTextureSourceID)m_selectedTextureSourceId);
 }
 
@@ -181,7 +180,9 @@ void RmlModel_ProjectSources::addNewClientTextureSource(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	getTextureSourceSystem()->getClientTextureSourceSystem()->addNewClientTextureSource();
+	auto projectManager = m_projectManager.lock();
+	auto clientTextureSourceSystem = projectManager->getSystemOfType<ClientTextureSourceSystem>();
+	clientTextureSourceSystem->addNewClientTextureSource();
 }
 
 void RmlModel_ProjectSources::addNewSpoutTextureSource(
@@ -189,7 +190,9 @@ void RmlModel_ProjectSources::addNewSpoutTextureSource(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	getTextureSourceSystem()->getSpoutTextureSourceSystem()->addNewSpoutTextureSource();
+	auto projectManager = m_projectManager.lock();
+	auto spoutTextureSourceSystem = projectManager->getSystemOfType<SpoutTextureSourceSystem>();
+	spoutTextureSourceSystem->addNewSpoutTextureSource();
 }
 
 void RmlModel_ProjectSources::addNewUSBVideoSource(
@@ -270,7 +273,9 @@ void RmlModel_ProjectSources::removeTextureSource(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	getTextureSourceSystem()->removeTextureSource((MikanTextureSourceID)m_selectedTextureSourceId);
+	TextureSourceQueries::removeTextureSource(
+		m_projectManager.lock(),
+		(MikanTextureSourceID)m_selectedTextureSourceId);
 }
 
 void RmlModel_ProjectSources::selectTextureSourceEntry(
@@ -290,8 +295,8 @@ void RmlModel_ProjectSources::setSelectedTextureSourceId(MikanTextureSourceID te
 		m_selectedTextureSourceId = (int)textureSourceId;
 		m_modelHandle.DirtyVariable("selected_texture_source_id");
 
-		TextureSourceSystemConfigPtr config = getTextureSourceSystem()->getTextureSourceSystemConfig();
-		eTextureSourceType sourceType = config->getTextureSourceType(textureSourceId);
+		eTextureSourceType sourceType =
+			TextureSourceQueries::getTextureSourceType(m_projectManager.lock(), textureSourceId);
 
 		// Reset all models first
 		m_projectRmlModelContext->getClientTextureSourceModel()->setComponent(nullptr);

@@ -4,6 +4,7 @@
 #include "MikanAPITypes.h"
 #include "MikanTextureSourceTypes.h"
 #include "SerializationProperty.h"
+#include "SerializableList.h"
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 #include "MikanTextureSourceRequests.rfkh.h"

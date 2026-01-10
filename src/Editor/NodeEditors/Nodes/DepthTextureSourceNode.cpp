@@ -14,7 +14,7 @@
 #include "NodeEditorUI.h"
 #include "StringUtils.h"
 #include "ProjectManager.h"
-#include "TextureSourceSystem.h"
+#include "TextureSourceQueries.h"
 #include "TextureSourceComponent.h"
 #include "MikanCoreTypes.h"
 
@@ -71,11 +71,12 @@ bool DepthTextureSourceNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 		m_bVerticalFlip= clientTextureNodeConfig->bVerticalFlip;
 
 		// Get the client video source component corresponding to the saved video source id
-		TextureSourceSystemPtr textureSourceSystem = getTextureSourceSystem();
-		if (textureSourceSystem)
+		ProjectManagerPtr projectManager = getOwnerProject();
+		if (projectManager)
 		{
 			m_textureSourceComponent =
-				textureSourceSystem->getTextureSourceById(
+				TextureSourceQueries::getTextureSourceById(
+					projectManager,
 					clientTextureNodeConfig->textureVideoSourceId);
 		}
 
@@ -125,17 +126,6 @@ bool DepthTextureSourceNode::evaluateNode(NodeEvaluator& evaluator)
 	outputPin->setValue(linearDepthTexture);
 
 	return true;
-}
-
-TextureSourceSystemPtr DepthTextureSourceNode::getTextureSourceSystem() const
-{
-	ProjectManagerPtr ownerProject = getOwnerProject();
-	if (ownerProject)
-	{
-		return ownerProject->getSystemOfType<TextureSourceSystem>();
-	}
-
-	return TextureSourceSystemPtr();
 }
 
 IMkTexturePtr DepthTextureSourceNode::getDepthSourceTexture() const
@@ -296,7 +286,8 @@ void DepthTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& ed
 		}
 
 		// Texture Type
-		TextureSourceListDataSource dataSource(getTextureSourceSystem());
+		ProjectManagerPtr projectManager = getOwnerProject();
+		TextureSourceListDataSource dataSource(projectManager);
 		if (dataSource.getEntryCount() > 0)
 		{
 			TextureSourceComponentPtr videoSourceComponent= getTextureSourceComponent();

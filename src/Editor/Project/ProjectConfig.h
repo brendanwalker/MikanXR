@@ -36,15 +36,16 @@ public:
 
 	AnchorObjectSystemConfigPtr anchorConfig;
 	CameraObjectSystemConfigPtr cameraConfig;
+	ClientTextureSourceSystemConfigPtr clientConfig;
 	CompositorObjectSystemConfigPtr compositorConfig;
 	EditorObjectSystemConfigPtr editorConfig;
 	MarkerObjectSystemConfigPtr markerSystemConfig;
 	StencilObjectSystemConfigPtr stencilConfig;
 	SceneObjectSystemDefinitionPtr sceneConfig;
+	SpoutTextureSourceSystemConfigPtr spoutConfig;
 	StageObjectSystemConfigPtr stageConfig;
 	TrackingVolumeObjectSystemConfigPtr trackingVolumeSystemConfig;
 	TrackingMountObjectSystemConfigPtr trackingMountSystemConfig;
-	TextureSourceSystemConfigPtr textureSourceSystemConfig;
 	NetworkVideoSourceSystemConfigPtr networkVideoSourceSystemConfig;
 	USBVideoSourceSystemConfigPtr usbVideoSourceSystemConfig;
 	VRObjectSystemConfigPtr vrObjectConfig;

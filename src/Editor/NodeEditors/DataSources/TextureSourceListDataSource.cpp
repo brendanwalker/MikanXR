@@ -1,12 +1,12 @@
 #include "TextureSourceListDataSource.h"
-#include "TextureSourceSystem.h"
+#include "TextureSourceQueries.h"
 #include "TextureSourceComponent.h"
 
-TextureSourceListDataSource::TextureSourceListDataSource(TextureSourceSystemPtr textureSourceSystem)
+TextureSourceListDataSource::TextureSourceListDataSource(ProjectManagerPtr projectManager)
 {
-	if (textureSourceSystem != nullptr)
+	if (projectManager != nullptr)
 	{
-		comboEntrieValues= textureSourceSystem->getTextureSourceComponentList();
+		comboEntrieValues = TextureSourceQueries::getTextureSourceComponentList(projectManager);
 
 		for (TextureSourceComponentPtr textureSourceComponent : comboEntrieValues)
 		{

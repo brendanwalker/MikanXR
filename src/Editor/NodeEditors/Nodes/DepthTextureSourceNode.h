@@ -39,7 +39,6 @@ public:
 	virtual void editorRenderPropertySheet(const NodeEditorState& editorState) override;
 
 protected:
-	TextureSourceSystemPtr getTextureSourceSystem() const;
 	IMkTexturePtr getDepthSourceTexture() const;
 	void updateLinearDepthFrameBuffer(NodeEvaluator& evaluator, IMkTexturePtr clientTexture);
 	void evaluateDepthTexture(IMkState* glState, IMkTexturePtr depthTexture);

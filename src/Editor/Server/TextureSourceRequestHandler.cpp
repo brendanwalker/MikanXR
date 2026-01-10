@@ -6,7 +6,6 @@
 #include "MikanTextureSourceEvents.h"
 #include "MikanTextureSourceRequests.h"
 #include "ServerResponseHelpers.h"
-#include "TextureSourceSystem.h"
 #include "TextureSourceComponent.h"
 
 #include <functional>
