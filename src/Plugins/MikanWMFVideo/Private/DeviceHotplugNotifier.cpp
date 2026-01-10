@@ -32,6 +32,7 @@ struct DeviceHotplugNotifierImpl
 	IDeviceHotplugListener* listener = nullptr;
 	HDEVNOTIFY hImageDeviceNotify = nullptr;
 	HWND hWnd = nullptr;
+	WNDCLASSEX wx;
 };
 
 //-- private prototypes -----
@@ -55,18 +56,16 @@ bool DeviceHotplugNotifier::startup(IDeviceHotplugListener * listener)
 
 	if (m_impl->hWnd == nullptr)
 	{
-		WNDCLASSEX wx;
-		ZeroMemory(&wx, sizeof(wx));
+		ZeroMemory(&m_impl->wx, sizeof(m_impl->wx));
 
-		wx.cbSize = sizeof(WNDCLASSEX);
-		wx.lpfnWndProc = reinterpret_cast<WNDPROC>(message_handler);
-		wx.hInstance = reinterpret_cast<HINSTANCE>(GetModuleHandle(0));
-		wx.style = CS_HREDRAW | CS_VREDRAW;
-		wx.hInstance = GetModuleHandle(0);
-		wx.hbrBackground = (HBRUSH)(COLOR_WINDOW);
-		wx.lpszClassName = CLS_NAME;
+		m_impl->wx.cbSize = sizeof(WNDCLASSEX);
+		m_impl->wx.lpfnWndProc = reinterpret_cast<WNDPROC>(message_handler);
+		m_impl->wx.style = CS_HREDRAW | CS_VREDRAW;
+		m_impl->wx.hInstance = GetModuleHandle(0);
+		m_impl->wx.hbrBackground = (HBRUSH)(COLOR_WINDOW);
+		m_impl->wx.lpszClassName = CLS_NAME;
 
-		if (RegisterClassEx(&wx))
+		if (RegisterClassEx(&m_impl->wx))
 		{
 			m_impl->hWnd = CreateWindow(
 				CLS_NAME, "DevNotifWnd", WS_ICONIC,
@@ -115,6 +114,14 @@ void DeviceHotplugNotifier::shutdown()
 	{
 		DestroyWindow(m_impl->hWnd);
 		m_impl->hWnd = nullptr;
+	}
+
+	if (m_impl->wx.hInstance != nullptr)
+	{
+		UnregisterClassA(
+			m_impl->wx.lpszClassName,
+			m_impl->wx.hInstance);
+		ZeroMemory(&m_impl->wx, sizeof(m_impl->wx));
 	}
 }
 
