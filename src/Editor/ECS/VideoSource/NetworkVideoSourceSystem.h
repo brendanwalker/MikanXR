@@ -66,6 +66,7 @@ public:
     virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
 
 protected:
+	bool ensureNetworkDeviceManager();
 	bool createNetworkVideoDeviceManager(const std::string& moduleName);
 	void disposeNetworkVideoDeviceManager();
 

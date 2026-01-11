@@ -143,13 +143,6 @@ bool NetworkVideoSourceSystem::init(MikanObjectSystemDefinitionPtr definitionPtr
     NetworkVideoSourceSystemConfigConstPtr videoSourceSystemConfig = 
 		getProjectConfig()->networkVideoSourceSystemConfig;
 
-	if (!createNetworkVideoDeviceManager(NETWORK_VIDEO_DEVICE_MODULE_NAME))
-	{
-		MIKAN_LOG_ERROR("NetworkVideoSourceSystem::init") <<
-			"Failed to load network video device module " << NETWORK_VIDEO_DEVICE_MODULE_NAME;
-		return false;
-	}
-
     for (const auto& sourceConfig : videoSourceSystemConfig->getNetworkedVideoSourceList())
     {
         createNetworkVideoSourceObject(sourceConfig);
@@ -248,6 +241,21 @@ bool NetworkVideoSourceSystem::removeNetworkVideoSource(MikanVideoSourceID video
     return
         disposeNetworkVideoSourceObject(videoSourceId) &&
         videoSourceSystemConfig->removeNetworkedVideoSourceDefinition(videoSourceId);
+}
+
+bool NetworkVideoSourceSystem::ensureNetworkDeviceManager()
+{
+	if (m_networkVideoDeviceManager)
+		return true;
+
+	if (!createNetworkVideoDeviceManager(NETWORK_VIDEO_DEVICE_MODULE_NAME))
+	{
+		MIKAN_LOG_ERROR("NetworkVideoSourceSystem::init") <<
+			"Failed to load network video device module " << NETWORK_VIDEO_DEVICE_MODULE_NAME;
+		return false;
+	}
+
+	return true;
 }
 
 bool NetworkVideoSourceSystem::createNetworkVideoDeviceManager(const std::string& moduleName)
@@ -349,6 +357,9 @@ void NetworkVideoSourceSystem::disposeNetworkVideoDeviceManager()
 NetworkVideoSourceComponentPtr NetworkVideoSourceSystem::createNetworkVideoSourceObject(
     NetworkVideoSourceDefinitionPtr videoSourceDefinition)
 {
+	// Lazy create a network video device manager, if possible
+	ensureNetworkDeviceManager();
+
     MikanObjectPtr videoSourceObject = newObject();
     videoSourceObject->setName(videoSourceDefinition->getComponentName());
 

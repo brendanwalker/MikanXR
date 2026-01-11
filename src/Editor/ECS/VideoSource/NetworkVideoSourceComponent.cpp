@@ -271,6 +271,8 @@ bool NetworkVideoSourceComponent::openVideoSource()
 		std::static_pointer_cast<NetworkVideoSourceSystem>(getOwnerObject()->getOwnerSystem());
 	INetworkVideoDeviceManagerPtr networkVideoDeviceManager = 
 		networkVideoSourceSystem->getNetworkVideoDeviceManager();
+	if (!networkVideoDeviceManager)
+		return false;
 
 	NetworkVideoConnectionSettings connectionSettings;
 	connectionSettings.protocol = definition->getProtocol();
