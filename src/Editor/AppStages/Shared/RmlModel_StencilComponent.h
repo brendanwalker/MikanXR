@@ -15,7 +15,7 @@ public:
 
 protected:
 	AnchorObjectSystemPtr getAnchorObjectSystem() const;
-	AnchorObjectSystemConfigPtr getAnchorObjectSystemConfig() const;
+	AnchorObjectSystemDefinitionPtr getAnchorObjectSystemConfig() const;
 	StencilComponentPtr getStencilComponent() const;
 
 private:

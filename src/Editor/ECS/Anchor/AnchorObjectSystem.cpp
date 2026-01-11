@@ -13,11 +13,11 @@
 #include "StringUtils.h"
 
 // -- AnchorObjectSystemConfig -----
-const std::string AnchorObjectSystemConfig::k_anchorVRDevicePathPropertyId= "anchorVRDevicePath";
-const std::string AnchorObjectSystemConfig::k_anchorListPropertyId= "spatialAnchors";
-const std::string AnchorObjectSystemConfig::k_renderAnchorsPropertyId= "render_anchors";
+const std::string AnchorObjectSystemDefinition::k_anchorVRDevicePathPropertyId= "anchorVRDevicePath";
+const std::string AnchorObjectSystemDefinition::k_anchorListPropertyId= "spatialAnchors";
+const std::string AnchorObjectSystemDefinition::k_renderAnchorsPropertyId= "render_anchors";
 
-configuru::Config AnchorObjectSystemConfig::writeToJSON()
+configuru::Config AnchorObjectSystemDefinition::writeToJSON()
 {
 	configuru::Config pt = CommonConfig::writeToJSON();
 
@@ -35,7 +35,7 @@ configuru::Config AnchorObjectSystemConfig::writeToJSON()
 	return pt;
 }
 
-void AnchorObjectSystemConfig::readFromJSON(const configuru::Config& pt)
+void AnchorObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
@@ -59,12 +59,12 @@ void AnchorObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 	}
 }
 
-bool AnchorObjectSystemConfig::canAddAnchor() const
+bool AnchorObjectSystemDefinition::canAddAnchor() const
 {
 	return true;
 }
 
-AnchorDefinitionPtr AnchorObjectSystemConfig::getSpatialAnchorConfig(MikanSpatialAnchorID anchorId) const
+AnchorDefinitionPtr AnchorObjectSystemDefinition::getSpatialAnchorConfig(MikanSpatialAnchorID anchorId) const
 {
 	auto it = std::find_if(
 		spatialAnchorList.begin(), spatialAnchorList.end(),
@@ -80,7 +80,7 @@ AnchorDefinitionPtr AnchorObjectSystemConfig::getSpatialAnchorConfig(MikanSpatia
 	return AnchorDefinitionPtr();
 }
 
-AnchorDefinitionPtr AnchorObjectSystemConfig::getSpatialAnchorConfigByName(const std::string& anchorName) const
+AnchorDefinitionPtr AnchorObjectSystemDefinition::getSpatialAnchorConfigByName(const std::string& anchorName) const
 {
 	auto it = std::find_if(
 		spatialAnchorList.begin(), spatialAnchorList.end(),
@@ -96,7 +96,7 @@ AnchorDefinitionPtr AnchorObjectSystemConfig::getSpatialAnchorConfigByName(const
 	return AnchorDefinitionPtr();
 }
 
-MikanSpatialAnchorID AnchorObjectSystemConfig::addNewAnchor(MikanSceneID ownerSceneId)
+MikanSpatialAnchorID AnchorObjectSystemDefinition::addNewAnchor(MikanSceneID ownerSceneId)
 {
 	const MikanTransform anchorXform = glm_transform_to_MikanTransform(glm::mat4(1.f));
 	const std::string newAnchorName = StringUtils::stringify("Anchor ", nextAnchorId);
@@ -104,7 +104,7 @@ MikanSpatialAnchorID AnchorObjectSystemConfig::addNewAnchor(MikanSceneID ownerSc
 	return addNewAnchor(ownerSceneId, newAnchorName, anchorXform);
 }
 
-MikanSpatialAnchorID AnchorObjectSystemConfig::addNewAnchor(
+MikanSpatialAnchorID AnchorObjectSystemDefinition::addNewAnchor(
 	MikanSceneID ownerSceneId,
 	const std::string& anchorName, 
 	const MikanTransform& xform)
@@ -123,7 +123,7 @@ MikanSpatialAnchorID AnchorObjectSystemConfig::addNewAnchor(
 	return AnchorDefinitionPtr->getAnchorId();
 }
 
-bool AnchorObjectSystemConfig::removeAnchor(MikanSpatialAnchorID anchorId)
+bool AnchorObjectSystemDefinition::removeAnchor(MikanSpatialAnchorID anchorId)
 {
 	auto it = std::find_if(
 		spatialAnchorList.begin(), spatialAnchorList.end(),
@@ -144,7 +144,7 @@ bool AnchorObjectSystemConfig::removeAnchor(MikanSpatialAnchorID anchorId)
 	return false;
 }
 
-void AnchorObjectSystemConfig::setRenderAnchorsFlag(bool flag)
+void AnchorObjectSystemDefinition::setRenderAnchorsFlag(bool flag)
 {
 	if (m_bDebugRenderAnchors != flag)
 	{
@@ -158,7 +158,7 @@ bool AnchorObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
 	MikanObjectSystem::init(definitionPtr);
 
-	AnchorObjectSystemConfigConstPtr anchorSystemConfig = getAnchorSystemConfigConst();
+	AnchorObjectSystemDefinitionConstPtr anchorSystemConfig = getAnchorSystemConfigConst();
 
 	for (AnchorDefinitionPtr anchorConfig : anchorSystemConfig->spatialAnchorList)
 	{
@@ -229,7 +229,7 @@ bool AnchorObjectSystem::getSpatialAnchorWorldTransform(MikanSpatialAnchorID anc
 
 AnchorComponentPtr AnchorObjectSystem::addNewAnchor(MikanStageID ownerStageId)
 {
-	AnchorObjectSystemConfigPtr anchorSystemConfig = getAnchorSystemConfig();
+	AnchorObjectSystemDefinitionPtr anchorSystemConfig = getAnchorSystemConfig();
 
 	MikanSpatialAnchorID anchorId= anchorSystemConfig->addNewAnchor(ownerStageId);
 	if (anchorId != INVALID_MIKAN_ID)
@@ -248,7 +248,7 @@ AnchorComponentPtr AnchorObjectSystem::addNewAnchor(
 	const std::string& anchorName, 
 	const class GlmTransform& xform)
 {
-	AnchorObjectSystemConfigPtr anchorSystemConfig = getAnchorSystemConfig();
+	AnchorObjectSystemDefinitionPtr anchorSystemConfig = getAnchorSystemConfig();
 
 	MikanSpatialAnchorID anchorId = anchorSystemConfig->addNewAnchor(
 		ownerStageId,
@@ -275,7 +275,7 @@ bool AnchorObjectSystem::removeAnchor(MikanSpatialAnchorID anchorId)
 
 AnchorComponentPtr AnchorObjectSystem::createAnchorObject(AnchorDefinitionPtr anchorConfig)
 {
-	AnchorObjectSystemConfigConstPtr anchorSystemConfig = getAnchorSystemConfigConst();
+	AnchorObjectSystemDefinitionConstPtr anchorSystemConfig = getAnchorSystemConfigConst();
 	MikanObjectPtr anchorObject= newObject();
 	anchorObject->setName(anchorConfig->getComponentName());
 
@@ -316,14 +316,14 @@ void AnchorObjectSystem::disposeAnchorObject(MikanSpatialAnchorID anchorId)
 	}
 }
 
-AnchorObjectSystemConfigConstPtr AnchorObjectSystem::getAnchorSystemConfigConst() const
+AnchorObjectSystemDefinitionConstPtr AnchorObjectSystem::getAnchorSystemConfigConst() const
 {
 	return getProjectConfig()->anchorConfig;
 }
 
-AnchorObjectSystemConfigPtr AnchorObjectSystem::getAnchorSystemConfig()
+AnchorObjectSystemDefinitionPtr AnchorObjectSystem::getAnchorSystemConfig()
 {
-	return std::const_pointer_cast<AnchorObjectSystemConfig>(getAnchorSystemConfigConst());
+	return std::const_pointer_cast<AnchorObjectSystemDefinition>(getAnchorSystemConfigConst());
 }
 
 void AnchorObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)

@@ -19,10 +19,10 @@ class GlmTransform;
 
 using AnchorMap = std::map<MikanSpatialAnchorID, AnchorComponentWeakPtr>;
 
-class AnchorObjectSystemConfig : public MikanObjectSystemDefinition
+class AnchorObjectSystemDefinition : public MikanObjectSystemDefinition
 {
 public:
-	AnchorObjectSystemConfig(const std::string& configName)
+	AnchorObjectSystemDefinition(const std::string& configName)
 		: MikanObjectSystemDefinition(configName)
 	{}
 
@@ -64,8 +64,8 @@ public:
 	inline static const std::string k_objectSystemClassName = "AnchorObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
-	AnchorObjectSystemConfigConstPtr getAnchorSystemConfigConst() const;
-	AnchorObjectSystemConfigPtr getAnchorSystemConfig();
+	AnchorObjectSystemDefinitionConstPtr getAnchorSystemConfigConst() const;
+	AnchorObjectSystemDefinitionPtr getAnchorSystemConfig();
 
 	virtual MikanComponentPtr getComponentById(int componentId) const override;
 

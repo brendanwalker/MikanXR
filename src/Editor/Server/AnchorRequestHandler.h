@@ -14,7 +14,7 @@ public:
 	virtual void shutdown() override;
 
 protected:
-	AnchorObjectSystemConfigPtr getAnchorConfig();
+	AnchorObjectSystemDefinitionPtr getAnchorConfig();
 
 	// Anchor Events
 	void handleAnchorSystemConfigChange(

@@ -71,7 +71,7 @@ void AnchorRequestHandler::handleAnchorSystemConfigChange(
 
 		m_owner->publishMikanJsonEvent(mikanTypeToJsonString(poseUpdateEvent));
 	}
-	else if (changedPropertySet.hasPropertyName(AnchorObjectSystemConfig::k_anchorListPropertyId))
+	else if (changedPropertySet.hasPropertyName(AnchorObjectSystemDefinition::k_anchorListPropertyId))
 	{
 		MikanAnchorListUpdateEvent listUpdateEvent= {};
 
@@ -79,7 +79,7 @@ void AnchorRequestHandler::handleAnchorSystemConfigChange(
 	}
 }
 
-AnchorObjectSystemConfigPtr AnchorRequestHandler::getAnchorConfig()
+AnchorObjectSystemDefinitionPtr AnchorRequestHandler::getAnchorConfig()
 {
 	return m_anchorSystem.lock()->getAnchorSystemConfig();
 }

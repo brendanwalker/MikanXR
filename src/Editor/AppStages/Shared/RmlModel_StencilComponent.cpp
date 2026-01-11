@@ -98,7 +98,7 @@ AnchorObjectSystemPtr RmlModel_StencilComponent::getAnchorObjectSystem() const
 	return nullptr;
 }
 
-AnchorObjectSystemConfigPtr RmlModel_StencilComponent::getAnchorObjectSystemConfig() const
+AnchorObjectSystemDefinitionPtr RmlModel_StencilComponent::getAnchorObjectSystemConfig() const
 {
 	auto anchorObjectSystem = getAnchorObjectSystem();
 	if (anchorObjectSystem)

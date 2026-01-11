@@ -30,7 +30,7 @@ const std::string ProjectConfig::k_renderOriginFlagPropertyId= "renderOrigin";
 ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	: CommonConfig(fnamebase)
 {
-	anchorConfig = addTypedDefinition<AnchorObjectSystemConfig, AnchorObjectSystem>();
+	anchorConfig = addTypedDefinition<AnchorObjectSystemDefinition, AnchorObjectSystem>();
 	boxStencilSystemDefinition = addTypedDefinition<BoxStencilSystemDefinition, BoxStencilSystem>();
 	cameraConfig = addTypedDefinition<CameraObjectSystemConfig, CameraObjectSystem>();
 	clientConfig = addTypedDefinition<ClientTextureSourceSystemConfig, ClientTextureSourceSystem>();

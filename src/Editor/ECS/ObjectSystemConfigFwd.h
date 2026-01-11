@@ -17,10 +17,10 @@ using MikanObjectSystemDefinitionPtr = std::shared_ptr<MikanObjectSystemDefiniti
 using MikanObjectSystemDefinitionConstPtr = std::shared_ptr<const MikanObjectSystemDefinition>;
 using MikanObjectSystemDefinitionWeakPtr = std::weak_ptr<MikanObjectSystemDefinition>;
 
-class AnchorObjectSystemConfig;
-using AnchorObjectSystemConfigPtr = std::shared_ptr<AnchorObjectSystemConfig>;
-using AnchorObjectSystemConfigConstPtr = std::shared_ptr<const AnchorObjectSystemConfig>;
-using AnchorObjectSystemConfigWeakPtr = std::weak_ptr<AnchorObjectSystemConfig>;
+class AnchorObjectSystemDefinition;
+using AnchorObjectSystemDefinitionPtr = std::shared_ptr<AnchorObjectSystemDefinition>;
+using AnchorObjectSystemDefinitionConstPtr = std::shared_ptr<const AnchorObjectSystemDefinition>;
+using AnchorObjectSystemDefinitionWeakPtr = std::weak_ptr<AnchorObjectSystemDefinition>;
 
 class CameraObjectSystemConfig;
 using CameraObjectSystemConfigPtr = std::shared_ptr<CameraObjectSystemConfig>;
@@ -41,11 +41,6 @@ class EditorObjectSystemConfig;
 using EditorObjectSystemConfigPtr = std::shared_ptr<EditorObjectSystemConfig>;
 using EditorObjectSystemConfigConstPtr = std::shared_ptr<const EditorObjectSystemConfig>;
 using EditorObjectSystemConfigWeakPtr = std::weak_ptr<EditorObjectSystemConfig>;
-
-class MarkerSystemConfig;
-using MarkerSystemConfigPtr = std::shared_ptr<MarkerSystemConfig>;
-using MarkerSystemConfigConstPtr = std::shared_ptr<const MarkerSystemConfig>;
-using MarkerSystemConfigWeakPtr = std::weak_ptr<MarkerSystemConfig>;
 
 class MarkerObjectSystemDefinition;
 using MarkerObjectSystemDefinitionPtr = std::shared_ptr<MarkerObjectSystemDefinition>;

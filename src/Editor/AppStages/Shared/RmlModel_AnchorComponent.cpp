@@ -69,7 +69,7 @@ AnchorObjectSystemPtr RmlModel_AnchorComponent::getAnchorObjectSystem() const
 	return nullptr;
 }
 
-AnchorObjectSystemConfigPtr RmlModel_AnchorComponent::getAnchorObjectSystemConfig() const
+AnchorObjectSystemDefinitionPtr RmlModel_AnchorComponent::getAnchorObjectSystemConfig() const
 {
 	auto anchorObjectSystem = getAnchorObjectSystem();
 	if (anchorObjectSystem)

@@ -34,7 +34,7 @@ public:
 	}
 	MikanObjectSystemDefinitionPtr getDefinitionForSystem(MikanObjectSystemPtr systemPtr) const;
 
-	AnchorObjectSystemConfigPtr anchorConfig;
+	AnchorObjectSystemDefinitionPtr anchorConfig;
 	BoxStencilSystemDefinitionPtr boxStencilSystemDefinition;
 	CameraObjectSystemConfigPtr cameraConfig;
 	ClientTextureSourceSystemConfigPtr clientConfig;
