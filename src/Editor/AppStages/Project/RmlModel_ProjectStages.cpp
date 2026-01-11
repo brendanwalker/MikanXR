@@ -44,21 +44,9 @@ bool RmlModel_ProjectStages::init(ProjectRmlModelContext* context)
 
 	// Register component lists
 	m_stageIdList->init(
-		constructor, 
-		m_stageSystem.lock()->getStageSystemConfig(),
-		StageObjectSystemConfig::k_stageListPropertyId,
-		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			StageObjectSystemConfigConstPtr stageConfig = 
-				std::static_pointer_cast<StageObjectSystemConfig>(ownerConfig);
-
-			for (const auto& stagePtr : stageConfig->getStageList())
-			{
-				if (stagePtr)
-				{
-					outComponentIdList.push_back((int)stagePtr->getStageId());
-				}
-			}
-		});
+		constructor,
+		m_stageSystem.lock(),
+		StageObjectSystem::k_componentIdListPropertyId);
 
 	m_cameraIdList->init(
 		constructor,
@@ -207,7 +195,7 @@ void RmlModel_ProjectStages::addNewStage(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	getStageSystem()->addNewStage();
+	getStageSystem()->addNewObject();
 }
 
 void RmlModel_ProjectStages::removeStage(
@@ -215,7 +203,7 @@ void RmlModel_ProjectStages::removeStage(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	getStageSystem()->removeStage(m_selectedStageId);
+	getStageSystem()->removeObject(m_selectedStageId);
 }
 
 void RmlModel_ProjectStages::addNewCamera(

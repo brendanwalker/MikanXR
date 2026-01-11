@@ -60,6 +60,14 @@ public:
 
 	const ComponentMap& getAll() const { return m_components; }
 
+	void getAllComponentIds(std::vector<int>& outComponentIdList) const
+	{
+		for (auto it = m_components.begin(); it != m_components.end(); it++)
+		{
+			outComponentIdList.push_back(it->first);
+		}
+	}
+
 	// Lifecycle operations
 	ComponentPtr create(ComponentDefinitionPtr definition)
 	{

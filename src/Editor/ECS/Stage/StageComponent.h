@@ -15,9 +15,7 @@ class StageComponentDefinition : public TransformComponentDefinition
 {
 public:
 	StageComponentDefinition()= default;
-	StageComponentDefinition(
-		MikanStageID sceneId,
-		const std::string& componentName);
+	StageComponentDefinition(MikanStageID sceneId);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

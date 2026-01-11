@@ -46,7 +46,7 @@ public:
 	QuadStencilSystemDefinitionPtr quadStencilSystemDefinition;
 	SceneObjectSystemDefinitionPtr sceneConfig;
 	SpoutTextureSourceSystemConfigPtr spoutConfig;
-	StageObjectSystemConfigPtr stageConfig;
+	StageObjectSystemDefinitionPtr stageConfig;
 	TrackingMountObjectSystemConfigPtr trackingMountSystemConfig;
 	NetworkVideoSourceSystemConfigPtr networkVideoSourceSystemConfig;
 	USBVideoSourceSystemConfigPtr usbVideoSourceSystemConfig;

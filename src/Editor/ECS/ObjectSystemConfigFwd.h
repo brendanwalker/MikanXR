@@ -72,10 +72,10 @@ using SpoutTextureSourceSystemConfigPtr = std::shared_ptr<SpoutTextureSourceSyst
 using SpoutTextureSourceSystemConfigConstPtr = std::shared_ptr<const SpoutTextureSourceSystemConfig>;
 using SpoutTextureSourceSystemConfigWeakPtr = std::weak_ptr<SpoutTextureSourceSystemConfig>;
 
-class StageObjectSystemConfig;
-using StageObjectSystemConfigPtr = std::shared_ptr<StageObjectSystemConfig>;
-using StageObjectSystemConfigConstPtr = std::shared_ptr<const StageObjectSystemConfig>;
-using StageObjectSystemConfigWeakPtr = std::weak_ptr<StageObjectSystemConfig>;
+class StageObjectSystemDefinition;
+using StageObjectSystemDefinitionPtr = std::shared_ptr<StageObjectSystemDefinition>;
+using StageObjectSystemDefinitionConstPtr = std::shared_ptr<const StageObjectSystemDefinition>;
+using StageObjectSystemDefinitionWeakPtr = std::weak_ptr<StageObjectSystemDefinition>;
 
 class BoxStencilSystemDefinition;
 using BoxStencilSystemDefinitionPtr = std::shared_ptr<BoxStencilSystemDefinition>;

@@ -41,7 +41,7 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	modelStencilSystemDefinition = addTypedDefinition<ModelStencilSystemDefinition, ModelStencilSystem>();
 	quadStencilSystemDefinition = addTypedDefinition<QuadStencilSystemDefinition, QuadStencilSystem>();
 	sceneConfig = addTypedDefinition<SceneObjectSystemDefinition, SceneObjectSystem>();
-	stageConfig = addTypedDefinition<StageObjectSystemConfig, StageObjectSystem>();
+	stageConfig = addTypedDefinition<StageObjectSystemDefinition, StageObjectSystem>();
 	spoutConfig = addTypedDefinition<SpoutTextureSourceSystemConfig, SpoutTextureSourceSystem>();
 	trackingMountSystemConfig = addTypedDefinition<TrackingMountObjectSystemConfig, TrackingMountObjectSystem>();
 	networkVideoSourceSystemConfig = addTypedDefinition<NetworkVideoSourceSystemConfig, NetworkVideoSourceSystem>();

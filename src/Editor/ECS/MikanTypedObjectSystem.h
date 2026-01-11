@@ -12,6 +12,7 @@
 // TComponent: The component type (e.g., SceneComponent)
 // TDefinition: The component definition type (e.g., SceneComponentDefinition)
 // TID: The ID type used to identify components (e.g., MikanSceneID)
+// TSystem: The system type (e.g., SceneObjectSystem)
 // TSystemDefinition: The system definition type (e.g., SceneObjectSystemDefinition)
 template<class TComponent, class TDefinition, typename TID, class TSystem, class TSystemDefinition>
 class MikanTypedObjectSystem : public MikanObjectSystem
@@ -29,7 +30,7 @@ public:
 		ProjectManagerPtr ownerObjectSystem)
 		: MikanObjectSystem(ownerObjectSystem)
 		, m_pool(
-			this, 
+			this,
 			[this](auto def) { return this->objectFactory(def); })
 	{
 	}
@@ -50,15 +51,15 @@ public:
 	{
 		propertyDatabase->template registerPropertiesForSystem<TSystem>();
 		propertyDatabase->template registerPropertiesForComponent<TSystem, TComponent>();
-	}	
+	}
 
 	// System Definition Accessors
-	std::shared_ptr<const TSystemDefinition> getTypedDefinitionConst() const 
+	std::shared_ptr<const TSystemDefinition> getTypedDefinitionConst() const
 	{
 		return std::static_pointer_cast<const TSystemDefinition>(getDefinitionConst());
 	}
 
-	std::shared_ptr<TSystemDefinition> getTypedDefinition() 
+	std::shared_ptr<TSystemDefinition> getTypedDefinition()
 	{
 		return std::static_pointer_cast<TSystemDefinition>(getDefinition());
 	}
@@ -111,6 +112,29 @@ public:
 			systemDefinition->removeDefinition(componentId);
 	}
 
+	// -- IPropertyInterface ----
+	static const std::string k_componentIdListPropertyId;
+	static void getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+	{
+		MikanObjectSystem::getRmlPropertyDescriptors(outDescriptors);
+
+		outDescriptors.push_back(
+			std::make_shared<PropertyDescriptor>(k_componentIdListPropertyId, MikanVariantType::INT_ARRAY)
+			->setReadOnly());
+	}
+	virtual bool getPropertyValue(PropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override
+	{
+		if (propertyDesc->getName() == k_componentIdListPropertyId)
+		{
+			std::vector<int> componentIdList;
+			m_pool.getAllComponentIds(componentIdList);
+			outValue = componentIdList;
+			return true;
+		}
+
+		return MikanObjectSystem::getPropertyValue(propertyDesc, outValue);
+	}
+
 protected:
 	ComponentPtr createObjectFromDefinition(ComponentDefinitionPtr componentDefinition)
 	{
@@ -151,3 +175,13 @@ private:
 private:
 	Pool m_pool;
 };
+
+// Static member definitions
+template<class TComponent, class TDefinition, typename TID, class TSystem, class TSystemDefinition>
+const std::string MikanTypedObjectSystem<
+	TComponent,
+	TDefinition,
+	TID,
+	TSystem,
+	TSystemDefinition>
+::k_componentIdListPropertyId = TComponent::k_componentClassName + "IdList";

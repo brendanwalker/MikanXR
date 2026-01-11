@@ -64,16 +64,8 @@ bool RmlModel_ProjectScenes::init(ProjectRmlModelContext* context)
 	// Register component lists
 	m_stageIdList->init(
 		constructor,
-		m_stageSystem.lock()->getStageSystemConfig(),
-		StageObjectSystemConfig::k_stageListPropertyId,
-		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			auto stageSystemConfig = std::static_pointer_cast<StageObjectSystemConfig>(ownerConfig);
-
-			for (const StageComponentDefinitionPtr stageComponent : stageSystemConfig->getStageList())
-			{
-				outComponentIdList.push_back((int)stageComponent->getStageId());
-			}
-		});
+		m_stageSystem.lock(),
+		StageObjectSystem::k_componentIdListPropertyId);
 	m_sceneIdList->init(
 		constructor,
 		m_sceneSystem.lock()->getTypedDefinition(),

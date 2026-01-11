@@ -93,7 +93,7 @@ void ProjectManager::registerSystem(MikanObjectSystemPtr system)
 {
 	const int systemIndex = (int)m_systems.size();
 
-	m_systemNameToIndexMap.insert({ system->getSystemName(), systemIndex });
+	m_systemNameToIndexMap.insert({ system->getObjectSystemClassName(), systemIndex });
 	m_systems.push_back(system);
 }
 

@@ -4,6 +4,7 @@
 #include "MikanComponent.h"
 #include "MulticastDelegate.h"
 #include "MikanObjectSystem.h"
+#include "MikanPropertyDatabase.h"
 #include "ObjectSystemConfigFwd.h"
 #include "Shared\RmlDataBinding.h"
 
@@ -23,6 +24,37 @@ public:
 	virtual ~RmlDataBinding_List()
 	{
 		dispose();
+	}
+
+	bool init(
+		Rml::DataModelConstructor constructor,
+		MikanObjectSystemPtr ownerObjectSystem,
+		const std::string& listName)
+	{
+		// Find the property descriptor for the list property
+		auto propertyDatabase = ownerObjectSystem->getOwnerProjectManager()->getPropertyDatabaseConst();
+		PropertyDescriptorConstPtr propertyDescriptor= 
+			propertyDatabase->findPropertyDescriptor(
+				ownerObjectSystem->getObjectSystemClassName(),
+				"",
+				listName);
+		if (propertyDescriptor)
+		{
+			// Rebuild the list using the system's property interface
+			return init(
+				constructor,
+				ownerObjectSystem->getDefinition(),
+				listName,
+				[ownerObjectSystem, propertyDescriptor](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
+					MikanVariant listPropertyValue;
+					if (ownerObjectSystem->getPropertyValue(propertyDescriptor, listPropertyValue))
+					{
+						outComponentIdList = listPropertyValue.getIntArrayValue();
+					}
+				});
+		}
+
+		return false;
 	}
 
 	bool init(

@@ -11,7 +11,7 @@
 				<h3>Stage</h3>
 				<select id="select" name="select_stage_id" data-value="selected_stage_id" data-event-change="select_stage_entry()">
 					<option value="-1">-- None --</option>
-					<option data-for="stage_id : stage_ids" data-value="stage_id">{{stage_id | to_stage_name}}</option>
+					<option data-for="stage_id : StageComponentIdList" data-value="stage_id">{{stage_id | to_stage_name}}</option>
 				</select>				
 			</div>
 			

@@ -54,7 +54,6 @@ public:
 
 	ProjectConfigPtr getProjectConfig() const;
 
-	const std::string& getSystemName() const { return m_systemName; };
 	virtual MikanComponentPtr getComponentById(int componentId) const = 0;
 
 	MikanObjectPtr newObject();
