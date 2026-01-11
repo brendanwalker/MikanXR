@@ -33,7 +33,7 @@ bool RmlModel_VRTrackingVolumeComponent::onConstruct(Rml::DataModelConstructor& 
 			auto markerObjectSystem = getMarkerObjectSystem();
 			if (markerObjectSystem)
 			{
-				for (const auto& it : markerObjectSystem->getMarkerMap())
+				for (const auto& it : markerObjectSystem->getComponentMap())
 				{
 					outComponentIdList.push_back((int)it.first);
 				}
@@ -94,7 +94,7 @@ bool RmlModel_VRTrackingVolumeComponent::setComponent(MikanComponentPtr componen
 {
 	if (RmlModel_MikanComponent::setComponent(component))
 	{
-		m_markerComponentIdList->setOwnerConfig(getMarkerObjectSystemConfig());
+		m_markerComponentIdList->setOwnerConfig(getMarkerObjectSystemDefinition());
 		m_markerComponentIdList->rebuildList(true);
 
 		m_trackingMountIdList->setOwnerConfig(component ? component->getDefinition() : CommonConfigPtr());
@@ -117,12 +117,12 @@ MarkerObjectSystemPtr RmlModel_VRTrackingVolumeComponent::getMarkerObjectSystem(
 	return nullptr;
 }
 
-MarkerObjectSystemConfigPtr RmlModel_VRTrackingVolumeComponent::getMarkerObjectSystemConfig() const
+MarkerObjectSystemDefinitionPtr RmlModel_VRTrackingVolumeComponent::getMarkerObjectSystemDefinition() const
 {
 	auto markerObjectSystem = getMarkerObjectSystem();
 	if (markerObjectSystem)
 	{
-		return markerObjectSystem->getMarkerSystemConfig();
+		return markerObjectSystem->getTypedDefinition();
 	}
 
 	return nullptr;

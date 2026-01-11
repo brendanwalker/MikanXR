@@ -27,10 +27,10 @@ bool RmlModel_MarkerComponent::onConstruct(Rml::DataModelConstructor& constructo
 	m_arucoIdList->init(
 		constructor,
 		CommonConfigPtr(),
-		MarkerObjectSystemConfig::k_arucoIdListPropertyId,
-		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outArucoIdList) 
+		MarkerObjectSystemDefinition::k_arucoIdListPropertyId,
+		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outArucoIdList)
 		{
-			auto markerObjectSystemConfig = getMarkerObjectSystemConfig();
+			auto markerObjectSystemConfig = getMarkerObjectSystemDefinition();
 			if (markerObjectSystemConfig)
 			{
 				markerObjectSystemConfig->getArucoIdList(outArucoIdList);
@@ -61,9 +61,6 @@ bool RmlModel_MarkerComponent::setComponent(MikanComponentPtr component)
 {
 	if (RmlModel_MikanComponent::setComponent(component))
 	{
-		m_arucoIdList->setOwnerConfig(getMarkerObjectSystemConfig());
-		m_arucoIdList->rebuildList(true);
-
 		// Notify listeners that a marker was selected
 		MarkerComponentPtr markerComponent = getMarkerComponent();
 		if (markerComponent && OnMarkerSelected)
@@ -88,12 +85,12 @@ MarkerObjectSystemPtr RmlModel_MarkerComponent::getMarkerObjectSystem() const
 	return nullptr;
 }
 
-MarkerObjectSystemConfigPtr RmlModel_MarkerComponent::getMarkerObjectSystemConfig() const
+MarkerObjectSystemDefinitionPtr RmlModel_MarkerComponent::getMarkerObjectSystemDefinition() const
 {
 	auto markerObjectSystem = getMarkerObjectSystem();
 	if (markerObjectSystem)
 	{
-		return markerObjectSystem->getMarkerSystemConfig();
+		return markerObjectSystem->getTypedDefinition();
 	}
 
 	return nullptr;

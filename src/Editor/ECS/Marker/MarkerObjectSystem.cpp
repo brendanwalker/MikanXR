@@ -19,32 +19,28 @@
 
 #include <filesystem>
 
-// -- MarkerObjectSystemConfig -----
-const std::string MarkerObjectSystemConfig::k_arucoMarkerListPropertyId= "arucoMarkers";
-const std::string MarkerObjectSystemConfig::k_arucoIdListPropertyId = "arucoIdList";
-const std::string MarkerObjectSystemConfig::k_arucoDictionaryTypePropertyId = "arucoDictionaryType";
-const std::string MarkerObjectSystemConfig::k_charucoRowsPropertyId = "charucoRows";
-const std::string MarkerObjectSystemConfig::k_charucoColsPropertyId = "charucoCols";
-const std::string MarkerObjectSystemConfig::k_charucoSquareLengthMMPropertyId = "charucoSquareLengthMM";
-const std::string MarkerObjectSystemConfig::k_charucoMarkerLengthMMPropertyId = "charucoMarkerLengthMM";
-const std::string MarkerObjectSystemConfig::k_charucoDictionaryTypePropertyId = "charucoDictionaryType";
+// -- MarkerObjectSystemDefinition -----
+const std::string MarkerObjectSystemDefinition::k_markerPoolPropertyId = "marker_pool";
+const std::string MarkerObjectSystemDefinition::k_arucoIdListPropertyId = "arucoIdList";
+const std::string MarkerObjectSystemDefinition::k_arucoDictionaryTypePropertyId = "arucoDictionaryType";
+const std::string MarkerObjectSystemDefinition::k_charucoRowsPropertyId = "charucoRows";
+const std::string MarkerObjectSystemDefinition::k_charucoColsPropertyId = "charucoCols";
+const std::string MarkerObjectSystemDefinition::k_charucoSquareLengthMMPropertyId = "charucoSquareLengthMM";
+const std::string MarkerObjectSystemDefinition::k_charucoMarkerLengthMMPropertyId = "charucoMarkerLengthMM";
+const std::string MarkerObjectSystemDefinition::k_charucoDictionaryTypePropertyId = "charucoDictionaryType";
 
-configuru::Config MarkerObjectSystemConfig::writeToJSON()
+MarkerObjectSystemDefinition::MarkerObjectSystemDefinition(const std::string& configName)
+	: Super::MikanTypedObjectSystemDefinition(configName, k_markerPoolPropertyId)
 {
-	configuru::Config pt = CommonConfig::writeToJSON();
+}
 
-	pt["nextMarkerId"] = nextMarkerId;
+configuru::Config MarkerObjectSystemDefinition::writeToJSON()
+{
+	configuru::Config pt = Super::writeToJSON();
 
 	// ArUco settings
 	const std::string& arucoDictionaryType = k_charucoDictionaryStrings[(int)m_arucoDictionaryType];
 	pt[k_arucoDictionaryTypePropertyId] = arucoDictionaryType;
-
-	std::vector<configuru::Config> markerConfigs;
-	for (MarkerDefinitionPtr MarkerDefinitionPtr : m_arucoMarkerList)
-	{
-		markerConfigs.push_back(MarkerDefinitionPtr->writeToJSON());
-	}
-	pt.insert_or_assign(MarkerObjectSystemConfig::k_arucoMarkerListPropertyId, markerConfigs);
 
 	// ChArUco settings
 	pt[k_charucoRowsPropertyId] = m_charucoRows;
@@ -58,11 +54,9 @@ configuru::Config MarkerObjectSystemConfig::writeToJSON()
 	return pt;
 }
 
-void MarkerObjectSystemConfig::readFromJSON(const configuru::Config& pt)
+void MarkerObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 {
-	CommonConfig::readFromJSON(pt);
-
-	nextMarkerId = pt.get_or<int>("nextMarkerId", nextMarkerId);
+	Super::readFromJSON(pt);
 
 	// Read in the ArUco settings
 	const std::string charcuoDictionaryString =
@@ -74,21 +68,7 @@ void MarkerObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 			charcuoDictionaryString,
 			k_charucoDictionaryStrings);
 
-	m_arucoMarkerList.clear();
-	if (pt.has_key(MarkerObjectSystemConfig::k_arucoMarkerListPropertyId))
-	{
-		for (const configuru::Config& marker_pt : pt[MarkerObjectSystemConfig::k_arucoMarkerListPropertyId].as_array())
-		{
-			MarkerDefinitionPtr markerDefinitionPtr = std::make_shared<MarkerDefinition>();
-
-			markerDefinitionPtr->readFromJSON(marker_pt);
-			m_arucoMarkerList.push_back(markerDefinitionPtr);
-
-			addChildConfig(markerDefinitionPtr);
-		}
-	}
-
-	// Read ChAruco settings
+	// Read ChArUco settings
 	m_charucoRows = pt.get_or<int>(k_charucoRowsPropertyId, m_charucoRows);
 	m_charucoCols = pt.get_or<int>(k_charucoColsPropertyId, m_charucoCols);
 	m_charucoSquareLengthMM = pt.get_or<float>(k_charucoSquareLengthMMPropertyId, m_charucoSquareLengthMM);
@@ -104,82 +84,10 @@ void MarkerObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 			k_charucoDictionaryStrings);
 }
 
-MarkerDefinitionPtr MarkerObjectSystemConfig::getMarkerConfig(MikanMarkerID markerId) const
-{
-	auto it = std::find_if(
-		m_arucoMarkerList.begin(), m_arucoMarkerList.end(),
-		[markerId](MarkerDefinitionPtr configPtr) {
-			return configPtr->getMarkerId() == markerId;
-		});
-
-	if (it != m_arucoMarkerList.end())
-	{
-		return MarkerDefinitionPtr(*it);
-	}
-
-	return MarkerDefinitionPtr();
-}
-
-MarkerDefinitionPtr MarkerObjectSystemConfig::getMarkerConfigByName(const std::string& markerName) const
-{
-	auto it = std::find_if(
-		m_arucoMarkerList.begin(), m_arucoMarkerList.end(),
-		[markerName](MarkerDefinitionPtr configPtr) {
-			return configPtr->getComponentName() == markerName;
-		});
-
-	if (it != m_arucoMarkerList.end())
-	{
-		return MarkerDefinitionPtr(*it);
-	}
-
-	return MarkerDefinitionPtr();
-}
-
-MikanMarkerID MarkerObjectSystemConfig::addNewMarker()
-{
-	return addNewMarker("Marker_" + std::to_string(nextMarkerId));
-}
-
-MikanMarkerID MarkerObjectSystemConfig::addNewMarker(const std::string& markerName)
-{
-	MarkerDefinitionPtr MarkerDefinitionPtr = 
-		std::make_shared<MarkerDefinition>(nextMarkerId, markerName);
-	nextMarkerId++;
-
-	m_arucoMarkerList.push_back(MarkerDefinitionPtr);
-	addChildConfig(MarkerDefinitionPtr);
-
-	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_arucoMarkerListPropertyId));
-
-	return MarkerDefinitionPtr->getMarkerId();
-}
-
-bool MarkerObjectSystemConfig::removeMarker(MikanMarkerID markerId)
-{
-	auto it = std::find_if(
-		m_arucoMarkerList.begin(), m_arucoMarkerList.end(),
-		[markerId](MarkerDefinitionPtr configPtr) {
-		return configPtr->getMarkerId() == markerId;
-	});
-
-	if (it != m_arucoMarkerList.end())
-	{
-		removeChildConfig(*it);
-
-		m_arucoMarkerList.erase(it);
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_arucoMarkerListPropertyId));
-
-		return true;
-	}
-
-	return false;
-}
-
-void MarkerObjectSystemConfig::setArucoDictionaryType(eCharucoDictionaryType dictionaryType)
+void MarkerObjectSystemDefinition::setArucoDictionaryType(eCharucoDictionaryType dictionaryType)
 {
 	if (dictionaryType != m_arucoDictionaryType &&
-		(int)dictionaryType >= 0 && 
+		(int)dictionaryType >= 0 &&
 		(int)dictionaryType < (int)eCharucoDictionaryType::COUNT)
 	{
 		m_arucoDictionaryType = dictionaryType;
@@ -189,7 +97,7 @@ void MarkerObjectSystemConfig::setArucoDictionaryType(eCharucoDictionaryType dic
 	}
 }
 
-void MarkerObjectSystemConfig::getArucoIdList(std::vector<int>& outMarkerIdList) const
+void MarkerObjectSystemDefinition::getArucoIdList(std::vector<int>& outMarkerIdList) const
 {
 	outMarkerIdList.clear();
 
@@ -216,10 +124,10 @@ void MarkerObjectSystemConfig::getArucoIdList(std::vector<int>& outMarkerIdList)
 	}
 }
 
-void MarkerObjectSystemConfig::setCharucoRows(int charucoRows)
+void MarkerObjectSystemDefinition::setCharucoRows(int charucoRows)
 {
-	if (charucoRows != m_charucoRows && 
-		charucoRows >= MIN_CHARUCO_CORNER_COUNT && 
+	if (charucoRows != m_charucoRows &&
+		charucoRows >= MIN_CHARUCO_CORNER_COUNT &&
 		charucoRows <= MAX_CHARUCO_CORNER_COUNT)
 	{
 		m_charucoRows = charucoRows;
@@ -227,7 +135,7 @@ void MarkerObjectSystemConfig::setCharucoRows(int charucoRows)
 	}
 }
 
-void MarkerObjectSystemConfig::setCharucoCols(int charucoCols)
+void MarkerObjectSystemDefinition::setCharucoCols(int charucoCols)
 {
 	if (charucoCols != m_charucoCols &&
 		charucoCols >= MIN_CHARUCO_CORNER_COUNT &&
@@ -238,7 +146,7 @@ void MarkerObjectSystemConfig::setCharucoCols(int charucoCols)
 	}
 }
 
-void MarkerObjectSystemConfig::setCharucoSquareLengthMM(float charucoSquareLengthMM)
+void MarkerObjectSystemDefinition::setCharucoSquareLengthMM(float charucoSquareLengthMM)
 {
 	if (charucoSquareLengthMM != m_charucoSquareLengthMM)
 	{
@@ -247,7 +155,7 @@ void MarkerObjectSystemConfig::setCharucoSquareLengthMM(float charucoSquareLengt
 	}
 }
 
-void MarkerObjectSystemConfig::setCharucoMarkerLengthMM(float charucoMarkerLengthMM)
+void MarkerObjectSystemDefinition::setCharucoMarkerLengthMM(float charucoMarkerLengthMM)
 {
 	if (charucoMarkerLengthMM != m_charucoMarkerLengthMM)
 	{
@@ -256,7 +164,7 @@ void MarkerObjectSystemConfig::setCharucoMarkerLengthMM(float charucoMarkerLengt
 	}
 }
 
-void MarkerObjectSystemConfig::setCharucoDictionaryType(eCharucoDictionaryType charucoDictionaryType)
+void MarkerObjectSystemDefinition::setCharucoDictionaryType(eCharucoDictionaryType charucoDictionaryType)
 {
 	if (charucoDictionaryType != m_charucoDictionaryType &&
 		(int)charucoDictionaryType >= 0 &&
@@ -268,253 +176,139 @@ void MarkerObjectSystemConfig::setCharucoDictionaryType(eCharucoDictionaryType c
 }
 
 // -- MarkerObjectSystem -----
-bool MarkerObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
+MarkerObjectSystem::MarkerObjectSystem(ProjectManagerPtr ownerObjectSystemManager)
+	: Super::MikanTypedObjectSystem(ownerObjectSystemManager)
 {
-	MikanObjectSystem::init(definitionPtr);
-
-	MarkerObjectSystemConfigConstPtr markerSystemConfig = getMarkerSystemConfigConst();
-
-	for (MarkerDefinitionPtr markerConfig : markerSystemConfig->getArucoMarkerList())
-	{
-		createMarkerObject(markerConfig);
-	}
-
-	return true;
-}
-
-void MarkerObjectSystem::dispose()
-{
-	m_markerComponents.clear();
-
-	MikanObjectSystem::dispose();
-}
-
-MikanComponentPtr MarkerObjectSystem::getComponentById(int componentId) const
-{
-	return getMarkerById(componentId);
-}
-
-void MarkerObjectSystem::deleteObjectConfig(MikanObjectPtr objectPtr)
-{
-	MarkerComponentPtr markerComponent = objectPtr->getComponentOfType<MarkerComponent>();
-	if (markerComponent != nullptr)
-	{
-		removeMarker(markerComponent->getMarkerDefinition()->getMarkerId());
-	}
-}
-
-MarkerComponentPtr MarkerObjectSystem::getMarkerById(MikanMarkerID markerId) const
-{
-	auto iter = m_markerComponents.find(markerId);
-	if (iter != m_markerComponents.end())
-	{
-		return iter->second.lock();
-	}
-
-	return MarkerComponentPtr();
-}
-
-MarkerComponentPtr MarkerObjectSystem::getMarkerByName(const std::string& markerName) const
-{
-	for (auto it = m_markerComponents.begin(); it != m_markerComponents.end(); it++)
-	{
-		MarkerComponentPtr componentPtr = it->second.lock();
-
-		if (componentPtr && componentPtr->getName() == markerName)
-		{
-			return componentPtr;
-		}
-	}
-
-	return MarkerComponentPtr();
-}
-
-MarkerComponentPtr MarkerObjectSystem::addNewMarker()
-{
-	MarkerObjectSystemConfigPtr markerSystemConfig = getMarkerSystemConfig();
-
-	MikanMarkerID markerId = markerSystemConfig->addNewMarker();
-	if (markerId != INVALID_MIKAN_ID)
-	{
-		MarkerDefinitionPtr markerConfig = markerSystemConfig->getMarkerConfig(markerId);
-		assert(markerConfig != nullptr);
-
-		return createMarkerObject(markerConfig);
-	}
-
-	return MarkerComponentPtr();
-}
-
-bool MarkerObjectSystem::removeMarker(MikanMarkerID markerId)
-{
-	getMarkerSystemConfig()->removeMarker(markerId);
-	disposeMarkerObject(markerId);
-
-	return true;
-}
-
-MarkerComponentPtr MarkerObjectSystem::createMarkerObject(MarkerDefinitionPtr markerConfig)
-{
-	MikanObjectPtr markerObject = newObject();
-	markerObject->setName(markerConfig->getComponentName());
-
-	// Add marker component to the object
-	MarkerComponentPtr markerComponentPtr = markerObject->addComponent<MarkerComponent>();
-	markerComponentPtr->setDefinition(markerConfig);
-	m_markerComponents.insert({markerConfig->getMarkerId(), markerComponentPtr});
-
-	// Init the object once all components are added
-	markerObject->init();
-
-	return markerComponentPtr;
-}
-
-void MarkerObjectSystem::disposeMarkerObject(MikanMarkerID markerId)
-{
-	auto it = m_markerComponents.find(markerId);
-	if (it != m_markerComponents.end())
-	{
-		MarkerComponentPtr markerComponentPtr = it->second.lock();
-
-		// Remove from component list
-		m_markerComponents.erase(it);
-
-		// Free the corresponding object
-		deleteObject(markerComponentPtr->getOwnerObject());
-	}
-}
-
-MarkerObjectSystemConfigConstPtr MarkerObjectSystem::getMarkerSystemConfigConst() const
-{
-	return getProjectConfig()->markerSystemConfig;
-}
-
-MarkerObjectSystemConfigPtr MarkerObjectSystem::getMarkerSystemConfig()
-{
-	return std::const_pointer_cast<MarkerObjectSystemConfig>(getMarkerSystemConfigConst());
 }
 
 // -- IPropertyInterface ----
 void MarkerObjectSystem::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
-	MikanObjectSystem::getPropertyDescriptors(outDescriptors);
+	Super::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			MarkerObjectSystemConfig::k_arucoDictionaryTypePropertyId, MikanVariantType::INT)
+			MarkerObjectSystemDefinition::k_arucoIdListPropertyId, MikanVariantType::INT_ARRAY)
+		->setReadOnly());
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			MarkerObjectSystemDefinition::k_arucoDictionaryTypePropertyId, MikanVariantType::INT)
 		->setDefaultValue((int)DEFAULT_ARUCO_DICTIONARY_TYPE));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			MarkerObjectSystemConfig::k_charucoDictionaryTypePropertyId, MikanVariantType::INT)
+			MarkerObjectSystemDefinition::k_charucoDictionaryTypePropertyId, MikanVariantType::INT)
 		->setDefaultValue((int)DEFAULT_CHARUCO_DICTIONARY_TYPE));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			MarkerObjectSystemConfig::k_charucoRowsPropertyId, MikanVariantType::INT)
+			MarkerObjectSystemDefinition::k_charucoRowsPropertyId, MikanVariantType::INT)
 		->setDefaultValue(CHARUCO_PATTERN_H));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			MarkerObjectSystemConfig::k_charucoColsPropertyId, MikanVariantType::INT)
+			MarkerObjectSystemDefinition::k_charucoColsPropertyId, MikanVariantType::INT)
 		->setDefaultValue(CHARUCO_PATTERN_W));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			MarkerObjectSystemConfig::k_charucoSquareLengthMMPropertyId, MikanVariantType::FLOAT)
+			MarkerObjectSystemDefinition::k_charucoSquareLengthMMPropertyId, MikanVariantType::FLOAT)
 		->setDefaultValue(DEFAULT_CHARUCO_SQUARE_LEN_MM));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			MarkerObjectSystemConfig::k_charucoMarkerLengthMMPropertyId, MikanVariantType::FLOAT)
+			MarkerObjectSystemDefinition::k_charucoMarkerLengthMMPropertyId, MikanVariantType::FLOAT)
 		->setDefaultValue(DEFAULT_CHARUCO_MARKER_LEN_MM));
 }
 
 bool MarkerObjectSystem::getPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc, 
+	PropertyDescriptorConstPtr propertyDesc,
 	MikanVariant& outValue) const
 {
 	const std::string& propertyName = propertyDesc->getName();
+	MarkerObjectSystemDefinitionConstPtr markerSystemDefinition = getTypedDefinitionConst();
 
-	if (propertyName == MarkerObjectSystemConfig::k_arucoDictionaryTypePropertyId)
+	if (propertyName == MarkerObjectSystemDefinition::k_arucoIdListPropertyId)
 	{
-		outValue = (int)getMarkerSystemConfigConst()->getArucoDictionaryType();
+		std::vector<int> arucoIdList;
+		markerSystemDefinition->getArucoIdList(arucoIdList);
+		outValue = arucoIdList;
 		return true;
 	}
-	else if (propertyName == MarkerObjectSystemConfig::k_charucoDictionaryTypePropertyId)
+	else if (propertyName == MarkerObjectSystemDefinition::k_arucoDictionaryTypePropertyId)
 	{
-		outValue = (int)getMarkerSystemConfigConst()->getCharucoDictionaryType();
+		outValue = (int)markerSystemDefinition->getArucoDictionaryType();
 		return true;
 	}
-	else if (propertyName == MarkerObjectSystemConfig::k_charucoRowsPropertyId)
+	else if (propertyName == MarkerObjectSystemDefinition::k_charucoDictionaryTypePropertyId)
 	{
-		outValue = getMarkerSystemConfigConst()->getCharucoRows();
+		outValue = (int)markerSystemDefinition->getCharucoDictionaryType();
 		return true;
 	}
-	else if (propertyName == MarkerObjectSystemConfig::k_charucoColsPropertyId)
+	else if (propertyName == MarkerObjectSystemDefinition::k_charucoRowsPropertyId)
 	{
-		outValue = getMarkerSystemConfigConst()->getCharucoCols();
+		outValue = markerSystemDefinition->getCharucoRows();
 		return true;
 	}
-	else if (propertyName == MarkerObjectSystemConfig::k_charucoSquareLengthMMPropertyId)
+	else if (propertyName == MarkerObjectSystemDefinition::k_charucoColsPropertyId)
 	{
-		outValue = getMarkerSystemConfigConst()->getCharucoSquareLengthMM();
+		outValue = markerSystemDefinition->getCharucoCols();
 		return true;
 	}
-	else if (propertyName == MarkerObjectSystemConfig::k_charucoMarkerLengthMMPropertyId)
+	else if (propertyName == MarkerObjectSystemDefinition::k_charucoSquareLengthMMPropertyId)
 	{
-		outValue = getMarkerSystemConfigConst()->getCharucoMarkerLengthMM();
+		outValue = markerSystemDefinition->getCharucoSquareLengthMM();
+		return true;
+	}
+	else if (propertyName == MarkerObjectSystemDefinition::k_charucoMarkerLengthMMPropertyId)
+	{
+		outValue = markerSystemDefinition->getCharucoMarkerLengthMM();
 		return true;
 	}
 
-	return MikanObjectSystem::getPropertyValue(propertyDesc, outValue);
+	return Super::getPropertyValue(propertyDesc, outValue);
 }
 
 bool MarkerObjectSystem::setPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc, 
+	PropertyDescriptorConstPtr propertyDesc,
 	const MikanVariant& inValue)
 {
 	const std::string& propertyName = propertyDesc->getName();
+	MarkerObjectSystemDefinitionPtr markerSystemDefinition = getTypedDefinition();
 
-	if (propertyName == MarkerObjectSystemConfig::MarkerObjectSystemConfig::k_arucoDictionaryTypePropertyId)
+	if (propertyName == MarkerObjectSystemDefinition::k_arucoDictionaryTypePropertyId)
 	{
 		const auto dictionaryType = (eCharucoDictionaryType)inValue.getIntValue();
-		getMarkerSystemConfig()->setArucoDictionaryType(dictionaryType);
+		markerSystemDefinition->setArucoDictionaryType(dictionaryType);
 		return true;
 	}
-	else if (propertyName == MarkerObjectSystemConfig::k_charucoDictionaryTypePropertyId)
+	else if (propertyName == MarkerObjectSystemDefinition::k_charucoDictionaryTypePropertyId)
 	{
 		const auto dictionaryType = (eCharucoDictionaryType)inValue.getIntValue();
-		getMarkerSystemConfig()->setCharucoDictionaryType(dictionaryType);
+		markerSystemDefinition->setCharucoDictionaryType(dictionaryType);
 		return true;
 	}
-	else if (propertyName == MarkerObjectSystemConfig::k_charucoRowsPropertyId)
+	else if (propertyName == MarkerObjectSystemDefinition::k_charucoRowsPropertyId)
 	{
 		int charucoRows = inValue.getIntValue();
-		getMarkerSystemConfig()->setCharucoRows(charucoRows);
+		markerSystemDefinition->setCharucoRows(charucoRows);
 		return true;
 	}
-	else if (propertyName == MarkerObjectSystemConfig::k_charucoColsPropertyId)
+	else if (propertyName == MarkerObjectSystemDefinition::k_charucoColsPropertyId)
 	{
 		int charucoCols = inValue.getIntValue();
-		getMarkerSystemConfig()->setCharucoCols(charucoCols);
+		markerSystemDefinition->setCharucoCols(charucoCols);
 		return true;
 	}
-	else if (propertyName == MarkerObjectSystemConfig::k_charucoSquareLengthMMPropertyId)
+	else if (propertyName == MarkerObjectSystemDefinition::k_charucoSquareLengthMMPropertyId)
 	{
 		float charucoSquareLengthMM = inValue.getFloatValue();
-		getMarkerSystemConfig()->setCharucoSquareLengthMM(charucoSquareLengthMM);
+		markerSystemDefinition->setCharucoSquareLengthMM(charucoSquareLengthMM);
 		return true;
 	}
-	else if (propertyName == MarkerObjectSystemConfig::k_charucoMarkerLengthMMPropertyId)
+	else if (propertyName == MarkerObjectSystemDefinition::k_charucoMarkerLengthMMPropertyId)
 	{
 		float charucoMarkerLengthMM = inValue.getFloatValue();
-		getMarkerSystemConfig()->setCharucoMarkerLengthMM(charucoMarkerLengthMM);
+		markerSystemDefinition->setCharucoMarkerLengthMM(charucoMarkerLengthMM);
 		return true;
 	}
 
-	return MikanObjectSystem::setPropertyValue(propertyDesc, inValue);
-}
-
-void MarkerObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
-{
-	propertyDatabase->registerPropertiesForSystem<MarkerObjectSystem>();
-	propertyDatabase->registerPropertiesForComponent<MarkerObjectSystem, MarkerComponent>();
+	return Super::setPropertyValue(propertyDesc, inValue);
 }
 
 // -- IFunctionInterface ----
@@ -522,7 +316,7 @@ const std::string MarkerObjectSystem::k_printCharucoMarkerFunctionId = "print_ch
 
 void MarkerObjectSystem::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
-	MikanObjectSystem::getFunctionDescriptors(outDescriptors);
+	Super::getFunctionDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(
@@ -539,22 +333,22 @@ bool MarkerObjectSystem::invokeFunction(FunctionDescriptorConstPtr functionDesc)
 		return true;
 	}
 
-	return MikanObjectSystem::invokeFunction(functionDesc);
+	return Super::invokeFunction(functionDesc);
 }
 
 void MarkerObjectSystem::printMarker()
 {
-	MarkerObjectSystemConfigPtr markerSystemConfig = getMarkerSystemConfig();
+	MarkerObjectSystemDefinitionPtr markerSystemDefinition = getTypedDefinition();
 	ArucoDictionaryPtr dictionary =
 		CalibrationPatternFinder::getArucoDictionary(
-			markerSystemConfig->getArucoDictionaryType());
+			markerSystemDefinition->getArucoDictionaryType());
 
 	// Get ChArUco board parameters from config
-	const int charucoRows = markerSystemConfig->getCharucoRows();
-	const int charucoCols = markerSystemConfig->getCharucoCols();
-	const float squareLengthMM = markerSystemConfig->getCharucoSquareLengthMM();
-	const float markerLengthMM = markerSystemConfig->getCharucoMarkerLengthMM();
-	const eCharucoDictionaryType charucoDictionaryType = markerSystemConfig->getCharucoDictionaryType();
+	const int charucoRows = markerSystemDefinition->getCharucoRows();
+	const int charucoCols = markerSystemDefinition->getCharucoCols();
+	const float squareLengthMM = markerSystemDefinition->getCharucoSquareLengthMM();
+	const float markerLengthMM = markerSystemDefinition->getCharucoMarkerLengthMM();
+	const eCharucoDictionaryType charucoDictionaryType = markerSystemDefinition->getCharucoDictionaryType();
 
 	// Create ChArUco board
 	cv::aruco::CharucoBoard charucoBoard(

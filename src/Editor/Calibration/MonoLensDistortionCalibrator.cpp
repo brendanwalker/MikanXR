@@ -82,7 +82,7 @@ MonoLensDistortionCalibrator::MonoLensDistortionCalibrator(
 	: m_calibrationState(new MonoLensDistortionCalibrationState)
 	, m_distortionView(distortionView)
 {
-	auto markerConfig= markerObjectSystem->getMarkerSystemConfig();
+	auto markerConfig= markerObjectSystem->getTypedDefinition();
 	m_patternFinder= 
 		new CalibrationPatternFinder_Charuco(
 			distortionView,

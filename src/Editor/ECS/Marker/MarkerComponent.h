@@ -16,9 +16,7 @@ class MarkerDefinition : public MikanComponentDefinition
 {
 public:
 	MarkerDefinition();
-	MarkerDefinition(
-		MikanMarkerID markerId,
-		const std::string& markerName);
+	MarkerDefinition(MikanMarkerID markerId);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

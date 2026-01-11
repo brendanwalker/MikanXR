@@ -5,6 +5,9 @@
 
 template <typename t_element_type> class RmlDataBinding_List;
 
+using RmlDataBinding_IntList = RmlDataBinding_List<int>;
+using RmlDataBinding_IntListPtr = std::shared_ptr<RmlDataBinding_IntList>;
+
 using RmlDataBinding_ComponentIdList = RmlDataBinding_List<int>;
 using RmlDataBinding_ComponentIdListPtr = std::shared_ptr<RmlDataBinding_ComponentIdList>;
 

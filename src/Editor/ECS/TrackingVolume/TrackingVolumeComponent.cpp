@@ -66,7 +66,7 @@ MarkerDefinitionConstPtr TrackingVolumeDefinition::getOriginMarker() const
 {
 	if (m_originMarkeId == INVALID_MIKAN_ID)
 	{
-		return getMarkerObjectSystem()->getMarkerSystemConfig()->getMarkerConfig(m_originMarkeId);
+		return getMarkerObjectSystem()->getTypedDefinition()->getDefinitionById(m_originMarkeId);
 	}
 
 	return MarkerDefinitionConstPtr();

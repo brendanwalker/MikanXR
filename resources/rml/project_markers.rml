@@ -11,7 +11,7 @@
 				<h1>Markers</h1>
 				<select id="select" name="select_marker_id" data-value="selected_marker_id" data-event-change="select_marker_entry()">
 					<option value="-1">-- None --</option>
-					<option data-for="marker_id : arucoMarkers" data-value="marker_id">{{marker_id | to_marker_name}}</option>
+					<option data-for="marker_id : MarkerComponentIdList" data-value="marker_id">{{marker_id | to_marker_name}}</option>
 				</select>				
 				<div class="createcomponent" data-event-click="add_new_marker"></div>
 				<div class="deletecomponent" data-if="selected_marker_id != -1" data-event-click="remove_marker"></div>

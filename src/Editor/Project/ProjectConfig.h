@@ -40,7 +40,7 @@ public:
 	ClientTextureSourceSystemConfigPtr clientConfig;
 	CompositorObjectSystemConfigPtr compositorConfig;
 	EditorObjectSystemConfigPtr editorConfig;
-	MarkerObjectSystemConfigPtr markerSystemConfig;
+	MarkerObjectSystemDefinitionPtr markerSystemDefinition;
 	MarkerTrackingVolumeSystemDefinitionPtr markerTrackingVolumeConfig;
 	ModelStencilSystemDefinitionPtr modelStencilSystemDefinition;
 	QuadStencilSystemDefinitionPtr quadStencilSystemDefinition;

@@ -33,7 +33,7 @@ bool RmlModel_MarkerTrackingVolumeComponent::onConstruct(Rml::DataModelConstruct
 			auto markerObjectSystem = getMarkerObjectSystem();
 			if (markerObjectSystem)
 			{
-				for (const auto& it : markerObjectSystem->getMarkerMap())
+				for (const auto& it : markerObjectSystem->getComponentMap())
 				{
 					outComponentIdList.push_back((int)it.first);
 				}
@@ -58,7 +58,7 @@ bool RmlModel_MarkerTrackingVolumeComponent::setComponent(MikanComponentPtr comp
 {
 	if (RmlModel_MikanComponent::setComponent(component))
 	{
-		m_markerComponentIdList->setOwnerConfig(getMarkerObjectSystemConfig());
+		m_markerComponentIdList->setOwnerConfig(getMarkerObjectSystemDefinition());
 		m_markerComponentIdList->rebuildList(true);
 
 		return true;
@@ -78,12 +78,12 @@ MarkerObjectSystemPtr RmlModel_MarkerTrackingVolumeComponent::getMarkerObjectSys
 	return nullptr;
 }
 
-MarkerObjectSystemConfigPtr RmlModel_MarkerTrackingVolumeComponent::getMarkerObjectSystemConfig() const
+MarkerObjectSystemDefinitionPtr RmlModel_MarkerTrackingVolumeComponent::getMarkerObjectSystemDefinition() const
 {
 	auto markerObjectSystem = getMarkerObjectSystem();
 	if (markerObjectSystem)
 	{
-		return markerObjectSystem->getMarkerSystemConfig();
+		return markerObjectSystem->getTypedDefinition();
 	}
 
 	return nullptr;

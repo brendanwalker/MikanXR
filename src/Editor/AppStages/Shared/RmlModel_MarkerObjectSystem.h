@@ -13,8 +13,5 @@ public:
 
 protected:
 	MarkerObjectSystemPtr getMarkerObjectSystem() const;
-	MarkerObjectSystemConfigPtr getMarkerObjectSystemConfig() const;
-
-private:
-	RmlDataBinding_ArucoIdListPtr m_arucoIdList;
+	MarkerObjectSystemDefinitionPtr getMarkerObjectSystemDefinition() const;
 };

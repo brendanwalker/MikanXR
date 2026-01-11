@@ -31,9 +31,8 @@ MarkerDefinition::MarkerDefinition()
 }
 
 MarkerDefinition::MarkerDefinition(
-	MikanMarkerID markerId,
-	const std::string& markerName)
-	: MikanComponentDefinition(markerId, markerName)
+	MikanMarkerID markerId)
+	: MikanComponentDefinition(markerId, "")
 	, m_markerId(markerId)
 	, m_arucoId(DEFAULT_ORIGIN_MARKER_ID)
 	, m_lengthMM(DEFAULT_MARKER_SIZE_MM)
@@ -195,7 +194,7 @@ void MarkerComponent::deleteMarker()
 	{
 		const MikanMarkerID markerId = markerDefinition->getMarkerId();
 
-		getOwnerMarkerSystem()->removeMarker(markerId);
+		getOwnerMarkerSystem()->removeObject(markerId);
 	}
 }
 
@@ -204,7 +203,7 @@ void MarkerComponent::printMarker()
 	MarkerObjectSystemPtr markerSystem = getOwnerMarkerSystem();
 	ArucoDictionaryPtr dictionary =
 		CalibrationPatternFinder::getArucoDictionary(
-			markerSystem->getMarkerSystemConfig()->getArucoDictionaryType());
+			markerSystem->getTypedDefinitionConst()->getArucoDictionaryType());
 
 	MarkerDefinitionPtr markerDefinition = getMarkerDefinition();
 	const int arucoId = markerDefinition->getArucoId();

@@ -103,7 +103,7 @@ public:
 
 	inline MikanObjectSystemPtr getOwnerSystem() const { return m_ownerObjectSystemManager.lock(); }
 	inline TransformComponentPtr getRootComponent() const { return m_rootTransformComponent.lock(); }
-	inline void setRootComponent(TransformComponentWeakPtr transformComponent) { m_rootTransformComponent= transformComponent; }
+	inline void setRootComponent(TransformComponentPtr transformComponent) { m_rootTransformComponent= transformComponent; }
 
 	// Called from owning object system
 	void init();

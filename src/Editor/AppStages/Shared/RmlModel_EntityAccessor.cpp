@@ -1,23 +1,26 @@
 #include "RmlModel_EntityAccessor.h"
 #include "RmlUtility.h"
+#include "RmlDataBinding_List.h"
 
 #include <RmlUi/Core/DataModelHandle.h>
 #include <RmlUi/Core/Core.h>
 #include <RmlUi/Core/Context.h>
 
+#include <assert.h>
+
 RmlModel_EntityAccessor::~RmlModel_EntityAccessor()
 {
-	// Clear property interface to remove any bound callbacks on m_propertyChangeEventSource
-	clearEntityAccessor();
+	// This should have already been cleaned up in dispose()
+	assert(m_entityAccessor.lock() == nullptr);
 }
 
 // Template helper function to bind vector component accessors
 template<int ComponentCount>
 void bindVectorComponents(
+	RmlModel_EntityAccessor* ownerRmlModel,
 	Rml::DataModelConstructor& constructor,
 	const std::string& propertyName,
-	PropertyDescriptorConstPtr propertyDescriptor,
-	IPropertyInterfaceWeakPtr propertyInterface)
+	PropertyDescriptorConstPtr propertyDescriptor)
 {
 	static const char* componentNames[] = { "x", "y", "z", "w" };
 	static_assert(ComponentCount >= 2 && ComponentCount <= 4, "Component count must be 2, 3, or 4");
@@ -30,8 +33,8 @@ void bindVectorComponents(
 		{
 			constructor.BindFunc(
 				componentName,
-				[propertyInterface, propertyDescriptor, componentIndex](Rml::Variant& outVariant) {
-					IPropertyInterfacePtr propInterface = propertyInterface.lock();
+				[ownerRmlModel, propertyDescriptor, componentIndex](Rml::Variant& outVariant) {
+					IPropertyInterfacePtr propInterface = ownerRmlModel->getEntityAccessor();
 					if (propInterface)
 					{
 						MikanVariant vectorVariant;
@@ -49,8 +52,8 @@ void bindVectorComponents(
 
 			constructor.BindFunc(
 				componentName,
-				[propertyInterface, propertyDescriptor, componentIndex](Rml::Variant& outVariant) {
-					IPropertyInterfacePtr propInterface = propertyInterface.lock();
+				[ownerRmlModel, propertyDescriptor, componentIndex](Rml::Variant& outVariant) {
+					IPropertyInterfacePtr propInterface = ownerRmlModel->getEntityAccessor();
 					if (propInterface)
 					{
 						MikanVariant vectorVariant;
@@ -60,8 +63,8 @@ void bindVectorComponents(
 						}
 					}
 				},
-				[propertyInterface, propertyDescriptor, componentIndex](const Rml::Variant& variant) {
-					IPropertyInterfacePtr propInterface = propertyInterface.lock();
+				[ownerRmlModel, propertyDescriptor, componentIndex](const Rml::Variant& variant) {
+					IPropertyInterfacePtr propInterface = ownerRmlModel->getEntityAccessor();
 					if (propInterface)
 					{
 						MikanVariant vectorVariant;
@@ -97,7 +100,7 @@ bool RmlModel_EntityAccessor::init(
 	{
 		const std::string& propertyName = propertyDescriptor->getName();
 		const MikanVariant& defaultValue = propertyDescriptor->getDefaultValue();
-		const MikanVariantType variantType = defaultValue.value_type;
+		const MikanVariantType variantType = propertyDescriptor->getDataType();
 
 		// Keep track of property descriptors for change notifications
 		m_propertyDescriptors.insert({ propertyName, propertyDescriptor });
@@ -105,15 +108,40 @@ bool RmlModel_EntityAccessor::init(
 		// Vector types need special handling to bind individual components
 		if (variantType == MikanVariantType::VECTOR2F)
 		{
-			bindVectorComponents<2>(constructor, propertyName, propertyDescriptor, m_entityAccessor);
+			bindVectorComponents<2>(this, constructor, propertyName, propertyDescriptor);
 		}
 		else if (variantType == MikanVariantType::VECTOR3F)
 		{
-			bindVectorComponents<3>(constructor, propertyName, propertyDescriptor, m_entityAccessor);
+			bindVectorComponents<3>(this, constructor, propertyName, propertyDescriptor);
 		}
 		else if (variantType == MikanVariantType::VECTOR4F)
 		{
-			bindVectorComponents<4>(constructor, propertyName, propertyDescriptor, m_entityAccessor);
+			bindVectorComponents<4>(this, constructor, propertyName, propertyDescriptor);
+		}
+		// Array types need special handling
+		else if (variantType == MikanVariantType::INT_ARRAY)
+		{
+			assert(propertyDescriptor->isReadOnly());
+
+			// Create and register int list binding
+			RmlDataBinding_IntListPtr intListBinding = std::make_shared<RmlDataBinding_IntList>();
+			intListBinding->init(
+				constructor,
+				CommonConfigPtr(),
+				propertyDescriptor->getName(),
+				[this, propertyDescriptor](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
+					IPropertyInterfacePtr propInterface = getEntityAccessor();
+					if (propInterface)
+					{
+						MikanVariant listPropertyValue;
+						if (propInterface->getPropertyValue(propertyDescriptor, listPropertyValue))
+						{
+							outComponentIdList = listPropertyValue.getIntArrayValue();
+						}
+					}
+				});
+
+			m_intListBindings.push_back(intListBinding);
 		}
 		// All other types can be bound directly
 		else
@@ -196,6 +224,13 @@ bool RmlModel_EntityAccessor::init(
 	return true;
 }
 
+void RmlModel_EntityAccessor::dispose()
+{
+	// Clear property interface to remove any bound callbacks on m_propertyChangeEventSource
+	clearEntityAccessor();
+	RmlModel::dispose();
+}
+
 void RmlModel_EntityAccessor::clearEntityAccessor()
 {
 	IEntityAccessorPtr oldEntityAccessor = m_entityAccessor.lock();
@@ -209,6 +244,12 @@ void RmlModel_EntityAccessor::clearEntityAccessor()
 			MakeDelegate(this, &RmlModel_EntityAccessor::onEntityDisposed);
 		oldEntityConfig->OnPropertyChanged -=
 			MakeDelegate(this, &RmlModel_EntityAccessor::onEntityConfigChanged);
+
+		// Tell the int list bindings to clear their owner config
+		for (RmlDataBinding_IntListPtr& intListBinding : m_intListBindings)
+		{
+			intListBinding->setOwnerConfig(CommonConfigPtr());
+		}
 
 		m_entityAccessor.reset();
 		m_bWasAccessorSet = false;
@@ -227,11 +268,13 @@ void RmlModel_EntityAccessor::setEntityAccessor(
 
 	if (newEntityAccessor != oldEntityAccessor)
 	{
+		CommonConfigPtr newEntityConfig;
+
 		clearEntityAccessor();
 
 		if (newEntityAccessor)
 		{
-			CommonConfigPtr newEntityConfig = newEntityAccessor->getEntityConfig();
+			newEntityConfig = newEntityAccessor->getEntityConfig();
 
 			newEntityAccessor->onDisposed +=
 				MakeDelegate(this, &RmlModel_EntityAccessor::onEntityDisposed);
@@ -244,6 +287,12 @@ void RmlModel_EntityAccessor::setEntityAccessor(
 		}
 
 		m_entityAccessor = newEntityAccessor;
+
+		// Tell the int list bindings to listen to the new entity config changed
+		for (RmlDataBinding_IntListPtr& intListBinding : m_intListBindings)
+		{
+			intListBinding->setOwnerConfig(newEntityConfig);
+		}
 
 		m_modelHandle.DirtyAllVariables();
 	}
@@ -260,44 +309,53 @@ void RmlModel_EntityAccessor::onEntityConfigChanged(
 {
 	IEntityAccessorPtr entityAccessor = m_entityAccessor.lock();
 	assert(entityAccessor);
-	assert(entityAccessor->getEntityConfig() == configPtr);
+
+	// Dirty changed properties in the data model for this entity
+	if (entityAccessor->getEntityConfig() == configPtr)
+	{
+		for (const std::string& propertyName : changedPropertySet.getSet())
+		{
+			auto it = m_propertyDescriptors.find(propertyName);
+			if (it != m_propertyDescriptors.end())
+			{
+				// Also dirty component variables for vector types
+				const PropertyDescriptorConstPtr& propertyDescriptor = it->second;
+				const MikanVariant& defaultValue = propertyDescriptor->getDefaultValue();
+				const MikanVariantType variantType = propertyDescriptor->getDataType();
+
+				if (variantType == MikanVariantType::VECTOR2F)
+				{
+					m_modelHandle.DirtyVariable(propertyName + "_x");
+					m_modelHandle.DirtyVariable(propertyName + "_y");
+				}
+				else if (variantType == MikanVariantType::VECTOR3F)
+				{
+					m_modelHandle.DirtyVariable(propertyName + "_x");
+					m_modelHandle.DirtyVariable(propertyName + "_y");
+					m_modelHandle.DirtyVariable(propertyName + "_z");
+				}
+				else if (variantType == MikanVariantType::VECTOR4F)
+				{
+					m_modelHandle.DirtyVariable(propertyName + "_x");
+					m_modelHandle.DirtyVariable(propertyName + "_y");
+					m_modelHandle.DirtyVariable(propertyName + "_z");
+					m_modelHandle.DirtyVariable(propertyName + "_w");
+				}
+				else if (variantType == MikanVariantType::INT_ARRAY)
+				{
+					// Int array properties are handled by RmlDataBinding_IntList
+				}
+				else
+				{
+					m_modelHandle.DirtyVariable(propertyName);
+				}
+			}
+		}
+	}
+
+	// Forward the change notification (which could be from a child config)
 	if (OnEntityPropertyChanged)
 	{
 		OnEntityPropertyChanged(entityAccessor, changedPropertySet);
-	}
-
-	for (const std::string& propertyName : changedPropertySet.getSet())
-	{
-		auto it = m_propertyDescriptors.find(propertyName);
-		if (it != m_propertyDescriptors.end())
-		{
-			// Also dirty component variables for vector types
-			const PropertyDescriptorConstPtr& propertyDescriptor = it->second;
-			const MikanVariant& defaultValue = propertyDescriptor->getDefaultValue();
-			const MikanVariantType variantType = propertyDescriptor->getDataType();
-
-			if (variantType == MikanVariantType::VECTOR2F)
-			{
-				m_modelHandle.DirtyVariable(propertyName + "_x");
-				m_modelHandle.DirtyVariable(propertyName + "_y");
-			}
-			else if (variantType == MikanVariantType::VECTOR3F)
-			{
-				m_modelHandle.DirtyVariable(propertyName + "_x");
-				m_modelHandle.DirtyVariable(propertyName + "_y");
-				m_modelHandle.DirtyVariable(propertyName + "_z");
-			}
-			else if (variantType == MikanVariantType::VECTOR4F)
-			{
-				m_modelHandle.DirtyVariable(propertyName + "_x");
-				m_modelHandle.DirtyVariable(propertyName + "_y");
-				m_modelHandle.DirtyVariable(propertyName + "_z");
-				m_modelHandle.DirtyVariable(propertyName + "_w");
-			}
-			else
-			{
-				m_modelHandle.DirtyVariable(propertyName);
-			}
-		}
 	}
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CommonConfigFwd.h"
+#include "Logger.h"
 #include "MikanComponent.h"
 #include "MulticastDelegate.h"
 #include "MikanObjectSystem.h"
@@ -52,6 +53,14 @@ public:
 						outComponentIdList = listPropertyValue.getIntArrayValue();
 					}
 				});
+		}
+		else
+		{
+			MIKAN_LOG_ERROR("RmlDataBinding_List::init")
+				<< "Failed to find property descriptor for list property " 
+				<< listName
+				<< " on object system "
+				<< ownerObjectSystem->getObjectSystemClassName();
 		}
 
 		return false;
@@ -126,14 +135,17 @@ public:
 	{
 		m_rmlValueList.clear();
 
-		CommonConfigPtr ownerConfig = m_ownerConfig.lock();
-		m_fillFunction(ownerConfig, m_rmlValueList);
-
-		m_modelHandle.DirtyVariable(m_objectListName);
-
-		if (OnChanged)
+		if (m_modelHandle)
 		{
-			OnChanged(bOwnerChanged);
+			CommonConfigPtr ownerConfig = m_ownerConfig.lock();
+			m_fillFunction(ownerConfig, m_rmlValueList);
+
+			m_modelHandle.DirtyVariable(m_objectListName);
+
+			if (OnChanged)
+			{
+				OnChanged(bOwnerChanged);
+			}
 		}
 	}
 

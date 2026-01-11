@@ -5,6 +5,7 @@
 #include "Shared/RmlModel.h"
 #include "MulticastDelegate.h"
 #include "RmlFwd.h"
+#include "RmlDataBinding_Fwd.h"
 
 #include <memory>
 #include <string>
@@ -44,8 +45,11 @@ public:
 		const std::vector<FunctionDescriptorConstPtr>& functionDescriptors,
 		OnConstruct onContructCallback);
 
+	virtual void dispose() override;
+
 	void clearEntityAccessor();
 	void setEntityAccessor(IEntityAccessorPtr newEntityAccessor);
+	inline IEntityAccessorPtr getEntityAccessor() const { return m_entityAccessor.lock(); }
 
 	MulticastDelegate<void(IEntityAccessorPtr accessorPtr, const ConfigPropertyChangeSet& changedPropertySet)> OnEntityPropertyChanged;
 
@@ -57,4 +61,5 @@ private:
 	bool m_bWasAccessorSet = false;
 	IEntityAccessorWeakPtr m_entityAccessor;
 	std::map<std::string, PropertyDescriptorConstPtr> m_propertyDescriptors;
+	std::vector<RmlDataBinding_IntListPtr> m_intListBindings;
 };

@@ -4,6 +4,8 @@
 #include "ComponentFwd.h"
 #include "MarkerComponent.h"
 #include "MikanObjectSystem.h"
+#include "MikanTypedObjectSystemDefinition.h"
+#include "MikanTypedObjectSystem.h"
 #include "MikanTypeFwd.h"
 #include "MulticastDelegate.h"
 #include "ObjectSystemConfigFwd.h"
@@ -17,26 +19,19 @@
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_float4x4.hpp>
 
-using MarkerMap = std::map<MikanMarkerID, MarkerComponentWeakPtr>;
-
-class MarkerObjectSystemConfig : public MikanObjectSystemDefinition
+class MarkerObjectSystemDefinition :
+	public MikanTypedObjectSystemDefinition<MarkerDefinition, MikanMarkerID>
 {
 public:
-	MarkerObjectSystemConfig(const std::string& configName)
-		: MikanObjectSystemDefinition(configName)
-	{}
+	using Super = MikanTypedObjectSystemDefinition<MarkerDefinition, MikanMarkerID>;
+
+	MarkerObjectSystemDefinition(const std::string& configName);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	// ArUco Settings
-	static const std::string k_arucoMarkerListPropertyId;
-	MarkerDefinitionPtr getMarkerConfig(MikanMarkerID markerId) const;
-	MarkerDefinitionPtr getMarkerConfigByName(const std::string& MarkerName) const;
-	MikanMarkerID addNewMarker();
-	MikanMarkerID addNewMarker(const std::string& markerName);
-	bool removeMarker(MikanMarkerID markerId);
-	const std::vector<MarkerDefinitionPtr>& getArucoMarkerList() const { return m_arucoMarkerList; }
+	// Marker Pool
+	static const std::string k_markerPoolPropertyId;
 
 	static const std::string k_arucoDictionaryTypePropertyId;
 	inline eCharucoDictionaryType getArucoDictionaryType() const { return m_arucoDictionaryType; }
@@ -66,8 +61,6 @@ public:
 	inline eCharucoDictionaryType getCharucoDictionaryType() const { return m_charucoDictionaryType; }
 	void setCharucoDictionaryType(eCharucoDictionaryType charucoDictionaryType);
 
-	MikanMarkerID nextMarkerId = 0;
-
 protected:
 	// ArUco Common settings
 	eCharucoDictionaryType m_arucoDictionaryType = DEFAULT_ARUCO_DICTIONARY_TYPE;
@@ -78,35 +71,31 @@ protected:
 	float m_charucoSquareLengthMM = DEFAULT_CHARUCO_SQUARE_LEN_MM;
 	float m_charucoMarkerLengthMM = DEFAULT_CHARUCO_MARKER_LEN_MM;
 	eCharucoDictionaryType m_charucoDictionaryType = DEFAULT_CHARUCO_DICTIONARY_TYPE;
-
-	// List of ArUco markers
-	std::vector<MarkerDefinitionPtr> m_arucoMarkerList;
 };
 
-class MarkerObjectSystem : public MikanObjectSystem
+class MarkerObjectSystem :
+	public MikanTypedObjectSystem<
+		MarkerComponent, MarkerDefinition,
+		MikanMarkerID,
+		MarkerObjectSystem, MarkerObjectSystemDefinition>
 {
 public:
-	MarkerObjectSystem(ProjectManagerPtr ownerObjectSystemManager) : MikanObjectSystem(ownerObjectSystemManager) {}
+	using Super = MikanTypedObjectSystem<
+		MarkerComponent, MarkerDefinition,
+		MikanMarkerID,
+		MarkerObjectSystem, MarkerObjectSystemDefinition>;
+
+	MarkerObjectSystem(ProjectManagerPtr ownerObjectSystemManager);
 
 	inline static const std::string k_objectSystemClassName = "MarkerObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
-	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
-	virtual void dispose() override;
-	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
-
-	MarkerObjectSystemConfigConstPtr getMarkerSystemConfigConst() const;
-	MarkerObjectSystemConfigPtr getMarkerSystemConfig();
-
-	virtual MikanComponentPtr getComponentById(int componentId) const override;
-
-	const MarkerMap& getMarkerMap() const { return m_markerComponents; }
-	MarkerComponentPtr getMarkerById(MikanMarkerID markerId) const;
-	MarkerComponentPtr getMarkerByName(const std::string& markerName) const;
-	MarkerComponentPtr addNewMarker();
-	bool removeMarker(MikanMarkerID markerId);
-
-	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
+	inline MarkerComponentPtr getMarkerById(MikanMarkerID markerId) const {
+		return Super::getTypedComponentById(markerId);
+	}
+	inline MarkerComponentPtr getMarkerByName(const std::string& markerName) const {
+		return Super::getTypedComponentByName(markerName);
+	}
 
 	// -- IPropertyInterface ----
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
@@ -119,10 +108,5 @@ public:
 	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
 
 protected:
-	MarkerComponentPtr createMarkerObject(MarkerDefinitionPtr markerConfig);
-	void disposeMarkerObject(MikanMarkerID markerId);
-
 	void printMarker();
-
-	MarkerMap m_markerComponents;
 };

@@ -60,7 +60,7 @@ CalibrationPatternFinder_Aruco::CalibrationPatternFinder_Aruco(
 	float markerLengthMM = originMarker->getLengthMM();
 	ArucoDictionaryPtr dictionary= 
 		getArucoDictionary(
-			markerSystem->getMarkerSystemConfig()->getArucoDictionaryType());
+			markerSystem->getTypedDefinition()->getArucoDictionaryType());
 
 	// Use corner refinement to get the best possible corner locations
 	cv::aruco::DetectorParameters detectorParams;

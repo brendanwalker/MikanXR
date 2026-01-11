@@ -4,6 +4,7 @@
 #include "MikanTypedObjectPool.h"
 #include "MikanTypedObjectSystemDefinition.h"
 #include "MikanPropertyDatabase.h"
+#include "TransformComponent.h"
 
 #include <memory>
 #include <string>
@@ -157,8 +158,14 @@ private:
 
 		// Add the primary component to the object
 		ComponentPtr componentPtr = mikanObject->template addComponent<TComponent>();
-		mikanObject->setRootComponent(componentPtr);
 		componentPtr->setDefinition(componentDefinition);
+
+		// If this is a TransformComponent, set it as the root component
+		auto rootComponent = std::dynamic_pointer_cast<TransformComponent>(componentPtr);
+		if (rootComponent)
+		{
+			mikanObject->setRootComponent(rootComponent);
+		}
 
 		// Allow derived systems to add additional components
 		additionalComponentFactory(componentDefinition);

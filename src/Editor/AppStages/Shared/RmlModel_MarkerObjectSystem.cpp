@@ -30,7 +30,7 @@ bool RmlModel_MarkerObjectSystem::onConstruct(
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
 			const int enumValue = ev.GetParameter<int>("value", -1);
 			const auto dictionaryType = static_cast<eCharucoDictionaryType>(enumValue);
-			MarkerObjectSystemConfigPtr systemConfig = getMarkerObjectSystemConfig();
+			MarkerObjectSystemDefinitionPtr systemConfig = getMarkerObjectSystemDefinition();
 			if (systemConfig)
 			{
 				systemConfig->setArucoDictionaryType(dictionaryType);
@@ -42,7 +42,7 @@ bool RmlModel_MarkerObjectSystem::onConstruct(
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
 			const int enumValue = ev.GetParameter<int>("value", -1);
 			const auto dictionaryType = static_cast<eCharucoDictionaryType>(enumValue);
-			MarkerObjectSystemConfigPtr systemConfig = getMarkerObjectSystemConfig();
+			MarkerObjectSystemDefinitionPtr systemConfig = getMarkerObjectSystemDefinition();
 			if (systemConfig)
 			{
 				systemConfig->setCharucoDictionaryType(dictionaryType);
@@ -53,7 +53,7 @@ bool RmlModel_MarkerObjectSystem::onConstruct(
 		"select_charuco_rows",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
 			const int rowCount = ev.GetParameter<int>("value", 0);
-			MarkerObjectSystemConfigPtr systemConfig = getMarkerObjectSystemConfig();
+			MarkerObjectSystemDefinitionPtr systemConfig = getMarkerObjectSystemDefinition();
 			if (systemConfig)
 			{
 				systemConfig->setCharucoRows(rowCount);
@@ -64,7 +64,7 @@ bool RmlModel_MarkerObjectSystem::onConstruct(
 		"select_charuco_cols",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
 			const int colCount = ev.GetParameter<int>("value", 0);
-			MarkerObjectSystemConfigPtr systemConfig = getMarkerObjectSystemConfig();
+			MarkerObjectSystemDefinitionPtr systemConfig = getMarkerObjectSystemDefinition();
 			if (systemConfig)
 			{
 				systemConfig->setCharucoCols(colCount);
@@ -85,12 +85,12 @@ MarkerObjectSystemPtr RmlModel_MarkerObjectSystem::getMarkerObjectSystem() const
 	return nullptr;
 }
 
-MarkerObjectSystemConfigPtr RmlModel_MarkerObjectSystem::getMarkerObjectSystemConfig() const
+MarkerObjectSystemDefinitionPtr RmlModel_MarkerObjectSystem::getMarkerObjectSystemDefinition() const
 {
 	auto markerObjectSystem = getMarkerObjectSystem();
 	if (markerObjectSystem)
 	{
-		return markerObjectSystem->getMarkerSystemConfig();
+		return markerObjectSystem->getTypedDefinition();
 	}
 
 	return nullptr;

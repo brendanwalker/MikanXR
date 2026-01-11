@@ -17,7 +17,7 @@ public:
 
 protected:
 	MarkerObjectSystemPtr getMarkerObjectSystem() const;
-	MarkerObjectSystemConfigPtr getMarkerObjectSystemConfig() const;
+	MarkerObjectSystemDefinitionPtr getMarkerObjectSystemDefinition() const;
 	MarkerComponentPtr getMarkerComponent() const;
 
 private:

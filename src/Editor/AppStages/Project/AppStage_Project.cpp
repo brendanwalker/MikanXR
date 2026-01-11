@@ -423,7 +423,7 @@ void AppStage_Project::onMarkerSelected(int arucoId)
 		if (auto element = m_projectMarkersView->GetElementById("aruco_preview"))
 		{
 			auto markerObjectSystem= getObjectSystemOfType<MarkerObjectSystem>();
-			const auto markerSystemConfig= markerObjectSystem->getMarkerSystemConfigConst();
+			const auto markerSystemConfig= markerObjectSystem->getTypedDefinitionConst();
 			const int dictionaryType= (int)markerSystemConfig->getArucoDictionaryType();
 			const int markerUIPixelSize = 115;
 

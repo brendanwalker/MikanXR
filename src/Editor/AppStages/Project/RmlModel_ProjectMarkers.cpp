@@ -35,20 +35,9 @@ bool RmlModel_ProjectMarkers::init(
 
 	// Register component lists
 	m_markerIdList->init(
-		constructor, 
-		m_markerSystem.lock()->getMarkerSystemConfig(),
-		MarkerObjectSystemConfig::k_arucoMarkerListPropertyId,
-		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			MarkerObjectSystemConfigPtr markerConfig = m_markerSystem.lock()->getMarkerSystemConfig();
-
-			for (const auto& markerPtr : markerConfig->getArucoMarkerList())
-			{
-				if (markerPtr)
-				{
-					outComponentIdList.push_back((int)markerPtr->getMarkerId());
-				}
-			}
-		});
+		constructor,
+		m_markerSystem.lock(),
+		MarkerObjectSystem::k_componentIdListPropertyId);
 
 	// Register Data Model Fields
 	constructor.Bind("selected_marker_id", &m_selectedMarkerId);
@@ -113,7 +102,7 @@ void RmlModel_ProjectMarkers::addNewMarker(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	MarkerComponentPtr markerComponent= getMarkerSystem()->addNewMarker();
+	MarkerComponentPtr markerComponent= getMarkerSystem()->addNewObject();
 	MikanMarkerID markerId = markerComponent->getMarkerDefinition()->getMarkerId();
 
 	addModelUpdateCallback([this, markerId]() {
@@ -130,8 +119,8 @@ void RmlModel_ProjectMarkers::removeMarker(
 		return;
 
 	const int markerId = parameters[0].Get<int>();
-	
-	getMarkerSystem()->removeMarker((MikanMarkerID)markerId);
+
+	getMarkerSystem()->removeObject((MikanMarkerID)markerId);
 }
 
 void RmlModel_ProjectMarkers::selectMarkerEntry(

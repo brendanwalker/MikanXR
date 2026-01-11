@@ -36,7 +36,7 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	clientConfig = addTypedDefinition<ClientTextureSourceSystemConfig, ClientTextureSourceSystem>();
 	compositorConfig = addTypedDefinition<CompositorObjectSystemConfig, CompositorObjectSystem>();
 	editorConfig = addTypedDefinition<EditorObjectSystemConfig, EditorObjectSystem>();
-	markerSystemConfig = addTypedDefinition<MarkerObjectSystemConfig, MarkerObjectSystem>();
+	markerSystemDefinition = addTypedDefinition<MarkerObjectSystemDefinition, MarkerObjectSystem>();
 	markerTrackingVolumeConfig = addTypedDefinition<MarkerTrackingVolumeSystemDefinition, MarkerTrackingVolumeSystem>();
 	modelStencilSystemDefinition = addTypedDefinition<ModelStencilSystemDefinition, ModelStencilSystem>();
 	quadStencilSystemDefinition = addTypedDefinition<QuadStencilSystemDefinition, QuadStencilSystem>();

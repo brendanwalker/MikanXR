@@ -100,7 +100,7 @@ MonoLensTrackerPoseCalibrator::MonoLensTrackerPoseCalibrator(
 	MarkerObjectSystemPtr markerSystem =
 		ownerWindow->getProjectManager()->getSystemOfType<MarkerObjectSystem>();
 
-	auto markerConfig = markerSystem->getMarkerSystemConfigConst();
+	auto markerConfig = markerSystem->getTypedDefinitionConst();
 	m_patternFinder =
 		new CalibrationPatternFinder_Charuco(
 			distortionView,
