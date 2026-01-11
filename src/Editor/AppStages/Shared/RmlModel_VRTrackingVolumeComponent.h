@@ -17,7 +17,7 @@ protected:
 	MarkerObjectSystemPtr getMarkerObjectSystem() const;
 	MarkerObjectSystemDefinitionPtr getMarkerObjectSystemDefinition() const;
 	TrackingMountObjectSystemPtr getTrackingMountObjectSystem() const;
-	TrackingMountObjectSystemConfigPtr getTrackingMountObjectSystemConfig() const;
+	TrackingMountObjectSystemDefinitionPtr getTrackingMountObjectSystemConfig() const;
 	VRTrackingVolumeComponentPtr getVRTrackingVolumeComponent() const;
 
 private:

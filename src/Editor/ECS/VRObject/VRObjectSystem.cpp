@@ -19,15 +19,15 @@
 #include "VRDeviceComponent.h"
 
 // -- VRObjectSystemConfig -----
-const std::string VRObjectSystemConfig::k_nextVRDeviceIdPropertyId = "next_vr_device_id";
-const std::string VRObjectSystemConfig::k_vrDeviceListPropertyId = "vrDeviceList";
+const std::string VRObjectSystemDefinition::k_nextVRDeviceIdPropertyId = "next_vr_device_id";
+const std::string VRObjectSystemDefinition::k_vrDeviceListPropertyId = "vrDeviceList";
 
-VRObjectSystemConfig::VRObjectSystemConfig(const std::string& configName)
+VRObjectSystemDefinition::VRObjectSystemDefinition(const std::string& configName)
 	: MikanObjectSystemDefinition(configName)
 {
 }
 
-bool VRObjectSystemConfig::wantsSaveForPropertyChange(
+bool VRObjectSystemDefinition::wantsSaveForPropertyChange(
 	const ConfigPropertyChangeSet& changedPropertySet) const
 {
 	// We only serialized out change to the next property id
@@ -39,7 +39,7 @@ bool VRObjectSystemConfig::wantsSaveForPropertyChange(
 	return false;
 }
 
-configuru::Config VRObjectSystemConfig::writeToJSON()
+configuru::Config VRObjectSystemDefinition::writeToJSON()
 {
 	configuru::Config pt = CommonConfig::writeToJSON();
 
@@ -48,14 +48,14 @@ configuru::Config VRObjectSystemConfig::writeToJSON()
 	return pt;
 }
 
-void VRObjectSystemConfig::readFromJSON(const configuru::Config& pt)
+void VRObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
 	m_nextVRDeviceId = pt.get_or<MikanVRDeviceID>(k_nextVRDeviceIdPropertyId, m_nextVRDeviceId);
 }
 
-VRDeviceDefinitionPtr VRObjectSystemConfig::getVRDeviceConfig(MikanVRDeviceID vrDeviceId) const
+VRDeviceDefinitionPtr VRObjectSystemDefinition::getVRDeviceConfig(MikanVRDeviceID vrDeviceId) const
 {
 	auto it = std::find_if(
 		vrDeviceList.begin(), vrDeviceList.end(),
@@ -71,7 +71,7 @@ VRDeviceDefinitionPtr VRObjectSystemConfig::getVRDeviceConfig(MikanVRDeviceID vr
 	return VRDeviceDefinitionPtr();
 }
 
-VRDeviceDefinitionPtr VRObjectSystemConfig::getVRDeviceConfigByPath(const std::string& vrDevicePath) const
+VRDeviceDefinitionPtr VRObjectSystemDefinition::getVRDeviceConfigByPath(const std::string& vrDevicePath) const
 {
 	auto it = std::find_if(
 		vrDeviceList.begin(), vrDeviceList.end(),
@@ -87,7 +87,7 @@ VRDeviceDefinitionPtr VRObjectSystemConfig::getVRDeviceConfigByPath(const std::s
 	return VRDeviceDefinitionPtr();
 }
 
-MikanVRDeviceID VRObjectSystemConfig::addNewVRDevice(
+MikanVRDeviceID VRObjectSystemDefinition::addNewVRDevice(
 	eTrackingRuntime trackingRuntime,
 	const std::string& vrDevicePath,
 	const MikanTransform& xform)
@@ -105,7 +105,7 @@ MikanVRDeviceID VRObjectSystemConfig::addNewVRDevice(
 	return vrDeviceDefinition->getVRDeviceId();
 }
 
-bool VRObjectSystemConfig::removeVRDevice(MikanVRDeviceID vrDeviceId)
+bool VRObjectSystemDefinition::removeVRDevice(MikanVRDeviceID vrDeviceId)
 {
 	auto it = std::find_if(
 		vrDeviceList.begin(), vrDeviceList.end(),
@@ -126,7 +126,7 @@ bool VRObjectSystemConfig::removeVRDevice(MikanVRDeviceID vrDeviceId)
 	return false;
 }
 
-void VRObjectSystemConfig::removeAllVRDevice()
+void VRObjectSystemDefinition::removeAllVRDevice()
 {
 	if (vrDeviceList.size() > 0)
 	{
@@ -201,7 +201,7 @@ bool VRObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 		MakeDelegate(this, &VRObjectSystem::onProjectConfigMarkedDirty);
 	m_projectConfigWeakPtr= projectConfig;
 
-	VRObjectSystemConfigPtr vrSystemConfig= projectConfig->vrObjectConfig;
+	VRObjectSystemDefinitionPtr vrSystemConfig= projectConfig->vrObjectConfig;
 	vrSystemConfig->OnPropertyChanged+= 
 		MakeDelegate(this, &VRObjectSystem::onVRSystemConfigMarkedDirty);
 
@@ -533,7 +533,7 @@ VRDeviceComponentPtr VRObjectSystem::addNewVRDevice(
 	xform.rotation= {pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z};
 	xform.scale= {1.f, 1.f, 1.f};
 
-	VRObjectSystemConfigPtr vrSystemConfig = getVRSystemConfig();
+	VRObjectSystemDefinitionPtr vrSystemConfig = getVRSystemConfig();
 	MikanVRDeviceID vrDeviceId = vrSystemConfig->addNewVRDevice(trackingRuntime, vrDevicePath, xform);
 	if (vrDeviceId != INVALID_MIKAN_ID)
 	{
@@ -558,7 +558,7 @@ VRDeviceComponentPtr VRObjectSystem::createVRObject(
 	VRDeviceDefinitionPtr vrConfig,
 	IVRDevice* vrDeviceInterface)
 {
-	VRObjectSystemConfigConstPtr vrSystemConfig = getVRSystemConfigConst();
+	VRObjectSystemDefinitionConstPtr vrSystemConfig = getVRSystemConfigConst();
 	MikanObjectPtr vrObject = newObject();
 	vrObject->setName(vrConfig->getComponentName());
 
@@ -623,15 +623,15 @@ void VRObjectSystem::disposeAllVRObjects()
 	}
 }
 
-VRObjectSystemConfigConstPtr VRObjectSystem::getVRSystemConfigConst() const
+VRObjectSystemDefinitionConstPtr VRObjectSystem::getVRSystemConfigConst() const
 {
 	auto projectConfig= getProjectConfig();
-	return projectConfig ? projectConfig->vrObjectConfig : VRObjectSystemConfigConstPtr();
+	return projectConfig ? projectConfig->vrObjectConfig : VRObjectSystemDefinitionConstPtr();
 }
 
-VRObjectSystemConfigPtr VRObjectSystem::getVRSystemConfig()
+VRObjectSystemDefinitionPtr VRObjectSystem::getVRSystemConfig()
 {
-	return std::const_pointer_cast<VRObjectSystemConfig>(getVRSystemConfigConst());
+	return std::const_pointer_cast<VRObjectSystemDefinition>(getVRSystemConfigConst());
 }
 
 // -- Utility Methods

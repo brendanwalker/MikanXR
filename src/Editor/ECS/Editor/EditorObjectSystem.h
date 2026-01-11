@@ -16,10 +16,10 @@
 #include "glm/ext/vector_float3.hpp"
 #include "glm/ext/quaternion_float.hpp"
 
-class EditorObjectSystemConfig : public MikanObjectSystemDefinition
+class EditorObjectSystemDefinition : public MikanObjectSystemDefinition
 {
 public:
-	EditorObjectSystemConfig(const std::string& configName)
+	EditorObjectSystemDefinition(const std::string& configName)
 		: MikanObjectSystemDefinition(configName)
 	{}
 
@@ -50,8 +50,8 @@ public:
 	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
 	virtual void dispose() override;
 
-	EditorObjectSystemConfigConstPtr getEditorSystemConfigConst() const;
-	EditorObjectSystemConfigPtr getEditorSystemConfig();
+	EditorObjectSystemDefinitionConstPtr getEditorSystemConfigConst() const;
+	EditorObjectSystemDefinitionPtr getEditorSystemConfig();
 
 	virtual MikanComponentPtr getComponentById(int componentId) const override;
 

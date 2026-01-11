@@ -16,10 +16,10 @@
 
 using TrackingMountMap = std::map<MikanTrackingMountID, TrackingMountComponentWeakPtr>;
 
-class TrackingMountObjectSystemConfig : public MikanObjectSystemDefinition
+class TrackingMountObjectSystemDefinition : public MikanObjectSystemDefinition
 {
 public:
-	TrackingMountObjectSystemConfig(const std::string& configName)
+	TrackingMountObjectSystemDefinition(const std::string& configName)
 		: MikanObjectSystemDefinition(configName)
 	{}
 
@@ -53,8 +53,8 @@ public:
 	virtual void dispose() override;
 	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
 
-	TrackingMountObjectSystemConfigConstPtr getTrackingMountSystemConfigConst() const;
-	TrackingMountObjectSystemConfigPtr getTrackingMountSystemConfig();
+	TrackingMountObjectSystemDefinitionConstPtr getTrackingMountSystemConfigConst() const;
+	TrackingMountObjectSystemDefinitionPtr getTrackingMountSystemConfig();
 
 	virtual MikanComponentPtr getComponentById(int componentId) const override;
 

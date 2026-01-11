@@ -33,20 +33,20 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	anchorConfig = addTypedDefinition<AnchorObjectSystemDefinition, AnchorObjectSystem>();
 	boxStencilSystemDefinition = addTypedDefinition<BoxStencilSystemDefinition, BoxStencilSystem>();
 	cameraConfig = addTypedDefinition<CameraObjectSystemDefinition, CameraObjectSystem>();
-	clientConfig = addTypedDefinition<ClientTextureSourceSystemConfig, ClientTextureSourceSystem>();
-	compositorConfig = addTypedDefinition<CompositorObjectSystemConfig, CompositorObjectSystem>();
-	editorConfig = addTypedDefinition<EditorObjectSystemConfig, EditorObjectSystem>();
+	clientConfig = addTypedDefinition<ClientTextureSourceSystemDefinition, ClientTextureSourceSystem>();
+	compositorConfig = addTypedDefinition<CompositorObjectSystemDefinition, CompositorObjectSystem>();
+	editorConfig = addTypedDefinition<EditorObjectSystemDefinition, EditorObjectSystem>();
 	markerSystemDefinition = addTypedDefinition<MarkerObjectSystemDefinition, MarkerObjectSystem>();
 	markerTrackingVolumeConfig = addTypedDefinition<MarkerTrackingVolumeSystemDefinition, MarkerTrackingVolumeSystem>();
 	modelStencilSystemDefinition = addTypedDefinition<ModelStencilSystemDefinition, ModelStencilSystem>();
 	quadStencilSystemDefinition = addTypedDefinition<QuadStencilSystemDefinition, QuadStencilSystem>();
 	sceneConfig = addTypedDefinition<SceneObjectSystemDefinition, SceneObjectSystem>();
 	stageConfig = addTypedDefinition<StageObjectSystemDefinition, StageObjectSystem>();
-	spoutConfig = addTypedDefinition<SpoutTextureSourceSystemConfig, SpoutTextureSourceSystem>();
-	trackingMountSystemConfig = addTypedDefinition<TrackingMountObjectSystemConfig, TrackingMountObjectSystem>();
-	networkVideoSourceSystemConfig = addTypedDefinition<NetworkVideoSourceSystemConfig, NetworkVideoSourceSystem>();
-	usbVideoSourceSystemConfig = addTypedDefinition<USBVideoSourceSystemConfig, USBVideoSourceSystem>();
-	vrObjectConfig= addTypedDefinition<VRObjectSystemConfig, VRObjectSystem>();
+	spoutConfig = addTypedDefinition<SpoutTextureSourceSystemDefinition, SpoutTextureSourceSystem>();
+	trackingMountSystemConfig = addTypedDefinition<TrackingMountObjectSystemDefinition, TrackingMountObjectSystem>();
+	networkVideoSourceSystemConfig = addTypedDefinition<NetworkVideoSourceSystemDefinition, NetworkVideoSourceSystem>();
+	usbVideoSourceSystemConfig = addTypedDefinition<USBVideoSourceSystemDefinition, USBVideoSourceSystem>();
+	vrObjectConfig= addTypedDefinition<VRObjectSystemDefinition, VRObjectSystem>();
 	vrTrackingVolumeConfig = addTypedDefinition<VRTrackingVolumeSystemDefinition, VRTrackingVolumeSystem>();
 };
 

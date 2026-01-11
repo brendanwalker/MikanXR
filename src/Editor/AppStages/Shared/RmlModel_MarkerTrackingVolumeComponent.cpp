@@ -100,7 +100,7 @@ TrackingMountObjectSystemPtr RmlModel_MarkerTrackingVolumeComponent::getTracking
 	return nullptr;
 }
 
-TrackingMountObjectSystemConfigPtr RmlModel_MarkerTrackingVolumeComponent::getTrackingMountObjectSystemConfig() const
+TrackingMountObjectSystemDefinitionPtr RmlModel_MarkerTrackingVolumeComponent::getTrackingMountObjectSystemConfig() const
 {
 	auto trackingMountObjectSystem = getTrackingMountObjectSystem();
 	if (trackingMountObjectSystem)

@@ -139,7 +139,7 @@ TrackingMountObjectSystemPtr RmlModel_VRTrackingVolumeComponent::getTrackingMoun
 	return nullptr;
 }
 
-TrackingMountObjectSystemConfigPtr RmlModel_VRTrackingVolumeComponent::getTrackingMountObjectSystemConfig() const
+TrackingMountObjectSystemDefinitionPtr RmlModel_VRTrackingVolumeComponent::getTrackingMountObjectSystemConfig() const
 {
 	auto trackingMountObjectSystem = getTrackingMountObjectSystem();
 	if (trackingMountObjectSystem)

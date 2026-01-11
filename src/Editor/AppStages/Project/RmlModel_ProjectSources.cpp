@@ -57,8 +57,8 @@ bool RmlModel_ProjectSources::init(ProjectRmlModelContext* context)
 		},
 		[this](const ConfigPropertyChangeSet& changedPropertySet) {
 			return
-				changedPropertySet.hasPropertyName(ClientTextureSourceSystemConfig::k_clientTextureSourceListPropertyId) ||
-				changedPropertySet.hasPropertyName(SpoutTextureSourceSystemConfig::k_spoutTextureSourceListPropertyId);
+				changedPropertySet.hasPropertyName(ClientTextureSourceSystemDefinition::k_clientTextureSourceListPropertyId) ||
+				changedPropertySet.hasPropertyName(SpoutTextureSourceSystemDefinition::k_spoutTextureSourceListPropertyId);
 		});
 	m_videoSourceIdList->init(
 		constructor,
@@ -69,8 +69,8 @@ bool RmlModel_ProjectSources::init(ProjectRmlModelContext* context)
 		},
 		[this](const ConfigPropertyChangeSet& changedPropertySet) {
 			return
-				changedPropertySet.hasPropertyName(USBVideoSourceSystemConfig::k_usbVideoSourceListPropertyId) ||
-				changedPropertySet.hasPropertyName(NetworkVideoSourceSystemConfig::k_networkedVideoSourceListPropertyId);
+				changedPropertySet.hasPropertyName(USBVideoSourceSystemDefinition::k_usbVideoSourceListPropertyId) ||
+				changedPropertySet.hasPropertyName(NetworkVideoSourceSystemDefinition::k_networkedVideoSourceListPropertyId);
 		});
 
 	// Register Data Model Fields

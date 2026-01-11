@@ -12,10 +12,10 @@
 
 using NetworkVideoSourceMap = std::map<MikanVideoSourceID, NetworkVideoSourceComponentWeakPtr>;
 
-class NetworkVideoSourceSystemConfig : public MikanObjectSystemDefinition
+class NetworkVideoSourceSystemDefinition : public MikanObjectSystemDefinition
 {
 public:
-	NetworkVideoSourceSystemConfig(const std::string& configName)
+	NetworkVideoSourceSystemDefinition(const std::string& configName)
 		: MikanObjectSystemDefinition(configName)
 	{
 	}
@@ -45,8 +45,8 @@ public:
 	inline static const std::string k_objectSystemClassName = "NetworkVideoObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
-	NetworkVideoSourceSystemConfigConstPtr getNetworkVideoSourceSystemConfigConst() const;
-	NetworkVideoSourceSystemConfigPtr getNetworkVideoSourceSystemConfig();
+	NetworkVideoSourceSystemDefinitionConstPtr getNetworkVideoSourceSystemConfigConst() const;
+	NetworkVideoSourceSystemDefinitionPtr getNetworkVideoSourceSystemConfig();
 
     virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
 	virtual void update(float deltaTime) override;

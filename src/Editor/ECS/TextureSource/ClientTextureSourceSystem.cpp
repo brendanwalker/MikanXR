@@ -9,9 +9,9 @@
 #include <assert.h>
 
 // -- ClientTextureSourceSystemConfig -----
-const std::string ClientTextureSourceSystemConfig::k_clientTextureSourceListPropertyId = "clientTextureSourceList";
+const std::string ClientTextureSourceSystemDefinition::k_clientTextureSourceListPropertyId = "clientTextureSourceList";
 
-configuru::Config ClientTextureSourceSystemConfig::writeToJSON()
+configuru::Config ClientTextureSourceSystemDefinition::writeToJSON()
 {
 	configuru::Config pt = MikanObjectSystemDefinition::writeToJSON();
 
@@ -27,7 +27,7 @@ configuru::Config ClientTextureSourceSystemConfig::writeToJSON()
 	return pt;
 }
 
-void ClientTextureSourceSystemConfig::readFromJSON(const configuru::Config& pt)
+void ClientTextureSourceSystemDefinition::readFromJSON(const configuru::Config& pt)
 {
 	MikanObjectSystemDefinition::readFromJSON(pt);
 
@@ -49,7 +49,7 @@ void ClientTextureSourceSystemConfig::readFromJSON(const configuru::Config& pt)
 	}
 }
 
-ClientTextureSourceDefinitionConstPtr ClientTextureSourceSystemConfig::getClientTextureSourceConfigConst(
+ClientTextureSourceDefinitionConstPtr ClientTextureSourceSystemDefinition::getClientTextureSourceConfigConst(
 	MikanTextureSourceID textureSourceId) const
 {
 	auto it = std::find_if(
@@ -64,7 +64,7 @@ ClientTextureSourceDefinitionConstPtr ClientTextureSourceSystemConfig::getClient
 	return ClientTextureSourceDefinitionConstPtr();
 }
 
-ClientTextureSourceDefinitionPtr ClientTextureSourceSystemConfig::getClientTextureSourceConfig(
+ClientTextureSourceDefinitionPtr ClientTextureSourceSystemDefinition::getClientTextureSourceConfig(
 	MikanTextureSourceID textureSourceId)
 {
 	auto constPtr = getClientTextureSourceConfigConst(textureSourceId);
@@ -75,7 +75,7 @@ ClientTextureSourceDefinitionPtr ClientTextureSourceSystemConfig::getClientTextu
 	return ClientTextureSourceDefinitionPtr();
 }
 
-ClientTextureSourceDefinitionPtr ClientTextureSourceSystemConfig::allocateClientTextureSourceDefinition(
+ClientTextureSourceDefinitionPtr ClientTextureSourceSystemDefinition::allocateClientTextureSourceDefinition(
 	const MikanClientTextureSourceInfo& textureSourceInfo)
 {
 	ClientTextureSourceDefinitionPtr textureSourcePtr =
@@ -85,7 +85,7 @@ ClientTextureSourceDefinitionPtr ClientTextureSourceSystemConfig::allocateClient
 	return textureSourcePtr;
 }
 
-bool ClientTextureSourceSystemConfig::addClientTextureSourceDefinition(
+bool ClientTextureSourceSystemDefinition::addClientTextureSourceDefinition(
 	ClientTextureSourceDefinitionPtr textureSourceDefinitionPtr)
 {
 	if (!getClientTextureSourceConfig(textureSourceDefinitionPtr->getTextureSourceId()))
@@ -100,7 +100,7 @@ bool ClientTextureSourceSystemConfig::addClientTextureSourceDefinition(
 	return false;
 }
 
-bool ClientTextureSourceSystemConfig::removeClientTextureSourceDefinition(
+bool ClientTextureSourceSystemDefinition::removeClientTextureSourceDefinition(
 	MikanTextureSourceID textureSourceId)
 {
 	auto it = std::find_if(
@@ -124,21 +124,21 @@ bool ClientTextureSourceSystemConfig::removeClientTextureSourceDefinition(
 
 // -- ClientTextureSourceSystem -----
 
-ClientTextureSourceSystemConfigConstPtr ClientTextureSourceSystem::getClientTextureSourceSystemConfigConst() const
+ClientTextureSourceSystemDefinitionConstPtr ClientTextureSourceSystem::getClientTextureSourceSystemConfigConst() const
 {
-	return std::static_pointer_cast<const ClientTextureSourceSystemConfig>(getDefinitionConst());
+	return std::static_pointer_cast<const ClientTextureSourceSystemDefinition>(getDefinitionConst());
 }
 
-ClientTextureSourceSystemConfigPtr ClientTextureSourceSystem::getClientTextureSourceSystemConfig()
+ClientTextureSourceSystemDefinitionPtr ClientTextureSourceSystem::getClientTextureSourceSystemConfig()
 {
-	return std::static_pointer_cast<ClientTextureSourceSystemConfig>(getDefinition());
+	return std::static_pointer_cast<ClientTextureSourceSystemDefinition>(getDefinition());
 }
 
 bool ClientTextureSourceSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
 	MikanObjectSystem::init(definitionPtr);
 
-    ClientTextureSourceSystemConfigConstPtr systemConfig = getClientTextureSourceSystemConfigConst();
+    ClientTextureSourceSystemDefinitionConstPtr systemConfig = getClientTextureSourceSystemConfigConst();
 
     for (const auto& sourceConfig : systemConfig->getClientTextureSourceList())
     {
@@ -224,7 +224,7 @@ ClientTextureSourceComponentPtr ClientTextureSourceSystem::addNewClientTextureSo
 ClientTextureSourceComponentPtr ClientTextureSourceSystem::addNewClientTextureSource(
     const MikanClientTextureSourceInfo& TextureSourceInfo)
 {
-    ClientTextureSourceSystemConfigPtr systemConfig = getClientTextureSourceSystemConfig();
+    ClientTextureSourceSystemDefinitionPtr systemConfig = getClientTextureSourceSystemConfig();
 
     return
         createClientTextureSourceObject(
@@ -233,7 +233,7 @@ ClientTextureSourceComponentPtr ClientTextureSourceSystem::addNewClientTextureSo
 
 bool ClientTextureSourceSystem::removeClientTextureSource(MikanTextureSourceID TextureSourceId)
 {
-    ClientTextureSourceSystemConfigPtr systemConfig = getClientTextureSourceSystemConfig();
+    ClientTextureSourceSystemDefinitionPtr systemConfig = getClientTextureSourceSystemConfig();
 
     return
         disposeClientTextureSourceObject(TextureSourceId) &&

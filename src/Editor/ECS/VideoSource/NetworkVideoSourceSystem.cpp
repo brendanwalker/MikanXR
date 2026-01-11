@@ -15,9 +15,9 @@
 #define NETWORK_VIDEO_DEVICE_MODULE_NAME    GSTREAMER_VIDEO_DEVICE_MODULE_NAME
 
 // -- VideoSourceSystemConfig -----
-const std::string NetworkVideoSourceSystemConfig::k_networkedVideoSourceListPropertyId = "networkVideoSourceList";
+const std::string NetworkVideoSourceSystemDefinition::k_networkedVideoSourceListPropertyId = "networkVideoSourceList";
 
-configuru::Config NetworkVideoSourceSystemConfig::writeToJSON()
+configuru::Config NetworkVideoSourceSystemDefinition::writeToJSON()
 {
 	configuru::Config pt = CommonConfig::writeToJSON();
 
@@ -33,7 +33,7 @@ configuru::Config NetworkVideoSourceSystemConfig::writeToJSON()
 	return pt;
 }
 
-void NetworkVideoSourceSystemConfig::readFromJSON(const configuru::Config& pt)
+void NetworkVideoSourceSystemDefinition::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
@@ -55,7 +55,7 @@ void NetworkVideoSourceSystemConfig::readFromJSON(const configuru::Config& pt)
 	}
 }
 
-NetworkVideoSourceDefinitionConstPtr NetworkVideoSourceSystemConfig::getNetworkedVideoSourceConfigConst(
+NetworkVideoSourceDefinitionConstPtr NetworkVideoSourceSystemDefinition::getNetworkedVideoSourceConfigConst(
 	MikanVideoSourceID videoSourceId) const
 {
 	auto it = std::find_if(
@@ -72,14 +72,14 @@ NetworkVideoSourceDefinitionConstPtr NetworkVideoSourceSystemConfig::getNetworke
 	return NetworkVideoSourceDefinitionConstPtr();
 }
 
-NetworkVideoSourceDefinitionPtr NetworkVideoSourceSystemConfig::getNetworkedVideoSourceConfig(
+NetworkVideoSourceDefinitionPtr NetworkVideoSourceSystemDefinition::getNetworkedVideoSourceConfig(
 	MikanVideoSourceID videoSourceId)
 {
 	return std::const_pointer_cast<NetworkVideoSourceDefinition>(
 		getNetworkedVideoSourceConfigConst(videoSourceId));
 }
 
-NetworkVideoSourceDefinitionPtr NetworkVideoSourceSystemConfig::allocateNetworkedVideoSourceDefinition(
+NetworkVideoSourceDefinitionPtr NetworkVideoSourceSystemDefinition::allocateNetworkedVideoSourceDefinition(
 	const MikanNetworkVideoSourceInfo& videoSourceInfo)
 {
 	NetworkVideoSourceDefinitionPtr videoSourcePtr =
@@ -89,7 +89,7 @@ NetworkVideoSourceDefinitionPtr NetworkVideoSourceSystemConfig::allocateNetworke
 	return videoSourcePtr;
 }
 
-bool NetworkVideoSourceSystemConfig::addNetworkedVideoSourceDefinition(
+bool NetworkVideoSourceSystemDefinition::addNetworkedVideoSourceDefinition(
 	NetworkVideoSourceDefinitionPtr videoSourceDefinitionPtr)
 {
 	if (!getNetworkedVideoSourceConfig(videoSourceDefinitionPtr->getVideoSourceId()))
@@ -104,7 +104,7 @@ bool NetworkVideoSourceSystemConfig::addNetworkedVideoSourceDefinition(
 	return false;
 }
 
-bool NetworkVideoSourceSystemConfig::removeNetworkedVideoSourceDefinition(MikanVideoSourceID videoSourceId)
+bool NetworkVideoSourceSystemDefinition::removeNetworkedVideoSourceDefinition(MikanVideoSourceID videoSourceId)
 {
 	auto it = std::find_if(
 		m_networkedVideoSourceList.begin(), m_networkedVideoSourceList.end(),
@@ -126,21 +126,21 @@ bool NetworkVideoSourceSystemConfig::removeNetworkedVideoSourceDefinition(MikanV
 }
 
 // -- NetworkVideoSourceSystem -----
-NetworkVideoSourceSystemConfigConstPtr NetworkVideoSourceSystem::getNetworkVideoSourceSystemConfigConst() const
+NetworkVideoSourceSystemDefinitionConstPtr NetworkVideoSourceSystem::getNetworkVideoSourceSystemConfigConst() const
 {
-	return std::static_pointer_cast<const NetworkVideoSourceSystemConfig>(getDefinitionConst());
+	return std::static_pointer_cast<const NetworkVideoSourceSystemDefinition>(getDefinitionConst());
 }
 
-NetworkVideoSourceSystemConfigPtr NetworkVideoSourceSystem::getNetworkVideoSourceSystemConfig()
+NetworkVideoSourceSystemDefinitionPtr NetworkVideoSourceSystem::getNetworkVideoSourceSystemConfig()
 {
-	return std::static_pointer_cast<NetworkVideoSourceSystemConfig>(getDefinition());
+	return std::static_pointer_cast<NetworkVideoSourceSystemDefinition>(getDefinition());
 }
 
 bool NetworkVideoSourceSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
 	MikanObjectSystem::init(definitionPtr);
 
-    NetworkVideoSourceSystemConfigConstPtr videoSourceSystemConfig = 
+    NetworkVideoSourceSystemDefinitionConstPtr videoSourceSystemConfig = 
 		getProjectConfig()->networkVideoSourceSystemConfig;
 
     for (const auto& sourceConfig : videoSourceSystemConfig->getNetworkedVideoSourceList())
@@ -225,7 +225,7 @@ NetworkVideoSourceComponentPtr NetworkVideoSourceSystem::addNewNetworkVideoSourc
 NetworkVideoSourceComponentPtr NetworkVideoSourceSystem::addNewNetworkVideoSource(
     const MikanNetworkVideoSourceInfo& videoSourceInfo)
 {
-    NetworkVideoSourceSystemConfigPtr videoSourceSystemConfig =
+    NetworkVideoSourceSystemDefinitionPtr videoSourceSystemConfig =
         getProjectConfig()->networkVideoSourceSystemConfig;
 
     return
@@ -235,7 +235,7 @@ NetworkVideoSourceComponentPtr NetworkVideoSourceSystem::addNewNetworkVideoSourc
 
 bool NetworkVideoSourceSystem::removeNetworkVideoSource(MikanVideoSourceID videoSourceId)
 {
-    NetworkVideoSourceSystemConfigPtr videoSourceSystemConfig = 
+    NetworkVideoSourceSystemDefinitionPtr videoSourceSystemConfig = 
         getProjectConfig()->networkVideoSourceSystemConfig;
 
     return

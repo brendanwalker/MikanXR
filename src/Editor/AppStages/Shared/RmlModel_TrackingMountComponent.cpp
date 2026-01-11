@@ -98,7 +98,7 @@ VRObjectSystemPtr RmlModel_TrackingMountComponent::getVRObjectSystem() const
 	return nullptr;
 }
 
-VRObjectSystemConfigPtr RmlModel_TrackingMountComponent::getVRObjectSystemConfig() const
+VRObjectSystemDefinitionPtr RmlModel_TrackingMountComponent::getVRObjectSystemConfig() const
 {
 	auto vrObjectSystem = getVRObjectSystem();
 	if (vrObjectSystem)

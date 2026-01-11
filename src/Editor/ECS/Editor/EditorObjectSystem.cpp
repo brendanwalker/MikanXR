@@ -25,10 +25,10 @@
 #include "Transform.h"
 
 // -- AnchorObjectSystemConfig -----
-const std::string EditorObjectSystemConfig::k_cameraSpeedPropertyId= "cameraSpeed";
-const std::string EditorObjectSystemConfig::k_currentSceneNamePropertyId= "currentSceneName";
+const std::string EditorObjectSystemDefinition::k_cameraSpeedPropertyId= "cameraSpeed";
+const std::string EditorObjectSystemDefinition::k_currentSceneNamePropertyId= "currentSceneName";
 
-configuru::Config EditorObjectSystemConfig::writeToJSON()
+configuru::Config EditorObjectSystemDefinition::writeToJSON()
 {
 	configuru::Config pt = CommonConfig::writeToJSON();
 
@@ -38,7 +38,7 @@ configuru::Config EditorObjectSystemConfig::writeToJSON()
 	return pt;
 }
 
-void EditorObjectSystemConfig::readFromJSON(const configuru::Config& pt)
+void EditorObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
@@ -46,7 +46,7 @@ void EditorObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 	currentSceneName = pt.get_or<std::string>("currentSceneName", currentSceneName);
 }
 
-void EditorObjectSystemConfig::setCameraSpeed(float speed)
+void EditorObjectSystemDefinition::setCameraSpeed(float speed)
 {
 	if (cameraSpeed != speed)
 	{
@@ -55,7 +55,7 @@ void EditorObjectSystemConfig::setCameraSpeed(float speed)
 	}
 }
 
-void EditorObjectSystemConfig::setCurrentSceneName(const std::string& sceneName)
+void EditorObjectSystemDefinition::setCurrentSceneName(const std::string& sceneName)
 {
 	if (currentSceneName != sceneName)
 	{
@@ -208,16 +208,16 @@ void EditorObjectSystem::dispose()
 	MikanObjectSystem::dispose();
 }
 
-EditorObjectSystemConfigConstPtr EditorObjectSystem::getEditorSystemConfigConst() const
+EditorObjectSystemDefinitionConstPtr EditorObjectSystem::getEditorSystemConfigConst() const
 {
 	auto projectConfig= getProjectConfig();
 
-	return projectConfig ? projectConfig->editorConfig : EditorObjectSystemConfigConstPtr();
+	return projectConfig ? projectConfig->editorConfig : EditorObjectSystemDefinitionConstPtr();
 }
 
-EditorObjectSystemConfigPtr EditorObjectSystem::getEditorSystemConfig()
+EditorObjectSystemDefinitionPtr EditorObjectSystem::getEditorSystemConfig()
 {
-	return std::const_pointer_cast<EditorObjectSystemConfig>(getEditorSystemConfigConst());
+	return std::const_pointer_cast<EditorObjectSystemDefinition>(getEditorSystemConfigConst());
 }
 
 MikanComponentPtr EditorObjectSystem::getComponentById(int componentId) const

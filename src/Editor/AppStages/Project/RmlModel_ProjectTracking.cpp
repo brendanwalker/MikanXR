@@ -90,7 +90,7 @@ bool RmlModel_ProjectTracking::init(ProjectRmlModelContext* context)
 	constructor.BindEventCallback("select_tracking_mount_entry", &RmlModel_ProjectTracking::selectTrackingMountEntry, this);
 
 	// Listen for tracking system config changes
-	TrackingMountObjectSystemConfigPtr trackingMountConfig = 
+	TrackingMountObjectSystemDefinitionPtr trackingMountConfig = 
 		m_trackingMountSystem.lock()->getTrackingMountSystemConfig();
 	m_trackingVolumeIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectTracking::trackingVolumeIdListChanged);
 	m_trackingMountIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectTracking::trackingMountIdListChanged);
@@ -106,7 +106,7 @@ bool RmlModel_ProjectTracking::init(ProjectRmlModelContext* context)
 
 void RmlModel_ProjectTracking::dispose()
 {
-	TrackingMountObjectSystemConfigPtr trackingMountConfig = 
+	TrackingMountObjectSystemDefinitionPtr trackingMountConfig = 
 		m_trackingMountSystem.lock()->getTrackingMountSystemConfig();
 
 	m_trackingVolumeIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectTracking::trackingVolumeIdListChanged);

@@ -68,10 +68,10 @@ bool RmlModel_ProjectStages::init(ProjectRmlModelContext* context)
 	m_compositorIdList->init(
 		constructor,
 		m_compositorSystem.lock()->getCompositorSystemConfig(),
-		CompositorObjectSystemConfig::k_compositorListPropertyId,
+		CompositorObjectSystemDefinition::k_compositorListPropertyId,
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			CompositorObjectSystemConfigConstPtr compositorConfig =
-				std::static_pointer_cast<CompositorObjectSystemConfig>(ownerConfig);
+			CompositorObjectSystemDefinitionConstPtr compositorConfig =
+				std::static_pointer_cast<CompositorObjectSystemDefinition>(ownerConfig);
 				
 			for (const auto& compositorPtr : compositorConfig->getCompositorList())
 			{

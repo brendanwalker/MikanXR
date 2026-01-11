@@ -12,7 +12,7 @@ public:
 	RmlModel_USBVideoSourceComponent();
 
 	USBVideoSourceSystemPtr getUSBVideoSourceSystem() const;
-	USBVideoSourceSystemConfigPtr getUSBVideoSourceSystemConfig() const;
+	USBVideoSourceSystemDefinitionPtr getUSBVideoSourceSystemConfig() const;
 	USBVideoSourceComponentPtr getUSBVideoSourceComponent() const;
 
 	// -- RmlModel_MikanComponent --

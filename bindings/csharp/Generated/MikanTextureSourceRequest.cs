@@ -14,7 +14,7 @@ namespace MikanXR
 	{
 		public static new readonly long classId= -4597319717858927766;
 
-		public int video_source_id_list;
+		public List<int> video_source_id_list;
 	};
 
 }

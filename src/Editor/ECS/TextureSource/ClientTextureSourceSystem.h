@@ -11,10 +11,10 @@
 
 using ClientTextureSourceMap = std::map<MikanTextureSourceID, ClientTextureSourceComponentWeakPtr>;
 
-class ClientTextureSourceSystemConfig : public MikanObjectSystemDefinition
+class ClientTextureSourceSystemDefinition : public MikanObjectSystemDefinition
 {
 public:
-	ClientTextureSourceSystemConfig(const std::string& configName)
+	ClientTextureSourceSystemDefinition(const std::string& configName)
 		: MikanObjectSystemDefinition(configName)
 	{
 	}
@@ -43,8 +43,8 @@ public:
 	inline static const std::string k_objectSystemClassName = "ClientTextureSourceSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
-	ClientTextureSourceSystemConfigConstPtr getClientTextureSourceSystemConfigConst() const;
-	ClientTextureSourceSystemConfigPtr getClientTextureSourceSystemConfig();
+	ClientTextureSourceSystemDefinitionConstPtr getClientTextureSourceSystemConfigConst() const;
+	ClientTextureSourceSystemDefinitionPtr getClientTextureSourceSystemConfig();
 
     virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
     virtual void dispose() override;

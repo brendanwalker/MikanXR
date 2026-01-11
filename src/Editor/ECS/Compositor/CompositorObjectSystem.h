@@ -15,10 +15,10 @@
 
 using CompositorMap = std::map<MikanCompositorID, CompositorComponentWeakPtr>;
 
-class CompositorObjectSystemConfig : public MikanObjectSystemDefinition
+class CompositorObjectSystemDefinition : public MikanObjectSystemDefinition
 {
 public:
-	CompositorObjectSystemConfig(const std::string& configName)
+	CompositorObjectSystemDefinition(const std::string& configName)
 		: MikanObjectSystemDefinition(configName)
 	{}
 
@@ -49,8 +49,8 @@ public:
 	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
 	virtual void dispose() override;
 
-	CompositorObjectSystemConfigConstPtr getCompositorSystemConfigConst() const;
-	CompositorObjectSystemConfigPtr getCompositorSystemConfig();
+	CompositorObjectSystemDefinitionConstPtr getCompositorSystemConfigConst() const;
+	CompositorObjectSystemDefinitionPtr getCompositorSystemConfig();
 
 	virtual MikanComponentPtr getComponentById(int componentId) const override;
 

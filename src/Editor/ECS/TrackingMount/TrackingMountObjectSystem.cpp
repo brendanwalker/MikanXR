@@ -12,9 +12,9 @@
 #include "StringUtils.h"
 
 // -- TrackingMountObjectSystemConfig -----
-const std::string TrackingMountObjectSystemConfig::k_trackingMountListPropertyId = "trackingMounts";
+const std::string TrackingMountObjectSystemDefinition::k_trackingMountListPropertyId = "trackingMounts";
 
-configuru::Config TrackingMountObjectSystemConfig::writeToJSON()
+configuru::Config TrackingMountObjectSystemDefinition::writeToJSON()
 {
 	configuru::Config pt = CommonConfig::writeToJSON();
 
@@ -31,7 +31,7 @@ configuru::Config TrackingMountObjectSystemConfig::writeToJSON()
 	return pt;
 }
 
-void TrackingMountObjectSystemConfig::readFromJSON(const configuru::Config& pt)
+void TrackingMountObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
@@ -56,7 +56,7 @@ void TrackingMountObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 	}
 }
 
-TrackingMountDefinitionPtr TrackingMountObjectSystemConfig::getTrackingMountConfig(MikanTrackingMountID trackingMountId) const
+TrackingMountDefinitionPtr TrackingMountObjectSystemDefinition::getTrackingMountConfig(MikanTrackingMountID trackingMountId) const
 {
 	for (auto trackingMountDefinitionPtr : m_trackingMountList)
 	{
@@ -69,7 +69,7 @@ TrackingMountDefinitionPtr TrackingMountObjectSystemConfig::getTrackingMountConf
 	return TrackingMountDefinitionPtr();
 }
 
-TrackingMountDefinitionPtr TrackingMountObjectSystemConfig::getTrackingMountConfigByName(const std::string& trackingMountName) const
+TrackingMountDefinitionPtr TrackingMountObjectSystemDefinition::getTrackingMountConfigByName(const std::string& trackingMountName) const
 {
 	for (auto trackingMountDefinitionPtr : m_trackingMountList)
 	{
@@ -82,7 +82,7 @@ TrackingMountDefinitionPtr TrackingMountObjectSystemConfig::getTrackingMountConf
 	return TrackingMountDefinitionPtr();
 }
 
-MikanTrackingMountID TrackingMountObjectSystemConfig::addNewTrackingMount()
+MikanTrackingMountID TrackingMountObjectSystemDefinition::addNewTrackingMount()
 {
 	MikanTrackingMountID newTrackingMountId = m_nextTrackingMountId;
 	const std::string trackingMountName = StringUtils::stringify("mount_", m_nextTrackingMountId);
@@ -96,7 +96,7 @@ MikanTrackingMountID TrackingMountObjectSystemConfig::addNewTrackingMount()
 	return newTrackingMountId;
 }
 
-bool TrackingMountObjectSystemConfig::removeTrackingMountID(MikanTrackingMountID trackingMountId)
+bool TrackingMountObjectSystemDefinition::removeTrackingMountID(MikanTrackingMountID trackingMountId)
 {
 	auto it = std::find_if(
 		m_trackingMountList.begin(), m_trackingMountList.end(),
@@ -120,7 +120,7 @@ bool TrackingMountObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPt
 {
 	if (MikanObjectSystem::init(definitionPtr))
 	{
-		TrackingMountObjectSystemConfigPtr config = getTrackingMountSystemConfig();
+		TrackingMountObjectSystemDefinitionPtr config = getTrackingMountSystemConfig();
 
 		// Create tracking mount objects from config
 		for (TrackingMountDefinitionPtr trackingMountDefinition : config->getTrackingMountList())
@@ -180,20 +180,20 @@ TrackingMountComponentPtr TrackingMountObjectSystem::getTrackingMountByName(cons
 
 TrackingMountComponentPtr TrackingMountObjectSystem::addNewTrackingMount()
 {
-	TrackingMountObjectSystemConfigPtr config = getTrackingMountSystemConfig();
+	TrackingMountObjectSystemDefinitionPtr config = getTrackingMountSystemConfig();
 	MikanTrackingMountID newTrackingMountId = config->addNewTrackingMount();
 	TrackingMountDefinitionPtr trackingMountDefinition = config->getTrackingMountConfig(newTrackingMountId);
 	TrackingMountComponentPtr trackingMount= createTrackingMountObject(trackingMountDefinition);
 
 	config->notifyPropertyChanged(
-		ConfigPropertyChangeSet().addPropertyName(TrackingMountObjectSystemConfig::k_trackingMountListPropertyId));
+		ConfigPropertyChangeSet().addPropertyName(TrackingMountObjectSystemDefinition::k_trackingMountListPropertyId));
 
 	return trackingMount;
 }
 
 bool TrackingMountObjectSystem::removeTrackingMountID(MikanTrackingMountID trackingMountId)
 {
-	TrackingMountObjectSystemConfigPtr config = getTrackingMountSystemConfig();
+	TrackingMountObjectSystemDefinitionPtr config = getTrackingMountSystemConfig();
 
 	disposeTrackingMountObject(trackingMountId);
 
@@ -232,14 +232,14 @@ void TrackingMountObjectSystem::disposeTrackingMountObject(MikanTrackingMountID 
 	}
 }
 
-TrackingMountObjectSystemConfigConstPtr TrackingMountObjectSystem::getTrackingMountSystemConfigConst() const
+TrackingMountObjectSystemDefinitionConstPtr TrackingMountObjectSystem::getTrackingMountSystemConfigConst() const
 {
 	return getProjectConfig()->trackingMountSystemConfig;
 }
 
-TrackingMountObjectSystemConfigPtr TrackingMountObjectSystem::getTrackingMountSystemConfig()
+TrackingMountObjectSystemDefinitionPtr TrackingMountObjectSystem::getTrackingMountSystemConfig()
 {
-	return std::const_pointer_cast<TrackingMountObjectSystemConfig>(getTrackingMountSystemConfigConst());
+	return std::const_pointer_cast<TrackingMountObjectSystemDefinition>(getTrackingMountSystemConfigConst());
 }
 
 void TrackingMountObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)

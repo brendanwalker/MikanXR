@@ -14,10 +14,10 @@
 using USBVideoSourcePathList = std::vector<std::string>;
 using USBVideoSourceMap = std::map<MikanVideoSourceID, USBVideoSourceComponentWeakPtr>;
 
-class USBVideoSourceSystemConfig : public MikanObjectSystemDefinition
+class USBVideoSourceSystemDefinition : public MikanObjectSystemDefinition
 {
 public:
-	USBVideoSourceSystemConfig(const std::string& configName)
+	USBVideoSourceSystemDefinition(const std::string& configName)
 		: MikanObjectSystemDefinition(configName)
 	{
 	}
@@ -46,8 +46,8 @@ public:
 	inline static const std::string k_objectSystemClassName = "USBVideoSourceSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
-	USBVideoSourceSystemConfigConstPtr getUSBVideoSourceSystemConfigConst() const;
-	USBVideoSourceSystemConfigPtr getUSBVideoSourceSystemConfig();
+	USBVideoSourceSystemDefinitionConstPtr getUSBVideoSourceSystemConfigConst() const;
+	USBVideoSourceSystemDefinitionPtr getUSBVideoSourceSystemConfig();
 
     virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
     virtual void dispose() override;

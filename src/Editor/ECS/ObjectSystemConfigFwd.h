@@ -27,20 +27,20 @@ using CameraObjectSystemDefinitionPtr = std::shared_ptr<CameraObjectSystemDefini
 using CameraObjectSystemDefinitionConstPtr = std::shared_ptr<const CameraObjectSystemDefinition>;
 using CameraObjectSystemDefinitionWeakPtr = std::weak_ptr<CameraObjectSystemDefinition>;
 
-class ClientTextureSourceSystemConfig;
-using ClientTextureSourceSystemConfigPtr = std::shared_ptr<ClientTextureSourceSystemConfig>;
-using ClientTextureSourceSystemConfigConstPtr = std::shared_ptr<const ClientTextureSourceSystemConfig>;
-using ClientTextureSourceSystemConfigWeakPtr = std::weak_ptr<ClientTextureSourceSystemConfig>;
+class ClientTextureSourceSystemDefinition;
+using ClientTextureSourceSystemDefinitionPtr = std::shared_ptr<ClientTextureSourceSystemDefinition>;
+using ClientTextureSourceSystemDefinitionConstPtr = std::shared_ptr<const ClientTextureSourceSystemDefinition>;
+using ClientTextureSourceSystemDefinitionWeakPtr = std::weak_ptr<ClientTextureSourceSystemDefinition>;
 
-class CompositorObjectSystemConfig;
-using CompositorObjectSystemConfigPtr = std::shared_ptr<CompositorObjectSystemConfig>;
-using CompositorObjectSystemConfigConstPtr = std::shared_ptr<const CompositorObjectSystemConfig>;
-using CompositorObjectSystemConfigWeakPtr = std::weak_ptr<CompositorObjectSystemConfig>;
+class CompositorObjectSystemDefinition;
+using CompositorObjectSystemDefinitionPtr = std::shared_ptr<CompositorObjectSystemDefinition>;
+using CompositorObjectSystemDefinitionConstPtr = std::shared_ptr<const CompositorObjectSystemDefinition>;
+using CompositorObjectSystemDefinitionWeakPtr = std::weak_ptr<CompositorObjectSystemDefinition>;
 
-class EditorObjectSystemConfig;
-using EditorObjectSystemConfigPtr = std::shared_ptr<EditorObjectSystemConfig>;
-using EditorObjectSystemConfigConstPtr = std::shared_ptr<const EditorObjectSystemConfig>;
-using EditorObjectSystemConfigWeakPtr = std::weak_ptr<EditorObjectSystemConfig>;
+class EditorObjectSystemDefinition;
+using EditorObjectSystemDefinitionPtr = std::shared_ptr<EditorObjectSystemDefinition>;
+using EditorObjectSystemDefinitionConstPtr = std::shared_ptr<const EditorObjectSystemDefinition>;
+using EditorObjectSystemDefinitionWeakPtr = std::weak_ptr<EditorObjectSystemDefinition>;
 
 class MarkerObjectSystemDefinition;
 using MarkerObjectSystemDefinitionPtr = std::shared_ptr<MarkerObjectSystemDefinition>;
@@ -52,20 +52,20 @@ using MarkerTrackingVolumeSystemDefinitionPtr = std::shared_ptr<MarkerTrackingVo
 using MarkerTrackingVolumeSystemDefinitionConstPtr = std::shared_ptr<const MarkerTrackingVolumeSystemDefinition>;
 using MarkerTrackingVolumeSystemDefinitionWeakPtr = std::weak_ptr<MarkerTrackingVolumeSystemDefinition>;
 
-class NetworkVideoSourceSystemConfig;
-using NetworkVideoSourceSystemConfigPtr = std::shared_ptr<NetworkVideoSourceSystemConfig>;
-using NetworkVideoSourceSystemConfigConstPtr = std::shared_ptr<const NetworkVideoSourceSystemConfig>;
-using NetworkVideoSourceSystemConfigWeakPtr = std::weak_ptr<NetworkVideoSourceSystemConfig>;
+class NetworkVideoSourceSystemDefinition;
+using NetworkVideoSourceSystemDefinitionPtr = std::shared_ptr<NetworkVideoSourceSystemDefinition>;
+using NetworkVideoSourceSystemDefinitionConstPtr = std::shared_ptr<const NetworkVideoSourceSystemDefinition>;
+using NetworkVideoSourceSystemDefinitionWeakPtr = std::weak_ptr<NetworkVideoSourceSystemDefinition>;
 
 class SceneObjectSystemDefinition;
 using SceneObjectSystemDefinitionPtr = std::shared_ptr<SceneObjectSystemDefinition>;
 using SceneObjectSystemDefinitionConstPtr = std::shared_ptr<const SceneObjectSystemDefinition>;
 using SceneObjectSystemDefinitionWeakPtr = std::weak_ptr<SceneObjectSystemDefinition>;
 
-class SpoutTextureSourceSystemConfig;
-using SpoutTextureSourceSystemConfigPtr = std::shared_ptr<SpoutTextureSourceSystemConfig>;
-using SpoutTextureSourceSystemConfigConstPtr = std::shared_ptr<const SpoutTextureSourceSystemConfig>;
-using SpoutTextureSourceSystemConfigWeakPtr = std::weak_ptr<SpoutTextureSourceSystemConfig>;
+class SpoutTextureSourceSystemDefinition;
+using SpoutTextureSourceSystemDefinitionPtr = std::shared_ptr<SpoutTextureSourceSystemDefinition>;
+using SpoutTextureSourceSystemDefinitionConstPtr = std::shared_ptr<const SpoutTextureSourceSystemDefinition>;
+using SpoutTextureSourceSystemDefinitionWeakPtr = std::weak_ptr<SpoutTextureSourceSystemDefinition>;
 
 class StageObjectSystemDefinition;
 using StageObjectSystemDefinitionPtr = std::shared_ptr<StageObjectSystemDefinition>;
@@ -87,20 +87,20 @@ using QuadStencilSystemDefinitionPtr = std::shared_ptr<QuadStencilSystemDefiniti
 using QuadStencilSystemDefinitionConstPtr = std::shared_ptr<const QuadStencilSystemDefinition>;
 using QuadStencilSystemDefinitionWeakPtr = std::weak_ptr<QuadStencilSystemDefinition>;
 
-class TrackingMountObjectSystemConfig;
-using TrackingMountObjectSystemConfigPtr = std::shared_ptr<TrackingMountObjectSystemConfig>;
-using TrackingMountObjectSystemConfigConstPtr = std::shared_ptr<const TrackingMountObjectSystemConfig>;
-using TrackingMountObjectSystemConfigWeakPtr = std::weak_ptr<TrackingMountObjectSystemConfig>;
+class TrackingMountObjectSystemDefinition;
+using TrackingMountObjectSystemDefinitionPtr = std::shared_ptr<TrackingMountObjectSystemDefinition>;
+using TrackingMountObjectSystemDefinitionConstPtr = std::shared_ptr<const TrackingMountObjectSystemDefinition>;
+using TrackingMountObjectSystemDefinitionWeakPtr = std::weak_ptr<TrackingMountObjectSystemDefinition>;
 
-class USBVideoSourceSystemConfig;
-using USBVideoSourceSystemConfigPtr = std::shared_ptr<USBVideoSourceSystemConfig>;
-using USBVideoSourceSystemConfigConstPtr = std::shared_ptr<const USBVideoSourceSystemConfig>;
-using USBVideoSourceSystemConfigWeakPtr = std::weak_ptr<USBVideoSourceSystemConfig>;
+class USBVideoSourceSystemDefinition;
+using USBVideoSourceSystemDefinitionPtr = std::shared_ptr<USBVideoSourceSystemDefinition>;
+using USBVideoSourceSystemDefinitionConstPtr = std::shared_ptr<const USBVideoSourceSystemDefinition>;
+using USBVideoSourceSystemDefinitionWeakPtr = std::weak_ptr<USBVideoSourceSystemDefinition>;
 
-class VRObjectSystemConfig;
-using VRObjectSystemConfigPtr = std::shared_ptr<VRObjectSystemConfig>;
-using VRObjectSystemConfigConstPtr = std::shared_ptr<const VRObjectSystemConfig>;
-using VRObjectSystemConfigWeakPtr = std::weak_ptr<VRObjectSystemConfig>;
+class VRObjectSystemDefinition;
+using VRObjectSystemDefinitionPtr = std::shared_ptr<VRObjectSystemDefinition>;
+using VRObjectSystemDefinitionConstPtr = std::shared_ptr<const VRObjectSystemDefinition>;
+using VRObjectSystemDefinitionWeakPtr = std::weak_ptr<VRObjectSystemDefinition>;
 
 class VRTrackingVolumeSystemDefinition;
 using VRTrackingVolumeSystemDefinitionPtr = std::shared_ptr<VRTrackingVolumeSystemDefinition>;

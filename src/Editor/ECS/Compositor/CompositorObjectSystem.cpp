@@ -6,9 +6,9 @@
 #include "ProjectConfig.h"
 
 // -- CompositorObjectSystemConfig -----
-const std::string CompositorObjectSystemConfig::k_compositorListPropertyId= "compositor_ids";
+const std::string CompositorObjectSystemDefinition::k_compositorListPropertyId= "compositor_ids";
 
-configuru::Config CompositorObjectSystemConfig::writeToJSON()
+configuru::Config CompositorObjectSystemDefinition::writeToJSON()
 {
 	configuru::Config pt = CommonConfig::writeToJSON();
 
@@ -24,7 +24,7 @@ configuru::Config CompositorObjectSystemConfig::writeToJSON()
 	return pt;
 }
 
-void CompositorObjectSystemConfig::readFromJSON(const configuru::Config& pt)
+void CompositorObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
@@ -46,7 +46,7 @@ void CompositorObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 	}
 }
 
-CompositorDefinitionPtr CompositorObjectSystemConfig::getCompositorConfig(MikanCompositorID compositorId) const
+CompositorDefinitionPtr CompositorObjectSystemDefinition::getCompositorConfig(MikanCompositorID compositorId) const
 {
 	auto it = std::find_if(
 		m_compositorList.begin(), m_compositorList.end(),
@@ -62,7 +62,7 @@ CompositorDefinitionPtr CompositorObjectSystemConfig::getCompositorConfig(MikanC
 	return CompositorDefinitionPtr();
 }
 
-CompositorDefinitionPtr CompositorObjectSystemConfig::getCompositorConfigByName(const std::string& compositorName) const
+CompositorDefinitionPtr CompositorObjectSystemDefinition::getCompositorConfigByName(const std::string& compositorName) const
 {
 	auto it = std::find_if(
 		m_compositorList.begin(), m_compositorList.end(),
@@ -78,7 +78,7 @@ CompositorDefinitionPtr CompositorObjectSystemConfig::getCompositorConfigByName(
 	return CompositorDefinitionPtr();
 }
 
-MikanCompositorID CompositorObjectSystemConfig::addNewCompositor(
+MikanCompositorID CompositorObjectSystemDefinition::addNewCompositor(
 	MikanStageID ownerStageId)
 {
 	std::string compositorName = "Compositor_" + std::to_string(m_nextCompositorId);
@@ -95,7 +95,7 @@ MikanCompositorID CompositorObjectSystemConfig::addNewCompositor(
 	return compositorDefinitionPtr->getCompositorId();
 }
 
-bool CompositorObjectSystemConfig::removeCompositor(MikanCompositorID compositorId)
+bool CompositorObjectSystemDefinition::removeCompositor(MikanCompositorID compositorId)
 {
 	auto it = std::find_if(
 		m_compositorList.begin(), m_compositorList.end(),
@@ -121,7 +121,7 @@ bool CompositorObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
 	MikanObjectSystem::init(definitionPtr);
 
-	CompositorObjectSystemConfigConstPtr compositorSystemConfig = getCompositorSystemConfigConst();
+	CompositorObjectSystemDefinitionConstPtr compositorSystemConfig = getCompositorSystemConfigConst();
 	for (CompositorDefinitionPtr compositorDefinition : compositorSystemConfig->getCompositorList())
 	{
 		createCompositorObject(compositorDefinition);
@@ -142,14 +142,14 @@ MikanComponentPtr CompositorObjectSystem::getComponentById(int componentId) cons
 	return getCompositorById(componentId);
 }
 
-CompositorObjectSystemConfigConstPtr CompositorObjectSystem::getCompositorSystemConfigConst() const
+CompositorObjectSystemDefinitionConstPtr CompositorObjectSystem::getCompositorSystemConfigConst() const
 {
 	return getProjectConfig()->compositorConfig;
 }
 
-CompositorObjectSystemConfigPtr CompositorObjectSystem::getCompositorSystemConfig()
+CompositorObjectSystemDefinitionPtr CompositorObjectSystem::getCompositorSystemConfig()
 {
-	return std::const_pointer_cast<CompositorObjectSystemConfig>(getCompositorSystemConfigConst());
+	return std::const_pointer_cast<CompositorObjectSystemDefinition>(getCompositorSystemConfigConst());
 }
 
 CompositorComponentPtr CompositorObjectSystem::getCompositorById(MikanCompositorID compositorId) const
@@ -198,7 +198,7 @@ std::vector<MikanCompositorID> CompositorObjectSystem::getCompositorIdListForSta
 CompositorComponentPtr CompositorObjectSystem::addNewCompositor(
 	MikanStageID ownerStageId)
 {
-	CompositorObjectSystemConfigPtr compositorSystemConfig = getCompositorSystemConfig();
+	CompositorObjectSystemDefinitionPtr compositorSystemConfig = getCompositorSystemConfig();
 
 	if (compositorSystemConfig)
 	{
@@ -218,7 +218,7 @@ CompositorComponentPtr CompositorObjectSystem::addNewCompositor(
 bool CompositorObjectSystem::removeCompositor(MikanCompositorID compositorId)
 {
 	bool bValidCompositor = false;
-	CompositorObjectSystemConfigPtr compositorSystemConfig = getCompositorSystemConfig();
+	CompositorObjectSystemDefinitionPtr compositorSystemConfig = getCompositorSystemConfig();
 	
 	if (compositorSystemConfig)
 	{
@@ -265,7 +265,7 @@ void CompositorObjectSystem::setActiveCompositors(
 
 CompositorComponentPtr CompositorObjectSystem::createCompositorObject(CompositorDefinitionPtr compositorConfig)
 {
-	CompositorObjectSystemConfigConstPtr compositorSystemConfig = getCompositorSystemConfigConst();
+	CompositorObjectSystemDefinitionConstPtr compositorSystemConfig = getCompositorSystemConfigConst();
 	MikanObjectPtr compositorObject = newObject();
 	compositorObject->setName(compositorConfig->getComponentName());
 

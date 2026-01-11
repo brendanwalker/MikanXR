@@ -15,7 +15,7 @@ public:
 
 protected:
 	VRObjectSystemPtr getVRObjectSystem() const;
-	VRObjectSystemConfigPtr getVRObjectSystemConfig() const;
+	VRObjectSystemDefinitionPtr getVRObjectSystemConfig() const;
 	VRDeviceComponentPtr getVRDeviceComponent() const;
 	TrackingMountComponentPtr getTrackingMountComponent() const;
 	

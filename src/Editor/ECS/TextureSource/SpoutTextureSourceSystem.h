@@ -12,10 +12,10 @@
 
 using SpoutTextureSourceMap = std::map<MikanTextureSourceID, SpoutTextureSourceComponentWeakPtr>;
 
-class SpoutTextureSourceSystemConfig : public MikanObjectSystemDefinition
+class SpoutTextureSourceSystemDefinition : public MikanObjectSystemDefinition
 {
 public:
-	SpoutTextureSourceSystemConfig(const std::string& configName)
+	SpoutTextureSourceSystemDefinition(const std::string& configName)
 		: MikanObjectSystemDefinition(configName)
 	{
 	}
@@ -44,8 +44,8 @@ public:
 	inline static const std::string k_objectSystemClassName = "SpoutTextureSourceSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
-	SpoutTextureSourceSystemConfigConstPtr getSpoutTextureSourceSystemConfigConst() const;
-	SpoutTextureSourceSystemConfigPtr getSpoutTextureSourceSystemConfig();
+	SpoutTextureSourceSystemDefinitionConstPtr getSpoutTextureSourceSystemConfigConst() const;
+	SpoutTextureSourceSystemDefinitionPtr getSpoutTextureSourceSystemConfig();
 
     virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
     virtual void dispose() override;
