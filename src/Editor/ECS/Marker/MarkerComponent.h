@@ -56,15 +56,15 @@ public:
 	//TODO
 	//void extractMarkerInfoForClientAPI(struct MikanMarkerInfo& outMarkerInfo) const;
 
-	// -- IRmlPropertyInterface ----
-	static void getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
+	// -- IPropertyInterface ----
+	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(PropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override;
 	virtual bool setPropertyValue(PropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue) override;
 
-	// -- IRmlFunctionInterface ----
+	// -- IFunctionInterface ----
 	static const std::string k_deleteMarkerFunctionId;
 	static const std::string k_printMarkerFunctionId;
-	static void getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
+	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
 	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
 
 	void deleteMarker();

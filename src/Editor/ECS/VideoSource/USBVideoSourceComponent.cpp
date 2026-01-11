@@ -904,12 +904,12 @@ void USBVideoSourceComponent::notifyVideoFrameReceived(const UsbVideoFrameBuffer
 	}
 }
 
-// -- IRmlPropertyInterface ----
+// -- IPropertyInterface ----
 const std::string USBVideoSourceComponent::k_currentDevicePathPropertyId = "current_device_path";
 
-void USBVideoSourceComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+void USBVideoSourceComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
-	VideoSourceComponent::getRmlPropertyDescriptors(outDescriptors);
+	VideoSourceComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
@@ -975,12 +975,12 @@ bool USBVideoSourceComponent::setPropertyValue(
 	return VideoSourceComponent::setPropertyValue(propertyDesc, inValue);
 }
 
-// -- IRmlFunctionInterface ----
+// -- IFunctionInterface ----
 const std::string USBVideoSourceComponent::k_resetToDefaultsFunctionId = "reset_settings";
 
-void USBVideoSourceComponent::getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames)
+void USBVideoSourceComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames)
 {
-	VideoSourceComponent::getRmlFunctionDescriptors(outPropertyNames);
+	VideoSourceComponent::getFunctionDescriptors(outPropertyNames);
 
 	outPropertyNames.push_back(
 		std::make_shared<FunctionDescriptor>(

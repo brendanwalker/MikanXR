@@ -114,9 +114,9 @@ public:
 
 	// -- IPropertyInterface ----
 	static const std::string k_componentIdListPropertyId;
-	static void getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 	{
-		MikanObjectSystem::getRmlPropertyDescriptors(outDescriptors);
+		MikanObjectSystem::getPropertyDescriptors(outDescriptors);
 
 		outDescriptors.push_back(
 			std::make_shared<PropertyDescriptor>(k_componentIdListPropertyId, MikanVariantType::INT_ARRAY)

@@ -372,10 +372,10 @@ void TransformComponent::visitAllTransformComponentsConst(TransformComponentCons
 	visitAllTransformComponentsHelper(this, visitor);
 }
 
-// -- IRmlPropertyInterface ----
-void TransformComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+// -- IPropertyInterface ----
+void TransformComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
-	MikanComponent::getRmlPropertyDescriptors(outDescriptors);
+	MikanComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
@@ -463,10 +463,10 @@ bool TransformComponent::setPropertyValue(
 	return MikanComponent::setPropertyValue(propertyDesc, inValue);
 }
 
-// -- IRmlFunctionInterface ----
-void TransformComponent::getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
+// -- IFunctionInterface ----
+void TransformComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
-	MikanComponent::getRmlFunctionDescriptors(outDescriptors);
+	MikanComponent::getFunctionDescriptors(outDescriptors);
 }
 
 // -- Lua Binding ----

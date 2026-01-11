@@ -108,17 +108,17 @@ public:
 	MulticastDelegate<void(VideoSourceComponentPtr videoSource)> OnFrameSizeChanged;
 	MulticastDelegate<void(VideoSourceComponentPtr videoSource)> OnIntrinsicsChanged;
 
-	// -- IRmlPropertyInterface ----
-	static void getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
+	// -- IPropertyInterface ----
+	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(PropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override;
 	virtual bool setPropertyValue(PropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue) override;
 
-	// -- IRmlFunctionInterface ----
+	// -- IFunctionInterface ----
 	static const std::string k_deleteVideoSourceFunctionId;
 	static const std::string k_showVideoSourceSettingsFunctionId;
 	static const std::string k_calibrateIntrinsicsFunctionId;
 	static const std::string k_testIntrinsicsFunctionId;
-	static void getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames);
+	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames);
 	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
 
 	void deleteVideoSource();

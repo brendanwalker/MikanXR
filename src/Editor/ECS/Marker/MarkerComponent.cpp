@@ -108,10 +108,10 @@ MarkerObjectSystemPtr MarkerComponent::getOwnerMarkerSystem() const
 //	}
 //}
 
-// -- IRmlPropertyInterface ----
-void MarkerComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+// -- IPropertyInterface ----
+void MarkerComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
-	MikanComponent::getRmlPropertyDescriptors(outDescriptors);
+	MikanComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
@@ -159,10 +159,10 @@ bool MarkerComponent::setPropertyValue(PropertyDescriptorConstPtr propertyDesc, 
 	return MikanComponent::setPropertyValue(propertyDesc, inValue);
 }
 
-// -- IRmlFunctionInterface ----
-void MarkerComponent::getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
+// -- IFunctionInterface ----
+void MarkerComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
-	MikanComponent::getRmlFunctionDescriptors(outDescriptors);
+	MikanComponent::getFunctionDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(

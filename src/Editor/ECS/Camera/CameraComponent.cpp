@@ -474,10 +474,10 @@ void CameraComponent::refreshTrackingMount()
 	}
 }
 
-// -- IRmlPropertyInterface ----
-void CameraComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+// -- IPropertyInterface ----
+void CameraComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
-	TransformComponent::getRmlPropertyDescriptors(outDescriptors);
+	TransformComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(CameraDefinition::k_trackingMountIdPropertyId, MikanVariantType::INT)
@@ -549,10 +549,10 @@ bool CameraComponent::setPropertyValue(
 	return TransformComponent::setPropertyValue(propertyDesc, inValue);
 }
 
-// -- IRmlFunctionInterface ----
-void CameraComponent::getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
+// -- IFunctionInterface ----
+void CameraComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
-	MikanComponent::getRmlFunctionDescriptors(outDescriptors);
+	MikanComponent::getFunctionDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(

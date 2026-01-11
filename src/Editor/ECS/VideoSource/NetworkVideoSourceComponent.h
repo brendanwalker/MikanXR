@@ -80,8 +80,8 @@ public:
 	virtual void notifyVideoModePropertiesChanged(const class INetworkVideoDevice* device) override;
 	virtual void notifyVideoFrameReceived(const NetworkVideoFrameBuffer& bufferInfo) override;
 
-	// -- IRmlPropertyInterface ----
-	static void getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
+	// -- IPropertyInterface ----
+	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(PropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override;
 	virtual bool setPropertyValue(PropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue) override;
 

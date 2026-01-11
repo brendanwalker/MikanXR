@@ -65,10 +65,10 @@ IMkTexturePtr TextureSourceComponent::getClientDepthSourceTexture(eTextureSource
 	return IMkTexturePtr();
 }
 
-// -- IRmlPropertyInterface ----
-void TextureSourceComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+// -- IPropertyInterface ----
+void TextureSourceComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
-	MikanComponent::getRmlPropertyDescriptors(outDescriptors);
+	MikanComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
@@ -99,13 +99,13 @@ bool TextureSourceComponent::setPropertyValue(
 	return MikanComponent::setPropertyValue(propertyDesc, inValue);
 }
 
-// -- IRmlFunctionInterface ----
+// -- IFunctionInterface ----
 const std::string TextureSourceComponent::k_deleteTextureSourceFunctionId = "delete_video_source";
 const std::string TextureSourceComponent::k_showTextureSourceSettingsFunctionId = "show_texture_source_settings";
 
-void TextureSourceComponent::getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
+void TextureSourceComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
-	MikanComponent::getRmlFunctionDescriptors(outDescriptors);
+	MikanComponent::getFunctionDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(

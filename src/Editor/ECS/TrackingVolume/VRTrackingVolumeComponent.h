@@ -70,16 +70,16 @@ public:
 	glm::mat4 getVRDevicePoseOffset() const;
 	void setVRDevicePoseOffset(const glm::mat4& poseOffset);
 
-	// -- IRmlPropertyInterface ----
+	// -- IPropertyInterface ----
 	static const std::string k_vrDevicePositionOffsetPropertyId;
 	static const std::string k_vrDeviceRotationOffsetPropertyId;
-	static void getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
+	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(PropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override;
 	virtual bool setPropertyValue(PropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue) override;
 
-	// -- IRmlFunctionInterface ----
+	// -- IFunctionInterface ----
 	static const std::string k_alignTrackingVolumeFunctionId;
-	static void getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames);
+	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames);
 	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
 
 protected:

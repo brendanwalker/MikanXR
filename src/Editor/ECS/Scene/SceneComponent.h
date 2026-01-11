@@ -59,16 +59,16 @@ public:
 	virtual void init() override;
 	virtual void dispose() override;
 
-	// -- IRmlPropertyInterface ----
-	static void getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
+	// -- IPropertyInterface ----
+	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(PropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override;
 	virtual bool setPropertyValue(PropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue) override;
 
-	// -- IRmlFunctionInterface ----
+	// -- IFunctionInterface ----
 	static const std::string k_deleteSceneFunctionId;
 	static const std::string k_addCompositorRefFunctionId;
 	static const std::string k_removeCompositorRefFunctionId;
-	static void getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
+	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
 	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
 
 	// -- Lua Binding ----
@@ -93,7 +93,7 @@ protected:
 
 	void onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
-	// IRmlFunctionInterface handlers
+	// IFunctionInterface handlers
 	void deleteScene();
 	void addCompositorRef();
 	void removeCompositorRef();

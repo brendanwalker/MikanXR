@@ -55,10 +55,10 @@ public:
 
 	void extractAnchorInfoForClientAPI(struct MikanSpatialAnchorInfo& outAnchorInfo) const;
 
-	// -- IRmlFunctionInterface ----
+	// -- IFunctionInterface ----
 	static const std::string k_editAnchorFunctionId;
 	static const std::string k_deleteAnchorFunctionId;
-	static void getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
+	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
 	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
 
 	void editAnchor();

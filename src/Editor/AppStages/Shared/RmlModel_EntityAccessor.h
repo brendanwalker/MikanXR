@@ -24,10 +24,10 @@ public:
 		OnConstruct onContructCallback = {})
 	{
 		std::vector<PropertyDescriptorConstPtr> propertyNames;
-		t_property_interface::getRmlPropertyDescriptors(propertyNames);
+		t_property_interface::getPropertyDescriptors(propertyNames);
 
 		std::vector<FunctionDescriptorConstPtr> functionNames;
-		t_property_interface::getRmlFunctionDescriptors(functionNames);
+		t_property_interface::getFunctionDescriptors(functionNames);
 
 		return init(
 			rmlContext,

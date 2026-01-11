@@ -318,8 +318,8 @@ void MikanComponent::disposeScriptContext()
 	m_scriptContext = nullptr;
 }
 
-// -- IRmlPropertyInterface ----
-void MikanComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+// -- IPropertyInterface ----
+void MikanComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
@@ -384,12 +384,12 @@ bool MikanComponent::setPropertyValue(PropertyDescriptorConstPtr propertyDesc, c
 	return false;
 }
 
-// -- IRmlFunctionInterface ----
+// -- IFunctionInterface ----
 const std::string MikanComponent::k_reloadScriptFunctionId = "reload_script";
 const std::string MikanComponent::k_addNewScriptFunctionId = "add_new_script";
 const std::string MikanComponent::k_removeScriptFunctionId = "remove_script";
 
-void MikanComponent::getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
+void MikanComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(

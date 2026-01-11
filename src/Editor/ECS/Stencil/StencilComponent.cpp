@@ -125,10 +125,10 @@ void StencilComponent::attachTransformComponentToAnchor(MikanSpatialAnchorID new
 	}
 }
 
-// -- IRmlPropertyInterface ----
-void StencilComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+// -- IPropertyInterface ----
+void StencilComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
-	TransformComponent::getRmlPropertyDescriptors(outDescriptors);
+	TransformComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
@@ -199,12 +199,12 @@ bool StencilComponent::setPropertyValue(
 	return TransformComponent::setPropertyValue(propertyDesc, inValue);
 }
 
-// -- IRmlFunctionInterface ----
+// -- IFunctionInterface ----
 const std::string StencilComponent::k_deleteStencilFunctionId= "delete_stencil";
 
-void StencilComponent::getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
+void StencilComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
-	MikanComponent::getRmlFunctionDescriptors(outDescriptors);
+	MikanComponent::getFunctionDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(

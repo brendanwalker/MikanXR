@@ -487,10 +487,10 @@ void NetworkVideoSourceComponent::notifyVideoFrameReceived(
 	}
 }
 
-// -- IRmlPropertyInterface ----
-void NetworkVideoSourceComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+// -- IPropertyInterface ----
+void NetworkVideoSourceComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
-	VideoSourceComponent::getRmlPropertyDescriptors(outDescriptors);
+	VideoSourceComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(

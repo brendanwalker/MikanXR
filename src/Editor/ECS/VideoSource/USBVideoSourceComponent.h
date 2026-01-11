@@ -91,15 +91,15 @@ public:
 	virtual void notifyVideoModePropertiesChanged(const IUsbVideoDevice* device) override;
 	virtual void notifyVideoFrameReceived(const UsbVideoFrameBuffer& bufferInfo) override;
 
-	// -- IRmlPropertyInterface ----
+	// -- IPropertyInterface ----
 	static const std::string k_currentDevicePathPropertyId;
-	static void getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
+	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(PropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override;
 	virtual bool setPropertyValue(PropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue) override;
 
-	// -- IRmlFunctionInterface ----
+	// -- IFunctionInterface ----
 	static const std::string k_resetToDefaultsFunctionId;
-	static void getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames);
+	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames);
 	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
 
 protected:

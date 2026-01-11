@@ -394,10 +394,10 @@ MarkerObjectSystemConfigPtr MarkerObjectSystem::getMarkerSystemConfig()
 	return std::const_pointer_cast<MarkerObjectSystemConfig>(getMarkerSystemConfigConst());
 }
 
-// -- IRmlPropertyInterface ----
-void MarkerObjectSystem::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+// -- IPropertyInterface ----
+void MarkerObjectSystem::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
-	MikanObjectSystem::getRmlPropertyDescriptors(outDescriptors);
+	MikanObjectSystem::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
@@ -517,12 +517,12 @@ void MarkerObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr pr
 	propertyDatabase->registerPropertiesForComponent<MarkerObjectSystem, MarkerComponent>();
 }
 
-// -- IRmlFunctionInterface ----
+// -- IFunctionInterface ----
 const std::string MarkerObjectSystem::k_printCharucoMarkerFunctionId = "print_checkerboard";
 
-void MarkerObjectSystem::getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
+void MarkerObjectSystem::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
-	MikanObjectSystem::getRmlFunctionDescriptors(outDescriptors);
+	MikanObjectSystem::getFunctionDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(

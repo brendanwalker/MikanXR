@@ -67,9 +67,9 @@ void StageComponent::dispose()
 	TransformComponent::dispose();
 }
 
-void StageComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+void StageComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
-	TransformComponent::getRmlPropertyDescriptors(outDescriptors);
+	TransformComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
@@ -130,12 +130,12 @@ TrackingVolumeDefinitionConstPtr StageComponent::getTrackingVolumeDefinitionCons
 	return TrackingVolumeDefinitionConstPtr();
 }
 
-// -- IRmlFunctionInterface ----
+// -- IFunctionInterface ----
 const std::string StageComponent::k_deleteStageFunctionId = "delete_stage";
 
-void StageComponent::getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
+void StageComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
-	MikanComponent::getRmlFunctionDescriptors(outDescriptors);
+	MikanComponent::getFunctionDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(

@@ -82,10 +82,10 @@ IMkTexturePtr ClientTextureSourceComponent::getClientDepthSourceTexture(
 	return IMkTexturePtr();
 }
 
-// -- IRmlPropertyInterface ----
-void ClientTextureSourceComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+// -- IPropertyInterface ----
+void ClientTextureSourceComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
-	TextureSourceComponent::getRmlPropertyDescriptors(outDescriptors);
+	TextureSourceComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(

@@ -93,10 +93,10 @@ void TrackingVolumeComponent::deleteTrackingVolume()
 	}
 }
 
-// -- IRmlPropertyInterface ----
-void TrackingVolumeComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+// -- IPropertyInterface ----
+void TrackingVolumeComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
-	MikanComponent::getRmlPropertyDescriptors(outDescriptors);
+	MikanComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(

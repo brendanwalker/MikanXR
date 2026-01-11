@@ -748,10 +748,10 @@ void CompositorComponent::onDefinitionChanged(CommonConfigPtr configPtr, const C
 	}
 }
 
-// -- IRmlPropertyInterface ----
-void CompositorComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+// -- IPropertyInterface ----
+void CompositorComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
-	MikanComponent::getRmlPropertyDescriptors(outDescriptors);
+	MikanComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
@@ -849,8 +849,8 @@ bool CompositorComponent::setPropertyValue(
 	return MikanComponent::setPropertyValue(propertyDesc, inValue);
 }
 
-// -- IRmlFunctionInterface ----
-void CompositorComponent::getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
+// -- IFunctionInterface ----
+void CompositorComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
-	MikanComponent::getRmlFunctionDescriptors(outDescriptors);
+	MikanComponent::getFunctionDescriptors(outDescriptors);
 }

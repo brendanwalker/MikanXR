@@ -40,7 +40,7 @@ public:
 	void registerPropertiesForSystem()
 	{
 		std::vector<PropertyDescriptorConstPtr> descriptors;
-		t_system_class::getRmlPropertyDescriptors(descriptors);
+		t_system_class::getPropertyDescriptors(descriptors);
 
 		for (const PropertyDescriptorConstPtr& descriptor : descriptors)
 		{
@@ -52,7 +52,7 @@ public:
 	void registerPropertiesForComponent()
 	{
 		std::vector<PropertyDescriptorConstPtr> descriptors;
-		t_component_class::getRmlPropertyDescriptors(descriptors);
+		t_component_class::getPropertyDescriptors(descriptors);
 
 		for (const PropertyDescriptorConstPtr& descriptor : descriptors)
 		{

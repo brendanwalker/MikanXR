@@ -57,14 +57,14 @@ public:
 	inline static const std::string k_componentClassName = "BoxStencilComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
-	// -- IRmlPropertyInterface ----
-	static void getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
+	// -- IPropertyInterface ----
+	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(PropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override;
 	virtual bool setPropertyValue(PropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue) override;
 
-	// -- IRmlFunctionInterface ----
-	static void getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames)
-	{ StencilComponent::getRmlFunctionDescriptors(outPropertyNames); }
+	// -- IFunctionInterface ----
+	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames)
+	{ StencilComponent::getFunctionDescriptors(outPropertyNames); }
 
 	// -- Lua Binding ----
 	static void bindLuaFunctions(struct lua_State* L);

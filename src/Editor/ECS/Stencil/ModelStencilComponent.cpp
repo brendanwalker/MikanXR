@@ -433,10 +433,10 @@ void ModelStencilComponent::onTransformGizmoUnbound()
 	updateWireframeMeshColor();
 }
 
-// -- IRmlPropertyInterface ----
-void ModelStencilComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+// -- IPropertyInterface ----
+void ModelStencilComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
-	StencilComponent::getRmlPropertyDescriptors(outDescriptors);
+	StencilComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
@@ -478,14 +478,14 @@ bool ModelStencilComponent::setPropertyValue(
 	return StencilComponent::setPropertyValue(propertyDesc, inValue);
 }
 
-// -- IRmlFunctionInterface ----
+// -- IFunctionInterface ----
 const std::string ModelStencilComponent::k_addNewModelFunctionId = "add_new_model";
 const std::string ModelStencilComponent::k_removeModelFunctionId = "remove_model";
 const std::string ModelStencilComponent::k_alignStencilFunctionId = "align_stencil";
 
-void ModelStencilComponent::getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
+void ModelStencilComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
-	StencilComponent::getRmlFunctionDescriptors(outDescriptors);
+	StencilComponent::getFunctionDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(

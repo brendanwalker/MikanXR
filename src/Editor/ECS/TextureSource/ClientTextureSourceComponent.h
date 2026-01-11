@@ -42,14 +42,14 @@ public:
 	IMkTexturePtr getClientColorSourceTexture(eTextureSourceColorType textureSourceColorType) const;
 	IMkTexturePtr getClientDepthSourceTexture(eTextureSourceDepthType textureSourceColorType) const;
 
-	// -- IRmlPropertyInterface ----
-	static void getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
+	// -- IPropertyInterface ----
+	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(PropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override;
 	virtual bool setPropertyValue(PropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue) override;
 
-	// -- IRmlFunctionInterface ----
+	// -- IFunctionInterface ----
 	static void getFunctionNamesStatic(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
-	{ TextureSourceComponent::getRmlFunctionDescriptors(outDescriptors); }
+	{ TextureSourceComponent::getFunctionDescriptors(outDescriptors); }
 
 protected:
 	class ClientSourceManager* getClientSourceManager() const;

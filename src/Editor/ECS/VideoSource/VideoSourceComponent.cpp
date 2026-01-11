@@ -363,10 +363,10 @@ void VideoSourceComponent::recomputeCameraProjectionMatrix()
 	}
 }
 
-// -- IRmlPropertyInterface ----
-void VideoSourceComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+// -- IPropertyInterface ----
+void VideoSourceComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
-	MikanComponent::getRmlPropertyDescriptors(outDescriptors);
+	MikanComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
@@ -444,15 +444,15 @@ bool VideoSourceComponent::setPropertyValue(
 	return MikanComponent::setPropertyValue(propertyDesc, inValue);
 }
 
-// -- IRmlFunctionInterface ----
+// -- IFunctionInterface ----
 const std::string VideoSourceComponent::k_deleteVideoSourceFunctionId = "delete_video_source";
 const std::string VideoSourceComponent::k_showVideoSourceSettingsFunctionId = "show_video_source_settings";
 const std::string VideoSourceComponent::k_calibrateIntrinsicsFunctionId = "calibrate_intrinsics";
 const std::string VideoSourceComponent::k_testIntrinsicsFunctionId = "test_intrinsics";
 
-void VideoSourceComponent::getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
+void VideoSourceComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
-	MikanComponent::getRmlFunctionDescriptors(outDescriptors);
+	MikanComponent::getFunctionDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(

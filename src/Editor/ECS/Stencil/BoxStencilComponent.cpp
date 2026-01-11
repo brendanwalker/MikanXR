@@ -169,10 +169,10 @@ void BoxStencilComponent::updateBoxColliderExtents()
 	}
 }
 
-// -- IRmlPropertyInterface ----
-void BoxStencilComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+// -- IPropertyInterface ----
+void BoxStencilComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
-	StencilComponent::getRmlPropertyDescriptors(outDescriptors);
+	StencilComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(

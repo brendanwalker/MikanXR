@@ -310,9 +310,9 @@ void SceneComponent::renderEditorScene(MikanCameraConstPtr camera, MkStateStack&
 	mkScene->render(camera, MkStateStack);
 }
 
-void SceneComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+void SceneComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
-	TransformComponent::getRmlPropertyDescriptors(outDescriptors);
+	TransformComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
@@ -361,14 +361,14 @@ bool SceneComponent::setPropertyValue(
 	return TransformComponent::setPropertyValue(propertyDesc, inValue);
 }
 
-// -- IRmlFunctionInterface ----
+// -- IFunctionInterface ----
 const std::string SceneComponent::k_deleteSceneFunctionId = "delete_scene";
 const std::string SceneComponent::k_addCompositorRefFunctionId = "add_compositor_ref";
 const std::string SceneComponent::k_removeCompositorRefFunctionId = "remove_compositor_ref";
 
-void SceneComponent::getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
+void SceneComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
-	MikanComponent::getRmlFunctionDescriptors(outDescriptors);
+	MikanComponent::getFunctionDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(

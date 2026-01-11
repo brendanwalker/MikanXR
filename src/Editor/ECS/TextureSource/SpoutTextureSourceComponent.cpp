@@ -193,10 +193,10 @@ IMkTexturePtr SpoutTextureSourceComponent::getClientColorSourceTexture(
 	return m_colorTexture;
 }
 
-// -- IRmlPropertyInterface ----
-void SpoutTextureSourceComponent::getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+// -- IPropertyInterface ----
+void SpoutTextureSourceComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
-	TextureSourceComponent::getRmlPropertyDescriptors(outDescriptors);
+	TextureSourceComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(

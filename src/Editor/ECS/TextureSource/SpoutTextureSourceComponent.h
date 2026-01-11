@@ -43,14 +43,14 @@ public:
 	// Texture Source Interface
 	virtual IMkTexturePtr getClientColorSourceTexture(eTextureSourceColorType textureSourceColorType) const;
 
-	// -- IRmlPropertyInterface ----
-	static void getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
+	// -- IPropertyInterface ----
+	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(PropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override;
 	virtual bool setPropertyValue(PropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue) override;
 
-	// -- IRmlFunctionInterface ----
-	static void getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
-	{ TextureSourceComponent::getRmlFunctionDescriptors(outDescriptors); }
+	// -- IFunctionInterface ----
+	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
+	{ TextureSourceComponent::getFunctionDescriptors(outDescriptors); }
 
 protected:
 	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet) override;

@@ -126,13 +126,13 @@ void AnchorComponent::customRender()
 	drawTextAtWorldPosition(style, anchorPos, L"%s", wszAnchorName);
 }
 
-// -- IRmlFunctionInterface ----
+// -- IFunctionInterface ----
 const std::string AnchorComponent::k_editAnchorFunctionId = "edit_anchor";
 const std::string AnchorComponent::k_deleteAnchorFunctionId = "delete_anchor";
 
-void AnchorComponent::getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
+void AnchorComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
-	TransformComponent::getRmlFunctionDescriptors(outDescriptors);
+	TransformComponent::getFunctionDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(

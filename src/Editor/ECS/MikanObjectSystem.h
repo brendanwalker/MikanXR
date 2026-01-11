@@ -72,13 +72,13 @@ public:
 	// -- IEntityAccessor ----
 	virtual CommonConfigPtr getEntityConfig() override { return getDefinition(); }
 
-	// -- IRmlPropertyInterface ----
-	static void getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors) {}
+	// -- IPropertyInterface ----
+	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors) {}
 	virtual bool getPropertyValue(PropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override { return false; }
 	virtual bool setPropertyValue(PropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue) override { return false; }
 
-	// -- IRmlFunctionInterface ----
-	static void getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors) {}
+	// -- IFunctionInterface ----
+	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors) {}
 	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc)  override { return false; }
 		
 protected:

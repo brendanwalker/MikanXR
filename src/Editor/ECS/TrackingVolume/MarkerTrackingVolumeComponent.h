@@ -26,9 +26,9 @@ public:
 	inline MarkerTrackingVolumeDefinitionPtr getMarkerTrackingVolumeDefinition() const
 	{ return std::static_pointer_cast<MarkerTrackingVolumeDefinition>(m_definition); }
 
-	// -- IRmlPropertyInterface ----
-	static void getRmlPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
+	// -- IPropertyInterface ----
+	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 
-	// -- IRmlFunctionInterface ----
-	static void getRmlFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
+	// -- IFunctionInterface ----
+	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
 };
