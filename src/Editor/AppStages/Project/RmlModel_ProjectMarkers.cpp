@@ -37,7 +37,7 @@ bool RmlModel_ProjectMarkers::init(
 	m_markerIdList->init(
 		constructor,
 		m_markerSystem.lock(),
-		MarkerObjectSystem::k_componentIdListPropertyId);
+		MarkerObjectSystemDefinition::k_componentIdListPropertyId);
 
 	// Register Data Model Fields
 	constructor.Bind("selected_marker_id", &m_selectedMarkerId);

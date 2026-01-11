@@ -65,12 +65,13 @@ bool RmlModel_ProjectScenes::init(ProjectRmlModelContext* context)
 	m_stageIdList->init(
 		constructor,
 		m_stageSystem.lock(),
-		StageObjectSystem::k_componentIdListPropertyId);
+		StageObjectSystemDefinition::k_componentIdListPropertyId);
 	m_sceneIdList->init(
 		constructor,
-		m_sceneSystem.lock()->getTypedDefinition(),
-		"scene_ids", // virtual list since this is filtered by selected stage
+		m_sceneSystem.lock()->getTypedDefinition(), // Listen for scene system definition changes
+		"scene_ids", // virtual list that does not exist as a property
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
+			// Only show scenes whose parent stage matches the selected stage
 			auto sceneSystemConfig = std::static_pointer_cast<SceneObjectSystemDefinition>(ownerConfig);
 
 			for (const SceneComponentDefinitionPtr sceneComponent : sceneSystemConfig->getAllDefinitions())
@@ -82,7 +83,8 @@ bool RmlModel_ProjectScenes::init(ProjectRmlModelContext* context)
 			}
 		},
 		[this](const ConfigPropertyChangeSet& changedPropertySet) {
-			return changedPropertySet.hasPropertyName(SceneObjectSystemDefinition::k_scenePoolPropertyId);
+			// Refresh when the list of scene IDs changes on the scene system definition
+			return changedPropertySet.hasPropertyName(SceneObjectSystemDefinition::k_componentIdListPropertyId);
 		});
 
 	// One time data model types registration

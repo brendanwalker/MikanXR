@@ -20,7 +20,6 @@
 #include <filesystem>
 
 // -- MarkerObjectSystemDefinition -----
-const std::string MarkerObjectSystemDefinition::k_markerPoolPropertyId = "marker_pool";
 const std::string MarkerObjectSystemDefinition::k_arucoIdListPropertyId = "arucoIdList";
 const std::string MarkerObjectSystemDefinition::k_arucoDictionaryTypePropertyId = "arucoDictionaryType";
 const std::string MarkerObjectSystemDefinition::k_charucoRowsPropertyId = "charucoRows";
@@ -30,7 +29,7 @@ const std::string MarkerObjectSystemDefinition::k_charucoMarkerLengthMMPropertyI
 const std::string MarkerObjectSystemDefinition::k_charucoDictionaryTypePropertyId = "charucoDictionaryType";
 
 MarkerObjectSystemDefinition::MarkerObjectSystemDefinition(const std::string& configName)
-	: Super::MikanTypedObjectSystemDefinition(configName, k_markerPoolPropertyId)
+	: Super::MikanTypedObjectSystemDefinition(configName)
 {
 }
 

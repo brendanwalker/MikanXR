@@ -114,21 +114,20 @@ public:
 	}
 
 	// -- IPropertyInterface ----
-	static const std::string k_componentIdListPropertyId;
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 	{
 		MikanObjectSystem::getPropertyDescriptors(outDescriptors);
 
 		outDescriptors.push_back(
-			std::make_shared<PropertyDescriptor>(k_componentIdListPropertyId, MikanVariantType::INT_ARRAY)
+			std::make_shared<PropertyDescriptor>(TSystemDefinition::k_componentIdListPropertyId, MikanVariantType::INT_ARRAY)
 			->setReadOnly());
 	}
 	virtual bool getPropertyValue(PropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override
 	{
-		if (propertyDesc->getName() == k_componentIdListPropertyId)
+		if (propertyDesc->getName() == TSystemDefinition::k_componentIdListPropertyId)
 		{
 			std::vector<int> componentIdList;
-			m_pool.getAllComponentIds(componentIdList);
+			getTypedDefinitionConst()->getAllComponentIds(componentIdList);
 			outValue = componentIdList;
 			return true;
 		}
@@ -182,13 +181,3 @@ private:
 private:
 	Pool m_pool;
 };
-
-// Static member definitions
-template<class TComponent, class TDefinition, typename TID, class TSystem, class TSystemDefinition>
-const std::string MikanTypedObjectSystem<
-	TComponent,
-	TDefinition,
-	TID,
-	TSystem,
-	TSystemDefinition>
-::k_componentIdListPropertyId = TComponent::k_componentClassName + "IdList";

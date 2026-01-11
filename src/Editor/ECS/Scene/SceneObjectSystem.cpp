@@ -6,11 +6,10 @@
 #include "ProjectConfig.h"
 
 // -- SceneObjectSystemDefinition -----
-const std::string SceneObjectSystemDefinition::k_scenePoolPropertyId = "scene_pool";
 const std::string SceneObjectSystemDefinition::k_currentSceneIdPropertyId = "current_scene_id";
 
 SceneObjectSystemDefinition::SceneObjectSystemDefinition(const std::string& configName)
-	: Super::MikanTypedObjectSystemDefinition(configName, k_scenePoolPropertyId)
+	: Super::MikanTypedObjectSystemDefinition(configName)
 {
 }
 

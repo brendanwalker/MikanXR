@@ -20,18 +20,15 @@
 #include <glm/ext/matrix_float4x4.hpp>
 
 class MarkerObjectSystemDefinition :
-	public MikanTypedObjectSystemDefinition<MarkerDefinition, MikanMarkerID>
+	public MikanTypedObjectSystemDefinition<MarkerComponent, MarkerDefinition, MikanMarkerID>
 {
 public:
-	using Super = MikanTypedObjectSystemDefinition<MarkerDefinition, MikanMarkerID>;
+	using Super = MikanTypedObjectSystemDefinition<MarkerComponent, MarkerDefinition, MikanMarkerID>;
 
 	MarkerObjectSystemDefinition(const std::string& configName);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
-
-	// Marker Pool
-	static const std::string k_markerPoolPropertyId;
 
 	static const std::string k_arucoDictionaryTypePropertyId;
 	inline eCharucoDictionaryType getArucoDictionaryType() const { return m_arucoDictionaryType; }

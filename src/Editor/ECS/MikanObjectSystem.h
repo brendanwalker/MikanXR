@@ -85,7 +85,6 @@ protected:
 	ProjectManagerWeakPtr m_ownerObjectSystemManager;
 	MikanObjectSystemDefinitionWeakPtr m_definitionWeakPtr;
 
-	std::string m_systemName;
 	MikanObjectList m_objects;
 
 	MulticastDelegate<void(float deltaSeconds)> onUpdate;

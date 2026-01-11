@@ -22,9 +22,7 @@ public:
 	using DefinitionList = std::vector<ComponentDefinitionPtr>;
 	using DefinitionListConstIter = typename DefinitionList::const_iterator;
 
-	MikanTypedObjectPoolDefinition(
-		const std::string& poolPropertyId,
-		int32_t initialNextId = 0)
+	MikanTypedObjectPoolDefinition(int32_t initialNextId = 0)
 		: CommonConfig("ComponentPool")
 		, m_nextId(initialNextId)
 	{}
@@ -67,11 +65,6 @@ public:
 	}
 
 	// Config accessors
-	const std::string& getListPropertyId() const 
-	{ 
-		return m_poolPropertyId; 
-	}
-
 	ComponentDefinitionPtr getById(int32_t id) const
 	{
 		auto it = findDefinitionIteratorById(id);
@@ -128,8 +121,6 @@ public:
 				m_nextId = id + 1;
 			}
 
-			notifyDefinitionsChanged();
-
 			return true;
 		}
 
@@ -145,17 +136,10 @@ public:
 			removeChildConfig(*it);
 			m_definitions.erase(it);
 
-			notifyDefinitionsChanged();
-
 			return true;
 		}
 
 		return false;
-	}
-
-	void notifyDefinitionsChanged()
-	{
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(m_poolPropertyId));
 	}
 
 protected:
@@ -171,5 +155,4 @@ protected:
 private:
 	t_id_type m_nextId;
 	DefinitionList m_definitions;
-	std::string m_poolPropertyId;     // Property ID for change notifications
 };

@@ -23,17 +23,15 @@
 class GlmTransform;
 
 class SceneObjectSystemDefinition : 
-	public MikanTypedObjectSystemDefinition<SceneComponentDefinition, MikanSceneID>
+	public MikanTypedObjectSystemDefinition<SceneComponent, SceneComponentDefinition, MikanSceneID>
 {
 public:
-	using Super = MikanTypedObjectSystemDefinition<SceneComponentDefinition, MikanSceneID>;
+	using Super = MikanTypedObjectSystemDefinition<SceneComponent, SceneComponentDefinition, MikanSceneID>;
 
 	SceneObjectSystemDefinition(const std::string& configName);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
-
-	static const std::string k_scenePoolPropertyId;
 
 	static const std::string k_currentSceneIdPropertyId;
 	inline MikanSceneID getCurrentSceneId() const { return m_currentSceneId; }

@@ -6,10 +6,8 @@
 #include "ProjectConfig.h"
 
 // -- StageObjectSystemDefinition -----
-const std::string StageObjectSystemDefinition::k_stagePoolPropertyId = "stage_pool";
-
 StageObjectSystemDefinition::StageObjectSystemDefinition(const std::string& configName)
-	: Super::MikanTypedObjectSystemDefinition(configName, k_stagePoolPropertyId)
+	: Super::MikanTypedObjectSystemDefinition(configName)
 {
 }
 

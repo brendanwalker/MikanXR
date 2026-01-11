@@ -46,7 +46,7 @@ bool RmlModel_ProjectStages::init(ProjectRmlModelContext* context)
 	m_stageIdList->init(
 		constructor,
 		m_stageSystem.lock(),
-		StageObjectSystem::k_componentIdListPropertyId);
+		StageObjectSystemDefinition::k_componentIdListPropertyId);
 
 	m_cameraIdList->init(
 		constructor,

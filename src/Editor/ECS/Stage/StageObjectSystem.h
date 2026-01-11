@@ -17,14 +17,12 @@
 #include <string>
 
 class StageObjectSystemDefinition :
-	public MikanTypedObjectSystemDefinition<StageComponentDefinition, MikanStageID>
+	public MikanTypedObjectSystemDefinition<StageComponent, StageComponentDefinition, MikanStageID>
 {
 public:
-	using Super = MikanTypedObjectSystemDefinition<StageComponentDefinition, MikanStageID>;
+	using Super = MikanTypedObjectSystemDefinition<StageComponent, StageComponentDefinition, MikanStageID>;
 
 	StageObjectSystemDefinition(const std::string& configName);
-
-	static const std::string k_stagePoolPropertyId;
 };
 
 class StageObjectSystem :
