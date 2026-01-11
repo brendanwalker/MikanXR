@@ -36,7 +36,7 @@ public:
 
 	AnchorObjectSystemDefinitionPtr anchorConfig;
 	BoxStencilSystemDefinitionPtr boxStencilSystemDefinition;
-	CameraObjectSystemConfigPtr cameraConfig;
+	CameraObjectSystemDefinitionPtr cameraConfig;
 	ClientTextureSourceSystemConfigPtr clientConfig;
 	CompositorObjectSystemConfigPtr compositorConfig;
 	EditorObjectSystemConfigPtr editorConfig;

@@ -32,7 +32,7 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 {
 	anchorConfig = addTypedDefinition<AnchorObjectSystemDefinition, AnchorObjectSystem>();
 	boxStencilSystemDefinition = addTypedDefinition<BoxStencilSystemDefinition, BoxStencilSystem>();
-	cameraConfig = addTypedDefinition<CameraObjectSystemConfig, CameraObjectSystem>();
+	cameraConfig = addTypedDefinition<CameraObjectSystemDefinition, CameraObjectSystem>();
 	clientConfig = addTypedDefinition<ClientTextureSourceSystemConfig, ClientTextureSourceSystem>();
 	compositorConfig = addTypedDefinition<CompositorObjectSystemConfig, CompositorObjectSystem>();
 	editorConfig = addTypedDefinition<EditorObjectSystemConfig, EditorObjectSystem>();

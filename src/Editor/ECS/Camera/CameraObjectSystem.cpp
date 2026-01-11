@@ -14,9 +14,9 @@
 #include "SceneFwd.h"
 
 // -- CameraObjectSystemConfig -----
-const std::string CameraObjectSystemConfig::k_cameraListPropertyId= "camera_ids";
+const std::string CameraObjectSystemDefinition::k_cameraListPropertyId= "camera_ids";
 
-configuru::Config CameraObjectSystemConfig::writeToJSON()
+configuru::Config CameraObjectSystemDefinition::writeToJSON()
 {
 	configuru::Config pt = CommonConfig::writeToJSON();
 
@@ -32,7 +32,7 @@ configuru::Config CameraObjectSystemConfig::writeToJSON()
 	return pt;
 }
 
-void CameraObjectSystemConfig::readFromJSON(const configuru::Config& pt)
+void CameraObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
@@ -54,7 +54,7 @@ void CameraObjectSystemConfig::readFromJSON(const configuru::Config& pt)
 	}
 }
 
-CameraDefinitionPtr CameraObjectSystemConfig::getCameraConfig(MikanCameraID cameraId) const
+CameraDefinitionPtr CameraObjectSystemDefinition::getCameraConfig(MikanCameraID cameraId) const
 {
 	auto it = std::find_if(
 		cameraList.begin(), cameraList.end(),
@@ -70,7 +70,7 @@ CameraDefinitionPtr CameraObjectSystemConfig::getCameraConfig(MikanCameraID came
 	return CameraDefinitionPtr();
 }
 
-CameraDefinitionPtr CameraObjectSystemConfig::getCameraConfigByName(const std::string& cameraName) const
+CameraDefinitionPtr CameraObjectSystemDefinition::getCameraConfigByName(const std::string& cameraName) const
 {
 	auto it = std::find_if(
 		cameraList.begin(), cameraList.end(),
@@ -86,7 +86,7 @@ CameraDefinitionPtr CameraObjectSystemConfig::getCameraConfigByName(const std::s
 	return CameraDefinitionPtr();
 }
 
-MikanCameraID CameraObjectSystemConfig::addNewCamera(MikanStageID ownerStageId)
+MikanCameraID CameraObjectSystemDefinition::addNewCamera(MikanStageID ownerStageId)
 {
 	const std::string cameraName = "Camera" + std::to_string(m_nextCameraId);
 	const MikanTransform xform= glm_transform_to_MikanTransform(GlmTransform());
@@ -94,7 +94,7 @@ MikanCameraID CameraObjectSystemConfig::addNewCamera(MikanStageID ownerStageId)
 	return addNewCamera(cameraName, xform, ownerStageId);
 }
 
-MikanCameraID CameraObjectSystemConfig::addNewCamera(
+MikanCameraID CameraObjectSystemDefinition::addNewCamera(
 	const std::string& cameraName, 
 	const struct MikanTransform& xform,
 	MikanStageID ownerStageId)
@@ -112,7 +112,7 @@ MikanCameraID CameraObjectSystemConfig::addNewCamera(
 	return cameraDefinition->getCameraId();
 }
 
-bool CameraObjectSystemConfig::removeCamera(MikanCameraID cameraId)
+bool CameraObjectSystemDefinition::removeCamera(MikanCameraID cameraId)
 {
 	auto it = std::find_if(
 		cameraList.begin(), cameraList.end(),
@@ -140,7 +140,7 @@ bool CameraObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
 	MikanObjectSystem::init(definitionPtr);
 
-	CameraObjectSystemConfigConstPtr cameraSystemConfig = getCameraSystemConfigConst();
+	CameraObjectSystemDefinitionConstPtr cameraSystemConfig = getCameraSystemConfigConst();
 
 	for (CameraDefinitionPtr cameraConfig : cameraSystemConfig->getCameraList())
 	{
@@ -201,7 +201,7 @@ CameraComponentPtr CameraObjectSystem::getCameraByName(const std::string& camera
 
 CameraComponentPtr CameraObjectSystem::addNewCamera(const MikanStageID ownerStageId)
 {
-	CameraObjectSystemConfigPtr cameraSystemConfig = getCameraSystemConfig();
+	CameraObjectSystemDefinitionPtr cameraSystemConfig = getCameraSystemConfig();
 
 	MikanCameraID cameraId= 
 		cameraSystemConfig->addNewCamera(ownerStageId);
@@ -229,7 +229,7 @@ bool CameraObjectSystem::removeCamera(MikanCameraID cameraId)
 
 CameraComponentPtr CameraObjectSystem::createCameraObject(CameraDefinitionPtr cameraConfig)
 {
-	CameraObjectSystemConfigConstPtr cameraSystemConfig = getCameraSystemConfigConst();
+	CameraObjectSystemDefinitionConstPtr cameraSystemConfig = getCameraSystemConfigConst();
 	MikanObjectPtr cameraObject= newObject();
 	cameraObject->setName(cameraConfig->getComponentName());
 
@@ -260,14 +260,14 @@ void CameraObjectSystem::disposeCameraObject(MikanCameraID cameraId)
 	}
 }
 
-CameraObjectSystemConfigConstPtr CameraObjectSystem::getCameraSystemConfigConst() const
+CameraObjectSystemDefinitionConstPtr CameraObjectSystem::getCameraSystemConfigConst() const
 {
 	return getProjectConfig()->cameraConfig;
 }
 
-CameraObjectSystemConfigPtr CameraObjectSystem::getCameraSystemConfig()
+CameraObjectSystemDefinitionPtr CameraObjectSystem::getCameraSystemConfig()
 {
-	return std::const_pointer_cast<CameraObjectSystemConfig>(getCameraSystemConfigConst());
+	return std::const_pointer_cast<CameraObjectSystemDefinition>(getCameraSystemConfigConst());
 }
 
 std::vector<MikanCameraID> CameraObjectSystem::getAllCameraIds() const

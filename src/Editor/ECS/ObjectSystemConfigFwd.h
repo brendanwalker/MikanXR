@@ -22,10 +22,10 @@ using AnchorObjectSystemDefinitionPtr = std::shared_ptr<AnchorObjectSystemDefini
 using AnchorObjectSystemDefinitionConstPtr = std::shared_ptr<const AnchorObjectSystemDefinition>;
 using AnchorObjectSystemDefinitionWeakPtr = std::weak_ptr<AnchorObjectSystemDefinition>;
 
-class CameraObjectSystemConfig;
-using CameraObjectSystemConfigPtr = std::shared_ptr<CameraObjectSystemConfig>;
-using CameraObjectSystemConfigConstPtr = std::shared_ptr<const CameraObjectSystemConfig>;
-using CameraObjectSystemConfigWeakPtr = std::weak_ptr<CameraObjectSystemConfig>;
+class CameraObjectSystemDefinition;
+using CameraObjectSystemDefinitionPtr = std::shared_ptr<CameraObjectSystemDefinition>;
+using CameraObjectSystemDefinitionConstPtr = std::shared_ptr<const CameraObjectSystemDefinition>;
+using CameraObjectSystemDefinitionWeakPtr = std::weak_ptr<CameraObjectSystemDefinition>;
 
 class ClientTextureSourceSystemConfig;
 using ClientTextureSourceSystemConfigPtr = std::shared_ptr<ClientTextureSourceSystemConfig>;

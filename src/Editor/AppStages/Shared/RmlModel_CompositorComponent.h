@@ -15,7 +15,7 @@ public:
 
 protected:
 	CameraObjectSystemPtr getCameraObjectSystem() const;
-	CameraObjectSystemConfigPtr getCameraObjectSystemConfig() const;
+	CameraObjectSystemDefinitionPtr getCameraObjectSystemConfig() const;
 	CompositorComponentPtr getCompositorComponent() const;
 
 private:

@@ -95,7 +95,7 @@ CameraObjectSystemPtr RmlModel_CompositorComponent::getCameraObjectSystem() cons
 	return nullptr;
 }
 
-CameraObjectSystemConfigPtr RmlModel_CompositorComponent::getCameraObjectSystemConfig() const
+CameraObjectSystemDefinitionPtr RmlModel_CompositorComponent::getCameraObjectSystemConfig() const
 {
 	auto cameraObjectSystem = getCameraObjectSystem();
 	if (cameraObjectSystem)

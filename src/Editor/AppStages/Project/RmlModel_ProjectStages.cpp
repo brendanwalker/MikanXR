@@ -51,10 +51,10 @@ bool RmlModel_ProjectStages::init(ProjectRmlModelContext* context)
 	m_cameraIdList->init(
 		constructor,
 		m_cameraSystem.lock()->getCameraSystemConfig(),
-		CameraObjectSystemConfig::k_cameraListPropertyId,
+		CameraObjectSystemDefinition::k_cameraListPropertyId,
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			CameraObjectSystemConfigConstPtr cameraConfig =
-				std::static_pointer_cast<CameraObjectSystemConfig>(ownerConfig);
+			CameraObjectSystemDefinitionConstPtr cameraConfig =
+				std::static_pointer_cast<CameraObjectSystemDefinition>(ownerConfig);
 			
 			for (const auto& cameraPtr : cameraConfig->getCameraList())
 			{
