@@ -49,12 +49,12 @@ bool RmlModel_ProjectSettings::init(ProjectRmlModelContext* context)
 	constructor.BindFunc(
 		"render_anchors",
 		[this](Rml::Variant& variant) {
-			bool value = m_anchorSystem.lock()->getAnchorSystemConfig()->getRenderAnchorsFlag();
+			bool value = m_anchorSystem.lock()->getTypedDefinition()->getRenderAnchorsFlag();
 			variant = Rml::Variant(value);
 		},
 		[this](const Rml::Variant& variant) {
 			bool value = variant.Get<bool>();
-			m_anchorSystem.lock()->getAnchorSystemConfig()->setRenderAnchorsFlag(value);
+			m_anchorSystem.lock()->getTypedDefinition()->setRenderAnchorsFlag(value);
 		});
 
 	constructor.BindFunc(

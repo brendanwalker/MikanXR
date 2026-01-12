@@ -34,7 +34,7 @@ bool RmlModel_AnchorComponent::onConstruct(Rml::DataModelConstructor& constructo
 			auto anchorObjectSystem = getAnchorObjectSystem();
 			if (anchorObjectSystem)
 			{
-				for (const auto& it : anchorObjectSystem->getAnchorMap())
+				for (const auto& it : anchorObjectSystem->getComponentMap())
 				{
 					// Use the anchor ID as the identifier
 					outComponentIdList.push_back((int)it.first);
@@ -74,7 +74,7 @@ AnchorObjectSystemDefinitionPtr RmlModel_AnchorComponent::getAnchorObjectSystemC
 	auto anchorObjectSystem = getAnchorObjectSystem();
 	if (anchorObjectSystem)
 	{
-		return anchorObjectSystem->getAnchorSystemConfig();
+		return anchorObjectSystem->getTypedDefinition();
 	}
 
 	return nullptr;

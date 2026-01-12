@@ -23,6 +23,7 @@ class TransformComponentDefinition : public MikanComponentDefinition
 {
 public:
 	TransformComponentDefinition();
+	TransformComponentDefinition(int componentId);
 	TransformComponentDefinition(
 		int componentId,
 		const std::string& componentName, 

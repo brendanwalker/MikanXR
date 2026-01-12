@@ -18,10 +18,7 @@ class AnchorDefinition : public TransformComponentDefinition
 {
 public:
 	AnchorDefinition();
-	AnchorDefinition(
-		MikanSpatialAnchorID anchorId,
-		const std::string& anchorName,
-		const MikanTransform& xform);
+	AnchorDefinition(MikanSpatialAnchorID anchorId);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ComponentFwd.h"
+#include "MikanTypeFwd.h"
 #include "Transform.h"
 
 #include <memory>

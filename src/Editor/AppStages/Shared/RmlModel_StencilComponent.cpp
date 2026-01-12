@@ -36,7 +36,7 @@ bool RmlModel_StencilComponent::onConstruct(Rml::DataModelConstructor& construct
 				outComponentIdList.push_back(INVALID_MIKAN_ID);
 
 				// Add anchor IDs
-				for (const auto& it : anchorObjectSystem->getAnchorMap())
+				for (const auto& it : anchorObjectSystem->getComponentMap())
 				{
 					outComponentIdList.push_back((int)it.first);
 				}
@@ -103,7 +103,7 @@ AnchorObjectSystemDefinitionPtr RmlModel_StencilComponent::getAnchorObjectSystem
 	auto anchorObjectSystem = getAnchorObjectSystem();
 	if (anchorObjectSystem)
 	{
-		return anchorObjectSystem->getAnchorSystemConfig();
+		return anchorObjectSystem->getTypedDefinition();
 	}
 
 	return nullptr;

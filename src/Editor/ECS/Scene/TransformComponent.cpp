@@ -24,6 +24,14 @@ TransformComponentDefinition::TransformComponentDefinition()
 	m_relativeTransform.position= {0.f, 0.f, 0.f};
 }
 
+TransformComponentDefinition::TransformComponentDefinition(int componentId)
+	: MikanComponentDefinition(componentId, "")
+{
+	m_relativeTransform.scale = {1.f, 1.f, 1.f};
+	m_relativeTransform.rotation= {1.f, 0.f, 0.f, 0.f};
+	m_relativeTransform.position= {0.f, 0.f, 0.f};
+}
+
 TransformComponentDefinition::TransformComponentDefinition(
 	int componentId,
 	const std::string& componentName,

@@ -68,7 +68,7 @@ public:
 	// Component Pool Accessors
 	virtual MikanComponentPtr getComponentById(int componentId) const override
 	{
-		return m_pool.getById(static_cast<TID>(componentId));
+		return std::static_pointer_cast<MikanComponent>(m_pool.getById(static_cast<TID>(componentId)));
 	}
 
 	ComponentPtr getTypedComponentById(TID id) const
@@ -142,7 +142,9 @@ protected:
 		return m_pool.create(componentDefinition);
 	}
 
-	virtual void additionalComponentFactory(ComponentDefinitionPtr componentDefinition)
+	virtual void additionalComponentFactory(
+		MikanObjectPtr ownerComponentObject,
+		ComponentDefinitionPtr componentDefinition)
 	{
 		// override in derived classes to add additional components to the object
 	}
@@ -167,7 +169,7 @@ private:
 		}
 
 		// Allow derived systems to add additional components
-		additionalComponentFactory(componentDefinition);
+		additionalComponentFactory(mikanObject, componentDefinition);
 
 		// Init the object once all components are added
 		mikanObject->init();

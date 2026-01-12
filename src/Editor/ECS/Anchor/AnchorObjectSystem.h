@@ -1,14 +1,14 @@
 #pragma once
 
+#include "AnchorComponent.h"
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
 #include "MikanTypeFwd.h"
-#include "MikanObjectSystem.h"
+#include "MikanTypedObjectSystem.h"
 #include "MulticastDelegate.h"
 #include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
 
-#include <map>
 #include <memory>
 #include <string>
 
@@ -17,71 +17,54 @@
 
 class GlmTransform;
 
-using AnchorMap = std::map<MikanSpatialAnchorID, AnchorComponentWeakPtr>;
-
-class AnchorObjectSystemDefinition : public MikanObjectSystemDefinition
+class AnchorObjectSystemDefinition :
+	public MikanTypedObjectSystemDefinition<AnchorComponent, AnchorDefinition, MikanSpatialAnchorID>
 {
 public:
-	AnchorObjectSystemDefinition(const std::string& configName)
-		: MikanObjectSystemDefinition(configName)
-	{}
+	using Super = MikanTypedObjectSystemDefinition<AnchorComponent, AnchorDefinition, MikanSpatialAnchorID>;
+
+	AnchorObjectSystemDefinition(const std::string& configName);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
-
-	bool canAddAnchor() const;
-	AnchorDefinitionPtr getSpatialAnchorConfig(MikanSpatialAnchorID anchorId) const;
-	AnchorDefinitionPtr getSpatialAnchorConfigByName(const std::string& anchorName) const;
-	MikanSpatialAnchorID addNewAnchor(MikanSceneID ownerSceneId);
-	MikanSpatialAnchorID addNewAnchor(MikanSceneID ownerSceneId, const std::string& anchorName, const struct MikanTransform& xform);
-	bool removeAnchor(MikanSpatialAnchorID anchorId);
-
-	static const std::string k_anchorVRDevicePathPropertyId;
-	std::string anchorVRDevicePath;
-
-	static const std::string k_anchorListPropertyId;
-	std::vector<AnchorDefinitionPtr> spatialAnchorList;
 
 	static const std::string k_renderAnchorsPropertyId;
 	inline bool getRenderAnchorsFlag() const { return m_bDebugRenderAnchors; }
 	void setRenderAnchorsFlag(bool flag);
 
-	MikanSpatialAnchorID nextAnchorId= 0;
-
 protected:
 	bool m_bDebugRenderAnchors = true;
 };
 
-class AnchorObjectSystem : public MikanObjectSystem
+class AnchorObjectSystem :
+	public MikanTypedObjectSystem<
+		AnchorComponent, AnchorDefinition,
+		MikanSpatialAnchorID,
+		AnchorObjectSystem, AnchorObjectSystemDefinition>
 {
 public:
-	AnchorObjectSystem(ProjectManagerPtr ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
+	using Super = MikanTypedObjectSystem<
+		AnchorComponent, AnchorDefinition,
+		MikanSpatialAnchorID,
+		AnchorObjectSystem, AnchorObjectSystemDefinition>;
 
-	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
-	virtual void dispose() override;
-	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) override;
+	AnchorObjectSystem(ProjectManagerPtr ownerObjectSystem);
 
 	inline static const std::string k_objectSystemClassName = "AnchorObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
-	AnchorObjectSystemDefinitionConstPtr getAnchorSystemConfigConst() const;
-	AnchorObjectSystemDefinitionPtr getAnchorSystemConfig();
-
-	virtual MikanComponentPtr getComponentById(int componentId) const override;
-
-	const AnchorMap& getAnchorMap() const { return m_anchorComponents; }
-	AnchorComponentPtr getSpatialAnchorById(MikanSpatialAnchorID anchorId) const;
-	AnchorComponentPtr getSpatialAnchorByName(const std::string& anchorName) const;
+	inline AnchorComponentPtr getSpatialAnchorById(MikanSpatialAnchorID anchorId) const {
+		return Super::getTypedComponentById(anchorId);
+	}
+	inline AnchorComponentPtr getSpatialAnchorByName(const std::string& anchorName) const {
+		return Super::getTypedComponentByName(anchorName);
+	}
 	bool getSpatialAnchorWorldTransform(MikanSpatialAnchorID anchorId, glm::mat4& outXform) const;
-	AnchorComponentPtr addNewAnchor(MikanStageID ownerStageId);
-	AnchorComponentPtr addNewAnchor(MikanStageID ownerStageId, const std::string& anchorName, const class GlmTransform& xform);
-	bool removeAnchor(MikanSpatialAnchorID anchorId);
 
 	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
 
 protected:
-	AnchorComponentPtr createAnchorObject(AnchorDefinitionPtr anchorConfig);
-	void disposeAnchorObject(MikanSpatialAnchorID anchorId);
-
-	AnchorMap m_anchorComponents;
+	virtual void additionalComponentFactory(
+		MikanObjectPtr ownerComponentObject,
+		ComponentDefinitionPtr componentDefinition) override;
 };

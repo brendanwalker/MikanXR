@@ -126,7 +126,7 @@ bool RmlModel_ProjectScenes::init(ProjectRmlModelContext* context)
 
 	// Listen for anchor changes
 	AnchorObjectSystemPtr anchorSystem = m_anchorSystem.lock();
-	anchorSystem->getAnchorSystemConfig()->OnPropertyChanged +=
+	anchorSystem->getTypedDefinition()->OnPropertyChanged +=
 		MakeDelegate(this, &RmlModel_ProjectScenes::anchorSystemConfigMarkedDirty);
 	anchorSystem->OnObjectInitialized +=
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
@@ -207,7 +207,7 @@ void RmlModel_ProjectScenes::dispose()
 		MakeDelegate(this, &RmlModel_ProjectScenes::updateSelection);
 
 	AnchorObjectSystemPtr anchorSystem = m_anchorSystem.lock();
-	anchorSystem->getAnchorSystemConfig()->OnPropertyChanged -=
+	anchorSystem->getTypedDefinition()->OnPropertyChanged -=
 		MakeDelegate(this, &RmlModel_ProjectScenes::anchorSystemConfigMarkedDirty);
 	anchorSystem->OnObjectInitialized -=
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
@@ -258,7 +258,7 @@ void RmlModel_ProjectScenes::rebuildSceneComponentList()
 
 	// Add all root anchors to the outliner
 	AnchorObjectSystemPtr anchorSystem= m_anchorSystem.lock();
-	for (const auto it : anchorSystem->getAnchorMap())
+	for (const auto it : anchorSystem->getComponentMap())
 	{
 		AnchorComponentPtr anchorComponentPtr= it.second.lock();
 		if (anchorComponentPtr)
@@ -496,9 +496,12 @@ void RmlModel_ProjectScenes::addNewAnchor(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	if (m_selectedSceneId != INVALID_MIKAN_ID)
+	if (m_selectedStageId != INVALID_MIKAN_ID)
 	{
-		m_anchorSystem.lock()->addNewAnchor(m_selectedSceneId);
+		m_anchorSystem.lock()->addNewObject(
+			[this](auto anchorDefinition) {
+				anchorDefinition->setOwnerStageId(m_selectedStageId);
+			});
 	}
 }
 
@@ -511,7 +514,7 @@ void RmlModel_ProjectScenes::removeAnchor(
 		return;
 
 	const int anchorId = parameters[0].Get<int>();
-	m_anchorSystem.lock()->removeAnchor(anchorId);
+	m_anchorSystem.lock()->removeObject(anchorId);
 }
 
 void RmlModel_ProjectScenes::addNewQuad(

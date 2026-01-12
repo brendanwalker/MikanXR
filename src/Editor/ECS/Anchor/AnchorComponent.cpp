@@ -29,10 +29,8 @@ AnchorDefinition::AnchorDefinition()
 }
 
 AnchorDefinition::AnchorDefinition(
-	MikanSpatialAnchorID anchorId,
-	const std::string& anchorName,
-	const MikanTransform& xform)
-	: TransformComponentDefinition(anchorId, StringUtils::stringify("Anchor_", anchorId), xform)
+	MikanSpatialAnchorID anchorId)
+	: TransformComponentDefinition(anchorId)
 	, m_anchorId(anchorId)
 {
 }
@@ -90,7 +88,7 @@ void AnchorComponent::init()
 void AnchorComponent::customRender()
 {	
 	auto anchorObjectSystem= getObjectSystemOfType<AnchorObjectSystem>();
-	const auto anchorSystemConfig= anchorObjectSystem->getAnchorSystemConfigConst();
+	const auto anchorSystemConfig= anchorObjectSystem->getTypedDefinitionConst();
 	if (!anchorSystemConfig->getRenderAnchorsFlag())
 		return;
 

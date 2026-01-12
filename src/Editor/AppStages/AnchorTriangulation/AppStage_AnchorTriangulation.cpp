@@ -21,6 +21,7 @@
 #include "MathUtility.h"
 #include "ProjectConfig.h"
 #include "StringUtils.h"
+#include "StageObjectSystem.h"
 #include "TextStyle.h"
 #include "VideoSourceComponent.h"
 #include "VideoFrameDistortionView.h"
@@ -367,10 +368,13 @@ void AppStage_AnchorTriangulation::onOkEvent()
 
 				if (m_targetAnchor.anchorId == INVALID_MIKAN_ID)
 				{
-					getSystemOfType<AnchorObjectSystem>()->addNewAnchor(
-						m_targetAnchor.ownerStageId,
-						m_targetAnchor.anchorName, 
-						m_targetAnchor.worldTransform);
+					getSystemOfType<AnchorObjectSystem>()->addNewObject(
+						[this](AnchorDefinitionPtr anchorDefinition) {
+							anchorDefinition->setOwnerStageId(m_targetAnchor.ownerStageId);
+							anchorDefinition->setComponentName(m_targetAnchor.anchorName);
+							// Newly created anchor has no parent, so relative transform is world transform
+							anchorDefinition->setRelativeTransform(m_targetAnchor.worldTransform);
+						});
 				}
 				else
 				{

@@ -71,7 +71,7 @@ void AnchorRequestHandler::handleAnchorSystemConfigChange(
 
 		m_owner->publishMikanJsonEvent(mikanTypeToJsonString(poseUpdateEvent));
 	}
-	else if (changedPropertySet.hasPropertyName(AnchorObjectSystemDefinition::k_anchorListPropertyId))
+	else if (changedPropertySet.hasPropertyName(AnchorObjectSystemDefinition::k_componentIdListPropertyId))
 	{
 		MikanAnchorListUpdateEvent listUpdateEvent= {};
 
@@ -81,7 +81,7 @@ void AnchorRequestHandler::handleAnchorSystemConfigChange(
 
 AnchorObjectSystemDefinitionPtr AnchorRequestHandler::getAnchorConfig()
 {
-	return m_anchorSystem.lock()->getAnchorSystemConfig();
+	return m_anchorSystem.lock()->getTypedDefinition();
 }
 
 void AnchorRequestHandler::getSpatialAnchorListHandler(
@@ -91,10 +91,7 @@ void AnchorRequestHandler::getSpatialAnchorListHandler(
 	MikanSpatialAnchorListResponse anchorListResult = {};
 
 	auto anchorSystemConfig = getProjectConfig()->anchorConfig;
-	for (AnchorDefinitionPtr spatialAnchor : anchorSystemConfig->spatialAnchorList)
-	{
-		anchorListResult.spatial_anchor_id_list.push_back(spatialAnchor->getAnchorId());
-	}
+	anchorSystemConfig->getAllComponentIds(anchorListResult.spatial_anchor_id_list);
 
 	writeTypedJsonResponse(request.requestId, anchorListResult, response);
 }
