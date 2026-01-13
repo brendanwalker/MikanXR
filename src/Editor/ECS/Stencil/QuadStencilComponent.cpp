@@ -27,22 +27,18 @@ const std::string QuadStencilDefinition::k_quadStencilDoubleSidedPropertyId = "i
 
 QuadStencilDefinition::QuadStencilDefinition()
 	: StencilComponentDefinition()
-	, m_quadWidth(0.f)
-	, m_quadHeight(0.f)
-	, m_bIsDoubleSided(false)
+	, m_quadWidth(0.25f)
+	, m_quadHeight(0.25f)
+	, m_bIsDoubleSided(true)
 {
 }
 
-QuadStencilDefinition::QuadStencilDefinition(const MikanStencilQuadInfo& quadInfo)
-	: StencilComponentDefinition(
-		quadInfo.stencil_id,
-		quadInfo.parent_anchor_id,
-		quadInfo.stencil_name.getValue(),
-		quadInfo.relative_transform)
+QuadStencilDefinition::QuadStencilDefinition(MikanStencilID stencilId)
+	: StencilComponentDefinition(stencilId, INVALID_MIKAN_ID, "", MikanTransform())
+	, m_quadWidth(0.25f)
+	, m_quadHeight(0.25f)
+	, m_bIsDoubleSided(true)
 {
-	m_quadWidth= quadInfo.quad_width;
-	m_quadHeight= quadInfo.quad_height;
-	m_bIsDoubleSided= quadInfo.is_double_sided;
 }
 
 configuru::Config QuadStencilDefinition::writeToJSON()
@@ -136,7 +132,7 @@ void QuadStencilComponent::customRender()
 	QuadStencilSystemPtr quadStencilSystem = getObjectSystemOfType<QuadStencilSystem>();
 
 	if (!quadDefinition->getIsDisabled() &&
-		quadStencilSystem && quadStencilSystem->getQuadStencilSystemDefinitionConst()->getRenderStencilsFlag())
+		quadStencilSystem && quadStencilSystem->getTypedDefinitionConst()->getRenderStencilsFlag())
 	{
 		TextStyle style = getDefaultTextStyle();
 

@@ -11,120 +11,27 @@
 #include <assert.h>
 
 // -- QuadStencilSystemDefinition -----
-const std::string QuadStencilSystemDefinition::k_quadStencilListPropertyId = "quad_stencils";
 const std::string QuadStencilSystemDefinition::k_renderStencilsPropertyId = "render_stencils";
+
+QuadStencilSystemDefinition::QuadStencilSystemDefinition(const std::string& configName)
+	: Super::MikanTypedObjectSystemDefinition(configName)
+{
+}
 
 configuru::Config QuadStencilSystemDefinition::writeToJSON()
 {
-	configuru::Config pt = MikanObjectSystemDefinition::writeToJSON();
+	configuru::Config pt = Super::writeToJSON();
 
-	pt["next_stencil_id"] = m_nextStencilId;
 	pt["debug_render_stencils"] = m_bDebugRenderStencils;
-
-	std::vector<configuru::Config> quadStencilConfigs;
-	for (auto quadStencil : m_quadStencilList)
-	{
-		quadStencilConfigs.push_back(quadStencil->writeToJSON());
-	}
-	pt.insert_or_assign(std::string("quad_stencils"), quadStencilConfigs);
 
 	return pt;
 }
 
 void QuadStencilSystemDefinition::readFromJSON(const configuru::Config& pt)
 {
-	MikanObjectSystemDefinition::readFromJSON(pt);
+	Super::readFromJSON(pt);
 
-	m_nextStencilId = pt.get_or<int>("next_stencil_id", m_nextStencilId);
 	m_bDebugRenderStencils = pt.get_or<bool>("debug_render_stencils", m_bDebugRenderStencils);
-
-	// Read in the quad stencils
-	m_quadStencilList.clear();
-	if (pt.has_key("quad_stencils"))
-	{
-		for (const configuru::Config& stencilConfig : pt["quad_stencils"].as_array())
-		{
-			auto definitionPtr = std::make_shared<QuadStencilDefinition>();
-
-			definitionPtr->readFromJSON(stencilConfig);
-			m_quadStencilList.push_back(definitionPtr);
-
-			addChildConfig(definitionPtr);
-		}
-	}
-}
-
-QuadStencilDefinitionConstPtr QuadStencilSystemDefinition::getQuadStencilConfigConst(
-	MikanStencilID stencilId) const
-{
-	auto it = std::find_if(
-		m_quadStencilList.begin(), m_quadStencilList.end(),
-		[stencilId](QuadStencilDefinitionPtr configPtr) {
-			return configPtr->getStencilId() == stencilId;
-		});
-
-	if (it != m_quadStencilList.end())
-	{
-		return QuadStencilDefinitionConstPtr(*it);
-	}
-
-	return QuadStencilDefinitionConstPtr();
-}
-
-QuadStencilDefinitionPtr QuadStencilSystemDefinition::getQuadStencilConfig(
-	MikanStencilID stencilId)
-{
-	return std::const_pointer_cast<QuadStencilDefinition>(
-		getQuadStencilConfigConst(stencilId));
-}
-
-QuadStencilDefinitionPtr QuadStencilSystemDefinition::allocateQuadStencilDefinition(
-	const MikanStencilQuadInfo& quadInfo)
-{
-	MikanStencilQuadInfo localQuadInfo = quadInfo;
-	localQuadInfo.stencil_id = m_nextStencilId;
-
-	QuadStencilDefinitionPtr quadDefinitionPtr =
-		std::make_shared<QuadStencilDefinition>(localQuadInfo);
-	m_nextStencilId++;
-
-	return quadDefinitionPtr;
-}
-
-bool QuadStencilSystemDefinition::addQuadStencilDefinition(
-	QuadStencilDefinitionPtr quadDefinitionPtr)
-{
-	if (!getQuadStencilConfig(quadDefinitionPtr->getStencilId()))
-	{
-		m_quadStencilList.push_back(quadDefinitionPtr);
-		addChildConfig(quadDefinitionPtr);
-
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_quadStencilListPropertyId));
-		return true;
-	}
-
-	return false;
-}
-
-bool QuadStencilSystemDefinition::removeQuadStencilDefinition(MikanStencilID stencilId)
-{
-	auto it = std::find_if(
-		m_quadStencilList.begin(), m_quadStencilList.end(),
-		[stencilId](QuadStencilDefinitionPtr configPtr) {
-			return configPtr->getStencilId() == stencilId;
-		});
-
-	if (it != m_quadStencilList.end())
-	{
-		removeChildConfig(*it);
-
-		m_quadStencilList.erase(it);
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_quadStencilListPropertyId));
-
-		return true;
-	}
-
-	return false;
 }
 
 void QuadStencilSystemDefinition::setRenderStencilsFlag(bool flag)
@@ -137,94 +44,9 @@ void QuadStencilSystemDefinition::setRenderStencilsFlag(bool flag)
 }
 
 // -- QuadStencilSystem ----
-QuadStencilSystemDefinitionConstPtr QuadStencilSystem::getQuadStencilSystemDefinitionConst() const
+QuadStencilSystem::QuadStencilSystem(ProjectManagerPtr ownerObjectSystem)
+	: Super::MikanTypedObjectSystem(ownerObjectSystem)
 {
-	return std::static_pointer_cast<const QuadStencilSystemDefinition>(getDefinitionConst());
-}
-
-QuadStencilSystemDefinitionPtr QuadStencilSystem::getQuadStencilSystemDefinition()
-{
-	return std::static_pointer_cast<QuadStencilSystemDefinition>(getDefinition());
-}
-
-bool QuadStencilSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
-{
-	MikanObjectSystem::init(definitionPtr);
-
-	QuadStencilSystemDefinitionConstPtr quadStencilSystemDefinition =
-		getProjectConfig()->quadStencilSystemDefinition;
-
-	for (const auto& quadConfig : quadStencilSystemDefinition->getQuadStencilList())
-	{
-		createQuadStencilObject(quadConfig);
-	}
-
-	return true;
-}
-
-void QuadStencilSystem::dispose()
-{
-	m_quadStencilComponents.clear();
-	MikanObjectSystem::dispose();
-}
-
-void QuadStencilSystem::deleteObjectConfig(MikanObjectPtr objectPtr)
-{
-	QuadStencilComponentPtr quadStencil = objectPtr->getComponentOfType<QuadStencilComponent>();
-	if (quadStencil != nullptr)
-	{
-		removeQuadStencil(quadStencil->getStencilComponentDefinition()->getStencilId());
-	}
-}
-
-MikanComponentPtr QuadStencilSystem::getComponentById(int componentId) const
-{
-	return getQuadStencilById(componentId);
-}
-
-QuadStencilComponentPtr QuadStencilSystem::getQuadStencilById(MikanStencilID stencilId) const
-{
-	auto iter = m_quadStencilComponents.find(stencilId);
-	if (iter != m_quadStencilComponents.end())
-	{
-		return iter->second.lock();
-	}
-
-	return QuadStencilComponentPtr();
-}
-
-QuadStencilComponentPtr QuadStencilSystem::getQuadStencilByName(const std::string& stencilName) const
-{
-	for (auto it = m_quadStencilComponents.begin(); it != m_quadStencilComponents.end(); it++)
-	{
-		QuadStencilComponentPtr componentPtr = it->second.lock();
-
-		if (componentPtr && componentPtr->getDefinition()->getComponentName() == stencilName)
-		{
-			return componentPtr;
-		}
-	}
-
-	return QuadStencilComponentPtr();
-}
-
-QuadStencilComponentPtr QuadStencilSystem::addNewQuadStencil(const MikanStencilQuadInfo& stencilInfo)
-{
-	QuadStencilSystemDefinitionPtr quadStencilSystemDefinition = getProjectConfig()->quadStencilSystemDefinition;
-
-	return
-		createQuadStencilObject(
-			quadStencilSystemDefinition->allocateQuadStencilDefinition(stencilInfo));
-}
-
-bool QuadStencilSystem::removeQuadStencil(MikanStencilID stencilId)
-{
-	QuadStencilSystemDefinitionPtr quadStencilSystemDefinition =
-		getProjectConfig()->quadStencilSystemDefinition;
-
-	return
-		disposeQuadStencilObject(stencilId) &&
-		quadStencilSystemDefinition->removeQuadStencilDefinition(stencilId);
 }
 
 void QuadStencilSystem::getRelevantQuadStencilList(
@@ -234,10 +56,10 @@ void QuadStencilSystem::getRelevantQuadStencilList(
 	std::vector<QuadStencilComponentPtr>& outStencilList) const
 {
 	outStencilList.clear();
-	for (auto it = m_quadStencilComponents.begin(); it != m_quadStencilComponents.end(); it++)
+	for (const auto& stencilPair : Super::getComponentMap())
 	{
-		MikanStencilID stencilId = it->first;
-		QuadStencilComponentPtr componentPtr = it->second.lock();
+		MikanStencilID stencilId = stencilPair.first;
+		QuadStencilComponentPtr componentPtr = stencilPair.second.lock();
 
 		if (componentPtr->getStencilComponentDefinition()->getIsDisabled())
 			continue;
@@ -271,53 +93,22 @@ void QuadStencilSystem::getRelevantQuadStencilList(
 	}
 }
 
-QuadStencilComponentPtr QuadStencilSystem::createQuadStencilObject(QuadStencilDefinitionPtr quadConfig)
+void QuadStencilSystem::additionalComponentFactory(
+	MikanObjectPtr ownerComponentObject,
+	ComponentDefinitionPtr componentDefinition)
 {
-	MikanObjectPtr stencilObject = newObject();
-	stencilObject->setName(quadConfig->getComponentName());
+	TransformComponentPtr rootComponent = ownerComponentObject->getRootComponent();
+	assert(rootComponent);
 
-	// Make the QuadStencil component the root of the object
-	QuadStencilComponentPtr stencilComponentPtr = stencilObject->addComponent<QuadStencilComponent>();
-	stencilObject->setRootComponent(stencilComponentPtr);
-	stencilComponentPtr->setDefinition(quadConfig);
-
-	// Add a selection component
-	stencilObject->addComponent<SelectionComponent>();
+	QuadStencilDefinitionPtr quadDefinition = std::static_pointer_cast<QuadStencilDefinition>(componentDefinition);
 
 	// Attach a box collider to quad stencil component
-	BoxColliderComponentPtr boxColliderPtr = stencilObject->addComponent<BoxColliderComponent>();
-	boxColliderPtr->setHalfExtents(glm::vec3(quadConfig->getQuadWidth() * 0.5f, quadConfig->getQuadHeight() * 0.5f, 0.01f));
-	boxColliderPtr->attachToComponent(stencilComponentPtr);
+	BoxColliderComponentPtr boxColliderPtr = ownerComponentObject->addComponent<BoxColliderComponent>();
+	boxColliderPtr->setHalfExtents(glm::vec3(quadDefinition->getQuadWidth() * 0.5f, quadDefinition->getQuadHeight() * 0.5f, 0.01f));
+	boxColliderPtr->attachToComponent(rootComponent);
 
-	// Init the object once all components are added
-	stencilObject->init();
-
-	// Keep track of all the quad stencils in the stencil system
-	m_quadStencilComponents.insert({ quadConfig->getStencilId(), stencilComponentPtr });
-
-	// Register the definition with the quad stencil system
-	getProjectConfig()->quadStencilSystemDefinition->addQuadStencilDefinition(quadConfig);
-
-	return stencilComponentPtr;
-}
-
-bool QuadStencilSystem::disposeQuadStencilObject(MikanStencilID stencilId)
-{
-	auto it = m_quadStencilComponents.find(stencilId);
-	if (it != m_quadStencilComponents.end())
-	{
-		QuadStencilComponentPtr stencilComponentPtr = it->second.lock();
-
-		// Remove for component list
-		m_quadStencilComponents.erase(it);
-
-		// Free the corresponding object
-		deleteObject(stencilComponentPtr->getOwnerObject());
-
-		return true;
-	}
-
-	return false;
+	// Add a selection component
+	ownerComponentObject->addComponent<SelectionComponent>();
 }
 
 bool QuadStencilSystem::isStencilFacingCamera(
@@ -352,10 +143,4 @@ bool QuadStencilSystem::isStencilFacingCamera(
 	return
 		glm::dot(cameraToStencil, cameraForward) > 0.f &&
 		glm::dot(stencilToCamera, stencilForward) > 0.f;
-}
-
-void QuadStencilSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
-{
-	propertyDatabase->registerPropertiesForSystem<QuadStencilSystem>();
-	propertyDatabase->registerPropertiesForComponent<QuadStencilSystem, QuadStencilComponent>();
 }

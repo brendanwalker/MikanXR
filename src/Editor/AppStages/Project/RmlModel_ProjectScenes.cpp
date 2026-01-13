@@ -140,7 +140,7 @@ bool RmlModel_ProjectScenes::init(ProjectRmlModelContext* context)
 
 	// Listen for stencil changes
 	QuadStencilSystemPtr quadStencilSystem = m_quadStencilSystem.lock();
-	quadStencilSystem->getQuadStencilSystemDefinition()->OnPropertyChanged +=
+	quadStencilSystem->getTypedDefinition()->OnPropertyChanged +=
 		MakeDelegate(this, &RmlModel_ProjectScenes::stencilSystemConfigMarkedDirty);
 	quadStencilSystem->OnObjectInitialized +=
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
@@ -148,7 +148,7 @@ bool RmlModel_ProjectScenes::init(ProjectRmlModelContext* context)
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectDisposed);
 
 	BoxStencilSystemPtr boxStencilSystem = m_boxStencilSystem.lock();
-	boxStencilSystem->getBoxStencilSystemDefinition()->OnPropertyChanged +=
+	boxStencilSystem->getTypedDefinition()->OnPropertyChanged +=
 		MakeDelegate(this, &RmlModel_ProjectScenes::stencilSystemConfigMarkedDirty);
 	boxStencilSystem->OnObjectInitialized +=
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
@@ -156,7 +156,7 @@ bool RmlModel_ProjectScenes::init(ProjectRmlModelContext* context)
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectDisposed);
 
 	ModelStencilSystemPtr modelStencilSystem = m_modelStencilSystem.lock();
-	modelStencilSystem->getModelStencilSystemDefinition()->OnPropertyChanged +=
+	modelStencilSystem->getTypedDefinition()->OnPropertyChanged +=
 		MakeDelegate(this, &RmlModel_ProjectScenes::stencilSystemConfigMarkedDirty);
 	modelStencilSystem->OnObjectInitialized +=
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
@@ -179,7 +179,7 @@ void RmlModel_ProjectScenes::dispose()
 	m_sceneIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectScenes::sceneIdListChanged);
 
 	QuadStencilSystemPtr quadStencilSystem = m_quadStencilSystem.lock();
-	quadStencilSystem->getQuadStencilSystemDefinition()->OnPropertyChanged -=
+	quadStencilSystem->getTypedDefinition()->OnPropertyChanged -=
 		MakeDelegate(this, &RmlModel_ProjectScenes::stencilSystemConfigMarkedDirty);
 	quadStencilSystem->OnObjectInitialized -=
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
@@ -187,7 +187,7 @@ void RmlModel_ProjectScenes::dispose()
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectDisposed);
 
 	BoxStencilSystemPtr boxStencilSystem = m_boxStencilSystem.lock();
-	boxStencilSystem->getBoxStencilSystemDefinition()->OnPropertyChanged -=
+	boxStencilSystem->getTypedDefinition()->OnPropertyChanged -=
 		MakeDelegate(this, &RmlModel_ProjectScenes::stencilSystemConfigMarkedDirty);
 	boxStencilSystem->OnObjectInitialized -=
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
@@ -195,7 +195,7 @@ void RmlModel_ProjectScenes::dispose()
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectDisposed);
 
 	ModelStencilSystemPtr modelStencilSystem = m_modelStencilSystem.lock();
-	modelStencilSystem->getModelStencilSystemDefinition()->OnPropertyChanged -=
+	modelStencilSystem->getTypedDefinition()->OnPropertyChanged -=
 		MakeDelegate(this, &RmlModel_ProjectScenes::stencilSystemConfigMarkedDirty);
 	modelStencilSystem->OnObjectInitialized -=
 		MakeDelegate(this, &RmlModel_ProjectScenes::onObjectInitialized);
@@ -274,7 +274,7 @@ void RmlModel_ProjectScenes::rebuildSceneComponentList()
 
 	// Add all root quad stencils to the outliner
 	QuadStencilSystemPtr quadStencilSystem = m_quadStencilSystem.lock();
-	for (const auto it : quadStencilSystem->getQuadStencilMap())
+	for (const auto it : quadStencilSystem->getComponentMap())
 	{
 		QuadStencilComponentPtr stencilComponentPtr = it.second.lock();
 		if (stencilComponentPtr)
@@ -290,7 +290,7 @@ void RmlModel_ProjectScenes::rebuildSceneComponentList()
 
 	// Add all root box stencils to the outliner
 	BoxStencilSystemPtr boxStencilSystem = m_boxStencilSystem.lock();
-	for (const auto it : boxStencilSystem->getBoxStencilMap())
+	for (const auto it : boxStencilSystem->getComponentMap())
 	{
 		BoxStencilComponentPtr stencilComponentPtr = it.second.lock();
 		if (stencilComponentPtr)
@@ -306,7 +306,7 @@ void RmlModel_ProjectScenes::rebuildSceneComponentList()
 
 	// Add all root model stencils to the outliner
 	ModelStencilSystemPtr modelStencilSystem = m_modelStencilSystem.lock();
-	for (const auto it : modelStencilSystem->getModelStencilMap())
+	for (const auto it : modelStencilSystem->getComponentMap())
 	{
 		ModelStencilComponentPtr stencilComponentPtr= it.second.lock();
 		if (stencilComponentPtr)
@@ -518,23 +518,21 @@ void RmlModel_ProjectScenes::removeAnchor(
 }
 
 void RmlModel_ProjectScenes::addNewQuad(
-	Rml::DataModelHandle handle, 
-	Rml::Event& /*ev*/, 
+	Rml::DataModelHandle handle,
+	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	MikanStencilQuadInfo quad = {};
+	QuadStencilSystemPtr quadStencilSystem = m_quadStencilSystem.lock();
+	quadStencilSystem->addNewObject([](QuadStencilDefinitionPtr definition) {
 
-	quad.is_double_sided = true;
-	quad.parent_anchor_id = INVALID_MIKAN_ID;
-	quad.relative_transform.position = {0.f, 0.f, 0.f};
-	quad.relative_transform.rotation = {1.f, 0.f, 0.f, 0.f};
-	quad.relative_transform.scale = {1.f, 1.f, 1.f};
-	quad.quad_width = 0.25f;
-	quad.quad_height = 0.25f;
-	quad.stencil_name= "Quad";
-
-	QuadStencilSystemPtr quadStencilSystem= m_quadStencilSystem.lock();
-	quadStencilSystem->addNewQuadStencil(quad);
+		// Initialize with default stencil info
+		definition->setQuadWidth(0.25f);
+		definition->setQuadHeight(0.25f);
+		definition->setIsDoubleSided(true);
+		definition->setRelativeTransform(GlmTransform());
+		definition->setParentAnchorId(INVALID_MIKAN_ID);
+		definition->setIsDisabled(false);
+	});
 }
 
 void RmlModel_ProjectScenes::removeQuad(
@@ -546,27 +544,25 @@ void RmlModel_ProjectScenes::removeQuad(
 		return;
 
 	const int quadStencilId = parameters[0].Get<int>();
-	m_quadStencilSystem.lock()->removeQuadStencil(quadStencilId);
+	m_quadStencilSystem.lock()->removeObject(quadStencilId);
 }
 
 void RmlModel_ProjectScenes::addNewBox(
-	Rml::DataModelHandle handle, 
-	Rml::Event& /*ev*/, 
+	Rml::DataModelHandle handle,
+	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	MikanStencilBoxInfo box = {};
-
-	box.parent_anchor_id = INVALID_MIKAN_ID;
-	box.relative_transform.position = {0.f, 0.f, 0.f};
-	box.relative_transform.rotation = {1.f, 0.f, 0.f, 0.f};
-	box.relative_transform.scale = {1.f, 1.f, 1.f};
-	box.box_x_size = 0.25f;
-	box.box_y_size = 0.25f;
-	box.box_z_size = 0.25f;
-	box.stencil_name= "Box";
-
 	BoxStencilSystemPtr boxStencilSystem = m_boxStencilSystem.lock();
-	boxStencilSystem->addNewBoxStencil(box);
+	boxStencilSystem->addNewObject([](BoxStencilDefinitionPtr definition) {
+
+		// Initialize with default stencil info
+		definition->setBoxXSize(0.25f);
+		definition->setBoxYSize(0.25f);
+		definition->setBoxZSize(0.25f);
+		definition->setRelativeTransform(GlmTransform());
+		definition->setParentAnchorId(INVALID_MIKAN_ID);
+		definition->setIsDisabled(false);
+	});
 }
 
 void RmlModel_ProjectScenes::removeBox(
@@ -578,25 +574,22 @@ void RmlModel_ProjectScenes::removeBox(
 		return;
 
 	const int boxStencilId = parameters[0].Get<int>();
-	m_boxStencilSystem.lock()->removeBoxStencil(boxStencilId);
+	m_boxStencilSystem.lock()->removeObject(boxStencilId);
 }
 
 void RmlModel_ProjectScenes::addNewModel(
-	Rml::DataModelHandle handle, 
-	Rml::Event& /*ev*/, 
+	Rml::DataModelHandle handle,
+	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	MikanStencilModelInfo model;
-
-	model.is_disabled = false;
-	model.parent_anchor_id = INVALID_MIKAN_ID;
-	model.relative_transform.position = {0.f, 0.f, 0.f};
-	model.relative_transform.rotation = {1.f, 0.f, 0.f, 0.f};
-	model.relative_transform.scale = {1.f, 1.f, 1.f};
-	model.stencil_name= "Model";
-
 	ModelStencilSystemPtr modelStencilSystem = m_modelStencilSystem.lock();
-	modelStencilSystem->addNewModelStencil(model);
+	modelStencilSystem->addNewObject([](ModelStencilDefinitionPtr definition) {
+
+		// Initialize with default stencil info
+		definition->setRelativeTransform(GlmTransform());
+		definition->setParentAnchorId(INVALID_MIKAN_ID);
+		definition->setIsDisabled(false);
+	});
 }
 
 void RmlModel_ProjectScenes::removeModel(
@@ -608,7 +601,7 @@ void RmlModel_ProjectScenes::removeModel(
 		return;
 
 	const int modelStencilId = parameters[0].Get<int>();
-	m_modelStencilSystem.lock()->removeModelStencil(modelStencilId);
+	m_modelStencilSystem.lock()->removeObject(modelStencilId);
 }
 
 void RmlModel_ProjectScenes::selectObjectEntry(

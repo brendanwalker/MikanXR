@@ -96,11 +96,11 @@ bool CompositorNodeGraph::createResources()
 	m_compositingFrameBuffer->setColorFormat(IMkFrameBuffer::eColorFormat::RGBA);
 
 	// Start listening for stencil changes
-	getObjectSystemOfType<QuadStencilSystem>()->getQuadStencilSystemDefinition()->OnPropertyChanged +=
+	getObjectSystemOfType<QuadStencilSystem>()->getTypedDefinition()->OnPropertyChanged +=
 		MakeDelegate(this, &CompositorNodeGraph::onStencilSystemConfigMarkedDirty);
-	getObjectSystemOfType<BoxStencilSystem>()->getBoxStencilSystemDefinition()->OnPropertyChanged +=
+	getObjectSystemOfType<BoxStencilSystem>()->getTypedDefinition()->OnPropertyChanged +=
 		MakeDelegate(this, &CompositorNodeGraph::onStencilSystemConfigMarkedDirty);
-	getObjectSystemOfType<ModelStencilSystem>()->getModelStencilSystemDefinition()->OnPropertyChanged +=
+	getObjectSystemOfType<ModelStencilSystem>()->getTypedDefinition()->OnPropertyChanged +=
 		MakeDelegate(this, &CompositorNodeGraph::onStencilSystemConfigMarkedDirty);
 
 	// Create triangulated mesh used to render the layer onto
@@ -119,11 +119,11 @@ void CompositorNodeGraph::disposeResources()
 	m_compositingFrameBuffer = nullptr;
 
 	// Stop listening for stencil changes
-	getObjectSystemOfType<QuadStencilSystem>()->getQuadStencilSystemDefinition()->OnPropertyChanged -=
+	getObjectSystemOfType<QuadStencilSystem>()->getTypedDefinition()->OnPropertyChanged -=
 		MakeDelegate(this, &CompositorNodeGraph::onStencilSystemConfigMarkedDirty);
-	getObjectSystemOfType<BoxStencilSystem>()->getBoxStencilSystemDefinition()->OnPropertyChanged -=
+	getObjectSystemOfType<BoxStencilSystem>()->getTypedDefinition()->OnPropertyChanged -=
 		MakeDelegate(this, &CompositorNodeGraph::onStencilSystemConfigMarkedDirty);
-	getObjectSystemOfType<ModelStencilSystem>()->getModelStencilSystemDefinition()->OnPropertyChanged -=
+	getObjectSystemOfType<ModelStencilSystem>()->getTypedDefinition()->OnPropertyChanged -=
 		MakeDelegate(this, &CompositorNodeGraph::onStencilSystemConfigMarkedDirty);
 
 	// Free rendering resources

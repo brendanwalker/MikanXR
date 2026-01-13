@@ -14,7 +14,7 @@ class QuadStencilDefinition : public StencilComponentDefinition
 {
 public:
 	QuadStencilDefinition();
-	QuadStencilDefinition(const MikanStencilQuadInfo& quadInfo);
+	QuadStencilDefinition(MikanStencilID stencilId);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

@@ -17,7 +17,7 @@ class BoxStencilDefinition : public StencilComponentDefinition
 {
 public:
 	BoxStencilDefinition();
-	BoxStencilDefinition(const MikanStencilBoxInfo& box);
+	BoxStencilDefinition(MikanStencilID stencilId);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

@@ -97,19 +97,19 @@ void StencilRequestHandler::handleStencilSystemConfigChange(
 
 		m_owner->publishMikanJsonEvent(mikanTypeToJsonString(poseUpdateEvent));
 	}
-	else if (changedPropertySet.hasPropertyName(QuadStencilSystemDefinition::k_quadStencilListPropertyId))
+	else if (changedPropertySet.hasPropertyName(QuadStencilSystemDefinition::k_componentIdListPropertyId))
 	{
 		MikanQuadStencilListUpdateEvent listUpdateEvent= {};
 
 		m_owner->publishMikanJsonEvent(mikanTypeToJsonString(listUpdateEvent));
 	}
-	else if (changedPropertySet.hasPropertyName(BoxStencilSystemDefinition::k_boxStencilListPropertyId))
+	else if (changedPropertySet.hasPropertyName(BoxStencilSystemDefinition::k_componentIdListPropertyId))
 	{
 		MikanBoxStencilListUpdateEvent listUpdateEvent = {};
 
 		m_owner->publishMikanJsonEvent(mikanTypeToJsonString(listUpdateEvent));
 	}
-	else if (changedPropertySet.hasPropertyName(ModelStencilSystemDefinition::k_modelStencilListPropertyId))
+	else if (changedPropertySet.hasPropertyName(ModelStencilSystemDefinition::k_componentIdListPropertyId))
 	{
 		MikanModelStencilListUpdateEvent listUpdateEvent = {};
 
@@ -124,7 +124,7 @@ void StencilRequestHandler::getQuadStencilListHandler(
 	MikanStencilListResponse stencilListResult = {};
 
 	auto quadStencilSystemDefinition = getProjectConfig()->quadStencilSystemDefinition;
-	for (QuadStencilDefinitionPtr quadConfig : quadStencilSystemDefinition->getQuadStencilList())
+	for (QuadStencilDefinitionPtr quadConfig : quadStencilSystemDefinition->getAllDefinitions())
 	{
 		stencilListResult.stencil_id_list.push_back(quadConfig->getStencilId());
 	}
@@ -144,7 +144,7 @@ void StencilRequestHandler::getQuadStencilHandler(
 	}
 
 	auto quadStencilSystemDefinition = getProjectConfig()->quadStencilSystemDefinition;
-	auto quadConfig = quadStencilSystemDefinition->getQuadStencilConfigConst(stencilRequest.stencilId);
+	auto quadConfig = quadStencilSystemDefinition->getDefinitionById(stencilRequest.stencilId);
 	if (quadConfig != nullptr)
 	{
 		MikanStencilQuadInfoResponse stencilResponse = {};
@@ -165,7 +165,7 @@ void StencilRequestHandler::getBoxStencilListHandler(
 	MikanStencilListResponse stencilListResult = {};
 
 	auto boxStencilSystemDefinition = getProjectConfig()->boxStencilSystemDefinition;
-	for (BoxStencilDefinitionPtr boxConfig : boxStencilSystemDefinition->getBoxStencilList())
+	for (BoxStencilDefinitionPtr boxConfig : boxStencilSystemDefinition->getAllDefinitions())
 	{
 		stencilListResult.stencil_id_list.push_back(boxConfig->getStencilId());
 	}
@@ -185,7 +185,7 @@ void StencilRequestHandler::getBoxStencilHandler(
 	}
 
 	auto boxStencilSystemDefinition = getProjectConfig()->boxStencilSystemDefinition;
-	auto boxConfig = boxStencilSystemDefinition->getBoxStencilConfigConst(stencilRequest.stencilId);
+	auto boxConfig = boxStencilSystemDefinition->getDefinitionById(stencilRequest.stencilId);
 	if (boxConfig != nullptr)
 	{
 		MikanStencilBoxInfoResponse stencilResponse;
@@ -206,7 +206,7 @@ void StencilRequestHandler::getModelStencilListHandler(
 	MikanStencilListResponse stencilListResult = {};
 
 	auto modelStencilSystemDefinition = getProjectConfig()->modelStencilSystemDefinition;
-	for (ModelStencilDefinitionPtr modelConfig : modelStencilSystemDefinition->getModelStencilList())
+	for (ModelStencilDefinitionPtr modelConfig : modelStencilSystemDefinition->getAllDefinitions())
 	{
 		stencilListResult.stencil_id_list.push_back(modelConfig->getStencilId());
 	}
@@ -226,7 +226,7 @@ void StencilRequestHandler::getModelStencilHandler(
 	}
 
 	auto modelStencilSystemDefinition = getProjectConfig()->modelStencilSystemDefinition;
-	auto modelConfig = modelStencilSystemDefinition->getModelStencilConfigConst(stencilRequest.stencilId);
+	auto modelConfig = modelStencilSystemDefinition->getDefinitionById(stencilRequest.stencilId);
 	if (modelConfig != nullptr)
 	{
 		MikanStencilModelInfoResponse stencilResponse = {};

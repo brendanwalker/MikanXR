@@ -36,8 +36,8 @@ public:
 			case eStencilType::box:
 				{
 					auto boxStencilSystem = stencilComponent->getObjectSystemOfType<BoxStencilSystem>();
-					for (auto it = boxStencilSystem->getBoxStencilMap().begin();
-						 it != boxStencilSystem->getBoxStencilMap().end();
+					for (auto it = boxStencilSystem->getComponentMap().begin();
+						 it != boxStencilSystem->getComponentMap().end();
 						 it++)
 					{
 						auto stencilPtr = it->second.lock();
@@ -53,8 +53,8 @@ public:
 			case eStencilType::quad:
 				{
 					auto quadStencilSystem = stencilComponent->getObjectSystemOfType<QuadStencilSystem>();
-					for (auto it = quadStencilSystem->getQuadStencilMap().begin();
-						 it != quadStencilSystem->getQuadStencilMap().end();
+					for (auto it = quadStencilSystem->getComponentMap().begin();
+						 it != quadStencilSystem->getComponentMap().end();
 						 it++)
 					{
 						auto stencilPtr = it->second.lock();
@@ -70,8 +70,8 @@ public:
 			case eStencilType::model:
 				{
 					auto modelStencilSystem = stencilComponent->getObjectSystemOfType<ModelStencilSystem>();
-					for (auto it = modelStencilSystem->getModelStencilMap().begin();
-						 it != modelStencilSystem->getModelStencilMap().end();
+					for (auto it = modelStencilSystem->getComponentMap().begin();
+						 it != modelStencilSystem->getComponentMap().end();
 						 it++)
 					{
 						auto stencilPtr = it->second.lock();

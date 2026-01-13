@@ -50,12 +50,8 @@ ModelStencilDefinition::ModelStencilDefinition()
 {
 }
 
-ModelStencilDefinition::ModelStencilDefinition(const MikanStencilModelInfo& modelInfo)
-	: StencilComponentDefinition(
-		modelInfo.stencil_id, 
-		modelInfo.parent_anchor_id, 
-		modelInfo.stencil_name.getValue(), 
-		modelInfo.relative_transform)
+ModelStencilDefinition::ModelStencilDefinition(MikanStencilID stencilId)
+	: StencilComponentDefinition(stencilId, INVALID_MIKAN_ID, "", MikanTransform())
 	, m_modelAssetRefConfig(ModelAssetReferenceFactory().allocateAssetReferenceConfig())
 {
 }
@@ -168,7 +164,7 @@ void ModelStencilComponent::customRender()
 	ModelStencilSystemPtr modelStencilSystem = getObjectSystemOfType<ModelStencilSystem>();
 
 	if (!modelStencilDefinition->getIsDisabled() &&
-		modelStencilSystem && modelStencilSystem->getModelStencilSystemDefinitionConst()->getRenderStencilsFlag())
+		modelStencilSystem && modelStencilSystem->getTypedDefinitionConst()->getRenderStencilsFlag())
 	{
 		TextStyle style = getDefaultTextStyle();
 

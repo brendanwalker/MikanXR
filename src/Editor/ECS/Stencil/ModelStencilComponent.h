@@ -19,7 +19,7 @@ class ModelStencilDefinition : public StencilComponentDefinition
 {
 public:
 	ModelStencilDefinition();
-	ModelStencilDefinition(const MikanStencilModelInfo& modelInfo);
+	ModelStencilDefinition(MikanStencilID stencilId);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

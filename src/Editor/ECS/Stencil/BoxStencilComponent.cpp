@@ -24,19 +24,14 @@ const std::string BoxStencilDefinition::k_boxStencilZSizePropertyId = "box_z_siz
 
 BoxStencilDefinition::BoxStencilDefinition()
 	: StencilComponentDefinition()
-	, m_boxSize({0.f, 0.f, 0.f})
+	, m_boxSize({0.25f, 0.25f, 0.25f})
 {
 }
 
-BoxStencilDefinition::BoxStencilDefinition(
-	const MikanStencilBoxInfo& boxInfo)
-	: StencilComponentDefinition(
-		boxInfo.stencil_id,
-		boxInfo.parent_anchor_id,
-		boxInfo.stencil_name.getValue(),
-		boxInfo.relative_transform)
+BoxStencilDefinition::BoxStencilDefinition(MikanStencilID stencilId)
+	: StencilComponentDefinition(stencilId, INVALID_MIKAN_ID, "", MikanTransform())
+	, m_boxSize({0.25f, 0.25f, 0.25f})
 {
-	m_boxSize= {boxInfo.box_x_size, boxInfo.box_y_size, boxInfo.box_z_size};
 }
 
 configuru::Config BoxStencilDefinition::writeToJSON()
@@ -127,7 +122,7 @@ void BoxStencilComponent::customRender()
 	BoxStencilSystemPtr boxStencilSystem = getObjectSystemOfType<BoxStencilSystem>();
 
 	if (!boxDefinition->getIsDisabled() &&
-		boxStencilSystem && boxStencilSystem->getBoxStencilSystemDefinitionConst()->getRenderStencilsFlag())
+		boxStencilSystem && boxStencilSystem->getTypedDefinitionConst()->getRenderStencilsFlag())
 	{
 		TextStyle style = getDefaultTextStyle();
 
