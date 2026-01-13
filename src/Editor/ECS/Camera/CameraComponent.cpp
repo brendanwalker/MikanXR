@@ -47,13 +47,10 @@ CameraDefinition::CameraDefinition()
 }
 
 CameraDefinition::CameraDefinition(
-	const std::string& cameraName,
-	const struct MikanTransform& xform,
-	MikanCameraID cameraId,
-	MikanStageID stageId)
-	: TransformComponentDefinition(cameraId, cameraName, xform)
+	MikanCameraID cameraId)
+	: TransformComponentDefinition(cameraId)
 	, m_cameraId(cameraId)
-	, m_stageId(stageId)
+	, m_stageId(INVALID_MIKAN_ID)
 	, m_trackingMountId(INVALID_MIKAN_ID)
 	, m_videoSourceId(INVALID_MIKAN_ID)
 	, m_trackingFrameDelay(0)

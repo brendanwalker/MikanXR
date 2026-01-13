@@ -23,11 +23,7 @@ class CameraDefinition : public TransformComponentDefinition
 {
 public:
 	CameraDefinition();
-	CameraDefinition(
-		const std::string& cameraName,
-		const struct MikanTransform& xform,
-		MikanCameraID cameraId, 
-		MikanStageID stageId);
+	CameraDefinition(MikanCameraID cameraId);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

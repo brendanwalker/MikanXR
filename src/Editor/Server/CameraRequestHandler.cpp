@@ -54,7 +54,7 @@ void CameraRequestHandler::getCameraListHandler(
 	MikanCameraListResponse cameraListResult = {};
 
 	auto cameraSystemConfig = getProjectConfig()->cameraConfig;
-	for (CameraDefinitionPtr cameraConfig : cameraSystemConfig->getCameraList())
+	for (CameraDefinitionPtr cameraConfig : cameraSystemConfig->getAllDefinitions())
 	{
 		cameraListResult.camera_id_list.push_back(cameraConfig->getCameraId());
 	}
@@ -74,7 +74,7 @@ void CameraRequestHandler::findCameraByNameHandler(
 	}
 
 	const std::string& cameraName = cameraRequest.camera_name.getValue();
-	CameraComponentPtr cameraPtr = CameraObjectSystem::getSystem()->getCameraByName(cameraName);
+	CameraComponentPtr cameraPtr = getObjectSystemOfType<CameraObjectSystem>()->getCameraByName(cameraName);
 	if (cameraPtr == nullptr)
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::InvalidAnchorID, response);
@@ -99,7 +99,7 @@ void CameraRequestHandler::getCameraInfoHandler(
 	}
 
 	auto cameraSystemConfig = getProjectConfig()->cameraConfig;
-	auto cameraConfig = cameraSystemConfig->getCameraConfig(cameraInfoRequest.camera_id);
+	auto cameraConfig = cameraSystemConfig->getDefinitionById(cameraInfoRequest.camera_id);
 	if (cameraConfig != nullptr)
 	{
 		MikanCameraInfoResponse cameraResponse = {};

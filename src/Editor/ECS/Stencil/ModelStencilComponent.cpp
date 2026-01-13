@@ -1,5 +1,6 @@
 #include "AnchorObjectSystem.h"
 #include "CameraObjectSystem.h"
+#include "CameraComponent.h"
 #include "Colors.h"
 #include "ModalSelectCamera/ModalDialog_SelectCamera.h"
 #include "StencilAlignment/AppStage_StencilAlignment.h"
@@ -550,8 +551,11 @@ void ModelStencilComponent::alignStencil()
 			auto* stencilAligner = MainWindow::getInstance()->pushAppStageOfType<AppStage_StencilAlignment>();
 			if (stencilAligner)
 			{
+				CameraComponentPtr cameraComponent=
+					getObjectSystemOfType<CameraObjectSystem>()->getTypedComponentById(cameraId);
+
 				stencilAligner->setTargetStencil(getSelfPtr<ModelStencilComponent>());
-				stencilAligner->setSourceCamera(CameraObjectSystem::getSystem()->getCameraById(cameraId));
+				stencilAligner->setSourceCamera(cameraComponent);
 			}
 		});
 }

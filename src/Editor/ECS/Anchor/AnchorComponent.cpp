@@ -197,7 +197,7 @@ void AnchorComponent::editAnchor()
 					definition->getComponentName()
 				};
 				anchorTriangulation->setSourceCamera(
-					CameraObjectSystem::getSystem()->getCameraById(cameraId));
+					getObjectSystemOfType<CameraObjectSystem>()->getCameraById(cameraId));
 				anchorTriangulation->setTargetAnchor(anchorInfo);
 			});
 

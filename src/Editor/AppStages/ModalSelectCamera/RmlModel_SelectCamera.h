@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MikanTypeFwd.h"
+#include "ObjectSystemFwd.h"
 #include "Shared/RmlModel.h"
 #include "SinglecastDelegate.h"
 

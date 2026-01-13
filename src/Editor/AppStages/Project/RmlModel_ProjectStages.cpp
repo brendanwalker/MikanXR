@@ -50,13 +50,13 @@ bool RmlModel_ProjectStages::init(ProjectRmlModelContext* context)
 
 	m_cameraIdList->init(
 		constructor,
-		m_cameraSystem.lock()->getCameraSystemConfig(),
-		CameraObjectSystemDefinition::k_cameraListPropertyId,
+		m_cameraSystem.lock()->getTypedDefinition(),
+		"camera_ids", // virtual list: only cameras owned by the selected stage
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 			CameraObjectSystemDefinitionConstPtr cameraConfig =
 				std::static_pointer_cast<CameraObjectSystemDefinition>(ownerConfig);
 			
-			for (const auto& cameraPtr : cameraConfig->getCameraList())
+			for (const auto& cameraPtr : cameraConfig->getAllDefinitions())
 			{
 				if (cameraPtr && cameraPtr->getOwnerStageId() == m_selectedStageId)
 				{
@@ -211,7 +211,10 @@ void RmlModel_ProjectStages::addNewCamera(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {	
-	getCameraSystem()->addNewCamera((MikanStageID)m_selectedStageId);
+	getCameraSystem()->addNewObject([this](CameraDefinitionPtr definition) {
+		definition->setRelativeTransform(GlmTransform());
+		definition->setOwnerStageId(m_selectedStageId);
+	});
 }
 
 void RmlModel_ProjectStages::removeCamera(
@@ -219,7 +222,7 @@ void RmlModel_ProjectStages::removeCamera(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	getCameraSystem()->removeCamera(m_selectedCameraId);
+	getCameraSystem()->removeObject(m_selectedCameraId);
 }
 
 void RmlModel_ProjectStages::addNewCompositor(

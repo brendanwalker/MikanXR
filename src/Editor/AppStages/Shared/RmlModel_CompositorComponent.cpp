@@ -31,7 +31,7 @@ bool RmlModel_CompositorComponent::onConstruct(Rml::DataModelConstructor& constr
 			auto cameraObjectSystem= getCameraObjectSystem();
 			if (cameraObjectSystem)
 			{
-				outComponentIdList = cameraObjectSystem->getAllCameraIds();
+				cameraObjectSystem->getTypedDefinition()->getAllComponentIds(outComponentIdList);
 				outComponentIdList.insert(outComponentIdList.begin(), INVALID_MIKAN_ID); // Add "No Camera" option
 			}
 		});
@@ -100,7 +100,7 @@ CameraObjectSystemDefinitionPtr RmlModel_CompositorComponent::getCameraObjectSys
 	auto cameraObjectSystem = getCameraObjectSystem();
 	if (cameraObjectSystem)
 	{
-		return cameraObjectSystem->getCameraSystemConfig();
+		return cameraObjectSystem->getTypedDefinition();
 	}
 
 	return nullptr;

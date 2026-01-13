@@ -32,7 +32,7 @@ bool RmlModel_SelectCamera::init(
 			if (OnCancel) OnCancel();
 		});
 
-	m_cameraIdList = cameraSystem->getAllCameraIds();
+	cameraSystem->getTypedDefinition()->getAllComponentIds(m_cameraIdList);
 	m_modelHandle.DirtyVariable("camera_id_list");
 
 	return true;
