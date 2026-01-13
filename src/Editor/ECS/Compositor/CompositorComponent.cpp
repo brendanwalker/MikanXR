@@ -50,12 +50,10 @@ CompositorDefinition::CompositorDefinition()
 }
 
 CompositorDefinition::CompositorDefinition(
-	MikanCompositorID compositorId,
-	MikanSceneID ownerSceneId,
-	const std::string& compositorName)
-	: MikanComponentDefinition(compositorId, compositorName)
+	MikanCompositorID compositorId)
+	: MikanComponentDefinition(compositorId, "")
 	, m_compositorId(compositorId)
-	, m_ownerStageId(ownerSceneId)
+	, m_ownerStageId(INVALID_MIKAN_ID)
 	, m_nodeGraphAssetRef(std::make_shared<AssetReferenceConfig>())
 	, m_bIsSpoutOutputStreaming(false)
 	, m_spoutOutputName(DEFAULT_SPOUT_OUTPUT_NAME)

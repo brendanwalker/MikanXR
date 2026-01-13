@@ -31,10 +31,7 @@ class CompositorDefinition : public MikanComponentDefinition
 {
 public:
 	CompositorDefinition();
-	CompositorDefinition(
-		MikanCompositorID compositorId,
-		MikanSceneID ownerSceneId,
-		const std::string& compositorName);
+	CompositorDefinition(MikanCompositorID compositorId);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

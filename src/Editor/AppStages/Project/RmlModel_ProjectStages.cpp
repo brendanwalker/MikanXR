@@ -67,13 +67,13 @@ bool RmlModel_ProjectStages::init(ProjectRmlModelContext* context)
 
 	m_compositorIdList->init(
 		constructor,
-		m_compositorSystem.lock()->getCompositorSystemConfig(),
-		CompositorObjectSystemDefinition::k_compositorListPropertyId,
+		m_compositorSystem.lock()->getTypedDefinition(),
+		"compositor_ids", // virtual list: only compositors owned by the selected stage
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 			CompositorObjectSystemDefinitionConstPtr compositorConfig =
 				std::static_pointer_cast<CompositorObjectSystemDefinition>(ownerConfig);
 				
-			for (const auto& compositorPtr : compositorConfig->getCompositorList())
+			for (const auto& compositorPtr : compositorConfig->getAllDefinitions())
 			{
 				if (compositorPtr && compositorPtr->getOwnerStageId() == m_selectedStageId)
 				{
@@ -230,7 +230,11 @@ void RmlModel_ProjectStages::addNewCompositor(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	getCompositorSystem()->addNewCompositor((MikanStageID)m_selectedStageId);
+	getCompositorSystem()->addNewObject(
+		[this](CompositorDefinitionPtr definition) {
+			// Initialize compositor-specific properties
+			definition->setOwnerStageId(m_selectedStageId);
+		});
 }
 
 void RmlModel_ProjectStages::removeCompositor(
@@ -238,7 +242,7 @@ void RmlModel_ProjectStages::removeCompositor(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	getCompositorSystem()->removeCompositor(m_selectedCompositorId);
+	getCompositorSystem()->removeObject(m_selectedCompositorId);
 }
 
 void RmlModel_ProjectStages::selectStageEntry(
