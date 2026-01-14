@@ -98,7 +98,10 @@ public:
 			+ std::to_string(componentDefinition->getComponentId()));
 
 		// Allow caller to initialize definition before creating object
-		definitionInit(componentDefinition);
+		if (definitionInit)
+		{
+			definitionInit(componentDefinition);
+		}
 
 		// Create the scene object using the pool (will add definition to pool after object is built)
 		return m_pool.create(componentDefinition);
