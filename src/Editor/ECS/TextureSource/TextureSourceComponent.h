@@ -19,9 +19,7 @@ class TextureSourceDefinition : public MikanComponentDefinition
 {
 public:
 	TextureSourceDefinition();
-	TextureSourceDefinition(
-		MikanTextureSourceID TextureSourceId,
-		const std::string& TextureSourceName);
+	TextureSourceDefinition(MikanTextureSourceID TextureSourceId);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

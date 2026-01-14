@@ -57,8 +57,8 @@ bool RmlModel_ProjectSources::init(ProjectRmlModelContext* context)
 		},
 		[this](const ConfigPropertyChangeSet& changedPropertySet) {
 			return
-				changedPropertySet.hasPropertyName(ClientTextureSourceSystemDefinition::k_clientTextureSourceListPropertyId) ||
-				changedPropertySet.hasPropertyName(SpoutTextureSourceSystemDefinition::k_spoutTextureSourceListPropertyId);
+				changedPropertySet.hasPropertyName(ClientTextureSourceSystemDefinition::k_componentIdListPropertyId) ||
+				changedPropertySet.hasPropertyName(SpoutTextureSourceSystemDefinition::k_componentIdListPropertyId);
 		});
 	m_videoSourceIdList->init(
 		constructor,
@@ -150,7 +150,7 @@ ClientTextureSourceComponentPtr RmlModel_ProjectSources::getSelectedClientTextur
 {
 	auto projectManager = m_projectManager.lock();
 	auto clientTextureSourceSystem = projectManager->getSystemOfType<ClientTextureSourceSystem>();
-	return clientTextureSourceSystem->getClientTextureSourceById(
+	return clientTextureSourceSystem->getTypedComponentById(
 		(MikanTextureSourceID)m_selectedTextureSourceId);
 }
 
@@ -158,7 +158,7 @@ SpoutTextureSourceComponentPtr RmlModel_ProjectSources::getSelectedSpoutTextureS
 {
 	auto projectManager = m_projectManager.lock();
 	auto spoutTextureSourceSystem = projectManager->getSystemOfType<SpoutTextureSourceSystem>();
-	return spoutTextureSourceSystem->getSpoutTextureSourceById(
+	return spoutTextureSourceSystem->getTypedComponentById(
 		(MikanTextureSourceID)m_selectedTextureSourceId);
 }
 
@@ -183,7 +183,7 @@ void RmlModel_ProjectSources::addNewClientTextureSource(
 {
 	auto projectManager = m_projectManager.lock();
 	auto clientTextureSourceSystem = projectManager->getSystemOfType<ClientTextureSourceSystem>();
-	clientTextureSourceSystem->addNewClientTextureSource();
+	clientTextureSourceSystem->addNewObject();
 }
 
 void RmlModel_ProjectSources::addNewSpoutTextureSource(
@@ -193,7 +193,7 @@ void RmlModel_ProjectSources::addNewSpoutTextureSource(
 {
 	auto projectManager = m_projectManager.lock();
 	auto spoutTextureSourceSystem = projectManager->getSystemOfType<SpoutTextureSourceSystem>();
-	spoutTextureSourceSystem->addNewSpoutTextureSource();
+	spoutTextureSourceSystem->addNewObject();
 }
 
 void RmlModel_ProjectSources::addNewUSBVideoSource(

@@ -15,11 +15,8 @@ SpoutTextureSourceDefinition::SpoutTextureSourceDefinition()
 {}
 
 SpoutTextureSourceDefinition::SpoutTextureSourceDefinition(
-	MikanTextureSourceID TextureSourceId,
-	const MikanSpoutTextureSourceInfo& TextureSourceInfo)
-	: TextureSourceDefinition(
-		TextureSourceId, 
-		TextureSourceInfo.spout_source_name.getValue())
+	MikanTextureSourceID textureSourceId)
+	: TextureSourceDefinition(textureSourceId)
 {}
 
 configuru::Config SpoutTextureSourceDefinition::writeToJSON()

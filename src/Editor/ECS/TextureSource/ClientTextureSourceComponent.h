@@ -8,9 +8,7 @@ class ClientTextureSourceDefinition : public TextureSourceDefinition
 {
 public:
 	ClientTextureSourceDefinition();
-	ClientTextureSourceDefinition(
-		MikanTextureSourceID TextureSourceId,
-		const struct MikanClientTextureSourceInfo& TextureSourceInfo);
+	ClientTextureSourceDefinition(MikanTextureSourceID TextureSourceId);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

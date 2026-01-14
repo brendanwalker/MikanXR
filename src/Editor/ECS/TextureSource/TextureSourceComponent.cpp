@@ -15,9 +15,8 @@ TextureSourceDefinition::TextureSourceDefinition()
 {}
 
 TextureSourceDefinition::TextureSourceDefinition(
-	MikanTextureSourceID textureSourceId,
-	const std::string& textureSourceName)
-	: MikanComponentDefinition(textureSourceId, textureSourceName)
+	MikanTextureSourceID textureSourceId)
+	: MikanComponentDefinition(textureSourceId, "")
 	, m_textureSourceId(textureSourceId)
 {}
 

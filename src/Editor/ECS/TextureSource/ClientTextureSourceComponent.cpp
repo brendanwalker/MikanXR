@@ -16,9 +16,8 @@ ClientTextureSourceDefinition::ClientTextureSourceDefinition()
 {}
 
 ClientTextureSourceDefinition::ClientTextureSourceDefinition(
-	MikanTextureSourceID TextureSourceId,
-	const MikanClientTextureSourceInfo& TextureSourceInfo)
-	: TextureSourceDefinition(TextureSourceId, TextureSourceInfo.client_source_name.getValue())
+	MikanTextureSourceID textureSourceId)
+	: TextureSourceDefinition(textureSourceId)
 {}
 
 configuru::Config ClientTextureSourceDefinition::writeToJSON()

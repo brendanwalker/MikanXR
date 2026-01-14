@@ -8,9 +8,7 @@ class SpoutTextureSourceDefinition : public TextureSourceDefinition
 {
 public:
 	SpoutTextureSourceDefinition();
-	SpoutTextureSourceDefinition(
-		MikanTextureSourceID TextureSourceId,
-		const struct MikanSpoutTextureSourceInfo& TextureSourceInfo);
+	SpoutTextureSourceDefinition(MikanTextureSourceID TextureSourceId);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

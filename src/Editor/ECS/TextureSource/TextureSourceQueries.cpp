@@ -40,14 +40,14 @@ namespace TextureSourceQueries
 	TextureSourceComponentPtr getTextureSourceById(ProjectManagerPtr projectManager, MikanTextureSourceID textureSourceId)
 	{
 		auto clientTextureSourceSystem = projectManager->getSystemOfType<ClientTextureSourceSystem>();
-		auto clientTextureSourcePtr = clientTextureSourceSystem->getClientTextureSourceById(textureSourceId);
+		auto clientTextureSourcePtr = clientTextureSourceSystem->getTypedComponentById(textureSourceId);
 		if (clientTextureSourcePtr)
 		{
 			return clientTextureSourcePtr;
 		}
 
 		auto spoutTextureSourceSystem = projectManager->getSystemOfType<SpoutTextureSourceSystem>();
-		auto spoutTextureSourcePtr = spoutTextureSourceSystem->getSpoutTextureSourceById(textureSourceId);
+		auto spoutTextureSourcePtr = spoutTextureSourceSystem->getTypedComponentById(textureSourceId);
 		if (spoutTextureSourcePtr)
 		{
 			return spoutTextureSourcePtr;
@@ -59,14 +59,14 @@ namespace TextureSourceQueries
 	eTextureSourceType getTextureSourceType(ProjectManagerPtr projectManager, MikanTextureSourceID textureSourceId)
 	{
 		auto clientTextureSourceSystem = projectManager->getSystemOfType<ClientTextureSourceSystem>();
-		auto clientTextureSourcePtr = clientTextureSourceSystem->getClientTextureSourceById(textureSourceId);
+		auto clientTextureSourcePtr = clientTextureSourceSystem->getTypedComponentById(textureSourceId);
 		if (clientTextureSourcePtr)
 		{
 			return eTextureSourceType::client;
 		}
 
 		auto spoutTextureSourceSystem = projectManager->getSystemOfType<SpoutTextureSourceSystem>();
-		auto spoutTextureSourcePtr = spoutTextureSourceSystem->getSpoutTextureSourceById(textureSourceId);
+		auto spoutTextureSourcePtr = spoutTextureSourceSystem->getTypedComponentById(textureSourceId);
 		if (spoutTextureSourcePtr)
 		{
 			return eTextureSourceType::spout;
@@ -82,12 +82,12 @@ namespace TextureSourceQueries
 			case eTextureSourceType::client:
 			{
 				auto clientTextureSourceSystem = projectManager->getSystemOfType<ClientTextureSourceSystem>();
-				return clientTextureSourceSystem->removeClientTextureSource(textureSourceId);
+				return clientTextureSourceSystem->removeObject(textureSourceId);
 			}
 			case eTextureSourceType::spout:
 			{
 				auto spoutTextureSourceSystem = projectManager->getSystemOfType<SpoutTextureSourceSystem>();
-				return spoutTextureSourceSystem->removeSpoutTextureSource(textureSourceId);
+				return spoutTextureSourceSystem->removeObject(textureSourceId);
 			}
 		}
 

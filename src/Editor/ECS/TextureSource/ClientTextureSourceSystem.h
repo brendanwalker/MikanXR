@@ -1,73 +1,42 @@
 #pragma once
 
+#include "ClientTextureSourceComponent.h"
 #include "ComponentFwd.h"
-#include "MikanObjectSystem.h"
+#include "MikanTypedObjectSystem.h"
 #include "MikanTextureSourceTypes.h"
 #include "ObjectSystemConfigFwd.h"
 #include "TextureSourceQueries.h"
 
-#include <map>
 #include <string>
 
-using ClientTextureSourceMap = std::map<MikanTextureSourceID, ClientTextureSourceComponentWeakPtr>;
-
-class ClientTextureSourceSystemDefinition : public MikanObjectSystemDefinition
+class ClientTextureSourceSystemDefinition :
+	public MikanTypedObjectSystemDefinition<ClientTextureSourceComponent, ClientTextureSourceDefinition, MikanTextureSourceID>
 {
 public:
-	ClientTextureSourceSystemDefinition(const std::string& configName)
-		: MikanObjectSystemDefinition(configName)
-	{
-	}
+	using Super = MikanTypedObjectSystemDefinition<ClientTextureSourceComponent, ClientTextureSourceDefinition, MikanTextureSourceID>;
 
-	virtual configuru::Config writeToJSON();
-	virtual void readFromJSON(const configuru::Config& pt);
-
-	static const std::string k_clientTextureSourceListPropertyId;
-	const std::vector<ClientTextureSourceDefinitionPtr>& getClientTextureSourceList() const { return m_clientTextureSourceList; }
-	ClientTextureSourceDefinitionConstPtr getClientTextureSourceConfigConst(MikanTextureSourceID textureSourceId) const;
-	ClientTextureSourceDefinitionPtr getClientTextureSourceConfig(MikanTextureSourceID textureSourceId);
-	ClientTextureSourceDefinitionPtr allocateClientTextureSourceDefinition(const struct MikanClientTextureSourceInfo& textureSourceInfo);
-	bool addClientTextureSourceDefinition(ClientTextureSourceDefinitionPtr textureSourcePtr);
-	bool removeClientTextureSourceDefinition(MikanTextureSourceID textureSourceId);
-
-protected:
-	std::vector<ClientTextureSourceDefinitionPtr> m_clientTextureSourceList;
-	MikanTextureSourceID m_nextTextureSourceId = 0;
+	ClientTextureSourceSystemDefinition(const std::string& configName = "ClientTextureSourceSystemDefinition");
 };
 
-class ClientTextureSourceSystem : public MikanObjectSystem
+class ClientTextureSourceSystem :
+	public MikanTypedObjectSystem<
+		ClientTextureSourceComponent, ClientTextureSourceDefinition,
+		MikanTextureSourceID,
+		ClientTextureSourceSystem, ClientTextureSourceSystemDefinition>
 {
-public:   
-    ClientTextureSourceSystem(ProjectManagerPtr ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
+public:
+	using Super = MikanTypedObjectSystem<
+		ClientTextureSourceComponent, ClientTextureSourceDefinition,
+		MikanTextureSourceID,
+		ClientTextureSourceSystem, ClientTextureSourceSystemDefinition>;
+
+    ClientTextureSourceSystem(ProjectManagerPtr ownerObjectSystem);
 
 	inline static const std::string k_objectSystemClassName = "ClientTextureSourceSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
-	ClientTextureSourceSystemDefinitionConstPtr getClientTextureSourceSystemConfigConst() const;
-	ClientTextureSourceSystemDefinitionPtr getClientTextureSourceSystemConfig();
-
-    virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
-    virtual void dispose() override;
-
-    virtual MikanComponentPtr getComponentById(int componentId) const override;
-
-    const ClientTextureSourceMap& getClientTextureSourceMap() const { return m_clientTextureSourceComponents; }
 	TextureSourceComponentList getTextureSourceComponentList() const;
     TextureSourceIdList getTextureSourceIdList() const;
-    ClientTextureSourceComponentPtr getClientTextureSourceById(MikanTextureSourceID TextureSourceId) const;
-    ClientTextureSourceComponentPtr getClientTextureSourceByName(const std::string& TextureSourceName) const;
-    ClientTextureSourceComponentPtr addNewClientTextureSource();
-    ClientTextureSourceComponentPtr addNewClientTextureSource(const MikanClientTextureSourceInfo& TextureSourceInfo);
-    bool removeClientTextureSource(MikanTextureSourceID TextureSourceId);
-
-    virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
-
-protected:
-    ClientTextureSourceComponentPtr createClientTextureSourceObject(ClientTextureSourceDefinitionPtr sourceConfig);
-    bool disposeClientTextureSourceObject(MikanTextureSourceID TextureSourceId);
-
-private:
-    ClientTextureSourceMap m_clientTextureSourceComponents;
 };
 
 using ClientTextureSourceSystemPtr = std::shared_ptr<ClientTextureSourceSystem>;
