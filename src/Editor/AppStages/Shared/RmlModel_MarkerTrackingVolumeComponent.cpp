@@ -105,7 +105,7 @@ TrackingMountObjectSystemDefinitionPtr RmlModel_MarkerTrackingVolumeComponent::g
 	auto trackingMountObjectSystem = getTrackingMountObjectSystem();
 	if (trackingMountObjectSystem)
 	{
-		return trackingMountObjectSystem->getTrackingMountSystemConfig();
+		return trackingMountObjectSystem->getTypedDefinition();
 	}
 
 	return nullptr;

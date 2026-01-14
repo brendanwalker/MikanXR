@@ -435,7 +435,7 @@ void RmlManager::registerCommonDataModelTypes(Rml::Context* context)
 			const MikanTrackingMountID mountId = variant.Get<int>(-1);
 
 			auto mountObjectSystem = rmlGetSystemOfType<TrackingMountObjectSystem>(rmlManager);
-			auto mountComponent = mountObjectSystem->getTrackingMountById(mountId);
+			auto mountComponent = mountObjectSystem->getTypedComponentById(mountId);
 			if (mountComponent != nullptr)
 			{
 				variant = Rml::String(mountComponent->getName());

@@ -56,7 +56,6 @@ public:
 	}
 
 	// Helper methods for compatibility
-	QuadStencilComponentPtr addNewQuadStencil(const MikanStencilQuadInfo& stencilInfo);
 	void getRelevantQuadStencilList(
 		const std::vector<MikanStencilID>* allowedStencilIds,
 		const glm::vec3& cameraPosition,

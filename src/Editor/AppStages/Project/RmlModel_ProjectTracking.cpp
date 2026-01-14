@@ -90,8 +90,7 @@ bool RmlModel_ProjectTracking::init(ProjectRmlModelContext* context)
 	constructor.BindEventCallback("select_tracking_mount_entry", &RmlModel_ProjectTracking::selectTrackingMountEntry, this);
 
 	// Listen for tracking system config changes
-	TrackingMountObjectSystemDefinitionPtr trackingMountConfig = 
-		m_trackingMountSystem.lock()->getTrackingMountSystemConfig();
+	TrackingMountObjectSystemDefinitionPtr trackingMountConfig = m_trackingMountSystem.lock()->getTypedDefinition();
 	m_trackingVolumeIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectTracking::trackingVolumeIdListChanged);
 	m_trackingMountIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectTracking::trackingMountIdListChanged);
 
@@ -106,8 +105,7 @@ bool RmlModel_ProjectTracking::init(ProjectRmlModelContext* context)
 
 void RmlModel_ProjectTracking::dispose()
 {
-	TrackingMountObjectSystemDefinitionPtr trackingMountConfig = 
-		m_trackingMountSystem.lock()->getTrackingMountSystemConfig();
+	TrackingMountObjectSystemDefinitionPtr trackingMountConfig = m_trackingMountSystem.lock()->getTypedDefinition();
 
 	m_trackingVolumeIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectTracking::trackingVolumeIdListChanged);
 	m_trackingMountIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectTracking::trackingMountIdListChanged);
@@ -178,7 +176,7 @@ VRTrackingVolumeComponentPtr RmlModel_ProjectTracking::getSelectedVRTrackingVolu
 
 TrackingMountComponentPtr RmlModel_ProjectTracking::getSelectedTrackingMount()
 {
-	return getTrackingMountSystem()->getTrackingMountById((MikanTrackingMountID)m_selectedTrackingMountId);
+	return getTrackingMountSystem()->getTypedComponentById((MikanTrackingMountID)m_selectedTrackingMountId);
 }
 
 void RmlModel_ProjectTracking::addNewSteamVRTrackingVolume(
@@ -229,7 +227,7 @@ void RmlModel_ProjectTracking::addNewTrackingMount(
 	VRTrackingVolumeComponentPtr vrTrackingVolumePtr = getSelectedVRTrackingVolume();
 	if (vrTrackingVolumePtr)
 	{
-		TrackingMountComponentPtr trackingMount= getTrackingMountSystem()->addNewTrackingMount();
+		TrackingMountComponentPtr trackingMount= getTrackingMountSystem()->addNewObject();
 		MikanTrackingMountID mountId= trackingMount->getTrackingMountDefinition()->getTrackingMountId();
 
 		vrTrackingVolumePtr->getVRTrackingVolumeDefinition()->addTrackingMountID(mountId);
@@ -253,7 +251,7 @@ void RmlModel_ProjectTracking::removeTrackingMountID(
 			const auto definition= vrTrackingVolumePtr->getVRTrackingVolumeDefinition();
 
 			definition->removeTrackingMountID((MikanTrackingMountID)m_selectedTrackingMountId);
-			getTrackingMountSystem()->removeTrackingMountID((MikanTrackingMountID)m_selectedTrackingMountId);
+			getTrackingMountSystem()->removeObject((MikanTrackingMountID)m_selectedTrackingMountId);
 		}
 	}
 }

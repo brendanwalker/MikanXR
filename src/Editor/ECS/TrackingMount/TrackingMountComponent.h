@@ -17,9 +17,7 @@ class TrackingMountDefinition :
 {
 public:
 	TrackingMountDefinition();
-	TrackingMountDefinition(
-		MikanTrackingMountID trackingMountId,
-		const std::string& mountName);
+	TrackingMountDefinition(MikanTrackingMountID trackingMountId);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

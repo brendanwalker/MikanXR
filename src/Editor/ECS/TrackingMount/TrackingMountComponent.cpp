@@ -20,9 +20,8 @@ TrackingMountDefinition::TrackingMountDefinition()
 {}
 
 TrackingMountDefinition::TrackingMountDefinition(
-	MikanTrackingMountID trackingMountId,
-	const std::string& markerName)
-	: MikanComponentDefinition(trackingMountId, markerName)
+	MikanTrackingMountID trackingMountId)
+	: MikanComponentDefinition(trackingMountId, "")
 	, m_trackingMountId(trackingMountId)
 {
 }
@@ -96,7 +95,7 @@ void TrackingMountComponent::deleteTrackingMount()
 	if (trackingMountDefinition)
 	{
 		const MikanTrackingMountID trackingMountId = trackingMountDefinition->getTrackingMountId();
-		getOwnerTrackingMountSystem()->removeTrackingMountID(trackingMountId);
+		getOwnerTrackingMountSystem()->removeObject(trackingMountId);
 	}
 }
 

@@ -644,7 +644,7 @@ VRDevicePoseViewPtr AppStage_AlignmentCalibration::makeMatPoseViewFromCamera(Cam
 		{
 			auto trackingMountSystem= getSystemOfType<TrackingMountObjectSystem>();
 			TrackingMountComponentPtr trackingMount=
-				trackingMountSystem->getTrackingMountById(matMountId);
+				trackingMountSystem->getTypedComponentById(matMountId);
 
 			if (trackingMount)
 			{

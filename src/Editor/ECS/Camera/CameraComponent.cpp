@@ -270,7 +270,7 @@ TrackingMountDefinitionConstPtr CameraComponent::getTrackingMountDefinition() co
 	{
 		auto trackingMountSystem= getObjectSystemOfType<TrackingMountObjectSystem>(); 
 		TrackingMountComponentPtr trackingMount= 
-			trackingMountSystem->getTrackingMountById(trackingMountId);
+			trackingMountSystem->getTypedComponentById(trackingMountId);
 
 		if (trackingMount)
 		{
