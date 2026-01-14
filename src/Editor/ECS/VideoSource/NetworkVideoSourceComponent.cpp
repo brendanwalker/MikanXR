@@ -40,23 +40,10 @@ NetworkVideoSourceDefinition::NetworkVideoSourceDefinition()
 }
 
 NetworkVideoSourceDefinition::NetworkVideoSourceDefinition(
-	MikanVideoSourceID videoSourceId,
-	const MikanNetworkVideoSourceInfo& videoSourceInfo)
-	: VideoSourceDefinition(
-		videoSourceId, 
-		videoSourceInfo.network_source_name.getValue(),
-		videoSourceInfo.intrinsics)
+	MikanVideoSourceID videoSourceId)
+	: VideoSourceDefinition(videoSourceId)
 {
-	if (!NetworkVideoSourceDefinition::parseUrl(
-		videoSourceInfo.url.getValue(),
-		m_protocol, m_address, m_port, m_path))
-	{
-		// If URL parsing fails, fall back to defaults
-		m_protocol = eNetworkVideoProtocol::RTSP;
-		m_address = DEFAULT_NETWORKED_CAMERA_ADDRESS;
-		m_path = DEFAULT_NETWORKED_CAMERA_PATH;
-		m_port = DEFAULT_RTSP_PORT;
-	}
+
 }
 
 configuru::Config NetworkVideoSourceDefinition::writeToJSON()
@@ -89,6 +76,30 @@ void NetworkVideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 	m_address = pt.get_or<std::string>(NetworkVideoSourceDefinition::k_addressPropertyId, m_address);
 	m_path = pt.get_or<std::string>(NetworkVideoSourceDefinition::k_pathPropertyId, m_path);
 	m_port = pt.get_or<int>(NetworkVideoSourceDefinition::k_portPropertyId, m_port);
+}
+
+void NetworkVideoSourceDefinition::setURL(const std::string& URL)
+{
+	eNetworkVideoProtocol protocol;
+	std::string address;
+	std::string path;
+	int port = 0;
+
+	if (NetworkVideoSourceDefinition::parseUrl(
+			URL,
+			protocol, address, port, path))
+	{
+		m_protocol = protocol;
+		m_address = address;
+		m_path = path;
+		m_port = port;
+		notifyPropertyChanged(
+			ConfigPropertyChangeSet()
+			.addPropertyName(k_addressPropertyId)
+			.addPropertyName(k_pathPropertyId)
+			.addPropertyName(k_protocolPropertyId)
+			.addPropertyName(k_portPropertyId));
+	}
 }
 
 void NetworkVideoSourceDefinition::setAddress(const std::string& address)

@@ -30,14 +30,10 @@ USBVideoSourceDefinition::USBVideoSourceDefinition()
 }
 
 USBVideoSourceDefinition::USBVideoSourceDefinition(
-	MikanVideoSourceID videoSourceId,
-	const MikanUSBVideoSourceInfo& videoSourceInfo)
-	: VideoSourceDefinition(
-		videoSourceId, 
-		"VideoSource_"+std::to_string(videoSourceId),
-		videoSourceInfo.intrinsics)
-	, m_devicePath(videoSourceInfo.device_path.getValue())
-	, m_videoMode(videoSourceInfo.video_mode.getValue())
+	MikanVideoSourceID videoSourceId)
+	: VideoSourceDefinition(videoSourceId)
+	, m_devicePath("")
+	, m_videoMode("")
 {
 }
 
@@ -72,6 +68,21 @@ void USBVideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 	m_devicePath = pt.get_or<std::string>(k_desiredDevicePathPropertyId, m_devicePath);
 	m_videoMode = pt.get_or<std::string>(k_videoModePropertyId, m_videoMode);
 	readStdArrayMap<float, (int)eVideoSettingType::COUNT>(pt, k_videoSettingsPropertyId, m_videoSettingsMap);
+}
+
+void USBVideoSourceDefinition::setUSBVideoSourceInfo(const MikanUSBVideoSourceInfo& usbVideoSourceInfo)
+{
+	setComponentName(usbVideoSourceInfo.usb_source_name.getValue());
+
+	// Set path and video mode at the same time
+	m_devicePath = usbVideoSourceInfo.device_path.getValue();
+	m_videoMode = usbVideoSourceInfo.video_mode.getValue();
+	notifyPropertyChanged(
+		ConfigPropertyChangeSet()
+		.addPropertyName(k_desiredDevicePathPropertyId)
+		.addPropertyName(k_videoModePropertyId));
+
+	setCameraIntrinsics(usbVideoSourceInfo.intrinsics);
 }
 
 void USBVideoSourceDefinition::setDevicePath(const std::string& devicePath)

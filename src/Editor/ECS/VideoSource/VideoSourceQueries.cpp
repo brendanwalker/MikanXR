@@ -25,14 +25,14 @@ namespace VideoSourceQueries
 	VideoSourceComponentPtr getVideoSourceById(ProjectManagerConstPtr projectManager, MikanVideoSourceID videoSourceId)
 	{
 		auto networkVideoSourceSystem = projectManager->getSystemOfType<NetworkVideoSourceSystem>();
-		auto networkVideoSourcePtr = networkVideoSourceSystem->getNetworkVideoSourceById(videoSourceId);
+		auto networkVideoSourcePtr = networkVideoSourceSystem->getTypedComponentById(videoSourceId);
 		if (networkVideoSourcePtr)
 		{
 			return networkVideoSourcePtr;
 		}
 
 		auto usbVideoSourceSystem = projectManager->getSystemOfType<USBVideoSourceSystem>();
-		auto usbVideoSourcePtr = usbVideoSourceSystem->getUSBVideoSourceById(videoSourceId);
+		auto usbVideoSourcePtr = usbVideoSourceSystem->getTypedComponentById(videoSourceId);
 		if (usbVideoSourcePtr)
 		{
 			return usbVideoSourcePtr;
@@ -44,14 +44,14 @@ namespace VideoSourceQueries
 	eVideoSourceType getVideoSourceType(ProjectManagerConstPtr projectManager, MikanVideoSourceID videoSourceId)
 	{
 		auto networkVideoSourceSystem = projectManager->getSystemOfType<NetworkVideoSourceSystem>();
-		auto networkVideoSourcePtr = networkVideoSourceSystem->getNetworkVideoSourceById(videoSourceId);
+		auto networkVideoSourcePtr = networkVideoSourceSystem->getTypedComponentById(videoSourceId);
 		if (networkVideoSourcePtr)
 		{
 			return eVideoSourceType::networked;
 		}
 
 		auto usbVideoSourceSystem = projectManager->getSystemOfType<USBVideoSourceSystem>();
-		auto usbVideoSourcePtr = usbVideoSourceSystem->getUSBVideoSourceById(videoSourceId);
+		auto usbVideoSourcePtr = usbVideoSourceSystem->getTypedComponentById(videoSourceId);
 		if (usbVideoSourcePtr)
 		{
 			return eVideoSourceType::usb;
@@ -67,12 +67,12 @@ namespace VideoSourceQueries
 			case eVideoSourceType::networked:
 			{
 				auto networkVideoSourceSystem = projectManager->getSystemOfType<NetworkVideoSourceSystem>();
-				return networkVideoSourceSystem->removeNetworkVideoSource(videoSourceId);
+				return networkVideoSourceSystem->removeObject(videoSourceId);
 			}
 			case eVideoSourceType::usb:
 			{
 				auto usbVideoSourceSystem = projectManager->getSystemOfType<USBVideoSourceSystem>();
-				return usbVideoSourceSystem->removeUSBVideoSource(videoSourceId);
+				return usbVideoSourceSystem->removeObject(videoSourceId);
 			}
 		}
 

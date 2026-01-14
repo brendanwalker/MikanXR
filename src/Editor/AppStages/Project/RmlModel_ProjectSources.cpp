@@ -69,8 +69,8 @@ bool RmlModel_ProjectSources::init(ProjectRmlModelContext* context)
 		},
 		[this](const ConfigPropertyChangeSet& changedPropertySet) {
 			return
-				changedPropertySet.hasPropertyName(USBVideoSourceSystemDefinition::k_usbVideoSourceListPropertyId) ||
-				changedPropertySet.hasPropertyName(NetworkVideoSourceSystemDefinition::k_networkedVideoSourceListPropertyId);
+				changedPropertySet.hasPropertyName(USBVideoSourceSystemDefinition::k_componentIdListPropertyId) ||
+				changedPropertySet.hasPropertyName(NetworkVideoSourceSystemDefinition::k_componentIdListPropertyId);
 		});
 
 	// Register Data Model Fields
@@ -166,14 +166,14 @@ USBVideoSourceComponentPtr RmlModel_ProjectSources::getSelectedUSBVideoSource()
 {
 	auto projectManager = m_projectManager.lock();
 	auto usbVideoSourceSystem = projectManager->getSystemOfType<USBVideoSourceSystem>();
-	return usbVideoSourceSystem->getUSBVideoSourceById((MikanVideoSourceID)m_selectedVideoSourceId);
+	return usbVideoSourceSystem->getTypedComponentById((MikanVideoSourceID)m_selectedVideoSourceId);
 }
 
 NetworkVideoSourceComponentPtr RmlModel_ProjectSources::getSelectedNetworkVideoSource()
 {
 	auto projectManager = m_projectManager.lock();
 	auto networkVideoSourceSystem = projectManager->getSystemOfType<NetworkVideoSourceSystem>();
-	return networkVideoSourceSystem->getNetworkVideoSourceById((MikanVideoSourceID)m_selectedVideoSourceId);
+	return networkVideoSourceSystem->getTypedComponentById((MikanVideoSourceID)m_selectedVideoSourceId);
 }
 
 void RmlModel_ProjectSources::addNewClientTextureSource(
@@ -203,7 +203,7 @@ void RmlModel_ProjectSources::addNewUSBVideoSource(
 {
 	auto projectManager = m_projectManager.lock();
 	auto usbVideoSourceSystem = projectManager->getSystemOfType<USBVideoSourceSystem>();
-	usbVideoSourceSystem->addNewUSBVideoSource();
+	usbVideoSourceSystem->addNewUSBVideoSource();  // Keep custom method for USB device selection
 }
 
 void RmlModel_ProjectSources::addNewNetworkVideoSource(
@@ -213,7 +213,7 @@ void RmlModel_ProjectSources::addNewNetworkVideoSource(
 {
 	auto projectManager = m_projectManager.lock();
 	auto networkVideoSourceSystem = projectManager->getSystemOfType<NetworkVideoSourceSystem>();
-	networkVideoSourceSystem->addNewNetworkVideoSource();
+	networkVideoSourceSystem->addNewObject();
 }
 
 void RmlModel_ProjectSources::removeVideoSource(

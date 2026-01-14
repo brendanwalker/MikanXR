@@ -24,19 +24,10 @@ VideoSourceDefinition::VideoSourceDefinition()
 {}
 
 VideoSourceDefinition::VideoSourceDefinition(
-	MikanVideoSourceID videoSourceId,
-	const std::string& videoSourceName)
-	: MikanComponentDefinition(videoSourceId, videoSourceName)
+	MikanVideoSourceID videoSourceId)
+	: MikanComponentDefinition(videoSourceId, "")
 	, m_videoSourceId(videoSourceId)
-{}
-
-VideoSourceDefinition::VideoSourceDefinition(
-	MikanVideoSourceID videoSourceId,
-	const std::string& videoSourceName,
-	const MikanVideoSourceIntrinsics& intrinsics)
-	: MikanComponentDefinition(videoSourceId, videoSourceName)
-	, m_videoSourceId(videoSourceId)
-	, m_intrinsics(intrinsics)
+	, m_intrinsics()
 {}
 
 configuru::Config VideoSourceDefinition::writeToJSON()

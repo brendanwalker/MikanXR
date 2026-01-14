@@ -12,160 +12,36 @@
 
 #define USB_VIDEO_DEVICE_MODULE_NAME "MikanWMFVideo"
 
-// -- VideoSourceSystemConfig -----
-const std::string USBVideoSourceSystemDefinition::k_usbVideoSourceListPropertyId = "usbVideoSourceList";
-
-configuru::Config USBVideoSourceSystemDefinition::writeToJSON()
+// -- USBVideoSourceSystemDefinition -----
+USBVideoSourceSystemDefinition::USBVideoSourceSystemDefinition(const std::string& configName)
+	: Super::MikanTypedObjectSystemDefinition(configName)
 {
-	configuru::Config pt = CommonConfig::writeToJSON();
-
-	pt["next_video_source_id"] = m_nextVideoSourceId;
-
-	std::vector<configuru::Config> usbVideoSourceConfigs;
-	for (auto videoSource : m_usbVideoSourceList)
-	{
-		usbVideoSourceConfigs.push_back(videoSource->writeToJSON());
-	}
-	pt.insert_or_assign(std::string("usb_video_sources"), usbVideoSourceConfigs);
-
-	return pt;
-}
-
-void USBVideoSourceSystemDefinition::readFromJSON(const configuru::Config& pt)
-{
-	CommonConfig::readFromJSON(pt);
-
-	m_nextVideoSourceId = pt.get_or<int>("next_video_source_id", m_nextVideoSourceId);
-
-	// Read in the usb video sources
-	m_usbVideoSourceList.clear();
-	if (pt.has_key("usb_video_sources"))
-	{
-		for (const configuru::Config& videoSource_pt : pt["usb_video_sources"].as_array())
-		{
-			auto definitionPtr = std::make_shared<USBVideoSourceDefinition>();
-
-			definitionPtr->readFromJSON(videoSource_pt);
-			m_usbVideoSourceList.push_back(definitionPtr);
-
-			addChildConfig(definitionPtr);
-		}
-	}
-}
-
-USBVideoSourceDefinitionConstPtr USBVideoSourceSystemDefinition::getUSBVideoSourceConfigConst(
-	MikanVideoSourceID videoSourceId) const
-{
-	auto it = std::find_if(
-		m_usbVideoSourceList.begin(), m_usbVideoSourceList.end(),
-		[videoSourceId](USBVideoSourceDefinitionPtr configPtr) {
-			return configPtr->getVideoSourceId() == videoSourceId;
-		});
-
-	if (it != m_usbVideoSourceList.end())
-	{
-		return USBVideoSourceDefinitionConstPtr(*it);
-	}
-
-	return USBVideoSourceDefinitionConstPtr();
-}
-
-USBVideoSourceDefinitionPtr USBVideoSourceSystemDefinition::getUSBVideoSourceConfig(
-	MikanVideoSourceID videoSourceId)
-{
-	return std::const_pointer_cast<USBVideoSourceDefinition>(
-		getUSBVideoSourceConfigConst(videoSourceId));
-}
-
-USBVideoSourceDefinitionPtr USBVideoSourceSystemDefinition::allocateUSBVideoSourceDefinition(
-	const MikanUSBVideoSourceInfo& videoSourceInfo)
-{
-	USBVideoSourceDefinitionPtr videoSourcePtr =
-		std::make_shared<USBVideoSourceDefinition>(m_nextVideoSourceId, videoSourceInfo);
-	m_nextVideoSourceId++;
-
-	return videoSourcePtr;
-}
-
-bool USBVideoSourceSystemDefinition::addUSBVideoSourceDefinition(
-	USBVideoSourceDefinitionPtr videoSourceDefinitionPtr)
-{
-	if (!getUSBVideoSourceConfig(videoSourceDefinitionPtr->getVideoSourceId()))
-	{
-		m_usbVideoSourceList.push_back(videoSourceDefinitionPtr);
-		addChildConfig(videoSourceDefinitionPtr);
-
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_usbVideoSourceListPropertyId));
-		return true;
-	}
-
-	return false;
-}
-
-bool USBVideoSourceSystemDefinition::removeUSBVideoSourceDefinition(MikanVideoSourceID videoSourceId)
-{
-	auto it = std::find_if(
-		m_usbVideoSourceList.begin(), m_usbVideoSourceList.end(),
-		[videoSourceId](USBVideoSourceDefinitionPtr configPtr) {
-			return configPtr->getVideoSourceId() == videoSourceId;
-		});
-
-	if (it != m_usbVideoSourceList.end())
-	{
-		removeChildConfig(*it);
-
-		m_usbVideoSourceList.erase(it);
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_usbVideoSourceListPropertyId));
-
-		return true;
-	}
-
-	return false;
 }
 
 // -- USBVideoSourceSystem ----
-USBVideoSourceSystemDefinitionConstPtr USBVideoSourceSystem::getUSBVideoSourceSystemConfigConst() const
+USBVideoSourceSystem::USBVideoSourceSystem(ProjectManagerPtr ownerObjectSystem)
+	: Super::MikanTypedObjectSystem(ownerObjectSystem)
 {
-	return std::static_pointer_cast<const USBVideoSourceSystemDefinition>(getDefinitionConst());
-}
-
-USBVideoSourceSystemDefinitionPtr USBVideoSourceSystem::getUSBVideoSourceSystemConfig()
-{
-	return std::static_pointer_cast<USBVideoSourceSystemDefinition>(getDefinition());
 }
 
 bool USBVideoSourceSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
-	MikanObjectSystem::init(definitionPtr);
-
-    USBVideoSourceSystemDefinitionConstPtr videoSourceSystemConfig = 
-        getProjectConfig()->usbVideoSourceSystemConfig;
-
     if (!createUsbVideoDeviceManager(USB_VIDEO_DEVICE_MODULE_NAME))
     {
-        MIKAN_LOG_ERROR("USBVideoSourceSystem::init") << 
+        MIKAN_LOG_ERROR("USBVideoSourceSystem::init") <<
             "Failed to load USB video device module " << USB_VIDEO_DEVICE_MODULE_NAME;
 		return false;
     }
 
-    for (const auto& sourceConfig : videoSourceSystemConfig->getUSBVideoSourceList())
-    {
-        createUSBVideoSourceObject(sourceConfig);
-    }
+	Super::init(definitionPtr);
 
     return true;
 }
 
 void USBVideoSourceSystem::dispose()
 {
-    m_usbVideoSourceComponents.clear();
-	MikanObjectSystem::dispose();
+	Super::dispose();
 	disposeUsbVideoDeviceManager();
-}
-
-MikanComponentPtr USBVideoSourceSystem::getComponentById(int componentId) const
-{
-	return getUSBVideoSourceById(componentId);
 }
 
 bool USBVideoSourceSystem::createUsbVideoDeviceManager(const std::string& moduleName)
@@ -280,7 +156,7 @@ bool USBVideoSourceSystem::getConnectedUSBVideoSourcePaths(
 VideoSourceIdList USBVideoSourceSystem::getVideoSourceIdList() const
 {
 	VideoSourceIdList videoSourceIdList;
-	for (const auto& it : m_usbVideoSourceComponents)
+	for (const auto& it : Super::getComponentMap())
 	{
         USBVideoSourceComponentPtr componentPtr = it.second.lock();
 		if (componentPtr)
@@ -291,35 +167,9 @@ VideoSourceIdList USBVideoSourceSystem::getVideoSourceIdList() const
 	return videoSourceIdList;
 }
 
-USBVideoSourceComponentPtr USBVideoSourceSystem::getUSBVideoSourceById(MikanVideoSourceID videoSourceId) const
-{
-    auto iter = m_usbVideoSourceComponents.find(videoSourceId);
-    if (iter != m_usbVideoSourceComponents.end())
-    {
-        return iter->second.lock();
-    }
-
-    return USBVideoSourceComponentPtr();
-}
-
-USBVideoSourceComponentPtr USBVideoSourceSystem::getUSBVideoSourceByName(const std::string& videoSourceName) const
-{
-    for (auto it = m_usbVideoSourceComponents.begin(); it != m_usbVideoSourceComponents.end(); it++)
-    {
-        USBVideoSourceComponentPtr componentPtr = it->second.lock();
-
-        if (componentPtr && componentPtr->getDefinition()->getComponentName() == videoSourceName)
-        {
-            return componentPtr;
-        }
-    }
-
-    return USBVideoSourceComponentPtr();
-}
-
 USBVideoSourceComponentPtr USBVideoSourceSystem::getUSBVideoSourceByPath(const std::string& videoSourcePath) const
 {
-    for (auto it = m_usbVideoSourceComponents.begin(); it != m_usbVideoSourceComponents.end(); it++)
+    for (auto it = Super::getComponentMap().begin(); it != Super::getComponentMap().end(); it++)
     {
         USBVideoSourceComponentPtr componentPtr = it->second.lock();
         if (componentPtr && componentPtr->getUSBVideoSourceDefinition()->getDevicePath() == videoSourcePath)
@@ -333,8 +183,6 @@ USBVideoSourceComponentPtr USBVideoSourceSystem::getUSBVideoSourceByPath(const s
 
 USBVideoSourceComponentPtr USBVideoSourceSystem::addNewUSBVideoSource()
 {
-	USBVideoSourceComponentPtr newVideoSourceComponentPtr;
-
 	// If available, get the first connected device by default
     MikanUSBVideoSourceInfo videoSourceInfo = {};
     if (m_usbVideoDeviceManager && m_usbVideoDeviceManager->getDeviceCount() > 0)
@@ -365,86 +213,22 @@ USBVideoSourceComponentPtr USBVideoSourceSystem::addNewUSBVideoSource()
             videoSourceInfo.device_path.setValue(usbVideoDevice->getDevicePath());
             videoSourceInfo.video_mode.setValue(videoModeName ? videoModeName : "<INVALID>");
             videoSourceInfo.intrinsics.intrinsics_type= INVALID_CAMERA_INTRINSICS;
-        }
 
-        newVideoSourceComponentPtr = addNewUSBVideoSource(videoSourceInfo);
+			// Use base class method with custom definition init
+			return Super::addNewObject([&videoSourceInfo](USBVideoSourceDefinitionPtr def) {
+				def->setUSBVideoSourceInfo(videoSourceInfo);
+			});
+        }
 	}
 
-    return newVideoSourceComponentPtr;
-}
-
-USBVideoSourceComponentPtr USBVideoSourceSystem::addNewUSBVideoSource(
-    const MikanUSBVideoSourceInfo& videoSourceInfo)
-{
-    USBVideoSourceSystemDefinitionPtr videoSourceSystemConfig = getProjectConfig()->usbVideoSourceSystemConfig;
-
-    return 
-        createUSBVideoSourceObject(
-            videoSourceSystemConfig->allocateUSBVideoSourceDefinition(videoSourceInfo));
-}
-
-bool USBVideoSourceSystem::removeUSBVideoSource(MikanVideoSourceID videoSourceId)
-{
-    USBVideoSourceSystemDefinitionPtr videoSourceSystemConfig = 
-        getProjectConfig()->usbVideoSourceSystemConfig;
-
-    return
-        disposeUSBVideoSourceObject(videoSourceId) &&
-        videoSourceSystemConfig->removeUSBVideoSourceDefinition(videoSourceId);
-}
-
-USBVideoSourceComponentPtr USBVideoSourceSystem::createUSBVideoSourceObject(
-    USBVideoSourceDefinitionPtr videoSourceDefinition)
-{
-    MikanObjectPtr videoSourceObject = newObject();
-    videoSourceObject->setName(videoSourceDefinition->getComponentName());
-
-    // Make the USBVideoSource component the root of the object
-    auto videoSourceComponentPtr = videoSourceObject->addComponent<USBVideoSourceComponent>();
-    videoSourceComponentPtr->setDefinition(videoSourceDefinition);
-
-    // Init the object once all components are added
-    videoSourceObject->init();
-
-    // Keep track of all the usb video sources in the system
-    m_usbVideoSourceComponents.insert({ videoSourceDefinition->getVideoSourceId(), videoSourceComponentPtr });
-
-	// Register the definition with the video source system
-    getProjectConfig()->usbVideoSourceSystemConfig->addUSBVideoSourceDefinition(videoSourceDefinition);
-
-    return videoSourceComponentPtr;
-}
-
-bool USBVideoSourceSystem::disposeUSBVideoSourceObject(MikanVideoSourceID videoSourceId)
-{
-    auto it = m_usbVideoSourceComponents.find(videoSourceId);
-    if (it != m_usbVideoSourceComponents.end())
-    {
-        USBVideoSourceComponentPtr stencilComponentPtr = it->second.lock();
-
-        // Remove for component list
-        m_usbVideoSourceComponents.erase(it);
-
-        // Free the corresponding object
-        deleteObject(stencilComponentPtr->getOwnerObject());
-
-        return true;
-    }
-
-    return false;
+    return USBVideoSourceComponentPtr();
 }
 
 void USBVideoSourceSystem::onConnectedDeviceListChanged()
-{	
+{
 	// Broadcast any sources were disconnected
 	if (OnVideoSourceListChanged)
 	{
 		OnVideoSourceListChanged();
 	}
-}
-
-void USBVideoSourceSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
-{
-	propertyDatabase->registerPropertiesForSystem<USBVideoSourceSystem>();
-	propertyDatabase->registerPropertiesForComponent<USBVideoSourceSystem, USBVideoSourceComponent>();
 }

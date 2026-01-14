@@ -9,12 +9,12 @@ class NetworkVideoSourceDefinition : public VideoSourceDefinition
 {
 public:
 	NetworkVideoSourceDefinition();
-	NetworkVideoSourceDefinition(
-		MikanVideoSourceID videoSourceId,
-		const MikanNetworkVideoSourceInfo& videoSourceInfo);
+	NetworkVideoSourceDefinition(MikanVideoSourceID videoSourceId);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
+
+	void setURL(const std::string& URL);
 
 	static const std::string k_addressPropertyId;
 	inline const std::string& getAddress() const { return m_address; }

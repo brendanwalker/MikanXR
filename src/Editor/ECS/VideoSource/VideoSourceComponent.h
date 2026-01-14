@@ -20,13 +20,7 @@ class VideoSourceDefinition : public MikanComponentDefinition
 {
 public:
 	VideoSourceDefinition();
-	VideoSourceDefinition(
-		MikanVideoSourceID videoSourceId,
-		const std::string& videoSourceName);
-	VideoSourceDefinition(
-		MikanVideoSourceID videoSourceId,
-		const std::string& videoSourceName,
-		const MikanVideoSourceIntrinsics& intrinsics);
+	VideoSourceDefinition(MikanVideoSourceID videoSourceId);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

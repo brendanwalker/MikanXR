@@ -159,7 +159,7 @@ USBVideoSourceSystemDefinitionPtr RmlModel_USBVideoSourceComponent::getUSBVideoS
 	auto videoSourceSystem = getUSBVideoSourceSystem();
 	if (videoSourceSystem)
 	{
-		return videoSourceSystem->getUSBVideoSourceSystemConfig();
+		return videoSourceSystem->getTypedDefinition();
 	}
 
 	return nullptr;

@@ -11,13 +11,13 @@ class USBVideoSourceDefinition : public VideoSourceDefinition
 {
 public:
 	USBVideoSourceDefinition();
-	USBVideoSourceDefinition(
-		MikanVideoSourceID videoSourceId,
-		const MikanUSBVideoSourceInfo& videoSourceInfo);
+	USBVideoSourceDefinition(MikanVideoSourceID videoSourceId);
 
 	virtual bool wantsSaveForPropertyChange(const ConfigPropertyChangeSet& changedPropertySet) const;
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
+
+	void setUSBVideoSourceInfo(const MikanUSBVideoSourceInfo& usbVideoSourceInfo);
 
 	static const std::string k_desiredDevicePathPropertyId;
 	inline const std::string& getDevicePath() const { return m_devicePath; }
