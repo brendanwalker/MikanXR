@@ -19,9 +19,7 @@ class TrackingVolumeDefinition :
 {
 public:
 	TrackingVolumeDefinition();
-	TrackingVolumeDefinition(
-		MikanTrackingVolumeID trackingVolumeId,
-		const std::string& trackingVolumeName);
+	TrackingVolumeDefinition(MikanTrackingVolumeID trackingVolumeId);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

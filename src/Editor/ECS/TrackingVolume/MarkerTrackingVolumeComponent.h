@@ -8,9 +8,7 @@ class MarkerTrackingVolumeDefinition :
 {
 public:
 	MarkerTrackingVolumeDefinition();
-	MarkerTrackingVolumeDefinition(
-		MikanTrackingVolumeID trackingVolumeId,
-		const std::string& trackingVolumeName);
+	MarkerTrackingVolumeDefinition(MikanTrackingVolumeID trackingVolumeId);
 
 	virtual eTrackingVolumeType getTrackingVolumeType() const override;
 };
@@ -25,10 +23,4 @@ public:
 
 	inline MarkerTrackingVolumeDefinitionPtr getMarkerTrackingVolumeDefinition() const
 	{ return std::static_pointer_cast<MarkerTrackingVolumeDefinition>(m_definition); }
-
-	// -- IPropertyInterface ----
-	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
-
-	// -- IFunctionInterface ----
-	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
 };

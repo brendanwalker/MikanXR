@@ -25,14 +25,14 @@ namespace TrackingVolumeQueries
 	TrackingVolumeComponentPtr getTrackingVolumeById(ProjectManagerConstPtr projectManager, MikanTrackingVolumeID trackingVolumeId)
 	{
 		auto markerTrackingVolumeSystem = projectManager->getSystemOfType<MarkerTrackingVolumeSystem>();
-		auto markerTrackingVolumePtr = markerTrackingVolumeSystem->getMarkerTrackingVolumeById(trackingVolumeId);
+		auto markerTrackingVolumePtr = markerTrackingVolumeSystem->getTypedComponentById(trackingVolumeId);
 		if (markerTrackingVolumePtr)
 		{
 			return markerTrackingVolumePtr;
 		}
 
 		auto vrTrackingVolumeSystem = projectManager->getSystemOfType<VRTrackingVolumeSystem>();
-		auto vrTrackingVolumePtr = vrTrackingVolumeSystem->getVRTrackingVolumeById(trackingVolumeId);
+		auto vrTrackingVolumePtr = vrTrackingVolumeSystem->getTypedComponentById(trackingVolumeId);
 		if (vrTrackingVolumePtr)
 		{
 			return vrTrackingVolumePtr;
@@ -44,14 +44,14 @@ namespace TrackingVolumeQueries
 	eTrackingVolumeType getTrackingVolumeType(ProjectManagerConstPtr projectManager, MikanTrackingVolumeID trackingVolumeId)
 	{
 		auto markerTrackingVolumeSystem = projectManager->getSystemOfType<MarkerTrackingVolumeSystem>();
-		auto markerTrackingVolumePtr = markerTrackingVolumeSystem->getMarkerTrackingVolumeById(trackingVolumeId);
+		auto markerTrackingVolumePtr = markerTrackingVolumeSystem->getTypedComponentById(trackingVolumeId);
 		if (markerTrackingVolumePtr)
 		{
 			return eTrackingVolumeType::marker;
 		}
 
 		auto vrTrackingVolumeSystem = projectManager->getSystemOfType<VRTrackingVolumeSystem>();
-		auto vrTrackingVolumePtr = vrTrackingVolumeSystem->getVRTrackingVolumeById(trackingVolumeId);
+		auto vrTrackingVolumePtr = vrTrackingVolumeSystem->getTypedComponentById(trackingVolumeId);
 		if (vrTrackingVolumePtr)
 		{
 			return eTrackingVolumeType::vr;
@@ -67,12 +67,12 @@ namespace TrackingVolumeQueries
 			case eTrackingVolumeType::marker:
 			{
 				auto markerTrackingVolumeSystem = projectManager->getSystemOfType<MarkerTrackingVolumeSystem>();
-				return markerTrackingVolumeSystem->removeMarkerTrackingVolume(trackingVolumeId);
+				return markerTrackingVolumeSystem->removeObject(trackingVolumeId);
 			}
 			case eTrackingVolumeType::vr:
 			{
 				auto vrTrackingVolumeSystem = projectManager->getSystemOfType<VRTrackingVolumeSystem>();
-				return vrTrackingVolumeSystem->removeVRTrackingVolume(trackingVolumeId);
+				return vrTrackingVolumeSystem->removeObject(trackingVolumeId);
 			}
 		}
 

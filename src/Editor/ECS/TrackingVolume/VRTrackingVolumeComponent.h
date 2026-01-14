@@ -12,10 +12,7 @@ class VRTrackingVolumeDefinition : public TrackingVolumeDefinition
 {
 public:
 	VRTrackingVolumeDefinition();
-	VRTrackingVolumeDefinition(
-		eTrackingRuntime trackingRuntime,
-		MikanTrackingVolumeID trackingVolumeId,
-		const std::string& trackingVolumeName);
+	VRTrackingVolumeDefinition(MikanTrackingVolumeID trackingVolumeId);
 
 	virtual eTrackingVolumeType getTrackingVolumeType() const override;
 

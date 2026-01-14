@@ -31,11 +31,9 @@ VRTrackingVolumeDefinition::VRTrackingVolumeDefinition()
 }
 
 VRTrackingVolumeDefinition::VRTrackingVolumeDefinition(
-	eTrackingRuntime trackingRuntime,
-	MikanTrackingVolumeID trackingVolumeId,
-	const std::string& trackingVolumeName)
-	: TrackingVolumeDefinition(trackingVolumeId, trackingVolumeName)
-	, m_trackingRuntime(trackingRuntime)
+	MikanTrackingVolumeID trackingVolumeId)
+	: TrackingVolumeDefinition(trackingVolumeId)
+	, m_trackingRuntime(eTrackingRuntime::INVALID)
 	, m_charucoMountId(INVALID_MIKAN_ID)
 	, m_utilityMarkerId(INVALID_MIKAN_ID)
 	, m_charucoMountOffsetMM({

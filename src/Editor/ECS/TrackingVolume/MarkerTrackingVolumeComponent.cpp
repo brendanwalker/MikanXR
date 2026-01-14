@@ -7,9 +7,8 @@ MarkerTrackingVolumeDefinition::MarkerTrackingVolumeDefinition()
 }
 
 MarkerTrackingVolumeDefinition::MarkerTrackingVolumeDefinition(
-	MikanTrackingVolumeID trackingVolumeId,
-	const std::string& trackingVolumeName)
-	: TrackingVolumeDefinition(trackingVolumeId, trackingVolumeName)
+	MikanTrackingVolumeID trackingVolumeId)
+	: TrackingVolumeDefinition(trackingVolumeId)
 {
 }
 
@@ -22,17 +21,4 @@ eTrackingVolumeType MarkerTrackingVolumeDefinition::getTrackingVolumeType() cons
 MarkerTrackingVolumeComponent::MarkerTrackingVolumeComponent(MikanObjectWeakPtr owner)
 	: TrackingVolumeComponent(owner)
 {
-}
-
-// -- IPropertyInterface ----
-void MarkerTrackingVolumeComponent::getPropertyDescriptors(
-	std::vector<PropertyDescriptorConstPtr>& outDescriptors)
-{
-	TrackingVolumeComponent::getPropertyDescriptors(outDescriptors);
-}
-
-void MarkerTrackingVolumeComponent::getFunctionDescriptors(
-	std::vector<FunctionDescriptorConstPtr>& outDescriptors)
-{
-	TrackingVolumeComponent::getFunctionDescriptors(outDescriptors);
 }
