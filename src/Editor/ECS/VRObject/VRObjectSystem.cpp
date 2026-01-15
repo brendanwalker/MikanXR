@@ -19,120 +19,15 @@
 #include "VRDeviceComponent.h"
 
 // -- VRObjectSystemConfig -----
-const std::string VRObjectSystemDefinition::k_nextVRDeviceIdPropertyId = "next_vr_device_id";
-const std::string VRObjectSystemDefinition::k_vrDeviceListPropertyId = "vrDeviceList";
-
 VRObjectSystemDefinition::VRObjectSystemDefinition(const std::string& configName)
-	: MikanObjectSystemDefinition(configName)
+	: Super::MikanTypedObjectSystemDefinition(configName)
 {
 }
 
 bool VRObjectSystemDefinition::wantsSaveForPropertyChange(
 	const ConfigPropertyChangeSet& changedPropertySet) const
 {
-	// We only serialized out change to the next property id
-	if (changedPropertySet.hasPropertyName(k_nextVRDeviceIdPropertyId))
-	{
-		return true;
-	}
-
-	return false;
-}
-
-configuru::Config VRObjectSystemDefinition::writeToJSON()
-{
-	configuru::Config pt = CommonConfig::writeToJSON();
-
-	pt[k_nextVRDeviceIdPropertyId] = m_nextVRDeviceId;
-
-	return pt;
-}
-
-void VRObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
-{
-	CommonConfig::readFromJSON(pt);
-
-	m_nextVRDeviceId = pt.get_or<MikanVRDeviceID>(k_nextVRDeviceIdPropertyId, m_nextVRDeviceId);
-}
-
-VRDeviceDefinitionPtr VRObjectSystemDefinition::getVRDeviceConfig(MikanVRDeviceID vrDeviceId) const
-{
-	auto it = std::find_if(
-		vrDeviceList.begin(), vrDeviceList.end(),
-		[vrDeviceId](VRDeviceDefinitionPtr configPtr) {
-			return configPtr->getVRDeviceId() == vrDeviceId;
-		});
-
-	if (it != vrDeviceList.end())
-	{
-		return VRDeviceDefinitionPtr(*it);
-	}
-
-	return VRDeviceDefinitionPtr();
-}
-
-VRDeviceDefinitionPtr VRObjectSystemDefinition::getVRDeviceConfigByPath(const std::string& vrDevicePath) const
-{
-	auto it = std::find_if(
-		vrDeviceList.begin(), vrDeviceList.end(),
-		[vrDevicePath](VRDeviceDefinitionPtr configPtr) {
-		return configPtr->getVRDevicePath() == vrDevicePath;
-	});
-
-	if (it != vrDeviceList.end())
-	{
-		return VRDeviceDefinitionPtr(*it);
-	}
-
-	return VRDeviceDefinitionPtr();
-}
-
-MikanVRDeviceID VRObjectSystemDefinition::addNewVRDevice(
-	eTrackingRuntime trackingRuntime,
-	const std::string& vrDevicePath,
-	const MikanTransform& xform)
-{
-	VRDeviceDefinitionPtr vrDeviceDefinition = 
-		std::make_shared<VRDeviceDefinition>(
-			trackingRuntime, m_nextVRDeviceId, vrDevicePath, xform);
-	m_nextVRDeviceId++;
-
-	vrDeviceList.push_back(vrDeviceDefinition);
-	addChildConfig(vrDeviceDefinition);
-
-	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_vrDeviceListPropertyId));
-
-	return vrDeviceDefinition->getVRDeviceId();
-}
-
-bool VRObjectSystemDefinition::removeVRDevice(MikanVRDeviceID vrDeviceId)
-{
-	auto it = std::find_if(
-		vrDeviceList.begin(), vrDeviceList.end(),
-		[vrDeviceId](VRDeviceDefinitionPtr configPtr) {
-		return configPtr->getVRDeviceId() == vrDeviceId;
-	});
-
-	if (it != vrDeviceList.end())
-	{
-		removeChildConfig(*it);
-
-		vrDeviceList.erase(it);
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_vrDeviceListPropertyId));
-
-		return true;
-	}
-
-	return false;
-}
-
-void VRObjectSystemDefinition::removeAllVRDevice()
-{
-	if (vrDeviceList.size() > 0)
-	{
-		vrDeviceList.clear();
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_vrDeviceListPropertyId));
-	}
+	return Super::wantsSaveForPropertyChange(changedPropertySet);
 }
 
 // -- VRTrackingRuntime -----
@@ -193,7 +88,8 @@ private:
 // -- VRObjectSystem -----
 bool VRObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
-	MikanObjectSystem::init(definitionPtr);
+	if (!Super::init(definitionPtr))
+		return false;
 
 	// Listen for project config changes
 	ProjectConfigPtr projectConfig = getProjectConfig();
@@ -202,7 +98,7 @@ bool VRObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 	m_projectConfigWeakPtr= projectConfig;
 
 	VRObjectSystemDefinitionPtr vrSystemConfig= projectConfig->vrObjectConfig;
-	vrSystemConfig->OnPropertyChanged+= 
+	vrSystemConfig->OnPropertyChanged+=
 		MakeDelegate(this, &VRObjectSystem::onVRSystemConfigMarkedDirty);
 
 	return true;
@@ -225,19 +121,11 @@ void VRObjectSystem::dispose()
 			MakeDelegate(this, &VRObjectSystem::onProjectConfigMarkedDirty);
 	}
 
-	// Dispose all MikanObjects first to free all allocated meshes
-	MikanObjectSystem::dispose();
-
-	// Clean out not invalidated VRDeviceComponent weak references
-	m_vrDeviceComponents.clear();
-
 	// Clean up all tracking modules
 	m_trackingRuntimes.clear();
-}
 
-MikanComponentPtr VRObjectSystem::getComponentById(int componentId) const
-{
-	return getVRDeviceById(componentId);
+	// Dispose all MikanObjects (will clear component map)
+	Super::dispose();
 }
 
 void VRObjectSystem::onProjectConfigMarkedDirty(
@@ -356,9 +244,9 @@ eTrackingRuntime VRObjectSystem::findTrackingRuntimeForDeviceManager(
 }
 
 bool VRObjectSystem::findMikanDeviceIdForDeviceIndex(
-	const IVRDeviceManager* deviceManager, 
+	const IVRDeviceManager* deviceManager,
 	const int deviceIndex,
-	eTrackingRuntime& outRuntime, 
+	eTrackingRuntime& outRuntime,
 	MikanVRDeviceID& outMikanDeviceId) const
 {
 	outRuntime = findTrackingRuntimeForDeviceManager(deviceManager);
@@ -366,7 +254,7 @@ bool VRObjectSystem::findMikanDeviceIdForDeviceIndex(
 
 	if (outRuntime != eTrackingRuntime::INVALID)
 	{
-		for (const auto& kvpair : m_vrDeviceComponents)
+		for (const auto& kvpair : Super::getComponentMap())
 		{
 			MikanVRDeviceID vrDeviceId = kvpair.first;
 			VRDeviceComponentPtr vrDeviceComponentPtr = kvpair.second.lock();
@@ -390,39 +278,11 @@ bool VRObjectSystem::findMikanDeviceIdForDeviceIndex(
 	return false;
 }
 
-void VRObjectSystem::deleteObjectConfig(MikanObjectPtr objectPtr)
-{
-	VRDeviceComponentPtr vrDeviceComponent = objectPtr->getComponentOfType<VRDeviceComponent>();
-	if (vrDeviceComponent)
-	{
-		removeVRDevice(vrDeviceComponent->getVRDeviceDefinition()->getVRDeviceId());
-	}
-}
-
-VRDeviceComponentPtr VRObjectSystem::getVRDeviceById(MikanVRDeviceID VRId) const
-{
-	auto iter = m_vrDeviceComponents.find(VRId);
-	if (iter != m_vrDeviceComponents.end())
-	{
-		return iter->second.lock();
-	}
-
-	return VRDeviceComponentPtr();
-}
-
 VRDeviceComponentPtr VRObjectSystem::getVRDeviceByPath(const std::string& VRName) const
 {
-	for (auto it = m_vrDeviceComponents.begin(); it != m_vrDeviceComponents.end(); it++)
-	{
-		VRDeviceComponentPtr componentPtr = it->second.lock();
-
-		if (componentPtr && componentPtr->getName() == VRName)
-		{
-			return componentPtr;
-		}
-	}
-
-	return VRDeviceComponentPtr();
+	return Super::getTypedComponentByPredicate([VRName](VRDeviceComponentConstPtr componentPtr) {
+		return componentPtr->getName() == VRName;
+	});
 }
 
 void VRObjectSystem::onActiveDeviceListChanged(IVRDeviceManager* deviceManager)
@@ -432,7 +292,7 @@ void VRObjectSystem::onActiveDeviceListChanged(IVRDeviceManager* deviceManager)
 	if (runtimeType != eTrackingRuntime::INVALID)
 	{
 		std::set<MikanVRDeviceID> pendingDeleteDeviceIds;
-		for (const auto& kvpair : m_vrDeviceComponents)
+		for (const auto& kvpair : Super::getComponentMap())
 		{
 			const MikanVRDeviceID vrDeviceId = kvpair.first;
 			VRDeviceComponentPtr vrDeviceComponentPtr = kvpair.second.lock();
@@ -500,11 +360,11 @@ void VRObjectSystem::onDevicePosesChanged(IVRDeviceManager* deviceManager, int64
 
 	if (runtimeType != eTrackingRuntime::INVALID)
 	{
-		for (const auto& kvpair : m_vrDeviceComponents)
+		for (const auto& kvpair : Super::getComponentMap())
 		{
 			VRDeviceComponentPtr vrDeviceComponentPtr = kvpair.second.lock();
 
-			if (vrDeviceComponentPtr && 
+			if (vrDeviceComponentPtr &&
 				vrDeviceComponentPtr->getVRDeviceDefinition()->getTrackingRuntimeType() == runtimeType)
 			{
 				vrDeviceComponentPtr->refreshDevicePose();
@@ -523,138 +383,49 @@ VRDeviceComponentPtr VRObjectSystem::addNewVRDevice(
 	IVRDevice* vrDeviceInterface)
 {
 	const int vrFrameDelay = 0; // Use the latest pose for rendering
-	const std::string vrDevicePath= vrDeviceInterface->getDevicePath();
+	const std::string vrDevicePath = vrDeviceInterface->getDevicePath();
 
 	VRDevicePose pose = {};
 	vrDeviceInterface->getDevicePose(vrFrameDelay, pose);
 
-	MikanTransform xform;
-	xform.position= {pose.position.x, pose.position.y, pose.position.z};
-	xform.rotation= {pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z};
-	xform.scale= {1.f, 1.f, 1.f};
+	VRDeviceComponentPtr vrDeviceComponent = 
+		Super::addNewObject(
+			[trackingRuntime, vrDevicePath, pose](VRDeviceDefinitionPtr def) {
+				GlmTransform glmTransform = VRDevicePose_to_GlmTransform(pose);
 
-	VRObjectSystemDefinitionPtr vrSystemConfig = getVRSystemConfig();
-	MikanVRDeviceID vrDeviceId = vrSystemConfig->addNewVRDevice(trackingRuntime, vrDevicePath, xform);
-	if (vrDeviceId != INVALID_MIKAN_ID)
+				def->setTrackingRuntimeType(trackingRuntime);
+				def->setVRDevicePath(vrDevicePath);
+				def->setRelativeTransform(glmTransform);
+ 			});
+
+	if (vrDeviceComponent)
 	{
-		VRDeviceDefinitionPtr vrDeviceDefinition = vrSystemConfig->getVRDeviceConfig(vrDeviceId);
-		assert(vrDeviceDefinition != nullptr);
-
-		return createVRObject(vrDeviceDefinition, vrDeviceInterface);
+		vrDeviceComponent->setVRDeviceInterface(vrDeviceInterface);
 	}
-
-	return VRDeviceComponentPtr();
-}
-
-bool VRObjectSystem::removeVRDevice(MikanVRDeviceID vrDeviceId)
-{
-	getVRSystemConfig()->removeVRDevice(vrDeviceId);
-	disposeVRObject(vrDeviceId);
-
-	return false;
-}
-
-VRDeviceComponentPtr VRObjectSystem::createVRObject(
-	VRDeviceDefinitionPtr vrConfig,
-	IVRDevice* vrDeviceInterface)
-{
-	VRObjectSystemDefinitionConstPtr vrSystemConfig = getVRSystemConfigConst();
-	MikanObjectPtr vrObject = newObject();
-	vrObject->setName(vrConfig->getComponentName());
-
-	// Add spatial VR component to the object
-	VRDeviceComponentPtr vrDeviceComponent = vrObject->addComponent<VRDeviceComponent>();
-	vrObject->setRootComponent(vrDeviceComponent);
-	vrDeviceComponent->setDefinition(vrConfig);
-	vrDeviceComponent->setVRDeviceInterface(vrDeviceInterface);
-
-	// Add render meshes
-	for (size_t meshIndex = 0; meshIndex < vrDeviceInterface->getMeshCount(); meshIndex++)
-	{
-		IVRDeviceMesh* vrDeviceMesh= vrDeviceInterface->getMeshByIndex(meshIndex);
-	}
-
-	// Add a selection component
-	SelectionComponentPtr selectionComponent=
-		vrObject->addComponent<SelectionComponent>();
-	selectionComponent->setIsTransformGizmoAllowed(false);
-
-	// Init the object once all components are added
-	vrObject->init();
-
-	// Create mesh and attachment components for all the child vr object meshes
-	vrDeviceComponent->rebuildSockets();
-	vrDeviceComponent->rebuildMeshComponents();
-
-	// Set initial device pose
-	vrDeviceComponent->refreshDevicePose();
-
-	// Add the VR Device component to the list of vr objects
-	m_vrDeviceComponents.insert({vrConfig->getVRDeviceId(), vrDeviceComponent});
-
-	// TODO: Attach to a Stage
 
 	return vrDeviceComponent;
 }
 
-void VRObjectSystem::disposeVRObject(MikanVRDeviceID VRId)
+bool VRObjectSystem::removeVRDevice(MikanVRDeviceID vrDeviceId)
 {
-	auto it = m_vrDeviceComponents.find(VRId);
-	if (it != m_vrDeviceComponents.end())
-	{
-		VRDeviceComponentPtr vrDeviceComponent = it->second.lock();
-
-		// Remove for component list
-		m_vrDeviceComponents.erase(it);
-
-		// Free the corresponding object
-		deleteObject(vrDeviceComponent->getOwnerObject());
-	}
-}
-
-void VRObjectSystem::disposeAllVRObjects()
-{
-	deleteAllObjects();
-	
-	auto config = getVRSystemConfig();
-	if (config)
-	{
-		config->removeAllVRDevice();
-	}
-}
-
-VRObjectSystemDefinitionConstPtr VRObjectSystem::getVRSystemConfigConst() const
-{
-	auto projectConfig= getProjectConfig();
-	return projectConfig ? projectConfig->vrObjectConfig : VRObjectSystemDefinitionConstPtr();
-}
-
-VRObjectSystemDefinitionPtr VRObjectSystem::getVRSystemConfig()
-{
-	return std::const_pointer_cast<VRObjectSystemDefinition>(getVRSystemConfigConst());
+	return Super::removeObject(vrDeviceId);
 }
 
 // -- Utility Methods
 void addAllVRDevicesToMkScene(VRObjectSystemPtr vrObjectSystem, IMkScenePtr mkScenePtr)
 {
-	IMkScenePtr scene= mkScenePtr;
+	IMkScenePtr scene = mkScenePtr;
 
-	for (const auto& kvpair : vrObjectSystem->getVRDeviceMap())
-	{
-		VRDeviceComponentPtr vrDeviceComponent = kvpair.second.lock();
-
-		if (vrDeviceComponent)
-		{
-			vrDeviceComponent->visitAllTransformComponentsConst(
-				[scene](const TransformComponent* transformComponent) {
-				IMkSceneRenderableConstPtr renderable = transformComponent->getGlSceneRenderableConst();
-				if (renderable)
-				{
-					scene->addInstance(renderable);
-				}
-			});
-		}
-	}
+	vrObjectSystem->visitComponents([scene](VRDeviceComponentPtr vrDeviceComponent) {
+		vrDeviceComponent->visitAllTransformComponentsConst(
+			[scene](const TransformComponent* transformComponent) {
+			IMkSceneRenderableConstPtr renderable = transformComponent->getGlSceneRenderableConst();
+			if (renderable)
+			{
+				scene->addInstance(renderable);
+			}
+		});
+	});
 }
 
 void VRObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)

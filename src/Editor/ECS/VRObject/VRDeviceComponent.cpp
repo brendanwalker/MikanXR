@@ -26,14 +26,11 @@
 
 // -- VRDeviceConfig -----
 VRDeviceDefinition::VRDeviceDefinition(
-	eTrackingRuntime trackingRuntime,
-	MikanVRDeviceID vrDeviceId,
-	const std::string& vrDevicePath,
-	const MikanTransform& xform)
-	: TransformComponentDefinition(vrDeviceId, vrDevicePath, xform)
-	, m_trackingRuntime(trackingRuntime)
+	MikanVRDeviceID vrDeviceId)
+	: TransformComponentDefinition(vrDeviceId)
+	, m_trackingRuntime(eTrackingRuntime::INVALID)
 	, m_vrDeviceId(vrDeviceId)
-	, m_vrDevicePath(vrDevicePath)
+	, m_vrDevicePath("")
 {}
 
 // -- VRDeviceComponent -----
@@ -67,8 +64,6 @@ void VRDeviceComponent::init()
 
 void VRDeviceComponent::setVRDeviceInterface(IVRDevice* vrDeviceInterface)
 {
-	// VRDevice interface should only be set before component is initialized
-	assert(!m_bWasInitialized);
 	m_vrDeviceInterface= vrDeviceInterface;
 }
 

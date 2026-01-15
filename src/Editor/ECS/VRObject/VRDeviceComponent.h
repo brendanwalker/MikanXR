@@ -22,15 +22,16 @@ class VRDeviceDefinition : public TransformComponentDefinition
 {
 public:
 	VRDeviceDefinition() = default;
-	VRDeviceDefinition(
-		eTrackingRuntime trackingRuntime,
-		MikanVRDeviceID vrDeviceId,
-		const std::string& vrDevicePath,
-		const MikanTransform& xform);
+	VRDeviceDefinition(MikanVRDeviceID vrDeviceId);
 
 	eTrackingRuntime getTrackingRuntimeType() const { return m_trackingRuntime; }
+	inline void setTrackingRuntimeType(eTrackingRuntime trackingRuntime) { m_trackingRuntime = trackingRuntime; }
+
 	inline MikanVRDeviceID getVRDeviceId() const { return m_vrDeviceId; }
+	inline void setVRDeviceId(MikanVRDeviceID vrDeviceId) { m_vrDeviceId = vrDeviceId; }
+
 	inline const std::string getVRDevicePath() const { return m_vrDevicePath; }
+	inline void setVRDevicePath(const std::string& vrDevicePath) { m_vrDevicePath = vrDevicePath; }
 
 	// VRDeviceDefinition is runtime only and isn't saved to the project file
 	virtual bool wantsSaveForPropertyChange(const ConfigPropertyChangeSet& changedPropertySet) const { return false; }

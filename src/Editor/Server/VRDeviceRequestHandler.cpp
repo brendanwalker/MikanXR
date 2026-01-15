@@ -47,7 +47,7 @@ void VRDeviceClientState::publishVRDevicePoses(int64_t newVRFrameIndex)
 
 	for (auto deviceId : m_subscribedVRDevices)
 	{
-		VRDeviceComponentPtr vrDeviceComponent = vrObjectSystem->getVRDeviceById(deviceId);
+		VRDeviceComponentPtr vrDeviceComponent = vrObjectSystem->getTypedComponentById(deviceId);
 
 		VRDevicePose devicePose;
 		if (vrDeviceComponent && vrDeviceComponent->getDevicePose(vrFrameDelay, devicePose))
@@ -137,7 +137,7 @@ void VRDeviceRequestHandler::getVRDeviceListHandler(
 {
 	MikanVRDeviceListResponse vrDeviceListResult = {};
 	auto vrObjectSystem = m_vrObjectSystem.lock();
-	for (const auto& kvpair : vrObjectSystem->getVRDeviceMap())
+	for (const auto& kvpair : vrObjectSystem->getComponentMap())
 	{
 		VRDeviceComponentPtr deviceComponent= kvpair.second.lock();
 
@@ -163,7 +163,7 @@ void VRDeviceRequestHandler::getVRDeviceInfoHandler(
 	}
 
 	auto vrObjectSystem = m_vrObjectSystem.lock();
-	VRDeviceComponentPtr vrDeviceComponent= vrObjectSystem->getVRDeviceById(deviceRequest.deviceId);
+	VRDeviceComponentPtr vrDeviceComponent= vrObjectSystem->getTypedComponentById(deviceRequest.deviceId);
 	if (!vrDeviceComponent)
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::InvalidDeviceId, response);

@@ -33,7 +33,7 @@ bool RmlModel_TrackingMountComponent::onConstruct(Rml::DataModelConstructor& con
 			auto vrObjectSystem = getVRObjectSystem();
 			if (vrObjectSystem)
 			{
-				const auto& vrDeviceMap = vrObjectSystem->getVRDeviceMap();
+				const auto& vrDeviceMap = vrObjectSystem->getComponentMap();
 				for (const auto& it : vrDeviceMap)
 				{
 					if (auto vrDeviceComponent = it.second.lock())
@@ -103,7 +103,7 @@ VRObjectSystemDefinitionPtr RmlModel_TrackingMountComponent::getVRObjectSystemCo
 	auto vrObjectSystem = getVRObjectSystem();
 	if (vrObjectSystem)
 	{
-		return vrObjectSystem->getVRSystemConfig();
+		return vrObjectSystem->getTypedDefinition();
 	}
 
 	return nullptr;
