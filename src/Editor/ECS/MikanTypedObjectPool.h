@@ -16,6 +16,7 @@ class MikanTypedObjectPool
 {
 public:
 	using ComponentPtr = std::shared_ptr<t_component_class>;
+	using ComponentConstPtr = std::shared_ptr<const t_component_class>;
 	using ComponentWeakPtr = std::weak_ptr<t_component_class>;
 	using ComponentMap = std::map<t_id_type, ComponentWeakPtr>;
 	using ComponentDefinitionPtr = std::shared_ptr<t_definition_class>;
@@ -45,16 +46,25 @@ public:
 
 	ComponentPtr getByName(const std::string& name) const
 	{
-		for (auto it = m_components.begin(); it != m_components.end(); it++)
+		return findByPredicate(
+			[&name](ComponentConstPtr componentPtr) {
+				return componentPtr->getName() == name;
+			});
+	}
+
+	using PredFunction = std::function<bool(ComponentConstPtr)>;
+	ComponentPtr findByPredicate(PredFunction pred) const
+	{
+		auto it = std::find_if(
+			m_components.begin(), m_components.end(),
+			[this, &pred](const auto& kvpair) {
+				ComponentPtr componentPtr = kvpair.second.lock();
+				return componentPtr && pred(componentPtr);
+			});
+		if (it != m_components.end())
 		{
-			ComponentPtr componentPtr = it->second.lock();
-
-			if (componentPtr && componentPtr->getName() == name)
-			{
-				return componentPtr;
-			}
+			return it->second.lock();
 		}
-
 		return ComponentPtr();
 	}
 

@@ -93,6 +93,21 @@ public:
 		return ComponentDefinitionPtr();
 	}
 
+	using PredFunction = std::function<bool(DefinitionConstPtr)>;
+	ComponentDefinitionPtr findByPredicate(PredFunction pred) const
+	{
+		auto it = std::find_if(
+			m_definitions.begin(), m_definitions.end(),
+			[this, &pred](DefinitionConstPtr definitionPtr) {
+				return pred(definitionPtr);
+			});
+		if (it != m_definitions.end())
+		{
+			return *it;
+		}
+		return ComponentDefinitionPtr();
+	}
+
 	const DefinitionList& getAll() const { return m_definitions; }
 
 	// Config mutations

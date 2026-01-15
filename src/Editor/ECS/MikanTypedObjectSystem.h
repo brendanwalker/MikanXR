@@ -81,9 +81,29 @@ public:
 		return m_pool.getByName(name);
 	}
 
+	using PredFunction = std::function<bool(ComponentConstPtr)>;
+	ComponentPtr getTypedComponentByPredicate(PredFunction predicate) const
+	{
+		return m_pool.findByPredicate(predicate);
+	}
+
 	const typename Pool::ComponentMap& getComponentMap() const
 	{
 		return m_pool.getAll();
+	}
+
+	using VisitFunction = std::function<void(ComponentPtr)>;
+	void visitComponents(VisitFunction visitFunc) const
+	{
+		for (const auto& kvpair : getComponentMap())
+		{
+			ComponentPtr componentPtr = kvpair.second.lock();
+
+			if (componentPtr)
+			{
+				visitFunc(componentPtr);
+			}
+		}
 	}
 
 	// Component Pool Mutators
