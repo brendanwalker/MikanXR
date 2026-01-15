@@ -31,14 +31,15 @@ void bindVectorComponents(
 
 		if (propertyDescriptor->isReadOnly())
 		{
+			const std::string propName = propertyDescriptor->getName();
 			constructor.BindFunc(
 				componentName,
-				[ownerRmlModel, propertyDescriptor, componentIndex](Rml::Variant& outVariant) {
+				[ownerRmlModel, propName, componentIndex](Rml::Variant& outVariant) {
 					IPropertyInterfacePtr propInterface = ownerRmlModel->getEntityAccessor();
 					if (propInterface)
 					{
 						MikanVariant vectorVariant;
-						if (propInterface->getPropertyValue(propertyDescriptor, vectorVariant))
+						if (propInterface->getPropertyValue(propName, vectorVariant))
 						{
 							const float componentValue = vectorVariant.getVectorComponentValue(componentIndex);
 							outVariant = componentValue;
@@ -50,30 +51,31 @@ void bindVectorComponents(
 		{
 			assert(propertyDescriptor->isReadable() && propertyDescriptor->isWritable());
 
+			const std::string propName = propertyDescriptor->getName();
 			constructor.BindFunc(
 				componentName,
-				[ownerRmlModel, propertyDescriptor, componentIndex](Rml::Variant& outVariant) {
+				[ownerRmlModel, propName, componentIndex](Rml::Variant& outVariant) {
 					IPropertyInterfacePtr propInterface = ownerRmlModel->getEntityAccessor();
 					if (propInterface)
 					{
 						MikanVariant vectorVariant;
-						if (propInterface->getPropertyValue(propertyDescriptor, vectorVariant))
+						if (propInterface->getPropertyValue(propName, vectorVariant))
 						{
 							outVariant = vectorVariant.getVectorComponentValue(componentIndex);
 						}
 					}
 				},
-				[ownerRmlModel, propertyDescriptor, componentIndex](const Rml::Variant& variant) {
+				[ownerRmlModel, propName, componentIndex](const Rml::Variant& variant) {
 					IPropertyInterfacePtr propInterface = ownerRmlModel->getEntityAccessor();
 					if (propInterface)
 					{
 						MikanVariant vectorVariant;
-						if (propInterface->getPropertyValue(propertyDescriptor, vectorVariant))
-						{							
+						if (propInterface->getPropertyValue(propName, vectorVariant))
+						{
 							const float newComponentValue= variant.Get<float>();
 
 							vectorVariant.setVectorComponentValue(componentIndex, newComponentValue);
-							propInterface->setPropertyValue(propertyDescriptor, vectorVariant);
+							propInterface->setPropertyValue(propName, vectorVariant);
 						}
 					}
 				});
@@ -124,17 +126,18 @@ bool RmlModel_EntityAccessor::init(
 			assert(propertyDescriptor->isReadOnly());
 
 			// Create and register int list binding
+			const std::string propName = propertyDescriptor->getName();
 			RmlDataBinding_IntListPtr intListBinding = std::make_shared<RmlDataBinding_IntList>();
 			intListBinding->init(
 				constructor,
 				CommonConfigPtr(),
-				propertyDescriptor->getName(),
-				[this, propertyDescriptor](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
+				propName,
+				[this, propName](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 					IPropertyInterfacePtr propInterface = getEntityAccessor();
 					if (propInterface)
 					{
 						MikanVariant listPropertyValue;
-						if (propInterface->getPropertyValue(propertyDescriptor, listPropertyValue))
+						if (propInterface->getPropertyValue(propName, listPropertyValue))
 						{
 							outComponentIdList = listPropertyValue.getIntArrayValue();
 						}
@@ -150,13 +153,13 @@ bool RmlModel_EntityAccessor::init(
 			{
 				constructor.BindFunc(
 					propertyName,
-					[this, propertyDescriptor](Rml::Variant& outRmlVariant) {
+					[this, propertyName, propertyDescriptor](Rml::Variant& outRmlVariant) {
 						IPropertyInterfacePtr propertyInterface = m_entityAccessor.lock();
 
 						MikanVariant mikanVariant;
 						if (propertyInterface)
 						{
-							propertyInterface->getPropertyValue(propertyDescriptor, mikanVariant);
+							propertyInterface->getPropertyValue(propertyName, mikanVariant);
 						}
 						else
 						{
@@ -168,31 +171,33 @@ bool RmlModel_EntityAccessor::init(
 			}
 			else if (propertyDescriptor->isReadable() && propertyDescriptor->isWritable())
 			{
+				const MikanVariantType dataType = propertyDescriptor->getDataType();
+				const MikanVariant defaultValue = propertyDescriptor->getDefaultValue();
 				constructor.BindFunc(
 					propertyName,
-					[this, propertyDescriptor](Rml::Variant& outRmlVariant) {
+					[this, propertyName, defaultValue](Rml::Variant& outRmlVariant) {
 						IPropertyInterfacePtr propertyInterface = m_entityAccessor.lock();
 
 						MikanVariant mikanVariant;
 						if (propertyInterface)
 						{
-							propertyInterface->getPropertyValue(propertyDescriptor, mikanVariant);
+							propertyInterface->getPropertyValue(propertyName, mikanVariant);
 						}
 						else
 						{
-							mikanVariant = propertyDescriptor->getDefaultValue();
+							mikanVariant = defaultValue;
 						}
 
 						Rml::Utilities::MikanVariantToRmlVariant(mikanVariant, outRmlVariant);
 					},
-					[this, propertyDescriptor](const Rml::Variant& inRmlVariant) {
+					[this, propertyName, dataType](const Rml::Variant& inRmlVariant) {
 						IPropertyInterfacePtr propertyInterface = m_entityAccessor.lock();
 						if (propertyInterface)
 						{
-							MikanVariant mikanVariant= 
+							MikanVariant mikanVariant=
 								Rml::Utilities::RmlVariantToMikanVariant(
-									inRmlVariant, propertyDescriptor->getDataType());
-							propertyInterface->setPropertyValue(propertyDescriptor, mikanVariant);
+									inRmlVariant, dataType);
+							propertyInterface->setPropertyValue(propertyName, mikanVariant);
 						}
 					});
 			}

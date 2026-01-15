@@ -216,10 +216,9 @@ void MarkerObjectSystem::getPropertyDescriptors(std::vector<PropertyDescriptorCo
 }
 
 bool MarkerObjectSystem::getPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	const std::string& propertyName = propertyDesc->getName();
 	MarkerObjectSystemDefinitionConstPtr markerSystemDefinition = getTypedDefinitionConst();
 
 	if (propertyName == MarkerObjectSystemDefinition::k_arucoIdListPropertyId)
@@ -260,14 +259,13 @@ bool MarkerObjectSystem::getPropertyValue(
 		return true;
 	}
 
-	return Super::getPropertyValue(propertyDesc, outValue);
+	return Super::getPropertyValue(propertyName, outValue);
 }
 
 bool MarkerObjectSystem::setPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	const MikanVariant& inValue)
 {
-	const std::string& propertyName = propertyDesc->getName();
 	MarkerObjectSystemDefinitionPtr markerSystemDefinition = getTypedDefinition();
 
 	if (propertyName == MarkerObjectSystemDefinition::k_arucoDictionaryTypePropertyId)
@@ -307,7 +305,7 @@ bool MarkerObjectSystem::setPropertyValue(
 		return true;
 	}
 
-	return Super::setPropertyValue(propertyDesc, inValue);
+	return Super::setPropertyValue(propertyName, inValue);
 }
 
 // -- IFunctionInterface ----

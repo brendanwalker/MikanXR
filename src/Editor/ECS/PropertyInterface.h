@@ -45,13 +45,13 @@ class IPropertyInterface
 {
 public:
 	virtual bool getPropertyValue(
-		PropertyDescriptorConstPtr propertyDesc,
-		MikanVariant& outValue) const 
+		const std::string& propertyName,
+		MikanVariant& outValue) const
 	{
 		return false;
 	}
 	virtual bool setPropertyValue(
-		PropertyDescriptorConstPtr propertyDesc,
+		const std::string& propertyName,
 		const MikanVariant& inValue)
 	{
 		return false;

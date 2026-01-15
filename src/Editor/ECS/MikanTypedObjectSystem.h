@@ -159,9 +159,9 @@ public:
 			std::make_shared<PropertyDescriptor>(TSystemDefinition::k_componentIdListPropertyId, MikanVariantType::INT_ARRAY)
 			->setReadOnly());
 	}
-	virtual bool getPropertyValue(PropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override
+	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override
 	{
-		if (propertyDesc->getName() == TSystemDefinition::k_componentIdListPropertyId)
+		if (propertyName == TSystemDefinition::k_componentIdListPropertyId)
 		{
 			std::vector<int> componentIdList;
 			getTypedDefinitionConst()->getAllComponentIds(componentIdList);
@@ -169,7 +169,7 @@ public:
 			return true;
 		}
 
-		return MikanObjectSystem::getPropertyValue(propertyDesc, outValue);
+		return MikanObjectSystem::getPropertyValue(propertyName, outValue);
 	}
 
 protected:

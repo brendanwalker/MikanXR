@@ -122,10 +122,8 @@ void MarkerComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConst
 			->setDefaultValue(DEFAULT_MARKER_SIZE_MM));
 }
 
-bool MarkerComponent::getPropertyValue(PropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const
+bool MarkerComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == MarkerDefinition::k_arucoIdPropertyId)
 	{
 		outValue = getMarkerDefinition()->getArucoId();
@@ -137,13 +135,11 @@ bool MarkerComponent::getPropertyValue(PropertyDescriptorConstPtr propertyDesc, 
 		return true;
 	}
 
-	return MikanComponent::getPropertyValue(propertyDesc, outValue);
+	return MikanComponent::getPropertyValue(propertyName, outValue);
 }
 
-bool MarkerComponent::setPropertyValue(PropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue)
+bool MarkerComponent::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == MarkerDefinition::k_arucoIdPropertyId)
 	{
 		getMarkerDefinition()->setArucoId(inValue.getIntValue());
@@ -155,7 +151,7 @@ bool MarkerComponent::setPropertyValue(PropertyDescriptorConstPtr propertyDesc, 
 		return true;
 	}
 
-	return MikanComponent::setPropertyValue(propertyDesc, inValue);
+	return MikanComponent::setPropertyValue(propertyName, inValue);
 }
 
 // -- IFunctionInterface ----

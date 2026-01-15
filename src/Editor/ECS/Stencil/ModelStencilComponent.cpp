@@ -441,11 +441,9 @@ void ModelStencilComponent::getPropertyDescriptors(std::vector<PropertyDescripto
 }
 
 bool ModelStencilComponent::getPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == ModelStencilDefinition::k_modelStencilObjPathPropertyId)
 	{
 		std::string filepath = getModelStencilDefinition()->getModelPath().string();
@@ -454,15 +452,13 @@ bool ModelStencilComponent::getPropertyValue(
 		return true;
 	}
 
-	return StencilComponent::getPropertyValue(propertyDesc, outValue);
+	return StencilComponent::getPropertyValue(propertyName, outValue);
 }
 
 bool ModelStencilComponent::setPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	const MikanVariant& inValue)
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == ModelStencilDefinition::k_modelStencilObjPathPropertyId)
 	{
 		const std::string fileString = inValue.getStringValue();
@@ -472,7 +468,7 @@ bool ModelStencilComponent::setPropertyValue(
 		return true;
 	}
 
-	return StencilComponent::setPropertyValue(propertyDesc, inValue);
+	return StencilComponent::setPropertyValue(propertyName, inValue);
 }
 
 // -- IFunctionInterface ----

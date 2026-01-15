@@ -113,11 +113,9 @@ void TrackingMountComponent::getPropertyDescriptors(std::vector<PropertyDescript
 }
 
 bool TrackingMountComponent::getPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == TrackingMountDefinition::k_desiredDevicePathPropertyId)
 	{
 		outValue = getTrackingMountDefinition()->getDevicePath();
@@ -129,15 +127,13 @@ bool TrackingMountComponent::getPropertyValue(
 		return true;
 	}
 
-	return MikanComponent::getPropertyValue(propertyDesc, outValue);
+	return MikanComponent::getPropertyValue(propertyName, outValue);
 }
 
 bool TrackingMountComponent::setPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	const MikanVariant& inValue)
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == TrackingMountDefinition::k_desiredDevicePathPropertyId)
 	{
 		getTrackingMountDefinition()->setDevicePath(inValue.getStringValue());
@@ -149,5 +145,5 @@ bool TrackingMountComponent::setPropertyValue(
 		return true;
 	}
 
-	return MikanComponent::setPropertyValue(propertyDesc, inValue);
+	return MikanComponent::setPropertyValue(propertyName, inValue);
 }

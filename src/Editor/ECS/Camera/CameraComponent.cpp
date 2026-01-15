@@ -494,11 +494,9 @@ void CameraComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConst
 }
 
 bool CameraComponent::getPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc, 
+	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	std::string propertyName = propertyDesc->getName();
-
 	if (propertyName == CameraDefinition::k_trackingMountIdPropertyId)
 	{
 		outValue = getCameraDefinition()->getTrackingMountId();
@@ -515,15 +513,13 @@ bool CameraComponent::getPropertyValue(
 		return true;
 	}
 
-	return TransformComponent::getPropertyValue(propertyDesc, outValue);
+	return TransformComponent::getPropertyValue(propertyName, outValue);
 }
 
 bool CameraComponent::setPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc, 
+	const std::string& propertyName,
 	const MikanVariant& inValue)
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == CameraDefinition::k_trackingMountIdPropertyId)
 	{
 		MikanTrackingMountID trackingMountId = static_cast<MikanTrackingMountID>(inValue.getIntValue());
@@ -543,7 +539,7 @@ bool CameraComponent::setPropertyValue(
 		return true;
 	}
 
-	return TransformComponent::setPropertyValue(propertyDesc, inValue);
+	return TransformComponent::setPropertyValue(propertyName, inValue);
 }
 
 // -- IFunctionInterface ----

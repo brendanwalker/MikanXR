@@ -71,8 +71,8 @@ public:
 	static const std::string k_vrDevicePositionOffsetPropertyId;
 	static const std::string k_vrDeviceRotationOffsetPropertyId;
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
-	virtual bool getPropertyValue(PropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const override;
-	virtual bool setPropertyValue(PropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue) override;
+	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
+	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
 
 	// -- IFunctionInterface ----
 	static const std::string k_alignTrackingVolumeFunctionId;

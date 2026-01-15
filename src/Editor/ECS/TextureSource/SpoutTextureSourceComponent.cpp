@@ -201,26 +201,22 @@ void SpoutTextureSourceComponent::getPropertyDescriptors(std::vector<PropertyDes
 }
 
 bool SpoutTextureSourceComponent::getPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == SpoutTextureSourceDefinition::k_spoutSourcePropertyId)
 	{
 		outValue = getSpoutTextureSourceDefinition()->getSpoutSource();
 		return true;
 	}
 
-	return TextureSourceComponent::getPropertyValue(propertyDesc, outValue);
+	return TextureSourceComponent::getPropertyValue(propertyName, outValue);
 }
 
 bool SpoutTextureSourceComponent::setPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	const MikanVariant& inValue)
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == SpoutTextureSourceDefinition::k_spoutSourcePropertyId)
 	{
 		std::string devicePath = inValue.getStringValue();
@@ -228,5 +224,5 @@ bool SpoutTextureSourceComponent::setPropertyValue(
 		return true;
 	}
 
-	return TextureSourceComponent::setPropertyValue(propertyDesc, inValue);
+	return TextureSourceComponent::setPropertyValue(propertyName, inValue);
 }

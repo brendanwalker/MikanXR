@@ -940,11 +940,9 @@ void USBVideoSourceComponent::getPropertyDescriptors(std::vector<PropertyDescrip
 }
 
 bool USBVideoSourceComponent::getPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == USBVideoSourceDefinition::k_desiredDevicePathPropertyId)
 	{
 		outValue = getUSBVideoSourceDefinition()->getDevicePath();
@@ -961,15 +959,13 @@ bool USBVideoSourceComponent::getPropertyValue(
 		return true;
 	}
 
-	return VideoSourceComponent::getPropertyValue(propertyDesc, outValue);
+	return VideoSourceComponent::getPropertyValue(propertyName, outValue);
 }
 
 bool USBVideoSourceComponent::setPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	const MikanVariant& inValue)
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == USBVideoSourceDefinition::k_desiredDevicePathPropertyId)
 	{
 		std::string devicePath = inValue.getStringValue();
@@ -983,7 +979,7 @@ bool USBVideoSourceComponent::setPropertyValue(
 		return true;
 	}
 
-	return VideoSourceComponent::setPropertyValue(propertyDesc, inValue);
+	return VideoSourceComponent::setPropertyValue(propertyName, inValue);
 }
 
 // -- IFunctionInterface ----

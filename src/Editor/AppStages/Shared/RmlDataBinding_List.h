@@ -5,7 +5,6 @@
 #include "MikanComponent.h"
 #include "MulticastDelegate.h"
 #include "MikanObjectSystem.h"
-#include "MikanPropertyDatabase.h"
 #include "ObjectSystemConfigFwd.h"
 #include "Shared\RmlDataBinding.h"
 
@@ -32,36 +31,18 @@ public:
 		MikanObjectSystemPtr ownerObjectSystem,
 		const std::string& listName)
 	{
-		// Find the property descriptor for the list property
-		auto propertyDatabase = ownerObjectSystem->getOwnerProjectManager()->getPropertyDatabaseConst();
-		PropertyDescriptorConstPtr propertyDescriptor= 
-			propertyDatabase->findPropertyDescriptor(
-				ownerObjectSystem->getObjectSystemClassName(),
-				"",
-				listName);
-		if (propertyDescriptor)
-		{
-			// Rebuild the list using the system's property interface
-			return init(
-				constructor,
-				ownerObjectSystem->getDefinition(),
-				listName,
-				[ownerObjectSystem, propertyDescriptor](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-					MikanVariant listPropertyValue;
-					if (ownerObjectSystem->getPropertyValue(propertyDescriptor, listPropertyValue))
-					{
-						outComponentIdList = listPropertyValue.getIntArrayValue();
-					}
-				});
-		}
-		else
-		{
-			MIKAN_LOG_ERROR("RmlDataBinding_List::init")
-				<< "Failed to find property descriptor for list property " 
-				<< listName
-				<< " on object system "
-				<< ownerObjectSystem->getObjectSystemClassName();
-		}
+		// Rebuild the list using the system's property interface
+		return init(
+			constructor,
+			ownerObjectSystem->getDefinition(),
+			listName,
+			[ownerObjectSystem, listName](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
+				MikanVariant listPropertyValue;
+				if (ownerObjectSystem->getPropertyValue(listName, listPropertyValue))
+				{
+					outComponentIdList = listPropertyValue.getIntArrayValue();
+				}
+			});
 
 		return false;
 	}

@@ -75,7 +75,6 @@ void PropertyRequestHandler::setPropertyValueHandler(
 	const std::string& propertyValueName = setValueRequest.fieldName.getValue();
 	const MikanVariant& variantValue = setValueRequest.fieldValue;
 
-	MikanPropertyDatabaseConstPtr propertyDatabase = getProjectManager()->getPropertyDatabaseConst();
 	if (setValueRequest.componentId != -1)
 	{
 		MikanComponentPtr componentPtr = objectSystem->getComponentById(setValueRequest.componentId);
@@ -85,19 +84,8 @@ void PropertyRequestHandler::setPropertyValueHandler(
 			return;
 		}
 
-		PropertyDescriptorConstPtr propertyDescriptor =
-			propertyDatabase->findPropertyDescriptor(
-				setValueRequest.ownerSystem.getValue(),
-				componentPtr->getComponentClassName(),
-				setValueRequest.fieldName.getValue());
-		if (!propertyDescriptor)
-		{
-			writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
-			return;
-		}
-
 		// Set the property value on the component
-		if (!componentPtr->setPropertyValue(propertyDescriptor, variantValue))
+		if (!componentPtr->setPropertyValue(propertyValueName, variantValue))
 		{
 			writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 			return;
@@ -105,19 +93,8 @@ void PropertyRequestHandler::setPropertyValueHandler(
 	}
 	else
 	{
-		PropertyDescriptorConstPtr propertyDescriptor =
-			propertyDatabase->findPropertyDescriptor(
-				setValueRequest.ownerSystem.getValue(),
-				"",
-				setValueRequest.fieldName.getValue());
-		if (!propertyDescriptor)
-		{
-			writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
-			return;
-		}
-
 		// Set the property value on the system
-		if (!objectSystem->setPropertyValue(propertyDescriptor, variantValue))
+		if (!objectSystem->setPropertyValue(propertyValueName, variantValue))
 		{
 			writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 			return;
@@ -154,7 +131,7 @@ void PropertyRequestHandler::getPropertyValueHandler(
 	getValueResponse.propertyValue.componentId = getValueRequest.componentId;
 	getValueResponse.propertyValue.fieldName = getValueRequest.fieldName;
 
-	MikanPropertyDatabaseConstPtr propertyDatabase = getProjectManager()->getPropertyDatabaseConst();
+	const std::string& propertyValueName = getValueRequest.fieldName.getValue();
 	if (getValueRequest.componentId != -1)
 	{
 		MikanComponentPtr componentPtr = objectSystem->getComponentById(getValueRequest.componentId);
@@ -164,19 +141,8 @@ void PropertyRequestHandler::getPropertyValueHandler(
 			return;
 		}
 
-		PropertyDescriptorConstPtr propertyDescriptor =
-			propertyDatabase->findPropertyDescriptor(
-				getValueRequest.ownerSystem.getValue(),
-				componentPtr->getComponentClassName(),
-				getValueRequest.fieldName.getValue());
-		if (!propertyDescriptor)
-		{
-			writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
-			return;
-		}
-
 		// Get the property value from the component
-		if (!componentPtr->getPropertyValue(propertyDescriptor, getValueResponse.propertyValue.fieldValue))
+		if (!componentPtr->getPropertyValue(propertyValueName, getValueResponse.propertyValue.fieldValue))
 		{
 			writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 			return;
@@ -184,19 +150,8 @@ void PropertyRequestHandler::getPropertyValueHandler(
 	}
 	else
 	{
-		PropertyDescriptorConstPtr propertyDescriptor =
-			propertyDatabase->findPropertyDescriptor(
-				getValueRequest.ownerSystem.getValue(),
-				"", // No component class name for system properties
-				getValueRequest.fieldName.getValue());
-		if (!propertyDescriptor)
-		{
-			writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
-			return;
-		}
-
 		// Get the property value from the system
-		if (!objectSystem->getPropertyValue(propertyDescriptor, getValueResponse.propertyValue.fieldValue))
+		if (!objectSystem->getPropertyValue(propertyValueName, getValueResponse.propertyValue.fieldValue))
 		{
 			writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 			return;

@@ -771,11 +771,9 @@ void CompositorComponent::getPropertyDescriptors(std::vector<PropertyDescriptorC
 }
 
 bool CompositorComponent::getPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == CompositorDefinition::k_cameraIdPropertyId)
 	{
 		outValue = getCompositorDefinition()->getCameraId();
@@ -802,15 +800,13 @@ bool CompositorComponent::getPropertyValue(
 		return true;
 	}
 
-	return MikanComponent::getPropertyValue(propertyDesc, outValue);
+	return MikanComponent::getPropertyValue(propertyName, outValue);
 }
 
 bool CompositorComponent::setPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	const MikanVariant& inValue)
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == CompositorDefinition::k_cameraIdPropertyId)
 	{
 		const MikanCameraID cameraId = inValue.getIntValue();
@@ -844,7 +840,7 @@ bool CompositorComponent::setPropertyValue(
 		return true;
 	}
 
-	return MikanComponent::setPropertyValue(propertyDesc, inValue);
+	return MikanComponent::setPropertyValue(propertyName, inValue);
 }
 
 // -- IFunctionInterface ----

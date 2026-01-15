@@ -92,26 +92,22 @@ void ClientTextureSourceComponent::getPropertyDescriptors(std::vector<PropertyDe
 }
 
 bool ClientTextureSourceComponent::getPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == ClientTextureSourceDefinition::k_clientSourcePropertyId)
 	{
 		outValue = getClientTextureSourceDefinition()->getClientSource();
 		return true;
 	}
 
-	return TextureSourceComponent::getPropertyValue(propertyDesc, outValue);
+	return TextureSourceComponent::getPropertyValue(propertyName, outValue);
 }
 
 bool ClientTextureSourceComponent::setPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	const MikanVariant& inValue)
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == ClientTextureSourceDefinition::k_clientSourcePropertyId)
 	{
 		std::string devicePath = inValue.getStringValue();
@@ -119,7 +115,7 @@ bool ClientTextureSourceComponent::setPropertyValue(
 		return true;
 	}
 
-	return TextureSourceComponent::setPropertyValue(propertyDesc, inValue);
+	return TextureSourceComponent::setPropertyValue(propertyName, inValue);
 }
 
 ClientSourceManager* ClientTextureSourceComponent::getClientSourceManager() const

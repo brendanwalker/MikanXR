@@ -325,11 +325,9 @@ void SceneComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstP
 }
 
 bool SceneComponent::getPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == SceneComponentDefinition::k_parentStagePropertyId)
 	{
 		outValue = getSceneComponentDefinition()->getParentStageId();
@@ -341,15 +339,13 @@ bool SceneComponent::getPropertyValue(
 		return true;
 	}
 
-	return TransformComponent::getPropertyValue(propertyDesc, outValue);
+	return TransformComponent::getPropertyValue(propertyName, outValue);
 }
 
 bool SceneComponent::setPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	const MikanVariant& inValue)
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == SceneComponentDefinition::k_parentStagePropertyId)
 	{
 		MikanStageID stageId = inValue.getIntValue();
@@ -358,7 +354,7 @@ bool SceneComponent::setPropertyValue(
 		return true;
 	}
 
-	return TransformComponent::setPropertyValue(propertyDesc, inValue);
+	return TransformComponent::setPropertyValue(propertyName, inValue);
 }
 
 // -- IFunctionInterface ----

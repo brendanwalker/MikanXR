@@ -144,11 +144,9 @@ void StencilComponent::getPropertyDescriptors(std::vector<PropertyDescriptorCons
 }
 
 bool StencilComponent::getPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == StencilComponentDefinition::k_stencilDisabledPropertyId)
 	{
 		outValue = getStencilComponentDefinition()->getIsDisabled();
@@ -165,15 +163,13 @@ bool StencilComponent::getPropertyValue(
 		return true;
 	}
 
-	return TransformComponent::getPropertyValue(propertyDesc, outValue);
+	return TransformComponent::getPropertyValue(propertyName, outValue);
 }
 
 bool StencilComponent::setPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	const MikanVariant& inValue)
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == StencilComponentDefinition::k_stencilDisabledPropertyId)
 	{
 		bool bIsDisabled = inValue.getBoolValue();
@@ -196,7 +192,7 @@ bool StencilComponent::setPropertyValue(
 		return true;
 	}
 
-	return TransformComponent::setPropertyValue(propertyDesc, inValue);
+	return TransformComponent::setPropertyValue(propertyName, inValue);
 }
 
 // -- IFunctionInterface ----

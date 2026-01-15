@@ -400,11 +400,9 @@ void TransformComponent::getPropertyDescriptors(std::vector<PropertyDescriptorCo
 }
 
 bool TransformComponent::getPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == TransformComponentDefinition::k_relativeScalePropertyId)
 	{
 		const glm::vec3& scale = getRelativeScale();
@@ -431,15 +429,13 @@ bool TransformComponent::getPropertyValue(
 		return true;
 	}
 
-	return MikanComponent::getPropertyValue(propertyDesc, outValue);
+	return MikanComponent::getPropertyValue(propertyName, outValue);
 }
 
 bool TransformComponent::setPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	const MikanVariant& inValue)
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == TransformComponentDefinition::k_relativeScalePropertyId)
 	{
 		MikanVector3f scale = inValue.getVector3fValue();
@@ -468,7 +464,7 @@ bool TransformComponent::setPropertyValue(
 		return true;
 	}
 
-	return MikanComponent::setPropertyValue(propertyDesc, inValue);
+	return MikanComponent::setPropertyValue(propertyName, inValue);
 }
 
 // -- IFunctionInterface ----

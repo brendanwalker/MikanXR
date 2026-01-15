@@ -77,25 +77,23 @@ void TextureSourceComponent::getPropertyDescriptors(std::vector<PropertyDescript
 }
 
 bool TextureSourceComponent::getPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc, 
+	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == TextureSourceDefinition::k_TextureSourceIdPropertyId)
 	{
 		outValue = getTextureSourceId();
 		return true;
 	}
 
-	return MikanComponent::getPropertyValue(propertyDesc, outValue);
+	return MikanComponent::getPropertyValue(propertyName, outValue);
 }
 
 bool TextureSourceComponent::setPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc, 
+	const std::string& propertyName,
 	const MikanVariant& inValue)
 {
-	return MikanComponent::setPropertyValue(propertyDesc, inValue);
+	return MikanComponent::setPropertyValue(propertyName, inValue);
 }
 
 // -- IFunctionInterface ----

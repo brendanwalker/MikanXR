@@ -182,11 +182,9 @@ void QuadStencilComponent::getPropertyDescriptors(std::vector<PropertyDescriptor
 }
 
 bool QuadStencilComponent::getPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == QuadStencilDefinition::k_quadStencilWidthPropertyId)
 	{
 		outValue = getQuadStencilDefinition()->getQuadWidth();
@@ -203,15 +201,13 @@ bool QuadStencilComponent::getPropertyValue(
 		return true;
 	}
 
-	return StencilComponent::getPropertyValue(propertyDesc, outValue);
+	return StencilComponent::getPropertyValue(propertyName, outValue);
 }
 
 bool QuadStencilComponent::setPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	const MikanVariant& inValue)
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == QuadStencilDefinition::k_quadStencilWidthPropertyId)
 	{
 		float width = inValue.getFloatValue();
@@ -234,7 +230,7 @@ bool QuadStencilComponent::setPropertyValue(
 		return true;
 	}
 
-	return StencilComponent::setPropertyValue(propertyDesc, inValue);
+	return StencilComponent::setPropertyValue(propertyName, inValue);
 }
 
 // -- Lua Binding ----

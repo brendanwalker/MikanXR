@@ -522,11 +522,9 @@ void NetworkVideoSourceComponent::getPropertyDescriptors(std::vector<PropertyDes
 }
 
 bool NetworkVideoSourceComponent::getPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == NetworkVideoSourceDefinition::k_addressPropertyId)
 	{
 		outValue = getNetworkVideoSourceDefinition()->getAddress();
@@ -548,15 +546,13 @@ bool NetworkVideoSourceComponent::getPropertyValue(
 		return true;
 	}
 
-	return VideoSourceComponent::getPropertyValue(propertyDesc, outValue);
+	return VideoSourceComponent::getPropertyValue(propertyName, outValue);
 }
 
 bool NetworkVideoSourceComponent::setPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	const MikanVariant& inValue)
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == NetworkVideoSourceDefinition::k_addressPropertyId)
 	{
 		std::string url = inValue.getStringValue();
@@ -582,7 +578,7 @@ bool NetworkVideoSourceComponent::setPropertyValue(
 		return true;
 	}
 
-	return VideoSourceComponent::setPropertyValue(propertyDesc, inValue);
+	return VideoSourceComponent::setPropertyValue(propertyName, inValue);
 }
 
 void NetworkVideoSourceComponent::onDefinitionMarkedDirty(

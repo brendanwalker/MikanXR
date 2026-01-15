@@ -104,32 +104,28 @@ void TrackingVolumeComponent::getPropertyDescriptors(std::vector<PropertyDescrip
 }
 
 bool TrackingVolumeComponent::getPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	const std::string& propertyId = propertyDesc->getName();
-
-	if (propertyId == TrackingVolumeDefinition::k_originMarkerIdPropertyId)
+	if (propertyName == TrackingVolumeDefinition::k_originMarkerIdPropertyId)
 	{
 		outValue= getTrackingVolumeDefinition()->getTrackingVolumeId();
 		return true;
 	}
 
-	return MikanComponent::getPropertyValue(propertyDesc, outValue);
+	return MikanComponent::getPropertyValue(propertyName, outValue);
 }
 
 bool TrackingVolumeComponent::setPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	const MikanVariant& inValue)
 {
-	const std::string& propertyId = propertyDesc->getName();
-
-	if (propertyId == TrackingVolumeDefinition::k_originMarkerIdPropertyId)
+	if (propertyName == TrackingVolumeDefinition::k_originMarkerIdPropertyId)
 	{
 		MikanMarkerID markerId = inValue.getIntValue();
 		getTrackingVolumeDefinition()->setOriginMarkerId(markerId);
 		return true;
 	}
 
-	return MikanComponent::setPropertyValue(propertyDesc, inValue);
+	return MikanComponent::setPropertyValue(propertyName, inValue);
 }

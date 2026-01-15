@@ -181,11 +181,9 @@ void BoxStencilComponent::getPropertyDescriptors(std::vector<PropertyDescriptorC
 }
 
 bool BoxStencilComponent::getPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == BoxStencilDefinition::k_boxStencilXSizePropertyId)
 	{
 		outValue = getBoxStencilDefinition()->getBoxXSize();
@@ -202,15 +200,13 @@ bool BoxStencilComponent::getPropertyValue(
 		return true;
 	}
 
-	return StencilComponent::getPropertyValue(propertyDesc, outValue);
+	return StencilComponent::getPropertyValue(propertyName, outValue);
 }
 
 bool BoxStencilComponent::setPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	const MikanVariant& inValue)
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == BoxStencilDefinition::k_boxStencilXSizePropertyId)
 	{
 		float xSize = inValue.getFloatValue();
@@ -233,7 +229,7 @@ bool BoxStencilComponent::setPropertyValue(
 		return true;
 	}
 
-	return StencilComponent::setPropertyValue(propertyDesc, inValue);
+	return StencilComponent::setPropertyValue(propertyName, inValue);
 }
 
 // -- Lua Binding ----

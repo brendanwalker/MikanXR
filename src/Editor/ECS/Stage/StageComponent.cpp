@@ -78,33 +78,29 @@ void StageComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstP
 }
 
 bool StageComponent::getPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == StageComponentDefinition::k_trackingVolumeIdPropertyId)
 	{
 		outValue = (int)getStageComponentDefinitionConst()->getTrackingVolumeId();
 		return true;
 	}
 
-	return TransformComponent::getPropertyValue(propertyDesc, outValue);
+	return TransformComponent::getPropertyValue(propertyName, outValue);
 }
 
 bool StageComponent::setPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	const MikanVariant& inValue)
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == StageComponentDefinition::k_trackingVolumeIdPropertyId)
 	{
 		getStageComponentDefinition()->setTrackingVolumeId((MikanTrackingVolumeID)inValue.getIntValue());
 		return true;
 	}
 
-	return TransformComponent::setPropertyValue(propertyDesc, inValue);
+	return TransformComponent::setPropertyValue(propertyName, inValue);
 }
 
 TrackingVolumeComponentConstPtr StageComponent::getTrackingVolumeConst() const

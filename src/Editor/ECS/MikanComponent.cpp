@@ -341,10 +341,8 @@ void MikanComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstP
 			MikanComponentDefinition::k_componentScriptPathPropertyId, MikanVariantType::STRING));
 }
 
-bool MikanComponent::getPropertyValue(PropertyDescriptorConstPtr propertyDesc, MikanVariant& outValue) const
+bool MikanComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == MikanComponentDefinition::k_componentIdPropertyId)
 	{
 		outValue = m_definition->getComponentId();
@@ -364,10 +362,8 @@ bool MikanComponent::getPropertyValue(PropertyDescriptorConstPtr propertyDesc, M
 	return false;
 }
 
-bool MikanComponent::setPropertyValue(PropertyDescriptorConstPtr propertyDesc, const MikanVariant& inValue)
+bool MikanComponent::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == MikanComponentDefinition::k_componentNamePropertyId)
 	{
 		setName(inValue.getStringValue());

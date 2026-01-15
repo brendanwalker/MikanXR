@@ -376,11 +376,9 @@ void VideoSourceComponent::getPropertyDescriptors(std::vector<PropertyDescriptor
 }
 
 bool VideoSourceComponent::getPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc, 
+	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == VideoSourceDefinition::k_videoSourceIdPropertyId)
 	{
 		outValue = getVideoSourceId();
@@ -407,15 +405,13 @@ bool VideoSourceComponent::getPropertyValue(
 		return true;
 	}
 
-	return MikanComponent::getPropertyValue(propertyDesc, outValue);
+	return MikanComponent::getPropertyValue(propertyName, outValue);
 }
 
 bool VideoSourceComponent::setPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc, 
+	const std::string& propertyName,
 	const MikanVariant& inValue)
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == VideoSourceDefinition::k_isFrameMirroredPropertyId)
 	{
 		getVideoSourceDefinition()->setIsFrameMirrored(inValue.getBoolValue());
@@ -432,7 +428,7 @@ bool VideoSourceComponent::setPropertyValue(
 		return true;
 	}
 
-	return MikanComponent::setPropertyValue(propertyDesc, inValue);
+	return MikanComponent::setPropertyValue(propertyName, inValue);
 }
 
 // -- IFunctionInterface ----

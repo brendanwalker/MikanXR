@@ -204,11 +204,9 @@ void VRTrackingVolumeComponent::getPropertyDescriptors(std::vector<PropertyDescr
 }
 
 bool VRTrackingVolumeComponent::getPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc, 
+	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == VRTrackingVolumeDefinition::k_trackingRuntimePropertyId)
 	{
 		outValue = (int)getVRTrackingVolumeDefinition()->getTrackingRuntime();
@@ -247,15 +245,13 @@ bool VRTrackingVolumeComponent::getPropertyValue(
 		return true;
 	}
 
-	return TrackingVolumeComponent::getPropertyValue(propertyDesc, outValue);
+	return TrackingVolumeComponent::getPropertyValue(propertyName, outValue);
 }
 
 bool VRTrackingVolumeComponent::setPropertyValue(
-	PropertyDescriptorConstPtr propertyDesc,
+	const std::string& propertyName,
 	const MikanVariant& inValue)
 {
-	const std::string& propertyName = propertyDesc->getName();
-
 	if (propertyName == VRTrackingVolumeDefinition::k_trackingRuntimePropertyId)
 	{
 		getVRTrackingVolumeDefinition()->setTrackingRuntime((eTrackingRuntime)inValue.getIntValue());
@@ -279,7 +275,7 @@ bool VRTrackingVolumeComponent::setPropertyValue(
 		return true;
 	}
 
-	return TrackingVolumeComponent::setPropertyValue(propertyDesc, inValue);
+	return TrackingVolumeComponent::setPropertyValue(propertyName, inValue);
 }
 
 // -- IFunctionInterface ----
