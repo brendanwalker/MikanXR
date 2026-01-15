@@ -54,6 +54,7 @@ public:
 	EditorObjectSystemDefinitionPtr getEditorSystemConfig();
 
 	virtual MikanComponentPtr getComponentById(int componentId) const override;
+	virtual bool getComponentIdList(const std::string& componentClassName, std::vector<int>& outComponentIdList) const override;
 
 	SceneComponentConstPtr getEditorScene() const { return m_sceneWeakPtr.lock(); }
 

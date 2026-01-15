@@ -5,6 +5,9 @@
 #include <functional>
 #include <string>
 
+/// The ID of a any Mikan Component
+using MikanComponentID = int32_t;
+
 /// The ID of a Compositor
 using MikanCompositorID = int32_t;
 

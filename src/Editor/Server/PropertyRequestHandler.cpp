@@ -35,6 +35,15 @@ bool PropertyRequestHandler::startup(MainWindow* mainWindow)
 	messageServer->setRequestHandler(
 		GetPropertyDescriptors::staticGetArchetype().getId(),
 		std::bind(&PropertyRequestHandler::getPropertyDescriptorsHandler, this, _1, _2));
+	messageServer->setRequestHandler(
+		ComponentGetValuesRequest::staticGetArchetype().getId(),
+		std::bind(&PropertyRequestHandler::getComponentValuesHandler, this, _1, _2));
+	messageServer->setRequestHandler(
+		GetComponentListRequest::staticGetArchetype().getId(),
+		std::bind(&PropertyRequestHandler::getComponentListHandler, this, _1, _2));
+	messageServer->setRequestHandler(
+		SystemGetValuesRequest::staticGetArchetype().getId(),
+		std::bind(&PropertyRequestHandler::getSystemValuesHandler, this, _1, _2));
 
 	return true;
 }
@@ -43,7 +52,7 @@ void PropertyRequestHandler::shutdown()
 {
 }
 
-// Scripting Events
+// Property Request Handlers
 void PropertyRequestHandler::setPropertyValueHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
@@ -194,8 +203,126 @@ void PropertyRequestHandler::getPropertyValueHandler(
 		}
 	}
 
-
 	writeTypedJsonResponse(request.requestId, getValueResponse, response);
+}
+
+void PropertyRequestHandler::getComponentValuesHandler(const ClientRequest& request, ClientResponse& response)
+{
+	ComponentGetValuesRequest componentValuesRequest;
+	if (!readTypedRequest(request.utf8RequestString, componentValuesRequest))
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
+		return;
+	}
+
+	const std::string& ownerSystemName = componentValuesRequest.ownerSystem.getValue();
+	MikanObjectSystemPtr objectSystem = getProjectManager()->getSystemByName(ownerSystemName);
+	if (!objectSystem)
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
+		return;
+	}
+
+	MikanComponentPtr componentPtr = objectSystem->getComponentById(componentValuesRequest.componentId);
+	if (!componentPtr)
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
+		return;
+	}
+
+	rfk::Struct const* valuesStruct = componentPtr->getClientAPIValuesStructType();
+	if (!valuesStruct)
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
+		return;
+	}
+
+	// Build the response
+	ComponentGetValuesResponse getValuesResponse = {};
+	getValuesResponse.ownerSystem = componentValuesRequest.ownerSystem;
+	getValuesResponse.componentClassName = componentPtr->getComponentClassName();
+
+	// Extract the values into the response polymorphic object
+	if (!extractEntityValues(
+			std::static_pointer_cast<IEntityAccessor>(componentPtr),
+			*valuesStruct, 
+			getValuesResponse.valuesObject))
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
+		return;
+	}
+
+	writeTypedJsonResponse(request.requestId, getValuesResponse, response);
+}
+
+void PropertyRequestHandler::getComponentListHandler(const ClientRequest& request, ClientResponse& response)
+{
+	GetComponentListRequest getComponentListRequest;
+	if (!readTypedRequest(request.utf8RequestString, getComponentListRequest))
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
+		return;
+	}
+
+	const std::string& ownerSystemName = getComponentListRequest.ownerSystem.getValue();
+	MikanObjectSystemPtr objectSystem = getProjectManager()->getSystemByName(ownerSystemName);
+	if (!objectSystem)
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
+		return;
+	}
+
+	// Build the response
+	ComponentListResponse componentListResponse = {};
+	const std::string& componentClassName = getComponentListRequest.componentClassName.getValue();
+	if (!objectSystem->getComponentIdList(componentClassName, componentListResponse.componentIdList))
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
+		return;
+	}
+
+	writeTypedJsonResponse(request.requestId, componentListResponse, response);
+}
+
+void PropertyRequestHandler::getSystemValuesHandler(const ClientRequest& request, ClientResponse& response)
+{
+	ComponentGetValuesRequest componentValuesRequest;
+	if (!readTypedRequest(request.utf8RequestString, componentValuesRequest))
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
+		return;
+	}
+
+	const std::string& ownerSystemName = componentValuesRequest.ownerSystem.getValue();
+	MikanObjectSystemPtr objectSystem = getProjectManager()->getSystemByName(ownerSystemName);
+	if (!objectSystem)
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
+		return;
+	}
+
+	rfk::Struct const* valuesStruct = objectSystem->getClientAPIValuesStructType();
+	if (!valuesStruct)
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
+		return;
+	}
+
+	// Build the response
+	SystemGetValuesResponse getValuesResponse = {};
+	getValuesResponse.ownerSystem = componentValuesRequest.ownerSystem;
+
+	// Extract the values into the response polymorphic object
+	if (!extractEntityValues(
+			std::static_pointer_cast<IEntityAccessor>(objectSystem),
+			*valuesStruct,
+			getValuesResponse.valuesObject))
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
+		return;
+	}
+
+	writeTypedJsonResponse(request.requestId, getValuesResponse, response);
 }
 
 void PropertyRequestHandler::setPropertyNotifyModeHandler(

@@ -4,6 +4,7 @@
 #include "MikanComponent.h"
 #include "MikanObject.h"
 #include "MikanObjectSystem.h"
+#include "MikanPropertyTypes.h"
 #include "MikanServer.h"
 #include "ProjectManager.h"
 #include "ScriptRequestHandler.h"
@@ -316,6 +317,12 @@ void MikanComponent::disposeScriptContext()
 
 	// Clean up the script context
 	m_scriptContext = nullptr;
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* MikanComponent::getClientAPIValuesStructType() const
+{
+	return &MikanComponentValues::staticGetArchetype();
 }
 
 // -- IPropertyInterface ----

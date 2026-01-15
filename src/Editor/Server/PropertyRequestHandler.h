@@ -14,6 +14,9 @@ public:
 protected:
 	void setPropertyValueHandler(const ClientRequest& request, ClientResponse& response);
 	void getPropertyValueHandler(const ClientRequest& request, ClientResponse& response);
+	void getComponentValuesHandler(const ClientRequest& request, ClientResponse& response);
+	void getComponentListHandler(const ClientRequest& request, ClientResponse& response);
+	void getSystemValuesHandler(const ClientRequest& request, ClientResponse& response);
 	void setPropertyNotifyModeHandler(const ClientRequest& request, ClientResponse& response);
 	void getPropertyDescriptorsHandler(const ClientRequest& request, ClientResponse& response);
 

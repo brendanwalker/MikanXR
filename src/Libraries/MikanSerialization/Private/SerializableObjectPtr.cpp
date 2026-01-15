@@ -86,7 +86,11 @@ namespace Serialization
 
 	void* PolymorphicObjectPtr::allocateByClassId(const std::size_t&& rfkClassId)
 	{
-		rfk::Struct const* objectClass = rfk::getDatabase().getStructById(rfkClassId);
+		return allocateByType(rfk::getDatabase().getStructById(rfkClassId));
+	}
+
+	void* PolymorphicObjectPtr::allocateByType(rfk::Struct const* objectClass)
+	{
 		if (objectClass != nullptr)
 		{
 			auto objectPtr= objectClass->makeSharedInstance<PolymorphicStruct>();

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BinarySerializer.h"
+#include "IEntityAccessor.h"
 #include "JsonDeserializer.h"
 #include "JsonSerializer.h"
 #include "InterprocessMessageServerInterface.h"
@@ -57,3 +58,8 @@ void writeTypedBinaryResponse(
 
 void writeSimpleJsonResponse(MikanRequestID requestId, MikanAPIResult result, ClientResponse& response);
 void writeSimpleBinaryResponse(MikanRequestID requestId, MikanAPIResult result, ClientResponse& response);
+
+bool extractEntityValues(
+	IEntityAccessorPtr entityAccessor,
+	const rfk::Struct& valuesStruct,
+	Serialization::PolymorphicObjectPtr& outValuesObject);

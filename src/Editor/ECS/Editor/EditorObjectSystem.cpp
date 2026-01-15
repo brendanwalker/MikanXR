@@ -226,6 +226,12 @@ MikanComponentPtr EditorObjectSystem::getComponentById(int componentId) const
 	return MikanComponentPtr();
 }
 
+bool EditorObjectSystem::getComponentIdList(const std::string& componentClassName, std::vector<int>& outComponentIdList) const
+{
+	// EditorObjectSystem doesn't manage ownership of components
+	return false;
+}
+
 void EditorObjectSystem::bindViewport(MikanViewportWeakPtr viewportWeakPtr)
 {
 	MikanViewportPtr viewportPtr= viewportWeakPtr.lock();

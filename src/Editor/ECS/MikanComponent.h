@@ -118,6 +118,7 @@ public:
 
 	// -- IEntityAccessor ----
 	virtual CommonConfigPtr getEntityConfig() override { return m_definition; }
+	virtual rfk::Struct const* getClientAPIValuesStructType() const;
 
 	// -- IPropertyInterface ----
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);

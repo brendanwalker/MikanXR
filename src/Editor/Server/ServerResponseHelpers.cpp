@@ -33,3 +33,41 @@ void writeSimpleBinaryResponse(MikanRequestID requestId, MikanAPIResult result, 
 		response.binaryData.clear();
 	}
 }
+
+bool extractEntityValues(
+	IEntityAccessorPtr entityAccessor,
+	const rfk::Struct& valuesStruct,
+	Serialization::PolymorphicObjectPtr& outValuesObject)
+{
+	outValuesObject.allocateByType(&valuesStruct);
+
+	// For some reason Refureku doesn't return fields in the order they were declared
+	// So we extract fields into a vector and sort them by memory offset
+	using FieldList = std::vector<rfk::Field const*>;
+	FieldList sortedFields;
+	valuesStruct.foreachField([](rfk::Field const& field, void* userData) -> bool {
+		FieldList* sortedFieldsPtr = reinterpret_cast<FieldList*>(userData);
+		sortedFieldsPtr->push_back(&field);
+		return true;
+		}, &sortedFields);
+
+	std::sort(sortedFields.begin(), sortedFields.end(),
+		[](rfk::Field const* a, rfk::Field const* b) {
+			return a->getMemoryOffset() < b->getMemoryOffset();
+		});
+
+	// Emit the fields
+	for (rfk::Field const* field : sortedFields)
+	{
+		const std::string fieldName = field->getName();
+		MikanVariant fieldValue;
+
+		// TODO
+		//if (!entityAccessor->getPropertyValue(fieldName, fieldValue))
+		//{
+		//	return false;
+		//}
+	}
+
+	return true;
+}

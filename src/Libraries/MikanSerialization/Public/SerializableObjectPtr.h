@@ -53,6 +53,8 @@ namespace Serialization NAMESPACE()
 			return getTypedPointerMutable<t_derived_class>();
 		}
 
+		void* allocateByType(rfk::Struct const* objectClass);
+
 		template <typename t_derived_class>
 		const t_derived_class* getTypedPointer() const
 		{

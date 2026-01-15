@@ -2,6 +2,7 @@
 #include "MikanObject.h"
 #include "MikanPropertyDatabase.h"
 #include "MikanVariantTypes.h"
+#include "MikanPropertyTypes.h"
 
 #include "assert.h"
 
@@ -88,4 +89,10 @@ void MikanObjectSystem::deleteAllObjects()
 void MikanObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
 {
 	propertyDatabase->registerPropertiesForSystem<MikanObjectSystem>();
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* MikanObjectSystem::getClientAPIValuesStructType() const
+{
+	return &MikanSystemValues::staticGetArchetype();
 }
