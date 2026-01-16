@@ -25,6 +25,12 @@ int MikanVariant::getIntValue() const
 	return value_ptr.getTypedPointer<MikanIntValue>()->value;
 }
 
+long MikanVariant::getLongValue() const
+{
+	assert(value_type == MikanVariantType::LONG);
+	return value_ptr.getTypedPointer<MikanLongValue>()->value;
+}
+
 float MikanVariant::getFloatValue() const
 {
 	assert(value_type == MikanVariantType::FLOAT);
@@ -91,10 +97,22 @@ const float MikanVariant::getVectorComponentValue(size_t index) const
 	}
 }
 
+const std::vector<bool>& MikanVariant::getBoolArrayValue() const
+{
+	assert(value_type == MikanVariantType::BOOL_ARRAY);
+	return value_ptr.getTypedPointer<MikanBoolArrayValue>()->value.getVector();
+}
+
 const std::vector<int>& MikanVariant::getIntArrayValue() const
 {
 	assert(value_type == MikanVariantType::INT_ARRAY);
 	return value_ptr.getTypedPointer<MikanIntArrayValue>()->value;
+}
+
+const Serialization::PolymorphicObjectPtr& MikanVariant::getPolymorphicObjectValue() const
+{
+	assert(value_type == MikanVariantType::POLYMORPHIC_OBJECT);
+	return value_ptr;
 }
 
 #if defined(MIKANAPI_REFLECTION_ENABLED) && defined(SERIALIZATION_REFLECTION_ENABLED)
@@ -107,6 +125,9 @@ void MikanVariant::setValue(const MikanVariant& other)
 		break;
 	case MikanVariantType::INT:
 		setValue(other.getIntValue());
+		break;
+	case MikanVariantType::LONG:
+		setValue(other.getLongValue());
 		break;
 	case MikanVariantType::FLOAT:
 		setValue(other.getFloatValue());
@@ -129,6 +150,9 @@ void MikanVariant::setValue(const MikanVariant& other)
 	case MikanVariantType::INT_ARRAY:
 		setValue(other.getIntArrayValue());
 		break;
+	case MikanVariantType::POLYMORPHIC_OBJECT:
+		setValue(other.getPolymorphicObjectValue());
+		break;
 	}
 }
 
@@ -142,6 +166,12 @@ void MikanVariant::setValue(int value)
 {
 	value_type = MikanVariantType::INT;
 	value_ptr.allocatedByType<MikanIntValue>()->value = value;
+}
+
+void MikanVariant::setValue(long value)
+{
+	value_type = MikanVariantType::LONG;
+	value_ptr.allocatedByType<MikanLongValue>()->value = value;
 }
 
 void MikanVariant::setValue(float value)
@@ -166,6 +196,15 @@ void MikanVariant::setValue(const std::string& value)
 {
 	value_type = MikanVariantType::STRING;
 	value_ptr.allocatedByType<MikanStringValue>()->value.setValue(value);
+}
+
+void MikanVariant::setValue(const std::vector<bool>& value)
+{
+	std::vector<bool>& value_array = 
+		value_ptr.allocatedByType<MikanBoolArrayValue>()->value.getVectorMutable();
+
+	value_type = MikanVariantType::BOOL_ARRAY;
+	value_array = value;
 }
 
 void MikanVariant::setValue(const std::vector<int>& value)
@@ -219,5 +258,11 @@ void MikanVariant::setVectorComponentValue(size_t index, float value)
 	default:
 		assert(false && "Invalid vector type");
 	}
+}
+
+void MikanVariant::setValue(const Serialization::PolymorphicObjectPtr& value)
+{
+	value_type = MikanVariantType::POLYMORPHIC_OBJECT;
+	value_ptr = value;
 }
 #endif // MIKANAPI_REFLECTION_ENABLED && SERIALIZATION_REFLECTION_ENABLED

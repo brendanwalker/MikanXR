@@ -93,7 +93,7 @@ namespace Serialization
 			}
 			else
 			{
-				return *reinterpret_cast<t_value_type*>(getInstance());
+				return *reinterpret_cast<const t_value_type*>(getInstance());
 			}
 		}
 

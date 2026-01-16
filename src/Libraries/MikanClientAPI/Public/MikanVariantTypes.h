@@ -23,6 +23,7 @@ enum class ENUM(Serialization::CodeGenModule("MikanVariantTypes")) MikanVariantT
 	// Primitive Types
 	BOOL ENUMVALUE_STRING("BOOL_TYPE"),
 	INT ENUMVALUE_STRING("INT_TYPE"),
+	LONG ENUMVALUE_STRING("LONG_TYPE"),
 	FLOAT ENUMVALUE_STRING("FLOAT_TYPE"),
 	DOUBLE ENUMVALUE_STRING("DOUBLE_TYPE"),
 	STRING ENUMVALUE_STRING("MK_STRING_TYPE"),
@@ -31,7 +32,11 @@ enum class ENUM(Serialization::CodeGenModule("MikanVariantTypes")) MikanVariantT
 	VECTOR4F ENUMVALUE_STRING("VECTOR4F_TYPE"),
 	
 	// Array Types
+	BOOL_ARRAY ENUMVALUE_STRING("BOOL_ARRAY_TYPE"),
 	INT_ARRAY ENUMVALUE_STRING("INT_ARRAY_TYPE"),
+
+	// Object Types
+	POLYMORPHIC_OBJECT ENUMVALUE_STRING("POLYMORPHIC_OBJECT_TYPE"),
 };
 
 /// Bundle containing all intrinsic video source properties
@@ -67,6 +72,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 
 	bool getBoolValue() const;
 	int getIntValue() const;
+	long getLongValue() const;
 	float getFloatValue() const;
 	double getDoubleValue() const;
 	const std::string& getStringValue() const;
@@ -74,12 +80,15 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	const MikanVector3f& getVector3fValue() const;
 	const MikanVector4f& getVector4fValue() const;
 	const float getVectorComponentValue(size_t index) const;
+	const std::vector<bool>& getBoolArrayValue() const;
 	const std::vector<int>& getIntArrayValue() const;
+	const Serialization::PolymorphicObjectPtr& getPolymorphicObjectValue() const;
 
 #if defined(MIKANAPI_REFLECTION_ENABLED) && defined(SERIALIZATION_REFLECTION_ENABLED)
 	void setValue(const MikanVariant& other);
 	void setValue(bool value);
 	void setValue(int value);
+	void setValue(long value);
 	void setValue(float value);
 	void setValue(double value);
 	void setValue(const char* value);
@@ -88,7 +97,9 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	void setValue(const MikanVector3f& value);
 	void setValue(const MikanVector4f& value);
 	void setVectorComponentValue(size_t index, float value);
+	void setValue(const std::vector<bool>& value);
 	void setValue(const std::vector<int>& value);
+	void setValue(const Serialization::PolymorphicObjectPtr& value);
 #endif // MIKANAPI_REFLECTION_ENABLED && SERIALIZATION_REFLECTION_ENABLED
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
@@ -123,6 +134,17 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanIntValue_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanLongValue
+	: public MikanVariantBase
+{
+	FIELD()
+	long value;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanLongValue_GENERATED
 #endif
 };
 
@@ -189,6 +211,17 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVector4fValue_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanBoolArrayValue
+	: public MikanVariantBase
+{
+	FIELD()
+	Serialization::BoolList value;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanBoolArrayValue_GENERATED
 #endif
 };
 

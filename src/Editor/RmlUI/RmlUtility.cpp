@@ -78,6 +78,9 @@ namespace Rml
 			case MikanVariantType::INT:
 				outRmlVariant = mkVariant.getIntValue();
 				break;
+			case MikanVariantType::LONG:
+				outRmlVariant = (int64_t)mkVariant.getLongValue();
+				break;
 			case MikanVariantType::FLOAT:
 				outRmlVariant = mkVariant.getFloatValue();
 				break;
@@ -138,6 +141,9 @@ namespace Rml
 				break;
 			case MikanVariantType::INT:
 				outMkVariant.setValue(rmlVariant.Get<int>());
+				break;
+			case MikanVariantType::LONG:
+				outMkVariant.setValue(rmlVariant.Get<long>());
 				break;
 			case MikanVariantType::FLOAT:
 				outMkVariant.setValue(rmlVariant.Get<float>());

@@ -12,6 +12,7 @@
 #include "MikanPropertyEvents.h"
 #include "MikanPropertyRequests.h"
 #include "ServerResponseHelpers.h"
+#include "ServerEntitySerializer.h"
 
 #include <functional>
 
@@ -198,10 +199,10 @@ void PropertyRequestHandler::getComponentValuesHandler(const ClientRequest& requ
 	getValuesResponse.componentClassName = componentPtr->getComponentClassName();
 
 	// Extract the values into the response polymorphic object
-	if (!extractEntityValues(
-			std::static_pointer_cast<IEntityAccessor>(componentPtr),
-			*valuesStruct, 
-			getValuesResponse.valuesObject))
+	if (!Serialization::serializeFromEntity(
+			std::static_pointer_cast<IEntityAccessor>(objectSystem),
+			getValuesResponse.valuesObject.allocateByType(valuesStruct),
+			*valuesStruct))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 		return;
@@ -268,10 +269,10 @@ void PropertyRequestHandler::getSystemValuesHandler(const ClientRequest& request
 	getValuesResponse.ownerSystem = componentValuesRequest.ownerSystem;
 
 	// Extract the values into the response polymorphic object
-	if (!extractEntityValues(
+	if (!Serialization::serializeFromEntity(
 			std::static_pointer_cast<IEntityAccessor>(objectSystem),
-			*valuesStruct,
-			getValuesResponse.valuesObject))
+			getValuesResponse.valuesObject.allocateByType(valuesStruct),
+			*valuesStruct))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 		return;
