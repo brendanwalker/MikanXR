@@ -643,15 +643,15 @@ void DrawLayerNode::rebuildStencilLists()
 
 			if (auto quadStencil = std::dynamic_pointer_cast<QuadStencilComponent>(stencilComponent))	
 			{	
-				m_quadStencilIds.push_back(quadStencil->getStencilComponentDefinition()->getStencilId());	
+				m_quadStencilIds.push_back(quadStencil->getStencilComponentDefinition()->getComponentId());	
 			}	
 			else if (auto boxStencil = std::dynamic_pointer_cast<BoxStencilComponent>(stencilComponent))	
 			{	
-				m_boxStencilIds.push_back(boxStencil->getStencilComponentDefinition()->getStencilId());	
+				m_boxStencilIds.push_back(boxStencil->getStencilComponentDefinition()->getComponentId());	
 			}	
 			else if (auto modelStencil = std::dynamic_pointer_cast<ModelStencilComponent>(stencilComponent))	
 			{	
-				m_modelStencilIds.push_back(modelStencil->getStencilComponentDefinition()->getStencilId());	
+				m_modelStencilIds.push_back(modelStencil->getStencilComponentDefinition()->getComponentId());	
 			}	
 		}	
 	}	
@@ -923,7 +923,7 @@ void DrawLayerNode::evaluateModelStencils(
 		for (ModelStencilComponentPtr stencil : modelStencilList)	
 		{	
 			auto stencilConfig = stencil->getModelStencilDefinition();	
-			const MikanStencilID stencilId = stencilConfig->getStencilId();	
+			const MikanStencilID stencilId = stencilConfig->getComponentId();	
 			MikanRenderModelResourcePtr renderModelResource =	
 				compositorGraph->getOrLoadStencilRenderModel(stencilConfig);	
 

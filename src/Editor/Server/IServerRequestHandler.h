@@ -14,7 +14,7 @@ public:
 	virtual ~IServerRequestHandler() {}
 
 	virtual bool startup(class MainWindow* mainWindow) = 0;
-	virtual void shutdown() = 0;
+	virtual void shutdown() {};
 
 	ProjectManagerPtr getProjectManager() const;
 	ProjectConfigPtr getProjectConfig() const;

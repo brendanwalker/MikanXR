@@ -1,6 +1,9 @@
 #pragma once
 
+#include "CommonConfigFwd.h"
+#include "ComponentFwd.h"
 #include "IServerRequestHandler.h"
+#include "ObjectSystemConfigFwd.h"
 #include "ScriptingFwd.h"
 
 class PropertyRequestHandler : public IServerRequestHandler
@@ -12,6 +15,12 @@ public:
 	virtual void shutdown() override;
 
 protected:
+	// Property Events
+	void onProjectConfigChanged(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
+	void onObjectSystemDefinitionChanged(MikanObjectSystemDefinitionPtr systemDefinition, const std::string& propertyName);
+	void onComponentDefinitionChanged(MikanComponentDefinitionPtr componentDefinition, const std::string& propertyName);
+
+	// Property Request Handlers
 	void setPropertyValueHandler(const ClientRequest& request, ClientResponse& response);
 	void getPropertyValueHandler(const ClientRequest& request, ClientResponse& response);
 	void getComponentValuesHandler(const ClientRequest& request, ClientResponse& response);
@@ -21,5 +30,6 @@ protected:
 	void getPropertyDescriptorsHandler(const ClientRequest& request, ClientResponse& response);
 
 private:
+	ProjectConfigWeakPtr m_projectConfig;
 	std::vector<CommonScriptContextWeakPtr> m_scriptContexts;
 };

@@ -3,8 +3,6 @@
 #include "StageRequestHandler.h"
 #include "MainWindow.h"
 #include "MikanServer.h"
-#include "MikanStageEvents.h"
-#include "MikanStageRequests.h"
 #include "ServerResponseHelpers.h"
 
 #include <functional>

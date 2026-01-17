@@ -67,6 +67,36 @@ const MikanVector4f& MikanVariant::getVector4fValue() const
 	return value_ptr.getTypedPointer<MikanVector4fValue>()->value;
 }
 
+const MikanQuatf& MikanVariant::getQuaternionfValue() const
+{
+	assert(value_type == MikanVariantType::QUATERNIONF);
+	return value_ptr.getTypedPointer<MikanQuatfValue>()->value;
+}
+
+const MikanVector2d& MikanVariant::getVector2dValue() const
+{
+	assert(value_type == MikanVariantType::VECTOR2D);
+	return value_ptr.getTypedPointer<MikanVector2dValue>()->value;
+}
+
+const MikanVector3d& MikanVariant::getVector3dValue() const
+{
+	assert(value_type == MikanVariantType::VECTOR3D);
+	return value_ptr.getTypedPointer<MikanVector3dValue>()->value;
+}
+
+const MikanVector4d& MikanVariant::getVector4dValue() const
+{
+	assert(value_type == MikanVariantType::VECTOR4D);
+	return value_ptr.getTypedPointer<MikanVector4dValue>()->value;
+}
+
+const MikanQuatd& MikanVariant::getQuaterniondValue() const
+{
+	assert(value_type == MikanVariantType::QUATERNIOND);
+	return value_ptr.getTypedPointer<MikanQuatdValue>()->value;
+}
+
 const float MikanVariant::getVectorComponentValue(size_t index) const
 {
 	const float* rawVectorPtr = nullptr;
@@ -109,6 +139,12 @@ const std::vector<int>& MikanVariant::getIntArrayValue() const
 	return value_ptr.getTypedPointer<MikanIntArrayValue>()->value;
 }
 
+const std::vector<float>& MikanVariant::getFloatArrayValue() const
+{
+	assert(value_type == MikanVariantType::FLOAT_ARRAY);
+	return value_ptr.getTypedPointer<MikanFloatArrayValue>()->value;
+}
+
 const Serialization::PolymorphicObjectPtr& MikanVariant::getPolymorphicObjectValue() const
 {
 	assert(value_type == MikanVariantType::POLYMORPHIC_OBJECT);
@@ -147,8 +183,29 @@ void MikanVariant::setValue(const MikanVariant& other)
 	case MikanVariantType::VECTOR4F:
 		setValue(other.getVector4fValue());
 		break;
+	case MikanVariantType::QUATERNIONF:
+		setValue(other.getQuaternionfValue());
+		break;
+	case MikanVariantType::VECTOR2D:
+		setValue(other.getVector2dValue());
+		break;
+	case MikanVariantType::VECTOR3D:
+		setValue(other.getVector3dValue());
+		break;
+	case MikanVariantType::VECTOR4D:
+		setValue(other.getVector4dValue());
+		break;
+	case MikanVariantType::QUATERNIOND:
+		setValue(other.getQuaterniondValue());
+		break;
+	case MikanVariantType::BOOL_ARRAY:
+		setValue(other.getBoolArrayValue());
+		break;
 	case MikanVariantType::INT_ARRAY:
 		setValue(other.getIntArrayValue());
+		break;
+	case MikanVariantType::FLOAT_ARRAY:
+		setValue(other.getFloatArrayValue());
 		break;
 	case MikanVariantType::POLYMORPHIC_OBJECT:
 		setValue(other.getPolymorphicObjectValue());
@@ -215,6 +272,14 @@ void MikanVariant::setValue(const std::vector<int>& value)
 	value_array = value;
 }
 
+void MikanVariant::setValue(const std::vector<float>& value)
+{
+	std::vector<float>& value_array = value_ptr.allocatedByType<MikanFloatArrayValue>()->value;
+
+	value_type = MikanVariantType::FLOAT_ARRAY;
+	value_array = value;
+}
+
 void MikanVariant::setValue(const MikanVector2f& value)
 {
 	value_type = MikanVariantType::VECTOR2F;
@@ -231,6 +296,36 @@ void MikanVariant::setValue(const MikanVector4f& value)
 {
 	value_type = MikanVariantType::VECTOR4F;
 	value_ptr.allocatedByType<MikanVector4fValue>()->value = value;
+}
+
+void MikanVariant::setValue(const MikanQuatf& value)
+{
+	value_type = MikanVariantType::QUATERNIONF;
+	value_ptr.allocatedByType<MikanQuatfValue>()->value = value;
+}
+
+void MikanVariant::setValue(const MikanVector2d& value)
+{
+	value_type = MikanVariantType::VECTOR2D;
+	value_ptr.allocatedByType<MikanVector2dValue>()->value = value;
+}
+
+void MikanVariant::setValue(const MikanVector3d& value)
+{
+	value_type = MikanVariantType::VECTOR3D;
+	value_ptr.allocatedByType<MikanVector3dValue>()->value = value;
+}
+
+void MikanVariant::setValue(const MikanVector4d& value)
+{
+	value_type = MikanVariantType::VECTOR4D;
+	value_ptr.allocatedByType<MikanVector4dValue>()->value = value;
+}
+
+void MikanVariant::setValue(const MikanQuatd& value)
+{
+	value_type = MikanVariantType::QUATERNIOND;
+	value_ptr.allocatedByType<MikanQuatdValue>()->value = value;
 }
 
 void MikanVariant::setVectorComponentValue(size_t index, float value)

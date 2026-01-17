@@ -56,7 +56,6 @@ public:
 	}
 
 	// Helper methods for compatibility
-	ModelStencilComponentPtr addNewModelStencil(const MikanStencilModelInfo& stencilInfo);
 	void getRelevantModelStencilList(
 		const std::vector<MikanStencilID>* allowedStencilIds,
 		const glm::vec3& cameraPosition,

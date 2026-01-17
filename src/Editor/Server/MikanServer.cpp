@@ -1,5 +1,4 @@
 //-- includes -----
-#include "AnchorRequestHandler.h"
 #include "CameraRequestHandler.h"
 #include "JsonDeserializer.h"
 #include "JsonSerializer.h"
@@ -12,10 +11,7 @@
 #include "MikanRenderTargetRequests.h"
 #include "MikanScriptRequests.h"
 #include "MikanServer.h"
-#include "MikanSpatialAnchorRequests.h"
 #include "MikanStencilRequests.h"
-#include "MikanVideoSourceRequests.h"
-#include "MikanVRDeviceRequests.h"
 #include "ProjectConfig.h"
 #include "PropertyRequestHandler.h"
 #include "RemoteControlManager.h"
@@ -26,7 +22,6 @@
 #include "StringUtils.h"
 #include "TextureSourceRequestHandler.h"
 #include "VideoSourceRequestHandler.h"
-#include "VRDeviceRequestHandler.h"
 #include "Version.h"
 #include "WebsocketInterprocessMessageServer.h"
 
@@ -48,7 +43,6 @@ MikanServer* MikanServer::m_instance= nullptr;
 
 MikanServer::MikanServer()
 	: m_messageServer(new WebsocketInterprocessMessageServer())
-	, m_anchorRequestHandler(new AnchorRequestHandler(this))
 	, m_cameraRequestHandler(new CameraRequestHandler(this))
 	, m_propertyRequestHandler(new PropertyRequestHandler(this))
 	, m_remoteControlManager(new RemoteControlManager(this))
@@ -57,14 +51,12 @@ MikanServer::MikanServer()
 	, m_stencilRequestHandler(new StencilRequestHandler(this))
 	, m_textureSourceRequestHandler(new TextureSourceRequestHandler(this))
 	, m_videoSourceRequestHandler(new VideoSourceRequestHandler(this))
-	, m_vrDeviceRequestHandler(new VRDeviceRequestHandler(this))
 {
 	m_instance= this;
 }
 
 MikanServer::~MikanServer()
 {
-	delete m_vrDeviceRequestHandler;
 	delete m_videoSourceRequestHandler;
 	delete m_textureSourceRequestHandler;
 	delete m_stencilRequestHandler;
@@ -73,7 +65,6 @@ MikanServer::~MikanServer()
 	delete m_renderTargetRequestHandler;
 	delete m_propertyRequestHandler;
 	delete m_cameraRequestHandler;
-	delete m_anchorRequestHandler;
 	delete m_messageServer;
 	m_instance= nullptr;
 }
@@ -89,12 +80,6 @@ bool MikanServer::startup(MainWindow* mainWindow)
 	if (!m_messageServer->initialize())
 	{
 		MIKAN_LOG_ERROR("MikanServer::startup()") << "Failed to initialize interprocess message server";
-		return false;
-	}
-
-	if (!m_anchorRequestHandler->startup(mainWindow))
-	{
-		MIKAN_LOG_ERROR("MikanServer::startup()") << "Failed to bind anchor request handlers";
 		return false;
 	}
 
@@ -146,12 +131,6 @@ bool MikanServer::startup(MainWindow* mainWindow)
 		return false;
 	}
 
-	if (!m_vrDeviceRequestHandler->startup(mainWindow))
-	{
-		MIKAN_LOG_ERROR("MikanServer::startup()") << "Failed to bind VR device request handlers";
-		return false;
-	}
-
 	// Websocket Event Handlers
 	m_messageServer->setSocketEventHandler(
 		WEBSOCKET_CONNECT_EVENT,
@@ -192,7 +171,6 @@ void MikanServer::shutdown()
 	m_clientConnections.clear();
 	m_messageServer->dispose();
 
-	m_anchorRequestHandler->shutdown();
 	m_cameraRequestHandler->shutdown();
 	m_propertyRequestHandler->shutdown();
 	m_scriptRequestHandler->shutdown();
@@ -201,7 +179,6 @@ void MikanServer::shutdown()
 	m_renderTargetRequestHandler->shutdown();
 	m_textureSourceRequestHandler->shutdown();
 	m_videoSourceRequestHandler->shutdown();
-	m_vrDeviceRequestHandler->shutdown();
 
 	m_ownerWindow = nullptr;
 }

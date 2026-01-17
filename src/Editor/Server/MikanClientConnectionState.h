@@ -24,7 +24,6 @@ public:
 	const std::string& getClientId() const;
 	bool isClientInfoValid() const { return !getClientId().empty(); }
 	inline class RenderTargetClientState* getRenderTargetClientState() const { return m_renderTargetClientState; }
-	inline class VRDeviceClientState* getVRDeviceClientState() const { return m_vrDeviceClientState; }
 
 	void setMikanClientInfo(const struct MikanClientInfo& clientInfo);
 	void clearMikanClientInfo();
@@ -45,6 +44,5 @@ private:
 	std::string m_connectionId;
 	MikanClientInfo m_clientInfo;
 	class RenderTargetClientState* m_renderTargetClientState = nullptr;
-	class VRDeviceClientState* m_vrDeviceClientState = nullptr;
 	PropertyNotifyDatabasePtr m_propertyNotifyDatabase;
 };

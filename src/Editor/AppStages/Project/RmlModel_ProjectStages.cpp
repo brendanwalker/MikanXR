@@ -60,7 +60,7 @@ bool RmlModel_ProjectStages::init(ProjectRmlModelContext* context)
 			{
 				if (cameraPtr && cameraPtr->getOwnerStageId() == m_selectedStageId)
 				{
-					outComponentIdList.push_back((int)cameraPtr->getCameraId());
+					outComponentIdList.push_back((int)cameraPtr->getComponentId());
 				}
 			}
 		});

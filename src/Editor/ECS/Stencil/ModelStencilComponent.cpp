@@ -97,21 +97,6 @@ void ModelStencilDefinition::setModelPath(const std::filesystem::path& path, boo
 	}
 }
 
-MikanStencilModelInfo ModelStencilDefinition::getModelInfo() const
-{
-	const std::string& modelName = getComponentName();
-	GlmTransform xform = getRelativeTransform();
-
-	MikanStencilModelInfo modelnfo = {};
-	modelnfo.stencil_id = m_stencilId;
-	modelnfo.parent_anchor_id = m_parentAnchorId;
-	modelnfo.relative_transform = glm_transform_to_MikanTransform(getRelativeTransform());
-	modelnfo.is_disabled = m_bIsDisabled;
-	modelnfo.stencil_name= modelName;
-
-	return modelnfo;
-}
-
 // -- ModelStencilComponent -----
 ModelStencilComponent::ModelStencilComponent(MikanObjectWeakPtr owner)
 	: StencilComponent(owner)
@@ -172,7 +157,7 @@ void ModelStencilComponent::customRender()
 		const glm::vec3 position = glm::vec3(xform[3]);
 
 		drawTransformedAxes(xform, 0.1f, 0.1f, 0.1f);
-		drawTextAtWorldPosition(style, position, L"Stencil %d", modelStencilDefinition->getStencilId());
+		drawTextAtWorldPosition(style, position, L"Stencil %d", modelStencilDefinition->getComponentId());
 	}
 }
 

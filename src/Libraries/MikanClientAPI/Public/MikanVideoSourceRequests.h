@@ -12,20 +12,6 @@
 // Video Source Request Types
 // ------
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) GetVideoSourceList :
-	public MikanRequest
-{
-public:
-	GetVideoSourceList()
-	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(GetVideoSourceList)
-	}
-
-	#ifdef MIKANAPI_REFLECTION_ENABLED
-	GetVideoSourceList_GENERATED
-	#endif
-};
-
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) GetVideoSourceMode :
 	public MikanRequest
 {
@@ -62,22 +48,6 @@ public:
 
 // Video Source Response Types
 // ------
-
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) MikanVideoSourceListResponse :
-	public MikanResponse
-{
-	MikanVideoSourceListResponse()
-	{
-		MIKAN_RESPONSE_TYPE_INFO_INIT(MikanVideoSourceListResponse)
-	}
-
-	FIELD()
-	Serialization::List<MikanVideoSourceID> video_source_id_list;
-
-	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanVideoSourceListResponse_GENERATED
-	#endif
-};
 
 /// Static properties about a video source
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) MikanVideoSourceModeResponse : 

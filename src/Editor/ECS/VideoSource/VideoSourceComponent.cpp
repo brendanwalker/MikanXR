@@ -12,7 +12,7 @@
 // -- VideoSourceDefinition -----
 const std::string VideoSourceDefinition::k_videoSourceIdPropertyId = "video_source_id";
 const std::string VideoSourceDefinition::k_videoSourceIntrinsicsPropertyId= "video_source_intrinsics";
-const std::string VideoSourceDefinition::k_hasValidIntrinsicsPropertyId = "are_intrinsics_valid";
+const std::string VideoSourceDefinition::k_intrinsicsTypePropertyId = "intrinsics_type";
 const std::string VideoSourceDefinition::k_isFrameMirroredPropertyId = "is_frame_mirrored";
 const std::string VideoSourceDefinition::k_isBufferMirroredPropertyId = "is_buffer_mirrored";
 const std::string VideoSourceDefinition::k_videoFrameQueueSizePropertyId = "video_frame_queue_size";
@@ -110,7 +110,10 @@ void VideoSourceDefinition::setCameraIntrinsics(
 	const MikanVideoSourceIntrinsics& cameraIntrinsics)
 {
 	m_intrinsics = cameraIntrinsics;
-	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_videoSourceIntrinsicsPropertyId));
+	notifyPropertyChanged(
+		ConfigPropertyChangeSet()
+		.addPropertyName(k_videoSourceIntrinsicsPropertyId)
+		.addPropertyName(k_intrinsicsTypePropertyId));
 }
 
 // -- VideoSourceComponent -----
@@ -220,7 +223,7 @@ bool VideoSourceComponent::getFrameRate(float& outFrameRate) const
 
 bool VideoSourceComponent::getCameraIntrinsics(MikanVideoSourceIntrinsics& out_camera_intrinsics) const
 {
-	if (!getVideoSourceDefinition()->hasCameraIntrinsics())
+	if (getVideoSourceDefinition()->getCameraIntrinsicsType() != MikanIntrinsicsType::INVALID_CAMERA_INTRINSICS)
 	{
 		out_camera_intrinsics = MikanVideoSourceIntrinsics();
 
@@ -371,8 +374,12 @@ void VideoSourceComponent::getPropertyDescriptors(std::vector<PropertyDescriptor
 			->setDefaultValue(DEFAULT_VIDEO_FRAME_QUEUE_SIZE));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			VideoSourceDefinition::k_hasValidIntrinsicsPropertyId, MikanVariantType::BOOL)
+			VideoSourceDefinition::k_intrinsicsTypePropertyId, MikanVariantType::INT)
 		->setReadOnly());
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			VideoSourceDefinition::k_videoSourceIntrinsicsPropertyId, MikanVariantType::POLYMORPHIC_OBJECT)
+		->setReadOnly());	
 }
 
 bool VideoSourceComponent::getPropertyValue(
@@ -399,9 +406,14 @@ bool VideoSourceComponent::getPropertyValue(
 		outValue = getVideoSourceDefinition()->getVideoFrameQueueSize();
 		return true;
 	}
-	else if (propertyName == VideoSourceDefinition::k_hasValidIntrinsicsPropertyId)
+	else if (propertyName == VideoSourceDefinition::k_intrinsicsTypePropertyId)
 	{
-		outValue = getVideoSourceDefinition()->hasCameraIntrinsics();
+		outValue = (int)getVideoSourceDefinition()->getCameraIntrinsicsType();
+		return true;
+	}
+	else if (propertyName == VideoSourceDefinition::k_videoSourceIntrinsicsPropertyId)
+	{
+		outValue = getVideoSourceDefinition()->getCameraIntrinsics().intrinsics_ptr;
 		return true;
 	}
 

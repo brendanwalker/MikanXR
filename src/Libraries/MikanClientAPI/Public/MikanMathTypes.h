@@ -40,6 +40,19 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVec
 	#endif
 };
 
+/// A 2D vector with double components.
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVector2d
+{
+	FIELD()
+		double x;
+	FIELD()
+		double y;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanVector2d_GENERATED
+#endif
+};
+
 /// A 3D vector with float components.
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVector3f
 {
@@ -71,7 +84,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVec
 #endif
 };
 
-
 /// A 3-tuple of Euler angles with float components.
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanRotator3f
 {
@@ -101,6 +113,23 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVec
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVector4f_GENERATED
+#endif
+};
+
+/// A 4D vector with double components.
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVector4d
+{
+	FIELD()
+	double x;
+	FIELD()
+	double y;
+	FIELD()
+	double z;
+	FIELD()
+	double w;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanVector4d_GENERATED
 #endif
 };
 

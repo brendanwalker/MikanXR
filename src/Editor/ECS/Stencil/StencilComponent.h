@@ -23,8 +23,6 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	MikanStencilID getStencilId() const { return m_stencilId; }
-
 	static const std::string k_parentAnchorPropertyId;
 	MikanStencilID getParentAnchorId() const { return m_parentAnchorId; }
 	void setParentAnchorId(MikanSpatialAnchorID anchorId);
@@ -38,7 +36,6 @@ public:
 	void setCullMode(eStencilCullMode mode);
 
 protected:
-	MikanStencilID m_stencilId= INVALID_MIKAN_ID;
 	MikanSpatialAnchorID m_parentAnchorId= INVALID_MIKAN_ID;
 	bool m_bIsDisabled= false;
 	eStencilCullMode m_cullMode= eStencilCullMode::none;

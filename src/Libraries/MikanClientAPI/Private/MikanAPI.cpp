@@ -6,46 +6,54 @@
 #include "JsonSerializer.h"
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
+#include "MikanAnchorTypes.rfks.h"
+
 #include "MikanAPITypes.rfks.h"
-#include "MikanVariantTypes.rfks.h"
-#include "MikanRenderTargetRequests.rfks.h"
+
 #include "MikanCameraEvents.rfks.h"
 #include "MikanCameraTypes.rfks.h"
-#include "MikanCameraRequests.rfks.h"
+
+#include "MikanComponentTypes.rfks.h"
+
 #include "MikanClientEvents.rfks.h"
 #include "MikanClientTypes.rfks.h"
 #include "MikanClientRequests.rfks.h"
+
 #include "MikanMathTypes.rfks.h"
+
 #include "MikanPropertyEvents.rfks.h"
 #include "MikanPropertyTypes.rfks.h"
 #include "MikanPropertyRequests.rfks.h"
+
 #include "MikanRemoteControlEvents.rfks.h"
 #include "MikanRemoteControlTypes.rfks.h"
 #include "MikanRemoteControlRequests.rfks.h"
-#include "MikanSceneEvents.rfks.h"
+
+#include "MikanRenderTargetRequests.rfks.h"
+
 #include "MikanSceneTypes.rfks.h"
-#include "MikanSceneRequests.rfks.h"
+
 #include "MikanScriptEvents.rfks.h"
 #include "MikanScriptTypes.rfks.h"
 #include "MikanScriptRequests.rfks.h"
-#include "MikanSpatialAnchorEvents.rfks.h"
-#include "MikanSpatialAnchorRequests.rfks.h"
-#include "MikanSpatialAnchorTypes.rfks.h"
-#include "MikanStageEvents.rfks.h"
+
 #include "MikanStageTypes.rfks.h"
-#include "MikanStageRequests.rfks.h"
-#include "MikanStencilEvents.rfks.h"
+
 #include "MikanStencilTypes.rfks.h"
 #include "MikanStencilRequests.rfks.h"
+
 #include "MikanTextureSourceEvents.rfks.h"
 #include "MikanTextureSourceTypes.rfks.h"
-#include "MikanTextureSourceRequests.rfks.h"
+
+#include "MikanTransformTypes.rfks.h"
+
+#include "MikanVariantTypes.rfks.h"
+
 #include "MikanVideoSourceEvents.rfks.h"
-#include "MikanVideoSourceTypes.rfks.h"
 #include "MikanVideoSourceRequests.rfks.h"
-#include "MikanVRDeviceEvents.rfks.h"
+#include "MikanVideoSourceTypes.rfks.h"
+
 #include "MikanVRDeviceTypes.rfks.h"
-#include "MikanVRDeviceRequests.rfks.h"
 #endif // MIKANAPI_REFLECTION_ENABLED
 
 class MikanAPI : public IMikanAPI

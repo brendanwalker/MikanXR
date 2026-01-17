@@ -932,11 +932,10 @@ void USBVideoSourceComponent::getPropertyDescriptors(std::vector<PropertyDescrip
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			USBVideoSourceDefinition::k_videoModePropertyId, MikanVariantType::STRING));
-
-	// Non-read/writable properties used to signal settings changes
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			USBVideoSourceDefinition::k_videoSettingsPropertyId));
+			USBVideoSourceDefinition::k_videoSettingsPropertyId, MikanVariantType::FLOAT)
+		->setReadOnly());
 }
 
 bool USBVideoSourceComponent::getPropertyValue(
@@ -956,6 +955,11 @@ bool USBVideoSourceComponent::getPropertyValue(
 	else if (propertyName == USBVideoSourceDefinition::k_videoModePropertyId)
 	{
 		outValue = getUSBVideoSourceDefinition()->getVideoMode();
+		return true;
+	}
+	else if (propertyName == USBVideoSourceDefinition::k_videoSettingsPropertyId)
+	{
+		outValue = std::vector<float>(m_currentVideoSettings.begin(), m_currentVideoSettings.end());
 		return true;
 	}
 

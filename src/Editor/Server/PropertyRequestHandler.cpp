@@ -4,13 +4,16 @@
 #include "MainWindow.h"
 #include "MikanComponent.h"
 #include "MikanClientConnectionState.h"
+#include "MikanObject.h"
 #include "MikanObjectSystem.h"
 #include "MikanServer.h"
 #include "MikanPropertyDatabase.h"
 #include "PropertyDatabaseEnumerator.h"
 #include "PropertyRequestHandler.h"
+#include "ProjectConfig.h"
 #include "MikanPropertyEvents.h"
 #include "MikanPropertyRequests.h"
+#include "MulticastDelegate.h"
 #include "ServerResponseHelpers.h"
 #include "ServerEntitySerializer.h"
 
@@ -23,7 +26,17 @@ bool PropertyRequestHandler::startup(MainWindow* mainWindow)
 {
 	IInterprocessMessageServer* messageServer = m_owner->getMessageServer();
 
-	// Script Requests	
+	// Property Change Callbacks
+	ProjectConfigPtr projectConfig = getProjectConfig();
+	if (projectConfig)
+	{
+		projectConfig->OnPropertyChanged += MakeDelegate(
+			this,
+			&PropertyRequestHandler::onProjectConfigChanged);
+		m_projectConfig = projectConfig;
+	}
+
+	// Property Requests	
 	messageServer->setRequestHandler(
 		PropertySetValueRequest::staticGetArchetype().getId(),
 		std::bind(&PropertyRequestHandler::setPropertyValueHandler, this, _1, _2));
@@ -51,6 +64,95 @@ bool PropertyRequestHandler::startup(MainWindow* mainWindow)
 
 void PropertyRequestHandler::shutdown()
 {
+	ProjectConfigPtr projectConfig = m_projectConfig.lock();
+	if (projectConfig)
+	{
+		projectConfig->OnPropertyChanged -= MakeDelegate(
+			this,
+			&PropertyRequestHandler::onProjectConfigChanged);
+	}
+}
+
+// Project Config Change Callbacks
+void PropertyRequestHandler::onProjectConfigChanged(
+	CommonConfigPtr configPtr,
+	const ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (auto systemDefinition = std::dynamic_pointer_cast<MikanObjectSystemDefinition>(configPtr))
+	{
+		for (const std::string& propertyName : changedPropertySet.getSet())
+		{
+			onObjectSystemDefinitionChanged(systemDefinition, propertyName);
+		}
+	}
+	else if (auto componentDefition = std::dynamic_pointer_cast<MikanComponentDefinition>(configPtr))
+	{
+		for (const std::string& propertyName : changedPropertySet.getSet())
+		{
+			onComponentDefinitionChanged(componentDefition, propertyName);
+		}
+	}
+}
+
+void PropertyRequestHandler::onObjectSystemDefinitionChanged(
+	MikanObjectSystemDefinitionPtr systemDefinition,
+	const std::string& propertyName)
+{
+	const MikanClientConnectionStateMap& clientConnections = m_owner->getConnectedClientStateMap();
+	if (clientConnections.empty())
+		return;
+
+	MikanObjectSystemPtr ownerSystem = systemDefinition->getOwnerSystem();
+	if (!ownerSystem)
+		return;
+
+	MikanPropertyValue propertyValue = {};
+	propertyValue.ownerSystem.setValue(ownerSystem->getObjectSystemClassName());
+	propertyValue.componentId = -1; // System properties use -1 for componentId
+	propertyValue.fieldName.setValue(propertyName);
+	if (!ownerSystem->getPropertyValue(propertyName, propertyValue.fieldValue))
+		return;
+
+	// Broadcast to all clients (depending on subscription settings)
+	for (auto& connection_it : clientConnections)
+	{
+		connection_it.second->publishPropertyChangedEvent(propertyValue);
+	}
+}
+
+void PropertyRequestHandler::onComponentDefinitionChanged(
+	MikanComponentDefinitionPtr componentDefinition,
+	const std::string& propertyName)
+{
+	const MikanClientConnectionStateMap& clientConnections = m_owner->getConnectedClientStateMap();
+	if (clientConnections.empty())
+		return;
+
+	MikanComponentPtr ownerComponent = componentDefinition->getOwnerComponent();
+	if (!ownerComponent)
+		return;
+
+	MikanObjectPtr ownerObject = ownerComponent->getOwnerObject();
+	if (!ownerObject)
+		return;
+
+	MikanObjectSystemPtr ownerSystem = ownerObject->getOwnerSystem();
+	if (!ownerSystem)
+		return;
+
+	MikanPropertyValue propertyValue = {};
+	propertyValue.ownerSystem.setValue(ownerSystem->getObjectSystemClassName());
+	propertyValue.ownerComponentClass.setValue(ownerComponent->getComponentClassName());
+	propertyValue.componentId = ownerComponent->getDefinition()->getComponentId();
+	propertyValue.fieldName.setValue(propertyName);
+	if (!ownerComponent->getPropertyValue(propertyName, propertyValue.fieldValue))
+		return;
+
+	// Broadcast to all clients (depending on subscription settings)
+	for (auto& connection_it : clientConnections)
+	{
+		connection_it.second->publishPropertyChangedEvent(propertyValue);
+	}
 }
 
 // Property Request Handlers

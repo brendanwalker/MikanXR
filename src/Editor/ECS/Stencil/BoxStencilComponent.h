@@ -22,8 +22,6 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	MikanStencilBoxInfo getBoxInfo() const;
-
 	static const std::string k_boxStencilXSizePropertyId;
 	float getBoxXSize() const { return m_boxSize.x; }
 	void setBoxXSize(float size);

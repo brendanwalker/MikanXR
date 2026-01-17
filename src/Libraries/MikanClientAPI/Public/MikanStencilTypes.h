@@ -3,6 +3,7 @@
 #include "MikanAPIExport.h"
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
+#include "MikanTransformTypes.h"
 #include "SerializableList.h"
 #include "SerializableString.h"
 #include "SerializationProperty.h"
@@ -11,69 +12,68 @@
 #include "MikanStencilTypes.rfkh.h"
 #endif
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilQuadInfo
+/// The list of possible vr device drivers used by MikanXR Client API
+enum ENUM(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilCullMode
+{
+	MikanStencilCullMode_NONE ENUMVALUE_STRING("NONE"),
+	MikanStencilCullMode_Z_AXIS ENUMVALUE_STRING("Z-Axis"),
+	MikanStencilCullMode_Y_AXIS ENUMVALUE_STRING("Y-Axis"),
+	MikanStencilCullMode_X_AXIS ENUMVALUE_STRING("X-Axis"),
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilComponentValues :
+	public MikanTransformComponentValues
 {
 	FIELD()
-	MikanStencilID stencil_id; // filled in on allocation
+	MikanStencilID parent_anchor_id;
 	FIELD()
-	MikanSpatialAnchorID parent_anchor_id; // if invalid, stencil is in world space
+	bool is_disabled;
 	FIELD()
-	MikanTransform relative_transform; // transform relative to parent anchor
+	MikanStencilCullMode cull_mode;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanStencilComponentValues_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanQuadStencilComponentValues :
+	public MikanStencilComponentValues
+{
 	FIELD()
 	float quad_width;
 	FIELD()
 	float quad_height;
 	FIELD()
 	bool is_double_sided;
-	FIELD()
-	bool is_disabled;
-	FIELD()
-	Serialization::String stencil_name;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanStencilQuadInfo_GENERATED
+	MikanQuadStencilComponentValues_GENERATED
 	#endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilBoxInfo
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanBoxStencilComponentValues :
+	public MikanStencilComponentValues
 {
-	FIELD()
-	MikanStencilID stencil_id; // filled in on allocation
-	FIELD()
-	MikanSpatialAnchorID parent_anchor_id; // if invalid, stencil is in world space
-	FIELD()
-	MikanTransform relative_transform; // transform relative to parent anchor
 	FIELD()
 	float box_x_size;
 	FIELD()
 	float box_y_size;
 	FIELD()
 	float box_z_size;
-	FIELD()
-	bool is_disabled;
-	FIELD()
-	Serialization::String stencil_name;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanStencilBoxInfo_GENERATED
+	MikanBoxStencilComponentValues_GENERATED
 	#endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilModelInfo
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanModelStencilComponentValues :
+	public MikanStencilComponentValues
 {
 	FIELD()
-	MikanStencilID stencil_id; // filled in on allocation
-	FIELD()
-	MikanSpatialAnchorID parent_anchor_id; // if invalid, stencil is in world space
-	FIELD()
-	MikanTransform relative_transform; // transform relative to parent anchor
-	FIELD()
-	bool is_disabled;
-	FIELD()
-	Serialization::String stencil_name;
+	Serialization::String model_path;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanStencilModelInfo_GENERATED
+	MikanModelStencilComponentValues_GENERATED
 	#endif
 };
 

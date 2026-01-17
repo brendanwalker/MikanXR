@@ -4,7 +4,6 @@
 #include "MainWindow.h"
 #include "MikanServer.h"
 #include "MikanTextureSourceEvents.h"
-#include "MikanTextureSourceRequests.h"
 #include "ServerResponseHelpers.h"
 #include "TextureSourceComponent.h"
 
@@ -15,11 +14,6 @@ using namespace std::placeholders;
 // -- TextureSourceRequestHandler -- //
 bool TextureSourceRequestHandler::startup(MainWindow* mainWindow)
 {
-	IInterprocessMessageServer* messageServer = m_owner->getMessageServer();
-
-	// Video Source Requests
-	//TODO
-
 	return true;
 }
 

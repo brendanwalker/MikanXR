@@ -315,7 +315,7 @@ void VRObjectSystem::onActiveDeviceListChanged(IVRDeviceManager* deviceManager)
 
 				if (existingVRDeice)
 				{
-					const MikanVRDeviceID vrDeviceId = existingVRDeice->getVRDeviceDefinition()->getVRDeviceId();
+					const MikanVRDeviceID vrDeviceId = existingVRDeice->getVRDeviceDefinition()->getComponentId();
 
 					pendingDeleteDeviceIds.erase(vrDeviceId);
 				}
@@ -382,18 +382,19 @@ VRDeviceComponentPtr VRObjectSystem::addNewVRDevice(
 	eTrackingRuntime trackingRuntime,
 	IVRDevice* vrDeviceInterface)
 {
-	const int vrFrameDelay = 0; // Use the latest pose for rendering
-	const std::string vrDevicePath = vrDeviceInterface->getDevicePath();
-
-	VRDevicePose pose = {};
-	vrDeviceInterface->getDevicePose(vrFrameDelay, pose);
-
 	VRDeviceComponentPtr vrDeviceComponent = 
 		Super::addNewObject(
-			[trackingRuntime, vrDevicePath, pose](VRDeviceDefinitionPtr def) {
+			[trackingRuntime, vrDeviceInterface](VRDeviceDefinitionPtr def) {
+				const eVRDeviceType deviceType = vrDeviceInterface->getDeviceType();
+				const std::string vrDevicePath = vrDeviceInterface->getDevicePath();
+				const int vrFrameDelay = 0; // Use the latest pose for rendering
+
+				VRDevicePose pose = {};
+				vrDeviceInterface->getDevicePose(vrFrameDelay, pose);
 				GlmTransform glmTransform = VRDevicePose_to_GlmTransform(pose);
 
 				def->setTrackingRuntimeType(trackingRuntime);
+				def->setVRDeviceIndex(vrDeviceInterface->getDeviceIndex());
 				def->setVRDevicePath(vrDevicePath);
 				def->setRelativeTransform(glmTransform);
  			});

@@ -30,10 +30,16 @@ enum class ENUM(Serialization::CodeGenModule("MikanVariantTypes")) MikanVariantT
 	VECTOR2F ENUMVALUE_STRING("VECTOR2F_TYPE"),
 	VECTOR3F ENUMVALUE_STRING("VECTOR3F_TYPE"),
 	VECTOR4F ENUMVALUE_STRING("VECTOR4F_TYPE"),
+	QUATERNIONF ENUMVALUE_STRING("QUATERNIONF_TYPE"),
+	VECTOR2D ENUMVALUE_STRING("VECTOR2D_TYPE"),
+	VECTOR3D ENUMVALUE_STRING("VECTOR3D_TYPE"),
+	VECTOR4D ENUMVALUE_STRING("VECTOR4D_TYPE"),
+	QUATERNIOND ENUMVALUE_STRING("QUATERNIOND_TYPE"),
 	
 	// Array Types
 	BOOL_ARRAY ENUMVALUE_STRING("BOOL_ARRAY_TYPE"),
 	INT_ARRAY ENUMVALUE_STRING("INT_ARRAY_TYPE"),
+	FLOAT_ARRAY ENUMVALUE_STRING("FLOAT_ARRAY_TYPE"),
 
 	// Object Types
 	POLYMORPHIC_OBJECT ENUMVALUE_STRING("POLYMORPHIC_OBJECT_TYPE"),
@@ -79,9 +85,15 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	const MikanVector2f& getVector2fValue() const;
 	const MikanVector3f& getVector3fValue() const;
 	const MikanVector4f& getVector4fValue() const;
+	const MikanQuatf& getQuaternionfValue() const;
+	const MikanVector2d& getVector2dValue() const;
+	const MikanVector3d& getVector3dValue() const;
+	const MikanVector4d& getVector4dValue() const;
+	const MikanQuatd& getQuaterniondValue() const;
 	const float getVectorComponentValue(size_t index) const;
 	const std::vector<bool>& getBoolArrayValue() const;
 	const std::vector<int>& getIntArrayValue() const;
+	const std::vector<float>& getFloatArrayValue() const;
 	const Serialization::PolymorphicObjectPtr& getPolymorphicObjectValue() const;
 
 #if defined(MIKANAPI_REFLECTION_ENABLED) && defined(SERIALIZATION_REFLECTION_ENABLED)
@@ -96,9 +108,15 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	void setValue(const MikanVector2f& value);
 	void setValue(const MikanVector3f& value);
 	void setValue(const MikanVector4f& value);
+	void setValue(const MikanQuatf& value);
+	void setValue(const MikanVector2d& value);
+	void setValue(const MikanVector3d& value);
+	void setValue(const MikanVector4d& value);
+	void setValue(const MikanQuatd& value);
 	void setVectorComponentValue(size_t index, float value);
 	void setValue(const std::vector<bool>& value);
 	void setValue(const std::vector<int>& value);
+	void setValue(const std::vector<float>& value);
 	void setValue(const Serialization::PolymorphicObjectPtr& value);
 #endif // MIKANAPI_REFLECTION_ENABLED && SERIALIZATION_REFLECTION_ENABLED
 
@@ -214,6 +232,61 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 #endif
 };
 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanQuatfValue
+	: public MikanVariantBase
+{
+	FIELD()
+	MikanQuatf value;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanQuatfValue_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanVector2dValue
+	: public MikanVariantBase
+{
+	FIELD()
+	MikanVector2d value;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanVector2dValue_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanVector3dValue
+	: public MikanVariantBase
+{
+	FIELD()
+	MikanVector3d value;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanVector3dValue_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanVector4dValue
+	: public MikanVariantBase
+{
+	FIELD()
+	MikanVector4d value;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanVector4dValue_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanQuatdValue
+	: public MikanVariantBase
+{
+	FIELD()
+	MikanQuatd value;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanQuatdValue_GENERATED
+#endif
+};
+
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanBoolArrayValue
 	: public MikanVariantBase
 {
@@ -233,6 +306,17 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanIntArrayValue_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanFloatArrayValue
+	: public MikanVariantBase
+{
+	FIELD()
+	Serialization::List<float> value;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanFloatArrayValue_GENERATED
 #endif
 };
 

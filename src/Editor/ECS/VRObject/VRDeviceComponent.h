@@ -2,9 +2,11 @@
 
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
+#include "IVRDevice.h"
 #include "VRDevicePoseView.h"
 #include "TransformComponent.h"
 #include "MikanTypeFwd.h"
+#include "MikanVRDeviceTypes.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectFwd.h"
 #include "ProjectConfigConstants.h"
@@ -24,21 +26,29 @@ public:
 	VRDeviceDefinition() = default;
 	VRDeviceDefinition(MikanVRDeviceID vrDeviceId);
 
+	static const std::string k_trackingRuntimeTypePropertyId;
 	eTrackingRuntime getTrackingRuntimeType() const { return m_trackingRuntime; }
-	inline void setTrackingRuntimeType(eTrackingRuntime trackingRuntime) { m_trackingRuntime = trackingRuntime; }
+	void setTrackingRuntimeType(eTrackingRuntime trackingRuntime);
 
-	inline MikanVRDeviceID getVRDeviceId() const { return m_vrDeviceId; }
-	inline void setVRDeviceId(MikanVRDeviceID vrDeviceId) { m_vrDeviceId = vrDeviceId; }
+	static const std::string k_vrDeviceIndexTypePropertyId;
+	inline size_t getVRDeviceIndex() const { return m_vrDeviceIndex; }
+	void setVRDeviceIndex(size_t vrDeviceIndex);
 
+	static const std::string k_vrDeviceTypePropertyId;
+	inline eVRDeviceType getVRDeviceType() const { return m_vrDeviceType; }
+	void setVRDeviceType(eVRDeviceType vrDeviceType);
+
+	static const std::string k_vrDevicePathTypePropertyId;
 	inline const std::string getVRDevicePath() const { return m_vrDevicePath; }
-	inline void setVRDevicePath(const std::string& vrDevicePath) { m_vrDevicePath = vrDevicePath; }
+	void setVRDevicePath(const std::string& vrDevicePath);
 
 	// VRDeviceDefinition is runtime only and isn't saved to the project file
 	virtual bool wantsSaveForPropertyChange(const ConfigPropertyChangeSet& changedPropertySet) const { return false; }
 
 private:
 	eTrackingRuntime m_trackingRuntime = eTrackingRuntime::INVALID;
-	MikanVRDeviceID m_vrDeviceId= -1;
+	size_t m_vrDeviceIndex= 0;
+	eVRDeviceType m_vrDeviceType = eVRDeviceType::INVALID;
 	std::string m_vrDevicePath;
 };
 
@@ -75,6 +85,10 @@ public:
 	void rebuildMeshComponents();
 
 	void refreshDevicePose();
+
+	// -- IPropertyInterface ----
+	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
+	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
 
 protected:
 	void updateWireframeMeshColor();

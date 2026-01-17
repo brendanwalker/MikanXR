@@ -13,7 +13,6 @@ public:
 	// Video Source Events
 	void publishVideoSourceOpenedEvent();
 	void publishVideoSourceClosedEvent();
-	void publishVideoSourceIntrinsicsChangedEvent();
 	void publishVideoSourceModeChangedEvent();
 
 protected:

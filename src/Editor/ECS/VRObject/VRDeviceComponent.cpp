@@ -25,13 +25,54 @@
 #include "VRObjectSystem.h"
 
 // -- VRDeviceConfig -----
+const std::string VRDeviceDefinition::k_trackingRuntimeTypePropertyId= "vr_device_api";
+const std::string VRDeviceDefinition::k_vrDeviceIndexTypePropertyId= "vr_device_index";
+const std::string VRDeviceDefinition::k_vrDeviceTypePropertyId= "vr_device_type";
+const std::string VRDeviceDefinition::k_vrDevicePathTypePropertyId= "vr_device_path";
+
 VRDeviceDefinition::VRDeviceDefinition(
 	MikanVRDeviceID vrDeviceId)
 	: TransformComponentDefinition(vrDeviceId)
 	, m_trackingRuntime(eTrackingRuntime::INVALID)
-	, m_vrDeviceId(vrDeviceId)
+	, m_vrDeviceIndex(0)
 	, m_vrDevicePath("")
 {}
+
+void VRDeviceDefinition::setTrackingRuntimeType(eTrackingRuntime trackingRuntime)
+{
+	if (m_trackingRuntime != trackingRuntime)
+	{
+		m_trackingRuntime = trackingRuntime;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_trackingRuntimeTypePropertyId));
+	}
+}
+
+void VRDeviceDefinition::setVRDeviceIndex(size_t vrDeviceIndex)
+{ 
+	if (m_vrDeviceIndex != vrDeviceIndex)
+	{
+		m_vrDeviceIndex = vrDeviceIndex;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_vrDeviceIndexTypePropertyId));
+	}
+}
+
+void VRDeviceDefinition::setVRDeviceType(eVRDeviceType vrDeviceType)
+{
+	if (m_vrDeviceType != vrDeviceType)
+	{
+		m_vrDeviceType = vrDeviceType;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_vrDeviceTypePropertyId));
+	}
+}
+
+void VRDeviceDefinition::setVRDevicePath(const std::string& vrDevicePath) 
+{ 
+	if (m_vrDevicePath != vrDevicePath)
+	{
+		m_vrDevicePath = vrDevicePath;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_vrDevicePathTypePropertyId));
+	}
+}
 
 // -- VRDeviceComponent -----
 VRDeviceComponent::VRDeviceComponent(MikanObjectWeakPtr owner)
@@ -410,4 +451,55 @@ void VRDeviceComponent::onInteractionUnselected()
 {
 	m_bIsSelected = false;
 	updateWireframeMeshColor();
+}
+
+// -- IPropertyInterface ----
+void VRDeviceComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+{
+	TransformComponent::getPropertyDescriptors(outDescriptors);
+
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			VRDeviceDefinition::k_trackingRuntimeTypePropertyId, MikanVariantType::INT)
+		->setReadOnly());
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			VRDeviceDefinition::k_vrDeviceIndexTypePropertyId, MikanVariantType::INT)
+		->setReadOnly());
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			VRDeviceDefinition::k_vrDeviceTypePropertyId, MikanVariantType::INT)
+		->setReadOnly());
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			VRDeviceDefinition::k_vrDevicePathTypePropertyId, MikanVariantType::STRING)
+		->setReadOnly());
+}
+
+bool VRDeviceComponent::getPropertyValue(
+	const std::string& propertyName,
+	MikanVariant& outValue) const
+{
+	if (propertyName == VRDeviceDefinition::k_trackingRuntimeTypePropertyId)
+	{
+		outValue = static_cast<int>(getVRDeviceDefinition()->getTrackingRuntimeType());
+		return true;
+	}
+	else if (propertyName == VRDeviceDefinition::k_vrDeviceIndexTypePropertyId)
+	{
+		outValue = static_cast<int>(getVRDeviceDefinition()->getVRDeviceIndex());
+		return true;
+	}
+	else if (propertyName == VRDeviceDefinition::k_vrDeviceTypePropertyId)
+	{
+		outValue = static_cast<int>(getVRDeviceDefinition()->getVRDeviceType());
+		return true;
+	}
+	else if (propertyName == VRDeviceDefinition::k_vrDevicePathTypePropertyId)
+	{
+		outValue = getVRDeviceDefinition()->getVRDevicePath();
+		return true;
+	}
+
+	return TransformComponent::getPropertyValue(propertyName, outValue);
 }

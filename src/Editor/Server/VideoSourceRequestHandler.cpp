@@ -45,13 +45,6 @@ void VideoSourceRequestHandler::publishVideoSourceClosedEvent()
 	m_owner->publishMikanJsonEvent(mikanTypeToJsonString(closedEvent));
 }
 
-void VideoSourceRequestHandler::publishVideoSourceIntrinsicsChangedEvent()
-{
-	MikanCameraIntrinsicsChangedEvent intrinsicsChangeEvent = {};
-
-	m_owner->publishMikanJsonEvent(mikanTypeToJsonString(intrinsicsChangeEvent));
-}
-
 void VideoSourceRequestHandler::publishVideoSourceModeChangedEvent()
 {
 	MikanVideoSourceModeChangedEvent modeChangeEvent = {};
@@ -122,7 +115,7 @@ void VideoSourceRequestHandler::getVideoSourceModeHandler(
 			info.resolution_x = pixelWidth;
 			info.resolution_y = pixelHeight;
 			info.video_mode_name = videoModeName;
-			info.video_source_api= deviceAPI;
+			info.video_source_api = deviceAPI;
 			// TODO: For the moment we only support monoscopic cameras.
 			info.video_source_type = MikanVideoSourceType_MONO;
 

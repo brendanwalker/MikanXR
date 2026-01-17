@@ -44,8 +44,8 @@ public:
 	inline const MikanVideoSourceIntrinsics& getCameraIntrinsics() const { return m_intrinsics; }
 	void setCameraIntrinsics(const MikanVideoSourceIntrinsics& cameraIntrinsics);
 
-	static const std::string k_hasValidIntrinsicsPropertyId;
-	inline bool hasCameraIntrinsics() const { return m_intrinsics.intrinsics_type != INVALID_CAMERA_INTRINSICS; }
+	static const std::string k_intrinsicsTypePropertyId;
+	inline MikanIntrinsicsType getCameraIntrinsicsType() const { return m_intrinsics.intrinsics_type; }
 
 private:
 	MikanVideoSourceID m_videoSourceId= INVALID_MIKAN_ID;

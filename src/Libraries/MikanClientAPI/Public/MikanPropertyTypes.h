@@ -45,6 +45,8 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyTypes")) Mika
 	FIELD()
 	Serialization::String ownerSystem;
 	FIELD()
+	Serialization::String ownerComponentClass;
+	FIELD()
 	int componentId;
 	FIELD()
 	Serialization::String fieldName;
@@ -54,22 +56,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyTypes")) Mika
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanPropertyValue_GENERATED
 	#endif // MIKANAPI_REFLECTION_ENABLED
-};
-
-/// Polymorphic Structure representing a component property values
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanComponentValues
-	: public Serialization::PolymorphicStruct
-{
-	FIELD()
-	int component_id;
-	FIELD()
-	Serialization::String component_name;
-	FIELD()
-	Serialization::String component_sript;
-
-#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanComponentValues_GENERATED
-#endif
 };
 
 /// Polymorphic Structure representing a system property values

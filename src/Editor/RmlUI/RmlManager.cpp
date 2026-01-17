@@ -14,7 +14,7 @@
 #include "MainWindow.h"
 #include "MarkerObjectSystem.h"
 #include "MarkerComponent.h"
-#include "MikanSpatialAnchorTypes.h"
+#include "MikanAnchorTypes.h"
 #include "MikanStencilTypes.h"
 #include "ProjectConfig.h"
 #include "ProjectManager.h"

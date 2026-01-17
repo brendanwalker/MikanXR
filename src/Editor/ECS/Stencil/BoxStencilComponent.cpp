@@ -54,24 +54,6 @@ void BoxStencilDefinition::readFromJSON(const configuru::Config& pt)
 	m_boxSize.z = pt.get_or<float>("box_z_size", 0.25f);
 }
 
-MikanStencilBoxInfo BoxStencilDefinition::getBoxInfo() const
-{
-	const std::string& boxName = getComponentName();
-	GlmTransform xform = getRelativeTransform();
-
-	MikanStencilBoxInfo boxInfo= {};
-	boxInfo.stencil_id = m_stencilId;
-	boxInfo.parent_anchor_id = m_parentAnchorId;
-	boxInfo.relative_transform = glm_transform_to_MikanTransform(getRelativeTransform());
-	boxInfo.box_x_size = m_boxSize.x;
-	boxInfo.box_y_size = m_boxSize.y;
-	boxInfo.box_z_size = m_boxSize.z;
-	boxInfo.is_disabled = m_bIsDisabled;
-	boxInfo.stencil_name= boxName;
-
-	return boxInfo;
-}
-
 void BoxStencilDefinition::setBoxXSize(float size)
 {
 	m_boxSize.x = size;
@@ -145,7 +127,7 @@ void BoxStencilComponent::customRender()
 		
 		drawTransformedBox(xform, half_extents, color);
 		drawTransformedAxes(xform, 0.1f, 0.1f, 0.1f);
-		drawTextAtWorldPosition(style, position, L"Stencil %d", boxDefinition->getStencilId());
+		drawTextAtWorldPosition(style, position, L"Stencil %d", boxDefinition->getComponentId());
 	}
 }
 

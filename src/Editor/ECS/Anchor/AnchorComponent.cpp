@@ -14,7 +14,7 @@
 #include "SelectionComponent.h"
 #include "StageObjectSystem.h"
 #include "MikanObject.h"
-#include "MikanSpatialAnchorTypes.h"
+#include "MikanAnchorTypes.h"
 #include "MathTypeConversion.h"
 #include "StringUtils.h"
 
@@ -24,14 +24,12 @@ const std::string AnchorDefinition::k_ownerStageIdPropertyId = "stage_id";
 AnchorDefinition::AnchorDefinition()
 	: TransformComponentDefinition()
 {
-	m_anchorId = INVALID_MIKAN_ID;
 	m_stageId = INVALID_MIKAN_ID;
 }
 
 AnchorDefinition::AnchorDefinition(
 	MikanSpatialAnchorID anchorId)
 	: TransformComponentDefinition(anchorId)
-	, m_anchorId(anchorId)
 {
 }
 
@@ -39,7 +37,6 @@ configuru::Config AnchorDefinition::writeToJSON()
 {
 	configuru::Config pt = TransformComponentDefinition::writeToJSON();
 
-	pt["id"] = m_anchorId;
 	pt[k_ownerStageIdPropertyId] = m_stageId;
 
 	return pt;
@@ -48,12 +45,6 @@ configuru::Config AnchorDefinition::writeToJSON()
 void AnchorDefinition::readFromJSON(const configuru::Config& pt)
 {
 	TransformComponentDefinition::readFromJSON(pt);
-
-	if (pt.has_key("id"))
-	{
-		m_anchorId = pt.get<int>("id");
-		m_configName = StringUtils::stringify("Anchor_", m_anchorId);
-	}
 
 	m_stageId = pt.get_or<int>(k_ownerStageIdPropertyId, m_stageId);
 }
@@ -165,21 +156,10 @@ StageComponentConstPtr AnchorComponent::getOwnerStageComponent() const
 	return getObjectSystemOfType<StageObjectSystem>()->getStageById(stageId);
 }
 
-void AnchorComponent::extractAnchorInfoForClientAPI(MikanSpatialAnchorInfo& outAnchorInfo) const
-{
-	const std::string anchorName = getName();
-	const GlmTransform anchorWorldTransform(getWorldTransform());
-	const MikanSpatialAnchorID anchorId = getAnchorDefinition()->getAnchorId();
-
-	outAnchorInfo.anchor_id = getAnchorDefinition()->getAnchorId();
-	outAnchorInfo.anchor_name= anchorName;
-	outAnchorInfo.world_transform = glm_transform_to_MikanTransform(anchorWorldTransform);
-}
-
 void AnchorComponent::editAnchor()
 {
 	AnchorDefinitionPtr definition= getAnchorDefinition();
-	MikanSpatialAnchorID anchorId= definition->getAnchorId();
+	MikanSpatialAnchorID anchorId= definition->getComponentId();
 	AnchorComponentPtr anchorComponent = 
 		getObjectSystemOfType<AnchorObjectSystem>()->getSpatialAnchorById(anchorId);
 	if (anchorComponent != nullptr)
@@ -191,7 +171,7 @@ void AnchorComponent::editAnchor()
 					MainWindow::getInstance()->pushAppStageOfType<AppStage_AnchorTriangulation>();
 
 				AnchorTriangulatorInfo anchorInfo = {
-					definition->getAnchorId(),
+					definition->getComponentId(),
 					definition->getOwnerStageId(),
 					definition->getRelativeTransform(),
 					definition->getComponentName()

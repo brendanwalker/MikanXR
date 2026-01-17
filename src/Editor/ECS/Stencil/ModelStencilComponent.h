@@ -24,8 +24,6 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	MikanStencilModelInfo getModelInfo() const;
-
 	static const std::string k_modelStencilObjPathPropertyId;
 	bool hasModelPath() const;
 	const std::filesystem::path getModelPath() const;

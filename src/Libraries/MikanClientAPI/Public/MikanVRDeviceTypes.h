@@ -2,6 +2,7 @@
 
 #include "MikanAPIExport.h"
 #include "MikanAPITypes.h"
+#include "MikanTransformTypes.h"
 #include "SerializableList.h"
 #include "SerializationProperty.h"
 
@@ -30,17 +31,20 @@ enum ENUM(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDeviceType
 
 
 // VR Device Response Types
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDeviceInfo
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDeviceComponentValues :
+	public MikanTransformComponentValues
 {
 	FIELD()
 	MikanVRDeviceApi vr_device_api;
 	FIELD()
 	MikanVRDeviceType vr_device_type;
 	FIELD()
-	Serialization::String device_path;
+	int vr_device_index;
+	FIELD()
+	Serialization::String vr_device_path;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanVRDeviceInfo_GENERATED
+	MikanVRDeviceComponentValues_GENERATED
 	#endif
 };
 

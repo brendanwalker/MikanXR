@@ -19,8 +19,6 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	MikanStencilQuadInfo getQuadInfo() const;
-
 	static const std::string k_quadStencilWidthPropertyId;
 	float getQuadWidth() const { return m_quadWidth; }
 	void setQuadWidth(float width);

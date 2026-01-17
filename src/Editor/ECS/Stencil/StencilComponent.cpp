@@ -14,7 +14,7 @@ const std::string StencilComponentDefinition::k_stencilDisabledPropertyId = "is_
 const std::string StencilComponentDefinition::k_stencilCullModePropertyId = "cull_mode";
 
 StencilComponentDefinition::StencilComponentDefinition()
-	: m_stencilId(INVALID_MIKAN_ID)
+	: TransformComponentDefinition()
 	, m_parentAnchorId(INVALID_MIKAN_ID)
 	, m_bIsDisabled(false)
 {
@@ -26,7 +26,6 @@ StencilComponentDefinition::StencilComponentDefinition(
 	const std::string& componentName, 
 	const MikanTransform& xform)
 	: TransformComponentDefinition(stencilId, componentName, xform)
-	, m_stencilId(stencilId)
 	, m_parentAnchorId(parentAnchorId)
 	, m_bIsDisabled(false)
 {
@@ -36,7 +35,6 @@ configuru::Config StencilComponentDefinition::writeToJSON()
 {
 	configuru::Config pt = TransformComponentDefinition::writeToJSON();
 
-	pt["stencil_id"] = m_stencilId;
 	pt[k_parentAnchorPropertyId] = m_parentAnchorId;
 	pt[k_stencilDisabledPropertyId] = m_bIsDisabled;
 	pt[k_stencilCullModePropertyId]= k_stencilCullModeStrings[(int)m_cullMode];
@@ -48,7 +46,6 @@ void StencilComponentDefinition::readFromJSON(const configuru::Config& pt)
 {
 	TransformComponentDefinition::readFromJSON(pt);
 
-	m_stencilId = pt.get<int>("stencil_id");
 	m_parentAnchorId = pt.get_or<int>(k_parentAnchorPropertyId, INVALID_MIKAN_ID);
 	m_bIsDisabled = pt.get_or<bool>(k_stencilDisabledPropertyId, false);
 

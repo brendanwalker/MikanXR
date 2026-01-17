@@ -10,24 +10,6 @@
 #include "MikanCameraEvents.rfkh.h"
 #endif
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraEvents")) MikanCameraNameUpdateEvent : 
-	public MikanEvent
-{
-	MikanCameraNameUpdateEvent()
-	{
-		MIKAN_EVENT_TYPE_INFO_INIT(MikanCameraNameUpdateEvent)
-	}
-
-	FIELD()
-	MikanCameraID camera_id;
-	FIELD()
-	Serialization::String camera_name;
-
-	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanCameraNameUpdateEvent_GENERATED
-	#endif
-};
-
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraEvents")) MikanCameraNewFrameEvent :
 	public MikanEvent
 {
@@ -50,44 +32,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraEvents")) Mikan
 	#endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraEvents")) MikanCameraAttachmentChangedEvent :
-	public MikanEvent
-{
-	MikanCameraAttachmentChangedEvent()
-	{
-		MIKAN_EVENT_TYPE_INFO_INIT(MikanCameraAttachmentChangedEvent)
-	}
-
-	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanCameraAttachmentChangedEvent_GENERATED
-	#endif
-};
-
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraEvents")) MikanCameraIntrinsicsChangedEvent :
-	public MikanEvent
-{
-	MikanCameraIntrinsicsChangedEvent()
-	{
-		MIKAN_EVENT_TYPE_INFO_INIT(MikanCameraIntrinsicsChangedEvent)
-	}
-
-	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanCameraIntrinsicsChangedEvent_GENERATED
-	#endif
-};
-
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSpatialCameraEvents")) MikanCameraListUpdateEvent : 
-	public MikanEvent
-{
-	MikanCameraListUpdateEvent()
-	{
-		MIKAN_EVENT_TYPE_INFO_INIT(MikanCameraListUpdateEvent)
-	}
-
-	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanCameraListUpdateEvent_GENERATED
-	#endif
-};
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 File_MikanCameraEvents_GENERATED

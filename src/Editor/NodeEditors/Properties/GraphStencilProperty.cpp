@@ -211,11 +211,11 @@ void GraphStencilProperty::saveToConfig(GraphPropertyConfigPtr config) const
 		StencilComponentConfigPtr definition= m_stencilComponent->getStencilComponentDefinition();
 
 		stencilPropConfig->stencilName = definition->getComponentName();
-		stencilPropConfig->id = definition->getStencilId();
+		stencilPropConfig->id = definition->getComponentId();
 		stencilPropConfig->stencilType = 
 			StencilUtils::getStencilType(
 				getOwnerGraph()->getOwnerProject(), 
-				definition->getStencilId());
+				definition->getComponentId());
 	}
 	else
 	{

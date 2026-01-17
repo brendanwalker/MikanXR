@@ -28,9 +28,6 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	MikanCameraID getCameraId() const { return m_cameraId; }
-	MikanCameraInfo getCameraInfo() const;
-
 	static const std::string k_ownerStageIdPropertyId;
 	inline MikanStageID getOwnerStageId() const { return m_stageId; }
 	void setOwnerStageId(MikanStageID stageId);
@@ -54,7 +51,6 @@ public:
 	void setAperturePoseOffset(const MikanQuatd& q, const MikanVector3d& p);
 
 private:
-	MikanCameraID m_cameraId = INVALID_MIKAN_ID;
 	MikanStageID m_stageId = INVALID_MIKAN_ID;
 	MikanTrackingMountID m_trackingMountId = INVALID_MIKAN_ID;
 	MikanVideoSourceID m_videoSourceId = INVALID_MIKAN_ID;
@@ -79,7 +75,7 @@ public:
 	{
 		return std::static_pointer_cast<CameraDefinition>(m_definition);
 	}
-	inline MikanCameraID getCameraId() const { return getCameraDefinition()->getCameraId(); }
+	inline MikanCameraID getCameraId() const { return getCameraDefinition()->getComponentId(); }
 	StageComponentConstPtr getOwnerStageComponent() const;
 	VRTrackingVolumeDefinitionConstPtr getVRTrackingVolumeDefinition() const;
 	VRTrackingVolumeDefinitionPtr getVRTrackingVolumeDefinitionMutable();

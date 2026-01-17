@@ -9,10 +9,7 @@
 #include "MikanClientEvents.h"
 #include "MikanCameraEvents.h"
 #include "MikanScriptEvents.h"
-#include "MikanStencilEvents.h"
-#include "MikanSpatialAnchorEvents.h"
 #include "MikanVideoSourceEvents.h"
-#include "MikanVRDeviceEvents.h"
 #include "MulticastDelegate.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
@@ -26,6 +23,7 @@
 class MikanClientConnectionState;
 using MikanClientConnectionStatePtr= std::shared_ptr<MikanClientConnectionState>;
 using MikanClientConnectionStateConstPtr= std::shared_ptr<const MikanClientConnectionState>;
+using MikanClientConnectionStateMap = std::map<std::string, MikanClientConnectionStatePtr>;
 
 //-- definitions -----
 class MikanServer
@@ -56,6 +54,7 @@ public:
 
 	MikanClientConnectionStatePtr getConnectedClientState(const std::string& connectionId) const;
 	void getConnectedClientStateList(std::vector<MikanClientConnectionStateConstPtr>& outClientList) const;
+	const MikanClientConnectionStateMap& getConnectedClientStateMap() { return m_clientConnections; }
 
 	MulticastDelegate<void(const std::string& clientId, const MikanClientInfo& clientInfo) > OnClientInitialized;
 	MulticastDelegate<void(const std::string& clientId)> OnClientDisposed;
@@ -82,7 +81,6 @@ private:
 
 	class IInterprocessMessageServer* m_messageServer;
 
-	class AnchorRequestHandler* m_anchorRequestHandler;
 	class CameraRequestHandler* m_cameraRequestHandler;
 	class PropertyRequestHandler* m_propertyRequestHandler;
 	class RemoteControlManager* m_remoteControlManager;
@@ -91,9 +89,8 @@ private:
 	class StencilRequestHandler* m_stencilRequestHandler;
 	class TextureSourceRequestHandler* m_textureSourceRequestHandler;
 	class VideoSourceRequestHandler* m_videoSourceRequestHandler;
-	class VRDeviceRequestHandler* m_vrDeviceRequestHandler;
 
 	ProjectConfigWeakPtr m_projectConfig;
 
-	std::map<std::string, MikanClientConnectionStatePtr> m_clientConnections;
+	MikanClientConnectionStateMap m_clientConnections;
 };

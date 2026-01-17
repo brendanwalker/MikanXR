@@ -23,14 +23,11 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	MikanSpatialAnchorID getAnchorId() const { return m_anchorId; }
-
 	static const std::string k_ownerStageIdPropertyId;
 	inline MikanStageID getOwnerStageId() const { return m_stageId; }
 	void setOwnerStageId(MikanStageID stageId);
 
 private:
-	MikanSpatialAnchorID m_anchorId;
 	MikanStageID m_stageId;
 };
 
@@ -49,8 +46,6 @@ public:
 		return std::static_pointer_cast<AnchorDefinition>(m_definition);
 	}
 	StageComponentConstPtr getOwnerStageComponent() const;
-
-	void extractAnchorInfoForClientAPI(struct MikanSpatialAnchorInfo& outAnchorInfo) const;
 
 	// -- IFunctionInterface ----
 	static const std::string k_editAnchorFunctionId;

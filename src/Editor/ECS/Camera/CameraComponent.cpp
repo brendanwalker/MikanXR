@@ -36,7 +36,6 @@ const std::string CameraDefinition::k_aperturePositionOffsetPropertyId = "apertu
 
 CameraDefinition::CameraDefinition()
 	: TransformComponentDefinition()
-	, m_cameraId(INVALID_MIKAN_ID)
 	, m_stageId(INVALID_MIKAN_ID)
 	, m_trackingMountId(INVALID_MIKAN_ID)
 	, m_videoSourceId(INVALID_MIKAN_ID)
@@ -49,7 +48,6 @@ CameraDefinition::CameraDefinition()
 CameraDefinition::CameraDefinition(
 	MikanCameraID cameraId)
 	: TransformComponentDefinition(cameraId)
-	, m_cameraId(cameraId)
 	, m_stageId(INVALID_MIKAN_ID)
 	, m_trackingMountId(INVALID_MIKAN_ID)
 	, m_videoSourceId(INVALID_MIKAN_ID)
@@ -61,7 +59,6 @@ configuru::Config CameraDefinition::writeToJSON()
 {
 	configuru::Config pt = TransformComponentDefinition::writeToJSON();
 
-	pt["id"] = m_cameraId;
 	pt["stage_id"] = m_stageId;
 	pt["tracking_mount_id"] = m_trackingMountId;
 	pt["video_source_id"] = m_videoSourceId;
@@ -77,7 +74,6 @@ void CameraDefinition::readFromJSON(const configuru::Config& pt)
 {
 	TransformComponentDefinition::readFromJSON(pt);
 
-	m_cameraId = pt.get<int>("id");
 	m_stageId = pt.get_or<int>("stage_id", m_stageId);
 	m_trackingMountId = pt.get_or<int>("tracking_mount_id", m_trackingMountId);
 	m_videoSourceId = pt.get_or<int>("video_source_id", m_videoSourceId);
@@ -85,22 +81,6 @@ void CameraDefinition::readFromJSON(const configuru::Config& pt)
 
 	readQuaterniond(pt, "aperture_orientation_offset", m_apertureOrientationOffset);
 	readVector3d(pt, "aperture_position_offset", m_aperturePositionOffset);
-}
-
-MikanCameraInfo CameraDefinition::getCameraInfo() const
-{
-	const std::string& cameraName = getComponentName();
-	MikanTransform relativeXform = glm_transform_to_MikanTransform(getRelativeTransform());
-
-	MikanCameraInfo cameraInfo = {};
-	cameraInfo.camera_id = m_cameraId;
-	cameraInfo.camera_name = cameraName;
-	cameraInfo.stage_id = m_stageId;
-	cameraInfo.tracking_mount_id = m_trackingMountId;
-	cameraInfo.video_source_id = m_videoSourceId;
-	cameraInfo.tracking_frame_delay = m_trackingFrameDelay;
-
-	return cameraInfo;
 }
 
 void CameraDefinition::setOwnerStageId(MikanStageID stageId)

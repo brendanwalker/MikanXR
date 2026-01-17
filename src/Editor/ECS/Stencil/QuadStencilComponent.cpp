@@ -61,24 +61,6 @@ void QuadStencilDefinition::readFromJSON(const configuru::Config& pt)
 	m_bIsDoubleSided = pt.get_or<bool>("is_double_sided", false);
 }
 
-MikanStencilQuadInfo QuadStencilDefinition::getQuadInfo() const
-{
-	const std::string& quadName = getComponentName();
-	GlmTransform xform = getRelativeTransform();
-
-	MikanStencilQuadInfo quadInfo= {};
-	quadInfo.stencil_id = m_stencilId;
-	quadInfo.parent_anchor_id = m_parentAnchorId;
-	quadInfo.relative_transform = glm_transform_to_MikanTransform(getRelativeTransform());
-	quadInfo.quad_width= m_quadWidth;
-	quadInfo.quad_height= m_quadHeight;
-	quadInfo.is_double_sided= m_bIsDoubleSided;
-	quadInfo.is_disabled= m_bIsDisabled;
-	quadInfo.stencil_name= quadName;
-
-	return quadInfo;
-}
-
 void QuadStencilDefinition::setQuadWidth(float width)
 {
 	m_quadWidth = width;
@@ -151,7 +133,7 @@ void QuadStencilComponent::customRender()
 
 		drawTransformedQuad(xform, quadDefinition->getQuadWidth(), quadDefinition->getQuadHeight(), color);
 		drawTransformedAxes(xform, 0.1f, 0.1f, 0.1f);
-		drawTextAtWorldPosition(style, position, L"Stencil %d", quadDefinition->getStencilId());
+		drawTextAtWorldPosition(style, position, L"Stencil %d", quadDefinition->getComponentId());
 	}
 }
 

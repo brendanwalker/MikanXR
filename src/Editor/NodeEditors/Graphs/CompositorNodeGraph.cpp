@@ -298,7 +298,7 @@ void CompositorNodeGraph::gatherAllReferencedClientSourceIDs(
 MikanRenderModelResourcePtr CompositorNodeGraph::getOrLoadStencilRenderModel(
 	ModelStencilDefinitionPtr stencilDefinition)
 {
-	MikanStencilID stencilId= stencilDefinition->getStencilId();
+	MikanStencilID stencilId= stencilDefinition->getComponentId();
 	auto it = m_stencilMeshCache.find(stencilId);
 
 	if (it != m_stencilMeshCache.end())
@@ -327,7 +327,7 @@ MikanRenderModelResourcePtr CompositorNodeGraph::getOrLoadStencilRenderModel(
 
 MikanRenderModelResourcePtr CompositorNodeGraph::getOrLoadDepthRenderModel(ModelStencilDefinitionPtr stencilDefinition)
 {
-	MikanStencilID stencilId = stencilDefinition->getStencilId();
+	MikanStencilID stencilId = stencilDefinition->getComponentId();
 	auto it = m_depthMeshCache.find(stencilId);
 
 	if (it != m_depthMeshCache.end())
@@ -387,7 +387,7 @@ void CompositorNodeGraph::onStencilSystemConfigMarkedDirty(
 		{
 			// Flush the models we have loaded for the given stencil.
 			// We'll reload it next time the compositor renders the stencil.
-			flushStencilRenderModel(modelStencilConfig->getStencilId());
+			flushStencilRenderModel(modelStencilConfig->getComponentId());
 		}
 	}
 }

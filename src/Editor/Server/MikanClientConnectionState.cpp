@@ -5,7 +5,6 @@
 #include "PropertyNotifyDatabase.h"
 #include "RenderTargetRequestHandler.h"
 #include "ServerResponseHelpers.h"
-#include "VRDeviceRequestHandler.h"
 
 MikanClientConnectionState::MikanClientConnectionState(
 	MikanServer* ownerServer,
@@ -13,7 +12,6 @@ MikanClientConnectionState::MikanClientConnectionState(
 	: m_ownerServer(ownerServer)
 	, m_connectionId(connectionId)
 	, m_renderTargetClientState(new RenderTargetClientState(this))
-	, m_vrDeviceClientState(new VRDeviceClientState(this))
 	, m_propertyNotifyDatabase(
 		std::make_shared<PropertyNotifyDatabase>(
 			ownerServer->getProjectManager()->getPropertyDatabaseConst()))
@@ -22,7 +20,6 @@ MikanClientConnectionState::MikanClientConnectionState(
 MikanClientConnectionState::~MikanClientConnectionState()
 {
 	delete m_renderTargetClientState;
-	delete m_vrDeviceClientState;
 }
 
 const std::string& MikanClientConnectionState::getClientId() const
@@ -76,7 +73,8 @@ void MikanClientConnectionState::publishPropertyChangedEvent(const MikanProperty
 	if (notifyMode != MikanPropertyNotifyMode::NONE)
 	{
 		MikanPropertyUpdateEvent propertyUpdateEvent = {};
-		propertyUpdateEvent.propertyValue.ownerSystem = propertyValue.ownerSystem;
+		propertyUpdateEvent.propertyValue = propertyValue;
+		propertyUpdateEvent.propertyValue.ownerComponentClass = propertyValue.ownerComponentClass;
 		propertyUpdateEvent.propertyValue.componentId = propertyValue.componentId;
 		propertyUpdateEvent.propertyValue.fieldName = propertyValue.fieldName;
 
@@ -88,6 +86,5 @@ void MikanClientConnectionState::publishPropertyChangedEvent(const MikanProperty
 		m_ownerServer->getMessageServer()->sendMessageToClient(
 			getConnectionId(), 
 			mikanTypeToJsonString(propertyUpdateEvent));
-
 	}
 }
