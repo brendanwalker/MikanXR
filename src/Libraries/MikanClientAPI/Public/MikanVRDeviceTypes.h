@@ -14,19 +14,19 @@
 //-----------------
 
 /// The list of possible vr device drivers used by MikanXR Client API
-enum ENUM(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDeviceApi
+enum class ENUM(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDeviceApi
 {
-	MikanVRDeviceApi_INVALID ENUMVALUE_STRING("INVALID"),
-	MikanVRDeviceApi_STEAM_VR ENUMVALUE_STRING("STEAM_VR"),
+	INVALID ENUMVALUE_STRING("INVALID"),
+	STEAM_VR ENUMVALUE_STRING("STEAM_VR"),
 };
 
 /// The list of possible vr device types used by MikanXR Client API
-enum ENUM(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDeviceType
+enum class ENUM(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDeviceType
 {
-	MikanVRDeviceType_INVALID ENUMVALUE_STRING("INVALID"),
-	MikanVRDeviceType_HMD ENUMVALUE_STRING("HMD"),
-	MikanVRDeviceType_CONTROLLER ENUMVALUE_STRING("CONTROLLER"),
-	MikanVRDeviceType_TRACKER ENUMVALUE_STRING("TRACKER")
+	INVALID ENUMVALUE_STRING("INVALID"),
+	HMD ENUMVALUE_STRING("HMD"),
+	CONTROLLER ENUMVALUE_STRING("CONTROLLER"),
+	TRACKER ENUMVALUE_STRING("TRACKER")
 };
 
 
@@ -34,6 +34,9 @@ enum ENUM(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDeviceType
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDeviceComponentValues :
 	public MikanTransformComponentValues
 {
+	static const char* k_componentClassName;
+	static const char* k_ownerSystemName;
+
 	FIELD()
 	MikanVRDeviceApi vr_device_api;
 	FIELD()

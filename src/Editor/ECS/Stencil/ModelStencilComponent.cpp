@@ -541,7 +541,7 @@ void ModelStencilComponent::alignStencil()
 void ModelStencilComponent::bindLuaFunctions(lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
-		.deriveClass<ModelStencilComponent, StencilComponent>("ModelStencilComponent")
+		.deriveClass<ModelStencilComponent, StencilComponent>(ModelStencilComponent::k_componentClassName.c_str())
 		.addProperty("modelPath",
 			[](ModelStencilComponent* component) -> std::string {
 				return component->getModelStencilDefinition()->getModelPath().string();

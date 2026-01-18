@@ -219,7 +219,7 @@ bool QuadStencilComponent::setPropertyValue(
 void QuadStencilComponent::bindLuaFunctions(lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
-		.deriveClass<QuadStencilComponent, StencilComponent>("QuadStencilComponent")
+		.deriveClass<QuadStencilComponent, StencilComponent>(QuadStencilComponent::k_componentClassName.c_str())
 		.addProperty("quadWidth",
 			[](QuadStencilComponent* component) -> float {
 				return component->getQuadStencilDefinition()->getQuadWidth();

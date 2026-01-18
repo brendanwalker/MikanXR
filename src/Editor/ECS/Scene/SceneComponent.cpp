@@ -28,14 +28,12 @@ const std::string SceneComponentDefinition::k_displayCompositorIdPropertyId = "d
 
 SceneComponentDefinition::SceneComponentDefinition()
 	: TransformComponentDefinition()
-	, m_sceneId(INVALID_MIKAN_ID)
 	, m_parentStageId(INVALID_MIKAN_ID)
 {}
 
 SceneComponentDefinition::SceneComponentDefinition(
 	MikanSceneID sceneId)
 	: TransformComponentDefinition(sceneId, "", glm_transform_to_MikanTransform(GlmTransform()))
-	, m_sceneId(sceneId)
 	, m_parentStageId(INVALID_MIKAN_ID)
 {}
 
@@ -43,7 +41,6 @@ configuru::Config SceneComponentDefinition::writeToJSON()
 {
 	configuru::Config pt = TransformComponentDefinition::writeToJSON();
 
-	pt["scene_id"] = m_sceneId;
 	pt[k_parentStagePropertyId] = m_parentStageId;
 	readStdValueVector(pt, "compositors", m_compositorIDs);
 	pt[k_displayCompositorIdPropertyId] = m_displayCompositorId;
@@ -55,7 +52,6 @@ void SceneComponentDefinition::readFromJSON(const configuru::Config& pt)
 {
 	TransformComponentDefinition::readFromJSON(pt);
 
-	m_sceneId = pt.get<int>("scene_id");
 	m_parentStageId = pt.get_or<int>(k_parentStagePropertyId, INVALID_MIKAN_ID);
 	readStdValueVector(pt, "compositors", m_compositorIDs);
 	m_displayCompositorId = pt.get_or<int>(k_displayCompositorIdPropertyId, INVALID_MIKAN_ID);
@@ -320,6 +316,10 @@ void SceneComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstP
 		->setDefaultValue(-1));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
+			SceneComponentDefinition::k_compositorListPropertyId, MikanVariantType::INT_ARRAY)
+		->setReadOnly());
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
 			SceneComponentDefinition::k_displayCompositorIdPropertyId, MikanVariantType::INT)
 		->setDefaultValue(-1));
 }
@@ -338,7 +338,11 @@ bool SceneComponent::getPropertyValue(
 		outValue = getSceneComponentDefinition()->getDisplayCompositorId();
 		return true;
 	}
-
+	else if (propertyName == SceneComponentDefinition::k_compositorListPropertyId)
+	{
+		outValue = getSceneComponentDefinition()->getCompositorIDs();
+		return true;
+	}
 	return TransformComponent::getPropertyValue(propertyName, outValue);
 }
 
@@ -428,7 +432,7 @@ void SceneComponent::removeCompositorRef()
 void SceneComponent::bindLuaFunctions(struct lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
-		.deriveClass<SceneComponent, TransformComponent>("SceneComponent")
+		.deriveClass<SceneComponent, TransformComponent>(SceneComponent::k_componentClassName.c_str())
 		.addProperty("parentStageId",
 			[](SceneComponent* component) -> int {
 				return component->getSceneComponentDefinition()->getParentStageId();

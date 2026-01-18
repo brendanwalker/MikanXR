@@ -184,7 +184,6 @@ USBVideoSourceComponentPtr USBVideoSourceSystem::getUSBVideoSourceByPath(const s
 USBVideoSourceComponentPtr USBVideoSourceSystem::addNewUSBVideoSource()
 {
 	// If available, get the first connected device by default
-    MikanUSBVideoSourceInfo videoSourceInfo = {};
     if (m_usbVideoDeviceManager && m_usbVideoDeviceManager->getDeviceCount() > 0)
     {
 		// Find the first valid device with at least one video mode
@@ -207,16 +206,13 @@ USBVideoSourceComponentPtr USBVideoSourceSystem::addNewUSBVideoSource()
         IUsbVideoDevice* usbVideoDevice = m_usbVideoDeviceManager->getDeviceByIndex(firstValidDeviceIdex);
         if (usbVideoDevice)
         {
-            const char* videoModeName = usbVideoDevice->getVideoModeName();
-
-            videoSourceInfo.usb_source_name.setValue(usbVideoDevice->getFriendlyName());
-            videoSourceInfo.device_path.setValue(usbVideoDevice->getDevicePath());
-            videoSourceInfo.video_mode.setValue(videoModeName ? videoModeName : "<INVALID>");
-            videoSourceInfo.intrinsics.intrinsics_type= INVALID_CAMERA_INTRINSICS;
-
 			// Use base class method with custom definition init
-			return Super::addNewObject([&videoSourceInfo](USBVideoSourceDefinitionPtr def) {
-				def->setUSBVideoSourceInfo(videoSourceInfo);
+			return Super::addNewObject([usbVideoDevice](USBVideoSourceDefinitionPtr def) {
+				const char* videoModeName = usbVideoDevice->getVideoModeName();
+
+				def->setComponentName(usbVideoDevice->getFriendlyName());
+				def->setDevicePath(usbVideoDevice->getDevicePath());
+				def->setVideoMode(videoModeName ? videoModeName : "<INVALID>");
 			});
         }
 	}

@@ -460,7 +460,7 @@ void NetworkVideoSourceComponent::notifyVideoFrameReceived(
 	const bool is_buffer_flipped = definition->getIsBufferMirrored();
 
 	// Fetch the latest video buffer frame from the device
-	if (intrinsics.intrinsics_type == STEREO_CAMERA_INTRINSICS)
+	if (intrinsics.intrinsics_type == MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS)
 	{
 		const auto& stereoIntrinsics = intrinsics.getStereoIntrinsics();
 		const int section_width = (int)stereoIntrinsics.pixel_width;

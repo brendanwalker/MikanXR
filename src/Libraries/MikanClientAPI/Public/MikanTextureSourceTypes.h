@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MikanAPIExport.h"
+#include "MikanComponentTypes.h"
 #include "SerializableString.h"
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
@@ -8,24 +9,39 @@
 #endif
 
 // -- Structures -----
-
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTextureSourceTypes")) MikanClientTextureSourceInfo
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTextureSourceTypes")) MikanTextureSourceValues :
+	public MikanComponentValues
 {
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanTextureSourceValues_GENERATED
+#endif // MIKANAPI_REFLECTION_ENABLED
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTextureSourceTypes")) MikanClientTextureSourceValues :
+	public MikanTextureSourceValues
+{
+	static const char* k_componentClassName;
+	static const char* k_ownerSystemName;
+
 	FIELD()
-	Serialization::String client_source_name; ///< The name of the client video source
+	Serialization::String client_source; ///< The name of the client video source
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanClientTextureSourceInfo_GENERATED
+	MikanClientTextureSourceValues_GENERATED
 	#endif // MIKANAPI_REFLECTION_ENABLED
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTextureSourceTypes")) MikanSpoutTextureSourceInfo
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTextureSourceTypes")) MikanSpoutTextureSourceValues :
+	public MikanTextureSourceValues
 {
+	static const char* k_componentClassName;
+	static const char* k_ownerSystemName;
+
 	FIELD()
-	Serialization::String spout_source_name; ///< The name of the spout video source
+	Serialization::String spout_source; ///< The name of the spout video source
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanSpoutTextureSourceInfo_GENERATED
+	MikanSpoutTextureSourceValues_GENERATED
 	#endif // MIKANAPI_REFLECTION_ENABLED
 };
 

@@ -17,8 +17,6 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	void setUSBVideoSourceInfo(const MikanUSBVideoSourceInfo& usbVideoSourceInfo);
-
 	static const std::string k_desiredDevicePathPropertyId;
 	inline const std::string& getDevicePath() const { return m_devicePath; }
 	void setDevicePath(const std::string& devicePath);

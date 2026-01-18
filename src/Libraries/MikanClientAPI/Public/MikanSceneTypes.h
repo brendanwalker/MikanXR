@@ -3,6 +3,7 @@
 #include "MikanAPIExport.h"
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
+#include "MikanTransformTypes.h"
 #include "SerializableList.h"
 #include "SerializableString.h"
 #include "SerializationProperty.h"
@@ -11,19 +12,21 @@
 #include "MikanSceneTypes.rfkh.h"
 #endif
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSceneTypes")) MikanSceneInfo
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSceneTypes")) MikanSceneComponentValues : 
+	public MikanTransformComponentValues
 {
-	FIELD()
-	MikanSceneID scene_id;
-	FIELD()
-	Serialization::String scene_name;
+	static const char* k_componentClassName;
+	static const char* k_ownerSystemName;
+
 	FIELD()
 	MikanStageID parent_stage_id;
+	FIELD()
+	Serialization::List<MikanCompositorID> compositor_list;
 	FIELD()
 	MikanCompositorID output_compositor_id;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanSceneInfo_GENERATED
+	MikanSceneComponentValues_GENERATED
 	#endif
 };
 

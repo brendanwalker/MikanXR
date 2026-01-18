@@ -54,7 +54,7 @@ struct MonoLensTrackerCalibrationState
 		// Get the current camera intrinsics being used by the video source
 		MikanVideoSourceIntrinsics cameraIntrinsics;
 		cameraComponent->getApertureIntrinsics(cameraIntrinsics);
-		assert(cameraIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
+		assert(cameraIntrinsics.intrinsics_type == MikanIntrinsicsType::MONO_CAMERA_INTRINSICS);
 
 		inputCameraIntrinsics = cameraIntrinsics.getMonoIntrinsics();
 		desiredSampleCount = patternCount;

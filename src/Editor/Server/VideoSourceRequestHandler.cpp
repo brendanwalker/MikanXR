@@ -117,7 +117,7 @@ void VideoSourceRequestHandler::getVideoSourceModeHandler(
 			info.video_mode_name = videoModeName;
 			info.video_source_api = deviceAPI;
 			// TODO: For the moment we only support monoscopic cameras.
-			info.video_source_type = MikanVideoSourceType_MONO;
+			info.video_source_type = MikanVideoSourceType::MONO;
 
 			writeTypedJsonResponse(request.requestId, info, response);
 		}

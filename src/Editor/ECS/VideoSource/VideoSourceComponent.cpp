@@ -10,7 +10,6 @@
 #include <easy/profiler.h>
 
 // -- VideoSourceDefinition -----
-const std::string VideoSourceDefinition::k_videoSourceIdPropertyId = "video_source_id";
 const std::string VideoSourceDefinition::k_videoSourceIntrinsicsPropertyId= "video_source_intrinsics";
 const std::string VideoSourceDefinition::k_intrinsicsTypePropertyId = "intrinsics_type";
 const std::string VideoSourceDefinition::k_isFrameMirroredPropertyId = "is_frame_mirrored";
@@ -19,14 +18,12 @@ const std::string VideoSourceDefinition::k_videoFrameQueueSizePropertyId = "vide
 
 VideoSourceDefinition::VideoSourceDefinition()
 	: MikanComponentDefinition()
-	, m_videoSourceId(INVALID_MIKAN_ID)
 	, m_intrinsics()
 {}
 
 VideoSourceDefinition::VideoSourceDefinition(
 	MikanVideoSourceID videoSourceId)
 	: MikanComponentDefinition(videoSourceId, "")
-	, m_videoSourceId(videoSourceId)
 	, m_intrinsics()
 {}
 
@@ -34,18 +31,17 @@ configuru::Config VideoSourceDefinition::writeToJSON()
 {
 	configuru::Config pt = MikanComponentDefinition::writeToJSON();
 
-	pt[VideoSourceDefinition::k_videoSourceIdPropertyId] = m_videoSourceId;
 	pt[VideoSourceDefinition::k_isFrameMirroredPropertyId] = m_bIsFrameMirrored;
 	pt[VideoSourceDefinition::k_isBufferMirroredPropertyId] = m_bIsBufferMirrored;
 	pt[VideoSourceDefinition::k_videoFrameQueueSizePropertyId] = m_videoFrameQueueSize;
 
 	switch (m_intrinsics.intrinsics_type)
 	{
-		case MONO_CAMERA_INTRINSICS:
+		case MikanIntrinsicsType::MONO_CAMERA_INTRINSICS:
 			pt["intrinsics_type"] = std::string("mono");
 			CommonConfig::writeMonoTrackerIntrinsics(pt, m_intrinsics.getMonoIntrinsics());
 			break;
-		case STEREO_CAMERA_INTRINSICS:
+		case MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS:
 			pt["intrinsics_type"] = std::string("stereo");
 			CommonConfig::writeStereoTrackerIntrinsics(pt, m_intrinsics.getStereoIntrinsics());
 			break;
@@ -58,7 +54,6 @@ void VideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 {
 	MikanComponentDefinition::readFromJSON(pt);
 
-	m_videoSourceId = pt.get_or<MikanVideoSourceID>("video_source_id", m_videoSourceId);
 	m_bIsFrameMirrored = pt.get_or<bool>("is_frame_mirrored", false);
 	m_bIsBufferMirrored = pt.get_or<bool>("is_buffer_mirrored", false);
 	m_videoFrameQueueSize = pt.get_or<int>("video_frame_queue_size", 10);
@@ -75,7 +70,7 @@ void VideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 	{
 		MikanStereoIntrinsics stereoIntrinsics = {};
 		CommonConfig::readStereoTrackerIntrinsics(pt, stereoIntrinsics);
-		m_intrinsics.intrinsics_type = STEREO_CAMERA_INTRINSICS;
+		m_intrinsics.intrinsics_type = MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS;
 
 		m_intrinsics.makeStereoIntrinsics() = stereoIntrinsics;
 	}
@@ -152,7 +147,7 @@ bool VideoSourceComponent::hasNewVideoFrameAvailable(VideoFrameSection section) 
 	{
 		int64_t lastFrameWriteIndex = 0;
 
-		if (intrinsics.intrinsics_type == STEREO_CAMERA_INTRINSICS)
+		if (intrinsics.intrinsics_type == MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS)
 		{
 			if ((section == VideoFrameSection::Left || section == VideoFrameSection::Right) &&
 				m_opencv_buffer_state[(int)section] != nullptr)
@@ -182,7 +177,7 @@ int64_t VideoSourceComponent::readVideoFrameSectionBuffer(VideoFrameSection sect
 	MikanVideoSourceIntrinsics intrinsics;
 	if (getCameraIntrinsics(intrinsics))
 	{
-		if (intrinsics.intrinsics_type == STEREO_CAMERA_INTRINSICS)
+		if (intrinsics.intrinsics_type == MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS)
 		{
 			if ((section == VideoFrameSection::Left || section == VideoFrameSection::Right) &&
 				m_opencv_buffer_state[(int)section] != nullptr)
@@ -279,7 +274,7 @@ bool VideoSourceComponent::reallocateOpencvBufferState()
 		return false;
 
 	// Allocate the OpenCV scratch buffers used for finding tracking blobs
-	if (intrinsics.intrinsics_type == STEREO_CAMERA_INTRINSICS)
+	if (intrinsics.intrinsics_type == MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS)
 	{
 		const MikanStereoIntrinsics& stereoIntrinsics = intrinsics.getStereoIntrinsics();
 
@@ -294,7 +289,7 @@ bool VideoSourceComponent::reallocateOpencvBufferState()
 				stereoIntrinsics.pixel_width, stereoIntrinsics.pixel_width,
 				VideoFrameSection::Right);
 	}
-	else if (intrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS)
+	else if (intrinsics.intrinsics_type == MikanIntrinsicsType::MONO_CAMERA_INTRINSICS)
 	{
 		const MikanMonoIntrinsics& monoIntrinsics = intrinsics.getMonoIntrinsics();
 
@@ -336,7 +331,7 @@ void VideoSourceComponent::recomputeCameraProjectionMatrix()
 	{
 		switch (intrinsics.intrinsics_type)
 		{
-			case MONO_CAMERA_INTRINSICS:
+			case MikanIntrinsicsType::MONO_CAMERA_INTRINSICS:
 			{
 				const MikanMonoIntrinsics& monoIntrinsics = intrinsics.getMonoIntrinsics();
 
@@ -344,7 +339,7 @@ void VideoSourceComponent::recomputeCameraProjectionMatrix()
 					monoIntrinsics,
 					m_projectionMatrix);
 			} break;
-			case STEREO_CAMERA_INTRINSICS:
+			case MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS:
 			{
 				const MikanStereoIntrinsics& stereoIntrinsics = intrinsics.getStereoIntrinsics();
 
@@ -386,12 +381,7 @@ bool VideoSourceComponent::getPropertyValue(
 	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	if (propertyName == VideoSourceDefinition::k_videoSourceIdPropertyId)
-	{
-		outValue = getVideoSourceId();
-		return true;
-	}
-	else if (propertyName == VideoSourceDefinition::k_isFrameMirroredPropertyId)
+	if (propertyName == VideoSourceDefinition::k_isFrameMirroredPropertyId)
 	{
 		outValue = getVideoSourceDefinition()->getIsFrameMirrored();
 		return true;

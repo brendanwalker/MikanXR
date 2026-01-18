@@ -56,6 +56,53 @@
 #include "MikanVRDeviceTypes.rfks.h"
 #endif // MIKANAPI_REFLECTION_ENABLED
 
+#include "MikanAnchorTypes.h"
+#include "MikanCameraTypes.h"
+#include "MikanSceneTypes.h"
+#include "MikanStageTypes.h"
+#include "MikanStencilTypes.h"
+#include "MikanTextureSourceTypes.h"
+#include "MikanVideoSourceTypes.h"
+#include "MikanVRDeviceTypes.h"
+
+// Static component class name and owner system name definitions
+const char* MikanAnchorComponentValues::k_componentClassName = "AnchorComponent";
+const char* MikanAnchorComponentValues::k_ownerSystemName = "AnchorObjectSystem";
+
+const char* MikanCameraComponentValues::k_componentClassName = "CameraComponent";
+const char* MikanCameraComponentValues::k_ownerSystemName = "CameraObjectSystem";
+
+const char* MikanSceneComponentValues::k_componentClassName = "SceneComponent";
+const char* MikanSceneComponentValues::k_ownerSystemName = "SceneObjectSystem";
+
+const char* MikanStageComponentValues::k_componentClassName = "StageComponent";
+const char* MikanStageComponentValues::k_ownerSystemName = "StageObjectSystem";
+
+const char* MikanQuadStencilComponentValues::k_componentClassName = "QuadStencilComponent";
+const char* MikanQuadStencilComponentValues::k_ownerSystemName = "QuadStencilObjectSystem";
+
+const char* MikanBoxStencilComponentValues::k_componentClassName = "BoxStencilComponent";
+const char* MikanBoxStencilComponentValues::k_ownerSystemName = "BoxStencilObjectSystem";
+
+const char* MikanModelStencilComponentValues::k_componentClassName = "ModelStencilComponent";
+const char* MikanModelStencilComponentValues::k_ownerSystemName = "ModelStencilObjectSystem";
+
+const char* MikanClientTextureSourceValues::k_componentClassName = "ClientTextureSourceComponent";
+const char* MikanClientTextureSourceValues::k_ownerSystemName = "ClientTextureSourceSystem";
+
+const char* MikanSpoutTextureSourceValues::k_componentClassName = "SpoutTextureSourceComponent";
+const char* MikanSpoutTextureSourceValues::k_ownerSystemName = "SpoutTextureSourceSystem";
+
+const char* MikanNetworkVideoSourceValues::k_componentClassName = "NetworkVideoSourceComponent";
+const char* MikanNetworkVideoSourceValues::k_ownerSystemName = "NetworkVideoSourceSystem";
+
+const char* MikanUSBVideoSourceValues::k_componentClassName = "USBVideoSourceComponent";
+const char* MikanUSBVideoSourceValues::k_ownerSystemName = "USBVideoSourceSystem";
+
+const char* MikanVRDeviceComponentValues::k_componentClassName = "VRDeviceComponent";
+const char* MikanVRDeviceComponentValues::k_ownerSystemName = "VRObjectSystem";
+
+// -- MikanAPI Implementation -----
 class MikanAPI : public IMikanAPI
 {
 public:

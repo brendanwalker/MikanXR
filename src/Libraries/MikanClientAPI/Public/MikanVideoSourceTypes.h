@@ -11,17 +11,43 @@
 #endif
 
 // -- Constants -----
-enum ENUM(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoSourceType
+enum class ENUM(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoSourceType
 {
-	MikanVideoSourceType_MONO ENUMVALUE_STRING("MONO"),
-	MikanVideoSourceType_STEREO ENUMVALUE_STRING("STEREO")
+	MONO ENUMVALUE_STRING("MONO"),
+	STEREO ENUMVALUE_STRING("STEREO")
 };
 
-enum ENUM(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanIntrinsicsType
+enum class ENUM(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanIntrinsicsType
 {
 	INVALID_CAMERA_INTRINSICS ENUMVALUE_STRING("INVALID"),
-	MONO_CAMERA_INTRINSICS  ENUMVALUE_STRING("MONO_CAMERA_INTRINSICS"),
-	STEREO_CAMERA_INTRINSICS  ENUMVALUE_STRING("STEREO_CAMERA_INTRINSICS"),
+	MONO_CAMERA_INTRINSICS ENUMVALUE_STRING("MONO_CAMERA_INTRINSICS"),
+	STEREO_CAMERA_INTRINSICS ENUMVALUE_STRING("STEREO_CAMERA_INTRINSICS"),
+};
+
+enum class ENUM(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoSettingType
+{
+	INVALID ENUMVALUE_STRING("INVALID") = -1,
+
+	BRIGHTNESS ENUMVALUE_STRING("Brightness"),
+	CONTRAST ENUMVALUE_STRING("Contrast"),
+	HUE ENUMVALUE_STRING("Hue"),
+	SATURATION ENUMVALUE_STRING("Saturation"),
+	SHARPNESS ENUMVALUE_STRING("Sharpness"),
+	GAMMA ENUMVALUE_STRING("Gamma"),
+	WHITE_BALANCE ENUMVALUE_STRING("WhiteBalance"),
+	RED_BALANCE ENUMVALUE_STRING("RedBalance"),
+	GREEN_BALANCE ENUMVALUE_STRING("GreenBalance"),
+	BLUE_BALANCE ENUMVALUE_STRING("BlueBalance"),
+	GAIN ENUMVALUE_STRING("Gain"),
+	PAN ENUMVALUE_STRING("Pan"),
+	TILT ENUMVALUE_STRING("Tilt"),
+	ROLL ENUMVALUE_STRING("Roll"),
+	ZOOM ENUMVALUE_STRING("Zoom"),
+	EXPOSURE ENUMVALUE_STRING("Exposure"),
+	IRIS ENUMVALUE_STRING("Iris"),
+	FOCUS ENUMVALUE_STRING("Focus"),
+
+	COUNT ENUMVALUE_STRING("Count"),
 };
 
 // -- Structures -----
@@ -148,12 +174,12 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 
 	MikanVideoSourceIntrinsics()
 		: intrinsics_ptr()
-		, intrinsics_type(INVALID_CAMERA_INTRINSICS)
+		, intrinsics_type(MikanIntrinsicsType::INVALID_CAMERA_INTRINSICS)
 	{}
 
 	const MikanMonoIntrinsics& getMonoIntrinsics() const
 	{
-		assert(intrinsics_type == MONO_CAMERA_INTRINSICS);
+		assert(intrinsics_type == MikanIntrinsicsType::MONO_CAMERA_INTRINSICS);
 		auto* monoIntrinsicsPtr = intrinsics_ptr.getTypedPointer<MikanMonoIntrinsics>();
 
 		return *monoIntrinsicsPtr;
@@ -166,7 +192,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 
 	const MikanStereoIntrinsics& getStereoIntrinsics() const
 	{
-		assert(intrinsics_type == STEREO_CAMERA_INTRINSICS);
+		assert(intrinsics_type == MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS);
 		auto stereoIntrinsicsPtr = intrinsics_ptr.getTypedPointer<MikanStereoIntrinsics>();
 
 		return *stereoIntrinsicsPtr;
@@ -181,7 +207,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 	MikanMonoIntrinsics& makeMonoIntrinsics()
 	{
 		auto* monoIntrinsics = intrinsics_ptr.allocatedByType<MikanMonoIntrinsics>();
-		intrinsics_type = MONO_CAMERA_INTRINSICS;
+		intrinsics_type = MikanIntrinsicsType::MONO_CAMERA_INTRINSICS;
 
 		return *monoIntrinsics;
 	}
@@ -189,7 +215,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 	MikanStereoIntrinsics& makeStereoIntrinsics()
 	{
 		auto* stereoIntrinsics = intrinsics_ptr.allocatedByType<MikanStereoIntrinsics>();
-		intrinsics_type = STEREO_CAMERA_INTRINSICS;
+		intrinsics_type = MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS;
 
 		return *stereoIntrinsics;
 	}
@@ -200,33 +226,60 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 	#endif // MIKANAPI_REFLECTION_ENABLED
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanNetworkVideoSourceInfo
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoSourceValues :
+	public MikanComponentValues
 {
 	FIELD()
-	Serialization::String network_source_name; ///< The name of the network video source
+	Serialization::PolymorphicObjectPtr intrinsics_ptr;
 	FIELD()
-	Serialization::String url; ///< The URL of the video source
+	MikanIntrinsicsType intrinsics_type;
 	FIELD()
-	MikanVideoSourceIntrinsics intrinsics; ///< Camera intrinsics for the video source
+	bool is_frame_mirrored;
+	FIELD()
+	bool is_buffer_mirrored;
+	FIELD()
+	int video_frame_queue_size;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanVideoSourceValues_GENERATED
+#endif // MIKANAPI_REFLECTION_ENABLED
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanNetworkVideoSourceValues :
+	public MikanVideoSourceValues
+{
+	static const char* k_componentClassName;
+	static const char* k_ownerSystemName;
+
+	FIELD()
+	Serialization::String protocol; ///< e.g., "RTMP", "RTSP"
+	FIELD()
+	Serialization::String ip_address; ///< IP address of the network video source
+	FIELD()
+	int port; ///< Port number of the network video source
+	FIELD()
+	Serialization::String path; ///< Path of the network video source on the server
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanNetworkVideoSourceInfo_GENERATED
+	MikanNetworkVideoSourceValues_GENERATED
 	#endif // MIKANAPI_REFLECTION_ENABLED
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanUSBVideoSourceInfo
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanUSBVideoSourceValues :
+	public MikanVideoSourceValues
 {
+	static const char* k_componentClassName;
+	static const char* k_ownerSystemName;
+
 	FIELD()
-	Serialization::String usb_source_name; ///< The name of the network video source
+	Serialization::String current_device_path; ///< Current USB device path
 	FIELD()
-	Serialization::String device_path; ///< The USB device path
+	Serialization::String video_mode; ///< Current video mode name
 	FIELD()
-	Serialization::String video_mode; ///< Current video mode
-	FIELD()
-	MikanVideoSourceIntrinsics intrinsics; ///< Camera intrinsics for the video source
+	Serialization::List<float> video_settings; ///< [0,1] Video Settings (See MikanVideoSettingType enum)
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanUSBVideoSourceInfo_GENERATED
+	MikanUSBVideoSourceValues_GENERATED
 	#endif // MIKANAPI_REFLECTION_ENABLED
 };
 

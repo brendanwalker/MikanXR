@@ -44,7 +44,7 @@ struct StencilAlignmentState
 		// Get the current mono camera intrinsics being used by the video source
 		MikanVideoSourceIntrinsics cameraIntrinsics;
 		videoSourceComponent->getCameraIntrinsics(cameraIntrinsics);
-		assert(cameraIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS);
+		assert(cameraIntrinsics.intrinsics_type == MikanIntrinsicsType::MONO_CAMERA_INTRINSICS);
 		inputCameraIntrinsics= cameraIntrinsics.getMonoIntrinsics();
 
 		resetCalibration();
@@ -123,7 +123,7 @@ bool StencilAligner::computeStencilTransform(glm::mat4& outStencilTransform)
 	// Make sure mono camera intrinsics are available
 	MikanVideoSourceIntrinsics cameraIntrinsics;
 	m_distortionView->getVideoSourceComponent()->getCameraIntrinsics(cameraIntrinsics);
-	if (cameraIntrinsics.intrinsics_type != MONO_CAMERA_INTRINSICS)
+	if (cameraIntrinsics.intrinsics_type != MikanIntrinsicsType::MONO_CAMERA_INTRINSICS)
 	{
 		return false;
 	}

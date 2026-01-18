@@ -218,7 +218,7 @@ bool BoxStencilComponent::setPropertyValue(
 void BoxStencilComponent::bindLuaFunctions(lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
-		.deriveClass<BoxStencilComponent, StencilComponent>("BoxStencilComponent")
+		.deriveClass<BoxStencilComponent, StencilComponent>(BoxStencilComponent::k_componentClassName.c_str())
 		.addProperty("boxXSize",
 			[](BoxStencilComponent* component) -> float {
 				return component->getBoxStencilDefinition()->getBoxXSize();

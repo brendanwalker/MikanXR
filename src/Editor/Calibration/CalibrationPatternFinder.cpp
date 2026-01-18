@@ -51,7 +51,7 @@ bool CalibrationPatternFinder::estimateNewCalibrationPatternPose(glm::dmat4& out
 	// Make sure mono camera intrinsics are available
 	MikanVideoSourceIntrinsics cameraIntrinsics;
 	m_distortionView->getVideoSourceComponent()->getCameraIntrinsics(cameraIntrinsics);
-	if (cameraIntrinsics.intrinsics_type != MONO_CAMERA_INTRINSICS)
+	if (cameraIntrinsics.intrinsics_type != MikanIntrinsicsType::MONO_CAMERA_INTRINSICS)
 	{
 		return false;
 	}

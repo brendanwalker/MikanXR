@@ -16,14 +16,12 @@ const std::string StageComponentDefinition::k_trackingVolumeIdPropertyId = "trac
 StageComponentDefinition::StageComponentDefinition(
 	MikanStageID sceneId)
 	: TransformComponentDefinition(sceneId, "", glm_transform_to_MikanTransform(GlmTransform()))
-	, m_stageId(sceneId)
 {}
 
 configuru::Config StageComponentDefinition::writeToJSON()
 {
 	configuru::Config pt = TransformComponentDefinition::writeToJSON();
 
-	pt["stage_id"] = m_stageId;
 	pt[k_trackingVolumeIdPropertyId] = m_trackingVolumeId;
 
 	return pt;
@@ -33,7 +31,6 @@ void StageComponentDefinition::readFromJSON(const configuru::Config& pt)
 {
 	TransformComponentDefinition::readFromJSON(pt);
 
-	m_stageId = pt.get<int>("stage_id");
 	m_trackingVolumeId = pt.get_or<int>(k_trackingVolumeIdPropertyId, INVALID_MIKAN_ID);
 }
 

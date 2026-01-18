@@ -70,21 +70,6 @@ void USBVideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 	readStdArrayMap<float, (int)eVideoSettingType::COUNT>(pt, k_videoSettingsPropertyId, m_videoSettingsMap);
 }
 
-void USBVideoSourceDefinition::setUSBVideoSourceInfo(const MikanUSBVideoSourceInfo& usbVideoSourceInfo)
-{
-	setComponentName(usbVideoSourceInfo.usb_source_name.getValue());
-
-	// Set path and video mode at the same time
-	m_devicePath = usbVideoSourceInfo.device_path.getValue();
-	m_videoMode = usbVideoSourceInfo.video_mode.getValue();
-	notifyPropertyChanged(
-		ConfigPropertyChangeSet()
-		.addPropertyName(k_desiredDevicePathPropertyId)
-		.addPropertyName(k_videoModePropertyId));
-
-	setCameraIntrinsics(usbVideoSourceInfo.intrinsics);
-}
-
 void USBVideoSourceDefinition::setDevicePath(const std::string& devicePath)
 {
 	if (devicePath != m_devicePath)
@@ -877,7 +862,7 @@ void USBVideoSourceComponent::notifyVideoFrameReceived(const UsbVideoFrameBuffer
 	const bool is_buffer_flipped = definition->getIsBufferMirrored();
 
 	// Fetch the latest video buffer frame from the device
-	if (intrinsics.intrinsics_type == STEREO_CAMERA_INTRINSICS)
+	if (intrinsics.intrinsics_type == MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS)
 	{
 		const auto& stereoIntrinsics = intrinsics.getStereoIntrinsics();
 		const int section_width = (int)stereoIntrinsics.pixel_width;
@@ -934,7 +919,7 @@ void USBVideoSourceComponent::getPropertyDescriptors(std::vector<PropertyDescrip
 			USBVideoSourceDefinition::k_videoModePropertyId, MikanVariantType::STRING));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			USBVideoSourceDefinition::k_videoSettingsPropertyId, MikanVariantType::FLOAT)
+			USBVideoSourceDefinition::k_videoSettingsPropertyId, MikanVariantType::FLOAT_ARRAY)
 		->setReadOnly());
 }
 

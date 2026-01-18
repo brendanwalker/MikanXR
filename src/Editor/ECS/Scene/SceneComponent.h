@@ -18,7 +18,7 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	MikanSceneID getSceneId() const { return m_sceneId; }
+	MikanSceneID getSceneId() const { return getComponentId(); }
 
 	static const std::string k_parentStagePropertyId;
 	MikanStageID getParentStageId() const { return m_parentStageId; }
@@ -35,7 +35,6 @@ public:
 	void setDisplayCompositorId(MikanCompositorID compositorId);
 
 protected:
-	MikanSceneID m_sceneId = INVALID_MIKAN_ID;
 	MikanStageID m_parentStageId = INVALID_MIKAN_ID;
 	std::vector<MikanCompositorID> m_compositorIDs;
 	MikanCompositorID m_displayCompositorId = INVALID_MIKAN_ID;

@@ -114,7 +114,7 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 		// Get the current camera intrinsics being used by the video source
 		MikanVideoSourceIntrinsics mikanIntrinsics;
 		m_videoSourceComponent->getCameraIntrinsics(mikanIntrinsics);
-		if (mikanIntrinsics.intrinsics_type == MONO_CAMERA_INTRINSICS)
+		if (mikanIntrinsics.intrinsics_type == MikanIntrinsicsType::MONO_CAMERA_INTRINSICS)
 		{
 			m_intrinsics->init(mikanIntrinsics.getMonoIntrinsics());
 		}

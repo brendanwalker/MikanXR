@@ -7,34 +7,14 @@
 #include <easy/profiler.h>
 
 // -- TextureSourceDefinition -----
-const std::string TextureSourceDefinition::k_TextureSourceIdPropertyId = "texture_source_id";
-
 TextureSourceDefinition::TextureSourceDefinition()
 	: MikanComponentDefinition()
-	, m_textureSourceId(INVALID_MIKAN_ID)
 {}
 
 TextureSourceDefinition::TextureSourceDefinition(
 	MikanTextureSourceID textureSourceId)
 	: MikanComponentDefinition(textureSourceId, "")
-	, m_textureSourceId(textureSourceId)
 {}
-
-configuru::Config TextureSourceDefinition::writeToJSON()
-{
-	configuru::Config pt = MikanComponentDefinition::writeToJSON();
-
-	pt[k_TextureSourceIdPropertyId] = m_textureSourceId;
-
-	return pt;
-}
-
-void TextureSourceDefinition::readFromJSON(const configuru::Config& pt)
-{
-	MikanComponentDefinition::readFromJSON(pt);
-
-	m_textureSourceId = pt.get_or<MikanTextureSourceID>(k_TextureSourceIdPropertyId, m_textureSourceId);
-}
 
 // -- TextureSourceComponent -----
 TextureSourceComponent::TextureSourceComponent(MikanObjectWeakPtr owner)
@@ -62,38 +42,6 @@ IMkTexturePtr TextureSourceComponent::getClientColorSourceTexture(eTextureSource
 IMkTexturePtr TextureSourceComponent::getClientDepthSourceTexture(eTextureSourceDepthType textureSourceColorType) const
 {
 	return IMkTexturePtr();
-}
-
-// -- IPropertyInterface ----
-void TextureSourceComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
-{
-	MikanComponent::getPropertyDescriptors(outDescriptors);
-
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			TextureSourceDefinition::k_TextureSourceIdPropertyId, MikanVariantType::INT)
-		->setReadOnly()
-		->setDefaultValue(-1));
-}
-
-bool TextureSourceComponent::getPropertyValue(
-	const std::string& propertyName,
-	MikanVariant& outValue) const
-{
-	if (propertyName == TextureSourceDefinition::k_TextureSourceIdPropertyId)
-	{
-		outValue = getTextureSourceId();
-		return true;
-	}
-
-	return MikanComponent::getPropertyValue(propertyName, outValue);
-}
-
-bool TextureSourceComponent::setPropertyValue(
-	const std::string& propertyName,
-	const MikanVariant& inValue)
-{
-	return MikanComponent::setPropertyValue(propertyName, inValue);
 }
 
 // -- IFunctionInterface ----

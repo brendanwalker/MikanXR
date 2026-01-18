@@ -19,6 +19,9 @@
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraTypes")) MikanCameraComponentValues : 
 	public MikanTransformComponentValues
 {
+	static const char* k_componentClassName;
+	static const char* k_ownerSystemName;
+
 	FIELD()
 	MikanStageID stage_id;
 	FIELD()

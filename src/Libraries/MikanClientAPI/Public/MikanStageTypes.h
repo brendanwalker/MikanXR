@@ -3,6 +3,7 @@
 #include "MikanAPIExport.h"
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
+#include "MikanTransformTypes.h"
 #include "SerializableList.h"
 #include "SerializableString.h"
 #include "SerializationProperty.h"
@@ -17,25 +18,17 @@ enum class ENUM(Serialization::CodeGenModule("MikanStageTypes")) MikanStageTrack
 	SteamVR ENUMVALUE_STRING("SteamVR") = 1
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStageTypes")) MikanStageInfo
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStageTypes")) MikanStageComponentValues :
+	public MikanTransformComponentValues
 {
+	static const char* k_componentClassName;
+	static const char* k_ownerSystemName;
+
 	FIELD()
-	MikanStageID stage_id;
-	FIELD()
-	Serialization::String stage_name;
-	FIELD()
-	MikanStageTrackingVolume tracking_volume;
-	FIELD()
-	MikanMarkerID origin_marker_id;
-	FIELD()
-	float origin_marker_size;
-	FIELD()
-	MikanMarkerID utility_marker_id;
-	FIELD()
-	float utility_marker_size;
+	MikanTrackingVolumeID tracking_volume_id;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanStageInfo_GENERATED
+	MikanStageComponentValues_GENERATED
 	#endif
 };
 

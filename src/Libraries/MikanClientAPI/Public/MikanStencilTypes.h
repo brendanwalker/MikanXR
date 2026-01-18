@@ -39,6 +39,9 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) Mikan
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanQuadStencilComponentValues :
 	public MikanStencilComponentValues
 {
+	static const char* k_componentClassName;
+	static const char* k_ownerSystemName;
+
 	FIELD()
 	float quad_width;
 	FIELD()
@@ -54,6 +57,9 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) Mikan
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanBoxStencilComponentValues :
 	public MikanStencilComponentValues
 {
+	static const char* k_componentClassName;
+	static const char* k_ownerSystemName;
+
 	FIELD()
 	float box_x_size;
 	FIELD()
@@ -69,6 +75,9 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) Mikan
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanModelStencilComponentValues :
 	public MikanStencilComponentValues
 {
+	static const char* k_componentClassName;
+	static const char* k_ownerSystemName;
+
 	FIELD()
 	Serialization::String model_path;
 

@@ -21,14 +21,7 @@ public:
 	TextureSourceDefinition();
 	TextureSourceDefinition(MikanTextureSourceID TextureSourceId);
 
-	virtual configuru::Config writeToJSON();
-	virtual void readFromJSON(const configuru::Config& pt);
-
-	static const std::string k_TextureSourceIdPropertyId;
-	inline MikanTextureSourceID getTextureSourceId() const { return m_textureSourceId; }
-
-private:
-	MikanTextureSourceID m_textureSourceId;
+	inline MikanTextureSourceID getTextureSourceId() const { return getComponentId(); }
 };
 
 class TextureSourceComponent : public MikanComponent
@@ -53,11 +46,6 @@ public:
 	// Video Source Events
 	MulticastDelegate<void(TextureSourceComponentPtr TextureSource)> OnOpened;
 	MulticastDelegate<void(TextureSourceComponentPtr TextureSource)> OnClosed;
-
-	// -- IPropertyInterface ----
-	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
-	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
-	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
 
 	// -- IFunctionInterface ----
 	static const std::string k_deleteTextureSourceFunctionId;

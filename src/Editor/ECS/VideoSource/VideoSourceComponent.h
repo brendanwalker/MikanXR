@@ -25,8 +25,7 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	static const std::string k_videoSourceIdPropertyId;
-	inline MikanVideoSourceID getVideoSourceId() const { return m_videoSourceId; }
+	inline MikanVideoSourceID getVideoSourceId() const { return getComponentId(); }
 
 	static const std::string k_isFrameMirroredPropertyId;
 	inline bool getIsFrameMirrored() const { return m_bIsFrameMirrored; }
@@ -48,7 +47,6 @@ public:
 	inline MikanIntrinsicsType getCameraIntrinsicsType() const { return m_intrinsics.intrinsics_type; }
 
 private:
-	MikanVideoSourceID m_videoSourceId= INVALID_MIKAN_ID;
 	bool m_bIsFrameMirrored= false;
 	bool m_bIsBufferMirrored= false;
 	int m_videoFrameQueueSize = DEFAULT_VIDEO_FRAME_QUEUE_SIZE;

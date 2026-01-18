@@ -300,7 +300,7 @@ bool computeOpenCVCameraRectification(
     MikanMatrix4x3d rectification_projection;
     bool validRectification= false;
 
-    if (tracker_intrinsics.intrinsics_type == STEREO_CAMERA_INTRINSICS)
+    if (tracker_intrinsics.intrinsics_type == MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS)
     {
 		const auto& stereoIntrinsics = tracker_intrinsics.getStereoIntrinsics();
 

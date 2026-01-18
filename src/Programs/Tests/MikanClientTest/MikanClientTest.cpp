@@ -3,6 +3,8 @@
 
 #include "MikanAnchorTypes.h"
 
+#include "MikanCameraTypes.h"
+
 #include "MikanClientRequests.h"
 #include "MikanClientEvents.h"
 #include "MikanScriptEvents.h"
@@ -16,14 +18,21 @@
 
 #include "MikanRenderTargetRequests.h"
 
+#include "MikanSceneTypes.h"
+
+#include "MikanStageTypes.h"
+
 #include "MikanStencilRequests.h"
+
+#include "MikanTextureSourceTypes.h"
 
 #include "MikanVideoSourceEvents.h"
 #include "MikanVideoSourceRequests.h"
+#include "MikanVideoSourceTypes.h"
+
+#include "MikanVRDeviceTypes.h"
 
 #include "MikanMathTypes.h"
-#include "MikanCameraTypes.h"
-#include "MikanVideoSourceTypes.h"
 
 #define SDL_MAIN_HANDLED
 
@@ -526,10 +535,18 @@ protected:
 		updateCameraProjectionMatrix();
 
 		// Fetch all mikan state
-		handleAnchorListChanged();
-		handleQuadStencilListChanged();
-		handleBoxStencilListChanged();
-		handleModelStencilListChanged();
+		handleComponentListChanged<MikanAnchorComponentValues>();
+		handleComponentListChanged<MikanCameraComponentValues>();
+		handleComponentListChanged<MikanSceneComponentValues>();
+		handleComponentListChanged<MikanStageComponentValues>();
+		handleComponentListChanged<MikanQuadStencilComponentValues>();
+		handleComponentListChanged<MikanBoxStencilComponentValues>();
+		handleComponentListChanged<MikanModelStencilComponentValues>();
+		handleComponentListChanged<MikanClientTextureSourceValues>();
+		handleComponentListChanged<MikanSpoutTextureSourceValues>();
+		handleComponentListChanged<MikanNetworkVideoSourceValues>();
+		handleComponentListChanged<MikanUSBVideoSourceValues>();
+		handleComponentListChanged<MikanVRDeviceComponentValues>();
 	}
 
 	void handleMikanDisconnected(const MikanDisconnectedEvent& disconnectEvent)
@@ -550,27 +567,28 @@ protected:
 	{
 		const std::string& systemName = propertyUpdateEvent.propertyValue.ownerSystem.getValue();
 
-		if (systemName == "AnchorObjectSystem")
+		if (systemName == MikanAnchorComponentValues::k_ownerSystemName)
 		{
 			handleAnchorPropertyUpdate(propertyUpdateEvent);
 		}
-		else if (systemName == "BoxStencilSystem")
+		else if (systemName == MikanBoxStencilComponentValues::k_ownerSystemName)
 		{
 			handleBoxStencilPropertyUpdate(propertyUpdateEvent);
 		}
-		else if (systemName == "ModelStencilSystem")
+		else if (systemName == MikanModelStencilComponentValues::k_ownerSystemName)
 		{
 			handleModelStencilPropertyUpdate(propertyUpdateEvent);
 		}
-		else if (systemName == "QuadStencilSystem")
+		else if (systemName == MikanQuadStencilComponentValues::k_ownerSystemName)
 		{
 			handleQuadStencilPropertyUpdate(propertyUpdateEvent);
 		}
-		else if (systemName == "NetworkVideoSourceSystem" || systemName == "USBVideoSourceSystem")
+		else if (systemName == MikanNetworkVideoSourceValues::k_ownerSystemName || 
+				systemName == MikanUSBVideoSourceValues::k_ownerSystemName)
 		{
 			handleVideoSourcePropertyUpdate(propertyUpdateEvent);
 		}
-		else if (systemName == "VRObjectSystem")
+		else if (systemName == MikanVRDeviceComponentValues::k_ownerSystemName)
 		{
 			handleVRDevicePropertyUpdate(propertyUpdateEvent);
 		}
@@ -616,6 +634,45 @@ protected:
 	}
 
 	// Component Events
+	template <class t_component_values>
+	void handleComponentListChanged()
+	{
+		// Fetch the list of anchors from Mikan and apply them to the scene
+		GetComponentListRequest listRequest;
+		listRequest.ownerSystem.setValue(t_component_values::k_ownerSystemName);
+		listRequest.componentClassName.setValue(t_component_values::k_componentClassName);
+
+		auto listResponse = m_mikanApi->sendRequest(listRequest).fetchResponse();
+		if (listResponse->resultCode == MikanAPIResult::Success)
+		{
+			auto componentList = std::static_pointer_cast<ComponentListResponse>(listResponse);
+			size_t componentCount = componentList->componentIdList.size();
+
+			MIKAN_LOG_INFO("handleComponentListChanged") << 
+				t_component_values::k_componentClassName << " Count: " << componentCount;
+
+			for (size_t Index = 0; Index < componentCount; ++Index)
+			{
+				const MikanComponentID componentId = componentList->componentIdList[Index];
+
+				ComponentGetValuesRequest componentRequest;
+				componentRequest.ownerSystem.setValue(t_component_values::k_ownerSystemName);
+				componentRequest.componentId = componentId;
+
+				auto response = m_mikanApi->sendRequest(componentRequest).fetchResponse();
+				if (response->resultCode == MikanAPIResult::Success)
+				{
+					auto componentValuesResponse =
+						std::static_pointer_cast<ComponentGetValuesResponse>(response);
+					const auto* typedComponentValues =
+						componentValuesResponse->valuesObject.getTypedPointer<t_component_values>();
+
+					logComponent(*typedComponentValues);
+				}
+			}
+		}
+	}
+
 	void handleComponentPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 	{
 		if (propertyUpdateEvent.propertyValue.fieldName.getValue() == "component_name")
@@ -697,46 +754,11 @@ protected:
 	{
 		if (propertyUpdateEvent.propertyValue.fieldName.getValue() == "VRDeviceComponentIdList")
 		{
-			handleVRDeviceListChanged();
+			handleComponentListChanged<MikanVRDeviceComponentValues>();
 		}
 		else
 		{
 			handleTransformPropertyUpdate(propertyUpdateEvent);
-		}
-	}
-
-	void handleVRDeviceListChanged()
-	{
-		GetComponentListRequest listRequest;
-		listRequest.componentClassName.setValue("VRObjectSystem");
-		listRequest.componentClassName.setValue("VRDeviceComponent");
-
-		auto listResponse = m_mikanApi->sendRequest(listRequest).fetchResponse();
-		if (listResponse->resultCode == MikanAPIResult::Success)
-		{
-			auto vrDeviceList = std::static_pointer_cast<ComponentListResponse>(listResponse);
-			size_t deviceCount = vrDeviceList->componentIdList.size();
-
-			MIKAN_LOG_INFO("HandleVRDeviceListChanged") << "VR Device List Count: " << deviceCount;
-			for (size_t Index = 0; Index < deviceCount; ++Index)
-			{
-				const MikanComponentID componentId = vrDeviceList->componentIdList[Index];
-
-				ComponentGetValuesRequest vrDeviceInfoRequest;
-				vrDeviceInfoRequest.ownerSystem.setValue("VRObjectSystem");
-				vrDeviceInfoRequest.componentId = componentId;
-
-				auto response = m_mikanApi->sendRequest(vrDeviceInfoRequest).fetchResponse();
-				if (response->resultCode == MikanAPIResult::Success)
-				{
-					auto componentValuesResponse =
-						std::static_pointer_cast<ComponentGetValuesResponse>(response);
-					const auto* vrDeviceValues =
-						componentValuesResponse->valuesObject.getTypedPointer<MikanVRDeviceComponentValues>();
-
-					logVRDeviceInfo(*vrDeviceValues);
-				}
-			}
 		}
 	}
 
@@ -745,47 +767,11 @@ protected:
 	{
 		if (propertyUpdateEvent.propertyValue.fieldName.getValue() == "AnchorComponentIdList")
 		{
-			handleAnchorListChanged();
+			handleComponentListChanged<MikanAnchorComponentValues>();
 		}
 		else
 		{
 			handleTransformPropertyUpdate(propertyUpdateEvent);
-		}
-	}
-
-	void handleAnchorListChanged()
-	{
-		// Fetch the list of anchors from Mikan and apply them to the scene
-		GetComponentListRequest listRequest;
-		listRequest.componentClassName.setValue("AnchorObjectSystem");
-		listRequest.componentClassName.setValue("AnchorComponent");
-
-		auto listResponse = m_mikanApi->sendRequest(listRequest).fetchResponse();
-		if (listResponse->resultCode == MikanAPIResult::Success)
-		{
-			auto anchorList = std::static_pointer_cast<ComponentListResponse>(listResponse);
-			size_t anchorCount= anchorList->componentIdList.size();
-
-			MIKAN_LOG_INFO("HandleAnchorListChanged") << "Anchor Count: " << anchorCount;
-			for (size_t Index = 0; Index < anchorCount; ++Index)
-			{
-				const MikanComponentID componentId = anchorList->componentIdList[Index];
-
-				ComponentGetValuesRequest anchorRequest;
-				anchorRequest.ownerSystem.setValue("AnchorObjectSystem");
-				anchorRequest.componentId = componentId;
-
-				auto response = m_mikanApi->sendRequest(anchorRequest).fetchResponse();
-				if (response->resultCode == MikanAPIResult::Success)
-				{
-					auto componentValuesResponse =
-						std::static_pointer_cast<ComponentGetValuesResponse>(response);
-					const auto* anchorValues =
-						componentValuesResponse->valuesObject.getTypedPointer<MikanAnchorComponentValues>();
-
-					logAnchorInfo(*anchorValues);
-				}
-			}
 		}
 	}
 
@@ -794,47 +780,11 @@ protected:
 	{
 		if (propertyUpdateEvent.propertyValue.fieldName.getValue() == "BoxStencilComponentIdList")
 		{
-			handleBoxStencilListChanged();
+			handleComponentListChanged<MikanBoxStencilComponentValues>();
 		}
 		else
 		{
 			handleTransformPropertyUpdate(propertyUpdateEvent);
-		}
-	}
-
-	void handleBoxStencilListChanged()
-	{
-		// Fetch the list of anchors from Mikan and apply them to the scene
-		GetComponentListRequest listRequest;
-		listRequest.componentClassName.setValue("BoxStencilSystem");
-		listRequest.componentClassName.setValue("BoxStencilComponent");
-
-		auto listResponse = m_mikanApi->sendRequest(listRequest).fetchResponse();
-		if (listResponse->resultCode == MikanAPIResult::Success)
-		{
-			auto componentList = std::static_pointer_cast<ComponentListResponse>(listResponse);
-			size_t componentCount = componentList->componentIdList.size();
-
-			MIKAN_LOG_INFO("HandleBoxStencilListChanged") << "Box Stencil Count: " << componentCount;
-			for (size_t Index = 0; Index < componentCount; ++Index)
-			{
-				const MikanComponentID componentId = componentList->componentIdList[Index];
-
-				ComponentGetValuesRequest anchorRequest;
-				anchorRequest.ownerSystem.setValue("BoxStencilSystem");
-				anchorRequest.componentId = componentId;
-
-				auto response = m_mikanApi->sendRequest(anchorRequest).fetchResponse();
-				if (response->resultCode == MikanAPIResult::Success)
-				{
-					auto componentValuesResponse =
-						std::static_pointer_cast<ComponentGetValuesResponse>(response);
-					const auto* typedComponentValues =
-						componentValuesResponse->valuesObject.getTypedPointer<MikanBoxStencilComponentValues>();
-
-					logBoxStencilInfo(*typedComponentValues);
-				}
-			}
 		}
 	}
 
@@ -843,47 +793,11 @@ protected:
 	{
 		if (propertyUpdateEvent.propertyValue.fieldName.getValue() == "QuadStencilComponentIdList")
 		{
-			handleQuadStencilListChanged();
+			handleComponentListChanged<MikanQuadStencilComponentValues>();
 		}
 		else
 		{
 			handleTransformPropertyUpdate(propertyUpdateEvent);
-		}
-	}
-
-	void handleQuadStencilListChanged()
-	{
-		// Fetch the list of anchors from Mikan and apply them to the scene
-		GetComponentListRequest listRequest;
-		listRequest.componentClassName.setValue("QuadStencilSystem");
-		listRequest.componentClassName.setValue("QuadStencilComponent");
-
-		auto listResponse = m_mikanApi->sendRequest(listRequest).fetchResponse();
-		if (listResponse->resultCode == MikanAPIResult::Success)
-		{
-			auto componentList = std::static_pointer_cast<ComponentListResponse>(listResponse);
-			size_t componentCount = componentList->componentIdList.size();
-
-			MIKAN_LOG_INFO("HandleQuadStencilListChanged") << "Quad Stencil Count: " << componentCount;
-			for (size_t Index = 0; Index < componentCount; ++Index)
-			{
-				const MikanComponentID componentId = componentList->componentIdList[Index];
-
-				ComponentGetValuesRequest anchorRequest;
-				anchorRequest.ownerSystem.setValue("QuadStencilSystem");
-				anchorRequest.componentId = componentId;
-
-				auto response = m_mikanApi->sendRequest(anchorRequest).fetchResponse();
-				if (response->resultCode == MikanAPIResult::Success)
-				{
-					auto componentValuesResponse =
-						std::static_pointer_cast<ComponentGetValuesResponse>(response);
-					const auto* typedComponentValues =
-						componentValuesResponse->valuesObject.getTypedPointer<MikanQuadStencilComponentValues>();
-
-					logQuadStencilInfo(*typedComponentValues);
-				}
-			}
 		}
 	}
 
@@ -892,47 +806,11 @@ protected:
 	{
 		if (propertyUpdateEvent.propertyValue.fieldName.getValue() == "ModelStencilComponentIdList")
 		{
-			handleModelStencilListChanged();
+			handleComponentListChanged<MikanModelStencilComponentValues>();
 		}
 		else
 		{
 			handleTransformPropertyUpdate(propertyUpdateEvent);
-		}
-	}
-
-	void handleModelStencilListChanged()
-	{
-		// Fetch the list of anchors from Mikan and apply them to the scene
-		GetComponentListRequest listRequest;
-		listRequest.componentClassName.setValue("ModelStencilSystem");
-		listRequest.componentClassName.setValue("ModelStencilComponent");
-
-		auto listResponse = m_mikanApi->sendRequest(listRequest).fetchResponse();
-		if (listResponse->resultCode == MikanAPIResult::Success)
-		{
-			auto componentList = std::static_pointer_cast<ComponentListResponse>(listResponse);
-			size_t componentCount = componentList->componentIdList.size();
-
-			MIKAN_LOG_INFO("HandleModelStencilListChanged") << "Model Stencil Count: " << componentCount;
-			for (size_t Index = 0; Index < componentCount; ++Index)
-			{
-				const MikanComponentID componentId = componentList->componentIdList[Index];
-
-				ComponentGetValuesRequest anchorRequest;
-				anchorRequest.ownerSystem.setValue("ModelStencilSystem");
-				anchorRequest.componentId = componentId;
-
-				auto response = m_mikanApi->sendRequest(anchorRequest).fetchResponse();
-				if (response->resultCode == MikanAPIResult::Success)
-				{
-					auto componentValuesResponse =
-						std::static_pointer_cast<ComponentGetValuesResponse>(response);
-					const auto* typedComponentValues =
-						componentValuesResponse->valuesObject.getTypedPointer<MikanModelStencilComponentValues>();
-
-					logModelStencilInfo(*typedComponentValues);
-				}
-			}
 		}
 	}
 
@@ -1450,15 +1328,15 @@ protected:
 	}
 
 	// Log Helpers
-	void logComponentInfo(const MikanComponentValues& componentInfo)
+	void logComponent(const MikanComponentValues& componentInfo)
 	{
-		MIKAN_LOG_INFO("logComponentInfo") << "Component ID: " << componentInfo.component_id;
-		MIKAN_LOG_INFO("logComponentInfo") << "Component Name: " << componentInfo.component_name.getValue();
+		MIKAN_LOG_INFO("MikanComponent") << "Component ID: " << componentInfo.component_id;
+		MIKAN_LOG_INFO("MikanComponent") << "Component Name: " << componentInfo.component_name.getValue();
 	}
 
-	void logTransformComponentInfo(const MikanTransformComponentValues& transformInfo)
+	void logComponent(const MikanTransformComponentValues& transformInfo)
 	{
-		logComponentInfo(transformInfo);
+		logComponent((const MikanComponentValues&)transformInfo);
 
 		const MikanVector3f& s = transformInfo.relative_scale;
 		const MikanQuatf& r = transformInfo.relative_rotation;
@@ -1469,44 +1347,49 @@ protected:
 		MIKAN_LOG_INFO("logTransformInfo") << "Position: " << t.x << ", " << t.y << ", " << t.z;
 	}
 
-	void logAnchorInfo(const MikanAnchorComponentValues& anchorInfo)
+	void logComponent(const MikanAnchorComponentValues& anchorInfo)
 	{
-		logTransformComponentInfo(anchorInfo);
+		logComponent((const MikanTransformComponentValues&)anchorInfo);
 		
-		MIKAN_LOG_INFO("logAnchorInfo") << "Owner Stage Id: " << anchorInfo.stage_id;
+		MIKAN_LOG_INFO("AnchorComponent") << "Owner Stage Id: " << anchorInfo.stage_id;
 	}
 
-	void logStencilInfo(const MikanStencilComponentValues& stencilInfo)
+	void logComponent(const MikanStencilComponentValues& stencilInfo)
 	{
-		logTransformComponentInfo(stencilInfo);
+		logComponent((const MikanTransformComponentValues&)stencilInfo);
 
-		MIKAN_LOG_INFO("logStencilInfo") << "Parent Anchor Id: " << stencilInfo.parent_anchor_id;
-		MIKAN_LOG_INFO("logStencilInfo") << "Is Disabled: " << (stencilInfo.is_disabled ? "true" : "false");
-		MIKAN_LOG_INFO("logStencilInfo") << "Cull Mode: " << stencilInfo.cull_mode;
+		MIKAN_LOG_INFO("StencilComponent") << "Parent Anchor Id: " << stencilInfo.parent_anchor_id;
+		MIKAN_LOG_INFO("StencilComponent") << "Is Disabled: " << (stencilInfo.is_disabled ? "true" : "false");
+		MIKAN_LOG_INFO("StencilComponent") << "Cull Mode: " << stencilInfo.cull_mode;
 	}
 
-	void logQuadStencilInfo(const MikanQuadStencilComponentValues& quadInfo)
+	void logComponent(const MikanQuadStencilComponentValues& quadInfo)
 	{
-		logStencilInfo(quadInfo);
+		logComponent((const MikanStencilComponentValues&)quadInfo);
 
-		MIKAN_LOG_INFO("logQuadStencilInfo") << "Quad Width: " << quadInfo.quad_width;
-		MIKAN_LOG_INFO("logQuadStencilInfo") << "Quad Height: " << quadInfo.quad_height;
+		MIKAN_LOG_INFO("QuadStencilComponent") << "Quad Width: " << quadInfo.quad_width;
+		MIKAN_LOG_INFO("QuadStencilComponent") << "Quad Height: " << quadInfo.quad_height;
 	}
 
-	void logBoxStencilInfo(const MikanBoxStencilComponentValues& boxInfo)
+	void logComponent(const MikanBoxStencilComponentValues& boxInfo)
 	{
-		logStencilInfo(boxInfo);
+		logComponent((const MikanStencilComponentValues&)boxInfo);
 
-		MIKAN_LOG_INFO("logBoxStencilInfo") << "Box X Size: " << boxInfo.box_x_size;
-		MIKAN_LOG_INFO("logBoxStencilInfo") << "Box Y Size: " << boxInfo.box_y_size;
-		MIKAN_LOG_INFO("logBoxStencilInfo") << "Box Z Size: " << boxInfo.box_z_size;
+		MIKAN_LOG_INFO("BoxStencilComponent") << "Box X Size: " << boxInfo.box_x_size;
+		MIKAN_LOG_INFO("BoxStencilComponent") << "Box Y Size: " << boxInfo.box_y_size;
+		MIKAN_LOG_INFO("BoxStencilComponent") << "Box Z Size: " << boxInfo.box_z_size;
 	}
 
-	void logModelStencilInfo(const MikanModelStencilComponentValues& modelInfo)
+	void logComponent(const MikanModelStencilComponentValues& modelInfo)
 	{
-		logStencilInfo(modelInfo);
+		logComponent((const MikanStencilComponentValues&)modelInfo);
 
-		MIKAN_LOG_INFO("logModelStencilInfo") << "Model: " << modelInfo.model_path.getValue();
+		MIKAN_LOG_INFO("ModelStencilComponent") << "Model: " << modelInfo.model_path.getValue();
+	}
+
+	void logComponent(const MikanVRDeviceComponentValues& vrDeviceInfo)
+	{
+		MIKAN_LOG_INFO("VRDeviceComponent") << "Device Name: " << vrDeviceInfo.vr_device_path.getValue();
 	}
 
 	void logModelStencilGeometry(const MikanStencilModelRenderGeometry& geometry)
@@ -1528,22 +1411,17 @@ protected:
 		MIKAN_LOG_INFO("logModelTriMesh") << "    Texel Count: " << triMesh.texels.size();
 	}
 
-	void logMikanTransform(const MikanTransform& xform)
+	void LogTransform(const MikanTransform& xform)
 	{
 		const MikanVector3f& s = xform.scale;
 		const MikanVector3f& t = xform.position;
 		const MikanQuatf& q = xform.rotation;
 
-		MIKAN_LOG_INFO("logMikanTransform") << "  Scale: " << s.x << ", " << s.y << ", " << s.z;
-		MIKAN_LOG_INFO("logMikanTransform") << "  Rotation: " << q.x << ", " << q.y << ", " << q.z << ", " << q.w;
-		MIKAN_LOG_INFO("logMikanTransform") << "  Position: " << t.x << ", " << t.y << ", " << t.z;
+		MIKAN_LOG_INFO("TransformComponent") << "  Scale: " << s.x << ", " << s.y << ", " << s.z;
+		MIKAN_LOG_INFO("TransformComponent") << "  Rotation: " << q.x << ", " << q.y << ", " << q.z << ", " << q.w;
+		MIKAN_LOG_INFO("TransformComponent") << "  Position: " << t.x << ", " << t.y << ", " << t.z;
 	}
 	
-	void logVRDeviceInfo(const MikanVRDeviceComponentValues& vrDeviceInfo)
-	{
-		MIKAN_LOG_INFO("logVRDeviceInfo") << "Device Name: " << vrDeviceInfo.vr_device_path.getValue();
-	}
-
 private:
 	bool m_mikanInitialized= false;
 	bool m_sdlInitialized= false;
