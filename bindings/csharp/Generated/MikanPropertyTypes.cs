@@ -20,9 +20,16 @@ namespace MikanXR
 		public static readonly long classId= 6952539342367057093;
 
 		public string ownerSystem;
+		public string ownerComponentClass;
 		public int componentId;
 		public string fieldName;
 		public MikanVariant fieldValue;
+	};
+
+	public class MikanSystemValues : PolymorphicStruct
+	{
+		public static new readonly long classId= 6499163311643253046;
+
 	};
 
 }

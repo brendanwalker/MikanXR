@@ -4,13 +4,12 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	public class MikanSceneInfo
+	public class MikanSceneComponentValues : MikanTransformComponentValues
 	{
-		public static readonly long classId= 394402119648526155;
+		public static new readonly long classId= 6935017739381736592;
 
-		public int scene_id;
-		public string scene_name;
 		public int parent_stage_id;
+		public List<int> compositor_list;
 		public int output_compositor_id;
 	};
 

@@ -10,17 +10,11 @@ namespace MikanXR
 		SteamVR= 1,
 	};
 
-	public class MikanStageInfo
+	public class MikanStageComponentValues : MikanTransformComponentValues
 	{
-		public static readonly long classId= -4443825647652398383;
+		public static new readonly long classId= -4271948442370858806;
 
-		public int stage_id;
-		public string stage_name;
-		public MikanStageTrackingVolume tracking_volume;
-		public int origin_marker_id;
-		public float origin_marker_size;
-		public int utility_marker_id;
-		public float utility_marker_size;
+		public int tracking_volume_id;
 	};
 
 }

@@ -123,18 +123,18 @@
 						<tr class="property_tr">
 							<td>
 								<label>Device</label>
-								<select id="select" name="select_device" data-value="devicePath" data-event-change="select_device_entry()">
+								<select id="select" name="select_device" data-value="device_path" data-event-change="select_device_entry()">
 									<option value="">-- None --</option>
-									<option data-for="device_path : vr_device_paths" data-value="device_path">{{device_path | to_vr_device_friendly_name}}</option>
+									<option data-for="vr_device_path : vr_device_paths" data-value="vr_device_path">{{vr_device_path | to_vr_device_friendly_name}}</option>
 								</select>
 							</td>
 						</tr>
 						<tr class="property_tr">
 							<td>
 								<label>Socket</label>
-								<select id="select" name="select_socket" data-value="socketName" data-event-change="select_socket_entry()">
+								<select id="select" name="select_socket" data-value="socket_name" data-event-change="select_socket_entry()">
 									<option value="">-- None --</option>
-									<option data-for="socket_name : socket_names" data-value="socket_name">{{socket_name}}</option>
+									<option data-for="vr_socket_name : socket_names" data-value="vr_socket_name">{{vr_socket_name}}</option>
 								</select>
 							</td>
 						</tr>

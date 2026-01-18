@@ -4,18 +4,24 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	public class MikanClientTextureSourceInfo
+	public class MikanClientTextureSourceValues : MikanTextureSourceValues
 	{
-		public static readonly long classId= 8568683687186580908;
+		public static new readonly long classId= 7729317308425418102;
 
-		public string client_source_name;
+		public string client_source;
 	};
 
-	public class MikanSpoutTextureSourceInfo
+	public class MikanSpoutTextureSourceValues : MikanTextureSourceValues
 	{
-		public static readonly long classId= 2764736355252140248;
+		public static new readonly long classId= -8143993449605749718;
 
-		public string spout_source_name;
+		public string spout_source;
+	};
+
+	public class MikanTextureSourceValues : MikanComponentValues
+	{
+		public static new readonly long classId= 8820133885042259323;
+
 	};
 
 }

@@ -516,7 +516,7 @@ protected:
 			{
 				csType= "uint";
 			}
-			else if (type == rfk::getType<int32_t>())
+			else if (type == rfk::getType<int32_t>() || type == rfk::getType<int>())
 			{
 				csType= "int";
 			}
@@ -524,7 +524,7 @@ protected:
 			{
 				csType= "ulong";
 			}
-			else if (type == rfk::getType<int64_t>())
+			else if (type == rfk::getType<int64_t>() || type == rfk::getType<long>())
 			{
 				csType= "long";
 			}

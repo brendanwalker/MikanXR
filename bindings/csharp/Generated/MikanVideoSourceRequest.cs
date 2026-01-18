@@ -11,12 +11,6 @@ namespace MikanXR
 		public int video_source_id;
 	};
 
-	public class GetVideoSourceList : MikanRequest
-	{
-		public static new readonly long classId= -6333941030161301763;
-
-	};
-
 	public class GetVideoSourceMode : MikanRequest
 	{
 		public static new readonly long classId= -5470313175782314738;
@@ -29,13 +23,6 @@ namespace MikanXR
 		public static new readonly long classId= 5018187312099351234;
 
 		public MikanVideoSourceIntrinsics intrinsics;
-	};
-
-	public class MikanVideoSourceListResponse : MikanResponse
-	{
-		public static new readonly long classId= -4990154002999110086;
-
-		public List<int> video_source_id_list;
 	};
 
 	public class MikanVideoSourceModeResponse : MikanResponse

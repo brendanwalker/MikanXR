@@ -11,6 +11,30 @@ namespace MikanXR
 		STEREO_CAMERA_INTRINSICS= 2,
 	};
 
+	public enum MikanVideoSettingType
+	{
+		INVALID= -1,
+		Brightness= 0,
+		Contrast= 1,
+		Hue= 2,
+		Saturation= 3,
+		Sharpness= 4,
+		Gamma= 5,
+		WhiteBalance= 6,
+		RedBalance= 7,
+		GreenBalance= 8,
+		BlueBalance= 9,
+		Gain= 10,
+		Pan= 11,
+		Tilt= 12,
+		Roll= 13,
+		Zoom= 14,
+		Exposure= 15,
+		Iris= 16,
+		Focus= 17,
+		Count= 18,
+	};
+
 	public enum MikanVideoSourceType
 	{
 		MONO= 0,
@@ -53,13 +77,14 @@ namespace MikanXR
 		public MikanMatrix3d undistorted_camera_matrix;
 	};
 
-	public class MikanNetworkVideoSourceInfo
+	public class MikanNetworkVideoSourceValues : MikanVideoSourceValues
 	{
-		public static readonly long classId= 446555362386089173;
+		public static new readonly long classId= 8924237416134720747;
 
-		public string network_source_name;
-		public string url;
-		public MikanVideoSourceIntrinsics intrinsics;
+		public string protocol;
+		public string ip_address;
+		public int port;
+		public string path;
 	};
 
 	public class MikanStereoIntrinsics : MikanBaseIntrinsics
@@ -81,14 +106,13 @@ namespace MikanXR
 		public MikanMatrix4d reprojection_matrix;
 	};
 
-	public class MikanUSBVideoSourceInfo
+	public class MikanUSBVideoSourceValues : MikanVideoSourceValues
 	{
-		public static readonly long classId= -5452510762721765943;
+		public static new readonly long classId= -9166828371246079689;
 
-		public string usb_source_name;
-		public string device_path;
+		public string current_device_path;
 		public string video_mode;
-		public MikanVideoSourceIntrinsics intrinsics;
+		public List<float> video_settings;
 	};
 
 	public class MikanVariantBase : PolymorphicStruct
@@ -103,6 +127,17 @@ namespace MikanXR
 
 		public PolymorphicObject intrinsics_ptr;
 		public MikanIntrinsicsType intrinsics_type;
+	};
+
+	public class MikanVideoSourceValues : MikanComponentValues
+	{
+		public static new readonly long classId= -7299893175604117141;
+
+		public PolymorphicObject intrinsics_ptr;
+		public MikanIntrinsicsType intrinsics_type;
+		public bool is_frame_mirrored;
+		public bool is_buffer_mirrored;
+		public int video_frame_queue_size;
 	};
 
 }
