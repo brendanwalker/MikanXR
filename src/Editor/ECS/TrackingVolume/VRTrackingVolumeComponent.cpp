@@ -192,7 +192,19 @@ void VRTrackingVolumeComponent::getPropertyDescriptors(std::vector<PropertyDescr
 		std::make_shared<PropertyDescriptor>(
 			VRTrackingVolumeDefinition::k_utilityMarkerIdPropertyId, MikanVariantType::INT)
 		->setDefaultValue(-1));
-
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			VRTrackingVolumeDefinition::k_trackingMountIdsPropertyId, MikanVariantType::INT_ARRAY)
+		->setReadOnly());
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			VRTrackingVolumeDefinition::k_vrDevicePoseOffsetPropertyId, MikanVariantType::MATRIX4F)
+		->setDefaultValue(
+			MikanMatrix4f(
+				1.f, 0.f, 0.f, 0.f,
+				0.f, 1.f, 0.f, 0.f, 
+				0.f, 0.f, 1.f, 0.f, 
+				0.f, 0.f, 0.f, 1.f)));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(k_vrDevicePositionOffsetPropertyId, MikanVariantType::VECTOR3F)
 		->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f))
@@ -225,6 +237,16 @@ bool VRTrackingVolumeComponent::getPropertyValue(
 	else if (propertyName == VRTrackingVolumeDefinition::k_utilityMarkerIdPropertyId)
 	{
 		outValue = getVRTrackingVolumeDefinition()->getUtilityMarkerId();
+		return true;
+	}
+	else if (propertyName == VRTrackingVolumeDefinition::k_trackingMountIdsPropertyId)
+	{
+		outValue = getVRTrackingVolumeDefinition()->getTrackingMountIDs();
+		return true;
+	}
+	else if (propertyName == VRTrackingVolumeDefinition::k_vrDevicePoseOffsetPropertyId)
+	{
+		outValue = getVRTrackingVolumeDefinition()->getVRDevicePoseOffset();
 		return true;
 	}
 	else if (propertyName == k_vrDevicePositionOffsetPropertyId)
@@ -272,6 +294,13 @@ bool VRTrackingVolumeComponent::setPropertyValue(
 	else if (propertyName == VRTrackingVolumeDefinition::k_utilityMarkerIdPropertyId)
 	{
 		getVRTrackingVolumeDefinition()->setUtilityMarkerId(inValue.getIntValue());
+		return true;
+	}
+	else if (propertyName == VRTrackingVolumeDefinition::k_vrDevicePoseOffsetPropertyId)
+	{
+		MikanMatrix4f poseOffset = inValue.getMatrix4fValue();
+
+		getVRTrackingVolumeDefinition()->setVRDevicePoseOffset(poseOffset);
 		return true;
 	}
 

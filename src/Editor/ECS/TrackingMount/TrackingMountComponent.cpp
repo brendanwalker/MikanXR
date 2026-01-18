@@ -11,18 +11,16 @@
 #include "VRObjectSystem.h"
 
 // -- TrackingMountDefinition -----
-const std::string TrackingMountDefinition::k_desiredDevicePathPropertyId = "devicePath";
-const std::string TrackingMountDefinition::k_socketNamePropertyId = "socketName";
+const std::string TrackingMountDefinition::k_desiredDevicePathPropertyId = "device_path";
+const std::string TrackingMountDefinition::k_socketNamePropertyId = "socket_name";
 
 TrackingMountDefinition::TrackingMountDefinition() 
 	: MikanComponentDefinition()
-	, m_trackingMountId(INVALID_MIKAN_ID)
 {}
 
 TrackingMountDefinition::TrackingMountDefinition(
 	MikanTrackingMountID trackingMountId)
 	: MikanComponentDefinition(trackingMountId, "")
-	, m_trackingMountId(trackingMountId)
 {
 }
 
@@ -30,9 +28,8 @@ configuru::Config TrackingMountDefinition::writeToJSON()
 {
 	configuru::Config pt = MikanComponentDefinition::writeToJSON();
 	
-	pt["tracking_mount_id"] = m_trackingMountId;
-	pt["device_path"] = m_devicePath;
-	pt["socket_name"] = m_socketName;
+	pt[k_desiredDevicePathPropertyId] = m_devicePath;
+	pt[k_socketNamePropertyId] = m_socketName;
 
 	return pt;
 }
@@ -41,9 +38,8 @@ void TrackingMountDefinition::readFromJSON(const configuru::Config& pt)
 {
 	MikanComponentDefinition::readFromJSON(pt);
 
-	m_trackingMountId = pt.get_or<MikanTrackingMountID>("tracking_mount_id", m_trackingMountId);
-	m_devicePath = pt.get_or<std::string>("device_path", m_devicePath);
-	m_socketName = pt.get_or<std::string>("socket_name", m_socketName);
+	m_devicePath = pt.get_or<std::string>(k_desiredDevicePathPropertyId, m_devicePath);
+	m_socketName = pt.get_or<std::string>(k_socketNamePropertyId, m_socketName);
 }
 
 void TrackingMountDefinition::setDevicePath(const std::string& devicePath)

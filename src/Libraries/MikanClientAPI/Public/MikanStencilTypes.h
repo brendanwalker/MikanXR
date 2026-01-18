@@ -16,9 +16,9 @@
 enum ENUM(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilCullMode
 {
 	MikanStencilCullMode_NONE ENUMVALUE_STRING("NONE"),
-	MikanStencilCullMode_Z_AXIS ENUMVALUE_STRING("Z-Axis"),
-	MikanStencilCullMode_Y_AXIS ENUMVALUE_STRING("Y-Axis"),
-	MikanStencilCullMode_X_AXIS ENUMVALUE_STRING("X-Axis"),
+	MikanStencilCullMode_Z_AXIS ENUMVALUE_STRING("Z_Axis"),
+	MikanStencilCullMode_Y_AXIS ENUMVALUE_STRING("Y_Axis"),
+	MikanStencilCullMode_X_AXIS ENUMVALUE_STRING("X_Axis"),
 };
 
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilComponentValues :

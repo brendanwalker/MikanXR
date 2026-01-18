@@ -73,6 +73,12 @@ const MikanQuatf& MikanVariant::getQuaternionfValue() const
 	return value_ptr.getTypedPointer<MikanQuatfValue>()->value;
 }
 
+const MikanMatrix4f& MikanVariant::getMatrix4fValue() const
+{
+	assert(value_type == MikanVariantType::MATRIX4F);
+	return value_ptr.getTypedPointer<MikanMatrix4fValue>()->value;
+}
+
 const MikanVector2d& MikanVariant::getVector2dValue() const
 {
 	assert(value_type == MikanVariantType::VECTOR2D);
@@ -185,6 +191,9 @@ void MikanVariant::setValue(const MikanVariant& other)
 		break;
 	case MikanVariantType::QUATERNIONF:
 		setValue(other.getQuaternionfValue());
+		break;
+	case MikanVariantType::MATRIX4F:
+		setValue(other.getMatrix4fValue());
 		break;
 	case MikanVariantType::VECTOR2D:
 		setValue(other.getVector2dValue());
@@ -302,6 +311,12 @@ void MikanVariant::setValue(const MikanQuatf& value)
 {
 	value_type = MikanVariantType::QUATERNIONF;
 	value_ptr.allocatedByType<MikanQuatfValue>()->value = value;
+}
+
+void MikanVariant::setValue(const MikanMatrix4f& value)
+{
+	value_type = MikanVariantType::MATRIX4F;
+	value_ptr.allocatedByType<MikanMatrix4fValue>()->value = value;
 }
 
 void MikanVariant::setValue(const MikanVector2d& value)

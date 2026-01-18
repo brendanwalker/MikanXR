@@ -23,7 +23,6 @@ const std::string MarkerDefinition::k_lengthMMPropertyId= "length_mm";
 
 MarkerDefinition::MarkerDefinition()
 	: MikanComponentDefinition()
-	, m_markerId(INVALID_MIKAN_ID)
 	, m_arucoId(DEFAULT_ORIGIN_MARKER_ID)
 	, m_lengthMM(DEFAULT_MARKER_SIZE_MM)
 {
@@ -33,7 +32,6 @@ MarkerDefinition::MarkerDefinition()
 MarkerDefinition::MarkerDefinition(
 	MikanMarkerID markerId)
 	: MikanComponentDefinition(markerId, "")
-	, m_markerId(markerId)
 	, m_arucoId(DEFAULT_ORIGIN_MARKER_ID)
 	, m_lengthMM(DEFAULT_MARKER_SIZE_MM)
 {}
@@ -42,7 +40,6 @@ configuru::Config MarkerDefinition::writeToJSON()
 {
 	configuru::Config pt = MikanComponentDefinition::writeToJSON();
 
-	pt["id"] = m_markerId;
 	pt[MarkerDefinition::k_arucoIdPropertyId] = m_arucoId;
 	pt[MarkerDefinition::k_lengthMMPropertyId] = m_lengthMM;
 
@@ -53,14 +50,8 @@ void MarkerDefinition::readFromJSON(const configuru::Config& pt)
 {
 	MikanComponentDefinition::readFromJSON(pt);
 
-	if (pt.has_key("id"))
-	{
-		m_markerId = pt.get<int>("id");
-		m_arucoId = pt.get_or<int>(MarkerDefinition::k_arucoIdPropertyId, m_arucoId);
-		m_lengthMM = pt.get_or<float>(MarkerDefinition::k_lengthMMPropertyId, m_lengthMM);
-
-		m_configName = StringUtils::stringify("Marker_", m_markerId);
-	}
+	m_arucoId = pt.get_or<int>(MarkerDefinition::k_arucoIdPropertyId, m_arucoId);
+	m_lengthMM = pt.get_or<float>(MarkerDefinition::k_lengthMMPropertyId, m_lengthMM);
 }
 
 void MarkerDefinition::setArucoId(int arucoId)
@@ -94,18 +85,6 @@ MarkerObjectSystemPtr MarkerComponent::getOwnerMarkerSystem() const
 {
 	return std::static_pointer_cast<MarkerObjectSystem>(getOwnerObject()->getOwnerSystem());
 }
-
-//TODO
-//void MarkerComponent::extractMarkerInfoForClientAPI(struct MikanMarkerInfo& outMarkerInfo) const
-//{
-//	MarkerDefinitionPtr markerDefinition = getMarkerDefinition();
-//	if (markerDefinition)
-//	{
-//		outMarkerInfo.marker_id = markerDefinition->getMarkerId();
-//		outMarkerInfo.aruco_id = markerDefinition->getArucoId();
-//		outMarkerInfo.length_mm = markerDefinition->getLengthMM();
-//	}
-//}
 
 // -- IPropertyInterface ----
 void MarkerComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)

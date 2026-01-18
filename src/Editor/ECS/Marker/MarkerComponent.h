@@ -21,7 +21,7 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	inline MikanMarkerID getMarkerId() const { return m_markerId; }
+	inline MikanMarkerID getMarkerId() const { return getComponentId(); }
 
 	static const std::string k_arucoIdPropertyId;
 	inline int getArucoId() const { return m_arucoId; }
@@ -32,7 +32,6 @@ public:
 	void setLengthMM(float lengthMM);
 
 private:
-	MikanMarkerID m_markerId;
 	int m_arucoId;
 	float m_lengthMM;
 };
@@ -50,9 +49,6 @@ public:
 	{
 		return std::static_pointer_cast<MarkerDefinition>(m_definition);
 	}
-
-	//TODO
-	//void extractMarkerInfoForClientAPI(struct MikanMarkerInfo& outMarkerInfo) const;
 
 	// -- IPropertyInterface ----
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);

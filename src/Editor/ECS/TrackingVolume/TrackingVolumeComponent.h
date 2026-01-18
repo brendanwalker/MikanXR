@@ -27,7 +27,7 @@ public:
 	MarkerObjectSystemPtr getMarkerObjectSystem() const;
 
 	virtual eTrackingVolumeType getTrackingVolumeType() const { return eTrackingVolumeType::INVALID; }
-	inline MikanTrackingVolumeID getTrackingVolumeId() const { return m_trackingVolumeId; }
+	inline MikanTrackingVolumeID getTrackingVolumeId() const { return getComponentId(); }
 
 	static const std::string k_originMarkerIdPropertyId;
 	inline MikanMarkerID getOriginMarkerId() const { return m_originMarkeId; }
@@ -35,7 +35,6 @@ public:
 	void setOriginMarkerId(MikanMarkerID arucoId);
 
 private:
-	MikanTrackingVolumeID m_trackingVolumeId;
 	MikanMarkerID m_originMarkeId;
 };
 

@@ -42,7 +42,6 @@ const std::string CompositorDefinition::k_spoutOutputNamePropertyId = "spout_out
 
 CompositorDefinition::CompositorDefinition()
 	: MikanComponentDefinition()
-	, m_compositorId(INVALID_MIKAN_ID)
 	, m_nodeGraphAssetRef(std::make_shared<AssetReferenceConfig>())
 	, m_bIsSpoutOutputStreaming(false)
 	, m_spoutOutputName(DEFAULT_SPOUT_OUTPUT_NAME)
@@ -52,7 +51,6 @@ CompositorDefinition::CompositorDefinition()
 CompositorDefinition::CompositorDefinition(
 	MikanCompositorID compositorId)
 	: MikanComponentDefinition(compositorId, "")
-	, m_compositorId(compositorId)
 	, m_ownerStageId(INVALID_MIKAN_ID)
 	, m_nodeGraphAssetRef(std::make_shared<AssetReferenceConfig>())
 	, m_bIsSpoutOutputStreaming(false)
@@ -63,7 +61,6 @@ configuru::Config CompositorDefinition::writeToJSON()
 {
 	configuru::Config pt = MikanComponentDefinition::writeToJSON();
 
-	pt["id"] = m_compositorId;
 	pt[k_cameraIdPropertyId] = m_cameraId;
 	pt[k_ownerStagePropertyId] = m_ownerStageId;
 	pt[k_spoutEnableOutputNamePropertyId] = m_bIsSpoutOutputStreaming;
@@ -80,8 +77,6 @@ configuru::Config CompositorDefinition::writeToJSON()
 void CompositorDefinition::readFromJSON(const configuru::Config& pt)
 {
 	MikanComponentDefinition::readFromJSON(pt);
-
-	m_compositorId = pt.get<int>("id");
 
 	m_cameraId = pt.get_or<int>(k_cameraIdPropertyId, INVALID_MIKAN_ID);
 	m_ownerStageId = pt.get_or<int>(k_ownerStagePropertyId, INVALID_MIKAN_ID);
@@ -761,7 +756,7 @@ void CompositorComponent::getPropertyDescriptors(std::vector<PropertyDescriptorC
 		->setDefaultValue(-1));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			CompositorDefinition::k_compositorGraphPathPropertyId, MikanVariantType::INT));
+			CompositorDefinition::k_compositorGraphPathPropertyId, MikanVariantType::STRING));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			CompositorDefinition::k_spoutEnableOutputNamePropertyId, MikanVariantType::BOOL));

@@ -213,7 +213,7 @@ public:
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraRequest")) ComponentListResponse :
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) ComponentListResponse :
 	public MikanResponse
 {
 

@@ -5,6 +5,10 @@
 
 #include "MikanCameraTypes.h"
 
+#include "MikanCompositorTypes.h"
+
+#include "MikanMarkerTypes.h"
+
 #include "MikanClientRequests.h"
 #include "MikanClientEvents.h"
 #include "MikanScriptEvents.h"
@@ -25,6 +29,10 @@
 #include "MikanStencilRequests.h"
 
 #include "MikanTextureSourceTypes.h"
+
+#include "MikanTrackingMountTypes.h"
+
+#include "MikanTrackingVolumeTypes.h"
 
 #include "MikanVideoSourceEvents.h"
 #include "MikanVideoSourceRequests.h"
@@ -537,11 +545,16 @@ protected:
 		// Fetch all mikan state
 		handleComponentListChanged<MikanAnchorComponentValues>();
 		handleComponentListChanged<MikanCameraComponentValues>();
+		handleComponentListChanged<MikanCompositorComponentValues>();
+		handleComponentListChanged<MikanMarkerComponentValues>();
 		handleComponentListChanged<MikanSceneComponentValues>();
 		handleComponentListChanged<MikanStageComponentValues>();
 		handleComponentListChanged<MikanQuadStencilComponentValues>();
 		handleComponentListChanged<MikanBoxStencilComponentValues>();
 		handleComponentListChanged<MikanModelStencilComponentValues>();
+		handleComponentListChanged<MikanTrackingMountComponentValues>();
+		handleComponentListChanged<MikanMarkerTrackingVolumeComponentValues>();
+		handleComponentListChanged<MikanVRTrackingVolumeComponentValues>();
 		handleComponentListChanged<MikanClientTextureSourceValues>();
 		handleComponentListChanged<MikanSpoutTextureSourceValues>();
 		handleComponentListChanged<MikanNetworkVideoSourceValues>();

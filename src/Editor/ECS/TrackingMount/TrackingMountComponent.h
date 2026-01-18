@@ -22,7 +22,7 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	inline MikanTrackingMountID getTrackingMountId() const { return m_trackingMountId; }
+	inline MikanTrackingMountID getTrackingMountId() const { return getComponentId(); }
 
 	static const std::string k_desiredDevicePathPropertyId;
 	inline const std::string& getDevicePath() const { return m_devicePath; }
@@ -33,7 +33,6 @@ public:
 	void setSocketName(const std::string& socketName);
 
 private:
-	MikanTrackingMountID m_trackingMountId;
 	std::string m_devicePath;
 	std::string m_socketName;
 };

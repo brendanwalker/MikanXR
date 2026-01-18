@@ -36,7 +36,7 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	MikanCompositorID getCompositorId() const { return m_compositorId; }
+	MikanCompositorID getCompositorId() const { return getComponentId(); }
 
 	static const std::string k_cameraIdPropertyId;
 	inline MikanCameraID getCameraId() const { return m_cameraId; }
@@ -60,7 +60,6 @@ public:
 	void setSpoutOutputName(const std::string& spoutOutputName);
 
 private:
-	MikanCompositorID m_compositorId;
 	MikanStageID m_ownerStageId = INVALID_MIKAN_ID;
 	MikanCameraID m_cameraId = INVALID_MIKAN_ID;
 	AssetReferenceConfigPtr m_nodeGraphAssetRef;

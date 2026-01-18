@@ -31,6 +31,7 @@ enum class ENUM(Serialization::CodeGenModule("MikanVariantTypes")) MikanVariantT
 	VECTOR3F ENUMVALUE_STRING("VECTOR3F_TYPE"),
 	VECTOR4F ENUMVALUE_STRING("VECTOR4F_TYPE"),
 	QUATERNIONF ENUMVALUE_STRING("QUATERNIONF_TYPE"),
+	MATRIX4F ENUMVALUE_STRING("MATRIX4F_TYPE"),
 	VECTOR2D ENUMVALUE_STRING("VECTOR2D_TYPE"),
 	VECTOR3D ENUMVALUE_STRING("VECTOR3D_TYPE"),
 	VECTOR4D ENUMVALUE_STRING("VECTOR4D_TYPE"),
@@ -86,6 +87,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	const MikanVector3f& getVector3fValue() const;
 	const MikanVector4f& getVector4fValue() const;
 	const MikanQuatf& getQuaternionfValue() const;
+	const MikanMatrix4f& getMatrix4fValue() const;
 	const MikanVector2d& getVector2dValue() const;
 	const MikanVector3d& getVector3dValue() const;
 	const MikanVector4d& getVector4dValue() const;
@@ -109,6 +111,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	void setValue(const MikanVector3f& value);
 	void setValue(const MikanVector4f& value);
 	void setValue(const MikanQuatf& value);
+	void setValue(const MikanMatrix4f& value);
 	void setValue(const MikanVector2d& value);
 	void setValue(const MikanVector3d& value);
 	void setValue(const MikanVector4d& value);
@@ -240,6 +243,17 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanQuatfValue_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanMatrix4fValue
+	: public MikanVariantBase
+{
+	FIELD()
+	MikanMatrix4f value;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanMatrix4fValue_GENERATED
 #endif
 };
 

@@ -13,11 +13,15 @@
 #include "MikanCameraEvents.rfks.h"
 #include "MikanCameraTypes.rfks.h"
 
-#include "MikanComponentTypes.rfks.h"
-
 #include "MikanClientEvents.rfks.h"
 #include "MikanClientTypes.rfks.h"
 #include "MikanClientRequests.rfks.h"
+
+#include "MikanComponentTypes.rfks.h"
+
+#include "MikanCompositorTypes.rfks.h"
+
+#include "MikanMarkerTypes.rfks.h"
 
 #include "MikanMathTypes.rfks.h"
 
@@ -45,6 +49,10 @@
 #include "MikanTextureSourceEvents.rfks.h"
 #include "MikanTextureSourceTypes.rfks.h"
 
+#include "MikanTrackingMountTypes.rfks.h"
+
+#include "MikanTrackingVolumeTypes.rfks.h"
+
 #include "MikanTransformTypes.rfks.h"
 
 #include "MikanVariantTypes.rfks.h"
@@ -58,10 +66,14 @@
 
 #include "MikanAnchorTypes.h"
 #include "MikanCameraTypes.h"
+#include "MikanCompositorTypes.h"
+#include "MikanMarkerTypes.h"
 #include "MikanSceneTypes.h"
 #include "MikanStageTypes.h"
 #include "MikanStencilTypes.h"
 #include "MikanTextureSourceTypes.h"
+#include "MikanTrackingMountTypes.h"
+#include "MikanTrackingVolumeTypes.h"
 #include "MikanVideoSourceTypes.h"
 #include "MikanVRDeviceTypes.h"
 
@@ -71,6 +83,12 @@ const char* MikanAnchorComponentValues::k_ownerSystemName = "AnchorObjectSystem"
 
 const char* MikanCameraComponentValues::k_componentClassName = "CameraComponent";
 const char* MikanCameraComponentValues::k_ownerSystemName = "CameraObjectSystem";
+
+const char* MikanCompositorComponentValues::k_componentClassName = "CompositorComponent";
+const char* MikanCompositorComponentValues::k_ownerSystemName = "CompositorObjectSystem";
+
+const char* MikanMarkerComponentValues::k_componentClassName = "MarkerComponent";
+const char* MikanMarkerComponentValues::k_ownerSystemName = "MarkerObjectSystem";
 
 const char* MikanSceneComponentValues::k_componentClassName = "SceneComponent";
 const char* MikanSceneComponentValues::k_ownerSystemName = "SceneObjectSystem";
@@ -86,6 +104,15 @@ const char* MikanBoxStencilComponentValues::k_ownerSystemName = "BoxStencilObjec
 
 const char* MikanModelStencilComponentValues::k_componentClassName = "ModelStencilComponent";
 const char* MikanModelStencilComponentValues::k_ownerSystemName = "ModelStencilObjectSystem";
+
+const char* MikanMarkerTrackingVolumeComponentValues::k_componentClassName = "MarkerTrackingVolumeComponent";
+const char* MikanMarkerTrackingVolumeComponentValues::k_ownerSystemName = "MarkerTrackingVolumeObjectSystem";
+
+const char* MikanVRTrackingVolumeComponentValues::k_componentClassName = "VRTrackingVolumeComponent";
+const char* MikanVRTrackingVolumeComponentValues::k_ownerSystemName = "VRTrackingVolumeObjectSystem";
+
+const char* MikanTrackingMountComponentValues::k_componentClassName = "TrackingMountComponent";
+const char* MikanTrackingMountComponentValues::k_ownerSystemName = "TrackingMountObjectSystem";
 
 const char* MikanClientTextureSourceValues::k_componentClassName = "ClientTextureSourceComponent";
 const char* MikanClientTextureSourceValues::k_ownerSystemName = "ClientTextureSourceSystem";

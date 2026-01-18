@@ -203,8 +203,7 @@ void updateMikan()
 				auto newFrameEvent = std::static_pointer_cast<MikanCameraNewFrameEvent>(event);
 				processNewVideoSourceFrame(*newFrameEvent.get());
             }
-			else if (typeid(*event) == typeid(MikanVideoSourceModeChangedEvent) ||
-					 typeid(*event) == typeid(MikanCameraIntrinsicsChangedEvent))
+			else if (typeid(*event) == typeid(MikanVideoSourceModeChangedEvent))
             {
 				reallocateRenderBuffers();
 				updateCameraProjectionMatrix();

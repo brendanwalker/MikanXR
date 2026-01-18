@@ -16,7 +16,6 @@ const std::string TrackingVolumeDefinition::k_originMarkerIdPropertyId = "origin
 
 TrackingVolumeDefinition::TrackingVolumeDefinition()
 	: MikanComponentDefinition()
-	, m_trackingVolumeId(INVALID_MIKAN_ID)
 	, m_originMarkeId(INVALID_MIKAN_ID)
 {
 }
@@ -24,7 +23,6 @@ TrackingVolumeDefinition::TrackingVolumeDefinition()
 TrackingVolumeDefinition::TrackingVolumeDefinition(
 	MikanTrackingVolumeID trackingVolumeId)
 	: MikanComponentDefinition(trackingVolumeId, "")
-	, m_trackingVolumeId(trackingVolumeId)
 	, m_originMarkeId(INVALID_MIKAN_ID)
 {
 }
@@ -33,7 +31,6 @@ configuru::Config TrackingVolumeDefinition::writeToJSON()
 {
 	configuru::Config pt = MikanComponentDefinition::writeToJSON();
 
-	pt["tracking_volume_id"] = m_trackingVolumeId;
 	pt[k_originMarkerIdPropertyId.c_str()] = m_originMarkeId;
 
 	return pt;
@@ -43,7 +40,6 @@ void TrackingVolumeDefinition::readFromJSON(const configuru::Config& pt)
 {
 	MikanComponentDefinition::readFromJSON(pt);
 
-	m_trackingVolumeId = pt.get_or<MikanTrackingVolumeID>("tracking_volume_id", m_trackingVolumeId);
 	m_originMarkeId = pt.get_or<MikanMarkerID>(k_originMarkerIdPropertyId.c_str(), m_originMarkeId);
 }
 
