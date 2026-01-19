@@ -1,3 +1,4 @@
+#include "AppStage.h"
 #include "RmlModel_VRTrackingVolumeComponent.h"
 #include "RmlModel_EntityAccessor.h"
 #include "MarkerObjectSystem.h"
@@ -11,12 +12,14 @@
 RmlModel_VRTrackingVolumeComponent::RmlModel_VRTrackingVolumeComponent()
 	: RmlModel_MikanComponent()
 	, m_markerComponentIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
-	, m_trackingMountIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {}
 
-bool RmlModel_VRTrackingVolumeComponent::init(Rml::Context* rmlContext)
+bool RmlModel_VRTrackingVolumeComponent::init(AppStage* ownerAppStage)
 {
-	return initTypedPropertyInterface<VRTrackingVolumeComponent>(rmlContext);
+	m_markerObjectSystem = ownerAppStage->getObjectSystemOfType<MarkerObjectSystem>();
+	m_trackingMountObjectSystem = ownerAppStage->getObjectSystemOfType<TrackingMountObjectSystem>();
+
+	return initTypedPropertyInterface<VRTrackingVolumeComponent>(ownerAppStage->getRmlContext());
 }
 
 bool RmlModel_VRTrackingVolumeComponent::onConstruct(Rml::DataModelConstructor& constructor)
@@ -27,32 +30,9 @@ bool RmlModel_VRTrackingVolumeComponent::onConstruct(Rml::DataModelConstructor& 
 	// Build the list of all marker component IDs from the MarkerObjectSystem
 	m_markerComponentIdList->init(
 		constructor,
-		CommonConfigPtr(),
-		"marker_component_ids",
-		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			auto markerObjectSystem = getMarkerObjectSystem();
-			if (markerObjectSystem)
-			{
-				for (const auto& it : markerObjectSystem->getComponentMap())
-				{
-					outComponentIdList.push_back((int)it.first);
-				}
-			}
-		});
-
-	// Build the list of all tracking mount IDs from the TrackingMountObjectSystem
-	m_trackingMountIdList->init(
-		constructor,
-		CommonConfigPtr(),
-		"tracking_mount_ids",
-		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			auto vrTrackingVolumeDefinition = 
-				dynamic_pointer_cast<VRTrackingVolumeDefinition>(ownerConfig);
-			if (vrTrackingVolumeDefinition)
-			{
-				outComponentIdList= vrTrackingVolumeDefinition->getTrackingMountIDs();
-			}
-		});
+		getMarkerObjectSystem(),
+		MarkerObjectSystemDefinition::k_componentIdListPropertyId,
+		true);
 
 	constructor.BindEventCallback(
 		"select_charuco_mount_entry",
@@ -90,31 +70,9 @@ bool RmlModel_VRTrackingVolumeComponent::onConstruct(Rml::DataModelConstructor& 
 	return true;
 }
 
-bool RmlModel_VRTrackingVolumeComponent::setComponent(MikanComponentPtr component)
-{
-	if (RmlModel_MikanComponent::setComponent(component))
-	{
-		m_markerComponentIdList->setOwnerConfig(getMarkerObjectSystemDefinition());
-		m_markerComponentIdList->rebuildList(true);
-
-		m_trackingMountIdList->setOwnerConfig(component ? component->getDefinition() : CommonConfigPtr());
-		m_trackingMountIdList->rebuildList(true);
-
-		return true;
-	}
-
-	return false;
-}
-
 MarkerObjectSystemPtr RmlModel_VRTrackingVolumeComponent::getMarkerObjectSystem() const
 {
-	MikanComponentPtr component = m_component.lock();
-	if (component)
-	{
-		return component->getObjectSystemOfType<MarkerObjectSystem>();
-	}
-
-	return nullptr;
+	return m_markerObjectSystem.lock();
 }
 
 MarkerObjectSystemDefinitionPtr RmlModel_VRTrackingVolumeComponent::getMarkerObjectSystemDefinition() const
@@ -130,13 +88,7 @@ MarkerObjectSystemDefinitionPtr RmlModel_VRTrackingVolumeComponent::getMarkerObj
 
 TrackingMountObjectSystemPtr RmlModel_VRTrackingVolumeComponent::getTrackingMountObjectSystem() const
 {
-	MikanComponentPtr component = m_component.lock();
-	if (component)
-	{
-		return component->getObjectSystemOfType<TrackingMountObjectSystem>();
-	}
-
-	return nullptr;
+	return m_trackingMountObjectSystem.lock();
 }
 
 TrackingMountObjectSystemDefinitionPtr RmlModel_VRTrackingVolumeComponent::getTrackingMountObjectSystemConfig() const

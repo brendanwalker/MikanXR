@@ -24,61 +24,59 @@ ProjectRmlModelContext::ProjectRmlModelContext(AppStage_Project* ownerAppStage)
 
 bool ProjectRmlModelContext::init()
 {
-	Rml::Context* rmlContext= m_ownerAppStage->getRmlContext();
-
 	// System Models
 	m_markerSystemModel = m_ownerAppStage->addRmlModel<RmlModel_MarkerObjectSystem>();
-	m_markerSystemModel->init(rmlContext);
+	m_markerSystemModel->init(m_ownerAppStage);
 	m_markerSystemModel->setObjectSystem(m_ownerAppStage->getObjectSystemOfType<MarkerObjectSystem>());
 
 	// Component Models
 	m_anchorModel = m_ownerAppStage->addRmlModel<RmlModel_AnchorComponent>();
-	m_anchorModel->init(rmlContext);
+	m_anchorModel->init(m_ownerAppStage);
 
 	m_boxStencilModel = m_ownerAppStage->addRmlModel<RmlModel_BoxStencilComponent>();
-	m_boxStencilModel->init(rmlContext);
+	m_boxStencilModel->init(m_ownerAppStage);
 
 	m_cameraModel = m_ownerAppStage->addRmlModel<RmlModel_CameraComponent>();
-	m_cameraModel->init(rmlContext);
+	m_cameraModel->init(m_ownerAppStage);
 
 	m_clientTextureSourceModel = m_ownerAppStage->addRmlModel<RmlModel_ClientTextureSourceComponent>();
-	m_clientTextureSourceModel->init(rmlContext);
+	m_clientTextureSourceModel->init(m_ownerAppStage);
 
 	m_compositorModel = m_ownerAppStage->addRmlModel<RmlModel_CompositorComponent>();
-	m_compositorModel->init(rmlContext);
+	m_compositorModel->init(m_ownerAppStage);
 
 	m_markerModel = m_ownerAppStage->addRmlModel<RmlModel_MarkerComponent>();
-	m_markerModel->init(rmlContext);
+	m_markerModel->init(m_ownerAppStage);
 
 	m_markerTrackingVolumeModel = m_ownerAppStage->addRmlModel<RmlModel_MarkerTrackingVolumeComponent>();
-	m_markerTrackingVolumeModel->init(rmlContext);
+	m_markerTrackingVolumeModel->init(m_ownerAppStage);
 
 	m_modelStencilModel = m_ownerAppStage->addRmlModel<RmlModel_ModelStencilComponent>();
-	m_modelStencilModel->init(rmlContext);
+	m_modelStencilModel->init(m_ownerAppStage);
 
 	m_networkVideoSourceModel = m_ownerAppStage->addRmlModel<RmlModel_NetworkVideoSourceComponent>();
-	m_networkVideoSourceModel->init(rmlContext);
+	m_networkVideoSourceModel->init(m_ownerAppStage);
 
 	m_quadStencilModel = m_ownerAppStage->addRmlModel<RmlModel_QuadStencilComponent>();
-	m_quadStencilModel->init(rmlContext);
+	m_quadStencilModel->init(m_ownerAppStage);
 
 	m_sceneModel = m_ownerAppStage->addRmlModel<RmlModel_SceneComponent>();
-	m_sceneModel->init(rmlContext);
+	m_sceneModel->init(m_ownerAppStage);
 
 	m_spoutTextureSourceModel = m_ownerAppStage->addRmlModel<RmlModel_SpoutTextureSourceComponent>();
-	m_spoutTextureSourceModel->init(rmlContext);
+	m_spoutTextureSourceModel->init(m_ownerAppStage);
 
 	m_stageModel = m_ownerAppStage->addRmlModel<RmlModel_StageComponent>();
-	m_stageModel->init(rmlContext);
+	m_stageModel->init(m_ownerAppStage);
 
 	m_trackingMountModel = m_ownerAppStage->addRmlModel<RmlModel_TrackingMountComponent>();
-	m_trackingMountModel->init(rmlContext);
+	m_trackingMountModel->init(m_ownerAppStage);
 
 	m_usbVideoSourceModel = m_ownerAppStage->addRmlModel<RmlModel_USBVideoSourceComponent>();
-	m_usbVideoSourceModel->init(rmlContext);
+	m_usbVideoSourceModel->init(m_ownerAppStage);
 
 	m_vrTrackingVolumeModel = m_ownerAppStage->addRmlModel<RmlModel_VRTrackingVolumeComponent>();
-	m_vrTrackingVolumeModel->init(rmlContext);
+	m_vrTrackingVolumeModel->init(m_ownerAppStage);
 
 	return true;
 }

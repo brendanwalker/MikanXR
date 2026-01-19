@@ -16,7 +16,7 @@ public:
 	USBVideoSourceComponentPtr getUSBVideoSourceComponent() const;
 
 	// -- RmlModel_MikanComponent --
-	virtual bool init(Rml::Context* rmlContext) override;
+	virtual bool init(class AppStage* ownerAppStage) override;
 	virtual bool onConstruct(Rml::DataModelConstructor& constructor) override;
 	virtual bool setComponent(MikanComponentPtr component) override;
 	virtual void onComponentPropertyChanged(
@@ -27,6 +27,7 @@ protected:
 	void refreshSettings();
 
 private:
+	USBVideoSourceSystemWeakPtr m_usbVideoSourceSystem;
 	RmlDataBinding_VideoSourceSettingPtr m_videoSourceSettings[(int)eVideoSettingType::COUNT];
 	RmlDataBinding_USBDevicePathListPtr m_usbDevicePathList;
 	RmlDataBinding_VideoModeListPtr m_videoModeNameList;

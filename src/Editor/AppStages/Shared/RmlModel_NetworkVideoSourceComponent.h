@@ -9,7 +9,7 @@
 class RmlModel_NetworkVideoSourceComponent : public RmlModel_MikanComponent
 {
 public:
-	virtual bool init(Rml::Context* rmlContext) override;
+	virtual bool init(class AppStage* ownerAppStage) override;
 	virtual bool onConstruct(Rml::DataModelConstructor& constructor) override;
 
 protected:

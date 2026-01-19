@@ -12,7 +12,7 @@ class RmlModel_MikanObjectSystem : public IRmlModel
 public:
 	RmlModel_MikanObjectSystem();
 
-	virtual bool init(Rml::Context* rmlContext) = 0;
+	virtual bool init(class AppStage* ownerAppStage) = 0;
 	virtual bool onConstruct(Rml::DataModelConstructor& constructor);
 
 	MikanObjectSystemPtr getObjectSystem() const;

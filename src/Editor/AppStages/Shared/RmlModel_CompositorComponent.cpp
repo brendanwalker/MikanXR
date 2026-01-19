@@ -1,3 +1,4 @@
+#include "AppStage.h"
 #include "Shared/RmlModel_CompositorComponent.h"
 #include "Shared/RmlDataBinding_List.h"
 #include "Shared/RmlModel_EntityAccessor.h"
@@ -12,9 +13,11 @@ RmlModel_CompositorComponent::RmlModel_CompositorComponent()
 	, m_cameraIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {}
 
-bool RmlModel_CompositorComponent::init(Rml::Context* rmlContext)
+bool RmlModel_CompositorComponent::init(AppStage* ownerAppStage)
 {
-	return initTypedPropertyInterface<CompositorComponent>(rmlContext);
+	m_cameraObjectSystem = ownerAppStage->getSystemOfType<CameraObjectSystem>();
+
+	return initTypedPropertyInterface<CompositorComponent>(ownerAppStage->getRmlContext());
 }
 
 bool RmlModel_CompositorComponent::onConstruct(Rml::DataModelConstructor& constructor)
@@ -25,16 +28,9 @@ bool RmlModel_CompositorComponent::onConstruct(Rml::DataModelConstructor& constr
 	// Build the list of all camera IDs from the CameraObjectSystem
 	m_cameraIdList->init(
 		constructor,
-		CommonConfigPtr(),
-		"camera_ids",
-		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			auto cameraObjectSystem= getCameraObjectSystem();
-			if (cameraObjectSystem)
-			{
-				cameraObjectSystem->getTypedDefinition()->getAllComponentIds(outComponentIdList);
-				outComponentIdList.insert(outComponentIdList.begin(), INVALID_MIKAN_ID); // Add "No Camera" option
-			}
-		});
+		getCameraObjectSystem(),
+		CameraObjectSystemDefinition::k_componentIdListPropertyId,
+		true);
 
 	constructor.BindEventCallback(
 		"select_camera_entry",
@@ -86,13 +82,7 @@ bool RmlModel_CompositorComponent::setComponent(MikanComponentPtr component)
 
 CameraObjectSystemPtr RmlModel_CompositorComponent::getCameraObjectSystem() const
 {
-	MikanComponentPtr component = m_component.lock();
-	if (component)
-	{
-		return component->getObjectSystemOfType<CameraObjectSystem>();
-	}
-
-	return nullptr;
+	return m_cameraObjectSystem.lock();
 }
 
 CameraObjectSystemDefinitionPtr RmlModel_CompositorComponent::getCameraObjectSystemConfig() const

@@ -1,3 +1,4 @@
+#include "AppStage.h"
 #include "RmlModel_StageComponent.h"
 #include "ProjectManager.h"
 #include "TrackingVolumeQueries.h"
@@ -13,9 +14,9 @@ RmlModel_StageComponent::RmlModel_StageComponent()
 	, m_trackingVolumeIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {}
 
-bool RmlModel_StageComponent::init(Rml::Context* rmlContext)
+bool RmlModel_StageComponent::init(AppStage* ownerAppStage)
 {
-	return initTypedPropertyInterface<StageComponent>(rmlContext);
+	return initTypedPropertyInterface<StageComponent>(ownerAppStage->getRmlContext());
 }
 
 bool RmlModel_StageComponent::onConstruct(Rml::DataModelConstructor& constructor)

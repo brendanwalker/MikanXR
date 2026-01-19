@@ -46,7 +46,7 @@ void AppStage_TextureSourceSettings::enter()
 		TextureSourceSettingsModel->OnReturnEvent = MakeDelegate(this, &AppStage_TextureSourceSettings::onReturnEvent);
 
 		auto* clientTextureSourceComponentModel = addRmlModel<RmlModel_ClientTextureSourceComponent>();
-		clientTextureSourceComponentModel->init(context);
+		clientTextureSourceComponentModel->init(this);
 		if (auto clientTextureSourceComponent =
 			std::dynamic_pointer_cast<ClientTextureSourceComponent>(textureSourceComponent))
 		{
@@ -54,7 +54,7 @@ void AppStage_TextureSourceSettings::enter()
 		}
 
 		auto* spoutTextureSourceComponentModel = addRmlModel<RmlModel_SpoutTextureSourceComponent>();
-		spoutTextureSourceComponentModel->init(context);
+		spoutTextureSourceComponentModel->init(this);
 		if (auto spoutTextureSourceComponent =
 			std::dynamic_pointer_cast<SpoutTextureSourceComponent>(textureSourceComponent))
 		{

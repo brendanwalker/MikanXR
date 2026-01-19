@@ -9,7 +9,7 @@ class RmlModel_MarkerComponent : public RmlModel_MikanComponent
 public:
 	RmlModel_MarkerComponent();
 
-	virtual bool init(Rml::Context* rmlContext) override;
+	virtual bool init(class AppStage* ownerAppStage) override;
 	virtual bool onConstruct(Rml::DataModelConstructor& constructor) override;
 	virtual bool setComponent(MikanComponentPtr component) override;
 

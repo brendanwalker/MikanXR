@@ -1,3 +1,4 @@
+#include "AppStage.h"
 #include "RmlModel_SpoutTextureSourceComponent.h"
 #include "SpoutTextureSourceComponent.h"
 #include "SpoutTextureSourceSystem.h"
@@ -8,9 +9,11 @@ RmlModel_SpoutTextureSourceComponent::RmlModel_SpoutTextureSourceComponent()
 {
 }
 
-bool RmlModel_SpoutTextureSourceComponent::init(Rml::Context* rmlContext)
+bool RmlModel_SpoutTextureSourceComponent::init(AppStage* ownerAppStage)
 {
-	return initTypedPropertyInterface<SpoutTextureSourceComponent>(rmlContext);
+	m_spoutTextureSourceSystem = ownerAppStage->getObjectSystemOfType<SpoutTextureSourceSystem>();
+
+	return initTypedPropertyInterface<SpoutTextureSourceComponent>(ownerAppStage->getRmlContext());
 }
 
 bool RmlModel_SpoutTextureSourceComponent::onConstruct(Rml::DataModelConstructor& constructor)
@@ -75,11 +78,5 @@ SpoutTextureSourceComponentPtr RmlModel_SpoutTextureSourceComponent::getSpoutTex
 
 SpoutTextureSourceSystemPtr RmlModel_SpoutTextureSourceComponent::getSpoutTextureSourceSystem() const
 {
-	MikanComponentPtr component = m_component.lock();
-	if (component)
-	{
-		return component->getObjectSystemOfType<SpoutTextureSourceSystem>();
-	}
-
-	return nullptr;
+	return m_spoutTextureSourceSystem.lock();
 }

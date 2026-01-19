@@ -8,7 +8,7 @@ class RmlModel_MarkerObjectSystem : public RmlModel_MikanObjectSystem
 public:
 	RmlModel_MarkerObjectSystem();
 
-	virtual bool init(Rml::Context* rmlContext) override;
+	virtual bool init(class AppStage* ownerAppStage) override;
 	virtual bool onConstruct(Rml::DataModelConstructor& constructor);
 
 protected:

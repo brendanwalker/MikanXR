@@ -284,6 +284,30 @@ std::shared_ptr<t_system_type> rmlGetSystemOfType(RmlManager* rmlManager)
 	return objectSystemManager->getSystemOfType<t_system_type>();
 }
 
+template<class t_system_type>
+bool rmlTransformComponentIdToName(RmlManager* rmlManager, Rml::Variant& variant)
+{
+	const MikanComponentID componentId = variant.Get<int>(-1);
+
+	if (componentId == INVALID_MIKAN_ID)
+	{
+		variant = Rml::String("-- None --");
+		return true;
+	}
+	else
+	{
+		auto objectSystem = rmlGetSystemOfType<t_system_type>(rmlManager);
+		MikanComponentPtr component = objectSystem->getComponentById(componentId);
+		if (component != nullptr)
+		{
+			variant = component->getName();
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void RmlManager::registerCommonDataModelTypes(Rml::Context* context)
 {
 	Rml::DataModelConstructor constructor = context->CreateDataModel("data_model_globals");
@@ -326,92 +350,31 @@ void RmlManager::registerCommonDataModelTypes(Rml::Context* context)
 	constructor.RegisterTransformFunc(
 		"to_anchor_name",
 		[rmlManager](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
-			const MikanSpatialAnchorID anchorId = variant.Get<int>(-1);
-
-			auto anchorObjectSystem = rmlGetSystemOfType<AnchorObjectSystem>(rmlManager);
-			if (anchorId != INVALID_MIKAN_ID)
-			{
-				auto anchorComponent = anchorObjectSystem->getSpatialAnchorById(anchorId);
-				if (anchorComponent != nullptr)
-				{
-					variant = Rml::String(anchorComponent->getName());
-					return true;
-				}
-			}
-			else
-			{
-				variant = Rml::String("<None>");
-				return true;
-			}
-			return false;
+			return rmlTransformComponentIdToName<AnchorObjectSystem>(rmlManager, variant);
 		});
 
 	constructor.RegisterTransformFunc(
 		"to_compositor_name",
 		[rmlManager](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
-			const MikanCompositorID compositorId = variant.Get<int>(-1);
-
-			auto compositorObjectSystem = rmlGetSystemOfType<CompositorObjectSystem>(rmlManager);
-			auto compositorComponent = compositorObjectSystem->getCompositorById(compositorId);
-			if (compositorComponent != nullptr)
-			{
-				variant = Rml::String(compositorComponent->getName());
-				return true;
-			}
-			return false;
+			return rmlTransformComponentIdToName<CompositorObjectSystem>(rmlManager, variant);
 		});
 
 	constructor.RegisterTransformFunc(
 		"to_marker_name",
 		[rmlManager](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
-			const MikanMarkerID markerId = variant.Get<int>(-1);
-
-			auto markerObjectSystem = rmlGetSystemOfType<MarkerObjectSystem>(rmlManager);
-			auto markerComponent = markerObjectSystem->getMarkerById(markerId);
-			if (markerComponent != nullptr)
-			{
-				variant = Rml::String(markerComponent->getName());
-				return true;
-			}
-			return false;
+			return rmlTransformComponentIdToName<MarkerObjectSystem>(rmlManager, variant);
 		});
 
 	constructor.RegisterTransformFunc(
 		"to_stage_name",
 		[rmlManager](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
-			const MikanStageID stageId = variant.Get<int>(-1);
-
-			if (stageId == INVALID_MIKAN_ID)
-			{
-				variant = Rml::String("<None>");
-				return true;
-			}
-			else
-			{
-				auto stageObjectSystem = rmlGetSystemOfType<StageObjectSystem>(rmlManager);
-				auto stageComponent = stageObjectSystem->getStageById(stageId);
-				if (stageComponent != nullptr)
-				{
-					variant = Rml::String(stageComponent->getName());
-					return true;
-				}
-			}
-			return false;
+			return rmlTransformComponentIdToName<StageObjectSystem>(rmlManager, variant);
 		});
 
 	constructor.RegisterTransformFunc(
 		"to_scene_name",
 		[rmlManager](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
-			const MikanSceneID sceneId = variant.Get<int>(-1);
-
-			auto sceneObjectSystem = rmlGetSystemOfType<SceneObjectSystem>(rmlManager);
-			auto sceneComponent = sceneObjectSystem->getSceneById(sceneId);
-			if (sceneComponent != nullptr)
-			{
-				variant = Rml::String(sceneComponent->getName());
-				return true;
-			}
-			return false;
+			return rmlTransformComponentIdToName<SceneObjectSystem>(rmlManager, variant);
 		});
 
 	constructor.RegisterTransformFunc(
@@ -419,12 +382,20 @@ void RmlManager::registerCommonDataModelTypes(Rml::Context* context)
 		[rmlManager](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
 			const MikanTrackingVolumeID volumeId = variant.Get<int>(-1);
 
-			ProjectManagerPtr projectManager = rmlManager->getOwnerWindow()->getProjectManager();
-			auto volumeComponent = TrackingVolumeQueries::getTrackingVolumeById(projectManager, volumeId);
-			if (volumeComponent != nullptr)
+			if (volumeId == INVALID_MIKAN_ID)
 			{
-				variant = Rml::String(volumeComponent->getName());
+				variant = Rml::String("<None>");
 				return true;
+			}
+			else
+			{
+				ProjectManagerPtr projectManager = rmlManager->getOwnerWindow()->getProjectManager();
+				auto volumeComponent = TrackingVolumeQueries::getTrackingVolumeById(projectManager, volumeId);
+				if (volumeComponent != nullptr)
+				{
+					variant = Rml::String(volumeComponent->getName());
+					return true;
+				}
 			}
 			return false;
 		});
@@ -432,16 +403,7 @@ void RmlManager::registerCommonDataModelTypes(Rml::Context* context)
 	constructor.RegisterTransformFunc(
 		"to_tracking_mount_name",
 		[rmlManager](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
-			const MikanTrackingMountID mountId = variant.Get<int>(-1);
-
-			auto mountObjectSystem = rmlGetSystemOfType<TrackingMountObjectSystem>(rmlManager);
-			auto mountComponent = mountObjectSystem->getTypedComponentById(mountId);
-			if (mountComponent != nullptr)
-			{
-				variant = Rml::String(mountComponent->getName());
-				return true;
-			}
-			return false;
+			return rmlTransformComponentIdToName<TrackingMountObjectSystem>(rmlManager, variant);
 		});
 
 	// Transform function for converting stencil id to stencil name
@@ -450,13 +412,22 @@ void RmlManager::registerCommonDataModelTypes(Rml::Context* context)
 		[rmlManager](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
 			const MikanStencilID stencilId = variant.Get<int>(-1);
 
-			auto projectManager = rmlManager->getOwnerWindow()->getProjectManager();
-			auto stencilComponent= StencilUtils::getStencilById(projectManager, stencilId);
-			if (stencilComponent != nullptr)
+			if (stencilId == INVALID_MIKAN_ID)
 			{
-				variant = stencilComponent->getName();
+				variant = Rml::String("<None>");
 				return true;
 			}
+			else
+			{
+				auto projectManager = rmlManager->getOwnerWindow()->getProjectManager();
+				auto stencilComponent = StencilUtils::getStencilById(projectManager, stencilId);
+				if (stencilComponent != nullptr)
+				{
+					variant = stencilComponent->getName();
+					return true;
+				}
+			}
+
 			return false;
 		});
 
@@ -464,25 +435,7 @@ void RmlManager::registerCommonDataModelTypes(Rml::Context* context)
 	constructor.RegisterTransformFunc(
 		"to_camera_name",
 		[rmlManager](Rml::Variant& variant, const Rml::VariantList& /*arguments*/) -> bool {
-			const MikanCameraID cameraId = variant.Get<int>(-1);
-
-			if (cameraId == INVALID_MIKAN_ID)
-			{
-				variant = Rml::String("<None>");
-				return true;
-			}
-			else
-			{
-				auto cameraObjectSystem = rmlGetSystemOfType<CameraObjectSystem>(rmlManager);
-				auto cameraComponent = cameraObjectSystem->getCameraById(cameraId);
-				if (cameraComponent != nullptr)
-				{
-					variant = cameraComponent->getName();
-					return true;
-				}
-			}
-
-			return false;
+			return rmlTransformComponentIdToName<CameraObjectSystem>(rmlManager, variant);
 		});
 
 	// Transform function for converting full file path to a trimmed path
@@ -503,14 +456,22 @@ void RmlManager::registerCommonDataModelTypes(Rml::Context* context)
 		[rmlManager](Rml::Variant& variant, const Rml::VariantList& arguments) -> bool {
 			const MikanTextureSourceID textureSourceId = variant.Get<int>(-1);
 
-			ProjectManagerPtr projectManager = rmlManager->getOwnerWindow()->getProjectManager();
-			auto textureSourceComponent = TextureSourceQueries::getTextureSourceById(projectManager, textureSourceId);
-			if (textureSourceComponent)
+			if (textureSourceId == INVALID_MIKAN_ID)
 			{
-				const Rml::String friendlyName = textureSourceComponent->getName();
-
-				variant = friendlyName;
+				variant = Rml::String("<None>");
 				return true;
+			}
+			else
+			{
+				ProjectManagerPtr projectManager = rmlManager->getOwnerWindow()->getProjectManager();
+				auto textureSourceComponent = TextureSourceQueries::getTextureSourceById(projectManager, textureSourceId);
+				if (textureSourceComponent)
+				{
+					const Rml::String friendlyName = textureSourceComponent->getName();
+
+					variant = friendlyName;
+					return true;
+				}
 			}
 
 			return false;
@@ -522,14 +483,22 @@ void RmlManager::registerCommonDataModelTypes(Rml::Context* context)
 		[rmlManager](Rml::Variant& variant, const Rml::VariantList& arguments) -> bool {
 			const MikanVideoSourceID videoSourceId = variant.Get<int>(-1);
 
-			ProjectManagerPtr projectManager = rmlManager->getOwnerWindow()->getProjectManager();
-			auto videoSourceComponent = VideoSourceQueries::getVideoSourceById(projectManager, videoSourceId);
-			if (videoSourceComponent)
+			if (videoSourceId == INVALID_MIKAN_ID)
 			{
-				const Rml::String friendlyName = videoSourceComponent->getName();
-
-				variant = friendlyName;
+				variant = Rml::String("<None>");
 				return true;
+			}
+			else
+			{
+				ProjectManagerPtr projectManager = rmlManager->getOwnerWindow()->getProjectManager();
+				auto videoSourceComponent = VideoSourceQueries::getVideoSourceById(projectManager, videoSourceId);
+				if (videoSourceComponent)
+				{
+					const Rml::String friendlyName = videoSourceComponent->getName();
+
+					variant = friendlyName;
+					return true;
+				}
 			}
 
 			return false;

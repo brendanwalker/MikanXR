@@ -51,8 +51,7 @@
 							<td>
 								<label>Utility Marker</label>
 								<select id="select" name="select_utility_marker" data-value="utility_marker_id" data-event-change="select_utility_marker_entry()">
-									<option value="-1">-- None --</option>
-									<option data-for="marker_id : marker_component_ids" data-value="marker_id">{{marker_id | to_marker_name}}</option>
+									<option data-for="marker_id : MarkerComponentIdList" data-value="marker_id">{{marker_id | to_marker_name}}</option>
 								</select>
 							</td>
 						</tr>
@@ -60,8 +59,7 @@
 							<td>
 								<label>Origin Marker</label>
 								<select id="select" name="select_origin_marker" data-value="origin_marker_id" data-event-change="select_origin_marker_entry()">
-									<option value="-1">-- None --</option>
-									<option data-for="marker_id : marker_component_ids" data-value="marker_id">{{marker_id | to_marker_name}}</option>
+									<option data-for="marker_id : MarkerComponentIdList" data-value="marker_id">{{marker_id | to_marker_name}}</option>
 								</select>
 							</td>
 						</tr>
@@ -89,8 +87,7 @@
 							<td>
 								<label>Origin Marker</label>
 								<select id="select" name="select_origin_marker" data-value="origin_marker_id" data-event-change="select_origin_marker_entry()">
-									<option value="-1">-- None --</option>
-									<option data-for="marker_id : marker_component_ids" data-value="marker_id">{{marker_id | to_marker_name}}</option>
+									<option data-for="marker_id : MarkerComponentIdList" data-value="marker_id">{{marker_id | to_marker_name}}</option>
 								</select>
 							</td>
 						</tr>

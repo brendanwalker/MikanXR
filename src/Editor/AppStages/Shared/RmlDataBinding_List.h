@@ -29,18 +29,25 @@ public:
 	bool init(
 		Rml::DataModelConstructor constructor,
 		MikanObjectSystemPtr ownerObjectSystem,
-		const std::string& listName)
+		const std::string& listName,
+		bool bAddEmptyPrefix= false)
 	{
 		// Rebuild the list using the system's property interface
 		return init(
 			constructor,
 			ownerObjectSystem->getDefinition(),
 			listName,
-			[ownerObjectSystem, listName](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
+			[ownerObjectSystem, listName, bAddEmptyPrefix](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 				MikanVariant listPropertyValue;
 				if (ownerObjectSystem->getPropertyValue(listName, listPropertyValue))
 				{
 					outComponentIdList = listPropertyValue.getIntArrayValue();
+				}
+
+				if (bAddEmptyPrefix)
+				{
+					// Add "No Entry" option
+					outComponentIdList.insert(outComponentIdList.begin(), INVALID_MIKAN_ID);
 				}
 			});
 

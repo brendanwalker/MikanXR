@@ -1,3 +1,4 @@
+#include "AppStage.h"
 #include "RmlModel_USBVideoSourceComponent.h"
 #include "Shared/RmlDataBinding_List.h"
 #include "Shared/RmlModel_EntityAccessor.h"
@@ -25,9 +26,11 @@ RmlModel_USBVideoSourceComponent::RmlModel_USBVideoSourceComponent()
 	}
 }
 
-bool RmlModel_USBVideoSourceComponent::init(Rml::Context* rmlContext)
+bool RmlModel_USBVideoSourceComponent::init(AppStage* ownerAppStage)
 {
-	return initTypedPropertyInterface<USBVideoSourceComponent>(rmlContext);
+	m_usbVideoSourceSystem = ownerAppStage->getObjectSystemOfType<USBVideoSourceSystem>();
+
+	return initTypedPropertyInterface<USBVideoSourceComponent>(ownerAppStage->getRmlContext());
 }
 
 bool RmlModel_USBVideoSourceComponent::onConstruct(Rml::DataModelConstructor& constructor)
@@ -145,13 +148,7 @@ void RmlModel_USBVideoSourceComponent::onComponentPropertyChanged(
 
 USBVideoSourceSystemPtr RmlModel_USBVideoSourceComponent::getUSBVideoSourceSystem() const
 {
-	MikanComponentPtr component = m_component.lock();
-	if (component)
-	{
-		return component->getObjectSystemOfType<USBVideoSourceSystem>();
-	}
-
-	return nullptr;
+	return m_usbVideoSourceSystem.lock();
 }
 
 USBVideoSourceSystemDefinitionPtr RmlModel_USBVideoSourceComponent::getUSBVideoSourceSystemConfig() const

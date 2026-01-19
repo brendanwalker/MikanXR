@@ -1,3 +1,4 @@
+#include "AppStage.h"
 #include "MarkerTrackingVolumeComponent.h"
 #include "RmlModel_MarkerTrackingVolumeComponent.h"
 #include "RmlModel_EntityAccessor.h"
@@ -14,9 +15,12 @@ RmlModel_MarkerTrackingVolumeComponent::RmlModel_MarkerTrackingVolumeComponent()
 	, m_markerComponentIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {}
 
-bool RmlModel_MarkerTrackingVolumeComponent::init(Rml::Context* rmlContext)
+bool RmlModel_MarkerTrackingVolumeComponent::init(AppStage* ownerAppStage)
 {
-	return initTypedPropertyInterface<MarkerTrackingVolumeComponent>(rmlContext);
+	m_markerObjectSystem = ownerAppStage->getObjectSystemOfType<MarkerObjectSystem>();
+	m_trackingMountObjectSystem = ownerAppStage->getObjectSystemOfType<TrackingMountObjectSystem>();
+
+	return initTypedPropertyInterface<MarkerTrackingVolumeComponent>(ownerAppStage->getRmlContext());
 }
 
 bool RmlModel_MarkerTrackingVolumeComponent::onConstruct(Rml::DataModelConstructor& constructor)
@@ -27,18 +31,9 @@ bool RmlModel_MarkerTrackingVolumeComponent::onConstruct(Rml::DataModelConstruct
 	// Build the list of all marker component IDs from the MarkerObjectSystem
 	m_markerComponentIdList->init(
 		constructor,
-		CommonConfigPtr(),
-		"marker_component_ids",
-		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			auto markerObjectSystem = getMarkerObjectSystem();
-			if (markerObjectSystem)
-			{
-				for (const auto& it : markerObjectSystem->getComponentMap())
-				{
-					outComponentIdList.push_back((int)it.first);
-				}
-			}
-		});
+		getMarkerObjectSystem(),
+		MarkerObjectSystemDefinition::k_componentIdListPropertyId,
+		true);
 
 	constructor.BindEventCallback(
 		"select_origin_marker_entry",
@@ -54,28 +49,9 @@ bool RmlModel_MarkerTrackingVolumeComponent::onConstruct(Rml::DataModelConstruct
 	return true;
 }
 
-bool RmlModel_MarkerTrackingVolumeComponent::setComponent(MikanComponentPtr component)
-{
-	if (RmlModel_MikanComponent::setComponent(component))
-	{
-		m_markerComponentIdList->setOwnerConfig(getMarkerObjectSystemDefinition());
-		m_markerComponentIdList->rebuildList(true);
-
-		return true;
-	}
-
-	return false;
-}
-
 MarkerObjectSystemPtr RmlModel_MarkerTrackingVolumeComponent::getMarkerObjectSystem() const
 {
-	MikanComponentPtr component = m_component.lock();
-	if (component)
-	{
-		return component->getObjectSystemOfType<MarkerObjectSystem>();
-	}
-
-	return nullptr;
+	return m_markerObjectSystem.lock();
 }
 
 MarkerObjectSystemDefinitionPtr RmlModel_MarkerTrackingVolumeComponent::getMarkerObjectSystemDefinition() const
@@ -91,13 +67,7 @@ MarkerObjectSystemDefinitionPtr RmlModel_MarkerTrackingVolumeComponent::getMarke
 
 TrackingMountObjectSystemPtr RmlModel_MarkerTrackingVolumeComponent::getTrackingMountObjectSystem() const
 {
-	MikanComponentPtr component = m_component.lock();
-	if (component)
-	{
-		return component->getObjectSystemOfType<TrackingMountObjectSystem>();
-	}
-
-	return nullptr;
+	return m_trackingMountObjectSystem.lock();
 }
 
 TrackingMountObjectSystemDefinitionPtr RmlModel_MarkerTrackingVolumeComponent::getTrackingMountObjectSystemConfig() const

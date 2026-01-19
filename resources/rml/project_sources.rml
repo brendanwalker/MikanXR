@@ -100,12 +100,12 @@
 								<label>{{path}}</label>
 							</td>
 						</tr>
-						<tr data-if="are_intrinsics_valid" class="property_tr">
+						<tr data-if="intrinsics_type == 0" class="property_tr">
 							<td>
 								<button data-event-click="calibrate_intrinsics()">Calibrate Intrinsics</button>
 							</td>
 						</tr>
-						<tr data-if="!are_intrinsics_valid" class="property_tr">
+						<tr data-if="intrinsics_type != 0" class="property_tr">
 							<td>
 								<button data-event-click="test_intrinsics()">Test Intrinsics</button>
 							</td>

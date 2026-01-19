@@ -1,3 +1,4 @@
+#include "AppStage.h"
 #include "Shared/RmlModel_StencilComponent.h"
 #include "Shared/RmlDataBinding_List.h"
 #include "Shared/RmlModel_EntityAccessor.h"
@@ -110,19 +111,19 @@ AnchorObjectSystemDefinitionPtr RmlModel_StencilComponent::getAnchorObjectSystem
 }
 
 //-- RmlModel_QuadStencilComponent -----
-bool RmlModel_QuadStencilComponent::init(Rml::Context* rmlContext)
+bool RmlModel_QuadStencilComponent::init(class AppStage* ownerAppStage)
 {
-	return initTypedPropertyInterface<QuadStencilComponent>(rmlContext);
+	return initTypedPropertyInterface<QuadStencilComponent>(ownerAppStage->getRmlContext());
 }
 
 //-- RmlModel_BoxStencilComponent -----
-bool RmlModel_BoxStencilComponent::init(Rml::Context* rmlContext)
+bool RmlModel_BoxStencilComponent::init(class AppStage* ownerAppStage)
 {
-	return initTypedPropertyInterface<BoxStencilComponent>(rmlContext);
+	return initTypedPropertyInterface<BoxStencilComponent>(ownerAppStage->getRmlContext());
 }
 
 //-- RmlModel_ModelStencilComponent -----
-bool RmlModel_ModelStencilComponent::init(Rml::Context* rmlContext)
+bool RmlModel_ModelStencilComponent::init(class AppStage* ownerAppStage)
 {
-	return initTypedPropertyInterface<ModelStencilComponent>(rmlContext);
+	return initTypedPropertyInterface<ModelStencilComponent>(ownerAppStage->getRmlContext());
 }

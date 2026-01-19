@@ -1,3 +1,4 @@
+#include "AppStage.h"
 #include "RmlModel_TrackingMountComponent.h"
 #include "Shared/RmlDataBinding_List.h"
 #include "Shared/RmlModel_EntityAccessor.h"
@@ -14,9 +15,11 @@ RmlModel_TrackingMountComponent::RmlModel_TrackingMountComponent()
 	, m_socketNameList(std::make_shared<RmlDataBinding_SocketNameList>())
 {}
 
-bool RmlModel_TrackingMountComponent::init(Rml::Context* rmlContext)
+bool RmlModel_TrackingMountComponent::init(AppStage* ownerAppStage)
 {
-	return initTypedPropertyInterface<TrackingMountComponent>(rmlContext);
+	m_vrObjectSystem = ownerAppStage->getObjectSystemOfType<VRObjectSystem>();
+
+	return initTypedPropertyInterface<TrackingMountComponent>(ownerAppStage->getRmlContext());
 }
 
 bool RmlModel_TrackingMountComponent::onConstruct(Rml::DataModelConstructor& constructor)
@@ -89,13 +92,7 @@ bool RmlModel_TrackingMountComponent::setComponent(MikanComponentPtr component)
 
 VRObjectSystemPtr RmlModel_TrackingMountComponent::getVRObjectSystem() const
 {
-	MikanComponentPtr component = m_component.lock();
-	if (component)
-	{
-		return component->getObjectSystemOfType<VRObjectSystem>();
-	}
-
-	return nullptr;
+	return m_vrObjectSystem.lock();
 }
 
 VRObjectSystemDefinitionPtr RmlModel_TrackingMountComponent::getVRObjectSystemConfig() const

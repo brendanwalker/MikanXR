@@ -9,9 +9,8 @@ class RmlModel_MarkerTrackingVolumeComponent : public RmlModel_MikanComponent
 public:
 	RmlModel_MarkerTrackingVolumeComponent();
 
-	virtual bool init(Rml::Context* rmlContext) override;
+	virtual bool init(class AppStage* ownerAppStage) override;
 	virtual bool onConstruct(Rml::DataModelConstructor& constructor) override;
-	virtual bool setComponent(MikanComponentPtr component) override;
 
 protected:
 	MarkerObjectSystemPtr getMarkerObjectSystem() const;

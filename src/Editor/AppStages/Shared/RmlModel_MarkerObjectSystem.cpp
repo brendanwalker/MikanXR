@@ -1,3 +1,4 @@
+#include "AppStage.h"
 #include "MarkerObjectSystem.h"
 #include "Shared/RmlModel_MarkerObjectSystem.h"
 #include "Shared/RmlModel_EntityAccessor.h"
@@ -12,9 +13,9 @@ RmlModel_MarkerObjectSystem::RmlModel_MarkerObjectSystem()
 {}
 
 bool RmlModel_MarkerObjectSystem::init(
-	Rml::Context* rmlContext)
+	AppStage* ownerAppStage)
 {
-	return initTypedPropertyInterface<MarkerObjectSystem>(rmlContext);
+	return initTypedPropertyInterface<MarkerObjectSystem>(ownerAppStage->getRmlContext());
 }
 
 bool RmlModel_MarkerObjectSystem::onConstruct(

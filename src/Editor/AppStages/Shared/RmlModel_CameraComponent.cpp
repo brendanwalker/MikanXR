@@ -1,3 +1,4 @@
+#include "AppStage.h"
 #include "RmlModel_CameraComponent.h"
 #include "Shared/RmlDataBinding_List.h"
 #include "Shared/RmlModel_EntityAccessor.h"
@@ -15,9 +16,9 @@ RmlModel_CameraComponent::RmlModel_CameraComponent()
 	, m_textureSourceIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {}
 
-bool RmlModel_CameraComponent::init(Rml::Context* rmlContext)
+bool RmlModel_CameraComponent::init(class AppStage* ownerAppStage)
 {
-	return initTypedPropertyInterface<CameraComponent>(rmlContext);
+	return initTypedPropertyInterface<CameraComponent>(ownerAppStage->getRmlContext());
 }
 
 bool RmlModel_CameraComponent::onConstruct(Rml::DataModelConstructor& constructor)

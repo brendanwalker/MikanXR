@@ -52,7 +52,7 @@ void AppStage_VideoSourceSettings::enter()
 		videoSourceSettingsModel->OnReturnEvent = MakeDelegate(this, &AppStage_VideoSourceSettings::onReturnEvent);
 
 		auto* usbVideoSourceComponentModel = addRmlModel<RmlModel_USBVideoSourceComponent>();
-		usbVideoSourceComponentModel->init(context);
+		usbVideoSourceComponentModel->init(this);
 		if (auto usbVideoSourceComponent =
 			std::dynamic_pointer_cast<USBVideoSourceComponent>(videoSourceComponent))
 		{
@@ -60,7 +60,7 @@ void AppStage_VideoSourceSettings::enter()
 		}
 
 		auto* networkVideoSourceComponentModel = addRmlModel<RmlModel_NetworkVideoSourceComponent>();
-		networkVideoSourceComponentModel->init(context);
+		networkVideoSourceComponentModel->init(this);
 		if (auto networkVideoSourceComponent =
 			std::dynamic_pointer_cast<NetworkVideoSourceComponent>(videoSourceComponent))
 		{

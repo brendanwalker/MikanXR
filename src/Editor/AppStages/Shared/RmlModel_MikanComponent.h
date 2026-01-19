@@ -17,7 +17,7 @@ public:
 	RmlModel_MikanComponent();
 	virtual ~RmlModel_MikanComponent() = default;
 
-	virtual bool init(Rml::Context* rmlContext) = 0;
+	virtual bool init(class AppStage* ownerAppStage) = 0;
 	virtual bool onConstruct(Rml::DataModelConstructor& constructor);
 
 	inline RmlModel_EntityAccessorPtr getPropertyInterface() const { return m_entityAccessor; }

@@ -138,8 +138,7 @@
 							<td>
 								<label>Camera</label>
 								<select id="select" name="select_camera_id" data-value="camera_id" data-event-change="select_camera_entry()">
-									<option value="-1">-- None --</option>
-									<option data-for="element_id : camera_ids" data-value="element_id">{{element_id | to_camera_name}}</option>
+									<option data-for="element_id : CameraComponentIdList" data-value="element_id">{{element_id | to_camera_name}}</option>
 								</select>
 							</td>
 						</tr>

@@ -9,9 +9,8 @@ class RmlModel_VRTrackingVolumeComponent : public RmlModel_MikanComponent
 public:
 	RmlModel_VRTrackingVolumeComponent();
 
-	virtual bool init(Rml::Context* rmlContext) override;
+	virtual bool init(class AppStage* ownerAppStage) override;
 	virtual bool onConstruct(Rml::DataModelConstructor& constructor) override;
-	virtual bool setComponent(MikanComponentPtr component) override;
 
 protected:
 	MarkerObjectSystemPtr getMarkerObjectSystem() const;
@@ -22,7 +21,6 @@ protected:
 
 private:
 	RmlDataBinding_ComponentIdListPtr m_markerComponentIdList;
-	RmlDataBinding_ComponentIdListPtr m_trackingMountIdList;
 	MarkerObjectSystemWeakPtr m_markerObjectSystem;
 	TrackingMountObjectSystemWeakPtr m_trackingMountObjectSystem;
 };

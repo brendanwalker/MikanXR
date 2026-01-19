@@ -1,3 +1,4 @@
+#include "AppStage.h"
 #include "MarkerComponent.h"
 #include "Shared/RmlModel_MarkerComponent.h"
 #include "Shared/RmlModel_EntityAccessor.h"
@@ -13,9 +14,11 @@ RmlModel_MarkerComponent::RmlModel_MarkerComponent()
 	, m_arucoIdList(std::make_shared<RmlDataBinding_ArucoIdList>())
 {}
 
-bool RmlModel_MarkerComponent::init(Rml::Context* rmlContext)
+bool RmlModel_MarkerComponent::init(AppStage* ownerAppStage)
 {
-	return initTypedPropertyInterface<MarkerComponent>(rmlContext);
+	m_markerObjectSystem = ownerAppStage->getProjectManager()->getSystemOfType<MarkerObjectSystem>();
+
+	return initTypedPropertyInterface<MarkerComponent>(ownerAppStage->getRmlContext());
 }
 
 bool RmlModel_MarkerComponent::onConstruct(Rml::DataModelConstructor& constructor)
@@ -76,13 +79,7 @@ bool RmlModel_MarkerComponent::setComponent(MikanComponentPtr component)
 
 MarkerObjectSystemPtr RmlModel_MarkerComponent::getMarkerObjectSystem() const
 {
-	MikanComponentPtr component = m_component.lock();
-	if (component)
-	{
-		return component->getObjectSystemOfType<MarkerObjectSystem>();
-	}
-
-	return nullptr;
+	return m_markerObjectSystem.lock();
 }
 
 MarkerObjectSystemDefinitionPtr RmlModel_MarkerComponent::getMarkerObjectSystemDefinition() const

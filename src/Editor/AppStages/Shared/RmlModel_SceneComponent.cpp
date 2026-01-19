@@ -1,3 +1,4 @@
+#include "AppStage.h"
 #include "RmlModel_SceneComponent.h"
 #include "Shared/RmlDataBinding_List.h"
 #include "Shared/RmlModel_EntityAccessor.h"
@@ -11,9 +12,9 @@ RmlModel_SceneComponent::RmlModel_SceneComponent()
 	, m_compositorIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {}
 
-bool RmlModel_SceneComponent::init(Rml::Context* rmlContext)
+bool RmlModel_SceneComponent::init(AppStage* ownerAppStage)
 {
-	return initTypedPropertyInterface<SceneComponent>(rmlContext);
+	return initTypedPropertyInterface<SceneComponent>(ownerAppStage->getRmlContext());
 }
 
 bool RmlModel_SceneComponent::onConstruct(Rml::DataModelConstructor& constructor)

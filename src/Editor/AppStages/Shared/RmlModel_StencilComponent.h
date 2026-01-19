@@ -28,7 +28,7 @@ class RmlModel_QuadStencilComponent : public RmlModel_StencilComponent
 public:
 	RmlModel_QuadStencilComponent()= default;
 
-	virtual bool init(Rml::Context* rmlContext) override;
+	virtual bool init(class AppStage* ownerAppStage) override;
 };
 
 class RmlModel_BoxStencilComponent : public RmlModel_StencilComponent
@@ -36,7 +36,7 @@ class RmlModel_BoxStencilComponent : public RmlModel_StencilComponent
 public:
 	RmlModel_BoxStencilComponent() = default;
 
-	virtual bool init(Rml::Context* rmlContext) override;
+	virtual bool init(class AppStage* ownerAppStage) override;
 };
 
 class RmlModel_ModelStencilComponent : public RmlModel_StencilComponent
@@ -44,5 +44,5 @@ class RmlModel_ModelStencilComponent : public RmlModel_StencilComponent
 public:
 	RmlModel_ModelStencilComponent() = default;
 
-	virtual bool init(Rml::Context* rmlContext) override;
+	virtual bool init(class AppStage* ownerAppStage) override;
 };

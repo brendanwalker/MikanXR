@@ -1,3 +1,4 @@
+#include "AppStage.h"
 #include "RmlModel_NetworkVideoSourceComponent.h"
 #include "Shared/RmlDataBinding_List.h"
 #include "Shared/RmlModel_EntityAccessor.h"
@@ -11,9 +12,9 @@
 #include <RmlUi/Core/Context.h>
 
 // -- RmlModel_NetworkVideoSourceComponent -----
-bool RmlModel_NetworkVideoSourceComponent::init(Rml::Context* rmlContext)
+bool RmlModel_NetworkVideoSourceComponent::init(AppStage* ownerAppStage)
 {
-	return initTypedPropertyInterface<NetworkVideoSourceComponent>(rmlContext);
+	return initTypedPropertyInterface<NetworkVideoSourceComponent>(ownerAppStage->getRmlContext());
 }
 
 bool RmlModel_NetworkVideoSourceComponent::onConstruct(Rml::DataModelConstructor& constructor)
