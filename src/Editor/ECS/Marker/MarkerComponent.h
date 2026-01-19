@@ -50,6 +50,9 @@ public:
 		return std::static_pointer_cast<MarkerDefinition>(m_definition);
 	}
 
+	// -- IEntityAccessor ----
+	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
+
 	// -- IPropertyInterface ----
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;

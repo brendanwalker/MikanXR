@@ -86,6 +86,9 @@ public:
 
 	void refreshDevicePose();
 
+	// -- IEntityAccessor ----
+	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
+
 	// -- IPropertyInterface ----
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;

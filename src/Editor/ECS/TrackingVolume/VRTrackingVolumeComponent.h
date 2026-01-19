@@ -67,6 +67,9 @@ public:
 	glm::mat4 getVRDevicePoseOffset() const;
 	void setVRDevicePoseOffset(const glm::mat4& poseOffset);
 
+	// -- IEntityAccessor ----
+	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
+
 	// -- IPropertyInterface ----
 	static const std::string k_vrDevicePositionOffsetPropertyId;
 	static const std::string k_vrDeviceRotationOffsetPropertyId;

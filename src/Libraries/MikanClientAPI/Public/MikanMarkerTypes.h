@@ -3,6 +3,7 @@
 #include "MikanAPIExport.h"
 #include "MikanAPITypes.h"
 #include "MikanComponentTypes.h"
+#include "MikanPropertyTypes.h"
 #include "SerializationProperty.h"
 
 #ifdef MIKANAPI_REFLECTION_ENABLED

@@ -47,6 +47,9 @@ public:
 	}
 	StageComponentConstPtr getOwnerStageComponent() const;
 
+	// -- IEntityAccessor ----
+	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
+
 	// -- IFunctionInterface ----
 	static const std::string k_editAnchorFunctionId;
 	static const std::string k_deleteAnchorFunctionId;

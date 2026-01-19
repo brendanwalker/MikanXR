@@ -47,6 +47,9 @@ public:
 	MulticastDelegate<void(TextureSourceComponentPtr TextureSource)> OnOpened;
 	MulticastDelegate<void(TextureSourceComponentPtr TextureSource)> OnClosed;
 
+	// -- IEntityAccessor ----
+	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
+
 	// -- IFunctionInterface ----
 	static const std::string k_deleteTextureSourceFunctionId;
 	static const std::string k_showTextureSourceSettingsFunctionId;

@@ -97,6 +97,9 @@ public:
 	bool getApertureViewMatrix(glm::mat4& outViewMatrix) const;
 	bool getApertureViewProjectionMatrix(glm::mat4& outVPMatrix, bool bVerticalFlip =false) const;
 
+	// -- IEntityAccessor ----
+	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
+
 	// -- IPropertyInterface ----
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;

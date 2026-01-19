@@ -23,4 +23,7 @@ public:
 
 	inline MarkerTrackingVolumeDefinitionPtr getMarkerTrackingVolumeDefinition() const
 	{ return std::static_pointer_cast<MarkerTrackingVolumeDefinition>(m_definition); }
+
+	// -- IEntityAccessor ----
+	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
 };

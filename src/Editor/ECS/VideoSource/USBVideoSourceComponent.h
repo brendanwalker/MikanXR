@@ -89,6 +89,9 @@ public:
 	virtual void notifyVideoModePropertiesChanged(const IUsbVideoDevice* device) override;
 	virtual void notifyVideoFrameReceived(const UsbVideoFrameBuffer& bufferInfo) override;
 
+	// -- IEntityAccessor ----
+	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
+
 	// -- IPropertyInterface ----
 	static const std::string k_currentDevicePathPropertyId;
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);

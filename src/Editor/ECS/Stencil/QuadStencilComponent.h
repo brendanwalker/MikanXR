@@ -54,6 +54,9 @@ public:
 	inline static const std::string k_componentClassName = "QuadStencilComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
+	// -- IEntityAccessor ----
+	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
+
 	// -- IPropertyInterface ----
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
