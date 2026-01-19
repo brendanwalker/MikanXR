@@ -4,6 +4,7 @@
 #include "Logger.h"
 #include "MarkerObjectSystem.h"
 #include "MikanAPITypes.h"
+#include "MikanMarkerTypes.h"
 #include "MikanMathTypes.h"
 #include "MikanObject.h"
 #include "OSUtils.h"
@@ -79,6 +80,12 @@ const std::string MarkerComponent::k_printMarkerFunctionId = "print_marker";
 MarkerComponent::MarkerComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
 {
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* MarkerComponent::getClientAPIValuesStructType() const
+{
+	return &MikanMarkerComponentValues::staticGetArchetype();
 }
 
 MarkerObjectSystemPtr MarkerComponent::getOwnerMarkerSystem() const

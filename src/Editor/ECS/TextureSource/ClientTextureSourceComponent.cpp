@@ -50,6 +50,12 @@ ClientTextureSourceComponent::ClientTextureSourceComponent(MikanObjectWeakPtr ow
 	: TextureSourceComponent(owner)
 {}
 
+// -- IEntityAccessor ----
+rfk::Struct const* ClientTextureSourceComponent::getClientAPIValuesStructType() const
+{
+	return &MikanClientTextureSourceValues::staticGetArchetype();
+}
+
 void ClientTextureSourceComponent::setDefinition(MikanComponentDefinitionPtr definition)
 {
 	MikanComponent::setDefinition(definition);

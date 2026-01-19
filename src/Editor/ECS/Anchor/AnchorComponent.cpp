@@ -65,6 +65,12 @@ AnchorComponent::AnchorComponent(MikanObjectWeakPtr owner)
 	m_bWantsCustomRender= true;
 }
 
+// -- IEntityAccessor ----
+rfk::Struct const* AnchorComponent::getClientAPIValuesStructType() const
+{
+	return &MikanAnchorComponentValues::staticGetArchetype();
+}
+
 void AnchorComponent::init()
 {
 	MikanComponent::init();

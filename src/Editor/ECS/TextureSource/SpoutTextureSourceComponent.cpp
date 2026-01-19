@@ -52,6 +52,12 @@ SpoutTextureSourceComponent::SpoutTextureSourceComponent(MikanObjectWeakPtr owne
 	m_bWantsUpdate = true;
 }
 
+// -- IEntityAccessor ----
+rfk::Struct const* SpoutTextureSourceComponent::getClientAPIValuesStructType() const
+{
+	return &MikanSpoutTextureSourceValues::staticGetArchetype();
+}
+
 void SpoutTextureSourceComponent::setDefinition(MikanComponentDefinitionPtr definition)
 {
 	MikanComponent::setDefinition(definition);

@@ -6,6 +6,7 @@
 #include "MikanObject.h"
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
+#include "MikanTrackingVolumeTypes.h"
 #include "ModalSelectCamera/ModalDialog_SelectCamera.h"
 #include "ProjectConfig.h"
 #include "SelectionComponent.h"
@@ -154,6 +155,12 @@ void VRTrackingVolumeDefinition::setVRDevicePoseOffset(const MikanMatrix4f& pose
 VRTrackingVolumeComponent::VRTrackingVolumeComponent(MikanObjectWeakPtr owner)
 	: TrackingVolumeComponent(owner)
 {
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* VRTrackingVolumeComponent::getClientAPIValuesStructType() const
+{
+	return &MikanVRTrackingVolumeComponentValues::staticGetArchetype();
 }
 
 glm::mat4 VRTrackingVolumeComponent::getVRDevicePoseOffset() const

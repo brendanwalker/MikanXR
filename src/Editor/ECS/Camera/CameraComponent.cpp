@@ -139,6 +139,12 @@ CameraComponent::CameraComponent(MikanObjectWeakPtr owner)
 	m_bWantsUpdate = true;
 }
 
+// -- IEntityAccessor ----
+rfk::Struct const* CameraComponent::getClientAPIValuesStructType() const
+{
+	return &MikanCameraComponentValues::staticGetArchetype();
+}
+
 void CameraComponent::init()
 {
 	TransformComponent::init();

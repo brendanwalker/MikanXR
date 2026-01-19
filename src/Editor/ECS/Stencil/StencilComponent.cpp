@@ -3,6 +3,7 @@
 #include "StencilComponent.h"
 #include "TransformComponent.h"
 #include "MikanObject.h"
+#include "MikanStencilTypes.h"
 #include "StringUtils.h"
 
 #include "lua.hpp"
@@ -84,6 +85,12 @@ void StencilComponentDefinition::setCullMode(eStencilCullMode mode)
 StencilComponent::StencilComponent(MikanObjectWeakPtr owner)
 	: TransformComponent(owner)
 {
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* StencilComponent::getClientAPIValuesStructType() const
+{
+	return &MikanStencilComponentValues::staticGetArchetype();
 }
 
 void StencilComponent::setDefinition(MikanComponentDefinitionPtr definition)

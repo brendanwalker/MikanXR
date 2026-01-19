@@ -1,4 +1,5 @@
 #include "MarkerTrackingVolumeComponent.h"
+#include "MikanTrackingVolumeTypes.h"
 
 // -- MarkerTrackingVolumeDefinition -----
 MarkerTrackingVolumeDefinition::MarkerTrackingVolumeDefinition()
@@ -21,4 +22,10 @@ eTrackingVolumeType MarkerTrackingVolumeDefinition::getTrackingVolumeType() cons
 MarkerTrackingVolumeComponent::MarkerTrackingVolumeComponent(MikanObjectWeakPtr owner)
 	: TrackingVolumeComponent(owner)
 {
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* MarkerTrackingVolumeComponent::getClientAPIValuesStructType() const
+{
+	return &MikanMarkerTrackingVolumeComponentValues::staticGetArchetype();
 }

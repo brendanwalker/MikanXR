@@ -224,6 +224,11 @@ NetworkVideoSourceComponent::NetworkVideoSourceComponent(MikanObjectWeakPtr owne
 {
 }
 
+// -- IEntityAccessor ----
+rfk::Struct const* NetworkVideoSourceComponent::getClientAPIValuesStructType() const
+{
+	return &MikanNetworkVideoSourceValues::staticGetArchetype();
+}
 
 void NetworkVideoSourceComponent::init()
 {

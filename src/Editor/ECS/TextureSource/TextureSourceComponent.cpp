@@ -2,6 +2,7 @@
 #include "CameraMath.h"
 #include "MikanCoreTypes.h"
 #include "MikanObject.h"
+#include "MikanTextureSourceTypes.h"
 #include "TextureSourceComponent.h"
 
 #include <easy/profiler.h>
@@ -20,6 +21,12 @@ TextureSourceDefinition::TextureSourceDefinition(
 TextureSourceComponent::TextureSourceComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
 {
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* TextureSourceComponent::getClientAPIValuesStructType() const
+{
+	return &MikanTextureSourceValues::staticGetArchetype();
 }
 
 void TextureSourceComponent::setDefinition(MikanComponentDefinitionPtr definition)

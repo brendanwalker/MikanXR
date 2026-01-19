@@ -3,6 +3,7 @@
 #include "IMkSceneRenderable.h"
 #include "ModalSceneAddCompositor/ModalDialog_SceneAddCompositor.h"
 #include "MikanObject.h"
+#include "MikanSceneTypes.h"
 #include "MkScene.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
@@ -119,6 +120,12 @@ SceneComponent::SceneComponent(MikanObjectWeakPtr owner)
 	: TransformComponent(owner)
 	, m_mkScene(std::make_shared<MkScene>())
 {
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* SceneComponent::getClientAPIValuesStructType() const
+{
+	return &MikanSceneComponentValues::staticGetArchetype();
 }
 
 void SceneComponent::setDefinition(MikanComponentDefinitionPtr definition)

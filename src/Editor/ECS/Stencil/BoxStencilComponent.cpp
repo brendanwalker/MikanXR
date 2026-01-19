@@ -8,6 +8,7 @@
 #include "BoxColliderComponent.h"
 #include "MathGLM.h"
 #include "MikanObject.h"
+#include "MikanStencilTypes.h"
 #include "MathTypeConversion.h"
 #include "SelectionComponent.h"
 #include "BoxStencilSystem.h"
@@ -88,6 +89,12 @@ BoxStencilComponent::BoxStencilComponent(MikanObjectWeakPtr owner)
 	: StencilComponent(owner)
 {
 	m_bWantsCustomRender= true;
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* BoxStencilComponent::getClientAPIValuesStructType() const
+{
+	return &MikanBoxStencilComponentValues::staticGetArchetype();
 }
 
 void BoxStencilComponent::init()

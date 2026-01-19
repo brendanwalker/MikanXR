@@ -4,6 +4,7 @@
 #include "Logger.h"
 #include "MarkerComponent.h"
 #include "MikanAPITypes.h"
+#include "MikanMarkerTypes.h"
 #include "MikanMathTypes.h"
 #include "MikanObject.h"
 #include "MikanPropertyDatabase.h"
@@ -20,13 +21,13 @@
 #include <filesystem>
 
 // -- MarkerObjectSystemDefinition -----
-const std::string MarkerObjectSystemDefinition::k_arucoIdListPropertyId = "arucoIdList";
-const std::string MarkerObjectSystemDefinition::k_arucoDictionaryTypePropertyId = "arucoDictionaryType";
-const std::string MarkerObjectSystemDefinition::k_charucoRowsPropertyId = "charucoRows";
-const std::string MarkerObjectSystemDefinition::k_charucoColsPropertyId = "charucoCols";
-const std::string MarkerObjectSystemDefinition::k_charucoSquareLengthMMPropertyId = "charucoSquareLengthMM";
-const std::string MarkerObjectSystemDefinition::k_charucoMarkerLengthMMPropertyId = "charucoMarkerLengthMM";
-const std::string MarkerObjectSystemDefinition::k_charucoDictionaryTypePropertyId = "charucoDictionaryType";
+const std::string MarkerObjectSystemDefinition::k_arucoIdListPropertyId = "aruco_id_list";
+const std::string MarkerObjectSystemDefinition::k_arucoDictionaryTypePropertyId = "aruco_dictionary_type";
+const std::string MarkerObjectSystemDefinition::k_charucoRowsPropertyId = "charuco_rows";
+const std::string MarkerObjectSystemDefinition::k_charucoColsPropertyId = "charuco_cols";
+const std::string MarkerObjectSystemDefinition::k_charucoSquareLengthMMPropertyId = "charuco_square_length_mm";
+const std::string MarkerObjectSystemDefinition::k_charucoMarkerLengthMMPropertyId = "charuco_marker_length_mm";
+const std::string MarkerObjectSystemDefinition::k_charucoDictionaryTypePropertyId = "charuco_dictionary_type";
 
 MarkerObjectSystemDefinition::MarkerObjectSystemDefinition(const std::string& configName)
 	: Super::MikanTypedObjectSystemDefinition(configName)
@@ -178,6 +179,12 @@ void MarkerObjectSystemDefinition::setCharucoDictionaryType(eCharucoDictionaryTy
 MarkerObjectSystem::MarkerObjectSystem(ProjectManagerPtr ownerObjectSystemManager)
 	: Super::MikanTypedObjectSystem(ownerObjectSystemManager)
 {
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* MarkerObjectSystem::getClientAPIValuesStructType() const
+{
+	return &MikanMarkerSystemValues::staticGetArchetype();
 }
 
 // -- IPropertyInterface ----

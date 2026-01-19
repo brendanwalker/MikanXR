@@ -105,6 +105,12 @@ ModelStencilComponent::ModelStencilComponent(MikanObjectWeakPtr owner)
 	m_bWantsCustomRender= true;
 }
 
+// -- IEntityAccessor ----
+rfk::Struct const* ModelStencilComponent::getClientAPIValuesStructType() const
+{
+	return &MikanModelStencilComponentValues::staticGetArchetype();
+}
+
 void ModelStencilComponent::init()
 {
 	StencilComponent::init();

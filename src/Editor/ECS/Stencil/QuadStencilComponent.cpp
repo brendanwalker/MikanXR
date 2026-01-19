@@ -8,6 +8,7 @@
 #include "MathGLM.h"
 #include "MathTypeConversion.h"
 #include "MikanObject.h"
+#include "MikanStencilTypes.h"
 #include "QuadStencilComponent.h"
 #include "SelectionComponent.h"
 #include "QuadStencilSystem.h"
@@ -93,6 +94,12 @@ QuadStencilComponent::QuadStencilComponent(MikanObjectWeakPtr owner)
 	: StencilComponent(owner)
 {
 	m_bWantsCustomRender= true;
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* QuadStencilComponent::getClientAPIValuesStructType() const
+{
+	return &MikanQuadStencilComponentValues::staticGetArchetype();
 }
 
 void QuadStencilComponent::init()

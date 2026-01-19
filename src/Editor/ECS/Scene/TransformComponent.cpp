@@ -2,6 +2,7 @@
 #include "MikanObject.h"
 #include "MathGLM.h"
 #include "MathTypeConversion.h"
+#include "MikanTransformTypes.h"
 #include "Transform.h"
 
 #include <glm/gtx/matrix_decompose.hpp>
@@ -121,6 +122,12 @@ TransformComponent::TransformComponent(MikanObjectWeakPtr owner)
 	, m_relativeTransform()
 	, m_worldTransform(glm::mat4(1.f))
 {
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* TransformComponent::getClientAPIValuesStructType() const
+{
+	return &MikanTransformComponentValues::staticGetArchetype();
 }
 
 void TransformComponent::init()

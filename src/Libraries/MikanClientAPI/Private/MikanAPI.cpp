@@ -77,6 +77,9 @@
 #include "MikanVideoSourceTypes.h"
 #include "MikanVRDeviceTypes.h"
 
+// Static system class name definitions
+const char* MikanMarkerSystemValues::k_systemName = "MarkerObjectSystem";
+
 // Static component class name and owner system name definitions
 const char* MikanAnchorComponentValues::k_componentClassName = "AnchorComponent";
 const char* MikanAnchorComponentValues::k_ownerSystemName = "AnchorObjectSystem";
@@ -88,7 +91,7 @@ const char* MikanCompositorComponentValues::k_componentClassName = "CompositorCo
 const char* MikanCompositorComponentValues::k_ownerSystemName = "CompositorObjectSystem";
 
 const char* MikanMarkerComponentValues::k_componentClassName = "MarkerComponent";
-const char* MikanMarkerComponentValues::k_ownerSystemName = "MarkerObjectSystem";
+const char* MikanMarkerComponentValues::k_ownerSystemName = MikanMarkerSystemValues::k_systemName;
 
 const char* MikanSceneComponentValues::k_componentClassName = "SceneComponent";
 const char* MikanSceneComponentValues::k_ownerSystemName = "SceneObjectSystem";

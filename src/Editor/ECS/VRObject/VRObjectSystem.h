@@ -30,8 +30,6 @@ public:
 	VRObjectSystemDefinition(const std::string& configName = "VRObjectSystemDefinition");
 
 	virtual bool wantsSaveForPropertyChange(const ConfigPropertyChangeSet& changedPropertySet) const override;
-
-	VRDeviceDefinitionPtr getVRDeviceConfigByPath(const std::string& vrDevicePath) const;
 };
 
 class VRObjectSystem :

@@ -10,6 +10,7 @@
 #include "Logger.h"
 #include "MainWindow.h"
 #include "MathTypeConversion.h"
+#include "MikanCompositorTypes.h"
 #include "MikanObject.h"
 #include "MikanServer.h"
 #include "MkMaterialInstance.h"
@@ -152,6 +153,12 @@ CompositorComponent::CompositorComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
 {
 	m_bWantsUpdate = true;
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* CompositorComponent::getClientAPIValuesStructType() const
+{
+	return &MikanCompositorComponentValues::staticGetArchetype();
 }
 
 void CompositorComponent::init()

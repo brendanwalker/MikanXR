@@ -4,6 +4,7 @@
 #include "MikanObject.h"
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
+#include "MikanTrackingMountTypes.h"
 #include "ProjectConfig.h"
 #include "SelectionComponent.h"
 #include "StringUtils.h"
@@ -65,6 +66,12 @@ TrackingMountComponent::TrackingMountComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
 {
 
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* TrackingMountComponent::getClientAPIValuesStructType() const
+{
+	return &MikanTrackingMountComponentValues::staticGetArchetype();
 }
 
 void TrackingMountComponent::init()

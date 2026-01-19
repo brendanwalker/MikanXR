@@ -2,6 +2,7 @@
 #include "IEditorWindow.h"
 #include "MikanCoreTypes.h"
 #include "MikanObject.h"
+#include "MikanVideoSourceTypes.h"
 #include "MonoLensCalibration/AppStage_MonoLensCalibration.h"
 #include "VideoSourceSettings/AppStage_VideoSourceSettings.h"
 #include "OpenCVVideoFrameBuffer.h"
@@ -121,6 +122,12 @@ VideoSourceComponent::VideoSourceComponent(MikanObjectWeakPtr owner)
 	{
 		m_opencv_buffer_state[i] = nullptr;
 	}
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* VideoSourceComponent::getClientAPIValuesStructType() const
+{
+	return &MikanVideoSourceValues::staticGetArchetype();
 }
 
 void VideoSourceComponent::setDefinition(MikanComponentDefinitionPtr definition)

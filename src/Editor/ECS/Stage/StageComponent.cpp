@@ -3,6 +3,7 @@
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
 #include "MikanObject.h"
+#include "MikanStageTypes.h"
 #include "ProjectManager.h"
 #include "SelectionComponent.h"
 #include "TrackingVolumeQueries.h"
@@ -47,6 +48,12 @@ void StageComponentDefinition::setTrackingVolumeId(MikanTrackingVolumeID trackin
 StageComponent::StageComponent(MikanObjectWeakPtr owner)
 	: TransformComponent(owner)
 {
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* StageComponent::getClientAPIValuesStructType() const
+{
+	return &MikanStageComponentValues::staticGetArchetype();
 }
 
 void StageComponent::setDefinition(MikanComponentDefinitionPtr definition)

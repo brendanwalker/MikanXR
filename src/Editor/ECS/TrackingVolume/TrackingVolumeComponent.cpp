@@ -5,6 +5,7 @@
 #include "MikanObject.h"
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
+#include "MikanTrackingVolumeTypes.h"
 #include "ProjectConfig.h"
 #include "ProjectManager.h"
 #include "SelectionComponent.h"
@@ -71,6 +72,12 @@ MarkerDefinitionConstPtr TrackingVolumeDefinition::getOriginMarker() const
 TrackingVolumeComponent::TrackingVolumeComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
 {
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* TrackingVolumeComponent::getClientAPIValuesStructType() const
+{
+	return &MikanTrackingVolumeComponentValues::staticGetArchetype();
 }
 
 void TrackingVolumeComponent::init()

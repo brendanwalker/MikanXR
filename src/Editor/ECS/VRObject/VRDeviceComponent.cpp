@@ -81,6 +81,12 @@ VRDeviceComponent::VRDeviceComponent(MikanObjectWeakPtr owner)
 	m_bWantsCustomRender = true;
 }
 
+// -- IEntityAccessor ----
+rfk::Struct const* VRDeviceComponent::getClientAPIValuesStructType() const
+{
+	return &MikanVRDeviceComponentValues::staticGetArchetype();
+}
+
 void VRDeviceComponent::init()
 {
 	TransformComponent::init();

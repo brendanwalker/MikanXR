@@ -2,6 +2,7 @@
 #include "IEditorWindow.h"
 #include "ScriptAssetReference.h"
 #include "MikanComponent.h"
+#include "MikanComponentTypes.h"
 #include "MikanObject.h"
 #include "MikanObjectSystem.h"
 #include "MikanPropertyTypes.h"
