@@ -104,32 +104,26 @@ void RmlModel_ProjectSources::dispose()
 
 void RmlModel_ProjectSources::textureSourceIdListChanged(bool bOwnerChanged)
 {
-	MikanVideoSourceID selectedTextureSourceId = INVALID_MIKAN_ID;
-	if (!m_textureSourceIdList->isEmpty() &&
-		!m_textureSourceIdList->contains(m_selectedTextureSourceId))
+	if (MikanVideoSourceID selectedTextureSourceId = m_selectedTextureSourceId;
+		m_textureSourceIdList->fixupSelectedIndex(m_selectedTextureSourceId, selectedTextureSourceId))
 	{
-		selectedTextureSourceId = m_textureSourceIdList->getFirstValue();
+		// Defer the selection update to post view update after element list refreshes
+		addModelUpdateCallback([this, selectedTextureSourceId]() {
+			setSelectedTextureSourceId(selectedTextureSourceId);
+		});
 	}
-
-	// Defer the selection update to post view update after element list refreshes
-	addModelUpdateCallback([this, selectedTextureSourceId]() {
-		setSelectedTextureSourceId(selectedTextureSourceId);
-	});
 }
 
 void RmlModel_ProjectSources::videoSourceIdListChanged(bool bOwnerChanged)
 {
-	MikanVideoSourceID selectedVideoSourceId = INVALID_MIKAN_ID;
-	if (!m_textureSourceIdList->isEmpty() &&
-		!m_textureSourceIdList->contains(m_selectedVideoSourceId))
+	if (MikanVideoSourceID selectedVideoSourceId = m_selectedVideoSourceId;
+		m_textureSourceIdList->fixupSelectedIndex(m_selectedTextureSourceId, selectedVideoSourceId))
 	{
-		selectedVideoSourceId = m_textureSourceIdList->getFirstValue();
+		// Defer the selection update to post view update after element list refreshes
+		addModelUpdateCallback([this, selectedVideoSourceId]() {
+			setSelectedVideoSourceId(selectedVideoSourceId);
+		});
 	}
-
-	// Defer the selection update to post view update after element list refreshes
-	addModelUpdateCallback([this, selectedVideoSourceId]() {
-		setSelectedVideoSourceId(selectedVideoSourceId);
-	});
 }
 
 TextureSourceComponentPtr RmlModel_ProjectSources::getSelectedTextureSource()

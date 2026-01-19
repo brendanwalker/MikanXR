@@ -117,47 +117,38 @@ void RmlModel_ProjectStages::dispose()
 
 void RmlModel_ProjectStages::stageIdListChanged(bool bOwnerChanged)
 {
-	MikanStageID selectedStageId = INVALID_MIKAN_ID;
-	if (!m_stageIdList->isEmpty() &&
-		!m_stageIdList->contains(m_selectedStageId))
+	if (MikanStageID selectedStageId = m_selectedStageId;
+		m_stageIdList->fixupSelectedIndex(m_selectedStageId, selectedStageId))
 	{
-		selectedStageId = m_stageIdList->getFirstValue();
+		// Defer the selection update to post view update after element list refreshes
+		addModelUpdateCallback([this, selectedStageId]() {
+			setSelectedStageId(selectedStageId);
+		});
 	}
-
-	// Defer the selection update to post view update after element list refreshes
-	addModelUpdateCallback([this, selectedStageId]() {
-		setSelectedStageId(selectedStageId);
-	});
 }
 
 void RmlModel_ProjectStages::cameraIdListChanged(bool bOwnerChanged)
 {
-	MikanCameraID selectedCameraId = INVALID_MIKAN_ID;
-	if (!m_cameraIdList->isEmpty() &&
-		!m_cameraIdList->contains(m_selectedCameraId))
+	if (MikanCameraID selectedCameraId = m_selectedCameraId;
+		m_cameraIdList->fixupSelectedIndex(m_selectedCameraId, selectedCameraId))
 	{
-		selectedCameraId = m_cameraIdList->getRmlValueList()[0];
+		// Defer the selection update to post view update after element list refreshes
+		addModelUpdateCallback([this, selectedCameraId]() {
+			setSelectedCameraId(selectedCameraId);
+		});
 	}
-
-	// Defer the selection update to post view update after element list refreshes
-	addModelUpdateCallback([this, selectedCameraId]() {
-		setSelectedCameraId(selectedCameraId);
-	});
 }
 
 void RmlModel_ProjectStages::compositorIdListChanged(bool bOwnerChanged)
 {
-	MikanCompositorID selectedCompositorId = INVALID_MIKAN_ID;
-	if (!m_compositorIdList->isEmpty() &&
-		!m_compositorIdList->contains(m_selectedCompositorId))
+	if (MikanCompositorID selectedCompositorId = m_selectedCompositorId;
+		m_compositorIdList->fixupSelectedIndex(m_selectedCompositorId, selectedCompositorId))
 	{
-		selectedCompositorId = m_compositorIdList->getFirstValue();
+		// Defer the selection update to post view update after element list refreshes
+		addModelUpdateCallback([this, selectedCompositorId]() {
+			setSelectedCompositorId(selectedCompositorId);
+		});
 	}
-
-	// Defer the selection update to post view update after element list refreshes
-	addModelUpdateCallback([this, selectedCompositorId]() {
-		setSelectedCompositorId(selectedCompositorId);
-	});
 }
 
 StageObjectSystemPtr RmlModel_ProjectStages::getStageSystem()

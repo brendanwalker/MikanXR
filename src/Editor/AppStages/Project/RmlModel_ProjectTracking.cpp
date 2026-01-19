@@ -115,19 +115,10 @@ void RmlModel_ProjectTracking::dispose()
 
 void RmlModel_ProjectTracking::trackingVolumeIdListChanged(bool bOwnerChanged)
 {
-	MikanTrackingVolumeID newSelectedTrackingVolumeId= m_selectedTrackingVolumeId;
-	if (m_trackingVolumeIdList->isEmpty())
+	if (MikanTrackingVolumeID newSelectedTrackingVolumeId = m_selectedTrackingVolumeId;
+		m_trackingVolumeIdList->fixupSelectedIndex(m_selectedTrackingVolumeId, newSelectedTrackingVolumeId))
 	{
-		newSelectedTrackingVolumeId = INVALID_MIKAN_ID;
-	}
-	else if (!m_trackingVolumeIdList->contains(m_selectedTrackingVolumeId))
-	{
-		newSelectedTrackingVolumeId = m_trackingVolumeIdList->getFirstValue();
-	}
-
-	// Defer the selection update to post view update after element list refreshes
-	if (newSelectedTrackingVolumeId != m_selectedTrackingVolumeId)
-	{
+		// Defer the selection update to post view update after element list refreshes
 		addModelUpdateCallback([this, newSelectedTrackingVolumeId]() {
 			setSelectedTrackingVolumeId(newSelectedTrackingVolumeId);
 		});
@@ -136,22 +127,13 @@ void RmlModel_ProjectTracking::trackingVolumeIdListChanged(bool bOwnerChanged)
 
 void RmlModel_ProjectTracking::trackingMountIdListChanged(bool bOwnerChanged)
 {
-	MikanTrackingMountID newSelectedTrackingMountId = m_selectedTrackingMountId;
-	if (m_trackingMountIdList->isEmpty())
-	{
-		newSelectedTrackingMountId = INVALID_MIKAN_ID;
-	}
-	else if (!m_trackingMountIdList->contains(m_selectedTrackingMountId))
-	{
-		newSelectedTrackingMountId = m_trackingMountIdList->getFirstValue();
-	}
-
-	if (newSelectedTrackingMountId != m_selectedTrackingMountId)
+	if (MikanTrackingMountID newSelectedTrackingMountId = m_selectedTrackingMountId;
+		m_trackingMountIdList->fixupSelectedIndex(m_selectedTrackingMountId, newSelectedTrackingMountId))
 	{
 		// Defer the selection update to post view update after element list refreshes
 		addModelUpdateCallback([this, newSelectedTrackingMountId]() {
 			setSelectedTrackingMountId(newSelectedTrackingMountId);
-			});
+		});
 	}
 }
 

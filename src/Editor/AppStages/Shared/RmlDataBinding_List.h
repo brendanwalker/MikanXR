@@ -137,6 +137,30 @@ public:
 		}
 	}
 
+	bool fixupSelectedIndex(const int inSelectedIndex, int& outSelectedIndex) const
+	{
+		const int listSize = static_cast<int>(m_rmlValueList.size());
+
+		if (listSize == 0)
+		{
+			outSelectedIndex= -1;
+		}
+		else if (inSelectedIndex < 0)
+		{
+			outSelectedIndex= 0;
+		}
+		else if (inSelectedIndex >= listSize)
+		{
+			outSelectedIndex = listSize - 1;
+		}
+		else
+		{
+			outSelectedIndex = inSelectedIndex;
+		}
+
+		return outSelectedIndex != inSelectedIndex;
+	}
+
 	const Rml::Vector<t_element_type>& getRmlValueList() const { return m_rmlValueList; }
 	const t_element_type getFirstValue() const { return m_rmlValueList.front(); }
 	bool isEmpty() const { return m_rmlValueList.empty(); }

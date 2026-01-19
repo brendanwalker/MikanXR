@@ -63,6 +63,7 @@ public:
 
 	SceneComponentPtr getCurrentScene() const;
 	void setCurrentScene(SceneComponentPtr scene);
+	void setCurrentSceneById(MikanSceneID sceneId);
 
 	inline SceneComponentPtr getSceneById(MikanSceneID sceneId) const {
 		return Super::getTypedComponentById(sceneId); 

@@ -68,19 +68,10 @@ void RmlModel_ProjectMarkers::dispose()
 
 void RmlModel_ProjectMarkers::markerIdListChanged(bool bOwnerChanged)
 {
-	MikanMarkerID newSelectedMarkerId = m_selectedMarkerId;
-	if (m_markerIdList->isEmpty())
+	if (MikanMarkerID newSelectedMarkerId = m_selectedMarkerId;
+		m_markerIdList->fixupSelectedIndex(m_selectedMarkerId, newSelectedMarkerId))
 	{
-		newSelectedMarkerId = INVALID_MIKAN_ID;
-	}
-	else if (!m_markerIdList->contains(m_selectedMarkerId))
-	{
-		newSelectedMarkerId = m_markerIdList->getFirstValue();
-	}
-
-	// Defer the selection update to post view update after element list refreshes
-	if (newSelectedMarkerId != m_selectedMarkerId)
-	{
+		// Defer the selection update to post view update after element list refreshes
 		addModelUpdateCallback([this, newSelectedMarkerId]() {
 			setSelectedMarkerId(newSelectedMarkerId);
 		});

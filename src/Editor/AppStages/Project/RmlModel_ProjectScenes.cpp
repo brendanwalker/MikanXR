@@ -17,6 +17,7 @@
 #include "BoxStencilSystem.h"
 #include "ModelStencilSystem.h"
 #include "StencilComponent.h"
+#include "SceneObjectSystem.h"
 #include "TransformComponent.h"
 #include "RmlModel_ProjectScenes.h"
 #include "ProjectConfig.h"
@@ -390,6 +391,10 @@ void RmlModel_ProjectScenes::setSelectedSceneId(int sceneId)
 {
 	if (sceneId != m_selectedSceneId)
 	{
+		// Update the current scene in the scene system
+		m_sceneSystem.lock()->setCurrentSceneById(sceneId);
+
+		// Update the RML data model
 		m_selectedSceneId = sceneId;
 		m_modelHandle.DirtyVariable("selected_scene_id");
 
@@ -408,32 +413,26 @@ void RmlModel_ProjectScenes::setSelectedSceneId(int sceneId)
 
 void RmlModel_ProjectScenes::stageIdListChanged(bool bOwnerChanged)
 {
-	MikanStageID selectedStageId = INVALID_MIKAN_ID;
-	if (!m_stageIdList->isEmpty() &&
-		!m_stageIdList->contains(m_selectedStageId))
+	if (MikanStageID selectedStageId = m_selectedStageId;
+		m_stageIdList->fixupSelectedIndex(m_selectedStageId, selectedStageId))
 	{
-		selectedStageId = m_stageIdList->getFirstValue();
+		// Defer the selection update to post view update after element list refreshes
+		addModelUpdateCallback([this, selectedStageId]() {
+			setSelectedStageId(selectedStageId);
+			});
 	}
-
-	// Defer the selection update to post view update after element list refreshes
-	addModelUpdateCallback([this, selectedStageId]() {
-		setSelectedStageId(selectedStageId);
-	});
 }
 
 void RmlModel_ProjectScenes::sceneIdListChanged(bool bOwnerChanged)
 {
-	MikanSceneID selectedSceneId = INVALID_MIKAN_ID;
-	if (!m_sceneIdList->isEmpty() &&
-		!m_sceneIdList->contains(m_selectedStageId))
+	if (MikanSceneID selectedSceneId = m_selectedSceneId;
+		m_sceneIdList->fixupSelectedIndex(m_selectedSceneId, selectedSceneId))
 	{
-		selectedSceneId = m_sceneIdList->getFirstValue();
+		// Defer the selection update to post view update after element list refreshes
+		addModelUpdateCallback([this, selectedSceneId]() {
+			setSelectedSceneId(selectedSceneId);
+		});
 	}
-
-	// Defer the selection update to post view update after element list refreshes
-	addModelUpdateCallback([this, selectedSceneId]() {
-		setSelectedSceneId(selectedSceneId);
-	});
 }
 
 StageComponentPtr RmlModel_ProjectScenes::getSelectedStageComponent()
@@ -471,7 +470,7 @@ void RmlModel_ProjectScenes::addNewScene(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	if (m_selectedSceneId != INVALID_MIKAN_ID)
+	if (m_selectedStageId != INVALID_MIKAN_ID)
 	{
 		m_sceneSystem.lock()->addNewObject([this](auto sceneDefinition) {
 			sceneDefinition->setParentStageId(m_selectedStageId);

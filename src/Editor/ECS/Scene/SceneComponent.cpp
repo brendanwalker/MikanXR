@@ -43,7 +43,7 @@ configuru::Config SceneComponentDefinition::writeToJSON()
 	configuru::Config pt = TransformComponentDefinition::writeToJSON();
 
 	pt[k_parentStagePropertyId] = m_parentStageId;
-	readStdValueVector(pt, "compositors", m_compositorIDs);
+	writeStdValueVector(pt, k_compositorListPropertyId, m_compositorIDs);
 	pt[k_displayCompositorIdPropertyId] = m_displayCompositorId;
 
 	return pt;
@@ -54,7 +54,7 @@ void SceneComponentDefinition::readFromJSON(const configuru::Config& pt)
 	TransformComponentDefinition::readFromJSON(pt);
 
 	m_parentStageId = pt.get_or<int>(k_parentStagePropertyId, INVALID_MIKAN_ID);
-	readStdValueVector(pt, "compositors", m_compositorIDs);
+	readStdValueVector(pt, k_compositorListPropertyId, m_compositorIDs);
 	m_displayCompositorId = pt.get_or<int>(k_displayCompositorIdPropertyId, INVALID_MIKAN_ID);
 }
 
