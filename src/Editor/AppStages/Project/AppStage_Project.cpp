@@ -466,10 +466,10 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 	}
 
 	// Render the editor scene
-	SceneComponentConstPtr editorScene = getSystemOfType<EditorObjectSystem>()->getEditorScene();
-	if (editorScene)
+	SceneComponentConstPtr currentScene = getSystemOfType<SceneObjectSystem>()->getCurrentScene();
+	if (currentScene)
 	{
-		editorScene->renderEditorScene(
+		currentScene->renderEditorScene(
 			viewportCamera,
 			m_ownerWindow->getMkStateStack());
 	}

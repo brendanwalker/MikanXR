@@ -50,19 +50,24 @@ public:
 	}
 
 	// Pool accessors
-	PoolDefinitionPtr getPoolDefinition() const { return m_poolDefinition; }
+	inline PoolDefinitionPtr getPoolDefinition() const { return m_poolDefinition; }
 
-	ComponentDefinitionPtr getDefinitionById(TID id) const
+	inline bool hasDefinitions() const
+	{
+		return !m_poolDefinition->getAll().empty();
+	}
+
+	inline ComponentDefinitionPtr getDefinitionById(TID id) const
 	{
 		return m_poolDefinition->getById(id);
 	}
 
-	ComponentDefinitionPtr getDefinitionByName(const std::string& name) const
+	inline ComponentDefinitionPtr getDefinitionByName(const std::string& name) const
 	{
 		return m_poolDefinition->getByName(name);
 	}
 
-	const std::vector<ComponentDefinitionPtr>& getAllDefinitions() const
+	inline const std::vector<ComponentDefinitionPtr>& getAllDefinitions() const
 	{
 		return m_poolDefinition->getAll();
 	}
@@ -76,7 +81,7 @@ public:
 	}
 
 	// Pool mutations
-	ComponentDefinitionPtr allocateNewDefinition()
+	inline ComponentDefinitionPtr allocateNewDefinition()
 	{
 		return m_poolDefinition->allocateDefinition();
 	}

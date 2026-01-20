@@ -3,6 +3,7 @@
 #include "CommonConfigFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
+#include "MulticastDelegate.h"
 
 #include <filesystem>
 #include <string>
@@ -61,6 +62,9 @@ public:
 	bool loadProject(const std::string& projectFilePath);
 	bool saveProject(const std::string& projectFilePath);
 	void unloadProject();
+
+	MulticastDelegate<void(ProjectManagerPtr oldProject)> OnProjectPreUnload;
+	MulticastDelegate<void(ProjectManagerPtr newProject)> OnProjectLoaded;
 
 protected:
 	void registerSystem(MikanObjectSystemPtr system);

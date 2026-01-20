@@ -56,8 +56,6 @@ public:
 	virtual MikanComponentPtr getComponentById(int componentId) const override;
 	virtual bool getComponentIdList(const std::string& componentClassName, std::vector<int>& outComponentIdList) const override;
 
-	SceneComponentConstPtr getEditorScene() const { return m_sceneWeakPtr.lock(); }
-
 	void bindViewport(MikanViewportWeakPtr viewportWeakPtr);
 	void unbindViewport(MikanViewportWeakPtr viewportWeakPtr);
 	void clearViewports();
@@ -71,8 +69,6 @@ public:
 	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
 
 protected:
-
-	SceneComponentWeakPtr m_sceneWeakPtr;
 	std::vector<MikanViewportWeakPtr> m_viewports;
 	
 	ColliderRaycastHitResult m_lastestRaycastResult;
@@ -86,8 +82,9 @@ protected:
 	void onAppStageEntered(class AppStage* oldAppStage, class AppStage* newAppStage);
 
 	// Object System Events
-	void onSceneDisposed(MikanObjectSystemPtr system, MikanComponentConstPtr component);
-	void onSceneObjectDisposed(MikanObjectSystemPtr system, MikanComponentConstPtr component);
+	void onSceneActivated(SceneComponentPtr newScene);
+	void onSceneDeactivated(SceneComponentPtr oldScene);
+	void onActorDisposed(MikanObjectSystemPtr system, MikanComponentConstPtr component);
 
 	// Keyboard Events
 	void onDeletePressed();
@@ -100,7 +97,8 @@ protected:
 	void onSelectionChanged(SelectionComponentPtr oldComponentPtr, SelectionComponentPtr newComponentPtr);
 
 	// Helpers
-	void createTransformGizmo();
+	void createSceneTransformGizmo(SceneComponentPtr ownerScene);
+	void disposeSceneTransformGizmo();
 	void createGizmoBoxCollider(
 		MikanObjectPtr gizmoObjectPtr, 
 		const std::string& name,

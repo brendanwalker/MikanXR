@@ -73,57 +73,32 @@ bool EditorObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 
 	MainWindow::getInstance()->OnAppStageEntered += MakeDelegate(this, &EditorObjectSystem::onAppStageEntered);
 
-	ProjectManagerPtr objSystemMgr= MainWindow::getInstance()->getProjectManager();
+	SceneObjectSystemPtr sceneObjectSystem = getObjectSystemOfType<SceneObjectSystem>();
+	sceneObjectSystem->OnSceneActivated += MakeDelegate(this, &EditorObjectSystem::onSceneActivated);
+	sceneObjectSystem->OnSceneDeactivated += MakeDelegate(this, &EditorObjectSystem::onSceneDeactivated);
 
-	SceneObjectSystemPtr sceneObjectSystem = objSystemMgr->getSystemOfType<SceneObjectSystem>();
-	sceneObjectSystem->OnComponentDisposed+= MakeDelegate(this, &EditorObjectSystem::onSceneDisposed);
+	AnchorObjectSystemPtr anchorObjectSystem= getObjectSystemOfType<AnchorObjectSystem>();
+	anchorObjectSystem->OnComponentDisposed+= MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
 
-	AnchorObjectSystemPtr anchorObjectSystem= objSystemMgr->getSystemOfType<AnchorObjectSystem>();
-	anchorObjectSystem->OnComponentDisposed+= MakeDelegate(this, &EditorObjectSystem::onSceneObjectDisposed);
+	QuadStencilSystemPtr quadStencilSystem= getObjectSystemOfType<QuadStencilSystem>();
+	quadStencilSystem->OnComponentDisposed += MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
 
-	QuadStencilSystemPtr quadStencilSystem= objSystemMgr->getSystemOfType<QuadStencilSystem>();
-	quadStencilSystem->OnComponentDisposed += MakeDelegate(this, &EditorObjectSystem::onSceneObjectDisposed);
+	BoxStencilSystemPtr boxStencilSystem= getObjectSystemOfType<BoxStencilSystem>();
+	boxStencilSystem->OnComponentDisposed += MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
 
-	BoxStencilSystemPtr boxStencilSystem= objSystemMgr->getSystemOfType<BoxStencilSystem>();
-	boxStencilSystem->OnComponentDisposed += MakeDelegate(this, &EditorObjectSystem::onSceneObjectDisposed);
-
-	ModelStencilSystemPtr modelStencilSystem= objSystemMgr->getSystemOfType<ModelStencilSystem>();
-	modelStencilSystem->OnComponentDisposed += MakeDelegate(this, &EditorObjectSystem::onSceneObjectDisposed);
-
-	SceneComponentPtr currentScene = sceneObjectSystem->getSceneByName(editorConfig->getCurrentSceneName());
-
-	// If we don't have a current scene selected, pick the first one
-	if (!currentScene)
-	{
-		const auto& sceneMap = sceneObjectSystem->getComponentMap();
-
-		if (sceneMap.size() > 0)
-		{
-			auto it = sceneMap.begin();
-			currentScene = it->second.lock();
-
-			if (currentScene)
-			{
-				editorConfig->setCurrentSceneName(currentScene->getName());
-			}
-		}
-	}
-	m_sceneWeakPtr= currentScene;
+	ModelStencilSystemPtr modelStencilSystem= getObjectSystemOfType<ModelStencilSystem>();
+	modelStencilSystem->OnComponentDisposed += MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
 
 	m_lastestRaycastResult = ColliderRaycastHitResult();
 	m_hoverComponentWeakPtr.reset();
 	m_selectedComponentWeakPtr.reset();
 
-	createTransformGizmo();
-
 	return true;
 }
 
-void EditorObjectSystem::createTransformGizmo()
+void EditorObjectSystem::createSceneTransformGizmo(SceneComponentPtr ownerScene)
 {
-	SceneComponentPtr editorScene= m_sceneWeakPtr.lock();
-	if (!editorScene)
-		return;
+	disposeSceneTransformGizmo();
 
 	m_gizmoObjectWeakPtr = newObject();
 	MikanObjectPtr gizmoObjectPtr= m_gizmoObjectWeakPtr.lock();
@@ -162,7 +137,19 @@ void EditorObjectSystem::createTransformGizmo()
 	gizmoObjectPtr->init();
 
 	// Attach the gizmo to the scene
-	gizmoObjectPtr->getRootComponent()->attachToComponent(editorScene);
+	gizmoObjectPtr->getRootComponent()->attachToComponent(ownerScene);
+}
+
+void EditorObjectSystem::disposeSceneTransformGizmo()
+{
+	MikanObjectPtr gizmoObjectPtr= m_gizmoObjectWeakPtr.lock();
+	if (gizmoObjectPtr)
+	{
+		gizmoObjectPtr->dispose();
+	}
+
+	m_gizmoObjectWeakPtr.reset();
+	m_gizmoComponentWeakPtr.reset();
 }
 
 void EditorObjectSystem::createGizmoBoxCollider(
@@ -201,10 +188,25 @@ void EditorObjectSystem::createGizmoDiskCollider(
 
 void EditorObjectSystem::dispose()
 {
+	SceneObjectSystemPtr sceneObjectSystem = getObjectSystemOfType<SceneObjectSystem>();
+	sceneObjectSystem->OnSceneActivated -= MakeDelegate(this, &EditorObjectSystem::onSceneActivated);
+	sceneObjectSystem->OnSceneDeactivated -= MakeDelegate(this, &EditorObjectSystem::onSceneDeactivated);
+
+	AnchorObjectSystemPtr anchorObjectSystem = getObjectSystemOfType<AnchorObjectSystem>();
+	anchorObjectSystem->OnComponentDisposed -= MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
+
+	QuadStencilSystemPtr quadStencilSystem = getObjectSystemOfType<QuadStencilSystem>();
+	quadStencilSystem->OnComponentDisposed -= MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
+
+	BoxStencilSystemPtr boxStencilSystem = getObjectSystemOfType<BoxStencilSystem>();
+	boxStencilSystem->OnComponentDisposed -= MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
+
+	ModelStencilSystemPtr modelStencilSystem = getObjectSystemOfType<ModelStencilSystem>();
+	modelStencilSystem->OnComponentDisposed -= MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
+
 	m_gizmoObjectWeakPtr.reset();
 	m_gizmoComponentWeakPtr.reset();
-	m_sceneWeakPtr.reset();
-
+	
 	MikanObjectSystem::dispose();
 }
 
@@ -318,12 +320,17 @@ void EditorObjectSystem::onDeletePressed()
 }
 
 // Object System Events
-void EditorObjectSystem::onSceneDisposed(MikanObjectSystemPtr system, MikanComponentConstPtr component)
+void EditorObjectSystem::onSceneActivated(SceneComponentPtr newScene)
 {
-
+	createSceneTransformGizmo(newScene);
 }
 
-void EditorObjectSystem::onSceneObjectDisposed(MikanObjectSystemPtr system, MikanComponentConstPtr component)
+void EditorObjectSystem::onSceneDeactivated(SceneComponentPtr oldScene)
+{
+	disposeSceneTransformGizmo();
+}
+
+void EditorObjectSystem::onActorDisposed(MikanObjectSystemPtr system, MikanComponentConstPtr component)
 {
 	SelectionComponentPtr hoverComponentPtr= m_hoverComponentWeakPtr.lock();
 	if (hoverComponentPtr == component)
@@ -491,11 +498,12 @@ SelectionComponentPtr EditorObjectSystem::findClosestSelectionTarget(
 	outRaycastResult.hitLocation = glm::vec3();
 	outRaycastResult.hitNormal = glm::vec3();
 
-	SceneComponentConstPtr editorScene= getEditorScene();
-	if (editorScene)
+	SceneObjectSystemPtr sceneObjectSystem = getObjectSystemOfType<SceneObjectSystem>();
+	SceneComponentConstPtr currentScene= sceneObjectSystem->getCurrentScene();
+	if (currentScene)
 	{
 		closestSelectionComponent= 
-			editorScene->findClosestSelectionTarget(
+			currentScene->findClosestSelectionTarget(
 				rayOrigin, rayDir, outRaycastResult);
 	}
 

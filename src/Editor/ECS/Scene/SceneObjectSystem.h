@@ -74,4 +74,7 @@ public:
 
 	MulticastDelegate<void(SceneComponentPtr oldScene)> OnSceneDeactivated;
 	MulticastDelegate<void(SceneComponentPtr newScene)> OnSceneActivated;
+
+protected:
+	void onProjectLoaded(ProjectManagerPtr newProject);
 };

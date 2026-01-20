@@ -20,14 +20,11 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	MikanStageID getStageId() const { return m_stageId; }
-
 	static const std::string k_trackingVolumeIdPropertyId;
 	MikanTrackingVolumeID getTrackingVolumeId() const { return m_trackingVolumeId; }
 	void setTrackingVolumeId(MikanTrackingVolumeID volumeId);
 
 protected:
-	MikanStageID m_stageId = INVALID_MIKAN_ID;
 	MikanTrackingVolumeID m_trackingVolumeId = INVALID_MIKAN_ID;
 };
 

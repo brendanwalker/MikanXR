@@ -7,6 +7,7 @@
 #include "ObjectFwd.h"
 #include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
+#include "ProjectManager.h"
 
 #include <vector>
 
@@ -45,14 +46,21 @@ public:
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
 	inline ProjectManagerPtr getOwnerProjectManager() const { return m_ownerObjectSystemManager.lock(); }
+	ProjectConfigPtr getProjectConfig() const;
+
+	template <class t_object_system_type>
+	std::shared_ptr<t_object_system_type> getObjectSystemOfType() const
+	{
+		return getOwnerProjectManager()->getSystemOfType<t_object_system_type>();
+	}
+
+
 	inline MikanObjectSystemDefinitionConstPtr getDefinitionConst() const {
 		return m_definitionWeakPtr.lock();
 	}
 	inline MikanObjectSystemDefinitionPtr getDefinition() {
 		return m_definitionWeakPtr.lock();
 	}
-
-	ProjectConfigPtr getProjectConfig() const;
 
 	virtual MikanComponentPtr getComponentById(int componentId) const = 0;
 	virtual bool getComponentIdList(const std::string& componentClassName, std::vector<int>& outComponentIdList) const = 0;

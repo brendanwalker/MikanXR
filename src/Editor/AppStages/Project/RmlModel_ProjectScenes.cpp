@@ -167,6 +167,15 @@ bool RmlModel_ProjectScenes::init(ProjectRmlModelContext* context)
 	// Fill in the data model
 	rebuildSceneComponentList();
 
+	// Set initial selection to the current scene
+	SceneComponentConstPtr currentScene= m_sceneSystem.lock()->getCurrentScene();
+	if (currentScene)
+	{
+		MikanStageID parentStageId = currentScene->getParentStage()->getStageId();
+		setSelectedStageId(parentStageId);
+		setSelectedSceneId(currentScene->getSceneId());
+	}
+
 	// Listen for stage/scene/compositor list changes
 	m_stageIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectScenes::stageIdListChanged);
 	m_sceneIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectScenes::sceneIdListChanged);
@@ -419,7 +428,7 @@ void RmlModel_ProjectScenes::stageIdListChanged(bool bOwnerChanged)
 		// Defer the selection update to post view update after element list refreshes
 		addModelUpdateCallback([this, selectedStageId]() {
 			setSelectedStageId(selectedStageId);
-			});
+		});
 	}
 }
 

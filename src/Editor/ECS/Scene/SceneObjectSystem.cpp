@@ -50,13 +50,36 @@ bool SceneObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
 	Super::init(definitionPtr);
 
-	SceneComponentPtr sceneComponent = getCurrentScene();
-	if (sceneComponent)
-	{
-		sceneComponent->activateScene();
-	}
+	// Listen for project load completion to activate the current scene
+	getOwnerProjectManager()->OnProjectLoaded += MakeDelegate(this, &SceneObjectSystem::onProjectLoaded);
 
 	return true;
+}
+
+void SceneObjectSystem::onProjectLoaded(ProjectManagerPtr newProject)
+{
+	SceneObjectSystemDefinitionPtr sceneSystemConfig = getTypedDefinition();
+	MikanSceneID currentSceneId = sceneSystemConfig->getCurrentSceneId();
+
+	if (currentSceneId != INVALID_MIKAN_ID)
+	{
+		SceneComponentPtr currentScene = getSceneById(currentSceneId);
+		if (currentScene)
+		{
+			currentScene->activateScene();
+
+			if (OnSceneActivated)
+			{
+				OnSceneActivated(currentScene);
+			}
+		}
+	}
+	else if (sceneSystemConfig->hasDefinitions())
+	{
+		SceneComponentDefinitionPtr sceneDefinitionPtr= sceneSystemConfig->getAllDefinitions().front();
+
+		setCurrentSceneById(sceneDefinitionPtr->getSceneId());
+	}
 }
 
 void SceneObjectSystem::dispose()
@@ -66,6 +89,9 @@ void SceneObjectSystem::dispose()
 	{
 		sceneComponent->deactivateScene();
 	}
+
+	// Stop listening for project load events
+	getOwnerProjectManager()->OnProjectLoaded -= MakeDelegate(this, &SceneObjectSystem::onProjectLoaded);
 
 	Super::dispose();
 }

@@ -157,7 +157,7 @@ bool StageComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
 
 MikanStageID StageComponent::getStageId() const
 {
-	return getStageComponentDefinitionConst()->getStageId();
+	return getStageComponentDefinitionConst()->getComponentId();
 }
 
 void StageComponent::setTrackingVolumeId(MikanTrackingVolumeID volumeId)

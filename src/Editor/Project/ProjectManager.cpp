@@ -49,8 +49,8 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	addSystem<NetworkVideoSourceSystem>();
 	addSystem<USBVideoSourceSystem>();
 	addSystem<MarkerObjectSystem>();
-	addSystem<SceneObjectSystem>();
 	addSystem<StageObjectSystem>();
+	addSystem<SceneObjectSystem>();
 	addSystem<CompositorObjectSystem>();
 	addSystem<CameraObjectSystem>();
 	addSystem<AnchorObjectSystem>();
@@ -196,6 +196,12 @@ bool ProjectManager::loadProject(const std::string& projectFilePath)
 
 	if (bSuccess)
 	{
+		// Broadcast that the project has been loaded
+		if (OnProjectLoaded)
+		{
+			OnProjectLoaded(shared_from_this());
+		}
+
 		// Enable auto-save
 		m_projectConfig->setAutoSaveCooldownDuration(PROJECT_SAVE_COOLDOWN);
 	}
@@ -221,6 +227,12 @@ bool ProjectManager::saveProject(const std::string& projectFilePath)
 
 void ProjectManager::unloadProject()
 {
+	// Broadcast that the project is about to be unloaded
+	if (OnProjectPreUnload)
+	{
+		OnProjectPreUnload(shared_from_this());
+	}
+
 	// Call dispose in reverse order
 	// so that Editor system gets component destroy events
 	// from the Anchor and Stencil Systems triggered during dispose call
