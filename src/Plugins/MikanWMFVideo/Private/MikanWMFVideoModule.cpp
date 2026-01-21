@@ -4,6 +4,10 @@
 
 #include "Logger.h"
 
+#include <Mfidl.h>
+#include <Mfapi.h>
+#include <Mferror.h>
+
 class MikanWMFVideoModule : public IUsbVideoDeviceModule
 {
 public:
@@ -18,10 +22,22 @@ public:
 
 	bool startup() override
 	{
-		MIKAN_LOG_INFO("MikanWMFVideoModule") << "Initializing MikanWMFVideoModule";
-		m_bIsInitialized = true;
+		if (!m_bIsInitialized)
+		{
 
-		return true;
+			HRESULT hr = MFStartup(MF_VERSION);
+			if (SUCCEEDED(hr))
+			{
+				MIKAN_LOG_INFO("MikanWMFVideoModule") << "Successfully initialized Media Foundation";
+				m_bIsInitialized = true;
+			}
+			else
+			{
+				MIKAN_LOG_ERROR("MikanWMFVideoModule") << "Failed to initialize Media Foundation.";
+			}
+		}
+
+		return m_bIsInitialized;
 	}
 
 	void shutdown() override
@@ -29,6 +45,7 @@ public:
 		// Clean up the WMFVideo library
 		if (m_bIsInitialized)
 		{
+			MFShutdown();
 			m_bIsInitialized= false;
 		}
 	}
