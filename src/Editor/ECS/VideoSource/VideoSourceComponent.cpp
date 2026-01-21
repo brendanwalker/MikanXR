@@ -149,27 +149,9 @@ bool VideoSourceComponent::getVideoPixelDimensions(int& outPixelWidth, int& outP
 
 bool VideoSourceComponent::hasNewVideoFrameAvailable(VideoFrameSection section) const
 {
-	MikanVideoSourceIntrinsics intrinsics;
-	if (getCameraIntrinsics(intrinsics))
+	if (m_opencv_buffer_state[(int)section] != nullptr)
 	{
-		int64_t lastFrameWriteIndex = 0;
-
-		if (intrinsics.intrinsics_type == MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS)
-		{
-			if ((section == VideoFrameSection::Left || section == VideoFrameSection::Right) &&
-				m_opencv_buffer_state[(int)section] != nullptr)
-			{
-				lastFrameWriteIndex = m_opencv_buffer_state[(int)section]->getLastVideoFrameWriteIndex();
-			}
-		}
-		else
-		{
-			if (section == VideoFrameSection::Primary &&
-				m_opencv_buffer_state[(int)VideoFrameSection::Primary] != nullptr)
-			{
-				lastFrameWriteIndex = m_opencv_buffer_state[(int)VideoFrameSection::Primary]->getLastVideoFrameWriteIndex();
-			}
-		}
+		int64_t lastFrameWriteIndex = m_opencv_buffer_state[(int)section]->getLastVideoFrameWriteIndex();
 
 		return lastFrameWriteIndex != m_lastVideoFrameReadIndex;
 	}
@@ -276,35 +258,36 @@ bool VideoSourceComponent::reallocateOpencvBufferState()
 	if (!getVideoPixelDimensions(videoPixelWidth, videoPixelHeight))
 		return false;
 
-	MikanVideoSourceIntrinsics intrinsics;
-	if (!getCameraIntrinsics(intrinsics))
-		return false;
-
-	// Allocate the OpenCV scratch buffers used for finding tracking blobs
-	if (intrinsics.intrinsics_type == MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS)
+	
+	if (MikanVideoSourceIntrinsics intrinsics;
+		getCameraIntrinsics(intrinsics))
 	{
-		const MikanStereoIntrinsics& stereoIntrinsics = intrinsics.getStereoIntrinsics();
+		// Allocate the OpenCV scratch buffers used for finding tracking blobs
+		if (intrinsics.intrinsics_type == MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS)
+		{
+			const MikanStereoIntrinsics& stereoIntrinsics = intrinsics.getStereoIntrinsics();
 
-		m_opencv_buffer_state[(int)VideoFrameSection::Left] =
-			new OpenCVVideoFrameBuffer(
-				videoPixelWidth, videoPixelHeight,
-				stereoIntrinsics.pixel_width, stereoIntrinsics.pixel_width,
-				VideoFrameSection::Left);
-		m_opencv_buffer_state[(int)VideoFrameSection::Right] =
-			new OpenCVVideoFrameBuffer(
-				videoPixelWidth, videoPixelHeight,
-				stereoIntrinsics.pixel_width, stereoIntrinsics.pixel_width,
-				VideoFrameSection::Right);
-	}
-	else if (intrinsics.intrinsics_type == MikanIntrinsicsType::MONO_CAMERA_INTRINSICS)
-	{
-		const MikanMonoIntrinsics& monoIntrinsics = intrinsics.getMonoIntrinsics();
+			m_opencv_buffer_state[(int)VideoFrameSection::Left] =
+				new OpenCVVideoFrameBuffer(
+					videoPixelWidth, videoPixelHeight,
+					stereoIntrinsics.pixel_width, stereoIntrinsics.pixel_width,
+					VideoFrameSection::Left);
+			m_opencv_buffer_state[(int)VideoFrameSection::Right] =
+				new OpenCVVideoFrameBuffer(
+					videoPixelWidth, videoPixelHeight,
+					stereoIntrinsics.pixel_width, stereoIntrinsics.pixel_width,
+					VideoFrameSection::Right);
+		}
+		else if (intrinsics.intrinsics_type == MikanIntrinsicsType::MONO_CAMERA_INTRINSICS)
+		{
+			const MikanMonoIntrinsics& monoIntrinsics = intrinsics.getMonoIntrinsics();
 
-		m_opencv_buffer_state[(int)VideoFrameSection::Primary] =
-			new OpenCVVideoFrameBuffer(
-				videoPixelWidth, videoPixelHeight,
-				monoIntrinsics.pixel_width, monoIntrinsics.pixel_width,
-				VideoFrameSection::Primary);
+			m_opencv_buffer_state[(int)VideoFrameSection::Primary] =
+				new OpenCVVideoFrameBuffer(
+					videoPixelWidth, videoPixelHeight,
+					monoIntrinsics.pixel_width, monoIntrinsics.pixel_width,
+					VideoFrameSection::Primary);
+		}
 	}
 	else
 	{
