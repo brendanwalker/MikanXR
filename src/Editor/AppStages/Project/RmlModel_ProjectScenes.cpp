@@ -423,7 +423,7 @@ void RmlModel_ProjectScenes::setSelectedSceneId(int sceneId)
 void RmlModel_ProjectScenes::stageIdListChanged(bool bOwnerChanged)
 {
 	if (MikanStageID selectedStageId = m_selectedStageId;
-		m_stageIdList->fixupSelectedIndex(m_selectedStageId, selectedStageId))
+		m_stageIdList->fixupSelectedValue(m_selectedStageId, INVALID_MIKAN_ID, selectedStageId))
 	{
 		// Defer the selection update to post view update after element list refreshes
 		addModelUpdateCallback([this, selectedStageId]() {
@@ -435,7 +435,7 @@ void RmlModel_ProjectScenes::stageIdListChanged(bool bOwnerChanged)
 void RmlModel_ProjectScenes::sceneIdListChanged(bool bOwnerChanged)
 {
 	if (MikanSceneID selectedSceneId = m_selectedSceneId;
-		m_sceneIdList->fixupSelectedIndex(m_selectedSceneId, selectedSceneId))
+		m_sceneIdList->fixupSelectedValue(m_selectedSceneId, INVALID_MIKAN_ID, selectedSceneId))
 	{
 		// Defer the selection update to post view update after element list refreshes
 		addModelUpdateCallback([this, selectedSceneId]() {

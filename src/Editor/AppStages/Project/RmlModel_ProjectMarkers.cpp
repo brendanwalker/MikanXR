@@ -69,7 +69,7 @@ void RmlModel_ProjectMarkers::dispose()
 void RmlModel_ProjectMarkers::markerIdListChanged(bool bOwnerChanged)
 {
 	if (MikanMarkerID newSelectedMarkerId = m_selectedMarkerId;
-		m_markerIdList->fixupSelectedIndex(m_selectedMarkerId, newSelectedMarkerId))
+		m_markerIdList->fixupSelectedValue(m_selectedMarkerId, INVALID_MIKAN_ID, newSelectedMarkerId))
 	{
 		// Defer the selection update to post view update after element list refreshes
 		addModelUpdateCallback([this, newSelectedMarkerId]() {

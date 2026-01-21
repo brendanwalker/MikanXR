@@ -5,6 +5,7 @@
 #include "MikanComponent.h"
 #include "MulticastDelegate.h"
 #include "MikanObjectSystem.h"
+#include "MikanTypeFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "Shared\RmlDataBinding.h"
 
@@ -137,28 +138,31 @@ public:
 		}
 	}
 
-	bool fixupSelectedIndex(const int inSelectedIndex, int& outSelectedIndex) const
+	bool fixupSelectedValue(
+		const t_element_type inSelectedValue,
+		const t_element_type inDefaultValue,
+		t_element_type& outSelectedValue) const
 	{
 		const int listSize = static_cast<int>(m_rmlValueList.size());
 
-		if (listSize == 0)
+		if (listSize > 0)
 		{
-			outSelectedIndex= -1;
-		}
-		else if (inSelectedIndex < 0)
-		{
-			outSelectedIndex= 0;
-		}
-		else if (inSelectedIndex >= listSize)
-		{
-			outSelectedIndex = listSize - 1;
+			auto it= std::find(m_rmlValueList.begin(), m_rmlValueList.end(), inSelectedValue);
+			if (it != m_rmlValueList.end())
+			{
+				outSelectedValue = inSelectedValue;
+			}
+			else
+			{
+				outSelectedValue = m_rmlValueList.back();
+			}
 		}
 		else
 		{
-			outSelectedIndex = inSelectedIndex;
+			outSelectedValue = inDefaultValue;
 		}
 
-		return outSelectedIndex != inSelectedIndex;
+		return outSelectedValue != inSelectedValue;
 	}
 
 	const Rml::Vector<t_element_type>& getRmlValueList() const { return m_rmlValueList; }

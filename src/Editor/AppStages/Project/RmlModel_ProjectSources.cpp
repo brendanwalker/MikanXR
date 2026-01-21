@@ -37,6 +37,7 @@ RmlModel_ProjectSources::RmlModel_ProjectSources()
 bool RmlModel_ProjectSources::init(ProjectRmlModelContext* context)
 {
 	AppStage_Project* ownerAppStage = context->getOwnerAppStage();
+	ProjectConfigPtr projectConfig = ownerAppStage->getProjectConfig();
 	Rml::Context* rmlContext = ownerAppStage->getRmlContext();
 
 	m_projectRmlModelContext = context;
@@ -50,7 +51,7 @@ bool RmlModel_ProjectSources::init(ProjectRmlModelContext* context)
 	// Register component lists
 	m_textureSourceIdList->init(
 		constructor,
-		CommonConfigPtr(), // No single owner config since this is a virtual list
+		projectConfig,
 		"texture_source_ids", // virtual list since this is a combination of multiple source types
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 			outComponentIdList = TextureSourceQueries::getTextureSourceIdList(m_projectManager.lock());
@@ -62,7 +63,7 @@ bool RmlModel_ProjectSources::init(ProjectRmlModelContext* context)
 		});
 	m_videoSourceIdList->init(
 		constructor,
-		CommonConfigPtr(), // No single owner config since this is a virtual list
+		projectConfig,
 		"video_source_ids", // virtual list since this is a combination of multiple source types
 		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 			outComponentIdList= VideoSourceQueries::getVideoSourceIdList(m_projectManager.lock());
@@ -88,16 +89,20 @@ bool RmlModel_ProjectSources::init(ProjectRmlModelContext* context)
 	constructor.BindEventCallback("select_texture_source_entry", &RmlModel_ProjectSources::selectTextureSourceEntry, this);
 
 	// Listen for video source config changes
-	m_textureSourceIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectSources::videoSourceIdListChanged);
 	m_textureSourceIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectSources::textureSourceIdListChanged);
+	m_videoSourceIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectSources::videoSourceIdListChanged);
+
+	// Fill in the data model
+	m_textureSourceIdList->rebuildList();
+	m_videoSourceIdList->rebuildList();
 
 	return true;
 }
 
 void RmlModel_ProjectSources::dispose()
 {
-	m_textureSourceIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectSources::videoSourceIdListChanged);
 	m_textureSourceIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectSources::textureSourceIdListChanged);
+	m_videoSourceIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectSources::videoSourceIdListChanged);
 
 	RmlModel::dispose();
 }
@@ -105,7 +110,7 @@ void RmlModel_ProjectSources::dispose()
 void RmlModel_ProjectSources::textureSourceIdListChanged(bool bOwnerChanged)
 {
 	if (MikanVideoSourceID selectedTextureSourceId = m_selectedTextureSourceId;
-		m_textureSourceIdList->fixupSelectedIndex(m_selectedTextureSourceId, selectedTextureSourceId))
+		m_textureSourceIdList->fixupSelectedValue(m_selectedTextureSourceId, INVALID_MIKAN_ID, selectedTextureSourceId))
 	{
 		// Defer the selection update to post view update after element list refreshes
 		addModelUpdateCallback([this, selectedTextureSourceId]() {
@@ -117,7 +122,7 @@ void RmlModel_ProjectSources::textureSourceIdListChanged(bool bOwnerChanged)
 void RmlModel_ProjectSources::videoSourceIdListChanged(bool bOwnerChanged)
 {
 	if (MikanVideoSourceID selectedVideoSourceId = m_selectedVideoSourceId;
-		m_textureSourceIdList->fixupSelectedIndex(m_selectedTextureSourceId, selectedVideoSourceId))
+		m_videoSourceIdList->fixupSelectedValue(m_selectedVideoSourceId, INVALID_MIKAN_ID, selectedVideoSourceId))
 	{
 		// Defer the selection update to post view update after element list refreshes
 		addModelUpdateCallback([this, selectedVideoSourceId]() {

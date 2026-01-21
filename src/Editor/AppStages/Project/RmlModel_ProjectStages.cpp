@@ -118,7 +118,7 @@ void RmlModel_ProjectStages::dispose()
 void RmlModel_ProjectStages::stageIdListChanged(bool bOwnerChanged)
 {
 	if (MikanStageID selectedStageId = m_selectedStageId;
-		m_stageIdList->fixupSelectedIndex(m_selectedStageId, selectedStageId))
+		m_stageIdList->fixupSelectedValue(m_selectedStageId, INVALID_MIKAN_ID, selectedStageId))
 	{
 		// Defer the selection update to post view update after element list refreshes
 		addModelUpdateCallback([this, selectedStageId]() {
@@ -130,7 +130,7 @@ void RmlModel_ProjectStages::stageIdListChanged(bool bOwnerChanged)
 void RmlModel_ProjectStages::cameraIdListChanged(bool bOwnerChanged)
 {
 	if (MikanCameraID selectedCameraId = m_selectedCameraId;
-		m_cameraIdList->fixupSelectedIndex(m_selectedCameraId, selectedCameraId))
+		m_cameraIdList->fixupSelectedValue(m_selectedCameraId, INVALID_MIKAN_ID, selectedCameraId))
 	{
 		// Defer the selection update to post view update after element list refreshes
 		addModelUpdateCallback([this, selectedCameraId]() {
@@ -142,7 +142,7 @@ void RmlModel_ProjectStages::cameraIdListChanged(bool bOwnerChanged)
 void RmlModel_ProjectStages::compositorIdListChanged(bool bOwnerChanged)
 {
 	if (MikanCompositorID selectedCompositorId = m_selectedCompositorId;
-		m_compositorIdList->fixupSelectedIndex(m_selectedCompositorId, selectedCompositorId))
+		m_compositorIdList->fixupSelectedValue(m_selectedCompositorId, INVALID_MIKAN_ID, selectedCompositorId))
 	{
 		// Defer the selection update to post view update after element list refreshes
 		addModelUpdateCallback([this, selectedCompositorId]() {

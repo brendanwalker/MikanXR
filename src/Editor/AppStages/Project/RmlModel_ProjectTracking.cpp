@@ -116,7 +116,7 @@ void RmlModel_ProjectTracking::dispose()
 void RmlModel_ProjectTracking::trackingVolumeIdListChanged(bool bOwnerChanged)
 {
 	if (MikanTrackingVolumeID newSelectedTrackingVolumeId = m_selectedTrackingVolumeId;
-		m_trackingVolumeIdList->fixupSelectedIndex(m_selectedTrackingVolumeId, newSelectedTrackingVolumeId))
+		m_trackingVolumeIdList->fixupSelectedValue(m_selectedTrackingVolumeId, INVALID_MIKAN_ID, newSelectedTrackingVolumeId))
 	{
 		// Defer the selection update to post view update after element list refreshes
 		addModelUpdateCallback([this, newSelectedTrackingVolumeId]() {
@@ -128,7 +128,7 @@ void RmlModel_ProjectTracking::trackingVolumeIdListChanged(bool bOwnerChanged)
 void RmlModel_ProjectTracking::trackingMountIdListChanged(bool bOwnerChanged)
 {
 	if (MikanTrackingMountID newSelectedTrackingMountId = m_selectedTrackingMountId;
-		m_trackingMountIdList->fixupSelectedIndex(m_selectedTrackingMountId, newSelectedTrackingMountId))
+		m_trackingMountIdList->fixupSelectedValue(m_selectedTrackingMountId, INVALID_MIKAN_ID, newSelectedTrackingMountId))
 	{
 		// Defer the selection update to post view update after element list refreshes
 		addModelUpdateCallback([this, newSelectedTrackingMountId]() {
