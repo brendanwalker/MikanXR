@@ -408,8 +408,16 @@ bool USBVideoSourceComponent::handleVideoModeUpdated()
 	for (int settingIndex = 0; settingIndex < (int)eVideoSettingType::COUNT; ++settingIndex)
 	{
 		const eVideoSettingType settingType = (eVideoSettingType)settingIndex;
+		VideoSettingConstraint& constraint = m_currentVideoConstraints[settingIndex];
 
-		m_usbVideoDevice->getVideoSettingConstraint(settingType, m_currentVideoConstraints[settingIndex]);
+		m_usbVideoDevice->getVideoSettingConstraint(settingType, constraint);
+
+		if (settingType == eVideoSettingType::Gain && constraint.default_value == 0)
+		{
+			// Some cameras report Gain default value as 0, 
+			// Which is invalid, so we set it to mid-range instead
+			constraint.default_value = (constraint.min_value + constraint.max_value) / 2;
+		}
 	}
 
 	// See if we have saved camera settings for the current video mode
