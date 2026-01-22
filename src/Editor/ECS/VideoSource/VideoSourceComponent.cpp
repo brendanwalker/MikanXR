@@ -163,36 +163,15 @@ int64_t VideoSourceComponent::readVideoFrameSectionBuffer(VideoFrameSection sect
 {
 	EASY_FUNCTION();
 
-	MikanVideoSourceIntrinsics intrinsics;
-	if (getCameraIntrinsics(intrinsics))
+	if (m_opencv_buffer_state[(int)section] != nullptr)
 	{
-		if (intrinsics.intrinsics_type == MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS)
-		{
-			if ((section == VideoFrameSection::Left || section == VideoFrameSection::Right) &&
-				m_opencv_buffer_state[(int)section] != nullptr)
-			{
-				m_lastVideoFrameReadIndex =
-					m_opencv_buffer_state[(int)section]->readVideoFrame(
-						outBuffer,
-						m_lastVideoFrameReadIndex);
-			}
-		}
-		else
-		{
-			if (section == VideoFrameSection::Primary &&
-				m_opencv_buffer_state[(int)VideoFrameSection::Primary] != nullptr)
-			{
-				m_lastVideoFrameReadIndex =
-					m_opencv_buffer_state[(int)VideoFrameSection::Primary]->readVideoFrame(
-						outBuffer,
-						m_lastVideoFrameReadIndex);
-			}
-		}
-
-		return m_lastVideoFrameReadIndex;
+		m_lastVideoFrameReadIndex =
+			m_opencv_buffer_state[(int)section]->readVideoFrame(
+				outBuffer,
+				m_lastVideoFrameReadIndex);
 	}
 
-	return 0;
+	return m_lastVideoFrameReadIndex;
 }
 
 bool VideoSourceComponent::getVideoModeName(std::string& outVideoModeName) const
