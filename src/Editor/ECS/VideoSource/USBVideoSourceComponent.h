@@ -109,6 +109,7 @@ protected:
 	int findBestVideoModeIndex(int w, int h, int frameRate) const;
 	bool handleVideoModeUpdated();
 	void handleVideoModeSettingUpdated();
+	void handleWantsActiveStream();
 	void saveVideoSettingDefaultsFromCurrentMode();
 	void restoreVideoSettingsToCurrentMode();
 	bool getVideoSettingAsFloatFraction(eVideoSettingType settingType, float& outFloatFraction) const;
@@ -121,4 +122,6 @@ protected:
 	bool m_bDeviceChanged= false;
 	bool m_bModeChanged = false;
 	bool m_bSettingsChanged = false;
+	bool m_bPendingStartStream = false;
+	bool m_bWantsStreamActive = false;
 };

@@ -11,12 +11,23 @@
 #include <Mfidl.h>
 #include <Mfapi.h>
 #include <Mferror.h>
+#include <mfreadwrite.h>
 #include <Strmif.h>
 #include <Shlwapi.h>
+#include <wmcodecdsp.h>
 
-class WMFVideoFrameProcessor : public IMFSampleGrabberSinkCallback, public WorkerThread
+class WMFVideoFrameProcessor : public IMFSourceReaderCallback
 {
 public:
+	enum class State
+	{
+		Stopped,
+		Starting,
+		Running,
+		Stopping,
+		Failed
+	};
+
 	WMFVideoFrameProcessor(
 		int deviceIndex,
 		const WMFDeviceFormatInfo& deviceFormat,
@@ -26,58 +37,50 @@ public:
 	HRESULT init(IMFMediaSource* pSource);
 	void dispose();
 
-	HRESULT startVideoFrameThread();
-	void stopVideoFrameThread();
+	void startVideoFrameStream();
+	void stopVideoFrameStream();
 
-	inline bool getIsRunning() const { return m_bIsRunning; }
+	inline State getState() const { return m_state; }
+	inline bool getIsRunning() const { return m_state == State::Running; }
 
 protected:
-	virtual bool doWork() override;
-
-	HRESULT CreateTopology(IMFMediaSource* pSource, IMFActivate* pSinkActivate, IMFTopology** ppTopo);
-	HRESULT AddSourceNode(
-		IMFTopology* pTopology,
-		IMFMediaSource* pSource,
-		IMFPresentationDescriptor* pPD,
-		IMFStreamDescriptor* pSD,
-		IMFTopologyNode** ppNode);
-	HRESULT AddOutputNode(
-		IMFTopology* pTopology,
-		IMFActivate* pActivate,
-		DWORD dwId,
-		IMFTopologyNode** ppNode);
-
 	// IUnknown methods
 	STDMETHODIMP QueryInterface(REFIID iid, void** ppv);
 	STDMETHODIMP_(ULONG) AddRef();
 	STDMETHODIMP_(ULONG) Release();
 
-	// IMFClockStateSink methods
-	STDMETHODIMP OnClockStart(MFTIME hnsSystemTime, LONGLONG llClockStartOffset) { return S_OK; }
-	STDMETHODIMP OnClockStop(MFTIME hnsSystemTime) { return S_OK; }
-	STDMETHODIMP OnClockPause(MFTIME hnsSystemTime) { return S_OK; }
-	STDMETHODIMP OnClockRestart(MFTIME hnsSystemTime) { return S_OK; }
-	STDMETHODIMP OnClockSetRate(MFTIME hnsSystemTime, float flRate) { return S_OK; }
-
-	// IMFSampleGrabberSinkCallback methods
-	STDMETHODIMP OnSetPresentationClock(IMFPresentationClock* pClock) { return S_OK; }
-	STDMETHODIMP OnShutdown() { return S_OK; }
-	STDMETHODIMP OnProcessSample(REFGUID guidMajorMediaType, DWORD dwSampleFlags,
-		LONGLONG llSampleTime, LONGLONG llSampleDuration, const BYTE* pSampleBuffer,
-		DWORD dwSampleSize);
+	// IMFSourceReaderCallback methods
+	STDMETHODIMP OnReadSample(
+		HRESULT hrStatus,
+		DWORD dwStreamIndex,
+		DWORD dwStreamFlags,
+		LONGLONG llTimestamp,
+		IMFSample* pSample);
+	STDMETHODIMP OnFlush(DWORD dwStreamIndex) { return S_OK; }
+	STDMETHODIMP OnEvent(DWORD dwStreamIndex, IMFMediaEvent* pEvent) { return S_OK; }
 
 private:
+	HRESULT createDecoder();
+	HRESULT getActualInputMediaType(IMFMediaType** ppMediaType);
+	HRESULT findBestH264Decoder(CLSID* pDecoderCLSID);
+	HRESULT processCompressedSample(IMFSample* pCompressedSample, IMFSample** ppDecodedSample);
+
 	int m_deviceIndex;
 	const WMFDeviceFormatInfo& m_deviceFormat;
 	class MikanWMFVideoDevice* m_videoSourceListener;
 
 	long m_referenceCount;
 
-	IMFMediaSession* m_pSession;
-	IMFTopology* m_pTopology;
+	IMFSourceReader* m_pSourceReader;
+	IMFTransform* m_pDecoderTransform;
+	IMFMediaType* m_pNativeInputType;  // Saved native H.264 media type from camera
+	bool m_bNeedsDecoder;
+	MFT_OUTPUT_STREAM_INFO m_decoderOutputInfo;
 
-	bool m_bIsRunning;
+	State m_state;
 	int64_t m_sampleIndex;
+	eUSBVideoFrameBufferFormat m_outputFormat;
+	GUID m_wmfOutputFormat;
 };
 
 class MikanWMFVideoDevice : public IUsbVideoDevice

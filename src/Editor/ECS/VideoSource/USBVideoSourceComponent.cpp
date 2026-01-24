@@ -1,4 +1,5 @@
 #include "CameraMath.h"
+#include "Logger.h"
 #include "MathUtility.h"
 #include "MikanServer.h"
 #include "MikanObject.h"
@@ -175,6 +176,10 @@ void USBVideoSourceComponent::update(float deltaSeconds)
 	{
 		m_bSettingsChanged = false;
 		handleVideoModeSettingUpdated();
+	}
+	else if (m_bWantsStreamActive)
+	{
+		handleWantsActiveStream();
 	}
 }
 
@@ -403,6 +408,15 @@ bool USBVideoSourceComponent::handleVideoModeUpdated()
 	if (szVideoModeName == nullptr)
 		return false;
 
+	// Try and re-open the device if it is not already open
+	if (!m_usbVideoDevice->getIsOpen())
+	{
+		if (!m_usbVideoDevice->open())
+		{
+			return false;
+		}
+	}
+
 	// Cache the video setting constraints for the new video mode first
 	// (needed by restoreVideoSettingsToCurrentMode / backupVideoSettingsFromCurrentMode)
 	for (int settingIndex = 0; settingIndex < (int)eVideoSettingType::COUNT; ++settingIndex)
@@ -463,6 +477,46 @@ void USBVideoSourceComponent::handleVideoModeSettingUpdated()
 		{
 			setVideoSettingAsFloatFraction((eVideoSettingType)settingIndex, settings[settingIndex]);
 		}
+	}
+}
+
+void USBVideoSourceComponent::handleWantsActiveStream()
+{
+	if (m_usbVideoDevice != nullptr &&
+		m_usbVideoDevice->getIsOpen())
+	{
+		eVideoStreamingStatus status = m_usbVideoDevice->getVideoStreamingStatus();
+		switch (status)
+		{
+		case eVideoStreamingStatus::started:
+			if (m_bPendingStartStream)
+			{
+				m_bPendingStartStream = false;
+
+				// Successfully started streaming!
+				if (OnStarted)
+				{
+					OnStarted(getSelfPtr<VideoSourceComponent>());
+				}
+			}
+			break;
+		case eVideoStreamingStatus::pendingStart:
+			// Still starting up, do nothing
+			break;
+		case eVideoStreamingStatus::failed:
+		case eVideoStreamingStatus::stopped:
+			{
+				m_usbVideoDevice->startVideoStream();
+				m_bPendingStartStream = true;
+			}
+			break;
+		}
+	}
+	else
+	{
+		// Device closed before we could start streaming
+		m_bWantsStreamActive = false;
+		m_bPendingStartStream = false;
 	}
 }
 
@@ -637,13 +691,12 @@ eVideoStreamingStatus USBVideoSourceComponent::startVideoStream()
 {
 	if (m_usbVideoDevice != nullptr)
 	{
-		eVideoStreamingStatus status= m_usbVideoDevice->startVideoStream();
-		if (status == eVideoStreamingStatus::started && OnStarted)
-		{
-			OnStarted(getSelfPtr<VideoSourceComponent>());
-		}
+		m_bWantsStreamActive = true;
+		m_bPendingStartStream = true;
 
-		return status;
+		handleWantsActiveStream();
+
+		return m_usbVideoDevice->getVideoStreamingStatus();
 	}
 	
 	return eVideoStreamingStatus::failed;
@@ -663,6 +716,7 @@ void USBVideoSourceComponent::stopVideoStream()
 {
 	if (m_usbVideoDevice != nullptr)
 	{
+		m_bWantsStreamActive = false;
 		m_usbVideoDevice->stopVideoStream();
 
 		if (OnStopped)
@@ -875,6 +929,49 @@ void USBVideoSourceComponent::notifyVideoFrameReceived(const UsbVideoFrameBuffer
 	const bool is_frame_flipped = definition->getIsFrameMirrored();
 	const bool is_buffer_flipped = definition->getIsBufferMirrored();
 
+	// Convert video buffer to BGR format if needed
+	cv::Mat bgrMat;
+	if (bufferInfo.data_format == eUSBVideoFrameBufferFormat::USBVideo_NV12)
+	{
+		// NV12 layout: [Y plane: width × height] [UV plane: width × height/2]
+		cv::Mat packedNV12(
+			bufferInfo.height + bufferInfo.height / 2,
+			bufferInfo.width,
+			CV_8UC1,
+			(void*)bufferInfo.data,
+			bufferInfo.stride);
+		cv::cvtColor(packedNV12, bgrMat, cv::COLOR_YUV2BGR_NV12);
+	}
+	else if (bufferInfo.data_format == eUSBVideoFrameBufferFormat::USBVideo_YUY2)
+	{
+		// YUY2 (YUYV) format: 4:2:2 packed format (2 bytes per pixel)
+		cv::Mat yuy2Mat(
+			bufferInfo.height,
+			bufferInfo.width,
+			CV_8UC2,
+			(void*)bufferInfo.data,
+			bufferInfo.stride * 2);  // stride is in pixels, YUY2 is 2 bytes per pixel
+		cv::cvtColor(yuy2Mat, bgrMat, cv::COLOR_YUV2BGR_YUY2);
+	}
+	else if (bufferInfo.data_format == eUSBVideoFrameBufferFormat::USBVideo_RGB24)
+	{
+		// RGB24 format: convert to BGR
+		cv::Mat rgb24Mat(bufferInfo.height,
+						bufferInfo.width,
+						CV_8UC3,
+						(void*)bufferInfo.data,
+						bufferInfo.stride * 3);  // stride is in pixels, RGB24 is 3 bytes per pixel
+		cv::cvtColor(rgb24Mat, bgrMat, cv::COLOR_RGB2BGR);
+	}
+	else
+	{
+		// Unknown format - create empty mat as fallback
+		bgrMat = cv::Mat(bufferInfo.height, bufferInfo.width, CV_8UC3, cv::Scalar(0, 0, 0));
+	}
+
+	// Now bgrMat contains the BGR image data that writeVideoFrame expects
+	const unsigned char* bgrData = bgrMat.data;
+
 	// Fetch the latest video buffer frame from the device
 	if (intrinsics.intrinsics_type == MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS)
 	{
@@ -889,7 +986,7 @@ void USBVideoSourceComponent::notifyVideoFrameReceived(const UsbVideoFrameBuffer
 		if (m_opencv_buffer_state[(int)VideoFrameSection::Left] != nullptr)
 		{
 			m_opencv_buffer_state[(int)VideoFrameSection::Left]->writeStereoVideoFrameSection(
-				bufferInfo.data,
+				bgrData,
 				is_buffer_flipped ? right_bounds : left_bounds,
 				is_frame_flipped);
 		}
@@ -898,7 +995,7 @@ void USBVideoSourceComponent::notifyVideoFrameReceived(const UsbVideoFrameBuffer
 		if (m_opencv_buffer_state[(int)VideoFrameSection::Right] != nullptr)
 		{
 			m_opencv_buffer_state[(int)VideoFrameSection::Right]->writeStereoVideoFrameSection(
-				bufferInfo.data,
+				bgrData,
 				is_buffer_flipped ? left_bounds : right_bounds,
 				is_frame_flipped);
 		}
@@ -909,7 +1006,7 @@ void USBVideoSourceComponent::notifyVideoFrameReceived(const UsbVideoFrameBuffer
 		if (m_opencv_buffer_state[(int)VideoFrameSection::Primary] != nullptr)
 		{
 			m_opencv_buffer_state[(int)VideoFrameSection::Primary]->writeVideoFrame(
-				bufferInfo.data, is_frame_flipped);
+				bgrData, is_frame_flipped);
 		}
 	}
 }

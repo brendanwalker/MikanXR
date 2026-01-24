@@ -4,6 +4,12 @@
 #include "Logger.h"
 #include "MemoryUtils.h"
 
+#include <mfreadwrite.h>
+#include <sstream>
+#include <iomanip>
+
+static std::string GetHresultMessage(HRESULT hr);
+
 // -- MikanUsbVideoDevice -----
 MikanWMFVideoDevice::MikanWMFVideoDevice(
 	MikanWMFVideoDeviceManager* ownerDeviceManager,
@@ -50,7 +56,7 @@ bool MikanWMFVideoDevice::open()
 {
 	HRESULT hr;
 
-	// Early ourt if already open
+	// Early out if already open
 	if (getIsOpen())
 	{
 		return true;
@@ -195,7 +201,6 @@ bool MikanWMFVideoDevice::getVideoModeProperties(size_t index, UsbVideoModePrope
 		outProperties.name = formatInfo.format_friendly_name.c_str();
 		outProperties.width = formatInfo.width;
 		outProperties.height = formatInfo.height;
-		outProperties.stride = abs(formatInfo.default_stride);
 		outProperties.frame_rate_numerator = formatInfo.frame_rate_numerator;
 		outProperties.frame_rate_demonenator = formatInfo.frame_rate_denominator;
 
@@ -239,33 +244,10 @@ bool MikanWMFVideoDevice::setVideoModeByIndex(size_t desiredFormatIndex)
 		desiredFormatIndex >= 0 &&
 		desiredFormatIndex < (int)m_deviceInfo.deviceAvailableFormats.size())
 	{
+		// Stop streaming and close device
+		close();
+
 		m_currentVideoModeIndex = (int)desiredFormatIndex;
-
-		// Close the device if open
-		if (getIsOpen())
-		{
-			// Remember what the streaming status was before closing
-			eVideoStreamingStatus prevStreamingStatus= getVideoStreamingStatus();
-
-			// Stop streaming and close device
-			close();
-
-			// Re-open with the new format
-			if (open())
-			{
-				// Start streaming again
-				if (prevStreamingStatus == eVideoStreamingStatus::pendingStart ||
-					prevStreamingStatus == eVideoStreamingStatus::started)
-				{
-					startVideoStream();
-				}
-			}
-			else
-			{
-				// Failed to open with the new format, reset to invalid
-				m_currentVideoModeIndex = -1;
-			}
-		}
 
 		notifyVideoModePropertiesChanged();
 		return true;
@@ -494,18 +476,9 @@ eVideoStreamingStatus MikanWMFVideoDevice::startVideoStream()
 {
 	if (getIsOpen())
 	{
-		eVideoStreamingStatus status= getVideoStreamingStatus();
+		m_videoFrameProcessor->startVideoFrameStream();
 
-		if (status == eVideoStreamingStatus::stopped ||
-			status == eVideoStreamingStatus::failed)
-		{
-			status= 
-				SUCCEEDED(m_videoFrameProcessor->startVideoFrameThread())
-				? eVideoStreamingStatus::started
-				: eVideoStreamingStatus::failed;
-		}
-
-		return status;
+		return getVideoStreamingStatus();
 	}
 
 	return eVideoStreamingStatus::failed;
@@ -515,9 +488,19 @@ eVideoStreamingStatus MikanWMFVideoDevice::getVideoStreamingStatus() const
 {
 	if (getIsOpen())
 	{
-		return m_videoFrameProcessor->getIsRunning() 
-			? eVideoStreamingStatus::started
-			: eVideoStreamingStatus::stopped;
+		switch (m_videoFrameProcessor->getState())
+		{
+		case WMFVideoFrameProcessor::State::Stopped:
+			return eVideoStreamingStatus::stopped;
+		case WMFVideoFrameProcessor::State::Starting:
+			return eVideoStreamingStatus::pendingStart;
+		case WMFVideoFrameProcessor::State::Running:
+			return eVideoStreamingStatus::started;
+		case WMFVideoFrameProcessor::State::Stopping:
+			return eVideoStreamingStatus::stopped;
+		case WMFVideoFrameProcessor::State::Failed:
+			return eVideoStreamingStatus::failed;
+		}
 	}
 
 	return eVideoStreamingStatus::failed;
@@ -527,7 +510,7 @@ void MikanWMFVideoDevice::stopVideoStream()
 {
 	if (getIsOpen())
 	{
-		m_videoFrameProcessor->stopVideoFrameThread();
+		m_videoFrameProcessor->stopVideoFrameStream();
 	}
 }
 
@@ -709,15 +692,19 @@ WMFVideoFrameProcessor::WMFVideoFrameProcessor(
 	int deviceIndex,
 	const WMFDeviceFormatInfo& deviceFormat,
 	MikanWMFVideoDevice* listener)
-	: WorkerThread("WMFVideoFrameProcessor")
-	, m_deviceIndex(deviceIndex)
+	: m_deviceIndex(deviceIndex)
 	, m_deviceFormat(deviceFormat)
 	, m_videoSourceListener(listener)
 	, m_referenceCount(1)
-	, m_pSession(nullptr)
-	, m_pTopology(nullptr)
-	, m_bIsRunning(false)
+	, m_pSourceReader(nullptr)
+	, m_pDecoderTransform(nullptr)
+	, m_pNativeInputType(nullptr)
+	, m_bNeedsDecoder(false)
+	, m_decoderOutputInfo({})
+	, m_state(State::Stopped)
 	, m_sampleIndex(0)
+	, m_outputFormat(eUSBVideoFrameBufferFormat::USBVideo_UNKNOWN)
+	, m_wmfOutputFormat(GUID_NULL)
 {
 }
 
@@ -728,332 +715,757 @@ WMFVideoFrameProcessor::~WMFVideoFrameProcessor(void)
 
 HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 {
-	// Clean up previous session, if any.
-	if (m_pSession)
+	// Clean up previous source reader, if any
+	// This is critical when changing video modes to avoid stuck transforms
+	if (m_pSourceReader)
 	{
-		m_pSession->Shutdown();
-	}
-	MemoryUtils::safeReleaseAllCount(&m_pSession);
-	MemoryUtils::safeReleaseAllCount(&m_pTopology);
-
-	// Configure the media type that the video frame processor will receive.
-	// Setting the major and subtype is usually enough for the topology loader
-	// to resolve the topology.
-	IMFMediaType* pType = nullptr;
-	HRESULT hr = MFCreateMediaType(&pType);
-
-	if (SUCCEEDED(hr))
-		hr = pType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
-
-	if (SUCCEEDED(hr))
-		hr = pType->SetGUID(MF_MT_SUBTYPE, MFVideoFormat_RGB24);
-
-	// Create the sample grabber sink.
-	IMFActivate* pSinkActivate = nullptr;
-	if (SUCCEEDED(hr))
-		hr = MFCreateSampleGrabberSinkActivate(pType, this, &pSinkActivate);
-
-	// To run as fast as possible, set this attribute (requires Windows 7):
-	if (SUCCEEDED(hr))
-		hr = pSinkActivate->SetUINT32(MF_SAMPLEGRABBERSINK_IGNORE_CLOCK, TRUE);
-
-	// Create the Media Session.
-	if (SUCCEEDED(hr))
-		hr = MFCreateMediaSession(NULL, &m_pSession);
-
-	// Create the topology.
-	if (SUCCEEDED(hr))
-		hr = CreateTopology(pSource, pSinkActivate, &m_pTopology);
-
-
-	// Clean up.
-	if (FAILED(hr))
-	{
-		if (m_pSession)
+		// Stop any ongoing streaming first
+		if (m_state == State::Running)
 		{
-			m_pSession->Shutdown();
+			stopVideoFrameStream();
 		}
 
-		MemoryUtils::safeRelease(&m_pSession);
-		MemoryUtils::safeRelease(&m_pTopology);
+		// Flush the source reader to clear any pending samples and reset transforms
+		m_pSourceReader->Flush((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM);
+
+		// Release the source reader completely
+		MemoryUtils::safeReleaseAllCount(&m_pSourceReader);
+
+		// Give MFTs time to clean up (workaround for AMD/NVIDIA MFT cleanup issues)
+		Sleep(100);
 	}
 
-	MemoryUtils::safeRelease(&pSinkActivate);
+	// Create attributes for the source reader
+	IMFAttributes* pAttributes = nullptr;
+	HRESULT hr = MFCreateAttributes(&pAttributes, 8);
+
+	// Enable async callbacks
+	if (SUCCEEDED(hr))
+		hr = pAttributes->SetUnknown(MF_SOURCE_READER_ASYNC_CALLBACK, this);
+
+	// Check for H.264 decoders (we'll decide whether to enable hardware later)
+	CLSID selectedDecoderCLSID = GUID_NULL;
+	bool microsoftDecoderAvailable = false;
+
+	HRESULT hrDecoder = findBestH264Decoder(&selectedDecoderCLSID);
+	if (SUCCEEDED(hrDecoder) && selectedDecoderCLSID != GUID_NULL)
+	{
+		microsoftDecoderAvailable = true;
+		MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
+			<< "Microsoft H.264 decoder available for compressed formats";
+	}
+
+	// Always enable converters (we may need format conversion)
+	if (SUCCEEDED(hr))
+		hr = pAttributes->SetUINT32(MF_READWRITE_DISABLE_CONVERTERS, FALSE);
+
+	// Defer hardware transforms decision until we know if format is compressed
+	// (Will be set after we detect the native format)
+
+	// Make D3D support optional - allows software fallback if hardware fails
+	if (SUCCEEDED(hr))
+		hr = pAttributes->SetUINT32(MF_READWRITE_D3D_OPTIONAL, TRUE);
+
+	// Enable low latency mode to reduce buffering
+	if (SUCCEEDED(hr))
+		hr = pAttributes->SetUINT32(MF_LOW_LATENCY, TRUE);
+
+	// NOTE: We intentionally do NOT set MF_SOURCE_READER_ENABLE_ADVANCED_VIDEO_PROCESSING
+	// That flag loads vendor-specific video processors which can hang when reconfiguring.
+
+	// Create the source reader
+	// If hardware decoding is safe, the source reader will automatically select Microsoft's decoder
+	if (SUCCEEDED(hr))
+		hr = MFCreateSourceReaderFromMediaSource(pSource, pAttributes, &m_pSourceReader);
+
+	// Log what native format the source reader detected
+	if (SUCCEEDED(hr))
+	{
+		IMFMediaType* pDetectedNativeType = nullptr;
+		HRESULT hrNative = m_pSourceReader->GetNativeMediaType(
+			(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+			MF_SOURCE_READER_CURRENT_TYPE_INDEX,
+			&pDetectedNativeType);
+
+		if (SUCCEEDED(hrNative) && pDetectedNativeType)
+		{
+			GUID detectedSubtype;
+			UINT32 detectedWidth = 0, detectedHeight = 0;
+			pDetectedNativeType->GetGUID(MF_MT_SUBTYPE, &detectedSubtype);
+			MFGetAttributeSize(pDetectedNativeType, MF_MT_FRAME_SIZE, &detectedWidth, &detectedHeight);
+
+			const char* formatName = "Unknown";
+			if (detectedSubtype == MFVideoFormat_H264) formatName = "H264";
+			else if (detectedSubtype == MFVideoFormat_YUY2) formatName = "YUY2";
+			else if (detectedSubtype == MFVideoFormat_NV12) formatName = "NV12";
+			else if (detectedSubtype == MFVideoFormat_MJPG) formatName = "MJPG";
+
+			MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
+				<< "Source reader detected native format: " << formatName
+				<< " " << detectedWidth << "x" << detectedHeight;
+
+			MemoryUtils::safeRelease(&pDetectedNativeType);
+		}
+	}
+
+	// Determine output format based on whether source is compressed
+	bool isCompressedFormat =
+		(m_deviceFormat.sub_type_name == "H264" ||
+		 m_deviceFormat.sub_type_name == "MJPG" ||
+		 m_deviceFormat.sub_type_name == "H265" ||
+		 m_deviceFormat.sub_type_name == "VP80" ||
+		 m_deviceFormat.sub_type_name == "VP90");
+
+	// Save the native input type BEFORE setting output format
+	// This preserves the H.264 media type with codec private data for our manual decoder
+	if (SUCCEEDED(hr) && isCompressedFormat)
+	{
+		// Use the selected format index, not 0!
+		int formatIndex = (m_deviceFormat.device_format_index >= 0) ? m_deviceFormat.device_format_index : 0;
+		HRESULT hrNative = m_pSourceReader->GetNativeMediaType(
+			(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+			formatIndex,
+			&m_pNativeInputType);
+
+		if (SUCCEEDED(hrNative) && m_pNativeInputType)
+		{
+			GUID nativeSubtype;
+			m_pNativeInputType->GetGUID(MF_MT_SUBTYPE, &nativeSubtype);
+
+			UINT32 nativeWidth = 0, nativeHeight = 0;
+			MFGetAttributeSize(m_pNativeInputType, MF_MT_FRAME_SIZE, &nativeWidth, &nativeHeight);
+
+			UINT32 codecDataSize = 0;
+			m_pNativeInputType->GetBlobSize(MF_MT_USER_DATA, &codecDataSize);
+
+			// Log the actual GUID to debug
+			std::stringstream guidStr;
+			guidStr << std::hex << std::uppercase
+				<< std::setfill('0') << std::setw(8) << nativeSubtype.Data1 << "-"
+				<< std::setw(4) << nativeSubtype.Data2 << "-"
+				<< std::setw(4) << nativeSubtype.Data3 << "-"
+				<< std::setw(2) << (int)nativeSubtype.Data4[0]
+				<< std::setw(2) << (int)nativeSubtype.Data4[1] << "-"
+				<< std::setw(2) << (int)nativeSubtype.Data4[2]
+				<< std::setw(2) << (int)nativeSubtype.Data4[3]
+				<< std::setw(2) << (int)nativeSubtype.Data4[4]
+				<< std::setw(2) << (int)nativeSubtype.Data4[5]
+				<< std::setw(2) << (int)nativeSubtype.Data4[6]
+				<< std::setw(2) << (int)nativeSubtype.Data4[7];
+
+			const char* formatName = "Unknown";
+			if (nativeSubtype == MFVideoFormat_H264) formatName = "H264";
+			else if (nativeSubtype == MFVideoFormat_YUY2) formatName = "YUY2";
+			else if (nativeSubtype == MFVideoFormat_NV12) formatName = "NV12";
+			else if (nativeSubtype == MFVideoFormat_MJPG) formatName = "MJPG";
+
+			MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
+				<< "Saved native input type - Subtype GUID: " << guidStr.str()
+				<< " (" << formatName << ")"
+				<< ", Resolution: " << nativeWidth << "x" << nativeHeight
+				<< ", Codec data size: " << codecDataSize << " bytes";
+
+			// If the native format is NOT actually compressed, disable manual decoder
+			if (nativeSubtype != MFVideoFormat_H264 &&
+				nativeSubtype != MFVideoFormat_H265 &&
+				nativeSubtype != MFVideoFormat_MJPG)
+			{
+				MIKAN_LOG_WARNING("WMFVideoFrameProcessor::init")
+					<< "Expected compressed format (" << m_deviceFormat.sub_type_name
+					<< ") but camera native format is uncompressed (" << formatName
+					<< "). Disabling manual decoder - will use source reader output directly.";
+				isCompressedFormat = false;
+			}
+		}
+	}
+
+	// Determine preferred output format
+	GUID preferredFormat = GUID_NULL;
+	GUID fallbackFormat = GUID_NULL;
+	eUSBVideoFrameBufferFormat preferredFrameBufferFormat;
+	eUSBVideoFrameBufferFormat fallbackFrameBufferFormat;
+
+	if (isCompressedFormat)
+	{
+		// For compressed formats, prefer NV12 (native decoder output, better performance)
+		// with YUY2 as fallback (universally supported but slower due to conversion)
+		preferredFormat = MFVideoFormat_YUY2;
+		preferredFrameBufferFormat = eUSBVideoFrameBufferFormat::USBVideo_YUY2;
+		fallbackFormat = MFVideoFormat_YUY2;
+		fallbackFrameBufferFormat = eUSBVideoFrameBufferFormat::USBVideo_YUY2;
+
+		MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
+			<< "Compressed format detected (" << m_deviceFormat.sub_type_name
+			<< "), will try NV12 output (fallback: YUY2)";
+	}
+	else
+	{
+		// For uncompressed formats, pass through the native format without conversion
+		// Color conversion (YUY2→RGB24) can load AMD video processors which cause hangs
+		preferredFormat = GUID_NULL; // Will use native format
+		preferredFrameBufferFormat = eUSBVideoFrameBufferFormat::USBVideo_UNKNOWN;
+		fallbackFormat = GUID_NULL;
+		fallbackFrameBufferFormat = eUSBVideoFrameBufferFormat::USBVideo_UNKNOWN;
+
+		MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
+			<< "Uncompressed format - will use native format without conversion";
+	}
+
+	// Now configure hardware transforms based on whether format is compressed
+	if (isCompressedFormat && microsoftDecoderAvailable)
+	{
+		// Safe to use hardware decoding for compressed formats
+		if (SUCCEEDED(hr))
+			hr = pAttributes->SetUINT32(MF_READWRITE_ENABLE_HARDWARE_TRANSFORMS, TRUE);
+
+		MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
+			<< "Enabling hardware transforms for H.264 decoding";
+	}
+	else
+	{
+		// Disable hardware transforms for uncompressed formats or if no safe decoder
+		// This prevents AMD/NVIDIA video processors from being loaded
+		if (SUCCEEDED(hr))
+			hr = pAttributes->SetUINT32(MF_READWRITE_ENABLE_HARDWARE_TRANSFORMS, FALSE);
+
+		if (!isCompressedFormat)
+		{
+			MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
+				<< "Disabling hardware transforms for uncompressed format (avoids vendor video processors)";
+		}
+	}
+
+	m_wmfOutputFormat = preferredFormat;
+	m_outputFormat = preferredFrameBufferFormat;
+
+	// Configure the output media type by cloning the native type and changing only the subtype
+	// This preserves all attributes (frame rate, interlace mode, color space, etc.)
+	// Try preferred format first, fallback to alternative if not supported
+	// SKIP if m_wmfOutputFormat is GUID_NULL (passthrough mode for uncompressed)
+	IMFMediaType* pType = nullptr;
+	bool tryFallback = false;
+	bool useNativePassthrough = (m_wmfOutputFormat == GUID_NULL);
+
+	if (SUCCEEDED(hr) && !useNativePassthrough && m_deviceFormat.device_format_index >= 0)
+	{
+		// Get the complete native media type by index
+		IMFMediaType* pNativeType = nullptr;
+		hr = m_pSourceReader->GetNativeMediaType(
+			(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+			m_deviceFormat.device_format_index,
+			&pNativeType);
+
+		if (SUCCEEDED(hr))
+		{
+			// Clone the native type to preserve all attributes
+			hr = MFCreateMediaType(&pType);
+			if (SUCCEEDED(hr))
+			{
+				hr = pNativeType->CopyAllItems(pType);
+			}
+
+			// Change only the subtype to trigger decoding (e.g., H264 -> YUY2)
+			if (SUCCEEDED(hr))
+			{
+				hr = pType->SetGUID(MF_MT_SUBTYPE, m_wmfOutputFormat);
+			}
+
+			MemoryUtils::safeRelease(&pNativeType);
+		}
+	}
+	else if (useNativePassthrough)
+	{
+		MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
+			<< "Using native passthrough - no output format conversion";
+	}
+
+	// Fallback: create minimal media type if we couldn't get native type by index
+	if (!pType && SUCCEEDED(hr))
+	{
+		MIKAN_LOG_WARNING("WMFVideoFrameProcessor::init")
+			<< "Could not get native type by index, creating minimal output type";
+
+		hr = MFCreateMediaType(&pType);
+		if (SUCCEEDED(hr))
+			hr = pType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
+		if (SUCCEEDED(hr))
+			hr = pType->SetGUID(MF_MT_SUBTYPE, m_wmfOutputFormat);
+		if (SUCCEEDED(hr))
+		{
+			hr = MFSetAttributeSize(pType, MF_MT_FRAME_SIZE,
+				m_deviceFormat.width, m_deviceFormat.height);
+		}
+		if (SUCCEEDED(hr) && m_deviceFormat.frame_rate_numerator > 0 && m_deviceFormat.frame_rate_denominator > 0)
+		{
+			hr = MFSetAttributeRatio(pType, MF_MT_FRAME_RATE,
+				m_deviceFormat.frame_rate_numerator,
+				m_deviceFormat.frame_rate_denominator);
+		}
+	}
+
+	// Try to set the output type on the first video stream (skip if passthrough)
+	if (SUCCEEDED(hr) && pType && !useNativePassthrough)
+	{
+		const char* formatName =
+			(m_wmfOutputFormat == MFVideoFormat_NV12) ? "NV12" :
+			(m_wmfOutputFormat == MFVideoFormat_YUY2) ? "YUY2" : "RGB24";
+
+		MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
+			<< "Attempting to set output format to " << formatName << "...";
+
+		hr = m_pSourceReader->SetCurrentMediaType(
+			(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+			nullptr,
+			pType);
+
+		if (SUCCEEDED(hr))
+		{
+			MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
+				<< "Successfully set output format to " << formatName;
+		}
+		else if (fallbackFormat != GUID_NULL)
+		{
+			// Preferred format failed, try fallback
+			MIKAN_LOG_WARNING("WMFVideoFrameProcessor::init")
+				<< "Failed to set preferred output format: " << GetHresultMessage(hr)
+				<< ", trying fallback format";
+
+			tryFallback = true;
+		}
+	}
+	else if (useNativePassthrough)
+	{
+		// For passthrough, detect the native format and use it
+		IMFMediaType* pNativeType = nullptr;
+		HRESULT hrNative = m_pSourceReader->GetNativeMediaType(
+			(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+			MF_SOURCE_READER_CURRENT_TYPE_INDEX,
+			&pNativeType);
+
+		if (SUCCEEDED(hrNative))
+		{
+			GUID nativeSubtype;
+			pNativeType->GetGUID(MF_MT_SUBTYPE, &nativeSubtype);
+
+			// Update our tracked format to match native
+			m_wmfOutputFormat = nativeSubtype;
+
+			if (nativeSubtype == MFVideoFormat_YUY2)
+			{
+				m_outputFormat = eUSBVideoFrameBufferFormat::USBVideo_YUY2;
+				MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
+					<< "Using native YUY2 format (passthrough)";
+			}
+			else if (nativeSubtype == MFVideoFormat_NV12)
+			{
+				m_outputFormat = eUSBVideoFrameBufferFormat::USBVideo_NV12;
+				MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
+					<< "Using native NV12 format (passthrough)";
+			}
+			else
+			{
+				MIKAN_LOG_WARNING("WMFVideoFrameProcessor::init")
+					<< "Unknown native format for passthrough";
+			}
+
+			MemoryUtils::safeRelease(&pNativeType);
+		}
+	}
+
+	// Try fallback format if preferred failed (skip if passthrough)
+	if (tryFallback && !useNativePassthrough)
+	{
+		MemoryUtils::safeRelease(&pType);
+
+		// Recreate media type with fallback format
+		if (m_deviceFormat.device_format_index >= 0)
+		{
+			IMFMediaType* pNativeType = nullptr;
+			hr = m_pSourceReader->GetNativeMediaType(
+				(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+				m_deviceFormat.device_format_index,
+				&pNativeType);
+
+			if (SUCCEEDED(hr))
+			{
+				hr = MFCreateMediaType(&pType);
+				if (SUCCEEDED(hr))
+				{
+					hr = pNativeType->CopyAllItems(pType);
+				}
+				if (SUCCEEDED(hr))
+				{
+					hr = pType->SetGUID(MF_MT_SUBTYPE, fallbackFormat);
+				}
+				MemoryUtils::safeRelease(&pNativeType);
+			}
+		}
+
+		if (SUCCEEDED(hr) && pType)
+		{
+			const char* fallbackFormatName =
+				(fallbackFormat == MFVideoFormat_NV12) ? "NV12" :
+				(fallbackFormat == MFVideoFormat_YUY2) ? "YUY2" : "RGB24";
+
+			MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
+				<< "Attempting to set fallback format to " << fallbackFormatName << "...";
+
+			hr = m_pSourceReader->SetCurrentMediaType(
+				(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+				nullptr,
+				pType);
+
+			if (SUCCEEDED(hr))
+			{
+				// Update our tracked format to the fallback
+				m_wmfOutputFormat = fallbackFormat;
+				m_outputFormat = fallbackFrameBufferFormat;
+
+				MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
+					<< "Fallback successful - using " << fallbackFormatName << " output format";
+			}
+			else
+			{
+				MIKAN_LOG_ERROR("WMFVideoFrameProcessor::init")
+					<< "Fallback format also failed: " << GetHresultMessage(hr);
+			}
+		}
+	}
+
+	// Verify we actually got the format we requested
+	IMFMediaType* pActualType = nullptr;
+	if (SUCCEEDED(hr))
+	{
+		hr = m_pSourceReader->GetCurrentMediaType(
+			(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+			&pActualType);
+
+		if (SUCCEEDED(hr))
+		{
+			GUID actualSubtype;
+			hr = pActualType->GetGUID(MF_MT_SUBTYPE, &actualSubtype);
+
+			if (SUCCEEDED(hr))
+			{
+				// Get the native media type to see what the camera actually provides
+				IMFMediaType* pNativeType = nullptr;
+				HRESULT hrNative = m_pSourceReader->GetNativeMediaType(
+					(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+					0,
+					&pNativeType);
+
+				if (SUCCEEDED(hrNative))
+				{
+					GUID nativeSubtype;
+					pNativeType->GetGUID(MF_MT_SUBTYPE, &nativeSubtype);
+
+					const char* requestedFormatName =
+						(m_wmfOutputFormat == MFVideoFormat_NV12) ? "NV12" :
+						(m_wmfOutputFormat == MFVideoFormat_YUY2) ? "YUY2" : "RGB24";
+
+					MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
+						<< "Native camera format: " << (nativeSubtype == MFVideoFormat_H264 ? "H264" : "Other")
+						<< ", Requested output: " << requestedFormatName
+						<< ", Actual output: " << (actualSubtype == m_wmfOutputFormat ? "MATCH" : "MISMATCH");
+
+					MemoryUtils::safeRelease(&pNativeType);
+				}
+
+				const char* requestedFormatName2 =
+					(m_wmfOutputFormat == MFVideoFormat_NV12) ? "NV12" :
+					(m_wmfOutputFormat == MFVideoFormat_YUY2) ? "YUY2" : "RGB24";
+
+				if (actualSubtype != m_wmfOutputFormat)
+				{
+					MIKAN_LOG_ERROR("WMFVideoFrameProcessor::init")
+						<< "Failed to set desired output format. Requested: "
+						<< requestedFormatName2
+						<< ", but got a different format (possibly still compressed)";
+					hr = E_FAIL;
+				}
+				else
+				{
+					MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
+						<< "Successfully configured output format: "
+						<< requestedFormatName2;
+				}
+			}
+		}
+	}
+
+	// We're using explicit decoder in the pipeline (no manual decoder object needed)
+	m_bNeedsDecoder = false;
+
+	// Clean up
+	if (FAILED(hr))
+	{
+		MemoryUtils::safeRelease(&m_pSourceReader);
+	}
+
+	MemoryUtils::safeRelease(&pActualType);
 	MemoryUtils::safeRelease(&pType);
+	MemoryUtils::safeRelease(&pAttributes);
 
 	return hr;
 }
 
 void WMFVideoFrameProcessor::dispose()
 {
-	stopVideoFrameThread();
+	stopVideoFrameStream();
 
-	if (m_pSession)
-	{
-		m_pSession->Shutdown();
-	}
+	MemoryUtils::safeReleaseAllCount(&m_pNativeInputType);
+	MemoryUtils::safeReleaseAllCount(&m_pDecoderTransform);
+	MemoryUtils::safeReleaseAllCount(&m_pSourceReader);
 
-	MemoryUtils::safeReleaseAllCount(&m_pSession);
-	MemoryUtils::safeReleaseAllCount(&m_pTopology);
-
-	MIKAN_LOG_INFO("WMFVideoFrameProcessor::dispose") << "Disposing video frame grabber for device: " << m_deviceIndex;
+	MIKAN_LOG_INFO("WMFVideoFrameProcessor::dispose")
+		<< "Disposing video frame reader for device: " << m_deviceIndex;
 }
 
-HRESULT WMFVideoFrameProcessor::startVideoFrameThread(void)
+void WMFVideoFrameProcessor::startVideoFrameStream()
 {
-	HRESULT hr = m_pSession->SetTopology(0, m_pTopology);
-
-	m_sampleIndex = 0;
-
-	if (SUCCEEDED(hr))
+	if (m_state == State::Stopped || m_state == State::Failed)
 	{
-		PROPVARIANT var;
-		PropVariantInit(&var);
+		m_sampleIndex = 0;
+		m_state = State::Starting;
 
-		hr = m_pSession->Start(&GUID_NULL, &var);
-	}
-
-	if (SUCCEEDED(hr))
-	{
-		m_bIsRunning = true;
-		WorkerThread::startThread();
-	}
-
-	return SUCCEEDED(hr);
-}
-
-bool WMFVideoFrameProcessor::doWork()
-{
-	bool bKeepRunning = true;
-
-	IMFMediaEvent* pEvent = nullptr;
-	HRESULT hr = m_pSession->GetEvent(0, &pEvent);
-
-	if (SUCCEEDED(hr))
-	{
-		HRESULT hrStatus;
-		hr = pEvent->GetStatus(&hrStatus);
-
-		if (!SUCCEEDED(hr) || !SUCCEEDED(hrStatus))
-		{
-			bKeepRunning = false;
-			hr = E_FAIL;
-		}
-
-		MediaEventType met = MEUnknown;
-		if (SUCCEEDED(hr))
-		{
-			hr = pEvent->GetType(&met);
-		}
+		// Request the first sample - this starts the async callback loop
+		HRESULT hr = m_pSourceReader->ReadSample(
+			(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+			0,  // No flags
+			nullptr,  // Don't need actual stream index back
+			nullptr,  // Don't need flags back
+			nullptr,  // Don't need timestamp back
+			nullptr); // Sample will be delivered to OnReadSample()
 
 		if (SUCCEEDED(hr))
 		{
-			switch (met)
-			{
-			case MESessionEnded:
-			{
-				MIKAN_MT_LOG_INFO("WMFVideoFrameProcessor::doWork") << "MESessionEnded: " << m_deviceIndex;
-				bKeepRunning = false;
-			} break;
-
-			case MESessionStopped:
-			{
-				MIKAN_MT_LOG_INFO("WMFVideoFrameProcessor::doWork") << "MESessionStopped: " << m_deviceIndex;
-				bKeepRunning = false;
-			} break;
-
-			case MEVideoCaptureDeviceRemoved:
-			{
-				MIKAN_MT_LOG_INFO("WMFVideoFrameProcessor::doWork") << "MEVideoCaptureDeviceRemoved: " << m_deviceIndex;
-				bKeepRunning = false;
-			} break;
-			}
+			m_state = State::Running;
+			MIKAN_LOG_INFO("WMFVideoFrameProcessor::startVideoFrameStream")
+				<< "Started video stream for device: " << m_deviceIndex;
 		}
 		else
 		{
-			bKeepRunning = false;
+			MIKAN_LOG_ERROR("WMFVideoFrameProcessor::startVideoFrameStream")
+				<< "Failed to start video stream: " << GetHresultMessage(hr);
+			m_state = State::Failed;
 		}
 	}
 	else
 	{
-		bKeepRunning = false;
+		MIKAN_LOG_WARNING("WMFVideoFrameProcessor::startVideoFrameStream")
+			<< "Cannot start stream due to pending stream operation";
 	}
-
-	MemoryUtils::safeRelease(&pEvent);
-
-	return bKeepRunning;
 }
 
-void WMFVideoFrameProcessor::stopVideoFrameThread()
+void WMFVideoFrameProcessor::stopVideoFrameStream()
 {
-	MIKAN_LOG_INFO("WMFVideoFrameProcessor::stop") << "Stopping video frame grabbing on device: " << m_deviceIndex;
-
-	if (m_bIsRunning)
+	if (m_state != State::Stopped)
 	{
-		if (m_pSession != nullptr)
+		MIKAN_LOG_INFO("WMFVideoFrameProcessor::stopVideoFrameStream")
+			<< "Stopping video frame reading on device: " << m_deviceIndex;
+
+		m_state = State::Stopped;
+
+		// Flush the source reader to stop receiving samples
+		if (m_pSourceReader != nullptr)
 		{
-			// This will send a MESessionStopped event to the worker thread
-			m_pSession->Stop();
+			m_pSourceReader->Flush((DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM);
 		}
-
-		WorkerThread::stopThread();
-
-		m_bIsRunning = false;
 	}
 }
 
-HRESULT WMFVideoFrameProcessor::CreateTopology(
-	IMFMediaSource* pSource, IMFActivate* pSinkActivate, IMFTopology** ppTopo)
+STDMETHODIMP WMFVideoFrameProcessor::OnReadSample(
+	HRESULT hrStatus,
+	DWORD dwStreamIndex,
+	DWORD dwStreamFlags,
+	LONGLONG llTimestamp,
+	IMFSample* pSample)
 {
-	IMFTopology* pTopology = nullptr;
-	HRESULT hr = MFCreateTopology(&pTopology);
-
-	IMFPresentationDescriptor* pPD = nullptr;
-	if (SUCCEEDED(hr))
-		hr = pSource->CreatePresentationDescriptor(&pPD);
-
-	DWORD cStreams = 0;
-	if (SUCCEEDED(hr))
-		hr = pPD->GetStreamDescriptorCount(&cStreams);
-
-	if (SUCCEEDED(hr))
+	// Check if we're still running
+	if (m_state != State::Running)
 	{
-		for (DWORD i = 0; i < cStreams; i++)
+		if (m_sampleIndex >= 9 && m_sampleIndex <= 11)
 		{
-			// Look for video streams and connect them to the sink
-			BOOL fSelected = FALSE;
-			GUID majorType;
+			MIKAN_LOG_WARNING("WMFVideoFrameProcessor::OnReadSample")
+				<< "Frame " << m_sampleIndex << ": State is not Running (state=" << (int)m_state << ")";
+		}
+		return S_OK;
+	}
 
-			IMFStreamDescriptor* pSD = nullptr;
-			hr = pPD->GetStreamDescriptorByIndex(i, &fSelected, &pSD);
+	// Handle errors
+	if (FAILED(hrStatus))
+	{
+		MIKAN_LOG_ERROR("WMFVideoFrameProcessor::OnReadSample")
+			<< "Read sample failed: " << GetHresultMessage(hrStatus);
+		m_state = State::Failed;
+		return hrStatus;
+	}
 
-			IMFMediaTypeHandler* pHandler = nullptr;
-			if (SUCCEEDED(hr))
-				hr = pSD->GetMediaTypeHandler(&pHandler);
+	// Check for end of stream
+	if (dwStreamFlags & MF_SOURCE_READERF_ENDOFSTREAM)
+	{
+		MIKAN_LOG_INFO("WMFVideoFrameProcessor::OnReadSample")
+			<< "End of stream";
+		return S_OK;
+	}
 
-			if (SUCCEEDED(hr))
-				hr = pHandler->GetMajorType(&majorType);
+	// Process the sample if we have one
+	if (pSample && m_videoSourceListener)
+	{
+		const size_t width = m_deviceFormat.width;
+		const size_t height = m_deviceFormat.height;
 
-			if (SUCCEEDED(hr))
+		// If we have a manual decoder and this is a compressed sample, decode it first
+		IMFSample* pProcessedSample = pSample;
+		IMFSample* pDecodedSample = nullptr;
+		if (m_bNeedsDecoder && m_pDecoderTransform)
+		{
+			HRESULT hrDecode = processCompressedSample(pSample, &pDecodedSample);
+			if (hrDecode == S_OK && pDecodedSample)
 			{
-				if (majorType == MFMediaType_Video && fSelected)
+				pProcessedSample = pDecodedSample;
+			}
+			else if (hrDecode == S_FALSE)
+			{
+				// Decoder needs more input - skip this frame and continue
+				m_sampleIndex++;
+				if (m_state == State::Running)
 				{
-					IMFTopologyNode* pNode1 = nullptr;
-					IMFTopologyNode* pNode2 = nullptr;
-
-					hr = AddSourceNode(pTopology, pSource, pPD, pSD, &pNode1);
-
-					if (SUCCEEDED(hr))
-						hr = AddOutputNode(pTopology, pSinkActivate, 0, &pNode2);
-
-					if (SUCCEEDED(hr))
-						hr = pNode1->ConnectOutput(0, pNode2, 0);
-
-					MemoryUtils::safeRelease(&pNode1);
-					MemoryUtils::safeRelease(&pNode2);
-					break;
+					m_pSourceReader->ReadSample(
+						(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+						0, nullptr, nullptr, nullptr, nullptr);
 				}
 				else
 				{
-					hr = pPD->DeselectStream(i);
+					MIKAN_LOG_WARNING("WMFVideoFrameProcessor::OnReadSample")
+						<< "State is no longer Running after decode S_FALSE, stopping stream";
 				}
+				return S_OK;
+			}
+			else
+			{
+				MIKAN_LOG_ERROR("WMFVideoFrameProcessor::OnReadSample")
+					<< "Manual decoder failed: " << GetHresultMessage(hrDecode);
+				// Skip this frame and continue
+				m_sampleIndex++;
+				if (m_state == State::Running)
+				{
+					m_pSourceReader->ReadSample(
+						(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+						0, nullptr, nullptr, nullptr, nullptr);
+				}
+				return S_OK;
+			}
+		}
+
+		// Convert to contiguous buffer - this removes all padding!
+		IMFMediaBuffer* pBuffer = nullptr;
+		HRESULT hr = pProcessedSample->ConvertToContiguousBuffer(&pBuffer);
+
+		if (SUCCEEDED(hr))
+		{
+			BYTE* pData = nullptr;
+			DWORD dwBufferLength = 0;
+
+			hr = pBuffer->Lock(&pData, nullptr, &dwBufferLength);
+
+			if (SUCCEEDED(hr))
+			{
+				// Create frame buffer info
+				UsbVideoFrameBuffer frameBuffer;
+				frameBuffer.data = pData;
+				frameBuffer.byte_count = dwBufferLength;
+				frameBuffer.width = (int)width;
+				frameBuffer.height = (int)height;
+				frameBuffer.data_format = m_outputFormat;
+				frameBuffer.stride = (int)width;  // Contiguous buffer = stride equals width!
+
+				// Log first sample
+				if (m_sampleIndex == 0)
+				{
+					const size_t expectedNV12Size = width * (height + height / 2);
+					const size_t expectedRGB24Size = width * height * 3;
+					const size_t expectedYUY2Size = width * height * 2;
+
+					const char* formatName =
+						(m_outputFormat == eUSBVideoFrameBufferFormat::USBVideo_NV12) ? "NV12" :
+						(m_outputFormat == eUSBVideoFrameBufferFormat::USBVideo_YUY2) ? "YUY2" : "RGB24";
+
+					const size_t expectedSize =
+						(m_outputFormat == eUSBVideoFrameBufferFormat::USBVideo_NV12) ? expectedNV12Size :
+						(m_outputFormat == eUSBVideoFrameBufferFormat::USBVideo_YUY2) ? expectedYUY2Size : expectedRGB24Size;
+
+					MIKAN_LOG_INFO("WMFVideoFrameProcessor::OnReadSample")
+						<< "First sample - Format: " << (int)m_outputFormat
+						<< " (" << formatName << ")"
+						<< ", Actual buffer size: " << dwBufferLength << " bytes"
+						<< ", Expected size: " << expectedSize << " bytes"
+						<< ", Width: " << width << ", Height: " << height
+						<< ", Contiguous buffer (no padding)";
+
+					if (dwBufferLength != expectedSize)
+					{
+						if (m_outputFormat == eUSBVideoFrameBufferFormat::USBVideo_NV12 && dwBufferLength > expectedSize)
+						{
+							MIKAN_LOG_WARNING("WMFVideoFrameProcessor::OnReadSample")
+								<< "NV12 buffer has extra padding (inter-plane alignment). "
+								<< "Extra bytes: " << (dwBufferLength - expectedSize)
+								<< ". This may cause visual artifacts. "
+								<< "ConvertToContiguousBuffer doesn't remove inter-plane padding in planar formats. "
+								<< "Consider using YUY2 instead for simpler buffer layout.";
+						}
+						else
+						{
+							MIKAN_LOG_ERROR("WMFVideoFrameProcessor::OnReadSample")
+								<< "CRITICAL: Buffer size mismatch! Receiving compressed H.264 data instead of decoded "
+								<< formatName << " frames. WMF decoder is NOT working!";
+						}
+					}
+					else
+					{
+						MIKAN_LOG_INFO("WMFVideoFrameProcessor::OnReadSample")
+							<< "SUCCESS: Buffer size matches expected " << formatName << " format. Decoder is working!";
+					}
+				}
+
+				// Notify listener
+				m_videoSourceListener->notifyVideoFrameReceived(frameBuffer);
+
+				pBuffer->Unlock();
 			}
 
-			MemoryUtils::safeRelease(&pSD);
-			MemoryUtils::safeRelease(&pHandler);
-
-			if (FAILED(hr))
-				break;
+			MemoryUtils::safeRelease(&pBuffer);
 		}
+
+		// Clean up decoded sample if we created one
+		if (pDecodedSample)
+		{
+			MemoryUtils::safeRelease(&pDecodedSample);
+		}
+
+		m_sampleIndex++;
 	}
 
-	if (SUCCEEDED(hr))
+	// Request next sample to continue the async loop
+	if (m_state == State::Running)
 	{
-		*ppTopo = pTopology;
-		(*ppTopo)->AddRef();
+		m_pSourceReader->ReadSample(
+			(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
+			0,
+			nullptr,
+			nullptr,
+			nullptr,
+			nullptr);
 	}
 
-	MemoryUtils::safeRelease(&pTopology);
-	MemoryUtils::safeRelease(&pPD);
-
-	return hr;
-}
-
-HRESULT WMFVideoFrameProcessor::AddSourceNode(
-	IMFTopology* pTopology,
-	IMFMediaSource* pSource,
-	IMFPresentationDescriptor* pPD,
-	IMFStreamDescriptor* pSD,
-	IMFTopologyNode** ppNode)
-{
-	IMFTopologyNode* pNode = nullptr;
-	HRESULT hr = MFCreateTopologyNode(MF_TOPOLOGY_SOURCESTREAM_NODE, &pNode);
-
-	if (SUCCEEDED(hr))
-		hr = pNode->SetUnknown(MF_TOPONODE_SOURCE, pSource);
-
-	if (SUCCEEDED(hr))
-		hr = pNode->SetUnknown(MF_TOPONODE_PRESENTATION_DESCRIPTOR, pPD);
-
-	if (SUCCEEDED(hr))
-		hr = pNode->SetUnknown(MF_TOPONODE_STREAM_DESCRIPTOR, pSD);
-
-	if (SUCCEEDED(hr))
-		hr = pTopology->AddNode(pNode);
-
-	// Return the pointer to the caller.
-	if (SUCCEEDED(hr))
-	{
-		*ppNode = pNode;
-		(*ppNode)->AddRef();
-	}
-
-	MemoryUtils::safeRelease(&pNode);
-
-	return hr;
-}
-
-HRESULT WMFVideoFrameProcessor::AddOutputNode(
-	IMFTopology* pTopology,
-	IMFActivate* pActivate,
-	DWORD dwId,
-	IMFTopologyNode** ppNode)
-{
-	IMFTopologyNode* pNode = NULL;
-
-	HRESULT hr = MFCreateTopologyNode(MF_TOPOLOGY_OUTPUT_NODE, &pNode);
-
-	if (SUCCEEDED(hr))
-		hr = pNode->SetObject(pActivate);
-
-	if (SUCCEEDED(hr))
-		hr = pNode->SetUINT32(MF_TOPONODE_STREAMID, dwId);
-
-	if (SUCCEEDED(hr))
-		hr = pNode->SetUINT32(MF_TOPONODE_NOSHUTDOWN_ON_REMOVE, FALSE);
-
-	if (SUCCEEDED(hr))
-		hr = pTopology->AddNode(pNode);
-
-	// Return the pointer to the caller.
-	if (SUCCEEDED(hr))
-	{
-		*ppNode = pNode;
-		(*ppNode)->AddRef();
-	}
-
-	MemoryUtils::safeRelease(&pNode);
-
-	return hr;
+	return S_OK;
 }
 
 STDMETHODIMP WMFVideoFrameProcessor::QueryInterface(REFIID riid, void** ppv)
 {
-	// Creation tab of shifting interfaces from start of this class
 	static const QITAB qit[] =
 	{
-		QITABENT(WMFVideoFrameProcessor, IMFSampleGrabberSinkCallback),
-		QITABENT(WMFVideoFrameProcessor, IMFClockStateSink),
+		QITABENT(WMFVideoFrameProcessor, IMFSourceReaderCallback),
 		{ 0 }
 	};
 	return QISearch(this, qit, riid, ppv);
@@ -1074,20 +1486,484 @@ STDMETHODIMP_(ULONG) WMFVideoFrameProcessor::Release()
 	return cRef;
 }
 
-STDMETHODIMP WMFVideoFrameProcessor::OnProcessSample(REFGUID guidMajorMediaType, DWORD dwSampleFlags,
-	LONGLONG llSampleTime, LONGLONG llSampleDuration, const BYTE* pSampleBuffer,
-	DWORD dwSampleSize)
+HRESULT WMFVideoFrameProcessor::findBestH264Decoder(CLSID* pDecoderCLSID)
 {
-	if (m_videoSourceListener)
+	if (!pDecoderCLSID)
 	{
-		UsbVideoFrameBuffer frameBuffer;
-		frameBuffer.data = static_cast<const uint8_t*>(pSampleBuffer);
-		frameBuffer.byte_count = static_cast<size_t>(dwSampleSize);
-
-		m_videoSourceListener->notifyVideoFrameReceived(frameBuffer);
+		return E_POINTER;
 	}
 
-	m_sampleIndex++;
+	// Known problematic vendor MFT CLSIDs to avoid
+	// AMD Advanced Media Framework (AMF) Decoders
+	static const CLSID CLSID_AMD_H264_DECODER =
+		{ 0x82CE8B14, 0xF24E, 0x4F2E, { 0x80, 0x93, 0xDB, 0x8C, 0x63, 0x09, 0x87, 0x72 } };
 
+	// NVIDIA Video Decoder
+	static const CLSID CLSID_NVIDIA_H264_DECODER =
+		{ 0x56AF0A3E, 0x47A9, 0x4F49, { 0x9F, 0x7A, 0x6C, 0x1A, 0x6E, 0x72, 0x0B, 0x5A } };
+
+	// Configure input/output types for MFT enumeration
+	MFT_REGISTER_TYPE_INFO inputType = { MFMediaType_Video, MFVideoFormat_H264 };
+	MFT_REGISTER_TYPE_INFO outputType = { MFMediaType_Video, MFVideoFormat_NV12 };
+
+	UINT32 flags = MFT_ENUM_FLAG_SYNCMFT | MFT_ENUM_FLAG_ASYNCMFT |
+	               MFT_ENUM_FLAG_HARDWARE | MFT_ENUM_FLAG_SORTANDFILTER;
+
+	IMFActivate** ppActivate = nullptr;
+	UINT32 count = 0;
+
+	// Enumerate H.264 decoders
+	HRESULT hr = MFTEnumEx(
+		MFT_CATEGORY_VIDEO_DECODER,
+		flags,
+		&inputType,
+		&outputType,
+		&ppActivate,
+		&count);
+
+	if (FAILED(hr) || count == 0)
+	{
+		MIKAN_LOG_WARNING("WMFVideoFrameProcessor::findBestH264Decoder")
+			<< "No H.264 decoders found: " << GetHresultMessage(hr);
+		return E_FAIL;
+	}
+
+	MIKAN_LOG_INFO("WMFVideoFrameProcessor::findBestH264Decoder")
+		<< "Found " << count << " H.264 decoder(s)";
+
+	// Find the best decoder (prefer Microsoft, avoid AMD/NVIDIA)
+	CLSID selectedCLSID = GUID_NULL;
+	CLSID microsoftCLSID = GUID_NULL;
+	bool foundMicrosoft = false;
+
+	for (UINT32 i = 0; i < count; i++)
+	{
+		CLSID clsid;
+		hr = ppActivate[i]->GetGUID(MFT_TRANSFORM_CLSID_Attribute, &clsid);
+
+		if (SUCCEEDED(hr))
+		{
+			// Get friendly name for logging
+			WCHAR* pName = nullptr;
+			UINT32 nameLen = 0;
+			ppActivate[i]->GetAllocatedString(MFT_FRIENDLY_NAME_Attribute, &pName, &nameLen);
+
+			std::wstring wname = pName ? pName : L"Unknown";
+			std::string name(wname.begin(), wname.end());
+
+			// Check if this is a problematic vendor MFT
+			bool isProblematic = (clsid == CLSID_AMD_H264_DECODER ||
+			                      clsid == CLSID_NVIDIA_H264_DECODER);
+
+			// Check if this is Microsoft's decoder (best guess by name)
+			bool isMicrosoft = (name.find("Microsoft") != std::string::npos);
+
+			MIKAN_LOG_INFO("WMFVideoFrameProcessor::findBestH264Decoder")
+				<< "  [" << i << "] " << name
+				<< (isMicrosoft ? " (Microsoft)" : "")
+				<< (isProblematic ? " (PROBLEMATIC vendor - may cause hangs)" : "");
+
+			if (pName)
+			{
+				CoTaskMemFree(pName);
+			}
+
+			// Prefer Microsoft's decoder (don't skip problematic ones, just prioritize Microsoft)
+			if (isMicrosoft && !foundMicrosoft)
+			{
+				microsoftCLSID = clsid;
+				foundMicrosoft = true;
+			}
+
+			// Track any non-Microsoft decoder as fallback
+			if (!isMicrosoft && selectedCLSID == GUID_NULL)
+			{
+				selectedCLSID = clsid;
+			}
+		}
+	}
+
+	// Cleanup
+	for (UINT32 i = 0; i < count; i++)
+	{
+		ppActivate[i]->Release();
+	}
+	CoTaskMemFree(ppActivate);
+
+	// Prefer Microsoft, fallback to first non-problematic
+	if (foundMicrosoft)
+	{
+		*pDecoderCLSID = microsoftCLSID;
+		MIKAN_LOG_INFO("WMFVideoFrameProcessor::findBestH264Decoder")
+			<< "Selected Microsoft H.264 decoder";
+		return S_OK;
+	}
+	else if (selectedCLSID != GUID_NULL)
+	{
+		*pDecoderCLSID = selectedCLSID;
+		MIKAN_LOG_INFO("WMFVideoFrameProcessor::findBestH264Decoder")
+			<< "Selected first available non-problematic decoder";
+		return S_OK;
+	}
+
+	MIKAN_LOG_ERROR("WMFVideoFrameProcessor::findBestH264Decoder")
+		<< "No suitable H.264 decoder found";
+	return E_FAIL;
+}
+
+HRESULT WMFVideoFrameProcessor::getActualInputMediaType(IMFMediaType** ppMediaType)
+{
+	if (!ppMediaType)
+	{
+		return E_POINTER;
+	}
+
+	*ppMediaType = nullptr;
+
+	// Return the saved native media type that we captured before setting output format
+	if (!m_pNativeInputType)
+	{
+		MIKAN_LOG_ERROR("WMFVideoFrameProcessor::getActualInputMediaType")
+			<< "Native input type was not saved";
+		return E_FAIL;
+	}
+
+	// AddRef and return the saved type
+	m_pNativeInputType->AddRef();
+	*ppMediaType = m_pNativeInputType;
 	return S_OK;
+}
+
+HRESULT WMFVideoFrameProcessor::createDecoder()
+{
+	// Create H.264 decoder MFT
+	HRESULT hr = CoCreateInstance(CLSID_CMSH264DecoderMFT, nullptr,
+		CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&m_pDecoderTransform));
+
+	if (FAILED(hr))
+	{
+		MIKAN_LOG_ERROR("WMFVideoFrameProcessor::createDecoder")
+			<< "Failed to create H.264 decoder: " << GetHresultMessage(hr);
+		return hr;
+	}
+
+	// Try to enable low-latency mode (reduces buffering)
+	IMFAttributes* pAttributes = nullptr;
+	if (SUCCEEDED(m_pDecoderTransform->GetAttributes(&pAttributes)))
+	{
+		// Enable low-latency mode to minimize decoder buffering
+		pAttributes->SetUINT32(MF_LOW_LATENCY, TRUE);
+
+		MemoryUtils::safeRelease(&pAttributes);
+	}
+
+	// Get the actual input media type from the source reader
+	// This is critical because it includes codec private data (SPS/PPS for H.264)
+	IMFMediaType* pInputType = nullptr;
+	hr = getActualInputMediaType(&pInputType);
+
+	if (FAILED(hr))
+	{
+		MIKAN_LOG_ERROR("WMFVideoFrameProcessor::createDecoder")
+			<< "Failed to get input media type: " << GetHresultMessage(hr);
+		return hr;
+	}
+
+	// Log some info about the input type
+	GUID inputSubtype = GUID_NULL;
+	pInputType->GetGUID(MF_MT_SUBTYPE, &inputSubtype);
+
+	UINT32 codecDataSize = 0;
+	pInputType->GetBlobSize(MF_MT_USER_DATA, &codecDataSize);
+
+	MIKAN_LOG_INFO("WMFVideoFrameProcessor::createDecoder")
+		<< "Input media type - Subtype: " << (inputSubtype == MFVideoFormat_H264 ? "H264" : "Other")
+		<< ", Codec private data size: " << codecDataSize << " bytes";
+
+	// Set the input type on the decoder
+	if (SUCCEEDED(hr))
+	{
+		hr = m_pDecoderTransform->SetInputType(0, pInputType, 0);
+		if (FAILED(hr))
+		{
+			MIKAN_LOG_ERROR("WMFVideoFrameProcessor::createDecoder")
+				<< "Failed to set input type: " << GetHresultMessage(hr);
+		}
+	}
+
+	// Set output type (YUY2)
+	IMFMediaType* pOutputType = nullptr;
+	if (SUCCEEDED(hr))
+	{
+		hr = MFCreateMediaType(&pOutputType);
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		hr = pOutputType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video);
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		hr = pOutputType->SetGUID(MF_MT_SUBTYPE, m_wmfOutputFormat);
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		hr = MFSetAttributeSize(pOutputType, MF_MT_FRAME_SIZE,
+			m_deviceFormat.width, m_deviceFormat.height);
+	}
+
+	// Set frame rate on output type too
+	if (SUCCEEDED(hr) && m_deviceFormat.frame_rate_numerator > 0 && m_deviceFormat.frame_rate_denominator > 0)
+	{
+		MFSetAttributeRatio(pOutputType, MF_MT_FRAME_RATE,
+			m_deviceFormat.frame_rate_numerator, m_deviceFormat.frame_rate_denominator);
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		hr = m_pDecoderTransform->SetOutputType(0, pOutputType, 0);
+	}
+
+	// Get output stream info to determine if we need to allocate output samples
+	if (SUCCEEDED(hr))
+	{
+		hr = m_pDecoderTransform->GetOutputStreamInfo(0, &m_decoderOutputInfo);
+	}
+
+	// Start streaming on the decoder
+	if (SUCCEEDED(hr))
+	{
+		hr = m_pDecoderTransform->ProcessMessage(MFT_MESSAGE_NOTIFY_BEGIN_STREAMING, 0);
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		hr = m_pDecoderTransform->ProcessMessage(MFT_MESSAGE_NOTIFY_START_OF_STREAM, 0);
+	}
+
+	MemoryUtils::safeRelease(&pInputType);
+	MemoryUtils::safeRelease(&pOutputType);
+
+	return hr;
+}
+
+HRESULT WMFVideoFrameProcessor::processCompressedSample(IMFSample* pCompressedSample, IMFSample** ppDecodedSample)
+{
+	if (!m_pDecoderTransform || !pCompressedSample || !ppDecodedSample)
+	{
+		return E_POINTER;
+	}
+
+	*ppDecodedSample = nullptr;
+
+	// Send compressed sample to decoder
+	HRESULT hr = m_pDecoderTransform->ProcessInput(0, pCompressedSample, 0);
+
+	bool bInputAccepted = SUCCEEDED(hr);
+
+	if (hr == MF_E_NOTACCEPTING)
+	{
+		// Decoder's input buffer is full - we need to drain output first before adding more input
+		// This is normal for H.264 decoders. Try to get output without adding more input.
+		MIKAN_LOG_INFO("WMFVideoFrameProcessor::processCompressedSample")
+			<< "Decoder input buffer full (frame " << m_sampleIndex << "), draining output";
+		// Don't return error, just try to get output below
+		hr = S_OK;
+		bInputAccepted = false;
+	}
+	else if (FAILED(hr))
+	{
+		MIKAN_LOG_ERROR("WMFVideoFrameProcessor::processCompressedSample")
+			<< "ProcessInput failed: " << GetHresultMessage(hr);
+		return hr;
+	}
+	else if (m_sampleIndex < 10)
+	{
+		MIKAN_LOG_INFO("WMFVideoFrameProcessor::processCompressedSample")
+			<< "ProcessInput succeeded for frame " << m_sampleIndex;
+	}
+
+	// Check if we need to allocate output sample (most MFTs don't provide their own)
+	bool bNeedOutputSample = (m_decoderOutputInfo.dwFlags & MFT_OUTPUT_STREAM_PROVIDES_SAMPLES) == 0;
+
+	// Try to get output - may need to call multiple times as decoder can buffer frames
+	// H.264 decoders often need several input frames before producing first output
+	for (int attempt = 0; attempt < 10; attempt++)
+	{
+		// Prepare output buffer
+		MFT_OUTPUT_DATA_BUFFER outputBuffer = {0};
+		outputBuffer.dwStreamID = 0;
+		outputBuffer.pSample = nullptr;
+		outputBuffer.dwStatus = 0;
+		outputBuffer.pEvents = nullptr;
+
+		// Allocate output sample if needed
+		if (bNeedOutputSample)
+		{
+			hr = MFCreateSample(&outputBuffer.pSample);
+			if (FAILED(hr))
+			{
+				MIKAN_LOG_ERROR("WMFVideoFrameProcessor::processCompressedSample")
+					<< "MFCreateSample failed: " << GetHresultMessage(hr);
+				return hr;
+			}
+
+			IMFMediaBuffer* pBuffer = nullptr;
+			hr = MFCreateMemoryBuffer(m_decoderOutputInfo.cbSize, &pBuffer);
+			if (SUCCEEDED(hr))
+			{
+				hr = outputBuffer.pSample->AddBuffer(pBuffer);
+				MemoryUtils::safeRelease(&pBuffer);
+			}
+
+			if (FAILED(hr))
+			{
+				MIKAN_LOG_ERROR("WMFVideoFrameProcessor::processCompressedSample")
+					<< "Buffer allocation failed: " << GetHresultMessage(hr);
+				MemoryUtils::safeRelease(&outputBuffer.pSample);
+				return hr;
+			}
+		}
+
+		// Get decoded output
+		DWORD dwStatus = 0;
+		hr = m_pDecoderTransform->ProcessOutput(0, 1, &outputBuffer, &dwStatus);
+
+		if (hr == MF_E_TRANSFORM_NEED_MORE_INPUT)
+		{
+			// Decoder needs more input before producing output (this is normal for first few frames)
+			if (outputBuffer.pSample)
+			{
+				MemoryUtils::safeRelease(&outputBuffer.pSample);
+			}
+			if (attempt == 0 && m_sampleIndex < 10)
+			{
+				MIKAN_LOG_INFO("WMFVideoFrameProcessor::processCompressedSample")
+					<< "Decoder buffering (frame " << m_sampleIndex << ", attempt " << attempt
+					<< ", input " << (bInputAccepted ? "accepted" : "not accepted") << ")";
+			}
+
+			// If input wasn't accepted and we have no output, we're stuck
+			// This shouldn't happen but log it if it does
+			if (!bInputAccepted && attempt == 0)
+			{
+				MIKAN_LOG_WARNING("WMFVideoFrameProcessor::processCompressedSample")
+					<< "Frame " << m_sampleIndex << ": Input rejected but no output available - decoder may be stuck";
+			}
+
+			return S_FALSE;
+		}
+
+		if (hr == MF_E_TRANSFORM_STREAM_CHANGE)
+		{
+			// Output format changed, need to query new type and set it
+			if (outputBuffer.pSample)
+			{
+				MemoryUtils::safeRelease(&outputBuffer.pSample);
+			}
+
+			MIKAN_LOG_INFO("WMFVideoFrameProcessor::processCompressedSample")
+				<< "Stream format change detected, updating output type";
+
+			// Query available output types
+			IMFMediaType* pNewOutputType = nullptr;
+			hr = m_pDecoderTransform->GetOutputAvailableType(0, 0, &pNewOutputType);
+			if (SUCCEEDED(hr))
+			{
+				// Set the new output type
+				hr = m_pDecoderTransform->SetOutputType(0, pNewOutputType, 0);
+				MemoryUtils::safeRelease(&pNewOutputType);
+
+				if (SUCCEEDED(hr))
+				{
+					// Update stream info with new format
+					hr = m_pDecoderTransform->GetOutputStreamInfo(0, &m_decoderOutputInfo);
+
+					if (SUCCEEDED(hr))
+					{
+						// Continue loop to try getting output again with new format
+						continue;
+					}
+				}
+			}
+
+			MIKAN_LOG_ERROR("WMFVideoFrameProcessor::processCompressedSample")
+				<< "Failed to handle stream change: " << GetHresultMessage(hr);
+			return hr;
+		}
+
+		if (SUCCEEDED(hr) && outputBuffer.pSample)
+		{
+			*ppDecodedSample = outputBuffer.pSample;
+			if (outputBuffer.pEvents)
+			{
+				outputBuffer.pEvents->Release();
+			}
+
+			if (m_sampleIndex < 5)
+			{
+				MIKAN_LOG_INFO("WMFVideoFrameProcessor::processCompressedSample")
+					<< "Successfully decoded frame " << m_sampleIndex;
+			}
+			return S_OK;
+		}
+
+		// Some other error occurred
+		if (outputBuffer.pSample)
+		{
+			MemoryUtils::safeRelease(&outputBuffer.pSample);
+		}
+		if (outputBuffer.pEvents)
+		{
+			outputBuffer.pEvents->Release();
+		}
+
+		MIKAN_LOG_ERROR("WMFVideoFrameProcessor::processCompressedSample")
+			<< "ProcessOutput failed (attempt " << attempt << "): " << GetHresultMessage(hr);
+		return hr;
+	}
+
+	// Should not reach here
+	return E_FAIL;
+}
+
+static std::string GetHresultMessage(HRESULT hr)
+{
+	// Check if it's a facility_win32 HRESULT
+	if (SUCCEEDED(hr)) 
+	{
+		return "Operation successful";
+	}
+
+	DWORD flags = FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS;
+
+	// Handle specific facilities if needed (e.g., FACILITY_WIN32)
+	if ((hr & 0xFFFF0000) == MAKE_HRESULT(1, FACILITY_WIN32, 0)) {
+		flags |= FORMAT_MESSAGE_FROM_SYSTEM; // Already included above, but good for clarity
+		hr = HRESULT_CODE(hr); // Extract the Win32 error code
+	}
+
+	LPSTR messageBuffer = nullptr;
+	size_t size = FormatMessageA(
+		flags,
+		NULL,
+		hr, // Use the HRESULT or the extracted code
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPSTR)&messageBuffer,
+		0,
+		NULL
+	);
+
+	std::stringstream stream;
+	stream << "Unknown error 0x" << std::hex << std::uppercase << hr;
+	std::string message = stream.str();
+
+	if (size > 0) {
+		message = messageBuffer;
+		LocalFree(messageBuffer); // Free the buffer allocated by FormatMessage
+	}
+
+	return message;
 }

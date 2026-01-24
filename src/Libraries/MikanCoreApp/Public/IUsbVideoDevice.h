@@ -9,15 +9,27 @@ struct UsbVideoModeProperties
 	const char* name; // name of the video mode (e.g., "1080p30", "720p60")
 	int width; // width of the video frame in pixels
 	int height; // height of the video frame in pixels
-	int stride; // stride is the number of bytes per row in the video frame buffer
 	int frame_rate_numerator; // numerator of the frame rate (e.g., 30 for 30 fps)
 	int frame_rate_demonenator; // denominator of the frame rate (e.g., 1 for 30 fps)
+};
+
+enum class eUSBVideoFrameBufferFormat : int
+{
+	USBVideo_UNKNOWN = -1,
+
+	USBVideo_RGB24,			// 24BPP, RGB, 8:8:8
+	USBVideo_NV12,			// 12BPP, YCbCr, 4:2:0 
+	USBVideo_YUY2			// 16BPP, YCbCr, 4:2:2
 };
 
 struct UsbVideoFrameBuffer
 {
 	const uint8_t* data;
-	size_t byte_count;
+	size_t byte_count; // total byte count in the frame buffer
+	size_t stride; // stride is the number of bytes per row in the video frame buffer
+	int width; // width of the video frame in pixels
+	int height; // height of the video frame in pixels
+	eUSBVideoFrameBufferFormat data_format;
 };
 
 class IUsbVideoDeviceListener

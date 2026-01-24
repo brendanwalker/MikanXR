@@ -27,7 +27,7 @@ list(APPEND MIKAN_WMF_VIDEO_INCL_DIRS
 	${MIKAN_LIBRARIES_DIR}/MikanUtility/Public
 )
 
-list(APPEND WINDOWS_MEDIA_FOUNDATION_LIBS mfplat mf mfuuid winmm shlwapi)
+list(APPEND WINDOWS_MEDIA_FOUNDATION_LIBS mfplat mf mfuuid mfreadwrite wmcodecdspuuid winmm shlwapi)
 
 list(APPEND MIKAN_WMF_VIDEO_REQ_LIBS
 	${WINDOWS_MEDIA_FOUNDATION_LIBS}
