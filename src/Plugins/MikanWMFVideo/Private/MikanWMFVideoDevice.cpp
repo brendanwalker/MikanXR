@@ -9,6 +9,8 @@
 #include <iomanip>
 
 static std::string GetHresultMessage(HRESULT hr);
+static const char* GetWMFVideoFormatName(const GUID& format);
+static const char* GetUSBVideoFormatName(eUSBVideoFrameBufferFormat format);
 
 // -- MikanUsbVideoDevice -----
 MikanWMFVideoDevice::MikanWMFVideoDevice(
@@ -705,6 +707,8 @@ WMFVideoFrameProcessor::WMFVideoFrameProcessor(
 	, m_sampleIndex(0)
 	, m_outputFormat(eUSBVideoFrameBufferFormat::USBVideo_UNKNOWN)
 	, m_wmfOutputFormat(GUID_NULL)
+	, m_nv12_offsets_detected(false)
+	, m_nv12_uv_plane_offset(0)
 {
 }
 
@@ -794,14 +798,8 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 			pDetectedNativeType->GetGUID(MF_MT_SUBTYPE, &detectedSubtype);
 			MFGetAttributeSize(pDetectedNativeType, MF_MT_FRAME_SIZE, &detectedWidth, &detectedHeight);
 
-			const char* formatName = "Unknown";
-			if (detectedSubtype == MFVideoFormat_H264) formatName = "H264";
-			else if (detectedSubtype == MFVideoFormat_YUY2) formatName = "YUY2";
-			else if (detectedSubtype == MFVideoFormat_NV12) formatName = "NV12";
-			else if (detectedSubtype == MFVideoFormat_MJPG) formatName = "MJPG";
-
 			MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
-				<< "Source reader detected native format: " << formatName
+				<< "Source reader detected native format: " << GetWMFVideoFormatName(detectedSubtype)
 				<< " " << detectedWidth << "x" << detectedHeight;
 
 			MemoryUtils::safeRelease(&pDetectedNativeType);
@@ -853,15 +851,9 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 				<< std::setw(2) << (int)nativeSubtype.Data4[6]
 				<< std::setw(2) << (int)nativeSubtype.Data4[7];
 
-			const char* formatName = "Unknown";
-			if (nativeSubtype == MFVideoFormat_H264) formatName = "H264";
-			else if (nativeSubtype == MFVideoFormat_YUY2) formatName = "YUY2";
-			else if (nativeSubtype == MFVideoFormat_NV12) formatName = "NV12";
-			else if (nativeSubtype == MFVideoFormat_MJPG) formatName = "MJPG";
-
 			MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
 				<< "Saved native input type - Subtype GUID: " << guidStr.str()
-				<< " (" << formatName << ")"
+				<< " (" << GetWMFVideoFormatName(nativeSubtype) << ")"
 				<< ", Resolution: " << nativeWidth << "x" << nativeHeight
 				<< ", Codec data size: " << codecDataSize << " bytes";
 
@@ -872,7 +864,7 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 			{
 				MIKAN_LOG_WARNING("WMFVideoFrameProcessor::init")
 					<< "Expected compressed format (" << m_deviceFormat.sub_type_name
-					<< ") but camera native format is uncompressed (" << formatName
+					<< ") but camera native format is uncompressed (" << GetWMFVideoFormatName(nativeSubtype)
 					<< "). Disabling manual decoder - will use source reader output directly.";
 				isCompressedFormat = false;
 			}
@@ -889,8 +881,8 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 	{
 		// For compressed formats, prefer NV12 (native decoder output, better performance)
 		// with YUY2 as fallback (universally supported but slower due to conversion)
-		preferredFormat = MFVideoFormat_YUY2;
-		preferredFrameBufferFormat = eUSBVideoFrameBufferFormat::USBVideo_YUY2;
+		preferredFormat = MFVideoFormat_NV12;
+		preferredFrameBufferFormat = eUSBVideoFrameBufferFormat::USBVideo_NV12;
 		fallbackFormat = MFVideoFormat_YUY2;
 		fallbackFrameBufferFormat = eUSBVideoFrameBufferFormat::USBVideo_YUY2;
 
@@ -1006,12 +998,8 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 	// Try to set the output type on the first video stream (skip if passthrough)
 	if (SUCCEEDED(hr) && pType && !useNativePassthrough)
 	{
-		const char* formatName =
-			(m_wmfOutputFormat == MFVideoFormat_NV12) ? "NV12" :
-			(m_wmfOutputFormat == MFVideoFormat_YUY2) ? "YUY2" : "RGB24";
-
 		MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
-			<< "Attempting to set output format to " << formatName << "...";
+			<< "Attempting to set output format to " << GetWMFVideoFormatName(m_wmfOutputFormat) << "...";
 
 		hr = m_pSourceReader->SetCurrentMediaType(
 			(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
@@ -1021,7 +1009,7 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 		if (SUCCEEDED(hr))
 		{
 			MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
-				<< "Successfully set output format to " << formatName;
+				<< "Successfully set output format to " << GetWMFVideoFormatName(m_wmfOutputFormat);
 		}
 		else if (fallbackFormat != GUID_NULL)
 		{
@@ -1103,12 +1091,8 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 
 		if (SUCCEEDED(hr) && pType)
 		{
-			const char* fallbackFormatName =
-				(fallbackFormat == MFVideoFormat_NV12) ? "NV12" :
-				(fallbackFormat == MFVideoFormat_YUY2) ? "YUY2" : "RGB24";
-
 			MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
-				<< "Attempting to set fallback format to " << fallbackFormatName << "...";
+				<< "Attempting to set fallback format to " << GetWMFVideoFormatName(fallbackFormat) << "...";
 
 			hr = m_pSourceReader->SetCurrentMediaType(
 				(DWORD)MF_SOURCE_READER_FIRST_VIDEO_STREAM,
@@ -1122,7 +1106,7 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 				m_outputFormat = fallbackFrameBufferFormat;
 
 				MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
-					<< "Fallback successful - using " << fallbackFormatName << " output format";
+					<< "Fallback successful - using " << GetWMFVideoFormatName(fallbackFormat) << " output format";
 			}
 			else
 			{
@@ -1159,27 +1143,19 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 					GUID nativeSubtype;
 					pNativeType->GetGUID(MF_MT_SUBTYPE, &nativeSubtype);
 
-					const char* requestedFormatName =
-						(m_wmfOutputFormat == MFVideoFormat_NV12) ? "NV12" :
-						(m_wmfOutputFormat == MFVideoFormat_YUY2) ? "YUY2" : "RGB24";
-
 					MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
-						<< "Native camera format: " << (nativeSubtype == MFVideoFormat_H264 ? "H264" : "Other")
-						<< ", Requested output: " << requestedFormatName
+						<< "Native camera format: " << GetWMFVideoFormatName(nativeSubtype)
+						<< ", Requested output: " << GetWMFVideoFormatName(m_wmfOutputFormat)
 						<< ", Actual output: " << (actualSubtype == m_wmfOutputFormat ? "MATCH" : "MISMATCH");
 
 					MemoryUtils::safeRelease(&pNativeType);
 				}
 
-				const char* requestedFormatName2 =
-					(m_wmfOutputFormat == MFVideoFormat_NV12) ? "NV12" :
-					(m_wmfOutputFormat == MFVideoFormat_YUY2) ? "YUY2" : "RGB24";
-
 				if (actualSubtype != m_wmfOutputFormat)
 				{
 					MIKAN_LOG_ERROR("WMFVideoFrameProcessor::init")
 						<< "Failed to set desired output format. Requested: "
-						<< requestedFormatName2
+						<< GetWMFVideoFormatName(m_wmfOutputFormat)
 						<< ", but got a different format (possibly still compressed)";
 					hr = E_FAIL;
 				}
@@ -1187,7 +1163,7 @@ HRESULT WMFVideoFrameProcessor::init(IMFMediaSource* pSource)
 				{
 					MIKAN_LOG_INFO("WMFVideoFrameProcessor::init")
 						<< "Successfully configured output format: "
-						<< requestedFormatName2;
+						<< GetWMFVideoFormatName(m_wmfOutputFormat);
 				}
 			}
 		}
@@ -1226,6 +1202,8 @@ void WMFVideoFrameProcessor::startVideoFrameStream()
 	if (m_state == State::Stopped || m_state == State::Failed)
 	{
 		m_sampleIndex = 0;
+		m_nv12_offsets_detected = false;
+		m_nv12_uv_plane_offset = 0;
 		m_state = State::Starting;
 
 		// Request the first sample - this starts the async callback loop
@@ -1375,10 +1353,104 @@ STDMETHODIMP WMFVideoFrameProcessor::OnReadSample(
 				UsbVideoFrameBuffer frameBuffer;
 				frameBuffer.data = pData;
 				frameBuffer.byte_count = dwBufferLength;
-				frameBuffer.width = (int)width;
-				frameBuffer.height = (int)height;
 				frameBuffer.data_format = m_outputFormat;
-				frameBuffer.stride = (int)width;  // Contiguous buffer = stride equals width!
+
+				// Populate sections based on format
+				if (m_outputFormat == eUSBVideoFrameBufferFormat::USBVideo_NV12)
+				{
+					const size_t expectedNV12Size = width * (height + height / 2);
+
+					// Detect UV plane offset on first frame if buffer is larger than expected
+					if (!m_nv12_offsets_detected && dwBufferLength > expectedNV12Size)
+					{
+						const size_t yPlaneSize = width * height;
+
+						// Search for first non-zero byte after Y-plane to find UV-plane start
+						bool foundUVStart = false;
+						for (size_t offset = yPlaneSize; offset < dwBufferLength; offset++)
+						{
+							if (pData[offset] != 0)
+							{
+								m_nv12_uv_plane_offset = offset;
+								foundUVStart = true;
+
+								MIKAN_LOG_INFO("WMFVideoFrameProcessor::OnReadSample")
+									<< "NV12 UV plane detected at offset: " << offset
+									<< " (padding after Y-plane: " << (offset - yPlaneSize) << " bytes)";
+								break;
+							}
+						}
+
+						if (!foundUVStart)
+						{
+							// Fallback: assume no padding (shouldn't happen but be safe)
+							m_nv12_uv_plane_offset = yPlaneSize;
+							MIKAN_LOG_WARNING("WMFVideoFrameProcessor::OnReadSample")
+								<< "Could not detect UV plane start (all zeros), assuming no padding";
+						}
+
+						m_nv12_offsets_detected = true;
+					}
+					else if (!m_nv12_offsets_detected)
+					{
+						// No padding detected - UV plane immediately follows Y plane
+						m_nv12_uv_plane_offset = width * height;
+						m_nv12_offsets_detected = true;
+
+						MIKAN_LOG_INFO("WMFVideoFrameProcessor::OnReadSample")
+							<< "NV12 format with no inter-plane padding detected";
+					}
+
+					// Populate sections for NV12 format
+					// Section 0: Y plane
+					frameBuffer.sections[0].pixel_width = (int)width;
+					frameBuffer.sections[0].pixel_height = (int)height;
+					frameBuffer.sections[0].stride = width;
+					frameBuffer.sections[0].start_offset = 0;
+					frameBuffer.sections[0].byte_count = width * height;
+
+					// Section 1: UV plane (interleaved, half height)
+					frameBuffer.sections[1].pixel_width = (int)width;
+					frameBuffer.sections[1].pixel_height = (int)(height / 2);
+					frameBuffer.sections[1].stride = width;  // bytes per row
+					frameBuffer.sections[1].start_offset = m_nv12_uv_plane_offset;
+					frameBuffer.sections[1].byte_count = width * (height / 2);
+
+					frameBuffer.section_count = 2;
+				}
+				else if (m_outputFormat == eUSBVideoFrameBufferFormat::USBVideo_YUY2)
+				{
+					// YUY2 format: single section, 2 bytes per pixel
+					frameBuffer.sections[0].pixel_width = (int)width;
+					frameBuffer.sections[0].pixel_height = (int)height;
+					frameBuffer.sections[0].stride = width * 2;  // bytes per row (2 bytes per pixel)
+					frameBuffer.sections[0].start_offset = 0;
+					frameBuffer.sections[0].byte_count = width * height * 2;
+
+					frameBuffer.section_count = 1;
+				}
+				else if (m_outputFormat == eUSBVideoFrameBufferFormat::USBVideo_RGB24)
+				{
+					// RGB24 format: single section, 3 bytes per pixel
+					frameBuffer.sections[0].pixel_width = (int)width;
+					frameBuffer.sections[0].pixel_height = (int)height;
+					frameBuffer.sections[0].stride = width * 3;  // bytes per row (3 bytes per pixel)
+					frameBuffer.sections[0].start_offset = 0;
+					frameBuffer.sections[0].byte_count = width * height * 3;
+
+					frameBuffer.section_count = 1;
+				}
+				else
+				{
+					// Unknown format: create minimal section
+					frameBuffer.sections[0].pixel_width = (int)width;
+					frameBuffer.sections[0].pixel_height = (int)height;
+					frameBuffer.sections[0].stride = (int)width;
+					frameBuffer.sections[0].start_offset = 0;
+					frameBuffer.sections[0].byte_count = dwBufferLength;
+
+					frameBuffer.section_count = 1;
+				}
 
 				// Log first sample
 				if (m_sampleIndex == 0)
@@ -1387,44 +1459,38 @@ STDMETHODIMP WMFVideoFrameProcessor::OnReadSample(
 					const size_t expectedRGB24Size = width * height * 3;
 					const size_t expectedYUY2Size = width * height * 2;
 
-					const char* formatName =
-						(m_outputFormat == eUSBVideoFrameBufferFormat::USBVideo_NV12) ? "NV12" :
-						(m_outputFormat == eUSBVideoFrameBufferFormat::USBVideo_YUY2) ? "YUY2" : "RGB24";
-
 					const size_t expectedSize =
 						(m_outputFormat == eUSBVideoFrameBufferFormat::USBVideo_NV12) ? expectedNV12Size :
 						(m_outputFormat == eUSBVideoFrameBufferFormat::USBVideo_YUY2) ? expectedYUY2Size : expectedRGB24Size;
 
 					MIKAN_LOG_INFO("WMFVideoFrameProcessor::OnReadSample")
 						<< "First sample - Format: " << (int)m_outputFormat
-						<< " (" << formatName << ")"
+						<< " (" << GetUSBVideoFormatName(m_outputFormat) << ")"
 						<< ", Actual buffer size: " << dwBufferLength << " bytes"
 						<< ", Expected size: " << expectedSize << " bytes"
 						<< ", Width: " << width << ", Height: " << height
-						<< ", Contiguous buffer (no padding)";
+						<< ", Section count: " << frameBuffer.section_count;
 
 					if (dwBufferLength != expectedSize)
 					{
 						if (m_outputFormat == eUSBVideoFrameBufferFormat::USBVideo_NV12 && dwBufferLength > expectedSize)
 						{
-							MIKAN_LOG_WARNING("WMFVideoFrameProcessor::OnReadSample")
+							MIKAN_LOG_INFO("WMFVideoFrameProcessor::OnReadSample")
 								<< "NV12 buffer has extra padding (inter-plane alignment). "
 								<< "Extra bytes: " << (dwBufferLength - expectedSize)
-								<< ". This may cause visual artifacts. "
-								<< "ConvertToContiguousBuffer doesn't remove inter-plane padding in planar formats. "
-								<< "Consider using YUY2 instead for simpler buffer layout.";
+								<< ". Using section-based approach to handle padding correctly.";
 						}
 						else
 						{
 							MIKAN_LOG_ERROR("WMFVideoFrameProcessor::OnReadSample")
 								<< "CRITICAL: Buffer size mismatch! Receiving compressed H.264 data instead of decoded "
-								<< formatName << " frames. WMF decoder is NOT working!";
+								<< GetUSBVideoFormatName(m_outputFormat) << " frames. WMF decoder is NOT working!";
 						}
 					}
 					else
 					{
 						MIKAN_LOG_INFO("WMFVideoFrameProcessor::OnReadSample")
-							<< "SUCCESS: Buffer size matches expected " << formatName << " format. Decoder is working!";
+							<< "SUCCESS: Buffer size matches expected " << GetUSBVideoFormatName(m_outputFormat) << " format. Decoder is working!";
 					}
 				}
 
@@ -1927,6 +1993,32 @@ HRESULT WMFVideoFrameProcessor::processCompressedSample(IMFSample* pCompressedSa
 
 	// Should not reach here
 	return E_FAIL;
+}
+
+static const char* GetWMFVideoFormatName(const GUID& format)
+{
+	if (format == MFVideoFormat_H264) return "H264";
+	else if (format == MFVideoFormat_H265) return "H265";
+	else if (format == MFVideoFormat_YUY2) return "YUY2";
+	else if (format == MFVideoFormat_NV12) return "NV12";
+	else if (format == MFVideoFormat_MJPG) return "MJPG";
+	else if (format == MFVideoFormat_RGB24) return "RGB24";
+	else return "Unknown";
+}
+
+static const char* GetUSBVideoFormatName(eUSBVideoFrameBufferFormat format)
+{
+	switch (format)
+	{
+	case eUSBVideoFrameBufferFormat::USBVideo_NV12:
+		return "NV12";
+	case eUSBVideoFrameBufferFormat::USBVideo_YUY2:
+		return "YUY2";
+	case eUSBVideoFrameBufferFormat::USBVideo_RGB24:
+		return "RGB24";
+	default:
+		return "Unknown";
+	}
 }
 
 static std::string GetHresultMessage(HRESULT hr)

@@ -22,14 +22,22 @@ enum class eUSBVideoFrameBufferFormat : int
 	USBVideo_YUY2			// 16BPP, YCbCr, 4:2:2
 };
 
+struct UsbVideoFrameSection
+{
+	int pixel_width;						// width of the video frame in pixels
+	int pixel_height;						// height of the video frame in pixels
+	size_t stride;							// stride is the number of bytes per row in the video frame buffer
+	size_t start_offset;					// total byte count in the frame buffer
+	size_t byte_count;						// Total number of bytes in the section
+};
+
 struct UsbVideoFrameBuffer
 {
-	const uint8_t* data;
-	size_t byte_count; // total byte count in the frame buffer
-	size_t stride; // stride is the number of bytes per row in the video frame buffer
-	int width; // width of the video frame in pixels
-	int height; // height of the video frame in pixels
-	eUSBVideoFrameBufferFormat data_format;
+	const uint8_t* data;					// Start of the video frame buffer
+	size_t byte_count;						// total byte count in the frame buffer
+	UsbVideoFrameSection sections[2];		// Sub sections of the video frame buffer (depends on data format)
+	int section_count;						// Number of valid sections (always >= 1)
+	eUSBVideoFrameBufferFormat data_format;	// Format of the frame buffer
 };
 
 class IUsbVideoDeviceListener

@@ -934,39 +934,75 @@ void USBVideoSourceComponent::notifyVideoFrameReceived(const UsbVideoFrameBuffer
 	if (bufferInfo.data_format == eUSBVideoFrameBufferFormat::USBVideo_NV12)
 	{
 		// NV12 layout: [Y plane: width × height] [UV plane: width × height/2]
-		cv::Mat packedNV12(
-			bufferInfo.height + bufferInfo.height / 2,
-			bufferInfo.width,
-			CV_8UC1,
-			(void*)bufferInfo.data,
-			bufferInfo.stride);
-		cv::cvtColor(packedNV12, bgrMat, cv::COLOR_YUV2BGR_NV12);
+		// Always use section-based approach (handles inter-plane padding correctly)
+		if (bufferInfo.section_count == 2)
+		{
+			const UsbVideoFrameSection& ySection = bufferInfo.sections[0];
+			const UsbVideoFrameSection& uvSection = bufferInfo.sections[1];
+
+			// Create separate Mat views for Y and UV planes using section offsets
+			cv::Mat yPlane(
+				ySection.pixel_height,
+				ySection.pixel_width,
+				CV_8UC1,
+				(void*)(bufferInfo.data + ySection.start_offset),
+				ySection.stride);
+
+			// For NV12, UV plane is interleaved U and V bytes
+			// When using CV_8UC2, width is half of Y plane width (each pixel = 2 bytes)
+			cv::Mat uvPlane(
+				uvSection.pixel_height,
+				uvSection.pixel_width / 2,  // Half width since each pixel is 2 bytes (U+V)
+				CV_8UC2,
+				(void*)(bufferInfo.data + uvSection.start_offset),
+				uvSection.stride);
+
+			// Use cvtColorTwoPlane for proper NV12 conversion with separate planes
+			cv::cvtColorTwoPlane(yPlane, uvPlane, bgrMat, cv::COLOR_YUV2BGR_NV12);
+		}
+		else
+		{
+			// Should not happen, but provide fallback
+			const UsbVideoFrameSection& section = bufferInfo.sections[0];
+			bgrMat = cv::Mat(section.pixel_height, section.pixel_width, CV_8UC3, cv::Scalar(0, 0, 0));
+		}
 	}
 	else if (bufferInfo.data_format == eUSBVideoFrameBufferFormat::USBVideo_YUY2)
 	{
 		// YUY2 (YUYV) format: 4:2:2 packed format (2 bytes per pixel)
+		const UsbVideoFrameSection& section = bufferInfo.sections[0];
 		cv::Mat yuy2Mat(
-			bufferInfo.height,
-			bufferInfo.width,
+			section.pixel_height,
+			section.pixel_width,
 			CV_8UC2,
-			(void*)bufferInfo.data,
-			bufferInfo.stride * 2);  // stride is in pixels, YUY2 is 2 bytes per pixel
+			(void*)(bufferInfo.data + section.start_offset),
+			section.stride);  // stride is already in bytes per row
 		cv::cvtColor(yuy2Mat, bgrMat, cv::COLOR_YUV2BGR_YUY2);
 	}
 	else if (bufferInfo.data_format == eUSBVideoFrameBufferFormat::USBVideo_RGB24)
 	{
 		// RGB24 format: convert to BGR
-		cv::Mat rgb24Mat(bufferInfo.height,
-						bufferInfo.width,
-						CV_8UC3,
-						(void*)bufferInfo.data,
-						bufferInfo.stride * 3);  // stride is in pixels, RGB24 is 3 bytes per pixel
+		const UsbVideoFrameSection& section = bufferInfo.sections[0];
+		cv::Mat rgb24Mat(
+			section.pixel_height,
+			section.pixel_width,
+			CV_8UC3,
+			(void*)(bufferInfo.data + section.start_offset),
+			section.stride);  // stride is already in bytes per row
 		cv::cvtColor(rgb24Mat, bgrMat, cv::COLOR_RGB2BGR);
 	}
 	else
 	{
 		// Unknown format - create empty mat as fallback
-		bgrMat = cv::Mat(bufferInfo.height, bufferInfo.width, CV_8UC3, cv::Scalar(0, 0, 0));
+		if (bufferInfo.section_count > 0)
+		{
+			const UsbVideoFrameSection& section = bufferInfo.sections[0];
+			bgrMat = cv::Mat(section.pixel_height, section.pixel_width, CV_8UC3, cv::Scalar(0, 0, 0));
+		}
+		else
+		{
+			bgrMat = cv::Mat(480, 640, CV_8UC3, cv::Scalar(0, 0, 0));  // Default fallback size
+		}
 	}
 
 	// Now bgrMat contains the BGR image data that writeVideoFrame expects

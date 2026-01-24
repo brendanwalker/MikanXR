@@ -81,6 +81,10 @@ private:
 	int64_t m_sampleIndex;
 	eUSBVideoFrameBufferFormat m_outputFormat;
 	GUID m_wmfOutputFormat;
+
+	// NV12 plane offset tracking
+	bool m_nv12_offsets_detected;
+	size_t m_nv12_uv_plane_offset;
 };
 
 class MikanWMFVideoDevice : public IUsbVideoDevice
