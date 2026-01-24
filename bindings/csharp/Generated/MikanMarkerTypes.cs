@@ -20,11 +20,11 @@ namespace MikanXR
 		public float length_mm;
 	};
 
-	public class MikanMarkerSystemValues
+	public class MikanMarkerSystemValues : MikanSystemValues
 	{
-		public static readonly long classId= 133061264921636720;
+		public static new readonly long classId= 133061264921636720;
 
-		public int aruco_id_list;
+		public List<int> aruco_id_list;
 		public MikanMarkerDictionaryType aruco_dictionary_type;
 		public int charuco_rows;
 		public int charuco_cols;
