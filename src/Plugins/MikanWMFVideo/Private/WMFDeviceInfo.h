@@ -43,6 +43,8 @@ struct WMFDeviceFormatInfo
 	std::string major_type_name;
 	std::string sub_type_name;
 	std::string format_friendly_name;
+
+	bool isCompressedFormat() const;
 };
 
 struct WMFDeviceInfo

@@ -1,6 +1,17 @@
 // -- includes -----
 #include "WMFDeviceInfo.h"
 
+// -- WMF Device Format Info -----
+bool WMFDeviceFormatInfo::isCompressedFormat() const
+{
+	return
+		sub_type_name == "H264" ||
+		sub_type_name == "MJPG" ||
+		sub_type_name == "H265" ||
+		sub_type_name == "VP80" ||
+		sub_type_name == "VP90";
+}
+
 // -- WMF Device Info -----
 int WMFDeviceInfo::findDeviceFormatByName(const std::string& format_name) const
 {
