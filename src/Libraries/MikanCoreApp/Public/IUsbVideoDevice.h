@@ -11,6 +11,7 @@ struct UsbVideoModeProperties
 	int height; // height of the video frame in pixels
 	int frame_rate_numerator; // numerator of the frame rate (e.g., 30 for 30 fps)
 	int frame_rate_demonenator; // denominator of the frame rate (e.g., 1 for 30 fps)
+	const char* format; // name of the video format (e.g., "H264", "MJPG", "YUYV", etc)
 };
 
 enum class eUSBVideoFrameBufferFormat : int

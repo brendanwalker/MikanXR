@@ -204,6 +204,7 @@ bool MikanWMFVideoDevice::getVideoModeProperties(size_t index, UsbVideoModePrope
 		outProperties.height = formatInfo.height;
 		outProperties.frame_rate_numerator = formatInfo.frame_rate_numerator;
 		outProperties.frame_rate_demonenator = formatInfo.frame_rate_denominator;
+		outProperties.format = formatInfo.sub_type_name.c_str();
 
 		return true;
 	}

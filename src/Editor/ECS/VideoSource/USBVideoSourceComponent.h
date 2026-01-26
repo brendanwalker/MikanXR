@@ -22,6 +22,9 @@ public:
 	void setDevicePath(const std::string& devicePath);
 
 	static const std::string k_videoModePropertyId;
+	static const std::string k_videoResolutionPropertyId;
+	static const std::string k_videoFrameRatePropertyId;
+	static const std::string k_videoFormatPropertyId;
 	inline const std::string& getVideoMode() const { return m_videoMode; }
 	void setVideoMode(const std::string& videoMode);
 
@@ -80,9 +83,16 @@ public:
 	size_t getAvailableVideoModesCount() const;
 	bool getVideoModeProperties(size_t index, UsbVideoModeProperties& outProperties) const;
 	int getVideoModeIndex() const;
+	bool getVideoModeResolutionName(std::string& outResolution) const;
+	bool getVideoModeFrameRateName(std::string& outFrameRate) const;
+	bool getVideoModeFormatName(std::string& outFormat) const;
 	bool setVideoModeByName(const std::string& videoModeName);
 	bool setVideoModeByIndex(size_t index);
 	bool getVideoModeNames(std::vector<std::string>& outVideoModeNames) const;
+	bool getVideoResolutionNames(std::vector<std::string>& outVideoResolutionNames) const;
+	bool getVideoFrameRateNames(std::vector<std::string>& outVideoFrameRateNames) const;
+	bool getVideoFormatNames(std::vector<std::string>& outVideoFormatNames) const;
+	bool setVideoModeToBestMatch(const std::string& resolution, const std::string& frameRate, const std::string& format);
 
 	// -- IUsbVideoDeviceListener ----
 	virtual void notifyVideoDeviceDisconnected(const IUsbVideoDevice* device) override;
@@ -114,11 +124,15 @@ protected:
 	void restoreVideoSettingsToCurrentMode();
 	bool getVideoSettingAsFloatFraction(eVideoSettingType settingType, float& outFloatFraction) const;
 	bool setVideoSettingAsFloatFraction(eVideoSettingType settingType, float outFloatFraction, bool bForce= false);
+	void rebuildVideoModeOptionLists();
 
 protected:
 	IUsbVideoDevice* m_usbVideoDevice;
 	USBVideoSettingsArray m_currentVideoSettings;
 	USBVideoConstraintArray m_currentVideoConstraints;
+	std::vector<std::string> m_cachedVideoResolutionNames;
+	std::vector<std::string> m_cachedVideoFrameRateNames;
+	std::vector<std::string> m_cachedVideoFormatNames;
 	bool m_bDeviceChanged= false;
 	bool m_bModeChanged = false;
 	bool m_bSettingsChanged = false;

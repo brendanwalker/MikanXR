@@ -95,10 +95,25 @@
 						</tr>
 						<tr class="property_tr">
 							<td>
-								<label>Video Mode</label>
-								<select id="select" name="select_mode" data-value="video_mode" data-event-change="select_video_mode_entry()">
-									<option value="">-- None --</option>
-									<option data-for="video_mode_entry : video_modes" data-value="video_mode_entry">{{video_mode_entry}}</option>
+								<label>Resolution</label>
+								<select id="select" name="select_resolution" data-value="video_resolution" data-event-change="select_video_resolution_entry()">
+									<option data-for="video_resolution_entry : video_resolutions" data-value="video_resolution_entry">{{video_resolution_entry}}</option>
+								</select>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label>FPS</label>
+								<select id="select" name="select_fps" data-value="video_fps" data-event-change="select_video_fps_entry()">
+									<option data-for="video_fps_entry : video_frame_rates" data-value="video_fps_entry">{{video_fps_entry}}</option>
+								</select>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label>Format</label>
+								<select id="select" name="select_format" data-value="video_format" data-event-change="select_video_format_entry()">
+									<option data-for="video_format_entry : video_formats" data-value="video_format_entry">{{video_format_entry}}</option>
 								</select>
 							</td>
 						</tr>

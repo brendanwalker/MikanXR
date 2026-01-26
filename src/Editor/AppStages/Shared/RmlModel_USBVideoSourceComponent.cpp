@@ -15,7 +15,9 @@
 RmlModel_USBVideoSourceComponent::RmlModel_USBVideoSourceComponent()
 	: RmlModel_MikanComponent()
 	, m_usbDevicePathList(std::make_shared<RmlDataBinding_USBDevicePathList>())
-	, m_videoModeNameList(std::make_shared<RmlDataBinding_VideoModeList>())
+	, m_videoResolutionList(std::make_shared<RmlDataBinding_VideoResolutionList>())
+	, m_videoFrameRateList(std::make_shared<RmlDataBinding_VideoFrameRateList>())
+	, m_videoFormatList(std::make_shared<RmlDataBinding_VideoFormatList>())
 {
 	for (int settingIndex = 0; settingIndex < (int)eVideoSettingType::COUNT; ++settingIndex)
 	{
@@ -61,20 +63,47 @@ bool RmlModel_USBVideoSourceComponent::onConstruct(Rml::DataModelConstructor& co
 			}
 		});
 
-	// Build the list of video modes from the currently selected USBVideoSourceComponent
-	m_videoModeNameList->init(
+	// Build the list of video resolutions from the currently selected USBVideoSourceComponent
+	m_videoResolutionList->init(
 		constructor,
 		CommonConfigPtr(),
-		"video_modes",
-		[this](CommonConfigPtr ownerConfig, Rml::Vector<std::string>& outVideoModeList) {
+		"video_resolutions",
+		[this](CommonConfigPtr ownerConfig, Rml::Vector<std::string>& outVideoResolutionList) {
 			auto videoSourceComponent = getUSBVideoSourceComponent();
 			if (videoSourceComponent)
 			{
-				videoSourceComponent->getVideoModeNames(outVideoModeList);
+				videoSourceComponent->getVideoResolutionNames(outVideoResolutionList);
 			}
 		},
 		[this](const ConfigPropertyChangeSet& changedPropertySet) -> bool {
-			// We can not rebuild the video mode list if the current device path just updated changed
+			return changedPropertySet.hasPropertyName(USBVideoSourceComponent::k_currentDevicePathPropertyId);
+		});
+	m_videoFrameRateList->init(
+		constructor,
+		CommonConfigPtr(),
+		"video_frame_rates",
+		[this](CommonConfigPtr ownerConfig, Rml::Vector<std::string>& outVideoFrameRateList) {
+			auto videoSourceComponent = getUSBVideoSourceComponent();
+			if (videoSourceComponent)
+			{
+				videoSourceComponent->getVideoFrameRateNames(outVideoFrameRateList);
+			}
+		},
+		[this](const ConfigPropertyChangeSet& changedPropertySet) -> bool {
+			return changedPropertySet.hasPropertyName(USBVideoSourceComponent::k_currentDevicePathPropertyId);
+		});
+	m_videoFormatList->init(
+		constructor,
+		CommonConfigPtr(),
+		"video_formats",
+		[this](CommonConfigPtr ownerConfig, Rml::Vector<std::string>& outVideoFormatList) {
+			auto videoSourceComponent = getUSBVideoSourceComponent();
+			if (videoSourceComponent)
+			{
+				videoSourceComponent->getVideoFormatNames(outVideoFormatList);
+			}
+		},
+		[this](const ConfigPropertyChangeSet& changedPropertySet) -> bool {
 			return changedPropertySet.hasPropertyName(USBVideoSourceComponent::k_currentDevicePathPropertyId);
 		});
 
@@ -90,13 +119,48 @@ bool RmlModel_USBVideoSourceComponent::onConstruct(Rml::DataModelConstructor& co
 		});
 
 	constructor.BindEventCallback(
-		"select_video_mode_entry",
+		"select_video_resolution_entry",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			const auto newVideoMode = ev.GetParameter<Rml::String>("value", "");
+			const auto newResolutionMode = ev.GetParameter<Rml::String>("value", "");
 			auto videoSourceComponent = getUSBVideoSourceComponent();
 			if (videoSourceComponent)
 			{
-				videoSourceComponent->getUSBVideoSourceDefinition()->setVideoMode(newVideoMode);
+				std::string frameRate;
+				std::string format;
+
+				videoSourceComponent->getVideoModeFrameRateName(frameRate);
+				videoSourceComponent->getVideoModeFormatName(format);
+				videoSourceComponent->setVideoModeToBestMatch(newResolutionMode, frameRate, format);
+			}
+		});
+	constructor.BindEventCallback(
+		"select_video_fps_entry",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			const auto newFPS = ev.GetParameter<Rml::String>("value", "");
+			auto videoSourceComponent = getUSBVideoSourceComponent();
+			if (videoSourceComponent)
+			{
+				std::string resolution;
+				std::string format;
+
+				videoSourceComponent->getVideoModeResolutionName(resolution);
+				videoSourceComponent->getVideoModeFormatName(format);
+				videoSourceComponent->setVideoModeToBestMatch(resolution, newFPS, format);
+			}
+		});
+	constructor.BindEventCallback(
+		"select_video_format_entry",
+		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
+			const auto newVideoFormat = ev.GetParameter<Rml::String>("value", "");
+			auto videoSourceComponent = getUSBVideoSourceComponent();
+			if (videoSourceComponent)
+			{
+				std::string resolution;
+				std::string frameRate;
+
+				videoSourceComponent->getVideoModeResolutionName(resolution);
+				videoSourceComponent->getVideoModeFrameRateName(frameRate);
+				videoSourceComponent->setVideoModeToBestMatch(resolution, frameRate, newVideoFormat);
 			}
 		});
 
@@ -112,8 +176,14 @@ bool RmlModel_USBVideoSourceComponent::setComponent(MikanComponentPtr component)
 		m_usbDevicePathList->setOwnerConfig(getUSBVideoSourceSystemConfig());
 		m_usbDevicePathList->rebuildList(true);
 
-		m_videoModeNameList->setOwnerConfig(component ? component->getDefinition() : CommonConfigPtr());
-		m_videoModeNameList->rebuildList(true);
+		m_videoResolutionList->setOwnerConfig(component ? component->getDefinition() : CommonConfigPtr());
+		m_videoResolutionList->rebuildList(true);
+
+		m_videoFrameRateList->setOwnerConfig(component ? component->getDefinition() : CommonConfigPtr());
+		m_videoFrameRateList->rebuildList(true);
+
+		m_videoFormatList->setOwnerConfig(component ? component->getDefinition() : CommonConfigPtr());
+		m_videoFormatList->rebuildList(true);
 
 		// Update all video setting bindings with the new component
 		for (int settingIndex = 0; settingIndex < (int)eVideoSettingType::COUNT; ++settingIndex)

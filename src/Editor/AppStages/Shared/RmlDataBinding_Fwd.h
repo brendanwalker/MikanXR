@@ -29,8 +29,14 @@ using RmlDataBinding_SpoutSourceListPtr = std::shared_ptr<RmlDataBinding_SpoutSo
 using RmlDataBinding_USBDevicePathList = RmlDataBinding_List<std::string>;
 using RmlDataBinding_USBDevicePathListPtr = std::shared_ptr<RmlDataBinding_USBDevicePathList>;
 
-using RmlDataBinding_VideoModeList = RmlDataBinding_List<std::string>;
-using RmlDataBinding_VideoModeListPtr = std::shared_ptr<RmlDataBinding_VideoModeList>;
+using RmlDataBinding_VideoResolutionList = RmlDataBinding_List<std::string>;
+using RmlDataBinding_VideoResolutionListPtr = std::shared_ptr<RmlDataBinding_VideoResolutionList>;
+
+using RmlDataBinding_VideoFrameRateList = RmlDataBinding_List<std::string>;
+using RmlDataBinding_VideoFrameRateListPtr = std::shared_ptr<RmlDataBinding_VideoFrameRateList>;
+
+using RmlDataBinding_VideoFormatList = RmlDataBinding_List<std::string>;
+using RmlDataBinding_VideoFormatListPtr = std::shared_ptr<RmlDataBinding_VideoFormatList>;
 
 class RmlDataBinding_VideoSourceSetting;
 using RmlDataBinding_VideoSourceSettingPtr = std::shared_ptr<RmlDataBinding_VideoSourceSetting>;

@@ -30,5 +30,7 @@ private:
 	USBVideoSourceSystemWeakPtr m_usbVideoSourceSystem;
 	RmlDataBinding_VideoSourceSettingPtr m_videoSourceSettings[(int)eVideoSettingType::COUNT];
 	RmlDataBinding_USBDevicePathListPtr m_usbDevicePathList;
-	RmlDataBinding_VideoModeListPtr m_videoModeNameList;
+	RmlDataBinding_VideoResolutionListPtr m_videoResolutionList;
+	RmlDataBinding_VideoFrameRateListPtr m_videoFrameRateList;
+	RmlDataBinding_VideoFormatListPtr m_videoFormatList;
 };

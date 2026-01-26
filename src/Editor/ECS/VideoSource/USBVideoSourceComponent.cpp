@@ -13,6 +13,7 @@
 #include "opencv2/calib3d/calib3d.hpp"
 
 #include <assert.h>
+#include <set>
 
 #define DEFAULT_DESIRED_VIDEO_WIDTH			1280
 #define DEFAULT_DESIRED_VIDEO_HEIGHT		720
@@ -21,6 +22,9 @@
 // -- USBVideoSourceDefinition -----
 const std::string USBVideoSourceDefinition::k_desiredDevicePathPropertyId = "desired_device_path";
 const std::string USBVideoSourceDefinition::k_videoModePropertyId = "video_mode";
+const std::string USBVideoSourceDefinition::k_videoResolutionPropertyId = "video_resolution";
+const std::string USBVideoSourceDefinition::k_videoFrameRatePropertyId = "video_fps";
+const std::string USBVideoSourceDefinition::k_videoFormatPropertyId = "video_format";
 const std::string USBVideoSourceDefinition::k_videoSettingsPropertyId = "video_settings";
 
 USBVideoSourceDefinition::USBVideoSourceDefinition()
@@ -434,6 +438,9 @@ bool USBVideoSourceComponent::handleVideoModeUpdated()
 		}
 	}
 
+	// Rebuild the cached lists of available resolutions, frame rates, and formats
+	rebuildVideoModeOptionLists();
+
 	// See if we have saved camera settings for the current video mode
 	bool bCameraPropertiesChanged = false;
 	const std::string videoModeName = szVideoModeName;
@@ -449,7 +456,7 @@ bool USBVideoSourceComponent::handleVideoModeUpdated()
 		saveVideoSettingDefaultsFromCurrentMode();
 	}
 
-	// Apply the side effect of video mode changes 
+	// Apply the side effect of video mode changes
 	notifyVideoModePropertiesChanged(m_usbVideoDevice);
 	if (OnFrameSizeChanged)
 	{
@@ -831,6 +838,45 @@ int USBVideoSourceComponent::getVideoModeIndex() const
 	return -1;
 }
 
+bool USBVideoSourceComponent::getVideoModeResolutionName(std::string& outResolution) const
+{
+	UsbVideoModeProperties modeProperties;
+	if (getVideoModeProperties(getVideoModeIndex(), modeProperties))
+	{
+		outResolution = std::to_string(modeProperties.width) + "x" + std::to_string(modeProperties.height);
+		return true;
+	}
+
+	return false;
+}
+
+bool USBVideoSourceComponent::getVideoModeFrameRateName(std::string& outFrameRate) const
+{
+	UsbVideoModeProperties modeProperties;
+	if (getVideoModeProperties(getVideoModeIndex(), modeProperties) &&
+		modeProperties.frame_rate_demonenator > 0)
+	{
+		int fps = modeProperties.frame_rate_numerator / modeProperties.frame_rate_demonenator;
+		outFrameRate = std::to_string(fps);
+		return true;
+	}
+
+	return false;
+}
+
+bool USBVideoSourceComponent::getVideoModeFormatName(std::string& outFormat) const
+{
+	UsbVideoModeProperties modeProperties;
+	if (getVideoModeProperties(getVideoModeIndex(), modeProperties) &&
+		modeProperties.format != nullptr)
+	{
+		outFormat = modeProperties.format;
+		return true;
+	}
+
+	return false;
+}
+
 bool USBVideoSourceComponent::setVideoModeByName(const std::string& videoModeName)
 {
 	if (m_usbVideoDevice != nullptr &&
@@ -872,6 +918,207 @@ bool USBVideoSourceComponent::getVideoModeNames(std::vector<std::string>& outVid
 		}
 
 		return true;
+	}
+
+	return false;
+}
+
+bool USBVideoSourceComponent::getVideoResolutionNames(std::vector<std::string>& outVideoResolutionNames) const
+{
+	if (m_usbVideoDevice != nullptr)
+	{
+		outVideoResolutionNames = m_cachedVideoResolutionNames;
+		return true;
+	}
+
+	return false;
+}
+
+bool USBVideoSourceComponent::getVideoFrameRateNames(std::vector<std::string>& outVideoFrameRateNames) const
+{
+	if (m_usbVideoDevice != nullptr)
+	{
+		outVideoFrameRateNames = m_cachedVideoFrameRateNames;
+		return true;
+	}
+
+	return false;
+}
+
+bool USBVideoSourceComponent::getVideoFormatNames(std::vector<std::string>& outVideoFormatNames) const
+{
+	if (m_usbVideoDevice != nullptr)
+	{
+		outVideoFormatNames = m_cachedVideoFormatNames;
+		return true;
+	}
+
+	return false;
+}
+
+void USBVideoSourceComponent::rebuildVideoModeOptionLists()
+{
+	m_cachedVideoResolutionNames.clear();
+	m_cachedVideoFrameRateNames.clear();
+	m_cachedVideoFormatNames.clear();
+
+	if (m_usbVideoDevice == nullptr)
+		return;
+
+	// Helper struct to store resolution with area for sorting
+	struct ResolutionInfo
+	{
+		std::string name;
+		int width;
+		int height;
+		int area;
+
+		ResolutionInfo(int w, int h)
+			: width(w)
+			, height(h)
+			, area(w* h)
+			, name(std::to_string(w) + "x" + std::to_string(h))
+		{
+		}
+
+		bool operator<(const ResolutionInfo& other) const
+		{
+			// Sort by area (descending), then by width (descending)
+			if (area != other.area)
+				return area > other.area;
+			return width > other.width;
+		}
+	};
+
+	std::set<ResolutionInfo> uniqueResolutions;
+	std::set<int> uniqueFrameRates; // Store as int for proper numeric sorting
+	std::set<std::string> uniqueFormats;
+
+	size_t modeCount = m_usbVideoDevice->getAvailableVideoModesCount();
+	for (size_t i = 0; i < modeCount; ++i)
+	{
+		UsbVideoModeProperties modeProperties;
+		if (m_usbVideoDevice->getVideoModeProperties(i, modeProperties))
+		{
+			// Collect unique resolutions
+			uniqueResolutions.insert(ResolutionInfo(modeProperties.width, modeProperties.height));
+
+			// Collect unique frame rates
+			if (modeProperties.frame_rate_demonenator > 0)
+			{
+				int fps = modeProperties.frame_rate_numerator / modeProperties.frame_rate_demonenator;
+				uniqueFrameRates.insert(fps);
+			}
+
+			// Collect unique formats
+			if (modeProperties.format != nullptr)
+			{
+				uniqueFormats.insert(modeProperties.format);
+			}
+		}
+	}
+
+	// Convert sorted resolutions to string vector
+	for (const auto& resInfo : uniqueResolutions)
+	{
+		m_cachedVideoResolutionNames.push_back(resInfo.name);
+	}
+
+	// Convert sorted frame rates to string vector (descending order)
+	for (auto it = uniqueFrameRates.rbegin(); it != uniqueFrameRates.rend(); ++it)
+	{
+		m_cachedVideoFrameRateNames.push_back(std::to_string(*it));
+	}
+
+	// Convert formats to string vector (alphabetical)
+	m_cachedVideoFormatNames.assign(uniqueFormats.begin(), uniqueFormats.end());
+}
+
+bool USBVideoSourceComponent::setVideoModeToBestMatch(const std::string& resolution, const std::string& frameRate, const std::string& format)
+{
+	if (m_usbVideoDevice == nullptr)
+		return false;
+
+	// Parse resolution string (format: "WIDTHxHEIGHT")
+	int desiredWidth = -1;
+	int desiredHeight = -1;
+	if (!resolution.empty())
+	{
+		size_t xPos = resolution.find('x');
+		if (xPos != std::string::npos)
+		{
+			desiredWidth = std::stoi(resolution.substr(0, xPos));
+			desiredHeight = std::stoi(resolution.substr(xPos + 1));
+		}
+	}
+
+	// Parse frame rate
+	int desiredFPS = -1;
+	if (!frameRate.empty())
+	{
+		desiredFPS = std::stoi(frameRate);
+	}
+
+	// Find best matching video mode
+	int bestMatchIndex = -1;
+	int bestMatchScore = -1;
+	size_t modeCount = m_usbVideoDevice->getAvailableVideoModesCount();
+
+	for (size_t i = 0; i < modeCount; ++i)
+	{
+		UsbVideoModeProperties modeProperties;
+		if (m_usbVideoDevice->getVideoModeProperties(i, modeProperties))
+		{
+			int matchScore = 0;
+
+			// Check resolution match
+			bool resolutionMatch = (desiredWidth == -1 || modeProperties.width == desiredWidth) &&
+								   (desiredHeight == -1 || modeProperties.height == desiredHeight);
+			if (resolutionMatch)
+			{
+				matchScore += 100;
+			}
+
+			// Check frame rate match
+			if (desiredFPS != -1 && modeProperties.frame_rate_demonenator > 0)
+			{
+				int modeFPS = modeProperties.frame_rate_numerator / modeProperties.frame_rate_demonenator;
+				if (modeFPS == desiredFPS)
+				{
+					matchScore += 10;
+				}
+			}
+			else if (desiredFPS == -1)
+			{
+				matchScore += 10; // No preference, still counts as match
+			}
+
+			// Check format match
+			if (!format.empty() && modeProperties.format != nullptr)
+			{
+				if (format == modeProperties.format)
+				{
+					matchScore += 1;
+				}
+			}
+			else if (format.empty())
+			{
+				matchScore += 1; // No preference, still counts as match
+			}
+
+			// Update best match
+			if (matchScore > bestMatchScore)
+			{
+				bestMatchScore = matchScore;
+				bestMatchIndex = (int)i;
+			}
+		}
+	}
+
+	// Set the best matching video mode
+	if (bestMatchIndex != -1)
+	{
+		return setVideoModeByIndex(bestMatchIndex);
 	}
 
 	return false;
@@ -1066,6 +1313,18 @@ void USBVideoSourceComponent::getPropertyDescriptors(std::vector<PropertyDescrip
 			USBVideoSourceDefinition::k_videoModePropertyId, MikanVariantType::STRING));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
+			USBVideoSourceDefinition::k_videoResolutionPropertyId, MikanVariantType::STRING)
+		->setReadOnly());
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			USBVideoSourceDefinition::k_videoFrameRatePropertyId, MikanVariantType::STRING)
+		->setReadOnly());
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			USBVideoSourceDefinition::k_videoFormatPropertyId, MikanVariantType::STRING)
+		->setReadOnly());
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
 			USBVideoSourceDefinition::k_videoSettingsPropertyId, MikanVariantType::FLOAT_ARRAY)
 		->setReadOnly());
 }
@@ -1093,6 +1352,33 @@ bool USBVideoSourceComponent::getPropertyValue(
 	{
 		outValue = std::vector<float>(m_currentVideoSettings.begin(), m_currentVideoSettings.end());
 		return true;
+	}
+	else if (propertyName == USBVideoSourceDefinition::k_videoResolutionPropertyId)
+	{
+		std::string resolution;
+		if (getVideoModeResolutionName(resolution))
+		{
+			outValue = resolution;
+			return true;
+		}
+	}
+	else if (propertyName == USBVideoSourceDefinition::k_videoFrameRatePropertyId)
+	{
+		std::string frameRate;
+		if (getVideoModeFrameRateName(frameRate))
+		{
+			outValue = frameRate;
+			return true;
+		}
+	}
+	else if (propertyName == USBVideoSourceDefinition::k_videoFormatPropertyId)
+	{
+		std::string format;
+		if (getVideoModeFormatName(format))
+		{
+			outValue = format;
+			return true;
+		}
 	}
 
 	return VideoSourceComponent::getPropertyValue(propertyName, outValue);
