@@ -12,6 +12,8 @@
 #include "Shared/RmlModel_StageComponent.h"
 #include "Shared/RmlModel_CompositorComponent.h"
 #include "Shared/RmlDataBinding_List.h"
+#include "SceneComponent.h"
+#include "SceneObjectSystem.h"
 #include "StageComponent.h"
 #include "StageObjectSystem.h"
 #include "StringUtils.h"
@@ -102,6 +104,15 @@ bool RmlModel_ProjectStages::init(ProjectRmlModelContext* context)
 	m_stageIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectStages::stageIdListChanged);
 	m_cameraIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectStages::cameraIdListChanged);
 	m_compositorIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectStages::compositorIdListChanged);
+
+	// Set initial state based on the current scene
+	auto sceneSystem = ownerAppStage->getObjectSystemOfType<SceneObjectSystem>();
+	SceneComponentConstPtr currentScene = sceneSystem->getCurrentScene();
+	if (currentScene)
+	{
+		MikanStageID parentStageId = currentScene->getParentStage()->getStageId();
+		setSelectedStageId(parentStageId);
+	}
 
 	return true;
 }
