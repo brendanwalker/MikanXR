@@ -60,7 +60,10 @@ configuru::Config ProjectConfig::writeToJSON()
 	// Write out all child configs
 	for (const auto& childConfigPtr : m_childConfigs)
 	{
-		pt[childConfigPtr->getConfigName()] = childConfigPtr->writeToJSON();
+		if (childConfigPtr->wantsConfigSerialization())
+		{
+			pt[childConfigPtr->getConfigName()] = childConfigPtr->writeToJSON();
+		}
 	}
 
 	return pt;
@@ -79,7 +82,10 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 		{
 			const configuru::Config& child_pt = pt[childConfigPtr->getConfigName()];
 
-			childConfigPtr->readFromJSON(child_pt);
+			if (childConfigPtr->wantsConfigSerialization())
+			{
+				childConfigPtr->readFromJSON(child_pt);
+			}
 		}
 	}
 }

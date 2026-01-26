@@ -29,7 +29,8 @@ public:
 
 	VRObjectSystemDefinition(const std::string& configName = "VRObjectSystemDefinition");
 
-	virtual bool wantsSaveForPropertyChange(const ConfigPropertyChangeSet& changedPropertySet) const override;
+	// VRObjectSystem is runtime only and isn't saved to/loaded from the project file
+	virtual bool wantsConfigSerialization() const override { return false; }
 };
 
 class VRObjectSystem :

@@ -52,6 +52,7 @@ public:
 	std::shared_ptr<CommonConfig> getChildConfig(const std::string& configName) const;
 	void removeChildConfig(std::shared_ptr<CommonConfig> childConfig);
 	virtual void notifyPropertyChanged(const ConfigPropertyChangeSet& changedPropertySet);
+	virtual bool wantsConfigSerialization() const { return true; }
 	virtual bool wantsSaveForPropertyChange(const ConfigPropertyChangeSet& changedPropertySet) const { return true; }
 	MulticastDelegate<void(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet)> OnPropertyChanged;
 

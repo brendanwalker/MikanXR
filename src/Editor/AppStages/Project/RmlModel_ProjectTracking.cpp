@@ -49,7 +49,7 @@ bool RmlModel_ProjectTracking::init(ProjectRmlModelContext* context)
 	// Register component lists
 	m_trackingVolumeIdList->init(
 		constructor,
-		CommonConfigPtr(),
+		projectManager->getProjectConfig(),
 		"tracker_volume_ids", // virtual property name since this is a composite list
 		[projectManager](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
 			outComponentIdList = TrackingVolumeQueries::getTrackingVolumeIdList(projectManager);
@@ -119,8 +119,9 @@ void RmlModel_ProjectTracking::trackingVolumeIdListChanged(bool bOwnerChanged)
 		m_trackingVolumeIdList->fixupSelectedValue(m_selectedTrackingVolumeId, INVALID_MIKAN_ID, newSelectedTrackingVolumeId))
 	{
 		// Defer the selection update to post view update after element list refreshes
-		addModelUpdateCallback([this, newSelectedTrackingVolumeId]() {
-			setSelectedTrackingVolumeId(newSelectedTrackingVolumeId);
+		RmlModel_ProjectTracking* self = this;
+		addModelUpdateCallback([self, newSelectedTrackingVolumeId]() {
+			self->setSelectedTrackingVolumeId(newSelectedTrackingVolumeId);
 		});
 	}
 }
@@ -130,10 +131,7 @@ void RmlModel_ProjectTracking::trackingMountIdListChanged(bool bOwnerChanged)
 	if (MikanTrackingMountID newSelectedTrackingMountId = m_selectedTrackingMountId;
 		m_trackingMountIdList->fixupSelectedValue(m_selectedTrackingMountId, INVALID_MIKAN_ID, newSelectedTrackingMountId))
 	{
-		// Defer the selection update to post view update after element list refreshes
-		addModelUpdateCallback([this, newSelectedTrackingMountId]() {
-			setSelectedTrackingMountId(newSelectedTrackingMountId);
-		});
+		setSelectedTrackingMountId(newSelectedTrackingMountId);
 	}
 }
 
@@ -172,8 +170,9 @@ void RmlModel_ProjectTracking::addNewSteamVRTrackingVolume(
 		vrTrackingVolumeSystem->addNewVRTrackingVolume(eTrackingRuntime::SteamVR);
 	MikanTrackingVolumeID volumeId = trackingVolume->getVRTrackingVolumeDefinition()->getTrackingVolumeId();
 
-	addModelUpdateCallback([this, volumeId]() {
-		setSelectedTrackingVolumeId(volumeId);
+	RmlModel_ProjectTracking* self = this;
+	addModelUpdateCallback([self, volumeId]() {
+		self->setSelectedTrackingVolumeId(volumeId);
 	});
 }
 
@@ -187,8 +186,9 @@ void RmlModel_ProjectTracking::addNewMarkerTrackingVolume(
 	MarkerTrackingVolumeComponentPtr trackingVolume= markerTrackingVolumeSystem->addNewObject();
 	MikanTrackingVolumeID volumeId= trackingVolume->getMarkerTrackingVolumeDefinition()->getTrackingVolumeId();
 
-	addModelUpdateCallback([this, volumeId]() {
-		setSelectedTrackingVolumeId(volumeId);
+	RmlModel_ProjectTracking* self = this;
+	addModelUpdateCallback([self, volumeId]() {
+		self->setSelectedTrackingVolumeId(volumeId);
 	});
 }
 
@@ -214,8 +214,9 @@ void RmlModel_ProjectTracking::addNewTrackingMount(
 
 		vrTrackingVolumePtr->getVRTrackingVolumeDefinition()->addTrackingMountID(mountId);
 
-		addModelUpdateCallback([this, mountId]() {
-			setSelectedTrackingMountId(mountId);
+		RmlModel_ProjectTracking* self = this;
+		addModelUpdateCallback([self, mountId]() {
+			self->setSelectedTrackingMountId(mountId);
 		});
 	}
 }

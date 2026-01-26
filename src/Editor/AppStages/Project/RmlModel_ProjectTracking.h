@@ -39,7 +39,6 @@ private:
 	void trackingMountIdListChanged(bool bOwnerChanged);
 
 	class ProjectRmlModelContext* m_projectRmlModelContext = nullptr;
-	ProjectConfigWeakPtr m_projectConfig;
 	TrackingMountObjectSystemWeakPtr m_trackingMountSystem;
 
 	RmlDataBinding_ComponentIdListPtr m_trackingVolumeIdList;

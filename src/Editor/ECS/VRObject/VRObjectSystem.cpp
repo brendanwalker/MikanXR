@@ -24,12 +24,6 @@ VRObjectSystemDefinition::VRObjectSystemDefinition(const std::string& configName
 {
 }
 
-bool VRObjectSystemDefinition::wantsSaveForPropertyChange(
-	const ConfigPropertyChangeSet& changedPropertySet) const
-{
-	return Super::wantsSaveForPropertyChange(changedPropertySet);
-}
-
 // -- VRTrackingRuntime -----
 class VRTrackingRuntime
 {
