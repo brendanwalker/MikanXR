@@ -198,7 +198,7 @@ IF %ERRORLEVEL% NEQ 0 (
   echo "Error downloading libharu-2.4.5-static.zip"
   goto failure
 )
-%UNZIP_EXE% e libharu-2.4.5-static.zip -y -r -spf -orfk
+%UNZIP_EXE% e libharu-2.4.5-static.zip -y -r -spf -olibharu-2.4.5-static
 IF %ERRORLEVEL% NEQ 0 (
   echo "Error unzipping libharu-2.4.5-static.zip"
   goto failure
