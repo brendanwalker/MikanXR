@@ -22,11 +22,13 @@ public:
 	void setDevicePath(const std::string& devicePath);
 
 	static const std::string k_videoModePropertyId;
+	inline const std::string& getVideoMode() const { return m_videoMode; }
+	void setVideoMode(const std::string& videoMode);
+
+	// Runtime only properties to video mode settings
 	static const std::string k_videoResolutionPropertyId;
 	static const std::string k_videoFrameRatePropertyId;
 	static const std::string k_videoFormatPropertyId;
-	inline const std::string& getVideoMode() const { return m_videoMode; }
-	void setVideoMode(const std::string& videoMode);
 
 	static const std::string k_videoSettingsPropertyId;
 	bool getVideoSettingsForMode(

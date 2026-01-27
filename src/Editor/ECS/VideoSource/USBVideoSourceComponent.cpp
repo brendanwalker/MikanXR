@@ -956,6 +956,22 @@ bool USBVideoSourceComponent::getVideoFormatNames(std::vector<std::string>& outV
 	return false;
 }
 
+static std::string formatFrameRate(const UsbVideoModeProperties& modeProperties)
+{
+	if (modeProperties.frame_rate_demonenator == 0)
+		return "0";
+	if (modeProperties.frame_rate_demonenator == 1)
+		return std::to_string(modeProperties.frame_rate_numerator);
+
+	const float fps = 
+		static_cast<float>(modeProperties.frame_rate_numerator) / 
+		static_cast<float>(modeProperties.frame_rate_demonenator);
+
+	std::ostringstream oss;
+	oss << std::fixed << std::setprecision(2) << fps;
+	return oss.str();
+}
+
 void USBVideoSourceComponent::rebuildVideoModeOptionLists()
 {
 	m_cachedVideoResolutionNames.clear();
@@ -963,6 +979,11 @@ void USBVideoSourceComponent::rebuildVideoModeOptionLists()
 	m_cachedVideoFormatNames.clear();
 
 	if (m_usbVideoDevice == nullptr)
+		return;
+
+	UsbVideoModeProperties currentModeProperties;
+	const int currentVideoModeIndex = m_usbVideoDevice->getVideoModeIndex();
+	if (!m_usbVideoDevice->getVideoModeProperties(currentVideoModeIndex, currentModeProperties))
 		return;
 
 	// Helper struct to store resolution with area for sorting
@@ -973,11 +994,11 @@ void USBVideoSourceComponent::rebuildVideoModeOptionLists()
 		int height;
 		int area;
 
-		ResolutionInfo(int w, int h)
-			: width(w)
-			, height(h)
-			, area(w* h)
-			, name(std::to_string(w) + "x" + std::to_string(h))
+		ResolutionInfo(const UsbVideoModeProperties& modeProperties)
+			: width(modeProperties.width)
+			, height(modeProperties.height)
+			, area(modeProperties.width * modeProperties.height)
+			, name(std::to_string(modeProperties.width) + "x" + std::to_string(modeProperties.height))
 		{
 		}
 
@@ -990,8 +1011,30 @@ void USBVideoSourceComponent::rebuildVideoModeOptionLists()
 		}
 	};
 
+	// Helper struct to store frame rate for sorting
+	struct FrameRateInfo
+	{
+		std::string name;
+		int numerator;
+		int denomenator;
+		float fps;
+
+		FrameRateInfo(const UsbVideoModeProperties& modeProperties)
+			: numerator(modeProperties.frame_rate_numerator)
+			, denomenator(modeProperties.frame_rate_demonenator)
+			, fps(static_cast<float>(numerator) / static_cast<float>(denomenator))
+			, name(formatFrameRate(modeProperties))
+		{
+		}
+
+		bool operator<(const FrameRateInfo& other) const
+		{
+			return fps > other.fps;
+		}
+	};
+
 	std::set<ResolutionInfo> uniqueResolutions;
-	std::set<int> uniqueFrameRates; // Store as int for proper numeric sorting
+	std::set<FrameRateInfo> uniqueFrameRates;
 	std::set<std::string> uniqueFormats;
 
 	size_t modeCount = m_usbVideoDevice->getAvailableVideoModesCount();
@@ -1001,19 +1044,24 @@ void USBVideoSourceComponent::rebuildVideoModeOptionLists()
 		if (m_usbVideoDevice->getVideoModeProperties(i, modeProperties))
 		{
 			// Collect unique resolutions
-			uniqueResolutions.insert(ResolutionInfo(modeProperties.width, modeProperties.height));
+			uniqueResolutions.insert(ResolutionInfo(modeProperties));
 
-			// Collect unique frame rates
-			if (modeProperties.frame_rate_demonenator > 0)
+			// If the mode's resolution matches the current mode, add the possible frame rates
+			if (currentModeProperties.width == modeProperties.width &&
+				currentModeProperties.height == modeProperties.height)
 			{
-				int fps = modeProperties.frame_rate_numerator / modeProperties.frame_rate_demonenator;
-				uniqueFrameRates.insert(fps);
-			}
+				// Collect unique frame rates for the current resolution
+				if (modeProperties.frame_rate_demonenator > 0)
+				{
+					uniqueFrameRates.insert(FrameRateInfo(modeProperties));
 
-			// Collect unique formats
-			if (modeProperties.format != nullptr)
-			{
-				uniqueFormats.insert(modeProperties.format);
+					// Collect unique formats for the current resolution and frame rate
+					if (currentModeProperties.frame_rate_numerator == modeProperties.frame_rate_numerator &&
+						currentModeProperties.frame_rate_demonenator == modeProperties.frame_rate_demonenator)
+					{
+						uniqueFormats.insert(modeProperties.format);
+					}
+				}
 			}
 		}
 	}
@@ -1025,16 +1073,19 @@ void USBVideoSourceComponent::rebuildVideoModeOptionLists()
 	}
 
 	// Convert sorted frame rates to string vector (descending order)
-	for (auto it = uniqueFrameRates.rbegin(); it != uniqueFrameRates.rend(); ++it)
+	for (const auto& frameRateInfo : uniqueFrameRates)
 	{
-		m_cachedVideoFrameRateNames.push_back(std::to_string(*it));
+		m_cachedVideoFrameRateNames.push_back(frameRateInfo.name);
 	}
 
 	// Convert formats to string vector (alphabetical)
 	m_cachedVideoFormatNames.assign(uniqueFormats.begin(), uniqueFormats.end());
 }
 
-bool USBVideoSourceComponent::setVideoModeToBestMatch(const std::string& resolution, const std::string& frameRate, const std::string& format)
+bool USBVideoSourceComponent::setVideoModeToBestMatch(
+	const std::string& resolution, 
+	const std::string& frameRate, 
+	const std::string& format)
 {
 	if (m_usbVideoDevice == nullptr)
 		return false;
@@ -1052,73 +1103,19 @@ bool USBVideoSourceComponent::setVideoModeToBestMatch(const std::string& resolut
 		}
 	}
 
-	// Parse frame rate
-	int desiredFPS = -1;
-	if (!frameRate.empty())
-	{
-		desiredFPS = std::stoi(frameRate);
-	}
-
 	// Find best matching video mode
-	int bestMatchIndex = -1;
-	int bestMatchScore = -1;
 	size_t modeCount = m_usbVideoDevice->getAvailableVideoModesCount();
-
-	for (size_t i = 0; i < modeCount; ++i)
+	for (size_t modeIndex = 0; modeIndex < modeCount; ++modeIndex)
 	{
 		UsbVideoModeProperties modeProperties;
-		if (m_usbVideoDevice->getVideoModeProperties(i, modeProperties))
+		if (m_usbVideoDevice->getVideoModeProperties(modeIndex, modeProperties) &&
+			modeProperties.width == desiredWidth && 
+			modeProperties.height == desiredHeight &&
+			modeProperties.format == format &&
+			formatFrameRate(modeProperties) == frameRate)
 		{
-			int matchScore = 0;
-
-			// Check resolution match
-			bool resolutionMatch = (desiredWidth == -1 || modeProperties.width == desiredWidth) &&
-								   (desiredHeight == -1 || modeProperties.height == desiredHeight);
-			if (resolutionMatch)
-			{
-				matchScore += 100;
-			}
-
-			// Check frame rate match
-			if (desiredFPS != -1 && modeProperties.frame_rate_demonenator > 0)
-			{
-				int modeFPS = modeProperties.frame_rate_numerator / modeProperties.frame_rate_demonenator;
-				if (modeFPS == desiredFPS)
-				{
-					matchScore += 10;
-				}
-			}
-			else if (desiredFPS == -1)
-			{
-				matchScore += 10; // No preference, still counts as match
-			}
-
-			// Check format match
-			if (!format.empty() && modeProperties.format != nullptr)
-			{
-				if (format == modeProperties.format)
-				{
-					matchScore += 1;
-				}
-			}
-			else if (format.empty())
-			{
-				matchScore += 1; // No preference, still counts as match
-			}
-
-			// Update best match
-			if (matchScore > bestMatchScore)
-			{
-				bestMatchScore = matchScore;
-				bestMatchIndex = (int)i;
-			}
+			return setVideoModeByIndex(modeIndex);
 		}
-	}
-
-	// Set the best matching video mode
-	if (bestMatchIndex != -1)
-	{
-		return setVideoModeByIndex(bestMatchIndex);
 	}
 
 	return false;
