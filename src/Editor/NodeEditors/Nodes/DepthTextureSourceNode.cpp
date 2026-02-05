@@ -1,3 +1,4 @@
+#include "CameraComponent.h"
 #include "DepthTextureSourceNode.h"
 #include "MkScopedObjectBinding.h"
 #include "IMkFrameBuffer.h"
@@ -130,11 +131,16 @@ bool DepthTextureSourceNode::evaluateNode(NodeEvaluator& evaluator)
 
 IMkTexturePtr DepthTextureSourceNode::getDepthSourceTexture() const
 {
+	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
+	CameraComponentPtr boundCameraComponent = compositorGraph->getBoundCameraComponent();
 	TextureSourceComponentPtr textureSourceComponent = getTextureSourceComponent();
-	if (textureSourceComponent != nullptr)
+
+	if (boundCameraComponent != nullptr && textureSourceComponent != nullptr)
 	{
 		IMkTexturePtr clientTexture =
-			textureSourceComponent->getClientDepthSourceTexture(m_clientTextureType);
+			textureSourceComponent->getClientDepthSourceTexture(
+				boundCameraComponent->getCameraId(),
+				m_clientTextureType);
 
 		// If the client texture is not available, return a black texture
 		if (clientTexture)

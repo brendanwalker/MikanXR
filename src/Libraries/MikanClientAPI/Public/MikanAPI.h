@@ -9,6 +9,7 @@
 #include <string>
 
 using IMikanAPIPtr = std::shared_ptr<class IMikanAPI>;
+using IMikanAPIWeakPtr = std::weak_ptr<class IMikanAPI>;
 
 // -- Mikan API -----
 class MIKAN_API IMikanAPI
@@ -19,13 +20,13 @@ public:
 
 	// API Lifecycle
 	static IMikanAPIPtr createMikanAPI();
-	virtual MikanAPIResult init(MikanLogLevel min_log_level, MikanLogCallback log_callback) = 0;
+	virtual MikanAPIResult init(const char* client_name, MikanLogLevel min_log_level, MikanLogCallback log_callback) = 0;
 	virtual bool getIsInitialized() = 0;
 	virtual MikanAPIResult shutdown() = 0;
 
 	// Client Info
 	virtual int getClientAPIVersion() const = 0;
-	virtual std::string getClientUniqueID() const = 0;
+	virtual std::string getClientName() const = 0;
 	virtual MikanClientInfo allocateClientInfo() const = 0;
 	virtual MikanAPIResult setGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface) = 0;
 	virtual MikanAPIResult getGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface) = 0;

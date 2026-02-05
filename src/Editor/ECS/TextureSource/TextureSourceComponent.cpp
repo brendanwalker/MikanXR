@@ -1,4 +1,3 @@
-#include "TextureSourceSettings/AppStage_TextureSourceSettings.h"
 #include "CameraMath.h"
 #include "MikanCoreTypes.h"
 #include "MikanObject.h"
@@ -41,12 +40,12 @@ MikanTextureSourceID TextureSourceComponent::getTextureSourceId() const
 	return getTextureSourceDefinition()->getTextureSourceId();
 }
 
-IMkTexturePtr TextureSourceComponent::getClientColorSourceTexture(eTextureSourceColorType textureSourceColorType) const
+IMkTexturePtr TextureSourceComponent::getClientColorSourceTexture(MikanCameraID cameraId, eTextureSourceColorType textureSourceColorType) const
 {
 	return IMkTexturePtr();
 }
 
-IMkTexturePtr TextureSourceComponent::getClientDepthSourceTexture(eTextureSourceDepthType textureSourceColorType) const
+IMkTexturePtr TextureSourceComponent::getClientDepthSourceTexture(MikanCameraID cameraId, eTextureSourceDepthType textureSourceColorType) const
 {
 	return IMkTexturePtr();
 }
@@ -88,10 +87,4 @@ bool TextureSourceComponent::invokeFunction(FunctionDescriptorConstPtr functionD
 void TextureSourceComponent::deleteTextureSource()
 {
 	getOwnerObject()->deleteSelfConfig();
-}
-
-void TextureSourceComponent::showTextureSourceSettings()
-{
-	getOwnerEditorWindow()->pushAppStageOfType<AppStage_TextureSourceSettings>()
-		->setTextureSourceComponent(getSelfPtr<TextureSourceComponent>());
 }

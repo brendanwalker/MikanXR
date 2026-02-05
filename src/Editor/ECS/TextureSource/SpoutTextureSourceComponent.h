@@ -39,7 +39,7 @@ public:
 	const std::string& getSpoutSourceName() const;
 
 	// Texture Source Interface
-	virtual IMkTexturePtr getClientColorSourceTexture(eTextureSourceColorType textureSourceColorType) const;
+	virtual IMkTexturePtr getClientColorSourceTexture(MikanCameraID cameraId, eTextureSourceColorType textureSourceColorType) const;
 
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
@@ -52,6 +52,7 @@ public:
 	// -- IFunctionInterface ----
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 	{ TextureSourceComponent::getFunctionDescriptors(outDescriptors); }
+	virtual void showTextureSourceSettings() override;
 
 protected:
 	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet) override;

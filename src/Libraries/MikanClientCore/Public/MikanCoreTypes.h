@@ -134,6 +134,9 @@ struct MIKAN_CORE_API STRUCT(Serialization::CodeGenModule("MikanCoreTypes")) Mik
 /// The ID of a pending request send to Mikan
 typedef int MikanRequestID;
 
+/// The ID of a camera
+typedef int MikanCameraID;
+
 /// Registered text response callback function for a Mikan request
 typedef void(MIKAN_CALLBACK* MikanTextResponseCallback)(
 	MikanRequestID request_id, const char* utf8_response_string, void* userdata);

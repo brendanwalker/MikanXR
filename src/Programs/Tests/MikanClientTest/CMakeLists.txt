@@ -2,10 +2,13 @@
 file(GLOB MIKAN_TEST_SRC
     "${CMAKE_CURRENT_LIST_DIR}/*.h"
     "${CMAKE_CURRENT_LIST_DIR}/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/../Shared/*.h"
+    "${CMAKE_CURRENT_LIST_DIR}/../Shared/*.cpp"
 )
 
 list(APPEND MIKAN_TEST_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}
+  ${CMAKE_CURRENT_LIST_DIR}/../Shared
   ${MIKAN_LIBRARIES_DIR}/MikanClientAPI/Public
   ${MIKAN_LIBRARIES_DIR}/MikanClientCore/Public
   ${MIKAN_LIBRARIES_DIR}/MikanCoreApp/Public

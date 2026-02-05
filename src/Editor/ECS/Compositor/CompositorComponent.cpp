@@ -1,5 +1,6 @@
 #include "App.h"
 #include "CameraComponent.h"
+#include "CameraMath.h"
 #include "CameraObjectSystem.h"
 #include "CameraRequestHandler.h"
 #include "ClientSourceManager.h"
@@ -220,7 +221,7 @@ void CompositorComponent::update(float deltaSeconds)
 		for (const std::string& clientSourceId : activeClientSourceIds)
 		{
 			// If the client source is not registered, register it
-			if (!clientSourceManager->getIsSourcePendingRender(clientSourceId))
+			if (!clientSourceManager->getIsSourcePendingRender(clientSourceId, cameraComponent->getCameraId()))
 			{
 				clientSourceReadyCount++;
 			}
@@ -246,19 +247,80 @@ void CompositorComponent::update(float deltaSeconds)
 		{
 			m_lastReadVideoFrameIndex = m_videoDistortionView->readNextVideoFrame();
 
-			MikanCameraNewFrameEvent newFrameEvent;
+			MikanCameraNewFrameEvent newFrameEvent= {};
 			newFrameEvent.frame = m_lastReadVideoFrameIndex;
 
+			// Assign Camera Extrinsic values
 			const glm::vec3 cameraUp(cameraXform[1]); // Camera up is along the y-axis
 			const glm::vec3 cameraForward(cameraXform[2] * -1.f); // Camera forward is along negative z-axis
 			const glm::vec3 cameraPosition(cameraXform[3]); // Camera up is along the y-axis
-			newFrameEvent.cameraForward = glm_vec3_to_MikanVector3f(cameraForward);
-			newFrameEvent.cameraUp = glm_vec3_to_MikanVector3f(cameraUp);
-			newFrameEvent.cameraPosition = glm_vec3_to_MikanVector3f(cameraPosition);
+			newFrameEvent.camera_forward = glm_vec3_to_MikanVector3f(cameraForward);
+			newFrameEvent.camera_up = glm_vec3_to_MikanVector3f(cameraUp);
+			newFrameEvent.camera_position = glm_vec3_to_MikanVector3f(cameraPosition);
 
-			MIKAN_LOG_TRACE("CompositorComponent::update") << "Enqueue frame " << m_lastReadVideoFrameIndex;
-			m_frameEventQueue.push(newFrameEvent);
-			m_droppedFrameCounter = 0;
+			// Assign Camera Intrinsic values
+			MikanVideoSourceIntrinsics intrinsics= {};
+			bool bHasValidIntrinsics= false;
+
+			// Try fetching calibrated camera intrinsics
+			if (cameraComponent->getApertureIntrinsics(intrinsics))
+			{
+				if (intrinsics.intrinsics_type == MikanIntrinsicsType::MONO_CAMERA_INTRINSICS)
+				{
+					const MikanMonoIntrinsics& monoIntrinsics= intrinsics.getMonoIntrinsics();
+					const MikanMatrix3d& cameraMatrix= monoIntrinsics.undistorted_camera_matrix;
+
+					newFrameEvent.focal_length= {cameraMatrix.x0, cameraMatrix.y1};
+					newFrameEvent.principal_point= {cameraMatrix.z0, cameraMatrix.z1};
+					newFrameEvent.pixel_size = { (int)monoIntrinsics.pixel_width, (int)monoIntrinsics.pixel_height };
+					newFrameEvent.z_bounds = { monoIntrinsics.znear, monoIntrinsics.zfar };
+
+					bHasValidIntrinsics= true;
+				}
+				else if (intrinsics.intrinsics_type == MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS)
+				{
+					//TODO: Assume we are using the left eye's point of view for client compositing
+					const MikanStereoIntrinsics& stereoIntrinsics = intrinsics.getStereoIntrinsics();
+					const MikanMatrix3d& cameraMatrix = stereoIntrinsics.left_camera_matrix;
+
+					newFrameEvent.focal_length = { cameraMatrix.x0, cameraMatrix.y1 };
+					newFrameEvent.principal_point = { cameraMatrix.z0, cameraMatrix.z1 };
+					newFrameEvent.pixel_size = { (int)stereoIntrinsics.pixel_width, (int)stereoIntrinsics.pixel_height };
+					newFrameEvent.z_bounds = { stereoIntrinsics.znear, stereoIntrinsics.zfar };
+
+					bHasValidIntrinsics= true;
+				}
+			}
+			// Fallback to fake intrinsics if we just have a frame resolution available
+			// (focal length with just be some default value that is probably wrong)
+			else
+			{
+				int pixelWidth, pixelHeight;
+				if (cameraComponent->getAperturePixelDimensions(pixelWidth, pixelHeight))
+				{
+					MikanMonoIntrinsics fakeIntrinsics= {};
+					createDefautMonoIntrinsics(pixelWidth, pixelHeight, fakeIntrinsics);
+					const MikanMatrix3d& cameraMatrix= fakeIntrinsics.undistorted_camera_matrix;
+
+					newFrameEvent.focal_length = { cameraMatrix.x0, cameraMatrix.y1 };
+					newFrameEvent.principal_point = { cameraMatrix.z0, cameraMatrix.z1 };
+					newFrameEvent.pixel_size = { pixelWidth, pixelHeight };
+					newFrameEvent.z_bounds = { fakeIntrinsics.znear, fakeIntrinsics.zfar };
+					
+					bHasValidIntrinsics= true;
+				}
+			}
+
+			if (bHasValidIntrinsics)
+			{
+				MIKAN_LOG_TRACE("CompositorComponent::update") << "Enqueue frame " << m_lastReadVideoFrameIndex;
+				m_frameEventQueue.push(newFrameEvent);
+				m_droppedFrameCounter = 0;
+			}
+			else
+			{
+				MIKAN_LOG_TRACE("CompositorComponent::update") << "Invalid intrinsics for frame " << m_lastReadVideoFrameIndex << ". Skipping frame.";
+			}
 		}
 		else
 		{
@@ -290,7 +352,7 @@ void CompositorComponent::update(float deltaSeconds)
 		auto* clientSourceManager = getOwnerEditorWindow()->getClientSourceManager();
 		for (const std::string& clientSourceId : activeClientSourceIds)
 		{
-			clientSourceManager->markSourceAsPendingRender(clientSourceId);
+			clientSourceManager->markSourceAsPendingRender(clientSourceId, newFrameEvent.camera_id);
 		}
 
 		// Track the index of the pending frame
@@ -604,7 +666,7 @@ bool CompositorComponent::startOutputStreaming()
 	sharedTextureDescriptor.graphicsAPI = SharedClientGraphicsApi::OpenGL;
 
 	// Setup render target write accessor
-	m_renderTargetWriteAccessor = createSharedTextureWriteAccessor(spoutOutputName);
+	m_renderTargetWriteAccessor = createSharedTextureWriteAccessor(spoutOutputName, INVALID_MIKAN_ID);
 	m_renderTargetWriteAccessor->initialize(&sharedTextureDescriptor, true, nullptr);
 
 	return true;

@@ -62,7 +62,6 @@ public:
 		void* apiDeviceInterface= nullptr) = 0;
 	virtual void dispose() = 0;
 
-	virtual bool setClientName(const std::string& clientName) = 0;
 	virtual bool writeColorFrameTexture(void* ApiTexturePtr) = 0;
 	virtual bool writeDepthFrameTexture(void* ApiTexturePtr, float zNear, float zFar) = 0;
 	virtual void* getPackDepthTextureResourcePtr() const = 0;
@@ -71,4 +70,4 @@ public:
 	virtual void setLogCallback(SharedTextureLogCallback callback) = 0;
 };
 
-MIKAN_SHAREDTEXTURE_FUNC(ISharedTextureWriteAccessorPtr) createSharedTextureWriteAccessor(const std::string& clientName);
+MIKAN_SHAREDTEXTURE_FUNC(ISharedTextureWriteAccessorPtr) createSharedTextureWriteAccessor(const std::string& prefix, MikanCameraID cameraId);

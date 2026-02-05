@@ -40,8 +40,8 @@ public:
 
 	// Texture Source Interface
 	MikanTextureSourceID getTextureSourceId() const;
-	virtual IMkTexturePtr getClientColorSourceTexture(eTextureSourceColorType textureSourceColorType) const;
-	virtual IMkTexturePtr getClientDepthSourceTexture(eTextureSourceDepthType textureSourceColorType) const;
+	virtual IMkTexturePtr getClientColorSourceTexture(MikanCameraID cameraId, eTextureSourceColorType textureSourceColorType) const;
+	virtual IMkTexturePtr getClientDepthSourceTexture(MikanCameraID cameraId, eTextureSourceDepthType textureSourceColorType) const;
 	
 	// Video Source Events
 	MulticastDelegate<void(TextureSourceComponentPtr TextureSource)> OnOpened;
@@ -57,5 +57,5 @@ public:
 	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
 
 	void deleteTextureSource();
-	void showTextureSourceSettings();
+	virtual void showTextureSourceSettings() {};
 };

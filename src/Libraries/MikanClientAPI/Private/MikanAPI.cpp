@@ -12,6 +12,7 @@
 
 #include "MikanCameraEvents.rfks.h"
 #include "MikanCameraTypes.rfks.h"
+#include "MikanCameraRequests.rfks.h"
 
 #include "MikanClientEvents.rfks.h"
 #include "MikanClientTypes.rfks.h"
@@ -32,8 +33,6 @@
 #include "MikanRemoteControlEvents.rfks.h"
 #include "MikanRemoteControlTypes.rfks.h"
 #include "MikanRemoteControlRequests.rfks.h"
-
-#include "MikanRenderTargetRequests.rfks.h"
 
 #include "MikanSceneTypes.rfks.h"
 
@@ -150,9 +149,12 @@ public:
 	}
 
 	// Initialize the Mikan API
-	virtual MikanAPIResult init(MikanLogLevel min_log_level, MikanLogCallback log_callback) override
+	virtual MikanAPIResult init(
+		const char* client_name,
+		MikanLogLevel min_log_level, 
+		MikanLogCallback log_callback) override
 	{
-		MikanAPIResult result = (MikanAPIResult)Mikan_Initialize(min_log_level, log_callback, &m_context);
+		MikanAPIResult result = (MikanAPIResult)Mikan_Initialize(client_name, min_log_level, log_callback, &m_context);
 		if (result != MikanAPIResult::Success)
 		{
 			return result;
@@ -183,9 +185,9 @@ public:
 		return MikanConstants_ClientAPIVersion;
 	}
 
-	virtual std::string getClientUniqueID() const override
+	virtual std::string getClientName() const override
 	{
-		return Mikan_GetClientUniqueID(m_context);
+		return Mikan_GetClientName(m_context);
 	}
 
 	virtual MikanClientInfo allocateClientInfo() const override
@@ -193,7 +195,7 @@ public:
 		MikanClientInfo clientInfo = {};
 
 		// Stamp the request with the core sdk version and client id
-		clientInfo.clientId = getClientUniqueID();
+		clientInfo.clientId = getClientName();
 
 		return clientInfo;
 	}

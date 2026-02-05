@@ -3,7 +3,9 @@
 #include "IEditorWindow.h"
 #include "MikanTextureSourceTypes.h"
 #include "MikanServer.h"
+#include "ModalSelectCamera/ModalDialog_SelectCamera.h"
 #include "TextureSourceRequestHandler.h"
+#include "TextureSourceSettings/AppStage_TextureSourceSettings.h"
 
 #include "opencv2/opencv.hpp"
 #include "opencv2/calib3d/calib3d.hpp"
@@ -62,26 +64,28 @@ void ClientTextureSourceComponent::setDefinition(MikanComponentDefinitionPtr def
 }
 
 IMkTexturePtr ClientTextureSourceComponent::getClientColorSourceTexture(
+	MikanCameraID cameraId,
 	eTextureSourceColorType textureSourceColorType) const
 {
 	auto* clientSourceManager = getClientSourceManager();
 
 	if (clientSourceManager != nullptr)
 	{
-		return clientSourceManager->getClientColorSourceTexture(getClientSourceName(), textureSourceColorType);
+		return clientSourceManager->getClientColorSourceTexture(getClientSourceName(), cameraId, textureSourceColorType);
 	}
 
 	return IMkTexturePtr();
 }
 
 IMkTexturePtr ClientTextureSourceComponent::getClientDepthSourceTexture(
+	MikanCameraID cameraId,
 	eTextureSourceDepthType depthTextureType) const
 {
 	auto* clientSourceManager = getClientSourceManager();
 
 	if (clientSourceManager != nullptr)
 	{
-		return clientSourceManager->getClientDepthSourceTexture(getClientSourceName(), depthTextureType);
+		return clientSourceManager->getClientDepthSourceTexture(getClientSourceName(), cameraId, depthTextureType);
 	}
 
 	return IMkTexturePtr();
@@ -132,4 +136,15 @@ ClientSourceManager* ClientTextureSourceComponent::getClientSourceManager() cons
 const std::string& ClientTextureSourceComponent::getClientSourceName() const
 {
 	return getClientTextureSourceDefinition()->getClientSource();
+}
+
+void ClientTextureSourceComponent::showTextureSourceSettings()
+{
+	ModalDialog_SelectCamera::selectCamera(
+		[this](MikanCameraID cameraId) {
+		auto* appStage = getOwnerEditorWindow()->pushAppStageOfType<AppStage_TextureSourceSettings>();
+
+		appStage->setSourceCameraId(cameraId);
+		appStage->setTextureSourceComponent(getSelfPtr<TextureSourceComponent>());
+	});
 }

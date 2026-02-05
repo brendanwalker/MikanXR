@@ -103,6 +103,8 @@ static const glm::vec4 k_background_color_key = glm::vec4(0.f, 0.f, 0.0f, 0.f);
 #define SCENE_SHADER_MVP_UNIFORM		"mvpMatrix"
 #define SCENE_SHADER_DIFFUSE_UNIFORM	"diffuse"
 
+#define MIKAN_CLIENT_ID     "MikanClientTestDX"
+
 glm::mat4 MikanMatrix4f_to_glm_mat4(const MikanMatrix4f& xform)
 {
 	auto m = reinterpret_cast<const float(*)[4][4]>(&xform);
@@ -127,10 +129,10 @@ MikanVector3f glm_vec3_to_MikanVector3f(const glm::vec3& in)
 	return {in.x, in.y, in.z};
 }
 
-class MikanTestApp
+class MikanTestApp_GL
 {
 public:
-	MikanTestApp()
+	MikanTestApp_GL()
 		: m_mikanApi(IMikanAPI::createMikanAPI())
 	{
 		m_originSpatialAnchorXform = glm::mat4(1.f);
@@ -139,7 +141,7 @@ public:
 		m_stencilQuad.component_id= INVALID_MIKAN_ID;
 	}
 
-	virtual ~MikanTestApp()
+	virtual ~MikanTestApp_GL()
 	{
 		shutdown();
 	}
@@ -198,7 +200,7 @@ protected:
 
 		log_init(settings);
 
-		if (m_mikanApi->init(MikanLogLevel_Info, onMikanLog) == MikanAPIResult::Success)
+		if (m_mikanApi->init(MIKAN_CLIENT_ID, MikanLogLevel_Info, onMikanLog) == MikanAPIResult::Success)
 		{
 			m_mikanInitialized= true;
 		}
@@ -841,9 +843,9 @@ protected:
 
 		// Apply the camera pose received
 		setCameraPose(
-			MikanVector3f_to_glm_vec3(newFrameEvent.cameraForward),
-			MikanVector3f_to_glm_vec3(newFrameEvent.cameraUp),
-			MikanVector3f_to_glm_vec3(newFrameEvent.cameraPosition));
+			MikanVector3f_to_glm_vec3(newFrameEvent.camera_forward),
+			MikanVector3f_to_glm_vec3(newFrameEvent.camera_up),
+			MikanVector3f_to_glm_vec3(newFrameEvent.camera_position));
 
 		// Render out a new frame
 		render();
@@ -851,17 +853,17 @@ protected:
 		// Write the color texture to the shared texture
 		{
 			GLuint textureId = m_textureColorbuffer->getGlTextureId();
-			WriteColorRenderTargetTexture writeTextureRequest;
+			WriteCameraColorRenderTargetTexture writeTextureRequest;
 
-			writeTextureRequest.apiColorTexturePtr = &textureId;
+			writeTextureRequest.api_color_texture_ptr = &textureId;
 			m_mikanApi->sendRequest(writeTextureRequest);
 		}
 
 		// Publish the new video frame back to Mikan
 		{
-			PublishRenderTargetTextures frameRendered;
+			PublishCameraRenderTargetTextures frameRendered;
 
-			frameRendered.frameIndex = newFrameEvent.frame;
+			frameRendered.frame_index = newFrameEvent.frame;
 			m_mikanApi->sendRequest(frameRendered);
 		}
 
@@ -883,7 +885,7 @@ protected:
 		freeFrameBuffer();
 
 		// Tell the server to free the old render target buffers
-		FreeRenderTargetTextures freeRequest;
+		FreeCameraRenderTargetTextures freeRequest;
 		m_mikanApi->sendRequest(freeRequest).awaitResponse();
 
 		// Fetch the current video source resolution
@@ -902,7 +904,7 @@ protected:
 			desc.graphicsAPI = MikanClientGraphicsApi_OpenGL;
 
 			// Tell the server to allocate new render target buffers
-			AllocateRenderTargetTextures allocateRequest;
+			AllocateCameraRenderTargetTextures allocateRequest;
 			allocateRequest.descriptor = desc;
 			m_mikanApi->sendRequest(allocateRequest).awaitResponse();
 
@@ -1479,7 +1481,7 @@ private:
 //-- entry point -----
 extern "C" int main(int argc, char* argv[])
 {
-	MikanTestApp app;
+	MikanTestApp_GL app;
 
 	return app.exec(argc, argv);
 }

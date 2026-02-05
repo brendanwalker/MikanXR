@@ -4,6 +4,7 @@
 #include "SpoutTextureSourceComponent.h"
 #include "SpoutLibrary.h"
 #include "StringUtils.h"
+#include "TextureSourceSettings/AppStage_TextureSourceSettings.h"
 
 #include <easy/profiler.h>
 
@@ -191,6 +192,7 @@ void SpoutTextureSourceComponent::openTextureSource()
 
 // -- Texture Source Interface ---
 IMkTexturePtr SpoutTextureSourceComponent::getClientColorSourceTexture(
+	MikanCameraID cameraId,
 	eTextureSourceColorType textureSourceColorType) const
 {
 	return m_colorTexture;
@@ -231,4 +233,12 @@ bool SpoutTextureSourceComponent::setPropertyValue(
 	}
 
 	return TextureSourceComponent::setPropertyValue(propertyName, inValue);
+}
+
+void SpoutTextureSourceComponent::showTextureSourceSettings()
+{
+	auto* appStage = getOwnerEditorWindow()->pushAppStageOfType<AppStage_TextureSourceSettings>();
+
+	appStage->setSourceCameraId(INVALID_MIKAN_ID); // No camera needed for spout sources
+	appStage->setTextureSourceComponent(getSelfPtr<TextureSourceComponent>());
 }

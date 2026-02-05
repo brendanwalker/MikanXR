@@ -45,10 +45,10 @@ namespace MikanXR
 		public static extern int Mikan_GetClientAPIVersion();
 
 		[DllImport("MikanClientCore.dll")]
-		public static extern IntPtr Mikan_GetClientUniqueID(IntPtr context);
+		public static extern IntPtr Mikan_GetClientName(IntPtr context);
 		public static string GetClientUniqueID(IntPtr context)
 		{
-			return Marshal.PtrToStringAnsi(Mikan_GetClientUniqueID(context));
+			return Marshal.PtrToStringAnsi(Mikan_GetClientName(context));
 		}
 
 		[DllImport("MikanClientCore.dll")]

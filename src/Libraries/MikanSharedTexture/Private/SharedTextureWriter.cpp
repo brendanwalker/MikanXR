@@ -4,29 +4,66 @@
 #include "SpoutDXDepthTexturePacker.h"
 #include "SpoutLibrary.h"
 #include "SharedTextureLogger.h"
+#include "SharedTextureUtility.h"
 
 #include "assert.h"
 #include <sstream>
 
-// Define DXGI_FORMAT enum values ourselves if we don't use SPOUTDX API
-//enum DXGI_FORMAT
-//{
-//	DXGI_FORMAT_R8G8B8A8_UNORM                          = 28,
-//    DXGI_FORMAT_B8G8R8A8_UNORM                          = 87,
-//};
+// -- SharedTextureWriteAccessor -----
+class SharedTextureWriteAccessor : public ISharedTextureWriteAccessor
+{
+public:
+	SharedTextureWriteAccessor(const std::string& senderPrefix, MikanCameraID cameraId);
+	~SharedTextureWriteAccessor();
 
+	inline SharedTextureLogger& getLogger() { return m_logger; }
+	inline SharedClientGraphicsApi getGraphicsApi() const { return m_graphicsAPI; }
+	inline const std::string& getColorSenderName() const { return m_colorSenderName; }
+	inline const std::string& getDepthSenderName() const { return m_depthSenderName; }
+	inline bool getEnableFrameCounter() const { return m_bEnableFrameCounter; }
+
+	virtual bool getIsInitialized() const;
+	virtual void setLogCallback(SharedTextureLogCallback callback) override;
+
+	virtual bool initialize(
+		const SharedTextureDescriptor* descriptor,
+		bool bEnableFrameCounter,
+		void* apiDeviceInterface) override;
+	virtual void dispose() override;
+
+	virtual const SharedTextureDescriptor* getRenderTargetDescriptor() const override;
+	virtual bool writeColorFrameTexture(void* apiTexturePtr) override;
+	virtual bool writeDepthFrameTexture(void* apiTexturePtr, float zNear, float zFar) override;
+	virtual void* getPackDepthTextureResourcePtr() const override;
+
+private:
+	bool m_bIsInitialized = false;
+	const std::string m_senderPrefix;
+	MikanCameraID m_cameraId = -1;
+	std::string m_colorSenderName;
+	std::string m_depthSenderName;
+	SharedTextureDescriptor m_renderTargetDescriptor;
+	bool m_bEnableFrameCounter = false;
+	void* m_apiDeviceInterface = nullptr;
+	union
+	{
+		class SpoutDX11TextureWriter* spoutDX11TextureWriter;
+		class SpoutDX12TextureWriter* spoutDX12TextureWriter;
+		class SpoutOpenGLTextureWriter* spoutOpenGLTextureWriter;
+	} m_writerApi;
+	SharedClientGraphicsApi m_graphicsAPI;
+	SharedTextureLogger m_logger;
+};
+
+// -- SpoutOpenGLTextureWriter -----
 class SpoutOpenGLTextureWriter
 {
 public:
-	SpoutOpenGLTextureWriter(
-		SharedTextureLogger& logger,
-		const std::string& clientName)
-		: m_logger(logger)
-		, m_colorFrameSenderName(clientName+"_color")
-		, m_depthFrameSenderName(clientName+"_depth")
+	SpoutOpenGLTextureWriter(SharedTextureWriteAccessor* parentAccessor)
+		: m_parentAccessor(parentAccessor)
+		, m_logger(parentAccessor->getLogger())
 		, m_spoutColorFrame(nullptr)
 		, m_spoutDepthFrame(nullptr)
-		, m_descriptor()
 	{
 	}
 
@@ -35,8 +72,9 @@ public:
 		dispose();
 	}
 
-	bool init(const SharedTextureDescriptor* descriptor, bool bEnableFrameCounter)
+	bool init()
 	{
+		const SharedTextureDescriptor* descriptor= m_parentAccessor->getRenderTargetDescriptor();
 		bool bSuccess = true;
 
 		dispose();
@@ -53,14 +91,14 @@ public:
 		{
 			m_spoutColorFrame->EnableSpoutLog();
 			m_spoutColorFrame->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
-			m_spoutColorFrame->SetSenderName(m_colorFrameSenderName.c_str());
+			m_spoutColorFrame->SetSenderName(m_parentAccessor->getColorSenderName().c_str());
 
 			if (descriptor->color_buffer_type == SharedColorBufferType::BGRA32)
 				m_spoutColorFrame->SetSenderFormat((DWORD)DXGI_FORMAT_B8G8R8A8_UNORM);
 			else
 				m_spoutColorFrame->SetSenderFormat((DWORD)DXGI_FORMAT_R8G8B8A8_UNORM);
 
-			m_spoutColorFrame->SetFrameCount(bEnableFrameCounter);
+			m_spoutColorFrame->SetFrameCount(m_parentAccessor->getEnableFrameCounter());
 		}
 		else
 		{
@@ -75,11 +113,11 @@ public:
 		{
 			m_spoutDepthFrame->EnableSpoutLog();
 			m_spoutDepthFrame->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
-			m_spoutDepthFrame->SetSenderName(m_depthFrameSenderName.c_str());
+			m_spoutDepthFrame->SetSenderName(m_parentAccessor->getDepthSenderName().c_str());
 
 			m_spoutDepthFrame->SetSenderFormat((DWORD)DXGI_FORMAT_R8G8B8A8_UNORM);
 
-			m_spoutDepthFrame->SetFrameCount(bEnableFrameCounter);
+			m_spoutDepthFrame->SetFrameCount(m_parentAccessor->getEnableFrameCounter());
 		}
 		else if (descriptor->depth_buffer_type == SharedDepthBufferType::NODEPTH)
 		{
@@ -93,8 +131,6 @@ public:
 			m_logger.log(SharedTextureLogLevel::info, ss.str());
 			bSuccess = false;
 		}
-
-		m_descriptor= *descriptor;
 
 		return bSuccess;
 	}
@@ -118,7 +154,9 @@ public:
 	{
 		if (m_spoutColorFrame != nullptr)
 		{
-			return m_spoutColorFrame->SendTexture(textureID, GL_TEXTURE_2D, m_descriptor.width, m_descriptor.height);
+			const SharedTextureDescriptor* descriptor= m_parentAccessor->getRenderTargetDescriptor();
+
+			return m_spoutColorFrame->SendTexture(textureID, GL_TEXTURE_2D, descriptor->width, descriptor->height);
 		}
 
 		return false;
@@ -128,9 +166,11 @@ public:
 	{
 		if (m_spoutDepthFrame != nullptr)
 		{
+			const SharedTextureDescriptor* descriptor= m_parentAccessor->getRenderTargetDescriptor();
+
 			return m_spoutDepthFrame->SendTexture(
 				textureID, GL_TEXTURE_2D, 
-				m_descriptor.width, m_descriptor.height);
+				descriptor->width, descriptor->height);
 		}
 
 		return false;
@@ -143,10 +183,8 @@ public:
 	}
 
 private:
+	SharedTextureWriteAccessor* m_parentAccessor= nullptr;
 	SharedTextureLogger& m_logger;
-	std::string m_colorFrameSenderName;
-	std::string m_depthFrameSenderName;
-	SharedTextureDescriptor m_descriptor;
 	SPOUTLIBRARY* m_spoutColorFrame;
 	SPOUTLIBRARY* m_spoutDepthFrame;
 };
@@ -154,12 +192,9 @@ private:
 class SpoutDX11TextureWriter
 {
 public:
-	SpoutDX11TextureWriter(
-		SharedTextureLogger& logger,
-		const std::string& clientName)
-		: m_logger(logger)
-		, m_colorFrameSenderName(clientName+"_color")
-		, m_depthFrameSenderName(clientName+"_depth")
+	SpoutDX11TextureWriter(SharedTextureWriteAccessor* parentAccessor)
+		: m_parentAccessor(parentAccessor)
+		, m_logger(parentAccessor->getLogger())
 		, m_spoutColorFrame()
 		, m_spoutDepthFrame()
 		, m_depthTexturePacker(nullptr)
@@ -171,9 +206,10 @@ public:
 		dispose();
 	}
 
-	bool init(const SharedTextureDescriptor* descriptor, bool bEnableFrameCounter, void* apiDeviceInterface)
+	bool init()
 	{
-		ID3D11Device* d3d11Device= (ID3D11Device*)apiDeviceInterface;
+		const SharedTextureDescriptor* descriptor= m_parentAccessor->getRenderTargetDescriptor();
+		ID3D11Device* d3d11Device= (ID3D11Device*)m_parentAccessor->getGraphicsApi();
 		bool bSuccess = true;
 
 		dispose();
@@ -187,14 +223,14 @@ public:
 			descriptor->color_buffer_type == SharedColorBufferType::BGRA32)
 		{
 			if (m_spoutColorFrame.OpenDirectX11(d3d11Device) &&
-				m_spoutColorFrame.SetSenderName(m_colorFrameSenderName.c_str()))
+				m_spoutColorFrame.SetSenderName(m_parentAccessor->getColorSenderName().c_str()))
 			{
 				if (descriptor->color_buffer_type == SharedColorBufferType::BGRA32)
 					m_spoutColorFrame.SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
 				else
 					m_spoutColorFrame.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
 
-				if (!bEnableFrameCounter)
+				if (!m_parentAccessor->getEnableFrameCounter())
 					m_spoutColorFrame.DisableFrameCount();
 
 				m_bIsColorFrameInitialized= true;
@@ -218,7 +254,7 @@ public:
 		if (descriptor->depth_buffer_type != SharedDepthBufferType::NODEPTH)
 		{
 			if (m_spoutDepthFrame.OpenDirectX11(d3d11Device) &&
-				m_spoutDepthFrame.SetSenderName(m_depthFrameSenderName.c_str()))
+				m_spoutDepthFrame.SetSenderName(m_parentAccessor->getDepthSenderName().c_str()))
 			{
 				// Initialize the depth texture packer if we are sending float depth textures
 				if (descriptor->depth_buffer_type == SharedDepthBufferType::FLOAT_DEVICE_DEPTH ||
@@ -234,7 +270,7 @@ public:
 
 				m_spoutDepthFrame.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
 
-				if (!bEnableFrameCounter)
+				if (!m_parentAccessor->getEnableFrameCounter())
 					m_spoutDepthFrame.DisableFrameCount();
 
 				m_bIsDepthFrameInitialized= true;
@@ -304,9 +340,8 @@ public:
 	}
 
 private:
+	SharedTextureWriteAccessor* m_parentAccessor;
 	SharedTextureLogger& m_logger;
-	std::string m_colorFrameSenderName;
-	std::string m_depthFrameSenderName;
 	spoutDX m_spoutColorFrame;
 	spoutDX m_spoutDepthFrame;
 	SpoutDXDepthTexturePacker* m_depthTexturePacker= nullptr;
@@ -317,12 +352,9 @@ private:
 class SpoutDX12TextureWriter
 {
 public:
-	SpoutDX12TextureWriter(
-		SharedTextureLogger& logger,
-		const std::string& clientName)
-		: m_logger(logger)
-		, m_colorFrameSenderName(clientName + "_color")
-		, m_depthFrameSenderName(clientName + "_depth")
+	SpoutDX12TextureWriter(SharedTextureWriteAccessor* parentAccessor)
+		: m_parentAccessor(parentAccessor)
+		, m_logger(parentAccessor->getLogger())
 		, m_spoutColorFrame()
 		, m_spoutDepthFrame()
 		, m_depthTexturePacker(nullptr)
@@ -333,9 +365,10 @@ public:
 		dispose();
 	}
 
-	bool init(const SharedTextureDescriptor* descriptor, bool bEnableFrameCounter, void* apiDeviceInterface)
+	bool init()
 	{
-		ID3D12Device* d3d12Device = (ID3D12Device*)apiDeviceInterface;
+		const SharedTextureDescriptor* descriptor= m_parentAccessor->getRenderTargetDescriptor();
+		ID3D12Device* d3d12Device = (ID3D12Device*)m_parentAccessor->getGraphicsApi();
 		bool bSuccess = true;
 
 		dispose();
@@ -349,14 +382,14 @@ public:
 			descriptor->color_buffer_type == SharedColorBufferType::BGRA32)
 		{
 			if (m_spoutColorFrame.OpenDirectX12(d3d12Device) &&
-				m_spoutColorFrame.SetSenderName(m_colorFrameSenderName.c_str()))
+				m_spoutColorFrame.SetSenderName(m_parentAccessor->getColorSenderName().c_str()))
 			{
 				if (descriptor->color_buffer_type == SharedColorBufferType::BGRA32)
 					m_spoutColorFrame.SetSenderFormat(DXGI_FORMAT_B8G8R8A8_UNORM);
 				else
 					m_spoutColorFrame.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
 
-				if (!bEnableFrameCounter)
+				if (!m_parentAccessor->getEnableFrameCounter())
 					m_spoutColorFrame.DisableFrameCount();
 
 				m_bIsColorFrameInitialized = true;
@@ -380,7 +413,7 @@ public:
 		if (descriptor->depth_buffer_type != SharedDepthBufferType::NODEPTH)
 		{
 			if (m_spoutDepthFrame.OpenDirectX12(d3d12Device) &&
-				m_spoutDepthFrame.SetSenderName(m_depthFrameSenderName.c_str()))
+				m_spoutDepthFrame.SetSenderName(m_parentAccessor->getDepthSenderName().c_str()))
 			{
 				// Initialize the depth texture packer if we are sending float depth textures
 				if (descriptor->depth_buffer_type == SharedDepthBufferType::FLOAT_DEVICE_DEPTH ||
@@ -396,7 +429,7 @@ public:
 
 				m_spoutDepthFrame.SetSenderFormat(DXGI_FORMAT_R8G8B8A8_UNORM);
 
-				if (!bEnableFrameCounter)
+				if (!m_parentAccessor->getEnableFrameCounter())
 					m_spoutDepthFrame.DisableFrameCount();
 
 				m_bIsDepthFrameInitialized = true;
@@ -519,9 +552,8 @@ public:
 	}
 
 private:
+	SharedTextureWriteAccessor* m_parentAccessor;
 	SharedTextureLogger& m_logger;
-	std::string m_colorFrameSenderName;
-	std::string m_depthFrameSenderName;
 	spoutDX12 m_spoutColorFrame;
 	ID3D12Resource* m_spoutDX12ColorTexture = nullptr;
 	ID3D11Resource* m_spoutDX11ColorTexture = nullptr;
@@ -534,255 +566,230 @@ private:
 };
 
 //-- SharedTextureWriteAccessor -----
-class SharedTextureWriteAccessor : public ISharedTextureWriteAccessor
+SharedTextureWriteAccessor::SharedTextureWriteAccessor(const std::string& senderPrefix, MikanCameraID cameraId)
+	: m_senderPrefix(senderPrefix)
+	, m_cameraId(cameraId)
+	, m_graphicsAPI(SharedClientGraphicsApi::UNKNOWN)
 {
-public:
-	SharedTextureWriteAccessor(const std::string& clientName)
-		: m_clientName(clientName)
-		, m_graphicsAPI(SharedClientGraphicsApi::UNKNOWN)
+}
+
+SharedTextureWriteAccessor::~SharedTextureWriteAccessor()
+{
+	dispose();
+}
+
+bool SharedTextureWriteAccessor::getIsInitialized() const
+{ 
+	return m_bIsInitialized; 
+}
+
+void SharedTextureWriteAccessor::setLogCallback(SharedTextureLogCallback callback)
+{
+	m_logger.setLogCallback(callback);
+}
+
+bool SharedTextureWriteAccessor::initialize(
+	const SharedTextureDescriptor* descriptor,
+	bool bEnableFrameCounter,
+	void* apiDeviceInterface)
+{
+	dispose();
+
+	m_renderTargetDescriptor = *descriptor;
+	m_bEnableFrameCounter = bEnableFrameCounter;
+	m_apiDeviceInterface = apiDeviceInterface;
+
+	if (!makeSpoutSenderName(
+			m_senderPrefix,
+			m_cameraId,
+			SharedTextureType::COLOR,
+			m_colorSenderName))
 	{
-	}
-
-	~SharedTextureWriteAccessor()
-	{
-		dispose();
-	}
-
-	virtual bool getIsInitialized() const
-	{ 
-		return m_bIsInitialized; 
-	}
-
-	virtual void setLogCallback(SharedTextureLogCallback callback) override
-	{
-		m_logger.setLogCallback(callback);
-	}
-
-	virtual bool setClientName(const std::string& clientName) override
-	{
-		if (!clientName.empty())
-		{
-			if (m_clientName != clientName)
-			{
-				if (getIsInitialized())
-				{
-					// Backup the existing settings
-					const SharedTextureDescriptor descriptor = m_renderTargetDescriptor;
-					bool bEnableFrameCounter = m_bEnableFrameCounter;
-					void* apiDeviceInterface = m_apiDeviceInterface;
-
-					// Clean up the old writer
-					dispose();
-
-					// Set the new client name
-					m_clientName = clientName;
-
-					// Restart the writer with the new name, but same settings
-					initialize(&descriptor, bEnableFrameCounter, apiDeviceInterface);
-				}
-				else
-				{
-					m_clientName = clientName;
-				}
-			}
-
-			return true;
-		}
-
+		m_logger.log(SharedTextureLogLevel::error, "SharedTextureWriteAccessor::initialize() - Failed to create spout color texture sender name");
 		return false;
 	}
 
-	virtual bool initialize(
-		const SharedTextureDescriptor* descriptor,
-		bool bEnableFrameCounter,
-		void* apiDeviceInterface) override
+	if (descriptor->depth_buffer_type != SharedDepthBufferType::NODEPTH)
 	{
-		dispose();
-
-		m_renderTargetDescriptor = *descriptor;
-		m_bEnableFrameCounter = bEnableFrameCounter;
-		m_apiDeviceInterface = apiDeviceInterface;
-
-		if (descriptor->graphicsAPI == SharedClientGraphicsApi::OpenGL)
+		if (!makeSpoutSenderName(
+				m_senderPrefix,
+				m_cameraId,
+				SharedTextureType::DEPTH,
+				m_depthSenderName))
 		{
-			m_writerApi.spoutOpenGLTextureWriter = new SpoutOpenGLTextureWriter(m_logger, m_clientName);
-			m_graphicsAPI = SharedClientGraphicsApi::OpenGL;
-
-			m_bIsInitialized = m_writerApi.spoutOpenGLTextureWriter->init(descriptor, bEnableFrameCounter);
+			m_logger.log(SharedTextureLogLevel::error, "SharedTextureWriteAccessor::initialize() - Failed to create spout depth texture sender name");
+			return false;
 		}
-		else if (descriptor->graphicsAPI == SharedClientGraphicsApi::Direct3D11)
-		{
-			m_writerApi.spoutDX11TextureWriter = new SpoutDX11TextureWriter(m_logger, m_clientName);
-			m_graphicsAPI = SharedClientGraphicsApi::Direct3D11;
-
-			m_bIsInitialized = m_writerApi.spoutDX11TextureWriter->init(descriptor, bEnableFrameCounter, apiDeviceInterface);
-			if (m_bIsInitialized &&
-				(m_renderTargetDescriptor.depth_buffer_type == SharedDepthBufferType::FLOAT_DEVICE_DEPTH ||
-				 m_renderTargetDescriptor.depth_buffer_type == SharedDepthBufferType::FLOAT_SCENE_DEPTH))
-			{
-				// Override the depth buffer type to RGBA8, as Spout only supports sending RGBA8/BGR8 textures
-				m_renderTargetDescriptor.depth_buffer_type = SharedDepthBufferType::PACK_DEPTH_RGBA;
-			}
-		}
-		else if (descriptor->graphicsAPI == SharedClientGraphicsApi::Direct3D12)
-		{
-			m_writerApi.spoutDX12TextureWriter = new SpoutDX12TextureWriter(m_logger, m_clientName);
-			m_graphicsAPI = SharedClientGraphicsApi::Direct3D12;
-
-			m_bIsInitialized = m_writerApi.spoutDX12TextureWriter->init(descriptor, bEnableFrameCounter, apiDeviceInterface);
-			if (m_bIsInitialized &&
-				(m_renderTargetDescriptor.depth_buffer_type == SharedDepthBufferType::FLOAT_DEVICE_DEPTH ||
-				 m_renderTargetDescriptor.depth_buffer_type == SharedDepthBufferType::FLOAT_SCENE_DEPTH))
-			{
-				// Override the depth buffer type to RGBA8, as Spout only supports sending RGBA8/BGR8 textures
-				m_renderTargetDescriptor.depth_buffer_type = SharedDepthBufferType::PACK_DEPTH_RGBA;
-			}
-		}
-
-		return m_bIsInitialized;
+	}
+	else
+	{
+		m_depthSenderName= "";
 	}
 
-	virtual void dispose() override
+	if (descriptor->graphicsAPI == SharedClientGraphicsApi::OpenGL)
 	{
-		if (m_graphicsAPI == SharedClientGraphicsApi::OpenGL)
-		{
-			if (m_writerApi.spoutOpenGLTextureWriter != nullptr)
-			{
-				m_writerApi.spoutOpenGLTextureWriter->dispose();
-				delete m_writerApi.spoutOpenGLTextureWriter;
-				m_writerApi.spoutOpenGLTextureWriter = nullptr;
-			}
-		}
-		else if (m_graphicsAPI == SharedClientGraphicsApi::Direct3D11)
-		{
-			if (m_writerApi.spoutDX11TextureWriter != nullptr)
-			{
-				m_writerApi.spoutDX11TextureWriter->dispose();
-				delete m_writerApi.spoutDX11TextureWriter;
-				m_writerApi.spoutDX11TextureWriter = nullptr;
-			}
-		}
-		else if (m_graphicsAPI == SharedClientGraphicsApi::Direct3D12)
-		{
-			if (m_writerApi.spoutDX12TextureWriter != nullptr)
-			{
-				m_writerApi.spoutDX12TextureWriter->dispose();
-				delete m_writerApi.spoutDX12TextureWriter;
-				m_writerApi.spoutDX12TextureWriter = nullptr;
-			}
-		}
+		m_writerApi.spoutOpenGLTextureWriter = new SpoutOpenGLTextureWriter(this);
+		m_graphicsAPI = SharedClientGraphicsApi::OpenGL;
 
-		m_bEnableFrameCounter = false;
-		m_apiDeviceInterface = nullptr;
-		m_graphicsAPI = SharedClientGraphicsApi::UNKNOWN;
-		m_bIsInitialized = false;
+		m_bIsInitialized = m_writerApi.spoutOpenGLTextureWriter->init();
 	}
-
-	virtual const SharedTextureDescriptor* getRenderTargetDescriptor() const override
+	else if (descriptor->graphicsAPI == SharedClientGraphicsApi::Direct3D11)
 	{
-		return &m_renderTargetDescriptor;
+		m_writerApi.spoutDX11TextureWriter = new SpoutDX11TextureWriter(this);
+		m_graphicsAPI = SharedClientGraphicsApi::Direct3D11;
+
+		m_bIsInitialized = m_writerApi.spoutDX11TextureWriter->init();
+		if (m_bIsInitialized &&
+			(m_renderTargetDescriptor.depth_buffer_type == SharedDepthBufferType::FLOAT_DEVICE_DEPTH ||
+				m_renderTargetDescriptor.depth_buffer_type == SharedDepthBufferType::FLOAT_SCENE_DEPTH))
+		{
+			// Override the depth buffer type to RGBA8, as Spout only supports sending RGBA8/BGR8 textures
+			m_renderTargetDescriptor.depth_buffer_type = SharedDepthBufferType::PACK_DEPTH_RGBA;
+		}
 	}
-
-	virtual bool writeColorFrameTexture(void* apiTexturePtr) override
+	else if (descriptor->graphicsAPI == SharedClientGraphicsApi::Direct3D12)
 	{
-		bool bSuccess = false;
+		m_writerApi.spoutDX12TextureWriter = new SpoutDX12TextureWriter(this);
+		m_graphicsAPI = SharedClientGraphicsApi::Direct3D12;
 
-		if (m_graphicsAPI == SharedClientGraphicsApi::OpenGL)
+		m_bIsInitialized = m_writerApi.spoutDX12TextureWriter->init();
+		if (m_bIsInitialized &&
+			(m_renderTargetDescriptor.depth_buffer_type == SharedDepthBufferType::FLOAT_DEVICE_DEPTH ||
+				m_renderTargetDescriptor.depth_buffer_type == SharedDepthBufferType::FLOAT_SCENE_DEPTH))
 		{
-			GLuint* textureId = (GLuint*)apiTexturePtr;
-
-			bSuccess = m_writerApi.spoutOpenGLTextureWriter->writeColorFrameTexture(*textureId);
-		}
-		else if (m_graphicsAPI == SharedClientGraphicsApi::Direct3D11)
-		{
-			ID3D11Texture2D* dx11Texture = (ID3D11Texture2D*)apiTexturePtr;
-
-			bSuccess = m_writerApi.spoutDX11TextureWriter->writeColorFrameTexture(dx11Texture);
-		}
-		else if (m_graphicsAPI == SharedClientGraphicsApi::Direct3D12)
-		{
-			ID3D12Resource* dx12Texture = (ID3D12Resource*)apiTexturePtr;
-
-			bSuccess = m_writerApi.spoutDX12TextureWriter->writeColorFrameTexture(dx12Texture);
-		}
-		else
-		{
-			bSuccess = false;
-		}
-
-		return true;
-	}
-
-	virtual bool writeDepthFrameTexture(
-		void* apiTexturePtr,
-		float zNear,
-		float zFar) override
-	{
-		bool bSuccess = false;
-
-		if (m_graphicsAPI == SharedClientGraphicsApi::OpenGL)
-		{
-			GLuint* textureId = (GLuint*)apiTexturePtr;
-
-			bSuccess = m_writerApi.spoutOpenGLTextureWriter->writeDepthFrameTexture(*textureId, zNear, zFar);
-		}
-		else if (m_graphicsAPI == SharedClientGraphicsApi::Direct3D11)
-		{
-			ID3D11Texture2D* dx11Texture = (ID3D11Texture2D*)apiTexturePtr;
-
-			bSuccess = m_writerApi.spoutDX11TextureWriter->writeDepthFrameTexture(dx11Texture, zNear, zFar);
-		}
-		else if (m_graphicsAPI == SharedClientGraphicsApi::Direct3D12)
-		{
-			ID3D12Resource* dx12Texture = (ID3D12Resource*)apiTexturePtr;
-
-			bSuccess = m_writerApi.spoutDX12TextureWriter->writeDepthFrameTexture(dx12Texture, zNear, zFar);
-		}
-		else
-		{
-			bSuccess = false;
-		}
-
-		return true;
-	}
-
-	virtual void* getPackDepthTextureResourcePtr() const override
-	{
-		if (m_graphicsAPI == SharedClientGraphicsApi::OpenGL)
-		{
-			return m_writerApi.spoutOpenGLTextureWriter->getPackDepthTextureResourcePtr();
-		}
-		else if (m_graphicsAPI == SharedClientGraphicsApi::Direct3D11)
-		{
-			return m_writerApi.spoutDX11TextureWriter->getPackDepthTextureResourcePtr();
-		}
-		else if (m_graphicsAPI == SharedClientGraphicsApi::Direct3D12)
-		{
-			return m_writerApi.spoutDX12TextureWriter->getPackDepthTextureResourcePtr();
-		}
-		else
-		{
-			return nullptr;
+			// Override the depth buffer type to RGBA8, as Spout only supports sending RGBA8/BGR8 textures
+			m_renderTargetDescriptor.depth_buffer_type = SharedDepthBufferType::PACK_DEPTH_RGBA;
 		}
 	}
 
-private:
-	bool m_bIsInitialized = false;
-	std::string m_clientName;
-	SharedTextureDescriptor m_renderTargetDescriptor;
-	bool m_bEnableFrameCounter= false;
-	void* m_apiDeviceInterface= nullptr;
-	union
-	{
-		SpoutDX11TextureWriter* spoutDX11TextureWriter;
-		SpoutDX12TextureWriter* spoutDX12TextureWriter;
-		SpoutOpenGLTextureWriter* spoutOpenGLTextureWriter;
-	} m_writerApi;
-	SharedClientGraphicsApi m_graphicsAPI;
-	SharedTextureLogger m_logger;
-};
+	return m_bIsInitialized;
+}
 
-ISharedTextureWriteAccessorPtr createSharedTextureWriteAccessor(const std::string& clientName)
+void SharedTextureWriteAccessor::dispose()
 {
-	return std::make_shared<SharedTextureWriteAccessor>(clientName);
+	if (m_graphicsAPI == SharedClientGraphicsApi::OpenGL)
+	{
+		if (m_writerApi.spoutOpenGLTextureWriter != nullptr)
+		{
+			m_writerApi.spoutOpenGLTextureWriter->dispose();
+			delete m_writerApi.spoutOpenGLTextureWriter;
+			m_writerApi.spoutOpenGLTextureWriter = nullptr;
+		}
+	}
+	else if (m_graphicsAPI == SharedClientGraphicsApi::Direct3D11)
+	{
+		if (m_writerApi.spoutDX11TextureWriter != nullptr)
+		{
+			m_writerApi.spoutDX11TextureWriter->dispose();
+			delete m_writerApi.spoutDX11TextureWriter;
+			m_writerApi.spoutDX11TextureWriter = nullptr;
+		}
+	}
+	else if (m_graphicsAPI == SharedClientGraphicsApi::Direct3D12)
+	{
+		if (m_writerApi.spoutDX12TextureWriter != nullptr)
+		{
+			m_writerApi.spoutDX12TextureWriter->dispose();
+			delete m_writerApi.spoutDX12TextureWriter;
+			m_writerApi.spoutDX12TextureWriter = nullptr;
+		}
+	}
+
+	m_bEnableFrameCounter = false;
+	m_apiDeviceInterface = nullptr;
+	m_graphicsAPI = SharedClientGraphicsApi::UNKNOWN;
+	m_bIsInitialized = false;
+}
+
+const SharedTextureDescriptor* SharedTextureWriteAccessor::getRenderTargetDescriptor() const
+{
+	return &m_renderTargetDescriptor;
+}
+
+bool SharedTextureWriteAccessor::writeColorFrameTexture(void* apiTexturePtr)
+{
+	bool bSuccess = false;
+
+	if (m_graphicsAPI == SharedClientGraphicsApi::OpenGL)
+	{
+		GLuint* textureId = (GLuint*)apiTexturePtr;
+
+		bSuccess = m_writerApi.spoutOpenGLTextureWriter->writeColorFrameTexture(*textureId);
+	}
+	else if (m_graphicsAPI == SharedClientGraphicsApi::Direct3D11)
+	{
+		ID3D11Texture2D* dx11Texture = (ID3D11Texture2D*)apiTexturePtr;
+
+		bSuccess = m_writerApi.spoutDX11TextureWriter->writeColorFrameTexture(dx11Texture);
+	}
+	else if (m_graphicsAPI == SharedClientGraphicsApi::Direct3D12)
+	{
+		ID3D12Resource* dx12Texture = (ID3D12Resource*)apiTexturePtr;
+
+		bSuccess = m_writerApi.spoutDX12TextureWriter->writeColorFrameTexture(dx12Texture);
+	}
+	else
+	{
+		bSuccess = false;
+	}
+
+	return true;
+}
+
+bool SharedTextureWriteAccessor::writeDepthFrameTexture(
+	void* apiTexturePtr,
+	float zNear,
+	float zFar)
+{
+	bool bSuccess = false;
+
+	if (m_graphicsAPI == SharedClientGraphicsApi::OpenGL)
+	{
+		GLuint* textureId = (GLuint*)apiTexturePtr;
+
+		bSuccess = m_writerApi.spoutOpenGLTextureWriter->writeDepthFrameTexture(*textureId, zNear, zFar);
+	}
+	else if (m_graphicsAPI == SharedClientGraphicsApi::Direct3D11)
+	{
+		ID3D11Texture2D* dx11Texture = (ID3D11Texture2D*)apiTexturePtr;
+
+		bSuccess = m_writerApi.spoutDX11TextureWriter->writeDepthFrameTexture(dx11Texture, zNear, zFar);
+	}
+	else if (m_graphicsAPI == SharedClientGraphicsApi::Direct3D12)
+	{
+		ID3D12Resource* dx12Texture = (ID3D12Resource*)apiTexturePtr;
+
+		bSuccess = m_writerApi.spoutDX12TextureWriter->writeDepthFrameTexture(dx12Texture, zNear, zFar);
+	}
+	else
+	{
+		bSuccess = false;
+	}
+
+	return true;
+}
+
+void* SharedTextureWriteAccessor::getPackDepthTextureResourcePtr() const
+{
+	if (m_graphicsAPI == SharedClientGraphicsApi::OpenGL)
+	{
+		return m_writerApi.spoutOpenGLTextureWriter->getPackDepthTextureResourcePtr();
+	}
+	else if (m_graphicsAPI == SharedClientGraphicsApi::Direct3D11)
+	{
+		return m_writerApi.spoutDX11TextureWriter->getPackDepthTextureResourcePtr();
+	}
+	else if (m_graphicsAPI == SharedClientGraphicsApi::Direct3D12)
+	{
+		return m_writerApi.spoutDX12TextureWriter->getPackDepthTextureResourcePtr();
+	}
+	else
+	{
+		return nullptr;
+	}
+}
+
+ISharedTextureWriteAccessorPtr createSharedTextureWriteAccessor(const std::string& prefix, MikanCameraID cameraId)
+{
+	return std::make_shared<SharedTextureWriteAccessor>(prefix, cameraId);
 }

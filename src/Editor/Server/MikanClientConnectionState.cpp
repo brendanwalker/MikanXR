@@ -3,7 +3,6 @@
 #include "MikanServer.h"
 #include "MikanPropertyEvents.h"
 #include "PropertyNotifyDatabase.h"
-#include "RenderTargetRequestHandler.h"
 #include "ServerResponseHelpers.h"
 
 MikanClientConnectionState::MikanClientConnectionState(
@@ -30,19 +29,16 @@ const std::string& MikanClientConnectionState::getClientId() const
 void MikanClientConnectionState::setMikanClientInfo(const MikanClientInfo& clientInfo)
 {
 	// Free any existing render target
-	m_renderTargetClientState->disposeRenderTargetAccessor();
+	m_renderTargetClientState->disposeAllRenderTargetAccessors();
 
 	// Set the new client info describing the client render capabilities
 	m_clientInfo = clientInfo;
-
-	// Allocate a new render target accessor
-	m_renderTargetClientState->allocateRenderTargetAccessor();
 }
 
 void MikanClientConnectionState::clearMikanClientInfo()
 {
 	// Free any existing render target
-	m_renderTargetClientState->disposeRenderTargetAccessor();
+	m_renderTargetClientState->disposeAllRenderTargetAccessors();
 
 	// Reset the client info with defaults
 	m_clientInfo = MikanClientInfo();

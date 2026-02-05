@@ -15,7 +15,12 @@ class AppStage_TextureSourceSettings : public AppStage
 public:
 	AppStage_TextureSourceSettings(class IEditorWindow* ownerWindow);
 
-	void setTextureSourceComponent(TextureSourceComponentPtr textureSourceComponent)
+	inline void setSourceCameraId(MikanCameraID cameraId)
+	{
+		m_cameraId= cameraId;
+	}
+
+	inline void setTextureSourceComponent(TextureSourceComponentPtr textureSourceComponent)
 	{
 		m_textureSourceComponent = textureSourceComponent;
 	}
@@ -31,6 +36,7 @@ protected:
 
 	Rml::ElementDocument* m_TextureSourceSettingsView = nullptr;
 
+	MikanCameraID m_cameraId= INVALID_MIKAN_ID;
 	TextureSourceComponentWeakPtr m_textureSourceComponent;
 	IMkTriangulatedMeshPtr m_fullscreenRGBQuad;
 	IMkTriangulatedMeshPtr m_fullscreenRGBAQuad;

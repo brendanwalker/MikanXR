@@ -3,9 +3,23 @@ file(GLOB MIKAN_DX_TEST_SRC
     "${CMAKE_CURRENT_LIST_DIR}/*.h"
     "${CMAKE_CURRENT_LIST_DIR}/*.cpp"
 )
+source_group("Test" FILES ${MIKAN_DX_TEST_SRC})
 
-list(APPEND MIKAN_DX_TEST_INCL_DIRS
+# Mikan Client Test App
+file(GLOB MIKAN_SHARED_TEST_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/../Shared/*.h"
+    "${CMAKE_CURRENT_LIST_DIR}/../Shared/*.cpp"
+)
+source_group("Shared" FILES ${MIKAN_SHARED_TEST_SRC})
+
+set(MIKAN_TEST_SRC
+    ${MIKAN_DX_TEST_SRC}
+    ${MIKAN_SHARED_TEST_SRC}
+)
+
+list(APPEND MIKAN_TEST_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}
+  ${CMAKE_CURRENT_LIST_DIR}/../Shared
   ${MIKAN_LIBRARIES_DIR}/MikanClientAPI/Public
   ${MIKAN_LIBRARIES_DIR}/MikanClientCore/Public
   ${MIKAN_LIBRARIES_DIR}/MikanCoreApp/Public
@@ -27,8 +41,8 @@ list(APPEND MIKAN_DX_TEST_REQ_LIBS
   MikanSerialization
   MikanUtility)
 
-add_executable(MikanDX_Test WIN32 ${MIKAN_DX_TEST_SRC})
-target_include_directories(MikanDX_Test PUBLIC ${MIKAN_DX_TEST_INCL_DIRS})
+add_executable(MikanDX_Test WIN32 ${MIKAN_TEST_SRC})
+target_include_directories(MikanDX_Test PUBLIC ${MIKAN_TEST_INCL_DIRS})
 target_link_libraries(MikanDX_Test ${MIKAN_DX_TEST_REQ_LIBS})
 SET_TARGET_PROPERTIES(MikanDX_Test PROPERTIES FOLDER Test)
 

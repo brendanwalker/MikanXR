@@ -8,14 +8,13 @@
 #include "MikanClientConnectionState.h"
 #include "MikanClientRequests.h"
 #include "MikanCoreTypes.h"
-#include "MikanRenderTargetRequests.h"
+#include "MikanCameraRequests.h"
 #include "MikanScriptRequests.h"
 #include "MikanServer.h"
 #include "MikanStencilRequests.h"
 #include "ProjectConfig.h"
 #include "PropertyRequestHandler.h"
 #include "RemoteControlManager.h"
-#include "RenderTargetRequestHandler.h"
 #include "ScriptRequestHandler.h"
 #include "ServerResponseHelpers.h"
 #include "StencilRequestHandler.h"
@@ -46,7 +45,6 @@ MikanServer::MikanServer()
 	, m_cameraRequestHandler(new CameraRequestHandler(this))
 	, m_propertyRequestHandler(new PropertyRequestHandler(this))
 	, m_remoteControlManager(new RemoteControlManager(this))
-	, m_renderTargetRequestHandler(new RenderTargetRequestHandler(this))
 	, m_scriptRequestHandler(new ScriptRequestHandler(this))
 	, m_stencilRequestHandler(new StencilRequestHandler(this))
 	, m_textureSourceRequestHandler(new TextureSourceRequestHandler(this))
@@ -62,7 +60,6 @@ MikanServer::~MikanServer()
 	delete m_stencilRequestHandler;
 	delete m_scriptRequestHandler;
 	delete m_remoteControlManager;
-	delete m_renderTargetRequestHandler;
 	delete m_propertyRequestHandler;
 	delete m_cameraRequestHandler;
 	delete m_messageServer;
@@ -92,12 +89,6 @@ bool MikanServer::startup(MainWindow* mainWindow)
 	if (!m_propertyRequestHandler->startup(mainWindow))
 	{
 		MIKAN_LOG_ERROR("MikanServer::startup()") << "Failed to bind property request handlers";
-		return false;
-	}
-
-	if (!m_renderTargetRequestHandler->startup(mainWindow))
-	{
-		MIKAN_LOG_ERROR("MikanServer::startup()") << "Failed to bind render target request handlers";
 		return false;
 	}
 
@@ -176,7 +167,6 @@ void MikanServer::shutdown()
 	m_scriptRequestHandler->shutdown();
 	m_stencilRequestHandler->shutdown();
 	m_remoteControlManager->shutdown();
-	m_renderTargetRequestHandler->shutdown();
 	m_textureSourceRequestHandler->shutdown();
 	m_videoSourceRequestHandler->shutdown();
 
@@ -290,7 +280,7 @@ bool MikanServer::disposeClientInfo(MikanClientConnectionStatePtr connectionStat
 
 		// Make sure all render target textures are freed before disposing the client info
 		// (Client may have already done this)
-		connectionState->getRenderTargetClientState()->freeRenderTargetTexturesHandler();
+		connectionState->getRenderTargetClientState()->disposeAllRenderTargetAccessors();
 
 		// Tell any listeners that the given client ID has initialized is clearing its client info
 		if (OnClientDisposed)
@@ -419,7 +409,7 @@ void MikanServer::disposeClientHandler(const ClientRequest& request, ClientRespo
 		RenderTargetClientState* renderTargetClientState= connectionState->getRenderTargetClientState();
 
 		// Tear down any active render target textures before destroying the client info
-		renderTargetClientState->freeRenderTargetTexturesHandler();
+		renderTargetClientState->disposeAllRenderTargetAccessors();
 
 		if (disposeClientInfo(connectionState))
 		{

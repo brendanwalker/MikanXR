@@ -37,8 +37,8 @@ public:
 	const std::string& getClientSourceName() const;
 
 	// Texture Source Interface
-	IMkTexturePtr getClientColorSourceTexture(eTextureSourceColorType textureSourceColorType) const;
-	IMkTexturePtr getClientDepthSourceTexture(eTextureSourceDepthType textureSourceColorType) const;
+	IMkTexturePtr getClientColorSourceTexture(MikanCameraID cameraId, eTextureSourceColorType textureSourceColorType) const;
+	IMkTexturePtr getClientDepthSourceTexture(MikanCameraID cameraId, eTextureSourceDepthType textureSourceColorType) const;
 
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
@@ -51,6 +51,7 @@ public:
 	// -- IFunctionInterface ----
 	static void getFunctionNamesStatic(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 	{ TextureSourceComponent::getFunctionDescriptors(outDescriptors); }
+	virtual void showTextureSourceSettings() override;
 
 protected:
 	class ClientSourceManager* getClientSourceManager() const;

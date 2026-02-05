@@ -10,11 +10,12 @@ typedef void* MikanContext;
  Calling this function after the api is already initialized will return MikanCoreResult_Success.
  */
 MIKAN_CORE_CAPI(MikanCoreResult) Mikan_Initialize(
+	const char* client_name,
 	MikanLogLevel min_log_level, 
 	MikanLogCallback log_callback, 
 	MikanContext* outContext);
 
-MIKAN_CORE_CAPI(const char *) Mikan_GetClientUniqueID(MikanContext context);
+MIKAN_CORE_CAPI(const char *) Mikan_GetClientName(MikanContext context);
 
 MIKAN_CORE_CAPI(bool) Mikan_GetIsInitialized(MikanContext context);
 
@@ -28,27 +29,35 @@ MIKAN_CORE_CAPI(MikanCoreResult) Mikan_GetGraphicsDeviceInterface(
 	MikanClientGraphicsApi api, 
 	void** outGraphicsDeviceInterface);
 
-MIKAN_CORE_CAPI(MikanCoreResult) Mikan_GetRenderTargetDescriptor(
+MIKAN_CORE_CAPI(MikanCoreResult) Mikan_GetCameraRenderTargetDescriptor(
 	MikanContext context,
+	MikanCameraID camera_id,
 	MikanRenderTargetDescriptor* out_descriptor);
 
-MIKAN_CORE_CAPI(MikanCoreResult) Mikan_AllocateRenderTargetTextures(
+MIKAN_CORE_CAPI(MikanCoreResult) Mikan_AllocateCameraRenderTargetTextures(
 	MikanContext context, 
+	MikanCameraID camera_id,
 	const MikanRenderTargetDescriptor* descriptor);
 
-MIKAN_CORE_CAPI(MikanCoreResult) Mikan_FreeRenderTargetTextures(MikanContext context);
-
-MIKAN_CORE_CAPI(MikanCoreResult) Mikan_WriteColorRenderTargetTexture(
+MIKAN_CORE_CAPI(MikanCoreResult) Mikan_FreeCameraRenderTargetTextures(
 	MikanContext context,
+	MikanCameraID camera_id);
+
+MIKAN_CORE_CAPI(MikanCoreResult) Mikan_WriteCameraColorRenderTargetTexture(
+	MikanContext context,
+	MikanCameraID camera_id,
 	void* color_texture);
 
-MIKAN_CORE_CAPI(MikanCoreResult) Mikan_WriteDepthRenderTargetTexture(
+MIKAN_CORE_CAPI(MikanCoreResult) Mikan_WriteCameraDepthRenderTargetTexture(
 	MikanContext context, 
+	MikanCameraID camera_id,
 	void* depth_texture, 
 	float z_near, 
 	float z_far);
 
-MIKAN_CORE_CAPI(void*) Mikan_GetPackDepthTextureResourcePtr(MikanContext context);
+MIKAN_CORE_CAPI(void*) Mikan_GetCameraPackDepthTextureResourcePtr(
+	MikanContext context,
+	MikanCameraID camera_id);
 
 /** \brief Initializes a connection to MikanXR.
  Starts connection process to MikanXR at the given address and port. 

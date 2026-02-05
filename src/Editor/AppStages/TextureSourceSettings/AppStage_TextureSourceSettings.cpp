@@ -79,7 +79,7 @@ void AppStage_TextureSourceSettings::render(IMkViewportPtr targetViewport)
 	TextureSourceComponentPtr textureSourceComponent = m_textureSourceComponent.lock();
 
 	IMkTriangulatedMeshPtr fullscreenQuad;
-	IMkTexturePtr videoTexture = textureSourceComponent->getClientColorSourceTexture(eTextureSourceColorType::colorRGBA);
+	IMkTexturePtr videoTexture = textureSourceComponent->getClientColorSourceTexture(m_cameraId, eTextureSourceColorType::colorRGBA);
 	eUniformSemantic videoTextureSemantic = eUniformSemantic::rgbaTexture;
 	if (videoTexture)
 	{
@@ -87,7 +87,7 @@ void AppStage_TextureSourceSettings::render(IMkViewportPtr targetViewport)
 	}
 	else
 	{
-		videoTexture = textureSourceComponent->getClientColorSourceTexture(eTextureSourceColorType::colorRGB);
+		videoTexture = textureSourceComponent->getClientColorSourceTexture(m_cameraId, eTextureSourceColorType::colorRGB);
 		if (videoTexture)
 		{
 			fullscreenQuad = m_fullscreenRGBQuad;

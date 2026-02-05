@@ -1,4 +1,5 @@
 #include "ColorTextureSourceNode.h"
+#include "CameraComponent.h"
 #include "MkScopedObjectBinding.h"
 #include "IMkFrameBuffer.h"
 #include "IMkWindow.h"
@@ -134,11 +135,16 @@ bool ColorTextureSourceNode::evaluateNode(NodeEvaluator& evaluator)
 
 IMkTexturePtr ColorTextureSourceNode::getColorSourceTexture() const
 {
+	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
+	CameraComponentPtr boundCameraComponent= compositorGraph->getBoundCameraComponent();
 	TextureSourceComponentPtr textureSourceComponent = getTextureSourceComponent();
-	if (textureSourceComponent)
+
+	if (boundCameraComponent && textureSourceComponent)
 	{
 		IMkTexturePtr clientTexture = 
-			textureSourceComponent->getClientColorSourceTexture(m_clientTextureType);
+			textureSourceComponent->getClientColorSourceTexture(
+				boundCameraComponent->getCameraId(),
+				m_clientTextureType);
 
 		// If the client texture is not available, return a black texture
 		if (clientTexture)
