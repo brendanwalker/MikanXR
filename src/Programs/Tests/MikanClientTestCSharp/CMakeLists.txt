@@ -1,4 +1,4 @@
-PROJECT(MikanCSharpTest VERSION 1.0.0.0 LANGUAGES CSharp)
+PROJECT(MikanClientTestCSharp VERSION 1.0.0.0 LANGUAGES CSharp)
 INCLUDE(CSharpUtilities)
 
 # Create assembly info with current version.
@@ -79,41 +79,47 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DOTNET_REFERENCES
 
 # Post build - copy runtime dependencies to binary build folder (for debugging)
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
-  set_property(TARGET MikanCSharpTest PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:MikanCSharpTest>")
+  set_property(TARGET MikanClientTestCSharp PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:MikanClientTestCSharp>")
 
   add_custom_command(
-    TARGET MikanCSharpTest POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy "${SPOUT2_SHARED_LIBRARIES}" $<TARGET_FILE_DIR:MikanCSharpTest>)
+    TARGET MikanClientTestCSharp POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy "${SPOUT2_SHARED_LIBRARIES}" $<TARGET_FILE_DIR:MikanClientTestCSharp>)
   add_custom_command(
-    TARGET MikanCSharpTest POST_BUILD
+    TARGET MikanClientTestCSharp POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}../Resources/DepthNormalizeShader.fxh" $<TARGET_FILE_DIR:MikanClientTestCSharp>)
+  add_custom_command(
+    TARGET MikanClientTestCSharp POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}../Resources/QuadTextureShader.fxh" $<TARGET_FILE_DIR:MikanClientTestCSharp>)
+  add_custom_command(
+    TARGET MikanClientTestCSharp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
           $<TARGET_FILE_DIR:MikanClientCore>/MikanClientCore.dll
-          $<TARGET_FILE_DIR:MikanCSharpTest>)
+          $<TARGET_FILE_DIR:MikanClientTestCSharp>)
   add_custom_command(
-    TARGET MikanCSharpTest POST_BUILD
+    TARGET MikanClientTestCSharp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
           $<TARGET_FILE_DIR:MikanCoreApp>/MikanCoreApp.dll
-          $<TARGET_FILE_DIR:MikanCSharpTest>)
+          $<TARGET_FILE_DIR:MikanClientTestCSharp>)
   add_custom_command(
-    TARGET MikanCSharpTest POST_BUILD
+    TARGET MikanClientTestCSharp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
           $<TARGET_FILE_DIR:MikanSerialization>/MikanSerialization.dll
-          $<TARGET_FILE_DIR:MikanCSharpTest>)
+          $<TARGET_FILE_DIR:MikanClientTestCSharp>)
   add_custom_command(
-    TARGET MikanCSharpTest POST_BUILD
+    TARGET MikanClientTestCSharp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
           $<TARGET_FILE_DIR:MikanSharedTexture>/MikanSharedTexture.dll
-          $<TARGET_FILE_DIR:MikanCSharpTest>)
+          $<TARGET_FILE_DIR:MikanClientTestCSharp>)
   add_custom_command(
-    TARGET MikanCSharpTest POST_BUILD
+    TARGET MikanClientTestCSharp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
           $<TARGET_FILE_DIR:MikanUtility>/MikanUtility.dll
-          $<TARGET_FILE_DIR:MikanCSharpTest>)
+          $<TARGET_FILE_DIR:MikanClientTestCSharp>)
   add_custom_command(
-    TARGET MikanCSharpTest POST_BUILD
+    TARGET MikanClientTestCSharp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
           "${RFK_SHARED_LIBRARIES}"
-          $<TARGET_FILE_DIR:MikanCSharpTest>)
+          $<TARGET_FILE_DIR:MikanClientTestCSharp>)
 ELSE() #Linux/Darwin
 ENDIF()
 

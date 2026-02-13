@@ -50,6 +50,7 @@ public:
 	virtual void clearTexture(int textureUnit = 0) const = 0;
 
 	virtual const std::string getName() const = 0;
+	virtual void* getPlatformTexture() const = 0;
 	virtual uint32_t getGlTextureId() const = 0;
 	virtual uint16_t getTextureWidth() const = 0;
 	virtual uint16_t getTextureHeight() const = 0;

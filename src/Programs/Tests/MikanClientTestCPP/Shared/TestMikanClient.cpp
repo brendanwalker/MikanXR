@@ -1,45 +1,50 @@
-#include "MikanTestApp.h"
+#include "TestMikanClient.h"
+#include "TestLogUtils.h"
+
+#include "MikanAPI.h"
+#include "MikanAnchorTypes.h"
+#include "MikanCameraTypes.h"
+#include "MikanCameraRequests.h"
+#include "TestCameraRenderTarget.h"
+#include "MikanCompositorTypes.h"
+#include "MikanMarkerTypes.h"
+#include "MikanClientRequests.h"
+#include "MikanClientEvents.h"
+#include "MikanScriptEvents.h"
+#include "MikanCameraEvents.h"
+#include "MikanCameraRequests.h"
+#include "MikanPropertyRequests.h"
+#include "MikanPropertyEvents.h"
+#include "MikanPropertyTypes.h"
+#include "MikanSceneTypes.h"
+#include "MikanStageTypes.h"
+#include "MikanStencilRequests.h"
+#include "MikanTextureSourceTypes.h"
+#include "MikanTrackingMountTypes.h"
+#include "MikanTrackingVolumeTypes.h"
+#include "MikanVideoSourceEvents.h"
+#include "MikanVideoSourceRequests.h"
+#include "MikanVideoSourceTypes.h"
+#include "MikanVRDeviceTypes.h"
+#include "MikanMathTypes.h"
+
+#include "Logger.h"
 
 using namespace std::chrono_literals;
 
-MikanTestApp::MikanTestApp()
-	: m_mikanApi(IMikanAPI::createMikanAPI())
+TestMikanClient::TestMikanClient(ITestGraphicsContext* graphicsContext)
+	: m_graphicsContext(graphicsContext)
+	, m_mikanApi(IMikanAPI::createMikanAPI())
 {
 }
 
-MikanTestApp::~MikanTestApp()
+TestMikanClient::~TestMikanClient()
 {
-	shutdown();
+	dispose();
 }
 
-int MikanTestApp::exec(const char* szClientName, int argc, char** argv)
-{
-	if (startup(szClientName, argc, argv))
-	{
-		m_lastFrameTimestamp = std::chrono::high_resolution_clock::now();
-
-		while (!m_bShutdownRequested)
-		{
-			// Update the frame rate
-			auto now = std::chrono::high_resolution_clock::now();
-			const double deltaSeconds = std::chrono::duration_cast<std::chrono::duration<double>>(now - m_lastFrameTimestamp).count();
-			m_fps = deltaSeconds > 0.0 ? (float)(1.0 / deltaSeconds) : 0.f;
-			m_lastFrameTimestamp = now;
-
-			update(deltaSeconds);
-		}
-	}
-	else
-	{
-		MIKAN_LOG_ERROR("exec") << "Failed to initialize application!";
-	}
-
-	shutdown();
-
-	return m_returnCode;
-}
-
-bool MikanTestApp::startup(const char* szClientName, int argc, char** argv)
+bool TestMikanClient::init(
+	const char* szClientName)
 {
 	bool success = true;
 
@@ -62,7 +67,7 @@ bool MikanTestApp::startup(const char* szClientName, int argc, char** argv)
 	return success;
 }
 
-void MikanTestApp::shutdown()
+void TestMikanClient::dispose()
 {
 	// Clean up all render targets
 	for (auto it : m_cameraRenderTargetMap)
@@ -91,7 +96,7 @@ void MikanTestApp::shutdown()
 	log_dispose();
 }
 
-void MikanTestApp::onMikanLog(int log_level, const char* log_message)
+void TestMikanClient::onMikanLog(int log_level, const char* log_message)
 {
 	switch (log_level)
 	{
@@ -116,7 +121,7 @@ void MikanTestApp::onMikanLog(int log_level, const char* log_message)
 	}
 }
 
-void MikanTestApp::update(const double deltaSeconds)
+void TestMikanClient::update(const double deltaSeconds)
 {
 	if (m_mikanApi->getIsConnected())
 	{
@@ -157,9 +162,6 @@ void MikanTestApp::update(const double deltaSeconds)
 	}
 	else
 	{
-		// Just render the scene using the last applied camera pose
-		renderToViewport();
-
 		if (m_mikanApi->connect() != MikanAPIResult::Success)
 		{
 			// timeout between reconnect attempts
@@ -202,14 +204,14 @@ static void handleComponentListChanged(IMikanAPIPtr mikanApi)
 				const auto* typedComponentValues =
 					componentValuesResponse->valuesObject.getTypedPointer<t_component_values>();
 
-				MikanTestApp::logComponent(*typedComponentValues);
+				TestLogUtils::logComponent(*typedComponentValues);
 			}
 		}
 	}
 }
 
 // Camera Render Target Helpers
-MikanCameraRenderTargetPtr MikanTestApp::getOrAddCameraRenderTarget(MikanCameraID cameraId)
+TestCameraRenderTargetPtr TestMikanClient::getOrAddCameraRenderTarget(MikanCameraID cameraId)
 {
 	auto it= m_cameraRenderTargetMap.find(cameraId);
 	if (it != m_cameraRenderTargetMap.end())
@@ -217,13 +219,14 @@ MikanCameraRenderTargetPtr MikanTestApp::getOrAddCameraRenderTarget(MikanCameraI
 		return it->second;
 	}
 
-	MikanCameraRenderTargetPtr newCameraRenderTarget= allocateCameraRenderTarget(m_mikanApi, cameraId);
+	TestCameraRenderTargetPtr newCameraRenderTarget= 
+		m_graphicsContext->allocateCameraRenderTarget(m_mikanApi, cameraId);
 	m_cameraRenderTargetMap.insert({cameraId, newCameraRenderTarget});
 
 	return newCameraRenderTarget;
 }
 
-void MikanTestApp::disposeCameraRenderTarget(MikanCameraID cameraId)
+void TestMikanClient::disposeCameraRenderTarget(MikanCameraID cameraId)
 {
 	auto it = m_cameraRenderTargetMap.find(cameraId);
 	if (it != m_cameraRenderTargetMap.end())
@@ -237,7 +240,7 @@ void MikanTestApp::disposeCameraRenderTarget(MikanCameraID cameraId)
 }
 
 // App Connection Events
-void MikanTestApp::handleMikanConnected()
+void TestMikanClient::handleMikanConnected()
 {
 	// Initialize the client info on the server
 	MikanClientInfo clientInfo = m_mikanApi->allocateClientInfo();
@@ -246,7 +249,7 @@ void MikanTestApp::handleMikanConnected()
 	clientInfo.engineVersion = "1.0";
 	clientInfo.applicationName = "MikanXR Test";
 	clientInfo.applicationVersion = "1.0";
-	clientInfo.graphicsAPI = getGraphicsApi();
+	clientInfo.graphicsAPI = m_graphicsContext->getGraphicsApi();
 
 	InitClientRequest initClientRequest = {};
 	initClientRequest.clientInfo = clientInfo;
@@ -273,7 +276,7 @@ void MikanTestApp::handleMikanConnected()
 	handleComponentListChanged<MikanVRDeviceComponentValues>(m_mikanApi);
 }
 
-void MikanTestApp::handleMikanDisconnected(const MikanDisconnectedEvent& disconnectEvent)
+void TestMikanClient::handleMikanDisconnected(const MikanDisconnectedEvent& disconnectEvent)
 {
 	MIKAN_LOG_INFO("MikanDisconnectedEvent") << disconnectEvent.reason.getValue();
 
@@ -286,33 +289,30 @@ void MikanTestApp::handleMikanDisconnected(const MikanDisconnectedEvent& disconn
 	}
 }
 
-void MikanTestApp::handleNewVideoSourceFrame(const MikanCameraNewFrameEvent& newFrameEvent)
+void TestMikanClient::handleNewVideoSourceFrame(const MikanCameraNewFrameEvent& newFrameEvent)
 {
-	MikanCameraRenderTargetPtr renderTarget= getOrAddCameraRenderTarget(newFrameEvent.camera_id);
+	TestCameraRenderTargetPtr renderTarget= getOrAddCameraRenderTarget(newFrameEvent.camera_id);
 
 	if (renderTarget)
 	{
 		bool bProcessedFrame= renderTarget->processCameraNewFrameEvent(
 			newFrameEvent,
-			[this](MikanCameraRenderTarget* cameraRenderTarget) {
-				return renderToCameraTarget(cameraRenderTarget);
-			});
+			m_renderCallback);
 
 		if (bProcessedFrame)
 		{
 			m_lastProcessedCamera= newFrameEvent.camera_id;
-			renderToViewport();
 		}
 	}
 }
 
-void MikanTestApp::handleMikanEvent(MikanEventPtr mikanEvent)
+void TestMikanClient::handleMikanEvent(MikanEventPtr mikanEvent)
 {
 	MIKAN_LOG_INFO("handleMikanEvent") << "Received Event: " << mikanEvent->eventTypeName.getValue();
 }
 
 // Generic Property Events
-void MikanTestApp::handlePropertyUpdateEvent(const MikanPropertyUpdateEvent& propertyUpdateEvent)
+void TestMikanClient::handlePropertyUpdateEvent(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
 	const MikanPropertyValue& propertyValue = propertyUpdateEvent.propertyValue;
 	const std::string& systemName = propertyValue.ownerSystem.getValue();
@@ -360,7 +360,7 @@ void MikanTestApp::handlePropertyUpdateEvent(const MikanPropertyUpdateEvent& pro
 	}
 }
 
-void MikanTestApp::handleComponentPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
+void TestMikanClient::handleComponentPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
 	if (propertyUpdateEvent.propertyValue.fieldName.getValue() == "component_name")
 	{
@@ -368,7 +368,7 @@ void MikanTestApp::handleComponentPropertyUpdate(const MikanPropertyUpdateEvent&
 	}
 }
 
-void MikanTestApp::handleComponentNameChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)
+void TestMikanClient::handleComponentNameChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
 	const std::string& componentClass = propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
 	const std::string& componentName = propertyUpdateEvent.propertyValue.fieldValue.getStringValue();
@@ -380,7 +380,7 @@ void MikanTestApp::handleComponentNameChanged(const MikanPropertyUpdateEvent& pr
 }
 	
 // Transform Component Events
-void MikanTestApp::handleTransformPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
+void TestMikanClient::handleTransformPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
 	if (propertyUpdateEvent.propertyValue.fieldName.getValue() == "relative_scale")
 	{
@@ -400,7 +400,7 @@ void MikanTestApp::handleTransformPropertyUpdate(const MikanPropertyUpdateEvent&
 	}
 }
 
-void MikanTestApp::handleTransformScaleChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)
+void TestMikanClient::handleTransformScaleChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
 	const std::string& componentClass = propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
 	const std::string& componentName = propertyUpdateEvent.propertyValue.fieldValue.getStringValue();
@@ -412,7 +412,7 @@ void MikanTestApp::handleTransformScaleChanged(const MikanPropertyUpdateEvent& p
 		<< "), Scale Change: " << s.x << ", " << s.y << ", " << s.z;
 }
 
-void MikanTestApp::handleTransformOrientationChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)
+void TestMikanClient::handleTransformOrientationChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
 	const std::string& componentClass = propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
 	const std::string& componentName = propertyUpdateEvent.propertyValue.fieldValue.getStringValue();
@@ -424,7 +424,7 @@ void MikanTestApp::handleTransformOrientationChanged(const MikanPropertyUpdateEv
 		<< "), Orientation Change: " << q.x << ", " << q.y << ", " << q.z << ", " << q.w;
 }
 
-void MikanTestApp::handleTransformPositionChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)
+void TestMikanClient::handleTransformPositionChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
 	const std::string& componentClass = propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
 	const std::string& componentName = propertyUpdateEvent.propertyValue.fieldValue.getStringValue();
@@ -437,7 +437,7 @@ void MikanTestApp::handleTransformPositionChanged(const MikanPropertyUpdateEvent
 }
 
 // VR Device Events
-void MikanTestApp::handleVRDevicePropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
+void TestMikanClient::handleVRDevicePropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
 	if (propertyUpdateEvent.propertyValue.fieldName.getValue() == "VRDeviceComponentIdList")
 	{
@@ -450,7 +450,7 @@ void MikanTestApp::handleVRDevicePropertyUpdate(const MikanPropertyUpdateEvent& 
 }
 
 // Anchor Events
-void MikanTestApp::handleAnchorPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
+void TestMikanClient::handleAnchorPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
 	if (propertyUpdateEvent.propertyValue.fieldName.getValue() == "AnchorComponentIdList")
 	{
@@ -463,7 +463,7 @@ void MikanTestApp::handleAnchorPropertyUpdate(const MikanPropertyUpdateEvent& pr
 }
 
 // Box Stencil Events
-void MikanTestApp::handleBoxStencilPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
+void TestMikanClient::handleBoxStencilPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
 	if (propertyUpdateEvent.propertyValue.fieldName.getValue() == "BoxStencilComponentIdList")
 	{
@@ -476,7 +476,7 @@ void MikanTestApp::handleBoxStencilPropertyUpdate(const MikanPropertyUpdateEvent
 }
 
 // Quad Stencil Events
-void MikanTestApp::handleQuadStencilPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
+void TestMikanClient::handleQuadStencilPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
 	if (propertyUpdateEvent.propertyValue.fieldName.getValue() == "QuadStencilComponentIdList")
 	{
@@ -489,7 +489,7 @@ void MikanTestApp::handleQuadStencilPropertyUpdate(const MikanPropertyUpdateEven
 }
 
 // Model Stencil Events
-void MikanTestApp::handleModelStencilPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
+void TestMikanClient::handleModelStencilPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
 	if (propertyUpdateEvent.propertyValue.fieldName.getValue() == "ModelStencilComponentIdList")
 	{
@@ -499,99 +499,4 @@ void MikanTestApp::handleModelStencilPropertyUpdate(const MikanPropertyUpdateEve
 	{
 		handleTransformPropertyUpdate(propertyUpdateEvent);
 	}
-}
-
-// Log Helpers
-void MikanTestApp::logComponent(const MikanComponentValues& componentInfo)
-{
-	MIKAN_LOG_INFO("MikanComponent") << "Component ID: " << componentInfo.component_id;
-	MIKAN_LOG_INFO("MikanComponent") << "Component Name: " << componentInfo.component_name.getValue();
-}
-
-void MikanTestApp::logComponent(const MikanTransformComponentValues& transformInfo)
-{
-	logComponent((const MikanComponentValues&)transformInfo);
-
-	const MikanVector3f& s = transformInfo.relative_scale;
-	const MikanQuatf& r = transformInfo.relative_rotation;
-	const MikanVector3f& t = transformInfo.relative_position;
-
-	MIKAN_LOG_INFO("logTransformInfo") << "Scale: " << s.x << ", " << s.y << ", " << s.z;
-	MIKAN_LOG_INFO("logTransformInfo") << "Rotation: " << r.x << ", " << r.y << ", " << r.z << ", " << r.w;
-	MIKAN_LOG_INFO("logTransformInfo") << "Position: " << t.x << ", " << t.y << ", " << t.z;
-}
-
-void MikanTestApp::logComponent(const MikanAnchorComponentValues& anchorInfo)
-{
-	logComponent((const MikanTransformComponentValues&)anchorInfo);
-		
-	MIKAN_LOG_INFO("AnchorComponent") << "Owner Stage Id: " << anchorInfo.stage_id;
-}
-
-void MikanTestApp::logComponent(const MikanStencilComponentValues& stencilInfo)
-{
-	logComponent((const MikanTransformComponentValues&)stencilInfo);
-
-	MIKAN_LOG_INFO("StencilComponent") << "Parent Anchor Id: " << stencilInfo.parent_anchor_id;
-	MIKAN_LOG_INFO("StencilComponent") << "Is Disabled: " << (stencilInfo.is_disabled ? "true" : "false");
-	MIKAN_LOG_INFO("StencilComponent") << "Cull Mode: " << stencilInfo.cull_mode;
-}
-
-void MikanTestApp::logComponent(const MikanQuadStencilComponentValues& quadInfo)
-{
-	logComponent((const MikanStencilComponentValues&)quadInfo);
-
-	MIKAN_LOG_INFO("QuadStencilComponent") << "Quad Width: " << quadInfo.quad_width;
-	MIKAN_LOG_INFO("QuadStencilComponent") << "Quad Height: " << quadInfo.quad_height;
-}
-
-void MikanTestApp::logComponent(const MikanBoxStencilComponentValues& boxInfo)
-{
-	logComponent((const MikanStencilComponentValues&)boxInfo);
-
-	MIKAN_LOG_INFO("BoxStencilComponent") << "Box X Size: " << boxInfo.box_x_size;
-	MIKAN_LOG_INFO("BoxStencilComponent") << "Box Y Size: " << boxInfo.box_y_size;
-	MIKAN_LOG_INFO("BoxStencilComponent") << "Box Z Size: " << boxInfo.box_z_size;
-}
-
-void MikanTestApp::logComponent(const MikanModelStencilComponentValues& modelInfo)
-{
-	logComponent((const MikanStencilComponentValues&)modelInfo);
-
-	MIKAN_LOG_INFO("ModelStencilComponent") << "Model: " << modelInfo.model_path.getValue();
-}
-
-void MikanTestApp::logComponent(const MikanVRDeviceComponentValues& vrDeviceInfo)
-{
-	MIKAN_LOG_INFO("VRDeviceComponent") << "Device Name: " << vrDeviceInfo.vr_device_path.getValue();
-}
-
-void MikanTestApp::logModelStencilGeometry(const MikanStencilModelRenderGeometry& geometry)
-{
-	for (size_t index = 0; index < geometry.meshes.size(); ++index)
-	{
-		const MikanTriagulatedMesh& mesh = geometry.meshes[index];
-
-		MIKAN_LOG_INFO("logModelStencilGeometry") << "  Mesh Index: " << index;
-		logModelTriMesh(mesh);
-	}
-}
-
-void MikanTestApp::logModelTriMesh(const MikanTriagulatedMesh& triMesh)
-{
-	MIKAN_LOG_INFO("logModelTriMesh") << "    Triangle Count: " << triMesh.indices.size() / 3;
-	MIKAN_LOG_INFO("logModelTriMesh") << "    Normal Count: " << triMesh.normals.size();
-	MIKAN_LOG_INFO("logModelTriMesh") << "    Vertex Count: " << triMesh.vertices.size();
-	MIKAN_LOG_INFO("logModelTriMesh") << "    Texel Count: " << triMesh.texels.size();
-}
-
-void MikanTestApp::logTransform(const MikanTransform& xform)
-{
-	const MikanVector3f& s = xform.scale;
-	const MikanVector3f& t = xform.position;
-	const MikanQuatf& q = xform.rotation;
-
-	MIKAN_LOG_INFO("TransformComponent") << "  Scale: " << s.x << ", " << s.y << ", " << s.z;
-	MIKAN_LOG_INFO("TransformComponent") << "  Rotation: " << q.x << ", " << q.y << ", " << q.z << ", " << q.w;
-	MIKAN_LOG_INFO("TransformComponent") << "  Position: " << t.x << ", " << t.y << ", " << t.z;
 }

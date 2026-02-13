@@ -35,12 +35,40 @@ struct SimpleVertex
     XMFLOAT3 Pos;
 };
 
-class MikanTestApp_DX : public MikanTestApp
+class MikanTestApp 
 {
 public:
-    using Super = MikanTestApp;
+	MikanTestApp()
+	{
 
-    MikanTestApp_DX() = default;
+	}
+
+	int exec(const char* szClientName, int argc, char** argv)
+	{
+		if (startup(szClientName, argc, argv))
+		{
+			m_lastFrameTimestamp = std::chrono::high_resolution_clock::now();
+
+			while (!m_bShutdownRequested)
+			{
+				// Update the frame rate
+				auto now = std::chrono::high_resolution_clock::now();
+				const double deltaSeconds = std::chrono::duration_cast<std::chrono::duration<double>>(now - m_lastFrameTimestamp).count();
+				m_fps = deltaSeconds > 0.0 ? (float)(1.0 / deltaSeconds) : 0.f;
+				m_lastFrameTimestamp = now;
+
+				update(deltaSeconds);
+			}
+		}
+		else
+		{
+			MIKAN_LOG_ERROR("exec") << "Failed to initialize application!";
+		}
+
+		shutdown();
+
+		return m_returnCode;
+	}
 
 protected:
 	virtual MikanClientGraphicsApi getGraphicsApi() const override 
@@ -50,7 +78,12 @@ protected:
      
     virtual bool startup(const char* szClientName, int argc, char** argv) override 
     {
-		if (FAILED(initDevice()))
+		bool bSuccess=
+			initSwapChain() &&
+			initShader() &&
+			initGeometry();
+
+		if (!bSuccess)
 		{
 			return false;
 		}
@@ -76,11 +109,11 @@ protected:
         Super::update(deltaSeconds);
     }
     
-    virtual bool renderToCameraTarget(MikanCameraRenderTarget* cameraRenderTarget) const override
+    virtual bool renderToCameraTarget(TestCameraRenderTarget* cameraRenderTarget) const override
     {
 		auto* cameraRenderTargetDX= static_cast<MikanCameraRenderTarget_DX *>(cameraRenderTarget);
 
-		ID3D11RenderTargetView* renderTargetView= cameraRenderTargetDX->getRenderTargetView();
+		ID3D11RenderTargetView* renderTargetView= cameraRenderTargetDX->getColorTargetView();
 		if (renderTargetView == nullptr)
             return false;
 
@@ -125,12 +158,12 @@ protected:
     }
 
 	// Camera Render Target Helpers
-    virtual MikanCameraRenderTargetPtr allocateCameraRenderTarget(IMikanAPIPtr mikanAPI, int cameraId) override 
+    virtual TestCameraRenderTargetPtr allocateCameraRenderTarget(IMikanAPIPtr mikanAPI, int cameraId) override 
     {
         return std::make_shared<MikanCameraRenderTarget_DX>(m_mikanApi, m_pd3dDevice, cameraId);
     }
 
-	HRESULT initDevice()
+	bool initSwapChain()
 	{
 		HRESULT hr = S_OK;
 
@@ -177,8 +210,9 @@ protected:
 			if (SUCCEEDED(hr))
 				break;
 		}
+
 		if (FAILED(hr))
-			return hr;
+			return false;
 
 		// Obtain DXGI factory from device (since we used nullptr for pAdapter above)
 		IDXGIFactory1* dxgiFactory = nullptr;
@@ -207,7 +241,7 @@ protected:
 		}
 
 		if (FAILED(hr))
-			return hr;
+			return false;
 
 		// Create swap chain
 		IDXGIFactory2* dxgiFactory2 = nullptr;
@@ -263,18 +297,18 @@ protected:
 		dxgiFactory->Release();
 
 		if (FAILED(hr))
-			return hr;
+			return false;
 
 		// Create a render target view
 		ID3D11Texture2D* pBackBuffer = nullptr;
 		hr = m_pSwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&pBackBuffer));
 		if (FAILED(hr))
-			return hr;
+			return false;
 
 		hr = m_pd3dDevice->CreateRenderTargetView(pBackBuffer, nullptr, &m_pDefaultRenderTargetView);
 		pBackBuffer->Release();
 		if (FAILED(hr))
-			return hr;
+			return false;
 
 		m_pImmediateContext->OMSetRenderTargets(1, &m_pDefaultRenderTargetView, nullptr);
 
@@ -288,6 +322,13 @@ protected:
 		vp.TopLeftY = 0;
 		m_pImmediateContext->RSSetViewports(1, &vp);
 
+		return true;
+	}
+
+	bool initShader()
+	{
+		HRESULT hr = S_OK;
+
 		// Compile the vertex shader
 		ID3DBlob* pVSBlob = nullptr;
 		hr = CompileShaderFromFile(L"shader.fxh", "VS", "vs_4_0", &pVSBlob);
@@ -295,7 +336,7 @@ protected:
 		{
 			MessageBox(nullptr,
 				_T("The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file."), _T("Error"), MB_OK);
-			return hr;
+			return false;
 		}
 
 		// Create the vertex shader
@@ -303,7 +344,7 @@ protected:
 		if (FAILED(hr))
 		{
 			pVSBlob->Release();
-			return hr;
+			return false;
 		}
 
 		// Define the input layout
@@ -318,7 +359,7 @@ protected:
 			pVSBlob->GetBufferSize(), &m_pVertexLayout);
 		pVSBlob->Release();
 		if (FAILED(hr))
-			return hr;
+			return false;
 
 		// Set the input layout
 		m_pImmediateContext->IASetInputLayout(m_pVertexLayout);
@@ -330,14 +371,21 @@ protected:
 		{
 			MessageBox(nullptr,
 				_T("The FX file cannot be compiled.  Please run this executable from the directory that contains the FX file."), _T("Error"), MB_OK);
-			return hr;
+			return false;
 		}
 
 		// Create the pixel shader
 		hr = m_pd3dDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), nullptr, &m_pPixelShader);
 		pPSBlob->Release();
 		if (FAILED(hr))
-			return hr;
+			return false;
+
+		return true;
+	}
+
+	bool initGeometry()
+	{
+		HRESULT hr = S_OK;
 
 		// Create vertex buffer
 		SimpleVertex vertices[] =
@@ -356,7 +404,7 @@ protected:
 		InitData.pSysMem = vertices;
 		hr = m_pd3dDevice->CreateBuffer(&bd, &InitData, &m_pVertexBuffer);
 		if (FAILED(hr))
-			return hr;
+			return false;
 
 		// Set vertex buffer
 		UINT stride = sizeof(SimpleVertex);
@@ -366,7 +414,7 @@ protected:
 		// Set primitive topology
 		m_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		return S_OK;
+		return true;
 	}
 
 	void cleanupDevice()

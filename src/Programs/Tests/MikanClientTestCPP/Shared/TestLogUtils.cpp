@@ -1,0 +1,113 @@
+#include "MikanAnchorTypes.h"
+#include "MikanCameraTypes.h"
+#include "MikanComponentTypes.h"
+#include "MikanCompositorTypes.h"
+#include "TestLogUtils.h"
+#include "MikanMarkerTypes.h"
+#include "MikanPropertyTypes.h"
+#include "MikanSceneTypes.h"
+#include "MikanStageTypes.h"
+#include "MikanStencilTypes.h"
+#include "MikanTextureSourceTypes.h"
+#include "MikanTrackingMountTypes.h"
+#include "MikanTrackingVolumeTypes.h"
+#include "MikanTransformTypes.h"
+#include "MikanVideoSourceTypes.h"
+#include "MikanVRDeviceTypes.h"
+#include "MikanMathTypes.h"
+
+#include "Logger.h"
+
+void TestLogUtils::logComponent(const MikanComponentValues& componentInfo)
+{
+	MIKAN_LOG_INFO("MikanComponent") << "Component ID: " << componentInfo.component_id;
+	MIKAN_LOG_INFO("MikanComponent") << "Component Name: " << componentInfo.component_name.getValue();
+}
+
+void TestLogUtils::logComponent(const MikanTransformComponentValues& transformInfo)
+{
+	logComponent((const MikanComponentValues&)transformInfo);
+
+	const MikanVector3f& s = transformInfo.relative_scale;
+	const MikanQuatf& r = transformInfo.relative_rotation;
+	const MikanVector3f& t = transformInfo.relative_position;
+
+	MIKAN_LOG_INFO("logTransformInfo") << "Scale: " << s.x << ", " << s.y << ", " << s.z;
+	MIKAN_LOG_INFO("logTransformInfo") << "Rotation: " << r.x << ", " << r.y << ", " << r.z << ", " << r.w;
+	MIKAN_LOG_INFO("logTransformInfo") << "Position: " << t.x << ", " << t.y << ", " << t.z;
+}
+
+void TestLogUtils::logComponent(const MikanAnchorComponentValues& anchorInfo)
+{
+	logComponent((const MikanTransformComponentValues&)anchorInfo);
+		
+	MIKAN_LOG_INFO("AnchorComponent") << "Owner Stage Id: " << anchorInfo.stage_id;
+}
+
+void TestLogUtils::logComponent(const MikanStencilComponentValues& stencilInfo)
+{
+	logComponent((const MikanTransformComponentValues&)stencilInfo);
+
+	MIKAN_LOG_INFO("StencilComponent") << "Parent Anchor Id: " << stencilInfo.parent_anchor_id;
+	MIKAN_LOG_INFO("StencilComponent") << "Is Disabled: " << (stencilInfo.is_disabled ? "true" : "false");
+	MIKAN_LOG_INFO("StencilComponent") << "Cull Mode: " << stencilInfo.cull_mode;
+}
+
+void TestLogUtils::logComponent(const MikanQuadStencilComponentValues& quadInfo)
+{
+	logComponent((const MikanStencilComponentValues&)quadInfo);
+
+	MIKAN_LOG_INFO("QuadStencilComponent") << "Quad Width: " << quadInfo.quad_width;
+	MIKAN_LOG_INFO("QuadStencilComponent") << "Quad Height: " << quadInfo.quad_height;
+}
+
+void TestLogUtils::logComponent(const MikanBoxStencilComponentValues& boxInfo)
+{
+	logComponent((const MikanStencilComponentValues&)boxInfo);
+
+	MIKAN_LOG_INFO("BoxStencilComponent") << "Box X Size: " << boxInfo.box_x_size;
+	MIKAN_LOG_INFO("BoxStencilComponent") << "Box Y Size: " << boxInfo.box_y_size;
+	MIKAN_LOG_INFO("BoxStencilComponent") << "Box Z Size: " << boxInfo.box_z_size;
+}
+
+void TestLogUtils::logComponent(const MikanModelStencilComponentValues& modelInfo)
+{
+	logComponent((const MikanStencilComponentValues&)modelInfo);
+
+	MIKAN_LOG_INFO("ModelStencilComponent") << "Model: " << modelInfo.model_path.getValue();
+}
+
+void TestLogUtils::logComponent(const MikanVRDeviceComponentValues& vrDeviceInfo)
+{
+	MIKAN_LOG_INFO("VRDeviceComponent") << "Device Name: " << vrDeviceInfo.vr_device_path.getValue();
+}
+
+void TestLogUtils::logModelStencilGeometry(const MikanStencilModelRenderGeometry& geometry)
+{
+	for (size_t index = 0; index < geometry.meshes.size(); ++index)
+	{
+		const MikanTriagulatedMesh& mesh = geometry.meshes[index];
+
+		MIKAN_LOG_INFO("logModelStencilGeometry") << "  Mesh Index: " << index;
+		logModelTriMesh(mesh);
+	}
+}
+
+void TestLogUtils::logModelTriMesh(const MikanTriagulatedMesh& triMesh)
+{
+	MIKAN_LOG_INFO("logModelTriMesh") << "    Triangle Count: " << triMesh.indices.size() / 3;
+	MIKAN_LOG_INFO("logModelTriMesh") << "    Normal Count: " << triMesh.normals.size();
+	MIKAN_LOG_INFO("logModelTriMesh") << "    Vertex Count: " << triMesh.vertices.size();
+	MIKAN_LOG_INFO("logModelTriMesh") << "    Texel Count: " << triMesh.texels.size();
+}
+
+void TestLogUtils::logTransform(const MikanTransform& xform)
+{
+	const MikanVector3f& s = xform.scale;
+	const MikanVector3f& t = xform.position;
+	const MikanQuatf& q = xform.rotation;
+
+	MIKAN_LOG_INFO("TransformComponent") << "  Scale: " << s.x << ", " << s.y << ", " << s.z;
+	MIKAN_LOG_INFO("TransformComponent") << "  Rotation: " << q.x << ", " << q.y << ", " << q.z << ", " << q.w;
+	MIKAN_LOG_INFO("TransformComponent") << "  Position: " << t.x << ", " << t.y << ", " << t.z;
+}

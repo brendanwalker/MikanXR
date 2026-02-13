@@ -1,23 +1,25 @@
-#include "MikanCameraRenderTarget.h"
+#include "TestCameraRenderTarget.h"
 #include "MikanCameraEvents.h"
 #include "MikanCameraRequests.h"
 #include "Logger.h"
 
-MikanCameraRenderTarget::MikanCameraRenderTarget(
+TestCameraRenderTarget::TestCameraRenderTarget(
+	ITestGraphicsContextPtr ownerContext,
 	IMikanAPIPtr mikanAPI,
 	MikanCameraID cameraId)
-	: m_mikanAPI(mikanAPI)
+	: m_ownerContext(ownerContext)
+	, m_mikanAPI(mikanAPI)
 	, m_cameraId(cameraId)
 {
 }
 
-MikanCameraRenderTarget::~MikanCameraRenderTarget()
+TestCameraRenderTarget::~TestCameraRenderTarget()
 {
 	// We should have already called dispose() and cleaned this stuff up before the destructor is called
 	assert(!m_bHasAllocatedRemoteTexture);
 }
 
-bool MikanCameraRenderTarget::processCameraNewFrameEvent(
+bool TestCameraRenderTarget::processCameraNewFrameEvent(
 	const MikanCameraNewFrameEvent& newFrameEvent,
 	RenderCallback renderCallback)
 {
@@ -116,7 +118,7 @@ bool MikanCameraRenderTarget::processCameraNewFrameEvent(
 	return true;
 }
 
-void MikanCameraRenderTarget::dispose()
+void TestCameraRenderTarget::dispose()
 {
 	// Camera matrices aren't valid until we receive the 
 	m_bHasValidProjMatrix = false;
@@ -129,7 +131,7 @@ void MikanCameraRenderTarget::dispose()
 	freeGraphicsAPIResources();
 }
 
-bool MikanCameraRenderTarget::reallocateRenderTarget(int textureWidth, int textureHeight)
+bool TestCameraRenderTarget::reallocateRenderTarget(int textureWidth, int textureHeight)
 {
 	// Clean up anything we had 
 	dispose();
@@ -159,7 +161,7 @@ bool MikanCameraRenderTarget::reallocateRenderTarget(int textureWidth, int textu
 	return bSuccess;
 }
 
-bool MikanCameraRenderTarget::createSharedTexture(int textureWidth, int textureHeight)
+bool TestCameraRenderTarget::createSharedTexture(int textureWidth, int textureHeight)
 {
 	assert(!m_bHasAllocatedRemoteTexture);
 
@@ -193,7 +195,7 @@ bool MikanCameraRenderTarget::createSharedTexture(int textureWidth, int textureH
 	return true;
 }
 
-void MikanCameraRenderTarget::freeSharedTexture()
+void TestCameraRenderTarget::freeSharedTexture()
 {
 	if (m_bHasAllocatedRemoteTexture)
 	{

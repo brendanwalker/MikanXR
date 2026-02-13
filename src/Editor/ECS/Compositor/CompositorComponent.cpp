@@ -576,10 +576,10 @@ void CompositorComponent::updateCompositeFrameNodeGraph()
 		
 			if (frameTexture != nullptr && m_renderTargetWriteAccessor->getIsInitialized())
 			{
-				// TODO: Make this graphics API agnostic
-				uint32_t textureId= frameTexture->getGlTextureId();
+				// Get the raw pointer to the underlying graphics API specific texture resource 
+				void* platformTexturePtr= frameTexture->getPlatformTexture();
 		
-				m_renderTargetWriteAccessor->writeColorFrameTexture(&textureId);
+				m_renderTargetWriteAccessor->writeColorFrameTexture(platformTexturePtr);
 			}
 		}
 	}

@@ -555,12 +555,13 @@ public:
 		}
 	}
 
-	const std::string getName() const { return m_name; }
-	uint32_t getGlTextureId() const { return m_glTextureId; }
-	uint16_t getTextureWidth() const { return m_width; }
-	uint16_t getTextureHeight() const { return m_height; }
-	uint32_t getTextureFormat() const { return m_textureFormat; }
-	uint32_t getBufferFormat() const { return m_bufferFormat; }
+	virtual const std::string getName() const override { return m_name; }
+	virtual void* getPlatformTexture() const override { return &m_glTextureId; }
+	virtual uint32_t getGlTextureId() const override { return m_glTextureId; }
+	virtual uint16_t getTextureWidth() const override { return m_width; }
+	virtual uint16_t getTextureHeight() const override { return m_height; }
+	virtual uint32_t getTextureFormat() const override { return m_textureFormat; }
+	virtual uint32_t getBufferFormat() const override { return m_bufferFormat; }
 
 protected:
 	void determinePixelType()
