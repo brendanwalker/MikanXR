@@ -51,11 +51,15 @@ list(APPEND MIKAN_CLIENT_TEST_INCL_DIRS
   ${STB_INCLUDE_DIRS}
   ${RFK_INCLUDE_DIR})
 
+# SDL2main is needed for Windows to provide the main() entry point
+set(SDL2MAIN_LIBRARY ${ROOT_DIR}/deps/SDL2-2.0.10/lib/x64/SDL2main.lib)
+
 list(APPEND MIKAN_CLIENT_TEST_REQ_LIBS
-  d3d11 
-  d3dcompiler 
-  dxguid 
+  d3d11
+  d3dcompiler
+  dxguid
   comctl32
+  ${SDL2MAIN_LIBRARY}
   ${SDL2_LIBRARY}
   ${MIKAN_EXTRA_LIBS}
   ${GLEW_LIBRARIES}
