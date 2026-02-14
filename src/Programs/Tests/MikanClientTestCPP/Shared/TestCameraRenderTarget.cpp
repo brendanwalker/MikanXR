@@ -181,7 +181,7 @@ bool TestCameraRenderTarget::createSharedTexture(
 	desc.width = textureWidth;
 	desc.height = textureHeight;
 	desc.color_buffer_type = MikanColorBuffer_BGRA32;
-	desc.depth_buffer_type = MikanDepthBuffer_NODEPTH;
+	desc.depth_buffer_type = MikanDepthBuffer_FLOAT_DEVICE_DEPTH;
 	desc.graphicsAPI = MikanClientGraphicsApi_Direct3D11;
 
 	AllocateCameraRenderTargetTextures allocateRequest;

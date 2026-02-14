@@ -210,12 +210,13 @@ void TestMikanClient::handleMikanConnected()
 {
 	// Initialize the client info on the server
 	MikanClientInfo clientInfo = m_mikanApi->allocateClientInfo();
-	clientInfo.supportsRGB24 = true;
 	clientInfo.engineName = "MikanXR Test";
 	clientInfo.engineVersion = "1.0";
 	clientInfo.applicationName = "MikanXR Test";
 	clientInfo.applicationVersion = "1.0";
 	clientInfo.graphicsAPI = m_graphicsContext->getGraphicsApi();
+	clientInfo.supportsRGBA32 = true;
+	clientInfo.supportsDepth = true;
 
 	InitClientRequest initClientRequest = {};
 	initClientRequest.clientInfo = clientInfo;

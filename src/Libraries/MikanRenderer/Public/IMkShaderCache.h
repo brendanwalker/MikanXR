@@ -17,6 +17,7 @@
 #define INTERNAL_MATERIAL_PNT_TEXTURED					"Internal_PNT_Textured"
 #define INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED		"Internal_PNT_TexturedLitColored"
 #define INTERNAL_MATERIAL_P_LINEAR_DEPTH				"Internal_P_LinearDepth"
+#define INTERNAL_MATERIAL_PT_NORMALIZE_DEPTH			"Internal_PT_NormalizeDepth"
 
 class IMkShaderCache
 {

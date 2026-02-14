@@ -242,6 +242,13 @@ bool TestGraphicsContext_GL::create(int windowWidth, int windowHeight)
 		return false;
 	}
 
+	// Create a cube mesh for drawing the cube stencils in the camera render targets
+	if (!initializeCubeGeometry())
+	{
+		MIKAN_LOG_ERROR("startup") << "Failed to initialize cube geometry";
+		return false;
+	}
+
 	// Create a fullscreen quad mesh for rendering camera targets to the main framebuffer
 	m_viewportQuadMesh = createFullscreenQuadMesh(m_mkWindow.get(), false);
 

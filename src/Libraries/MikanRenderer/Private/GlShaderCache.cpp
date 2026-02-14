@@ -557,7 +557,7 @@ namespace InternalShaders
 	IMkShaderCodeConstPtr getPLinearDepthShaderCode()
 	{
 		static IMkShaderCodePtr x_shaderCode = nullptr;
-		
+
 		if (x_shaderCode == nullptr)
 		{
 			x_shaderCode = createIMkShaderCode(
@@ -580,7 +580,7 @@ namespace InternalShaders
 
 					gl_Position = mvpMatrix * vec4(aPos, 1.0);
 					depth = -(mvMatrix * vec4(aPos, 1.0)).z;
-				} 
+				}
 				)"""",
 					//fragment shader
 					R""""(
@@ -596,7 +596,7 @@ namespace InternalShaders
 				void main()
 				{
 					// Compute the zNear and zFar from projection matrix
-					float A = projMatrix[2].z; 
+					float A = projMatrix[2].z;
 					float B = projMatrix[3].z;
 					float zNear = - B / (1.0 - A);
 					float zFar  =   B / (1.0 + A);
@@ -607,12 +607,73 @@ namespace InternalShaders
 					// Output linear depth to color and depth buffers
 					FragColor = vec4(linearDepth, linearDepth, linearDepth, 1.0);
 					gl_FragDepth = linearDepth;
-				} 
+				}
 				)"""");
 			x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position);
 			x_shaderCode->addUniform("modelMatrix", eUniformSemantic::modelMatrix);
 			x_shaderCode->addUniform("viewMatrix", eUniformSemantic::viewMatrix);
 			x_shaderCode->addUniform("projMatrix", eUniformSemantic::projectionMatrix);
+		}
+
+		return x_shaderCode;
+	}
+
+	IMkShaderCodeConstPtr getPTVisualizeGLDepthShaderCode()
+	{
+		static IMkShaderCodePtr x_shaderCode = nullptr;
+
+		if (x_shaderCode == nullptr)
+		{
+			// Assumes float depth texture with non-linear depth values in [0, 1] range
+			// and the perspective projection formula is using the OpenGL convention where:
+			// Near plane(z = zNear) -> NDC z = -1 -> depth buffer = 0
+			// Far plane(z = zFar) -> NDC z = 1 -> depth buffer = 1
+			x_shaderCode = createIMkShaderCode(
+				INTERNAL_MATERIAL_PT_NORMALIZE_DEPTH,
+				// vertex shader
+				R""""(
+				#version 330 core
+				layout (location = 0) in vec2 aPos;
+				layout (location = 1) in vec2 aTexCoords;
+
+				out vec2 TexCoords;
+
+				void main()
+				{
+					TexCoords = aTexCoords;
+					gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0);
+				}
+				)"""",
+				//fragment shader
+				R""""(
+				#version 330 core
+				out vec4 FragColor;
+
+				in vec2 TexCoords;
+
+				uniform sampler2D depthTexture;
+				uniform float zNear;
+				uniform float zFar;
+
+				void main()
+				{
+					// Sample non-linear depth from depth buffer [0, 1]
+					float depth = texture(depthTexture, TexCoords).r;
+
+					// Convert non-linear depth to linear eye-space depth using OpenGL perspective projection formula
+					float eyeDepth = (2.0 * zNear * zFar) / (zFar + zNear - depth * (zFar - zNear));
+
+					// Normalize to [0, 1] range
+					float zNorm = (eyeDepth - zNear) / (zFar - zNear);
+
+					FragColor = vec4(zNorm, zNorm, zNorm, 1.0);
+				}
+				)"""");
+			x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
+			x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+			x_shaderCode->addUniform("depthTexture", eUniformSemantic::depthTexture);
+			x_shaderCode->addUniform("zNear", eUniformSemantic::zNear);
+			x_shaderCode->addUniform("zFar", eUniformSemantic::zFar);
 		}
 
 		return x_shaderCode;
@@ -631,6 +692,7 @@ namespace InternalShaders
 			getPNTTexturedShaderCode(),
 			getPNTTexturedColoredShaderCode(),
 			getPLinearDepthShaderCode(),
+			getPTVisualizeGLDepthShaderCode(),
 		};
 
 		bool bSuccess = true;

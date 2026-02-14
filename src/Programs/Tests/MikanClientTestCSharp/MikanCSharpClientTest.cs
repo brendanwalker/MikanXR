@@ -546,8 +546,6 @@ namespace Mikan
 
 		private bool InitializeDepthNormalizeShader()
 		{
-				string shaderFilePath = @"..\Shared\DepthNormalizeShader.fxh";
-
 			string shaderCodeString = @"
 				Texture2D<float> InputTexture : register(t0);
 				SamplerState samLinear : register(s0);
@@ -588,7 +586,7 @@ namespace Mikan
 				}";
 
 			// Compile the vertex shader code
-			var vertexShaderByteCode = ShaderBytecode.CompileFromFile(shaderFilePath, "vs_main", "vs_4_0", ShaderFlags.Debug);
+			var vertexShaderByteCode = ShaderBytecode.Compile(shaderCodeString, "vs_main", "vs_4_0", ShaderFlags.Debug);
 			if (vertexShaderByteCode.HasErrors)
 			{
 				Log(MikanLogLevel.Fatal, vertexShaderByteCode.Message);
@@ -597,7 +595,7 @@ namespace Mikan
 			depthNormalizeVertexShader = new D3D11.VertexShader(d3dDevice, vertexShaderByteCode);
 
 			// Compile the pixel shader code
-			var pixelShaderByteCode = ShaderBytecode.CompileFromFile(shaderFilePath, "ps_main", "ps_4_0", ShaderFlags.Debug);
+			var pixelShaderByteCode = ShaderBytecode.Compile(shaderCodeString, "ps_main", "ps_4_0", ShaderFlags.Debug);
 			if (pixelShaderByteCode.HasErrors)
 			{
 				Log(MikanLogLevel.Fatal, pixelShaderByteCode.Message);
@@ -620,8 +618,6 @@ namespace Mikan
 
 		private bool InitializeQuadTextureShader()
 		{
-				string shaderFilePath = @"..\Shared\QuadTextureShader.fxh";
-
 			string shaderCodeString = @"
 				Texture2D<float4> InputTexture : register(t0);
 				SamplerState samLinear : register(s0);
@@ -652,7 +648,7 @@ namespace Mikan
 				}";
 
 			// Compile the vertex shader code
-			var vertexShaderByteCode = ShaderBytecode.CompileFromFile(shaderFilePath, "vs_main", "vs_4_0", ShaderFlags.Debug);
+			var vertexShaderByteCode = ShaderBytecode.Compile(shaderCodeString, "vs_main", "vs_4_0", ShaderFlags.Debug);
 			if (vertexShaderByteCode.HasErrors)
 			{
 				Log(MikanLogLevel.Fatal, vertexShaderByteCode.Message);
@@ -661,7 +657,7 @@ namespace Mikan
 			quadVertexShader = new D3D11.VertexShader(d3dDevice, vertexShaderByteCode);
 
 			// Compile the pixel shader code
-			var pixelShaderByteCode = ShaderBytecode.CompileFromFile(shaderFilePath, "ps_main", "ps_4_0", ShaderFlags.Debug);
+			var pixelShaderByteCode = ShaderBytecode.Compile(shaderCodeString, "ps_main", "ps_4_0", ShaderFlags.Debug);
 			if (pixelShaderByteCode.HasErrors)
 			{
 				Log(MikanLogLevel.Fatal, pixelShaderByteCode.Message);

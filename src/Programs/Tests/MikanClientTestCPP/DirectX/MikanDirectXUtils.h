@@ -7,5 +7,8 @@
 #include <directxcolors.h>
 #include <dxgi.h>
 
-HRESULT CompileShaderFromFile(const WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
+#include <string>
+
 const char* DXGIFormatToString(DXGI_FORMAT format);
+HRESULT CompileShaderFromFile(const WCHAR* szFileName, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
+HRESULT CompileShaderFromString(const std::string& shaderSource, LPCSTR szEntryPoint, LPCSTR szShaderModel, ID3DBlob** ppBlobOut);
