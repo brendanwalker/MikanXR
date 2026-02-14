@@ -1,17 +1,20 @@
 #pragma once
 
 #include "MikanAPI.h"
-#include "MikanCameraRenderTarget.h"
+#include "TestCameraRenderTarget.h"
 
 #include <d3d11_1.h>
 #include <directxmath.h>
-//dxgiformat.h
+#include <dxgiformat.h>
 
-class MikanCameraRenderTarget_DX : public TestCameraRenderTarget
+class TestCameraRenderTarget_DX : public TestCameraRenderTarget
 {
 public:
-	MikanCameraRenderTarget_DX(IMikanAPIPtr mikanAPI, ID3D11Device* d3dDevice, int cameraId);
-	virtual ~MikanCameraRenderTarget_DX();
+	TestCameraRenderTarget_DX(
+		TestGraphicsContextPtr ownerContext,
+		ID3D11Device* d3dDevice, 
+		int cameraId);
+	virtual ~TestCameraRenderTarget_DX();
 
 	inline ID3D11Texture2D* getColorTexture() const { return m_colorTargetTexture; }
 	inline ID3D11Texture2D* getDepthTexture() const { return m_floatDepthTargetTexture; }

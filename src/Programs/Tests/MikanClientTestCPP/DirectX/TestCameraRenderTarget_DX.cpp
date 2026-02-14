@@ -1,20 +1,20 @@
-#include "MikanCameraRenderTarget_DX.h"
 #include "MikanDirectXMath.h"
 #include "MikanDirectXUtils.h"
 #include "MikanCameraEvents.h"
 #include "MikanCameraRequests.h"
+#include "TestCameraRenderTarget_DX.h"
 #include "Logger.h"
 
-MikanCameraRenderTarget_DX::MikanCameraRenderTarget_DX(
-	IMikanAPIPtr mikanAPI,
-	ID3D11Device* d3dDevice,
+TestCameraRenderTarget_DX::TestCameraRenderTarget_DX(
+	TestGraphicsContextPtr ownerContext,
+	ID3D11Device* d3dDevice, 
 	MikanCameraID cameraId)
-	: TestCameraRenderTarget(mikanAPI, cameraId)
+	: TestCameraRenderTarget(ownerContext, cameraId)
 	, m_d3dDevice(d3dDevice)
 {
 }
 
-MikanCameraRenderTarget_DX::~MikanCameraRenderTarget_DX()
+TestCameraRenderTarget_DX::~TestCameraRenderTarget_DX()
 {
 	// We should have already called dispose() and cleaned this stuff up before the destructor is called
 	assert(m_colorTargetTexture == nullptr);
@@ -23,7 +23,7 @@ MikanCameraRenderTarget_DX::~MikanCameraRenderTarget_DX()
 	assert(!m_bHasAllocatedRemoteTexture);
 }
 
-DXGI_FORMAT MikanCameraRenderTarget_DX::getDepthResourceFormat(DXGI_FORMAT depthFormat)
+DXGI_FORMAT TestCameraRenderTarget_DX::getDepthResourceFormat(DXGI_FORMAT depthFormat)
 {
 	DXGI_FORMAT resultFormat= DXGI_FORMAT_UNKNOWN;
 
@@ -46,7 +46,7 @@ DXGI_FORMAT MikanCameraRenderTarget_DX::getDepthResourceFormat(DXGI_FORMAT depth
 	return resultFormat;
 }
 
-DXGI_FORMAT MikanCameraRenderTarget_DX::getDepthSRVFormat(DXGI_FORMAT depthFormat)
+DXGI_FORMAT TestCameraRenderTarget_DX::getDepthSRVFormat(DXGI_FORMAT depthFormat)
 {
 	DXGI_FORMAT resultFormat = DXGI_FORMAT_UNKNOWN;
 
@@ -69,7 +69,7 @@ DXGI_FORMAT MikanCameraRenderTarget_DX::getDepthSRVFormat(DXGI_FORMAT depthForma
 	return resultFormat;
 }
 
-bool MikanCameraRenderTarget_DX::createGraphicsAPIResources(int textureWidth, int textureHeight)
+bool TestCameraRenderTarget_DX::createGraphicsAPIResources(int textureWidth, int textureHeight)
 {
 	// Create the render target resources
 	// -------
@@ -116,7 +116,7 @@ bool MikanCameraRenderTarget_DX::createGraphicsAPIResources(int textureWidth, in
 		result = m_d3dDevice->CreateRenderTargetView(m_colorTargetTexture, &renderTargetViewDesc, &m_colorTargetView);
 		if (FAILED(result))
 		{
-			MIKAN_LOG_ERROR("MikanCameraRenderTarget::createDirectXResources") << "Failed to create color render target view";
+			MIKAN_LOG_ERROR("MikanCameraRenderTarget::createDirectXResources") << "Failed to create color renderMainTarget target view";
 			return false;
 		}
 
@@ -217,7 +217,7 @@ bool MikanCameraRenderTarget_DX::createGraphicsAPIResources(int textureWidth, in
 	return true;
 }
 
-void MikanCameraRenderTarget_DX::freeGraphicsAPIResources()
+void TestCameraRenderTarget_DX::freeGraphicsAPIResources()
 {
 	m_width = 0;
 	m_height = 0;
@@ -259,17 +259,17 @@ void MikanCameraRenderTarget_DX::freeGraphicsAPIResources()
 	}
 }
 
-void* MikanCameraRenderTarget_DX::getGraphicsApiColorTexturePtr() const
+void* TestCameraRenderTarget_DX::getGraphicsApiColorTexturePtr() const
 {
 	return m_colorTargetTexture;
 }
 
-void* MikanCameraRenderTarget_DX::getGraphicsApiDepthTexturePtr() const
+void* TestCameraRenderTarget_DX::getGraphicsApiDepthTexturePtr() const
 {
 	return m_floatDepthTargetTexture;
 }
 
-void MikanCameraRenderTarget_DX::updateCameraViewMatrix(const MikanCameraNewFrameEvent& newFrameEvent)
+void TestCameraRenderTarget_DX::updateCameraViewMatrix(const MikanCameraNewFrameEvent& newFrameEvent)
 {
 	const MikanVector3f& cameraForward = newFrameEvent.camera_forward;
 	const MikanVector3f& cameraUp = newFrameEvent.camera_up;
@@ -278,7 +278,7 @@ void MikanCameraRenderTarget_DX::updateCameraViewMatrix(const MikanCameraNewFram
 	m_viewMatrix = mikan_camera_pose_to_directx_view_matrix(cameraForward, cameraUp, cameraPosition);
 }
 
-void MikanCameraRenderTarget_DX::updateCameraProjectionMatrix(const MikanCameraNewFrameEvent& newFrameEvent)
+void TestCameraRenderTarget_DX::updateCameraProjectionMatrix(const MikanCameraNewFrameEvent& newFrameEvent)
 {
 	const float fx = newFrameEvent.focal_length.x;
 	const float fy = newFrameEvent.focal_length.y;
@@ -292,7 +292,7 @@ void MikanCameraRenderTarget_DX::updateCameraProjectionMatrix(const MikanCameraN
 	m_projMatrix = mikan_camera_intrinsics_to_directx_projection_matrix(fx, fy, cx, cy, width, height, zNear, zFar);
 }
 
-void MikanCameraRenderTarget_DX::bindGraphicsAPIResource() const
+void TestCameraRenderTarget_DX::bindGraphicsAPIResource()
 {
 	// Get the immediate context from the device
 	ID3D11DeviceContext* deviceContext = nullptr;
@@ -300,7 +300,7 @@ void MikanCameraRenderTarget_DX::bindGraphicsAPIResource() const
 
 	if (deviceContext == nullptr)
 	{
-		MIKAN_LOG_ERROR("MikanCameraRenderTarget_DX::bindGraphicsAPIResource")
+		MIKAN_LOG_ERROR("TestCameraRenderTarget_DX::bindGraphicsAPIResource")
 			<< "Failed to get device context";
 		return;
 	}
@@ -329,10 +329,20 @@ void MikanCameraRenderTarget_DX::bindGraphicsAPIResource() const
 	deviceContext->Release();
 }
 
-void MikanCameraRenderTarget_DX::unbindGraphicsAPIResource()
+void TestCameraRenderTarget_DX::unbindGraphicsAPIResource()
 {
-	ID3D11RenderTargetView* nullRTV = nullptr;
-	ID3D11DepthStencilView* nullDSV = nullptr;
+	// Get the immediate context from the device
+	ID3D11DeviceContext* deviceContext = nullptr;
+	m_d3dDevice->GetImmediateContext(&deviceContext);
 
-	deviceContext->OMSetRenderTargets(1, &nullRTV, nullDSV);
+	if (deviceContext != nullptr)
+	{
+		// Unbind the render target and depth stencil views by setting them to null
+		ID3D11RenderTargetView* nullRTV = nullptr;
+		ID3D11DepthStencilView* nullDSV = nullptr;
+		deviceContext->OMSetRenderTargets(1, &nullRTV, nullDSV);
+
+		// Release the device context reference
+		deviceContext->Release();
+	}
 }

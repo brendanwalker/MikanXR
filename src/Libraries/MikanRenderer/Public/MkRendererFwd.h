@@ -37,6 +37,7 @@ using MikanRenderModelResourceWeakPtr = std::weak_ptr<MikanRenderModelResource>;
 
 class IMkShaderCache;
 using IMkShaderCachePtr = std::shared_ptr<IMkShaderCache>;
+using IMkShaderCacheUniquePtr = std::unique_ptr<IMkShaderCache>;
 
 class IMkState;
 
@@ -66,6 +67,7 @@ using IMkTextRendererConstPtr = std::shared_ptr<const IMkTextRenderer>;
 
 class IMkTextureCache;
 using IMkTextureCachePtr = std::shared_ptr<IMkTextureCache>;
+using IMkTextureCacheUniquePtr = std::unique_ptr<IMkTextureCache>;
 
 class IMkTriangulatedMesh;
 using IMkTriangulatedMeshPtr = std::shared_ptr<IMkTriangulatedMesh>;

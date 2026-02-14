@@ -12,7 +12,7 @@
 #include <string>
 
 MikanShaderCache::MikanShaderCache(IMkWindow* ownerWindow)
-	: m_shaderCache(CreateMkShaderCache(ownerWindow))
+	: m_shaderCache(createMkShaderCache(ownerWindow))
 {
 }
 

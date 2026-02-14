@@ -2,24 +2,25 @@
 
 #include "MikanAPI.h"
 
-using ITestGraphicsContextPtr = std::shared_ptr<class ITestGraphicsContext>;
-using ITestGraphicsContextWeakPtr = std::weak_ptr<class ITestGraphicsContext>;
+using TestGraphicsContextPtr = std::shared_ptr<class TestGraphicsContext>;
+using ITestGraphicsContextWeakPtr = std::weak_ptr<class TestGraphicsContext>;
 
 class TestCameraRenderTarget
 {
 public:
-	TestCameraRenderTarget(ITestGraphicsContextPtr ownerContext, IMikanAPIPtr mikanAPI, int cameraId);
+	TestCameraRenderTarget(TestGraphicsContextPtr ownerContext, int cameraId);
 	virtual ~TestCameraRenderTarget();
+
+	inline MikanCameraID getCameraId() const { return m_cameraId; }
 	
-	using RenderCallback= std::function<bool(TestCameraRenderTarget*)>;
-	bool processCameraNewFrameEvent(const struct MikanCameraNewFrameEvent& newFrameEvent, RenderCallback renderCallback);
-	void dispose();
+	bool processCameraNewFrameEvent(IMikanAPIPtr mikanAPI, const struct MikanCameraNewFrameEvent& newFrameEvent);
+	void dispose(IMikanAPIPtr mikanAPI);
 
 protected:
-	bool reallocateRenderTarget(int textureWidth, int textureHeight);
+	bool reallocateRenderTarget(IMikanAPIPtr mikanAPI, int textureWidth, int textureHeight);
 	
-	bool createSharedTexture(int textureWidth, int textureHeight);
-	void freeSharedTexture();
+	bool createSharedTexture(IMikanAPIPtr mikanAPI, int textureWidth, int textureHeight);
+	void freeSharedTexture(IMikanAPIPtr mikanAPI);
 
 	virtual bool createGraphicsAPIResources(int textureWidth, int textureHeight) = 0;
 	virtual void bindGraphicsAPIResource() = 0;
@@ -33,7 +34,6 @@ protected:
 
 protected:
 	ITestGraphicsContextWeakPtr m_ownerContext;
-	IMikanAPIWeakPtr m_mikanAPI;
 	MikanCameraID m_cameraId = INVALID_MIKAN_ID;
 	
 	int m_width = 0;

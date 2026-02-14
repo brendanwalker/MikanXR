@@ -556,7 +556,7 @@ public:
 	}
 
 	virtual const std::string getName() const override { return m_name; }
-	virtual void* getPlatformTexture() const override { return &m_glTextureId; }
+	virtual void* getPlatformTexture() override { return &m_glTextureId; }
 	virtual uint32_t getGlTextureId() const override { return m_glTextureId; }
 	virtual uint16_t getTextureWidth() const override { return m_width; }
 	virtual uint16_t getTextureHeight() const override { return m_height; }

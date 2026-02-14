@@ -4,7 +4,7 @@
 
 class IMkBindableObject
 {
-protected:
+public:
 	virtual void bindObject(IMkState* glParentState) = 0;
 	virtual bool getIsBound() const = 0;
 	virtual void unbindObject() = 0;

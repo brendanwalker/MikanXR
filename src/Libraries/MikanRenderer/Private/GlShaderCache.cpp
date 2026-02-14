@@ -109,7 +109,7 @@ private:
 	std::map<std::string, MkMaterialPtr> m_materialCache;
 };
 
-IMkShaderCachePtr CreateMkShaderCache(class IMkWindow* ownerWindow)
+IMkShaderCachePtr createMkShaderCache(class IMkWindow* ownerWindow)
 {
 	return std::make_shared<GlShaderCache>(ownerWindow);
 }
@@ -380,6 +380,48 @@ namespace InternalShaders
 		return x_shaderCode;
 	}
 
+	IMkShaderCodeConstPtr getPCUnlitColorShaderCode()
+	{
+		static IMkShaderCodePtr x_shaderCode = nullptr;
+
+		if (x_shaderCode == nullptr)
+		{
+			x_shaderCode = createIMkShaderCode(
+				INTERNAL_MATERIAL_PC_UNLIT_COLOR,
+				// vertex shader
+				R""""(
+				#version 330 core
+				layout (location = 0) in vec3 inPosition;
+				layout (location = 1) in vec4 inColor0; 
+
+				uniform mat4 mvpMatrix;
+
+				out vec4 fragColor;
+				void main()
+				{
+					fragColor = inColor0;
+					gl_Position = mvpMatrix * vec4(inPosition, 1.0);
+				}
+				)"""",
+				//fragment shader
+				R""""(
+				#version 330 core
+				in vec4 fragColor;
+				out vec4 finalColor;
+
+				void main()
+				{    
+					finalColor = fragColor;
+				}
+				)"""");
+			x_shaderCode->addVertexAttribute("inPosition", eVertexDataType::datatype_vec3, eVertexSemantic::position);
+			x_shaderCode->addVertexAttribute("inColor0", eVertexDataType::datatype_vec4, eVertexSemantic::color);
+			x_shaderCode->addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix);
+		}
+
+		return x_shaderCode;
+	}
+
 	IMkShaderCodeConstPtr getPNTTexturedShaderCode()
 	{
 		static IMkShaderCodePtr x_shaderCode = nullptr;
@@ -585,6 +627,7 @@ namespace InternalShaders
 			getUnpackRGBALinearDepthTextureShaderCode(),
 			getPWireframeShaderCode(),
 			getPSolidColorShaderCode(),
+			getPCUnlitColorShaderCode(),
 			getPNTTexturedShaderCode(),
 			getPNTTexturedColoredShaderCode(),
 			getPLinearDepthShaderCode(),

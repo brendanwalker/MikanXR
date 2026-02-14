@@ -25,15 +25,15 @@ MikanVector3f glm_vec3_to_MikanVector3f(const glm::vec3& in)
 }
 
 glm::mat4 mikan_camera_pose_to_glm_view_matrix(
-	const MikanVector3f& cameraForward,
-	const MikanVector3f& cameraUp,
-	const MikanVector3f& cameraPosition)
+	const MikanVector3f& inForward,
+	const MikanVector3f& inUp,
+	const MikanVector3f& inPosition)
 {
-	const glm::vec3& cameraForward = MikanVector3f_to_glm_vec3(cameraForward);
-	const glm::vec3& cameraUp = MikanVector3f_to_glm_vec3(cameraUp);
-	const glm::vec3& cameraPosition = MikanVector3f_to_glm_vec3(cameraPosition);
+	const glm::vec3& cameraForward = MikanVector3f_to_glm_vec3(inForward);
+	const glm::vec3& cameraUp = MikanVector3f_to_glm_vec3(inUp);
+	const glm::vec3& cameraPosition = MikanVector3f_to_glm_vec3(inPosition);
 
-	m_viewMatrix = glm::lookAt(cameraPosition, cameraPosition + cameraForward, cameraUp);
+	return glm::lookAt(cameraPosition, cameraPosition + cameraForward, cameraUp);
 }
 
 // fx, fy - focal lengths in pixels

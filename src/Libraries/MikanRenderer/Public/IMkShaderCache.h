@@ -13,6 +13,7 @@
 #define INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE		"Internal_UnpackRGBADepthTexture"
 #define INTERNAL_MATERIAL_P_WIREFRAME					"Internal_P_Wireframe"
 #define INTERNAL_MATERIAL_P_SOLID_COLOR					"Internal_P_SolidColor"
+#define INTERNAL_MATERIAL_PC_UNLIT_COLOR				"Internal_PC_UnlitColor"
 #define INTERNAL_MATERIAL_PNT_TEXTURED					"Internal_PNT_Textured"
 #define INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED		"Internal_PNT_TexturedLitColored"
 #define INTERNAL_MATERIAL_P_LINEAR_DEPTH				"Internal_P_LinearDepth"
@@ -31,4 +32,4 @@ public:
 	virtual IMkShaderPtr fetchCompiledIMkShader(IMkShaderCodeConstPtr code) = 0;
 };
 
-MIKAN_RENDERER_FUNC(IMkShaderCachePtr) CreateMkShaderCache(class IMkWindow* ownerWindow);
+MIKAN_RENDERER_FUNC(IMkShaderCachePtr) createMkShaderCache(class IMkWindow* ownerWindow);

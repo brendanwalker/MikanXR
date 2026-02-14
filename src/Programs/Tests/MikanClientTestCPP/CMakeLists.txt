@@ -69,7 +69,7 @@ list(APPEND MIKAN_CLIENT_TEST_REQ_LIBS
 add_executable(MikanClientTest ${MIKAN_CLIENT_TEST_SRC})
 target_include_directories(MikanClientTest PUBLIC ${MIKAN_CLIENT_TEST_INCL_DIRS})
 target_link_libraries(MikanClientTest ${MIKAN_CLIENT_TEST_REQ_LIBS})
-SET_TARGET_PROPERTIES(MikanClientTest PROPERTIES FOLDER Test)
+SET_TARGET_PROPERTIES(MikanClientTest PROPERTIES FOLDER Test WIN32_EXECUTABLE FALSE)
 
 # Runtime dependencies
 set(SDL2_DLL ${ROOT_DIR}/deps/SDL2-2.0.10/lib/x64/SDL2.dll)

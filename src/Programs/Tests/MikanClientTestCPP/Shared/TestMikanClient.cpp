@@ -12,7 +12,6 @@
 #include "MikanClientEvents.h"
 #include "MikanScriptEvents.h"
 #include "MikanCameraEvents.h"
-#include "MikanCameraRequests.h"
 #include "MikanPropertyRequests.h"
 #include "MikanPropertyEvents.h"
 #include "MikanPropertyTypes.h"
@@ -32,7 +31,7 @@
 
 using namespace std::chrono_literals;
 
-TestMikanClient::TestMikanClient(ITestGraphicsContext* graphicsContext)
+TestMikanClient::TestMikanClient(TestGraphicsContext* graphicsContext)
 	: m_graphicsContext(graphicsContext)
 	, m_mikanApi(IMikanAPI::createMikanAPI())
 {
@@ -70,12 +69,7 @@ bool TestMikanClient::init(
 void TestMikanClient::dispose()
 {
 	// Clean up all render targets
-	for (auto it : m_cameraRenderTargetMap)
-	{
-		// May signal to mikan to tear down shared texture on its end
-		it.second->dispose();
-	}
-	m_cameraRenderTargetMap.clear();
+	m_graphicsContext->removeAllCameraRenderTargets(m_mikanApi);
 
 	// Shut down the mikan client connection
 	if (m_mikanInitialized)
@@ -121,7 +115,7 @@ void TestMikanClient::onMikanLog(int log_level, const char* log_message)
 	}
 }
 
-void TestMikanClient::update(const double deltaSeconds)
+void TestMikanClient::update(const float deltaSeconds)
 {
 	if (m_mikanApi->getIsConnected())
 	{
@@ -192,6 +186,7 @@ static void handleComponentListChanged(IMikanAPIPtr mikanApi)
 		{
 			const MikanComponentID componentId = componentList->componentIdList[Index];
 
+			// TODO: Handle component creation and deletion
 			ComponentGetValuesRequest componentRequest;
 			componentRequest.ownerSystem.setValue(t_component_values::k_ownerSystemName);
 			componentRequest.componentId = componentId;
@@ -207,35 +202,6 @@ static void handleComponentListChanged(IMikanAPIPtr mikanApi)
 				TestLogUtils::logComponent(*typedComponentValues);
 			}
 		}
-	}
-}
-
-// Camera Render Target Helpers
-TestCameraRenderTargetPtr TestMikanClient::getOrAddCameraRenderTarget(MikanCameraID cameraId)
-{
-	auto it= m_cameraRenderTargetMap.find(cameraId);
-	if (it != m_cameraRenderTargetMap.end())
-	{
-		return it->second;
-	}
-
-	TestCameraRenderTargetPtr newCameraRenderTarget= 
-		m_graphicsContext->allocateCameraRenderTarget(m_mikanApi, cameraId);
-	m_cameraRenderTargetMap.insert({cameraId, newCameraRenderTarget});
-
-	return newCameraRenderTarget;
-}
-
-void TestMikanClient::disposeCameraRenderTarget(MikanCameraID cameraId)
-{
-	auto it = m_cameraRenderTargetMap.find(cameraId);
-	if (it != m_cameraRenderTargetMap.end())
-	{
-		// Teardown the render target 
-		it->second->dispose();
-
-		// Remove the entry from the map
-		m_cameraRenderTargetMap.erase(it);
 	}
 }
 
@@ -291,13 +257,12 @@ void TestMikanClient::handleMikanDisconnected(const MikanDisconnectedEvent& disc
 
 void TestMikanClient::handleNewVideoSourceFrame(const MikanCameraNewFrameEvent& newFrameEvent)
 {
-	TestCameraRenderTargetPtr renderTarget= getOrAddCameraRenderTarget(newFrameEvent.camera_id);
+	TestCameraRenderTargetPtr renderTarget= 
+		m_graphicsContext->getOrAddCameraRenderTarget(m_mikanApi, newFrameEvent.camera_id);
 
 	if (renderTarget)
 	{
-		bool bProcessedFrame= renderTarget->processCameraNewFrameEvent(
-			newFrameEvent,
-			m_renderCallback);
+		bool bProcessedFrame= renderTarget->processCameraNewFrameEvent(m_mikanApi, newFrameEvent);
 
 		if (bProcessedFrame)
 		{

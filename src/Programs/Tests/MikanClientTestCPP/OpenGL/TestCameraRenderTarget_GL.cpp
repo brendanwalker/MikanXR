@@ -1,14 +1,18 @@
-#include "MikanCameraRenderTarget_GL.h"
+#include "IMkFrameBuffer.h"
+#include "IMkTexture.h"
+#include "IMkState.h"
 #include "MikanOpenGLMath.h"
 #include "MikanCameraEvents.h"
 #include "MikanCameraRequests.h"
+#include "MkStateStack.h"
 #include "Logger.h"
+#include "TestCameraRenderTarget_GL.h"
+#include "TestGraphicsContext_GL.h"
 
-MikanCameraRenderTarget_GL::MikanCameraRenderTarget_GL(
-	ITestGraphicsContextWeakPtr ownerContext,
-	IMikanAPIPtr mikanAPI,
+TestCameraRenderTarget_GL::TestCameraRenderTarget_GL(
+	TestGraphicsContextPtr ownerContext,
 	MikanCameraID cameraId)
-	: TestCameraRenderTarget(ownerContext, mikanAPI, cameraId)
+	: TestCameraRenderTarget(ownerContext, cameraId)
 	, m_renderTargetName("CameraRenderTarget_"+std::to_string(cameraId))
 	, m_frameBuffer()
 	, m_projMatrix(glm::mat4(1.f))
@@ -16,19 +20,39 @@ MikanCameraRenderTarget_GL::MikanCameraRenderTarget_GL(
 {
 }
 
-MikanCameraRenderTarget_GL::~MikanCameraRenderTarget_GL()
+TestCameraRenderTarget_GL::~TestCameraRenderTarget_GL()
 {
 	// We should have already called dispose() and cleaned this stuff up before the destructor is called
 	assert(m_frameBuffer == nullptr);
 	assert(!m_bHasAllocatedRemoteTexture);
 }
 
-TestGraphicsContext_OpenGLPtr MikanCameraRenderTarget_GL::getOpenGLOwnerContext() const
+TestGraphicsContext_GLPtr TestCameraRenderTarget_GL::getOpenGLOwnerContext() const
 {
-	return std::static_pointer_cast<TestGraphicsContext_OpenGL>(m_ownerContext.lock());
+	return std::static_pointer_cast<TestGraphicsContext_GL>(m_ownerContext.lock());
 }
 
-bool MikanCameraRenderTarget_GL::createGraphicsAPIResources(int textureWidth, int textureHeight)
+IMkTexturePtr TestCameraRenderTarget_GL::getColorTexture() const
+{
+	if (m_frameBuffer)
+	{
+		return m_frameBuffer->getColorTexture();
+	}
+
+	return nullptr;
+}
+
+IMkTexturePtr TestCameraRenderTarget_GL::getDepthTexture() const
+{
+	if (m_frameBuffer)
+	{
+		return m_frameBuffer->getDepthTexture();
+	}
+
+	return nullptr;
+}
+
+bool TestCameraRenderTarget_GL::createGraphicsAPIResources(int textureWidth, int textureHeight)
 {
 	bool bSuccess = true;
 
@@ -53,7 +77,7 @@ bool MikanCameraRenderTarget_GL::createGraphicsAPIResources(int textureWidth, in
 	return bSuccess;
 }
 
-void MikanCameraRenderTarget_GL::freeGraphicsAPIResources()
+void TestCameraRenderTarget_GL::freeGraphicsAPIResources()
 {
 	m_width = 0;
 	m_height = 0;
@@ -65,7 +89,7 @@ void MikanCameraRenderTarget_GL::freeGraphicsAPIResources()
 	}
 }
 
-void* MikanCameraRenderTarget_GL::getGraphicsApiColorTexturePtr() const
+void* TestCameraRenderTarget_GL::getGraphicsApiColorTexturePtr() const
 {
 	if (m_frameBuffer)
 	{
@@ -79,7 +103,7 @@ void* MikanCameraRenderTarget_GL::getGraphicsApiColorTexturePtr() const
 	return nullptr;
 }
 
-void* MikanCameraRenderTarget_GL::getGraphicsApiDepthTexturePtr() const
+void* TestCameraRenderTarget_GL::getGraphicsApiDepthTexturePtr() const
 {
 	if (m_frameBuffer)
 	{
@@ -93,14 +117,19 @@ void* MikanCameraRenderTarget_GL::getGraphicsApiDepthTexturePtr() const
 	return nullptr;
 }
 
-void MikanCameraRenderTarget_GL::updateCameraViewMatrix(const MikanCameraNewFrameEvent& newFrameEvent)
+void TestCameraRenderTarget_GL::updateCameraViewMatrix(const MikanCameraNewFrameEvent& newFrameEvent)
 {
+	m_cameraPosition = MikanVector3f_to_glm_vec3(newFrameEvent.camera_position);
+	m_cameraForward = MikanVector3f_to_glm_vec3(newFrameEvent.camera_forward);
+	m_cameraUp = MikanVector3f_to_glm_vec3(newFrameEvent.camera_up);
+	m_cameraRight = glm::normalize(glm::cross(m_cameraForward, m_cameraUp));
+
 	m_viewMatrix = 
 		mikan_camera_pose_to_glm_view_matrix(
 			newFrameEvent.camera_forward, newFrameEvent.camera_up, newFrameEvent.camera_position);
 }
 
-void MikanCameraRenderTarget_GL::updateCameraProjectionMatrix(const MikanCameraNewFrameEvent& newFrameEvent)
+void TestCameraRenderTarget_GL::updateCameraProjectionMatrix(const MikanCameraNewFrameEvent& newFrameEvent)
 {
 	m_projMatrix = 
 		mikan_camera_intrinsics_to_glm_projection_matrix(
@@ -110,22 +139,22 @@ void MikanCameraRenderTarget_GL::updateCameraProjectionMatrix(const MikanCameraN
 			newFrameEvent.z_bounds.x, newFrameEvent.z_bounds.y);
 }
 
-void MikanCameraRenderTarget_GL::bindGraphicsAPIResource()
+void TestCameraRenderTarget_GL::bindGraphicsAPIResource()
 {
-	TestGraphicsContext_OpenGLPtr ownerContext= getOpenGLOwnerContext();
+	TestGraphicsContext_GLPtr ownerContext= getOpenGLOwnerContext();
 
 	// Create a new scope to modify rendering state changes to
 	assert(m_mkState == nullptr);
-	m_mkState = ownerContext->getOwnerStateStack().pushState(m_renderTargetName);
+	m_mkState = ownerContext->getMkStateStack().pushState(m_renderTargetName);
 
 	// Bind the frame buffer to render to
 	assert(!m_frameBuffer->getIsBound());
 	m_frameBuffer->bindObject(m_mkState);
 }
 
-void MikanCameraRenderTarget_GL::unbindGraphicsAPIResource()
+void TestCameraRenderTarget_GL::unbindGraphicsAPIResource()
 {
-	TestGraphicsContext_OpenGLPtr ownerContext= getOpenGLOwnerContext();
+	TestGraphicsContext_GLPtr ownerContext= getOpenGLOwnerContext();
 
 	// Unbind the frame buffer
 	assert(m_frameBuffer->getIsBound());

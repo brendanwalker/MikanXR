@@ -1,14 +1,13 @@
-#include "TestCameraRenderTarget.h"
+#include "TestGraphicsContext.h"
+#include "Logger.h"
 #include "MikanCameraEvents.h"
 #include "MikanCameraRequests.h"
-#include "Logger.h"
+#include "TestCameraRenderTarget.h"
 
 TestCameraRenderTarget::TestCameraRenderTarget(
-	ITestGraphicsContextPtr ownerContext,
-	IMikanAPIPtr mikanAPI,
+	TestGraphicsContextPtr ownerContext,
 	MikanCameraID cameraId)
 	: m_ownerContext(ownerContext)
-	, m_mikanAPI(mikanAPI)
 	, m_cameraId(cameraId)
 {
 }
@@ -20,8 +19,8 @@ TestCameraRenderTarget::~TestCameraRenderTarget()
 }
 
 bool TestCameraRenderTarget::processCameraNewFrameEvent(
-	const MikanCameraNewFrameEvent& newFrameEvent,
-	RenderCallback renderCallback)
+	IMikanAPIPtr mikanAPI,
+	const MikanCameraNewFrameEvent& newFrameEvent)
 {
 	if (newFrameEvent.frame == m_lastReceivedFrameIndex)
 	{
@@ -47,7 +46,7 @@ bool TestCameraRenderTarget::processCameraNewFrameEvent(
 	const int newHeight = newFrameEvent.pixel_size.y;
 	if (m_width != newWidth || m_height != newHeight)
 	{
-		if (reallocateRenderTarget(newWidth, newHeight))
+		if (reallocateRenderTarget(mikanAPI, newWidth, newHeight))
 		{
 			MIKAN_LOG_INFO("MikanCameraRenderTarget::allocateRenderTarget")
 				<< "Update frame size "
@@ -63,31 +62,37 @@ bool TestCameraRenderTarget::processCameraNewFrameEvent(
 				<< "(camera_id: " << m_cameraId
 				<< ", new size: " << newWidth << "x" << newHeight
 				<< ", frame: " << m_lastReceivedFrameIndex
-				<< "). Invalidating render target.";
+				<< "). Invalidating renderMainTarget target.";
 			return false;
 		}
 	}
 
+	// Bind the graphics API specific render target for this camera
+	bindGraphicsAPIResource();
+
 	// Render the scene from the PoV of this camera
-	if (!renderCallback(this))
+	if (!m_ownerContext.lock()->renderToCameraTarget(this))
 	{
 		MIKAN_LOG_INFO("MikanCameraRenderTarget::allocateRenderTarget")
-			<< "Failed to render camera frame "
+			<< "Failed to renderMainTarget camera frame "
 			<< "(camera_id: " << m_cameraId
 			<< ", frame: " << m_lastReceivedFrameIndex
 			<< ").";
 	}
 
+	// Unbind the graphics API specific render target for this camera
+	unbindGraphicsAPIResource();
+
 	// Write the color texture, if any, to the shared texture
 	void* colorTexture= getGraphicsApiColorTexturePtr();
 	if (colorTexture)
 	{
-		WriteCameraColorRenderTargetTexture writeTextureRequest= {};
+		WriteCameraColorRenderTargetTexture writeTextureRequest = {};
 
 		writeTextureRequest.camera_id= m_cameraId;
 		writeTextureRequest.api_color_texture_ptr= colorTexture;
 
-		m_mikanAPI.lock()->sendRequest(writeTextureRequest);
+		mikanAPI->sendRequest(writeTextureRequest);
 	}
 
 	// Write the depth texture, if any, to the shared texture
@@ -101,7 +106,7 @@ bool TestCameraRenderTarget::processCameraNewFrameEvent(
 		writeTextureRequest.z_near= newFrameEvent.z_bounds.x;
 		writeTextureRequest.z_far= newFrameEvent.z_bounds.y;
 
-		m_mikanAPI.lock()->sendRequest(writeTextureRequest);
+		mikanAPI->sendRequest(writeTextureRequest);
 	}
 
 	// Publish the new video frame back to Mikan
@@ -112,29 +117,32 @@ bool TestCameraRenderTarget::processCameraNewFrameEvent(
 		frameRendered.camera_id = m_cameraId;
 		frameRendered.frame_index = newFrameEvent.frame;
 
-		m_mikanAPI.lock()->sendRequest(frameRendered);
+		mikanAPI->sendRequest(frameRendered);
 	}
 
 	return true;
 }
 
-void TestCameraRenderTarget::dispose()
+void TestCameraRenderTarget::dispose(IMikanAPIPtr mikanAPI)
 {
 	// Camera matrices aren't valid until we receive the 
 	m_bHasValidProjMatrix = false;
 	m_bHasValidViewMatrix = false;
 
 	// Clean up shared texture first
-	freeSharedTexture();
+	freeSharedTexture(mikanAPI);
 
 	// Clean up locally allocated direct x resources
 	freeGraphicsAPIResources();
 }
 
-bool TestCameraRenderTarget::reallocateRenderTarget(int textureWidth, int textureHeight)
+bool TestCameraRenderTarget::reallocateRenderTarget(
+	IMikanAPIPtr mikanAPI,
+	int textureWidth, 
+	int textureHeight)
 {
 	// Clean up anything we had 
-	dispose();
+	dispose(mikanAPI);
 
 	// Create a new render texture to render frames too
 	bool bSuccess= false; 
@@ -144,7 +152,7 @@ bool TestCameraRenderTarget::reallocateRenderTarget(int textureWidth, int textur
 			<< "Successfully created DirectX texture resources "
 			<< "(size: " << textureWidth << "x" << textureHeight << ")";
 
-		if (createSharedTexture(textureWidth, textureHeight))
+		if (createSharedTexture(mikanAPI, textureWidth, textureHeight))
 		{
 			MIKAN_LOG_INFO("MikanCameraRenderTarget::allocateRenderTarget") 
 				<< "Successfully created shared texture " 
@@ -161,7 +169,10 @@ bool TestCameraRenderTarget::reallocateRenderTarget(int textureWidth, int textur
 	return bSuccess;
 }
 
-bool TestCameraRenderTarget::createSharedTexture(int textureWidth, int textureHeight)
+bool TestCameraRenderTarget::createSharedTexture(
+	IMikanAPIPtr mikanAPI, 
+	int textureWidth, 
+	int textureHeight)
 {
 	assert(!m_bHasAllocatedRemoteTexture);
 
@@ -177,7 +188,7 @@ bool TestCameraRenderTarget::createSharedTexture(int textureWidth, int textureHe
 	allocateRequest.camera_id = m_cameraId;
 	allocateRequest.descriptor = desc;
 
-	auto response = m_mikanAPI.lock()->sendRequest(allocateRequest).fetchResponse();
+	auto response = mikanAPI->sendRequest(allocateRequest).fetchResponse();
 	if (response->resultCode == MikanAPIResult::Success)
 	{
 		MIKAN_LOG_INFO("MikanCameraRenderTarget::allocateRenderTarget") << "Successfully allocated shared texture";
@@ -195,7 +206,7 @@ bool TestCameraRenderTarget::createSharedTexture(int textureWidth, int textureHe
 	return true;
 }
 
-void TestCameraRenderTarget::freeSharedTexture()
+void TestCameraRenderTarget::freeSharedTexture(IMikanAPIPtr mikanAPI)
 {
 	if (m_bHasAllocatedRemoteTexture)
 	{
@@ -203,7 +214,7 @@ void TestCameraRenderTarget::freeSharedTexture()
 		FreeCameraRenderTargetTextures freeRequest = {};
 		freeRequest.camera_id = m_cameraId;
 
-		auto response = m_mikanAPI.lock()->sendRequest(freeRequest).fetchResponse();
+		auto response = mikanAPI->sendRequest(freeRequest).fetchResponse();
 		if (response->resultCode != MikanAPIResult::Success)
 		{
 			MIKAN_LOG_WARNING("MikanCameraRenderTarget::freeRenderTarget") << "Failed to free remote texture";
