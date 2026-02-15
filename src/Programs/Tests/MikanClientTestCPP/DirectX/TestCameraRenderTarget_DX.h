@@ -27,9 +27,6 @@ public:
 
 	inline bool getIsInitialized() const { m_colorTargetTexture != nullptr && m_floatDepthTargetTexture != nullptr; }
 
-	DXGI_FORMAT getDepthResourceFormat(DXGI_FORMAT depthFormat);
-	DXGI_FORMAT getDepthSRVFormat(DXGI_FORMAT depthFormat);
-
 	const DirectX::XMFLOAT3& getCameraPosition() const { return m_cameraPosition; }
 	const DirectX::XMFLOAT3& getCameraForward() const { return m_cameraForward; }
 	const DirectX::XMFLOAT3& getCameraUp() const { return m_cameraUp; }

@@ -1,4 +1,4 @@
-#include "MikanDirectXUtils.h"
+#include "TestDirectXUtils.h"
 #include "Logger.h"
 
 const char* DXGIFormatToString(DXGI_FORMAT format)

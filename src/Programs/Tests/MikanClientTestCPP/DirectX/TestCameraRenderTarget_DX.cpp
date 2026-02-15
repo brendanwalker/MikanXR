@@ -1,8 +1,8 @@
-#include "MikanDirectXMath.h"
-#include "MikanDirectXUtils.h"
 #include "MikanCameraEvents.h"
 #include "MikanCameraRequests.h"
 #include "TestCameraRenderTarget_DX.h"
+#include "TestDirectXMath.h"
+#include "TestDirectXUtils.h"
 #include "Logger.h"
 
 TestCameraRenderTarget_DX::TestCameraRenderTarget_DX(

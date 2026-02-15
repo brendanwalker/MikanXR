@@ -1,4 +1,4 @@
-#include "MikanDirectXMath.h"
+#include "TestDirectXMath.h"
 
 DirectX::XMFLOAT3 mikan_vec3_to_directx_xmfloat3(const MikanVector3f& vec)
 {

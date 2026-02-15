@@ -1,13 +1,13 @@
 #include "IMkFrameBuffer.h"
 #include "IMkTexture.h"
 #include "IMkState.h"
-#include "MikanOpenGLMath.h"
 #include "MikanCameraEvents.h"
 #include "MikanCameraRequests.h"
 #include "MkStateStack.h"
 #include "Logger.h"
 #include "TestCameraRenderTarget_GL.h"
 #include "TestGraphicsContext_GL.h"
+#include "TestOpenGLMath.h"
 
 TestCameraRenderTarget_GL::TestCameraRenderTarget_GL(
 	TestGraphicsContextPtr ownerContext,

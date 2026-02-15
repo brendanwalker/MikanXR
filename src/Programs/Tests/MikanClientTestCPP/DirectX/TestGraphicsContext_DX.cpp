@@ -1,7 +1,7 @@
 #include "TestApp.h"
 #include "TestGraphicsContext_DX.h"
-#include "DirectX/TestCameraRenderTarget_DX.h"
-#include "DirectX/MikanDirectXUtils.h"
+#include "TestCameraRenderTarget_DX.h"
+#include "TestDirectXUtils.h"
 #include "Logger.h"
 
 #if defined(_WIN32)
