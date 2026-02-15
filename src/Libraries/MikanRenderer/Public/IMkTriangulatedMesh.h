@@ -29,9 +29,13 @@ MIKAN_RENDERER_FUNC(IMkTriangulatedMeshPtr) createMkTriangulatedMesh(
 	uint32_t triangleCount,
 	bool bOwnsVertexData);
 MIKAN_RENDERER_FUNC(IMkTriangulatedMeshPtr) createFullscreenQuadMesh(
-	IMkWindow* ownerWindow, 
+	IMkWindow* ownerWindow,
 	bool vFlipped,
 	bool bHasAlpha= false);
+MIKAN_RENDERER_FUNC(IMkTriangulatedMeshPtr) createFullscreenQuadMesh(
+	IMkWindow* ownerWindow,
+	MkMaterialConstPtr material,
+	bool vFlipped);
 MIKAN_RENDERER_FUNC(void) drawTransformedTriangulatedMesh(
 	IMkCameraConstPtr camera,
 	const glm::mat4& transform,

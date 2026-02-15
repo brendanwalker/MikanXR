@@ -25,10 +25,13 @@ public:
 
 protected:
 	bool initializeCubeGeometry();
+	void renderColorTexture(class TestCameraRenderTarget_GL* glRenderTarget) const;
+	void renderNormalizedDepthTexture(class TestCameraRenderTarget_GL* glRenderTarget) const;
 
 private:
 	IMkWindowPtr m_mkWindow;
 	IMkTriangulatedMeshPtr m_viewportQuadMesh;
+	IMkTriangulatedMeshPtr m_depthNormalizeQuadMesh;
 	IMkTriangulatedMeshPtr m_boxMesh;
 
 	MikanCameraID m_lastRenderedCameraId = INVALID_MIKAN_ID;

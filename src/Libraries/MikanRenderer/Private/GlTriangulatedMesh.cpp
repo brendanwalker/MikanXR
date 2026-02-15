@@ -287,6 +287,62 @@ IMkTriangulatedMeshPtr createFullscreenQuadMesh(
 	return fullscreenQuad;
 }
 
+IMkTriangulatedMeshPtr createFullscreenQuadMesh(
+	IMkWindow* ownerWindow,
+	MkMaterialConstPtr material,
+	bool vFlipped)
+{
+	static uint16_t x_indices[] = {0, 1, 2, 0, 2, 3};
+
+	assert(material);
+
+	struct QuadVertex
+	{
+		glm::vec2 aPos;
+		glm::vec2 aTexCoords;
+	};
+	size_t vertexSize = sizeof(QuadVertex);
+
+	// Create triangulated quad mesh to draw the layer on
+	static QuadVertex x_vertices[] = {
+		//        positions                texCoords
+		{glm::vec2(-1.0f,  1.0f), glm::vec2(0.0f, 1.0f)},
+		{glm::vec2(-1.0f, -1.0f), glm::vec2(0.0f, 0.0f)},
+		{glm::vec2(1.0f, -1.0f),  glm::vec2(1.0f, 0.0f)},
+		{glm::vec2(1.0f,  1.0f),  glm::vec2(1.0f, 1.0f)},
+	};
+
+	static QuadVertex x_flippedVertices[] = {
+		//        positions                texCoords (flipped v coordinated)
+		{glm::vec2(-1.0f,  1.0f), glm::vec2(0.0f, 0.0f)},
+		{glm::vec2(-1.0f, -1.0f), glm::vec2(0.0f, 1.0f)},
+		{glm::vec2(1.0f, -1.0f),  glm::vec2(1.0f, 1.0f)},
+		{glm::vec2(1.0f,  1.0f),  glm::vec2(1.0f, 0.0f)},
+	};
+
+	QuadVertex* vertices= vFlipped ? x_flippedVertices : x_vertices;
+	auto fullscreenQuad =
+		createMkTriangulatedMesh(
+			ownerWindow,
+			"custom_material_quad_mesh",
+			(const uint8_t*)vertices,
+			vertexSize,
+			4, // 4 verts
+			(const uint8_t*)x_indices,
+			sizeof(uint16_t), // 2 bytes per index
+			2, // 2 tris
+			false); // mesh doesn't own quad vert data
+
+	if (!fullscreenQuad->setMaterial(material) ||
+		!fullscreenQuad->createResources())
+	{
+		MIKAN_LOG_ERROR("createFullscreenQuadMesh()")
+			<< "Failed to create custom material quad mesh";
+	}
+
+	return fullscreenQuad;
+}
+
 void drawTransformedTriangulatedMesh(
 	IMkCameraConstPtr camera,
 	const glm::mat4& transform,

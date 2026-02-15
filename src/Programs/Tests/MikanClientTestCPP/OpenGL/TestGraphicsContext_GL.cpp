@@ -252,6 +252,12 @@ bool TestGraphicsContext_GL::create(int windowWidth, int windowHeight)
 	// Create a fullscreen quad mesh for rendering camera targets to the main framebuffer
 	m_viewportQuadMesh = createFullscreenQuadMesh(m_mkWindow.get(), false);
 
+	// Create a fullscreen quad mesh for rendering normalized depth using the depth normalize material
+	auto depthNormalizeMaterial = 
+		m_mkWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_NORMALIZE_DEPTH);
+	assert(depthNormalizeMaterial);
+	m_depthNormalizeQuadMesh = createFullscreenQuadMesh(m_mkWindow.get(), depthNormalizeMaterial, false);
+
 	return true;
 }
 
@@ -352,34 +358,27 @@ void TestGraphicsContext_GL::recreateMainRenderTarget()
 
 void TestGraphicsContext_GL::renderMainTarget() const
 {
-	TestCameraRenderTargetPtr renderTarget= getCameraRenderTarget(m_lastRenderedCameraId);
+	TestCameraRenderTargetPtr renderTarget = getCameraRenderTarget(m_lastRenderedCameraId);
 
 	if (renderTarget)
 	{
+		const TestRenderMode renderMode = m_ownerApp->getRenderMode();
 		auto glRenderTarget = std::static_pointer_cast<TestCameraRenderTarget_GL>(renderTarget);
-		IMkTextureConstPtr colorTexture = glRenderTarget->getColorTexture();
 
-		if (colorTexture)
+		switch (renderMode)
 		{
-			MkMaterialInstancePtr materialInstance = m_viewportQuadMesh->getMaterialInstance();
-			MkMaterialConstPtr material = materialInstance->getMaterial();
+		case TestRenderMode::Color:
+			renderColorTexture(glRenderTarget.get());
+			break;
 
-			if (auto materialBinding = material->bindMaterial())
-			{
-				// Bind the color texture
-				materialInstance->setTextureBySemantic(eUniformSemantic::rgbTexture, colorTexture);
-
-				// Draw the color texture
-				if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
-				{
-					MkScopedState scopedState = 
-						m_mkWindow->getMkStateStack().createScopedState("MainTargetComponentRender");
-					scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
-
-					m_viewportQuadMesh->drawElements();
-				}
-			}
+		case TestRenderMode::DepthNormalize:
+			renderNormalizedDepthTexture(glRenderTarget.get());
+			break;
 		}
+	}
+	else
+	{
+		// TODO: Render cube directly to the main framebuffer
 	}
 
 	// Draw the window contents to the screen
@@ -440,6 +439,62 @@ bool TestGraphicsContext_GL::renderToCameraTarget(
 	return true;
 }
 
+void TestGraphicsContext_GL::renderColorTexture(TestCameraRenderTarget_GL* glRenderTarget) const
+{
+	IMkTextureConstPtr colorTexture = glRenderTarget->getColorTexture();
+	if (colorTexture)
+	{
+		MkMaterialInstancePtr materialInstance = m_viewportQuadMesh->getMaterialInstance();
+		MkMaterialConstPtr material = materialInstance->getMaterial();
+
+		if (auto materialBinding = material->bindMaterial())
+		{
+			// Bind the color texture
+			materialInstance->setTextureBySemantic(eUniformSemantic::rgbTexture, colorTexture);
+
+			// Draw the color texture
+			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+			{
+				MkScopedState scopedState =
+					m_mkWindow->getMkStateStack().createScopedState("MainTargetComponentRender");
+				scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
+
+				m_viewportQuadMesh->drawElements();
+			}
+		}
+	}
+}
+
+void TestGraphicsContext_GL::renderNormalizedDepthTexture(TestCameraRenderTarget_GL* glRenderTarget) const
+{
+	IMkTextureConstPtr depthTexture = glRenderTarget->getDepthTexture();
+	if (depthTexture)
+	{
+		MkMaterialInstancePtr materialInstance = m_depthNormalizeQuadMesh->getMaterialInstance();
+		MkMaterialConstPtr material = materialInstance->getMaterial();
+
+		if (auto materialBinding = material->bindMaterial())
+		{
+			// Bind the depth texture
+			materialInstance->setTextureBySemantic(eUniformSemantic::depthTexture, depthTexture);
+
+			// Set zNear and zFar uniforms
+			materialInstance->setFloatBySemantic(eUniformSemantic::zNear, glRenderTarget->getZNear());
+			materialInstance->setFloatBySemantic(eUniformSemantic::zFar, glRenderTarget->getZFar());
+
+			// Draw the normalized depth visualization
+			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+			{
+				MkScopedState scopedState =
+					m_mkWindow->getMkStateStack().createScopedState("MainTargetDepthRender");
+				scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
+
+				m_depthNormalizeQuadMesh->drawElements();
+			}
+		}
+	}
+}
+
 void TestGraphicsContext_GL::dispose()
 {
 	if (m_boxMesh)
@@ -452,6 +507,12 @@ void TestGraphicsContext_GL::dispose()
 	{
 		m_viewportQuadMesh->deleteResources();
 		m_viewportQuadMesh = nullptr;
+	}
+
+	if (m_depthNormalizeQuadMesh)
+	{
+		m_depthNormalizeQuadMesh->deleteResources();
+		m_depthNormalizeQuadMesh = nullptr;
 	}
 
 	if (m_mkWindow)
