@@ -15,13 +15,13 @@
 #include <DirectXMath.h>
 #include <memory>
 
-static const float kDefaultZNear = 0.1f;
-static const float kDefaultZFar = 100.0f;
-static const DirectX::XMFLOAT3 kDefaultCameraPosition(0.0f, 0.0f, -10.0f);
-static const DirectX::XMFLOAT3 kDefaultCameraFocusPoint(0.0f, 0.0f, 0.0f);
-static const DirectX::XMFLOAT3 kDefaultCameraRight(1.0f, 0.0f, 0.0f);
-static const DirectX::XMFLOAT3 kDefaultCameraUp(0.0f, 1.0f, 0.0f);
-static const DirectX::XMFLOAT3 kDefaultCameraForward(0.0f, 0.0f, 1.0f);
+const float TestGraphicsContext_DX::kDefaultZNear = 0.1f;
+const float TestGraphicsContext_DX::kDefaultZFar = 100.0f;
+const DirectX::XMFLOAT3 TestGraphicsContext_DX::kDefaultCameraPosition(0.0f, 0.0f, -10.0f);
+const DirectX::XMFLOAT3 TestGraphicsContext_DX::kDefaultCameraFocusPoint(0.0f, 0.0f, 0.0f);
+const DirectX::XMFLOAT3 TestGraphicsContext_DX::kDefaultCameraRight(1.0f, 0.0f, 0.0f);
+const DirectX::XMFLOAT3 TestGraphicsContext_DX::kDefaultCameraUp(0.0f, 1.0f, 0.0f);
+const DirectX::XMFLOAT3 TestGraphicsContext_DX::kDefaultCameraForward(0.0f, 0.0f, 1.0f);
 
 // Constants used by the depth normalize shader
 #pragma warning(push)
@@ -342,22 +342,129 @@ void TestGraphicsContext_DX::cleanupDeviceD3D()
 {
 	cleanupRenderTarget();
 
-	if (m_pSwapChain) 
+	// Cleanup cube shader resources
+	if (m_cubeVertexBuffer)
 	{
-		m_pSwapChain->Release(); 
-		m_pSwapChain = nullptr; 
+		m_cubeVertexBuffer->Release();
+		m_cubeVertexBuffer = nullptr;
 	}
 
-	if (m_pd3dDeviceContext) 
-	{ 
-		m_pd3dDeviceContext->Release(); 
-		m_pd3dDeviceContext = nullptr; 
+	if (m_cubeInputLayout)
+	{
+		m_cubeInputLayout->Release();
+		m_cubeInputLayout = nullptr;
 	}
 
-	if (m_pd3dDevice) 
-	{ 
-		m_pd3dDevice->Release(); 
-		m_pd3dDevice = nullptr; 
+	if (m_cubeConstantBuffer)
+	{
+		m_cubeConstantBuffer->Release();
+		m_cubeConstantBuffer = nullptr;
+	}
+
+	if (m_cubePixelShader)
+	{
+		m_cubePixelShader->Release();
+		m_cubePixelShader = nullptr;
+	}
+
+	if (m_cubeVertexShader)
+	{
+		m_cubeVertexShader->Release();
+		m_cubeVertexShader = nullptr;
+	}
+
+	// Cleanup depth normalize shader resources
+	if (m_depthNormalizeSamplerState)
+	{
+		m_depthNormalizeSamplerState->Release();
+		m_depthNormalizeSamplerState = nullptr;
+	}
+
+	if (m_depthNormalizeConstantBuffer)
+	{
+		m_depthNormalizeConstantBuffer->Release();
+		m_depthNormalizeConstantBuffer = nullptr;
+	}
+
+	if (m_depthNormalizePixelShader)
+	{
+		m_depthNormalizePixelShader->Release();
+		m_depthNormalizePixelShader = nullptr;
+	}
+
+	if (m_depthNormalizeVertexShader)
+	{
+		m_depthNormalizeVertexShader->Release();
+		m_depthNormalizeVertexShader = nullptr;
+	}
+
+	// Cleanup depth normalize color target resources
+	if (m_depthNormalizeColorTargetSRV)
+	{
+		m_depthNormalizeColorTargetSRV->Release();
+		m_depthNormalizeColorTargetSRV = nullptr;
+	}
+
+	if (m_depthNormalizeColorTargetView)
+	{
+		m_depthNormalizeColorTargetView->Release();
+		m_depthNormalizeColorTargetView = nullptr;
+	}
+
+	if (m_depthNormalizeColorTargetTexture)
+	{
+		m_depthNormalizeColorTargetTexture->Release();
+		m_depthNormalizeColorTargetTexture = nullptr;
+	}
+
+	// Cleanup quad texture shader resources
+	if (m_quadVertexBuffer)
+	{
+		m_quadVertexBuffer->Release();
+		m_quadVertexBuffer = nullptr;
+	}
+
+	if (m_quadInputLayout)
+	{
+		m_quadInputLayout->Release();
+		m_quadInputLayout = nullptr;
+	}
+
+	if (m_quadTextureSamplerState)
+	{
+		m_quadTextureSamplerState->Release();
+		m_quadTextureSamplerState = nullptr;
+	}
+
+	if (m_quadTexturePixelShader)
+	{
+		m_quadTexturePixelShader->Release();
+		m_quadTexturePixelShader = nullptr;
+	}
+
+	if (m_quadTextureVertexShader)
+	{
+		m_quadTextureVertexShader->Release();
+		m_quadTextureVertexShader = nullptr;
+	}
+
+	// Cleanup D3D device resources
+	if (m_pSwapChain)
+	{
+		m_pSwapChain->Release();
+		m_pSwapChain = nullptr;
+	}
+
+	if (m_pd3dDeviceContext)
+	{
+		m_pd3dDeviceContext->Release();
+		m_pd3dDeviceContext = nullptr;
+	}
+
+	if (m_pd3dDevice)
+	{
+		m_pd3dDevice->Release();
+		m_pd3dDevice = nullptr;
 	}
 }
 

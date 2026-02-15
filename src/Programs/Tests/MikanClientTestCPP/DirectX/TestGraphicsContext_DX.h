@@ -87,4 +87,12 @@ private:
 	// Animation state
 	DirectX::XMMATRIX m_defaultViewProjectionMatrix;
 	MikanCameraID m_lastRenderedCameraId = INVALID_MIKAN_ID;
+
+	static const float kDefaultZNear;
+	static const float kDefaultZFar;
+	static const DirectX::XMFLOAT3 kDefaultCameraPosition;
+	static const DirectX::XMFLOAT3 kDefaultCameraFocusPoint;
+	static const DirectX::XMFLOAT3 kDefaultCameraRight;
+	static const DirectX::XMFLOAT3 kDefaultCameraUp;
+	static const DirectX::XMFLOAT3 kDefaultCameraForward;
 };

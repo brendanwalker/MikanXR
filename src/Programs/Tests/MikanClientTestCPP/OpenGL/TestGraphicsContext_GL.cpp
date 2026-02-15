@@ -20,6 +20,15 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+// Default camera constants for rendering when no camera render target is available
+const float TestGraphicsContext_GL::kDefaultZNear = 0.1f;
+const float TestGraphicsContext_GL::kDefaultZFar = 100.0f;
+const glm::vec3 TestGraphicsContext_GL::kDefaultCameraPosition(0.0f, 0.0f, -10.0f);
+const glm::vec3 TestGraphicsContext_GL::kDefaultCameraFocusPoint(0.0f, 0.0f, 0.0f);
+const glm::vec3 TestGraphicsContext_GL::kDefaultCameraRight(1.0f, 0.0f, 0.0f);
+const glm::vec3 TestGraphicsContext_GL::kDefaultCameraUp(0.0f, 1.0f, 0.0f);
+const glm::vec3 TestGraphicsContext_GL::kDefaultCameraForward(0.0f, 0.0f, 1.0f);
+
 #if defined(_WIN32)
 	#include <SDL.h>
 	#include <SDL_events.h>
@@ -67,6 +76,12 @@ public:
 	SDL_Window* getSDLWindow() const
 	{
 		return m_sdlWindow;
+	}
+
+	void setWindowSize(int width, int height)
+	{
+		m_windowWidth = width;
+		m_windowHeight = height;
 	}
 
 	virtual bool startup() override 
@@ -153,7 +168,6 @@ public:
 
 			static const glm::vec4 k_clear_color = glm::vec4(0.45f, 0.45f, 0.5f, 1.f);
 			mkStateSetClearColor(mkBaseState, k_clear_color);
-			mkStateSetViewport(mkBaseState, 0, 0, m_windowWidth, m_windowHeight);
 		}
 
 		return true;
@@ -253,12 +267,30 @@ bool TestGraphicsContext_GL::create(int windowWidth, int windowHeight)
 	m_viewportQuadMesh = createFullscreenQuadMesh(m_mkWindow.get(), false);
 
 	// Create a fullscreen quad mesh for rendering normalized depth using the depth normalize material
-	auto depthNormalizeMaterial = 
+	auto depthNormalizeMaterial =
 		m_mkWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_NORMALIZE_DEPTH);
 	assert(depthNormalizeMaterial);
 	m_depthNormalizeQuadMesh = createFullscreenQuadMesh(m_mkWindow.get(), depthNormalizeMaterial, false);
 
+	// Default view projection matrix used when there are no active render targets
+	const glm::mat4 defaultViewMatrix =
+		glm::lookAt(kDefaultCameraPosition, kDefaultCameraFocusPoint, kDefaultCameraUp);
+	const glm::mat4 defaultProjectionMatrix =
+		glm::perspectiveFov(
+			glm::pi<float>() / 4.0f,  // Field of view (Pi/4 radians = 45 degrees)
+			(float)windowWidth,
+			(float)windowHeight,
+			kDefaultZNear,
+			kDefaultZFar);
+
+	m_defaultViewProjectionMatrix = defaultProjectionMatrix * defaultViewMatrix;
+
 	return true;
+}
+
+class TestMkWindow* TestGraphicsContext_GL::getTestMkWindow() const
+{
+	return std::static_pointer_cast<TestMkWindow>(m_mkWindow).get();
 }
 
 bool TestGraphicsContext_GL::initializeCubeGeometry()
@@ -353,11 +385,23 @@ bool TestGraphicsContext_GL::initializeCubeGeometry()
 
 void TestGraphicsContext_GL::recreateMainRenderTarget()
 {
+	// SDL automatically resizes the OpenGL default framebuffer (framebuffer 0)
+	// We just need to update the viewport to match the new window size
+	int newWidth, newHeight;
+	SDL_GetWindowSize(getSDLWindow(), &newWidth, &newHeight);
 
+	getTestMkWindow()->setWindowSize(newWidth, newHeight);
 }
 
 void TestGraphicsContext_GL::renderMainTarget() const
 {
+	// Create a scoped state for rendering to the main target
+	TestMkWindow* mkWindow= getTestMkWindow();
+	IMkState* mkState = mkWindow->getMkStateStack().pushState("Render Main Target");
+
+	// Set the viewport to match the window dimensions
+	mkStateSetViewport(mkState, 0, 0, mkWindow->getWidth(), mkWindow->getHeight());
+
 	TestCameraRenderTargetPtr renderTarget = getCameraRenderTarget(m_lastRenderedCameraId);
 
 	if (renderTarget)
@@ -378,7 +422,13 @@ void TestGraphicsContext_GL::renderMainTarget() const
 	}
 	else
 	{
-		// TODO: Render cube directly to the main framebuffer
+		// Render cube directly to the main framebuffer using default camera
+		renderCube(
+			m_defaultViewProjectionMatrix,
+			kDefaultCameraPosition,
+			kDefaultCameraForward,
+			kDefaultCameraUp,
+			kDefaultCameraRight);
 	}
 
 	// Draw the window contents to the screen
@@ -390,47 +440,14 @@ bool TestGraphicsContext_GL::renderToCameraTarget(
 {
 	auto* glRenderTarget = static_cast<TestCameraRenderTarget_GL*>(cameraRenderTarget);
 
-	// Render the scene
-	MkMaterialInstancePtr materialInstance = m_boxMesh->getMaterialInstance();
-	MkMaterialConstPtr material = materialInstance->getMaterial();
+	const glm::mat4 vpMatrix = glRenderTarget->getViewProjectionMatrix();
+	const glm::vec3 cameraPosition = glRenderTarget->getCameraPosition();
+	const glm::vec3 cameraForward = glRenderTarget->getCameraForward();
+	const glm::vec3 cameraUp = glRenderTarget->getCameraUp();
+	const glm::vec3 cameraRight = glRenderTarget->getCameraRight();
 
-	if (auto materialBinding = material->bindMaterial())
-	{
-		// Bind the color texture
-		const glm::mat4 vpMatrix = glRenderTarget->getViewProjectionMatrix();
-
-		const float time = m_ownerApp->getTimeSeconds();
-		const MikanVector3f& cubeOffset = m_ownerApp->getCubeOffset();
-		const glm::vec3 cameraPosition = glRenderTarget->getCameraPosition();
-		const glm::vec3 cameraForward = glRenderTarget->getCameraForward();
-		const glm::vec3 cameraUp = glRenderTarget->getCameraUp();
-		const glm::vec3 cameraRight = glRenderTarget->getCameraRight();
-
-		glm::vec3 cubePosition =
-			cameraPosition +
-			cameraForward * cubeOffset.z +
-			cameraUp * cubeOffset.y +
-			cameraRight * cubeOffset.x;
-
-		glm::mat4 cubeXform =
-			glm::scale(glm::mat4(1.0f), glm::vec3(0.1f)) *
-			glm::rotate(glm::mat4(1.0f), time, glm::vec3(1.0f, 0.0f, 0.0f)) *
-			glm::rotate(glm::mat4(1.0f), time * 2.0f, glm::vec3(0.0f, 1.0f, 0.0f)) *
-			glm::rotate(glm::mat4(1.0f), time * 0.7f, glm::vec3(0.0f, 0.0f, 1.0f)) *
-			glm::translate(glm::mat4(1.0f), cubePosition);
-
-		materialInstance->setMat4BySemantic(eUniformSemantic::modelViewProjectionMatrix, vpMatrix * cubeXform);
-
-		// Draw the color texture
-		if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
-		{
-			MkScopedState scopedState =
-				m_mkWindow->getMkStateStack().createScopedState("MainTargetComponentRender");
-			scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
-
-			m_viewportQuadMesh->drawElements();
-		}
-	}
+	// Render the cube using the camera render target's view projection matrix
+	renderCube(vpMatrix, cameraPosition, cameraForward, cameraUp, cameraRight);
 
 	// Remember the last rendered camera ID
 	// We will render this camera in renderMainTarget
@@ -491,6 +508,51 @@ void TestGraphicsContext_GL::renderNormalizedDepthTexture(TestCameraRenderTarget
 
 				m_depthNormalizeQuadMesh->drawElements();
 			}
+		}
+	}
+}
+
+void TestGraphicsContext_GL::renderCube(
+	const glm::mat4& viewProj,
+	const glm::vec3& cameraPosition,
+	const glm::vec3& cameraForward,
+	const glm::vec3& cameraUp,
+	const glm::vec3& cameraRight) const
+{
+	const float time = m_ownerApp->getTimeSeconds();
+	const MikanVector3f& cubeOffset = m_ownerApp->getCubeOffset();
+
+	// Render the cube
+	MkMaterialInstancePtr materialInstance = m_boxMesh->getMaterialInstance();
+	MkMaterialConstPtr material = materialInstance->getMaterial();
+
+	if (auto materialBinding = material->bindMaterial())
+	{
+		// Compute cube position
+		glm::vec3 cubePosition =
+			cameraPosition +
+			cameraForward * cubeOffset.z +
+			cameraUp * cubeOffset.y +
+			cameraRight * cubeOffset.x;
+
+		// Build cube transformation matrix
+		glm::mat4 cubeXform =
+			glm::scale(glm::mat4(1.0f), glm::vec3(0.1f)) *
+			glm::rotate(glm::mat4(1.0f), time, glm::vec3(1.0f, 0.0f, 0.0f)) *
+			glm::rotate(glm::mat4(1.0f), time * 2.0f, glm::vec3(0.0f, 1.0f, 0.0f)) *
+			glm::rotate(glm::mat4(1.0f), time * 0.7f, glm::vec3(0.0f, 0.0f, 1.0f)) *
+			glm::translate(glm::mat4(1.0f), cubePosition);
+
+		materialInstance->setMat4BySemantic(eUniformSemantic::modelViewProjectionMatrix, viewProj * cubeXform);
+
+		// Draw the cube
+		if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+		{
+			MkScopedState scopedState =
+				m_mkWindow->getMkStateStack().createScopedState("CubeRender");
+			scopedState.getStackState()->enableFlag(eMkStateFlagType::depthTest);
+
+			m_boxMesh->drawElements();
 		}
 	}
 }
