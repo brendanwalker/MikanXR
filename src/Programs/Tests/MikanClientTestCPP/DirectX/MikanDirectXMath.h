@@ -3,8 +3,8 @@
 #include <d3d11_1.h>
 #include <directxmath.h>
 
+DirectX::XMFLOAT3 mikan_vec3_to_directx_xmfloat3(const MikanVector3f& vec);
 DirectX::XMVECTOR mikan_vec3_to_directx_xmvector(const MikanVector3f& vec);
-
 DirectX::XMVECTOR mikan_position_to_directx_xmvector(const MikanVector3f& vec);
 
 DirectX::XMMATRIX mikan_camera_pose_to_directx_view_matrix(

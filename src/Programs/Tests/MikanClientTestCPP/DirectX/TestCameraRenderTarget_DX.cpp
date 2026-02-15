@@ -7,10 +7,16 @@
 
 TestCameraRenderTarget_DX::TestCameraRenderTarget_DX(
 	TestGraphicsContextPtr ownerContext,
-	ID3D11Device* d3dDevice, 
+	ID3D11Device* d3dDevice,
 	MikanCameraID cameraId)
 	: TestCameraRenderTarget(ownerContext, cameraId)
 	, m_d3dDevice(d3dDevice)
+	, m_projMatrix(DirectX::XMMatrixIdentity())
+	, m_viewMatrix(DirectX::XMMatrixIdentity())
+	, m_cameraPosition(0.0f, 0.0f, 0.0f)
+	, m_cameraForward(0.0f, 0.0f, 1.0f)
+	, m_cameraUp(0.0f, 1.0f, 0.0f)
+	, m_cameraRight(1.0f, 0.0f, 0.0f)
 {
 }
 
@@ -23,196 +29,33 @@ TestCameraRenderTarget_DX::~TestCameraRenderTarget_DX()
 	assert(!m_bHasAllocatedRemoteTexture);
 }
 
-DXGI_FORMAT TestCameraRenderTarget_DX::getDepthResourceFormat(DXGI_FORMAT depthFormat)
-{
-	DXGI_FORMAT resultFormat= DXGI_FORMAT_UNKNOWN;
-
-	switch (depthFormat)
-	{
-	case DXGI_FORMAT_D16_UNORM:
-		resultFormat= DXGI_FORMAT_R16G16_TYPELESS;
-		break;
-	case DXGI_FORMAT_D24_UNORM_S8_UINT:
-		resultFormat = DXGI_FORMAT_R24G8_TYPELESS;
-		break;
-	case DXGI_FORMAT_D32_FLOAT:
-		resultFormat = DXGI_FORMAT_R32_TYPELESS;
-		break;
-	case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
-		resultFormat = DXGI_FORMAT_R32G8X24_TYPELESS;
-		break;
-	}
-
-	return resultFormat;
-}
-
-DXGI_FORMAT TestCameraRenderTarget_DX::getDepthSRVFormat(DXGI_FORMAT depthFormat)
-{
-	DXGI_FORMAT resultFormat = DXGI_FORMAT_UNKNOWN;
-
-	switch (depthFormat)
-	{
-	case DXGI_FORMAT_D16_UNORM:
-		resultFormat = DXGI_FORMAT_R16_FLOAT;
-		break;
-	case DXGI_FORMAT_D24_UNORM_S8_UINT:
-		resultFormat = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
-		break;
-	case DXGI_FORMAT_D32_FLOAT:
-		resultFormat = DXGI_FORMAT_R32_FLOAT;
-		break;
-	case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
-		resultFormat = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
-		break;
-	}
-
-	return resultFormat;
-}
-
 bool TestCameraRenderTarget_DX::createGraphicsAPIResources(int textureWidth, int textureHeight)
 {
-	// Create the render target resources
-	// -------
-	bool bSuccess = true;
-
 	// Create the color render target texture.
+	if (!createColorRenderTargetResources(
+		m_d3dDevice,
+		textureWidth,
+		textureHeight,
+		&m_colorTargetTexture,
+		&m_colorTargetView,
+		&m_colorTargetSRV))
 	{
-		HRESULT result;
-
-		// Setup the color render target texture description.
-		D3D11_TEXTURE2D_DESC textureDesc;
-		ZeroMemory(&textureDesc, sizeof(textureDesc));
-		textureDesc.Width = (UINT)textureWidth;
-		textureDesc.Height = (UINT)textureHeight;
-		textureDesc.MipLevels = 1;
-		textureDesc.ArraySize = 1;
-		textureDesc.Format = DXGI_FORMAT_B8G8R8A8_TYPELESS; //  DXGI_FORMAT_B8G8R8A8_UNORM;
-		textureDesc.SampleDesc.Count = 1;
-		textureDesc.Usage = D3D11_USAGE_DEFAULT;
-		textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
-		textureDesc.CPUAccessFlags = 0;
-		textureDesc.MiscFlags = 0;
-
-		// Create the render target texture.
-		result = m_d3dDevice->CreateTexture2D(&textureDesc, NULL, &m_colorTargetTexture);
-		if (FAILED(result))
-		{
-			MIKAN_LOG_ERROR("MikanCameraRenderTarget::createDirectXResources")
-				<< "Failed to create Color DX Texture2D "
-				<< "(format: DXGI_FORMAT_B8G8R8A8_UNORM"
-				<< ", size: " << textureWidth << "x" << textureHeight
-				<< ")";
-			return false;
-		}
-
-		// Setup the description of the render target view.
-		D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
-		ZeroMemory(&renderTargetViewDesc, sizeof(renderTargetViewDesc));
-		renderTargetViewDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM; //textureDesc.Format;
-		renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-		renderTargetViewDesc.Texture2D.MipSlice = 0;
-
-		// Create the render target view.
-		result = m_d3dDevice->CreateRenderTargetView(m_colorTargetTexture, &renderTargetViewDesc, &m_colorTargetView);
-		if (FAILED(result))
-		{
-			MIKAN_LOG_ERROR("MikanCameraRenderTarget::createDirectXResources") << "Failed to create color renderMainTarget target view";
-			return false;
-		}
-
-		// Setup the description of the shader resource view.
-		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
-		ZeroMemory(&shaderResourceViewDesc, sizeof(shaderResourceViewDesc));
-		shaderResourceViewDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM; //textureDesc.Format;
-		shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
-		shaderResourceViewDesc.Texture2D.MipLevels = 1;
-
-		// Create the shader resource view.
-		result = m_d3dDevice->CreateShaderResourceView(m_colorTargetTexture, &shaderResourceViewDesc, &m_colorTargetSRV);
-		if (FAILED(result))
-		{
-			MIKAN_LOG_ERROR("MikanCameraRenderTarget::createDirectXResources") << "Failed to create color shader resource view";
-			return false;
-		}
+		MIKAN_LOG_ERROR("MikanCameraRenderTarget::createDirectXResources") << "Failed to create color render target";
+		return false;
 	}
 
 	// Create the depth render target texture
+	if (!createDepthRenderTargetResources(
+		m_d3dDevice,
+		textureWidth,
+		textureHeight,
+		&m_floatDepthTargetTexture,
+		&m_floatDepthTargetView,
+		&m_floatDepthTargetSRV))
 	{
-		HRESULT result;
-
-		DXGI_FORMAT depthViewFormat = DXGI_FORMAT_D32_FLOAT;
-		DXGI_FORMAT resourceFormat = getDepthResourceFormat(depthViewFormat);
-		DXGI_FORMAT srvFormat = getDepthSRVFormat(depthViewFormat);
-
-		// Setup the depth render target texture description.
-		D3D11_TEXTURE2D_DESC textureDesc;
-		ZeroMemory(&textureDesc, sizeof(textureDesc));
-		textureDesc.Width = (UINT)textureWidth;
-		textureDesc.Height = (UINT)textureHeight;
-		textureDesc.MipLevels = 1;
-		textureDesc.ArraySize = 1;
-		textureDesc.Format = resourceFormat;
-		textureDesc.SampleDesc.Count = 1;
-		textureDesc.Usage = D3D11_USAGE_DEFAULT;
-		textureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-		textureDesc.CPUAccessFlags = 0;
-		textureDesc.MiscFlags = 0;
-
-		// Create the render target texture.
-		result = m_d3dDevice->CreateTexture2D(&textureDesc, NULL, &m_floatDepthTargetTexture);
-		if (FAILED(result))
-		{
-			MIKAN_LOG_ERROR("MikanCameraRenderTarget::createDirectXResources")
-				<< "Failed to create Float Depth DX Texture2D "
-				<< "(format: " << DXGIFormatToString(resourceFormat)
-				<< ", size: " << textureWidth << "x" << textureHeight
-				<< ")";
-			return false;
-		}
-
-		// Create the depth stencil view.
-		D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
-		ZeroMemory(&depthStencilViewDesc, sizeof(depthStencilViewDesc));
-		depthStencilViewDesc.Format = depthViewFormat;
-		depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-		depthStencilViewDesc.Texture2D.MipSlice = 0;
-
-		result = m_d3dDevice->CreateDepthStencilView(m_floatDepthTargetTexture, &depthStencilViewDesc, &m_floatDepthTargetView);
-		if (FAILED(result))
-		{
-			MIKAN_LOG_ERROR("MikanCameraRenderTarget::createDirectXResources") 
-				<< "Failed to create depth stencil view"
-				<< "(format: " << DXGIFormatToString(depthViewFormat)
-				<< ", size: " << textureWidth << "x" << textureHeight
-				<< ")";
-			return false;
-		}
-
-		// Setup the description of the shader resource view.
-		D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
-		ZeroMemory(&shaderResourceViewDesc, sizeof(shaderResourceViewDesc));
-		shaderResourceViewDesc.Format = srvFormat;
-		shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-		shaderResourceViewDesc.Texture2D.MostDetailedMip = 0;
-		shaderResourceViewDesc.Texture2D.MipLevels = 1;
-
-		// Create the shader resource view.
-		result = m_d3dDevice->CreateShaderResourceView(m_floatDepthTargetTexture, &shaderResourceViewDesc, &m_floatDepthTargetSRV);
-		if (FAILED(result))
-		{
-			MIKAN_LOG_ERROR("MikanCameraRenderTarget::createDirectXResources") 
-				<< "Failed to create depth shader resource view"
-				<< "(format: " << DXGIFormatToString(srvFormat)
-				<< ", size: " << textureWidth << "x" << textureHeight
-				<< ")";
-			return false;
-		}
+		MIKAN_LOG_ERROR("MikanCameraRenderTarget::createDirectXResources") << "Failed to create depth render target";
+		return false;
 	}
-
-	// Remember the size of the render target once created
-	m_width = textureWidth;
-	m_height = textureHeight;
 
 	return true;
 }
@@ -271,11 +114,21 @@ void* TestCameraRenderTarget_DX::getGraphicsApiDepthTexturePtr() const
 
 void TestCameraRenderTarget_DX::updateCameraViewMatrix(const MikanCameraNewFrameEvent& newFrameEvent)
 {
-	const MikanVector3f& cameraForward = newFrameEvent.camera_forward;
-	const MikanVector3f& cameraUp = newFrameEvent.camera_up;
-	const MikanVector3f& cameraPosition = newFrameEvent.camera_position;
+	const MikanVector3f& mkCameraForward = newFrameEvent.camera_forward;
+	const MikanVector3f& mkCameraUp = newFrameEvent.camera_up;
+	const MikanVector3f& mkCameraPosition = newFrameEvent.camera_position;
 
-	m_viewMatrix = mikan_camera_pose_to_directx_view_matrix(cameraForward, cameraUp, cameraPosition);
+	DirectX::XMVECTOR xmPosition = mikan_position_to_directx_xmvector(mkCameraPosition);
+	DirectX::XMVECTOR xmForward = mikan_vec3_to_directx_xmvector(mkCameraForward);
+	DirectX::XMVECTOR xmUp = mikan_vec3_to_directx_xmvector(mkCameraUp);
+	DirectX::XMVECTOR xmRight = DirectX::XMVector3Normalize(DirectX::XMVector3Cross(xmForward, xmUp));
+
+	DirectX::XMStoreFloat3(&m_cameraPosition, xmPosition);
+	DirectX::XMStoreFloat3(&m_cameraForward, xmForward);
+	DirectX::XMStoreFloat3(&m_cameraUp, xmUp);
+	DirectX::XMStoreFloat3(&m_cameraRight, xmRight);
+
+	m_viewMatrix = mikan_camera_pose_to_directx_view_matrix(mkCameraForward, mkCameraUp, mkCameraPosition);
 }
 
 void TestCameraRenderTarget_DX::updateCameraProjectionMatrix(const MikanCameraNewFrameEvent& newFrameEvent)

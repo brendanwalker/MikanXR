@@ -18,8 +18,7 @@ using TestMikanClientPtr = std::shared_ptr<class TestMikanClient>;
 enum class TestRenderMode : int
 {
 	Color,
-	DepthNormalize,
-	PackDepth
+	DepthNormalize
 };
 
 class TestApp

@@ -183,10 +183,6 @@ void TestApp::onSDLEvent(SDL_Event& e)
 		{
 			m_renderMode = TestRenderMode::DepthNormalize;
 		}
-		else if (e.key.keysym.sym == SDLK_3)
-		{
-			m_renderMode = TestRenderMode::PackDepth;
-		}
 		else if (e.key.keysym.sym == SDLK_w)
 		{
 			m_cubeOffset.z += 0.1f;

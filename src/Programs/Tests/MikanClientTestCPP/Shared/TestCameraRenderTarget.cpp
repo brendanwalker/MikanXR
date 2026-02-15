@@ -35,6 +35,10 @@ bool TestCameraRenderTarget::processCameraNewFrameEvent(
 	// Remember the frame index of the last frame we published
 	m_lastReceivedFrameIndex = newFrameEvent.frame;
 
+	// Remember the latest z bounds for this camera
+	m_zNear = static_cast<float>(newFrameEvent.z_bounds.x);
+	m_zFar = static_cast<float>(newFrameEvent.z_bounds.y);
+
 	// Update the camera view matrix using the latest camera extrinsics
 	updateCameraViewMatrix(newFrameEvent);
 
@@ -54,6 +58,10 @@ bool TestCameraRenderTarget::processCameraNewFrameEvent(
 				<< ", new size: " << newWidth << "x" << newHeight
 				<< ", frame: " << m_lastReceivedFrameIndex
 				<< ").";
+
+			// Remember the size of the render target once created
+			m_width = newWidth;
+			m_height = newHeight;
 		}
 		else
 		{
@@ -157,6 +165,7 @@ bool TestCameraRenderTarget::reallocateRenderTarget(
 			MIKAN_LOG_INFO("MikanCameraRenderTarget::allocateRenderTarget") 
 				<< "Successfully created shared texture " 
 				<< " (camera id: " << m_cameraId << ")";
+
 			bSuccess= true;
 		}
 		else

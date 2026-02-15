@@ -12,7 +12,11 @@ public:
 	virtual ~TestCameraRenderTarget();
 
 	inline MikanCameraID getCameraId() const { return m_cameraId; }
-	
+	inline int getWidth() const { return m_width; }
+	inline int getHeight() const { return m_height; }
+	inline float getZNear() const { return m_zNear; }
+	inline float getZFar() const { return m_zFar; }
+
 	bool processCameraNewFrameEvent(IMikanAPIPtr mikanAPI, const struct MikanCameraNewFrameEvent& newFrameEvent);
 	void dispose(IMikanAPIPtr mikanAPI);
 
@@ -38,6 +42,8 @@ protected:
 	
 	int m_width = 0;
 	int m_height = 0;
+	float m_zNear = 0.f;
+	float m_zFar = 0.f;
 	bool m_bHasAllocatedRemoteTexture = false;
 	bool m_bHasValidProjMatrix= false;
 	bool m_bHasValidViewMatrix= false;

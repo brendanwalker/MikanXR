@@ -92,9 +92,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_custom_command(
     TARGET MikanClientTest POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${GLEW_SHARED_LIBRARIES} $<TARGET_FILE_DIR:MikanClientTest>)
-  add_custom_command(TARGET MikanClientTest POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${ROOT_DIR}/resources/textures $<TARGET_FILE_DIR:MikanClientTest>/resources/textures)
   add_custom_command(
     TARGET MikanClientTest POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy

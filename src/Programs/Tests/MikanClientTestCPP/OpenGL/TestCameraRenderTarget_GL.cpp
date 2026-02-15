@@ -70,10 +70,6 @@ bool TestCameraRenderTarget_GL::createGraphicsAPIResources(int textureWidth, int
 		bSuccess= m_frameBuffer->createResources();
 	}
 
-	// Remember the size of the render target once created
-	m_width = textureWidth;
-	m_height = textureHeight;
-
 	return bSuccess;
 }
 

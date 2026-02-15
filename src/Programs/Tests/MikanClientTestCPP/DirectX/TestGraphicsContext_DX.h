@@ -4,6 +4,7 @@
 #include "TestGraphicsContext.h"
 
 #include <d3d11.h>
+#include <directxmath.h>
 #include <memory>
 
 class TestGraphicsContext_DX : 
@@ -28,6 +29,21 @@ protected:
 	void createRenderTarget();
 	void cleanupRenderTarget();
 
+	bool initializeQuadGeometry();
+	bool initializeCubeGeometry();
+	bool initializeCubeShader();
+	bool initializeDepthNormalizeShader();
+	bool initializeQuadTextureShader();
+
+	void renderNormalizedDepthTexture(class TestCameraRenderTarget_DX* dxRenderTarget);
+	void renderColorTexture(ID3D11ShaderResourceView* textureSRV) const;
+	void renderCube(
+		const DirectX::XMMATRIX& viewProj,
+		const DirectX::XMFLOAT3& cameraPosition,
+		const DirectX::XMFLOAT3& cameraForward,
+		const DirectX::XMFLOAT3& cameraUp,
+		const DirectX::XMFLOAT3& cameraRight) const;
+
 private:
 	struct SDL_Window* m_sdlWindow = nullptr;
 	bool m_sdlInitialized= false;
@@ -39,4 +55,36 @@ private:
 	ID3D11DeviceContext* m_pd3dDeviceContext = nullptr;
 	IDXGISwapChain* m_pSwapChain = nullptr;
 	ID3D11RenderTargetView* m_mainRenderTargetView = nullptr;
+
+	// Cube shader state
+	ID3D11VertexShader* m_cubeVertexShader = nullptr;
+	ID3D11PixelShader* m_cubePixelShader = nullptr;
+	ID3D11Buffer* m_cubeConstantBuffer = nullptr;
+	ID3D11InputLayout* m_cubeInputLayout = nullptr;
+	ID3D11Buffer* m_cubeVertexBuffer = nullptr;
+	int m_cubeVertexCount = 0;
+
+	// Depth normalize shader state
+	ID3D11VertexShader* m_depthNormalizeVertexShader = nullptr;
+	ID3D11PixelShader* m_depthNormalizePixelShader = nullptr;
+	ID3D11Buffer* m_depthNormalizeConstantBuffer = nullptr;
+	ID3D11SamplerState* m_depthNormalizeSamplerState = nullptr;
+
+	// Depth Normalize Color Target
+	int m_depthNormalizeTargetWidth = 0;
+	int m_depthNormalizeTargetHeight = 0;
+	ID3D11Texture2D* m_depthNormalizeColorTargetTexture = nullptr;
+	ID3D11RenderTargetView* m_depthNormalizeColorTargetView = nullptr;
+	ID3D11ShaderResourceView* m_depthNormalizeColorTargetSRV = nullptr;
+
+	// Quad texture shader state
+	ID3D11VertexShader* m_quadTextureVertexShader = nullptr;
+	ID3D11PixelShader* m_quadTexturePixelShader = nullptr;
+	ID3D11SamplerState* m_quadTextureSamplerState = nullptr;
+	ID3D11InputLayout* m_quadInputLayout = nullptr;
+	ID3D11Buffer* m_quadVertexBuffer = nullptr;
+
+	// Animation state
+	DirectX::XMMATRIX m_defaultViewProjectionMatrix;
+	MikanCameraID m_lastRenderedCameraId = INVALID_MIKAN_ID;
 };

@@ -1,5 +1,10 @@
 #include "MikanDirectXMath.h"
 
+DirectX::XMFLOAT3 mikan_vec3_to_directx_xmfloat3(const MikanVector3f& vec)
+{
+	return {vec.x, vec.y, -vec.z};
+}
+
 DirectX::XMVECTOR mikan_vec3_to_directx_xmvector(const MikanVector3f& vec)
 {
 	return {vec.x, vec.y, -vec.z, 0.f};

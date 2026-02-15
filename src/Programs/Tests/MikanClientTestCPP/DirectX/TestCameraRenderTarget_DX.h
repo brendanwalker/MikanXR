@@ -30,6 +30,15 @@ public:
 	DXGI_FORMAT getDepthResourceFormat(DXGI_FORMAT depthFormat);
 	DXGI_FORMAT getDepthSRVFormat(DXGI_FORMAT depthFormat);
 
+	const DirectX::XMFLOAT3& getCameraPosition() const { return m_cameraPosition; }
+	const DirectX::XMFLOAT3& getCameraForward() const { return m_cameraForward; }
+	const DirectX::XMFLOAT3& getCameraUp() const { return m_cameraUp; }
+	const DirectX::XMFLOAT3& getCameraRight() const { return m_cameraRight; }
+	const DirectX::XMMATRIX getViewProjectionMatrix() const { 
+		return DirectX::XMMatrixMultiply(m_viewMatrix, m_projMatrix);
+	}
+
+
 protected:
 	virtual bool createGraphicsAPIResources(int textureWidth, int textureHeight) override;
 	virtual void bindGraphicsAPIResource() override;
@@ -56,4 +65,8 @@ private:
 
 	DirectX::XMMATRIX m_projMatrix;
 	DirectX::XMMATRIX m_viewMatrix;
+	DirectX::XMFLOAT3 m_cameraPosition;
+	DirectX::XMFLOAT3 m_cameraForward;
+	DirectX::XMFLOAT3 m_cameraUp;
+	DirectX::XMFLOAT3 m_cameraRight;
 };
