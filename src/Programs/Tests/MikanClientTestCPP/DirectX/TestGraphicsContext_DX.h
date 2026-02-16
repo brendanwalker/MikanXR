@@ -15,6 +15,7 @@ public:
 	TestGraphicsContext_DX(class TestApp* ownerApp);
 	
 	virtual MikanClientGraphicsApi getGraphicsApi() const override { return MikanClientGraphicsApi_Direct3D11; } 
+	virtual void* getGraphicsDeviceInterface() const override;
 	virtual struct SDL_Window* getSDLWindow() const override { return m_sdlWindow; }
 	virtual TestCameraRenderTargetPtr allocateCameraRenderTarget(int cameraId) override;
 	virtual bool create(int windowWidth, int windowHeight) override;

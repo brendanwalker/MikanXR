@@ -45,6 +45,11 @@ TestCameraRenderTargetPtr TestGraphicsContext_DX::allocateCameraRenderTarget(
 			shared_from_this(), m_pd3dDevice, cameraId);
 }
 
+void* TestGraphicsContext_DX::getGraphicsDeviceInterface() const
+{
+	return m_pd3dDevice;
+}
+
 bool TestGraphicsContext_DX::create(int windowWidth, int windowHeight)
 {
 	const SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);

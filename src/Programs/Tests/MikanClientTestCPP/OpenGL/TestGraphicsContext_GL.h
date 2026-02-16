@@ -16,7 +16,8 @@ public:
 	
 	MkStateStack& getMkStateStack();
 
-	virtual MikanClientGraphicsApi getGraphicsApi() const override { return MikanClientGraphicsApi_OpenGL; } 
+	virtual MikanClientGraphicsApi getGraphicsApi() const override { return MikanClientGraphicsApi_OpenGL; }
+	virtual void* getGraphicsDeviceInterface() const override;
 	virtual struct SDL_Window* getSDLWindow() const override;
 	virtual TestCameraRenderTargetPtr allocateCameraRenderTarget(int cameraId) override;
 	virtual bool create(int windowWidth, int windowHeight) override;

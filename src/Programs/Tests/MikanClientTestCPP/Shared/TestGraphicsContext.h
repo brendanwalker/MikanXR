@@ -25,6 +25,7 @@ public:
 
 	// Graphics API Interface
 	virtual MikanClientGraphicsApi getGraphicsApi() const = 0;
+	virtual void* getGraphicsDeviceInterface() const = 0;
 	virtual struct SDL_Window* getSDLWindow() const = 0;
 	virtual TestCameraRenderTargetPtr allocateCameraRenderTarget(int cameraId) = 0;
 	virtual bool create(int windowWidth, int windowHeight) = 0;

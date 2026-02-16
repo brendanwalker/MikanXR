@@ -73,6 +73,11 @@ public:
 
 	virtual ~TestMkWindow() {}
 
+	void* getOpenGLContext() const
+	{
+		return m_glContext;
+	}
+
 	SDL_Window* getSDLWindow() const
 	{
 		return m_sdlWindow;
@@ -231,11 +236,16 @@ MkStateStack& TestGraphicsContext_GL::getMkStateStack()
 	return m_mkWindow->getMkStateStack();
 }
 
+void* TestGraphicsContext_GL::getGraphicsDeviceInterface() const
+{
+	return getTestMkWindow()->getOpenGLContext();
+}
+
 SDL_Window* TestGraphicsContext_GL::getSDLWindow() const
 {
 	if (m_mkWindow)
 	{
-		return std::static_pointer_cast<TestMkWindow>(m_mkWindow)->getSDLWindow();
+		return getTestMkWindow()->getSDLWindow();
 	}
 
 	return nullptr;

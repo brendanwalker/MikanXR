@@ -63,6 +63,10 @@ bool TestMikanClient::init(
 		success= false;
 	}
 
+	m_mikanApi->setGraphicsDeviceInterface(
+		m_graphicsContext->getGraphicsApi(), 
+		m_graphicsContext->getGraphicsDeviceInterface());
+
 	return success;
 }
 
@@ -156,10 +160,17 @@ void TestMikanClient::update(const float deltaSeconds)
 	}
 	else
 	{
-		if (m_mikanApi->connect() != MikanAPIResult::Success)
+		// Try to reconnect after timeout
+		if (m_mikanReconnectTimout <= 0.0f)
 		{
-			// timeout between reconnect attempts
-			std::this_thread::sleep_for(1000ms);
+			if (m_mikanApi->connect() != MikanAPIResult::Success || !m_mikanApi->getIsConnected())
+			{
+				m_mikanReconnectTimout = 1.0f;
+			}
+		}
+		else
+		{
+			m_mikanReconnectTimout -= deltaSeconds;
 		}
 	}
 }
@@ -212,7 +223,7 @@ void TestMikanClient::handleMikanConnected()
 	MikanClientInfo clientInfo = m_mikanApi->allocateClientInfo();
 	clientInfo.engineName = "MikanXR Test";
 	clientInfo.engineVersion = "1.0";
-	clientInfo.applicationName = "MikanXR Test";
+	clientInfo.applicationName = "MikanXR Client Test C++";
 	clientInfo.applicationVersion = "1.0";
 	clientInfo.graphicsAPI = m_graphicsContext->getGraphicsApi();
 	clientInfo.supportsRGBA32 = true;

@@ -49,8 +49,8 @@ protected:
 	IMikanAPIPtr m_mikanApi;
 	bool m_mikanInitialized = false;
 	MikanCameraID m_lastProcessedCamera= INVALID_MIKAN_ID;
-	int64_t m_lastReceivedVideoSourceFrame = 0;
 	bool m_bShutdownRequested= false;
+	float m_mikanReconnectTimout = 0.0f;
 };
 
 using TestMikanClientPtr = std::shared_ptr<TestMikanClient>;
