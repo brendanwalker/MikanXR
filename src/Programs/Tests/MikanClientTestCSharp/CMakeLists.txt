@@ -7,6 +7,8 @@ CONFIGURE_FILE("${CMAKE_CURRENT_LIST_DIR}/AssemblyInfo.cs.template" "${CMAKE_BIN
 file(GLOB MIKAN_CSHARP_TEST_SRC
 	"${CMAKE_CURRENT_LIST_DIR}/*.cs"
 	"${CMAKE_CURRENT_LIST_DIR}/Properties/*.cs"
+	"${CMAKE_CURRENT_LIST_DIR}/Shared/*.cs"
+	"${CMAKE_CURRENT_LIST_DIR}/DirectX/*.cs"
 )
 
 ADD_EXECUTABLE(${PROJECT_NAME}
@@ -84,12 +86,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_custom_command(
     TARGET MikanClientTestCSharp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy "${SPOUT2_SHARED_LIBRARIES}" $<TARGET_FILE_DIR:MikanClientTestCSharp>)
-  add_custom_command(
-    TARGET MikanClientTestCSharp POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}../Resources/DepthNormalizeShader.fxh" $<TARGET_FILE_DIR:MikanClientTestCSharp>)
-  add_custom_command(
-    TARGET MikanClientTestCSharp POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_LIST_DIR}../Resources/QuadTextureShader.fxh" $<TARGET_FILE_DIR:MikanClientTestCSharp>)
   add_custom_command(
     TARGET MikanClientTestCSharp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
