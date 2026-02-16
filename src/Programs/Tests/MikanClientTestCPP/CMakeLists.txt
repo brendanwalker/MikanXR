@@ -70,10 +70,10 @@ list(APPEND MIKAN_CLIENT_TEST_REQ_LIBS
   MikanSerialization
   MikanUtility)
 
-add_executable(MikanClientTest ${MIKAN_CLIENT_TEST_SRC})
-target_include_directories(MikanClientTest PUBLIC ${MIKAN_CLIENT_TEST_INCL_DIRS})
-target_link_libraries(MikanClientTest ${MIKAN_CLIENT_TEST_REQ_LIBS})
-SET_TARGET_PROPERTIES(MikanClientTest PROPERTIES FOLDER Test WIN32_EXECUTABLE FALSE)
+add_executable(MikanClientTestCPP ${MIKAN_CLIENT_TEST_SRC})
+target_include_directories(MikanClientTestCPP PUBLIC ${MIKAN_CLIENT_TEST_INCL_DIRS})
+target_link_libraries(MikanClientTestCPP ${MIKAN_CLIENT_TEST_REQ_LIBS})
+SET_TARGET_PROPERTIES(MikanClientTestCPP PROPERTIES FOLDER Test WIN32_EXECUTABLE FALSE)
 
 # Runtime dependencies
 set(SDL2_DLL ${ROOT_DIR}/deps/SDL2-2.0.10/lib/x64/SDL2.dll)
@@ -81,68 +81,68 @@ set(EASY_PROFILER_FOLDER ${ROOT_DIR}/deps/easy_profiler/bin)
 
 # Post build - copy runtime dependencies to binary build folder (for debugging)
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
-  set_property(TARGET MikanClientTest PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:MikanClientTest>")
+  set_property(TARGET MikanClientTestCPP PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:MikanClientTestCPP>")
 
   add_custom_command(
-    TARGET MikanClientTest POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy "${SPOUT2_SHARED_LIBRARIES}" $<TARGET_FILE_DIR:MikanClientTest>)
+    TARGET MikanClientTestCPP POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy "${SPOUT2_SHARED_LIBRARIES}" $<TARGET_FILE_DIR:MikanClientTestCPP>)
   add_custom_command(
-    TARGET MikanClientTest POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${SDL2_DLL} $<TARGET_FILE_DIR:MikanClientTest>)
+    TARGET MikanClientTestCPP POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${SDL2_DLL} $<TARGET_FILE_DIR:MikanClientTestCPP>)
   add_custom_command(
-    TARGET MikanClientTest POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${GLEW_SHARED_LIBRARIES} $<TARGET_FILE_DIR:MikanClientTest>)
+    TARGET MikanClientTestCPP POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${GLEW_SHARED_LIBRARIES} $<TARGET_FILE_DIR:MikanClientTestCPP>)
   add_custom_command(
-    TARGET MikanClientTest POST_BUILD
+    TARGET MikanClientTestCPP POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
           $<TARGET_FILE_DIR:MikanClientCore>/MikanClientCore.dll
-          $<TARGET_FILE_DIR:MikanClientTest>)
+          $<TARGET_FILE_DIR:MikanClientTestCPP>)
   add_custom_command(
-    TARGET MikanClientTest POST_BUILD
+    TARGET MikanClientTestCPP POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
           $<TARGET_FILE_DIR:MikanClientAPI>/MikanClientAPI.dll
-          $<TARGET_FILE_DIR:MikanClientTest>)
+          $<TARGET_FILE_DIR:MikanClientTestCPP>)
   add_custom_command(
-    TARGET MikanClientTest POST_BUILD
+    TARGET MikanClientTestCPP POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
           $<TARGET_FILE_DIR:MikanCoreApp>/MikanCoreApp.dll
-          $<TARGET_FILE_DIR:MikanClientTest>)
+          $<TARGET_FILE_DIR:MikanClientTestCPP>)
   add_custom_command(
-    TARGET MikanClientTest POST_BUILD
+    TARGET MikanClientTestCPP POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
           $<TARGET_FILE_DIR:MikanRenderer>/MikanRenderer.dll
-          $<TARGET_FILE_DIR:MikanClientTest>)
+          $<TARGET_FILE_DIR:MikanClientTestCPP>)
   add_custom_command(
-    TARGET MikanClientTest POST_BUILD
+    TARGET MikanClientTestCPP POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
           $<TARGET_FILE_DIR:MikanSerialization>/MikanSerialization.dll
-          $<TARGET_FILE_DIR:MikanClientTest>)
+          $<TARGET_FILE_DIR:MikanClientTestCPP>)
   add_custom_command(
-    TARGET MikanClientTest POST_BUILD
+    TARGET MikanClientTestCPP POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
           $<TARGET_FILE_DIR:MikanSharedTexture>/MikanSharedTexture.dll
-          $<TARGET_FILE_DIR:MikanClientTest>)
+          $<TARGET_FILE_DIR:MikanClientTestCPP>)
   add_custom_command(
-    TARGET MikanClientTest POST_BUILD
+    TARGET MikanClientTestCPP POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
           $<TARGET_FILE_DIR:MikanUtility>/MikanUtility.dll
-          $<TARGET_FILE_DIR:MikanClientTest>)
+          $<TARGET_FILE_DIR:MikanClientTestCPP>)
   add_custom_command(
-    TARGET MikanClientTest POST_BUILD
+    TARGET MikanClientTestCPP POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy 
     "${EASY_PROFILER_FOLDER}/easy_profiler.dll"
-    $<TARGET_FILE_DIR:MikanClientTest>)
+    $<TARGET_FILE_DIR:MikanClientTestCPP>)
   add_custom_command(
-	TARGET MikanClientTest POST_BUILD
+	TARGET MikanClientTestCPP POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy
 	"${RFK_SHARED_LIBRARIES}"
-	$<TARGET_FILE_DIR:MikanClientTest>)
+	$<TARGET_FILE_DIR:MikanClientTestCPP>)
 ELSE() #Linux/Darwin
 ENDIF()
 
 # Install
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
-  install(TARGETS MikanClientTest
+  install(TARGETS MikanClientTestCPP
       RUNTIME DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
       LIBRARY DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
       ARCHIVE DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib)
