@@ -38,30 +38,30 @@ namespace MikanXR
 			return (MikanAPIResult)result;
 		}
 
-		public IntPtr GetPackDepthTextureResourcePtr()
+		public IntPtr GetCameraPackDepthTextureResourcePtr(int cameraId)
 		{
-			return MikanCoreNative.Mikan_GetPackDepthTextureResourcePtr(_mikanContext);
+			return MikanCoreNative.Mikan_GetCameraPackDepthTextureResourcePtr(_mikanContext, cameraId);
 		}
 
 		public MikanResponseFuture TryProcessRequest(MikanRequest request)
 		{
-			if (request is AllocateRenderTargetTextures)
+			if (request is AllocateCameraRenderTargetTextures)
 			{
 				return RequestAllocateRenderTargetTextures(request);
 			}
-			else if (request is WriteColorRenderTargetTexture)
+			else if (request is WriteCameraColorRenderTargetTexture)
 			{
 				return RequestWriteColorRenderTargetTexture(request);
 			}
-			else if (request is WriteDepthRenderTargetTexture)
+			else if (request is WriteCameraDepthRenderTargetTexture)
 			{
 				return RequestWriteDepthRenderTargetTexture(request);
 			}
-			else if (request is PublishRenderTargetTextures) 
+			else if (request is PublishCameraRenderTargetTextures) 
 			{
 				return RequestPublishRenderTargetTextures(request);
 			}
-			else if (request is FreeRenderTargetTextures)
+			else if (request is FreeCameraRenderTargetTextures)
 			{
 				return RequestFreeRenderTargetTextures(request);
 			}
@@ -71,7 +71,7 @@ namespace MikanXR
 
 		private MikanResponseFuture RequestAllocateRenderTargetTextures(MikanRequest request)
 		{
-			var allocateRequest = request as AllocateRenderTargetTextures;
+			var allocateRequest = request as AllocateCameraRenderTargetTextures;
 			MikanRenderTargetDescriptor desiredDescriptor= allocateRequest.descriptor;
 			MikanRenderTargetDescriptor_Native desiredDescriptor_Native= 
 				new MikanRenderTargetDescriptor_Native() { 
@@ -83,14 +83,14 @@ namespace MikanXR
 				};
 
 			MikanAPIResult result =
-				(MikanAPIResult)MikanCoreNative.Mikan_AllocateRenderTargetTextures(
-					_mikanContext, ref desiredDescriptor_Native);
+				(MikanAPIResult)MikanCoreNative.Mikan_AllocateCameraRenderTargetTextures(
+					_mikanContext, allocateRequest.camera_id, ref desiredDescriptor_Native);
 			if (result == MikanAPIResult.Success)
 			{
 				// Actual descriptor might differ from desired descriptor based on render target writer's capabilities
 				MikanRenderTargetDescriptor_Native actualDescriptor_Native;
-				result= (MikanAPIResult)MikanCoreNative.Mikan_GetRenderTargetDescriptor(
-					_mikanContext, out actualDescriptor_Native);
+				result= (MikanAPIResult)MikanCoreNative.Mikan_GetCameraRenderTargetDescriptor(
+					_mikanContext, allocateRequest.camera_id, out actualDescriptor_Native);
 				if (result == MikanAPIResult.Success)
 				{
 					// Replace the descriptor in the request with the actual descriptor params 
@@ -114,26 +114,26 @@ namespace MikanXR
 
 		private MikanResponseFuture RequestWriteColorRenderTargetTexture(MikanRequest request)
 		{
-			var writeRequest = request as WriteColorRenderTargetTexture;
-			IntPtr apiColorTexturePtr= writeRequest.apiColorTexturePtr;
+			var writeRequest = request as WriteCameraColorRenderTargetTexture;
+			IntPtr apiColorTexturePtr= writeRequest.api_color_texture_ptr;
 
 			MikanAPIResult result =
-				(MikanAPIResult)MikanCoreNative.Mikan_WriteColorRenderTargetTexture(
-					_mikanContext, apiColorTexturePtr);
+				(MikanAPIResult)MikanCoreNative.Mikan_WriteCameraColorRenderTargetTexture(
+					_mikanContext, writeRequest.camera_id, apiColorTexturePtr);
 
 			return new MikanResponseFuture(result);
 		}
 
 		private MikanResponseFuture RequestWriteDepthRenderTargetTexture(MikanRequest request)
 		{
-			var writeRequest = request as WriteDepthRenderTargetTexture;
-			IntPtr apiDepthTexturePtr= writeRequest.apiDepthTexturePtr;
-			float zNear= writeRequest.zNear;
-			float zFar= writeRequest.zFar;
+			var writeRequest = request as WriteCameraDepthRenderTargetTexture;
+			IntPtr apiDepthTexturePtr= writeRequest.api_depth_texture_ptr;
+			float zNear= writeRequest.z_near;
+			float zFar= writeRequest.z_far;
 
 			MikanAPIResult result =
-				(MikanAPIResult)MikanCoreNative.Mikan_WriteDepthRenderTargetTexture(
-					_mikanContext, apiDepthTexturePtr, zNear, zFar);
+				(MikanAPIResult)MikanCoreNative.Mikan_WriteCameraDepthRenderTargetTexture(
+					_mikanContext, writeRequest.camera_id, apiDepthTexturePtr, zNear, zFar);
 
 			return new MikanResponseFuture(result);
 		}
@@ -146,7 +146,8 @@ namespace MikanXR
 		private MikanResponseFuture RequestFreeRenderTargetTextures(MikanRequest request)
 		{
 			// Free any locally allocated resources
-			MikanCoreNative.Mikan_FreeRenderTargetTextures(_mikanContext);
+			var freeRequest = request as FreeCameraRenderTargetTextures;
+			MikanCoreNative.Mikan_FreeCameraRenderTargetTextures(_mikanContext, freeRequest.camera_id);
 
 			// Tell the server to free the render target resources too
 			return _requestManager.SendRequest(request);
