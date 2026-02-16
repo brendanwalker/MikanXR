@@ -107,6 +107,7 @@ public:
 	void setCompositorEvaluatorWindow(eCompositorEvaluatorWindow evalWindow);
 	IMkTexturePtr getEditorWritableFrameTexture() const;
 	IMkTextureConstPtr getCompositedFrameTexture() const;
+	IMkTexturePtr getCompositedFrameTextureMutable();
 	inline int64_t getLastCompositedFrameIndex() const { return m_lastCompositedFrameIndex; }
 
 	void editCompositorGraph();

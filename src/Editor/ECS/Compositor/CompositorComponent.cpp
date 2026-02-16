@@ -538,6 +538,11 @@ IMkTextureConstPtr CompositorComponent::getCompositedFrameTexture() const
 	return IMkTextureConstPtr();
 }
 
+IMkTexturePtr CompositorComponent::getCompositedFrameTextureMutable()
+{
+	return std::const_pointer_cast<IMkTexture>(getCompositedFrameTexture());
+}
+
 void CompositorComponent::editCompositorGraph()
 {
 	App* app = App::getInstance();
@@ -572,7 +577,7 @@ void CompositorComponent::updateCompositeFrameNodeGraph()
 		// Publish the composited frame to Spout if streaming is enabled
 		if (getIsOutputStreaming())
 		{
-			IMkTextureConstPtr frameTexture = getCompositedFrameTexture();
+			IMkTexturePtr frameTexture = getCompositedFrameTextureMutable();
 		
 			if (frameTexture != nullptr && m_renderTargetWriteAccessor->getIsInitialized())
 			{
