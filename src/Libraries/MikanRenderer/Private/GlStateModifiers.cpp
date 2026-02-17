@@ -773,8 +773,31 @@ public:
 	}
 	virtual void revert() override
 	{
-		glDrawBuffer(m_prevMode);
-		getStateLog() << "Revert Draw Buffer Mode: " << m_prevMode;
+		// Check if we're reverting to a framebuffer attachment enum
+		// If so, only apply it if an FBO is currently bound
+		if (m_prevMode >= GL_COLOR_ATTACHMENT0 && m_prevMode <= GL_COLOR_ATTACHMENT15)
+		{
+			GLint currentFBO = 0;
+			glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &currentFBO);
+
+			// Only set COLOR_ATTACHMENT if an FBO is bound
+			if (currentFBO != 0)
+			{
+				glDrawBuffer(m_prevMode);
+				getStateLog() << "Revert Draw Buffer Mode: " << m_prevMode;
+			}
+			else
+			{
+				// Default framebuffer - use GL_BACK instead
+				glDrawBuffer(GL_BACK);
+				getStateLog() << "Revert Draw Buffer Mode: GL_BACK (was " << m_prevMode << " but no FBO bound)";
+			}
+		}
+		else
+		{
+			glDrawBuffer(m_prevMode);
+			getStateLog() << "Revert Draw Buffer Mode: " << m_prevMode;
+		}
 	}
 
 private:
@@ -818,8 +841,31 @@ public:
 	}
 	virtual void revert() override
 	{
-		glReadBuffer(m_prevMode);
-		getStateLog() << "Revert Read Buffer Mode: " << m_prevMode;
+		// Check if we're reverting to a framebuffer attachment enum
+		// If so, only apply it if an FBO is currently bound
+		if (m_prevMode >= GL_COLOR_ATTACHMENT0 && m_prevMode <= GL_COLOR_ATTACHMENT15)
+		{
+			GLint currentFBO = 0;
+			glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &currentFBO);
+
+			// Only set COLOR_ATTACHMENT if an FBO is bound
+			if (currentFBO != 0)
+			{
+				glReadBuffer(m_prevMode);
+				getStateLog() << "Revert Read Buffer Mode: " << m_prevMode;
+			}
+			else
+			{
+				// Default framebuffer - use GL_BACK instead
+				glReadBuffer(GL_BACK);
+				getStateLog() << "Revert Read Buffer Mode: GL_BACK (was " << m_prevMode << " but no FBO bound)";
+			}
+		}
+		else
+		{
+			glReadBuffer(m_prevMode);
+			getStateLog() << "Revert Read Buffer Mode: " << m_prevMode;
+		}
 	}
 
 private:

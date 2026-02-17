@@ -33,7 +33,7 @@ bool checkHasAnyMkError(const char* context, const char* file, const int line)
 	{
 		MIKAN_LOG_ERROR("checkGLError") 
 			<< context << " - " << file << "(" << line << ") : "
-			<< "GL_CORE_ERROR=0x" << std::hex << err << " - " 
+			<< "GL_CORE_ERROR=" << err << " - " 
 			<< errorToString(err);
 		bHasAnyError= true;
 	}

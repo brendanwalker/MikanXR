@@ -1,5 +1,6 @@
 #include "IMkState.h"
 #include "IMkStateModifier.h"
+#include "MkError.h"
 #include "MkStateStack.h"
 #include "MkStateLog.h"
 #include "GlCommon.h"
@@ -267,5 +268,10 @@ void destroyMkState(IMkState* mkState)
 	if (mkState != nullptr)
 	{
 		delete mkState;
+	}
+
+	if (checkHasAnyMkError("destroyMkState", __FILE__, __LINE__))
+	{
+		MIKAN_LOG_ERROR("destroyMkState") << "Unhandled GL error destroying MKState";
 	}
 }
