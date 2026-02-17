@@ -22,16 +22,6 @@ bool TestCameraRenderTarget::processCameraNewFrameEvent(
 	IMikanAPIPtr mikanAPI,
 	const MikanCameraNewFrameEvent& newFrameEvent)
 {
-	if (newFrameEvent.frame == m_lastReceivedFrameIndex)
-	{
-		MIKAN_LOG_INFO("MikanCameraRenderTarget::allocateRenderTarget")
-			<< "Ignoring duplicate frame event "
-			<< "(camera_id: " << m_cameraId
-			<< ", frame: " << m_lastReceivedFrameIndex
-			<< ").";
-		return true;
-	}
-
 	// Remember the frame index of the last frame we published
 	m_lastReceivedFrameIndex = newFrameEvent.frame;
 
@@ -70,7 +60,7 @@ bool TestCameraRenderTarget::processCameraNewFrameEvent(
 				<< "(camera_id: " << m_cameraId
 				<< ", new size: " << newWidth << "x" << newHeight
 				<< ", frame: " << m_lastReceivedFrameIndex
-				<< "). Invalidating renderMainTarget target.";
+				<< "). Invalidating render target.";
 			return false;
 		}
 	}
@@ -82,7 +72,7 @@ bool TestCameraRenderTarget::processCameraNewFrameEvent(
 	if (!m_ownerContext.lock()->renderToCameraTarget(this))
 	{
 		MIKAN_LOG_INFO("MikanCameraRenderTarget::allocateRenderTarget")
-			<< "Failed to renderMainTarget camera frame "
+			<< "Failed to render camera frame "
 			<< "(camera_id: " << m_cameraId
 			<< ", frame: " << m_lastReceivedFrameIndex
 			<< ").";
@@ -91,41 +81,45 @@ bool TestCameraRenderTarget::processCameraNewFrameEvent(
 	// Unbind the graphics API specific render target for this camera
 	unbindGraphicsAPIResource();
 
-	// Write the color texture, if any, to the shared texture
-	void* colorTexture= getGraphicsApiColorTexturePtr();
-	if (colorTexture)
+	// If this isn't an offline camera, send the render target to Mikan
+	if (m_cameraId != INVALID_MIKAN_ID)
 	{
-		WriteCameraColorRenderTargetTexture writeTextureRequest = {};
+		// Write the color texture, if any, to the shared texture
+		void* colorTexture = getGraphicsApiColorTexturePtr();
+		if (colorTexture)
+		{
+			WriteCameraColorRenderTargetTexture writeTextureRequest = {};
 
-		writeTextureRequest.camera_id= m_cameraId;
-		writeTextureRequest.api_color_texture_ptr= colorTexture;
+			writeTextureRequest.camera_id = m_cameraId;
+			writeTextureRequest.api_color_texture_ptr = colorTexture;
 
-		mikanAPI->sendRequest(writeTextureRequest);
-	}
+			mikanAPI->sendRequest(writeTextureRequest);
+		}
 
-	// Write the depth texture, if any, to the shared texture
-	void* depthTexture = getGraphicsApiDepthTexturePtr();
-	if (depthTexture)
-	{
-		WriteCameraDepthRenderTargetTexture writeTextureRequest = {};
+		// Write the depth texture, if any, to the shared texture
+		void* depthTexture = getGraphicsApiDepthTexturePtr();
+		if (depthTexture)
+		{
+			WriteCameraDepthRenderTargetTexture writeTextureRequest = {};
 
-		writeTextureRequest.camera_id = m_cameraId;
-		writeTextureRequest.api_depth_texture_ptr = depthTexture;
-		writeTextureRequest.z_near= newFrameEvent.z_bounds.x;
-		writeTextureRequest.z_far= newFrameEvent.z_bounds.y;
+			writeTextureRequest.camera_id = m_cameraId;
+			writeTextureRequest.api_depth_texture_ptr = depthTexture;
+			writeTextureRequest.z_near = newFrameEvent.z_bounds.x;
+			writeTextureRequest.z_far = newFrameEvent.z_bounds.y;
 
-		mikanAPI->sendRequest(writeTextureRequest);
-	}
+			mikanAPI->sendRequest(writeTextureRequest);
+		}
 
-	// Publish the new video frame back to Mikan
-	if (colorTexture || depthTexture)
-	{
-		PublishCameraRenderTargetTextures frameRendered= {};
+		// Publish the new video frame back to Mikan
+		if (colorTexture || depthTexture)
+		{
+			PublishCameraRenderTargetTextures frameRendered = {};
 
-		frameRendered.camera_id = m_cameraId;
-		frameRendered.frame_index = newFrameEvent.frame;
+			frameRendered.camera_id = m_cameraId;
+			frameRendered.frame_index = newFrameEvent.frame;
 
-		mikanAPI->sendRequest(frameRendered);
+			mikanAPI->sendRequest(frameRendered);
+		}
 	}
 
 	return true;
@@ -140,7 +134,7 @@ void TestCameraRenderTarget::dispose(IMikanAPIPtr mikanAPI)
 	// Clean up shared texture first
 	freeSharedTexture(mikanAPI);
 
-	// Clean up locally allocated direct x resources
+	// Clean up locally allocated graphics resources
 	freeGraphicsAPIResources();
 }
 
@@ -157,20 +151,20 @@ bool TestCameraRenderTarget::reallocateRenderTarget(
 	if (createGraphicsAPIResources(textureWidth, textureHeight))
 	{
 		MIKAN_LOG_INFO("MikanCameraRenderTarget::allocateRenderTarget") 
-			<< "Successfully created DirectX texture resources "
+			<< "Successfully created render target texture resources "
 			<< "(size: " << textureWidth << "x" << textureHeight << ")";
 
 		if (createSharedTexture(mikanAPI, textureWidth, textureHeight))
 		{
-			MIKAN_LOG_INFO("MikanCameraRenderTarget::allocateRenderTarget") 
-				<< "Successfully created shared texture " 
+			MIKAN_LOG_INFO("MikanCameraRenderTarget::allocateRenderTarget")
+				<< "Successfully created shared texture "
 				<< " (camera id: " << m_cameraId << ")";
 
-			bSuccess= true;
+			bSuccess = true;
 		}
 		else
 		{
-			// Clean back up the DirectX resources, since there is no point to making them if we can't allocate the shared texture 
+			// Clean back up the graphics resources, since there is no point to making them if we can't allocate the shared texture 
 			freeGraphicsAPIResources();
 		}
 	}
@@ -184,6 +178,13 @@ bool TestCameraRenderTarget::createSharedTexture(
 	int textureHeight)
 {
 	assert(!m_bHasAllocatedRemoteTexture);
+
+	if (m_cameraId == INVALID_MIKAN_ID)
+	{
+		MIKAN_LOG_INFO("MikanCameraRenderTarget::allocateRenderTarget") 
+			<< "Skipping shared texture allocation for offline camera";
+		return true;
+	}
 
 	// Tell Mikan to create a shared BGRA32 texture for us to render frames to 
 	MikanRenderTargetDescriptor desc = {};

@@ -221,7 +221,7 @@ bool createColorRenderTargetResources(
 	result = d3dDevice->CreateRenderTargetView(*ppColorTargetTexture, &renderTargetViewDesc, ppColorTargetView);
 	if (FAILED(result))
 	{
-		MIKAN_LOG_ERROR("createColorRenderTargetResources") << "Failed to create color renderMainTarget target view";
+		MIKAN_LOG_ERROR("createColorRenderTargetResources") << "Failed to create color render target view";
 		return false;
 	}
 

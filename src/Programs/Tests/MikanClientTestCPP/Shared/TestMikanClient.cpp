@@ -45,29 +45,27 @@ TestMikanClient::~TestMikanClient()
 bool TestMikanClient::init(
 	const char* szClientName)
 {
-	bool success = true;
-
 	LoggerSettings settings = {};
 	settings.min_log_level = LogSeverityLevel::info;
 	settings.enable_console = true;
 
 	log_init(settings);
 
-	if (m_mikanApi->init(szClientName, MikanLogLevel_Info, onMikanLog) == MikanAPIResult::Success)
-	{
-		m_mikanInitialized= true;
-	}
-	else
+	if (m_mikanApi->init(szClientName, MikanLogLevel_Info, onMikanLog) != MikanAPIResult::Success)
 	{
 		MIKAN_LOG_ERROR("startup") << "Failed to initialize Mikan Client API";
-		success= false;
+		return false;
 	}
 
+	m_mikanInitialized = true;
 	m_mikanApi->setGraphicsDeviceInterface(
 		m_graphicsContext->getGraphicsApi(), 
 		m_graphicsContext->getGraphicsDeviceInterface());
 
-	return success;
+	// Create a default camera render target to render to when we aren't connected to Mikan
+	m_graphicsContext->getOrAddCameraRenderTarget(INVALID_MIKAN_ID);
+
+	return true;
 }
 
 void TestMikanClient::dispose()
@@ -142,7 +140,7 @@ void TestMikanClient::update(const float deltaSeconds)
 			{
 				auto newFrameEvent = std::static_pointer_cast<MikanCameraNewFrameEvent>(mikanEvent);
 
-				handleNewVideoSourceFrame(*newFrameEvent);
+				handleCameraNewFrameEvent(*newFrameEvent);
 			}
 			// Generic Property Events
 			else if (typeid(*mikanEvent) == typeid(MikanPropertyUpdateEvent))
@@ -172,6 +170,16 @@ void TestMikanClient::update(const float deltaSeconds)
 		{
 			m_mikanReconnectTimout -= deltaSeconds;
 		}
+	}
+
+	// If we aren't connected to Mikan, 
+	// send a fake camera frame event with default values to render the default camera target
+	if (!m_mikanApi->getIsConnected())
+	{
+		MikanCameraNewFrameEvent fakeNewFrameEvent = {};
+	
+		makeFakeCameraNewFrameEvent(fakeNewFrameEvent);
+		handleCameraNewFrameEvent(fakeNewFrameEvent);
 	}
 }
 
@@ -267,10 +275,42 @@ void TestMikanClient::handleMikanDisconnected(const MikanDisconnectedEvent& disc
 	}
 }
 
-void TestMikanClient::handleNewVideoSourceFrame(const MikanCameraNewFrameEvent& newFrameEvent)
+constexpr double degToRad(double degrees) 
+{
+	return degrees * (3.14159265358979323846 / 180.0);
+}
+
+void TestMikanClient::makeFakeCameraNewFrameEvent(MikanCameraNewFrameEvent& fakeNewFrameEvent)
+{
+	static const float kDefaultHFov = 60.0f;
+	static const float kDefaultZNear = 0.1f;
+	static const float kDefaultZFar = 20.0f;
+
+	MikanVector2i windowSize = m_graphicsContext->getWindowPixelSize();
+
+	double aspectRatio = (double)windowSize.y / (double)windowSize.x;
+	double c_x = (double)windowSize.x / 2.0;
+	double c_y = (double)windowSize.y / 2.0;
+	double hfov = kDefaultHFov;
+	double vfov = hfov * aspectRatio;
+	double f_x = c_x / tan(degToRad(hfov / 2.0));
+	double f_y = c_y / tan(degToRad(vfov / 2.0));
+
+	fakeNewFrameEvent.camera_id = INVALID_MIKAN_ID;
+	fakeNewFrameEvent.camera_forward = { 0.f, 0.f, -1.f };
+	fakeNewFrameEvent.camera_up = { 0.f, 1.f, 0.f };
+	fakeNewFrameEvent.camera_position = { 0.f, 0.f, 0.f };
+	fakeNewFrameEvent.pixel_size = windowSize;
+	fakeNewFrameEvent.focal_length = { f_x, f_y };
+	fakeNewFrameEvent.principal_point = { c_x, c_y };
+	fakeNewFrameEvent.z_bounds = { kDefaultZNear, kDefaultZFar };
+	fakeNewFrameEvent.frame = 0;
+}
+
+void TestMikanClient::handleCameraNewFrameEvent(const MikanCameraNewFrameEvent& newFrameEvent)
 {
 	TestCameraRenderTargetPtr renderTarget= 
-		m_graphicsContext->getOrAddCameraRenderTarget(m_mikanApi, newFrameEvent.camera_id);
+		m_graphicsContext->getOrAddCameraRenderTarget(newFrameEvent.camera_id);
 
 	if (renderTarget)
 	{

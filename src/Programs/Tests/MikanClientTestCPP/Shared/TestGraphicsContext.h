@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MikanCoreTypes.h"
+#include "MikanMathTypes.h"
 
 #include <map>
 #include <memory>
@@ -15,11 +16,14 @@ public:
 	TestGraphicsContext(class TestApp* ownerApp);
 	virtual ~TestGraphicsContext() {}
 
-	inline TestApp* getOwnerApp() const { return m_ownerApp; }
+	inline class TestApp* getOwnerApp() const { return m_ownerApp; }
+
+	// Main Window Helpers
+	MikanVector2i getWindowPixelSize() const;
 
 	// Camera Render Target Helpers
 	TestCameraRenderTargetPtr getCameraRenderTarget(MikanCameraID cameraId) const;
-	TestCameraRenderTargetPtr getOrAddCameraRenderTarget(IMikanAPIPtr mikanApi, MikanCameraID cameraId);
+	TestCameraRenderTargetPtr getOrAddCameraRenderTarget(MikanCameraID cameraId);
 	void removeCameraRenderTarget(IMikanAPIPtr mikanApi, MikanCameraID cameraId);
 	void removeAllCameraRenderTargets(IMikanAPIPtr mikanApi);
 
@@ -35,7 +39,7 @@ public:
 	virtual void dispose() = 0;
 
 protected:
-	TestApp* m_ownerApp = nullptr;
+	class TestApp* m_ownerApp = nullptr;
 
 	// Mapping of cameras to render targets
 	std::map<MikanCameraID, TestCameraRenderTargetPtr> m_cameraRenderTargetMap;

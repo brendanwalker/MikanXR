@@ -63,6 +63,7 @@ int TestApp::exec(int argc, char** argv)
 			}
 
 			update(deltaSeconds);
+			render();
 		}
 	}
 	else
@@ -123,7 +124,6 @@ bool TestApp::startup(int argc, char** argv)
 		MIKAN_LOG_ERROR("startup") << "Failed to initialize Mikan client";
 		return false;
 	}
-
 
 	return true;
 }
@@ -193,11 +193,11 @@ void TestApp::onSDLEvent(SDL_Event& e)
 		}
 		else if (e.key.keysym.sym == SDLK_a)
 		{
-			m_cubeOffset.x -= 0.1f;
+			m_cubeOffset.x += 0.1f;
 		}
 		else if (e.key.keysym.sym == SDLK_d)
 		{
-			m_cubeOffset.x += 0.1f;
+			m_cubeOffset.x -= 0.1f;
 		}
 		else if (e.key.keysym.sym == SDLK_q)
 		{
@@ -215,7 +215,7 @@ void TestApp::update(float deltaSeconds)
 	m_mikanClient->update(deltaSeconds);
 }
 
-void TestApp::renderMainTarget()
+void TestApp::render()
 {
 	m_graphicsContext->renderMainTarget();
 }

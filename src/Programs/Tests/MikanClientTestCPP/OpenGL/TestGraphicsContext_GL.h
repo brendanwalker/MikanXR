@@ -44,16 +44,5 @@ private:
 	IMkTriangulatedMeshPtr m_depthNormalizeQuadMesh;
 	IMkTriangulatedMeshPtr m_boxMesh;
 
-	// Default camera state for rendering when no camera render target is available
-	glm::mat4 m_defaultViewProjectionMatrix;
-
-	static const float kDefaultZNear;
-	static const float kDefaultZFar;
-	static const glm::vec3 kDefaultCameraPosition;
-	static const glm::vec3 kDefaultCameraFocusPoint;
-	static const glm::vec3 kDefaultCameraRight;
-	static const glm::vec3 kDefaultCameraUp;
-	static const glm::vec3 kDefaultCameraForward;
-
 	MikanCameraID m_lastRenderedCameraId = INVALID_MIKAN_ID;
 };

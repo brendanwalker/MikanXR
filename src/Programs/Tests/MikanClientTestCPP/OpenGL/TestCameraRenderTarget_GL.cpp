@@ -152,13 +152,13 @@ void TestCameraRenderTarget_GL::unbindGraphicsAPIResource()
 {
 	TestGraphicsContext_GLPtr ownerContext= getOpenGLOwnerContext();
 
-	// Unbind the frame buffer
-	assert(m_frameBuffer->getIsBound());
-	m_frameBuffer->unbindObject();
-
 	// Restore all the rendering state we modified
 	assert(m_mkState != nullptr);
 	assert(m_mkState->getOwnerStateStack().getCurrentStackDepth() == m_mkState->getStackDepth());
 	m_mkState->getOwnerStateStack().popState();
-	m_mkState= nullptr;
+	m_mkState = nullptr;
+
+	// Unbind the frame buffer
+	assert(m_frameBuffer->getIsBound());
+	m_frameBuffer->unbindObject();
 }

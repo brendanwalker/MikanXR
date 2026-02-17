@@ -15,14 +15,6 @@
 #include <DirectXMath.h>
 #include <memory>
 
-const float TestGraphicsContext_DX::kDefaultZNear = 0.1f;
-const float TestGraphicsContext_DX::kDefaultZFar = 100.0f;
-const DirectX::XMFLOAT3 TestGraphicsContext_DX::kDefaultCameraPosition(0.0f, 0.0f, -10.0f);
-const DirectX::XMFLOAT3 TestGraphicsContext_DX::kDefaultCameraFocusPoint(0.0f, 0.0f, 0.0f);
-const DirectX::XMFLOAT3 TestGraphicsContext_DX::kDefaultCameraRight(1.0f, 0.0f, 0.0f);
-const DirectX::XMFLOAT3 TestGraphicsContext_DX::kDefaultCameraUp(0.0f, 1.0f, 0.0f);
-const DirectX::XMFLOAT3 TestGraphicsContext_DX::kDefaultCameraForward(0.0f, 0.0f, 1.0f);
-
 // Constants used by the depth normalize shader
 #pragma warning(push)
 #pragma warning(disable: 4324) // Disable warning about structure padding due to alignas(16)
@@ -88,21 +80,6 @@ bool TestGraphicsContext_DX::create(int windowWidth, int windowHeight)
 		return false;
 	}
 
-	// Default view projection matrix used when there are no active render targets. 
-	const DirectX::XMMATRIX defaultViewMatrix =
-		DirectX::XMMatrixLookAtLH(
-			DirectX::XMLoadFloat3(&kDefaultCameraPosition),
-			DirectX::XMLoadFloat3(&kDefaultCameraFocusPoint),
-			DirectX::XMLoadFloat3(&kDefaultCameraUp));
-	const DirectX::XMMATRIX defaultProjectionMatrix =
-		DirectX::XMMatrixPerspectiveFovLH(
-			DirectX::XM_PIDIV4,  // Field of view (Pi/4 radians = 45 degrees), 
-			windowWidth / (float)windowHeight,
-			kDefaultZNear,
-			kDefaultZFar);
-
-	m_defaultViewProjectionMatrix = DirectX::XMMatrixMultiply(defaultViewMatrix, defaultProjectionMatrix);
-
 	return true;
 }
 
@@ -139,16 +116,6 @@ void TestGraphicsContext_DX::renderMainTarget() const
 			renderColorTexture(m_depthNormalizeColorTargetSRV);
 			break;
 		}
-	}
-	else
-	{
-		// Draw the cube to the main render target
-		renderCube(
-			m_defaultViewProjectionMatrix,
-			kDefaultCameraPosition,
-			kDefaultCameraForward,
-			kDefaultCameraUp,
-			kDefaultCameraRight);
 	}
 
 	// Present (without vsync) the back buffer

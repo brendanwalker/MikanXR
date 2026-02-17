@@ -40,14 +40,14 @@ protected:
 	void onSDLEvent(SDL_Event& e);
 
 	void update(float deltaSeconds);
-	void renderMainTarget();
+	void render();
 	
 private:
 	TestGraphicsContextPtr m_graphicsContext;
 	TestMikanClientPtr m_mikanClient;
 
 	TestRenderMode m_renderMode = TestRenderMode::Color;
-	MikanVector3f m_cubeOffset = {0.f, 0.f, 0.f};
+	MikanVector3f m_cubeOffset = {0.f, 0.f, 10.f}; // Default +Z offset of cube from camera
 
 	// Flag requesting that we exit the update loop
 	bool m_bShutdownRequested = false;

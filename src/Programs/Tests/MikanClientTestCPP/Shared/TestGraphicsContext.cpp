@@ -7,6 +7,16 @@ TestGraphicsContext::TestGraphicsContext(TestApp* ownerApp)
 {
 }
 
+// Main Window Helpers
+MikanVector2i TestGraphicsContext::getWindowPixelSize() const
+{
+	int newWidth, newHeight;
+	SDL_GetWindowSize(getSDLWindow(), &newWidth, &newHeight);
+
+	return { newWidth, newHeight };
+}
+
+// Camera Render Target Helpers
 TestCameraRenderTargetPtr TestGraphicsContext::getCameraRenderTarget(MikanCameraID cameraId) const
 {
 	auto it = m_cameraRenderTargetMap.find(cameraId);
@@ -19,7 +29,6 @@ TestCameraRenderTargetPtr TestGraphicsContext::getCameraRenderTarget(MikanCamera
 }
 
 TestCameraRenderTargetPtr TestGraphicsContext::getOrAddCameraRenderTarget(
-	IMikanAPIPtr mikanApi,
 	MikanCameraID cameraId)
 {
 	TestCameraRenderTargetPtr renderTarget = getCameraRenderTarget(cameraId);

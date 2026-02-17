@@ -20,15 +20,6 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-// Default camera constants for rendering when no camera render target is available
-const float TestGraphicsContext_GL::kDefaultZNear = 0.1f;
-const float TestGraphicsContext_GL::kDefaultZFar = 100.0f;
-const glm::vec3 TestGraphicsContext_GL::kDefaultCameraPosition(0.0f, 0.0f, -10.0f);
-const glm::vec3 TestGraphicsContext_GL::kDefaultCameraFocusPoint(0.0f, 0.0f, 0.0f);
-const glm::vec3 TestGraphicsContext_GL::kDefaultCameraRight(1.0f, 0.0f, 0.0f);
-const glm::vec3 TestGraphicsContext_GL::kDefaultCameraUp(0.0f, 1.0f, 0.0f);
-const glm::vec3 TestGraphicsContext_GL::kDefaultCameraForward(0.0f, 0.0f, 1.0f);
-
 #if defined(_WIN32)
 	#include <SDL.h>
 	#include <SDL_events.h>
@@ -163,16 +154,22 @@ public:
 
 		// Set default state flags at the base of the stack
 		{
-			IMkState* mkBaseState = m_mkStateStack->pushState("Root Scope");
-			assert(mkBaseState->getStackDepth() == 0);
+			IMkState* mkState = m_mkStateStack->pushState("Root Scope");
+			assert(mkState->getStackDepth() == 0);
 
-			mkBaseState
+			//Enable for debugging state changes
+			//m_mkStateStack->setDebugPrintEnabled(true);
+
+			mkState
 				->enableFlag(eMkStateFlagType::texture2d)
 				->enableFlag(eMkStateFlagType::depthTest)
-				->disableFlag(eMkStateFlagType::cullFace);
+				->enableFlag(eMkStateFlagType::cullFace);
+
+			// Enable front face culling while drawing the scene
+			mkStateSetFrontFace(mkState, eMkFrontFaceMode::CCW);
 
 			static const glm::vec4 k_clear_color = glm::vec4(0.45f, 0.45f, 0.5f, 1.f);
-			mkStateSetClearColor(mkBaseState, k_clear_color);
+			mkStateSetClearColor(mkState, k_clear_color);
 		}
 
 		return true;
@@ -281,19 +278,6 @@ bool TestGraphicsContext_GL::create(int windowWidth, int windowHeight)
 		m_mkWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_NORMALIZE_DEPTH);
 	assert(depthNormalizeMaterial);
 	m_depthNormalizeQuadMesh = createFullscreenQuadMesh(m_mkWindow.get(), depthNormalizeMaterial, false);
-
-	// Default view projection matrix used when there are no active render targets
-	const glm::mat4 defaultViewMatrix =
-		glm::lookAt(kDefaultCameraPosition, kDefaultCameraFocusPoint, kDefaultCameraUp);
-	const glm::mat4 defaultProjectionMatrix =
-		glm::perspectiveFov(
-			glm::pi<float>() / 4.0f,  // Field of view (Pi/4 radians = 45 degrees)
-			(float)windowWidth,
-			(float)windowHeight,
-			kDefaultZNear,
-			kDefaultZFar);
-
-	m_defaultViewProjectionMatrix = defaultProjectionMatrix * defaultViewMatrix;
 
 	return true;
 }
@@ -407,10 +391,14 @@ void TestGraphicsContext_GL::renderMainTarget() const
 {
 	// Create a scoped state for rendering to the main target
 	TestMkWindow* mkWindow= getTestMkWindow();
-	IMkState* mkState = mkWindow->getMkStateStack().pushState("Render Main Target");
+	MkScopedState scopedState = mkWindow->getMkStateStack().createScopedState("Render Main Target");
+	IMkState* mkState = scopedState.getStackState();
 
 	// Set the viewport to match the window dimensions
 	mkStateSetViewport(mkState, 0, 0, mkWindow->getWidth(), mkWindow->getHeight());
+
+	// Clear the depth buffer before drawing the scene
+	mkStateClearBuffer(mkState, eMkClearFlags::color | eMkClearFlags::depth);
 
 	TestCameraRenderTargetPtr renderTarget = getCameraRenderTarget(m_lastRenderedCameraId);
 
@@ -429,16 +417,6 @@ void TestGraphicsContext_GL::renderMainTarget() const
 			renderNormalizedDepthTexture(glRenderTarget.get());
 			break;
 		}
-	}
-	else
-	{
-		// Render cube directly to the main framebuffer using default camera
-		renderCube(
-			m_defaultViewProjectionMatrix,
-			kDefaultCameraPosition,
-			kDefaultCameraForward,
-			kDefaultCameraUp,
-			kDefaultCameraRight);
 	}
 
 	// Draw the window contents to the screen
@@ -547,11 +525,11 @@ void TestGraphicsContext_GL::renderCube(
 
 		// Build cube transformation matrix
 		glm::mat4 cubeXform =
-			glm::scale(glm::mat4(1.0f), glm::vec3(0.1f)) *
-			glm::rotate(glm::mat4(1.0f), time, glm::vec3(1.0f, 0.0f, 0.0f)) *
-			glm::rotate(glm::mat4(1.0f), time * 2.0f, glm::vec3(0.0f, 1.0f, 0.0f)) *
+			glm::translate(glm::mat4(1.0f), cubePosition) *
 			glm::rotate(glm::mat4(1.0f), time * 0.7f, glm::vec3(0.0f, 0.0f, 1.0f)) *
-			glm::translate(glm::mat4(1.0f), cubePosition);
+			glm::rotate(glm::mat4(1.0f), time * 2.0f, glm::vec3(0.0f, 1.0f, 0.0f)) *
+			glm::rotate(glm::mat4(1.0f), time, glm::vec3(1.0f, 0.0f, 0.0f)) *
+			glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
 
 		materialInstance->setMat4BySemantic(eUniformSemantic::modelViewProjectionMatrix, viewProj * cubeXform);
 
