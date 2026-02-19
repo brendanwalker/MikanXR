@@ -58,16 +58,6 @@ namespace Mikan
 		// Camera State
         private int _lastRenderedCameraId= -1;
 
-        // Default camera state (used when no camera render targets exist)
-        private const float kDefaultZNear = 0.1f;
-		private const float kDefaultZFar = 100.0f;
-		private Vector3 _defaultCameraPosition = new Vector3(0, 0, -10);
-		private Vector3 _defaultCameraForward = new Vector3(0, 0, 1);
-		private Vector3 _defaultCameraUp = new Vector3(0, 1, 0);
-		private Vector3 _defaultCameraRight = new Vector3(1, 0, 0);
-		private Matrix _defaultViewMatrix;
-		private Matrix _defaultProjectionMatrix;
-
 		public TestGraphicsContext_DX(TestApp ownerApp) : base(ownerApp)
 		{
 		}
@@ -83,9 +73,9 @@ namespace Mikan
 			return _d3dDevice?.NativePointer ?? IntPtr.Zero;
 		}
 
-		public override TestCameraRenderTarget AllocateCameraRenderTarget(MikanAPI mikanAPI, int cameraId)
+		public override TestCameraRenderTarget AllocateCameraRenderTarget(int cameraId)
 		{
-			return new TestCameraRenderTarget_DX(mikanAPI, _d3dDevice, _d3dDeviceContext, cameraId);
+			return new TestCameraRenderTarget_DX(this, _d3dDevice, _d3dDeviceContext, cameraId);
 		}
 
 		public override bool Create(int windowWidth, int windowHeight)
@@ -115,16 +105,6 @@ namespace Mikan
 				// Initialize geometry
 				InitializeCubeGeometry();
 				InitializeQuadGeometry();
-
-				// Initialize default camera matrices
-				_defaultProjectionMatrix = Matrix.PerspectiveFovLH(
-					MathUtil.PiOverFour,
-					windowWidth / (float)windowHeight,
-					kDefaultZNear,
-					kDefaultZFar);
-
-				Vector3 targetPosition = _defaultCameraPosition + _defaultCameraForward;
-				_defaultViewMatrix = Matrix.LookAtLH(_defaultCameraPosition, targetPosition, _defaultCameraUp);
 
 				return true;
 			}
@@ -530,29 +510,47 @@ namespace Mikan
 				Utilities.Dispose(ref _depthNormalizeColorTargetView);
 				Utilities.Dispose(ref _depthNormalizeColorTargetTexture);
 
-				if (TestDirectXUtils.CreateColorRenderTargetResources(_d3dDevice, dxRenderTarget.Width, dxRenderTarget.Height,
-					out _depthNormalizeColorTargetTexture, out _depthNormalizeColorTargetView, out _depthNormalizeColorTargetSRV))
+				if (TestDirectXUtils.CreateColorRenderTargetResources(
+						_d3dDevice, 
+						dxRenderTarget.Width, 
+						dxRenderTarget.Height,
+						out _depthNormalizeColorTargetTexture, 
+						out _depthNormalizeColorTargetView, 
+						out _depthNormalizeColorTargetSRV))
 				{
 					_depthNormalizeTargetWidth = dxRenderTarget.Width;
 					_depthNormalizeTargetHeight = dxRenderTarget.Height;
 				}
 			}
 
-			_d3dDeviceContext.OutputMerger.SetTargets(_depthNormalizeColorTargetView);
-			_d3dDeviceContext.InputAssembler.SetVertexBuffers(0, new D3D11.VertexBufferBinding(_quadVertices, kQuadVertexSize, 0));
+            // Bind the main render target view
+            _d3dDeviceContext.OutputMerger.SetTargets(_depthNormalizeColorTargetView);
+
+            // Assign the quad vertices
+            _d3dDeviceContext.InputAssembler.SetVertexBuffers(0, new D3D11.VertexBufferBinding(_quadVertices, kQuadVertexSize, 0));
 			_d3dDeviceContext.InputAssembler.InputLayout = _quadInputLayout;
-			_d3dDeviceContext.VertexShader.Set(_depthNormalizeVertexShader);
+
+            // Assign the normalized depth shader
+            _d3dDeviceContext.VertexShader.Set(_depthNormalizeVertexShader);
 			_d3dDeviceContext.PixelShader.Set(_depthNormalizePixelShader);
-			_d3dDeviceContext.PixelShader.SetShaderResource(0, dxRenderTarget.FloatDepthTextureSRV);
+
+            // Set the texture
+            _d3dDeviceContext.PixelShader.SetShaderResource(0, dxRenderTarget.FloatDepthTextureSRV);
 			_d3dDeviceContext.PixelShader.SetSampler(0, _depthNormalizeSamplerState);
 
-			var depthConstants = new DepthNormalizeConstantBuffer { zNear = dxRenderTarget.ZNear, zFar = dxRenderTarget.ZFar };
+            // Update the depth normalization constants
+            var depthConstants = new DepthNormalizeConstantBuffer { 
+				zNear = dxRenderTarget.ZNear, 
+				zFar = dxRenderTarget.ZFar 
+			};
+
 			_d3dDeviceContext.MapSubresource(_depthNormalizeConstantBuffer, D3D11.MapMode.WriteDiscard, D3D11.MapFlags.None, out DataStream stream);
 			stream.Write(depthConstants);
 			_d3dDeviceContext.UnmapSubresource(_depthNormalizeConstantBuffer, 0);
 			_d3dDeviceContext.PixelShader.SetConstantBuffer(0, _depthNormalizeConstantBuffer);
 
-			_d3dDeviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
+            // Draw the quad
+            _d3dDeviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
 			_d3dDeviceContext.Draw(6, 0);
 		}
 
@@ -577,16 +575,9 @@ namespace Mikan
 						RenderColorTexture(dxRenderTarget.ColorTextureSRV);
 						break;
 					case TestRenderMode.DepthNormalize:
-						RenderNormalizedDepthTexture(dxRenderTarget);
 						RenderColorTexture(_depthNormalizeColorTargetSRV);
 						break;
 				}
-			}
-			else
-			{
-				_d3dDeviceContext.OutputMerger.SetTargets(_defaultFloatDepthView, _defaultColorTargetView);
-				RenderCube(_defaultViewMatrix * _defaultProjectionMatrix, _defaultCameraPosition,
-					_defaultCameraForward, _defaultCameraUp, _defaultCameraRight);
 			}
 
 			_swapChain.Present(1, PresentFlags.None);
@@ -600,13 +591,22 @@ namespace Mikan
 			RenderCube(viewProj, dxRenderTarget.CameraPosition, dxRenderTarget.CameraForward,
 				dxRenderTarget.CameraUp, dxRenderTarget.CameraRight);
 
-			_lastRenderedCameraId = cameraRenderTarget.CameraId;
+            // If we're in depth normalize mode, also render the normalized depth texture for this camera.
+            if (_ownerApp.RenderMode == TestRenderMode.DepthNormalize)
+			{
+				RenderNormalizedDepthTexture(dxRenderTarget);
+            }
+
+            // Remember the last rendered camera ID
+            // We will render this camera in renderMainTarget
+            _lastRenderedCameraId = cameraRenderTarget.CameraId;
+
 			return true;
 		}
 
 		public override void Dispose()
 		{
-			RemoveAllCameraRenderTargets();
+			RemoveAllCameraRenderTargets(null);
 
 			Utilities.Dispose(ref _cubeConstantBuffer);
 			Utilities.Dispose(ref _cubeInputLayout);

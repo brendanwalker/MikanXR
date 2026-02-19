@@ -3,12 +3,10 @@ using MikanXR;
 
 namespace Mikan
 {
-	public abstract class TestCameraRenderTarget : IDisposable
+	public abstract class TestCameraRenderTarget
 	{
-		public delegate bool RenderCallback(TestCameraRenderTarget renderTarget);
-
-		protected MikanAPI _mikanAPI;
-		protected int _cameraId;
+		protected TestGraphicsContext _ownerContext;
+        protected int _cameraId;
 
 		protected int _width = 0;
 		protected int _height = 0;
@@ -26,22 +24,18 @@ namespace Mikan
 		public float ZNear => _zNear;
 		public float ZFar => _zFar;
 
-		protected TestCameraRenderTarget(MikanAPI mikanAPI, int cameraId)
+		protected TestCameraRenderTarget(
+			TestGraphicsContext ownerContext,
+            int cameraId)
 		{
-			_mikanAPI = mikanAPI;
-			_cameraId = cameraId;
+			_ownerContext = ownerContext;
+            _cameraId = cameraId;
 		}
 
-		public bool ProcessCameraNewFrameEvent(
-			MikanCameraNewFrameEvent newFrameEvent,
-			RenderCallback renderCallback)
+        public bool ProcessCameraNewFrameEvent(
+            MikanAPI mikanAPI,
+            MikanCameraNewFrameEvent newFrameEvent)
 		{
-			if (newFrameEvent.frame == _lastReceivedFrameIndex)
-			{
-				Console.WriteLine($"INFO: Ignoring duplicate frame event (camera_id: {_cameraId}, frame: {_lastReceivedFrameIndex}).");
-				return true;
-			}
-
 			// Remember the frame index of the last frame we published
 			_lastReceivedFrameIndex = newFrameEvent.frame;
 
@@ -60,7 +54,7 @@ namespace Mikan
 			int newHeight = newFrameEvent.pixel_size.y;
 			if (_width != newWidth || _height != newHeight)
 			{
-				if (ReallocateRenderTarget(newWidth, newHeight))
+				if (ReallocateRenderTarget(mikanAPI, newWidth, newHeight))
 				{
 					Console.WriteLine($"INFO: Update frame size (camera_id: {_cameraId}, new size: {newWidth}x{newHeight}, frame: {_lastReceivedFrameIndex}).");
 				}
@@ -75,7 +69,7 @@ namespace Mikan
 			BindGraphicsAPIResource();
 
 			// Render the scene from the PoV of this camera
-			if (!renderCallback(this))
+			if (!_ownerContext.RenderToCameraTarget(this))
 			{
 				Console.WriteLine($"INFO: Failed to render camera frame (camera_id: {_cameraId}, frame: {_lastReceivedFrameIndex}).");
 			}
@@ -83,60 +77,63 @@ namespace Mikan
 			// Unbind the render target
 			UnbindGraphicsAPIResource();
 
-			// Write the color texture, if any, to the shared texture
-			IntPtr colorTexturePtr = GetGraphicsApiColorTexturePtr();
-			if (colorTexturePtr != IntPtr.Zero)
+			if (_cameraId != -1)
 			{
-				_mikanAPI.SendRequest(new WriteCameraColorRenderTargetTexture()
-				{
-					api_color_texture_ptr = colorTexturePtr,
-					camera_id = _cameraId
-                });
-			}
+                // Write the color texture, if any, to the shared texture
+                IntPtr colorTexturePtr = GetGraphicsApiColorTexturePtr();
+                if (colorTexturePtr != IntPtr.Zero)
+                {
+                    mikanAPI.SendRequest(new WriteCameraColorRenderTargetTexture()
+                    {
+                        api_color_texture_ptr = colorTexturePtr,
+                        camera_id = _cameraId
+                    });
+                }
 
-			// Write the depth texture, if any, to the shared texture
-			IntPtr depthTexturePtr = GetGraphicsApiDepthTexturePtr();
-			if (depthTexturePtr != IntPtr.Zero)
-			{
-				_mikanAPI.SendRequest(new WriteCameraDepthRenderTargetTexture()
-				{
-					api_depth_texture_ptr = depthTexturePtr,
-					camera_id = _cameraId,
-					z_near = _zNear,
-					z_far = _zFar
-				});
-			}
+                // Write the depth texture, if any, to the shared texture
+                IntPtr depthTexturePtr = GetGraphicsApiDepthTexturePtr();
+                if (depthTexturePtr != IntPtr.Zero)
+                {
+                    mikanAPI.SendRequest(new WriteCameraDepthRenderTargetTexture()
+                    {
+                        api_depth_texture_ptr = depthTexturePtr,
+                        camera_id = _cameraId,
+                        z_near = _zNear,
+                        z_far = _zFar
+                    });
+                }
 
-			// Publish the new video frame back to Mikan
-			if (colorTexturePtr != IntPtr.Zero || depthTexturePtr != IntPtr.Zero)
-			{
-				_mikanAPI.SendRequest(new PublishCameraRenderTargetTextures()
-				{
-					camera_id = _cameraId,
-                    frame_index = newFrameEvent.frame,
-				});
-			}
+                // Publish the new video frame back to Mikan
+                if (colorTexturePtr != IntPtr.Zero || depthTexturePtr != IntPtr.Zero)
+                {
+                    mikanAPI.SendRequest(new PublishCameraRenderTargetTextures()
+                    {
+                        camera_id = _cameraId,
+                        frame_index = newFrameEvent.frame,
+                    });
+                }
+            }
 
-			return true;
+            return true;
 		}
 
-		public virtual void Dispose()
+		public virtual void Dispose(MikanAPI mikanAPI)
 		{
 			// Camera matrices aren't valid until we receive the next frame
 			_hasValidProjMatrix = false;
 			_hasValidViewMatrix = false;
 
 			// Clean up shared texture first
-			FreeSharedTexture();
+			FreeSharedTexture(mikanAPI);
 
 			// Clean up locally allocated graphics resources
 			FreeGraphicsAPIResources();
 		}
 
-		protected bool ReallocateRenderTarget(int textureWidth, int textureHeight)
+		protected bool ReallocateRenderTarget(MikanAPI mikanAPI, int textureWidth, int textureHeight)
 		{
 			// Clean up anything we had
-			Dispose();
+			Dispose(mikanAPI);
 
 			// Create a new render texture to render frames to
 			bool success = false;
@@ -144,7 +141,7 @@ namespace Mikan
 			{
 				Console.WriteLine($"INFO: Successfully created graphics texture resources (size: {textureWidth}x{textureHeight})");
 
-				if (CreateSharedTexture(textureWidth, textureHeight))
+				if (CreateSharedTexture(mikanAPI, textureWidth, textureHeight))
 				{
 					Console.WriteLine($"INFO: Successfully created shared texture (camera id: {_cameraId})");
 					success = true;
@@ -159,9 +156,15 @@ namespace Mikan
 			return success;
 		}
 
-		protected bool CreateSharedTexture(int textureWidth, int textureHeight)
+		protected bool CreateSharedTexture(MikanAPI mikanAPI, int textureWidth, int textureHeight)
 		{
-			if (_hasAllocatedRemoteTexture)
+            if (_cameraId == -1)
+            {
+                Console.WriteLine("Skipping shared texture allocation for offline camera");
+                return true;
+            }
+
+            if (_hasAllocatedRemoteTexture)
 			{
 				Console.WriteLine("ERROR: Shared texture already allocated");
 				return false;
@@ -177,7 +180,7 @@ namespace Mikan
 				graphicsAPI = MikanClientGraphicsApi.Direct3D11
 			};
 
-			var response = _mikanAPI.SendRequest(new AllocateCameraRenderTargetTextures()
+			var response = mikanAPI.SendRequest(new AllocateCameraRenderTargetTextures()
 			{
 				camera_id = _cameraId,
                 descriptor = desc
@@ -197,12 +200,12 @@ namespace Mikan
 			return true;
 		}
 
-		protected void FreeSharedTexture()
+		protected void FreeSharedTexture(MikanAPI mikanAPI)
 		{
-			if (_hasAllocatedRemoteTexture)
+			if (_hasAllocatedRemoteTexture && mikanAPI != null)
 			{
 				// Tell mikan to clean up the shared texture on its side first
-				var response = _mikanAPI.SendRequest(new FreeCameraRenderTargetTextures() { 
+				var response = mikanAPI.SendRequest(new FreeCameraRenderTargetTextures() { 
 					camera_id = _cameraId
                 }).FetchResponse();
 

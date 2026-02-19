@@ -48,11 +48,11 @@ namespace Mikan
 		public bool IsInitialized => _colorTargetTexture != null && _floatDepthTargetTexture != null;
 
 		public TestCameraRenderTarget_DX(
-			MikanAPI mikanAPI,
-			D3D11.Device d3dDevice,
+			TestGraphicsContext ownerContext,
+            D3D11.Device d3dDevice,
 			D3D11.DeviceContext d3dDeviceContext,
 			int cameraId)
-			: base(mikanAPI, cameraId)
+			: base(ownerContext, cameraId)
 		{
 			_d3dDevice = d3dDevice;
 			_d3dDeviceContext = d3dDeviceContext;

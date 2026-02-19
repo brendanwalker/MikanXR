@@ -40,13 +40,17 @@ namespace Mikan
 			}
 
 			_mikanInitialized = true;
-			return true;
+
+            // Create a default camera render target to render to when we aren't connected to Mikan
+            _graphicsContext.GetOrAddCameraRenderTarget(-1);
+
+            return true;
 		}
 
 		public void Dispose()
 		{
 			// Clean up all render targets
-			_graphicsContext.RemoveAllCameraRenderTargets();
+			_graphicsContext.RemoveAllCameraRenderTargets(_mikanAPI);
 
 			// Shut down the mikan client connection
 			if (_mikanInitialized)
@@ -105,7 +109,7 @@ namespace Mikan
 					}
 					else if (nextEvent is MikanCameraNewFrameEvent newFrameEvent)
 					{
-						HandleNewVideoSourceFrame(newFrameEvent);
+						handleCameraNewFrameEvent(newFrameEvent);
 						break; // Process one frame per update
 					}
 					else if (nextEvent is MikanPropertyUpdateEvent propertyUpdateEvent)
@@ -134,7 +138,14 @@ namespace Mikan
 					_mikanReconnectTimeout -= deltaSeconds;
 				}
 			}
-		}
+
+            // If we aren't connected to Mikan, 
+            // send a fake camera frame event with default values to render the default camera target
+            if (!_mikanAPI.GetIsConnected())
+            {
+                handleCameraNewFrameEvent(makeFakeCameraNewFrameEvent());
+            }
+        }
 
 		// Component Events
 		private void HandleComponentListChanged<T>(string ownerSystemName, string componentClassName) where T : PolymorphicStruct
@@ -236,19 +247,57 @@ namespace Mikan
 				Console.WriteLine($"ERROR: Shutting down due to incompatible client");
 			}
 		}
+        public static double DegreesToRadians(double degrees)
+        {
+            return degrees * Math.PI / 180.0;
+        }
 
-		private void HandleNewVideoSourceFrame(MikanCameraNewFrameEvent newFrameEvent)
+        private MikanCameraNewFrameEvent makeFakeCameraNewFrameEvent()
+        {
+            const float kDefaultHFov = 60.0f;
+            const float kDefaultZNear = 0.1f;
+            const float kDefaultZFar = 20.0f;
+
+            System.Drawing.Size windowSize = _graphicsContext.WindowSize;
+
+            double aspectRatio = (double)windowSize.Height / (double)windowSize.Width;
+            double c_x = (double)windowSize.Width / 2.0;
+            double c_y = (double)windowSize.Height / 2.0;
+            double hfov = kDefaultHFov;
+            double vfov = hfov * aspectRatio;
+            double f_x = c_x / Math.Tan(DegreesToRadians(hfov / 2.0));
+            double f_y = c_y / Math.Tan(DegreesToRadians(vfov / 2.0));
+
+            MikanCameraNewFrameEvent fakeNewFrameEvent = new MikanCameraNewFrameEvent()
+			{
+				camera_id = -1,
+				camera_forward = new MikanVector3f() { x = 0.0f, y = 0.0f, z = -1.0f },
+				camera_up = new MikanVector3f() { x = 0.0f, y = 1.0f, z = 0.0f },
+				camera_position = new MikanVector3f() { x = 0.0f, y = 0.0f, z = 0.0f },
+				pixel_size = new MikanVector2i() { x = windowSize.Width, y = windowSize.Height },
+				focal_length = new MikanVector2d() { x = f_x, y = f_y },
+				principal_point = new MikanVector2d() { x = c_x, y = c_y },
+				z_bounds = new MikanVector2d() { x = kDefaultZNear, y = kDefaultZFar },
+				frame = 0
+            };
+
+			return fakeNewFrameEvent;
+        }
+
+        private void handleCameraNewFrameEvent(MikanCameraNewFrameEvent newFrameEvent)
 		{
 			int cameraId = newFrameEvent.camera_id;
 
 			// Get or create render target for this camera
 			TestCameraRenderTarget renderTarget = 
-				_graphicsContext.GetOrAddCameraRenderTarget(_mikanAPI, cameraId);
+				_graphicsContext.GetOrAddCameraRenderTarget(cameraId);
 
 			// Process the frame and render to the camera's render target
 			if (renderTarget != null)
 			{
-				bool bProcessedFrame = renderTarget.ProcessCameraNewFrameEvent(newFrameEvent, _graphicsContext.RenderToCameraTarget);
+				bool bProcessedFrame = 
+					renderTarget.ProcessCameraNewFrameEvent(
+						_mikanAPI, newFrameEvent);
 
 				if (bProcessedFrame)
 				{

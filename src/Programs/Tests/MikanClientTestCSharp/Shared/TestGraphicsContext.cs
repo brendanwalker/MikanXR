@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using MikanXR;
+using SharpDX;
 using SharpDX.Windows;
 
 namespace Mikan
@@ -12,8 +13,9 @@ namespace Mikan
 		protected Dictionary<int, TestCameraRenderTarget> _cameraRenderTargets;
 
 		public TestApp OwnerApp => _ownerApp;
+        public System.Drawing.Size WindowSize => _renderForm.ClientSize;
 
-		protected TestGraphicsContext(TestApp ownerApp)
+        protected TestGraphicsContext(TestApp ownerApp)
 		{
 			_ownerApp = ownerApp;
 			_renderForm = ownerApp.RenderForm;
@@ -27,30 +29,30 @@ namespace Mikan
 			return renderTarget;
 		}
 
-		public TestCameraRenderTarget GetOrAddCameraRenderTarget(MikanAPI mikanAPI, int cameraId)
+		public TestCameraRenderTarget GetOrAddCameraRenderTarget(int cameraId)
 		{
 			if (!_cameraRenderTargets.TryGetValue(cameraId, out TestCameraRenderTarget renderTarget))
 			{
-				renderTarget = AllocateCameraRenderTarget(mikanAPI, cameraId);
+				renderTarget = AllocateCameraRenderTarget(cameraId);
 				_cameraRenderTargets[cameraId] = renderTarget;
 			}
 			return renderTarget;
 		}
 
-		public void RemoveCameraRenderTarget(int cameraId)
+		public void RemoveCameraRenderTarget(MikanAPI mikanAPI, int cameraId)
 		{
 			if (_cameraRenderTargets.TryGetValue(cameraId, out TestCameraRenderTarget renderTarget))
 			{
-				renderTarget.Dispose();
+				renderTarget.Dispose(mikanAPI);
 				_cameraRenderTargets.Remove(cameraId);
 			}
 		}
 
-		public void RemoveAllCameraRenderTargets()
+		public void RemoveAllCameraRenderTargets(MikanAPI mikanAPI)
 		{
 			foreach (var renderTarget in _cameraRenderTargets.Values)
 			{
-				renderTarget.Dispose();
+				renderTarget.Dispose(mikanAPI);
 			}
 			_cameraRenderTargets.Clear();
 		}
@@ -58,7 +60,7 @@ namespace Mikan
 		// Abstract methods to be implemented by derived classes
 		public abstract MikanClientGraphicsApi GetGraphicsApi();
 		public abstract IntPtr GetGraphicsDeviceInterface();
-		public abstract TestCameraRenderTarget AllocateCameraRenderTarget(MikanAPI mikanAPI, int cameraId);
+		public abstract TestCameraRenderTarget AllocateCameraRenderTarget(int cameraId);
 		public abstract bool Create(int windowWidth, int windowHeight);
 		public abstract void RenderMainTarget();
 		public abstract bool RenderToCameraTarget(TestCameraRenderTarget cameraRenderTarget);
