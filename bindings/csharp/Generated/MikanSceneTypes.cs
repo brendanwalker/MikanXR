@@ -10,7 +10,7 @@ namespace MikanXR
 
 		public int parent_stage_id;
 		public List<int> compositor_list;
-		public int output_compositor_id;
+		public int display_compositor_id;
 	};
 
 }

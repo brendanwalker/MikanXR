@@ -302,7 +302,7 @@ void PropertyRequestHandler::getComponentValuesHandler(const ClientRequest& requ
 
 	// Extract the values into the response polymorphic object
 	if (!Serialization::serializeFromEntity(
-			std::static_pointer_cast<IEntityAccessor>(objectSystem),
+			std::static_pointer_cast<IEntityAccessor>(componentPtr),
 			getValuesResponse.valuesObject.allocateByType(valuesStruct),
 			*valuesStruct))
 	{

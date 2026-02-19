@@ -483,7 +483,12 @@ bool CameraComponent::getPropertyValue(
 	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	if (propertyName == CameraDefinition::k_trackingMountIdPropertyId)
+	if (propertyName == CameraDefinition::k_ownerStageIdPropertyId)
+	{
+		outValue = getCameraDefinition()->getOwnerStageId();
+		return true;
+	}
+	else if (propertyName == CameraDefinition::k_trackingMountIdPropertyId)
 	{
 		outValue = getCameraDefinition()->getTrackingMountId();
 		return true;
@@ -496,6 +501,16 @@ bool CameraComponent::getPropertyValue(
 	else if (propertyName == CameraDefinition::k_trackingFrameDelayPropertyId)
 	{
 		outValue = getCameraDefinition()->getTrackingFrameDelay();
+		return true;
+	}
+	else if (propertyName == CameraDefinition::k_apertureOrientationOffsetPropertyId)
+	{
+		outValue = getCameraDefinition()->getApertureOffsetOrientation();
+		return true;
+	}
+	else if (propertyName == CameraDefinition::k_aperturePositionOffsetPropertyId)
+	{
+		outValue = getCameraDefinition()->getApertureOffsetPosition();
 		return true;
 	}
 

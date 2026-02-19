@@ -9,7 +9,7 @@ namespace MikanXR
 		public static new readonly long classId= -1422492652628173064;
 
 		public MikanVector3f relative_scale;
-		public MikanQuatf relative_rotation;
+		public MikanVector3f relative_rotation;
 		public MikanVector3f relative_position;
 	};
 

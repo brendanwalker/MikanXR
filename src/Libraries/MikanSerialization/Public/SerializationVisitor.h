@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SerializationExport.h"
+#include "SerializableList.h"
 
 #include <string>
 #include <vector>

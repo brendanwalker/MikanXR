@@ -45,6 +45,10 @@ namespace Serialization
 					{
 						visitIntList(accessor);
 					}
+					else if (elementType == rfk::getType<float>())
+					{
+						visitFloatList(accessor);
+					}
 					else
 					{
 						throw std::runtime_error(
@@ -106,14 +110,16 @@ namespace Serialization
 			else
 			{
 				throw std::runtime_error(
-					StringUtils::stringify("EntityAccessorReadVisitor::visitObjectPtr() ",
+					StringUtils::stringify("EntityAccessorReadVisitor::visitBoolList() ",
 						"Missing valid BoolList for", arrayAccessor.getName()));
 			}
 		}
 
 		void visitIntList(ValueAccessor const& arrayAccessor)
 		{
-			auto& destArray = arrayAccessor.getTypedValueMutableRef<Serialization::List<int>>();
+			auto* destArray = 
+				reinterpret_cast<Serialization::List<int> *>(
+					arrayAccessor.getUntypedValueMutablePtr());
 
 			MikanVariant sourcePropertyValue;
 			if (m_entityAccessor->getPropertyValue(arrayAccessor.getName(), sourcePropertyValue) &&
@@ -121,13 +127,35 @@ namespace Serialization
 			{
 				const std::vector<int>& sourceArray = sourcePropertyValue.getIntArrayValue();
 
-				destArray.assign(sourceArray.begin(), sourceArray.end());
+				destArray->assign(sourceArray.begin(), sourceArray.end());
 			}
 			else
 			{
 				throw std::runtime_error(
-					StringUtils::stringify("EntityAccessorReadVisitor::visitObjectPtr() ",
+					StringUtils::stringify("EntityAccessorReadVisitor::visitIntList() ",
 						"Missing valid IntList for", arrayAccessor.getName()));
+			}
+		}
+
+		void visitFloatList(ValueAccessor const& arrayAccessor)
+		{
+			auto* destArray =
+				reinterpret_cast<Serialization::List<float> *>(
+					arrayAccessor.getUntypedValueMutablePtr());
+
+			MikanVariant sourcePropertyValue;
+			if (m_entityAccessor->getPropertyValue(arrayAccessor.getName(), sourcePropertyValue) &&
+				sourcePropertyValue.value_type == MikanVariantType::FLOAT_ARRAY)
+			{
+				const std::vector<float>& sourceArray = sourcePropertyValue.getFloatArrayValue();
+
+				destArray->assign(sourceArray.begin(), sourceArray.end());
+			}
+			else
+			{
+				throw std::runtime_error(
+					StringUtils::stringify("EntityAccessorReadVisitor::visitFloatList() ",
+						"Missing valid FloatList for", arrayAccessor.getName()));
 			}
 		}
 
@@ -144,18 +172,221 @@ namespace Serialization
 			else
 			{
 				throw std::runtime_error(
-					StringUtils::stringify("EntityAccessorReadVisitor::visitObjectPtr() ",
+					StringUtils::stringify("EntityAccessorReadVisitor::visitString() ",
 						"Missing valid String for", accessor.getName()));
 			}
 		}
 
 		virtual void visitStruct(ValueAccessor const& accessor) override
 		{
-			void* childObjectInstance = accessor.getUntypedValueMutablePtr();
-			rfk::Struct const* structType = accessor.getStructType();
-			EntityAccessorReadVisitor jsonVisitor(m_entityAccessor);
+			rfk::Type const& fieldType = accessor.getType();
 
-			Serialization::visitStruct(childObjectInstance, *structType, &jsonVisitor);
+			if (fieldType == rfk::getType<MikanVector2f>())
+			{
+				visitVector2f(accessor);
+			}
+			else if (fieldType == rfk::getType<MikanVector3f>())
+			{
+				visitVector3f(accessor);
+			}
+			else if (fieldType == rfk::getType<MikanVector4f>())
+			{
+				visitVector4f(accessor);
+			}
+			else if (fieldType == rfk::getType<MikanQuatf>())
+			{
+				visitQuaternionf(accessor);
+			}
+			else if (fieldType == rfk::getType<MikanMatrix4f>())
+			{
+				visitMatrix4f(accessor);
+			}
+			else if (fieldType == rfk::getType<MikanVector2d>())
+			{
+				visitVector2d(accessor);
+			}
+			else if (fieldType == rfk::getType<MikanVector3d>())
+			{
+				visitVector3d(accessor);
+			}
+			else if (fieldType == rfk::getType<MikanVector4d>())
+			{
+				visitVector4d(accessor);
+			}
+			else if (fieldType == rfk::getType<MikanQuatd>())
+			{
+				visitQuaterniond(accessor);
+			}
+			else
+			{
+				throw std::runtime_error(
+					StringUtils::stringify("EntityAccessorReadVisitor::visitStruct() ",
+						"Struct Accessor ", accessor.getName(),
+						" was not a recognized struct type"));
+			}
+		}
+
+		void visitVector2f(ValueAccessor const& accessor)
+		{
+			MikanVariant sourcePropertyValue;
+			if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
+				sourcePropertyValue.value_type == MikanVariantType::VECTOR2F)
+			{
+				MikanVector2f value = sourcePropertyValue.getVector2fValue();
+
+				accessor.setValueByType(value);
+			}
+			else
+			{
+				throw std::runtime_error(
+					StringUtils::stringify("EntityAccessorReadVisitor::visitVector2f() ",
+						"Vector2f Accessor ", accessor.getName(),
+						" was not a Vector2f value"));
+			}
+		}
+
+		void visitVector3f(ValueAccessor const& accessor)
+		{
+			MikanVariant sourcePropertyValue;
+			if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
+				sourcePropertyValue.value_type == MikanVariantType::VECTOR3F)
+			{
+				MikanVector3f value = sourcePropertyValue.getVector3fValue();
+				accessor.setValueByType(value);
+			}
+			else
+			{
+				throw std::runtime_error(
+					StringUtils::stringify("EntityAccessorReadVisitor::visitVector3f() ",
+						"Vector3f Accessor ", accessor.getName(),
+						" was not a Vector3f value"));
+			}
+		}
+
+		void visitVector4f(ValueAccessor const& accessor)
+		{
+			MikanVariant sourcePropertyValue;
+			if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
+				sourcePropertyValue.value_type == MikanVariantType::VECTOR4F)
+			{
+				MikanVector4f value = sourcePropertyValue.getVector4fValue();
+				accessor.setValueByType(value);
+			}
+			else
+			{
+				throw std::runtime_error(
+					StringUtils::stringify("EntityAccessorReadVisitor::visitVector4f() ",
+						"Vector4f Accessor ", accessor.getName(),
+						" was not a Vector4f value"));
+			}
+		}
+
+		void visitQuaternionf(ValueAccessor const& accessor)
+		{
+			MikanVariant sourcePropertyValue;
+			if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
+				sourcePropertyValue.value_type == MikanVariantType::QUATERNIONF)
+			{
+				MikanQuatf value = sourcePropertyValue.getQuaternionfValue();
+				accessor.setValueByType(value);
+			}
+			else
+			{
+				throw std::runtime_error(
+					StringUtils::stringify("EntityAccessorReadVisitor::visitQuaternionf() ",
+						"Quaternionf Accessor ", accessor.getName(),
+						" was not a Quaternionf value"));
+			}
+		}
+
+		void visitMatrix4f(ValueAccessor const& accessor)
+		{
+			MikanVariant sourcePropertyValue;
+			if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
+				sourcePropertyValue.value_type == MikanVariantType::MATRIX4F)
+			{
+				MikanMatrix4f value = sourcePropertyValue.getMatrix4fValue();
+				accessor.setValueByType(value);
+			}
+			else
+			{
+				throw std::runtime_error(
+					StringUtils::stringify("EntityAccessorReadVisitor::visitMatrix4f() ",
+						"Matrix4f Accessor ", accessor.getName(),
+						" was not a Matrix4f value"));
+			}
+		}
+
+		void visitVector2d(ValueAccessor const& accessor)
+		{
+			MikanVariant sourcePropertyValue;
+			if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
+				sourcePropertyValue.value_type == MikanVariantType::VECTOR2D)
+			{
+				MikanVector2d value = sourcePropertyValue.getVector2dValue();
+				accessor.setValueByType(value);
+			}
+			else
+			{
+				throw std::runtime_error(
+					StringUtils::stringify("EntityAccessorReadVisitor::visitVector2d() ",
+						"Vector2d Accessor ", accessor.getName(),
+						" was not a Vector2d value"));
+			}
+		}
+
+		void visitVector3d(ValueAccessor const& accessor)
+		{
+			MikanVariant sourcePropertyValue;
+			if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
+				sourcePropertyValue.value_type == MikanVariantType::VECTOR3D)
+			{
+				MikanVector3d value = sourcePropertyValue.getVector3dValue();
+				accessor.setValueByType(value);
+			}
+			else
+			{
+				throw std::runtime_error(
+					StringUtils::stringify("EntityAccessorReadVisitor::visitVector3d() ",
+						"Vector3d Accessor ", accessor.getName(),
+						" was not a Vector3d value"));
+			}
+		}
+
+		void visitVector4d(ValueAccessor const& accessor)
+		{
+			MikanVariant sourcePropertyValue;
+			if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
+				sourcePropertyValue.value_type == MikanVariantType::VECTOR4D)
+			{
+				MikanVector4d value = sourcePropertyValue.getVector4dValue();
+				accessor.setValueByType(value);
+			}
+			else
+			{
+				throw std::runtime_error(
+					StringUtils::stringify("EntityAccessorReadVisitor::visitVector4d() ",
+						"Vector4d Accessor ", accessor.getName(),
+						" was not a Vector4d value"));
+			}
+		}
+
+		void visitQuaterniond(ValueAccessor const& accessor)
+		{
+			MikanVariant sourcePropertyValue;
+			if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
+				sourcePropertyValue.value_type == MikanVariantType::QUATERNIOND)
+			{
+				MikanQuatd value = sourcePropertyValue.getQuaterniondValue();
+				accessor.setValueByType(value);
+			}
+			else
+			{
+				throw std::runtime_error(
+					StringUtils::stringify("EntityAccessorReadVisitor::visitQuaterniond() ",
+						"Quaterniond Accessor ", accessor.getName(),
+						" was not a Quaterniond value"));
+			}
 		}
 
 		virtual void visitEnum(ValueAccessor const& accessor) override
@@ -166,10 +397,34 @@ namespace Serialization
 			{
 				rfk::Enum const& enumType = *accessor.getEnumType();
 				rfk::Archetype const& enumArchetype = enumType.getUnderlyingArchetype();
-				rfk::EnumValue const* enumValue = nullptr;
-				int enumIntValue = accessor.getValue<int>();
+				const void* untypedValue = accessor.getUntypedValuePtr();
 
-				enumValue = enumType.getEnumValue(enumIntValue);
+				int64_t enumIntValue = 0;
+				if (enumArchetype.getMemorySize() == sizeof(int64_t))
+				{
+					enumIntValue = *reinterpret_cast<const int64_t*>(untypedValue);
+				}
+				else if (enumArchetype.getMemorySize() == sizeof(int32_t))
+				{
+					enumIntValue = (int64_t)(*reinterpret_cast<const int32_t*>(untypedValue));
+				}
+				else if (enumArchetype.getMemorySize() == sizeof(int16_t))
+				{
+					enumIntValue = (int64_t)(*reinterpret_cast<const int16_t*>(untypedValue));
+				}
+				else if (enumArchetype.getMemorySize() == sizeof(int8_t))
+				{
+					enumIntValue = (int64_t)(*reinterpret_cast<const int8_t*>(untypedValue));
+				}
+				else
+				{
+					throw std::runtime_error(
+						StringUtils::stringify("EntityAccessorReadVisitor::visitEnum() ",
+							"Enum Accessor ", accessor.getName(),
+							" has an invalid memory size ", enumArchetype.getMemorySize()));
+				}
+
+				rfk::EnumValue const* enumValue = enumType.getEnumValue(enumIntValue);
 
 				if (enumValue != nullptr)
 				{

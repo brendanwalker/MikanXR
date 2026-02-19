@@ -11,7 +11,7 @@
 #include <easy/profiler.h>
 
 // -- VideoSourceDefinition -----
-const std::string VideoSourceDefinition::k_videoSourceIntrinsicsPropertyId= "video_source_intrinsics";
+const std::string VideoSourceDefinition::k_videoSourceIntrinsicsPropertyId= "intrinsics_ptr";
 const std::string VideoSourceDefinition::k_intrinsicsTypePropertyId = "intrinsics_type";
 const std::string VideoSourceDefinition::k_isFrameMirroredPropertyId = "is_frame_mirrored";
 const std::string VideoSourceDefinition::k_isBufferMirroredPropertyId = "is_buffer_mirrored";

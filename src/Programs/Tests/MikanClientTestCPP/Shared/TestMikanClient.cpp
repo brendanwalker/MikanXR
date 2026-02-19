@@ -433,12 +433,12 @@ void TestMikanClient::handleTransformOrientationChanged(const MikanPropertyUpdat
 {
 	const std::string& componentClass = propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
 	const std::string& componentName = propertyUpdateEvent.propertyValue.fieldValue.getStringValue();
-	const MikanQuatf& q = propertyUpdateEvent.propertyValue.fieldValue.getQuaternionfValue();
+	const MikanVector3f& q = propertyUpdateEvent.propertyValue.fieldValue.getVector3fValue();
 
 	MIKAN_LOG_INFO("handleTransformOrientationChanged")
 		<< "Component(class: " << componentClass
 		<< ", id: " << propertyUpdateEvent.propertyValue.componentId
-		<< "), Orientation Change: " << q.x << ", " << q.y << ", " << q.z << ", " << q.w;
+		<< "), Orientation Change: " << q.x << ", " << q.y << ", " << q.z;
 }
 
 void TestMikanClient::handleTransformPositionChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)

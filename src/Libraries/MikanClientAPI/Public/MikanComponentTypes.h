@@ -21,7 +21,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanComponentTypes")) Mik
 	FIELD()
 	Serialization::String component_name;
 	FIELD()
-	Serialization::String component_sript;
+	Serialization::String component_script;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanComponentValues_GENERATED

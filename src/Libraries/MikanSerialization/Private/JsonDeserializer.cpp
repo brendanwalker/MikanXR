@@ -106,30 +106,38 @@ namespace Serialization
 			Serialization::MikanClassId mikanClassId = 
 				ownerJsonObject["class_id"].get<Serialization::MikanClassId>();
 			Serialization::RfkClassId rfkClassId = Serialization::toRfkClassId(mikanClassId);
-			rfk::Struct const* objectStruct = rfk::getDatabase().getStructById(rfkClassId);
-			if (objectStruct == nullptr)
+
+			rfk::Struct const* objectStruct = nullptr;
+			if (rfkClassId != 0)
 			{
-				throw std::runtime_error(
-					stringify("JsonReadVisitor::visitObjectPtr() ",
-							  "TypedObjectPtr Accessor ", accessor.getName(),
-							  " used an unknown runtime class_name: ", objectClassName,
-							  " (runtime class_id: ", rfkClassId, ")"));
+				objectStruct= rfk::getDatabase().getStructById(rfkClassId);
+				if (objectStruct == nullptr)
+				{
+					throw std::runtime_error(
+						stringify("JsonReadVisitor::visitObjectPtr() ",
+							"TypedObjectPtr Accessor ", accessor.getName(),
+							" used an unknown runtime class_name: ", objectClassName,
+							" (runtime class_id: ", rfkClassId, ")"));
+				}
 			}
 
-			// Use reflection to get the methods to create and initialize the object
-			rfk::Method const* allocateMethod = 
-				objPtrClassType->getMethodByName(
-					"allocateByClassId", rfk::EMethodFlags::Default, true);
+			if (objectStruct != nullptr)
+			{
+				// Use reflection to get the methods to create and initialize the object
+				rfk::Method const* allocateMethod =
+					objPtrClassType->getMethodByName(
+						"allocateByClassId", rfk::EMethodFlags::Default, true);
 
-			// Allocate a default instance of the object assigned to the shared pointer
-			void* objectInstance =
-				allocateMethod->invokeUnsafe<void*, const std::size_t&>(
-					objPtrInstance, rfkClassId);
+				// Allocate a default instance of the object assigned to the shared pointer
+				void* objectInstance =
+					allocateMethod->invokeUnsafe<void*, const std::size_t&>(
+						objPtrInstance, rfkClassId);
 
-			// Deserialize the object from the json
-			json objectJson= ownerJsonObject["value"];
-			JsonReadVisitor objectVisitor(objectJson);
-			Serialization::visitStruct(objectInstance, *objectStruct, &objectVisitor);
+				// Deserialize the object from the json
+				json objectJson = ownerJsonObject["value"];
+				JsonReadVisitor objectVisitor(objectJson);
+				Serialization::visitStruct(objectInstance, *objectStruct, &objectVisitor);
+			}
 		}
 
 		void visitBoolList(

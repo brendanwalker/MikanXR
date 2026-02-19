@@ -86,17 +86,23 @@ namespace Serialization
 				Serialization::toMikanClassId(rfkClassId);
 
 			// Get the runtime class for the object
-			rfk::Struct const* objectStruct = rfk::getDatabase().getStructById(rfkClassId);
-			if (objectStruct == nullptr)
+			rfk::Struct const* objectStruct = nullptr;
+			if (rfkClassId != 0)
 			{
-				throw std::runtime_error(
-					stringify("JsonWriteVisitor::visitObjectPtr() ",
-							  "TypedObjectPtr Accessor ", accessor.getName(),
-							  " has an invalid class id ", rfkClassId));
+				// If the runtime class id is not 0, 
+				// we expect it to be valid and to correspond to a reflected class in the database
+				objectStruct = rfk::getDatabase().getStructById(rfkClassId);
+				if (objectStruct == nullptr)
+				{
+					throw std::runtime_error(
+						stringify("JsonWriteVisitor::visitObjectPtr() ",
+							"TypedObjectPtr Accessor ", accessor.getName(),
+							" has an invalid class id ", rfkClassId));
+				}
 			}
 
 			// Get the type of the elements in the array from the template argument
-			std::string className = objectStruct->getName();
+			std::string className = objectStruct != nullptr ? objectStruct->getName() : "";
 
 			// Resize the array to the desired target size
 			json objectPtrJson = json::object();
@@ -149,7 +155,7 @@ namespace Serialization
 			rfk::ClassTemplateInstantiation const& templatedArrayType,
 			json& ownerJsonObject)
 		{
-			void* arrayInstance = arrayAccessor.getUntypedValueMutablePtr();
+			const void* arrayInstance = arrayAccessor.getUntypedValuePtr();
 
 			// Get the type of the elements in the array from the template argument
 			auto const& templateArg =
@@ -235,7 +241,7 @@ namespace Serialization
 			rfk::Method const* getConstEnumeratorMethod = templatedMapType.getMethodByName("getConstEnumerator");
 
 			// Get a const enumerator to the map
-			void* mapInstance = mapAccessor.getUntypedValueMutablePtr();
+			const void* mapInstance = mapAccessor.getUntypedValuePtr();
 
 			// Serialize each element of the map
 			json arrayJson = json::array();

@@ -29,11 +29,11 @@ void TestLogUtils::logComponent(const MikanTransformComponentValues& transformIn
 	logComponent((const MikanComponentValues&)transformInfo);
 
 	const MikanVector3f& s = transformInfo.relative_scale;
-	const MikanQuatf& r = transformInfo.relative_rotation;
+	const MikanVector3f& r = transformInfo.relative_rotation;
 	const MikanVector3f& t = transformInfo.relative_position;
 
 	MIKAN_LOG_INFO("logTransformInfo") << "Scale: " << s.x << ", " << s.y << ", " << s.z;
-	MIKAN_LOG_INFO("logTransformInfo") << "Rotation: " << r.x << ", " << r.y << ", " << r.z << ", " << r.w;
+	MIKAN_LOG_INFO("logTransformInfo") << "Rotation: " << r.x << ", " << r.y << ", " << r.z;
 	MIKAN_LOG_INFO("logTransformInfo") << "Position: " << t.x << ", " << t.y << ", " << t.z;
 }
 

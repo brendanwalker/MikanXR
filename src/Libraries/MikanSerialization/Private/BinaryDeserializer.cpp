@@ -84,30 +84,35 @@ namespace Serialization
 			Serialization::MikanClassId mikanObjectClassId;
 			from_binary(m_binaryReader, mikanObjectClassId);
 			Serialization::RfkClassId rfkClassId= Serialization::toRfkClassId(mikanObjectClassId);
-			rfk::Struct const* objectStruct = rfk::getDatabase().getStructById(rfkClassId);
-			if (objectStruct == nullptr)
+
+			rfk::Struct const* objectStruct = nullptr;
+			if (rfkClassId != 0)
 			{
-				throw std::runtime_error(
-					stringify("BinaryReadVisitor::visitObjectPtr() ",
-							  "TypedObjectPtr Accessor ", accessor.getName(),
-							  " used an unknown class_id ", mikanObjectClassId));
+				objectStruct = rfk::getDatabase().getStructById(rfkClassId);
+				if (objectStruct == nullptr)
+				{
+					throw std::runtime_error(
+						stringify("BinaryReadVisitor::visitObjectPtr() ",
+							"TypedObjectPtr Accessor ", accessor.getName(),
+							" used an unknown class_id ", mikanObjectClassId));
+				}
 			}
-
-			// Use reflection to get the methods to create and initialize the object
-			rfk::Method const* allocateMethod = objPtrClassType->getMethodByName("allocateByClassId");
-
-			// Allocate a default instance of the object assigned to the shared pointer
-			void* objectInstance =
-				allocateMethod->invokeUnsafe<void*, const std::size_t&>(
-					objPtrInstance, rfkClassId);
 
 			// See if the serialized object is not null
 			bool isValid = false;
 			from_binary(m_binaryReader, isValid);
 
 			// Deserialize the object if it is valid
-			if (isValid)
+			if (objectStruct != nullptr && isValid)
 			{
+				// Use reflection to get the methods to create and initialize the object
+				rfk::Method const* allocateMethod = objPtrClassType->getMethodByName("allocateByClassId");
+
+				// Allocate a default instance of the object assigned to the shared pointer
+				void* objectInstance =
+					allocateMethod->invokeUnsafe<void*, const std::size_t&>(
+						objPtrInstance, rfkClassId);
+
 				// Deserialize the object from the json
 				BinaryReadVisitor objectVisitor(m_binaryReader);
 				Serialization::visitStruct(objectInstance, *objectStruct, &objectVisitor);

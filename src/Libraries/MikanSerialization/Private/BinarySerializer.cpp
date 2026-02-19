@@ -88,17 +88,23 @@ namespace Serialization
 			const Serialization::MikanClassId mikanClassId = Serialization::toMikanClassId(rfkClassId);
 
 			// Get the runtime class for the object
-			rfk::Struct const* objectStruct = rfk::getDatabase().getStructById(rfkClassId);
-			if (objectStruct == nullptr)
+			rfk::Struct const* objectStruct = nullptr;
+			if (rfkClassId != 0)
 			{
-				throw std::runtime_error(
-					stringify("BinaryWriteVisitor::visitObjectPtr() ",
-							  "TypedObjectPtr Accessor ", accessor.getName(),
-							  " has an invalid class id ", rfkClassId));
+				// If the class id is not 0, it means the object pointer is currently pointing to an object
+				// and we need to serialize it. We get the class of the object to serialize through reflection.
+				objectStruct = rfk::getDatabase().getStructById(rfkClassId);
+				if (objectStruct == nullptr)
+				{
+					throw std::runtime_error(
+						stringify("BinaryWriteVisitor::visitObjectPtr() ",
+							"TypedObjectPtr Accessor ", accessor.getName(),
+							" has an invalid class id ", rfkClassId));
+				}
 			}
 
 			// Get the type of the elements in the array from the template argument
-			std::string className = objectStruct->getName();
+			std::string className = objectStruct != nullptr ? objectStruct->getName() : "";
 
 			// Write the runtime class id of the object
 			to_binary(m_binaryWriter, className);

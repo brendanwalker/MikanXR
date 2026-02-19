@@ -23,7 +23,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSceneTypes")) MikanSc
 	FIELD()
 	Serialization::List<MikanCompositorID> compositor_list;
 	FIELD()
-	MikanCompositorID output_compositor_id;
+	MikanCompositorID display_compositor_id;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanSceneComponentValues_GENERATED

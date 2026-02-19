@@ -112,6 +112,9 @@ struct STRUCT() SerializationTestStruct
 	Serialization::PolymorphicObjectPtr point_ptr_field;
 
 	FIELD()
+	Serialization::PolymorphicObjectPtr null_ptr_field;
+
+	FIELD()
 	Serialization::BoolList bool_array;
 
 	FIELD()

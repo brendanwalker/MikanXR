@@ -417,11 +417,11 @@ namespace Mikan
 		{
 			string componentClass = propertyUpdateEvent.propertyValue.ownerComponentClass;
 			int componentId = propertyUpdateEvent.propertyValue.componentId;
-            var variantValue = propertyUpdateEvent.propertyValue.fieldValue.value_ptr.Instance as MikanQuatfValue;
-            MikanQuatf orientation = variantValue.value ?? new MikanQuatf();
+            var variantValue = propertyUpdateEvent.propertyValue.fieldValue.value_ptr.Instance as MikanVector3fValue;
+            MikanVector3f orientation = variantValue.value ?? new MikanVector3f();
 
 			Console.WriteLine($"INFO: Component(class: {componentClass}, id: {componentId}), " +
-				$"Orientation Change: {orientation.x}, {orientation.y}, {orientation.z}, {orientation.w}");
+				$"Orientation Change: {orientation.x}, {orientation.y}, {orientation.z}");
 		}
 
 		private void HandleTransformPositionChanged(MikanPropertyUpdateEvent propertyUpdateEvent)

@@ -72,6 +72,7 @@ namespace MikanXR
 		public SerializationTestEnum enum_field;
 		public SerializationPoint2d point2d_field;
 		public PolymorphicObject point_ptr_field;
+		public PolymorphicObject null_ptr_field;
 		public List<bool> bool_array;
 		public List<int> int_array;
 		public List<SerializationPoint2d> point2d_array;
@@ -115,6 +116,7 @@ namespace MikanXR
 			testObject.point2d_field= new SerializationPoint2d(1.2345f, 5.4321f);
 			testObject.point_ptr_field = new PolymorphicObject();
 			testObject.point_ptr_field.setInstance(new SerializationPoint3d(1.2345f, 5.4321f, 9.8765f));
+			testObject.null_ptr_field = new PolymorphicObject();
 			testObject.bool_array= boolArray;
 			testObject.int_array= intArray;
 			testObject.point2d_array= pointArray;
@@ -148,6 +150,11 @@ namespace MikanXR
 			Assert.That(expected_point3d.x_field, Is.EqualTo(actual_point3d.x_field).Within(float.Epsilon));
 			Assert.That(expected_point3d.y_field, Is.EqualTo(actual_point3d.y_field).Within(float.Epsilon));
 			Assert.That(expected_point3d.z_field, Is.EqualTo(actual_point3d.z_field).Within(float.Epsilon));
+
+			Assert.That(expected.null_ptr_field.Instance, Is.Null);
+			Assert.That(expected.null_ptr_field.RuntimeClassId, Is.EqualTo(0));
+			Assert.That(actual.null_ptr_field.Instance, Is.Null);
+			Assert.That(actual.null_ptr_field.RuntimeClassId, Is.EqualTo(0));
 
 			Assert.That(actual.bool_array.Count, Is.EqualTo(expected.bool_array.Count));
 			for (int i = 0; i < actual.bool_array.Count; ++i)
