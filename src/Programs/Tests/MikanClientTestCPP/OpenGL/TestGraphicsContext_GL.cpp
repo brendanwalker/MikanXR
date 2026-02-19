@@ -52,7 +52,7 @@ class TestMkWindow : public IMkWindow
 public:
 	TestMkWindow(int windowWidth, int windowHeight)
 		: IMkWindow()
-		, m_mkStateStack(MkStateStackUniquePtr(new MkStateStack(this)))
+		, m_mkStateStack(std::make_shared<MkStateStack>(this))
 		, m_shaderCache(createMkShaderCache(this))
 		, m_textureCache(createMkTextureCache(this))
 		, m_sdlWindow(nullptr)
@@ -184,6 +184,9 @@ public:
 
 	virtual void shutdown() override 
 	{
+		// Unwind any remaining states to ensure proper cleanup of GL resources owned by states (e.g. depth state buffers)
+		m_mkStateStack = nullptr;
+
 		m_textureCache->shutdown();
 		m_shaderCache->shutdown();
 
@@ -213,7 +216,7 @@ public:
 	virtual IMkTextureCache* getTextureCache() override { return m_textureCache.get(); }
 
 private:
-	MkStateStackUniquePtr m_mkStateStack;
+	MkStateStackSharedPtr m_mkStateStack;
 	IMkShaderCachePtr m_shaderCache;
 	IMkTextureCachePtr m_textureCache;
 

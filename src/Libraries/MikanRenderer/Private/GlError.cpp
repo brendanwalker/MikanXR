@@ -26,17 +26,17 @@ static inline const char* errorToString(const GLenum errorCode)
 
 bool checkHasAnyMkError(const char* context, const char* file, const int line)
 {
-	bool bHasAnyError= false;
-
+	int errCount = 0;
 	GLenum err;
-	while ((err = glGetError()) != GL_NO_ERROR)
+
+	while ((err = glGetError()) != GL_NO_ERROR && errCount < 32)
 	{
 		MIKAN_LOG_ERROR("checkGLError") 
 			<< context << " - " << file << "(" << line << ") : "
 			<< "GL_CORE_ERROR=" << err << " - " 
 			<< errorToString(err);
-		bHasAnyError= true;
+		++errCount;
 	}
 
-	return bHasAnyError;
+	return errCount > 0;
 }
