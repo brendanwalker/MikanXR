@@ -97,6 +97,12 @@ public:
 	bool getApertureViewMatrix(glm::mat4& outViewMatrix) const;
 	bool getApertureViewProjectionMatrix(glm::mat4& outVPMatrix, bool bVerticalFlip =false) const;
 
+	// Helper function to populate a new frame event with the current camera properties
+	bool makeNewCameraFrameEvent(
+		int64_t frameIndex, 
+		int defaultWidth, int defaultHeight,
+		struct MikanCameraNewFrameEvent& newFrameEvent) const;
+
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
 

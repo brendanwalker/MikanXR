@@ -5,6 +5,7 @@
 #include "CameraRequestHandler.h"
 #include "ClientSourceManager.h"
 #include "CompositorComponent.h"
+#include "COmpositorObjectSystem.h"
 #include "IMkState.h"
 #include "IMkTexture.h"
 #include "IMkTriangulatedMesh.h"
@@ -198,6 +199,9 @@ void CompositorComponent::update(float deltaSeconds)
 	if (!getIsRunning())
 		return;
 
+	if (getOwnerObjectSystem()->getAllCompositorsPaused())
+		return;
+
 	CameraComponentPtr cameraComponent= getCameraComponent();
 	if (!cameraComponent)
 		return;
@@ -247,71 +251,13 @@ void CompositorComponent::update(float deltaSeconds)
 		{
 			m_lastReadVideoFrameIndex = m_videoDistortionView->readNextVideoFrame();
 
-			MikanCameraNewFrameEvent newFrameEvent= {};
-			newFrameEvent.frame = m_lastReadVideoFrameIndex;
-
-			// Assign Camera Extrinsic values
-			const glm::vec3 cameraUp(cameraXform[1]); // Camera up is along the y-axis
-			const glm::vec3 cameraForward(cameraXform[2] * -1.f); // Camera forward is along negative z-axis
-			const glm::vec3 cameraPosition(cameraXform[3]); // Camera up is along the y-axis
-			newFrameEvent.camera_forward = glm_vec3_to_MikanVector3f(cameraForward);
-			newFrameEvent.camera_up = glm_vec3_to_MikanVector3f(cameraUp);
-			newFrameEvent.camera_position = glm_vec3_to_MikanVector3f(cameraPosition);
-
-			// Assign Camera Intrinsic values
-			MikanVideoSourceIntrinsics intrinsics= {};
-			bool bHasValidIntrinsics= false;
-
-			// Try fetching calibrated camera intrinsics
-			if (cameraComponent->getApertureIntrinsics(intrinsics))
-			{
-				if (intrinsics.intrinsics_type == MikanIntrinsicsType::MONO_CAMERA_INTRINSICS)
-				{
-					const MikanMonoIntrinsics& monoIntrinsics= intrinsics.getMonoIntrinsics();
-					const MikanMatrix3d& cameraMatrix= monoIntrinsics.undistorted_camera_matrix;
-
-					newFrameEvent.focal_length= {cameraMatrix.x0, cameraMatrix.y1};
-					newFrameEvent.principal_point= {cameraMatrix.z0, cameraMatrix.z1};
-					newFrameEvent.pixel_size = { (int)monoIntrinsics.pixel_width, (int)monoIntrinsics.pixel_height };
-					newFrameEvent.z_bounds = { monoIntrinsics.znear, monoIntrinsics.zfar };
-
-					bHasValidIntrinsics= true;
-				}
-				else if (intrinsics.intrinsics_type == MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS)
-				{
-					//TODO: Assume we are using the left eye's point of view for client compositing
-					const MikanStereoIntrinsics& stereoIntrinsics = intrinsics.getStereoIntrinsics();
-					const MikanMatrix3d& cameraMatrix = stereoIntrinsics.left_camera_matrix;
-
-					newFrameEvent.focal_length = { cameraMatrix.x0, cameraMatrix.y1 };
-					newFrameEvent.principal_point = { cameraMatrix.z0, cameraMatrix.z1 };
-					newFrameEvent.pixel_size = { (int)stereoIntrinsics.pixel_width, (int)stereoIntrinsics.pixel_height };
-					newFrameEvent.z_bounds = { stereoIntrinsics.znear, stereoIntrinsics.zfar };
-
-					bHasValidIntrinsics= true;
-				}
-			}
-			// Fallback to fake intrinsics if we just have a frame resolution available
-			// (focal length with just be some default value that is probably wrong)
-			else
-			{
-				int pixelWidth, pixelHeight;
-				if (cameraComponent->getAperturePixelDimensions(pixelWidth, pixelHeight))
-				{
-					MikanMonoIntrinsics fakeIntrinsics= {};
-					createDefautMonoIntrinsics(pixelWidth, pixelHeight, fakeIntrinsics);
-					const MikanMatrix3d& cameraMatrix= fakeIntrinsics.undistorted_camera_matrix;
-
-					newFrameEvent.focal_length = { cameraMatrix.x0, cameraMatrix.y1 };
-					newFrameEvent.principal_point = { cameraMatrix.z0, cameraMatrix.z1 };
-					newFrameEvent.pixel_size = { pixelWidth, pixelHeight };
-					newFrameEvent.z_bounds = { fakeIntrinsics.znear, fakeIntrinsics.zfar };
-					
-					bHasValidIntrinsics= true;
-				}
-			}
-
-			if (bHasValidIntrinsics)
+			// Try and make a new frame event with the current camera properties. 
+			// If we fail (e.g. due to invalid intrinsics), skip this frame and try again with the next one
+			if (MikanCameraNewFrameEvent newFrameEvent;
+				cameraComponent->makeNewCameraFrameEvent(
+					m_lastReadVideoFrameIndex, 
+					0, 0, // no fallback render target size in this case
+					newFrameEvent))
 			{
 				MIKAN_LOG_TRACE("CompositorComponent::update") << "Enqueue frame " << m_lastReadVideoFrameIndex;
 				m_frameEventQueue.push(newFrameEvent);
@@ -360,8 +306,8 @@ void CompositorComponent::update(float deltaSeconds)
 
 		// Tell all clients that we have a new frame to render
 		// TODO: Send this event to the camera system instead
-		MIKAN_LOG_TRACE("CompositorComponent::update") << "Send frame " << m_pendingCompositeFrameIndex;
-		MikanServer::getInstance()->getCameraRequestHandler()->publishCameraNewFrameEvent(newFrameEvent);
+		MIKAN_LOG_TRACE("CompositorComponent::update") << "Send frame " << m_pendingCompositeFrameIndex;		
+		getOwnerEditorWindow()->getMikanServer()->getCameraRequestHandler()->publishCameraNewFrameEvent(newFrameEvent);
 	}
 }
 
@@ -624,6 +570,45 @@ void CompositorComponent::renderToViewportQuad() const
 	}
 }
 
+void CompositorComponent::updateVideoSourceStreaming()
+{
+	CameraComponentPtr cameraComponent = getCameraComponent();
+	if (cameraComponent)
+	{
+		VideoSourceComponentPtr videoSourceComponent = cameraComponent->getVideoSourceComponent();
+		if (videoSourceComponent)
+		{
+			const eVideoStreamingStatus videoStreamingStatus = videoSourceComponent->getVideoStreamingStatus();
+			const bool bWantsVideoStream= getIsRunning();
+			const bool bIsVideoStreaming = 
+				videoStreamingStatus == eVideoStreamingStatus::pendingStart ||
+				videoStreamingStatus == eVideoStreamingStatus::started;
+
+			if (bWantsVideoStream && !bIsVideoStreaming)
+			{
+				videoSourceComponent->startVideoStream();
+			}
+			else if (!bWantsVideoStream && bIsVideoStreaming)
+			{
+				videoSourceComponent->stopVideoStream();
+			}
+		}
+	}
+}
+
+void CompositorComponent::stopVideoSourceStreaming()
+{
+	CameraComponentPtr cameraComponent = getCameraComponent();
+	if (cameraComponent)
+	{
+		VideoSourceComponentPtr videoSourceComponent = cameraComponent->getVideoSourceComponent();
+		if (videoSourceComponent)
+		{
+			videoSourceComponent->stopVideoStream();
+		}
+	}
+}
+
 void CompositorComponent::updateOutputStreaming()
 {
 	CompositorDefinitionConstPtr definition= getCompositorDefinition();
@@ -649,6 +634,8 @@ bool CompositorComponent::startOutputStreaming()
 	// If we are already streaming, do nothing
 	if (getIsOutputStreaming())
 		return true;
+
+	
 
 	// Make sure we have a valid texture to stream
 	const std::string& spoutOutputName= getCompositorDefinition()->getSpoutOutputName();
@@ -696,9 +683,11 @@ bool CompositorComponent::start()
 	if (getIsRunning())
 		return true;
 
-	//TODO: Start the video source?
 	m_bIsRunning = true;
 	m_timeSinceLastFrameComposited = 0.f;
+
+	// Update the video source streaming state in case it changed while we were stopped
+	updateVideoSourceStreaming();
 
 	// Update the output streaming state in case it changed while we were stopped
 	updateOutputStreaming();
@@ -708,10 +697,15 @@ bool CompositorComponent::start()
 
 void CompositorComponent::stop()
 {
+	stopVideoSourceStreaming();
 	stopOutputStreaming();
 
-	//TODO: Stop the video source?
 	m_bIsRunning = false;
+}
+
+CompositorObjectSystemPtr CompositorComponent::getOwnerObjectSystem() const
+{
+	return std::static_pointer_cast<CompositorObjectSystem>(getOwnerObject()->getOwnerSystem());
 }
 
 MikanStageID CompositorComponent::getOwnerStageId() const

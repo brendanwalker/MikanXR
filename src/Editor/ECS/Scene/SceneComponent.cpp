@@ -282,11 +282,17 @@ SelectionComponentPtr SceneComponent::findClosestSelectionTarget(
 void SceneComponent::activateScene()
 {
 	CompositorObjectSystemPtr compositorSystem = getObjectSystemOfType<CompositorObjectSystem>();
-	const std::vector<MikanCompositorID>& compositorIDs =
-		getSceneComponentDefinition()->getCompositorIDs();
+	MikanCompositorID compositorId= getSceneComponentDefinition()->getDisplayCompositorId();
+
+	std::vector<MikanCompositorID> activeCompositorIDs;
+
+	if (compositorId != INVALID_MIKAN_ID)
+	{
+		activeCompositorIDs.push_back(compositorId);
+	}
 
 	// Set active compositors for this scene
-	compositorSystem->setActiveCompositors(compositorIDs);
+	compositorSystem->setActiveCompositors(activeCompositorIDs);
 }
 
 void SceneComponent::deactivateScene()

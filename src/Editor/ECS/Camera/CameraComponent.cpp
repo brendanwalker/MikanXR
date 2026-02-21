@@ -4,6 +4,7 @@
 #include "App.h"
 #include "AlignmentCalibration/AppStage_AlignmentCalibration.h"
 #include "Colors.h"
+#include "MikanCameraEvents.h"
 #include "MikanLineRenderer.h"
 #include "MikanTextRenderer.h"
 #include "MikanVideoSourceTypes.h"
@@ -413,6 +414,85 @@ bool CameraComponent::getApertureViewProjectionMatrix(
 	{
 		outVPMatrix = projMatrix * viewMatrix;
 		return true;
+	}
+
+	return false;
+}
+
+bool CameraComponent::makeNewCameraFrameEvent(
+	int64_t frameIndex, 
+	int defaultWidth, int defaultHeight,
+	MikanCameraNewFrameEvent& outNewFrameEvent) const
+{
+	outNewFrameEvent = {};
+	outNewFrameEvent.camera_id = getCameraId();
+	outNewFrameEvent.frame = frameIndex;
+
+	// Assign Camera Extrinsic values
+	const glm::mat4 cameraXform = getWorldTransform();
+	const glm::vec3 cameraUp(cameraXform[1]); // Camera up is along the y-axis
+	const glm::vec3 cameraForward(cameraXform[2] * -1.f); // Camera forward is along negative z-axis
+	const glm::vec3 cameraPosition(cameraXform[3]); // Camera up is along the y-axis
+	outNewFrameEvent.camera_forward = glm_vec3_to_MikanVector3f(cameraForward);
+	outNewFrameEvent.camera_up = glm_vec3_to_MikanVector3f(cameraUp);
+	outNewFrameEvent.camera_position = glm_vec3_to_MikanVector3f(cameraPosition);
+
+	// Assign Camera Intrinsic values
+	MikanVideoSourceIntrinsics intrinsics = {};
+
+	// Try fetching calibrated camera intrinsics
+	if (getApertureIntrinsics(intrinsics))
+	{
+		if (intrinsics.intrinsics_type == MikanIntrinsicsType::MONO_CAMERA_INTRINSICS)
+		{
+			const MikanMonoIntrinsics& monoIntrinsics = intrinsics.getMonoIntrinsics();
+			const MikanMatrix3d& cameraMatrix = monoIntrinsics.undistorted_camera_matrix;
+
+			outNewFrameEvent.focal_length = { cameraMatrix.x0, cameraMatrix.y1 };
+			outNewFrameEvent.principal_point = { cameraMatrix.x2, cameraMatrix.y2 };
+			outNewFrameEvent.pixel_size = { (int)monoIntrinsics.pixel_width, (int)monoIntrinsics.pixel_height };
+			outNewFrameEvent.z_bounds = { monoIntrinsics.znear, monoIntrinsics.zfar };
+
+			return true;
+		}
+		else if (intrinsics.intrinsics_type == MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS)
+		{
+			//TODO: Assume we are using the left eye's point of view for client compositing
+			const MikanStereoIntrinsics& stereoIntrinsics = intrinsics.getStereoIntrinsics();
+			const MikanMatrix3d& cameraMatrix = stereoIntrinsics.left_camera_matrix;
+
+			outNewFrameEvent.focal_length = { cameraMatrix.x0, cameraMatrix.y1 };
+			outNewFrameEvent.principal_point = { cameraMatrix.x2, cameraMatrix.y2 };
+			outNewFrameEvent.pixel_size = { (int)stereoIntrinsics.pixel_width, (int)stereoIntrinsics.pixel_height };
+			outNewFrameEvent.z_bounds = { stereoIntrinsics.znear, stereoIntrinsics.zfar };
+
+			return true;
+		}
+	}
+	// Fallback to fake intrinsics if we just have a frame resolution available
+	// (focal length with just be some default value that is probably wrong)
+	else
+	{
+		int pixelWidth, pixelHeight;
+		if (!getAperturePixelDimensions(pixelWidth, pixelHeight))
+		{
+			pixelWidth = defaultWidth;
+			pixelHeight = defaultHeight;
+		}
+
+		if (pixelWidth > 0 && pixelHeight > 0)
+		{
+			MikanMonoIntrinsics fakeIntrinsics = {};
+			createDefautMonoIntrinsics(pixelWidth, pixelHeight, fakeIntrinsics);
+			const MikanMatrix3d& cameraMatrix = fakeIntrinsics.undistorted_camera_matrix;
+
+			outNewFrameEvent.focal_length = { cameraMatrix.x0, cameraMatrix.y1 };
+			outNewFrameEvent.principal_point = { cameraMatrix.x2, cameraMatrix.y2 };
+			outNewFrameEvent.pixel_size = { pixelWidth, pixelHeight };
+			outNewFrameEvent.z_bounds = { fakeIntrinsics.znear, fakeIntrinsics.zfar };
+
+			return true;
+		}
 	}
 
 	return false;

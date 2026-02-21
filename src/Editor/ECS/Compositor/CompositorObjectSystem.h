@@ -51,4 +51,10 @@ public:
 	void setActiveCompositors(const std::vector<MikanCompositorID>& activeCompositorIdList);
 	MulticastDelegate<void(CompositorComponentPtr oldCompositor)> OnCompositorDeactivated;
 	MulticastDelegate<void(CompositorComponentPtr newCompositor)> OnCompositorActivated;
+
+	inline void setAllCompositorsPaused(bool bIsPaused) { m_bAllCompositorsPaused = bIsPaused; }
+	bool getAllCompositorsPaused() const { return m_bAllCompositorsPaused; }
+
+private:
+	bool m_bAllCompositorsPaused = false;
 };

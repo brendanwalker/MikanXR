@@ -83,6 +83,7 @@ public:
 	inline static const std::string k_componentClassName = "CompositorComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
+	CompositorObjectSystemPtr getOwnerObjectSystem() const;
 	MikanStageID getOwnerStageId() const;
 	StageComponentPtr getOwnerStageComponent() const;
 	VideoSourceComponentPtr getVideoSourceComponent() const;
@@ -129,6 +130,10 @@ public:
 
 protected:
 	void onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
+
+	// Video Source
+	void updateVideoSourceStreaming();
+	void stopVideoSourceStreaming();
 
 	// Spout Output
 	void updateOutputStreaming();

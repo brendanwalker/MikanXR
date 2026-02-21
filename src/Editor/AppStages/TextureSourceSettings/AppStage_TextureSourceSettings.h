@@ -26,7 +26,9 @@ public:
 	}
 
 	virtual void enter() override;
+	virtual void update(float deltaSeconds) override;
 	virtual void render(IMkViewportPtr targetViewport) override;
+	virtual void exit() override;
 
 	static const char* APP_STAGE_NAME;
 
@@ -37,7 +39,11 @@ protected:
 	Rml::ElementDocument* m_TextureSourceSettingsView = nullptr;
 
 	MikanCameraID m_cameraId= INVALID_MIKAN_ID;
+	CameraComponentWeakPtr m_cameraComponent;
 	TextureSourceComponentWeakPtr m_textureSourceComponent;
 	IMkTriangulatedMeshPtr m_fullscreenRGBQuad;
 	IMkTriangulatedMeshPtr m_fullscreenRGBAQuad;
+
+	float m_newFrameTimer = 0.f;
+	static constexpr float k_newFrameTimerDuration = 1.f / 30.f;
 };

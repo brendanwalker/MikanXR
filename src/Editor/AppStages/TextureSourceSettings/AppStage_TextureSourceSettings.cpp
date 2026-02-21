@@ -1,6 +1,10 @@
 //-- inludes -----
 #include "App.h"
 #include "ClientTextureSourceComponent.h"
+#include "CameraComponent.h"
+#include "CameraObjectSystem.h"
+#include "CameraRequestHandler.h"
+#include "CompositorObjectSystem.h"
 #include "IMkTriangulatedMesh.h"
 #include "TextureSourceSettings/AppStage_TextureSourceSettings.h"
 #include "TextureSourceSettings/RmlModel_TextureSourceSettings.h"
@@ -8,6 +12,7 @@
 #include "Shared/RmlModel_SpoutTextureSourceComponent.h"
 #include "MainMenu/AppStage_MainMenu.h"
 #include "MikanTextRenderer.h"
+#include "MikanServer.h"
 #include "MainWindow.h"
 #include "MkMaterialInstance.h"
 #include "MulticastDelegate.h"
@@ -34,6 +39,12 @@ void AppStage_TextureSourceSettings::enter()
 	AppStage::enter();
 
 	TextureSourceComponentPtr textureSourceComponent= m_textureSourceComponent.lock();
+
+	// Cache the camera component for use in rendering the video frame in the app stage
+	m_cameraComponent = getObjectSystemOfType<CameraObjectSystem>()->getCameraById(m_cameraId);
+
+	// Pause all compositor components while in the texture source settings stage
+	getObjectSystemOfType<CompositorObjectSystem>()->setAllCompositorsPaused(true);
 
 	// Create app stage UI models and views
 	// (Auto cleaned up on app state exit)
@@ -74,8 +85,42 @@ void AppStage_TextureSourceSettings::enter()
 	m_fullscreenRGBAQuad = createFullscreenQuadMesh(m_ownerWindow, true, true);
 }
 
+void AppStage_TextureSourceSettings::update(float deltaSeconds)
+{
+	AppStage::update(deltaSeconds);
+
+	// Manually publish fake camera frame events that emulate new video frames.
+	// This forces a connected client to render new frames.
+	CameraComponentPtr cameraComponent = m_cameraComponent.lock();
+	if (cameraComponent)
+	{
+		if (m_newFrameTimer <= 0.f)
+		{
+			if (MikanCameraNewFrameEvent newFrameEvent;
+				cameraComponent->makeNewCameraFrameEvent(
+					-1, // Skip video frame index
+					1280, 720, // fallback render target size
+					newFrameEvent))
+			{
+				getOwnerWindow()
+					->getMikanServer()
+					->getCameraRequestHandler()
+					->publishCameraNewFrameEvent(newFrameEvent);
+			}
+
+			m_newFrameTimer = k_newFrameTimerDuration;
+		}
+		else
+		{
+			m_newFrameTimer -= deltaSeconds;
+		}
+	}
+}
+
 void AppStage_TextureSourceSettings::render(IMkViewportPtr targetViewport)
 {
+	AppStage::render(targetViewport);
+
 	TextureSourceComponentPtr textureSourceComponent = m_textureSourceComponent.lock();
 
 	IMkTriangulatedMeshPtr fullscreenQuad;
@@ -112,6 +157,14 @@ void AppStage_TextureSourceSettings::render(IMkViewportPtr targetViewport)
 			}
 		}
 	}
+}
+
+void AppStage_TextureSourceSettings::exit()
+{
+	// Resume all compositor components when exiting the texture source settings stage
+	getObjectSystemOfType<CompositorObjectSystem>()->setAllCompositorsPaused(false);
+
+	AppStage::exit();
 }
 
 void AppStage_TextureSourceSettings::onReturnEvent()

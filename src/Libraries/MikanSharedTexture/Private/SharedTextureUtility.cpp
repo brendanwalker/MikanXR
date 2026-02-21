@@ -16,6 +16,7 @@ bool makeSpoutSenderName(
 		break;
 	case SharedTextureType::DEPTH:
 		buffer_name = "depth";
+		break;
 	default:
 		return false;
 	}
