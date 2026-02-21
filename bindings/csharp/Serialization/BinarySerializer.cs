@@ -86,10 +86,17 @@ namespace MikanXR
 
 				long instanceClassId = (long)instanceClassIdProperty.GetValue(serializableObject);
 				var instance = instanceProperty.GetValue(serializableObject);
-				Type instanceType = instance.GetType();
-				var instanceClassName = instanceType.Name;
 
-				_writer.WriteUTF8String(instanceClassName);
+                var instanceClassName = "";
+                Type instanceType = null;
+
+                if (instance != null && instanceClassId != 0)
+				{
+                    instanceType = instance.GetType();                    
+					instanceClassName = instanceType.Name;
+                }
+
+                _writer.WriteUTF8String(instanceClassName);
 				_writer.Write(instanceClassId);
 
 				bool isValidObject = instance != null;

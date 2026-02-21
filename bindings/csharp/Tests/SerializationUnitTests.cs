@@ -1,7 +1,6 @@
-using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 
 namespace MikanXR
 {
@@ -55,7 +54,6 @@ namespace MikanXR
 		public float z_field = 0;
 	};
 
-
 	class SerializationTestObject
 	{
 		public bool bool_field;
@@ -80,7 +78,6 @@ namespace MikanXR
 		public Dictionary<string, SerializationPoint2d> string_point_map;
 	};
 
-	[TestFixture]
 	public class SerializationUnitTests
 	{
 		SerializationTestObject buildSerializationTestObject()
@@ -126,112 +123,253 @@ namespace MikanXR
 			return testObject;
 		}
 
-		void verifySerializationTestObject(
-			SerializationTestObject actual, 
+		bool verifySerializationTestObject(
+			SerializationTestObject actual,
 			SerializationTestObject expected)
 		{
-			Assert.That(actual.bool_field, Is.EqualTo(expected.bool_field));
-			Assert.That(actual.byte_field, Is.EqualTo(expected.byte_field));
-			Assert.That(actual.ubyte_field, Is.EqualTo(expected.ubyte_field));
-			Assert.That(actual.short_field, Is.EqualTo(expected.short_field));
-			Assert.That(actual.ushort_field, Is.EqualTo(expected.ushort_field));
-			Assert.That(actual.int_field, Is.EqualTo(expected.int_field));
-			Assert.That(actual.uint_field, Is.EqualTo(expected.uint_field));
-			Assert.That(actual.long_field, Is.EqualTo(expected.long_field));
-			Assert.That(actual.float_field, Is.EqualTo(expected.float_field).Within(float.Epsilon));
-			Assert.That(actual.double_field, Is.EqualTo(expected.double_field).Within(double.Epsilon));
-			Assert.That(actual.string_field, Is.EqualTo(expected.string_field));
-			Assert.That(actual.enum_field, Is.EqualTo(expected.enum_field));
-			Assert.That(actual.point2d_field.x_field, Is.EqualTo(expected.point2d_field.x_field).Within(float.Epsilon));
-			Assert.That(actual.point2d_field.y_field, Is.EqualTo(expected.point2d_field.y_field).Within(float.Epsilon));
+			bool success;
+
+			success = (actual.bool_field == expected.bool_field);
+			Debug.Assert(success);
+			if (!success) return false;
+
+			success = (actual.byte_field == expected.byte_field);
+			Debug.Assert(success);
+			if (!success) return false;
+
+			success = (actual.ubyte_field == expected.ubyte_field);
+			Debug.Assert(success);
+			if (!success) return false;
+
+			success = (actual.short_field == expected.short_field);
+			Debug.Assert(success);
+			if (!success) return false;
+
+			success = (actual.ushort_field == expected.ushort_field);
+			Debug.Assert(success);
+			if (!success) return false;
+
+			success = (actual.int_field == expected.int_field);
+			Debug.Assert(success);
+			if (!success) return false;
+
+			success = (actual.uint_field == expected.uint_field);
+			Debug.Assert(success);
+			if (!success) return false;
+
+			success = (actual.long_field == expected.long_field);
+			Debug.Assert(success);
+			if (!success) return false;
+
+			success = (Math.Abs(actual.float_field - expected.float_field) <= float.Epsilon);
+			Debug.Assert(success);
+			if (!success) return false;
+
+			success = (Math.Abs(actual.double_field - expected.double_field) <= double.Epsilon);
+			Debug.Assert(success);
+			if (!success) return false;
+
+			success = (actual.string_field == expected.string_field);
+			Debug.Assert(success);
+			if (!success) return false;
+
+			success = (actual.enum_field == expected.enum_field);
+			Debug.Assert(success);
+			if (!success) return false;
+
+			success = (Math.Abs(actual.point2d_field.x_field - expected.point2d_field.x_field) <= float.Epsilon);
+			Debug.Assert(success);
+			if (!success) return false;
+
+			success = (Math.Abs(actual.point2d_field.y_field - expected.point2d_field.y_field) <= float.Epsilon);
+			Debug.Assert(success);
+			if (!success) return false;
 
 			var expected_point3d= (SerializationPoint3d)expected.point_ptr_field.Instance;
 			var actual_point3d= (SerializationPoint3d)actual.point_ptr_field.Instance;
-			Assert.That(expected_point3d.x_field, Is.EqualTo(actual_point3d.x_field).Within(float.Epsilon));
-			Assert.That(expected_point3d.y_field, Is.EqualTo(actual_point3d.y_field).Within(float.Epsilon));
-			Assert.That(expected_point3d.z_field, Is.EqualTo(actual_point3d.z_field).Within(float.Epsilon));
 
-			Assert.That(expected.null_ptr_field.Instance, Is.Null);
-			Assert.That(expected.null_ptr_field.RuntimeClassId, Is.EqualTo(0));
-			Assert.That(actual.null_ptr_field.Instance, Is.Null);
-			Assert.That(actual.null_ptr_field.RuntimeClassId, Is.EqualTo(0));
+			success = (Math.Abs(expected_point3d.x_field - actual_point3d.x_field) <= float.Epsilon);
+			Debug.Assert(success);
+			if (!success) return false;
 
-			Assert.That(actual.bool_array.Count, Is.EqualTo(expected.bool_array.Count));
+			success = (Math.Abs(expected_point3d.y_field - actual_point3d.y_field) <= float.Epsilon);
+			Debug.Assert(success);
+			if (!success) return false;
+
+			success = (Math.Abs(expected_point3d.z_field - actual_point3d.z_field) <= float.Epsilon);
+			Debug.Assert(success);
+			if (!success) return false;
+
+			success = (expected.null_ptr_field.Instance == null);
+			Debug.Assert(success);
+			if (!success) return false;
+
+			success = (expected.null_ptr_field.RuntimeClassId == 0);
+			Debug.Assert(success);
+			if (!success) return false;
+
+			success = (actual.null_ptr_field.Instance == null);
+			Debug.Assert(success);
+			if (!success) return false;
+
+			success = (actual.null_ptr_field.RuntimeClassId == 0);
+			Debug.Assert(success);
+			if (!success) return false;
+
+			success = (actual.bool_array.Count == expected.bool_array.Count);
+			Debug.Assert(success);
+			if (!success) return false;
+
 			for (int i = 0; i < actual.bool_array.Count; ++i)
 			{
-				Assert.That(actual.bool_array[i], Is.EqualTo(expected.bool_array[i]));
+				success = (actual.bool_array[i] == expected.bool_array[i]);
+				Debug.Assert(success);
+				if (!success) return false;
 			}
 
-			Assert.That(actual.int_array.Count, Is.EqualTo(expected.int_array.Count));
+			success = (actual.int_array.Count == expected.int_array.Count);
+			Debug.Assert(success);
+			if (!success) return false;
+
 			for (int i = 0; i < actual.int_array.Count; ++i)
 			{
-				Assert.That(actual.int_array[i], Is.EqualTo(expected.int_array[i]));
+				success = (actual.int_array[i] == expected.int_array[i]);
+				Debug.Assert(success);
+				if (!success) return false;
 			}
 
-			Assert.That(actual.point2d_array.Count, Is.EqualTo(expected.point2d_array.Count));
+			success = (actual.point2d_array.Count == expected.point2d_array.Count);
+			Debug.Assert(success);
+			if (!success) return false;
+
 			for (int i = 0; i < 2; ++i)
 			{
 				var actualPoint = actual.point2d_array[i];
 				var expectedPoint = expected.point2d_array[i];
 
-				Assert.That(actualPoint.x_field, Is.EqualTo(expectedPoint.x_field).Within(float.Epsilon));
-				Assert.That(actualPoint.y_field, Is.EqualTo(expectedPoint.y_field).Within(float.Epsilon));
+				success = (Math.Abs(actualPoint.x_field - expectedPoint.x_field) <= float.Epsilon);
+				Debug.Assert(success);
+				if (!success) return false;
+
+				success = (Math.Abs(actualPoint.y_field - expectedPoint.y_field) <= float.Epsilon);
+				Debug.Assert(success);
+				if (!success) return false;
 			}
 
-			Assert.That(actual.int_point_map.Count, Is.EqualTo(expected.int_point_map.Count));
+			success = (actual.int_point_map.Count == expected.int_point_map.Count);
+			Debug.Assert(success);
+			if (!success) return false;
+
 			foreach (var pair in actual.int_point_map)
 			{
 				var key = pair.Key;
 				var actualPoint = pair.Value;
 				var expectedPoint = expected.int_point_map[key];
 
-				Assert.That(actualPoint.x_field, Is.EqualTo(expectedPoint.x_field).Within(float.Epsilon));
-				Assert.That(actualPoint.y_field, Is.EqualTo(expectedPoint.y_field).Within(float.Epsilon));
+				success = (Math.Abs(actualPoint.x_field - expectedPoint.x_field) <= float.Epsilon);
+				Debug.Assert(success);
+				if (!success) return false;
+
+				success = (Math.Abs(actualPoint.y_field - expectedPoint.y_field) <= float.Epsilon);
+				Debug.Assert(success);
+				if (!success) return false;
 			}
 
-			Assert.That(actual.string_point_map.Count, Is.EqualTo(expected.string_point_map.Count));
+			success = (actual.string_point_map.Count == expected.string_point_map.Count);
+			Debug.Assert(success);
+			if (!success) return false;
+
 			foreach (var pair in actual.string_point_map)
 			{
 				var key = pair.Key;
 				var actualPoint = pair.Value;
 				var expectedPoint = expected.string_point_map[key];
 
-				Assert.That(actualPoint.x_field, Is.EqualTo(expectedPoint.x_field).Within(float.Epsilon));
-				Assert.That(actualPoint.y_field, Is.EqualTo(expectedPoint.y_field).Within(float.Epsilon));
+				success = (Math.Abs(actualPoint.x_field - expectedPoint.x_field) <= float.Epsilon);
+				Debug.Assert(success);
+				if (!success) return false;
+
+				success = (Math.Abs(actualPoint.y_field - expectedPoint.y_field) <= float.Epsilon);
+				Debug.Assert(success);
+				if (!success) return false;
 			}
+
+			return true;
 		}
 
-		[Test]
-		public void TestReflectionFromJson()
+		public bool TestReflectionFromJson()
 		{
-			// Arrange
-			var expected = buildSerializationTestObject();
+			bool success = true;
 
-			// Act
-			string jsonString = JsonSerializer.serializeToJsonString(expected);
-			var actual = new SerializationTestObject();
-			bool bCanDeserialize= JsonDeserializer.deserializeFromJsonString(jsonString, actual);
+			try
+			{
+				var expected = buildSerializationTestObject();
 
-			// Assert
-			Assert.That(bCanDeserialize);
-			verifySerializationTestObject(actual, expected);
+				string jsonString = JsonSerializer.serializeToJsonString(expected);
+				var actual = new SerializationTestObject();
+				bool bCanDeserialize= JsonDeserializer.deserializeFromJsonString(jsonString, actual);
+
+				if (!bCanDeserialize)
+				{
+					success = false;
+				}
+				else
+				{
+					success = verifySerializationTestObject(actual, expected);
+				}
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine("    Exception: " + e.Message);
+				success = false;
+			}
+
+			Console.WriteLine("    TestReflectionFromJson - " + (success ? "PASSED" : "FAILED"));
+			return success;
 		}
 
-		[Test]
-		public void TestReflectionFromBytes()
+		public bool TestReflectionFromBytes()
 		{
-			// Arrange
-			var expected = buildSerializationTestObject();
+			bool success = true;
 
-			// Act
-			byte[] bytes = BinarySerializer.SerializeToBytes(expected);
+			try
+			{
+				var expected = buildSerializationTestObject();
 
-			var actual = new SerializationTestObject();
-			bool bCanDeserialize = BinaryDeserializer.DeserializeFromBytes(bytes, actual);
+				byte[] bytes = BinarySerializer.SerializeToBytes(expected);
 
-			// Assert
-			Assert.That(bCanDeserialize);
-			verifySerializationTestObject(actual, expected);
+				var actual = new SerializationTestObject();
+				bool bCanDeserialize = BinaryDeserializer.DeserializeFromBytes(bytes, actual);
+
+				if (!bCanDeserialize)
+				{
+					success = false;
+				}
+				else
+				{
+					success = verifySerializationTestObject(actual, expected);
+				}
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine("    Exception: " + e.Message);
+				success = false;
+			}
+
+			Console.WriteLine("    TestReflectionFromBytes - " + (success ? "PASSED" : "FAILED"));
+			return success;
+		}
+
+		public bool RunAllTests()
+		{
+			bool success = true;
+			Console.WriteLine("[SerializationUnitTests]");
+
+			success &= TestReflectionFromJson();
+			success &= TestReflectionFromBytes();
+
+			Console.WriteLine("  SerializationUnitTests module - " + (success ? "PASSED" : "FAILED"));
+			return success;
 		}
 	}
 }

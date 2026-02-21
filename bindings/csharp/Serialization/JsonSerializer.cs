@@ -103,15 +103,21 @@ namespace MikanXR
 
 				var instanceClassId = (long)instanceClassIdProperty.GetValue(serializableObject);
 				var instance = instanceProperty.GetValue(serializableObject);
-				Type instanceType = instance.GetType();
-				var instanceClassName = instanceType.Name;
 
-				// Serialize the object into a json object
-				var jsonRuntimeObject = new JObject();
-				var jsonVisitor = new JsonWriteVisitor(jsonRuntimeObject);
-				Utils.visitObject(instance, instanceType, jsonVisitor);
+                var instanceClassName = "";
+                var jsonRuntimeObject = new JObject();
 
-				var jsonSerializableObject = new JObject();
+                if (instanceClassId != 0 && instance != null)
+				{
+                    Type instanceType = instance.GetType();
+                    instanceClassName = instanceType.Name;
+
+                    // Serialize the object into a json object
+                    var jsonVisitor = new JsonWriteVisitor(jsonRuntimeObject);
+                    Utils.visitObject(instance, instanceType, jsonVisitor);
+                }
+
+                var jsonSerializableObject = new JObject();
 				jsonSerializableObject["class_name"] = instanceClassName;
 				jsonSerializableObject["class_id"] = instanceClassId;
 				jsonSerializableObject["value"] = jsonRuntimeObject;

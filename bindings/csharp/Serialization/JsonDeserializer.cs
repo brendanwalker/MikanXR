@@ -135,13 +135,17 @@ namespace MikanXR
 
 				// Allocate the element instance using the runtime class name
 				var elementRuntimeTypeName = (string)jsonToken["class_name"];
-				var elementRuntimeTypes = 
-						from t in _contextAssembly.GetTypes()
-						where 
-							t.IsClass && 
-							t.Name == elementRuntimeTypeName &&
-							t.IsSubclassOf(typeof(PolymorphicStruct))
-						select t;
+				if (elementRuntimeTypeName == "")
+					return;
+
+                // Find the runtime type in the context assembly
+                var elementRuntimeTypes = 
+					from t in _contextAssembly.GetTypes()
+					where 
+						t.IsClass && 
+						t.Name == elementRuntimeTypeName &&
+						t.IsSubclassOf(typeof(PolymorphicStruct))
+					select t;
 				var elementRuntimeType = elementRuntimeTypes.FirstOrDefault();
 				if (elementRuntimeType == null)
 				{
