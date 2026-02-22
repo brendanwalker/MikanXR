@@ -37,9 +37,8 @@ public:
 	bool getIsSourcePendingRender(const std::string& clientId, MikanCameraID cameraId) const;
 	bool markSourceAsPendingRender(const std::string& clientId, MikanCameraID cameraId);
 
-	MulticastDelegate<void(const std::string& clientId) > OnClientSourceConnected;
-	MulticastDelegate<void(const std::string& clientId) > OnClientSourceUpdated;
-	MulticastDelegate<void(const std::string& clientId)> OnClientSourceDisconnected;
+	MulticastDelegate<void(const std::string& clientId, MikanCameraID cameraId)> OnClientSourceConnected;
+	MulticastDelegate<void(const std::string& clientId, MikanCameraID cameraId)> OnClientSourceDisconnected;
 
 protected:
 	static std::string makeClientSourceTableKey(const std::string& clientId, MikanCameraID cameraId);

@@ -691,9 +691,15 @@ bool TestGraphicsContext_DX::initializeDepthNormalizeShader()
 
 		float4 ps_main(PS_INPUT input) : SV_TARGET
 		{
+			// Read the raw depth value from the input float depth texture [0, 1]
+			// DirectX uses [0, 1] NDC range (unlike OpenGL's [-1, 1])
 			float depth = InputTexture.Sample(samLinear, input.uv).r;
-			float eyeDepth = zFar * zNear / ((zNear - zFar) * depth + zFar);
-			float zNorm = (eyeDepth - zNear) / (zFar - zNear);
+
+			// Convert to linear eye-space depth using DirectX perspective projection formula
+			float eyeDepth = zNear * zFar / (zFar - depth * (zFar - zNear));
+
+			// Normalize to [0, 1] range for visualization
+			float zNorm = eyeDepth / zFar;
 
 			return float4(zNorm, zNorm, zNorm, 1.0);
 		}

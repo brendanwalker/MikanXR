@@ -73,6 +73,9 @@ MikanResponseFuture MikanRenderTargetAPI::allocateRenderTargetTextures(
 				context, allocateRequest.camera_id, &actualDescriptor);
 		if (result == MikanAPIResult::Success)
 		{
+			// Overwrite the descriptor in the original request with the actual descriptor
+			allocateRequest.descriptor = actualDescriptor;
+
 			return m_requestManager->sendRequest(allocateRequest);
 		}
 	}

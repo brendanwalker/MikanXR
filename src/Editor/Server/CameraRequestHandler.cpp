@@ -111,6 +111,8 @@ bool RenderTargetClientState::allocateRenderTargetTextures(MikanCameraID cameraI
 				m_owner->getMikanClientInfo(),
 				readAccessor);
 		}
+
+		return true;
 	}
 
 	return false;

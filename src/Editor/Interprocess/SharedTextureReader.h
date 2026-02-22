@@ -19,6 +19,7 @@ public:
 	void dispose();
 	void setColorTexture(IMkTexturePtr texture) { m_colorTexture = texture; }
 	void setDepthTexture(IMkTexturePtr texture) { m_depthTexture = texture; }
+	inline MikanCameraID getCameraId() const { return m_cameraId; }
 	inline IMkTexturePtr getColorTexture() const { return m_colorTexture; }
 	inline IMkTexturePtr getDepthTexture() const { return m_depthTexture; }
 	inline int64_t getLastFrameRenderedIndex() const { return m_lastFrameRenderedIndex; }

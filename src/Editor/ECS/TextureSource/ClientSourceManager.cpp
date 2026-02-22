@@ -140,7 +140,7 @@ bool ClientSourceManager::getIsSourcePendingRender(
 	MikanCameraID cameraId) const
 {
 	ClientSource* clientSource= getClientSource(clientId, cameraId);
-	if (m_clientSources.tryGetValue(clientId, clientSource))
+	if (clientSource != nullptr)
 	{
 		return clientSource->bIsPendingRender;
 	}
@@ -186,7 +186,8 @@ bool ClientSourceManager::addClientSource(
 	const MikanClientInfo& clientInfo,
 	SharedTextureReadAccessor* readAccessor)
 {
-	if (m_clientSources.hasValue(clientId))
+	MikanCameraID cameraId = readAccessor->getCameraId();
+	if (getClientSource(clientId, cameraId) != nullptr)
 		return false;
 
 	ClientSource* clientSource = new ClientSource();
@@ -260,12 +261,13 @@ bool ClientSourceManager::addClientSource(
 	if (bSuccess)
 	{
 		// Add the client source to the data source table
-		m_clientSources.setValue(clientId, clientSource);
+		const std::string tableKey = makeClientSourceTableKey(clientId, cameraId);
+		m_clientSources.setValue(tableKey, clientSource);
 
 		// Notify listeners that a new client source has connected
 		if (OnClientSourceConnected)
 		{
-			OnClientSourceConnected(clientId);
+			OnClientSourceConnected(clientId, cameraId);
 		}
 	}
 	else
@@ -287,7 +289,8 @@ bool ClientSourceManager::removeClientSource(
 	const std::string& clientId,
 	SharedTextureReadAccessor* readAccessor)
 {
-	ClientSource* clientSource = m_clientSources.getValueOrDefault(clientId, nullptr);
+	MikanCameraID cameraId = readAccessor->getCameraId();
+	ClientSource* clientSource = getClientSource(clientId, cameraId);
 	if (clientSource == nullptr)
 		return false;
 
@@ -298,14 +301,15 @@ bool ClientSourceManager::removeClientSource(
 	readAccessor->setDepthTexture(nullptr);
 
 	// Remove the client source entries from the data source tables
-	m_clientSources.removeValue(clientId);
+	const std::string tableKey = makeClientSourceTableKey(clientId, cameraId);
+	m_clientSources.removeValue(tableKey);
 
 	delete clientSource;
 
 	// Notify listeners that a new client source has disconnected
 	if (OnClientSourceDisconnected)
 	{
-		OnClientSourceDisconnected(clientId);
+		OnClientSourceDisconnected(clientId, cameraId);
 	}
 
 	return true;
