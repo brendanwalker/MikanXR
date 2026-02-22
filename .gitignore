@@ -63,3 +63,4 @@ MikanXR.log
 
 #Tools
 !tools/*/*.exe
+bindings/csharp/*.bat

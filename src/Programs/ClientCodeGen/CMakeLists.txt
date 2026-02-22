@@ -71,10 +71,23 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     TARGET MikanClientCodeGen POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy "${SPOUT2_SHARED_LIBRARIES}" $<TARGET_FILE_DIR:MikanClientCodeGen>)
   add_custom_command(
+    TARGET MikanClientCodeGen POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy "${GLEW_SHARED_LIBRARIES}" $<TARGET_FILE_DIR:MikanClientCodeGen>)
+  add_custom_command(
 	TARGET MikanClientCodeGen POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy
 	"${RFK_SHARED_LIBRARIES}"
 	$<TARGET_FILE_DIR:MikanClientCodeGen>)
+  # Install VC Runtime dependencies
+  set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
+  include(InstallRequiredSystemLibraries)
+  if(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS)
+    add_custom_command(
+      TARGET MikanClientCodeGen POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
+      $<TARGET_FILE_DIR:MikanClientCodeGen>)
+  endif()
 ELSE() #Linux/Darwin
 ENDIF()
 
