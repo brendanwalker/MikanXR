@@ -23,7 +23,7 @@ struct DepthNormalizeConstantBuffer
 
 namespace SpoutDXDepthPackerShaderCode
 {
-	const std::string pacDeviceDepthShaderCode = R""""(
+	const std::string packDeviceDepthShaderCode = R""""(
 		Texture2D<float> InputTexture : register(t0);
 		SamplerState samLinear : register(s0);
 
@@ -55,13 +55,16 @@ namespace SpoutDXDepthPackerShaderCode
 
 		float4 ps_main(PS_INPUT input) : SV_TARGET
 		{
-			// Read the raw depth value from the input float depth texture
+			// Read the raw depth value from the input float depth texture [0, 1]
+			// DirectX uses [0, 1] NDC range (unlike OpenGL's [-1, 1])
 			float deviceDepth = InputTexture.Sample(samLinear, input.uv).r;
 
-			// Convert the depth value to a linear [0, 1) value (0 = near, 1 = far)
-			// 1.0 is not encoded property, so we need to clamp it to 0.999999
-			float eyeDepth = zFar * zNear / ((zNear - zFar) * deviceDepth + zFar);
-			float zNorm = min((eyeDepth - zNear) / (zFar - zNear), 0.999999);
+			// Convert to linear eye-space depth using DirectX perspective projection formula
+			float eyeDepth = zNear * zFar / (zFar - deviceDepth * (zFar - zNear));
+
+			// Normalize to [0, 1) range
+			// 1.0 is not encoded properly, so we need to clamp it to 0.999999
+			float zNorm = min(eyeDepth / zFar, 0.999999);
 
 			// Encode the linear depth value to a RGBA8 texture
 			// https://aras-p.info/blog/2009/07/30/encoding-floats-to-rgba-the-final/
@@ -346,7 +349,7 @@ bool SpoutDXDepthTexturePacker::initShader(ID3D11Device* d3dDevice)
 	const std::string shaderCodeString = 
 		m_mikanDescriptor.depth_buffer_type == SharedDepthBufferType::FLOAT_SCENE_DEPTH 
 		? SpoutDXDepthPackerShaderCode::packSceneDepthShaderCode 
-		: SpoutDXDepthPackerShaderCode::pacDeviceDepthShaderCode;
+		: SpoutDXDepthPackerShaderCode::packDeviceDepthShaderCode;
 
 	// Compile vertex shader
 	HRESULT hr = compileShaderFromString(shaderCodeString, "vs_main", "vs_4_0", &m_vertexShaderByteCode);

@@ -34,9 +34,10 @@ enum class SharedColorBufferType : int
 enum class SharedDepthBufferType : int
 {
 	NODEPTH,
-	// Raw float non-linear depth values from the z-buffer (in source world units)
+	// Raw float non-linear depth values from the z-buffer (source engine world units)
+	// https://developer.nvidia.com/blog/visualizing-depth-precision/
 	FLOAT_DEVICE_DEPTH,
-	// Linearized float distance-from-camera values (in source world units)
+	// Linearized float distance-from-camera values (source engine world units)
 	FLOAT_SCENE_DEPTH,
 	// DXGI_FORMAT_R8G8B8A8_UNORM / DXGI_FORMAT_R8G8B8A8_TYPELESS
 	PACK_DEPTH_RGBA,

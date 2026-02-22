@@ -2,6 +2,7 @@
 #include "SpoutDX.h"
 #include "SpoutDX12.h"
 #include "SpoutDXDepthTexturePacker.h"
+#include "SpoutGLDepthTexturePacker.h"
 #include "SpoutLibrary.h"
 #include "SharedTextureLogger.h"
 #include "SharedTextureUtility.h"
@@ -18,6 +19,7 @@ public:
 
 	inline SharedTextureLogger& getLogger() { return m_logger; }
 	inline SharedClientGraphicsApi getGraphicsApi() const { return m_graphicsAPI; }
+	inline void* getApiDeviceInterface() const { return m_apiDeviceInterface; }
 	inline const std::string& getColorSenderName() const { return m_colorSenderName; }
 	inline const std::string& getDepthSenderName() const { return m_depthSenderName; }
 	inline bool getEnableFrameCounter() const { return m_bEnableFrameCounter; }
@@ -74,7 +76,7 @@ public:
 
 	bool init()
 	{
-		const SharedTextureDescriptor* descriptor= m_parentAccessor->getRenderTargetDescriptor();
+		const SharedTextureDescriptor* descriptor = m_parentAccessor->getRenderTargetDescriptor();
 		bool bSuccess = true;
 
 		dispose();
@@ -106,22 +108,42 @@ public:
 			ss << "SpoutOpenGLTextureWriter::init() - color buffer type not supported: ";
 			ss << (int)descriptor->color_buffer_type;
 			m_logger.log(SharedTextureLogLevel::info, ss.str());
-			bSuccess= false;
+			bSuccess = false;
 		}
 
-		if (descriptor->depth_buffer_type == SharedDepthBufferType::PACK_DEPTH_RGBA)
+		if (descriptor->depth_buffer_type == SharedDepthBufferType::PACK_DEPTH_RGBA ||
+			descriptor->depth_buffer_type == SharedDepthBufferType::FLOAT_DEVICE_DEPTH ||
+			descriptor->depth_buffer_type == SharedDepthBufferType::FLOAT_SCENE_DEPTH)
 		{
+			m_spoutDepthFrame = GetSpout();
+			if (m_spoutDepthFrame == nullptr)
+			{
+				m_logger.log(SharedTextureLogLevel::error, "SpoutOpenGLTextureWriter::init() - Failed to open spout api for depth");
+				return false;
+			}
+
 			m_spoutDepthFrame->EnableSpoutLog();
 			m_spoutDepthFrame->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
 			m_spoutDepthFrame->SetSenderName(m_parentAccessor->getDepthSenderName().c_str());
 
-			m_spoutDepthFrame->SetSenderFormat((DWORD)DXGI_FORMAT_R8G8B8A8_UNORM);
+			// Initialize the depth texture packer if we are sending float depth textures
+			if (descriptor->depth_buffer_type == SharedDepthBufferType::FLOAT_DEVICE_DEPTH ||
+				descriptor->depth_buffer_type == SharedDepthBufferType::FLOAT_SCENE_DEPTH)
+			{
+				m_depthTexturePacker = new SpoutGLDepthTexturePacker(m_logger, m_spoutDepthFrame, descriptor);
+				if (!m_depthTexturePacker->init())
+				{
+					m_logger.log(SharedTextureLogLevel::info, "SpoutOpenGLTextureWriter::init() - Error initializing float depth packer");
+					return false;
+				}
+			}
 
+			m_spoutDepthFrame->SetSenderFormat((DWORD)DXGI_FORMAT_R8G8B8A8_UNORM);
 			m_spoutDepthFrame->SetFrameCount(m_parentAccessor->getEnableFrameCounter());
 		}
 		else if (descriptor->depth_buffer_type == SharedDepthBufferType::NODEPTH)
 		{
-			m_spoutDepthFrame= nullptr;
+			m_spoutDepthFrame = nullptr;
 		}
 		else
 		{
@@ -137,6 +159,12 @@ public:
 
 	void dispose()
 	{
+		if (m_depthTexturePacker != nullptr)
+		{
+			delete m_depthTexturePacker;
+			m_depthTexturePacker = nullptr;
+		}
+
 		if (m_spoutColorFrame != nullptr)
 		{
 			m_spoutColorFrame->Release();
@@ -166,11 +194,28 @@ public:
 	{
 		if (m_spoutDepthFrame != nullptr)
 		{
-			const SharedTextureDescriptor* descriptor= m_parentAccessor->getRenderTargetDescriptor();
+			const SharedTextureDescriptor* descriptor = m_parentAccessor->getRenderTargetDescriptor();
 
-			return m_spoutDepthFrame->SendTexture(
-				textureID, GL_TEXTURE_2D, 
-				descriptor->width, descriptor->height);
+			if (m_depthTexturePacker != nullptr)
+			{
+				// Convert the float depth texture to a RGBA8 texture using a shader
+				// (Spout can only send RGBA8 textures)
+				GLuint packedDepthTexture =
+					m_depthTexturePacker->packDepthTexture(textureID, zNear, zFar);
+
+				if (packedDepthTexture != 0)
+				{
+					return m_spoutDepthFrame->SendTexture(
+						packedDepthTexture, GL_TEXTURE_2D,
+						descriptor->width, descriptor->height);
+				}
+			}
+			else
+			{
+				return m_spoutDepthFrame->SendTexture(
+					textureID, GL_TEXTURE_2D,
+					descriptor->width, descriptor->height);
+			}
 		}
 
 		return false;
@@ -178,8 +223,9 @@ public:
 
 	void* getPackDepthTextureResourcePtr() const
 	{
-		// TODO: Implement this
-		return nullptr;
+		return m_depthTexturePacker != nullptr
+			? (void*)(uintptr_t)m_depthTexturePacker->getPackedDepthTextureResourcePtr()
+			: nullptr;
 	}
 
 private:
@@ -187,6 +233,7 @@ private:
 	SharedTextureLogger& m_logger;
 	SPOUTLIBRARY* m_spoutColorFrame;
 	SPOUTLIBRARY* m_spoutDepthFrame;
+	SpoutGLDepthTexturePacker* m_depthTexturePacker = nullptr;
 };
 
 class SpoutDX11TextureWriter
@@ -209,7 +256,7 @@ public:
 	bool init()
 	{
 		const SharedTextureDescriptor* descriptor= m_parentAccessor->getRenderTargetDescriptor();
-		ID3D11Device* d3d11Device= (ID3D11Device*)m_parentAccessor->getGraphicsApi();
+		ID3D11Device* d3d11Device= (ID3D11Device*)m_parentAccessor->getApiDeviceInterface();
 		bool bSuccess = true;
 
 		dispose();
@@ -368,7 +415,7 @@ public:
 	bool init()
 	{
 		const SharedTextureDescriptor* descriptor= m_parentAccessor->getRenderTargetDescriptor();
-		ID3D12Device* d3d12Device = (ID3D12Device*)m_parentAccessor->getGraphicsApi();
+		ID3D12Device* d3d12Device = (ID3D12Device*)m_parentAccessor->getApiDeviceInterface();
 		bool bSuccess = true;
 
 		dispose();
@@ -639,13 +686,6 @@ bool SharedTextureWriteAccessor::initialize(
 		m_graphicsAPI = SharedClientGraphicsApi::Direct3D11;
 
 		m_bIsInitialized = m_writerApi.spoutDX11TextureWriter->init();
-		if (m_bIsInitialized &&
-			(m_renderTargetDescriptor.depth_buffer_type == SharedDepthBufferType::FLOAT_DEVICE_DEPTH ||
-				m_renderTargetDescriptor.depth_buffer_type == SharedDepthBufferType::FLOAT_SCENE_DEPTH))
-		{
-			// Override the depth buffer type to RGBA8, as Spout only supports sending RGBA8/BGR8 textures
-			m_renderTargetDescriptor.depth_buffer_type = SharedDepthBufferType::PACK_DEPTH_RGBA;
-		}
 	}
 	else if (descriptor->graphicsAPI == SharedClientGraphicsApi::Direct3D12)
 	{
@@ -653,13 +693,14 @@ bool SharedTextureWriteAccessor::initialize(
 		m_graphicsAPI = SharedClientGraphicsApi::Direct3D12;
 
 		m_bIsInitialized = m_writerApi.spoutDX12TextureWriter->init();
-		if (m_bIsInitialized &&
-			(m_renderTargetDescriptor.depth_buffer_type == SharedDepthBufferType::FLOAT_DEVICE_DEPTH ||
-				m_renderTargetDescriptor.depth_buffer_type == SharedDepthBufferType::FLOAT_SCENE_DEPTH))
-		{
-			// Override the depth buffer type to RGBA8, as Spout only supports sending RGBA8/BGR8 textures
-			m_renderTargetDescriptor.depth_buffer_type = SharedDepthBufferType::PACK_DEPTH_RGBA;
-		}
+	}
+
+	// Override the depth buffer type to RGBA8, as Spout only supports sending RGBA8/BGR8 textures
+	if (m_bIsInitialized &&
+		(m_renderTargetDescriptor.depth_buffer_type == SharedDepthBufferType::FLOAT_DEVICE_DEPTH ||
+			m_renderTargetDescriptor.depth_buffer_type == SharedDepthBufferType::FLOAT_SCENE_DEPTH))
+	{
+		m_renderTargetDescriptor.depth_buffer_type = SharedDepthBufferType::PACK_DEPTH_RGBA;
 	}
 
 	return m_bIsInitialized;

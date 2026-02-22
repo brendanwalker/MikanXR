@@ -660,11 +660,14 @@ namespace InternalShaders
 					// Sample non-linear depth from depth buffer [0, 1]
 					float depth = texture(depthTexture, TexCoords).r;
 
-					// Convert non-linear depth to linear eye-space depth using OpenGL perspective projection formula
-					float eyeDepth = (2.0 * zNear * zFar) / (zFar + zNear - depth * (zFar - zNear));
+					// Convert from [0, 1] depth buffer range to [-1, 1] NDC range
+					float z_ndc = depth * 2.0 - 1.0;
 
-					// Normalize to [0, 1] range
-					float zNorm = (eyeDepth - zNear) / (zFar - zNear);
+					// Convert non-linear depth to linear eye-space depth using OpenGL perspective projection formula
+					float eyeDepth = (2.0 * zNear * zFar) / (zFar + zNear - z_ndc * (zFar - zNear));
+
+					// Normalize to [0, 1] range for visualization
+					float zNorm = eyeDepth / zFar;
 
 					FragColor = vec4(zNorm, zNorm, zNorm, 1.0);
 				}
