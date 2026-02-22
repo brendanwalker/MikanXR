@@ -79,13 +79,19 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DOTNET_REFERENCES
 	"System.Xml"
 )
 
+# Runtime dependencies
+set(EASY_PROFILER_FOLDER ${ROOT_DIR}/deps/easy_profiler/bin)
+
 # Post build - copy runtime dependencies to binary build folder (for debugging)
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set_property(TARGET MikanClientTestCSharp PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:MikanClientTestCSharp>")
 
   add_custom_command(
     TARGET MikanClientTestCSharp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy "${SPOUT2_SHARED_LIBRARIES}" $<TARGET_FILE_DIR:MikanClientTestCSharp>)
+  add_custom_command(
+    TARGET MikanClientTestCSharp POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${GLEW_SHARED_LIBRARIES} $<TARGET_FILE_DIR:MikanClientTestCSharp>)
   add_custom_command(
     TARGET MikanClientTestCSharp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
@@ -94,7 +100,17 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_custom_command(
     TARGET MikanClientTestCSharp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
+          $<TARGET_FILE_DIR:MikanClientAPI>/MikanClientAPI.dll
+          $<TARGET_FILE_DIR:MikanClientTestCSharp>)
+  add_custom_command(
+    TARGET MikanClientTestCSharp POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
           $<TARGET_FILE_DIR:MikanCoreApp>/MikanCoreApp.dll
+          $<TARGET_FILE_DIR:MikanClientTestCSharp>)
+  add_custom_command(
+    TARGET MikanClientTestCSharp POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+          $<TARGET_FILE_DIR:MikanRenderer>/MikanRenderer.dll
           $<TARGET_FILE_DIR:MikanClientTestCSharp>)
   add_custom_command(
     TARGET MikanClientTestCSharp POST_BUILD
@@ -110,6 +126,11 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     TARGET MikanClientTestCSharp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
           $<TARGET_FILE_DIR:MikanUtility>/MikanUtility.dll
+          $<TARGET_FILE_DIR:MikanClientTestCSharp>)
+  add_custom_command(
+    TARGET MikanClientTestCSharp POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+          "${EASY_PROFILER_FOLDER}/easy_profiler.dll"
           $<TARGET_FILE_DIR:MikanClientTestCSharp>)
   add_custom_command(
     TARGET MikanClientTestCSharp POST_BUILD
