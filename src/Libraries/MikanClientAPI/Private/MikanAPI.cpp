@@ -227,6 +227,11 @@ public:
 		return m_renderTargetAPI->getGraphicsDeviceInterface(api, outGraphicsDeviceInterface);
 	}
 
+	virtual MikanAPIResult getCameraPackDepthTextureResourcePtr(MikanCameraID cameraId, void** outResourcePtr) override
+	{
+		return m_renderTargetAPI->getCameraPackDepthTextureResourcePtr(cameraId, outResourcePtr);
+	}
+
 	virtual MikanAPIResult connect() override
 	{
 		return (MikanAPIResult)Mikan_Connect(m_context, "", "");

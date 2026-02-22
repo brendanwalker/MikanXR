@@ -14,11 +14,13 @@
 
 using TestGraphicsContextPtr = std::shared_ptr<class TestGraphicsContext>;
 using TestMikanClientPtr = std::shared_ptr<class TestMikanClient>;
+using IMikanAPIPtr = std::shared_ptr<class IMikanAPI>;
 
 enum class TestRenderMode : int
 {
 	Color,
-	DepthNormalize
+	DepthNormalize,
+	PackedDepth,
 };
 
 class TestApp
@@ -27,6 +29,7 @@ public:
 	TestApp();
 	virtual ~TestApp();
 
+	IMikanAPIPtr getMikanAPI() const;
 	inline TestRenderMode getRenderMode() const { return m_renderMode; }
 	inline const MikanVector3f& getCubeOffset() const { return m_cubeOffset; }
 	inline float getTimeSeconds() const { return m_timeSeconds; }

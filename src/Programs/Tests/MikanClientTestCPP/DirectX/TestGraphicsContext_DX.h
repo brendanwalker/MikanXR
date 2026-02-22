@@ -38,6 +38,7 @@ protected:
 
 	void renderNormalizedDepthTexture(class TestCameraRenderTarget_DX* dxRenderTarget);
 	void renderColorTexture(ID3D11ShaderResourceView* textureSRV) const;
+	void renderPackedDepthTexture(class TestCameraRenderTarget_DX* dxRenderTarget, IMikanAPIPtr mikanApi) const;
 	void renderCube(
 		const DirectX::XMMATRIX& viewProj,
 		const DirectX::XMFLOAT3& cameraPosition,

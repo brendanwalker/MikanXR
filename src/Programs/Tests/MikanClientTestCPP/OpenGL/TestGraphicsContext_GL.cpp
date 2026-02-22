@@ -282,6 +282,9 @@ bool TestGraphicsContext_GL::create(int windowWidth, int windowHeight)
 	assert(depthNormalizeMaterial);
 	m_depthNormalizeQuadMesh = createFullscreenQuadMesh(m_mkWindow.get(), depthNormalizeMaterial, false);
 
+	// Create an external texture for rendering packed depth data from camera render targets
+	m_depthPackExternalTexture = CreateMkExternalTexture();
+
 	return true;
 }
 
@@ -419,6 +422,10 @@ void TestGraphicsContext_GL::renderMainTarget() const
 		case TestRenderMode::DepthNormalize:
 			renderNormalizedDepthTexture(glRenderTarget.get());
 			break;
+
+		case TestRenderMode::PackedDepth:			
+			renderPackedDepthTexture(glRenderTarget.get(), getOwnerApp()->getMikanAPI());
+			break;
 		}
 	}
 
@@ -503,6 +510,41 @@ void TestGraphicsContext_GL::renderNormalizedDepthTexture(TestCameraRenderTarget
 	}
 }
 
+void TestGraphicsContext_GL::renderPackedDepthTexture(
+	TestCameraRenderTarget_GL* glRenderTarget,
+	IMikanAPIPtr mikanApi) const
+{
+	MikanCameraID cameraId= glRenderTarget->getCameraId();
+
+	void* packedDepthTextureHandle = nullptr;
+	if (mikanApi->getCameraPackDepthTextureResourcePtr(cameraId, &packedDepthTextureHandle) == MikanAPIResult::Success)
+	{
+		m_depthPackExternalTexture->setExternalPlatformTexture(packedDepthTextureHandle);
+
+		if (m_depthPackExternalTexture->getIsValid())
+		{
+			MkMaterialInstancePtr materialInstance = m_viewportQuadMesh->getMaterialInstance();
+			MkMaterialConstPtr material = materialInstance->getMaterial();
+
+			if (auto materialBinding = material->bindMaterial())
+			{
+				// Bind the color texture
+				materialInstance->setTextureBySemantic(eUniformSemantic::rgbTexture, m_depthPackExternalTexture);
+
+				// Draw the color texture
+				if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+				{
+					MkScopedState scopedState =
+						m_mkWindow->getMkStateStack().createScopedState("MainTargetComponentRender");
+					scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
+
+					m_viewportQuadMesh->drawElements();
+				}
+			}
+		}
+	}
+}
+
 void TestGraphicsContext_GL::renderCube(
 	const glm::mat4& viewProj,
 	const glm::vec3& cameraPosition,
@@ -550,6 +592,8 @@ void TestGraphicsContext_GL::renderCube(
 
 void TestGraphicsContext_GL::dispose()
 {
+	m_depthPackExternalTexture = nullptr;
+
 	if (m_boxMesh)
 	{
 		m_boxMesh->deleteResources();

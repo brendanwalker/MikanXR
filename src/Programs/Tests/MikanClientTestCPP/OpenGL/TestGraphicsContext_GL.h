@@ -31,6 +31,7 @@ protected:
 	bool initializeCubeGeometry();
 	void renderColorTexture(class TestCameraRenderTarget_GL* glRenderTarget) const;
 	void renderNormalizedDepthTexture(class TestCameraRenderTarget_GL* glRenderTarget) const;
+	void renderPackedDepthTexture(class TestCameraRenderTarget_GL* glRenderTarget, IMikanAPIPtr mikanApi) const;
 	void renderCube(
 		const glm::mat4& viewProj,
 		const glm::vec3& cameraPosition,
@@ -43,6 +44,7 @@ private:
 	IMkTriangulatedMeshPtr m_viewportQuadMesh;
 	IMkTriangulatedMeshPtr m_depthNormalizeQuadMesh;
 	IMkTriangulatedMeshPtr m_boxMesh;
+	IMkExternalTexturePtr m_depthPackExternalTexture;
 
 	MikanCameraID m_lastRenderedCameraId = INVALID_MIKAN_ID;
 };

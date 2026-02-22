@@ -30,6 +30,7 @@ public:
 	virtual MikanClientInfo allocateClientInfo() const = 0;
 	virtual MikanAPIResult setGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface) = 0;
 	virtual MikanAPIResult getGraphicsDeviceInterface(MikanClientGraphicsApi api, void** outGraphicsDeviceInterface) = 0;
+	virtual MikanAPIResult getCameraPackDepthTextureResourcePtr(MikanCameraID cameraId, void** outResourcePtr) = 0;
 
 	// Connection Management
 	virtual MikanAPIResult connect() = 0;

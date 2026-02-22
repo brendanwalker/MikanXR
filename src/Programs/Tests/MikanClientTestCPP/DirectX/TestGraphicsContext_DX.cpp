@@ -115,6 +115,9 @@ void TestGraphicsContext_DX::renderMainTarget() const
 		case TestRenderMode::DepthNormalize:
 			renderColorTexture(m_depthNormalizeColorTargetSRV);
 			break;
+		case TestRenderMode::PackedDepth:
+			renderPackedDepthTexture(dxRenderTarget.get(), getOwnerApp()->getMikanAPI());
+			break;
 		}
 	}
 
@@ -834,6 +837,24 @@ void TestGraphicsContext_DX::renderColorTexture(
 	// Draw the quad
 	m_pd3dDeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_pd3dDeviceContext->Draw(6, 0);
+}
+
+void TestGraphicsContext_DX::renderPackedDepthTexture(
+	TestCameraRenderTarget_DX* dxRenderTarget,
+	IMikanAPIPtr mikanApi) const
+{
+	MikanCameraID cameraId = dxRenderTarget->getCameraId();
+
+	void* packedDepthTextureHandle = nullptr;
+	if (mikanApi->getCameraPackDepthTextureResourcePtr(cameraId, &packedDepthTextureHandle) == MikanAPIResult::Success)
+	{
+		auto* packDepthSRV= reinterpret_cast<ID3D11ShaderResourceView*>(packedDepthTextureHandle);
+
+		if (packDepthSRV)
+		{
+			renderColorTexture(packDepthSRV);
+		}
+	}
 }
 
 void TestGraphicsContext_DX::renderCube(

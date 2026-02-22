@@ -145,6 +145,11 @@ void TestApp::shutdown()
 	SDL_Quit();
 }
 
+IMikanAPIPtr TestApp::getMikanAPI() const
+{
+	return m_mikanClient->getMikanAPI();
+}
+
 void TestApp::onSDLEvent(SDL_Event& e)
 {
 	SDL_Window* sdlWindow = m_graphicsContext->getSDLWindow();
@@ -182,6 +187,10 @@ void TestApp::onSDLEvent(SDL_Event& e)
 		else if (e.key.keysym.sym == SDLK_2)
 		{
 			m_renderMode = TestRenderMode::DepthNormalize;
+		}
+		else if (e.key.keysym.sym == SDLK_3)
+		{
+			m_renderMode = TestRenderMode::PackedDepth;
 		}
 		else if (e.key.keysym.sym == SDLK_w)
 		{

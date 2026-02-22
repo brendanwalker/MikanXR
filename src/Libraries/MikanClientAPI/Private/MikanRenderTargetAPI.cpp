@@ -26,6 +26,26 @@ MikanAPIResult MikanRenderTargetAPI::getGraphicsDeviceInterface(
 	return (MikanAPIResult)Mikan_GetGraphicsDeviceInterface(context, api, outGraphicsDeviceInterface);
 }
 
+MikanAPIResult MikanRenderTargetAPI::getCameraPackDepthTextureResourcePtr(
+	MikanCameraID cameraId,
+	void** outResourcePtr)
+{
+	if (outResourcePtr != nullptr)
+	{
+		MikanContext context = m_requestManager->getContext();
+		void* resourcePtr = Mikan_GetCameraPackDepthTextureResourcePtr(context, cameraId);
+
+		if (resourcePtr != nullptr)
+		{
+			*outResourcePtr = resourcePtr;
+
+			return MikanAPIResult::Success;
+		}
+	}
+
+	return MikanAPIResult::RequestFailed;
+}
+
 MikanResponseFuture MikanRenderTargetAPI::tryProcessRequest(MikanRequest& request)
 {
 	if (typeid(request) == typeid(AllocateCameraRenderTargetTextures))

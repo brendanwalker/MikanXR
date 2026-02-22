@@ -50,12 +50,19 @@ public:
 	virtual void clearTexture(int textureUnit = 0) const = 0;
 
 	virtual const std::string getName() const = 0;
+	virtual bool getIsValid() const = 0;
 	virtual void* getPlatformTexture() = 0;
 	virtual uint32_t getGlTextureId() const = 0;
 	virtual uint16_t getTextureWidth() const = 0;
 	virtual uint16_t getTextureHeight() const = 0;
 	virtual uint32_t getTextureFormat() const = 0;
 	virtual uint32_t getBufferFormat() const = 0;
+};
+
+class IMkExternalTexture : public IMkTexture
+{
+public:
+	virtual void setExternalPlatformTexture(void* platformTexture) = 0;
 };
 
 MIKAN_RENDERER_FUNC(IMkTexturePtr) CreateMkTexture();
@@ -65,3 +72,6 @@ MIKAN_RENDERER_FUNC(IMkTexturePtr) CreateMkTexture(
 	const uint8_t* textureMapData,
 	uint32_t textureFormat,
 	uint32_t bufferFormat);
+
+MIKAN_RENDERER_FUNC(IMkExternalTexturePtr) CreateMkExternalTexture();
+MIKAN_RENDERER_FUNC(IMkExternalTexturePtr) CreateMkExternalTexture(void* platformTexture);

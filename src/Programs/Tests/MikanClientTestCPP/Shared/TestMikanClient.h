@@ -14,6 +14,7 @@ public:
 	virtual ~TestMikanClient();
 
 	inline bool getIsShutdownRequested() const { return m_bShutdownRequested; }
+	inline IMikanAPIPtr getMikanAPI() const { return m_mikanApi; }
 
 	bool init(const char* szClientName);
 	void update(const float deltaSeconds);

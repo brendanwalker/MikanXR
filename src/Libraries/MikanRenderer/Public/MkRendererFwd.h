@@ -57,6 +57,10 @@ class IMkTexture;
 using IMkTexturePtr = std::shared_ptr<IMkTexture>;
 using IMkTextureConstPtr = std::shared_ptr<const IMkTexture>;
 
+class IMkExternalTexture;
+using IMkExternalTexturePtr = std::shared_ptr<IMkExternalTexture>;
+using IMkExternalTextureConstPtr = std::shared_ptr<const IMkExternalTexture>;
+
 class IMkLineRenderer;
 using IMkLineRendererPtr = std::shared_ptr<IMkLineRenderer>;
 using IMkLineRendererConstPtr = std::shared_ptr<const IMkLineRenderer>;

@@ -224,7 +224,7 @@ public:
 	void* getPackDepthTextureResourcePtr() const
 	{
 		return m_depthTexturePacker != nullptr
-			? (void*)(uintptr_t)m_depthTexturePacker->getPackedDepthTextureResourcePtr()
+			? (void*)m_depthTexturePacker->getPackedDepthTextureResourcePtr()
 			: nullptr;
 	}
 

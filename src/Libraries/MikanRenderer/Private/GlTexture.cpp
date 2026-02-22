@@ -556,6 +556,7 @@ public:
 	}
 
 	virtual const std::string getName() const override { return m_name; }
+	virtual bool getIsValid() const override { return m_glTextureId != 0; }
 	virtual void* getPlatformTexture() override { return &m_glTextureId; }
 	virtual uint32_t getGlTextureId() const override { return m_glTextureId; }
 	virtual uint16_t getTextureWidth() const override { return m_width; }
@@ -648,7 +649,7 @@ protected:
 		return bytesPerPixel;
 	}
 
-private:
+protected:
 	std::string m_name;
 	uint32_t m_glTextureId = 0;
 	uint16_t m_width = 0;
@@ -665,6 +666,228 @@ private:
 	std::filesystem::path m_imagePath;
 };
 
+class GlExternalTexture : public IMkExternalTexture
+{
+public:
+	GlExternalTexture()
+	{
+	}
+
+	GlExternalTexture(const void* platformTexture)
+	{
+		setExternalPlatformTexture(const_cast<void*>(platformTexture));
+	}
+
+	virtual void setExternalPlatformTexture(void* platformTexture) override
+	{
+		auto* glTextureId = reinterpret_cast<const uint32_t*>(platformTexture);
+
+		if (glTextureId != nullptr && *glTextureId != m_glTextureId)
+		{
+			m_glTextureId = *glTextureId;
+
+			glBindTexture(GL_TEXTURE_2D, m_glTextureId);
+
+			// Width and height
+			GLint width = 0, height = 0;
+			glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
+			glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
+			m_width = static_cast<uint16_t>(width);
+			m_height = static_cast<uint16_t>(height);
+
+			// Internal (texture) format
+			GLint internalFormat = 0;
+			glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &internalFormat);
+			m_textureFormat = static_cast<uint32_t>(internalFormat);
+
+			switch (internalFormat)
+			{
+			case GL_RGBA8:
+				m_bufferFormat = GL_RGBA;
+				m_pixelType = GL_UNSIGNED_BYTE;
+				break;
+			case GL_RGB8:
+				m_bufferFormat = GL_RGB;
+				m_pixelType = GL_UNSIGNED_BYTE;
+				break;
+			case GL_RG8:
+				m_bufferFormat = GL_RG;
+				m_pixelType = GL_UNSIGNED_BYTE;
+				break;
+			case GL_R8:
+				m_bufferFormat = GL_RED;
+				m_pixelType = GL_UNSIGNED_BYTE;
+				break;
+			case GL_RGBA16F:
+				m_bufferFormat = GL_RGBA;
+				m_pixelType = GL_HALF_FLOAT;
+				break;
+			case GL_RGBA32F:
+				m_bufferFormat = GL_RGBA;
+				m_pixelType = GL_FLOAT;
+				break;
+			case GL_DEPTH_COMPONENT24:
+			case GL_DEPTH_COMPONENT32F:
+				m_bufferFormat = GL_DEPTH_COMPONENT;
+				m_pixelType = GL_FLOAT;
+				break;
+				// Add others as needed
+			default:
+				m_bufferFormat = GL_RGBA;
+				m_pixelType = GL_UNSIGNED_BYTE;
+				break;
+			}
+
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+		else
+		{
+			m_glTextureId = 0;
+			m_width = 0;
+			m_height = 0;
+			m_textureFormat = 0;
+			m_bufferFormat = 0;
+			m_pixelType = 0;
+		}
+	}
+
+	virtual IMkTexture* setName(const std::string& name) override
+	{
+		m_name = name;
+
+		return this;
+	}
+
+	virtual IMkTexture* setSize(uint16_t width, uint16_t height) override
+	{
+		// Do nothing since this class is for external textures that are created outside of this class
+
+		return this;
+	}
+
+	virtual IMkTexture* setTextureMapData(const uint8_t* textureMapData) override
+	{
+		// Do nothing since this class is for external textures that are created outside of this class
+
+		return this;
+	}
+
+	virtual IMkTexture* setTextureFormat(uint32_t textureFormat) override
+	{
+		// Do nothing since this class is for external textures that are created outside of this class
+
+		return this;
+	}
+
+	virtual IMkTexture* setBufferFormat(uint32_t bufferFormat) override
+	{
+		// Do nothing since this class is for external textures that are created outside of this class
+
+		return this;
+	}
+
+	virtual IMkTexture* setPixelType(uint32_t pixelType) override
+	{
+		// Do nothing since this class is for external textures that are created outside of this class
+
+		return this;
+	}
+
+	virtual IMkTexture* setGenerateMipMap(bool bFlag) override
+	{
+		// Do nothing since this class is for external textures that are created outside of this class
+
+		return this;
+	}
+
+	virtual IMkTexture* setPixelBufferObjectMode(PixelBufferObjectMode mode) override
+	{
+		// Do nothing since this class is for external textures that are created outside of this class
+
+		return this;
+	}
+
+	virtual void setImagePath(const std::filesystem::path& path) override
+	{
+		// Do nothing since this class is for external textures that are created outside of this class
+	}
+
+	virtual const std::filesystem::path getImagePath() const override
+	{
+		// Do nothing since this class is for external textures that are created outside of this class
+		return {};
+	}
+
+	virtual bool reloadTextureFromImagePath() override
+	{
+		// Do nothing since this class is for external textures that are created outside of this class
+		return false;
+	}
+
+	virtual bool createTexture() override
+	{
+		// Do nothing since this class is for external textures that are created outside of this class
+		return false;
+	}
+
+	virtual void copyBufferIntoTexture(const uint8_t* buffer, size_t bufferSize) override
+	{
+		// Do nothing
+		return;
+	}
+
+	virtual void copyTextureIntoBuffer(uint8_t* outBuffer, size_t bufferSize) override
+	{
+		// Do nothing
+		return;
+	}
+
+	virtual void disposeTexture() override
+	{
+		// Forget about the external texture, but don't delete it since we don't own it
+		m_glTextureId = 0;
+	}
+
+	virtual bool bindTexture(int textureUnit) const override
+	{
+		if (m_glTextureId != 0)
+		{
+			glActiveTexture(GL_TEXTURE0 + textureUnit);
+			glBindTexture(GL_TEXTURE_2D, m_glTextureId);
+			return true;
+		}
+
+		return false;
+	}
+
+	virtual void clearTexture(int textureUnit) const override
+	{
+		if (m_glTextureId != 0)
+		{
+			glActiveTexture(GL_TEXTURE0 + textureUnit);
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+	}
+
+	virtual const std::string getName() const override { return m_name; }
+	virtual bool getIsValid() const override { return m_glTextureId != 0; }
+	virtual void* getPlatformTexture() override { return &m_glTextureId; }
+	virtual uint32_t getGlTextureId() const override { return m_glTextureId; }
+	virtual uint16_t getTextureWidth() const override { return m_width; }
+	virtual uint16_t getTextureHeight() const override { return m_height; }
+	virtual uint32_t getTextureFormat() const override { return m_textureFormat; }
+	virtual uint32_t getBufferFormat() const override { return m_bufferFormat; }
+
+protected:
+	std::string m_name;
+	uint32_t m_glTextureId = 0;
+	uint16_t m_width = 0;
+	uint16_t m_height = 0;
+	uint32_t m_textureFormat = 0;
+	uint32_t m_bufferFormat = 0;
+	uint32_t m_pixelType = 0;
+};
+
 IMkTexturePtr CreateMkTexture()
 {
 	return std::make_shared<GlTexture>();
@@ -678,4 +901,14 @@ IMkTexturePtr CreateMkTexture(
 	uint32_t bufferFormat)
 {
 	return std::make_shared<GlTexture>(width, height, textureMapData, textureFormat, bufferFormat);
+}
+
+IMkExternalTexturePtr CreateMkExternalTexture()
+{
+	return std::make_shared<GlExternalTexture>();
+}
+
+IMkExternalTexturePtr CreateMkExternalTexture(void* platformTexture)
+{
+	return std::make_shared<GlExternalTexture>(platformTexture);
 }

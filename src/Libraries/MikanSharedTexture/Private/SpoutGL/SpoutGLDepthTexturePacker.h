@@ -15,7 +15,7 @@ public:
 
 	bool init();
 	GLuint packDepthTexture(GLuint inDepthTexture, float zNear, float zFar);
-	inline GLuint getPackedDepthTextureResourcePtr() const { return m_colorTargetTexture; }
+	inline GLuint* getPackedDepthTextureResourcePtr() { return &m_colorTargetTexture; }
 
 	void dispose();
 
