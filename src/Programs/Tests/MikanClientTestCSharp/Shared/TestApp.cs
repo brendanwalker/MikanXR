@@ -9,8 +9,9 @@ namespace Mikan
 	public enum TestRenderMode
 	{
 		Color,
-		DepthNormalize
-	}
+		DepthNormalize,
+        PackedDepth
+    }
 
 	public class TestApp : IDisposable
 	{
@@ -33,7 +34,8 @@ namespace Mikan
 		private TestRenderMode _renderMode = TestRenderMode.Color;
 		private Vector3 _cubeOffset = new Vector3(0, 0, 10);
 
-		public TestRenderMode RenderMode => _renderMode;
+		public MikanAPI MikanAPI => _mikanClient?.MikanAPI;
+        public TestRenderMode RenderMode => _renderMode;
 		public Vector3 CubeOffset => _cubeOffset;
 		public float TimeSeconds => _timeSeconds;
 
@@ -134,7 +136,11 @@ namespace Mikan
 					_renderMode = TestRenderMode.DepthNormalize;
 					Console.WriteLine("Render Mode: Depth Normalize");
 					break;
-				case 'w':
+                case '3':
+                    _renderMode = TestRenderMode.PackedDepth;
+                    Console.WriteLine("Render Mode: Packed Depth");
+                    break;
+                case 'w':
 					_cubeOffset.Z += 0.1f;
 					break;
 				case 's':

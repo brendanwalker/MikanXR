@@ -502,6 +502,17 @@ namespace Mikan
 			_d3dDeviceContext.Draw(6, 0);
 		}
 
+		private void RenderPackedDepthTexture(TestCameraRenderTarget_DX dxRenderTarget, MikanAPI mikanApi)
+		{
+			IntPtr packedDepthTextureHandle= mikanApi.GetCameraPackDepthTextureResourcePtr(dxRenderTarget.CameraId);
+
+			if (packedDepthTextureHandle != IntPtr.Zero)
+			{
+				var packDepthSRV = new D3D11.ShaderResourceView(packedDepthTextureHandle);
+				RenderColorTexture(packDepthSRV);
+			}
+		}
+
 		private void RenderNormalizedDepthTexture(TestCameraRenderTarget_DX dxRenderTarget)
 		{
 			if (_depthNormalizeTargetWidth != dxRenderTarget.Width || _depthNormalizeTargetHeight != dxRenderTarget.Height)
@@ -576,6 +587,9 @@ namespace Mikan
 						break;
 					case TestRenderMode.DepthNormalize:
 						RenderColorTexture(_depthNormalizeColorTargetSRV);
+						break;
+					case TestRenderMode.PackedDepth:
+						RenderPackedDepthTexture(dxRenderTarget, _ownerApp.MikanAPI);
 						break;
 				}
 			}

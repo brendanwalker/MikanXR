@@ -13,7 +13,8 @@ namespace Mikan
 		private bool _shutdownRequested = false;
 		private float _mikanReconnectTimeout = 0f;
 
-		public bool IsShutdownRequested => _shutdownRequested;
+		public MikanAPI MikanAPI => _mikanAPI;
+        public bool IsShutdownRequested => _shutdownRequested;
 
 		public TestMikanClient(TestGraphicsContext graphicsContext)
 		{
