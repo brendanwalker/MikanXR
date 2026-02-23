@@ -9,7 +9,7 @@
 
 struct QuadVertex
 {
-	float position[3];
+	float position[2];
 	float texCoord[2];
 };
 
@@ -18,14 +18,14 @@ namespace SpoutGLDepthPackerShaderCode
 	const char* packDeviceDepthVertexShader = R""""(
 		#version 330 core
 		
-		layout(location = 0) in vec3 position;
+		layout(location = 0) in vec2 position;
 		layout(location = 1) in vec2 texCoord;
 		
 		out vec2 uv;
 		
 		void main()
 		{
-			gl_Position = vec4(position, 1.0);
+			gl_Position = vec4(position, 0.0, 1.0);
 			uv = texCoord;
 		}
 	)"""";
@@ -68,14 +68,14 @@ namespace SpoutGLDepthPackerShaderCode
 	const char* packSceneDepthVertexShader = R""""(
 		#version 330 core
 		
-		layout(location = 0) in vec3 position;
+		layout(location = 0) in vec2 position;
 		layout(location = 1) in vec2 texCoord;
 		
 		out vec2 uv;
 		
 		void main()
 		{
-			gl_Position = vec4(position, 1.0);
+			gl_Position = vec4(position, 0.0, 1.0);
 			uv = texCoord;
 		}
 	)"""";
@@ -176,12 +176,20 @@ GLuint SpoutGLDepthTexturePacker::packDepthTexture(
 	GLint prevFramebuffer = 0;
 	GLint prevViewport[4];
 	GLint prevProgram = 0;
+	GLboolean prevDepthTestEnabled = glIsEnabled(GL_DEPTH_TEST);
+	GLboolean prevCullFaceEnabled = glIsEnabled(GL_CULL_FACE);
 	glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFramebuffer);
 	glGetIntegerv(GL_VIEWPORT, prevViewport);
 	glGetIntegerv(GL_CURRENT_PROGRAM, &prevProgram);
 
 	// Bind the framebuffer for rendering
 	glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
+
+	// Disable face culling for the fullscreen quad
+	glDisable(GL_CULL_FACE);
+
+	// Disable depth testing since we're rendering to a color-only framebuffer 
+	glDisable(GL_DEPTH_TEST);
 
 	// Clear the render target
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -207,7 +215,14 @@ GLuint SpoutGLDepthTexturePacker::packDepthTexture(
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindVertexArray(0);
 
+	// Restore cull face state
+	if (prevCullFaceEnabled) glEnable(GL_CULL_FACE);
+
 	// Restore previous OpenGL state
+	if (prevDepthTestEnabled)
+		glEnable(GL_DEPTH_TEST);
+	else
+		glDisable(GL_DEPTH_TEST);
 	glBindFramebuffer(GL_FRAMEBUFFER, prevFramebuffer);
 	glViewport(prevViewport[0], prevViewport[1], prevViewport[2], prevViewport[3]);
 	glUseProgram(prevProgram);
@@ -255,13 +270,13 @@ bool SpoutGLDepthTexturePacker::initQuadGeometry()
 {
 	// Define a fullscreen quad (2 triangles)
 	QuadVertex vertices[] = {
-		{ { 1.0f, -1.0f, 0.0f}, {1.0f, 1.0f} },  // Bottom-right
-		{ {-1.0f, -1.0f, 0.0f}, {0.0f, 1.0f} },  // Bottom-left
-		{ {-1.0f,  1.0f, 0.0f}, {0.0f, 0.0f} },  // Top-left
+		{ {-1.0f,  1.0f}, {0.0f, 1.0f} },
+		{ {-1.0f, -1.0f}, {0.0f, 0.0f} },
+		{ { 1.0f, -1.0f}, {1.0f, 0.0f} },
 
-		{ { 1.0f,  1.0f, 0.0f}, {1.0f, 0.0f} },  // Top-right
-		{ { 1.0f, -1.0f, 0.0f}, {1.0f, 1.0f} },  // Bottom-right
-		{ {-1.0f,  1.0f, 0.0f}, {0.0f, 0.0f} },  // Top-left
+		{ {-1.0f,  1.0f}, {0.0f, 1.0f} },
+		{ { 1.0f, -1.0f}, {1.0f, 0.0f} },
+		{ { 1.0f,  1.0f}, {1.0f, 1.0f} },
 	};
 
 	// Create and bind VAO
@@ -276,11 +291,11 @@ bool SpoutGLDepthTexturePacker::initQuadGeometry()
 	// Set up vertex attributes
 	// Position attribute (location = 0)
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(QuadVertex), (void*)0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(QuadVertex), (void*)0);
 
 	// TexCoord attribute (location = 1)
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(QuadVertex), (void*)(3 * sizeof(float)));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(QuadVertex), (void*)(2 * sizeof(float)));
 
 	// Unbind VAO
 	glBindVertexArray(0);

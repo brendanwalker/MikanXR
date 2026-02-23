@@ -682,63 +682,66 @@ public:
 	{
 		auto* glTextureId = reinterpret_cast<const uint32_t*>(platformTexture);
 
-		if (glTextureId != nullptr && *glTextureId != m_glTextureId)
+		if (glTextureId != nullptr)
 		{
-			m_glTextureId = *glTextureId;
-
-			glBindTexture(GL_TEXTURE_2D, m_glTextureId);
-
-			// Width and height
-			GLint width = 0, height = 0;
-			glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
-			glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
-			m_width = static_cast<uint16_t>(width);
-			m_height = static_cast<uint16_t>(height);
-
-			// Internal (texture) format
-			GLint internalFormat = 0;
-			glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &internalFormat);
-			m_textureFormat = static_cast<uint32_t>(internalFormat);
-
-			switch (internalFormat)
+			if (*glTextureId != m_glTextureId)
 			{
-			case GL_RGBA8:
-				m_bufferFormat = GL_RGBA;
-				m_pixelType = GL_UNSIGNED_BYTE;
-				break;
-			case GL_RGB8:
-				m_bufferFormat = GL_RGB;
-				m_pixelType = GL_UNSIGNED_BYTE;
-				break;
-			case GL_RG8:
-				m_bufferFormat = GL_RG;
-				m_pixelType = GL_UNSIGNED_BYTE;
-				break;
-			case GL_R8:
-				m_bufferFormat = GL_RED;
-				m_pixelType = GL_UNSIGNED_BYTE;
-				break;
-			case GL_RGBA16F:
-				m_bufferFormat = GL_RGBA;
-				m_pixelType = GL_HALF_FLOAT;
-				break;
-			case GL_RGBA32F:
-				m_bufferFormat = GL_RGBA;
-				m_pixelType = GL_FLOAT;
-				break;
-			case GL_DEPTH_COMPONENT24:
-			case GL_DEPTH_COMPONENT32F:
-				m_bufferFormat = GL_DEPTH_COMPONENT;
-				m_pixelType = GL_FLOAT;
-				break;
-				// Add others as needed
-			default:
-				m_bufferFormat = GL_RGBA;
-				m_pixelType = GL_UNSIGNED_BYTE;
-				break;
-			}
+				m_glTextureId = *glTextureId;
 
-			glBindTexture(GL_TEXTURE_2D, 0);
+				glBindTexture(GL_TEXTURE_2D, m_glTextureId);
+
+				// Width and height
+				GLint width = 0, height = 0;
+				glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
+				glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
+				m_width = static_cast<uint16_t>(width);
+				m_height = static_cast<uint16_t>(height);
+
+				// Internal (texture) format
+				GLint internalFormat = 0;
+				glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &internalFormat);
+				m_textureFormat = static_cast<uint32_t>(internalFormat);
+
+				switch (internalFormat)
+				{
+				case GL_RGBA8:
+					m_bufferFormat = GL_RGBA;
+					m_pixelType = GL_UNSIGNED_BYTE;
+					break;
+				case GL_RGB8:
+					m_bufferFormat = GL_RGB;
+					m_pixelType = GL_UNSIGNED_BYTE;
+					break;
+				case GL_RG8:
+					m_bufferFormat = GL_RG;
+					m_pixelType = GL_UNSIGNED_BYTE;
+					break;
+				case GL_R8:
+					m_bufferFormat = GL_RED;
+					m_pixelType = GL_UNSIGNED_BYTE;
+					break;
+				case GL_RGBA16F:
+					m_bufferFormat = GL_RGBA;
+					m_pixelType = GL_HALF_FLOAT;
+					break;
+				case GL_RGBA32F:
+					m_bufferFormat = GL_RGBA;
+					m_pixelType = GL_FLOAT;
+					break;
+				case GL_DEPTH_COMPONENT24:
+				case GL_DEPTH_COMPONENT32F:
+					m_bufferFormat = GL_DEPTH_COMPONENT;
+					m_pixelType = GL_FLOAT;
+					break;
+					// Add others as needed
+				default:
+					m_bufferFormat = GL_RGBA;
+					m_pixelType = GL_UNSIGNED_BYTE;
+					break;
+				}
+
+				glBindTexture(GL_TEXTURE_2D, 0);
+			}
 		}
 		else
 		{
