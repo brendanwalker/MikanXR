@@ -36,6 +36,7 @@ protected:
 	// UI Events
 	void onReturnEvent();
 
+	class RmlModel_ClientTextureSourceComponent* m_clientTextureSourceComponentModel = nullptr;
 	Rml::ElementDocument* m_TextureSourceSettingsView = nullptr;
 
 	MikanCameraID m_cameraId= INVALID_MIKAN_ID;
@@ -43,6 +44,7 @@ protected:
 	TextureSourceComponentWeakPtr m_textureSourceComponent;
 	IMkTriangulatedMeshPtr m_fullscreenRGBQuad;
 	IMkTriangulatedMeshPtr m_fullscreenRGBAQuad;
+	IMkTriangulatedMeshPtr m_fullscreenDepthUnpackQuad;
 
 	float m_newFrameTimer = 0.f;
 	static constexpr float k_newFrameTimerDuration = 1.f / 30.f;

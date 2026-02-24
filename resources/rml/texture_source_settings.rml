@@ -62,6 +62,15 @@
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="client_source"/>
 							</td>
 						</tr>
+						<tr class="property_tr">
+							<td>
+								<label>Buffer</label>
+								<select name="select_buffer" data-value="display_buffer_type">
+									<option value="0">color</option>
+									<option value="1">depth</option>
+								</select>
+							</td>
+						</tr>						
 					</tbody>
 				</table>
 			</div>

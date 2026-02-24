@@ -5,7 +5,9 @@
 #include "CameraObjectSystem.h"
 #include "CameraRequestHandler.h"
 #include "CompositorObjectSystem.h"
+#include "IMkShaderCache.h"
 #include "IMkTriangulatedMesh.h"
+#include "IMkWindow.h"
 #include "TextureSourceSettings/AppStage_TextureSourceSettings.h"
 #include "TextureSourceSettings/RmlModel_TextureSourceSettings.h"
 #include "Shared/RmlModel_ClientTextureSourceComponent.h"
@@ -56,12 +58,12 @@ void AppStage_TextureSourceSettings::enter()
 		TextureSourceSettingsModel->init(context);
 		TextureSourceSettingsModel->OnReturnEvent = MakeDelegate(this, &AppStage_TextureSourceSettings::onReturnEvent);
 
-		auto* clientTextureSourceComponentModel = addRmlModel<RmlModel_ClientTextureSourceComponent>();
-		clientTextureSourceComponentModel->init(this);
+		m_clientTextureSourceComponentModel = addRmlModel<RmlModel_ClientTextureSourceComponent>();
+		m_clientTextureSourceComponentModel->init(this);
 		if (auto clientTextureSourceComponent =
 			std::dynamic_pointer_cast<ClientTextureSourceComponent>(textureSourceComponent))
 		{
-			clientTextureSourceComponentModel->setComponent(clientTextureSourceComponent);
+			m_clientTextureSourceComponentModel->setComponent(clientTextureSourceComponent);
 		}
 
 		auto* spoutTextureSourceComponentModel = addRmlModel<RmlModel_SpoutTextureSourceComponent>();
@@ -80,9 +82,14 @@ void AppStage_TextureSourceSettings::enter()
 		m_TextureSourceSettingsView->PullToFront();
 	}
 
-	// Create a mesh used to render the video frame
+	// Create a meshes used to render the video frame
 	m_fullscreenRGBQuad = createFullscreenQuadMesh(m_ownerWindow, true, false);
 	m_fullscreenRGBAQuad = createFullscreenQuadMesh(m_ownerWindow, true, true);
+	m_fullscreenDepthUnpackQuad = 
+		createFullscreenQuadMesh(
+			m_ownerWindow, 
+			m_ownerWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE),
+			true);
 }
 
 void AppStage_TextureSourceSettings::update(float deltaSeconds)
@@ -124,21 +131,46 @@ void AppStage_TextureSourceSettings::render(IMkViewportPtr targetViewport)
 	TextureSourceComponentPtr textureSourceComponent = m_textureSourceComponent.lock();
 
 	IMkTriangulatedMeshPtr fullscreenQuad;
-	IMkTexturePtr videoTexture = textureSourceComponent->getClientColorSourceTexture(m_cameraId, eTextureSourceColorType::colorRGBA);
-	eUniformSemantic videoTextureSemantic = eUniformSemantic::rgbaTexture;
-	if (videoTexture)
+	IMkTexturePtr videoTexture;
+	eUniformSemantic videoTextureSemantic = eUniformSemantic::INVALID;
+
+	eTextureSourceDisplayBufferType displayBufferType = eTextureSourceDisplayBufferType::Color;
+	if (m_clientTextureSourceComponentModel->getComponent() != nullptr)
 	{
-		fullscreenQuad = m_fullscreenRGBAQuad;
+		displayBufferType = m_clientTextureSourceComponentModel->getDisplayBufferType();
 	}
-	else
+	
+	switch (displayBufferType)
 	{
-		videoTexture = textureSourceComponent->getClientColorSourceTexture(m_cameraId, eTextureSourceColorType::colorRGB);
-		if (videoTexture)
+		case eTextureSourceDisplayBufferType::Color:
 		{
-			fullscreenQuad = m_fullscreenRGBQuad;
-			videoTextureSemantic = eUniformSemantic::rgbaTexture;
-		}
-	}
+			videoTexture = textureSourceComponent->getClientColorSourceTexture(m_cameraId, eTextureSourceColorType::colorRGBA);
+			if (videoTexture)
+			{
+				fullscreenQuad = m_fullscreenRGBAQuad;
+				videoTextureSemantic = eUniformSemantic::rgbaTexture;
+			}
+			else
+			{
+				videoTexture = textureSourceComponent->getClientColorSourceTexture(m_cameraId, eTextureSourceColorType::colorRGB);
+				if (videoTexture)
+				{
+					fullscreenQuad = m_fullscreenRGBQuad;
+					videoTextureSemantic = eUniformSemantic::rgbTexture;
+				}
+			}
+		} break;
+
+		case eTextureSourceDisplayBufferType::Depth:
+		{
+			videoTexture = textureSourceComponent->getClientDepthSourceTexture(m_cameraId, eTextureSourceDepthType::depthPackRGBA);
+			if (videoTexture)
+			{
+				fullscreenQuad = m_fullscreenDepthUnpackQuad;
+				videoTextureSemantic = eUniformSemantic::rgbaTexture;
+			}
+		} break;
+	};
 
 	if (videoTexture && fullscreenQuad)
 	{
