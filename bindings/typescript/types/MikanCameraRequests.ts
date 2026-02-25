@@ -9,29 +9,55 @@ export const CLASS_ID_PUBLISH_CAMERA_RENDER_TARGET_TEXTURES = 914988904198724161
 export const CLASS_ID_WRITE_CAMERA_COLOR_RENDER_TARGET_TEXTURE = 6474596006422811888n;
 export const CLASS_ID_WRITE_CAMERA_DEPTH_RENDER_TARGET_TEXTURE = -1802673963658192754n;
 
-export interface AllocateCameraRenderTargetTextures extends MikanRequest {
-  camera_id: number;
-  descriptor: MikanRenderTargetDescriptor;
+export class AllocateCameraRenderTargetTextures extends MikanRequest {
+  camera_id: number = 0;
+  descriptor: MikanRenderTargetDescriptor = new MikanRenderTargetDescriptor();
+
+  static __serializationMetadata = [
+    { name: 'camera_id', type: 'int32' },
+    { name: 'descriptor', type: 'MikanRenderTargetDescriptor' }
+  ];
 }
 
-export interface FreeCameraRenderTargetTextures extends MikanRequest {
-  camera_id: number;
+export class FreeCameraRenderTargetTextures extends MikanRequest {
+  camera_id: number = 0;
+
+  static __serializationMetadata = [
+    { name: 'camera_id', type: 'int32' }
+  ];
 }
 
-export interface PublishCameraRenderTargetTextures extends MikanRequest {
-  camera_id: number;
-  frame_index: bigint;
+export class PublishCameraRenderTargetTextures extends MikanRequest {
+  camera_id: number = 0;
+  frame_index: bigint = 0n;
+
+  static __serializationMetadata = [
+    { name: 'camera_id', type: 'int32' },
+    { name: 'frame_index', type: 'int64' }
+  ];
 }
 
-export interface WriteCameraColorRenderTargetTexture extends MikanRequest {
-  camera_id: number;
-  api_color_texture_ptr: any;
+export class WriteCameraColorRenderTargetTexture extends MikanRequest {
+  camera_id: number = 0;
+  api_color_texture_ptr: any = null;
+
+  static __serializationMetadata = [
+    { name: 'camera_id', type: 'int32' },
+    { name: 'api_color_texture_ptr', type: 'any' }
+  ];
 }
 
-export interface WriteCameraDepthRenderTargetTexture extends MikanRequest {
-  camera_id: number;
-  api_depth_texture_ptr: any;
-  z_near: number;
-  z_far: number;
+export class WriteCameraDepthRenderTargetTexture extends MikanRequest {
+  camera_id: number = 0;
+  api_depth_texture_ptr: any = null;
+  z_near: number = 0;
+  z_far: number = 0;
+
+  static __serializationMetadata = [
+    { name: 'camera_id', type: 'int32' },
+    { name: 'api_depth_texture_ptr', type: 'any' },
+    { name: 'z_near', type: 'float' },
+    { name: 'z_far', type: 'float' }
+  ];
 }
 

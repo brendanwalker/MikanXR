@@ -17,36 +17,69 @@ export const CLASS_ID_MIKAN_STENCIL_COMPONENT_VALUES = -4451290801219034056n;
 export const CLASS_ID_MIKAN_STENCIL_MODEL_RENDER_GEOMETRY = 6822885306325183796n;
 export const CLASS_ID_MIKAN_TRIAGULATED_MESH = -1925804809077911022n;
 
-export interface MikanBoxStencilComponentValues extends MikanStencilComponentValues {
-  box_x_size: number;
-  box_y_size: number;
-  box_z_size: number;
+export class MikanBoxStencilComponentValues extends MikanStencilComponentValues {
+  box_x_size: number = 0;
+  box_y_size: number = 0;
+  box_z_size: number = 0;
+
+  static __serializationMetadata = [
+    { name: 'box_x_size', type: 'float' },
+    { name: 'box_y_size', type: 'float' },
+    { name: 'box_z_size', type: 'float' }
+  ];
 }
 
-export interface MikanModelStencilComponentValues extends MikanStencilComponentValues {
-  model_path: string;
+export class MikanModelStencilComponentValues extends MikanStencilComponentValues {
+  model_path: string = '';
+
+  static __serializationMetadata = [
+    { name: 'model_path', type: 'string' }
+  ];
 }
 
-export interface MikanQuadStencilComponentValues extends MikanStencilComponentValues {
-  quad_width: number;
-  quad_height: number;
-  is_double_sided: boolean;
+export class MikanQuadStencilComponentValues extends MikanStencilComponentValues {
+  quad_width: number = 0;
+  quad_height: number = 0;
+  is_double_sided: boolean = false;
+
+  static __serializationMetadata = [
+    { name: 'quad_width', type: 'float' },
+    { name: 'quad_height', type: 'float' },
+    { name: 'is_double_sided', type: 'boolean' }
+  ];
 }
 
-export interface MikanStencilComponentValues extends MikanTransformComponentValues {
-  parent_anchor_id: number;
-  is_disabled: boolean;
-  cull_mode: MikanStencilCullMode;
+export class MikanStencilComponentValues extends MikanTransformComponentValues {
+  parent_anchor_id: number = 0;
+  is_disabled: boolean = false;
+  cull_mode: MikanStencilCullMode = 0;
+
+  static __serializationMetadata = [
+    { name: 'parent_anchor_id', type: 'int32' },
+    { name: 'is_disabled', type: 'boolean' },
+    { name: 'cull_mode', type: 'enum:MikanStencilCullMode' }
+  ];
 }
 
-export interface MikanStencilModelRenderGeometry {
-  meshes: MikanTriagulatedMesh[];
+export class MikanStencilModelRenderGeometry {
+  meshes: MikanTriagulatedMesh[] = [];
+
+  static __serializationMetadata = [
+    { name: 'meshes', type: 'MikanTriagulatedMesh', isArray: true }
+  ];
 }
 
-export interface MikanTriagulatedMesh {
-  vertices: MikanVector3f[];
-  normals: MikanVector3f[];
-  texels: MikanVector2f[];
-  indices: number[];
+export class MikanTriagulatedMesh {
+  vertices: MikanVector3f[] = [];
+  normals: MikanVector3f[] = [];
+  texels: MikanVector2f[] = [];
+  indices: number[] = [];
+
+  static __serializationMetadata = [
+    { name: 'vertices', type: 'MikanVector3f', isArray: true },
+    { name: 'normals', type: 'MikanVector3f', isArray: true },
+    { name: 'texels', type: 'MikanVector2f', isArray: true },
+    { name: 'indices', type: 'int32', isArray: true }
+  ];
 }
 

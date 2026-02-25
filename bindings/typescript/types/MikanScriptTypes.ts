@@ -2,7 +2,11 @@
 
 export const CLASS_ID_MIKAN_SCRIPT_MESSAGE_INFO = -1424271157571235667n;
 
-export interface MikanScriptMessageInfo {
-  content: string;
+export class MikanScriptMessageInfo {
+  content: string = '';
+
+  static __serializationMetadata = [
+    { name: 'content', type: 'string' }
+  ];
 }
 

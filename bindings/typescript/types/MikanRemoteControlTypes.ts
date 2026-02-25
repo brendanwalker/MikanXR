@@ -2,7 +2,11 @@
 
 export const CLASS_ID_MIKAN_APP_STAGE_INFO = -6404846990498760402n;
 
-export interface MikanAppStageInfo {
-  app_state_name: string;
+export class MikanAppStageInfo {
+  app_state_name: string = '';
+
+  static __serializationMetadata = [
+    { name: 'app_state_name', type: 'string' }
+  ];
 }
 

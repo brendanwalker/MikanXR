@@ -16,135 +16,267 @@ export const CLASS_ID_MIKAN_VECTOR3F = 4126304912122399827n;
 export const CLASS_ID_MIKAN_VECTOR4D = 4123226279563976702n;
 export const CLASS_ID_MIKAN_VECTOR4F = 4123224080540720280n;
 
-export interface MikanMatrix3d {
-  x0: number;
-  x1: number;
-  x2: number;
-  y0: number;
-  y1: number;
-  y2: number;
-  z0: number;
-  z1: number;
-  z2: number;
+export class MikanMatrix3d {
+  x0: number = 0;
+  x1: number = 0;
+  x2: number = 0;
+  y0: number = 0;
+  y1: number = 0;
+  y2: number = 0;
+  z0: number = 0;
+  z1: number = 0;
+  z2: number = 0;
+
+  static __serializationMetadata = [
+    { name: 'x0', type: 'double' },
+    { name: 'x1', type: 'double' },
+    { name: 'x2', type: 'double' },
+    { name: 'y0', type: 'double' },
+    { name: 'y1', type: 'double' },
+    { name: 'y2', type: 'double' },
+    { name: 'z0', type: 'double' },
+    { name: 'z1', type: 'double' },
+    { name: 'z2', type: 'double' }
+  ];
 }
 
-export interface MikanMatrix4d {
-  x0: number;
-  x1: number;
-  x2: number;
-  x3: number;
-  y0: number;
-  y1: number;
-  y2: number;
-  y3: number;
-  z0: number;
-  z1: number;
-  z2: number;
-  z3: number;
-  w0: number;
-  w1: number;
-  w2: number;
-  w3: number;
+export class MikanMatrix4d {
+  x0: number = 0;
+  x1: number = 0;
+  x2: number = 0;
+  x3: number = 0;
+  y0: number = 0;
+  y1: number = 0;
+  y2: number = 0;
+  y3: number = 0;
+  z0: number = 0;
+  z1: number = 0;
+  z2: number = 0;
+  z3: number = 0;
+  w0: number = 0;
+  w1: number = 0;
+  w2: number = 0;
+  w3: number = 0;
+
+  static __serializationMetadata = [
+    { name: 'x0', type: 'double' },
+    { name: 'x1', type: 'double' },
+    { name: 'x2', type: 'double' },
+    { name: 'x3', type: 'double' },
+    { name: 'y0', type: 'double' },
+    { name: 'y1', type: 'double' },
+    { name: 'y2', type: 'double' },
+    { name: 'y3', type: 'double' },
+    { name: 'z0', type: 'double' },
+    { name: 'z1', type: 'double' },
+    { name: 'z2', type: 'double' },
+    { name: 'z3', type: 'double' },
+    { name: 'w0', type: 'double' },
+    { name: 'w1', type: 'double' },
+    { name: 'w2', type: 'double' },
+    { name: 'w3', type: 'double' }
+  ];
 }
 
-export interface MikanMatrix4f {
-  x0: number;
-  x1: number;
-  x2: number;
-  x3: number;
-  y0: number;
-  y1: number;
-  y2: number;
-  y3: number;
-  z0: number;
-  z1: number;
-  z2: number;
-  z3: number;
-  w0: number;
-  w1: number;
-  w2: number;
-  w3: number;
+export class MikanMatrix4f {
+  x0: number = 0;
+  x1: number = 0;
+  x2: number = 0;
+  x3: number = 0;
+  y0: number = 0;
+  y1: number = 0;
+  y2: number = 0;
+  y3: number = 0;
+  z0: number = 0;
+  z1: number = 0;
+  z2: number = 0;
+  z3: number = 0;
+  w0: number = 0;
+  w1: number = 0;
+  w2: number = 0;
+  w3: number = 0;
+
+  static __serializationMetadata = [
+    { name: 'x0', type: 'float' },
+    { name: 'x1', type: 'float' },
+    { name: 'x2', type: 'float' },
+    { name: 'x3', type: 'float' },
+    { name: 'y0', type: 'float' },
+    { name: 'y1', type: 'float' },
+    { name: 'y2', type: 'float' },
+    { name: 'y3', type: 'float' },
+    { name: 'z0', type: 'float' },
+    { name: 'z1', type: 'float' },
+    { name: 'z2', type: 'float' },
+    { name: 'z3', type: 'float' },
+    { name: 'w0', type: 'float' },
+    { name: 'w1', type: 'float' },
+    { name: 'w2', type: 'float' },
+    { name: 'w3', type: 'float' }
+  ];
 }
 
-export interface MikanMatrix4x3d {
-  x0: number;
-  x1: number;
-  x2: number;
-  x3: number;
-  y0: number;
-  y1: number;
-  y2: number;
-  y3: number;
-  z0: number;
-  z1: number;
-  z2: number;
-  z3: number;
+export class MikanMatrix4x3d {
+  x0: number = 0;
+  x1: number = 0;
+  x2: number = 0;
+  x3: number = 0;
+  y0: number = 0;
+  y1: number = 0;
+  y2: number = 0;
+  y3: number = 0;
+  z0: number = 0;
+  z1: number = 0;
+  z2: number = 0;
+  z3: number = 0;
+
+  static __serializationMetadata = [
+    { name: 'x0', type: 'double' },
+    { name: 'x1', type: 'double' },
+    { name: 'x2', type: 'double' },
+    { name: 'x3', type: 'double' },
+    { name: 'y0', type: 'double' },
+    { name: 'y1', type: 'double' },
+    { name: 'y2', type: 'double' },
+    { name: 'y3', type: 'double' },
+    { name: 'z0', type: 'double' },
+    { name: 'z1', type: 'double' },
+    { name: 'z2', type: 'double' },
+    { name: 'z3', type: 'double' }
+  ];
 }
 
-export interface MikanQuatd {
-  w: number;
-  x: number;
-  y: number;
-  z: number;
+export class MikanQuatd {
+  w: number = 0;
+  x: number = 0;
+  y: number = 0;
+  z: number = 0;
+
+  static __serializationMetadata = [
+    { name: 'w', type: 'double' },
+    { name: 'x', type: 'double' },
+    { name: 'y', type: 'double' },
+    { name: 'z', type: 'double' }
+  ];
 }
 
-export interface MikanQuatf {
-  w: number;
-  x: number;
-  y: number;
-  z: number;
+export class MikanQuatf {
+  w: number = 0;
+  x: number = 0;
+  y: number = 0;
+  z: number = 0;
+
+  static __serializationMetadata = [
+    { name: 'w', type: 'float' },
+    { name: 'x', type: 'float' },
+    { name: 'y', type: 'float' },
+    { name: 'z', type: 'float' }
+  ];
 }
 
-export interface MikanRotator3f {
-  x_angle: number;
-  y_angle: number;
-  z_angle: number;
+export class MikanRotator3f {
+  x_angle: number = 0;
+  y_angle: number = 0;
+  z_angle: number = 0;
+
+  static __serializationMetadata = [
+    { name: 'x_angle', type: 'float' },
+    { name: 'y_angle', type: 'float' },
+    { name: 'z_angle', type: 'float' }
+  ];
 }
 
-export interface MikanTransform {
-  scale: MikanVector3f;
-  rotation: MikanQuatf;
-  position: MikanVector3f;
+export class MikanTransform {
+  scale: MikanVector3f = new MikanVector3f();
+  rotation: MikanQuatf = new MikanQuatf();
+  position: MikanVector3f = new MikanVector3f();
+
+  static __serializationMetadata = [
+    { name: 'scale', type: 'MikanVector3f' },
+    { name: 'rotation', type: 'MikanQuatf' },
+    { name: 'position', type: 'MikanVector3f' }
+  ];
 }
 
-export interface MikanVector2d {
-  x: number;
-  y: number;
+export class MikanVector2d {
+  x: number = 0;
+  y: number = 0;
+
+  static __serializationMetadata = [
+    { name: 'x', type: 'double' },
+    { name: 'y', type: 'double' }
+  ];
 }
 
-export interface MikanVector2f {
-  x: number;
-  y: number;
+export class MikanVector2f {
+  x: number = 0;
+  y: number = 0;
+
+  static __serializationMetadata = [
+    { name: 'x', type: 'float' },
+    { name: 'y', type: 'float' }
+  ];
 }
 
-export interface MikanVector2i {
-  x: number;
-  y: number;
+export class MikanVector2i {
+  x: number = 0;
+  y: number = 0;
+
+  static __serializationMetadata = [
+    { name: 'x', type: 'int32' },
+    { name: 'y', type: 'int32' }
+  ];
 }
 
-export interface MikanVector3d {
-  x: number;
-  y: number;
-  z: number;
+export class MikanVector3d {
+  x: number = 0;
+  y: number = 0;
+  z: number = 0;
+
+  static __serializationMetadata = [
+    { name: 'x', type: 'double' },
+    { name: 'y', type: 'double' },
+    { name: 'z', type: 'double' }
+  ];
 }
 
-export interface MikanVector3f {
-  x: number;
-  y: number;
-  z: number;
+export class MikanVector3f {
+  x: number = 0;
+  y: number = 0;
+  z: number = 0;
+
+  static __serializationMetadata = [
+    { name: 'x', type: 'float' },
+    { name: 'y', type: 'float' },
+    { name: 'z', type: 'float' }
+  ];
 }
 
-export interface MikanVector4d {
-  x: number;
-  y: number;
-  z: number;
-  w: number;
+export class MikanVector4d {
+  x: number = 0;
+  y: number = 0;
+  z: number = 0;
+  w: number = 0;
+
+  static __serializationMetadata = [
+    { name: 'x', type: 'double' },
+    { name: 'y', type: 'double' },
+    { name: 'z', type: 'double' },
+    { name: 'w', type: 'double' }
+  ];
 }
 
-export interface MikanVector4f {
-  x: number;
-  y: number;
-  z: number;
-  w: number;
+export class MikanVector4f {
+  x: number = 0;
+  y: number = 0;
+  z: number = 0;
+  w: number = 0;
+
+  static __serializationMetadata = [
+    { name: 'x', type: 'float' },
+    { name: 'y', type: 'float' },
+    { name: 'z', type: 'float' },
+    { name: 'w', type: 'float' }
+  ];
 }
 

@@ -8,22 +8,41 @@ export const CLASS_ID_MIKAN_REMOTE_CONTROL_COMMAND_RESULT = -9034381214596710800
 export const CLASS_ID_POP_APP_STAGE = -589658948136412267n;
 export const CLASS_ID_PUSH_APP_STAGE = -7872424436528764660n;
 
-export interface GetAppStageInfo extends MikanRequest {
+export class GetAppStageInfo extends MikanRequest {
+
+  static __serializationMetadata = [
+  ];
 }
 
-export interface MikanRemoteControlCommand extends MikanRequest {
-  command: string;
-  parameters: string[];
+export class MikanRemoteControlCommand extends MikanRequest {
+  command: string = '';
+  parameters: string[] = [];
+
+  static __serializationMetadata = [
+    { name: 'command', type: 'string' },
+    { name: 'parameters', type: 'string', isArray: true }
+  ];
 }
 
-export interface MikanRemoteControlCommandResult extends MikanResponse {
-  results: string[];
+export class MikanRemoteControlCommandResult extends MikanResponse {
+  results: string[] = [];
+
+  static __serializationMetadata = [
+    { name: 'results', type: 'string', isArray: true }
+  ];
 }
 
-export interface PopAppStage extends MikanRequest {
+export class PopAppStage extends MikanRequest {
+
+  static __serializationMetadata = [
+  ];
 }
 
-export interface PushAppStage extends MikanRequest {
-  app_state_name: string;
+export class PushAppStage extends MikanRequest {
+  app_state_name: string = '';
+
+  static __serializationMetadata = [
+    { name: 'app_state_name', type: 'string' }
+  ];
 }
 

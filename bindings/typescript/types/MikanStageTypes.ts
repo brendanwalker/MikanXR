@@ -9,7 +9,11 @@ export enum MikanStageTrackingVolume {
 
 export const CLASS_ID_MIKAN_STAGE_COMPONENT_VALUES = -4271948442370858806n;
 
-export interface MikanStageComponentValues extends MikanTransformComponentValues {
-  tracking_volume_id: number;
+export class MikanStageComponentValues extends MikanTransformComponentValues {
+  tracking_volume_id: number = 0;
+
+  static __serializationMetadata = [
+    { name: 'tracking_volume_id', type: 'int32' }
+  ];
 }
 

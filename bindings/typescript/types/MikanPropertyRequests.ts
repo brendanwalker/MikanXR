@@ -25,69 +25,135 @@ export const CLASS_ID_SET_PROPERTY_NOTIFY_MODE = -7219101800050484750n;
 export const CLASS_ID_SYSTEM_GET_VALUES_REQUEST = -8302559874499546923n;
 export const CLASS_ID_SYSTEM_GET_VALUES_RESPONSE = -688309113082437205n;
 
-export interface ComponentGetValuesRequest extends MikanRequest {
-  ownerSystem: string;
-  componentId: number;
+export class ComponentGetValuesRequest extends MikanRequest {
+  ownerSystem: string = '';
+  componentId: number = 0;
+
+  static __serializationMetadata = [
+    { name: 'ownerSystem', type: 'string' },
+    { name: 'componentId', type: 'int32' }
+  ];
 }
 
-export interface ComponentGetValuesResponse extends MikanResponse {
-  ownerSystem: string;
-  componentClassName: string;
-  valuesObject: PolymorphicObject;
+export class ComponentGetValuesResponse extends MikanResponse {
+  ownerSystem: string = '';
+  componentClassName: string = '';
+  valuesObject: PolymorphicObject = new PolymorphicObject();
+
+  static __serializationMetadata = [
+    { name: 'ownerSystem', type: 'string' },
+    { name: 'componentClassName', type: 'string' },
+    { name: 'valuesObject', type: 'PolymorphicObject' }
+  ];
 }
 
-export interface ComponentListResponse extends MikanResponse {
-  componentIdList: number[];
+export class ComponentListResponse extends MikanResponse {
+  componentIdList: number[] = [];
+
+  static __serializationMetadata = [
+    { name: 'componentIdList', type: 'int32', isArray: true }
+  ];
 }
 
-export interface GetComponentListRequest extends MikanRequest {
-  ownerSystem: string;
-  componentClassName: string;
+export class GetComponentListRequest extends MikanRequest {
+  ownerSystem: string = '';
+  componentClassName: string = '';
+
+  static __serializationMetadata = [
+    { name: 'ownerSystem', type: 'string' },
+    { name: 'componentClassName', type: 'string' }
+  ];
 }
 
-export interface GetPropertyDescriptors extends MikanRequest {
-  systemFilter: string;
-  componentFilter: string;
-  propertyFilter: string;
+export class GetPropertyDescriptors extends MikanRequest {
+  systemFilter: string = '';
+  componentFilter: string = '';
+  propertyFilter: string = '';
+
+  static __serializationMetadata = [
+    { name: 'systemFilter', type: 'string' },
+    { name: 'componentFilter', type: 'string' },
+    { name: 'propertyFilter', type: 'string' }
+  ];
 }
 
-export interface PropertyDescriptorResponse extends MikanResponse {
-  descriptor_list: MikanPropertyDescriptor[];
+export class PropertyDescriptorResponse extends MikanResponse {
+  descriptor_list: MikanPropertyDescriptor[] = [];
+
+  static __serializationMetadata = [
+    { name: 'descriptor_list', type: 'MikanPropertyDescriptor', isArray: true }
+  ];
 }
 
-export interface PropertyGetValueRequest extends MikanRequest {
-  ownerSystem: string;
-  componentId: number;
-  fieldName: string;
+export class PropertyGetValueRequest extends MikanRequest {
+  ownerSystem: string = '';
+  componentId: number = 0;
+  fieldName: string = '';
+
+  static __serializationMetadata = [
+    { name: 'ownerSystem', type: 'string' },
+    { name: 'componentId', type: 'int32' },
+    { name: 'fieldName', type: 'string' }
+  ];
 }
 
-export interface PropertyGetValueResponse extends MikanResponse {
-  propertyValue: MikanPropertyValue;
+export class PropertyGetValueResponse extends MikanResponse {
+  propertyValue: MikanPropertyValue = new MikanPropertyValue();
+
+  static __serializationMetadata = [
+    { name: 'propertyValue', type: 'MikanPropertyValue' }
+  ];
 }
 
-export interface PropertySetValueRequest extends MikanRequest {
-  ownerSystem: string;
-  componentId: number;
-  fieldName: string;
-  fieldValue: MikanVariant;
+export class PropertySetValueRequest extends MikanRequest {
+  ownerSystem: string = '';
+  componentId: number = 0;
+  fieldName: string = '';
+  fieldValue: MikanVariant = new MikanVariant();
+
+  static __serializationMetadata = [
+    { name: 'ownerSystem', type: 'string' },
+    { name: 'componentId', type: 'int32' },
+    { name: 'fieldName', type: 'string' },
+    { name: 'fieldValue', type: 'MikanVariant' }
+  ];
 }
 
-export interface PropertySetValueResponse extends MikanResponse {
+export class PropertySetValueResponse extends MikanResponse {
+
+  static __serializationMetadata = [
+  ];
 }
 
-export interface SetPropertyNotifyMode extends MikanRequest {
-  systemFilter: string;
-  componentFilter: string;
-  propertyFilter: string;
-  notifyMode: MikanPropertyNotifyMode;
+export class SetPropertyNotifyMode extends MikanRequest {
+  systemFilter: string = '';
+  componentFilter: string = '';
+  propertyFilter: string = '';
+  notifyMode: MikanPropertyNotifyMode = 0;
+
+  static __serializationMetadata = [
+    { name: 'systemFilter', type: 'string' },
+    { name: 'componentFilter', type: 'string' },
+    { name: 'propertyFilter', type: 'string' },
+    { name: 'notifyMode', type: 'enum:MikanPropertyNotifyMode' }
+  ];
 }
 
-export interface SystemGetValuesRequest extends MikanRequest {
-  ownerSystem: string;
+export class SystemGetValuesRequest extends MikanRequest {
+  ownerSystem: string = '';
+
+  static __serializationMetadata = [
+    { name: 'ownerSystem', type: 'string' }
+  ];
 }
 
-export interface SystemGetValuesResponse extends MikanResponse {
-  ownerSystem: string;
-  valuesObject: PolymorphicObject;
+export class SystemGetValuesResponse extends MikanResponse {
+  ownerSystem: string = '';
+  valuesObject: PolymorphicObject = new PolymorphicObject();
+
+  static __serializationMetadata = [
+    { name: 'ownerSystem', type: 'string' },
+    { name: 'valuesObject', type: 'PolymorphicObject' }
+  ];
 }
 

@@ -908,9 +908,122 @@ protected:
 		moduleFile << std::endl << "}" << std::endl;
 	}
 
+	static std::string getTypeScriptSerializationType(rfk::Type const& type)
+	{
+		rfk::Archetype const* archetype = type.getArchetype();
+		rfk::EEntityKind fieldArchetypeKind = archetype ? archetype->getKind() : rfk::EEntityKind::Undefined;
+
+		if (type.isPointer())
+		{
+			return "any";
+		}
+		else if (fieldArchetypeKind == rfk::EEntityKind::Class)
+		{
+			rfk::Class const* classType = rfk::classCast(archetype);
+			rfk::EClassKind classKind = classType->getClassKind();
+			std::string cppType = classType->getName();
+
+			if (cppType == "String")
+			{
+				return "string";
+			}
+			else if (cppType == "BoolList")
+			{
+				return "boolean";
+			}
+			else if (cppType == "PolymorphicObjectPtr")
+			{
+				return "PolymorphicObject";
+			}
+			else if (classKind == rfk::EClassKind::TemplateInstantiation)
+			{
+				const auto* templateClassInstanceType = rfk::classTemplateInstantiationCast(classType);
+				std::string templateTypeName = templateClassInstanceType->getClassTemplate().getName();
+
+				if (templateTypeName == "List" &&
+					templateClassInstanceType->getTemplateArgumentsCount() == 1)
+				{
+					auto const& templateArg =
+						static_cast<rfk::TypeTemplateArgument const&>(
+							templateClassInstanceType->getTemplateArgumentAt(0));
+					rfk::Type const& elementType = templateArg.getType();
+					return getTypeScriptSerializationType(elementType);
+				}
+				else if (templateTypeName == "Map" &&
+					templateClassInstanceType->getTemplateArgumentsCount() == 2)
+				{
+					return "Map";
+				}
+			}
+			else
+			{
+				return cppType;
+			}
+		}
+		else if (fieldArchetypeKind == rfk::EEntityKind::Struct)
+		{
+			rfk::Struct const* structType = rfk::structCast(archetype);
+			return structType->getName();
+		}
+		else if (fieldArchetypeKind == rfk::EEntityKind::Enum)
+		{
+			rfk::Enum const* enumType = rfk::enumCast(archetype);
+			return "enum:" + std::string(enumType->getName());
+		}
+		else if (fieldArchetypeKind == rfk::EEntityKind::FundamentalArchetype)
+		{
+			if (type == rfk::getType<bool>())
+			{
+				return "boolean";
+			}
+			else if (type == rfk::getType<uint8_t>())
+			{
+				return "uint8";
+			}
+			else if (type == rfk::getType<int8_t>())
+			{
+				return "int8";
+			}
+			else if (type == rfk::getType<uint16_t>())
+			{
+				return "uint16";
+			}
+			else if (type == rfk::getType<int16_t>())
+			{
+				return "int16";
+			}
+			else if (type == rfk::getType<uint32_t>())
+			{
+				return "uint32";
+			}
+			else if (type == rfk::getType<int32_t>() || type == rfk::getType<int>())
+			{
+				return "int32";
+			}
+			else if (type == rfk::getType<uint64_t>())
+			{
+				return "uint64";
+			}
+			else if (type == rfk::getType<int64_t>() || type == rfk::getType<long>())
+			{
+				return "int64";
+			}
+			else if (type == rfk::getType<float>())
+			{
+				return "float";
+			}
+			else if (type == rfk::getType<double>())
+			{
+				return "double";
+			}
+		}
+
+		return "any";
+	}
+
 	void emitTypeScriptInterface(std::ofstream& moduleFile, rfk::Struct const& structRef)
 	{
-		// Get parent interfaces
+		// Get parent classes
 		using ParentList = std::vector<std::string>;
 		ParentList parentStructNames;
 		structRef.foreachDirectParent([](rfk::ParentStruct const& parentStruct, void* userData) -> bool {
@@ -920,23 +1033,23 @@ protected:
 			return true;
 		}, &parentStructNames);
 
-		// Generate interface inheritance string
-		std::string interfaceInheritance;
+		// Generate class inheritance string
+		std::string classInheritance;
 		if (parentStructNames.size() > 0)
 		{
-			interfaceInheritance = " extends ";
+			classInheritance = " extends ";
 			for (size_t i = 0; i < parentStructNames.size(); ++i)
 			{
 				if (i > 0)
 				{
-					interfaceInheritance += ", ";
+					classInheritance += ", ";
 				}
-				interfaceInheritance += parentStructNames[i];
+				classInheritance += parentStructNames[i];
 			}
 		}
 
-		const std::string& interfaceName = structRef.getName();
-		moduleFile << "export interface " << interfaceName << interfaceInheritance << " {" << std::endl;
+		const std::string& className = structRef.getName();
+		moduleFile << "export class " << className << classInheritance << " {" << std::endl;
 
 		// Sort fields by memory offset
 		using FieldList = std::vector<rfk::Field const*>;
@@ -952,14 +1065,146 @@ protected:
 			return a->getMemoryOffset() < b->getMemoryOffset();
 		});
 
-		// Emit fields
+		// Emit fields with default initialization
 		for (rfk::Field const* field : sortedFields)
 		{
 			std::string tsType = getTypeScriptType(*field);
-			moduleFile << "  " << field->getName() << ": " << tsType << ";" << std::endl;
+			std::string tsDefaultValue = getTypeScriptDefaultValue(field->getType());
+			moduleFile << "  " << field->getName() << ": " << tsType << " = " << tsDefaultValue << ";" << std::endl;
 		}
 
+		// Emit serialization metadata
+		moduleFile << std::endl;
+		moduleFile << "  static __serializationMetadata = [" << std::endl;
+
+		for (size_t i = 0; i < sortedFields.size(); ++i)
+		{
+			rfk::Field const* field = sortedFields[i];
+			rfk::Type const& fieldType = field->getType();
+			std::string serializationType = getTypeScriptSerializationType(fieldType);
+
+			moduleFile << "    { name: '" << field->getName() << "', type: '" << serializationType << "'";
+
+			// Check if it's an array
+			if (fieldType.getArchetype() && fieldType.getArchetype()->getKind() == rfk::EEntityKind::Class)
+			{
+				rfk::Class const* classType = rfk::classCast(fieldType.getArchetype());
+				if (classType->getClassKind() == rfk::EClassKind::TemplateInstantiation)
+				{
+					const auto* templateClassInstanceType = rfk::classTemplateInstantiationCast(classType);
+					std::string templateTypeName = templateClassInstanceType->getClassTemplate().getName();
+
+					if (templateTypeName == "List")
+					{
+						moduleFile << ", isArray: true";
+					}
+					else if (templateTypeName == "Map" && templateClassInstanceType->getTemplateArgumentsCount() == 2)
+					{
+						// Get key and value types
+						auto const& keyArg = static_cast<rfk::TypeTemplateArgument const&>(
+							templateClassInstanceType->getTemplateArgumentAt(0));
+						auto const& valueArg = static_cast<rfk::TypeTemplateArgument const&>(
+							templateClassInstanceType->getTemplateArgumentAt(1));
+
+						std::string keyType = getTypeScriptSerializationType(keyArg.getType());
+						std::string valueType = getTypeScriptSerializationType(valueArg.getType());
+
+						moduleFile << ", isMap: true, keyType: '" << keyType << "', valueType: '" << valueType << "'";
+					}
+				}
+			}
+			else if (fieldType.isCArray())
+			{
+				moduleFile << ", isArray: true";
+			}
+
+			moduleFile << " }";
+			if (i < sortedFields.size() - 1)
+			{
+				moduleFile << ",";
+			}
+			moduleFile << std::endl;
+		}
+
+		moduleFile << "  ];" << std::endl;
 		moduleFile << "}" << std::endl;
+	}
+
+	static std::string getTypeScriptDefaultValue(rfk::Type const& type)
+	{
+		rfk::Archetype const* archetype = type.getArchetype();
+		rfk::EEntityKind kind = archetype ? archetype->getKind() : rfk::EEntityKind::Undefined;
+
+		if (type.isPointer())
+		{
+			return "null";
+		}
+		else if (kind == rfk::EEntityKind::Class)
+		{
+			rfk::Class const* classType = rfk::classCast(archetype);
+			std::string cppType = classType->getName();
+
+			if (cppType == "String")
+			{
+				return type.isCArray() ? "[]" : "''";
+			}
+			else if (cppType == "BoolList")
+			{
+				return "[]";
+			}
+			else if (cppType == "PolymorphicObjectPtr")
+			{
+				return "new PolymorphicObject()";
+			}
+			else if (classType->getClassKind() == rfk::EClassKind::TemplateInstantiation)
+			{
+				const auto* templateClassInstanceType = rfk::classTemplateInstantiationCast(classType);
+				std::string templateTypeName = templateClassInstanceType->getClassTemplate().getName();
+
+				if (templateTypeName == "List")
+				{
+					return "[]";
+				}
+				else if (templateTypeName == "Map")
+				{
+					return "new Map()";
+				}
+			}
+			else
+			{
+				return "new " + cppType + "()";
+			}
+		}
+		else if (kind == rfk::EEntityKind::Struct)
+		{
+			rfk::Struct const* structType = rfk::structCast(archetype);
+			std::string structTypeName = structType->getName();
+			return type.isCArray() ? "[]" : "new " + structTypeName + "()";
+		}
+		else if (kind == rfk::EEntityKind::Enum)
+		{
+			return type.isCArray() ? "[]" : "0";
+		}
+		else if (kind == rfk::EEntityKind::FundamentalArchetype)
+		{
+			if (type == rfk::getType<bool>())
+			{
+				return type.isCArray() ? "[]" : "false";
+			}
+			else if (type == rfk::getType<uint64_t>() || type == rfk::getType<int64_t>())
+			{
+				return type.isCArray() ? "[]" : "0n";
+			}
+			else if (type == rfk::getType<uint8_t>() || type == rfk::getType<int8_t>() ||
+					 type == rfk::getType<uint16_t>() || type == rfk::getType<int16_t>() ||
+					 type == rfk::getType<uint32_t>() || type == rfk::getType<int32_t>() ||
+					 type == rfk::getType<float>() || type == rfk::getType<double>())
+			{
+				return type.isCArray() ? "[]" : "0";
+			}
+		}
+
+		return "null";
 	}
 
 	static std::string getTypeScriptType(rfk::Field const& field)

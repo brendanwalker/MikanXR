@@ -5,7 +5,11 @@ import { MikanScriptMessageInfo } from './MikanScriptTypes';
 
 export const CLASS_ID_SEND_SCRIPT_MESSAGE = -3006836539234531471n;
 
-export interface SendScriptMessage extends MikanRequest {
-  message: MikanScriptMessageInfo;
+export class SendScriptMessage extends MikanRequest {
+  message: MikanScriptMessageInfo = new MikanScriptMessageInfo();
+
+  static __serializationMetadata = [
+    { name: 'message', type: 'MikanScriptMessageInfo' }
+  ];
 }
 

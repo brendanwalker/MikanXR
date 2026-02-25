@@ -47,80 +47,157 @@ export const CLASS_ID_MIKAN_VECTOR3F_VALUE = 3503799446698825680n;
 export const CLASS_ID_MIKAN_VECTOR4D_VALUE = 398000504403518783n;
 export const CLASS_ID_MIKAN_VECTOR4F_VALUE = -1402910374681859671n;
 
-export interface MikanBoolArrayValue extends MikanVariantBase {
-  value: boolean[];
+export class MikanBoolArrayValue extends MikanVariantBase {
+  value: boolean[] = [];
+
+  static __serializationMetadata = [
+    { name: 'value', type: 'boolean' }
+  ];
 }
 
-export interface MikanBoolValue extends MikanVariantBase {
-  value: boolean;
+export class MikanBoolValue extends MikanVariantBase {
+  value: boolean = false;
+
+  static __serializationMetadata = [
+    { name: 'value', type: 'boolean' }
+  ];
 }
 
-export interface MikanDoubleValue extends MikanVariantBase {
-  value: number;
+export class MikanDoubleValue extends MikanVariantBase {
+  value: number = 0;
+
+  static __serializationMetadata = [
+    { name: 'value', type: 'double' }
+  ];
 }
 
-export interface MikanFloatArrayValue extends MikanVariantBase {
-  value: number[];
+export class MikanFloatArrayValue extends MikanVariantBase {
+  value: number[] = [];
+
+  static __serializationMetadata = [
+    { name: 'value', type: 'float', isArray: true }
+  ];
 }
 
-export interface MikanFloatValue extends MikanVariantBase {
-  value: number;
+export class MikanFloatValue extends MikanVariantBase {
+  value: number = 0;
+
+  static __serializationMetadata = [
+    { name: 'value', type: 'float' }
+  ];
 }
 
-export interface MikanIntArrayValue extends MikanVariantBase {
-  value: number[];
+export class MikanIntArrayValue extends MikanVariantBase {
+  value: number[] = [];
+
+  static __serializationMetadata = [
+    { name: 'value', type: 'int32', isArray: true }
+  ];
 }
 
-export interface MikanIntValue extends MikanVariantBase {
-  value: number;
+export class MikanIntValue extends MikanVariantBase {
+  value: number = 0;
+
+  static __serializationMetadata = [
+    { name: 'value', type: 'int32' }
+  ];
 }
 
-export interface MikanLongValue extends MikanVariantBase {
-  value: any;
+export class MikanLongValue extends MikanVariantBase {
+  value: any = null;
+
+  static __serializationMetadata = [
+    { name: 'value', type: 'int64' }
+  ];
 }
 
-export interface MikanMatrix4fValue extends MikanVariantBase {
-  value: MikanMatrix4f;
+export class MikanMatrix4fValue extends MikanVariantBase {
+  value: MikanMatrix4f = new MikanMatrix4f();
+
+  static __serializationMetadata = [
+    { name: 'value', type: 'MikanMatrix4f' }
+  ];
 }
 
-export interface MikanQuatdValue extends MikanVariantBase {
-  value: MikanQuatd;
+export class MikanQuatdValue extends MikanVariantBase {
+  value: MikanQuatd = new MikanQuatd();
+
+  static __serializationMetadata = [
+    { name: 'value', type: 'MikanQuatd' }
+  ];
 }
 
-export interface MikanQuatfValue extends MikanVariantBase {
-  value: MikanQuatf;
+export class MikanQuatfValue extends MikanVariantBase {
+  value: MikanQuatf = new MikanQuatf();
+
+  static __serializationMetadata = [
+    { name: 'value', type: 'MikanQuatf' }
+  ];
 }
 
-export interface MikanStringValue extends MikanVariantBase {
-  value: string;
+export class MikanStringValue extends MikanVariantBase {
+  value: string = '';
+
+  static __serializationMetadata = [
+    { name: 'value', type: 'string' }
+  ];
 }
 
-export interface MikanVariant {
-  value_type: MikanVariantType;
-  value_ptr: PolymorphicObject;
+export class MikanVariant {
+  value_type: MikanVariantType = 0;
+  value_ptr: PolymorphicObject = new PolymorphicObject();
+
+  static __serializationMetadata = [
+    { name: 'value_type', type: 'enum:MikanVariantType' },
+    { name: 'value_ptr', type: 'PolymorphicObject' }
+  ];
 }
 
-export interface MikanVector2dValue extends MikanVariantBase {
-  value: MikanVector2d;
+export class MikanVector2dValue extends MikanVariantBase {
+  value: MikanVector2d = new MikanVector2d();
+
+  static __serializationMetadata = [
+    { name: 'value', type: 'MikanVector2d' }
+  ];
 }
 
-export interface MikanVector2fValue extends MikanVariantBase {
-  value: MikanVector2f;
+export class MikanVector2fValue extends MikanVariantBase {
+  value: MikanVector2f = new MikanVector2f();
+
+  static __serializationMetadata = [
+    { name: 'value', type: 'MikanVector2f' }
+  ];
 }
 
-export interface MikanVector3dValue extends MikanVariantBase {
-  value: MikanVector3d;
+export class MikanVector3dValue extends MikanVariantBase {
+  value: MikanVector3d = new MikanVector3d();
+
+  static __serializationMetadata = [
+    { name: 'value', type: 'MikanVector3d' }
+  ];
 }
 
-export interface MikanVector3fValue extends MikanVariantBase {
-  value: MikanVector3f;
+export class MikanVector3fValue extends MikanVariantBase {
+  value: MikanVector3f = new MikanVector3f();
+
+  static __serializationMetadata = [
+    { name: 'value', type: 'MikanVector3f' }
+  ];
 }
 
-export interface MikanVector4dValue extends MikanVariantBase {
-  value: MikanVector4d;
+export class MikanVector4dValue extends MikanVariantBase {
+  value: MikanVector4d = new MikanVector4d();
+
+  static __serializationMetadata = [
+    { name: 'value', type: 'MikanVector4d' }
+  ];
 }
 
-export interface MikanVector4fValue extends MikanVariantBase {
-  value: MikanVector4f;
+export class MikanVector4fValue extends MikanVariantBase {
+  value: MikanVector4f = new MikanVector4f();
+
+  static __serializationMetadata = [
+    { name: 'value', type: 'MikanVector4f' }
+  ];
 }
 

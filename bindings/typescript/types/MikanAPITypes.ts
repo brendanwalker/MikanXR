@@ -32,21 +32,39 @@ export const CLASS_ID_MIKAN_EVENT = 8521159033538382795n;
 export const CLASS_ID_MIKAN_REQUEST = 1095719431187359814n;
 export const CLASS_ID_MIKAN_RESPONSE = 7094118849615581562n;
 
-export interface MikanEvent {
-  eventTypeId: bigint;
-  eventTypeName: string;
+export class MikanEvent {
+  eventTypeId: bigint = 0n;
+  eventTypeName: string = '';
+
+  static __serializationMetadata = [
+    { name: 'eventTypeId', type: 'int64' },
+    { name: 'eventTypeName', type: 'string' }
+  ];
 }
 
-export interface MikanRequest {
-  requestTypeId: bigint;
-  requestTypeName: string;
-  requestId: number;
+export class MikanRequest {
+  requestTypeId: bigint = 0n;
+  requestTypeName: string = '';
+  requestId: number = 0;
+
+  static __serializationMetadata = [
+    { name: 'requestTypeId', type: 'int64' },
+    { name: 'requestTypeName', type: 'string' },
+    { name: 'requestId', type: 'int32' }
+  ];
 }
 
-export interface MikanResponse {
-  responseTypeId: bigint;
-  responseTypeName: string;
-  requestId: number;
-  resultCode: MikanAPIResult;
+export class MikanResponse {
+  responseTypeId: bigint = 0n;
+  responseTypeName: string = '';
+  requestId: number = 0;
+  resultCode: MikanAPIResult = 0;
+
+  static __serializationMetadata = [
+    { name: 'responseTypeId', type: 'int64' },
+    { name: 'responseTypeName', type: 'string' },
+    { name: 'requestId', type: 'int32' },
+    { name: 'resultCode', type: 'enum:MikanAPIResult' }
+  ];
 }
 

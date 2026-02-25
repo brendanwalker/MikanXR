@@ -6,11 +6,19 @@ import { MikanClientInfo } from './MikanClientTypes';
 export const CLASS_ID_DISPOSE_CLIENT_REQUEST = -671320724823045972n;
 export const CLASS_ID_INIT_CLIENT_REQUEST = 7270577563897270843n;
 
-export interface DisposeClientRequest extends MikanRequest {
-  clientId: string;
+export class DisposeClientRequest extends MikanRequest {
+  clientId: string = '';
+
+  static __serializationMetadata = [
+    { name: 'clientId', type: 'string' }
+  ];
 }
 
-export interface InitClientRequest extends MikanRequest {
-  clientInfo: MikanClientInfo;
+export class InitClientRequest extends MikanRequest {
+  clientInfo: MikanClientInfo = new MikanClientInfo();
+
+  static __serializationMetadata = [
+    { name: 'clientInfo', type: 'MikanClientInfo' }
+  ];
 }
 

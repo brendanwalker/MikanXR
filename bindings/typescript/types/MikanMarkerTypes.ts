@@ -13,18 +13,33 @@ export enum MikanMarkerDictionaryType {
 export const CLASS_ID_MIKAN_MARKER_COMPONENT_VALUES = 2808287499176319284n;
 export const CLASS_ID_MIKAN_MARKER_SYSTEM_VALUES = 133061264921636720n;
 
-export interface MikanMarkerComponentValues extends MikanComponentValues {
-  aruco_id: number;
-  length_mm: number;
+export class MikanMarkerComponentValues extends MikanComponentValues {
+  aruco_id: number = 0;
+  length_mm: number = 0;
+
+  static __serializationMetadata = [
+    { name: 'aruco_id', type: 'int32' },
+    { name: 'length_mm', type: 'float' }
+  ];
 }
 
-export interface MikanMarkerSystemValues extends MikanSystemValues {
-  aruco_id_list: number[];
-  aruco_dictionary_type: MikanMarkerDictionaryType;
-  charuco_rows: number;
-  charuco_cols: number;
-  charuco_square_length_mm: number;
-  charuco_marker_length_mm: number;
-  charuco_dictionary_type: MikanMarkerDictionaryType;
+export class MikanMarkerSystemValues extends MikanSystemValues {
+  aruco_id_list: number[] = [];
+  aruco_dictionary_type: MikanMarkerDictionaryType = 0;
+  charuco_rows: number = 0;
+  charuco_cols: number = 0;
+  charuco_square_length_mm: number = 0;
+  charuco_marker_length_mm: number = 0;
+  charuco_dictionary_type: MikanMarkerDictionaryType = 0;
+
+  static __serializationMetadata = [
+    { name: 'aruco_id_list', type: 'int32', isArray: true },
+    { name: 'aruco_dictionary_type', type: 'enum:MikanMarkerDictionaryType' },
+    { name: 'charuco_rows', type: 'int32' },
+    { name: 'charuco_cols', type: 'int32' },
+    { name: 'charuco_square_length_mm', type: 'float' },
+    { name: 'charuco_marker_length_mm', type: 'float' },
+    { name: 'charuco_dictionary_type', type: 'enum:MikanMarkerDictionaryType' }
+  ];
 }
 
