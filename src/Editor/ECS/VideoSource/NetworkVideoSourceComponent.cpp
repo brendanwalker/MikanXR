@@ -42,6 +42,10 @@ NetworkVideoSourceDefinition::NetworkVideoSourceDefinition()
 NetworkVideoSourceDefinition::NetworkVideoSourceDefinition(
 	MikanVideoSourceID videoSourceId)
 	: VideoSourceDefinition(videoSourceId)
+	, m_protocol(eNetworkVideoProtocol::RTSP)
+	, m_address(DEFAULT_NETWORKED_CAMERA_ADDRESS)
+	, m_path(DEFAULT_NETWORKED_CAMERA_PATH)
+	, m_port(DEFAULT_RTSP_PORT)
 {
 
 }

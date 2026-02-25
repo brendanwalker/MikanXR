@@ -77,13 +77,13 @@ struct GStreamerImpl
 	{
 		std::stringstream ss;
 		ss << getSourcePluginString() << " ";
-		ss << "location=" << getFullURIPath() << " ";
-		ss << "latency = 0 ";
+		ss << "location=\"" << getFullURIPath() << "\" ";
+		ss << "latency=0 ";
 		ss << "buffer-mode=auto ";
-		ss << "!decodebin ";
-		ss << "!videoconvert ";
-		ss << "!video/x-raw,format=BGR ";
-		ss << "!appsink name=sink";
+		ss << "! decodebin ";
+		ss << "! videoconvert ";
+		ss << "! video/x-raw,format=BGR ";
+		ss << "! appsink name=sink";
 
 		return ss.str();
 	}
