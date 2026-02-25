@@ -62,8 +62,8 @@ set PATH=${CODEGEN_EXE_DIR};%PATH%
 ")
 
 add_custom_target(MikanCSharpCodeGen
-					COMMAND "${CODEGEN_WRAPPER}" "${CMAKE_CURRENT_LIST_DIR}/CSharpCodeGenConfig.json"
-					WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}")
+					WORKING_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}"
+					COMMAND "${CODEGEN_WRAPPER}" "${CMAKE_CURRENT_LIST_DIR}/CSharpCodeGenConfig.json") 
 set_target_properties(MikanCSharpCodeGen PROPERTIES FOLDER Programs)
 add_dependencies(MikanCSharpCodeGen MikanClientCodeGen)
 
