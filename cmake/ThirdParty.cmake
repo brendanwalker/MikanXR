@@ -170,9 +170,15 @@ find_package(easy_profiler REQUIRED)
 # Spout2
 if (WIN32)
   set (SPOUT2_SDK_DIR ${ROOT_DIR}/deps/Spout2-2.007h/SPOUTSDK/SpoutLibrary/Binaries/x64)
-  list (APPEND SPOUT2_INCLUDE_DIRS 
+  list (APPEND SPOUT2_INCLUDE_DIRS
     ${ROOT_DIR}/deps/Spout2-2.007h/SPOUTSDK
     ${ROOT_DIR}/deps/Spout2-2.007h/SPOUTSDK/SpoutLibrary/Binaries/x64)
   set (SPOUT2_LIBRARIES ${SPOUT2_SDK_DIR}/SpoutLibrary.lib)
   set (SPOUT2_SHARED_LIBRARIES ${SPOUT2_SDK_DIR}/SpoutLibrary.dll)
+endif()
+
+# CEF (Chromium Embedded Framework)
+# Note: CEF_ROOT can be overridden via command line -DCEF_ROOT=...
+if (WIN32 AND NOT DEFINED CEF_ROOT)
+  set (CEF_ROOT ${ROOT_DIR}/deps/cef/cef_binary_145.0.27+g4ddda2e+chromium-145.0.7632.117_windows64)
 endif()

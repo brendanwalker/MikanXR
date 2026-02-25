@@ -14,3 +14,6 @@ add_subdirectory(Programs)
 
 MESSAGE(STATUS "Stepping into Editor")
 add_subdirectory(Editor)
+
+MESSAGE(STATUS "Stepping into MikanUI")
+add_subdirectory(MikanUI)

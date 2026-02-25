@@ -204,6 +204,18 @@ IF %ERRORLEVEL% NEQ 0 (
   goto failure
 )
 
+echo "Downloading CEF (Chromium Embedded Framework)..."
+curl -L https://cef-builds.spotifycdn.com/cef_binary_145.0.27+g4ddda2e+chromium-145.0.7632.117_windows64.tar.bz2 --output cef_binary_windows64.tar.bz2
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error downloading cef_binary_windows64.tar.bz2"
+  goto failure
+)
+%UNZIP_EXE% x cef_binary_windows64.tar.bz2 -so | %UNZIP_EXE% x -aoa -si -ttar -ocef
+IF %ERRORLEVEL% NEQ 0 (
+  echo "Error extracting cef_binary_windows64.tar.bz2"
+  goto failure
+)
+
 :: NuGet tool used to fetch c# packages
 echo "Downloading nuget..."
 curl -L https://dist.nuget.org/win-x86-commandline/latest/nuget.exe --output nuget.exe
