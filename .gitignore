@@ -63,4 +63,8 @@ MikanXR.log
 
 #Tools
 !tools/*/*.exe
+
+# Language Bindings temp files
 bindings/csharp/*.bat
+bindings/typescript/node_modules
+bindings/typescript/package-lock.json
