@@ -126,6 +126,8 @@ export function visitObject(instance: any, instanceType: any, visitor: IVisitor)
 
   for (const field of metadata) {
     const accessor = new ValueAccessor(instance, instanceType, field.name);
+    // Store the field metadata on the accessor for use by visitors
+    (accessor as any).fieldMetadata = field;
     visitField(accessor, field, visitor);
   }
 }
@@ -153,12 +155,26 @@ export function visitValue(accessor: ValueAccessor, field: FieldMetadata, visito
     visitor.visitString(accessor);
   } else if (typeName === 'boolean') {
     visitor.visitBool(accessor);
-  } else if (typeName === 'number') {
-    // For now, treat all numbers as int32
-    // In a more complete implementation, we'd need more type info
+  } else if (typeName === 'int8') {
+    visitor.visitByte(accessor);
+  } else if (typeName === 'uint8') {
+    visitor.visitUByte(accessor);
+  } else if (typeName === 'int16') {
+    visitor.visitShort(accessor);
+  } else if (typeName === 'uint16') {
+    visitor.visitUShort(accessor);
+  } else if (typeName === 'int32' || typeName === 'number') {
     visitor.visitInt(accessor);
-  } else if (typeName === 'bigint') {
+  } else if (typeName === 'uint32') {
+    visitor.visitUInt(accessor);
+  } else if (typeName === 'int64' || typeName === 'bigint') {
     visitor.visitLong(accessor);
+  } else if (typeName === 'uint64') {
+    visitor.visitULong(accessor);
+  } else if (typeName === 'float') {
+    visitor.visitFloat(accessor);
+  } else if (typeName === 'double') {
+    visitor.visitDouble(accessor);
   } else if (typeName.startsWith('enum:')) {
     visitor.visitEnum(accessor);
   } else {

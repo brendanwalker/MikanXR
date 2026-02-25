@@ -40,12 +40,58 @@ class BinaryReadVisitor implements IVisitor {
     // Clear the list
     list.length = 0;
 
+    // Get element type from metadata if available
+    const fieldMetadata = (accessor as any).fieldMetadata;
+    const elementTypeName = fieldMetadata?.type || 'number';
+
     // Deserialize each element of the array
     for (let arrayIndex = 0; arrayIndex < arraySize; arrayIndex++) {
-      // This is simplified - in a real implementation we'd need element type info
-      // For now, just read as int32
-      const element = this.reader.readInt32();
+      let element: any;
+
+      // Check if it's a complex type with metadata
+      const elementType = TypeRegistry.get(elementTypeName);
+      if (elementType) {
+        element = new elementType();
+        visitObject(element, elementType, this);
+      } else {
+        // Primitive type - read based on type name
+        element = this.readPrimitiveValue(elementTypeName);
+      }
+
       list.push(element);
+    }
+  }
+
+  private readPrimitiveValue(typeName: string): any {
+    switch (typeName) {
+      case 'boolean':
+        return this.reader.readBoolean();
+      case 'int8':
+        return this.reader.readSByte();
+      case 'uint8':
+        return this.reader.readByte();
+      case 'int16':
+        return this.reader.readInt16();
+      case 'uint16':
+        return this.reader.readUInt16();
+      case 'int32':
+      case 'number':
+        return this.reader.readInt32();
+      case 'uint32':
+        return this.reader.readUInt32();
+      case 'int64':
+      case 'bigint':
+        return this.reader.readInt64();
+      case 'uint64':
+        return this.reader.readUInt64();
+      case 'float':
+        return this.reader.readSingle();
+      case 'double':
+        return this.reader.readDouble();
+      case 'string':
+        return this.reader.readUTF8String();
+      default:
+        return this.reader.readInt32();
     }
   }
 
@@ -60,11 +106,26 @@ class BinaryReadVisitor implements IVisitor {
     // Clear the map
     map.clear();
 
+    // Get key and value types from metadata if available
+    const fieldMetadata = (accessor as any).fieldMetadata;
+    const keyTypeName = fieldMetadata?.keyType || 'number';
+    const valueTypeName = fieldMetadata?.valueType || 'number';
+
     // Deserialize each pair
     for (let pairIndex = 0; pairIndex < arraySize; pairIndex++) {
-      // Simplified - read as int32 keys and values
-      const key = this.reader.readInt32();
-      const value = this.reader.readInt32();
+      // Read key
+      const key = this.readPrimitiveValue(keyTypeName);
+
+      // Read value
+      let value: any;
+      const valueType = TypeRegistry.get(valueTypeName);
+      if (valueType) {
+        value = new valueType();
+        visitObject(value, valueType, this);
+      } else {
+        value = this.readPrimitiveValue(valueTypeName);
+      }
+
       map.set(key, value);
     }
   }
@@ -77,7 +138,7 @@ class BinaryReadVisitor implements IVisitor {
 
     // Read the runtime class info
     const elementRuntimeTypeName = this.reader.readUTF8String();
-    const classId = this.reader.readUInt64();
+    const classId = this.reader.readInt64();
 
     const isValidObject = this.reader.readBoolean();
     if (isValidObject) {
@@ -104,9 +165,14 @@ class BinaryReadVisitor implements IVisitor {
 
   visitEnum(accessor: ValueAccessor): void {
     const enumStringValue = this.reader.readUTF8String();
-    // In TypeScript, we'd need the enum object to convert string back to value
-    // For now, just store the string
-    accessor.setValueObject(enumStringValue);
+    // TypeScript enums can be numeric strings, try to parse as number
+    const numericValue = parseInt(enumStringValue, 10);
+    if (!isNaN(numericValue)) {
+      accessor.setValueObject(numericValue);
+    } else {
+      // Fallback to string if not a valid number
+      accessor.setValueObject(enumStringValue);
+    }
   }
 
   visitBool(accessor: ValueAccessor): void {
@@ -187,7 +253,11 @@ export function deserializeFromBytes(
 
     return true;
   } catch (e) {
-    console.error('Failed to deserialize from binary:', e);
+    console.error('Failed to deserialize from binary:');
+    console.error('Error:', e);
+    if (e instanceof Error) {
+      console.error('Stack:', e.stack);
+    }
     return false;
   }
 }

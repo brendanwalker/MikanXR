@@ -38,22 +38,19 @@ class JsonWriteVisitor implements IVisitor {
 
     if (list) {
       for (const element of list) {
-        // Create accessor for array element
-        const elementType = element?.constructor || Object;
-        const elementAccessor = new ValueAccessor(element, elementType);
-
-        // Serialize the element
-        const elementVisitor = new JsonWriteVisitor(null);
+        // Check if element is a complex object with metadata
         const metadata = getSerializationMetadata(element);
 
-        if (metadata.length > 0) {
+        if (metadata && metadata.length > 0) {
+          // Complex object - use visitor pattern
+          const elementType = element.constructor;
+          const elementVisitor = new JsonWriteVisitor({});
           visitObject(element, elementType, elementVisitor);
+          jsonArray.push(elementVisitor.getJsonToken());
         } else {
-          // Primitive or simple value
-          elementVisitor.jsonToken = element;
+          // Primitive or simple value - add directly
+          jsonArray.push(element);
         }
-
-        jsonArray.push(elementVisitor.getJsonToken());
       }
     }
 
@@ -66,21 +63,20 @@ class JsonWriteVisitor implements IVisitor {
 
     if (map) {
       for (const [key, value] of map.entries()) {
-        const keyVisitor = new JsonWriteVisitor(null);
-        keyVisitor.jsonToken = key;
+        let jsonKey = key;
+        let jsonValue = value;
 
-        const valueVisitor = new JsonWriteVisitor(null);
+        // Serialize value if it's a complex object
         const valueMetadata = getSerializationMetadata(value);
-
-        if (valueMetadata.length > 0) {
+        if (valueMetadata && valueMetadata.length > 0) {
+          const valueVisitor = new JsonWriteVisitor({});
           visitObject(value, value.constructor, valueVisitor);
-        } else {
-          valueVisitor.jsonToken = value;
+          jsonValue = valueVisitor.getJsonToken();
         }
 
         jsonPairArray.push({
-          key: keyVisitor.getJsonToken(),
-          value: valueVisitor.getJsonToken()
+          key: jsonKey,
+          value: jsonValue
         });
       }
     }

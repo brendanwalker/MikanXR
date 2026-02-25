@@ -67,16 +67,26 @@ class JsonReadVisitor implements IVisitor {
       // Clear the list
       list.length = 0;
 
+      // Get element type from metadata if available
+      const fieldMetadata = (accessor as any).fieldMetadata;
+      const elementTypeName = fieldMetadata?.elementType;
+
       for (const jsonElement of jsonToken) {
-        // Determine element type - this is simplified, in real implementation
-        // we'd need more type information
         let element: any;
 
-        if (typeof jsonElement === 'object' && jsonElement !== null) {
-          // For complex types, we need the metadata
-          // For now, create a plain object
-          element = jsonElement;
+        // Check if it's a complex object with a registered type
+        if (elementTypeName && typeof jsonElement === 'object' && jsonElement !== null) {
+          const elementType = TypeRegistry.get(elementTypeName);
+          if (elementType) {
+            element = new elementType();
+            const elementVisitor = new JsonReadVisitor(jsonElement);
+            visitObject(element, elementType, elementVisitor);
+          } else {
+            // Fallback to plain object
+            element = jsonElement;
+          }
         } else {
+          // Primitive value
           element = jsonElement;
         }
 
@@ -98,9 +108,24 @@ class JsonReadVisitor implements IVisitor {
 
       map.clear();
 
+      // Get value type from metadata if available
+      const fieldMetadata = (accessor as any).fieldMetadata;
+      const valueTypeName = fieldMetadata?.valueType;
+
       for (const jsonPair of jsonToken) {
         const key = jsonPair.key;
-        const value = jsonPair.value;
+        let value = jsonPair.value;
+
+        // Check if value is a complex object with a registered type
+        if (valueTypeName && typeof value === 'object' && value !== null) {
+          const valueType = TypeRegistry.get(valueTypeName);
+          if (valueType) {
+            const valueInstance = new valueType();
+            const valueVisitor = new JsonReadVisitor(value);
+            visitObject(valueInstance, valueType, valueVisitor);
+            value = valueInstance;
+          }
+        }
 
         map.set(key, value);
       }
@@ -151,9 +176,13 @@ class JsonReadVisitor implements IVisitor {
     if (typeof jsonToken === 'number') {
       accessor.setValueObject(jsonToken);
     } else if (typeof jsonToken === 'string') {
-      // Parse string enum value
-      // In TypeScript, we'd need the enum object to convert
-      accessor.setValueObject(jsonToken);
+      // Try to parse string enum value as number
+      const numericValue = parseInt(jsonToken, 10);
+      if (!isNaN(numericValue)) {
+        accessor.setValueObject(numericValue);
+      } else {
+        accessor.setValueObject(jsonToken);
+      }
     } else {
       throw new Error(
         `JsonReadVisitor::visitEnum() Enum Accessor ${accessor.valueName} ` +

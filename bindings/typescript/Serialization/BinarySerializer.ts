@@ -8,6 +8,7 @@ import {
 } from './SerializationUtils';
 import { BinaryWriter } from './BinaryWriter';
 import { PolymorphicObject } from '../PolymorphicObject';
+import { TypeRegistry } from './JsonDeserializer';
 
 /**
  * Binary write visitor for serializing objects to binary format
@@ -34,29 +35,68 @@ class BinaryWriteVisitor implements IVisitor {
     const arraySize = list ? list.length : 0;
     this.writer.writeInt32(arraySize);
 
+    // Get element type from metadata if available
+    const fieldMetadata = (accessor as any).fieldMetadata;
+    const elementTypeName = fieldMetadata?.type || 'number';
+
     // Serialize each element of the array
     if (list) {
       for (const element of list) {
-        const elementType = element?.constructor || Object;
-        const elementAccessor = new ValueAccessor(element, elementType);
-        const metadata = getSerializationMetadata(element);
-
-        if (metadata.length > 0) {
+        // Check if it's a complex type with metadata
+        const elementType = TypeRegistry.get(elementTypeName);
+        if (elementType) {
           visitObject(element, elementType, this);
         } else {
-          // For primitives, write directly
-          // This is simplified - in a real implementation we'd need type info
-          if (typeof element === 'number') {
-            this.writer.writeInt32(element);
-          } else if (typeof element === 'string') {
-            this.writer.writeUTF8String(element);
-          } else if (typeof element === 'boolean') {
-            this.writer.writeBoolean(element);
-          } else if (typeof element === 'bigint') {
-            this.writer.writeInt64(element);
-          }
+          // Primitive type - write based on type name
+          this.writePrimitiveValue(element, elementTypeName);
         }
       }
+    }
+  }
+
+  private writePrimitiveValue(value: any, typeName: string): void {
+    switch (typeName) {
+      case 'boolean':
+        this.writer.writeBoolean(value);
+        break;
+      case 'int8':
+        this.writer.writeSByte(value);
+        break;
+      case 'uint8':
+        this.writer.writeByte(value);
+        break;
+      case 'int16':
+        this.writer.writeInt16(value);
+        break;
+      case 'uint16':
+        this.writer.writeUInt16(value);
+        break;
+      case 'int32':
+      case 'number':
+        this.writer.writeInt32(value);
+        break;
+      case 'uint32':
+        this.writer.writeUInt32(value);
+        break;
+      case 'int64':
+      case 'bigint':
+        this.writer.writeInt64(value);
+        break;
+      case 'uint64':
+        this.writer.writeUInt64(value);
+        break;
+      case 'float':
+        this.writer.writeFloat(value);
+        break;
+      case 'double':
+        this.writer.writeDouble(value);
+        break;
+      case 'string':
+        this.writer.writeUTF8String(value);
+        break;
+      default:
+        this.writer.writeInt32(value);
+        break;
     }
   }
 
@@ -67,32 +107,23 @@ class BinaryWriteVisitor implements IVisitor {
     const arraySize = map ? map.size : 0;
     this.writer.writeInt32(arraySize);
 
+    // Get key and value types from metadata if available
+    const fieldMetadata = (accessor as any).fieldMetadata;
+    const keyTypeName = fieldMetadata?.keyType || 'number';
+    const valueTypeName = fieldMetadata?.valueType || 'number';
+
     // Serialize each key-value pair in the map
     if (map) {
       for (const [key, value] of map.entries()) {
         // Serialize the key
-        if (typeof key === 'number') {
-          this.writer.writeInt32(key);
-        } else if (typeof key === 'string') {
-          this.writer.writeUTF8String(key);
-        } else if (typeof key === 'bigint') {
-          this.writer.writeInt64(key);
-        }
+        this.writePrimitiveValue(key, keyTypeName);
 
         // Serialize the value
-        const valueMetadata = getSerializationMetadata(value);
-        if (valueMetadata.length > 0) {
-          visitObject(value, value.constructor, this);
+        const valueType = TypeRegistry.get(valueTypeName);
+        if (valueType) {
+          visitObject(value, valueType, this);
         } else {
-          if (typeof value === 'number') {
-            this.writer.writeInt32(value);
-          } else if (typeof value === 'string') {
-            this.writer.writeUTF8String(value);
-          } else if (typeof value === 'boolean') {
-            this.writer.writeBoolean(value);
-          } else if (typeof value === 'bigint') {
-            this.writer.writeInt64(value);
-          }
+          this.writePrimitiveValue(value, valueTypeName);
         }
       }
     }
