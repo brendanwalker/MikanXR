@@ -13,11 +13,11 @@ export enum SerializationTestEnum {
 }
 
 export class SerializationPoint extends PolymorphicStruct {
-  static readonly classId = 0n;
+  static readonly classId: bigint = 0n;
 }
 
 export class SerializationPoint2d extends SerializationPoint {
-  static override readonly classId = 1n;
+  static readonly classId: bigint = 1n;
 
   x_field: number = 0;
   y_field: number = 0;
@@ -30,13 +30,13 @@ export class SerializationPoint2d extends SerializationPoint {
 
   // Serialization metadata
   static __serializationMetadata: FieldMetadata[] = [
-    { name: 'x_field', type: 'number' },
-    { name: 'y_field', type: 'number' }
+    { name: 'x_field', type: 'float' },
+    { name: 'y_field', type: 'float' }
   ];
 }
 
 export class SerializationPoint3d extends SerializationPoint {
-  static override readonly classId = 2n;
+  static readonly classId: bigint = 2n;
 
   x_field: number = 0;
   y_field: number = 0;
@@ -51,9 +51,9 @@ export class SerializationPoint3d extends SerializationPoint {
 
   // Serialization metadata
   static __serializationMetadata: FieldMetadata[] = [
-    { name: 'x_field', type: 'number' },
-    { name: 'y_field', type: 'number' },
-    { name: 'z_field', type: 'number' }
+    { name: 'x_field', type: 'float' },
+    { name: 'y_field', type: 'float' },
+    { name: 'z_field', type: 'float' }
   ];
 }
 
@@ -82,28 +82,28 @@ export class SerializationTestObject {
   // Serialization metadata
   static __serializationMetadata: FieldMetadata[] = [
     { name: 'bool_field', type: 'boolean' },
-    { name: 'byte_field', type: 'number' },
-    { name: 'ubyte_field', type: 'number' },
-    { name: 'short_field', type: 'number' },
-    { name: 'ushort_field', type: 'number' },
-    { name: 'int_field', type: 'number' },
-    { name: 'uint_field', type: 'number' },
+    { name: 'byte_field', type: 'int8' },
+    { name: 'ubyte_field', type: 'uint8' },
+    { name: 'short_field', type: 'int16' },
+    { name: 'ushort_field', type: 'uint16' },
+    { name: 'int_field', type: 'int32' },
+    { name: 'uint_field', type: 'uint32' },
     { name: 'long_field', type: 'bigint' },
-    { name: 'float_field', type: 'number' },
-    { name: 'double_field', type: 'number' },
+    { name: 'float_field', type: 'float' },
+    { name: 'double_field', type: 'double' },
     { name: 'string_field', type: 'string' },
     { name: 'enum_field', type: 'enum:SerializationTestEnum' },
     { name: 'point2d_field', type: 'SerializationPoint2d' },
     { name: 'point_ptr_field', type: 'PolymorphicObject' },
     { name: 'null_ptr_field', type: 'PolymorphicObject' },
     { name: 'bool_array', type: 'boolean', isArray: true },
-    { name: 'int_array', type: 'number', isArray: true },
+    { name: 'int_array', type: 'int32', isArray: true },
     { name: 'point2d_array', type: 'SerializationPoint2d', isArray: true },
     {
       name: 'int_point_map',
       type: 'Map',
       isMap: true,
-      keyType: 'number',
+      keyType: 'int32',
       valueType: 'SerializationPoint2d'
     },
     {
@@ -173,11 +173,13 @@ export function verifySerializationTestObject(
   actual: SerializationTestObject,
   expected: SerializationTestObject
 ): { success: boolean; message?: string } {
-  const epsilon = Number.EPSILON;
+  // Use a larger epsilon for float32 precision (approximately 1e-6)
+  // Float32 has ~7 decimal digits of precision
+  const floatEpsilon = 1e-6;
 
   // Helper for float comparison
   const floatEqual = (a: number, b: number): boolean => {
-    return Math.abs(a - b) <= epsilon;
+    return Math.abs(a - b) <= floatEpsilon;
   };
 
   // Check primitive fields

@@ -167,17 +167,30 @@ describe('SerializationUnitTests', () => {
 
       // Deserialize from binary bytes
       const actual = new SerializationTestObject();
-      const canDeserialize = deserializeFromBytes(bytes, actual, SerializationTestObject);
+      let canDeserialize = false;
+      try {
+        canDeserialize = deserializeFromBytes(bytes, actual, SerializationTestObject);
+      } catch (error) {
+        console.error('Binary deserialization error:', error);
+        throw error;
+      }
 
       // Verify deserialization succeeded
+      if (!canDeserialize) {
+        console.error('Binary deserialization returned false - check console for errors');
+      }
       expect(canDeserialize).toBe(true);
 
       // Verify the objects match
       const result = verifySerializationTestObject(actual, expected);
-      expect(result.success).toBe(true);
       if (!result.success) {
         console.error('Verification failed:', result.message);
+        console.error('Expected:', JSON.stringify(expected, (key, value) =>
+          typeof value === 'bigint' ? value.toString() : value instanceof Map ? Array.from(value.entries()) : value, 2));
+        console.error('Actual:', JSON.stringify(actual, (key, value) =>
+          typeof value === 'bigint' ? value.toString() : value instanceof Map ? Array.from(value.entries()) : value, 2));
       }
+      expect(result.success).toBe(true);
     });
 
     it('should handle empty arrays in binary format', () => {
