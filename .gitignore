@@ -61,6 +61,10 @@ imgui.ini
 MikanXR.log
 !src/Object
 
+#MikanUI
+src/MikanUI/node_modules
+src/MikanUI/resources/js
+
 #Tools
 !tools/*/*.exe
 

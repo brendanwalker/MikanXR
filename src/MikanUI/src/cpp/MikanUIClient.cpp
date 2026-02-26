@@ -5,8 +5,11 @@
 #include "include/wrapper/cef_closure_task.h"
 #include "include/wrapper/cef_helpers.h"
 
+#include <windows.h>
+
 MikanUIClient::MikanUIClient()
     : m_isClosing(false)
+    , m_parentWindow(NULL)
 {
 }
 
@@ -72,4 +75,13 @@ void MikanUIClient::CloseAllBrowsers(bool force_close)
     {
         (*it)->GetHost()->CloseBrowser(force_close);
     }
+}
+
+// CefClient methods
+bool MikanUIClient::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
+    CefRefPtr<CefFrame> frame,
+    CefProcessId source_process,
+    CefRefPtr<CefProcessMessage> message)
+{
+	return true;
 }

@@ -1,16 +1,32 @@
 // Mikan WebSocket Client
 class MikanWebSocket {
-    constructor(url = 'ws://localhost:8080') {
-        this.url = url;
+    constructor() {
+        this.url = null;
         this.ws = null;
         this.reconnectInterval = 3000;
         this.reconnectTimer = null;
         this.messageHandlers = new Map();
         this.onStatusChange = null;
+        this.autoReconnect = false;
+        this.requestId = 0;
+        this.pendingRequests = new Map();
     }
 
-    connect() {
+    connect(url) {
+        this.url = url || this.url;
+        if (!this.url) {
+            console.error('No URL provided');
+            if (this.onStatusChange) {
+                this.onStatusChange('error', 'No URL provided');
+            }
+            return;
+        }
+
         try {
+            if (this.onStatusChange) {
+                this.onStatusChange('connecting');
+            }
+
             this.ws = new WebSocket(this.url);
 
             this.ws.onopen = () => {
@@ -36,7 +52,7 @@ class MikanWebSocket {
             this.ws.onerror = (error) => {
                 console.error('WebSocket error:', error);
                 if (this.onStatusChange) {
-                    this.onStatusChange('error');
+                    this.onStatusChange('error', 'Connection failed');
                 }
             };
 
@@ -45,16 +61,23 @@ class MikanWebSocket {
                 if (this.onStatusChange) {
                     this.onStatusChange('disconnected');
                 }
-                this.scheduleReconnect();
+                if (this.autoReconnect) {
+                    this.scheduleReconnect();
+                }
             };
         } catch (e) {
             console.error('Failed to connect:', e);
-            this.scheduleReconnect();
+            if (this.onStatusChange) {
+                this.onStatusChange('error', e.message);
+            }
+            if (this.autoReconnect) {
+                this.scheduleReconnect();
+            }
         }
     }
 
     scheduleReconnect() {
-        if (!this.reconnectTimer) {
+        if (!this.reconnectTimer && this.autoReconnect) {
             this.reconnectTimer = setTimeout(() => {
                 console.log('Attempting to reconnect...');
                 this.connect();
@@ -71,6 +94,30 @@ class MikanWebSocket {
         }
     }
 
+    // Send a request and get a promise for the response
+    async request(type, data = {}) {
+        return new Promise((resolve, reject) => {
+            if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                const requestId = ++this.requestId;
+                const message = { type, requestId, ...data };
+
+                this.pendingRequests.set(requestId, { resolve, reject });
+
+                this.ws.send(JSON.stringify(message));
+
+                // Timeout after 10 seconds
+                setTimeout(() => {
+                    if (this.pendingRequests.has(requestId)) {
+                        this.pendingRequests.delete(requestId);
+                        reject(new Error('Request timeout'));
+                    }
+                }, 10000);
+            } else {
+                reject(new Error('WebSocket not connected'));
+            }
+        });
+    }
+
     on(messageType, handler) {
         if (!this.messageHandlers.has(messageType)) {
             this.messageHandlers.set(messageType, []);
@@ -79,6 +126,15 @@ class MikanWebSocket {
     }
 
     handleMessage(message) {
+        // Check if this is a response to a pending request
+        if (message.requestId && this.pendingRequests.has(message.requestId)) {
+            const { resolve } = this.pendingRequests.get(message.requestId);
+            this.pendingRequests.delete(message.requestId);
+            resolve(message);
+            return;
+        }
+
+        // Otherwise, call registered handlers
         const handlers = this.messageHandlers.get(message.type);
         if (handlers) {
             handlers.forEach(handler => handler(message));
@@ -86,6 +142,7 @@ class MikanWebSocket {
     }
 
     disconnect() {
+        this.autoReconnect = false;
         if (this.reconnectTimer) {
             clearTimeout(this.reconnectTimer);
             this.reconnectTimer = null;
@@ -94,5 +151,9 @@ class MikanWebSocket {
             this.ws.close();
             this.ws = null;
         }
+    }
+
+    isConnected() {
+        return this.ws && this.ws.readyState === WebSocket.OPEN;
     }
 }
