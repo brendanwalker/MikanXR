@@ -19,7 +19,7 @@ export enum MikanColorBufferType {
 
 export enum MikanConstants {
   InvalidMikanID = -1,
-  ClientAPIVersion = 1
+  ClientAPIVersion = 0
 }
 
 export enum MikanCoreResult {
