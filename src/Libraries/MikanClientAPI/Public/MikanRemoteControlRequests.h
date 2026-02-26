@@ -76,7 +76,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRemoteControlRequest"
 // Remote Control Response Types
 // ------
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) MikanAppStageInfoResponse : 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanRemoteControlRequest")) MikanAppStageInfoResponse : 
 	public MikanResponse
 {
 	MikanAppStageInfoResponse()
