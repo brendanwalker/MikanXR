@@ -29,11 +29,11 @@ list(APPEND MIKAN_UI_REQ_LIBS
 file(GLOB MIKAN_UI_CPP_SOURCES src/cpp/*.cpp)
 file(GLOB MIKAN_UI_CPP_HEADERS src/cpp/*.h)
 
-# TypeScript source files (for IDE display)
-file(GLOB MIKAN_UI_TS_SOURCES src/ts/*.ts)
+# TypeScript and Vue source files (for IDE display)
+file(GLOB_RECURSE MIKAN_UI_TS_SOURCES src/ts/*.ts src/ts/*.vue)
 
-# Web resource files
-file(GLOB MIKAN_UI_RESOURCES_HTML resources/*.html)
+# Web resource files (Vite will generate these)
+file(GLOB MIKAN_UI_RESOURCES_HTML index.html)
 file(GLOB MIKAN_UI_RESOURCES_CSS resources/css/*.css)
 file(GLOB MIKAN_UI_RESOURCES_JS resources/js/*.js)
 
@@ -67,10 +67,10 @@ target_link_libraries(${PROJECT_NAME} ${MIKAN_UI_REQ_LIBS})
 COPY_FILES("${PROJECT_NAME}" "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
 COPY_FILES("${PROJECT_NAME}" "${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
 
-# Build TypeScript sources (if npm and TypeScript are available)
+# Build Vue/TypeScript sources with Vite (if npm is available)
 find_program(NPM_EXECUTABLE npm)
 if(NPM_EXECUTABLE)
-    message(STATUS "Found npm, will build TypeScript sources")
+    message(STATUS "Found npm, will build Vue/TypeScript sources with Vite")
 
     # Install dependencies if needed
     add_custom_command(
@@ -80,25 +80,26 @@ if(NPM_EXECUTABLE)
         COMMENT "Installing npm dependencies for MikanUI"
     )
 
-    # Compile TypeScript
+    # Build with Vite - output will go to resources/
     add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/resources/js/app.js
+        OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/resources/index.html
         COMMAND ${NPM_EXECUTABLE} run build
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         DEPENDS
             ${CMAKE_CURRENT_SOURCE_DIR}/node_modules/.package-lock.json
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/ts/app.ts
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/ts/native-bridge.ts
-        COMMENT "Compiling TypeScript for MikanUI"
+            ${MIKAN_UI_TS_SOURCES}
+            ${CMAKE_CURRENT_SOURCE_DIR}/index.html
+            ${CMAKE_CURRENT_SOURCE_DIR}/vite.config.ts
+        COMMENT "Building Vue/TypeScript with Vite for MikanUI"
     )
 
-    # Add TypeScript compilation as a dependency
-    add_custom_target(MikanUI_TypeScript
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/resources/js/app.js
+    # Add Vite build as a dependency
+    add_custom_target(MikanUI_ViteBuild
+        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/resources/index.html
     )
-    add_dependencies(${PROJECT_NAME} MikanUI_TypeScript)
+    add_dependencies(${PROJECT_NAME} MikanUI_ViteBuild)
 else()
-    message(WARNING "npm not found, TypeScript sources will not be compiled automatically")
+    message(WARNING "npm not found, Vue/TypeScript sources will not be compiled automatically")
 endif()
 
 # Copy web resources to output directory
