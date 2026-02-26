@@ -6,6 +6,7 @@ namespace MikanXR
 {
 	public enum MikanMarkerDictionaryType
 	{
+		INVALID= -1,
 		DICT_4x4= 0,
 		DICT_5x5= 1,
 		DICT_6x6= 2,

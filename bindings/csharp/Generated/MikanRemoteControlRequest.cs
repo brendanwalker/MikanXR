@@ -10,6 +10,13 @@ namespace MikanXR
 
 	};
 
+	public class MikanAppStageInfoResponse : MikanResponse
+	{
+		public static new readonly long classId= -6661996497938081679;
+
+		public MikanAppStageInfo app_stage_info;
+	};
+
 	public class MikanRemoteControlCommand : MikanRequest
 	{
 		public static new readonly long classId= 4595909365701644961;
