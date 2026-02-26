@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <sstream>
 #include <ostream>
@@ -505,9 +506,12 @@ protected:
 		}
 
 		// Emit interfaces
+		// Sort structs by inheritance hierarchy to avoid forward references
 		if (module->serializableStructs.size() > 0)
 		{
-			for (rfk::Struct const* structRef : module->serializableStructs)
+			std::vector<rfk::Struct const*> sortedStructs = topologicalSortStructsByInheritance(module->serializableStructs);
+
+			for (rfk::Struct const* structRef : sortedStructs)
 			{
 				emitTypeScriptInterface(moduleFile, *structRef);
 				moduleFile << std::endl;
@@ -757,6 +761,64 @@ protected:
 	}
 
 	// TypeScript Code Generation Methods
+	// Topological sort to order structs so base classes come before derived classes
+	std::vector<rfk::Struct const*> topologicalSortStructsByInheritance(const std::vector<rfk::Struct const*>& structs)
+	{
+		std::vector<rfk::Struct const*> result;
+		std::set<rfk::Struct const*> visited;
+		std::set<rfk::Struct const*> visiting;
+
+		// Build a map of struct name to struct pointer for quick lookup
+		std::map<std::string, rfk::Struct const*> nameToStruct;
+		for (rfk::Struct const* s : structs)
+		{
+			nameToStruct[s->getName()] = s;
+		}
+
+		// Context struct to pass to the foreachDirectParent callback
+		struct VisitContext {
+			std::map<std::string, rfk::Struct const*>* nameToStruct;
+			std::function<void(rfk::Struct const*)>* visit;
+		};
+
+		// Recursive DFS function
+		std::function<void(rfk::Struct const*)> visit = [&](rfk::Struct const* s) {
+			if (visited.count(s)) return;
+			if (visiting.count(s)) return; // Cycle detected, skip
+
+			visiting.insert(s);
+
+			// Visit all parent structs first (only those in the same module)
+			VisitContext ctx = { &nameToStruct, &visit };
+			s->foreachDirectParent([](rfk::ParentStruct const& parentStruct, void* userData) -> bool {
+				VisitContext* ctx = static_cast<VisitContext*>(userData);
+				rfk::Struct const& parentArchetype = parentStruct.getArchetype();
+				std::string parentName = parentArchetype.getName();
+
+				// Check if parent is in our list of structs to sort
+				auto it = ctx->nameToStruct->find(parentName);
+				if (it != ctx->nameToStruct->end())
+				{
+					(*ctx->visit)(it->second);
+				}
+
+				return true;
+			}, &ctx);
+
+			visiting.erase(s);
+			visited.insert(s);
+			result.push_back(s);
+		};
+
+		// Visit all structs
+		for (rfk::Struct const* s : structs)
+		{
+			visit(s);
+		}
+
+		return result;
+	}
+
 	void collectTypeScriptImports(ClientModulePtr const& module, std::set<std::string>& imports)
 	{
 		std::string currentModuleName = module->name;
@@ -786,6 +848,12 @@ protected:
 					{
 						importsPtr->insert(parentName);
 					}
+				}
+				else
+				{
+					// Parent doesn't have CodeGenModule property - it's probably a manual type like PolymorphicStruct
+					// Always add it to imports so findModuleForType can handle it
+					importsPtr->insert(parentName);
 				}
 
 				return true;
@@ -1075,7 +1143,7 @@ protected:
 
 		// Emit serialization metadata
 		moduleFile << std::endl;
-		moduleFile << "  static __serializationMetadata = [" << std::endl;
+		moduleFile << "  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [" << std::endl;
 
 		for (size_t i = 0; i < sortedFields.size(); ++i)
 		{
@@ -1183,7 +1251,36 @@ protected:
 		}
 		else if (kind == rfk::EEntityKind::Enum)
 		{
-			return type.isCArray() ? "[]" : "0";
+			if (type.isCArray())
+			{
+				return "[]";
+			}
+			else
+			{
+				// Get the first enum value as the default
+				rfk::Enum const* enumType = rfk::enumCast(archetype);
+				if (enumType && enumType->getEnumValuesCount() > 0)
+				{
+					std::string enumName = enumType->getName();
+
+					const rfk::EnumValue& enumValue = enumType->getEnumValueAt(0);
+					auto const* property = enumValue.getProperty<Serialization::EnumStringValue>();
+					std::string firstValueName;
+					if (property != nullptr)
+					{
+						firstValueName = property->getValue();
+					}
+					else
+					{
+						firstValueName = enumType->getEnumValueAt(0).getName();
+					}
+
+					return enumName + "." + firstValueName;
+
+				}
+
+				return "null as any";
+			}
 		}
 		else if (kind == rfk::EEntityKind::FundamentalArchetype)
 		{
