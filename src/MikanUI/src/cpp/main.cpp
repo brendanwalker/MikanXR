@@ -45,6 +45,10 @@ int APIENTRY wWinMain(HINSTANCE hInstance,
     settings.no_sandbox = true;
 #endif
 
+    // Enable remote debugging on port 9222
+    // Access DevTools by navigating to http://localhost:9222 in Chrome/Edge
+    settings.remote_debugging_port = 9222;
+
     // MikanUIApp implements application-level callbacks for the browser process.
     CefRefPtr<MikanUIApp> app(new MikanUIApp);
 
