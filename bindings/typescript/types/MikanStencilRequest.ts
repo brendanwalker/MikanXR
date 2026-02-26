@@ -1,7 +1,7 @@
 // This file is auto generated. DO NOT EDIT.
 
-import { MikanRequest, MikanResponse } from './MikanAPITypes';
-import { MikanStencilModelRenderGeometry } from './MikanStencilTypes';
+import { MikanRequest, MikanResponse } from './MikanAPITypes.js';
+import { MikanStencilModelRenderGeometry } from './MikanStencilTypes.js';
 
 export const CLASS_ID_GET_MODEL_STENCIL_RENDER_GEOMETRY = 7106057332746101286n;
 export const CLASS_ID_MIKAN_STENCIL_MODEL_RENDER_GEOMETRY_RESPONSE = 6128619420232158675n;

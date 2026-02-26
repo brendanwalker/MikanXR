@@ -1,7 +1,7 @@
 // This file is auto generated. DO NOT EDIT.
 
-import { MikanRequest } from './MikanAPITypes';
-import { MikanScriptMessageInfo } from './MikanScriptTypes';
+import { MikanRequest } from './MikanAPITypes.js';
+import { MikanScriptMessageInfo } from './MikanScriptTypes.js';
 
 export const CLASS_ID_SEND_SCRIPT_MESSAGE = -3006836539234531471n;
 

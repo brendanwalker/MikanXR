@@ -1,7 +1,7 @@
 // This file is auto generated. DO NOT EDIT.
 
-import { MikanRequest } from './MikanAPITypes';
-import { MikanRenderTargetDescriptor } from './MikanCoreTypes';
+import { MikanRequest } from './MikanAPITypes.js';
+import { MikanRenderTargetDescriptor } from './MikanCoreTypes.js';
 
 export const CLASS_ID_ALLOCATE_CAMERA_RENDER_TARGET_TEXTURES = -6829988777871465530n;
 export const CLASS_ID_FREE_CAMERA_RENDER_TARGET_TEXTURES = 7456227028164264559n;

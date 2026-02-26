@@ -1,6 +1,6 @@
 // This file is auto generated. DO NOT EDIT.
 
-import { MikanComponentValues } from './MikanComponentTypes';
+import { MikanComponentValues } from './MikanComponentTypes.js';
 
 export const CLASS_ID_MIKAN_CLIENT_TEXTURE_SOURCE_VALUES = 7729317308425418102n;
 export const CLASS_ID_MIKAN_SPOUT_TEXTURE_SOURCE_VALUES = -8143993449605749718n;

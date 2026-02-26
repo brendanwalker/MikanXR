@@ -1,9 +1,9 @@
 // This file is auto generated. DO NOT EDIT.
 
-import { PolymorphicObject, PolymorphicStruct } from './../PolymorphicObject';
-import { MikanRequest, MikanResponse } from './MikanAPITypes';
-import { MikanPropertyDescriptor, MikanPropertyValue } from './MikanPropertyTypes';
-import { MikanVariant } from './MikanVariantTypes';
+import { PolymorphicObject, PolymorphicStruct } from './../PolymorphicObject.js';
+import { MikanRequest, MikanResponse } from './MikanAPITypes.js';
+import { MikanPropertyDescriptor, MikanPropertyValue } from './MikanPropertyTypes.js';
+import { MikanVariant } from './MikanVariantTypes.js';
 
 export enum MikanPropertyNotifyMode {
   NONE = 0,

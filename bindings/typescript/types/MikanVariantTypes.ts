@@ -1,8 +1,8 @@
 // This file is auto generated. DO NOT EDIT.
 
-import { PolymorphicObject, PolymorphicStruct } from './../PolymorphicObject';
-import { MikanMatrix4f, MikanQuatd, MikanQuatf, MikanVector2d, MikanVector2f, MikanVector3d, MikanVector3f, MikanVector4d, MikanVector4f } from './MikanMathTypes';
-import { MikanVariantBase } from './MikanVideoSourceTypes';
+import { PolymorphicObject, PolymorphicStruct } from './../PolymorphicObject.js';
+import { MikanMatrix4f, MikanQuatd, MikanQuatf, MikanVector2d, MikanVector2f, MikanVector3d, MikanVector3f, MikanVector4d, MikanVector4f } from './MikanMathTypes.js';
+import { MikanVariantBase } from './MikanVideoSourceTypes.js';
 
 export enum MikanVariantType {
   INVALID_TYPE = 0,

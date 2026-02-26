@@ -5,8 +5,8 @@ import {
   visitValue,
   FieldMetadata,
   getSerializationMetadata
-} from './SerializationUtils';
-import { PolymorphicObject } from '../PolymorphicObject';
+} from './SerializationUtils.js';
+import { PolymorphicObject } from '../PolymorphicObject.js';
 
 /**
  * JSON write visitor for serializing objects to JSON

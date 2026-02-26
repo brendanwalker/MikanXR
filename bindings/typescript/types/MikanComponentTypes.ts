@@ -1,6 +1,6 @@
 // This file is auto generated. DO NOT EDIT.
 
-import { PolymorphicStruct } from './../PolymorphicObject';
+import { PolymorphicStruct } from './../PolymorphicObject.js';
 
 export const CLASS_ID_MIKAN_COMPONENT_VALUES = 6669556251977010658n;
 

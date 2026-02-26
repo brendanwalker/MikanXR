@@ -1,7 +1,7 @@
 // This file is auto generated. DO NOT EDIT.
 
-import { MikanVector2f, MikanVector3f } from './MikanMathTypes';
-import { MikanTransformComponentValues } from './MikanTransformTypes';
+import { MikanVector2f, MikanVector3f } from './MikanMathTypes.js';
+import { MikanTransformComponentValues } from './MikanTransformTypes.js';
 
 export enum MikanStencilCullMode {
   NONE = 0,

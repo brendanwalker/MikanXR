@@ -1,7 +1,7 @@
 // Main exports for MikanXR TypeScript bindings
-export { MikanClient, MikanLogCallback, MikanClientOptions } from './MikanClient';
-export { MikanRequestManager } from './MikanRequestManager';
-export { MikanEventManager } from './MikanEventManager';
-export { MikanResponseFuture } from './MikanResponseFuture';
-export { PolymorphicStruct, PolymorphicObject } from './PolymorphicObject';
-export * from './types';
+export { MikanClient, MikanLogCallback, MikanClientOptions } from './MikanClient.js';
+export { MikanRequestManager } from './MikanRequestManager.js';
+export { MikanEventManager } from './MikanEventManager.js';
+export { MikanResponseFuture } from './MikanResponseFuture.js';
+export { PolymorphicStruct, PolymorphicObject } from './PolymorphicObject.js';
+export * from './types/index.js';

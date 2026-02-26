@@ -1,7 +1,7 @@
 // This file is auto generated. DO NOT EDIT.
 
-import { MikanComponentValues } from './MikanComponentTypes';
-import { MikanSystemValues } from './MikanPropertyTypes';
+import { MikanComponentValues } from './MikanComponentTypes.js';
+import { MikanSystemValues } from './MikanPropertyTypes.js';
 
 export enum MikanMarkerDictionaryType {
   INVALID = -1,

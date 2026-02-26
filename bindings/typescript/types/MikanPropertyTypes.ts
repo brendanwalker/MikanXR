@@ -1,7 +1,7 @@
 // This file is auto generated. DO NOT EDIT.
 
-import { PolymorphicStruct } from './../PolymorphicObject';
-import { MikanVariant, MikanVariantType } from './MikanVariantTypes';
+import { PolymorphicStruct } from './../PolymorphicObject.js';
+import { MikanVariant, MikanVariantType } from './MikanVariantTypes.js';
 
 export const CLASS_ID_MIKAN_PROPERTY_DESCRIPTOR = 6424203277621511357n;
 export const CLASS_ID_MIKAN_PROPERTY_VALUE = 6952539342367057093n;

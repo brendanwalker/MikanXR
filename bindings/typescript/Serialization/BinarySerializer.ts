@@ -5,10 +5,10 @@ import {
   visitValue,
   FieldMetadata,
   getSerializationMetadata
-} from './SerializationUtils';
-import { BinaryWriter } from './BinaryWriter';
-import { PolymorphicObject } from '../PolymorphicObject';
-import { TypeRegistry } from './JsonDeserializer';
+} from './SerializationUtils.js';
+import { BinaryWriter } from './BinaryWriter.js';
+import { PolymorphicObject } from '../PolymorphicObject.js';
+import { TypeRegistry } from './JsonDeserializer.js';
 
 /**
  * Binary write visitor for serializing objects to binary format

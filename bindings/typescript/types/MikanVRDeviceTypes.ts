@@ -1,6 +1,6 @@
 // This file is auto generated. DO NOT EDIT.
 
-import { MikanTransformComponentValues } from './MikanTransformTypes';
+import { MikanTransformComponentValues } from './MikanTransformTypes.js';
 
 export enum MikanVRDeviceApi {
   INVALID = 0,

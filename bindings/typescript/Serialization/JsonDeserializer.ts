@@ -5,8 +5,8 @@ import {
   visitValue,
   FieldMetadata,
   getSerializationMetadata
-} from './SerializationUtils';
-import { PolymorphicObject, PolymorphicStruct } from '../PolymorphicObject';
+} from './SerializationUtils.js';
+import { PolymorphicObject, PolymorphicStruct } from '../PolymorphicObject.js';
 
 /**
  * Type registry for runtime type lookup

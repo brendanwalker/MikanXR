@@ -1,7 +1,7 @@
 // This file is auto generated. DO NOT EDIT.
 
-import { MikanComponentValues } from './MikanComponentTypes';
-import { MikanVector3f } from './MikanMathTypes';
+import { MikanComponentValues } from './MikanComponentTypes.js';
+import { MikanVector3f } from './MikanMathTypes.js';
 
 export const CLASS_ID_MIKAN_TRANSFORM_COMPONENT_VALUES = -1422492652628173064n;
 

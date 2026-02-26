@@ -1,7 +1,7 @@
 // This file is auto generated. DO NOT EDIT.
 
-import { MikanComponentValues } from './MikanComponentTypes';
-import { MikanMatrix4f, MikanVector3f } from './MikanMathTypes';
+import { MikanComponentValues } from './MikanComponentTypes.js';
+import { MikanMatrix4f, MikanVector3f } from './MikanMathTypes.js';
 
 export enum MikanTrackingRuntime {
   INVALID = -1,

@@ -3,15 +3,15 @@ import {
   MikanResponse,
   MikanAPIResult,
   CLASS_ID_MIKAN_RESPONSE
-} from './types';
-import { MikanResponseFuture } from './MikanResponseFuture';
+} from './types/index.js';
+import { MikanResponseFuture } from './MikanResponseFuture.js';
 import {
   serializeToJsonString,
   deserializeFromJsonString,
   deserializeFromBytes,
   TypeRegistry
-} from './Serialization';
-import { BinaryReader } from './Serialization/BinaryReader';
+} from './Serialization/index.js';
+import { BinaryReader } from './Serialization/BinaryReader.js';
 
 interface PendingRequest {
   requestId: number;

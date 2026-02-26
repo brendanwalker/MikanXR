@@ -1,6 +1,6 @@
 // This file is auto generated. DO NOT EDIT.
 
-import { MikanClientGraphicsApi } from './MikanCoreConstants';
+import { MikanClientGraphicsApi } from './MikanCoreConstants.js';
 
 export const CLASS_ID_MIKAN_CLIENT_INFO = -2302096980379213470n;
 

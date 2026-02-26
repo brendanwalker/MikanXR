@@ -1,5 +1,5 @@
 import { MikanClient, MikanLogLevel, MikanAPIResult, CLASS_ID_GET_APP_STAGE_INFO } from '@mikanxr/client';
-import { nativeBridge } from './native-bridge';
+import { nativeBridge } from './native-bridge.js';
 // UI Elements
 const statusDiv = document.getElementById('status');
 const connectBtn = document.getElementById('connect-btn');

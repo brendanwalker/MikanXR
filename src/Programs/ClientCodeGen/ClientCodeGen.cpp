@@ -316,7 +316,7 @@ protected:
 			for (auto const& module : codeGenDatabase.modules)
 			{
 				const std::string& moduleName = module.first;
-				moduleFile << "export * from './" << moduleName << "';" << std::endl;
+				moduleFile << "export * from './" << moduleName << ".js';" << std::endl;
 			}
 
 			moduleFile.close();
@@ -465,7 +465,7 @@ protected:
 				if (i > 0) moduleFile << ", ";
 				moduleFile << types[i];
 			}
-			moduleFile << " } from './" << sourceModule << "';" << std::endl;
+			moduleFile << " } from './" << sourceModule << ".js';" << std::endl;
 		}
 		if (!moduleImports.empty())
 		{

@@ -1,7 +1,7 @@
 // This file is auto generated. DO NOT EDIT.
 
-import { MikanRequest, MikanResponse } from './MikanAPITypes';
-import { MikanAppStageInfo } from './MikanRemoteControlTypes';
+import { MikanRequest, MikanResponse } from './MikanAPITypes.js';
+import { MikanAppStageInfo } from './MikanRemoteControlTypes.js';
 
 export const CLASS_ID_GET_APP_STAGE_INFO = -1337747226464149062n;
 export const CLASS_ID_MIKAN_APP_STAGE_INFO_RESPONSE = -6661996497938081679n;

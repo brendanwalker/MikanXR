@@ -1,7 +1,7 @@
 // This file is auto generated. DO NOT EDIT.
 
-import { MikanEvent } from './MikanAPITypes';
-import { MikanVector2d, MikanVector2i, MikanVector3f } from './MikanMathTypes';
+import { MikanEvent } from './MikanAPITypes.js';
+import { MikanVector2d, MikanVector2i, MikanVector3f } from './MikanMathTypes.js';
 
 export const CLASS_ID_MIKAN_CAMERA_NEW_FRAME_EVENT = -514294351884360997n;
 

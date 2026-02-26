@@ -1,6 +1,6 @@
 // This file is auto generated. DO NOT EDIT.
 
-import { MikanEvent } from './MikanAPITypes';
+import { MikanEvent } from './MikanAPITypes.js';
 
 export const CLASS_ID_MIKAN_VIDEO_SOURCE_CLOSED_EVENT = -5465858161967922385n;
 export const CLASS_ID_MIKAN_VIDEO_SOURCE_MODE_CHANGED_EVENT = 2985204106626338658n;

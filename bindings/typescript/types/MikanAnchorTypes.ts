@@ -1,6 +1,6 @@
 // This file is auto generated. DO NOT EDIT.
 
-import { MikanTransformComponentValues } from './MikanTransformTypes';
+import { MikanTransformComponentValues } from './MikanTransformTypes.js';
 
 export const CLASS_ID_MIKAN_ANCHOR_COMPONENT_VALUES = 6113319869434591989n;
 

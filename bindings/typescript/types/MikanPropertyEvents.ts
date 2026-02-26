@@ -1,7 +1,7 @@
 // This file is auto generated. DO NOT EDIT.
 
-import { MikanEvent } from './MikanAPITypes';
-import { MikanPropertyValue } from './MikanPropertyTypes';
+import { MikanEvent } from './MikanAPITypes.js';
+import { MikanPropertyValue } from './MikanPropertyTypes.js';
 
 export const CLASS_ID_MIKAN_PROPERTY_UPDATE_EVENT = -3166715052004720697n;
 

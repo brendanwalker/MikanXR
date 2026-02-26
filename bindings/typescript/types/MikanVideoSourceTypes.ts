@@ -1,8 +1,8 @@
 // This file is auto generated. DO NOT EDIT.
 
-import { PolymorphicObject, PolymorphicStruct } from './../PolymorphicObject';
-import { MikanComponentValues } from './MikanComponentTypes';
-import { MikanMatrix3d, MikanMatrix4d, MikanMatrix4x3d, MikanVector3d } from './MikanMathTypes';
+import { PolymorphicObject, PolymorphicStruct } from './../PolymorphicObject.js';
+import { MikanComponentValues } from './MikanComponentTypes.js';
+import { MikanMatrix3d, MikanMatrix4d, MikanMatrix4x3d, MikanVector3d } from './MikanMathTypes.js';
 
 export enum MikanIntrinsicsType {
   INVALID = 0,

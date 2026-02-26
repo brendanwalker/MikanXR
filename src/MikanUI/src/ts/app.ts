@@ -8,7 +8,7 @@ import {
     CLASS_ID_GET_APP_STAGE_INFO,
     MikanAppStageInfoResponse
 } from '@mikanxr/client';
-import { nativeBridge } from './native-bridge';
+import { nativeBridge } from './native-bridge.js';
 
 // UI Elements
 const statusDiv = document.getElementById('status')!;

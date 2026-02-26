@@ -4,8 +4,8 @@ import {
   MikanDisconnectedEvent,
   MikanDisconnectCode,
   CLASS_ID_MIKAN_DISCONNECTED_EVENT
-} from './types';
-import { deserializeFromJsonString, TypeRegistry } from './Serialization';
+} from './types/index.js';
+import { deserializeFromJsonString, TypeRegistry } from './Serialization/index.js';
 
 export class MikanEventManager extends EventEmitter {
   private static readonly WEBSOCKET_DISCONNECT_EVENT = 'disconnect';

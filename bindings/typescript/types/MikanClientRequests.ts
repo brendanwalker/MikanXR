@@ -1,7 +1,7 @@
 // This file is auto generated. DO NOT EDIT.
 
-import { MikanRequest } from './MikanAPITypes';
-import { MikanClientInfo } from './MikanClientTypes';
+import { MikanRequest } from './MikanAPITypes.js';
+import { MikanClientInfo } from './MikanClientTypes.js';
 
 export const CLASS_ID_DISPOSE_CLIENT_REQUEST = -671320724823045972n;
 export const CLASS_ID_INIT_CLIENT_REQUEST = 7270577563897270843n;

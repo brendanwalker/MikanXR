@@ -1,12 +1,12 @@
 // Serialization utilities
-export * from './SerializationUtils';
+export * from './SerializationUtils.js';
 
 // JSON serialization
-export * from './JsonSerializer';
-export * from './JsonDeserializer';
+export * from './JsonSerializer.js';
+export * from './JsonDeserializer.js';
 
 // Binary serialization
-export * from './BinaryWriter';
-export * from './BinaryReader';
-export * from './BinarySerializer';
-export * from './BinaryDeserializer';
+export * from './BinaryWriter.js';
+export * from './BinaryReader.js';
+export * from './BinarySerializer.js';
+export * from './BinaryDeserializer.js';

@@ -1,7 +1,7 @@
 // This file is auto generated. DO NOT EDIT.
 
-import { MikanRequest, MikanResponse } from './MikanAPITypes';
-import { MikanVideoSourceIntrinsics, MikanVideoSourceType } from './MikanVideoSourceTypes';
+import { MikanRequest, MikanResponse } from './MikanAPITypes.js';
+import { MikanVideoSourceIntrinsics, MikanVideoSourceType } from './MikanVideoSourceTypes.js';
 
 export const CLASS_ID_GET_VIDEO_SOURCE_INTRINSICS = 5111634741046016445n;
 export const CLASS_ID_GET_VIDEO_SOURCE_MODE = -5470313175782314738n;

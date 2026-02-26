@@ -1,6 +1,6 @@
-import { MikanRequestManager } from './MikanRequestManager';
-import { MikanEventManager } from './MikanEventManager';
-import { MikanResponseFuture } from './MikanResponseFuture';
+import { MikanRequestManager } from './MikanRequestManager.js';
+import { MikanEventManager } from './MikanEventManager.js';
+import { MikanResponseFuture } from './MikanResponseFuture.js';
 import {
   MikanRequest,
   MikanAPIResult,
@@ -8,7 +8,7 @@ import {
   MikanClientInfo,
   MikanClientGraphicsApi,
   MikanConstants
-} from './types';
+} from './types/index.js';
 
 export type MikanLogCallback = (level: MikanLogLevel, message: string) => void;
 
