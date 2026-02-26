@@ -11,13 +11,6 @@ namespace MikanXR
 		public int stencilId;
 	};
 
-	public class MikanAppStageInfoResponse : MikanResponse
-	{
-		public static new readonly long classId= -6661996497938081679;
-
-		public MikanAppStageInfo app_stage_info;
-	};
-
 	public class MikanStencilModelRenderGeometryResponse : MikanResponse
 	{
 		public static new readonly long classId= 6128619420232158675;

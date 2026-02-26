@@ -14,7 +14,7 @@
 
 enum class ENUM(Serialization::CodeGenModule("MikanMarkerTypes")) MikanMarkerDictionaryType : int
 {
-	INVALID = -1,
+	INVALID ENUMVALUE_STRING("INVALID") = -1,
 
 	DICT_4X4 ENUMVALUE_STRING("DICT_4x4"),
 	DICT_5X5 ENUMVALUE_STRING("DICT_5x5"),
