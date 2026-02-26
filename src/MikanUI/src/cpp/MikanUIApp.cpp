@@ -48,6 +48,16 @@ MikanUIApp::MikanUIApp()
 {
 }
 
+void MikanUIApp::OnBeforeCommandLineProcessing(
+    const CefString& process_type,
+    CefRefPtr<CefCommandLine> command_line)
+{
+    // Allow file:// URLs to access other file:// URLs and load ES modules
+    // This is needed for loading local JavaScript files
+    command_line->AppendSwitch("allow-file-access-from-files");
+    command_line->AppendSwitch("allow-universal-access-from-files");
+}
+
 void MikanUIApp::OnContextInitialized()
 {
     CEF_REQUIRE_UI_THREAD();

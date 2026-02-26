@@ -10,6 +10,7 @@ public:
 
     // CefApp methods
     virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override { return this; }
+    virtual void OnBeforeCommandLineProcessing(const CefString& process_type, CefRefPtr<CefCommandLine> command_line) override;
 
     // CefBrowserProcessHandler methods
     virtual void OnContextInitialized() override;
