@@ -11,13 +11,13 @@ export class MikanClientInfo {
   applicationName: string = '';
   applicationVersion: string = '';
   xrDeviceName: string = '';
-  graphicsAPI: MikanClientGraphicsApi = 0;
+  graphicsAPI: MikanClientGraphicsApi = MikanClientGraphicsApi.UNKNOWN;
   supportsRGB24: boolean = false;
   supportsRGBA32: boolean = false;
   supportsBGRA32: boolean = false;
   supportsDepth: boolean = false;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'clientId', type: 'string' },
     { name: 'engineName', type: 'string' },
     { name: 'engineVersion', type: 'string' },

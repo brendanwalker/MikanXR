@@ -27,7 +27,7 @@ export class MikanMatrix3d {
   z1: number = 0;
   z2: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'x0', type: 'double' },
     { name: 'x1', type: 'double' },
     { name: 'x2', type: 'double' },
@@ -58,7 +58,7 @@ export class MikanMatrix4d {
   w2: number = 0;
   w3: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'x0', type: 'double' },
     { name: 'x1', type: 'double' },
     { name: 'x2', type: 'double' },
@@ -96,7 +96,7 @@ export class MikanMatrix4f {
   w2: number = 0;
   w3: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'x0', type: 'float' },
     { name: 'x1', type: 'float' },
     { name: 'x2', type: 'float' },
@@ -130,7 +130,7 @@ export class MikanMatrix4x3d {
   z2: number = 0;
   z3: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'x0', type: 'double' },
     { name: 'x1', type: 'double' },
     { name: 'x2', type: 'double' },
@@ -152,7 +152,7 @@ export class MikanQuatd {
   y: number = 0;
   z: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'w', type: 'double' },
     { name: 'x', type: 'double' },
     { name: 'y', type: 'double' },
@@ -166,7 +166,7 @@ export class MikanQuatf {
   y: number = 0;
   z: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'w', type: 'float' },
     { name: 'x', type: 'float' },
     { name: 'y', type: 'float' },
@@ -179,7 +179,7 @@ export class MikanRotator3f {
   y_angle: number = 0;
   z_angle: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'x_angle', type: 'float' },
     { name: 'y_angle', type: 'float' },
     { name: 'z_angle', type: 'float' }
@@ -191,7 +191,7 @@ export class MikanTransform {
   rotation: MikanQuatf = new MikanQuatf();
   position: MikanVector3f = new MikanVector3f();
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'scale', type: 'MikanVector3f' },
     { name: 'rotation', type: 'MikanQuatf' },
     { name: 'position', type: 'MikanVector3f' }
@@ -202,7 +202,7 @@ export class MikanVector2d {
   x: number = 0;
   y: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'x', type: 'double' },
     { name: 'y', type: 'double' }
   ];
@@ -212,7 +212,7 @@ export class MikanVector2f {
   x: number = 0;
   y: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'x', type: 'float' },
     { name: 'y', type: 'float' }
   ];
@@ -222,7 +222,7 @@ export class MikanVector2i {
   x: number = 0;
   y: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'x', type: 'int32' },
     { name: 'y', type: 'int32' }
   ];
@@ -233,7 +233,7 @@ export class MikanVector3d {
   y: number = 0;
   z: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'x', type: 'double' },
     { name: 'y', type: 'double' },
     { name: 'z', type: 'double' }
@@ -245,7 +245,7 @@ export class MikanVector3f {
   y: number = 0;
   z: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'x', type: 'float' },
     { name: 'y', type: 'float' },
     { name: 'z', type: 'float' }
@@ -258,7 +258,7 @@ export class MikanVector4d {
   z: number = 0;
   w: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'x', type: 'double' },
     { name: 'y', type: 'double' },
     { name: 'z', type: 'double' },
@@ -272,7 +272,7 @@ export class MikanVector4f {
   z: number = 0;
   w: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'x', type: 'float' },
     { name: 'y', type: 'float' },
     { name: 'z', type: 'float' },

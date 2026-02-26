@@ -29,7 +29,7 @@ export class ComponentGetValuesRequest extends MikanRequest {
   ownerSystem: string = '';
   componentId: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'ownerSystem', type: 'string' },
     { name: 'componentId', type: 'int32' }
   ];
@@ -40,7 +40,7 @@ export class ComponentGetValuesResponse extends MikanResponse {
   componentClassName: string = '';
   valuesObject: PolymorphicObject = new PolymorphicObject();
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'ownerSystem', type: 'string' },
     { name: 'componentClassName', type: 'string' },
     { name: 'valuesObject', type: 'PolymorphicObject' }
@@ -50,7 +50,7 @@ export class ComponentGetValuesResponse extends MikanResponse {
 export class ComponentListResponse extends MikanResponse {
   componentIdList: number[] = [];
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'componentIdList', type: 'int32', isArray: true }
   ];
 }
@@ -59,7 +59,7 @@ export class GetComponentListRequest extends MikanRequest {
   ownerSystem: string = '';
   componentClassName: string = '';
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'ownerSystem', type: 'string' },
     { name: 'componentClassName', type: 'string' }
   ];
@@ -70,7 +70,7 @@ export class GetPropertyDescriptors extends MikanRequest {
   componentFilter: string = '';
   propertyFilter: string = '';
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'systemFilter', type: 'string' },
     { name: 'componentFilter', type: 'string' },
     { name: 'propertyFilter', type: 'string' }
@@ -80,7 +80,7 @@ export class GetPropertyDescriptors extends MikanRequest {
 export class PropertyDescriptorResponse extends MikanResponse {
   descriptor_list: MikanPropertyDescriptor[] = [];
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'descriptor_list', type: 'MikanPropertyDescriptor', isArray: true }
   ];
 }
@@ -90,7 +90,7 @@ export class PropertyGetValueRequest extends MikanRequest {
   componentId: number = 0;
   fieldName: string = '';
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'ownerSystem', type: 'string' },
     { name: 'componentId', type: 'int32' },
     { name: 'fieldName', type: 'string' }
@@ -100,7 +100,7 @@ export class PropertyGetValueRequest extends MikanRequest {
 export class PropertyGetValueResponse extends MikanResponse {
   propertyValue: MikanPropertyValue = new MikanPropertyValue();
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'propertyValue', type: 'MikanPropertyValue' }
   ];
 }
@@ -111,7 +111,7 @@ export class PropertySetValueRequest extends MikanRequest {
   fieldName: string = '';
   fieldValue: MikanVariant = new MikanVariant();
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'ownerSystem', type: 'string' },
     { name: 'componentId', type: 'int32' },
     { name: 'fieldName', type: 'string' },
@@ -121,7 +121,7 @@ export class PropertySetValueRequest extends MikanRequest {
 
 export class PropertySetValueResponse extends MikanResponse {
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
   ];
 }
 
@@ -129,9 +129,9 @@ export class SetPropertyNotifyMode extends MikanRequest {
   systemFilter: string = '';
   componentFilter: string = '';
   propertyFilter: string = '';
-  notifyMode: MikanPropertyNotifyMode = 0;
+  notifyMode: MikanPropertyNotifyMode = MikanPropertyNotifyMode.NONE;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'systemFilter', type: 'string' },
     { name: 'componentFilter', type: 'string' },
     { name: 'propertyFilter', type: 'string' },
@@ -142,7 +142,7 @@ export class SetPropertyNotifyMode extends MikanRequest {
 export class SystemGetValuesRequest extends MikanRequest {
   ownerSystem: string = '';
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'ownerSystem', type: 'string' }
   ];
 }
@@ -151,7 +151,7 @@ export class SystemGetValuesResponse extends MikanResponse {
   ownerSystem: string = '';
   valuesObject: PolymorphicObject = new PolymorphicObject();
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'ownerSystem', type: 'string' },
     { name: 'valuesObject', type: 'PolymorphicObject' }
   ];

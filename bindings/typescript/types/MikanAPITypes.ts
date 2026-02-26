@@ -36,7 +36,7 @@ export class MikanEvent {
   eventTypeId: bigint = 0n;
   eventTypeName: string = '';
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'eventTypeId', type: 'int64' },
     { name: 'eventTypeName', type: 'string' }
   ];
@@ -47,7 +47,7 @@ export class MikanRequest {
   requestTypeName: string = '';
   requestId: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'requestTypeId', type: 'int64' },
     { name: 'requestTypeName', type: 'string' },
     { name: 'requestId', type: 'int32' }
@@ -58,9 +58,9 @@ export class MikanResponse {
   responseTypeId: bigint = 0n;
   responseTypeName: string = '';
   requestId: number = 0;
-  resultCode: MikanAPIResult = 0;
+  resultCode: MikanAPIResult = MikanAPIResult.Success;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'responseTypeId', type: 'int64' },
     { name: 'responseTypeName', type: 'string' },
     { name: 'requestId', type: 'int32' },

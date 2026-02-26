@@ -12,7 +12,7 @@ export const CLASS_ID_MIKAN_STAGE_COMPONENT_VALUES = -4271948442370858806n;
 export class MikanStageComponentValues extends MikanTransformComponentValues {
   tracking_volume_id: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'tracking_volume_id', type: 'int32' }
   ];
 }

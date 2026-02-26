@@ -18,29 +18,29 @@ export const CLASS_ID_MIKAN_MARKER_TRACKING_VOLUME_COMPONENT_VALUES = -912859617
 export const CLASS_ID_MIKAN_TRACKING_VOLUME_COMPONENT_VALUES = 8298175138156239447n;
 export const CLASS_ID_MIKAN_VRTRACKING_VOLUME_COMPONENT_VALUES = -4734525919723628573n;
 
-export class MikanMarkerTrackingVolumeComponentValues extends MikanTrackingVolumeComponentValues {
-
-  static __serializationMetadata = [
-  ];
-}
-
 export class MikanTrackingVolumeComponentValues extends MikanComponentValues {
   origin_marker_id: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'origin_marker_id', type: 'int32' }
   ];
 }
 
+export class MikanMarkerTrackingVolumeComponentValues extends MikanTrackingVolumeComponentValues {
+
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  ];
+}
+
 export class MikanVRTrackingVolumeComponentValues extends MikanTrackingVolumeComponentValues {
-  tracking_runtime: MikanTrackingRuntime = 0;
+  tracking_runtime: MikanTrackingRuntime = MikanTrackingRuntime.INVALID;
   charuco_mount_id: number = 0;
   charuco_mount_offset_mm: MikanVector3f = new MikanVector3f();
   utility_marker_id: number = 0;
   tracking_mount_ids: number[] = [];
   vr_device_pose_offset: MikanMatrix4f = new MikanMatrix4f();
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'tracking_runtime', type: 'enum:MikanTrackingRuntime' },
     { name: 'charuco_mount_id', type: 'int32' },
     { name: 'charuco_mount_offset_mm', type: 'MikanVector3f' },

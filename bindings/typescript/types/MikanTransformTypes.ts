@@ -10,7 +10,7 @@ export class MikanTransformComponentValues extends MikanComponentValues {
   relative_rotation: MikanVector3f = new MikanVector3f();
   relative_position: MikanVector3f = new MikanVector3f();
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'relative_scale', type: 'MikanVector3f' },
     { name: 'relative_rotation', type: 'MikanVector3f' },
     { name: 'relative_position', type: 'MikanVector3f' }

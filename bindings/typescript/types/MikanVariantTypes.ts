@@ -50,7 +50,7 @@ export const CLASS_ID_MIKAN_VECTOR4F_VALUE = -1402910374681859671n;
 export class MikanBoolArrayValue extends MikanVariantBase {
   value: boolean[] = [];
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'value', type: 'boolean' }
   ];
 }
@@ -58,7 +58,7 @@ export class MikanBoolArrayValue extends MikanVariantBase {
 export class MikanBoolValue extends MikanVariantBase {
   value: boolean = false;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'value', type: 'boolean' }
   ];
 }
@@ -66,7 +66,7 @@ export class MikanBoolValue extends MikanVariantBase {
 export class MikanDoubleValue extends MikanVariantBase {
   value: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'value', type: 'double' }
   ];
 }
@@ -74,7 +74,7 @@ export class MikanDoubleValue extends MikanVariantBase {
 export class MikanFloatArrayValue extends MikanVariantBase {
   value: number[] = [];
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'value', type: 'float', isArray: true }
   ];
 }
@@ -82,7 +82,7 @@ export class MikanFloatArrayValue extends MikanVariantBase {
 export class MikanFloatValue extends MikanVariantBase {
   value: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'value', type: 'float' }
   ];
 }
@@ -90,7 +90,7 @@ export class MikanFloatValue extends MikanVariantBase {
 export class MikanIntArrayValue extends MikanVariantBase {
   value: number[] = [];
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'value', type: 'int32', isArray: true }
   ];
 }
@@ -98,7 +98,7 @@ export class MikanIntArrayValue extends MikanVariantBase {
 export class MikanIntValue extends MikanVariantBase {
   value: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'value', type: 'int32' }
   ];
 }
@@ -106,7 +106,7 @@ export class MikanIntValue extends MikanVariantBase {
 export class MikanLongValue extends MikanVariantBase {
   value: any = null;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'value', type: 'int64' }
   ];
 }
@@ -114,7 +114,7 @@ export class MikanLongValue extends MikanVariantBase {
 export class MikanMatrix4fValue extends MikanVariantBase {
   value: MikanMatrix4f = new MikanMatrix4f();
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'value', type: 'MikanMatrix4f' }
   ];
 }
@@ -122,7 +122,7 @@ export class MikanMatrix4fValue extends MikanVariantBase {
 export class MikanQuatdValue extends MikanVariantBase {
   value: MikanQuatd = new MikanQuatd();
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'value', type: 'MikanQuatd' }
   ];
 }
@@ -130,7 +130,7 @@ export class MikanQuatdValue extends MikanVariantBase {
 export class MikanQuatfValue extends MikanVariantBase {
   value: MikanQuatf = new MikanQuatf();
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'value', type: 'MikanQuatf' }
   ];
 }
@@ -138,16 +138,16 @@ export class MikanQuatfValue extends MikanVariantBase {
 export class MikanStringValue extends MikanVariantBase {
   value: string = '';
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'value', type: 'string' }
   ];
 }
 
 export class MikanVariant {
-  value_type: MikanVariantType = 0;
+  value_type: MikanVariantType = MikanVariantType.INVALID_TYPE;
   value_ptr: PolymorphicObject = new PolymorphicObject();
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'value_type', type: 'enum:MikanVariantType' },
     { name: 'value_ptr', type: 'PolymorphicObject' }
   ];
@@ -156,7 +156,7 @@ export class MikanVariant {
 export class MikanVector2dValue extends MikanVariantBase {
   value: MikanVector2d = new MikanVector2d();
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'value', type: 'MikanVector2d' }
   ];
 }
@@ -164,7 +164,7 @@ export class MikanVector2dValue extends MikanVariantBase {
 export class MikanVector2fValue extends MikanVariantBase {
   value: MikanVector2f = new MikanVector2f();
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'value', type: 'MikanVector2f' }
   ];
 }
@@ -172,7 +172,7 @@ export class MikanVector2fValue extends MikanVariantBase {
 export class MikanVector3dValue extends MikanVariantBase {
   value: MikanVector3d = new MikanVector3d();
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'value', type: 'MikanVector3d' }
   ];
 }
@@ -180,7 +180,7 @@ export class MikanVector3dValue extends MikanVariantBase {
 export class MikanVector3fValue extends MikanVariantBase {
   value: MikanVector3f = new MikanVector3f();
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'value', type: 'MikanVector3f' }
   ];
 }
@@ -188,7 +188,7 @@ export class MikanVector3fValue extends MikanVariantBase {
 export class MikanVector4dValue extends MikanVariantBase {
   value: MikanVector4d = new MikanVector4d();
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'value', type: 'MikanVector4d' }
   ];
 }
@@ -196,7 +196,7 @@ export class MikanVector4dValue extends MikanVariantBase {
 export class MikanVector4fValue extends MikanVariantBase {
   value: MikanVector4f = new MikanVector4f();
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'value', type: 'MikanVector4f' }
   ];
 }

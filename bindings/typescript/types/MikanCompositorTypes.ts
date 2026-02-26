@@ -11,7 +11,7 @@ export class MikanCompositorComponentValues extends MikanComponentValues {
   spout_enable_output: boolean = false;
   spout_output_name: string = '';
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'owner_stage_id', type: 'int32' },
     { name: 'camera_id', type: 'int32' },
     { name: 'compositor_graph_path', type: 'string' },

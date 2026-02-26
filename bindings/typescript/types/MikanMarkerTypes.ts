@@ -4,6 +4,7 @@ import { MikanComponentValues } from './MikanComponentTypes';
 import { MikanSystemValues } from './MikanPropertyTypes';
 
 export enum MikanMarkerDictionaryType {
+  INVALID = -1,
   DICT_4x4 = 0,
   DICT_5x5 = 1,
   DICT_6x6 = 2,
@@ -17,7 +18,7 @@ export class MikanMarkerComponentValues extends MikanComponentValues {
   aruco_id: number = 0;
   length_mm: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'aruco_id', type: 'int32' },
     { name: 'length_mm', type: 'float' }
   ];
@@ -25,14 +26,14 @@ export class MikanMarkerComponentValues extends MikanComponentValues {
 
 export class MikanMarkerSystemValues extends MikanSystemValues {
   aruco_id_list: number[] = [];
-  aruco_dictionary_type: MikanMarkerDictionaryType = 0;
+  aruco_dictionary_type: MikanMarkerDictionaryType = MikanMarkerDictionaryType.INVALID;
   charuco_rows: number = 0;
   charuco_cols: number = 0;
   charuco_square_length_mm: number = 0;
   charuco_marker_length_mm: number = 0;
-  charuco_dictionary_type: MikanMarkerDictionaryType = 0;
+  charuco_dictionary_type: MikanMarkerDictionaryType = MikanMarkerDictionaryType.INVALID;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'aruco_id_list', type: 'int32', isArray: true },
     { name: 'aruco_dictionary_type', type: 'enum:MikanMarkerDictionaryType' },
     { name: 'charuco_rows', type: 'int32' },

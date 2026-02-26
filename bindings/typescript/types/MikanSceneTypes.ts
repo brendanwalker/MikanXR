@@ -9,7 +9,7 @@ export class MikanSceneComponentValues extends MikanTransformComponentValues {
   compositor_list: number[] = [];
   display_compositor_id: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'parent_stage_id', type: 'int32' },
     { name: 'compositor_list', type: 'int32', isArray: true },
     { name: 'display_compositor_id', type: 'int32' }

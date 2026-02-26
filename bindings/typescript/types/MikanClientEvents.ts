@@ -12,7 +12,7 @@ export class MikanConnectedEvent extends MikanEvent {
   minClientVersion: MikanClientAPIVersion = new MikanClientAPIVersion();
   isClientCompatible: boolean = false;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'serverVersion', type: 'MikanClientAPIVersion' },
     { name: 'minClientVersion', type: 'MikanClientAPIVersion' },
     { name: 'isClientCompatible', type: 'boolean' }
@@ -20,10 +20,10 @@ export class MikanConnectedEvent extends MikanEvent {
 }
 
 export class MikanDisconnectedEvent extends MikanEvent {
-  code: MikanDisconnectCode = 0;
+  code: MikanDisconnectCode = MikanDisconnectCode.Normal;
   reason: string = '';
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'code', type: 'enum:MikanDisconnectCode' },
     { name: 'reason', type: 'string' }
   ];

@@ -11,7 +11,7 @@ export const CLASS_ID_MIKAN_VIDEO_SOURCE_MODE_RESPONSE = -1059487460754321771n;
 export class GetVideoSourceIntrinsics extends MikanRequest {
   video_source_id: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'video_source_id', type: 'int32' }
   ];
 }
@@ -19,7 +19,7 @@ export class GetVideoSourceIntrinsics extends MikanRequest {
 export class GetVideoSourceMode extends MikanRequest {
   video_source_id: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'video_source_id', type: 'int32' }
   ];
 }
@@ -27,13 +27,13 @@ export class GetVideoSourceMode extends MikanRequest {
 export class MikanVideoSourceIntrinsicsResponse extends MikanResponse {
   intrinsics: MikanVideoSourceIntrinsics = new MikanVideoSourceIntrinsics();
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'intrinsics', type: 'MikanVideoSourceIntrinsics' }
   ];
 }
 
 export class MikanVideoSourceModeResponse extends MikanResponse {
-  video_source_type: MikanVideoSourceType = 0;
+  video_source_type: MikanVideoSourceType = MikanVideoSourceType.MONO;
   video_source_api: string = '';
   device_path: string = '';
   video_mode_name: string = '';
@@ -41,7 +41,7 @@ export class MikanVideoSourceModeResponse extends MikanResponse {
   resolution_y: number = 0;
   frame_rate: number = 0;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'video_source_type', type: 'enum:MikanVideoSourceType' },
     { name: 'video_source_api', type: 'string' },
     { name: 'device_path', type: 'string' },

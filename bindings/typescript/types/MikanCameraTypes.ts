@@ -13,7 +13,7 @@ export class MikanCameraComponentValues extends MikanTransformComponentValues {
   aperture_orientation_offset: MikanQuatd = new MikanQuatd();
   aperture_position_offset: MikanVector3d = new MikanVector3d();
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'stage_id', type: 'int32' },
     { name: 'tracking_mount_id', type: 'int32' },
     { name: 'video_source_id', type: 'int32' },

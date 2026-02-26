@@ -1,5 +1,6 @@
 // This file is auto generated. DO NOT EDIT.
 
+import { PolymorphicStruct } from './../PolymorphicObject';
 import { MikanVariant, MikanVariantType } from './MikanVariantTypes';
 
 export const CLASS_ID_MIKAN_PROPERTY_DESCRIPTOR = 6424203277621511357n;
@@ -10,10 +11,10 @@ export class MikanPropertyDescriptor {
   ownerSystemClass: string = '';
   ownerComponentClass: string = '';
   fieldName: string = '';
-  fieldType: MikanVariantType = 0;
+  fieldType: MikanVariantType = MikanVariantType.INVALID_TYPE;
   isReadOnly: boolean = false;
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'ownerSystemClass', type: 'string' },
     { name: 'ownerComponentClass', type: 'string' },
     { name: 'fieldName', type: 'string' },
@@ -29,7 +30,7 @@ export class MikanPropertyValue {
   fieldName: string = '';
   fieldValue: MikanVariant = new MikanVariant();
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'ownerSystem', type: 'string' },
     { name: 'ownerComponentClass', type: 'string' },
     { name: 'componentId', type: 'int32' },
@@ -40,7 +41,7 @@ export class MikanPropertyValue {
 
 export class MikanSystemValues extends PolymorphicStruct {
 
-  static __serializationMetadata = [
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
   ];
 }
 
