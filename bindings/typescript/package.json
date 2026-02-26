@@ -1,9 +1,20 @@
 {
-  "name": "@mikanxr/typescript-bindings",
+  "name": "@mikanxr/client",
   "version": "0.1.0",
-  "description": "TypeScript bindings for MikanXR",
-  "main": "index.ts",
-  "types": "index.ts",
+  "description": "TypeScript/JavaScript client library for MikanXR",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "default": "./dist/types/index.js"
+    }
+  },
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
