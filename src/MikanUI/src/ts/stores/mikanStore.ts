@@ -8,8 +8,15 @@ import {
   GetAppStageInfo,
   CLASS_ID_GET_APP_STAGE_INFO,
   MikanAppStageInfoResponse,
-  MikanComponent
+  MikanEvent,
+  MikanConnectedEvent,
+  MikanDisconnectedEvent,
+  MikanPropertyUpdateEvent,
+  SetPropertyNotifyMode,
+  CLASS_ID_SET_PROPERTY_NOTIFY_MODE,
+  MikanPropertyNotifyMode
 } from '@mikanxr/client'
+import { useComponentStore } from './componentStore.js'
 
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error'
 
@@ -20,9 +27,6 @@ export const useMikanStore = defineStore('mikan', () => {
   const errorMessage = ref<string | null>(null)
   const appStage = ref<string>('MainMenu')
   const isConnecting = ref(false)
-
-  // Component state management
-  const components = ref<Map<number, MikanComponent>>(new Map())
 
   // Computed
   const isConnected = computed(() => connectionStatus.value === 'connected')
@@ -62,7 +66,19 @@ export const useMikanStore = defineStore('mikan', () => {
       }
 
       connectionStatus.value = 'connected'
+
+      // Enable property update notifications
+      await setPropertyNotifyMode()
+
+      // Fetch initial data
       await fetchAppStageInfo()
+
+      // Fetch all components from the server
+      const componentStore = useComponentStore()
+      await componentStore.fetchAllComponents(client.value)
+
+      // Start processing events
+      processEvents()
 
     } catch (error) {
       console.error('Connection error:', error)
@@ -82,7 +98,37 @@ export const useMikanStore = defineStore('mikan', () => {
     }
     connectionStatus.value = 'disconnected'
     errorMessage.value = null
-    components.value.clear()
+
+    // Clear component database
+    const componentStore = useComponentStore()
+    componentStore.clearComponents()
+  }
+
+  async function setPropertyNotifyMode() {
+    if (!client.value) return
+
+    try {
+      const request: SetPropertyNotifyMode = {
+        requestTypeId: CLASS_ID_SET_PROPERTY_NOTIFY_MODE,
+        requestTypeName: 'SetPropertyNotifyMode',
+        requestId: 0,
+        systemFilter: '',
+        componentFilter: '',
+        propertyFilter: '',
+        notifyMode: MikanPropertyNotifyMode.NAME_AND_VALUE
+      }
+
+      const future = client.value.sendRequest(request)
+      const response = await future.await()
+
+      if (response.resultCode === MikanAPIResult.Success) {
+        console.log('[MikanStore] Property notifications enabled')
+      } else {
+        console.error('[MikanStore] Failed to enable property notifications:', response.resultCode)
+      }
+    } catch (error) {
+      console.error('[MikanStore] Error setting property notify mode:', error)
+    }
   }
 
   async function fetchAppStageInfo() {
@@ -108,17 +154,44 @@ export const useMikanStore = defineStore('mikan', () => {
     }
   }
 
-  // Component state management
-  function updateComponent(componentId: number, component: MikanComponent) {
-    components.value.set(componentId, component)
+  // Event processing
+  function processEvents() {
+    if (!client.value) return
+
+    const componentStore = useComponentStore()
+
+    // Set up event polling
+    const pollEvents = () => {
+      if (!client.value || !isConnected.value) return
+
+      // Fetch next event
+      const event = client.value.fetchNextEvent()
+      if (event) {
+        handleEvent(event)
+      }
+
+      // Continue polling if still connected
+      if (isConnected.value) {
+        requestAnimationFrame(pollEvents)
+      }
+    }
+
+    requestAnimationFrame(pollEvents)
   }
 
-  function getComponent(componentId: number): MikanComponent | undefined {
-    return components.value.get(componentId)
-  }
+  function handleEvent(event: MikanEvent) {
+    const componentStore = useComponentStore()
 
-  function removeComponent(componentId: number) {
-    components.value.delete(componentId)
+    console.log(`[MikanStore] Received event: ${event.eventTypeName}`)
+
+    if (event instanceof MikanConnectedEvent) {
+      console.log('[MikanStore] Connected event received')
+    } else if (event instanceof MikanDisconnectedEvent) {
+      console.log(`[MikanStore] Disconnected event received: ${event.code}`)
+      disconnect()
+    } else if (event instanceof MikanPropertyUpdateEvent) {
+      componentStore.handlePropertyUpdate(event)
+    }
   }
 
   return {
@@ -128,15 +201,11 @@ export const useMikanStore = defineStore('mikan', () => {
     errorMessage,
     appStage,
     isConnecting,
-    components,
     // Computed
     isConnected,
     // Actions
     connect,
     disconnect,
-    fetchAppStageInfo,
-    updateComponent,
-    getComponent,
-    removeComponent
+    fetchAppStageInfo
   }
 })
