@@ -37,7 +37,16 @@
 #include "StencilUtils.h"
 #include "StringUtils.h"
 
+// App Stages
+#include "AlignmentCalibration/AppStage_AlignmentCalibration.h"
+#include "AnchorTriangulation/AppStage_AnchorTriangulation.h"
 #include "MainMenu/AppStage_MainMenu.h"
+#include "MonoLensCalibration/AppStage_MonoLensCalibration.h"
+#include "Project/AppStage_Project.h"
+#include "StencilAlignment/AppStage_StencilAlignment.h"
+#include "TextureSourceSettings/AppStage_TextureSourceSettings.h"
+#include "VideoSourceSettings/AppStage_VideoSourceSettings.h"
+#include "VRTrackingRecenter/AppStage_VRTrackingRecenter.h"
 
 #include <algorithm>
 
@@ -64,6 +73,7 @@ MainWindow::MainWindow(App* ownerApp)
 	, m_projectManager(std::make_shared<ProjectManager>(this))
 	, m_openCVManager(new OpenCVManager())
 	, m_fontManager(new MikanFontManager())
+	, m_appStageFactory(this)
 	, m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
 	, m_MkStateStack(MkStateStackUniquePtr(new MkStateStack(this)))
 	, m_lineRenderer(createMkLineRenderer(this))
@@ -73,7 +83,17 @@ MainWindow::MainWindow(App* ownerApp)
 	, m_isRenderingUI(false)
 	, m_shaderCache(MikanShaderCacheUniquePtr(new MikanShaderCache(this)))
 	, m_textureCache(MikanTextureCacheUniquePtr(new MikanTextureCache(this)))
-{}
+{
+	m_appStageFactory.addAppStageConstructor<AppStage_AlignmentCalibration>();
+	m_appStageFactory.addAppStageConstructor<AppStage_AnchorTriangulation>();
+	m_appStageFactory.addAppStageConstructor<AppStage_MainMenu>();
+	m_appStageFactory.addAppStageConstructor<AppStage_MonoLensCalibration>();
+	m_appStageFactory.addAppStageConstructor<AppStage_Project>();
+	m_appStageFactory.addAppStageConstructor<AppStage_StencilAlignment>();
+	m_appStageFactory.addAppStageConstructor<AppStage_TextureSourceSettings>();
+	m_appStageFactory.addAppStageConstructor<AppStage_VideoSourceSettings>();
+	m_appStageFactory.addAppStageConstructor<AppStage_VRTrackingRecenter>();
+}
 
 MainWindow::~MainWindow()
 {
@@ -438,25 +458,33 @@ bool MainWindow::onSDLEvent(const SDL_Event* event)
 
 inline AppStage* MainWindow::getCurrentAppStage() const
 {
-	return (m_appStageStack.size() > 0) ? m_appStageStack[m_appStageStack.size() - 1] : nullptr;
+	return (m_appStageStack.size() > 0) ? m_appStageStack[m_appStageStack.size() - 1].get() : nullptr;
 }
 
 inline AppStage* MainWindow::getParentAppStage() const
 {
-	return (m_appStageStack.size() > 1) ? m_appStageStack[m_appStageStack.size() - 2] : nullptr;
+	return (m_appStageStack.size() > 1) ? m_appStageStack[m_appStageStack.size() - 2].get() : nullptr;
 }
 
-void MainWindow::pushAppStage(AppStage* appStage)
+AppStage* MainWindow::pushAppStage(const std::string& appStageName)
 {
 	assert(bAppStackOperationAllowed);
 
-	AppStage* parentAppStage =
-		m_appStageStack.size() > 0
-		? m_appStageStack[m_appStageStack.size() - 1]
-		: nullptr;
+	AppStagePtr newAppStage= m_appStageFactory.allocateAppStage(appStageName);
+	if (newAppStage)
+	{
+		AppStagePtr parentAppStage =
+			m_appStageStack.size() > 0
+			? m_appStageStack[m_appStageStack.size() - 1]
+			: AppStagePtr();
 
-	m_appStageStack.push_back(appStage);
-	m_pendingAppStageOps.push_back({ parentAppStage, appStage, AppStageOperation::enter });
+		m_appStageStack.push_back(newAppStage);
+		m_pendingAppStageOps.push_back({ parentAppStage.get(), newAppStage.get(), AppStageOperation::enter});
+
+		return newAppStage.get();
+	}
+
+	return nullptr;
 }
 
 void MainWindow::popAppState()
@@ -467,12 +495,12 @@ void MainWindow::popAppState()
 	{
 		m_appStageStack.pop_back();
 
-		AppStage* parentAppStage =
+		AppStagePtr parentAppStage =
 			m_appStageStack.size() > 0
 			? m_appStageStack[m_appStageStack.size() - 1]
 			: nullptr;
 
-		m_pendingAppStageOps.push_back({ parentAppStage, appStage, AppStageOperation::exit });
+		m_pendingAppStageOps.push_back({ parentAppStage.get(), appStage, AppStageOperation::exit});
 	}
 }
 

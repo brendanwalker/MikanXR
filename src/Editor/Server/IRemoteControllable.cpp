@@ -1,7 +1,12 @@
-#include "IRemoteControllableAppStage.h"
+#include "IRemoteControllable.h"
 #include "RemoteControlManager.h"
 
-void IRemoteControllableAppStage::sendRemoteControlEvent(const std::string& event)
+const std::string IRemoteControllable::k_success = "success";
+const std::string IRemoteControllable::k_failure = "failure";
+const std::string IRemoteControllable::k_true = "true";
+const std::string IRemoteControllable::k_false = "false";
+
+void IRemoteControllable::sendRemoteControlEvent(const std::string& event)
 {
 	if (m_pRemoteControlManager)
 	{
@@ -11,7 +16,7 @@ void IRemoteControllableAppStage::sendRemoteControlEvent(const std::string& even
 	}
 }
 
-void IRemoteControllableAppStage::sendRemoteControlEvent(
+void IRemoteControllable::sendRemoteControlEvent(
 	const std::string& event,
 	const std::vector<std::string>& parameters)
 {
@@ -21,7 +26,7 @@ void IRemoteControllableAppStage::sendRemoteControlEvent(
 	}
 }
 
-bool IRemoteControllableAppStage::handleRemoteControlCommand(
+bool IRemoteControllable::handleRemoteControlCommand(
 	const std::string& command,
 	const std::vector<std::string>& parameters,
 	std::vector<std::string>& outResults)

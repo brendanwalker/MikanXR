@@ -560,27 +560,24 @@ bool AppStage_AlignmentCalibration::handleRemoteControlCommand(
 	const std::vector<std::string>& parameters,
 	std::vector<std::string>& outResults)
 {
-	if (!IRemoteControllableAppStage::handleRemoteControlCommand(command, parameters, outResults))
+	if (command == "get_state")
 	{
-		if (command == "get_state")
-		{
-			return handleGetStateCommand(outResults);
-		}
-		else if (command == "get_chessboard_stability")
-		{
-			return handleGetChessboardStabilityCommand(outResults);
-		}
-		else if (command == "begin")
-		{
-			return handleBeginCommand(outResults);
-		}
-		else if (command == "restart")
-		{
-			return handleRestartCommand(outResults);
-		}
+		return handleGetStateCommand(outResults);
+	}
+	else if (command == "get_chessboard_stability")
+	{
+		return handleGetChessboardStabilityCommand(outResults);
+	}
+	else if (command == "begin")
+	{
+		return handleBeginCommand(outResults);
+	}
+	else if (command == "restart")
+	{
+		return handleRestartCommand(outResults);
 	}
 
-	return false;
+	return AppStage::handleRemoteControlCommand(command, parameters, outResults);
 }
 
 bool AppStage_AlignmentCalibration::handleGetStateCommand(
@@ -598,7 +595,7 @@ bool AppStage_AlignmentCalibration::handleGetChessboardStabilityCommand(
 	std::vector<std::string>& outResults)
 {
 	const bool bIsStable = m_calibrationModel->getCurrentChessboardStable();
-	outResults.push_back(bIsStable ? "true" : "false");
+	outResults.push_back(bIsStable ? IRemoteControllable::k_true : IRemoteControllable::k_false);
 
 	return true;
 }
@@ -607,11 +604,11 @@ bool AppStage_AlignmentCalibration::handleBeginCommand(std::vector<std::string>&
 {
 	if (tryBeginCapture())
 	{
-		outResults.push_back("success");
+		outResults.push_back(IRemoteControllable::k_success);
 	}
 	else
 	{
-		outResults.push_back("failure");
+		outResults.push_back(IRemoteControllable::k_failure);
 	}
 
 	return true;
@@ -621,11 +618,11 @@ bool AppStage_AlignmentCalibration::handleRestartCommand(std::vector<std::string
 {
 	if (tryRestartCapture())
 	{
-		outResults.push_back("success");
+		outResults.push_back(IRemoteControllable::k_success);
 	}
 	else
 	{
-		outResults.push_back("failure");
+		outResults.push_back(IRemoteControllable::k_failure);
 	}
 
 	return true;

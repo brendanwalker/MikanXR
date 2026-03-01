@@ -1,3 +1,4 @@
+#include "CameraRequestHandler.h"
 #include "InterprocessMessageServerInterface.h"
 #include "MikanClientConnectionState.h"
 #include "MikanServer.h"

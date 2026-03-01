@@ -4,7 +4,6 @@
 #include "AppStage.h"
 #include "ComponentFwd.h"
 #include "Constants_VRTrackingRecenter.h"
-#include "IRemoteControllableAppStage.h"
 #include "MikanTypeFwd.h"
 #include "MikanRendererFwd.h"
 #include "MikanCoreTypes.h"
@@ -13,9 +12,7 @@
 #include <memory>
 
 //-- definitions -----
-class AppStage_VRTrackingRecenter : 
-	public AppStage,
-	public IRemoteControllableAppStage
+class AppStage_VRTrackingRecenter : public AppStage
 {
 public:
 	static const char* APP_STAGE_NAME;

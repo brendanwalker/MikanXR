@@ -404,7 +404,7 @@ void AppStage_VRTrackingRecenter::onReturnEvent()
 void AppStage_VRTrackingRecenter::onMarkerStabilityChangedEvent(bool bIsStable)
 {
 	std::vector<std::string> parameters;
-	parameters.push_back(bIsStable ? "true" : "false");
+	parameters.push_back(bIsStable ? IRemoteControllable::k_true : IRemoteControllable::k_false);
 
 	sendRemoteControlEvent("marker_stability_changed", parameters);
 }
@@ -415,7 +415,7 @@ bool AppStage_VRTrackingRecenter::handleRemoteControlCommand(
 	const std::vector<std::string>& parameters,
 	std::vector<std::string>& outResults)
 {
-	if (!IRemoteControllableAppStage::handleRemoteControlCommand(command, parameters, outResults))
+	if (!IRemoteControllable::handleRemoteControlCommand(command, parameters, outResults))
 	{
 		if (command == "get_state")
 		{
@@ -453,7 +453,7 @@ bool AppStage_VRTrackingRecenter::handleGetChessboardStabilityCommand(
 	std::vector<std::string>& outResults)
 {
 	const bool bIsStable = m_calibrationModel->getCurrentMarkerStable();
-	outResults.push_back(bIsStable ? "true" : "false");
+	outResults.push_back(bIsStable ? IRemoteControllable::k_true : IRemoteControllable::k_false);
 
 	return true;
 }
@@ -462,11 +462,11 @@ bool AppStage_VRTrackingRecenter::handleBeginCommand(std::vector<std::string>& o
 {
 	if (tryBeginCapture())
 	{
-		outResults.push_back("success");
+		outResults.push_back(IRemoteControllable::k_success);
 	}
 	else
 	{
-		outResults.push_back("failure");
+		outResults.push_back(IRemoteControllable::k_failure);
 	}
 
 	return true;
@@ -476,11 +476,11 @@ bool AppStage_VRTrackingRecenter::handleRestartCommand(std::vector<std::string>&
 {
 	if (tryRestartCapture())
 	{
-		outResults.push_back("success");
+		outResults.push_back(IRemoteControllable::k_success);
 	}
 	else
 	{
-		outResults.push_back("failure");
+		outResults.push_back(IRemoteControllable::k_failure);
 	}
 
 	return true;

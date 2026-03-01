@@ -3,10 +3,10 @@
 #include <string>
 #include <vector>
 
-class IRemoteControllableAppStage
+class IRemoteControllable
 {
 public:
-	virtual ~IRemoteControllableAppStage() {}
+	virtual ~IRemoteControllable() {}
 
 	inline void setRemoteControlManager(class RemoteControlManager* pRemoteControlManager)
 	{
@@ -23,13 +23,11 @@ public:
 		const std::vector<std::string>& parameters,
 		std::vector<std::string>& outResults);
 
+	static const std::string k_success;
+	static const std::string k_failure;
+	static const std::string k_true;
+	static const std::string k_false;
+
 private:
 	class RemoteControlManager* m_pRemoteControlManager= nullptr;
-};
-
-class RemoteControllableAppStageFactory
-{
-public:
-	virtual std::string getAppStageName() = 0;
-	virtual IRemoteControllableAppStage* pushAppStage() = 0;
 };

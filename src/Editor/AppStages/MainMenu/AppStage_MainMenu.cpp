@@ -54,19 +54,8 @@ void AppStage_MainMenu::enter()
 
 void AppStage_MainMenu::onResumeProject()
 {
-	if (m_projectManager->hasLoadedProject())
-	{
-		m_ownerWindow->pushAppStageOfType<AppStage_Project>();
-	}
-	else if (m_appSettingsConfig->hasLastProjectPath())
-	{
-		std::filesystem::path projectFilePath = m_appSettingsConfig->getLastProjectPath();
-
-		if (m_projectManager->loadProject(projectFilePath.string()))
-		{
-			m_ownerWindow->pushAppStageOfType<AppStage_Project>();
-		}
-	}	
+	std::vector<std::string> outResults;
+	handleResumeProjectCommand(outResults);
 }
 
 void AppStage_MainMenu::onOpenProject()
@@ -82,16 +71,9 @@ void AppStage_MainMenu::onOpenProject()
 			"Project Files (*.mikanproj)",
 			1);
 
-	if (!projectFilePath.empty())
-	{
-		if (m_projectManager->loadProject(projectFilePath.string()))
-		{
-			// Remember the last opened project path
-			m_appSettingsConfig->setLastProjectPath(projectFilePath);
-
-			m_ownerWindow->pushAppStageOfType<AppStage_Project>();
-		}
-	}
+	std::vector<std::string> parameters = { projectFilePath.string() };
+	std::vector<std::string> outResults;
+	handleOpenProjectCommand(parameters, outResults);
 }
 
 void AppStage_MainMenu::onNewProject()
@@ -106,21 +88,143 @@ void AppStage_MainMenu::onNewProject()
 			filterItems,
 			"Project Files (*.mikanproj)");
 
-	if (m_projectManager->newProject(projectFilePath.string()))
-	{
-		// Remember the last opened project path
-		m_appSettingsConfig->setLastProjectPath(projectFilePath);
-
-		m_ownerWindow->pushAppStageOfType<AppStage_Project>();
-	}
+	std::vector<std::string> parameters = { projectFilePath.string() };
+	std::vector<std::string> outResults;
+	handleNewProjectCommand(parameters, outResults);
 }
 
 void AppStage_MainMenu::onTutorial()
 {
-	//TODO
+	std::vector<std::string> outResults;
+	handleTutorialCommand(outResults);
 }
 
 void AppStage_MainMenu::onExit()
 {
+	std::vector<std::string> outResults;
+	handleExitCommand(outResults);
+}
+
+// -- IRemoteControllableAppStage Interface -- //
+bool AppStage_MainMenu::handleRemoteControlCommand(
+	const std::string& command,
+	const std::vector<std::string>& parameters,
+	std::vector<std::string>& outResults)
+{
+	if (command == "resume_project")
+	{
+		return handleResumeProjectCommand(outResults);
+	}
+	else if (command == "open_project")
+	{
+		return handleOpenProjectCommand(parameters, outResults);
+	}
+	else if (command == "new_project")
+	{
+		return handleNewProjectCommand(parameters, outResults);
+	}
+	else if (command == "tutorial")
+	{
+		return handleTutorialCommand(outResults);
+	}
+	else if (command == "exit")
+	{
+		return handleExitCommand(outResults);
+	}
+
+	return AppStage::handleRemoteControlCommand(command, parameters, outResults);
+}
+
+bool AppStage_MainMenu::handleResumeProjectCommand(std::vector<std::string>& outResults)
+{
+	if (m_projectManager->hasLoadedProject())
+	{
+		m_ownerWindow->pushAppStageOfType<AppStage_Project>();
+		outResults.push_back(IRemoteControllable::k_success);
+	}
+	else if (m_appSettingsConfig->hasLastProjectPath())
+	{
+		std::filesystem::path projectFilePath = m_appSettingsConfig->getLastProjectPath();
+
+		if (m_projectManager->loadProject(projectFilePath.string()))
+		{
+			m_ownerWindow->pushAppStageOfType<AppStage_Project>();
+			outResults.push_back(IRemoteControllable::k_success);
+		}
+	}
+
+	outResults.push_back(IRemoteControllable::k_failure);
+	return true;
+}
+
+bool AppStage_MainMenu::handleOpenProjectCommand(
+	const std::vector<std::string>& parameters, 
+	std::vector<std::string>& outResults)
+{
+	std::string projectFilePathStr= !parameters.empty() ? parameters[0] : "";
+
+	if (!projectFilePathStr.empty())
+	{
+		if (m_projectManager->loadProject(projectFilePathStr))
+		{
+			// Remember the last opened project path
+			m_appSettingsConfig->setLastProjectPath(projectFilePathStr);
+
+			m_ownerWindow->pushAppStageOfType<AppStage_Project>();
+
+			outResults.push_back(IRemoteControllable::k_success);
+			return true;
+		}
+		else
+		{
+			outResults.push_back(IRemoteControllable::k_failure);
+			return true;
+		}
+	}
+
+	outResults.push_back(IRemoteControllable::k_failure);
+	return false;
+}
+
+bool AppStage_MainMenu::handleNewProjectCommand(
+	const std::vector<std::string>& parameters,
+	std::vector<std::string>& outResults)
+{
+	if (!parameters.empty())
+	{
+		const std::string& projectFilePathStr = parameters[0];
+
+		if (m_projectManager->newProject(projectFilePathStr))
+		{
+			// Remember the last opened project path
+			m_appSettingsConfig->setLastProjectPath(projectFilePathStr);
+
+			m_ownerWindow->pushAppStageOfType<AppStage_Project>();
+			outResults.push_back(IRemoteControllable::k_success);
+		}
+		else
+		{
+			outResults.push_back(IRemoteControllable::k_failure);
+		}
+
+		return true;
+	}
+
+	outResults.push_back(IRemoteControllable::k_failure);
+	return false;
+}
+
+bool AppStage_MainMenu::handleTutorialCommand(std::vector<std::string>& outResults)
+{
+	//TODO
+	outResults.push_back(IRemoteControllable::k_failure);
+	return false;
+}
+
+bool AppStage_MainMenu::handleExitCommand(std::vector<std::string>& outResults)
+{
 	App::getInstance()->requestShutdown();
+	outResults.push_back(IRemoteControllable::k_success);
+
+	return true;
 }

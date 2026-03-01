@@ -64,7 +64,7 @@ public:
 	virtual class App* getOwnerApp() const override { return m_ownerApp; }
 	virtual AppStage* getCurrentAppStage() const override;
 	virtual AppStage* getParentAppStage() const override;
-	virtual void pushAppStage(AppStage* appStage) override;
+	virtual AppStage* pushAppStage(const std::string& appStageName) override;
 	virtual void popAppState() override;
 
 	void processPendingAppStageOps();
@@ -99,8 +99,9 @@ private:
 	class MikanFontManager* m_fontManager = nullptr;
 
 	// App Stages
+	AppStageFactory m_appStageFactory;
 	int m_appStageStackIndex = -1;
-	std::vector<AppStage*> m_appStageStack;
+	std::vector<AppStagePtr> m_appStageStack;
 
 	SdlWindowUniquePtr m_sdlWindow;
 	IMkViewportPtr m_uiViewport;

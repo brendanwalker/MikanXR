@@ -23,6 +23,17 @@ protected:
 	void onTutorial();
 	void onExit();
 
+	// -- IRemoteControllableAppStage Interface -- //
+	virtual bool handleRemoteControlCommand(
+		const std::string& command,
+		const std::vector<std::string>& parameters,
+		std::vector<std::string>& outResults);
+	bool handleResumeProjectCommand(std::vector<std::string>& outResults);
+	bool handleOpenProjectCommand(const std::vector<std::string>& parameters, std::vector<std::string>& outResults);
+	bool handleNewProjectCommand(const std::vector<std::string>& parameters, std::vector<std::string>& outResults);
+	bool handleTutorialCommand(std::vector<std::string>& outResults);
+	bool handleExitCommand(std::vector<std::string>& outResults);
+
 private:
 	AppSettingsConfigPtr m_appSettingsConfig;
 	ProjectManagerPtr m_projectManager;

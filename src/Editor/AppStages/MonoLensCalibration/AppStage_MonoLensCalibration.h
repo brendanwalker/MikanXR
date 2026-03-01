@@ -4,15 +4,12 @@
 #include "AppStage.h"
 #include "ComponentFwd.h"
 #include "Constants_MonoLensCalibration.h"
-#include "IRemoteControllableAppStage.h"
 #include "RmlFwd.h"
 #include "VideoDisplayConstants.h"
 #include <memory>
 
 //-- definitions -----
-class AppStage_MonoLensCalibration : 
-	public AppStage,
-	public IRemoteControllableAppStage
+class AppStage_MonoLensCalibration : public AppStage
 {
 public:
 	static const char* APP_STAGE_NAME;

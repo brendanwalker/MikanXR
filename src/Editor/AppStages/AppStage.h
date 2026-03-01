@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IEditorWindow.h"
+#include "IRemoteControllable.h"
 #include "LocalizationManager.h"
 #include "MikanRendererFwd.h"
 #include "ProjectManager.h"
@@ -16,9 +17,11 @@ typedef union SDL_Event SDL_Event;
 
 class ModalDialog;
 
+using AppStagePtr = std::shared_ptr<class AppStage>;
+using AppStageFactoryPtr = std::shared_ptr<class AppStageFactory>;
 using MikanViewportList = std::vector<MikanViewportPtr>;
 
-class AppStage
+class AppStage : public IRemoteControllable
 {
 public:
 	AppStage(
@@ -90,6 +93,12 @@ public:
 		return m_ownerWindow->getProjectManager()->getSystemOfType<t_system_type>();
 	}
 
+	// -- IRemoteControllable Interface -- //
+	virtual bool handleRemoteControlCommand(
+		const std::string& command,
+		const std::vector<std::string>& parameters,
+		std::vector<std::string>& outResults) override;
+
 protected:
 	IEditorWindow* m_ownerWindow;
 	bool m_bIsEntered= false;
@@ -100,4 +109,42 @@ protected:
 	std::vector<Rml::ElementDocument*> m_rmlDocuments;
 	std::vector<IRmlModel*> m_rmlModels;
 	std::vector<class ModalDialog*> m_modalDialogStack;
+};
+
+class AppStageFactory
+{
+public:
+	using AppStageConstructorFunc = std::function<AppStagePtr()>;
+
+	AppStageFactory() = default;
+	AppStageFactory(IEditorWindow* ownerWindow) 
+		: m_ownerWindow(ownerWindow)
+	{}
+
+	AppStagePtr allocateAppStage(const std::string& stageName) const
+	{
+		auto it = m_appStageConstructors.find(stageName);
+		if (it != m_appStageConstructors.end())
+		{
+			return it->second();
+		}
+		return AppStagePtr();
+	}
+
+	template <class t_app_stage_factory_class>
+	void addAppStageConstructor()
+	{
+		const std::string stageName = t_app_stage_factory_class::APP_STAGE_NAME;
+
+		const auto constructorFunc = [this]() -> AppStagePtr
+		{
+			return std::make_shared<t_app_stage_factory_class>(m_ownerWindow);
+		};
+
+		m_appStageConstructors.insert({stageName, constructorFunc});
+	}
+
+protected:
+	IEditorWindow* m_ownerWindow= nullptr;
+	std::map<std::string, AppStageConstructorFunc> m_appStageConstructors;
 };

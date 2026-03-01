@@ -369,7 +369,7 @@ bool AppStage_MonoLensCalibration::handleRemoteControlCommand(
 	const std::vector<std::string>& parameters,
 	std::vector<std::string>& outResults)
 {
-	if (!IRemoteControllableAppStage::handleRemoteControlCommand(command, parameters, outResults))
+	if (!IRemoteControllable::handleRemoteControlCommand(command, parameters, outResults))
 	{
 		if (command == "get_state")
 		{
@@ -407,7 +407,7 @@ bool AppStage_MonoLensCalibration::handleGetImagePointStabilityCommand(
 	std::vector<std::string>& outResults)
 {
 	const bool bIsStable = m_monoLensCalibrator->getIsCameraCalibrationComplete();
-	outResults.push_back(bIsStable ? "true" : "false");
+	outResults.push_back(bIsStable ? IRemoteControllable::k_true : IRemoteControllable::k_false);
 
 	return true;
 }
@@ -425,11 +425,11 @@ bool AppStage_MonoLensCalibration::handleCaptureCommand(std::vector<std::string>
 {
 	if (tryCapture())
 	{
-		outResults.push_back("success");
+		outResults.push_back(IRemoteControllable::k_success);
 	}
 	else
 	{
-		outResults.push_back("failure");
+		outResults.push_back(IRemoteControllable::k_failure);
 	}
 
 	float calibrationFraction = m_calibrationModel->getCalibrationFraction();

@@ -4,6 +4,8 @@
 #include "ObjectSystemFwd.h"
 #include "MulticastDelegate.h"
 
+#include <string>
+
 class IEditorWindow : public ISdlMkWindow
 {
 public:
@@ -19,15 +21,14 @@ public:
 	virtual class App* getOwnerApp() const = 0;
 	virtual class AppStage* getCurrentAppStage() const = 0;
 	virtual class AppStage* getParentAppStage() const = 0;
-	virtual void pushAppStage(class AppStage* appStage) = 0;
+	virtual class AppStage* pushAppStage(const std::string& appStageName) = 0;
 	virtual void popAppState() = 0;
 
 	template<typename t_app_stage>
 	t_app_stage* pushAppStageOfType()
 	{
-		t_app_stage* appStage = new t_app_stage(this);
-		pushAppStage(appStage);
-		return appStage;
+		const std::string appStageName = t_app_stage::APP_STAGE_NAME;
+		return static_cast<t_app_stage*>(pushAppStage(appStageName));
 	}
 
 	MulticastDelegate<void(class AppStage* oldAppStage, class AppStage* newAppStage)> OnAppStageEntered;
