@@ -13,6 +13,8 @@ find_package(CEF REQUIRED)
 
 list(APPEND MIKAN_UI_INCL_DIRS
   ${CEF_ROOT}
+  ${TINYFILEDIALOGS_DIR}
+  ${NLOHMANN_JSON_INCLUDE_DIR}
   ${CMAKE_CURRENT_LIST_DIR}/src/cpp
   ${MIKAN_LIBRARIES_DIR}/MikanUtility/Public)
 
@@ -45,6 +47,7 @@ add_executable(${PROJECT_NAME} WIN32
     ${MIKAN_UI_RESOURCES_HTML}
     ${MIKAN_UI_RESOURCES_CSS}
     ${MIKAN_UI_RESOURCES_JS}
+    ${TINYFILEDIALOGS_SOURCE}
 )
 
 # Organize files in Visual Studio filters
@@ -53,6 +56,8 @@ source_group("TypeScript" FILES ${MIKAN_UI_TS_SOURCES})
 source_group("CSS" FILES ${MIKAN_UI_RESOURCES_CSS})
 source_group("JavaScript" FILES ${MIKAN_UI_RESOURCES_JS})
 source_group("HTML" FILES ${MIKAN_UI_RESOURCES_HTML})
+# TinyFileDialogs's source files are included in directly, rather than linking against a lib
+source_group("TinyFileDialogs" FILES ${TINYFILEDIALOGS_SOURCE})
 
 # Set CEF properties
 SET_EXECUTABLE_TARGET_PROPERTIES(${PROJECT_NAME})
@@ -108,4 +113,13 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     "${CMAKE_CURRENT_SOURCE_DIR}/resources"
     "$<TARGET_FILE_DIR:${PROJECT_NAME}>/resources"
+)
+
+# Copy MikanUtility.dll to output directory
+add_custom_command(
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    "$<TARGET_FILE_DIR:MikanUtility>/MikanUtility.dll"
+    "$<TARGET_FILE_DIR:${PROJECT_NAME}>"
+    COMMENT "Copying MikanUtility.dll to MikanUI output directory"
 )

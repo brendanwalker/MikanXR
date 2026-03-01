@@ -3,13 +3,16 @@
 #include "include/cef_client.h"
 #include "include/cef_display_handler.h"
 #include "include/cef_life_span_handler.h"
+#include "include/cef_request_handler.h"
+#include "include/wrapper/cef_message_router.h"
 
 #include <list>
 
 // MikanUIClient handles browser-level callbacks
 class MikanUIClient : public CefClient,
                       public CefDisplayHandler,
-                      public CefLifeSpanHandler
+                      public CefLifeSpanHandler,
+                      public CefRequestHandler
 {
 public:
     MikanUIClient();
@@ -35,6 +38,9 @@ public:
 
     void SetParentWindow(HWND hwnd) { m_parentWindow = hwnd; }
 
+    // CefRequestHandler methods
+    virtual CefRefPtr<CefRequestHandler> GetRequestHandler() override { return this; }
+
 private:
     // List of existing browser windows. Only accessed on the CEF UI thread.
     typedef std::list<CefRefPtr<CefBrowser>> BrowserList;
@@ -42,6 +48,9 @@ private:
 
     bool m_isClosing;
     HWND m_parentWindow;
+
+    // Message router for handling JavaScript queries
+    CefRefPtr<CefMessageRouterBrowserSide> m_messageRouter;
 
     IMPLEMENT_REFCOUNTING(MikanUIClient);
 };

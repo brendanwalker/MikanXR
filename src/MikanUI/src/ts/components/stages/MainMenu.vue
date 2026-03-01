@@ -21,29 +21,51 @@
 </template>
 
 <script setup lang="ts">
+import { useRemoteControl } from '../../composables/useRemoteControl.js'
+import { nativeBridge } from '../../native-bridge.js'
+
+const { sendRemoteControlCommand } = useRemoteControl()
+
 function handleResumeProject() {
-  // TODO: Implement resume project
-  console.log('Resume project clicked')
+  sendRemoteControlCommand('resume_project')
 }
 
-function handleOpenProject() {
-  // TODO: Implement open project
-  console.log('Open project clicked')
+async function handleOpenProject() {
+  // Show native file open dialog
+  const response = await nativeBridge.showOpenFileDialog({
+    title: 'Open Project',
+    filter: '*.mikanproj',
+    filterDescription: 'Project Files (*.mikanproj)'
+  })
+
+  if (response.success && response.data?.filePath) {
+    sendRemoteControlCommand('open_project', [response.data.filePath])
+  } else if (!response.data?.canceled) {
+    console.error('Failed to open file dialog:', response.error)
+  }
 }
 
-function handleNewProject() {
-  // TODO: Implement new project
-  console.log('New project clicked')
+async function handleNewProject() {
+  // Show native file save dialog
+  const response = await nativeBridge.showSaveFileDialog({
+    title: 'New Project',
+    filter: '*.mikanproj',
+    filterDescription: 'Project Files (*.mikanproj)'
+  })
+
+  if (response.success && response.data?.filePath) {
+    sendRemoteControlCommand('new_project', [response.data.filePath])
+  } else if (!response.data?.canceled) {
+    console.error('Failed to open file dialog:', response.error)
+  }
 }
 
 function handleLaunchTutorial() {
-  // TODO: Implement tutorial
-  console.log('Tutorial clicked')
+  sendRemoteControlCommand('tutorial')
 }
 
 function handleExit() {
-  // TODO: Implement exit
-  console.log('Exit clicked')
+  sendRemoteControlCommand('exit')
 }
 </script>
 

@@ -14,7 +14,11 @@ declare global {
 
 export interface NativeResponse {
     success: boolean;
-    data?: any;
+    data?: {
+        filePath?: string;
+        canceled?: boolean;
+        [key: string]: any;
+    };
     error?: string;
 }
 
@@ -85,6 +89,30 @@ export class NativeBridge {
     getMikanPath(): Promise<NativeResponse> {
         return new Promise((resolve) => {
             this.sendMessage('get_mikan_path', {}, resolve);
+        });
+    }
+
+    // Show a native file open dialog
+    showOpenFileDialog(options?: {
+        title?: string;
+        defaultPath?: string;
+        filter?: string;
+        filterDescription?: string;
+    }): Promise<NativeResponse> {
+        return new Promise((resolve) => {
+            this.sendMessage('open_file_dialog', options || {}, resolve);
+        });
+    }
+
+    // Show a native file save dialog
+    showSaveFileDialog(options?: {
+        title?: string;
+        defaultPath?: string;
+        filter?: string;
+        filterDescription?: string;
+    }): Promise<NativeResponse> {
+        return new Promise((resolve) => {
+            this.sendMessage('save_file_dialog', options || {}, resolve);
         });
     }
 }
