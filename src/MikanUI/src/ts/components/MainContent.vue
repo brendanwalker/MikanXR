@@ -21,6 +21,7 @@ import { useMikanStore } from '../stores/mikanStore'
 import MainMenu from './stages/MainMenu.vue'
 import VideoSourceSettings from './stages/VideoSourceSettings.vue'
 import AnchorSetup from './stages/AnchorSetup.vue'
+import Project from './stages/Project.vue'
 
 const mikanStore = useMikanStore()
 
@@ -38,6 +39,8 @@ const currentStageComponent = computed(() => {
       return VideoSourceSettings
     case 'AnchorSetup':
       return AnchorSetup
+    case 'Compositor':
+      return Project
     default:
       return null
   }
