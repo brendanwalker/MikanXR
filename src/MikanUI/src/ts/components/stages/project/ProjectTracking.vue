@@ -26,15 +26,52 @@
         @select="handleSelectComponent($event, 'VRObjectSystem')"
       />
 
+      <!-- Tracking Volume Components -->
+      <div class="component-section">
+        <div class="section-header">
+          <h3>Tracking Volume Components</h3>
+          <div class="section-actions">
+            <button @click="handleAddSteamVRVolume" class="action-btn add-btn">+ SteamVR Volume</button>
+            <button @click="handleAddMarkerVolume" class="action-btn add-btn">+ Marker Volume</button>
+          </div>
+        </div>
+        <ComponentList
+          :components="trackingVolumeComponents"
+          :selectable="true"
+          :selected-component-id="selectedComponentId"
+          sort-by="name"
+          @select="handleSelectComponent($event, 'TrackingVolumeObjectSystem')"
+        />
+        <button
+          v-if="selectedComponentId && isTrackingVolumeSelected"
+          @click="handleRemoveTrackingVolume"
+          class="action-btn remove-btn"
+        >
+          Remove Selected Tracking Volume
+        </button>
+      </div>
+
       <!-- Tracking Mount Components -->
-      <ComponentList
-        title="Tracking Mount Components"
-        :components="trackingMountComponents"
-        :selectable="true"
-        :selected-component-id="selectedComponentId"
-        sort-by="name"
-        @select="handleSelectComponent($event, 'TrackingMountObjectSystem')"
-      />
+      <div class="component-section">
+        <div class="section-header">
+          <h3>Tracking Mount Components</h3>
+          <button @click="handleAddTrackingMount" class="action-btn add-btn">+ Add Tracking Mount</button>
+        </div>
+        <ComponentList
+          :components="trackingMountComponents"
+          :selectable="true"
+          :selected-component-id="selectedComponentId"
+          sort-by="name"
+          @select="handleSelectComponent($event, 'TrackingMountObjectSystem')"
+        />
+        <button
+          v-if="selectedComponentId && isTrackingMountSelected"
+          @click="handleRemoveTrackingMount"
+          class="action-btn remove-btn"
+        >
+          Remove Selected Tracking Mount
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -44,6 +81,7 @@ import { ref, computed } from 'vue'
 import { useComponentStore } from '../../../stores/componentStore.js'
 import { useMikanStore } from '../../../stores/mikanStore.js'
 import { usePropertyEditor } from '../../../composables/usePropertyEditor.js'
+import { useRemoteControl } from '../../../composables/useRemoteControl.js'
 import ComponentList from '../../shared/ComponentList.vue'
 import PropertyEditor from '../../shared/PropertyEditor.vue'
 import {
@@ -55,6 +93,7 @@ import {
 const componentStore = useComponentStore()
 const mikanStore = useMikanStore()
 const { createVariantFromValue } = usePropertyEditor()
+const { sendRemoteControlCommand } = useRemoteControl()
 
 // Selection state
 const selectedComponentId = ref<number | null>(null)
@@ -69,9 +108,29 @@ const vrDeviceComponents = computed(() =>
   componentStore.getComponentsByClass('VRDeviceComponent')
 )
 
+const trackingVolumeComponents = computed(() => {
+  const steamVRVolumes = componentStore.getComponentsByClass('SteamVRTrackingVolumeComponent')
+  const markerVolumes = componentStore.getComponentsByClass('MarkerTrackingVolumeComponent')
+  return [...steamVRVolumes, ...markerVolumes]
+})
+
 const trackingMountComponents = computed(() =>
   componentStore.getComponentsByClass('TrackingMountComponent')
 )
+
+// Check which type of component is selected
+const isTrackingVolumeSelected = computed(() => {
+  if (!selectedComponentId.value) return false
+  const component = componentStore.getComponent(selectedComponentId.value)
+  const componentClass = (component as any)?.component_class
+  return componentClass === 'SteamVRTrackingVolumeComponent' || componentClass === 'MarkerTrackingVolumeComponent'
+})
+
+const isTrackingMountSelected = computed(() => {
+  if (!selectedComponentId.value) return false
+  const component = componentStore.getComponent(selectedComponentId.value)
+  return (component as any)?.component_class === 'TrackingMountComponent'
+})
 
 // Handle component selection
 function handleSelectComponent(componentId: number, ownerSystem: string) {
@@ -132,6 +191,38 @@ async function handleSaveProperties(changes: Record<string, any>) {
 
   closeEditor()
 }
+
+// Tracking Volume CRUD handlers
+function handleAddSteamVRVolume() {
+  sendRemoteControlCommand('add_new_steamvr_tracking_volume')
+}
+
+function handleAddMarkerVolume() {
+  sendRemoteControlCommand('add_new_marker_tracking_volume')
+}
+
+function handleRemoveTrackingVolume() {
+  if (!selectedComponentId.value || !isTrackingVolumeSelected.value) {
+    console.error('[ProjectTracking] No tracking volume selected')
+    return
+  }
+  sendRemoteControlCommand('remove_tracking_volume', [selectedComponentId.value.toString()])
+  selectedComponentId.value = null
+}
+
+// Tracking Mount CRUD handlers
+function handleAddTrackingMount() {
+  sendRemoteControlCommand('add_new_tracking_mount')
+}
+
+function handleRemoveTrackingMount() {
+  if (!selectedComponentId.value || !isTrackingMountSelected.value) {
+    console.error('[ProjectTracking] No tracking mount selected')
+    return
+  }
+  sendRemoteControlCommand('remove_tracking_mount', [selectedComponentId.value.toString()])
+  selectedComponentId.value = null
+}
 </script>
 
 <style scoped>
@@ -153,6 +244,75 @@ async function handleSaveProperties(changes: Record<string, any>) {
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+.component-section {
+  background-color: #2d2d2d;
+  border: 1px solid #404040;
+  border-radius: 4px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.section-header h3 {
+  color: #ffffff;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.section-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  padding: 8px 16px;
+  font-size: 14px;
+  background-color: #5cb85c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-weight: 500;
+}
+
+.action-btn:hover:not(:disabled) {
+  background-color: #4cae4c;
+}
+
+.action-btn:disabled {
+  background-color: #3d3d3d;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.action-btn.add-btn {
+  background-color: #5cb85c;
+}
+
+.action-btn.add-btn:hover {
+  background-color: #4cae4c;
+}
+
+.action-btn.remove-btn {
+  background-color: #d9534f;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.action-btn.remove-btn:hover {
+  background-color: #c9302c;
 }
 
 .editor-overlay {

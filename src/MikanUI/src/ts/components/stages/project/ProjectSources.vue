@@ -17,14 +17,75 @@
       </div>
 
       <!-- Camera Components -->
-      <ComponentList
-        title="Camera Components"
-        :components="cameraComponents"
-        :selectable="true"
-        :selected-component-id="selectedComponentId"
-        sort-by="name"
-        @select="handleSelectComponent($event, 'CameraObjectSystem')"
-      />
+      <div class="component-section">
+        <div class="section-header">
+          <h3>Camera Components</h3>
+        </div>
+        <ComponentList
+          :components="cameraComponents"
+          :selectable="true"
+          :selected-component-id="selectedComponentId"
+          sort-by="name"
+          @select="handleSelectComponent($event, 'CameraObjectSystem')"
+        />
+        <button
+          v-if="selectedComponentId && isCameraSelected"
+          @click="handleCalibrateIntrinsics"
+          class="action-btn"
+        >
+          Calibrate Intrinsics
+        </button>
+      </div>
+
+      <!-- Video Source Components -->
+      <div class="component-section">
+        <div class="section-header">
+          <h3>Video Source Components</h3>
+          <div class="section-actions">
+            <button @click="handleAddUSBVideoSource" class="action-btn add-btn">+ USB Video</button>
+            <button @click="handleAddNetworkVideoSource" class="action-btn add-btn">+ Network Video</button>
+          </div>
+        </div>
+        <ComponentList
+          :components="videoSourceComponents"
+          :selectable="true"
+          :selected-component-id="selectedComponentId"
+          sort-by="name"
+          @select="handleSelectComponent($event, 'VideoSourceObjectSystem')"
+        />
+        <button
+          v-if="selectedComponentId && isVideoSourceSelected"
+          @click="handleRemoveVideoSource"
+          class="action-btn remove-btn"
+        >
+          Remove Selected Video Source
+        </button>
+      </div>
+
+      <!-- Texture Source Components -->
+      <div class="component-section">
+        <div class="section-header">
+          <h3>Texture Source Components</h3>
+          <div class="section-actions">
+            <button @click="handleAddClientTextureSource" class="action-btn add-btn">+ Client Texture</button>
+            <button @click="handleAddSpoutTextureSource" class="action-btn add-btn">+ Spout Texture</button>
+          </div>
+        </div>
+        <ComponentList
+          :components="textureSourceComponents"
+          :selectable="true"
+          :selected-component-id="selectedComponentId"
+          sort-by="name"
+          @select="handleSelectComponent($event, 'TextureSourceObjectSystem')"
+        />
+        <button
+          v-if="selectedComponentId && isTextureSourceSelected"
+          @click="handleRemoveTextureSource"
+          class="action-btn remove-btn"
+        >
+          Remove Selected Texture Source
+        </button>
+      </div>
 
       <!-- Compositor Components -->
       <ComponentList
@@ -66,6 +127,7 @@ import { ref, computed } from 'vue'
 import { useComponentStore } from '../../../stores/componentStore.js'
 import { useMikanStore } from '../../../stores/mikanStore.js'
 import { usePropertyEditor } from '../../../composables/usePropertyEditor.js'
+import { useRemoteControl } from '../../../composables/useRemoteControl.js'
 import ComponentList from '../../shared/ComponentList.vue'
 import PropertyEditor from '../../shared/PropertyEditor.vue'
 import {
@@ -77,6 +139,7 @@ import {
 const componentStore = useComponentStore()
 const mikanStore = useMikanStore()
 const { createVariantFromValue } = usePropertyEditor()
+const { sendRemoteControlCommand } = useRemoteControl()
 
 // Selection state
 const selectedComponentId = ref<number | null>(null)
@@ -91,6 +154,14 @@ const cameraComponents = computed(() =>
   componentStore.getComponentsByClass('CameraComponent')
 )
 
+const videoSourceComponents = computed(() =>
+  componentStore.getComponentsByClass('VideoSourceComponent')
+)
+
+const textureSourceComponents = computed(() =>
+  componentStore.getComponentsByClass('TextureSourceComponent')
+)
+
 const compositorComponents = computed(() =>
   componentStore.getComponentsByClass('CompositorComponent')
 )
@@ -102,6 +173,25 @@ const markerTrackingVolumes = computed(() =>
 const vrTrackingVolumes = computed(() =>
   componentStore.getComponentsByClass('VRTrackingVolumeComponent')
 )
+
+// Check which type of component is selected
+const isCameraSelected = computed(() => {
+  if (!selectedComponentId.value) return false
+  const component = componentStore.getComponent(selectedComponentId.value)
+  return component?.component_class === 'CameraComponent'
+})
+
+const isVideoSourceSelected = computed(() => {
+  if (!selectedComponentId.value) return false
+  const component = componentStore.getComponent(selectedComponentId.value)
+  return component?.component_class === 'VideoSourceComponent'
+})
+
+const isTextureSourceSelected = computed(() => {
+  if (!selectedComponentId.value) return false
+  const component = componentStore.getComponent(selectedComponentId.value)
+  return component?.component_class === 'TextureSourceComponent'
+})
 
 // Handle component selection
 function handleSelectComponent(componentId: number, ownerSystem: string) {
@@ -162,6 +252,51 @@ async function handleSaveProperties(changes: Record<string, any>) {
 
   closeEditor()
 }
+
+// Camera action handlers
+function handleCalibrateIntrinsics() {
+  if (!selectedComponentId.value || !isCameraSelected.value) {
+    console.error('[ProjectSources] No camera selected')
+    return
+  }
+  sendRemoteControlCommand('calibrate_intrinsics', [selectedComponentId.value.toString()])
+}
+
+// Video Source CRUD handlers
+function handleAddUSBVideoSource() {
+  sendRemoteControlCommand('add_new_usb_video_source')
+}
+
+function handleAddNetworkVideoSource() {
+  sendRemoteControlCommand('add_new_network_video_source')
+}
+
+function handleRemoveVideoSource() {
+  if (!selectedComponentId.value || !isVideoSourceSelected.value) {
+    console.error('[ProjectSources] No video source selected')
+    return
+  }
+  sendRemoteControlCommand('remove_video_source', [selectedComponentId.value.toString()])
+  selectedComponentId.value = null
+}
+
+// Texture Source CRUD handlers
+function handleAddClientTextureSource() {
+  sendRemoteControlCommand('add_new_client_texture_source')
+}
+
+function handleAddSpoutTextureSource() {
+  sendRemoteControlCommand('add_new_spout_texture_source')
+}
+
+function handleRemoveTextureSource() {
+  if (!selectedComponentId.value || !isTextureSourceSelected.value) {
+    console.error('[ProjectSources] No texture source selected')
+    return
+  }
+  sendRemoteControlCommand('remove_texture_source', [selectedComponentId.value.toString()])
+  selectedComponentId.value = null
+}
 </script>
 
 <style scoped>
@@ -183,6 +318,59 @@ async function handleSaveProperties(changes: Record<string, any>) {
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+.component-section {
+  background-color: #2d2d2d;
+  border: 1px solid #404040;
+  border-radius: 4px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.section-header h3 {
+  color: #ffffff;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.section-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-btn {
+  padding: 8px 16px;
+  font-size: 14px;
+  background-color: #5cb85c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-weight: 500;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.action-btn:hover:not(:disabled) {
+  background-color: #4cae4c;
+}
+
+.action-btn:disabled {
+  background-color: #3d3d3d;
+  color: #999;
+  cursor: not-allowed;
 }
 
 .tracking-volumes-section {
