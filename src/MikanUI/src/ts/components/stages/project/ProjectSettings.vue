@@ -3,25 +3,136 @@
     <h2>Settings Panel</h2>
     <p>Project-wide configuration and preferences.</p>
 
-    <div class="placeholder-content">
-      <div class="info-box">
-        <h3>Coming Soon</h3>
-        <ul>
-          <li>Project Name & Description</li>
-          <li>Default Camera Settings</li>
-          <li>Rendering Options</li>
-          <li>Debug Visualization Settings</li>
-          <li>Export/Import Configuration</li>
-        </ul>
+    <div class="settings-content">
+      <div class="info-message">
+        <p>This panel is for future project-wide settings and preferences.</p>
+        <p>Component-specific settings can be edited in the other panels (Scenes, Sources, Tracking, etc.).</p>
+      </div>
+
+      <div class="settings-section">
+        <h3>Connection Status</h3>
+        <div class="status-grid">
+          <div class="status-item">
+            <span class="status-label">Connection:</span>
+            <span :class="['status-value', statusClass]">{{ connectionStatusText }}</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">App Stage:</span>
+            <span class="status-value">{{ appStage }}</span>
+          </div>
+          <div class="status-item">
+            <span class="status-label">Total Components:</span>
+            <span class="status-value">{{ totalComponents }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>System Information</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Scenes:</span>
+            <span class="info-value">{{ sceneCount }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Stages:</span>
+            <span class="info-value">{{ stageCount }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Cameras:</span>
+            <span class="info-value">{{ cameraCount }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Markers:</span>
+            <span class="info-value">{{ markerCount }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Anchors:</span>
+            <span class="info-value">{{ anchorCount }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">VR Devices:</span>
+            <span class="info-value">{{ vrDeviceCount }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Tracking Mounts:</span>
+            <span class="info-value">{{ trackingMountCount }}</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed } from 'vue'
+import { useComponentStore } from '../../../stores/componentStore.js'
+import { useMikanStore } from '../../../stores/mikanStore.js'
 
-// TODO: Add project settings logic
+const componentStore = useComponentStore()
+const mikanStore = useMikanStore()
+
+// Connection status
+const connectionStatusText = computed(() => {
+  switch (mikanStore.connectionStatus) {
+    case 'connected':
+      return 'Connected'
+    case 'connecting':
+      return 'Connecting...'
+    case 'disconnected':
+      return 'Disconnected'
+    case 'error':
+      return 'Error'
+    default:
+      return 'Unknown'
+  }
+})
+
+const statusClass = computed(() => {
+  switch (mikanStore.connectionStatus) {
+    case 'connected':
+      return 'status-connected'
+    case 'connecting':
+      return 'status-connecting'
+    case 'error':
+      return 'status-error'
+    default:
+      return 'status-disconnected'
+  }
+})
+
+const appStage = computed(() => mikanStore.appStage || 'Unknown')
+
+// Component counts
+const totalComponents = computed(() => componentStore.components.size)
+
+const sceneCount = computed(() =>
+  componentStore.getComponentsByClass('SceneComponent').length
+)
+
+const stageCount = computed(() =>
+  componentStore.getComponentsByClass('StageComponent').length
+)
+
+const cameraCount = computed(() =>
+  componentStore.getComponentsByClass('CameraComponent').length
+)
+
+const markerCount = computed(() =>
+  componentStore.getComponentsByClass('MarkerComponent').length
+)
+
+const anchorCount = computed(() =>
+  componentStore.getComponentsByClass('AnchorComponent').length
+)
+
+const vrDeviceCount = computed(() =>
+  componentStore.getComponentsByClass('VRDeviceComponent').length
+)
+
+const trackingMountCount = computed(() =>
+  componentStore.getComponentsByClass('TrackingMountComponent').length
+)
 </script>
 
 <style scoped>
@@ -39,41 +150,86 @@ import { ref } from 'vue'
   margin-bottom: 20px;
 }
 
-.placeholder-content {
-  margin-top: 30px;
+.settings-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.info-box {
+.info-message {
+  background-color: rgba(92, 184, 92, 0.1);
+  border: 1px solid rgba(92, 184, 92, 0.3);
+  border-radius: 4px;
+  padding: 16px;
+}
+
+.info-message p {
+  margin: 0;
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.info-message p:last-child {
+  margin-bottom: 0;
+}
+
+.settings-section {
   background-color: #2d2d2d;
   border: 1px solid #404040;
   border-radius: 4px;
   padding: 20px;
 }
 
-.info-box h3 {
+.settings-section h3 {
   color: #ffffff;
-  margin-bottom: 15px;
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
 }
 
-.info-box ul {
-  list-style: none;
-  padding: 0;
+.status-grid,
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 16px;
 }
 
-.info-box li {
-  color: #b0b0b0;
-  padding: 8px 0;
-  border-bottom: 1px solid #404040;
+.status-item,
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background-color: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
 }
 
-.info-box li:last-child {
-  border-bottom: none;
+.status-label,
+.info-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
 }
 
-.info-box li::before {
-  content: '○ ';
+.status-value,
+.info-value {
+  color: #fff;
+  font-weight: 600;
+  font-family: monospace;
+}
+
+.status-connected {
   color: #5cb85c;
-  font-weight: bold;
-  margin-right: 8px;
+}
+
+.status-connecting {
+  color: #f0ad4e;
+}
+
+.status-disconnected {
+  color: #999;
+}
+
+.status-error {
+  color: #d9534f;
 }
 </style>
