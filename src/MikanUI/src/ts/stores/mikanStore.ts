@@ -76,9 +76,9 @@ export const useMikanStore = defineStore('mikan', () => {
       // Fetch all components from the server
       const componentStore = useComponentStore()
       await componentStore.fetchAllComponents(client.value)
-
-      // Start processing events
-      processEvents()
+      
+      // Set up event listeners
+      setupEventListeners()
 
     } catch (error) {
       console.error('Connection error:', error)
@@ -154,44 +154,32 @@ export const useMikanStore = defineStore('mikan', () => {
     }
   }
 
-  // Event processing
-  function processEvents() {
+  // Set up event listeners using MikanEventManager
+  function setupEventListeners() {
     if (!client.value) return
 
     const componentStore = useComponentStore()
 
-    // Set up event polling
-    const pollEvents = () => {
-      if (!client.value || !isConnected.value) return
-
-      // Fetch next event
-      const event = client.value.fetchNextEvent()
-      if (event) {
-        handleEvent(event)
-      }
-
-      // Continue polling if still connected
-      if (isConnected.value) {
-        requestAnimationFrame(pollEvents)
-      }
-    }
-
-    requestAnimationFrame(pollEvents)
-  }
-
-  function handleEvent(event: MikanEvent) {
-    const componentStore = useComponentStore()
-
-    console.log(`[MikanStore] Received event: ${event.eventTypeName}`)
-
-    if (event instanceof MikanConnectedEvent) {
+    // Listen for connection events
+    client.value.onConnected((event: MikanEvent) => {
       console.log('[MikanStore] Connected event received')
-    } else if (event instanceof MikanDisconnectedEvent) {
+    })
+
+    client.value.onDisconnected((event: MikanDisconnectedEvent) => {
       console.log(`[MikanStore] Disconnected event received: ${event.code}`)
       disconnect()
-    } else if (event instanceof MikanPropertyUpdateEvent) {
+    })
+
+    // Listen for property update events
+    client.value.onPropertyUpdate((event: MikanPropertyUpdateEvent) => {
+      console.log(`[MikanStore] Property update event received`)
       componentStore.handlePropertyUpdate(event)
-    }
+    })
+
+    // Listen for all events for debugging (optional)
+    client.value.onAnyEvent((event: MikanEvent) => {
+      console.log(`[MikanStore] Event: ${event.eventTypeName}`)
+    })
   }
 
   return {

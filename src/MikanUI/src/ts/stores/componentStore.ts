@@ -24,12 +24,12 @@ const COMPONENT_SYSTEMS = [
   { ownerSystem: 'MarkerObjectSystem', componentClassName: 'MarkerComponent' },
   { ownerSystem: 'SceneObjectSystem', componentClassName: 'SceneComponent' },
   { ownerSystem: 'StageObjectSystem', componentClassName: 'StageComponent' },
-  { ownerSystem: 'QuadStencilObjectSystem', componentClassName: 'QuadStencilComponent' },
-  { ownerSystem: 'BoxStencilObjectSystem', componentClassName: 'BoxStencilComponent' },
-  { ownerSystem: 'ModelStencilObjectSystem', componentClassName: 'ModelStencilComponent' },
+  { ownerSystem: 'QuadStencilSystem', componentClassName: 'QuadStencilComponent' },
+  { ownerSystem: 'BoxStencilSystem', componentClassName: 'BoxStencilComponent' },
+  { ownerSystem: 'ModelStencilSystem', componentClassName: 'ModelStencilComponent' },
   { ownerSystem: 'TrackingMountObjectSystem', componentClassName: 'TrackingMountComponent' },
-  { ownerSystem: 'MarkerTrackingVolumeObjectSystem', componentClassName: 'MarkerTrackingVolumeComponent' },
-  { ownerSystem: 'VRTrackingVolumeObjectSystem', componentClassName: 'VRTrackingVolumeComponent' },
+  { ownerSystem: 'MarkerTrackingVolumeSystem', componentClassName: 'MarkerTrackingVolumeComponent' },
+  { ownerSystem: 'VRTrackingVolumeSystem', componentClassName: 'VRTrackingVolumeComponent' },
   { ownerSystem: 'VRObjectSystem', componentClassName: 'VRDeviceComponent' }
 ]
 
@@ -146,8 +146,11 @@ export const useComponentStore = defineStore('components', () => {
         for (const componentId of componentIds) {
           await fetchComponentValues(client, ownerSystem, componentId, componentClassName)
         }
+      } else if (response.resultCode === MikanAPIResult.Uninitialized) {
+        // Component type doesn't exist in this version - silently skip
+        console.log(`[ComponentStore] Component type ${componentClassName} not available (skipped)`)
       } else {
-        console.error(
+        console.warn(
           `[ComponentStore] Failed to fetch component list for ${componentClassName}: ${response.resultCode}`
         )
       }
@@ -197,11 +200,14 @@ export const useComponentStore = defineStore('components', () => {
   async function fetchAllComponents(client: MikanClient): Promise<void> {
     console.log('[ComponentStore] Fetching all components...')
 
+    const initialCount = components.value.size
+
     for (const { ownerSystem, componentClassName } of COMPONENT_SYSTEMS) {
       await fetchComponentList(client, ownerSystem, componentClassName)
     }
 
-    console.log(`[ComponentStore] Component database populated with ${components.value.size} components`)
+    const fetchedCount = components.value.size - initialCount
+    console.log(`[ComponentStore] Component database populated with ${fetchedCount} new components (${components.value.size} total)`)
   }
 
   // Handle property update events from the server
