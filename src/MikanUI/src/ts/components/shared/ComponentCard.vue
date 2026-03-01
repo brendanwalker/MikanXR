@@ -1,5 +1,9 @@
 <template>
-  <div class="component-card">
+  <div
+    class="component-card"
+    :class="{ selected: isSelected, clickable: selectable }"
+    @click="handleClick"
+  >
     <div class="component-header">
       <h3 class="component-name">{{ component.component_name || 'Unnamed Component' }}</h3>
       <span class="component-id">ID: {{ componentId }}</span>
@@ -21,11 +25,25 @@ interface Props {
   componentId: number
   component: MikanComponentValues
   showAllProperties?: boolean
+  selectable?: boolean
+  isSelected?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  showAllProperties: false
+  showAllProperties: false,
+  selectable: false,
+  isSelected: false
 })
+
+const emit = defineEmits<{
+  (e: 'select', componentId: number): void
+}>()
+
+function handleClick() {
+  if (props.selectable) {
+    emit('select', props.componentId)
+  }
+}
 
 // Filter out internal properties and format for display
 const displayProperties = computed(() => {
@@ -88,7 +106,26 @@ function formatPropertyValue(value: any): string {
   transition: all 0.2s ease;
 }
 
-.component-card:hover {
+.component-card.clickable {
+  cursor: pointer;
+}
+
+.component-card.clickable:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.component-card.selected {
+  background: rgba(92, 184, 92, 0.2);
+  border-color: #5cb85c;
+}
+
+.component-card.selected:hover {
+  background: rgba(92, 184, 92, 0.25);
+  border-color: #5cb85c;
+}
+
+.component-card:not(.clickable):hover {
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.2);
 }

@@ -1,28 +1,49 @@
 <template>
   <div class="project-panel">
     <h2>Scenes Panel</h2>
-    <p>Scene and stage management with scene outliner and component properties.</p>
+    <p>Click on a component to edit its properties.</p>
 
     <div class="scenes-content">
+      <!-- Property Editor Modal -->
+      <div v-if="editingComponent" class="editor-overlay">
+        <PropertyEditor
+          :title="editingComponent.component.component_name || 'Component'"
+          :component-id="editingComponent.id"
+          :component="editingComponent.component"
+          :owner-system="editingComponent.system"
+          @close="closeEditor"
+          @save="handleSaveProperties"
+        />
+      </div>
+
       <!-- Stage Components -->
       <ComponentList
         title="Stage Components"
         :components="stageComponents"
+        :selectable="true"
+        :selected-component-id="selectedComponentId"
         sort-by="name"
+        @select="handleSelectComponent($event, 'StageObjectSystem')"
       />
 
       <!-- Scene Components -->
       <ComponentList
         title="Scene Components"
         :components="sceneComponents"
+        :selectable="true"
+        :selected-component-id="selectedComponentId"
         sort-by="name"
+        @select="handleSelectComponent($event, 'SceneObjectSystem')"
       />
 
       <!-- Anchor Components -->
       <ComponentList
         title="Anchor Components"
         :components="anchorComponents"
+        :selectable="true"
+        :selected-component-id="selectedComponentId"
         sort-by="name"
+        @select="handleSelectComponent($event, 'AnchorObjectSystem')"
       />
 
       <!-- Stencil Components -->
@@ -31,19 +52,28 @@
           v-if="quadStencilComponents.length > 0"
           title="Quad Stencil Components"
           :components="quadStencilComponents"
+          :selectable="true"
+          :selected-component-id="selectedComponentId"
           sort-by="name"
+          @select="handleSelectComponent($event, 'QuadStencilSystem')"
         />
         <ComponentList
           v-if="boxStencilComponents.length > 0"
           title="Box Stencil Components"
           :components="boxStencilComponents"
+          :selectable="true"
+          :selected-component-id="selectedComponentId"
           sort-by="name"
+          @select="handleSelectComponent($event, 'BoxStencilSystem')"
         />
         <ComponentList
           v-if="modelStencilComponents.length > 0"
           title="Model Stencil Components"
           :components="modelStencilComponents"
+          :selectable="true"
+          :selected-component-id="selectedComponentId"
           sort-by="name"
+          @select="handleSelectComponent($event, 'ModelStencilSystem')"
         />
       </div>
     </div>
@@ -51,11 +81,37 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useComponentStore } from '../../../stores/componentStore.js'
+import { useMikanStore } from '../../../stores/mikanStore.js'
 import ComponentList from '../../shared/ComponentList.vue'
+import PropertyEditor from '../../shared/PropertyEditor.vue'
+import {
+  MikanAPIResult,
+  MikanVariant,
+  MikanVariantType,
+  PropertySetValueRequest,
+  CLASS_ID_PROPERTY_SET_VALUE_REQUEST,
+  MikanIntValue,
+  MikanFloatValue,
+  MikanBoolValue,
+  MikanStringValue,
+  MikanVector3fValue,
+  MikanQuatfValue,
+  MikanVector3f,
+  MikanQuatf
+} from '@mikanxr/client'
 
 const componentStore = useComponentStore()
+const mikanStore = useMikanStore()
+
+// Selection state
+const selectedComponentId = ref<number | null>(null)
+const editingComponent = ref<{
+  id: number
+  component: any
+  system: string
+} | null>(null)
 
 // Get components by system
 const stageComponents = computed(() =>
@@ -87,6 +143,120 @@ const hasStencilComponents = computed(() =>
   boxStencilComponents.value.length > 0 ||
   modelStencilComponents.value.length > 0
 )
+
+// Handle component selection
+function handleSelectComponent(componentId: number, ownerSystem: string) {
+  selectedComponentId.value = componentId
+  const component = componentStore.getComponent(componentId)
+
+  if (component) {
+    editingComponent.value = {
+      id: componentId,
+      component,
+      system: ownerSystem
+    }
+  }
+}
+
+function closeEditor() {
+  editingComponent.value = null
+  selectedComponentId.value = null
+}
+
+// Handle property save
+async function handleSaveProperties(changes: Record<string, any>) {
+  if (!editingComponent.value || !mikanStore.client) {
+    console.error('[ProjectScenes] Cannot save: no component selected or not connected')
+    return
+  }
+
+  const { id: componentId, system: ownerSystem } = editingComponent.value
+
+  console.log(`[ProjectScenes] Saving ${Object.keys(changes).length} property changes for component ${componentId}`)
+
+  // Send each property update to the server
+  for (const [fieldName, fieldValue] of Object.entries(changes)) {
+    try {
+      const variant = createVariantFromValue(fieldValue)
+
+      const request: PropertySetValueRequest = {
+        requestTypeId: CLASS_ID_PROPERTY_SET_VALUE_REQUEST,
+        requestTypeName: 'PropertySetValueRequest',
+        requestId: 0,
+        ownerSystem,
+        componentId,
+        fieldName,
+        fieldValue: variant
+      }
+
+      const future = mikanStore.client.sendRequest(request)
+      const response = await future.await()
+
+      if (response.resultCode === MikanAPIResult.Success) {
+        console.log(`[ProjectScenes] Successfully updated ${fieldName}`)
+      } else {
+        console.error(`[ProjectScenes] Failed to update ${fieldName}: ${response.resultCode}`)
+      }
+    } catch (error) {
+      console.error(`[ProjectScenes] Error updating ${fieldName}:`, error)
+    }
+  }
+
+  closeEditor()
+}
+
+// Create MikanVariant from JavaScript value
+function createVariantFromValue(value: any): MikanVariant {
+  const variant = new MikanVariant()
+
+  if (typeof value === 'boolean') {
+    variant.value_type = MikanVariantType.BOOL_TYPE
+    const boolValue = new MikanBoolValue()
+    boolValue.value = value
+    variant.value_ptr.setInstance(boolValue)
+  } else if (typeof value === 'number') {
+    if (Number.isInteger(value)) {
+      variant.value_type = MikanVariantType.INT_TYPE
+      const intValue = new MikanIntValue()
+      intValue.value = value
+      variant.value_ptr.setInstance(intValue)
+    } else {
+      variant.value_type = MikanVariantType.FLOAT_TYPE
+      const floatValue = new MikanFloatValue()
+      floatValue.value = value
+      variant.value_ptr.setInstance(floatValue)
+    }
+  } else if (typeof value === 'string') {
+    variant.value_type = MikanVariantType.MK_STRING_TYPE
+    const stringValue = new MikanStringValue()
+    stringValue.value = value
+    variant.value_ptr.setInstance(stringValue)
+  } else if (typeof value === 'object' && value !== null) {
+    // Check if it's a Vector3
+    if ('x' in value && 'y' in value && 'z' in value && !('w' in value)) {
+      variant.value_type = MikanVariantType.VECTOR3F_TYPE
+      const vec3Value = new MikanVector3fValue()
+      vec3Value.value = new MikanVector3f()
+      vec3Value.value.x = value.x
+      vec3Value.value.y = value.y
+      vec3Value.value.z = value.z
+      variant.value_ptr.setInstance(vec3Value)
+    }
+    // Check if it's a Quaternion
+    else if ('w' in value && 'x' in value && 'y' in value && 'z' in value) {
+      variant.value_type = MikanVariantType.QUATERNIONF_TYPE
+      const quatValue = new MikanQuatfValue()
+      quatValue.value = new MikanQuatf()
+      quatValue.value.w = value.w
+      quatValue.value.x = value.x
+      quatValue.value.y = value.y
+      quatValue.value.z = value.z
+      variant.value_ptr.setInstance(quatValue)
+    }
+  }
+
+  return variant
+}
 </script>
 
 <style scoped>
@@ -114,5 +284,19 @@ const hasStencilComponents = computed(() =>
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+.editor-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
 }
 </style>

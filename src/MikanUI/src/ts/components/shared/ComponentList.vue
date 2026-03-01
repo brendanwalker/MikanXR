@@ -16,6 +16,9 @@
         :component-id="getComponentId(component, index)"
         :component="component"
         :show-all-properties="showAllProperties"
+        :selectable="selectable"
+        :is-selected="selectedComponentId === getComponentId(component, index)"
+        @select="$emit('select', $event)"
       />
     </div>
   </div>
@@ -31,12 +34,20 @@ interface Props {
   components: MikanComponentValues[]
   showAllProperties?: boolean
   sortBy?: 'name' | 'id'
+  selectable?: boolean
+  selectedComponentId?: number | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
   showAllProperties: false,
-  sortBy: 'name'
+  sortBy: 'name',
+  selectable: false,
+  selectedComponentId: null
 })
+
+const emit = defineEmits<{
+  (e: 'select', componentId: number): void
+}>()
 
 // Sort components by name or ID
 const sortedComponents = computed(() => {
