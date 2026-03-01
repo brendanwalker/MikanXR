@@ -80,6 +80,7 @@
 const char* MikanMarkerSystemValues::k_systemName = "MarkerObjectSystem";
 
 // Static component class name and owner system name definitions
+// TODO: Make these come from the System and component classes
 const char* MikanAnchorComponentValues::k_componentClassName = "AnchorComponent";
 const char* MikanAnchorComponentValues::k_ownerSystemName = "AnchorObjectSystem";
 
@@ -102,16 +103,16 @@ const char* MikanQuadStencilComponentValues::k_componentClassName = "QuadStencil
 const char* MikanQuadStencilComponentValues::k_ownerSystemName = "QuadStencilObjectSystem";
 
 const char* MikanBoxStencilComponentValues::k_componentClassName = "BoxStencilComponent";
-const char* MikanBoxStencilComponentValues::k_ownerSystemName = "BoxStencilObjectSystem";
+const char* MikanBoxStencilComponentValues::k_ownerSystemName = "BoxStencilSystem";
 
 const char* MikanModelStencilComponentValues::k_componentClassName = "ModelStencilComponent";
-const char* MikanModelStencilComponentValues::k_ownerSystemName = "ModelStencilObjectSystem";
+const char* MikanModelStencilComponentValues::k_ownerSystemName = "ModelStencilSystem";
 
 const char* MikanMarkerTrackingVolumeComponentValues::k_componentClassName = "MarkerTrackingVolumeComponent";
-const char* MikanMarkerTrackingVolumeComponentValues::k_ownerSystemName = "MarkerTrackingVolumeObjectSystem";
+const char* MikanMarkerTrackingVolumeComponentValues::k_ownerSystemName = "MarkerTrackingVolumeSystem";
 
 const char* MikanVRTrackingVolumeComponentValues::k_componentClassName = "VRTrackingVolumeComponent";
-const char* MikanVRTrackingVolumeComponentValues::k_ownerSystemName = "VRTrackingVolumeObjectSystem";
+const char* MikanVRTrackingVolumeComponentValues::k_ownerSystemName = "VRTrackingVolumeSystem";
 
 const char* MikanTrackingMountComponentValues::k_componentClassName = "TrackingMountComponent";
 const char* MikanTrackingMountComponentValues::k_ownerSystemName = "TrackingMountObjectSystem";
