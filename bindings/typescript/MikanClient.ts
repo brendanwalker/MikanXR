@@ -7,7 +7,10 @@ import {
   MikanLogLevel,
   MikanClientInfo,
   MikanClientGraphicsApi,
-  MikanConstants
+  MikanConstants,
+  MikanEvent,
+  MikanDisconnectedEvent,
+  MikanPropertyUpdateEvent
 } from './types/index.js';
 
 export type MikanLogCallback = (level: MikanLogLevel, message: string) => void;
@@ -209,6 +212,42 @@ export class MikanClient {
   // Event Manager Access
   public get events(): MikanEventManager {
     return this.eventManager;
+  }
+
+  // Event listener convenience methods (delegate to event manager)
+  public onConnected(listener: (event: MikanEvent) => void): this {
+    this.eventManager.onConnected(listener);
+    return this;
+  }
+
+  public onDisconnected(listener: (event: MikanDisconnectedEvent) => void): this {
+    this.eventManager.onDisconnected(listener);
+    return this;
+  }
+
+  public onAnchorListUpdate(listener: (event: MikanEvent) => void): this {
+    this.eventManager.onAnchorListUpdate(listener);
+    return this;
+  }
+
+  public onAnchorNameUpdate(listener: (event: any) => void): this {
+    this.eventManager.onAnchorNameUpdate(listener);
+    return this;
+  }
+
+  public onAnchorPoseUpdate(listener: (event: any) => void): this {
+    this.eventManager.onAnchorPoseUpdate(listener);
+    return this;
+  }
+
+  public onPropertyUpdate(listener: (event: MikanPropertyUpdateEvent) => void): this {
+    this.eventManager.onPropertyUpdate(listener);
+    return this;
+  }
+
+  public onAnyEvent(listener: (event: MikanEvent) => void): this {
+    this.eventManager.onAnyEvent(listener);
+    return this;
   }
 
   // Logging

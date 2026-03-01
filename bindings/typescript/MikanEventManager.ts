@@ -3,6 +3,7 @@ import {
   MikanEvent,
   MikanDisconnectedEvent,
   MikanDisconnectCode,
+  MikanPropertyUpdateEvent,
   CLASS_ID_MIKAN_DISCONNECTED_EVENT
 } from './types/index.js';
 import { deserializeFromJsonString, TypeRegistry } from './Serialization/index.js';
@@ -114,6 +115,10 @@ export class MikanEventManager extends EventEmitter {
 
   public onAnchorPoseUpdate(listener: (event: any) => void): this {
     return this.on('MikanAnchorPoseUpdateEvent', listener);
+  }
+
+  public onPropertyUpdate(listener: (event: MikanPropertyUpdateEvent) => void): this {
+    return this.on('MikanPropertyUpdateEvent', listener);
   }
 
   public onAnyEvent(listener: (event: MikanEvent) => void): this {
