@@ -3,32 +3,90 @@
     <h2>Scenes Panel</h2>
     <p>Scene and stage management with scene outliner and component properties.</p>
 
-    <!-- TODO: Implement scene/stage selection -->
-    <!-- TODO: Implement scene outliner -->
-    <!-- TODO: Implement component property editors (Anchors, Stencils) -->
+    <div class="scenes-content">
+      <!-- Stage Components -->
+      <ComponentList
+        title="Stage Components"
+        :components="stageComponents"
+        sort-by="name"
+      />
 
-    <div class="placeholder-content">
-      <div class="info-box">
-        <h3>Coming Soon</h3>
-        <ul>
-          <li>Stage Selection</li>
-          <li>Scene Selection & Management</li>
-          <li>Scene Outliner (Actor Hierarchy)</li>
-          <li>Anchor Properties Editor</li>
-          <li>Stencil Properties Editor (Quad, Box, Model)</li>
-        </ul>
+      <!-- Scene Components -->
+      <ComponentList
+        title="Scene Components"
+        :components="sceneComponents"
+        sort-by="name"
+      />
+
+      <!-- Anchor Components -->
+      <ComponentList
+        title="Anchor Components"
+        :components="anchorComponents"
+        sort-by="name"
+      />
+
+      <!-- Stencil Components -->
+      <div v-if="hasStencilComponents" class="stencil-section">
+        <ComponentList
+          v-if="quadStencilComponents.length > 0"
+          title="Quad Stencil Components"
+          :components="quadStencilComponents"
+          sort-by="name"
+        />
+        <ComponentList
+          v-if="boxStencilComponents.length > 0"
+          title="Box Stencil Components"
+          :components="boxStencilComponents"
+          sort-by="name"
+        />
+        <ComponentList
+          v-if="modelStencilComponents.length > 0"
+          title="Model Stencil Components"
+          :components="modelStencilComponents"
+          sort-by="name"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed } from 'vue'
 import { useComponentStore } from '../../../stores/componentStore.js'
+import ComponentList from '../../shared/ComponentList.vue'
 
 const componentStore = useComponentStore()
 
-// TODO: Add scene management logic
+// Get components by system
+const stageComponents = computed(() =>
+  componentStore.getComponentsByClass('StageComponent')
+)
+
+const sceneComponents = computed(() =>
+  componentStore.getComponentsByClass('SceneComponent')
+)
+
+const anchorComponents = computed(() =>
+  componentStore.getComponentsByClass('AnchorComponent')
+)
+
+const quadStencilComponents = computed(() =>
+  componentStore.getComponentsByClass('QuadStencilComponent')
+)
+
+const boxStencilComponents = computed(() =>
+  componentStore.getComponentsByClass('BoxStencilComponent')
+)
+
+const modelStencilComponents = computed(() =>
+  componentStore.getComponentsByClass('ModelStencilComponent')
+)
+
+const hasStencilComponents = computed(() =>
+  quadStencilComponents.value.length > 0 ||
+  boxStencilComponents.value.length > 0 ||
+  modelStencilComponents.value.length > 0
+)
 </script>
 
 <style scoped>
@@ -46,41 +104,15 @@ const componentStore = useComponentStore()
   margin-bottom: 20px;
 }
 
-.placeholder-content {
-  margin-top: 30px;
+.scenes-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
-.info-box {
-  background-color: #2d2d2d;
-  border: 1px solid #404040;
-  border-radius: 4px;
-  padding: 20px;
-}
-
-.info-box h3 {
-  color: #ffffff;
-  margin-bottom: 15px;
-}
-
-.info-box ul {
-  list-style: none;
-  padding: 0;
-}
-
-.info-box li {
-  color: #b0b0b0;
-  padding: 8px 0;
-  border-bottom: 1px solid #404040;
-}
-
-.info-box li:last-child {
-  border-bottom: none;
-}
-
-.info-box li::before {
-  content: '○ ';
-  color: #5cb85c;
-  font-weight: bold;
-  margin-right: 8px;
+.stencil-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 </style>
