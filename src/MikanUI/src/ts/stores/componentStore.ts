@@ -33,15 +33,20 @@ const COMPONENT_SYSTEMS = [
   { ownerSystem: 'VRObjectSystem', componentClassName: 'VRDeviceComponent' }
 ]
 
+// Helper to create a unique key for each component (system:id)
+function makeComponentKey(systemName: string, componentId: number): string {
+  return `${systemName}:${componentId}`
+}
+
 export const useComponentStore = defineStore('components', () => {
-  // Component database - maps component ID to component values
-  const components = ref<Map<number, MikanComponentValues>>(new Map())
+  // Component database - maps composite key (system:id) to component values
+  const components = ref<Map<string, MikanComponentValues>>(new Map())
 
   // Component indices by system for quick lookups
-  const componentsBySystem = ref<Map<string, Set<number>>>(new Map())
+  const componentsBySystem = ref<Map<string, Set<string>>>(new Map())
 
   // Component indices by class name
-  const componentsByClass = ref<Map<string, Set<number>>>(new Map())
+  const componentsByClass = ref<Map<string, Set<string>>>(new Map())
 
   // Computed getters
   const allComponents = computed(() => Array.from(components.value.values()))
@@ -56,15 +61,28 @@ export const useComponentStore = defineStore('components', () => {
 
   const getComponentsByClass = computed(() => (className: string) => {
     const ids = componentsByClass.value.get(className)
+    console.log(`[ComponentStore] getComponentsByClass("${className}"): found ${ids?.size || 0} component IDs`)
     if (!ids) return []
-    return Array.from(ids)
+    const result = Array.from(ids)
       .map(id => components.value.get(id))
       .filter((c): c is MikanComponentValues => c !== undefined)
+    console.log(`[ComponentStore] Returning ${result.length} components for class "${className}"`)
+    return result
   })
 
   // Actions
-  function getComponent(componentId: number): MikanComponentValues | undefined {
-    return components.value.get(componentId)
+  function getComponent(componentId: number, systemName?: string): MikanComponentValues | undefined {
+    // If no system name provided, try to find the component across all systems
+    if (!systemName) {
+      for (const comp of components.value.values()) {
+        if ((comp as any).component_id === componentId) {
+          return comp
+        }
+      }
+      return undefined
+    }
+    const key = makeComponentKey(systemName, componentId)
+    return components.value.get(key)
   }
 
   function addComponent(
@@ -73,39 +91,43 @@ export const useComponentStore = defineStore('components', () => {
     systemName: string,
     className: string
   ) {
-    components.value.set(componentId, component)
+    const key = makeComponentKey(systemName, componentId)
+    components.value.set(key, component)
 
     // Add to system index
     if (!componentsBySystem.value.has(systemName)) {
       componentsBySystem.value.set(systemName, new Set())
     }
-    componentsBySystem.value.get(systemName)!.add(componentId)
+    componentsBySystem.value.get(systemName)!.add(key)
 
     // Add to class index
     if (!componentsByClass.value.has(className)) {
       componentsByClass.value.set(className, new Set())
     }
-    componentsByClass.value.get(className)!.add(componentId)
+    componentsByClass.value.get(className)!.add(key)
   }
 
-  function removeComponent(componentId: number) {
-    const component = components.value.get(componentId)
+  function removeComponent(componentId: number, systemName: string) {
+    const key = makeComponentKey(systemName, componentId)
+    const component = components.value.get(key)
     if (!component) return
 
     // Remove from all indices
-    componentsBySystem.value.forEach((ids) => ids.delete(componentId))
-    componentsByClass.value.forEach((ids) => ids.delete(componentId))
+    componentsBySystem.value.forEach((ids) => ids.delete(key))
+    componentsByClass.value.forEach((ids) => ids.delete(key))
 
     // Remove from main map
-    components.value.delete(componentId)
+    components.value.delete(key)
   }
 
   function updateComponentProperty(
     componentId: number,
+    systemName: string,
     fieldName: string,
     fieldValue: any
   ) {
-    const component = components.value.get(componentId)
+    const key = makeComponentKey(systemName, componentId)
+    const component = components.value.get(key)
     if (!component) return
 
     // Update the property value
@@ -179,14 +201,41 @@ export const useComponentStore = defineStore('components', () => {
 
       if (response.resultCode === MikanAPIResult.Success) {
         const valuesResponse = response as ComponentGetValuesResponse
-        const componentValues = valuesResponse.valuesObject.instance as MikanComponentValues
 
-        if (componentValues) {
-          addComponent(componentId, componentValues, ownerSystem, componentClassName)
-          console.log(
-            `[ComponentStore] Added component ${componentId} (${componentClassName}): ${componentValues.component_name}`
-          )
+        if (!valuesResponse.valuesObject) {
+          console.error(`[ComponentStore] No valuesObject in response for component ${componentId}`)
+          return
         }
+
+        // The PolymorphicObject structure has the actual data in the 'value' property
+        const polymorphicObj = valuesResponse.valuesObject as any
+
+        // Try to get component values from either .instance, .value, or directly on the object
+        let componentValues: MikanComponentValues | null = null
+
+        if (polymorphicObj.instance) {
+          componentValues = polymorphicObj.instance as MikanComponentValues
+        } else if (polymorphicObj.value) {
+          // This is the expected path for PolymorphicObject
+          componentValues = polymorphicObj.value as MikanComponentValues
+        } else if (polymorphicObj.component_name !== undefined) {
+          // Fallback: data might be directly on the object
+          componentValues = polymorphicObj as MikanComponentValues
+        }
+
+        if (!componentValues) {
+          console.error(`[ComponentStore] Could not find component data for component ${componentId}`)
+          console.log(`[ComponentStore] valuesObject keys:`, Object.keys(polymorphicObj))
+          return
+        }
+
+        console.log(
+          `[ComponentStore] Adding component ${componentId}: class="${componentClassName}", system="${ownerSystem}", name="${componentValues.component_name}"`
+        )
+        addComponent(componentId, componentValues, ownerSystem, componentClassName)
+        console.log(
+          `[ComponentStore] Successfully added component ${componentId} (${componentClassName}): ${componentValues.component_name}`
+        )
       } else {
         console.error(
           `[ComponentStore] Failed to fetch component values for ${componentId}: ${response.resultCode}`
@@ -214,15 +263,16 @@ export const useComponentStore = defineStore('components', () => {
   function handlePropertyUpdate(event: MikanPropertyUpdateEvent) {
     const propertyValue: MikanPropertyValue = event.propertyValue
     const componentId = propertyValue.componentId
+    const ownerSystem = propertyValue.ownerSystem
 
     // Only handle component property updates (not system properties)
     if (componentId === MikanConstants.InvalidMikanID) {
       return
     }
 
-    const component = components.value.get(componentId)
+    const component = getComponent(componentId, ownerSystem)
     if (!component) {
-      console.warn(`[ComponentStore] Component ${componentId} not found for property update`)
+      console.warn(`[ComponentStore] Component ${componentId} in system ${ownerSystem} not found for property update`)
       return
     }
 
@@ -233,11 +283,11 @@ export const useComponentStore = defineStore('components', () => {
     const actualValue = extractVariantValue(fieldValue)
 
     console.log(
-      `[ComponentStore] Component ${componentId} property update: ${fieldName} = ${JSON.stringify(actualValue)}`
+      `[ComponentStore] Component ${componentId} (${ownerSystem}) property update: ${fieldName} = ${JSON.stringify(actualValue)}`
     )
 
     // Update the component property
-    updateComponentProperty(componentId, fieldName, actualValue)
+    updateComponentProperty(componentId, ownerSystem, fieldName, actualValue)
   }
 
   // Helper to extract value from MikanVariant
