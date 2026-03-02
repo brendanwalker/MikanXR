@@ -1,12 +1,12 @@
 <template>
   <div class="component-list">
-    <div class="list-header">
+    <div v-if="title" class="list-header">
       <h2 class="list-title">{{ title }}</h2>
       <span class="component-count">{{ components.length }} {{ components.length === 1 ? 'component' : 'components' }}</span>
     </div>
 
     <div v-if="components.length === 0" class="empty-state">
-      <p>No {{ title.toLowerCase() }} found</p>
+      <p>No {{ title ? title.toLowerCase() : 'components' }} found</p>
     </div>
 
     <div v-else class="components-container">
@@ -30,7 +30,7 @@ import ComponentCard from './ComponentCard.vue'
 import type { MikanComponentValues } from '@mikanxr/client'
 
 interface Props {
-  title: string
+  title?: string
   components: MikanComponentValues[]
   showAllProperties?: boolean
   sortBy?: 'name' | 'id'
@@ -39,6 +39,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  title: '',
   showAllProperties: false,
   sortBy: 'name',
   selectable: false,
