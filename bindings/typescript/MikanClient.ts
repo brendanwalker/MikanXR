@@ -245,6 +245,11 @@ export class MikanClient {
     return this;
   }
 
+  public onAppStageChanged(listener: (event: import('./types/MikanRemoteControlEvents.js').MikanAppStageChangedEvent) => void): this {
+    this.eventManager.onAppStageChanged(listener);
+    return this;
+  }
+
   public onAnyEvent(listener: (event: MikanEvent) => void): this {
     this.eventManager.onAnyEvent(listener);
     return this;

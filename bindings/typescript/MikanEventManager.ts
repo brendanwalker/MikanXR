@@ -6,6 +6,10 @@ import {
   MikanPropertyUpdateEvent,
   CLASS_ID_MIKAN_DISCONNECTED_EVENT
 } from './types/index.js';
+import {
+  MikanAppStageChangedEvent,
+  CLASS_ID_MIKAN_APP_STAGE_CHANGED_EVENT
+} from './types/MikanRemoteControlEvents.js';
 import { deserializeFromJsonString, TypeRegistry } from './Serialization/index.js';
 
 export class MikanEventManager extends EventEmitter {
@@ -20,6 +24,7 @@ export class MikanEventManager extends EventEmitter {
   private buildEventTypeCache(): void {
     // Map event type names to their class IDs
     this.eventTypeCache.set('MikanDisconnectedEvent', CLASS_ID_MIKAN_DISCONNECTED_EVENT);
+    this.eventTypeCache.set('MikanAppStageChangedEvent', CLASS_ID_MIKAN_APP_STAGE_CHANGED_EVENT);
     // Add more event types as needed
   }
 
@@ -119,6 +124,10 @@ export class MikanEventManager extends EventEmitter {
 
   public onPropertyUpdate(listener: (event: MikanPropertyUpdateEvent) => void): this {
     return this.on('MikanPropertyUpdateEvent', listener);
+  }
+
+  public onAppStageChanged(listener: (event: MikanAppStageChangedEvent) => void): this {
+    return this.on('MikanAppStageChangedEvent', listener);
   }
 
   public onAnyEvent(listener: (event: MikanEvent) => void): this {

@@ -12,6 +12,7 @@ import {
   MikanConnectedEvent,
   MikanDisconnectedEvent,
   MikanPropertyUpdateEvent,
+  MikanAppStageChangedEvent,
   SetPropertyNotifyMode,
   CLASS_ID_SET_PROPERTY_NOTIFY_MODE,
   MikanPropertyNotifyMode
@@ -168,6 +169,12 @@ export const useMikanStore = defineStore('mikan', () => {
     client.value.onDisconnected((event: MikanDisconnectedEvent) => {
       console.log(`[MikanStore] Disconnected event received: ${event.code}`)
       disconnect()
+    })
+
+    // Listen for app stage change events
+    client.value.onAppStageChanged((event: MikanAppStageChangedEvent) => {
+      console.log(`[MikanStore] App stage changed: ${event.old_app_state_name} -> ${event.new_app_state_name}`)
+      appStage.value = event.new_app_state_name
     })
 
     // Listen for property update events
