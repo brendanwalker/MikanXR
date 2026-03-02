@@ -23,14 +23,12 @@
           />
 
           <!-- Number -->
-          <input
+          <NumberInput
             v-else-if="isNumber(value)"
-            :id="`prop-${key}`"
-            type="number"
-            :value="value"
-            @input="handleChange(key, parseFloat(($event.target as HTMLInputElement).value))"
+            :model-value="value"
+            @update:model-value="handleChange(key, $event)"
             :step="isInteger(value) ? 1 : 0.01"
-            class="number-input"
+            :precision="isInteger(value) ? 0 : 3"
           />
 
           <!-- String -->
@@ -43,60 +41,60 @@
             class="text-input"
           />
 
+          <!-- Color (RGB/RGBA) -->
+          <ColorPicker
+            v-else-if="isColor(value) && !isVector3(value)"
+            :model-value="value"
+            @update:model-value="handleChange(key, $event)"
+          />
+
           <!-- Vector3 -->
           <div v-else-if="isVector3(value)" class="vector-input">
-            <input
-              type="number"
-              :value="value.x"
-              @input="handleVectorChange(key, 'x', parseFloat(($event.target as HTMLInputElement).value), value)"
-              step="0.01"
-              placeholder="X"
+            <NumberInput
+              :model-value="value.x"
+              @update:model-value="handleVectorChange(key, 'x', $event, value)"
+              :step="0.01"
+              :precision="3"
             />
-            <input
-              type="number"
-              :value="value.y"
-              @input="handleVectorChange(key, 'y', parseFloat(($event.target as HTMLInputElement).value), value)"
-              step="0.01"
-              placeholder="Y"
+            <NumberInput
+              :model-value="value.y"
+              @update:model-value="handleVectorChange(key, 'y', $event, value)"
+              :step="0.01"
+              :precision="3"
             />
-            <input
-              type="number"
-              :value="value.z"
-              @input="handleVectorChange(key, 'z', parseFloat(($event.target as HTMLInputElement).value), value)"
-              step="0.01"
-              placeholder="Z"
+            <NumberInput
+              :model-value="value.z"
+              @update:model-value="handleVectorChange(key, 'z', $event, value)"
+              :step="0.01"
+              :precision="3"
             />
           </div>
 
           <!-- Quaternion -->
           <div v-else-if="isQuaternion(value)" class="quaternion-input">
-            <input
-              type="number"
-              :value="value.w"
-              @input="handleQuaternionChange(key, 'w', parseFloat(($event.target as HTMLInputElement).value), value)"
-              step="0.01"
-              placeholder="W"
+            <NumberInput
+              :model-value="value.w"
+              @update:model-value="handleQuaternionChange(key, 'w', $event, value)"
+              :step="0.01"
+              :precision="3"
             />
-            <input
-              type="number"
-              :value="value.x"
-              @input="handleQuaternionChange(key, 'x', parseFloat(($event.target as HTMLInputElement).value), value)"
-              step="0.01"
-              placeholder="X"
+            <NumberInput
+              :model-value="value.x"
+              @update:model-value="handleQuaternionChange(key, 'x', $event, value)"
+              :step="0.01"
+              :precision="3"
             />
-            <input
-              type="number"
-              :value="value.y"
-              @input="handleQuaternionChange(key, 'y', parseFloat(($event.target as HTMLInputElement).value), value)"
-              step="0.01"
-              placeholder="Y"
+            <NumberInput
+              :model-value="value.y"
+              @update:model-value="handleQuaternionChange(key, 'y', $event, value)"
+              :step="0.01"
+              :precision="3"
             />
-            <input
-              type="number"
-              :value="value.z"
-              @input="handleQuaternionChange(key, 'z', parseFloat(($event.target as HTMLInputElement).value), value)"
-              step="0.01"
-              placeholder="Z"
+            <NumberInput
+              :model-value="value.z"
+              @update:model-value="handleQuaternionChange(key, 'z', $event, value)"
+              :step="0.01"
+              :precision="3"
             />
           </div>
 
@@ -122,6 +120,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { MikanComponentValues } from '@mikanxr/client'
+import NumberInput from './NumberInput.vue'
+import ColorPicker from './ColorPicker.vue'
 
 interface Props {
   title: string
@@ -178,6 +178,10 @@ function isVector3(value: any): boolean {
 
 function isQuaternion(value: any): boolean {
   return value && typeof value === 'object' && 'w' in value && 'x' in value && 'y' in value && 'z' in value
+}
+
+function isColor(value: any): boolean {
+  return value && typeof value === 'object' && 'r' in value && 'g' in value && 'b' in value
 }
 
 // Format property names
@@ -392,5 +396,55 @@ input[type="checkbox"] {
 
 .property-content::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.3);
+}
+
+/* Responsive layout */
+@media (max-width: 768px) {
+  .property-editor {
+    max-width: 90vw;
+    padding: 16px;
+  }
+
+  .property-title {
+    font-size: 18px;
+  }
+
+  .vector-input,
+  .quaternion-input {
+    flex-wrap: wrap;
+  }
+
+  .vector-input > *,
+  .quaternion-input > * {
+    min-width: calc(50% - 4px);
+  }
+}
+
+@media (max-width: 480px) {
+  .property-editor {
+    max-width: 95vw;
+    padding: 12px;
+  }
+
+  .property-header {
+    margin-bottom: 16px;
+  }
+
+  .property-title {
+    font-size: 16px;
+  }
+
+  .property-content {
+    gap: 12px;
+  }
+
+  .property-footer {
+    flex-direction: column;
+  }
+
+  .save-button,
+  .reset-button {
+    width: 100%;
+  }
 }
 </style>

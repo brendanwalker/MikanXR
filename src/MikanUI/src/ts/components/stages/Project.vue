@@ -77,9 +77,11 @@ function handleReturn() {
 
 .project-nav {
   display: flex;
+  flex-wrap: wrap;
   background-color: #2d2d2d;
   border-bottom: 2px solid #404040;
   padding: 0;
+  overflow-x: auto;
 }
 
 .nav-tab {
@@ -92,6 +94,7 @@ function handleReturn() {
   font-weight: 500;
   border-bottom: 3px solid transparent;
   transition: all 0.2s;
+  white-space: nowrap;
 }
 
 .nav-tab:hover {
@@ -138,5 +141,33 @@ function handleReturn() {
 
 .panel-content::-webkit-scrollbar-thumb:hover {
   background: #666;
+}
+
+/* Responsive layout for smaller screens */
+@media (max-width: 768px) {
+  .project-nav {
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .nav-tab {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  .panel-content {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-tab {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .panel-content {
+    padding: 8px;
+  }
 }
 </style>
