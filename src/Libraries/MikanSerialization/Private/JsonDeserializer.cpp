@@ -564,7 +564,7 @@ namespace Serialization
 		{
 			const json& fieldJsonObject= getJsonObjectFromAccessor(accessor);
 
-			if (fieldJsonObject.is_number_float())
+			if (fieldJsonObject.is_number())
 			{
 				float value = fieldJsonObject.get<float>();
 
@@ -583,7 +583,7 @@ namespace Serialization
 		{
 			const json& fieldJsonObject= getJsonObjectFromAccessor(accessor);
 
-			if (fieldJsonObject.is_number_float())
+			if (fieldJsonObject.is_number())
 			{
 				double value = fieldJsonObject.get<double>();
 
