@@ -154,7 +154,8 @@ export function buildSerializationTestObject(): SerializationTestObject {
   testObject.point_ptr_field = new PolymorphicObject();
   testObject.point_ptr_field.setInstance(
     new SerializationPoint3d(1.2345, 5.4321, 9.8765),
-    SerializationPoint3d.classId
+    SerializationPoint3d.classId,
+    'SerializationPoint3d'
   );
   testObject.null_ptr_field = new PolymorphicObject();
   testObject.bool_array = boolArray;

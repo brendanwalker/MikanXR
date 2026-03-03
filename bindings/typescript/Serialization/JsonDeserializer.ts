@@ -167,7 +167,7 @@ class JsonReadVisitor implements IVisitor {
 
     // Set the instance on the PolymorphicObject
     const classId = BigInt(jsonToken.class_id || '0');
-    fieldInstance.setInstance(elementInstance, classId);
+    fieldInstance.setInstance(elementInstance, classId, elementRuntimeTypeName);
   }
 
   visitEnum(accessor: ValueAccessor): void {

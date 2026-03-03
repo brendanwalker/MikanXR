@@ -263,7 +263,7 @@ describe('SerializationUnitTests', () => {
   describe('Edge Cases', () => {
     it('should handle null polymorphic objects', () => {
       const testObject = new SerializationTestObject();
-      testObject.null_ptr_field.setInstance(null as any, 0n);
+      testObject.null_ptr_field.setInstance(null as any, 0n, '');
 
       const jsonString = serializeToJsonString(testObject, SerializationTestObject);
       const deserialized = new SerializationTestObject();

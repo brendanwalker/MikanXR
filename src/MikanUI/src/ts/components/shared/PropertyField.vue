@@ -1,0 +1,280 @@
+<template>
+  <div class="property-field">
+    <!-- Boolean field -->
+    <input
+      v-if="fieldType === 'boolean'"
+      type="checkbox"
+      :checked="fieldValue"
+      @change="handleBooleanChange"
+      class="property-checkbox"
+    />
+
+    <!-- Number field -->
+    <NumberInput
+      v-else-if="fieldType === 'number'"
+      :model-value="fieldValue"
+      @update:model-value="handleNumberChange"
+      :step="0.01"
+      class="property-number"
+    />
+
+    <!-- String field -->
+    <input
+      v-else-if="fieldType === 'string'"
+      type="text"
+      :value="fieldValue"
+      @blur="handleStringChange"
+      class="property-text"
+    />
+
+    <!-- Vector3 field -->
+    <div v-else-if="fieldType === 'vector3'" class="property-vector">
+      <div class="vector-component">
+        <label>X</label>
+        <NumberInput
+          :model-value="fieldValue.x"
+          @update:model-value="(v) => handleVectorChange('x', v)"
+          :step="0.01"
+          class="vector-input"
+        />
+      </div>
+      <div class="vector-component">
+        <label>Y</label>
+        <NumberInput
+          :model-value="fieldValue.y"
+          @update:model-value="(v) => handleVectorChange('y', v)"
+          :step="0.01"
+          class="vector-input"
+        />
+      </div>
+      <div class="vector-component">
+        <label>Z</label>
+        <NumberInput
+          :model-value="fieldValue.z"
+          @update:model-value="(v) => handleVectorChange('z', v)"
+          :step="0.01"
+          class="vector-input"
+        />
+      </div>
+    </div>
+
+    <!-- Quaternion field -->
+    <div v-else-if="fieldType === 'quaternion'" class="property-quaternion">
+      <div class="quat-component">
+        <label>W</label>
+        <NumberInput
+          :model-value="fieldValue.w"
+          @update:model-value="(v) => handleQuaternionChange('w', v)"
+          :step="0.01"
+          class="vector-input"
+        />
+      </div>
+      <div class="quat-component">
+        <label>X</label>
+        <NumberInput
+          :model-value="fieldValue.x"
+          @update:model-value="(v) => handleQuaternionChange('x', v)"
+          :step="0.01"
+          class="vector-input"
+        />
+      </div>
+      <div class="quat-component">
+        <label>Y</label>
+        <NumberInput
+          :model-value="fieldValue.y"
+          @update:model-value="(v) => handleQuaternionChange('y', v)"
+          :step="0.01"
+          class="vector-input"
+        />
+      </div>
+      <div class="quat-component">
+        <label>Z</label>
+        <NumberInput
+          :model-value="fieldValue.z"
+          @update:model-value="(v) => handleQuaternionChange('z', v)"
+          :step="0.01"
+          class="vector-input"
+        />
+      </div>
+    </div>
+
+    <!-- Fallback for unknown types -->
+    <span v-else class="property-readonly">{{ JSON.stringify(fieldValue) }}</span>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+import NumberInput from './NumberInput.vue'
+import { usePropertyEditor } from '../../composables/usePropertyEditor.js'
+import { useMikanStore } from '../../stores/mikanStore.js'
+import { useComponentStore } from '../../stores/componentStore.js'
+import {
+  MikanAPIResult,
+  PropertySetValueRequest,
+  CLASS_ID_PROPERTY_SET_VALUE_REQUEST
+} from '@mikanxr/client'
+
+interface Props {
+  fieldName: string
+  fieldValue: any
+  ownerSystem: string
+  componentId: number
+}
+
+const props = defineProps<Props>()
+const emit = defineEmits<{
+  (e: 'update', fieldName: string, fieldValue: any): void
+}>()
+
+const { createVariantFromValue } = usePropertyEditor()
+const mikanStore = useMikanStore()
+const componentStore = useComponentStore()
+
+// Determine field type
+const fieldType = computed(() => {
+  if (typeof props.fieldValue === 'boolean') return 'boolean'
+  if (typeof props.fieldValue === 'number') return 'number'
+  if (typeof props.fieldValue === 'string') return 'string'
+  if (typeof props.fieldValue === 'object' && props.fieldValue !== null) {
+    if ('x' in props.fieldValue && 'y' in props.fieldValue && 'z' in props.fieldValue && !('w' in props.fieldValue)) {
+      return 'vector3'
+    }
+    if ('w' in props.fieldValue && 'x' in props.fieldValue && 'y' in props.fieldValue && 'z' in props.fieldValue) {
+      return 'quaternion'
+    }
+  }
+  return 'unknown'
+})
+
+async function sendPropertyUpdate(value: any) {
+  if (!mikanStore.client) {
+    console.error('[PropertyField] No client connection')
+    return
+  }
+
+  try {
+    const variant = createVariantFromValue(value)
+
+    const request: PropertySetValueRequest = {
+      requestTypeId: CLASS_ID_PROPERTY_SET_VALUE_REQUEST,
+      requestTypeName: 'PropertySetValueRequest',
+      requestId: 0,
+      ownerSystem: props.ownerSystem,
+      componentId: props.componentId,
+      fieldName: props.fieldName,
+      fieldValue: variant
+    }
+
+    const future = mikanStore.client.sendRequest(request)
+    const response = await future.await()
+
+    if (response.resultCode === MikanAPIResult.Success) {
+      console.log(`[PropertyField] Successfully updated ${props.fieldName}`)
+      // Update the local component store
+      componentStore.updateComponentProperty(props.componentId, props.ownerSystem, props.fieldName, value)
+      emit('update', props.fieldName, value)
+    } else {
+      console.error(`[PropertyField] Failed to update ${props.fieldName}: ${response.resultCode}`)
+    }
+  } catch (error) {
+    console.error(`[PropertyField] Error updating ${props.fieldName}:`, error)
+  }
+}
+
+function handleBooleanChange(event: Event) {
+  const value = (event.target as HTMLInputElement).checked
+  sendPropertyUpdate(value)
+}
+
+function handleNumberChange(value: number) {
+  sendPropertyUpdate(value)
+}
+
+function handleStringChange(event: Event) {
+  const value = (event.target as HTMLInputElement).value
+  sendPropertyUpdate(value)
+}
+
+function handleVectorChange(axis: 'x' | 'y' | 'z', value: number) {
+  const updatedVector = { ...props.fieldValue, [axis]: value }
+  sendPropertyUpdate(updatedVector)
+}
+
+function handleQuaternionChange(component: 'w' | 'x' | 'y' | 'z', value: number) {
+  const updatedQuat = { ...props.fieldValue, [component]: value }
+  sendPropertyUpdate(updatedQuat)
+}
+</script>
+
+<style scoped>
+.property-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.property-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+.property-number {
+  width: 100px;
+  text-align: right;
+}
+
+.property-text {
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: #fff;
+  font-family: monospace;
+  font-size: 14px;
+  min-width: 100px;
+}
+
+.property-text:focus {
+  outline: none;
+  border-color: #5cb85c;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.property-vector,
+.property-quaternion {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+  max-width: 100%;
+}
+
+.vector-component,
+.quat-component {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.vector-component label,
+.quat-component label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.vector-input {
+  flex: 1;
+  min-width: 50px;
+}
+
+.property-readonly {
+  color: rgba(255, 255, 255, 0.6);
+  font-family: monospace;
+  font-size: 12px;
+}
+</style>

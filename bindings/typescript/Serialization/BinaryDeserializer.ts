@@ -159,7 +159,7 @@ class BinaryReadVisitor implements IVisitor {
       visitObject(elementInstance, elementRuntimeType, this);
 
       // Set the instance on the PolymorphicObject
-      polymorphicObject.setInstance(elementInstance, classId);
+      polymorphicObject.setInstance(elementInstance, classId, elementRuntimeTypeName);
     }
   }
 

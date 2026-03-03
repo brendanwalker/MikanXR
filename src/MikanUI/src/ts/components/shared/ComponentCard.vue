@@ -1,7 +1,7 @@
 <template>
   <div
     class="component-card"
-    :class="{ selected: isSelected, clickable: selectable }"
+    :class="{ selected: isSelected, clickable: selectable && !editable }"
     @click="handleClick"
   >
     <div class="component-header">
@@ -11,7 +11,16 @@
     <div class="component-properties">
       <div v-for="(value, key) in displayProperties" :key="key" class="property-row">
         <span class="property-label">{{ formatPropertyName(key) }}:</span>
-        <span class="property-value">{{ formatPropertyValue(value) }}</span>
+        <div v-if="editable" class="property-editor" @click.stop>
+          <PropertyField
+            :field-name="key"
+            :field-value="value"
+            :owner-system="ownerSystem"
+            :component-id="componentId"
+            @update="handlePropertyUpdate"
+          />
+        </div>
+        <span v-else class="property-value">{{ formatPropertyValue(value) }}</span>
       </div>
     </div>
   </div>
@@ -20,29 +29,38 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { MikanComponentValues } from '@mikanxr/client'
+import PropertyField from './PropertyField.vue'
 
 interface Props {
   componentId: number
   component: MikanComponentValues
+  ownerSystem: string
   showAllProperties?: boolean
   selectable?: boolean
   isSelected?: boolean
+  editable?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   showAllProperties: false,
   selectable: false,
-  isSelected: false
+  isSelected: false,
+  editable: false
 })
 
 const emit = defineEmits<{
   (e: 'select', componentId: number): void
+  (e: 'update', fieldName: string, fieldValue: any): void
 }>()
 
 function handleClick() {
-  if (props.selectable) {
+  if (props.selectable && !props.editable) {
     emit('select', props.componentId)
   }
+}
+
+function handlePropertyUpdate(fieldName: string, fieldValue: any) {
+  emit('update', fieldName, fieldValue)
 }
 
 // Filter out internal properties and format for display
@@ -178,5 +196,11 @@ function formatPropertyValue(value: any): string {
   font-family: monospace;
   text-align: right;
   flex: 1;
+}
+
+.property-editor {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
 }
 </style>

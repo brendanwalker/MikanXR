@@ -194,20 +194,24 @@ function formatPropertyName(name: string): string {
 
 // Handle property changes
 function handleChange(key: string, value: any) {
+  console.log(`[PropertyEditor] handleChange: ${key} = ${JSON.stringify(value)}`)
   propertyChanges.value[key] = value
 }
 
 function handleVectorChange(key: string, axis: 'x' | 'y' | 'z', value: number, originalValue: any) {
   const updatedVector = { ...originalValue, [axis]: value }
+  console.log(`[PropertyEditor] handleVectorChange: ${key}.${axis} = ${value}, new vector:`, updatedVector)
   propertyChanges.value[key] = updatedVector
 }
 
 function handleQuaternionChange(key: string, component: 'w' | 'x' | 'y' | 'z', value: number, originalValue: any) {
   const updatedQuat = { ...originalValue, [component]: value }
+  console.log(`[PropertyEditor] handleQuaternionChange: ${key}.${component} = ${value}, new quat:`, updatedQuat)
   propertyChanges.value[key] = updatedQuat
 }
 
 function handleSave() {
+  console.log(`[PropertyEditor] handleSave called with changes:`, propertyChanges.value)
   emit('save', propertyChanges.value)
   propertyChanges.value = {}
 }

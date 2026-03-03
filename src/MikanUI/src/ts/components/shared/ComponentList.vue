@@ -15,10 +15,13 @@
         :key="getComponentKey(component, index)"
         :component-id="getComponentId(component, index)"
         :component="component"
+        :owner-system="ownerSystem"
         :show-all-properties="showAllProperties"
         :selectable="selectable"
+        :editable="editable"
         :is-selected="selectedComponentId === getComponentId(component, index)"
         @select="$emit('select', $event)"
+        @update="handlePropertyUpdate(getComponentId(component, index), $event)"
       />
     </div>
   </div>
@@ -32,9 +35,11 @@ import type { MikanComponentValues } from '@mikanxr/client'
 interface Props {
   title?: string
   components: MikanComponentValues[]
+  ownerSystem: string
   showAllProperties?: boolean
   sortBy?: 'name' | 'id'
   selectable?: boolean
+  editable?: boolean
   selectedComponentId?: number | null
 }
 
@@ -43,12 +48,18 @@ const props = withDefaults(defineProps<Props>(), {
   showAllProperties: false,
   sortBy: 'name',
   selectable: false,
+  editable: false,
   selectedComponentId: null
 })
 
 const emit = defineEmits<{
   (e: 'select', componentId: number): void
+  (e: 'update', componentId: number, fieldName: string, fieldValue: any): void
 }>()
+
+function handlePropertyUpdate(componentId: number, fieldName: string, fieldValue: any) {
+  emit('update', componentId, fieldName, fieldValue)
+}
 
 // Sort components by name or ID
 const sortedComponents = computed(() => {
