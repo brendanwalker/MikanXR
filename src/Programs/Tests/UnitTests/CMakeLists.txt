@@ -79,6 +79,9 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	$<TARGET_FILE_DIR:MikanSharedTexture>/MikanSharedTexture.dll
 	$<TARGET_FILE_DIR:unit_test_suite_cpp>)
   add_custom_command(
+    TARGET unit_test_suite_cpp POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${GLEW_SHARED_LIBRARIES} $<TARGET_FILE_DIR:unit_test_suite_cpp>)
+  add_custom_command(
 	TARGET unit_test_suite_cpp POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy
 	$<TARGET_FILE_DIR:MikanMath>/MikanMath.dll
