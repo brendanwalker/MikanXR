@@ -1,8 +1,17 @@
 <template>
   <div class="property-field">
+    <!-- Component Reference field -->
+    <ComponentRefSelect
+      v-if="fieldType === 'component_ref' && componentClass"
+      :model-value="fieldValue"
+      :component-class="componentClass"
+      @update:model-value="handleComponentRefChange"
+      class="property-component-ref"
+    />
+
     <!-- Boolean field -->
     <input
-      v-if="fieldType === 'boolean'"
+      v-else-if="fieldType === 'boolean'"
       type="checkbox"
       :checked="fieldValue"
       @change="handleBooleanChange"
@@ -106,6 +115,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import NumberInput from './NumberInput.vue'
+import ComponentRefSelect from './ComponentRefSelect.vue'
 import { usePropertyEditor } from '../../composables/usePropertyEditor.js'
 import { useMikanStore } from '../../stores/mikanStore.js'
 import { useComponentStore } from '../../stores/componentStore.js'
@@ -131,8 +141,18 @@ const { createVariantFromValue } = usePropertyEditor()
 const mikanStore = useMikanStore()
 const componentStore = useComponentStore()
 
+// Check if this field is a component reference
+const componentClass = computed(() => {
+  return componentStore.getComponentClassForField(props.fieldName)
+})
+
 // Determine field type
 const fieldType = computed(() => {
+  // Check if this is a component reference field first
+  if (componentClass.value && typeof props.fieldValue === 'number') {
+    return 'component_ref'
+  }
+
   if (typeof props.fieldValue === 'boolean') return 'boolean'
   if (typeof props.fieldValue === 'number') return 'number'
   if (typeof props.fieldValue === 'string') return 'string'
@@ -182,6 +202,10 @@ async function sendPropertyUpdate(value: any) {
   }
 }
 
+function handleComponentRefChange(value: number) {
+  sendPropertyUpdate(value)
+}
+
 function handleBooleanChange(event: Event) {
   const value = (event.target as HTMLInputElement).checked
   sendPropertyUpdate(value)
@@ -220,6 +244,11 @@ function handleQuaternionChange(component: 'w' | 'x' | 'y' | 'z', value: number)
   width: 18px;
   height: 18px;
   cursor: pointer;
+}
+
+.property-component-ref {
+  flex: 1;
+  min-width: 150px;
 }
 
 .property-number {

@@ -306,6 +306,37 @@ export const useComponentStore = defineStore('components', () => {
     return value
   }
 
+  // Helper to map field names to component classes for component references
+  function getComponentClassForField(fieldName: string): string | string[] | null {
+    const fieldMappings: Record<string, string | string[]> = {
+      'parent_stage_id': 'StageComponent',
+      'stage_id': 'StageComponent',
+      'display_compositor_id': 'CompositorComponent',
+      'tracking_volume_id': ['MarkerTrackingVolumeComponent', 'VRTrackingVolumeComponent'],
+      'video_source_id': 'VideoSourceComponent',
+      'tracking_mount_id': 'TrackingMountComponent',
+      'charuco_mount_id': 'TrackingMountComponent',
+      'utility_marker_id': 'MarkerComponent',
+      'origin_marker_id': 'MarkerComponent'
+    }
+
+    return fieldMappings[fieldName] || null
+  }
+
+  // Helper to get component name by ID
+  function getComponentName(componentId: number): string {
+    if (componentId === -1 || componentId === MikanConstants.InvalidMikanID) {
+      return '<None>'
+    }
+
+    const component = getComponent(componentId)
+    if (component) {
+      return component.component_name || `Component ${componentId}`
+    }
+
+    return `Unknown (${componentId})`
+  }
+
   return {
     // State
     components,
@@ -326,6 +357,10 @@ export const useComponentStore = defineStore('components', () => {
     fetchComponentList,
     fetchComponentValues,
     fetchAllComponents,
-    handlePropertyUpdate
+    handlePropertyUpdate,
+
+    // Helpers
+    getComponentClassForField,
+    getComponentName
   }
 })
