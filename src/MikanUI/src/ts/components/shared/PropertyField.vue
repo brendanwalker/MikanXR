@@ -212,6 +212,8 @@ function handleQuaternionChange(component: 'w' | 'x' | 'y' | 'z', value: number)
   display: flex;
   align-items: center;
   gap: 8px;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .property-checkbox {
@@ -245,6 +247,7 @@ function handleQuaternionChange(component: 'w' | 'x' | 'y' | 'z', value: number)
 .property-vector,
 .property-quaternion {
   display: flex;
+  flex-direction: column;
   gap: 6px;
   flex: 1;
   max-width: 100%;
@@ -255,7 +258,7 @@ function handleQuaternionChange(component: 'w' | 'x' | 'y' | 'z', value: number)
   display: flex;
   align-items: center;
   gap: 4px;
-  flex: 1;
+  width: 100%;
   min-width: 0;
 }
 
@@ -265,11 +268,12 @@ function handleQuaternionChange(component: 'w' | 'x' | 'y' | 'z', value: number)
   color: rgba(255, 255, 255, 0.7);
   font-weight: 500;
   flex-shrink: 0;
+  min-width: 16px;
 }
 
 .vector-input {
   flex: 1;
-  min-width: 50px;
+  min-width: 0;
 }
 
 .property-readonly {

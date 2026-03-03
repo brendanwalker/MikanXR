@@ -202,5 +202,7 @@ function formatPropertyValue(value: any): string {
   flex: 1;
   display: flex;
   justify-content: flex-end;
+  min-width: 0;
+  max-width: 100%;
 }
 </style>
