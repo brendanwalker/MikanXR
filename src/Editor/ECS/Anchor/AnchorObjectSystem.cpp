@@ -86,3 +86,37 @@ void AnchorObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr pr
 	propertyDatabase->registerPropertiesForSystem<AnchorObjectSystem>();
 	propertyDatabase->registerPropertiesForComponent<AnchorObjectSystem, AnchorComponent>();
 }
+
+// -- IPropertyInterface ----
+void AnchorObjectSystem::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+{
+	MikanObjectSystem::getPropertyDescriptors(outDescriptors);
+
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			AnchorObjectSystemDefinition::k_renderAnchorsPropertyId, MikanVariantType::BOOL));
+}
+
+bool AnchorObjectSystem::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
+{
+	if (propertyName == AnchorObjectSystemDefinition::k_renderAnchorsPropertyId)
+	{
+		AnchorObjectSystemDefinitionConstPtr definition = getTypedDefinitionConst();
+		outValue = definition->getRenderAnchorsFlag();
+		return true;
+	}
+
+	return MikanObjectSystem::getPropertyValue(propertyName, outValue);
+}
+
+bool AnchorObjectSystem::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
+{
+	if (propertyName == AnchorObjectSystemDefinition::k_renderAnchorsPropertyId)
+	{
+		AnchorObjectSystemDefinitionPtr definition = getTypedDefinition();
+		definition->setRenderAnchorsFlag(inValue.getBoolValue());
+		return true;
+	}
+
+	return MikanObjectSystem::setPropertyValue(propertyName, inValue);
+}

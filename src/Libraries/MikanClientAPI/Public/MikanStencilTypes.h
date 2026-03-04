@@ -3,6 +3,7 @@
 #include "MikanAPIExport.h"
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
+#include "MikanPropertyTypes.h"
 #include "MikanTransformTypes.h"
 #include "SerializableList.h"
 #include "SerializableString.h"
@@ -12,13 +13,51 @@
 #include "MikanStencilTypes.rfkh.h"
 #endif
 
-/// The list of possible vr device drivers used by MikanXR Client API
 enum ENUM(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilCullMode
 {
 	MikanStencilCullMode_NONE ENUMVALUE_STRING("NONE"),
 	MikanStencilCullMode_Z_AXIS ENUMVALUE_STRING("Z_Axis"),
 	MikanStencilCullMode_Y_AXIS ENUMVALUE_STRING("Y_Axis"),
 	MikanStencilCullMode_X_AXIS ENUMVALUE_STRING("X_Axis"),
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanQuadStencilSystemValues :
+	public MikanSystemValues
+{
+	static const char* k_systemName;
+
+	FIELD()
+	bool render_stencils;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanQuadStencilSystemValues_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanBoxStencilSystemValues :
+	public MikanSystemValues
+{
+	static const char* k_systemName;
+
+	FIELD()
+	bool render_stencils;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanBoxStencilSystemValues_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanModelStencilSystemValues :
+	public MikanSystemValues
+{
+	static const char* k_systemName;
+
+	FIELD()
+	bool render_stencils;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanModelStencilSystemValues_GENERATED
+#endif
 };
 
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) MikanStencilComponentValues :

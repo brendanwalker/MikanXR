@@ -22,6 +22,8 @@
 
 #include "MikanCompositorTypes.rfks.h"
 
+#include "MikanEditorTypes.rfks.h"
+
 #include "MikanMarkerTypes.rfks.h"
 
 #include "MikanMathTypes.rfks.h"
@@ -64,6 +66,7 @@
 #endif // MIKANAPI_REFLECTION_ENABLED
 
 #include "MikanAnchorTypes.h"
+#include "MikanEditorTypes.h"
 #include "MikanCameraTypes.h"
 #include "MikanCompositorTypes.h"
 #include "MikanMarkerTypes.h"
@@ -77,7 +80,14 @@
 #include "MikanVRDeviceTypes.h"
 
 // Static system class name definitions
+const char* MikanAnchorSystemValues::k_systemName = "AnchorObjectSystem";
+const char* MikanEditorSystemValues::k_systemName = "EditorObjectSystem";
+const char* MikanBoxStencilSystemValues::k_systemName = "BoxStencilSystem";
+const char* MikanQuadStencilSystemValues::k_systemName = "QuadStencilSystem";
+const char* MikanModelStencilSystemValues::k_systemName = "ModelStencilSystem";
 const char* MikanMarkerSystemValues::k_systemName = "MarkerObjectSystem";
+const char* MikanSceneSystemValues::k_systemName = "SceneObjectSystem";
+
 
 // Static component class name and owner system name definitions
 // TODO: Make these come from the System and component classes

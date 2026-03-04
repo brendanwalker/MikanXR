@@ -13,6 +13,7 @@ export * from './MikanComponentTypes.js';
 export * from './MikanCompositorTypes.js';
 export * from './MikanCoreConstants.js';
 export * from './MikanCoreTypes.js';
+export * from './MikanEditorTypes.js';
 export * from './MikanMarkerTypes.js';
 export * from './MikanMathTypes.js';
 export * from './MikanPropertyEvents.js';

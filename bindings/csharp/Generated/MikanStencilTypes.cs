@@ -21,11 +21,25 @@ namespace MikanXR
 		public float box_z_size;
 	};
 
+	public class MikanBoxStencilSystemValues : MikanSystemValues
+	{
+		public static new readonly long classId= -5744935790384325503;
+
+		public bool render_stencils;
+	};
+
 	public class MikanModelStencilComponentValues : MikanStencilComponentValues
 	{
 		public static new readonly long classId= 5055554930502929791;
 
 		public string model_path;
+	};
+
+	public class MikanModelStencilSystemValues : MikanSystemValues
+	{
+		public static new readonly long classId= 4518059482513858969;
+
+		public bool render_stencils;
 	};
 
 	public class MikanQuadStencilComponentValues : MikanStencilComponentValues
@@ -35,6 +49,13 @@ namespace MikanXR
 		public float quad_width;
 		public float quad_height;
 		public bool is_double_sided;
+	};
+
+	public class MikanQuadStencilSystemValues : MikanSystemValues
+	{
+		public static new readonly long classId= 5730694394306440045;
+
+		public bool render_stencils;
 	};
 
 	public class MikanStencilComponentValues : MikanTransformComponentValues

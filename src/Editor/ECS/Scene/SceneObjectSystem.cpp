@@ -96,14 +96,19 @@ void SceneObjectSystem::dispose()
 	Super::dispose();
 }
 
-SceneComponentPtr SceneObjectSystem::getCurrentScene() const
+MikanSceneID SceneObjectSystem::getCurrentSceneId() const
 {
 	SceneObjectSystemDefinitionConstPtr sceneSystemConfigPtr = getTypedDefinitionConst();
 	if (sceneSystemConfigPtr)
 	{
-		return getSceneById(sceneSystemConfigPtr->getCurrentSceneId());
+		return sceneSystemConfigPtr->getCurrentSceneId();
 	}
-	return SceneComponentPtr();
+	return INVALID_MIKAN_ID;
+}
+
+SceneComponentPtr SceneObjectSystem::getCurrentScene() const
+{
+	return getSceneById(getCurrentSceneId());
 }
 
 void SceneObjectSystem::setCurrentScene(SceneComponentPtr newScene)
@@ -143,4 +148,37 @@ void SceneObjectSystem::setCurrentSceneById(MikanSceneID newSceneId)
 			}
 		}
 	}
+}
+
+// -- IPropertyInterface ----
+void SceneObjectSystem::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+{
+	MikanObjectSystem::getPropertyDescriptors(outDescriptors);
+
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			SceneObjectSystemDefinition::k_currentSceneIdPropertyId, MikanVariantType::INT));
+}
+
+bool SceneObjectSystem::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
+{
+	if (propertyName == SceneObjectSystemDefinition::k_currentSceneIdPropertyId)
+	{
+		outValue = getCurrentSceneId();
+		return true;
+	}
+
+	return MikanObjectSystem::getPropertyValue(propertyName, outValue);
+}
+
+bool SceneObjectSystem::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
+{
+	if (propertyName == SceneObjectSystemDefinition::k_currentSceneIdPropertyId)
+	{
+		MikanSceneID targetSceneId = inValue.getIntValue();
+		setCurrentSceneById(targetSceneId);
+		return true;
+	}
+
+	return MikanObjectSystem::setPropertyValue(propertyName, inValue);
 }

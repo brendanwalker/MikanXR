@@ -11,4 +11,11 @@ namespace MikanXR
 		public int stage_id;
 	};
 
+	public class MikanAnchorSystemValues : MikanSystemValues
+	{
+		public static new readonly long classId= 4934611660134941927;
+
+		public bool render_anchors;
+	};
+
 }

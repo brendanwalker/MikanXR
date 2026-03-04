@@ -13,4 +13,11 @@ namespace MikanXR
 		public int display_compositor_id;
 	};
 
+	public class MikanSceneSystemValues : MikanSystemValues
+	{
+		public static new readonly long classId= 1136621147171447108;
+
+		public int current_scene_id;
+	};
+
 }

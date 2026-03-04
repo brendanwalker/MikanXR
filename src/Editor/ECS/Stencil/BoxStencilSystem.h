@@ -62,6 +62,11 @@ public:
 		const glm::vec3& cameraForward,
 		std::vector<BoxStencilComponentPtr>& outStencilList) const;
 
+	// -- IPropertyInterface ----
+	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
+	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
+	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
+
 protected:
 	static bool isStencilFacingCamera(
 		StencilComponentConstPtr stencil,

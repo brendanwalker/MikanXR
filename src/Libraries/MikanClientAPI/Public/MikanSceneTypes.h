@@ -4,6 +4,7 @@
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
 #include "MikanTransformTypes.h"
+#include "MikanPropertyTypes.h"
 #include "SerializableList.h"
 #include "SerializableString.h"
 #include "SerializationProperty.h"
@@ -12,7 +13,20 @@
 #include "MikanSceneTypes.rfkh.h"
 #endif
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSceneTypes")) MikanSceneComponentValues : 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSceneTypes")) MikanSceneSystemValues :
+	public MikanSystemValues
+{
+	static const char* k_systemName;
+
+	FIELD()
+	MikanSceneID current_scene_id;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanSceneSystemValues_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSceneTypes")) MikanSceneComponentValues :
 	public MikanTransformComponentValues
 {
 	static const char* k_componentClassName;

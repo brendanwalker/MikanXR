@@ -144,3 +144,37 @@ bool QuadStencilSystem::isStencilFacingCamera(
 		glm::dot(cameraToStencil, cameraForward) > 0.f &&
 		glm::dot(stencilToCamera, stencilForward) > 0.f;
 }
+
+// -- IPropertyInterface ----
+void QuadStencilSystem::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+{
+	MikanObjectSystem::getPropertyDescriptors(outDescriptors);
+
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			QuadStencilSystemDefinition::k_renderStencilsPropertyId, MikanVariantType::BOOL));
+}
+
+bool QuadStencilSystem::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
+{
+	if (propertyName == QuadStencilSystemDefinition::k_renderStencilsPropertyId)
+	{
+		QuadStencilSystemDefinitionConstPtr definition = getTypedDefinitionConst();
+		outValue = definition->getRenderStencilsFlag();
+		return true;
+	}
+
+	return MikanObjectSystem::getPropertyValue(propertyName, outValue);
+}
+
+bool QuadStencilSystem::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
+{
+	if (propertyName == QuadStencilSystemDefinition::k_renderStencilsPropertyId)
+	{
+		QuadStencilSystemDefinitionPtr definition = getTypedDefinition();
+		definition->setRenderStencilsFlag(inValue.getBoolValue());
+		return true;
+	}
+
+	return MikanObjectSystem::setPropertyValue(propertyName, inValue);
+}

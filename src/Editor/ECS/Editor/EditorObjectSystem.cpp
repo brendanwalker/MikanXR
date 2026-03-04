@@ -514,3 +514,37 @@ void EditorObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr pr
 {
 	propertyDatabase->registerPropertiesForSystem<EditorObjectSystem>();
 }
+
+// -- IPropertyInterface ----
+void EditorObjectSystem::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+{
+	MikanObjectSystem::getPropertyDescriptors(outDescriptors);
+
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			EditorObjectSystemDefinition::k_cameraSpeedPropertyId, MikanVariantType::FLOAT));
+}
+
+bool EditorObjectSystem::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
+{
+	if (propertyName == EditorObjectSystemDefinition::k_cameraSpeedPropertyId)
+	{
+		EditorObjectSystemDefinitionConstPtr definition = getEditorSystemConfigConst();
+		outValue = definition->getCameraSpeed();
+		return true;
+	}
+
+	return MikanObjectSystem::getPropertyValue(propertyName, outValue);
+}
+
+bool EditorObjectSystem::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
+{
+	if (propertyName == EditorObjectSystemDefinition::k_cameraSpeedPropertyId)
+	{
+		EditorObjectSystemDefinitionPtr definition = getEditorSystemConfig();
+		definition->setCameraSpeed(inValue.getFloatValue());
+		return true;
+	}
+
+	return MikanObjectSystem::setPropertyValue(propertyName, inValue);
+}

@@ -61,6 +61,7 @@ public:
 	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
 	virtual void dispose() override;
 
+	MikanSceneID getCurrentSceneId() const;
 	SceneComponentPtr getCurrentScene() const;
 	void setCurrentScene(SceneComponentPtr scene);
 	void setCurrentSceneById(MikanSceneID sceneId);
@@ -74,6 +75,11 @@ public:
 
 	MulticastDelegate<void(SceneComponentPtr oldScene)> OnSceneDeactivated;
 	MulticastDelegate<void(SceneComponentPtr newScene)> OnSceneActivated;
+
+	// -- IPropertyInterface ----
+	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
+	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
+	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
 
 protected:
 	void onProjectLoaded(ProjectManagerPtr newProject);

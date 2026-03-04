@@ -159,3 +159,37 @@ bool BoxStencilSystem::isStencilFacingCamera(
 		glm::dot(cameraToStencil, cameraForward) > 0.f &&
 		glm::dot(stencilToCamera, stencilForward) > 0.f;
 }
+
+// -- IPropertyInterface ----
+void BoxStencilSystem::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+{
+	MikanObjectSystem::getPropertyDescriptors(outDescriptors);
+
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			BoxStencilSystemDefinition::k_renderStencilsPropertyId, MikanVariantType::BOOL));
+}
+
+bool BoxStencilSystem::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
+{
+	if (propertyName == BoxStencilSystemDefinition::k_renderStencilsPropertyId)
+	{
+		BoxStencilSystemDefinitionConstPtr definition = getTypedDefinitionConst();
+		outValue = definition->getRenderStencilsFlag();
+		return true;
+	}
+
+	return MikanObjectSystem::getPropertyValue(propertyName, outValue);
+}
+
+bool BoxStencilSystem::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
+{
+	if (propertyName == BoxStencilSystemDefinition::k_renderStencilsPropertyId)
+	{
+		BoxStencilSystemDefinitionPtr definition = getTypedDefinition();
+		definition->setRenderStencilsFlag(inValue.getBoolValue());
+		return true;
+	}
+
+	return MikanObjectSystem::setPropertyValue(propertyName, inValue);
+}

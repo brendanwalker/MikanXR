@@ -3,12 +3,26 @@
 #include "MikanAPIExport.h"
 #include "MikanAPITypes.h"
 #include "MikanTransformTypes.h"
+#include "MikanPropertyTypes.h"
 #include "SerializableList.h"
 #include "SerializationProperty.h"
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 #include "MikanAnchorTypes.rfkh.h"
 #endif
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAnchorTypes")) MikanAnchorSystemValues :
+	public MikanSystemValues
+{
+	static const char* k_systemName;
+
+	FIELD()
+	bool render_anchors;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanAnchorSystemValues_GENERATED
+#endif
+};
 
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAnchorTypes")) MikanAnchorComponentValues :
 	public MikanTransformComponentValues
