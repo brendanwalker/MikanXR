@@ -1,14 +1,58 @@
 <template>
   <div class="project-panel">
     <h2>Stages Panel</h2>
-    <p>Edit component properties inline by modifying the values directly.</p>
+    <p>Select a stage and scene to manage components.</p>
 
     <div class="stages-content">
-      <!-- Stage Components -->
-      <div class="component-section">
+      <!-- Stage Selection -->
+      <div class="selection-section">
+        <div class="selection-row">
+          <label class="selection-label">Stage:</label>
+          <ComponentRefSelect
+            v-model="selectedStageId"
+            component-class="StageComponent"
+            class="selection-dropdown"
+          />
+          <button @click="handleAddStage" class="action-btn add-btn">+ Add Stage</button>
+          <button
+            v-if="selectedStageId !== -1"
+            @click="handleRemoveStage"
+            class="action-btn remove-btn"
+          >
+            Remove Stage
+          </button>
+        </div>
+      </div>
+
+      <!-- Scene Selection (only shown if stage is selected) -->
+      <div v-if="selectedStageId !== -1" class="selection-section">
+        <div class="selection-row">
+          <label class="selection-label">Scene:</label>
+          <select v-model="selectedSceneId" class="selection-dropdown scene-select">
+            <option :value="-1">&lt;None&gt;</option>
+            <option
+              v-for="scene in filteredScenes"
+              :key="scene.component_id"
+              :value="scene.component_id"
+            >
+              {{ scene.component_name }}
+            </option>
+          </select>
+          <button @click="handleAddScene" class="action-btn add-btn">+ Add Scene</button>
+          <button
+            v-if="selectedSceneId !== -1"
+            @click="handleRemoveScene"
+            class="action-btn remove-btn"
+          >
+            Remove Scene
+          </button>
+        </div>
+      </div>
+
+      <!-- Stage Components List -->
+      <div v-if="selectedStageId !== -1" class="component-section">
         <div class="section-header">
           <h3>Stage Components</h3>
-          <button @click="handleAddStage" class="action-btn add-btn">+ Add Stage</button>
         </div>
         <ComponentList
           :components="stageComponents"
@@ -19,13 +63,6 @@
           sort-by="name"
           @select="handleSelectComponent"
         />
-        <button
-          v-if="selectedComponentId && isStageSelected"
-          @click="handleRemoveStage"
-          class="action-btn remove-btn"
-        >
-          Remove Selected Stage
-        </button>
       </div>
 
       <!-- Camera Components -->
@@ -80,20 +117,36 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useComponentStore } from '../../../stores/componentStore.js'
+import { useMikanStore } from '../../../stores/mikanStore.js'
 import { useRemoteControl } from '../../../composables/useRemoteControl.js'
 import ComponentList from '../../shared/ComponentList.vue'
+import ComponentRefSelect from '../../shared/ComponentRefSelect.vue'
+import {
+  MikanAPIResult,
+  MikanConstants,
+  PropertyGetValueRequest,
+  CLASS_ID_PROPERTY_GET_VALUE_REQUEST,
+  PropertyGetValueResponse
+} from '@mikanxr/client'
 
 const componentStore = useComponentStore()
+const mikanStore = useMikanStore()
 const { sendRemoteControlCommand } = useRemoteControl()
 
 // Selection state
+const selectedStageId = ref<number>(-1)
+const selectedSceneId = ref<number>(-1)
 const selectedComponentId = ref<number | null>(null)
 
 // Get components by system
 const stageComponents = computed(() =>
   componentStore.getComponentsByClass('StageComponent')
+)
+
+const sceneComponents = computed(() =>
+  componentStore.getComponentsByClass('SceneComponent')
 )
 
 const cameraComponents = computed(() =>
@@ -104,24 +157,51 @@ const compositorComponents = computed(() =>
   componentStore.getComponentsByClass('CompositorComponent')
 )
 
-// Check which type of component is selected
-const isStageSelected = computed(() => {
-  if (!selectedComponentId.value) return false
-  const component = componentStore.getComponent(selectedComponentId.value)
-  return (component as any)?.component_class === 'StageComponent'
+// Filter scenes by the selected stage
+const filteredScenes = computed(() => {
+  if (selectedStageId.value === -1) return []
+
+  return sceneComponents.value.filter(scene => {
+    const sceneComp = scene as any
+    return sceneComp.parent_stage_id === selectedStageId.value
+  })
 })
 
-const isCameraSelected = computed(() => {
-  if (!selectedComponentId.value) return false
-  const component = componentStore.getComponent(selectedComponentId.value)
-  return (component as any)?.component_class === 'CameraComponent'
-})
+// Initialize selected stage from current scene
+async function initializeFromCurrentScene() {
+  if (!mikanStore.client) return
 
-const isCompositorSelected = computed(() => {
-  if (!selectedComponentId.value) return false
-  const component = componentStore.getComponent(selectedComponentId.value)
-  return (component as any)?.component_class === 'CompositorComponent'
-})
+  try {
+    // Fetch current_scene_id from SceneObjectSystem
+    const request: PropertyGetValueRequest = {
+      requestTypeId: CLASS_ID_PROPERTY_GET_VALUE_REQUEST,
+      requestTypeName: 'PropertyGetValueRequest',
+      requestId: 0,
+      ownerSystem: 'SceneObjectSystem',
+      componentId: MikanConstants.InvalidMikanID, // System property
+      fieldName: 'current_scene_id'
+    }
+
+    const future = mikanStore.client.sendRequest(request)
+    const response = await future.await() as PropertyGetValueResponse
+
+    if (response.resultCode === MikanAPIResult.Success) {
+      const currentSceneId = response.propertyValue?.fieldValue?.value_ptr?.instance?.value || -1
+
+      if (currentSceneId !== -1) {
+        selectedSceneId.value = currentSceneId
+
+        // Get the parent stage from the current scene
+        const currentScene = componentStore.getComponent(currentSceneId) as any
+        if (currentScene?.parent_stage_id) {
+          selectedStageId.value = currentScene.parent_stage_id
+        }
+      }
+    }
+  } catch (error) {
+    console.error('[ProjectStages] Error fetching current scene:', error)
+  }
+}
 
 // Handle component selection
 function handleSelectComponent(componentId: number) {
@@ -134,12 +214,26 @@ function handleAddStage() {
 }
 
 function handleRemoveStage() {
-  if (!selectedComponentId.value || !isStageSelected.value) {
+  if (selectedStageId.value === -1) {
     console.error('[ProjectStages] No stage selected')
     return
   }
-  sendRemoteControlCommand('remove_stage', [selectedComponentId.value.toString()])
-  selectedComponentId.value = null
+  sendRemoteControlCommand('remove_stage', [selectedStageId.value.toString()])
+  selectedStageId.value = -1
+}
+
+// Scene CRUD handlers
+function handleAddScene() {
+  sendRemoteControlCommand('add_scene')
+}
+
+function handleRemoveScene() {
+  if (selectedSceneId.value === -1) {
+    console.error('[ProjectStages] No scene selected')
+    return
+  }
+  sendRemoteControlCommand('remove_scene', [selectedSceneId.value.toString()])
+  selectedSceneId.value = -1
 }
 
 // Camera CRUD handlers
@@ -148,7 +242,7 @@ function handleAddCamera() {
 }
 
 function handleRemoveCamera() {
-  if (!selectedComponentId.value || !isCameraSelected.value) {
+  if (!selectedComponentId.value) {
     console.error('[ProjectStages] No camera selected')
     return
   }
@@ -162,13 +256,18 @@ function handleAddCompositor() {
 }
 
 function handleRemoveCompositor() {
-  if (!selectedComponentId.value || !isCompositorSelected.value) {
+  if (!selectedComponentId.value) {
     console.error('[ProjectStages] No compositor selected')
     return
   }
   sendRemoteControlCommand('remove_compositor', [selectedComponentId.value.toString()])
   selectedComponentId.value = null
 }
+
+// Initialize on mount
+onMounted(() => {
+  initializeFromCurrentScene()
+})
 </script>
 
 <style scoped>
@@ -190,6 +289,53 @@ function handleRemoveCompositor() {
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+.selection-section {
+  background-color: #2d2d2d;
+  border: 1px solid #404040;
+  border-radius: 4px;
+  padding: 20px;
+}
+
+.selection-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.selection-label {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  min-width: 80px;
+}
+
+.selection-dropdown {
+  flex: 1;
+  max-width: 300px;
+}
+
+.scene-select {
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: #fff;
+  font-family: monospace;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.scene-select:focus {
+  outline: none;
+  border-color: #5cb85c;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.scene-select option {
+  background: #2d2d2d;
+  color: #fff;
 }
 
 .component-section {
