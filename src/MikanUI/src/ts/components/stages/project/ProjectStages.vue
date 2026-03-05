@@ -169,9 +169,14 @@ const filteredScenes = computed(() => {
 
 // Initialize selected stage from current scene
 async function initializeFromCurrentScene() {
-  if (!mikanStore.client) return
+  if (!mikanStore.client) {
+    console.log('[ProjectStages] No client connection, skipping initialization')
+    return
+  }
 
   try {
+    console.log('[ProjectStages] Fetching current scene ID...')
+
     // Fetch current_scene_id from SceneObjectSystem
     const request: PropertyGetValueRequest = {
       requestTypeId: CLASS_ID_PROPERTY_GET_VALUE_REQUEST,
@@ -187,16 +192,26 @@ async function initializeFromCurrentScene() {
 
     if (response.resultCode === MikanAPIResult.Success) {
       const currentSceneId = response.propertyValue?.fieldValue?.value_ptr?.instance?.value || -1
+      console.log('[ProjectStages] Current scene ID from server:', currentSceneId)
 
       if (currentSceneId !== -1) {
-        selectedSceneId.value = currentSceneId
-
         // Get the parent stage from the current scene
         const currentScene = componentStore.getComponent(currentSceneId) as any
+        console.log('[ProjectStages] Current scene component:', currentScene)
+
         if (currentScene?.parent_stage_id) {
+          console.log('[ProjectStages] Setting stage ID to:', currentScene.parent_stage_id)
           selectedStageId.value = currentScene.parent_stage_id
+          console.log('[ProjectStages] Setting scene ID to:', currentSceneId)
+          selectedSceneId.value = currentSceneId
+        } else {
+          console.warn('[ProjectStages] Current scene has no parent_stage_id')
         }
+      } else {
+        console.log('[ProjectStages] No current scene set on server')
       }
+    } else {
+      console.error('[ProjectStages] Failed to fetch current scene ID:', response.resultCode)
     }
   } catch (error) {
     console.error('[ProjectStages] Error fetching current scene:', error)
@@ -264,9 +279,61 @@ function handleRemoveCompositor() {
   selectedComponentId.value = null
 }
 
+// Watch for component store changes - reinitialize if we don't have a stage selected
+watch(
+  () => componentStore.components.size,
+  (newSize, oldSize) => {
+    console.log('[ProjectStages] Component store size changed:', oldSize, '->', newSize)
+    // If components were just loaded and we don't have a stage selected, try to initialize
+    if (newSize > 0 && selectedStageId.value === -1) {
+      console.log('[ProjectStages] Components loaded, attempting initialization')
+      initializeFromCurrentScene()
+    }
+  }
+)
+
+// Persist selection state
+watch(selectedStageId, (newValue) => {
+  if (newValue !== -1) {
+    sessionStorage.setItem('projectStages.selectedStageId', newValue.toString())
+  }
+})
+
+watch(selectedSceneId, (newValue) => {
+  if (newValue !== -1) {
+    sessionStorage.setItem('projectStages.selectedSceneId', newValue.toString())
+  }
+})
+
+// Restore selection state on mount
+function restoreSelectionState() {
+  const savedStageId = sessionStorage.getItem('projectStages.selectedStageId')
+  const savedSceneId = sessionStorage.getItem('projectStages.selectedSceneId')
+
+  if (savedStageId) {
+    const stageId = parseInt(savedStageId, 10)
+    if (!isNaN(stageId)) {
+      selectedStageId.value = stageId
+    }
+  }
+
+  if (savedSceneId) {
+    const sceneId = parseInt(savedSceneId, 10)
+    if (!isNaN(sceneId)) {
+      selectedSceneId.value = sceneId
+    }
+  }
+}
+
 // Initialize on mount
 onMounted(() => {
-  initializeFromCurrentScene()
+  // First try to restore previous selection state
+  restoreSelectionState()
+
+  // If no saved state, try to initialize from current scene
+  if (selectedStageId.value === -1) {
+    initializeFromCurrentScene()
+  }
 })
 </script>
 

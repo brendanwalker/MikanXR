@@ -1,144 +1,169 @@
 <template>
   <div class="project-panel">
     <h2>Scenes Panel</h2>
-    <p>Edit component properties inline by modifying the values directly.</p>
+    <p>Select a stage and scene to manage actors.</p>
 
     <div class="scenes-content">
-      <!-- Scene Components with Actions -->
-      <div class="component-section">
-        <div class="section-header">
-          <h3>Scene Components</h3>
-          <div class="section-actions">
-            <button @click="handleAddScene" class="action-btn add-btn">+ Add Scene</button>
-            <button
-              @click="handleReloadScript"
-              :disabled="sceneComponents.length === 0"
-              class="action-btn"
+      <!-- Stage Selection (no add/delete) -->
+      <div class="selection-section">
+        <div class="selection-row">
+          <label class="selection-label">Stage:</label>
+          <ComponentRefSelect
+            v-model="selectedStageId"
+            component-class="StageComponent"
+            class="selection-dropdown"
+          />
+        </div>
+      </div>
+
+      <!-- Scene Selection (with add/delete) -->
+      <div v-if="selectedStageId !== -1" class="selection-section">
+        <div class="selection-row">
+          <label class="selection-label">Scene:</label>
+          <select v-model="selectedSceneId" class="selection-dropdown scene-select">
+            <option :value="-1">&lt;None&gt;</option>
+            <option
+              v-for="scene in filteredScenes"
+              :key="scene.component_id"
+              :value="scene.component_id"
             >
-              Reload Script
-            </button>
-          </div>
-        </div>
-        <ComponentList
-          :components="sceneComponents"
-          owner-system="SceneObjectSystem"
-          :selectable="true"
-          :editable="true"
-          :selected-component-id="selectedComponentId"
-          sort-by="name"
-          @select="handleSelectComponent"
-        />
-        <button
-          v-if="selectedComponentId && isSceneSelected"
-          @click="handleRemoveScene"
-          class="action-btn remove-btn"
-        >
-          Remove Selected Scene
-        </button>
-      </div>
-
-      <!-- Anchor Components with Actions -->
-      <div class="component-section">
-        <div class="section-header">
-          <h3>Anchor Components</h3>
-          <div class="section-actions">
-            <button @click="handleAddAnchor" class="action-btn add-btn">+ Add Anchor</button>
-          </div>
-        </div>
-        <ComponentList
-          :components="anchorComponents"
-          owner-system="AnchorObjectSystem"
-          :selectable="true"
-          :editable="true"
-          :selected-component-id="selectedComponentId"
-          sort-by="name"
-          @select="handleSelectComponent"
-        />
-        <div v-if="selectedComponentId && isAnchorSelected" class="action-buttons">
-          <button @click="handleEditAnchor" class="action-btn">Edit Anchor Alignment</button>
-          <button @click="handleRemoveAnchor" class="action-btn remove-btn">Remove Anchor</button>
+              {{ scene.component_name }}
+            </option>
+          </select>
+          <button @click="handleAddScene" class="action-btn add-btn">+ Add Scene</button>
+          <button
+            v-if="selectedSceneId !== -1"
+            @click="handleRemoveScene"
+            class="action-btn remove-btn"
+          >
+            Remove Scene
+          </button>
         </div>
       </div>
 
-      <!-- Stencil Components with Actions -->
-      <div class="component-section">
-        <div class="section-header">
-          <h3>Stencil Components</h3>
-          <div class="section-actions">
-            <button @click="handleAddQuadStencil" class="action-btn add-btn">+ Quad</button>
-            <button @click="handleAddBoxStencil" class="action-btn add-btn">+ Box</button>
-            <button @click="handleAddModelStencil" class="action-btn add-btn">+ Model</button>
+      <!-- Scene Component Properties -->
+      <div v-if="selectedSceneId !== -1 && selectedSceneComponent" class="component-section">
+        <h3>Scene Properties</h3>
+        <div class="property-grid">
+          <div class="property-row">
+            <label class="property-label">Name:</label>
+            <PropertyField
+              field-name="component_name"
+              :field-value="selectedSceneComponent.component_name"
+              owner-system="SceneObjectSystem"
+              :component-id="selectedSceneId"
+            />
+          </div>
+          <div class="property-row">
+            <label class="property-label">Compositor:</label>
+            <PropertyField
+              field-name="display_compositor_id"
+              :field-value="selectedSceneComponent.display_compositor_id"
+              owner-system="SceneObjectSystem"
+              :component-id="selectedSceneId"
+            />
+          </div>
+          <div class="property-row">
+            <label class="property-label">Script:</label>
+            <div class="script-controls">
+              <span class="script-path">{{ selectedSceneComponent.component_script || '&lt;None&gt;' }}</span>
+              <button @click="handleReloadScript" class="action-btn icon-btn" title="Reload Script">
+                ⟳
+              </button>
+              <button @click="handleAddScript" class="action-btn icon-btn" title="Add Script">
+                +
+              </button>
+              <button @click="handleRemoveScript" class="action-btn icon-btn" title="Remove Script">
+                ×
+              </button>
+            </div>
           </div>
         </div>
+      </div>
 
-        <div v-if="quadStencilComponents.length > 0" class="stencil-subsection">
-          <h4>Quad Stencils</h4>
-          <ComponentList
-            :components="quadStencilComponents"
-            owner-system="QuadStencilSystem"
-            :selectable="true"
-            :editable="true"
-            :selected-component-id="selectedComponentId"
-            sort-by="name"
-            @select="handleSelectComponent"
-          />
+      <!-- Actors Panel -->
+      <div v-if="selectedSceneId !== -1" class="component-section">
+        <h3>Actors</h3>
+        <div class="actor-buttons">
+          <button @click="handleAddAnchor" class="action-btn icon-btn" title="Add Anchor">
+            ⚓ Anchor
+          </button>
+          <button @click="handleAddQuadStencil" class="action-btn icon-btn" title="Add Quad Stencil">
+            ▭ Quad
+          </button>
+          <button @click="handleAddBoxStencil" class="action-btn icon-btn" title="Add Box Stencil">
+            ▢ Box
+          </button>
+          <button @click="handleAddModelStencil" class="action-btn icon-btn" title="Add Model Stencil">
+            ⬡ Model
+          </button>
         </div>
 
-        <div v-if="boxStencilComponents.length > 0" class="stencil-subsection">
-          <h4>Box Stencils</h4>
-          <ComponentList
-            :components="boxStencilComponents"
-            owner-system="BoxStencilSystem"
-            :selectable="true"
-            :editable="true"
-            :selected-component-id="selectedComponentId"
-            sort-by="name"
-            @select="handleSelectComponent"
-          />
+        <!-- Scene Outliner Tree -->
+        <div class="scene-outliner">
+          <div
+            v-for="(item, index) in sceneOutliner"
+            :key="index"
+            class="outliner-item"
+            :class="{ selected: selectedSceneObjectIndex === index }"
+            :style="{ paddingLeft: `${item.depth * 25}px` }"
+            @click="handleSelectSceneObject(index)"
+          >
+            {{ item.name }}
+          </div>
         </div>
+      </div>
 
-        <div v-if="modelStencilComponents.length > 0" class="stencil-subsection">
-          <h4>Model Stencils</h4>
-          <ComponentList
-            :components="modelStencilComponents"
-            owner-system="ModelStencilSystem"
-            :selectable="true"
-            :editable="true"
-            :selected-component-id="selectedComponentId"
-            sort-by="name"
-            @select="handleSelectComponent"
-          />
-        </div>
-
-        <button
-          v-if="selectedComponentId && isStencilSelected"
-          @click="handleRemoveStencil"
-          class="action-btn remove-btn"
-        >
-          Remove Selected Stencil
-        </button>
+      <!-- Selected Scene Object Properties -->
+      <div v-if="selectedSceneObject" class="component-section">
+        <h3>{{ selectedSceneObject.componentType }} Properties</h3>
+        <ComponentCard
+          :component-id="selectedSceneObject.componentId"
+          :component="selectedSceneObject.component"
+          :owner-system="selectedSceneObject.ownerSystem"
+          :editable="true"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useComponentStore } from '../../../stores/componentStore.js'
+import { useMikanStore } from '../../../stores/mikanStore.js'
 import { useRemoteControl } from '../../../composables/useRemoteControl.js'
-import ComponentList from '../../shared/ComponentList.vue'
+import ComponentRefSelect from '../../shared/ComponentRefSelect.vue'
+import PropertyField from '../../shared/PropertyField.vue'
+import ComponentCard from '../../shared/ComponentCard.vue'
+import {
+  MikanAPIResult,
+  MikanConstants,
+  PropertyGetValueRequest,
+  CLASS_ID_PROPERTY_GET_VALUE_REQUEST,
+  PropertyGetValueResponse
+} from '@mikanxr/client'
 
 const componentStore = useComponentStore()
+const mikanStore = useMikanStore()
 const { sendRemoteControlCommand } = useRemoteControl()
 
 // Selection state
-const selectedComponentId = ref<number | null>(null)
+const selectedStageId = ref<number>(-1)
+const selectedSceneId = ref<number>(-1)
+const selectedSceneObjectIndex = ref<number>(-1)
+
+interface SceneOutlinerItem {
+  name: string
+  depth: number
+  componentId: number
+  ownerSystem: string
+  componentType: string
+}
+
+const sceneOutliner = ref<SceneOutlinerItem[]>([])
 
 // Get components by system
-const stageComponents = computed(() =>
-  componentStore.getComponentsByClass('StageComponent')
-)
-
 const sceneComponents = computed(() =>
   componentStore.getComponentsByClass('SceneComponent')
 )
@@ -159,36 +184,196 @@ const modelStencilComponents = computed(() =>
   componentStore.getComponentsByClass('ModelStencilComponent')
 )
 
-const hasStencilComponents = computed(() =>
-  quadStencilComponents.value.length > 0 ||
-  boxStencilComponents.value.length > 0 ||
-  modelStencilComponents.value.length > 0
+// Filter scenes by the selected stage
+const filteredScenes = computed(() => {
+  if (selectedStageId.value === -1) return []
+
+  return sceneComponents.value.filter(scene => {
+    const sceneComp = scene as any
+    return sceneComp.parent_stage_id === selectedStageId.value
+  })
+})
+
+// Get the selected scene component
+const selectedSceneComponent = computed(() => {
+  if (selectedSceneId.value === -1) return null
+  return componentStore.getComponent(selectedSceneId.value) as any
+})
+
+// Get the selected scene object
+const selectedSceneObject = computed(() => {
+  if (selectedSceneObjectIndex.value === -1 || selectedSceneObjectIndex.value >= sceneOutliner.value.length) {
+    return null
+  }
+
+  const item = sceneOutliner.value[selectedSceneObjectIndex.value]
+  const component = componentStore.getComponent(item.componentId)
+
+  return {
+    componentId: item.componentId,
+    component: component,
+    ownerSystem: item.ownerSystem,
+    componentType: item.componentType
+  }
+})
+
+// Build the scene outliner tree
+function buildSceneOutliner() {
+  sceneOutliner.value = []
+
+  if (selectedSceneId.value === -1) return
+
+  // Helper to recursively add components
+  function addComponentWithChildren(componentId: number, ownerSystem: string, componentType: string, depth: number) {
+    const component = componentStore.getComponent(componentId) as any
+    if (!component) return
+
+    // Add this component to the outliner
+    sceneOutliner.value.push({
+      name: component.component_name || '<Unnamed>',
+      depth,
+      componentId,
+      ownerSystem,
+      componentType
+    })
+
+    // TODO: Add children if this component has them (for hierarchical transforms)
+  }
+
+  // Add all root anchors
+  anchorComponents.value.forEach(anchor => {
+    const anchorComp = anchor as any
+    // TODO: Check if this anchor has no parent (is root)
+    // For now, add all anchors at root level
+    addComponentWithChildren(anchorComp.component_id, 'AnchorObjectSystem', 'Anchor', 0)
+  })
+
+  // Add all root quad stencils
+  quadStencilComponents.value.forEach(quad => {
+    const quadComp = quad as any
+    // TODO: Check parent_anchor_id to determine if this is a root or child
+    addComponentWithChildren(quadComp.component_id, 'QuadStencilSystem', 'Quad Stencil', 0)
+  })
+
+  // Add all root box stencils
+  boxStencilComponents.value.forEach(box => {
+    const boxComp = box as any
+    addComponentWithChildren(boxComp.component_id, 'BoxStencilSystem', 'Box Stencil', 0)
+  })
+
+  // Add all root model stencils
+  modelStencilComponents.value.forEach(model => {
+    const modelComp = model as any
+    addComponentWithChildren(modelComp.component_id, 'ModelStencilSystem', 'Model Stencil', 0)
+  })
+}
+
+// Initialize selected stage from current scene
+async function initializeFromCurrentScene() {
+  if (!mikanStore.client) {
+    console.log('[ProjectScenes] No client connection, skipping initialization')
+    return
+  }
+
+  try {
+    console.log('[ProjectScenes] Fetching current scene ID...')
+
+    // Fetch current_scene_id from SceneObjectSystem
+    const request: PropertyGetValueRequest = {
+      requestTypeId: CLASS_ID_PROPERTY_GET_VALUE_REQUEST,
+      requestTypeName: 'PropertyGetValueRequest',
+      requestId: 0,
+      ownerSystem: 'SceneObjectSystem',
+      componentId: MikanConstants.InvalidMikanID, // System property
+      fieldName: 'current_scene_id'
+    }
+
+    const future = mikanStore.client.sendRequest(request)
+    const response = await future.await() as PropertyGetValueResponse
+
+    if (response.resultCode === MikanAPIResult.Success) {
+      const currentSceneId = response.propertyValue?.fieldValue?.value_ptr?.instance?.value || -1
+      console.log('[ProjectScenes] Current scene ID from server:', currentSceneId)
+
+      if (currentSceneId !== -1) {
+        // Get the parent stage from the current scene
+        const currentScene = componentStore.getComponent(currentSceneId) as any
+        console.log('[ProjectScenes] Current scene component:', currentScene)
+
+        if (currentScene?.parent_stage_id) {
+          console.log('[ProjectScenes] Setting stage ID to:', currentScene.parent_stage_id)
+          selectedStageId.value = currentScene.parent_stage_id
+          console.log('[ProjectScenes] Setting scene ID to:', currentSceneId)
+          selectedSceneId.value = currentSceneId
+        } else {
+          console.warn('[ProjectScenes] Current scene has no parent_stage_id')
+        }
+      } else {
+        console.log('[ProjectScenes] No current scene set on server')
+      }
+    } else {
+      console.error('[ProjectScenes] Failed to fetch current scene ID:', response.resultCode)
+    }
+  } catch (error) {
+    console.error('[ProjectScenes] Error fetching current scene:', error)
+  }
+}
+
+// Watch for scene changes to rebuild outliner
+watch(selectedSceneId, () => {
+  buildSceneOutliner()
+  selectedSceneObjectIndex.value = -1
+})
+
+// Watch for component store changes - reinitialize if we don't have a stage selected
+watch(
+  () => componentStore.components.size,
+  (newSize, oldSize) => {
+    console.log('[ProjectScenes] Component store size changed:', oldSize, '->', newSize)
+    // If components were just loaded and we don't have a stage selected, try to initialize
+    if (newSize > 0 && selectedStageId.value === -1) {
+      console.log('[ProjectScenes] Components loaded, attempting initialization')
+      initializeFromCurrentScene()
+    }
+  }
 )
 
-// Check which type of component is selected
-const isSceneSelected = computed(() => {
-  if (!selectedComponentId.value) return false
-  const component = componentStore.getComponent(selectedComponentId.value)
-  return component?.component_class === 'SceneComponent'
+// Persist selection state
+watch(selectedStageId, (newValue) => {
+  if (newValue !== -1) {
+    sessionStorage.setItem('projectScenes.selectedStageId', newValue.toString())
+  }
 })
 
-const isAnchorSelected = computed(() => {
-  if (!selectedComponentId.value) return false
-  const component = componentStore.getComponent(selectedComponentId.value)
-  return component?.component_class === 'AnchorComponent'
+watch(selectedSceneId, (newValue) => {
+  if (newValue !== -1) {
+    sessionStorage.setItem('projectScenes.selectedSceneId', newValue.toString())
+  }
 })
 
-const isStencilSelected = computed(() => {
-  if (!selectedComponentId.value) return false
-  const component = componentStore.getComponent(selectedComponentId.value)
-  return ['QuadStencilComponent', 'BoxStencilComponent', 'ModelStencilComponent'].includes(
-    component?.component_class || ''
-  )
-})
+// Restore selection state on mount
+function restoreSelectionState() {
+  const savedStageId = sessionStorage.getItem('projectScenes.selectedStageId')
+  const savedSceneId = sessionStorage.getItem('projectScenes.selectedSceneId')
 
-// Handle component selection
-function handleSelectComponent(componentId: number) {
-  selectedComponentId.value = componentId
+  if (savedStageId) {
+    const stageId = parseInt(savedStageId, 10)
+    if (!isNaN(stageId)) {
+      selectedStageId.value = stageId
+    }
+  }
+
+  if (savedSceneId) {
+    const sceneId = parseInt(savedSceneId, 10)
+    if (!isNaN(sceneId)) {
+      selectedSceneId.value = sceneId
+    }
+  }
+}
+
+// Handle scene object selection
+function handleSelectSceneObject(index: number) {
+  selectedSceneObjectIndex.value = index
 }
 
 // Scene CRUD handlers
@@ -197,61 +382,54 @@ function handleAddScene() {
 }
 
 function handleRemoveScene() {
-  if (!selectedComponentId.value || !isSceneSelected.value) {
+  if (selectedSceneId.value === -1) {
     console.error('[ProjectScenes] No scene selected')
     return
   }
-  sendRemoteControlCommand('remove_scene', [selectedComponentId.value.toString()])
-  selectedComponentId.value = null
+  sendRemoteControlCommand('remove_scene', [selectedSceneId.value.toString()])
+  selectedSceneId.value = -1
 }
 
+// Script handlers
 function handleReloadScript() {
   sendRemoteControlCommand('reload_script')
 }
 
-// Anchor CRUD handlers
+function handleAddScript() {
+  sendRemoteControlCommand('add_new_script')
+}
+
+function handleRemoveScript() {
+  sendRemoteControlCommand('remove_script')
+}
+
+// Actor CRUD handlers
 function handleAddAnchor() {
-  sendRemoteControlCommand('add_anchor')
+  sendRemoteControlCommand('add_new_anchor')
 }
 
-function handleRemoveAnchor() {
-  if (!selectedComponentId.value || !isAnchorSelected.value) {
-    console.error('[ProjectScenes] No anchor selected')
-    return
-  }
-  sendRemoteControlCommand('remove_anchor', [selectedComponentId.value.toString()])
-  selectedComponentId.value = null
-}
-
-function handleEditAnchor() {
-  if (!selectedComponentId.value || !isAnchorSelected.value) {
-    console.error('[ProjectScenes] No anchor selected')
-    return
-  }
-  sendRemoteControlCommand('edit_anchor', [selectedComponentId.value.toString()])
-}
-
-// Stencil CRUD handlers
 function handleAddQuadStencil() {
-  sendRemoteControlCommand('add_quad_stencil')
+  sendRemoteControlCommand('add_new_quad')
 }
 
 function handleAddBoxStencil() {
-  sendRemoteControlCommand('add_box_stencil')
+  sendRemoteControlCommand('add_new_box')
 }
 
 function handleAddModelStencil() {
-  sendRemoteControlCommand('add_model_stencil')
+  sendRemoteControlCommand('add_new_model')
 }
 
-function handleRemoveStencil() {
-  if (!selectedComponentId.value || !isStencilSelected.value) {
-    console.error('[ProjectScenes] No stencil selected')
-    return
+// Initialize on mount
+onMounted(() => {
+  // First try to restore previous selection state
+  restoreSelectionState()
+
+  // If no saved state, try to initialize from current scene
+  if (selectedStageId.value === -1) {
+    initializeFromCurrentScene()
   }
-  sendRemoteControlCommand('remove_stencil', [selectedComponentId.value.toString()])
-  selectedComponentId.value = null
-}
+})
 </script>
 
 <style scoped>
@@ -262,6 +440,13 @@ function handleRemoveStencil() {
 .project-panel h2 {
   color: #5cb85c;
   margin-bottom: 10px;
+}
+
+.project-panel h3 {
+  color: #ffffff;
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .project-panel p {
@@ -275,46 +460,123 @@ function handleRemoveStencil() {
   gap: 24px;
 }
 
+.selection-section {
+  background-color: #2d2d2d;
+  border: 1px solid #404040;
+  border-radius: 4px;
+  padding: 20px;
+}
+
+.selection-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.selection-label {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  min-width: 80px;
+}
+
+.selection-dropdown {
+  flex: 1;
+  max-width: 300px;
+}
+
+.scene-select {
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: #fff;
+  font-family: monospace;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.scene-select:focus {
+  outline: none;
+  border-color: #5cb85c;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.scene-select option {
+  background: #2d2d2d;
+  color: #fff;
+}
+
 .component-section {
   background-color: #2d2d2d;
   border: 1px solid #404040;
   border-radius: 4px;
   padding: 20px;
+}
+
+.property-grid {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
-.section-header {
+.property-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  gap: 12px;
 }
 
-.section-header h3 {
-  color: #ffffff;
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
+.property-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  min-width: 100px;
+  font-size: 14px;
 }
 
-.section-actions {
+.script-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.script-path {
+  font-family: monospace;
+  color: #fff;
+  font-size: 14px;
+  flex: 1;
+}
+
+.actor-buttons {
   display: flex;
   gap: 8px;
+  margin-bottom: 16px;
 }
 
-.stencil-subsection {
-  margin-top: 12px;
-  padding-left: 16px;
-  border-left: 2px solid #404040;
+.scene-outliner {
+  border: 1px solid #404040;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  max-height: 400px;
+  overflow-y: auto;
 }
 
-.stencil-subsection h4 {
-  color: rgba(255, 255, 255, 0.8);
-  margin: 0 0 12px 0;
-  font-size: 14px;
-  font-weight: 500;
+.outliner-item {
+  padding: 8px 12px;
+  color: #fff;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background-color 0.2s;
+}
+
+.outliner-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.outliner-item.selected {
+  background-color: rgba(92, 184, 92, 0.3);
+  color: #5cb85c;
+  font-weight: 600;
 }
 
 .action-btn {
@@ -349,22 +611,32 @@ function handleRemoveStencil() {
 
 .action-btn.remove-btn {
   background-color: #d9534f;
-  width: 100%;
-  margin-top: 8px;
 }
 
 .action-btn.remove-btn:hover {
   background-color: #c9302c;
 }
 
-.action-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 8px;
+.action-btn.icon-btn {
+  padding: 6px 12px;
+  font-size: 13px;
 }
 
-.action-buttons .action-btn {
-  width: 100%;
+.scene-outliner::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scene-outliner::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.scene-outliner::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.scene-outliner::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 </style>
