@@ -54,11 +54,18 @@
           @select="handleSelectComponent($event, 'VideoSourceObjectSystem')"
         />
         <button
-          v-if="selectedComponentId && isVideoSourceSelected"
+          v-if="selectedComponentId && isUSBVideoSourceSelected"
           @click="handleRemoveVideoSource"
           class="action-btn remove-btn"
         >
-          Remove Selected Video Source
+          Remove USB Video Source
+        </button>
+        <button
+          v-if="selectedComponentId && isNetworkVideoSourceSelected"
+          @click="handleRemoveVideoSource"
+          class="action-btn remove-btn"
+        >
+          Remove Network Video Source
         </button>
       </div>
 
@@ -79,11 +86,18 @@
           @select="handleSelectComponent($event, 'TextureSourceObjectSystem')"
         />
         <button
-          v-if="selectedComponentId && isTextureSourceSelected"
+          v-if="selectedComponentId && isClientTextureSourceSelected"
           @click="handleRemoveTextureSource"
           class="action-btn remove-btn"
         >
-          Remove Selected Texture Source
+          Remove Client Texture Source
+        </button>
+        <button
+          v-if="selectedComponentId && isSpoutTextureSourceSelected"
+          @click="handleRemoveTextureSource"
+          class="action-btn remove-btn"
+        >
+          Remove Spout Texture Source
         </button>
       </div>
 
@@ -184,13 +198,39 @@ const isCameraSelected = computed(() => {
 const isVideoSourceSelected = computed(() => {
   if (!selectedComponentId.value) return false
   const component = componentStore.getComponent(selectedComponentId.value)
-  return component?.component_class === 'VideoSourceComponent'
+  return component?.component_class === 'USBVideoSourceComponent' ||
+         component?.component_class === 'NetworkVideoSourceComponent'
+})
+
+const isUSBVideoSourceSelected = computed(() => {
+  if (!selectedComponentId.value) return false
+  const component = componentStore.getComponent(selectedComponentId.value)
+  return component?.component_class === 'USBVideoSourceComponent'
+})
+
+const isNetworkVideoSourceSelected = computed(() => {
+  if (!selectedComponentId.value) return false
+  const component = componentStore.getComponent(selectedComponentId.value)
+  return component?.component_class === 'NetworkVideoSourceComponent'
 })
 
 const isTextureSourceSelected = computed(() => {
   if (!selectedComponentId.value) return false
   const component = componentStore.getComponent(selectedComponentId.value)
-  return component?.component_class === 'TextureSourceComponent'
+  return component?.component_class === 'ClientTextureSourceComponent' ||
+         component?.component_class === 'SpoutTextureSourceComponent'
+})
+
+const isClientTextureSourceSelected = computed(() => {
+  if (!selectedComponentId.value) return false
+  const component = componentStore.getComponent(selectedComponentId.value)
+  return component?.component_class === 'ClientTextureSourceComponent'
+})
+
+const isSpoutTextureSourceSelected = computed(() => {
+  if (!selectedComponentId.value) return false
+  const component = componentStore.getComponent(selectedComponentId.value)
+  return component?.component_class === 'SpoutTextureSourceComponent'
 })
 
 // Handle component selection

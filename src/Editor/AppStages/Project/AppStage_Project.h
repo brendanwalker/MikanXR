@@ -61,6 +61,12 @@ protected:
 	// Debug Rendering
 	void debugRenderOrigin() const;
 
+	// -- IRemoteControllable Interface -- //
+	virtual bool handleRemoteControlCommand(
+		const std::string& command,
+		const std::vector<std::string>& parameters,
+		std::vector<std::string>& outResults) override;
+
 	ProjectConfigPtr m_project;
 
 	EditorObjectSystemWeakPtr m_editorSystem;

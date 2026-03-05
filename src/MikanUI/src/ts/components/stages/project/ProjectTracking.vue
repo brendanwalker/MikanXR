@@ -43,11 +43,18 @@
           @select="handleSelectComponent($event, 'TrackingVolumeObjectSystem')"
         />
         <button
-          v-if="selectedComponentId && isTrackingVolumeSelected"
-          @click="handleRemoveTrackingVolume"
+          v-if="selectedComponentId && isVRTrackingVolumeSelected"
+          @click="handleRemoveVRTrackingVolume"
           class="action-btn remove-btn"
         >
-          Remove Selected Tracking Volume
+          Remove SteamVR Tracking Volume
+        </button>
+        <button
+          v-if="selectedComponentId && isMarkerTrackingVolumeSelected"
+          @click="handleRemoveMarkerTrackingVolume"
+          class="action-btn remove-btn"
+        >
+          Remove Marker Tracking Volume
         </button>
       </div>
 
@@ -109,9 +116,9 @@ const vrDeviceComponents = computed(() =>
 )
 
 const trackingVolumeComponents = computed(() => {
-  const steamVRVolumes = componentStore.getComponentsByClass('SteamVRTrackingVolumeComponent')
+  const vrVolumes = componentStore.getComponentsByClass('VRTrackingVolumeComponent')
   const markerVolumes = componentStore.getComponentsByClass('MarkerTrackingVolumeComponent')
-  return [...steamVRVolumes, ...markerVolumes]
+  return [...vrVolumes, ...markerVolumes]
 })
 
 const trackingMountComponents = computed(() =>
@@ -123,7 +130,19 @@ const isTrackingVolumeSelected = computed(() => {
   if (!selectedComponentId.value) return false
   const component = componentStore.getComponent(selectedComponentId.value)
   const componentClass = (component as any)?.component_class
-  return componentClass === 'SteamVRTrackingVolumeComponent' || componentClass === 'MarkerTrackingVolumeComponent'
+  return componentClass === 'VRTrackingVolumeComponent' || componentClass === 'MarkerTrackingVolumeComponent'
+})
+
+const isVRTrackingVolumeSelected = computed(() => {
+  if (!selectedComponentId.value) return false
+  const component = componentStore.getComponent(selectedComponentId.value)
+  return (component as any)?.component_class === 'VRTrackingVolumeComponent'
+})
+
+const isMarkerTrackingVolumeSelected = computed(() => {
+  if (!selectedComponentId.value) return false
+  const component = componentStore.getComponent(selectedComponentId.value)
+  return (component as any)?.component_class === 'MarkerTrackingVolumeComponent'
 })
 
 const isTrackingMountSelected = computed(() => {
@@ -201,12 +220,21 @@ function handleAddMarkerVolume() {
   sendRemoteControlCommand('add_new_marker_tracking_volume')
 }
 
-function handleRemoveTrackingVolume() {
-  if (!selectedComponentId.value || !isTrackingVolumeSelected.value) {
-    console.error('[ProjectTracking] No tracking volume selected')
+function handleRemoveVRTrackingVolume() {
+  if (!selectedComponentId.value || !isVRTrackingVolumeSelected.value) {
+    console.error('[ProjectTracking] No VR tracking volume selected')
     return
   }
-  sendRemoteControlCommand('remove_tracking_volume', [selectedComponentId.value.toString()])
+  sendRemoteControlCommand('remove_vr_tracking_volume', [selectedComponentId.value.toString()])
+  selectedComponentId.value = null
+}
+
+function handleRemoveMarkerTrackingVolume() {
+  if (!selectedComponentId.value || !isMarkerTrackingVolumeSelected.value) {
+    console.error('[ProjectTracking] No marker tracking volume selected')
+    return
+  }
+  sendRemoteControlCommand('remove_marker_tracking_volume', [selectedComponentId.value.toString()])
   selectedComponentId.value = null
 }
 
