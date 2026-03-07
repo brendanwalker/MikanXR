@@ -104,6 +104,7 @@ const { sendRemoteControlCommand } = useRemoteControl()
 
 // Selection state
 const selectedComponentId = ref<number | null>(null)
+const selectedComponentSystem = ref<string | null>(null)
 const editingComponent = ref<{
   id: number
   component: any
@@ -127,34 +128,35 @@ const trackingMountComponents = computed(() =>
 
 // Check which type of component is selected
 const isTrackingVolumeSelected = computed(() => {
-  if (!selectedComponentId.value) return false
-  const component = componentStore.getComponent(selectedComponentId.value)
+  if (!selectedComponentId.value || !selectedComponentSystem.value) return false
+  const component = componentStore.getComponent(selectedComponentId.value, selectedComponentSystem.value)
   const componentClass = (component as any)?.component_class
   return componentClass === 'VRTrackingVolumeComponent' || componentClass === 'MarkerTrackingVolumeComponent'
 })
 
 const isVRTrackingVolumeSelected = computed(() => {
-  if (!selectedComponentId.value) return false
-  const component = componentStore.getComponent(selectedComponentId.value)
+  if (!selectedComponentId.value || !selectedComponentSystem.value) return false
+  const component = componentStore.getComponent(selectedComponentId.value, selectedComponentSystem.value)
   return (component as any)?.component_class === 'VRTrackingVolumeComponent'
 })
 
 const isMarkerTrackingVolumeSelected = computed(() => {
-  if (!selectedComponentId.value) return false
-  const component = componentStore.getComponent(selectedComponentId.value)
+  if (!selectedComponentId.value || !selectedComponentSystem.value) return false
+  const component = componentStore.getComponent(selectedComponentId.value, selectedComponentSystem.value)
   return (component as any)?.component_class === 'MarkerTrackingVolumeComponent'
 })
 
 const isTrackingMountSelected = computed(() => {
-  if (!selectedComponentId.value) return false
-  const component = componentStore.getComponent(selectedComponentId.value)
+  if (!selectedComponentId.value || !selectedComponentSystem.value) return false
+  const component = componentStore.getComponent(selectedComponentId.value, selectedComponentSystem.value)
   return (component as any)?.component_class === 'TrackingMountComponent'
 })
 
 // Handle component selection
 function handleSelectComponent(componentId: number, ownerSystem: string) {
   selectedComponentId.value = componentId
-  const component = componentStore.getComponent(componentId)
+  selectedComponentSystem.value = ownerSystem
+  const component = componentStore.getComponent(componentId, ownerSystem)
 
   if (component) {
     editingComponent.value = {
@@ -168,6 +170,7 @@ function handleSelectComponent(componentId: number, ownerSystem: string) {
 function closeEditor() {
   editingComponent.value = null
   selectedComponentId.value = null
+  selectedComponentSystem.value = null
 }
 
 // Handle property save

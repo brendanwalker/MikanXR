@@ -197,7 +197,7 @@ const filteredScenes = computed(() => {
 // Get the selected scene component
 const selectedSceneComponent = computed(() => {
   if (selectedSceneId.value === -1) return null
-  return componentStore.getComponent(selectedSceneId.value) as any
+  return componentStore.getSceneComponent(selectedSceneId.value) as any
 })
 
 // Get the selected scene object
@@ -207,7 +207,7 @@ const selectedSceneObject = computed(() => {
   }
 
   const item = sceneOutliner.value[selectedSceneObjectIndex.value]
-  const component = componentStore.getComponent(item.componentId)
+  const component = componentStore.getComponent(item.componentId, item.ownerSystem)
 
   return {
     componentId: item.componentId,
@@ -225,7 +225,7 @@ function buildSceneOutliner() {
 
   // Helper to recursively add components
   function addComponentWithChildren(componentId: number, ownerSystem: string, componentType: string, depth: number) {
-    const component = componentStore.getComponent(componentId) as any
+    const component = componentStore.getComponent(componentId, ownerSystem) as any
     if (!component) return
 
     // Add this component to the outliner
@@ -297,7 +297,7 @@ async function initializeFromCurrentScene() {
 
       if (currentSceneId !== -1) {
         // Get the parent stage from the current scene
-        const currentScene = componentStore.getComponent(currentSceneId) as any
+        const currentScene = componentStore.getSceneComponent(currentSceneId) as any
         console.log('[ProjectScenes] Current scene component:', currentScene)
 
         if (currentScene?.parent_stage_id) {

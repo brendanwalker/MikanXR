@@ -13,7 +13,20 @@ import {
   MikanComponentValues,
   MikanPropertyValue,
   MikanVariant,
-  MikanConstants
+  MikanConstants,
+  MikanAnchorComponentValues,
+  MikanCameraComponentValues,
+  MikanCompositorComponentValues,
+  MikanMarkerComponentValues,
+  MikanSceneComponentValues,
+  MikanStageComponentValues,
+  MikanQuadStencilComponentValues,
+  MikanBoxStencilSystemValues,
+  MikanModelStencilSystemValues,
+  MikanTrackingMountComponentValues,
+  MikanTrackingVolumeComponentValues,
+  MikanVRTrackingVolumeComponentValues,
+  MikanVRDeviceComponentValues
 } from '@mikanxr/client'
 
 // Component registry mapping system names to component class names
@@ -71,18 +84,62 @@ export const useComponentStore = defineStore('components', () => {
   })
 
   // Actions
-  function getComponent(componentId: number, systemName?: string): MikanComponentValues | undefined {
-    // If no system name provided, try to find the component across all systems
-    if (!systemName) {
-      for (const comp of components.value.values()) {
-        if ((comp as any).component_id === componentId) {
-          return comp
-        }
-      }
-      return undefined
-    }
+  function getComponent(componentId: number, systemName: string): MikanComponentValues | undefined {
     const key = makeComponentKey(systemName, componentId)
     return components.value.get(key)
+  }
+
+  // Typed component getters for each system
+  function getAnchorComponent(componentId: number): MikanAnchorComponentValues | undefined {
+    return getComponent(componentId, 'AnchorObjectSystem') as MikanAnchorComponentValues | undefined
+  }
+
+  function getCameraComponent(componentId: number): MikanCameraComponentValues | undefined {
+    return getComponent(componentId, 'CameraObjectSystem') as MikanCameraComponentValues | undefined
+  }
+
+  function getCompositorComponent(componentId: number): MikanCompositorComponentValues | undefined {
+    return getComponent(componentId, 'CompositorObjectSystem') as MikanCompositorComponentValues | undefined
+  }
+
+  function getMarkerComponent(componentId: number): MikanMarkerComponentValues | undefined {
+    return getComponent(componentId, 'MarkerObjectSystem') as MikanMarkerComponentValues | undefined
+  }
+
+  function getSceneComponent(componentId: number): MikanSceneComponentValues | undefined {
+    return getComponent(componentId, 'SceneObjectSystem') as MikanSceneComponentValues | undefined
+  }
+
+  function getStageComponent(componentId: number): MikanStageComponentValues | undefined {
+    return getComponent(componentId, 'StageObjectSystem') as MikanStageComponentValues | undefined
+  }
+
+  function getQuadStencilComponent(componentId: number): MikanQuadStencilComponentValues | undefined {
+    return getComponent(componentId, 'QuadStencilSystem') as MikanQuadStencilComponentValues | undefined
+  }
+
+  function getBoxStencilComponent(componentId: number): MikanBoxStencilSystemValues | undefined {
+    return getComponent(componentId, 'BoxStencilSystem') as MikanBoxStencilSystemValues | undefined
+  }
+
+  function getModelStencilComponent(componentId: number): MikanModelStencilSystemValues | undefined {
+    return getComponent(componentId, 'ModelStencilSystem') as MikanModelStencilSystemValues | undefined
+  }
+
+  function getTrackingMountComponent(componentId: number): MikanTrackingMountComponentValues | undefined {
+    return getComponent(componentId, 'TrackingMountObjectSystem') as MikanTrackingMountComponentValues | undefined
+  }
+
+  function getMarkerTrackingVolumeComponent(componentId: number): MikanTrackingVolumeComponentValues | undefined {
+    return getComponent(componentId, 'MarkerTrackingVolumeSystem') as MikanTrackingVolumeComponentValues | undefined
+  }
+
+  function getVRTrackingVolumeComponent(componentId: number): MikanVRTrackingVolumeComponentValues | undefined {
+    return getComponent(componentId, 'VRTrackingVolumeSystem') as MikanVRTrackingVolumeComponentValues | undefined
+  }
+
+  function getVRDeviceComponent(componentId: number): MikanVRDeviceComponentValues | undefined {
+    return getComponent(componentId, 'VRObjectSystem') as MikanVRDeviceComponentValues | undefined
   }
 
   function addComponent(
@@ -92,6 +149,10 @@ export const useComponentStore = defineStore('components', () => {
     className: string
   ) {
     const key = makeComponentKey(systemName, componentId)
+
+    // Augment component with class name for easier filtering
+    ;(component as any).component_class = className
+
     components.value.set(key, component)
 
     // Add to system index
@@ -309,6 +370,7 @@ export const useComponentStore = defineStore('components', () => {
   // Helper to map field names to component classes for component references
   function getComponentClassForField(fieldName: string): string | string[] | null {
     const fieldMappings: Record<string, string | string[]> = {
+      'camera_id': 'CameraComponent',
       'parent_stage_id': 'StageComponent',
       'stage_id': 'StageComponent',
       'display_compositor_id': 'CompositorComponent',
@@ -324,12 +386,12 @@ export const useComponentStore = defineStore('components', () => {
   }
 
   // Helper to get component name by ID
-  function getComponentName(componentId: number): string {
+  function getComponentName(componentId: number, systemName: string): string {
     if (componentId === -1 || componentId === MikanConstants.InvalidMikanID) {
       return '<None>'
     }
 
-    const component = getComponent(componentId)
+    const component = getComponent(componentId, systemName)
     if (component) {
       return component.component_name || `Component ${componentId}`
     }
@@ -358,6 +420,21 @@ export const useComponentStore = defineStore('components', () => {
     fetchComponentValues,
     fetchAllComponents,
     handlePropertyUpdate,
+
+    // Typed component getters
+    getAnchorComponent,
+    getCameraComponent,
+    getCompositorComponent,
+    getMarkerComponent,
+    getSceneComponent,
+    getStageComponent,
+    getQuadStencilComponent,
+    getBoxStencilComponent,
+    getModelStencilComponent,
+    getTrackingMountComponent,
+    getMarkerTrackingVolumeComponent,
+    getVRTrackingVolumeComponent,
+    getVRDeviceComponent,
 
     // Helpers
     getComponentClassForField,

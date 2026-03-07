@@ -157,24 +157,24 @@ const filteredCompositors = computed(() => {
 
   return compositorComponents.value.filter(compositor => {
     const compositorComp = compositor as any
-    return compositorComp.stage_id === selectedStageId.value
+    return compositorComp.owner_stage_id === selectedStageId.value
   })
 })
 
 // Get the selected components
 const selectedStageComponent = computed(() => {
   if (selectedStageId.value === -1) return null
-  return componentStore.getComponent(selectedStageId.value)
+  return componentStore.getStageComponent(selectedStageId.value)
 })
 
 const selectedCameraComponent = computed(() => {
   if (selectedCameraId.value === -1) return null
-  return componentStore.getComponent(selectedCameraId.value)
+  return componentStore.getCameraComponent(selectedCameraId.value)
 })
 
 const selectedCompositorComponent = computed(() => {
   if (selectedCompositorId.value === -1) return null
-  return componentStore.getComponent(selectedCompositorId.value)
+  return componentStore.getCompositorComponent(selectedCompositorId.value)
 })
 
 // Initialize selected stage - just select the first stage if available
@@ -245,7 +245,7 @@ watch(selectedStageId, (newStageId, oldStageId) => {
   } else if (oldStageId !== newStageId) {
     // Stage changed, check if current camera/compositor belong to new stage
     if (selectedCameraId.value !== -1) {
-      const camera = componentStore.getComponent(selectedCameraId.value) as any
+      const camera = componentStore.getCameraComponent(selectedCameraId.value) as any
       if (!camera || camera.stage_id !== newStageId) {
         console.log('[ProjectStages] Clearing camera - does not belong to new stage')
         selectedCameraId.value = -1
@@ -253,7 +253,7 @@ watch(selectedStageId, (newStageId, oldStageId) => {
     }
 
     if (selectedCompositorId.value !== -1) {
-      const compositor = componentStore.getComponent(selectedCompositorId.value) as any
+      const compositor = componentStore.getCompositorComponent(selectedCompositorId.value) as any
       if (!compositor || compositor.stage_id !== newStageId) {
         console.log('[ProjectStages] Clearing compositor - does not belong to new stage')
         selectedCompositorId.value = -1

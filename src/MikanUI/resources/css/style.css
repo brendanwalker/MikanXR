@@ -8,7 +8,7 @@ body {
 
 #app {
     max-width: 400px;
-    margin: 0 auto;
+    margin-bottom: 10px;
     display: flex;
     flex-direction: column;
     align-items: center;

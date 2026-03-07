@@ -76,7 +76,7 @@ const markerComponents = computed(() =>
 // Handle component selection
 function handleSelectComponent(componentId: number, ownerSystem: string) {
   selectedComponentId.value = componentId
-  const component = componentStore.getComponent(componentId)
+  const component = componentStore.getComponent(componentId, ownerSystem)
 
   if (component) {
     editingComponent.value = {

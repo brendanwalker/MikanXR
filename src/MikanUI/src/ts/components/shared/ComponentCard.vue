@@ -30,6 +30,7 @@
 import { computed } from 'vue'
 import type { MikanComponentValues } from '@mikanxr/client'
 import PropertyField from './PropertyField.vue'
+import { useDeveloperFields } from '../../composables/useDeveloperFields.js'
 
 interface Props {
   componentId: number
@@ -53,6 +54,8 @@ const emit = defineEmits<{
   (e: 'update', fieldName: string, fieldValue: any): void
 }>()
 
+const { filterComponentProperties, isDeveloperMode } = useDeveloperFields()
+
 function handleClick() {
   if (props.selectable && !props.editable) {
     emit('select', props.componentId)
@@ -65,16 +68,23 @@ function handlePropertyUpdate(fieldName: string, fieldValue: any) {
 
 // Filter out internal properties and format for display
 const displayProperties = computed(() => {
+  // Access isDeveloperMode to create reactive dependency
+  const devMode = isDeveloperMode.value
+
   const filtered: Record<string, any> = {}
   const excludeKeys = ['component_name', 'component_id']
 
+  // First filter out internal/excluded properties
   for (const [key, value] of Object.entries(props.component)) {
     if (!excludeKeys.includes(key) && !key.startsWith('_')) {
       filtered[key] = value
     }
   }
 
-  return filtered
+  // Then filter based on developer mode settings
+  const componentClass = (props.component as any).component_class || ''
+  //console.log(`[ComponentCard] Component class: "${componentClass}", dev mode: ${devMode}`)
+  return filterComponentProperties(componentClass, filtered)
 })
 
 // Format property names from snake_case to Title Case

@@ -10,6 +10,24 @@
       </div>
 
       <div class="settings-section">
+        <h3>Developer Settings</h3>
+        <div class="developer-settings">
+          <div class="setting-row">
+            <label class="setting-label" for="dev-mode-toggle">Developer Mode</label>
+            <div class="setting-control">
+              <input
+                id="dev-mode-toggle"
+                type="checkbox"
+                v-model="settingsStore.developerMode"
+                class="toggle-checkbox"
+              />
+              <span class="setting-description">Show advanced properties and debug information</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
         <h3>Connection Status</h3>
         <div class="status-grid">
           <div class="status-item">
@@ -68,9 +86,11 @@
 import { computed } from 'vue'
 import { useComponentStore } from '../../../stores/componentStore.js'
 import { useMikanStore } from '../../../stores/mikanStore.js'
+import { useSettingsStore } from '../../../stores/settingsStore.js'
 
 const componentStore = useComponentStore()
 const mikanStore = useMikanStore()
+const settingsStore = useSettingsStore()
 
 // Connection status
 const connectionStatusText = computed(() => {
@@ -231,5 +251,42 @@ const trackingMountCount = computed(() =>
 
 .status-error {
   color: #d9534f;
+}
+
+.developer-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.setting-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.setting-label {
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.setting-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toggle-checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #5cb85c;
+}
+
+.setting-description {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  font-style: italic;
 }
 </style>
