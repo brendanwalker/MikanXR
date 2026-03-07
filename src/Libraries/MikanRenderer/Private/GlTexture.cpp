@@ -15,6 +15,7 @@ public:
 		, m_height(0)
 		, m_textureMapData(nullptr)
 		, m_pixelType(GL_UNSIGNED_BYTE)
+		, m_wrapMode(TextureWrapMode::ClampToEdge)
 	{}
 
 	GlTexture(
@@ -92,7 +93,14 @@ public:
 	virtual IMkTexture* setPixelBufferObjectMode(PixelBufferObjectMode mode) override
 	{
 		m_pboMode = mode;
-		
+
+		return this;
+	}
+
+	virtual IMkTexture* setTextureWrapMode(TextureWrapMode mode) override
+	{
+		m_wrapMode = mode;
+
 		return this;
 	}
 
@@ -190,16 +198,31 @@ public:
 				m_pixelType,
 				m_textureMapData);
 
+			bool bMipmapGenerated = false;
 			if (m_bGenerateMipMap &&
 				m_textureMapData != nullptr &&
 				m_textureFormat != GL_R8 &&
 				m_bufferFormat != GL_DEPTH_COMPONENT)
 			{
 				glGenerateMipmap(GL_TEXTURE_2D);
+				bMipmapGenerated = true;
 			}
 
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			GLenum glWrapMode = GL_CLAMP_TO_EDGE;
+			switch (m_wrapMode)
+			{
+				case TextureWrapMode::ClampToEdge:
+					glWrapMode = GL_CLAMP_TO_EDGE;
+					break;
+				case TextureWrapMode::Repeat:
+					glWrapMode = GL_REPEAT;
+					break;
+				case TextureWrapMode::MirroredRepeat:
+					glWrapMode = GL_MIRRORED_REPEAT;
+					break;
+			}
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, glWrapMode);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, glWrapMode);
 
 			if (m_textureFormat == GL_R16UI ||
 				m_textureFormat == GL_R32F || m_textureFormat == GL_RG32F ||
@@ -213,7 +236,15 @@ public:
 			else
 			{
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				// Use trilinear filtering if mipmaps were generated
+				if (bMipmapGenerated)
+				{
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+				}
+				else
+				{
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+				}
 			}
 
 			glBindTexture(GL_TEXTURE_2D, 0);
@@ -662,6 +693,7 @@ protected:
 	PixelBufferObjectMode m_pboMode = PixelBufferObjectMode::NoPBO;
 	size_t m_PBOByteSize = 0;
 	bool m_bGenerateMipMap = true;
+	TextureWrapMode m_wrapMode = TextureWrapMode::ClampToEdge;
 	const uint8_t* m_textureMapData;
 	std::filesystem::path m_imagePath;
 };
@@ -804,6 +836,13 @@ public:
 	}
 
 	virtual IMkTexture* setPixelBufferObjectMode(PixelBufferObjectMode mode) override
+	{
+		// Do nothing since this class is for external textures that are created outside of this class
+
+		return this;
+	}
+
+	virtual IMkTexture* setTextureWrapMode(TextureWrapMode mode) override
 	{
 		// Do nothing since this class is for external textures that are created outside of this class
 

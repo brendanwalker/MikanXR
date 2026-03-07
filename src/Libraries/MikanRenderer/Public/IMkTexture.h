@@ -26,6 +26,13 @@ public:
 		DoublePBORead,
 	};
 
+	enum class TextureWrapMode
+	{
+		ClampToEdge,
+		Repeat,
+		MirroredRepeat,
+	};
+
 	virtual ~IMkTexture() {}
 
 	virtual IMkTexture* setName(const std::string& name) = 0;
@@ -36,6 +43,7 @@ public:
 	virtual IMkTexture* setPixelType(uint32_t pixelType) = 0;
 	virtual IMkTexture* setGenerateMipMap(bool bFlag) = 0;
 	virtual IMkTexture* setPixelBufferObjectMode(PixelBufferObjectMode mode) = 0;
+	virtual IMkTexture* setTextureWrapMode(TextureWrapMode mode) = 0;
 
 	virtual void setImagePath(const std::filesystem::path& path) = 0;
 	virtual const std::filesystem::path getImagePath() const = 0;
