@@ -23,6 +23,10 @@ protected:
 	void onTutorial();
 	void onExit();
 
+	// -- AppStage --
+	virtual void update(float deltaSeconds);
+	virtual void render(IMkViewportPtr targetViewport);
+
 	// -- IRemoteControllableAppStage Interface -- //
 	virtual bool handleRemoteControlCommand(
 		const std::string& command,
@@ -37,4 +41,7 @@ protected:
 private:
 	AppSettingsConfigPtr m_appSettingsConfig;
 	ProjectManagerPtr m_projectManager;
+	IMkTexturePtr m_backgroundTexture;
+	IMkTriangulatedMeshPtr m_fullscreenRGBQuad;
+	float m_shaderTime = 0.f;
 };
