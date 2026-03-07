@@ -79,7 +79,7 @@ void MikanUIApp::OnContextInitialized()
 
 #if defined(OS_WIN)
     // Create a window with title bar, minimize, and close buttons
-    CefRect rect = {0, 0, 350, 720};  // Initial window size
+    CefRect rect = {0, 0, 450, 720};  // Initial window size
 
     HINSTANCE hInstance = GetModuleHandle(NULL);
 
