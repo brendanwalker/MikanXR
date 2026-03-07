@@ -70,9 +70,11 @@ function handleReturn() {
 .project-stage {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   background-color: #1e1e1e;
   color: #e0e0e0;
+  overflow: hidden;
 }
 
 .project-nav {
@@ -81,7 +83,7 @@ function handleReturn() {
   background-color: #2d2d2d;
   border-bottom: 2px solid #404040;
   padding: 0;
-  overflow-x: auto;
+  flex-shrink: 0;
 }
 
 .nav-tab {
@@ -146,8 +148,7 @@ function handleReturn() {
 /* Responsive layout for smaller screens */
 @media (max-width: 768px) {
   .project-nav {
-    overflow-x: auto;
-    scrollbar-width: thin;
+    padding: 12px;
   }
 
   .nav-tab {

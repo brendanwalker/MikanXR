@@ -364,7 +364,7 @@ function handleRemoveTextureSource() {
   background-color: #2d2d2d;
   border: 1px solid #404040;
   border-radius: 4px;
-  padding: 20px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 16px;

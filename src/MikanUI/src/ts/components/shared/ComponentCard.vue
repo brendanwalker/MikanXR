@@ -119,7 +119,7 @@ function formatPropertyValue(value: any): string {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  padding: 16px;
+  padding: 10px;
   margin-bottom: 12px;
   transition: all 0.2s ease;
 }
@@ -178,31 +178,27 @@ function formatPropertyValue(value: any): string {
 
 .property-row {
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  padding: 4px 0;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 0;
   font-size: 14px;
 }
 
 .property-label {
   color: rgba(255, 255, 255, 0.7);
   font-weight: 500;
-  margin-right: 12px;
-  min-width: 120px;
+  text-align: left;
 }
 
 .property-value {
   color: #fff;
   font-family: monospace;
-  text-align: right;
-  flex: 1;
+  text-align: left;
 }
 
 .property-editor {
-  flex: 1;
   display: flex;
-  justify-content: flex-end;
+  width: 100%;
   min-width: 0;
-  max-width: 100%;
 }
 </style>

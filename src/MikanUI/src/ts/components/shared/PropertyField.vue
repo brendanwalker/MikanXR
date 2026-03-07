@@ -276,8 +276,8 @@ function handleQuaternionChange(component: 'w' | 'x' | 'y' | 'z', value: number)
 .property-vector,
 .property-quaternion {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  flex-direction: row;
+  gap: 8px;
   flex: 1;
   max-width: 100%;
 }
@@ -287,7 +287,7 @@ function handleQuaternionChange(component: 'w' | 'x' | 'y' | 'z', value: number)
   display: flex;
   align-items: center;
   gap: 4px;
-  width: 100%;
+  flex: 1;
   min-width: 0;
 }
 

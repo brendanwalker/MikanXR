@@ -157,7 +157,7 @@ const filteredCompositors = computed(() => {
 
   return compositorComponents.value.filter(compositor => {
     const compositorComp = compositor as any
-    return compositorComp.owner_stage_id === selectedStageId.value
+    return compositorComp.stage_id === selectedStageId.value
   })
 })
 
@@ -254,7 +254,7 @@ watch(selectedStageId, (newStageId, oldStageId) => {
 
     if (selectedCompositorId.value !== -1) {
       const compositor = componentStore.getComponent(selectedCompositorId.value) as any
-      if (!compositor || compositor.owner_stage_id !== newStageId) {
+      if (!compositor || compositor.stage_id !== newStageId) {
         console.log('[ProjectStages] Clearing compositor - does not belong to new stage')
         selectedCompositorId.value = -1
       }
@@ -370,7 +370,7 @@ onMounted(() => {
   background-color: #2d2d2d;
   border: 1px solid #404040;
   border-radius: 4px;
-  padding: 20px;
+  padding: 12px;
 }
 
 .selection-row {
@@ -420,7 +420,7 @@ onMounted(() => {
   background-color: #2d2d2d;
   border: 1px solid #404040;
   border-radius: 4px;
-  padding: 20px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 16px;

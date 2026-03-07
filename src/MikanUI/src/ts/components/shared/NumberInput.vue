@@ -139,11 +139,12 @@ watch(() => props.modelValue, () => {
   flex: 1;
   background: transparent;
   border: none;
-  padding: 8px 12px;
+  padding: 6px 8px;
   color: white;
-  font-size: 14px;
+  font-size: 13px;
   font-family: monospace;
   min-width: 0;
+  text-align: right;
 }
 
 .number-field:focus {
@@ -163,11 +164,11 @@ watch(() => props.modelValue, () => {
   border: none;
   color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
-  padding: 0 8px;
+  padding: 0 4px;
   font-size: 8px;
   line-height: 1;
   transition: all 0.2s;
-  min-width: 20px;
+  min-width: 10px;
 }
 
 .step-btn:hover {

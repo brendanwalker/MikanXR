@@ -464,7 +464,7 @@ onMounted(() => {
   background-color: #2d2d2d;
   border: 1px solid #404040;
   border-radius: 4px;
-  padding: 20px;
+  padding: 12px;
 }
 
 .selection-row {
@@ -511,7 +511,7 @@ onMounted(() => {
   background-color: #2d2d2d;
   border: 1px solid #404040;
   border-radius: 4px;
-  padding: 20px;
+  padding: 12px;
 }
 
 .property-grid {
