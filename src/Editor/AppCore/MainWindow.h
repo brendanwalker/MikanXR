@@ -121,8 +121,8 @@ private:
 
 	struct PendingAppStageOperation
 	{
-		AppStage* parentAppStage;
-		AppStage* appStage;
+		AppStagePtr parentAppStage;
+		AppStagePtr appStage;
 		AppStageOperation op;
 	};
 	std::vector<PendingAppStageOperation> m_pendingAppStageOps;

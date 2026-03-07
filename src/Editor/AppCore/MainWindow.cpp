@@ -53,8 +53,8 @@
 #include <easy/profiler.h>
 
 //-- constants -----
-static const int k_window_pixel_width = 1280 + 350;
-static const int k_window_pixel_height = 720 + 45;
+static const int k_window_pixel_width = 1280;
+static const int k_window_pixel_height = 720;
 
 static const glm::vec4 k_clear_color = glm::vec4(0.45f, 0.45f, 0.5f, 1.f);
 
@@ -479,7 +479,7 @@ AppStage* MainWindow::pushAppStage(const std::string& appStageName)
 			: AppStagePtr();
 
 		m_appStageStack.push_back(newAppStage);
-		m_pendingAppStageOps.push_back({ parentAppStage.get(), newAppStage.get(), AppStageOperation::enter});
+		m_pendingAppStageOps.push_back({ parentAppStage, newAppStage, AppStageOperation::enter});
 
 		return newAppStage.get();
 	}
@@ -490,17 +490,20 @@ AppStage* MainWindow::pushAppStage(const std::string& appStageName)
 void MainWindow::popAppState()
 {
 	assert(bAppStackOperationAllowed);
-	AppStage* appStage = getCurrentAppStage();
-	if (appStage != nullptr)
+	AppStagePtr appStage = 
+		m_appStageStack.size() > 0
+		? m_appStageStack[m_appStageStack.size() - 1]
+		: AppStagePtr();
+	if (appStage)
 	{
 		m_appStageStack.pop_back();
 
 		AppStagePtr parentAppStage =
 			m_appStageStack.size() > 0
 			? m_appStageStack[m_appStageStack.size() - 1]
-			: nullptr;
+			: AppStagePtr();
 
-		m_pendingAppStageOps.push_back({ parentAppStage.get(), appStage, AppStageOperation::exit});
+		m_pendingAppStageOps.push_back({ parentAppStage, appStage, AppStageOperation::exit});
 	}
 }
 
@@ -520,7 +523,7 @@ void MainWindow::processPendingAppStageOps()
 					EASY_BLOCK("appStage Enter");
 
 					// Pause the parent app stage
-					if (pendingAppStageOp.parentAppStage != nullptr)
+					if (pendingAppStageOp.parentAppStage)
 						pendingAppStageOp.parentAppStage->pause();
 
 					// Create a new input event set for the app state
@@ -531,7 +534,7 @@ void MainWindow::processPendingAppStageOps()
 
 					// Notify any object systems that care about app stage transitions 
 					if (OnAppStageEntered)
-						OnAppStageEntered(pendingAppStageOp.parentAppStage, pendingAppStageOp.appStage);
+						OnAppStageEntered(pendingAppStageOp.parentAppStage.get(), pendingAppStageOp.appStage.get());
 				} break;
 			case AppStageOperation::exit:
 				{
@@ -539,7 +542,7 @@ void MainWindow::processPendingAppStageOps()
 
 					// Notify any object systems that care about app stage transitions 
 					if (OnAppStageExited)
-						OnAppStageExited(pendingAppStageOp.appStage, pendingAppStageOp.parentAppStage);
+						OnAppStageExited(pendingAppStageOp.appStage.get(), pendingAppStageOp.parentAppStage.get());
 
 					// Exit the app stage we are leaving
 					pendingAppStageOp.appStage->exit();
@@ -552,7 +555,7 @@ void MainWindow::processPendingAppStageOps()
 						pendingAppStageOp.parentAppStage->resume();
 
 					// Free the app state
-					delete pendingAppStageOp.appStage;
+					pendingAppStageOp.appStage= nullptr;
 				} break;
 		}
 	}
