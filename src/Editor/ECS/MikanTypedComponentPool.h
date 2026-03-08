@@ -1,6 +1,6 @@
 #pragma once
 
-#include "MikanTypedObjectPoolDefinition.h"
+#include "MikanTypedComponentPoolDefinition.h"
 #include "MikanObjectSystem.h"
 #include "MikanObject.h"
 
@@ -12,7 +12,7 @@
 // Template class for managing a runtime pool of components
 // Used by MikanObjectSystem subclasses to manage component instances
 template<class t_component_class, class t_definition_class, typename t_id_type>
-class MikanTypedObjectPool
+class MikanTypedComponentPool
 {
 public:
 	using ComponentPtr = std::shared_ptr<t_component_class>;
@@ -21,10 +21,10 @@ public:
 	using ComponentMap = std::map<t_id_type, ComponentWeakPtr>;
 	using ComponentDefinitionPtr = std::shared_ptr<t_definition_class>;
 	using DefinitionConstPtr = std::shared_ptr<const t_definition_class>;
-	using PoolDefinitionPtr = std::shared_ptr<MikanTypedObjectPoolDefinition<t_definition_class, t_id_type>>;
+	using PoolDefinitionPtr = std::shared_ptr<MikanTypedComponentPoolDefinition<t_definition_class, t_id_type>>;
 	using FactoryFunction = std::function<ComponentPtr(ComponentDefinitionPtr)>;
 
-	MikanTypedObjectPool(
+	MikanTypedComponentPool(
 		MikanObjectSystem* ownerSystem,
 		FactoryFunction factory)
 		: m_ownerSystem(ownerSystem)

@@ -19,7 +19,7 @@ class USBVideoSourceSystemDefinition :
 public:
 	using Super = MikanTypedObjectSystemDefinition<USBVideoSourceComponent, USBVideoSourceDefinition, MikanVideoSourceID>;
 
-	USBVideoSourceSystemDefinition(const std::string& configName = "USBVideoSourceSystemDefinition");
+	USBVideoSourceSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 };
 
 class USBVideoSourceSystem :

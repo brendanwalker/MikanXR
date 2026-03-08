@@ -2,6 +2,7 @@
 
 #include "CommonConfig.h"
 #include "CommonConfigFwd.h"
+#include "IEntityIDAllocator.h"
 
 #include <algorithm>
 #include <memory>
@@ -14,7 +15,7 @@
 // Template class for managing a serializable pool of component definitions
 // Used by MikanObjectSystemDefinition subclasses to manage component configs
 template<class t_component_definition, typename t_id_type>
-class MikanTypedObjectPoolDefinition : public CommonConfig
+class MikanTypedComponentPoolDefinition : public CommonConfig
 {
 public:
 	using ComponentDefinitionPtr = std::shared_ptr<t_component_definition>;
@@ -22,17 +23,15 @@ public:
 	using DefinitionList = std::vector<ComponentDefinitionPtr>;
 	using DefinitionListConstIter = typename DefinitionList::const_iterator;
 
-	MikanTypedObjectPoolDefinition(int32_t initialNextId = 0)
+	MikanTypedComponentPoolDefinition(IEntityIDAllocatorPtr idAllocator)
 		: CommonConfig("ComponentPool")
-		, m_nextId(initialNextId)
+		, m_idAllocator(idAllocator)
 	{}
 
 	// Serialization
 	virtual configuru::Config writeToJSON() override
 	{
 		configuru::Config pt = CommonConfig::writeToJSON();
-
-		pt["next_id"] = m_nextId;
 
 		std::vector<configuru::Config> definitionConfigs;
 		for (auto definitionPtr : m_definitions)
@@ -48,18 +47,21 @@ public:
 	{
 		CommonConfig::readFromJSON(pt);
 
-		m_nextId = pt.get_or<int32_t>("next_id", m_nextId);
-
 		// Read in the definitions
 		m_definitions.clear();
 		if (pt.has_key("component_definitions"))
 		{
 			for (const configuru::Config& definitionConfig : pt["component_definitions"].as_array())
 			{
+				// Read on the the component definition
 				auto definitionPtr = std::make_shared<t_component_definition>();
 				definitionPtr->readFromJSON(definitionConfig);
 				m_definitions.push_back(definitionPtr);
 				addChildConfig(definitionPtr);
+
+				// Make sure the next ID is greater than the loaded definition's ID 
+				// to avoid collisions with future allocations
+				m_idAllocator.lock()->ensureNextIdGreaterThan(definitionPtr->getComponentId());
 			}
 		}
 	}
@@ -113,8 +115,7 @@ public:
 	// Config mutations
 	ComponentDefinitionPtr allocateDefinition()
 	{
-		t_id_type nextId = m_nextId;
-		m_nextId++;
+		t_id_type nextId = m_idAllocator.lock()->allocateNextId();
 
 		return std::make_shared<t_component_definition>(nextId);
 	}
@@ -129,12 +130,6 @@ public:
 		{
 			m_definitions.push_back(definition);
 			addChildConfig(definition);
-
-			// Update next ID if the added definition's ID is >= current next ID
-			if (id >= m_nextId)
-			{
-				m_nextId = id + 1;
-			}
 
 			return true;
 		}
@@ -168,6 +163,6 @@ protected:
 	}
 
 private:
-	t_id_type m_nextId;
+	IEntityIDAllocatorWeakPtr m_idAllocator;
 	DefinitionList m_definitions;
 };

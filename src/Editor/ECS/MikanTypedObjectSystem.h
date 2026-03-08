@@ -1,7 +1,7 @@
 #pragma once
 
 #include "MikanObjectSystem.h"
-#include "MikanTypedObjectPool.h"
+#include "MikanTypedComponentPool.h"
 #include "MikanTypedObjectSystemDefinition.h"
 #include "MikanPropertyDatabase.h"
 #include "TransformComponent.h"
@@ -24,13 +24,13 @@ public:
 	using ComponentDefinitionPtr = std::shared_ptr<TDefinition>;
 	using SystemDefinitionPtr = std::shared_ptr<TSystemDefinition>;
 	using SystemDefinitionConstPtr = std::shared_ptr<const TSystemDefinition>;
-	using Pool = MikanTypedObjectPool<TComponent, TDefinition, TID>;
+	using Pool = MikanTypedComponentPool<TComponent, TDefinition, TID>;
 	using DefinitionInitFunction = std::function<void(ComponentDefinitionPtr)>;
 
 	MikanTypedObjectSystem(
 		ProjectManagerPtr ownerObjectSystem)
 		: MikanObjectSystem(ownerObjectSystem)
-		, m_pool(
+		, m_componentPool(
 			this,
 			[this](auto def) { return this->objectFactory(def); })
 	{
@@ -43,7 +43,7 @@ public:
 
 		// Create pool objects from definitions
 		SystemDefinitionConstPtr systemDefinition = getTypedDefinitionConst();
-		m_pool.initializeFromDefinitions(systemDefinition->getAllDefinitions());
+		m_componentPool.initializeFromDefinitions(systemDefinition->getAllDefinitions());
 
 		return true;
 	}
@@ -79,14 +79,14 @@ public:
 	// Component Pool Accessors
 	virtual MikanComponentPtr getComponentById(int componentId) const override
 	{
-		return std::static_pointer_cast<MikanComponent>(m_pool.getById(static_cast<TID>(componentId)));
+		return std::static_pointer_cast<MikanComponent>(m_componentPool.getById(static_cast<TID>(componentId)));
 	}
 
 	virtual bool getComponentIdList(const std::string& componentClassName, std::vector<int>& outComponentIdList) const
 	{
 		if (componentClassName == TComponent::k_componentClassName)
 		{
-			const typename Pool::ComponentMap& componentMap = m_pool.getAll();
+			const typename Pool::ComponentMap& componentMap = m_componentPool.getAll();
 			for (const auto& kvpair : componentMap)
 			{
 				outComponentIdList.push_back(static_cast<int>(kvpair.first));
@@ -98,23 +98,23 @@ public:
 
 	ComponentPtr getTypedComponentById(TID id) const
 	{
-		return m_pool.getById(id);
+		return m_componentPool.getById(id);
 	}
 
 	ComponentPtr getTypedComponentByName(const std::string& name) const
 	{
-		return m_pool.getByName(name);
+		return m_componentPool.getByName(name);
 	}
 
 	using PredFunction = std::function<bool(ComponentConstPtr)>;
 	ComponentPtr getTypedComponentByPredicate(PredFunction predicate) const
 	{
-		return m_pool.findByPredicate(predicate);
+		return m_componentPool.findByPredicate(predicate);
 	}
 
 	const typename Pool::ComponentMap& getComponentMap() const
 	{
-		return m_pool.getAll();
+		return m_componentPool.getAll();
 	}
 
 	using VisitFunction = std::function<void(ComponentPtr)>;
@@ -149,7 +149,7 @@ public:
 		}
 
 		// Create the scene object using the pool (will add definition to pool after object is built)
-		return m_pool.create(componentDefinition);
+		return m_componentPool.create(componentDefinition);
 	}
 
 	bool removeObjectByPrimaryComponentId(TID componentId)
@@ -166,7 +166,7 @@ public:
 				// 1. Remove the object from the system first (fires object/component disposed events)
 				MikanObjectSystem::deleteObject(objectPtr) &&
 				// 2. Remove the component reference from the typed component pool
-				m_pool.dispose(componentId) &&
+				m_componentPool.dispose(componentId) &&
 				// 3. Remove the component definition from the system definition 
 				// (fires system property change event, which is now safe to do now that the object is cleaned up)
 				systemDefinition->removeDefinition(componentId);
@@ -201,7 +201,7 @@ protected:
 	ComponentPtr createObjectFromDefinition(ComponentDefinitionPtr componentDefinition)
 	{
 		// Create the scene object using the pool (will add definition to pool after object is built)
-		return m_pool.create(componentDefinition);
+		return m_componentPool.create(componentDefinition);
 	}
 
 	virtual void additionalComponentFactory(
@@ -243,5 +243,5 @@ private:
 	}
 
 private:
-	Pool m_pool;
+	Pool m_componentPool;
 };

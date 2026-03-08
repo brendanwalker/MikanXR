@@ -20,7 +20,7 @@ class MarkerTrackingVolumeSystemDefinition :
 public:
 	using Super = MikanTypedObjectSystemDefinition<MarkerTrackingVolumeComponent, MarkerTrackingVolumeDefinition, MikanTrackingVolumeID>;
 
-	MarkerTrackingVolumeSystemDefinition(const std::string& configName = "MarkerTrackingVolumeSystemDefinition");
+	MarkerTrackingVolumeSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

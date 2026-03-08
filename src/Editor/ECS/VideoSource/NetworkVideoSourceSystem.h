@@ -16,7 +16,7 @@ class NetworkVideoSourceSystemDefinition :
 public:
 	using Super = MikanTypedObjectSystemDefinition<NetworkVideoSourceComponent, NetworkVideoSourceDefinition, MikanVideoSourceID>;
 
-	NetworkVideoSourceSystemDefinition(const std::string& configName = "NetworkVideoSourceSystemDefinition");
+	NetworkVideoSourceSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

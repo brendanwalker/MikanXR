@@ -8,8 +8,9 @@
 // -- SceneObjectSystemDefinition -----
 const std::string SceneObjectSystemDefinition::k_currentSceneIdPropertyId = "current_scene_id";
 
-SceneObjectSystemDefinition::SceneObjectSystemDefinition(const std::string& configName)
-	: Super::MikanTypedObjectSystemDefinition(configName)
+SceneObjectSystemDefinition::SceneObjectSystemDefinition(
+	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
 

@@ -20,7 +20,7 @@ class CompositorObjectSystemDefinition :
 public:
 	using Super = MikanTypedObjectSystemDefinition<CompositorComponent, CompositorDefinition, MikanCompositorID>;
 
-	CompositorObjectSystemDefinition(const std::string& configName);
+	CompositorObjectSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 };
 
 class CompositorObjectSystem :

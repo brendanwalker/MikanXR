@@ -1,8 +1,9 @@
 #include "TrackingMountObjectSystem.h"
 
 // -- TrackingMountObjectSystemDefinition -----
-TrackingMountObjectSystemDefinition::TrackingMountObjectSystemDefinition(const std::string& configName)
-	: Super::MikanTypedObjectSystemDefinition(configName)
+TrackingMountObjectSystemDefinition::TrackingMountObjectSystemDefinition(
+	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
 

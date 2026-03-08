@@ -8,8 +8,9 @@
 #include "StringUtils.h"
 
 // -- MarkerTrackingVolumeSystemDefinition -----
-MarkerTrackingVolumeSystemDefinition::MarkerTrackingVolumeSystemDefinition(const std::string& configName)
-	: Super::MikanTypedObjectSystemDefinition(configName)
+MarkerTrackingVolumeSystemDefinition::MarkerTrackingVolumeSystemDefinition(
+	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
 

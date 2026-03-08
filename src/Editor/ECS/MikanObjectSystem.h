@@ -17,8 +17,11 @@ using MikanPropertyDatabasePtr = std::shared_ptr<class MikanPropertyDatabase>;
 class MikanObjectSystemDefinition : public CommonConfig
 {
 public:
-	MikanObjectSystemDefinition(const std::string& configName)
+	MikanObjectSystemDefinition(
+		const std::string& configName,
+		IEntityIDAllocatorPtr idAllocator)
 		: CommonConfig(configName)
+		, m_idAllocator(idAllocator)
 	{
 	}
 
@@ -27,6 +30,7 @@ public:
 
 protected:
 	MikanObjectSystemWeakPtr m_ownerSystem;
+	IEntityIDAllocatorWeakPtr m_idAllocator;
 };
 
 class MikanObjectSystem : 

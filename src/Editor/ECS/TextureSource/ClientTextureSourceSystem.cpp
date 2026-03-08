@@ -9,8 +9,9 @@
 #include <assert.h>
 
 // -- ClientTextureSourceSystemDefinition -----
-ClientTextureSourceSystemDefinition::ClientTextureSourceSystemDefinition(const std::string& configName)
-	: Super::MikanTypedObjectSystemDefinition(configName)
+ClientTextureSourceSystemDefinition::ClientTextureSourceSystemDefinition(
+    const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
 

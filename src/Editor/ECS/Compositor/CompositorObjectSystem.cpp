@@ -6,8 +6,9 @@
 #include "ProjectConfig.h"
 
 // -- CompositorObjectSystemDefinition -----
-CompositorObjectSystemDefinition::CompositorObjectSystemDefinition(const std::string& configName)
-	: Super::MikanTypedObjectSystemDefinition(configName)
+CompositorObjectSystemDefinition::CompositorObjectSystemDefinition(
+	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
 

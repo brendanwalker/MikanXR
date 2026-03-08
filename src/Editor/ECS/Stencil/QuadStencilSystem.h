@@ -18,7 +18,7 @@ class QuadStencilSystemDefinition :
 public:
 	using Super = MikanTypedObjectSystemDefinition<QuadStencilComponent, QuadStencilDefinition, MikanStencilID>;
 
-	QuadStencilSystemDefinition(const std::string& configName = "QuadStencilSystemDefinition");
+	QuadStencilSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

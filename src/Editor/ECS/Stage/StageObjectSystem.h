@@ -22,7 +22,7 @@ class StageObjectSystemDefinition :
 public:
 	using Super = MikanTypedObjectSystemDefinition<StageComponent, StageComponentDefinition, MikanStageID>;
 
-	StageObjectSystemDefinition(const std::string& configName);
+	StageObjectSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 };
 
 class StageObjectSystem :

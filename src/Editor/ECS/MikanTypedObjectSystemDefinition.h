@@ -1,7 +1,7 @@
 #pragma once
 
 #include "MikanObjectSystem.h"
-#include "MikanTypedObjectPoolDefinition.h"
+#include "MikanTypedComponentPoolDefinition.h"
 
 #include <memory>
 #include <string>
@@ -17,7 +17,8 @@ template<class TComponent, typename TDefinition, typename TID>
 class MikanTypedObjectSystemDefinition : public MikanObjectSystemDefinition
 {
 public:
-	using PoolDefinition = MikanTypedObjectPoolDefinition<TDefinition, TID>;
+	using IDAllocatorPtr = std::shared_ptr<class IEntityIDAllocator>;
+	using PoolDefinition = MikanTypedComponentPoolDefinition<TDefinition, TID>;
 	using PoolDefinitionPtr = std::shared_ptr<PoolDefinition>;
 	using ComponentDefinitionPtr = std::shared_ptr<TDefinition>;
 	using DefinitionConstPtr = std::shared_ptr<const TDefinition>;
@@ -25,10 +26,12 @@ public:
 	static const std::string k_componentPoolPropertyId;
 	static const std::string k_componentIdListPropertyId;
 
-	MikanTypedObjectSystemDefinition(const std::string& configName)
-		: MikanObjectSystemDefinition(configName)
+	MikanTypedObjectSystemDefinition(
+		const std::string& configName, 
+		IDAllocatorPtr idAllocator)
+		: MikanObjectSystemDefinition(configName, idAllocator)
 	{
-		m_poolDefinition = std::make_shared<PoolDefinition>();
+		m_poolDefinition = std::make_shared<PoolDefinition>(idAllocator);
 		addChildConfig(m_poolDefinition);
 	}
 

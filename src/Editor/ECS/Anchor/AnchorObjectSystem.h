@@ -23,7 +23,7 @@ class AnchorObjectSystemDefinition :
 public:
 	using Super = MikanTypedObjectSystemDefinition<AnchorComponent, AnchorDefinition, MikanSpatialAnchorID>;
 
-	AnchorObjectSystemDefinition(const std::string& configName);
+	AnchorObjectSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

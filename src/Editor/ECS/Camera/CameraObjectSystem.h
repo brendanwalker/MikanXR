@@ -13,7 +13,7 @@ class CameraObjectSystemDefinition :
 public:
 	using Super = MikanTypedObjectSystemDefinition<CameraComponent, CameraDefinition, MikanCameraID>;
 
-	CameraObjectSystemDefinition(const std::string& configName);
+	CameraObjectSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 };
 
 class CameraObjectSystem :

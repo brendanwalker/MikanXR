@@ -19,8 +19,8 @@
 class EditorObjectSystemDefinition : public MikanObjectSystemDefinition
 {
 public:
-	EditorObjectSystemDefinition(const std::string& configName)
-		: MikanObjectSystemDefinition(configName)
+	EditorObjectSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+		: MikanObjectSystemDefinition(configName, idAllocator)
 	{}
 
 	virtual configuru::Config writeToJSON();

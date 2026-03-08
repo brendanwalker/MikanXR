@@ -15,8 +15,9 @@
 #define NETWORK_VIDEO_DEVICE_MODULE_NAME    GSTREAMER_VIDEO_DEVICE_MODULE_NAME
 
 // -- NetworkVideoSourceSystemDefinition -----
-NetworkVideoSourceSystemDefinition::NetworkVideoSourceSystemDefinition(const std::string& configName)
-	: Super::MikanTypedObjectSystemDefinition(configName)
+NetworkVideoSourceSystemDefinition::NetworkVideoSourceSystemDefinition(
+	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
 

@@ -13,8 +13,9 @@
 // -- QuadStencilSystemDefinition -----
 const std::string QuadStencilSystemDefinition::k_renderStencilsPropertyId = "render_stencils";
 
-QuadStencilSystemDefinition::QuadStencilSystemDefinition(const std::string& configName)
-	: Super::MikanTypedObjectSystemDefinition(configName)
+QuadStencilSystemDefinition::QuadStencilSystemDefinition(
+	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
 

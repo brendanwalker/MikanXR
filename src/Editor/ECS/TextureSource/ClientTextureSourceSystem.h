@@ -15,7 +15,7 @@ class ClientTextureSourceSystemDefinition :
 public:
 	using Super = MikanTypedObjectSystemDefinition<ClientTextureSourceComponent, ClientTextureSourceDefinition, MikanTextureSourceID>;
 
-	ClientTextureSourceSystemDefinition(const std::string& configName = "ClientTextureSourceSystemDefinition");
+	ClientTextureSourceSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 };
 
 class ClientTextureSourceSystem :

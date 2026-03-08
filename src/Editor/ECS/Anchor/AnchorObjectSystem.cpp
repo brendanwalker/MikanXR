@@ -15,8 +15,10 @@
 // -- AnchorObjectSystemDefinition -----
 const std::string AnchorObjectSystemDefinition::k_renderAnchorsPropertyId = "render_anchors";
 
-AnchorObjectSystemDefinition::AnchorObjectSystemDefinition(const std::string& configName)
-	: Super::MikanTypedObjectSystemDefinition(configName)
+AnchorObjectSystemDefinition::AnchorObjectSystemDefinition(
+	const std::string& configName,
+	IEntityIDAllocatorPtr idAllocator)
+	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
 

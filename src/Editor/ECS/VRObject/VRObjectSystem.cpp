@@ -19,8 +19,9 @@
 #include "VRDeviceComponent.h"
 
 // -- VRObjectSystemConfig -----
-VRObjectSystemDefinition::VRObjectSystemDefinition(const std::string& configName)
-	: Super::MikanTypedObjectSystemDefinition(configName)
+VRObjectSystemDefinition::VRObjectSystemDefinition(
+	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
 

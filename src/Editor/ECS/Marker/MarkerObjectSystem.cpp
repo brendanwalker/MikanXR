@@ -29,8 +29,9 @@ const std::string MarkerObjectSystemDefinition::k_charucoSquareLengthMMPropertyI
 const std::string MarkerObjectSystemDefinition::k_charucoMarkerLengthMMPropertyId = "charuco_marker_length_mm";
 const std::string MarkerObjectSystemDefinition::k_charucoDictionaryTypePropertyId = "charuco_dictionary_type";
 
-MarkerObjectSystemDefinition::MarkerObjectSystemDefinition(const std::string& configName)
-	: Super::MikanTypedObjectSystemDefinition(configName)
+MarkerObjectSystemDefinition::MarkerObjectSystemDefinition(
+	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
 

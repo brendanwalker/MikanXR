@@ -6,6 +6,8 @@
 #include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ProjectConfigConstants.h"
+#include "MonotonicIDAllocator.h"
+#include "PersistentIDAllocator.h"
 
 #include <filesystem>
 
@@ -23,17 +25,25 @@ public:
 	void setRenderOriginFlag(bool flag);
 
 	template<class t_system_config_type, class t_system_type>
-	std::shared_ptr<t_system_config_type> addTypedDefinition()
+	std::shared_ptr<t_system_config_type> addTypedDefinition(IEntityIDAllocatorPtr idAllocator)
 	{
 		std::shared_ptr<t_system_config_type> newConfig =
 			std::make_shared<t_system_config_type>(
-				t_system_type::k_objectSystemClassName);
-
+				t_system_type::k_objectSystemClassName, idAllocator);
 		addChildConfig(newConfig);
 		return newConfig;
 	}
 	MikanObjectSystemDefinitionPtr getDefinitionForSystem(MikanObjectSystemPtr systemPtr) const;
 
+	// Transient Component ID allocator for all runtime-only components in the project 
+	// (e.g., components on runtime-only object systems like VRObjectSystem)
+	MonotonicIDAllocatorPtr transientIDAllocator;
+
+	// Persistent Component ID allocator for all persistent components in the project
+	static const std::string k_componentIdAllocatorPropertyId;
+	PersistentIDAllocatorPtr persistentIDAllocator;
+
+	// Object system definitions
 	AnchorObjectSystemDefinitionPtr anchorConfig;
 	BoxStencilSystemDefinitionPtr boxStencilSystemDefinition;
 	CameraObjectSystemDefinitionPtr cameraConfig;
@@ -54,6 +64,10 @@ public:
 	VRTrackingVolumeSystemDefinitionPtr vrTrackingVolumeConfig;
 
 protected:
-	eTrackingRuntime m_trackingRuntime= eTrackingRuntime::SteamVR;
-	bool m_bRenderOrigin= true;
+	eTrackingRuntime m_trackingRuntime = eTrackingRuntime::SteamVR;
+	bool m_bRenderOrigin = true;
+
+	// Max transient component ID (used for runtime-only components that aren't saved to the project file)
+	const static int k_transientIdStart;
+	const static int k_transientIdMaxRange;
 };

@@ -25,7 +25,7 @@ class MarkerObjectSystemDefinition :
 public:
 	using Super = MikanTypedObjectSystemDefinition<MarkerComponent, MarkerDefinition, MikanMarkerID>;
 
-	MarkerObjectSystemDefinition(const std::string& configName);
+	MarkerObjectSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

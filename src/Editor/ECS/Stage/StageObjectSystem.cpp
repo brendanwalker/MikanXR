@@ -6,8 +6,9 @@
 #include "ProjectConfig.h"
 
 // -- StageObjectSystemDefinition -----
-StageObjectSystemDefinition::StageObjectSystemDefinition(const std::string& configName)
-	: Super::MikanTypedObjectSystemDefinition(configName)
+StageObjectSystemDefinition::StageObjectSystemDefinition(
+	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
 

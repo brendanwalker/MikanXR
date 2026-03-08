@@ -16,7 +16,7 @@ class SpoutTextureSourceSystemDefinition :
 public:
 	using Super = MikanTypedObjectSystemDefinition<SpoutTextureSourceComponent, SpoutTextureSourceDefinition, MikanTextureSourceID>;
 
-	SpoutTextureSourceSystemDefinition(const std::string& configName = "SpoutTextureSourceSystemDefinition");
+	SpoutTextureSourceSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 };
 
 class SpoutTextureSourceSystem :

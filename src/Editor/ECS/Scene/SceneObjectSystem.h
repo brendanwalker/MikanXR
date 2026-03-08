@@ -28,7 +28,7 @@ class SceneObjectSystemDefinition :
 public:
 	using Super = MikanTypedObjectSystemDefinition<SceneComponent, SceneComponentDefinition, MikanSceneID>;
 
-	SceneObjectSystemDefinition(const std::string& configName);
+	SceneObjectSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

@@ -1,8 +1,9 @@
 #include "CameraObjectSystem.h"
 
 // -- CameraObjectSystemDefinition -----
-CameraObjectSystemDefinition::CameraObjectSystemDefinition(const std::string& configName)
-	: Super::MikanTypedObjectSystemDefinition(configName)
+CameraObjectSystemDefinition::CameraObjectSystemDefinition(
+	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
 

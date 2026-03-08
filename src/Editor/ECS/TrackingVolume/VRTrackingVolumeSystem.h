@@ -20,7 +20,7 @@ class VRTrackingVolumeSystemDefinition :
 public:
 	using Super = MikanTypedObjectSystemDefinition<VRTrackingVolumeComponent, VRTrackingVolumeDefinition, MikanTrackingVolumeID>;
 
-	VRTrackingVolumeSystemDefinition(const std::string& configName = "VRTrackingVolumeSystemDefinition");
+	VRTrackingVolumeSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

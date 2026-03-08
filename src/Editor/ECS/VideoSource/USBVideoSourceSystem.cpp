@@ -13,8 +13,9 @@
 #define USB_VIDEO_DEVICE_MODULE_NAME "MikanWMFVideo"
 
 // -- USBVideoSourceSystemDefinition -----
-USBVideoSourceSystemDefinition::USBVideoSourceSystemDefinition(const std::string& configName)
-	: Super::MikanTypedObjectSystemDefinition(configName)
+USBVideoSourceSystemDefinition::USBVideoSourceSystemDefinition(
+	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
 

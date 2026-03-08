@@ -13,8 +13,9 @@
 // -- BoxStencilSystemDefinition -----
 const std::string BoxStencilSystemDefinition::k_renderStencilsPropertyId = "render_stencils";
 
-BoxStencilSystemDefinition::BoxStencilSystemDefinition(const std::string& configName)
-	: Super::MikanTypedObjectSystemDefinition(configName)
+BoxStencilSystemDefinition::BoxStencilSystemDefinition(
+	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
 

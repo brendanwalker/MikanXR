@@ -9,7 +9,7 @@ class TrackingMountObjectSystemDefinition :
 public:
 	using Super = MikanTypedObjectSystemDefinition<TrackingMountComponent, TrackingMountDefinition, MikanTrackingMountID>;
 
-	TrackingMountObjectSystemDefinition(const std::string& configName = "TrackingMountObjectSystemDefinition");
+	TrackingMountObjectSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 };
 
 class TrackingMountObjectSystem :

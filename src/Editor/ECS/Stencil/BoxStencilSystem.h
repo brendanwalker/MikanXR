@@ -18,7 +18,7 @@ class BoxStencilSystemDefinition :
 public:
 	using Super = MikanTypedObjectSystemDefinition<BoxStencilComponent, BoxStencilDefinition, MikanStencilID>;
 
-	BoxStencilSystemDefinition(const std::string& configName = "BoxStencilSystemDefinition");
+	BoxStencilSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

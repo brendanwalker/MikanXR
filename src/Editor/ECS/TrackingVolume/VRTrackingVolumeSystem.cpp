@@ -9,8 +9,9 @@
 #include "VRObjectSystem.h"
 
 // -- VRTrackingVolumeSystemDefinition -----
-VRTrackingVolumeSystemDefinition::VRTrackingVolumeSystemDefinition(const std::string& configName)
-	: Super::MikanTypedObjectSystemDefinition(configName)
+VRTrackingVolumeSystemDefinition::VRTrackingVolumeSystemDefinition(
+	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
 

@@ -18,7 +18,7 @@ class ModelStencilSystemDefinition :
 public:
 	using Super = MikanTypedObjectSystemDefinition<ModelStencilComponent, ModelStencilDefinition, MikanStencilID>;
 
-	ModelStencilSystemDefinition(const std::string& configName = "ModelStencilSystemDefinition");
+	ModelStencilSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);

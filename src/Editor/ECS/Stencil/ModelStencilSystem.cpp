@@ -12,8 +12,9 @@
 // -- ModelStencilSystemDefinition -----
 const std::string ModelStencilSystemDefinition::k_renderStencilsPropertyId = "render_stencils";
 
-ModelStencilSystemDefinition::ModelStencilSystemDefinition(const std::string& configName)
-	: Super::MikanTypedObjectSystemDefinition(configName)
+ModelStencilSystemDefinition::ModelStencilSystemDefinition(
+	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
 

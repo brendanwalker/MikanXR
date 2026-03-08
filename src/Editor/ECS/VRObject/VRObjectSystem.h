@@ -27,7 +27,7 @@ class VRObjectSystemDefinition :
 public:
 	using Super = MikanTypedObjectSystemDefinition<VRDeviceComponent, VRDeviceDefinition, MikanVRDeviceID>;
 
-	VRObjectSystemDefinition(const std::string& configName = "VRObjectSystemDefinition");
+	VRObjectSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
 	// VRObjectSystem is runtime only and isn't saved to/loaded from the project file
 	virtual bool wantsConfigSerialization() const override { return false; }

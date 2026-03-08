@@ -25,39 +25,55 @@
 #include "VRTrackingVolumeSystem.h"
 
 // -- Profile Config
+const int ProjectConfig::k_transientIdStart = 0;
+const int ProjectConfig::k_transientIdMaxRange = 1000;
 const std::string ProjectConfig::k_renderOriginFlagPropertyId= "renderOrigin";
+const std::string ProjectConfig::k_componentIdAllocatorPropertyId = "persistentIDAllocator";
 
 ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	: CommonConfig(fnamebase)
 {
-	anchorConfig = addTypedDefinition<AnchorObjectSystemDefinition, AnchorObjectSystem>();
-	boxStencilSystemDefinition = addTypedDefinition<BoxStencilSystemDefinition, BoxStencilSystem>();
-	cameraConfig = addTypedDefinition<CameraObjectSystemDefinition, CameraObjectSystem>();
-	clientConfig = addTypedDefinition<ClientTextureSourceSystemDefinition, ClientTextureSourceSystem>();
-	compositorConfig = addTypedDefinition<CompositorObjectSystemDefinition, CompositorObjectSystem>();
-	editorConfig = addTypedDefinition<EditorObjectSystemDefinition, EditorObjectSystem>();
-	markerSystemDefinition = addTypedDefinition<MarkerObjectSystemDefinition, MarkerObjectSystem>();
-	markerTrackingVolumeConfig = addTypedDefinition<MarkerTrackingVolumeSystemDefinition, MarkerTrackingVolumeSystem>();
-	modelStencilSystemDefinition = addTypedDefinition<ModelStencilSystemDefinition, ModelStencilSystem>();
-	quadStencilSystemDefinition = addTypedDefinition<QuadStencilSystemDefinition, QuadStencilSystem>();
-	sceneConfig = addTypedDefinition<SceneObjectSystemDefinition, SceneObjectSystem>();
-	stageConfig = addTypedDefinition<StageObjectSystemDefinition, StageObjectSystem>();
-	spoutConfig = addTypedDefinition<SpoutTextureSourceSystemDefinition, SpoutTextureSourceSystem>();
-	trackingMountSystemConfig = addTypedDefinition<TrackingMountObjectSystemDefinition, TrackingMountObjectSystem>();
-	networkVideoSourceSystemConfig = addTypedDefinition<NetworkVideoSourceSystemDefinition, NetworkVideoSourceSystem>();
-	usbVideoSourceSystemConfig = addTypedDefinition<USBVideoSourceSystemDefinition, USBVideoSourceSystem>();
-	vrObjectConfig= addTypedDefinition<VRObjectSystemDefinition, VRObjectSystem>();
-	vrTrackingVolumeConfig = addTypedDefinition<VRTrackingVolumeSystemDefinition, VRTrackingVolumeSystem>();
+	// Initialize the transient ID allocator for runtime-only components
+	transientIDAllocator = std::make_shared<MonotonicIDAllocator>(k_transientIdStart, k_transientIdMaxRange);
+
+	// Create a shared component ID allocator that all object systems will use 
+	// This ensures unique component IDs across the entire project
+	persistentIDAllocator = std::make_shared<PersistentIDAllocator>(k_transientIdStart+k_transientIdMaxRange+1);
+
+	// Create object system definitions for object systems with persistent components, using the shared persistent ID allocator
+	anchorConfig = addTypedDefinition<AnchorObjectSystemDefinition, AnchorObjectSystem>(persistentIDAllocator);
+	boxStencilSystemDefinition = addTypedDefinition<BoxStencilSystemDefinition, BoxStencilSystem>(persistentIDAllocator);
+	cameraConfig = addTypedDefinition<CameraObjectSystemDefinition, CameraObjectSystem>(persistentIDAllocator);
+	clientConfig = addTypedDefinition<ClientTextureSourceSystemDefinition, ClientTextureSourceSystem>(persistentIDAllocator);
+	compositorConfig = addTypedDefinition<CompositorObjectSystemDefinition, CompositorObjectSystem>(persistentIDAllocator);
+	editorConfig = addTypedDefinition<EditorObjectSystemDefinition, EditorObjectSystem>(persistentIDAllocator);
+	markerSystemDefinition = addTypedDefinition<MarkerObjectSystemDefinition, MarkerObjectSystem>(persistentIDAllocator);
+	markerTrackingVolumeConfig = addTypedDefinition<MarkerTrackingVolumeSystemDefinition, MarkerTrackingVolumeSystem>(persistentIDAllocator);
+	modelStencilSystemDefinition = addTypedDefinition<ModelStencilSystemDefinition, ModelStencilSystem>(persistentIDAllocator);
+	quadStencilSystemDefinition = addTypedDefinition<QuadStencilSystemDefinition, QuadStencilSystem>(persistentIDAllocator);
+	sceneConfig = addTypedDefinition<SceneObjectSystemDefinition, SceneObjectSystem>(persistentIDAllocator);
+	stageConfig = addTypedDefinition<StageObjectSystemDefinition, StageObjectSystem>(persistentIDAllocator);
+	spoutConfig = addTypedDefinition<SpoutTextureSourceSystemDefinition, SpoutTextureSourceSystem>(persistentIDAllocator);
+	trackingMountSystemConfig = addTypedDefinition<TrackingMountObjectSystemDefinition, TrackingMountObjectSystem>(persistentIDAllocator);
+	networkVideoSourceSystemConfig = addTypedDefinition<NetworkVideoSourceSystemDefinition, NetworkVideoSourceSystem>(persistentIDAllocator);
+	usbVideoSourceSystemConfig = addTypedDefinition<USBVideoSourceSystemDefinition, USBVideoSourceSystem>(persistentIDAllocator);
+	vrTrackingVolumeConfig = addTypedDefinition<VRTrackingVolumeSystemDefinition, VRTrackingVolumeSystem>(persistentIDAllocator);
+
+	// Create object system definitions for the runtime only components, using the transient ID allocator
+	vrObjectConfig = addTypedDefinition<VRObjectSystemDefinition, VRObjectSystem>(transientIDAllocator);
 };
 
 configuru::Config ProjectConfig::writeToJSON()
 {
 	configuru::Config pt= CommonConfig::writeToJSON();
 
-	// Renderer Flags
+	// Write out global settings flags
 	pt[k_renderOriginFlagPropertyId]= m_bRenderOrigin;
 
-	// Write out all child configs
+	// Write out the shared component ID allocator
+	pt[k_componentIdAllocatorPropertyId] = persistentIDAllocator->writeToJSON();
+
+	// Write out all child object system definitions
 	for (const auto& childConfigPtr : m_childConfigs)
 	{
 		if (childConfigPtr->wantsConfigSerialization())
@@ -73,9 +89,16 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
+	// Read in global settings flags
 	m_bRenderOrigin = pt.get_or<bool>(k_renderOriginFlagPropertyId, m_bRenderOrigin);
 
-	// Read all child configs
+	// Read the shared component ID allocator config
+	if (pt.has_key(k_componentIdAllocatorPropertyId))
+	{
+		persistentIDAllocator->readFromJSON(pt[k_componentIdAllocatorPropertyId]);
+	}
+
+	// Read all child object system definitions
 	for (const auto& childConfigPtr : m_childConfigs)
 	{
 		if (pt.has_key(childConfigPtr->getConfigName()))
@@ -88,6 +111,11 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 			}
 		}
 	}
+
+	
+
+	// Mark the component ID allocator as safe to allocate 
+	persistentIDAllocator->markSafeToAllocate();
 }
 
 void ProjectConfig::setRenderOriginFlag(bool flag)

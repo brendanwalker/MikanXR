@@ -4,6 +4,11 @@
 
 #include "VRDeviceFwd.h"
 
+// Component ID Allocation
+class IEntityIDAllocator;
+using IEntityIDAllocatorPtr = std::shared_ptr<IEntityIDAllocator>;
+using IEntityIDAllocatorWeakPtr = std::weak_ptr<IEntityIDAllocator>;
+
 // Components
 class MikanComponentDefinition;
 using MikanComponentDefinitionPtr = std::shared_ptr<MikanComponentDefinition>;
