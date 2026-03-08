@@ -102,7 +102,7 @@
 							<td>
 								<label>Name</label>
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
-								<div class="deletecomponent" data-event-click="delete_anchor"></div>
+								<div class="deletecomponent" data-event-click="remove_anchor"></div>
 							</td>
 						</tr>
 						<tr class="property_tr">	
@@ -150,7 +150,7 @@
 							<td>
 								<label>Name</label>
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
-								<div class="deletecomponent" data-event-click="delete_anchor"></div>
+								<div class="deletecomponent" data-event-click="remove_box"></div>
 							</td>
 						</tr>
 						<tr class="property_tr">
@@ -228,7 +228,7 @@
 							<td>
 								<label>Name</label>
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
-								<div class="deletecomponent" data-event-click="delete_anchor"></div>
+								<div class="deletecomponent" data-event-click="remove_model"></div>
 							</td>
 						</tr>
 						<tr class="property_tr">
@@ -306,7 +306,7 @@
 							<td>
 								<label>Name</label>
 								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
-								<div class="deletecomponent" data-event-click="delete_anchor"></div>
+								<div class="deletecomponent" data-event-click="remove_quad"></div>
 							</td>
 						</tr>
 						<tr class="property_tr">
