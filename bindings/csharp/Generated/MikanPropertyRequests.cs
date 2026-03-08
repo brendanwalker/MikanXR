@@ -101,6 +101,24 @@ namespace MikanXR
 		public MikanPropertyNotifyMode notifyMode;
 	};
 
+	public class SystemCreateObjectRequest : MikanRequest
+	{
+		public static new readonly long classId= -5097383796657971318;
+
+		public string ownerSystem;
+		public string componentClassName;
+		public PolymorphicObject initParams;
+	};
+
+	public class SystemDestroyObjectRequest : MikanRequest
+	{
+		public static new readonly long classId= 4490822322129460476;
+
+		public string ownerSystem;
+		public string componentClassName;
+		public int componentId;
+	};
+
 	public class SystemGetValuesRequest : MikanRequest
 	{
 		public static new readonly long classId= -8302559874499546923;

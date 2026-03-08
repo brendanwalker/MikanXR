@@ -22,6 +22,8 @@ export const CLASS_ID_PROPERTY_GET_VALUE_RESPONSE = 8945416611226246596n;
 export const CLASS_ID_PROPERTY_SET_VALUE_REQUEST = -1776666409656556548n;
 export const CLASS_ID_PROPERTY_SET_VALUE_RESPONSE = 1995658389030653232n;
 export const CLASS_ID_SET_PROPERTY_NOTIFY_MODE = -7219101800050484750n;
+export const CLASS_ID_SYSTEM_CREATE_OBJECT_REQUEST = -5097383796657971318n;
+export const CLASS_ID_SYSTEM_DESTROY_OBJECT_REQUEST = 4490822322129460476n;
 export const CLASS_ID_SYSTEM_GET_VALUES_REQUEST = -8302559874499546923n;
 export const CLASS_ID_SYSTEM_GET_VALUES_RESPONSE = -688309113082437205n;
 
@@ -136,6 +138,30 @@ export class SetPropertyNotifyMode extends MikanRequest {
     { name: 'componentFilter', type: 'string' },
     { name: 'propertyFilter', type: 'string' },
     { name: 'notifyMode', type: 'enum:MikanPropertyNotifyMode' }
+  ];
+}
+
+export class SystemCreateObjectRequest extends MikanRequest {
+  ownerSystem: string = '';
+  componentClassName: string = '';
+  initParams: PolymorphicObject = new PolymorphicObject();
+
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+    { name: 'ownerSystem', type: 'string' },
+    { name: 'componentClassName', type: 'string' },
+    { name: 'initParams', type: 'PolymorphicObject' }
+  ];
+}
+
+export class SystemDestroyObjectRequest extends MikanRequest {
+  ownerSystem: string = '';
+  componentClassName: string = '';
+  componentId: number = 0;
+
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+    { name: 'ownerSystem', type: 'string' },
+    { name: 'componentClassName', type: 'string' },
+    { name: 'componentId', type: 'int32' }
   ];
 }
 
