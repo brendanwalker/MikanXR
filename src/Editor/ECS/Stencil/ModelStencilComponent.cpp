@@ -78,6 +78,20 @@ void ModelStencilDefinition::readFromJSON(const configuru::Config& pt)
 	}
 }
 
+bool ModelStencilDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+{
+	if (!StencilComponentDefinition::readFromInitParams(initParams))
+		return false;
+
+	const auto* componentValues = initParams.getTypedPointer<MikanModelStencilComponentValues>();
+	if (componentValues)
+	{
+		setModelPath(std::filesystem::path(componentValues->model_path.getValue()));
+	}
+
+	return true;
+}
+
 bool ModelStencilDefinition::hasModelPath() const
 {
 	return !m_modelAssetRefConfig->assetPath.empty();

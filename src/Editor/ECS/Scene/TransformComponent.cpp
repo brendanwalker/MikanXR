@@ -66,6 +66,31 @@ void TransformComponentDefinition::readFromJSON(const configuru::Config& pt)
 	readVector3f(pt, k_relativePositionPropertyId.c_str(), m_relativeTransform.position);
 }
 
+bool TransformComponentDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+{
+	if (!MikanComponentDefinition::readFromInitParams(initParams))
+		return false;
+
+	const auto* componentValues = initParams.getTypedPointer<MikanTransformComponentValues>();
+	if (componentValues)
+	{
+		m_relativeTransform.scale = componentValues->relative_scale;
+		m_relativeTransform.position = componentValues->relative_position;
+
+		// Convert relative rotation from Euler angles to quaternion
+		const MikanVector3f& angles = componentValues->relative_rotation;
+		glm::quat quat;
+		glm_euler_angles_to_quat(
+			angles.x * k_degrees_to_radians,
+			angles.y * k_degrees_to_radians,
+			angles.z * k_degrees_to_radians,
+			quat);
+		m_relativeTransform.rotation= glm_quat_to_MikanQuatf(quat);
+	}
+
+	return true;
+}
+
 const glm::mat4 TransformComponentDefinition::getRelativeMat4() const
 {
 	return getRelativeTransform().getMat4();

@@ -208,12 +208,14 @@ USBVideoSourceComponentPtr USBVideoSourceSystem::addNewUSBVideoSource()
         if (usbVideoDevice)
         {
 			// Use base class method with custom definition init
-			return Super::addNewObject([usbVideoDevice](USBVideoSourceDefinitionPtr def) {
+			return Super::addNewObjectByTypedDefinition([usbVideoDevice](USBVideoSourceDefinitionPtr def) {
 				const char* videoModeName = usbVideoDevice->getVideoModeName();
 
 				def->setComponentName(usbVideoDevice->getFriendlyName());
 				def->setDevicePath(usbVideoDevice->getDevicePath());
 				def->setVideoMode(videoModeName ? videoModeName : "<INVALID>");
+
+				return true;
 			});
         }
 	}

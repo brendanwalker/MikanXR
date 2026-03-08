@@ -55,12 +55,19 @@ ProjectConfigPtr MikanObjectSystem::getProjectConfig() const
 	return getOwnerProjectManager()->getProjectConfig();
 }
 
-MikanObjectPtr MikanObjectSystem::newObject()
+MikanObjectPtr MikanObjectSystem::newEmptyObject()
 {
 	MikanObjectPtr objectPtr = std::make_shared<MikanObject>(shared_from_this());
 	m_objects.push_back(objectPtr);
 
 	return objectPtr;
+}
+
+MikanComponentPtr MikanObjectSystem::addNewObjectByUntypedDefinition(
+	const std::string& primaryComponentClass,
+	Serialization::PolymorphicObjectPtr initParams)
+{
+	return MikanComponentPtr();
 }
 
 bool MikanObjectSystem::deleteObject(MikanObjectPtr objectPtr)

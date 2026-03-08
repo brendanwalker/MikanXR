@@ -58,6 +58,12 @@ bool PropertyRequestHandler::startup(MainWindow* mainWindow)
 	messageServer->setRequestHandler(
 		SystemGetValuesRequest::staticGetArchetype().getId(),
 		std::bind(&PropertyRequestHandler::getSystemValuesHandler, this, _1, _2));
+	messageServer->setRequestHandler(
+		SystemCreateObjectRequest::staticGetArchetype().getId(),
+		std::bind(&PropertyRequestHandler::createSystemObjectHandler, this, _1, _2));
+	messageServer->setRequestHandler(
+		SystemDestroyObjectRequest::staticGetArchetype().getId(),
+		std::bind(&PropertyRequestHandler::destroySystemObjectHandler, this, _1, _2));
 
 	return true;
 }
@@ -381,6 +387,76 @@ void PropertyRequestHandler::getSystemValuesHandler(const ClientRequest& request
 	}
 
 	writeTypedJsonResponse(request.requestId, getValuesResponse, response);
+}
+
+void PropertyRequestHandler::createSystemObjectHandler(const ClientRequest& request, ClientResponse& response)
+{
+	// Deserialize the request parameters
+	SystemCreateObjectRequest createObjectRequest;
+	if (!readTypedRequest(request.utf8RequestString, createObjectRequest))
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
+		return;
+	}
+
+	// Find the object system to create the object in
+	const std::string& ownerSystemName = createObjectRequest.ownerSystem.getValue();
+	MikanObjectSystemPtr objectSystem = getProjectManager()->getSystemByName(ownerSystemName);
+	if (!objectSystem)
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
+		return;
+	}
+
+	// Attempt to create the object on the specified system
+	if (!objectSystem->addNewObjectByUntypedDefinition(
+		createObjectRequest.componentClassName.getValue(),
+		createObjectRequest.initParams))
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
+		return;
+	}
+
+	// Return a successful response
+	writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
+}
+
+void PropertyRequestHandler::destroySystemObjectHandler(const ClientRequest& request, ClientResponse& response)
+{
+	// Deserialize the request parameters
+	SystemDestroyObjectRequest destroyObjectRequest;
+	if (!readTypedRequest(request.utf8RequestString, destroyObjectRequest))
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
+		return;
+	}
+
+	// Find the object system to destroy the object from
+	const std::string& ownerSystemName = destroyObjectRequest.ownerSystem.getValue();
+	MikanObjectSystemPtr objectSystem = getProjectManager()->getSystemByName(ownerSystemName);
+	if (!objectSystem)
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
+		return;
+	}
+
+	// Find the component to destroy
+	MikanComponentPtr componentPtr = objectSystem->getComponentById(destroyObjectRequest.componentId);
+	if (componentPtr)
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
+		return;
+	}
+
+	// Destroy the owner object that contains the component
+	if (!componentPtr->destroyOwnerObject())
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::RequestFailed, response);
+		return;
+	}
+
+	// Return a successful response
+	writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 }
 
 void PropertyRequestHandler::setPropertyNotifyModeHandler(

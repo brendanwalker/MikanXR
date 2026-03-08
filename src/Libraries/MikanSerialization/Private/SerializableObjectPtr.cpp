@@ -120,6 +120,24 @@ namespace Serialization
 		return m_impl->runtimeClassId;
 	}
 
+	bool PolymorphicObjectPtr::isTypeCompatibleWith(rfk::Struct const& objectClass) const
+	{
+		if (m_impl->serializableStructPtr != nullptr)
+		{
+			std::size_t runtimeClassId = getRuntimeClassId();
+			rfk::Struct const* runtimeClass = rfk::getDatabase().getStructById(runtimeClassId);
+
+			if (runtimeClass != nullptr)
+			{
+				return 
+					runtimeClass->getId() == objectClass.getId() ||
+					runtimeClass->isSubclassOf(objectClass); // Strict subclass check
+			}
+		}
+
+		return false;
+	}
+
 	void PolymorphicObjectPtr::setPolymorphicStructPtrInternal(
 		std::shared_ptr<PolymorphicStruct> objPtr,
 		rfk::Struct const& objectClass)

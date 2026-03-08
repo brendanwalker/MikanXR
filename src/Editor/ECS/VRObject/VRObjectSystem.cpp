@@ -378,7 +378,7 @@ VRDeviceComponentPtr VRObjectSystem::addNewVRDevice(
 	IVRDevice* vrDeviceInterface)
 {
 	VRDeviceComponentPtr vrDeviceComponent = 
-		Super::addNewObject(
+		Super::addNewObjectByTypedDefinition(
 			[trackingRuntime, vrDeviceInterface](VRDeviceDefinitionPtr def) {
 				const eVRDeviceType deviceType = vrDeviceInterface->getDeviceType();
 				const std::string vrDevicePath = vrDeviceInterface->getDevicePath();
@@ -392,6 +392,8 @@ VRDeviceComponentPtr VRObjectSystem::addNewVRDevice(
 				def->setVRDeviceIndex(vrDeviceInterface->getDeviceIndex());
 				def->setVRDevicePath(vrDevicePath);
 				def->setRelativeTransform(glmTransform);
+
+				return true;
  			});
 
 	if (vrDeviceComponent)

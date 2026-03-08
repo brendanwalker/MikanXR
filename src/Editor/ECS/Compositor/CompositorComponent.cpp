@@ -95,6 +95,30 @@ void CompositorDefinition::readFromJSON(const configuru::Config& pt)
 	}
 }
 
+bool CompositorDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+{
+	if (!MikanComponentDefinition::readFromInitParams(initParams))
+		return false;
+
+	const auto* componentValues = initParams.getTypedPointer<MikanCompositorComponentValues>();
+	if (componentValues)
+	{
+		m_ownerStageId = componentValues->owner_stage_id;
+		m_cameraId = componentValues->camera_id;
+
+		const std::string graphPathString = componentValues->compositor_graph_path.getValue();
+		if (!graphPathString.empty())
+		{
+			setCompositorGraphPath(std::filesystem::path(graphPathString));
+		}
+
+		m_bIsSpoutOutputStreaming = componentValues->spout_enable_output;
+		m_spoutOutputName = componentValues->spout_output_name.getValue();
+	}
+
+	return true;
+}
+
 void CompositorDefinition::setCameraId(MikanCameraID cameraId)
 {
 	if (m_cameraId != cameraId)

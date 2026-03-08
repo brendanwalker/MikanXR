@@ -20,6 +20,7 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
+	virtual bool readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	inline MikanMarkerID getMarkerId() const { return getComponentId(); }
 

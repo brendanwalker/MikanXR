@@ -38,6 +38,20 @@ void ClientTextureSourceDefinition::readFromJSON(const configuru::Config& pt)
 	m_clientSource = pt.get_or<std::string>("client_source", m_clientSource);
 }
 
+bool ClientTextureSourceDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+{
+	if (!TextureSourceDefinition::readFromInitParams(initParams))
+		return false;
+
+	const auto* componentValues = initParams.getTypedPointer<MikanClientTextureSourceValues>();
+	if (componentValues)
+	{
+		m_clientSource = componentValues->client_source.getValue();
+	}
+
+	return true;
+}
+
 void ClientTextureSourceDefinition::setClientSource(const std::string& clientSource)
 {
 	if (clientSource != m_clientSource)

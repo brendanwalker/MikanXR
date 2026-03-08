@@ -100,7 +100,7 @@ void EditorObjectSystem::createSceneTransformGizmo(SceneComponentPtr ownerScene)
 {
 	disposeSceneTransformGizmo();
 
-	m_gizmoObjectWeakPtr = newObject();
+	m_gizmoObjectWeakPtr = newEmptyObject();
 	MikanObjectPtr gizmoObjectPtr= m_gizmoObjectWeakPtr.lock();
 	gizmoObjectPtr->setName("Gizmo");
 

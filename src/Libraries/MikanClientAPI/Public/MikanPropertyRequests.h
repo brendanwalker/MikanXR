@@ -109,6 +109,48 @@ public:
 #endif
 };
 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) SystemCreateObjectRequest :
+	public MikanRequest
+{
+public:
+	SystemCreateObjectRequest()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(SystemCreateObjectRequest)
+	}
+
+	FIELD()
+	Serialization::String ownerSystem;
+	FIELD()
+	Serialization::String componentClassName;
+	FIELD()
+	Serialization::PolymorphicObjectPtr initParams;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	SystemCreateObjectRequest_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) SystemDestroyObjectRequest :
+	public MikanRequest
+{
+public:
+	SystemDestroyObjectRequest()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(SystemDestroyObjectRequest)
+	}
+
+	FIELD()
+	Serialization::String ownerSystem;
+	FIELD()
+	Serialization::String componentClassName;
+	FIELD()
+	int componentId;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	SystemDestroyObjectRequest_GENERATED
+#endif
+};
+
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) SetPropertyNotifyMode :
 	public MikanRequest
 {

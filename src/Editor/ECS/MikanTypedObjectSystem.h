@@ -25,7 +25,7 @@ public:
 	using SystemDefinitionPtr = std::shared_ptr<TSystemDefinition>;
 	using SystemDefinitionConstPtr = std::shared_ptr<const TSystemDefinition>;
 	using Pool = MikanTypedComponentPool<TComponent, TDefinition, TID>;
-	using DefinitionInitFunction = std::function<void(ComponentDefinitionPtr)>;
+	using DefinitionInitFunction = std::function<bool(ComponentDefinitionPtr)>;
 
 	MikanTypedObjectSystem(
 		ProjectManagerPtr ownerObjectSystem)
@@ -132,7 +132,23 @@ public:
 	}
 
 	// Component Pool Mutators
-	ComponentPtr addNewObject(DefinitionInitFunction definitionInit = {})
+	virtual MikanComponentPtr addNewObjectByUntypedDefinition(
+		const std::string& primaryComponentClass,
+		Serialization::PolymorphicObjectPtr initParams) override
+	{
+		// Only support creating objects from definitions that match the primary component type of this system
+		if (primaryComponentClass == TComponent::k_componentClassName)
+		{
+			return addNewObjectByTypedDefinition(
+				[&initParams](ComponentDefinitionPtr definition) {
+					// Initialize the definition from the polymorphic object init params
+					return definition->readFromInitParams(initParams);
+				});
+		}
+		return MikanComponentPtr();
+	}
+
+	ComponentPtr addNewObjectByTypedDefinition(DefinitionInitFunction definitionInit = {})
 	{
 		SystemDefinitionPtr systemDefinition = getTypedDefinition();
 
@@ -145,7 +161,13 @@ public:
 		// Allow caller to initialize definition before creating object
 		if (definitionInit)
 		{
-			definitionInit(componentDefinition);
+			if (!definitionInit(componentDefinition))
+			{
+				// If definition initialization fails, deallocate the definition and return null
+				systemDefinition->removeDefinition(componentDefinition->getComponentId());
+
+				return ComponentPtr();
+			}
 		}
 
 		// Create the scene object using the pool (will add definition to pool after object is built)
@@ -216,7 +238,7 @@ private:
 	{
 		SystemDefinitionPtr systemDefinition = getTypedDefinition();
 
-		MikanObjectPtr mikanObject = newObject();
+		MikanObjectPtr mikanObject = newEmptyObject();
 		mikanObject->setName(componentDefinition->getComponentName());
 
 		// Add the primary component to the object

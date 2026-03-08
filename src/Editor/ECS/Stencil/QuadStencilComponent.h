@@ -18,6 +18,7 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
+	virtual bool readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	static const std::string k_quadStencilWidthPropertyId;
 	float getQuadWidth() const { return m_quadWidth; }

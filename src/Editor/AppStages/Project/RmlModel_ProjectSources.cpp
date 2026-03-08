@@ -182,7 +182,7 @@ void RmlModel_ProjectSources::addNewClientTextureSource(
 {
 	auto projectManager = m_projectManager.lock();
 	auto clientTextureSourceSystem = projectManager->getSystemOfType<ClientTextureSourceSystem>();
-	clientTextureSourceSystem->addNewObject();
+	clientTextureSourceSystem->addNewObjectByTypedDefinition();
 }
 
 void RmlModel_ProjectSources::addNewSpoutTextureSource(
@@ -192,7 +192,7 @@ void RmlModel_ProjectSources::addNewSpoutTextureSource(
 {
 	auto projectManager = m_projectManager.lock();
 	auto spoutTextureSourceSystem = projectManager->getSystemOfType<SpoutTextureSourceSystem>();
-	spoutTextureSourceSystem->addNewObject();
+	spoutTextureSourceSystem->addNewObjectByTypedDefinition();
 }
 
 void RmlModel_ProjectSources::addNewUSBVideoSource(
@@ -212,7 +212,7 @@ void RmlModel_ProjectSources::addNewNetworkVideoSource(
 {
 	auto projectManager = m_projectManager.lock();
 	auto networkVideoSourceSystem = projectManager->getSystemOfType<NetworkVideoSourceSystem>();
-	networkVideoSourceSystem->addNewObject();
+	networkVideoSourceSystem->addNewObjectByTypedDefinition();
 }
 
 void RmlModel_ProjectSources::removeVideoSource(

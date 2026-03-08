@@ -16,6 +16,15 @@ TextureSourceDefinition::TextureSourceDefinition(
 	: MikanComponentDefinition(textureSourceId, "")
 {}
 
+bool TextureSourceDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+{
+	if (!MikanComponentDefinition::readFromInitParams(initParams))
+		return false;
+
+	// MikanTextureSourceValues has no additional fields beyond base class
+	return true;
+}
+
 // -- TextureSourceComponent -----
 TextureSourceComponent::TextureSourceComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)

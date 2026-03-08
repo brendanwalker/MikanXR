@@ -531,7 +531,7 @@ namespace {
 	bool handleAddCommand(AppStage_Project* appStage)
 	{
 		auto system = appStage->getObjectSystemOfType<SystemType>();
-		system->addNewObject();
+		system->addNewObjectByTypedDefinition();
 		return true;
 	}
 

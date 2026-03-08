@@ -82,6 +82,24 @@ void NetworkVideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 	m_port = pt.get_or<int>(NetworkVideoSourceDefinition::k_portPropertyId, m_port);
 }
 
+bool NetworkVideoSourceDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+{
+	if (!VideoSourceDefinition::readFromInitParams(initParams))
+		return false;
+
+	const auto* componentValues = initParams.getTypedPointer<MikanNetworkVideoSourceValues>();
+	if (componentValues)
+	{
+		const std::string protocolString = componentValues->protocol.getValue();
+		m_protocol = StringUtils::FindEnumValue<eNetworkVideoProtocol>(protocolString, k_NetworkVideoProtocol);
+		m_address = componentValues->ip_address.getValue();
+		m_port = componentValues->port;
+		m_path = componentValues->path.getValue();
+	}
+
+	return true;
+}
+
 void NetworkVideoSourceDefinition::setURL(const std::string& URL)
 {
 	eNetworkVideoProtocol protocol;

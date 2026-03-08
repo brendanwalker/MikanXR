@@ -183,7 +183,7 @@ void RmlModel_ProjectTracking::addNewMarkerTrackingVolume(
 {
 	ProjectManagerPtr projectManager = m_projectRmlModelContext->getOwnerAppStage()->getProjectManager();
 	auto markerTrackingVolumeSystem = projectManager->getSystemOfType<MarkerTrackingVolumeSystem>();
-	MarkerTrackingVolumeComponentPtr trackingVolume= markerTrackingVolumeSystem->addNewObject();
+	MarkerTrackingVolumeComponentPtr trackingVolume= markerTrackingVolumeSystem->addNewObjectByTypedDefinition();
 	MikanTrackingVolumeID volumeId= trackingVolume->getMarkerTrackingVolumeDefinition()->getTrackingVolumeId();
 
 	RmlModel_ProjectTracking* self = this;
@@ -209,7 +209,7 @@ void RmlModel_ProjectTracking::addNewTrackingMount(
 	VRTrackingVolumeComponentPtr vrTrackingVolumePtr = getSelectedVRTrackingVolume();
 	if (vrTrackingVolumePtr)
 	{
-		TrackingMountComponentPtr trackingMount= getTrackingMountSystem()->addNewObject();
+		TrackingMountComponentPtr trackingMount= getTrackingMountSystem()->addNewObjectByTypedDefinition();
 		MikanTrackingMountID mountId= trackingMount->getTrackingMountDefinition()->getTrackingMountId();
 
 		vrTrackingVolumePtr->getVRTrackingVolumeDefinition()->addTrackingMountID(mountId);

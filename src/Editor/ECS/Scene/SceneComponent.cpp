@@ -58,6 +58,22 @@ void SceneComponentDefinition::readFromJSON(const configuru::Config& pt)
 	m_displayCompositorId = pt.get_or<int>(k_displayCompositorIdPropertyId, INVALID_MIKAN_ID);
 }
 
+bool SceneComponentDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+{
+	if (!TransformComponentDefinition::readFromInitParams(initParams))
+		return false;
+
+	const auto* componentValues = initParams.getTypedPointer<MikanSceneComponentValues>();
+	if (componentValues)
+	{
+		m_parentStageId = componentValues->parent_stage_id;
+		m_compositorIDs = componentValues->compositor_list;
+		m_displayCompositorId = componentValues->display_compositor_id;
+	}
+
+	return true;
+}
+
 void SceneComponentDefinition::setParentStageId(MikanStageID stageId)
 {
 	if (m_parentStageId != stageId)

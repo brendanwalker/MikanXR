@@ -368,12 +368,13 @@ void AppStage_AnchorTriangulation::onOkEvent()
 
 				if (m_targetAnchor.anchorId == INVALID_MIKAN_ID)
 				{
-					getSystemOfType<AnchorObjectSystem>()->addNewObject(
+					getSystemOfType<AnchorObjectSystem>()->addNewObjectByTypedDefinition(
 						[this](AnchorDefinitionPtr anchorDefinition) {
 							anchorDefinition->setOwnerStageId(m_targetAnchor.ownerStageId);
 							anchorDefinition->setComponentName(m_targetAnchor.anchorName);
 							// Newly created anchor has no parent, so relative transform is world transform
 							anchorDefinition->setRelativeTransform(m_targetAnchor.worldTransform);
+							return true;
 						});
 				}
 				else

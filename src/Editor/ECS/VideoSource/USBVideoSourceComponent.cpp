@@ -75,6 +75,33 @@ void USBVideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 	readStdArrayMap<float, (int)eVideoSettingType::COUNT>(pt, k_videoSettingsPropertyId, m_videoSettingsMap);
 }
 
+bool USBVideoSourceDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+{
+	if (!VideoSourceDefinition::readFromInitParams(initParams))
+		return false;
+
+	const auto* componentValues = initParams.getTypedPointer<MikanUSBVideoSourceValues>();
+	if (componentValues)
+	{
+		m_devicePath = componentValues->current_device_path.getValue();
+		m_videoMode = componentValues->video_mode.getValue();
+
+		// Convert the video_settings list to the video settings array
+		const auto& settingsList = componentValues->video_settings;
+		if (settingsList.size() == (int)eVideoSettingType::COUNT && !m_videoMode.empty())
+		{
+			USBVideoSettingsArray settingsArray;
+			for (size_t i = 0; i < settingsList.size(); ++i)
+			{
+				settingsArray[i] = settingsList[i];
+			}
+			m_videoSettingsMap[m_videoMode] = settingsArray;
+		}
+	}
+
+	return true;
+}
+
 void USBVideoSourceDefinition::setDevicePath(const std::string& devicePath)
 {
 	if (devicePath != m_devicePath)

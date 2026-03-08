@@ -69,7 +69,10 @@ public:
 	virtual MikanComponentPtr getComponentById(int componentId) const = 0;
 	virtual bool getComponentIdList(const std::string& componentClassName, std::vector<int>& outComponentIdList) const = 0;
 
-	MikanObjectPtr newObject();
+	MikanObjectPtr newEmptyObject();
+	virtual MikanComponentPtr addNewObjectByUntypedDefinition(
+		const std::string& primaryComponentClass, 
+		Serialization::PolymorphicObjectPtr initParams);
 	virtual bool deleteObject(MikanObjectPtr objectPtr);
 	void deleteAllObjects();
 	inline const MikanObjectList& getObjectList() const { return m_objects; }

@@ -481,8 +481,9 @@ void RmlModel_ProjectScenes::addNewScene(
 {
 	if (m_selectedStageId != INVALID_MIKAN_ID)
 	{
-		m_sceneSystem.lock()->addNewObject([this](auto sceneDefinition) {
+		m_sceneSystem.lock()->addNewObjectByTypedDefinition([this](auto sceneDefinition) {
 			sceneDefinition->setParentStageId(m_selectedStageId);
+			return true;
 		});
 	}
 }
@@ -506,9 +507,10 @@ void RmlModel_ProjectScenes::addNewAnchor(
 {
 	if (m_selectedStageId != INVALID_MIKAN_ID)
 	{
-		m_anchorSystem.lock()->addNewObject(
+		m_anchorSystem.lock()->addNewObjectByTypedDefinition(
 			[this](auto anchorDefinition) {
 				anchorDefinition->setOwnerStageId(m_selectedStageId);
+				return true;
 			});
 	}
 }
@@ -531,7 +533,7 @@ void RmlModel_ProjectScenes::addNewQuad(
 	const Rml::VariantList& parameters)
 {
 	QuadStencilSystemPtr quadStencilSystem = m_quadStencilSystem.lock();
-	quadStencilSystem->addNewObject([](QuadStencilDefinitionPtr definition) {
+	quadStencilSystem->addNewObjectByTypedDefinition([](QuadStencilDefinitionPtr definition) {
 
 		// Initialize with default stencil info
 		definition->setQuadWidth(0.25f);
@@ -540,6 +542,8 @@ void RmlModel_ProjectScenes::addNewQuad(
 		definition->setRelativeTransform(GlmTransform());
 		definition->setParentAnchorId(INVALID_MIKAN_ID);
 		definition->setIsDisabled(false);
+
+		return true;
 	});
 }
 
@@ -561,7 +565,7 @@ void RmlModel_ProjectScenes::addNewBox(
 	const Rml::VariantList& parameters)
 {
 	BoxStencilSystemPtr boxStencilSystem = m_boxStencilSystem.lock();
-	boxStencilSystem->addNewObject([](BoxStencilDefinitionPtr definition) {
+	boxStencilSystem->addNewObjectByTypedDefinition([](BoxStencilDefinitionPtr definition) {
 
 		// Initialize with default stencil info
 		definition->setBoxXSize(0.25f);
@@ -570,6 +574,8 @@ void RmlModel_ProjectScenes::addNewBox(
 		definition->setRelativeTransform(GlmTransform());
 		definition->setParentAnchorId(INVALID_MIKAN_ID);
 		definition->setIsDisabled(false);
+
+		return true;
 	});
 }
 
@@ -591,12 +597,14 @@ void RmlModel_ProjectScenes::addNewModel(
 	const Rml::VariantList& parameters)
 {
 	ModelStencilSystemPtr modelStencilSystem = m_modelStencilSystem.lock();
-	modelStencilSystem->addNewObject([](ModelStencilDefinitionPtr definition) {
+	modelStencilSystem->addNewObjectByTypedDefinition([](ModelStencilDefinitionPtr definition) {
 
 		// Initialize with default stencil info
 		definition->setRelativeTransform(GlmTransform());
 		definition->setParentAnchorId(INVALID_MIKAN_ID);
 		definition->setIsDisabled(false);
+
+		return true;
 	});
 }
 

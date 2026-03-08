@@ -49,6 +49,20 @@ void AnchorDefinition::readFromJSON(const configuru::Config& pt)
 	m_stageId = pt.get_or<int>(k_ownerStageIdPropertyId, m_stageId);
 }
 
+bool AnchorDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+{
+	if (!TransformComponentDefinition::readFromInitParams(initParams))
+		return false;
+
+	const auto* componentValues = initParams.getTypedPointer<MikanAnchorComponentValues>();
+	if (componentValues)
+	{
+		m_stageId = componentValues->stage_id;
+	}
+
+	return true;
+}
+
 void AnchorDefinition::setOwnerStageId(MikanStageID stageId)
 {
 	if (stageId != m_stageId)

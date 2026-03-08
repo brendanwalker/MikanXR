@@ -64,6 +64,32 @@ void MikanComponentDefinition::readFromJSON(const configuru::Config& pt)
 	}
 }
 
+bool MikanComponentDefinition::readFromInitParams(
+	const Serialization::PolymorphicObjectPtr& initParams)
+{
+	const auto* componentValues = initParams.getTypedPointer<MikanComponentValues>();
+	if (componentValues)
+	{
+		// Don't read the component ID since we already have an assigned component ID
+
+		// Assign a component ID if we don't already have one
+		const std::string& desiredName= componentValues->component_name.getValue();
+		if (!desiredName.empty())
+		{
+			m_componentName = componentValues->component_name.getValue();
+		}
+
+		// Create the script asset ref config if we don't already have one
+		if (!m_componentScriptAssetRefConfig)
+		{
+			m_componentScriptAssetRefConfig = ScriptAssetReferenceFactory().allocateAssetReferenceConfig();
+		}
+		m_componentScriptAssetRefConfig->assetPath= componentValues->component_script.getValue();
+	}
+
+	return true;
+}
+
 void MikanComponentDefinition::setComponentName(const std::string& name)
 {
 	if (name != m_componentName)
@@ -417,7 +443,6 @@ bool MikanComponent::setPropertyValue(const std::string& propertyName, const Mik
 const std::string MikanComponent::k_reloadScriptFunctionId = "reload_script";
 const std::string MikanComponent::k_addNewScriptFunctionId = "add_new_script";
 const std::string MikanComponent::k_removeScriptFunctionId = "remove_script";
-const std::string MikanComponent::k_deleteSelfFunctionId = "delete_self";
 
 void MikanComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
@@ -430,9 +455,6 @@ void MikanComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstP
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(
 			k_removeScriptFunctionId, "Remove Script"));
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_deleteSelfFunctionId, "Delete Self"));
 }
 
 bool MikanComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
@@ -453,10 +475,6 @@ bool MikanComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
 	{
 		removeComponentScript();
 		return true;
-	}
-	else if (functionName == MikanComponent::k_deleteSelfFunctionId)
-	{		
-		return destroyOwnerObject();;
 	}
 
 	return false;

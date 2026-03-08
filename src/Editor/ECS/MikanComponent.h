@@ -26,6 +26,7 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
+	virtual bool readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams);
 
 	static const std::string k_componentIdPropertyId;
 	int getComponentId() const { return m_componentId; }
@@ -132,7 +133,6 @@ public:
 	static const std::string k_reloadScriptFunctionId;
 	static const std::string k_addNewScriptFunctionId;
 	static const std::string k_removeScriptFunctionId;
-	static const std::string k_deleteSelfFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
 	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
 

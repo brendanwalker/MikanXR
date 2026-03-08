@@ -86,6 +86,34 @@ void VRTrackingVolumeDefinition::readFromJSON(const configuru::Config& pt)
 	readMatrix4f(pt, k_vrDevicePoseOffsetPropertyId.c_str(), m_vrDevicePoseOffset);
 }
 
+bool VRTrackingVolumeDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+{
+	if (!TrackingVolumeDefinition::readFromInitParams(initParams))
+		return false;
+
+	const auto* componentValues = initParams.getTypedPointer<MikanVRTrackingVolumeComponentValues>();
+	if (componentValues)
+	{
+		m_trackingRuntime = (eTrackingRuntime)componentValues->tracking_runtime;
+		m_charucoMountId = componentValues->charuco_mount_id;
+		m_charucoMountOffsetMM = componentValues->charuco_mount_offset_mm;
+		m_utilityMarkerId = componentValues->utility_marker_id;
+
+		// Convert Serialization::List to std::vector
+		const auto& mountIdsList = componentValues->tracking_mount_ids;
+		m_trackingMountIDs.clear();
+		m_trackingMountIDs.reserve(mountIdsList.size());
+		for (const auto& mountId : mountIdsList)
+		{
+			m_trackingMountIDs.push_back(mountId);
+		}
+
+		m_vrDevicePoseOffset = componentValues->vr_device_pose_offset;
+	}
+
+	return true;
+}
+
 void VRTrackingVolumeDefinition::setTrackingRuntime(eTrackingRuntime runtime)
 {
 	if (runtime != m_trackingRuntime)

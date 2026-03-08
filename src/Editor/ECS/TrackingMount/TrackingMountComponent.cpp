@@ -43,6 +43,21 @@ void TrackingMountDefinition::readFromJSON(const configuru::Config& pt)
 	m_socketName = pt.get_or<std::string>(k_socketNamePropertyId, m_socketName);
 }
 
+bool TrackingMountDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+{
+	if (!MikanComponentDefinition::readFromInitParams(initParams))
+		return false;
+
+	const auto* componentValues = initParams.getTypedPointer<MikanTrackingMountComponentValues>();
+	if (componentValues)
+	{
+		m_devicePath = componentValues->device_path.getValue();
+		m_socketName = componentValues->socket_name.getValue();
+	}
+
+	return true;
+}
+
 void TrackingMountDefinition::setDevicePath(const std::string& devicePath)
 {
 	if (devicePath != m_devicePath)

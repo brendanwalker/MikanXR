@@ -197,7 +197,7 @@ void RmlModel_ProjectStages::addNewStage(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	getStageSystem()->addNewObject();
+	getStageSystem()->addNewObjectByTypedDefinition();
 }
 
 void RmlModel_ProjectStages::removeStage(
@@ -213,9 +213,10 @@ void RmlModel_ProjectStages::addNewCamera(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {	
-	getCameraSystem()->addNewObject([this](CameraDefinitionPtr definition) {
+	getCameraSystem()->addNewObjectByTypedDefinition([this](CameraDefinitionPtr definition) {
 		definition->setRelativeTransform(GlmTransform());
 		definition->setOwnerStageId(m_selectedStageId);
+		return true;
 	});
 }
 
@@ -232,10 +233,11 @@ void RmlModel_ProjectStages::addNewCompositor(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	getCompositorSystem()->addNewObject(
+	getCompositorSystem()->addNewObjectByTypedDefinition(
 		[this](CompositorDefinitionPtr definition) {
 			// Initialize compositor-specific properties
 			definition->setOwnerStageId(m_selectedStageId);
+			return true;
 		});
 }
 

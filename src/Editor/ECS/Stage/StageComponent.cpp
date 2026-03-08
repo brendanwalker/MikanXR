@@ -35,6 +35,20 @@ void StageComponentDefinition::readFromJSON(const configuru::Config& pt)
 	m_trackingVolumeId = pt.get_or<int>(k_trackingVolumeIdPropertyId, INVALID_MIKAN_ID);
 }
 
+bool StageComponentDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+{
+	if (!TransformComponentDefinition::readFromInitParams(initParams))
+		return false;
+
+	const auto* componentValues = initParams.getTypedPointer<MikanStageComponentValues>();
+	if (componentValues)
+	{
+		m_trackingVolumeId = componentValues->tracking_volume_id;
+	}
+
+	return true;
+}
+
 void StageComponentDefinition::setTrackingVolumeId(MikanTrackingVolumeID trackingVolumeId)
 {
 	if (m_trackingVolumeId != trackingVolumeId)

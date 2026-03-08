@@ -84,6 +84,25 @@ void CameraDefinition::readFromJSON(const configuru::Config& pt)
 	readVector3d(pt, "aperture_position_offset", m_aperturePositionOffset);
 }
 
+bool CameraDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+{
+	if (!TransformComponentDefinition::readFromInitParams(initParams))
+		return false;
+
+	const auto* componentValues = initParams.getTypedPointer<MikanCameraComponentValues>();
+	if (componentValues)
+	{
+		m_stageId = componentValues->stage_id;
+		m_trackingMountId = componentValues->tracking_mount_id;
+		m_videoSourceId = componentValues->video_source_id;
+		m_trackingFrameDelay = componentValues->tracking_frame_delay;
+		m_apertureOrientationOffset = componentValues->aperture_orientation_offset;
+		m_aperturePositionOffset = componentValues->aperture_position_offset;
+	}
+
+	return true;
+}
+
 void CameraDefinition::setOwnerStageId(MikanStageID stageId)
 {
 	if (stageId != m_stageId)

@@ -54,6 +54,22 @@ void StencilComponentDefinition::readFromJSON(const configuru::Config& pt)
 	m_cullMode= StringUtils::FindEnumValue<eStencilCullMode>(modeName, k_stencilCullModeStrings);
 }
 
+bool StencilComponentDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+{
+	if (!TransformComponentDefinition::readFromInitParams(initParams))
+		return false;
+
+	const auto* componentValues = initParams.getTypedPointer<MikanStencilComponentValues>();
+	if (componentValues)
+	{
+		m_parentAnchorId = componentValues->parent_anchor_id;
+		m_bIsDisabled = componentValues->is_disabled;
+		m_cullMode = (eStencilCullMode)componentValues->cull_mode;
+	}
+
+	return true;
+}
+
 void StencilComponentDefinition::setParentAnchorId(MikanSpatialAnchorID anchorId)
 {
 	if (m_parentAnchorId != anchorId)

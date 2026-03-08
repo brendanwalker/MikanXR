@@ -75,8 +75,9 @@ VRTrackingVolumeComponentPtr VRTrackingVolumeSystem::addNewVRTrackingVolume(eTra
 	}
 
 	// Use the base class method to create the object, with a custom definition init
-	return Super::addNewObject([trackingRuntime](VRTrackingVolumeDefinitionPtr def) {
+	return Super::addNewObjectByTypedDefinition([trackingRuntime](VRTrackingVolumeDefinitionPtr def) {
 		def->setTrackingRuntime(trackingRuntime);
+		return true;
 	});
 }
 

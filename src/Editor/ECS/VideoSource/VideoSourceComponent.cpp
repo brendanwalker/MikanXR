@@ -81,6 +81,24 @@ void VideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 	}
 }
 
+bool VideoSourceDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+{
+	if (!MikanComponentDefinition::readFromInitParams(initParams))
+		return false;
+
+	const auto* componentValues = initParams.getTypedPointer<MikanVideoSourceValues>();
+	if (componentValues)
+	{
+		m_intrinsics.intrinsics_ptr = componentValues->intrinsics_ptr;
+		m_intrinsics.intrinsics_type = componentValues->intrinsics_type;
+		m_bIsFrameMirrored = componentValues->is_frame_mirrored;
+		m_bIsBufferMirrored = componentValues->is_buffer_mirrored;
+		m_videoFrameQueueSize = componentValues->video_frame_queue_size;
+	}
+
+	return true;
+}
+
 void VideoSourceDefinition::setIsFrameMirrored(bool isFrameMirrored)
 {
 	m_bIsFrameMirrored = isFrameMirrored;

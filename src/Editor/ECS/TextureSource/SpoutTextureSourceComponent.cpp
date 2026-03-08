@@ -36,6 +36,20 @@ void SpoutTextureSourceDefinition::readFromJSON(const configuru::Config& pt)
 	m_spoutSource = pt.get_or<std::string>("spout_source", m_spoutSource);
 }
 
+bool SpoutTextureSourceDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+{
+	if (!TextureSourceDefinition::readFromInitParams(initParams))
+		return false;
+
+	const auto* componentValues = initParams.getTypedPointer<MikanSpoutTextureSourceValues>();
+	if (componentValues)
+	{
+		m_spoutSource = componentValues->spout_source.getValue();
+	}
+
+	return true;
+}
+
 void SpoutTextureSourceDefinition::setSpoutSource(const std::string& spoutSource)
 {
 	if (spoutSource != m_spoutSource)

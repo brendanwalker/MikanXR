@@ -93,7 +93,7 @@ void RmlModel_ProjectMarkers::addNewMarker(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	MarkerComponentPtr markerComponent= getMarkerSystem()->addNewObject();
+	MarkerComponentPtr markerComponent= getMarkerSystem()->addNewObjectByTypedDefinition();
 	MikanMarkerID markerId = markerComponent->getMarkerDefinition()->getMarkerId();
 
 	addModelUpdateCallback([this, markerId]() {

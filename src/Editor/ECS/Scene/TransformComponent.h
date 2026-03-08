@@ -31,6 +31,7 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
+	virtual bool readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams);
 
 	const glm::mat4 getRelativeMat4() const;
 	void setRelativeMat4(const glm::mat4& xform);

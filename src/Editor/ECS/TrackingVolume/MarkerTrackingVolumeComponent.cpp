@@ -18,6 +18,20 @@ eTrackingVolumeType MarkerTrackingVolumeDefinition::getTrackingVolumeType() cons
 	return eTrackingVolumeType::marker;
 }
 
+bool MarkerTrackingVolumeDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+{
+	if (!TrackingVolumeDefinition::readFromInitParams(initParams))
+		return false;
+
+	const auto* componentValues = initParams.getTypedPointer<MikanMarkerTrackingVolumeComponentValues>();
+	if (componentValues)
+	{
+		// No additional fields - just call parent and return
+	}
+
+	return true;
+}
+
 // -- MarkerTrackingVolumeComponent -----
 MarkerTrackingVolumeComponent::MarkerTrackingVolumeComponent(MikanObjectWeakPtr owner)
 	: TrackingVolumeComponent(owner)

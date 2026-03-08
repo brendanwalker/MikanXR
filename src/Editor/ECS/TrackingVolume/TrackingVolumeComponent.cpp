@@ -44,6 +44,20 @@ void TrackingVolumeDefinition::readFromJSON(const configuru::Config& pt)
 	m_originMarkeId = pt.get_or<MikanMarkerID>(k_originMarkerIdPropertyId.c_str(), m_originMarkeId);
 }
 
+bool TrackingVolumeDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+{
+	if (!MikanComponentDefinition::readFromInitParams(initParams))
+		return false;
+
+	const auto* componentValues = initParams.getTypedPointer<MikanTrackingVolumeComponentValues>();
+	if (componentValues)
+	{
+		m_originMarkeId = componentValues->origin_marker_id;
+	}
+
+	return true;
+}
+
 MarkerObjectSystemPtr TrackingVolumeDefinition::getMarkerObjectSystem() const
 {
 	return getOwnerComponent()->getObjectSystemOfType<MarkerObjectSystem>();

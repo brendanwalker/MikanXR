@@ -12,6 +12,7 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
+	virtual bool readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	static const std::string k_spoutSourcePropertyId;
 	inline const std::string& getSpoutSource() const { return m_spoutSource; }

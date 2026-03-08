@@ -62,6 +62,22 @@ void QuadStencilDefinition::readFromJSON(const configuru::Config& pt)
 	m_bIsDoubleSided = pt.get_or<bool>("is_double_sided", false);
 }
 
+bool QuadStencilDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+{
+	if (!StencilComponentDefinition::readFromInitParams(initParams))
+		return false;
+
+	const auto* componentValues = initParams.getTypedPointer<MikanQuadStencilComponentValues>();
+	if (componentValues)
+	{
+		m_quadWidth = componentValues->quad_width;
+		m_quadHeight = componentValues->quad_height;
+		m_bIsDoubleSided = componentValues->is_double_sided;
+	}
+
+	return true;
+}
+
 void QuadStencilDefinition::setQuadWidth(float width)
 {
 	m_quadWidth = width;
