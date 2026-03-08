@@ -51,11 +51,9 @@ public:
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
 
 	// -- IFunctionInterface ----
-	static const std::string k_deleteTextureSourceFunctionId;
 	static const std::string k_showTextureSourceSettingsFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames);
 	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
 
-	void deleteTextureSource();
 	virtual void showTextureSourceSettings() {};
 };

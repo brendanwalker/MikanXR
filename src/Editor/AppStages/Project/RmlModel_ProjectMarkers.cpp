@@ -111,7 +111,7 @@ void RmlModel_ProjectMarkers::removeMarker(
 
 	const int markerId = parameters[0].Get<int>();
 
-	getMarkerSystem()->removeObject((MikanMarkerID)markerId);
+	getMarkerSystem()->removeObjectByPrimaryComponentId((MikanMarkerID)markerId);
 }
 
 void RmlModel_ProjectMarkers::selectMarkerEntry(

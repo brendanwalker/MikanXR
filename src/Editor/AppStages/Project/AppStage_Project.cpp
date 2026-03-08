@@ -543,7 +543,7 @@ namespace {
 		{
 			int componentId = std::stoi(parameters[0]);
 			auto system = appStage->getObjectSystemOfType<SystemType>();
-			system->removeObject(static_cast<IDType>(componentId));
+			system->removeObjectByPrimaryComponentId(static_cast<IDType>(componentId));
 			return true;
 		}
 		return false;

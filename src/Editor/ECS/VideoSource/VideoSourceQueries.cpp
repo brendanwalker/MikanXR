@@ -67,12 +67,12 @@ namespace VideoSourceQueries
 			case eVideoSourceType::networked:
 			{
 				auto networkVideoSourceSystem = projectManager->getSystemOfType<NetworkVideoSourceSystem>();
-				return networkVideoSourceSystem->removeObject(videoSourceId);
+				return networkVideoSourceSystem->removeObjectByPrimaryComponentId(videoSourceId);
 			}
 			case eVideoSourceType::usb:
 			{
 				auto usbVideoSourceSystem = projectManager->getSystemOfType<USBVideoSourceSystem>();
-				return usbVideoSourceSystem->removeObject(videoSourceId);
+				return usbVideoSourceSystem->removeObjectByPrimaryComponentId(videoSourceId);
 			}
 		}
 

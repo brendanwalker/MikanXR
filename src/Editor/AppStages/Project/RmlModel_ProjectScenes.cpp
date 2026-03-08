@@ -496,7 +496,7 @@ void RmlModel_ProjectScenes::removeScene(
 		return;
 
 	const int sceneId = parameters[0].Get<int>();
-	m_sceneSystem.lock()->removeObject(sceneId);
+	m_sceneSystem.lock()->removeObjectByPrimaryComponentId(sceneId);
 }
 
 void RmlModel_ProjectScenes::addNewAnchor(
@@ -522,7 +522,7 @@ void RmlModel_ProjectScenes::removeAnchor(
 		return;
 
 	const int anchorId = parameters[0].Get<int>();
-	m_anchorSystem.lock()->removeObject(anchorId);
+	m_anchorSystem.lock()->removeObjectByPrimaryComponentId(anchorId);
 }
 
 void RmlModel_ProjectScenes::addNewQuad(
@@ -552,7 +552,7 @@ void RmlModel_ProjectScenes::removeQuad(
 		return;
 
 	const int quadStencilId = parameters[0].Get<int>();
-	m_quadStencilSystem.lock()->removeObject(quadStencilId);
+	m_quadStencilSystem.lock()->removeObjectByPrimaryComponentId(quadStencilId);
 }
 
 void RmlModel_ProjectScenes::addNewBox(
@@ -582,7 +582,7 @@ void RmlModel_ProjectScenes::removeBox(
 		return;
 
 	const int boxStencilId = parameters[0].Get<int>();
-	m_boxStencilSystem.lock()->removeObject(boxStencilId);
+	m_boxStencilSystem.lock()->removeObjectByPrimaryComponentId(boxStencilId);
 }
 
 void RmlModel_ProjectScenes::addNewModel(
@@ -609,7 +609,7 @@ void RmlModel_ProjectScenes::removeModel(
 		return;
 
 	const int modelStencilId = parameters[0].Get<int>();
-	m_modelStencilSystem.lock()->removeObject(modelStencilId);
+	m_modelStencilSystem.lock()->removeObjectByPrimaryComponentId(modelStencilId);
 }
 
 void RmlModel_ProjectScenes::selectObjectEntry(

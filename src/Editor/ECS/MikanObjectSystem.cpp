@@ -63,18 +63,27 @@ MikanObjectPtr MikanObjectSystem::newObject()
 	return objectPtr;
 }
 
-void MikanObjectSystem::deleteObject(MikanObjectPtr objectPtr)
+bool MikanObjectSystem::deleteObject(MikanObjectPtr objectPtr)
 {
+	// Only tear down this object if it belongs to this system
 	if (objectPtr)
 	{
-		objectPtr->dispose();
-
 		auto it = std::find(m_objects.begin(), m_objects.end(), objectPtr);
 		if (it != m_objects.end())
 		{
+			// 1. Call dispose() on all components
+			// 2. Call OnObjectDisposed on owning system
+			// 3. Remove all component reference from object
+			objectPtr->dispose();
+
+			// 4. Remove object from system list (should deallocate it if no other references)
 			m_objects.erase(it);
+
+			return true;
 		}
 	}
+
+	return false;
 }
 
 void MikanObjectSystem::deleteAllObjects()

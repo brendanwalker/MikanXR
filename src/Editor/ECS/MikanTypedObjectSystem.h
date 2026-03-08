@@ -54,6 +54,17 @@ public:
 		propertyDatabase->template registerPropertiesForComponent<TSystem, TComponent>();
 	}
 
+	virtual bool deleteObject(MikanObjectPtr objectPtr) override
+	{
+		auto primaryComponent= objectPtr->getComponentOfType<TComponent>();
+		if (primaryComponent)
+		{
+			return removeObjectByPrimaryComponentId(primaryComponent->getComponentId());
+		}
+
+		return false;
+	}
+
 	// System Definition Accessors
 	std::shared_ptr<const TSystemDefinition> getTypedDefinitionConst() const
 	{
@@ -141,13 +152,27 @@ public:
 		return m_pool.create(componentDefinition);
 	}
 
-	bool removeObject(TID componentId)
+	bool removeObjectByPrimaryComponentId(TID componentId)
 	{
-		SystemDefinitionPtr systemDefinition = getTypedDefinition();
+		ComponentPtr component = getTypedComponentById(componentId);
+		if (component)
+		{
+			SystemDefinitionPtr systemDefinition = getTypedDefinition();
+			assert(systemDefinition);
+			MikanObjectPtr objectPtr = component->getOwnerObject();
+			assert(objectPtr);
 
-		return
-			m_pool.dispose(componentId) &&
-			systemDefinition->removeDefinition(componentId);
+			return 
+				// 1. Remove the object from the system first (fires object/component disposed events)
+				MikanObjectSystem::deleteObject(objectPtr) &&
+				// 2. Remove the component reference from the typed component pool
+				m_pool.dispose(componentId) &&
+				// 3. Remove the component definition from the system definition 
+				// (fires system property change event, which is now safe to do now that the object is cleaned up)
+				systemDefinition->removeDefinition(componentId);
+		}
+
+		return false;
 	}
 
 	// -- IPropertyInterface ----

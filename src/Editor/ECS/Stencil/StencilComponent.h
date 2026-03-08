@@ -65,13 +65,6 @@ public:
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
 
-	// -- IFunctionInterface ----
-	static const std::string k_deleteStencilFunctionId;
-	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
-	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
-
-	void deleteStencil();
-
 	// -- Lua Binding ----
 	static void bindLuaFunctions(struct lua_State* L);
 };

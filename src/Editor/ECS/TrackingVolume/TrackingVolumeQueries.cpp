@@ -67,12 +67,12 @@ namespace TrackingVolumeQueries
 			case eTrackingVolumeType::marker:
 			{
 				auto markerTrackingVolumeSystem = projectManager->getSystemOfType<MarkerTrackingVolumeSystem>();
-				return markerTrackingVolumeSystem->removeObject(trackingVolumeId);
+				return markerTrackingVolumeSystem->removeObjectByPrimaryComponentId(trackingVolumeId);
 			}
 			case eTrackingVolumeType::vr:
 			{
 				auto vrTrackingVolumeSystem = projectManager->getSystemOfType<VRTrackingVolumeSystem>();
-				return vrTrackingVolumeSystem->removeObject(trackingVolumeId);
+				return vrTrackingVolumeSystem->removeObjectByPrimaryComponentId(trackingVolumeId);
 			}
 		}
 

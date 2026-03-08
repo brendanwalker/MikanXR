@@ -375,7 +375,6 @@ bool SceneComponent::setPropertyValue(
 }
 
 // -- IFunctionInterface ----
-const std::string SceneComponent::k_deleteSceneFunctionId = "delete_scene";
 const std::string SceneComponent::k_addCompositorRefFunctionId = "add_compositor_ref";
 const std::string SceneComponent::k_removeCompositorRefFunctionId = "remove_compositor_ref";
 
@@ -383,9 +382,6 @@ void SceneComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstP
 {
 	MikanComponent::getFunctionDescriptors(outDescriptors);
 
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_deleteSceneFunctionId, "Delete Scene"));
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(
 			k_addCompositorRefFunctionId, "Add Compositor Reference"));
@@ -398,12 +394,7 @@ bool SceneComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
 {
 	const std::string& functionId = functionDesc->getFunctionName();
 
-	if (functionId == k_deleteSceneFunctionId)
-	{
-		deleteScene();
-		return true;
-	}
-	else if (functionId == k_addCompositorRefFunctionId)
+	if (functionId == k_addCompositorRefFunctionId)
 	{
 		addCompositorRef();
 		return true;
@@ -415,11 +406,6 @@ bool SceneComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
 	}
 
 	return TransformComponent::invokeFunction(functionDesc);
-}
-
-void SceneComponent::deleteScene()
-{
-	getOwnerObject()->deleteSelfConfig();
 }
 
 void SceneComponent::addCompositorRef()

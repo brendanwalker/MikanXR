@@ -113,12 +113,10 @@ public:
 	
 	// -- IFunctionInterface ----
 	static const std::string k_alignCameraFunctionId;
-	static const std::string k_deleteCameraFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames);
 	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
 
 	void alignCamera();
-	void deleteCamera();
 
 protected:
 	void onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);

@@ -89,13 +89,6 @@ public:
 		auto it = m_components.find(id);
 		if (it != m_components.end())
 		{
-			// Default disposal: get component and delete its owner object
-			ComponentPtr component = it->second.lock();
-			if (component)
-			{
-				m_ownerSystem->deleteObject(component->getOwnerObject());
-			}
-
 			// Remove from component map
 			m_components.erase(it);
 

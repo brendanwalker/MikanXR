@@ -315,7 +315,7 @@ void EditorObjectSystem::onDeletePressed()
 	if (selectedComponent != nullptr)
 	{
 		// Clean up the config associated with owning object
-		selectedComponent->getOwnerObject()->deleteSelfConfig();
+		selectedComponent->destroyOwnerObject();
 	}
 }
 

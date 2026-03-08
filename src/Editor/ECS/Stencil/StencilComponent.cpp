@@ -199,37 +199,6 @@ bool StencilComponent::setPropertyValue(
 	return TransformComponent::setPropertyValue(propertyName, inValue);
 }
 
-// -- IFunctionInterface ----
-const std::string StencilComponent::k_deleteStencilFunctionId= "delete_stencil";
-
-void StencilComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
-{
-	MikanComponent::getFunctionDescriptors(outDescriptors);
-
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_deleteStencilFunctionId, "Delete Stencil"));
-}
-
-bool StencilComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
-{
-	const std::string& id = functionDesc->getFunctionName();
-
-	if (id == k_deleteStencilFunctionId)
-	{
-		deleteStencil();
-		return true;
-	}
-
-	return TransformComponent::invokeFunction(functionDesc);
-}
-
-
-void StencilComponent::deleteStencil()
-{
-	getOwnerObject()->deleteSelfConfig();
-}
-
 // -- Lua Binding ----
 void StencilComponent::bindLuaFunctions(lua_State* L)
 {

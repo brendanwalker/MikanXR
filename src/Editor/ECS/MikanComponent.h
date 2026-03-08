@@ -62,6 +62,8 @@ public:
 	virtual void setDefinition(MikanComponentDefinitionPtr config);
 	virtual MikanComponentDefinitionPtr getDefinition() const { return m_definition; }
 
+	int getComponentId() const;
+
 	inline static const std::string k_componentClassName = "MikanComponent";
 	virtual std::string getComponentClassName() const { return k_componentClassName; }
 
@@ -70,6 +72,7 @@ public:
 
 	MikanObjectPtr getOwnerObject() const { return m_ownerObject.lock(); }
 	ProjectManagerPtr getOwnerProjectManager() const;
+	bool destroyOwnerObject();
 
 	template <class t_object_system_type>
 	std::shared_ptr<t_object_system_type> getObjectSystemOfType() const
@@ -129,6 +132,7 @@ public:
 	static const std::string k_reloadScriptFunctionId;
 	static const std::string k_addNewScriptFunctionId;
 	static const std::string k_removeScriptFunctionId;
+	static const std::string k_deleteSelfFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
 	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
 

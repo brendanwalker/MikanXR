@@ -66,9 +66,8 @@ public:
 	virtual bool getComponentIdList(const std::string& componentClassName, std::vector<int>& outComponentIdList) const = 0;
 
 	MikanObjectPtr newObject();
-	void deleteObject(MikanObjectPtr objectPtr);
+	virtual bool deleteObject(MikanObjectPtr objectPtr);
 	void deleteAllObjects();
-	virtual void deleteObjectConfig(MikanObjectPtr objectPtr) { }
 	inline const MikanObjectList& getObjectList() const { return m_objects; }
 
 	MulticastDelegate<void(MikanObjectSystemPtr, MikanObjectPtr)> OnObjectInitialized;

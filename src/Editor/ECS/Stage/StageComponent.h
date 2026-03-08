@@ -61,13 +61,7 @@ public:
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
 
-	// -- IFunctionInterface ----
-	static const std::string k_deleteStageFunctionId;
-	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames);
-	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
-
 	// -- StageComponent ----
 	MikanStageID getStageId() const;
 	void setTrackingVolumeId(MikanTrackingVolumeID volumeId);
-	void deleteStage();
 };

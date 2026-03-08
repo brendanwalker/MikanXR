@@ -41,12 +41,3 @@ void MikanObject::dispose()
 	m_components.clear();
 	m_ownerObjectSystemManager.reset();
 }
-
-void MikanObject::deleteSelfConfig()
-{
-	MikanObjectSystemPtr ownerSystem= getOwnerSystem();
-	if (ownerSystem != nullptr)
-	{
-		ownerSystem->deleteObjectConfig(shared_from_this());
-	}
-}

@@ -123,7 +123,6 @@ void AnchorComponent::customRender()
 
 // -- IFunctionInterface ----
 const std::string AnchorComponent::k_editAnchorFunctionId = "edit_anchor";
-const std::string AnchorComponent::k_deleteAnchorFunctionId = "delete_anchor";
 
 void AnchorComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
@@ -132,9 +131,6 @@ void AnchorComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConst
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(
 			k_editAnchorFunctionId, "Edit Anchor"));
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_deleteAnchorFunctionId, "Delete Anchor"));
 }
 
 bool AnchorComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
@@ -146,11 +142,7 @@ bool AnchorComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
 		editAnchor();
 		return true;
 	}
-	else if (functionName == AnchorComponent::k_deleteAnchorFunctionId)
-	{
-		deleteAnchor();
-		return true;
-	}
+
 
 	return TransformComponent::invokeFunction(functionDesc);
 }
@@ -188,9 +180,4 @@ void AnchorComponent::editAnchor()
 			});
 
 	}
-}
-
-void AnchorComponent::deleteAnchor()
-{
-	getOwnerObject()->deleteSelfConfig();
 }

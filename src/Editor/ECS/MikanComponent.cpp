@@ -201,6 +201,16 @@ void MikanComponent::onDefinitionMarkedDirty(
 	}
 }
 
+int MikanComponent::getComponentId() const 
+{
+	if (m_definition)
+	{
+		return m_definition->getComponentId();
+	}
+
+	return INVALID_MIKAN_ID;
+}
+
 IMkWindow* MikanComponent::getOwnerWindow() const
 {
 	MikanObjectPtr ownerObject = m_ownerObject.lock();
@@ -228,6 +238,21 @@ void MikanComponent::setName(const std::string& name)
 ProjectManagerPtr MikanComponent::getOwnerProjectManager() const
 {
 	return getOwnerObject()->getOwnerSystem()->getOwnerProjectManager();
+}
+
+bool MikanComponent::destroyOwnerObject()
+{
+	MikanObjectPtr ownerObject = getOwnerObject();
+	if (ownerObject)
+	{
+		auto ownerSystem = ownerObject->getOwnerSystem();
+		if (ownerSystem)
+		{
+			return ownerSystem->deleteObject(ownerObject);
+		}
+	}
+
+	return false;
 }
 
 // -- Scripting ----
@@ -392,6 +417,7 @@ bool MikanComponent::setPropertyValue(const std::string& propertyName, const Mik
 const std::string MikanComponent::k_reloadScriptFunctionId = "reload_script";
 const std::string MikanComponent::k_addNewScriptFunctionId = "add_new_script";
 const std::string MikanComponent::k_removeScriptFunctionId = "remove_script";
+const std::string MikanComponent::k_deleteSelfFunctionId = "delete_self";
 
 void MikanComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
@@ -404,6 +430,9 @@ void MikanComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstP
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(
 			k_removeScriptFunctionId, "Remove Script"));
+	outDescriptors.push_back(
+		std::make_shared<FunctionDescriptor>(
+			k_deleteSelfFunctionId, "Delete Self"));
 }
 
 bool MikanComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
@@ -424,6 +453,10 @@ bool MikanComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
 	{
 		removeComponentScript();
 		return true;
+	}
+	else if (functionName == MikanComponent::k_deleteSelfFunctionId)
+	{		
+		return destroyOwnerObject();;
 	}
 
 	return false;

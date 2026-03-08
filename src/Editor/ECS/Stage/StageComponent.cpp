@@ -130,31 +130,6 @@ TrackingVolumeDefinitionConstPtr StageComponent::getTrackingVolumeDefinitionCons
 	return TrackingVolumeDefinitionConstPtr();
 }
 
-// -- IFunctionInterface ----
-const std::string StageComponent::k_deleteStageFunctionId = "delete_stage";
-
-void StageComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
-{
-	MikanComponent::getFunctionDescriptors(outDescriptors);
-
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_deleteStageFunctionId, "Delete Stage"));
-}
-
-bool StageComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
-{
-	const std::string& functionId = functionDesc->getFunctionName();
-
-	if (functionId == k_deleteStageFunctionId)
-	{
-		deleteStage();
-		return true;
-	}
-
-	return MikanComponent::invokeFunction(functionDesc);
-}
-
 MikanStageID StageComponent::getStageId() const
 {
 	return getStageComponentDefinitionConst()->getComponentId();
@@ -163,9 +138,4 @@ MikanStageID StageComponent::getStageId() const
 void StageComponent::setTrackingVolumeId(MikanTrackingVolumeID volumeId)
 {
 	getStageComponentDefinition()->setTrackingVolumeId(volumeId);
-}
-
-void StageComponent::deleteStage()
-{
-	getOwnerObject()->deleteSelfConfig();
 }

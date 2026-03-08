@@ -131,7 +131,6 @@ void CameraDefinition::setAperturePoseOffset(const MikanQuatd& q, const MikanVec
 
 // -- CameraComponent -----
 const std::string CameraComponent::k_alignCameraFunctionId = "align_camera";
-const std::string CameraComponent::k_deleteCameraFunctionId = "delete_camera";
 
 CameraComponent::CameraComponent(MikanObjectWeakPtr owner)
 	: TransformComponent(owner)
@@ -631,9 +630,6 @@ void CameraComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConst
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(
 			k_alignCameraFunctionId, "Align Camera"));
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_deleteCameraFunctionId, "Delete Camera"));
 }
 
 bool CameraComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
@@ -643,10 +639,6 @@ bool CameraComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
 	if (functionName == CameraComponent::k_alignCameraFunctionId)
 	{
 		alignCamera();
-	}
-	else if (functionName == CameraComponent::k_deleteCameraFunctionId)
-	{
-		deleteCamera();
 	}
 
 	return TransformComponent::invokeFunction(functionDesc);
@@ -669,9 +661,4 @@ void CameraComponent::alignCamera()
 		//AppStage_CameraTriangulation* CameraTriangulation = MainWindow::getInstance()->pushAppStageOfType<AppStage_CameraTriangulation>();
 		//CameraTriangulation->setTargetCameraDefinition(getCameraDefinition());
 	}
-}
-
-void CameraComponent::deleteCamera()
-{
-	getOwnerObject()->deleteSelfConfig();
 }

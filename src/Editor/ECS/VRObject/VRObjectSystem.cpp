@@ -403,7 +403,7 @@ VRDeviceComponentPtr VRObjectSystem::addNewVRDevice(
 
 bool VRObjectSystem::removeVRDevice(MikanVRDeviceID vrDeviceId)
 {
-	return Super::removeObject(vrDeviceId);
+	return Super::removeObjectByPrimaryComponentId(vrDeviceId);
 }
 
 // -- Utility Methods

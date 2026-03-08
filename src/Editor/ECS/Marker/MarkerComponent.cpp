@@ -176,7 +176,7 @@ void MarkerComponent::deleteMarker()
 	{
 		const MikanMarkerID markerId = markerDefinition->getMarkerId();
 
-		getOwnerMarkerSystem()->removeObject(markerId);
+		getOwnerMarkerSystem()->removeObjectByPrimaryComponentId(markerId);
 	}
 }
 

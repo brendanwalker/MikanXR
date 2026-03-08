@@ -108,7 +108,7 @@ namespace StencilUtils
 			QuadStencilSystemPtr quadStencilSystem = projectManager->getSystemOfType<QuadStencilSystem>();
 			if (quadStencilSystem)
 			{
-				return quadStencilSystem->removeObject(stencilId);
+				return quadStencilSystem->removeObjectByPrimaryComponentId(stencilId);
 			}
 			break;
 		}
@@ -117,7 +117,7 @@ namespace StencilUtils
 			BoxStencilSystemPtr boxStencilSystem = projectManager->getSystemOfType<BoxStencilSystem>();
 			if (boxStencilSystem)
 			{
-				return boxStencilSystem->removeObject(stencilId);
+				return boxStencilSystem->removeObjectByPrimaryComponentId(stencilId);
 			}
 			break;
 		}
@@ -126,7 +126,7 @@ namespace StencilUtils
 			ModelStencilSystemPtr modelStencilSystem = projectManager->getSystemOfType<ModelStencilSystem>();
 			if (modelStencilSystem)
 			{
-				return modelStencilSystem->removeObject(stencilId);
+				return modelStencilSystem->removeObjectByPrimaryComponentId(stencilId);
 			}
 			break;
 		}

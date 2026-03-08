@@ -82,12 +82,12 @@ namespace TextureSourceQueries
 			case eTextureSourceType::client:
 			{
 				auto clientTextureSourceSystem = projectManager->getSystemOfType<ClientTextureSourceSystem>();
-				return clientTextureSourceSystem->removeObject(textureSourceId);
+				return clientTextureSourceSystem->removeObjectByPrimaryComponentId(textureSourceId);
 			}
 			case eTextureSourceType::spout:
 			{
 				auto spoutTextureSourceSystem = projectManager->getSystemOfType<SpoutTextureSourceSystem>();
-				return spoutTextureSourceSystem->removeObject(textureSourceId);
+				return spoutTextureSourceSystem->removeObjectByPrimaryComponentId(textureSourceId);
 			}
 		}
 

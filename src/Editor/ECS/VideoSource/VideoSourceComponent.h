@@ -109,14 +109,12 @@ public:
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
 
 	// -- IFunctionInterface ----
-	static const std::string k_deleteVideoSourceFunctionId;
 	static const std::string k_showVideoSourceSettingsFunctionId;
 	static const std::string k_calibrateIntrinsicsFunctionId;
 	static const std::string k_testIntrinsicsFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames);
 	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
 
-	void deleteVideoSource();
 	void showVideoSourceSettings();
 	void calibrateIntrinsics();
 	void testIntrinsics();

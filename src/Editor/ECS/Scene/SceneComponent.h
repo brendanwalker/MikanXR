@@ -67,7 +67,6 @@ public:
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
 
 	// -- IFunctionInterface ----
-	static const std::string k_deleteSceneFunctionId;
 	static const std::string k_addCompositorRefFunctionId;
 	static const std::string k_removeCompositorRefFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
@@ -96,7 +95,6 @@ protected:
 	void onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
 	// IFunctionInterface handlers
-	void deleteScene();
 	void addCompositorRef();
 	void removeCompositorRef();
 

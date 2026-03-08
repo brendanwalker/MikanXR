@@ -52,12 +52,10 @@ public:
 
 	// -- IFunctionInterface ----
 	static const std::string k_editAnchorFunctionId;
-	static const std::string k_deleteAnchorFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
 	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
 
 	void editAnchor();
-	void deleteAnchor();
 
 protected:
 	SelectionComponentWeakPtr m_selectionComponent;

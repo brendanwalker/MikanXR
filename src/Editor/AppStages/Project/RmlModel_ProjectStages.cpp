@@ -205,7 +205,7 @@ void RmlModel_ProjectStages::removeStage(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	getStageSystem()->removeObject(m_selectedStageId);
+	getStageSystem()->removeObjectByPrimaryComponentId(m_selectedStageId);
 }
 
 void RmlModel_ProjectStages::addNewCamera(
@@ -224,7 +224,7 @@ void RmlModel_ProjectStages::removeCamera(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	getCameraSystem()->removeObject(m_selectedCameraId);
+	getCameraSystem()->removeObjectByPrimaryComponentId(m_selectedCameraId);
 }
 
 void RmlModel_ProjectStages::addNewCompositor(
@@ -244,7 +244,7 @@ void RmlModel_ProjectStages::removeCompositor(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	getCompositorSystem()->removeObject(m_selectedCompositorId);
+	getCompositorSystem()->removeObjectByPrimaryComponentId(m_selectedCompositorId);
 }
 
 void RmlModel_ProjectStages::selectStageEntry(

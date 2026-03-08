@@ -403,7 +403,6 @@ bool VideoSourceComponent::setPropertyValue(
 }
 
 // -- IFunctionInterface ----
-const std::string VideoSourceComponent::k_deleteVideoSourceFunctionId = "delete_video_source";
 const std::string VideoSourceComponent::k_showVideoSourceSettingsFunctionId = "show_video_source_settings";
 const std::string VideoSourceComponent::k_calibrateIntrinsicsFunctionId = "calibrate_intrinsics";
 const std::string VideoSourceComponent::k_testIntrinsicsFunctionId = "test_intrinsics";
@@ -412,9 +411,6 @@ void VideoSourceComponent::getFunctionDescriptors(std::vector<FunctionDescriptor
 {
 	MikanComponent::getFunctionDescriptors(outDescriptors);
 
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_deleteVideoSourceFunctionId, "Delete Video Source"));
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(
 			k_showVideoSourceSettingsFunctionId, "Show Video Source Settings"));
@@ -430,12 +426,7 @@ bool VideoSourceComponent::invokeFunction(FunctionDescriptorConstPtr functionDes
 {
 	const std::string& functionName = functionDesc->getFunctionName();
 
-	if (functionName == k_deleteVideoSourceFunctionId)
-	{
-		deleteVideoSource();
-		return true;
-	}
-	else if (functionName == k_showVideoSourceSettingsFunctionId)
+	if (functionName == k_showVideoSourceSettingsFunctionId)
 	{
 		showVideoSourceSettings();
 		return true;
@@ -452,11 +443,6 @@ bool VideoSourceComponent::invokeFunction(FunctionDescriptorConstPtr functionDes
 	}
 
 	return MikanComponent::invokeFunction(functionDesc);
-}
-
-void VideoSourceComponent::deleteVideoSource()
-{
-	getOwnerObject()->deleteSelfConfig();
 }
 
 void VideoSourceComponent::showVideoSourceSettings()

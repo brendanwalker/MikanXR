@@ -234,7 +234,7 @@ void RmlModel_ProjectTracking::removeTrackingMountID(
 			const auto definition= vrTrackingVolumePtr->getVRTrackingVolumeDefinition();
 
 			definition->removeTrackingMountID((MikanTrackingMountID)m_selectedTrackingMountId);
-			getTrackingMountSystem()->removeObject((MikanTrackingMountID)m_selectedTrackingMountId);
+			getTrackingMountSystem()->removeObjectByPrimaryComponentId((MikanTrackingMountID)m_selectedTrackingMountId);
 		}
 	}
 }
