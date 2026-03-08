@@ -24,6 +24,10 @@
 
 #include "MikanEditorTypes.rfks.h"
 
+#include "MikanFunctionEvents.rfks.h"
+#include "MikanFunctionTypes.rfks.h"
+#include "MikanFunctionRequests.rfks.h"
+
 #include "MikanMarkerTypes.rfks.h"
 
 #include "MikanMathTypes.rfks.h"
@@ -67,6 +71,7 @@
 
 #include "MikanAnchorTypes.h"
 #include "MikanEditorTypes.h"
+#include "MikanFunctionTypes.h"
 #include "MikanCameraTypes.h"
 #include "MikanCompositorTypes.h"
 #include "MikanMarkerTypes.h"
