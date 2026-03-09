@@ -63,7 +63,7 @@ public:
 	static const std::string k_deleteMarkerFunctionId;
 	static const std::string k_printMarkerFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
-	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
+	virtual bool invokeFunction(const std::string& functionName) override;
 
 	void deleteMarker();
 	void printMarker();

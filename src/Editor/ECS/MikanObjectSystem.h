@@ -96,7 +96,7 @@ public:
 	// -- IFunctionInterface ----
 	virtual void registerFunctionDescriptors(MikanFunctionDatabasePtr functionDatabase);
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors) {}
-	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc)  override { return false; }
+	virtual bool invokeFunction(const std::string& functionName) override { return false; }
 		
 protected:
 	ProjectManagerWeakPtr m_ownerObjectSystemManager;

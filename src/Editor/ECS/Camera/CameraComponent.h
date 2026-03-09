@@ -115,7 +115,7 @@ public:
 	// -- IFunctionInterface ----
 	static const std::string k_alignCameraFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames);
-	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
+	virtual bool invokeFunction(const std::string& functionName) override;
 
 	void alignCamera();
 

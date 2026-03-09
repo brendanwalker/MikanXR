@@ -54,7 +54,7 @@ public:
 	// -- IFunctionInterface ----
 	static const std::string k_editAnchorFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
-	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
+	virtual bool invokeFunction(const std::string& functionName) override;
 
 	void editAnchor();
 

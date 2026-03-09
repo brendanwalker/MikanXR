@@ -114,7 +114,7 @@ public:
 	static const std::string k_calibrateIntrinsicsFunctionId;
 	static const std::string k_testIntrinsicsFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames);
-	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
+	virtual bool invokeFunction(const std::string& functionName) override;
 
 	void showVideoSourceSettings();
 	void calibrateIntrinsics();

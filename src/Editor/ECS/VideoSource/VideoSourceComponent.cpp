@@ -440,10 +440,8 @@ void VideoSourceComponent::getFunctionDescriptors(std::vector<FunctionDescriptor
 			k_testIntrinsicsFunctionId, "Test Intrinsics"));
 }
 
-bool VideoSourceComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
+bool VideoSourceComponent::invokeFunction(const std::string& functionName)
 {
-	const std::string& functionName = functionDesc->getFunctionName();
-
 	if (functionName == k_showVideoSourceSettingsFunctionId)
 	{
 		showVideoSourceSettings();
@@ -460,7 +458,7 @@ bool VideoSourceComponent::invokeFunction(FunctionDescriptorConstPtr functionDes
 		return true;
 	}
 
-	return MikanComponent::invokeFunction(functionDesc);
+	return MikanComponent::invokeFunction(functionName);
 }
 
 void VideoSourceComponent::showVideoSourceSettings()

@@ -114,7 +114,7 @@ public:
 	// -- IFunctionInterface ----
 	static const std::string k_resetToDefaultsFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames);
-	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
+	virtual bool invokeFunction(const std::string& functionName) override;
 
 protected:
 	void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet) override;

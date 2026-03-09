@@ -81,7 +81,7 @@ public:
 	// -- IFunctionInterface ----
 	static const std::string k_alignTrackingVolumeFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames);
-	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
+	virtual bool invokeFunction(const std::string& functionName) override;
 
 protected:
 	void alignTrackingVolume();

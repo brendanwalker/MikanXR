@@ -651,16 +651,14 @@ void CameraComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConst
 			k_alignCameraFunctionId, "Align Camera"));
 }
 
-bool CameraComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
+bool CameraComponent::invokeFunction(const std::string& functionName)
 {
-	const std::string& functionName = functionDesc->getFunctionName();
-
 	if (functionName == CameraComponent::k_alignCameraFunctionId)
 	{
 		alignCamera();
 	}
 
-	return TransformComponent::invokeFunction(functionDesc);
+	return TransformComponent::invokeFunction(functionName);
 }
 
 void CameraComponent::alignCamera()

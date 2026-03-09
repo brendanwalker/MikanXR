@@ -354,17 +354,15 @@ void VRTrackingVolumeComponent::getFunctionDescriptors(std::vector<FunctionDescr
 			k_alignTrackingVolumeFunctionId, "Align Tracking Volume"));
 }
 
-bool VRTrackingVolumeComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
+bool VRTrackingVolumeComponent::invokeFunction(const std::string& functionName)
 {
-	const std::string& functionId = functionDesc->getFunctionName();
-
-	if (functionId == k_alignTrackingVolumeFunctionId)
+	if (functionName == k_alignTrackingVolumeFunctionId)
 	{
 		alignTrackingVolume();
 		return true;
 	}
 
-	return TrackingVolumeComponent::invokeFunction(functionDesc);
+	return TrackingVolumeComponent::invokeFunction(functionName);
 }
 
 void VRTrackingVolumeComponent::alignTrackingVolume()

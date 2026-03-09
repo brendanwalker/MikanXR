@@ -71,7 +71,7 @@ public:
 	static const std::string k_addCompositorRefFunctionId;
 	static const std::string k_removeCompositorRefFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
-	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
+	virtual bool invokeFunction(const std::string& functionName) override;
 
 	// -- Lua Binding ----
 	static void bindLuaFunctions(struct lua_State* L);

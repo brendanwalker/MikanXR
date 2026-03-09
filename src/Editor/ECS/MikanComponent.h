@@ -134,7 +134,7 @@ public:
 	static const std::string k_addNewScriptFunctionId;
 	static const std::string k_removeScriptFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
-	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) override;
+	virtual bool invokeFunction(const std::string& functionName) override;
 
 	// -- Lua Binding ----
 	static void bindLuaFunctions(struct lua_State* L);

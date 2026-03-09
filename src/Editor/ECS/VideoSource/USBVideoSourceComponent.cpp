@@ -1440,15 +1440,13 @@ void USBVideoSourceComponent::getFunctionDescriptors(std::vector<FunctionDescrip
 			k_resetToDefaultsFunctionId, "Reset to Defaults"));
 }
 
-bool USBVideoSourceComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
+bool USBVideoSourceComponent::invokeFunction(const std::string& functionName)
 {
-	const std::string& functionName = functionDesc->getFunctionName();
-
 	if (functionName == k_resetToDefaultsFunctionId)
 	{
 		saveVideoSettingDefaultsFromCurrentMode();
 		return true;
 	}
 
-	return VideoSourceComponent::invokeFunction(functionDesc);
+	return VideoSourceComponent::invokeFunction(functionName);
 }

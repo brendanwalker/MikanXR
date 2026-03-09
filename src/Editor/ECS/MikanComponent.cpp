@@ -457,10 +457,8 @@ void MikanComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstP
 			k_removeScriptFunctionId, "Remove Script"));
 }
 
-bool MikanComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
+bool MikanComponent::invokeFunction(const std::string& functionName)
 {
-	const std::string& functionName = functionDesc->getFunctionName();
-
 	if (functionName == MikanComponent::k_reloadScriptFunctionId)
 	{
 		reloadComponentScript();

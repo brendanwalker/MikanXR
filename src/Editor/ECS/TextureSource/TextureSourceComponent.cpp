@@ -71,15 +71,13 @@ void TextureSourceComponent::getFunctionDescriptors(std::vector<FunctionDescript
 			k_showTextureSourceSettingsFunctionId, "Show Texture Source Settings"));
 }
 
-bool TextureSourceComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
+bool TextureSourceComponent::invokeFunction(const std::string& functionName)
 {
-	const std::string& functionName = functionDesc->getFunctionName();
-
 	if (functionName == k_showTextureSourceSettingsFunctionId)
 	{
 		showTextureSourceSettings();
 		return true;
 	}
 
-	return MikanComponent::invokeFunction(functionDesc);
+	return MikanComponent::invokeFunction(functionName);
 }

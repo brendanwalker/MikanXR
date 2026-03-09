@@ -496,10 +496,8 @@ void ModelStencilComponent::getFunctionDescriptors(std::vector<FunctionDescripto
 			k_alignStencilFunctionId, "Align Stencil"));
 }
 
-bool ModelStencilComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
+bool ModelStencilComponent::invokeFunction(const std::string& functionName)
 {
-	const std::string& functionName = functionDesc->getFunctionName();
-
 	if (functionName == ModelStencilComponent::k_addNewModelFunctionId)
 	{
 		addNewModel();
@@ -513,7 +511,7 @@ bool ModelStencilComponent::invokeFunction(FunctionDescriptorConstPtr functionDe
 		alignStencil();
 	}
 
-	return StencilComponent::invokeFunction(functionDesc);
+	return StencilComponent::invokeFunction(functionName);
 }
 
 void ModelStencilComponent::addNewModel()

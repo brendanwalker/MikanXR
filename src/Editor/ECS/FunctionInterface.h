@@ -26,7 +26,7 @@ using FunctionDescriptorConstPtr = std::shared_ptr<const FunctionDescriptor>;
 class IFunctionInterface
 {
 public:
-	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc) = 0;
+	virtual bool invokeFunction(const std::string& functionName) = 0;
 };
 using IFunctionInterfacePtr = std::shared_ptr<IFunctionInterface>;
 using IFunctionInterfaceConstPtr = std::shared_ptr<const IFunctionInterface>;

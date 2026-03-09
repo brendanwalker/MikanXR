@@ -328,17 +328,15 @@ void MarkerObjectSystem::getFunctionDescriptors(std::vector<FunctionDescriptorCo
 			k_printCharucoMarkerFunctionId, "Print Marker"));
 }
 
-bool MarkerObjectSystem::invokeFunction(FunctionDescriptorConstPtr functionDesc)
+bool MarkerObjectSystem::invokeFunction(const std::string& functionName)
 {
-	const std::string& functionName = functionDesc->getFunctionName();
-
 	if (functionName == k_printCharucoMarkerFunctionId)
 	{
 		printMarker();
 		return true;
 	}
 
-	return Super::invokeFunction(functionDesc);
+	return Super::invokeFunction(functionName);
 }
 
 void MarkerObjectSystem::printMarker()

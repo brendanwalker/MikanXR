@@ -147,18 +147,15 @@ void AnchorComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConst
 			k_editAnchorFunctionId, "Edit Anchor"));
 }
 
-bool AnchorComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
+bool AnchorComponent::invokeFunction(const std::string& functionName)
 {
-	const std::string& functionName = functionDesc->getFunctionName();
-
 	if (functionName == AnchorComponent::k_editAnchorFunctionId)
 	{
 		editAnchor();
 		return true;
 	}
 
-
-	return TransformComponent::invokeFunction(functionDesc);
+	return TransformComponent::invokeFunction(functionName);
 }
 
 StageComponentConstPtr AnchorComponent::getOwnerStageComponent() const

@@ -99,11 +99,11 @@ void FunctionRequestHandler::invokeSystemFunctionRequestHandler(
 		return;
 	}
 
-	//if (!objectSystem->invokeFunction(invokeFunctionRequest.functionName.getValue()))
-	//{
-	//	writeSimpleJsonResponse(request.requestId, MikanAPIResult::UnknownFunction, response);
-	//	return;
-	//}
+	if (!objectSystem->invokeFunction(invokeFunctionRequest.functionName.getValue()))
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::UnknownFunction, response);
+		return;
+	}
 
 	writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 }
@@ -134,11 +134,11 @@ void FunctionRequestHandler::invokeComponentFunctionRequestHandler(
 		return;
 	}
 
-	//if (!componentPtr->invokeFunction(invokeFunctionRequest.functionName.getValue()))
-	//{
-	//	writeSimpleJsonResponse(request.requestId, MikanAPIResult::UnknownFunction, response);
-	//	return;
-	//}
+	if (!componentPtr->invokeFunction(invokeFunctionRequest.functionName.getValue()))
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::UnknownFunction, response);
+		return;
+	}
 
 	writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 }

@@ -215,7 +215,7 @@ bool RmlModel_EntityAccessor::init(
 				IFunctionInterfacePtr functionInterface = m_entityAccessor.lock();
 				if (functionInterface)
 				{
-					functionInterface->invokeFunction(functionDescriptor);
+					functionInterface->invokeFunction(functionDescriptor->getFunctionName());
 				}
 			});
 	}

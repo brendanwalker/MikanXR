@@ -406,22 +406,20 @@ void SceneComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstP
 			k_removeCompositorRefFunctionId, "Remove Compositor Reference"));
 }
 
-bool SceneComponent::invokeFunction(FunctionDescriptorConstPtr functionDesc)
+bool SceneComponent::invokeFunction(const std::string& functionName)
 {
-	const std::string& functionId = functionDesc->getFunctionName();
-
-	if (functionId == k_addCompositorRefFunctionId)
+	if (functionName == k_addCompositorRefFunctionId)
 	{
 		addCompositorRef();
 		return true;
 	}
-	else if (functionId == k_removeCompositorRefFunctionId)
+	else if (functionName == k_removeCompositorRefFunctionId)
 	{
 		removeCompositorRef();
 		return true;
 	}
 
-	return TransformComponent::invokeFunction(functionDesc);
+	return TransformComponent::invokeFunction(functionName);
 }
 
 void SceneComponent::addCompositorRef()
