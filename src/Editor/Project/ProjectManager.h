@@ -12,6 +12,8 @@
 
 using MikanPropertyDatabasePtr = std::shared_ptr<class MikanPropertyDatabase>;
 using MikanPropertyDatabaseConstPtr = std::shared_ptr<const class MikanPropertyDatabase>;
+using MikanFunctionDatabasePtr = std::shared_ptr<class MikanFunctionDatabase>;
+using MikanFunctionDatabaseConstPtr = std::shared_ptr<const class MikanFunctionDatabase>;
 
 class ProjectManager : public std::enable_shared_from_this<ProjectManager>
 {
@@ -22,6 +24,8 @@ public:
 	inline class IMkWindow* getOwnerWindow() const { return m_ownerWindow; }
 	inline MikanPropertyDatabasePtr getPropertyDatabase() { return m_propertyDatabase; }
 	inline MikanPropertyDatabaseConstPtr getPropertyDatabaseConst() const { return m_propertyDatabase; }
+	inline MikanFunctionDatabasePtr getFunctionDatabase() { return m_functionDatabase; }
+	inline MikanFunctionDatabaseConstPtr getFunctionDatabaseConst() const { return m_functionDatabase; }
 
 	template <class t_system_type>
 	std::shared_ptr<t_system_type> addSystem() { 
@@ -74,6 +78,7 @@ private:
 	std::vector<MikanObjectSystemPtr> m_systems;
 	std::map<std::string, int> m_systemNameToIndexMap;
 	MikanPropertyDatabasePtr m_propertyDatabase;
+	MikanFunctionDatabasePtr m_functionDatabase;
 
 	// Project Config
 	ProjectConfigPtr m_projectConfig;

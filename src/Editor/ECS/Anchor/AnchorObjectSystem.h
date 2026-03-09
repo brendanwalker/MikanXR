@@ -61,8 +61,6 @@ public:
 	}
 	bool getSpatialAnchorWorldTransform(MikanSpatialAnchorID anchorId, glm::mat4& outXform) const;
 
-	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
-
 	// -- IPropertyInterface ----
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;

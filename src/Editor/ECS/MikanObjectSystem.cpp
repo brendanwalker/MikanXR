@@ -1,6 +1,7 @@
 #include "MikanObjectSystem.h"
 #include "MikanObject.h"
 #include "MikanPropertyDatabase.h"
+#include "MikanFunctionDatabase.h"
 #include "MikanVariantTypes.h"
 #include "MikanPropertyTypes.h"
 
@@ -105,6 +106,11 @@ void MikanObjectSystem::deleteAllObjects()
 void MikanObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
 {
 	propertyDatabase->registerPropertiesForSystem<MikanObjectSystem>();
+}
+
+void MikanObjectSystem::registerFunctionDescriptors(MikanFunctionDatabasePtr functionDatabase)
+{
+	functionDatabase->registerFunctionsForSystem<MikanObjectSystem>();
 }
 
 // -- IEntityAccessor ----

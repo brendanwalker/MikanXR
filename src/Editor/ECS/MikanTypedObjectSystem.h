@@ -4,6 +4,7 @@
 #include "MikanTypedComponentPool.h"
 #include "MikanTypedObjectSystemDefinition.h"
 #include "MikanPropertyDatabase.h"
+#include "MikanFunctionDatabase.h"
 #include "TransformComponent.h"
 
 #include <memory>
@@ -52,6 +53,12 @@ public:
 	{
 		propertyDatabase->template registerPropertiesForSystem<TSystem>();
 		propertyDatabase->template registerPropertiesForComponent<TSystem, TComponent>();
+	}
+
+	virtual void registerFunctionDescriptors(MikanFunctionDatabasePtr functionDatabase) override
+	{
+		functionDatabase->template registerFunctionsForSystem<TSystem>();
+		functionDatabase->template registerFunctionsForComponent<TSystem, TComponent>();
 	}
 
 	virtual bool deleteObject(MikanObjectPtr objectPtr) override

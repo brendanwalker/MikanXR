@@ -7,8 +7,8 @@
 #include "MikanObject.h"
 #include "MikanObjectSystem.h"
 #include "MikanServer.h"
-//#include "MikanFunctionDatabase.h"
-//#include "FunctionDatabaseEnumerator.h"
+#include "MikanFunctionDatabase.h"
+#include "FunctionDatabaseEnumerator.h"
 #include "FunctionRequestHandler.h"
 #include "MikanFunctionEvents.h"
 #include "MikanFunctionRequests.h"
@@ -156,26 +156,27 @@ void FunctionRequestHandler::getFunctionListHandler(
 
 	FunctionDescriptorResponse propertyDescriptorResponse;
 
-	//MikanFunctionDatabaseConstPtr propertyDatabase = getProjectManager()->getFunctionDatabaseConst();
-	//FunctionDatabaseEnumerator enumerator(
-	//	propertyDatabase,
-	//	getFunctionListRequest.systemFilter.getValue(),
-	//	getFunctionListRequest.componentFilter.getValue());
-	//while (enumerator.isValid())
-	//{
-	//	int propertyIndex = enumerator.getCurrentFunctionIndex();
-	//	const MikanFunctionEntry* propertyEntry = propertyDatabase->getFunctionByIndex(propertyIndex);
+	MikanFunctionDatabaseConstPtr propertyDatabase = getProjectManager()->getFunctionDatabaseConst();
+	FunctionDatabaseEnumerator enumerator(
+		propertyDatabase,
+		getFunctionListRequest.systemFilter.getValue(),
+		getFunctionListRequest.componentFilter.getValue(), 
+		"");
+	while (enumerator.isValid())
+	{
+		int propertyIndex = enumerator.getCurrentFunctionIndex();
+		const MikanFunctionEntry* propertyEntry = propertyDatabase->getFunctionByIndex(propertyIndex);
 
-	//	MikanFunctionDescriptor descriptorResult = {};
-	//	descriptorResult.ownerSystemClass.setValue(propertyEntry->systemName);
-	//	descriptorResult.ownerComponentClass.setValue(propertyEntry->componentClassName);
-	//	descriptorResult.functionName.setValue(propertyEntry->descriptor->getFunctionName());
-	//	descriptorResult.displayName.setValue(propertyEntry->descriptor->getDisplayName());
+		MikanFunctionDescriptor descriptorResult = {};
+		descriptorResult.ownerSystemClass.setValue(propertyEntry->systemName);
+		descriptorResult.ownerComponentClass.setValue(propertyEntry->componentClassName);
+		descriptorResult.functionName.setValue(propertyEntry->descriptor->getFunctionName());
+		descriptorResult.displayName.setValue(propertyEntry->descriptor->getDisplayName());
 
-	//	propertyDescriptorResponse.descriptor_list.push_back(descriptorResult);
+		propertyDescriptorResponse.descriptor_list.push_back(descriptorResult);
 
-	//	enumerator.next();
-	//}
+		enumerator.next();
+	}
 
 	writeTypedJsonResponse(request.requestId, propertyDescriptorResponse, response);
 }

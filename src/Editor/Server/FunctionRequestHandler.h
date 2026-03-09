@@ -4,6 +4,7 @@
 #include "ComponentFwd.h"
 #include "IServerRequestHandler.h"
 #include "ObjectSystemConfigFwd.h"
+#include "ObjectFwd.h"
 
 class FunctionRequestHandler : public IServerRequestHandler
 {

@@ -13,6 +13,7 @@
 
 using MikanObjectList = std::vector<MikanObjectPtr>;
 using MikanPropertyDatabasePtr = std::shared_ptr<class MikanPropertyDatabase>;
+using MikanFunctionDatabasePtr = std::shared_ptr<class MikanFunctionDatabase>;
 
 class MikanObjectSystemDefinition : public CommonConfig
 {
@@ -93,6 +94,7 @@ public:
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override { return false; }
 
 	// -- IFunctionInterface ----
+	virtual void registerFunctionDescriptors(MikanFunctionDatabasePtr functionDatabase);
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors) {}
 	virtual bool invokeFunction(FunctionDescriptorConstPtr functionDesc)  override { return false; }
 		

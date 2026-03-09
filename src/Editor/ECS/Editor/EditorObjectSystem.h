@@ -67,6 +67,7 @@ public:
 	inline MikanObjectPtr getGizmoObject() const { return m_gizmoObjectWeakPtr.lock(); }
 
 	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
+	virtual void registerFunctionDescriptors(MikanFunctionDatabasePtr functionDatabase) override;
 
 	// -- IPropertyInterface ----
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);

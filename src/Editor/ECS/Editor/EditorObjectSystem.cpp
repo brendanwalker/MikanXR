@@ -10,6 +10,7 @@
 #include "GizmoTranslateComponent.h"
 #include "MikanViewport.h"
 #include "MikanPropertyDatabase.h"
+#include "MikanFunctionDatabase.h"
 #include "InputManager.h"
 #include "ProjectManager.h"
 #include "MainWindow.h"
@@ -513,6 +514,11 @@ SelectionComponentPtr EditorObjectSystem::findClosestSelectionTarget(
 void EditorObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
 {
 	propertyDatabase->registerPropertiesForSystem<EditorObjectSystem>();
+}
+
+void EditorObjectSystem::registerFunctionDescriptors(MikanFunctionDatabasePtr functionDatabase)
+{
+	functionDatabase->registerFunctionsForSystem<EditorObjectSystem>();
 }
 
 // -- IPropertyInterface ----

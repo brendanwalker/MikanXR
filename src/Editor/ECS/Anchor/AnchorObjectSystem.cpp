@@ -5,7 +5,6 @@
 #include "TransformComponent.h"
 #include "MathTypeConversion.h"
 #include "MikanObject.h"
-#include "MikanPropertyDatabase.h"
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
 #include "ProjectConfig.h"
@@ -81,12 +80,6 @@ void AnchorObjectSystem::additionalComponentFactory(
 	boxColliderPtr->setHalfExtents(glm::vec3(size * 0.5f, size * 0.5f, size * 0.5f));
 	boxColliderPtr->setRelativeTransform(GlmTransform(glm::vec3(size * 0.5f, size * 0.5f, size * 0.5f)));
 	boxColliderPtr->attachToComponent(rootComponent);
-}
-
-void AnchorObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
-{
-	propertyDatabase->registerPropertiesForSystem<AnchorObjectSystem>();
-	propertyDatabase->registerPropertiesForComponent<AnchorObjectSystem, AnchorComponent>();
 }
 
 // -- IPropertyInterface ----

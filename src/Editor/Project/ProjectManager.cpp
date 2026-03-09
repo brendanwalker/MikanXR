@@ -12,6 +12,7 @@
 #include "MainWindow.h"
 #include "MarkerObjectSystem.h"
 #include "MikanPropertyDatabase.h"
+#include "MikanFunctionDatabase.h"
 #include "NetworkVideoSourceSystem.h"
 #include "PathUtils.h"
 #include "ProjectConfig.h"
@@ -35,6 +36,7 @@ const char* ProjectManager::k_mikanProjectFileExtension= ".mikanproj";
 ProjectManager::ProjectManager(IMkWindow* ownerWindow)
 	: m_ownerWindow(ownerWindow)
 	, m_propertyDatabase(std::make_shared<MikanPropertyDatabase>())
+	, m_functionDatabase(std::make_shared<MikanFunctionDatabase>())
 {
 }
 
@@ -66,6 +68,12 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	for (int i = 0; i < (int)m_systems.size(); i++)
 	{
 		m_systems[i]->registerPropertyDescriptors(m_propertyDatabase);
+	}
+
+	// Gather all function descriptors from all the systems and add them to the database
+	for (int i = 0; i < (int)m_systems.size(); i++)
+	{
+		m_systems[i]->registerFunctionDescriptors(m_functionDatabase);
 	}
 
 	// Create a default project if we can't load the last opened one
@@ -116,6 +124,7 @@ void ProjectManager::shutdown()
 	unloadProject();
 	m_systems.clear();
 	m_propertyDatabase->clear();
+	m_functionDatabase->clear();
 }
 
 void ProjectManager::update(float deltaSeconds)

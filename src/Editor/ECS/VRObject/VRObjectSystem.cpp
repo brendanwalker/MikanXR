@@ -10,7 +10,6 @@
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
 #include "MikanModuleManager.h"
-#include "MikanPropertyDatabase.h"
 #include "MulticastDelegate.h"
 #include "ProjectConfig.h"
 #include "SelectionComponent.h"
@@ -424,10 +423,4 @@ void addAllVRDevicesToMkScene(VRObjectSystemPtr vrObjectSystem, IMkScenePtr mkSc
 			}
 		});
 	});
-}
-
-void VRObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)
-{
-	propertyDatabase->registerPropertiesForSystem<VRObjectSystem>();
-	propertyDatabase->registerPropertiesForComponent<VRObjectSystem, VRDeviceComponent>();
 }

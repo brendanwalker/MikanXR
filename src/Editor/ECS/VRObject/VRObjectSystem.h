@@ -63,8 +63,6 @@ public:
 	MulticastDelegate<void(eTrackingRuntime runtime, MikanVRDeviceID deviceId)> OnDevicePropertyChanged;
 	MulticastDelegate<void(eTrackingRuntime runtime, int64_t newFrameId)> OnDevicePosesChanged;
 
-	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
-
 protected:
 	eTrackingRuntime findTrackingRuntimeForDeviceManager(const IVRDeviceManager* deviceManager) const;
 	bool findMikanDeviceIdForDeviceIndex(
