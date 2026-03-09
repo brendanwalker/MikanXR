@@ -60,9 +60,9 @@ public:
 	}
 
 	FIELD()
-	Serialization::String ownerSystem;
+	Serialization::String systemFilter;
 	FIELD()
-	Serialization::String componentClassName;
+	Serialization::String componentFilter;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	GetFunctionListRequest_GENERATED

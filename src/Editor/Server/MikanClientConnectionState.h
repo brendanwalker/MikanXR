@@ -39,6 +39,9 @@ public:
 		MikanPropertyNotifyMode notifyMode);
 	void publishPropertyChangedEvent(const MikanPropertyValue& propertyValue);
 
+	// Function Events
+	void publishFunctionChangedEvent(const struct MikanFunctionsUpdatedEvent& functionValue);
+
 private:
 	class MikanServer* m_ownerServer;
 	std::string m_connectionId;
