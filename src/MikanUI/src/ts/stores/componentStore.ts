@@ -26,7 +26,13 @@ import {
   MikanTrackingMountComponentValues,
   MikanTrackingVolumeComponentValues,
   MikanVRTrackingVolumeComponentValues,
-  MikanVRDeviceComponentValues
+  MikanVRDeviceComponentValues,
+  GetFunctionListRequest,
+  CLASS_ID_GET_FUNCTION_LIST_REQUEST,
+  FunctionDescriptorResponse,
+  InvokeComponentFunctionRequest,
+  CLASS_ID_INVOKE_COMPONENT_FUNCTION_REQUEST,
+  MikanFunctionDescriptor
 } from '@mikanxr/client'
 
 // Component registry mapping system names to component class names
@@ -60,6 +66,9 @@ export const useComponentStore = defineStore('components', () => {
 
   // Component indices by class name
   const componentsByClass = ref<Map<string, Set<string>>>(new Map())
+
+  // Function database - maps component key (system:id) to list of function descriptors
+  const componentFunctions = ref<Map<string, MikanFunctionDescriptor[]>>(new Map())
 
   // Computed getters
   const allComponents = computed(() => Array.from(components.value.values()))
@@ -199,6 +208,7 @@ export const useComponentStore = defineStore('components', () => {
     components.value.clear()
     componentsBySystem.value.clear()
     componentsByClass.value.clear()
+    componentFunctions.value.clear()
   }
 
   // Fetch components from server
@@ -399,6 +409,99 @@ export const useComponentStore = defineStore('components', () => {
     return `Unknown (${componentId})`
   }
 
+  // Fetch function list for a specific component
+  async function fetchComponentFunctions(
+    client: MikanClient,
+    ownerSystem: string,
+    componentClassName: string,
+    componentId: number
+  ): Promise<MikanFunctionDescriptor[]> {
+    try {
+      const request: GetFunctionListRequest = {
+        requestTypeId: CLASS_ID_GET_FUNCTION_LIST_REQUEST,
+        requestTypeName: 'GetFunctionListRequest',
+        requestId: 0,
+        systemFilter: ownerSystem,
+        componentFilter: componentClassName
+      }
+
+      const future = client.sendRequest(request)
+      const response = await future.await()
+
+      if (response.resultCode === MikanAPIResult.Success) {
+        const functionResponse = response as FunctionDescriptorResponse
+        const functions = functionResponse.descriptor_list || []
+
+        // Cache the functions for this component
+        const key = makeComponentKey(ownerSystem, componentId)
+        componentFunctions.value.set(key, functions)
+
+        console.log(
+          `[ComponentStore] Fetched ${functions.length} functions for ${componentClassName} (${componentId})`
+        )
+
+        return functions
+      } else {
+        console.warn(
+          `[ComponentStore] Failed to fetch functions for ${componentClassName}: ${response.resultCode}`
+        )
+        return []
+      }
+    } catch (error) {
+      console.error(
+        `[ComponentStore] Error fetching functions for ${componentClassName}:`,
+        error
+      )
+      return []
+    }
+  }
+
+  // Get cached functions for a component
+  function getComponentFunctions(componentId: number, systemName: string): MikanFunctionDescriptor[] {
+    const key = makeComponentKey(systemName, componentId)
+    return componentFunctions.value.get(key) || []
+  }
+
+  // Invoke a function on a component
+  async function invokeComponentFunction(
+    client: MikanClient,
+    ownerSystem: string,
+    componentId: number,
+    functionName: string
+  ): Promise<boolean> {
+    try {
+      const request: InvokeComponentFunctionRequest = {
+        requestTypeId: CLASS_ID_INVOKE_COMPONENT_FUNCTION_REQUEST,
+        requestTypeName: 'InvokeComponentFunctionRequest',
+        requestId: 0,
+        ownerSystem,
+        componentId,
+        functionName
+      }
+
+      const future = client.sendRequest(request)
+      const response = await future.await()
+
+      if (response.resultCode === MikanAPIResult.Success) {
+        console.log(
+          `[ComponentStore] Successfully invoked function "${functionName}" on component ${componentId}`
+        )
+        return true
+      } else {
+        console.error(
+          `[ComponentStore] Failed to invoke function "${functionName}" on component ${componentId}: ${response.resultCode}`
+        )
+        return false
+      }
+    } catch (error) {
+      console.error(
+        `[ComponentStore] Error invoking function "${functionName}" on component ${componentId}:`,
+        error
+      )
+      return false
+    }
+  }
+
   return {
     // State
     components,
@@ -438,6 +541,11 @@ export const useComponentStore = defineStore('components', () => {
 
     // Helpers
     getComponentClassForField,
-    getComponentName
+    getComponentName,
+
+    // Function management
+    fetchComponentFunctions,
+    getComponentFunctions,
+    invokeComponentFunction
   }
 })

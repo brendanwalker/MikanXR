@@ -23,14 +23,26 @@
         <span v-else class="property-value">{{ formatPropertyValue(value) }}</span>
       </div>
     </div>
+    <div v-if="editable && componentFunctions.length > 0" class="component-functions">
+      <button
+        v-for="func in componentFunctions"
+        :key="func.functionName"
+        class="function-button"
+        @click.stop="handleFunctionClick(func.functionName)"
+      >
+        {{ func.displayName }}
+      </button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { MikanComponentValues } from '@mikanxr/client'
+import { computed, ref, onMounted, watch } from 'vue'
+import type { MikanComponentValues, MikanFunctionDescriptor } from '@mikanxr/client'
 import PropertyField from './PropertyField.vue'
 import { useDeveloperFields } from '../../composables/useDeveloperFields.js'
+import { useComponentStore } from '../../stores/componentStore.js'
+import { useMikanStore } from '../../stores/mikanStore.js'
 
 interface Props {
   componentId: number
@@ -55,6 +67,65 @@ const emit = defineEmits<{
 }>()
 
 const { filterComponentProperties, isDeveloperMode } = useDeveloperFields()
+const componentStore = useComponentStore()
+const mikanStore = useMikanStore()
+
+// Function list for this component
+const componentFunctions = ref<MikanFunctionDescriptor[]>([])
+
+// Fetch functions when component is mounted and editable
+onMounted(async () => {
+  if (props.editable) {
+    await fetchFunctions()
+  }
+})
+
+// Watch for changes to editable prop
+watch(() => props.editable, async (newEditable) => {
+  if (newEditable && componentFunctions.value.length === 0) {
+    await fetchFunctions()
+  }
+})
+
+async function fetchFunctions() {
+  // First check if functions are already cached
+  const cachedFunctions = componentStore.getComponentFunctions(props.componentId, props.ownerSystem)
+  if (cachedFunctions.length > 0) {
+    componentFunctions.value = cachedFunctions
+    return
+  }
+
+  // Fetch from server if not cached
+  const client = mikanStore.client as any
+  if (!client) return
+
+  const componentClass = (props.component as any).component_class || ''
+  if (!componentClass) return
+
+  const functions = await componentStore.fetchComponentFunctions(
+    client,
+    props.ownerSystem,
+    componentClass,
+    props.componentId
+  )
+  componentFunctions.value = functions
+}
+
+async function handleFunctionClick(functionName: string) {
+  const client = mikanStore.client as any
+  if (!client) {
+    console.error('[ComponentCard] Cannot invoke function: no client connection')
+    return
+  }
+
+  console.log(`[ComponentCard] Invoking function "${functionName}" on component ${props.componentId}`)
+  await componentStore.invokeComponentFunction(
+    client,
+    props.ownerSystem,
+    props.componentId,
+    functionName
+  )
+}
 
 function handleClick() {
   if (props.selectable && !props.editable) {
@@ -210,5 +281,38 @@ function formatPropertyValue(value: any): string {
   display: flex;
   width: 100%;
   min-width: 0;
+}
+
+.component-functions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.function-button {
+  padding: 8px 16px;
+  background: rgba(92, 184, 92, 0.2);
+  border: 1px solid rgba(92, 184, 92, 0.5);
+  border-radius: 4px;
+  color: #5cb85c;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.function-button:hover {
+  background: rgba(92, 184, 92, 0.3);
+  border-color: #5cb85c;
+  color: #6cd76c;
+}
+
+.function-button:active {
+  background: rgba(92, 184, 92, 0.4);
+  transform: translateY(1px);
 }
 </style>
