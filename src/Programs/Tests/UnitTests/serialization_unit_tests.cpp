@@ -85,6 +85,13 @@ void build_serialization_test_struct(SerializationTestStruct& outStruct)
 
 	Serialization::List<int> intArray({{1, 2, 3}});
 
+	Serialization::List<float> floatArray({ {1.2345f, 5.4321f, 9.8765f} });
+
+	Serialization::List<Serialization::String> stringArray;
+	stringArray.push_back("hello");
+	stringArray.push_back("world");
+	stringArray.push_back("!");
+
 	Serialization::List<SerializationPoint2dStruct> pointArray;
 	pointArray.push_back({1.2345f, 5.4321f});
 	pointArray.push_back({5.4321f, 1.2345f});
@@ -122,6 +129,8 @@ void build_serialization_test_struct(SerializationTestStruct& outStruct)
 	outStruct.point2d_field= {1.2345f, 5.4321f};
 	outStruct.bool_array= boolArray;
 	outStruct.int_array= intArray;
+	outStruct.float_array = floatArray;
+	outStruct.string_array = stringArray;
 	outStruct.point2d_array= pointArray;
 	outStruct.int_point_map= intPointMap;
 	outStruct.string_point_map= stringPointMap;
@@ -167,6 +176,18 @@ void verify_serialization_test_struct(const SerializationTestStruct& actual, con
 	for (size_t i = 0; i < actual.int_array.size(); ++i)
 	{
 		assert(actual.int_array[i] == expected.int_array[i]);
+	}
+
+	assert(actual.float_array.size() == expected.float_array.size());
+	for (size_t i = 0; i < actual.float_array.size(); ++i)
+	{
+		assert(is_nearly_equal(actual.float_array[i], expected.float_array[i], k_real_epsilon));
+	}
+
+	assert(actual.string_array.size() == expected.string_array.size());
+	for (size_t i = 0; i < actual.string_array.size(); ++i)
+	{
+		assert(actual.string_array[i].getValue() == expected.string_array[i].getValue());
 	}
 
 	assert(actual.point2d_array.size() == expected.point2d_array.size());

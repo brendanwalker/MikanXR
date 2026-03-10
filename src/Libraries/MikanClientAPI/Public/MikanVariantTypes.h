@@ -41,6 +41,7 @@ enum class ENUM(Serialization::CodeGenModule("MikanVariantTypes")) MikanVariantT
 	BOOL_ARRAY ENUMVALUE_STRING("BOOL_ARRAY_TYPE"),
 	INT_ARRAY ENUMVALUE_STRING("INT_ARRAY_TYPE"),
 	FLOAT_ARRAY ENUMVALUE_STRING("FLOAT_ARRAY_TYPE"),
+	STRING_ARRAY ENUMVALUE_STRING("STRING_ARRAY_TYPE"),
 
 	// Object Types
 	POLYMORPHIC_OBJECT ENUMVALUE_STRING("POLYMORPHIC_OBJECT_TYPE"),
@@ -96,6 +97,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	const std::vector<bool>& getBoolArrayValue() const;
 	const std::vector<int>& getIntArrayValue() const;
 	const std::vector<float>& getFloatArrayValue() const;
+	const std::vector<Serialization::String>& getStringArrayValue() const;
 	const Serialization::PolymorphicObjectPtr& getPolymorphicObjectValue() const;
 
 #if defined(MIKANAPI_REFLECTION_ENABLED) && defined(SERIALIZATION_REFLECTION_ENABLED)
@@ -120,6 +122,8 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	void setValue(const std::vector<bool>& value);
 	void setValue(const std::vector<int>& value);
 	void setValue(const std::vector<float>& value);
+	void setValue(const std::vector<std::string>& value);
+	void setValue(const std::vector<Serialization::String>& value);
 	void setValue(const Serialization::PolymorphicObjectPtr& value);
 #endif // MIKANAPI_REFLECTION_ENABLED && SERIALIZATION_REFLECTION_ENABLED
 
@@ -331,6 +335,17 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanFloatArrayValue_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanStringArrayValue
+	: public MikanVariantBase
+{
+	FIELD()
+	Serialization::List<Serialization::String> value;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanStringArrayValue_GENERATED
 #endif
 };
 

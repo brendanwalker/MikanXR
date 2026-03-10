@@ -73,6 +73,8 @@ namespace MikanXR
 		public PolymorphicObject null_ptr_field;
 		public List<bool> bool_array;
 		public List<int> int_array;
+		public List<float> float_array;
+		public List<string> string_array;
 		public List<SerializationPoint2d> point2d_array;
 		public Dictionary<int, SerializationPoint2d> int_point_map;
 		public Dictionary<string, SerializationPoint2d> string_point_map;
@@ -85,6 +87,8 @@ namespace MikanXR
 			SerializationTestObject testObject = new SerializationTestObject();
 			var boolArray = new List<bool>() { true, false, true };
 			var intArray = new List<int>() {1, 2, 3};
+			var floatArray = new List<float>() {1.2345f, 5.4321f, 9.8765f};
+			var stringArray = new List<string>() {"hello", "world", "!"};
 
 			var pointArray = new List<SerializationPoint2d>();
 			pointArray.Add( new SerializationPoint2d(1.2345f, 5.4321f) );
@@ -116,6 +120,8 @@ namespace MikanXR
 			testObject.null_ptr_field = new PolymorphicObject();
 			testObject.bool_array= boolArray;
 			testObject.int_array= intArray;
+			testObject.float_array = floatArray;
+			testObject.string_array = stringArray;
 			testObject.point2d_array= pointArray;
 			testObject.int_point_map= intPointMap;
 			testObject.string_point_map= stringPointMap;
@@ -234,6 +240,28 @@ namespace MikanXR
 			for (int i = 0; i < actual.int_array.Count; ++i)
 			{
 				success = (actual.int_array[i] == expected.int_array[i]);
+				Debug.Assert(success);
+				if (!success) return false;
+			}
+
+			success = (actual.float_array.Count == expected.float_array.Count);
+			Debug.Assert(success);
+			if (!success) return false;
+
+			for (int i = 0; i < actual.float_array.Count; ++i)
+			{
+				success = (Math.Abs(actual.float_array[i] - expected.float_array[i]) <= float.Epsilon);
+				Debug.Assert(success);
+				if (!success) return false;
+			}
+
+			success = (actual.string_array.Count == expected.string_array.Count);
+			Debug.Assert(success);
+			if (!success) return false;
+
+			for (int i = 0; i < actual.string_array.Count; ++i)
+			{
+				success = (actual.string_array[i] == expected.string_array[i]);
 				Debug.Assert(success);
 				if (!success) return false;
 			}

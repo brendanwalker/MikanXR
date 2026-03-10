@@ -9,6 +9,28 @@
 #include "MikanScriptRequests.rfkh.h"
 #endif
 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) InvokeComponentScriptTrigger :
+	public MikanRequest
+{
+public:
+	InvokeComponentScriptTrigger()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(InvokeComponentScriptTrigger)
+	}
+
+	FIELD()
+	Serialization::String ownerSystem;
+	FIELD()
+	int componentId;
+	FIELD()
+	Serialization::String trigger_name;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	InvokeComponentScriptTrigger_GENERATED
+#endif
+};
+
+
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanScriptRequest")) SendScriptMessage :
 	public MikanRequest
 {

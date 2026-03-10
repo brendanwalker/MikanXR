@@ -11,4 +11,5 @@ using CommonScriptContextWeakPtr = std::weak_ptr<CommonScriptContext>;
 
 class ComponentScriptContext;
 using ComponentScriptContextPtr = std::shared_ptr<ComponentScriptContext>;
+using ComponentScriptContextConstPtr = std::shared_ptr<const ComponentScriptContext>;
 using ComponentScriptContextWeakPtr = std::weak_ptr<ComponentScriptContext>;

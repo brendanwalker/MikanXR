@@ -116,6 +116,7 @@ public:
 
 	// -- Scripting ----
 	inline ComponentScriptContextPtr getScriptContext() { return m_scriptContext; }
+	inline ComponentScriptContextConstPtr getScriptContext() const { return m_scriptContext; }
 	void reloadComponentScript();
 	void addNewComponentScript();
 	void removeComponentScript();

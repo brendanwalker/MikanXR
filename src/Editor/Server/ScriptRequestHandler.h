@@ -17,6 +17,7 @@ public:
 
 protected:
 	void publishScriptMessageEvent(const std::string& message);
+	void invokeComponentScriptTriggerHandler(const ClientRequest& request, ClientResponse& response);
 	void invokeScriptMessageHandler(const ClientRequest& request, ClientResponse& response);
 
 private:

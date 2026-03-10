@@ -75,6 +75,8 @@ export class SerializationTestObject {
   null_ptr_field: PolymorphicObject = new PolymorphicObject();
   bool_array: boolean[] = [];
   int_array: number[] = [];
+  float_array: number[] = [];
+  string_array: string[] = [];
   point2d_array: SerializationPoint2d[] = [];
   int_point_map: Map<number, SerializationPoint2d> = new Map();
   string_point_map: Map<string, SerializationPoint2d> = new Map();
@@ -98,6 +100,8 @@ export class SerializationTestObject {
     { name: 'null_ptr_field', type: 'PolymorphicObject' },
     { name: 'bool_array', type: 'boolean', isArray: true },
     { name: 'int_array', type: 'int32', isArray: true },
+    { name: 'float_array', type: 'float', isArray: true },
+    { name: 'string_array', type: 'string', isArray: true },
     { name: 'point2d_array', type: 'SerializationPoint2d', isArray: true },
     {
       name: 'int_point_map',
@@ -124,6 +128,8 @@ export function buildSerializationTestObject(): SerializationTestObject {
 
   const boolArray = [true, false, true];
   const intArray = [1, 2, 3];
+  const floatArray = [1.2345, 5.4321, 9.8765];
+  const stringArray = ['hello', 'world', '!'];
 
   const pointArray = [
     new SerializationPoint2d(1.2345, 5.4321),
@@ -160,6 +166,8 @@ export function buildSerializationTestObject(): SerializationTestObject {
   testObject.null_ptr_field = new PolymorphicObject();
   testObject.bool_array = boolArray;
   testObject.int_array = intArray;
+  testObject.float_array = floatArray;
+  testObject.string_array = stringArray;
   testObject.point2d_array = pointArray;
   testObject.int_point_map = intPointMap;
   testObject.string_point_map = stringPointMap;
@@ -297,6 +305,28 @@ export function verifySerializationTestObject(
   for (let i = 0; i < actual.int_array.length; i++) {
     if (actual.int_array[i] !== expected.int_array[i]) {
       return { success: false, message: `int_array[${i}] mismatch` };
+    }
+  }
+
+  // Check float_array
+  if (actual.float_array.length !== expected.float_array.length) {
+    return { success: false, message: 'float_array length mismatch' };
+  }
+
+  for (let i = 0; i < actual.float_array.length; i++) {
+    if (!floatEqual(actual.float_array[i], expected.float_array[i])) {
+      return { success: false, message: `float_array[${i}] mismatch` };
+    }
+  }
+
+  // Check string_array
+  if (actual.string_array.length !== expected.string_array.length) {
+    return { success: false, message: 'string_array length mismatch' };
+  }
+
+  for (let i = 0; i < actual.string_array.length; i++) {
+    if (actual.string_array[i] !== expected.string_array[i]) {
+      return { success: false, message: `string_array[${i}] mismatch` };
     }
   }
 

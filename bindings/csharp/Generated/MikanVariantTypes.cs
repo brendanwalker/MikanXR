@@ -25,7 +25,8 @@ namespace MikanXR
 		BOOL_ARRAY_TYPE= 16,
 		INT_ARRAY_TYPE= 17,
 		FLOAT_ARRAY_TYPE= 18,
-		POLYMORPHIC_OBJECT_TYPE= 19,
+		STRING_ARRAY_TYPE= 19,
+		POLYMORPHIC_OBJECT_TYPE= 20,
 	};
 
 	public class MikanBoolArrayValue : MikanVariantBase
@@ -103,6 +104,13 @@ namespace MikanXR
 		public static new readonly long classId= -3980278345028742771;
 
 		public MikanQuatf value;
+	};
+
+	public class MikanStringArrayValue : MikanVariantBase
+	{
+		public static new readonly long classId= 5781178291974097454;
+
+		public List<string> value;
 	};
 
 	public class MikanStringValue : MikanVariantBase

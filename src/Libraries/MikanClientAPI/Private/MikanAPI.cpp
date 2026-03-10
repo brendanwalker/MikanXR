@@ -24,7 +24,6 @@
 
 #include "MikanEditorTypes.rfks.h"
 
-#include "MikanFunctionEvents.rfks.h"
 #include "MikanFunctionTypes.rfks.h"
 #include "MikanFunctionRequests.rfks.h"
 

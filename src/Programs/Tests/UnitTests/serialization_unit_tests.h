@@ -121,6 +121,12 @@ struct STRUCT() SerializationTestStruct
 	Serialization::List<int> int_array;
 
 	FIELD()
+	Serialization::List<float> float_array;
+
+	FIELD()
+	Serialization::List<Serialization::String> string_array;
+
+	FIELD()
 	Serialization::List<SerializationPoint2dStruct> point2d_array;
 
 	FIELD()
