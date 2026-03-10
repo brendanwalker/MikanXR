@@ -3,7 +3,6 @@
 #include "MikanClientConnectionState.h"
 #include "MikanServer.h"
 #include "MikanPropertyEvents.h"
-#include "MikanFunctionEvents.h"
 #include "PropertyNotifyDatabase.h"
 #include "ServerResponseHelpers.h"
 
@@ -85,12 +84,4 @@ void MikanClientConnectionState::publishPropertyChangedEvent(const MikanProperty
 			getConnectionId(), 
 			mikanTypeToJsonString(propertyUpdateEvent));
 	}
-}
-
-// Function Events
-void MikanClientConnectionState::publishFunctionChangedEvent(const MikanFunctionsUpdatedEvent& functionValue)
-{
-	m_ownerServer->getMessageServer()->sendMessageToClient(
-		getConnectionId(),
-		mikanTypeToJsonString(functionValue));
 }

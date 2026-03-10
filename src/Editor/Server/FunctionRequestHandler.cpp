@@ -10,7 +10,6 @@
 #include "MikanFunctionDatabase.h"
 #include "FunctionDatabaseEnumerator.h"
 #include "FunctionRequestHandler.h"
-#include "MikanFunctionEvents.h"
 #include "MikanFunctionRequests.h"
 #include "MulticastDelegate.h"
 #include "ServerResponseHelpers.h"
@@ -24,16 +23,6 @@ bool FunctionRequestHandler::startup(MainWindow* mainWindow)
 {
 	IInterprocessMessageServer* messageServer = m_owner->getMessageServer();
 
-	// Function Change Callbacks
-	//ProjectConfigPtr projectConfig = getProjectConfig();
-	//if (projectConfig)
-	//{
-	//	projectConfig->OnFunctionChanged += MakeDelegate(
-	//		this,
-	//		&FunctionRequestHandler::onProjectConfigChanged);
-	//	m_projectConfig = projectConfig;
-	//}
-
 	// Function Requests	
 	messageServer->setRequestHandler(
 		InvokeSystemFunctionRequest::staticGetArchetype().getId(),
@@ -46,37 +35,6 @@ bool FunctionRequestHandler::startup(MainWindow* mainWindow)
 		std::bind(&FunctionRequestHandler::getFunctionListHandler, this, _1, _2));
 
 	return true;
-}
-
-void FunctionRequestHandler::shutdown()
-{
-	//ProjectConfigPtr projectConfig = m_projectConfig.lock();
-	//if (projectConfig)
-	//{
-	//	projectConfig->OnFunctionChanged -= MakeDelegate(
-	//		this,
-	//		&FunctionRequestHandler::onProjectConfigChanged);
-	//}
-}
-
-// Project Config Change Callbacks
-void FunctionRequestHandler::onComponentFunctionsChanged(
-	MikanObjectSystemConstPtr ownerSystem,
-	MikanComponentConstPtr ownerComponent)
-{
-	const MikanClientConnectionStateMap& clientConnections = m_owner->getConnectedClientStateMap();
-	if (clientConnections.empty())
-		return;
-
-	MikanFunctionsUpdatedEvent propertyValue = {};
-	propertyValue.ownerSystem.setValue(ownerSystem->getObjectSystemClassName());
-	propertyValue.componentId = ownerComponent->getComponentId();
-
-	// Broadcast to all clients (depending on subscription settings)
-	for (auto& connection_it : clientConnections)
-	{
-		connection_it.second->publishFunctionChangedEvent(propertyValue);
-	}
 }
 
 // Function Request Handlers
