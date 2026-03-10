@@ -372,6 +372,7 @@ bool SceneComponent::getPropertyValue(
 		outValue = getSceneComponentDefinition()->getCompositorIDs();
 		return true;
 	}
+
 	return TransformComponent::getPropertyValue(propertyName, outValue);
 }
 
@@ -384,6 +385,10 @@ bool SceneComponent::setPropertyValue(
 		MikanStageID stageId = inValue.getIntValue();
 
 		attachTransformComponentToStage(stageId);
+		return true;
+	}
+	else if (MikanComponent::invokeScriptingFunction(propertyName))
+	{
 		return true;
 	}
 
@@ -404,6 +409,8 @@ void SceneComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstP
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(
 			k_removeCompositorRefFunctionId, "Remove Compositor Reference"));
+
+	addScriptingFunctionDescriptors(outDescriptors);
 }
 
 bool SceneComponent::invokeFunction(const std::string& functionName)

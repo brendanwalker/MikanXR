@@ -282,6 +282,54 @@ bool MikanComponent::destroyOwnerObject()
 }
 
 // -- Scripting ----
+const std::string MikanComponent::k_reloadScriptFunctionId = "reload_script";
+const std::string MikanComponent::k_addNewScriptFunctionId = "add_new_script";
+const std::string MikanComponent::k_removeScriptFunctionId = "remove_script";
+
+void MikanComponent::addScriptingFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
+{
+	outDescriptors.push_back(
+		std::make_shared<FunctionDescriptor>(
+			k_reloadScriptFunctionId, "Reload Script"));
+	outDescriptors.push_back(
+		std::make_shared<FunctionDescriptor>(
+			k_addNewScriptFunctionId, "Add New Script"));
+	outDescriptors.push_back(
+		std::make_shared<FunctionDescriptor>(
+			k_removeScriptFunctionId, "Remove Script"));
+}
+
+bool MikanComponent::invokeScriptingFunction(const std::string& functionName)
+{
+	if (functionName == MikanComponent::k_reloadScriptFunctionId)
+	{
+		reloadComponentScript();
+		return true;
+	}
+	else if (functionName == MikanComponent::k_addNewScriptFunctionId)
+	{
+		addNewComponentScript();
+		return true;
+	}
+	else if (functionName == MikanComponent::k_removeScriptFunctionId)
+	{
+		removeComponentScript();
+		return true;
+	}
+
+	return false;
+}
+
+// -- Lua Binding ----
+void MikanComponent::bindLuaFunctions(struct lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.beginClass<MikanComponent>("MikanComponent")
+		.addProperty("name", &MikanComponent::getName, &MikanComponent::setName)
+		.addProperty("className", &MikanComponent::getComponentClassName)
+		.endClass();
+}
+
 void MikanComponent::reloadComponentScript()
 {
 	if (m_scriptContext)
@@ -440,50 +488,13 @@ bool MikanComponent::setPropertyValue(const std::string& propertyName, const Mik
 }
 
 // -- IFunctionInterface ----
-const std::string MikanComponent::k_reloadScriptFunctionId = "reload_script";
-const std::string MikanComponent::k_addNewScriptFunctionId = "add_new_script";
-const std::string MikanComponent::k_removeScriptFunctionId = "remove_script";
-
 void MikanComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_reloadScriptFunctionId, "Reload Script"));
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_addNewScriptFunctionId, "Add New Script"));
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_removeScriptFunctionId, "Remove Script"));
+	// Add function descriptors here
 }
 
 bool MikanComponent::invokeFunction(const std::string& functionName)
 {
-	if (functionName == MikanComponent::k_reloadScriptFunctionId)
-	{
-		reloadComponentScript();
-		return true;
-	}
-	else if (functionName == MikanComponent::k_addNewScriptFunctionId)
-	{
-		addNewComponentScript();
-		return true;
-	}
-	else if (functionName == MikanComponent::k_removeScriptFunctionId)
-	{
-		removeComponentScript();
-		return true;
-	}
-
+	// Implement function invocation here
 	return false;
-}
-
-// -- Lua Binding ----
-void MikanComponent::bindLuaFunctions(struct lua_State* L)
-{
-	luabridge::getGlobalNamespace(L)
-		.beginClass<MikanComponent>("MikanComponent")
-			.addProperty("name", &MikanComponent::getName, &MikanComponent::setName)
-			.addProperty("className", &MikanComponent::getComponentClassName)
-		.endClass();
 }
