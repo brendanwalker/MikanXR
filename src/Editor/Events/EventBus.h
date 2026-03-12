@@ -7,6 +7,8 @@
 #include <typeindex>
 #include <unordered_map>
 
+#include "EventBusFwd.h"
+
 // Forward declarations
 class EventBusImpl;
 
@@ -23,7 +25,7 @@ public:
 	/// @param handler Function to call when event is published
 	/// @return Subscription ID (used for unsubscribing)
 	template<typename EventType>
-	int subscribe(std::function<void(const EventType&)> handler);
+	EventBusSubID subscribe(std::function<void(const EventType&)> handler);
 
 	/// @brief Subscribe to events of a specific type with optional filtering
 	/// @tparam EventType The event type to subscribe to
@@ -31,14 +33,14 @@ public:
 	/// @param filter Predicate function that returns true if event should be delivered to handler
 	/// @return Subscription ID (used for unsubscribing)
 	template<typename EventType>
-	int subscribe(
+	EventBusSubID subscribe(
 		std::function<void(const EventType&)> handler,
 		std::function<bool(const EventType&)> filter);
 
 	/// @brief Unsubscribe from events
 	/// @param subscriptionId The ID returned from subscribe()
 	template<typename EventType>
-	void unsubscribe(int subscriptionId);
+	void unsubscribe(EventBusSubID subscriptionId);
 
 	/// @brief Publish an event to all subscribers
 	/// @tparam EventType The event type being published
@@ -62,7 +64,7 @@ namespace EventBusDetail
 	struct SubscriptionBase
 	{
 		virtual ~SubscriptionBase() = default;
-		int id;
+		EventBusSubID id;
 	};
 
 	template<typename EventType>
@@ -76,7 +78,7 @@ namespace EventBusDetail
 	{
 	public:
 		template<typename EventType>
-		int addSubscription(
+		EventBusSubID addSubscription(
 			std::function<void(const EventType&)> handler,
 			std::function<bool(const EventType&)> filter = nullptr)
 		{
@@ -87,14 +89,14 @@ namespace EventBusDetail
 			subscription->handler = std::move(handler);
 			subscription->filter = std::move(filter);
 
-			int id = subscription->id;
+			EventBusSubID id = subscription->id;
 			m_subscriptions.push_back(std::move(subscription));
 
 			return id;
 		}
 
 		template<typename EventType>
-		void removeSubscription(int subscriptionId)
+		void removeSubscription(EventBusSubID subscriptionId)
 		{
 			std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -147,7 +149,7 @@ namespace EventBusDetail
 	private:
 		mutable std::mutex m_mutex;
 		std::vector<std::unique_ptr<SubscriptionBase>> m_subscriptions;
-		int m_nextId = 0;
+		EventBusSubID m_nextId = 0;
 	};
 }
 
@@ -172,7 +174,7 @@ public:
 	}
 
 	template<typename EventType>
-	void unsubscribe(int subscriptionId)
+	void unsubscribe(EventBusSubID subscriptionId)
 	{
 		std::type_index typeIdx(typeid(EventType));
 		std::lock_guard<std::mutex> lock(m_mapMutex);
@@ -226,13 +228,13 @@ private:
 
 // EventBus template method implementations
 template<typename EventType>
-int EventBus::subscribe(std::function<void(const EventType&)> handler)
+EventBusSubID EventBus::subscribe(std::function<void(const EventType&)> handler)
 {
 	return m_impl->subscribe<EventType>(std::move(handler), nullptr);
 }
 
 template<typename EventType>
-int EventBus::subscribe(
+EventBusSubID EventBus::subscribe(
 	std::function<void(const EventType&)> handler,
 	std::function<bool(const EventType&)> filter)
 {
@@ -240,7 +242,7 @@ int EventBus::subscribe(
 }
 
 template<typename EventType>
-void EventBus::unsubscribe(int subscriptionId)
+void EventBus::unsubscribe(EventBusSubID subscriptionId)
 {
 	m_impl->unsubscribe<EventType>(subscriptionId);
 }
