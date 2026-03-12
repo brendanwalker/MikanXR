@@ -1,4 +1,6 @@
 #include "CommonConfig.h"
+#include "EventBus.h"
+#include "PropertyEvents.h"
 #include "Logger.h"
 #include "MikanVideoSourceTypes.h"
 #include "MikanCameraTypes.h"
@@ -49,14 +51,15 @@ void CommonConfig::onChildConfigPropertyChanged(
 	{
         for (const auto& propertyName : changedPropertySet.getSet())
         {
-            MIKAN_LOG_INFO("CommonConfig::onChildConfigPropertyChanged") << 
-                "AutoSave Request: Child config '" << configPtr->m_configName 
+            MIKAN_LOG_INFO("CommonConfig::onChildConfigPropertyChanged") <<
+                "AutoSave Request: Child config '" << configPtr->m_configName
                 << "' changed property: " << propertyName;
 		}
 
 		m_autoSaveCooldownTimer = m_autoSaveCooldownDuration;
 	}
 
+	// Legacy delegate notification
 	if (OnPropertyChanged)
 		OnPropertyChanged(configPtr, changedPropertySet);
 }
@@ -65,6 +68,12 @@ void CommonConfig::addChildConfig(std::shared_ptr<CommonConfig> childConfig)
 {
 	childConfig->OnPropertyChanged += MakeDelegate(this, &CommonConfig::onChildConfigPropertyChanged);
 	m_childConfigs.push_back(childConfig);
+
+	// Propagate event bus to child config if we have one
+    if (m_eventBus != nullptr)
+    {
+		childConfig->setEventBus(m_eventBus);
+    }
 }
 
 std::shared_ptr<CommonConfig> CommonConfig::getChildConfig(const std::string& configName) const
@@ -97,8 +106,17 @@ void CommonConfig::notifyPropertyChanged(const ConfigPropertyChangeSet& changedP
 		m_autoSaveCooldownTimer = m_autoSaveCooldownDuration;
 	}
 
+	// Legacy delegate notification
+	// TODO: Deprecate this in favor of event bus
 	if (OnPropertyChanged)
 		OnPropertyChanged(shared_from_this(), changedPropertySet);
+
+	// Use Event bus notification if we are a leaf config
+	if (m_eventBus != nullptr)
+	{
+		PropertyChangedEvent event(shared_from_this(), changedPropertySet);
+		m_eventBus->publish(event);
+	}
 }
 
 const std::filesystem::path CommonConfig::getDefaultConfigPath() const
@@ -118,6 +136,16 @@ const std::filesystem::path CommonConfig::getDefaultConfigPath() const
     const std::filesystem::path config_filepath = config_path / configFilename;
 
     return config_filepath;
+}
+
+void CommonConfig::setEventBus(EventBus* eventBus) 
+{
+    m_eventBus = eventBus; 
+
+    for (const auto& childConfig : m_childConfigs)
+    {
+        childConfig->setEventBus(eventBus);
+	}
 }
 
 void CommonConfig::setAutoSaveCooldownDuration(float cooldownDuration)

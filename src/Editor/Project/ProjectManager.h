@@ -18,10 +18,10 @@ using MikanFunctionDatabaseConstPtr = std::shared_ptr<const class MikanFunctionD
 class ProjectManager : public std::enable_shared_from_this<ProjectManager>
 {
 public:
-	ProjectManager(class IMkWindow* ownerWindow);
+	ProjectManager(class IEditorWindow* ownerWindow);
 
 	inline ProjectConfigPtr getProjectConfig() const { return m_projectConfig; }
-	inline class IMkWindow* getOwnerWindow() const { return m_ownerWindow; }
+	inline class IEditorWindow* getOwnerWindow() const { return m_ownerWindow; }
 	inline MikanPropertyDatabasePtr getPropertyDatabase() { return m_propertyDatabase; }
 	inline MikanPropertyDatabaseConstPtr getPropertyDatabaseConst() const { return m_propertyDatabase; }
 	inline MikanFunctionDatabasePtr getFunctionDatabase() { return m_functionDatabase; }
@@ -71,10 +71,11 @@ public:
 	MulticastDelegate<void(ProjectManagerPtr newProject)> OnProjectLoaded;
 
 protected:
+	ProjectConfigPtr createEmptyProjectConfig() const;
 	void registerSystem(MikanObjectSystemPtr system);
 
 private:
-	class IMkWindow* m_ownerWindow = nullptr;
+	class IEditorWindow* m_ownerWindow = nullptr;
 	std::vector<MikanObjectSystemPtr> m_systems;
 	std::map<std::string, int> m_systemNameToIndexMap;
 	MikanPropertyDatabasePtr m_propertyDatabase;

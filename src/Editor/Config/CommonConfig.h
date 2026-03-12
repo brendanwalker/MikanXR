@@ -13,6 +13,10 @@
 #include "glm/ext/quaternion_double.hpp"
 #include "glm/ext/vector_double3.hpp"
 
+// Forward declarations
+class EventBus;
+struct PropertyChangedEvent;
+
 #ifdef _MSC_VER
     #pragma warning (push)
     #pragma warning (disable: 4996) // This function or variable may be unsafe
@@ -43,7 +47,7 @@ private:
 	std::set<std::string> m_changedProperties;
 };
 
-class CommonConfig : public std::enable_shared_from_this<CommonConfig> 
+class CommonConfig : public std::enable_shared_from_this<CommonConfig>
 {
 public:
     CommonConfig(const std::string &configName = std::string("CommonConfig"));
@@ -54,7 +58,13 @@ public:
 	virtual void notifyPropertyChanged(const ConfigPropertyChangeSet& changedPropertySet);
 	virtual bool wantsConfigSerialization() const { return true; }
 	virtual bool wantsSaveForPropertyChange(const ConfigPropertyChangeSet& changedPropertySet) const { return true; }
+
+	// Legacy delegate-based property change notification
 	MulticastDelegate<void(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet)> OnPropertyChanged;
+
+	// Event bus accessor
+	void setEventBus(EventBus* eventBus);
+	inline EventBus* getEventBus() const { return m_eventBus; }
 
 	void setAutoSaveCooldownDuration(float cooldownDuration);
 	float getAutoSaveCooldownDuration() const { return m_autoSaveCooldownDuration; }
@@ -392,4 +402,6 @@ protected:
 
 	float m_autoSaveCooldownDuration = -1.f;
 	float m_autoSaveCooldownTimer = -1.f;
+
+	EventBus* m_eventBus= nullptr;
 };

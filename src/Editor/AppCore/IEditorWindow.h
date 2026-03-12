@@ -17,6 +17,7 @@ public:
 	virtual class InputManager* getInputManager() const = 0;
 	virtual class OpenCVManager* getOpenCVManager() const = 0;
 	virtual class ClientSourceManager* getClientSourceManager() const = 0;
+	virtual class EventBus* getEventBus() const = 0;
 
 	virtual class App* getOwnerApp() const = 0;
 	virtual class AppStage* getCurrentAppStage() const = 0;

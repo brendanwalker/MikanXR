@@ -139,6 +139,11 @@ SdlWindow& MainWindow::getSdlWindow()
 	return *m_sdlWindow.get();
 }
 
+EventBus* MainWindow::getEventBus() const
+{
+	return m_ownerApp->getEventBus();
+}
+
 IMkViewportPtr MainWindow::getRenderingViewport() const
 {
 	return m_renderingViewport;

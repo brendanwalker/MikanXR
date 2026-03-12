@@ -48,6 +48,7 @@ public:
 	virtual IMkShaderCache* getShaderCache() override;
 	virtual IMkTextureCache* getTextureCache() override;
 	virtual SdlWindow& getSdlWindow() override;
+	virtual class EventBus* getEventBus() const override;
 
 	virtual bool onSDLEvent(const SDL_Event* event) override;
 

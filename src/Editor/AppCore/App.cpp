@@ -1,6 +1,8 @@
 //-- includes -----
 #include "App.h"
 #include "AppSettingsConfig.h"
+#include "CommonConfig.h"
+#include "EventBus.h"
 #include "FrameTimer.h"
 #include "Graphs/CompositorNodeGraph.h"
 #include "SdlCommon.h"
@@ -36,7 +38,8 @@ App* App::m_instance= nullptr;
 //-- App -----
 App::App()
 	: m_appSettings(std::make_shared<AppSettingsConfig>())
-	, m_localizationManager(new LocalizationManager())	
+	, m_eventBus(std::make_unique<EventBus>())
+	, m_localizationManager(new LocalizationManager())
 	, m_sdlManager(new SdlManager)
 	, m_bShutdownRequested(false)
 {
@@ -51,6 +54,9 @@ App::~App()
 	delete m_localizationManager;
 
 	m_appSettings.reset();
+
+	// Clear the global event bus reference
+	m_eventBus.reset();
 
 	m_instance= nullptr;
 }

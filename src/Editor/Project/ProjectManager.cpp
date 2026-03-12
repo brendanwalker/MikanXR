@@ -33,7 +33,7 @@
 
 const char* ProjectManager::k_mikanProjectFileExtension= ".mikanproj";
 
-ProjectManager::ProjectManager(IMkWindow* ownerWindow)
+ProjectManager::ProjectManager(IEditorWindow* ownerWindow)
 	: m_ownerWindow(ownerWindow)
 	, m_propertyDatabase(std::make_shared<MikanPropertyDatabase>())
 	, m_functionDatabase(std::make_shared<MikanFunctionDatabase>())
@@ -95,6 +95,11 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	}
 
 	return true;
+}
+
+ProjectConfigPtr ProjectManager::createEmptyProjectConfig() const
+{
+	return std::make_shared<ProjectConfig>("ProfileConfig");
 }
 
 void ProjectManager::registerSystem(MikanObjectSystemPtr system)
@@ -160,7 +165,7 @@ bool ProjectManager::hasLoadedProject() const
 
 bool ProjectManager::newProject(const std::string& projectFilePath)
 {
-	auto newProjectConfig = std::make_shared<ProjectConfig>();
+	auto newProjectConfig = createEmptyProjectConfig();
 	newProjectConfig->save(projectFilePath);
 
 	return loadProject(projectFilePath);
@@ -183,8 +188,10 @@ bool ProjectManager::loadProject(const std::string& projectFilePath)
 	// Unload the existing project first
 	unloadProject();
 
+	// create an empty project config
+	m_projectConfig = createEmptyProjectConfig();
+
 	// Attempt to load and init the new project
-	m_projectConfig = std::make_shared<ProjectConfig>();		
 	bool bSuccess = m_projectConfig->load(projectFilePath);
 	if (bSuccess)
 	{
@@ -205,6 +212,9 @@ bool ProjectManager::loadProject(const std::string& projectFilePath)
 
 	if (bSuccess)
 	{
+		// Set the event bus on the project config so it can broadcast property change events
+		m_projectConfig->setEventBus(getOwnerWindow()->getEventBus());
+
 		// Broadcast that the project has been loaded
 		if (OnProjectLoaded)
 		{

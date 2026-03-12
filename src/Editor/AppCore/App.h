@@ -10,6 +10,9 @@
 #include <assert.h>
 #include <stdint.h>
 
+// Forward declarations
+class EventBus;
+
 //-- definitions -----
 class App 
 {
@@ -23,6 +26,7 @@ public:
 	inline class MainWindow* getMainWindow() const { return m_mainWindow; }
 	inline class SdlManager* getSdlManager() const { return m_sdlManager; }
 	inline class ISdlMkWindow* getCurrentlyRenderingWindow() const { return m_renderingWindow; }
+	inline EventBus* getEventBus() const { return m_eventBus.get(); }
 
 	inline float getFPS() const { return m_fps; }
 
@@ -117,6 +121,9 @@ private:
 
 	// App Settings Config
 	AppSettingsConfigPtr m_appSettings;
+
+	// Global event bus for property changes and other events
+	std::unique_ptr<EventBus> m_eventBus;
 
 	// Localization manager
 	class LocalizationManager* m_localizationManager= nullptr;
