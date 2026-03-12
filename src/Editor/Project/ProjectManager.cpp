@@ -212,9 +212,6 @@ bool ProjectManager::loadProject(const std::string& projectFilePath)
 
 	if (bSuccess)
 	{
-		// Set the event bus on the project config so it can broadcast property change events
-		m_projectConfig->setEventBus(getOwnerWindow()->getEventBus());
-
 		// Broadcast that the project has been loaded
 		if (OnProjectLoaded)
 		{

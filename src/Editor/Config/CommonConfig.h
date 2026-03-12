@@ -62,10 +62,6 @@ public:
 	// Legacy delegate-based property change notification
 	MulticastDelegate<void(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet)> OnPropertyChanged;
 
-	// Event bus accessor
-	void setEventBus(EventBus* eventBus);
-	inline EventBus* getEventBus() const { return m_eventBus; }
-
 	void setAutoSaveCooldownDuration(float cooldownDuration);
 	float getAutoSaveCooldownDuration() const { return m_autoSaveCooldownDuration; }
 	void updateAutoSave(float deltaSeconds);
@@ -402,6 +398,4 @@ protected:
 
 	float m_autoSaveCooldownDuration = -1.f;
 	float m_autoSaveCooldownTimer = -1.f;
-
-	EventBus* m_eventBus= nullptr;
 };
