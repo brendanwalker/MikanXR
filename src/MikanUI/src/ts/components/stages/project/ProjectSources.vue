@@ -1,42 +1,9 @@
 <template>
   <div class="project-panel">
     <h2>Sources Panel</h2>
-    <p>Click on a camera or tracking volume to edit its properties.</p>
+    <p>Manage video and texture sources for your project.</p>
 
     <div class="sources-content">
-      <!-- Property Editor Modal -->
-      <div v-if="editingComponent" class="editor-overlay">
-        <PropertyEditor
-          :title="editingComponent.component.component_name || 'Component'"
-          :component-id="editingComponent.id"
-          :component="editingComponent.component"
-          :owner-system="editingComponent.system"
-          @close="closeEditor"
-          @save="handleSaveProperties"
-        />
-      </div>
-
-      <!-- Camera Components -->
-      <div class="component-section">
-        <div class="section-header">
-          <h3>Camera Components</h3>
-        </div>
-        <ComponentList
-          :components="cameraComponents"
-          :selectable="true"
-          :selected-component-id="selectedComponentId"
-          sort-by="name"
-          @select="handleSelectComponent($event, 'CameraObjectSystem')"
-        />
-        <button
-          v-if="selectedComponentId && isCameraSelected"
-          @click="handleCalibrateIntrinsics"
-          class="action-btn"
-        >
-          Calibrate Intrinsics
-        </button>
-      </div>
-
       <!-- Video Source Components -->
       <div class="component-section">
         <div class="section-header">
@@ -46,27 +13,26 @@
             <button @click="handleAddNetworkVideoSource" class="action-btn add-btn">+ Network Video</button>
           </div>
         </div>
-        <ComponentList
-          :components="videoSourceComponents"
-          :selectable="true"
-          :selected-component-id="selectedComponentId"
-          sort-by="name"
-          @select="handleSelectComponent($event, 'VideoSourceObjectSystem')"
-        />
-        <button
-          v-if="selectedComponentId && isUSBVideoSourceSelected"
-          @click="handleRemoveVideoSource"
-          class="action-btn remove-btn"
-        >
-          Remove USB Video Source
-        </button>
-        <button
-          v-if="selectedComponentId && isNetworkVideoSourceSelected"
-          @click="handleRemoveVideoSource"
-          class="action-btn remove-btn"
-        >
-          Remove Network Video Source
-        </button>
+        <div class="component-cards">
+          <div v-for="component in videoSourceComponents" :key="getComponentKey(component)" class="component-card-wrapper">
+            <ComponentCard
+              :component-id="component.component_id"
+              :component="component"
+              :owner-system="getSystemForComponent(component)"
+              :editable="true"
+            />
+            <button
+              @click="handleRemoveVideoSource(component.component_id)"
+              class="action-btn remove-btn card-remove-btn"
+              title="Remove Video Source"
+            >
+              ➖
+            </button>
+          </div>
+          <div v-if="videoSourceComponents.length === 0" class="no-components">
+            No video sources. Click + to add one.
+          </div>
+        </div>
       </div>
 
       <!-- Texture Source Components -->
@@ -78,231 +44,67 @@
             <button @click="handleAddSpoutTextureSource" class="action-btn add-btn">+ Spout Texture</button>
           </div>
         </div>
-        <ComponentList
-          :components="textureSourceComponents"
-          :selectable="true"
-          :selected-component-id="selectedComponentId"
-          sort-by="name"
-          @select="handleSelectComponent($event, 'TextureSourceObjectSystem')"
-        />
-        <button
-          v-if="selectedComponentId && isClientTextureSourceSelected"
-          @click="handleRemoveTextureSource"
-          class="action-btn remove-btn"
-        >
-          Remove Client Texture Source
-        </button>
-        <button
-          v-if="selectedComponentId && isSpoutTextureSourceSelected"
-          @click="handleRemoveTextureSource"
-          class="action-btn remove-btn"
-        >
-          Remove Spout Texture Source
-        </button>
-      </div>
-
-      <!-- Compositor Components -->
-      <ComponentList
-        title="Compositor Components"
-        :components="compositorComponents"
-        :selectable="true"
-        :selected-component-id="selectedComponentId"
-        sort-by="name"
-        @select="handleSelectComponent($event, 'CompositorObjectSystem')"
-      />
-
-      <!-- Tracking Volume Components -->
-      <div class="tracking-volumes-section">
-        <ComponentList
-          v-if="markerTrackingVolumes.length > 0"
-          title="Marker Tracking Volumes"
-          :components="markerTrackingVolumes"
-          :selectable="true"
-          :selected-component-id="selectedComponentId"
-          sort-by="name"
-          @select="handleSelectComponent($event, 'MarkerTrackingVolumeObjectSystem')"
-        />
-        <ComponentList
-          v-if="vrTrackingVolumes.length > 0"
-          title="VR Tracking Volumes"
-          :components="vrTrackingVolumes"
-          :selectable="true"
-          :selected-component-id="selectedComponentId"
-          sort-by="name"
-          @select="handleSelectComponent($event, 'VRTrackingVolumeObjectSystem')"
-        />
+        <div class="component-cards">
+          <div v-for="component in textureSourceComponents" :key="getComponentKey(component)" class="component-card-wrapper">
+            <ComponentCard
+              :component-id="component.component_id"
+              :component="component"
+              :owner-system="getSystemForComponent(component)"
+              :editable="true"
+            />
+            <button
+              @click="handleRemoveTextureSource(component.component_id)"
+              class="action-btn remove-btn card-remove-btn"
+              title="Remove Texture Source"
+            >
+              ➖
+            </button>
+          </div>
+          <div v-if="textureSourceComponents.length === 0" class="no-components">
+            No texture sources. Click + to add one.
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { useComponentStore } from '../../../stores/componentStore.js'
-import { useMikanStore } from '../../../stores/mikanStore.js'
-import { usePropertyEditor } from '../../../composables/usePropertyEditor.js'
 import { useRemoteControl } from '../../../composables/useRemoteControl.js'
-import ComponentList from '../../shared/ComponentList.vue'
-import PropertyEditor from '../../shared/PropertyEditor.vue'
-import {
-  MikanAPIResult,
-  PropertySetValueRequest,
-  CLASS_ID_PROPERTY_SET_VALUE_REQUEST
-} from '@mikanxr/client'
+import ComponentCard from '../../shared/ComponentCard.vue'
 
 const componentStore = useComponentStore()
-const mikanStore = useMikanStore()
-const { createVariantFromValue } = usePropertyEditor()
 const { sendRemoteControlCommand } = useRemoteControl()
 
-// Selection state
-const selectedComponentId = ref<number | null>(null)
-const selectedComponentSystem = ref<string | null>(null)
-const editingComponent = ref<{
-  id: number
-  component: any
-  system: string
-} | null>(null)
-
-// Get components by system
-const cameraComponents = computed(() =>
-  componentStore.getComponentsByClass('CameraComponent')
-)
-
-const videoSourceComponents = computed(() =>
-  componentStore.getComponentsByClass('VideoSourceComponent')
-)
-
-const textureSourceComponents = computed(() =>
-  componentStore.getComponentsByClass('TextureSourceComponent')
-)
-
-const compositorComponents = computed(() =>
-  componentStore.getComponentsByClass('CompositorComponent')
-)
-
-const markerTrackingVolumes = computed(() =>
-  componentStore.getComponentsByClass('MarkerTrackingVolumeComponent')
-)
-
-const vrTrackingVolumes = computed(() =>
-  componentStore.getComponentsByClass('VRTrackingVolumeComponent')
-)
-
-// Check which type of component is selected
-const isCameraSelected = computed(() => {
-  if (!selectedComponentId.value || !selectedComponentSystem.value) return false
-  const component = componentStore.getComponent(selectedComponentId.value, selectedComponentSystem.value)
-  return component?.component_class === 'CameraComponent'
+// Get components by class
+const videoSourceComponents = computed(() => {
+  const usbComponents = componentStore.getComponentsByClass('USBVideoSourceComponent')
+  const networkComponents = componentStore.getComponentsByClass('NetworkVideoSourceComponent')
+  return [...usbComponents, ...networkComponents]
 })
 
-const isVideoSourceSelected = computed(() => {
-  if (!selectedComponentId.value || !selectedComponentSystem.value) return false
-  const component = componentStore.getComponent(selectedComponentId.value, selectedComponentSystem.value)
-  return component?.component_class === 'USBVideoSourceComponent' ||
-         component?.component_class === 'NetworkVideoSourceComponent'
+const textureSourceComponents = computed(() => {
+  const spoutComponents = componentStore.getComponentsByClass('SpoutTextureSourceComponent')
+  const clientComponents = componentStore.getComponentsByClass('ClientTextureSourceComponent')
+  return [...spoutComponents, ...clientComponents]
 })
 
-const isUSBVideoSourceSelected = computed(() => {
-  if (!selectedComponentId.value || !selectedComponentSystem.value) return false
-  const component = componentStore.getComponent(selectedComponentId.value, selectedComponentSystem.value)
-  return component?.component_class === 'USBVideoSourceComponent'
-})
-
-const isNetworkVideoSourceSelected = computed(() => {
-  if (!selectedComponentId.value || !selectedComponentSystem.value) return false
-  const component = componentStore.getComponent(selectedComponentId.value, selectedComponentSystem.value)
-  return component?.component_class === 'NetworkVideoSourceComponent'
-})
-
-const isTextureSourceSelected = computed(() => {
-  if (!selectedComponentId.value || !selectedComponentSystem.value) return false
-  const component = componentStore.getComponent(selectedComponentId.value, selectedComponentSystem.value)
-  return component?.component_class === 'ClientTextureSourceComponent' ||
-         component?.component_class === 'SpoutTextureSourceComponent'
-})
-
-const isClientTextureSourceSelected = computed(() => {
-  if (!selectedComponentId.value || !selectedComponentSystem.value) return false
-  const component = componentStore.getComponent(selectedComponentId.value, selectedComponentSystem.value)
-  return component?.component_class === 'ClientTextureSourceComponent'
-})
-
-const isSpoutTextureSourceSelected = computed(() => {
-  if (!selectedComponentId.value || !selectedComponentSystem.value) return false
-  const component = componentStore.getComponent(selectedComponentId.value, selectedComponentSystem.value)
-  return component?.component_class === 'SpoutTextureSourceComponent'
-})
-
-// Handle component selection
-function handleSelectComponent(componentId: number, ownerSystem: string) {
-  selectedComponentId.value = componentId
-  selectedComponentSystem.value = ownerSystem
-  const component = componentStore.getComponent(componentId, ownerSystem)
-
-  if (component) {
-    editingComponent.value = {
-      id: componentId,
-      component,
-      system: ownerSystem
-    }
-  }
+// Helper to get unique key for component
+function getComponentKey(component: any): string {
+  return `${component.component_class}_${component.component_id}`
 }
 
-function closeEditor() {
-  editingComponent.value = null
-  selectedComponentId.value = null
-  selectedComponentSystem.value = null
-}
-
-// Handle property save
-async function handleSaveProperties(changes: Record<string, any>) {
-  if (!editingComponent.value || !mikanStore.client) {
-    console.error('[ProjectSources] Cannot save: no component selected or not connected')
-    return
+// Helper to determine system name from component class
+function getSystemForComponent(component: any): string {
+  const classToSystem: Record<string, string> = {
+    'USBVideoSourceComponent': 'USBVideoSourceSystem',
+    'NetworkVideoSourceComponent': 'NetworkVideoObjectSystem',
+    'SpoutTextureSourceComponent': 'SpoutTextureSourceSystem',
+    'ClientTextureSourceComponent': 'ClientTextureSourceSystem'
   }
-
-  const { id: componentId, system: ownerSystem } = editingComponent.value
-
-  console.log(`[ProjectSources] Saving ${Object.keys(changes).length} property changes for component ${componentId}`)
-
-  for (const [fieldName, fieldValue] of Object.entries(changes)) {
-    try {
-      const variant = createVariantFromValue(fieldValue)
-
-      const request: PropertySetValueRequest = {
-        requestTypeId: CLASS_ID_PROPERTY_SET_VALUE_REQUEST,
-        requestTypeName: 'PropertySetValueRequest',
-        requestId: 0,
-        ownerSystem,
-        componentId,
-        fieldName,
-        fieldValue: variant
-      }
-
-      const future = mikanStore.client.sendRequest(request)
-      const response = await future.await()
-
-      if (response.resultCode === MikanAPIResult.Success) {
-        console.log(`[ProjectSources] Successfully updated ${fieldName}`)
-      } else {
-        console.error(`[ProjectSources] Failed to update ${fieldName}: ${response.resultCode}`)
-      }
-    } catch (error) {
-      console.error(`[ProjectSources] Error updating ${fieldName}:`, error)
-    }
-  }
-
-  closeEditor()
-}
-
-// Camera action handlers
-function handleCalibrateIntrinsics() {
-  if (!selectedComponentId.value || !isCameraSelected.value) {
-    console.error('[ProjectSources] No camera selected')
-    return
-  }
-  sendRemoteControlCommand('calibrate_intrinsics', [selectedComponentId.value.toString()])
+  return classToSystem[component.component_class] || ''
 }
 
 // Video Source CRUD handlers
@@ -314,13 +116,8 @@ function handleAddNetworkVideoSource() {
   sendRemoteControlCommand('add_new_network_video_source')
 }
 
-function handleRemoveVideoSource() {
-  if (!selectedComponentId.value || !isVideoSourceSelected.value) {
-    console.error('[ProjectSources] No video source selected')
-    return
-  }
-  sendRemoteControlCommand('remove_video_source', [selectedComponentId.value.toString()])
-  selectedComponentId.value = null
+function handleRemoveVideoSource(componentId: number) {
+  sendRemoteControlCommand('remove_video_source', [componentId.toString()])
 }
 
 // Texture Source CRUD handlers
@@ -332,13 +129,8 @@ function handleAddSpoutTextureSource() {
   sendRemoteControlCommand('add_new_spout_texture_source')
 }
 
-function handleRemoveTextureSource() {
-  if (!selectedComponentId.value || !isTextureSourceSelected.value) {
-    console.error('[ProjectSources] No texture source selected')
-    return
-  }
-  sendRemoteControlCommand('remove_texture_source', [selectedComponentId.value.toString()])
-  selectedComponentId.value = null
+function handleRemoveTextureSource(componentId: number) {
+  sendRemoteControlCommand('remove_texture_source', [componentId.toString()])
 }
 </script>
 
@@ -392,6 +184,38 @@ function handleRemoveTextureSource() {
   gap: 8px;
 }
 
+.component-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.component-card-wrapper {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.component-card-wrapper > :first-child {
+  flex: 1;
+}
+
+.card-remove-btn {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  font-size: 18px;
+  line-height: 1;
+  min-width: 40px;
+}
+
+.no-components {
+  color: #888;
+  font-style: italic;
+  padding: 20px;
+  text-align: center;
+}
+
 .action-btn {
   padding: 8px 16px;
   font-size: 14px;
@@ -402,8 +226,6 @@ function handleRemoveTextureSource() {
   cursor: pointer;
   transition: background-color 0.2s;
   font-weight: 500;
-  width: 100%;
-  margin-top: 8px;
 }
 
 .action-btn:hover:not(:disabled) {
@@ -416,23 +238,19 @@ function handleRemoveTextureSource() {
   cursor: not-allowed;
 }
 
-.tracking-volumes-section {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
+.action-btn.add-btn {
+  background-color: #5cb85c;
 }
 
-.editor-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
+.action-btn.add-btn:hover {
+  background-color: #4cae4c;
+}
+
+.action-btn.remove-btn {
+  background-color: #d9534f;
+}
+
+.action-btn.remove-btn:hover {
+  background-color: #c9302c;
 }
 </style>

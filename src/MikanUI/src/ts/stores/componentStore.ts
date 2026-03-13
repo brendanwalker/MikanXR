@@ -27,6 +27,11 @@ import {
   MikanTrackingVolumeComponentValues,
   MikanVRTrackingVolumeComponentValues,
   MikanVRDeviceComponentValues,
+  MikanUSBVideoSourceValues,
+  MikanNetworkVideoSourceValues,
+  MikanTextureSourceValues,
+  MikanClientTextureSourceValues,
+  MikanSpoutTextureSourceValues,
   GetFunctionListRequest,
   CLASS_ID_GET_FUNCTION_LIST_REQUEST,
   FunctionDescriptorResponse,
@@ -49,7 +54,11 @@ const COMPONENT_SYSTEMS = [
   { ownerSystem: 'TrackingMountObjectSystem', componentClassName: 'TrackingMountComponent' },
   { ownerSystem: 'MarkerTrackingVolumeSystem', componentClassName: 'MarkerTrackingVolumeComponent' },
   { ownerSystem: 'VRTrackingVolumeSystem', componentClassName: 'VRTrackingVolumeComponent' },
-  { ownerSystem: 'VRObjectSystem', componentClassName: 'VRDeviceComponent' }
+  { ownerSystem: 'VRObjectSystem', componentClassName: 'VRDeviceComponent' },
+  { ownerSystem: 'USBVideoSourceSystem', componentClassName: 'USBVideoSourceComponent' },
+  { ownerSystem: 'NetworkVideoObjectSystem', componentClassName: 'NetworkVideoSourceComponent' },
+  { ownerSystem: 'SpoutTextureSourceSystem', componentClassName: 'SpoutTextureSourceComponent' },
+  { ownerSystem: 'ClientTextureSourceSystem', componentClassName: 'ClientTextureSourceComponent' }
 ]
 
 // Helper to create a unique key for each component (system:id)
@@ -149,6 +158,22 @@ export const useComponentStore = defineStore('components', () => {
 
   function getVRDeviceComponent(componentId: number): MikanVRDeviceComponentValues | undefined {
     return getComponent(componentId, 'VRObjectSystem') as MikanVRDeviceComponentValues | undefined
+  }
+
+  function getUSBVideoSourceComponent(componentId: number): MikanUSBVideoSourceValues | undefined {
+    return getComponent(componentId, 'USBVideoSourceSystem') as MikanUSBVideoSourceValues | undefined
+  }
+
+  function getNetworkVideoSourceComponent(componentId: number): MikanNetworkVideoSourceValues | undefined {
+    return getComponent(componentId, 'NetworkVideoObjectSystem') as MikanNetworkVideoSourceValues | undefined
+  }
+
+  function getSpoutTextureSourceComponent(componentId: number): MikanSpoutTextureSourceValues | undefined {
+    return getComponent(componentId, 'SpoutTextureSourceSystem') as MikanSpoutTextureSourceValues | undefined
+  }
+
+  function getClientTextureSourceComponent(componentId: number): MikanClientTextureSourceValues | undefined {
+    return getComponent(componentId, 'ClientTextureSourceSystem') as MikanClientTextureSourceValues | undefined
   }
 
   function addComponent(
@@ -538,6 +563,10 @@ export const useComponentStore = defineStore('components', () => {
     getMarkerTrackingVolumeComponent,
     getVRTrackingVolumeComponent,
     getVRDeviceComponent,
+    getUSBVideoSourceComponent,
+    getNetworkVideoSourceComponent,
+    getSpoutTextureSourceComponent,
+    getClientTextureSourceComponent,
 
     // Helpers
     getComponentClassForField,

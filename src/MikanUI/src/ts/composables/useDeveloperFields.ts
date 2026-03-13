@@ -69,6 +69,26 @@ const DEVELOPER_ONLY_FIELDS: Record<string, string[]> = {
   VRDeviceComponent: [
     'component_class',
     'component_script',
+  ],
+  USBVideoSourceComponent: [
+    'component_script',
+    'current_device_path',
+    'intrinsics_ptr',
+    'intrinsics_type',
+    'video_settings',
+    'component_class'
+  ],
+  NetworkVideoSourceComponent: [
+    'component_script',
+    'component_class'
+  ],
+  SpoutTextureSourceComponent: [
+    'component_script',
+    'component_class'
+  ],
+  ClientTextureSourceComponent: [
+    'component_script',
+    'component_class'
   ]
 }
 
