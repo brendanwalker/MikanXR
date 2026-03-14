@@ -66,6 +66,7 @@ src/MikanUI/node_modules
 src/MikanUI/resources/js
 src/MikanUI/resources/images
 src/MikanUI/resources/index.html
+src/MikanUI/resources/css/main.css
 
 #Tools
 !tools/*/*.exe
