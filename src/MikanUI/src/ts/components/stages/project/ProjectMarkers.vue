@@ -1,137 +1,73 @@
 <template>
   <div class="project-panel">
     <h2>Markers Panel</h2>
-    <p>Click on a marker component to edit its properties.</p>
+    <p>Manage marker components for your project.</p>
 
     <div class="markers-content">
-      <!-- Property Editor Modal -->
-      <div v-if="editingComponent" class="editor-overlay">
-        <PropertyEditor
-          :title="editingComponent.component.component_name || 'Component'"
-          :component-id="editingComponent.id"
-          :component="editingComponent.component"
-          :owner-system="editingComponent.system"
-          @close="closeEditor"
-          @save="handleSaveProperties"
-        />
+      <!-- Marker Selection -->
+      <div class="selection-section">
+        <div class="selection-row">
+          <label class="selection-label">Marker:</label>
+          <select v-model="selectedMarkerId" class="selection-dropdown marker-select">
+            <option :value="-1">&lt;None&gt;</option>
+            <option
+              v-for="marker in markerComponents"
+              :key="marker.component_id"
+              :value="marker.component_id"
+            >
+              {{ marker.component_name }}
+            </option>
+          </select>
+          <button @click="handleAddMarker" class="icon-only-btn add-marker-btn" title="Add Marker">
+            <img src="/images/add_component_normal_icon.png" alt="Add Marker" class="btn-icon-only" />
+          </button>
+          <button
+            v-if="selectedMarkerId !== -1"
+            @click="handleRemoveMarker"
+            class="icon-only-btn remove-btn"
+            title="Remove Marker"
+          >
+            <img src="/images/delete_component_normal_icon.png" alt="Remove" class="btn-icon-only" />
+          </button>
+        </div>
       </div>
 
-      <!-- Marker Components -->
-      <div class="component-section">
-        <div class="section-header">
-          <h3>Marker Components</h3>
-          <button @click="handleAddMarker" class="action-btn add-btn">+ Add Marker</button>
-        </div>
-        <ComponentList
-          :components="markerComponents"
-          :selectable="true"
-          :selected-component-id="selectedComponentId"
-          sort-by="name"
-          @select="handleSelectComponent($event, 'MarkerObjectSystem')"
+      <!-- Selected Marker Component -->
+      <div v-if="selectedMarkerId !== -1 && selectedMarkerComponent" class="component-section">
+        <h3>Marker Component</h3>
+        <ComponentCard
+          :component-id="selectedMarkerId"
+          :component="selectedMarkerComponent"
+          owner-system="MarkerObjectSystem"
+          :editable="true"
         />
-        <button
-          v-if="selectedComponentId"
-          @click="handleRemoveMarker"
-          class="action-btn remove-btn"
-        >
-          Remove Selected Marker
-        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useComponentStore } from '../../../stores/componentStore.js'
-import { useMikanStore } from '../../../stores/mikanStore.js'
-import { usePropertyEditor } from '../../../composables/usePropertyEditor.js'
 import { useRemoteControl } from '../../../composables/useRemoteControl.js'
-import ComponentList from '../../shared/ComponentList.vue'
-import PropertyEditor from '../../shared/PropertyEditor.vue'
-import {
-  MikanAPIResult,
-  PropertySetValueRequest,
-  CLASS_ID_PROPERTY_SET_VALUE_REQUEST
-} from '@mikanxr/client'
+import ComponentCard from '../../shared/ComponentCard.vue'
 
 const componentStore = useComponentStore()
-const mikanStore = useMikanStore()
-const { createVariantFromValue } = usePropertyEditor()
 const { sendRemoteControlCommand } = useRemoteControl()
 
 // Selection state
-const selectedComponentId = ref<number | null>(null)
-const editingComponent = ref<{
-  id: number
-  component: any
-  system: string
-} | null>(null)
+const selectedMarkerId = ref<number>(-1)
 
-// Get components by system
+// Get components by class
 const markerComponents = computed(() =>
   componentStore.getComponentsByClass('MarkerComponent')
 )
 
-// Handle component selection
-function handleSelectComponent(componentId: number, ownerSystem: string) {
-  selectedComponentId.value = componentId
-  const component = componentStore.getComponent(componentId, ownerSystem)
-
-  if (component) {
-    editingComponent.value = {
-      id: componentId,
-      component,
-      system: ownerSystem
-    }
-  }
-}
-
-function closeEditor() {
-  editingComponent.value = null
-  selectedComponentId.value = null
-}
-
-// Handle property save
-async function handleSaveProperties(changes: Record<string, any>) {
-  if (!editingComponent.value || !mikanStore.client) {
-    console.error('[ProjectMarkers] Cannot save: no component selected or not connected')
-    return
-  }
-
-  const { id: componentId, system: ownerSystem } = editingComponent.value
-
-  console.log(`[ProjectMarkers] Saving ${Object.keys(changes).length} property changes for component ${componentId}`)
-
-  for (const [fieldName, fieldValue] of Object.entries(changes)) {
-    try {
-      const variant = createVariantFromValue(fieldValue)
-
-      const request: PropertySetValueRequest = {
-        requestTypeId: CLASS_ID_PROPERTY_SET_VALUE_REQUEST,
-        requestTypeName: 'PropertySetValueRequest',
-        requestId: 0,
-        ownerSystem,
-        componentId,
-        fieldName,
-        fieldValue: variant
-      }
-
-      const future = mikanStore.client.sendRequest(request)
-      const response = await future.await()
-
-      if (response.resultCode === MikanAPIResult.Success) {
-        console.log(`[ProjectMarkers] Successfully updated ${fieldName}`)
-      } else {
-        console.error(`[ProjectMarkers] Failed to update ${fieldName}: ${response.resultCode}`)
-      }
-    } catch (error) {
-      console.error(`[ProjectMarkers] Error updating ${fieldName}:`, error)
-    }
-  }
-
-  closeEditor()
-}
+// Get selected component
+const selectedMarkerComponent = computed(() => {
+  if (selectedMarkerId.value === -1) return null
+  return componentStore.getComponent(selectedMarkerId.value, 'MarkerObjectSystem')
+})
 
 // Marker CRUD handlers
 function handleAddMarker() {
@@ -139,13 +75,37 @@ function handleAddMarker() {
 }
 
 function handleRemoveMarker() {
-  if (!selectedComponentId.value) {
+  if (selectedMarkerId.value === -1) {
     console.error('[ProjectMarkers] No marker selected')
     return
   }
-  sendRemoteControlCommand('remove_marker', [selectedComponentId.value.toString()])
-  selectedComponentId.value = null
+  sendRemoteControlCommand('remove_marker', [selectedMarkerId.value.toString()])
+  selectedMarkerId.value = -1
 }
+
+// Persist selection state
+watch(selectedMarkerId, (newValue) => {
+  if (newValue !== -1) {
+    sessionStorage.setItem('projectMarkers.selectedMarkerId', newValue.toString())
+  }
+})
+
+// Restore selection state on mount
+function restoreSelectionState() {
+  const savedMarkerId = sessionStorage.getItem('projectMarkers.selectedMarkerId')
+
+  if (savedMarkerId) {
+    const markerId = parseInt(savedMarkerId, 10)
+    if (!isNaN(markerId)) {
+      selectedMarkerId.value = markerId
+    }
+  }
+}
+
+// Initialize on mount
+onMounted(() => {
+  restoreSelectionState()
+})
 </script>
 
 <style scoped>
@@ -156,6 +116,13 @@ function handleRemoveMarker() {
 .project-panel h2 {
   color: #5cb85c;
   margin-bottom: 10px;
+}
+
+.project-panel h3 {
+  color: #ffffff;
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .project-panel p {
@@ -169,81 +136,121 @@ function handleRemoveMarker() {
   gap: 24px;
 }
 
-.component-section {
+.selection-section {
   background-color: #2d2d2d;
   border: 1px solid #404040;
   border-radius: 4px;
   padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
-.section-header {
+.add-buttons-row {
   display: flex;
-  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.selection-row {
+  display: flex;
   align-items: center;
-  margin-bottom: 8px;
+  gap: 12px;
+  flex-wrap: nowrap;
 }
 
-.section-header h3 {
+.selection-label {
   color: #ffffff;
-  margin: 0;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
+  min-width: 120px;
+  flex-shrink: 0;
 }
 
-.action-btn {
-  padding: 8px 16px;
-  font-size: 14px;
-  background-color: #5cb85c;
-  color: white;
-  border: none;
+.selection-dropdown {
+  flex: 1;
+  min-width: 150px;
+}
+
+.marker-select {
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 4px;
+  color: #fff;
+  font-family: monospace;
+  font-size: 14px;
   cursor: pointer;
-  transition: background-color 0.2s;
-  font-weight: 500;
-}
-
-.action-btn:hover:not(:disabled) {
-  background-color: #4cae4c;
-}
-
-.action-btn:disabled {
-  background-color: #3d3d3d;
-  color: #999;
-  cursor: not-allowed;
-}
-
-.action-btn.add-btn {
-  background-color: #5cb85c;
-}
-
-.action-btn.add-btn:hover {
-  background-color: #4cae4c;
-}
-
-.action-btn.remove-btn {
-  background-color: #d9534f;
   width: 100%;
-  margin-top: 8px;
 }
 
-.action-btn.remove-btn:hover {
-  background-color: #c9302c;
+.marker-select:focus {
+  outline: none;
+  border-color: #5cb85c;
+  background: rgba(0, 0, 0, 0.4);
 }
 
-.editor-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
+.marker-select option {
+  background: #2d2d2d;
+  color: #fff;
+}
+
+.component-section {
+  background-color: #2d2d2d;
+  border: 1px solid #404040;
+  border-radius: 4px;
+  padding: 12px;
+}
+
+.icon-only-btn {
+  padding: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  padding: 20px;
+  transition: transform 0.1s;
+}
+
+.icon-only-btn:hover {
+  transform: scale(1.1);
+}
+
+.icon-only-btn:active {
+  transform: scale(0.95);
+}
+
+.btn-icon-only {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Remove button with state-based icons */
+.icon-only-btn.remove-btn .btn-icon-only {
+  content: url('/images/delete_component_normal_icon.png');
+}
+
+.icon-only-btn.remove-btn:hover .btn-icon-only {
+  content: url('/images/delete_component_highlight_icon.png');
+}
+
+.icon-only-btn.remove-btn:active .btn-icon-only {
+  content: url('/images/delete_component_press_icon.png');
+}
+
+/* Add marker button with state-based icons */
+.icon-only-btn.add-marker-btn .btn-icon-only {
+  content: url('/images/add_component_normal_icon.png');
+}
+
+.icon-only-btn.add-marker-btn:hover .btn-icon-only {
+  content: url('/images/add_component_highlight_icon.png');
+}
+
+.icon-only-btn.add-marker-btn:active .btn-icon-only {
+  content: url('/images/add_component_press_icon.png');
 }
 </style>
