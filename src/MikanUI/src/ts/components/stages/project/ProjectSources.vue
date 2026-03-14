@@ -383,48 +383,5 @@ onMounted(() => {
   padding: 6px 12px;
 }
 
-.btn-icon {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
-}
-
-.icon-only-btn {
-  padding: 4px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.1s;
-}
-
-.icon-only-btn:hover {
-  transform: scale(1.1);
-}
-
-.icon-only-btn:active {
-  transform: scale(0.95);
-}
-
-.btn-icon-only {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-  display: block;
-}
-
-/* Remove button with state-based icons */
-.icon-only-btn.remove-btn .btn-icon-only {
-  content: url('/images/delete_component_normal_icon.png');
-}
-
-.icon-only-btn.remove-btn:hover .btn-icon-only {
-  content: url('/images/delete_component_highlight_icon.png');
-}
-
-.icon-only-btn.remove-btn:active .btn-icon-only {
-  content: url('/images/delete_component_press_icon.png');
-}
+/* Icon button styles now imported from common-buttons.css */
 </style>

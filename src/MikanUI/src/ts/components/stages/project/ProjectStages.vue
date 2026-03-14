@@ -13,7 +13,7 @@
             component-class="StageComponent"
             class="selection-dropdown"
           />
-          <button @click="handleAddStage" class="icon-only-btn add-stage-btn" title="Add Stage">
+          <button @click="handleAddStage" class="icon-only-btn add-btn" title="Add Stage">
             <img src="/images/add_component_normal_icon.png" alt="Add Stage" class="btn-icon-only" />
           </button>
           <button
@@ -52,7 +52,7 @@
               {{ camera.component_name }}
             </option>
           </select>
-          <button @click="handleAddCamera" class="icon-only-btn add-camera-btn" title="Add Camera">
+          <button @click="handleAddCamera" class="icon-only-btn add-btn" title="Add Camera">
             <img src="/images/add_component_normal_icon.png" alt="Add Camera" class="btn-icon-only" />
           </button>
           <button
@@ -75,7 +75,7 @@
           owner-system="CameraObjectSystem"
           :editable="true"
         />
-      </div>      
+      </div>
 
       <!-- Compositor Selection (only shown if stage is selected) -->
       <div v-if="selectedStageId !== -1" class="selection-section">
@@ -91,7 +91,7 @@
               {{ compositor.component_name }}
             </option>
           </select>
-          <button @click="handleAddCompositor" class="icon-only-btn add-compositor-btn" title="Add Compositor">
+          <button @click="handleAddCompositor" class="icon-only-btn add-btn" title="Add Compositor">
             <img src="/images/add_component_normal_icon.png" alt="Add Compositor" class="btn-icon-only" />
           </button>
           <button
@@ -487,81 +487,5 @@ onMounted(() => {
   background-color: #c9302c;
 }
 
-.icon-only-btn {
-  padding: 4px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.1s;
-}
-
-.icon-only-btn:hover {
-  transform: scale(1.1);
-}
-
-.icon-only-btn:active {
-  transform: scale(0.95);
-}
-
-.btn-icon-only {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-  display: block;
-}
-
-/* Remove button with state-based icons */
-.icon-only-btn.remove-btn .btn-icon-only {
-  content: url('/images/delete_component_normal_icon.png');
-}
-
-.icon-only-btn.remove-btn:hover .btn-icon-only {
-  content: url('/images/delete_component_highlight_icon.png');
-}
-
-.icon-only-btn.remove-btn:active .btn-icon-only {
-  content: url('/images/delete_component_press_icon.png');
-}
-
-/* Add stage button with state-based icons */
-.icon-only-btn.add-stage-btn .btn-icon-only {
-  content: url('/images/add_component_normal_icon.png');
-}
-
-.icon-only-btn.add-stage-btn:hover .btn-icon-only {
-  content: url('/images/add_component_highlight_icon.png');
-}
-
-.icon-only-btn.add-stage-btn:active .btn-icon-only {
-  content: url('/images/add_component_press_icon.png');
-}
-
-/* Add camera button with state-based icons */
-.icon-only-btn.add-camera-btn .btn-icon-only {
-  content: url('/images/add_component_normal_icon.png');
-}
-
-.icon-only-btn.add-camera-btn:hover .btn-icon-only {
-  content: url('/images/add_component_highlight_icon.png');
-}
-
-.icon-only-btn.add-camera-btn:active .btn-icon-only {
-  content: url('/images/add_component_press_icon.png');
-}
-
-/* Add compositor button with state-based icons */
-.icon-only-btn.add-compositor-btn .btn-icon-only {
-  content: url('/images/add_component_normal_icon.png');
-}
-
-.icon-only-btn.add-compositor-btn:hover .btn-icon-only {
-  content: url('/images/add_component_highlight_icon.png');
-}
-
-.icon-only-btn.add-compositor-btn:active .btn-icon-only {
-  content: url('/images/add_component_press_icon.png');
-}
+/* Icon button styles now imported from common-buttons.css */
 </style>

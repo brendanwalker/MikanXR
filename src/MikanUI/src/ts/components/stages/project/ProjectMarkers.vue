@@ -18,7 +18,7 @@
               {{ marker.component_name }}
             </option>
           </select>
-          <button @click="handleAddMarker" class="icon-only-btn add-marker-btn" title="Add Marker">
+          <button @click="handleAddMarker" class="icon-only-btn add-btn" title="Add Marker">
             <img src="/images/add_component_normal_icon.png" alt="Add Marker" class="btn-icon-only" />
           </button>
           <button
@@ -202,55 +202,5 @@ onMounted(() => {
   padding: 12px;
 }
 
-.icon-only-btn {
-  padding: 4px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.1s;
-}
-
-.icon-only-btn:hover {
-  transform: scale(1.1);
-}
-
-.icon-only-btn:active {
-  transform: scale(0.95);
-}
-
-.btn-icon-only {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-  display: block;
-}
-
-/* Remove button with state-based icons */
-.icon-only-btn.remove-btn .btn-icon-only {
-  content: url('/images/delete_component_normal_icon.png');
-}
-
-.icon-only-btn.remove-btn:hover .btn-icon-only {
-  content: url('/images/delete_component_highlight_icon.png');
-}
-
-.icon-only-btn.remove-btn:active .btn-icon-only {
-  content: url('/images/delete_component_press_icon.png');
-}
-
-/* Add marker button with state-based icons */
-.icon-only-btn.add-marker-btn .btn-icon-only {
-  content: url('/images/add_component_normal_icon.png');
-}
-
-.icon-only-btn.add-marker-btn:hover .btn-icon-only {
-  content: url('/images/add_component_highlight_icon.png');
-}
-
-.icon-only-btn.add-marker-btn:active .btn-icon-only {
-  content: url('/images/add_component_press_icon.png');
-}
+/* Icon button styles now imported from common-buttons.css */
 </style>
