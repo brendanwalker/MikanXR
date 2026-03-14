@@ -1,121 +1,111 @@
 <template>
   <div class="project-panel">
     <h2>Tracking Panel</h2>
-    <p>Click on a VR device or tracking mount to edit its properties.</p>
+    <p>Manage tracking volumes and mounts for your project.</p>
 
     <div class="tracking-content">
-      <!-- Property Editor Modal -->
-      <div v-if="editingComponent" class="editor-overlay">
-        <PropertyEditor
-          :title="editingComponent.component.component_name || 'Component'"
-          :component-id="editingComponent.id"
-          :component="editingComponent.component"
-          :owner-system="editingComponent.system"
-          @close="closeEditor"
-          @save="handleSaveProperties"
+      <!-- Tracking Volume Selection -->
+      <div class="selection-section">
+        <div class="add-buttons-row">
+          <button @click="handleAddSteamVRVolume" class="action-btn add-btn icon-btn" title="Add VR Tracking Volume">
+            <img src="/images/add_vr_tracking_icon.png" alt="Add VR Tracking" class="btn-icon" />
+            VR Tracking
+          </button>
+          <button @click="handleAddMarkerVolume" class="action-btn add-btn icon-btn" title="Add Marker Tracking Volume">
+            <img src="/images/add_marker_tracking_icon.png" alt="Add Marker Tracking" class="btn-icon" />
+            Marker Tracking
+          </button>
+        </div>
+        <div class="selection-row">
+          <label class="selection-label">Tracking Volume:</label>
+          <select v-model="selectedTrackingVolumeId" class="selection-dropdown tracking-select">
+            <option :value="-1">&lt;None&gt;</option>
+            <option
+              v-for="volume in trackingVolumeComponents"
+              :key="volume.component_id"
+              :value="volume.component_id"
+            >
+              {{ volume.component_name }}
+            </option>
+          </select>
+          <button
+            v-if="selectedTrackingVolumeId !== -1"
+            @click="handleRemoveTrackingVolume"
+            class="icon-only-btn remove-btn"
+            title="Remove Tracking Volume"
+          >
+            <img src="/images/delete_component_normal_icon.png" alt="Remove" class="btn-icon-only" />
+          </button>
+        </div>
+      </div>
+
+      <!-- Selected Tracking Volume Component -->
+      <div v-if="selectedTrackingVolumeId !== -1 && selectedTrackingVolumeComponent" class="component-section">
+        <h3>Tracking Volume Component</h3>
+        <ComponentCard
+          :component-id="selectedTrackingVolumeId"
+          :component="selectedTrackingVolumeComponent"
+          :owner-system="selectedTrackingVolumeSystem"
+          :editable="true"
         />
       </div>
 
-      <!-- VR Device Components -->
-      <ComponentList
-        title="VR Device Components"
-        :components="vrDeviceComponents"
-        :selectable="true"
-        :selected-component-id="selectedComponentId"
-        sort-by="name"
-        @select="handleSelectComponent($event, 'VRObjectSystem')"
-      />
-
-      <!-- Tracking Volume Components -->
-      <div class="component-section">
-        <div class="section-header">
-          <h3>Tracking Volume Components</h3>
-          <div class="section-actions">
-            <button @click="handleAddSteamVRVolume" class="action-btn add-btn">+ SteamVR Volume</button>
-            <button @click="handleAddMarkerVolume" class="action-btn add-btn">+ Marker Volume</button>
-          </div>
+      <!-- Tracking Mount Selection -->
+      <div class="selection-section">
+        <div class="selection-row">
+          <label class="selection-label">Tracking Mount:</label>
+          <select v-model="selectedTrackingMountId" class="selection-dropdown tracking-select">
+            <option :value="-1">&lt;None&gt;</option>
+            <option
+              v-for="mount in trackingMountComponents"
+              :key="mount.component_id"
+              :value="mount.component_id"
+            >
+              {{ mount.component_name }}
+            </option>
+          </select>
+          <button @click="handleAddTrackingMount" class="icon-only-btn add-mount-btn" title="Add Tracking Mount">
+            <img src="/images/add_component_normal_icon.png" alt="Add Tracking Mount" class="btn-icon-only" />
+          </button>
+          <button
+            v-if="selectedTrackingMountId !== -1"
+            @click="handleRemoveTrackingMount"
+            class="icon-only-btn remove-btn"
+            title="Remove Tracking Mount"
+          >
+            <img src="/images/delete_component_normal_icon.png" alt="Remove" class="btn-icon-only" />
+          </button>
         </div>
-        <ComponentList
-          :components="trackingVolumeComponents"
-          :selectable="true"
-          :selected-component-id="selectedComponentId"
-          sort-by="name"
-          @select="handleSelectComponent($event, 'TrackingVolumeObjectSystem')"
-        />
-        <button
-          v-if="selectedComponentId && isVRTrackingVolumeSelected"
-          @click="handleRemoveVRTrackingVolume"
-          class="action-btn remove-btn"
-        >
-          Remove SteamVR Tracking Volume
-        </button>
-        <button
-          v-if="selectedComponentId && isMarkerTrackingVolumeSelected"
-          @click="handleRemoveMarkerTrackingVolume"
-          class="action-btn remove-btn"
-        >
-          Remove Marker Tracking Volume
-        </button>
       </div>
 
-      <!-- Tracking Mount Components -->
-      <div class="component-section">
-        <div class="section-header">
-          <h3>Tracking Mount Components</h3>
-          <button @click="handleAddTrackingMount" class="action-btn add-btn">+ Add Tracking Mount</button>
-        </div>
-        <ComponentList
-          :components="trackingMountComponents"
-          :selectable="true"
-          :selected-component-id="selectedComponentId"
-          sort-by="name"
-          @select="handleSelectComponent($event, 'TrackingMountObjectSystem')"
+      <!-- Selected Tracking Mount Component -->
+      <div v-if="selectedTrackingMountId !== -1 && selectedTrackingMountComponent" class="component-section">
+        <h3>Tracking Mount Component</h3>
+        <ComponentCard
+          :component-id="selectedTrackingMountId"
+          :component="selectedTrackingMountComponent"
+          :owner-system="selectedTrackingMountSystem"
+          :editable="true"
         />
-        <button
-          v-if="selectedComponentId && isTrackingMountSelected"
-          @click="handleRemoveTrackingMount"
-          class="action-btn remove-btn"
-        >
-          Remove Selected Tracking Mount
-        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useComponentStore } from '../../../stores/componentStore.js'
-import { useMikanStore } from '../../../stores/mikanStore.js'
-import { usePropertyEditor } from '../../../composables/usePropertyEditor.js'
 import { useRemoteControl } from '../../../composables/useRemoteControl.js'
-import ComponentList from '../../shared/ComponentList.vue'
-import PropertyEditor from '../../shared/PropertyEditor.vue'
-import {
-  MikanAPIResult,
-  PropertySetValueRequest,
-  CLASS_ID_PROPERTY_SET_VALUE_REQUEST
-} from '@mikanxr/client'
+import ComponentCard from '../../shared/ComponentCard.vue'
 
 const componentStore = useComponentStore()
-const mikanStore = useMikanStore()
-const { createVariantFromValue } = usePropertyEditor()
 const { sendRemoteControlCommand } = useRemoteControl()
 
 // Selection state
-const selectedComponentId = ref<number | null>(null)
-const selectedComponentSystem = ref<string | null>(null)
-const editingComponent = ref<{
-  id: number
-  component: any
-  system: string
-} | null>(null)
+const selectedTrackingVolumeId = ref<number>(-1)
+const selectedTrackingMountId = ref<number>(-1)
 
-// Get components by system
-const vrDeviceComponents = computed(() =>
-  componentStore.getComponentsByClass('VRDeviceComponent')
-)
-
+// Get components by class
 const trackingVolumeComponents = computed(() => {
   const vrVolumes = componentStore.getComponentsByClass('VRTrackingVolumeComponent')
   const markerVolumes = componentStore.getComponentsByClass('MarkerTrackingVolumeComponent')
@@ -126,93 +116,38 @@ const trackingMountComponents = computed(() =>
   componentStore.getComponentsByClass('TrackingMountComponent')
 )
 
-// Check which type of component is selected
-const isTrackingVolumeSelected = computed(() => {
-  if (!selectedComponentId.value || !selectedComponentSystem.value) return false
-  const component = componentStore.getComponent(selectedComponentId.value, selectedComponentSystem.value)
-  const componentClass = (component as any)?.component_class
-  return componentClass === 'VRTrackingVolumeComponent' || componentClass === 'MarkerTrackingVolumeComponent'
+// Get selected components
+const selectedTrackingVolumeComponent = computed(() => {
+  if (selectedTrackingVolumeId.value === -1) return null
+
+  // Try VR tracking volume system
+  let component = componentStore.getComponent(selectedTrackingVolumeId.value, 'VRTrackingVolumeSystem')
+  if (component) return component
+
+  // Try Marker tracking volume system
+  component = componentStore.getComponent(selectedTrackingVolumeId.value, 'MarkerTrackingVolumeSystem')
+  return component
 })
 
-const isVRTrackingVolumeSelected = computed(() => {
-  if (!selectedComponentId.value || !selectedComponentSystem.value) return false
-  const component = componentStore.getComponent(selectedComponentId.value, selectedComponentSystem.value)
-  return (component as any)?.component_class === 'VRTrackingVolumeComponent'
+const selectedTrackingMountComponent = computed(() => {
+  if (selectedTrackingMountId.value === -1) return null
+  return componentStore.getComponent(selectedTrackingMountId.value, 'TrackingMountObjectSystem')
 })
 
-const isMarkerTrackingVolumeSelected = computed(() => {
-  if (!selectedComponentId.value || !selectedComponentSystem.value) return false
-  const component = componentStore.getComponent(selectedComponentId.value, selectedComponentSystem.value)
-  return (component as any)?.component_class === 'MarkerTrackingVolumeComponent'
+// Get system name for selected components
+const selectedTrackingVolumeSystem = computed(() => {
+  if (!selectedTrackingVolumeComponent.value) return ''
+  const componentClass = (selectedTrackingVolumeComponent.value as any).component_class
+
+  if (componentClass === 'VRTrackingVolumeComponent') return 'VRTrackingVolumeSystem'
+  if (componentClass === 'MarkerTrackingVolumeComponent') return 'MarkerTrackingVolumeSystem'
+  return ''
 })
 
-const isTrackingMountSelected = computed(() => {
-  if (!selectedComponentId.value || !selectedComponentSystem.value) return false
-  const component = componentStore.getComponent(selectedComponentId.value, selectedComponentSystem.value)
-  return (component as any)?.component_class === 'TrackingMountComponent'
+const selectedTrackingMountSystem = computed(() => {
+  if (!selectedTrackingMountComponent.value) return ''
+  return 'TrackingMountObjectSystem'
 })
-
-// Handle component selection
-function handleSelectComponent(componentId: number, ownerSystem: string) {
-  selectedComponentId.value = componentId
-  selectedComponentSystem.value = ownerSystem
-  const component = componentStore.getComponent(componentId, ownerSystem)
-
-  if (component) {
-    editingComponent.value = {
-      id: componentId,
-      component,
-      system: ownerSystem
-    }
-  }
-}
-
-function closeEditor() {
-  editingComponent.value = null
-  selectedComponentId.value = null
-  selectedComponentSystem.value = null
-}
-
-// Handle property save
-async function handleSaveProperties(changes: Record<string, any>) {
-  if (!editingComponent.value || !mikanStore.client) {
-    console.error('[ProjectTracking] Cannot save: no component selected or not connected')
-    return
-  }
-
-  const { id: componentId, system: ownerSystem } = editingComponent.value
-
-  console.log(`[ProjectTracking] Saving ${Object.keys(changes).length} property changes for component ${componentId}`)
-
-  for (const [fieldName, fieldValue] of Object.entries(changes)) {
-    try {
-      const variant = createVariantFromValue(fieldValue)
-
-      const request: PropertySetValueRequest = {
-        requestTypeId: CLASS_ID_PROPERTY_SET_VALUE_REQUEST,
-        requestTypeName: 'PropertySetValueRequest',
-        requestId: 0,
-        ownerSystem,
-        componentId,
-        fieldName,
-        fieldValue: variant
-      }
-
-      const future = mikanStore.client.sendRequest(request)
-      const response = await future.await()
-
-      if (response.resultCode === MikanAPIResult.Success) {
-        console.log(`[ProjectTracking] Successfully updated ${fieldName}`)
-      } else {
-        console.error(`[ProjectTracking] Failed to update ${fieldName}: ${response.resultCode}`)
-      }
-    } catch (error) {
-      console.error(`[ProjectTracking] Error updating ${fieldName}:`, error)
-    }
-  }
-
-  closeEditor()
-}
 
 // Tracking Volume CRUD handlers
 function handleAddSteamVRVolume() {
@@ -223,22 +158,18 @@ function handleAddMarkerVolume() {
   sendRemoteControlCommand('add_new_marker_tracking_volume')
 }
 
-function handleRemoveVRTrackingVolume() {
-  if (!selectedComponentId.value || !isVRTrackingVolumeSelected.value) {
-    console.error('[ProjectTracking] No VR tracking volume selected')
+function handleRemoveTrackingVolume() {
+  if (selectedTrackingVolumeId.value === -1) {
+    console.error('[ProjectTracking] No tracking volume selected')
     return
   }
-  sendRemoteControlCommand('remove_vr_tracking_volume', [selectedComponentId.value.toString()])
-  selectedComponentId.value = null
-}
-
-function handleRemoveMarkerTrackingVolume() {
-  if (!selectedComponentId.value || !isMarkerTrackingVolumeSelected.value) {
-    console.error('[ProjectTracking] No marker tracking volume selected')
-    return
+  const componentClass = (selectedTrackingVolumeComponent.value as any)?.component_class
+  if (componentClass === 'VRTrackingVolumeComponent') {
+    sendRemoteControlCommand('remove_vr_tracking_volume', [selectedTrackingVolumeId.value.toString()])
+  } else if (componentClass === 'MarkerTrackingVolumeComponent') {
+    sendRemoteControlCommand('remove_marker_tracking_volume', [selectedTrackingVolumeId.value.toString()])
   }
-  sendRemoteControlCommand('remove_marker_tracking_volume', [selectedComponentId.value.toString()])
-  selectedComponentId.value = null
+  selectedTrackingVolumeId.value = -1
 }
 
 // Tracking Mount CRUD handlers
@@ -247,13 +178,51 @@ function handleAddTrackingMount() {
 }
 
 function handleRemoveTrackingMount() {
-  if (!selectedComponentId.value || !isTrackingMountSelected.value) {
+  if (selectedTrackingMountId.value === -1) {
     console.error('[ProjectTracking] No tracking mount selected')
     return
   }
-  sendRemoteControlCommand('remove_tracking_mount', [selectedComponentId.value.toString()])
-  selectedComponentId.value = null
+  sendRemoteControlCommand('remove_tracking_mount', [selectedTrackingMountId.value.toString()])
+  selectedTrackingMountId.value = -1
 }
+
+// Persist selection state
+watch(selectedTrackingVolumeId, (newValue) => {
+  if (newValue !== -1) {
+    sessionStorage.setItem('projectTracking.selectedTrackingVolumeId', newValue.toString())
+  }
+})
+
+watch(selectedTrackingMountId, (newValue) => {
+  if (newValue !== -1) {
+    sessionStorage.setItem('projectTracking.selectedTrackingMountId', newValue.toString())
+  }
+})
+
+// Restore selection state on mount
+function restoreSelectionState() {
+  const savedTrackingVolumeId = sessionStorage.getItem('projectTracking.selectedTrackingVolumeId')
+  const savedTrackingMountId = sessionStorage.getItem('projectTracking.selectedTrackingMountId')
+
+  if (savedTrackingVolumeId) {
+    const trackingVolumeId = parseInt(savedTrackingVolumeId, 10)
+    if (!isNaN(trackingVolumeId)) {
+      selectedTrackingVolumeId.value = trackingVolumeId
+    }
+  }
+
+  if (savedTrackingMountId) {
+    const trackingMountId = parseInt(savedTrackingMountId, 10)
+    if (!isNaN(trackingMountId)) {
+      selectedTrackingMountId.value = trackingMountId
+    }
+  }
+}
+
+// Initialize on mount
+onMounted(() => {
+  restoreSelectionState()
+})
 </script>
 
 <style scoped>
@@ -264,6 +233,13 @@ function handleRemoveTrackingMount() {
 .project-panel h2 {
   color: #5cb85c;
   margin-bottom: 10px;
+}
+
+.project-panel h3 {
+  color: #ffffff;
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .project-panel p {
@@ -277,33 +253,70 @@ function handleRemoveTrackingMount() {
   gap: 24px;
 }
 
-.component-section {
+.selection-section {
   background-color: #2d2d2d;
   border: 1px solid #404040;
   border-radius: 4px;
   padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.section-header h3 {
-  color: #ffffff;
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.section-actions {
+.add-buttons-row {
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
+}
+
+.selection-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+
+.selection-label {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  min-width: 120px;
+  flex-shrink: 0;
+}
+
+.selection-dropdown {
+  flex: 1;
+  min-width: 150px;
+}
+
+.tracking-select {
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: #fff;
+  font-family: monospace;
+  font-size: 14px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.tracking-select:focus {
+  outline: none;
+  border-color: #5cb85c;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.tracking-select option {
+  background: #2d2d2d;
+  color: #fff;
+}
+
+.component-section {
+  background-color: #2d2d2d;
+  border: 1px solid #404040;
+  border-radius: 4px;
+  padding: 12px;
 }
 
 .action-btn {
@@ -316,6 +329,9 @@ function handleRemoveTrackingMount() {
   cursor: pointer;
   transition: background-color 0.2s;
   font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .action-btn:hover:not(:disabled) {
@@ -338,25 +354,71 @@ function handleRemoveTrackingMount() {
 
 .action-btn.remove-btn {
   background-color: #d9534f;
-  width: 100%;
-  margin-top: 8px;
 }
 
 .action-btn.remove-btn:hover {
   background-color: #c9302c;
 }
 
-.editor-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
+.action-btn.icon-btn {
+  padding: 6px 12px;
+}
+
+.btn-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.icon-only-btn {
+  padding: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  padding: 20px;
+  transition: transform 0.1s;
+}
+
+.icon-only-btn:hover {
+  transform: scale(1.1);
+}
+
+.icon-only-btn:active {
+  transform: scale(0.95);
+}
+
+.btn-icon-only {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Remove button with state-based icons */
+.icon-only-btn.remove-btn .btn-icon-only {
+  content: url('/images/delete_component_normal_icon.png');
+}
+
+.icon-only-btn.remove-btn:hover .btn-icon-only {
+  content: url('/images/delete_component_highlight_icon.png');
+}
+
+.icon-only-btn.remove-btn:active .btn-icon-only {
+  content: url('/images/delete_component_press_icon.png');
+}
+
+/* Add mount button with state-based icons */
+.icon-only-btn.add-mount-btn .btn-icon-only {
+  content: url('/images/add_component_normal_icon.png');
+}
+
+.icon-only-btn.add-mount-btn:hover .btn-icon-only {
+  content: url('/images/add_component_highlight_icon.png');
+}
+
+.icon-only-btn.add-mount-btn:active .btn-icon-only {
+  content: url('/images/add_component_press_icon.png');
 }
 </style>
