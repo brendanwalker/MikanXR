@@ -30,13 +30,16 @@
               {{ scene.component_name }}
             </option>
           </select>
-          <button @click="handleAddScene" class="action-btn add-btn">+ Add Scene</button>
+          <button @click="handleAddScene" class="icon-only-btn add-scene-btn" title="Add Scene">
+            <img src="/images/add_component_normal_icon.png" alt="Add Scene" class="btn-icon-only" />
+          </button>
           <button
             v-if="selectedSceneId !== -1"
             @click="handleRemoveScene"
-            class="action-btn remove-btn"
+            class="icon-only-btn remove-btn"
+            title="Remove Scene"
           >
-            Remove Scene
+            <img src="/images/delete_component_normal_icon.png" alt="Remove Scene" class="btn-icon-only" />
           </button>
         </div>
       </div>
@@ -67,14 +70,14 @@
             <label class="property-label">Script:</label>
             <div class="script-controls">
               <span class="script-path">{{ selectedSceneComponent.component_script || '&lt;None&gt;' }}</span>
-              <button @click="handleReloadScript" class="action-btn icon-btn" title="Reload Script">
-                ⟳
+              <button @click="handleReloadScript" class="icon-only-btn reload-script-btn" title="Reload Script">
+                <img src="/images/edit_component_normal_icon.png" alt="Reload Script" class="btn-icon-only" />
               </button>
-              <button @click="handleAddScript" class="action-btn icon-btn" title="Add Script">
-                +
+              <button @click="handleAddScript" class="icon-only-btn add-script-btn" title="Add Script">
+                <img src="/images/add_component_normal_icon.png" alt="Add Script" class="btn-icon-only" />
               </button>
-              <button @click="handleRemoveScript" class="action-btn icon-btn" title="Remove Script">
-                ×
+              <button @click="handleRemoveScript" class="icon-only-btn remove-btn" title="Remove Script">
+                <img src="/images/delete_component_normal_icon.png" alt="Remove Script" class="btn-icon-only" />
               </button>
             </div>
           </div>
@@ -86,16 +89,20 @@
         <h3>Actors</h3>
         <div class="actor-buttons">
           <button @click="handleAddAnchor" class="action-btn icon-btn" title="Add Anchor">
-            ⚓ Anchor
+            <img src="/images/add_anchor_icon.png" alt="Add Anchor" class="btn-icon" />
+            Anchor
           </button>
           <button @click="handleAddQuadStencil" class="action-btn icon-btn" title="Add Quad Stencil">
-            ▭ Quad
+            <img src="/images/add_quad_stencil_icon.png" alt="Add Quad" class="btn-icon" />
+            Quad
           </button>
           <button @click="handleAddBoxStencil" class="action-btn icon-btn" title="Add Box Stencil">
-            ▢ Box
+            <img src="/images/add_box_stencil_icon.png" alt="Add Box" class="btn-icon" />
+            Box
           </button>
           <button @click="handleAddModelStencil" class="action-btn icon-btn" title="Add Model Stencil">
-            ⬡ Model
+            <img src="/images/add_model_stencil_icon.png" alt="Add Model" class="btn-icon" />
+            Model
           </button>
         </div>
 
@@ -589,6 +596,9 @@ onMounted(() => {
   cursor: pointer;
   transition: background-color 0.2s;
   font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .action-btn:hover:not(:disabled) {
@@ -620,6 +630,90 @@ onMounted(() => {
 .action-btn.icon-btn {
   padding: 6px 12px;
   font-size: 13px;
+}
+
+.btn-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.icon-only-btn {
+  padding: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s;
+}
+
+.icon-only-btn:hover {
+  transform: scale(1.1);
+}
+
+.icon-only-btn:active {
+  transform: scale(0.95);
+}
+
+.btn-icon-only {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Remove button with state-based icons */
+.icon-only-btn.remove-btn .btn-icon-only {
+  content: url('/images/delete_component_normal_icon.png');
+}
+
+.icon-only-btn.remove-btn:hover .btn-icon-only {
+  content: url('/images/delete_component_highlight_icon.png');
+}
+
+.icon-only-btn.remove-btn:active .btn-icon-only {
+  content: url('/images/delete_component_press_icon.png');
+}
+
+/* Add scene button with state-based icons */
+.icon-only-btn.add-scene-btn .btn-icon-only {
+  content: url('/images/add_component_normal_icon.png');
+}
+
+.icon-only-btn.add-scene-btn:hover .btn-icon-only {
+  content: url('/images/add_component_highlight_icon.png');
+}
+
+.icon-only-btn.add-scene-btn:active .btn-icon-only {
+  content: url('/images/add_component_press_icon.png');
+}
+
+/* Reload script button with state-based icons */
+.icon-only-btn.reload-script-btn .btn-icon-only {
+  content: url('/images/edit_component_normal_icon.png');
+}
+
+.icon-only-btn.reload-script-btn:hover .btn-icon-only {
+  content: url('/images/edit_component_highlight_icon.png');
+}
+
+.icon-only-btn.reload-script-btn:active .btn-icon-only {
+  content: url('/images/edit_component_press_icon.png');
+}
+
+/* Add script button with state-based icons */
+.icon-only-btn.add-script-btn .btn-icon-only {
+  content: url('/images/add_component_normal_icon.png');
+}
+
+.icon-only-btn.add-script-btn:hover .btn-icon-only {
+  content: url('/images/add_component_highlight_icon.png');
+}
+
+.icon-only-btn.add-script-btn:active .btn-icon-only {
+  content: url('/images/add_component_press_icon.png');
 }
 
 .scene-outliner::-webkit-scrollbar {
