@@ -4,79 +4,113 @@
     <p>Manage video and texture sources for your project.</p>
 
     <div class="sources-content">
-      <!-- Video Source Components -->
-      <div class="component-section">
-        <div class="section-header">
-          <h3>Video Source Components</h3>
-          <div class="section-actions">
-            <button @click="handleAddUSBVideoSource" class="action-btn add-btn">+ USB Video</button>
-            <button @click="handleAddNetworkVideoSource" class="action-btn add-btn">+ Network Video</button>
-          </div>
+      <!-- Video Source Selection -->
+      <div class="selection-section">
+        <div class="add-buttons-row">
+          <button @click="handleAddUSBVideoSource" class="action-btn add-btn icon-btn" title="Add USB Video Source">
+            <img src="/images/add_usb_camera_source_icon.png" alt="Add USB Video" class="btn-icon" />
+            USB Video
+          </button>
+          <button @click="handleAddNetworkVideoSource" class="action-btn add-btn icon-btn" title="Add Network Video Source">
+            <img src="/images/add_networked_camera_source_icon.png" alt="Add Network Video" class="btn-icon" />
+            Network Video
+          </button>
         </div>
-        <div class="component-cards">
-          <div v-for="component in videoSourceComponents" :key="getComponentKey(component)" class="component-card-wrapper">
-            <ComponentCard
-              :component-id="component.component_id"
-              :component="component"
-              :owner-system="getSystemForComponent(component)"
-              :editable="true"
-            />
-            <button
-              @click="handleRemoveVideoSource(component.component_id)"
-              class="action-btn remove-btn card-remove-btn"
-              title="Remove Video Source"
+        <div class="selection-row">
+          <label class="selection-label">Video Source:</label>
+          <select v-model="selectedVideoSourceId" class="selection-dropdown source-select">
+            <option :value="-1">&lt;None&gt;</option>
+            <option
+              v-for="source in videoSourceComponents"
+              :key="source.component_id"
+              :value="source.component_id"
             >
-              ➖
-            </button>
-          </div>
-          <div v-if="videoSourceComponents.length === 0" class="no-components">
-            No video sources. Click + to add one.
-          </div>
+              {{ source.component_name }}
+            </option>
+          </select>
+          <button
+            v-if="selectedVideoSourceId !== -1"
+            @click="handleRemoveVideoSource"
+            class="icon-only-btn remove-btn"
+            title="Remove Video Source"
+          >
+            <img src="/images/delete_component_normal_icon.png" alt="Remove" class="btn-icon-only" />
+          </button>
         </div>
       </div>
 
-      <!-- Texture Source Components -->
-      <div class="component-section">
-        <div class="section-header">
-          <h3>Texture Source Components</h3>
-          <div class="section-actions">
-            <button @click="handleAddClientTextureSource" class="action-btn add-btn">+ Client Texture</button>
-            <button @click="handleAddSpoutTextureSource" class="action-btn add-btn">+ Spout Texture</button>
-          </div>
+      <!-- Selected Video Source Component -->
+      <div v-if="selectedVideoSourceId !== -1 && selectedVideoSourceComponent" class="component-section">
+        <h3>Video Source Component</h3>
+        <ComponentCard
+          :component-id="selectedVideoSourceId"
+          :component="selectedVideoSourceComponent"
+          :owner-system="selectedVideoSourceSystem"
+          :editable="true"
+        />
+      </div>
+
+      <!-- Texture Source Selection -->
+      <div class="selection-section">
+        <div class="add-buttons-row">
+          <button @click="handleAddClientTextureSource" class="action-btn add-btn icon-btn" title="Add Client Texture Source">
+            <img src="/images/add_client_texture_source_icon.png" alt="Add Client Texture" class="btn-icon" />
+            Client Texture
+          </button>
+          <button @click="handleAddSpoutTextureSource" class="action-btn add-btn icon-btn" title="Add Spout Texture Source">
+            <img src="/images/add_spout_texture_source_icon.png" alt="Add Spout Texture" class="btn-icon" />
+            Spout Texture
+          </button>
         </div>
-        <div class="component-cards">
-          <div v-for="component in textureSourceComponents" :key="getComponentKey(component)" class="component-card-wrapper">
-            <ComponentCard
-              :component-id="component.component_id"
-              :component="component"
-              :owner-system="getSystemForComponent(component)"
-              :editable="true"
-            />
-            <button
-              @click="handleRemoveTextureSource(component.component_id)"
-              class="action-btn remove-btn card-remove-btn"
-              title="Remove Texture Source"
+        <div class="selection-row">
+          <label class="selection-label">Texture Source:</label>
+          <select v-model="selectedTextureSourceId" class="selection-dropdown source-select">
+            <option :value="-1">&lt;None&gt;</option>
+            <option
+              v-for="source in textureSourceComponents"
+              :key="source.component_id"
+              :value="source.component_id"
             >
-              ➖
-            </button>
-          </div>
-          <div v-if="textureSourceComponents.length === 0" class="no-components">
-            No texture sources. Click + to add one.
-          </div>
+              {{ source.component_name }}
+            </option>
+          </select>
+          <button
+            v-if="selectedTextureSourceId !== -1"
+            @click="handleRemoveTextureSource"
+            class="icon-only-btn remove-btn"
+            title="Remove Texture Source"
+          >
+            <img src="/images/delete_component_normal_icon.png" alt="Remove" class="btn-icon-only" />
+          </button>
         </div>
+      </div>
+
+      <!-- Selected Texture Source Component -->
+      <div v-if="selectedTextureSourceId !== -1 && selectedTextureSourceComponent" class="component-section">
+        <h3>Texture Source Component</h3>
+        <ComponentCard
+          :component-id="selectedTextureSourceId"
+          :component="selectedTextureSourceComponent"
+          :owner-system="selectedTextureSourceSystem"
+          :editable="true"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useComponentStore } from '../../../stores/componentStore.js'
 import { useRemoteControl } from '../../../composables/useRemoteControl.js'
 import ComponentCard from '../../shared/ComponentCard.vue'
 
 const componentStore = useComponentStore()
 const { sendRemoteControlCommand } = useRemoteControl()
+
+// Selection state
+const selectedVideoSourceId = ref<number>(-1)
+const selectedTextureSourceId = ref<number>(-1)
 
 // Get components by class
 const videoSourceComponents = computed(() => {
@@ -91,21 +125,49 @@ const textureSourceComponents = computed(() => {
   return [...spoutComponents, ...clientComponents]
 })
 
-// Helper to get unique key for component
-function getComponentKey(component: any): string {
-  return `${component.component_class}_${component.component_id}`
-}
+// Get selected components
+const selectedVideoSourceComponent = computed(() => {
+  if (selectedVideoSourceId.value === -1) return null
 
-// Helper to determine system name from component class
-function getSystemForComponent(component: any): string {
-  const classToSystem: Record<string, string> = {
-    'USBVideoSourceComponent': 'USBVideoSourceSystem',
-    'NetworkVideoSourceComponent': 'NetworkVideoObjectSystem',
-    'SpoutTextureSourceComponent': 'SpoutTextureSourceSystem',
-    'ClientTextureSourceComponent': 'ClientTextureSourceSystem'
-  }
-  return classToSystem[component.component_class] || ''
-}
+  // Try USB video source system
+  let component = componentStore.getComponent(selectedVideoSourceId.value, 'USBVideoSourceSystem')
+  if (component) return component
+
+  // Try Network video source system
+  component = componentStore.getComponent(selectedVideoSourceId.value, 'NetworkVideoObjectSystem')
+  return component
+})
+
+const selectedTextureSourceComponent = computed(() => {
+  if (selectedTextureSourceId.value === -1) return null
+
+  // Try Spout texture source system
+  let component = componentStore.getComponent(selectedTextureSourceId.value, 'SpoutTextureSourceSystem')
+  if (component) return component
+
+  // Try Client texture source system
+  component = componentStore.getComponent(selectedTextureSourceId.value, 'ClientTextureSourceSystem')
+  return component
+})
+
+// Get system name for selected components
+const selectedVideoSourceSystem = computed(() => {
+  if (!selectedVideoSourceComponent.value) return ''
+  const componentClass = (selectedVideoSourceComponent.value as any).component_class
+
+  if (componentClass === 'USBVideoSourceComponent') return 'USBVideoSourceSystem'
+  if (componentClass === 'NetworkVideoSourceComponent') return 'NetworkVideoObjectSystem'
+  return ''
+})
+
+const selectedTextureSourceSystem = computed(() => {
+  if (!selectedTextureSourceComponent.value) return ''
+  const componentClass = (selectedTextureSourceComponent.value as any).component_class
+
+  if (componentClass === 'SpoutTextureSourceComponent') return 'SpoutTextureSourceSystem'
+  if (componentClass === 'ClientTextureSourceComponent') return 'ClientTextureSourceSystem'
+  return ''
+})
 
 // Video Source CRUD handlers
 function handleAddUSBVideoSource() {
@@ -116,8 +178,13 @@ function handleAddNetworkVideoSource() {
   sendRemoteControlCommand('add_new_network_video_source')
 }
 
-function handleRemoveVideoSource(componentId: number) {
-  sendRemoteControlCommand('remove_video_source', [componentId.toString()])
+function handleRemoveVideoSource() {
+  if (selectedVideoSourceId.value === -1) {
+    console.error('[ProjectSources] No video source selected')
+    return
+  }
+  sendRemoteControlCommand('remove_video_source', [selectedVideoSourceId.value.toString()])
+  selectedVideoSourceId.value = -1
 }
 
 // Texture Source CRUD handlers
@@ -129,9 +196,52 @@ function handleAddSpoutTextureSource() {
   sendRemoteControlCommand('add_new_spout_texture_source')
 }
 
-function handleRemoveTextureSource(componentId: number) {
-  sendRemoteControlCommand('remove_texture_source', [componentId.toString()])
+function handleRemoveTextureSource() {
+  if (selectedTextureSourceId.value === -1) {
+    console.error('[ProjectSources] No texture source selected')
+    return
+  }
+  sendRemoteControlCommand('remove_texture_source', [selectedTextureSourceId.value.toString()])
+  selectedTextureSourceId.value = -1
 }
+
+// Persist selection state
+watch(selectedVideoSourceId, (newValue) => {
+  if (newValue !== -1) {
+    sessionStorage.setItem('projectSources.selectedVideoSourceId', newValue.toString())
+  }
+})
+
+watch(selectedTextureSourceId, (newValue) => {
+  if (newValue !== -1) {
+    sessionStorage.setItem('projectSources.selectedTextureSourceId', newValue.toString())
+  }
+})
+
+// Restore selection state on mount
+function restoreSelectionState() {
+  const savedVideoSourceId = sessionStorage.getItem('projectSources.selectedVideoSourceId')
+  const savedTextureSourceId = sessionStorage.getItem('projectSources.selectedTextureSourceId')
+
+  if (savedVideoSourceId) {
+    const videoSourceId = parseInt(savedVideoSourceId, 10)
+    if (!isNaN(videoSourceId)) {
+      selectedVideoSourceId.value = videoSourceId
+    }
+  }
+
+  if (savedTextureSourceId) {
+    const textureSourceId = parseInt(savedTextureSourceId, 10)
+    if (!isNaN(textureSourceId)) {
+      selectedTextureSourceId.value = textureSourceId
+    }
+  }
+}
+
+// Initialize on mount
+onMounted(() => {
+  restoreSelectionState()
+})
 </script>
 
 <style scoped>
@@ -142,6 +252,13 @@ function handleRemoveTextureSource(componentId: number) {
 .project-panel h2 {
   color: #5cb85c;
   margin-bottom: 10px;
+}
+
+.project-panel h3 {
+  color: #ffffff;
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .project-panel p {
@@ -155,65 +272,70 @@ function handleRemoveTextureSource(componentId: number) {
   gap: 24px;
 }
 
-.component-section {
+.selection-section {
   background-color: #2d2d2d;
   border: 1px solid #404040;
   border-radius: 4px;
   padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.section-header h3 {
-  color: #ffffff;
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.section-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.component-cards {
-  display: flex;
-  flex-direction: column;
   gap: 12px;
 }
 
-.component-card-wrapper {
-  position: relative;
+.add-buttons-row {
   display: flex;
   gap: 8px;
-  align-items: flex-start;
+  flex-wrap: wrap;
 }
 
-.component-card-wrapper > :first-child {
-  flex: 1;
+.selection-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: nowrap;
 }
 
-.card-remove-btn {
+.selection-label {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 600;
+  min-width: 120px;
   flex-shrink: 0;
-  padding: 6px 12px;
-  font-size: 18px;
-  line-height: 1;
-  min-width: 40px;
 }
 
-.no-components {
-  color: #888;
-  font-style: italic;
-  padding: 20px;
-  text-align: center;
+.selection-dropdown {
+  flex: 1;
+  min-width: 150px;
+}
+
+.source-select {
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: #fff;
+  font-family: monospace;
+  font-size: 14px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.source-select:focus {
+  outline: none;
+  border-color: #5cb85c;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.source-select option {
+  background: #2d2d2d;
+  color: #fff;
+}
+
+.component-section {
+  background-color: #2d2d2d;
+  border: 1px solid #404040;
+  border-radius: 4px;
+  padding: 12px;
 }
 
 .action-btn {
@@ -226,6 +348,9 @@ function handleRemoveTextureSource(componentId: number) {
   cursor: pointer;
   transition: background-color 0.2s;
   font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .action-btn:hover:not(:disabled) {
@@ -252,5 +377,54 @@ function handleRemoveTextureSource(componentId: number) {
 
 .action-btn.remove-btn:hover {
   background-color: #c9302c;
+}
+
+.action-btn.icon-btn {
+  padding: 6px 12px;
+}
+
+.btn-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.icon-only-btn {
+  padding: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s;
+}
+
+.icon-only-btn:hover {
+  transform: scale(1.1);
+}
+
+.icon-only-btn:active {
+  transform: scale(0.95);
+}
+
+.btn-icon-only {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  display: block;
+}
+
+/* Remove button with state-based icons */
+.icon-only-btn.remove-btn .btn-icon-only {
+  content: url('/images/delete_component_normal_icon.png');
+}
+
+.icon-only-btn.remove-btn:hover .btn-icon-only {
+  content: url('/images/delete_component_highlight_icon.png');
+}
+
+.icon-only-btn.remove-btn:active .btn-icon-only {
+  content: url('/images/delete_component_press_icon.png');
 }
 </style>

@@ -64,6 +64,8 @@ MikanXR.log
 #MikanUI
 src/MikanUI/node_modules
 src/MikanUI/resources/js
+src/MikanUI/resources/images
+src/MikanUI/resources/index.html
 
 #Tools
 !tools/*/*.exe
