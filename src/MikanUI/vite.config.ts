@@ -14,18 +14,19 @@ export default defineConfig({
   build: {
     outDir: 'resources',
     emptyOutDir: false, // Don't delete existing CSS files
+    sourcemap: true, // Enable source maps for debugging
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, 'index.html'),
       },
       output: {
-        entryFileNames: 'js/[name].js',
-        chunkFileNames: 'js/[name].js',
+        entryFileNames: 'js/[name]-[hash].js', // Add hash for cache busting
+        chunkFileNames: 'js/[name]-[hash].js',
         assetFileNames: (assetInfo) => {
           if (assetInfo.name?.endsWith('.css')) {
-            return 'css/[name][extname]'
+            return 'css/[name]-[hash][extname]' // Add hash for cache busting
           }
-          return 'assets/[name][extname]'
+          return 'assets/[name]-[hash][extname]'
         },
       },
     },
