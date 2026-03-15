@@ -49,6 +49,10 @@ namespace Serialization
 					{
 						visitFloatList(accessor);
 					}
+					else if (elementType == rfk::getType<Serialization::String>())
+					{
+						visitStringList(accessor);
+					}
 					else
 					{
 						throw std::runtime_error(
@@ -156,6 +160,28 @@ namespace Serialization
 				throw std::runtime_error(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitFloatList() ",
 						"Missing valid FloatList for", arrayAccessor.getName()));
+			}
+		}
+
+		void visitStringList(ValueAccessor const& arrayAccessor)
+		{
+			auto* destArray =
+				reinterpret_cast<Serialization::List<Serialization::String> *>(
+					arrayAccessor.getUntypedValueMutablePtr());
+
+			MikanVariant sourcePropertyValue;
+			if (m_entityAccessor->getPropertyValue(arrayAccessor.getName(), sourcePropertyValue) &&
+				sourcePropertyValue.value_type == MikanVariantType::STRING_ARRAY)
+			{
+				const std::vector<Serialization::String>& sourceArray = sourcePropertyValue.getStringArrayValue();
+
+				destArray->assign(sourceArray.begin(), sourceArray.end());
+			}
+			else
+			{
+				throw std::runtime_error(
+					StringUtils::stringify("EntityAccessorReadVisitor::visitStringList() ",
+						"Missing valid StringList for", arrayAccessor.getName()));
 			}
 		}
 
