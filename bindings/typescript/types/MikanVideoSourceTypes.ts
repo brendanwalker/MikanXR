@@ -176,6 +176,9 @@ export class MikanUSBVideoSourceSystemValues extends MikanSystemValues {
 export class MikanUSBVideoSourceValues extends MikanVideoSourceValues {
   current_device_path: string = '';
   video_mode: string = '';
+  video_resolution: string = '';
+  video_fps: string = '';
+  video_format: string = '';
   video_settings: number[] = [];
   video_resolutions: string[] = [];
   video_frame_rates: string[] = [];
@@ -220,6 +223,9 @@ export class MikanUSBVideoSourceValues extends MikanVideoSourceValues {
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'current_device_path', type: 'string' },
     { name: 'video_mode', type: 'string' },
+    { name: 'video_resolution', type: 'string' },
+    { name: 'video_fps', type: 'string' },
+    { name: 'video_format', type: 'string' },
     { name: 'video_settings', type: 'float', isArray: true },
     { name: 'video_resolutions', type: 'string', isArray: true },
     { name: 'video_frame_rates', type: 'string', isArray: true },

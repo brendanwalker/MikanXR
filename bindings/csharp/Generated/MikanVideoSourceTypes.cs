@@ -119,6 +119,9 @@ namespace MikanXR
 
 		public string current_device_path;
 		public string video_mode;
+		public string video_resolution;
+		public string video_fps;
+		public string video_format;
 		public List<float> video_settings;
 		public List<string> video_resolutions;
 		public List<string> video_frame_rates;

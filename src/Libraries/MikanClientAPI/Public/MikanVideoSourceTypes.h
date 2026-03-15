@@ -277,6 +277,12 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 	FIELD()
 	Serialization::String video_mode; ///< Current video mode name
 	FIELD()
+	Serialization::String video_resolution; ///< Current video resolution in the format "WIDTHxHEIGHT" (e.g., "1920x1080")
+	FIELD()
+	Serialization::String video_fps; ///< Current video frame rate (e.g., "30")
+	FIELD()
+	Serialization::String video_format; ///< Current video format (e.g., "YUY2")
+	FIELD()
 	Serialization::List<float> video_settings; ///< [0,1] Video Settings (See MikanVideoSettingType enum)
 	FIELD()
 	Serialization::List<Serialization::String> video_resolutions; ///< Current available video resolution options
