@@ -128,6 +128,12 @@ namespace MikanXR
 		public PolymorphicObject value_ptr;
 	};
 
+	public class MikanVariantBase : PolymorphicStruct
+	{
+		public static new readonly long classId= 5706978007370628991;
+
+	};
+
 	public class MikanVector2dValue : MikanVariantBase
 	{
 		public static new readonly long classId= -3597335519782313151;

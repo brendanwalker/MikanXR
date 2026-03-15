@@ -2,7 +2,6 @@
 
 import { PolymorphicObject, PolymorphicStruct } from './../PolymorphicObject.js';
 import { MikanMatrix4f, MikanQuatd, MikanQuatf, MikanVector2d, MikanVector2f, MikanVector3d, MikanVector3f, MikanVector4d, MikanVector4f } from './MikanMathTypes.js';
-import { MikanVariantBase } from './MikanVideoSourceTypes.js';
 
 export enum MikanVariantType {
   INVALID_TYPE = 0,
@@ -42,12 +41,19 @@ export const CLASS_ID_MIKAN_QUATF_VALUE = -3980278345028742771n;
 export const CLASS_ID_MIKAN_STRING_ARRAY_VALUE = 5781178291974097454n;
 export const CLASS_ID_MIKAN_STRING_VALUE = -318636760475246811n;
 export const CLASS_ID_MIKAN_VARIANT = -8543347830987565886n;
+export const CLASS_ID_MIKAN_VARIANT_BASE = 5706978007370628991n;
 export const CLASS_ID_MIKAN_VECTOR2D_VALUE = -3597335519782313151n;
 export const CLASS_ID_MIKAN_VECTOR2F_VALUE = 5487063928969330551n;
 export const CLASS_ID_MIKAN_VECTOR3D_VALUE = 905231883766189926n;
 export const CLASS_ID_MIKAN_VECTOR3F_VALUE = 3503799446698825680n;
 export const CLASS_ID_MIKAN_VECTOR4D_VALUE = 398000504403518783n;
 export const CLASS_ID_MIKAN_VECTOR4F_VALUE = -1402910374681859671n;
+
+export class MikanVariantBase extends PolymorphicStruct {
+
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  ];
+}
 
 export class MikanBoolArrayValue extends MikanVariantBase {
   value: boolean[] = [];

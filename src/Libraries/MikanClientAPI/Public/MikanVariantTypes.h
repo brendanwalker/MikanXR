@@ -132,7 +132,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 #endif // MIKANAPI_REFLECTION_ENABLED
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVariantBase
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanVariantBase
 	: public Serialization::PolymorphicStruct
 {
 #ifdef MIKANAPI_REFLECTION_ENABLED

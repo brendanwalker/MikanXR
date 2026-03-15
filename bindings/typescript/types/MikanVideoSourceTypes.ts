@@ -46,7 +46,6 @@ export const CLASS_ID_MIKAN_NETWORK_VIDEO_SOURCE_VALUES = 8924237416134720747n;
 export const CLASS_ID_MIKAN_STEREO_INTRINSICS = -261934067861644075n;
 export const CLASS_ID_MIKAN_USBVIDEO_SOURCE_SYSTEM_VALUES = -4380137097083957162n;
 export const CLASS_ID_MIKAN_USBVIDEO_SOURCE_VALUES = -9166828371246079689n;
-export const CLASS_ID_MIKAN_VARIANT_BASE = 5706978007370628991n;
 export const CLASS_ID_MIKAN_VIDEO_SOURCE_INTRINSICS = -5073913459979558727n;
 export const CLASS_ID_MIKAN_VIDEO_SOURCE_VALUES = -7299893175604117141n;
 
@@ -261,12 +260,6 @@ export class MikanUSBVideoSourceValues extends MikanVideoSourceValues {
     { name: 'iris_fraction', type: 'float' },
     { name: 'focus_valid', type: 'boolean' },
     { name: 'focus_fraction', type: 'float' }
-  ];
-}
-
-export class MikanVariantBase extends PolymorphicStruct {
-
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
   ];
 }
 
