@@ -33,14 +33,52 @@ long MikanVariant::getLongValue() const
 
 float MikanVariant::getFloatValue() const
 {
-	assert(value_type == MikanVariantType::FLOAT);
-	return value_ptr.getTypedPointer<MikanFloatValue>()->value;
+	if (value_type == MikanVariantType::FLOAT)
+	{
+		return value_ptr.getTypedPointer<MikanFloatValue>()->value;
+	}
+	else if (value_type == MikanVariantType::DOUBLE)
+	{
+		return (float)value_ptr.getTypedPointer<MikanDoubleValue>()->value;
+	}
+	else if (value_type == MikanVariantType::INT)
+	{
+		return (float)value_ptr.getTypedPointer<MikanIntValue>()->value;
+	}
+	else if (value_type == MikanVariantType::LONG)
+	{
+		return (float)value_ptr.getTypedPointer<MikanLongValue>()->value;
+	}
+	else
+	{
+		assert(false && "Unsupported variant cast");
+		return 0;
+	}
 }
 
 double MikanVariant::getDoubleValue() const
 {
-	assert(value_type == MikanVariantType::DOUBLE);
-	return value_ptr.getTypedPointer<MikanDoubleValue>()->value;
+	if (value_type == MikanVariantType::DOUBLE)
+	{
+		return value_ptr.getTypedPointer<MikanDoubleValue>()->value;
+	}
+	else if (value_type == MikanVariantType::FLOAT)
+	{
+		return (double)value_ptr.getTypedPointer<MikanFloatValue>()->value;
+	}
+	else if (value_type == MikanVariantType::INT)
+	{
+		return (double)value_ptr.getTypedPointer<MikanIntValue>()->value;
+	}
+	else if (value_type == MikanVariantType::LONG)
+	{
+		return (double)value_ptr.getTypedPointer<MikanLongValue>()->value;
+	}
+	else
+	{
+		assert(false && "Unsupported variant cast");
+		return 0;
+	}
 }
 
 const std::string& MikanVariant::getStringValue() const
