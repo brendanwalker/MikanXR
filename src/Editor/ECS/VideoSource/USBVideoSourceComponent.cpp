@@ -1480,8 +1480,10 @@ bool USBVideoSourceComponent::getPropertyValue(
 
 				return true;
 			}
-
-			return false;
+			else
+			{
+				return false;
+			}
 		}
 	}
 	
@@ -1506,64 +1508,82 @@ bool USBVideoSourceComponent::getPropertyValue(
 		return true;
 	}
 	else if (propertyName == USBVideoSourceDefinition::k_videoResolutionPropertyId)
-	{
-		std::string resolution;
-		if (getVideoModeResolutionName(resolution))
+	{		
+		if (std::string resolution;
+			getVideoModeResolutionName(resolution))
 		{
 			outValue = resolution;
-			return true;
 		}
-		return false;
+		else
+		{
+			outValue = std::string();
+		}
+		return true;
 	}
 	else if (propertyName == USBVideoSourceDefinition::k_videoFrameRatePropertyId)
 	{
-		std::string frameRate;
-		if (getVideoModeFrameRateName(frameRate))
+		if (std::string frameRate;
+			getVideoModeFrameRateName(frameRate))
 		{
 			outValue = frameRate;
-			return true;
 		}
-		return false;
+		else
+		{
+			outValue = std::string();
+		}
+		return true;
 	}
 	else if (propertyName == USBVideoSourceDefinition::k_videoFormatPropertyId)
-	{
-		std::string format;
-		if (getVideoModeFormatName(format))
+	{		
+		if (std::string format; 
+			getVideoModeFormatName(format))
 		{
 			outValue = format;
-			return true;
 		}
-		return false;
+		else
+		{
+			outValue = std::string();
+		}
+		return true;
 	}
 	else if (propertyName == USBVideoSourceComponent::k_currentVideoResolutionsPropertyId)
-	{
-		std::vector<std::string> resolutions;
-		if (getVideoResolutionNames(resolutions))
+	{		
+		if (std::vector<std::string> resolutions; 
+			getVideoResolutionNames(resolutions))
 		{
 			outValue = resolutions;
-			return true;
 		}
-		return false;
+		else
+		{
+			outValue = std::vector<std::string>();
+		}
+		return true;
 	}
 	else if (propertyName == USBVideoSourceComponent::k_currentVideoFrameRatesPropertyId)
 	{
-		std::vector<std::string> frameRates;
-		if (getVideoFrameRateNames(frameRates))
+		if (std::vector<std::string> frameRates; 
+			getVideoFrameRateNames(frameRates))
 		{
 			outValue = frameRates;
-			return true;
 		}
-		return false;
+		else
+		{
+			outValue = std::vector<std::string>();
+		}
+		return true;
 	}
 	else if (propertyName == USBVideoSourceComponent::k_currentVideoFormatsPropertyId)
 	{
-		std::vector<std::string> formats;
-		if (getVideoFormatNames(formats))
+		if (std::vector<std::string> formats; 
+			getVideoFormatNames(formats))
 		{
 			outValue = formats;
-			return true;
 		}
-		return false;
+		else
+		{
+			outValue = std::vector<std::string>();
+		}
+		return true;
 	}
 
 	return VideoSourceComponent::getPropertyValue(propertyName, outValue);
