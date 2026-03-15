@@ -1467,12 +1467,18 @@ bool USBVideoSourceComponent::getPropertyValue(
 			}
 			else if (settingSuffix == k_videoSettingFractionSuffix)
 			{
-				float floatFractionValue;
-				if (getVideoSettingAsFloatFraction(settingType, floatFractionValue))
+				
+				if (float floatFractionValue;
+					getVideoSettingAsFloatFraction(settingType, floatFractionValue))
 				{
 					outValue = floatFractionValue;
-					return true;
 				}
+				else
+				{
+					outValue = 0.f;
+				}
+
+				return true;
 			}
 
 			return false;
