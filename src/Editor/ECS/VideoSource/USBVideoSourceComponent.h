@@ -83,6 +83,7 @@ public:
 	virtual bool getFrameRate(float& outFrameRate) const override;
 
 	// -- USB Video Mode
+	bool setDevicePath(const std::string& devicePath);
 	size_t getAvailableVideoModesCount() const;
 	bool getVideoModeProperties(size_t index, UsbVideoModeProperties& outProperties) const;
 	int getVideoModeIndex() const;
@@ -107,6 +108,12 @@ public:
 
 	// -- IPropertyInterface ----
 	static const std::string k_currentDevicePathPropertyId;
+	static const std::string k_currentVideoResolutionsPropertyId;
+	static const std::string k_currentVideoFrameRatesPropertyId;
+	static const std::string k_currentVideoFormatsPropertyId;
+	static const std::string k_videoSettingPropertyPrefixes[(int)eVideoSettingType::COUNT];
+	static const std::string k_videoSettingValidSuffix;
+	static const std::string k_videoSettingFractionSuffix;
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
@@ -125,6 +132,7 @@ protected:
 	void handleWantsActiveStream();
 	void saveVideoSettingDefaultsFromCurrentMode();
 	void restoreVideoSettingsToCurrentMode();
+	bool hasVideoSetting(eVideoSettingType settingType) const;
 	bool getVideoSettingAsFloatFraction(eVideoSettingType settingType, float& outFloatFraction) const;
 	bool setVideoSettingAsFloatFraction(eVideoSettingType settingType, float outFloatFraction, bool bForce= false);
 	void rebuildVideoModeOptionLists();

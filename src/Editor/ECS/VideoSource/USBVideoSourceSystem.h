@@ -53,6 +53,14 @@ public:
 
     MulticastDelegate<void()> OnVideoSourceListChanged;
 
+	// -- IEntityAccessor ----
+	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
+
+	// -- IPropertyInterface ----
+	static const std::string k_usbDevicePathsPropertyId;
+	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
+	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
+
 protected:
     bool createUsbVideoDeviceManager(const std::string& moduleName);
     void disposeUsbVideoDeviceManager();

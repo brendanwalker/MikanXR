@@ -106,6 +106,13 @@ namespace MikanXR
 		public MikanMatrix4d reprojection_matrix;
 	};
 
+	public class MikanUSBVideoSourceSystemValues : MikanSystemValues
+	{
+		public static new readonly long classId= -4380137097083957162;
+
+		public List<string> usb_device_paths;
+	};
+
 	public class MikanUSBVideoSourceValues : MikanVideoSourceValues
 	{
 		public static new readonly long classId= -9166828371246079689;
@@ -113,6 +120,45 @@ namespace MikanXR
 		public string current_device_path;
 		public string video_mode;
 		public List<float> video_settings;
+		public List<string> video_resolutions;
+		public List<string> video_frame_rates;
+		public List<string> video_formats;
+		public bool brightness_valid;
+		public float brightness_fraction;
+		public bool contrast_valid;
+		public float contrast_fraction;
+		public bool hue_valid;
+		public float hue_fraction;
+		public bool saturation_valid;
+		public float saturation_fraction;
+		public bool sharpness_valid;
+		public float sharpness_fraction;
+		public bool gamma_valid;
+		public float gamma_fraction;
+		public bool white_balance_valid;
+		public float white_balance_fraction;
+		public bool red_balance_valid;
+		public float red_balance_fraction;
+		public bool green_balance_valid;
+		public float green_balance_fraction;
+		public bool blue_balance_valid;
+		public float blue_balance_fraction;
+		public bool gain_valid;
+		public float gain_fraction;
+		public bool pan_valid;
+		public float pan_fraction;
+		public bool tilt_valid;
+		public float tilt_fraction;
+		public bool roll_valid;
+		public float roll_fraction;
+		public bool zoom_valid;
+		public float zoom_fraction;
+		public bool exposure_valid;
+		public float exposure_fraction;
+		public bool iris_valid;
+		public float iris_fraction;
+		public bool focus_valid;
+		public float focus_fraction;
 	};
 
 	public class MikanVariantBase : PolymorphicStruct

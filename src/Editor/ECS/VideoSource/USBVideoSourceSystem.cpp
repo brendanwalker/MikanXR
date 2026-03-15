@@ -2,8 +2,9 @@
 #include "USBVideoSourceComponent.h"
 #include "IUsbVideoDeviceModule.h"
 #include "Logger.h"
-#include "MikanPropertyDatabase.h"
 #include "MikanModuleManager.h"
+#include "MikanPropertyDatabase.h"
+#include "MikanVideoSourceTypes.h"
 #include "App.h"
 #include "ProjectConfig.h"
 #include "MikanObject.h"
@@ -230,4 +231,39 @@ void USBVideoSourceSystem::onConnectedDeviceListChanged()
 	{
 		OnVideoSourceListChanged();
 	}
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* USBVideoSourceSystem::getClientAPIValuesStructType() const
+{
+	return &MikanUSBVideoSourceSystemValues::staticGetArchetype();
+}
+
+// -- IPropertyInterface ----
+const std::string USBVideoSourceSystem::k_usbDevicePathsPropertyId = "usb_device_paths";
+
+void USBVideoSourceSystem::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+{
+	Super::getPropertyDescriptors(outDescriptors);
+
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			USBVideoSourceSystem::k_usbDevicePathsPropertyId, MikanVariantType::STRING_ARRAY)
+		->setReadOnly());
+}
+
+bool USBVideoSourceSystem::getPropertyValue(
+	const std::string& propertyName,
+	MikanVariant& outValue) const
+{
+
+	if (propertyName == USBVideoSourceSystem::k_usbDevicePathsPropertyId)
+	{
+		USBVideoSourcePathList usbDevicePaths;
+		getConnectedUSBVideoSourcePaths(usbDevicePaths);
+		outValue = usbDevicePaths;
+		return true;
+	}
+
+	return Super::getPropertyValue(propertyName, outValue);
 }

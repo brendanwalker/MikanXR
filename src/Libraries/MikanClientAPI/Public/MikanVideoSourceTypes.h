@@ -2,6 +2,7 @@
 
 #include "MikanAPIExport.h"
 #include "MikanMathTypes.h"
+#include "MikanPropertyTypes.h"
 #include "MikanVRDeviceTypes.h"
 #include "SerializableObjectPtr.h"
 #include "SerializationProperty.h"
@@ -277,10 +278,120 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 	Serialization::String video_mode; ///< Current video mode name
 	FIELD()
 	Serialization::List<float> video_settings; ///< [0,1] Video Settings (See MikanVideoSettingType enum)
+	FIELD()
+	Serialization::List<Serialization::String> video_resolutions; ///< Current available video resolution options
+	FIELD()
+	Serialization::List<Serialization::String> video_frame_rates; ///< Current available video frame rate options
+	FIELD()
+	Serialization::List<Serialization::String> video_formats; ///< Current available video format options
+
+	// Video Setting Properties (All between [0,1])
+	FIELD()
+	bool brightness_valid;
+	FIELD()
+	float brightness_fraction;
+
+	FIELD()
+	bool contrast_valid;
+	FIELD()
+	float contrast_fraction;
+
+	FIELD()
+	bool hue_valid;
+	FIELD()
+	float hue_fraction;
+
+	FIELD()
+	bool saturation_valid;
+	FIELD()
+	float saturation_fraction;
+
+	FIELD()
+	bool sharpness_valid;
+	FIELD()
+	float sharpness_fraction;
+
+	FIELD()
+	bool gamma_valid;
+	FIELD()
+	float gamma_fraction;
+
+	FIELD()
+	bool white_balance_valid;
+	FIELD()
+	float white_balance_fraction;
+
+	FIELD()
+	bool red_balance_valid;
+	FIELD()
+	float red_balance_fraction;
+
+	FIELD()
+	bool green_balance_valid;
+	FIELD()
+	float green_balance_fraction;
+
+	FIELD()
+	bool blue_balance_valid;
+	FIELD()
+	float blue_balance_fraction;
+
+	FIELD()
+	bool gain_valid;
+	FIELD()
+	float gain_fraction;
+
+	FIELD()
+	bool pan_valid;
+	FIELD()
+	float pan_fraction;
+
+	FIELD()
+	bool tilt_valid;
+	FIELD()
+	float tilt_fraction;
+
+	FIELD()
+	bool roll_valid;
+	FIELD()
+	float roll_fraction;
+
+	FIELD()
+	bool zoom_valid;
+	FIELD()
+	float zoom_fraction;
+
+	FIELD()
+	bool exposure_valid;
+	FIELD()
+	float exposure_fraction;
+
+	FIELD()
+	bool iris_valid;
+	FIELD()
+	float iris_fraction;
+
+	FIELD()
+	bool focus_valid;
+	FIELD()
+	float focus_fraction;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanUSBVideoSourceValues_GENERATED
 	#endif // MIKANAPI_REFLECTION_ENABLED
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanUSBVideoSourceSystemValues :
+	public MikanSystemValues
+{
+	static const char* k_systemName;
+
+	FIELD()
+	Serialization::List<Serialization::String> usb_device_paths;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanUSBVideoSourceSystemValues_GENERATED
+#endif
 };
 
 #ifdef MIKANAPI_REFLECTION_ENABLED

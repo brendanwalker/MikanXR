@@ -18,4 +18,8 @@ public:
 protected:
 	void getVideoSourceIntrinsicsHandler(const struct ClientRequest& request, struct ClientResponse& response);
 	void getVideoSourceModeHandler(const struct ClientRequest& request, struct ClientResponse& response);
+	void setUSBVideoSourceDeviceHandler(const struct ClientRequest& request, struct ClientResponse& response);
+	void setUSBVideoSourceResolutionHandler(const struct ClientRequest& request, struct ClientResponse& response);
+	void setUSBVideoSourceFrameRateHandler(const struct ClientRequest& request, struct ClientResponse& response);
+	void setUSBVideoSourceFormatHandler(const struct ClientRequest& request, struct ClientResponse& response);
 };

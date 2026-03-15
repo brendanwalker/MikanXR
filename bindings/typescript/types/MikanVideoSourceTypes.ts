@@ -3,6 +3,7 @@
 import { PolymorphicObject, PolymorphicStruct } from './../PolymorphicObject.js';
 import { MikanComponentValues } from './MikanComponentTypes.js';
 import { MikanMatrix3d, MikanMatrix4d, MikanMatrix4x3d, MikanVector3d } from './MikanMathTypes.js';
+import { MikanSystemValues } from './MikanPropertyTypes.js';
 
 export enum MikanIntrinsicsType {
   INVALID = 0,
@@ -43,6 +44,7 @@ export const CLASS_ID_MIKAN_DISTORTION_COEFFICIENTS = -2596555002374434624n;
 export const CLASS_ID_MIKAN_MONO_INTRINSICS = 4896055255137140914n;
 export const CLASS_ID_MIKAN_NETWORK_VIDEO_SOURCE_VALUES = 8924237416134720747n;
 export const CLASS_ID_MIKAN_STEREO_INTRINSICS = -261934067861644075n;
+export const CLASS_ID_MIKAN_USBVIDEO_SOURCE_SYSTEM_VALUES = -4380137097083957162n;
 export const CLASS_ID_MIKAN_USBVIDEO_SOURCE_VALUES = -9166828371246079689n;
 export const CLASS_ID_MIKAN_VARIANT_BASE = 5706978007370628991n;
 export const CLASS_ID_MIKAN_VIDEO_SOURCE_INTRINSICS = -5073913459979558727n;
@@ -164,15 +166,101 @@ export class MikanStereoIntrinsics extends MikanBaseIntrinsics {
   ];
 }
 
+export class MikanUSBVideoSourceSystemValues extends MikanSystemValues {
+  usb_device_paths: string[] = [];
+
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+    { name: 'usb_device_paths', type: 'string', isArray: true }
+  ];
+}
+
 export class MikanUSBVideoSourceValues extends MikanVideoSourceValues {
   current_device_path: string = '';
   video_mode: string = '';
   video_settings: number[] = [];
+  video_resolutions: string[] = [];
+  video_frame_rates: string[] = [];
+  video_formats: string[] = [];
+  brightness_valid: boolean = false;
+  brightness_fraction: number = 0;
+  contrast_valid: boolean = false;
+  contrast_fraction: number = 0;
+  hue_valid: boolean = false;
+  hue_fraction: number = 0;
+  saturation_valid: boolean = false;
+  saturation_fraction: number = 0;
+  sharpness_valid: boolean = false;
+  sharpness_fraction: number = 0;
+  gamma_valid: boolean = false;
+  gamma_fraction: number = 0;
+  white_balance_valid: boolean = false;
+  white_balance_fraction: number = 0;
+  red_balance_valid: boolean = false;
+  red_balance_fraction: number = 0;
+  green_balance_valid: boolean = false;
+  green_balance_fraction: number = 0;
+  blue_balance_valid: boolean = false;
+  blue_balance_fraction: number = 0;
+  gain_valid: boolean = false;
+  gain_fraction: number = 0;
+  pan_valid: boolean = false;
+  pan_fraction: number = 0;
+  tilt_valid: boolean = false;
+  tilt_fraction: number = 0;
+  roll_valid: boolean = false;
+  roll_fraction: number = 0;
+  zoom_valid: boolean = false;
+  zoom_fraction: number = 0;
+  exposure_valid: boolean = false;
+  exposure_fraction: number = 0;
+  iris_valid: boolean = false;
+  iris_fraction: number = 0;
+  focus_valid: boolean = false;
+  focus_fraction: number = 0;
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'current_device_path', type: 'string' },
     { name: 'video_mode', type: 'string' },
-    { name: 'video_settings', type: 'float', isArray: true }
+    { name: 'video_settings', type: 'float', isArray: true },
+    { name: 'video_resolutions', type: 'string', isArray: true },
+    { name: 'video_frame_rates', type: 'string', isArray: true },
+    { name: 'video_formats', type: 'string', isArray: true },
+    { name: 'brightness_valid', type: 'boolean' },
+    { name: 'brightness_fraction', type: 'float' },
+    { name: 'contrast_valid', type: 'boolean' },
+    { name: 'contrast_fraction', type: 'float' },
+    { name: 'hue_valid', type: 'boolean' },
+    { name: 'hue_fraction', type: 'float' },
+    { name: 'saturation_valid', type: 'boolean' },
+    { name: 'saturation_fraction', type: 'float' },
+    { name: 'sharpness_valid', type: 'boolean' },
+    { name: 'sharpness_fraction', type: 'float' },
+    { name: 'gamma_valid', type: 'boolean' },
+    { name: 'gamma_fraction', type: 'float' },
+    { name: 'white_balance_valid', type: 'boolean' },
+    { name: 'white_balance_fraction', type: 'float' },
+    { name: 'red_balance_valid', type: 'boolean' },
+    { name: 'red_balance_fraction', type: 'float' },
+    { name: 'green_balance_valid', type: 'boolean' },
+    { name: 'green_balance_fraction', type: 'float' },
+    { name: 'blue_balance_valid', type: 'boolean' },
+    { name: 'blue_balance_fraction', type: 'float' },
+    { name: 'gain_valid', type: 'boolean' },
+    { name: 'gain_fraction', type: 'float' },
+    { name: 'pan_valid', type: 'boolean' },
+    { name: 'pan_fraction', type: 'float' },
+    { name: 'tilt_valid', type: 'boolean' },
+    { name: 'tilt_fraction', type: 'float' },
+    { name: 'roll_valid', type: 'boolean' },
+    { name: 'roll_fraction', type: 'float' },
+    { name: 'zoom_valid', type: 'boolean' },
+    { name: 'zoom_fraction', type: 'float' },
+    { name: 'exposure_valid', type: 'boolean' },
+    { name: 'exposure_fraction', type: 'float' },
+    { name: 'iris_valid', type: 'boolean' },
+    { name: 'iris_fraction', type: 'float' },
+    { name: 'focus_valid', type: 'boolean' },
+    { name: 'focus_fraction', type: 'float' }
   ];
 }
 

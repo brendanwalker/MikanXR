@@ -90,7 +90,7 @@ bool USBVideoSourceDefinition::readFromInitParams(const Serialization::Polymorph
 		const auto& settingsList = componentValues->video_settings;
 		if (settingsList.size() == (int)eVideoSettingType::COUNT && !m_videoMode.empty())
 		{
-			USBVideoSettingsArray settingsArray;
+			USBVideoSettingsArray settingsArray = {};
 			for (size_t i = 0; i < settingsList.size(); ++i)
 			{
 				settingsArray[i] = settingsList[i];
@@ -630,6 +630,18 @@ void USBVideoSourceComponent::restoreVideoSettingsToCurrentMode()
 	}
 }
 
+bool USBVideoSourceComponent::hasVideoSetting(eVideoSettingType settingType) const
+{
+	if (m_usbVideoDevice != nullptr)
+	{
+		const VideoSettingConstraint& constraint = m_currentVideoConstraints[(int)settingType];
+
+		return constraint.max_value > constraint.min_value;
+	}
+
+	return false;
+}
+
 bool USBVideoSourceComponent::getVideoSettingAsFloatFraction(
 	eVideoSettingType settingType,
 	float& outFloatFraction) const
@@ -830,6 +842,18 @@ bool USBVideoSourceComponent::getVideoPixelDimensions(int& outPixelWidth, int& o
 		return true;
 	}
 
+	return false;
+}
+
+bool USBVideoSourceComponent::setDevicePath(const std::string& devicePath)
+{
+	USBVideoSourceDefinitionPtr definition = getUSBVideoSourceDefinition();
+	if (definition)
+	{
+		//TODO: Verify that the device path is valid before setting it on the definition
+		definition->setDevicePath(devicePath);
+		return true;
+	}
 	return false;
 }
 
@@ -1320,10 +1344,50 @@ void USBVideoSourceComponent::notifyVideoFrameReceived(const UsbVideoFrameBuffer
 
 // -- IPropertyInterface ----
 const std::string USBVideoSourceComponent::k_currentDevicePathPropertyId = "current_device_path";
+const std::string USBVideoSourceComponent::k_currentVideoResolutionsPropertyId = "video_resolutions";
+const std::string USBVideoSourceComponent::k_currentVideoFrameRatesPropertyId = "video_frame_rates";
+const std::string USBVideoSourceComponent::k_currentVideoFormatsPropertyId = "video_formats";
+const std::string USBVideoSourceComponent::k_videoSettingPropertyPrefixes[(int)eVideoSettingType::COUNT] = {
+	"brightness",
+	"contrast",
+	"hue",
+	"saturation",
+	"sharpness",
+	"gamma",
+	"white_balance",
+	"red_balance",
+	"green_balance",
+	"blue_balance",
+	"gain",
+	"pan",
+	"tilt",
+	"roll",
+	"zoom",
+	"exposure",
+	"iris",
+	"focus",
+};
+const std::string USBVideoSourceComponent::k_videoSettingValidSuffix = "_valid";
+const std::string USBVideoSourceComponent::k_videoSettingFractionSuffix = "_fraction";
 
 void USBVideoSourceComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	VideoSourceComponent::getPropertyDescriptors(outDescriptors);
+
+	for (int settingIndex = 0; settingIndex < (int)eVideoSettingType::COUNT; ++settingIndex)
+	{
+		const std::string& prefix = USBVideoSourceComponent::k_videoSettingPropertyPrefixes[settingIndex];
+		const std::string validPropertyId = prefix + USBVideoSourceComponent::k_videoSettingValidSuffix;
+		const std::string fractionPropertyId = prefix + USBVideoSourceComponent::k_videoSettingFractionSuffix;
+
+		outDescriptors.push_back(
+			std::make_shared<PropertyDescriptor>(
+				validPropertyId, MikanVariantType::BOOL)
+			->setReadOnly());
+		outDescriptors.push_back(
+			std::make_shared<PropertyDescriptor>(
+				fractionPropertyId, MikanVariantType::FLOAT));
+	}
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
@@ -1351,12 +1415,70 @@ void USBVideoSourceComponent::getPropertyDescriptors(std::vector<PropertyDescrip
 		std::make_shared<PropertyDescriptor>(
 			USBVideoSourceDefinition::k_videoSettingsPropertyId, MikanVariantType::FLOAT_ARRAY)
 		->setReadOnly());
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			USBVideoSourceComponent::k_currentVideoResolutionsPropertyId, MikanVariantType::STRING_ARRAY)
+		->setReadOnly());
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			USBVideoSourceComponent::k_currentVideoFrameRatesPropertyId, MikanVariantType::STRING_ARRAY)
+		->setReadOnly());
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			USBVideoSourceComponent::k_currentVideoFormatsPropertyId, MikanVariantType::STRING_ARRAY)
+		->setReadOnly());
+}
+
+static bool parseVideoSourceSettingProperty(
+	const std::string& propertyName,
+	eVideoSettingType& outSettingType,
+	std::string& outSuffix)
+{
+	for (int settingIndex = 0; settingIndex < (int)eVideoSettingType::COUNT; ++settingIndex)
+	{
+		const std::string& prefix = USBVideoSourceComponent::k_videoSettingPropertyPrefixes[settingIndex];
+
+		if (propertyName.compare(0, prefix.size(), prefix) == 0)
+		{
+			outSettingType = (eVideoSettingType)settingIndex;
+			outSuffix = propertyName.substr(prefix.size());
+
+			return true;
+		}
+	}
+
+	return false;
 }
 
 bool USBVideoSourceComponent::getPropertyValue(
 	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
+	{
+		eVideoSettingType settingType;
+		std::string settingSuffix;
+
+		if (parseVideoSourceSettingProperty(propertyName, settingType, settingSuffix))
+		{
+			if (settingSuffix == k_videoSettingValidSuffix)
+			{
+				outValue = hasVideoSetting(settingType);
+				return true;
+			}
+			else if (settingSuffix == k_videoSettingFractionSuffix)
+			{
+				float floatFractionValue;
+				if (getVideoSettingAsFloatFraction(settingType, floatFractionValue))
+				{
+					outValue = floatFractionValue;
+					return true;
+				}
+			}
+
+			return false;
+		}
+	}
+	
 	if (propertyName == USBVideoSourceDefinition::k_desiredDevicePathPropertyId)
 	{
 		outValue = getUSBVideoSourceDefinition()->getDevicePath();
@@ -1385,6 +1507,7 @@ bool USBVideoSourceComponent::getPropertyValue(
 			outValue = resolution;
 			return true;
 		}
+		return false;
 	}
 	else if (propertyName == USBVideoSourceDefinition::k_videoFrameRatePropertyId)
 	{
@@ -1394,6 +1517,7 @@ bool USBVideoSourceComponent::getPropertyValue(
 			outValue = frameRate;
 			return true;
 		}
+		return false;
 	}
 	else if (propertyName == USBVideoSourceDefinition::k_videoFormatPropertyId)
 	{
@@ -1403,6 +1527,37 @@ bool USBVideoSourceComponent::getPropertyValue(
 			outValue = format;
 			return true;
 		}
+		return false;
+	}
+	else if (propertyName == USBVideoSourceComponent::k_currentVideoResolutionsPropertyId)
+	{
+		std::vector<std::string> resolutions;
+		if (getVideoResolutionNames(resolutions))
+		{
+			outValue = resolutions;
+			return true;
+		}
+		return false;
+	}
+	else if (propertyName == USBVideoSourceComponent::k_currentVideoFrameRatesPropertyId)
+	{
+		std::vector<std::string> frameRates;
+		if (getVideoFrameRateNames(frameRates))
+		{
+			outValue = frameRates;
+			return true;
+		}
+		return false;
+	}
+	else if (propertyName == USBVideoSourceComponent::k_currentVideoFormatsPropertyId)
+	{
+		std::vector<std::string> formats;
+		if (getVideoFormatNames(formats))
+		{
+			outValue = formats;
+			return true;
+		}
+		return false;
 	}
 
 	return VideoSourceComponent::getPropertyValue(propertyName, outValue);
@@ -1412,6 +1567,25 @@ bool USBVideoSourceComponent::setPropertyValue(
 	const std::string& propertyName,
 	const MikanVariant& inValue)
 {
+	{
+		eVideoSettingType settingType;
+		std::string settingSuffix;
+
+		if (parseVideoSourceSettingProperty(propertyName, settingType, settingSuffix))
+		{
+			if (settingSuffix == k_videoSettingFractionSuffix)
+			{
+				float floatFractionValue = inValue.getFloatValue();
+				if (setVideoSettingAsFloatFraction(settingType, floatFractionValue))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+	}
+
 	if (propertyName == USBVideoSourceDefinition::k_desiredDevicePathPropertyId)
 	{
 		std::string devicePath = inValue.getStringValue();

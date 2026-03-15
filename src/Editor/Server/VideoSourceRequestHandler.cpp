@@ -7,6 +7,8 @@
 #include "MikanVideoSourceRequests.h"
 #include "ProjectManager.h"
 #include "ServerResponseHelpers.h"
+#include "USBVideoSourceSystem.h"
+#include "USBVideoSourceComponent.h"
 #include "VideoSourceQueries.h"
 #include "VideoSourceComponent.h"
 
@@ -26,6 +28,18 @@ bool VideoSourceRequestHandler::startup(MainWindow* mainWindow)
 	messageServer->setRequestHandler(
 		GetVideoSourceMode::staticGetArchetype().getId(),
 		std::bind(&VideoSourceRequestHandler::getVideoSourceModeHandler, this, _1, _2));
+	messageServer->setRequestHandler(
+		SetUSBVideoSourceDevice::staticGetArchetype().getId(),
+		std::bind(&VideoSourceRequestHandler::setUSBVideoSourceDeviceHandler, this, _1, _2));
+	messageServer->setRequestHandler(
+		SetUSBVideoSourceResolution::staticGetArchetype().getId(),
+		std::bind(&VideoSourceRequestHandler::setUSBVideoSourceResolutionHandler, this, _1, _2));
+	messageServer->setRequestHandler(
+		SetUSBVideoSourceFrameRate::staticGetArchetype().getId(),
+		std::bind(&VideoSourceRequestHandler::setUSBVideoSourceFrameRateHandler, this, _1, _2));
+	messageServer->setRequestHandler(
+		SetUSBVideoSourceFormat::staticGetArchetype().getId(),
+		std::bind(&VideoSourceRequestHandler::setUSBVideoSourceFormatHandler, this, _1, _2));
 
 	return true;
 }
@@ -124,6 +138,159 @@ void VideoSourceRequestHandler::getVideoSourceModeHandler(
 		else
 		{
 			writeSimpleJsonResponse(request.requestId, MikanAPIResult::NoVideoSource, response);
+		}
+	}
+	else
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::NoVideoSource, response);
+	}
+}
+
+void VideoSourceRequestHandler::setUSBVideoSourceDeviceHandler(
+	const ClientRequest& request,
+	ClientResponse& response)
+{
+	SetUSBVideoSourceDevice deviceRequest;
+	if (!readTypedRequest(request.utf8RequestString, deviceRequest))
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
+		return;
+	}
+
+	USBVideoSourceComponentPtr videoSourceComponent =
+		getObjectSystemOfType<USBVideoSourceSystem>()
+		->getTypedComponentById(deviceRequest.video_source_id);
+	if (videoSourceComponent)
+	{
+		if (videoSourceComponent->setDevicePath(deviceRequest.device_path.getValue()))
+		{
+			writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
+			publishVideoSourceModeChangedEvent();
+		}
+		else
+		{
+			writeSimpleJsonResponse(request.requestId, MikanAPIResult::InvalidParam, response);
+		}
+	}
+	else
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::NoVideoSource, response);
+	}
+}
+
+void VideoSourceRequestHandler::setUSBVideoSourceResolutionHandler(
+	const ClientRequest& request,
+	ClientResponse& response)
+{
+	SetUSBVideoSourceResolution resolutionRequest;
+	if (!readTypedRequest(request.utf8RequestString, resolutionRequest))
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
+		return;
+	}
+
+	USBVideoSourceComponentPtr videoSourceComponent =
+		getObjectSystemOfType<USBVideoSourceSystem>()
+		->getTypedComponentById(resolutionRequest.video_source_id);
+	if (videoSourceComponent)
+	{
+		std::string frameRate;
+		std::string format;
+
+		videoSourceComponent->getVideoModeFrameRateName(frameRate);
+		videoSourceComponent->getVideoModeFormatName(format);
+
+		if (videoSourceComponent->setVideoModeToBestMatch(
+			resolutionRequest.resolution.getValue(),
+			frameRate,
+			format))
+		{
+			writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
+			publishVideoSourceModeChangedEvent();
+		}
+		else
+		{
+			writeSimpleJsonResponse(request.requestId, MikanAPIResult::InvalidParam, response);
+		}
+	}
+	else
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::NoVideoSource, response);
+	}
+}
+
+void VideoSourceRequestHandler::setUSBVideoSourceFrameRateHandler(
+	const ClientRequest& request,
+	ClientResponse& response)
+{
+	SetUSBVideoSourceFrameRate frameRateRequest;
+	if (!readTypedRequest(request.utf8RequestString, frameRateRequest))
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
+		return;
+	}
+
+	USBVideoSourceComponentPtr videoSourceComponent =
+		getObjectSystemOfType<USBVideoSourceSystem>()
+		->getTypedComponentById(frameRateRequest.video_source_id);
+	if (videoSourceComponent)
+	{
+		std::string resolution;
+		std::string format;
+
+		videoSourceComponent->getVideoModeResolutionName(resolution);
+		videoSourceComponent->getVideoModeFormatName(format);
+
+		if (videoSourceComponent->setVideoModeToBestMatch(
+			resolution,
+			frameRateRequest.frame_rate.getValue(),
+			format))
+		{
+			writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
+			publishVideoSourceModeChangedEvent();
+		}
+		else
+		{
+			writeSimpleJsonResponse(request.requestId, MikanAPIResult::InvalidParam, response);
+		}
+	}
+	else
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::NoVideoSource, response);
+	}
+}
+
+void VideoSourceRequestHandler::setUSBVideoSourceFormatHandler(
+	const ClientRequest& request,
+	ClientResponse& response)
+{
+	SetUSBVideoSourceFormat formatRequest;
+	if (!readTypedRequest(request.utf8RequestString, formatRequest))
+	{
+		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
+		return;
+	}
+
+	USBVideoSourceComponentPtr videoSourceComponent =
+		getObjectSystemOfType<USBVideoSourceSystem>()
+		->getTypedComponentById(formatRequest.video_source_id);
+	if (videoSourceComponent)
+	{
+		std::string resolution;
+		std::string frameRate;
+		videoSourceComponent->getVideoModeResolutionName(resolution);
+		videoSourceComponent->getVideoModeFrameRateName(frameRate);
+		if (videoSourceComponent->setVideoModeToBestMatch(
+			resolution,
+			frameRate,
+			formatRequest.format.getValue()))
+		{
+			writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
+			publishVideoSourceModeChangedEvent();
+		}
+		else
+		{
+			writeSimpleJsonResponse(request.requestId, MikanAPIResult::InvalidParam, response);
 		}
 	}
 	else

@@ -46,6 +46,86 @@ public:
 	#endif
 };
 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) SetUSBVideoSourceDevice :
+	public MikanRequest
+{
+public:
+	SetUSBVideoSourceDevice()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(SetUSBVideoSourceDevice)
+	}
+
+	FIELD()
+	MikanVideoSourceID video_source_id;
+
+	FIELD()
+	Serialization::String device_path;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	SetUSBVideoSourceDevice_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) SetUSBVideoSourceResolution :
+	public MikanRequest
+{
+public:
+	SetUSBVideoSourceResolution()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(SetUSBVideoSourceResolution)
+	}
+
+	FIELD()
+	MikanVideoSourceID video_source_id;
+
+	FIELD()
+	Serialization::String resolution;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	SetUSBVideoSourceResolution_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) SetUSBVideoSourceFrameRate :
+	public MikanRequest
+{
+public:
+	SetUSBVideoSourceFrameRate()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(SetUSBVideoSourceFrameRate)
+	}
+
+	FIELD()
+	MikanVideoSourceID video_source_id;
+
+	FIELD()
+	Serialization::String frame_rate;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	SetUSBVideoSourceFrameRate_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest")) SetUSBVideoSourceFormat :
+	public MikanRequest
+{
+public:
+	SetUSBVideoSourceFormat()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(SetUSBVideoSourceFormat)
+	}
+
+	FIELD()
+	MikanVideoSourceID video_source_id;
+
+	FIELD()
+	Serialization::String format;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	SetUSBVideoSourceFormat_GENERATED
+#endif
+};
+
 // Video Source Response Types
 // ------
 
