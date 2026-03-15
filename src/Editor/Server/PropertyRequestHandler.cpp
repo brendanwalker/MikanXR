@@ -350,14 +350,14 @@ void PropertyRequestHandler::getComponentListHandler(const ClientRequest& reques
 
 void PropertyRequestHandler::getSystemValuesHandler(const ClientRequest& request, ClientResponse& response)
 {
-	ComponentGetValuesRequest componentValuesRequest;
-	if (!readTypedRequest(request.utf8RequestString, componentValuesRequest))
+	SystemGetValuesRequest systemValuesRequest;
+	if (!readTypedRequest(request.utf8RequestString, systemValuesRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 		return;
 	}
 
-	const std::string& ownerSystemName = componentValuesRequest.ownerSystem.getValue();
+	const std::string& ownerSystemName = systemValuesRequest.ownerSystem.getValue();
 	MikanObjectSystemPtr objectSystem = getProjectManager()->getSystemByName(ownerSystemName);
 	if (!objectSystem)
 	{
@@ -374,7 +374,7 @@ void PropertyRequestHandler::getSystemValuesHandler(const ClientRequest& request
 
 	// Build the response
 	SystemGetValuesResponse getValuesResponse = {};
-	getValuesResponse.ownerSystem = componentValuesRequest.ownerSystem;
+	getValuesResponse.ownerSystem = systemValuesRequest.ownerSystem;
 
 	// Extract the values into the response polymorphic object
 	if (!Serialization::serializeFromEntity(
