@@ -42,6 +42,13 @@ protected:
 	void onVideoSourceStopped(VideoSourceComponentPtr videoSource);
 	void onVideoSourceFrameSizeChanged(VideoSourceComponentPtr videoSource);
 
+	// Remote Control
+	bool handleRemoteControlCommand(
+		const std::string& command,
+		const std::vector<std::string>& parameters,
+		std::vector<std::string>& outResults);
+	bool handleGetVideoSourceComponentId(std::vector<std::string>& outResults);
+
 	Rml::ElementDocument* m_videoSourceSettingsView = nullptr;
 
 	VideoSourceComponentWeakPtr m_videoSourceComponent;

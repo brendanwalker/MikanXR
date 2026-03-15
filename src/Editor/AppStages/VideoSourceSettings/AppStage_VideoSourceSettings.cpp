@@ -195,3 +195,28 @@ void AppStage_VideoSourceSettings::onReturnEvent()
 {
 	getOwnerWindow()->popAppState();
 }
+
+// Remote Control
+bool AppStage_VideoSourceSettings::handleRemoteControlCommand(
+	const std::string& command,
+	const std::vector<std::string>& parameters,
+	std::vector<std::string>& outResults)
+{
+	if (command == "get_video_source_component_id")
+	{
+		return handleGetVideoSourceComponentId(outResults);
+	}
+
+	return AppStage::handleRemoteControlCommand(command, parameters, outResults);
+}
+
+bool AppStage_VideoSourceSettings::handleGetVideoSourceComponentId(
+	std::vector<std::string>& outResults)
+{
+	VideoSourceComponentPtr videoSource= m_videoSourceComponent.lock();
+	MikanVideoSourceID videoSourceId= videoSource ? videoSource->getComponentId() : INVALID_MIKAN_ID;
+
+	outResults.push_back(std::to_string(videoSourceId));
+
+	return true;
+}
