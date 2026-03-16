@@ -59,6 +59,12 @@ namespace Serialization
 							"EntityAccessorReadVisitor::visitClass() List with unsupported element type");
 					}
 				}
+				// See if the field is a Serialization::Map<K,V>
+				else if (templateTypeName == "Map" &&
+					templateClassInstanceType->getTemplateArgumentsCount() == 2)
+				{
+					visitMap(accessor, *templateClassInstanceType);
+				}
 				else
 				{
 					throw std::runtime_error(
@@ -182,6 +188,64 @@ namespace Serialization
 				throw std::runtime_error(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitStringList() ",
 						"Missing valid StringList for", arrayAccessor.getName()));
+			}
+		}
+
+		void visitMap(
+			ValueAccessor const& mapAccessor,
+			rfk::ClassTemplateInstantiation const& templatedMapType)
+		{
+			// Get the key type of the map from the template argument
+			auto const& templateKeyArg =
+				static_cast<rfk::TypeTemplateArgument const&>(
+					templatedMapType.getTemplateArgumentAt(0));
+			auto const& templateValueArg =
+				static_cast<rfk::TypeTemplateArgument const&>(
+					templatedMapType.getTemplateArgumentAt(1));
+			rfk::Type const& keyType = templateKeyArg.getType();
+			rfk::Type const& valueType = templateValueArg.getType();
+
+			if (keyType == rfk::getType<std::string>() &&
+				valueType == rfk::getType<Serialization::String>())
+			{
+				visitStringMap(mapAccessor, templatedMapType);
+			}
+			else
+			{
+				rfk::Archetype const* keyArchetype = keyType.getArchetype();
+				rfk::Archetype const* valueArchetype = valueType.getArchetype();
+
+				throw std::runtime_error(
+					StringUtils::stringify("EntityAccessorReadVisitor::visitMap() ",
+						"Map Key Archetype ", keyArchetype != nullptr ? keyArchetype->getName() : "<Null Archetype>",
+						" Value Archetype ", valueArchetype != nullptr ? valueArchetype->getName() : "<Null Archetype>",
+						" is not supported"));
+			}
+		}
+
+		void visitStringMap(ValueAccessor const& mapAccessor,
+			rfk::ClassTemplateInstantiation const& templatedMapType)
+		{
+			// Get an enumerator to the target string map
+			auto* mapInstance =
+				reinterpret_cast<Serialization::Map<std::string, Serialization::String> *>(
+					mapAccessor.getUntypedValueMutablePtr());
+
+			MikanVariant sourcePropertyValue;
+			if (m_entityAccessor->getPropertyValue(mapAccessor.getName(), sourcePropertyValue) &&
+				sourcePropertyValue.value_type == MikanVariantType::STRING_MAP)
+			{
+				const Serialization::Map<std::string, Serialization::String>& sourceMap =
+					sourcePropertyValue.getStringMapValue();
+
+				mapInstance->clear();
+				mapInstance->insert(sourceMap.begin(), sourceMap.end());
+			}
+			else
+			{
+				throw std::runtime_error(
+					StringUtils::stringify("EntityAccessorReadVisitor::visitStringMap() ",
+						"Missing valid StringMap for", mapAccessor.getName()));
 			}
 		}
 

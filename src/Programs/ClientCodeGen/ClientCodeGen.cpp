@@ -626,6 +626,10 @@ protected:
 			// All pointer types are IntPtr in C#
 			return "IntPtr";
 		}
+		else if (type == rfk::getType<std::string>())
+		{
+			return type.isCArray() ? "string[]" : "string";
+		}
 		else if (fieldArchetypeKind == rfk::EEntityKind::Class)
 		{
 			rfk::Class const* classType = rfk::classCast(archetype);
@@ -880,6 +884,12 @@ protected:
 
 	static void collectTypeScriptTypeImports(rfk::Type const& type, std::set<std::string>& imports, const std::string& currentModule)
 	{
+		// Skip primitive types and built-in types
+		if (type == rfk::getType<std::string>())
+		{
+			return;
+		}
+
 		rfk::Archetype const* archetype = type.getArchetype();
 		if (!archetype) return;
 
@@ -888,7 +898,8 @@ protected:
 
 		// Skip primitive types and built-in types
 		if (kind == rfk::EEntityKind::FundamentalArchetype ||
-			typeName == "String" || typeName == "BoolList")
+			typeName == "String" || 
+			typeName == "BoolList")
 		{
 			return;
 		}
@@ -984,6 +995,10 @@ protected:
 		if (type.isPointer())
 		{
 			return "any";
+		}
+		else if (type == rfk::getType<std::string>())
+		{
+			return "string";
 		}
 		else if (fieldArchetypeKind == rfk::EEntityKind::Class)
 		{
@@ -1207,6 +1222,10 @@ protected:
 		{
 			return "null";
 		}
+		else if (type == rfk::getType<std::string>())
+		{
+			return type.isCArray() ? "[]" : "''";
+		}
 		else if (kind == rfk::EEntityKind::Class)
 		{
 			rfk::Class const* classType = rfk::classCast(archetype);
@@ -1235,7 +1254,7 @@ protected:
 				}
 				else if (templateTypeName == "Map")
 				{
-					return "new Map()";
+					return "{}";
 				}
 			}
 			else
@@ -1318,6 +1337,10 @@ protected:
 		if (type.isPointer())
 		{
 			return "any"; // Pointers become any in TypeScript
+		}
+		else if (type == rfk::getType<std::string>())
+		{
+			return type.isCArray() ? "string[]" : "string";
 		}
 		else if (fieldArchetypeKind == rfk::EEntityKind::Class)
 		{

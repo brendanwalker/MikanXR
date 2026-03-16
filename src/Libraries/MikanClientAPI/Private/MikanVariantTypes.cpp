@@ -195,6 +195,12 @@ const std::vector<Serialization::String>& MikanVariant::getStringArrayValue() co
 	return value_ptr.getTypedPointer<MikanStringArrayValue>()->value;
 }
 
+const Serialization::Map<std::string, Serialization::String>& MikanVariant::getStringMapValue() const
+{
+	assert(value_type == MikanVariantType::STRING_MAP);
+	return value_ptr.getTypedPointer<MikanStringMapValue>()->value;
+}
+
 const Serialization::PolymorphicObjectPtr& MikanVariant::getPolymorphicObjectValue() const
 {
 	assert(value_type == MikanVariantType::POLYMORPHIC_OBJECT);
@@ -262,6 +268,9 @@ void MikanVariant::setValue(const MikanVariant& other)
 		break;
 	case MikanVariantType::STRING_ARRAY:
 		setValue(other.getStringArrayValue());
+		break;
+	case MikanVariantType::STRING_MAP:
+		setValue(other.getStringMapValue());
 		break;
 	case MikanVariantType::POLYMORPHIC_OBJECT:
 		setValue(other.getPolymorphicObjectValue());
@@ -356,6 +365,15 @@ void MikanVariant::setValue(const std::vector<Serialization::String>& value)
 
 	value_type = MikanVariantType::STRING_ARRAY;
 	value_array = value;
+}
+
+void MikanVariant::setValue(const Serialization::Map<std::string, Serialization::String>& value)
+{
+	Serialization::Map<std::string, Serialization::String>& value_map =
+		value_ptr.allocatedByType<MikanStringMapValue>()->value;
+
+	value_type = MikanVariantType::STRING_MAP;
+	value_map = value;
 }
 
 void MikanVariant::setValue(const MikanVector2f& value)

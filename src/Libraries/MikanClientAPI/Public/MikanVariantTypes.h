@@ -4,6 +4,7 @@
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
 #include "SerializableList.h"
+#include "SerializableMap.h"
 #include "SerializableString.h"
 #include "SerializableObjectPtr.h"
 #include "SerializationProperty.h"
@@ -42,6 +43,9 @@ enum class ENUM(Serialization::CodeGenModule("MikanVariantTypes")) MikanVariantT
 	INT_ARRAY ENUMVALUE_STRING("INT_ARRAY_TYPE"),
 	FLOAT_ARRAY ENUMVALUE_STRING("FLOAT_ARRAY_TYPE"),
 	STRING_ARRAY ENUMVALUE_STRING("STRING_ARRAY_TYPE"),
+
+	// Map Types
+	STRING_MAP ENUMVALUE_STRING("STRING_MAP_TYPE"),
 
 	// Object Types
 	POLYMORPHIC_OBJECT ENUMVALUE_STRING("POLYMORPHIC_OBJECT_TYPE"),
@@ -98,6 +102,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	const std::vector<int>& getIntArrayValue() const;
 	const std::vector<float>& getFloatArrayValue() const;
 	const std::vector<Serialization::String>& getStringArrayValue() const;
+	const Serialization::Map<std::string, Serialization::String>& getStringMapValue() const;
 	const Serialization::PolymorphicObjectPtr& getPolymorphicObjectValue() const;
 
 #if defined(MIKANAPI_REFLECTION_ENABLED) && defined(SERIALIZATION_REFLECTION_ENABLED)
@@ -124,6 +129,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	void setValue(const std::vector<float>& value);
 	void setValue(const std::vector<std::string>& value);
 	void setValue(const std::vector<Serialization::String>& value);
+	void setValue(const Serialization::Map<std::string, Serialization::String>& value);
 	void setValue(const Serialization::PolymorphicObjectPtr& value);
 #endif // MIKANAPI_REFLECTION_ENABLED && SERIALIZATION_REFLECTION_ENABLED
 
@@ -346,6 +352,17 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStringArrayValue_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanStringMapValue
+	: public MikanVariantBase
+{
+	FIELD()
+	Serialization::Map<std::string, Serialization::String> value;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanStringMapValue_GENERATED
 #endif
 };
 

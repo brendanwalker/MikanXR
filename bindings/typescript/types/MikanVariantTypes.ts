@@ -24,7 +24,8 @@ export enum MikanVariantType {
   INT_ARRAY_TYPE = 17,
   FLOAT_ARRAY_TYPE = 18,
   STRING_ARRAY_TYPE = 19,
-  POLYMORPHIC_OBJECT_TYPE = 20
+  STRING_MAP_TYPE = 20,
+  POLYMORPHIC_OBJECT_TYPE = 21
 }
 
 export const CLASS_ID_MIKAN_BOOL_ARRAY_VALUE = -7544815710777554173n;
@@ -39,6 +40,7 @@ export const CLASS_ID_MIKAN_MATRIX4F_VALUE = -2194723481896302537n;
 export const CLASS_ID_MIKAN_QUATD_VALUE = -303519628627493629n;
 export const CLASS_ID_MIKAN_QUATF_VALUE = -3980278345028742771n;
 export const CLASS_ID_MIKAN_STRING_ARRAY_VALUE = 5781178291974097454n;
+export const CLASS_ID_MIKAN_STRING_MAP_VALUE = -5220301160931703877n;
 export const CLASS_ID_MIKAN_STRING_VALUE = -318636760475246811n;
 export const CLASS_ID_MIKAN_VARIANT = -8543347830987565886n;
 export const CLASS_ID_MIKAN_VARIANT_BASE = 5706978007370628991n;
@@ -148,6 +150,14 @@ export class MikanStringArrayValue extends MikanVariantBase {
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'value', type: 'string', isArray: true }
+  ];
+}
+
+export class MikanStringMapValue extends MikanVariantBase {
+  value: Record<string, string> = {};
+
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+    { name: 'value', type: 'Map', isMap: true, keyType: 'string', valueType: 'string' }
   ];
 }
 
