@@ -501,7 +501,7 @@ async function handleSliderChange(settingName: string, event: Event) {
 }
 
 function handleReturn() {
-  sendRemoteControlCommand('pop_app_stage')
+  sendRemoteControlCommand('return')
 }
 
 function formatDeviceName(devicePath: string): string {

@@ -48,6 +48,7 @@ protected:
 		const std::vector<std::string>& parameters,
 		std::vector<std::string>& outResults);
 	bool handleGetVideoSourceComponentId(std::vector<std::string>& outResults);
+	bool handleReturnRequest();
 
 	Rml::ElementDocument* m_videoSourceSettingsView = nullptr;
 
