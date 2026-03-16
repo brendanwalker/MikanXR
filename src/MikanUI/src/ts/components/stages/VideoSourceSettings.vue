@@ -30,11 +30,11 @@
           >
             <option value="">-- None --</option>
             <option
-              v-for="devicePath in systemValues?.usb_device_paths || []"
+              v-for="[devicePath, friendlyName] in Object.entries(systemValues?.usb_device_paths || {})"
               :key="devicePath"
               :value="devicePath"
             >
-              {{ formatDeviceName(devicePath) }}
+              {{ friendlyName }}
             </option>
           </select>
         </div>
@@ -502,13 +502,6 @@ async function handleSliderChange(settingName: string, event: Event) {
 
 function handleReturn() {
   sendRemoteControlCommand('return')
-}
-
-function formatDeviceName(devicePath: string): string {
-  // Extract a friendly name from the device path
-  // This is a simple implementation - you may want to enhance it
-  const parts = devicePath.split('\\')
-  return parts[parts.length - 1] || devicePath
 }
 
 // Watch for component updates from property events

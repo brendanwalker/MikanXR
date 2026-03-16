@@ -9,9 +9,11 @@
 #include "USBVideoSourceComponent.h"
 #include "VideoSourceQueries.h"
 
+#include <map>
 #include <string>
 
 using USBVideoSourcePathList = std::vector<std::string>;
+using USBVideoSourcePathMap = std::map<std::string, std::string>; // path -> friendly name
 
 class USBVideoSourceSystemDefinition :
 	public MikanTypedObjectSystemDefinition<USBVideoSourceComponent, USBVideoSourceDefinition, MikanVideoSourceID>
@@ -46,6 +48,7 @@ public:
 	IUsbVideoDeviceManagerPtr getUSBVideoDeviceManager() const { return m_usbVideoDeviceManager; }
 
 	bool getConnectedUSBVideoSourcePaths(USBVideoSourcePathList& outVideoSourcePathList) const;
+	bool getConnectedUSBVideoSourcePathMap(USBVideoSourcePathMap& outVideoSourcePathMap) const;
     VideoSourceIdList getVideoSourceIdList() const;
 
     USBVideoSourceComponentPtr getUSBVideoSourceByPath(const std::string& videoSourcePath) const;
@@ -57,7 +60,7 @@ public:
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
 
 	// -- IPropertyInterface ----
-	static const std::string k_usbDevicePathsPropertyId;
+	static const std::string k_usbDeviceMapPropertyId;
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
 

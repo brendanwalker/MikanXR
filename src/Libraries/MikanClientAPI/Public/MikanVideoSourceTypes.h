@@ -4,6 +4,7 @@
 #include "MikanMathTypes.h"
 #include "MikanPropertyTypes.h"
 #include "MikanVRDeviceTypes.h"
+#include "SerializableMap.h"
 #include "SerializableObjectPtr.h"
 #include "SerializationProperty.h"
 
@@ -393,7 +394,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 	static const char* k_systemName;
 
 	FIELD()
-	Serialization::List<Serialization::String> usb_device_paths;
+	Serialization::Map<std::string, Serialization::String> usb_device_map; ///< Map of device path -> friendly name
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanUSBVideoSourceSystemValues_GENERATED

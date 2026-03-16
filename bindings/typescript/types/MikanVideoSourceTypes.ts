@@ -166,10 +166,10 @@ export class MikanStereoIntrinsics extends MikanBaseIntrinsics {
 }
 
 export class MikanUSBVideoSourceSystemValues extends MikanSystemValues {
-  usb_device_paths: string[] = [];
+  usb_device_map: Record<string, string> = {};
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
-    { name: 'usb_device_paths', type: 'string', isArray: true }
+    { name: 'usb_device_map', type: 'Map', isMap: true, keyType: 'string', valueType: 'string' }
   ];
 }
 

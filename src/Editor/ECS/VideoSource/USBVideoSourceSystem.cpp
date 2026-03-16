@@ -155,6 +155,26 @@ bool USBVideoSourceSystem::getConnectedUSBVideoSourcePaths(
 	return false;
 }
 
+bool USBVideoSourceSystem::getConnectedUSBVideoSourcePathMap(
+	USBVideoSourcePathMap& outVideoSourcePathMap) const
+{
+	outVideoSourcePathMap.clear();
+
+	if (m_usbVideoDeviceManager)
+	{
+		for (size_t index = 0; index < m_usbVideoDeviceManager->getDeviceCount(); index++)
+		{
+			IUsbVideoDevice* usbVideoDevice = m_usbVideoDeviceManager->getDeviceByIndex(index);
+
+			outVideoSourcePathMap[usbVideoDevice->getDevicePath()] = usbVideoDevice->getFriendlyName();
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
 VideoSourceIdList USBVideoSourceSystem::getVideoSourceIdList() const
 {
 	VideoSourceIdList videoSourceIdList;
@@ -240,7 +260,7 @@ rfk::Struct const* USBVideoSourceSystem::getClientAPIValuesStructType() const
 }
 
 // -- IPropertyInterface ----
-const std::string USBVideoSourceSystem::k_usbDevicePathsPropertyId = "usb_device_paths";
+const std::string USBVideoSourceSystem::k_usbDeviceMapPropertyId = "usb_device_map";
 
 void USBVideoSourceSystem::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
@@ -248,7 +268,7 @@ void USBVideoSourceSystem::getPropertyDescriptors(std::vector<PropertyDescriptor
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			USBVideoSourceSystem::k_usbDevicePathsPropertyId, MikanVariantType::STRING_ARRAY)
+			USBVideoSourceSystem::k_usbDeviceMapPropertyId, MikanVariantType::STRING_MAP)
 		->setReadOnly());
 }
 
@@ -257,11 +277,19 @@ bool USBVideoSourceSystem::getPropertyValue(
 	MikanVariant& outValue) const
 {
 
-	if (propertyName == USBVideoSourceSystem::k_usbDevicePathsPropertyId)
+	if (propertyName == USBVideoSourceSystem::k_usbDeviceMapPropertyId)
 	{
-		USBVideoSourcePathList usbDevicePaths;
-		getConnectedUSBVideoSourcePaths(usbDevicePaths);
-		outValue = usbDevicePaths;
+		USBVideoSourcePathMap usbDevicePathMap;
+		getConnectedUSBVideoSourcePathMap(usbDevicePathMap);
+
+		// Convert std::map to Serialization::Map
+		Serialization::Map<std::string, Serialization::String> serializableMap;
+		for (const auto& [path, friendlyName] : usbDevicePathMap)
+		{
+			serializableMap[path] = Serialization::String(friendlyName);
+		}
+
+		outValue = serializableMap;
 		return true;
 	}
 

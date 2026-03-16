@@ -110,7 +110,7 @@ namespace MikanXR
 	{
 		public static new readonly long classId= -4380137097083957162;
 
-		public List<string> usb_device_paths;
+		public Dictionary<string, string> usb_device_map;
 	};
 
 	public class MikanUSBVideoSourceValues : MikanVideoSourceValues

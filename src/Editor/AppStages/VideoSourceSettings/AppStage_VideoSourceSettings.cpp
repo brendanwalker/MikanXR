@@ -193,7 +193,7 @@ void AppStage_VideoSourceSettings::render(IMkViewportPtr targetViewport)
 
 void AppStage_VideoSourceSettings::onReturnEvent()
 {
-	handleReturnRequest();
+	getOwnerWindow()->popAppState();
 }
 
 // Remote Control
@@ -208,8 +208,7 @@ bool AppStage_VideoSourceSettings::handleRemoteControlCommand(
 	}
 	else if (command == "return")
 	{
-		onReturnEvent();
-		return true;
+		return handleReturnRequest(outResults);
 	}
 
 	return AppStage::handleRemoteControlCommand(command, parameters, outResults);
@@ -226,8 +225,10 @@ bool AppStage_VideoSourceSettings::handleGetVideoSourceComponentId(
 	return true;
 }
 
-bool AppStage_VideoSourceSettings::handleReturnRequest()
+bool AppStage_VideoSourceSettings::handleReturnRequest(
+	std::vector<std::string>& outResults)
 {
 	getOwnerWindow()->popAppState();
+	outResults.push_back(IRemoteControllable::k_success);
 	return true;
 }
