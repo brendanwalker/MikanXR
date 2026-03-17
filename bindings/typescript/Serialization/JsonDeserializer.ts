@@ -103,10 +103,11 @@ class JsonReadVisitor implements IVisitor {
     const jsonToken = this.getJsonTokenFromAccessor(accessor);
 
     if (Array.isArray(jsonToken)) {
-      accessor.ensureValueAllocated();
-      const map = accessor.getValueObject() as Map<any, any>;
+      // Create a new plain object to hold the map data
+      const record: Record<any, any> = {};
 
-      map.clear();
+      // NOTE: We don't use accessor.getValueObject() here because it returns
+      // the existing value which might be an array. Instead we build a new object.
 
       // Get value type from metadata if available
       const fieldMetadata = (accessor as any).fieldMetadata;
@@ -127,8 +128,11 @@ class JsonReadVisitor implements IVisitor {
           }
         }
 
-        map.set(key, value);
+        record[key] = value;
       }
+
+      // Set the newly created record object back to the field
+      accessor.setValue(record);
     } else {
       throw new Error(
         `JsonReadVisitor::visitDictionary() Field ${accessor.valueName} missing corresponding json array`

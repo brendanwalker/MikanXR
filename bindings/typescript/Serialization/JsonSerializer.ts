@@ -58,11 +58,12 @@ class JsonWriteVisitor implements IVisitor {
   }
 
   visitDictionary(accessor: ValueAccessor): void {
-    const map = accessor.getValueObject() as Map<any, any>;
+    const record = accessor.getValueObject() as Record<any, any>;
     const jsonPairArray: any[] = [];
 
-    if (map) {
-      for (const [key, value] of map.entries()) {
+    if (record) {
+      for (const key in record) {
+        const value = record[key];
         let jsonKey = key;
         let jsonValue = value;
 

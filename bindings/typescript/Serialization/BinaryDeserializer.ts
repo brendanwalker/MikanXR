@@ -96,15 +96,16 @@ class BinaryReadVisitor implements IVisitor {
   }
 
   visitDictionary(accessor: ValueAccessor): void {
-    // Get the map to be deserialized
-    accessor.ensureValueAllocated();
-    const map = accessor.getValueObject() as Map<any, any>;
+    // Get the record to be deserialized (should be a plain object/Record, not a Map)
+    const record = accessor.getValueObject() as Record<any, any>;
 
-    // Read the size of the map
+    // Read the size of the record
     const arraySize = this.reader.readInt32();
 
-    // Clear the map
-    map.clear();
+    // Clear existing properties
+    for (const key in record) {
+      delete record[key];
+    }
 
     // Get key and value types from metadata if available
     const fieldMetadata = (accessor as any).fieldMetadata;
@@ -126,7 +127,7 @@ class BinaryReadVisitor implements IVisitor {
         value = this.readPrimitiveValue(valueTypeName);
       }
 
-      map.set(key, value);
+      record[key] = value;
     }
   }
 

@@ -78,8 +78,8 @@ export class SerializationTestObject {
   float_array: number[] = [];
   string_array: string[] = [];
   point2d_array: SerializationPoint2d[] = [];
-  int_point_map: Map<number, SerializationPoint2d> = new Map();
-  string_point_map: Map<string, SerializationPoint2d> = new Map();
+  int_point_map: Record<number, SerializationPoint2d> = {};
+  string_point_map: Record<string, SerializationPoint2d> = {};
 
   // Serialization metadata
   static __serializationMetadata: FieldMetadata[] = [
@@ -136,13 +136,15 @@ export function buildSerializationTestObject(): SerializationTestObject {
     new SerializationPoint2d(5.4321, 1.2345)
   ];
 
-  const intPointMap = new Map<number, SerializationPoint2d>();
-  intPointMap.set(1, new SerializationPoint2d(1.2345, 5.4321));
-  intPointMap.set(2, new SerializationPoint2d(5.4321, 1.2345));
+  const intPointMap: Record<number, SerializationPoint2d> = {
+    1: new SerializationPoint2d(1.2345, 5.4321),
+    2: new SerializationPoint2d(5.4321, 1.2345)
+  };
 
-  const stringPointMap = new Map<string, SerializationPoint2d>();
-  stringPointMap.set('key1', new SerializationPoint2d(1.2345, 5.4321));
-  stringPointMap.set('key2', new SerializationPoint2d(5.4321, 1.2345));
+  const stringPointMap: Record<string, SerializationPoint2d> = {
+    'key1': new SerializationPoint2d(1.2345, 5.4321),
+    'key2': new SerializationPoint2d(5.4321, 1.2345)
+  };
 
   testObject.bool_field = true;
   testObject.byte_field = -123;
@@ -349,12 +351,16 @@ export function verifySerializationTestObject(
   }
 
   // Check int_point_map
-  if (actual.int_point_map.size !== expected.int_point_map.size) {
+  const actualIntKeys = Object.keys(actual.int_point_map);
+  const expectedIntKeys = Object.keys(expected.int_point_map);
+  if (actualIntKeys.length !== expectedIntKeys.length) {
     return { success: false, message: 'int_point_map size mismatch' };
   }
 
-  for (const [key, actualPoint] of actual.int_point_map) {
-    const expectedPoint = expected.int_point_map.get(key);
+  for (const keyStr of actualIntKeys) {
+    const key = Number(keyStr);
+    const actualPoint = actual.int_point_map[key];
+    const expectedPoint = expected.int_point_map[key];
     if (!expectedPoint) {
       return { success: false, message: `int_point_map missing key ${key}` };
     }
@@ -369,12 +375,15 @@ export function verifySerializationTestObject(
   }
 
   // Check string_point_map
-  if (actual.string_point_map.size !== expected.string_point_map.size) {
+  const actualStringKeys = Object.keys(actual.string_point_map);
+  const expectedStringKeys = Object.keys(expected.string_point_map);
+  if (actualStringKeys.length !== expectedStringKeys.length) {
     return { success: false, message: 'string_point_map size mismatch' };
   }
 
-  for (const [key, actualPoint] of actual.string_point_map) {
-    const expectedPoint = expected.string_point_map.get(key);
+  for (const key of actualStringKeys) {
+    const actualPoint = actual.string_point_map[key];
+    const expectedPoint = expected.string_point_map[key];
     if (!expectedPoint) {
       return { success: false, message: `string_point_map missing key ${key}` };
     }

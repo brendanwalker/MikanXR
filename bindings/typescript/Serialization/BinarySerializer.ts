@@ -101,10 +101,10 @@ class BinaryWriteVisitor implements IVisitor {
   }
 
   visitDictionary(accessor: ValueAccessor): void {
-    const map = accessor.getValueObject() as Map<any, any>;
+    const record = accessor.getValueObject() as Record<any, any>;
 
-    // Write the number of pairs in the map
-    const arraySize = map ? map.size : 0;
+    // Write the number of pairs in the record
+    const arraySize = record ? Object.keys(record).length : 0;
     this.writer.writeInt32(arraySize);
 
     // Get key and value types from metadata if available
@@ -112,9 +112,11 @@ class BinaryWriteVisitor implements IVisitor {
     const keyTypeName = fieldMetadata?.keyType || 'number';
     const valueTypeName = fieldMetadata?.valueType || 'number';
 
-    // Serialize each key-value pair in the map
-    if (map) {
-      for (const [key, value] of map.entries()) {
+    // Serialize each key-value pair in the record
+    if (record) {
+      for (const key in record) {
+        const value = record[key];
+
         // Serialize the key
         this.writePrimitiveValue(key, keyTypeName);
 

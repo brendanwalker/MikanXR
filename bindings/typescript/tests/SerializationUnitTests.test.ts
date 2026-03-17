@@ -78,8 +78,8 @@ describe('SerializationUnitTests', () => {
 
     it('should handle empty maps', () => {
       const testObject = new SerializationTestObject();
-      testObject.int_point_map = new Map();
-      testObject.string_point_map = new Map();
+      testObject.int_point_map = {};
+      testObject.string_point_map = {};
 
       const jsonString = serializeToJsonString(testObject, SerializationTestObject);
       const deserialized = new SerializationTestObject();
@@ -90,8 +90,8 @@ describe('SerializationUnitTests', () => {
       );
 
       expect(success).toBe(true);
-      expect(deserialized.int_point_map.size).toBe(0);
-      expect(deserialized.string_point_map.size).toBe(0);
+      expect(Object.keys(deserialized.int_point_map).length).toBe(0);
+      expect(Object.keys(deserialized.string_point_map).length).toBe(0);
     });
 
     it('should preserve bigint values', () => {
@@ -211,16 +211,16 @@ describe('SerializationUnitTests', () => {
 
     it('should handle empty maps in binary format', () => {
       const testObject = new SerializationTestObject();
-      testObject.int_point_map = new Map();
-      testObject.string_point_map = new Map();
+      testObject.int_point_map = {};
+      testObject.string_point_map = {};
 
       const bytes = serializeToBytes(testObject, SerializationTestObject);
       const deserialized = new SerializationTestObject();
       const success = deserializeFromBytes(bytes, deserialized, SerializationTestObject);
 
       expect(success).toBe(true);
-      expect(deserialized.int_point_map.size).toBe(0);
-      expect(deserialized.string_point_map.size).toBe(0);
+      expect(Object.keys(deserialized.int_point_map).length).toBe(0);
+      expect(Object.keys(deserialized.string_point_map).length).toBe(0);
     });
 
     it('should preserve bigint values in binary format', () => {
