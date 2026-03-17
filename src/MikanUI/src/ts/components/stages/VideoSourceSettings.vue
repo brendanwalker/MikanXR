@@ -30,11 +30,11 @@
           >
             <option value="">-- None --</option>
             <option
-              v-for="[devicePath, friendlyName] in Object.entries(systemValues?.usb_device_paths || {})"
-              :key="devicePath"
-              :value="devicePath"
+              v-for="device in systemValues?.usb_device_map || []"
+              :key="device.key"
+              :value="device.key"
             >
-              {{ friendlyName }}
+              {{ device.value }}
             </option>
           </select>
         </div>
@@ -381,6 +381,9 @@ async function fetchSystemValues() {
 
     if (response.resultCode === 0) {
       systemValues.value = response.valuesObject.value as MikanUSBVideoSourceSystemValues
+      console.log('[VideoSourceSettings] System values:', systemValues.value)
+      console.log('[VideoSourceSettings] usb_device_map:', systemValues.value.usb_device_map)
+      console.log('[VideoSourceSettings] usb_device_map type:', typeof systemValues.value.usb_device_map)
     }
   } catch (error) {
     console.error('[VideoSourceSettings] Failed to fetch system values:', error)
