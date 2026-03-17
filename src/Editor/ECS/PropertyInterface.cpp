@@ -39,3 +39,10 @@ PropertyDescriptorPtr PropertyDescriptor::setReadOnly()
 	m_bIsWritable = false;
 	return shared_from_this();
 }
+
+PropertyDescriptorPtr PropertyDescriptor::setUIHidden()
+{
+	assert(m_dataType != MikanVariantType::INVALID);
+	m_bIsUIHidden = true;
+	return shared_from_this();
+}

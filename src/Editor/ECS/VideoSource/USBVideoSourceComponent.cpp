@@ -1383,10 +1383,12 @@ void USBVideoSourceComponent::getPropertyDescriptors(std::vector<PropertyDescrip
 		outDescriptors.push_back(
 			std::make_shared<PropertyDescriptor>(
 				validPropertyId, MikanVariantType::BOOL)
-			->setReadOnly());
+			->setReadOnly()
+			->setUIHidden());
 		outDescriptors.push_back(
 			std::make_shared<PropertyDescriptor>(
-				fractionPropertyId, MikanVariantType::FLOAT));
+				fractionPropertyId, MikanVariantType::FLOAT)
+			->setUIHidden());
 	}
 
 	outDescriptors.push_back(
@@ -1414,19 +1416,23 @@ void USBVideoSourceComponent::getPropertyDescriptors(std::vector<PropertyDescrip
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			USBVideoSourceDefinition::k_videoSettingsPropertyId, MikanVariantType::FLOAT_ARRAY)
-		->setReadOnly());
+		->setReadOnly()
+		->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			USBVideoSourceComponent::k_currentVideoResolutionsPropertyId, MikanVariantType::STRING_ARRAY)
-		->setReadOnly());
+		->setReadOnly()
+		->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			USBVideoSourceComponent::k_currentVideoFrameRatesPropertyId, MikanVariantType::STRING_ARRAY)
-		->setReadOnly());
+		->setReadOnly()
+		->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			USBVideoSourceComponent::k_currentVideoFormatsPropertyId, MikanVariantType::STRING_ARRAY)
-		->setReadOnly());
+		->setReadOnly()
+		->setUIHidden());
 }
 
 static bool parseVideoSourceSettingProperty(

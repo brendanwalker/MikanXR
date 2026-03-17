@@ -100,6 +100,12 @@ bool RmlModel_EntityAccessor::init(
 	// Bind Properties from Property Interface
 	for (const PropertyDescriptorConstPtr& propertyDescriptor : propertyDescriptors)
 	{
+		// Skip any properties marked as hidden from the UI
+		if (propertyDescriptor->isUIHidden())
+		{
+			continue;
+		}
+
 		const std::string& propertyName = propertyDescriptor->getName();
 		const MikanVariant& defaultValue = propertyDescriptor->getDefaultValue();
 		const MikanVariantType variantType = propertyDescriptor->getDataType();

@@ -22,7 +22,9 @@ public:
 	bool isReadable() const { return m_bIsReadable; }
 	bool isWritable() const { return m_bIsWritable; }
 	bool isReadOnly() const { return m_bIsReadable && !m_bIsWritable; }
+	bool isUIHidden() const { return m_bIsUIHidden; }
 	PropertyDescriptorPtr setReadOnly();
+	PropertyDescriptorPtr setUIHidden();
 
 	template <typename t_value_type>
 	PropertyDescriptorPtr setDefaultValue(t_value_type value)
@@ -38,6 +40,7 @@ private:
 	MikanVariantType m_dataType = MikanVariantType::INVALID;
 	bool m_bIsReadable = true;
 	bool m_bIsWritable = true;
+	bool m_bIsUIHidden = false;
 	std::unique_ptr<MikanVariant> m_defaultValue;
 };
 
