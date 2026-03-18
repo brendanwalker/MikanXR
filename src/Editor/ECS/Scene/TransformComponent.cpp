@@ -109,6 +109,32 @@ const GlmTransform TransformComponentDefinition::getRelativeTransform() const
 		MikanVector3f_to_glm_vec3(m_relativeTransform.scale));
 }
 
+void TransformComponentDefinition::sendTransformPropertyChangeNotification()
+{
+	notifyPropertyChanged(ConfigPropertyChangeSet()
+		.addPropertyName(k_relativeScalePropertyId)
+		.addPropertyName(k_relativeRotationPropertyId)
+		.addPropertyName(k_relativePositionPropertyId));
+}
+
+void TransformComponentDefinition::sendScalePropertyChangeNotification()
+{
+	notifyPropertyChanged(ConfigPropertyChangeSet()
+		.addPropertyName(k_relativeScalePropertyId));
+}
+
+void TransformComponentDefinition::sendRotationPropertyChangeNotification()
+{
+	notifyPropertyChanged(ConfigPropertyChangeSet()
+		.addPropertyName(k_relativeRotationPropertyId));
+}
+
+void TransformComponentDefinition::sendPositionPropertyChangeNotification()
+{
+	notifyPropertyChanged(ConfigPropertyChangeSet()
+		.addPropertyName(k_relativePositionPropertyId));
+}
+
 void TransformComponentDefinition::setRelativeTransform(const GlmTransform& transform)
 {
 	glm::mat4 xform = transform.getMat4();
@@ -117,28 +143,40 @@ void TransformComponentDefinition::setRelativeTransform(const GlmTransform& tran
 	m_relativeTransform.rotation = glm_quat_to_MikanQuatf(transform.getRotation());
 	m_relativeTransform.scale = glm_vec3_to_MikanVector3f(transform.getScale());
 
-	notifyPropertyChanged(ConfigPropertyChangeSet()
-			  .addPropertyName(k_relativeScalePropertyId)
-			  .addPropertyName(k_relativeRotationPropertyId)
-			  .addPropertyName(k_relativePositionPropertyId));
+	if (!m_bDisableAutoNotifyPropertyChange)
+	{
+		sendTransformPropertyChangeNotification();
+	}
 }
 
 void TransformComponentDefinition::setRelativeScale(const MikanVector3f& scale)
 {
 	m_relativeTransform.scale = scale;
-	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_relativeScalePropertyId));
+
+	if (!m_bDisableAutoNotifyPropertyChange)
+	{
+		sendScalePropertyChangeNotification();
+	}
 }
 
 void TransformComponentDefinition::setRelativeRotation(const MikanQuatf& quat)
 {
 	m_relativeTransform.rotation = quat;
-	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_relativeRotationPropertyId));
+
+	if (!m_bDisableAutoNotifyPropertyChange)
+	{
+		sendRotationPropertyChangeNotification();
+	}
 }
 
 void TransformComponentDefinition::setRelativePosition(const MikanVector3f& translation)
 {
 	m_relativeTransform.position = translation;
-	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_relativePositionPropertyId));
+
+	if (!m_bDisableAutoNotifyPropertyChange)
+	{
+		sendPositionPropertyChangeNotification();
+	}
 }
 
 // -- Scene Component -----

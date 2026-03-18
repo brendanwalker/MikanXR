@@ -387,6 +387,10 @@ VRDeviceComponentPtr VRObjectSystem::addNewVRDevice(
 				vrDeviceInterface->getDevicePose(vrFrameDelay, pose);
 				GlmTransform glmTransform = VRDevicePose_to_GlmTransform(pose);
 
+				// We suppress transform change auto-notifications on VRDevices
+				// because they are super spammy and change every frame
+				def->setDisableAutoNotifyTransformPropertyChanges(true);
+
 				def->setTrackingRuntimeType(trackingRuntime);
 				def->setVRDeviceIndex(vrDeviceInterface->getDeviceIndex());
 				def->setVRDevicePath(vrDevicePath);

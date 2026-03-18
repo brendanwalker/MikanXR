@@ -29,6 +29,13 @@ public:
 		const std::string& componentName, 
 		const MikanTransform& xform);
 
+	inline void setDisableAutoNotifyTransformPropertyChanges(bool bDisable) 
+	{ m_bDisableAutoNotifyPropertyChange = bDisable; }
+	void sendTransformPropertyChangeNotification();
+	void sendScalePropertyChangeNotification();
+	void sendRotationPropertyChangeNotification();
+	void sendPositionPropertyChangeNotification();
+
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 	virtual bool readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams);
@@ -53,6 +60,7 @@ public:
 
 protected:
 	MikanTransform m_relativeTransform;
+	bool m_bDisableAutoNotifyPropertyChange = false;
 };
 
 class TransformComponent : public MikanComponent
