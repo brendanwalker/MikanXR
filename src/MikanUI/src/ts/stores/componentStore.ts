@@ -388,18 +388,22 @@ export const useComponentStore = defineStore('components', () => {
 
   // Helper to extract value from MikanVariant
   function extractVariantValue(variant: MikanVariant): any {
-    if (!variant.value_ptr?.instance) {
+    if (!variant.value_ptr) {
       return null
     }
 
-    const value = variant.value_ptr.instance
-
-    // Handle different value types
-    if ('value' in value) {
-      return (value as any).value
+    // Try .value first (standard path), then fall back to .instance
+    const valueObj = (variant.value_ptr as any).value || (variant.value_ptr as any).instance
+    if (!valueObj) {
+      return null
     }
 
-    return value
+    // Handle different value types
+    if ('value' in valueObj) {
+      return valueObj.value
+    }
+
+    return valueObj
   }
 
   // Helper to map field names to component classes for component references
