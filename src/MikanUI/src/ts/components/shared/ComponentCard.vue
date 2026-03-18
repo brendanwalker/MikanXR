@@ -23,7 +23,7 @@
         <span v-else class="property-value">{{ formatPropertyValue(value) }}</span>
       </div>
     </div>
-    <div v-if="editable && componentFunctions.length > 0" class="component-functions">
+    <div v-if="componentFunctions.length > 0" class="component-functions">
       <button
         v-for="func in componentFunctions"
         :key="func.functionName"
@@ -37,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, watch } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import type { MikanComponentValues, MikanFunctionDescriptor } from '@mikanxr/client'
 import PropertyField from './PropertyField.vue'
 import { useDeveloperFields } from '../../composables/useDeveloperFields.js'
@@ -73,18 +73,9 @@ const mikanStore = useMikanStore()
 // Function list for this component
 const componentFunctions = ref<MikanFunctionDescriptor[]>([])
 
-// Fetch functions when component is mounted and editable
+// Fetch functions when component is mounted
 onMounted(async () => {
-  if (props.editable) {
-    await fetchFunctions()
-  }
-})
-
-// Watch for changes to editable prop
-watch(() => props.editable, async (newEditable) => {
-  if (newEditable && componentFunctions.value.length === 0) {
-    await fetchFunctions()
-  }
+  await fetchFunctions()
 })
 
 async function fetchFunctions() {

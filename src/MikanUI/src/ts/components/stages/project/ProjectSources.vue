@@ -42,11 +42,12 @@
       <!-- Selected Video Source Component -->
       <div v-if="selectedVideoSourceId !== -1 && selectedVideoSourceComponent" class="component-section">
         <h3>Video Source Component</h3>
-        <ComponentCard
+        <component
+          :is="videoSourceCardComponent"
           :component-id="selectedVideoSourceId"
           :component="selectedVideoSourceComponent"
           :owner-system="selectedVideoSourceSystem"
-          :editable="true"
+          :editable="isUSBVideoSource ? undefined : false"
         />
       </div>
 
@@ -92,7 +93,7 @@
           :component-id="selectedTextureSourceId"
           :component="selectedTextureSourceComponent"
           :owner-system="selectedTextureSourceSystem"
-          :editable="true"
+          :editable="false"
         />
       </div>
     </div>
@@ -104,6 +105,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useComponentStore } from '../../../stores/componentStore.js'
 import { useRemoteControl } from '../../../composables/useRemoteControl.js'
 import ComponentCard from '../../shared/ComponentCard.vue'
+import USBVideoSourceCard from '../../shared/USBVideoSourceCard.vue'
 
 const componentStore = useComponentStore()
 const { sendRemoteControlCommand } = useRemoteControl()
@@ -136,6 +138,16 @@ const selectedVideoSourceComponent = computed(() => {
   // Try Network video source system
   component = componentStore.getComponent(selectedVideoSourceId.value, 'NetworkVideoObjectSystem')
   return component
+})
+
+const isUSBVideoSource = computed(() => {
+  if (!selectedVideoSourceComponent.value) return false
+  const componentClass = (selectedVideoSourceComponent.value as any).component_class
+  return componentClass === 'USBVideoSourceComponent'
+})
+
+const videoSourceCardComponent = computed(() => {
+  return isUSBVideoSource.value ? USBVideoSourceCard : ComponentCard
 })
 
 const selectedTextureSourceComponent = computed(() => {
