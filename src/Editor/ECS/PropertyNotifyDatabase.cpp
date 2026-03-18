@@ -82,7 +82,7 @@ MikanPropertyNotifyMode PropertyNotifyDatabase::getPropertyNotifyMode(
 			if (component)
 			{
 				// Get the component's type name
-				componentClassName = component->getName();
+				componentClassName = component->getComponentClassName();
 			}
 		}
 	}
