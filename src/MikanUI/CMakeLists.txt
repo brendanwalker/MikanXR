@@ -110,9 +110,13 @@ endif()
 # Copy web resources to output directory
 add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
+    # First remove the old resources directory to clean up old hashed files
+    COMMAND ${CMAKE_COMMAND} -E remove_directory "$<TARGET_FILE_DIR:${PROJECT_NAME}>/resources"
+    # Then copy the fresh resources directory
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     "${CMAKE_CURRENT_SOURCE_DIR}/resources"
     "$<TARGET_FILE_DIR:${PROJECT_NAME}>/resources"
+    COMMENT "Copying web resources to MikanUI output directory"
 )
 
 # Copy MikanUtility.dll to output directory
