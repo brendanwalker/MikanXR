@@ -1610,6 +1610,9 @@ bool USBVideoSourceComponent::setPropertyValue(
 				float floatFractionValue = inValue.getFloatValue();
 				if (setVideoSettingAsFloatFraction(settingType, floatFractionValue))
 				{
+					// Let any listeners know that the video setting changed
+					getUSBVideoSourceDefinition()->notifyPropertyChanged(
+						ConfigPropertyChangeSet().addPropertyName(propertyName));
 					return true;
 				}
 			}
