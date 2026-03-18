@@ -30,11 +30,11 @@
           >
             <option value="">-- None --</option>
             <option
-              v-for="[devicePath, friendlyName] in Object.entries(systemValues?.usb_device_map || {})"
-              :key="devicePath"
-              :value="devicePath"
+              v-for="device in systemValues?.usb_device_map || []"
+              :key="device.key"
+              :value="device.key"
             >
-              {{ friendlyName }}
+              {{ device.value }}
             </option>
           </select>
         </div>
