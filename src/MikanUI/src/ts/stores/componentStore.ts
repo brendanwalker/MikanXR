@@ -37,7 +37,12 @@ import {
   FunctionDescriptorResponse,
   InvokeComponentFunctionRequest,
   CLASS_ID_INVOKE_COMPONENT_FUNCTION_REQUEST,
-  MikanFunctionDescriptor
+  MikanFunctionDescriptor,
+  PolymorphicObject,
+  SystemCreateObjectRequest,
+  CLASS_ID_SYSTEM_CREATE_OBJECT_REQUEST,
+  SystemDestroyObjectRequest,
+  CLASS_ID_SYSTEM_DESTROY_OBJECT_REQUEST
 } from '@mikanxr/client'
 
 // Component registry mapping system names to component class names
@@ -491,6 +496,76 @@ export const useComponentStore = defineStore('components', () => {
     return componentFunctions.value.get(key) || []
   }
 
+  // Create a new object in the given component system
+  async function createObject(
+    client: MikanClient,
+    componentClassName: string,
+    initParams: PolymorphicObject = new PolymorphicObject()
+  ): Promise<boolean> {
+    const entry = COMPONENT_SYSTEMS.find(s => s.componentClassName === componentClassName)
+    if (!entry) {
+      console.error(`[ComponentStore] No system found for component class "${componentClassName}"`)
+      return false
+    }
+    try {
+      const request: SystemCreateObjectRequest = {
+        requestTypeId: CLASS_ID_SYSTEM_CREATE_OBJECT_REQUEST,
+        requestTypeName: 'SystemCreateObjectRequest',
+        requestId: 0,
+        ownerSystem: entry.ownerSystem,
+        componentClassName,
+        initParams
+      }
+      const future = client.sendRequest(request)
+      const response = await future.await()
+      if (response.resultCode === MikanAPIResult.Success) {
+        console.log(`[ComponentStore] Created ${componentClassName} in ${entry.ownerSystem}`)
+        return true
+      } else {
+        console.error(`[ComponentStore] Failed to create ${componentClassName}: ${response.resultCode}`)
+        return false
+      }
+    } catch (error) {
+      console.error(`[ComponentStore] Error creating ${componentClassName}:`, error)
+      return false
+    }
+  }
+
+  // Destroy an existing object in the given component system
+  async function destroyObject(
+    client: MikanClient,
+    componentClassName: string,
+    componentId: number
+  ): Promise<boolean> {
+    const entry = COMPONENT_SYSTEMS.find(s => s.componentClassName === componentClassName)
+    if (!entry) {
+      console.error(`[ComponentStore] No system found for component class "${componentClassName}"`)
+      return false
+    }
+    try {
+      const request: SystemDestroyObjectRequest = {
+        requestTypeId: CLASS_ID_SYSTEM_DESTROY_OBJECT_REQUEST,
+        requestTypeName: 'SystemDestroyObjectRequest',
+        requestId: 0,
+        ownerSystem: entry.ownerSystem,
+        componentClassName,
+        componentId
+      }
+      const future = client.sendRequest(request)
+      const response = await future.await()
+      if (response.resultCode === MikanAPIResult.Success) {
+        console.log(`[ComponentStore] Destroyed ${componentClassName} ${componentId} in ${entry.ownerSystem}`)
+        return true
+      } else {
+        console.error(`[ComponentStore] Failed to destroy ${componentClassName} ${componentId}: ${response.resultCode}`)
+        return false
+      }
+    } catch (error) {
+      console.error(`[ComponentStore] Error destroying ${componentClassName} ${componentId}:`, error)
+      return false
+    }
+  }
+
   // Invoke a function on a component
   async function invokeComponentFunction(
     client: MikanClient,
@@ -575,6 +650,10 @@ export const useComponentStore = defineStore('components', () => {
     // Helpers
     getComponentClassForField,
     getComponentName,
+
+    // Object lifecycle
+    createObject,
+    destroyObject,
 
     // Function management
     fetchComponentFunctions,

@@ -139,11 +139,11 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useComponentStore } from '../../../stores/componentStore.js'
 import { useMikanStore } from '../../../stores/mikanStore.js'
-import { useRemoteControl } from '../../../composables/useRemoteControl.js'
 import ComponentRefSelect from '../../shared/ComponentRefSelect.vue'
 import PropertyField from '../../shared/PropertyField.vue'
 import ComponentCard from '../../shared/ComponentCard.vue'
 import {
+  MikanClient,
   MikanAPIResult,
   MikanConstants,
   PropertyGetValueRequest,
@@ -153,7 +153,6 @@ import {
 
 const componentStore = useComponentStore()
 const mikanStore = useMikanStore()
-const { sendRemoteControlCommand } = useRemoteControl()
 
 // Selection state
 const selectedStageId = ref<number>(-1)
@@ -384,47 +383,78 @@ function handleSelectSceneObject(index: number) {
 }
 
 // Scene CRUD handlers
-function handleAddScene() {
-  sendRemoteControlCommand('add_scene')
+async function handleAddScene() {
+  if (!mikanStore.client) { console.error('[ProjectScenes] No client connection'); return }
+  await componentStore.createObject(mikanStore.client as MikanClient, 'SceneComponent')
 }
 
-function handleRemoveScene() {
-  if (selectedSceneId.value === -1) {
-    console.error('[ProjectScenes] No scene selected')
-    return
-  }
-  sendRemoteControlCommand('remove_scene', [selectedSceneId.value.toString()])
+async function handleRemoveScene() {
+  if (selectedSceneId.value === -1) { console.error('[ProjectScenes] No scene selected'); return }
+  if (!mikanStore.client) { console.error('[ProjectScenes] No client connection'); return }
+  await componentStore.destroyObject(mikanStore.client as MikanClient, 'SceneComponent', selectedSceneId.value)
   selectedSceneId.value = -1
 }
 
-// Script handlers
+// Script handlers (still use remote control - no system object for scripts)
 function handleReloadScript() {
-  sendRemoteControlCommand('reload_script')
+  console.warn('[ProjectScenes] handleReloadScript not yet implemented')
 }
 
 function handleAddScript() {
-  sendRemoteControlCommand('add_new_script')
+  console.warn('[ProjectScenes] handleAddScript not yet implemented')
 }
 
 function handleRemoveScript() {
-  sendRemoteControlCommand('remove_script')
+  console.warn('[ProjectScenes] handleRemoveScript not yet implemented')
 }
 
 // Actor CRUD handlers
-function handleAddAnchor() {
-  sendRemoteControlCommand('add_new_anchor')
+async function handleAddAnchor() {
+  if (!mikanStore.client) { console.error('[ProjectScenes] No client connection'); return }
+  await componentStore.createObject(mikanStore.client as MikanClient, 'AnchorComponent')
 }
 
-function handleAddQuadStencil() {
-  sendRemoteControlCommand('add_new_quad')
+async function handleRemoveAnchor() {
+  if (!selectedSceneObject.value) { console.error('[ProjectScenes] No scene object selected'); return }
+  if (!mikanStore.client) { console.error('[ProjectScenes] No client connection'); return }
+  await componentStore.destroyObject(mikanStore.client as MikanClient, 'AnchorComponent', selectedSceneObject.value.componentId)
+  selectedSceneObjectIndex.value = -1
 }
 
-function handleAddBoxStencil() {
-  sendRemoteControlCommand('add_new_box')
+async function handleAddQuadStencil() {
+  if (!mikanStore.client) { console.error('[ProjectScenes] No client connection'); return }
+  await componentStore.createObject(mikanStore.client as MikanClient, 'QuadStencilComponent')
 }
 
-function handleAddModelStencil() {
-  sendRemoteControlCommand('add_new_model')
+async function handleRemoveQuadStencil() {
+  if (!selectedSceneObject.value) { console.error('[ProjectScenes] No scene object selected'); return }
+  if (!mikanStore.client) { console.error('[ProjectScenes] No client connection'); return }
+  await componentStore.destroyObject(mikanStore.client as MikanClient, 'QuadStencilComponent', selectedSceneObject.value.componentId)
+  selectedSceneObjectIndex.value = -1
+}
+
+async function handleAddBoxStencil() {
+  if (!mikanStore.client) { console.error('[ProjectScenes] No client connection'); return }
+  await componentStore.createObject(mikanStore.client as MikanClient, 'BoxStencilComponent')
+}
+
+async function handleRemoveBoxStencil() {
+  if (!selectedSceneObject.value) { console.error('[ProjectScenes] No scene object selected'); return }
+  if (!mikanStore.client) { console.error('[ProjectScenes] No client connection'); return }
+  await componentStore.destroyObject(mikanStore.client as MikanClient, 'BoxStencilComponent', selectedSceneObject.value.componentId)
+  selectedSceneObjectIndex.value = -1
+}
+
+async function handleAddModelStencil() {
+  if (!mikanStore.client) { console.error('[ProjectScenes] No client connection'); return }
+  await componentStore.createObject(mikanStore.client as MikanClient, 'ModelStencilComponent')
+}
+
+async function handleRemoveModelStencil() {
+  if (!selectedSceneObject.value) { console.error('[ProjectScenes] No scene object selected'); return }
+  if (!mikanStore.client) { console.error('[ProjectScenes] No client connection'); return }
+  await componentStore.destroyObject(mikanStore.client as MikanClient, 'ModelStencilComponent', selectedSceneObject.value.componentId)
+  selectedSceneObjectIndex.value = -1
 }
 
 // Initialize on mount

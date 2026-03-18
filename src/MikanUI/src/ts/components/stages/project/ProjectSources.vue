@@ -103,12 +103,13 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useComponentStore } from '../../../stores/componentStore.js'
-import { useRemoteControl } from '../../../composables/useRemoteControl.js'
+import { useMikanStore } from '../../../stores/mikanStore.js'
 import ComponentCard from '../../shared/ComponentCard.vue'
 import USBVideoSourceCard from '../../shared/USBVideoSourceCard.vue'
+import { MikanClient } from '@mikanxr/client'
 
 const componentStore = useComponentStore()
-const { sendRemoteControlCommand } = useRemoteControl()
+const mikanStore = useMikanStore()
 
 // Selection state
 const selectedVideoSourceId = ref<number>(-1)
@@ -182,38 +183,42 @@ const selectedTextureSourceSystem = computed(() => {
 })
 
 // Video Source CRUD handlers
-function handleAddUSBVideoSource() {
-  sendRemoteControlCommand('add_new_usb_video_source')
+async function handleAddUSBVideoSource() {
+  if (!mikanStore.client) { console.error('[ProjectSources] No client connection'); return }
+  await componentStore.createObject(mikanStore.client as MikanClient, 'USBVideoSourceComponent')
 }
 
-function handleAddNetworkVideoSource() {
-  sendRemoteControlCommand('add_new_network_video_source')
+async function handleAddNetworkVideoSource() {
+  if (!mikanStore.client) { console.error('[ProjectSources] No client connection'); return }
+  await componentStore.createObject(mikanStore.client as MikanClient, 'NetworkVideoSourceComponent')
 }
 
-function handleRemoveVideoSource() {
-  if (selectedVideoSourceId.value === -1) {
-    console.error('[ProjectSources] No video source selected')
-    return
-  }
-  sendRemoteControlCommand('remove_video_source', [selectedVideoSourceId.value.toString()])
+async function handleRemoveVideoSource() {
+  if (selectedVideoSourceId.value === -1) { console.error('[ProjectSources] No video source selected'); return }
+  if (!mikanStore.client) { console.error('[ProjectSources] No client connection'); return }
+  const componentClass = (selectedVideoSourceComponent.value as any)?.component_class
+  if (!componentClass) { console.error('[ProjectSources] Could not determine video source class'); return }
+  await componentStore.destroyObject(mikanStore.client as MikanClient, componentClass, selectedVideoSourceId.value)
   selectedVideoSourceId.value = -1
 }
 
 // Texture Source CRUD handlers
-function handleAddClientTextureSource() {
-  sendRemoteControlCommand('add_new_client_texture_source')
+async function handleAddClientTextureSource() {
+  if (!mikanStore.client) { console.error('[ProjectSources] No client connection'); return }
+  await componentStore.createObject(mikanStore.client as MikanClient, 'ClientTextureSourceComponent')
 }
 
-function handleAddSpoutTextureSource() {
-  sendRemoteControlCommand('add_new_spout_texture_source')
+async function handleAddSpoutTextureSource() {
+  if (!mikanStore.client) { console.error('[ProjectSources] No client connection'); return }
+  await componentStore.createObject(mikanStore.client as MikanClient, 'SpoutTextureSourceComponent')
 }
 
-function handleRemoveTextureSource() {
-  if (selectedTextureSourceId.value === -1) {
-    console.error('[ProjectSources] No texture source selected')
-    return
-  }
-  sendRemoteControlCommand('remove_texture_source', [selectedTextureSourceId.value.toString()])
+async function handleRemoveTextureSource() {
+  if (selectedTextureSourceId.value === -1) { console.error('[ProjectSources] No texture source selected'); return }
+  if (!mikanStore.client) { console.error('[ProjectSources] No client connection'); return }
+  const componentClass = (selectedTextureSourceComponent.value as any)?.component_class
+  if (!componentClass) { console.error('[ProjectSources] Could not determine texture source class'); return }
+  await componentStore.destroyObject(mikanStore.client as MikanClient, componentClass, selectedTextureSourceId.value)
   selectedTextureSourceId.value = -1
 }
 

@@ -1,38 +1,25 @@
 ///-- includes -----
 #include "App.h"
-#include "AnchorComponent.h"
-#include "AnchorObjectSystem.h"
-#include "BoxStencilComponent.h"
-#include "BoxStencilSystem.h"
-#include "QuadStencilSystem.h"
-#include "ModelStencilSystem.h"
 #include "CameraComponent.h"
-#include "CameraObjectSystem.h"
 #include "ClientSourceManager.h"
 #include "Colors.h"
 #include "CompositorComponent.h"
-#include "CompositorObjectSystem.h"
 #include "EditorObjectSystem.h"
-#include "Graphs/CompositorNodeGraph.h"
 #include "InputManager.h"
 #include "IMkLineRenderer.h"
 #include "IMkTextRenderer.h"
 #include "IMkTexture.h"
 #include "IMkWireframeMesh.h"
 #include "MathGLM.h"
+#include "MathMikan.h"
 #include "MainWindow.h"
 #include "MarkerObjectSystem.h"
 #include "MikanCamera.h"
-#include "MikanRenderModelResource.h"
 #include "MikanViewport.h"
-#include "ModalConfirm/ModalDialog_Confirm.h"
 #include "MikanObjectSystem.h"
-#include "MathTypeConversion.h"
-#include "MathMikan.h"
 #include "MikanLineRenderer.h"
 #include "MikanTextRenderer.h"
 #include "MikanObject.h"
-#include "MikanServer.h"
 #include "ProjectConfig.h"
 #include "ProjectManager.h"
 #include "Project/AppStage_Project.h"
@@ -45,27 +32,13 @@
 #include "Project/RmlModel_ProjectTracking.h"
 #include "Project/RmlModel_ProjectSettings.h"
 #include "Shared/RmlModel_MarkerComponent.h"
-#include "PathUtils.h"
 #include "RmlUtility.h"
 #include "SceneComponent.h"
 #include "SdlCommon.h"
 #include "SdlUtility.h"
-#include "SharedTextureReader.h"
 #include "SceneObjectSystem.h"
-#include "StageObjectSystem.h"
-#include "StringUtils.h"
-#include "TrackingMountObjectSystem.h"
-#include "TransformComponent.h"
 #include "TextStyle.h"
 #include "VideoSourceComponent.h"
-#include "Windows/CompositorNodeEditorWindow.h"
-#include "USBVideoSourceSystem.h"
-#include "NetworkVideoSourceSystem.h"
-#include "ClientTextureSourceSystem.h"
-#include "SpoutTextureSourceSystem.h"
-#include "VRTrackingVolumeSystem.h"
-#include "MarkerTrackingVolumeSystem.h"
-#include "VRObjectSystem.h"
 
 #include <RmlUi/Core/Context.h>
 #include "RmlUI/Core/ElementDocument.h"
@@ -525,109 +498,12 @@ void AppStage_Project::debugRenderOrigin() const
 }
 
 // -- IRemoteControllable Interface -- //
-namespace {
-	// Template helper for add commands
-	template<typename SystemType>
-	bool handleAddCommand(AppStage_Project* appStage)
-	{
-		auto system = appStage->getObjectSystemOfType<SystemType>();
-		system->addNewObjectByTypedDefinition();
-		return true;
-	}
-
-	// Template helper for remove commands
-	template<typename SystemType, typename IDType>
-	bool handleRemoveCommand(AppStage_Project* appStage, const std::vector<std::string>& parameters)
-	{
-		if (parameters.size() >= 1)
-		{
-			int componentId = std::stoi(parameters[0]);
-			auto system = appStage->getObjectSystemOfType<SystemType>();
-			system->removeObjectByPrimaryComponentId(static_cast<IDType>(componentId));
-			return true;
-		}
-		return false;
-	}
-}
-
 bool AppStage_Project::handleRemoteControlCommand(
 	const std::string& command,
 	const std::vector<std::string>& parameters,
 	std::vector<std::string>& outResults)
 {
-	// Scene CRUD
-	if (command == "add_scene")
-		return handleAddCommand<SceneObjectSystem>(this);
-	else if (command == "remove_scene")
-		return handleRemoveCommand<SceneObjectSystem, MikanSceneID>(this, parameters);
-	// Stage CRUD
-	else if (command == "add_new_stage")
-		return handleAddCommand<StageObjectSystem>(this);
-	else if (command == "remove_stage")
-		return handleRemoveCommand<StageObjectSystem, MikanStageID>(this, parameters);
-	// Camera CRUD
-	else if (command == "add_new_camera")
-		return handleAddCommand<CameraObjectSystem>(this);
-	else if (command == "remove_camera")
-		return handleRemoveCommand<CameraObjectSystem, MikanCameraID>(this, parameters);
-	// Compositor CRUD
-	else if (command == "add_new_compositor")
-		return handleAddCommand<CompositorObjectSystem>(this);
-	else if (command == "remove_compositor")
-		return handleRemoveCommand<CompositorObjectSystem, MikanCompositorID>(this, parameters);
-	// Video Source CRUD
-	else if (command == "add_new_usb_video_source")
-		return handleAddCommand<USBVideoSourceSystem>(this);
-	else if (command == "add_new_network_video_source")
-		return handleAddCommand<NetworkVideoSourceSystem>(this);
-	else if (command == "remove_usb_video_source")
-		return handleRemoveCommand<USBVideoSourceSystem, MikanVideoSourceID>(this, parameters);
-	else if (command == "remove_network_video_source")
-		return handleRemoveCommand<NetworkVideoSourceSystem, MikanVideoSourceID>(this, parameters);
-	// Texture Source CRUD
-	else if (command == "add_new_client_texture_source")
-		return handleAddCommand<ClientTextureSourceSystem>(this);
-	else if (command == "add_new_spout_texture_source")
-		return handleAddCommand<SpoutTextureSourceSystem>(this);
-	else if (command == "remove_client_texture_source")
-		return handleRemoveCommand<ClientTextureSourceSystem, MikanTextureSourceID>(this, parameters);
-	else if (command == "remove_spout_texture_source")
-		return handleRemoveCommand<SpoutTextureSourceSystem, MikanTextureSourceID>(this, parameters);
-	// Tracking Volume CRUD
-	else if (command == "add_new_steamvr_tracking_volume")
-		return handleAddCommand<VRTrackingVolumeSystem>(this);
-	else if (command == "add_new_marker_tracking_volume")
-		return handleAddCommand<MarkerTrackingVolumeSystem>(this);
-	else if (command == "remove_vr_tracking_volume")
-		return handleRemoveCommand<VRTrackingVolumeSystem, MikanTrackingVolumeID>(this, parameters);
-	else if (command == "remove_marker_tracking_volume")
-		return handleRemoveCommand<MarkerTrackingVolumeSystem, MikanTrackingVolumeID>(this, parameters);
-	// Tracking Mount CRUD
-	else if (command == "add_new_tracking_mount")
-		return handleAddCommand<TrackingMountObjectSystem>(this);
-	else if (command == "remove_tracking_mount")
-		return handleRemoveCommand<TrackingMountObjectSystem, MikanTrackingMountID>(this, parameters);
-	// Marker CRUD
-	else if (command == "add_new_marker")
-		return handleAddCommand<MarkerObjectSystem>(this);
-	else if (command == "remove_marker")
-		return handleRemoveCommand<MarkerObjectSystem, MikanMarkerID>(this, parameters);
-	// Scene Object CRUD (anchors, stencils, scripts)
-	else if (command == "add_new_anchor")
-		return handleAddCommand<AnchorObjectSystem>(this);
-	else if (command == "add_new_quad")
-		return handleAddCommand<QuadStencilSystem>(this);
-	else if (command == "remove_quad")
-		return handleRemoveCommand<QuadStencilSystem, MikanStencilID>(this, parameters);
-	else if (command == "add_new_box")
-		return handleAddCommand<BoxStencilSystem>(this);
-	else if (command == "remove_box")
-		return handleRemoveCommand<BoxStencilSystem, MikanStencilID>(this, parameters);
-	else if (command == "add_new_model")
-		return handleAddCommand<ModelStencilSystem>(this);
-	else if (command == "remove_model")
-		return handleRemoveCommand<ModelStencilSystem, MikanStencilID>(this, parameters);
-	else if (command == "add_new_script")
+	if (command == "add_new_script")
 	{
 		// TODO: Implement script removal - need to determine component ID parameter handling
 		return true;

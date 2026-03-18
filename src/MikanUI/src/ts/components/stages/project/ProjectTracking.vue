@@ -95,11 +95,12 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useComponentStore } from '../../../stores/componentStore.js'
-import { useRemoteControl } from '../../../composables/useRemoteControl.js'
+import { useMikanStore } from '../../../stores/mikanStore.js'
 import ComponentCard from '../../shared/ComponentCard.vue'
+import { MikanClient } from '@mikanxr/client'
 
 const componentStore = useComponentStore()
-const { sendRemoteControlCommand } = useRemoteControl()
+const mikanStore = useMikanStore()
 
 // Selection state
 const selectedTrackingVolumeId = ref<number>(-1)
@@ -150,39 +151,35 @@ const selectedTrackingMountSystem = computed(() => {
 })
 
 // Tracking Volume CRUD handlers
-function handleAddSteamVRVolume() {
-  sendRemoteControlCommand('add_new_steamvr_tracking_volume')
+async function handleAddSteamVRVolume() {
+  if (!mikanStore.client) { console.error('[ProjectTracking] No client connection'); return }
+  await componentStore.createObject(mikanStore.client as MikanClient, 'VRTrackingVolumeComponent')
 }
 
-function handleAddMarkerVolume() {
-  sendRemoteControlCommand('add_new_marker_tracking_volume')
+async function handleAddMarkerVolume() {
+  if (!mikanStore.client) { console.error('[ProjectTracking] No client connection'); return }
+  await componentStore.createObject(mikanStore.client as MikanClient, 'MarkerTrackingVolumeComponent')
 }
 
-function handleRemoveTrackingVolume() {
-  if (selectedTrackingVolumeId.value === -1) {
-    console.error('[ProjectTracking] No tracking volume selected')
-    return
-  }
+async function handleRemoveTrackingVolume() {
+  if (selectedTrackingVolumeId.value === -1) { console.error('[ProjectTracking] No tracking volume selected'); return }
+  if (!mikanStore.client) { console.error('[ProjectTracking] No client connection'); return }
   const componentClass = (selectedTrackingVolumeComponent.value as any)?.component_class
-  if (componentClass === 'VRTrackingVolumeComponent') {
-    sendRemoteControlCommand('remove_vr_tracking_volume', [selectedTrackingVolumeId.value.toString()])
-  } else if (componentClass === 'MarkerTrackingVolumeComponent') {
-    sendRemoteControlCommand('remove_marker_tracking_volume', [selectedTrackingVolumeId.value.toString()])
-  }
+  if (!componentClass) { console.error('[ProjectTracking] Could not determine tracking volume class'); return }
+  await componentStore.destroyObject(mikanStore.client as MikanClient, componentClass, selectedTrackingVolumeId.value)
   selectedTrackingVolumeId.value = -1
 }
 
 // Tracking Mount CRUD handlers
-function handleAddTrackingMount() {
-  sendRemoteControlCommand('add_new_tracking_mount')
+async function handleAddTrackingMount() {
+  if (!mikanStore.client) { console.error('[ProjectTracking] No client connection'); return }
+  await componentStore.createObject(mikanStore.client as MikanClient, 'TrackingMountComponent')
 }
 
-function handleRemoveTrackingMount() {
-  if (selectedTrackingMountId.value === -1) {
-    console.error('[ProjectTracking] No tracking mount selected')
-    return
-  }
-  sendRemoteControlCommand('remove_tracking_mount', [selectedTrackingMountId.value.toString()])
+async function handleRemoveTrackingMount() {
+  if (selectedTrackingMountId.value === -1) { console.error('[ProjectTracking] No tracking mount selected'); return }
+  if (!mikanStore.client) { console.error('[ProjectTracking] No client connection'); return }
+  await componentStore.destroyObject(mikanStore.client as MikanClient, 'TrackingMountComponent', selectedTrackingMountId.value)
   selectedTrackingMountId.value = -1
 }
 

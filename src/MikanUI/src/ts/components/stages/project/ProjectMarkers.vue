@@ -49,11 +49,12 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useComponentStore } from '../../../stores/componentStore.js'
-import { useRemoteControl } from '../../../composables/useRemoteControl.js'
+import { useMikanStore } from '../../../stores/mikanStore.js'
 import ComponentCard from '../../shared/ComponentCard.vue'
+import { MikanClient } from '@mikanxr/client'
 
 const componentStore = useComponentStore()
-const { sendRemoteControlCommand } = useRemoteControl()
+const mikanStore = useMikanStore()
 
 // Selection state
 const selectedMarkerId = ref<number>(-1)
@@ -70,16 +71,24 @@ const selectedMarkerComponent = computed(() => {
 })
 
 // Marker CRUD handlers
-function handleAddMarker() {
-  sendRemoteControlCommand('add_new_marker')
+async function handleAddMarker() {
+  if (!mikanStore.client) {
+    console.error('[ProjectMarkers] No client connection')
+    return
+  }
+  await componentStore.createObject(mikanStore.client as MikanClient, 'MarkerComponent')
 }
 
-function handleRemoveMarker() {
+async function handleRemoveMarker() {
   if (selectedMarkerId.value === -1) {
     console.error('[ProjectMarkers] No marker selected')
     return
   }
-  sendRemoteControlCommand('remove_marker', [selectedMarkerId.value.toString()])
+  if (!mikanStore.client) {
+    console.error('[ProjectMarkers] No client connection')
+    return
+  }
+  await componentStore.destroyObject(mikanStore.client as MikanClient, 'MarkerComponent', selectedMarkerId.value)
   selectedMarkerId.value = -1
 }
 

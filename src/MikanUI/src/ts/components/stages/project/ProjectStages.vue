@@ -122,12 +122,13 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useComponentStore } from '../../../stores/componentStore.js'
-import { useRemoteControl } from '../../../composables/useRemoteControl.js'
+import { useMikanStore } from '../../../stores/mikanStore.js'
 import ComponentRefSelect from '../../shared/ComponentRefSelect.vue'
 import ComponentCard from '../../shared/ComponentCard.vue'
+import { MikanClient } from '@mikanxr/client'
 
 const componentStore = useComponentStore()
-const { sendRemoteControlCommand } = useRemoteControl()
+const mikanStore = useMikanStore()
 
 // Selection state
 const selectedStageId = ref<number>(-1)
@@ -197,46 +198,43 @@ function initializeFromCurrentScene() {
 }
 
 // Stage CRUD handlers
-function handleAddStage() {
-  sendRemoteControlCommand('add_new_stage')
+async function handleAddStage() {
+  if (!mikanStore.client) { console.error('[ProjectStages] No client connection'); return }
+  await componentStore.createObject(mikanStore.client as MikanClient, 'StageComponent')
 }
 
-function handleRemoveStage() {
-  if (selectedStageId.value === -1) {
-    console.error('[ProjectStages] No stage selected')
-    return
-  }
-  sendRemoteControlCommand('remove_stage', [selectedStageId.value.toString()])
+async function handleRemoveStage() {
+  if (selectedStageId.value === -1) { console.error('[ProjectStages] No stage selected'); return }
+  if (!mikanStore.client) { console.error('[ProjectStages] No client connection'); return }
+  await componentStore.destroyObject(mikanStore.client as MikanClient, 'StageComponent', selectedStageId.value)
   selectedStageId.value = -1
   selectedCameraId.value = -1
   selectedCompositorId.value = -1
 }
 
 // Camera CRUD handlers
-function handleAddCamera() {
-  sendRemoteControlCommand('add_new_camera')
+async function handleAddCamera() {
+  if (!mikanStore.client) { console.error('[ProjectStages] No client connection'); return }
+  await componentStore.createObject(mikanStore.client as MikanClient, 'CameraComponent')
 }
 
-function handleRemoveCamera() {
-  if (selectedCameraId.value === -1) {
-    console.error('[ProjectStages] No camera selected')
-    return
-  }
-  sendRemoteControlCommand('remove_camera', [selectedCameraId.value.toString()])
+async function handleRemoveCamera() {
+  if (selectedCameraId.value === -1) { console.error('[ProjectStages] No camera selected'); return }
+  if (!mikanStore.client) { console.error('[ProjectStages] No client connection'); return }
+  await componentStore.destroyObject(mikanStore.client as MikanClient, 'CameraComponent', selectedCameraId.value)
   selectedCameraId.value = -1
 }
 
 // Compositor CRUD handlers
-function handleAddCompositor() {
-  sendRemoteControlCommand('add_new_compositor')
+async function handleAddCompositor() {
+  if (!mikanStore.client) { console.error('[ProjectStages] No client connection'); return }
+  await componentStore.createObject(mikanStore.client as MikanClient, 'CompositorComponent')
 }
 
-function handleRemoveCompositor() {
-  if (selectedCompositorId.value === -1) {
-    console.error('[ProjectStages] No compositor selected')
-    return
-  }
-  sendRemoteControlCommand('remove_compositor', [selectedCompositorId.value.toString()])
+async function handleRemoveCompositor() {
+  if (selectedCompositorId.value === -1) { console.error('[ProjectStages] No compositor selected'); return }
+  if (!mikanStore.client) { console.error('[ProjectStages] No client connection'); return }
+  await componentStore.destroyObject(mikanStore.client as MikanClient, 'CompositorComponent', selectedCompositorId.value)
   selectedCompositorId.value = -1
 }
 
