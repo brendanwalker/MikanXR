@@ -33,6 +33,7 @@ bool RemoteControlManager::startup(MainWindow* mainWindow)
 
 	m_mainWindow= mainWindow;
 	m_mainWindow->OnAppStageEntered += MakeDelegate(this, &RemoteControlManager::onAppStageEntered);
+	m_mainWindow->OnAppStageExited += MakeDelegate(this, &RemoteControlManager::onAppStageExited);
 
 	return true;
 }
@@ -42,6 +43,7 @@ void RemoteControlManager::shutdown()
 	if (m_mainWindow != nullptr)
 	{
 		m_mainWindow->OnAppStageEntered -= MakeDelegate(this, &RemoteControlManager::onAppStageEntered);
+		m_mainWindow->OnAppStageExited -= MakeDelegate(this, &RemoteControlManager::onAppStageExited);
 		m_mainWindow= nullptr;
 	}
 }
