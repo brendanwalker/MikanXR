@@ -235,6 +235,23 @@ watch(selectedTextureSourceId, (newValue) => {
   }
 })
 
+// Auto-select last entry when list changes and nothing valid is selected
+watch(videoSourceComponents, (components) => {
+  if (components.length === 0) {
+    selectedVideoSourceId.value = -1
+  } else if (selectedVideoSourceId.value === -1 || !components.some(c => c.component_id === selectedVideoSourceId.value)) {
+    selectedVideoSourceId.value = components[components.length - 1].component_id
+  }
+})
+
+watch(textureSourceComponents, (components) => {
+  if (components.length === 0) {
+    selectedTextureSourceId.value = -1
+  } else if (selectedTextureSourceId.value === -1 || !components.some(c => c.component_id === selectedTextureSourceId.value)) {
+    selectedTextureSourceId.value = components[components.length - 1].component_id
+  }
+})
+
 // Restore selection state on mount
 function restoreSelectionState() {
   const savedVideoSourceId = sessionStorage.getItem('projectSources.selectedVideoSourceId')
@@ -258,6 +275,19 @@ function restoreSelectionState() {
 // Initialize on mount
 onMounted(() => {
   restoreSelectionState()
+  // Apply auto-select in case the store is already populated
+  const videos = videoSourceComponents.value
+  if (videos.length === 0) {
+    selectedVideoSourceId.value = -1
+  } else if (selectedVideoSourceId.value === -1 || !videos.some(c => c.component_id === selectedVideoSourceId.value)) {
+    selectedVideoSourceId.value = videos[videos.length - 1].component_id
+  }
+  const textures = textureSourceComponents.value
+  if (textures.length === 0) {
+    selectedTextureSourceId.value = -1
+  } else if (selectedTextureSourceId.value === -1 || !textures.some(c => c.component_id === selectedTextureSourceId.value)) {
+    selectedTextureSourceId.value = textures[textures.length - 1].component_id
+  }
 })
 </script>
 

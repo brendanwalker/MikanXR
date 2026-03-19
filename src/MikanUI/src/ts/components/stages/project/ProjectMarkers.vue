@@ -99,6 +99,15 @@ watch(selectedMarkerId, (newValue) => {
   }
 })
 
+// Auto-select last entry when list changes and nothing valid is selected
+watch(markerComponents, (components) => {
+  if (components.length === 0) {
+    selectedMarkerId.value = -1
+  } else if (selectedMarkerId.value === -1 || !components.some(c => c.component_id === selectedMarkerId.value)) {
+    selectedMarkerId.value = components[components.length - 1].component_id
+  }
+})
+
 // Restore selection state on mount
 function restoreSelectionState() {
   const savedMarkerId = sessionStorage.getItem('projectMarkers.selectedMarkerId')
@@ -114,6 +123,13 @@ function restoreSelectionState() {
 // Initialize on mount
 onMounted(() => {
   restoreSelectionState()
+  // Apply auto-select in case the store is already populated
+  const components = markerComponents.value
+  if (components.length === 0) {
+    selectedMarkerId.value = -1
+  } else if (selectedMarkerId.value === -1 || !components.some(c => c.component_id === selectedMarkerId.value)) {
+    selectedMarkerId.value = components[components.length - 1].component_id
+  }
 })
 </script>
 

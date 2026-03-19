@@ -196,6 +196,23 @@ watch(selectedTrackingMountId, (newValue) => {
   }
 })
 
+// Auto-select last entry when list changes and nothing valid is selected
+watch(trackingVolumeComponents, (components) => {
+  if (components.length === 0) {
+    selectedTrackingVolumeId.value = -1
+  } else if (selectedTrackingVolumeId.value === -1 || !components.some(c => c.component_id === selectedTrackingVolumeId.value)) {
+    selectedTrackingVolumeId.value = components[components.length - 1].component_id
+  }
+})
+
+watch(trackingMountComponents, (components) => {
+  if (components.length === 0) {
+    selectedTrackingMountId.value = -1
+  } else if (selectedTrackingMountId.value === -1 || !components.some(c => c.component_id === selectedTrackingMountId.value)) {
+    selectedTrackingMountId.value = components[components.length - 1].component_id
+  }
+})
+
 // Restore selection state on mount
 function restoreSelectionState() {
   const savedTrackingVolumeId = sessionStorage.getItem('projectTracking.selectedTrackingVolumeId')
@@ -219,6 +236,19 @@ function restoreSelectionState() {
 // Initialize on mount
 onMounted(() => {
   restoreSelectionState()
+  // Apply auto-select in case the store is already populated
+  const volumes = trackingVolumeComponents.value
+  if (volumes.length === 0) {
+    selectedTrackingVolumeId.value = -1
+  } else if (selectedTrackingVolumeId.value === -1 || !volumes.some(c => c.component_id === selectedTrackingVolumeId.value)) {
+    selectedTrackingVolumeId.value = volumes[volumes.length - 1].component_id
+  }
+  const mounts = trackingMountComponents.value
+  if (mounts.length === 0) {
+    selectedTrackingMountId.value = -1
+  } else if (selectedTrackingMountId.value === -1 || !mounts.some(c => c.component_id === selectedTrackingMountId.value)) {
+    selectedTrackingMountId.value = mounts[mounts.length - 1].component_id
+  }
 })
 </script>
 
