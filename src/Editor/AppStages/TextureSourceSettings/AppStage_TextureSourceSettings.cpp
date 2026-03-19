@@ -203,3 +203,39 @@ void AppStage_TextureSourceSettings::onReturnEvent()
 {
 	getOwnerWindow()->popAppState();
 }
+
+// Remote Control
+bool AppStage_TextureSourceSettings::handleRemoteControlCommand(
+	const std::string& command,
+	const std::vector<std::string>& parameters,
+	std::vector<std::string>& outResults)
+{
+	if (command == "get_texture_source_component_id")
+	{
+		return handleGetTextureSourceComponentId(outResults);
+	}
+	else if (command == "return")
+	{
+		return handleReturnRequest(outResults);
+	}
+
+	return AppStage::handleRemoteControlCommand(command, parameters, outResults);
+}
+
+bool AppStage_TextureSourceSettings::handleGetTextureSourceComponentId(
+	std::vector<std::string>& outResults)
+{
+	TextureSourceComponentPtr textureSource = m_textureSourceComponent.lock();
+	MikanTextureSourceID textureSourceId = textureSource ? textureSource->getComponentId() : INVALID_MIKAN_ID;
+	outResults.push_back(std::to_string(textureSourceId));
+
+	return true;
+}
+
+bool AppStage_TextureSourceSettings::handleReturnRequest(
+	std::vector<std::string>& outResults)
+{
+	getOwnerWindow()->popAppState();
+	outResults.push_back(IRemoteControllable::k_success);
+	return true;
+}

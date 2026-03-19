@@ -20,6 +20,7 @@ import { computed } from 'vue'
 import { useMikanStore } from '../stores/mikanStore'
 import MainMenu from './stages/MainMenu.vue'
 import VideoSourceSettings from './stages/VideoSourceSettings.vue'
+import TextureSourceSettings from './stages/TextureSourceSettings.vue'
 import AnchorSetup from './stages/AnchorSetup.vue'
 import Project from './stages/Project.vue'
 
@@ -37,6 +38,8 @@ const currentStageComponent = computed(() => {
       return MainMenu
     case 'VideoSourceSettings':
       return VideoSourceSettings
+    case 'TextureSourceSettings':
+      return TextureSourceSettings
     case 'AnchorSetup':
       return AnchorSetup
     case 'Compositor':
