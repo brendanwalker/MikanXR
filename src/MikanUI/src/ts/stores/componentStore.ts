@@ -360,14 +360,56 @@ export const useComponentStore = defineStore('components', () => {
     console.log(`[ComponentStore] Component database populated with ${fetchedCount} new components (${components.value.size} total)`)
   }
 
+  // Handle system-level property updates (componentId === -1)
+  // e.g. MarkerComponentIdList changing when a marker is added/removed
+  async function handleSystemPropertyUpdate(
+    client: MikanClient,
+    fieldName: string,
+    fieldValue: MikanVariant
+  ): Promise<void> {
+    const entry = COMPONENT_SYSTEMS.find(s => fieldName === `${s.componentClassName}IdList`)
+    if (!entry) return
+
+    const newIds: number[] = extractVariantValue(fieldValue) || []
+    if (!Array.isArray(newIds)) {
+      console.warn(`[ComponentStore] Expected array for ${fieldName}, got:`, newIds)
+      return
+    }
+    const newIdSet = new Set(newIds)
+
+    // Determine which IDs currently exist for this system
+    const existingComponents = getComponentsBySystem.value(entry.ownerSystem)
+    const existingIdSet = new Set(existingComponents.map(c => (c as any).component_id as number))
+
+    // Remove stale components (present locally but not in server list)
+    for (const existingId of existingIdSet) {
+      if (!newIdSet.has(existingId)) {
+        console.log(`[ComponentStore] Removing stale ${entry.componentClassName} ${existingId}`)
+        removeComponent(existingId, entry.ownerSystem)
+      }
+    }
+
+    // Fetch values for new components (in server list but not locally)
+    for (const newId of newIds) {
+      if (!existingIdSet.has(newId)) {
+        console.log(`[ComponentStore] Fetching new ${entry.componentClassName} ${newId}`)
+        await fetchComponentValues(client, entry.ownerSystem, newId, entry.componentClassName)
+      }
+    }
+  }
+
   // Handle property update events from the server
-  function handlePropertyUpdate(event: MikanPropertyUpdateEvent) {
+  function handlePropertyUpdate(event: MikanPropertyUpdateEvent, client?: MikanClient) {
     const propertyValue: MikanPropertyValue = event.propertyValue
     const componentId = propertyValue.componentId
     const ownerSystem = propertyValue.ownerSystem
 
-    // Only handle component property updates (not system properties)
+    // System-level property updates have componentId === -1
     if (componentId === MikanConstants.InvalidMikanID) {
+      if (client) {
+        handleSystemPropertyUpdate(client, propertyValue.fieldName, propertyValue.fieldValue)
+          .catch(err => console.error('[ComponentStore] Error handling system property update:', err))
+      }
       return
     }
 

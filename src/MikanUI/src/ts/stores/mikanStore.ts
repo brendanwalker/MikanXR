@@ -180,7 +180,7 @@ export const useMikanStore = defineStore('mikan', () => {
     // Listen for property update events
     client.value.onPropertyUpdate((event: MikanPropertyUpdateEvent) => {
       console.log(`[MikanStore] Property update event received`)
-      componentStore.handlePropertyUpdate(event)
+      componentStore.handlePropertyUpdate(event, client.value as MikanClient)
     })
 
     // Listen for all events for debugging (optional)
