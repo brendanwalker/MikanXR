@@ -24,12 +24,12 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 	virtual bool readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams) override;
 
-	static const std::string k_ownerStageIdPropertyId;
-	inline MikanStageID getOwnerStageId() const { return m_stageId; }
-	void setOwnerStageId(MikanStageID stageId);
+	static const std::string k_ownerSceneIdPropertyId;
+	inline MikanSceneID getOwnerSceneId() const { return m_ownerSceneId; }
+	void setOwnerSceneId(MikanSceneID sceneId);
 
 private:
-	MikanStageID m_stageId;
+	MikanSceneID m_ownerSceneId;
 };
 
 class AnchorComponent : public TransformComponent
@@ -46,10 +46,14 @@ public:
 	{
 		return std::static_pointer_cast<AnchorDefinition>(m_definition);
 	}
-	StageComponentConstPtr getOwnerStageComponent() const;
+	SceneComponentConstPtr getOwnerSceneComponent() const;
 
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
+
+	// -- IPropertyInterface ----
+	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
+	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
 
 	// -- IFunctionInterface ----
 	static const std::string k_editAnchorFunctionId;

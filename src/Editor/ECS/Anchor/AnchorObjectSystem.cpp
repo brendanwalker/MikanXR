@@ -23,7 +23,7 @@ AnchorObjectSystemDefinition::AnchorObjectSystemDefinition(
 
 configuru::Config AnchorObjectSystemDefinition::writeToJSON()
 {
-	configuru::Config pt = CommonConfig::writeToJSON();
+	configuru::Config pt = Super::writeToJSON();
 
 	pt["debugRenderAnchors"] = m_bDebugRenderAnchors;
 
@@ -32,7 +32,7 @@ configuru::Config AnchorObjectSystemDefinition::writeToJSON()
 
 void AnchorObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 {
-	CommonConfig::readFromJSON(pt);
+	Super::readFromJSON(pt);
 
 	m_bDebugRenderAnchors = pt.get_or<bool>("debugRenderAnchors", m_bDebugRenderAnchors);
 }

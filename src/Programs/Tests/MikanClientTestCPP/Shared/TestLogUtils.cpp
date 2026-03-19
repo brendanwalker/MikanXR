@@ -41,7 +41,7 @@ void TestLogUtils::logComponent(const MikanAnchorComponentValues& anchorInfo)
 {
 	logComponent((const MikanTransformComponentValues&)anchorInfo);
 		
-	MIKAN_LOG_INFO("AnchorComponent") << "Owner Stage Id: " << anchorInfo.stage_id;
+	MIKAN_LOG_INFO("AnchorComponent") << "Owner Scene Id: " << anchorInfo.owner_scene_id;
 }
 
 void TestLogUtils::logComponent(const MikanStencilComponentValues& stencilInfo)

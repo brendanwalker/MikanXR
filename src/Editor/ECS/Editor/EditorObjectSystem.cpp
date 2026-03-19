@@ -31,7 +31,7 @@ const std::string EditorObjectSystemDefinition::k_currentSceneNamePropertyId= "c
 
 configuru::Config EditorObjectSystemDefinition::writeToJSON()
 {
-	configuru::Config pt = CommonConfig::writeToJSON();
+	configuru::Config pt = MikanObjectSystemDefinition::writeToJSON();
 
 	pt["cameraSpeed"] = cameraSpeed;
 	pt["currentSceneName"]= currentSceneName;
@@ -41,7 +41,7 @@ configuru::Config EditorObjectSystemDefinition::writeToJSON()
 
 void EditorObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 {
-	CommonConfig::readFromJSON(pt);
+	MikanObjectSystemDefinition::readFromJSON(pt);
 
 	cameraSpeed = pt.get_or<float>("cameraSpeed", cameraSpeed);
 	currentSceneName = pt.get_or<std::string>("currentSceneName", currentSceneName);

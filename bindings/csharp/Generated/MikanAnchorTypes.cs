@@ -8,7 +8,7 @@ namespace MikanXR
 	{
 		public static new readonly long classId= 6113319869434591989;
 
-		public int stage_id;
+		public int owner_scene_id;
 	};
 
 	public class MikanAnchorSystemValues : MikanSystemValues

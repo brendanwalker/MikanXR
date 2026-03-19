@@ -505,11 +505,11 @@ void RmlModel_ProjectScenes::addNewAnchor(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	if (m_selectedStageId != INVALID_MIKAN_ID)
+	if (m_selectedSceneId != INVALID_MIKAN_ID)
 	{
 		m_anchorSystem.lock()->addNewObjectByTypedDefinition(
 			[this](auto anchorDefinition) {
-				anchorDefinition->setOwnerStageId(m_selectedStageId);
+				anchorDefinition->setOwnerSceneId(m_selectedSceneId);
 				return true;
 			});
 	}

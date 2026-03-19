@@ -12,19 +12,18 @@
 #include "ProjectConfig.h"
 #include "TransformComponent.h"
 #include "SelectionComponent.h"
-#include "StageObjectSystem.h"
+#include "SceneObjectSystem.h"
 #include "MikanObject.h"
 #include "MikanAnchorTypes.h"
 #include "MathTypeConversion.h"
 #include "StringUtils.h"
 
 // -- AnchorConfig -----
-const std::string AnchorDefinition::k_ownerStageIdPropertyId = "stage_id";
-
+const std::string AnchorDefinition::k_ownerSceneIdPropertyId = "owner_scene_id";
 AnchorDefinition::AnchorDefinition()
 	: TransformComponentDefinition()
 {
-	m_stageId = INVALID_MIKAN_ID;
+	m_ownerSceneId = INVALID_MIKAN_ID;
 }
 
 AnchorDefinition::AnchorDefinition(
@@ -37,8 +36,7 @@ configuru::Config AnchorDefinition::writeToJSON()
 {
 	configuru::Config pt = TransformComponentDefinition::writeToJSON();
 
-	pt[k_ownerStageIdPropertyId] = m_stageId;
-
+	pt[k_ownerSceneIdPropertyId] = m_ownerSceneId;
 	return pt;
 }
 
@@ -46,7 +44,7 @@ void AnchorDefinition::readFromJSON(const configuru::Config& pt)
 {
 	TransformComponentDefinition::readFromJSON(pt);
 
-	m_stageId = pt.get_or<int>(k_ownerStageIdPropertyId, m_stageId);
+	m_ownerSceneId = pt.get_or<int>(k_ownerSceneIdPropertyId, m_ownerSceneId);
 }
 
 bool AnchorDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
@@ -57,18 +55,18 @@ bool AnchorDefinition::readFromInitParams(const Serialization::PolymorphicObject
 	const auto* componentValues = initParams.getTypedPointer<MikanAnchorComponentValues>();
 	if (componentValues)
 	{
-		m_stageId = componentValues->stage_id;
+		m_ownerSceneId = componentValues->owner_scene_id;
 	}
 
 	return true;
 }
 
-void AnchorDefinition::setOwnerStageId(MikanStageID stageId)
+void AnchorDefinition::setOwnerSceneId(MikanSceneID sceneId)
 {
-	if (stageId != m_stageId)
+	if (sceneId != m_ownerSceneId)
 	{
-		m_stageId = stageId;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_ownerStageIdPropertyId));
+		m_ownerSceneId = sceneId;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_ownerSceneIdPropertyId));
 	}
 }
 
@@ -135,6 +133,31 @@ void AnchorComponent::customRender()
 	drawTextAtWorldPosition(style, anchorPos, L"%s", wszAnchorName);
 }
 
+// -- IPropertyInterface ----
+void AnchorComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+{
+	MikanComponent::getPropertyDescriptors(outDescriptors);
+
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			AnchorDefinition::k_ownerSceneIdPropertyId, MikanVariantType::INT)
+		->setDefaultValue(INVALID_MIKAN_ID)
+		->setReadOnly());
+}
+
+bool AnchorComponent::getPropertyValue(
+	const std::string& propertyName,
+	MikanVariant& outValue) const
+{
+	if (propertyName == AnchorDefinition::k_ownerSceneIdPropertyId)
+	{
+		outValue = static_cast<int>(getAnchorDefinition()->getOwnerSceneId());
+		return true;
+	}
+
+	return TransformComponent::getPropertyValue(propertyName, outValue);
+}
+
 // -- IFunctionInterface ----
 const std::string AnchorComponent::k_editAnchorFunctionId = "edit_anchor";
 
@@ -158,11 +181,11 @@ bool AnchorComponent::invokeFunction(const std::string& functionName)
 	return TransformComponent::invokeFunction(functionName);
 }
 
-StageComponentConstPtr AnchorComponent::getOwnerStageComponent() const
+SceneComponentConstPtr AnchorComponent::getOwnerSceneComponent() const
 {
-	MikanStageID stageId = getAnchorDefinition()->getOwnerStageId();
+	MikanSceneID sceneId = getAnchorDefinition()->getOwnerSceneId();
 
-	return getObjectSystemOfType<StageObjectSystem>()->getStageById(stageId);
+	return getObjectSystemOfType<SceneObjectSystem>()->getSceneById(sceneId);
 }
 
 void AnchorComponent::editAnchor()
@@ -181,7 +204,7 @@ void AnchorComponent::editAnchor()
 
 				AnchorTriangulatorInfo anchorInfo = {
 					definition->getComponentId(),
-					definition->getOwnerStageId(),
+					definition->getOwnerSceneId(),
 					definition->getRelativeTransform(),
 					definition->getComponentName()
 				};

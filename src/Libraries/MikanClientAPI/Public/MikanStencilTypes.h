@@ -64,7 +64,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) Mikan
 	public MikanTransformComponentValues
 {
 	FIELD()
-	MikanStencilID parent_anchor_id;
+	MikanSpatialAnchorID parent_anchor_id;
 	FIELD()
 	bool is_disabled;
 	FIELD()

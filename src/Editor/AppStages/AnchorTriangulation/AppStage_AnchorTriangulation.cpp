@@ -370,7 +370,7 @@ void AppStage_AnchorTriangulation::onOkEvent()
 				{
 					getSystemOfType<AnchorObjectSystem>()->addNewObjectByTypedDefinition(
 						[this](AnchorDefinitionPtr anchorDefinition) {
-							anchorDefinition->setOwnerStageId(m_targetAnchor.ownerStageId);
+							anchorDefinition->setOwnerSceneId(m_targetAnchor.ownerSceneId);
 							anchorDefinition->setComponentName(m_targetAnchor.anchorName);
 							// Newly created anchor has no parent, so relative transform is world transform
 							anchorDefinition->setRelativeTransform(m_targetAnchor.worldTransform);
