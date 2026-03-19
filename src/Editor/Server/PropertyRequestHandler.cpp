@@ -442,7 +442,7 @@ void PropertyRequestHandler::destroySystemObjectHandler(const ClientRequest& req
 
 	// Find the component to destroy
 	MikanComponentPtr componentPtr = objectSystem->getComponentById(destroyObjectRequest.componentId);
-	if (componentPtr)
+	if (!componentPtr)
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 		return;
