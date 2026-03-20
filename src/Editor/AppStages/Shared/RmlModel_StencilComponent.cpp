@@ -53,15 +53,6 @@ bool RmlModel_StencilComponent::onConstruct(Rml::DataModelConstructor& construct
 				stencilComponent->getStencilComponentDefinition()->setCullMode(cullMode);
 		});
 
-	constructor.BindEventCallback(
-		"select_anchor_entry",
-		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
-			const int selectedAnchorId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
-			auto stencilComponent = getStencilComponent();
-			if (stencilComponent)
-				stencilComponent->attachTransformComponentToAnchor(selectedAnchorId);
-		});
-
 	return true;
 }
 

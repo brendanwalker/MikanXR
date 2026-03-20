@@ -30,9 +30,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAnchorTypes")) MikanA
 	static const char* k_componentClassName;
 	static const char* k_ownerSystemName;
 
-	FIELD()
-	MikanSceneID owner_scene_id;
-
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanAnchorComponentValues_GENERATED
 	#endif

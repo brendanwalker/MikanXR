@@ -39,7 +39,7 @@
 // -- CompositorConfig -----
 const std::string CompositorDefinition::k_compositorGraphPathPropertyId = "compositor_graph_path";
 const std::string CompositorDefinition::k_cameraIdPropertyId= "camera_id";
-const std::string CompositorDefinition::k_ownerStagePropertyId = "owner_stage_id";
+const std::string CompositorDefinition::k_ownerScenePropertyId = "owner_scene_id";
 const std::string CompositorDefinition::k_spoutEnableOutputNamePropertyId = "spout_enable_output";
 const std::string CompositorDefinition::k_spoutOutputNamePropertyId = "spout_output_name";
 
@@ -54,7 +54,7 @@ CompositorDefinition::CompositorDefinition()
 CompositorDefinition::CompositorDefinition(
 	MikanCompositorID compositorId)
 	: MikanComponentDefinition(compositorId, "")
-	, m_ownerStageId(INVALID_MIKAN_ID)
+	, m_ownerSceneId(INVALID_MIKAN_ID)
 	, m_nodeGraphAssetRef(std::make_shared<AssetReferenceConfig>())
 	, m_bIsSpoutOutputStreaming(false)
 	, m_spoutOutputName(DEFAULT_SPOUT_OUTPUT_NAME)
@@ -65,7 +65,7 @@ configuru::Config CompositorDefinition::writeToJSON()
 	configuru::Config pt = MikanComponentDefinition::writeToJSON();
 
 	pt[k_cameraIdPropertyId] = m_cameraId;
-	pt[k_ownerStagePropertyId] = m_ownerStageId;
+	pt[k_ownerScenePropertyId] = m_ownerSceneId;
 	pt[k_spoutEnableOutputNamePropertyId] = m_bIsSpoutOutputStreaming;
 	pt[k_spoutOutputNamePropertyId] = m_spoutOutputName;
 
@@ -82,7 +82,7 @@ void CompositorDefinition::readFromJSON(const configuru::Config& pt)
 	MikanComponentDefinition::readFromJSON(pt);
 
 	m_cameraId = pt.get_or<int>(k_cameraIdPropertyId, INVALID_MIKAN_ID);
-	m_ownerStageId = pt.get_or<int>(k_ownerStagePropertyId, INVALID_MIKAN_ID);
+	m_ownerSceneId = pt.get_or<int>(k_ownerScenePropertyId, INVALID_MIKAN_ID);
 	m_bIsSpoutOutputStreaming = pt.get_or<bool>(k_spoutEnableOutputNamePropertyId, m_bIsSpoutOutputStreaming);
 	m_spoutOutputName = pt.get_or<std::string>(k_spoutOutputNamePropertyId, m_spoutOutputName);
 	if (m_spoutOutputName.empty())
@@ -103,7 +103,7 @@ bool CompositorDefinition::readFromInitParams(const Serialization::PolymorphicOb
 	const auto* componentValues = initParams.getTypedPointer<MikanCompositorComponentValues>();
 	if (componentValues)
 	{
-		m_ownerStageId = componentValues->owner_stage_id;
+		m_ownerSceneId = componentValues->owner_scene_id;
 		m_cameraId = componentValues->camera_id;
 
 		const std::string graphPathString = componentValues->compositor_graph_path.getValue();
@@ -128,12 +128,12 @@ void CompositorDefinition::setCameraId(MikanCameraID cameraId)
 	}
 }
 
-void CompositorDefinition::setOwnerStageId(MikanSceneID stageId)
+void CompositorDefinition::setOwnerSceneId(MikanSceneID stageId)
 {
-	if (m_ownerStageId != stageId)
+	if (m_ownerSceneId != stageId)
 	{
-		m_ownerStageId = stageId;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_ownerStagePropertyId));
+		m_ownerSceneId = stageId;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_ownerScenePropertyId));
 	}
 }
 
@@ -734,7 +734,7 @@ CompositorObjectSystemPtr CompositorComponent::getOwnerObjectSystem() const
 
 MikanStageID CompositorComponent::getOwnerStageId() const
 {
-	return getCompositorDefinition()->getOwnerStageId();
+	return getCompositorDefinition()->getOwnerSceneId();
 }
 
 StageComponentPtr CompositorComponent::getOwnerStageComponent() const
@@ -844,7 +844,7 @@ void CompositorComponent::getPropertyDescriptors(std::vector<PropertyDescriptorC
 		->setDefaultValue(-1));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			CompositorDefinition::k_ownerStagePropertyId, MikanVariantType::INT)
+			CompositorDefinition::k_ownerScenePropertyId, MikanVariantType::INT)
 		->setDefaultValue(-1));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
@@ -866,9 +866,9 @@ bool CompositorComponent::getPropertyValue(
 		outValue = getCompositorDefinition()->getCameraId();
 		return true;
 	}
-	else if (propertyName == CompositorDefinition::k_ownerStagePropertyId)
+	else if (propertyName == CompositorDefinition::k_ownerScenePropertyId)
 	{
-		outValue = getCompositorDefinition()->getOwnerStageId();
+		outValue = getCompositorDefinition()->getOwnerSceneId();
 		return true;
 	}
 	else if (propertyName == CompositorDefinition::k_compositorGraphPathPropertyId)
@@ -900,10 +900,10 @@ bool CompositorComponent::setPropertyValue(
 		getCompositorDefinition()->setCameraId(cameraId);
 		return true;
 	}
-	else if (propertyName == CompositorDefinition::k_ownerStagePropertyId)
+	else if (propertyName == CompositorDefinition::k_ownerScenePropertyId)
 	{
-		const MikanStageID stageId = inValue.getIntValue();
-		getCompositorDefinition()->setOwnerStageId(stageId);
+		const MikanSceneID sceneId = inValue.getIntValue();
+		getCompositorDefinition()->setOwnerSceneId(sceneId);
 		return true;
 	}
 	else if (propertyName == CompositorDefinition::k_compositorGraphPathPropertyId)

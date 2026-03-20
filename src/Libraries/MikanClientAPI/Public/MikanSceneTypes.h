@@ -35,8 +35,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSceneTypes")) MikanSc
 	FIELD()
 	MikanStageID parent_stage_id;
 	FIELD()
-	Serialization::List<MikanCompositorID> compositor_list;
-	FIELD()
 	MikanCompositorID display_compositor_id;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED

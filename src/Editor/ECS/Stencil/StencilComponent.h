@@ -16,17 +16,12 @@ public:
 	StencilComponentDefinition();
 	StencilComponentDefinition(
 		MikanStencilID stencilId,
-		MikanSpatialAnchorID parentAnchorId,
 		const std::string & componentName, 
 		const MikanTransform& xform);
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 	virtual bool readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams) override;
-
-	static const std::string k_parentAnchorPropertyId;
-	MikanStencilID getParentAnchorId() const { return m_parentAnchorId; }
-	void setParentAnchorId(MikanSpatialAnchorID anchorId);
 
 	static const std::string k_stencilDisabledPropertyId;
 	bool getIsDisabled() const { return m_bIsDisabled; }
@@ -37,7 +32,6 @@ public:
 	void setCullMode(eStencilCullMode mode);
 
 protected:
-	MikanSpatialAnchorID m_parentAnchorId= INVALID_MIKAN_ID;
 	bool m_bIsDisabled= false;
 	eStencilCullMode m_cullMode= eStencilCullMode::none;
 };
@@ -51,12 +45,8 @@ public:
 		return std::static_pointer_cast<StencilComponentDefinition>(m_definition); 
 	}
 
-	virtual void setDefinition(MikanComponentDefinitionPtr definition) override;
-
 	inline static const std::string k_componentClassName = "StencilComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
-
-	void attachTransformComponentToAnchor(MikanSpatialAnchorID newParentId);
 
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;

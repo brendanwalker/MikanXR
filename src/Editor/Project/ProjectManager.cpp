@@ -124,6 +124,19 @@ MikanObjectSystemPtr ProjectManager::getSystemByName(const std::string name) con
 	return MikanObjectSystemPtr();
 }
 
+MikanComponentPtr ProjectManager::getComponentById(MikanComponentID componentId) const
+{
+	for (MikanObjectSystemPtr system : m_systems)
+	{
+		MikanComponentPtr componentPtr = system->getComponentById(componentId);
+		if (componentPtr)
+		{
+			return componentPtr;
+		}
+	}
+	return MikanComponentPtr();
+}
+
 void ProjectManager::shutdown()
 {
 	unloadProject();
@@ -207,6 +220,15 @@ bool ProjectManager::loadProject(const std::string& projectFilePath)
 				bSuccess = false;
 				break;
 			}
+		}
+
+		// Once all systems are successfully initialized, 
+		// call postInit on all systems to allow them to perform any setup 
+		// that requires other systems/components to be initialized
+		// (e.g. TransformComponent wants to attach to its parent in postInit)
+		for (int i = 0; i < (int)m_systems.size(); i++)
+		{
+			m_systems[i]->postInit();
 		}
 	}
 

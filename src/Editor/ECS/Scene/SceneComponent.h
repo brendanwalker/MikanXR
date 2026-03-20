@@ -25,19 +25,12 @@ public:
 	MikanStageID getParentStageId() const { return m_parentStageId; }
 	void setParentStageId(MikanStageID stageId);
 
-	static const std::string k_compositorListPropertyId;
-	inline int getCompositorCount() const { return static_cast<int>(m_compositorIDs.size()); }
-	const std::vector<MikanCompositorID>& getCompositorIDs() const { return m_compositorIDs; }
-	void addCompositorID(MikanCompositorID compositorId);
-	void removeCompositorID(MikanCompositorID compositorId);
-
 	static const std::string k_displayCompositorIdPropertyId;
 	MikanCompositorID getDisplayCompositorId() const { return m_displayCompositorId; }
 	void setDisplayCompositorId(MikanCompositorID compositorId);
 
 protected:
 	MikanStageID m_parentStageId = INVALID_MIKAN_ID;
-	std::vector<MikanCompositorID> m_compositorIDs;
 	MikanCompositorID m_displayCompositorId = INVALID_MIKAN_ID;
 };
 
@@ -55,7 +48,6 @@ public:
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	// -- MikanComponent ----
-	virtual void setDefinition(MikanComponentDefinitionPtr definition) override;
 	virtual void init() override;
 	virtual void dispose() override;
 
@@ -67,21 +59,16 @@ public:
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
 
-	// -- IFunctionInterface ----
-	static const std::string k_addCompositorRefFunctionId;
-	static const std::string k_removeCompositorRefFunctionId;
-	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
-	virtual bool invokeFunction(const std::string& functionName) override;
-
 	// -- Lua Binding ----
 	static void bindLuaFunctions(struct lua_State* L);
 
 	// -- SceneComponent ----
 	inline MikanSceneID getSceneId() const { return getSceneComponentDefinition()->getSceneId(); }
+	MikanStageID getParentStageId() const;
 	StageComponentPtr getParentStage() const;
-	const std::vector<MikanCompositorID>& getOutputCompositorIDs() const;
+	std::vector<MikanCompositorID> getOutputCompositorIDs() const;
 	std::vector<CompositorComponentPtr> getOutputCompositors() const;
-	void attachTransformComponentToStage(MikanStageID newParentId);
+	void attachToStage(MikanStageID newParentId);
 	SelectionComponentPtr findClosestSelectionTarget(
 		const glm::vec3& rayOrigin,
 		const glm::vec3& rayDir,
@@ -93,11 +80,9 @@ public:
 protected:
 	virtual ComponentScriptContextPtr allocateScriptContext() override;
 
-	void onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
-
-	// IFunctionInterface handlers
-	void addCompositorRef();
-	void removeCompositorRef();
+	// TransformComponent
+	virtual void onDetachedFromParent(TransformComponentPtr oldParent, eDetachReason reason) override;
+	virtual void onAttachedToNewParent(TransformComponentPtr newParent) override;
 
 private:
 	// Scene Rendering

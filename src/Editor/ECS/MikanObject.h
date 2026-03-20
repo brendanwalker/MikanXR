@@ -107,6 +107,7 @@ public:
 
 	// Called from owning object system
 	void init();
+	void postInit();
 	void dispose();
 
 protected:

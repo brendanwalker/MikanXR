@@ -1,6 +1,8 @@
 #pragma once
 
 #include "CommonConfigFwd.h"
+#include "ComponentFwd.h"
+#include "MikanTypeFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
 #include "MulticastDelegate.h"
@@ -49,6 +51,14 @@ public:
 		}
 
 		return nullptr;
+	}
+
+	MikanComponentPtr getComponentById(MikanComponentID componentId) const;
+	template<class t_component_type>
+	std::shared_ptr<t_component_type> getTypedComponentById(MikanComponentID componentId) const
+	{
+		MikanComponentPtr componentPtr = getComponentById(componentId);
+		return std::dynamic_pointer_cast<t_component_type>(componentPtr);
 	}
 
 	MikanObjectSystemPtr getSystemByName(const std::string name) const;

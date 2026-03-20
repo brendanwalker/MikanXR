@@ -20,7 +20,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCompositorTypes")) Mi
 	static const char* k_ownerSystemName;
 
 	FIELD()
-	MikanStageID owner_stage_id;
+	MikanSceneID owner_scene_id;
 	FIELD()
 	MikanCameraID camera_id;
 	FIELD()

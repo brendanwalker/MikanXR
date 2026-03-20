@@ -77,7 +77,7 @@ bool RmlModel_ProjectStages::init(ProjectRmlModelContext* context)
 				
 			for (const auto& compositorPtr : compositorConfig->getAllDefinitions())
 			{
-				if (compositorPtr && compositorPtr->getOwnerStageId() == m_selectedStageId)
+				if (compositorPtr && compositorPtr->getOwnerSceneId() == m_selectedStageId)
 				{
 					outComponentIdList.push_back((int)compositorPtr->getCompositorId());
 				}
@@ -236,7 +236,7 @@ void RmlModel_ProjectStages::addNewCompositor(
 	getCompositorSystem()->addNewObjectByTypedDefinition(
 		[this](CompositorDefinitionPtr definition) {
 			// Initialize compositor-specific properties
-			definition->setOwnerStageId(m_selectedStageId);
+			definition->setOwnerSceneId(m_selectedStageId);
 			return true;
 		});
 }

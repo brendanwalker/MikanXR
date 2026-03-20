@@ -30,7 +30,7 @@ BoxStencilDefinition::BoxStencilDefinition()
 }
 
 BoxStencilDefinition::BoxStencilDefinition(MikanStencilID stencilId)
-	: StencilComponentDefinition(stencilId, INVALID_MIKAN_ID, "", MikanTransform())
+	: StencilComponentDefinition(stencilId, "", MikanTransform())
 	, m_boxSize({0.25f, 0.25f, 0.25f})
 {
 }

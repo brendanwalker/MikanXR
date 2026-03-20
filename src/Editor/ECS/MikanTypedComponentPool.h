@@ -68,6 +68,15 @@ public:
 		return ComponentPtr();
 	}
 
+	t_id_type getFirstComponentId() const
+	{
+		if (!m_components.empty())
+		{
+			return m_components.begin()->first;
+		}
+		return INVALID_MIKAN_ID;
+	}
+
 	const ComponentMap& getAll() const { return m_components; }
 
 	// Lifecycle operations

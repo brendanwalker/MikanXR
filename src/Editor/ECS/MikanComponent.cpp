@@ -168,6 +168,10 @@ void MikanComponent::init()
 	}
 }
 
+void MikanComponent::postInit()
+{
+}
+
 void MikanComponent::dispose()
 {
 	if (m_bWasDisposed)

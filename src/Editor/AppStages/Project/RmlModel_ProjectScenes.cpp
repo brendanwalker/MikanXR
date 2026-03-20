@@ -37,8 +37,7 @@
 bool RmlModel_ProjectScenes::s_bHasRegisteredTypes = false;
 
 RmlModel_ProjectScenes::RmlModel_ProjectScenes()
-	: m_stageIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
-	, m_sceneIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
+	: m_sceneIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {
 }
 
@@ -63,30 +62,10 @@ bool RmlModel_ProjectScenes::init(ProjectRmlModelContext* context)
 		return false;
 
 	// Register component lists
-	m_stageIdList->init(
-		constructor,
-		m_stageSystem.lock(),
-		StageObjectSystemDefinition::k_componentIdListPropertyId);
 	m_sceneIdList->init(
 		constructor,
-		m_sceneSystem.lock()->getTypedDefinition(), // Listen for scene system definition changes
-		"scene_ids", // virtual list that does not exist as a property
-		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			// Only show scenes whose parent stage matches the selected stage
-			auto sceneSystemConfig = std::static_pointer_cast<SceneObjectSystemDefinition>(ownerConfig);
-
-			for (const SceneComponentDefinitionPtr sceneComponent : sceneSystemConfig->getAllDefinitions())
-			{
-				if (sceneComponent->getParentStageId() == m_selectedStageId)
-				{
-					outComponentIdList.push_back((int)sceneComponent->getSceneId());
-				}
-			}
-		},
-		[this](const ConfigPropertyChangeSet& changedPropertySet) {
-			// Refresh when the list of scene IDs changes on the scene system definition
-			return changedPropertySet.hasPropertyName(SceneObjectSystemDefinition::k_componentIdListPropertyId);
-		});
+		m_sceneSystem.lock(),
+		SceneObjectSystemDefinition::k_componentIdListPropertyId);
 
 	// One time data model types registration
 	if (!s_bHasRegisteredTypes)
@@ -106,12 +85,10 @@ bool RmlModel_ProjectScenes::init(ProjectRmlModelContext* context)
 
 	// Register Data Model Fields
 	constructor.Bind("scene_objects", &m_sceneOutliner);
-	constructor.Bind("selected_scene_object_index", &m_selectedSceneObjectIndex);
-	constructor.Bind("selected_stage_id", &m_selectedStageId);
+	constructor.Bind("selected_scene_object_index", &m_selectedSceneObjectListIndex);
 	constructor.Bind("selected_scene_id", &m_selectedSceneId);
 
 	// Bind data model callbacks
-	constructor.BindEventCallback("select_stage_entry", &RmlModel_ProjectScenes::selectStageEntry, this);
 	constructor.BindEventCallback("select_scene_entry", &RmlModel_ProjectScenes::selectSceneEntry, this);
 	constructor.BindEventCallback("add_new_scene", &RmlModel_ProjectScenes::addNewScene, this);
 	constructor.BindEventCallback("remove_scene", &RmlModel_ProjectScenes::removeScene, this);
@@ -171,13 +148,10 @@ bool RmlModel_ProjectScenes::init(ProjectRmlModelContext* context)
 	SceneComponentConstPtr currentScene= m_sceneSystem.lock()->getCurrentScene();
 	if (currentScene)
 	{
-		MikanStageID parentStageId = currentScene->getParentStage()->getStageId();
-		setSelectedStageId(parentStageId);
 		setSelectedSceneId(currentScene->getSceneId());
 	}
 
 	// Listen for stage/scene/compositor list changes
-	m_stageIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectScenes::stageIdListChanged);
 	m_sceneIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectScenes::sceneIdListChanged);
 
 	return true;
@@ -185,7 +159,6 @@ bool RmlModel_ProjectScenes::init(ProjectRmlModelContext* context)
 
 void RmlModel_ProjectScenes::dispose()
 {
-	m_stageIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectScenes::stageIdListChanged);
 	m_sceneIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectScenes::sceneIdListChanged);
 
 	QuadStencilSystemPtr quadStencilSystem = m_quadStencilSystem.lock();
@@ -241,7 +214,7 @@ void RmlModel_ProjectScenes::stencilSystemConfigMarkedDirty(
 	CommonConfigPtr configPtr,
 	const ConfigPropertyChangeSet& changedPropertySet)
 {
-	if (changedPropertySet.hasPropertyName(StencilComponentDefinition::k_parentAnchorPropertyId) ||
+	if (changedPropertySet.hasPropertyName(TransformComponentDefinition::k_parentTransformIdPropertyId) ||
 		changedPropertySet.hasPropertyName(MikanComponentDefinition::k_componentNamePropertyId))
 	{
 		rebuildSceneComponentList();
@@ -266,68 +239,11 @@ void RmlModel_ProjectScenes::rebuildSceneComponentList()
 {
 	m_sceneOutliner.clear();
 
-	// Add all root anchors to the outliner
-	AnchorObjectSystemPtr anchorSystem= m_anchorSystem.lock();
-	for (const auto it : anchorSystem->getComponentMap())
+	// If there is a valid selected scene, build the outliner list from its transform hierarchy. 
+	SceneComponentPtr sceneComponent = getSelectedSceneComponent();
+	if (sceneComponent)
 	{
-		AnchorComponentPtr anchorComponentPtr= it.second.lock();
-		if (anchorComponentPtr)
-		{
-			TransformComponentPtr rootComponent= anchorComponentPtr->getOwnerObject()->getRootComponent();
-
-			if (rootComponent->getParentComponent() == nullptr)
-			{
-				addTransformComponent(rootComponent, 0);
-			}
-		}
-	}
-
-	// Add all root quad stencils to the outliner
-	QuadStencilSystemPtr quadStencilSystem = m_quadStencilSystem.lock();
-	for (const auto it : quadStencilSystem->getComponentMap())
-	{
-		QuadStencilComponentPtr stencilComponentPtr = it.second.lock();
-		if (stencilComponentPtr)
-		{
-			TransformComponentPtr rootComponent = stencilComponentPtr->getOwnerObject()->getRootComponent();
-
-			if (rootComponent->getParentComponent() == nullptr)
-			{
-				addTransformComponent(rootComponent, 0);
-			}
-		}
-	}
-
-	// Add all root box stencils to the outliner
-	BoxStencilSystemPtr boxStencilSystem = m_boxStencilSystem.lock();
-	for (const auto it : boxStencilSystem->getComponentMap())
-	{
-		BoxStencilComponentPtr stencilComponentPtr = it.second.lock();
-		if (stencilComponentPtr)
-		{
-			TransformComponentPtr rootComponent = stencilComponentPtr->getOwnerObject()->getRootComponent();
-
-			if (rootComponent->getParentComponent() == nullptr)
-			{
-				addTransformComponent(rootComponent, 0);
-			}
-		}
-	}
-
-	// Add all root model stencils to the outliner
-	ModelStencilSystemPtr modelStencilSystem = m_modelStencilSystem.lock();
-	for (const auto it : modelStencilSystem->getComponentMap())
-	{
-		ModelStencilComponentPtr stencilComponentPtr= it.second.lock();
-		if (stencilComponentPtr)
-		{
-			TransformComponentPtr rootComponent= stencilComponentPtr->getOwnerObject()->getRootComponent();
-
-			if (rootComponent->getParentComponent() == nullptr)
-			{
-				addTransformComponent(rootComponent, 0);
-			}
-		}
+		addTransformComponent(sceneComponent, 0);
 	}
 
 	m_modelHandle.DirtyVariable("scene_objects");
@@ -338,14 +254,16 @@ void RmlModel_ProjectScenes::rebuildSceneComponentList()
 void RmlModel_ProjectScenes::updateSelection()
 {
 	// Find the index of the currently selected component (if any)
-	m_selectedSceneObjectIndex = -1;
+	m_selectedSceneObjectListIndex = -1;
+	m_selectedTransformId = -1;
 	SelectionComponentPtr currentSelection = m_editorSystem.lock()->getSelection();
 	for (int list_index = 0; list_index < m_sceneOutliner.size(); ++list_index)
 	{
 		SelectionComponentPtr testComponentPtr = m_sceneOutliner[list_index].selectionComponent.lock();
 		if (testComponentPtr == currentSelection)
 		{
-			m_selectedSceneObjectIndex = list_index;
+			m_selectedTransformId = testComponentPtr->getOwnerObject()->getRootComponent()->getComponentId();
+			m_selectedSceneObjectListIndex = list_index;
 			break;
 		}
 	}
@@ -367,7 +285,7 @@ void RmlModel_ProjectScenes::addTransformComponent(TransformComponentPtr transfo
 		m_sceneOutliner.push_back(object);
 	}
 
-	for (TransformComponentWeakPtr childTransformComponentWeakPtr : transformComponentPtr->getChildComponents())
+	for (TransformComponentWeakPtr childTransformComponentWeakPtr : transformComponentPtr->getChildTransformComponents())
 	{
 		TransformComponentPtr childTransformComponentPtr= childTransformComponentWeakPtr.lock();
 		
@@ -382,17 +300,6 @@ void RmlModel_ProjectScenes::addTransformComponent(TransformComponentPtr transfo
 
 			addTransformComponent(childTransformComponentPtr, objectDepth);
 		}
-	}
-}
-
-void RmlModel_ProjectScenes::setSelectedStageId(int stageId)
-{
-	if (stageId != m_selectedStageId)
-	{
-		m_selectedStageId = stageId;
-		m_modelHandle.DirtyVariable("selected_stage_id");
-
-		m_sceneIdList->rebuildList();
 	}
 }
 
@@ -420,18 +327,6 @@ void RmlModel_ProjectScenes::setSelectedSceneId(int sceneId)
 	}
 }
 
-void RmlModel_ProjectScenes::stageIdListChanged(bool bOwnerChanged)
-{
-	if (MikanStageID selectedStageId = m_selectedStageId;
-		m_stageIdList->fixupSelectedValue(m_selectedStageId, INVALID_MIKAN_ID, selectedStageId))
-	{
-		// Defer the selection update to post view update after element list refreshes
-		addModelUpdateCallback([this, selectedStageId]() {
-			setSelectedStageId(selectedStageId);
-		});
-	}
-}
-
 void RmlModel_ProjectScenes::sceneIdListChanged(bool bOwnerChanged)
 {
 	if (MikanSceneID selectedSceneId = m_selectedSceneId;
@@ -444,24 +339,9 @@ void RmlModel_ProjectScenes::sceneIdListChanged(bool bOwnerChanged)
 	}
 }
 
-StageComponentPtr RmlModel_ProjectScenes::getSelectedStageComponent()
-{
-	return m_stageSystem.lock()->getStageById(m_selectedStageId);
-}
-
 SceneComponentPtr RmlModel_ProjectScenes::getSelectedSceneComponent()
 {
 	return m_sceneSystem.lock()->getSceneById(m_selectedSceneId);
-}
-
-void RmlModel_ProjectScenes::selectStageEntry(
-	Rml::DataModelHandle handle,
-	Rml::Event& ev,
-	const Rml::VariantList& parameters)
-{
-	const int newStageId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
-
-	setSelectedStageId(newStageId);
 }
 
 void RmlModel_ProjectScenes::selectSceneEntry(
@@ -479,10 +359,11 @@ void RmlModel_ProjectScenes::addNewScene(
 	Rml::Event& /*ev*/,
 	const Rml::VariantList& parameters)
 {
-	if (m_selectedStageId != INVALID_MIKAN_ID)
+	MikanStageID firstStageId = m_stageSystem.lock()->getFirstComponentId();
+	if (firstStageId != INVALID_MIKAN_ID)
 	{
-		m_sceneSystem.lock()->addNewObjectByTypedDefinition([this](auto sceneDefinition) {
-			sceneDefinition->setParentStageId(m_selectedStageId);
+		m_sceneSystem.lock()->addNewObjectByTypedDefinition([this, firstStageId](auto sceneDefinition) {
+			sceneDefinition->setParentStageId(firstStageId);
 			return true;
 		});
 	}
@@ -509,7 +390,7 @@ void RmlModel_ProjectScenes::addNewAnchor(
 	{
 		m_anchorSystem.lock()->addNewObjectByTypedDefinition(
 			[this](auto anchorDefinition) {
-				anchorDefinition->setOwnerSceneId(m_selectedSceneId);
+				anchorDefinition->setParentTransformId(m_selectedTransformId);
 				return true;
 			});
 	}
@@ -533,14 +414,14 @@ void RmlModel_ProjectScenes::addNewQuad(
 	const Rml::VariantList& parameters)
 {
 	QuadStencilSystemPtr quadStencilSystem = m_quadStencilSystem.lock();
-	quadStencilSystem->addNewObjectByTypedDefinition([](QuadStencilDefinitionPtr definition) {
+	quadStencilSystem->addNewObjectByTypedDefinition([this](QuadStencilDefinitionPtr definition) {
 
 		// Initialize with default stencil info
 		definition->setQuadWidth(0.25f);
 		definition->setQuadHeight(0.25f);
 		definition->setIsDoubleSided(true);
 		definition->setRelativeTransform(GlmTransform());
-		definition->setParentAnchorId(INVALID_MIKAN_ID);
+		definition->setParentTransformId(m_selectedTransformId);
 		definition->setIsDisabled(false);
 
 		return true;
@@ -565,14 +446,14 @@ void RmlModel_ProjectScenes::addNewBox(
 	const Rml::VariantList& parameters)
 {
 	BoxStencilSystemPtr boxStencilSystem = m_boxStencilSystem.lock();
-	boxStencilSystem->addNewObjectByTypedDefinition([](BoxStencilDefinitionPtr definition) {
+	boxStencilSystem->addNewObjectByTypedDefinition([this](BoxStencilDefinitionPtr definition) {
 
 		// Initialize with default stencil info
 		definition->setBoxXSize(0.25f);
 		definition->setBoxYSize(0.25f);
 		definition->setBoxZSize(0.25f);
 		definition->setRelativeTransform(GlmTransform());
-		definition->setParentAnchorId(INVALID_MIKAN_ID);
+		definition->setParentTransformId(m_selectedTransformId);
 		definition->setIsDisabled(false);
 
 		return true;
@@ -597,11 +478,11 @@ void RmlModel_ProjectScenes::addNewModel(
 	const Rml::VariantList& parameters)
 {
 	ModelStencilSystemPtr modelStencilSystem = m_modelStencilSystem.lock();
-	modelStencilSystem->addNewObjectByTypedDefinition([](ModelStencilDefinitionPtr definition) {
+	modelStencilSystem->addNewObjectByTypedDefinition([this](ModelStencilDefinitionPtr definition) {
 
 		// Initialize with default stencil info
 		definition->setRelativeTransform(GlmTransform());
-		definition->setParentAnchorId(INVALID_MIKAN_ID);
+		definition->setParentTransformId(m_selectedTransformId);
 		definition->setIsDisabled(false);
 
 		return true;

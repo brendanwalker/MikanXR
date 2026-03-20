@@ -43,6 +43,7 @@ public:
 	virtual ~MikanObjectSystem();
 
 	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr);
+	virtual void postInit();
 	virtual void dispose();
 	virtual void update(float deltaSeconds);
 	virtual void customRender();

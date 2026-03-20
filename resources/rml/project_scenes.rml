@@ -5,18 +5,9 @@
 </head>
 <body template="project_panel">
 	<panel>
-		<div class="content">
-			<!-- Stages Section -->
-			<div data-model="Scenes">
-				<h3>Stage</h3>
-				<select id="select" name="select_stage_id" data-value="selected_stage_id" data-event-change="select_stage_entry()">
-					<option value="-1">-- None --</option>
-					<option data-for="stage_id : StageComponentIdList" data-value="stage_id">{{stage_id | to_stage_name}}</option>
-				</select>				
-			</div>
-			
+		<div class="content">		
 			<!-- Scene Section -->
-			<div data-if="selected_stage_id != -1" data-model="Scenes">
+			<div data-model="Scenes">
 				<h3>Scene</h3>
 				<select id="select" name="select_scene_id" data-value="selected_scene_id" data-event-change="select_scene_entry()">
 					<option value="-1">-- None --</option>
@@ -44,8 +35,6 @@
 									<option value="-1">-- None --</option>
 									<option data-for="compositor_id : compositor_ids" data-value="compositor_id">{{compositor_id | to_compositor_name}}</option>
 								</select>	
-								<div class="createcomponent" data-event-click="add_compositor_ref()"></div>
-								<div class="deletecomponent" data-event-click="remove_compositor_ref()"></div>						
 							</td>
 						</tr>												
 						<tr class="property_tr">
@@ -153,15 +142,6 @@
 								<div class="deletecomponent" data-event-click="remove_box"></div>
 							</td>
 						</tr>
-						<tr class="property_tr">
-							<td>
-								<label>Anchor</label>
-								<select id="select" name="select_anchor_id" data-value="parent_anchor_id" data-event-change="select_anchor_entry()">
-									<option value="-1">-- None --</option>
-									<option data-for="anchor_id : anchor_ids" data-value="anchor_id">{{anchor_id | to_anchor_name}}</option>
-								</select>
-							</td>
-						</tr>						
 						<tr class="property_tr">	
 							<td>
 								<label>Position</label>
@@ -231,15 +211,6 @@
 								<div class="deletecomponent" data-event-click="remove_model"></div>
 							</td>
 						</tr>
-						<tr class="property_tr">
-							<td>
-								<label>Anchor</label>
-								<select id="select" name="select_anchor_id" data-value="parent_anchor_id" data-event-change="select_anchor_entry()">
-									<option value="-1">-- None --</option>
-									<option data-for="anchor_id : anchor_ids" data-value="anchor_id">{{anchor_id | to_anchor_name}}</option>
-								</select>
-							</td>
-						</tr>						
 						<tr class="property_tr">	
 							<td>
 								<label>Position</label>
@@ -309,15 +280,6 @@
 								<div class="deletecomponent" data-event-click="remove_quad"></div>
 							</td>
 						</tr>
-						<tr class="property_tr">
-							<td>
-								<label>Anchor</label>
-								<select id="select" name="select_anchor_id" data-value="parent_anchor_id" data-event-change="select_anchor_entry()">
-									<option value="-1">-- None --</option>
-									<option data-for="anchor_id : anchor_ids" data-value="anchor_id">{{anchor_id | to_anchor_name}}</option>
-								</select>
-							</td>
-						</tr>						
 						<tr class="property_tr">	
 							<td>
 								<label>Position</label>

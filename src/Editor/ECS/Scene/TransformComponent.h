@@ -46,6 +46,10 @@ public:
 	const GlmTransform getRelativeTransform() const;
 	void setRelativeTransform(const GlmTransform& transform);
 
+	static const std::string k_parentTransformIdPropertyId;
+	const MikanTransformID getParentTransformId() const { return m_parentTransformId; }
+	void setParentTransformId(MikanTransformID parentId);
+
 	static const std::string k_relativeScalePropertyId;
 	const MikanVector3f getRelativeScale() const { return m_relativeTransform.scale; }
 	void setRelativeScale(const MikanVector3f& scale);
@@ -59,6 +63,7 @@ public:
 	void setRelativePosition(const MikanVector3f& translation);
 
 protected:
+	MikanTransformID m_parentTransformId = INVALID_MIKAN_ID;
 	MikanTransform m_relativeTransform;
 	bool m_bDisableAutoNotifyPropertyChange = false;
 };
@@ -68,27 +73,7 @@ class TransformComponent : public MikanComponent
 public:
 	TransformComponent(MikanObjectWeakPtr owner);
 
-	inline TransformComponentPtr getParentComponent() const
-	{
-		return m_parentComponent.lock();
-	}
-
-	inline const TransformComponentList& getChildComponents() const
-	{
-		return m_childComponents;
-	}
-
-	inline IMkSceneRenderablePtr getGlSceneRenderable() const
-	{
-		return m_sceneRenderable;
-	}
-
-	inline IMkSceneRenderableConstPtr getGlSceneRenderableConst() const
-	{
-		return m_sceneRenderable;
-	}
-
-	virtual void init() override;
+	virtual void postInit() override;
 	virtual void dispose() override;
 
 	inline static const std::string k_componentClassName = "TransformComponent";
@@ -102,6 +87,14 @@ public:
 	inline TransformComponentDefinitionPtr getTransformComponentDefinition() { 
 		return std::static_pointer_cast<TransformComponentDefinition>(m_definition); 
 	}
+
+	inline MikanTransformID getTransformId() const { return getComponentId(); }
+	inline MikanTransformID getParentTransformId() const
+	{ return getTransformComponentDefinitionConst()->getParentTransformId(); }
+	inline TransformComponentPtr getParentTransformComponent() const
+	{ return m_parentComponent.lock(); }
+	inline const TransformComponentList& getChildTransformComponents() const
+	{ return m_childComponents; }
 	
 	bool attachToComponent(TransformComponentPtr newParentComponent);
 	enum class eDetachReason : int
@@ -130,6 +123,11 @@ public:
 	void visitAllTransformComponents(TransformComponentVisitor visitor);
 	void visitAllTransformComponentsConst(TransformComponentConstVisitor visitor) const;
 
+	inline IMkSceneRenderablePtr getGlSceneRenderable() const
+	{ return m_sceneRenderable; }
+	inline IMkSceneRenderableConstPtr getGlSceneRenderableConst() const
+	{ return m_sceneRenderable; }
+
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
 
@@ -151,6 +149,8 @@ protected:
 		propogateWorldTransform,
 	};
 
+	virtual void onDetachedFromParent(TransformComponentPtr oldParent, eDetachReason reason);
+	virtual void onAttachedToNewParent(TransformComponentPtr newParent);
 	void propogateWorldTransformChange(eTransformChangeType reason);
 
 	GlmTransform m_relativeTransform;

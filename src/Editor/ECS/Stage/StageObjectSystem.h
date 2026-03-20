@@ -48,4 +48,7 @@ public:
 	inline StageComponentPtr getStageByName(const std::string& stageName) const {
 		return Super::getTypedComponentByName(stageName);
 	}
+	inline MikanStageID getFirstStageId() const {
+		return Super::getFirstComponentId();
+	}
 };

@@ -113,6 +113,11 @@ public:
 		return m_componentPool.getByName(name);
 	}
 
+	TID getFirstComponentId() const
+	{
+		return m_componentPool.getFirstComponentId();
+	}
+
 	using PredFunction = std::function<bool(ComponentConstPtr)>;
 	ComponentPtr getTypedComponentByPredicate(PredFunction predicate) const
 	{

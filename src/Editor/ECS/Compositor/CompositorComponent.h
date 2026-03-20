@@ -43,9 +43,9 @@ public:
 	inline MikanCameraID getCameraId() const { return m_cameraId; }
 	void setCameraId(MikanCameraID cameraId);
 
-	static const std::string k_ownerStagePropertyId;
-	inline MikanStageID getOwnerStageId() const { return m_ownerStageId; }
-	void setOwnerStageId(MikanStageID stageId);
+	static const std::string k_ownerScenePropertyId;
+	inline MikanSceneID getOwnerSceneId() const { return m_ownerSceneId; }
+	void setOwnerSceneId(MikanSceneID sceneId);
 
 	static const std::string k_compositorGraphPathPropertyId;
 	bool hasCompositorGraphPath() const;
@@ -61,7 +61,7 @@ public:
 	void setSpoutOutputName(const std::string& spoutOutputName);
 
 private:
-	MikanStageID m_ownerStageId = INVALID_MIKAN_ID;
+	MikanSceneID m_ownerSceneId = INVALID_MIKAN_ID;
 	MikanCameraID m_cameraId = INVALID_MIKAN_ID;
 	AssetReferenceConfigPtr m_nodeGraphAssetRef;
 	bool m_bIsSpoutOutputStreaming = false;

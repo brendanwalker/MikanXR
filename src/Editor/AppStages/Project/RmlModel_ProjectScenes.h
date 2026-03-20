@@ -23,10 +23,8 @@ public:
 	virtual void dispose() override;
 
 private:
-	StageComponentPtr getSelectedStageComponent();
 	SceneComponentPtr getSelectedSceneComponent();
 
-	void selectStageEntry(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void selectSceneEntry(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void addNewScene(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void removeScene(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
@@ -49,10 +47,8 @@ private:
 	void updateSelection();
 	void addTransformComponent(TransformComponentPtr transformComponentPtr, int depth);
 
-	void setSelectedStageId(int stageId);
 	void setSelectedSceneId(int sceneId);
 
-	void stageIdListChanged(bool bOwnerChanged);
 	void sceneIdListChanged(bool bOwnerChanged);
 	void compositorIdListChanged(bool bOwnerChanged);
 
@@ -66,12 +62,11 @@ private:
 	BoxStencilSystemWeakPtr m_boxStencilSystem;
 	ModelStencilSystemWeakPtr m_modelStencilSystem;
 
-	RmlDataBinding_ComponentIdListPtr m_stageIdList;
 	RmlDataBinding_ComponentIdListPtr m_sceneIdList;
 
-	int m_selectedStageId = -1; // MikanStageID
 	int m_selectedSceneId = -1; // MikanSceneID
-	int m_selectedSceneObjectIndex = -1;
+	int m_selectedTransformId = -1; // MikanTransformID
+	int m_selectedSceneObjectListIndex = -1;
 	Rml::Vector<RmlModel_SceneObject> m_sceneOutliner;
 
 	static bool s_bHasRegisteredTypes;

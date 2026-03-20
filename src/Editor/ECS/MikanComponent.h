@@ -106,6 +106,7 @@ public:
 	}
 
 	virtual void init();
+	virtual void postInit();
 	virtual void dispose();
 	
 	// set m_bWantsUpdate to true in constructor to make this function be called

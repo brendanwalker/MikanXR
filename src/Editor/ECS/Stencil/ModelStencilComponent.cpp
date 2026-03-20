@@ -51,7 +51,7 @@ ModelStencilDefinition::ModelStencilDefinition()
 }
 
 ModelStencilDefinition::ModelStencilDefinition(MikanStencilID stencilId)
-	: StencilComponentDefinition(stencilId, INVALID_MIKAN_ID, "", MikanTransform())
+	: StencilComponentDefinition(stencilId, "", MikanTransform())
 	, m_modelAssetRefConfig(ModelAssetReferenceFactory().allocateAssetReferenceConfig())
 {
 }

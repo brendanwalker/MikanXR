@@ -1,4 +1,5 @@
 #include "TransformComponent.h"
+#include "Logger.h"
 #include "MikanObject.h"
 #include "MathGLM.h"
 #include "MathTypeConversion.h"
@@ -13,6 +14,7 @@
 #include <queue>
 
 // -- ModelStencilConfig -----
+const std::string TransformComponentDefinition::k_parentTransformIdPropertyId = "parent_transform_id";
 const std::string TransformComponentDefinition::k_relativeScalePropertyId = "relative_scale";
 const std::string TransformComponentDefinition::k_relativeRotationPropertyId = "relative_rotation";
 const std::string TransformComponentDefinition::k_relativePositionPropertyId = "relative_position";
@@ -149,6 +151,15 @@ void TransformComponentDefinition::setRelativeTransform(const GlmTransform& tran
 	}
 }
 
+void TransformComponentDefinition::setParentTransformId(MikanTransformID parentId)
+{
+	if (m_parentTransformId != parentId)
+	{
+		m_parentTransformId = parentId;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_parentTransformIdPropertyId));
+	}
+}
+
 void TransformComponentDefinition::setRelativeScale(const MikanVector3f& scale)
 {
 	m_relativeTransform.scale = scale;
@@ -193,9 +204,32 @@ rfk::Struct const* TransformComponent::getClientAPIValuesStructType() const
 	return &MikanTransformComponentValues::staticGetArchetype();
 }
 
-void TransformComponent::init()
+void TransformComponent::postInit()
 {
-	MikanComponent::init();
+	MikanComponent::postInit();
+
+	// If we have a parent transform ID, try to attach to it
+	TransformComponentDefinitionPtr definitionPtr = getTransformComponentDefinition();
+	if (definitionPtr)
+	{
+		MikanTransformID parentId = definitionPtr->getParentTransformId();
+		if (parentId != INVALID_MIKAN_ID)
+		{
+			TransformComponentPtr parentComponent = 
+				getOwnerProjectManager()->getTypedComponentById<TransformComponent>(parentId);
+
+			if (parentComponent)
+			{
+				attachToComponent(parentComponent);
+			}
+			else
+			{
+				MIKAN_LOG_ERROR("TransformComponent::postInit") <<
+					"TransformComponent with ID " << getComponentId() <<
+					" has invalid parent transform ID " << parentId;
+			}
+		}
+	}
 }
 
 void TransformComponent::dispose()
@@ -254,6 +288,9 @@ bool TransformComponent::attachToComponent(TransformComponentPtr newParentCompon
 	// Refresh world transform
 	setRelativeTransform(m_relativeTransform);
 
+	// Let any derived classes know that we've been attached to a new parent
+	onAttachedToNewParent(newParentComponent);
+
 	return true;
 }
 
@@ -289,6 +326,9 @@ void TransformComponent::detachFromParent(eDetachReason reason)
 	{
 		propogateWorldTransformChange(eTransformChangeType::propogateWorldTransform);
 	}
+
+	// Let any derived classes know that we've been detached from our parent, and why
+	onDetachedFromParent(parent, reason);
 }
 
 void TransformComponent::setRelativeTransform(const GlmTransform& newRelativeXform)
@@ -378,6 +418,19 @@ const glm::vec3 TransformComponent::getWorldLocation() const
 	return glm_mat4_get_position(m_worldTransform);
 }
 
+void TransformComponent::onDetachedFromParent(TransformComponentPtr oldParent, eDetachReason reason)
+{
+	getTransformComponentDefinition()->setParentTransformId(INVALID_MIKAN_ID);
+}
+
+void TransformComponent::onAttachedToNewParent(TransformComponentPtr newParent)
+{
+	if (newParent)
+	{
+		getTransformComponentDefinition()->setParentTransformId(newParent->getTransformId());
+	}
+}
+
 void TransformComponent::propogateWorldTransformChange(eTransformChangeType reason)
 {
 	// Recompute our world transform, if requested
@@ -429,7 +482,7 @@ void visitAllTransformComponentsHelper(
 
 		visitor(currentTransformComponent);
 
-		for (TransformComponentWeakPtr childTransformWeakPtr : currentTransformComponent->getChildComponents())
+		for (TransformComponentWeakPtr childTransformWeakPtr : currentTransformComponent->getChildTransformComponents())
 		{
 			TransformComponentPtr childTransformPtr = childTransformWeakPtr.lock();
 			if (childTransformPtr)
@@ -457,6 +510,10 @@ void TransformComponent::getPropertyDescriptors(std::vector<PropertyDescriptorCo
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
+			TransformComponentDefinition::k_parentTransformIdPropertyId, MikanVariantType::INT)
+			->setDefaultValue(INVALID_MIKAN_ID));
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
 			TransformComponentDefinition::k_relativeScalePropertyId, MikanVariantType::VECTOR3F)
 			->setDefaultValue(MikanVector3f(1.f)));
 	outDescriptors.push_back(
@@ -473,7 +530,13 @@ bool TransformComponent::getPropertyValue(
 	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	if (propertyName == TransformComponentDefinition::k_relativeScalePropertyId)
+	if (propertyName == TransformComponentDefinition::k_parentTransformIdPropertyId)
+	{
+		MikanTransformID parentId = getTransformComponentDefinitionConst()->getParentTransformId();
+		outValue = parentId;
+		return true;
+	}
+	else if (propertyName == TransformComponentDefinition::k_relativeScalePropertyId)
 	{
 		const glm::vec3& scale = getRelativeScale();
 		outValue = glm_vec3_to_MikanVector3f(scale);

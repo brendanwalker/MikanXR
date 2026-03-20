@@ -27,6 +27,14 @@ void MikanObject::init()
 		objectSystem->OnObjectInitialized(objectSystem, shared_from_this());
 }
 
+void MikanObject::postInit()
+{
+	for (MikanComponentPtr component : m_components)
+	{
+		component->postInit();
+	}
+}
+
 void MikanObject::dispose()
 {
 	for (MikanComponentPtr component : m_components)

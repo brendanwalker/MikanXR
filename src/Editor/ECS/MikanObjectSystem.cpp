@@ -29,6 +29,14 @@ bool MikanObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 	return true;
 }
 
+void MikanObjectSystem::postInit()
+{
+	for (MikanObjectPtr objectPtr : m_objects)
+	{
+		objectPtr->postInit();
+	}
+}
+
 void MikanObjectSystem::dispose()
 {
 	deleteAllObjects();

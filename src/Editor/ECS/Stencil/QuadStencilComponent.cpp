@@ -35,7 +35,7 @@ QuadStencilDefinition::QuadStencilDefinition()
 }
 
 QuadStencilDefinition::QuadStencilDefinition(MikanStencilID stencilId)
-	: StencilComponentDefinition(stencilId, INVALID_MIKAN_ID, "", MikanTransform())
+	: StencilComponentDefinition(stencilId, "", MikanTransform())
 	, m_quadWidth(0.25f)
 	, m_quadHeight(0.25f)
 	, m_bIsDoubleSided(true)
