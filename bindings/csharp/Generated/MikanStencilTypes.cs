@@ -62,7 +62,6 @@ namespace MikanXR
 	{
 		public static new readonly long classId= -4451290801219034056;
 
-		public int parent_anchor_id;
 		public bool is_disabled;
 		public MikanStencilCullMode cull_mode;
 	};

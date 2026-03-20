@@ -8,7 +8,7 @@ namespace MikanXR
 	{
 		public static new readonly long classId= 8153524366293986969;
 
-		public int owner_stage_id;
+		public int owner_scene_id;
 		public int camera_id;
 		public string compositor_graph_path;
 		public bool spout_enable_output;

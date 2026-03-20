@@ -22,12 +22,10 @@ export const CLASS_ID_MIKAN_STENCIL_MODEL_RENDER_GEOMETRY = 6822885306325183796n
 export const CLASS_ID_MIKAN_TRIAGULATED_MESH = -1925804809077911022n;
 
 export class MikanStencilComponentValues extends MikanTransformComponentValues {
-  parent_anchor_id: number = 0;
   is_disabled: boolean = false;
   cull_mode: MikanStencilCullMode = MikanStencilCullMode.NONE;
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
-    { name: 'parent_anchor_id', type: 'int32' },
     { name: 'is_disabled', type: 'boolean' },
     { name: 'cull_mode', type: 'enum:MikanStencilCullMode' }
   ];
