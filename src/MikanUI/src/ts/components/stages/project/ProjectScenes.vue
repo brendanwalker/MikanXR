@@ -1,35 +1,18 @@
 <template>
   <div class="project-panel">
     <h2>Scenes Panel</h2>
-    <p>Select a stage and scene to manage actors.</p>
+    <p>Select a scene to manage its objects.</p>
 
     <div class="scenes-content">
-      <!-- Stage Selection (no add/delete) -->
+      <!-- Scene Selection (with add/delete) -->
       <div class="selection-section">
         <div class="selection-row">
-          <label class="selection-label">Stage:</label>
+          <label class="selection-label">Scene:</label>
           <ComponentRefSelect
-            v-model="selectedStageId"
-            component-class="StageComponent"
+            v-model="selectedSceneId"
+            component-class="SceneComponent"
             class="selection-dropdown"
           />
-        </div>
-      </div>
-
-      <!-- Scene Selection (with add/delete) -->
-      <div v-if="selectedStageId !== -1" class="selection-section">
-        <div class="selection-row">
-          <label class="selection-label">Scene:</label>
-          <select v-model="selectedSceneId" class="selection-dropdown scene-select">
-            <option :value="-1">&lt;None&gt;</option>
-            <option
-              v-for="scene in filteredScenes"
-              :key="scene.component_id"
-              :value="scene.component_id"
-            >
-              {{ scene.component_name }}
-            </option>
-          </select>
           <button @click="handleAddScene" class="icon-only-btn add-btn" title="Add Scene">
             <img src="/images/add_component_normal_icon.png" alt="Add Scene" class="btn-icon-only" />
           </button>
@@ -58,13 +41,37 @@
             />
           </div>
           <div class="property-row">
+            <label class="property-label">Stage:</label>
+            <PropertyField
+              field-name="parent_stage_id"
+              :field-value="selectedSceneComponent.parent_stage_id"
+              field-type="component_ref"
+              component-class="StageComponent"
+              owner-system="SceneObjectSystem"
+              :component-id="selectedSceneId"
+            />
+          </div>
+          <div class="property-row">
             <label class="property-label">Compositor:</label>
             <PropertyField
               field-name="display_compositor_id"
               :field-value="selectedSceneComponent.display_compositor_id"
+              field-type="component_ref"
+              component-class="CompositorComponent"
               owner-system="SceneObjectSystem"
               :component-id="selectedSceneId"
             />
+            <button @click="handleAddCompositor" class="icon-only-btn add-btn" title="Add Compositor">
+              <img src="/images/add_component_normal_icon.png" alt="Add Compositor" class="btn-icon-only" />
+            </button>
+            <button
+              v-if="selectedCompositorId !== -1"
+              @click="handleRemoveCompositor"
+              class="icon-only-btn remove-btn"
+              title="Remove Compositor"
+            >
+              <img src="/images/delete_component_normal_icon.png" alt="Remove Compositor" class="btn-icon-only" />
+            </button>
           </div>
           <div class="property-row">
             <label class="property-label">Script:</label>
@@ -82,6 +89,17 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Compositor Properties -->
+      <div v-if="selectedCompositorId !== -1 && selectedCompositorComponent" class="component-section">
+        <h3>Compositor Properties</h3>
+        <ComponentCard
+          :component-id="selectedCompositorId"
+          :component="selectedCompositorComponent"
+          owner-system="CompositorSystem"
+          :editable="true"
+        />
       </div>
 
       <!-- Actors Panel -->
@@ -123,10 +141,15 @@
 
       <!-- Selected Scene Object Properties -->
       <div v-if="selectedSceneObject" class="component-section">
-        <h3>{{ selectedSceneObject.componentType }} Properties</h3>
+        <div class="section-header">
+          <h3>{{ selectedSceneObject.componentType }} Properties</h3>
+          <button @click="handleRemoveSelectedActor" class="icon-only-btn remove-btn" title="Remove">
+            <img src="/images/delete_component_normal_icon.png" alt="Remove" class="btn-icon-only" />
+          </button>
+        </div>
         <ComponentCard
           :component-id="selectedSceneObject.componentId"
-          :component="selectedSceneObject.component"
+          :component="(selectedSceneObject.component as any)"
           :owner-system="selectedSceneObject.ownerSystem"
           :editable="true"
         />
@@ -153,6 +176,8 @@ import {
   MikanVector3f,
   MikanAnchorComponentValues,
   CLASS_ID_MIKAN_ANCHOR_COMPONENT_VALUES,
+  MikanCompositorComponentValues,
+  CLASS_ID_MIKAN_COMPOSITOR_COMPONENT_VALUES,
   MikanStencilCullMode,
   MikanQuadStencilComponentValues,
   CLASS_ID_MIKAN_QUAD_STENCIL_COMPONENT_VALUES,
@@ -166,7 +191,6 @@ const componentStore = useComponentStore()
 const mikanStore = useMikanStore()
 
 // Selection state
-const selectedStageId = ref<number>(-1)
 const selectedSceneId = ref<number>(-1)
 const selectedSceneObjectIndex = ref<number>(-1)
 
@@ -181,10 +205,6 @@ interface SceneOutlinerItem {
 const sceneOutliner = ref<SceneOutlinerItem[]>([])
 
 // Get components by system
-const sceneComponents = computed(() =>
-  componentStore.getComponentsByClass('SceneComponent')
-)
-
 const anchorComponents = computed(() =>
   componentStore.getComponentsByClass('AnchorComponent')
 )
@@ -201,21 +221,27 @@ const modelStencilComponents = computed(() =>
   componentStore.getComponentsByClass('ModelStencilComponent')
 )
 
-// Filter scenes by the selected stage
-const filteredScenes = computed(() => {
-  if (selectedStageId.value === -1) return []
-
-  return sceneComponents.value.filter(scene => {
-    const sceneComp = scene as any
-    return sceneComp.parent_stage_id === selectedStageId.value
-  })
-})
-
 // Get the selected scene component
 const selectedSceneComponent = computed(() => {
   if (selectedSceneId.value === -1) return null
   return componentStore.getSceneComponent(selectedSceneId.value) as any
 })
+
+// Get the compositor currently set on the selected scene
+const selectedCompositorId = computed<number>(() =>
+  selectedSceneComponent.value?.display_compositor_id ?? -1
+)
+
+const selectedCompositorComponent = computed(() => {
+  if (selectedCompositorId.value === -1) return null
+  return componentStore.getComponent(selectedCompositorId.value, 'CompositorSystem') as any
+})
+
+// parent_transform_id for newly created actors:
+// use the selected outliner item if one exists, otherwise default to the scene itself
+const newActorParentTransformId = computed<number>(() =>
+  selectedSceneObject.value?.componentId ?? selectedSceneId.value
+)
 
 // Get the selected scene object
 const selectedSceneObject = computed(() => {
@@ -234,58 +260,82 @@ const selectedSceneObject = computed(() => {
   }
 })
 
-// Build the scene outliner tree
+// Build the scene outliner tree using parent_transform_id hierarchy
 function buildSceneOutliner() {
   sceneOutliner.value = []
 
   if (selectedSceneId.value === -1) return
 
-  // Helper to recursively add components
-  function addComponentWithChildren(componentId: number, ownerSystem: string, componentType: string, depth: number) {
-    const component = componentStore.getComponent(componentId, ownerSystem) as any
-    if (!component) return
-
-    // Add this component to the outliner
-    sceneOutliner.value.push({
-      name: component.component_name || '<Unnamed>',
-      depth,
-      componentId,
-      ownerSystem,
-      componentType
-    })
-
-    // TODO: Add children if this component has them (for hierarchical transforms)
+  interface ActorEntry {
+    componentId: number
+    ownerSystem: string
+    componentType: string
+    parentTransformId: number
   }
 
-  // Add all root anchors
-  anchorComponents.value.forEach(anchor => {
-    const anchorComp = anchor as any
-    // TODO: Check if this anchor has no parent (is root)
-    // For now, add all anchors at root level
-    addComponentWithChildren(anchorComp.component_id, 'AnchorObjectSystem', 'Anchor', 0)
+  const allActors: ActorEntry[] = []
+
+  anchorComponents.value.forEach(c => {
+    const comp = c as any
+    allActors.push({
+      componentId: comp.component_id,
+      ownerSystem: 'AnchorObjectSystem',
+      componentType: 'Anchor',
+      parentTransformId: comp.parent_transform_id ?? MikanConstants.InvalidMikanID
+    })
   })
 
-  // Add all root quad stencils
-  quadStencilComponents.value.forEach(quad => {
-    const quadComp = quad as any
-    // TODO: Check parent_anchor_id to determine if this is a root or child
-    addComponentWithChildren(quadComp.component_id, 'QuadStencilSystem', 'Quad Stencil', 0)
+  quadStencilComponents.value.forEach(c => {
+    const comp = c as any
+    allActors.push({
+      componentId: comp.component_id,
+      ownerSystem: 'QuadStencilSystem',
+      componentType: 'Quad Stencil',
+      parentTransformId: comp.parent_transform_id ?? MikanConstants.InvalidMikanID
+    })
   })
 
-  // Add all root box stencils
-  boxStencilComponents.value.forEach(box => {
-    const boxComp = box as any
-    addComponentWithChildren(boxComp.component_id, 'BoxStencilSystem', 'Box Stencil', 0)
+  boxStencilComponents.value.forEach(c => {
+    const comp = c as any
+    allActors.push({
+      componentId: comp.component_id,
+      ownerSystem: 'BoxStencilSystem',
+      componentType: 'Box Stencil',
+      parentTransformId: comp.parent_transform_id ?? MikanConstants.InvalidMikanID
+    })
   })
 
-  // Add all root model stencils
-  modelStencilComponents.value.forEach(model => {
-    const modelComp = model as any
-    addComponentWithChildren(modelComp.component_id, 'ModelStencilSystem', 'Model Stencil', 0)
+  modelStencilComponents.value.forEach(c => {
+    const comp = c as any
+    allActors.push({
+      componentId: comp.component_id,
+      ownerSystem: 'ModelStencilSystem',
+      componentType: 'Model Stencil',
+      parentTransformId: comp.parent_transform_id ?? MikanConstants.InvalidMikanID
+    })
   })
+
+  // Recursively add children whose parent_transform_id matches parentId
+  function addChildren(parentId: number, depth: number) {
+    const children = allActors.filter(a => a.parentTransformId === parentId)
+    for (const child of children) {
+      const component = componentStore.getComponent(child.componentId, child.ownerSystem) as any
+      sceneOutliner.value.push({
+        name: component?.component_name || '<Unnamed>',
+        depth,
+        componentId: child.componentId,
+        ownerSystem: child.ownerSystem,
+        componentType: child.componentType
+      })
+      addChildren(child.componentId, depth + 1)
+    }
+  }
+
+  // Start recursion from the scene component as the root
+  addChildren(selectedSceneId.value, 0)
 }
 
-// Initialize selected stage from current scene
+// Initialize selected scene from the server's current_scene_id
 async function initializeFromCurrentScene() {
   if (!mikanStore.client) {
     console.log('[ProjectScenes] No client connection, skipping initialization')
@@ -295,13 +345,12 @@ async function initializeFromCurrentScene() {
   try {
     console.log('[ProjectScenes] Fetching current scene ID...')
 
-    // Fetch current_scene_id from SceneObjectSystem
     const request: PropertyGetValueRequest = {
       requestTypeId: CLASS_ID_PROPERTY_GET_VALUE_REQUEST,
       requestTypeName: 'PropertyGetValueRequest',
       requestId: 0,
       ownerSystem: 'SceneObjectSystem',
-      componentId: MikanConstants.InvalidMikanID, // System property
+      componentId: MikanConstants.InvalidMikanID,
       fieldName: 'current_scene_id'
     }
 
@@ -309,22 +358,11 @@ async function initializeFromCurrentScene() {
     const response = await future.await() as PropertyGetValueResponse
 
     if (response.resultCode === MikanAPIResult.Success) {
-      const currentSceneId = response.propertyValue?.fieldValue?.value_ptr?.instance?.value || -1
+      const currentSceneId = (response.propertyValue?.fieldValue?.value_ptr?.instance as any)?.value || -1
       console.log('[ProjectScenes] Current scene ID from server:', currentSceneId)
 
       if (currentSceneId !== -1) {
-        // Get the parent stage from the current scene
-        const currentScene = componentStore.getSceneComponent(currentSceneId) as any
-        console.log('[ProjectScenes] Current scene component:', currentScene)
-
-        if (currentScene?.parent_stage_id) {
-          console.log('[ProjectScenes] Setting stage ID to:', currentScene.parent_stage_id)
-          selectedStageId.value = currentScene.parent_stage_id
-          console.log('[ProjectScenes] Setting scene ID to:', currentSceneId)
-          selectedSceneId.value = currentSceneId
-        } else {
-          console.warn('[ProjectScenes] Current scene has no parent_stage_id')
-        }
+        selectedSceneId.value = currentSceneId
       } else {
         console.log('[ProjectScenes] No current scene set on server')
       }
@@ -342,26 +380,19 @@ watch(selectedSceneId, () => {
   selectedSceneObjectIndex.value = -1
 })
 
-// Watch for component store changes - reinitialize if we don't have a stage selected
+// Watch for component store changes - initialize if no scene is selected yet
 watch(
   () => componentStore.components.size,
   (newSize, oldSize) => {
     console.log('[ProjectScenes] Component store size changed:', oldSize, '->', newSize)
-    // If components were just loaded and we don't have a stage selected, try to initialize
-    if (newSize > 0 && selectedStageId.value === -1) {
+    if (newSize > 0 && selectedSceneId.value === -1) {
       console.log('[ProjectScenes] Components loaded, attempting initialization')
       initializeFromCurrentScene()
     }
   }
 )
 
-// Persist selection state
-watch(selectedStageId, (newValue) => {
-  if (newValue !== -1) {
-    sessionStorage.setItem('projectScenes.selectedStageId', newValue.toString())
-  }
-})
-
+// Persist scene selection
 watch(selectedSceneId, (newValue) => {
   if (newValue !== -1) {
     sessionStorage.setItem('projectScenes.selectedSceneId', newValue.toString())
@@ -370,15 +401,7 @@ watch(selectedSceneId, (newValue) => {
 
 // Restore selection state on mount
 function restoreSelectionState() {
-  const savedStageId = sessionStorage.getItem('projectScenes.selectedStageId')
   const savedSceneId = sessionStorage.getItem('projectScenes.selectedSceneId')
-
-  if (savedStageId) {
-    const stageId = parseInt(savedStageId, 10)
-    if (!isNaN(stageId)) {
-      selectedStageId.value = stageId
-    }
-  }
 
   if (savedSceneId) {
     const sceneId = parseInt(savedSceneId, 10)
@@ -391,6 +414,19 @@ function restoreSelectionState() {
 // Handle scene object selection
 function handleSelectSceneObject(index: number) {
   selectedSceneObjectIndex.value = index
+}
+
+// Remove the currently selected actor by dispatching to the right typed handler
+async function handleRemoveSelectedActor() {
+  const obj = selectedSceneObject.value
+  if (!obj) return
+  switch (obj.componentType) {
+    case 'Anchor':      await handleRemoveAnchor(); break
+    case 'Quad Stencil': await handleRemoveQuadStencil(); break
+    case 'Box Stencil':  await handleRemoveBoxStencil(); break
+    case 'Model Stencil': await handleRemoveModelStencil(); break
+    default: console.warn('[ProjectScenes] Unknown component type:', obj.componentType)
+  }
 }
 
 // Scene CRUD handlers
@@ -406,7 +442,7 @@ async function handleRemoveScene() {
   selectedSceneId.value = -1
 }
 
-// Script handlers (still use remote control - no system object for scripts)
+// Script handlers
 function handleReloadScript() {
   console.warn('[ProjectScenes] handleReloadScript not yet implemented')
 }
@@ -426,6 +462,31 @@ function makeVec3(x: number, y: number, z: number): MikanVector3f {
   return v
 }
 
+// Compositor CRUD handlers
+async function handleAddCompositor() {
+  if (!mikanStore.client) { console.error('[ProjectScenes] No client connection'); return }
+  if (selectedSceneId.value === -1) { console.error('[ProjectScenes] No scene selected'); return }
+
+  const initValues = new MikanCompositorComponentValues()
+  initValues.component_id = 0
+  initValues.component_name = ''
+  initValues.component_script = ''
+  ;(initValues as any).owner_scene_id = selectedSceneId.value
+  initValues.camera_id = MikanConstants.InvalidMikanID
+  initValues.compositor_graph_path = ''
+  initValues.spout_enable_output = false
+  initValues.spout_output_name = ''
+
+  const initParams = new PolymorphicObject(initValues, CLASS_ID_MIKAN_COMPOSITOR_COMPONENT_VALUES, 'MikanCompositorComponentValues')
+  await componentStore.createObject(mikanStore.client as MikanClient, 'CompositorComponent', initParams)
+}
+
+async function handleRemoveCompositor() {
+  if (selectedCompositorId.value === -1) { console.error('[ProjectScenes] No compositor selected'); return }
+  if (!mikanStore.client) { console.error('[ProjectScenes] No client connection'); return }
+  await componentStore.destroyObject(mikanStore.client as MikanClient, 'CompositorComponent', selectedCompositorId.value)
+}
+
 // Actor CRUD handlers
 async function handleAddAnchor() {
   if (!mikanStore.client) { console.error('[ProjectScenes] No client connection'); return }
@@ -438,7 +499,7 @@ async function handleAddAnchor() {
   initValues.relative_scale = makeVec3(1, 1, 1)
   initValues.relative_rotation = makeVec3(0, 0, 0)
   initValues.relative_position = makeVec3(0, 0, 0)
-  initValues.owner_scene_id = selectedSceneId.value
+  ;(initValues as any).parent_transform_id = newActorParentTransformId.value
 
   const initParams = new PolymorphicObject(initValues, CLASS_ID_MIKAN_ANCHOR_COMPONENT_VALUES, 'MikanAnchorComponentValues')
   await componentStore.createObject(mikanStore.client as MikanClient, 'AnchorComponent', initParams)
@@ -461,7 +522,7 @@ async function handleAddQuadStencil() {
   initValues.relative_scale = makeVec3(1, 1, 1)
   initValues.relative_rotation = makeVec3(0, 0, 0)
   initValues.relative_position = makeVec3(0, 0, 0)
-  initValues.parent_anchor_id = MikanConstants.InvalidMikanID
+  ;(initValues as any).parent_transform_id = newActorParentTransformId.value
   initValues.is_disabled = false
   initValues.cull_mode = MikanStencilCullMode.NONE
   initValues.quad_width = 0.5
@@ -489,7 +550,7 @@ async function handleAddBoxStencil() {
   initValues.relative_scale = makeVec3(1, 1, 1)
   initValues.relative_rotation = makeVec3(0, 0, 0)
   initValues.relative_position = makeVec3(0, 0, 0)
-  initValues.parent_anchor_id = MikanConstants.InvalidMikanID
+  ;(initValues as any).parent_transform_id = newActorParentTransformId.value
   initValues.is_disabled = false
   initValues.cull_mode = MikanStencilCullMode.NONE
   initValues.box_x_size = 0.5
@@ -517,7 +578,7 @@ async function handleAddModelStencil() {
   initValues.relative_scale = makeVec3(1, 1, 1)
   initValues.relative_rotation = makeVec3(0, 0, 0)
   initValues.relative_position = makeVec3(0, 0, 0)
-  initValues.parent_anchor_id = MikanConstants.InvalidMikanID
+  ;(initValues as any).parent_transform_id = newActorParentTransformId.value
   initValues.is_disabled = false
   initValues.cull_mode = MikanStencilCullMode.NONE
   initValues.model_path = ''
@@ -535,11 +596,9 @@ async function handleRemoveModelStencil() {
 
 // Initialize on mount
 onMounted(() => {
-  // First try to restore previous selection state
   restoreSelectionState()
 
-  // If no saved state, try to initialize from current scene
-  if (selectedStageId.value === -1) {
+  if (selectedSceneId.value === -1) {
     initializeFromCurrentScene()
   }
 })
@@ -598,33 +657,22 @@ onMounted(() => {
   max-width: 300px;
 }
 
-.scene-select {
-  padding: 4px 8px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-  color: #fff;
-  font-family: monospace;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.scene-select:focus {
-  outline: none;
-  border-color: #5cb85c;
-  background: rgba(0, 0, 0, 0.4);
-}
-
-.scene-select option {
-  background: #2d2d2d;
-  color: #fff;
-}
-
 .component-section {
   background-color: #2d2d2d;
   border: 1px solid #404040;
   border-radius: 4px;
   padding: 12px;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.section-header h3 {
+  margin: 0;
 }
 
 .property-grid {

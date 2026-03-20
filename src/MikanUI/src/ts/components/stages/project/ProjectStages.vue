@@ -1,7 +1,7 @@
 <template>
   <div class="project-panel">
     <h2>Stages Panel</h2>
-    <p>Select a stage, camera, and compositor to manage components.</p>
+    <p>Select a stage and camera to manage components.</p>
 
     <div class="stages-content">
       <!-- Stage Selection -->
@@ -36,7 +36,7 @@
           owner-system="StageObjectSystem"
           :editable="true"
         />
-      </div>      
+      </div>
 
       <!-- Camera Selection (only shown if stage is selected) -->
       <div v-if="selectedStageId !== -1" class="selection-section">
@@ -76,45 +76,6 @@
           :editable="true"
         />
       </div>
-
-      <!-- Compositor Selection (only shown if stage is selected) -->
-      <div v-if="selectedStageId !== -1" class="selection-section">
-        <div class="selection-row">
-          <label class="selection-label">Compositor:</label>
-          <select v-model="selectedCompositorId" class="selection-dropdown scene-select">
-            <option :value="-1">&lt;None&gt;</option>
-            <option
-              v-for="compositor in filteredCompositors"
-              :key="compositor.component_id"
-              :value="compositor.component_id"
-            >
-              {{ compositor.component_name }}
-            </option>
-          </select>
-          <button @click="handleAddCompositor" class="icon-only-btn add-btn" title="Add Compositor">
-            <img src="/images/add_component_normal_icon.png" alt="Add Compositor" class="btn-icon-only" />
-          </button>
-          <button
-            v-if="selectedCompositorId !== -1"
-            @click="handleRemoveCompositor"
-            class="icon-only-btn remove-btn"
-            title="Remove Compositor"
-          >
-            <img src="/images/delete_component_normal_icon.png" alt="Remove Compositor" class="btn-icon-only" />
-          </button>
-        </div>
-      </div>
-
-      <!-- Selected Compositor Component -->
-      <div v-if="selectedStageId !== -1 && selectedCompositorId !== -1 && selectedCompositorComponent" class="component-section">
-        <h3>Compositor Component</h3>
-        <ComponentCard
-          :component-id="selectedCompositorId"
-          :component="selectedCompositorComponent"
-          owner-system="CompositorObjectSystem"
-          :editable="true"
-        />
-      </div>
     </div>
   </div>
 </template>
@@ -133,19 +94,10 @@ const mikanStore = useMikanStore()
 // Selection state
 const selectedStageId = ref<number>(-1)
 const selectedCameraId = ref<number>(-1)
-const selectedCompositorId = ref<number>(-1)
 
 // Get components by system
-const stageComponents = computed(() =>
-  componentStore.getComponentsByClass('StageComponent')
-)
-
 const cameraComponents = computed(() =>
   componentStore.getComponentsByClass('CameraComponent')
-)
-
-const compositorComponents = computed(() =>
-  componentStore.getComponentsByClass('CompositorComponent')
 )
 
 // Filter cameras by the selected stage
@@ -155,16 +107,6 @@ const filteredCameras = computed(() => {
   return cameraComponents.value.filter(camera => {
     const cameraComp = camera as any
     return cameraComp.stage_id === selectedStageId.value
-  })
-})
-
-// Filter compositors by the selected stage
-const filteredCompositors = computed(() => {
-  if (selectedStageId.value === -1) return []
-
-  return compositorComponents.value.filter(compositor => {
-    const compositorComp = compositor as any
-    return compositorComp.owner_stage_id === selectedStageId.value
   })
 })
 
@@ -179,17 +121,13 @@ const selectedCameraComponent = computed(() => {
   return componentStore.getCameraComponent(selectedCameraId.value)
 })
 
-const selectedCompositorComponent = computed(() => {
-  if (selectedCompositorId.value === -1) return null
-  return componentStore.getCompositorComponent(selectedCompositorId.value)
-})
-
 // Initialize selected stage - just select the first stage if available
 function initializeFromCurrentScene() {
   console.log('[ProjectStages] Initializing stage selection...')
 
-  if (stageComponents.value.length > 0) {
-    const firstStage = stageComponents.value[0] as any
+  const stageComponents = componentStore.getComponentsByClass('StageComponent')
+  if (stageComponents.length > 0) {
+    const firstStage = stageComponents[0] as any
     console.log('[ProjectStages] Setting stage ID to first stage:', firstStage.component_id)
     selectedStageId.value = firstStage.component_id
   } else {
@@ -209,7 +147,6 @@ async function handleRemoveStage() {
   await componentStore.destroyObject(mikanStore.client as MikanClient, 'StageComponent', selectedStageId.value)
   selectedStageId.value = -1
   selectedCameraId.value = -1
-  selectedCompositorId.value = -1
 }
 
 // Camera CRUD handlers
@@ -225,42 +162,18 @@ async function handleRemoveCamera() {
   selectedCameraId.value = -1
 }
 
-// Compositor CRUD handlers
-async function handleAddCompositor() {
-  if (!mikanStore.client) { console.error('[ProjectStages] No client connection'); return }
-  await componentStore.createObject(mikanStore.client as MikanClient, 'CompositorComponent')
-}
-
-async function handleRemoveCompositor() {
-  if (selectedCompositorId.value === -1) { console.error('[ProjectStages] No compositor selected'); return }
-  if (!mikanStore.client) { console.error('[ProjectStages] No client connection'); return }
-  await componentStore.destroyObject(mikanStore.client as MikanClient, 'CompositorComponent', selectedCompositorId.value)
-  selectedCompositorId.value = -1
-}
-
-// Watch for stage changes - clear camera and compositor if they don't belong to the new stage
+// Watch for stage changes - clear camera if it doesn't belong to the new stage
 watch(selectedStageId, (newStageId, oldStageId) => {
   console.log('[ProjectStages] Stage changed:', oldStageId, '->', newStageId)
 
   if (newStageId === -1) {
-    // No stage selected, clear camera and compositor
     selectedCameraId.value = -1
-    selectedCompositorId.value = -1
   } else if (oldStageId !== newStageId) {
-    // Stage changed, check if current camera/compositor belong to new stage
     if (selectedCameraId.value !== -1) {
       const camera = componentStore.getCameraComponent(selectedCameraId.value) as any
       if (!camera || camera.stage_id !== newStageId) {
         console.log('[ProjectStages] Clearing camera - does not belong to new stage')
         selectedCameraId.value = -1
-      }
-    }
-
-    if (selectedCompositorId.value !== -1) {
-      const compositor = componentStore.getCompositorComponent(selectedCompositorId.value) as any
-      if (!compositor || compositor.stage_id !== newStageId) {
-        console.log('[ProjectStages] Clearing compositor - does not belong to new stage')
-        selectedCompositorId.value = -1
       }
     }
   }
@@ -271,7 +184,6 @@ watch(
   () => componentStore.components.size,
   (newSize, oldSize) => {
     console.log('[ProjectStages] Component store size changed:', oldSize, '->', newSize)
-    // If components were just loaded and we don't have a stage selected, try to initialize
     if (newSize > 0 && selectedStageId.value === -1) {
       console.log('[ProjectStages] Components loaded, attempting initialization')
       initializeFromCurrentScene()
@@ -292,21 +204,13 @@ watch(selectedCameraId, (newValue) => {
   }
 })
 
-watch(selectedCompositorId, (newValue) => {
-  if (newValue !== -1) {
-    sessionStorage.setItem('projectStages.selectedCompositorId', newValue.toString())
-  }
-})
-
 // Restore selection state on mount
 function restoreSelectionState() {
   const savedStageId = sessionStorage.getItem('projectStages.selectedStageId')
   const savedCameraId = sessionStorage.getItem('projectStages.selectedCameraId')
-  const savedCompositorId = sessionStorage.getItem('projectStages.selectedCompositorId')
 
-  console.log('[ProjectStages] Restoring selection state:', { savedStageId, savedCameraId, savedCompositorId })
+  console.log('[ProjectStages] Restoring selection state:', { savedStageId, savedCameraId })
 
-  // Restore stage first
   if (savedStageId) {
     const stageId = parseInt(savedStageId, 10)
     if (!isNaN(stageId)) {
@@ -314,7 +218,6 @@ function restoreSelectionState() {
     }
   }
 
-  // Only restore camera if we have a stage selected
   if (selectedStageId.value !== -1 && savedCameraId) {
     const cameraId = parseInt(savedCameraId, 10)
     if (!isNaN(cameraId)) {
@@ -322,27 +225,16 @@ function restoreSelectionState() {
     }
   }
 
-  // Only restore compositor if we have a stage selected
-  if (selectedStageId.value !== -1 && savedCompositorId) {
-    const compositorId = parseInt(savedCompositorId, 10)
-    if (!isNaN(compositorId)) {
-      selectedCompositorId.value = compositorId
-    }
-  }
-
   console.log('[ProjectStages] Restored selections:', {
     stage: selectedStageId.value,
-    camera: selectedCameraId.value,
-    compositor: selectedCompositorId.value
+    camera: selectedCameraId.value
   })
 }
 
 // Initialize on mount
 onMounted(() => {
-  // First try to restore previous selection state
   restoreSelectionState()
 
-  // If no saved state, try to initialize from current scene
   if (selectedStageId.value === -1) {
     initializeFromCurrentScene()
   }
@@ -430,59 +322,11 @@ onMounted(() => {
   gap: 16px;
 }
 
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.section-header h3 {
+.component-section h3 {
   color: #ffffff;
-  margin: 0;
+  margin: 0 0 8px 0;
   font-size: 18px;
   font-weight: 600;
-}
-
-.action-btn {
-  padding: 6px 12px;
-  font-size: 18px;
-  background-color: #5cb85c;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  font-weight: 500;
-  flex-shrink: 0;
-  min-width: 40px;
-  line-height: 1;
-}
-
-.action-btn:hover:not(:disabled) {
-  background-color: #4cae4c;
-}
-
-.action-btn:disabled {
-  background-color: #3d3d3d;
-  color: #999;
-  cursor: not-allowed;
-}
-
-.action-btn.add-btn {
-  background-color: #5cb85c;
-}
-
-.action-btn.add-btn:hover {
-  background-color: #4cae4c;
-}
-
-.action-btn.remove-btn {
-  background-color: #d9534f;
-}
-
-.action-btn.remove-btn:hover {
-  background-color: #c9302c;
 }
 
 /* Icon button styles now imported from common-buttons.css */
