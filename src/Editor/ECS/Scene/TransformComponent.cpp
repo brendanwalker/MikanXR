@@ -48,6 +48,7 @@ configuru::Config TransformComponentDefinition::writeToJSON()
 {
 	configuru::Config pt = MikanComponentDefinition::writeToJSON();
 
+	pt[k_parentTransformIdPropertyId] = m_parentTransformId;
 	writeVector3f(pt, k_relativeScalePropertyId.c_str(), m_relativeTransform.scale);
 	writeQuatf(pt, k_relativeRotationPropertyId.c_str(), m_relativeTransform.rotation);
 	writeVector3f(pt, k_relativePositionPropertyId.c_str(), m_relativeTransform.position);
@@ -59,6 +60,7 @@ void TransformComponentDefinition::readFromJSON(const configuru::Config& pt)
 {
 	MikanComponentDefinition::readFromJSON(pt);
 
+	m_parentTransformId = pt.get_or<int>(k_parentTransformIdPropertyId, -1);
 	m_relativeTransform.scale = {1.f, 1.f, 1.f};
 	m_relativeTransform.rotation = {1.f, 0.f, 0.f, 0.f};
 	m_relativeTransform.position = {0.f, 0.f, 0.f};
@@ -76,6 +78,7 @@ bool TransformComponentDefinition::readFromInitParams(const Serialization::Polym
 	const auto* componentValues = initParams.getTypedPointer<MikanTransformComponentValues>();
 	if (componentValues)
 	{
+		m_parentTransformId = componentValues->parent_transform_id;
 		m_relativeTransform.scale = componentValues->relative_scale;
 		m_relativeTransform.position = componentValues->relative_position;
 

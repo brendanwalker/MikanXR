@@ -38,6 +38,7 @@ bool RmlModel_ProjectScenes::s_bHasRegisteredTypes = false;
 
 RmlModel_ProjectScenes::RmlModel_ProjectScenes()
 	: m_sceneIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
+	, m_compositorIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {
 }
 
@@ -67,6 +68,23 @@ bool RmlModel_ProjectScenes::init(ProjectRmlModelContext* context)
 		m_sceneSystem.lock(),
 		SceneObjectSystemDefinition::k_componentIdListPropertyId);
 
+	m_compositorIdList->init(
+		constructor,
+		m_compositorSystem.lock()->getTypedDefinition(),
+		"compositor_ids", // virtual list: only compositors owned by the selected stage
+		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
+			CompositorObjectSystemDefinitionConstPtr compositorConfig =
+				std::static_pointer_cast<CompositorObjectSystemDefinition>(ownerConfig);
+
+			for (const auto& compositorPtr : compositorConfig->getAllDefinitions())
+			{
+				if (compositorPtr && compositorPtr->getOwnerSceneId() == m_selectedSceneId)
+				{
+					outComponentIdList.push_back((int)compositorPtr->getCompositorId());
+				}
+			}
+		});
+
 	// One time data model types registration
 	if (!s_bHasRegisteredTypes)
 	{
@@ -87,11 +105,14 @@ bool RmlModel_ProjectScenes::init(ProjectRmlModelContext* context)
 	constructor.Bind("scene_objects", &m_sceneOutliner);
 	constructor.Bind("selected_scene_object_index", &m_selectedSceneObjectListIndex);
 	constructor.Bind("selected_scene_id", &m_selectedSceneId);
+	constructor.Bind("selected_compositor_id", &m_selectedCompositorId);
 
 	// Bind data model callbacks
 	constructor.BindEventCallback("select_scene_entry", &RmlModel_ProjectScenes::selectSceneEntry, this);
 	constructor.BindEventCallback("add_new_scene", &RmlModel_ProjectScenes::addNewScene, this);
 	constructor.BindEventCallback("remove_scene", &RmlModel_ProjectScenes::removeScene, this);
+	constructor.BindEventCallback("add_new_compositor", &RmlModel_ProjectScenes::addNewCompositor, this);
+	constructor.BindEventCallback("remove_compositor", &RmlModel_ProjectScenes::removeCompositor, this);
 	constructor.BindEventCallback("add_new_anchor",&RmlModel_ProjectScenes::addNewAnchor, this);
 	constructor.BindEventCallback("remove_anchor", &RmlModel_ProjectScenes::removeAnchor, this);
 	constructor.BindEventCallback("add_new_quad",&RmlModel_ProjectScenes::addNewQuad, this);
@@ -101,6 +122,7 @@ bool RmlModel_ProjectScenes::init(ProjectRmlModelContext* context)
 	constructor.BindEventCallback("add_new_model",&RmlModel_ProjectScenes::addNewModel, this);
 	constructor.BindEventCallback("remove_model", &RmlModel_ProjectScenes::removeModel, this);
 	constructor.BindEventCallback("select_object_entry", &RmlModel_ProjectScenes::selectObjectEntry, this);
+	constructor.BindEventCallback("select_compositor_entry", &RmlModel_ProjectScenes::selectCompositorEntry, this);
 
 	// Listen for anchor changes
 	AnchorObjectSystemPtr anchorSystem = m_anchorSystem.lock();
@@ -153,6 +175,7 @@ bool RmlModel_ProjectScenes::init(ProjectRmlModelContext* context)
 
 	// Listen for stage/scene/compositor list changes
 	m_sceneIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectScenes::sceneIdListChanged);
+	m_compositorIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectScenes::compositorIdListChanged);
 
 	return true;
 }
@@ -160,6 +183,7 @@ bool RmlModel_ProjectScenes::init(ProjectRmlModelContext* context)
 void RmlModel_ProjectScenes::dispose()
 {
 	m_sceneIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectScenes::sceneIdListChanged);
+	m_compositorIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectScenes::compositorIdListChanged);
 
 	QuadStencilSystemPtr quadStencilSystem = m_quadStencilSystem.lock();
 	quadStencilSystem->getTypedDefinition()->OnPropertyChanged -=
@@ -323,7 +347,26 @@ void RmlModel_ProjectScenes::setSelectedSceneId(int sceneId)
 			m_projectRmlModelContext->getSceneModel()->setComponent(nullptr);
 		}
 
+		m_compositorIdList->rebuildList();
 		rebuildSceneComponentList();
+	}
+}
+
+void RmlModel_ProjectScenes::setSelectedCompositorId(MikanCompositorID compositorId)
+{
+	if (compositorId != m_selectedCompositorId)
+	{
+		m_selectedCompositorId = (int)compositorId;
+		m_modelHandle.DirtyVariable("selected_compositor_id");
+
+		if (CompositorComponentPtr compositorComponent = getSelectedCompositor())
+		{
+			m_projectRmlModelContext->getCompositorModel()->setComponent(compositorComponent);
+		}
+		else
+		{
+			m_projectRmlModelContext->getCompositorModel()->setComponent(nullptr);
+		}
 	}
 }
 
@@ -339,9 +382,26 @@ void RmlModel_ProjectScenes::sceneIdListChanged(bool bOwnerChanged)
 	}
 }
 
+void RmlModel_ProjectScenes::compositorIdListChanged(bool bOwnerChanged)
+{
+	if (MikanCompositorID selectedCompositorId = m_selectedCompositorId;
+		m_compositorIdList->fixupSelectedValue(m_selectedCompositorId, INVALID_MIKAN_ID, selectedCompositorId))
+	{
+		// Defer the selection update to post view update after element list refreshes
+		addModelUpdateCallback([this, selectedCompositorId]() {
+			setSelectedCompositorId(selectedCompositorId);
+			});
+	}
+}
+
 SceneComponentPtr RmlModel_ProjectScenes::getSelectedSceneComponent()
 {
 	return m_sceneSystem.lock()->getSceneById(m_selectedSceneId);
+}
+
+CompositorComponentPtr RmlModel_ProjectScenes::getSelectedCompositor()
+{
+	return m_compositorSystem.lock()->getCompositorById((MikanCompositorID)m_selectedCompositorId);
 }
 
 void RmlModel_ProjectScenes::selectSceneEntry(
@@ -379,6 +439,37 @@ void RmlModel_ProjectScenes::removeScene(
 
 	const int sceneId = parameters[0].Get<int>();
 	m_sceneSystem.lock()->removeObjectByPrimaryComponentId(sceneId);
+}
+
+void RmlModel_ProjectScenes::addNewCompositor(
+	Rml::DataModelHandle handle,
+	Rml::Event& /*ev*/,
+	const Rml::VariantList& parameters)
+{
+	m_compositorSystem.lock()->addNewObjectByTypedDefinition(
+		[this](CompositorDefinitionPtr definition) {
+			// Initialize compositor-specific properties
+			definition->setOwnerSceneId(m_selectedSceneId);
+			return true;
+		});
+}
+
+void RmlModel_ProjectScenes::removeCompositor(
+	Rml::DataModelHandle handle,
+	Rml::Event& /*ev*/,
+	const Rml::VariantList& parameters)
+{
+	m_compositorSystem.lock()->removeObjectByPrimaryComponentId(m_selectedCompositorId);
+}
+
+void RmlModel_ProjectScenes::selectCompositorEntry(
+	Rml::DataModelHandle handle,
+	Rml::Event& ev,
+	const Rml::VariantList& parameters)
+{
+	const int newCompositorId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
+
+	setSelectedCompositorId(newCompositorId);
 }
 
 void RmlModel_ProjectScenes::addNewAnchor(

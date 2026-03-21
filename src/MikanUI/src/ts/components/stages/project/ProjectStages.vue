@@ -86,7 +86,16 @@ import { useComponentStore } from '../../../stores/componentStore.js'
 import { useMikanStore } from '../../../stores/mikanStore.js'
 import ComponentRefSelect from '../../shared/ComponentRefSelect.vue'
 import ComponentCard from '../../shared/ComponentCard.vue'
-import { MikanClient } from '@mikanxr/client'
+import {
+  MikanClient,
+  MikanConstants,
+  PolymorphicObject,
+  MikanVector3f,
+  MikanQuatd,
+  MikanVector3d,
+  MikanCameraComponentValues,
+  CLASS_ID_MIKAN_CAMERA_COMPONENT_VALUES
+} from '@mikanxr/client'
 
 const componentStore = useComponentStore()
 const mikanStore = useMikanStore()
@@ -152,7 +161,29 @@ async function handleRemoveStage() {
 // Camera CRUD handlers
 async function handleAddCamera() {
   if (!mikanStore.client) { console.error('[ProjectStages] No client connection'); return }
-  await componentStore.createObject(mikanStore.client as MikanClient, 'CameraComponent')
+
+  const scale = new MikanVector3f(); scale.x = 1; scale.y = 1; scale.z = 1
+  const zero3f = new MikanVector3f(); zero3f.x = 0; zero3f.y = 0; zero3f.z = 0
+  const identityQuat = new MikanQuatd(); identityQuat.w = 1; identityQuat.x = 0; identityQuat.y = 0; identityQuat.z = 0
+  const zero3d = new MikanVector3d(); zero3d.x = 0; zero3d.y = 0; zero3d.z = 0
+
+  const initValues = new MikanCameraComponentValues()
+  initValues.component_id = 0
+  initValues.component_name = ''
+  initValues.component_script = ''
+  initValues.relative_scale = scale
+  initValues.relative_rotation = zero3f
+  initValues.relative_position = zero3f
+  initValues.parent_transform_id = MikanConstants.InvalidMikanID
+  initValues.stage_id = selectedStageId.value
+  initValues.tracking_mount_id = MikanConstants.InvalidMikanID
+  initValues.video_source_id = MikanConstants.InvalidMikanID
+  initValues.tracking_frame_delay = 0
+  initValues.aperture_orientation_offset = identityQuat
+  initValues.aperture_position_offset = zero3d
+
+  const initParams = new PolymorphicObject(initValues, CLASS_ID_MIKAN_CAMERA_COMPONENT_VALUES, 'MikanCameraComponentValues')
+  await componentStore.createObject(mikanStore.client as MikanClient, 'CameraComponent', initParams)
 }
 
 async function handleRemoveCamera() {

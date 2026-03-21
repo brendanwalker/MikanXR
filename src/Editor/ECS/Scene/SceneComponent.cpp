@@ -65,6 +65,12 @@ bool SceneComponentDefinition::readFromInitParams(const Serialization::Polymorph
 	{
 		m_parentStageId = componentValues->parent_stage_id;
 		m_displayCompositorId = componentValues->display_compositor_id;
+
+		// Make sure our parent is always the stage component (if a stage was given)
+		if (m_parentStageId != INVALID_MIKAN_ID)
+		{
+			m_parentTransformId = m_parentStageId;
+		}
 	}
 
 	return true;
@@ -190,28 +196,6 @@ void SceneComponent::dispose()
 ComponentScriptContextPtr SceneComponent::allocateScriptContext()
 {
 	return std::make_shared<SceneComponentScriptContext>(getSelfPtr<SceneComponent>());
-}
-
-void SceneComponent::onDetachedFromParent(TransformComponentPtr oldParent, eDetachReason reason)
-{
-	TransformComponent::onDetachedFromParent(oldParent, reason);
-
-	auto stageComponent = std::dynamic_pointer_cast<StageComponent>(oldParent);
-	if (stageComponent && stageComponent->getComponentId() == getParentStageId())
-	{
-		getSceneComponentDefinition()->setParentStageId(INVALID_MIKAN_ID);
-	}
-}
-
-void SceneComponent::onAttachedToNewParent(TransformComponentPtr newParent)
-{
-	TransformComponent::onAttachedToNewParent(newParent);
-
-	auto stageComponent = std::dynamic_pointer_cast<StageComponent>(newParent);
-	if (stageComponent && stageComponent->getComponentId() != getParentStageId())
-	{
-		getSceneComponentDefinition()->setParentStageId(stageComponent->getComponentId());
-	}
 }
 
 SelectionComponentPtr SceneComponent::findClosestSelectionTarget(

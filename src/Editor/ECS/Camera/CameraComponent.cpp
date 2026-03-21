@@ -98,6 +98,12 @@ bool CameraDefinition::readFromInitParams(const Serialization::PolymorphicObject
 		m_trackingFrameDelay = componentValues->tracking_frame_delay;
 		m_apertureOrientationOffset = componentValues->aperture_orientation_offset;
 		m_aperturePositionOffset = componentValues->aperture_position_offset;
+
+		// Make sure our parent is always the stage component (if a stage was given)
+		if (m_stageId != INVALID_MIKAN_ID)
+		{
+			m_parentTransformId = m_stageId;
+		}
 	}
 
 	return true;

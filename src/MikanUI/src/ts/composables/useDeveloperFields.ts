@@ -7,11 +7,12 @@ const DEVELOPER_ONLY_FIELDS: Record<string, string[]> = {
   AnchorComponent: [
     'component_class',
     'component_script',
-    'stage_id'
+    'parent_transform_id'
   ],
   BoxStencilComponent: [
     'component_class',
     'component_script',
+    'parent_transform_id'
   ],
   CameraComponent: [
     'component_class',
@@ -19,7 +20,8 @@ const DEVELOPER_ONLY_FIELDS: Record<string, string[]> = {
     'aperture_orientation_offset',
     'aperture_position_offset',
     'component_script',
-    'stage_id'
+    'stage_id',
+    'parent_transform_id'
   ],
   CompositorComponent: [
     'component_class',
@@ -41,6 +43,7 @@ const DEVELOPER_ONLY_FIELDS: Record<string, string[]> = {
   QuadStencilComponent: [
     'component_class',
     'component_script',
+    'parent_transform_id'
   ],
   SceneComponent: [
     'component_class',
@@ -48,14 +51,15 @@ const DEVELOPER_ONLY_FIELDS: Record<string, string[]> = {
     'relative_rotation',
     'relative_position',
     'compositor_list',    
-    'parent_stage_id'
+    'parent_transform_id',
   ],
   StageComponent: [
     'component_class',
     'component_script',
     'relative_scale',
     'relative_rotation',
-    'relative_position'
+    'relative_position',
+    'parent_transform_id'
   ],
   TrackingMountComponent: [
     'component_class',

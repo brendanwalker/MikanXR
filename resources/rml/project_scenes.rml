@@ -54,6 +54,59 @@
 				</div>				
 			</div>
 
+			<!-- Compositors Section-->
+			<div data-if="selected_scene_id != -1" data-model="Scenes">
+				<h3>Compositors</h3>
+				<select id="select" name="select_compositor_id" data-value="selected_compositor_id" data-event-change="select_compositor_entry()">
+					<option value="-1">-- None --</option>
+					<option data-for="compositor_id : compositor_ids" data-value="compositor_id">{{compositor_id | to_compositor_name}}</option>
+				</select>			
+				<div class="createcomponent" data-event-click="add_new_compositor"></div>
+				<div class="deletecomponent" data-if="selected_compositor_id != -1" data-event-click="remove_compositor"></div>
+			</div>
+			<div data-if="component_id != -1" data-model="CompositorComponent">
+				<table>
+					<thead>
+						<tr><td style="margin-left: 10dp; margin-right: 0dp;"></td></tr>
+					</thead>
+					<tbody>
+						<tr class="property_tr">
+							<td>
+								<label>Name</label>
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="component_name"/>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label>Camera</label>
+								<select id="select" name="select_camera_id" data-value="camera_id" data-event-change="select_camera_entry()">
+									<option data-for="element_id : CameraComponentIdList" data-value="element_id">{{element_id | to_camera_name}}</option>
+								</select>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label><input type="checkbox" name="spout_output_flag" data-checked="spout_enable_output" />Enable Spout Output</label>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<label>Output Name</label>
+								<input type="text" style="width: 150dp; margin-left: 0;	vertical-align: -2dp;" data-value="spout_output_name"/>
+							</td>
+						</tr>
+						<tr class="property_tr">
+							<td>
+								<filename>{{compositor_graph_path | to_short_path(30)}}</filename>
+								<div class="editcomponent" data-event-click="edit_compositor_graph()"></div>
+								<div class="createcomponent" data-event-click="add_new_compositor_graph()"></div>
+								<div class="deletecomponent" data-event-click="remove_compositor_graph()"></div>						
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>	
+
 			<!-- Scene Outliner -->
 			<panel id="scene_outliner" data-if="selected_scene_id != -1" data-model="Scenes">            
 				<h3>Actors</h3>

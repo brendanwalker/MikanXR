@@ -10,7 +10,6 @@
 #include "Shared/RmlModel_EntityAccessor.h"
 #include "Shared/RmlModel_CameraComponent.h"
 #include "Shared/RmlModel_StageComponent.h"
-#include "Shared/RmlModel_CompositorComponent.h"
 #include "Shared/RmlDataBinding_List.h"
 #include "SceneComponent.h"
 #include "SceneObjectSystem.h"
@@ -25,7 +24,6 @@
 RmlModel_ProjectStages::RmlModel_ProjectStages()
 	: m_stageIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 	, m_cameraIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
-	, m_compositorIdList(std::make_shared<RmlDataBinding_ComponentIdList>())
 {
 }
 
@@ -35,7 +33,6 @@ bool RmlModel_ProjectStages::init(ProjectRmlModelContext* context)
 	Rml::Context* rmlContext = ownerAppStage->getRmlContext();
 
 	m_projectRmlModelContext = context;
-	m_compositorSystem = ownerAppStage->getObjectSystemOfType<CompositorObjectSystem>();
 	m_stageSystem = ownerAppStage->getObjectSystemOfType<StageObjectSystem>();
 	m_cameraSystem = ownerAppStage->getObjectSystemOfType<CameraObjectSystem>();
 
@@ -67,43 +64,21 @@ bool RmlModel_ProjectStages::init(ProjectRmlModelContext* context)
 			}
 		});
 
-	m_compositorIdList->init(
-		constructor,
-		m_compositorSystem.lock()->getTypedDefinition(),
-		"compositor_ids", // virtual list: only compositors owned by the selected stage
-		[this](CommonConfigPtr ownerConfig, Rml::Vector<int>& outComponentIdList) {
-			CompositorObjectSystemDefinitionConstPtr compositorConfig =
-				std::static_pointer_cast<CompositorObjectSystemDefinition>(ownerConfig);
-				
-			for (const auto& compositorPtr : compositorConfig->getAllDefinitions())
-			{
-				if (compositorPtr && compositorPtr->getOwnerSceneId() == m_selectedStageId)
-				{
-					outComponentIdList.push_back((int)compositorPtr->getCompositorId());
-				}
-			}
-		});
-
 	// Register Data Model Fields
 	constructor.Bind("selected_stage_id", &m_selectedStageId);
 	constructor.Bind("selected_camera_id", &m_selectedCameraId);
-	constructor.Bind("selected_compositor_id", &m_selectedCompositorId);
 
 	// Bind data model callbacks
 	constructor.BindEventCallback("add_new_stage", &RmlModel_ProjectStages::addNewStage, this);
 	constructor.BindEventCallback("remove_stage", &RmlModel_ProjectStages::removeStage, this);
 	constructor.BindEventCallback("add_new_camera", &RmlModel_ProjectStages::addNewCamera, this);
 	constructor.BindEventCallback("remove_camera", &RmlModel_ProjectStages::removeCamera, this);
-	constructor.BindEventCallback("add_new_compositor", &RmlModel_ProjectStages::addNewCompositor, this);
-	constructor.BindEventCallback("remove_compositor", &RmlModel_ProjectStages::removeCompositor, this);
 	constructor.BindEventCallback("select_stage_entry", &RmlModel_ProjectStages::selectStageEntry, this);
 	constructor.BindEventCallback("select_camera_entry", &RmlModel_ProjectStages::selectCameraEntry, this);
-	constructor.BindEventCallback("select_compositor_entry", &RmlModel_ProjectStages::selectCompositorEntry, this);
 
 	// Listen for config changes
 	m_stageIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectStages::stageIdListChanged);
 	m_cameraIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectStages::cameraIdListChanged);
-	m_compositorIdList->OnChanged += MakeDelegate(this, &RmlModel_ProjectStages::compositorIdListChanged);
 
 	// Set initial state based on the current scene
 	auto sceneSystem = ownerAppStage->getObjectSystemOfType<SceneObjectSystem>();
@@ -121,7 +96,6 @@ void RmlModel_ProjectStages::dispose()
 {
 	m_stageIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectStages::stageIdListChanged);
 	m_cameraIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectStages::cameraIdListChanged);
-	m_compositorIdList->OnChanged -= MakeDelegate(this, &RmlModel_ProjectStages::compositorIdListChanged);
 
 	RmlModel::dispose();
 }
@@ -150,18 +124,6 @@ void RmlModel_ProjectStages::cameraIdListChanged(bool bOwnerChanged)
 	}
 }
 
-void RmlModel_ProjectStages::compositorIdListChanged(bool bOwnerChanged)
-{
-	if (MikanCompositorID selectedCompositorId = m_selectedCompositorId;
-		m_compositorIdList->fixupSelectedValue(m_selectedCompositorId, INVALID_MIKAN_ID, selectedCompositorId))
-	{
-		// Defer the selection update to post view update after element list refreshes
-		addModelUpdateCallback([this, selectedCompositorId]() {
-			setSelectedCompositorId(selectedCompositorId);
-		});
-	}
-}
-
 StageObjectSystemPtr RmlModel_ProjectStages::getStageSystem()
 {
 	return m_stageSystem.lock();
@@ -172,11 +134,6 @@ CameraObjectSystemPtr RmlModel_ProjectStages::getCameraSystem()
 	return m_cameraSystem.lock();
 }
 
-CompositorObjectSystemPtr RmlModel_ProjectStages::getCompositorSystem()
-{
-	return m_compositorSystem.lock();
-}
-
 StageComponentPtr RmlModel_ProjectStages::getSelectedStage()
 {
 	return getStageSystem()->getStageById((MikanStageID)m_selectedStageId);
@@ -185,11 +142,6 @@ StageComponentPtr RmlModel_ProjectStages::getSelectedStage()
 CameraComponentPtr RmlModel_ProjectStages::getSelectedCamera()
 {
 	return getCameraSystem()->getCameraById((MikanCameraID)m_selectedCameraId);
-}
-
-CompositorComponentPtr RmlModel_ProjectStages::getSelectedCompositor()
-{
-	return getCompositorSystem()->getCompositorById((MikanCompositorID)m_selectedCompositorId);
 }
 
 void RmlModel_ProjectStages::addNewStage(
@@ -228,27 +180,6 @@ void RmlModel_ProjectStages::removeCamera(
 	getCameraSystem()->removeObjectByPrimaryComponentId(m_selectedCameraId);
 }
 
-void RmlModel_ProjectStages::addNewCompositor(
-	Rml::DataModelHandle handle,
-	Rml::Event& /*ev*/,
-	const Rml::VariantList& parameters)
-{
-	getCompositorSystem()->addNewObjectByTypedDefinition(
-		[this](CompositorDefinitionPtr definition) {
-			// Initialize compositor-specific properties
-			definition->setOwnerSceneId(m_selectedStageId);
-			return true;
-		});
-}
-
-void RmlModel_ProjectStages::removeCompositor(
-	Rml::DataModelHandle handle,
-	Rml::Event& /*ev*/,
-	const Rml::VariantList& parameters)
-{
-	getCompositorSystem()->removeObjectByPrimaryComponentId(m_selectedCompositorId);
-}
-
 void RmlModel_ProjectStages::selectStageEntry(
 	Rml::DataModelHandle handle,
 	Rml::Event& ev,
@@ -267,16 +198,6 @@ void RmlModel_ProjectStages::selectCameraEntry(
 	const int newCameraId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
 
 	setSelectedCameraId(newCameraId);
-}
-
-void RmlModel_ProjectStages::selectCompositorEntry(
-	Rml::DataModelHandle handle,
-	Rml::Event& ev,
-	const Rml::VariantList& parameters)
-{
-	const int newCompositorId = ev.GetParameter<int>("value", INVALID_MIKAN_ID);
-
-	setSelectedCompositorId(newCompositorId);
 }
 
 void RmlModel_ProjectStages::setSelectedStageId(MikanStageID stageId)
@@ -298,7 +219,6 @@ void RmlModel_ProjectStages::setSelectedStageId(MikanStageID stageId)
 		}
 
 		m_cameraIdList->rebuildList();
-		m_compositorIdList->rebuildList();
 	}
 }
 
@@ -316,24 +236,6 @@ void RmlModel_ProjectStages::setSelectedCameraId(MikanCameraID cameraId)
 		else
 		{
 			m_projectRmlModelContext->getCameraModel()->setComponent(nullptr);
-		}
-	}
-}
-
-void RmlModel_ProjectStages::setSelectedCompositorId(MikanCompositorID compositorId)
-{
-	if (compositorId != m_selectedCompositorId)
-	{
-		m_selectedCompositorId = (int)compositorId;
-		m_modelHandle.DirtyVariable("selected_compositor_id");
-
-		if (CompositorComponentPtr compositorComponent = getSelectedCompositor())
-		{
-			m_projectRmlModelContext->getCompositorModel()->setComponent(compositorComponent);
-		}
-		else
-		{
-			m_projectRmlModelContext->getCompositorModel()->setComponent(nullptr);
 		}
 	}
 }

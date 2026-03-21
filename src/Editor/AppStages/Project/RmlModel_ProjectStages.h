@@ -17,9 +17,6 @@ using RmlModel_CameraComponentPtr = std::shared_ptr<RmlModel_CameraComponent>;
 class RmlModel_StageComponent;
 using RmlModel_StageComponentPtr = std::shared_ptr<RmlModel_StageComponent>;
 
-class RmlModel_CompositorComponent;
-using RmlModel_CompositorComponentPtr = std::shared_ptr<RmlModel_CompositorComponent>;
-
 class RmlModel_ProjectStages : public RmlModel
 {
 public:
@@ -31,7 +28,6 @@ public:
 private:
 	StageObjectSystemPtr getStageSystem();
 	CameraObjectSystemPtr getCameraSystem();
-	CompositorObjectSystemPtr getCompositorSystem();
 	StageComponentPtr getSelectedStage();
 	CameraComponentPtr getSelectedCamera();
 	CompositorComponentPtr getSelectedCompositor();
@@ -40,30 +36,22 @@ private:
 	void removeStage(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void addNewCamera(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void removeCamera(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
-	void addNewCompositor(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
-	void removeCompositor(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void selectStageEntry(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 	void selectCameraEntry(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
-	void selectCompositorEntry(Rml::DataModelHandle handle, Rml::Event& /*ev*/, const Rml::VariantList& parameters);
 
 	void setSelectedStageId(MikanStageID stageId);
 	void setSelectedCameraId(MikanCameraID cameraId);
-	void setSelectedCompositorId(MikanCompositorID compositorId);
 
 	void stageIdListChanged(bool bOwnerChanged);
 	void cameraIdListChanged(bool bOwnerChanged);
-	void compositorIdListChanged(bool bOwnerChanged);
 
 	class ProjectRmlModelContext* m_projectRmlModelContext = nullptr;
 	StageObjectSystemWeakPtr m_stageSystem;
 	CameraObjectSystemWeakPtr m_cameraSystem;
-	CompositorObjectSystemWeakPtr m_compositorSystem;
 
 	RmlDataBinding_ComponentIdListPtr m_stageIdList;
 	RmlDataBinding_ComponentIdListPtr m_cameraIdList;
-	RmlDataBinding_ComponentIdListPtr m_compositorIdList;
-
+	
 	int m_selectedStageId = -1; // MikanStageID
 	int m_selectedCameraId = -1; // MikanCameraID
-	int m_selectedCompositorId = -1; // MikanCompositorID
 };

@@ -80,10 +80,6 @@ public:
 protected:
 	virtual ComponentScriptContextPtr allocateScriptContext() override;
 
-	// TransformComponent
-	virtual void onDetachedFromParent(TransformComponentPtr oldParent, eDetachReason reason) override;
-	virtual void onAttachedToNewParent(TransformComponentPtr newParent) override;
-
 private:
 	// Scene Rendering
 	IMkScenePtr m_mkScene;
