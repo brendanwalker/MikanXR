@@ -32,6 +32,7 @@ void TestLogUtils::logComponent(const MikanTransformComponentValues& transformIn
 	const MikanVector3f& r = transformInfo.relative_rotation;
 	const MikanVector3f& t = transformInfo.relative_position;
 
+	MIKAN_LOG_INFO("TransformComponent") << "Parent Transform Id: " << transformInfo.parent_transform_id;
 	MIKAN_LOG_INFO("logTransformInfo") << "Scale: " << s.x << ", " << s.y << ", " << s.z;
 	MIKAN_LOG_INFO("logTransformInfo") << "Rotation: " << r.x << ", " << r.y << ", " << r.z;
 	MIKAN_LOG_INFO("logTransformInfo") << "Position: " << t.x << ", " << t.y << ", " << t.z;
@@ -41,14 +42,13 @@ void TestLogUtils::logComponent(const MikanAnchorComponentValues& anchorInfo)
 {
 	logComponent((const MikanTransformComponentValues&)anchorInfo);
 		
-	MIKAN_LOG_INFO("AnchorComponent") << "Owner Scene Id: " << anchorInfo.owner_scene_id;
+	MIKAN_LOG_INFO("AnchorComponent") << "Anchor Id: " << anchorInfo.component_id;
 }
 
 void TestLogUtils::logComponent(const MikanStencilComponentValues& stencilInfo)
 {
 	logComponent((const MikanTransformComponentValues&)stencilInfo);
 
-	MIKAN_LOG_INFO("StencilComponent") << "Parent Anchor Id: " << stencilInfo.parent_anchor_id;
 	MIKAN_LOG_INFO("StencilComponent") << "Is Disabled: " << (stencilInfo.is_disabled ? "true" : "false");
 	MIKAN_LOG_INFO("StencilComponent") << "Cull Mode: " << stencilInfo.cull_mode;
 }
