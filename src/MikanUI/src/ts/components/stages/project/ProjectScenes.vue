@@ -205,6 +205,10 @@ interface SceneOutlinerItem {
 const sceneOutliner = ref<SceneOutlinerItem[]>([])
 
 // Get components by system
+const sceneComponents = computed(() =>
+  componentStore.getComponentsByClass('SceneComponent')
+)
+
 const anchorComponents = computed(() =>
   componentStore.getComponentsByClass('AnchorComponent')
 )
@@ -373,6 +377,14 @@ async function initializeFromCurrentScene() {
     console.error('[ProjectScenes] Error fetching current scene:', error)
   }
 }
+
+// Auto-select the last scene when the list grows (e.g. after handleAddScene)
+watch(sceneComponents, (newList, oldList) => {
+  if (newList.length > (oldList?.length ?? 0)) {
+    const last = newList[newList.length - 1] as any
+    selectedSceneId.value = last.component_id
+  }
+})
 
 // Watch for scene changes to rebuild outliner
 watch(selectedSceneId, () => {

@@ -562,6 +562,7 @@ export const useComponentStore = defineStore('components', () => {
       const response = await future.await()
       if (response.resultCode === MikanAPIResult.Success) {
         console.log(`[ComponentStore] Created ${componentClassName} in ${entry.ownerSystem}`)
+        await fetchComponentList(client, entry.ownerSystem, componentClassName)
         return true
       } else {
         console.error(`[ComponentStore] Failed to create ${componentClassName}: ${response.resultCode}`)
@@ -597,6 +598,7 @@ export const useComponentStore = defineStore('components', () => {
       const response = await future.await()
       if (response.resultCode === MikanAPIResult.Success) {
         console.log(`[ComponentStore] Destroyed ${componentClassName} ${componentId} in ${entry.ownerSystem}`)
+        removeComponent(componentId, entry.ownerSystem)
         return true
       } else {
         console.error(`[ComponentStore] Failed to destroy ${componentClassName} ${componentId}: ${response.resultCode}`)
