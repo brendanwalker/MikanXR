@@ -12,7 +12,9 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
-	virtual bool readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams) override;
+	virtual bool readFromInitParams(
+		MikanObjectSystem* ownerObjectSystem,
+		const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	static const std::string k_clientSourcePropertyId;
 	inline const std::string& getClientSource() const { return m_clientSource; }

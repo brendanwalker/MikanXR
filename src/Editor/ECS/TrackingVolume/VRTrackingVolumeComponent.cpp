@@ -86,9 +86,11 @@ void VRTrackingVolumeDefinition::readFromJSON(const configuru::Config& pt)
 	readMatrix4f(pt, k_vrDevicePoseOffsetPropertyId.c_str(), m_vrDevicePoseOffset);
 }
 
-bool VRTrackingVolumeDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+bool VRTrackingVolumeDefinition::readFromInitParams(
+	MikanObjectSystem* ownerObjectSystem,
+	const Serialization::PolymorphicObjectPtr& initParams)
 {
-	if (!TrackingVolumeDefinition::readFromInitParams(initParams))
+	if (!TrackingVolumeDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
 	const auto* componentValues = initParams.getTypedPointer<MikanVRTrackingVolumeComponentValues>();

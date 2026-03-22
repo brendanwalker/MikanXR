@@ -16,7 +16,9 @@ public:
 	virtual bool wantsSaveForPropertyChange(const ConfigPropertyChangeSet& changedPropertySet) const;
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
-	virtual bool readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams) override;
+	virtual bool readFromInitParams(
+		MikanObjectSystem* ownerObjectSystem,
+		const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	static const std::string k_desiredDevicePathPropertyId;
 	inline const std::string& getDevicePath() const { return m_devicePath; }

@@ -11,7 +11,9 @@ public:
 	MarkerTrackingVolumeDefinition(MikanTrackingVolumeID trackingVolumeId);
 
 	virtual eTrackingVolumeType getTrackingVolumeType() const override;
-	virtual bool readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams) override;
+	virtual bool readFromInitParams(
+		MikanObjectSystem* ownerObjectSystem,
+		const Serialization::PolymorphicObjectPtr& initParams) override;
 };
 
 class MarkerTrackingVolumeComponent : public TrackingVolumeComponent

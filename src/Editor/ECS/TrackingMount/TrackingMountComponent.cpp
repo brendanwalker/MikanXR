@@ -43,9 +43,11 @@ void TrackingMountDefinition::readFromJSON(const configuru::Config& pt)
 	m_socketName = pt.get_or<std::string>(k_socketNamePropertyId, m_socketName);
 }
 
-bool TrackingMountDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+bool TrackingMountDefinition::readFromInitParams(
+	MikanObjectSystem* ownerObjectSystem,
+	const Serialization::PolymorphicObjectPtr& initParams)
 {
-	if (!MikanComponentDefinition::readFromInitParams(initParams))
+	if (!MikanComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
 	const auto* componentValues = initParams.getTypedPointer<MikanTrackingMountComponentValues>();

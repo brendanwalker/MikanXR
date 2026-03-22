@@ -65,6 +65,7 @@ void MikanComponentDefinition::readFromJSON(const configuru::Config& pt)
 }
 
 bool MikanComponentDefinition::readFromInitParams(
+	MikanObjectSystem* ownerObjectSystem,
 	const Serialization::PolymorphicObjectPtr& initParams)
 {
 	const auto* componentValues = initParams.getTypedPointer<MikanComponentValues>();

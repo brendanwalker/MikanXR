@@ -81,9 +81,11 @@ void VideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 	}
 }
 
-bool VideoSourceDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+bool VideoSourceDefinition::readFromInitParams(
+	MikanObjectSystem* ownerObjectSystem,
+	const Serialization::PolymorphicObjectPtr& initParams)
 {
-	if (!MikanComponentDefinition::readFromInitParams(initParams))
+	if (!MikanComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
 	const auto* componentValues = initParams.getTypedPointer<MikanVideoSourceValues>();

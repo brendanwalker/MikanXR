@@ -151,10 +151,12 @@ public:
 		// Only support creating objects from definitions that match the primary component type of this system
 		if (primaryComponentClass == TComponent::k_componentClassName)
 		{
+			MikanObjectSystem* ownerObjectSystem = this;
+
 			return addNewObjectByTypedDefinition(
-				[&initParams](ComponentDefinitionPtr definition) {
+				[ownerObjectSystem, &initParams](ComponentDefinitionPtr definition) {
 					// Initialize the definition from the polymorphic object init params
-					return definition->readFromInitParams(initParams);
+					return definition->readFromInitParams(ownerObjectSystem, initParams);
 				});
 		}
 		return MikanComponentPtr();
@@ -269,6 +271,9 @@ private:
 
 		// Init the object once all components are added
 		mikanObject->init();
+
+		// Then run post-init after all the component are initialized
+		mikanObject->postInit();
 
 		// Add definition to pool (fires property change event now that object is fully built)
 		systemDefinition->addDefinition(componentDefinition);

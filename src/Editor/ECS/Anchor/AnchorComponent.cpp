@@ -39,9 +39,11 @@ void AnchorDefinition::readFromJSON(const configuru::Config& pt)
 	TransformComponentDefinition::readFromJSON(pt);
 }
 
-bool AnchorDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+bool AnchorDefinition::readFromInitParams(
+	MikanObjectSystem* ownerObjectSystem,
+	const Serialization::PolymorphicObjectPtr& initParams)
 {
-	return TransformComponentDefinition::readFromInitParams(initParams);
+	return TransformComponentDefinition::readFromInitParams(ownerObjectSystem, initParams);
 }
 
 // -- AnchorComponent -----

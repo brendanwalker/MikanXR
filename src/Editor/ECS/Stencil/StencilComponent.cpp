@@ -48,9 +48,11 @@ void StencilComponentDefinition::readFromJSON(const configuru::Config& pt)
 	m_cullMode= StringUtils::FindEnumValue<eStencilCullMode>(modeName, k_stencilCullModeStrings);
 }
 
-bool StencilComponentDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+bool StencilComponentDefinition::readFromInitParams(
+	MikanObjectSystem* ownerObjectSystem,
+	const Serialization::PolymorphicObjectPtr& initParams)
 {
-	if (!TransformComponentDefinition::readFromInitParams(initParams))
+	if (!TransformComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
 	const auto* componentValues = initParams.getTypedPointer<MikanStencilComponentValues>();

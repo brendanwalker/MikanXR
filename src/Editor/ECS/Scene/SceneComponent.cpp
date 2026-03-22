@@ -11,6 +11,7 @@
 #include "SceneComponent.h"
 #include "SceneComponentScriptContext.h"
 #include "SelectionComponent.h"
+#include "SceneObjectSystem.h"
 #include "StageComponent.h"
 #include "StageObjectSystem.h"
 #include "TransformComponent.h"
@@ -55,9 +56,11 @@ void SceneComponentDefinition::readFromJSON(const configuru::Config& pt)
 	m_displayCompositorId = pt.get_or<int>(k_displayCompositorIdPropertyId, INVALID_MIKAN_ID);
 }
 
-bool SceneComponentDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+bool SceneComponentDefinition::readFromInitParams(
+	MikanObjectSystem* ownerObjectSystem,
+	const Serialization::PolymorphicObjectPtr& initParams)
 {
-	if (!TransformComponentDefinition::readFromInitParams(initParams))
+	if (!TransformComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
 	const auto* componentValues = initParams.getTypedPointer<MikanSceneComponentValues>();
@@ -71,6 +74,13 @@ bool SceneComponentDefinition::readFromInitParams(const Serialization::Polymorph
 		{
 			m_parentTransformId = m_parentStageId;
 		}
+	}
+
+	if (m_parentStageId == INVALID_MIKAN_ID)
+	{
+		auto stageObjectSystem = ownerObjectSystem->getObjectSystemOfType<StageObjectSystem>();
+
+		m_parentStageId = stageObjectSystem->getFirstComponentId();
 	}
 
 	return true;

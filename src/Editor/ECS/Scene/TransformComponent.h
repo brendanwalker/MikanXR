@@ -36,9 +36,11 @@ public:
 	void sendRotationPropertyChangeNotification();
 	void sendPositionPropertyChangeNotification();
 
-	virtual configuru::Config writeToJSON();
-	virtual void readFromJSON(const configuru::Config& pt);
-	virtual bool readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams);
+	virtual configuru::Config writeToJSON() override;
+	virtual void readFromJSON(const configuru::Config& pt) override;
+	virtual bool readFromInitParams(
+		MikanObjectSystem* ownerObjectSystem,
+		const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	const glm::mat4 getRelativeMat4() const;
 	void setRelativeMat4(const glm::mat4& xform);

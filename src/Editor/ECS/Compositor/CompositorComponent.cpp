@@ -20,6 +20,7 @@
 #include "MkStateStack.h"
 #include "ProjectConfig.h"
 #include "ProjectConfigConstants.h"
+#include "SceneObjectSystem.h"
 #include "SharedTextureWriter.h"
 #include "StageComponent.h"
 #include "StageObjectSystem.h"
@@ -95,9 +96,11 @@ void CompositorDefinition::readFromJSON(const configuru::Config& pt)
 	}
 }
 
-bool CompositorDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+bool CompositorDefinition::readFromInitParams(
+	MikanObjectSystem* ownerObjectSystem,
+	const Serialization::PolymorphicObjectPtr& initParams)
 {
-	if (!MikanComponentDefinition::readFromInitParams(initParams))
+	if (!MikanComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
 	const auto* componentValues = initParams.getTypedPointer<MikanCompositorComponentValues>();
@@ -114,6 +117,13 @@ bool CompositorDefinition::readFromInitParams(const Serialization::PolymorphicOb
 
 		m_bIsSpoutOutputStreaming = componentValues->spout_enable_output;
 		m_spoutOutputName = componentValues->spout_output_name.getValue();
+	}
+
+	if (componentValues->owner_scene_id == INVALID_MIKAN_ID)
+	{
+		auto sceneObjectSystem = ownerObjectSystem->getObjectSystemOfType<SceneObjectSystem>();
+
+		m_ownerSceneId = sceneObjectSystem->getFirstComponentId();
 	}
 
 	return true;

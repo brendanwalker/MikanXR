@@ -35,7 +35,9 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
-	virtual bool readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams) override;
+	virtual bool readFromInitParams(
+		MikanObjectSystem* ownerObjectSystem,
+		const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	MikanCompositorID getCompositorId() const { return getComponentId(); }
 

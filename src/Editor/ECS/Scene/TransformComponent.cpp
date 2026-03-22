@@ -70,9 +70,11 @@ void TransformComponentDefinition::readFromJSON(const configuru::Config& pt)
 	readVector3f(pt, k_relativePositionPropertyId.c_str(), m_relativeTransform.position);
 }
 
-bool TransformComponentDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+bool TransformComponentDefinition::readFromInitParams(
+	MikanObjectSystem* ownerObjectSystem,
+	const Serialization::PolymorphicObjectPtr& initParams)
 {
-	if (!MikanComponentDefinition::readFromInitParams(initParams))
+	if (!MikanComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
 	const auto* componentValues = initParams.getTypedPointer<MikanTransformComponentValues>();

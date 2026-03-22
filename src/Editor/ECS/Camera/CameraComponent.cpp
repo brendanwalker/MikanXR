@@ -84,9 +84,11 @@ void CameraDefinition::readFromJSON(const configuru::Config& pt)
 	readVector3d(pt, "aperture_position_offset", m_aperturePositionOffset);
 }
 
-bool CameraDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+bool CameraDefinition::readFromInitParams(
+	MikanObjectSystem* ownerObjectSystem,
+	const Serialization::PolymorphicObjectPtr& initParams)
 {
-	if (!TransformComponentDefinition::readFromInitParams(initParams))
+	if (!TransformComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
 	const auto* componentValues = initParams.getTypedPointer<MikanCameraComponentValues>();
@@ -104,6 +106,14 @@ bool CameraDefinition::readFromInitParams(const Serialization::PolymorphicObject
 		{
 			m_parentTransformId = m_stageId;
 		}
+	}
+
+	if (m_stageId == INVALID_MIKAN_ID)
+	{
+		// If no owning stage was specified, use the first one
+		auto stageSystem = ownerObjectSystem->getObjectSystemOfType<StageObjectSystem>();
+
+		m_stageId = stageSystem->getFirstComponentId();
 	}
 
 	return true;

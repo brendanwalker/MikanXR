@@ -21,7 +21,9 @@ public:
 	TextureSourceDefinition();
 	TextureSourceDefinition(MikanTextureSourceID TextureSourceId);
 
-	virtual bool readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams) override;
+	virtual bool readFromInitParams(
+		MikanObjectSystem* ownerObjectSystem,
+		const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	inline MikanTextureSourceID getTextureSourceId() const { return getComponentId(); }
 };

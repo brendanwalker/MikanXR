@@ -55,9 +55,11 @@ void MarkerDefinition::readFromJSON(const configuru::Config& pt)
 	m_lengthMM = pt.get_or<float>(MarkerDefinition::k_lengthMMPropertyId, m_lengthMM);
 }
 
-bool MarkerDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+bool MarkerDefinition::readFromInitParams(
+	MikanObjectSystem* ownerObjectSystem,
+	const Serialization::PolymorphicObjectPtr& initParams)
 {
-	if (!MikanComponentDefinition::readFromInitParams(initParams))
+	if (!MikanComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
 	const auto* componentValues = initParams.getTypedPointer<MikanMarkerComponentValues>();

@@ -82,9 +82,11 @@ void NetworkVideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 	m_port = pt.get_or<int>(NetworkVideoSourceDefinition::k_portPropertyId, m_port);
 }
 
-bool NetworkVideoSourceDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+bool NetworkVideoSourceDefinition::readFromInitParams(
+	MikanObjectSystem* ownerObjectSystem,
+	const Serialization::PolymorphicObjectPtr& initParams)
 {
-	if (!VideoSourceDefinition::readFromInitParams(initParams))
+	if (!VideoSourceDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
 	const auto* componentValues = initParams.getTypedPointer<MikanNetworkVideoSourceValues>();

@@ -75,9 +75,11 @@ void USBVideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 	readStdArrayMap<float, (int)eVideoSettingType::COUNT>(pt, k_videoSettingsPropertyId, m_videoSettingsMap);
 }
 
-bool USBVideoSourceDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+bool USBVideoSourceDefinition::readFromInitParams(
+	MikanObjectSystem* ownerObjectSystem,
+	const Serialization::PolymorphicObjectPtr& initParams)
 {
-	if (!VideoSourceDefinition::readFromInitParams(initParams))
+	if (!VideoSourceDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
 	const auto* componentValues = initParams.getTypedPointer<MikanUSBVideoSourceValues>();

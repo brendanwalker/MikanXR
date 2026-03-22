@@ -78,9 +78,11 @@ void ModelStencilDefinition::readFromJSON(const configuru::Config& pt)
 	}
 }
 
-bool ModelStencilDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+bool ModelStencilDefinition::readFromInitParams(
+	MikanObjectSystem* ownerObjectSystem,
+	const Serialization::PolymorphicObjectPtr& initParams)
 {
-	if (!StencilComponentDefinition::readFromInitParams(initParams))
+	if (!StencilComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
 	const auto* componentValues = initParams.getTypedPointer<MikanModelStencilComponentValues>();

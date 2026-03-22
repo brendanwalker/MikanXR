@@ -55,9 +55,11 @@ void BoxStencilDefinition::readFromJSON(const configuru::Config& pt)
 	m_boxSize.z = pt.get_or<float>("box_z_size", 0.25f);
 }
 
-bool BoxStencilDefinition::readFromInitParams(const Serialization::PolymorphicObjectPtr& initParams)
+bool BoxStencilDefinition::readFromInitParams(
+	MikanObjectSystem* ownerObjectSystem,
+	const Serialization::PolymorphicObjectPtr& initParams)
 {
-	if (!StencilComponentDefinition::readFromInitParams(initParams))
+	if (!StencilComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
 	const auto* componentValues = initParams.getTypedPointer<MikanBoxStencilComponentValues>();
