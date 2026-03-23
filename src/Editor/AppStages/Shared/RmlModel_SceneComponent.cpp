@@ -53,7 +53,11 @@ bool RmlModel_SceneComponent::setComponent(MikanComponentPtr component)
 {
 	if (RmlModel_MikanComponent::setComponent(component))
 	{
-		m_compositorIdList->setOwnerConfig(getSceneComponent()->getSceneComponentDefinition());
+		SceneComponentPtr sceneComponent= getSceneComponent();
+		SceneComponentDefinitionPtr sceneDefition= 
+			sceneComponent ? sceneComponent->getSceneComponentDefinition() : SceneComponentDefinitionPtr();
+
+		m_compositorIdList->setOwnerConfig(sceneDefition);
 		m_compositorIdList->rebuildList(true);
 
 		return true;

@@ -284,7 +284,7 @@ void RmlModel_ProjectScenes::updateSelection()
 	for (int list_index = 0; list_index < m_sceneOutliner.size(); ++list_index)
 	{
 		SelectionComponentPtr testComponentPtr = m_sceneOutliner[list_index].selectionComponent.lock();
-		if (testComponentPtr == currentSelection)
+		if (testComponentPtr && testComponentPtr == currentSelection)
 		{
 			m_selectedTransformId = testComponentPtr->getOwnerObject()->getRootComponent()->getComponentId();
 			m_selectedSceneObjectListIndex = list_index;

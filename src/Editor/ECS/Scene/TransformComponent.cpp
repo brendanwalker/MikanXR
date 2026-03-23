@@ -425,14 +425,24 @@ const glm::vec3 TransformComponent::getWorldLocation() const
 
 void TransformComponent::onDetachedFromParent(TransformComponentPtr oldParent, eDetachReason reason)
 {
-	getTransformComponentDefinition()->setParentTransformId(INVALID_MIKAN_ID);
+	TransformComponentDefinitionPtr definition = getTransformComponentDefinition();
+
+	if (definition)
+	{
+		definition->setParentTransformId(INVALID_MIKAN_ID);
+	}
 }
 
 void TransformComponent::onAttachedToNewParent(TransformComponentPtr newParent)
 {
 	if (newParent)
 	{
-		getTransformComponentDefinition()->setParentTransformId(newParent->getTransformId());
+		TransformComponentDefinitionPtr definition= getTransformComponentDefinition();
+
+		if (definition)
+		{
+			definition->setParentTransformId(newParent->getTransformId());
+		}
 	}
 }
 

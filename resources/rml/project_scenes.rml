@@ -11,7 +11,7 @@
 				<h3>Scene</h3>
 				<select id="select" name="select_scene_id" data-value="selected_scene_id" data-event-change="select_scene_entry()">
 					<option value="-1">-- None --</option>
-					<option data-for="scene_id : scene_ids" data-value="scene_id">{{scene_id | to_scene_name}}</option>
+					<option data-for="scene_id : SceneComponentIdList" data-value="scene_id">{{scene_id | to_scene_name}}</option>
 				</select>			
 				<div class="createcomponent" data-event-click="add_new_scene"></div>
 				<div class="deletecomponent" data-event-click="remove_scene"></div>
@@ -124,8 +124,8 @@
 						<tr data-for="object : scene_objects">
 							<td>
 								<spacer data-style-width="25 * object.depth + 'dp'"/>
-								<label data-if="it_index != selection_index" data-event-click="select_object_entry(it_index)">{{ object.name }}</label>
-								<highlight_label data-if="it_index == selection_index">{{ object.name }}</highlight_label>
+								<label data-if="it_index != selected_scene_object_index" data-event-click="select_object_entry(it_index)">{{ object.name }}</label>
+								<highlight_label data-if="it_index == selected_scene_object_index">{{ object.name }}</highlight_label>
 							</td>
 						</tr>
 					</tbody>
