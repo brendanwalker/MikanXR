@@ -8,6 +8,7 @@ import {
 } from './SerializationUtils.js';
 import { BinaryWriter } from './BinaryWriter.js';
 import { PolymorphicObject } from '../PolymorphicObject.js';
+import { EnumRegistry } from './EnumRegistry.js';
 import { TypeRegistry } from './JsonDeserializer.js';
 
 /**
@@ -157,10 +158,21 @@ class BinaryWriteVisitor implements IVisitor {
   }
 
   visitEnum(accessor: ValueAccessor): void {
-    const enumValue = accessor.getValueObject();
-    // Convert enum to string name
-    const enumStringValue = String(enumValue);
-    this.writer.writeUTF8String(enumStringValue);
+    let enumValue = accessor.getValueObject();
+    // If stored as a string name (e.g. "NONE"), convert to integer first
+    if (typeof enumValue === 'string') {
+      const fieldMetadata = (accessor as any).fieldMetadata;
+      const enumTypeName = fieldMetadata?.type?.startsWith('enum:')
+        ? fieldMetadata.type.substring(5)
+        : null;
+      if (enumTypeName) {
+        const intValue = EnumRegistry.stringToInt(enumTypeName, enumValue);
+        if (intValue !== null) {
+          enumValue = intValue;
+        }
+      }
+    }
+    this.writer.writeUTF8String(String(enumValue));
   }
 
   visitBool(accessor: ValueAccessor): void {

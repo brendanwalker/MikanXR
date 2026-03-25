@@ -27,6 +27,18 @@
       class="property-number"
     />
 
+    <!-- Enum field -->
+    <select
+      v-else-if="fieldType === 'enum'"
+      :value="normalizedEnumValue"
+      @change="handleEnumChange"
+      class="property-select"
+    >
+      <option v-for="option in enumOptions" :key="option.value" :value="option.value">
+        {{ option.label }}
+      </option>
+    </select>
+
     <!-- String field -->
     <input
       v-else-if="fieldType === 'string'"
@@ -117,6 +129,7 @@ import { computed } from 'vue'
 import NumberInput from './NumberInput.vue'
 import ComponentRefSelect from './ComponentRefSelect.vue'
 import { usePropertyEditor } from '../../composables/usePropertyEditor.js'
+import { useFieldMetadata } from '../../composables/useFieldMetadata.js'
 import { useMikanStore } from '../../stores/mikanStore.js'
 import { useComponentStore } from '../../stores/componentStore.js'
 import {
@@ -130,6 +143,8 @@ interface Props {
   fieldValue: any
   ownerSystem: string
   componentId: number
+  /** Serialization type string, e.g. 'enum:MikanStencilCullMode'. Optional. */
+  fieldMetaType?: string
 }
 
 const props = defineProps<Props>()
@@ -138,6 +153,7 @@ const emit = defineEmits<{
 }>()
 
 const { createVariantFromValue } = usePropertyEditor()
+const { getEnumOptions } = useFieldMetadata()
 const mikanStore = useMikanStore()
 const componentStore = useComponentStore()
 
@@ -146,9 +162,25 @@ const componentClass = computed(() => {
   return componentStore.getComponentClassForField(props.fieldName)
 })
 
+// Enum options derived from the field's meta type
+const enumOptions = computed(() => getEnumOptions(props.fieldMetaType ?? ''))
+
+// Current enum value normalised to an integer (handles legacy string names like "NONE")
+const normalizedEnumValue = computed(() => {
+  if (typeof props.fieldValue === 'number') return props.fieldValue
+  if (typeof props.fieldValue === 'string') {
+    const match = enumOptions.value.find((o) => o.label === props.fieldValue)
+    if (match) return match.value
+  }
+  return props.fieldValue
+})
+
 // Determine field type
 const fieldType = computed(() => {
-  // Check if this is a component reference field first
+  // Explicit enum type from serialization metadata takes priority
+  if (props.fieldMetaType?.startsWith('enum:') && enumOptions.value.length > 0) return 'enum'
+
+  // Check if this is a component reference field
   if (componentClass.value && typeof props.fieldValue === 'number') {
     return 'component_ref'
   }
@@ -200,6 +232,11 @@ async function sendPropertyUpdate(value: any) {
   } catch (error) {
     console.error(`[PropertyField] Error updating ${props.fieldName}:`, error)
   }
+}
+
+function handleEnumChange(event: Event) {
+  const value = parseInt((event.target as HTMLSelectElement).value, 10)
+  sendPropertyUpdate(value)
 }
 
 function handleComponentRefChange(value: number) {
@@ -256,7 +293,8 @@ function handleQuaternionChange(component: 'w' | 'x' | 'y' | 'z', value: number)
   text-align: right;
 }
 
-.property-text {
+.property-text,
+.property-select {
   padding: 4px 8px;
   background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -267,10 +305,15 @@ function handleQuaternionChange(component: 'w' | 'x' | 'y' | 'z', value: number)
   min-width: 100px;
 }
 
-.property-text:focus {
+.property-text:focus,
+.property-select:focus {
   outline: none;
   border-color: #5cb85c;
   background: rgba(0, 0, 0, 0.4);
+}
+
+.property-select {
+  cursor: pointer;
 }
 
 .property-vector,

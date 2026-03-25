@@ -1,5 +1,6 @@
 // Serialization utilities
 export * from './SerializationUtils.js';
+export * from './EnumRegistry.js';
 
 // JSON serialization
 export * from './JsonSerializer.js';

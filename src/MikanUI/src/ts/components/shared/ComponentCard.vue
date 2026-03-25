@@ -17,6 +17,7 @@
             :field-value="value"
             :owner-system="ownerSystem"
             :component-id="componentId"
+            :field-meta-type="getFieldMetaType((component as any).component_class || '', key)"
             @update="handlePropertyUpdate"
           />
         </div>
@@ -41,6 +42,7 @@ import { computed, ref, onMounted } from 'vue'
 import type { MikanComponentValues, MikanFunctionDescriptor } from '@mikanxr/client'
 import PropertyField from './PropertyField.vue'
 import { useDeveloperFields } from '../../composables/useDeveloperFields.js'
+import { useFieldMetadata } from '../../composables/useFieldMetadata.js'
 import { useComponentStore } from '../../stores/componentStore.js'
 import { useMikanStore } from '../../stores/mikanStore.js'
 
@@ -67,6 +69,7 @@ const emit = defineEmits<{
 }>()
 
 const { filterComponentProperties, isDeveloperMode } = useDeveloperFields()
+const { getFieldMetaType } = useFieldMetadata()
 const componentStore = useComponentStore()
 const mikanStore = useMikanStore()
 

@@ -7,6 +7,7 @@ import {
   getSerializationMetadata
 } from './SerializationUtils.js';
 import { PolymorphicObject } from '../PolymorphicObject.js';
+import { EnumRegistry } from './EnumRegistry.js';
 
 /**
  * JSON write visitor for serializing objects to JSON
@@ -111,8 +112,20 @@ class JsonWriteVisitor implements IVisitor {
   }
 
   visitEnum(accessor: ValueAccessor): void {
-    const enumValue = accessor.getValueObject();
-    // Enums in TypeScript can be number or string
+    let enumValue = accessor.getValueObject();
+    // If the stored value is a string enum name (e.g. "NONE"), convert to integer
+    if (typeof enumValue === 'string') {
+      const fieldMetadata = (accessor as any).fieldMetadata;
+      const enumTypeName = fieldMetadata?.type?.startsWith('enum:')
+        ? fieldMetadata.type.substring(5)
+        : null;
+      if (enumTypeName) {
+        const intValue = EnumRegistry.stringToInt(enumTypeName, enumValue);
+        if (intValue !== null) {
+          enumValue = intValue;
+        }
+      }
+    }
     this.setJsonValueFromJsonToken(accessor.valueField, enumValue);
   }
 

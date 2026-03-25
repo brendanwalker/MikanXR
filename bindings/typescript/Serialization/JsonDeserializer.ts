@@ -7,6 +7,7 @@ import {
   getSerializationMetadata
 } from './SerializationUtils.js';
 import { PolymorphicObject, PolymorphicStruct } from '../PolymorphicObject.js';
+import { EnumRegistry } from './EnumRegistry.js';
 
 /**
  * Type registry for runtime type lookup
@@ -180,11 +181,24 @@ class JsonReadVisitor implements IVisitor {
     if (typeof jsonToken === 'number') {
       accessor.setValueObject(jsonToken);
     } else if (typeof jsonToken === 'string') {
-      // Try to parse string enum value as number
+      // Try to parse string enum value as number first (e.g. "0")
       const numericValue = parseInt(jsonToken, 10);
       if (!isNaN(numericValue)) {
         accessor.setValueObject(numericValue);
       } else {
+        // Try to convert string enum name (e.g. "NONE") to integer via registry
+        const fieldMetadata = (accessor as any).fieldMetadata;
+        const enumTypeName = fieldMetadata?.type?.startsWith('enum:')
+          ? fieldMetadata.type.substring(5)
+          : null;
+        if (enumTypeName) {
+          const intValue = EnumRegistry.stringToInt(enumTypeName, jsonToken);
+          if (intValue !== null) {
+            accessor.setValueObject(intValue);
+            return;
+          }
+        }
+        // Fall back to storing as string if registry lookup fails
         accessor.setValueObject(jsonToken);
       }
     } else {
