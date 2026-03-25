@@ -291,6 +291,11 @@ protected:
 
 		if (m_targetLanguage == TargetLanguage::TypeScript)
 		{
+			if (!generateTypeScriptEnumRegistrationFile(absOutputPath, codeGenDatabase))
+			{
+				return false;
+			}
+
 			if (!generateTypeScriptIndexFile(absOutputPath, codeGenDatabase))
 			{
 				return false;
@@ -319,11 +324,77 @@ protected:
 				moduleFile << "export * from './" << moduleName << ".js';" << std::endl;
 			}
 
+			// Re-export the generated enum registration helper
+			moduleFile << "export * from './EnumRegistration.js';" << std::endl;
+
 			moduleFile.close();
 		}
 		catch (std::exception* e)
 		{
 			MIKAN_LOG_ERROR("MikanClientCodeGen") << "Failed to write index file: " << indexFilePath;
+			return false;
+		}
+
+		return true;
+	}
+
+	bool generateTypeScriptEnumRegistrationFile(
+		const std::filesystem::path& absOutputPath,
+		CodeGenDatabase const& codeGenDatabase)
+	{
+		std::filesystem::path filePath = absOutputPath / "EnumRegistration.ts";
+
+		// Build (moduleName -> [enumNames]) map
+		std::map<std::string, std::vector<std::string>> moduleToEnums;
+		std::vector<std::string> allEnumNames; // ordered for registration calls
+
+		for (auto const& [moduleName, modulePtr] : codeGenDatabase.modules)
+		{
+			for (rfk::Enum const* enumRef : modulePtr->enums)
+			{
+				const std::string enumName = enumRef->getName();
+				moduleToEnums[moduleName].push_back(enumName);
+				allEnumNames.push_back(enumName);
+			}
+		}
+
+		try
+		{
+			std::ofstream file(filePath);
+			file << "// This file is auto generated. DO NOT EDIT." << std::endl;
+			file << std::endl;
+			file << "import { EnumRegistry } from '../Serialization/EnumRegistry.js';" << std::endl;
+
+			// One import line per module that has enums
+			for (auto const& [moduleName, enumNames] : moduleToEnums)
+			{
+				file << "import { ";
+				for (size_t i = 0; i < enumNames.size(); ++i)
+				{
+					if (i > 0) file << ", ";
+					file << enumNames[i];
+				}
+				file << " } from './" << moduleName << ".js';" << std::endl;
+			}
+
+			file << std::endl;
+			file << "export function registerAllEnums(): void {" << std::endl;
+			for (const std::string& enumName : allEnumNames)
+			{
+				file << "  EnumRegistry.register('" << enumName << "', " << enumName << ");" << std::endl;
+			}
+			file << "}" << std::endl;
+			file << std::endl;
+			file << "// Auto-register when this module is first imported." << std::endl;
+			file << "// Because this file is re-exported from types/index.ts -> bindings/index.ts," << std::endl;
+			file << "// this call runs automatically the moment any symbol from @mikanxr/client is imported." << std::endl;
+			file << "registerAllEnums();" << std::endl;
+
+			file.close();
+		}
+		catch (std::exception* e)
+		{
+			MIKAN_LOG_ERROR("MikanClientCodeGen") << "Failed to write EnumRegistration file: " << filePath;
 			return false;
 		}
 
