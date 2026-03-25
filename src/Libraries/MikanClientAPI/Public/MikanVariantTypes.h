@@ -150,7 +150,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	: public MikanVariantBase
 {
 	FIELD()
-	bool value;
+	bool value = false;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanBoolValue_GENERATED
@@ -161,7 +161,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	: public MikanVariantBase
 {
 	FIELD()
-	int value;
+	int value = 0;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanIntValue_GENERATED
@@ -172,7 +172,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	: public MikanVariantBase
 {
 	FIELD()
-	long value;
+	long value = 0;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanLongValue_GENERATED
@@ -183,7 +183,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	: public MikanVariantBase
 {
 	FIELD()
-	float value;
+	float value = 0.0f;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanFloatValue_GENERATED
@@ -194,7 +194,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	: public MikanVariantBase
 {
 	FIELD()
-	double value;
+	double value = 0.0;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanDoubleValue_GENERATED

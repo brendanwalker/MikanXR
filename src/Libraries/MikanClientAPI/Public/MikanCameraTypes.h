@@ -23,13 +23,13 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraTypes")) MikanC
 	static const char* k_ownerSystemName;
 
 	FIELD()
-	MikanStageID stage_id;
+	MikanStageID stage_id= INVALID_MIKAN_ID;
 	FIELD()
-	MikanTrackingMountID tracking_mount_id;
+	MikanTrackingMountID tracking_mount_id = INVALID_MIKAN_ID;
 	FIELD()
-	MikanVideoSourceID video_source_id;
+	MikanVideoSourceID video_source_id = INVALID_MIKAN_ID;
 	FIELD()
-	int tracking_frame_delay;
+	int tracking_frame_delay = 0;
 	FIELD()
 	MikanQuatd aperture_orientation_offset;
 	FIELD()

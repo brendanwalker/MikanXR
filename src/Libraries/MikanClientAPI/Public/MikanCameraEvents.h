@@ -19,7 +19,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraEvents")) Mikan
 	}
 
 	FIELD()
-	MikanCameraID camera_id;
+	MikanCameraID camera_id= INVALID_MIKAN_ID;
 	FIELD()
 	MikanVector3f camera_forward;
 	FIELD()
@@ -35,7 +35,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraEvents")) Mikan
 	FIELD()
 	MikanVector2d z_bounds; 
 	FIELD()
-	int64_t frame;
+	int64_t frame= 0;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanCameraNewFrameEvent_GENERATED

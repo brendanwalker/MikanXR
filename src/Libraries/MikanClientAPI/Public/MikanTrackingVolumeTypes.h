@@ -32,7 +32,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTrackingVolumeTypes")
 	public MikanComponentValues
 {
 	FIELD()
-	MikanMarkerID origin_marker_id;
+	MikanMarkerID origin_marker_id = INVALID_MIKAN_ID;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanTrackingVolumeComponentValues_GENERATED
@@ -57,13 +57,13 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTrackingVolumeTypes")
 	static const char* k_ownerSystemName;
 
 	FIELD()
-	MikanTrackingRuntime tracking_runtime;
+	MikanTrackingRuntime tracking_runtime = MikanTrackingRuntime_INVALID;
 	FIELD()
-	MikanTrackingMountID charuco_mount_id;
+	MikanTrackingMountID charuco_mount_id = INVALID_MIKAN_ID;
 	FIELD()
 	MikanVector3f charuco_mount_offset_mm;
 	FIELD()
-	MikanMarkerID utility_marker_id;
+	MikanMarkerID utility_marker_id = INVALID_MIKAN_ID;
 	FIELD()
 	Serialization::List<MikanTrackingMountID> tracking_mount_ids;
 	FIELD()

@@ -41,7 +41,7 @@ public:
 	FIELD()
 	Serialization::String ownerSystem;
 	FIELD()
-	int componentId;
+	int componentId= INVALID_MIKAN_ID;
 	FIELD()
 	Serialization::String functionName;
 

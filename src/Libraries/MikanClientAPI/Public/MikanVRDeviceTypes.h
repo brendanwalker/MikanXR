@@ -38,11 +38,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVRDeviceTypes")) Mika
 	static const char* k_ownerSystemName;
 
 	FIELD()
-	MikanVRDeviceApi vr_device_api;
+	MikanVRDeviceApi vr_device_api = MikanVRDeviceApi::INVALID;
 	FIELD()
-	MikanVRDeviceType vr_device_type;
+	MikanVRDeviceType vr_device_type = MikanVRDeviceType::INVALID;
 	FIELD()
-	int vr_device_index;
+	int vr_device_index = -1;
 	FIELD()
 	Serialization::String vr_device_path;
 

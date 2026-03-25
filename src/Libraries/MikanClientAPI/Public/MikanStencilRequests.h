@@ -22,7 +22,7 @@ public:
 	}
 
 	FIELD()
-	MikanStencilID stencilId;
+	MikanStencilID stencilId = INVALID_MIKAN_ID;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	GetModelStencilRenderGeometry_GENERATED

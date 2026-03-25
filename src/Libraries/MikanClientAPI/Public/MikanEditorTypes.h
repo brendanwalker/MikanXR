@@ -14,7 +14,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanEditorTypes")) MikanE
 	static const char* k_systemName;
 
 	FIELD()
-	float cameraSpeed;
+	float cameraSpeed= 0.f;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanEditorSystemValues_GENERATED

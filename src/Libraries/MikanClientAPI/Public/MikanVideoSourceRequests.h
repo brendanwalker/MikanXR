@@ -22,7 +22,7 @@ public:
 	}
 
 	FIELD()
-	MikanVideoSourceID video_source_id;
+	MikanVideoSourceID video_source_id = INVALID_MIKAN_ID;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	GetVideoSourceMode_GENERATED
@@ -39,7 +39,7 @@ public:
 	}
 
 	FIELD()
-	MikanVideoSourceID video_source_id;
+	MikanVideoSourceID video_source_id = INVALID_MIKAN_ID;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	GetVideoSourceIntrinsics_GENERATED
@@ -56,7 +56,7 @@ public:
 	}
 
 	FIELD()
-	MikanVideoSourceID video_source_id;
+	MikanVideoSourceID video_source_id = INVALID_MIKAN_ID;
 
 	FIELD()
 	Serialization::String device_path;
@@ -76,7 +76,7 @@ public:
 	}
 
 	FIELD()
-	MikanVideoSourceID video_source_id;
+	MikanVideoSourceID video_source_id = INVALID_MIKAN_ID;
 
 	FIELD()
 	Serialization::String resolution;
@@ -96,7 +96,7 @@ public:
 	}
 
 	FIELD()
-	MikanVideoSourceID video_source_id;
+	MikanVideoSourceID video_source_id = INVALID_MIKAN_ID;
 
 	FIELD()
 	Serialization::String frame_rate;
@@ -116,7 +116,7 @@ public:
 	}
 
 	FIELD()
-	MikanVideoSourceID video_source_id;
+	MikanVideoSourceID video_source_id = INVALID_MIKAN_ID;
 
 	FIELD()
 	Serialization::String format;
@@ -139,7 +139,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest"))
 	}
 
 	FIELD()
-	MikanVideoSourceType video_source_type;
+	MikanVideoSourceType video_source_type = MikanVideoSourceType::MONO;
 	FIELD()
 	Serialization::String video_source_api;
 	FIELD()
@@ -147,11 +147,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceRequest"))
 	FIELD()
 	Serialization::String video_mode_name;
 	FIELD()
-	int32_t resolution_x;
+	int32_t resolution_x = 0;
 	FIELD()
-	int32_t resolution_y;
+	int32_t resolution_y = 0;
 	FIELD()
-	float frame_rate;
+	float frame_rate = 0.0f;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVideoSourceModeResponse_GENERATED

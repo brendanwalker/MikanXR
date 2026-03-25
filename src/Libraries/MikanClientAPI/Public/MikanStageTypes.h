@@ -25,7 +25,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStageTypes")) MikanSt
 	static const char* k_ownerSystemName;
 
 	FIELD()
-	MikanTrackingVolumeID tracking_volume_id;
+	MikanTrackingVolumeID tracking_volume_id = INVALID_MIKAN_ID;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStageComponentValues_GENERATED

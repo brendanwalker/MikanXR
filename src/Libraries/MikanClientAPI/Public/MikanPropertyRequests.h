@@ -22,7 +22,7 @@ public:
 	FIELD()
 	Serialization::String ownerSystem;
 	FIELD()
-	int componentId;
+	int componentId= INVALID_MIKAN_ID;
 	FIELD()
 	Serialization::String fieldName;
 	FIELD()
@@ -45,7 +45,7 @@ public:
 	FIELD()
 	Serialization::String ownerSystem;
 	FIELD()
-	int componentId;
+	int componentId= INVALID_MIKAN_ID;
 	FIELD()
 	Serialization::String fieldName;
 
@@ -66,7 +66,7 @@ public:
 	FIELD()
 	Serialization::String ownerSystem;
 	FIELD()
-	int componentId;
+	int componentId= INVALID_MIKAN_ID;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	ComponentGetValuesRequest_GENERATED
@@ -144,7 +144,7 @@ public:
 	FIELD()
 	Serialization::String componentClassName;
 	FIELD()
-	int componentId;
+	int componentId= INVALID_MIKAN_ID;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	SystemDestroyObjectRequest_GENERATED
@@ -170,7 +170,7 @@ public:
 	Serialization::String propertyFilter;
 
 	FIELD()
-	MikanPropertyNotifyMode notifyMode;
+	MikanPropertyNotifyMode notifyMode= MikanPropertyNotifyMode::NONE;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	SetPropertyNotifyMode_GENERATED

@@ -26,7 +26,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanClientEvents")) Mikan
 	MikanClientAPIVersion minClientVersion;
 
 	FIELD()
-	bool isClientCompatible;
+	bool isClientCompatible = false;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanConnectedEvent_GENERATED
@@ -42,7 +42,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanClientEvents")) Mikan
 	}
 
 	FIELD()
-	MikanDisconnectCode code;
+	MikanDisconnectCode code = MikanDisconnectCode::MikanDisconnectCode_Normal;
 
 	FIELD()
 	Serialization::String reason;

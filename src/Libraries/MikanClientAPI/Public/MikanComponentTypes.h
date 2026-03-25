@@ -17,7 +17,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanComponentTypes")) Mik
 	: public Serialization::PolymorphicStruct
 {
 	FIELD()
-	int component_id;
+	int component_id= INVALID_MIKAN_ID;
 	FIELD()
 	Serialization::String component_name;
 	FIELD()

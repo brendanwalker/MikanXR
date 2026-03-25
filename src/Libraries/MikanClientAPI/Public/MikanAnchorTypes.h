@@ -17,7 +17,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAnchorTypes")) MikanA
 	static const char* k_systemName;
 
 	FIELD()
-	bool render_anchors;
+	bool render_anchors= false;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanAnchorSystemValues_GENERATED

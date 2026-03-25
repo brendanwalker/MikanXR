@@ -18,9 +18,9 @@
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVector2i
 {
 	FIELD()
-	int x;
+	int x = 0;
 	FIELD()
-	int y;
+	int y = 0;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVector2i_GENERATED
@@ -31,9 +31,9 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVec
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVector2f
 {
 	FIELD()
-	float x;
+	float x = 0;
 	FIELD()
-	float y;
+	float y = 0;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVector2f_GENERATED
@@ -44,9 +44,9 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVec
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVector2d
 {
 	FIELD()
-		double x;
+	double x = 0;
 	FIELD()
-		double y;
+	double y = 0;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVector2d_GENERATED
@@ -57,11 +57,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVec
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVector3f
 {
 	FIELD()
-    float x;
+    float x = 0;
 	FIELD()
-	float y;
+	float y = 0;
 	FIELD()
-	float z;
+	float z = 0;
 
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
@@ -73,11 +73,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVec
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVector3d
 {
 	FIELD()
-	double x;
+	double x = 0;
 	FIELD()
-	double y;
+	double y = 0;
 	FIELD()
-	double z;
+	double z = 0;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVector3d_GENERATED
@@ -88,11 +88,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVec
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanRotator3f
 {
 	FIELD()
-	float x_angle;
+	float x_angle = 0;
 	FIELD()
-	float y_angle;
+	float y_angle = 0;
 	FIELD()
-	float z_angle;
+	float z_angle = 0;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanRotator3f_GENERATED
@@ -103,13 +103,13 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanRot
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVector4f
 {
 	FIELD()
-	float x;
+	float x = 0;
 	FIELD()
-	float y;
+	float y = 0;
 	FIELD()
-	float z;
+	float z = 0;
 	FIELD()
-	float w;
+	float w = 0;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVector4f_GENERATED
@@ -120,13 +120,13 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVec
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVector4d
 {
 	FIELD()
-	double x;
+	double x = 0;
 	FIELD()
-	double y;
+	double y = 0;
 	FIELD()
-	double z;
+	double z = 0;
 	FIELD()
-	double w;
+	double w = 0;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVector4d_GENERATED
@@ -144,37 +144,37 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanVec
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanMatrix4f
 {
 	FIELD()
-	float x0;
+	float x0 = 1;
 	FIELD()
-	float x1;
+	float x1 = 0;
 	FIELD()
-	float x2;
+	float x2 = 0;
 	FIELD()
-	float x3;
+	float x3 = 0;
 	FIELD()
-	float y0;
+	float y0 = 0;
 	FIELD()
-	float y1;
+	float y1 = 1;
 	FIELD()
-	float y2;
+	float y2 = 0;
 	FIELD()
-	float y3;
+	float y3 = 0;
 	FIELD()
-	float z0;
+	float z0 = 0;
 	FIELD()
-	float z1;
+	float z1 = 0;
 	FIELD()
-	float z2;
+	float z2 = 1;
 	FIELD()
-	float z3;
+	float z3 = 0;
 	FIELD()
-	float w0;
+	float w0 = 0;
 	FIELD()
-	float w1;
+	float w1 = 0;
 	FIELD()
-	float w2;
+	float w2 = 0;
 	FIELD()
-	float w3;
+	float w3 = 1;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanMatrix4f_GENERATED
@@ -191,23 +191,23 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanMat
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanMatrix3d
 {
 	FIELD()
-	double x0;
+	double x0 = 1;
 	FIELD()
-	double x1;
+	double x1 = 0;
 	FIELD()
-	double x2;
+	double x2 = 0;
 	FIELD()
-	double y0;
+	double y0 = 0;
 	FIELD()
-	double y1;
+	double y1 = 1;
 	FIELD()
-	double y2;
+	double y2 = 0;
 	FIELD()
-	double z0;
+	double z0 = 0;
 	FIELD()
-	double z1;
+	double z1 = 0;
 	FIELD()
-	double z2;
+	double z2 = 1;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanMatrix3d_GENERATED
@@ -224,30 +224,29 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanMat
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanMatrix4x3d
 {
 	FIELD()
-	double x0;
+	double x0 = 1;
 	FIELD()
-	double x1;
+	double x1 = 0;
 	FIELD()
-	double x2;
+	double x2 = 0;
 	FIELD()
-	double x3;
+	double x3 = 0;
 	FIELD()
-	double y0;
+	double y0 = 0;
 	FIELD()
-	double y1;
+	double y1 = 1;
 	FIELD()
-	double y2;
+	double y2 = 0;
 	FIELD()
-	double y3;
+	double y3 = 0;
 	FIELD()
-	double z0;
+	double z0 = 0;
 	FIELD()
-	double z1;
+	double z1 = 0;
 	FIELD()
-	double z2;
+	double z2 = 1;
 	FIELD()
-	double z3;
-
+	double z3 = 0;
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanMatrix4x3d_GENERATED
 	#endif
@@ -264,37 +263,37 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanMat
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanMatrix4d
 {
 	FIELD()
-	double x0;
+	double x0 = 1;
 	FIELD()
-	double x1;
+	double x1 = 0;
 	FIELD()
-	double x2;
+	double x2 = 0;
 	FIELD()
-	double x3;
+	double x3 = 0;
 	FIELD()
-	double y0;
+	double y0 = 0;
 	FIELD()
-	double y1;
+	double y1 = 1;
 	FIELD()
-	double y2;
+	double y2 = 0;
 	FIELD()
-	double y3;
+	double y3 = 0;
 	FIELD()
-	double z0;
+	double z0 = 0;
 	FIELD()
-	double z1;
+	double z1 = 0;
 	FIELD()
-	double z2;
+	double z2 = 1;
 	FIELD()
-	double z3;
+	double z3 = 0;
 	FIELD()
-	double w0;
+	double w0 = 0;
 	FIELD()
-	double w1;
+	double w1 = 0;
 	FIELD()
-	double w2;
+	double w2 = 0;
 	FIELD()
-	double w3;
+	double w3 = 1;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanMatrix4d_GENERATED
@@ -305,13 +304,13 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanMat
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanQuatf
 {
 	FIELD()
-	float w;
+	float w = 1;
 	FIELD()
-	float x;
+	float x = 0;
 	FIELD()
-	float y;
+	float y = 0;
 	FIELD()
-	float z;
+	float z = 0;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanQuatf_GENERATED
@@ -322,13 +321,13 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanQua
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMathTypes")) MikanQuatd
 {
 	FIELD()
-    double w;
+    double w = 1;
 	FIELD()
-	double x;
+	double x = 0;
 	FIELD()
-	double y;
+	double y = 0;
 	FIELD()
-	double z;
+	double z = 0;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanQuatd_GENERATED

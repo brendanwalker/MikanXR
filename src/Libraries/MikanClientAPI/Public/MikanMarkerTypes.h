@@ -33,15 +33,15 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMarkerTypes")) MikanM
 	FIELD()
 	MikanMarkerDictionaryType aruco_dictionary_type;
 	FIELD()
-	int charuco_rows;
+	int charuco_rows= 0;
 	FIELD()
-	int charuco_cols;
+	int charuco_cols= 0;
 	FIELD()
-	float charuco_square_length_mm;
+	float charuco_square_length_mm= 0.f;
 	FIELD()
-	float charuco_marker_length_mm;
+	float charuco_marker_length_mm= 0.f;
 	FIELD()
-	MikanMarkerDictionaryType charuco_dictionary_type;
+	MikanMarkerDictionaryType charuco_dictionary_type= MikanMarkerDictionaryType::INVALID;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanMarkerSystemValues_GENERATED
@@ -55,9 +55,9 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMarkerTypes")) MikanM
 	static const char* k_ownerSystemName;
 
 	FIELD()
-	int aruco_id;
+	int aruco_id= INVALID_MIKAN_ID;
 	FIELD()
-	float length_mm;
+	float length_mm= 0.f;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanMarkerComponentValues_GENERATED

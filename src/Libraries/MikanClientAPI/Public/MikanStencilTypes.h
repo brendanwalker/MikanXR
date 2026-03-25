@@ -27,7 +27,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) Mikan
 	static const char* k_systemName;
 
 	FIELD()
-	bool render_stencils;
+	bool render_stencils = false;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanQuadStencilSystemValues_GENERATED
@@ -40,7 +40,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) Mikan
 	static const char* k_systemName;
 
 	FIELD()
-	bool render_stencils;
+	bool render_stencils = false;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanBoxStencilSystemValues_GENERATED
@@ -53,7 +53,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) Mikan
 	static const char* k_systemName;
 
 	FIELD()
-	bool render_stencils;
+	bool render_stencils = false;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanModelStencilSystemValues_GENERATED
@@ -64,9 +64,9 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) Mikan
 	public MikanTransformComponentValues
 {
 	FIELD()
-	bool is_disabled;
+	bool is_disabled = false;
 	FIELD()
-	MikanStencilCullMode cull_mode;
+	MikanStencilCullMode cull_mode = MikanStencilCullMode_NONE;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStencilComponentValues_GENERATED
@@ -80,11 +80,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) Mikan
 	static const char* k_ownerSystemName;
 
 	FIELD()
-	float quad_width;
+	float quad_width = 0.0f;
 	FIELD()
-	float quad_height;
+	float quad_height = 0.0f;
 	FIELD()
-	bool is_double_sided;
+	bool is_double_sided = false;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanQuadStencilComponentValues_GENERATED
@@ -98,11 +98,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) Mikan
 	static const char* k_ownerSystemName;
 
 	FIELD()
-	float box_x_size;
+	float box_x_size = 0.0f;
 	FIELD()
-	float box_y_size;
+	float box_y_size = 0.0f;
 	FIELD()
-	float box_z_size;
+	float box_z_size = 0.0f;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanBoxStencilComponentValues_GENERATED

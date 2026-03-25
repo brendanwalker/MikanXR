@@ -15,7 +15,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTransformTypes")) Mik
 	public MikanComponentValues
 {
 	FIELD()
-	MikanTransformID parent_transform_id;
+	MikanTransformID parent_transform_id = INVALID_MIKAN_ID;
 	FIELD()
 	MikanVector3f relative_scale;
 	FIELD()
