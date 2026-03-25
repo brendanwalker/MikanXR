@@ -137,7 +137,7 @@ const displayProperties = computed(() => {
   const devMode = isDeveloperMode.value
 
   const filtered: Record<string, any> = {}
-  const excludeKeys = ['component_name', 'component_id']
+  const excludeKeys = ['component_id']
 
   // First filter out internal/excluded properties
   for (const [key, value] of Object.entries(props.component)) {

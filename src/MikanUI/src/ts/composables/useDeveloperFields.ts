@@ -157,11 +157,6 @@ export function useDeveloperFields() {
     const developerFields = DEVELOPER_ONLY_FIELDS[componentClass] || []
     const shouldHide = developerFields.includes(fieldName)
 
-    // Debug logging
-    if (componentClass === 'CameraComponent' && shouldHide) {
-      console.log(`[useDeveloperFields] Hiding field "${fieldName}" for ${componentClass} (dev mode: ${settingsStore.developerMode})`)
-    }
-
     return !shouldHide
   }
 
