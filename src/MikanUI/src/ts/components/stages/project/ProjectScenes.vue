@@ -176,7 +176,6 @@ import {
   CLASS_ID_MIKAN_ANCHOR_COMPONENT_VALUES,
   MikanCompositorComponentValues,
   CLASS_ID_MIKAN_COMPOSITOR_COMPONENT_VALUES,
-  MikanStencilCullMode,
   MikanQuadStencilComponentValues,
   CLASS_ID_MIKAN_QUAD_STENCIL_COMPONENT_VALUES,
   MikanBoxStencilComponentValues,
@@ -489,13 +488,8 @@ async function handleAddAnchor() {
   if (selectedSceneId.value === -1) { console.error('[ProjectScenes] No scene selected'); return }
 
   const initValues = new MikanAnchorComponentValues()
-  initValues.component_id = 0
-  initValues.component_name = ''
-  initValues.component_script = ''
   initValues.relative_scale = makeVec3(1, 1, 1)
-  initValues.relative_rotation = makeVec3(0, 0, 0)
-  initValues.relative_position = makeVec3(0, 0, 0)
-  ;(initValues as any).parent_transform_id = newActorParentTransformId.value
+  initValues.parent_transform_id = newActorParentTransformId.value
 
   const initParams = new PolymorphicObject(initValues, CLASS_ID_MIKAN_ANCHOR_COMPONENT_VALUES, 'MikanAnchorComponentValues')
   await componentStore.createObject(mikanStore.client as MikanClient, 'AnchorComponent', initParams)
@@ -512,18 +506,10 @@ async function handleAddQuadStencil() {
   if (!mikanStore.client) { console.error('[ProjectScenes] No client connection'); return }
 
   const initValues = new MikanQuadStencilComponentValues()
-  initValues.component_id = 0
-  initValues.component_name = ''
-  initValues.component_script = ''
   initValues.relative_scale = makeVec3(1, 1, 1)
-  initValues.relative_rotation = makeVec3(0, 0, 0)
-  initValues.relative_position = makeVec3(0, 0, 0)
-  ;(initValues as any).parent_transform_id = newActorParentTransformId.value
-  initValues.is_disabled = false
-  initValues.cull_mode = MikanStencilCullMode.NONE
+  initValues.parent_transform_id = newActorParentTransformId.value
   initValues.quad_width = 0.5
   initValues.quad_height = 0.5
-  initValues.is_double_sided = false
 
   const initParams = new PolymorphicObject(initValues, CLASS_ID_MIKAN_QUAD_STENCIL_COMPONENT_VALUES, 'MikanQuadStencilComponentValues')
   await componentStore.createObject(mikanStore.client as MikanClient, 'QuadStencilComponent', initParams)
@@ -540,15 +526,8 @@ async function handleAddBoxStencil() {
   if (!mikanStore.client) { console.error('[ProjectScenes] No client connection'); return }
 
   const initValues = new MikanBoxStencilComponentValues()
-  initValues.component_id = 0
-  initValues.component_name = ''
-  initValues.component_script = ''
   initValues.relative_scale = makeVec3(1, 1, 1)
-  initValues.relative_rotation = makeVec3(0, 0, 0)
-  initValues.relative_position = makeVec3(0, 0, 0)
-  ;(initValues as any).parent_transform_id = newActorParentTransformId.value
-  initValues.is_disabled = false
-  initValues.cull_mode = MikanStencilCullMode.NONE
+  initValues.parent_transform_id = newActorParentTransformId.value
   initValues.box_x_size = 0.5
   initValues.box_y_size = 0.5
   initValues.box_z_size = 0.5
@@ -568,16 +547,8 @@ async function handleAddModelStencil() {
   if (!mikanStore.client) { console.error('[ProjectScenes] No client connection'); return }
 
   const initValues = new MikanModelStencilComponentValues()
-  initValues.component_id = 0
-  initValues.component_name = ''
-  initValues.component_script = ''
   initValues.relative_scale = makeVec3(1, 1, 1)
-  initValues.relative_rotation = makeVec3(0, 0, 0)
-  initValues.relative_position = makeVec3(0, 0, 0)
-  ;(initValues as any).parent_transform_id = newActorParentTransformId.value
-  initValues.is_disabled = false
-  initValues.cull_mode = MikanStencilCullMode.NONE
-  initValues.model_path = ''
+  initValues.parent_transform_id = newActorParentTransformId.value
 
   const initParams = new PolymorphicObject(initValues, CLASS_ID_MIKAN_MODEL_STENCIL_COMPONENT_VALUES, 'MikanModelStencilComponentValues')
   await componentStore.createObject(mikanStore.client as MikanClient, 'ModelStencilComponent', initParams)
