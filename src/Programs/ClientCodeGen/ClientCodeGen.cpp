@@ -18,6 +18,7 @@
 #include "stdio.h"
 
 #include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <functional>
@@ -1175,6 +1176,156 @@ protected:
 		return "any";
 	}
 
+	// Holds a live default-constructed instance of a struct so we can read actual field default values.
+	// One of the holders keeps the shared_ptr alive; rawPtr points into the same allocation.
+	struct AllocatedInstance
+	{
+		void* rawPtr = nullptr;
+		std::shared_ptr<MikanEvent> eventHolder;
+		std::shared_ptr<MikanRequest> requestHolder;
+		std::shared_ptr<MikanResponse> responseHolder;
+		std::shared_ptr<Serialization::PolymorphicStruct> polymorphicHolder;
+
+		bool isValid() const { return rawPtr != nullptr; }
+	};
+
+	// Try to allocate a default-constructed instance of structRef via rfk instantiators.
+	// Returns an invalid AllocatedInstance if no known base class is found or allocation fails.
+	static AllocatedInstance tryAllocateStructInstance(rfk::Struct const& structRef)
+	{
+		AllocatedInstance result;
+
+		auto& mikanEventClass        = MikanEvent::staticGetArchetype();
+		auto& mikanRequestClass      = MikanRequest::staticGetArchetype();
+		auto& mikanResponseClass     = MikanResponse::staticGetArchetype();
+		auto& polymorphicStructClass = Serialization::PolymorphicStruct::staticGetArchetype();
+
+		if (structRef.getId() == mikanEventClass.getId() || structRef.isSubclassOf(mikanEventClass))
+		{
+			result.eventHolder = structRef.makeSharedInstance<MikanEvent>();
+			result.rawPtr = result.eventHolder.get();
+		}
+		else if (structRef.getId() == mikanRequestClass.getId() || structRef.isSubclassOf(mikanRequestClass))
+		{
+			result.requestHolder = structRef.makeSharedInstance<MikanRequest>();
+			result.rawPtr = result.requestHolder.get();
+		}
+		else if (structRef.getId() == mikanResponseClass.getId() || structRef.isSubclassOf(mikanResponseClass))
+		{
+			result.responseHolder = structRef.makeSharedInstance<MikanResponse>();
+			result.rawPtr = result.responseHolder.get();
+		}
+		else if (structRef.getId() == polymorphicStructClass.getId() || structRef.isSubclassOf(polymorphicStructClass))
+		{
+			result.polymorphicHolder = structRef.makeSharedInstance<Serialization::PolymorphicStruct>();
+			result.rawPtr = result.polymorphicHolder.get();
+		}
+
+		return result;
+	}
+
+	// Read the actual default value of a field from a live instance and emit it as a TypeScript literal.
+	// Falls back to getTypeScriptDefaultValue() for complex/unhandled types.
+	static std::string getTypeScriptDefaultValueFromInstance(rfk::Type const& type, void const* fieldPtr)
+	{
+		rfk::Archetype const* archetype = type.getArchetype();
+		rfk::EEntityKind kind = archetype ? archetype->getKind() : rfk::EEntityKind::Undefined;
+
+		// Arrays and pointers are not representable as simple literals — fall back.
+		if (type.isPointer() || type.isCArray())
+		{
+			return getTypeScriptDefaultValue(type);
+		}
+		else if (kind == rfk::EEntityKind::FundamentalArchetype)
+		{
+			if (type == rfk::getType<bool>())
+			{
+				return *reinterpret_cast<bool const*>(fieldPtr) ? "true" : "false";
+			}
+			else if (type == rfk::getType<int64_t>())
+			{
+				return std::to_string(*reinterpret_cast<int64_t const*>(fieldPtr)) + "n";
+			}
+			else if (type == rfk::getType<uint64_t>())
+			{
+				return std::to_string(*reinterpret_cast<uint64_t const*>(fieldPtr)) + "n";
+			}
+			else if (type == rfk::getType<float>())
+			{
+				float v = *reinterpret_cast<float const*>(fieldPtr);
+				if (!std::isfinite(v)) return getTypeScriptDefaultValue(type);
+				char buf[64];
+				snprintf(buf, sizeof(buf), "%.9g", (double)v);
+				return buf;
+			}
+			else if (type == rfk::getType<double>())
+			{
+				double v = *reinterpret_cast<double const*>(fieldPtr);
+				if (!std::isfinite(v)) return getTypeScriptDefaultValue(type);
+				char buf[64];
+				snprintf(buf, sizeof(buf), "%.17g", v);
+				return buf;
+			}
+			else if (type == rfk::getType<uint8_t>())
+			{
+				return std::to_string((unsigned)*reinterpret_cast<uint8_t const*>(fieldPtr));
+			}
+			else if (type == rfk::getType<int8_t>())
+			{
+				return std::to_string((int)*reinterpret_cast<int8_t const*>(fieldPtr));
+			}
+			else if (type == rfk::getType<uint16_t>())
+			{
+				return std::to_string((unsigned)*reinterpret_cast<uint16_t const*>(fieldPtr));
+			}
+			else if (type == rfk::getType<int16_t>())
+			{
+				return std::to_string((int)*reinterpret_cast<int16_t const*>(fieldPtr));
+			}
+			else if (type == rfk::getType<uint32_t>())
+			{
+				return std::to_string(*reinterpret_cast<uint32_t const*>(fieldPtr));
+			}
+			else if (type == rfk::getType<int32_t>())
+			{
+				return std::to_string(*reinterpret_cast<int32_t const*>(fieldPtr));
+			}
+		}
+		else if (kind == rfk::EEntityKind::Enum)
+		{
+			rfk::Enum const* enumType = rfk::enumCast(archetype);
+			rfk::Archetype const& underlyingArchetype = enumType->getUnderlyingArchetype();
+
+			int64_t enumIntValue = 0;
+			if (underlyingArchetype.getMemorySize() == sizeof(int64_t))
+				enumIntValue = *reinterpret_cast<int64_t const*>(fieldPtr);
+			else if (underlyingArchetype.getMemorySize() == sizeof(int32_t))
+				enumIntValue = (int64_t)*reinterpret_cast<int32_t const*>(fieldPtr);
+			else if (underlyingArchetype.getMemorySize() == sizeof(int16_t))
+				enumIntValue = (int64_t)*reinterpret_cast<int16_t const*>(fieldPtr);
+			else if (underlyingArchetype.getMemorySize() == sizeof(int8_t))
+				enumIntValue = (int64_t)*reinterpret_cast<int8_t const*>(fieldPtr);
+
+			rfk::EnumValue const* enumValue = enumType->getEnumValue(enumIntValue);
+			if (enumValue != nullptr)
+			{
+				auto const* property = enumValue->getProperty<Serialization::EnumStringValue>();
+				std::string valueName = property
+					? std::string(property->getValue())
+					: std::string(enumValue->getName());
+				return std::string(enumType->getName()) + "." + valueName;
+			}
+		}
+		else if (type == rfk::getType<std::string>())
+		{
+			std::string const* strPtr = reinterpret_cast<std::string const*>(fieldPtr);
+			return "'" + *strPtr + "'";
+		}
+
+		// Fall back to type-based defaults for structs, classes, arrays, maps, etc.
+		return getTypeScriptDefaultValue(type);
+	}
+
 	void emitTypeScriptInterface(std::ofstream& moduleFile, rfk::Struct const& structRef)
 	{
 		// Get parent classes
@@ -1219,11 +1370,24 @@ protected:
 			return a->getMemoryOffset() < b->getMemoryOffset();
 		});
 
+		// Allocate a default-constructed instance to read actual field defaults from.
+		// Falls back to type-based defaults if no known base class is available.
+		AllocatedInstance instance = tryAllocateStructInstance(structRef);
+
 		// Emit fields with default initialization
 		for (rfk::Field const* field : sortedFields)
 		{
 			std::string tsType = getTypeScriptType(*field);
-			std::string tsDefaultValue = getTypeScriptDefaultValue(field->getType());
+			std::string tsDefaultValue;
+			if (instance.isValid())
+			{
+				void const* fieldPtr = field->getConstPtrUnsafe(instance.rawPtr);
+				tsDefaultValue = getTypeScriptDefaultValueFromInstance(field->getType(), fieldPtr);
+			}
+			else
+			{
+				tsDefaultValue = getTypeScriptDefaultValue(field->getType());
+			}
 			moduleFile << "  " << field->getName() << ": " << tsType << " = " << tsDefaultValue << ";" << std::endl;
 		}
 

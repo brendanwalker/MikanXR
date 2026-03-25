@@ -8,7 +8,7 @@ export const CLASS_ID_SEND_SCRIPT_MESSAGE = -3006836539234531471n;
 
 export class InvokeComponentScriptTrigger extends MikanRequest {
   ownerSystem: string = '';
-  componentId: number = 0;
+  componentId: number = -1;
   trigger_name: string = '';
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [

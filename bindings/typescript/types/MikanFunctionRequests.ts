@@ -28,7 +28,7 @@ export class GetFunctionListRequest extends MikanRequest {
 
 export class InvokeComponentFunctionRequest extends MikanRequest {
   ownerSystem: string = '';
-  componentId: number = 0;
+  componentId: number = -1;
   functionName: string = '';
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [

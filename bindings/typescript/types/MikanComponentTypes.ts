@@ -5,7 +5,7 @@ import { PolymorphicStruct } from './../PolymorphicObject.js';
 export const CLASS_ID_MIKAN_COMPONENT_VALUES = 6669556251977010658n;
 
 export class MikanComponentValues extends PolymorphicStruct {
-  component_id: number = 0;
+  component_id: number = -1;
   component_name: string = '';
   component_script: string = '';
 

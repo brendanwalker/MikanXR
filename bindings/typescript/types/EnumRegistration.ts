@@ -36,6 +36,6 @@ export function registerAllEnums(): void {
 }
 
 // Auto-register when this module is first imported.
-// Because this file is re-exported from types/index.ts → bindings/index.ts,
+// Because this file is re-exported from types/index.ts -> bindings/index.ts,
 // this call runs automatically the moment any symbol from @mikanxr/client is imported.
 registerAllEnums();

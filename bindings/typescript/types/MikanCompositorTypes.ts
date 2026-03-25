@@ -5,8 +5,8 @@ import { MikanComponentValues } from './MikanComponentTypes.js';
 export const CLASS_ID_MIKAN_COMPOSITOR_COMPONENT_VALUES = 8153524366293986969n;
 
 export class MikanCompositorComponentValues extends MikanComponentValues {
-  owner_scene_id: number = 0;
-  camera_id: number = 0;
+  owner_scene_id: number = -1;
+  camera_id: number = -1;
   compositor_graph_path: string = '';
   spout_enable_output: boolean = false;
   spout_output_name: string = '';

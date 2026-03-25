@@ -13,7 +13,7 @@ export const CLASS_ID_SET_USBVIDEO_SOURCE_FRAME_RATE = -470593085450153328n;
 export const CLASS_ID_SET_USBVIDEO_SOURCE_RESOLUTION = -8879922715685289037n;
 
 export class GetVideoSourceIntrinsics extends MikanRequest {
-  video_source_id: number = 0;
+  video_source_id: number = -1;
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'video_source_id', type: 'int32' }
@@ -21,7 +21,7 @@ export class GetVideoSourceIntrinsics extends MikanRequest {
 }
 
 export class GetVideoSourceMode extends MikanRequest {
-  video_source_id: number = 0;
+  video_source_id: number = -1;
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'video_source_id', type: 'int32' }
@@ -57,7 +57,7 @@ export class MikanVideoSourceModeResponse extends MikanResponse {
 }
 
 export class SetUSBVideoSourceDevice extends MikanRequest {
-  video_source_id: number = 0;
+  video_source_id: number = -1;
   device_path: string = '';
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
@@ -67,7 +67,7 @@ export class SetUSBVideoSourceDevice extends MikanRequest {
 }
 
 export class SetUSBVideoSourceFormat extends MikanRequest {
-  video_source_id: number = 0;
+  video_source_id: number = -1;
   format: string = '';
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
@@ -77,7 +77,7 @@ export class SetUSBVideoSourceFormat extends MikanRequest {
 }
 
 export class SetUSBVideoSourceFrameRate extends MikanRequest {
-  video_source_id: number = 0;
+  video_source_id: number = -1;
   frame_rate: string = '';
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
@@ -87,7 +87,7 @@ export class SetUSBVideoSourceFrameRate extends MikanRequest {
 }
 
 export class SetUSBVideoSourceResolution extends MikanRequest {
-  video_source_id: number = 0;
+  video_source_id: number = -1;
   resolution: string = '';
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [

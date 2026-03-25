@@ -29,7 +29,7 @@ export const CLASS_ID_SYSTEM_GET_VALUES_RESPONSE = -688309113082437205n;
 
 export class ComponentGetValuesRequest extends MikanRequest {
   ownerSystem: string = '';
-  componentId: number = 0;
+  componentId: number = -1;
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'ownerSystem', type: 'string' },
@@ -89,7 +89,7 @@ export class PropertyDescriptorResponse extends MikanResponse {
 
 export class PropertyGetValueRequest extends MikanRequest {
   ownerSystem: string = '';
-  componentId: number = 0;
+  componentId: number = -1;
   fieldName: string = '';
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
@@ -109,7 +109,7 @@ export class PropertyGetValueResponse extends MikanResponse {
 
 export class PropertySetValueRequest extends MikanRequest {
   ownerSystem: string = '';
-  componentId: number = 0;
+  componentId: number = -1;
   fieldName: string = '';
   fieldValue: MikanVariant = new MikanVariant();
 
@@ -156,7 +156,7 @@ export class SystemCreateObjectRequest extends MikanRequest {
 export class SystemDestroyObjectRequest extends MikanRequest {
   ownerSystem: string = '';
   componentClassName: string = '';
-  componentId: number = 0;
+  componentId: number = -1;
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'ownerSystem', type: 'string' },

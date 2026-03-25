@@ -10,7 +10,7 @@ export const CLASS_ID_WRITE_CAMERA_COLOR_RENDER_TARGET_TEXTURE = 647459600642281
 export const CLASS_ID_WRITE_CAMERA_DEPTH_RENDER_TARGET_TEXTURE = -1802673963658192754n;
 
 export class AllocateCameraRenderTargetTextures extends MikanRequest {
-  camera_id: number = 0;
+  camera_id: number = -1;
   descriptor: MikanRenderTargetDescriptor = new MikanRenderTargetDescriptor();
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
@@ -20,7 +20,7 @@ export class AllocateCameraRenderTargetTextures extends MikanRequest {
 }
 
 export class FreeCameraRenderTargetTextures extends MikanRequest {
-  camera_id: number = 0;
+  camera_id: number = -1;
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'camera_id', type: 'int32' }
@@ -28,7 +28,7 @@ export class FreeCameraRenderTargetTextures extends MikanRequest {
 }
 
 export class PublishCameraRenderTargetTextures extends MikanRequest {
-  camera_id: number = 0;
+  camera_id: number = -1;
   frame_index: bigint = 0n;
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
@@ -38,7 +38,7 @@ export class PublishCameraRenderTargetTextures extends MikanRequest {
 }
 
 export class WriteCameraColorRenderTargetTexture extends MikanRequest {
-  camera_id: number = 0;
+  camera_id: number = -1;
   api_color_texture_ptr: any = null;
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
@@ -48,7 +48,7 @@ export class WriteCameraColorRenderTargetTexture extends MikanRequest {
 }
 
 export class WriteCameraDepthRenderTargetTexture extends MikanRequest {
-  camera_id: number = 0;
+  camera_id: number = -1;
   api_depth_texture_ptr: any = null;
   z_near: number = 0;
   z_far: number = 0;

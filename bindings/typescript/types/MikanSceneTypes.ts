@@ -7,8 +7,8 @@ export const CLASS_ID_MIKAN_SCENE_COMPONENT_VALUES = 6935017739381736592n;
 export const CLASS_ID_MIKAN_SCENE_SYSTEM_VALUES = 1136621147171447108n;
 
 export class MikanSceneComponentValues extends MikanTransformComponentValues {
-  parent_stage_id: number = 0;
-  display_compositor_id: number = 0;
+  parent_stage_id: number = -1;
+  display_compositor_id: number = -1;
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'parent_stage_id', type: 'int32' },
@@ -17,7 +17,7 @@ export class MikanSceneComponentValues extends MikanTransformComponentValues {
 }
 
 export class MikanSceneSystemValues extends MikanSystemValues {
-  current_scene_id: number = 0;
+  current_scene_id: number = -1;
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'current_scene_id', type: 'int32' }

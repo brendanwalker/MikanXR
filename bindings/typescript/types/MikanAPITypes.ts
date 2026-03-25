@@ -33,7 +33,7 @@ export const CLASS_ID_MIKAN_REQUEST = 1095719431187359814n;
 export const CLASS_ID_MIKAN_RESPONSE = 7094118849615581562n;
 
 export class MikanEvent {
-  eventTypeId: bigint = 0n;
+  eventTypeId: bigint = 8521159033538382795n;
   eventTypeName: string = '';
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
@@ -43,9 +43,9 @@ export class MikanEvent {
 }
 
 export class MikanRequest {
-  requestTypeId: bigint = 0n;
+  requestTypeId: bigint = 1095719431187359814n;
   requestTypeName: string = '';
-  requestId: number = 0;
+  requestId: number = -1;
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'requestTypeId', type: 'int64' },
@@ -55,9 +55,9 @@ export class MikanRequest {
 }
 
 export class MikanResponse {
-  responseTypeId: bigint = 0n;
+  responseTypeId: bigint = 7094118849615581562n;
   responseTypeName: string = '';
-  requestId: number = 0;
+  requestId: number = -1;
   resultCode: MikanAPIResult = MikanAPIResult.Success;
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [

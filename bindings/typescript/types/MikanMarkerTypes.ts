@@ -15,7 +15,7 @@ export const CLASS_ID_MIKAN_MARKER_COMPONENT_VALUES = 2808287499176319284n;
 export const CLASS_ID_MIKAN_MARKER_SYSTEM_VALUES = 133061264921636720n;
 
 export class MikanMarkerComponentValues extends MikanComponentValues {
-  aruco_id: number = 0;
+  aruco_id: number = -1;
   length_mm: number = 0;
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
@@ -26,7 +26,7 @@ export class MikanMarkerComponentValues extends MikanComponentValues {
 
 export class MikanMarkerSystemValues extends MikanSystemValues {
   aruco_id_list: number[] = [];
-  aruco_dictionary_type: MikanMarkerDictionaryType = MikanMarkerDictionaryType.INVALID;
+  aruco_dictionary_type: MikanMarkerDictionaryType = MikanMarkerDictionaryType.DICT_4x4;
   charuco_rows: number = 0;
   charuco_cols: number = 0;
   charuco_square_length_mm: number = 0;
