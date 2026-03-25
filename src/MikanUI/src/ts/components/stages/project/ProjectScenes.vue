@@ -125,18 +125,16 @@
         </div>
 
         <!-- Scene Outliner Tree -->
-        <div class="scene-outliner">
-          <div
-            v-for="(item, index) in sceneOutliner"
-            :key="index"
+        <ul class="scene-outliner">
+          <li
+            v-for="item in flatSceneOutliner"
+            :key="item.node.componentId"
             class="outliner-item"
-            :class="{ selected: selectedSceneObjectIndex === index }"
-            :style="{ paddingLeft: `${item.depth * 25}px` }"
-            @click="handleSelectSceneObject(index)"
-          >
-            {{ item.name }}
-          </div>
-        </div>
+            :class="{ selected: selectedSceneObjectId === item.node.componentId }"
+            :style="{ paddingLeft: `${10 + item.depth * 10}px` }"
+            @click="handleSelectSceneObject(item.node.componentId)"
+          ><span v-if="item.depth > 0" class="tree-prefix">└ </span>{{ item.node.name }}</li>
+        </ul>
       </div>
 
       <!-- Selected Scene Object Properties -->
@@ -192,17 +190,15 @@ const mikanStore = useMikanStore()
 
 // Selection state
 const selectedSceneId = ref<number>(-1)
-const selectedSceneObjectIndex = ref<number>(-1)
+const selectedSceneObjectId = ref<number>(-1)
 
-interface SceneOutlinerItem {
+interface SceneOutlinerNode {
   name: string
-  depth: number
   componentId: number
   ownerSystem: string
   componentType: string
+  children: SceneOutlinerNode[]
 }
-
-const sceneOutliner = ref<SceneOutlinerItem[]>([])
 
 // Get components by system
 const sceneComponents = computed(() =>
@@ -247,97 +243,86 @@ const newActorParentTransformId = computed<number>(() =>
   selectedSceneObject.value?.componentId ?? selectedSceneId.value
 )
 
-// Get the selected scene object
-const selectedSceneObject = computed(() => {
-  if (selectedSceneObjectIndex.value === -1 || selectedSceneObjectIndex.value >= sceneOutliner.value.length) {
-    return null
-  }
-
-  const item = sceneOutliner.value[selectedSceneObjectIndex.value]
-  const component = componentStore.getComponent(item.componentId, item.ownerSystem)
-
-  return {
-    componentId: item.componentId,
-    component: component,
-    ownerSystem: item.ownerSystem,
-    componentType: item.componentType
-  }
-})
-
-// Build the scene outliner tree using parent_transform_id hierarchy
-function buildSceneOutliner() {
-  sceneOutliner.value = []
-
-  if (selectedSceneId.value === -1) return
+// Build nested scene outliner tree using parent_transform_id hierarchy
+const sceneTree = computed<SceneOutlinerNode[]>(() => {
+  if (selectedSceneId.value === -1) return []
 
   interface ActorEntry {
     componentId: number
     ownerSystem: string
     componentType: string
     parentTransformId: number
+    name: string
   }
 
   const allActors: ActorEntry[] = []
 
   anchorComponents.value.forEach(c => {
     const comp = c as any
-    allActors.push({
-      componentId: comp.component_id,
-      ownerSystem: 'AnchorObjectSystem',
-      componentType: 'Anchor',
-      parentTransformId: comp.parent_transform_id ?? MikanConstants.InvalidMikanID
-    })
+    allActors.push({ componentId: comp.component_id, ownerSystem: 'AnchorObjectSystem', componentType: 'Anchor', parentTransformId: comp.parent_transform_id ?? MikanConstants.InvalidMikanID, name: comp.component_name || '<Unnamed>' })
   })
-
   quadStencilComponents.value.forEach(c => {
     const comp = c as any
-    allActors.push({
-      componentId: comp.component_id,
-      ownerSystem: 'QuadStencilSystem',
-      componentType: 'Quad Stencil',
-      parentTransformId: comp.parent_transform_id ?? MikanConstants.InvalidMikanID
-    })
+    allActors.push({ componentId: comp.component_id, ownerSystem: 'QuadStencilSystem', componentType: 'Quad Stencil', parentTransformId: comp.parent_transform_id ?? MikanConstants.InvalidMikanID, name: comp.component_name || '<Unnamed>' })
   })
-
   boxStencilComponents.value.forEach(c => {
     const comp = c as any
-    allActors.push({
-      componentId: comp.component_id,
-      ownerSystem: 'BoxStencilSystem',
-      componentType: 'Box Stencil',
-      parentTransformId: comp.parent_transform_id ?? MikanConstants.InvalidMikanID
-    })
+    allActors.push({ componentId: comp.component_id, ownerSystem: 'BoxStencilSystem', componentType: 'Box Stencil', parentTransformId: comp.parent_transform_id ?? MikanConstants.InvalidMikanID, name: comp.component_name || '<Unnamed>' })
   })
-
   modelStencilComponents.value.forEach(c => {
     const comp = c as any
-    allActors.push({
-      componentId: comp.component_id,
-      ownerSystem: 'ModelStencilSystem',
-      componentType: 'Model Stencil',
-      parentTransformId: comp.parent_transform_id ?? MikanConstants.InvalidMikanID
-    })
+    allActors.push({ componentId: comp.component_id, ownerSystem: 'ModelStencilSystem', componentType: 'Model Stencil', parentTransformId: comp.parent_transform_id ?? MikanConstants.InvalidMikanID, name: comp.component_name || '<Unnamed>' })
   })
 
-  // Recursively add children whose parent_transform_id matches parentId
-  function addChildren(parentId: number, depth: number) {
-    const children = allActors.filter(a => a.parentTransformId === parentId)
-    for (const child of children) {
-      const component = componentStore.getComponent(child.componentId, child.ownerSystem) as any
-      sceneOutliner.value.push({
-        name: component?.component_name || '<Unnamed>',
-        depth,
-        componentId: child.componentId,
-        ownerSystem: child.ownerSystem,
-        componentType: child.componentType
-      })
-      addChildren(child.componentId, depth + 1)
-    }
+  function buildChildren(parentId: number): SceneOutlinerNode[] {
+    return allActors
+      .filter(a => a.parentTransformId === parentId)
+      .map(a => ({
+        name: a.name,
+        componentId: a.componentId,
+        ownerSystem: a.ownerSystem,
+        componentType: a.componentType,
+        children: buildChildren(a.componentId)
+      }))
   }
 
-  // Start recursion from the scene component as the root
-  addChildren(selectedSceneId.value, 0)
+  return buildChildren(selectedSceneId.value)
+})
+
+// Flatten sceneTree into a depth-annotated list for flat rendering with indentation
+const flatSceneOutliner = computed(() => {
+  const result: { node: SceneOutlinerNode; depth: number }[] = []
+  function flatten(nodes: SceneOutlinerNode[], depth: number) {
+    for (const node of nodes) {
+      result.push({ node, depth })
+      flatten(node.children, depth + 1)
+    }
+  }
+  flatten(sceneTree.value, 0)
+  return result
+})
+
+function findNodeById(nodes: SceneOutlinerNode[], id: number): SceneOutlinerNode | null {
+  for (const node of nodes) {
+    if (node.componentId === id) return node
+    const found = findNodeById(node.children, id)
+    if (found) return found
+  }
+  return null
 }
+
+// Get the selected scene object
+const selectedSceneObject = computed(() => {
+  if (selectedSceneObjectId.value === -1) return null
+  const node = findNodeById(sceneTree.value, selectedSceneObjectId.value)
+  if (!node) return null
+  return {
+    componentId: node.componentId,
+    component: componentStore.getComponent(node.componentId, node.ownerSystem),
+    ownerSystem: node.ownerSystem,
+    componentType: node.componentType
+  }
+})
 
 // Initialize selected scene from the server's current_scene_id
 async function initializeFromCurrentScene() {
@@ -386,10 +371,9 @@ watch(sceneComponents, (newList, oldList) => {
   }
 })
 
-// Watch for scene changes to rebuild outliner
+// Watch for scene changes to clear outliner selection
 watch(selectedSceneId, () => {
-  buildSceneOutliner()
-  selectedSceneObjectIndex.value = -1
+  selectedSceneObjectId.value = -1
 })
 
 // Watch for component store changes - initialize if no scene is selected yet
@@ -424,8 +408,8 @@ function restoreSelectionState() {
 }
 
 // Handle scene object selection
-function handleSelectSceneObject(index: number) {
-  selectedSceneObjectIndex.value = index
+function handleSelectSceneObject(componentId: number) {
+  selectedSceneObjectId.value = componentId
 }
 
 // Remove the currently selected actor by dispatching to the right typed handler
@@ -521,7 +505,7 @@ async function handleRemoveAnchor() {
   if (!selectedSceneObject.value) { console.error('[ProjectScenes] No scene object selected'); return }
   if (!mikanStore.client) { console.error('[ProjectScenes] No client connection'); return }
   await componentStore.destroyObject(mikanStore.client as MikanClient, 'AnchorComponent', selectedSceneObject.value.componentId)
-  selectedSceneObjectIndex.value = -1
+  selectedSceneObjectId.value = -1
 }
 
 async function handleAddQuadStencil() {
@@ -549,7 +533,7 @@ async function handleRemoveQuadStencil() {
   if (!selectedSceneObject.value) { console.error('[ProjectScenes] No scene object selected'); return }
   if (!mikanStore.client) { console.error('[ProjectScenes] No client connection'); return }
   await componentStore.destroyObject(mikanStore.client as MikanClient, 'QuadStencilComponent', selectedSceneObject.value.componentId)
-  selectedSceneObjectIndex.value = -1
+  selectedSceneObjectId.value = -1
 }
 
 async function handleAddBoxStencil() {
@@ -577,7 +561,7 @@ async function handleRemoveBoxStencil() {
   if (!selectedSceneObject.value) { console.error('[ProjectScenes] No scene object selected'); return }
   if (!mikanStore.client) { console.error('[ProjectScenes] No client connection'); return }
   await componentStore.destroyObject(mikanStore.client as MikanClient, 'BoxStencilComponent', selectedSceneObject.value.componentId)
-  selectedSceneObjectIndex.value = -1
+  selectedSceneObjectId.value = -1
 }
 
 async function handleAddModelStencil() {
@@ -603,7 +587,7 @@ async function handleRemoveModelStencil() {
   if (!selectedSceneObject.value) { console.error('[ProjectScenes] No scene object selected'); return }
   if (!mikanStore.client) { console.error('[ProjectScenes] No client connection'); return }
   await componentStore.destroyObject(mikanStore.client as MikanClient, 'ModelStencilComponent', selectedSceneObject.value.componentId)
-  selectedSceneObjectIndex.value = -1
+  selectedSceneObjectId.value = -1
 }
 
 // Initialize on mount
@@ -727,6 +711,9 @@ onMounted(() => {
 }
 
 .scene-outliner {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   border: 1px solid #404040;
   border-radius: 4px;
   background: rgba(0, 0, 0, 0.2);
@@ -735,11 +722,18 @@ onMounted(() => {
 }
 
 .outliner-item {
-  padding: 8px 12px;
+  padding: 6px 12px 6px 12px; /* left overridden per-item by depth-based inline style */
   color: #fff;
   cursor: pointer;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   transition: background-color 0.2s;
+  font-size: 13px;
+  text-align: left; 
+}
+
+.tree-prefix {
+  color: rgba(255, 255, 255, 0.35);
+  user-select: none;
 }
 
 .outliner-item:hover {
