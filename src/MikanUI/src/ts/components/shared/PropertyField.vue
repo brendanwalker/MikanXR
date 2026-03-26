@@ -23,7 +23,10 @@
       v-else-if="fieldType === 'number'"
       :model-value="fieldValue"
       @update:model-value="handleNumberChange"
-      :step="0.01"
+      :step="isIntegerField ? 1 : 0.01"
+      :precision="isIntegerField ? 0 : 3"
+      :min="min"
+      :max="max"
       class="property-number"
     />
 
@@ -145,6 +148,8 @@ interface Props {
   componentId: number
   /** Serialization type string, e.g. 'enum:MikanStencilCullMode'. Optional. */
   fieldMetaType?: string
+  min?: number
+  max?: number
 }
 
 const props = defineProps<Props>()
@@ -173,6 +178,13 @@ const normalizedEnumValue = computed(() => {
     if (match) return match.value
   }
   return props.fieldValue
+})
+
+// True for integer serialization types (int8/16/32, uint8/16/32)
+const isIntegerField = computed(() => {
+  const t = props.fieldMetaType
+  return t === 'int8' || t === 'int16' || t === 'int32' ||
+         t === 'uint8' || t === 'uint16' || t === 'uint32'
 })
 
 // Determine field type

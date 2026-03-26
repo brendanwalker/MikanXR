@@ -43,7 +43,76 @@
           :component="selectedMarkerComponent"
           owner-system="MarkerObjectSystem"
           :editable="true"
+          :field-constraints="markerComponentFieldConstraints"
         />
+      </div>
+
+      <!-- ArUco Settings -->
+      <div v-if="markerSystemValues" class="settings-section">
+        <h3>ArUco Settings</h3>
+        <div class="property-row">
+          <label class="property-label">Dictionary</label>
+          <select
+            class="property-select"
+            :value="markerSystemValues.aruco_dictionary_type"
+            @change="setSystemProperty('aruco_dictionary_type', parseInt(($event.target as HTMLSelectElement).value))"
+          >
+            <option v-for="opt in dictionaryTypeOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ChArUco Settings -->
+      <div v-if="markerSystemValues" class="settings-section">
+        <h3>ChArUco Settings</h3>
+        <div class="property-row">
+          <label class="property-label">Dictionary</label>
+          <select
+            class="property-select"
+            :value="markerSystemValues.charuco_dictionary_type"
+            @change="setSystemProperty('charuco_dictionary_type', parseInt(($event.target as HTMLSelectElement).value))"
+          >
+            <option v-for="opt in dictionaryTypeOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+          </select>
+        </div>
+        <div class="property-row">
+          <label class="property-label">Rows</label>
+          <select
+            class="property-select"
+            :value="markerSystemValues.charuco_rows"
+            @change="setSystemProperty('charuco_rows', parseInt(($event.target as HTMLSelectElement).value))"
+          >
+            <option v-for="n in [4,5,6,7,8,9,10,11,12,13,14,15]" :key="n" :value="n">{{ n }}</option>
+          </select>
+        </div>
+        <div class="property-row">
+          <label class="property-label">Cols</label>
+          <select
+            class="property-select"
+            :value="markerSystemValues.charuco_cols"
+            @change="setSystemProperty('charuco_cols', parseInt(($event.target as HTMLSelectElement).value))"
+          >
+            <option v-for="n in [4,5,6,7,8,9,10,11,12,13,14,15]" :key="n" :value="n">{{ n }}</option>
+          </select>
+        </div>
+        <div class="property-row">
+          <label class="property-label">Square Length (mm)</label>
+          <input
+            type="number"
+            class="property-input"
+            :value="markerSystemValues.charuco_square_length_mm"
+            @change="setSystemProperty('charuco_square_length_mm', parseFloat(($event.target as HTMLInputElement).value))"
+          />
+        </div>
+        <div class="property-row">
+          <label class="property-label">Marker Length (mm)</label>
+          <input
+            type="number"
+            class="property-input"
+            :value="markerSystemValues.charuco_marker_length_mm"
+            @change="setSystemProperty('charuco_marker_length_mm', parseFloat(($event.target as HTMLInputElement).value))"
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -54,7 +123,83 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useComponentStore } from '../../../stores/componentStore.js'
 import { useMikanStore } from '../../../stores/mikanStore.js'
 import ComponentCard from '../../shared/ComponentCard.vue'
-import { MikanClient, MikanAPIResult, MikanMarkerComponentValues, GetArucoMarkerImageRequest, ArucoMarkerImageResponse, CLASS_ID_GET_ARUCO_MARKER_IMAGE_REQUEST } from '@mikanxr/client'
+import { MikanClient, MikanAPIResult, MikanMarkerComponentValues, GetArucoMarkerImageRequest, ArucoMarkerImageResponse, CLASS_ID_GET_ARUCO_MARKER_IMAGE_REQUEST, CLASS_ID_SYSTEM_GET_VALUES_REQUEST, SystemGetValuesRequest, SystemGetValuesResponse, MikanMarkerSystemValues, MikanMarkerDictionaryType, PropertySetValueRequest, CLASS_ID_PROPERTY_SET_VALUE_REQUEST } from '@mikanxr/client'
+import { usePropertyEditor } from '../../../composables/usePropertyEditor.js'
+
+const { createVariantFromValue } = usePropertyEditor()
+
+// Marker system values state
+const markerSystemValues = ref<MikanMarkerSystemValues | null>(null)
+
+const ARUCO_DICT_MAX_ID: Record<number, number> = {
+  [MikanMarkerDictionaryType.DICT_4x4]: 19,
+  [MikanMarkerDictionaryType.DICT_5x5]: 24,
+  [MikanMarkerDictionaryType.DICT_6x6]: 35,
+  [MikanMarkerDictionaryType.DICT_7x7]: 78,
+}
+
+const markerComponentFieldConstraints = computed(() => {
+  const dictType = markerSystemValues.value?.aruco_dictionary_type ?? MikanMarkerDictionaryType.DICT_4x4
+  const maxId = ARUCO_DICT_MAX_ID[dictType] ?? 78
+  return {
+    aruco_id: { min: -1, max: maxId }
+  }
+})
+
+const dictionaryTypeOptions = [
+  { value: MikanMarkerDictionaryType.DICT_4x4, label: '4x4' },
+  { value: MikanMarkerDictionaryType.DICT_5x5, label: '5x5' },
+  { value: MikanMarkerDictionaryType.DICT_6x6, label: '6x6' },
+  { value: MikanMarkerDictionaryType.DICT_7x7, label: '7x7' },
+]
+
+async function fetchMarkerSystemValues() {
+  const client = mikanStore.client as MikanClient | null
+  if (!client) return
+
+  try {
+    const request: SystemGetValuesRequest = {
+      requestTypeId: CLASS_ID_SYSTEM_GET_VALUES_REQUEST,
+      requestTypeName: 'SystemGetValuesRequest',
+      requestId: 0,
+      ownerSystem: 'MarkerObjectSystem'
+    }
+
+    const future = client.sendRequest(request)
+    const response = await future.await() as SystemGetValuesResponse
+
+    if (response.resultCode === 0) {
+      console.log('[ProjectMarkers] Fetched marker system values: ', response.valuesObject.instance)
+      markerSystemValues.value = response.valuesObject.instance as MikanMarkerSystemValues
+    } else {
+      console.error('[ProjectMarkers] Failed to fetch marker system values: error code', response.resultCode)
+    }
+  } catch (error) {
+    console.error('[ProjectMarkers] Failed to fetch marker system values:', error)
+  }
+}
+
+async function setSystemProperty(fieldName: string, value: any) {
+  const client = mikanStore.client as MikanClient | null
+  if (!client) return
+
+  try {
+    const request: PropertySetValueRequest = {
+      requestTypeId: CLASS_ID_PROPERTY_SET_VALUE_REQUEST,
+      requestTypeName: 'PropertySetValueRequest',
+      requestId: 0,
+      ownerSystem: 'MarkerObjectSystem',
+      componentId: -1,
+      fieldName,
+      fieldValue: createVariantFromValue(value)
+    }
+
+    const future = client.sendRequest(request)
+    await future.await()
+  } catch (error) {
+    console.error(`[ProjectMarkers] Failed to set system property "${fieldName}":`, error)
+  }
+}
 
 // Marker image state
 const markerImageUrl = ref<string | null>(null)
@@ -173,7 +318,7 @@ function restoreSelectionState() {
 }
 
 // Initialize on mount
-onMounted(() => {
+onMounted(async () => {
   restoreSelectionState()
   // Apply auto-select in case the store is already populated
   const components = markerComponents.value
@@ -182,6 +327,7 @@ onMounted(() => {
   } else if (selectedMarkerId.value === -1 || !components.some(c => c.component_id === selectedMarkerId.value)) {
     selectedMarkerId.value = components[components.length - 1].component_id
   }
+  await fetchMarkerSystemValues()
 })
 </script>
 
@@ -277,6 +423,73 @@ onMounted(() => {
   border: 1px solid #404040;
   border-radius: 4px;
   padding: 12px;
+}
+
+.settings-section {
+  background-color: #2d2d2d;
+  border: 1px solid #404040;
+  border-radius: 4px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settings-section h3 {
+  color: #5cb85c;
+  margin: 0 0 4px 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.property-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.property-label {
+  color: #ffffff;
+  font-size: 14px;
+  min-width: 140px;
+  flex-shrink: 0;
+}
+
+.property-select {
+  flex: 1;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.property-select:focus {
+  outline: none;
+  border-color: #5cb85c;
+}
+
+.property-select option {
+  background: #2d2d2d;
+  color: #fff;
+}
+
+.property-input {
+  flex: 1;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: #fff;
+  font-size: 14px;
+  max-width: 100px;
+}
+
+.property-input:focus {
+  outline: none;
+  border-color: #5cb85c;
 }
 
 /* Icon button styles now imported from common-buttons.css */

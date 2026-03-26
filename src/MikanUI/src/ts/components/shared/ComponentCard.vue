@@ -18,6 +18,8 @@
             :owner-system="ownerSystem"
             :component-id="componentId"
             :field-meta-type="getFieldMetaType((component as any).component_class || '', key)"
+            :min="fieldConstraints?.[key]?.min"
+            :max="fieldConstraints?.[key]?.max"
             @update="handlePropertyUpdate"
           />
         </div>
@@ -46,6 +48,11 @@ import { useFieldMetadata } from '../../composables/useFieldMetadata.js'
 import { useComponentStore } from '../../stores/componentStore.js'
 import { useMikanStore } from '../../stores/mikanStore.js'
 
+interface FieldConstraint {
+  min?: number
+  max?: number
+}
+
 interface Props {
   componentId: number
   component: MikanComponentValues
@@ -54,6 +61,7 @@ interface Props {
   selectable?: boolean
   isSelected?: boolean
   editable?: boolean
+  fieldConstraints?: Record<string, FieldConstraint>
 }
 
 const props = withDefaults(defineProps<Props>(), {
