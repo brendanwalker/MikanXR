@@ -31,7 +31,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanMarkerTypes")) MikanM
 	FIELD()
 	Serialization::List<int> aruco_id_list;
 	FIELD()
-	MikanMarkerDictionaryType aruco_dictionary_type;
+	MikanMarkerDictionaryType aruco_dictionary_type = MikanMarkerDictionaryType::INVALID;
 	FIELD()
 	int charuco_rows= 0;
 	FIELD()

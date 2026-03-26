@@ -26,7 +26,7 @@ export class MikanMarkerComponentValues extends MikanComponentValues {
 
 export class MikanMarkerSystemValues extends MikanSystemValues {
   aruco_id_list: number[] = [];
-  aruco_dictionary_type: MikanMarkerDictionaryType = MikanMarkerDictionaryType.DICT_4x4;
+  aruco_dictionary_type: MikanMarkerDictionaryType = MikanMarkerDictionaryType.INVALID;
   charuco_rows: number = 0;
   charuco_cols: number = 0;
   charuco_square_length_mm: number = 0;
