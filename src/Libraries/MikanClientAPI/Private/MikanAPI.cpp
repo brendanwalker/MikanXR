@@ -28,6 +28,7 @@
 #include "MikanFunctionRequests.rfks.h"
 
 #include "MikanMarkerTypes.rfks.h"
+#include "MikanMarkerRequests.rfks.h"
 
 #include "MikanMathTypes.rfks.h"
 

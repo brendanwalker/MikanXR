@@ -35,6 +35,9 @@
       <!-- Selected Marker Component -->
       <div v-if="selectedMarkerId !== -1 && selectedMarkerComponent" class="component-section">
         <h3>Marker Component</h3>
+        <div v-if="markerImageUrl" class="marker-preview">
+          <img :src="markerImageUrl" alt="AruCo Marker" class="marker-image" />
+        </div>
         <ComponentCard
           :component-id="selectedMarkerId"
           :component="selectedMarkerComponent"
@@ -51,7 +54,44 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useComponentStore } from '../../../stores/componentStore.js'
 import { useMikanStore } from '../../../stores/mikanStore.js'
 import ComponentCard from '../../shared/ComponentCard.vue'
-import { MikanClient } from '@mikanxr/client'
+import { MikanClient, MikanAPIResult, MikanMarkerComponentValues, GetArucoMarkerImageRequest, ArucoMarkerImageResponse, CLASS_ID_GET_ARUCO_MARKER_IMAGE_REQUEST } from '@mikanxr/client'
+
+// Marker image state
+const markerImageUrl = ref<string | null>(null)
+const markerImageCache = new Map<number, string>()
+
+async function fetchMarkerImage(arucoId: number) {
+  if (!mikanStore.client) return
+
+  const cached = markerImageCache.get(arucoId)
+  if (cached) {
+    markerImageUrl.value = cached
+    return
+  }
+
+  try {
+    const request: GetArucoMarkerImageRequest = {
+      requestTypeId: CLASS_ID_GET_ARUCO_MARKER_IMAGE_REQUEST,
+      requestTypeName: 'GetArucoMarkerImageRequest',
+      markerId: arucoId,
+      imageSize: 0,
+      requestId: 0
+    }    
+    const future = (mikanStore.client as MikanClient).sendRequest(request)
+    const response = await future.getResponse()
+
+    if (response.resultCode === MikanAPIResult.Success) {
+      const imageResponse = response as ArucoMarkerImageResponse
+      if (imageResponse.imageData) {
+        const dataUrl = `data:image/png;base64,${imageResponse.imageData}`
+        markerImageCache.set(arucoId, dataUrl)
+        markerImageUrl.value = dataUrl
+      }
+    }
+  } catch (err) {
+    console.error('[ProjectMarkers] Failed to fetch marker image:', err)
+  }
+}
 
 const componentStore = useComponentStore()
 const mikanStore = useMikanStore()
@@ -91,6 +131,18 @@ async function handleRemoveMarker() {
   await componentStore.destroyObject(mikanStore.client as MikanClient, 'MarkerComponent', selectedMarkerId.value)
   selectedMarkerId.value = -1
 }
+
+// Fetch marker image when the selected component or its aruco_id changes
+watch(
+  () => (selectedMarkerComponent.value as MikanMarkerComponentValues | null | undefined)?.aruco_id,
+  (arucoId) => {
+    if (arucoId !== undefined && arucoId >= 0) {
+      fetchMarkerImage(arucoId)
+    } else {
+      markerImageUrl.value = null
+    }
+  }
+)
 
 // Persist selection state
 watch(selectedMarkerId, (newValue) => {

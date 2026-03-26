@@ -463,14 +463,8 @@ async function handleAddCompositor() {
   if (selectedSceneId.value === -1) { console.error('[ProjectScenes] No scene selected'); return }
 
   const initValues = new MikanCompositorComponentValues()
-  initValues.component_id = 0
-  initValues.component_name = ''
-  initValues.component_script = ''
-  ;(initValues as any).owner_scene_id = selectedSceneId.value
+  initValues.owner_scene_id = selectedSceneId.value
   initValues.camera_id = MikanConstants.InvalidMikanID
-  initValues.compositor_graph_path = ''
-  initValues.spout_enable_output = false
-  initValues.spout_output_name = ''
 
   const initParams = new PolymorphicObject(initValues, CLASS_ID_MIKAN_COMPOSITOR_COMPONENT_VALUES, 'MikanCompositorComponentValues')
   await componentStore.createObject(mikanStore.client as MikanClient, 'CompositorComponent', initParams)

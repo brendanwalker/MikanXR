@@ -1,6 +1,7 @@
 //-- includes -----
 #include "CameraRequestHandler.h"
 #include "FunctionRequestHandler.h"
+#include "MarkerRequestHandler.h"
 #include "JsonDeserializer.h"
 #include "JsonSerializer.h"
 #include "Logger.h"
@@ -47,6 +48,7 @@ MikanServer::MikanServer()
 	, m_functionRequestHandler(new FunctionRequestHandler(this))
 	, m_propertyRequestHandler(new PropertyRequestHandler(this))
 	, m_remoteControlManager(new RemoteControlManager(this))
+	, m_markerRequestHandler(new MarkerRequestHandler(this))
 	, m_scriptRequestHandler(new ScriptRequestHandler(this))
 	, m_stencilRequestHandler(new StencilRequestHandler(this))
 	, m_textureSourceRequestHandler(new TextureSourceRequestHandler(this))
@@ -59,6 +61,7 @@ MikanServer::~MikanServer()
 {
 	delete m_videoSourceRequestHandler;
 	delete m_textureSourceRequestHandler;
+	delete m_markerRequestHandler;
 	delete m_stencilRequestHandler;
 	delete m_scriptRequestHandler;
 	delete m_remoteControlManager;
@@ -104,6 +107,12 @@ bool MikanServer::startup(MainWindow* mainWindow)
 	if (!m_scriptRequestHandler->startup(mainWindow))
 	{
 		MIKAN_LOG_ERROR("MikanServer::startup()") << "Failed to bind script request handlers";
+		return false;
+	}
+
+	if (!m_markerRequestHandler->startup(mainWindow))
+	{
+		MIKAN_LOG_ERROR("MikanServer::startup()") << "Failed to bind marker request handlers";
 		return false;
 	}
 
@@ -175,6 +184,7 @@ void MikanServer::shutdown()
 	m_functionRequestHandler->shutdown();
 	m_propertyRequestHandler->shutdown();
 	m_scriptRequestHandler->shutdown();
+	m_markerRequestHandler->shutdown();
 	m_stencilRequestHandler->shutdown();
 	m_remoteControlManager->shutdown();
 	m_textureSourceRequestHandler->shutdown();

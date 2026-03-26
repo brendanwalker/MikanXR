@@ -80,4 +80,9 @@ namespace StringUtils
 	/// \param format The formatting string that will be written to the buffer
 	/// \return The number of characters successfully written
 	MIKAN_UTILITY_FUNC(int) formatWString(wchar_t* buffer, size_t buffer_size, const wchar_t* format, ...);
+
+	/// Encodes a vector of bytes into a Base64 string.
+	/// \param data The vector of bytes to encode.
+	/// \return A Base64 encoded string.
+	MIKAN_UTILITY_FUNC(std::string) base64Encode(const std::vector<uint8_t>& data);
 };

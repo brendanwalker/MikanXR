@@ -142,4 +142,27 @@ namespace StringUtils
 
 		return chars_written;
 	}
+
+	std::string base64Encode(const std::vector<uint8_t>& data)
+	{
+		static const char kBase64Chars[] =
+			"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+		std::string result;
+		const size_t size = data.size();
+		result.reserve(((size + 2) / 3) * 4);
+
+		for (size_t i = 0; i < size; i += 3)
+		{
+			uint32_t group = static_cast<uint32_t>(data[i]) << 16;
+			if (i + 1 < size) group |= static_cast<uint32_t>(data[i + 1]) << 8;
+			if (i + 2 < size) group |= static_cast<uint32_t>(data[i + 2]);
+
+			result += kBase64Chars[(group >> 18) & 0x3F];
+			result += kBase64Chars[(group >> 12) & 0x3F];
+			result += (i + 1 < size) ? kBase64Chars[(group >> 6) & 0x3F] : '=';
+			result += (i + 2 < size) ? kBase64Chars[(group >> 0) & 0x3F] : '=';
+		}
+		return result;
+	}
 };

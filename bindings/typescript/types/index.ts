@@ -16,6 +16,7 @@ export * from './MikanCoreTypes.js';
 export * from './MikanEditorTypes.js';
 export * from './MikanFunctionRequests.js';
 export * from './MikanFunctionTypes.js';
+export * from './MikanMarkerRequests.js';
 export * from './MikanMarkerTypes.js';
 export * from './MikanMathTypes.js';
 export * from './MikanPropertyEvents.js';
