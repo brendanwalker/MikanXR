@@ -133,13 +133,19 @@ export class MikanRequestManager {
         parsed.responseTypeId = BigInt(parsed.responseTypeId);
       }
 
-      // NOTE: For advanced serialization with complex types, you can use:
-      // const responseType = TypeRegistry.get(parsed.responseTypeName);
-      // if (responseType) {
-      //   const response = new responseType();
-      //   deserializeFromJsonString(responseJson, response, responseType);
-      //   return response;
-      // }
+      // Use visitor-based deserialization when the response type is registered.
+      // This correctly handles nested PolymorphicObject fields (e.g. valuesObject)
+      // by calling setInstance() so that .instance returns the proper typed object.
+      const responseType = TypeRegistry.get(parsed.responseTypeName);
+      if (responseType) {
+        const response = new responseType();
+        deserializeFromJsonString(responseJson, response, responseType);
+        return response as MikanResponse;
+      }
+
+      // Fallback for unknown response types: shallow-copy JSON fields.
+      // PolymorphicObject fields will be plain objects ({class_id, class_name, value})
+      // rather than proper PolymorphicObject instances in this path.
 
       // Parse resultCode - can be either a number or string enum name
       let resultCode = MikanAPIResult.Success;

@@ -109,13 +109,26 @@ export interface FieldMetadata {
 }
 
 /**
- * Get serialization metadata for a class
+ * Get serialization metadata for a class, walking the prototype chain so that
+ * inherited fields from parent classes are included (parent fields first).
  */
 export function getSerializationMetadata(instance: any): FieldMetadata[] {
-  if (!instance || !instance.constructor || !instance.constructor.__serializationMetadata) {
+  if (!instance || !instance.constructor) {
     return [];
   }
-  return instance.constructor.__serializationMetadata;
+
+  // Collect metadata arrays from each class in the hierarchy, stopping at Object.
+  // We push each layer to the front so parent class fields come first.
+  const chain: FieldMetadata[][] = [];
+  let ctor = instance.constructor;
+  while (ctor && ctor !== Object) {
+    if (Object.prototype.hasOwnProperty.call(ctor, '__serializationMetadata')) {
+      chain.unshift(ctor.__serializationMetadata);
+    }
+    ctor = Object.getPrototypeOf(ctor);
+  }
+
+  return chain.flat();
 }
 
 /**

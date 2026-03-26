@@ -380,7 +380,7 @@ async function fetchSystemValues() {
     const response = await future.await() as SystemGetValuesResponse
 
     if (response.resultCode === 0) {
-      systemValues.value = response.valuesObject.value as MikanUSBVideoSourceSystemValues
+      systemValues.value = response.valuesObject.instance as MikanUSBVideoSourceSystemValues
     }
   } catch (error) {
     console.error('[VideoSourceSettings] Failed to fetch system values:', error)

@@ -297,6 +297,11 @@ protected:
 				return false;
 			}
 
+			if (!generateTypeScriptTypeRegistrationFile(absOutputPath, codeGenDatabase))
+			{
+				return false;
+			}
+
 			if (!generateTypeScriptIndexFile(absOutputPath, codeGenDatabase))
 			{
 				return false;
@@ -325,8 +330,9 @@ protected:
 				moduleFile << "export * from './" << moduleName << ".js';" << std::endl;
 			}
 
-			// Re-export the generated enum registration helper
+			// Re-export the generated registration helpers
 			moduleFile << "export * from './EnumRegistration.js';" << std::endl;
+			moduleFile << "export * from './TypeRegistration.js';" << std::endl;
 
 			moduleFile.close();
 		}
@@ -396,6 +402,69 @@ protected:
 		catch (std::exception* e)
 		{
 			MIKAN_LOG_ERROR("MikanClientCodeGen") << "Failed to write EnumRegistration file: " << filePath;
+			return false;
+		}
+
+		return true;
+	}
+
+	bool generateTypeScriptTypeRegistrationFile(
+		const std::filesystem::path& absOutputPath,
+		CodeGenDatabase const& codeGenDatabase)
+	{
+		std::filesystem::path filePath = absOutputPath / "TypeRegistration.ts";
+
+		// Build (moduleName -> [classNames]) map, preserving module iteration order
+		std::map<std::string, std::vector<std::string>> moduleToClasses;
+		std::vector<std::string> allClassNames; // ordered for registration calls
+
+		for (auto const& [moduleName, modulePtr] : codeGenDatabase.modules)
+		{
+			for (rfk::Struct const* structRef : modulePtr->serializableStructs)
+			{
+				const std::string className = structRef->getName();
+				moduleToClasses[moduleName].push_back(className);
+				allClassNames.push_back(className);
+			}
+		}
+
+		try
+		{
+			std::ofstream file(filePath);
+			file << "// This file is auto generated. DO NOT EDIT." << std::endl;
+			file << std::endl;
+			file << "import { TypeRegistry } from '../Serialization/JsonDeserializer.js';" << std::endl;
+
+			// One import line per module that has classes
+			for (auto const& [moduleName, classNames] : moduleToClasses)
+			{
+				file << "import { ";
+				for (size_t i = 0; i < classNames.size(); ++i)
+				{
+					if (i > 0) file << ", ";
+					file << classNames[i];
+				}
+				file << " } from './" << moduleName << ".js';" << std::endl;
+			}
+
+			file << std::endl;
+			file << "export function registerAllTypes(): void {" << std::endl;
+			for (const std::string& className : allClassNames)
+			{
+				file << "  TypeRegistry.register('" << className << "', " << className << ");" << std::endl;
+			}
+			file << "}" << std::endl;
+			file << std::endl;
+			file << "// Auto-register when this module is first imported." << std::endl;
+			file << "// Because this file is re-exported from types/index.ts -> bindings/index.ts," << std::endl;
+			file << "// this call runs automatically the moment any symbol from @mikanxr/client is imported." << std::endl;
+			file << "registerAllTypes();" << std::endl;
+
+			file.close();
+		}
+		catch (std::exception* e)
+		{
+			MIKAN_LOG_ERROR("MikanClientCodeGen") << "Failed to write TypeRegistration file: " << filePath;
 			return false;
 		}
 

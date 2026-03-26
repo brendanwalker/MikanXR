@@ -89,7 +89,7 @@ async function fetchUSBDeviceMap() {
     const response = await future.await() as SystemGetValuesResponse
 
     if (response.resultCode === 0) {
-      const systemValues = response.valuesObject.value as MikanUSBVideoSourceSystemValues
+      const systemValues = response.valuesObject.instance as MikanUSBVideoSourceSystemValues
       usbDeviceMap.value = systemValues.usb_device_map || []
       console.log('[USBVideoSourceCard] Fetched USB device map:', usbDeviceMap.value)      
     }

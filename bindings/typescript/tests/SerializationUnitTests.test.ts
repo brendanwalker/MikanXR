@@ -19,10 +19,34 @@ import {
   TypeRegistry
 } from '../Serialization';
 
+import {
+  MikanVariant,
+  MikanVariantType,
+  MikanIntValue,
+  MikanFloatValue,
+  MikanStringValue,
+  MikanVector3fValue,
+  CLASS_ID_MIKAN_INT_VALUE,
+  CLASS_ID_MIKAN_FLOAT_VALUE,
+  CLASS_ID_MIKAN_STRING_VALUE,
+  CLASS_ID_MIKAN_VECTOR3F_VALUE,
+} from '../types/MikanVariantTypes';
+import { MikanVector3f } from '../types/MikanMathTypes';
+import { SystemGetValuesResponse } from '../types/MikanPropertyRequests';
+import { MikanMarkerSystemValues, MikanMarkerDictionaryType, CLASS_ID_MIKAN_MARKER_SYSTEM_VALUES } from '../types/MikanMarkerTypes';
+
 // Register types for polymorphic deserialization
 TypeRegistry.register('SerializationPoint2d', SerializationPoint2d);
 TypeRegistry.register('SerializationPoint3d', SerializationPoint3d);
 TypeRegistry.register('SerializationTestObject', SerializationTestObject);
+
+// Register real types needed for PolymorphicObject tests
+TypeRegistry.register('MikanIntValue', MikanIntValue);
+TypeRegistry.register('MikanFloatValue', MikanFloatValue);
+TypeRegistry.register('MikanStringValue', MikanStringValue);
+TypeRegistry.register('MikanVector3fValue', MikanVector3fValue);
+TypeRegistry.register('MikanMarkerSystemValues', MikanMarkerSystemValues);
+TypeRegistry.register('SystemGetValuesResponse', SystemGetValuesResponse);
 
 describe('SerializationUnitTests', () => {
   describe('JSON Serialization', () => {
@@ -342,6 +366,170 @@ describe('SerializationUnitTests', () => {
 
       expect(success).toBe(true);
       expect(deserialized.string_field).toBe('');
+    });
+  });
+
+  describe('PolymorphicObject Deserialization', () => {
+    // Helpers to build a MikanVariant with a typed value_ptr
+    function makeIntVariant(n: number): MikanVariant {
+      const v = new MikanVariant();
+      v.value_type = MikanVariantType.INT_TYPE;
+      const inner = new MikanIntValue();
+      inner.value = n;
+      v.value_ptr.setInstance(inner, CLASS_ID_MIKAN_INT_VALUE, 'MikanIntValue');
+      return v;
+    }
+
+    function makeFloatVariant(n: number): MikanVariant {
+      const v = new MikanVariant();
+      v.value_type = MikanVariantType.FLOAT_TYPE;
+      const inner = new MikanFloatValue();
+      inner.value = n;
+      v.value_ptr.setInstance(inner, CLASS_ID_MIKAN_FLOAT_VALUE, 'MikanFloatValue');
+      return v;
+    }
+
+    function makeStringVariant(s: string): MikanVariant {
+      const v = new MikanVariant();
+      v.value_type = MikanVariantType.MK_STRING_TYPE;
+      const inner = new MikanStringValue();
+      inner.value = s;
+      v.value_ptr.setInstance(inner, CLASS_ID_MIKAN_STRING_VALUE, 'MikanStringValue');
+      return v;
+    }
+
+    function makeVector3fVariant(x: number, y: number, z: number): MikanVariant {
+      const v = new MikanVariant();
+      v.value_type = MikanVariantType.VECTOR3F_TYPE;
+      const inner = new MikanVector3fValue();
+      inner.value = new MikanVector3f();
+      inner.value.x = x;
+      inner.value.y = y;
+      inner.value.z = z;
+      v.value_ptr.setInstance(inner, CLASS_ID_MIKAN_VECTOR3F_VALUE, 'MikanVector3fValue');
+      return v;
+    }
+
+    describe('JSON', () => {
+      it('should deserialize MikanVariant<MikanIntValue> with .instance set', () => {
+        const original = makeIntVariant(42);
+        const json = serializeToJsonString(original, MikanVariant);
+        const result = new MikanVariant();
+        expect(deserializeFromJsonString(json, result, MikanVariant)).toBe(true);
+
+        expect(result.value_type).toBe(MikanVariantType.INT_TYPE);
+        expect(result.value_ptr.instance).toBeInstanceOf(MikanIntValue);
+        expect((result.value_ptr.instance as MikanIntValue).value).toBe(42);
+      });
+
+      it('should deserialize MikanVariant<MikanFloatValue> with .instance set', () => {
+        const original = makeFloatVariant(3.14);
+        const json = serializeToJsonString(original, MikanVariant);
+        const result = new MikanVariant();
+        expect(deserializeFromJsonString(json, result, MikanVariant)).toBe(true);
+
+        expect(result.value_type).toBe(MikanVariantType.FLOAT_TYPE);
+        expect(result.value_ptr.instance).toBeInstanceOf(MikanFloatValue);
+        expect((result.value_ptr.instance as MikanFloatValue).value).toBeCloseTo(3.14);
+      });
+
+      it('should deserialize MikanVariant<MikanStringValue> with .instance set', () => {
+        const original = makeStringVariant('hello world');
+        const json = serializeToJsonString(original, MikanVariant);
+        const result = new MikanVariant();
+        expect(deserializeFromJsonString(json, result, MikanVariant)).toBe(true);
+
+        expect(result.value_type).toBe(MikanVariantType.MK_STRING_TYPE);
+        expect(result.value_ptr.instance).toBeInstanceOf(MikanStringValue);
+        expect((result.value_ptr.instance as MikanStringValue).value).toBe('hello world');
+      });
+
+      it('should deserialize MikanVariant<MikanVector3fValue> with .instance set', () => {
+        const original = makeVector3fVariant(1.0, 2.0, 3.0);
+        const json = serializeToJsonString(original, MikanVariant);
+        const result = new MikanVariant();
+        expect(deserializeFromJsonString(json, result, MikanVariant)).toBe(true);
+
+        expect(result.value_type).toBe(MikanVariantType.VECTOR3F_TYPE);
+        expect(result.value_ptr.instance).toBeInstanceOf(MikanVector3fValue);
+        const vec = (result.value_ptr.instance as MikanVector3fValue).value;
+        expect(vec.x).toBeCloseTo(1.0);
+        expect(vec.y).toBeCloseTo(2.0);
+        expect(vec.z).toBeCloseTo(3.0);
+      });
+
+      it('should deserialize SystemGetValuesResponse.valuesObject with .instance set', () => {
+        // Simulate the JSON a server would send for a SystemGetValuesResponse
+        // containing MikanMarkerSystemValues as the polymorphic payload
+        const markerValues = new MikanMarkerSystemValues();
+        markerValues.aruco_dictionary_type = MikanMarkerDictionaryType.DICT_5x5;
+        markerValues.charuco_rows = 7;
+        markerValues.charuco_cols = 5;
+        markerValues.charuco_square_length_mm = 25.0;
+        markerValues.charuco_marker_length_mm = 18.5;
+
+        const response = new SystemGetValuesResponse();
+        response.ownerSystem = 'MarkerObjectSystem';
+        response.valuesObject.setInstance(
+          markerValues,
+          CLASS_ID_MIKAN_MARKER_SYSTEM_VALUES,
+          'MikanMarkerSystemValues'
+        );
+
+        const json = serializeToJsonString(response, SystemGetValuesResponse);
+        const result = new SystemGetValuesResponse();
+        expect(deserializeFromJsonString(json, result, SystemGetValuesResponse)).toBe(true);
+
+        // Verify inherited MikanResponse fields were also deserialized
+        expect(result.requestId).toBe(response.requestId);
+        expect(result.resultCode).toBe(response.resultCode);
+        expect(result.ownerSystem).toBe('MarkerObjectSystem');
+        expect(result.valuesObject.instance).toBeInstanceOf(MikanMarkerSystemValues);
+        const mv = result.valuesObject.instance as MikanMarkerSystemValues;
+        expect(mv.aruco_dictionary_type).toBe(MikanMarkerDictionaryType.DICT_5x5);
+        expect(mv.charuco_rows).toBe(7);
+        expect(mv.charuco_cols).toBe(5);
+        expect(mv.charuco_square_length_mm).toBeCloseTo(25.0);
+        expect(mv.charuco_marker_length_mm).toBeCloseTo(18.5);
+      });
+    });
+
+    describe('Binary', () => {
+      it('should deserialize MikanVariant<MikanIntValue> with .instance set', () => {
+        const original = makeIntVariant(99);
+        const bytes = serializeToBytes(original, MikanVariant);
+        const result = new MikanVariant();
+        expect(deserializeFromBytes(bytes, result, MikanVariant)).toBe(true);
+
+        expect(result.value_type).toBe(MikanVariantType.INT_TYPE);
+        expect(result.value_ptr.instance).toBeInstanceOf(MikanIntValue);
+        expect((result.value_ptr.instance as MikanIntValue).value).toBe(99);
+      });
+
+      it('should deserialize MikanVariant<MikanStringValue> with .instance set', () => {
+        const original = makeStringVariant('binary test');
+        const bytes = serializeToBytes(original, MikanVariant);
+        const result = new MikanVariant();
+        expect(deserializeFromBytes(bytes, result, MikanVariant)).toBe(true);
+
+        expect(result.value_type).toBe(MikanVariantType.MK_STRING_TYPE);
+        expect(result.value_ptr.instance).toBeInstanceOf(MikanStringValue);
+        expect((result.value_ptr.instance as MikanStringValue).value).toBe('binary test');
+      });
+
+      it('should deserialize MikanVariant<MikanVector3fValue> with .instance set', () => {
+        const original = makeVector3fVariant(4.0, 5.0, 6.0);
+        const bytes = serializeToBytes(original, MikanVariant);
+        const result = new MikanVariant();
+        expect(deserializeFromBytes(bytes, result, MikanVariant)).toBe(true);
+
+        expect(result.value_type).toBe(MikanVariantType.VECTOR3F_TYPE);
+        expect(result.value_ptr.instance).toBeInstanceOf(MikanVector3fValue);
+        const vec = (result.value_ptr.instance as MikanVector3fValue).value;
+        expect(vec.x).toBeCloseTo(4.0);
+        expect(vec.y).toBeCloseTo(5.0);
+        expect(vec.z).toBeCloseTo(6.0);
+      });
     });
   });
 
