@@ -238,12 +238,14 @@ bool MarkerObjectSystem::getPropertyValue(
 	}
 	else if (propertyName == MarkerObjectSystemDefinition::k_arucoDictionaryTypePropertyId)
 	{
-		outValue = (int)markerSystemDefinition->getArucoDictionaryType();
+		int enumIntValue = (int)markerSystemDefinition->getArucoDictionaryType();
+		outValue = enumIntValue;
 		return true;
 	}
 	else if (propertyName == MarkerObjectSystemDefinition::k_charucoDictionaryTypePropertyId)
 	{
-		outValue = (int)markerSystemDefinition->getCharucoDictionaryType();
+		int enumIntValue = (int)markerSystemDefinition->getCharucoDictionaryType();
+		outValue = enumIntValue;
 		return true;
 	}
 	else if (propertyName == MarkerObjectSystemDefinition::k_charucoRowsPropertyId)

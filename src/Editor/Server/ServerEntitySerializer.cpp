@@ -485,36 +485,11 @@ namespace Serialization
 			if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
 				sourcePropertyValue.value_type == MikanVariantType::INT)
 			{
+				const int sourceEnumIntValue = sourcePropertyValue.getIntValue();
+
 				rfk::Enum const& enumType = *accessor.getEnumType();
 				rfk::Archetype const& enumArchetype = enumType.getUnderlyingArchetype();
-				const void* untypedValue = accessor.getUntypedValuePtr();
-
-				int64_t enumIntValue = 0;
-				if (enumArchetype.getMemorySize() == sizeof(int64_t))
-				{
-					enumIntValue = *reinterpret_cast<const int64_t*>(untypedValue);
-				}
-				else if (enumArchetype.getMemorySize() == sizeof(int32_t))
-				{
-					enumIntValue = (int64_t)(*reinterpret_cast<const int32_t*>(untypedValue));
-				}
-				else if (enumArchetype.getMemorySize() == sizeof(int16_t))
-				{
-					enumIntValue = (int64_t)(*reinterpret_cast<const int16_t*>(untypedValue));
-				}
-				else if (enumArchetype.getMemorySize() == sizeof(int8_t))
-				{
-					enumIntValue = (int64_t)(*reinterpret_cast<const int8_t*>(untypedValue));
-				}
-				else
-				{
-					throw std::runtime_error(
-						StringUtils::stringify("EntityAccessorReadVisitor::visitEnum() ",
-							"Enum Accessor ", accessor.getName(),
-							" has an invalid memory size ", enumArchetype.getMemorySize()));
-				}
-
-				rfk::EnumValue const* enumValue = enumType.getEnumValue(enumIntValue);
+				rfk::EnumValue const* enumValue = enumType.getEnumValue(sourceEnumIntValue);
 
 				if (enumValue != nullptr)
 				{
@@ -536,7 +511,7 @@ namespace Serialization
 					throw std::runtime_error(
 						StringUtils::stringify("EntityAccessorReadVisitor::visitEnum() ",
 							"Enum Accessor ", accessor.getName(),
-							" has an invalid value ", enumIntValue));
+							" has an invalid value ", sourceEnumIntValue));
 				}
 			}
 			else
