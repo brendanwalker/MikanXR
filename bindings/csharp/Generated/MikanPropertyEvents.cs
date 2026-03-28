@@ -7,6 +7,11 @@ namespace MikanXR
 	public class MikanPropertyUpdateEvent : MikanEvent
 	{
 		public MikanPropertyValue propertyValue;
+
+		public MikanPropertyUpdateEvent()
+		{
+			eventTypeName = "MikanPropertyUpdateEvent";
+		}
 	};
 
 }

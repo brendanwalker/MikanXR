@@ -15,6 +15,11 @@ namespace MikanXR
 		public MikanVector2d principal_point;
 		public MikanVector2d z_bounds;
 		public long frame;
+
+		public MikanCameraNewFrameEvent()
+		{
+			eventTypeName = "MikanCameraNewFrameEvent";
+		}
 	};
 
 }

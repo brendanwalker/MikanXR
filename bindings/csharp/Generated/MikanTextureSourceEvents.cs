@@ -6,10 +6,20 @@ namespace MikanXR
 {
 	public class MikanTextureSourceClosedEvent : MikanEvent
 	{
+
+		public MikanTextureSourceClosedEvent()
+		{
+			eventTypeName = "MikanTextureSourceClosedEvent";
+		}
 	};
 
 	public class MikanTextureSourceOpenedEvent : MikanEvent
 	{
+
+		public MikanTextureSourceOpenedEvent()
+		{
+			eventTypeName = "MikanTextureSourceOpenedEvent";
+		}
 	};
 
 }

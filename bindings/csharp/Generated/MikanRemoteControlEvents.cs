@@ -8,12 +8,22 @@ namespace MikanXR
 	{
 		public string new_app_state_name;
 		public string old_app_state_name;
+
+		public MikanAppStageChangedEvent()
+		{
+			eventTypeName = "MikanAppStageChangedEvent";
+		}
 	};
 
 	public class MikanRemoteControlEvent : MikanEvent
 	{
 		public string remoteControlEvent;
 		public List<string> parameters;
+
+		public MikanRemoteControlEvent()
+		{
+			eventTypeName = "MikanRemoteControlEvent";
+		}
 	};
 
 }

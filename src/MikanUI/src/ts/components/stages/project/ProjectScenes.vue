@@ -327,13 +327,10 @@ async function initializeFromCurrentScene() {
   try {
     console.log('[ProjectScenes] Fetching current scene ID...')
 
-    const request: PropertyGetValueRequest = {
-      requestTypeName: 'PropertyGetValueRequest',
-      requestId: 0,
-      ownerSystem: 'SceneObjectSystem',
-      componentId: MikanConstants.InvalidMikanID,
-      fieldName: 'current_scene_id'
-    }
+    const request = new PropertyGetValueRequest()
+    request.ownerSystem = 'SceneObjectSystem'
+    request.componentId = MikanConstants.InvalidMikanID
+    request.fieldName = 'current_scene_id'
 
     const future = mikanStore.client.sendRequest(request)
     const response = await future.await() as PropertyGetValueResponse

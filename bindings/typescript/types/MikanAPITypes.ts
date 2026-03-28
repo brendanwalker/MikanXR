@@ -33,6 +33,10 @@ export class MikanResponse {
   requestId: number = -1;
   resultCode: MikanAPIResult = MikanAPIResult.Success;
 
+  constructor() {
+    this.responseTypeName = 'MikanResponse';
+  }
+
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'responseTypeName', type: 'string' },
     { name: 'requestId', type: 'int32' },
@@ -43,6 +47,10 @@ export class MikanResponse {
 export class MikanEvent {
   eventTypeName: string = '';
 
+  constructor() {
+    this.eventTypeName = 'MikanEvent';
+  }
+
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'eventTypeName', type: 'string' }
   ];
@@ -51,6 +59,10 @@ export class MikanEvent {
 export class MikanRequest {
   requestTypeName: string = '';
   requestId: number = -1;
+
+  constructor() {
+    this.requestTypeName = 'MikanRequest';
+  }
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'requestTypeName', type: 'string' },

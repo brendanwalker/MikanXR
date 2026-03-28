@@ -6,6 +6,11 @@ import { MikanPropertyValue } from './MikanPropertyTypes.js';
 export class MikanPropertyUpdateEvent extends MikanEvent {
   propertyValue: MikanPropertyValue = new MikanPropertyValue();
 
+  constructor() {
+    super();
+    this.eventTypeName = 'MikanPropertyUpdateEvent';
+  }
+
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'propertyValue', type: 'MikanPropertyValue' }
   ];

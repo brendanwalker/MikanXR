@@ -241,12 +241,9 @@ export const useComponentStore = defineStore('components', () => {
     componentClassName: string
   ): Promise<void> {
     try {
-      const request: GetComponentListRequest = {
-        requestTypeName: 'GetComponentListRequest',
-        requestId: 0,
-        ownerSystem,
-        componentClassName
-      }
+      const request = new GetComponentListRequest()
+      request.ownerSystem = ownerSystem
+      request.componentClassName = componentClassName
 
       const future = client.sendRequest(request)
       const response = await future.await()
@@ -281,12 +278,9 @@ export const useComponentStore = defineStore('components', () => {
     componentClassName: string
   ): Promise<void> {
     try {
-      const request: ComponentGetValuesRequest = {
-        requestTypeName: 'ComponentGetValuesRequest',
-        requestId: 0,
-        ownerSystem,
-        componentId
-      }
+      const request = new ComponentGetValuesRequest()
+      request.ownerSystem = ownerSystem
+      request.componentId = componentId
 
       const future = client.sendRequest(request)
       const response = await future.await()
@@ -484,12 +478,9 @@ export const useComponentStore = defineStore('components', () => {
     componentId: number
   ): Promise<MikanFunctionDescriptor[]> {
     try {
-      const request: GetFunctionListRequest = {
-        requestTypeName: 'GetFunctionListRequest',
-        requestId: 0,
-        systemFilter: ownerSystem,
-        componentFilter: componentClassName
-      }
+      const request = new GetFunctionListRequest()
+      request.systemFilter = ownerSystem
+      request.componentFilter = componentClassName
 
       const future = client.sendRequest(request)
       const response = await future.await()
@@ -540,13 +531,10 @@ export const useComponentStore = defineStore('components', () => {
       return false
     }
     try {
-      const request: SystemCreateObjectRequest = {
-        requestTypeName: 'SystemCreateObjectRequest',
-        requestId: 0,
-        ownerSystem: entry.ownerSystem,
-        componentClassName,
-        initParams
-      }
+      const request = new SystemCreateObjectRequest()
+      request.ownerSystem = entry.ownerSystem
+      request.componentClassName = componentClassName
+      request.initParams = initParams
       const future = client.sendRequest(request)
       const response = await future.await()
       if (response.resultCode === MikanAPIResult.Success) {
@@ -575,13 +563,10 @@ export const useComponentStore = defineStore('components', () => {
       return false
     }
     try {
-      const request: SystemDestroyObjectRequest = {
-        requestTypeName: 'SystemDestroyObjectRequest',
-        requestId: 0,
-        ownerSystem: entry.ownerSystem,
-        componentClassName,
-        componentId
-      }
+      const request = new SystemDestroyObjectRequest()
+      request.ownerSystem = entry.ownerSystem
+      request.componentClassName = componentClassName
+      request.componentId = componentId
       const future = client.sendRequest(request)
       const response = await future.await()
       if (response.resultCode === MikanAPIResult.Success) {
@@ -606,13 +591,10 @@ export const useComponentStore = defineStore('components', () => {
     functionName: string
   ): Promise<boolean> {
     try {
-      const request: InvokeComponentFunctionRequest = {
-        requestTypeName: 'InvokeComponentFunctionRequest',
-        requestId: 0,
-        ownerSystem,
-        componentId,
-        functionName
-      }
+      const request = new InvokeComponentFunctionRequest()
+      request.ownerSystem = ownerSystem
+      request.componentId = componentId
+      request.functionName = functionName
 
       const future = client.sendRequest(request)
       const response = await future.await()

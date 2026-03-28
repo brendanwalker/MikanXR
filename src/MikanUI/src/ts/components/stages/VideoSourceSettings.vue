@@ -360,11 +360,8 @@ async function fetchSystemValues() {
   if (!client) return
 
   try {
-    const request: SystemGetValuesRequest = {
-      requestTypeName: 'SystemGetValuesRequest',
-      requestId: 0,
-      ownerSystem: 'USBVideoSourceSystem'
-    }
+    const request = new SystemGetValuesRequest()
+    request.ownerSystem = 'USBVideoSourceSystem'
 
     const future = client.sendRequest(request)
     const response = await future.await() as SystemGetValuesResponse
@@ -383,12 +380,9 @@ async function handleDeviceChange() {
   if (!client || videoSourceId.value === -1) return
 
   try {
-    const request: SetUSBVideoSourceDevice = {
-      requestTypeName: 'SetUSBVideoSourceDevice',
-      requestId: 0,
-      video_source_id: videoSourceId.value,
-      device_path: selectedDevicePath.value
-    }
+    const request = new SetUSBVideoSourceDevice()
+    request.video_source_id = videoSourceId.value
+    request.device_path = selectedDevicePath.value
 
     const future = client.sendRequest(request)
     await future.await()
@@ -402,12 +396,9 @@ async function handleResolutionChange() {
   if (!client || videoSourceId.value === -1) return
 
   try {
-    const request: SetUSBVideoSourceResolution = {
-      requestTypeName: 'SetUSBVideoSourceResolution',
-      requestId: 0,
-      video_source_id: videoSourceId.value,
-      resolution: selectedResolution.value
-    }
+    const request = new SetUSBVideoSourceResolution()
+    request.video_source_id = videoSourceId.value
+    request.resolution = selectedResolution.value
 
     const future = client.sendRequest(request)
     await future.await()
@@ -421,12 +412,9 @@ async function handleFrameRateChange() {
   if (!client || videoSourceId.value === -1) return
 
   try {
-    const request: SetUSBVideoSourceFrameRate = {
-      requestTypeName: 'SetUSBVideoSourceFrameRate',
-      requestId: 0,
-      video_source_id: videoSourceId.value,
-      frame_rate: selectedFrameRate.value
-    }
+    const request = new SetUSBVideoSourceFrameRate()
+    request.video_source_id = videoSourceId.value
+    request.frame_rate = selectedFrameRate.value
 
     const future = client.sendRequest(request)
     await future.await()
@@ -440,12 +428,9 @@ async function handleFormatChange() {
   if (!client || videoSourceId.value === -1) return
 
   try {
-    const request: SetUSBVideoSourceFormat = {
-      requestTypeName: 'SetUSBVideoSourceFormat',
-      requestId: 0,
-      video_source_id: videoSourceId.value,
-      format: selectedFormat.value
-    }
+    const request = new SetUSBVideoSourceFormat()
+    request.video_source_id = videoSourceId.value
+    request.format = selectedFormat.value
 
     const future = client.sendRequest(request)
     await future.await()
@@ -469,14 +454,11 @@ async function handleSliderChange(settingName: string, event: Event) {
   try {
     const fieldValue = createVariantFromValue(fraction)
 
-    const request: PropertySetValueRequest = {
-      requestTypeName: 'PropertySetValueRequest',
-      requestId: 0,
-      ownerSystem: 'USBVideoSourceSystem',
-      componentId: videoSourceId.value,
-      fieldName: setting.fractionField,
-      fieldValue: fieldValue
-    }
+    const request = new PropertySetValueRequest()
+    request.ownerSystem = 'USBVideoSourceSystem'
+    request.componentId = videoSourceId.value
+    request.fieldName = setting.fractionField
+    request.fieldValue = fieldValue
 
     const future = client.sendRequest(request)
     await future.await()

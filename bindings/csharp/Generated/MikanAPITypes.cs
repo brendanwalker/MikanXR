@@ -36,12 +36,22 @@ namespace MikanXR
 	public class MikanEvent
 	{
 		public string eventTypeName;
+
+		public MikanEvent()
+		{
+			eventTypeName = "MikanEvent";
+		}
 	};
 
 	public class MikanRequest
 	{
 		public string requestTypeName;
 		public int requestId;
+
+		public MikanRequest()
+		{
+			requestTypeName = "MikanRequest";
+		}
 	};
 
 	public class MikanResponse
@@ -49,6 +59,11 @@ namespace MikanXR
 		public string responseTypeName;
 		public int requestId;
 		public MikanAPIResult resultCode;
+
+		public MikanResponse()
+		{
+			responseTypeName = "MikanResponse";
+		}
 	};
 
 }

@@ -7,6 +7,11 @@ export class AllocateCameraRenderTargetTextures extends MikanRequest {
   camera_id: number = -1;
   descriptor: MikanRenderTargetDescriptor = new MikanRenderTargetDescriptor();
 
+  constructor() {
+    super();
+    this.requestTypeName = 'AllocateCameraRenderTargetTextures';
+  }
+
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'camera_id', type: 'int32' },
     { name: 'descriptor', type: 'MikanRenderTargetDescriptor' }
@@ -16,6 +21,11 @@ export class AllocateCameraRenderTargetTextures extends MikanRequest {
 export class WriteCameraColorRenderTargetTexture extends MikanRequest {
   camera_id: number = -1;
   api_color_texture_ptr: any = null;
+
+  constructor() {
+    super();
+    this.requestTypeName = 'WriteCameraColorRenderTargetTexture';
+  }
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'camera_id', type: 'int32' },
@@ -29,6 +39,11 @@ export class WriteCameraDepthRenderTargetTexture extends MikanRequest {
   z_near: number = 0;
   z_far: number = 0;
 
+  constructor() {
+    super();
+    this.requestTypeName = 'WriteCameraDepthRenderTargetTexture';
+  }
+
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'camera_id', type: 'int32' },
     { name: 'api_depth_texture_ptr', type: 'any' },
@@ -41,6 +56,11 @@ export class PublishCameraRenderTargetTextures extends MikanRequest {
   camera_id: number = -1;
   frame_index: bigint = 0n;
 
+  constructor() {
+    super();
+    this.requestTypeName = 'PublishCameraRenderTargetTextures';
+  }
+
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'camera_id', type: 'int32' },
     { name: 'frame_index', type: 'int64' }
@@ -49,6 +69,11 @@ export class PublishCameraRenderTargetTextures extends MikanRequest {
 
 export class FreeCameraRenderTargetTextures extends MikanRequest {
   camera_id: number = -1;
+
+  constructor() {
+    super();
+    this.requestTypeName = 'FreeCameraRenderTargetTextures';
+  }
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'camera_id', type: 'int32' }

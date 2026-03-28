@@ -8,6 +8,11 @@ export class InvokeComponentScriptTrigger extends MikanRequest {
   componentId: number = -1;
   trigger_name: string = '';
 
+  constructor() {
+    super();
+    this.requestTypeName = 'InvokeComponentScriptTrigger';
+  }
+
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'ownerSystem', type: 'string' },
     { name: 'componentId', type: 'int32' },
@@ -17,6 +22,11 @@ export class InvokeComponentScriptTrigger extends MikanRequest {
 
 export class SendScriptMessage extends MikanRequest {
   message: MikanScriptMessageInfo = new MikanScriptMessageInfo();
+
+  constructor() {
+    super();
+    this.requestTypeName = 'SendScriptMessage';
+  }
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'message', type: 'MikanScriptMessageInfo' }

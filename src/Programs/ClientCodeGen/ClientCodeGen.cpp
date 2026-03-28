@@ -642,6 +642,24 @@ protected:
 		}
 	}
 
+	// Returns the typeName field name if structRef is (or inherits from) MikanRequest/Response/Event,
+	// or an empty string for all other structs.
+	static std::string getTypeNameFieldForStruct(rfk::Struct const& structRef)
+	{
+		auto& mikanRequestClass  = MikanRequest::staticGetArchetype();
+		auto& mikanResponseClass = MikanResponse::staticGetArchetype();
+		auto& mikanEventClass    = MikanEvent::staticGetArchetype();
+
+		if (structRef.getId() == mikanRequestClass.getId() || structRef.isSubclassOf(mikanRequestClass))
+			return "requestTypeName";
+		else if (structRef.getId() == mikanResponseClass.getId() || structRef.isSubclassOf(mikanResponseClass))
+			return "responseTypeName";
+		else if (structRef.getId() == mikanEventClass.getId() || structRef.isSubclassOf(mikanEventClass))
+			return "eventTypeName";
+
+		return "";
+	}
+
 	void emitCSharpSerializableClass(std::ofstream& moduleFile, rfk::Struct const& structRef)
 	{
 		// Get a list of parent struct this struct inherits from
@@ -695,6 +713,17 @@ protected:
 		{
 			std::string csharpType = getCSharpType(*field);
 			moduleFile << "\t\tpublic " << csharpType << " " << field->getName() << ";" << std::endl;
+		}
+
+		// Emit a constructor to set the typeName field if this is a MikanRequest/Response/Event
+		std::string typeNameField = getTypeNameFieldForStruct(structRef);
+		if (!typeNameField.empty())
+		{
+			moduleFile << std::endl;
+			moduleFile << "\t\tpublic " << className << "()" << std::endl;
+			moduleFile << "\t\t{" << std::endl;
+			moduleFile << "\t\t\t" << typeNameField << " = \"" << className << "\";" << std::endl;
+			moduleFile << "\t\t}" << std::endl;
 		}
 
 		// End of the struct definition
@@ -1433,6 +1462,20 @@ protected:
 				tsDefaultValue = getTypeScriptDefaultValue(field->getType());
 			}
 			moduleFile << "  " << field->getName() << ": " << tsType << " = " << tsDefaultValue << ";" << std::endl;
+		}
+
+		// Emit a constructor to set the typeName field if this is a MikanRequest/Response/Event
+		std::string typeNameField = getTypeNameFieldForStruct(structRef);
+		if (!typeNameField.empty())
+		{
+			moduleFile << std::endl;
+			moduleFile << "  constructor() {" << std::endl;
+			if (parentStructNames.size() > 0)
+			{
+				moduleFile << "    super();" << std::endl;
+			}
+			moduleFile << "    this." << typeNameField << " = '" << className << "';" << std::endl;
+			moduleFile << "  }" << std::endl;
 		}
 
 		// Emit serialization metadata

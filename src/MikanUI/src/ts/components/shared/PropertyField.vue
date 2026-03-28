@@ -219,14 +219,11 @@ async function sendPropertyUpdate(value: any) {
   try {
     const variant = createVariantFromValue(value)
 
-    const request: PropertySetValueRequest = {
-      requestTypeName: 'PropertySetValueRequest',
-      requestId: 0,
-      ownerSystem: props.ownerSystem,
-      componentId: props.componentId,
-      fieldName: props.fieldName,
-      fieldValue: variant
-    }
+    const request = new PropertySetValueRequest()
+    request.ownerSystem = props.ownerSystem
+    request.componentId = props.componentId
+    request.fieldName = props.fieldName
+    request.fieldValue = variant
 
     const future = mikanStore.client.sendRequest(request)
     const response = await future.await()

@@ -130,10 +130,7 @@ async function onConnected() {
 
     try {
         // Get app stage info
-        const request: GetAppStageInfo = {
-            requestTypeName: 'GetAppStageInfo',
-            requestId: 0
-        };
+        const request = new GetAppStageInfo();
 
         const future = mikanClient.sendRequest(request);
         const response = await future.await();

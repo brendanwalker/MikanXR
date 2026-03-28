@@ -6,6 +6,11 @@ import { MikanStencilModelRenderGeometry } from './MikanStencilTypes.js';
 export class GetModelStencilRenderGeometry extends MikanRequest {
   stencilId: number = -1;
 
+  constructor() {
+    super();
+    this.requestTypeName = 'GetModelStencilRenderGeometry';
+  }
+
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'stencilId', type: 'int32' }
   ];
@@ -13,6 +18,11 @@ export class GetModelStencilRenderGeometry extends MikanRequest {
 
 export class MikanStencilModelRenderGeometryResponse extends MikanResponse {
   render_geometry: MikanStencilModelRenderGeometry = new MikanStencilModelRenderGeometry();
+
+  constructor() {
+    super();
+    this.responseTypeName = 'MikanStencilModelRenderGeometryResponse';
+  }
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'render_geometry', type: 'MikanStencilModelRenderGeometry' }

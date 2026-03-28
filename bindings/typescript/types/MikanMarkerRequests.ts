@@ -5,6 +5,11 @@ import { MikanRequest, MikanResponse } from './MikanAPITypes.js';
 export class ArucoMarkerImageResponse extends MikanResponse {
   imageData: string = '';
 
+  constructor() {
+    super();
+    this.responseTypeName = 'ArucoMarkerImageResponse';
+  }
+
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'imageData', type: 'string' }
   ];
@@ -13,6 +18,11 @@ export class ArucoMarkerImageResponse extends MikanResponse {
 export class GetArucoMarkerImageRequest extends MikanRequest {
   markerId: number = 0;
   imageSize: number = 200;
+
+  constructor() {
+    super();
+    this.requestTypeName = 'GetArucoMarkerImageRequest';
+  }
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'markerId', type: 'int32' },

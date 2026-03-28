@@ -6,6 +6,11 @@ export class MikanAppStageChangedEvent extends MikanEvent {
   new_app_state_name: string = '';
   old_app_state_name: string = '';
 
+  constructor() {
+    super();
+    this.eventTypeName = 'MikanAppStageChangedEvent';
+  }
+
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'new_app_state_name', type: 'string' },
     { name: 'old_app_state_name', type: 'string' }
@@ -15,6 +20,11 @@ export class MikanAppStageChangedEvent extends MikanEvent {
 export class MikanRemoteControlEvent extends MikanEvent {
   remoteControlEvent: string = '';
   parameters: string[] = [];
+
+  constructor() {
+    super();
+    this.eventTypeName = 'MikanRemoteControlEvent';
+  }
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'remoteControlEvent', type: 'string' },

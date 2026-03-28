@@ -26,12 +26,9 @@ export function useRemoteControl() {
     }
 
     try {
-      const request: MikanRemoteControlCommand = {
-        requestTypeName: 'MikanRemoteControlCommand',
-        requestId: 0,
-        command,
-        parameters
-      }
+      const request = new MikanRemoteControlCommand()
+      request.command = command
+      request.parameters = parameters
 
       const future = mikanStore.client.sendRequest(request)
       const response = await future.await() as MikanRemoteControlCommandResult
@@ -65,12 +62,9 @@ export function useRemoteControl() {
     }
 
     try {
-      const request: MikanRemoteControlCommand = {
-        requestTypeName: 'MikanRemoteControlCommand',
-        requestId: 0,
-        command,
-        parameters
-      }
+      const request = new MikanRemoteControlCommand()
+      request.command = command
+      request.parameters = parameters
 
       const future = mikanStore.client.sendRequest(request)
       const response = await future.await() as MikanRemoteControlCommandResult

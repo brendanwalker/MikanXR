@@ -9,11 +9,21 @@ namespace MikanXR
 		public string ownerSystem;
 		public int componentId;
 		public string trigger_name;
+
+		public InvokeComponentScriptTrigger()
+		{
+			requestTypeName = "InvokeComponentScriptTrigger";
+		}
 	};
 
 	public class SendScriptMessage : MikanRequest
 	{
 		public MikanScriptMessageInfo message;
+
+		public SendScriptMessage()
+		{
+			requestTypeName = "SendScriptMessage";
+		}
 	};
 
 }

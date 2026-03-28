@@ -106,14 +106,11 @@ export const useMikanStore = defineStore('mikan', () => {
     if (!client.value) return
 
     try {
-      const request: SetPropertyNotifyMode = {
-        requestTypeName: 'SetPropertyNotifyMode',
-        requestId: 0,
-        systemFilter: '',
-        componentFilter: '',
-        propertyFilter: '',
-        notifyMode: MikanPropertyNotifyMode.NAME_AND_VALUE
-      }
+      const request = new SetPropertyNotifyMode()
+      request.systemFilter = ''
+      request.componentFilter = ''
+      request.propertyFilter = ''
+      request.notifyMode = MikanPropertyNotifyMode.NAME_AND_VALUE
 
       const future = client.value.sendRequest(request)
       const response = await future.await()
@@ -132,10 +129,7 @@ export const useMikanStore = defineStore('mikan', () => {
     if (!client.value) return
 
     try {
-      const request: GetAppStageInfo = {
-        requestTypeName: 'GetAppStageInfo',
-        requestId: 0
-      }
+      const request = new GetAppStageInfo()
 
       const future = client.value.sendRequest(request)
       const response = await future.await()

@@ -14,6 +14,11 @@ export class MikanCameraNewFrameEvent extends MikanEvent {
   z_bounds: MikanVector2d = new MikanVector2d();
   frame: bigint = 0n;
 
+  constructor() {
+    super();
+    this.eventTypeName = 'MikanCameraNewFrameEvent';
+  }
+
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'camera_id', type: 'int32' },
     { name: 'camera_forward', type: 'MikanVector3f' },

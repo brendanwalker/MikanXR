@@ -158,11 +158,8 @@ async function fetchMarkerSystemValues() {
   if (!client) return
 
   try {
-    const request: SystemGetValuesRequest = {
-      requestTypeName: 'SystemGetValuesRequest',
-      requestId: 0,
-      ownerSystem: 'MarkerObjectSystem'
-    }
+    const request = new SystemGetValuesRequest()
+    request.ownerSystem = 'MarkerObjectSystem'
 
     const future = client.sendRequest(request)
     const response = await future.await() as SystemGetValuesResponse
@@ -183,14 +180,10 @@ async function setSystemProperty(fieldName: string, value: any) {
   if (!client) return
 
   try {
-    const request: PropertySetValueRequest = {
-      requestTypeName: 'PropertySetValueRequest',
-      requestId: 0,
-      ownerSystem: 'MarkerObjectSystem',
-      componentId: -1,
-      fieldName,
-      fieldValue: createVariantFromValue(value)
-    }
+    const request = new PropertySetValueRequest()
+    request.ownerSystem = 'MarkerObjectSystem'
+    request.fieldName = fieldName
+    request.fieldValue = createVariantFromValue(value)
 
     const future = client.sendRequest(request)
     await future.await()
@@ -213,12 +206,9 @@ async function fetchMarkerImage(arucoId: number) {
   }
 
   try {
-    const request: GetArucoMarkerImageRequest = {
-      requestTypeName: 'GetArucoMarkerImageRequest',
-      markerId: arucoId,
-      imageSize: 0,
-      requestId: 0
-    }    
+    const request = new GetArucoMarkerImageRequest()
+    request.markerId = arucoId
+    request.imageSize = 0
     const future = (mikanStore.client as MikanClient).sendRequest(request)
     const response = await future.getResponse()
 

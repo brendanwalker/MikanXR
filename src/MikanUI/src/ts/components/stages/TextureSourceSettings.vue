@@ -136,14 +136,11 @@ async function setTextureSourceProperty(ownerSystem: string, fieldName: string, 
   if (!client || textureSourceId.value === -1) return
 
   try {
-    const request: PropertySetValueRequest = {
-      requestTypeName: 'PropertySetValueRequest',
-      requestId: 0,
-      ownerSystem,
-      componentId: textureSourceId.value,
-      fieldName,
-      fieldValue: createVariantFromValue(value)
-    }
+    const request = new PropertySetValueRequest()
+    request.ownerSystem = ownerSystem
+    request.componentId = textureSourceId.value
+    request.fieldName = fieldName
+    request.fieldValue = createVariantFromValue(value)
 
     const future = client.sendRequest(request)
     await future.await()

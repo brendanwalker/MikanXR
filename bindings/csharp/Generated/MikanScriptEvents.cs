@@ -7,6 +7,11 @@ namespace MikanXR
 	public class MikanScriptMessagePostedEvent : MikanEvent
 	{
 		public string message;
+
+		public MikanScriptMessagePostedEvent()
+		{
+			eventTypeName = "MikanScriptMessagePostedEvent";
+		}
 	};
 
 }
