@@ -2,6 +2,7 @@
 
 import { MikanRequest, MikanResponse } from './MikanAPITypes.js';
 import { MikanVideoSourceIntrinsics, MikanVideoSourceType } from './MikanVideoSourceTypes.js';
+import type { SerializationField } from './SerializationTypes.js';
 
 export class SetUSBVideoSourceDevice extends MikanRequest {
   video_source_id: number = -1;
@@ -12,7 +13,7 @@ export class SetUSBVideoSourceDevice extends MikanRequest {
     this.requestTypeName = 'SetUSBVideoSourceDevice';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'video_source_id', type: 'int32' },
     { name: 'device_path', type: 'string' }
   ];
@@ -27,7 +28,7 @@ export class SetUSBVideoSourceFormat extends MikanRequest {
     this.requestTypeName = 'SetUSBVideoSourceFormat';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'video_source_id', type: 'int32' },
     { name: 'format', type: 'string' }
   ];
@@ -42,7 +43,7 @@ export class SetUSBVideoSourceFrameRate extends MikanRequest {
     this.requestTypeName = 'SetUSBVideoSourceFrameRate';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'video_source_id', type: 'int32' },
     { name: 'frame_rate', type: 'string' }
   ];
@@ -62,7 +63,7 @@ export class MikanVideoSourceModeResponse extends MikanResponse {
     this.responseTypeName = 'MikanVideoSourceModeResponse';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'video_source_type', type: 'enum:MikanVideoSourceType' },
     { name: 'video_source_api', type: 'string' },
     { name: 'device_path', type: 'string' },
@@ -81,7 +82,7 @@ export class GetVideoSourceMode extends MikanRequest {
     this.requestTypeName = 'GetVideoSourceMode';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'video_source_id', type: 'int32' }
   ];
 }
@@ -94,7 +95,7 @@ export class GetVideoSourceIntrinsics extends MikanRequest {
     this.requestTypeName = 'GetVideoSourceIntrinsics';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'video_source_id', type: 'int32' }
   ];
 }
@@ -108,7 +109,7 @@ export class SetUSBVideoSourceResolution extends MikanRequest {
     this.requestTypeName = 'SetUSBVideoSourceResolution';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'video_source_id', type: 'int32' },
     { name: 'resolution', type: 'string' }
   ];
@@ -122,7 +123,7 @@ export class MikanVideoSourceIntrinsicsResponse extends MikanResponse {
     this.responseTypeName = 'MikanVideoSourceIntrinsicsResponse';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'intrinsics', type: 'MikanVideoSourceIntrinsics' }
   ];
 }

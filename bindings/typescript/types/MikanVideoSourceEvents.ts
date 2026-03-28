@@ -1,6 +1,7 @@
 // This file is auto generated. DO NOT EDIT.
 
 import { MikanEvent } from './MikanAPITypes.js';
+import type { SerializationField } from './SerializationTypes.js';
 
 export class MikanVideoSourceOpenedEvent extends MikanEvent {
 
@@ -9,7 +10,7 @@ export class MikanVideoSourceOpenedEvent extends MikanEvent {
     this.eventTypeName = 'MikanVideoSourceOpenedEvent';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
   ];
 }
 
@@ -20,7 +21,7 @@ export class MikanVideoSourceClosedEvent extends MikanEvent {
     this.eventTypeName = 'MikanVideoSourceClosedEvent';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
   ];
 }
 
@@ -31,7 +32,7 @@ export class MikanVideoSourceModeChangedEvent extends MikanEvent {
     this.eventTypeName = 'MikanVideoSourceModeChangedEvent';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
   ];
 }
 

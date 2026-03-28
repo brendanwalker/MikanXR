@@ -1,6 +1,7 @@
 // This file is auto generated. DO NOT EDIT.
 
 import { MikanComponentValues } from './MikanComponentTypes.js';
+import type { SerializationField } from './SerializationTypes.js';
 
 export class MikanCompositorComponentValues extends MikanComponentValues {
   owner_scene_id: number = -1;
@@ -9,7 +10,7 @@ export class MikanCompositorComponentValues extends MikanComponentValues {
   spout_enable_output: boolean = false;
   spout_output_name: string = '';
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'owner_scene_id', type: 'int32' },
     { name: 'camera_id', type: 'int32' },
     { name: 'compositor_graph_path', type: 'string' },

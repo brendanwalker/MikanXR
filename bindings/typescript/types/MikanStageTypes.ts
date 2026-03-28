@@ -1,6 +1,7 @@
 // This file is auto generated. DO NOT EDIT.
 
 import { MikanTransformComponentValues } from './MikanTransformTypes.js';
+import type { SerializationField } from './SerializationTypes.js';
 
 export enum MikanStageTrackingVolume {
   StaticMarker = 0,
@@ -10,7 +11,7 @@ export enum MikanStageTrackingVolume {
 export class MikanStageComponentValues extends MikanTransformComponentValues {
   tracking_volume_id: number = -1;
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'tracking_volume_id', type: 'int32' }
   ];
 }

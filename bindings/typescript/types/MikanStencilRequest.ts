@@ -2,6 +2,7 @@
 
 import { MikanRequest, MikanResponse } from './MikanAPITypes.js';
 import { MikanStencilModelRenderGeometry } from './MikanStencilTypes.js';
+import type { SerializationField } from './SerializationTypes.js';
 
 export class GetModelStencilRenderGeometry extends MikanRequest {
   stencilId: number = -1;
@@ -11,7 +12,7 @@ export class GetModelStencilRenderGeometry extends MikanRequest {
     this.requestTypeName = 'GetModelStencilRenderGeometry';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'stencilId', type: 'int32' }
   ];
 }
@@ -24,7 +25,7 @@ export class MikanStencilModelRenderGeometryResponse extends MikanResponse {
     this.responseTypeName = 'MikanStencilModelRenderGeometryResponse';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'render_geometry', type: 'MikanStencilModelRenderGeometry' }
   ];
 }

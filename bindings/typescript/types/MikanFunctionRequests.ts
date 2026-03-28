@@ -2,6 +2,7 @@
 
 import { MikanRequest, MikanResponse } from './MikanAPITypes.js';
 import { MikanFunctionDescriptor } from './MikanFunctionTypes.js';
+import type { SerializationField } from './SerializationTypes.js';
 
 export class InvokeSystemFunctionRequest extends MikanRequest {
   ownerSystem: string = '';
@@ -12,7 +13,7 @@ export class InvokeSystemFunctionRequest extends MikanRequest {
     this.requestTypeName = 'InvokeSystemFunctionRequest';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'ownerSystem', type: 'string' },
     { name: 'functionName', type: 'string' }
   ];
@@ -28,7 +29,7 @@ export class InvokeComponentFunctionRequest extends MikanRequest {
     this.requestTypeName = 'InvokeComponentFunctionRequest';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'ownerSystem', type: 'string' },
     { name: 'componentId', type: 'int32' },
     { name: 'functionName', type: 'string' }
@@ -44,7 +45,7 @@ export class GetFunctionListRequest extends MikanRequest {
     this.requestTypeName = 'GetFunctionListRequest';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'systemFilter', type: 'string' },
     { name: 'componentFilter', type: 'string' }
   ];
@@ -58,7 +59,7 @@ export class FunctionDescriptorResponse extends MikanResponse {
     this.responseTypeName = 'FunctionDescriptorResponse';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'descriptor_list', type: 'MikanFunctionDescriptor', isArray: true }
   ];
 }

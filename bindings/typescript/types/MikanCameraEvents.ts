@@ -2,6 +2,7 @@
 
 import { MikanEvent } from './MikanAPITypes.js';
 import { MikanVector2d, MikanVector2i, MikanVector3f } from './MikanMathTypes.js';
+import type { SerializationField } from './SerializationTypes.js';
 
 export class MikanCameraNewFrameEvent extends MikanEvent {
   camera_id: number = -1;
@@ -19,7 +20,7 @@ export class MikanCameraNewFrameEvent extends MikanEvent {
     this.eventTypeName = 'MikanCameraNewFrameEvent';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'camera_id', type: 'int32' },
     { name: 'camera_forward', type: 'MikanVector3f' },
     { name: 'camera_up', type: 'MikanVector3f' },

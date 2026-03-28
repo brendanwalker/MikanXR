@@ -1,6 +1,7 @@
 // This file is auto generated. DO NOT EDIT.
 
 import { MikanEvent } from './MikanAPITypes.js';
+import type { SerializationField } from './SerializationTypes.js';
 
 export class MikanScriptMessagePostedEvent extends MikanEvent {
   message: string = '';
@@ -10,7 +11,7 @@ export class MikanScriptMessagePostedEvent extends MikanEvent {
     this.eventTypeName = 'MikanScriptMessagePostedEvent';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'message', type: 'string' }
   ];
 }

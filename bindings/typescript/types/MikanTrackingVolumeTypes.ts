@@ -2,6 +2,7 @@
 
 import { MikanComponentValues } from './MikanComponentTypes.js';
 import { MikanMatrix4f, MikanVector3f } from './MikanMathTypes.js';
+import type { SerializationField } from './SerializationTypes.js';
 
 export enum MikanTrackingRuntime {
   INVALID = -1,
@@ -17,7 +18,7 @@ export enum MikanTrackingVolumeType {
 export class MikanTrackingVolumeComponentValues extends MikanComponentValues {
   origin_marker_id: number = -1;
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'origin_marker_id', type: 'int32' }
   ];
 }
@@ -30,7 +31,7 @@ export class MikanVRTrackingVolumeComponentValues extends MikanTrackingVolumeCom
   tracking_mount_ids: number[] = [];
   vr_device_pose_offset: MikanMatrix4f = new MikanMatrix4f();
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'tracking_runtime', type: 'enum:MikanTrackingRuntime' },
     { name: 'charuco_mount_id', type: 'int32' },
     { name: 'charuco_mount_offset_mm', type: 'MikanVector3f' },
@@ -42,7 +43,7 @@ export class MikanVRTrackingVolumeComponentValues extends MikanTrackingVolumeCom
 
 export class MikanMarkerTrackingVolumeComponentValues extends MikanTrackingVolumeComponentValues {
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
   ];
 }
 

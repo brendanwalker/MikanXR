@@ -1,6 +1,7 @@
 // This file is auto generated. DO NOT EDIT.
 
 import { MikanClientGraphicsApi } from './MikanCoreConstants.js';
+import type { SerializationField } from './SerializationTypes.js';
 
 export class MikanClientInfo {
   clientId: string = '';
@@ -15,7 +16,7 @@ export class MikanClientInfo {
   supportsBGRA32: boolean = false;
   supportsDepth: boolean = false;
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'clientId', type: 'string' },
     { name: 'engineName', type: 'string' },
     { name: 'engineVersion', type: 'string' },

@@ -3,6 +3,7 @@
 import { MikanEvent } from './MikanAPITypes.js';
 import { MikanDisconnectCode } from './MikanCoreConstants.js';
 import { MikanClientAPIVersion } from './MikanCoreTypes.js';
+import type { SerializationField } from './SerializationTypes.js';
 
 export class MikanConnectedEvent extends MikanEvent {
   serverVersion: MikanClientAPIVersion = new MikanClientAPIVersion();
@@ -14,7 +15,7 @@ export class MikanConnectedEvent extends MikanEvent {
     this.eventTypeName = 'MikanConnectedEvent';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'serverVersion', type: 'MikanClientAPIVersion' },
     { name: 'minClientVersion', type: 'MikanClientAPIVersion' },
     { name: 'isClientCompatible', type: 'boolean' }
@@ -30,7 +31,7 @@ export class MikanDisconnectedEvent extends MikanEvent {
     this.eventTypeName = 'MikanDisconnectedEvent';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'code', type: 'enum:MikanDisconnectCode' },
     { name: 'reason', type: 'string' }
   ];

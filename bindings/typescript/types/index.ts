@@ -42,5 +42,6 @@ export * from './MikanVariantTypes.js';
 export * from './MikanVideoSourceEvents.js';
 export * from './MikanVideoSourceRequest.js';
 export * from './MikanVideoSourceTypes.js';
+export * from './SerializationTypes.js';
 export * from './EnumRegistration.js';
 export * from './TypeRegistration.js';

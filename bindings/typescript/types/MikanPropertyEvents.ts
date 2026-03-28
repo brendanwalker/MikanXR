@@ -2,6 +2,7 @@
 
 import { MikanEvent } from './MikanAPITypes.js';
 import { MikanPropertyValue } from './MikanPropertyTypes.js';
+import type { SerializationField } from './SerializationTypes.js';
 
 export class MikanPropertyUpdateEvent extends MikanEvent {
   propertyValue: MikanPropertyValue = new MikanPropertyValue();
@@ -11,7 +12,7 @@ export class MikanPropertyUpdateEvent extends MikanEvent {
     this.eventTypeName = 'MikanPropertyUpdateEvent';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'propertyValue', type: 'MikanPropertyValue' }
   ];
 }

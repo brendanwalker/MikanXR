@@ -4,6 +4,7 @@ import { PolymorphicObject, PolymorphicStruct } from './../PolymorphicObject.js'
 import { MikanComponentValues } from './MikanComponentTypes.js';
 import { MikanMatrix3d, MikanMatrix4d, MikanMatrix4x3d, MikanVector3d } from './MikanMathTypes.js';
 import { MikanSystemValues } from './MikanPropertyTypes.js';
+import type { SerializationField } from './SerializationTypes.js';
 
 export enum MikanIntrinsicsType {
   INVALID = 0,
@@ -46,7 +47,7 @@ export class MikanVideoSourceValues extends MikanComponentValues {
   is_buffer_mirrored: boolean = false;
   video_frame_queue_size: number = 0;
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'intrinsics_ptr', type: 'PolymorphicObject' },
     { name: 'intrinsics_type', type: 'enum:MikanIntrinsicsType' },
     { name: 'is_frame_mirrored', type: 'boolean' },
@@ -102,7 +103,7 @@ export class MikanUSBVideoSourceValues extends MikanVideoSourceValues {
   focus_valid: boolean = false;
   focus_fraction: number = 0;
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'current_device_path', type: 'string' },
     { name: 'video_mode', type: 'string' },
     { name: 'video_resolution', type: 'string' },
@@ -157,7 +158,7 @@ export class MikanNetworkVideoSourceValues extends MikanVideoSourceValues {
   port: number = 0;
   path: string = '';
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'protocol', type: 'string' },
     { name: 'ip_address', type: 'string' },
     { name: 'port', type: 'int32' },
@@ -175,7 +176,7 @@ export class MikanDistortionCoefficients {
   p1: number = 0;
   p2: number = 0;
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'k1', type: 'double' },
     { name: 'k2', type: 'double' },
     { name: 'k3', type: 'double' },
@@ -196,7 +197,7 @@ export class MikanBaseIntrinsics extends PolymorphicStruct {
   znear: number = 0;
   zfar: number = 0;
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'pixel_width', type: 'double' },
     { name: 'pixel_height', type: 'double' },
     { name: 'aspect_ratio', type: 'double' },
@@ -212,7 +213,7 @@ export class MikanMonoIntrinsics extends MikanBaseIntrinsics {
   distorted_camera_matrix: MikanMatrix3d = new MikanMatrix3d();
   undistorted_camera_matrix: MikanMatrix3d = new MikanMatrix3d();
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'distortion_coefficients', type: 'MikanDistortionCoefficients' },
     { name: 'distorted_camera_matrix', type: 'MikanMatrix3d' },
     { name: 'undistorted_camera_matrix', type: 'MikanMatrix3d' }
@@ -234,7 +235,7 @@ export class MikanStereoIntrinsics extends MikanBaseIntrinsics {
   fundamental_matrix: MikanMatrix3d = new MikanMatrix3d();
   reprojection_matrix: MikanMatrix4d = new MikanMatrix4d();
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'left_distortion_coefficients', type: 'MikanDistortionCoefficients' },
     { name: 'left_camera_matrix', type: 'MikanMatrix3d' },
     { name: 'right_distortion_coefficients', type: 'MikanDistortionCoefficients' },
@@ -255,7 +256,7 @@ export class MikanVideoSourceIntrinsics {
   intrinsics_ptr: PolymorphicObject = new PolymorphicObject();
   intrinsics_type: MikanIntrinsicsType = MikanIntrinsicsType.INVALID;
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'intrinsics_ptr', type: 'PolymorphicObject' },
     { name: 'intrinsics_type', type: 'enum:MikanIntrinsicsType' }
   ];
@@ -264,7 +265,7 @@ export class MikanVideoSourceIntrinsics {
 export class MikanUSBVideoSourceSystemValues extends MikanSystemValues {
   usb_device_map: Record<string, string> = {};
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'usb_device_map', type: 'Map', isMap: true, keyType: 'string', valueType: 'string' }
   ];
 }

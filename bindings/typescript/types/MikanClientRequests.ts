@@ -2,6 +2,7 @@
 
 import { MikanRequest } from './MikanAPITypes.js';
 import { MikanClientInfo } from './MikanClientTypes.js';
+import type { SerializationField } from './SerializationTypes.js';
 
 export class InitClientRequest extends MikanRequest {
   clientInfo: MikanClientInfo = new MikanClientInfo();
@@ -11,7 +12,7 @@ export class InitClientRequest extends MikanRequest {
     this.requestTypeName = 'InitClientRequest';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'clientInfo', type: 'MikanClientInfo' }
   ];
 }
@@ -24,7 +25,7 @@ export class DisposeClientRequest extends MikanRequest {
     this.requestTypeName = 'DisposeClientRequest';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'clientId', type: 'string' }
   ];
 }

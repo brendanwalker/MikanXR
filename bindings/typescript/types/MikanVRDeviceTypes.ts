@@ -1,6 +1,7 @@
 // This file is auto generated. DO NOT EDIT.
 
 import { MikanTransformComponentValues } from './MikanTransformTypes.js';
+import type { SerializationField } from './SerializationTypes.js';
 
 export enum MikanVRDeviceApi {
   INVALID = 0,
@@ -20,7 +21,7 @@ export class MikanVRDeviceComponentValues extends MikanTransformComponentValues 
   vr_device_index: number = -1;
   vr_device_path: string = '';
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'vr_device_api', type: 'enum:MikanVRDeviceApi' },
     { name: 'vr_device_type', type: 'enum:MikanVRDeviceType' },
     { name: 'vr_device_index', type: 'int32' },

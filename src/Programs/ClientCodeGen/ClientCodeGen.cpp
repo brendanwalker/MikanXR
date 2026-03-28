@@ -292,6 +292,11 @@ protected:
 
 		if (m_targetLanguage == TargetLanguage::TypeScript)
 		{
+			if (!generateTypeScriptSerializationTypesFile(absOutputPath))
+			{
+				return false;
+			}
+
 			if (!generateTypeScriptEnumRegistrationFile(absOutputPath, codeGenDatabase))
 			{
 				return false;
@@ -306,6 +311,30 @@ protected:
 			{
 				return false;
 			}
+		}
+
+		return true;
+	}
+
+	bool generateTypeScriptSerializationTypesFile(
+		const std::filesystem::path& absOutputPath)
+	{
+		std::filesystem::path filePath = absOutputPath / "SerializationTypes.ts";
+
+		try
+		{
+			std::ofstream file(filePath);
+			file << "// This file is auto generated. DO NOT EDIT." << std::endl;
+			file << std::endl;
+			file << "export type SerializationField = "
+				 << "{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string};"
+				 << std::endl;
+			file.close();
+		}
+		catch (std::exception* e)
+		{
+			MIKAN_LOG_ERROR("MikanClientCodeGen") << "Failed to write SerializationTypes file: " << filePath;
+			return false;
 		}
 
 		return true;
@@ -330,7 +359,8 @@ protected:
 				moduleFile << "export * from './" << moduleName << ".js';" << std::endl;
 			}
 
-			// Re-export the generated registration helpers
+			// Re-export the generated shared types and registration helpers
+			moduleFile << "export * from './SerializationTypes.js';" << std::endl;
 			moduleFile << "export * from './EnumRegistration.js';" << std::endl;
 			moduleFile << "export * from './TypeRegistration.js';" << std::endl;
 
@@ -608,7 +638,13 @@ protected:
 			}
 			moduleFile << " } from './" << sourceModule << ".js';" << std::endl;
 		}
-		if (!moduleImports.empty())
+		// If this module has structs, import SerializationField from the shared generated file
+		if (module->serializableStructs.size() > 0)
+		{
+			moduleFile << "import type { SerializationField } from './SerializationTypes.js';" << std::endl;
+		}
+
+		if (!moduleImports.empty() || module->serializableStructs.size() > 0)
 		{
 			moduleFile << std::endl;
 		}
@@ -1480,7 +1516,7 @@ protected:
 
 		// Emit serialization metadata
 		moduleFile << std::endl;
-		moduleFile << "  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [" << std::endl;
+		moduleFile << "  static __serializationMetadata: SerializationField[] = [" << std::endl;
 
 		for (size_t i = 0; i < sortedFields.size(); ++i)
 		{

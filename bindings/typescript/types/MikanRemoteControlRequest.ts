@@ -2,6 +2,7 @@
 
 import { MikanRequest, MikanResponse } from './MikanAPITypes.js';
 import { MikanAppStageInfo } from './MikanRemoteControlTypes.js';
+import type { SerializationField } from './SerializationTypes.js';
 
 export class GetAppStageInfo extends MikanRequest {
 
@@ -10,7 +11,7 @@ export class GetAppStageInfo extends MikanRequest {
     this.requestTypeName = 'GetAppStageInfo';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
   ];
 }
 
@@ -21,7 +22,7 @@ export class PopAppStage extends MikanRequest {
     this.requestTypeName = 'PopAppStage';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
   ];
 }
 
@@ -33,7 +34,7 @@ export class MikanRemoteControlCommandResult extends MikanResponse {
     this.responseTypeName = 'MikanRemoteControlCommandResult';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'results', type: 'string', isArray: true }
   ];
 }
@@ -46,7 +47,7 @@ export class PushAppStage extends MikanRequest {
     this.requestTypeName = 'PushAppStage';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'app_state_name', type: 'string' }
   ];
 }
@@ -60,7 +61,7 @@ export class MikanRemoteControlCommand extends MikanRequest {
     this.requestTypeName = 'MikanRemoteControlCommand';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'command', type: 'string' },
     { name: 'parameters', type: 'string', isArray: true }
   ];
@@ -74,7 +75,7 @@ export class MikanAppStageInfoResponse extends MikanResponse {
     this.responseTypeName = 'MikanAppStageInfoResponse';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'app_stage_info', type: 'MikanAppStageInfo' }
   ];
 }

@@ -1,5 +1,7 @@
 // This file is auto generated. DO NOT EDIT.
 
+import type { SerializationField } from './SerializationTypes.js';
+
 export enum MikanAPIResult {
   Success = 0,
   GeneralError = 1,
@@ -37,7 +39,7 @@ export class MikanResponse {
     this.responseTypeName = 'MikanResponse';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'responseTypeName', type: 'string' },
     { name: 'requestId', type: 'int32' },
     { name: 'resultCode', type: 'enum:MikanAPIResult' }
@@ -51,7 +53,7 @@ export class MikanEvent {
     this.eventTypeName = 'MikanEvent';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'eventTypeName', type: 'string' }
   ];
 }
@@ -64,7 +66,7 @@ export class MikanRequest {
     this.requestTypeName = 'MikanRequest';
   }
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'requestTypeName', type: 'string' },
     { name: 'requestId', type: 'int32' }
   ];

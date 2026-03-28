@@ -1,11 +1,12 @@
 // This file is auto generated. DO NOT EDIT.
 
 import { MikanClientGraphicsApi, MikanColorBufferType, MikanDepthBufferType } from './MikanCoreConstants.js';
+import type { SerializationField } from './SerializationTypes.js';
 
 export class MikanClientAPIVersion {
   version: number = 0;
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'version', type: 'int32' }
   ];
 }
@@ -17,7 +18,7 @@ export class MikanRenderTargetDescriptor {
   height: number = 0;
   graphicsAPI: MikanClientGraphicsApi = MikanClientGraphicsApi.UNKNOWN;
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'color_buffer_type', type: 'enum:MikanColorBufferType' },
     { name: 'depth_buffer_type', type: 'enum:MikanDepthBufferType' },
     { name: 'width', type: 'uint32' },

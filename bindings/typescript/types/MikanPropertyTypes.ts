@@ -2,10 +2,11 @@
 
 import { PolymorphicStruct } from './../PolymorphicObject.js';
 import { MikanVariant, MikanVariantType } from './MikanVariantTypes.js';
+import type { SerializationField } from './SerializationTypes.js';
 
 export class MikanSystemValues extends PolymorphicStruct {
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
   ];
 }
 
@@ -16,7 +17,7 @@ export class MikanPropertyDescriptor {
   fieldType: MikanVariantType = MikanVariantType.INVALID_TYPE;
   isReadOnly: boolean = false;
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'ownerSystemClass', type: 'string' },
     { name: 'ownerComponentClass', type: 'string' },
     { name: 'fieldName', type: 'string' },
@@ -32,7 +33,7 @@ export class MikanPropertyValue {
   fieldName: string = '';
   fieldValue: MikanVariant = new MikanVariant();
 
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  static __serializationMetadata: SerializationField[] = [
     { name: 'ownerSystem', type: 'string' },
     { name: 'ownerComponentClass', type: 'string' },
     { name: 'componentId', type: 'int32' },
