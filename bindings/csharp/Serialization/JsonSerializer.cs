@@ -97,29 +97,26 @@ namespace MikanXR
 				var serializableObject = accessor.getValueObject();
 				var serializableObjectType = accessor.ValueType;
 
-				// Get the instance and runtime class properties
-				var instanceClassIdProperty = serializableObjectType.GetProperty("RuntimeClassId");
+				// Get the instance and runtime class name properties
+				var instanceClassNameProperty = serializableObjectType.GetProperty("RuntimeClassName");
 				var instanceProperty = serializableObjectType.GetProperty("Instance");
 
-				var instanceClassId = (long)instanceClassIdProperty.GetValue(serializableObject);
+				var instanceClassName = (string)instanceClassNameProperty.GetValue(serializableObject);
 				var instance = instanceProperty.GetValue(serializableObject);
 
-                var instanceClassName = "";
-                var jsonRuntimeObject = new JObject();
+				var jsonRuntimeObject = new JObject();
 
-                if (instanceClassId != 0 && instance != null)
+				if (!string.IsNullOrEmpty(instanceClassName) && instance != null)
 				{
-                    Type instanceType = instance.GetType();
-                    instanceClassName = instanceType.Name;
+					Type instanceType = instance.GetType();
 
-                    // Serialize the object into a json object
-                    var jsonVisitor = new JsonWriteVisitor(jsonRuntimeObject);
-                    Utils.visitObject(instance, instanceType, jsonVisitor);
-                }
+					// Serialize the object into a json object
+					var jsonVisitor = new JsonWriteVisitor(jsonRuntimeObject);
+					Utils.visitObject(instance, instanceType, jsonVisitor);
+				}
 
-                var jsonSerializableObject = new JObject();
+				var jsonSerializableObject = new JObject();
 				jsonSerializableObject["class_name"] = instanceClassName;
-				jsonSerializableObject["class_id"] = instanceClassId;
 				jsonSerializableObject["value"] = jsonRuntimeObject;
 
 				setJsonValueFromJsonToken(accessor.ValueField, jsonSerializableObject);

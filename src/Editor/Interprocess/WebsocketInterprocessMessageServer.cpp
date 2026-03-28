@@ -335,10 +335,10 @@ void WebsocketInterprocessMessageServer::setSocketEventHandler(
 }
 
 void WebsocketInterprocessMessageServer::setRequestHandler(
-	std::size_t requestTypeId, 
+	const std::string& requestTypeName,
 	RequestHandler handler)
 {
-	m_requestHandlers[requestTypeId] = handler;
+	m_requestHandlers[requestTypeName] = handler;
 }
 
 void WebsocketInterprocessMessageServer::getConnectionList(std::vector<WebSocketClientConnectionPtr>& outConnections)
@@ -440,12 +440,12 @@ void WebsocketInterprocessMessageServer::processRequests()
 		std::string inRequestString;
 		while (connection->getRequestQueue()->try_dequeue(inRequestString))
 		{
-			int64_t requestTypeId;
-			JsonSaxInt64ValueSearcher typeNameSearcher;
-			if (!typeNameSearcher.fetchKeyValuePair(inRequestString, "requestTypeId", requestTypeId))
+			std::string requestTypeName;
+			JsonSaxStringValueSearcher typeNameSearcher;
+			if (!typeNameSearcher.fetchKeyValuePair(inRequestString, "requestTypeName", requestTypeName))
 			{
-				MIKAN_LOG_WARNING("processRequests") << 
-					"Request missing/invalid requestType field: " << inRequestString;
+				MIKAN_LOG_WARNING("processRequests") <<
+					"Request missing/invalid requestTypeName field: " << inRequestString;
 				continue;
 			}
 
@@ -459,7 +459,7 @@ void WebsocketInterprocessMessageServer::processRequests()
 
 			// Get the response from a registered function handler, if any
 			ClientResponse outResponse;
-			auto handler_it = m_requestHandlers.find(requestTypeId);
+			auto handler_it = m_requestHandlers.find(requestTypeName);
 			if (handler_it != m_requestHandlers.end())
 			{
 				// NOTE: Connection ID here is a unique ID for the websocket connection on the server
@@ -471,11 +471,8 @@ void WebsocketInterprocessMessageServer::processRequests()
 			}
 			else
 			{
-				const rfk::Struct& requestTypeStruct = MikanResponse::staticGetArchetype();
-
 				MikanResponse outResult;
-				outResult.responseTypeName = requestTypeStruct.getName();
-				outResult.responseTypeId = requestTypeStruct.getId();
+				outResult.responseTypeName = MikanResponse::staticGetArchetype().getName();
 				outResult.requestId= requestId;
 				outResult.resultCode= MikanAPIResult::UnknownFunction;
 
@@ -498,7 +495,7 @@ void WebsocketInterprocessMessageServer::processRequests()
 				outResponse.binaryData.empty())
 			{
 				MIKAN_LOG_WARNING("processRequests") <<
-					"Request handler for " << requestTypeId 
+					"Request handler for " << requestTypeName
 					<< " returned empty response, but response expected!";
 			}
 		}

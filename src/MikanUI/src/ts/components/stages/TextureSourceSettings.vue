@@ -66,10 +66,7 @@ import { useComponentStore } from '../../stores/componentStore.js'
 import { useRemoteControl } from '../../composables/useRemoteControl.js'
 import { usePropertyEditor } from '../../composables/usePropertyEditor.js'
 import {
-  MikanSpoutTextureSourceValues,
-  MikanClientTextureSourceValues,
-  PropertySetValueRequest,
-  CLASS_ID_PROPERTY_SET_VALUE_REQUEST
+  PropertySetValueRequest
 } from '@mikanxr/client'
 
 const mikanStore = useMikanStore()
@@ -140,7 +137,6 @@ async function setTextureSourceProperty(ownerSystem: string, fieldName: string, 
 
   try {
     const request: PropertySetValueRequest = {
-      requestTypeId: CLASS_ID_PROPERTY_SET_VALUE_REQUEST,
       requestTypeName: 'PropertySetValueRequest',
       requestId: 0,
       ownerSystem,

@@ -6,8 +6,6 @@ namespace MikanXR
 {
 	public class MikanMatrix3d
 	{
-		public static readonly long classId= -1079171085240853505;
-
 		public double x0;
 		public double x1;
 		public double x2;
@@ -21,8 +19,6 @@ namespace MikanXR
 
 	public class MikanMatrix4d
 	{
-		public static readonly long classId= -1078012199984908336;
-
 		public double x0;
 		public double x1;
 		public double x2;
@@ -43,8 +39,6 @@ namespace MikanXR
 
 	public class MikanMatrix4f
 	{
-		public static readonly long classId= -1078010000961651914;
-
 		public float x0;
 		public float x1;
 		public float x2;
@@ -65,8 +59,6 @@ namespace MikanXR
 
 	public class MikanMatrix4x3d
 	{
-		public static readonly long classId= -3432518494297948957;
-
 		public double x0;
 		public double x1;
 		public double x2;
@@ -83,8 +75,6 @@ namespace MikanXR
 
 	public class MikanQuatd
 	{
-		public static readonly long classId= 1243674317020394682;
-
 		public double w;
 		public double x;
 		public double y;
@@ -93,8 +83,6 @@ namespace MikanXR
 
 	public class MikanQuatf
 	{
-		public static readonly long classId= 1243672117997138260;
-
 		public float w;
 		public float x;
 		public float y;
@@ -103,8 +91,6 @@ namespace MikanXR
 
 	public class MikanRotator3f
 	{
-		public static readonly long classId= 1923080865110129363;
-
 		public float x_angle;
 		public float y_angle;
 		public float z_angle;
@@ -112,8 +98,6 @@ namespace MikanXR
 
 	public class MikanTransform
 	{
-		public static readonly long classId= 1003008018171028503;
-
 		public MikanVector3f scale;
 		public MikanQuatf rotation;
 		public MikanVector3f position;
@@ -121,32 +105,24 @@ namespace MikanXR
 
 	public class MikanVector2d
 	{
-		public static readonly long classId= 4125209798540890896;
-
 		public double x;
 		public double y;
 	};
 
 	public class MikanVector2f
 	{
-		public static readonly long classId= 4125211997564147318;
-
 		public float x;
 		public float y;
 	};
 
 	public class MikanVector2i
 	{
-		public static readonly long classId= 4125224092192057639;
-
 		public int x;
 		public int y;
 	};
 
 	public class MikanVector3d
 	{
-		public static readonly long classId= 4126307111145656249;
-
 		public double x;
 		public double y;
 		public double z;
@@ -154,8 +130,6 @@ namespace MikanXR
 
 	public class MikanVector3f
 	{
-		public static readonly long classId= 4126304912122399827;
-
 		public float x;
 		public float y;
 		public float z;
@@ -163,8 +137,6 @@ namespace MikanXR
 
 	public class MikanVector4d
 	{
-		public static readonly long classId= 4123226279563976702;
-
 		public double x;
 		public double y;
 		public double z;
@@ -173,8 +145,6 @@ namespace MikanXR
 
 	public class MikanVector4f
 	{
-		public static readonly long classId= 4123224080540720280;
-
 		public float x;
 		public float y;
 		public float z;

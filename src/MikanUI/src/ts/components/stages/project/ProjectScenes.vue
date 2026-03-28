@@ -168,20 +168,14 @@ import {
   MikanAPIResult,
   MikanConstants,
   PropertyGetValueRequest,
-  CLASS_ID_PROPERTY_GET_VALUE_REQUEST,
   PropertyGetValueResponse,
   PolymorphicObject,
   MikanVector3f,
   MikanAnchorComponentValues,
-  CLASS_ID_MIKAN_ANCHOR_COMPONENT_VALUES,
   MikanCompositorComponentValues,
-  CLASS_ID_MIKAN_COMPOSITOR_COMPONENT_VALUES,
   MikanQuadStencilComponentValues,
-  CLASS_ID_MIKAN_QUAD_STENCIL_COMPONENT_VALUES,
   MikanBoxStencilComponentValues,
-  CLASS_ID_MIKAN_BOX_STENCIL_COMPONENT_VALUES,
-  MikanModelStencilComponentValues,
-  CLASS_ID_MIKAN_MODEL_STENCIL_COMPONENT_VALUES
+  MikanModelStencilComponentValues
 } from '@mikanxr/client'
 
 const componentStore = useComponentStore()
@@ -334,7 +328,6 @@ async function initializeFromCurrentScene() {
     console.log('[ProjectScenes] Fetching current scene ID...')
 
     const request: PropertyGetValueRequest = {
-      requestTypeId: CLASS_ID_PROPERTY_GET_VALUE_REQUEST,
       requestTypeName: 'PropertyGetValueRequest',
       requestId: 0,
       ownerSystem: 'SceneObjectSystem',
@@ -466,7 +459,7 @@ async function handleAddCompositor() {
   initValues.owner_scene_id = selectedSceneId.value
   initValues.camera_id = MikanConstants.InvalidMikanID
 
-  const initParams = new PolymorphicObject(initValues, CLASS_ID_MIKAN_COMPOSITOR_COMPONENT_VALUES, 'MikanCompositorComponentValues')
+  const initParams = new PolymorphicObject(initValues, 'MikanCompositorComponentValues')
   await componentStore.createObject(mikanStore.client as MikanClient, 'CompositorComponent', initParams)
 }
 
@@ -485,7 +478,7 @@ async function handleAddAnchor() {
   initValues.relative_scale = makeVec3(1, 1, 1)
   initValues.parent_transform_id = newActorParentTransformId.value
 
-  const initParams = new PolymorphicObject(initValues, CLASS_ID_MIKAN_ANCHOR_COMPONENT_VALUES, 'MikanAnchorComponentValues')
+  const initParams = new PolymorphicObject(initValues, 'MikanAnchorComponentValues')
   await componentStore.createObject(mikanStore.client as MikanClient, 'AnchorComponent', initParams)
 }
 
@@ -505,7 +498,7 @@ async function handleAddQuadStencil() {
   initValues.quad_width = 0.5
   initValues.quad_height = 0.5
 
-  const initParams = new PolymorphicObject(initValues, CLASS_ID_MIKAN_QUAD_STENCIL_COMPONENT_VALUES, 'MikanQuadStencilComponentValues')
+  const initParams = new PolymorphicObject(initValues, 'MikanQuadStencilComponentValues')
   await componentStore.createObject(mikanStore.client as MikanClient, 'QuadStencilComponent', initParams)
 }
 
@@ -526,7 +519,7 @@ async function handleAddBoxStencil() {
   initValues.box_y_size = 0.5
   initValues.box_z_size = 0.5
 
-  const initParams = new PolymorphicObject(initValues, CLASS_ID_MIKAN_BOX_STENCIL_COMPONENT_VALUES, 'MikanBoxStencilComponentValues')
+  const initParams = new PolymorphicObject(initValues, 'MikanBoxStencilComponentValues')
   await componentStore.createObject(mikanStore.client as MikanClient, 'BoxStencilComponent', initParams)
 }
 
@@ -544,7 +537,7 @@ async function handleAddModelStencil() {
   initValues.relative_scale = makeVec3(1, 1, 1)
   initValues.parent_transform_id = newActorParentTransformId.value
 
-  const initParams = new PolymorphicObject(initValues, CLASS_ID_MIKAN_MODEL_STENCIL_COMPONENT_VALUES, 'MikanModelStencilComponentValues')
+  const initParams = new PolymorphicObject(initValues, 'MikanModelStencilComponentValues')
   await componentStore.createObject(mikanStore.client as MikanClient, 'ModelStencilComponent', initParams)
 }
 

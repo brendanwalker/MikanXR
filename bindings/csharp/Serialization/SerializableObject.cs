@@ -1,7 +1,4 @@
-﻿using System;
-using System.Reflection;
-
-namespace MikanXR
+﻿namespace MikanXR
 {
 	public class PolymorphicStruct 
 	{
@@ -9,14 +6,14 @@ namespace MikanXR
 
 	public class PolymorphicObject
 	{
-		private long _runtimeClassId= 0;
-		public long RuntimeClassId => _runtimeClassId;
+		private string _runtimeClassName = "";
+		public string RuntimeClassName => _runtimeClassName;
 
 		private PolymorphicStruct _instance;
 		public PolymorphicStruct Instance => _instance;
 
-		public PolymorphicObject() 
-		{ 
+		public PolymorphicObject()
+		{
 		}
 
 		public PolymorphicObject(PolymorphicStruct instance)
@@ -26,15 +23,7 @@ namespace MikanXR
 
 		public void setInstance(PolymorphicStruct instance)
 		{
-			Type instanceType = instance.GetType();
-			FieldInfo classIdField= 
-				instanceType.GetField(
-					"classId", 
-					BindingFlags.Public | BindingFlags.Static);
-
-			// All SerializableObject types have a static "classId" field
-			// corresponding to the Refureku class ID in the C++ code
-			_runtimeClassId = (long)classIdField.GetValue(null);
+			_runtimeClassName = instance.GetType().Name;
 			_instance = instance;
 		}
 	}

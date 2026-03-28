@@ -14,21 +14,11 @@ export enum MikanTrackingVolumeType {
   vr = 1
 }
 
-export const CLASS_ID_MIKAN_MARKER_TRACKING_VOLUME_COMPONENT_VALUES = -912859617642764411n;
-export const CLASS_ID_MIKAN_TRACKING_VOLUME_COMPONENT_VALUES = 8298175138156239447n;
-export const CLASS_ID_MIKAN_VRTRACKING_VOLUME_COMPONENT_VALUES = -4734525919723628573n;
-
 export class MikanTrackingVolumeComponentValues extends MikanComponentValues {
   origin_marker_id: number = -1;
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'origin_marker_id', type: 'int32' }
-  ];
-}
-
-export class MikanMarkerTrackingVolumeComponentValues extends MikanTrackingVolumeComponentValues {
-
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
   ];
 }
 
@@ -47,6 +37,12 @@ export class MikanVRTrackingVolumeComponentValues extends MikanTrackingVolumeCom
     { name: 'utility_marker_id', type: 'int32' },
     { name: 'tracking_mount_ids', type: 'int32', isArray: true },
     { name: 'vr_device_pose_offset', type: 'MikanMatrix4f' }
+  ];
+}
+
+export class MikanMarkerTrackingVolumeComponentValues extends MikanTrackingVolumeComponentValues {
+
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
   ];
 }
 

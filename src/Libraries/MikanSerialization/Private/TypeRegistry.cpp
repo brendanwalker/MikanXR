@@ -1,0 +1,31 @@
+#include "TypeRegistry.h"
+
+#ifdef SERIALIZATION_REFLECTION_ENABLED
+#include "SerializationProperty.h"
+#include <Refureku/Refureku.h>
+#include <unordered_map>
+
+namespace Serialization
+{
+	static std::unordered_map<std::string, rfk::Struct const*> s_structs;
+
+	void TypeRegistry::buildFromRfkDatabase()
+	{
+		s_structs.clear();
+
+		rfk::getDatabase().foreachFileLevelStruct([](rfk::Struct const& entity, void* userData) -> bool {
+			if (entity.getProperty<Serialization::CodeGenModule>() != nullptr)
+			{
+				s_structs[entity.getName()] = &entity;
+			}
+			return true;
+		}, nullptr);
+	}
+
+	rfk::Struct const* TypeRegistry::getStructByName(const std::string& typeName)
+	{
+		auto it = s_structs.find(typeName);
+		return (it != s_structs.end()) ? it->second : nullptr;
+	}
+}
+#endif // SERIALIZATION_REFLECTION_ENABLED

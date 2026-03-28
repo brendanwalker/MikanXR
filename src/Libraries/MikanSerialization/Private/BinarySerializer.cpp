@@ -7,6 +7,8 @@
 #include "SerializableString.h"
 #include "SerializationProperty.h"
 
+#include "TypeRegistry.h"
+
 #include "Refureku/Refureku.h"
 
 namespace Serialization
@@ -79,36 +81,30 @@ namespace Serialization
 			const void* objPtrInstance = accessor.getUntypedValuePtr();
 			rfk::Class const* objPtrClassType = accessor.getClassType();
 
-			// Use reflection to get the runtime class id of the object pointed at
-			rfk::Method const* getRuntimeClassIdMethod = 
+			// Use reflection to get the runtime class name of the object pointed at
+			rfk::Method const* getRuntimeClassNameMethod =
 				objPtrClassType->getMethodByName(
-					"getRuntimeClassId", rfk::EMethodFlags::Default, true);
-			const Serialization::RfkClassId rfkClassId = 
-				getRuntimeClassIdMethod->invokeUnsafe<std::size_t>(objPtrInstance);
-			const Serialization::MikanClassId mikanClassId = Serialization::toMikanClassId(rfkClassId);
+					"getRuntimeClassName", rfk::EMethodFlags::Default, true);
+			const std::string className =
+				getRuntimeClassNameMethod->invokeUnsafe<std::string>(objPtrInstance);
 
 			// Get the runtime class for the object
 			rfk::Struct const* objectStruct = nullptr;
-			if (rfkClassId != 0)
+			if (!className.empty())
 			{
-				// If the class id is not 0, it means the object pointer is currently pointing to an object
-				// and we need to serialize it. We get the class of the object to serialize through reflection.
-				objectStruct = rfk::getDatabase().getStructById(rfkClassId);
+				// If the class name is not empty, look up the struct in the TypeRegistry
+				objectStruct = TypeRegistry::getStructByName(className);
 				if (objectStruct == nullptr)
 				{
 					throw std::runtime_error(
 						stringify("BinaryWriteVisitor::visitObjectPtr() ",
 							"TypedObjectPtr Accessor ", accessor.getName(),
-							" has an invalid class id ", rfkClassId));
+							" has an unknown class name ", className));
 				}
 			}
 
-			// Get the type of the elements in the array from the template argument
-			std::string className = objectStruct != nullptr ? objectStruct->getName() : "";
-
-			// Write the runtime class id of the object
+			// Write the runtime class name of the object
 			to_binary(m_binaryWriter, className);
-			to_binary(m_binaryWriter, mikanClassId);
 
 			// Get the raw pointer to the object pointed to by the shared pointer
 			rfk::Method const* getRawPtrMethod = 

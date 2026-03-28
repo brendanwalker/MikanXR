@@ -1,14 +1,11 @@
 import {
   ValueAccessor,
   IVisitor,
-  visitObject,
-  visitValue,
-  FieldMetadata,
-  getSerializationMetadata
+  visitObject
 } from './SerializationUtils.js';
 import { BinaryReader } from './BinaryReader.js';
 import { PolymorphicObject, PolymorphicStruct } from '../PolymorphicObject.js';
-import { TypeRegistry } from './JsonDeserializer.js';
+import { TypeRegistry } from './TypeRegistry.js';
 import { EnumRegistry } from './EnumRegistry.js';
 
 /**
@@ -140,7 +137,6 @@ class BinaryReadVisitor implements IVisitor {
 
     // Read the runtime class info
     const elementRuntimeTypeName = this.reader.readUTF8String();
-    const classId = this.reader.readInt64();
 
     const isValidObject = this.reader.readBoolean();
     if (isValidObject) {
@@ -161,7 +157,7 @@ class BinaryReadVisitor implements IVisitor {
       visitObject(elementInstance, elementRuntimeType, this);
 
       // Set the instance on the PolymorphicObject
-      polymorphicObject.setInstance(elementInstance, classId, elementRuntimeTypeName);
+      polymorphicObject.setInstance(elementInstance, elementRuntimeTypeName);
     }
   }
 

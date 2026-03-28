@@ -20,8 +20,6 @@ namespace MikanXR
 
 	public class MikanVRDeviceComponentValues : MikanTransformComponentValues
 	{
-		public static new readonly long classId= 5417189174165719684;
-
 		public MikanVRDeviceApi vr_device_api;
 		public MikanVRDeviceType vr_device_type;
 		public int vr_device_index;

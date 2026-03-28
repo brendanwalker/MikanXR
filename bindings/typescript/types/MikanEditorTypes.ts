@@ -2,8 +2,6 @@
 
 import { MikanSystemValues } from './MikanPropertyTypes.js';
 
-export const CLASS_ID_MIKAN_EDITOR_SYSTEM_VALUES = 4320615163560817507n;
-
 export class MikanEditorSystemValues extends MikanSystemValues {
   cameraSpeed: number = 0;
 

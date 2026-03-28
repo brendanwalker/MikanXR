@@ -3,9 +3,11 @@
 import { PolymorphicStruct } from './../PolymorphicObject.js';
 import { MikanVariant, MikanVariantType } from './MikanVariantTypes.js';
 
-export const CLASS_ID_MIKAN_PROPERTY_DESCRIPTOR = 6424203277621511357n;
-export const CLASS_ID_MIKAN_PROPERTY_VALUE = 6952539342367057093n;
-export const CLASS_ID_MIKAN_SYSTEM_VALUES = 6499163311643253046n;
+export class MikanSystemValues extends PolymorphicStruct {
+
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+  ];
+}
 
 export class MikanPropertyDescriptor {
   ownerSystemClass: string = '';
@@ -36,12 +38,6 @@ export class MikanPropertyValue {
     { name: 'componentId', type: 'int32' },
     { name: 'fieldName', type: 'string' },
     { name: 'fieldValue', type: 'MikanVariant' }
-  ];
-}
-
-export class MikanSystemValues extends PolymorphicStruct {
-
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
   ];
 }
 

@@ -35,26 +35,17 @@ namespace MikanXR
 
 	public class MikanEvent
 	{
-		public static readonly long classId= 8521159033538382795;
-
-		public long eventTypeId;
 		public string eventTypeName;
 	};
 
 	public class MikanRequest
 	{
-		public static readonly long classId= 1095719431187359814;
-
-		public long requestTypeId;
 		public string requestTypeName;
 		public int requestId;
 	};
 
 	public class MikanResponse
 	{
-		public static readonly long classId= 7094118849615581562;
-
-		public long responseTypeId;
 		public string responseTypeName;
 		public int requestId;
 		public MikanAPIResult resultCode;

@@ -4,10 +4,8 @@ import {
   MikanClient,
   MikanAPIResult,
   GetComponentListRequest,
-  CLASS_ID_GET_COMPONENT_LIST_REQUEST,
   ComponentListResponse,
   ComponentGetValuesRequest,
-  CLASS_ID_COMPONENT_GET_VALUES_REQUEST,
   ComponentGetValuesResponse,
   MikanPropertyUpdateEvent,
   MikanComponentValues,
@@ -29,20 +27,15 @@ import {
   MikanVRDeviceComponentValues,
   MikanUSBVideoSourceValues,
   MikanNetworkVideoSourceValues,
-  MikanTextureSourceValues,
   MikanClientTextureSourceValues,
   MikanSpoutTextureSourceValues,
   GetFunctionListRequest,
-  CLASS_ID_GET_FUNCTION_LIST_REQUEST,
   FunctionDescriptorResponse,
   InvokeComponentFunctionRequest,
-  CLASS_ID_INVOKE_COMPONENT_FUNCTION_REQUEST,
   MikanFunctionDescriptor,
   PolymorphicObject,
   SystemCreateObjectRequest,
-  CLASS_ID_SYSTEM_CREATE_OBJECT_REQUEST,
   SystemDestroyObjectRequest,
-  CLASS_ID_SYSTEM_DESTROY_OBJECT_REQUEST
 } from '@mikanxr/client'
 
 // Component registry mapping system names to component class names
@@ -249,7 +242,6 @@ export const useComponentStore = defineStore('components', () => {
   ): Promise<void> {
     try {
       const request: GetComponentListRequest = {
-        requestTypeId: CLASS_ID_GET_COMPONENT_LIST_REQUEST,
         requestTypeName: 'GetComponentListRequest',
         requestId: 0,
         ownerSystem,
@@ -290,7 +282,6 @@ export const useComponentStore = defineStore('components', () => {
   ): Promise<void> {
     try {
       const request: ComponentGetValuesRequest = {
-        requestTypeId: CLASS_ID_COMPONENT_GET_VALUES_REQUEST,
         requestTypeName: 'ComponentGetValuesRequest',
         requestId: 0,
         ownerSystem,
@@ -494,7 +485,6 @@ export const useComponentStore = defineStore('components', () => {
   ): Promise<MikanFunctionDescriptor[]> {
     try {
       const request: GetFunctionListRequest = {
-        requestTypeId: CLASS_ID_GET_FUNCTION_LIST_REQUEST,
         requestTypeName: 'GetFunctionListRequest',
         requestId: 0,
         systemFilter: ownerSystem,
@@ -551,7 +541,6 @@ export const useComponentStore = defineStore('components', () => {
     }
     try {
       const request: SystemCreateObjectRequest = {
-        requestTypeId: CLASS_ID_SYSTEM_CREATE_OBJECT_REQUEST,
         requestTypeName: 'SystemCreateObjectRequest',
         requestId: 0,
         ownerSystem: entry.ownerSystem,
@@ -587,7 +576,6 @@ export const useComponentStore = defineStore('components', () => {
     }
     try {
       const request: SystemDestroyObjectRequest = {
-        requestTypeId: CLASS_ID_SYSTEM_DESTROY_OBJECT_REQUEST,
         requestTypeName: 'SystemDestroyObjectRequest',
         requestId: 0,
         ownerSystem: entry.ownerSystem,
@@ -619,7 +607,6 @@ export const useComponentStore = defineStore('components', () => {
   ): Promise<boolean> {
     try {
       const request: InvokeComponentFunctionRequest = {
-        requestTypeId: CLASS_ID_INVOKE_COMPONENT_FUNCTION_REQUEST,
         requestTypeName: 'InvokeComponentFunctionRequest',
         requestId: 0,
         ownerSystem,

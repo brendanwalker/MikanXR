@@ -4,28 +4,17 @@ import {
   MikanDisconnectedEvent,
   MikanDisconnectCode,
   MikanPropertyUpdateEvent,
-  CLASS_ID_MIKAN_DISCONNECTED_EVENT
 } from './types/index.js';
 import {
   MikanAppStageChangedEvent,
-  CLASS_ID_MIKAN_APP_STAGE_CHANGED_EVENT
 } from './types/MikanRemoteControlEvents.js';
 import { deserializeFromJsonString, TypeRegistry } from './Serialization/index.js';
 
 export class MikanEventManager extends EventEmitter {
   private static readonly WEBSOCKET_DISCONNECT_EVENT = 'disconnect';
-  private eventTypeCache: Map<string, bigint> = new Map();
 
   constructor() {
     super();
-    this.buildEventTypeCache();
-  }
-
-  private buildEventTypeCache(): void {
-    // Map event type names to their class IDs
-    this.eventTypeCache.set('MikanDisconnectedEvent', CLASS_ID_MIKAN_DISCONNECTED_EVENT);
-    this.eventTypeCache.set('MikanAppStageChangedEvent', CLASS_ID_MIKAN_APP_STAGE_CHANGED_EVENT);
-    // Add more event types as needed
   }
 
   public handleEventMessage(message: string): void {
@@ -50,30 +39,23 @@ export class MikanEventManager extends EventEmitter {
       // Parse JSON events
       const parsed = JSON.parse(message);
 
-      if (!parsed.eventTypeName || !parsed.eventTypeId) {
-        console.error('Event missing type information');
+      if (!parsed.eventTypeName) {
+        console.error('Event missing eventTypeName');
         return null;
       }
 
-      // Convert eventTypeId string back to bigint
-      if (typeof parsed.eventTypeId === 'string') {
-        parsed.eventTypeId = BigInt(parsed.eventTypeId);
+      // Use TypeRegistry for proper deserialization when the event type is known
+      const eventType = TypeRegistry.get(parsed.eventTypeName);
+      if (eventType) {
+        const event = new eventType();
+        deserializeFromJsonString(message, event, eventType);
+        return event as MikanEvent;
       }
 
-      // NOTE: For advanced serialization with complex types, you can use:
-      // const eventType = TypeRegistry.get(parsed.eventTypeName);
-      // if (eventType) {
-      //   const event = new eventType();
-      //   deserializeFromJsonString(message, event, eventType);
-      //   return event;
-      // }
-
+      // Fallback: shallow-copy JSON fields for unknown event types
       const event: MikanEvent = {
-        eventTypeId: parsed.eventTypeId,
         eventTypeName: parsed.eventTypeName
       };
-
-      // Copy any additional properties from specific event types
       Object.assign(event, parsed);
 
       return event;
@@ -94,7 +76,6 @@ export class MikanEventManager extends EventEmitter {
     }
 
     return {
-      eventTypeId: CLASS_ID_MIKAN_DISCONNECTED_EVENT,
       eventTypeName: 'MikanDisconnectedEvent',
       code: disconnectCode,
       reason: disconnectReason

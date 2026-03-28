@@ -1,32 +1,12 @@
 import {
   ValueAccessor,
   IVisitor,
-  visitObject,
-  visitValue,
-  FieldMetadata,
-  getSerializationMetadata
+  visitObject
 } from './SerializationUtils.js';
 import { PolymorphicObject, PolymorphicStruct } from '../PolymorphicObject.js';
 import { EnumRegistry } from './EnumRegistry.js';
-
-/**
- * Type registry for runtime type lookup
- */
-export class TypeRegistry {
-  private static types = new Map<string, any>();
-
-  static register(name: string, type: any): void {
-    this.types.set(name, type);
-  }
-
-  static get(name: string): any | undefined {
-    return this.types.get(name);
-  }
-
-  static has(name: string): boolean {
-    return this.types.has(name);
-  }
-}
+import { TypeRegistry } from './TypeRegistry.js';
+export { TypeRegistry };
 
 /**
  * JSON read visitor for deserializing objects from JSON
@@ -171,8 +151,7 @@ class JsonReadVisitor implements IVisitor {
     visitObject(elementInstance, elementRuntimeType, elementVisitor);
 
     // Set the instance on the PolymorphicObject
-    const classId = BigInt(jsonToken.class_id || '0');
-    fieldInstance.setInstance(elementInstance, classId, elementRuntimeTypeName);
+    fieldInstance.setInstance(elementInstance, elementRuntimeTypeName);
   }
 
   visitEnum(accessor: ValueAccessor): void {

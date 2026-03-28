@@ -19,16 +19,16 @@ bool RemoteControlManager::startup(MainWindow* mainWindow)
 
 	// Register remote control request handlers
 	messageServer->setRequestHandler(
-		PushAppStage::staticGetArchetype().getId(),
+		PushAppStage::staticGetArchetype().getName(),
 		std::bind(&RemoteControlManager::pushAppStageHandler, this, _1, _2));
 	messageServer->setRequestHandler(
-		PopAppStage::staticGetArchetype().getId(),
+		PopAppStage::staticGetArchetype().getName(),
 		std::bind(&RemoteControlManager::popAppStageHandler, this, _1, _2));
 	messageServer->setRequestHandler(
-		GetAppStageInfo::staticGetArchetype().getId(),
+		GetAppStageInfo::staticGetArchetype().getName(),
 		std::bind(&RemoteControlManager::getAppStageInfoHandler, this, _1, _2));
 	messageServer->setRequestHandler(
-		MikanRemoteControlCommand::staticGetArchetype().getId(),
+		MikanRemoteControlCommand::staticGetArchetype().getName(),
 		std::bind(&RemoteControlManager::remoteControlCommandHandler, this, _1, _2));
 
 	m_mainWindow= mainWindow;

@@ -15,16 +15,12 @@ namespace MikanXR
 
 	public class MikanMarkerComponentValues : MikanComponentValues
 	{
-		public static new readonly long classId= 2808287499176319284;
-
 		public int aruco_id;
 		public float length_mm;
 	};
 
 	public class MikanMarkerSystemValues : MikanSystemValues
 	{
-		public static new readonly long classId= 133061264921636720;
-
 		public List<int> aruco_id_list;
 		public MikanMarkerDictionaryType aruco_dictionary_type;
 		public int charuco_rows;

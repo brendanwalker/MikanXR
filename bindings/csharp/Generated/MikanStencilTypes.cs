@@ -14,8 +14,6 @@ namespace MikanXR
 
 	public class MikanBoxStencilComponentValues : MikanStencilComponentValues
 	{
-		public static new readonly long classId= -6788717745397413241;
-
 		public float box_x_size;
 		public float box_y_size;
 		public float box_z_size;
@@ -23,29 +21,21 @@ namespace MikanXR
 
 	public class MikanBoxStencilSystemValues : MikanSystemValues
 	{
-		public static new readonly long classId= -5744935790384325503;
-
 		public bool render_stencils;
 	};
 
 	public class MikanModelStencilComponentValues : MikanStencilComponentValues
 	{
-		public static new readonly long classId= 5055554930502929791;
-
 		public string model_path;
 	};
 
 	public class MikanModelStencilSystemValues : MikanSystemValues
 	{
-		public static new readonly long classId= 4518059482513858969;
-
 		public bool render_stencils;
 	};
 
 	public class MikanQuadStencilComponentValues : MikanStencilComponentValues
 	{
-		public static new readonly long classId= -9026237790691884165;
-
 		public float quad_width;
 		public float quad_height;
 		public bool is_double_sided;
@@ -53,30 +43,22 @@ namespace MikanXR
 
 	public class MikanQuadStencilSystemValues : MikanSystemValues
 	{
-		public static new readonly long classId= 5730694394306440045;
-
 		public bool render_stencils;
 	};
 
 	public class MikanStencilComponentValues : MikanTransformComponentValues
 	{
-		public static new readonly long classId= -4451290801219034056;
-
 		public bool is_disabled;
 		public MikanStencilCullMode cull_mode;
 	};
 
 	public class MikanStencilModelRenderGeometry
 	{
-		public static readonly long classId= 6822885306325183796;
-
 		public List<MikanTriagulatedMesh> meshes;
 	};
 
 	public class MikanTriagulatedMesh
 	{
-		public static readonly long classId= -1925804809077911022;
-
 		public List<MikanVector3f> vertices;
 		public List<MikanVector3f> normals;
 		public List<MikanVector2f> texels;

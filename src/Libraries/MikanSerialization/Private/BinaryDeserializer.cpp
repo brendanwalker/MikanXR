@@ -7,6 +7,8 @@
 #include "SerializableString.h"
 #include "SerializationProperty.h"
 
+#include "TypeRegistry.h"
+
 #include "Refureku/Refureku.h"
 
 
@@ -74,27 +76,24 @@ namespace Serialization
 
 		void visitObjectPtr(ValueAccessor const& accessor)
 		{
-			// Get the shared pointer we are writing 
+			// Get the shared pointer we are writing
 			void* objPtrInstance = accessor.getUntypedValueMutablePtr();
 			rfk::Class const* objPtrClassType = accessor.getClassType();
 
-			// Get the class for the object by type id
+			// Get the class for the object by type name
 			std::string objectClassName;
 			from_binary(m_binaryReader, objectClassName);
-			Serialization::MikanClassId mikanObjectClassId;
-			from_binary(m_binaryReader, mikanObjectClassId);
-			Serialization::RfkClassId rfkClassId= Serialization::toRfkClassId(mikanObjectClassId);
 
 			rfk::Struct const* objectStruct = nullptr;
-			if (rfkClassId != 0)
+			if (!objectClassName.empty())
 			{
-				objectStruct = rfk::getDatabase().getStructById(rfkClassId);
+				objectStruct = TypeRegistry::getStructByName(objectClassName);
 				if (objectStruct == nullptr)
 				{
 					throw std::runtime_error(
 						stringify("BinaryReadVisitor::visitObjectPtr() ",
 							"TypedObjectPtr Accessor ", accessor.getName(),
-							" used an unknown class_id ", mikanObjectClassId));
+							" used an unknown class_name ", objectClassName));
 				}
 			}
 
@@ -106,12 +105,12 @@ namespace Serialization
 			if (objectStruct != nullptr && isValid)
 			{
 				// Use reflection to get the methods to create and initialize the object
-				rfk::Method const* allocateMethod = objPtrClassType->getMethodByName("allocateByClassId");
+				rfk::Method const* allocateMethod = objPtrClassType->getMethodByName("allocateByClassName");
 
 				// Allocate a default instance of the object assigned to the shared pointer
 				void* objectInstance =
-					allocateMethod->invokeUnsafe<void*, const std::size_t&>(
-						objPtrInstance, rfkClassId);
+					allocateMethod->invokeUnsafe<void*, const std::string&>(
+						objPtrInstance, objectClassName);
 
 				// Deserialize the object from the json
 				BinaryReadVisitor objectVisitor(m_binaryReader);

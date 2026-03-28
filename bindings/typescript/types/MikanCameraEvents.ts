@@ -3,8 +3,6 @@
 import { MikanEvent } from './MikanAPITypes.js';
 import { MikanVector2d, MikanVector2i, MikanVector3f } from './MikanMathTypes.js';
 
-export const CLASS_ID_MIKAN_CAMERA_NEW_FRAME_EVENT = -514294351884360997n;
-
 export class MikanCameraNewFrameEvent extends MikanEvent {
   camera_id: number = -1;
   camera_forward: MikanVector3f = new MikanVector3f();

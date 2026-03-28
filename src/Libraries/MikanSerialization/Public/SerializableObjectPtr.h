@@ -8,6 +8,7 @@
 #endif
 
 #include <memory>
+#include <string>
 
 namespace rfk
 {
@@ -16,11 +17,6 @@ namespace rfk
 
 namespace Serialization NAMESPACE()
 {
-	using MikanClassId = int64_t;
-	using RfkClassId = std::size_t;
-
-	SERIALIZATION_API MikanClassId toMikanClassId(RfkClassId classId);
-	SERIALIZATION_API RfkClassId toRfkClassId(MikanClassId classId);
 
 	struct SERIALIZATION_API STRUCT() PolymorphicStruct
 	{
@@ -80,7 +76,7 @@ namespace Serialization NAMESPACE()
 
 		// Methods invoked by reflection (serialization code)
 		METHOD()
-		void* allocateByClassId(const std::size_t && rfkClassId);
+		void* allocateByClassName(const std::string& className);
 
 		METHOD()
 		const void* getRawPtr() const;
@@ -89,7 +85,7 @@ namespace Serialization NAMESPACE()
 		void* getRawPtrMutable();
 
 		METHOD()
-		std::size_t getRuntimeClassId() const;
+		std::string getRuntimeClassName() const;
 
 		#ifdef SERIALIZATION_REFLECTION_ENABLED
 		Serialization_PolymorphicObjectPtr_GENERATED

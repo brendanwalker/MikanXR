@@ -196,12 +196,3 @@ export function visitValue(accessor: ValueAccessor, field: FieldMetadata, visito
   }
 }
 
-/**
- * Helper to get the class ID from a type
- */
-export function getMikanClassId(type: any): bigint {
-  if (type && type.classId !== undefined) {
-    return type.classId;
-  }
-  return 0n;
-}

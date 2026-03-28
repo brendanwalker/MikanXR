@@ -43,8 +43,6 @@ namespace MikanXR
 
 	public class MikanBaseIntrinsics : PolymorphicStruct
 	{
-		public static new readonly long classId= -3286470658648308984;
-
 		public double pixel_width;
 		public double pixel_height;
 		public double aspect_ratio;
@@ -56,8 +54,6 @@ namespace MikanXR
 
 	public class MikanDistortionCoefficients
 	{
-		public static readonly long classId= -2596555002374434624;
-
 		public double k1;
 		public double k2;
 		public double k3;
@@ -70,8 +66,6 @@ namespace MikanXR
 
 	public class MikanMonoIntrinsics : MikanBaseIntrinsics
 	{
-		public static new readonly long classId= 4896055255137140914;
-
 		public MikanDistortionCoefficients distortion_coefficients;
 		public MikanMatrix3d distorted_camera_matrix;
 		public MikanMatrix3d undistorted_camera_matrix;
@@ -79,8 +73,6 @@ namespace MikanXR
 
 	public class MikanNetworkVideoSourceValues : MikanVideoSourceValues
 	{
-		public static new readonly long classId= 8924237416134720747;
-
 		public string protocol;
 		public string ip_address;
 		public int port;
@@ -89,8 +81,6 @@ namespace MikanXR
 
 	public class MikanStereoIntrinsics : MikanBaseIntrinsics
 	{
-		public static new readonly long classId= -261934067861644075;
-
 		public MikanDistortionCoefficients left_distortion_coefficients;
 		public MikanMatrix3d left_camera_matrix;
 		public MikanDistortionCoefficients right_distortion_coefficients;
@@ -108,15 +98,11 @@ namespace MikanXR
 
 	public class MikanUSBVideoSourceSystemValues : MikanSystemValues
 	{
-		public static new readonly long classId= -4380137097083957162;
-
 		public Dictionary<string, string> usb_device_map;
 	};
 
 	public class MikanUSBVideoSourceValues : MikanVideoSourceValues
 	{
-		public static new readonly long classId= -9166828371246079689;
-
 		public string current_device_path;
 		public string video_mode;
 		public string video_resolution;
@@ -166,16 +152,12 @@ namespace MikanXR
 
 	public class MikanVideoSourceIntrinsics
 	{
-		public static readonly long classId= -5073913459979558727;
-
 		public PolymorphicObject intrinsics_ptr;
 		public MikanIntrinsicsType intrinsics_type;
 	};
 
 	public class MikanVideoSourceValues : MikanComponentValues
 	{
-		public static new readonly long classId= -7299893175604117141;
-
 		public PolymorphicObject intrinsics_ptr;
 		public MikanIntrinsicsType intrinsics_type;
 		public bool is_frame_mirrored;

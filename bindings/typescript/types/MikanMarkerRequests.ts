@@ -2,9 +2,6 @@
 
 import { MikanRequest, MikanResponse } from './MikanAPITypes.js';
 
-export const CLASS_ID_ARUCO_MARKER_IMAGE_RESPONSE = -9130171779594453109n;
-export const CLASS_ID_GET_ARUCO_MARKER_IMAGE_REQUEST = -8657100980457496105n;
-
 export class ArucoMarkerImageResponse extends MikanResponse {
   imageData: string = '';
 

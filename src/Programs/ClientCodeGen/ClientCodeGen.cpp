@@ -628,24 +628,6 @@ protected:
 			}
 		}
 
-		// Emit class IDs as constants
-		if (module->serializableStructs.size() > 0)
-		{
-			std::sort(module->serializableStructs.begin(), module->serializableStructs.end(),
-					  [](rfk::Struct const* a, rfk::Struct const* b) {
-				return stricmp(a->getName(), b->getName()) < 0;
-			});
-
-			for (rfk::Struct const* structRef : module->serializableStructs)
-			{
-				size_t classId = structRef->getId();
-				int64_t classIdInt64 = *reinterpret_cast<int64_t*>(&classId);
-				std::string constName = "CLASS_ID_" + toUpperSnakeCase(structRef->getName());
-				moduleFile << "export const " << constName << " = " << classIdInt64 << "n;" << std::endl;
-			}
-			moduleFile << std::endl;
-		}
-
 		// Emit interfaces
 		// Sort structs by inheritance hierarchy to avoid forward references
 		if (module->serializableStructs.size() > 0)
@@ -692,13 +674,6 @@ protected:
 		const std::string& className= structRef.getName();
 		moduleFile << "\tpublic class " << className << structInheritance << std::endl;
 		moduleFile << "\t{" << std::endl;
-
-		// Emit the refureku class id
-		std::string classIdOverride = parentStructNames.size() > 0 ? "new " : "";
-		size_t classId= structRef.getId();
-		int64_t classIdInt64= *reinterpret_cast<int64_t*>(&classId);
-		moduleFile << "\t\tpublic static " << classIdOverride << "readonly long classId= " << classIdInt64 << ";" << std::endl;
-		moduleFile << std::endl;
 
 		// For some reason Refureku doesn't return fields in the order they were declared
 		// So we extract fields into a vector and sort them by memory offset

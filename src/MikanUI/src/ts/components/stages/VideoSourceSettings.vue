@@ -128,22 +128,13 @@ import { useMikanStore } from '../../stores/mikanStore.js'
 import { useRemoteControl } from '../../composables/useRemoteControl.js'
 import { usePropertyEditor } from '../../composables/usePropertyEditor.js'
 import {
-  MikanUSBVideoSourceValues,
   MikanUSBVideoSourceSystemValues,
-  MikanNetworkVideoSourceValues,
   SetUSBVideoSourceDevice,
   SetUSBVideoSourceResolution,
   SetUSBVideoSourceFrameRate,
   SetUSBVideoSourceFormat,
-  CLASS_ID_SET_USBVIDEO_SOURCE_DEVICE,
-  CLASS_ID_SET_USBVIDEO_SOURCE_RESOLUTION,
-  CLASS_ID_SET_USBVIDEO_SOURCE_FRAME_RATE,
-  CLASS_ID_SET_USBVIDEO_SOURCE_FORMAT,
   PropertySetValueRequest,
-  CLASS_ID_PROPERTY_SET_VALUE_REQUEST,
-  MikanPropertyUpdateEvent,
   SystemGetValuesRequest,
-  CLASS_ID_SYSTEM_GET_VALUES_REQUEST,
   SystemGetValuesResponse
 } from '@mikanxr/client'
 
@@ -370,7 +361,6 @@ async function fetchSystemValues() {
 
   try {
     const request: SystemGetValuesRequest = {
-      requestTypeId: CLASS_ID_SYSTEM_GET_VALUES_REQUEST,
       requestTypeName: 'SystemGetValuesRequest',
       requestId: 0,
       ownerSystem: 'USBVideoSourceSystem'
@@ -394,7 +384,6 @@ async function handleDeviceChange() {
 
   try {
     const request: SetUSBVideoSourceDevice = {
-      requestTypeId: CLASS_ID_SET_USBVIDEO_SOURCE_DEVICE,
       requestTypeName: 'SetUSBVideoSourceDevice',
       requestId: 0,
       video_source_id: videoSourceId.value,
@@ -414,7 +403,6 @@ async function handleResolutionChange() {
 
   try {
     const request: SetUSBVideoSourceResolution = {
-      requestTypeId: CLASS_ID_SET_USBVIDEO_SOURCE_RESOLUTION,
       requestTypeName: 'SetUSBVideoSourceResolution',
       requestId: 0,
       video_source_id: videoSourceId.value,
@@ -434,7 +422,6 @@ async function handleFrameRateChange() {
 
   try {
     const request: SetUSBVideoSourceFrameRate = {
-      requestTypeId: CLASS_ID_SET_USBVIDEO_SOURCE_FRAME_RATE,
       requestTypeName: 'SetUSBVideoSourceFrameRate',
       requestId: 0,
       video_source_id: videoSourceId.value,
@@ -454,7 +441,6 @@ async function handleFormatChange() {
 
   try {
     const request: SetUSBVideoSourceFormat = {
-      requestTypeId: CLASS_ID_SET_USBVIDEO_SOURCE_FORMAT,
       requestTypeName: 'SetUSBVideoSourceFormat',
       requestId: 0,
       video_source_id: videoSourceId.value,
@@ -484,7 +470,6 @@ async function handleSliderChange(settingName: string, event: Event) {
     const fieldValue = createVariantFromValue(fraction)
 
     const request: PropertySetValueRequest = {
-      requestTypeId: CLASS_ID_PROPERTY_SET_VALUE_REQUEST,
       requestTypeName: 'PropertySetValueRequest',
       requestId: 0,
       ownerSystem: 'USBVideoSourceSystem',

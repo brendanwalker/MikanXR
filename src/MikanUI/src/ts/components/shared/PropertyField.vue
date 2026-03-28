@@ -137,8 +137,7 @@ import { useMikanStore } from '../../stores/mikanStore.js'
 import { useComponentStore } from '../../stores/componentStore.js'
 import {
   MikanAPIResult,
-  PropertySetValueRequest,
-  CLASS_ID_PROPERTY_SET_VALUE_REQUEST
+  PropertySetValueRequest
 } from '@mikanxr/client'
 
 interface Props {
@@ -221,7 +220,6 @@ async function sendPropertyUpdate(value: any) {
     const variant = createVariantFromValue(value)
 
     const request: PropertySetValueRequest = {
-      requestTypeId: CLASS_ID_PROPERTY_SET_VALUE_REQUEST,
       requestTypeName: 'PropertySetValueRequest',
       requestId: 0,
       ownerSystem: props.ownerSystem,

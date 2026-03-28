@@ -123,7 +123,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useComponentStore } from '../../../stores/componentStore.js'
 import { useMikanStore } from '../../../stores/mikanStore.js'
 import ComponentCard from '../../shared/ComponentCard.vue'
-import { MikanClient, MikanAPIResult, MikanMarkerComponentValues, GetArucoMarkerImageRequest, ArucoMarkerImageResponse, CLASS_ID_GET_ARUCO_MARKER_IMAGE_REQUEST, CLASS_ID_SYSTEM_GET_VALUES_REQUEST, SystemGetValuesRequest, SystemGetValuesResponse, MikanMarkerSystemValues, MikanMarkerDictionaryType, PropertySetValueRequest, CLASS_ID_PROPERTY_SET_VALUE_REQUEST } from '@mikanxr/client'
+import { MikanClient, MikanAPIResult, MikanMarkerComponentValues, GetArucoMarkerImageRequest, ArucoMarkerImageResponse, SystemGetValuesRequest, SystemGetValuesResponse, MikanMarkerSystemValues, MikanMarkerDictionaryType, PropertySetValueRequest } from '@mikanxr/client'
 import { usePropertyEditor } from '../../../composables/usePropertyEditor.js'
 
 const { createVariantFromValue } = usePropertyEditor()
@@ -159,7 +159,6 @@ async function fetchMarkerSystemValues() {
 
   try {
     const request: SystemGetValuesRequest = {
-      requestTypeId: CLASS_ID_SYSTEM_GET_VALUES_REQUEST,
       requestTypeName: 'SystemGetValuesRequest',
       requestId: 0,
       ownerSystem: 'MarkerObjectSystem'
@@ -185,7 +184,6 @@ async function setSystemProperty(fieldName: string, value: any) {
 
   try {
     const request: PropertySetValueRequest = {
-      requestTypeId: CLASS_ID_PROPERTY_SET_VALUE_REQUEST,
       requestTypeName: 'PropertySetValueRequest',
       requestId: 0,
       ownerSystem: 'MarkerObjectSystem',
@@ -216,7 +214,6 @@ async function fetchMarkerImage(arucoId: number) {
 
   try {
     const request: GetArucoMarkerImageRequest = {
-      requestTypeId: CLASS_ID_GET_ARUCO_MARKER_IMAGE_REQUEST,
       requestTypeName: 'GetArucoMarkerImageRequest',
       markerId: arucoId,
       imageSize: 0,

@@ -9,7 +9,7 @@ import {
 import { BinaryWriter } from './BinaryWriter.js';
 import { PolymorphicObject } from '../PolymorphicObject.js';
 import { EnumRegistry } from './EnumRegistry.js';
-import { TypeRegistry } from './JsonDeserializer.js';
+import { TypeRegistry } from './TypeRegistry.js';
 
 /**
  * Binary write visitor for serializing objects to binary format
@@ -135,18 +135,16 @@ class BinaryWriteVisitor implements IVisitor {
   visitPolymorphicObject(accessor: ValueAccessor): void {
     const polymorphicObject = accessor.getValueObject() as PolymorphicObject;
     const instance = polymorphicObject?.instance;
-    const classId = polymorphicObject?.runtimeClassId || 0n;
 
     let className = '';
     let instanceType: any = null;
 
-    if (instance && classId !== 0n) {
+    if (instance) {
       instanceType = instance.constructor;
       className = instanceType.name;
     }
 
     this.writer.writeUTF8String(className);
-    this.writer.writeInt64(classId);
 
     const isValidObject = instance !== null;
     this.writer.writeBoolean(isValidObject);

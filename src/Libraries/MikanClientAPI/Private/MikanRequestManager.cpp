@@ -6,8 +6,8 @@
 #include "BinaryDeserializer.h"
 #include "JsonDeserializer.h"
 #include "SerializableObjectPtr.h"
+#include "TypeRegistry.h"
 
-#include <Refureku/Refureku.h>
 #include <nlohmann/json.hpp>
 
 #include "assert.h"
@@ -39,10 +39,8 @@ MikanAPIResult MikanRequestManager::init(MikanContext context)
 
 MikanResponseFuture MikanRequestManager::sendRequest(MikanRequest& inRequest)
 {
-	Serialization::MikanClassId mikanRequestTypeId = inRequest.requestTypeId;
-	Serialization::RfkClassId rfkRequestTypeId = Serialization::toRfkClassId(mikanRequestTypeId);
-
-	rfk::Struct const* requestStruct = rfk::getDatabase().getStructById(rfkRequestTypeId);
+	rfk::Struct const* requestStruct =
+		Serialization::TypeRegistry::getStructByName(inRequest.requestTypeName.getValue());
 	assert(requestStruct != nullptr);
 
 	// Stamp the request with the next available request ID
@@ -77,9 +75,7 @@ MikanResponseFuture MikanRequestManager::addResponseHandler(MikanRequestID reque
 	else
 	{
 		auto errorResponse = std::make_shared<MikanResponse>();
-		rfk::Struct const& responseStruct = MikanResponse::staticGetArchetype();
-		errorResponse->responseTypeId = responseStruct.getId();
-		errorResponse->responseTypeName = responseStruct.getName();
+		errorResponse->responseTypeName = MikanResponse::staticGetArchetype().getName();
 		errorResponse->requestId = requestId;
 		errorResponse->resultCode = result;
 
@@ -131,9 +127,7 @@ void MikanRequestManager::textResponseHander(MikanRequestID requestId, const cha
 		if (!response)
 		{
 			response = std::make_shared<MikanResponse>();
-			rfk::Struct const& responseStruct = MikanResponse::staticGetArchetype();
-			response->responseTypeId = responseStruct.getId();
-			response->responseTypeName = responseStruct.getName();
+			response->responseTypeName = MikanResponse::staticGetArchetype().getName();
 			response->requestId = requestId;
 			response->resultCode = MikanAPIResult::MalformedResponse;
 		}
@@ -170,9 +164,8 @@ MikanResponsePtr MikanRequestManager::parseResponseString(const char* utf8Respon
 			throw std::runtime_error("Failed to parse response header");
 		}
 
-		Serialization::MikanClassId mikanResponseTypeId = responseHeader.responseTypeId;
-		Serialization::RfkClassId rfkResponseTypeId = Serialization::toRfkClassId(mikanResponseTypeId);
-		rfk::Struct const* responseStruct = rfk::getDatabase().getStructById(rfkResponseTypeId);
+		rfk::Struct const* responseStruct =
+			Serialization::TypeRegistry::getStructByName(responseHeader.responseTypeName.getValue());
 		if (responseStruct != nullptr)
 		{
 			responsePtr = responseStruct->makeSharedInstance<MikanResponse>();
@@ -235,10 +228,8 @@ void MikanRequestManager::binaryResponseHander(
 
 			if (!response)
 			{
-				rfk::Struct const& responseStruct = MikanResponse::staticGetArchetype();
 				response = std::make_shared<MikanResponse>();
-				response->responseTypeId = responseStruct.getId();
-				response->responseTypeName = responseStruct.getName();
+				response->responseTypeName = MikanResponse::staticGetArchetype().getName();
 				response->requestId = responseHeader.requestId;
 				response->resultCode = MikanAPIResult::MalformedResponse;
 			}
@@ -275,9 +266,8 @@ MikanResponsePtr MikanRequestManager::parseResponseBinaryReader(
 {
 	MikanResponsePtr responsePtr;
 
-	Serialization::MikanClassId mikanResponseTypeId = responseHeader.responseTypeId;
-	Serialization::RfkClassId rfkResponseTypeId = Serialization::toRfkClassId(mikanResponseTypeId);
-	rfk::Struct const* responseStruct = rfk::getDatabase().getStructById(rfkResponseTypeId);
+	rfk::Struct const* responseStruct =
+		Serialization::TypeRegistry::getStructByName(responseHeader.responseTypeName.getValue());
 	if (responseStruct != nullptr)
 	{
 		responsePtr = responseStruct->makeSharedInstance<MikanResponse>();
@@ -287,7 +277,7 @@ MikanResponsePtr MikanRequestManager::parseResponseBinaryReader(
 	else
 	{
 		MIKAN_MT_LOG_WARNING("MikanClient::parseResponseBinaryReader()")
-			<< "Received response of unknown responseType: " << responseHeader.responseTypeId;
+			<< "Received response of unknown responseType: " << responseHeader.responseTypeName.getValue();
 	}
 
 	return responsePtr;

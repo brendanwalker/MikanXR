@@ -20,7 +20,8 @@ enum ENUM() SerializationTestEnum
 	SerializationTestEnum_Value3 ENUMVALUE_STRING("Value3"),
 };
 
-struct STRUCT() SerializationPointStruct : public Serialization::PolymorphicStruct
+struct STRUCT(Serialization::CodeGenModule("UnitTestTypes")) SerializationPointStruct 
+	: public Serialization::PolymorphicStruct
 {
 	virtual ~SerializationPointStruct() = default;
 
@@ -29,7 +30,8 @@ struct STRUCT() SerializationPointStruct : public Serialization::PolymorphicStru
 	#endif
 };
 
-struct STRUCT() SerializationPoint2dStruct : public SerializationPointStruct
+struct STRUCT(Serialization::CodeGenModule("UnitTestTypes")) SerializationPoint2dStruct 
+	: public SerializationPointStruct
 {
 	SerializationPoint2dStruct() : x_field{0.0f}, y_field{0.0f} {}
 	SerializationPoint2dStruct(float x, float y) : x_field{x}, y_field{y} {}
@@ -46,7 +48,8 @@ struct STRUCT() SerializationPoint2dStruct : public SerializationPointStruct
 	#endif
 };
 
-struct STRUCT() SerializationPoint3dStruct: public SerializationPointStruct
+struct STRUCT(Serialization::CodeGenModule("UnitTestTypes")) SerializationPoint3dStruct 
+	: public SerializationPointStruct
 {
 	SerializationPoint3dStruct() : x_field{0.0f}, y_field{0.0f}, z_field{0.0f} {}
 	SerializationPoint3dStruct(float x, float y, float z) : x_field{x}, y_field{y}, z_field{z} {}
@@ -66,7 +69,7 @@ struct STRUCT() SerializationPoint3dStruct: public SerializationPointStruct
 	#endif
 };
 
-struct STRUCT() SerializationTestStruct
+struct STRUCT(Serialization::CodeGenModule("UnitTestTypes")) SerializationTestStruct
 {
 	FIELD()
 	bool bool_field;

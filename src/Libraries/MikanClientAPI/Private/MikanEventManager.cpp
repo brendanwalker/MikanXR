@@ -6,8 +6,8 @@
 #include "JsonDeserializer.h"
 #include "StringUtils.h"
 #include "SerializableObjectPtr.h"
+#include "TypeRegistry.h"
 
-#include <Refureku/Refureku.h>
 #include <string>
 
 #include "nlohmann/json.hpp"
@@ -83,10 +83,12 @@ MikanEventPtr MikanEventManager::parseEventString(const char* szUtf8EventString)
 		else
 		{
 			json jsonResponse = json::parse(eventString);
-			auto mikanEventTypeId = jsonResponse["eventTypeId"].get<Serialization::MikanClassId>();
-			auto rfkEventTypeId = Serialization::toRfkClassId(mikanEventTypeId);
 
-			rfk::Struct const* eventStruct = rfk::getDatabase().getStructById(rfkEventTypeId);
+			MikanEvent eventHeader= {};
+			Serialization::deserializeFromJson(jsonResponse, &eventHeader, MikanEvent::staticGetArchetype());
+
+			rfk::Struct const* eventStruct =
+				Serialization::TypeRegistry::getStructByName(eventHeader.eventTypeName.getValue());
 			if (eventStruct != nullptr)
 			{
 				eventPtr = eventStruct->makeSharedInstance<MikanEvent>();
@@ -96,7 +98,7 @@ MikanEventPtr MikanEventManager::parseEventString(const char* szUtf8EventString)
 			else
 			{
 				MIKAN_MT_LOG_WARNING("MikanClient::parseEventString()")
-					<< "Received response for unknown eventTypeId: " << mikanEventTypeId;
+					<< "Received response for unknown eventTypeName: " << eventHeader.eventTypeName.getValue();
 			}
 		}
 	}

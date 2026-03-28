@@ -6,15 +6,12 @@ import {
   MikanLogLevel,
   MikanAPIResult,
   GetAppStageInfo,
-  CLASS_ID_GET_APP_STAGE_INFO,
   MikanAppStageInfoResponse,
   MikanEvent,
-  MikanConnectedEvent,
   MikanDisconnectedEvent,
   MikanPropertyUpdateEvent,
   MikanAppStageChangedEvent,
   SetPropertyNotifyMode,
-  CLASS_ID_SET_PROPERTY_NOTIFY_MODE,
   MikanPropertyNotifyMode
 } from '@mikanxr/client'
 import { useComponentStore } from './componentStore.js'
@@ -110,7 +107,6 @@ export const useMikanStore = defineStore('mikan', () => {
 
     try {
       const request: SetPropertyNotifyMode = {
-        requestTypeId: CLASS_ID_SET_PROPERTY_NOTIFY_MODE,
         requestTypeName: 'SetPropertyNotifyMode',
         requestId: 0,
         systemFilter: '',
@@ -137,7 +133,6 @@ export const useMikanStore = defineStore('mikan', () => {
 
     try {
       const request: GetAppStageInfo = {
-        requestTypeId: CLASS_ID_GET_APP_STAGE_INFO,
         requestTypeName: 'GetAppStageInfo',
         requestId: 0
       }

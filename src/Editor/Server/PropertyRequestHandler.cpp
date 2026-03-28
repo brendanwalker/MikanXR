@@ -38,31 +38,31 @@ bool PropertyRequestHandler::startup(MainWindow* mainWindow)
 
 	// Property Requests	
 	messageServer->setRequestHandler(
-		PropertySetValueRequest::staticGetArchetype().getId(),
+		PropertySetValueRequest::staticGetArchetype().getName(),
 		std::bind(&PropertyRequestHandler::setPropertyValueHandler, this, _1, _2));
 	messageServer->setRequestHandler(
-		PropertyGetValueRequest::staticGetArchetype().getId(),
+		PropertyGetValueRequest::staticGetArchetype().getName(),
 		std::bind(&PropertyRequestHandler::getPropertyValueHandler, this, _1, _2));
 	messageServer->setRequestHandler(
-		SetPropertyNotifyMode::staticGetArchetype().getId(),
+		SetPropertyNotifyMode::staticGetArchetype().getName(),
 		std::bind(&PropertyRequestHandler::setPropertyNotifyModeHandler, this, _1, _2));
 	messageServer->setRequestHandler(
-		GetPropertyDescriptors::staticGetArchetype().getId(),
+		GetPropertyDescriptors::staticGetArchetype().getName(),
 		std::bind(&PropertyRequestHandler::getPropertyDescriptorsHandler, this, _1, _2));
 	messageServer->setRequestHandler(
-		ComponentGetValuesRequest::staticGetArchetype().getId(),
+		ComponentGetValuesRequest::staticGetArchetype().getName(),
 		std::bind(&PropertyRequestHandler::getComponentValuesHandler, this, _1, _2));
 	messageServer->setRequestHandler(
-		GetComponentListRequest::staticGetArchetype().getId(),
+		GetComponentListRequest::staticGetArchetype().getName(),
 		std::bind(&PropertyRequestHandler::getComponentListHandler, this, _1, _2));
 	messageServer->setRequestHandler(
-		SystemGetValuesRequest::staticGetArchetype().getId(),
+		SystemGetValuesRequest::staticGetArchetype().getName(),
 		std::bind(&PropertyRequestHandler::getSystemValuesHandler, this, _1, _2));
 	messageServer->setRequestHandler(
-		SystemCreateObjectRequest::staticGetArchetype().getId(),
+		SystemCreateObjectRequest::staticGetArchetype().getName(),
 		std::bind(&PropertyRequestHandler::createSystemObjectHandler, this, _1, _2));
 	messageServer->setRequestHandler(
-		SystemDestroyObjectRequest::staticGetArchetype().getId(),
+		SystemDestroyObjectRequest::staticGetArchetype().getName(),
 		std::bind(&PropertyRequestHandler::destroySystemObjectHandler, this, _1, _2));
 
 	return true;

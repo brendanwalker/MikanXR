@@ -2,8 +2,6 @@ import {
   ValueAccessor,
   IVisitor,
   visitObject,
-  visitValue,
-  FieldMetadata,
   getSerializationMetadata
 } from './SerializationUtils.js';
 import { PolymorphicObject } from '../PolymorphicObject.js';
@@ -89,12 +87,11 @@ class JsonWriteVisitor implements IVisitor {
   visitPolymorphicObject(accessor: ValueAccessor): void {
     const polymorphicObject = accessor.getValueObject() as PolymorphicObject;
     const instance = polymorphicObject?.instance;
-    const classId = polymorphicObject?.runtimeClassId || 0n;
 
     let className = '';
     const jsonRuntimeObject: any = {};
 
-    if (classId !== 0n && instance) {
+    if (instance) {
       className = instance.constructor.name;
 
       // Serialize the instance
@@ -104,7 +101,6 @@ class JsonWriteVisitor implements IVisitor {
 
     const jsonSerializableObject = {
       class_name: className,
-      class_id: classId.toString(), // Convert bigint to string for JSON
       value: jsonRuntimeObject
     };
 

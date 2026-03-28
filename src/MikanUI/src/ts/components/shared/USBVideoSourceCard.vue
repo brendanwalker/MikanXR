@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
-import { CLASS_ID_SYSTEM_GET_VALUES_REQUEST, MikanUSBVideoSourceSystemValues, SystemGetValuesResponse, type MikanComponentValues, type MikanFunctionDescriptor, type SystemGetValuesRequest } from '@mikanxr/client'
+import { MikanUSBVideoSourceSystemValues, SystemGetValuesResponse, type MikanComponentValues, type MikanFunctionDescriptor, type SystemGetValuesRequest } from '@mikanxr/client'
 import { useComponentStore } from '../../stores/componentStore.js'
 import { useMikanStore } from '../../stores/mikanStore.js'
 
@@ -79,7 +79,6 @@ async function fetchUSBDeviceMap() {
 
   try {
     const request: SystemGetValuesRequest = {
-      requestTypeId: CLASS_ID_SYSTEM_GET_VALUES_REQUEST,
       requestTypeName: 'SystemGetValuesRequest',
       requestId: 0,
       ownerSystem: 'USBVideoSourceSystem'
@@ -90,7 +89,7 @@ async function fetchUSBDeviceMap() {
 
     if (response.resultCode === 0) {
       const systemValues = response.valuesObject.instance as MikanUSBVideoSourceSystemValues
-      usbDeviceMap.value = systemValues.usb_device_map || []
+      usbDeviceMap.value = Object.entries(systemValues.usb_device_map || {}).map(([key, value]) => ({ key, value }))
       console.log('[USBVideoSourceCard] Fetched USB device map:', usbDeviceMap.value)      
     }
     else{

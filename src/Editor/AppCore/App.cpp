@@ -18,6 +18,7 @@
 #include "ProjectConfig.h"
 #include "SdlManager.h"
 #include "SdlWindow.h"
+#include "TypeRegistry.h"
 
 //#include "Windows/TestNodeEditorWindow.h"
 #include "Windows/CompositorNodeEditorWindow.h"
@@ -111,6 +112,9 @@ bool App::startup(int argc, char** argv)
 		success = false;
 	}
 #endif // _WIN32
+
+	// Initialize registry of reflection types
+	Serialization::TypeRegistry::buildFromRfkDatabase();
 
 	// Initialize the module manager
 	if (success && !initMikanModuleManager())

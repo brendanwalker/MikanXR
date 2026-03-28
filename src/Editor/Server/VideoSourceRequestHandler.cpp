@@ -23,22 +23,22 @@ bool VideoSourceRequestHandler::startup(MainWindow* mainWindow)
 
 	// Video Source Requests
 	messageServer->setRequestHandler(
-		GetVideoSourceIntrinsics::staticGetArchetype().getId(),
+		GetVideoSourceIntrinsics::staticGetArchetype().getName(),
 		std::bind(&VideoSourceRequestHandler::getVideoSourceIntrinsicsHandler, this, _1, _2));
 	messageServer->setRequestHandler(
-		GetVideoSourceMode::staticGetArchetype().getId(),
+		GetVideoSourceMode::staticGetArchetype().getName(),
 		std::bind(&VideoSourceRequestHandler::getVideoSourceModeHandler, this, _1, _2));
 	messageServer->setRequestHandler(
-		SetUSBVideoSourceDevice::staticGetArchetype().getId(),
+		SetUSBVideoSourceDevice::staticGetArchetype().getName(),
 		std::bind(&VideoSourceRequestHandler::setUSBVideoSourceDeviceHandler, this, _1, _2));
 	messageServer->setRequestHandler(
-		SetUSBVideoSourceResolution::staticGetArchetype().getId(),
+		SetUSBVideoSourceResolution::staticGetArchetype().getName(),
 		std::bind(&VideoSourceRequestHandler::setUSBVideoSourceResolutionHandler, this, _1, _2));
 	messageServer->setRequestHandler(
-		SetUSBVideoSourceFrameRate::staticGetArchetype().getId(),
+		SetUSBVideoSourceFrameRate::staticGetArchetype().getName(),
 		std::bind(&VideoSourceRequestHandler::setUSBVideoSourceFrameRateHandler, this, _1, _2));
 	messageServer->setRequestHandler(
-		SetUSBVideoSourceFormat::staticGetArchetype().getId(),
+		SetUSBVideoSourceFormat::staticGetArchetype().getName(),
 		std::bind(&VideoSourceRequestHandler::setUSBVideoSourceFormatHandler, this, _1, _2));
 
 	return true;

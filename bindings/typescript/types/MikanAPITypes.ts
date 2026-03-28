@@ -28,43 +28,33 @@ export enum MikanAPIResult {
   InvalidStageID = 106
 }
 
-export const CLASS_ID_MIKAN_EVENT = 8521159033538382795n;
-export const CLASS_ID_MIKAN_REQUEST = 1095719431187359814n;
-export const CLASS_ID_MIKAN_RESPONSE = 7094118849615581562n;
-
-export class MikanEvent {
-  eventTypeId: bigint = 8521159033538382795n;
-  eventTypeName: string = '';
-
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
-    { name: 'eventTypeId', type: 'int64' },
-    { name: 'eventTypeName', type: 'string' }
-  ];
-}
-
-export class MikanRequest {
-  requestTypeId: bigint = 1095719431187359814n;
-  requestTypeName: string = '';
-  requestId: number = -1;
-
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
-    { name: 'requestTypeId', type: 'int64' },
-    { name: 'requestTypeName', type: 'string' },
-    { name: 'requestId', type: 'int32' }
-  ];
-}
-
 export class MikanResponse {
-  responseTypeId: bigint = 7094118849615581562n;
   responseTypeName: string = '';
   requestId: number = -1;
   resultCode: MikanAPIResult = MikanAPIResult.Success;
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
-    { name: 'responseTypeId', type: 'int64' },
     { name: 'responseTypeName', type: 'string' },
     { name: 'requestId', type: 'int32' },
     { name: 'resultCode', type: 'enum:MikanAPIResult' }
+  ];
+}
+
+export class MikanEvent {
+  eventTypeName: string = '';
+
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+    { name: 'eventTypeName', type: 'string' }
+  ];
+}
+
+export class MikanRequest {
+  requestTypeName: string = '';
+  requestId: number = -1;
+
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+    { name: 'requestTypeName', type: 'string' },
+    { name: 'requestId', type: 'int32' }
   ];
 }
 

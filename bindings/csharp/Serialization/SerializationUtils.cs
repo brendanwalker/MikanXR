@@ -137,14 +137,7 @@ namespace MikanXR
 
 	internal static class Utils
 	{
-		public static long getMikanClassId(Type classType)
-		{
-			FieldInfo classIdField= classType.GetField("classId", BindingFlags.Public | BindingFlags.Static);
-
-			return (long)classIdField.GetValue(null);
-		}
-
-		public static void memoryOffsetSortStructFields(Type classType, ref List<FieldInfo> outFields)
+        public static void memoryOffsetSortStructFields(Type classType, ref List<FieldInfo> outFields)
 		{
 			// Add fields from the parent classes first
 			if (classType.BaseType != null)

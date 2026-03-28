@@ -11,6 +11,8 @@ namespace MikanXR
 
 			SerializationUnitTests serializationTests = new SerializationUnitTests();
 			success &= serializationTests.RunAllTests();
+			MikanAPIUnitTests mikanAPITests = new MikanAPIUnitTests();
+			success &= mikanAPITests.RunAllTests();
 
 			if (success)
 			{

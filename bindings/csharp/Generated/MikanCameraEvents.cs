@@ -6,8 +6,6 @@ namespace MikanXR
 {
 	public class MikanCameraNewFrameEvent : MikanEvent
 	{
-		public static new readonly long classId= -514294351884360997;
-
 		public int camera_id;
 		public MikanVector3f camera_forward;
 		public MikanVector3f camera_up;

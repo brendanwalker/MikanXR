@@ -2,9 +2,6 @@
 
 import { MikanClientGraphicsApi, MikanColorBufferType, MikanDepthBufferType } from './MikanCoreConstants.js';
 
-export const CLASS_ID_MIKAN_CLIENT_APIVERSION = 7308303515553926050n;
-export const CLASS_ID_MIKAN_RENDER_TARGET_DESCRIPTOR = 8029686814184454925n;
-
 export class MikanClientAPIVersion {
   version: number = 0;
 

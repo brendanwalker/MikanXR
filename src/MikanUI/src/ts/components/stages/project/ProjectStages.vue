@@ -92,9 +92,7 @@ import {
   PolymorphicObject,
   MikanVector3f,
   MikanQuatd,
-  MikanVector3d,
-  MikanCameraComponentValues,
-  CLASS_ID_MIKAN_CAMERA_COMPONENT_VALUES
+  MikanCameraComponentValues
 } from '@mikanxr/client'
 
 const componentStore = useComponentStore()
@@ -173,7 +171,7 @@ async function handleAddCamera() {
   initValues.video_source_id = MikanConstants.InvalidMikanID
   initValues.aperture_orientation_offset = identityQuat
 
-  const initParams = new PolymorphicObject(initValues, CLASS_ID_MIKAN_CAMERA_COMPONENT_VALUES, 'MikanCameraComponentValues')
+  const initParams = new PolymorphicObject(initValues, 'MikanCameraComponentValues')
   await componentStore.createObject(mikanStore.client as MikanClient, 'CameraComponent', initParams)
 }
 

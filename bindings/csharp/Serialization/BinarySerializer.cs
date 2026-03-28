@@ -80,24 +80,20 @@ namespace MikanXR
 				var serializableObject = accessor.getValueObject();
 				var serializableObjectType = accessor.ValueType;
 
-				// Get the instance and runtime class properties
-				var instanceClassIdProperty = serializableObjectType.GetProperty("RuntimeClassId");
+				// Get the instance and runtime class name properties
+				var instanceClassNameProperty = serializableObjectType.GetProperty("RuntimeClassName");
 				var instanceProperty = serializableObjectType.GetProperty("Instance");
 
-				long instanceClassId = (long)instanceClassIdProperty.GetValue(serializableObject);
+				var instanceClassName = (string)instanceClassNameProperty.GetValue(serializableObject);
 				var instance = instanceProperty.GetValue(serializableObject);
 
-                var instanceClassName = "";
-                Type instanceType = null;
-
-                if (instance != null && instanceClassId != 0)
+				Type instanceType = null;
+				if (!string.IsNullOrEmpty(instanceClassName) && instance != null)
 				{
-                    instanceType = instance.GetType();                    
-					instanceClassName = instanceType.Name;
-                }
+					instanceType = instance.GetType();
+				}
 
-                _writer.WriteUTF8String(instanceClassName);
-				_writer.Write(instanceClassId);
+				_writer.WriteUTF8String(instanceClassName);
 
 				bool isValidObject = instance != null;
 				_writer.Write(isValidObject);

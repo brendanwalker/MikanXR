@@ -7,8 +7,6 @@ export enum MikanStageTrackingVolume {
   SteamVR = 1
 }
 
-export const CLASS_ID_MIKAN_STAGE_COMPONENT_VALUES = -4271948442370858806n;
-
 export class MikanStageComponentValues extends MikanTransformComponentValues {
   tracking_volume_id: number = -1;
 

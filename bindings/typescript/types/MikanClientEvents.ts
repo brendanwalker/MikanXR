@@ -4,9 +4,6 @@ import { MikanEvent } from './MikanAPITypes.js';
 import { MikanDisconnectCode } from './MikanCoreConstants.js';
 import { MikanClientAPIVersion } from './MikanCoreTypes.js';
 
-export const CLASS_ID_MIKAN_CONNECTED_EVENT = -8563579496677618876n;
-export const CLASS_ID_MIKAN_DISCONNECTED_EVENT = -4899718033844115118n;
-
 export class MikanConnectedEvent extends MikanEvent {
   serverVersion: MikanClientAPIVersion = new MikanClientAPIVersion();
   minClientVersion: MikanClientAPIVersion = new MikanClientAPIVersion();

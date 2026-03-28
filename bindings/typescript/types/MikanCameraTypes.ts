@@ -3,8 +3,6 @@
 import { MikanQuatd, MikanVector3d } from './MikanMathTypes.js';
 import { MikanTransformComponentValues } from './MikanTransformTypes.js';
 
-export const CLASS_ID_MIKAN_CAMERA_COMPONENT_VALUES = -1280596257660192689n;
-
 export class MikanCameraComponentValues extends MikanTransformComponentValues {
   stage_id: number = -1;
   tracking_mount_id: number = -1;

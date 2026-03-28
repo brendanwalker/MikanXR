@@ -4,6 +4,7 @@
 #include "MikanRenderTargetAPI.h"
 #include "MikanEventManager.h"
 #include "JsonSerializer.h"
+#include "TypeRegistry.h"
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 #include "MikanAnchorTypes.rfks.h"
@@ -187,6 +188,10 @@ public:
 		{
 			return result;
 		}
+
+		#ifdef MIKANAPI_REFLECTION_ENABLED
+		Serialization::TypeRegistry::buildFromRfkDatabase();
+		#endif // MIKANAPI_REFLECTION_ENABLED
 
 		return MikanAPIResult::Success;
 	}

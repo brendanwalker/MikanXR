@@ -155,13 +155,13 @@ bool CameraRequestHandler::startup(MainWindow * mainWindow)
 
 	// Render Target Requests
 	messageServer->setRequestHandler(
-		AllocateCameraRenderTargetTextures::staticGetArchetype().getId(),
+		AllocateCameraRenderTargetTextures::staticGetArchetype().getName(),
 		std::bind(&CameraRequestHandler::allocateRenderTargetTexturesHandler, this, _1, _2));
 	messageServer->setRequestHandler(
-		FreeCameraRenderTargetTextures::staticGetArchetype().getId(),
+		FreeCameraRenderTargetTextures::staticGetArchetype().getName(),
 		std::bind(&CameraRequestHandler::freeRenderTargetTexturesHandler, this, _1, _2));
 	messageServer->setRequestHandler(
-		PublishCameraRenderTargetTextures::staticGetArchetype().getId(),
+		PublishCameraRenderTargetTextures::staticGetArchetype().getName(),
 		std::bind(&CameraRequestHandler::frameRenderedHandler, this, _1, _2));
 
 

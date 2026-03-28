@@ -39,70 +39,6 @@ export enum MikanVideoSourceType {
   STEREO = 1
 }
 
-export const CLASS_ID_MIKAN_BASE_INTRINSICS = -3286470658648308984n;
-export const CLASS_ID_MIKAN_DISTORTION_COEFFICIENTS = -2596555002374434624n;
-export const CLASS_ID_MIKAN_MONO_INTRINSICS = 4896055255137140914n;
-export const CLASS_ID_MIKAN_NETWORK_VIDEO_SOURCE_VALUES = 8924237416134720747n;
-export const CLASS_ID_MIKAN_STEREO_INTRINSICS = -261934067861644075n;
-export const CLASS_ID_MIKAN_USBVIDEO_SOURCE_SYSTEM_VALUES = -4380137097083957162n;
-export const CLASS_ID_MIKAN_USBVIDEO_SOURCE_VALUES = -9166828371246079689n;
-export const CLASS_ID_MIKAN_VIDEO_SOURCE_INTRINSICS = -5073913459979558727n;
-export const CLASS_ID_MIKAN_VIDEO_SOURCE_VALUES = -7299893175604117141n;
-
-export class MikanBaseIntrinsics extends PolymorphicStruct {
-  pixel_width: number = 0;
-  pixel_height: number = 0;
-  aspect_ratio: number = 0;
-  hfov: number = 0;
-  vfov: number = 0;
-  znear: number = 0;
-  zfar: number = 0;
-
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
-    { name: 'pixel_width', type: 'double' },
-    { name: 'pixel_height', type: 'double' },
-    { name: 'aspect_ratio', type: 'double' },
-    { name: 'hfov', type: 'double' },
-    { name: 'vfov', type: 'double' },
-    { name: 'znear', type: 'double' },
-    { name: 'zfar', type: 'double' }
-  ];
-}
-
-export class MikanDistortionCoefficients {
-  k1: number = 0;
-  k2: number = 0;
-  k3: number = 0;
-  k4: number = 0;
-  k5: number = 0;
-  k6: number = 0;
-  p1: number = 0;
-  p2: number = 0;
-
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
-    { name: 'k1', type: 'double' },
-    { name: 'k2', type: 'double' },
-    { name: 'k3', type: 'double' },
-    { name: 'k4', type: 'double' },
-    { name: 'k5', type: 'double' },
-    { name: 'k6', type: 'double' },
-    { name: 'p1', type: 'double' },
-    { name: 'p2', type: 'double' }
-  ];
-}
-
-export class MikanMonoIntrinsics extends MikanBaseIntrinsics {
-  distortion_coefficients: MikanDistortionCoefficients = new MikanDistortionCoefficients();
-  distorted_camera_matrix: MikanMatrix3d = new MikanMatrix3d();
-  undistorted_camera_matrix: MikanMatrix3d = new MikanMatrix3d();
-
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
-    { name: 'distortion_coefficients', type: 'MikanDistortionCoefficients' },
-    { name: 'distorted_camera_matrix', type: 'MikanMatrix3d' },
-    { name: 'undistorted_camera_matrix', type: 'MikanMatrix3d' }
-  ];
-}
-
 export class MikanVideoSourceValues extends MikanComponentValues {
   intrinsics_ptr: PolymorphicObject = new PolymorphicObject();
   intrinsics_type: MikanIntrinsicsType = MikanIntrinsicsType.INVALID;
@@ -116,60 +52,6 @@ export class MikanVideoSourceValues extends MikanComponentValues {
     { name: 'is_frame_mirrored', type: 'boolean' },
     { name: 'is_buffer_mirrored', type: 'boolean' },
     { name: 'video_frame_queue_size', type: 'int32' }
-  ];
-}
-
-export class MikanNetworkVideoSourceValues extends MikanVideoSourceValues {
-  protocol: string = '';
-  ip_address: string = '';
-  port: number = 0;
-  path: string = '';
-
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
-    { name: 'protocol', type: 'string' },
-    { name: 'ip_address', type: 'string' },
-    { name: 'port', type: 'int32' },
-    { name: 'path', type: 'string' }
-  ];
-}
-
-export class MikanStereoIntrinsics extends MikanBaseIntrinsics {
-  left_distortion_coefficients: MikanDistortionCoefficients = new MikanDistortionCoefficients();
-  left_camera_matrix: MikanMatrix3d = new MikanMatrix3d();
-  right_distortion_coefficients: MikanDistortionCoefficients = new MikanDistortionCoefficients();
-  right_camera_matrix: MikanMatrix3d = new MikanMatrix3d();
-  left_rectification_rotation: MikanMatrix3d = new MikanMatrix3d();
-  right_rectification_rotation: MikanMatrix3d = new MikanMatrix3d();
-  left_rectification_projection: MikanMatrix4x3d = new MikanMatrix4x3d();
-  right_rectification_projection: MikanMatrix4x3d = new MikanMatrix4x3d();
-  rotation_between_cameras: MikanMatrix3d = new MikanMatrix3d();
-  translation_between_cameras: MikanVector3d = new MikanVector3d();
-  essential_matrix: MikanMatrix3d = new MikanMatrix3d();
-  fundamental_matrix: MikanMatrix3d = new MikanMatrix3d();
-  reprojection_matrix: MikanMatrix4d = new MikanMatrix4d();
-
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
-    { name: 'left_distortion_coefficients', type: 'MikanDistortionCoefficients' },
-    { name: 'left_camera_matrix', type: 'MikanMatrix3d' },
-    { name: 'right_distortion_coefficients', type: 'MikanDistortionCoefficients' },
-    { name: 'right_camera_matrix', type: 'MikanMatrix3d' },
-    { name: 'left_rectification_rotation', type: 'MikanMatrix3d' },
-    { name: 'right_rectification_rotation', type: 'MikanMatrix3d' },
-    { name: 'left_rectification_projection', type: 'MikanMatrix4x3d' },
-    { name: 'right_rectification_projection', type: 'MikanMatrix4x3d' },
-    { name: 'rotation_between_cameras', type: 'MikanMatrix3d' },
-    { name: 'translation_between_cameras', type: 'MikanVector3d' },
-    { name: 'essential_matrix', type: 'MikanMatrix3d' },
-    { name: 'fundamental_matrix', type: 'MikanMatrix3d' },
-    { name: 'reprojection_matrix', type: 'MikanMatrix4d' }
-  ];
-}
-
-export class MikanUSBVideoSourceSystemValues extends MikanSystemValues {
-  usb_device_map: Record<string, string> = {};
-
-  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
-    { name: 'usb_device_map', type: 'Map', isMap: true, keyType: 'string', valueType: 'string' }
   ];
 }
 
@@ -269,6 +151,106 @@ export class MikanUSBVideoSourceValues extends MikanVideoSourceValues {
   ];
 }
 
+export class MikanNetworkVideoSourceValues extends MikanVideoSourceValues {
+  protocol: string = '';
+  ip_address: string = '';
+  port: number = 0;
+  path: string = '';
+
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+    { name: 'protocol', type: 'string' },
+    { name: 'ip_address', type: 'string' },
+    { name: 'port', type: 'int32' },
+    { name: 'path', type: 'string' }
+  ];
+}
+
+export class MikanDistortionCoefficients {
+  k1: number = 0;
+  k2: number = 0;
+  k3: number = 0;
+  k4: number = 0;
+  k5: number = 0;
+  k6: number = 0;
+  p1: number = 0;
+  p2: number = 0;
+
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+    { name: 'k1', type: 'double' },
+    { name: 'k2', type: 'double' },
+    { name: 'k3', type: 'double' },
+    { name: 'k4', type: 'double' },
+    { name: 'k5', type: 'double' },
+    { name: 'k6', type: 'double' },
+    { name: 'p1', type: 'double' },
+    { name: 'p2', type: 'double' }
+  ];
+}
+
+export class MikanBaseIntrinsics extends PolymorphicStruct {
+  pixel_width: number = 0;
+  pixel_height: number = 0;
+  aspect_ratio: number = 0;
+  hfov: number = 0;
+  vfov: number = 0;
+  znear: number = 0;
+  zfar: number = 0;
+
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+    { name: 'pixel_width', type: 'double' },
+    { name: 'pixel_height', type: 'double' },
+    { name: 'aspect_ratio', type: 'double' },
+    { name: 'hfov', type: 'double' },
+    { name: 'vfov', type: 'double' },
+    { name: 'znear', type: 'double' },
+    { name: 'zfar', type: 'double' }
+  ];
+}
+
+export class MikanMonoIntrinsics extends MikanBaseIntrinsics {
+  distortion_coefficients: MikanDistortionCoefficients = new MikanDistortionCoefficients();
+  distorted_camera_matrix: MikanMatrix3d = new MikanMatrix3d();
+  undistorted_camera_matrix: MikanMatrix3d = new MikanMatrix3d();
+
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+    { name: 'distortion_coefficients', type: 'MikanDistortionCoefficients' },
+    { name: 'distorted_camera_matrix', type: 'MikanMatrix3d' },
+    { name: 'undistorted_camera_matrix', type: 'MikanMatrix3d' }
+  ];
+}
+
+export class MikanStereoIntrinsics extends MikanBaseIntrinsics {
+  left_distortion_coefficients: MikanDistortionCoefficients = new MikanDistortionCoefficients();
+  left_camera_matrix: MikanMatrix3d = new MikanMatrix3d();
+  right_distortion_coefficients: MikanDistortionCoefficients = new MikanDistortionCoefficients();
+  right_camera_matrix: MikanMatrix3d = new MikanMatrix3d();
+  left_rectification_rotation: MikanMatrix3d = new MikanMatrix3d();
+  right_rectification_rotation: MikanMatrix3d = new MikanMatrix3d();
+  left_rectification_projection: MikanMatrix4x3d = new MikanMatrix4x3d();
+  right_rectification_projection: MikanMatrix4x3d = new MikanMatrix4x3d();
+  rotation_between_cameras: MikanMatrix3d = new MikanMatrix3d();
+  translation_between_cameras: MikanVector3d = new MikanVector3d();
+  essential_matrix: MikanMatrix3d = new MikanMatrix3d();
+  fundamental_matrix: MikanMatrix3d = new MikanMatrix3d();
+  reprojection_matrix: MikanMatrix4d = new MikanMatrix4d();
+
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+    { name: 'left_distortion_coefficients', type: 'MikanDistortionCoefficients' },
+    { name: 'left_camera_matrix', type: 'MikanMatrix3d' },
+    { name: 'right_distortion_coefficients', type: 'MikanDistortionCoefficients' },
+    { name: 'right_camera_matrix', type: 'MikanMatrix3d' },
+    { name: 'left_rectification_rotation', type: 'MikanMatrix3d' },
+    { name: 'right_rectification_rotation', type: 'MikanMatrix3d' },
+    { name: 'left_rectification_projection', type: 'MikanMatrix4x3d' },
+    { name: 'right_rectification_projection', type: 'MikanMatrix4x3d' },
+    { name: 'rotation_between_cameras', type: 'MikanMatrix3d' },
+    { name: 'translation_between_cameras', type: 'MikanVector3d' },
+    { name: 'essential_matrix', type: 'MikanMatrix3d' },
+    { name: 'fundamental_matrix', type: 'MikanMatrix3d' },
+    { name: 'reprojection_matrix', type: 'MikanMatrix4d' }
+  ];
+}
+
 export class MikanVideoSourceIntrinsics {
   intrinsics_ptr: PolymorphicObject = new PolymorphicObject();
   intrinsics_type: MikanIntrinsicsType = MikanIntrinsicsType.INVALID;
@@ -276,6 +258,14 @@ export class MikanVideoSourceIntrinsics {
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
     { name: 'intrinsics_ptr', type: 'PolymorphicObject' },
     { name: 'intrinsics_type', type: 'enum:MikanIntrinsicsType' }
+  ];
+}
+
+export class MikanUSBVideoSourceSystemValues extends MikanSystemValues {
+  usb_device_map: Record<string, string> = {};
+
+  static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
+    { name: 'usb_device_map', type: 'Map', isMap: true, keyType: 'string', valueType: 'string' }
   ];
 }
 

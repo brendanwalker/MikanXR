@@ -25,13 +25,13 @@ bool FunctionRequestHandler::startup(MainWindow* mainWindow)
 
 	// Function Requests	
 	messageServer->setRequestHandler(
-		InvokeSystemFunctionRequest::staticGetArchetype().getId(),
+		InvokeSystemFunctionRequest::staticGetArchetype().getName(),
 		std::bind(&FunctionRequestHandler::invokeSystemFunctionRequestHandler, this, _1, _2));
 	messageServer->setRequestHandler(
-		InvokeComponentFunctionRequest::staticGetArchetype().getId(),
+		InvokeComponentFunctionRequest::staticGetArchetype().getName(),
 		std::bind(&FunctionRequestHandler::invokeComponentFunctionRequestHandler, this, _1, _2));
 	messageServer->setRequestHandler(
-		GetFunctionListRequest::staticGetArchetype().getId(),
+		GetFunctionListRequest::staticGetArchetype().getName(),
 		std::bind(&FunctionRequestHandler::getFunctionListHandler, this, _1, _2));
 
 	return true;

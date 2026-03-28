@@ -13,6 +13,7 @@ main(int argc, char* argv[])
 		UNIT_TEST_SUITE_CALL_CPP_MODULE(run_math_utility_unit_tests);
 		UNIT_TEST_SUITE_CALL_CPP_MODULE(run_math_glm_unit_tests);
 		UNIT_TEST_SUITE_CALL_CPP_MODULE(run_serialization_unit_tests);
+		UNIT_TEST_SUITE_CALL_CPP_MODULE(run_mikan_api_unit_tests);
 	UNIT_TEST_SUITE_END()
 
 	return success ? EXIT_SUCCESS : EXIT_FAILURE;

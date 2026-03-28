@@ -26,14 +26,10 @@ import {
   MikanFloatValue,
   MikanStringValue,
   MikanVector3fValue,
-  CLASS_ID_MIKAN_INT_VALUE,
-  CLASS_ID_MIKAN_FLOAT_VALUE,
-  CLASS_ID_MIKAN_STRING_VALUE,
-  CLASS_ID_MIKAN_VECTOR3F_VALUE,
 } from '../types/MikanVariantTypes';
 import { MikanVector3f } from '../types/MikanMathTypes';
 import { SystemGetValuesResponse } from '../types/MikanPropertyRequests';
-import { MikanMarkerSystemValues, MikanMarkerDictionaryType, CLASS_ID_MIKAN_MARKER_SYSTEM_VALUES } from '../types/MikanMarkerTypes';
+import { MikanMarkerSystemValues, MikanMarkerDictionaryType } from '../types/MikanMarkerTypes';
 
 // Register types for polymorphic deserialization
 TypeRegistry.register('SerializationPoint2d', SerializationPoint2d);
@@ -287,7 +283,7 @@ describe('SerializationUnitTests', () => {
   describe('Edge Cases', () => {
     it('should handle null polymorphic objects', () => {
       const testObject = new SerializationTestObject();
-      testObject.null_ptr_field.setInstance(null as any, 0n, '');
+      testObject.null_ptr_field.setInstance(null as any, '');
 
       const jsonString = serializeToJsonString(testObject, SerializationTestObject);
       const deserialized = new SerializationTestObject();
@@ -299,7 +295,7 @@ describe('SerializationUnitTests', () => {
 
       expect(success).toBe(true);
       expect(deserialized.null_ptr_field.instance).toBeNull();
-      expect(deserialized.null_ptr_field.runtimeClassId).toBe(0n);
+      expect(deserialized.null_ptr_field.runtimeClassName).toBe('');
     });
 
     it('should handle boolean edge cases', () => {
@@ -376,7 +372,7 @@ describe('SerializationUnitTests', () => {
       v.value_type = MikanVariantType.INT_TYPE;
       const inner = new MikanIntValue();
       inner.value = n;
-      v.value_ptr.setInstance(inner, CLASS_ID_MIKAN_INT_VALUE, 'MikanIntValue');
+      v.value_ptr.setInstance(inner, 'MikanIntValue');
       return v;
     }
 
@@ -385,7 +381,7 @@ describe('SerializationUnitTests', () => {
       v.value_type = MikanVariantType.FLOAT_TYPE;
       const inner = new MikanFloatValue();
       inner.value = n;
-      v.value_ptr.setInstance(inner, CLASS_ID_MIKAN_FLOAT_VALUE, 'MikanFloatValue');
+      v.value_ptr.setInstance(inner, 'MikanFloatValue');
       return v;
     }
 
@@ -394,7 +390,7 @@ describe('SerializationUnitTests', () => {
       v.value_type = MikanVariantType.MK_STRING_TYPE;
       const inner = new MikanStringValue();
       inner.value = s;
-      v.value_ptr.setInstance(inner, CLASS_ID_MIKAN_STRING_VALUE, 'MikanStringValue');
+      v.value_ptr.setInstance(inner, 'MikanStringValue');
       return v;
     }
 
@@ -406,7 +402,7 @@ describe('SerializationUnitTests', () => {
       inner.value.x = x;
       inner.value.y = y;
       inner.value.z = z;
-      v.value_ptr.setInstance(inner, CLASS_ID_MIKAN_VECTOR3F_VALUE, 'MikanVector3fValue');
+      v.value_ptr.setInstance(inner, 'MikanVector3fValue');
       return v;
     }
 
@@ -470,11 +466,7 @@ describe('SerializationUnitTests', () => {
 
         const response = new SystemGetValuesResponse();
         response.ownerSystem = 'MarkerObjectSystem';
-        response.valuesObject.setInstance(
-          markerValues,
-          CLASS_ID_MIKAN_MARKER_SYSTEM_VALUES,
-          'MikanMarkerSystemValues'
-        );
+        response.valuesObject.setInstance(markerValues, 'MikanMarkerSystemValues');
 
         const json = serializeToJsonString(response, SystemGetValuesResponse);
         const result = new SystemGetValuesResponse();

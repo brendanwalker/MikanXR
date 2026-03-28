@@ -12,8 +12,6 @@ namespace MikanXR
 
 	public class MikanStageComponentValues : MikanTransformComponentValues
 	{
-		public static new readonly long classId= -4271948442370858806;
-
 		public int tracking_volume_id;
 	};
 

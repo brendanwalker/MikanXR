@@ -6,6 +6,8 @@
 #include "SerializableString.h"
 #include "SerializationProperty.h"
 
+#include "TypeRegistry.h"
+
 #include "nlohmann/json.hpp"
 #include "Refureku/Refureku.h"
 
@@ -97,27 +99,23 @@ namespace Serialization
 			ValueAccessor const& accessor,
 			const json& ownerJsonObject)
 		{
-			// Get the shared pointer we are writing 
+			// Get the shared pointer we are writing
 			void* objPtrInstance = accessor.getUntypedValueMutablePtr();
 			rfk::Class const* objPtrClassType = accessor.getClassType();
 
-			// Get the class for the object by type id
+			// Get the class for the object by type name
 			std::string objectClassName = ownerJsonObject["class_name"].get<std::string>();
-			Serialization::MikanClassId mikanClassId = 
-				ownerJsonObject["class_id"].get<Serialization::MikanClassId>();
-			Serialization::RfkClassId rfkClassId = Serialization::toRfkClassId(mikanClassId);
 
 			rfk::Struct const* objectStruct = nullptr;
-			if (rfkClassId != 0)
+			if (!objectClassName.empty())
 			{
-				objectStruct= rfk::getDatabase().getStructById(rfkClassId);
+				objectStruct = TypeRegistry::getStructByName(objectClassName);
 				if (objectStruct == nullptr)
 				{
 					throw std::runtime_error(
 						stringify("JsonReadVisitor::visitObjectPtr() ",
 							"TypedObjectPtr Accessor ", accessor.getName(),
-							" used an unknown runtime class_name: ", objectClassName,
-							" (runtime class_id: ", rfkClassId, ")"));
+							" used an unknown runtime class_name: ", objectClassName));
 				}
 			}
 
@@ -126,12 +124,12 @@ namespace Serialization
 				// Use reflection to get the methods to create and initialize the object
 				rfk::Method const* allocateMethod =
 					objPtrClassType->getMethodByName(
-						"allocateByClassId", rfk::EMethodFlags::Default, true);
+						"allocateByClassName", rfk::EMethodFlags::Default, true);
 
 				// Allocate a default instance of the object assigned to the shared pointer
 				void* objectInstance =
-					allocateMethod->invokeUnsafe<void*, const std::size_t&>(
-						objPtrInstance, rfkClassId);
+					allocateMethod->invokeUnsafe<void*, const std::string&>(
+						objPtrInstance, objectClassName);
 
 				// Deserialize the object from the json
 				json objectJson = ownerJsonObject["value"];

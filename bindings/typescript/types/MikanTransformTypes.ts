@@ -3,8 +3,6 @@
 import { MikanComponentValues } from './MikanComponentTypes.js';
 import { MikanVector3f } from './MikanMathTypes.js';
 
-export const CLASS_ID_MIKAN_TRANSFORM_COMPONENT_VALUES = -1422492652628173064n;
-
 export class MikanTransformComponentValues extends MikanComponentValues {
   parent_transform_id: number = -1;
   relative_scale: MikanVector3f = new MikanVector3f();

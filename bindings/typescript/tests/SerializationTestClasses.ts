@@ -13,12 +13,9 @@ export enum SerializationTestEnum {
 }
 
 export class SerializationPoint extends PolymorphicStruct {
-  static readonly classId: bigint = 0n;
 }
 
 export class SerializationPoint2d extends SerializationPoint {
-  static readonly classId: bigint = 1n;
-
   x_field: number = 0;
   y_field: number = 0;
 
@@ -36,8 +33,6 @@ export class SerializationPoint2d extends SerializationPoint {
 }
 
 export class SerializationPoint3d extends SerializationPoint {
-  static readonly classId: bigint = 2n;
-
   x_field: number = 0;
   y_field: number = 0;
   z_field: number = 0;
@@ -162,7 +157,6 @@ export function buildSerializationTestObject(): SerializationTestObject {
   testObject.point_ptr_field = new PolymorphicObject();
   testObject.point_ptr_field.setInstance(
     new SerializationPoint3d(1.2345, 5.4321, 9.8765),
-    SerializationPoint3d.classId,
     'SerializationPoint3d'
   );
   testObject.null_ptr_field = new PolymorphicObject();
@@ -276,16 +270,16 @@ export function verifySerializationTestObject(
     return { success: false, message: 'expected.null_ptr_field.instance should be null' };
   }
 
-  if (expected.null_ptr_field.runtimeClassId !== 0n) {
-    return { success: false, message: 'expected.null_ptr_field.runtimeClassId should be 0' };
+  if (expected.null_ptr_field.runtimeClassName !== '') {
+    return { success: false, message: 'expected.null_ptr_field.runtimeClassName should be empty' };
   }
 
   if (actual.null_ptr_field.instance !== null) {
     return { success: false, message: 'actual.null_ptr_field.instance should be null' };
   }
 
-  if (actual.null_ptr_field.runtimeClassId !== 0n) {
-    return { success: false, message: 'actual.null_ptr_field.runtimeClassId should be 0' };
+  if (actual.null_ptr_field.runtimeClassName !== '') {
+    return { success: false, message: 'actual.null_ptr_field.runtimeClassName should be empty' };
   }
 
   // Check bool_array

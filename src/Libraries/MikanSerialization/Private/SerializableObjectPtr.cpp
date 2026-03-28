@@ -1,22 +1,15 @@
 #include "SerializableObjectPtr.h"
 #include "SerializableObjectPtr.rfks.h"
+#include "TypeRegistry.h"
+
+#include <string>
 
 namespace Serialization
 {
-	MikanClassId toMikanClassId(RfkClassId classId)
-	{
-		return *reinterpret_cast<MikanClassId*>(&classId);
-	}
-
-	RfkClassId toRfkClassId(MikanClassId classId)
-	{
-		return *reinterpret_cast<RfkClassId*>(&classId);
-	}
-
 	struct PolymorphicObjectPtrImpl
 	{
 		std::shared_ptr<PolymorphicStruct> serializableStructPtr;
-		MikanClassId runtimeClassId;
+		std::string runtimeClassName;
 		void* runtimeClassRawPtr;
 	};
 
@@ -24,7 +17,7 @@ namespace Serialization
 	{
 		m_impl= new PolymorphicObjectPtrImpl;
 		m_impl->serializableStructPtr = nullptr;
-		m_impl->runtimeClassId = 0;
+		m_impl->runtimeClassName = "";
 		m_impl->runtimeClassRawPtr = nullptr;
 	}
 
@@ -38,7 +31,7 @@ namespace Serialization
 	{
 		m_impl = new PolymorphicObjectPtrImpl;
 		m_impl->serializableStructPtr = other.m_impl->serializableStructPtr;
-		m_impl->runtimeClassId = other.m_impl->runtimeClassId;
+		m_impl->runtimeClassName = other.m_impl->runtimeClassName;
 		m_impl->runtimeClassRawPtr = other.m_impl->runtimeClassRawPtr;
 	}
 
@@ -60,7 +53,7 @@ namespace Serialization
 		{
 			reset();
 			m_impl->serializableStructPtr = other.m_impl->serializableStructPtr;
-			m_impl->runtimeClassId = other.m_impl->runtimeClassId;
+			m_impl->runtimeClassName = other.m_impl->runtimeClassName;
 			m_impl->runtimeClassRawPtr = other.m_impl->runtimeClassRawPtr;
 		}
 
@@ -80,13 +73,13 @@ namespace Serialization
 	{
 		assert(m_impl != nullptr);
 		m_impl->serializableStructPtr.reset();
-		m_impl->runtimeClassId= 0;
+		m_impl->runtimeClassName = "";
 		m_impl->runtimeClassRawPtr = nullptr;
 	}
 
-	void* PolymorphicObjectPtr::allocateByClassId(const std::size_t&& rfkClassId)
+	void* PolymorphicObjectPtr::allocateByClassName(const std::string& className)
 	{
-		return allocateByType(rfk::getDatabase().getStructById(rfkClassId));
+		return allocateByType(TypeRegistry::getStructByName(className));
 	}
 
 	void* PolymorphicObjectPtr::allocateByType(rfk::Struct const* objectClass)
@@ -115,21 +108,20 @@ namespace Serialization
 		return const_cast<void *>(getRawPtr());
 	}
 
-	std::size_t PolymorphicObjectPtr::getRuntimeClassId() const
+	std::string PolymorphicObjectPtr::getRuntimeClassName() const
 	{
-		return m_impl->runtimeClassId;
+		return m_impl->runtimeClassName;
 	}
 
 	bool PolymorphicObjectPtr::isTypeCompatibleWith(rfk::Struct const& objectClass) const
 	{
 		if (m_impl->serializableStructPtr != nullptr)
 		{
-			std::size_t runtimeClassId = getRuntimeClassId();
-			rfk::Struct const* runtimeClass = rfk::getDatabase().getStructById(runtimeClassId);
+			rfk::Struct const* runtimeClass = TypeRegistry::getStructByName(m_impl->runtimeClassName);
 
 			if (runtimeClass != nullptr)
 			{
-				return 
+				return
 					runtimeClass->getId() == objectClass.getId() ||
 					runtimeClass->isSubclassOf(objectClass); // Strict subclass check
 			}
@@ -151,7 +143,7 @@ namespace Serialization
 		}
 
 		m_impl->serializableStructPtr = objPtr;
-		m_impl->runtimeClassId = toMikanClassId(objectClass.getId());
+		m_impl->runtimeClassName = objectClass.getName();
 		m_impl->runtimeClassRawPtr = rawObjPtr - pointerOffset;
 	}
 }

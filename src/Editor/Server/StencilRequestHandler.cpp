@@ -27,7 +27,7 @@ bool StencilRequestHandler::startup(MainWindow* mainWindow)
 
 	// Stencil Requests
 	messageServer->setRequestHandler(
-		GetModelStencilRenderGeometry::staticGetArchetype().getId(),
+		GetModelStencilRenderGeometry::staticGetArchetype().getName(),
 		std::bind(&StencilRequestHandler::getModelStencilRenderGeometryHandler, this, _1, _2));
 
 	return true;

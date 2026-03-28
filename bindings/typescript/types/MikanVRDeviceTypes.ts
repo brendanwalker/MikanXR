@@ -14,8 +14,6 @@ export enum MikanVRDeviceType {
   TRACKER = 3
 }
 
-export const CLASS_ID_MIKAN_VRDEVICE_COMPONENT_VALUES = 5417189174165719684n;
-
 export class MikanVRDeviceComponentValues extends MikanTransformComponentValues {
   vr_device_api: MikanVRDeviceApi = MikanVRDeviceApi.INVALID;
   vr_device_type: MikanVRDeviceType = MikanVRDeviceType.INVALID;

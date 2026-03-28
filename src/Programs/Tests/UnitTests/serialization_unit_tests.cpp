@@ -13,6 +13,7 @@
 #include "MathUtility.h"
 #include "SerializableList.h"
 #include "SerializableMap.h"
+#include "TypeRegistry.h"
 
 #include "serialization_unit_tests.h"
 #include "serialization_unit_tests.rfks.h"
@@ -21,6 +22,8 @@
 //-- public interface -----
 bool run_serialization_unit_tests()
 {
+	Serialization::TypeRegistry::buildFromRfkDatabase();
+
 	UNIT_TEST_MODULE_BEGIN("serialization")
 		UNIT_TEST_MODULE_CALL_TEST(serialization_utility_test_endian_swap);
 		UNIT_TEST_MODULE_CALL_TEST(serialization_utility_test_reflection_from_json);
@@ -162,9 +165,9 @@ void verify_serialization_test_struct(const SerializationTestStruct& actual, con
 	assert(is_nearly_equal(expected_point3d->z_field, actual_point3d->z_field, k_real_epsilon));
 
 	assert(expected.null_ptr_field.getRawPtr() == nullptr);
-	assert(expected.null_ptr_field.getRuntimeClassId() == 0);
+	assert(expected.null_ptr_field.getRuntimeClassName().empty());
 	assert(actual.null_ptr_field.getRawPtr() == nullptr);
-	assert(actual.null_ptr_field.getRuntimeClassId() == 0);
+	assert(actual.null_ptr_field.getRuntimeClassName().empty());
 
 	assert(actual.bool_array.size() == expected.bool_array.size());
 	for (size_t i = 0; i < actual.bool_array.size(); ++i)

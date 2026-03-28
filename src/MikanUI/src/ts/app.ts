@@ -2,10 +2,8 @@ import {
     MikanClient,
     MikanClientOptions,
     MikanLogLevel,
-    MikanClientGraphicsApi,
     MikanAPIResult,
     GetAppStageInfo,
-    CLASS_ID_GET_APP_STAGE_INFO,
     MikanAppStageInfoResponse
 } from '@mikanxr/client';
 import { nativeBridge } from './native-bridge.js';
@@ -133,7 +131,6 @@ async function onConnected() {
     try {
         // Get app stage info
         const request: GetAppStageInfo = {
-            requestTypeId: CLASS_ID_GET_APP_STAGE_INFO,
             requestTypeName: 'GetAppStageInfo',
             requestId: 0
         };

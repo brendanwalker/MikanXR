@@ -153,10 +153,10 @@ bool MikanServer::startup(MainWindow* mainWindow)
 
 	// Client Init/Dispose Requests
 	m_messageServer->setRequestHandler(
-		InitClientRequest::staticGetArchetype().getId(), 
+		InitClientRequest::staticGetArchetype().getName(), 
 		std::bind(&MikanServer::initClientHandler, this, _1, _2));
 	m_messageServer->setRequestHandler(
-		DisposeClientRequest::staticGetArchetype().getId(), 
+		DisposeClientRequest::staticGetArchetype().getName(), 
 		std::bind(&MikanServer::disposeClientHandler, this, _1, _2));
 
 	return true;

@@ -2,9 +2,6 @@
 
 import { MikanEvent } from './MikanAPITypes.js';
 
-export const CLASS_ID_MIKAN_APP_STAGE_CHANGED_EVENT = 373547867812003606n;
-export const CLASS_ID_MIKAN_REMOTE_CONTROL_EVENT = -1767585761143530576n;
-
 export class MikanAppStageChangedEvent extends MikanEvent {
   new_app_state_name: string = '';
   old_app_state_name: string = '';

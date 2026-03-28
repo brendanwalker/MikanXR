@@ -118,13 +118,13 @@ public:
 				{
 					if (!msg->binary)
 					{
-						JsonSaxInt64ValueSearcher searcher;
+						JsonSaxStringValueSearcher searcher;
 
-						if (searcher.hasKey(msg->str, "eventTypeId"))
+						if (searcher.hasKey(msg->str, "eventTypeName"))
 						{
 							m_eventQueue->enqueue(msg->str);
 						}
-						else if (searcher.hasKey(msg->str, "responseTypeId"))
+						else if (searcher.hasKey(msg->str, "responseTypeName"))
 						{
 							if (m_textResponseHandler != nullptr)
 							{

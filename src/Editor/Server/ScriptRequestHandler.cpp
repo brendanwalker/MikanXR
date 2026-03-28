@@ -22,10 +22,10 @@ bool ScriptRequestHandler::startup(MainWindow* mainWindow)
 
 	// Script Requests	
 	messageServer->setRequestHandler(
-		InvokeComponentScriptTrigger::staticGetArchetype().getId(),
+		InvokeComponentScriptTrigger::staticGetArchetype().getName(),
 		std::bind(&ScriptRequestHandler::invokeComponentScriptTriggerHandler, this, _1, _2));
 	messageServer->setRequestHandler(
-		SendScriptMessage::staticGetArchetype().getId(),
+		SendScriptMessage::staticGetArchetype().getName(),
 		std::bind(&ScriptRequestHandler::invokeScriptMessageHandler, this, _1, _2));
 
 	return true;

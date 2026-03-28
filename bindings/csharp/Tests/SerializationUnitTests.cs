@@ -13,13 +13,10 @@ namespace MikanXR
 
 	class SerializationPoint : PolymorphicStruct
 	{
-		public static readonly long classId= 0;
 	};
 
 	class SerializationPoint2d : SerializationPoint
 	{
-		public static new readonly long classId= 1;
-
 		public SerializationPoint2d()
 		{
 		}
@@ -36,8 +33,6 @@ namespace MikanXR
 
 	class SerializationPoint3d : SerializationPoint
 	{
-		public static new readonly long classId= 2;
-
 		public SerializationPoint3d()
 		{
 		}
@@ -210,7 +205,7 @@ namespace MikanXR
 			Debug.Assert(success);
 			if (!success) return false;
 
-			success = (expected.null_ptr_field.RuntimeClassId == 0);
+			success = (expected.null_ptr_field.RuntimeClassName == string.Empty);
 			Debug.Assert(success);
 			if (!success) return false;
 
@@ -218,7 +213,7 @@ namespace MikanXR
 			Debug.Assert(success);
 			if (!success) return false;
 
-			success = (actual.null_ptr_field.RuntimeClassId == 0);
+			success = (actual.null_ptr_field.RuntimeClassName == string.Empty);
 			Debug.Assert(success);
 			if (!success) return false;
 

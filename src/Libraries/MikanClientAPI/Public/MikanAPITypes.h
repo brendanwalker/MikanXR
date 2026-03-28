@@ -52,8 +52,6 @@ enum class ENUM(Serialization::CodeGenModule("MikanAPITypes")) MikanAPIResult
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	#define MIKAN_TYPE_INFO_INIT(classPrefix, className) \
-		size_t typeId= className::staticGetArchetype().getId(); \
-		classPrefix##TypeId= *reinterpret_cast<int64_t*>(&typeId); \
 		classPrefix##TypeName= className::staticGetArchetype().getName();
 
 	#define MIKAN_EVENT_TYPE_INFO_INIT(className)	MIKAN_TYPE_INFO_INIT(event, className)
@@ -75,8 +73,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanRequ
 	virtual ~MikanRequest() {} // Virtual destructor for RTTI
 
 	FIELD()
-	int64_t requestTypeId = 0;
-	FIELD()
 	Serialization::String requestTypeName;
 	FIELD()
 	MikanRequestID requestId = -1;
@@ -94,8 +90,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanResp
 	}
 	virtual ~MikanResponse() {} // Virtual destructor for RTTI
 
-	FIELD()
-	int64_t responseTypeId = 0;
 	FIELD()
 	Serialization::String responseTypeName;
 	FIELD()
@@ -116,8 +110,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanAPITypes")) MikanEven
 	}
 	virtual ~MikanEvent() {} // Virtual destructor for RTTI
 
-	FIELD()
-	int64_t eventTypeId = 0;
 	FIELD()
 	Serialization::String eventTypeName;
 

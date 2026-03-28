@@ -2,16 +2,13 @@
 
 import { MikanEvent } from './MikanAPITypes.js';
 
-export const CLASS_ID_MIKAN_TEXTURE_SOURCE_CLOSED_EVENT = -7385634073816733729n;
-export const CLASS_ID_MIKAN_TEXTURE_SOURCE_OPENED_EVENT = -3856719328745698264n;
-
-export class MikanTextureSourceClosedEvent extends MikanEvent {
+export class MikanTextureSourceOpenedEvent extends MikanEvent {
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
   ];
 }
 
-export class MikanTextureSourceOpenedEvent extends MikanEvent {
+export class MikanTextureSourceClosedEvent extends MikanEvent {
 
   static __serializationMetadata: Array<{name: string, type: string, isArray?: boolean, isMap?: boolean, keyType?: string, valueType?: string}> = [
   ];

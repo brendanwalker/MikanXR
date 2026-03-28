@@ -1,7 +1,6 @@
 import { useMikanStore } from '../stores/mikanStore.js'
 import {
   MikanRemoteControlCommand,
-  CLASS_ID_MIKAN_REMOTE_CONTROL_COMMAND,
   MikanRemoteControlCommandResult
 } from '@mikanxr/client'
 
@@ -28,7 +27,6 @@ export function useRemoteControl() {
 
     try {
       const request: MikanRemoteControlCommand = {
-        requestTypeId: CLASS_ID_MIKAN_REMOTE_CONTROL_COMMAND,
         requestTypeName: 'MikanRemoteControlCommand',
         requestId: 0,
         command,
@@ -68,7 +66,6 @@ export function useRemoteControl() {
 
     try {
       const request: MikanRemoteControlCommand = {
-        requestTypeId: CLASS_ID_MIKAN_REMOTE_CONTROL_COMMAND,
         requestTypeName: 'MikanRemoteControlCommand',
         requestId: 0,
         command,

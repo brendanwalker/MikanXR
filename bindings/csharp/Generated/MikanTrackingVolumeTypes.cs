@@ -19,21 +19,15 @@ namespace MikanXR
 
 	public class MikanMarkerTrackingVolumeComponentValues : MikanTrackingVolumeComponentValues
 	{
-		public static new readonly long classId= -912859617642764411;
-
 	};
 
 	public class MikanTrackingVolumeComponentValues : MikanComponentValues
 	{
-		public static new readonly long classId= 8298175138156239447;
-
 		public int origin_marker_id;
 	};
 
 	public class MikanVRTrackingVolumeComponentValues : MikanTrackingVolumeComponentValues
 	{
-		public static new readonly long classId= -4734525919723628573;
-
 		public MikanTrackingRuntime tracking_runtime;
 		public int charuco_mount_id;
 		public MikanVector3f charuco_mount_offset_mm;

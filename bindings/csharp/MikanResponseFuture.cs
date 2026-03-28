@@ -118,7 +118,6 @@ namespace MikanXR
 		static MikanResponse makeSimpleMikanResponse(MikanAPIResult result)
 		{
 			var response = new MikanResponse();
-			response.responseTypeId = MikanResponse.classId;
 			response.responseTypeName = typeof(MikanResponse).Name;
 			response.requestId = (int)MikanConstants.InvalidMikanID;
 			response.resultCode = result;

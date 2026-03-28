@@ -20,7 +20,7 @@ bool MarkerRequestHandler::startup(MainWindow* mainWindow)
 	IInterprocessMessageServer* messageServer = m_owner->getMessageServer();
 
 	messageServer->setRequestHandler(
-		GetArucoMarkerImageRequest::staticGetArchetype().getId(),
+		GetArucoMarkerImageRequest::staticGetArchetype().getName(),
 		std::bind(&MarkerRequestHandler::getArucoMarkerImageHandler, this, _1, _2));
 
 	return true;
