@@ -1,6 +1,6 @@
 //-- inludes -----
 #include "CameraObjectSystem.h"
-#include "MainWindow.h"
+#include "IEditorWindow.h"
 #include "ModalDialog_SelectCamera.h"
 #include "RmlModel_SelectCamera.h"
 
@@ -28,18 +28,18 @@ ModalDialog_SelectCamera::~ModalDialog_SelectCamera()
 }
 
 bool ModalDialog_SelectCamera::selectCamera(
+	AppStage* appStage,
 	SelectCallback selectCallback,
 	CancelCallback rejectCallback)
 {
 	// Allocate a new file browser modal dialog
-	AppStage* ownerAppStage = MainWindow::getInstance()->getCurrentAppStage();
-	ModalDialog_SelectCamera* confirmModal = ownerAppStage->pushModalDialog<ModalDialog_SelectCamera>();
+	ModalDialog_SelectCamera* confirmModal = appStage->pushModalDialog<ModalDialog_SelectCamera>();
 
 	// Attempt to initialize the confirm modal
 	if (!confirmModal->init(selectCallback, rejectCallback))
 	{
 		// On failure, destroy the modal dialog we just created
-		ownerAppStage->popModalDialog();
+		appStage->popModalDialog();
 
 		return false;
 	}

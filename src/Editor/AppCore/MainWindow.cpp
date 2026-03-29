@@ -60,9 +60,6 @@ static const glm::vec4 k_clear_color = glm::vec4(0.45f, 0.45f, 0.5f, 1.f);
 
 static const glm::vec3 k_frustum_color = glm::vec3(0.1f, 0.7f, 0.3f);
 
-//-- statics -----
-MainWindow* MainWindow::m_instance = NULL;
-
 //-- public methods -----
 MainWindow::MainWindow(App* ownerApp)
 	: m_ownerApp(ownerApp)
@@ -104,7 +101,6 @@ MainWindow::~MainWindow()
 	delete m_mikanServer;
 	delete m_clientSourceManager;
 
-	assert(m_instance == nullptr);
 	assert(m_textRenderer == nullptr);
 	assert(m_lineRenderer == nullptr);
 }
@@ -160,7 +156,6 @@ bool MainWindow::startup()
 	bool success = true;
 
 	MIKAN_LOG_INFO("MainWindow::init()") << "Initializing MainWindow";
-	m_instance = this;
 
 	if (success && !m_rmlManager->preRendererStartup())
 	{
@@ -401,8 +396,6 @@ void MainWindow::shutdown()
 		m_sdlWindow->shutdown();
 		m_sdlWindow = nullptr;
 	}
-
-	m_instance = NULL;
 }
 
 float MainWindow::getWidth() const

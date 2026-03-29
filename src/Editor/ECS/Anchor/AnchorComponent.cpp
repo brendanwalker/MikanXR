@@ -7,7 +7,7 @@
 #include "Colors.h"
 #include "MikanLineRenderer.h"
 #include "MikanTextRenderer.h"
-#include "MainWindow.h"
+#include "IEditorWindow.h"
 #include "MathGLM.h"
 #include "ProjectConfig.h"
 #include "TransformComponent.h"
@@ -140,11 +140,14 @@ void AnchorComponent::editAnchor()
 		getObjectSystemOfType<AnchorObjectSystem>()->getSpatialAnchorById(anchorId);
 	if (anchorComponent != nullptr)
 	{
+		AppStage* currentAppStage = getOwnerEditorWindow()->getCurrentAppStage();
+
 		ModalDialog_SelectCamera::selectCamera(
+			currentAppStage,
 			[this, definition](MikanCameraID cameraId) {
 				// Show Anchor Triangulation Tool
 				AppStage_AnchorTriangulation* anchorTriangulation = 
-					MainWindow::getInstance()->pushAppStageOfType<AppStage_AnchorTriangulation>();
+					getOwnerEditorWindow()->pushAppStageOfType<AppStage_AnchorTriangulation>();
 
 				AnchorTriangulatorInfo anchorInfo = {
 					definition->getComponentId(),

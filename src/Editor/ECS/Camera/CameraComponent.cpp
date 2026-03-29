@@ -4,11 +4,11 @@
 #include "App.h"
 #include "AlignmentCalibration/AppStage_AlignmentCalibration.h"
 #include "Colors.h"
+#include "IEditorWindow.h"
 #include "MikanCameraEvents.h"
 #include "MikanLineRenderer.h"
 #include "MikanTextRenderer.h"
 #include "MikanVideoSourceTypes.h"
-#include "MainWindow.h"
 #include "MathGLM.h"
 #include "ProjectConfig.h"
 #include "TransformComponent.h"
@@ -679,19 +679,19 @@ bool CameraComponent::invokeFunction(const std::string& functionName)
 
 void CameraComponent::alignCamera()
 {
-	auto* mainWindow = MainWindow::getInstance();
+	IEditorWindow* ownerWindow = getOwnerEditorWindow();
 	TrackingMountDefinitionConstPtr vrTrackingMount= getTrackingMountDefinition();
 
 	if (vrTrackingMount)
 	{
-		auto* alignmentCalibration = mainWindow->pushAppStageOfType<AppStage_AlignmentCalibration>();
+		auto* alignmentCalibration = ownerWindow->pushAppStageOfType<AppStage_AlignmentCalibration>();
 		alignmentCalibration->setTargetCameraComponent(getSelfPtr<CameraComponent>());
 	}
 	else
 	{
 		//TODO
 		//// Show Camera Triangulation Tool
-		//AppStage_CameraTriangulation* CameraTriangulation = MainWindow::getInstance()->pushAppStageOfType<AppStage_CameraTriangulation>();
+		//AppStage_CameraTriangulation* CameraTriangulation = ownerWindow->pushAppStageOfType<AppStage_CameraTriangulation>();
 		//CameraTriangulation->setTargetCameraDefinition(getCameraDefinition());
 	}
 }

@@ -30,19 +30,19 @@ ModalDialog_SceneAddCompositor::~ModalDialog_SceneAddCompositor()
 }
 
 bool ModalDialog_SceneAddCompositor::selectNewCompositor(
+	AppStage* appStage,
 	SceneComponentPtr ownerScene,
 	SelectCallback selectCallback,
 	CancelCallback rejectCallback)
 {
 	// Allocate a new modal dialog
-	AppStage* ownerAppStage = MainWindow::getInstance()->getCurrentAppStage();
-	ModalDialog_SceneAddCompositor* confirmModal = ownerAppStage->pushModalDialog<ModalDialog_SceneAddCompositor>();
+	ModalDialog_SceneAddCompositor* confirmModal = appStage->pushModalDialog<ModalDialog_SceneAddCompositor>();
 
 	// Attempt to initialize the confirm modal
 	if (!confirmModal->init(ownerScene, selectCallback, rejectCallback))
 	{
 		// On failure, destroy the modal dialog we just created
-		ownerAppStage->popModalDialog();
+		appStage->popModalDialog();
 
 		return false;
 	}

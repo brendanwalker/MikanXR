@@ -24,6 +24,7 @@ public:
 	using SelectCallback = std::function<void(MikanCompositorID)>;
 	using CancelCallback = std::function<void()>;
 	static bool selectNewCompositor(
+		AppStage* appStage,
 		SceneComponentPtr ownerScene,
 		SelectCallback selectCallback={},
 		CancelCallback cancelCallback={});

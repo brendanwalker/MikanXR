@@ -2,7 +2,7 @@
 #include "AppStage.h"
 #include "MikanViewport.h"
 #include "GlRmlUiRenderer.h"
-#include "MainWindow.h"
+#include "IEditorWindow.h"
 #include "RmlManager.h"
 #include "SdlWindow.h"
 #include "Shared/ModalDialog.h"
@@ -54,7 +54,7 @@ MikanViewportPtr AppStage::addViewport()
 
 MikanViewportConstPtr AppStage::getRenderingViewport() const
 {
-	return std::static_pointer_cast<const MikanViewport>(MainWindow::getInstance()->getRenderingViewport());
+	return std::static_pointer_cast<const MikanViewport>(getOwnerWindow()->getRenderingViewport());
 }
 
 Rml::Context* AppStage::getRmlContext() const 

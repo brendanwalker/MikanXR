@@ -21,6 +21,7 @@ public:
 
 	using ConfirmCallback = std::function<void()>;
 	static bool confirmQuestion(
+		AppStage* appStage,
 		const std::string& title,
 		const std::string& question,
 		ConfirmCallback acceptCallback={},

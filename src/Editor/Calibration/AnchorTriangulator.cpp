@@ -8,9 +8,9 @@
 #include "MikanLineRenderer.h"
 #include "MikanTextRenderer.h"
 #include "InputManager.h"
+#include "IEditorWindow.h"
 #include "AnchorTriangulator.h"
 #include "AnchorObjectSystem.h"
-#include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MathOpenCV.h"
 #include "MathUtility.h"
@@ -129,8 +129,8 @@ glm::vec2 AnchorTriangulator::computeMouseScreenPosition() const
 {
 	int mouseScreenX = 0, mouseScreenY;
 	InputManager::getInstance()->getMouseScreenPosition(mouseScreenX, mouseScreenY);
-
-	MainWindow* window = MainWindow::getInstance();
+	
+	IEditorWindow* window = m_cameraComponent->getOwnerEditorWindow();
 	const float screenWidth = window->getWidth();
 	const float screenHeight = window->getHeight();
 

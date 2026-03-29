@@ -12,8 +12,8 @@
 #include "MikanPropertyDatabase.h"
 #include "MikanFunctionDatabase.h"
 #include "InputManager.h"
+#include "IEditorWindow.h"
 #include "ProjectManager.h"
-#include "MainWindow.h"
 #include "MathUtility.h"
 #include "MikanObject.h"
 #include "SceneObjectSystem.h"
@@ -24,6 +24,14 @@
 #include "BoxStencilSystem.h"
 #include "ModelStencilSystem.h"
 #include "Transform.h"
+
+#if defined(_WIN32)
+#include <SDL_keycode.h>
+#include <SDL_mouse.h>
+#else
+#include <SDL2/SDL_keycode.h>
+#include <SDL2/SDL_mouse.h>
+#endif
 
 // -- AnchorObjectSystemConfig -----
 const std::string EditorObjectSystemDefinition::k_cameraSpeedPropertyId= "cameraSpeed";
@@ -72,7 +80,8 @@ bool EditorObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 
 	auto editorConfig= getEditorSystemConfig();
 
-	MainWindow::getInstance()->OnAppStageEntered += MakeDelegate(this, &EditorObjectSystem::onAppStageEntered);
+	IEditorWindow* ownerWindow = getOwnerProjectManager()->getOwnerWindow();
+	ownerWindow->OnAppStageEntered += MakeDelegate(this, &EditorObjectSystem::onAppStageEntered);
 
 	SceneObjectSystemPtr sceneObjectSystem = getObjectSystemOfType<SceneObjectSystem>();
 	sceneObjectSystem->OnSceneActivated += MakeDelegate(this, &EditorObjectSystem::onSceneActivated);

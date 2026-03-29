@@ -23,6 +23,7 @@ public:
 	using SelectCallback = std::function<void(MikanCameraID)>;
 	using CancelCallback = std::function<void()>;
 	static bool selectCamera(
+		AppStage* appStage,
 		SelectCallback selectCallback={},
 		CancelCallback cancelCallback={});
 

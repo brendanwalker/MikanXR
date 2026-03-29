@@ -6,6 +6,7 @@
 #include "App.h"
 #include "CameraObjectSystem.h"
 #include "Colors.h"
+#include "IEditorWindow.h"
 #include "IMkLineRenderer.h"
 #include "MikanCamera.h"
 #include "MikanLineRenderer.h"
@@ -16,7 +17,6 @@
 #include "AnchorTriangulator.h"
 #include "CameraComponent.h"
 #include "InputManager.h"
-#include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
 #include "ProjectConfig.h"
@@ -26,7 +26,13 @@
 #include "VideoSourceComponent.h"
 #include "VideoFrameDistortionView.h"
 
-#include "SDL_keycode.h"
+#if defined(_WIN32)
+#include <SDL_keycode.h>
+#include <SDL_mouse.h>
+#else
+#include <SDL2/SDL_keycode.h>
+#include <SDL2/SDL_mouse.h>
+#endif
 
 #include "glm/gtc/quaternion.hpp"
 
@@ -72,7 +78,7 @@ void AppStage_AnchorTriangulation::enter()
 	AppStage::enter();
 
 	// Disable depth testing on the line renderer while in this app stage
-	MainWindow::getInstance()->getLineRenderer()->setDisable3dDepth(true);
+	getOwnerWindow()->getLineRenderer()->setDisable3dDepth(true);
 
 	// Create a new camera to view the scene
 	m_mkCamera = getFirstViewport()->getCurrentMikanCamera();
@@ -178,7 +184,7 @@ void AppStage_AnchorTriangulation::exit()
 	setMenuState(eAnchorTriangulationMenuState::inactive);
 
 	// Re-Enable depth testing on the line renderer while in this app stage
-	MainWindow::getInstance()->getLineRenderer()->setDisable3dDepth(false);
+	getOwnerWindow()->getLineRenderer()->setDisable3dDepth(false);
 
 	m_currentSceneCameraComponent = nullptr;
 	m_mkCamera= nullptr;

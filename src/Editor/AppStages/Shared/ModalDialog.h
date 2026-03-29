@@ -2,8 +2,6 @@
 
 #include "RmlFwd.h"
 
-class AppStage;
-
 class ModalDialog
 {
 public:

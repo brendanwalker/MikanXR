@@ -4,6 +4,7 @@
 #include "Colors.h"
 #include "ModalSelectCamera/ModalDialog_SelectCamera.h"
 #include "StencilAlignment/AppStage_StencilAlignment.h"
+#include "IEditorWindow.h"
 #include "IMkLineRenderer.h"
 #include "MkMaterialInstance.h"
 #include "MikanModelResourceManager.h"
@@ -21,7 +22,6 @@
 #include "ModelStencilSystem.h"
 #include "MathGLM.h"
 #include "MathMikan.h"
-#include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MeshColliderComponent.h"
 #include "MikanLineRenderer.h"
@@ -306,13 +306,10 @@ void ModelStencilComponent::rebuildMeshComponents()
 	disposeMeshComponents();
 
 	// Fetch the stencil model resource
-	// TODO: Need to consider how MikanObjects are rendered across multiple windows,
-	// since each window needs to own its own models and shader resources.
-	// For now, we are assuming that models are only rendered in the Main Window.
-	MainWindow* mainWindow= MainWindow::getInstance();
-	MikanModelResourceManager* modelResourceManager= mainWindow->getModelResourceManager();
+	IEditorWindow* ownerWindow = getOwnerEditorWindow();
+	MikanModelResourceManager* modelResourceManager= ownerWindow->getModelResourceManager();
 	MkMaterialConstPtr stencilMaterial= 
-		mainWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED);
+		ownerWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED);
 	MikanRenderModelResourcePtr modelResourcePtr= 
 		modelResourceManager->fetchRenderModel(
 			modelStencilDefinition->getModelPath(), stencilMaterial);
@@ -379,6 +376,12 @@ void ModelStencilComponent::rebuildMeshComponents()
 		for (TransformComponentPtr childComponentPtr : m_meshComponents)
 		{
 			childComponentPtr->init();
+		}
+
+		// Initialize all of the newly created components
+		for (TransformComponentPtr childComponentPtr : m_meshComponents)
+		{
+			childComponentPtr->postInit();
 		}
 	}
 
@@ -542,10 +545,13 @@ void ModelStencilComponent::removeModel()
 
 void ModelStencilComponent::alignStencil()
 {
+	AppStage* ownerAppStage= getOwnerEditorWindow()->getCurrentAppStage();
+
 	ModalDialog_SelectCamera::selectCamera(
+		ownerAppStage,
 		[this](MikanCameraID cameraId) {
 			// Show Anchor Triangulation Tool
-			auto* stencilAligner = MainWindow::getInstance()->pushAppStageOfType<AppStage_StencilAlignment>();
+			auto* stencilAligner = getOwnerEditorWindow()->pushAppStageOfType<AppStage_StencilAlignment>();
 			if (stencilAligner)
 			{
 				CameraComponentPtr cameraComponent=

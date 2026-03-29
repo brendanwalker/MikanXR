@@ -1,5 +1,6 @@
 //-- inludes -----
-#include "MainWindow.h"
+#include "AppStage.h"
+#include "IEditorWindow.h"
 #include "ModalDialog_Confirm.h"
 #include "RmlModel_Confirm.h"
 
@@ -27,20 +28,20 @@ ModalDialog_Confirm::~ModalDialog_Confirm()
 }
 
 bool ModalDialog_Confirm::confirmQuestion(
+	AppStage* appStage,
 	const std::string& title,
 	const std::string& question,
 	ConfirmCallback acceptCallback,
 	ConfirmCallback rejectCallback)
 {
 	// Allocate a new file browser modal dialog
-	AppStage* ownerAppStage = MainWindow::getInstance()->getCurrentAppStage();
-	ModalDialog_Confirm* confirmModal = ownerAppStage->pushModalDialog<ModalDialog_Confirm>();
+	ModalDialog_Confirm* confirmModal = appStage->pushModalDialog<ModalDialog_Confirm>();
 
 	// Attempt to initialize the confirm modal
 	if (!confirmModal->init(title, question, acceptCallback, rejectCallback))
 	{
 		// On failure, destroy the modal dialog we just created
-		ownerAppStage->popModalDialog();
+		appStage->popModalDialog();
 
 		return false;
 	}

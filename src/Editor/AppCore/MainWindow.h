@@ -23,11 +23,6 @@ public:
 	MainWindow(class App* ownerApp);
 	~MainWindow();
 
-	static MainWindow* getInstance()
-	{
-		return m_instance;
-	}
-
 	// -- IMkWindow ----
 	virtual bool startup() override;
 	virtual void update(float deltaSeconds) override;
@@ -137,6 +132,4 @@ private:
 
 	// OpenGL texture program cache
 	MikanTextureCacheUniquePtr m_textureCache;
-
-	static MainWindow* m_instance;
 };

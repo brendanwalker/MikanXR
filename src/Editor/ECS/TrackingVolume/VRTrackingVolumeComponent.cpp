@@ -369,7 +369,10 @@ bool VRTrackingVolumeComponent::invokeFunction(const std::string& functionName)
 
 void VRTrackingVolumeComponent::alignTrackingVolume()
 {
+	AppStage* ownerAppStage = getOwnerEditorWindow()->getCurrentAppStage();
+
 	ModalDialog_SelectCamera::selectCamera(
+		ownerAppStage,
 		[this](MikanCameraID cameraId) {
 			const MikanTrackingVolumeID volumeId = getTrackingVolumeDefinition()->getTrackingVolumeId();
 			CameraComponentPtr cameraComponent = getObjectSystemOfType<CameraObjectSystem>()->getCameraById(cameraId);
