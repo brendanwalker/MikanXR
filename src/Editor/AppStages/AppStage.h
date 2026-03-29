@@ -32,6 +32,7 @@ public:
 	IEditorWindow* getOwnerWindow() const { return m_ownerWindow; }
 	ProjectManagerPtr getProjectManager() const;
 	ProjectConfigPtr getProjectConfig() const;
+	const struct EditorSettings& getEditorSettings() const;
 	template <class t_object_system_type>
 	std::shared_ptr<t_object_system_type> getObjectSystemOfType() const
 	{

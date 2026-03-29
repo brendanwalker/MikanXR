@@ -10,7 +10,6 @@ namespace MikanXR
 
 	public class MikanAnchorSystemValues : MikanSystemValues
 	{
-		public bool render_anchors;
 	};
 
 }

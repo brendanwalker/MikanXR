@@ -26,9 +26,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) Mikan
 {
 	static const char* k_systemName;
 
-	FIELD()
-	bool render_stencils = false;
-
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanQuadStencilSystemValues_GENERATED
 #endif
@@ -39,9 +36,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) Mikan
 {
 	static const char* k_systemName;
 
-	FIELD()
-	bool render_stencils = false;
-
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanBoxStencilSystemValues_GENERATED
 #endif
@@ -51,9 +45,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilTypes")) Mikan
 	public MikanSystemValues
 {
 	static const char* k_systemName;
-
-	FIELD()
-	bool render_stencils = false;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanModelStencilSystemValues_GENERATED

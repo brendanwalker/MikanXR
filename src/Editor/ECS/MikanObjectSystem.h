@@ -53,6 +53,7 @@ public:
 
 	inline ProjectManagerPtr getOwnerProjectManager() const { return m_ownerObjectSystemManager.lock(); }
 	ProjectConfigPtr getProjectConfig() const;
+	class IEditorWindow* getOwnerWindow() const;
 
 	template <class t_object_system_type>
 	std::shared_ptr<t_object_system_type> getObjectSystemOfType() const

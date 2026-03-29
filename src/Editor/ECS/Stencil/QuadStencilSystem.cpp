@@ -11,8 +11,6 @@
 #include <assert.h>
 
 // -- QuadStencilSystemDefinition -----
-const std::string QuadStencilSystemDefinition::k_renderStencilsPropertyId = "render_stencils";
-
 QuadStencilSystemDefinition::QuadStencilSystemDefinition(
 	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
 	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
@@ -23,8 +21,6 @@ configuru::Config QuadStencilSystemDefinition::writeToJSON()
 {
 	configuru::Config pt = Super::writeToJSON();
 
-	pt["debug_render_stencils"] = m_bDebugRenderStencils;
-
 	return pt;
 }
 
@@ -32,16 +28,6 @@ void QuadStencilSystemDefinition::readFromJSON(const configuru::Config& pt)
 {
 	Super::readFromJSON(pt);
 
-	m_bDebugRenderStencils = pt.get_or<bool>("debug_render_stencils", m_bDebugRenderStencils);
-}
-
-void QuadStencilSystemDefinition::setRenderStencilsFlag(bool flag)
-{
-	if (m_bDebugRenderStencils != flag)
-	{
-		m_bDebugRenderStencils = flag;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderStencilsPropertyId));
-	}
 }
 
 // -- QuadStencilSystem ----
@@ -150,32 +136,14 @@ bool QuadStencilSystem::isStencilFacingCamera(
 void QuadStencilSystem::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	MikanObjectSystem::getPropertyDescriptors(outDescriptors);
-
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			QuadStencilSystemDefinition::k_renderStencilsPropertyId, MikanVariantType::BOOL));
 }
 
 bool QuadStencilSystem::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
-	if (propertyName == QuadStencilSystemDefinition::k_renderStencilsPropertyId)
-	{
-		QuadStencilSystemDefinitionConstPtr definition = getTypedDefinitionConst();
-		outValue = definition->getRenderStencilsFlag();
-		return true;
-	}
-
 	return MikanObjectSystem::getPropertyValue(propertyName, outValue);
 }
 
 bool QuadStencilSystem::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
-	if (propertyName == QuadStencilSystemDefinition::k_renderStencilsPropertyId)
-	{
-		QuadStencilSystemDefinitionPtr definition = getTypedDefinition();
-		definition->setRenderStencilsFlag(inValue.getBoolValue());
-		return true;
-	}
-
 	return MikanObjectSystem::setPropertyValue(propertyName, inValue);
 }

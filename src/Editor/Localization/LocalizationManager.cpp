@@ -25,30 +25,27 @@
 
 static const std::string kDefaultLanguage= std::string("ja");
 
-LocalizationManager* LocalizationManager::m_instance= nullptr;
-
 LocalizationManager::LocalizationManager()
 	: m_currentLanguageCode("")
 	, m_currentLanguage(nullptr)
 {
-	m_instance= this;
 }
 
 LocalizationManager::~LocalizationManager()
 {
 	shutdown();
-
-	m_instance= nullptr;
 }
 
-bool LocalizationManager::startup(AppSettingsConfigPtr m_appSettings)
+bool LocalizationManager::startup(AppSettingsConfigPtr appSettings)
 {
 	EASY_FUNCTION();
+
+	m_appSettings = appSettings;
 
 	reloadLangages();
 
 	// Try to set the language in order: user setting, system language, default language
-	if (!setLanguage(m_appSettings->getAppLanguage()))
+	if (!setLanguage(appSettings->getAppLanguage()))
 	{
 		if (!setLanguage(getSystemLanguage()))
 		{
@@ -242,6 +239,12 @@ bool LocalizationManager::setLanguage(const std::string& languageId)
 	{
 		m_currentLanguage= langIt->second;
 		m_currentLanguageCode = languageId;
+
+		// Update the app settings with the new language.
+		// Any other systems that need to know about the language change 
+		// can listen for changes to the app settings now that it has been updated.
+		m_appSettings.lock()->setAppLanguage(languageId);
+
 		return true;
 	}
 
@@ -346,14 +349,4 @@ const wchar_t* LocalizationManager::fetchUTF16Text(
 	}
 
 	return result;
-}
-
-const char* locTextUTF8(const char* tableName, const char* stringKey, bool* outHasString)
-{
-	return LocalizationManager::getInstance()->fetchUTF8Text(tableName, stringKey, outHasString);
-}
-
-const wchar_t* locTextUTF16(const char* tableName, const char* stringKey, bool* outHasString)
-{
-	return LocalizationManager::getInstance()->fetchUTF16Text(tableName, stringKey, outHasString);
 }

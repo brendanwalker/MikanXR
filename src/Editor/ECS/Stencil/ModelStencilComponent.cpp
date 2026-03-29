@@ -2,6 +2,7 @@
 #include "CameraObjectSystem.h"
 #include "CameraComponent.h"
 #include "Colors.h"
+#include "EditorObjectSystem.h"
 #include "ModalSelectCamera/ModalDialog_SelectCamera.h"
 #include "StencilAlignment/AppStage_StencilAlignment.h"
 #include "IEditorWindow.h"
@@ -168,10 +169,10 @@ void ModelStencilComponent::init()
 void ModelStencilComponent::customRender()
 {
 	ModelStencilDefinitionPtr modelStencilDefinition= getModelStencilDefinition();
-	ModelStencilSystemPtr modelStencilSystem = getObjectSystemOfType<ModelStencilSystem>();
+	auto editorObjectSystem = getObjectSystemOfType<EditorObjectSystem>();
 
 	if (!modelStencilDefinition->getIsDisabled() &&
-		modelStencilSystem && modelStencilSystem->getTypedDefinitionConst()->getRenderStencilsFlag())
+		editorObjectSystem->getEditorSystemConfigConst()->getRenderModelStencilsFlag())
 	{
 		TextStyle style = getDefaultTextStyle();
 

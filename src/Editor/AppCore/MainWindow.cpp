@@ -140,6 +140,11 @@ EventBus* MainWindow::getEventBus() const
 	return m_ownerApp->getEventBus();
 }
 
+LocalizationManager* MainWindow::getLocalizationManager() const
+{
+	return m_ownerApp->getLocalizationManager();
+}
+
 IMkViewportPtr MainWindow::getRenderingViewport() const
 {
 	return m_renderingViewport;

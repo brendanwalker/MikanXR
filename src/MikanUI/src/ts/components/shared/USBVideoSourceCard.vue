@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
-import { MikanUSBVideoSourceSystemValues, SystemGetValuesResponse, SystemGetValuesRequest, type MikanComponentValues, type MikanFunctionDescriptor } from '@mikanxr/client'
+import { type MikanComponentValues, type MikanFunctionDescriptor } from '@mikanxr/client'
 import { useComponentStore } from '../../stores/componentStore.js'
 import { useMikanStore } from '../../stores/mikanStore.js'
 
@@ -44,11 +44,15 @@ const componentStore = useComponentStore()
 const mikanStore = useMikanStore()
 
 const componentFunctions = ref<MikanFunctionDescriptor[]>([])
-const usbDeviceMap = ref<Array<{key: string, value: string}>>([])
+
+const usbDeviceMap = computed(() => {
+  const sysValues = componentStore.getUSBVideoSourceSystemValues()
+  if (!sysValues) return []
+  return Object.entries(sysValues.usb_device_map || {}).map(([key, value]) => ({ key, value }))
+})
 
 onMounted(async () => {
   await fetchFunctions()
-  await fetchUSBDeviceMap()
 })
 
 async function fetchFunctions() {
@@ -71,30 +75,6 @@ async function fetchFunctions() {
     props.componentId
   )
   componentFunctions.value = functions
-}
-
-async function fetchUSBDeviceMap() {
-  const client = mikanStore.client as any
-  if (!client) return
-
-  try {
-    const request = new SystemGetValuesRequest()
-    request.ownerSystem = 'USBVideoSourceSystem'
-
-    const future = client.sendRequest(request)
-    const response = await future.await() as SystemGetValuesResponse
-
-    if (response.resultCode === 0) {
-      const systemValues = response.valuesObject.instance as MikanUSBVideoSourceSystemValues
-      usbDeviceMap.value = Object.entries(systemValues.usb_device_map || {}).map(([key, value]) => ({ key, value }))
-      console.log('[USBVideoSourceCard] Fetched USB device map:', usbDeviceMap.value)      
-    }
-    else{
-      console.error('[USBVideoSourceCard] Failed to fetch USB device map: Server returned error code', response.resultCode)
-    }
-  } catch (error) {
-    console.error('[USBVideoSourceCard] Failed to fetch USB device map:', error)
-  }
 }
 
 async function handleFunctionClick(functionName: string) {

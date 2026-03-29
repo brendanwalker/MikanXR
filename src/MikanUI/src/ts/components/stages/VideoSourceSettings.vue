@@ -30,11 +30,11 @@
           >
             <option value="">-- None --</option>
             <option
-              v-for="device in systemValues?.usb_device_map || []"
-              :key="device.key"
-              :value="device.key"
+              v-for="(deviceName, devicePath) in systemValues?.usb_device_map || {}"
+              :key="devicePath"
+              :value="devicePath"
             >
-              {{ device.value }}
+              {{ deviceName }}
             </option>
           </select>
         </div>
@@ -134,8 +134,6 @@ import {
   SetUSBVideoSourceFrameRate,
   SetUSBVideoSourceFormat,
   PropertySetValueRequest,
-  SystemGetValuesRequest,
-  SystemGetValuesResponse
 } from '@mikanxr/client'
 
 import { useComponentStore } from '../../stores/componentStore.js'
@@ -148,7 +146,7 @@ const componentStore = useComponentStore()
 // State
 const isLoading = ref(true)
 const videoSourceId = ref<number>(-1)
-const systemValues = ref<MikanUSBVideoSourceSystemValues | null>(null)
+const systemValues = computed(() => componentStore.getUSBVideoSourceSystemValues() as MikanUSBVideoSourceSystemValues | null)
 
 // Selection state for dropdowns
 const selectedDevicePath = ref<string>('')
@@ -338,9 +336,6 @@ async function initialize() {
     videoSourceId.value = componentId
     console.log('[VideoSourceSettings] Loaded video source component ID:', componentId)
 
-    // Fetch USB video source system values
-    await fetchSystemValues()
-
     // Initialize dropdown values from component
     if (usbVideoSourceComponent.value) {
       selectedDevicePath.value = usbVideoSourceComponent.value.current_device_path
@@ -352,25 +347,6 @@ async function initialize() {
     console.error('[VideoSourceSettings] Initialization error:', error)
   } finally {
     isLoading.value = false
-  }
-}
-
-async function fetchSystemValues() {
-  const client = mikanStore.client
-  if (!client) return
-
-  try {
-    const request = new SystemGetValuesRequest()
-    request.ownerSystem = 'USBVideoSourceSystem'
-
-    const future = client.sendRequest(request)
-    const response = await future.await() as SystemGetValuesResponse
-
-    if (response.resultCode === 0) {
-      systemValues.value = response.valuesObject.instance as MikanUSBVideoSourceSystemValues
-    }
-  } catch (error) {
-    console.error('[VideoSourceSettings] Failed to fetch system values:', error)
   }
 }
 

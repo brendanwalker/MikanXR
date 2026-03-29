@@ -20,10 +20,6 @@ public:
 	virtual configuru::Config writeToJSON() override;
 	virtual void readFromJSON(const configuru::Config& pt) override;
 
-	static const std::string k_renderOriginFlagPropertyId;
-	inline bool getRenderOriginFlag() const { return m_bRenderOrigin; }
-	void setRenderOriginFlag(bool flag);
-
 	template<class t_system_config_type, class t_system_type>
 	std::shared_ptr<t_system_config_type> addTypedDefinition(IEntityIDAllocatorPtr idAllocator)
 	{
@@ -64,9 +60,6 @@ public:
 	VRTrackingVolumeSystemDefinitionPtr vrTrackingVolumeConfig;
 
 protected:
-	eTrackingRuntime m_trackingRuntime = eTrackingRuntime::SteamVR;
-	bool m_bRenderOrigin = true;
-
 	// Max transient component ID (used for runtime-only components that aren't saved to the project file)
 	const static int k_transientIdStart;
 	const static int k_transientIdMaxRange;

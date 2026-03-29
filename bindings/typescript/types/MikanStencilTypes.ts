@@ -31,26 +31,20 @@ export class MikanModelStencilComponentValues extends MikanStencilComponentValue
 }
 
 export class MikanQuadStencilSystemValues extends MikanSystemValues {
-  render_stencils: boolean = false;
 
   static __serializationMetadata: SerializationField[] = [
-    { name: 'render_stencils', type: 'boolean' }
   ];
 }
 
 export class MikanBoxStencilSystemValues extends MikanSystemValues {
-  render_stencils: boolean = false;
 
   static __serializationMetadata: SerializationField[] = [
-    { name: 'render_stencils', type: 'boolean' }
   ];
 }
 
 export class MikanModelStencilSystemValues extends MikanSystemValues {
-  render_stencils: boolean = false;
 
   static __serializationMetadata: SerializationField[] = [
-    { name: 'render_stencils', type: 'boolean' }
   ];
 }
 

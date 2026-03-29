@@ -27,6 +27,7 @@ public:
 	inline class SdlManager* getSdlManager() const { return m_sdlManager; }
 	inline class ISdlMkWindow* getCurrentlyRenderingWindow() const { return m_renderingWindow; }
 	inline EventBus* getEventBus() const { return m_eventBus.get(); }
+	inline class LocalizationManager* getLocalizationManager() const { return m_localizationManager; }
 
 	inline float getFPS() const { return m_fps; }
 

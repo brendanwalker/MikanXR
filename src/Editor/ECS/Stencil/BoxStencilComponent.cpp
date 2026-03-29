@@ -7,6 +7,7 @@
 #include "TransformComponent.h"
 #include "BoxColliderComponent.h"
 #include "MathGLM.h"
+#include "EditorObjectSystem.h"
 #include "MikanObject.h"
 #include "MikanStencilTypes.h"
 #include "MathTypeConversion.h"
@@ -126,10 +127,10 @@ void BoxStencilComponent::init()
 void BoxStencilComponent::customRender()
 {
 	BoxStencilDefinitionPtr boxDefinition= getBoxStencilDefinition();
-	BoxStencilSystemPtr boxStencilSystem = getObjectSystemOfType<BoxStencilSystem>();
+	auto editorObjectSystem = getObjectSystemOfType<EditorObjectSystem>();
 
 	if (!boxDefinition->getIsDisabled() &&
-		boxStencilSystem && boxStencilSystem->getTypedDefinitionConst()->getRenderStencilsFlag())
+		editorObjectSystem->getEditorSystemConfigConst()->getRenderBoxStencilsFlag())
 	{
 		TextStyle style = getDefaultTextStyle();
 

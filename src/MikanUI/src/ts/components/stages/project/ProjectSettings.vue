@@ -4,9 +4,78 @@
     <p>Project-wide configuration and preferences.</p>
 
     <div class="settings-content">
-      <div class="info-message">
-        <p>This panel is for future project-wide settings and preferences.</p>
-        <p>Component-specific settings can be edited in the other panels (Scenes, Sources, Tracking, etc.).</p>
+
+      <!-- Editor Settings -->
+      <div v-if="editorSystemValues" class="settings-section">
+        <h3>Editor Settings</h3>
+        <div class="property-row">
+          <label class="property-label">Draw Origin</label>
+          <input
+            type="checkbox"
+            class="toggle-checkbox"
+            :checked="editorSystemValues.render_origin"
+            @change="setEditorProperty('render_origin', ($event.target as HTMLInputElement).checked)"
+          />
+        </div>
+        <div class="property-row">
+          <label class="property-label">Draw Anchors</label>
+          <input
+            type="checkbox"
+            class="toggle-checkbox"
+            :checked="editorSystemValues.render_anchors"
+            @change="setEditorProperty('render_anchors', ($event.target as HTMLInputElement).checked)"
+          />
+        </div>
+        <div class="property-row">
+          <label class="property-label">Draw Quad Stencils</label>
+          <input
+            type="checkbox"
+            class="toggle-checkbox"
+            :checked="editorSystemValues.render_quad_stencils"
+            @change="setEditorProperty('render_quad_stencils', ($event.target as HTMLInputElement).checked)"
+          />
+        </div>
+        <div class="property-row">
+          <label class="property-label">Draw Box Stencils</label>
+          <input
+            type="checkbox"
+            class="toggle-checkbox"
+            :checked="editorSystemValues.render_box_stencils"
+            @change="setEditorProperty('render_box_stencils', ($event.target as HTMLInputElement).checked)"
+          />
+        </div>
+        <div class="property-row">
+          <label class="property-label">Draw Model Stencils</label>
+          <input
+            type="checkbox"
+            class="toggle-checkbox"
+            :checked="editorSystemValues.render_model_stencils"
+            @change="setEditorProperty('render_model_stencils', ($event.target as HTMLInputElement).checked)"
+          />
+        </div>
+        <div class="property-row">
+          <label class="property-label">Camera Speed</label>
+          <input
+            type="number"
+            class="property-input"
+            :value="editorSystemValues.camera_speed"
+            @change="setEditorProperty('camera_speed', parseFloat(($event.target as HTMLInputElement).value))"
+          />
+        </div>
+        <div class="property-row">
+          <label class="property-label">Language</label>
+          <select
+            class="property-select"
+            :value="editorSystemValues.selected_language"
+            @change="setEditorProperty('selected_language', ($event.target as HTMLSelectElement).value)"
+          >
+            <option
+              v-for="lang in editorSystemValues.available_language_list"
+              :key="lang"
+              :value="lang"
+            >{{ lang }}</option>
+          </select>
+        </div>
       </div>
 
       <div class="settings-section">
@@ -26,58 +95,6 @@
           </div>
         </div>
       </div>
-
-      <div class="settings-section">
-        <h3>Connection Status</h3>
-        <div class="status-grid">
-          <div class="status-item">
-            <span class="status-label">Connection:</span>
-            <span :class="['status-value', statusClass]">{{ connectionStatusText }}</span>
-          </div>
-          <div class="status-item">
-            <span class="status-label">App Stage:</span>
-            <span class="status-value">{{ appStage }}</span>
-          </div>
-          <div class="status-item">
-            <span class="status-label">Total Components:</span>
-            <span class="status-value">{{ totalComponents }}</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="settings-section">
-        <h3>System Information</h3>
-        <div class="info-grid">
-          <div class="info-item">
-            <span class="info-label">Scenes:</span>
-            <span class="info-value">{{ sceneCount }}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Stages:</span>
-            <span class="info-value">{{ stageCount }}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Cameras:</span>
-            <span class="info-value">{{ cameraCount }}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Markers:</span>
-            <span class="info-value">{{ markerCount }}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Anchors:</span>
-            <span class="info-value">{{ anchorCount }}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">VR Devices:</span>
-            <span class="info-value">{{ vrDeviceCount }}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Tracking Mounts:</span>
-            <span class="info-value">{{ trackingMountCount }}</span>
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 </template>
@@ -87,72 +104,33 @@ import { computed } from 'vue'
 import { useComponentStore } from '../../../stores/componentStore.js'
 import { useMikanStore } from '../../../stores/mikanStore.js'
 import { useSettingsStore } from '../../../stores/settingsStore.js'
+import { MikanClient, MikanEditorSystemValues, PropertySetValueRequest } from '@mikanxr/client'
+import { usePropertyEditor } from '../../../composables/usePropertyEditor.js'
+
+const { createVariantFromValue } = usePropertyEditor()
 
 const componentStore = useComponentStore()
 const mikanStore = useMikanStore()
 const settingsStore = useSettingsStore()
 
-// Connection status
-const connectionStatusText = computed(() => {
-  switch (mikanStore.connectionStatus) {
-    case 'connected':
-      return 'Connected'
-    case 'connecting':
-      return 'Connecting...'
-    case 'disconnected':
-      return 'Disconnected'
-    case 'error':
-      return 'Error'
-    default:
-      return 'Unknown'
+const editorSystemValues = computed(() => componentStore.getEditorSystemValues() as MikanEditorSystemValues | null)
+
+async function setEditorProperty(fieldName: string, value: any) {
+  const client = mikanStore.client as MikanClient | null
+  if (!client) return
+
+  try {
+    const request = new PropertySetValueRequest()
+    request.ownerSystem = 'EditorObjectSystem'
+    request.fieldName = fieldName
+    request.fieldValue = createVariantFromValue(value)
+
+    const future = client.sendRequest(request)
+    await future.await()
+  } catch (error) {
+    console.error(`[ProjectSettings] Failed to set editor property "${fieldName}":`, error)
   }
-})
-
-const statusClass = computed(() => {
-  switch (mikanStore.connectionStatus) {
-    case 'connected':
-      return 'status-connected'
-    case 'connecting':
-      return 'status-connecting'
-    case 'error':
-      return 'status-error'
-    default:
-      return 'status-disconnected'
-  }
-})
-
-const appStage = computed(() => mikanStore.appStage || 'Unknown')
-
-// Component counts
-const totalComponents = computed(() => componentStore.components.size)
-
-const sceneCount = computed(() =>
-  componentStore.getComponentsByClass('SceneComponent').length
-)
-
-const stageCount = computed(() =>
-  componentStore.getComponentsByClass('StageComponent').length
-)
-
-const cameraCount = computed(() =>
-  componentStore.getComponentsByClass('CameraComponent').length
-)
-
-const markerCount = computed(() =>
-  componentStore.getComponentsByClass('MarkerComponent').length
-)
-
-const anchorCount = computed(() =>
-  componentStore.getComponentsByClass('AnchorComponent').length
-)
-
-const vrDeviceCount = computed(() =>
-  componentStore.getComponentsByClass('VRDeviceComponent').length
-)
-
-const trackingMountCount = computed(() =>
-  componentStore.getComponentsByClass('TrackingMountComponent').length
-)
+}
 </script>
 
 <style scoped>
@@ -288,5 +266,55 @@ const trackingMountCount = computed(() =>
   color: rgba(255, 255, 255, 0.5);
   font-size: 13px;
   font-style: italic;
+}
+
+.property-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.property-label {
+  color: #ffffff;
+  font-size: 14px;
+  min-width: 140px;
+  flex-shrink: 0;
+}
+
+.property-select {
+  flex: 1;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.property-select:focus {
+  outline: none;
+  border-color: #5cb85c;
+}
+
+.property-select option {
+  background: #2d2d2d;
+  color: #fff;
+}
+
+.property-input {
+  flex: 1;
+  padding: 4px 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: #fff;
+  font-size: 14px;
+  max-width: 100px;
+}
+
+.property-input:focus {
+  outline: none;
+  border-color: #5cb85c;
 }
 </style>

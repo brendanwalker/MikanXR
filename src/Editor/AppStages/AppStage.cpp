@@ -1,5 +1,6 @@
 #include "App.h"
 #include "AppStage.h"
+#include "EditorObjectSystem.h"
 #include "MikanViewport.h"
 #include "GlRmlUiRenderer.h"
 #include "IEditorWindow.h"
@@ -13,6 +14,14 @@
 #include <RmlUi/Debugger.h>
 
 #include <filesystem>
+
+#if defined(_WIN32)
+#include <SDL_events.h>
+#include <SDL_keycode.h>
+#else
+#include <SDL2/SDL_events.h>
+#include <SDL2/SDL_keycode.h>
+#endif
 
 AppStage::AppStage(
 	IEditorWindow* ownerWindow,
@@ -36,6 +45,11 @@ ProjectManagerPtr AppStage::getProjectManager() const
 ProjectConfigPtr AppStage::getProjectConfig() const
 {
 	return getProjectManager()->getProjectConfig();
+}
+
+const EditorSettings& AppStage::getEditorSettings() const
+{
+	return getProjectManager()->getSystemOfType<EditorObjectSystem>()->getEditorSettings();
 }
 
 MikanViewportPtr AppStage::addViewport()

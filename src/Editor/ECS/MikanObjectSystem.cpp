@@ -4,6 +4,7 @@
 #include "MikanFunctionDatabase.h"
 #include "MikanVariantTypes.h"
 #include "MikanPropertyTypes.h"
+#include "IEditorWindow.h"
 
 #include "assert.h"
 
@@ -62,6 +63,11 @@ void MikanObjectSystem::customRender()
 ProjectConfigPtr MikanObjectSystem::getProjectConfig() const
 {
 	return getOwnerProjectManager()->getProjectConfig();
+}
+
+IEditorWindow* MikanObjectSystem::getOwnerWindow() const
+{
+	return getOwnerProjectManager()->getOwnerWindow();
 }
 
 MikanObjectPtr MikanObjectSystem::newEmptyObject()

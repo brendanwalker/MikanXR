@@ -14,9 +14,7 @@ public:
 	LocalizationManager();
 	virtual ~LocalizationManager();
 
-	static LocalizationManager* getInstance() { return m_instance; }
-
-	bool startup(AppSettingsConfigPtr m_appSettings);
+	bool startup(AppSettingsConfigPtr appSettings);
 	void reloadLangages();
 	void shutdown();
 
@@ -32,8 +30,6 @@ public:
 
 private:
 	void unloadLanguages();
-
-	static LocalizationManager* m_instance;
 
 	struct StringEntry
 	{
@@ -51,10 +47,8 @@ private:
 		std::map<std::string, StringTable*> stringTables;
 	};
 
+	AppSettingsConfigWeakPtr m_appSettings;
 	std::map<std::string, Language*> m_languages;
 	std::string m_currentLanguageCode;
 	Language* m_currentLanguage;
 };
-
-const char* locTextUTF8(const char* tableName, const char* stringKey, bool* outHasString = nullptr);
-const wchar_t* locTextUTF16(const char* tableName, const char* stringKey, bool* outHasString = nullptr);

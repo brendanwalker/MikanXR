@@ -483,7 +483,7 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 		drawGrid(glm::mat4(1.f), 10.f, 10.f, 20, 20, Colors::GhostWhite);
 	}
 
-	if (m_project->getRenderOriginFlag())
+	if (getEditorSettings().bRenderOrigin)
 	{
 		debugRenderOrigin();
 	}

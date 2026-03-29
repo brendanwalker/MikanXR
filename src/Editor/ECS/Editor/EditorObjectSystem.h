@@ -16,27 +16,55 @@
 #include "glm/ext/vector_float3.hpp"
 #include "glm/ext/quaternion_float.hpp"
 
+struct EditorSettings
+{
+	bool bRenderOrigin = true;
+	bool bDebugRenderAnchors = true;
+	bool bDebugRenderQuadStencils = true;
+	bool bDebugRenderBoxStencils = true;
+	bool bDebugRenderModelStencils = true;
+	float cameraSpeed = 1.f;
+};
+
 class EditorObjectSystemDefinition : public MikanObjectSystemDefinition
 {
 public:
 	EditorObjectSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator)
 		: MikanObjectSystemDefinition(configName, idAllocator)
+		, m_editorSettings()
 	{}
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
+	inline const EditorSettings& getEditorSettings() const { return m_editorSettings; }
+
+	static const std::string k_renderOriginFlagPropertyId;
+	inline bool getRenderOriginFlag() const { return m_editorSettings.bRenderOrigin; }
+	void setRenderOriginFlag(bool flag);
+
+	static const std::string k_renderAnchorsPropertyId;
+	inline bool getRenderAnchorsFlag() const { return m_editorSettings.bDebugRenderAnchors; }
+	void setRenderAnchorsFlag(bool flag);
+
+	static const std::string k_renderQuadStencilsPropertyId;
+	inline bool getRenderQuadStencilsFlag() const { return m_editorSettings.bDebugRenderQuadStencils; }
+	void setRenderQuadStencilsFlag(bool flag);
+
+	static const std::string k_renderBoxStencilsPropertyId;
+	inline bool getRenderBoxStencilsFlag() const { return m_editorSettings.bDebugRenderBoxStencils; }
+	void setRenderBoxStencilsFlag(bool flag);
+
+	static const std::string k_renderModelStencilsPropertyId;
+	inline bool getRenderModelStencilsFlag() const { return m_editorSettings.bDebugRenderModelStencils; }
+	void setRenderModelStencilsFlag(bool flag);
+
 	static const std::string k_cameraSpeedPropertyId;
-	float getCameraSpeed() const { return cameraSpeed; }
+	float getCameraSpeed() const { return m_editorSettings.cameraSpeed; }
 	void setCameraSpeed(float speed);
 
-	static const std::string k_currentSceneNamePropertyId;
-	const std::string& getCurrentSceneName() const { return currentSceneName; }
-	void setCurrentSceneName(const std::string& sceneName);
-
 private:
-	float cameraSpeed= 1.f;
-	std::string currentSceneName;
+	EditorSettings m_editorSettings;
 };
 
 class EditorObjectSystem : public MikanObjectSystem
@@ -52,6 +80,7 @@ public:
 
 	EditorObjectSystemDefinitionConstPtr getEditorSystemConfigConst() const;
 	EditorObjectSystemDefinitionPtr getEditorSystemConfig();
+	const EditorSettings& getEditorSettings() const { return getEditorSystemConfigConst()->getEditorSettings(); }
 
 	virtual MikanComponentPtr getComponentById(int componentId) const override;
 	virtual bool getComponentIdList(const std::string& componentClassName, std::vector<int>& outComponentIdList) const override;
@@ -69,7 +98,12 @@ public:
 	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
 	virtual void registerFunctionDescriptors(MikanFunctionDatabasePtr functionDatabase) override;
 
+	// -- IEntityAccessor ----
+	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
+
 	// -- IPropertyInterface ----
+	static const std::string k_selectedLanguagePropertyId;
+	static const std::string k_availableLanguageListPropertyId;
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;

@@ -245,6 +245,11 @@ export class MikanClient {
     return this;
   }
 
+  public offPropertyUpdate(listener: (event: MikanPropertyUpdateEvent) => void): this {
+    this.eventManager.offPropertyUpdate(listener);
+    return this;
+  }
+
   public onAppStageChanged(listener: (event: import('./types/MikanRemoteControlEvents.js').MikanAppStageChangedEvent) => void): this {
     this.eventManager.onAppStageChanged(listener);
     return this;

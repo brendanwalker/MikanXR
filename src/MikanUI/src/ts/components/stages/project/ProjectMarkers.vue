@@ -123,13 +123,10 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useComponentStore } from '../../../stores/componentStore.js'
 import { useMikanStore } from '../../../stores/mikanStore.js'
 import ComponentCard from '../../shared/ComponentCard.vue'
-import { MikanClient, MikanAPIResult, MikanMarkerComponentValues, GetArucoMarkerImageRequest, ArucoMarkerImageResponse, SystemGetValuesRequest, SystemGetValuesResponse, MikanMarkerSystemValues, MikanMarkerDictionaryType, PropertySetValueRequest } from '@mikanxr/client'
+import { MikanClient, MikanAPIResult, MikanMarkerComponentValues, GetArucoMarkerImageRequest, ArucoMarkerImageResponse, MikanMarkerSystemValues, MikanMarkerDictionaryType, PropertySetValueRequest } from '@mikanxr/client'
 import { usePropertyEditor } from '../../../composables/usePropertyEditor.js'
 
 const { createVariantFromValue } = usePropertyEditor()
-
-// Marker system values state
-const markerSystemValues = ref<MikanMarkerSystemValues | null>(null)
 
 const ARUCO_DICT_MAX_ID: Record<number, number> = {
   [MikanMarkerDictionaryType.DICT_4x4]: 19,
@@ -152,28 +149,6 @@ const dictionaryTypeOptions = [
   { value: MikanMarkerDictionaryType.DICT_6x6, label: '6x6' },
   { value: MikanMarkerDictionaryType.DICT_7x7, label: '7x7' },
 ]
-
-async function fetchMarkerSystemValues() {
-  const client = mikanStore.client as MikanClient | null
-  if (!client) return
-
-  try {
-    const request = new SystemGetValuesRequest()
-    request.ownerSystem = 'MarkerObjectSystem'
-
-    const future = client.sendRequest(request)
-    const response = await future.await() as SystemGetValuesResponse
-
-    if (response.resultCode === 0) {
-      console.log('[ProjectMarkers] Fetched marker system values: ', response.valuesObject.instance)
-      markerSystemValues.value = response.valuesObject.instance as MikanMarkerSystemValues
-    } else {
-      console.error('[ProjectMarkers] Failed to fetch marker system values: error code', response.resultCode)
-    }
-  } catch (error) {
-    console.error('[ProjectMarkers] Failed to fetch marker system values:', error)
-  }
-}
 
 async function setSystemProperty(fieldName: string, value: any) {
   const client = mikanStore.client as MikanClient | null
@@ -227,6 +202,8 @@ async function fetchMarkerImage(arucoId: number) {
 
 const componentStore = useComponentStore()
 const mikanStore = useMikanStore()
+
+const markerSystemValues = computed(() => componentStore.getMarkerSystemValues() as MikanMarkerSystemValues | null)
 
 // Selection state
 const selectedMarkerId = ref<number>(-1)
@@ -305,7 +282,7 @@ function restoreSelectionState() {
 }
 
 // Initialize on mount
-onMounted(async () => {
+onMounted(() => {
   restoreSelectionState()
   // Apply auto-select in case the store is already populated
   const components = markerComponents.value
@@ -314,7 +291,6 @@ onMounted(async () => {
   } else if (selectedMarkerId.value === -1 || !components.some(c => c.component_id === selectedMarkerId.value)) {
     selectedMarkerId.value = components[components.length - 1].component_id
   }
-  await fetchMarkerSystemValues()
 })
 </script>
 

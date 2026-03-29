@@ -12,8 +12,6 @@
 #include "StringUtils.h"
 
 // -- AnchorObjectSystemDefinition -----
-const std::string AnchorObjectSystemDefinition::k_renderAnchorsPropertyId = "render_anchors";
-
 AnchorObjectSystemDefinition::AnchorObjectSystemDefinition(
 	const std::string& configName,
 	IEntityIDAllocatorPtr idAllocator)
@@ -25,25 +23,12 @@ configuru::Config AnchorObjectSystemDefinition::writeToJSON()
 {
 	configuru::Config pt = Super::writeToJSON();
 
-	pt["debugRenderAnchors"] = m_bDebugRenderAnchors;
-
 	return pt;
 }
 
 void AnchorObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 {
 	Super::readFromJSON(pt);
-
-	m_bDebugRenderAnchors = pt.get_or<bool>("debugRenderAnchors", m_bDebugRenderAnchors);
-}
-
-void AnchorObjectSystemDefinition::setRenderAnchorsFlag(bool flag)
-{
-	if (m_bDebugRenderAnchors != flag)
-	{
-		m_bDebugRenderAnchors = flag;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderAnchorsPropertyId));
-	}
 }
 
 // -- AnchorObjectSystem -----
@@ -86,32 +71,14 @@ void AnchorObjectSystem::additionalComponentFactory(
 void AnchorObjectSystem::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	MikanObjectSystem::getPropertyDescriptors(outDescriptors);
-
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			AnchorObjectSystemDefinition::k_renderAnchorsPropertyId, MikanVariantType::BOOL));
 }
 
 bool AnchorObjectSystem::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
-	if (propertyName == AnchorObjectSystemDefinition::k_renderAnchorsPropertyId)
-	{
-		AnchorObjectSystemDefinitionConstPtr definition = getTypedDefinitionConst();
-		outValue = definition->getRenderAnchorsFlag();
-		return true;
-	}
-
 	return MikanObjectSystem::getPropertyValue(propertyName, outValue);
 }
 
 bool AnchorObjectSystem::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
-	if (propertyName == AnchorObjectSystemDefinition::k_renderAnchorsPropertyId)
-	{
-		AnchorObjectSystemDefinitionPtr definition = getTypedDefinition();
-		definition->setRenderAnchorsFlag(inValue.getBoolValue());
-		return true;
-	}
-
 	return MikanObjectSystem::setPropertyValue(propertyName, inValue);
 }

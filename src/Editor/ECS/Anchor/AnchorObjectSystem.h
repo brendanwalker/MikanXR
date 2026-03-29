@@ -27,13 +27,6 @@ public:
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
-
-	static const std::string k_renderAnchorsPropertyId;
-	inline bool getRenderAnchorsFlag() const { return m_bDebugRenderAnchors; }
-	void setRenderAnchorsFlag(bool flag);
-
-protected:
-	bool m_bDebugRenderAnchors = true;
 };
 
 class AnchorObjectSystem :

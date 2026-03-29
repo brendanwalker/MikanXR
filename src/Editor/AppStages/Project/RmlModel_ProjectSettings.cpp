@@ -1,9 +1,6 @@
 #include "RmlModel_ProjectSettings.h"
-#include "AnchorObjectSystem.h"
+#include "EditorObjectSystem.h"
 #include "LocalizationManager.h"
-#include "QuadStencilSystem.h"
-#include "BoxStencilSystem.h"
-#include "ModelStencilSystem.h"
 #include "StencilUtils.h"
 #include "ProjectConfig.h"
 #include "Project/AppStage_Project.h"
@@ -16,19 +13,15 @@
 
 bool RmlModel_ProjectSettings::init(ProjectRmlModelContext* context)
 {
-	auto* localizationManager = LocalizationManager::getInstance();
-	m_selectedLangugeId = localizationManager->getLanguage();
-	m_languageIdList = localizationManager->getSupportedLanguages();
-
 	AppStage_Project* ownerAppStage = context->getOwnerAppStage();
 	Rml::Context* rmlContext = ownerAppStage->getRmlContext();
 
 	m_projectRmlModelContext = context;
 	m_project = ownerAppStage->getProjectConfig();
-	m_anchorSystem = ownerAppStage->getObjectSystemOfType<AnchorObjectSystem>();
-	m_quadStencilSystem = ownerAppStage->getObjectSystemOfType<QuadStencilSystem>();
-	m_boxStencilSystem = ownerAppStage->getObjectSystemOfType<BoxStencilSystem>();
-	m_modelStencilSystem = ownerAppStage->getObjectSystemOfType<ModelStencilSystem>();
+	m_editorSystem = ownerAppStage->getObjectSystemOfType<EditorObjectSystem>();
+	m_localizationManager = ownerAppStage->getOwnerWindow()->getLocalizationManager();
+	m_selectedLangugeId = m_localizationManager->getLanguage();
+	m_languageIdList = m_localizationManager->getSupportedLanguages();
 
 	// Create Datamodel
 	Rml::DataModelConstructor constructor = RmlModel::init(rmlContext, "Settings");
@@ -38,62 +31,59 @@ bool RmlModel_ProjectSettings::init(ProjectRmlModelContext* context)
 	constructor.BindFunc(
 		"render_origin",
 		[this](Rml::Variant& variant) {
-			bool value = m_project.lock()->getRenderOriginFlag();
+			bool value = m_editorSystem.lock()->getEditorSystemConfigConst()->getRenderOriginFlag();
 			variant = Rml::Variant(value);
 		},
 		[this](const Rml::Variant& variant) {
 			bool value = variant.Get<bool>();
-			m_project.lock()->setRenderOriginFlag(value);
+			m_editorSystem.lock()->getEditorSystemConfig()->setRenderOriginFlag(value);
 		});
 
 	constructor.BindFunc(
 		"render_anchors",
 		[this](Rml::Variant& variant) {
-			bool value = m_anchorSystem.lock()->getTypedDefinition()->getRenderAnchorsFlag();
+			bool value = m_editorSystem.lock()->getEditorSystemConfigConst()->getRenderAnchorsFlag();
 			variant = Rml::Variant(value);
 		},
 		[this](const Rml::Variant& variant) {
 			bool value = variant.Get<bool>();
-			m_anchorSystem.lock()->getTypedDefinition()->setRenderAnchorsFlag(value);
+			m_editorSystem.lock()->getEditorSystemConfig()->setRenderAnchorsFlag(value);
 		});
 
 	constructor.BindFunc(
 		"render_quad_stencils",
 		[this](Rml::Variant& variant) {
 			// Get the flag from any stencil system (they should all be in sync)
-			QuadStencilSystemPtr quadStencilSystem = m_quadStencilSystem.lock();
-			bool value= quadStencilSystem->getTypedDefinitionConst()->getRenderStencilsFlag();
+			bool value= m_editorSystem.lock()->getEditorSystemConfigConst()->getRenderQuadStencilsFlag();
 			variant = Rml::Variant(value);
 		},
 		[this](const Rml::Variant& variant) {
 			bool value = variant.Get<bool>();
-			m_quadStencilSystem.lock()->getTypedDefinition()->setRenderStencilsFlag(value);
+			m_editorSystem.lock()->getEditorSystemConfig()->setRenderQuadStencilsFlag(value);
 		});
 
 	constructor.BindFunc(
 		"render_box_stencils",
 		[this](Rml::Variant& variant) {
 			// Get the flag from any stencil system (they should all be in sync)
-			BoxStencilSystemPtr boxStencilSystem = m_boxStencilSystem.lock();
-			bool value = boxStencilSystem->getTypedDefinitionConst()->getRenderStencilsFlag();
+			bool value= m_editorSystem.lock()->getEditorSystemConfigConst()->getRenderBoxStencilsFlag();
 			variant = Rml::Variant(value);
 		},
 		[this](const Rml::Variant& variant) {
 			bool value = variant.Get<bool>();
-			m_boxStencilSystem.lock()->getTypedDefinition()->setRenderStencilsFlag(value);
+			m_editorSystem.lock()->getEditorSystemConfig()->setRenderBoxStencilsFlag(value);
 		});
 
 	constructor.BindFunc(
 		"render_model_stencils",
 		[this](Rml::Variant& variant) {
 			// Get the flag from any stencil system (they should all be in sync)
-			ModelStencilSystemPtr modelStencilSystem = m_modelStencilSystem.lock();
-			bool value = modelStencilSystem->getTypedDefinitionConst()->getRenderStencilsFlag();
+			bool value= m_editorSystem.lock()->getEditorSystemConfigConst()->getRenderModelStencilsFlag();
 			variant = Rml::Variant(value);
 		},
 		[this](const Rml::Variant& variant) {
 			bool value = variant.Get<bool>();
-			m_modelStencilSystem.lock()->getTypedDefinition()->setRenderStencilsFlag(value);
+			m_editorSystem.lock()->getEditorSystemConfig()->setRenderModelStencilsFlag(value);
 		});
 
 
@@ -103,7 +93,7 @@ bool RmlModel_ProjectSettings::init(ProjectRmlModelContext* context)
 		"select_language_entry",
 		[this](Rml::DataModelHandle model, Rml::Event& ev, const Rml::VariantList& arguments) {
 			const std::string newLanguage = ev.GetParameter<std::string>("value", "");
-			LocalizationManager::getInstance()->setLanguage(newLanguage);
+			m_localizationManager->setLanguage(newLanguage);
 		});
 
 	m_modelHandle.DirtyAllVariables();

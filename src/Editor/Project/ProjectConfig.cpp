@@ -27,7 +27,6 @@
 // -- Profile Config
 const int ProjectConfig::k_transientIdStart = 0;
 const int ProjectConfig::k_transientIdMaxRange = 1000;
-const std::string ProjectConfig::k_renderOriginFlagPropertyId= "renderOrigin";
 const std::string ProjectConfig::k_componentIdAllocatorPropertyId = "persistentIDAllocator";
 
 ProjectConfig::ProjectConfig(const std::string& fnamebase)
@@ -67,9 +66,6 @@ configuru::Config ProjectConfig::writeToJSON()
 {
 	configuru::Config pt= CommonConfig::writeToJSON();
 
-	// Write out global settings flags
-	pt[k_renderOriginFlagPropertyId]= m_bRenderOrigin;
-
 	// Write out the shared component ID allocator
 	pt[k_componentIdAllocatorPropertyId] = persistentIDAllocator->writeToJSON();
 
@@ -88,9 +84,6 @@ configuru::Config ProjectConfig::writeToJSON()
 void ProjectConfig::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
-
-	// Read in global settings flags
-	m_bRenderOrigin = pt.get_or<bool>(k_renderOriginFlagPropertyId, m_bRenderOrigin);
 
 	// Read the shared component ID allocator config
 	if (pt.has_key(k_componentIdAllocatorPropertyId))
@@ -116,15 +109,6 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 
 	// Mark the component ID allocator as safe to allocate 
 	persistentIDAllocator->markSafeToAllocate();
-}
-
-void ProjectConfig::setRenderOriginFlag(bool flag)
-{
-	if (m_bRenderOrigin != flag)
-	{
-		m_bRenderOrigin = flag;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderOriginFlagPropertyId));
-	}
 }
 
 MikanObjectSystemDefinitionPtr ProjectConfig::getDefinitionForSystem(MikanObjectSystemPtr systemPtr) const

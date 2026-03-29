@@ -10,8 +10,6 @@
 #include <assert.h>
 
 // -- ModelStencilSystemDefinition -----
-const std::string ModelStencilSystemDefinition::k_renderStencilsPropertyId = "render_stencils";
-
 ModelStencilSystemDefinition::ModelStencilSystemDefinition(
 	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
 	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
@@ -22,25 +20,12 @@ configuru::Config ModelStencilSystemDefinition::writeToJSON()
 {
 	configuru::Config pt = Super::writeToJSON();
 
-	pt["debug_render_stencils"] = m_bDebugRenderStencils;
-
 	return pt;
 }
 
 void ModelStencilSystemDefinition::readFromJSON(const configuru::Config& pt)
 {
 	Super::readFromJSON(pt);
-
-	m_bDebugRenderStencils = pt.get_or<bool>("debug_render_stencils", m_bDebugRenderStencils);
-}
-
-void ModelStencilSystemDefinition::setRenderStencilsFlag(bool flag)
-{
-	if (m_bDebugRenderStencils != flag)
-	{
-		m_bDebugRenderStencils = flag;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderStencilsPropertyId));
-	}
 }
 
 // -- ModelStencilSystem ----
@@ -139,32 +124,14 @@ bool ModelStencilSystem::isStencilFacingCamera(
 void ModelStencilSystem::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	MikanObjectSystem::getPropertyDescriptors(outDescriptors);
-
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
-			ModelStencilSystemDefinition::k_renderStencilsPropertyId, MikanVariantType::BOOL));
 }
 
 bool ModelStencilSystem::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
-	if (propertyName == ModelStencilSystemDefinition::k_renderStencilsPropertyId)
-	{
-		ModelStencilSystemDefinitionConstPtr definition = getTypedDefinitionConst();
-		outValue = definition->getRenderStencilsFlag();
-		return true;
-	}
-
 	return MikanObjectSystem::getPropertyValue(propertyName, outValue);
 }
 
 bool ModelStencilSystem::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
-	if (propertyName == ModelStencilSystemDefinition::k_renderStencilsPropertyId)
-	{
-		ModelStencilSystemDefinitionPtr definition = getTypedDefinition();
-		definition->setRenderStencilsFlag(inValue.getBoolValue());
-		return true;
-	}
-
 	return MikanObjectSystem::setPropertyValue(propertyName, inValue);
 }

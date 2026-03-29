@@ -675,7 +675,9 @@ int RmlManager::TranslateString(Rml::String& translated, const Rml::String& inpu
 	{
 		bool bHasString = false;
 		const std::string& contextName = appStage->getAppStageName();
-		const char* result = locTextUTF8(contextName.c_str(), input.c_str(), &bHasString);
+		const char* result = 
+			m_ownerWindow->getLocalizationManager()->fetchUTF8Text(
+				contextName.c_str(), input.c_str(), &bHasString);
 
 		if (bHasString)
 		{

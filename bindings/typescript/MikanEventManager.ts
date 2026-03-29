@@ -107,6 +107,10 @@ export class MikanEventManager extends EventEmitter {
     return this.on('MikanPropertyUpdateEvent', listener);
   }
 
+  public offPropertyUpdate(listener: (event: MikanPropertyUpdateEvent) => void): this {
+    return this.off('MikanPropertyUpdateEvent', listener);
+  }
+
   public onAppStageChanged(listener: (event: MikanAppStageChangedEvent) => void): this {
     return this.on('MikanAppStageChangedEvent', listener);
   }

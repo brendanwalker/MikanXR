@@ -21,7 +21,6 @@ namespace MikanXR
 
 	public class MikanBoxStencilSystemValues : MikanSystemValues
 	{
-		public bool render_stencils;
 	};
 
 	public class MikanModelStencilComponentValues : MikanStencilComponentValues
@@ -31,7 +30,6 @@ namespace MikanXR
 
 	public class MikanModelStencilSystemValues : MikanSystemValues
 	{
-		public bool render_stencils;
 	};
 
 	public class MikanQuadStencilComponentValues : MikanStencilComponentValues
@@ -43,7 +41,6 @@ namespace MikanXR
 
 	public class MikanQuadStencilSystemValues : MikanSystemValues
 	{
-		public bool render_stencils;
 	};
 
 	public class MikanStencilComponentValues : MikanTransformComponentValues

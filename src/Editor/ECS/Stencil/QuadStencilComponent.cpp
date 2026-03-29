@@ -6,6 +6,7 @@
 #include "TransformComponent.h"
 #include "BoxColliderComponent.h"
 #include "MathGLM.h"
+#include "EditorObjectSystem.h"
 #include "MathTypeConversion.h"
 #include "MikanObject.h"
 #include "MikanStencilTypes.h"
@@ -136,10 +137,10 @@ void QuadStencilComponent::init()
 void QuadStencilComponent::customRender()
 {
 	QuadStencilDefinitionPtr quadDefinition= getQuadStencilDefinition();
-	QuadStencilSystemPtr quadStencilSystem = getObjectSystemOfType<QuadStencilSystem>();
+	auto editorObjectSystem = getObjectSystemOfType<EditorObjectSystem>();
 
 	if (!quadDefinition->getIsDisabled() &&
-		quadStencilSystem && quadStencilSystem->getTypedDefinitionConst()->getRenderStencilsFlag())
+		editorObjectSystem->getEditorSystemConfigConst()->getRenderQuadStencilsFlag())
 	{
 		TextStyle style = getDefaultTextStyle();
 

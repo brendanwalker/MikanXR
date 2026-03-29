@@ -36,6 +36,12 @@ import {
   PolymorphicObject,
   SystemCreateObjectRequest,
   SystemDestroyObjectRequest,
+  MikanSystemValues,
+  MikanEditorSystemValues,
+  MikanMarkerSystemValues,
+  MikanUSBVideoSourceSystemValues,
+  SystemGetValuesRequest,
+  SystemGetValuesResponse,
 } from '@mikanxr/client'
 
 // Component registry mapping system names to component class names
@@ -59,6 +65,19 @@ const COMPONENT_SYSTEMS = [
   { ownerSystem: 'ClientTextureSourceSystem', componentClassName: 'ClientTextureSourceComponent' }
 ]
 
+// Registry of systems that have system-level values fetchable via SystemGetValuesRequest
+const SYSTEM_VALUE_SYSTEMS = [
+  'AnchorObjectSystem',
+  'EditorObjectSystem',
+  'MarkerObjectSystem',
+  'SceneObjectSystem',
+  'QuadStencilSystem',
+  'BoxStencilSystem',
+  'ModelStencilSystem',
+  'VRObjectSystem',
+  'USBVideoSourceSystem',
+]
+
 // Helper to create a unique key for each component (system:id)
 function makeComponentKey(systemName: string, componentId: number): string {
   return `${systemName}:${componentId}`
@@ -76,6 +95,9 @@ export const useComponentStore = defineStore('components', () => {
 
   // Function database - maps component key (system:id) to list of function descriptors
   const componentFunctions = ref<Map<string, MikanFunctionDescriptor[]>>(new Map())
+
+  // System values database - maps ownerSystem name to its system values object
+  const systemValues = ref<Map<string, MikanSystemValues>>(new Map())
 
   // Computed getters
   const allComponents = computed(() => Array.from(components.value.values()))
@@ -174,6 +196,22 @@ export const useComponentStore = defineStore('components', () => {
     return getComponent(componentId, 'ClientTextureSourceSystem') as MikanClientTextureSourceValues | undefined
   }
 
+  function getSystemValues(ownerSystem: string): MikanSystemValues | undefined {
+    return systemValues.value.get(ownerSystem)
+  }
+
+  function getEditorSystemValues(): MikanEditorSystemValues | undefined {
+    return systemValues.value.get('EditorObjectSystem') as MikanEditorSystemValues | undefined
+  }
+
+  function getMarkerSystemValues(): MikanMarkerSystemValues | undefined {
+    return systemValues.value.get('MarkerObjectSystem') as MikanMarkerSystemValues | undefined
+  }
+
+  function getUSBVideoSourceSystemValues(): MikanUSBVideoSourceSystemValues | undefined {
+    return systemValues.value.get('USBVideoSourceSystem') as MikanUSBVideoSourceSystemValues | undefined
+  }
+
   function addComponent(
     componentId: number,
     component: MikanComponentValues,
@@ -232,6 +270,7 @@ export const useComponentStore = defineStore('components', () => {
     componentsBySystem.value.clear()
     componentsByClass.value.clear()
     componentFunctions.value.clear()
+    systemValues.value.clear()
   }
 
   // Fetch components from server
@@ -343,43 +382,82 @@ export const useComponentStore = defineStore('components', () => {
 
     const fetchedCount = components.value.size - initialCount
     console.log(`[ComponentStore] Component database populated with ${fetchedCount} new components (${components.value.size} total)`)
+
+    await fetchAllSystemValues(client)
+  }
+
+  async function fetchSystemValues(client: MikanClient, ownerSystem: string): Promise<void> {
+    try {
+      const request = new SystemGetValuesRequest()
+      request.ownerSystem = ownerSystem
+
+      const future = client.sendRequest(request)
+      const response = await future.await() as SystemGetValuesResponse
+
+      if (response.resultCode === MikanAPIResult.Success) {
+        const values = response.valuesObject.instance as MikanSystemValues
+        systemValues.value.set(ownerSystem, values)
+        console.log(`[ComponentStore] Fetched system values for ${ownerSystem}`)
+      } else if (response.resultCode === MikanAPIResult.Uninitialized) {
+        console.log(`[ComponentStore] System values for ${ownerSystem} not available (skipped)`)
+      } else {
+        console.warn(`[ComponentStore] Failed to fetch system values for ${ownerSystem}: ${response.resultCode}`)
+      }
+    } catch (error) {
+      console.error(`[ComponentStore] Error fetching system values for ${ownerSystem}:`, error)
+    }
+  }
+
+  async function fetchAllSystemValues(client: MikanClient): Promise<void> {
+    console.log('[ComponentStore] Fetching all system values...')
+    for (const ownerSystem of SYSTEM_VALUE_SYSTEMS) {
+      await fetchSystemValues(client, ownerSystem)
+    }
   }
 
   // Handle system-level property updates (componentId === -1)
   // e.g. MarkerComponentIdList changing when a marker is added/removed
   async function handleSystemPropertyUpdate(
     client: MikanClient,
+    ownerSystem: string,
     fieldName: string,
     fieldValue: MikanVariant
   ): Promise<void> {
+    // Handle ComponentIdList fields - sync the component list
     const entry = COMPONENT_SYSTEMS.find(s => fieldName === `${s.componentClassName}IdList`)
-    if (!entry) return
+    if (entry) {
+      const newIds: number[] = extractVariantValue(fieldValue) || []
+      if (!Array.isArray(newIds)) {
+        console.warn(`[ComponentStore] Expected array for ${fieldName}, got:`, newIds)
+        return
+      }
+      const newIdSet = new Set(newIds)
 
-    const newIds: number[] = extractVariantValue(fieldValue) || []
-    if (!Array.isArray(newIds)) {
-      console.warn(`[ComponentStore] Expected array for ${fieldName}, got:`, newIds)
+      const existingComponents = getComponentsBySystem.value(entry.ownerSystem)
+      const existingIdSet = new Set(existingComponents.map(c => (c as any).component_id as number))
+
+      for (const existingId of existingIdSet) {
+        if (!newIdSet.has(existingId)) {
+          console.log(`[ComponentStore] Removing stale ${entry.componentClassName} ${existingId}`)
+          removeComponent(existingId, entry.ownerSystem)
+        }
+      }
+
+      for (const newId of newIds) {
+        if (!existingIdSet.has(newId)) {
+          console.log(`[ComponentStore] Fetching new ${entry.componentClassName} ${newId}`)
+          await fetchComponentValues(client, entry.ownerSystem, newId, entry.componentClassName)
+        }
+      }
       return
     }
-    const newIdSet = new Set(newIds)
 
-    // Determine which IDs currently exist for this system
-    const existingComponents = getComponentsBySystem.value(entry.ownerSystem)
-    const existingIdSet = new Set(existingComponents.map(c => (c as any).component_id as number))
-
-    // Remove stale components (present locally but not in server list)
-    for (const existingId of existingIdSet) {
-      if (!newIdSet.has(existingId)) {
-        console.log(`[ComponentStore] Removing stale ${entry.componentClassName} ${existingId}`)
-        removeComponent(existingId, entry.ownerSystem)
-      }
-    }
-
-    // Fetch values for new components (in server list but not locally)
-    for (const newId of newIds) {
-      if (!existingIdSet.has(newId)) {
-        console.log(`[ComponentStore] Fetching new ${entry.componentClassName} ${newId}`)
-        await fetchComponentValues(client, entry.ownerSystem, newId, entry.componentClassName)
-      }
+    // Handle system values property updates - patch the field in the stored system values
+    const storedValues = systemValues.value.get(ownerSystem)
+    if (storedValues) {
+      const actualValue = extractVariantValue(fieldValue)
+      ;(storedValues as any)[fieldName] = actualValue
+      console.log(`[ComponentStore] System ${ownerSystem} property update: ${fieldName} = ${JSON.stringify(actualValue)}`)
     }
   }
 
@@ -392,7 +470,7 @@ export const useComponentStore = defineStore('components', () => {
     // System-level property updates have componentId === -1
     if (componentId === MikanConstants.InvalidMikanID) {
       if (client) {
-        handleSystemPropertyUpdate(client, propertyValue.fieldName, propertyValue.fieldValue)
+        handleSystemPropertyUpdate(client, ownerSystem, propertyValue.fieldName, propertyValue.fieldValue)
           .catch(err => console.error('[ComponentStore] Error handling system property update:', err))
       }
       return
@@ -640,6 +718,15 @@ export const useComponentStore = defineStore('components', () => {
     fetchComponentValues,
     fetchAllComponents,
     handlePropertyUpdate,
+
+    // System values
+    systemValues,
+    fetchSystemValues,
+    fetchAllSystemValues,
+    getSystemValues,
+    getEditorSystemValues,
+    getMarkerSystemValues,
+    getUSBVideoSourceSystemValues,
 
     // Typed component getters
     getAnchorComponent,

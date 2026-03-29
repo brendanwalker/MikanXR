@@ -2,6 +2,7 @@
 #include "AnchorObjectSystem.h"
 #include "AnchorTriangulation/AppStage_AnchorTriangulation.h"
 #include "CameraObjectSystem.h"
+#include "EditorObjectSystem.h"
 #include "ModalSelectCamera/ModalDialog_SelectCamera.h"
 #include "App.h"
 #include "Colors.h"
@@ -72,9 +73,8 @@ void AnchorComponent::init()
 
 void AnchorComponent::customRender()
 {	
-	auto anchorObjectSystem= getObjectSystemOfType<AnchorObjectSystem>();
-	const auto anchorSystemConfig= anchorObjectSystem->getTypedDefinitionConst();
-	if (!anchorSystemConfig->getRenderAnchorsFlag())
+	auto editorObjectSystem= getObjectSystemOfType<EditorObjectSystem>();
+	if (!editorObjectSystem->getEditorSettings().bDebugRenderAnchors)
 		return;
 
 	TextStyle style = getDefaultTextStyle();

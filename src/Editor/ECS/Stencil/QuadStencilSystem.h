@@ -23,12 +23,7 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	static const std::string k_renderStencilsPropertyId;
-	inline bool getRenderStencilsFlag() const { return m_bDebugRenderStencils; }
-	void setRenderStencilsFlag(bool flag);
-
 protected:
-	bool m_bDebugRenderStencils = true;
 };
 
 class QuadStencilSystem :

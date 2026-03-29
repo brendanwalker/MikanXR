@@ -11,10 +11,8 @@ export class MikanAnchorComponentValues extends MikanTransformComponentValues {
 }
 
 export class MikanAnchorSystemValues extends MikanSystemValues {
-  render_anchors: boolean = false;
 
   static __serializationMetadata: SerializationField[] = [
-    { name: 'render_anchors', type: 'boolean' }
   ];
 }
 

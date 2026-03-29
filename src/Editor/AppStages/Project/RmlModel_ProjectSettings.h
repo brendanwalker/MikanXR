@@ -16,10 +16,8 @@ public:
 private:
 	class ProjectRmlModelContext* m_projectRmlModelContext = nullptr;
 	ProjectConfigWeakPtr m_project;
-	AnchorObjectSystemWeakPtr m_anchorSystem;
-	QuadStencilSystemWeakPtr m_quadStencilSystem;
-	BoxStencilSystemWeakPtr m_boxStencilSystem;
-	ModelStencilSystemWeakPtr m_modelStencilSystem;
+	EditorObjectSystemWeakPtr m_editorSystem;
+	class LocalizationManager* m_localizationManager = nullptr;
 	std::vector<std::string> m_languageIdList;
 	std::string m_selectedLangugeId;
 };

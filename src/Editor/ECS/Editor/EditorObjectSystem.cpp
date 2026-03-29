@@ -16,6 +16,7 @@
 #include "ProjectManager.h"
 #include "MathUtility.h"
 #include "MikanObject.h"
+#include "MikanEditorTypes.h"
 #include "SceneObjectSystem.h"
 #include "SceneComponent.h"
 #include "ProjectConfig.h"
@@ -34,15 +35,23 @@
 #endif
 
 // -- AnchorObjectSystemConfig -----
-const std::string EditorObjectSystemDefinition::k_cameraSpeedPropertyId= "cameraSpeed";
-const std::string EditorObjectSystemDefinition::k_currentSceneNamePropertyId= "currentSceneName";
+const std::string EditorObjectSystemDefinition::k_renderOriginFlagPropertyId = "render_origin";
+const std::string EditorObjectSystemDefinition::k_renderAnchorsPropertyId = "render_anchors";
+const std::string EditorObjectSystemDefinition::k_renderQuadStencilsPropertyId = "render_quad_stencils";
+const std::string EditorObjectSystemDefinition::k_renderBoxStencilsPropertyId = "render_box_stencils";
+const std::string EditorObjectSystemDefinition::k_renderModelStencilsPropertyId = "render_model_stencils";
+const std::string EditorObjectSystemDefinition::k_cameraSpeedPropertyId= "camera_speed";
 
 configuru::Config EditorObjectSystemDefinition::writeToJSON()
 {
 	configuru::Config pt = MikanObjectSystemDefinition::writeToJSON();
 
-	pt["cameraSpeed"] = cameraSpeed;
-	pt["currentSceneName"]= currentSceneName;
+	pt[k_renderOriginFlagPropertyId] = m_editorSettings.bRenderOrigin;
+	pt[k_renderAnchorsPropertyId] = m_editorSettings.bDebugRenderAnchors;
+	pt[k_renderQuadStencilsPropertyId] = m_editorSettings.bDebugRenderQuadStencils;
+	pt[k_renderBoxStencilsPropertyId] = m_editorSettings.bDebugRenderBoxStencils;
+	pt[k_renderModelStencilsPropertyId] = m_editorSettings.bDebugRenderModelStencils;
+	pt[k_cameraSpeedPropertyId] = m_editorSettings.cameraSpeed;
 
 	return pt;
 }
@@ -51,25 +60,65 @@ void EditorObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 {
 	MikanObjectSystemDefinition::readFromJSON(pt);
 
-	cameraSpeed = pt.get_or<float>("cameraSpeed", cameraSpeed);
-	currentSceneName = pt.get_or<std::string>("currentSceneName", currentSceneName);
+	m_editorSettings.bRenderOrigin = pt.get_or<bool>(k_renderOriginFlagPropertyId, m_editorSettings.bRenderOrigin);
+	m_editorSettings.bDebugRenderAnchors = pt.get_or<bool>(k_renderAnchorsPropertyId, m_editorSettings.bDebugRenderAnchors);
+	m_editorSettings.bDebugRenderQuadStencils = pt.get_or<bool>(k_renderQuadStencilsPropertyId, m_editorSettings.bDebugRenderQuadStencils);
+	m_editorSettings.bDebugRenderBoxStencils = pt.get_or<bool>(k_renderBoxStencilsPropertyId, m_editorSettings.bDebugRenderBoxStencils);
+	m_editorSettings.bDebugRenderModelStencils = pt.get_or<bool>(k_renderModelStencilsPropertyId, m_editorSettings.bDebugRenderModelStencils);
+	m_editorSettings.cameraSpeed = pt.get_or<float>(k_cameraSpeedPropertyId, m_editorSettings.cameraSpeed);
+}
+
+void EditorObjectSystemDefinition::setRenderOriginFlag(bool flag)
+{
+	if (m_editorSettings.bRenderOrigin != flag)
+	{
+		m_editorSettings.bRenderOrigin = flag;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderOriginFlagPropertyId));
+	}
+}
+
+void EditorObjectSystemDefinition::setRenderAnchorsFlag(bool flag)
+{
+	if (m_editorSettings.bDebugRenderAnchors != flag)
+	{
+		m_editorSettings.bDebugRenderAnchors = flag;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderAnchorsPropertyId));
+	}
+}
+
+void EditorObjectSystemDefinition::setRenderQuadStencilsFlag(bool flag)
+{
+	if (m_editorSettings.bDebugRenderQuadStencils != flag)
+	{
+		m_editorSettings.bDebugRenderQuadStencils = flag;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderQuadStencilsPropertyId));
+	}
+}
+
+void EditorObjectSystemDefinition::setRenderBoxStencilsFlag(bool flag)
+{
+	if (m_editorSettings.bDebugRenderBoxStencils != flag)
+	{
+		m_editorSettings.bDebugRenderBoxStencils = flag;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderBoxStencilsPropertyId));
+	}
+}
+
+void EditorObjectSystemDefinition::setRenderModelStencilsFlag(bool flag)
+{
+	if (m_editorSettings.bDebugRenderModelStencils != flag)
+	{
+		m_editorSettings.bDebugRenderModelStencils = flag;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderModelStencilsPropertyId));
+	}
 }
 
 void EditorObjectSystemDefinition::setCameraSpeed(float speed)
 {
-	if (cameraSpeed != speed)
+	if (m_editorSettings.cameraSpeed != speed)
 	{
-		cameraSpeed = speed;
+		m_editorSettings.cameraSpeed = speed;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_cameraSpeedPropertyId));
-	}
-}
-
-void EditorObjectSystemDefinition::setCurrentSceneName(const std::string& sceneName)
-{
-	if (currentSceneName != sceneName)
-	{
-		currentSceneName = sceneName;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_currentSceneNamePropertyId));
 	}
 }
 
@@ -530,22 +579,93 @@ void EditorObjectSystem::registerFunctionDescriptors(MikanFunctionDatabasePtr fu
 	functionDatabase->registerFunctionsForSystem<EditorObjectSystem>();
 }
 
+// -- IEntityAccessor ----
+rfk::Struct const* EditorObjectSystem::getClientAPIValuesStructType() const
+{
+	return &MikanEditorSystemValues::staticGetArchetype();
+}
+
 // -- IPropertyInterface ----
+const std::string EditorObjectSystem::k_selectedLanguagePropertyId= "selected_language";
+const std::string EditorObjectSystem::k_availableLanguageListPropertyId= "available_language_list";
+
 void EditorObjectSystem::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	MikanObjectSystem::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
+			EditorObjectSystemDefinition::k_renderOriginFlagPropertyId, MikanVariantType::BOOL));
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			EditorObjectSystemDefinition::k_renderAnchorsPropertyId, MikanVariantType::BOOL));
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			EditorObjectSystemDefinition::k_renderQuadStencilsPropertyId, MikanVariantType::BOOL));
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			EditorObjectSystemDefinition::k_renderBoxStencilsPropertyId, MikanVariantType::BOOL));
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			EditorObjectSystemDefinition::k_renderModelStencilsPropertyId, MikanVariantType::BOOL));
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
 			EditorObjectSystemDefinition::k_cameraSpeedPropertyId, MikanVariantType::FLOAT));
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			EditorObjectSystem::k_selectedLanguagePropertyId, MikanVariantType::STRING));
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			EditorObjectSystem::k_availableLanguageListPropertyId, MikanVariantType::STRING_ARRAY)
+		->setReadOnly());
 }
 
 bool EditorObjectSystem::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
-	if (propertyName == EditorObjectSystemDefinition::k_cameraSpeedPropertyId)
+	if (propertyName == EditorObjectSystemDefinition::k_renderOriginFlagPropertyId)
+	{
+		EditorObjectSystemDefinitionConstPtr definition = getEditorSystemConfigConst();
+		outValue = definition->getRenderOriginFlag();
+		return true;
+	}
+	else if (propertyName == EditorObjectSystemDefinition::k_renderAnchorsPropertyId)
+	{
+		EditorObjectSystemDefinitionConstPtr definition = getEditorSystemConfigConst();
+		outValue = definition->getRenderAnchorsFlag();
+		return true;
+	}
+	else if (propertyName == EditorObjectSystemDefinition::k_renderQuadStencilsPropertyId)
+	{
+		EditorObjectSystemDefinitionConstPtr definition = getEditorSystemConfigConst();
+		outValue = definition->getRenderQuadStencilsFlag();
+		return true;
+	}
+	else if (propertyName == EditorObjectSystemDefinition::k_renderBoxStencilsPropertyId)
+	{
+		EditorObjectSystemDefinitionConstPtr definition = getEditorSystemConfigConst();
+		outValue = definition->getRenderBoxStencilsFlag();
+		return true;
+	}
+	else if (propertyName == EditorObjectSystemDefinition::k_renderModelStencilsPropertyId)
+	{
+		EditorObjectSystemDefinitionConstPtr definition = getEditorSystemConfigConst();
+		outValue = definition->getRenderModelStencilsFlag();
+		return true;
+	}
+	else if (propertyName == EditorObjectSystemDefinition::k_cameraSpeedPropertyId)
 	{
 		EditorObjectSystemDefinitionConstPtr definition = getEditorSystemConfigConst();
 		outValue = definition->getCameraSpeed();
+		return true;
+	}
+	else if (propertyName == EditorObjectSystem::k_selectedLanguagePropertyId)
+	{
+		outValue = getOwnerWindow()->getLocalizationManager()->getLanguage();
+		return true;
+	}
+	else if (propertyName == EditorObjectSystem::k_availableLanguageListPropertyId)
+	{
+		outValue = getOwnerWindow()->getLocalizationManager()->getSupportedLanguages();
 		return true;
 	}
 
@@ -554,10 +674,45 @@ bool EditorObjectSystem::getPropertyValue(const std::string& propertyName, Mikan
 
 bool EditorObjectSystem::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
-	if (propertyName == EditorObjectSystemDefinition::k_cameraSpeedPropertyId)
+	if (propertyName == EditorObjectSystemDefinition::k_renderOriginFlagPropertyId)
+	{
+		EditorObjectSystemDefinitionPtr definition = getEditorSystemConfig();
+		definition->setRenderOriginFlag(inValue.getBoolValue());
+		return true;
+	}
+	else if (propertyName == EditorObjectSystemDefinition::k_renderAnchorsPropertyId)
+	{
+		EditorObjectSystemDefinitionPtr definition = getEditorSystemConfig();
+		definition->setRenderAnchorsFlag(inValue.getBoolValue());
+		return true;
+	}
+	else if (propertyName == EditorObjectSystemDefinition::k_renderQuadStencilsPropertyId)
+	{
+		EditorObjectSystemDefinitionPtr definition = getEditorSystemConfig();
+		definition->setRenderQuadStencilsFlag(inValue.getBoolValue());
+		return true;
+	}
+	else if (propertyName == EditorObjectSystemDefinition::k_renderBoxStencilsPropertyId)
+	{
+		EditorObjectSystemDefinitionPtr definition = getEditorSystemConfig();
+		definition->setRenderBoxStencilsFlag(inValue.getBoolValue());
+		return true;
+	}
+	else if (propertyName == EditorObjectSystemDefinition::k_renderModelStencilsPropertyId)
+	{
+		EditorObjectSystemDefinitionPtr definition = getEditorSystemConfig();
+		definition->setRenderModelStencilsFlag(inValue.getBoolValue());
+		return true;
+	}
+	else if (propertyName == EditorObjectSystemDefinition::k_cameraSpeedPropertyId)
 	{
 		EditorObjectSystemDefinitionPtr definition = getEditorSystemConfig();
 		definition->setCameraSpeed(inValue.getFloatValue());
+		return true;
+	}
+	else if (propertyName == EditorObjectSystem::k_selectedLanguagePropertyId)
+	{
+		getOwnerWindow()->getLocalizationManager()->setLanguage(inValue.getStringValue());
 		return true;
 	}
 
