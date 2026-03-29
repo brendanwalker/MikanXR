@@ -46,6 +46,7 @@ public:
 	virtual bool wantsSaveForPropertyChange(const ConfigPropertyChangeSet& changedPropertySet) const { return false; }
 
 private:
+	// These properties are set at VRDevice creation and are read-only after that
 	eTrackingRuntime m_trackingRuntime = eTrackingRuntime::INVALID;
 	size_t m_vrDeviceIndex= 0;
 	eVRDeviceType m_vrDeviceType = eVRDeviceType::INVALID;
@@ -73,16 +74,11 @@ public:
 
 	bool getDevicePose(const int vrFrameDelay, struct VRDevicePose& outPose) const;
 
-	void disposeSockets();
-	void rebuildSockets();
-	void getSocketNames(std::vector<std::string>& outSocketNames) const;
+	const std::vector<std::string>& getSocketNames() const { return m_socketNames; }
 	bool getSocketRelativePoseByName(const std::string& socketName, glm::mat4& outPose) const;
 	VRDevicePoseViewPtr makePoseView(
 		eVRDevicePoseSpace space,
 		const std::string& socketName= "") const;
-
-	void disposeMeshComponents();
-	void rebuildMeshComponents();
 
 	void refreshDevicePose();
 
@@ -90,6 +86,7 @@ public:
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
 
 	// -- IPropertyInterface ----
+	static const std::string k_socketNameListPropertyId;
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
 
@@ -102,6 +99,14 @@ protected:
 	void onInteractionSelected();
 	void onInteractionUnselected();
 
+	// Socket Component Management
+	void disposeSockets();
+	void rebuildSockets();
+
+	// Mesh Component Management
+	void disposeMeshComponents();
+	void rebuildMeshComponents();
+
 protected:
 	struct VRDeviceMeshInfo
 	{
@@ -113,6 +118,7 @@ protected:
 	class IVRDevice* m_vrDeviceInterface= nullptr;
 	SelectionComponentWeakPtr m_selectionComponentWeakPtr;
 	std::map<std::string, TransformComponentPtr> m_socketMap;
+	std::vector<std::string> m_socketNames;
 	std::map<std::string, VRDeviceMeshInfo> m_meshComponentMap;
 	bool m_bIsHovered = false;
 	bool m_bIsSelected = false;

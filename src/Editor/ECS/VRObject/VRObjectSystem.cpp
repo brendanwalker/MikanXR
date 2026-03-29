@@ -401,6 +401,7 @@ VRDeviceComponentPtr VRObjectSystem::addNewVRDevice(
 
 	if (vrDeviceComponent)
 	{
+		// This will dynamically attach socket and mesh components based on the device interface
 		vrDeviceComponent->setVRDeviceInterface(vrDeviceInterface);
 	}
 

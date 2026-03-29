@@ -24,6 +24,7 @@ namespace MikanXR
 		public MikanVRDeviceType vr_device_type;
 		public int vr_device_index;
 		public string vr_device_path;
+		public List<string> socket_names;
 	};
 
 }

@@ -20,12 +20,14 @@ export class MikanVRDeviceComponentValues extends MikanTransformComponentValues 
   vr_device_type: MikanVRDeviceType = MikanVRDeviceType.INVALID;
   vr_device_index: number = -1;
   vr_device_path: string = '';
+  socket_names: string[] = [];
 
   static __serializationMetadata: SerializationField[] = [
     { name: 'vr_device_api', type: 'enum:MikanVRDeviceApi' },
     { name: 'vr_device_type', type: 'enum:MikanVRDeviceType' },
     { name: 'vr_device_index', type: 'int32' },
-    { name: 'vr_device_path', type: 'string' }
+    { name: 'vr_device_path', type: 'string' },
+    { name: 'socket_names', type: 'string', isArray: true }
   ];
 }
 

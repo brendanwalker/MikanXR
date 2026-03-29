@@ -40,38 +40,22 @@ VRDeviceDefinition::VRDeviceDefinition(
 
 void VRDeviceDefinition::setTrackingRuntimeType(eTrackingRuntime trackingRuntime)
 {
-	if (m_trackingRuntime != trackingRuntime)
-	{
-		m_trackingRuntime = trackingRuntime;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_trackingRuntimeTypePropertyId));
-	}
+	m_trackingRuntime = trackingRuntime;
 }
 
 void VRDeviceDefinition::setVRDeviceIndex(size_t vrDeviceIndex)
 { 
-	if (m_vrDeviceIndex != vrDeviceIndex)
-	{
-		m_vrDeviceIndex = vrDeviceIndex;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_vrDeviceIndexTypePropertyId));
-	}
+	m_vrDeviceIndex = vrDeviceIndex;
 }
 
 void VRDeviceDefinition::setVRDeviceType(eVRDeviceType vrDeviceType)
 {
-	if (m_vrDeviceType != vrDeviceType)
-	{
-		m_vrDeviceType = vrDeviceType;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_vrDeviceTypePropertyId));
-	}
+	m_vrDeviceType = vrDeviceType;
 }
 
 void VRDeviceDefinition::setVRDevicePath(const std::string& vrDevicePath) 
 { 
-	if (m_vrDevicePath != vrDevicePath)
-	{
-		m_vrDevicePath = vrDevicePath;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_vrDevicePathTypePropertyId));
-	}
+	m_vrDevicePath = vrDevicePath;
 }
 
 // -- VRDeviceComponent -----
@@ -91,7 +75,7 @@ void VRDeviceComponent::init()
 {
 	TransformComponent::init();
 
-	// Create a selection component so that we can selection the mesh collision geometry
+	// Listen to selection events so update editor selection display
 	SelectionComponentPtr selectionComponentPtr = getOwnerObject()->getComponentOfType<SelectionComponent>();
 	if (selectionComponentPtr)
 	{
@@ -111,7 +95,13 @@ void VRDeviceComponent::init()
 
 void VRDeviceComponent::setVRDeviceInterface(IVRDevice* vrDeviceInterface)
 {
-	m_vrDeviceInterface= vrDeviceInterface;
+	if (m_vrDeviceInterface != vrDeviceInterface)
+	{
+		m_vrDeviceInterface = vrDeviceInterface;
+
+		rebuildSockets();
+		rebuildMeshComponents();
+	}
 }
 
 bool VRDeviceComponent::getDevicePose(const int vrFrameDelay, VRDevicePose& outPose) const
@@ -135,6 +125,7 @@ void VRDeviceComponent::disposeSockets()
 
 	// Forget about the socket components
 	m_socketMap.clear();
+	m_socketNames.clear();
 }
 
 void VRDeviceComponent::rebuildSockets()
@@ -158,6 +149,9 @@ void VRDeviceComponent::rebuildSockets()
 			socketComponentPtr->setName(socketName);
 			socketComponentPtr->attachToComponent(vrDeviceComponentPtr);
 			m_socketMap.insert({socketName, socketComponentPtr});
+
+			// Also keep track of the socket names
+			m_socketNames.push_back(socketName);
 		}
 
 		// Initialize all of the newly created sockets
@@ -165,19 +159,11 @@ void VRDeviceComponent::rebuildSockets()
 		{
 			kvpair.second->init();
 		}
-	}
-}
 
-void VRDeviceComponent::getSocketNames(std::vector<std::string>& outSocketNames) const
-{
-	outSocketNames.clear();
-	if (m_vrDeviceInterface != nullptr)
-	{
-		for (int socketIndex = 0; socketIndex < m_vrDeviceInterface->getSocketCount(); socketIndex++)
+		// Post-Initialize all of the newly created sockets
+		for (auto& kvpair : m_socketMap)
 		{
-			IVRDeviceSocket* vrDeviceSocket = m_vrDeviceInterface->geSocketByIndex(socketIndex);
-			const std::string socketName = vrDeviceSocket->getName();
-			outSocketNames.push_back(socketName);
+			kvpair.second->postInit();
 		}
 	}
 }
@@ -297,6 +283,16 @@ void VRDeviceComponent::rebuildMeshComponents()
 			meshInfo.triStaticMeshComponent->init();
 			meshInfo.wireStaticMeshComponent->init();
 			meshInfo.colliderComponent->init();
+		}
+
+		// PostInitialize all of the newly created components
+		for (auto& kvpair : m_meshComponentMap)
+		{
+			VRDeviceMeshInfo& meshInfo = kvpair.second;
+
+			meshInfo.triStaticMeshComponent->postInit();
+			meshInfo.wireStaticMeshComponent->postInit();
+			meshInfo.colliderComponent->postInit();
 		}
 	}
 
@@ -460,6 +456,7 @@ void VRDeviceComponent::onInteractionUnselected()
 }
 
 // -- IPropertyInterface ----
+const std::string VRDeviceComponent::k_socketNameListPropertyId = "socket_names";
 void VRDeviceComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	TransformComponent::getPropertyDescriptors(outDescriptors);
@@ -479,6 +476,10 @@ void VRDeviceComponent::getPropertyDescriptors(std::vector<PropertyDescriptorCon
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			VRDeviceDefinition::k_vrDevicePathTypePropertyId, MikanVariantType::STRING)
+		->setReadOnly());
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			VRDeviceComponent::k_socketNameListPropertyId, MikanVariantType::STRING_ARRAY)
 		->setReadOnly());
 }
 
@@ -504,6 +505,11 @@ bool VRDeviceComponent::getPropertyValue(
 	else if (propertyName == VRDeviceDefinition::k_vrDevicePathTypePropertyId)
 	{
 		outValue = getVRDeviceDefinition()->getVRDevicePath();
+		return true;
+	}
+	else if (propertyName == VRDeviceComponent::k_socketNameListPropertyId)
+	{
+		outValue.setValue(m_socketNames);
 		return true;
 	}
 

@@ -56,7 +56,7 @@ bool RmlModel_TrackingMountComponent::onConstruct(Rml::DataModelConstructor& con
 			auto vrDeviceComponent = getVRDeviceComponent();
 			if (vrDeviceComponent)
 			{
-				vrDeviceComponent->getSocketNames(outSocketNameList);
+				outSocketNameList= vrDeviceComponent->getSocketNames();
 			}
 		});
 

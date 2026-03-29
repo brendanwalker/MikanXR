@@ -45,6 +45,8 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVRDeviceTypes")) Mika
 	int vr_device_index = -1;
 	FIELD()
 	Serialization::String vr_device_path;
+	FIELD()
+	Serialization::List<Serialization::String> socket_names;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVRDeviceComponentValues_GENERATED
