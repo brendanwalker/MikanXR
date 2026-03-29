@@ -166,7 +166,7 @@ public:
 	{
 		SystemDefinitionPtr systemDefinition = getTypedDefinition();
 
-		// Allocate new scene definition (doesn't add to pool yet)
+		// Allocate new component definition (doesn't add to pool yet)
 		ComponentDefinitionPtr componentDefinition = systemDefinition->allocateNewDefinition();
 		componentDefinition->setComponentName(
 			TComponent::k_componentClassName
@@ -184,7 +184,7 @@ public:
 			}
 		}
 
-		// Create the scene object using the pool (will add definition to pool after object is built)
+		// Create the component object using the pool (will add definition to pool after object is built)
 		return m_componentPool.create(componentDefinition);
 	}
 
