@@ -42,6 +42,25 @@
       </option>
     </select>
 
+    <!-- Combobox field (string with options list) -->
+    <select
+      v-else-if="fieldType === 'combobox' && options && options.length > 0"
+      :value="fieldValue"
+      @change="handleComboboxChange"
+      class="property-select"
+    >
+      <option v-for="option in options" :key="option" :value="option">
+        {{ option }}
+      </option>
+    </select>
+    <input
+      v-else-if="fieldType === 'combobox'"
+      type="text"
+      :value="fieldValue"
+      readonly
+      class="property-text"
+    />
+
     <!-- String field -->
     <input
       v-else-if="fieldType === 'string'"
@@ -149,6 +168,8 @@ interface Props {
   fieldMetaType?: string
   min?: number
   max?: number
+  /** If provided, renders the field as a combobox (select) with these options, or readonly if empty. */
+  options?: string[]
 }
 
 const props = defineProps<Props>()
@@ -188,6 +209,9 @@ const isIntegerField = computed(() => {
 
 // Determine field type
 const fieldType = computed(() => {
+  // If options prop is provided, use combobox mode
+  if (props.options !== undefined) return 'combobox'
+
   // Explicit enum type from serialization metadata takes priority
   if (props.fieldMetaType?.startsWith('enum:') && enumOptions.value.length > 0) return 'enum'
 
@@ -239,6 +263,11 @@ async function sendPropertyUpdate(value: any) {
   } catch (error) {
     console.error(`[PropertyField] Error updating ${props.fieldName}:`, error)
   }
+}
+
+function handleComboboxChange(event: Event) {
+  const value = (event.target as HTMLSelectElement).value
+  sendPropertyUpdate(value)
 }
 
 function handleEnumChange(event: Event) {

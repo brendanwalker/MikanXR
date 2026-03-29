@@ -86,6 +86,7 @@
           :component="selectedTrackingMountComponent"
           :owner-system="selectedTrackingMountSystem"
           :editable="true"
+          :field-options="trackingMountFieldOptions"
         />
       </div>
     </div>
@@ -97,10 +98,39 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useComponentStore } from '../../../stores/componentStore.js'
 import { useMikanStore } from '../../../stores/mikanStore.js'
 import ComponentCard from '../../shared/ComponentCard.vue'
-import { MikanClient } from '@mikanxr/client'
+import {
+  MikanClient,
+  MikanAPIResult,
+  SystemGetValuesRequest,
+  SystemGetValuesResponse,
+  MikanVRObjectSystemValues,
+  MikanTrackingMountComponentValues
+} from '@mikanxr/client'
 
 const componentStore = useComponentStore()
 const mikanStore = useMikanStore()
+
+// VR device path list fetched from VRObjectSystem
+const vrDevicePathList = ref<string[]>([])
+
+async function fetchVRObjectSystemValues() {
+  const client = mikanStore.client as MikanClient | null
+  if (!client) return
+  try {
+    const request = new SystemGetValuesRequest()
+    request.ownerSystem = 'VRObjectSystem'
+    const future = client.sendRequest(request)
+    const response = await future.await() as SystemGetValuesResponse
+    if (response.resultCode === MikanAPIResult.Success) {
+      const systemValues = response.valuesObject.instance as MikanVRObjectSystemValues
+      vrDevicePathList.value = systemValues?.vr_device_path_list ?? []
+    } else {
+      console.error('[ProjectTracking] Failed to fetch VR object system values:', response.resultCode)
+    }
+  } catch (error) {
+    console.error('[ProjectTracking] Failed to fetch VR object system values:', error)
+  }
+}
 
 // Selection state
 const selectedTrackingVolumeId = ref<number>(-1)
@@ -148,6 +178,15 @@ const selectedTrackingVolumeSystem = computed(() => {
 const selectedTrackingMountSystem = computed(() => {
   if (!selectedTrackingMountComponent.value) return ''
   return 'TrackingMountObjectSystem'
+})
+
+const trackingMountFieldOptions = computed(() => {
+  const mount = selectedTrackingMountComponent.value as MikanTrackingMountComponentValues | null
+  const socketNames: string[] = (mount as any)?.available_socket_names ?? []
+  return {
+    device_path: vrDevicePathList.value,
+    socket_name: socketNames
+  }
 })
 
 // Tracking Volume CRUD handlers
@@ -235,6 +274,7 @@ function restoreSelectionState() {
 
 // Initialize on mount
 onMounted(() => {
+  fetchVRObjectSystemValues()
   restoreSelectionState()
   // Apply auto-select in case the store is already populated
   const volumes = trackingVolumeComponents.value

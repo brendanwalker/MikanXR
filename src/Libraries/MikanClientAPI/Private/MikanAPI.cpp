@@ -93,6 +93,7 @@ const char* MikanQuadStencilSystemValues::k_systemName = "QuadStencilSystem";
 const char* MikanModelStencilSystemValues::k_systemName = "ModelStencilSystem";
 const char* MikanMarkerSystemValues::k_systemName = "MarkerObjectSystem";
 const char* MikanSceneSystemValues::k_systemName = "SceneObjectSystem";
+const char* MikanVRObjectSystemValues::k_systemName = "VRObjectSystem";
 
 
 // Static component class name and owner system name definitions

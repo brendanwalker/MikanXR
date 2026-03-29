@@ -12,7 +12,7 @@
 #include "VRObjectSystem.h"
 
 // -- TrackingMountDefinition -----
-const std::string TrackingMountDefinition::k_desiredDevicePathPropertyId = "device_path";
+const std::string TrackingMountDefinition::k_devicePathPropertyId = "device_path";
 const std::string TrackingMountDefinition::k_socketNamePropertyId = "socket_name";
 
 TrackingMountDefinition::TrackingMountDefinition() 
@@ -29,7 +29,7 @@ configuru::Config TrackingMountDefinition::writeToJSON()
 {
 	configuru::Config pt = MikanComponentDefinition::writeToJSON();
 	
-	pt[k_desiredDevicePathPropertyId] = m_devicePath;
+	pt[k_devicePathPropertyId] = m_devicePath;
 	pt[k_socketNamePropertyId] = m_socketName;
 
 	return pt;
@@ -39,7 +39,7 @@ void TrackingMountDefinition::readFromJSON(const configuru::Config& pt)
 {
 	MikanComponentDefinition::readFromJSON(pt);
 
-	m_devicePath = pt.get_or<std::string>(k_desiredDevicePathPropertyId, m_devicePath);
+	m_devicePath = pt.get_or<std::string>(k_devicePathPropertyId, m_devicePath);
 	m_socketName = pt.get_or<std::string>(k_socketNamePropertyId, m_socketName);
 }
 
@@ -65,7 +65,7 @@ void TrackingMountDefinition::setDevicePath(const std::string& devicePath)
 	if (devicePath != m_devicePath)
 	{
 		m_devicePath = devicePath;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_desiredDevicePathPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_devicePathPropertyId));
 	}
 }
 
@@ -120,23 +120,29 @@ void TrackingMountComponent::deleteTrackingMount()
 }
 
 // -- IPropertyInterface ----
+const std::string TrackingMountComponent::k_availableSocketNameListPropertyId = "available_socket_names";
+
 void TrackingMountComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	MikanComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			TrackingMountDefinition::k_desiredDevicePathPropertyId, MikanVariantType::STRING));
+			TrackingMountDefinition::k_devicePathPropertyId, MikanVariantType::STRING));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			TrackingMountDefinition::k_socketNamePropertyId, MikanVariantType::STRING));
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			TrackingMountComponent::k_availableSocketNameListPropertyId, MikanVariantType::STRING_ARRAY)
+		->setReadOnly());
 }
 
 bool TrackingMountComponent::getPropertyValue(
 	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	if (propertyName == TrackingMountDefinition::k_desiredDevicePathPropertyId)
+	if (propertyName == TrackingMountDefinition::k_devicePathPropertyId)
 	{
 		outValue = getTrackingMountDefinition()->getDevicePath();
 		return true;
@@ -144,6 +150,12 @@ bool TrackingMountComponent::getPropertyValue(
 	else if (propertyName == TrackingMountDefinition::k_socketNamePropertyId)
 	{
 		outValue = getTrackingMountDefinition()->getSocketName();
+		return true;
+	}
+	else if (propertyName == TrackingMountComponent::k_availableSocketNameListPropertyId)
+	{
+		VRDeviceComponentPtr vrDeviceComponent = getVRDeviceComponent();
+		outValue = vrDeviceComponent ? vrDeviceComponent->getSocketNames() : std::vector<std::string>();
 		return true;
 	}
 
@@ -154,7 +166,7 @@ bool TrackingMountComponent::setPropertyValue(
 	const std::string& propertyName,
 	const MikanVariant& inValue)
 {
-	if (propertyName == TrackingMountDefinition::k_desiredDevicePathPropertyId)
+	if (propertyName == TrackingMountDefinition::k_devicePathPropertyId)
 	{
 		getTrackingMountDefinition()->setDevicePath(inValue.getStringValue());
 		return true;
@@ -166,4 +178,15 @@ bool TrackingMountComponent::setPropertyValue(
 	}
 
 	return MikanComponent::setPropertyValue(propertyName, inValue);
+}
+
+void TrackingMountComponent::onDefinitionMarkedDirty(
+	CommonConfigPtr configPtr, 
+	const ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (changedPropertySet.hasPropertyName(TrackingMountDefinition::k_devicePathPropertyId))
+	{
+		getDefinition()->notifyPropertyChanged(
+			ConfigPropertyChangeSet().addPropertyName(k_availableSocketNameListPropertyId));
+	}
 }

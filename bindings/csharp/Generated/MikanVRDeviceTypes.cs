@@ -27,4 +27,9 @@ namespace MikanXR
 		public List<string> socket_names;
 	};
 
+	public class MikanVRObjectSystemValues : MikanSystemValues
+	{
+		public List<string> vr_device_path_list;
+	};
+
 }

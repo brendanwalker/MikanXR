@@ -1,5 +1,6 @@
 // This file is auto generated. DO NOT EDIT.
 
+import { MikanSystemValues } from './MikanPropertyTypes.js';
 import { MikanTransformComponentValues } from './MikanTransformTypes.js';
 import type { SerializationField } from './SerializationTypes.js';
 
@@ -28,6 +29,14 @@ export class MikanVRDeviceComponentValues extends MikanTransformComponentValues 
     { name: 'vr_device_index', type: 'int32' },
     { name: 'vr_device_path', type: 'string' },
     { name: 'socket_names', type: 'string', isArray: true }
+  ];
+}
+
+export class MikanVRObjectSystemValues extends MikanSystemValues {
+  vr_device_path_list: string[] = [];
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'vr_device_path_list', type: 'string', isArray: true }
   ];
 }
 

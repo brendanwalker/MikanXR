@@ -27,7 +27,7 @@ public:
 
 	inline MikanTrackingMountID getTrackingMountId() const { return getComponentId(); }
 
-	static const std::string k_desiredDevicePathPropertyId;
+	static const std::string k_devicePathPropertyId;
 	inline const std::string& getDevicePath() const { return m_devicePath; }
 	void setDevicePath(const std::string& devicePath);
 
@@ -60,6 +60,7 @@ public:
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
 
 	// -- IPropertyInterface ----
+	static const std::string k_availableSocketNameListPropertyId;
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
@@ -67,4 +68,7 @@ public:
 	// -- IFunctionInterface ----
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 	{ MikanComponent::getFunctionDescriptors(outDescriptors); }
+
+protected:
+	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet) override;
 };

@@ -64,11 +64,13 @@ const DEVELOPER_ONLY_FIELDS: Record<string, string[]> = {
   TrackingMountComponent: [
     'component_class',
     'component_script',
+    'available_socket_names'
   ],
   VRTrackingVolumeComponent: [
     'component_class',
     'component_script',
-    'vr_device_pose_offset'
+    'vr_device_pose_offset',
+    'tracking_mount_ids'
   ],
   VRDeviceComponent: [
     'component_class',

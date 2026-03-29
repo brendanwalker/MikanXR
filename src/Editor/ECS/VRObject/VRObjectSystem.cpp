@@ -272,11 +272,28 @@ bool VRObjectSystem::findMikanDeviceIdForDeviceIndex(
 	return false;
 }
 
-VRDeviceComponentPtr VRObjectSystem::getVRDeviceByPath(const std::string& VRName) const
+VRDeviceComponentPtr VRObjectSystem::getVRDeviceByPath(const std::string& VRDevicePath) const
 {
-	return Super::getTypedComponentByPredicate([VRName](VRDeviceComponentConstPtr componentPtr) {
-		return componentPtr->getName() == VRName;
+	return Super::getTypedComponentByPredicate([VRDevicePath](VRDeviceComponentConstPtr componentPtr) {
+		return componentPtr->getVRDeviceDefinition()->getVRDevicePath() == VRDevicePath;
 	});
+}
+
+void VRObjectSystem::getVRDevicePathList(std::vector<std::string>& outDevicePathList) const
+{
+	outDevicePathList.clear();
+
+	for (const auto& kvpair : Super::getComponentMap())
+	{
+		VRDeviceComponentPtr vrDeviceComponentPtr = kvpair.second.lock();
+		if (vrDeviceComponentPtr)
+		{
+			VRDeviceDefinitionPtr vrDeviceDefinition = vrDeviceComponentPtr->getVRDeviceDefinition();
+			const std::string devicePath = vrDeviceDefinition->getVRDevicePath();
+
+			outDevicePathList.push_back(devicePath);
+		}
+	}
 }
 
 void VRObjectSystem::onActiveDeviceListChanged(IVRDeviceManager* deviceManager)
@@ -370,6 +387,38 @@ void VRObjectSystem::onDevicePosesChanged(IVRDeviceManager* deviceManager, int64
 			OnDevicePosesChanged(runtimeType, newFrameId);
 		}
 	}
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* VRObjectSystem::getClientAPIValuesStructType() const
+{
+	return &MikanVRObjectSystemValues::staticGetArchetype();
+}
+
+
+// -- IPropertyInterface ----
+const std::string VRObjectSystem::k_vrDevicePathListPropertyId = "vr_device_path_list";
+void VRObjectSystem::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
+{
+	Super::getPropertyDescriptors(outDescriptors);
+
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			VRObjectSystem::k_vrDevicePathListPropertyId, MikanVariantType::STRING_ARRAY)
+		->setReadOnly());
+}
+
+bool VRObjectSystem::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
+{
+	if (propertyName == k_vrDevicePathListPropertyId)
+	{
+		std::vector<std::string> devicePathList;
+		getVRDevicePathList(devicePathList);
+		outValue = devicePathList;
+		return true;
+	}
+
+	return false;
 }
 
 VRDeviceComponentPtr VRObjectSystem::addNewVRDevice(

@@ -8,6 +8,7 @@ namespace MikanXR
 	{
 		public string device_path;
 		public string socket_name;
+		public List<string> available_socket_names;
 	};
 
 }

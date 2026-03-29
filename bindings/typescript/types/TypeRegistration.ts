@@ -36,7 +36,7 @@ import { MikanTextureSourceValues, MikanClientTextureSourceValues, MikanSpoutTex
 import { MikanTrackingMountComponentValues } from './MikanTrackingMountTypes.js';
 import { MikanVRTrackingVolumeComponentValues, MikanTrackingVolumeComponentValues, MikanMarkerTrackingVolumeComponentValues } from './MikanTrackingVolumeTypes.js';
 import { MikanTransformComponentValues } from './MikanTransformTypes.js';
-import { MikanVRDeviceComponentValues } from './MikanVRDeviceTypes.js';
+import { MikanVRDeviceComponentValues, MikanVRObjectSystemValues } from './MikanVRDeviceTypes.js';
 import { MikanVector2fValue, MikanStringValue, MikanVariant, MikanIntArrayValue, MikanMatrix4fValue, MikanVariantBase, MikanBoolValue, MikanIntValue, MikanLongValue, MikanFloatValue, MikanDoubleValue, MikanVector3fValue, MikanVector4fValue, MikanQuatfValue, MikanVector2dValue, MikanVector3dValue, MikanVector4dValue, MikanQuatdValue, MikanBoolArrayValue, MikanFloatArrayValue, MikanStringArrayValue, MikanStringMapValue } from './MikanVariantTypes.js';
 import { MikanVideoSourceOpenedEvent, MikanVideoSourceClosedEvent, MikanVideoSourceModeChangedEvent } from './MikanVideoSourceEvents.js';
 import { SetUSBVideoSourceDevice, SetUSBVideoSourceFormat, SetUSBVideoSourceFrameRate, MikanVideoSourceModeResponse, GetVideoSourceMode, GetVideoSourceIntrinsics, SetUSBVideoSourceResolution, MikanVideoSourceIntrinsicsResponse } from './MikanVideoSourceRequest.js';
@@ -146,6 +146,7 @@ export function registerAllTypes(): void {
   TypeRegistry.register('MikanMarkerTrackingVolumeComponentValues', MikanMarkerTrackingVolumeComponentValues);
   TypeRegistry.register('MikanTransformComponentValues', MikanTransformComponentValues);
   TypeRegistry.register('MikanVRDeviceComponentValues', MikanVRDeviceComponentValues);
+  TypeRegistry.register('MikanVRObjectSystemValues', MikanVRObjectSystemValues);
   TypeRegistry.register('MikanVector2fValue', MikanVector2fValue);
   TypeRegistry.register('MikanStringValue', MikanStringValue);
   TypeRegistry.register('MikanVariant', MikanVariant);

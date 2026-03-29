@@ -20,6 +20,7 @@
             :field-meta-type="getFieldMetaType((component as any).component_class || '', key)"
             :min="fieldConstraints?.[key]?.min"
             :max="fieldConstraints?.[key]?.max"
+            :options="fieldOptions?.[key]"
             @update="handlePropertyUpdate"
           />
         </div>
@@ -62,6 +63,7 @@ interface Props {
   isSelected?: boolean
   editable?: boolean
   fieldConstraints?: Record<string, FieldConstraint>
+  fieldOptions?: Record<string, string[]>
 }
 
 const props = withDefaults(defineProps<Props>(), {

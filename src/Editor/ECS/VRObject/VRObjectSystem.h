@@ -58,10 +58,19 @@ public:
 	bool createTrackingRuntime(eTrackingRuntime desiredRuntime);
 
 	VRDeviceComponentPtr getVRDeviceByPath(const std::string& VRDevicePath) const;
+	void getVRDevicePathList(std::vector<std::string>& outDevicePathList) const;
 
 	MulticastDelegate<void(eTrackingRuntime runtime)> OnActiveDeviceListChanged;
 	MulticastDelegate<void(eTrackingRuntime runtime, MikanVRDeviceID deviceId)> OnDevicePropertyChanged;
 	MulticastDelegate<void(eTrackingRuntime runtime, int64_t newFrameId)> OnDevicePosesChanged;
+
+	// -- IEntityAccessor ----
+	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
+
+	// -- IPropertyInterface ----
+	static const std::string k_vrDevicePathListPropertyId;
+	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
+	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
 
 protected:
 	eTrackingRuntime findTrackingRuntimeForDeviceManager(const IVRDeviceManager* deviceManager) const;

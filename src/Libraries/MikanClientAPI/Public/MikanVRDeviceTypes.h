@@ -3,6 +3,7 @@
 #include "MikanAPIExport.h"
 #include "MikanAPITypes.h"
 #include "MikanTransformTypes.h"
+#include "MikanPropertyTypes.h"
 #include "SerializableList.h"
 #include "SerializationProperty.h"
 
@@ -29,6 +30,19 @@ enum class ENUM(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDevic
 	TRACKER ENUMVALUE_STRING("TRACKER")
 };
 
+// VR System Response Types
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRObjectSystemValues :
+	public MikanSystemValues
+{
+	static const char* k_systemName;
+
+	FIELD()
+	Serialization::List<Serialization::String> vr_device_path_list;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanVRObjectSystemValues_GENERATED
+#endif
+};
 
 // VR Device Response Types
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVRDeviceTypes")) MikanVRDeviceComponentValues :

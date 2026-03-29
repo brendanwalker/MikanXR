@@ -4,6 +4,7 @@
 #include "MikanAPITypes.h"
 #include "MikanComponentTypes.h"
 #include "SerializableString.h"
+#include "SerializableList.h"
 #include "SerializationProperty.h"
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
@@ -23,6 +24,8 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTrackingMountTypes"))
 	Serialization::String device_path;
 	FIELD()
 	Serialization::String socket_name;
+	FIELD()
+	Serialization::List<Serialization::String> available_socket_names;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanTrackingMountComponentValues_GENERATED
