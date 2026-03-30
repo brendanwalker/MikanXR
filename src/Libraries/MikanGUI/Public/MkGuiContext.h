@@ -11,8 +11,8 @@ public:
 
 	bool startup();
 	void shutdown();
-	
-	
+	void makeCurrent();
+
 protected:
 	void configImGui();
 	void configImNodes();

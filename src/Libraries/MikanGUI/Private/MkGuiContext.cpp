@@ -157,6 +157,12 @@ void MkGuiContext::shutdown()
 	}	
 }
 
+void MkGuiContext::makeCurrent()
+{
+	ImGui::SetCurrentContext(m_imguiContext);
+	ImNodes::SetCurrentContext(m_imnodesContext);
+}
+
 void MkGuiContext::configImGui()
 {
 	ImGuiIO& io = ImGui::GetIO();
