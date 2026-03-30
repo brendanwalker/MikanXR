@@ -97,7 +97,7 @@
         <ComponentCard
           :component-id="selectedCompositorId"
           :component="selectedCompositorComponent"
-          owner-system="CompositorSystem"
+          owner-system="CompositorObjectSystem"
           :editable="true"
         />
       </div>
@@ -227,7 +227,7 @@ const selectedCompositorId = computed<number>(() =>
 
 const selectedCompositorComponent = computed(() => {
   if (selectedCompositorId.value === -1) return null
-  return componentStore.getComponent(selectedCompositorId.value, 'CompositorSystem') as any
+  return componentStore.getComponent(selectedCompositorId.value, 'CompositorObjectSystem') as any
 })
 
 // parent_transform_id for newly created actors:

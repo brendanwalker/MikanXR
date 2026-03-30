@@ -336,6 +336,13 @@ bool SceneComponent::setPropertyValue(
 		attachToStage(stageId);
 		return true;
 	}
+	else if (propertyName == SceneComponentDefinition::k_displayCompositorIdPropertyId)
+	{
+		MikanCompositorID compositorId = inValue.getIntValue();
+
+		getSceneComponentDefinition()->setDisplayCompositorId(compositorId);
+		return true;
+	}
 	else if (MikanComponent::invokeScriptingFunction(propertyName))
 	{
 		return true;
