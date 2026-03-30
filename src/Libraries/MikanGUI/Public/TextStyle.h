@@ -1,11 +1,9 @@
 #pragma once
 
+#include "IMkTextRenderer.h"
+
 #include <filesystem>
 #include <string>
-
-#include "glm/ext/vector_float3.hpp"
-
-#include "IMkTextRenderer.h"
 
 const TextStyle& getDefaultTextStyle();
 const std::filesystem::path getDefaultJapaneseFontPath();

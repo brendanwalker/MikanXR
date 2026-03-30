@@ -1,6 +1,6 @@
-#include "Colors.h"
 #include "TextStyle.h"
 #include "PathUtils.h"
+
 
 static TextStyle gDefaultTextStyle = {
 	"mona",
@@ -8,7 +8,7 @@ static TextStyle gDefaultTextStyle = {
 	TEXT_STYLE_NORMAL,
 	eHorizontalTextAlignment::Middle,
 	eVerticalTextAlignment::Middle,
-	Colors::GhostWhite
+	{ 0.972549f, 0.972549f, 1.000000f }
 };
 
 const TextStyle& getDefaultTextStyle()

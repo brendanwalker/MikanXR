@@ -479,6 +479,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${MIKAN_LIBRARIES_DIR}/MikanClientAPI/Public
   ${MIKAN_LIBRARIES_DIR}/MikanClientCore/Public
   ${MIKAN_LIBRARIES_DIR}/MikanCoreApp/Public
+  ${MIKAN_LIBRARIES_DIR}/MikanGUI/Public
   ${MIKAN_LIBRARIES_DIR}/MikanMath/Public
   ${MIKAN_LIBRARIES_DIR}/MikanObject/Public
   ${MIKAN_LIBRARIES_DIR}/MikanRenderer/Public
@@ -537,6 +538,7 @@ list(APPEND MIKAN_REQ_LIBS
   MikanClientAPI
   MikanClientCore
   MikanCoreApp
+  MikanGUI
   MikanMath
   MikanRenderer
   MikanSerialization
