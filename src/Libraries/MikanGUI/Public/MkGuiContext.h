@@ -13,6 +13,9 @@ public:
 	void shutdown();
 	void makeCurrent();
 
+	struct ImFont* getNormalIconFont() const { return m_NormalIconFont; }
+	struct ImFont* getBigIconFont() const { return m_BigIconFont; }
+
 protected:
 	void configImGui();
 	void configImNodes();

@@ -2,6 +2,7 @@
 
 //-- includes -----
 #include "AssetFwd.h"
+#include "MkGuiFwd.h"
 #include "SdlFwd.h"
 #include "IEditorWindow.h"
 #include "NodeEditorFwd.h"
@@ -13,9 +14,6 @@
 #include "Graphs/NodeError.h"
 
 #include "Properties/GraphArrayProperty.h"
-
-#include "imgui.h"
-#include "imnodes.h"
 
 #include <chrono>
 #include <filesystem>
@@ -81,8 +79,6 @@ public:
 	virtual void popAppState() override;
 
 protected:
-	virtual void configImGui();
-	virtual void configImNodes();
 	virtual void renderUI();
 	virtual void pushImGuiStyles();
 	virtual void popImGuiStyles();
@@ -116,10 +112,7 @@ protected:
 	class App* m_ownerApp = nullptr;
 	SdlWindowUniquePtr m_sdlWindow;
 	MkStateStackUniquePtr m_MkStateStack;
-	struct ImGuiContext* m_imguiContext= nullptr;
-	struct ImNodesContext* m_imnodesContext= nullptr;
-	struct ImFont* m_NormalIconFont= nullptr;
-	struct ImFont* m_BigIconFont= nullptr;
+	MkGuiContextPtr m_guiContext;
 
 	NodeEditorState m_editorState;
 
@@ -137,7 +130,5 @@ protected:
 	// Errors that occurred during the last graph evaluation
 	std::vector<NodeEvaluationError> m_lastNodeEvalErrors;
 
-	bool m_imguiSDLBackendInitialised = false;
-	bool m_imguiOpenGLBackendInitialised= false;
 	bool m_isRenderingUI= false;
 };

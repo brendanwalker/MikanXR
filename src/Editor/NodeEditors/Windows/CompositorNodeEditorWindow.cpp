@@ -5,6 +5,7 @@
 #include "CompositorObjectSystem.h"
 #include "CompositorNodeEditorWindow.h"
 #include "Logger.h"
+#include "MkGuiContext.h"
 #include "NodeEditorUI.h"
 
 #include "Graphs/CompositorNodeGraph.h"
@@ -168,7 +169,7 @@ void CompositorNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& 
 
 void CompositorNodeEditorWindow::renderToolbar()
 {
-	ImGui::PushFont(m_BigIconFont);
+	ImGui::PushFont(m_guiContext->getBigIconFont());
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 4));
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, 4));

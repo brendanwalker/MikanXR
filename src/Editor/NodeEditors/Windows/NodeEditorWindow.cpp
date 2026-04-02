@@ -1,6 +1,8 @@
 //-- includes -----
 #include "NodeEditorWindow.h"
 #include "Logger.h"
+#include "MkGuiContext.h"
+#include "MkGuiScopedContext.h"
 
 #include "App.h"
 #include "AssetReference.h"
@@ -117,65 +119,15 @@ bool NodeEditorWindow::startup()
 		success = false;
 	}
 
-	// Setup ImGui context
+	// Setup ImGui/ImNodes context
 	if (success)
 	{
-		// Setup ImGui context
-		IMGUI_CHECKVERSION();
-		m_imguiContext = ImGui::CreateContext();
-		if (m_imguiContext != NULL)
-		{
-			configImGui();
-		}
-		else
-		{
-			MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Unable to create imgui context";
-			success = false;
-		}
-	}
-
-	// Setup ImGui SDL backend
-	if (success)
-	{
-		if (ImGui_ImplSDL2_InitForOpenGL(
+		m_guiContext = std::make_shared<MkGuiContext>(
 			m_sdlWindow->getInternalSdlWindow(),
-			m_sdlWindow->getInternalGlContext()))
+			m_sdlWindow->getInternalGlContext());
+		if (!m_guiContext->startup())
 		{
-			m_imguiSDLBackendInitialised= true;
-		}
-		else
-		{
-			MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Unable to initialize imgui SDL backend";
-			success = false;
-		}
-	}
-
-	// Setup ImGui OpenGL backend
-	const std::string& glsl_version= SdlManager::getInstance()->getGlslVersion();
-	if (success)
-	{
-		if (ImGui_ImplOpenGL3_Init(glsl_version.c_str()))
-		{
-			m_imguiOpenGLBackendInitialised= true;
-		}
-		else
-		{
-			MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Unable to initialize imgui openGL backend";
-			success = false;
-		}
-	}
-
-	// Setup the ImNodes context
-	if (success)
-	{
-		m_imnodesContext = ImNodes::CreateContext();
-		if (m_imnodesContext != nullptr)
-		{
-			configImNodes();
-		}
-		else
-		{
-			MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Unable to create imnodes context";
+			MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Unable to create GUI context";
 			success = false;
 		}
 	}
@@ -222,6 +174,8 @@ bool NodeEditorWindow::startup()
 
 void NodeEditorWindow::update(float deltaSeconds)
 {
+	MkGuiScopedContext scopedCtx(*m_guiContext);
+
 	// Clear out any previous node evaluation errors
 	m_lastNodeEvalErrors.clear();
 
@@ -232,6 +186,8 @@ void NodeEditorWindow::update(float deltaSeconds)
 void NodeEditorWindow::render()
 {
 	EASY_FUNCTION();
+
+	MkGuiScopedContext scopedCtx(*m_guiContext);
 
 	// Clear the window
 	m_sdlWindow->renderBegin();
@@ -518,7 +474,7 @@ void NodeEditorWindow::renderMainFrameContextMenu(const NodeEditorState& editorS
 
 void NodeEditorWindow::renderToolbar()
 {
-	ImGui::PushFont(m_BigIconFont);
+	ImGui::PushFont(m_guiContext->getBigIconFont());
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 4));
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, 4));
@@ -1121,28 +1077,10 @@ void NodeEditorWindow::shutdown()
 		m_textureCache = nullptr;
 	}
 
-	if (m_imnodesContext != nullptr)
+	if (m_guiContext != nullptr)
 	{
-		ImNodes::DestroyContext(m_imnodesContext);
-		m_imnodesContext= nullptr;
-	}
-
-	if (m_imguiOpenGLBackendInitialised)
-	{
-		ImGui_ImplOpenGL3_Shutdown();
-		m_imguiOpenGLBackendInitialised = false;
-	}
-
-	if (m_imguiSDLBackendInitialised)
-	{
-		ImGui_ImplSDL2_Shutdown();
-		m_imguiSDLBackendInitialised = false;
-	}
-
-	if (m_imguiContext != nullptr)
-	{
-		ImGui::DestroyContext(m_imguiContext);
-		m_imguiContext = nullptr;
+		m_guiContext->shutdown();
+		m_guiContext = nullptr;
 	}
 
 	if (m_sdlWindow != nullptr)
@@ -1256,55 +1194,9 @@ void NodeEditorWindow::popAppState()
 	return getMainWindow()->popAppState();
 }
 
-void NodeEditorWindow::configImGui()
-{
-	ImGuiIO& io = ImGui::GetIO();
-
-	io.Fonts->AddFontFromFileTTF(
-		getDefaultJapaneseFontPath().string().c_str(), 16, NULL, io.Fonts->GetGlyphRangesJapanese());
-	//TODO: Find these fonts
-	//io.Fonts->AddFontFromFileTTF(getDefaultKoreanFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesKorean();
-	//io.Fonts->AddFontFromFileTTF(getDefaultChineseFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesChineseFull();
-	//io.Fonts->AddFontFromFileTTF(getDefaultCyrillicFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesCyrillic();
-	//io.Fonts->AddFontFromFileTTF(getDefaultThaiFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesThai();
-	//io.Fonts->AddFontFromFileTTF(getDefaultVietnameseFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesVietnamese();
-
-	// Setup Dear ImGui style
-	ImGui::StyleColorsDark();
-
-	static const ImWchar icons_ranges[] = {ICON_MIN_FK, ICON_MAX_FK, 0};
-	ImFontConfig icons_config;
-	icons_config.MergeMode = true;
-	icons_config.PixelSnapH = true;
-	
-	m_NormalIconFont = io.Fonts->AddFontFromFileTTF(
-		getForkAwesomeWebFontPath().string().c_str(),
-		14, &icons_config, icons_ranges);
-
-	icons_config.GlyphOffset.y += (22 - 17) * 0.5f;
-	m_BigIconFont = io.Fonts->AddFontFromFileTTF(
-		getForkAwesomeWebFontPath().string().c_str(),
-		22, &icons_config, icons_ranges);
-}
-
-void NodeEditorWindow::configImNodes()
-{
-	ImNodes::GetIO().AltMouseButton = ImGuiMouseButton_Right;
-
-	ImNodes::GetStyle().NodePadding = ImVec2(12.0f, 5.0f);
-	ImNodes::GetStyle().PinOffset = -16.0f;
-	ImNodes::GetStyle().PinCircleRadius = 5.0f;
-	ImNodes::GetStyle().NodeCornerRounding = 6.0f;
-	ImNodes::GetStyle().Colors[ImNodesCol_NodeBackground] = IM_COL32(24, 24, 24, 200);
-	ImNodes::GetStyle().Colors[ImNodesCol_NodeBackgroundHovered] = IM_COL32(24, 24, 24, 200);
-	ImNodes::GetStyle().Colors[ImNodesCol_NodeBackgroundSelected] = IM_COL32(24, 24, 24, 200);
-	ImNodes::GetStyle().Colors[ImNodesCol_GridBackground] = IM_COL32(38, 38, 38, 255);
-	ImNodes::GetStyle().Colors[ImNodesCol_GridLine] = IM_COL32(53, 53, 53, 255);
-}
-
 void NodeEditorWindow::pushImGuiStyles()
 {
-	ImGui::PushFont(m_NormalIconFont);
+	ImGui::PushFont(m_guiContext->getNormalIconFont());
 
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6, 4));
 	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 2));
