@@ -26,7 +26,7 @@ const DEVELOPER_ONLY_FIELDS: Record<string, string[]> = {
   CompositorComponent: [
     'component_class',
     'component_script',
-    'owner_stage_id'
+    'owner_scene_id'
   ],
   MarkerComponent: [
     'component_class',

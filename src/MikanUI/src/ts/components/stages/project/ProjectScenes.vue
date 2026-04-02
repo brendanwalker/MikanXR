@@ -94,12 +94,61 @@
       <!-- Compositor Properties -->
       <div v-if="selectedCompositorId !== -1 && selectedCompositorComponent" class="component-section">
         <h3>Compositor Properties</h3>
-        <ComponentCard
-          :component-id="selectedCompositorId"
-          :component="selectedCompositorComponent"
-          owner-system="CompositorObjectSystem"
-          :editable="true"
-        />
+        <div class="property-grid">
+          <div class="property-row">
+            <label class="property-label">Name:</label>
+            <PropertyField
+              field-name="component_name"
+              :field-value="selectedCompositorComponent.component_name"
+              owner-system="CompositorObjectSystem"
+              :component-id="selectedCompositorId"
+            />
+          </div>
+          <div class="property-row">
+            <label class="property-label">Camera:</label>
+            <PropertyField
+              field-name="camera_id"
+              :field-value="selectedCompositorComponent.camera_id"
+              field-type="component_ref"
+              component-class="VideoSourceComponent"
+              owner-system="CompositorObjectSystem"
+              :component-id="selectedCompositorId"
+            />
+          </div>
+          <div class="property-row">
+            <label class="property-label">Graph Path:</label>
+            <div class="script-controls">
+              <span class="script-path">{{ selectedCompositorComponent.compositor_graph_path || '&lt;None&gt;' }}</span>
+              <button @click="handleEditCompositorGraph" class="icon-only-btn edit-btn" title="Reload Graph">
+                <img src="/images/edit_component_normal_icon.png" alt="Reload Graph" class="btn-icon-only" />
+              </button>
+              <button @click="handleAddCompositorGraph" class="icon-only-btn add-btn" title="Add Graph">
+                <img src="/images/add_component_normal_icon.png" alt="Add Graph" class="btn-icon-only" />
+              </button>
+              <button @click="handleRemoveCompositorGraph" class="icon-only-btn remove-btn" title="Remove Graph">
+                <img src="/images/delete_component_normal_icon.png" alt="Remove Graph" class="btn-icon-only" />
+              </button>
+            </div>
+          </div>
+          <div class="property-row">
+            <label class="property-label">Spout Output:</label>
+            <PropertyField
+              field-name="spout_enable_output"
+              :field-value="selectedCompositorComponent.spout_enable_output"
+              owner-system="CompositorObjectSystem"
+              :component-id="selectedCompositorId"
+            />
+          </div>
+          <div class="property-row">
+            <label class="property-label">Spout Name:</label>
+            <PropertyField
+              field-name="spout_output_name"
+              :field-value="selectedCompositorComponent.spout_output_name"
+              owner-system="CompositorObjectSystem"
+              :component-id="selectedCompositorId"
+            />
+          </div>
+        </div>
       </div>
 
       <!-- Actors Panel -->
@@ -445,6 +494,35 @@ function makeVec3(x: number, y: number, z: number): MikanVector3f {
   const v = new MikanVector3f()
   v.x = x; v.y = y; v.z = z
   return v
+}
+
+// Compositor graph path handlers
+async function invokeCompositorFunction(functionName: string) {
+  const client = mikanStore.client as any
+  if (!client) {
+    console.error('[CompositorComponent] Cannot invoke function: no client connection')
+    return
+  }
+
+  console.log(`[CompositorComponent] Invoking function "${functionName}" on CompositorComponent ${selectedCompositorId.value}`)
+  await componentStore.invokeComponentFunction(
+    client,
+    'CompositorObjectSystem',
+    selectedCompositorId.value,
+    functionName
+  )
+}
+
+function handleEditCompositorGraph() {
+  invokeCompositorFunction('edit_compositor_graph')
+}
+
+function handleAddCompositorGraph() {
+  invokeCompositorFunction('add_new_compositor_graph')
+}
+
+function handleRemoveCompositorGraph() {
+  invokeCompositorFunction('remove_compositor_graph')
 }
 
 // Compositor CRUD handlers
