@@ -82,5 +82,5 @@ class CompositorNodeGraphFactory : public TypedNodeGraphFactory<CompositorNodeGr
 public:
 	CompositorNodeGraphFactory() = default;
 
-	virtual NodeGraphPtr initialCreateNodeGraph(class IMkWindow* ownerWindow) const override;
+	virtual NodeGraphPtr initialCreateNodeGraph(class IEditorWindow* ownerWindow) const override;
 };

@@ -2,11 +2,13 @@
 #include "NodeEditorWindow.h"
 #include "Logger.h"
 
+#include "App.h"
 #include "AssetReference.h"
 #include "SdlCommon.h"
 #include "MikanModelResourceManager.h"
 #include "MkStateStack.h"
 #include "IMkState.h"
+#include "MainWindow.h"
 #include "MkStateModifiers.h"
 #include "MikanShaderCache.h"
 #include "IMkTexture.h"
@@ -44,8 +46,9 @@
 #define DRAG_DROP_TYPE_ASSET_REF	"Asset"
 
 //-- public methods -----
-NodeEditorWindow::NodeEditorWindow()
-	: m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
+NodeEditorWindow::NodeEditorWindow(App* ownerApp)
+	: m_ownerApp(ownerApp)
+	, m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
 	, m_MkStateStack(MkStateStackUniquePtr(new MkStateStack(this)))
 	, m_modelResourceManager(MikanModelResourceManagerUniquePtr(new MikanModelResourceManager(this)))
 	, m_shaderCache(MikanShaderCacheUniquePtr(new MikanShaderCache(this)))
@@ -91,6 +94,7 @@ SdlWindow& NodeEditorWindow::getSdlWindow()
 	return *m_sdlWindow.get();
 }
 
+// -- IMkWindow ----
 bool NodeEditorWindow::startup()
 {
 	EASY_FUNCTION();
@@ -1169,6 +1173,87 @@ bool NodeEditorWindow::onSDLEvent(const SDL_Event* event)
 	bool bHandled= ImGui_ImplSDL2_ProcessEvent(event);
 
 	return bHandled;
+}
+
+// -- IEditorWindow
+MainWindow* NodeEditorWindow::getMainWindow() const
+{
+	return getOwnerApp()->getMainWindow();
+}
+
+ProjectManagerPtr NodeEditorWindow::getProjectManager() const
+{
+	return getMainWindow()->getProjectManager();
+}
+
+MikanServer* NodeEditorWindow::getMikanServer() const
+{
+	return getMainWindow()->getMikanServer();
+}
+
+MikanFontManager* NodeEditorWindow::getFontManager() const
+{
+	return getMainWindow()->getFontManager();
+}
+
+RmlManager* NodeEditorWindow::getRmlManager() const
+{
+	return nullptr;
+}
+
+GlRmlUiRender* NodeEditorWindow::getRmlUiRenderer() const
+{
+	return nullptr;
+}
+
+InputManager* NodeEditorWindow::getInputManager() const
+{
+	return getMainWindow()->getInputManager();
+}
+
+OpenCVManager* NodeEditorWindow::getOpenCVManager() const
+{
+	return getMainWindow()->getOpenCVManager();
+}
+
+ClientSourceManager* NodeEditorWindow::getClientSourceManager() const
+{
+	return getMainWindow()->getClientSourceManager();
+}
+
+LocalizationManager* NodeEditorWindow::getLocalizationManager() const
+{
+	return getMainWindow()->getLocalizationManager();
+}
+
+EventBus* NodeEditorWindow::getEventBus() const
+{
+	return getMainWindow()->getEventBus();
+}
+
+App* NodeEditorWindow::getOwnerApp() const
+{
+	return m_ownerApp;
+}
+
+AppStage* NodeEditorWindow::getCurrentAppStage() const
+{
+	return getMainWindow()->getCurrentAppStage();
+}
+
+AppStage* NodeEditorWindow::getParentAppStage() const
+{
+	return getMainWindow()->getParentAppStage();
+}
+
+AppStage* NodeEditorWindow::pushAppStage(const std::string& appStageName)
+{
+	return getMainWindow()->pushAppStage(appStageName);
+}
+
+void NodeEditorWindow::popAppState()
+{
+	return getMainWindow()->popAppState();
 }
 
 void NodeEditorWindow::configImGui()

@@ -16,7 +16,7 @@
 #include "MikanTextureCache.h"
 #include "IMkVertexDefinition.h"
 #include "IMkState.h"
-#include "ISdlMkWindow.h"
+#include "IEditorWindow.h"
 #include "Logger.h"
 #include "ModelStencilComponent.h"
 #include "QuadStencilSystem.h"
@@ -307,7 +307,7 @@ MikanRenderModelResourcePtr CompositorNodeGraph::getOrLoadStencilRenderModel(
 	}
 	else
 	{
-		ISdlMkWindow* ownerWindow= static_cast<ISdlMkWindow*>(getOwnerWindow());
+		IEditorWindow* ownerWindow= getOwnerWindow();
 
 		// Load the stencil model and render it using the flat textured material
 		auto stencilMaterial= 
@@ -630,7 +630,7 @@ void CompositorNodeGraph::updateCompositingFrameBufferSize(NodeEvaluator& evalua
 }
 
 // -- CompositorNodeGraphFactory ----
-NodeGraphPtr CompositorNodeGraphFactory::initialCreateNodeGraph(IMkWindow* ownerWindow) const
+NodeGraphPtr CompositorNodeGraphFactory::initialCreateNodeGraph(IEditorWindow* ownerWindow) const
 {
 	auto nodeGraph= NodeGraphFactory::initialCreateNodeGraph(ownerWindow);
 	if (!nodeGraph)

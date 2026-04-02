@@ -808,7 +808,7 @@ void CompositorComponent::handleCompositorNodeGraphChanged(const std::filesystem
 	{
 		m_nodeGraph =
 			std::dynamic_pointer_cast<CompositorNodeGraph>(
-				NodeGraphFactory::loadNodeGraph(getOwnerWindow(), newAssetRefPath));
+				NodeGraphFactory::loadNodeGraph(getOwnerEditorWindow(), newAssetRefPath));
 
 		if (m_nodeGraph)
 		{
@@ -941,7 +941,42 @@ bool CompositorComponent::setPropertyValue(
 }
 
 // -- IFunctionInterface ----
+const std::string CompositorComponent::k_editCompositorGraphFunctionId = "edit_compositor_graph";
+const std::string CompositorComponent::k_addNewScriptFunctionId = "add_new_compositor_graph";
+const std::string CompositorComponent::k_removeCompositorGraphFunctionId = "remove_compositor_graph";
+
 void CompositorComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
 	MikanComponent::getFunctionDescriptors(outDescriptors);
+
+	outDescriptors.push_back(
+		std::make_shared<FunctionDescriptor>(
+			k_editCompositorGraphFunctionId, "Edit Compositor Graph"));
+	outDescriptors.push_back(
+		std::make_shared<FunctionDescriptor>(
+			k_addNewScriptFunctionId, "Add Compositor Graph"));
+	outDescriptors.push_back(
+		std::make_shared<FunctionDescriptor>(
+			k_removeCompositorGraphFunctionId, "Remove Compositor Graph"));
+}
+
+bool CompositorComponent::invokeFunction(const std::string& functionName)
+{
+	if (functionName == CompositorComponent::k_editCompositorGraphFunctionId)
+	{
+		editCompositorGraph();
+		return true;
+	}
+	else if (functionName == CompositorComponent::k_addNewScriptFunctionId)
+	{
+		addNewCompositorGraph();
+		return true;
+	}
+	else if (functionName == CompositorComponent::k_removeCompositorGraphFunctionId)
+	{
+		removeCompositorGraph();
+		return true;
+	}
+
+	return MikanComponent::invokeFunction(functionName);
 }

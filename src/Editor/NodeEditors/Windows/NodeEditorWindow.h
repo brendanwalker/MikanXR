@@ -3,7 +3,7 @@
 //-- includes -----
 #include "AssetFwd.h"
 #include "SdlFwd.h"
-#include "ISdlMkWindow.h"
+#include "IEditorWindow.h"
 #include "NodeEditorFwd.h"
 #include "NodeFwd.h"
 #include "NodeEditorState.h"
@@ -23,10 +23,10 @@
 #include <vector>
 
 //-- definitions -----
-class NodeEditorWindow : public ISdlMkWindow
+class NodeEditorWindow : public IEditorWindow
 {
 public:
-	NodeEditorWindow();
+	NodeEditorWindow(App* ownerApp);
 	~NodeEditorWindow();
 
 	inline NodeGraphPtr getNodeGraph() const { return m_editorState.nodeGraph; }
@@ -61,6 +61,25 @@ public:
 
 	virtual bool onSDLEvent(const SDL_Event* event) override;
 
+	// -- IEditorWindow
+	class MainWindow* getMainWindow() const;
+	virtual ProjectManagerPtr getProjectManager() const override;
+	virtual class MikanServer* getMikanServer() const override;
+	virtual class MikanFontManager* getFontManager() const override;
+	virtual class RmlManager* getRmlManager() const override;
+	virtual class GlRmlUiRender* getRmlUiRenderer() const override;
+	virtual class InputManager* getInputManager() const override;
+	virtual class OpenCVManager* getOpenCVManager() const override;
+	virtual class ClientSourceManager* getClientSourceManager() const override;
+	virtual class LocalizationManager* getLocalizationManager() const override;
+	virtual class EventBus* getEventBus() const override;
+
+	virtual class App* getOwnerApp() const override;
+	virtual class AppStage* getCurrentAppStage() const override;
+	virtual class AppStage* getParentAppStage() const override;
+	virtual class AppStage* pushAppStage(const std::string& appStageName) override;
+	virtual void popAppState() override;
+
 protected:
 	virtual void configImGui();
 	virtual void configImNodes();
@@ -94,6 +113,7 @@ protected:
 	virtual void onAssetReferenceDeleted(AssetReferencePtr assetRef) {}
 
 protected:
+	class App* m_ownerApp = nullptr;
 	SdlWindowUniquePtr m_sdlWindow;
 	MkStateStackUniquePtr m_MkStateStack;
 	struct ImGuiContext* m_imguiContext= nullptr;

@@ -1016,14 +1016,9 @@ void NodeGraph::editorRender(const NodeEditorState& editorState)
 	}
 }
 
-IEditorWindow* NodeGraph::getOwnerEditorWindow() const
-{
-	return dynamic_cast<IEditorWindow*>(getOwnerWindow());
-}
-
 ProjectManagerPtr NodeGraph::getOwnerProject() const
 {
-	IEditorWindow* editorWindow = getOwnerEditorWindow();
+	IEditorWindow* editorWindow = getOwnerWindow();
 	if (editorWindow)
 	{
 		return editorWindow->getProjectManager();
@@ -1043,7 +1038,7 @@ int NodeGraph::allocateId()
 std::map<std::string, NodeGraphFactoryPtr> NodeGraphFactory::s_factoryMap;
 
 NodeGraphPtr NodeGraphFactory::loadNodeGraph(
-	IMkWindow* ownerWindow,
+	IEditorWindow* ownerWindow,
 	const std::filesystem::path& path)
 {
 	// Load the node graph config from the file path
@@ -1106,7 +1101,7 @@ NodeGraphPtr NodeGraphFactory::allocateNodeGraph() const
 	return std::make_shared<NodeGraph>();
 }
 
-NodeGraphPtr NodeGraphFactory::initialCreateNodeGraph(IMkWindow* ownerWindow) const
+NodeGraphPtr NodeGraphFactory::initialCreateNodeGraph(IEditorWindow* ownerWindow) const
 {
 	// Derived node graph types override this method to create properties and nodes
 	// on initial creation of the graph.
