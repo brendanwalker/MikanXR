@@ -80,8 +80,6 @@ public:
 
 protected:
 	virtual void renderUI();
-	virtual void pushImGuiStyles();
-	virtual void popImGuiStyles();
 
 	virtual void renderMainFrame();
 	virtual void renderNodeEvalErrors();
@@ -130,5 +128,5 @@ protected:
 	// Errors that occurred during the last graph evaluation
 	std::vector<NodeEvaluationError> m_lastNodeEvalErrors;
 
-	bool m_isRenderingUI= false;
+	bool m_isRenderingUI = false;
 };

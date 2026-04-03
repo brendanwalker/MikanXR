@@ -6,6 +6,10 @@
 #include "CompositorNodeEditorWindow.h"
 #include "Logger.h"
 #include "MkGuiContext.h"
+#include "MkGuiScopedStyleVar.h"
+#include "MkGuiScopedStyleColor.h"
+#include "MkGuiScopedChild.h"
+#include "MkGuiScopedFont.h"
 #include "NodeEditorUI.h"
 
 #include "Graphs/CompositorNodeGraph.h"
@@ -169,17 +173,19 @@ void CompositorNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& 
 
 void CompositorNodeEditorWindow::renderToolbar()
 {
-	ImGui::PushFont(m_guiContext->getBigIconFont());
+	MkGuiScopedFont bigIconFont(m_guiContext->getBigIconFont());
 
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 4));
-	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, 4));
-	ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0);
-	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.0f, 0.0f, 0.0f, 0.5f));
+	MkGuiScopedStyleVar toolbarStyleVar;
+	toolbarStyleVar.push(ImGuiStyleVar_WindowPadding, ImVec2(8, 4))
+		.push(ImGuiStyleVar_FramePadding, ImVec2(12, 4))
+		.push(ImGuiStyleVar_FrameBorderSize, 0.f);
+	MkGuiScopedStyleColor toolbarStyleColor;
+	toolbarStyleColor.push(ImGuiCol_Button, ImVec4(0.13f, 0.13f, 0.13f, 1.0f))
+		.push(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f))
+		.push(ImGuiCol_ButtonActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f))
+		.push(ImGuiCol_Separator, ImVec4(0.0f, 0.0f, 0.0f, 0.5f));
 
-	ImGui::BeginChild("Toolbar", ImVec2(ImGui::GetContentRegionAvail().x, 40));
+	MkGuiScopedChild toolbarChild("Toolbar", ImVec2(ImGui::GetContentRegionAvail().x, 40));
 
 	ImGui::SetCursorPosY((ImGui::GetWindowHeight() - 30) * 0.5f);
 
@@ -190,51 +196,46 @@ void CompositorNodeEditorWindow::renderToolbar()
 
 	// Editor Control
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 4.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 4));
-		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+		MkGuiScopedStyleVar editorControlStyleVar;
+		editorControlStyleVar.push(ImGuiStyleVar_ChildRounding, 4.0f)
+			.push(ImGuiStyleVar_FramePadding, ImVec2(4, 4));
+		MkGuiScopedStyleColor editorControlStyleColor;
+		editorControlStyleColor.push(ImGuiCol_ChildBg, ImVec4(0.2f, 0.2f, 0.2f, 1.0f))
+			.push(ImGuiCol_Border, ImVec4(0.2f, 0.2f, 0.2f, 1.0f))
+			.push(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
 
 		ImGui::SameLine();
-		ImGui::BeginChild("EditorControl", ImVec2(70, 30), true, ImGuiWindowFlags_NoScrollbar);
+		MkGuiScopedChild editorControlChild("EditorControl", ImVec2(70, 30), true, ImGuiWindowFlags_NoScrollbar);
 		ImGui::SetCursorPosY((ImGui::GetWindowHeight() - ImGui::GetTextLineHeight()) * 0.5f);
 
-		if (m_isRunningCompositor)
 		{
-			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.3f, 0.3f, 1.0f));
-			if (ImGui::SmallButton(ICON_FK_STOP))
+			MkGuiScopedStyleColor playStopColor;
+			if (m_isRunningCompositor)
 			{
-				m_isRunningCompositor = false;
+				playStopColor.push(ImGuiCol_Text, ImVec4(1.0f, 0.3f, 0.3f, 1.0f));
+				if (ImGui::SmallButton(ICON_FK_STOP))
+				{
+					m_isRunningCompositor = false;
+				}
+			}
+			else
+			{
+				playStopColor.push(ImGuiCol_Text, ImVec4(0.5f, 0.8f, 0.5f, 1.0f));
+				if (ImGui::SmallButton(ICON_FK_PLAY))
+				{
+					m_isRunningCompositor = true;
+				}
 			}
 		}
-		else
-		{
-			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.8f, 0.5f, 1.0f));
-			if (ImGui::SmallButton(ICON_FK_PLAY))
-			{
-				m_isRunningCompositor = true;
-			}
-		}
-		ImGui::PopStyleColor();
 
 		ImGui::SameLine();
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.9f, 0.9f, 1.0f));
-		if (ImGui::SmallButton(ICON_FK_UNDO))
 		{
-			undo();
+			MkGuiScopedStyleColor undoTextColor;
+			undoTextColor.push(ImGuiCol_Text, ImVec4(0.9f, 0.9f, 0.9f, 1.0f));
+			if (ImGui::SmallButton(ICON_FK_UNDO))
+			{
+				undo();
+			}
 		}
-		ImGui::PopStyleColor();
-
-		ImGui::EndChild();
-		ImGui::PopStyleColor(3);
-		ImGui::PopStyleVar(2);
 	}
-
-	ImGui::EndChild();
-
-	ImGui::PopStyleVar(3);
-	ImGui::PopStyleColor(4);
-
-	ImGui::PopFont();
 }

@@ -42,7 +42,7 @@ protected:
 	void updateColorFrameBuffer(NodeEvaluator& evaluator, IMkTexturePtr clientTexture);
 	void evaluateFlippedColorTexture(IMkState* glState, IMkTexturePtr depthTexture);
 
-	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
+	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeNodeStyle(const NodeEditorState& editorState) const override;
 	virtual std::string editorGetTitle() const override;
 
 protected:

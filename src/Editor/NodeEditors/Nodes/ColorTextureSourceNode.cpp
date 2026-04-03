@@ -32,6 +32,7 @@
 
 #include "imgui.h"
 #include "imnodes.h"
+#include "MkNodesScopedNode.h"
 
 // -- ClientTextureNodeConfig -----
 configuru::Config ColorTextureSourceNodeConfig::writeToJSON()
@@ -275,11 +276,13 @@ void ColorTextureSourceNode::evaluateFlippedColorTexture(IMkState* glState, IMkT
 	}
 }
 
-void ColorTextureSourceNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) const
+std::shared_ptr<MkNodesScopedColorStyle> ColorTextureSourceNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
 {
-	ImNodes::PushColorStyle(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225));
-	ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225));
-	ImNodes::PushColorStyle(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
+	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	style->push(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225))
+		.push(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225))
+		.push(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
+	return style;
 }
 
 std::string ColorTextureSourceNode::editorGetTitle() const
@@ -296,9 +299,8 @@ std::string ColorTextureSourceNode::editorGetTitle() const
 
 void ColorTextureSourceNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	editorRenderPushNodeStyle(editorState);
-
-	ImNodes::BeginNode(m_id);
+	auto nodeStyle = editorRenderMakeNodeStyle(editorState);
+	MkNodesScopedNode scopedNode(m_id);
 
 	// Title
 	editorRenderTitle(editorState);
@@ -314,10 +316,6 @@ void ColorTextureSourceNode::editorRenderNode(const NodeEditorState& editorState
 	editorRenderOutputPins(editorState);
 
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
-
-	ImNodes::EndNode();
-
-	editorRenderPopNodeStyle(editorState);
 }
 
 void ColorTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& editorState)

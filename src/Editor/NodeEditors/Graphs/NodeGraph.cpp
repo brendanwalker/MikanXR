@@ -23,6 +23,8 @@
 
 #include "Properties/GraphArrayProperty.h"
 
+#include "MkNodesScopedColorStyle.h"
+
 #include "imnodes.h"
 
 #include <filesystem>
@@ -987,23 +989,20 @@ void NodeGraph::editorRender(const NodeEditorState& editorState)
 	{
 		NodePtr node= it->second;
 
-		if (ImNodes::IsNodeSelected(node->getId()))
-		{
-			ImNodes::PushStyleVar(ImNodesStyleVar_NodeBorderThickness, 2.6f);
-			ImNodes::PushColorStyle(ImNodesCol_NodeOutline, IM_COL32(220, 140, 0, 255));
-		}
-		else
-		{
-			ImNodes::PushStyleVar(ImNodesStyleVar_NodeBorderThickness, 2.0f);
-			ImNodes::PushColorStyle(ImNodesCol_NodeOutline, IM_COL32(24, 24, 24, 255));
-		}
+		const bool bNodeSelected = ImNodes::IsNodeSelected(node->getId());
+		MkNodesScopedColorStyle nodeOutlineStyle;
+		nodeOutlineStyle.push(
+			ImNodesCol_NodeOutline,
+			bNodeSelected ? IM_COL32(220, 140, 0, 255) : IM_COL32(24, 24, 24, 255));
+		ImNodes::PushStyleVar(
+			ImNodesStyleVar_NodeBorderThickness,
+			bNodeSelected ? 2.6f : 2.0f);
 
 		node->editorRenderNode(editorState);
 
 		const ImVec2 nodePos = ImNodes::GetNodeGridSpacePos(node->getId());
 		node->setNodePos({nodePos.x, nodePos.y});
 
-		ImNodes::PopColorStyle();
 		ImNodes::PopStyleVar();
 	}
 

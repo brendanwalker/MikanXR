@@ -16,8 +16,9 @@ public:
 	virtual size_t getDataSize() const { return sizeof(IMkTexturePtr); }
 	virtual void copyValueFromSourcePin() override;
 
-	virtual ImNodesPinShape editorRenderBeginPin(float alpha) override;
-	virtual void editorRenderBeginLink(float alpha) override;
+	virtual ImNodesPinShape editorComputePinShape() const override;
+	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakePinStyle(float alpha) override;
+	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeLinkStyle(float alpha) override;
 	virtual void editorRenderContextMenu(const NodeEditorState& editorState) override;
 	virtual ImU32 editorGetLinkStyleColor() const override;
 

@@ -37,6 +37,7 @@
 
 #include "imgui.h"
 #include "imnodes.h"
+#include "MkNodesScopedNode.h"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -262,20 +263,19 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 
 void DepthMaskNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	editorRenderPushNodeStyle(editorState);
-
-	ImNodes::BeginNode(m_id);
+	auto nodeStyle = editorRenderMakeNodeStyle(editorState);
+	MkNodesScopedNode scopedNode(m_id);
 
 	// Title
 	editorRenderTitle(editorState);
 
-	ImGui::Dummy(ImVec2(1.0f, 0.5f));	
+	ImGui::Dummy(ImVec2(1.0f, 0.5f));
 
 	// Inputs
 	editorRenderInputPins(editorState);
 
 	// Texture Preview
-	ImGui::Dummy(ImVec2(1.0f, 0.5f));	
+	ImGui::Dummy(ImVec2(1.0f, 0.5f));
 	IMkTexturePtr colorTexture =
 		m_linearDepthFrameBuffer ? m_linearDepthFrameBuffer->getColorTexture() : IMkTexturePtr();
 	uint32_t glTextureId =
@@ -287,10 +287,6 @@ void DepthMaskNode::editorRenderNode(const NodeEditorState& editorState)
 	editorRenderOutputPins(editorState);
 
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
-
-	ImNodes::EndNode();
-
-	editorRenderPopNodeStyle(editorState);
 }
 
 void DepthMaskNode::editorRenderPropertySheet(const NodeEditorState& editorState)

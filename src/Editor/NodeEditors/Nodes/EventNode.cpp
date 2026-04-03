@@ -61,11 +61,13 @@ FlowPinPtr EventNode::getOutputFlowPin() const
 	return getFirstPinOfType<FlowPin>(eNodePinDirection::OUTPUT);
 }
 
-void EventNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) const
+std::shared_ptr<MkNodesScopedColorStyle> EventNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
 {
-	ImNodes::PushColorStyle(ImNodesCol_TitleBar, IM_COL32(150, 30, 30, 225));
-	ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, IM_COL32(150, 30, 30, 225));
-	ImNodes::PushColorStyle(ImNodesCol_TitleBarSelected, IM_COL32(150, 30, 30, 225));
+	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	style->push(ImNodesCol_TitleBar, IM_COL32(150, 30, 30, 225))
+		.push(ImNodesCol_TitleBarHovered, IM_COL32(150, 30, 30, 225))
+		.push(ImNodesCol_TitleBarSelected, IM_COL32(150, 30, 30, 225));
+	return style;
 }
 
 std::string EventNode::editorGetTitle() const

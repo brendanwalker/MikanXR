@@ -11,6 +11,7 @@
 
 #include "imgui.h"
 #include "imnodes.h"
+#include "MkNodesScopedNode.h"
 
 // -- ModelNodeConfig -----
 configuru::Config ModelNodeConfig::writeToJSON()
@@ -108,11 +109,13 @@ bool ModelNode::evaluateNode(NodeEvaluator& evaluator)
 	return true;
 }
 
-void ModelNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) const
+std::shared_ptr<MkNodesScopedColorStyle> ModelNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
 {
-	ImNodes::PushColorStyle(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225));
-	ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225));
-	ImNodes::PushColorStyle(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
+	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	style->push(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225))
+		.push(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225))
+		.push(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
+	return style;
 }
 
 std::string ModelNode::editorGetTitle() const
@@ -138,9 +141,8 @@ std::string ModelNode::editorGetTitle() const
 
 void ModelNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	editorRenderPushNodeStyle(editorState);
-
-	ImNodes::BeginNode(m_id);
+	auto nodeStyle = editorRenderMakeNodeStyle(editorState);
+	MkNodesScopedNode scopedNode(m_id);
 
 	// Title
 	editorRenderTitle(editorState);
@@ -156,10 +158,6 @@ void ModelNode::editorRenderNode(const NodeEditorState& editorState)
 	editorRenderOutputPins(editorState);
 
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
-
-	ImNodes::EndNode();
-
-	editorRenderPopNodeStyle(editorState);
 }
 
 void ModelNode::onGraphPropertyDeleted(t_graph_property_id id)

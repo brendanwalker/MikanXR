@@ -1,4 +1,7 @@
 #include "NodeEditorUI.h"
+#include "MkGuiScopedStyleVar.h"
+#include "MkGuiScopedStyleColor.h"
+#include "MkGuiScopedDragDropTarget.h"
 #include "StringUtils.h"
 #include "IMkTexture.h"
 
@@ -97,17 +100,15 @@ namespace NodeEditorUI
 	bool DrawPropertySheetHeader(const std::string headerText)
 	{
 		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 4));
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-		ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-		bool isNodeOpened = ImGui::CollapsingHeader(headerText.c_str(), ImGuiTreeNodeFlags_SpanAvailWidth);
-		ImGui::PopStyleVar(3);
-		ImGui::PopStyleColor(3);
-
-		return isNodeOpened;
+		MkGuiScopedStyleVar headerStyleVar;
+		headerStyleVar.push(ImGuiStyleVar_FramePadding, ImVec2(2, 4))
+			.push(ImGuiStyleVar_FrameRounding, 0.0f)
+			.push(ImGuiStyleVar_FrameBorderSize, 0.0f);
+		MkGuiScopedStyleColor headerStyleColor;
+		headerStyleColor.push(ImGuiCol_Header, ImVec4(0.25f, 0.25f, 0.25f, 1.0f))
+			.push(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f))
+			.push(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
+		return ImGui::CollapsingHeader(headerText.c_str(), ImGuiTreeNodeFlags_SpanAvailWidth);
 	}
 
 	void DrawStaticTextProperty(const std::string label, const std::string text)
@@ -115,9 +116,9 @@ namespace NodeEditorUI
 		ImGui::Text(label.c_str());
 		ImGui::SameLine(k_labelWidth);
 		ImGui::SetNextItemWidth(k_valueWidth);
-		ImGui::PushStyleColor(ImGuiCol_PopupBg, k_valueBGColor);
+		MkGuiScopedStyleColor textStyleColor;
+		textStyleColor.push(ImGuiCol_PopupBg, k_valueBGColor);
 		ImGui::Text(text.c_str());
-		ImGui::PopStyleColor();
 	}
 
 	void DrawCheckBoxProperty(const std::string fieldName, const std::string label, bool& inout_value)
@@ -135,16 +136,13 @@ namespace NodeEditorUI
 		const char* items,
 		int& inout_selectedIdex)
 	{
-
 		ImGui::Text(label.c_str());
 		ImGui::SameLine(k_labelWidth);
 		ImGui::SetNextItemWidth(k_valueWidth);
-		ImGui::PushStyleColor(ImGuiCol_PopupBg, k_valueBGColor);
+		MkGuiScopedStyleColor comboStyleColor;
+		comboStyleColor.push(ImGuiCol_PopupBg, k_valueBGColor);
 		const std::string imguiElementName = makeImGuiElementName(fieldName);
-		const bool bChanged = ImGui::Combo(imguiElementName.c_str(), &inout_selectedIdex, items);
-		ImGui::PopStyleColor();
-
-		return bChanged;
+		return ImGui::Combo(imguiElementName.c_str(), &inout_selectedIdex, items);
 	}
 
 	void DrawImageProperty(const std::string label, IMkTexturePtr image)
@@ -179,31 +177,27 @@ namespace NodeEditorUI
 		ImGui::Text(label.c_str());
 		ImGui::SameLine(k_labelWidth);
 		ImGui::SetNextItemWidth(k_valueWidth);
-		ImGui::PushStyleColor(ImGuiCol_PopupBg, k_valueBGColor);
+		MkGuiScopedStyleColor comboStyleColor;
+		comboStyleColor.push(ImGuiCol_PopupBg, k_valueBGColor);
 		const std::string imguiElementName = makeImGuiElementName(fieldName);
-		const bool bChanged = 
-			ImGui::Combo(imguiElementName.c_str(),
-				&inout_selectedIdex,
-				&ComboBoxDataSource::itemGetter, 
-				dataSource, 
-				dataSource->getEntryCount());
-		ImGui::PopStyleColor();
-
-		return bChanged;
+		return ImGui::Combo(imguiElementName.c_str(),
+			&inout_selectedIdex,
+			&ComboBoxDataSource::itemGetter,
+			dataSource,
+			dataSource->getEntryCount());
 	}
 
 	void* receiveDragDropPayload(const std::string& PayloadType)
 	{
 		void* payload= nullptr;
 
-		if (ImGui::BeginDragDropTarget())
+		MkGuiScopedDragDropTarget ddt;
+		if (ddt)
 		{
 			if (const ImGuiPayload* imguiPayload = ImGui::AcceptDragDropPayload(PayloadType.c_str()))
 			{
 				payload = imguiPayload->Data;
 			}
-
-			ImGui::EndDragDropTarget();
 		}
 
 		return payload;

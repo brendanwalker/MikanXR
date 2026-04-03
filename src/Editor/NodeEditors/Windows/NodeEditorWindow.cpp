@@ -1,8 +1,20 @@
-//-- includes -----
+﻿//-- includes -----
 #include "NodeEditorWindow.h"
 #include "Logger.h"
 #include "MkGuiContext.h"
 #include "MkGuiScopedContext.h"
+#include "MkGuiScopedStyleVar.h"
+#include "MkGuiScopedStyleColor.h"
+#include "MkGuiScopedChild.h"
+#include "MkGuiScopedWindow.h"
+#include "MkGuiScopedFont.h"
+#include "MkGuiScopedGroup.h"
+#include "MkGuiScopedPopup.h"
+#include "MkGuiScopedTabBar.h"
+#include "MkGuiScopedTabItem.h"
+#include "MkGuiScopedDragDropSource.h"
+#include "MkGuiScopedDragDropTarget.h"
+#include "MkNodesScopedNodeEditor.h"
 
 #include "App.h"
 #include "AssetReference.h"
@@ -214,55 +226,89 @@ void NodeEditorWindow::render()
 
 void NodeEditorWindow::renderUI()
 {
-	pushImGuiStyles();
+	MkGuiScopedFont scopedFont(m_guiContext->getNormalIconFont());
+
+	MkGuiScopedStyleVar scopedStyleVar;
+	scopedStyleVar.push(ImGuiStyleVar_WindowPadding, ImVec2(6, 4))
+		.push(ImGuiStyleVar_FramePadding, ImVec2(8, 2))
+		.push(ImGuiStyleVar_ItemSpacing, ImVec2(4, 6))
+		.push(ImGuiStyleVar_IndentSpacing, 12.f)
+		.push(ImGuiStyleVar_FrameBorderSize, 1.f)
+		.push(ImGuiStyleVar_FrameRounding, 3.f)
+		.push(ImGuiStyleVar_GrabRounding, 2.f);
+
+	MkGuiScopedStyleColor scopedStyleColor;
+	scopedStyleColor.push(ImGuiCol_Text, ImVec4(0.94f, 0.94f, 0.94f, 1.0f))
+		.push(ImGuiCol_TextDisabled, ImVec4(0.66f, 0.66f, 0.66f, 1.0f))
+		.push(ImGuiCol_WindowBg, ImVec4(0.13f, 0.13f, 0.13f, 1.0f))
+		.push(ImGuiCol_PopupBg, ImVec4(0.25f, 0.25f, 0.25f, 1.0f))
+		.push(ImGuiCol_Border, ImVec4(0.0f, 0.0f, 0.0f, 1.0f))
+		.push(ImGuiCol_FrameBg, ImVec4(0.0f, 0.0f, 0.0f, 1.0f))
+		.push(ImGuiCol_FrameBgHovered, ImVec4(0.25f, 0.25f, 0.25f, 0.4f))
+		.push(ImGuiCol_FrameBgActive, ImVec4(0.4f, 0.4f, 0.4f, 0.4f))
+		.push(ImGuiCol_TitleBg, ImVec4(0.18f, 0.18f, 0.18f, 1.0f))
+		.push(ImGuiCol_TitleBgActive, ImVec4(0.18f, 0.18f, 0.18f, 1.0f))
+		.push(ImGuiCol_TitleBgCollapsed, ImVec4(0.18f, 0.18f, 0.18f, 1.0f))
+		.push(ImGuiCol_MenuBarBg, ImVec4(0.06f, 0.06f, 0.06f, 1.0f))
+		.push(ImGuiCol_ScrollbarBg, ImVec4(0.1f, 0.1f, 0.1f, 1.0f))
+		.push(ImGuiCol_SliderGrab, ImVec4(0.25f, 0.25f, 0.25f, 1.0f))
+		.push(ImGuiCol_Button, ImVec4(0.25f, 0.25f, 0.25f, 1.0f))
+		.push(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f))
+		.push(ImGuiCol_HeaderHovered, ImVec4(0.1f, 0.4f, 0.9f, 1.0f))
+		.push(ImGuiCol_Tab, ImVec4(0.06f, 0.06f, 0.06f, 1.0f))
+		.push(ImGuiCol_TabHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f))
+		.push(ImGuiCol_TabActive, ImVec4(0.25f, 0.25f, 0.25f, 0.4f))
+		.push(ImGuiCol_ResizeGrip, ImVec4(0.0f, 0.0f, 0.0f, 0.0f))
+		.push(ImGuiCol_ResizeGripHovered, ImVec4(0.0f, 0.0f, 0.0f, 0.0f))
+		.push(ImGuiCol_ResizeGripActive, ImVec4(0.0f, 0.0f, 0.0f, 0.0f))
+		.push(ImGuiCol_SeparatorActive, ImVec4(0.0f, 0.0f, 0.0f, 0.0f))
+		.push(ImGuiCol_PlotHistogram, ImVec4(0.25f, 0.25f, 0.25f, 1.0f))
+		.push(ImGuiCol_DragDropTarget, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
 
 	ImGui::SetNextWindowSize(ImVec2(getWidth(), getHeight()), ImGuiCond_Once);
-	ImGui::Begin("Node Editor", nullptr, 
-				 ImGuiWindowFlags_NoResize | 
-				 ImGuiWindowFlags_NoBringToFrontOnFocus |
-				 ImGuiWindowFlags_NoMove);
+	MkGuiScopedWindow nodeEditorWindow("Node Editor", nullptr,
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoBringToFrontOnFocus |
+		ImGuiWindowFlags_NoMove);
 
-		// Toolbar
-		renderToolbar();
+	// Toolbar
+	renderToolbar();
 
-		// Left Panel
-		renderGraphVariablesPanel();
+	// Left Panel
+	renderGraphVariablesPanel();
 
-		ImGui::SameLine();
-		ImGui::BeginChild("Main Panel", ImVec2(ImGui::GetContentRegionAvail().x - 250,
-											   ImGui::GetContentRegionAvail().y));
-			// Main Frame
-			renderMainFrame();
+	ImGui::SameLine();
+	{
+		MkGuiScopedChild mainPanel("Main Panel", ImVec2(ImGui::GetContentRegionAvail().x - 250,
+		                                                ImGui::GetContentRegionAvail().y));
 
-			// Bottom Panel
-			renderAssetsPanel();
+		// Main Frame
+		renderMainFrame();
 
-		ImGui::EndChild();
+		// Bottom Panel
+		renderAssetsPanel();
+	}
 
-		// Right Panel
-		renderSelectedObjectPanel();
-
-	ImGui::End();
-
-	popImGuiStyles();
+	// Right Panel
+	renderSelectedObjectPanel();
 }
 
 void NodeEditorWindow::renderMainFrame()
 {
 	NodeGraphPtr nodeGraph= getNodeGraph();
 
-	ImGui::BeginChild("Main", ImVec2(ImGui::GetContentRegionAvail().x,
-									 ImGui::GetContentRegionAvail().y - 226));
-
-	ImNodes::BeginNodeEditor();
-
-	if (nodeGraph)
 	{
-		nodeGraph->editorRender(m_editorState);
-	}
+		MkGuiScopedChild mainChild("Main", ImVec2(ImGui::GetContentRegionAvail().x,
+												   ImGui::GetContentRegionAvail().y - 226));
+		{
+			MkNodesScopedNodeEditor nodeEditor;
 
-	ImNodes::EndNodeEditor();
-	ImGui::EndChild();
+			if (nodeGraph)
+			{
+				nodeGraph->editorRender(m_editorState);
+			}
+		}
+	}
 
 	// Draw error messages on top of related nodes
 	renderNodeEvalErrors();
@@ -338,40 +384,38 @@ void NodeEditorWindow::renderNodeEvalErrors()
 			errorPos.y -= k_errorWindowOffset;
 
 			ImGui::SetNextWindowPos(errorPos);
-			ImGui::Begin(
+			MkGuiScopedWindow evalWindow(
 				evalWindowId.c_str(),
 				nullptr,
 				ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav);
-			ImGui::BeginGroup();
-
-			ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.75f, 0.15f, 0.01f, 1.f));
-			while (errorIter < m_lastNodeEvalErrors.size())
 			{
-				// Add a bullet point for each error on the same node
-				ImGui::BulletText(currentError->errorMessage.c_str());
-
-				// Advance to the next error message on this node
-				errorIter++;
-
-				// If the next error is on a different node, move on to the next error window
-				if (errorIter < m_lastNodeEvalErrors.size())
+				MkGuiScopedGroup errorGroup;
+				MkGuiScopedStyleColor errorTextColor;
+				errorTextColor.push(ImGuiCol_Text, ImVec4(0.75f, 0.15f, 0.01f, 1.f));
+				while (errorIter < m_lastNodeEvalErrors.size())
 				{
-					const NodeEvaluationError* nextError= &m_lastNodeEvalErrors[errorIter];
+					// Add a bullet point for each error on the same node
+					ImGui::BulletText(currentError->errorMessage.c_str());
 
-					if (nextError->errorNodeId == currentError->errorNodeId)
+					// Advance to the next error message on this node
+					errorIter++;
+
+					// If the next error is on a different node, move on to the next error window
+					if (errorIter < m_lastNodeEvalErrors.size())
 					{
-						currentError= nextError;
-					}
-					else
-					{
-						break;
+						const NodeEvaluationError* nextError= &m_lastNodeEvalErrors[errorIter];
+
+						if (nextError->errorNodeId == currentError->errorNodeId)
+						{
+							currentError= nextError;
+						}
+						else
+						{
+							break;
+						}
 					}
 				}
 			}
-			ImGui::PopStyleColor();
-
-			ImGui::EndGroup();
-			ImGui::End();
 		}
 	}
 }
@@ -409,85 +453,95 @@ void NodeEditorWindow::renderMainFrameContextMenu(const NodeEditorState& editorS
 		}
 	}
 
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
-	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, 6));
-	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(14, 4));
-	ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.1f, 0.4f, 0.9f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-	if (ImGui::BeginPopup("editor_context_menu_node"))
+	MkGuiScopedStyleVar contextMenuStyleVar;
+	contextMenuStyleVar.push(ImGuiStyleVar_WindowPadding, ImVec2(4, 4))
+		.push(ImGuiStyleVar_FramePadding, ImVec2(12, 6))
+		.push(ImGuiStyleVar_ItemSpacing, ImVec2(14, 4));
+	MkGuiScopedStyleColor contextMenuStyleColor;
+	contextMenuStyleColor.push(ImGuiCol_HeaderHovered, ImVec4(0.1f, 0.4f, 0.9f, 1.0f))
+		.push(ImGuiCol_PopupBg, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
 	{
-		NodePtr node;
-		if (m_objectSelection.getObjectIdType() == GraphObjectIdType::NODE)
+		MkGuiScopedPopup nodePopup("editor_context_menu_node");
+		if (nodePopup)
 		{
-			node= getNodeGraph()->getNodeById(m_objectSelection.getObjectId(0));
-		}
-
-		if (node && node->editorCanDelete())
-		{
-			if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
+			NodePtr node;
+			if (m_objectSelection.getObjectIdType() == GraphObjectIdType::NODE)
 			{
-				getNodeGraph()->deleteNodeById(m_objectSelection.getObjectId(0));
+				node= getNodeGraph()->getNodeById(m_objectSelection.getObjectId(0));
+			}
+
+			if (node && node->editorCanDelete())
+			{
+				if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
+				{
+					getNodeGraph()->deleteNodeById(m_objectSelection.getObjectId(0));
+				}
+			}
+			else
+			{
+				ImGui::CloseCurrentPopup();
 			}
 		}
 		else
 		{
-			ImGui::CloseCurrentPopup();
-		}
-		ImGui::EndPopup();
-	}
-	else if (ImGui::BeginPopup("editor_context_menu_link"))
-	{
-		if (m_objectSelection.getObjectIdType() == GraphObjectIdType::LINK &&
-			ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
-		{
-			getNodeGraph()->deleteLinkById(m_objectSelection.getObjectId(0));
-		}
-		ImGui::EndPopup();
-	}
-	else if (ImGui::BeginPopup("editor_context_menu_nodes"))
-	{
-		NodeGraphPtr nodeGraph= getNodeGraph();
-		if (nodeGraph)
-		{
-			std::vector<NodeFactoryPtr> nodeFactories = getNodeGraph()->editorGetValidNodeFactories(editorState);
-			for (NodeFactoryPtr nodeFactory : nodeFactories)
+			MkGuiScopedPopup linkPopup("editor_context_menu_link");
+			if (linkPopup)
 			{
-				const std::string nodeTitle = nodeFactory->getNodeDefaultObject()->editorGetTitle();
-
-				if (ImGui::MenuItem(nodeTitle.c_str()))
+				if (m_objectSelection.getObjectIdType() == GraphObjectIdType::LINK &&
+					ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
 				{
-					getNodeGraph()->createNode(nodeFactory, editorState);
-					break;
+					getNodeGraph()->deleteLinkById(m_objectSelection.getObjectId(0));
+				}
+			}
+			else
+			{
+				MkGuiScopedPopup nodesPopup("editor_context_menu_nodes");
+				if (nodesPopup)
+				{
+					NodeGraphPtr nodeGraph= getNodeGraph();
+					if (nodeGraph)
+					{
+						std::vector<NodeFactoryPtr> nodeFactories = getNodeGraph()->editorGetValidNodeFactories(editorState);
+						for (NodeFactoryPtr nodeFactory : nodeFactories)
+						{
+							const std::string nodeTitle = nodeFactory->getNodeDefaultObject()->editorGetTitle();
+
+							if (ImGui::MenuItem(nodeTitle.c_str()))
+							{
+								getNodeGraph()->createNode(nodeFactory, editorState);
+								break;
+							}
+						}
+					}
+				}
+				else if (m_editorState.bLinkHanged)
+				{
+					m_editorState.bLinkHanged = false;
+					m_editorState.startedLinkPinId = -1;
 				}
 			}
 		}
-		ImGui::EndPopup();
 	}
-	else if (m_editorState.bLinkHanged)
-	{
-		m_editorState.bLinkHanged = false;
-		m_editorState.startedLinkPinId = -1;
-	}
-	ImGui::PopStyleColor(2);
-	ImGui::PopStyleVar(3);
 }
 
 void NodeEditorWindow::renderToolbar()
 {
-	ImGui::PushFont(m_guiContext->getBigIconFont());
+	MkGuiScopedFont bigIconFont(m_guiContext->getBigIconFont());
 
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 4));
-	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, 4));
-	ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0);
-	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.0f, 0.0f, 0.0f, 0.5f));
+	MkGuiScopedStyleVar toolbarStyleVar;
+	toolbarStyleVar.push(ImGuiStyleVar_WindowPadding, ImVec2(8, 4))
+		.push(ImGuiStyleVar_FramePadding, ImVec2(12, 4))
+		.push(ImGuiStyleVar_FrameBorderSize, 0.f);
+	MkGuiScopedStyleColor toolbarStyleColor;
+	toolbarStyleColor.push(ImGuiCol_Button, ImVec4(0.13f, 0.13f, 0.13f, 1.0f))
+		.push(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f))
+		.push(ImGuiCol_ButtonActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f))
+		.push(ImGuiCol_Separator, ImVec4(0.0f, 0.0f, 0.0f, 0.5f));
 
-	ImGui::BeginChild("Toolbar", ImVec2(ImGui::GetContentRegionAvail().x, 40));
+	MkGuiScopedChild toolbarChild("Toolbar", ImVec2(ImGui::GetContentRegionAvail().x, 40));
 
 	ImGui::SetCursorPosY((ImGui::GetWindowHeight() - 30) * 0.5f);
-	
+
 	if (ImGui::Button(ICON_FK_FLOPPY_O "   Save", ImVec2(0, 30)))
 	{
 		saveGraph(false);
@@ -495,57 +549,54 @@ void NodeEditorWindow::renderToolbar()
 
 	// Editor Control
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 4.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 4));
-		ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+		MkGuiScopedStyleVar editorControlStyleVar;
+		editorControlStyleVar.push(ImGuiStyleVar_ChildRounding, 4.0f)
+			.push(ImGuiStyleVar_FramePadding, ImVec2(4, 4));
+		MkGuiScopedStyleColor editorControlStyleColor;
+		editorControlStyleColor.push(ImGuiCol_ChildBg, ImVec4(0.2f, 0.2f, 0.2f, 1.0f))
+			.push(ImGuiCol_Border, ImVec4(0.2f, 0.2f, 0.2f, 1.0f))
+			.push(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
 
 		ImGui::SameLine();
-		ImGui::BeginChild("EditorControl", ImVec2(70, 30), true, ImGuiWindowFlags_NoScrollbar);
+		MkGuiScopedChild editorControlChild("EditorControl", ImVec2(70, 30), true, ImGuiWindowFlags_NoScrollbar);
 		ImGui::SetCursorPosY((ImGui::GetWindowHeight() - ImGui::GetTextLineHeight()) * 0.5f);
 
 		ImGui::SameLine();
-		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.9f, 0.9f, 0.9f, 1.0f));
-		if (ImGui::SmallButton(ICON_FK_UNDO))
 		{
-			undo();
+			MkGuiScopedStyleColor undoTextColor;
+			undoTextColor.push(ImGuiCol_Text, ImVec4(0.9f, 0.9f, 0.9f, 1.0f));
+			if (ImGui::SmallButton(ICON_FK_UNDO))
+			{
+				undo();
+			}
 		}
-		ImGui::PopStyleColor();
-
-		ImGui::EndChild();
-		ImGui::PopStyleColor(3);
-		ImGui::PopStyleVar(2);
 	}
-
-	ImGui::EndChild();
-
-	ImGui::PopStyleVar(3);
-	ImGui::PopStyleColor(4);
-
-	ImGui::PopFont();
 }
 
 void NodeEditorWindow::renderGraphVariablesPanel()
 {
-	ImGui::BeginChild("Left Panel", ImVec2(200, ImGui::GetContentRegionAvail().y));
+	MkGuiScopedChild leftPanel("Left Panel", ImVec2(200, ImGui::GetContentRegionAvail().y));
 
 
 	// Title bar
 	ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 4));
-	ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
-	ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-	ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-	bool isNodeOpened = ImGui::CollapsingHeader("Variables", ImGuiTreeNodeFlags_SpanAvailWidth);
-	ImGui::PopStyleVar(3);
-	ImGui::PopStyleColor(3);
+	bool isNodeOpened;
+	{
+		MkGuiScopedStyleVar headerStyleVar;
+		headerStyleVar.push(ImGuiStyleVar_FramePadding, ImVec2(2, 4))
+			.push(ImGuiStyleVar_FrameRounding, 0.0f)
+			.push(ImGuiStyleVar_FrameBorderSize, 0.0f);
+		MkGuiScopedStyleColor headerStyleColor;
+		headerStyleColor.push(ImGuiCol_Header, ImVec4(0.25f, 0.25f, 0.25f, 1.0f))
+			.push(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f))
+			.push(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
+		isNodeOpened = ImGui::CollapsingHeader("Variables", ImGuiTreeNodeFlags_SpanAvailWidth);
+	}
 
 	if (isNodeOpened)
 	{
-		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.25f, 0.25f, 0.25f, 0.4f));
+		MkGuiScopedStyleColor selectionStyleColor;
+		selectionStyleColor.push(ImGuiCol_HeaderHovered, ImVec4(0.25f, 0.25f, 0.25f, 0.4f));
 
 		auto propertyMap = getNodeGraph()->getPropertyMap();
 		for (auto it = propertyMap.begin(); it != propertyMap.end(); it++)
@@ -578,39 +629,41 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 					m_objectSelection.clear();
 				}
 			}
-			if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
 			{
-				ImGui::SetDragDropPayload(
-					variable->getClassName().c_str(), &variable, sizeof(GraphPropertyPtr));
-				ImGui::Text(variable->getName().c_str());
-				ImGui::EndDragDropSource();
+				MkGuiScopedDragDropSource dds(ImGuiDragDropFlags_None);
+				if (dds)
+				{
+					ImGui::SetDragDropPayload(
+						variable->getClassName().c_str(), &variable, sizeof(GraphPropertyPtr));
+					ImGui::Text(variable->getName().c_str());
+				}
 			}
 
 			// Context menu
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
-			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, 6));
-			ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(14, 4));
-			ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.1f, 0.4f, 0.9f, 1.0f));
-			ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-			if (ImGui::BeginPopupContextItem())
 			{
-				ImNodes::ClearLinkSelection();
-				ImNodes::ClearNodeSelection();
-				m_objectSelection = GraphObjectSelection(GraphObjectIdType::VARIABLE, 1);
-				m_objectSelection.setObjectId(0, variable->getId());
-
-				if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
+				MkGuiScopedStyleVar varContextMenuStyleVar;
+				varContextMenuStyleVar.push(ImGuiStyleVar_WindowPadding, ImVec2(4, 4))
+					.push(ImGuiStyleVar_FramePadding, ImVec2(12, 6))
+					.push(ImGuiStyleVar_ItemSpacing, ImVec2(14, 4));
+				MkGuiScopedStyleColor varContextMenuStyleColor;
+				varContextMenuStyleColor.push(ImGuiCol_HeaderHovered, ImVec4(0.1f, 0.4f, 0.9f, 1.0f))
+					.push(ImGuiCol_PopupBg, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+				MkGuiScopedPopupContextItem varContextMenu;
+				if (varContextMenu)
 				{
-					getNodeGraph()->deletePropertyById(propertyId);
-					m_objectSelection.clear();
-				}
+					ImNodes::ClearLinkSelection();
+					ImNodes::ClearNodeSelection();
+					m_objectSelection = GraphObjectSelection(GraphObjectIdType::VARIABLE, 1);
+					m_objectSelection.setObjectId(0, variable->getId());
 
-				ImGui::EndPopup();
+					if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
+					{
+						getNodeGraph()->deletePropertyById(propertyId);
+						m_objectSelection.clear();
+					}
+				}
 			}
-			ImGui::PopStyleColor(2);
-			ImGui::PopStyleVar(3);
 		}
-		ImGui::PopStyleColor();
 	}
 
 	// Drag and drop creation
@@ -622,8 +675,6 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 	}
 
 	renderNewGraphVariablesContextMenu(m_editorState);
-
-	ImGui::EndChild();
 }
 
 void NodeEditorWindow::renderNewGraphVariablesContextMenu(const NodeEditorState& editorState)
@@ -640,17 +691,20 @@ void NodeEditorWindow::renderNewGraphVariablesContextMenu(const NodeEditorState&
 		ImGui::OpenPopup("editor_context_menu_nodes");
 	}
 
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
-	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, 6));
-	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(14, 4));
-	ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.1f, 0.4f, 0.9f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-	if (ImGui::BeginPopup("editor_context_menu_nodes"))
+	MkGuiScopedStyleVar newVarMenuStyleVar;
+	newVarMenuStyleVar.push(ImGuiStyleVar_WindowPadding, ImVec2(4, 4))
+		.push(ImGuiStyleVar_FramePadding, ImVec2(12, 6))
+		.push(ImGuiStyleVar_ItemSpacing, ImVec2(14, 4));
+	MkGuiScopedStyleColor newVarMenuStyleColor;
+	newVarMenuStyleColor.push(ImGuiCol_HeaderHovered, ImVec4(0.1f, 0.4f, 0.9f, 1.0f))
+		.push(ImGuiCol_PopupBg, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+	MkGuiScopedPopup newVarPopup("editor_context_menu_nodes");
+	if (newVarPopup)
 	{
 		NodeGraphPtr nodeGraph = getNodeGraph();
 		if (nodeGraph)
 		{
-			std::vector<GraphPropertyFactoryPtr> propertyFactories = 
+			std::vector<GraphPropertyFactoryPtr> propertyFactories =
 				getNodeGraph()->editorGetValidPropertyFactories(editorState);
 
 			for (GraphPropertyFactoryPtr propertyFactory : propertyFactories)
@@ -670,176 +724,173 @@ void NodeEditorWindow::renderNewGraphVariablesContextMenu(const NodeEditorState&
 				}
 			}
 		}
-		ImGui::EndPopup();
 	}
-	ImGui::PopStyleColor(2);
-	ImGui::PopStyleVar(3);
 }
 
 void NodeEditorWindow::renderAssetsPanel()
 {
 	NodeGraphPtr nodeGraph= getNodeGraph();
 
-	ImGui::BeginChild("Assets Panel", ImVec2(ImGui::GetContentRegionAvail().x, 216));
-	if (ImGui::BeginTabBar("AssetsTabBar"))
+	MkGuiScopedChild assetsPanel("Assets Panel", ImVec2(ImGui::GetContentRegionAvail().x, 216));
 	{
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-		if (ImGui::BeginTabItem("Assets"))
+		MkGuiScopedTabBar assetTabBar("AssetsTabBar");
+		if (assetTabBar)
 		{
-			ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.25f, 0.25f, 0.25f, 0.4f));
-			ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
-			ImGui::BeginChild("AssetSubFrame");
-
-			ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 6, ImGui::GetCursorPos().y + 1));
-
-			if (nodeGraph)
+			MkGuiScopedStyleVar tabBarStyleVar;
+			tabBarStyleVar.push(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+			MkGuiScopedTabItem assetTabItem("Assets");
+			if (assetTabItem)
 			{
-				auto& factoryMap = nodeGraph->getAssetReferenceFactories();
-				for (auto it = factoryMap.begin(); it != factoryMap.end(); it++)
+				MkGuiScopedStyleColor assetTabStyleColor;
+				assetTabStyleColor.push(ImGuiCol_ChildBg, ImVec4(0.25f, 0.25f, 0.25f, 0.4f))
+					.push(ImGuiCol_Separator, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
+				MkGuiScopedChild assetSubFrame("AssetSubFrame");
+
+				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 6, ImGui::GetCursorPos().y + 1));
+
+				if (nodeGraph)
 				{
-					auto& assetRefFactory = it->second;
-					const std::string& assetTypeName = assetRefFactory->getAssetTypeName();
-					const std::string buttonName = StringUtils::stringify(ICON_FK_PLUS_CIRCLE "  Add ", assetTypeName, "##", assetTypeName);
-
-					if (ImGui::SmallButton(buttonName.c_str()))
+					auto& factoryMap = nodeGraph->getAssetReferenceFactories();
+					for (auto it = factoryMap.begin(); it != factoryMap.end(); it++)
 					{
-						auto assetPath =
-							tinyfd_openFileDialog(
-								assetRefFactory->getFileDialogTitle(),
-								assetRefFactory->getDefaultPath(),
-								assetRefFactory->getFilterPatternCount(),
-								assetRefFactory->getFilterPatterns(),
-								assetRefFactory->getFilterDescription(),
-								1);
+						auto& assetRefFactory = it->second;
+						const std::string& assetTypeName = assetRefFactory->getAssetTypeName();
+						const std::string buttonName = StringUtils::stringify(ICON_FK_PLUS_CIRCLE "  Add ", assetTypeName, "##", assetTypeName);
 
-						if (assetPath)
+						if (ImGui::SmallButton(buttonName.c_str()))
 						{
-							std::stringstream ssPaths(assetPath);
-							std::string path;
-							while (std::getline(ssPaths, path, '|'))
+							auto assetPath =
+								tinyfd_openFileDialog(
+									assetRefFactory->getFileDialogTitle(),
+									assetRefFactory->getDefaultPath(),
+									assetRefFactory->getFilterPatternCount(),
+									assetRefFactory->getFilterPatterns(),
+									assetRefFactory->getFilterDescription(),
+									1);
+
+							if (assetPath)
 							{
-								std::string universalPath(path);
-								std::replace(universalPath.begin(), universalPath.end(), '\\', '/');
-
-								// Create the asset reference
-								AssetReferencePtr assetRef = assetRefFactory->allocateAssetReference();
-								if (assetRef)
+								std::stringstream ssPaths(assetPath);
+								std::string path;
+								while (std::getline(ssPaths, path, '|'))
 								{
-									// Assign path to the asset
-									assetRef->setAssetPath(universalPath);
+									std::string universalPath(path);
+									std::replace(universalPath.begin(), universalPath.end(), '\\', '/');
 
-									// Register the asset reference with the graph
-									nodeGraph->getAssetReferencesMutable().push_back(assetRef);
-									onAssetReferenceCreated(assetRef);
+									// Create the asset reference
+									AssetReferencePtr assetRef = assetRefFactory->allocateAssetReference();
+									if (assetRef)
+									{
+										// Assign path to the asset
+										assetRef->setAssetPath(universalPath);
+
+										// Register the asset reference with the graph
+										nodeGraph->getAssetReferencesMutable().push_back(assetRef);
+										onAssetReferenceCreated(assetRef);
+									}
 								}
 							}
 						}
-					}
-					ImGui::SameLine();
-				}
-			}
-
-			ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 18);
-			ImGui::Separator();
-
-			// Assets browser
-			if (nodeGraph)
-			{
-				auto& assetRefArray = nodeGraph->getAssetReferences();
-
-				ImGui::BeginChild("AssetBrowser");
-
-				ImGui::Dummy(ImVec2(1, 10));
-				for (int assetIndex = 0; assetIndex < assetRefArray.size(); assetIndex++)
-				{
-					AssetReferencePtr assetRefPtr= assetRefArray[assetIndex];
-
-					ImGui::Dummy(ImVec2(10, 140));
-					ImGui::SameLine();
-					ImGui::BeginGroup();
-					std::string idStr = "##asset" + std::to_string(assetIndex);
-					ImGui::Button(idStr.c_str(), ImVec2(120, 140));
-
-					if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
-					{
-						ImGui::SetDragDropPayload(
-							assetRefPtr->getClassName().c_str(), &assetRefPtr, sizeof(AssetReferencePtr));
-						ImGui::Text(assetRefPtr->getShortName().c_str());
-						ImGui::EndDragDropSource();
-					}
-
-					// Context menu
-					bool itemDeleted = false;
-					ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
-					ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(12, 6));
-					ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(14, 4));
-					ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.1f, 0.4f, 0.9f, 1.0f));
-					ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-					if (ImGui::BeginPopupContextItem())
-					{
-						ImNodes::ClearLinkSelection();
-						ImNodes::ClearNodeSelection();
-
-						m_objectSelection = GraphObjectSelection(GraphObjectIdType::ASSET, assetIndex);
-						m_objectSelection.setObjectId(0, assetIndex);
-
-						if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
-						{
-							deleteSelectedItem();
-							itemDeleted = true;
-						}
-
-						ImGui::EndPopup();
-					}
-					ImGui::PopStyleColor(2);
-					ImGui::PopStyleVar(3);
-
-					if (!itemDeleted)
-					{
-						IMkTexturePtr texture= assetRefPtr->getPreviewTexture();
-
-						ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
-						ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 130);
-
-						if (texture && texture->getGlTextureId() != 0)
-						{
-							ImGui::Image((void*)(intptr_t)texture->getGlTextureId(), ImVec2(100, 100));
-						}
-						ImGui::Dummy(ImVec2(2, 1));
 						ImGui::SameLine();
-						ImGui::SetNextItemWidth(108);
-						ImGui::Text(assetRefPtr->getShortName().c_str());
-					}
-					ImGui::EndGroup();
-
-					ImGui::SameLine();
-					if (ImGui::GetContentRegionAvail().x < 130)
-					{
-						ImGui::NewLine();
-						ImGui::NewLine();
 					}
 				}
-				ImGui::NewLine();
-				ImGui::Dummy(ImVec2(1, 10));
 
-				ImGui::EndChild();
+				ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 18);
+				ImGui::Separator();
+
+				// Assets browser
+				if (nodeGraph)
+				{
+					auto& assetRefArray = nodeGraph->getAssetReferences();
+
+					MkGuiScopedChild assetBrowser("AssetBrowser");
+
+					ImGui::Dummy(ImVec2(1, 10));
+					for (int assetIndex = 0; assetIndex < assetRefArray.size(); assetIndex++)
+					{
+						AssetReferencePtr assetRefPtr= assetRefArray[assetIndex];
+
+						ImGui::Dummy(ImVec2(10, 140));
+						ImGui::SameLine();
+						{
+						MkGuiScopedGroup assetGroup;
+						std::string idStr = "##asset" + std::to_string(assetIndex);
+						ImGui::Button(idStr.c_str(), ImVec2(120, 140));
+
+						{
+							MkGuiScopedDragDropSource dds(ImGuiDragDropFlags_None);
+							if (dds)
+							{
+								ImGui::SetDragDropPayload(
+									assetRefPtr->getClassName().c_str(), &assetRefPtr, sizeof(AssetReferencePtr));
+								ImGui::Text(assetRefPtr->getShortName().c_str());
+							}
+						}
+
+						// Context menu
+						bool itemDeleted = false;
+						{
+							MkGuiScopedStyleVar assetContextMenuStyleVar;
+							assetContextMenuStyleVar.push(ImGuiStyleVar_WindowPadding, ImVec2(4, 4))
+								.push(ImGuiStyleVar_FramePadding, ImVec2(12, 6))
+								.push(ImGuiStyleVar_ItemSpacing, ImVec2(14, 4));
+							MkGuiScopedStyleColor assetContextMenuStyleColor;
+							assetContextMenuStyleColor.push(ImGuiCol_HeaderHovered, ImVec4(0.1f, 0.4f, 0.9f, 1.0f))
+								.push(ImGuiCol_PopupBg, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+							MkGuiScopedPopupContextItem assetContextMenu;
+							if (assetContextMenu)
+							{
+								ImNodes::ClearLinkSelection();
+								ImNodes::ClearNodeSelection();
+
+								m_objectSelection = GraphObjectSelection(GraphObjectIdType::ASSET, assetIndex);
+								m_objectSelection.setObjectId(0, assetIndex);
+
+								if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
+								{
+									deleteSelectedItem();
+									itemDeleted = true;
+								}
+							}
+						}
+
+						if (!itemDeleted)
+						{
+							IMkTexturePtr texture= assetRefPtr->getPreviewTexture();
+
+							ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 10);
+							ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 130);
+
+							if (texture && texture->getGlTextureId() != 0)
+							{
+								ImGui::Image((void*)(intptr_t)texture->getGlTextureId(), ImVec2(100, 100));
+							}
+							ImGui::Dummy(ImVec2(2, 1));
+							ImGui::SameLine();
+							ImGui::SetNextItemWidth(108);
+							ImGui::Text(assetRefPtr->getShortName().c_str());
+						}
+						}
+
+						ImGui::SameLine();
+						if (ImGui::GetContentRegionAvail().x < 130)
+						{
+							ImGui::NewLine();
+							ImGui::NewLine();
+						}
+					}
+					ImGui::NewLine();
+					ImGui::Dummy(ImVec2(1, 10));
+				}
 			}
-
-			ImGui::EndChild();
-			ImGui::PopStyleColor();
-			ImGui::PopStyleColor();
-			ImGui::EndTabItem();
 		}
-		ImGui::PopStyleVar();
-		ImGui::EndTabBar();
 	}
-	ImGui::EndChild();
 }
 
 void NodeEditorWindow::renderSelectedObjectPanel()
 {
 	ImGui::SameLine();
-	ImGui::BeginChild("Right Panel", ImVec2(344, ImGui::GetContentRegionAvail().y));
+	MkGuiScopedChild rightPanel("Right Panel", ImVec2(344, ImGui::GetContentRegionAvail().y));
 
 	if (m_objectSelection.getObjectIdType() == GraphObjectIdType::NODE)
 	{
@@ -869,8 +920,6 @@ void NodeEditorWindow::renderSelectedObjectPanel()
 			property->editorRenderPropertySheet(m_editorState);
 		}
 	}
-
-	ImGui::EndChild();
 }
 
 void NodeEditorWindow::deleteSelectedItem()
@@ -1194,49 +1243,3 @@ void NodeEditorWindow::popAppState()
 	return getMainWindow()->popAppState();
 }
 
-void NodeEditorWindow::pushImGuiStyles()
-{
-	ImGui::PushFont(m_guiContext->getNormalIconFont());
-
-	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6, 4));
-	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 2));
-	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(4, 6));
-	ImGui::PushStyleVar(ImGuiStyleVar_IndentSpacing, 12);
-	ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1);
-	ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 3);
-	ImGui::PushStyleVar(ImGuiStyleVar_GrabRounding, 2);
-
-	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.94f, 0.94f, 0.94f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_TextDisabled, ImVec4(0.66f, 0.66f, 0.66f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.25f, 0.25f, 0.25f, 0.4f));
-	ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.4f, 0.4f, 0.4f, 0.4f));
-	ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0.18f, 0.18f, 0.18f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0.18f, 0.18f, 0.18f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_TitleBgCollapsed, ImVec4(0.18f, 0.18f, 0.18f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_MenuBarBg, ImVec4(0.06f, 0.06f, 0.06f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ScrollbarBg, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_SliderGrab, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.1f, 0.4f, 0.9f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_Tab, ImVec4(0.06f, 0.06f, 0.06f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_TabHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_TabActive, ImVec4(0.25f, 0.25f, 0.25f, 0.4f));
-	ImGui::PushStyleColor(ImGuiCol_ResizeGrip, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-	ImGui::PushStyleColor(ImGuiCol_ResizeGripHovered, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-	ImGui::PushStyleColor(ImGuiCol_ResizeGripActive, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-	ImGui::PushStyleColor(ImGuiCol_SeparatorActive, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-	ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-	ImGui::PushStyleColor(ImGuiCol_DragDropTarget, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-}
-
-void NodeEditorWindow::popImGuiStyles()
-{
-	ImGui::PopFont();
-	ImGui::PopStyleVar(7);
-	ImGui::PopStyleColor(26);
-}

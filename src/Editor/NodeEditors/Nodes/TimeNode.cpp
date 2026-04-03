@@ -22,11 +22,13 @@ bool TimeNode::evaluateNode(NodeEvaluator& evaluator)
 	return true;
 }
 
-void TimeNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) const
+std::shared_ptr<MkNodesScopedColorStyle> TimeNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
 {
-	ImNodes::PushColorStyle(ImNodesCol_TitleBar, IM_COL32(110, 146, 104, 225));
-	ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, IM_COL32(110, 146, 104, 225));
-	ImNodes::PushColorStyle(ImNodesCol_TitleBarSelected, IM_COL32(110, 146, 104, 225));
+	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	style->push(ImNodesCol_TitleBar, IM_COL32(110, 146, 104, 225))
+		.push(ImNodesCol_TitleBarHovered, IM_COL32(110, 146, 104, 225))
+		.push(ImNodesCol_TitleBarSelected, IM_COL32(110, 146, 104, 225));
+	return style;
 }
 
 // -- TimeNode Factory -----

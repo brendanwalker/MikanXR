@@ -4,6 +4,11 @@
 #include "Graphs/NodeEvaluator.h"
 #include "Pins/NodePin.h"
 #include "Pins/FlowPin.h"
+#include "MkGuiScopedGroup.h"
+#include "MkGuiScopedStyleVar.h"
+#include "MkNodesScopedColorStyle.h"
+#include "MkNodesScopedNode.h"
+#include "MkNodesScopedNodeTitleBar.h"
 #include "Logger.h"
 #include "StringUtils.h"
 
@@ -43,6 +48,8 @@ Node::Node()
 {
 
 }
+
+Node::~Node() = default;
 
 bool Node::loadFromConfig(NodeConfigConstPtr nodeConfig)
 {
@@ -291,9 +298,8 @@ FlowPinPtr Node::getOutputFlowPin() const
 
 void Node::editorRenderNode(const NodeEditorState& editorState)
 {
-	editorRenderPushNodeStyle(editorState);
-
-	ImNodes::BeginNode(m_id);
+	auto nodeStyle = editorRenderMakeNodeStyle(editorState);
+	MkNodesScopedNode scopedNode(m_id);
 
 	// Title
 	editorRenderTitle(editorState);
@@ -307,24 +313,15 @@ void Node::editorRenderNode(const NodeEditorState& editorState)
 	editorRenderOutputPins(editorState);
 
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
-
-	ImNodes::EndNode();
-
-	editorRenderPopNodeStyle(editorState);
 }
 
-void Node::editorRenderPushNodeStyle(const NodeEditorState& editorState) const
+std::shared_ptr<MkNodesScopedColorStyle> Node::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
 {
-	ImNodes::PushColorStyle(ImNodesCol_TitleBar, IM_COL32(85, 85, 85, 255));
-	ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, IM_COL32(85, 85, 85, 255));
-	ImNodes::PushColorStyle(ImNodesCol_TitleBarSelected, IM_COL32(85, 85, 85, 255));
-}
-
-void Node::editorRenderPopNodeStyle(const NodeEditorState& editorState) const
-{
-	ImNodes::PopColorStyle();
-	ImNodes::PopColorStyle();
-	ImNodes::PopColorStyle();
+	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	style->push(ImNodesCol_TitleBar, IM_COL32(85, 85, 85, 255))
+		.push(ImNodesCol_TitleBarHovered, IM_COL32(85, 85, 85, 255))
+		.push(ImNodesCol_TitleBarSelected, IM_COL32(85, 85, 85, 255));
+	return style;
 }
 
 void Node::editorComputeNodeDimensions(NodeDimensions& outDims) const
@@ -364,23 +361,23 @@ void Node::editorRenderTitle(const NodeEditorState& editorState) const
 {
 	const std::string titleString= editorGetTitle();
 
-	ImNodes::BeginNodeTitleBar();
-	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+	MkNodesScopedNodeTitleBar titleBar;
+	MkGuiScopedStyleVar styleVar;
+	styleVar.push(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
 	ImGui::Text(titleString.c_str());
-	ImGui::PopStyleVar();
-	ImNodes::EndNodeTitleBar();
 }
 
 void Node::editorRenderInputPins(const NodeEditorState& editorState)
 {
 	if (m_pinsIn.size() > 0)
 	{
-		ImGui::BeginGroup();
-		for (auto& pin : m_pinsIn)
 		{
-			pin->editorRenderInputPin(editorState);
+			MkGuiScopedGroup group;
+			for (auto& pin : m_pinsIn)
+			{
+				pin->editorRenderInputPin(editorState);
+			}
 		}
-		ImGui::EndGroup();
 		ImGui::SameLine();
 	}
 }
@@ -393,17 +390,16 @@ void Node::editorRenderOutputPins(const NodeEditorState& editorState) const
 	NodeDimensions nodeDims= {};
 	editorComputeNodeDimensions(nodeDims);
 
-	ImGui::BeginGroup();
+	MkGuiScopedGroup group;
 	for (auto& pin : m_pinsOut)
 	{
-		const float prefixWidth = 
-			nodeDims.totalNodeWidth 
+		const float prefixWidth =
+			nodeDims.totalNodeWidth
 			- nodeDims.inputColomnWidth
 			- ImGui::CalcTextSize(pin->getName().c_str()).x;
 
 		pin->editorRenderOutputPin(editorState, prefixWidth);
 	}
-	ImGui::EndGroup();
 }
 
 // -- NodeFactory -----

@@ -4,9 +4,11 @@
 #include "NodeFwd.h"
 #include "NodePinConstants.h"
 #include "MulticastDelegate.h"
+#include "MkNodesScopedColorStyle.h"
 
 #include "imnodes.h"
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -33,6 +35,7 @@ class NodePin  : public std::enable_shared_from_this<NodePin>
 {
 public:
 	NodePin();
+	virtual ~NodePin() = default;
 
 	inline static const std::string k_pinClassName = "NodePin";
 	virtual std::string getClassName() const { return k_pinClassName; }
@@ -78,10 +81,9 @@ public:
 	virtual void editorRenderInputPin(const NodeEditorState& editorState);
 	virtual void editorRenderInputTextEntry(const NodeEditorState& editorState) {}
 	virtual void editorRenderOutputPin(const NodeEditorState& editorState, float prefixWidth= 0.f);
-	virtual ImNodesPinShape editorRenderBeginPin(float alpha);
-	virtual void editorRenderEndPin();
-	virtual void editorRenderBeginLink(float alpha);
-	virtual void editorRenderEndLink();
+	virtual ImNodesPinShape editorComputePinShape() const;
+	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakePinStyle(float alpha);
+	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeLinkStyle(float alpha);
 	virtual void editorRenderContextMenu(const NodeEditorState& editorState) {}
 	virtual ImU32 editorGetLinkStyleColor() const;
 

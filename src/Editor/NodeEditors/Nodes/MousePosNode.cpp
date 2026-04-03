@@ -28,11 +28,13 @@ bool MousePosNode::evaluateNode(NodeEvaluator& evaluator)
 	return true;
 }
 
-void MousePosNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) const
+std::shared_ptr<MkNodesScopedColorStyle> MousePosNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
 {
-	ImNodes::PushColorStyle(ImNodesCol_TitleBar, IM_COL32(160, 160, 40, 225));
-	ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, IM_COL32(160, 160, 40, 225));
-	ImNodes::PushColorStyle(ImNodesCol_TitleBarSelected, IM_COL32(160, 160, 40, 225));
+	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	style->push(ImNodesCol_TitleBar, IM_COL32(160, 160, 40, 225))
+		.push(ImNodesCol_TitleBarHovered, IM_COL32(160, 160, 40, 225))
+		.push(ImNodesCol_TitleBarSelected, IM_COL32(160, 160, 40, 225));
+	return style;
 }
 
 // -- MousePosNode Factory -----

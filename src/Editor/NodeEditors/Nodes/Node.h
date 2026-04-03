@@ -5,8 +5,10 @@
 #include "ProjectManager.h"
 #include "ObjectSystemFwd.h"
 #include "Pins/NodePinConstants.h"
+#include "MkNodesScopedColorStyle.h"
 #include "glm/ext/vector_float2.hpp"
 
+#include <memory>
 #include <string>
 #include <vector>
 #include <stdint.h>
@@ -39,7 +41,7 @@ class Node : public std::enable_shared_from_this<Node>
 {
 public:
 	Node();
-	virtual ~Node() {}
+	virtual ~Node();
 
 	inline void markPendingDeletion() { m_bIsPendingDeletion= true; }
 	inline bool isPendingDeletion() const { return m_bIsPendingDeletion; }
@@ -115,8 +117,7 @@ protected:
 
 	virtual void editorRenderTitle(const NodeEditorState& editorState) const;
 	virtual void editorComputeNodeDimensions(NodeDimensions& outDims) const;
-	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const;
-	virtual void editorRenderPopNodeStyle(const NodeEditorState& editorState) const;
+	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeNodeStyle(const NodeEditorState& editorState) const;
 	virtual void editorRenderInputPins(const NodeEditorState& editorState);
 	virtual void editorRenderOutputPins(const NodeEditorState& editorState) const;
 

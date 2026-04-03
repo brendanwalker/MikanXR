@@ -71,7 +71,6 @@ void NodeLink::editorRender(const NodeEditorState& editorState)
 {
 	const int alpha = editorState.startedLinkPinId == -1 ? 255 : 50;
 
-	m_startPin->editorRenderBeginLink(alpha);
+	auto linkStyle = m_startPin->editorRenderMakeLinkStyle(alpha);
 	ImNodes::Link(m_id, m_startPin->getId(), m_endPin->getId());
-	m_startPin->editorRenderEndLink();
 }
