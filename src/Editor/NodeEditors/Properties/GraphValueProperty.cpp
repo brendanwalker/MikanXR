@@ -1,4 +1,5 @@
 #include "GraphValueProperty.h"
+#include "NodeEditorState.h"
 #include "NodeEditorUI.h"
 #include "Graphs/NodeGraph.h"
 #include "Nodes/VariableNode.h"
@@ -14,10 +15,10 @@ void GraphValueProperty::editorHandleMainFrameDragDrop(const class NodeEditorSta
 
 void GraphValueProperty::editorRenderPropertySheet(const class NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Variable"))
+	if (NodeEditorUI::DrawPropertySheetHeader("Variable", editorState.styleManager))
 	{
 		// Name
-		NodeEditorUI::DrawStaticTextProperty("Name", getName());
+		NodeEditorUI::DrawStaticTextProperty("Name", getName(), editorState.styleManager);
 
 		// Variable Default
 		editorRenderValue(editorState);

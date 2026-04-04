@@ -276,7 +276,7 @@ void DepthTextureSourceNode::editorRenderNode(const NodeEditorState& editorState
 
 void DepthTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Client Texture Node"))
+	if (NodeEditorUI::DrawPropertySheetHeader("Client Texture Node", editorState.styleManager))
 	{
 		// Texture Type
 		int iTextureType= (int)m_clientTextureType;
@@ -284,7 +284,8 @@ void DepthTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& ed
 			"textureSourceColorType",
 			"Type",
 			"depthPackRGBA\0",
-			iTextureType))
+			iTextureType,
+			editorState.styleManager))
 		{
 			m_clientTextureType= (eTextureSourceDepthType)iTextureType;
 		}
@@ -301,7 +302,8 @@ void DepthTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& ed
 				"textureSourceIndex",
 				"Source",
 				&dataSource,
-				selectedIndex);
+				selectedIndex,
+				editorState.styleManager);
 			m_textureSourceComponent = dataSource.getEntryAtIndex(selectedIndex);
 		}
 

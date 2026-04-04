@@ -19,6 +19,7 @@ public:
 	virtual class ClientSourceManager* getClientSourceManager() const = 0;
 	virtual class LocalizationManager* getLocalizationManager() const = 0;
 	virtual class EventBus* getEventBus() const = 0;
+	virtual class MkGuiStyleManager* getMkGuiStyleManager() const = 0;
 
 	virtual class App* getOwnerApp() const = 0;
 	virtual class AppStage* getCurrentAppStage() const = 0;

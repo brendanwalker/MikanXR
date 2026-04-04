@@ -163,13 +163,13 @@ bool VariableNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 void VariableNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
 	// title bar
-	if (NodeEditorUI::DrawPropertySheetHeader("Variable Node"))
+	if (NodeEditorUI::DrawPropertySheetHeader("Variable Node", editorState.styleManager))
 	{
 		bool bPinsNeedRebuild = false;
 
 		// Name
 		const std::string property_name = m_sourceProperty ? m_sourceProperty->getName() : "<INVALID>";
-		NodeEditorUI::DrawStaticTextProperty("Name", property_name);
+		NodeEditorUI::DrawStaticTextProperty("Name", property_name, editorState.styleManager);
 
 		// Evaluation Mode
 		int iEvalMode = (int)m_evalMode;
@@ -177,7 +177,8 @@ void VariableNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 			"variableNodeEvalMode",
 			"Eval Mode",
 			"Get\0Set\0",
-			iEvalMode))
+			iEvalMode,
+			editorState.styleManager))
 		{
 			m_evalMode = (eVariableEvalMode)iEvalMode;
 			bPinsNeedRebuild= true;
@@ -191,7 +192,8 @@ void VariableNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 			"variableSource",
 			"Source",
 			&dataSource,
-			valueSourceIndex))
+			valueSourceIndex,
+			editorState.styleManager))
 		{
 			m_sourceProperty= dataSource.getEntryValueSource(valueSourceIndex);
 			bPinsNeedRebuild= true;

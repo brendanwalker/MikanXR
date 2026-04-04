@@ -5,11 +5,9 @@
 #include "CompositorObjectSystem.h"
 #include "CompositorNodeEditorWindow.h"
 #include "Logger.h"
-#include "MkGuiContext.h"
-#include "MkGuiScopedStyleVar.h"
-#include "MkGuiScopedStyleColor.h"
 #include "MkGuiScopedChild.h"
-#include "MkGuiScopedFont.h"
+#include "MkGuiScopedStyle.h"
+#include "MkGuiStyleManager.h"
 #include "NodeEditorUI.h"
 
 #include "Graphs/CompositorNodeGraph.h"
@@ -173,17 +171,7 @@ void CompositorNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& 
 
 void CompositorNodeEditorWindow::renderToolbar()
 {
-	MkGuiScopedFont bigIconFont(m_guiContext->getBigIconFont());
-
-	MkGuiScopedStyleVar toolbarStyleVar;
-	toolbarStyleVar.push(ImGuiStyleVar_WindowPadding, ImVec2(8, 4))
-		.push(ImGuiStyleVar_FramePadding, ImVec2(12, 4))
-		.push(ImGuiStyleVar_FrameBorderSize, 0.f);
-	MkGuiScopedStyleColor toolbarStyleColor;
-	toolbarStyleColor.push(ImGuiCol_Button, ImVec4(0.13f, 0.13f, 0.13f, 1.0f))
-		.push(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f))
-		.push(ImGuiCol_ButtonActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f))
-		.push(ImGuiCol_Separator, ImVec4(0.0f, 0.0f, 0.0f, 0.5f));
+	MkGuiScopedStyle toolbarStyle(getMkGuiStyleManager()->getStyle("node_editor_toolbar"), m_guiContext.get());
 
 	MkGuiScopedChild toolbarChild("Toolbar", ImVec2(ImGui::GetContentRegionAvail().x, 40));
 
@@ -196,23 +184,17 @@ void CompositorNodeEditorWindow::renderToolbar()
 
 	// Editor Control
 	{
-		MkGuiScopedStyleVar editorControlStyleVar;
-		editorControlStyleVar.push(ImGuiStyleVar_ChildRounding, 4.0f)
-			.push(ImGuiStyleVar_FramePadding, ImVec2(4, 4));
-		MkGuiScopedStyleColor editorControlStyleColor;
-		editorControlStyleColor.push(ImGuiCol_ChildBg, ImVec4(0.2f, 0.2f, 0.2f, 1.0f))
-			.push(ImGuiCol_Border, ImVec4(0.2f, 0.2f, 0.2f, 1.0f))
-			.push(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+		MkGuiScopedStyle controlPanelStyle(getMkGuiStyleManager()->getStyle("node_editor_control_panel"), m_guiContext.get());
 
 		ImGui::SameLine();
 		MkGuiScopedChild editorControlChild("EditorControl", ImVec2(70, 30), true, ImGuiWindowFlags_NoScrollbar);
 		ImGui::SetCursorPosY((ImGui::GetWindowHeight() - ImGui::GetTextLineHeight()) * 0.5f);
 
 		{
-			MkGuiScopedStyleColor playStopColor;
+			const char* playStopStyleName = m_isRunningCompositor ? "compositor_stop_button" : "compositor_play_button";
+			MkGuiScopedStyle playStopStyle(getMkGuiStyleManager()->getStyle(playStopStyleName), m_guiContext.get());
 			if (m_isRunningCompositor)
 			{
-				playStopColor.push(ImGuiCol_Text, ImVec4(1.0f, 0.3f, 0.3f, 1.0f));
 				if (ImGui::SmallButton(ICON_FK_STOP))
 				{
 					m_isRunningCompositor = false;
@@ -220,7 +202,6 @@ void CompositorNodeEditorWindow::renderToolbar()
 			}
 			else
 			{
-				playStopColor.push(ImGuiCol_Text, ImVec4(0.5f, 0.8f, 0.5f, 1.0f));
 				if (ImGui::SmallButton(ICON_FK_PLAY))
 				{
 					m_isRunningCompositor = true;
@@ -230,8 +211,7 @@ void CompositorNodeEditorWindow::renderToolbar()
 
 		ImGui::SameLine();
 		{
-			MkGuiScopedStyleColor undoTextColor;
-			undoTextColor.push(ImGuiCol_Text, ImVec4(0.9f, 0.9f, 0.9f, 1.0f));
+			MkGuiScopedStyle undoStyle(getMkGuiStyleManager()->getStyle("node_editor_undo_button"), m_guiContext.get());
 			if (ImGui::SmallButton(ICON_FK_UNDO))
 			{
 				undo();

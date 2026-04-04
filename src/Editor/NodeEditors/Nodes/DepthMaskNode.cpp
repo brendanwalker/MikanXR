@@ -292,7 +292,7 @@ void DepthMaskNode::editorRenderNode(const NodeEditorState& editorState)
 void DepthMaskNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
 	// title bar
-	if (NodeEditorUI::DrawPropertySheetHeader("Depth Mask Node"))
+	if (NodeEditorUI::DrawPropertySheetHeader("Depth Mask Node", editorState.styleManager))
 	{
 		NodeEditorUI::DrawCheckBoxProperty(
 			"DepthMaskNodeDisableQuadStencil",

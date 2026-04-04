@@ -2,13 +2,12 @@
 #include "NodeEditorWindow.h"
 #include "Logger.h"
 #include "MkGuiContext.h"
+#include "MkGuiScopedStyle.h"
+#include "MkGuiStyleManager.h"
 #include "MkGuiScopedUpdate.h"
 #include "MkGuiScopedContext.h"
-#include "MkGuiScopedStyleVar.h"
-#include "MkGuiScopedStyleColor.h"
 #include "MkGuiScopedChild.h"
 #include "MkGuiScopedWindow.h"
-#include "MkGuiScopedFont.h"
 #include "MkGuiScopedGroup.h"
 #include "MkGuiScopedPopup.h"
 #include "MkGuiScopedRender.h"
@@ -143,6 +142,21 @@ bool NodeEditorWindow::startup()
 		}
 	}
 
+	if (success)
+	{
+		m_styleManager = std::make_unique<MkGuiStyleManager>();
+		const auto stylesPath = PathUtils::getResourceDirectory() / "gui_styles";
+		if (!m_styleManager->startup(m_guiContext.get(), stylesPath))
+		{
+			MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Failed to initialize style manager";
+			success = false;
+		}
+		else
+		{
+			m_editorState.styleManager = m_styleManager.get();
+		}
+	}
+
 	if (success && !m_textureCache->startup())
 	{
 		MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Failed to initialize texture cache!";
@@ -227,44 +241,7 @@ void NodeEditorWindow::render()
 
 void NodeEditorWindow::updateUI()
 {
-	MkGuiScopedFont scopedFont(m_guiContext->getNormalIconFont());
-
-	MkGuiScopedStyleVar scopedStyleVar;
-	scopedStyleVar.push(ImGuiStyleVar_WindowPadding, ImVec2(6, 4))
-		.push(ImGuiStyleVar_FramePadding, ImVec2(8, 2))
-		.push(ImGuiStyleVar_ItemSpacing, ImVec2(4, 6))
-		.push(ImGuiStyleVar_IndentSpacing, 12.f)
-		.push(ImGuiStyleVar_FrameBorderSize, 1.f)
-		.push(ImGuiStyleVar_FrameRounding, 3.f)
-		.push(ImGuiStyleVar_GrabRounding, 2.f);
-
-	MkGuiScopedStyleColor scopedStyleColor;
-	scopedStyleColor.push(ImGuiCol_Text, ImVec4(0.94f, 0.94f, 0.94f, 1.0f))
-		.push(ImGuiCol_TextDisabled, ImVec4(0.66f, 0.66f, 0.66f, 1.0f))
-		.push(ImGuiCol_WindowBg, ImVec4(0.13f, 0.13f, 0.13f, 1.0f))
-		.push(ImGuiCol_PopupBg, ImVec4(0.25f, 0.25f, 0.25f, 1.0f))
-		.push(ImGuiCol_Border, ImVec4(0.0f, 0.0f, 0.0f, 1.0f))
-		.push(ImGuiCol_FrameBg, ImVec4(0.0f, 0.0f, 0.0f, 1.0f))
-		.push(ImGuiCol_FrameBgHovered, ImVec4(0.25f, 0.25f, 0.25f, 0.4f))
-		.push(ImGuiCol_FrameBgActive, ImVec4(0.4f, 0.4f, 0.4f, 0.4f))
-		.push(ImGuiCol_TitleBg, ImVec4(0.18f, 0.18f, 0.18f, 1.0f))
-		.push(ImGuiCol_TitleBgActive, ImVec4(0.18f, 0.18f, 0.18f, 1.0f))
-		.push(ImGuiCol_TitleBgCollapsed, ImVec4(0.18f, 0.18f, 0.18f, 1.0f))
-		.push(ImGuiCol_MenuBarBg, ImVec4(0.06f, 0.06f, 0.06f, 1.0f))
-		.push(ImGuiCol_ScrollbarBg, ImVec4(0.1f, 0.1f, 0.1f, 1.0f))
-		.push(ImGuiCol_SliderGrab, ImVec4(0.25f, 0.25f, 0.25f, 1.0f))
-		.push(ImGuiCol_Button, ImVec4(0.25f, 0.25f, 0.25f, 1.0f))
-		.push(ImGuiCol_ButtonHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f))
-		.push(ImGuiCol_HeaderHovered, ImVec4(0.1f, 0.4f, 0.9f, 1.0f))
-		.push(ImGuiCol_Tab, ImVec4(0.06f, 0.06f, 0.06f, 1.0f))
-		.push(ImGuiCol_TabHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f))
-		.push(ImGuiCol_TabActive, ImVec4(0.25f, 0.25f, 0.25f, 0.4f))
-		.push(ImGuiCol_ResizeGrip, ImVec4(0.0f, 0.0f, 0.0f, 0.0f))
-		.push(ImGuiCol_ResizeGripHovered, ImVec4(0.0f, 0.0f, 0.0f, 0.0f))
-		.push(ImGuiCol_ResizeGripActive, ImVec4(0.0f, 0.0f, 0.0f, 0.0f))
-		.push(ImGuiCol_SeparatorActive, ImVec4(0.0f, 0.0f, 0.0f, 0.0f))
-		.push(ImGuiCol_PlotHistogram, ImVec4(0.25f, 0.25f, 0.25f, 1.0f))
-		.push(ImGuiCol_DragDropTarget, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+	MkGuiScopedStyle baseStyle(m_styleManager->getStyle("node_editor_base"), m_guiContext.get());
 
 	ImGui::SetNextWindowSize(ImVec2(getWidth(), getHeight()), ImGuiCond_Once);
 	MkGuiScopedWindow nodeEditorWindow("Node Editor", nullptr,
@@ -391,8 +368,7 @@ void NodeEditorWindow::renderNodeEvalErrors()
 				ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav);
 			{
 				MkGuiScopedGroup errorGroup;
-				MkGuiScopedStyleColor errorTextColor;
-				errorTextColor.push(ImGuiCol_Text, ImVec4(0.75f, 0.15f, 0.01f, 1.f));
+				MkGuiScopedStyle errorTextStyle(m_styleManager->getStyle("node_editor_error_text"), m_guiContext.get());
 				while (errorIter < m_lastNodeEvalErrors.size())
 				{
 					// Add a bullet point for each error on the same node
@@ -454,13 +430,7 @@ void NodeEditorWindow::renderMainFrameContextMenu(const NodeEditorState& editorS
 		}
 	}
 
-	MkGuiScopedStyleVar contextMenuStyleVar;
-	contextMenuStyleVar.push(ImGuiStyleVar_WindowPadding, ImVec2(4, 4))
-		.push(ImGuiStyleVar_FramePadding, ImVec2(12, 6))
-		.push(ImGuiStyleVar_ItemSpacing, ImVec2(14, 4));
-	MkGuiScopedStyleColor contextMenuStyleColor;
-	contextMenuStyleColor.push(ImGuiCol_HeaderHovered, ImVec4(0.1f, 0.4f, 0.9f, 1.0f))
-		.push(ImGuiCol_PopupBg, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+	MkGuiScopedStyle contextMenuStyle(m_styleManager->getStyle("node_editor_context_menu"), m_guiContext.get());
 	{
 		MkGuiScopedPopup nodePopup("editor_context_menu_node");
 		if (nodePopup)
@@ -527,17 +497,7 @@ void NodeEditorWindow::renderMainFrameContextMenu(const NodeEditorState& editorS
 
 void NodeEditorWindow::renderToolbar()
 {
-	MkGuiScopedFont bigIconFont(m_guiContext->getBigIconFont());
-
-	MkGuiScopedStyleVar toolbarStyleVar;
-	toolbarStyleVar.push(ImGuiStyleVar_WindowPadding, ImVec2(8, 4))
-		.push(ImGuiStyleVar_FramePadding, ImVec2(12, 4))
-		.push(ImGuiStyleVar_FrameBorderSize, 0.f);
-	MkGuiScopedStyleColor toolbarStyleColor;
-	toolbarStyleColor.push(ImGuiCol_Button, ImVec4(0.13f, 0.13f, 0.13f, 1.0f))
-		.push(ImGuiCol_ButtonHovered, ImVec4(0.25f, 0.25f, 0.25f, 1.0f))
-		.push(ImGuiCol_ButtonActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f))
-		.push(ImGuiCol_Separator, ImVec4(0.0f, 0.0f, 0.0f, 0.5f));
+	MkGuiScopedStyle toolbarStyle(m_styleManager->getStyle("node_editor_toolbar"), m_guiContext.get());
 
 	MkGuiScopedChild toolbarChild("Toolbar", ImVec2(ImGui::GetContentRegionAvail().x, 40));
 
@@ -550,13 +510,7 @@ void NodeEditorWindow::renderToolbar()
 
 	// Editor Control
 	{
-		MkGuiScopedStyleVar editorControlStyleVar;
-		editorControlStyleVar.push(ImGuiStyleVar_ChildRounding, 4.0f)
-			.push(ImGuiStyleVar_FramePadding, ImVec2(4, 4));
-		MkGuiScopedStyleColor editorControlStyleColor;
-		editorControlStyleColor.push(ImGuiCol_ChildBg, ImVec4(0.2f, 0.2f, 0.2f, 1.0f))
-			.push(ImGuiCol_Border, ImVec4(0.2f, 0.2f, 0.2f, 1.0f))
-			.push(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+		MkGuiScopedStyle controlPanelStyle(m_styleManager->getStyle("node_editor_control_panel"), m_guiContext.get());
 
 		ImGui::SameLine();
 		MkGuiScopedChild editorControlChild("EditorControl", ImVec2(70, 30), true, ImGuiWindowFlags_NoScrollbar);
@@ -564,8 +518,7 @@ void NodeEditorWindow::renderToolbar()
 
 		ImGui::SameLine();
 		{
-			MkGuiScopedStyleColor undoTextColor;
-			undoTextColor.push(ImGuiCol_Text, ImVec4(0.9f, 0.9f, 0.9f, 1.0f));
+			MkGuiScopedStyle undoStyle(m_styleManager->getStyle("node_editor_undo_button"), m_guiContext.get());
 			if (ImGui::SmallButton(ICON_FK_UNDO))
 			{
 				undo();
@@ -583,21 +536,13 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 	ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 	bool isNodeOpened;
 	{
-		MkGuiScopedStyleVar headerStyleVar;
-		headerStyleVar.push(ImGuiStyleVar_FramePadding, ImVec2(2, 4))
-			.push(ImGuiStyleVar_FrameRounding, 0.0f)
-			.push(ImGuiStyleVar_FrameBorderSize, 0.0f);
-		MkGuiScopedStyleColor headerStyleColor;
-		headerStyleColor.push(ImGuiCol_Header, ImVec4(0.25f, 0.25f, 0.25f, 1.0f))
-			.push(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f))
-			.push(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
+		MkGuiScopedStyle headerStyle(m_styleManager->getStyle("node_editor_panel_header"), m_guiContext.get());
 		isNodeOpened = ImGui::CollapsingHeader("Variables", ImGuiTreeNodeFlags_SpanAvailWidth);
 	}
 
 	if (isNodeOpened)
 	{
-		MkGuiScopedStyleColor selectionStyleColor;
-		selectionStyleColor.push(ImGuiCol_HeaderHovered, ImVec4(0.25f, 0.25f, 0.25f, 0.4f));
+		MkGuiScopedStyle selectionStyle(m_styleManager->getStyle("node_editor_variable_list"), m_guiContext.get());
 
 		auto propertyMap = getNodeGraph()->getPropertyMap();
 		for (auto it = propertyMap.begin(); it != propertyMap.end(); it++)
@@ -642,13 +587,7 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 
 			// Context menu
 			{
-				MkGuiScopedStyleVar varContextMenuStyleVar;
-				varContextMenuStyleVar.push(ImGuiStyleVar_WindowPadding, ImVec2(4, 4))
-					.push(ImGuiStyleVar_FramePadding, ImVec2(12, 6))
-					.push(ImGuiStyleVar_ItemSpacing, ImVec2(14, 4));
-				MkGuiScopedStyleColor varContextMenuStyleColor;
-				varContextMenuStyleColor.push(ImGuiCol_HeaderHovered, ImVec4(0.1f, 0.4f, 0.9f, 1.0f))
-					.push(ImGuiCol_PopupBg, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+				MkGuiScopedStyle varContextMenuStyle(m_styleManager->getStyle("node_editor_context_menu"), m_guiContext.get());
 				MkGuiScopedPopupContextItem varContextMenu;
 				if (varContextMenu)
 				{
@@ -692,13 +631,7 @@ void NodeEditorWindow::renderNewGraphVariablesContextMenu(const NodeEditorState&
 		ImGui::OpenPopup("editor_context_menu_nodes");
 	}
 
-	MkGuiScopedStyleVar newVarMenuStyleVar;
-	newVarMenuStyleVar.push(ImGuiStyleVar_WindowPadding, ImVec2(4, 4))
-		.push(ImGuiStyleVar_FramePadding, ImVec2(12, 6))
-		.push(ImGuiStyleVar_ItemSpacing, ImVec2(14, 4));
-	MkGuiScopedStyleColor newVarMenuStyleColor;
-	newVarMenuStyleColor.push(ImGuiCol_HeaderHovered, ImVec4(0.1f, 0.4f, 0.9f, 1.0f))
-		.push(ImGuiCol_PopupBg, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+	MkGuiScopedStyle newVarMenuStyle(m_styleManager->getStyle("node_editor_context_menu"), m_guiContext.get());
 	MkGuiScopedPopup newVarPopup("editor_context_menu_nodes");
 	if (newVarPopup)
 	{
@@ -737,14 +670,10 @@ void NodeEditorWindow::renderAssetsPanel()
 		MkGuiScopedTabBar assetTabBar("AssetsTabBar");
 		if (assetTabBar)
 		{
-			MkGuiScopedStyleVar tabBarStyleVar;
-			tabBarStyleVar.push(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+			MkGuiScopedStyle assetTabStyle(m_styleManager->getStyle("node_editor_asset_tab"), m_guiContext.get());
 			MkGuiScopedTabItem assetTabItem("Assets");
 			if (assetTabItem)
 			{
-				MkGuiScopedStyleColor assetTabStyleColor;
-				assetTabStyleColor.push(ImGuiCol_ChildBg, ImVec4(0.25f, 0.25f, 0.25f, 0.4f))
-					.push(ImGuiCol_Separator, ImVec4(0.13f, 0.13f, 0.13f, 1.0f));
 				MkGuiScopedChild assetSubFrame("AssetSubFrame");
 
 				ImGui::SetCursorPos(ImVec2(ImGui::GetCursorPos().x + 6, ImGui::GetCursorPos().y + 1));
@@ -831,13 +760,7 @@ void NodeEditorWindow::renderAssetsPanel()
 						// Context menu
 						bool itemDeleted = false;
 						{
-							MkGuiScopedStyleVar assetContextMenuStyleVar;
-							assetContextMenuStyleVar.push(ImGuiStyleVar_WindowPadding, ImVec2(4, 4))
-								.push(ImGuiStyleVar_FramePadding, ImVec2(12, 6))
-								.push(ImGuiStyleVar_ItemSpacing, ImVec2(14, 4));
-							MkGuiScopedStyleColor assetContextMenuStyleColor;
-							assetContextMenuStyleColor.push(ImGuiCol_HeaderHovered, ImVec4(0.1f, 0.4f, 0.9f, 1.0f))
-								.push(ImGuiCol_PopupBg, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
+							MkGuiScopedStyle assetContextMenuStyle(m_styleManager->getStyle("node_editor_context_menu"), m_guiContext.get());
 							MkGuiScopedPopupContextItem assetContextMenu;
 							if (assetContextMenu)
 							{
@@ -1127,6 +1050,12 @@ void NodeEditorWindow::shutdown()
 		m_textureCache = nullptr;
 	}
 
+	if (m_styleManager != nullptr)
+	{
+		m_styleManager->shutdown();
+		m_styleManager = nullptr;
+	}
+
 	if (m_guiContext != nullptr)
 	{
 		m_guiContext->shutdown();
@@ -1215,6 +1144,11 @@ LocalizationManager* NodeEditorWindow::getLocalizationManager() const
 EventBus* NodeEditorWindow::getEventBus() const
 {
 	return getMainWindow()->getEventBus();
+}
+
+MkGuiStyleManager* NodeEditorWindow::getMkGuiStyleManager() const
+{
+	return m_styleManager.get();
 }
 
 App* NodeEditorWindow::getOwnerApp() const

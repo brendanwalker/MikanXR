@@ -184,16 +184,16 @@ void GraphMaterialProperty::editorHandleMainFrameDragDrop(const class NodeEditor
 
 void GraphMaterialProperty::editorRenderPropertySheet(const class NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Material"))
+	if (NodeEditorUI::DrawPropertySheetHeader("Material", editorState.styleManager))
 	{
 		// Name
 		std::string name = m_materialResource ? m_materialResource->getName() : "";
-		NodeEditorUI::DrawStaticTextProperty("Name", name);
+		NodeEditorUI::DrawStaticTextProperty("Name", name, editorState.styleManager);
 
 		// Material Asset
 		MaterialAssetComboDataSource dataSource(std::static_pointer_cast<GraphMaterialProperty>(shared_from_this()));
 		int selectedIndex= dataSource.getCurrentAssetIndex();
-		if (NodeEditorUI::DrawComboBoxProperty("materialSelection", "Material", &dataSource, selectedIndex))
+		if (NodeEditorUI::DrawComboBoxProperty("materialSelection", "Material", &dataSource, selectedIndex, editorState.styleManager))
 		{
 			setMaterialAssetReference(dataSource.getEntryAssetRef(selectedIndex));
 		}

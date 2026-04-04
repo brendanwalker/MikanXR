@@ -132,7 +132,7 @@ void VideoTextureNode::editorRenderNode(const NodeEditorState& editorState)
 
 void VideoTextureNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Video Texture Node"))
+	if (NodeEditorUI::DrawPropertySheetHeader("Video Texture Node", editorState.styleManager))
 	{
 		const char* k_videoSourceOptions= "Video\0Distortion\0";
 
@@ -142,7 +142,8 @@ void VideoTextureNode::editorRenderPropertySheet(const NodeEditorState& editorSt
 			"videoTextureNodeSource",
 			"Source",
 			k_videoSourceOptions,
-			iTextureSource))
+			iTextureSource,
+			editorState.styleManager))
 		{
 			m_videoTextureSource = (eVideoTextureSource)iTextureSource;
 		}

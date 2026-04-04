@@ -320,7 +320,7 @@ void ColorTextureSourceNode::editorRenderNode(const NodeEditorState& editorState
 
 void ColorTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Client Texture Node"))
+	if (NodeEditorUI::DrawPropertySheetHeader("Client Texture Node", editorState.styleManager))
 	{
 		// Texture Type
 		int iTextureType= (int)m_clientTextureType;
@@ -328,7 +328,8 @@ void ColorTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& ed
 			"textureSourceColorType",
 			"Type",
 			"colorRGB\0colorRGBA\0",
-			iTextureType))
+			iTextureType,
+			editorState.styleManager))
 		{
 			m_clientTextureType= (eTextureSourceColorType)iTextureType;
 		}
@@ -345,7 +346,8 @@ void ColorTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& ed
 				"textureSourceIndex",
 				"Source",
 				&dataSource,
-				selectedIndex);
+				selectedIndex,
+				editorState.styleManager);
 			m_textureSourceComponent = dataSource.getEntryAtIndex(selectedIndex);
 		}
 

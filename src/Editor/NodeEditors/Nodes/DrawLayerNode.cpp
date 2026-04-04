@@ -410,33 +410,35 @@ FlowPinPtr DrawLayerNode::getOutputFlowPin() const
 void DrawLayerNode::editorRenderPropertySheet(const NodeEditorState& editorState)	
 {	
 	// title bar	
-	if (NodeEditorUI::DrawPropertySheetHeader("Draw Layer Node"))	
-	{	
-		// Material	
-		const std::string material_name = m_material ? m_material->getName() : "<INVALID>";	
-		NodeEditorUI::DrawStaticTextProperty("Material", material_name);	
+	if (NodeEditorUI::DrawPropertySheetHeader("Draw Layer Node", editorState.styleManager))
+	{
+		// Material
+		const std::string material_name = m_material ? m_material->getName() : "<INVALID>";
+		NodeEditorUI::DrawStaticTextProperty("Material", material_name, editorState.styleManager);
 
-		// Blend Mode	
-		int iBlendMode = (int)m_blendMode;	
-		if (NodeEditorUI::DrawSimpleComboBoxProperty(	
-			"drawLayerNodeBlendMode",	
-			"Blend Mode",	
-			"Blend Off\0Blend On\0",	
-			iBlendMode))	
+		// Blend Mode
+		int iBlendMode = (int)m_blendMode;
+		if (NodeEditorUI::DrawSimpleComboBoxProperty(
+			"drawLayerNodeBlendMode",
+			"Blend Mode",
+			"Blend Off\0Blend On\0",
+			iBlendMode,
+			editorState.styleManager))
 		{	
 			m_blendMode= (eCompositorBlendMode)iBlendMode;	
 		}	
 
 		// Stencil Mode	
 		int iStencilMode = (int)m_stencilMode;	
-		if (NodeEditorUI::DrawSimpleComboBoxProperty(	
-			"drawLayerNodeStencilMode",	
-			"Stencil Mode",	
-			"None\0Inside\0Outside\0",	
-			iStencilMode))	
-		{	
-			m_stencilMode = (eCompositorStencilMode)iStencilMode;	
-		}	
+		if (NodeEditorUI::DrawSimpleComboBoxProperty(
+			"drawLayerNodeStencilMode",
+			"Stencil Mode",
+			"None\0Inside\0Outside\0",
+			iStencilMode,
+			editorState.styleManager))
+		{
+			m_stencilMode = (eCompositorStencilMode)iStencilMode;
+		}
 
 		// Invert when camera inside stencil options	
 		NodeEditorUI::DrawCheckBoxProperty(	

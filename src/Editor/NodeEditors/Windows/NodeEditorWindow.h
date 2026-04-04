@@ -72,6 +72,7 @@ public:
 	virtual class ClientSourceManager* getClientSourceManager() const override;
 	virtual class LocalizationManager* getLocalizationManager() const override;
 	virtual class EventBus* getEventBus() const override;
+	virtual class MkGuiStyleManager* getMkGuiStyleManager() const override;
 
 	virtual class App* getOwnerApp() const override;
 	virtual class AppStage* getCurrentAppStage() const override;
@@ -112,6 +113,7 @@ protected:
 	SdlWindowUniquePtr m_sdlWindow;
 	MkStateStackUniquePtr m_mkStateStack;
 	MkGuiContextPtr m_guiContext;
+	std::unique_ptr<class MkGuiStyleManager> m_styleManager;
 
 	NodeEditorState m_editorState;
 
