@@ -5,6 +5,7 @@
 #include "MkGuiFwd.h"
 #include "SdlFwd.h"
 #include "IEditorWindow.h"
+#include "IMkWindowEventListener.h"
 #include "NodeEditorFwd.h"
 #include "NodeFwd.h"
 #include "NodeEditorState.h"
@@ -21,7 +22,7 @@
 #include <vector>
 
 //-- definitions -----
-class NodeEditorWindow : public IEditorWindow
+class NodeEditorWindow : public IEditorWindow, public IMkWindowEventListener
 {
 public:
 	NodeEditorWindow(App* ownerApp);
@@ -46,7 +47,6 @@ public:
 	virtual float getHeight() const override;
 	virtual float getAspectRatio() const override;
 	virtual bool getIsRenderingStage() const override { return false; }
-	virtual bool getIsRenderingUI() const override { return m_isRenderingUI; }
 
 	virtual IMkViewportPtr getRenderingViewport() const override { return nullptr; }
 	virtual MkStateStack& getMkStateStack() override;
@@ -57,7 +57,8 @@ public:
 	virtual IMkTextureCache* getTextureCache() override;
 	virtual SdlWindow& getSdlWindow() override;
 
-	virtual bool onSDLEvent(const SDL_Event* event) override;
+	// -- IMkWindowEventListener
+	virtual bool onWindowEvent(const SDL_Event* event) override;
 
 	// -- IEditorWindow
 	class MainWindow* getMainWindow() const;
@@ -79,7 +80,7 @@ public:
 	virtual void popAppState() override;
 
 protected:
-	virtual void renderUI();
+	virtual void updateUI();
 
 	virtual void renderMainFrame();
 	virtual void renderNodeEvalErrors();
@@ -109,7 +110,7 @@ protected:
 protected:
 	class App* m_ownerApp = nullptr;
 	SdlWindowUniquePtr m_sdlWindow;
-	MkStateStackUniquePtr m_MkStateStack;
+	MkStateStackUniquePtr m_mkStateStack;
 	MkGuiContextPtr m_guiContext;
 
 	NodeEditorState m_editorState;
@@ -127,6 +128,4 @@ protected:
 
 	// Errors that occurred during the last graph evaluation
 	std::vector<NodeEvaluationError> m_lastNodeEvalErrors;
-
-	bool m_isRenderingUI = false;
 };

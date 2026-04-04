@@ -1,4 +1,5 @@
 #include "App.h"
+#include "IMkWindowEventListener.h"
 #include "SdlWindow.h"
 #include "SdlManager.h"
 #include "Logger.h"
@@ -170,7 +171,7 @@ void SdlWindow::shutdown()
 	m_height = 0;
 }
 
-void SdlWindow::handleSDLEvents()
+void SdlWindow::handleSDLEvents(IMkWindowEventListener* eventListener)
 {
 	SDL_Event event;
 
@@ -184,9 +185,9 @@ void SdlWindow::handleSDLEvents()
 		bool bHandled = handleSDLWindowEvent(&event);
 
 		// Then see if the owner wants to handle it
-		if (!bHandled)
+		if (!bHandled && eventListener != nullptr)
 		{
-			bHandled= m_owner->onSDLEvent(&event);
+			bHandled= eventListener->onWindowEvent(&event);
 		}
 
 		// Remove any SDL events that were handled

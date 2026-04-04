@@ -18,6 +18,7 @@ using MkSceneConstPtr = std::shared_ptr<const MkScene>;
 
 class MikanViewport;
 using MikanViewportPtr = std::shared_ptr<MikanViewport>;
+using MikanViewportUniquePtr = std::unique_ptr<MikanViewport>;
 using MikanViewportWeakPtr = std::weak_ptr<MikanViewport>;
 using MikanViewportConstPtr = std::shared_ptr<const MikanViewport>;
 

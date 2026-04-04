@@ -1,8 +1,9 @@
 #pragma once
 
 #include "MkGuiFwd.h"
+#include "IMkWindowEventListener.h"
 
-class MkGuiContext
+class MkGuiContext : public IMkWindowEventListener
 {
 public:
 	MkGuiContext()= delete;
@@ -15,6 +16,9 @@ public:
 
 	struct ImFont* getNormalIconFont() const { return m_NormalIconFont; }
 	struct ImFont* getBigIconFont() const { return m_BigIconFont; }
+
+	// -- IMkWindowEventListener
+	virtual bool onWindowEvent(const SDL_Event* event) override;
 
 protected:
 	void configImGui();

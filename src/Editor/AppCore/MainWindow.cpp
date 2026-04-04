@@ -299,7 +299,7 @@ void MainWindow::update(float deltaSeconds)
 	processPendingAppStageOps();
 
 	// Process most recent SDL events (keyboard, mouse, etc)
-	m_sdlWindow->handleSDLEvents();
+	m_sdlWindow->handleSDLEvents(this);
 
 	// Update objects in the object system
 	m_projectManager->update(deltaSeconds);
@@ -418,7 +418,7 @@ float MainWindow::getAspectRatio() const
 	return (float)m_sdlWindow->getAspectRatio();
 }
 
-bool MainWindow::onSDLEvent(const SDL_Event* event)
+bool MainWindow::onWindowEvent(const SDL_Event* event)
 {
 	bool bHandled = false;
 

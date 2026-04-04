@@ -17,7 +17,7 @@ public:
 	void shutdown();
 
 	void focus();
-	void handleSDLEvents();
+	void handleSDLEvents(class IMkWindowEventListener* eventListener);
 
 	void renderBegin();
 	void renderEnd();

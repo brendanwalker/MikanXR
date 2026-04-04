@@ -130,6 +130,11 @@ bool MkGuiContext::startup()
 	return true;
 }
 
+bool MkGuiContext::onWindowEvent(const SDL_Event* event)
+{
+	return ImGui_ImplSDL2_ProcessEvent(event);
+}
+
 void MkGuiContext::shutdown()
 {
 	if (m_imnodesContext != nullptr)

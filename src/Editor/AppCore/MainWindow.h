@@ -5,6 +5,7 @@
 #include "MikanRendererFwd.h"
 #include "SdlFwd.h"
 #include "IEditorWindow.h"
+#include "IMkWindowEventListener.h"
 #include "MulticastDelegate.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
@@ -17,7 +18,7 @@
 #include <assert.h>
 
 //-- definitions -----
-class MainWindow : public IEditorWindow
+class MainWindow : public IEditorWindow, public IMkWindowEventListener
 {
 public:
 	MainWindow(class App* ownerApp);
@@ -33,7 +34,6 @@ public:
 	virtual float getHeight() const override;
 	virtual float getAspectRatio() const override;
 	virtual bool getIsRenderingStage() const override { return m_isRenderingStage; }
-	virtual bool getIsRenderingUI() const override { return m_isRenderingUI; }
 
 	virtual IMkViewportPtr getRenderingViewport() const override;
 	virtual MkStateStack& getMkStateStack() override;
@@ -46,7 +46,8 @@ public:
 	virtual class EventBus* getEventBus() const override;
 	virtual class LocalizationManager* getLocalizationManager() const override;
 
-	virtual bool onSDLEvent(const SDL_Event* event) override;
+	// -- ISdlEventListener ----
+	virtual bool onWindowEvent(const SDL_Event* event) override;
 
 	// -- IEditorWindow ----
 	virtual class MikanServer* getMikanServer() const override { return m_mikanServer; }
