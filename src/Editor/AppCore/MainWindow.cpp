@@ -28,8 +28,11 @@
 #include "MikanTextRenderer.h"
 #include "MikanViewport.h"
 #include "MikanModelResourceManager.h"
+#include "MkGuiContext.h"
+#include "MkGuiStyleManager.h"
 #include "MkStateStack.h"
 #include "MkStateModifiers.h"
+#include "PathUtils.h"
 #include "ProjectManager.h"
 #include "OpenCVManager.h"
 #include "RmlManager.h"
@@ -72,7 +75,7 @@ MainWindow::MainWindow(App* ownerApp)
 	, m_fontManager(new MikanFontManager())
 	, m_appStageFactory(this)
 	, m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
-	, m_MkStateStack(MkStateStackUniquePtr(new MkStateStack(this)))
+	, m_mkStateStack(MkStateStackUniquePtr(new MkStateStack(this)))
 	, m_lineRenderer(createMkLineRenderer(this))
 	, m_textRenderer(createMkTextRenderer(this, m_fontManager))
 	, m_modelResourceManager(MikanModelResourceManagerUniquePtr(new MikanModelResourceManager(this)))
@@ -151,7 +154,7 @@ IMkViewportPtr MainWindow::getRenderingViewport() const
 }
 MkStateStack& MainWindow::getMkStateStack()
 {
-	return *m_MkStateStack.get();
+	return *m_mkStateStack.get();
 }
 
 bool MainWindow::startup()
@@ -176,6 +179,29 @@ bool MainWindow::startup()
 	{
 		MIKAN_LOG_ERROR("MainWindow::startup") << "Unable to initialize main SDK window: ";
 		success = false;
+	}
+
+	if (success)
+	{
+		m_guiContext = std::make_shared<MkGuiContext>(
+			m_sdlWindow->getInternalSdlWindow(),
+			m_sdlWindow->getInternalGlContext());
+		if (!m_guiContext->startup())
+		{
+			MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Unable to create GUI context";
+			success = false;
+		}
+	}
+
+	if (success)
+	{
+		m_styleManager = std::make_unique<MkGuiStyleManager>();
+		const auto stylesPath = PathUtils::getResourceDirectory() / "gui_styles";
+		if (!m_styleManager->startup(m_guiContext.get(), stylesPath))
+		{
+			MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Failed to initialize style manager";
+			success = false;
+		}
 	}
 
 	if (success && !m_openCVManager->startup())
@@ -260,7 +286,7 @@ bool MainWindow::startup()
 	if (success)
 	{
 		// Create the base GL state for the window
-		IMkState* mkState= m_MkStateStack->pushState("MainWindow Root");
+		IMkState* mkState= m_mkStateStack->pushState("MainWindow Root");
 		assert(mkState->getStackDepth() == 0);
 
 		// Set default state flags at the base of the stack
@@ -343,7 +369,7 @@ void MainWindow::render()
 void MainWindow::shutdown()
 {
 	m_uiViewport = nullptr;
-	m_MkStateStack= nullptr;
+	m_mkStateStack= nullptr;
 
 	// Tear down all active app stages
 	while (getCurrentAppStage() != nullptr)
@@ -394,6 +420,18 @@ void MainWindow::shutdown()
 	{
 		m_textureCache->shutdown();
 		m_textureCache = nullptr;
+	}
+
+	if (m_styleManager != nullptr)
+	{
+		m_styleManager->shutdown();
+		m_styleManager = nullptr;
+	}
+
+	if (m_guiContext != nullptr)
+	{
+		m_guiContext->shutdown();
+		m_guiContext = nullptr;
 	}
 
 	if (m_sdlWindow != nullptr)
@@ -572,7 +610,7 @@ void MainWindow::renderStageViewport(AppStage* appStage, IMkViewportPtr targetVi
 {
 	EASY_FUNCTION();
 
-	MkScopedState scopedState = m_MkStateStack->createScopedState("appStage viewport render");
+	MkScopedState scopedState = m_mkStateStack->createScopedState("appStage viewport render");
 	IMkState* glState = scopedState.getStackState();
 
 	// Set the rendering viewport used to render the stage
@@ -605,7 +643,7 @@ void MainWindow::renderStageUI(AppStage* appStage)
 {
 	EASY_FUNCTION();
 
-	MkScopedState scopedState = m_MkStateStack->createScopedState("appStage renderUI");
+	MkScopedState scopedState = m_mkStateStack->createScopedState("appStage renderUI");
 	IMkState* glState = scopedState.getStackState();
 
 	// Set the rendering viewport used to render the stage

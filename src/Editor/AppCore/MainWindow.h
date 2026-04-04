@@ -2,7 +2,9 @@
 
 //-- includes -----
 #include "AppStage.h"
+#include "MkGuiFwd.h"
 #include "MikanRendererFwd.h"
+#include "MkGuiFwd.h"
 #include "SdlFwd.h"
 #include "IEditorWindow.h"
 #include "IMkWindowEventListener.h"
@@ -106,11 +108,13 @@ private:
 	IMkViewportPtr m_uiViewport;
 	IMkViewportPtr m_renderingViewport;
 
-	MkStateStackUniquePtr m_MkStateStack;
+	MkStateStackUniquePtr m_mkStateStack;
 	IMkLineRendererPtr m_lineRenderer;
 	IMkTextRendererPtr m_textRenderer;
 	MikanModelResourceManagerUniquePtr m_modelResourceManager;
 	GlRmlUiRenderUniquePtr m_rmlUiRenderer;
+	MkGuiContextPtr m_guiContext;
+	std::unique_ptr<class MkGuiStyleManager> m_styleManager;
 
 	enum class AppStageOperation : int
 	{

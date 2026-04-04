@@ -956,6 +956,7 @@ void NodeEditorWindow::undo()
 
 void NodeEditorWindow::onNodeGraphCreated()
 {
+	MkGuiScopedContext scopedContext(*m_guiContext.get());
 	NodeGraphPtr graph= getNodeGraph();
 
 	graph->OnNodeCreated += MakeDelegate(this, &NodeEditorWindow::onNodeCreated);

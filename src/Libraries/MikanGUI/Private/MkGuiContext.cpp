@@ -59,11 +59,19 @@ bool MkGuiContext::startup()
 {
 	bool success = true;
 
+	// Store previous contexts so we can restore them after we're done setting up our own contexts
+	ImGuiContext* prevImGuiContext = ImGui::GetCurrentContext();
+	ImNodesContext* prevImNodesContext = ImNodes::GetCurrentContext();
+
 	// Setup ImGui context
 	IMGUI_CHECKVERSION();
 	m_imguiContext = ImGui::CreateContext();
-	if (m_imguiContext != NULL)
+	if (m_imguiContext != nullptr)
 	{
+		// Set the current ImGui context to the one we just created
+		ImGui::SetCurrentContext(m_imguiContext);
+
+		// Setup ImGui configuration
 		configImGui();
 	}
 	else
@@ -71,6 +79,7 @@ bool MkGuiContext::startup()
 		MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Unable to create imgui context";
 		success = false;
 	}
+
 
 	// Setup ImGui SDL backend
 	if (success)
@@ -118,6 +127,10 @@ bool MkGuiContext::startup()
 		m_imnodesContext = ImNodes::CreateContext();
 		if (m_imnodesContext != nullptr)
 		{
+			// Set the current ImNodes context to the one we just created
+			ImNodes::SetCurrentContext(m_imnodesContext);
+
+			// Setup ImNodes configuration
 			configImNodes();
 		}
 		else
@@ -127,7 +140,11 @@ bool MkGuiContext::startup()
 		}
 	}
 
-	return true;
+	// Restore previous contexts
+	ImGui::SetCurrentContext(prevImGuiContext);
+	ImNodes::SetCurrentContext(prevImNodesContext);
+
+	return success;
 }
 
 bool MkGuiContext::onWindowEvent(const SDL_Event* event)
@@ -137,29 +154,42 @@ bool MkGuiContext::onWindowEvent(const SDL_Event* event)
 
 void MkGuiContext::shutdown()
 {
+	// Store previous contexts so we can restore them after we're done setting up our own contexts
+	ImGuiContext* prevImGuiContext = ImGui::GetCurrentContext();
+	ImNodesContext* prevImNodesContext = ImNodes::GetCurrentContext();
+
+	// Tear down imnodes first, if valid
 	if (m_imnodesContext != nullptr)
 	{
+		ImNodes::SetCurrentContext(m_imnodesContext);
 		ImNodes::DestroyContext(m_imnodesContext);
 		m_imnodesContext= nullptr;
 	}
 
-	if (m_imguiOpenGLBackendInitialised)
-	{
-		ImGui_ImplOpenGL3_Shutdown();
-		m_imguiOpenGLBackendInitialised = false;
-	}
-
-	if (m_imguiSDLBackendInitialised)
-	{
-		ImGui_ImplSDL2_Shutdown();
-		m_imguiSDLBackendInitialised = false;
-	}
-
+	// Set the current ImGui context to the one we are about to 
 	if (m_imguiContext != nullptr)
 	{
+		ImGui::SetCurrentContext(m_imguiContext);
+
+		if (m_imguiOpenGLBackendInitialised)
+		{
+			ImGui_ImplOpenGL3_Shutdown();
+			m_imguiOpenGLBackendInitialised = false;
+		}
+
+		if (m_imguiSDLBackendInitialised)
+		{
+			ImGui_ImplSDL2_Shutdown();
+			m_imguiSDLBackendInitialised = false;
+		}
+
 		ImGui::DestroyContext(m_imguiContext);
 		m_imguiContext = nullptr;
-	}	
+	}
+
+	// Restore previous contexts
+	ImGui::SetCurrentContext(prevImGuiContext);
+	ImNodes::SetCurrentContext(prevImNodesContext);
 }
 
 void MkGuiContext::makeCurrent()
