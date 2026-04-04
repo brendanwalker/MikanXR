@@ -87,6 +87,11 @@ MikanComponentPtr MikanObjectSystem::addNewObjectByUntypedDefinition(
 
 bool MikanObjectSystem::deleteObject(MikanObjectPtr objectPtr)
 {
+	return disposeObjectInternal(objectPtr);
+}
+
+bool MikanObjectSystem::disposeObjectInternal(MikanObjectPtr objectPtr)
+{
 	// Only tear down this object if it belongs to this system
 	if (objectPtr)
 	{
