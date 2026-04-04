@@ -13,6 +13,7 @@ public:
 	bool startup();
 	void shutdown();
 	void makeCurrent();
+	void submitDrawData();
 
 	struct ImFont* getNormalIconFont() const { return m_NormalIconFont; }
 	struct ImFont* getBigIconFont() const { return m_BigIconFont; }

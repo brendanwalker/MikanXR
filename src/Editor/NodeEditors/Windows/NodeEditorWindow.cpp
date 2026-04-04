@@ -10,7 +10,6 @@
 #include "MkGuiScopedWindow.h"
 #include "MkGuiScopedGroup.h"
 #include "MkGuiScopedPopup.h"
-#include "MkGuiScopedRender.h"
 #include "MkGuiScopedTabBar.h"
 #include "MkGuiScopedTabItem.h"
 #include "MkGuiScopedDragDropSource.h"
@@ -203,9 +202,6 @@ void NodeEditorWindow::update(float deltaSeconds)
 	// Push the ImGui Update scope
 	MkGuiScopedUpdate scopedCtx(*m_guiContext);
 
-	// Clear out any previous node evaluation errors
-	m_lastNodeEvalErrors.clear();
-
 	// Process most recent SDL events (keyboard, mouse, etc)
 	m_sdlWindow->handleSDLEvents(this);
 
@@ -223,16 +219,14 @@ void NodeEditorWindow::render()
 	m_sdlWindow->renderBegin();
 
 	{
-		// Push ImGui Render scope
-		MkGuiScopedRender scopedCtx(*m_guiContext);
-
 		// Create a scoped UI rendering settings
 		MkScopedState scopedState = m_mkStateStack->createScopedState("appStage renderUI");
 		IMkState* glState = scopedState.getStackState();
 
 		mkStateSetViewport(glState, 0, 0, m_sdlWindow->getWidth(), m_sdlWindow->getHeight());
 
-		// On Pop: Render ImGUI draw lists and clear ImGui context
+		// Submit the MkGui draw calls
+		m_guiContext->submitDrawData();
 	}
 
 	// Call SDL_GL_SwapWindow

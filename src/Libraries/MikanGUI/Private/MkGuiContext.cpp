@@ -1,7 +1,7 @@
 #include "MkGuiContext.h"
+#include "MkGuiScopedContext.h"
 #include "TextStyle.h"
 #include "Logger.h"
-
 #include <GL/glew.h>
 
 #if defined(_WIN32)
@@ -196,6 +196,15 @@ void MkGuiContext::makeCurrent()
 {
 	ImGui::SetCurrentContext(m_imguiContext);
 	ImNodes::SetCurrentContext(m_imnodesContext);
+}
+
+void MkGuiContext::submitDrawData()
+{
+	// Make sure this ImGui context is current before we try to render with it
+	MkGuiScopedContext scopedContext(*this);
+
+	// Submit the ImGui draw data to the OpenGL backend for rendering
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 void MkGuiContext::configImGui()

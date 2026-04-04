@@ -29,6 +29,7 @@
 #include "MikanViewport.h"
 #include "MikanModelResourceManager.h"
 #include "MkGuiContext.h"
+#include "MkGuiScopedUpdate.h"
 #include "MkGuiStyleManager.h"
 #include "MkStateStack.h"
 #include "MkStateModifiers.h"
@@ -315,6 +316,9 @@ bool MainWindow::startup()
 
 void MainWindow::update(float deltaSeconds)
 {
+	// Push the ImGui Update scope
+	MkGuiScopedUpdate mkScopedCtx(*m_guiContext);
+
 	// Poll rendered frames from client connections
 	m_mikanServer->update();
 
@@ -364,6 +368,79 @@ void MainWindow::render()
 
 		m_sdlWindow->renderEnd();
 	}
+}
+
+void MainWindow::renderStageViewport(AppStage* appStage, IMkViewportPtr targetViewport)
+{
+	EASY_FUNCTION();
+
+	MkScopedState scopedState = m_mkStateStack->createScopedState("appStage viewport render");
+	IMkState* glState = scopedState.getStackState();
+
+	// Set the rendering viewport used to render the stage
+	// (adds mkStateSetViewport Modifier to the glState)
+	m_renderingViewport = targetViewport;
+	m_renderingViewport->applyRenderingViewport(glState);
+
+	// Set window state flag that we are in the middle of rendering a stage
+	// Used for safety checks in the render functions
+	m_isRenderingStage = true;
+
+	// Render the 3d geometry of the AppStage
+	appStage->render(targetViewport);
+
+	// Render any 3D line segments emitted by the AppStage
+	m_lineRenderer->render();
+
+	// Render any glyphs emitted by the AppStage
+	m_textRenderer->render();
+
+	// Rendering the state is done
+	m_isRenderingStage = false;
+
+	// Forget about the target viewport
+	// (will be deleted when glState goes out of scope)
+	m_renderingViewport = nullptr;
+}
+
+void MainWindow::renderStageUI(AppStage* appStage)
+{
+	EASY_FUNCTION();
+
+	MkScopedState scopedState = m_mkStateStack->createScopedState("appStage renderUI");
+	IMkState* glState = scopedState.getStackState();
+
+	// Set the rendering viewport used to render the stage
+	// (adds mkStateSetViewport Modifier to the glState)
+	m_renderingViewport = m_uiViewport;
+	m_renderingViewport->applyRenderingViewport(glState);
+
+	m_isRenderingUI = true;
+
+	// Render the UI of the AppStage
+	appStage->renderUI();
+
+	// Submit the MkGui draw call
+	m_guiContext->submitDrawData();
+
+	// Always draw the FPS in the lower right
+	TextStyle style = getDefaultTextStyle();
+	style.horizontalAlignment = eHorizontalTextAlignment::Right;
+	style.verticalAlignment = eVerticalTextAlignment::Bottom;
+	drawTextAtScreenPosition(
+		style,
+		glm::vec2(getWidth() - 1, getHeight() - 1),
+		L"%.1ffps", App::getInstance()->getFPS());
+
+	// Render any 2D line segments emitted by the AppStage renderUI phase
+	m_lineRenderer->render();
+
+	// Render any glyphs emitted by the AppStage renderUI phase
+	m_textRenderer->render();
+
+	m_isRenderingUI = false;
+
+	m_renderingViewport = nullptr;
 }
 
 void MainWindow::shutdown()
@@ -604,74 +681,4 @@ void MainWindow::processPendingAppStageOps()
 
 	// App stack operations allowed during update
 	bAppStackOperationAllowed = true;
-}
-
-void MainWindow::renderStageViewport(AppStage* appStage, IMkViewportPtr targetViewport)
-{
-	EASY_FUNCTION();
-
-	MkScopedState scopedState = m_mkStateStack->createScopedState("appStage viewport render");
-	IMkState* glState = scopedState.getStackState();
-
-	// Set the rendering viewport used to render the stage
-	// (adds mkStateSetViewport Modifier to the glState)
-	m_renderingViewport = targetViewport;
-	m_renderingViewport->applyRenderingViewport(glState);
-
-		// Set window state flag that we are in the middle of rendering a stage
-		// Used for safety checks in the render functions
-		m_isRenderingStage = true;
-
-			// Render the 3d geometry of the AppStage
-			appStage->render(targetViewport);
-
-			// Render any 3D line segments emitted by the AppStage
-			m_lineRenderer->render();
-
-			// Render any glyphs emitted by the AppStage
-			m_textRenderer->render();
-
-		// Rendering the state is done
-		m_isRenderingStage = false;
-
-	// Forget about the target viewport
-	// (will be deleted when glState goes out of scope)
-	m_renderingViewport = nullptr;
-}
-
-void MainWindow::renderStageUI(AppStage* appStage)
-{
-	EASY_FUNCTION();
-
-	MkScopedState scopedState = m_mkStateStack->createScopedState("appStage renderUI");
-	IMkState* glState = scopedState.getStackState();
-
-	// Set the rendering viewport used to render the stage
-	// (adds mkStateSetViewport Modifier to the glState)
-	m_renderingViewport = m_uiViewport;
-	m_renderingViewport->applyRenderingViewport(glState);
-
-		m_isRenderingUI = true;
-
-			// Render the UI of the AppStage
-			appStage->renderUI();
-
-			// Always draw the FPS in the lower right
-			TextStyle style = getDefaultTextStyle();
-			style.horizontalAlignment = eHorizontalTextAlignment::Right;
-			style.verticalAlignment = eVerticalTextAlignment::Bottom;
-			drawTextAtScreenPosition(
-				style,
-				glm::vec2(getWidth() - 1, getHeight() - 1),
-				L"%.1ffps", App::getInstance()->getFPS());
-
-			// Render any 2D line segments emitted by the AppStage renderUI phase
-			m_lineRenderer->render();
-
-			// Render any glyphs emitted by the AppStage renderUI phase
-			m_textRenderer->render();
-
-		m_isRenderingUI = false;
-
-	m_renderingViewport = nullptr;
 }

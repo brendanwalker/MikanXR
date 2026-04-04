@@ -63,7 +63,7 @@ bool CompositorNodeEditorWindow::bindCompositorComponent(CompositorComponentPtr 
 
 void CompositorNodeEditorWindow::update(float deltaSeconds)
 {
-	NodeEditorWindow::update(deltaSeconds);
+	m_lastNodeEvalErrors.clear();
 
 	if (m_isRunningCompositor)
 	{
@@ -83,6 +83,8 @@ void CompositorNodeEditorWindow::update(float deltaSeconds)
 			}
 		}
 	}
+
+	NodeEditorWindow::update(deltaSeconds);
 }
 
 void CompositorNodeEditorWindow::shutdown()
