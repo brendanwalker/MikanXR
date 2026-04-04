@@ -1,5 +1,6 @@
 #include "App.h"
 #include "AppStage.h"
+#include "Shared/GuiPanel.h"
 #include "EditorObjectSystem.h"
 #include "MikanViewport.h"
 #include "GlRmlUiRenderer.h"
@@ -127,6 +128,14 @@ void AppStage::exit()
 		}
 		m_rmlModels.clear();
 
+		// Dispose and delete all registered GuiPanels
+		for (IGuiPanel* panel : m_guiPanels)
+		{
+			panel->dispose();
+			delete panel;
+		}
+		m_guiPanels.clear();
+
 		// Force an update to clear all deleted documents
 		getRmlContext()->Update();
 
@@ -246,6 +255,12 @@ void AppStage::update(float deltaSeconds)
 		{
 			model->update(deltaSeconds);
 		}
+	}
+
+	// Flush deferred callbacks for all GuiPanels
+	for (IGuiPanel* panel : m_guiPanels)
+	{
+		panel->update(deltaSeconds);
 	}
 }
 

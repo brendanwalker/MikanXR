@@ -95,6 +95,17 @@ protected:
 	class RmlModel_ProjectSettings* m_projectSettingsModel;
 	Rml::ElementDocument* m_projectSettingsView = nullptr;
 
+	// Shared context for GuiPanel component/system panels
+	class ProjectGuiPanelContext* m_projectGuiPanelContext = nullptr;
+
+	// Project-level ImGui panels
+	class GuiPanel_ProjectScenes* m_projectScenesPanel = nullptr;
+	class GuiPanel_ProjectStages* m_projectStagesPanel = nullptr;
+	class GuiPanel_ProjectSources* m_projectSourcesPanel = nullptr;
+	class GuiPanel_ProjectTracking* m_projectTrackingPanel = nullptr;
+	class GuiPanel_ProjectMarkers* m_projectMarkersPanel = nullptr;
+	class GuiPanel_ProjectSettings* m_projectSettingsPanel = nullptr;
+
 	MikanViewportPtr m_viewport;
 	std::vector<CompositorComponentWeakPtr> m_activeCompositors;
 

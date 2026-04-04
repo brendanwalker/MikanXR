@@ -23,7 +23,14 @@
 #include "ProjectConfig.h"
 #include "ProjectManager.h"
 #include "Project/AppStage_Project.h"
+#include "Project/ProjectGuiPanelContext.h"
 #include "Project/ProjectRmlModelContext.h"
+#include "Project/GuiPanel_ProjectMarkers.h"
+#include "Project/GuiPanel_ProjectScenes.h"
+#include "Project/GuiPanel_ProjectSettings.h"
+#include "Project/GuiPanel_ProjectSources.h"
+#include "Project/GuiPanel_ProjectStages.h"
+#include "Project/GuiPanel_ProjectTracking.h"
 #include "Project/RmlModel_Project.h"
 #include "Project/RmlModel_ProjectMarkers.h"
 #include "Project/RmlModel_ProjectScenes.h"
@@ -32,6 +39,7 @@
 #include "Project/RmlModel_ProjectTracking.h"
 #include "Project/RmlModel_ProjectSettings.h"
 #include "Shared/RmlModel_MarkerComponent.h"
+#include "Shared/GuiPanel_MarkerComponent.h"
 #include "RmlUtility.h"
 #include "SceneComponent.h"
 #include "SdlCommon.h"
@@ -174,10 +182,48 @@ void AppStage_Project::enter()
 		m_projectScenesView->Show();
 		m_projectScenesView->PullToFront();
 	}
+
+	// Create ImGui GuiPanel context and project panels
+	{
+		m_projectGuiPanelContext = new ProjectGuiPanelContext(this);
+		m_projectGuiPanelContext->init();
+
+		// Wire up component panel delegates
+		m_projectGuiPanelContext->getMarkerPanel()->OnMarkerSelected =
+			MakeDelegate(this, &AppStage_Project::onMarkerSelected);
+
+		m_projectScenesPanel = addGuiPanel<GuiPanel_ProjectScenes>();
+		m_projectScenesPanel->init(m_projectGuiPanelContext);
+
+		m_projectStagesPanel = addGuiPanel<GuiPanel_ProjectStages>();
+		m_projectStagesPanel->init(m_projectGuiPanelContext);
+
+		m_projectSourcesPanel = addGuiPanel<GuiPanel_ProjectSources>();
+		m_projectSourcesPanel->init(m_projectGuiPanelContext);
+
+		m_projectTrackingPanel = addGuiPanel<GuiPanel_ProjectTracking>();
+		m_projectTrackingPanel->init(m_projectGuiPanelContext);
+
+		m_projectMarkersPanel = addGuiPanel<GuiPanel_ProjectMarkers>();
+		m_projectMarkersPanel->init(m_projectGuiPanelContext);
+
+		m_projectSettingsPanel = addGuiPanel<GuiPanel_ProjectSettings>();
+		m_projectSettingsPanel->init(m_projectGuiPanelContext);
+	}
 }
 
 void AppStage_Project::exit()
 {
+	// Clean up the GuiPanel Context (panels themselves are owned by AppStage::m_guiPanels)
+	delete m_projectGuiPanelContext;
+	m_projectGuiPanelContext = nullptr;
+	m_projectScenesPanel = nullptr;
+	m_projectStagesPanel = nullptr;
+	m_projectSourcesPanel = nullptr;
+	m_projectTrackingPanel = nullptr;
+	m_projectMarkersPanel = nullptr;
+	m_projectSettingsPanel = nullptr;
+
 	// Clean up the Rml Model Context
 	delete m_projectRmlModelContext;
 	m_projectRmlModelContext = nullptr;

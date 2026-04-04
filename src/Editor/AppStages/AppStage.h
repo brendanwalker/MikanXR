@@ -6,6 +6,7 @@
 #include "MikanRendererFwd.h"
 #include "ProjectManager.h"
 #include "RmlFwd.h"
+#include "Shared/GuiPanel.h"
 #include "Shared/RmlModelInterface.h"
 
 #include <string>
@@ -72,6 +73,14 @@ public:
 		return model;
 	}
 
+	template<typename t_gui_panel>
+	t_gui_panel* addGuiPanel()
+	{
+		t_gui_panel* panel = new t_gui_panel();
+		m_guiPanels.push_back(panel);
+		return panel;
+	}
+
 	inline ModalDialog* getCurrentModalDialog() const
 	{
 		return (m_modalDialogStack.size() > 0) ? m_modalDialogStack[m_modalDialogStack.size() - 1] : nullptr;
@@ -109,6 +118,7 @@ protected:
 	Rml::Context* m_rmlContext = nullptr;
 	std::vector<Rml::ElementDocument*> m_rmlDocuments;
 	std::vector<IRmlModel*> m_rmlModels;
+	std::vector<IGuiPanel*> m_guiPanels;
 	std::vector<class ModalDialog*> m_modalDialogStack;
 };
 
