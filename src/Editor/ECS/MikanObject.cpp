@@ -42,9 +42,11 @@ void MikanObject::dispose()
 		component->dispose();
 	}
 
-	MikanObjectSystemPtr objectSystem = m_ownerObjectSystemManager.lock();
-	if (objectSystem->OnObjectDisposed)
-		objectSystem->OnObjectDisposed(objectSystem, shared_from_this());
+	if (auto objectSystem = m_ownerObjectSystemManager.lock())
+	{
+		if (objectSystem->OnObjectDisposed)
+			objectSystem->OnObjectDisposed(objectSystem, shared_from_this());
+	}
 
 	m_components.clear();
 	m_ownerObjectSystemManager.reset();
