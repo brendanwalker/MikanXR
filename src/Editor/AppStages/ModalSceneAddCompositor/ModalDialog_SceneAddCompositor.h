@@ -1,11 +1,9 @@
 #pragma once
 
 //-- includes -----
-#include "RmlFwd.h"
 #include "MikanTypeFwd.h"
 #include "SceneFwd.h"
 #include "Shared/ModalDialog.h"
-#include "SinglecastDelegate.h"
 
 #include <string>
 #include <vector>
@@ -19,7 +17,7 @@ class ModalDialog_SceneAddCompositor : public ModalDialog
 {
 public:
 	ModalDialog_SceneAddCompositor(AppStage* ownerAppStage);
-	virtual ~ModalDialog_SceneAddCompositor();
+	virtual ~ModalDialog_SceneAddCompositor() = default;
 
 	using SelectCallback = std::function<void(MikanCompositorID)>;
 	using CancelCallback = std::function<void()>;
@@ -29,17 +27,20 @@ public:
 		SelectCallback selectCallback={},
 		CancelCallback cancelCallback={});
 
-protected:
-	class RmlModel_SceneAddCompositor* m_selectCompositorModel = nullptr;
-	Rml::ElementDocument* m_selectCompositorView = nullptr;
+	virtual void onGui() override;
 
+protected:
 	SelectCallback m_selectCallback;
 	CancelCallback m_cancelCallback;
+
+	std::vector<MikanCompositorID> m_compositorIds;
+	std::vector<std::string> m_compositorNames;
+	int m_selectedIndex = 0;
 
 	bool init(
 		SceneComponentPtr ownerScene,
 		SelectCallback selectCallback,
 		CancelCallback cancelCallback);
-	void onSelectCompositor(MikanCompositorID compositorId);
+	void onSelectCompositor();
 	void onCancel();
 };

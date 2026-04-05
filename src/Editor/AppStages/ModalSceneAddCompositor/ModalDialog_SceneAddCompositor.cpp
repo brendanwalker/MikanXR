@@ -1,49 +1,33 @@
-//-- inludes -----
+//-- includes -----
+#include "AppStage.h"
+#include "CompositorComponent.h"
 #include "CompositorObjectSystem.h"
-#include "SceneComponent.h"
-#include "MainWindow.h"
 #include "ModalDialog_SceneAddCompositor.h"
-#include "RmlModel_SceneAddCompositor.h"
+#include "SceneComponent.h"
+#include "StageComponent.h"
 
-#include <RmlUi/Core/Core.h>
-#include <RmlUi/Core/Context.h>
-#include <RmlUi/Core/DataModelHandle.h>
-#include <RmlUi/Core/ElementDocument.h>
+#include "imgui.h"
 
 #include <assert.h>
+#include <algorithm>
 
 //-- public methods -----
-ModalDialog_SceneAddCompositor::ModalDialog_SceneAddCompositor(
-	AppStage* appStage)
+ModalDialog_SceneAddCompositor::ModalDialog_SceneAddCompositor(AppStage* appStage)
 	: ModalDialog(appStage)
-	, m_selectCompositorModel(new RmlModel_SceneAddCompositor)
 {
-}
-
-ModalDialog_SceneAddCompositor::~ModalDialog_SceneAddCompositor()
-{
-	m_ownerAppStage->removeRmlDocument(m_selectCompositorView);
-	m_selectCompositorView = nullptr;
-
-	m_selectCompositorModel->dispose();
-	delete m_selectCompositorModel;
 }
 
 bool ModalDialog_SceneAddCompositor::selectNewCompositor(
 	AppStage* appStage,
 	SceneComponentPtr ownerScene,
 	SelectCallback selectCallback,
-	CancelCallback rejectCallback)
+	CancelCallback cancelCallback)
 {
-	// Allocate a new modal dialog
-	ModalDialog_SceneAddCompositor* confirmModal = appStage->pushModalDialog<ModalDialog_SceneAddCompositor>();
+	ModalDialog_SceneAddCompositor* dialog = appStage->pushModalDialog<ModalDialog_SceneAddCompositor>();
 
-	// Attempt to initialize the confirm modal
-	if (!confirmModal->init(ownerScene, selectCallback, rejectCallback))
+	if (!dialog->init(ownerScene, selectCallback, cancelCallback))
 	{
-		// On failure, destroy the modal dialog we just created
 		appStage->popModalDialog();
-
 		return false;
 	}
 
@@ -55,33 +39,81 @@ bool ModalDialog_SceneAddCompositor::init(
 	SelectCallback selectCallback,
 	CancelCallback cancelCallback)
 {
-	// Finish model initialization
-	CompositorObjectSystemPtr compositorSystem = m_ownerAppStage->getSystemOfType<CompositorObjectSystem>();
-	if (!m_selectCompositorModel->init(getRmlContext(), compositorSystem, ownerScene))
-	{
-		return false;
-	}
-
-	// Bind event delegates to model events
-	m_selectCompositorModel->OnOk = MakeDelegate(this, &ModalDialog_SceneAddCompositor::onSelectCompositor);
-	m_selectCompositorModel->OnCancel = MakeDelegate(this, &ModalDialog_SceneAddCompositor::onCancel);
-
-	// Bind event delegates to callbacks passed in
 	m_selectCallback = selectCallback;
 	m_cancelCallback = cancelCallback;
 
-	// Create the view now that the model is safely initialized
-	m_selectCompositorView = m_ownerAppStage->addRmlDocument("scene_add_compositor.rml", false);
+	CompositorObjectSystemPtr compositorSystem = m_ownerAppStage->getSystemOfType<CompositorObjectSystem>();
+	if (!compositorSystem)
+		return false;
+
+	// Populate list: compositors belonging to the parent stage that aren't already in the scene
+	StageComponentPtr stageComponent = ownerScene->getParentStage();
+	if (stageComponent)
+	{
+		const MikanStageID stageId = stageComponent->getStageId();
+		const std::vector<MikanCompositorID>& existingIDs = ownerScene->getOutputCompositorIDs();
+		const std::vector<MikanCompositorID> availableIDs = compositorSystem->getCompositorIdListForStage(stageId);
+
+		for (const MikanCompositorID& id : availableIDs)
+		{
+			auto it = std::find(existingIDs.begin(), existingIDs.end(), id);
+			if (it == existingIDs.end())
+			{
+				m_compositorIds.push_back(id);
+				CompositorComponentPtr comp = compositorSystem->getCompositorById(id);
+				const std::string name = comp ? comp->getName() : "";
+				m_compositorNames.push_back(name.empty() ? ("Compositor " + std::to_string(id)) : name);
+			}
+		}
+	}
 
 	return true;
 }
 
-void ModalDialog_SceneAddCompositor::onSelectCompositor(MikanCompositorID compositorId)
+void ModalDialog_SceneAddCompositor::onGui()
 {
-	if (m_selectCallback)
+	static const char* k_popupId = "Add Compositor##SceneAddCompositorModal";
+	if (m_bNeedsOpen)
 	{
-		m_selectCallback(compositorId);
+		ImGui::OpenPopup(k_popupId);
+		m_bNeedsOpen = false;
 	}
+
+	ImGui::SetNextWindowPos(
+		ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+	if (ImGui::BeginPopupModal(k_popupId, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::Text("Add Compositor To Scene");
+		ImGui::Separator();
+
+		auto itemGetter = [](void* data, int idx, const char** out) -> bool {
+			const auto* names = static_cast<std::vector<std::string>*>(data);
+			if (idx < 0 || idx >= (int)names->size()) return false;
+			*out = (*names)[idx].c_str();
+			return true;
+		};
+		ImGui::ListBox("##compositors", &m_selectedIndex, itemGetter, &m_compositorNames, (int)m_compositorNames.size(), 8);
+
+		ImGui::Spacing();
+
+		bool selected = false, cancelled = false;
+		const bool hasSelection = !m_compositorIds.empty();
+		if (!hasSelection) ImGui::BeginDisabled();
+		if (ImGui::Button("Ok"))     { ImGui::CloseCurrentPopup(); selected = true; }
+		if (!hasSelection) ImGui::EndDisabled();
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel")) { ImGui::CloseCurrentPopup(); cancelled = true; }
+		ImGui::EndPopup();
+
+		if (selected) onSelectCompositor();
+		else if (cancelled) onCancel();
+	}
+}
+
+void ModalDialog_SceneAddCompositor::onSelectCompositor()
+{
+	if (m_selectCallback && !m_compositorIds.empty())
+		m_selectCallback(m_compositorIds[m_selectedIndex]);
 
 	assert(m_ownerAppStage->getCurrentModalDialog() == this);
 	m_ownerAppStage->popModalDialog();
@@ -90,9 +122,7 @@ void ModalDialog_SceneAddCompositor::onSelectCompositor(MikanCompositorID compos
 void ModalDialog_SceneAddCompositor::onCancel()
 {
 	if (m_cancelCallback)
-	{
 		m_cancelCallback();
-	}
 
 	assert(m_ownerAppStage->getCurrentModalDialog() == this);
 	m_ownerAppStage->popModalDialog();

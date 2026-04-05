@@ -207,7 +207,6 @@ public:
 	virtual float getHeight() const override { return (float)m_windowHeight; }
 	virtual float getAspectRatio() const override { return (float)m_windowWidth / (float)m_windowHeight; }
 	virtual bool getIsRenderingStage() const override { return false; }
-	virtual bool getIsRenderingUI() const override { return false; }
 	virtual IMkViewportPtr getRenderingViewport() const override { return nullptr; }
 	virtual MkStateStack& getMkStateStack() override { return *m_mkStateStack.get(); }
 	virtual class IMkLineRenderer* getLineRenderer() override { return nullptr; }

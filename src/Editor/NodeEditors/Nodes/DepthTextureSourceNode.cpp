@@ -1,6 +1,7 @@
 #include "CameraComponent.h"
 #include "DepthTextureSourceNode.h"
 #include "MkScopedObjectBinding.h"
+#include "IEditorWindow.h"
 #include "IMkFrameBuffer.h"
 #include "IMkWindow.h"
 #include "MkMaterial.h"
