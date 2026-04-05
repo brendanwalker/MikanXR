@@ -4,9 +4,9 @@
 
 #include "imgui.h"
 
-bool GuiPanel_NetworkVideoSourceComponent::init(AppStage* ownerAppStage)
+bool GuiPanel_NetworkVideoSourceComponent::init()
 {
-	return initTypedPropertyInterface<NetworkVideoSourceComponent>(ownerAppStage);
+	return initTypedPropertyInterface<NetworkVideoSourceComponent>();
 }
 
 void GuiPanel_NetworkVideoSourceComponent::onGui()

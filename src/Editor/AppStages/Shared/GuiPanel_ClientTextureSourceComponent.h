@@ -12,7 +12,8 @@ enum class eTextureSourceDisplayBufferType : int
 class GuiPanel_ClientTextureSourceComponent : public GuiPanel_MikanComponent
 {
 public:
-	virtual bool init(class AppStage* ownerAppStage) override;
+	GuiPanel_ClientTextureSourceComponent(AppStage* ownerAppStage) : GuiPanel_MikanComponent(ownerAppStage) {}
+	virtual bool init() override;
 	virtual void onGui() override;
 
 	inline eTextureSourceDisplayBufferType getDisplayBufferType() const

@@ -8,7 +8,7 @@
 class GuiPanel_StencilComponent : public GuiPanel_MikanComponent
 {
 public:
-	GuiPanel_StencilComponent() = default;
+	GuiPanel_StencilComponent(AppStage* ownerAppStage) : GuiPanel_MikanComponent(ownerAppStage) {}
 
 	virtual void onConstruct() override;
 	virtual bool setComponent(MikanComponentPtr component) override;
@@ -25,17 +25,20 @@ private:
 class GuiPanel_QuadStencilComponent : public GuiPanel_StencilComponent
 {
 public:
-	virtual bool init(class AppStage* ownerAppStage) override;
+	GuiPanel_QuadStencilComponent(AppStage* ownerAppStage) : GuiPanel_StencilComponent(ownerAppStage) {}
+	virtual bool init() override;
 };
 
 class GuiPanel_BoxStencilComponent : public GuiPanel_StencilComponent
 {
 public:
-	virtual bool init(class AppStage* ownerAppStage) override;
+	GuiPanel_BoxStencilComponent(AppStage* ownerAppStage) : GuiPanel_StencilComponent(ownerAppStage) {}
+	virtual bool init() override;
 };
 
 class GuiPanel_ModelStencilComponent : public GuiPanel_StencilComponent
 {
 public:
-	virtual bool init(class AppStage* ownerAppStage) override;
+	GuiPanel_ModelStencilComponent(AppStage* ownerAppStage) : GuiPanel_StencilComponent(ownerAppStage) {}
+	virtual bool init() override;
 };

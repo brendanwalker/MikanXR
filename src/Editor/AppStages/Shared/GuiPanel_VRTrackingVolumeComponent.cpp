@@ -6,12 +6,12 @@
 
 #include "imgui.h"
 
-bool GuiPanel_VRTrackingVolumeComponent::init(AppStage* ownerAppStage)
+bool GuiPanel_VRTrackingVolumeComponent::init()
 {
-	m_markerObjectSystem = ownerAppStage->getObjectSystemOfType<MarkerObjectSystem>();
-	m_trackingMountObjectSystem = ownerAppStage->getObjectSystemOfType<TrackingMountObjectSystem>();
+	m_markerObjectSystem = getOwnerAppStage()->getSystemOfType<MarkerObjectSystem>();
+	m_trackingMountObjectSystem = getOwnerAppStage()->getSystemOfType<TrackingMountObjectSystem>();
 
-	return initTypedPropertyInterface<VRTrackingVolumeComponent>(ownerAppStage);
+	return initTypedPropertyInterface<VRTrackingVolumeComponent>();
 }
 
 void GuiPanel_VRTrackingVolumeComponent::onGui()

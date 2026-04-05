@@ -5,10 +5,10 @@
 
 #include "imgui.h"
 
-bool GuiPanel_SpoutTextureSourceComponent::init(AppStage* ownerAppStage)
+bool GuiPanel_SpoutTextureSourceComponent::init()
 {
-	m_spoutTextureSourceSystem = ownerAppStage->getObjectSystemOfType<SpoutTextureSourceSystem>();
-	return initTypedPropertyInterface<SpoutTextureSourceComponent>(ownerAppStage);
+	m_spoutTextureSourceSystem = getOwnerAppStage()->getObjectSystemOfType<SpoutTextureSourceSystem>();
+	return initTypedPropertyInterface<SpoutTextureSourceComponent>();
 }
 
 void GuiPanel_SpoutTextureSourceComponent::update(float deltaSeconds)

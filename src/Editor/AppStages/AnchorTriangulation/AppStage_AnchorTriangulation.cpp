@@ -120,7 +120,6 @@ void AppStage_AnchorTriangulation::enter()
 	// (Auto cleaned up on app state exit)
 	{
 		m_calibrationPanel = addGuiPanel<GuiPanel_AnchorTriangulation>();
-		m_calibrationPanel->init(this);
 		m_calibrationPanel->setBypassCalibrationFlag(m_bypassCalibrationFlag);
 		m_calibrationPanel->OnOkEvent = [this]() { onOkEvent(); };
 		m_calibrationPanel->OnRedoEvent = [this]() { onRedoEvent(); };

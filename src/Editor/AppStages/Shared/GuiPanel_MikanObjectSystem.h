@@ -6,12 +6,14 @@
 class GuiPanel_MikanObjectSystem : public IGuiPanel
 {
 public:
-	GuiPanel_MikanObjectSystem();
+	GuiPanel_MikanObjectSystem() = delete;
+	GuiPanel_MikanObjectSystem(class AppStage* ownerAppStage);
 	virtual ~GuiPanel_MikanObjectSystem() = default;
 
-	virtual bool init(class AppStage* ownerAppStage) = 0;
+	virtual bool init() = 0;
 	virtual void onConstruct() {}
 
+	class AppStage* getOwnerAppStage() const { return m_entityAccessor->getOwnerAppStage(); }
 	MikanObjectSystemPtr getObjectSystem() const;
 	void setObjectSystem(MikanObjectSystemPtr objectSystem);
 

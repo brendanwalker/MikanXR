@@ -6,6 +6,6 @@
 class GuiPanel_AnchorComponent : public GuiPanel_MikanComponent
 {
 public:
-	GuiPanel_AnchorComponent() = default;
-	virtual bool init(class AppStage* ownerAppStage) override;
+	GuiPanel_AnchorComponent(AppStage* ownerAppStage) : GuiPanel_MikanComponent(ownerAppStage) {}
+	virtual bool init() override;
 };

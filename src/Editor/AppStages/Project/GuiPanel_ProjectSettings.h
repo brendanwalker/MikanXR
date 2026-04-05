@@ -7,7 +7,7 @@
 class GuiPanel_ProjectSettings : public GuiPanel
 {
 public:
-	GuiPanel_ProjectSettings() = default;
+	GuiPanel_ProjectSettings(AppStage* ownerAppStage) : GuiPanel(ownerAppStage) {}
 
 	bool init(class ProjectGuiPanelContext* context);
 	virtual void onGui() override;

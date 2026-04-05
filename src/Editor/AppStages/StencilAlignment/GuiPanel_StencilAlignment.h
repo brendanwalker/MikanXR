@@ -10,7 +10,7 @@ class AppStage;
 class GuiPanel_StencilAlignment : public GuiPanel
 {
 public:
-	bool init(AppStage* ownerAppStage);
+	GuiPanel_StencilAlignment(AppStage* ownerAppStage) : GuiPanel(ownerAppStage) {}
 	virtual void onGui() override;
 
 	eStencilAlignmentMenuState getMenuState() const { return m_menuState; }

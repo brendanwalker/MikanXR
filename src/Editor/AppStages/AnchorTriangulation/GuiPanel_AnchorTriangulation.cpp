@@ -2,11 +2,6 @@
 
 #include "imgui.h"
 
-bool GuiPanel_AnchorTriangulation::init(AppStage* ownerAppStage)
-{
-	return true;
-}
-
 void GuiPanel_AnchorTriangulation::onGui()
 {
 	switch (m_menuState)

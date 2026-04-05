@@ -10,7 +10,7 @@ class AppStage;
 class GuiPanel_AlignmentCalibration : public GuiPanel
 {
 public:
-	bool init(AppStage* ownerAppStage);
+	GuiPanel_AlignmentCalibration(AppStage* ownerAppStage) : GuiPanel(ownerAppStage) {}
 	virtual void onGui() override;
 
 	bool getBypassCalibrationFlag() const { return m_bypassCalibrationFlag; }

@@ -7,7 +7,7 @@
 class GuiPanel_ProjectMarkers : public GuiPanel
 {
 public:
-	GuiPanel_ProjectMarkers() = default;
+	GuiPanel_ProjectMarkers(AppStage* ownerAppStage) : GuiPanel(ownerAppStage) {}
 
 	bool init(class ProjectGuiPanelContext* context);
 	virtual void onGui() override;

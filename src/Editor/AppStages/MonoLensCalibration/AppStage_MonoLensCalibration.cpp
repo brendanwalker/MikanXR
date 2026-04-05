@@ -103,7 +103,6 @@ void AppStage_MonoLensCalibration::enter()
 	// (Auto cleaned up on app state exit)
 	{
 		m_calibrationPanel = addGuiPanel<GuiPanel_MonoLensCalibration>();
-		m_calibrationPanel->init(this);
 		m_calibrationPanel->setBypassCalibrationFlag(m_bypassCalibrationFlag);
 		m_calibrationPanel->OnCancelEvent = [this]() { onCancelEvent(); };
 		m_calibrationPanel->OnRestartEvent = [this]() { onRestartEvent(); };
@@ -112,7 +111,6 @@ void AppStage_MonoLensCalibration::enter()
 			[this](bool bIsStable) { onImagePointStabilityChangedEvent(bIsStable); };
 
 		m_cameraSettingsPanel = addGuiPanel<GuiPanel_MonoCameraSettings>();
-		m_cameraSettingsPanel->init(this);
 		m_cameraSettingsPanel->OnVideoDisplayModeChanged =
 			[this](eVideoDisplayMode mode) { onVideoDisplayModeChanged(mode); };
 	}

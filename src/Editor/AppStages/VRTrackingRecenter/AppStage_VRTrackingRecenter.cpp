@@ -112,7 +112,6 @@ void AppStage_VRTrackingRecenter::enter()
 	// (Auto cleaned up on app state exit)
 	{
 		m_calibrationPanel = addGuiPanel<GuiPanel_VRTrackingRecenter>();
-		m_calibrationPanel->init(this);
 		m_calibrationPanel->OnBeginEvent = [this]() { onBeginEvent(); };
 		m_calibrationPanel->OnRestartEvent = [this]() { onRestartEvent(); };
 		m_calibrationPanel->OnCancelEvent = [this]() { onCancelEvent(); };

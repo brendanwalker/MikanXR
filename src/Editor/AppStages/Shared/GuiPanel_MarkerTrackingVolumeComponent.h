@@ -8,9 +8,9 @@
 class GuiPanel_MarkerTrackingVolumeComponent : public GuiPanel_MikanComponent
 {
 public:
-	GuiPanel_MarkerTrackingVolumeComponent() = default;
+	GuiPanel_MarkerTrackingVolumeComponent(AppStage* ownerAppStage) : GuiPanel_MikanComponent(ownerAppStage) {}
 
-	virtual bool init(class AppStage* ownerAppStage) override;
+	virtual bool init() override;
 	virtual void onGui() override;
 
 protected:

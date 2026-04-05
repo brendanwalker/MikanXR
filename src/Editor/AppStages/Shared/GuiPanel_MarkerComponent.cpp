@@ -5,10 +5,10 @@
 
 #include "imgui.h"
 
-bool GuiPanel_MarkerComponent::init(AppStage* ownerAppStage)
+bool GuiPanel_MarkerComponent::init()
 {
-	m_markerObjectSystem = ownerAppStage->getProjectManager()->getSystemOfType<MarkerObjectSystem>();
-	return initTypedPropertyInterface<MarkerComponent>(ownerAppStage);
+	m_markerObjectSystem = getOwnerAppStage()->getSystemOfType<MarkerObjectSystem>();
+	return initTypedPropertyInterface<MarkerComponent>();
 }
 
 bool GuiPanel_MarkerComponent::setComponent(MikanComponentPtr component)

@@ -5,10 +5,10 @@
 
 #include "imgui.h"
 
-bool GuiPanel_USBVideoSourceComponent::init(AppStage* ownerAppStage)
+bool GuiPanel_USBVideoSourceComponent::init()
 {
-	m_usbVideoSourceSystem = ownerAppStage->getObjectSystemOfType<USBVideoSourceSystem>();
-	return initTypedPropertyInterface<USBVideoSourceComponent>(ownerAppStage);
+	m_usbVideoSourceSystem = getOwnerAppStage()->getObjectSystemOfType<USBVideoSourceSystem>();
+	return initTypedPropertyInterface<USBVideoSourceComponent>();
 }
 
 bool GuiPanel_USBVideoSourceComponent::setComponent(MikanComponentPtr component)

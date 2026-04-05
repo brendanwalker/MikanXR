@@ -18,8 +18,11 @@ public:
 class GuiPanel : public IGuiPanel
 {
 public:
-	GuiPanel() = default;
+	GuiPanel() = delete;
+	GuiPanel(class AppStage* ownerAppStage);
 	virtual ~GuiPanel();
+
+	class AppStage* getOwnerAppStage() const { return m_ownerAppStage; }
 
 	// IGuiPanel
 	virtual void onGui() override {}
@@ -28,5 +31,6 @@ public:
 	virtual void dispose() override;
 
 protected:
+	class AppStage* m_ownerAppStage = nullptr;
 	std::vector<std::function<void()>> m_deferredGuiEvents;
 };

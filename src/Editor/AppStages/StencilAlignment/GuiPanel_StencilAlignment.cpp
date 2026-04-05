@@ -2,11 +2,6 @@
 
 #include "imgui.h"
 
-bool GuiPanel_StencilAlignment::init(AppStage* ownerAppStage)
-{
-	return true;
-}
-
 void GuiPanel_StencilAlignment::onGui()
 {
 	switch (m_menuState)

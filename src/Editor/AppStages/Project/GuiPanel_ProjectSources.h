@@ -8,7 +8,7 @@
 class GuiPanel_ProjectSources : public GuiPanel
 {
 public:
-	GuiPanel_ProjectSources() = default;
+	GuiPanel_ProjectSources(AppStage* ownerAppStage) : GuiPanel(ownerAppStage) {}
 
 	bool init(class ProjectGuiPanelContext* context);
 	virtual void onGui() override;

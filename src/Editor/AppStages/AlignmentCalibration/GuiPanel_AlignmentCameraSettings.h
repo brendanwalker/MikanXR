@@ -11,7 +11,7 @@ class AppStage;
 class GuiPanel_AlignmentCameraSettings : public GuiPanel
 {
 public:
-	bool init(AppStage* ownerAppStage);
+	GuiPanel_AlignmentCameraSettings(AppStage* ownerAppStage) : GuiPanel(ownerAppStage) {}
 	void setCameraDefinition(CameraDefinitionConstPtr cameraDefinition);
 	virtual void onGui() override;
 

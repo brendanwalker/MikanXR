@@ -87,17 +87,17 @@ void GuiPanel_StencilComponent::rebuildTransformIdList()
 	}
 }
 
-bool GuiPanel_QuadStencilComponent::init(AppStage* ownerAppStage)
+bool GuiPanel_QuadStencilComponent::init()
 {
-	return initTypedPropertyInterface<QuadStencilComponent>(ownerAppStage);
+	return initTypedPropertyInterface<QuadStencilComponent>();
 }
 
-bool GuiPanel_BoxStencilComponent::init(AppStage* ownerAppStage)
+bool GuiPanel_BoxStencilComponent::init()
 {
-	return initTypedPropertyInterface<BoxStencilComponent>(ownerAppStage);
+	return initTypedPropertyInterface<BoxStencilComponent>();
 }
 
-bool GuiPanel_ModelStencilComponent::init(AppStage* ownerAppStage)
+bool GuiPanel_ModelStencilComponent::init()
 {
-	return initTypedPropertyInterface<ModelStencilComponent>(ownerAppStage);
+	return initTypedPropertyInterface<ModelStencilComponent>();
 }

@@ -2,11 +2,6 @@
 
 #include "imgui.h"
 
-bool GuiPanel_MonoCameraSettings::init(AppStage* ownerAppStage)
-{
-	return true;
-}
-
 void GuiPanel_MonoCameraSettings::onGui()
 {
 	ImGui::Separator();

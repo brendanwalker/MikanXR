@@ -147,7 +147,6 @@ void AppStage_AlignmentCalibration::enter()
 	// (Auto cleaned up on app state exit)
 	{
 		m_calibrationPanel = addGuiPanel<GuiPanel_AlignmentCalibration>();
-		m_calibrationPanel->init(this);
 		m_calibrationPanel->setBypassCalibrationFlag(m_bypassCalibrationFlag);
 		m_calibrationPanel->OnBeginEvent = [this]() { onBeginEvent(); };
 		m_calibrationPanel->OnRestartEvent = [this]() { onRestartEvent(); };
@@ -157,7 +156,6 @@ void AppStage_AlignmentCalibration::enter()
 			[this](bool bIsStable) { onChessboardStabilityChangedEvent(bIsStable); };
 
 		m_cameraSettingsPanel = addGuiPanel<GuiPanel_AlignmentCameraSettings>();
-		m_cameraSettingsPanel->init(this);
 		m_cameraSettingsPanel->setCameraDefinition(m_targetCameraComponent->getCameraDefinition());
 		m_cameraSettingsPanel->OnViewpointModeChanged =
 			[this](eAlignmentCalibrationViewpointMode mode) { onViewportModeChanged(mode); };

@@ -42,7 +42,7 @@ void AppStage_VideoSourceSettings::enter()
 	// (Auto cleaned up on app state exit)
 	{
 		auto* usbPanel = addGuiPanel<GuiPanel_USBVideoSourceComponent>();
-		usbPanel->init(this);
+		usbPanel->init();
 		if (auto usbVideoSourceComponent =
 			std::dynamic_pointer_cast<USBVideoSourceComponent>(videoSourceComponent))
 		{
@@ -50,7 +50,7 @@ void AppStage_VideoSourceSettings::enter()
 		}
 
 		auto* networkPanel = addGuiPanel<GuiPanel_NetworkVideoSourceComponent>();
-		networkPanel->init(this);
+		networkPanel->init();
 		if (auto networkVideoSourceComponent =
 			std::dynamic_pointer_cast<NetworkVideoSourceComponent>(videoSourceComponent))
 		{

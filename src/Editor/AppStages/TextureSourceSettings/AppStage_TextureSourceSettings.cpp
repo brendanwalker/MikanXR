@@ -49,7 +49,7 @@ void AppStage_TextureSourceSettings::enter()
 	// (Auto cleaned up on app state exit)
 	{
 		m_clientTextureSourceComponentPanel = addGuiPanel<GuiPanel_ClientTextureSourceComponent>();
-		m_clientTextureSourceComponentPanel->init(this);
+		m_clientTextureSourceComponentPanel->init();
 		if (auto clientTextureSourceComponent =
 			std::dynamic_pointer_cast<ClientTextureSourceComponent>(textureSourceComponent))
 		{
@@ -57,7 +57,7 @@ void AppStage_TextureSourceSettings::enter()
 		}
 
 		auto* spoutPanel = addGuiPanel<GuiPanel_SpoutTextureSourceComponent>();
-		spoutPanel->init(this);
+		spoutPanel->init();
 		if (auto spoutTextureSourceComponent =
 			std::dynamic_pointer_cast<SpoutTextureSourceComponent>(textureSourceComponent))
 		{

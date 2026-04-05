@@ -2,11 +2,6 @@
 
 #include "imgui.h"
 
-bool GuiPanel_VRTrackingRecenter::init(AppStage* ownerAppStage)
-{
-	return true;
-}
-
 void GuiPanel_VRTrackingRecenter::setCurrentMarkerValid(bool valid)
 {
 	if (m_isCurrentMarkerStable && !valid)

@@ -10,7 +10,7 @@ class AppStage;
 class GuiPanel_MonoCameraSettings : public GuiPanel
 {
 public:
-	bool init(AppStage* ownerAppStage);
+	GuiPanel_MonoCameraSettings(AppStage* ownerAppStage) : GuiPanel(ownerAppStage) {}
 	virtual void onGui() override;
 
 	void setVideoDisplayMode(eVideoDisplayMode mode) { m_videoDisplayMode = (int)mode; }

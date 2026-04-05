@@ -6,10 +6,9 @@
 
 #include "imgui.h"
 
-bool GuiPanel_StageComponent::init(AppStage* ownerAppStage)
+bool GuiPanel_StageComponent::init()
 {
-	m_ownerAppStage = ownerAppStage;
-	return initTypedPropertyInterface<StageComponent>(ownerAppStage);
+	return initTypedPropertyInterface<StageComponent>();
 }
 
 void GuiPanel_StageComponent::onGui()

@@ -13,6 +13,7 @@
 class GuiPanel_EntityAccessor : public GuiPanel
 {
 public:
+	GuiPanel_EntityAccessor(AppStage* ownerAppStage) : GuiPanel(ownerAppStage) {}
 	virtual ~GuiPanel_EntityAccessor();
 
 	using OnConstruct = std::function<bool()>;

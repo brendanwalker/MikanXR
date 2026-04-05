@@ -61,7 +61,7 @@ public:
 	template<typename t_gui_panel>
 	t_gui_panel* addGuiPanel()
 	{
-		t_gui_panel* panel = new t_gui_panel();
+		t_gui_panel* panel = new t_gui_panel(this);
 		m_guiPanels.push_back(panel);
 		return panel;
 	}

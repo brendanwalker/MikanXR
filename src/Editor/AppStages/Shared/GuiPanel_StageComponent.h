@@ -6,14 +6,11 @@
 class GuiPanel_StageComponent : public GuiPanel_MikanComponent
 {
 public:
-	GuiPanel_StageComponent() = default;
+	GuiPanel_StageComponent(AppStage* ownerAppStage) : GuiPanel_MikanComponent(ownerAppStage) {}
 
-	virtual bool init(class AppStage* ownerAppStage) override;
+	virtual bool init() override;
 	virtual void onGui() override;
 
 protected:
 	StageComponentPtr getStageComponent() const;
-
-private:
-	class AppStage* m_ownerAppStage = nullptr;
 };

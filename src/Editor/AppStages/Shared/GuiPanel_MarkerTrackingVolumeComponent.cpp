@@ -7,12 +7,12 @@
 
 #include "imgui.h"
 
-bool GuiPanel_MarkerTrackingVolumeComponent::init(AppStage* ownerAppStage)
+bool GuiPanel_MarkerTrackingVolumeComponent::init()
 {
-	m_markerObjectSystem = ownerAppStage->getObjectSystemOfType<MarkerObjectSystem>();
-	m_trackingMountObjectSystem = ownerAppStage->getObjectSystemOfType<TrackingMountObjectSystem>();
+	m_markerObjectSystem = getOwnerAppStage()->getSystemOfType<MarkerObjectSystem>();
+	m_trackingMountObjectSystem = getOwnerAppStage()->getSystemOfType<TrackingMountObjectSystem>();
 
-	return initTypedPropertyInterface<MarkerTrackingVolumeComponent>(ownerAppStage);
+	return initTypedPropertyInterface<MarkerTrackingVolumeComponent>();
 }
 
 void GuiPanel_MarkerTrackingVolumeComponent::onGui()

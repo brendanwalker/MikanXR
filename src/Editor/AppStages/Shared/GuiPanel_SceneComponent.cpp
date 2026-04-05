@@ -4,9 +4,9 @@
 
 #include "imgui.h"
 
-bool GuiPanel_SceneComponent::init(AppStage* ownerAppStage)
+bool GuiPanel_SceneComponent::init()
 {
-	return initTypedPropertyInterface<SceneComponent>(ownerAppStage);
+	return initTypedPropertyInterface<SceneComponent>();
 }
 
 bool GuiPanel_SceneComponent::setComponent(MikanComponentPtr component)

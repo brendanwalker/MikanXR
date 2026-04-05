@@ -309,17 +309,17 @@ void MainWindow::update(float deltaSeconds)
 	AppStage* appStage = getCurrentAppStage();
 	if (appStage != nullptr && appStage->getIsUpdateActive())
 	{
-		// Update the simulation of the current app stage
-		{
-			EASY_BLOCK("appStage Update");
-			appStage->update(deltaSeconds);
-		}
-
-		// Update the UI for the current app stage
+		// Process input events in the Debug UI and render the UI
 		if (m_bIsDebugGuiEnabled)
 		{
 			EASY_BLOCK("appStage onGui");
 			appStage->onGui();
+		}
+
+		// Update the simulation of the current app stage
+		{
+			EASY_BLOCK("appStage Update");
+			appStage->update(deltaSeconds);
 		}
 	}
 }

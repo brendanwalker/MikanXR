@@ -8,9 +8,9 @@
 class GuiPanel_VRTrackingVolumeComponent : public GuiPanel_MikanComponent
 {
 public:
-	GuiPanel_VRTrackingVolumeComponent() = default;
+	GuiPanel_VRTrackingVolumeComponent(AppStage* ownerAppStage) : GuiPanel_MikanComponent(ownerAppStage) {}
 
-	virtual bool init(class AppStage* ownerAppStage) override;
+	virtual bool init() override;
 	virtual void onGui() override;
 
 protected:

@@ -4,9 +4,9 @@
 
 #include "imgui.h"
 
-GuiPanel_MikanComponent::GuiPanel_MikanComponent()
+GuiPanel_MikanComponent::GuiPanel_MikanComponent(AppStage* ownerAppStage)
 	: m_component()
-	, m_entityAccessor(std::make_shared<GuiPanel_EntityAccessor>())
+	, m_entityAccessor(std::make_shared<GuiPanel_EntityAccessor>(ownerAppStage))
 {
 }
 

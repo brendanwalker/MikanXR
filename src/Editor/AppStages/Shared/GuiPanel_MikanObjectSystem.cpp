@@ -1,9 +1,9 @@
 #include "GuiPanel_MikanObjectSystem.h"
 #include "MikanObjectSystem.h"
 
-GuiPanel_MikanObjectSystem::GuiPanel_MikanObjectSystem()
+GuiPanel_MikanObjectSystem::GuiPanel_MikanObjectSystem(AppStage* ownerAppStage)
 	: m_objectSystem()
-	, m_entityAccessor(std::make_shared<GuiPanel_EntityAccessor>())
+	, m_entityAccessor(std::make_shared<GuiPanel_EntityAccessor>(ownerAppStage))
 {
 }
 

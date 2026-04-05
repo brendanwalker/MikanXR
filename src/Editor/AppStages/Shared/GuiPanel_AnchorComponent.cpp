@@ -1,7 +1,7 @@
 #include "AppStage.h"
 #include "Shared/GuiPanel_AnchorComponent.h"
 
-bool GuiPanel_AnchorComponent::init(AppStage* ownerAppStage)
+bool GuiPanel_AnchorComponent::init()
 {
-	return initTypedPropertyInterface<AnchorComponent>(ownerAppStage);
+	return initTypedPropertyInterface<AnchorComponent>();
 }

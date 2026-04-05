@@ -10,7 +10,7 @@ class AppStage;
 class GuiPanel_VRTrackingRecenter : public GuiPanel
 {
 public:
-	bool init(AppStage* ownerAppStage);
+	GuiPanel_VRTrackingRecenter(AppStage* ownerAppStage) : GuiPanel(ownerAppStage) {}
 	virtual void onGui() override;
 
 	eVRTrackingRecenterMenuState getMenuState() const { return m_menuState; }

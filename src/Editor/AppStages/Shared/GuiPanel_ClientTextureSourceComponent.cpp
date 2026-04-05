@@ -4,9 +4,9 @@
 
 #include "imgui.h"
 
-bool GuiPanel_ClientTextureSourceComponent::init(AppStage* ownerAppStage)
+bool GuiPanel_ClientTextureSourceComponent::init()
 {
-	return initTypedPropertyInterface<ClientTextureSourceComponent>(ownerAppStage);
+	return initTypedPropertyInterface<ClientTextureSourceComponent>();
 }
 
 void GuiPanel_ClientTextureSourceComponent::onGui()

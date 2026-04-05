@@ -7,9 +7,9 @@
 class GuiPanel_CompositorComponent : public GuiPanel_MikanComponent
 {
 public:
-	GuiPanel_CompositorComponent() = default;
+	GuiPanel_CompositorComponent(AppStage* ownerAppStage) : GuiPanel_MikanComponent(ownerAppStage) {}
 
-	virtual bool init(class AppStage* ownerAppStage) override;
+	virtual bool init() override;
 	virtual bool setComponent(MikanComponentPtr component) override;
 	virtual void onGui() override;
 

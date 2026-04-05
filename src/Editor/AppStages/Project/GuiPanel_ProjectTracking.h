@@ -9,7 +9,7 @@
 class GuiPanel_ProjectTracking : public GuiPanel
 {
 public:
-	GuiPanel_ProjectTracking() = default;
+	GuiPanel_ProjectTracking(AppStage* ownerAppStage) : GuiPanel(ownerAppStage) {}
 
 	bool init(class ProjectGuiPanelContext* context);
 	virtual void onGui() override;

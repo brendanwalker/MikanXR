@@ -10,7 +10,7 @@ class AppStage;
 class GuiPanel_AnchorTriangulation : public GuiPanel
 {
 public:
-	bool init(AppStage* ownerAppStage);
+	GuiPanel_AnchorTriangulation(AppStage* ownerAppStage) : GuiPanel(ownerAppStage) {}
 	virtual void onGui() override;
 
 	bool getBypassCalibrationFlag() const { return m_bypassCalibrationFlag; }

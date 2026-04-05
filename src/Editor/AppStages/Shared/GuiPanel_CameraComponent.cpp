@@ -7,9 +7,9 @@
 
 #include "imgui.h"
 
-bool GuiPanel_CameraComponent::init(AppStage* ownerAppStage)
+bool GuiPanel_CameraComponent::init()
 {
-	return initTypedPropertyInterface<CameraComponent>(ownerAppStage);
+	return initTypedPropertyInterface<CameraComponent>();
 }
 
 bool GuiPanel_CameraComponent::setComponent(MikanComponentPtr component)

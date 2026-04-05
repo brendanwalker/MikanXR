@@ -5,10 +5,10 @@
 
 #include "imgui.h"
 
-bool GuiPanel_CompositorComponent::init(AppStage* ownerAppStage)
+bool GuiPanel_CompositorComponent::init()
 {
-	m_cameraObjectSystem = ownerAppStage->getSystemOfType<CameraObjectSystem>();
-	return initTypedPropertyInterface<CompositorComponent>(ownerAppStage);
+	m_cameraObjectSystem = getOwnerAppStage()->getSystemOfType<CameraObjectSystem>();
+	return initTypedPropertyInterface<CompositorComponent>();
 }
 
 bool GuiPanel_CompositorComponent::setComponent(MikanComponentPtr component)

@@ -2,11 +2,6 @@
 
 #include "imgui.h"
 
-bool GuiPanel_MonoLensCalibration::init(AppStage* ownerAppStage)
-{
-	return true;
-}
-
 void GuiPanel_MonoLensCalibration::setCurrentImagePointsValid(bool valid)
 {
 	if (m_areCurrentImagePointsStable && !valid)

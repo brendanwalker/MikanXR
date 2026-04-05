@@ -1,5 +1,11 @@
 #include "GuiPanel.h"
 
+GuiPanel::GuiPanel(AppStage* ownerAppStage)
+	: IGuiPanel()
+	, m_ownerAppStage(ownerAppStage)
+{
+}
+
 GuiPanel::~GuiPanel()
 {
 	dispose();

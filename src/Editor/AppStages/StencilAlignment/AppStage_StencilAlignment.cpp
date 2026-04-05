@@ -139,7 +139,6 @@ void AppStage_StencilAlignment::enter()
 	// (Auto cleaned up on app state exit)
 	{
 		m_calibrationPanel = addGuiPanel<GuiPanel_StencilAlignment>();
-		m_calibrationPanel->init(this);
 		m_calibrationPanel->OnOkEvent = [this]() { onOkEvent(); };
 		m_calibrationPanel->OnRedoEvent = [this]() { onRedoEvent(); };
 		m_calibrationPanel->OnCancelEvent = [this]() { onCancelEvent(); };

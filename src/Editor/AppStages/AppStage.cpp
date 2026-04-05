@@ -126,19 +126,8 @@ void AppStage::resume()
 	}
 }
 
-void AppStage::update(float deltaSeconds)
-{
-	// Process input in each viewport
-	for (MikanViewportPtr viewport : m_viewports)
-	{
-		viewport->update(deltaSeconds);
-	}
-}
-
 void AppStage::onGui()
 {
-	// Override this method in derived classes to render the stage specific Mk GUI
-
 	// Render the top-most modal dialog (if any)
 	ModalDialog* modalDialog = getCurrentModalDialog();
 	if (modalDialog != nullptr)
@@ -146,10 +135,21 @@ void AppStage::onGui()
 		modalDialog->onGui();
 	}
 
+	// Override this method in derived classes to render the stage specific Mk GUI
+}
+
+void AppStage::update(float deltaSeconds)
+{
 	// Process deferred events emitted due to Gui interaction (e.g. button clicks, etc)
 	for (IGuiPanel* panel : m_guiPanels)
 	{
 		panel->processDeferredGuiEvents();
+	}
+
+	// Process input in each viewport
+	for (MikanViewportPtr viewport : m_viewports)
+	{
+		viewport->update(deltaSeconds);
 	}
 }
 

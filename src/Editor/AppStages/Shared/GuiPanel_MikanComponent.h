@@ -8,12 +8,14 @@ class AppStage;
 class GuiPanel_MikanComponent : public IGuiPanel
 {
 public:
-	GuiPanel_MikanComponent();
+	GuiPanel_MikanComponent()= delete;
+	GuiPanel_MikanComponent(class AppStage* ownerAppStage);
 	virtual ~GuiPanel_MikanComponent() = default;
 
-	virtual bool init(AppStage* ownerAppStage) = 0;
+	virtual bool init() = 0;
 	virtual void onConstruct() {}
 
+	inline class AppStage* getOwnerAppStage() const { return m_entityAccessor->getOwnerAppStage(); }
 	inline GuiPanel_EntityAccessorPtr getPropertyInterface() const { return m_entityAccessor; }
 
 	MikanComponentPtr getComponent() const;
@@ -30,7 +32,7 @@ public:
 
 protected:
 	template <class t_component_type>
-	bool initTypedPropertyInterface(AppStage* ownerAppStage)
+	bool initTypedPropertyInterface()
 	{
 		const bool bSuccess =
 			m_entityAccessor->init<t_component_type>(

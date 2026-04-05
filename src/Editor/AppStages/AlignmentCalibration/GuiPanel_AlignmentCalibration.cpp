@@ -2,11 +2,6 @@
 
 #include "imgui.h"
 
-bool GuiPanel_AlignmentCalibration::init(AppStage* ownerAppStage)
-{
-	return true;
-}
-
 void GuiPanel_AlignmentCalibration::setCurrentChessboardValid(bool valid)
 {
 	if (m_isCurrentChessboardStable && !valid)

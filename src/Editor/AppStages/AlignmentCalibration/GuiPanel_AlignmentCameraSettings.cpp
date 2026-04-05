@@ -3,11 +3,6 @@
 
 #include "imgui.h"
 
-bool GuiPanel_AlignmentCameraSettings::init(AppStage* ownerAppStage)
-{
-	return true;
-}
-
 void GuiPanel_AlignmentCameraSettings::setCameraDefinition(CameraDefinitionConstPtr cameraDefinition)
 {
 	if (cameraDefinition)

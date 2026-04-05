@@ -5,10 +5,10 @@
 
 #include "imgui.h"
 
-bool GuiPanel_TrackingMountComponent::init(AppStage* ownerAppStage)
+bool GuiPanel_TrackingMountComponent::init()
 {
-	m_vrObjectSystem = ownerAppStage->getObjectSystemOfType<VRObjectSystem>();
-	return initTypedPropertyInterface<TrackingMountComponent>(ownerAppStage);
+	m_vrObjectSystem = getOwnerAppStage()->getSystemOfType<VRObjectSystem>();
+	return initTypedPropertyInterface<TrackingMountComponent>();
 }
 
 bool GuiPanel_TrackingMountComponent::setComponent(MikanComponentPtr component)

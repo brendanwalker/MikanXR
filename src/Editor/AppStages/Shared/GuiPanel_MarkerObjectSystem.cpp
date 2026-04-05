@@ -2,9 +2,9 @@
 #include "MarkerObjectSystem.h"
 #include "Shared/GuiPanel_MarkerObjectSystem.h"
 
-bool GuiPanel_MarkerObjectSystem::init(AppStage* ownerAppStage)
+bool GuiPanel_MarkerObjectSystem::init()
 {
-	return initTypedPropertyInterface<MarkerObjectSystem>(ownerAppStage);
+	return initTypedPropertyInterface<MarkerObjectSystem>(getOwnerAppStage());
 }
 
 void GuiPanel_MarkerObjectSystem::onConstruct()

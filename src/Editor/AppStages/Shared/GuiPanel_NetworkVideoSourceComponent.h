@@ -6,7 +6,8 @@
 class GuiPanel_NetworkVideoSourceComponent : public GuiPanel_MikanComponent
 {
 public:
-	virtual bool init(class AppStage* ownerAppStage) override;
+	GuiPanel_NetworkVideoSourceComponent(AppStage* ownerAppStage) : GuiPanel_MikanComponent(ownerAppStage) {}
+	virtual bool init() override;
 	virtual void onGui() override;
 
 protected:

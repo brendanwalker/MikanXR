@@ -23,7 +23,7 @@ struct SceneOutlinerEntry
 class GuiPanel_ProjectScenes : public GuiPanel
 {
 public:
-	GuiPanel_ProjectScenes() = default;
+	GuiPanel_ProjectScenes(AppStage* ownerAppStage) : GuiPanel(ownerAppStage) {}
 
 	bool init(class ProjectGuiPanelContext* context);
 	virtual void onGui() override;
