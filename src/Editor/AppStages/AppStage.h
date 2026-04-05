@@ -5,8 +5,7 @@
 #include "LocalizationManager.h"
 #include "MikanRendererFwd.h"
 #include "ProjectManager.h"
-#include "RmlFwd.h"
-#include "Shared/RmlModelInterface.h"
+#include "Shared/GuiPanel.h"
 
 #include <string>
 #include <vector>
@@ -49,8 +48,8 @@ public:
 	virtual void pause();
 	virtual void resume();
 	virtual void update(float deltaSeconds);
+	virtual void onGui();
 	virtual void render(IMkViewportPtr targetViewport);
-	virtual void renderUI();
 
 	virtual void onSDLEvent(const SDL_Event* event);
 
@@ -59,17 +58,12 @@ public:
 	MikanViewportConstPtr getRenderingViewport() const;
 	MikanViewportPtr addViewport();
 
-	Rml::Context* getRmlContext() const;
-	Rml::ElementDocument* addRmlDocument(const std::string& docFilename, bool isModal= false);
-	bool removeRmlDocument(Rml::ElementDocument* doc);
-	virtual void onRmlClickEvent(const std::string& value) {}
-
-	template<typename t_rml_model>
-	t_rml_model* addRmlModel()
+	template<typename t_gui_panel>
+	t_gui_panel* addGuiPanel()
 	{
-		t_rml_model* model = new t_rml_model();
-		m_rmlModels.push_back(model);
-		return model;
+		t_gui_panel* panel = new t_gui_panel();
+		m_guiPanels.push_back(panel);
+		return panel;
 	}
 
 	inline ModalDialog* getCurrentModalDialog() const
@@ -106,9 +100,7 @@ protected:
 	bool m_bIsPaused= false;
 	std::string m_appStageName;
 	MikanViewportList m_viewports;
-	Rml::Context* m_rmlContext = nullptr;
-	std::vector<Rml::ElementDocument*> m_rmlDocuments;
-	std::vector<IRmlModel*> m_rmlModels;
+	std::vector<IGuiPanel*> m_guiPanels;
 	std::vector<class ModalDialog*> m_modalDialogStack;
 };
 

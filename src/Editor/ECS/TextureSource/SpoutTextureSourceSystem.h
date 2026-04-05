@@ -4,7 +4,6 @@
 #include "MikanTypedObjectSystem.h"
 #include "MikanTextureSourceTypes.h"
 #include "ObjectSystemConfigFwd.h"
-#include "Shared/RmlDataBinding_Fwd.h"
 #include "SpoutTextureSourceComponent.h"
 #include "TextureSourceQueries.h"
 
@@ -46,7 +45,6 @@ public:
 
 private:
     struct SPOUTLIBRARY* m_spoutLibrary = nullptr;
-    RmlDataBinding_SpoutSourceListPtr m_spoutSourceList;
 };
 
 using SpoutTextureSourceSystemPtr = std::shared_ptr<SpoutTextureSourceSystem>;

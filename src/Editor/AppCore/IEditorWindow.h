@@ -12,13 +12,12 @@ public:
 	virtual ProjectManagerPtr getProjectManager() const = 0;
 	virtual class MikanServer* getMikanServer() const = 0;
 	virtual class MikanFontManager* getFontManager() const = 0;
-	virtual class RmlManager* getRmlManager() const = 0;
-	virtual class GlRmlUiRender* getRmlUiRenderer() const = 0;
 	virtual class InputManager* getInputManager() const = 0;
 	virtual class OpenCVManager* getOpenCVManager() const = 0;
 	virtual class ClientSourceManager* getClientSourceManager() const = 0;
 	virtual class LocalizationManager* getLocalizationManager() const = 0;
 	virtual class EventBus* getEventBus() const = 0;
+	virtual class MkGuiStyleManager* getMkGuiStyleManager() const = 0;
 
 	virtual class App* getOwnerApp() const = 0;
 	virtual class AppStage* getCurrentAppStage() const = 0;

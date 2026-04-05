@@ -7,11 +7,6 @@ MESSAGE(STATUS "Stepping into IxWebSocket")
 add_subdirectory(IxWebSocket)
 set_target_properties(ixwebsocket PROPERTIES FOLDER ThirdParty)
 
-MESSAGE(STATUS "Stepping into RML")
-add_subdirectory(RmlUI)
-set_target_properties(RmlCore PROPERTIES FOLDER ThirdParty)
-set_target_properties(RmlDebugger PROPERTIES FOLDER ThirdParty)
-
 # CEF libcef_dll_wrapper
 if(DEFINED CEF_ROOT)
     MESSAGE(STATUS "Stepping into CEF libcef_dll_wrapper")

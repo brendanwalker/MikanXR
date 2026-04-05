@@ -16,19 +16,20 @@ float IntPinBase::editorComputeInputWidth() const
 	return NodePin::editorComputeInputWidth();
 }
 
-ImNodesPinShape IntPinBase::editorRenderBeginPin(float alpha)
+ImNodesPinShape IntPinBase::editorComputePinShape() const
 {
-	ImNodesPinShape pinShape = ImNodesPinShape_Triangle;
-
 	if (m_connectedLinks.size() > 0)
-		pinShape = ImNodesPinShape_CircleFilled;
+		return ImNodesPinShape_CircleFilled;
 	else
-		pinShape = ImNodesPinShape_Circle;
+		return ImNodesPinShape_Circle;
+}
 
-	ImNodes::PushColorStyle(ImNodesCol_Pin, IM_COL32(33, 227, 175, alpha * 255));
-	ImNodes::PushColorStyle(ImNodesCol_PinHovered, IM_COL32(135, 239, 195, alpha * 255));
-
-	return pinShape;	
+std::shared_ptr<MkNodesScopedColorStyle> IntPinBase::editorRenderMakePinStyle(float alpha)
+{
+	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	style->push(ImNodesCol_Pin, IM_COL32(33, 227, 175, (unsigned char)(alpha * 255)))
+		.push(ImNodesCol_PinHovered, IM_COL32(135, 239, 195, (unsigned char)(alpha * 255)));
+	return style;
 }
 
 void IntPinBase::editorRenderContextMenu(const NodeEditorState& editorState)

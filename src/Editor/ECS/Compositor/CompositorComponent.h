@@ -129,7 +129,11 @@ public:
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
 
 	// -- IFunctionInterface ----
+	static const std::string k_editCompositorGraphFunctionId;
+	static const std::string k_addNewScriptFunctionId;
+	static const std::string k_removeCompositorGraphFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
+	virtual bool invokeFunction(const std::string& functionName) override;
 
 protected:
 	void onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);

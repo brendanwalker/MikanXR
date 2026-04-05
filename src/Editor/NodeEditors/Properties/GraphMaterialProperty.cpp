@@ -5,8 +5,9 @@
 #include "Logger.h"
 #include "MaterialAssetReference.h"
 #include "NodeEditorUI.h"
+#include "NodeEditorState.h"
 #include "Nodes/MaterialNode.h"
-#include "IMkWindow.h"
+#include "IEditorWindow.h"
 #include "MikanShaderCache.h"
 
 #include "imgui.h"
@@ -173,7 +174,7 @@ void GraphMaterialProperty::setMaterialAssetReference(MaterialAssetReferencePtr 
 	}
 }
 
-void GraphMaterialProperty::editorHandleMainFrameDragDrop(const class NodeEditorState& editorState)
+void GraphMaterialProperty::editorHandleMainFrameDragDrop(const NodeEditorState& editorState)
 {
 	auto materialNode = m_ownerGraph->createTypedNode<MaterialNode>(editorState);
 
@@ -182,18 +183,18 @@ void GraphMaterialProperty::editorHandleMainFrameDragDrop(const class NodeEditor
 	materialNode->setMaterialSource(self);
 }
 
-void GraphMaterialProperty::editorRenderPropertySheet(const class NodeEditorState& editorState)
+void GraphMaterialProperty::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Material"))
+	if (NodeEditorUI::DrawPropertySheetHeader("Material", editorState.styleManager))
 	{
 		// Name
 		std::string name = m_materialResource ? m_materialResource->getName() : "";
-		NodeEditorUI::DrawStaticTextProperty("Name", name);
+		NodeEditorUI::DrawStaticTextProperty("Name", name, editorState.styleManager);
 
 		// Material Asset
 		MaterialAssetComboDataSource dataSource(std::static_pointer_cast<GraphMaterialProperty>(shared_from_this()));
 		int selectedIndex= dataSource.getCurrentAssetIndex();
-		if (NodeEditorUI::DrawComboBoxProperty("materialSelection", "Material", &dataSource, selectedIndex))
+		if (NodeEditorUI::DrawComboBoxProperty("materialSelection", "Material", &dataSource, selectedIndex, editorState.styleManager))
 		{
 			setMaterialAssetReference(dataSource.getEntryAssetRef(selectedIndex));
 		}

@@ -10,6 +10,8 @@
 #include "VideoDisplayConstants.h"
 #include <memory>
 
+class GuiPanel_StencilAlignment;
+
 //-- definitions -----
 class AppStage_StencilAlignment : public AppStage
 {
@@ -25,6 +27,7 @@ public:
 	virtual void enter() override;
 	virtual void exit() override;
 	virtual void update(float deltaSeconds) override;
+	virtual void onGui() override;
 	virtual void render(IMkViewportPtr targetViewport) override;
 
 protected:
@@ -43,8 +46,7 @@ protected:
 	void onCancelEvent();
 
 private:
-	class RmlModel_StencilAlignment* m_calibrationModel;
-	Rml::ElementDocument* m_calibrationView = nullptr;
+	class GuiPanel_StencilAlignment* m_calibrationPanel = nullptr;
 
 	CameraComponentPtr m_cameraComponent;
 	VideoSourceComponentPtr m_videoSourceComponent;

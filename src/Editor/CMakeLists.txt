@@ -378,13 +378,6 @@ file(GLOB MIKAN_RENDERER_SRC
 )
 source_group("Renderer" FILES ${MIKAN_RENDERER_SRC})
 
-# RmlUI
-file(GLOB MIKAN_RMLUI_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/RmlUI/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/RmlUI/*.h"
-)
-source_group("RmlUI" FILES ${MIKAN_RMLUI_SRC})
-
 # Scripting
 file(GLOB MIKAN_SCRIPTING_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Scripting/*.cpp"
@@ -430,7 +423,6 @@ set(MIKAN_SRC
     ${MIKAN_OPENCV_SRC}
     ${MIKAN_PROJECT_SRC}
     ${MIKAN_RENDERER_SRC}
-    ${MIKAN_RMLUI_SRC}
     ${MIKAN_SCRIPTING_SRC}
     ${MIKAN_SDL_SRC}
     ${MIKAN_SERVER_SRC}
@@ -472,13 +464,13 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/OpenCV
   ${CMAKE_CURRENT_LIST_DIR}/Project
   ${CMAKE_CURRENT_LIST_DIR}/Renderer
-  ${CMAKE_CURRENT_LIST_DIR}/RmlUI
   ${CMAKE_CURRENT_LIST_DIR}/SDL
   ${CMAKE_CURRENT_LIST_DIR}/Server
   ${CMAKE_CURRENT_LIST_DIR}/Scripting
   ${MIKAN_LIBRARIES_DIR}/MikanClientAPI/Public
   ${MIKAN_LIBRARIES_DIR}/MikanClientCore/Public
   ${MIKAN_LIBRARIES_DIR}/MikanCoreApp/Public
+  ${MIKAN_LIBRARIES_DIR}/MikanGUI/Public
   ${MIKAN_LIBRARIES_DIR}/MikanMath/Public
   ${MIKAN_LIBRARIES_DIR}/MikanObject/Public
   ${MIKAN_LIBRARIES_DIR}/MikanRenderer/Public
@@ -486,7 +478,6 @@ list(APPEND MIKAN_INCL_DIRS
   ${MIKAN_LIBRARIES_DIR}/MikanSharedTexture/Public
   ${MIKAN_LIBRARIES_DIR}/MikanUtility/Public
   ${MIKAN_PLUGINS_DIR}/MikanGStreamer/Public
-  ${CMAKE_CURRENT_LIST_DIR}/RmlUi/Public
   ${CMAKE_CURRENT_LIST_DIR}/SDL/Public
   ${RFK_GENERATED_ROOT_DIR}/MikanClientCore
   ${RFK_GENERATED_ROOT_DIR}/MikanClientAPI
@@ -497,7 +488,6 @@ list(APPEND MIKAN_INCL_DIRS
   ${LOCKFREEQUEUE_INCLUDE_DIR}
   ${LIBHARU_INCLUDE_DIRS}
   ${RFK_INCLUDE_DIR}
-  ${RMLUI_INCLUDE_DIR}
   ${ROOT_DIR}/thirdparty/glm/
   ${CONFIGURU_INCLUDE_DIR}
   ${NLOHMANN_JSON_INCLUDE_DIR}
@@ -526,7 +516,6 @@ list(APPEND MIKAN_REQ_LIBS
   ${MIKAN_EXTRA_LIBS}
   ${GLEW_LIBRARIES}
   ${SPOUT2_LIBRARIES}
-  ${FREETYPE_LIBRARIES}
   ${LIBHARU_LIBRARIES}
   ${LUA_LIBRARIES}
   ${RFK_LIBRARIES}
@@ -537,13 +526,12 @@ list(APPEND MIKAN_REQ_LIBS
   MikanClientAPI
   MikanClientCore
   MikanCoreApp
+  MikanGUI
   MikanMath
   MikanRenderer
   MikanSerialization
   MikanSharedTexture
-  MikanUtility
-  RmlCore
-  RmlDebugger)
+  MikanUtility)
 
 # Remove problematic files from the unity builds (header file inclusion ordering issues)
 set_source_files_properties(${IMGUI_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
@@ -643,12 +631,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy 
-    "${SDL2_TTF_DLL_FOLDER}/libfreetype-6.dll"
-    "${SDL2_TTF_DLL_FOLDER}/SDL2_ttf.dll"
-    $<TARGET_FILE_DIR:Mikan>)
-  add_custom_command(
-    TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${GLEW_SHARED_LIBRARIES} $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
@@ -709,7 +691,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
 
   install(FILES 
-      "${SDL2_TTF_DLL_FOLDER}/libfreetype-6.dll"
       "${SDL2_TTF_DLL_FOLDER}/SDL2_ttf.dll"
       DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
       
@@ -726,7 +707,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
   install(DIRECTORY ${ROOT_DIR}/resources
     DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
-    FILES_MATCHING PATTERN "*.jpg" PATTERN "*.png" PATTERN "*.ttf" PATTERN "*.json" PATTERN "*.csv" PATTERN "*.lua" PATTERN "*.rml" PATTERN "*.rcss" PATTERN "*.onnx")
+    FILES_MATCHING PATTERN "*.jpg" PATTERN "*.png" PATTERN "*.ttf" PATTERN "*.json" PATTERN "*.csv" PATTERN "*.lua" PATTERN "*.onnx")
     
 ELSE() #Linux/Darwin
 ENDIF()

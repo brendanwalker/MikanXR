@@ -163,13 +163,13 @@ bool VariableNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 void VariableNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
 	// title bar
-	if (NodeEditorUI::DrawPropertySheetHeader("Variable Node"))
+	if (NodeEditorUI::DrawPropertySheetHeader("Variable Node", editorState.styleManager))
 	{
 		bool bPinsNeedRebuild = false;
 
 		// Name
 		const std::string property_name = m_sourceProperty ? m_sourceProperty->getName() : "<INVALID>";
-		NodeEditorUI::DrawStaticTextProperty("Name", property_name);
+		NodeEditorUI::DrawStaticTextProperty("Name", property_name, editorState.styleManager);
 
 		// Evaluation Mode
 		int iEvalMode = (int)m_evalMode;
@@ -177,7 +177,8 @@ void VariableNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 			"variableNodeEvalMode",
 			"Eval Mode",
 			"Get\0Set\0",
-			iEvalMode))
+			iEvalMode,
+			editorState.styleManager))
 		{
 			m_evalMode = (eVariableEvalMode)iEvalMode;
 			bPinsNeedRebuild= true;
@@ -191,7 +192,8 @@ void VariableNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 			"variableSource",
 			"Source",
 			&dataSource,
-			valueSourceIndex))
+			valueSourceIndex,
+			editorState.styleManager))
 		{
 			m_sourceProperty= dataSource.getEntryValueSource(valueSourceIndex);
 			bPinsNeedRebuild= true;
@@ -286,18 +288,17 @@ bool VariableNode::evaluateNode(NodeEvaluator& evaluator)
 	return bSuccess;
 }
 
-void VariableNode::editorRenderPushNodeStyle(const NodeEditorState& editorState) const
+std::shared_ptr<MkNodesScopedColorStyle> VariableNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
 {
-	if (m_outputValuePin)
-	{
-		ImNodes::PushColorStyle(ImNodesCol_TitleBar, m_outputValuePin->editorValuePinColor(1.f));
-	}
-	else
-	{
-		ImNodes::PushColorStyle(ImNodesCol_TitleBar, ImGui::GetColorU32(NodeEditorUI::getPropertyColor(1.f)));
-	}
-	ImNodes::PushColorStyle(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225));
-	ImNodes::PushColorStyle(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
+	const unsigned int titleBarColor =
+		m_outputValuePin
+		? m_outputValuePin->editorValuePinColor(1.f)
+		: ImGui::GetColorU32(NodeEditorUI::getPropertyColor(1.f));
+	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	style->push(ImNodesCol_TitleBar, titleBarColor)
+		.push(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225))
+		.push(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
+	return style;
 }
 
 std::string VariableNode::editorGetTitle() const

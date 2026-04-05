@@ -2,8 +2,10 @@
 
 //-- includes -----
 #include "AssetFwd.h"
+#include "MkGuiFwd.h"
 #include "SdlFwd.h"
-#include "ISdlMkWindow.h"
+#include "IEditorWindow.h"
+#include "IMkWindowEventListener.h"
 #include "NodeEditorFwd.h"
 #include "NodeFwd.h"
 #include "NodeEditorState.h"
@@ -14,19 +16,16 @@
 
 #include "Properties/GraphArrayProperty.h"
 
-#include "imgui.h"
-#include "imnodes.h"
-
 #include <chrono>
 #include <filesystem>
 #include <memory>
 #include <vector>
 
 //-- definitions -----
-class NodeEditorWindow : public ISdlMkWindow
+class NodeEditorWindow : public IEditorWindow, public IMkWindowEventListener
 {
 public:
-	NodeEditorWindow();
+	NodeEditorWindow(App* ownerApp);
 	~NodeEditorWindow();
 
 	inline NodeGraphPtr getNodeGraph() const { return m_editorState.nodeGraph; }
@@ -48,7 +47,6 @@ public:
 	virtual float getHeight() const override;
 	virtual float getAspectRatio() const override;
 	virtual bool getIsRenderingStage() const override { return false; }
-	virtual bool getIsRenderingUI() const override { return m_isRenderingUI; }
 
 	virtual IMkViewportPtr getRenderingViewport() const override { return nullptr; }
 	virtual MkStateStack& getMkStateStack() override;
@@ -59,14 +57,29 @@ public:
 	virtual IMkTextureCache* getTextureCache() override;
 	virtual SdlWindow& getSdlWindow() override;
 
-	virtual bool onSDLEvent(const SDL_Event* event) override;
+	// -- IMkWindowEventListener
+	virtual bool onWindowEvent(const SDL_Event* event) override;
+
+	// -- IEditorWindow
+	class MainWindow* getMainWindow() const;
+	virtual ProjectManagerPtr getProjectManager() const override;
+	virtual class MikanServer* getMikanServer() const override;
+	virtual class MikanFontManager* getFontManager() const override;
+	virtual class InputManager* getInputManager() const override;
+	virtual class OpenCVManager* getOpenCVManager() const override;
+	virtual class ClientSourceManager* getClientSourceManager() const override;
+	virtual class LocalizationManager* getLocalizationManager() const override;
+	virtual class EventBus* getEventBus() const override;
+	virtual class MkGuiStyleManager* getMkGuiStyleManager() const override;
+
+	virtual class App* getOwnerApp() const override;
+	virtual class AppStage* getCurrentAppStage() const override;
+	virtual class AppStage* getParentAppStage() const override;
+	virtual class AppStage* pushAppStage(const std::string& appStageName) override;
+	virtual void popAppState() override;
 
 protected:
-	virtual void configImGui();
-	virtual void configImNodes();
-	virtual void renderUI();
-	virtual void pushImGuiStyles();
-	virtual void popImGuiStyles();
+	virtual void updateUI();
 
 	virtual void renderMainFrame();
 	virtual void renderNodeEvalErrors();
@@ -94,12 +107,11 @@ protected:
 	virtual void onAssetReferenceDeleted(AssetReferencePtr assetRef) {}
 
 protected:
+	class App* m_ownerApp = nullptr;
 	SdlWindowUniquePtr m_sdlWindow;
-	MkStateStackUniquePtr m_MkStateStack;
-	struct ImGuiContext* m_imguiContext= nullptr;
-	struct ImNodesContext* m_imnodesContext= nullptr;
-	struct ImFont* m_NormalIconFont= nullptr;
-	struct ImFont* m_BigIconFont= nullptr;
+	MkStateStackUniquePtr m_mkStateStack;
+	MkGuiContextPtr m_guiContext;
+	std::unique_ptr<class MkGuiStyleManager> m_styleManager;
 
 	NodeEditorState m_editorState;
 
@@ -116,8 +128,4 @@ protected:
 
 	// Errors that occurred during the last graph evaluation
 	std::vector<NodeEvaluationError> m_lastNodeEvalErrors;
-
-	bool m_imguiSDLBackendInitialised = false;
-	bool m_imguiOpenGLBackendInitialised= false;
-	bool m_isRenderingUI= false;
 };

@@ -41,7 +41,7 @@ void MaterialAssetReference::editorHandleMainFrameDragDrop(const NodeEditorState
 
 void MaterialAssetReference::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Material Asset"))
+	if (NodeEditorUI::DrawPropertySheetHeader("Material Asset", editorState.styleManager))
 	{
 		const std::string buttonName = StringUtils::stringify(ICON_FK_FOLDER_OPEN, "Material##material");
 

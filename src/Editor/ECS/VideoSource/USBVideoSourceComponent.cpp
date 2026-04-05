@@ -289,7 +289,7 @@ bool USBVideoSourceComponent::openVideoSource()
 	// Listen for events from the USB video device
 	m_usbVideoDevice->addListener(this);
 
-	// Signal to the RmlModel to rebuild the video mode list
+	// Signal to the UI to rebuild the video mode list
 	getDefinition()->notifyPropertyChanged(
 		ConfigPropertyChangeSet().addPropertyName(k_currentDevicePathPropertyId));
 

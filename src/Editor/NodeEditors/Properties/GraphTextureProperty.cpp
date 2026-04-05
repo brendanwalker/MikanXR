@@ -2,6 +2,7 @@
 #include "IMkTexture.h"
 #include "Graphs/NodeGraph.h"
 #include "Logger.h"
+#include "NodeEditorState.h"
 #include "NodeEditorUI.h"
 #include "Nodes/TextureNode.h"
 #include "TextureAssetReference.h"
@@ -169,7 +170,7 @@ void GraphTextureProperty::setTextureAssetReference(TextureAssetReferencePtr inA
 	}
 }
 
-void GraphTextureProperty::editorHandleMainFrameDragDrop(const class NodeEditorState& editorState)
+void GraphTextureProperty::editorHandleMainFrameDragDrop(const NodeEditorState& editorState)
 {
 	auto textureNode = m_ownerGraph->createTypedNode<TextureNode>(editorState);
 
@@ -178,18 +179,23 @@ void GraphTextureProperty::editorHandleMainFrameDragDrop(const class NodeEditorS
 	textureNode->setTextureSource(self);
 }
 
-void GraphTextureProperty::editorRenderPropertySheet(const class NodeEditorState& editorState)
+void GraphTextureProperty::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Texture"))
+	if (NodeEditorUI::DrawPropertySheetHeader("Texture", editorState.styleManager))
 	{
 		// Name
 		std::string name = m_textureAssetRef ? m_textureAssetRef->getShortName() : "<No Texture>";
-		NodeEditorUI::DrawStaticTextProperty("Name", name);
+		NodeEditorUI::DrawStaticTextProperty("Name", name, editorState.styleManager);
 
 		// Texture Asset
 		TextureAssetComboDataSource dataSource(std::static_pointer_cast<GraphTextureProperty>(shared_from_this()));
 		int selectedIndex = dataSource.getCurrentAssetIndex();
-		if (NodeEditorUI::DrawComboBoxProperty("textureSelection", "Texture", &dataSource, selectedIndex))
+		if (NodeEditorUI::DrawComboBoxProperty(
+			"textureSelection", 
+			"Texture", 
+			&dataSource, 
+			selectedIndex, 
+			editorState.styleManager))
 		{
 			setTextureAssetReference(dataSource.getEntryAssetRef(selectedIndex));
 		}

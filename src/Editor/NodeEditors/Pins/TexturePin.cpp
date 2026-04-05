@@ -10,26 +10,29 @@ void TexturePin::copyValueFromSourcePin()
 	}
 }
 
-ImNodesPinShape TexturePin::editorRenderBeginPin(float alpha)
+ImNodesPinShape TexturePin::editorComputePinShape() const
 {
-	ImNodesPinShape pinShape = ImNodesPinShape_Triangle;
-
 	if (m_connectedLinks.size() > 0)
-		pinShape = ImNodesPinShape_CircleFilled;
+		return ImNodesPinShape_CircleFilled;
 	else
-		pinShape = ImNodesPinShape_Circle;
-
-	ImNodes::PushColorStyle(ImNodesCol_Pin, IM_COL32(148, 0, 0, alpha * 255));
-	ImNodes::PushColorStyle(ImNodesCol_PinHovered, IM_COL32(183, 137, 137, alpha * 255));
-
-	return pinShape;	
+		return ImNodesPinShape_Circle;
 }
 
-void TexturePin::editorRenderBeginLink(float alpha)
+std::shared_ptr<MkNodesScopedColorStyle> TexturePin::editorRenderMakePinStyle(float alpha)
 {
-	ImNodes::PushColorStyle(ImNodesCol_Link, IM_COL32(148, 0, 0, alpha));
-	ImNodes::PushColorStyle(ImNodesCol_LinkHovered, IM_COL32(183, 137, 137, alpha));
-	ImNodes::PushColorStyle(ImNodesCol_LinkSelected, IM_COL32(183, 137, 137, 255));
+	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	style->push(ImNodesCol_Pin, IM_COL32(148, 0, 0, (unsigned char)(alpha * 255)))
+		.push(ImNodesCol_PinHovered, IM_COL32(183, 137, 137, (unsigned char)(alpha * 255)));
+	return style;
+}
+
+std::shared_ptr<MkNodesScopedColorStyle> TexturePin::editorRenderMakeLinkStyle(float alpha)
+{
+	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	style->push(ImNodesCol_Link, IM_COL32(148, 0, 0, (unsigned char)alpha))
+		.push(ImNodesCol_LinkHovered, IM_COL32(183, 137, 137, (unsigned char)alpha))
+		.push(ImNodesCol_LinkSelected, IM_COL32(183, 137, 137, 255));
+	return style;
 }
 
 void TexturePin::editorRenderContextMenu(const NodeEditorState& editorState)

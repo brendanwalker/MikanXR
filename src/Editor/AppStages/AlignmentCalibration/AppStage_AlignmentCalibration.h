@@ -10,6 +10,9 @@
 
 #include <memory>
 
+class GuiPanel_AlignmentCalibration;
+class GuiPanel_AlignmentCameraSettings;
+
 //-- definitions -----
 class AppStage_AlignmentCalibration : public AppStage
 {
@@ -25,6 +28,7 @@ public:
 	virtual void enter() override;
 	virtual void exit() override;
 	virtual void update(float deltaSeconds) override;
+	virtual void onGui() override;
 	virtual void render(IMkViewportPtr targetViewport) override;
 
 protected:
@@ -59,12 +63,10 @@ protected:
 	VRDevicePoseViewPtr makeMatPoseViewFromCamera(CameraComponentPtr m_targetCameraComponent);
 	
 private:
-	class RmlModel_AlignmentCalibration* m_calibrationModel;
-	Rml::ElementDocument* m_calibrationView = nullptr;
+	class GuiPanel_AlignmentCalibration* m_calibrationPanel = nullptr;
+	class GuiPanel_AlignmentCameraSettings* m_cameraSettingsPanel = nullptr;
 
-	class RmlModel_AlignmentCameraSettings* m_cameraSettingsModel;
-	Rml::ElementDocument* m_cameraSettingsView = nullptr;
-
+	bool m_bypassCalibrationFlag = false;
 	CameraComponentPtr m_targetCameraComponent;
 	VideoSourceComponentPtr m_videoSourceComponent;
 

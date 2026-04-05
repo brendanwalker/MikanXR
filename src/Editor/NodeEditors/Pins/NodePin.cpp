@@ -3,6 +3,9 @@
 #include "Nodes/Node.h"
 #include "Graphs/NodeGraph.h"
 #include "Pins/NodeLink.h"
+#include "MkGuiScopedStyleColor.h"
+#include "MkNodesScopedAttribute.h"
+#include "MkNodesScopedColorStyle.h"
 #include "StringUtils.h"
 #include "Logger.h"
 
@@ -240,85 +243,70 @@ void NodePin::editorRenderInputPin(const NodeEditorState& editorState)
 {
 	const float alpha= editorComputeNodeAlpha(editorState);
 
-	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, alpha));
+	MkGuiScopedStyleColor styleColor;
+	styleColor.push(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, alpha));
 
-	ImNodesPinShape pinShape = editorRenderBeginPin(alpha);
+	auto pinStyle = editorRenderMakePinStyle(alpha);
+	ImNodesPinShape pinShape = editorComputePinShape();
 
-	ImNodes::BeginInputAttribute(m_id, pinShape);
-	ImGui::Dummy(ImVec2(11.0f, 1.0f));
-	ImGui::SameLine();
-	if (editorShowPinName())
 	{
-		ImGui::Text(m_name.c_str());
+		MkNodesScopedAttribute attr(m_id, MkNodesAttributeType::Input, (int)pinShape);
+		ImGui::Dummy(ImVec2(11.0f, 1.0f));
+		ImGui::SameLine();
+		if (editorShowPinName())
+		{
+			ImGui::Text(m_name.c_str());
+		}
+		editorRenderInputTextEntry(editorState);
 	}
-	editorRenderInputTextEntry(editorState);
-	ImNodes::EndInputAttribute();
-
-	editorRenderEndPin();
-
-	ImGui::PopStyleColor();
 }
 
 void NodePin::editorRenderOutputPin(const NodeEditorState& editorState, float prefixWidth)
 {
 	const float alpha= editorComputeNodeAlpha(editorState);
 
-	ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, alpha));
+	MkGuiScopedStyleColor styleColor;
+	styleColor.push(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, alpha));
 
-	ImNodesPinShape pinShape = editorRenderBeginPin(alpha);
+	auto pinStyle = editorRenderMakePinStyle(alpha);
+	ImNodesPinShape pinShape = editorComputePinShape();
 
-	ImNodes::BeginOutputAttribute(m_id, pinShape);
-	if (prefixWidth > 0.f)
 	{
-		ImGui::Dummy(ImVec2(prefixWidth, 1.0f));
+		MkNodesScopedAttribute attr(m_id, MkNodesAttributeType::Output, (int)pinShape);
+		if (prefixWidth > 0.f)
+		{
+			ImGui::Dummy(ImVec2(prefixWidth, 1.0f));
+			ImGui::SameLine();
+		}
+		if (editorShowPinName())
+		{
+			ImGui::Text(m_name.c_str());
+		}
 		ImGui::SameLine();
+		ImGui::Dummy(ImVec2(11.0f, 1.0f));
 	}
-	if (editorShowPinName())
-	{
-		ImGui::Text(m_name.c_str());
-	}
-	ImGui::SameLine();
-	ImGui::Dummy(ImVec2(11.0f, 1.0f));
-	ImNodes::EndOutputAttribute();
-
-	editorRenderEndPin();
-
-	ImGui::PopStyleColor();
 }
 
-ImNodesPinShape NodePin::editorRenderBeginPin(float alpha)
+ImNodesPinShape NodePin::editorComputePinShape() const
 {
-	ImNodesPinShape pinShape = ImNodesPinShape_Triangle;
-
-	if (m_connectedLinks.size() > 0)
-		pinShape = ImNodesPinShape_CircleFilled;
-	else
-		pinShape = ImNodesPinShape_Circle;
-
-	ImNodes::PushColorStyle(ImNodesCol_Pin, IM_COL32(252, 200, 35, alpha * 255));
-	ImNodes::PushColorStyle(ImNodesCol_PinHovered, IM_COL32(255, 217, 140, alpha * 255));
-
-	return pinShape;	
+	return (m_connectedLinks.size() > 0) ? ImNodesPinShape_CircleFilled : ImNodesPinShape_Circle;
 }
 
-void NodePin::editorRenderEndPin()
+std::shared_ptr<MkNodesScopedColorStyle> NodePin::editorRenderMakePinStyle(float alpha)
 {
-	ImNodes::PopColorStyle();
-	ImNodes::PopColorStyle();
+	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	style->push(ImNodesCol_Pin, IM_COL32(252, 200, 35, (unsigned char)(alpha * 255)))
+		.push(ImNodesCol_PinHovered, IM_COL32(255, 217, 140, (unsigned char)(alpha * 255)));
+	return style;
 }
 
-void NodePin::editorRenderBeginLink(float alpha)
+std::shared_ptr<MkNodesScopedColorStyle> NodePin::editorRenderMakeLinkStyle(float alpha)
 {
-	ImNodes::PushColorStyle(ImNodesCol_Link, IM_COL32(252, 200, 35, alpha));
-	ImNodes::PushColorStyle(ImNodesCol_LinkHovered, IM_COL32(255, 217, 140, alpha));
-	ImNodes::PushColorStyle(ImNodesCol_LinkSelected, IM_COL32(255, 217, 140, 255));
-}
-
-void NodePin::editorRenderEndLink()
-{
-	ImNodes::PopColorStyle();
-	ImNodes::PopColorStyle();
-	ImNodes::PopColorStyle();
+	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	style->push(ImNodesCol_Link, IM_COL32(252, 200, 35, (unsigned char)alpha))
+		.push(ImNodesCol_LinkHovered, IM_COL32(255, 217, 140, (unsigned char)alpha))
+		.push(ImNodesCol_LinkSelected, IM_COL32(255, 217, 140, 255));
+	return style;
 }
 
 ImU32 NodePin::editorGetLinkStyleColor() const

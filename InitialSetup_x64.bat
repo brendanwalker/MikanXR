@@ -165,19 +165,6 @@ IF %ERRORLEVEL% NEQ 0 (
   goto failure
 )
 
-:: Download pre-compiled FreeType libraries
-echo "Downloading FreeType Binaries..."
-curl -L https://github.com/ubawurinna/freetype-windows-binaries/archive/refs/tags/v2.10.4.zip  --output freetype-windows-binaries-2.10.4.zip
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error FreeType.zip"
-  goto failure
-)
-%UNZIP_EXE% e freetype-windows-binaries-2.10.4.zip -y -r -spf
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error unzipping FreeType.zip"
-  goto failure
-)
-
 :: Download pre-compiled Refureku libraries
 echo "Downloading Refureku..."
 curl -L https://github.com/MikanXR/Refureku/releases/download/v2.2.1/rfk_v2.2.1_windows.zip --output rfk_v2.2.1_windows.zip

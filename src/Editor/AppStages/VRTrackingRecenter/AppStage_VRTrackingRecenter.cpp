@@ -1,6 +1,6 @@
 //-- includes -----
 #include "VRTrackingRecenter/AppStage_VRTrackingRecenter.h"
-#include "VRTrackingRecenter/RmlModel_VRTrackingRecenter.h"
+#include "VRTrackingRecenter/GuiPanel_VRTrackingRecenter.h"
 #include "ArucoMarkerPoseSampler.h"
 #include "App.h"
 #include "CameraComponent.h"
@@ -32,9 +32,9 @@
 
 #include "glm/gtc/quaternion.hpp"
 
-#include <RmlUi/Core/Core.h>
-#include <RmlUi/Core/Context.h>
-#include <RmlUi/Core/ElementDocument.h>
+#include "MkGuiScopedWindow.h"
+
+#include "imgui.h"
 
 //-- statics ----
 const char* AppStage_VRTrackingRecenter::APP_STAGE_NAME = "VRTrackingRecenter";
@@ -108,23 +108,16 @@ void AppStage_VRTrackingRecenter::enter()
 		newState = eVRTrackingRecenterMenuState::failedVideoStartStreamRequest;
 	}
 
-	// Create app stage UI models and views
+	// Create app stage GUI panels
 	// (Auto cleaned up on app state exit)
 	{
-		Rml::Context* context = getRmlContext();
-
-		// Init calibration model
-		m_calibrationModel = addRmlModel<RmlModel_VRTrackingRecenter>();
-		m_calibrationModel->init(context);
-		m_calibrationModel->OnBeginEvent = MakeDelegate(this, &AppStage_VRTrackingRecenter::onBeginEvent);
-		m_calibrationModel->OnRestartEvent = MakeDelegate(this, &AppStage_VRTrackingRecenter::onRestartEvent);
-		m_calibrationModel->OnCancelEvent = MakeDelegate(this, &AppStage_VRTrackingRecenter::onCancelEvent);
-		m_calibrationModel->OnReturnEvent = MakeDelegate(this, &AppStage_VRTrackingRecenter::onReturnEvent);
-		m_calibrationModel->OnMarkerStabilityChangedEvent =
-			MakeDelegate(this, &AppStage_VRTrackingRecenter::onMarkerStabilityChangedEvent);
-
-		// Init calibration view now that the dependent model has been created
-		m_calibrationView = addRmlDocument("vr_tracking_recenter.rml");
+		m_calibrationPanel = addGuiPanel<GuiPanel_VRTrackingRecenter>();
+		m_calibrationPanel->init(this);
+		m_calibrationPanel->OnBeginEvent = [this]() { onBeginEvent(); };
+		m_calibrationPanel->OnRestartEvent = [this]() { onRestartEvent(); };
+		m_calibrationPanel->OnCancelEvent = [this]() { onCancelEvent(); };
+		m_calibrationPanel->OnReturnEvent = [this]() { onReturnEvent(); };
+		m_calibrationPanel->OnMarkerStabilityChangedEvent = [this](bool b) { onMarkerStabilityChangedEvent(b); };
 	}
 
 	setMenuState(newState);
@@ -162,7 +155,7 @@ void AppStage_VRTrackingRecenter::exit()
 
 void AppStage_VRTrackingRecenter::updateCameraPose()
 {
-	switch (m_calibrationModel->getMenuState())
+	switch (m_calibrationPanel->getMenuState())
 	{
 		case eVRTrackingRecenterMenuState::verifySetup:
 		case eVRTrackingRecenterMenuState::capture:
@@ -189,7 +182,7 @@ void AppStage_VRTrackingRecenter::update(float deltaSeconds)
 {
 	updateCameraPose();
 
-	switch(m_calibrationModel->getMenuState())
+	switch(m_calibrationPanel->getMenuState())
 	{
 		case eVRTrackingRecenterMenuState::verifySetup:
 			{
@@ -200,10 +193,10 @@ void AppStage_VRTrackingRecenter::update(float deltaSeconds)
 				m_markerPoseSampler->computeVRSpaceMarkerXform();
 
 				// See if we can compute a valid marker pose
-				m_calibrationModel->setCurrentMarkerValid(m_markerPoseSampler->hasValidVRSpaceMarkerXform());
+				m_calibrationPanel->setCurrentMarkerValid(m_markerPoseSampler->hasValidVRSpaceMarkerXform());
 
 				// Update the time that the chessboard has been stable for
-				m_calibrationModel->updateMarkerStabilityTimer(deltaSeconds);
+				m_calibrationPanel->updateMarkerStabilityTimer(deltaSeconds);
 			}
 			break;
 		case eVRTrackingRecenterMenuState::capture:
@@ -217,7 +210,7 @@ void AppStage_VRTrackingRecenter::update(float deltaSeconds)
 					m_markerPoseSampler->sampleLastVRSpaceMarkerXform();
 
 					// Update the calibration fraction on the UI Model
-					m_calibrationModel->setCalibrationFraction(m_markerPoseSampler->getCalibrationProgress());
+					m_calibrationPanel->setCalibrationFraction(m_markerPoseSampler->getCalibrationProgress());
 				}
 
 				// See if we have gotten all the samples we require
@@ -273,7 +266,7 @@ void AppStage_VRTrackingRecenter::render(IMkViewportPtr targetViewport)
 			// Draw the camera view no matter the calibration state
 			m_monoDistortionView->renderSelectedVideoBuffers();
 
-			switch (m_calibrationModel->getMenuState())
+			switch (m_calibrationPanel->getMenuState())
 			{
 				case eVRTrackingRecenterMenuState::verifySetup:
 				case eVRTrackingRecenterMenuState::capture:
@@ -322,14 +315,37 @@ void AppStage_VRTrackingRecenter::render(IMkViewportPtr targetViewport)
 	}
 }
 
+void AppStage_VRTrackingRecenter::onGui()
+{
+	AppStage::onGui();
+
+	constexpr float k_panelWidth = 415.f;
+	const float displayWidth = m_ownerWindow->getWidth();
+	const float displayHeight = m_ownerWindow->getHeight();
+	ImGui::SetNextWindowPos(ImVec2(displayWidth - k_panelWidth, 0.f), ImGuiCond_Always);
+	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, displayHeight), ImGuiCond_Always);
+
+	constexpr ImGuiWindowFlags k_flags =
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoCollapse |
+		ImGuiWindowFlags_NoTitleBar;
+
+	MkGuiScopedWindow panel("##VRTrackingRecenter", nullptr, k_flags);
+	if (!panel) return;
+
+	for (IGuiPanel* guiPanel : m_guiPanels)
+		guiPanel->onGui();
+}
+
 void AppStage_VRTrackingRecenter::setMenuState(eVRTrackingRecenterMenuState newState)
 {
-	if (m_calibrationModel->getMenuState() != newState)
+	if (m_calibrationPanel->getMenuState() != newState)
 	{
-		eVRTrackingRecenterMenuState oldState= m_calibrationModel->getMenuState();
+		eVRTrackingRecenterMenuState oldState= m_calibrationPanel->getMenuState();
 
 		// Update menu state on the data models
-		m_calibrationModel->setMenuState(newState);
+		m_calibrationPanel->setMenuState(newState);
 
 		// Broadcast the menu state change to the remote control manager
 		{
@@ -350,13 +366,13 @@ void AppStage_VRTrackingRecenter::onBeginEvent()
 
 bool AppStage_VRTrackingRecenter::tryBeginCapture()
 {
-	if (m_calibrationModel->getMenuState() == eVRTrackingRecenterMenuState::verifySetup)
+	if (m_calibrationPanel->getMenuState() == eVRTrackingRecenterMenuState::verifySetup)
 	{
 		// Clear out all of the calibration data we recorded
 		m_markerPoseSampler->resetCalibrationState();
 
 		// Reset all calibration state on the calibration UI model
-		m_calibrationModel->setCalibrationFraction(0.f);
+		m_calibrationPanel->setCalibrationFraction(0.f);
 
 		// Advance to the capture state
 		setMenuState(eVRTrackingRecenterMenuState::capture);
@@ -374,13 +390,13 @@ void AppStage_VRTrackingRecenter::onRestartEvent()
 
 bool AppStage_VRTrackingRecenter::tryRestartCapture()
 {
-	if (m_calibrationModel->getMenuState() != eVRTrackingRecenterMenuState::verifySetup)
+	if (m_calibrationPanel->getMenuState() != eVRTrackingRecenterMenuState::verifySetup)
 	{
 		// Clear out all of the calibration data we recorded
 		m_markerPoseSampler->resetCalibrationState();
 
 		// Reset all calibration state on the calibration UI model
-		m_calibrationModel->setCalibrationFraction(0.f);
+		m_calibrationPanel->setCalibrationFraction(0.f);
 
 		// Return to the capture state
 		setMenuState(eVRTrackingRecenterMenuState::verifySetup);
@@ -441,7 +457,7 @@ bool AppStage_VRTrackingRecenter::handleRemoteControlCommand(
 bool AppStage_VRTrackingRecenter::handleGetStateCommand(
 	std::vector<std::string>& outResults)
 {
-	const eVRTrackingRecenterMenuState menuState = m_calibrationModel->getMenuState();
+	const eVRTrackingRecenterMenuState menuState = m_calibrationPanel->getMenuState();
 	const std::string& stateName = k_VRTrackingRecenterMenuStateStrings[(int)menuState];
 
 	outResults.push_back(stateName);
@@ -452,7 +468,7 @@ bool AppStage_VRTrackingRecenter::handleGetStateCommand(
 bool AppStage_VRTrackingRecenter::handleGetChessboardStabilityCommand(
 	std::vector<std::string>& outResults)
 {
-	const bool bIsStable = m_calibrationModel->getCurrentMarkerStable();
+	const bool bIsStable = m_calibrationPanel->getCurrentMarkerStable();
 	outResults.push_back(bIsStable ? IRemoteControllable::k_true : IRemoteControllable::k_false);
 
 	return true;

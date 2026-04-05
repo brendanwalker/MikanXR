@@ -1,8 +1,9 @@
 #include "GraphBoolProperty.h"
+#include "NodeEditorState.h"
 #include "NodeEditorUI.h"
 
 void GraphBoolProperty::editorRenderValue(const NodeEditorState& editorState)
 {
 	NodeEditorUI::DrawCheckBoxProperty("boolPropertyDefaultValue", "Default", m_value);
-	NodeEditorUI::DrawStaticTextProperty("Value", m_value ? "True" : "False");
+	NodeEditorUI::DrawStaticTextProperty("Value", m_value ? "True" : "False", editorState.styleManager);
 }

@@ -11,6 +11,8 @@
 
 #include <memory>
 
+class GuiPanel_VRTrackingRecenter;
+
 //-- definitions -----
 class AppStage_VRTrackingRecenter : public AppStage
 {
@@ -26,6 +28,7 @@ public:
 	virtual void enter() override;
 	virtual void exit() override;
 	virtual void update(float deltaSeconds) override;
+	virtual void onGui() override;
 	virtual void render(IMkViewportPtr targetViewport) override;
 
 protected:
@@ -53,8 +56,7 @@ protected:
 	bool handleRestartCommand(std::vector<std::string>& outResults);
 	
 private:
-	class RmlModel_VRTrackingRecenter* m_calibrationModel;
-	Rml::ElementDocument* m_calibrationView = nullptr;
+	class GuiPanel_VRTrackingRecenter* m_calibrationPanel = nullptr;
 
 	MikanTrackingVolumeID m_targetVolumeId = INVALID_MIKAN_ID;
 	bool m_bHasModifiedCameraSettings= false;

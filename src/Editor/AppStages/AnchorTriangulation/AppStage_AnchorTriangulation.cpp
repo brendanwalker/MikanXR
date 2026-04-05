@@ -2,7 +2,9 @@
 
 //-- includes -----
 #include "AnchorTriangulation/AppStage_AnchorTriangulation.h"
-#include "AnchorTriangulation/RmlModel_AnchorTriangulation.h"
+#include "AnchorTriangulation/GuiPanel_AnchorTriangulation.h"
+#include "imgui.h"
+#include "MkGuiScopedWindow.h"
 #include "App.h"
 #include "CameraObjectSystem.h"
 #include "Colors.h"
@@ -36,9 +38,6 @@
 
 #include "glm/gtc/quaternion.hpp"
 
-#include <RmlUi/Core/Core.h>
-#include <RmlUi/Core/Context.h>
-#include <RmlUi/Core/ElementDocument.h>
 
 //-- statics ----
 const char* AppStage_AnchorTriangulation::APP_STAGE_NAME = "AnchorTriangulation";
@@ -46,7 +45,6 @@ const char* AppStage_AnchorTriangulation::APP_STAGE_NAME = "AnchorTriangulation"
 //-- public methods -----
 AppStage_AnchorTriangulation::AppStage_AnchorTriangulation(IEditorWindow* ownerWindow)
 	: AppStage(ownerWindow, AppStage_AnchorTriangulation::APP_STAGE_NAME)
-	, m_calibrationModel(new RmlModel_AnchorTriangulation)
 	, m_currentSceneCameraComponent()
 	, m_anchorTriangulator(nullptr)
 	, m_monoDistortionView(nullptr)
@@ -59,12 +57,13 @@ AppStage_AnchorTriangulation::AppStage_AnchorTriangulation(IEditorWindow* ownerW
 
 AppStage_AnchorTriangulation::~AppStage_AnchorTriangulation()
 {
-	delete m_calibrationModel;
 }
 
 void AppStage_AnchorTriangulation::setBypassCalibrationFlag(bool flag)
 {
-	m_calibrationModel->setBypassCalibrationFlag(flag);
+	m_bypassCalibrationFlag = flag;
+	if (m_calibrationPanel != nullptr)
+		m_calibrationPanel->setBypassCalibrationFlag(flag);
 }
 
 void AppStage_AnchorTriangulation::setSourceCamera(CameraComponentPtr cameraComponent)
@@ -97,7 +96,7 @@ void AppStage_AnchorTriangulation::enter()
 	{
 		setupDistortionView();
 
-		if (m_calibrationModel->getBypassCalibrationFlag())
+		if (m_bypassCalibrationFlag)
 		{
 			newState= eAnchorTriangulationMenuState::testCalibration;
 		}
@@ -117,19 +116,15 @@ void AppStage_AnchorTriangulation::enter()
 		newState = eAnchorTriangulationMenuState::failedVideoStartStreamRequest;
 	}
 
-	// Create app stage UI models and views
+	// Create GUI panels
 	// (Auto cleaned up on app state exit)
 	{
-		Rml::Context* context = getRmlContext();
-
-		// Init calibration model
-		m_calibrationModel->init(context);
-		m_calibrationModel->OnOkEvent = MakeDelegate(this, &AppStage_AnchorTriangulation::onOkEvent);
-		m_calibrationModel->OnRedoEvent = MakeDelegate(this, &AppStage_AnchorTriangulation::onRedoEvent);
-		m_calibrationModel->OnCancelEvent = MakeDelegate(this, &AppStage_AnchorTriangulation::onCancelEvent);
-
-		// Init calibration view now that the dependent model has been created
-		m_calibrationView = addRmlDocument("anchor_triangulation.rml");
+		m_calibrationPanel = addGuiPanel<GuiPanel_AnchorTriangulation>();
+		m_calibrationPanel->init(this);
+		m_calibrationPanel->setBypassCalibrationFlag(m_bypassCalibrationFlag);
+		m_calibrationPanel->OnOkEvent = [this]() { onOkEvent(); };
+		m_calibrationPanel->OnRedoEvent = [this]() { onRedoEvent(); };
+		m_calibrationPanel->OnCancelEvent = [this]() { onCancelEvent(); };
 	}
 
 	// Bind to space bar to capture frames
@@ -152,7 +147,7 @@ void AppStage_AnchorTriangulation::onVideoSourceReady(
 	setupDistortionView();
 
 	// If bypassing the calibration, then jump straight to the test calibration state
-	if (m_calibrationModel->getBypassCalibrationFlag())
+	if (m_bypassCalibrationFlag)
 	{
 		setMenuState(eAnchorTriangulationMenuState::testCalibration);
 	}
@@ -235,7 +230,7 @@ void AppStage_AnchorTriangulation::update(float deltaSeconds)
 		m_monoDistortionView->readAndProcessVideoFrame();
 
 		// Update triangulation during triangulation states
-		eAnchorTriangulationMenuState calibrationState = m_calibrationModel->getMenuState();
+		eAnchorTriangulationMenuState calibrationState = m_calibrationPanel->getMenuState();
 		if (calibrationState == eAnchorTriangulationMenuState::captureOrigin2 ||
 			calibrationState == eAnchorTriangulationMenuState::captureXAxis2 ||
 			calibrationState == eAnchorTriangulationMenuState::captureYAxis2)
@@ -247,7 +242,7 @@ void AppStage_AnchorTriangulation::update(float deltaSeconds)
 
 void AppStage_AnchorTriangulation::render(IMkViewportPtr targetViewport)
 {
-	switch (m_calibrationModel->getMenuState())
+	switch (m_calibrationPanel->getMenuState())
 	{
 		case eAnchorTriangulationMenuState::verifyInitialCameraSetup:
 		case eAnchorTriangulationMenuState::captureOrigin1:
@@ -291,17 +286,17 @@ void AppStage_AnchorTriangulation::render(IMkViewportPtr targetViewport)
 
 void AppStage_AnchorTriangulation::setMenuState(eAnchorTriangulationMenuState newState)
 {
-	if (m_calibrationModel->getMenuState() != newState)
+	if (m_calibrationPanel->getMenuState() != newState)
 	{
 		// Update menu state on the data models
-		m_calibrationModel->setMenuState(newState);
+		m_calibrationPanel->setMenuState(newState);
 	}
 }
 
 // Input Events
 void AppStage_AnchorTriangulation::onMouseButtonUp(int button)
 {
-	eAnchorTriangulationMenuState menuState= m_calibrationModel->getMenuState();
+	eAnchorTriangulationMenuState menuState= m_calibrationPanel->getMenuState();
 
 	if (menuState == eAnchorTriangulationMenuState::captureOrigin1 ||
 		menuState == eAnchorTriangulationMenuState::captureXAxis1 ||
@@ -342,7 +337,7 @@ void AppStage_AnchorTriangulation::onMouseButtonUp(int button)
 // Calibration Model UI Events
 void AppStage_AnchorTriangulation::onOkEvent()
 {
-	switch (m_calibrationModel->getMenuState())
+	switch (m_calibrationPanel->getMenuState())
 	{
 		case eAnchorTriangulationMenuState::verifyInitialCameraSetup:
 			{
@@ -353,7 +348,7 @@ void AppStage_AnchorTriangulation::onOkEvent()
 				m_anchorTriangulator->sampleCameraPose();
 
 				// Reset the capture point count on the UI model
-				m_calibrationModel->setCapturedPointCount(0);
+				m_calibrationPanel->setCapturedPointCount(0);
 
 				setMenuState(eAnchorTriangulationMenuState::captureOrigin1);
 			} break;
@@ -364,7 +359,7 @@ void AppStage_AnchorTriangulation::onOkEvent()
 		case eAnchorTriangulationMenuState::moveCamera:
 			{
 				// Reset all calibration state on the calibration UI model
-				m_calibrationModel->setCapturedPointCount(0);
+				m_calibrationPanel->setCapturedPointCount(0);
 
 				setMenuState(eAnchorTriangulationMenuState::captureOrigin2);
 			} break;
@@ -407,10 +402,10 @@ void AppStage_AnchorTriangulation::onRedoEvent()
 	m_anchorTriangulator->resetCalibrationState();
 
 	// Reset the capture point count on the UI model
-	m_calibrationModel->setCapturedPointCount(0);
+	m_calibrationPanel->setCapturedPointCount(0);
 
 	// Return to the capture state
-	switch (m_calibrationModel->getMenuState())
+	switch (m_calibrationPanel->getMenuState())
 	{
 		case eAnchorTriangulationMenuState::captureOrigin1:
 		case eAnchorTriangulationMenuState::captureXAxis1:
@@ -431,4 +426,24 @@ void AppStage_AnchorTriangulation::onRedoEvent()
 void AppStage_AnchorTriangulation::onCancelEvent()
 {
 	m_ownerWindow->popAppState();
+}
+
+void AppStage_AnchorTriangulation::onGui()
+{
+	AppStage::onGui();
+
+	constexpr float k_panelWidth = 415.f;
+	const float displayWidth = m_ownerWindow->getWidth();
+	const float displayHeight = m_ownerWindow->getHeight();
+
+	ImGui::SetNextWindowPos(ImVec2(displayWidth - k_panelWidth, 0.f), ImGuiCond_Always);
+	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, displayHeight), ImGuiCond_Always);
+	constexpr ImGuiWindowFlags k_flags =
+		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
+	MkGuiScopedWindow panel("##AnchorTriangulation", nullptr, k_flags);
+	if (!panel) return;
+
+	for (IGuiPanel* guiPanel : m_guiPanels)
+		guiPanel->onGui();
 }

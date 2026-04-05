@@ -93,14 +93,19 @@ public:
 	{
 		if (componentClassName == TComponent::k_componentClassName)
 		{
-			const typename Pool::ComponentMap& componentMap = m_componentPool.getAll();
-			for (const auto& kvpair : componentMap)
-			{
-				outComponentIdList.push_back(static_cast<int>(kvpair.first));
-			}
+			getTypedComponentIdList(outComponentIdList);
 			return true;
 		}
 		return false;
+	}
+
+	void getTypedComponentIdList(std::vector<int>& outComponentIdList) const
+	{
+		const typename Pool::ComponentMap& componentMap = m_componentPool.getAll();
+		for (const auto& kvpair : componentMap)
+		{
+			outComponentIdList.push_back(static_cast<int>(kvpair.first));
+		}
 	}
 
 	ComponentPtr getTypedComponentById(TID id) const
@@ -200,7 +205,7 @@ public:
 
 			return 
 				// 1. Remove the object from the system first (fires object/component disposed events)
-				MikanObjectSystem::deleteObject(objectPtr) &&
+				MikanObjectSystem::disposeObjectInternal(objectPtr) &&
 				// 2. Remove the component reference from the typed component pool
 				m_componentPool.dispose(componentId) &&
 				// 3. Remove the component definition from the system definition 

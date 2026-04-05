@@ -16,7 +16,6 @@ public:
 	virtual float getHeight() const= 0;
 	virtual float getAspectRatio() const= 0;
 	virtual bool getIsRenderingStage() const= 0;
-	virtual bool getIsRenderingUI() const= 0;
 
 	virtual IMkViewportPtr getRenderingViewport() const = 0;
 	virtual MkStateStack& getMkStateStack() = 0;

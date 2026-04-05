@@ -27,7 +27,6 @@ public:
 	bool bindCompositorComponent(CompositorComponentPtr compositorComponent);
 
 protected:
-	class App* m_ownerApp = nullptr;
 	CompositorComponentPtr m_compositorComponent;
 	bool m_isRunningCompositor= true;
 };

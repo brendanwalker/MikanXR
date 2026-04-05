@@ -4,6 +4,7 @@
 #include "Graphs/NodeGraph.h"
 #include "Logger.h"
 #include "ModelAssetReference.h"
+#include "NodeEditorState.h"
 #include "NodeEditorUI.h"
 #include "Nodes/ModelNode.h"
 
@@ -96,10 +97,13 @@ void GraphModelProperty::editorHandleMainFrameDragDrop(const class NodeEditorSta
 
 void GraphModelProperty::editorRenderPropertySheet(const class NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Model"))
+	if (NodeEditorUI::DrawPropertySheetHeader("Model", editorState.styleManager))
 	{
 		// Name
-		NodeEditorUI::DrawStaticTextProperty("Name", m_modelResource->getName());
+		NodeEditorUI::DrawStaticTextProperty(
+			"Name", 
+			m_modelResource->getName(), 
+			editorState.styleManager);
 
 		// Drag-Drop Handling
 		auto modelAssetRef= 

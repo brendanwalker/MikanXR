@@ -4,7 +4,8 @@
 #include "AppStage.h"
 #include "ComponentFwd.h"
 #include "MkRendererFwd.h"
-#include "Shared/RmlDataBinding_Fwd.h"
+
+class GuiPanel_ClientTextureSourceComponent;
 
 #include <memory>
 #include <vector>
@@ -27,6 +28,7 @@ public:
 
 	virtual void enter() override;
 	virtual void update(float deltaSeconds) override;
+	virtual void onGui() override;
 	virtual void render(IMkViewportPtr targetViewport) override;
 	virtual void exit() override;
 
@@ -44,8 +46,7 @@ protected:
 	bool handleGetTextureSourceComponentId(std::vector<std::string>& outResults);
 	bool handleReturnRequest(std::vector<std::string>& outResults);
 
-	class RmlModel_ClientTextureSourceComponent* m_clientTextureSourceComponentModel = nullptr;
-	Rml::ElementDocument* m_TextureSourceSettingsView = nullptr;
+	GuiPanel_ClientTextureSourceComponent* m_clientTextureSourceComponentPanel = nullptr;
 
 	MikanCameraID m_cameraId= INVALID_MIKAN_ID;
 	CameraComponentWeakPtr m_cameraComponent;

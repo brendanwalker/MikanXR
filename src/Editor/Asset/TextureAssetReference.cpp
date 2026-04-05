@@ -48,7 +48,7 @@ void TextureAssetReference::editorHandleMainFrameDragDrop(const NodeEditorState&
 
 void TextureAssetReference::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Texture Asset"))
+	if (NodeEditorUI::DrawPropertySheetHeader("Texture Asset", editorState.styleManager))
 	{
 		const std::string buttonName = StringUtils::stringify(ICON_FK_FOLDER_OPEN, "Texture##texture");
 

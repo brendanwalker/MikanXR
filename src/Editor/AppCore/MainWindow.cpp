@@ -3,10 +3,6 @@
 #include "Logger.h"
 #include "Version.h"
 
-#include "GlRmlUiRenderer.h"
-#include <RmlUi/Core/Core.h>
-#include <RmlUi/Core/Context.h>
-
 #include "App.h"
 #include "AppStage.h"
 #include "AnchorObjectSystem.h"
@@ -28,11 +24,14 @@
 #include "MikanTextRenderer.h"
 #include "MikanViewport.h"
 #include "MikanModelResourceManager.h"
+#include "MkGuiContext.h"
+#include "MkGuiScopedUpdate.h"
+#include "MkGuiStyleManager.h"
 #include "MkStateStack.h"
 #include "MkStateModifiers.h"
+#include "PathUtils.h"
 #include "ProjectManager.h"
 #include "OpenCVManager.h"
-#include "RmlManager.h"
 #include "SdlWindow.h"
 #include "StencilUtils.h"
 #include "StringUtils.h"
@@ -66,13 +65,12 @@ MainWindow::MainWindow(App* ownerApp)
 	, m_mikanServer(new MikanServer())
 	, m_clientSourceManager(new ClientSourceManager())
 	, m_inputManager(new InputManager())
-	, m_rmlManager(new RmlManager(this))
 	, m_projectManager(std::make_shared<ProjectManager>(this))
 	, m_openCVManager(new OpenCVManager())
 	, m_fontManager(new MikanFontManager())
 	, m_appStageFactory(this)
 	, m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
-	, m_MkStateStack(MkStateStackUniquePtr(new MkStateStack(this)))
+	, m_mkStateStack(MkStateStackUniquePtr(new MkStateStack(this)))
 	, m_lineRenderer(createMkLineRenderer(this))
 	, m_textRenderer(createMkTextRenderer(this, m_fontManager))
 	, m_modelResourceManager(MikanModelResourceManagerUniquePtr(new MikanModelResourceManager(this)))
@@ -97,7 +95,6 @@ MainWindow::~MainWindow()
 	m_projectManager = nullptr;
 	delete m_openCVManager;
 	delete m_inputManager;
-	delete m_rmlManager;
 	delete m_mikanServer;
 	delete m_clientSourceManager;
 
@@ -151,7 +148,7 @@ IMkViewportPtr MainWindow::getRenderingViewport() const
 }
 MkStateStack& MainWindow::getMkStateStack()
 {
-	return *m_MkStateStack.get();
+	return *m_mkStateStack.get();
 }
 
 bool MainWindow::startup()
@@ -162,12 +159,6 @@ bool MainWindow::startup()
 
 	MIKAN_LOG_INFO("MainWindow::init()") << "Initializing MainWindow";
 
-	if (success && !m_rmlManager->preRendererStartup())
-	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize Rml UI manager!";
-		success = false;
-	}
-
 	auto windowTitle= StringUtils::stringify("MikanXR v", MIKAN_RELEASE_VERSION_STRING);
 	m_sdlWindow
 		->setTitle(windowTitle)
@@ -176,6 +167,29 @@ bool MainWindow::startup()
 	{
 		MIKAN_LOG_ERROR("MainWindow::startup") << "Unable to initialize main SDK window: ";
 		success = false;
+	}
+
+	if (success)
+	{
+		m_guiContext = std::make_shared<MkGuiContext>(
+			m_sdlWindow->getInternalSdlWindow(),
+			m_sdlWindow->getInternalGlContext());
+		if (!m_guiContext->startup())
+		{
+			MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Unable to create GUI context";
+			success = false;
+		}
+	}
+
+	if (success)
+	{
+		m_styleManager = std::make_unique<MkGuiStyleManager>();
+		const auto stylesPath = PathUtils::getResourceDirectory() / "gui_styles";
+		if (!m_styleManager->startup(m_guiContext.get(), stylesPath))
+		{
+			MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Failed to initialize style manager";
+			success = false;
+		}
 	}
 
 	if (success && !m_openCVManager->startup())
@@ -243,24 +257,8 @@ bool MainWindow::startup()
 
 	if (success)
 	{
-		m_rmlUiRenderer = GlRmlUiRenderUniquePtr(new GlRmlUiRender(*this));
-		if (!m_rmlUiRenderer->startup())
-		{
-			MIKAN_LOG_ERROR("MainWindow::init") << "Unable to initialize RmlUi Renderer";
-			success = false;
-		}
-	}
-
-	if (success && !m_rmlManager->postRendererStartup())
-	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize Rml UI manager!";
-		success = false;
-	}
-
-	if (success)
-	{
 		// Create the base GL state for the window
-		IMkState* mkState= m_MkStateStack->pushState("MainWindow Root");
+		IMkState* mkState= m_mkStateStack->pushState("MainWindow Root");
 		assert(mkState->getStackDepth() == 0);
 
 		// Set default state flags at the base of the stack
@@ -289,6 +287,9 @@ bool MainWindow::startup()
 
 void MainWindow::update(float deltaSeconds)
 {
+	// Push the ImGui Update scope
+	MkGuiScopedUpdate mkScopedCtx(*m_guiContext);
+
 	// Poll rendered frames from client connections
 	m_mikanServer->update();
 
@@ -299,7 +300,7 @@ void MainWindow::update(float deltaSeconds)
 	processPendingAppStageOps();
 
 	// Process most recent SDL events (keyboard, mouse, etc)
-	m_sdlWindow->handleSDLEvents();
+	m_sdlWindow->handleSDLEvents(this);
 
 	// Update objects in the object system
 	m_projectManager->update(deltaSeconds);
@@ -308,12 +309,19 @@ void MainWindow::update(float deltaSeconds)
 	AppStage* appStage = getCurrentAppStage();
 	if (appStage != nullptr && appStage->getIsUpdateActive())
 	{
-		EASY_BLOCK("appStage Update");
-		appStage->update(deltaSeconds);
-	}
+		// Update the simulation of the current app stage
+		{
+			EASY_BLOCK("appStage Update");
+			appStage->update(deltaSeconds);
+		}
 
-	// Update the UI layout and data models
-	m_rmlManager->update();
+		// Update the UI for the current app stage
+		if (m_bIsDebugGuiEnabled)
+		{
+			EASY_BLOCK("appStage onGui");
+			appStage->onGui();
+		}
+	}
 }
 
 void MainWindow::render()
@@ -340,10 +348,80 @@ void MainWindow::render()
 	}
 }
 
+void MainWindow::renderStageViewport(AppStage* appStage, IMkViewportPtr targetViewport)
+{
+	EASY_FUNCTION();
+
+	MkScopedState scopedState = m_mkStateStack->createScopedState("appStage viewport render");
+	IMkState* glState = scopedState.getStackState();
+
+	// Set the rendering viewport used to render the stage
+	// (adds mkStateSetViewport Modifier to the glState)
+	m_renderingViewport = targetViewport;
+	m_renderingViewport->applyRenderingViewport(glState);
+
+	// Set window state flag that we are in the middle of rendering a stage
+	// Used for safety checks in the render functions
+	m_isRenderingStage = true;
+
+	// Render the 3d geometry of the AppStage
+	appStage->render(targetViewport);
+
+	// Render any 3D line segments emitted by the AppStage
+	m_lineRenderer->render();
+
+	// Render any glyphs emitted by the AppStage
+	m_textRenderer->render();
+
+	// Rendering the state is done
+	m_isRenderingStage = false;
+
+	// Forget about the target viewport
+	// (will be deleted when glState goes out of scope)
+	m_renderingViewport = nullptr;
+}
+
+void MainWindow::renderStageUI(AppStage* appStage)
+{
+	EASY_FUNCTION();
+
+	MkScopedState scopedState = m_mkStateStack->createScopedState("appStage renderUI");
+	IMkState* glState = scopedState.getStackState();
+
+	// Set the rendering viewport used to render the stage
+	// (adds mkStateSetViewport Modifier to the glState)
+	m_renderingViewport = m_uiViewport;
+	m_renderingViewport->applyRenderingViewport(glState);
+
+	m_isRenderingUI = true;
+
+	// Submit the MkGui draw call
+	m_guiContext->submitDrawData();
+
+	// Always draw the FPS in the lower right
+	TextStyle style = getDefaultTextStyle();
+	style.horizontalAlignment = eHorizontalTextAlignment::Right;
+	style.verticalAlignment = eVerticalTextAlignment::Bottom;
+	drawTextAtScreenPosition(
+		style,
+		glm::vec2(getWidth() - 1, getHeight() - 1),
+		L"%.1ffps", App::getInstance()->getFPS());
+
+	// Render any 2D line segments emitted by the AppStage renderUI phase
+	m_lineRenderer->render();
+
+	// Render any glyphs emitted by the AppStage renderUI phase
+	m_textRenderer->render();
+
+	m_isRenderingUI = false;
+
+	m_renderingViewport = nullptr;
+}
+
 void MainWindow::shutdown()
 {
 	m_uiViewport = nullptr;
-	m_MkStateStack= nullptr;
+	m_mkStateStack= nullptr;
 
 	// Tear down all active app stages
 	while (getCurrentAppStage() != nullptr)
@@ -351,10 +429,6 @@ void MainWindow::shutdown()
 		popAppState();
 	}
 	processPendingAppStageOps();
-
-	// Tear down all app systems
-	assert(m_rmlManager != nullptr);
-	m_rmlManager->shutdown();
 
 	assert(m_mikanServer != nullptr);
 	m_mikanServer->shutdown();
@@ -368,12 +442,6 @@ void MainWindow::shutdown()
 
 	assert(m_fontManager != nullptr);
 	m_fontManager->shutdown();
-
-	if (m_rmlUiRenderer != nullptr)
-	{
-		m_rmlUiRenderer->shutdown();
-		m_rmlUiRenderer= nullptr;
-	}
 
 	if (m_modelResourceManager != nullptr)
 	{
@@ -394,6 +462,18 @@ void MainWindow::shutdown()
 	{
 		m_textureCache->shutdown();
 		m_textureCache = nullptr;
+	}
+
+	if (m_styleManager != nullptr)
+	{
+		m_styleManager->shutdown();
+		m_styleManager = nullptr;
+	}
+
+	if (m_guiContext != nullptr)
+	{
+		m_guiContext->shutdown();
+		m_guiContext = nullptr;
 	}
 
 	if (m_sdlWindow != nullptr)
@@ -418,10 +498,9 @@ float MainWindow::getAspectRatio() const
 	return (float)m_sdlWindow->getAspectRatio();
 }
 
-bool MainWindow::onSDLEvent(const SDL_Event* event)
+bool MainWindow::onWindowEvent(const SDL_Event* event)
 {
 	bool bHandled = false;
-
 
 	// First see if we got an app shutdown request
 	if (event->type == SDL_QUIT ||
@@ -431,11 +510,16 @@ bool MainWindow::onSDLEvent(const SDL_Event* event)
 		App::getInstance()->requestShutdown();
 		bHandled= true;
 	}
+	// Toggle debug UI with F11
+	else if (event->type == SDL_KEYUP && event->key.keysym.sym == SDLK_F11)
+	{
+		m_bIsDebugGuiEnabled = !m_bIsDebugGuiEnabled;
+	}
 
 	// Then see if the UI wants to handle the event
-	if (!bHandled)
+	if (!bHandled && m_bIsDebugGuiEnabled)
 	{
-		bHandled= m_rmlUiRenderer->onSDLEvent(event);
+		bHandled= m_guiContext->onWindowEvent(event);
 	}
 
 	// Then see if the current app stage wants to handle the event
@@ -566,74 +650,4 @@ void MainWindow::processPendingAppStageOps()
 
 	// App stack operations allowed during update
 	bAppStackOperationAllowed = true;
-}
-
-void MainWindow::renderStageViewport(AppStage* appStage, IMkViewportPtr targetViewport)
-{
-	EASY_FUNCTION();
-
-	MkScopedState scopedState = m_MkStateStack->createScopedState("appStage viewport render");
-	IMkState* glState = scopedState.getStackState();
-
-	// Set the rendering viewport used to render the stage
-	// (adds mkStateSetViewport Modifier to the glState)
-	m_renderingViewport = targetViewport;
-	m_renderingViewport->applyRenderingViewport(glState);
-
-		// Set window state flag that we are in the middle of rendering a stage
-		// Used for safety checks in the render functions
-		m_isRenderingStage = true;
-
-			// Render the 3d geometry of the AppStage
-			appStage->render(targetViewport);
-
-			// Render any 3D line segments emitted by the AppStage
-			m_lineRenderer->render();
-
-			// Render any glyphs emitted by the AppStage
-			m_textRenderer->render();
-
-		// Rendering the state is done
-		m_isRenderingStage = false;
-
-	// Forget about the target viewport
-	// (will be deleted when glState goes out of scope)
-	m_renderingViewport = nullptr;
-}
-
-void MainWindow::renderStageUI(AppStage* appStage)
-{
-	EASY_FUNCTION();
-
-	MkScopedState scopedState = m_MkStateStack->createScopedState("appStage renderUI");
-	IMkState* glState = scopedState.getStackState();
-
-	// Set the rendering viewport used to render the stage
-	// (adds mkStateSetViewport Modifier to the glState)
-	m_renderingViewport = m_uiViewport;
-	m_renderingViewport->applyRenderingViewport(glState);
-
-		m_isRenderingUI = true;
-
-			// Render the UI of the AppStage
-			appStage->renderUI();
-
-			// Always draw the FPS in the lower right
-			TextStyle style = getDefaultTextStyle();
-			style.horizontalAlignment = eHorizontalTextAlignment::Right;
-			style.verticalAlignment = eVerticalTextAlignment::Bottom;
-			drawTextAtScreenPosition(
-				style,
-				glm::vec2(getWidth() - 1, getHeight() - 1),
-				L"%.1ffps", App::getInstance()->getFPS());
-
-			// Render any 2D line segments emitted by the AppStage renderUI phase
-			m_lineRenderer->render();
-
-			// Render any glyphs emitted by the AppStage renderUI phase
-			m_textRenderer->render();
-
-		m_isRenderingUI = false;
-
-	m_renderingViewport = nullptr;
 }

@@ -1,4 +1,7 @@
 #include "NodeEditorUI.h"
+#include "MkGuiScopedStyle.h"
+#include "MkGuiStyleManager.h"
+#include "MkGuiScopedDragDropTarget.h"
 #include "StringUtils.h"
 #include "IMkTexture.h"
 
@@ -94,30 +97,20 @@ namespace NodeEditorUI
 		return StringUtils::stringify("##", name);
 	}
 
-	bool DrawPropertySheetHeader(const std::string headerText)
+	bool DrawPropertySheetHeader(const std::string headerText, MkGuiStyleManager* styleManager)
 	{
 		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2, 4));
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 0.0f);
-		ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.25f, 0.25f, 0.25f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-		ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.4f, 0.4f, 0.4f, 1.0f));
-		bool isNodeOpened = ImGui::CollapsingHeader(headerText.c_str(), ImGuiTreeNodeFlags_SpanAvailWidth);
-		ImGui::PopStyleVar(3);
-		ImGui::PopStyleColor(3);
-
-		return isNodeOpened;
+		MkGuiScopedStyle headerStyle(styleManager->getStyle("node_editor_panel_header"), nullptr);
+		return ImGui::CollapsingHeader(headerText.c_str(), ImGuiTreeNodeFlags_SpanAvailWidth);
 	}
 
-	void DrawStaticTextProperty(const std::string label, const std::string text)
+	void DrawStaticTextProperty(const std::string label, const std::string text, MkGuiStyleManager* styleManager)
 	{
 		ImGui::Text(label.c_str());
 		ImGui::SameLine(k_labelWidth);
 		ImGui::SetNextItemWidth(k_valueWidth);
-		ImGui::PushStyleColor(ImGuiCol_PopupBg, k_valueBGColor);
+		MkGuiScopedStyle textStyle(styleManager->getStyle("node_editor_property_value"), nullptr);
 		ImGui::Text(text.c_str());
-		ImGui::PopStyleColor();
 	}
 
 	void DrawCheckBoxProperty(const std::string fieldName, const std::string label, bool& inout_value)
@@ -133,18 +126,15 @@ namespace NodeEditorUI
 		const std::string fieldName,
 		const std::string label,
 		const char* items,
-		int& inout_selectedIdex)
+		int& inout_selectedIdex,
+		MkGuiStyleManager* styleManager)
 	{
-
 		ImGui::Text(label.c_str());
 		ImGui::SameLine(k_labelWidth);
 		ImGui::SetNextItemWidth(k_valueWidth);
-		ImGui::PushStyleColor(ImGuiCol_PopupBg, k_valueBGColor);
+		MkGuiScopedStyle comboStyle(styleManager->getStyle("node_editor_property_value"), nullptr);
 		const std::string imguiElementName = makeImGuiElementName(fieldName);
-		const bool bChanged = ImGui::Combo(imguiElementName.c_str(), &inout_selectedIdex, items);
-		ImGui::PopStyleColor();
-
-		return bChanged;
+		return ImGui::Combo(imguiElementName.c_str(), &inout_selectedIdex, items);
 	}
 
 	void DrawImageProperty(const std::string label, IMkTexturePtr image)
@@ -174,36 +164,32 @@ namespace NodeEditorUI
 		const std::string fieldName,
 		const std::string label,
 		ComboBoxDataSource* dataSource,
-		int& inout_selectedIdex)
+		int& inout_selectedIdex,
+		MkGuiStyleManager* styleManager)
 	{
 		ImGui::Text(label.c_str());
 		ImGui::SameLine(k_labelWidth);
 		ImGui::SetNextItemWidth(k_valueWidth);
-		ImGui::PushStyleColor(ImGuiCol_PopupBg, k_valueBGColor);
+		MkGuiScopedStyle comboStyle(styleManager->getStyle("node_editor_property_value"), nullptr);
 		const std::string imguiElementName = makeImGuiElementName(fieldName);
-		const bool bChanged = 
-			ImGui::Combo(imguiElementName.c_str(),
-				&inout_selectedIdex,
-				&ComboBoxDataSource::itemGetter, 
-				dataSource, 
-				dataSource->getEntryCount());
-		ImGui::PopStyleColor();
-
-		return bChanged;
+		return ImGui::Combo(imguiElementName.c_str(),
+			&inout_selectedIdex,
+			&ComboBoxDataSource::itemGetter,
+			dataSource,
+			dataSource->getEntryCount());
 	}
 
 	void* receiveDragDropPayload(const std::string& PayloadType)
 	{
 		void* payload= nullptr;
 
-		if (ImGui::BeginDragDropTarget())
+		MkGuiScopedDragDropTarget ddt;
+		if (ddt)
 		{
 			if (const ImGuiPayload* imguiPayload = ImGui::AcceptDragDropPayload(PayloadType.c_str()))
 			{
 				payload = imguiPayload->Data;
 			}
-
-			ImGui::EndDragDropTarget();
 		}
 
 		return payload;

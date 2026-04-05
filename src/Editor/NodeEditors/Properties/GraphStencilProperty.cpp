@@ -2,6 +2,7 @@
 #include "MkMaterial.h"
 #include "IMkVertexDefinition.h"
 #include "Logger.h"
+#include "NodeEditorState.h"
 #include "NodeEditorUI.h"
 #include "ProjectConfigConstants.h"
 #include "StringUtils.h"
@@ -238,11 +239,11 @@ void GraphStencilProperty::editorHandleMainFrameDragDrop(const class NodeEditorS
 
 void GraphStencilProperty::editorRenderPropertySheet(const class NodeEditorState& editorState)
 {
-	if (NodeEditorUI::DrawPropertySheetHeader("Stencil"))
+	if (NodeEditorUI::DrawPropertySheetHeader("Stencil", editorState.styleManager))
 	{
 		// Name
 		std::string name = m_stencilComponent ? m_stencilComponent->getName() : "<No Stencil>";
-		NodeEditorUI::DrawStaticTextProperty("Name", name);
+		NodeEditorUI::DrawStaticTextProperty("Name", name, editorState.styleManager);
 
 		// Stencil Type
 		int stencilTypeIdex = (int)m_stencilType; 
@@ -255,7 +256,12 @@ void GraphStencilProperty::editorRenderPropertySheet(const class NodeEditorState
 		// Stencil
 		StencilComboDataSource dataSource(m_stencilComponent, m_stencilType);
 		int selectedIndex= dataSource.getCurrentStencilIndex();
-		if (NodeEditorUI::DrawComboBoxProperty("stencilSelection", "Source", &dataSource, selectedIndex))
+		if (NodeEditorUI::DrawComboBoxProperty(
+				"stencilSelection", 
+				"Source", 
+				&dataSource, 
+				selectedIndex, 
+				editorState.styleManager))
 		{
 			setStencilComponent(dataSource.getEntryStencil(selectedIndex));
 		}

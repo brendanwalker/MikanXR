@@ -11,7 +11,7 @@ public:
 	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
 
 protected:
-	virtual void editorRenderPushNodeStyle(const NodeEditorState& editorState) const override;
+	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeNodeStyle(const NodeEditorState& editorState) const override;
 	virtual std::string editorGetTitle() const override { return "MousePosition"; }
 };
 

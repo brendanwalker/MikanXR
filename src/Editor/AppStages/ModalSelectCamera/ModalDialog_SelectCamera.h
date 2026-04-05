@@ -1,10 +1,8 @@
 #pragma once
 
 //-- includes -----
-#include "RmlFwd.h"
 #include "MikanTypeFwd.h"
 #include "Shared/ModalDialog.h"
-#include "SinglecastDelegate.h"
 
 #include <string>
 #include <vector>
@@ -18,7 +16,7 @@ class ModalDialog_SelectCamera : public ModalDialog
 {
 public:
 	ModalDialog_SelectCamera(AppStage* ownerAppStage);
-	virtual ~ModalDialog_SelectCamera();
+	virtual ~ModalDialog_SelectCamera() = default;
 
 	using SelectCallback = std::function<void(MikanCameraID)>;
 	using CancelCallback = std::function<void()>;
@@ -27,16 +25,17 @@ public:
 		SelectCallback selectCallback={},
 		CancelCallback cancelCallback={});
 
-protected:
-	class RmlModel_SelectCamera* m_selectCameraModel = nullptr;
-	Rml::ElementDocument* m_selectCameraView = nullptr;
+	virtual void onGui() override;
 
+protected:
 	SelectCallback m_selectCallback;
 	CancelCallback m_cancelCallback;
 
-	bool init(
-		SelectCallback selectCallback,
-		CancelCallback cancelCallback);
-	void onSelectCamera(MikanCameraID cameraId);
+	std::vector<MikanCameraID> m_cameraIds;
+	std::vector<std::string> m_cameraNames;
+	int m_selectedIndex = 0;
+
+	bool init(SelectCallback selectCallback, CancelCallback cancelCallback);
+	void onSelectCamera();
 	void onCancel();
 };

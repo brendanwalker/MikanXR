@@ -61,7 +61,6 @@ public:
 		return getOwnerProjectManager()->getSystemOfType<t_object_system_type>();
 	}
 
-
 	inline MikanObjectSystemDefinitionConstPtr getDefinitionConst() const {
 		return m_definitionWeakPtr.lock();
 	}
@@ -100,6 +99,9 @@ public:
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors) {}
 	virtual bool invokeFunction(const std::string& functionName) override { return false; }
 		
+protected:
+	bool disposeObjectInternal(MikanObjectPtr objectPtr);
+
 protected:
 	ProjectManagerWeakPtr m_ownerObjectSystemManager;
 	MikanObjectSystemDefinitionWeakPtr m_definitionWeakPtr;

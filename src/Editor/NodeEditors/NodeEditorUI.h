@@ -5,6 +5,8 @@
 #include <memory>
 #include <string>
 
+class MkGuiStyleManager;
+
 struct ImVec2;
 struct ImVec4;
 
@@ -27,14 +29,15 @@ namespace NodeEditorUI
 	const ImVec4 getTextureColor(float alpha = 1.f);
 	const ImVec4 getComponentColor(float alpha = 1.f);
 
-	bool DrawPropertySheetHeader(const std::string headerText);
-	void DrawStaticTextProperty(const std::string label, const std::string text);
+	bool DrawPropertySheetHeader(const std::string headerText, MkGuiStyleManager* styleManager);
+	void DrawStaticTextProperty(const std::string label, const std::string text, MkGuiStyleManager* styleManager);
 	void DrawCheckBoxProperty(const std::string fieldName, const std::string label, bool& inout_value);
 	bool DrawSimpleComboBoxProperty(
 		const std::string fieldName,
 		const std::string label,
 		const char* items,
-		int& inout_selectedIdex);
+		int& inout_selectedIdex,
+		MkGuiStyleManager* styleManager);
 	void DrawImageProperty(const std::string label, IMkTexturePtr image);
 
 	class ComboBoxDataSource
@@ -49,7 +52,8 @@ namespace NodeEditorUI
 		const std::string fieldName,
 		const std::string label,
 		ComboBoxDataSource* dataSource,
-		int& inout_selectedIdex);
+		int& inout_selectedIdex,
+		MkGuiStyleManager* styleManager);
 
 	void* receiveDragDropPayload(const std::string& PayloadType);
 	template <class t_payload_type>

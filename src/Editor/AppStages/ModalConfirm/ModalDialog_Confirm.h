@@ -1,12 +1,9 @@
 #pragma once
 
 //-- includes -----
-#include "RmlFwd.h"
 #include "Shared/ModalDialog.h"
-#include "SinglecastDelegate.h"
 
 #include <string>
-#include <vector>
 #include <functional>
 
 class AppStage;
@@ -17,7 +14,7 @@ class ModalDialog_Confirm : public ModalDialog
 {
 public:
 	ModalDialog_Confirm(AppStage* ownerAppStage);
-	virtual ~ModalDialog_Confirm();
+	virtual ~ModalDialog_Confirm() = default;
 
 	using ConfirmCallback = std::function<void()>;
 	static bool confirmQuestion(
@@ -27,12 +24,14 @@ public:
 		ConfirmCallback acceptCallback={},
 		ConfirmCallback rejectCallback={});
 
-protected:
-	class RmlModel_Confirm* m_confirmModel = nullptr;
-	Rml::ElementDocument* m_confirmView = nullptr;
+	virtual void onGui() override;
 
+protected:
 	ConfirmCallback m_acceptCallback;
 	ConfirmCallback m_rejectCallback;
+
+	std::string m_title;
+	std::string m_question;
 
 	bool init(
 		const std::string& title,
