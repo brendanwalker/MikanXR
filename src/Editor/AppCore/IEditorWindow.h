@@ -12,8 +12,6 @@ public:
 	virtual ProjectManagerPtr getProjectManager() const = 0;
 	virtual class MikanServer* getMikanServer() const = 0;
 	virtual class MikanFontManager* getFontManager() const = 0;
-	virtual class RmlManager* getRmlManager() const = 0;
-	virtual class GlRmlUiRender* getRmlUiRenderer() const = 0;
 	virtual class InputManager* getInputManager() const = 0;
 	virtual class OpenCVManager* getOpenCVManager() const = 0;
 	virtual class ClientSourceManager* getClientSourceManager() const = 0;

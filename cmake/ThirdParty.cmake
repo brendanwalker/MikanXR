@@ -81,10 +81,6 @@ set (LIBHARU_LIBRARIES
   ${ROOT_DIR}/deps/libharu-2.4.5-static/lib/libpng16_static.lib
 )
 
-# RMLUI
-set (RMLUI_DIR ${ROOT_DIR}/thirdparty/RmlUI)
-set (RMLUI_INCLUDE_DIR ${RMLUI_DIR}/Include)
-
 # Refureku
 set (RFK_DIR ${ROOT_DIR}/deps/rfk)
 set (RFK_INCLUDE_DIR ${RFK_DIR}/Include)

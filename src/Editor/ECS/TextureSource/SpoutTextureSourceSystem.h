@@ -4,7 +4,6 @@
 #include "MikanTypedObjectSystem.h"
 #include "MikanTextureSourceTypes.h"
 #include "ObjectSystemConfigFwd.h"
-#include "Shared/RmlDataBinding_Fwd.h"
 #include "SpoutTextureSourceComponent.h"
 #include "TextureSourceQueries.h"
 

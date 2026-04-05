@@ -622,10 +622,10 @@ void AppStage_AlignmentCalibration::onGui()
 		guiPanel->onGui();
 }
 
-VRDevicePoseViewPtr AppStage_AlignmentCalibration::makeMatPoseViewFromCamera(CameraComponentPtr m_targetCameraComponent)
+VRDevicePoseViewPtr AppStage_AlignmentCalibration::makeMatPoseViewFromCamera(CameraComponentPtr targetCameraComponent)
 {
 	VRTrackingVolumeDefinitionConstPtr vrTrackingVolume =
-		m_targetCameraComponent->getVRTrackingVolumeDefinition();
+		targetCameraComponent->getVRTrackingVolumeDefinition();
 
 	if (!vrTrackingVolume)
 	{

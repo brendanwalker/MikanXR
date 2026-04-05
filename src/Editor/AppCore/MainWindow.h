@@ -4,7 +4,6 @@
 #include "AppStage.h"
 #include "MkGuiFwd.h"
 #include "MikanRendererFwd.h"
-#include "MkGuiFwd.h"
 #include "SdlFwd.h"
 #include "IEditorWindow.h"
 #include "IMkWindowEventListener.h"
@@ -56,11 +55,9 @@ public:
 	virtual class MikanServer* getMikanServer() const override { return m_mikanServer; }
 	virtual class ClientSourceManager* getClientSourceManager() const { return m_clientSourceManager; }
 	virtual class InputManager* getInputManager() const override { return m_inputManager; }
-	virtual class RmlManager* getRmlManager() const override { return m_rmlManager; }
 	virtual ProjectManagerPtr getProjectManager() const override { return m_projectManager; }
 	virtual class OpenCVManager* getOpenCVManager() const override { return m_openCVManager; }
 	virtual class MikanFontManager* getFontManager() const override { return m_fontManager; }
-	virtual class GlRmlUiRender* getRmlUiRenderer() const override { return m_rmlUiRenderer.get(); }
 
 	virtual class App* getOwnerApp() const override { return m_ownerApp; }
 	virtual AppStage* getCurrentAppStage() const override;
@@ -87,9 +84,6 @@ private:
 	// Input Manager
 	class InputManager* m_inputManager = nullptr;
 
-	// Rml UI Manager
-	class RmlManager* m_rmlManager = nullptr;
-
 	// Object System manager
 	ProjectManagerPtr m_projectManager;
 
@@ -112,7 +106,6 @@ private:
 	IMkLineRendererPtr m_lineRenderer;
 	IMkTextRendererPtr m_textRenderer;
 	MikanModelResourceManagerUniquePtr m_modelResourceManager;
-	GlRmlUiRenderUniquePtr m_rmlUiRenderer;
 	MkGuiContextPtr m_guiContext;
 	std::unique_ptr<class MkGuiStyleManager> m_styleManager;
 

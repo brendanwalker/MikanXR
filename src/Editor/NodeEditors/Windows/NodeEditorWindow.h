@@ -65,8 +65,6 @@ public:
 	virtual ProjectManagerPtr getProjectManager() const override;
 	virtual class MikanServer* getMikanServer() const override;
 	virtual class MikanFontManager* getFontManager() const override;
-	virtual class RmlManager* getRmlManager() const override;
-	virtual class GlRmlUiRender* getRmlUiRenderer() const override;
 	virtual class InputManager* getInputManager() const override;
 	virtual class OpenCVManager* getOpenCVManager() const override;
 	virtual class ClientSourceManager* getClientSourceManager() const override;

@@ -9,9 +9,6 @@
 
 #include <stdint.h>
 
-#include <RmlUi/Core/FontEngineInterface.h>
-#include <RmlUi/Core/Types.h>
-
 class MikanFontManager : public IMkFontManager
 {
 public:

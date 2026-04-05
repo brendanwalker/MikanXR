@@ -173,7 +173,7 @@ void AppStage_Project::exit()
 	// Unregister all viewports from the editor
 	m_editorSystem.lock()->clearViewports();
 
-	// RmlModels are now disposed automatically by AppStage::exit()
+	// GuiPanels are disposed automatically by AppStage::exit()
 	AppStage::exit();
 }
 
@@ -191,7 +191,7 @@ void AppStage_Project::update(float deltaSeconds)
 {
 	AppStage::update(deltaSeconds);
 
-	// Update the timing dependant state for the project GuiPanels
+	// Update the timing dependent state for the project GuiPanels
 	m_projectGuiPanelContext->update(deltaSeconds);
 
 	// Update the camera pose for the currently active camera

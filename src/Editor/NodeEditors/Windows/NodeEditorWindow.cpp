@@ -1106,16 +1106,6 @@ MikanFontManager* NodeEditorWindow::getFontManager() const
 	return getMainWindow()->getFontManager();
 }
 
-RmlManager* NodeEditorWindow::getRmlManager() const
-{
-	return nullptr;
-}
-
-GlRmlUiRender* NodeEditorWindow::getRmlUiRenderer() const
-{
-	return nullptr;
-}
-
 InputManager* NodeEditorWindow::getInputManager() const
 {
 	return getMainWindow()->getInputManager();

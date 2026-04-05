@@ -3,10 +3,6 @@
 #include "Logger.h"
 #include "Version.h"
 
-#include "GlRmlUiRenderer.h"
-#include <RmlUi/Core/Core.h>
-#include <RmlUi/Core/Context.h>
-
 #include "App.h"
 #include "AppStage.h"
 #include "AnchorObjectSystem.h"
@@ -36,7 +32,6 @@
 #include "PathUtils.h"
 #include "ProjectManager.h"
 #include "OpenCVManager.h"
-#include "RmlManager.h"
 #include "SdlWindow.h"
 #include "StencilUtils.h"
 #include "StringUtils.h"
@@ -70,7 +65,6 @@ MainWindow::MainWindow(App* ownerApp)
 	, m_mikanServer(new MikanServer())
 	, m_clientSourceManager(new ClientSourceManager())
 	, m_inputManager(new InputManager())
-	, m_rmlManager(new RmlManager(this))
 	, m_projectManager(std::make_shared<ProjectManager>(this))
 	, m_openCVManager(new OpenCVManager())
 	, m_fontManager(new MikanFontManager())
@@ -101,7 +95,6 @@ MainWindow::~MainWindow()
 	m_projectManager = nullptr;
 	delete m_openCVManager;
 	delete m_inputManager;
-	delete m_rmlManager;
 	delete m_mikanServer;
 	delete m_clientSourceManager;
 
@@ -165,12 +158,6 @@ bool MainWindow::startup()
 	bool success = true;
 
 	MIKAN_LOG_INFO("MainWindow::init()") << "Initializing MainWindow";
-
-	if (success && !m_rmlManager->preRendererStartup())
-	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize Rml UI manager!";
-		success = false;
-	}
 
 	auto windowTitle= StringUtils::stringify("MikanXR v", MIKAN_RELEASE_VERSION_STRING);
 	m_sdlWindow
@@ -270,22 +257,6 @@ bool MainWindow::startup()
 
 	if (success)
 	{
-		m_rmlUiRenderer = GlRmlUiRenderUniquePtr(new GlRmlUiRender(*this));
-		if (!m_rmlUiRenderer->startup())
-		{
-			MIKAN_LOG_ERROR("MainWindow::init") << "Unable to initialize RmlUi Renderer";
-			success = false;
-		}
-	}
-
-	if (success && !m_rmlManager->postRendererStartup())
-	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize Rml UI manager!";
-		success = false;
-	}
-
-	if (success)
-	{
 		// Create the base GL state for the window
 		IMkState* mkState= m_mkStateStack->pushState("MainWindow Root");
 		assert(mkState->getStackDepth() == 0);
@@ -351,9 +322,6 @@ void MainWindow::update(float deltaSeconds)
 			appStage->onGui();
 		}
 	}
-
-	// Update the UI layout and data models
-	m_rmlManager->update();
 }
 
 void MainWindow::render()
@@ -427,9 +395,6 @@ void MainWindow::renderStageUI(AppStage* appStage)
 
 	m_isRenderingUI = true;
 
-	// Render the UI of the AppStage
-	appStage->renderUI();
-
 	// Submit the MkGui draw call
 	m_guiContext->submitDrawData();
 
@@ -465,10 +430,6 @@ void MainWindow::shutdown()
 	}
 	processPendingAppStageOps();
 
-	// Tear down all app systems
-	assert(m_rmlManager != nullptr);
-	m_rmlManager->shutdown();
-
 	assert(m_mikanServer != nullptr);
 	m_mikanServer->shutdown();
 
@@ -481,12 +442,6 @@ void MainWindow::shutdown()
 
 	assert(m_fontManager != nullptr);
 	m_fontManager->shutdown();
-
-	if (m_rmlUiRenderer != nullptr)
-	{
-		m_rmlUiRenderer->shutdown();
-		m_rmlUiRenderer= nullptr;
-	}
 
 	if (m_modelResourceManager != nullptr)
 	{
@@ -565,12 +520,6 @@ bool MainWindow::onWindowEvent(const SDL_Event* event)
 	if (!bHandled && m_bIsDebugGuiEnabled)
 	{
 		bHandled= m_guiContext->onWindowEvent(event);
-	}
-
-	// Then see if the UI wants to handle the event
-	if (!bHandled)
-	{
-		bHandled= m_rmlUiRenderer->onSDLEvent(event);
 	}
 
 	// Then see if the current app stage wants to handle the event
