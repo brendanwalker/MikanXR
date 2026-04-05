@@ -1,6 +1,6 @@
 //-- includes -----
 #include "StencilAlignment/AppStage_StencilAlignment.h"
-#include "StencilAlignment/RmlModel_StencilAlignment.h"
+#include "StencilAlignment/GuiPanel_StencilAlignment.h"
 #include "App.h"
 #include "CameraComponent.h"
 #include "Colors.h"
@@ -42,9 +42,9 @@
 
 #include "glm/gtc/quaternion.hpp"
 
-#include <RmlUi/Core/Core.h>
-#include <RmlUi/Core/Context.h>
-#include <RmlUi/Core/ElementDocument.h>
+#include "MkGuiScopedWindow.h"
+
+#include "imgui.h"
 
 //-- statics ----
 const char* AppStage_StencilAlignment::APP_STAGE_NAME = "StencilAlignment";
@@ -135,20 +135,14 @@ void AppStage_StencilAlignment::enter()
 		newState = eStencilAlignmentMenuState::failedVideoStartStreamRequest;
 	}
 
-	// Create app stage UI models and views
+	// Create app stage GUI panels
 	// (Auto cleaned up on app state exit)
 	{
-		Rml::Context* context = getRmlContext();
-
-		// Init calibration model
-		m_calibrationModel = addRmlModel<RmlModel_StencilAlignment>();
-		m_calibrationModel->init(context);
-		m_calibrationModel->OnOkEvent = MakeDelegate(this, &AppStage_StencilAlignment::onOkEvent);
-		m_calibrationModel->OnRedoEvent = MakeDelegate(this, &AppStage_StencilAlignment::onRedoEvent);
-		m_calibrationModel->OnCancelEvent = MakeDelegate(this, &AppStage_StencilAlignment::onCancelEvent);
-
-		// Init calibration view now that the dependent model has been created
-		m_calibrationView = addRmlDocument("stencil_alignment.rml");
+		m_calibrationPanel = addGuiPanel<GuiPanel_StencilAlignment>();
+		m_calibrationPanel->init(this);
+		m_calibrationPanel->OnOkEvent = [this]() { onOkEvent(); };
+		m_calibrationPanel->OnRedoEvent = [this]() { onRedoEvent(); };
+		m_calibrationPanel->OnCancelEvent = [this]() { onCancelEvent(); };
 	}
 
 	setMenuState(newState);
@@ -250,7 +244,7 @@ void AppStage_StencilAlignment::update(float deltaSeconds)
 {
 	AppStage::update(deltaSeconds);
 
-	switch (m_calibrationModel->getMenuState())
+	switch (m_calibrationPanel->getMenuState())
 	{
 		case eStencilAlignmentMenuState::verifyInitialCameraSetup:
 		case eStencilAlignmentMenuState::verifyPointsCapture:
@@ -290,7 +284,7 @@ void AppStage_StencilAlignment::render(IMkViewportPtr targetViewport)
 
 		if (colorFramebufferBinding)
 		{
-			switch (m_calibrationModel->getMenuState())
+			switch (m_calibrationPanel->getMenuState())
 			{
 				case eStencilAlignmentMenuState::verifyInitialCameraSetup:
 				case eStencilAlignmentMenuState::verifyPointsCapture:
@@ -378,9 +372,32 @@ void AppStage_StencilAlignment::renderStencilScene()
 	}
 }
 
+void AppStage_StencilAlignment::onGui()
+{
+	AppStage::onGui();
+
+	constexpr float k_panelWidth = 415.f;
+	const float displayWidth = m_ownerWindow->getWidth();
+	const float displayHeight = m_ownerWindow->getHeight();
+	ImGui::SetNextWindowPos(ImVec2(displayWidth - k_panelWidth, 0.f), ImGuiCond_Always);
+	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, displayHeight), ImGuiCond_Always);
+
+	constexpr ImGuiWindowFlags k_flags =
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoCollapse |
+		ImGuiWindowFlags_NoTitleBar;
+
+	MkGuiScopedWindow panel("##StencilAlignment", nullptr, k_flags);
+	if (!panel) return;
+
+	for (IGuiPanel* guiPanel : m_guiPanels)
+		guiPanel->onGui();
+}
+
 void AppStage_StencilAlignment::setMenuState(eStencilAlignmentMenuState newState)
 {
-	eStencilAlignmentMenuState oldState= m_calibrationModel->getMenuState();
+	eStencilAlignmentMenuState oldState= m_calibrationPanel->getMenuState();
 
 	if (oldState != newState)
 	{
@@ -397,14 +414,14 @@ void AppStage_StencilAlignment::setMenuState(eStencilAlignmentMenuState newState
 		}
 
 		// Update menu state on the data models
-		m_calibrationModel->setMenuState(newState);
+		m_calibrationPanel->setMenuState(newState);
 	}
 }
 
 // Viewpoint Events
 void AppStage_StencilAlignment::onMouseRayChanged(const glm::vec3& rayOrigin, const glm::vec3& rayDir)
 {
-	eStencilAlignmentMenuState menuState = m_calibrationModel->getMenuState();
+	eStencilAlignmentMenuState menuState = m_calibrationPanel->getMenuState();
 	if (menuState == eStencilAlignmentMenuState::captureOriginVertex ||
 		menuState == eStencilAlignmentMenuState::captureXAxisVertex ||
 		menuState == eStencilAlignmentMenuState::captureYAxisVertex ||
@@ -447,7 +464,7 @@ void AppStage_StencilAlignment::onMouseRayButtonUp(const glm::vec3& rayOrigin, c
 	if (button != SDL_BUTTON_LEFT)
 		return;
 
-	eStencilAlignmentMenuState menuState= m_calibrationModel->getMenuState();
+	eStencilAlignmentMenuState menuState= m_calibrationPanel->getMenuState();
 	if (menuState >= eStencilAlignmentMenuState::captureOriginPixel &&
 		menuState <= eStencilAlignmentMenuState::captureZAxisVertex)
 	{
@@ -504,7 +521,7 @@ void AppStage_StencilAlignment::onMouseRayButtonUp(const glm::vec3& rayOrigin, c
 // Calibration Model UI Events
 void AppStage_StencilAlignment::onOkEvent()
 {
-	switch (m_calibrationModel->getMenuState())
+	switch (m_calibrationPanel->getMenuState())
 	{
 		case eStencilAlignmentMenuState::verifyInitialCameraSetup:
 			{

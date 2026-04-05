@@ -4,9 +4,11 @@
 #include "AppStage.h"
 #include "ComponentFwd.h"
 #include "Constants_MonoLensCalibration.h"
-#include "RmlFwd.h"
 #include "VideoDisplayConstants.h"
 #include <memory>
+
+class GuiPanel_MonoLensCalibration;
+class GuiPanel_MonoCameraSettings;
 
 //-- definitions -----
 class AppStage_MonoLensCalibration : public AppStage
@@ -23,6 +25,7 @@ public:
 	virtual void enter() override;
 	virtual void exit() override;
 	virtual void update(float deltaSeconds) override;
+	virtual void onGui() override;
 	virtual void render(IMkViewportPtr targetViewport) override;
 
 protected:
@@ -50,12 +53,10 @@ protected:
 	bool handleCaptureCommand(std::vector<std::string>& outResults);
 
 private:
-	class RmlModel_MonoLensCalibration* m_calibrationModel;
-	Rml::ElementDocument* m_calibrationView= nullptr;
+	class GuiPanel_MonoLensCalibration* m_calibrationPanel = nullptr;
+	class GuiPanel_MonoCameraSettings* m_cameraSettingsPanel = nullptr;
 
-	class RmlModel_MonoCameraSettings* m_cameraSettingsModel;
-	Rml::ElementDocument* m_cameraSettingsView= nullptr;
-
+	bool m_bypassCalibrationFlag = false;
 	VideoSourceComponentPtr m_videoSourceComponent;
 	class MonoLensDistortionCalibrator* m_monoLensCalibrator;
 	class VideoFrameDistortionView* m_monoDistortionView;
