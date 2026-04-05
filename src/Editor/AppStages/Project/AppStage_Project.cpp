@@ -24,33 +24,19 @@
 #include "ProjectManager.h"
 #include "Project/AppStage_Project.h"
 #include "Project/ProjectGuiPanelContext.h"
-#include "Project/ProjectRmlModelContext.h"
 #include "Project/GuiPanel_ProjectMarkers.h"
 #include "Project/GuiPanel_ProjectScenes.h"
 #include "Project/GuiPanel_ProjectSettings.h"
 #include "Project/GuiPanel_ProjectSources.h"
 #include "Project/GuiPanel_ProjectStages.h"
 #include "Project/GuiPanel_ProjectTracking.h"
-#include "Project/RmlModel_Project.h"
-#include "Project/RmlModel_ProjectMarkers.h"
-#include "Project/RmlModel_ProjectScenes.h"
-#include "Project/RmlModel_ProjectStages.h"
-#include "Project/RmlModel_ProjectSources.h"
-#include "Project/RmlModel_ProjectTracking.h"
-#include "Project/RmlModel_ProjectSettings.h"
-#include "Shared/RmlModel_MarkerComponent.h"
 #include "Shared/GuiPanel_MarkerComponent.h"
-#include "RmlUtility.h"
 #include "SceneComponent.h"
 #include "SdlCommon.h"
 #include "SdlUtility.h"
 #include "SceneObjectSystem.h"
 #include "TextStyle.h"
 #include "VideoSourceComponent.h"
-
-#include <RmlUi/Core/Context.h>
-#include "RmlUI/Core/ElementDocument.h"
-#include "RmlUI/Core/Elements/ElementFormControlSelect.h"
 
 #include <easy/profiler.h>
 
@@ -124,65 +110,6 @@ void AppStage_Project::enter()
 			MakeDelegate(this, &AppStage_Project::cycleNextCompositorCamera);
 	}
 
-	// Create app stage UI models and views
-	// (Auto cleaned up on app state exit)
-	{
-		Rml::Context* context = getRmlContext();
-
-		m_projectRmlModelContext = new ProjectRmlModelContext(this);
-		m_projectRmlModelContext->init();
-
-		// Register Component Models
-		m_projectRmlModelContext->getMarkerModel()->OnMarkerSelected = 
-			MakeDelegate(this, &AppStage_Project::onMarkerSelected);
-
-		// Register Project Panel Models
-		m_projectModel = addRmlModel<RmlModel_Project>();
-		m_projectModel->init(context);
-		m_projectModel->OnReturnEvent = MakeDelegate(this, &AppStage_Project::onReturnEvent);
-		m_projectModel->OnToggleScenesEvent = MakeDelegate(this, &AppStage_Project::onToggleScenesWindowEvent);
-		m_projectModel->OnToggleStagesEvent = MakeDelegate(this, &AppStage_Project::onToggleStagesWindowEvent);
-		m_projectModel->OnToggleSourcesEvent = MakeDelegate(this, &AppStage_Project::onToggleSourcesEvent);
-		m_projectModel->OnToggleTrackingEvent = MakeDelegate(this, &AppStage_Project::onToggleTrackingEvent);
-		m_projectModel->OnToggleMarkersEvent = MakeDelegate(this, &AppStage_Project::onToggleMarkersEvent);
-		m_projectModel->OnToggleSettingsEvent = MakeDelegate(this, &AppStage_Project::onToggleSettingsWindowEvent);
-
-		m_projectScenesModel = addRmlModel<RmlModel_ProjectScenes>();
-		m_projectScenesModel->init(m_projectRmlModelContext);
-
-		m_projectStagesModel = addRmlModel<RmlModel_ProjectStages>();
-		m_projectStagesModel->init(m_projectRmlModelContext);
-
-		m_projectSourcesModel = addRmlModel<RmlModel_ProjectSources>();
-		m_projectSourcesModel->init(m_projectRmlModelContext);
-
-		m_projectTrackingModel = addRmlModel<RmlModel_ProjectTracking>();
-		m_projectTrackingModel->init(m_projectRmlModelContext);
-
-		m_projectMarkersModel = addRmlModel<RmlModel_ProjectMarkers>();
-		m_projectMarkersModel->init(m_projectRmlModelContext);
-
-		m_projectSettingsModel = addRmlModel<RmlModel_ProjectSettings>();
-		m_projectSettingsModel->init(m_projectRmlModelContext);
-
-		// Load the Rml views
-		m_projectScenesView = addRmlDocument("project_scenes.rml");
-		m_projectStagesView = addRmlDocument("project_stages.rml");
-		m_projectSourcesView = addRmlDocument("project_sources.rml");
-		m_projectTrackingView = addRmlDocument("project_tracking.rml");
-		m_projectMarkersView = addRmlDocument("project_markers.rml");
-		m_projectSettingsView = addRmlDocument("project_settings.rml");
-
-		// Show the main project view by default
-		m_projectStagesView->Hide();
-		m_projectSourcesView->Hide();
-		m_projectTrackingView->Hide();
-		m_projectMarkersView->Hide();
-		m_projectSettingsView->Hide();
-		m_projectScenesView->Show();
-		m_projectScenesView->PullToFront();
-	}
-
 	// Create ImGui GuiPanel context and project panels
 	{
 		m_projectGuiPanelContext = new ProjectGuiPanelContext(this);
@@ -224,10 +151,6 @@ void AppStage_Project::exit()
 	m_projectMarkersPanel = nullptr;
 	m_projectSettingsPanel = nullptr;
 
-	// Clean up the Rml Model Context
-	delete m_projectRmlModelContext;
-	m_projectRmlModelContext = nullptr;
-
 	{
 		SceneObjectSystemPtr sceneSystem = m_sceneObjectSystem.lock();
 
@@ -259,11 +182,6 @@ void AppStage_Project::pause()
 void AppStage_Project::resume()
 {
 	AppStage::resume();
-
-	hideAllSubWindows();
-
-	m_projectScenesView->Show();
-	m_projectScenesView->PullToFront();
 }
 
 void AppStage_Project::update(float deltaSeconds)
@@ -375,109 +293,10 @@ void AppStage_Project::onReturnEvent()
 	m_ownerWindow->popAppState();
 }
 
-void AppStage_Project::onToggleScenesWindowEvent()
-{
-	hideAllSubWindows();
-	if (m_projectScenesView) {
-		m_projectScenesView->Show();
-		m_projectScenesView->PullToFront();
-	}
-}
-
-void AppStage_Project::onToggleStagesWindowEvent()
-{
-	hideAllSubWindows();
-	if (m_projectStagesView) {
-		m_projectStagesView->Show();
-		m_projectStagesView->PullToFront();
-	}
-}
-
-void AppStage_Project::onToggleSourcesEvent()
-{
-	hideAllSubWindows();
-	if (m_projectSourcesView) {
-		m_projectSourcesView->Show();
-		m_projectSourcesView->PullToFront();
-	}
-}
-
-void AppStage_Project::onToggleTrackingEvent()
-{
-	hideAllSubWindows();
-	if (m_projectTrackingView) {
-		m_projectTrackingView->Show();
-		m_projectTrackingView->PullToFront();
-	}
-}
-
-void AppStage_Project::onToggleMarkersEvent()
-{
-	hideAllSubWindows();
-	if (m_projectMarkersView) {
-		m_projectMarkersView->Show();
-		m_projectMarkersView->PullToFront();
-	}
-}
-
-void AppStage_Project::onToggleSettingsWindowEvent()
-{
-	hideAllSubWindows();
-	if (m_projectSettingsView) {
-		m_projectSettingsView->Show();
-		m_projectSettingsView->PullToFront();
-	}
-}
-
-void AppStage_Project::onScreenshotClientSourceEvent(const std::string& clientSourceName)
-{
-	auto* clientSourceManager = getOwnerWindow()->getClientSourceManager();
-
-	const auto& clientSources= clientSourceManager->getClientSources();
-	if (ClientSourceManager::ClientSource* clientSource = nullptr;
-		clientSources.tryGetValue(clientSourceName, clientSource))
-	{
-		if (clientSource->colorTexture != nullptr)
-		{
-			SdlUtility::saveTextureToPNG(clientSource->colorTexture, "layerScreenshot.png");
-		}
-	}
-}
 
 void AppStage_Project::onMarkerSelected(int arucoId)
 {
-	// Update the ArUco preview decorator in the project_markers view
-	if (m_projectMarkersView)
-	{
-		if (auto element = m_projectMarkersView->GetElementById("aruco_preview"))
-		{
-			auto markerObjectSystem= getObjectSystemOfType<MarkerObjectSystem>();
-			const auto markerSystemConfig= markerObjectSystem->getTypedDefinitionConst();
-			const int dictionaryType= (int)markerSystemConfig->getArucoDictionaryType();
-			const int markerUIPixelSize = 115;
-
-			// Set the decorator with the specific aruco_id
-			std::string decoratorValue =
-				"aruco-marker(" 
-				+ std::to_string(dictionaryType)
-				+ ", "
-				+ std::to_string(arucoId) 
-				+ ", "
-				+ std::to_string(markerUIPixelSize)
-				+")";
-			element->SetProperty("decorator", decoratorValue.c_str());
-		}
-	}
-}
-
-void AppStage_Project::hideAllSubWindows()
-{
-	if (m_projectScenesView) m_projectScenesView->Hide();
-	if (m_projectStagesView) m_projectStagesView->Hide();
-	if (m_projectSourcesView) m_projectSourcesView->Hide();
-	if (m_projectTrackingView) m_projectTrackingView->Hide();
-	if (m_projectMarkersView) m_projectMarkersView->Hide();
-	if (m_projectSettingsView) m_projectSettingsView->Hide();
+	// Marker selected — arucoId can be used for custom rendering/preview in the future
 }
 
 void AppStage_Project::render(IMkViewportPtr targetViewport)

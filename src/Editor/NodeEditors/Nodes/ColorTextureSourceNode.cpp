@@ -1,6 +1,7 @@
 #include "ColorTextureSourceNode.h"
 #include "CameraComponent.h"
 #include "MkScopedObjectBinding.h"
+#include "IEditorWindow.h"
 #include "IMkFrameBuffer.h"
 #include "IMkWindow.h"
 #include "MkMaterial.h"

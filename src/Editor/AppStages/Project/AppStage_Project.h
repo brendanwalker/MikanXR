@@ -7,7 +7,6 @@
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
 #include "MikanRendererFwd.h"
-#include "RmlFwd.h"
 #include "SceneFwd.h"
 
 #include <filesystem>
@@ -44,16 +43,6 @@ protected:
 
 	// Main Compositor UI Events
 	void onReturnEvent();
-	void onToggleScenesWindowEvent();
-	void onToggleStagesWindowEvent();
-	void onToggleSourcesEvent();
-	void onToggleTrackingEvent();
-	void onToggleMarkersEvent();
-	void onToggleSettingsWindowEvent();
-	void hideAllSubWindows();
-
-	// Layers UI Events
-	void onScreenshotClientSourceEvent(const std::string& clientSourceName);
 
 	// Marker UI Events
 	void onMarkerSelected(int arucoId);
@@ -71,29 +60,6 @@ protected:
 
 	EditorObjectSystemWeakPtr m_editorSystem;
 	SceneObjectSystemWeakPtr m_sceneObjectSystem;
-
-	// Shared context for component and object system models used in project panels
-	class ProjectRmlModelContext* m_projectRmlModelContext = nullptr;
-
-	class RmlModel_Project* m_projectModel= nullptr;
-
-	class RmlModel_ProjectScenes* m_projectScenesModel;
-	Rml::ElementDocument* m_projectScenesView = nullptr;
-
-	class RmlModel_ProjectStages* m_projectStagesModel;
-	Rml::ElementDocument* m_projectStagesView = nullptr;
-
-	class RmlModel_ProjectSources* m_projectSourcesModel;
-	Rml::ElementDocument* m_projectSourcesView = nullptr;
-
-	class RmlModel_ProjectTracking* m_projectTrackingModel;
-	Rml::ElementDocument* m_projectTrackingView = nullptr;
-
-	class RmlModel_ProjectMarkers* m_projectMarkersModel;
-	Rml::ElementDocument* m_projectMarkersView = nullptr;
-
-	class RmlModel_ProjectSettings* m_projectSettingsModel;
-	Rml::ElementDocument* m_projectSettingsView = nullptr;
 
 	// Shared context for GuiPanel component/system panels
 	class ProjectGuiPanelContext* m_projectGuiPanelContext = nullptr;
