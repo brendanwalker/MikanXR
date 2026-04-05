@@ -9,23 +9,20 @@
 #include "IMkTriangulatedMesh.h"
 #include "IMkWindow.h"
 #include "TextureSourceSettings/AppStage_TextureSourceSettings.h"
-#include "TextureSourceSettings/RmlModel_TextureSourceSettings.h"
-#include "Shared/RmlModel_ClientTextureSourceComponent.h"
-#include "Shared/RmlModel_SpoutTextureSourceComponent.h"
+#include "Shared/GuiPanel_ClientTextureSourceComponent.h"
+#include "Shared/GuiPanel_SpoutTextureSourceComponent.h"
 #include "MainMenu/AppStage_MainMenu.h"
 #include "MikanTextRenderer.h"
 #include "MikanServer.h"
 #include "MainWindow.h"
+#include "MkGuiScopedWindow.h"
 #include "MkMaterialInstance.h"
 #include "MulticastDelegate.h"
 #include "SpoutTextureSourceComponent.h"
 #include "ProjectConfig.h"
 #include "TextureSourceComponent.h"
 
-#include <RmlUi/Core/Core.h>
-#include <RmlUi/Core/Context.h>
-#include <RmlUi/Core/DataModelHandle.h>
-#include <RmlUi/Core/ElementDocument.h>
+#include "imgui.h"
 
 //-- statics ----__
 const char* AppStage_TextureSourceSettings::APP_STAGE_NAME = "TextureSourceSettings";
@@ -48,38 +45,24 @@ void AppStage_TextureSourceSettings::enter()
 	// Pause all compositor components while in the texture source settings stage
 	getObjectSystemOfType<CompositorObjectSystem>()->setAllCompositorsPaused(true);
 
-	// Create app stage UI models and views
+	// Create app stage GUI panels
 	// (Auto cleaned up on app state exit)
 	{
-		Rml::Context* context = getRmlContext();
-
-		// Init Data Models
-		auto* TextureSourceSettingsModel = addRmlModel<RmlModel_TextureSourceSettings>();
-		TextureSourceSettingsModel->init(context);
-		TextureSourceSettingsModel->OnReturnEvent = MakeDelegate(this, &AppStage_TextureSourceSettings::onReturnEvent);
-
-		m_clientTextureSourceComponentModel = addRmlModel<RmlModel_ClientTextureSourceComponent>();
-		m_clientTextureSourceComponentModel->init(this);
+		m_clientTextureSourceComponentPanel = addGuiPanel<GuiPanel_ClientTextureSourceComponent>();
+		m_clientTextureSourceComponentPanel->init(this);
 		if (auto clientTextureSourceComponent =
 			std::dynamic_pointer_cast<ClientTextureSourceComponent>(textureSourceComponent))
 		{
-			m_clientTextureSourceComponentModel->setComponent(clientTextureSourceComponent);
+			m_clientTextureSourceComponentPanel->setComponent(clientTextureSourceComponent);
 		}
 
-		auto* spoutTextureSourceComponentModel = addRmlModel<RmlModel_SpoutTextureSourceComponent>();
-		spoutTextureSourceComponentModel->init(this);
+		auto* spoutPanel = addGuiPanel<GuiPanel_SpoutTextureSourceComponent>();
+		spoutPanel->init(this);
 		if (auto spoutTextureSourceComponent =
 			std::dynamic_pointer_cast<SpoutTextureSourceComponent>(textureSourceComponent))
 		{
-			spoutTextureSourceComponentModel->setComponent(spoutTextureSourceComponent);
+			spoutPanel->setComponent(spoutTextureSourceComponent);
 		}
-
-		// Load the Rml view for the settings
-		m_TextureSourceSettingsView = addRmlDocument("texture_source_settings.rml");
-
-		// Show the main project view by default
-		m_TextureSourceSettingsView->Show();
-		m_TextureSourceSettingsView->PullToFront();
 	}
 
 	// Create a meshes used to render the video frame
@@ -124,6 +107,32 @@ void AppStage_TextureSourceSettings::update(float deltaSeconds)
 	}
 }
 
+void AppStage_TextureSourceSettings::onGui()
+{
+	AppStage::onGui();
+
+	constexpr float k_panelWidth = 415.f;
+	const float displayWidth = m_ownerWindow->getWidth();
+	const float displayHeight = m_ownerWindow->getHeight();
+	ImGui::SetNextWindowPos(ImVec2(displayWidth - k_panelWidth, 0.f), ImGuiCond_Always);
+	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, displayHeight), ImGuiCond_Always);
+
+	constexpr ImGuiWindowFlags k_flags =
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoCollapse |
+		ImGuiWindowFlags_NoTitleBar;
+
+	MkGuiScopedWindow panel("##TextureSourceSettings", nullptr, k_flags);
+	if (!panel) return;
+
+	if (ImGui::Button("Return")) onReturnEvent();
+	ImGui::Separator();
+
+	for (IGuiPanel* guiPanel : m_guiPanels)
+		guiPanel->onGui();
+}
+
 void AppStage_TextureSourceSettings::render(IMkViewportPtr targetViewport)
 {
 	AppStage::render(targetViewport);
@@ -135,9 +144,9 @@ void AppStage_TextureSourceSettings::render(IMkViewportPtr targetViewport)
 	eUniformSemantic videoTextureSemantic = eUniformSemantic::INVALID;
 
 	eTextureSourceDisplayBufferType displayBufferType = eTextureSourceDisplayBufferType::Color;
-	if (m_clientTextureSourceComponentModel->getComponent() != nullptr)
+	if (m_clientTextureSourceComponentPanel->getComponent() != nullptr)
 	{
-		displayBufferType = m_clientTextureSourceComponentModel->getDisplayBufferType();
+		displayBufferType = m_clientTextureSourceComponentPanel->getDisplayBufferType();
 	}
 	
 	switch (displayBufferType)

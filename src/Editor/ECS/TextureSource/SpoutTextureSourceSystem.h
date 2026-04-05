@@ -46,7 +46,6 @@ public:
 
 private:
     struct SPOUTLIBRARY* m_spoutLibrary = nullptr;
-    RmlDataBinding_SpoutSourceListPtr m_spoutSourceList;
 };
 
 using SpoutTextureSourceSystemPtr = std::shared_ptr<SpoutTextureSourceSystem>;

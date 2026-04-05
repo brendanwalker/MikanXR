@@ -1,13 +1,13 @@
 //-- inludes -----
 #include "VideoSourceSettings/AppStage_VideoSourceSettings.h"
-#include "VideoSourceSettings/RmlModel_VideoSourceSettings.h"
-#include "Shared/RmlModel_NetworkVideoSourceComponent.h"
-#include "Shared/RmlModel_USBVideoSourceComponent.h"
+#include "Shared/GuiPanel_USBVideoSourceComponent.h"
+#include "Shared/GuiPanel_NetworkVideoSourceComponent.h"
 #include "MonoLensCalibration/AppStage_MonoLensCalibration.h"
 #include "MainMenu/AppStage_MainMenu.h"
 #include "App.h"
 #include "MikanTextRenderer.h"
 #include "MainWindow.h"
+#include "MkGuiScopedWindow.h"
 #include "MulticastDelegate.h"
 #include "NetworkVideoSourceComponent.h"
 #include "ProjectConfig.h"
@@ -16,10 +16,7 @@
 #include "VideoFrameDistortionView.h"
 #include "USBVideoSourceComponent.h"
 
-#include <RmlUi/Core/Core.h>
-#include <RmlUi/Core/Context.h>
-#include <RmlUi/Core/DataModelHandle.h>
-#include <RmlUi/Core/ElementDocument.h>
+#include "imgui.h"
 
 //-- statics ----__
 const char* AppStage_VideoSourceSettings::APP_STAGE_NAME = "VideoSourceSettings";
@@ -41,38 +38,24 @@ void AppStage_VideoSourceSettings::enter()
 
 	VideoSourceComponentPtr videoSourceComponent= m_videoSourceComponent.lock();
 
-	// Create app stage UI models and views
+	// Create app stage GUI panels
 	// (Auto cleaned up on app state exit)
 	{
-		Rml::Context* context = getRmlContext();
-
-		// Init Data Models
-		auto* videoSourceSettingsModel = addRmlModel<RmlModel_VideoSourceSettings>();
-		videoSourceSettingsModel->init(context);
-		videoSourceSettingsModel->OnReturnEvent = MakeDelegate(this, &AppStage_VideoSourceSettings::onReturnEvent);
-
-		auto* usbVideoSourceComponentModel = addRmlModel<RmlModel_USBVideoSourceComponent>();
-		usbVideoSourceComponentModel->init(this);
+		auto* usbPanel = addGuiPanel<GuiPanel_USBVideoSourceComponent>();
+		usbPanel->init(this);
 		if (auto usbVideoSourceComponent =
 			std::dynamic_pointer_cast<USBVideoSourceComponent>(videoSourceComponent))
 		{
-			usbVideoSourceComponentModel->setComponent(usbVideoSourceComponent);
+			usbPanel->setComponent(usbVideoSourceComponent);
 		}
 
-		auto* networkVideoSourceComponentModel = addRmlModel<RmlModel_NetworkVideoSourceComponent>();
-		networkVideoSourceComponentModel->init(this);
+		auto* networkPanel = addGuiPanel<GuiPanel_NetworkVideoSourceComponent>();
+		networkPanel->init(this);
 		if (auto networkVideoSourceComponent =
 			std::dynamic_pointer_cast<NetworkVideoSourceComponent>(videoSourceComponent))
 		{
-			networkVideoSourceComponentModel->setComponent(networkVideoSourceComponent);
+			networkPanel->setComponent(networkVideoSourceComponent);
 		}
-
-		// Load the Rml view for the settings
-		m_videoSourceSettingsView = addRmlDocument("video_source_settings.rml");
-
-		// Show the main project view by default
-		m_videoSourceSettingsView->Show();
-		m_videoSourceSettingsView->PullToFront();
 	}
 
 	if (videoSourceComponent)
@@ -172,6 +155,32 @@ void AppStage_VideoSourceSettings::update(float deltaSeconds)
 	{
 		m_videoBufferView->readAndProcessVideoFrame();
 	}
+}
+
+void AppStage_VideoSourceSettings::onGui()
+{
+	AppStage::onGui();
+
+	constexpr float k_panelWidth = 415.f;
+	const float displayWidth = m_ownerWindow->getWidth();
+	const float displayHeight = m_ownerWindow->getHeight();
+	ImGui::SetNextWindowPos(ImVec2(displayWidth - k_panelWidth, 0.f), ImGuiCond_Always);
+	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, displayHeight), ImGuiCond_Always);
+
+	constexpr ImGuiWindowFlags k_flags =
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoCollapse |
+		ImGuiWindowFlags_NoTitleBar;
+
+	MkGuiScopedWindow panel("##VideoSourceSettings", nullptr, k_flags);
+	if (!panel) return;
+
+	if (ImGui::Button("Return")) onReturnEvent();
+	ImGui::Separator();
+
+	for (IGuiPanel* guiPanel : m_guiPanels)
+		guiPanel->onGui();
 }
 
 void AppStage_VideoSourceSettings::render(IMkViewportPtr targetViewport)

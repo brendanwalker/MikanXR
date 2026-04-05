@@ -17,7 +17,7 @@ void GuiPanel_ClientTextureSourceComponent::onGui()
 
 	// Display buffer type selector (Color = 0, Depth = 1)
 	const char* bufferTypeNames[] = { "Color", "Depth" };
-	if (ImGui::Combo("Display Buffer", &m_displayBufferType, bufferTypeNames, 2))
+	if (ImGui::Combo("Display Buffer", (int*)&m_displayBufferType, bufferTypeNames, 2))
 	{
 		// m_displayBufferType updated by ImGui directly
 	}

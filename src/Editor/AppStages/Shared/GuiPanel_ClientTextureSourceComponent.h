@@ -3,7 +3,11 @@
 #include "Shared/GuiPanel_MikanComponent.h"
 #include "ClientTextureSourceComponent.h"
 
-enum class eTextureSourceDisplayBufferType : int;
+enum class eTextureSourceDisplayBufferType : int
+{
+	Color = 0,
+	Depth = 1,
+};
 
 class GuiPanel_ClientTextureSourceComponent : public GuiPanel_MikanComponent
 {
@@ -13,9 +17,9 @@ public:
 
 	inline eTextureSourceDisplayBufferType getDisplayBufferType() const
 	{
-		return static_cast<eTextureSourceDisplayBufferType>(m_displayBufferType);
+		return m_displayBufferType;
 	}
 
 private:
-	int m_displayBufferType = 0; // eTextureSourceDisplayBufferType::Color
+	eTextureSourceDisplayBufferType m_displayBufferType = eTextureSourceDisplayBufferType::Color;
 };

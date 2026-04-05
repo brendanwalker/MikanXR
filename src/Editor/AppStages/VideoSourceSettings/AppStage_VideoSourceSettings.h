@@ -3,7 +3,6 @@
 //-- includes -----
 #include "AppStage.h"
 #include "ComponentFwd.h"
-#include "Shared/RmlDataBinding_Fwd.h"
 
 #include <memory>
 #include <vector>
@@ -29,6 +28,7 @@ public:
 	virtual void pause() override;
 	virtual void resume() override;
 	virtual void update(float deltaSeconds) override;
+	virtual void onGui() override;
 	virtual void render(IMkViewportPtr targetViewport) override;
 
 	static const char* APP_STAGE_NAME;
@@ -49,8 +49,6 @@ protected:
 		std::vector<std::string>& outResults);
 	bool handleGetVideoSourceComponentId(std::vector<std::string>& outResults);
 	bool handleReturnRequest(std::vector<std::string>& outResults);
-
-	Rml::ElementDocument* m_videoSourceSettingsView = nullptr;
 
 	VideoSourceComponentWeakPtr m_videoSourceComponent;
 	VideoFrameDistortionViewPtr m_videoBufferView;
