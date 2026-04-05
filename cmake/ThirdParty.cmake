@@ -64,15 +64,6 @@ else()
   find_package(GLEW REQUIRED)
 endif()
 
-# Freetype
-if (WIN32) 
-  set (FREETYPE_INCLUDE_DIRS ${ROOT_DIR}/deps/freetype-windows-binaries-2.10.4/include)
-  set (FREETYPE_LIBRARIES ${ROOT_DIR}/deps/freetype-windows-binaries-2.10.4/win64/freetype.lib)
-  set (FREETYPE_SHARED_LIBRARY ${ROOT_DIR}/deps/freetype-windows-binaries-2.10.4/win64/freetype.dll)
-else()
-  #TODO
-endif()
-
 # libharu (PDF writer)
 set (LIBHARU_INCLUDE_DIRS ${ROOT_DIR}/deps/libharu-2.4.5-static/include)
 set (LIBHARU_LIBRARIES

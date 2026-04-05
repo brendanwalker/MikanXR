@@ -516,7 +516,6 @@ list(APPEND MIKAN_REQ_LIBS
   ${MIKAN_EXTRA_LIBS}
   ${GLEW_LIBRARIES}
   ${SPOUT2_LIBRARIES}
-  ${FREETYPE_LIBRARIES}
   ${LIBHARU_LIBRARIES}
   ${LUA_LIBRARIES}
   ${RFK_LIBRARIES}
@@ -632,12 +631,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy 
-    "${SDL2_TTF_DLL_FOLDER}/libfreetype-6.dll"
-    "${SDL2_TTF_DLL_FOLDER}/SDL2_ttf.dll"
-    $<TARGET_FILE_DIR:Mikan>)
-  add_custom_command(
-    TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${GLEW_SHARED_LIBRARIES} $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
@@ -698,7 +691,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
 
   install(FILES 
-      "${SDL2_TTF_DLL_FOLDER}/libfreetype-6.dll"
       "${SDL2_TTF_DLL_FOLDER}/SDL2_ttf.dll"
       DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
       
