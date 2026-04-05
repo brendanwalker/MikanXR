@@ -631,6 +631,11 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy 
+    "${SDL2_TTF_DLL_FOLDER}/SDL2_ttf.dll"
+    $<TARGET_FILE_DIR:Mikan>)
+  add_custom_command(
+    TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${GLEW_SHARED_LIBRARIES} $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
