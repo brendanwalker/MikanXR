@@ -133,6 +133,7 @@ private:
 
 	bool m_isRenderingStage;
 	bool m_isRenderingUI;
+	bool m_bIsDebugGuiEnabled = false;
 
 	// OpenGL shader program cache
 	MikanShaderCacheUniquePtr m_shaderCache;

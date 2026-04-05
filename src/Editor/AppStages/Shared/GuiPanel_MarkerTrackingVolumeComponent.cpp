@@ -15,9 +15,9 @@ bool GuiPanel_MarkerTrackingVolumeComponent::init(AppStage* ownerAppStage)
 	return initTypedPropertyInterface<MarkerTrackingVolumeComponent>(ownerAppStage);
 }
 
-void GuiPanel_MarkerTrackingVolumeComponent::render(float deltaSeconds)
+void GuiPanel_MarkerTrackingVolumeComponent::onGui()
 {
-	GuiPanel_MikanComponent::render(deltaSeconds);
+	GuiPanel_MikanComponent::onGui();
 
 	MarkerTrackingVolumeComponentPtr volumeComp = getMarkerTrackingVolumeComponent();
 	if (!volumeComp)
@@ -43,7 +43,7 @@ void GuiPanel_MarkerTrackingVolumeComponent::render(float deltaSeconds)
 
 					if (ImGui::Selectable(std::to_string(markerId).c_str(), bSelected))
 					{
-						addUpdateCallback([volumeComp, markerId]() {
+						addDeferredGuiEvent([volumeComp, markerId]() {
 							volumeComp->getMarkerTrackingVolumeDefinition()->setOriginMarkerId(markerId);
 						});
 					}

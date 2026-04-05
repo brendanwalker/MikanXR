@@ -36,7 +36,7 @@ public:
 		OnConstruct onConstructCallback = {});
 
 	// IGuiPanel
-	virtual void render(float deltaSeconds) override;
+	virtual void onGui() override;
 	virtual void dispose() override;
 
 	void clearEntityAccessor();

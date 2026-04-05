@@ -18,23 +18,23 @@ void GuiPanel_MikanObjectSystem::setObjectSystem(MikanObjectSystemPtr objectSyst
 	m_entityAccessor->setEntityAccessor(objectSystem);
 }
 
-void GuiPanel_MikanObjectSystem::render(float deltaSeconds)
+void GuiPanel_MikanObjectSystem::onGui()
 {
-	m_entityAccessor->render(deltaSeconds);
+	m_entityAccessor->onGui();
 }
 
-void GuiPanel_MikanObjectSystem::update(float deltaSeconds)
+void GuiPanel_MikanObjectSystem::addDeferredGuiEvent(std::function<void()> callback)
 {
-	m_entityAccessor->update(deltaSeconds);
+	m_entityAccessor->addDeferredGuiEvent(callback);
+}
+
+void GuiPanel_MikanObjectSystem::processDeferredGuiEvents()
+{
+	m_entityAccessor->processDeferredGuiEvents();
 }
 
 void GuiPanel_MikanObjectSystem::dispose()
 {
 	m_entityAccessor->dispose();
 	m_objectSystem.reset();
-}
-
-void GuiPanel_MikanObjectSystem::addUpdateCallback(std::function<void()> callback)
-{
-	m_entityAccessor->addUpdateCallback(callback);
 }

@@ -9,7 +9,7 @@ public:
 	GuiPanel_StageComponent() = default;
 
 	virtual bool init(class AppStage* ownerAppStage) override;
-	virtual void render(float deltaSeconds) override;
+	virtual void onGui() override;
 
 protected:
 	StageComponentPtr getStageComponent() const;

@@ -88,7 +88,7 @@ void GuiPanel_ProjectStages::setSelectedCameraId(MikanCameraID cameraId)
 		m_context->getCameraPanel()->setComponent(nullptr);
 }
 
-void GuiPanel_ProjectStages::render(float deltaSeconds)
+void GuiPanel_ProjectStages::onGui()
 {
 	StageObjectSystemPtr stageSystem = getStageSystem();
 	CameraObjectSystemPtr cameraSystem = getCameraSystem();
@@ -104,6 +104,13 @@ void GuiPanel_ProjectStages::render(float deltaSeconds)
 	}
 
 	// Stages list
+	if (ImGui::Button("Add Stage"))
+	{
+		addDeferredGuiEvent([this]() {
+			getStageSystem()->addNewObjectByTypedDefinition();
+			});
+	}
+
 	if (ImGui::BeginListBox("Stages", ImVec2(-1, 100)))
 	{
 		for (const auto& [id, weakPtr] : stageMap)
@@ -121,7 +128,7 @@ void GuiPanel_ProjectStages::render(float deltaSeconds)
 			if (ImGui::Selectable(label.c_str(), selected))
 			{
 				int newId = (int)id;
-				addUpdateCallback([this, newId]() {
+				addDeferredGuiEvent([this, newId]() {
 					setSelectedStageId((MikanStageID)newId);
 				});
 			}
@@ -129,23 +136,34 @@ void GuiPanel_ProjectStages::render(float deltaSeconds)
 		ImGui::EndListBox();
 	}
 
-	if (ImGui::Button("Add Stage"))
+	// Render the selected stage
+	if (m_selectedStageId != INVALID_MIKAN_ID)
 	{
-		addUpdateCallback([this]() {
-			getStageSystem()->addNewObjectByTypedDefinition();
-		});
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Remove Stage") && m_selectedStageId != INVALID_MIKAN_ID)
-	{
-		addUpdateCallback([this]() {
-			getStageSystem()->removeObjectByPrimaryComponentId(m_selectedStageId);
-		});
+		if (ImGui::Button("Remove Stage"))
+		{
+			addDeferredGuiEvent([this]() {
+				getStageSystem()->removeObjectByPrimaryComponentId(m_selectedStageId);
+				});
+		}
+
+		m_context->getStagePanel()->onGui();
 	}
 
 	ImGui::Separator();
 
 	// Cameras list (filtered by selected stage)
+	if (ImGui::Button("Add Camera") && m_selectedStageId != INVALID_MIKAN_ID)
+	{
+		addDeferredGuiEvent([this]() {
+			int stageId = m_selectedStageId;
+			getCameraSystem()->addNewObjectByTypedDefinition([stageId](auto def) {
+				def->setRelativeTransform(GlmTransform());
+				def->setOwnerStageId(stageId);
+				return true;
+				});
+			});
+	}
+
 	const auto* cameraConfig = cameraSystem->getTypedDefinition().get();
 	if (ImGui::BeginListBox("Cameras", ImVec2(-1, 100)))
 	{
@@ -166,7 +184,7 @@ void GuiPanel_ProjectStages::render(float deltaSeconds)
 			if (ImGui::Selectable(label.c_str(), selected))
 			{
 				int newId = (int)id;
-				addUpdateCallback([this, newId]() {
+				addDeferredGuiEvent([this, newId]() {
 					setSelectedCameraId((MikanCameraID)newId);
 				});
 			}
@@ -174,22 +192,15 @@ void GuiPanel_ProjectStages::render(float deltaSeconds)
 		ImGui::EndListBox();
 	}
 
-	if (ImGui::Button("Add Camera") && m_selectedStageId != INVALID_MIKAN_ID)
+	if (m_selectedCameraId != INVALID_MIKAN_ID)
 	{
-		addUpdateCallback([this]() {
-			int stageId = m_selectedStageId;
-			getCameraSystem()->addNewObjectByTypedDefinition([stageId](auto def) {
-				def->setRelativeTransform(GlmTransform());
-				def->setOwnerStageId(stageId);
-				return true;
-			});
-		});
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Remove Camera") && m_selectedCameraId != INVALID_MIKAN_ID)
-	{
-		addUpdateCallback([this]() {
-			getCameraSystem()->removeObjectByPrimaryComponentId(m_selectedCameraId);
-		});
+		if (ImGui::Button("Remove Camera"))
+		{
+			addDeferredGuiEvent([this]() {
+				getCameraSystem()->removeObjectByPrimaryComponentId(m_selectedCameraId);
+				});
+		}
+
+		m_context->getCameraPanel()->onGui();
 	}
 }

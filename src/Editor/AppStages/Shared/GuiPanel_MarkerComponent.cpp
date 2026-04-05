@@ -25,9 +25,9 @@ bool GuiPanel_MarkerComponent::setComponent(MikanComponentPtr component)
 	return false;
 }
 
-void GuiPanel_MarkerComponent::render(float deltaSeconds)
+void GuiPanel_MarkerComponent::onGui()
 {
-	GuiPanel_MikanComponent::render(deltaSeconds);
+	GuiPanel_MikanComponent::onGui();
 
 	MarkerComponentPtr markerComp = getMarkerComponent();
 	if (!markerComp)
@@ -62,7 +62,7 @@ void GuiPanel_MarkerComponent::render(float deltaSeconds)
 				const bool bSelected = (arucoId == currentArucoId);
 				if (ImGui::Selectable(std::to_string(arucoId).c_str(), bSelected))
 				{
-					addUpdateCallback([this, markerComp, arucoId]() {
+					addDeferredGuiEvent([this, markerComp, arucoId]() {
 						markerComp->getMarkerDefinition()->setArucoId(arucoId);
 						if (OnMarkerSelected)
 						{

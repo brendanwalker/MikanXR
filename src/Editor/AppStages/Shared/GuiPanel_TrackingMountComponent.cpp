@@ -44,9 +44,9 @@ bool GuiPanel_TrackingMountComponent::setComponent(MikanComponentPtr component)
 	return false;
 }
 
-void GuiPanel_TrackingMountComponent::render(float deltaSeconds)
+void GuiPanel_TrackingMountComponent::onGui()
 {
-	GuiPanel_MikanComponent::render(deltaSeconds);
+	GuiPanel_MikanComponent::onGui();
 
 	TrackingMountComponentPtr mountComp = getTrackingMountComponent();
 	if (!mountComp)
@@ -81,7 +81,7 @@ void GuiPanel_TrackingMountComponent::render(float deltaSeconds)
 				const bool bSelected = (devicePath == currentDevicePath);
 				if (ImGui::Selectable(devicePath.c_str(), bSelected))
 				{
-					addUpdateCallback([this, mountComp, devicePath]() {
+					addDeferredGuiEvent([this, mountComp, devicePath]() {
 						setDevicePath(devicePath);
 					});
 				}
@@ -105,7 +105,7 @@ void GuiPanel_TrackingMountComponent::render(float deltaSeconds)
 				const bool bSelected = (socketName == currentSocketName);
 				if (ImGui::Selectable(socketName.c_str(), bSelected))
 				{
-					addUpdateCallback([mountComp, socketName]() {
+					addDeferredGuiEvent([mountComp, socketName]() {
 						mountComp->getTrackingMountDefinition()->setSocketName(socketName);
 					});
 				}

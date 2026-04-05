@@ -12,9 +12,9 @@ bool GuiPanel_StageComponent::init(AppStage* ownerAppStage)
 	return initTypedPropertyInterface<StageComponent>(ownerAppStage);
 }
 
-void GuiPanel_StageComponent::render(float deltaSeconds)
+void GuiPanel_StageComponent::onGui()
 {
-	GuiPanel_MikanComponent::render(deltaSeconds);
+	GuiPanel_MikanComponent::onGui();
 
 	StageComponentPtr stageComp = getStageComponent();
 	if (!stageComp)
@@ -39,7 +39,7 @@ void GuiPanel_StageComponent::render(float deltaSeconds)
 
 				if (ImGui::Selectable(label.c_str(), bSelected))
 				{
-					addUpdateCallback([stageComp, volumeId]() {
+					addDeferredGuiEvent([stageComp, volumeId]() {
 						stageComp->setTrackingVolumeId(volumeId);
 					});
 				}

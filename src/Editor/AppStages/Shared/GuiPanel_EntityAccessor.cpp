@@ -105,26 +105,23 @@ void GuiPanel_EntityAccessor::setEntityAccessor(IEntityAccessorPtr newEntityAcce
 	}
 }
 
-void GuiPanel_EntityAccessor::render(float deltaSeconds)
+void GuiPanel_EntityAccessor::onGui()
 {
 	IEntityAccessorPtr accessor = m_entityAccessor.lock();
+	if (!accessor)
+	{
+		return;
+	}
 
 	// Render auto-generated property widgets
 	for (const PropertyDescriptorConstPtr& desc : m_orderedPropertyDescriptors)
 	{
 		const std::string& propName = desc->getName();
 		const bool isReadOnly = desc->isReadOnly();
-		const MikanVariantType variantType = desc->getDataType();
 
 		MikanVariant value;
-		if (accessor)
-		{
-			accessor->getPropertyValue(propName, value);
-		}
-		else
-		{
-			value = desc->getDefaultValue();
-		}
+		accessor->getPropertyValue(propName, value);
+		const MikanVariantType variantType = value.value_type;
 
 		if (isReadOnly)
 		{
@@ -242,7 +239,7 @@ void GuiPanel_EntityAccessor::render(float deltaSeconds)
 		if (bValueChanged && !isReadOnly && accessor)
 		{
 			// Capture by value for safe deferred use
-			addUpdateCallback([accessor, propName, newValue]() mutable {
+			addDeferredGuiEvent([accessor, propName, newValue]() mutable {
 				accessor->setPropertyValue(propName, newValue);
 			});
 		}
@@ -257,7 +254,7 @@ void GuiPanel_EntityAccessor::render(float deltaSeconds)
 			if (ImGui::Button(funcDesc->getDisplayName().c_str()))
 			{
 				const std::string funcName = funcDesc->getFunctionName();
-				addUpdateCallback([accessor, funcName]() {
+				addDeferredGuiEvent([accessor, funcName]() {
 					if (accessor)
 					{
 						accessor->invokeFunction(funcName);

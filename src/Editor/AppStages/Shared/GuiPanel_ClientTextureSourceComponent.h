@@ -9,7 +9,7 @@ class GuiPanel_ClientTextureSourceComponent : public GuiPanel_MikanComponent
 {
 public:
 	virtual bool init(class AppStage* ownerAppStage) override;
-	virtual void render(float deltaSeconds) override;
+	virtual void onGui() override;
 
 	inline eTextureSourceDisplayBufferType getDisplayBufferType() const
 	{

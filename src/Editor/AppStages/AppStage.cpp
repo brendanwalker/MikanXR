@@ -256,11 +256,16 @@ void AppStage::update(float deltaSeconds)
 			model->update(deltaSeconds);
 		}
 	}
+}
 
-	// Flush deferred callbacks for all GuiPanels
+void AppStage::onGui()
+{
+	// Override this method in derived classes to render the stage specific Mk GUI
+
+	// Process deferred events emitted due to Gui interaction (e.g. button clicks, etc)
 	for (IGuiPanel* panel : m_guiPanels)
 	{
-		panel->update(deltaSeconds);
+		panel->processDeferredGuiEvents();
 	}
 }
 

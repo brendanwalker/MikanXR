@@ -9,9 +9,9 @@ bool GuiPanel_NetworkVideoSourceComponent::init(AppStage* ownerAppStage)
 	return initTypedPropertyInterface<NetworkVideoSourceComponent>(ownerAppStage);
 }
 
-void GuiPanel_NetworkVideoSourceComponent::render(float deltaSeconds)
+void GuiPanel_NetworkVideoSourceComponent::onGui()
 {
-	GuiPanel_MikanComponent::render(deltaSeconds);
+	GuiPanel_MikanComponent::onGui();
 
 	auto videoSourceComp = getNetworkVideoSourceComponent();
 	if (!videoSourceComp)
@@ -32,7 +32,7 @@ void GuiPanel_NetworkVideoSourceComponent::render(float deltaSeconds)
 			bool selected = (protocol == currentProtocol);
 			if (ImGui::Selectable(protocolString.c_str(), selected))
 			{
-				addUpdateCallback([videoSourceComp, protocol]() {
+				addDeferredGuiEvent([videoSourceComp, protocol]() {
 					videoSourceComp->getNetworkVideoSourceDefinition()->setProtocol(protocol);
 				});
 			}

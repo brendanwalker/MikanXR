@@ -40,6 +40,9 @@
 
 #include <easy/profiler.h>
 
+#include "MkGuiScopedTabBar.h"
+#include "MkGuiScopedTabItem.h"
+#include "MkGuiScopedWindow.h"
 #include "opencv2/opencv.hpp"
 
 //-- statics ----
@@ -188,8 +191,62 @@ void AppStage_Project::update(float deltaSeconds)
 {
 	AppStage::update(deltaSeconds);
 
+	// Update the timing dependant state for the project GuiPanels
+	m_projectGuiPanelContext->update(deltaSeconds);
+
 	// Update the camera pose for the currently active camera
 	updateCompositorCameras();
+}
+
+void AppStage_Project::onGui()
+{
+	// Process deferred events emitted due to Gui interaction
+	AppStage::onGui();
+
+	constexpr float k_panelWidth = 415.f;
+	const float displayWidth = m_ownerWindow->getWidth();
+	const float displayHeight = m_ownerWindow->getHeight();
+
+	ImGui::SetNextWindowPos(ImVec2(displayWidth - k_panelWidth, 0.f), ImGuiCond_Always);
+	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, displayHeight), ImGuiCond_Always);
+
+	constexpr ImGuiWindowFlags k_panelFlags =
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoCollapse |
+		ImGuiWindowFlags_NoTitleBar;
+
+	MkGuiScopedWindow panel("##ProjectPanel", nullptr, k_panelFlags);
+	if (!panel)
+		return;
+
+	static const char* k_tabLabels[] = {
+		"Scenes", "Stages", "Sources", "Tracking", "Markers", "Settings"
+	};
+	IGuiPanel* k_tabPanels[] = {
+		m_projectScenesPanel,
+		m_projectStagesPanel,
+		m_projectSourcesPanel,
+		m_projectTrackingPanel,
+		m_projectMarkersPanel,
+		m_projectSettingsPanel
+	};
+	constexpr int k_tabCount = (int)(sizeof(k_tabLabels) / sizeof(k_tabLabels[0]));
+
+	MkGuiScopedTabBar tabBar("##ProjectTabs");
+	if (tabBar)
+	{
+		for (int i = 0; i < k_tabCount; i++)
+		{
+			MkGuiScopedTabItem tabItem(k_tabLabels[i]);
+
+			if (tabItem)
+			{
+				if (k_tabPanels[i] != nullptr)
+					k_tabPanels[i]->onGui();
+			}
+		}
+	}
 }
 
 // Scene

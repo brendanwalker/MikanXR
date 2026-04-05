@@ -5,21 +5,22 @@ GuiPanel::~GuiPanel()
 	dispose();
 }
 
-void GuiPanel::update(float deltaSeconds)
+void GuiPanel::addDeferredGuiEvent(std::function<void()> callback)
 {
-	for (auto& callback : m_updateCallbacks)
+	m_deferredGuiEvents.push_back(callback);
+}
+
+void GuiPanel::processDeferredGuiEvents()
+{
+	for (auto& callback : m_deferredGuiEvents)
 	{
 		callback();
 	}
-	m_updateCallbacks.clear();
+	m_deferredGuiEvents.clear();
 }
 
 void GuiPanel::dispose()
 {
-	m_updateCallbacks.clear();
+	m_deferredGuiEvents.clear();
 }
 
-void GuiPanel::addUpdateCallback(std::function<void()> callback)
-{
-	m_updateCallbacks.push_back(callback);
-}

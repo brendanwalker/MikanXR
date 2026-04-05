@@ -338,8 +338,18 @@ void MainWindow::update(float deltaSeconds)
 	AppStage* appStage = getCurrentAppStage();
 	if (appStage != nullptr && appStage->getIsUpdateActive())
 	{
-		EASY_BLOCK("appStage Update");
-		appStage->update(deltaSeconds);
+		// Update the simulation of the current app stage
+		{
+			EASY_BLOCK("appStage Update");
+			appStage->update(deltaSeconds);
+		}
+
+		// Update the UI for the current app stage
+		if (m_bIsDebugGuiEnabled)
+		{
+			EASY_BLOCK("appStage onGui");
+			appStage->onGui();
+		}
 	}
 
 	// Update the UI layout and data models
@@ -537,7 +547,6 @@ bool MainWindow::onWindowEvent(const SDL_Event* event)
 {
 	bool bHandled = false;
 
-
 	// First see if we got an app shutdown request
 	if (event->type == SDL_QUIT ||
 		(event->type == SDL_KEYDOWN && event->key.keysym.sym == SDLK_ESCAPE))
@@ -545,6 +554,17 @@ bool MainWindow::onWindowEvent(const SDL_Event* event)
 		MIKAN_LOG_INFO("App::exec") << "QUIT message received";
 		App::getInstance()->requestShutdown();
 		bHandled= true;
+	}
+	// Toggle debug UI with F11
+	else if (event->type == SDL_KEYUP && event->key.keysym.sym == SDLK_F11)
+	{
+		m_bIsDebugGuiEnabled = !m_bIsDebugGuiEnabled;
+	}
+
+	// Then see if the UI wants to handle the event
+	if (!bHandled && m_bIsDebugGuiEnabled)
+	{
+		bHandled= m_guiContext->onWindowEvent(event);
 	}
 
 	// Then see if the UI wants to handle the event

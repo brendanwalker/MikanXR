@@ -80,3 +80,8 @@ bool ProjectGuiPanelContext::init()
 
 	return true;
 }
+
+void ProjectGuiPanelContext::update(float deltaSeconds)
+{
+	m_spoutTextureSourcePanel->update(deltaSeconds);
+}

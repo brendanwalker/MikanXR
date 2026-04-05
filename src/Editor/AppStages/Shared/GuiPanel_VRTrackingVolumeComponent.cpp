@@ -14,9 +14,9 @@ bool GuiPanel_VRTrackingVolumeComponent::init(AppStage* ownerAppStage)
 	return initTypedPropertyInterface<VRTrackingVolumeComponent>(ownerAppStage);
 }
 
-void GuiPanel_VRTrackingVolumeComponent::render(float deltaSeconds)
+void GuiPanel_VRTrackingVolumeComponent::onGui()
 {
-	GuiPanel_MikanComponent::render(deltaSeconds);
+	GuiPanel_MikanComponent::onGui();
 
 	VRTrackingVolumeComponentPtr volumeComp = getVRTrackingVolumeComponent();
 	if (!volumeComp)
@@ -40,7 +40,7 @@ void GuiPanel_VRTrackingVolumeComponent::render(float deltaSeconds)
 				const bool bSelected = (mountId == currentMountId);
 				if (ImGui::Selectable(std::to_string(mountId).c_str(), bSelected))
 				{
-					addUpdateCallback([volumeDef, mountId]() {
+					addDeferredGuiEvent([volumeDef, mountId]() {
 						volumeDef->setCharucoTrackingMountId(mountId);
 					});
 				}
@@ -64,7 +64,7 @@ void GuiPanel_VRTrackingVolumeComponent::render(float deltaSeconds)
 					const bool bSelected = (markerId == currentMarkerId);
 					if (ImGui::Selectable(std::to_string(markerId).c_str(), bSelected))
 					{
-						addUpdateCallback([volumeDef, markerId]() {
+						addDeferredGuiEvent([volumeDef, markerId]() {
 							volumeDef->setOriginMarkerId(markerId);
 						});
 					}
@@ -89,7 +89,7 @@ void GuiPanel_VRTrackingVolumeComponent::render(float deltaSeconds)
 					const bool bSelected = (markerId == currentMarkerId);
 					if (ImGui::Selectable(std::to_string(markerId).c_str(), bSelected))
 					{
-						addUpdateCallback([volumeDef, markerId]() {
+						addDeferredGuiEvent([volumeDef, markerId]() {
 							volumeDef->setUtilityMarkerId(markerId);
 						});
 					}

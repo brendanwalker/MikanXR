@@ -16,9 +16,9 @@ bool GuiPanel_CompositorComponent::setComponent(MikanComponentPtr component)
 	return GuiPanel_MikanComponent::setComponent(component);
 }
 
-void GuiPanel_CompositorComponent::render(float deltaSeconds)
+void GuiPanel_CompositorComponent::onGui()
 {
-	GuiPanel_MikanComponent::render(deltaSeconds);
+	GuiPanel_MikanComponent::onGui();
 
 	CompositorComponentPtr compositorComp = getCompositorComponent();
 	if (!compositorComp)
@@ -47,7 +47,7 @@ void GuiPanel_CompositorComponent::render(float deltaSeconds)
 
 						if (ImGui::Selectable(std::to_string(cameraId).c_str(), bSelected))
 						{
-							addUpdateCallback([compositorComp, cameraId]() {
+							addDeferredGuiEvent([compositorComp, cameraId]() {
 								compositorComp->getCompositorDefinition()->setCameraId(cameraId);
 							});
 						}
@@ -63,21 +63,21 @@ void GuiPanel_CompositorComponent::render(float deltaSeconds)
 	// Compositor graph buttons
 	if (ImGui::Button("Edit Compositor Graph"))
 	{
-		addUpdateCallback([compositorComp]() {
+		addDeferredGuiEvent([compositorComp]() {
 			compositorComp->editCompositorGraph();
 		});
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("Add Graph"))
 	{
-		addUpdateCallback([compositorComp]() {
+		addDeferredGuiEvent([compositorComp]() {
 			compositorComp->addNewCompositorGraph();
 		});
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("Remove Graph"))
 	{
-		addUpdateCallback([compositorComp]() {
+		addDeferredGuiEvent([compositorComp]() {
 			compositorComp->removeCompositorGraph();
 		});
 	}

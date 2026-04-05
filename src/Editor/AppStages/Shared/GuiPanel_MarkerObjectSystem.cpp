@@ -11,10 +11,10 @@ void GuiPanel_MarkerObjectSystem::onConstruct()
 {
 }
 
-void GuiPanel_MarkerObjectSystem::render(float deltaSeconds)
+void GuiPanel_MarkerObjectSystem::onGui()
 {
 	// Auto-render all system properties (aruco/charuco dictionary, rows, cols, etc.)
-	GuiPanel_MikanObjectSystem::render(deltaSeconds);
+	GuiPanel_MikanObjectSystem::onGui();
 }
 
 MarkerObjectSystemPtr GuiPanel_MarkerObjectSystem::getMarkerObjectSystem() const

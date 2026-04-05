@@ -40,9 +40,9 @@ bool GuiPanel_USBVideoSourceComponent::setComponent(MikanComponentPtr component)
 	return false;
 }
 
-void GuiPanel_USBVideoSourceComponent::render(float deltaSeconds)
+void GuiPanel_USBVideoSourceComponent::onGui()
 {
-	GuiPanel_MikanComponent::render(deltaSeconds);
+	GuiPanel_MikanComponent::onGui();
 
 	auto usbComp = getUSBVideoSourceComponent();
 	if (!usbComp)
@@ -70,7 +70,7 @@ void GuiPanel_USBVideoSourceComponent::render(float deltaSeconds)
 				const bool bSelected = (devicePath == currentDevicePath);
 				if (ImGui::Selectable(devicePath.c_str(), bSelected))
 				{
-					addUpdateCallback([usbComp, devicePath]() {
+					addDeferredGuiEvent([usbComp, devicePath]() {
 						usbComp->getUSBVideoSourceDefinition()->setDevicePath(devicePath);
 					});
 				}
@@ -94,7 +94,7 @@ void GuiPanel_USBVideoSourceComponent::render(float deltaSeconds)
 				const bool bSelected = (resolution == currentResolution);
 				if (ImGui::Selectable(resolution.c_str(), bSelected))
 				{
-					addUpdateCallback([usbComp, resolution]() {
+					addDeferredGuiEvent([usbComp, resolution]() {
 						std::string frameRate, format;
 						usbComp->getVideoModeFrameRateName(frameRate);
 						usbComp->getVideoModeFormatName(format);
@@ -121,7 +121,7 @@ void GuiPanel_USBVideoSourceComponent::render(float deltaSeconds)
 				const bool bSelected = (frameRate == currentFrameRate);
 				if (ImGui::Selectable(frameRate.c_str(), bSelected))
 				{
-					addUpdateCallback([usbComp, frameRate]() {
+					addDeferredGuiEvent([usbComp, frameRate]() {
 						std::string resolution, format;
 						usbComp->getVideoModeResolutionName(resolution);
 						usbComp->getVideoModeFormatName(format);
@@ -148,7 +148,7 @@ void GuiPanel_USBVideoSourceComponent::render(float deltaSeconds)
 				const bool bSelected = (format == currentFormat);
 				if (ImGui::Selectable(format.c_str(), bSelected))
 				{
-					addUpdateCallback([usbComp, format]() {
+					addDeferredGuiEvent([usbComp, format]() {
 						std::string resolution, frameRate;
 						usbComp->getVideoModeResolutionName(resolution);
 						usbComp->getVideoModeFrameRateName(frameRate);

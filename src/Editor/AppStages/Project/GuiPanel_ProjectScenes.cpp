@@ -188,6 +188,31 @@ void GuiPanel_ProjectScenes::setSelectedCompositorId(MikanCompositorID composito
 		m_context->getCompositorPanel()->setComponent(nullptr);
 }
 
+void GuiPanel_ProjectScenes::setSelectedSceneObject(MikanObjectPtr selectedObject)
+{
+	m_context->getAnchorPanel()->setComponent(nullptr);
+	m_context->getBoxStencilPanel()->setComponent(nullptr);
+	m_context->getModelStencilPanel()->setComponent(nullptr);
+	m_context->getQuadStencilPanel()->setComponent(nullptr);
+
+	if (auto component = selectedObject->getComponentOfType<AnchorComponent>())
+	{
+		m_context->getAnchorPanel()->setComponent(component);
+	}
+	else if (auto component = selectedObject->getComponentOfType<BoxStencilComponent>())
+	{
+		m_context->getBoxStencilPanel()->setComponent(component);
+	}
+	else if (auto component = selectedObject->getComponentOfType<ModelStencilComponent>())
+	{
+		m_context->getModelStencilPanel()->setComponent(component);
+	}
+	else if (auto component = selectedObject->getComponentOfType<QuadStencilComponent>())
+	{
+		m_context->getQuadStencilPanel()->setComponent(component);
+	}
+}
+
 void GuiPanel_ProjectScenes::onAnchorSystemConfigChanged(
 	CommonConfigPtr configPtr,
 	const ConfigPropertyChangeSet& changedPropertySet)
@@ -290,7 +315,7 @@ void GuiPanel_ProjectScenes::addTransformComponent(TransformComponentPtr transfo
 	}
 }
 
-void GuiPanel_ProjectScenes::render(float deltaSeconds)
+void GuiPanel_ProjectScenes::onGui()
 {
 	SceneObjectSystemPtr sceneSystem = m_sceneSystem.lock();
 	if (!sceneSystem)
@@ -304,6 +329,22 @@ void GuiPanel_ProjectScenes::render(float deltaSeconds)
 		sceneMap.find(m_selectedSceneId) == sceneMap.end())
 	{
 		setSelectedSceneId(INVALID_MIKAN_ID);
+	}
+
+	if (ImGui::Button("Add Scene"))
+	{
+		addDeferredGuiEvent([this]() {
+			StageObjectSystemPtr stageSys = m_stageSystem.lock();
+			MikanStageID firstStageId = stageSys ? stageSys->getFirstComponentId() : INVALID_MIKAN_ID;
+			if (firstStageId != INVALID_MIKAN_ID)
+			{
+				m_sceneSystem.lock()->addNewObjectByTypedDefinition(
+					[firstStageId](auto def) {
+						def->setParentStageId(firstStageId);
+						return true;
+					});
+			}
+			});
 	}
 
 	ImGui::Text("Scenes");
@@ -324,7 +365,7 @@ void GuiPanel_ProjectScenes::render(float deltaSeconds)
 			if (ImGui::Selectable(label.c_str(), selected))
 			{
 				int newId = (int)id;
-				addUpdateCallback([this, newId]() {
+				addDeferredGuiEvent([this, newId]() {
 					setSelectedSceneId(newId);
 				});
 			}
@@ -332,27 +373,17 @@ void GuiPanel_ProjectScenes::render(float deltaSeconds)
 		ImGui::EndListBox();
 	}
 
-	if (ImGui::Button("Add Scene"))
+	if (m_selectedSceneId != INVALID_MIKAN_ID)
 	{
-		addUpdateCallback([this]() {
-			StageObjectSystemPtr stageSys = m_stageSystem.lock();
-			MikanStageID firstStageId = stageSys ? stageSys->getFirstComponentId() : INVALID_MIKAN_ID;
-			if (firstStageId != INVALID_MIKAN_ID)
-			{
-				m_sceneSystem.lock()->addNewObjectByTypedDefinition(
-					[firstStageId](auto def) {
-						def->setParentStageId(firstStageId);
-						return true;
-					});
-			}
-		});
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Remove Scene") && m_selectedSceneId != INVALID_MIKAN_ID)
-	{
-		addUpdateCallback([this]() {
-			m_sceneSystem.lock()->removeObjectByPrimaryComponentId(m_selectedSceneId);
-		});
+		if (ImGui::Button("Remove Scene"))
+		{
+			addDeferredGuiEvent([this]() {
+				m_sceneSystem.lock()->removeObjectByPrimaryComponentId(m_selectedSceneId);
+			});
+		}
+
+		// Render the select scene
+		m_context->getScenePanel()->onGui();
 	}
 
 	ImGui::Separator();
@@ -361,8 +392,19 @@ void GuiPanel_ProjectScenes::render(float deltaSeconds)
 	CompositorObjectSystemPtr compositorSystem = m_compositorSystem.lock();
 	if (compositorSystem && m_selectedSceneId != INVALID_MIKAN_ID)
 	{
-		ImGui::Text("Compositors");
+		if (ImGui::Button("Add Compositor"))
+		{
+			addDeferredGuiEvent([this]() {
+				int sceneId = m_selectedSceneId;
+				m_compositorSystem.lock()->addNewObjectByTypedDefinition(
+					[sceneId](auto def) {
+						def->setOwnerSceneId(sceneId);
+						return true;
+					});
+				});
+		}
 
+		ImGui::Text("Compositors");
 		if (ImGui::BeginListBox("##Compositors", ImVec2(-1, 80)))
 		{
 			for (const auto& [id, weakPtr] : compositorSystem->getComponentMap())
@@ -382,7 +424,7 @@ void GuiPanel_ProjectScenes::render(float deltaSeconds)
 				if (ImGui::Selectable(label.c_str(), selected))
 				{
 					int newId = (int)id;
-					addUpdateCallback([this, newId]() {
+					addDeferredGuiEvent([this, newId]() {
 						setSelectedCompositorId((MikanCompositorID)newId);
 					});
 				}
@@ -390,23 +432,17 @@ void GuiPanel_ProjectScenes::render(float deltaSeconds)
 			ImGui::EndListBox();
 		}
 
-		if (ImGui::Button("Add Compositor"))
+		if (m_selectedCompositorId != INVALID_MIKAN_ID)
 		{
-			addUpdateCallback([this]() {
-				int sceneId = m_selectedSceneId;
-				m_compositorSystem.lock()->addNewObjectByTypedDefinition(
-					[sceneId](auto def) {
-						def->setOwnerSceneId(sceneId);
-						return true;
+			if (ImGui::Button("Remove Compositor"))
+			{
+				addDeferredGuiEvent([this]() {
+					m_compositorSystem.lock()->removeObjectByPrimaryComponentId(m_selectedCompositorId);
 					});
-			});
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Remove Compositor") && m_selectedCompositorId != INVALID_MIKAN_ID)
-		{
-			addUpdateCallback([this]() {
-				m_compositorSystem.lock()->removeObjectByPrimaryComponentId(m_selectedCompositorId);
-			});
+			}
+
+			// Render the selected compositor
+			m_context->getCompositorPanel()->onGui();
 		}
 	}
 
@@ -415,6 +451,65 @@ void GuiPanel_ProjectScenes::render(float deltaSeconds)
 	// Scene outliner
 	if (m_selectedSceneId != INVALID_MIKAN_ID)
 	{
+		if (ImGui::Button("Add Anchor"))
+		{
+			addDeferredGuiEvent([this]() {
+				int parentTransformId = m_selectedTransformId;
+				m_anchorSystem.lock()->addNewObjectByTypedDefinition(
+					[parentTransformId](auto def) {
+						def->setParentTransformId(parentTransformId);
+						return true;
+					});
+				});
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Add Quad Stencil"))
+		{
+			addDeferredGuiEvent([this]() {
+				int parentTransformId = m_selectedTransformId;
+				m_quadStencilSystem.lock()->addNewObjectByTypedDefinition(
+					[parentTransformId](auto def) {
+						def->setQuadWidth(0.25f);
+						def->setQuadHeight(0.25f);
+						def->setIsDoubleSided(true);
+						def->setRelativeTransform(GlmTransform());
+						def->setParentTransformId(parentTransformId);
+						def->setIsDisabled(false);
+						return true;
+					});
+				});
+		}
+		if (ImGui::Button("Add Box Stencil"))
+		{
+			addDeferredGuiEvent([this]() {
+				int parentTransformId = m_selectedTransformId;
+				m_boxStencilSystem.lock()->addNewObjectByTypedDefinition(
+					[parentTransformId](auto def) {
+						def->setBoxXSize(0.25f);
+						def->setBoxYSize(0.25f);
+						def->setBoxZSize(0.25f);
+						def->setRelativeTransform(GlmTransform());
+						def->setParentTransformId(parentTransformId);
+						def->setIsDisabled(false);
+						return true;
+					});
+				});
+		}
+		ImGui::SameLine();
+		if (ImGui::Button("Add Model Stencil"))
+		{
+			addDeferredGuiEvent([this]() {
+				int parentTransformId = m_selectedTransformId;
+				m_modelStencilSystem.lock()->addNewObjectByTypedDefinition(
+					[parentTransformId](auto def) {
+						def->setRelativeTransform(GlmTransform());
+						def->setParentTransformId(parentTransformId);
+						def->setIsDisabled(false);
+						return true;
+					});
+				});
+		}
+
 		ImGui::Text("Scene Objects");
 		if (ImGui::BeginListBox("##SceneOutliner", ImVec2(-1, 120)))
 		{
@@ -430,8 +525,9 @@ void GuiPanel_ProjectScenes::render(float deltaSeconds)
 					SelectionComponentPtr selComp = entry.selectionComponent.lock();
 					if (selComp)
 					{
-						addUpdateCallback([this, selComp]() {
+						addDeferredGuiEvent([this, selComp]() {
 							m_editorSystem.lock()->setSelection(selComp);
+							setSelectedSceneObject(selComp->getOwnerObject());
 						});
 					}
 				}
@@ -439,72 +535,10 @@ void GuiPanel_ProjectScenes::render(float deltaSeconds)
 			ImGui::EndListBox();
 		}
 
-		// Add/Remove object buttons
-		if (ImGui::Button("Add Anchor"))
-		{
-			addUpdateCallback([this]() {
-				int parentTransformId = m_selectedTransformId;
-				m_anchorSystem.lock()->addNewObjectByTypedDefinition(
-					[parentTransformId](auto def) {
-						def->setParentTransformId(parentTransformId);
-						return true;
-					});
-			});
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Add Quad Stencil"))
-		{
-			addUpdateCallback([this]() {
-				int parentTransformId = m_selectedTransformId;
-				m_quadStencilSystem.lock()->addNewObjectByTypedDefinition(
-					[parentTransformId](auto def) {
-						def->setQuadWidth(0.25f);
-						def->setQuadHeight(0.25f);
-						def->setIsDoubleSided(true);
-						def->setRelativeTransform(GlmTransform());
-						def->setParentTransformId(parentTransformId);
-						def->setIsDisabled(false);
-						return true;
-					});
-			});
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Add Box Stencil"))
-		{
-			addUpdateCallback([this]() {
-				int parentTransformId = m_selectedTransformId;
-				m_boxStencilSystem.lock()->addNewObjectByTypedDefinition(
-					[parentTransformId](auto def) {
-						def->setBoxXSize(0.25f);
-						def->setBoxYSize(0.25f);
-						def->setBoxZSize(0.25f);
-						def->setRelativeTransform(GlmTransform());
-						def->setParentTransformId(parentTransformId);
-						def->setIsDisabled(false);
-						return true;
-					});
-			});
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("Add Model Stencil"))
-		{
-			addUpdateCallback([this]() {
-				int parentTransformId = m_selectedTransformId;
-				m_modelStencilSystem.lock()->addNewObjectByTypedDefinition(
-					[parentTransformId](auto def) {
-						def->setRelativeTransform(GlmTransform());
-						def->setParentTransformId(parentTransformId);
-						def->setIsDisabled(false);
-						return true;
-					});
-			});
-		}
-
 		// Remove selected object
 		if (m_selectedSceneObjectListIndex >= 0 &&
 			m_selectedSceneObjectListIndex < (int)m_sceneOutliner.size())
 		{
-			ImGui::SameLine();
 			if (ImGui::Button("Remove Selected"))
 			{
 				SelectionComponentPtr selComp =
@@ -515,11 +549,17 @@ void GuiPanel_ProjectScenes::render(float deltaSeconds)
 					MikanObjectPtr ownerObject = selComp->getOwnerObject();
 					MikanObjectSystemPtr ownerSystem = ownerObject->getOwnerSystem();
 
-					addUpdateCallback([ownerSystem, ownerObject]() {
+					addDeferredGuiEvent([ownerSystem, ownerObject]() {
 						ownerSystem->deleteObject(ownerObject);
 					});
 				}
 			}
+
+			// Render the select scene object 
+			m_context->getAnchorPanel()->onGui();
+			m_context->getQuadStencilPanel()->onGui();
+			m_context->getBoxStencilPanel()->onGui();
+			m_context->getModelStencilPanel()->onGui();
 		}
 	}
 }

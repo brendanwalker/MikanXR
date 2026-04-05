@@ -26,7 +26,7 @@ public:
 	GuiPanel_ProjectScenes() = default;
 
 	bool init(class ProjectGuiPanelContext* context);
-	virtual void render(float deltaSeconds) override;
+	virtual void onGui() override;
 	virtual void dispose() override;
 
 private:
@@ -35,6 +35,7 @@ private:
 
 	void setSelectedSceneId(int sceneId);
 	void setSelectedCompositorId(MikanCompositorID compositorId);
+	void setSelectedSceneObject(MikanObjectPtr selectedObject);
 
 	void rebuildSceneOutliner();
 	void updateSelection();

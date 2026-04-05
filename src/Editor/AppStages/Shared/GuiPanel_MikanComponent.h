@@ -23,10 +23,10 @@ public:
 		const ConfigPropertyChangeSet& changedPropertySet) {}
 
 	// IGuiPanel
-	virtual void render(float deltaSeconds) override;
-	virtual void update(float deltaSeconds) override;
+	virtual void onGui() override;
 	virtual void dispose() override;
-	virtual void addUpdateCallback(std::function<void()> callback) override;
+	virtual void addDeferredGuiEvent(std::function<void()> callback) override;
+	virtual void processDeferredGuiEvents() override;
 
 protected:
 	template <class t_component_type>

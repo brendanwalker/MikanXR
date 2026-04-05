@@ -26,10 +26,10 @@ bool GuiPanel_StencilComponent::setComponent(MikanComponentPtr component)
 	return false;
 }
 
-void GuiPanel_StencilComponent::render(float deltaSeconds)
+void GuiPanel_StencilComponent::onGui()
 {
 	// Auto-render base properties
-	GuiPanel_MikanComponent::render(deltaSeconds);
+	GuiPanel_MikanComponent::onGui();
 
 	StencilComponentPtr stencilComponent = getStencilComponent();
 	if (!stencilComponent)
@@ -51,7 +51,7 @@ void GuiPanel_StencilComponent::render(float deltaSeconds)
 
 				if (ImGui::Selectable(label.c_str(), bSelected))
 				{
-					addUpdateCallback([stencilComponent, transformId]() {
+					addDeferredGuiEvent([stencilComponent, transformId]() {
 						stencilComponent->getStencilComponentDefinition()->setParentTransformId(transformId);
 					});
 				}

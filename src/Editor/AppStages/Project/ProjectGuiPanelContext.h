@@ -27,6 +27,7 @@ public:
 	ProjectGuiPanelContext(class AppStage_Project* ownerAppStage);
 
 	bool init();
+	void update(float deltaSeconds);
 
 	inline AppStage_Project* getOwnerAppStage() const { return m_ownerAppStage; }
 

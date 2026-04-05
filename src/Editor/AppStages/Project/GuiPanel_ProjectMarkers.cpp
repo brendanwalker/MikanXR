@@ -5,6 +5,7 @@
 #include "Project/AppStage_Project.h"
 #include "Project/ProjectGuiPanelContext.h"
 #include "Shared/GuiPanel_MarkerComponent.h"
+#include "Shared/GuiPanel_MarkerObjectSystem.h"
 #include "StringUtils.h"
 
 #include "imgui.h"
@@ -56,7 +57,7 @@ void GuiPanel_ProjectMarkers::setSelectedMarkerId(MikanMarkerID markerId)
 	}
 }
 
-void GuiPanel_ProjectMarkers::render(float deltaSeconds)
+void GuiPanel_ProjectMarkers::onGui()
 {
 	MarkerObjectSystemPtr markerSystem = getMarkerSystem();
 	if (!markerSystem)
@@ -72,6 +73,19 @@ void GuiPanel_ProjectMarkers::render(float deltaSeconds)
 	}
 
 	// Markers list
+	if (ImGui::Button("Add Marker"))
+	{
+		addDeferredGuiEvent([this]() {
+			MarkerObjectSystemPtr sys = getMarkerSystem();
+			if (sys)
+			{
+				MarkerComponentPtr marker = sys->addNewObjectByTypedDefinition();
+				MikanMarkerID markerId = marker->getComponentId();
+				setSelectedMarkerId(markerId);
+			}
+			});
+	}
+
 	if (ImGui::BeginListBox("Markers", ImVec2(-1, 120)))
 	{
 		for (const auto& [id, weakPtr] : componentMap)
@@ -90,7 +104,7 @@ void GuiPanel_ProjectMarkers::render(float deltaSeconds)
 			if (ImGui::Selectable(label.c_str(), selected))
 			{
 				int newId = (int)id;
-				addUpdateCallback([this, newId]() {
+				addDeferredGuiEvent([this, newId]() {
 					setSelectedMarkerId((MikanMarkerID)newId);
 				});
 			}
@@ -98,26 +112,21 @@ void GuiPanel_ProjectMarkers::render(float deltaSeconds)
 		ImGui::EndListBox();
 	}
 
-	// Add / Remove buttons
-	if (ImGui::Button("Add Marker"))
+	if (m_selectedMarkerId != INVALID_MIKAN_ID)
 	{
-		addUpdateCallback([this]() {
-			MarkerObjectSystemPtr sys = getMarkerSystem();
-			if (sys)
-			{
-				MarkerComponentPtr marker = sys->addNewObjectByTypedDefinition();
-				MikanMarkerID markerId = marker->getComponentId();
-				setSelectedMarkerId(markerId);
-			}
-		});
+		if (ImGui::Button("Remove Marker"))
+		{
+			addDeferredGuiEvent([this]() {
+				MarkerObjectSystemPtr sys = getMarkerSystem();
+				if (sys)
+					sys->removeObjectByPrimaryComponentId(m_selectedMarkerId);
+			});
+		}
+
+		// Show selected marker component
+		m_context->getMarkerPanel()->onGui();
 	}
-	ImGui::SameLine();
-	if (ImGui::Button("Remove Marker") && m_selectedMarkerId != INVALID_MIKAN_ID)
-	{
-		addUpdateCallback([this]() {
-			MarkerObjectSystemPtr sys = getMarkerSystem();
-			if (sys)
-				sys->removeObjectByPrimaryComponentId(m_selectedMarkerId);
-		});
-	}
+
+	// Show the marker system settings
+	m_context->getMarkerSystemPanel()->onGui();
 }

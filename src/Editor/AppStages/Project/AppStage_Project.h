@@ -27,6 +27,7 @@ public:
 	virtual void pause() override;
 	virtual void resume() override;
 	virtual void update(float deltaSeconds) override;
+	virtual void onGui() override;
 	virtual void render(IMkViewportPtr targetViewport) override;
 
 protected:

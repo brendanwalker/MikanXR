@@ -50,6 +50,7 @@ public:
 	virtual void pause();
 	virtual void resume();
 	virtual void update(float deltaSeconds);
+	virtual void onGui();
 	virtual void render(IMkViewportPtr targetViewport);
 	virtual void renderUI();
 

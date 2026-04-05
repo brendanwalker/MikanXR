@@ -9,9 +9,11 @@ class GuiPanel_SpoutTextureSourceComponent : public GuiPanel_MikanComponent
 public:
 	GuiPanel_SpoutTextureSourceComponent() = default;
 
-	virtual bool init(class AppStage* ownerAppStage) override;
-	virtual void update(float deltaSeconds) override;
-	virtual void render(float deltaSeconds) override;
+	void update(float deltaSeconds);
+
+	// -- IGuiPanel
+	virtual bool init(class AppStage* ownerAppStage) override;	
+	virtual void onGui() override;
 
 protected:
 	SpoutTextureSourceComponentPtr getSpoutTextureSourceComponent() const;

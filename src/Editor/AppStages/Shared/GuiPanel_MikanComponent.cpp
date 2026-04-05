@@ -37,10 +37,10 @@ bool GuiPanel_MikanComponent::setComponent(MikanComponentPtr component)
 	return false;
 }
 
-void GuiPanel_MikanComponent::render(float deltaSeconds)
+void GuiPanel_MikanComponent::onGui()
 {
 	// Auto-render all component properties
-	m_entityAccessor->render(deltaSeconds);
+	m_entityAccessor->onGui();
 
 	// Render script triggers as buttons
 	MikanComponentPtr component = m_component.lock();
@@ -58,7 +58,7 @@ void GuiPanel_MikanComponent::render(float deltaSeconds)
 				{
 					if (ImGui::Button(triggerName.c_str()))
 					{
-						addUpdateCallback([scriptContext, triggerName]() {
+						addDeferredGuiEvent([scriptContext, triggerName]() {
 							scriptContext->invokeScriptTrigger(triggerName);
 						});
 					}
@@ -68,9 +68,14 @@ void GuiPanel_MikanComponent::render(float deltaSeconds)
 	}
 }
 
-void GuiPanel_MikanComponent::update(float deltaSeconds)
+void GuiPanel_MikanComponent::addDeferredGuiEvent(std::function<void()> callback)
 {
-	m_entityAccessor->update(deltaSeconds);
+	m_entityAccessor->addDeferredGuiEvent(callback);
+}
+
+void GuiPanel_MikanComponent::processDeferredGuiEvents()
+{
+	m_entityAccessor->processDeferredGuiEvents();
 }
 
 void GuiPanel_MikanComponent::dispose()
@@ -81,9 +86,4 @@ void GuiPanel_MikanComponent::dispose()
 	m_entityAccessor->dispose();
 
 	m_component.reset();
-}
-
-void GuiPanel_MikanComponent::addUpdateCallback(std::function<void()> callback)
-{
-	m_entityAccessor->addUpdateCallback(callback);
 }

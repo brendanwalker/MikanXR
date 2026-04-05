@@ -13,8 +13,6 @@ bool GuiPanel_SpoutTextureSourceComponent::init(AppStage* ownerAppStage)
 
 void GuiPanel_SpoutTextureSourceComponent::update(float deltaSeconds)
 {
-	GuiPanel_MikanComponent::update(deltaSeconds);
-
 	// Periodically refresh the spout sender names list
 	SpoutTextureSourceSystemPtr spoutSystem = getSpoutTextureSourceSystem();
 	if (spoutSystem)
@@ -32,9 +30,9 @@ void GuiPanel_SpoutTextureSourceComponent::update(float deltaSeconds)
 	}
 }
 
-void GuiPanel_SpoutTextureSourceComponent::render(float deltaSeconds)
+void GuiPanel_SpoutTextureSourceComponent::onGui()
 {
-	GuiPanel_MikanComponent::render(deltaSeconds);
+	GuiPanel_MikanComponent::onGui();
 
 	auto textureSourceComp = getSpoutTextureSourceComponent();
 	if (!textureSourceComp)
@@ -54,7 +52,7 @@ void GuiPanel_SpoutTextureSourceComponent::render(float deltaSeconds)
 				const bool bSelected = (senderName == currentSourceName);
 				if (ImGui::Selectable(senderName.c_str(), bSelected))
 				{
-					addUpdateCallback([textureSourceComp, senderName]() {
+					addDeferredGuiEvent([textureSourceComp, senderName]() {
 						textureSourceComp->getSpoutTextureSourceDefinition()->setSpoutSource(senderName);
 					});
 				}

@@ -25,7 +25,7 @@ void GuiPanel_ProjectSettings::dispose()
 	GuiPanel::dispose();
 }
 
-void GuiPanel_ProjectSettings::render(float deltaSeconds)
+void GuiPanel_ProjectSettings::onGui()
 {
 	auto editorSystem = m_editorSystem.lock();
 	if (!editorSystem)
@@ -36,7 +36,7 @@ void GuiPanel_ProjectSettings::render(float deltaSeconds)
 	bool renderOrigin = editorConfig->getRenderOriginFlag();
 	if (ImGui::Checkbox("Render Origin", &renderOrigin))
 	{
-		addUpdateCallback([this, renderOrigin]() {
+		addDeferredGuiEvent([this, renderOrigin]() {
 			m_editorSystem.lock()->getEditorSystemConfig()->setRenderOriginFlag(renderOrigin);
 		});
 	}
@@ -44,7 +44,7 @@ void GuiPanel_ProjectSettings::render(float deltaSeconds)
 	bool renderAnchors = editorConfig->getRenderAnchorsFlag();
 	if (ImGui::Checkbox("Render Anchors", &renderAnchors))
 	{
-		addUpdateCallback([this, renderAnchors]() {
+		addDeferredGuiEvent([this, renderAnchors]() {
 			m_editorSystem.lock()->getEditorSystemConfig()->setRenderAnchorsFlag(renderAnchors);
 		});
 	}
@@ -52,7 +52,7 @@ void GuiPanel_ProjectSettings::render(float deltaSeconds)
 	bool renderQuadStencils = editorConfig->getRenderQuadStencilsFlag();
 	if (ImGui::Checkbox("Render Quad Stencils", &renderQuadStencils))
 	{
-		addUpdateCallback([this, renderQuadStencils]() {
+		addDeferredGuiEvent([this, renderQuadStencils]() {
 			m_editorSystem.lock()->getEditorSystemConfig()->setRenderQuadStencilsFlag(renderQuadStencils);
 		});
 	}
@@ -60,7 +60,7 @@ void GuiPanel_ProjectSettings::render(float deltaSeconds)
 	bool renderBoxStencils = editorConfig->getRenderBoxStencilsFlag();
 	if (ImGui::Checkbox("Render Box Stencils", &renderBoxStencils))
 	{
-		addUpdateCallback([this, renderBoxStencils]() {
+		addDeferredGuiEvent([this, renderBoxStencils]() {
 			m_editorSystem.lock()->getEditorSystemConfig()->setRenderBoxStencilsFlag(renderBoxStencils);
 		});
 	}
@@ -68,7 +68,7 @@ void GuiPanel_ProjectSettings::render(float deltaSeconds)
 	bool renderModelStencils = editorConfig->getRenderModelStencilsFlag();
 	if (ImGui::Checkbox("Render Model Stencils", &renderModelStencils))
 	{
-		addUpdateCallback([this, renderModelStencils]() {
+		addDeferredGuiEvent([this, renderModelStencils]() {
 			m_editorSystem.lock()->getEditorSystemConfig()->setRenderModelStencilsFlag(renderModelStencils);
 		});
 	}
@@ -87,7 +87,7 @@ void GuiPanel_ProjectSettings::render(float deltaSeconds)
 			bool selected = (lang == m_selectedLanguageId);
 			if (ImGui::Selectable(lang.c_str(), selected))
 			{
-				addUpdateCallback([locManager, lang]() {
+				addDeferredGuiEvent([locManager, lang]() {
 					locManager->setLanguage(lang);
 				});
 			}

@@ -12,7 +12,7 @@ public:
 
 	virtual void onConstruct() override;
 	virtual bool setComponent(MikanComponentPtr component) override;
-	virtual void render(float deltaSeconds) override;
+	virtual void onGui() override;
 
 protected:
 	StencilComponentPtr getStencilComponent() const;

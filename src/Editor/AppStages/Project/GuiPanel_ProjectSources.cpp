@@ -119,7 +119,7 @@ void GuiPanel_ProjectSources::setSelectedTextureSourceId(MikanTextureSourceID te
 	}
 }
 
-void GuiPanel_ProjectSources::render(float deltaSeconds)
+void GuiPanel_ProjectSources::onGui()
 {
 	auto pm = m_projectManager.lock();
 	if (!pm)
@@ -143,6 +143,24 @@ void GuiPanel_ProjectSources::render(float deltaSeconds)
 	if (!videoSelectionValid && m_selectedVideoSourceId != INVALID_MIKAN_ID)
 		setSelectedVideoSourceId(INVALID_MIKAN_ID);
 
+	if (ImGui::Button("Add USB Source"))
+	{
+		addDeferredGuiEvent([this]() {
+			auto pm = m_projectManager.lock();
+			auto sys = pm->getSystemOfType<USBVideoSourceSystem>();
+			sys->addNewUSBVideoSource();
+		});
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Add Network Source"))
+	{
+		addDeferredGuiEvent([this]() {
+			auto pm = m_projectManager.lock();
+			auto sys = pm->getSystemOfType<NetworkVideoSourceSystem>();
+			sys->addNewObjectByTypedDefinition();
+		});
+	}
+
 	if (ImGui::BeginListBox("##VideoSources", ImVec2(-1, 80)))
 	{
 		for (MikanVideoSourceID id : videoIds)
@@ -157,7 +175,7 @@ void GuiPanel_ProjectSources::render(float deltaSeconds)
 			if (ImGui::Selectable(label.c_str(), selected))
 			{
 				int newId = (int)id;
-				addUpdateCallback([this, newId]() {
+				addDeferredGuiEvent([this, newId]() {
 					setSelectedVideoSourceId((MikanVideoSourceID)newId);
 				});
 			}
@@ -165,37 +183,43 @@ void GuiPanel_ProjectSources::render(float deltaSeconds)
 		ImGui::EndListBox();
 	}
 
-	if (ImGui::Button("Add USB Source"))
+	// Render the selected Video Source Components
+	if (m_selectedVideoSourceId != INVALID_MIKAN_ID)
 	{
-		addUpdateCallback([this]() {
-			auto pm = m_projectManager.lock();
-			auto sys = pm->getSystemOfType<USBVideoSourceSystem>();
-			sys->addNewUSBVideoSource();
-		});
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Add Network Source"))
-	{
-		addUpdateCallback([this]() {
-			auto pm = m_projectManager.lock();
-			auto sys = pm->getSystemOfType<NetworkVideoSourceSystem>();
-			sys->addNewObjectByTypedDefinition();
-		});
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Remove Video Source") && m_selectedVideoSourceId != INVALID_MIKAN_ID)
-	{
-		addUpdateCallback([this]() {
-			auto pm = m_projectManager.lock();
-			VideoSourceQueries::removeVideoSource(pm, (MikanVideoSourceID)m_selectedVideoSourceId);
-		});
+		if (ImGui::Button("Remove Video Source"))
+		{
+			addDeferredGuiEvent([this]() {
+				auto pm = m_projectManager.lock();
+				VideoSourceQueries::removeVideoSource(pm, (MikanVideoSourceID)m_selectedVideoSourceId);
+				});
+		}
+
+		m_context->getUSBVideoSourcePanel()->onGui();
+		m_context->getNetworkVideoSourcePanel()->onGui();
 	}
 
 	ImGui::Separator();
 
 	// Texture Sources
-	ImGui::Text("Texture Sources");
+	if (ImGui::Button("Add Client Source"))
+	{
+		addDeferredGuiEvent([this]() {
+			auto pm = m_projectManager.lock();
+			auto sys = pm->getSystemOfType<ClientTextureSourceSystem>();
+			sys->addNewObjectByTypedDefinition();
+			});
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Add Spout Source"))
+	{
+		addDeferredGuiEvent([this]() {
+			auto pm = m_projectManager.lock();
+			auto sys = pm->getSystemOfType<SpoutTextureSourceSystem>();
+			sys->addNewObjectByTypedDefinition();
+			});
+	}
 
+	ImGui::Text("Texture Sources");
 	TextureSourceIdList textureIds = TextureSourceQueries::getTextureSourceIdList(pm);
 
 	// Validate selection
@@ -225,7 +249,7 @@ void GuiPanel_ProjectSources::render(float deltaSeconds)
 			if (ImGui::Selectable(label.c_str(), selected))
 			{
 				int newId = (int)id;
-				addUpdateCallback([this, newId]() {
+				addDeferredGuiEvent([this, newId]() {
 					setSelectedTextureSourceId((MikanTextureSourceID)newId);
 				});
 			}
@@ -233,29 +257,18 @@ void GuiPanel_ProjectSources::render(float deltaSeconds)
 		ImGui::EndListBox();
 	}
 
-	if (ImGui::Button("Add Client Source"))
+	if (m_selectedTextureSourceId != INVALID_MIKAN_ID)
 	{
-		addUpdateCallback([this]() {
-			auto pm = m_projectManager.lock();
-			auto sys = pm->getSystemOfType<ClientTextureSourceSystem>();
-			sys->addNewObjectByTypedDefinition();
-		});
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Add Spout Source"))
-	{
-		addUpdateCallback([this]() {
-			auto pm = m_projectManager.lock();
-			auto sys = pm->getSystemOfType<SpoutTextureSourceSystem>();
-			sys->addNewObjectByTypedDefinition();
-		});
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Remove Texture Source") && m_selectedTextureSourceId != INVALID_MIKAN_ID)
-	{
-		addUpdateCallback([this]() {
-			auto pm = m_projectManager.lock();
-			TextureSourceQueries::removeTextureSource(pm, (MikanTextureSourceID)m_selectedTextureSourceId);
-		});
+		if (ImGui::Button("Remove Texture Source"))
+		{
+			addDeferredGuiEvent([this]() {
+				auto pm = m_projectManager.lock();
+				TextureSourceQueries::removeTextureSource(pm, (MikanTextureSourceID)m_selectedTextureSourceId);
+			});
+		}
+
+		// Render the selected Texture Source Components
+		m_context->getClientTextureSourcePanel()->onGui();
+		m_context->getSpoutTextureSourcePanel()->onGui();
 	}
 }

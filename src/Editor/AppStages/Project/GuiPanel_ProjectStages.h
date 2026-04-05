@@ -12,7 +12,7 @@ public:
 	GuiPanel_ProjectStages() = default;
 
 	bool init(class ProjectGuiPanelContext* context);
-	virtual void render(float deltaSeconds) override;
+	virtual void onGui() override;
 	virtual void dispose() override;
 
 private:

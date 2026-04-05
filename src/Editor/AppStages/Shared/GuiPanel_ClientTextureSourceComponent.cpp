@@ -9,9 +9,9 @@ bool GuiPanel_ClientTextureSourceComponent::init(AppStage* ownerAppStage)
 	return initTypedPropertyInterface<ClientTextureSourceComponent>(ownerAppStage);
 }
 
-void GuiPanel_ClientTextureSourceComponent::render(float deltaSeconds)
+void GuiPanel_ClientTextureSourceComponent::onGui()
 {
-	GuiPanel_MikanComponent::render(deltaSeconds);
+	GuiPanel_MikanComponent::onGui();
 
 	ImGui::Separator();
 

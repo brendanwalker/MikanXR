@@ -40,9 +40,9 @@ bool GuiPanel_CameraComponent::setComponent(MikanComponentPtr component)
 	return false;
 }
 
-void GuiPanel_CameraComponent::render(float deltaSeconds)
+void GuiPanel_CameraComponent::onGui()
 {
-	GuiPanel_MikanComponent::render(deltaSeconds);
+	GuiPanel_MikanComponent::onGui();
 
 	CameraComponentPtr cameraComp = getCameraComponent();
 	if (!cameraComp)
@@ -68,7 +68,7 @@ void GuiPanel_CameraComponent::render(float deltaSeconds)
 
 				if (ImGui::Selectable(label.c_str(), bSelected))
 				{
-					addUpdateCallback([cameraComp, videoSourceId]() {
+					addDeferredGuiEvent([cameraComp, videoSourceId]() {
 						cameraComp->getCameraDefinition()->setVideoSourceId(videoSourceId);
 					});
 				}
@@ -95,7 +95,7 @@ void GuiPanel_CameraComponent::render(float deltaSeconds)
 
 				if (ImGui::Selectable(label.c_str(), bSelected))
 				{
-					addUpdateCallback([cameraComp, mountId]() {
+					addDeferredGuiEvent([cameraComp, mountId]() {
 						cameraComp->getCameraDefinition()->setTrackingMountId(mountId);
 					});
 				}

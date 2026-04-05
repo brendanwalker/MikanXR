@@ -103,7 +103,7 @@ void GuiPanel_ProjectTracking::setSelectedTrackingMountId(MikanTrackingMountID m
 		m_context->getTrackingMountPanel()->setComponent(nullptr);
 }
 
-void GuiPanel_ProjectTracking::render(float deltaSeconds)
+void GuiPanel_ProjectTracking::onGui()
 {
 	auto pm = m_projectManager.lock();
 	if (!pm)
@@ -125,6 +125,28 @@ void GuiPanel_ProjectTracking::render(float deltaSeconds)
 	if (!volumeSelValid && m_selectedTrackingVolumeId != INVALID_MIKAN_ID)
 		setSelectedTrackingVolumeId(INVALID_MIKAN_ID);
 
+	if (ImGui::Button("Add SteamVR Volume"))
+	{
+		addDeferredGuiEvent([this]() {
+			auto pm = m_projectManager.lock();
+			auto sys = pm->getSystemOfType<VRTrackingVolumeSystem>();
+			VRTrackingVolumeComponentPtr vol = sys->addNewVRTrackingVolume(eTrackingRuntime::SteamVR);
+			MikanTrackingVolumeID id = vol->getVRTrackingVolumeDefinition()->getTrackingVolumeId();
+			setSelectedTrackingVolumeId(id);
+			});
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("Add Marker Volume"))
+	{
+		addDeferredGuiEvent([this]() {
+			auto pm = m_projectManager.lock();
+			auto sys = pm->getSystemOfType<MarkerTrackingVolumeSystem>();
+			MarkerTrackingVolumeComponentPtr vol = sys->addNewObjectByTypedDefinition();
+			MikanTrackingVolumeID id = vol->getMarkerTrackingVolumeDefinition()->getTrackingVolumeId();
+			setSelectedTrackingVolumeId(id);
+			});
+	}
+
 	ImGui::Text("Tracking Volumes");
 	if (ImGui::BeginListBox("##TrackingVolumes", ImVec2(-1, 100)))
 	{
@@ -140,42 +162,26 @@ void GuiPanel_ProjectTracking::render(float deltaSeconds)
 			if (ImGui::Selectable(label.c_str(), selected))
 			{
 				int newId = (int)id;
-				addUpdateCallback([this, newId]() {
+				addDeferredGuiEvent([this, newId]() {
 					setSelectedTrackingVolumeId((MikanTrackingVolumeID)newId);
 				});
 			}
 		}
 		ImGui::EndListBox();
 	}
+	
+	if (m_selectedTrackingVolumeId != INVALID_MIKAN_ID)
+	{
+		if (ImGui::Button("Remove Volume"))
+		{
+			addDeferredGuiEvent([this]() {
+				auto pm = m_projectManager.lock();
+				TrackingVolumeQueries::removeTrackingVolume(pm, (MikanTrackingVolumeID)m_selectedTrackingVolumeId);
+			});
 
-	if (ImGui::Button("Add SteamVR Volume"))
-	{
-		addUpdateCallback([this]() {
-			auto pm = m_projectManager.lock();
-			auto sys = pm->getSystemOfType<VRTrackingVolumeSystem>();
-			VRTrackingVolumeComponentPtr vol = sys->addNewVRTrackingVolume(eTrackingRuntime::SteamVR);
-			MikanTrackingVolumeID id = vol->getVRTrackingVolumeDefinition()->getTrackingVolumeId();
-			setSelectedTrackingVolumeId(id);
-		});
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Add Marker Volume"))
-	{
-		addUpdateCallback([this]() {
-			auto pm = m_projectManager.lock();
-			auto sys = pm->getSystemOfType<MarkerTrackingVolumeSystem>();
-			MarkerTrackingVolumeComponentPtr vol = sys->addNewObjectByTypedDefinition();
-			MikanTrackingVolumeID id = vol->getMarkerTrackingVolumeDefinition()->getTrackingVolumeId();
-			setSelectedTrackingVolumeId(id);
-		});
-	}
-	ImGui::SameLine();
-	if (ImGui::Button("Remove Volume") && m_selectedTrackingVolumeId != INVALID_MIKAN_ID)
-	{
-		addUpdateCallback([this]() {
-			auto pm = m_projectManager.lock();
-			TrackingVolumeQueries::removeTrackingVolume(pm, (MikanTrackingVolumeID)m_selectedTrackingVolumeId);
-		});
+			m_context->getMarkerTrackingVolumePanel()->onGui();
+			m_context->getVRTrackingVolumePanel()->onGui();
+		}
 	}
 
 	// Tracking Mounts sub-list (only for VR volumes)
@@ -204,6 +210,22 @@ void GuiPanel_ProjectTracking::render(float deltaSeconds)
 			if (!mountSelValid && m_selectedTrackingMountId != INVALID_MIKAN_ID)
 				setSelectedTrackingMountId(INVALID_MIKAN_ID);
 
+			if (ImGui::Button("Add Mount"))
+			{
+				addDeferredGuiEvent([this]() {
+					VRTrackingVolumeComponentPtr vrVol = getSelectedVRTrackingVolume();
+					TrackingMountObjectSystemPtr mountSys = getTrackingMountSystem();
+					if (vrVol && mountSys)
+					{
+						TrackingMountComponentPtr mount = mountSys->addNewObjectByTypedDefinition();
+						MikanTrackingMountID mountId =
+							mount->getTrackingMountDefinition()->getTrackingMountId();
+						vrVol->getVRTrackingVolumeDefinition()->addTrackingMountID(mountId);
+						setSelectedTrackingMountId(mountId);
+					}
+					});
+			}
+
 			if (ImGui::BeginListBox("##TrackingMounts", ImVec2(-1, 80)))
 			{
 				for (MikanTrackingMountID id : mountIds)
@@ -218,7 +240,7 @@ void GuiPanel_ProjectTracking::render(float deltaSeconds)
 					if (ImGui::Selectable(label.c_str(), selected))
 					{
 						int newId = (int)id;
-						addUpdateCallback([this, newId]() {
+						addDeferredGuiEvent([this, newId]() {
 							setSelectedTrackingMountId((MikanTrackingMountID)newId);
 						});
 					}
@@ -226,34 +248,23 @@ void GuiPanel_ProjectTracking::render(float deltaSeconds)
 				ImGui::EndListBox();
 			}
 
-			if (ImGui::Button("Add Mount"))
+			if (m_selectedTrackingMountId != INVALID_MIKAN_ID)
 			{
-				addUpdateCallback([this]() {
-					VRTrackingVolumeComponentPtr vrVol = getSelectedVRTrackingVolume();
-					TrackingMountObjectSystemPtr mountSys = getTrackingMountSystem();
-					if (vrVol && mountSys)
-					{
-						TrackingMountComponentPtr mount = mountSys->addNewObjectByTypedDefinition();
-						MikanTrackingMountID mountId = 
-							mount->getTrackingMountDefinition()->getTrackingMountId();
-						vrVol->getVRTrackingVolumeDefinition()->addTrackingMountID(mountId);
-						setSelectedTrackingMountId(mountId);
-					}
-				});
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("Remove Mount") && m_selectedTrackingMountId != INVALID_MIKAN_ID)
-			{
-				addUpdateCallback([this]() {
-					VRTrackingVolumeComponentPtr vrVol = getSelectedVRTrackingVolume();
-					TrackingMountObjectSystemPtr mountSys = getTrackingMountSystem();
-					if (vrVol && mountSys)
-					{
-						const auto def = vrVol->getVRTrackingVolumeDefinition();
-						def->removeTrackingMountID((MikanTrackingMountID)m_selectedTrackingMountId);
-						mountSys->removeObjectByPrimaryComponentId((MikanTrackingMountID)m_selectedTrackingMountId);
-					}
-				});
+				if (ImGui::Button("Remove Mount"))
+				{
+					addDeferredGuiEvent([this]() {
+						VRTrackingVolumeComponentPtr vrVol = getSelectedVRTrackingVolume();
+						TrackingMountObjectSystemPtr mountSys = getTrackingMountSystem();
+						if (vrVol && mountSys)
+						{
+							const auto def = vrVol->getVRTrackingVolumeDefinition();
+							def->removeTrackingMountID((MikanTrackingMountID)m_selectedTrackingMountId);
+							mountSys->removeObjectByPrimaryComponentId((MikanTrackingMountID)m_selectedTrackingMountId);
+						}
+					});
+				}
+
+				m_context->getTrackingMountPanel()->onGui();
 			}
 		}
 	}

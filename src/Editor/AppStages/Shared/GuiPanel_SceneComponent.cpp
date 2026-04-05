@@ -27,9 +27,9 @@ bool GuiPanel_SceneComponent::setComponent(MikanComponentPtr component)
 	return false;
 }
 
-void GuiPanel_SceneComponent::render(float deltaSeconds)
+void GuiPanel_SceneComponent::onGui()
 {
-	GuiPanel_MikanComponent::render(deltaSeconds);
+	GuiPanel_MikanComponent::onGui();
 
 	SceneComponentPtr sceneComp = getSceneComponent();
 	if (!sceneComp)
@@ -53,7 +53,7 @@ void GuiPanel_SceneComponent::render(float deltaSeconds)
 
 				if (ImGui::Selectable(label.c_str(), bSelected))
 				{
-					addUpdateCallback([sceneComp, compositorId]() {
+					addDeferredGuiEvent([sceneComp, compositorId]() {
 						sceneComp->getSceneComponentDefinition()->setDisplayCompositorId(compositorId);
 					});
 				}
