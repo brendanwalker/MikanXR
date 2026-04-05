@@ -4,7 +4,6 @@
 #include "AppStage.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
-#include "RmlFwd.h"
 
 //-- definitions -----
 class AppStage_MainMenu : public AppStage
@@ -25,6 +24,7 @@ protected:
 
 	// -- AppStage --
 	virtual void update(float deltaSeconds);
+	virtual void onGui() override;
 	virtual void render(IMkViewportPtr targetViewport);
 
 	// -- IRemoteControllableAppStage Interface -- //

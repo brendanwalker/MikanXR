@@ -5,6 +5,7 @@
 #include "Logger.h"
 #include "MaterialAssetReference.h"
 #include "NodeEditorUI.h"
+#include "NodeEditorState.h"
 #include "Nodes/MaterialNode.h"
 #include "IEditorWindow.h"
 #include "MikanShaderCache.h"
@@ -173,7 +174,7 @@ void GraphMaterialProperty::setMaterialAssetReference(MaterialAssetReferencePtr 
 	}
 }
 
-void GraphMaterialProperty::editorHandleMainFrameDragDrop(const class NodeEditorState& editorState)
+void GraphMaterialProperty::editorHandleMainFrameDragDrop(const NodeEditorState& editorState)
 {
 	auto materialNode = m_ownerGraph->createTypedNode<MaterialNode>(editorState);
 
@@ -182,7 +183,7 @@ void GraphMaterialProperty::editorHandleMainFrameDragDrop(const class NodeEditor
 	materialNode->setMaterialSource(self);
 }
 
-void GraphMaterialProperty::editorRenderPropertySheet(const class NodeEditorState& editorState)
+void GraphMaterialProperty::editorRenderPropertySheet(const NodeEditorState& editorState)
 {
 	if (NodeEditorUI::DrawPropertySheetHeader("Material", editorState.styleManager))
 	{

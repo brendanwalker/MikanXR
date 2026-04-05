@@ -12,7 +12,7 @@
 #include "IMkTriangulatedMesh.h"
 #include "Project/AppStage_Project.h"
 #include "MainMenu/AppStage_MainMenu.h"
-#include "MainMenu/RmlModel_MainMenu.h"
+#include "MkGuiScopedWindow.h"
 #include "ProjectManager.h"
 #include "App.h"
 #include "AppSettingsConfig.h"
@@ -20,11 +20,7 @@
 #include "PathUtils.h"
 #include "Logger.h"
 
-#include <RmlUi/Core/Core.h>
-#include <RmlUi/Core/Context.h>
-#include <RmlUi/Core/ElementDocument.h>
-#include <RmlUi/Debugger.h>
-
+#include "imgui.h"
 #include "tinyfiledialogs.h"
 
 //-- statics ----
@@ -210,23 +206,6 @@ void AppStage_MainMenu::enter()
 		}
 	}
 
-	// Create app stage UI models and views
-	// (Auto cleaned up on app state exit)
-	{
-		Rml::Context* context = getRmlContext();
-
-		// Init calibration model
-		auto* mainMenuModel = addRmlModel<RmlModel_MainMenu>();
-		mainMenuModel->init(context, m_appSettingsConfig);
-		mainMenuModel->OnResumeProject = MakeDelegate(this, &AppStage_MainMenu::onResumeProject);
-		mainMenuModel->OnOpenProject = MakeDelegate(this, &AppStage_MainMenu::onOpenProject);
-		mainMenuModel->OnNewProject = MakeDelegate(this, &AppStage_MainMenu::onNewProject);
-		mainMenuModel->OnTutorial = MakeDelegate(this, &AppStage_MainMenu::onTutorial);
-		mainMenuModel->OnExit = MakeDelegate(this, &AppStage_MainMenu::onExit);
-
-		// Init calibration view now that the dependent model has been created
-		addRmlDocument("main_menu.rml");
-	}
 }
 
 void AppStage_MainMenu::onResumeProject()
@@ -280,6 +259,47 @@ void AppStage_MainMenu::onExit()
 {
 	std::vector<std::string> outResults;
 	handleExitCommand(outResults);
+}
+
+void AppStage_MainMenu::onGui()
+{
+	AppStage::onGui();
+
+	constexpr float k_panelWidth = 300.f;
+	constexpr float k_panelHeight = 220.f;
+	const ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+	ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, k_panelHeight), ImGuiCond_Always);
+
+	constexpr ImGuiWindowFlags k_flags =
+		ImGuiWindowFlags_NoMove |
+		ImGuiWindowFlags_NoResize |
+		ImGuiWindowFlags_NoCollapse |
+		ImGuiWindowFlags_NoTitleBar;
+
+	MkGuiScopedWindow panel("##MainMenu", nullptr, k_flags);
+	if (!panel)
+		return;
+
+	const float buttonWidth = k_panelWidth - 40.f;
+	ImGui::SetCursorPosX((k_panelWidth - buttonWidth) * 0.5f);
+	ImGui::Text("Main Menu");
+	ImGui::Separator();
+	ImGui::Spacing();
+
+	if (m_appSettingsConfig->hasLastProjectPath())
+	{
+		ImGui::SetCursorPosX((k_panelWidth - buttonWidth) * 0.5f);
+		if (ImGui::Button("Resume Project", ImVec2(buttonWidth, 0))) onResumeProject();
+	}
+	ImGui::SetCursorPosX((k_panelWidth - buttonWidth) * 0.5f);
+	if (ImGui::Button("Open Project",   ImVec2(buttonWidth, 0))) onOpenProject();
+	ImGui::SetCursorPosX((k_panelWidth - buttonWidth) * 0.5f);
+	if (ImGui::Button("New Project",    ImVec2(buttonWidth, 0))) onNewProject();
+	ImGui::SetCursorPosX((k_panelWidth - buttonWidth) * 0.5f);
+	if (ImGui::Button("Tutorial",       ImVec2(buttonWidth, 0))) onTutorial();
+	ImGui::SetCursorPosX((k_panelWidth - buttonWidth) * 0.5f);
+	if (ImGui::Button("Exit",           ImVec2(buttonWidth, 0))) onExit();
 }
 
 void AppStage_MainMenu::update(float deltaSeconds)
