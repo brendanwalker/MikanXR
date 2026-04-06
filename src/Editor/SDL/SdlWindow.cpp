@@ -181,13 +181,19 @@ void SdlWindow::handleSDLEvents(IMkWindowEventListener* eventListener)
 	{
 		SDL_Event& event= *it;
 
-		// First see if this is an SDL window event
-		bool bHandled = handleSDLWindowEvent(&event);
+		bool bHandled = false;
 
-		// Then see if the owner wants to handle it
-		if (!bHandled && eventListener != nullptr)
+		// Only handle events for this window
+		if (event.window.windowID == m_windowId)
 		{
-			bHandled= eventListener->onWindowEvent(&event);
+			// First see if this is an SDL window event
+			bHandled = handleSDLWindowEvent(&event);
+
+			// Then see if the owner wants to handle it
+			if (!bHandled && eventListener != nullptr)
+			{
+				bHandled = eventListener->onWindowEvent(&event);
+			}
 		}
 
 		// Remove any SDL events that were handled
@@ -208,7 +214,7 @@ bool SdlWindow::handleSDLWindowEvent(const SDL_Event* event)
 	bool bHandled = true;
 
 	//If an event was detected for this window
-	if (event->type == SDL_WINDOWEVENT && event->window.windowID == m_windowId)
+	if (event->type == SDL_WINDOWEVENT)
 	{
 		switch (event->window.event)
 		{
