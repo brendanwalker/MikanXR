@@ -6,34 +6,39 @@
 
 #include <fstream>
 
-// Maps JSON var name to {ImGuiStyleVar enum, isVec2}
-static const std::unordered_map<std::string, std::pair<ImGuiStyleVar, bool>> k_styleVarTable = {
-	{"Alpha",                {ImGuiStyleVar_Alpha,                false}},
-	{"DisabledAlpha",        {ImGuiStyleVar_DisabledAlpha,        false}},
-	{"WindowPadding",        {ImGuiStyleVar_WindowPadding,        true }},
-	{"WindowRounding",       {ImGuiStyleVar_WindowRounding,       false}},
-	{"WindowBorderSize",     {ImGuiStyleVar_WindowBorderSize,     false}},
-	{"WindowMinSize",        {ImGuiStyleVar_WindowMinSize,        true }},
-	{"WindowTitleAlign",     {ImGuiStyleVar_WindowTitleAlign,     true }},
-	{"ChildRounding",        {ImGuiStyleVar_ChildRounding,        false}},
-	{"ChildBorderSize",      {ImGuiStyleVar_ChildBorderSize,      false}},
-	{"PopupRounding",        {ImGuiStyleVar_PopupRounding,        false}},
-	{"PopupBorderSize",      {ImGuiStyleVar_PopupBorderSize,      false}},
-	{"FramePadding",         {ImGuiStyleVar_FramePadding,         true }},
-	{"FrameRounding",        {ImGuiStyleVar_FrameRounding,        false}},
-	{"FrameBorderSize",      {ImGuiStyleVar_FrameBorderSize,      false}},
-	{"ItemSpacing",          {ImGuiStyleVar_ItemSpacing,          true }},
-	{"ItemInnerSpacing",     {ImGuiStyleVar_ItemInnerSpacing,     true }},
-	{"IndentSpacing",        {ImGuiStyleVar_IndentSpacing,        false}},
-	{"CellPadding",          {ImGuiStyleVar_CellPadding,          true }},
-	{"ScrollbarSize",        {ImGuiStyleVar_ScrollbarSize,        false}},
-	{"ScrollbarRounding",    {ImGuiStyleVar_ScrollbarRounding,    false}},
-	{"GrabMinSize",          {ImGuiStyleVar_GrabMinSize,          false}},
-	{"GrabRounding",         {ImGuiStyleVar_GrabRounding,         false}},
-	{"TabRounding",          {ImGuiStyleVar_TabRounding,          false}},
-	{"ButtonTextAlign",      {ImGuiStyleVar_ButtonTextAlign,      true }},
-	{"SelectableTextAlign",  {ImGuiStyleVar_SelectableTextAlign,  true }},
+// Maps JSON var name to ImGuiStyleVar enum
+static const std::unordered_map<std::string, ImGuiStyleVar> k_styleFloatTable = {
+	{"Alpha",                ImGuiStyleVar_Alpha},
+	{"DisabledAlpha",        ImGuiStyleVar_DisabledAlpha},
+	{"WindowRounding",       ImGuiStyleVar_WindowRounding},
+	{"WindowBorderSize",     ImGuiStyleVar_WindowBorderSize},
+	{"ChildRounding",        ImGuiStyleVar_ChildRounding},
+	{"ChildBorderSize",      ImGuiStyleVar_ChildBorderSize},
+	{"PopupRounding",        ImGuiStyleVar_PopupRounding},
+	{"PopupBorderSize",      ImGuiStyleVar_PopupBorderSize},
+	{"FrameRounding",        ImGuiStyleVar_FrameRounding},
+	{"FrameBorderSize",      ImGuiStyleVar_FrameBorderSize},
+	{"IndentSpacing",        ImGuiStyleVar_IndentSpacing},
+	{"ScrollbarSize",        ImGuiStyleVar_ScrollbarSize},
+	{"ScrollbarRounding",    ImGuiStyleVar_ScrollbarRounding},
+	{"GrabMinSize",          ImGuiStyleVar_GrabMinSize},
+	{"GrabRounding",         ImGuiStyleVar_GrabRounding},
+	{"TabRounding",          ImGuiStyleVar_TabRounding},
 };
+
+// Maps JSON var name to ImGuiStyleVar enum
+static const std::unordered_map<std::string, ImGuiStyleVar> k_styleVec2Table = {
+	{"WindowPadding",        ImGuiStyleVar_WindowPadding},
+	{"WindowMinSize",        ImGuiStyleVar_WindowMinSize},
+	{"WindowTitleAlign",     ImGuiStyleVar_WindowTitleAlign},
+	{"FramePadding",         ImGuiStyleVar_FramePadding},
+	{"ItemSpacing",          ImGuiStyleVar_ItemSpacing},
+	{"ItemInnerSpacing",     ImGuiStyleVar_ItemInnerSpacing},
+	{"CellPadding",          ImGuiStyleVar_CellPadding},
+	{"ButtonTextAlign",      ImGuiStyleVar_ButtonTextAlign},
+	{"SelectableTextAlign",  ImGuiStyleVar_SelectableTextAlign},
+};
+
 
 // Maps JSON color name to ImGuiCol enum
 static const std::unordered_map<std::string, ImGuiCol> k_styleColorTable = {
@@ -163,7 +168,28 @@ bool MkGuiStyleManager::loadStyleFile(const std::filesystem::path& filePath)
 		// Optional font
 		if (styleJson.contains("font") && styleJson["font"].is_string())
 		{
-			style->fontName = styleJson["font"].get<std::string>();
+			const std::string fontName = styleJson["font"].get<std::string>();
+
+			if (fontName == "normal_icon")
+			{
+				style->font = m_guiContext->getNormalIconFont();
+			}
+			else if (fontName == "big_icon")
+			{
+				style->font = m_guiContext->getBigIconFont();
+			}
+		}
+
+		// Optional label widths
+		if (styleJson.contains("labelWidth") && styleJson["labelWidth"].is_number())
+		{
+			style->labelWidth = styleJson["labelWidth"].get<int>();
+		}
+
+		// Optional value widths
+		if (styleJson.contains("valueWidth") && styleJson["valueWidth"].is_number())
+		{
+			style->valueWidth = styleJson["valueWidth"].get<int>();
 		}
 
 		// Style vars
@@ -175,32 +201,48 @@ bool MkGuiStyleManager::loadStyleFile(const std::filesystem::path& filePath)
 					continue;
 
 				const std::string varName = varJson["name"].get<std::string>();
-				auto it = k_styleVarTable.find(varName);
-				if (it == k_styleVarTable.end())
-				{
-					MIKAN_LOG_WARNING("MkGuiStyleManager::loadStyleFile") << "Unknown style var: " << varName;
-					continue;
-				}
 
-				MkGuiStyleVarEntry entry;
-				entry.var = it->second.first;
-				entry.isVec2 = it->second.second;
+				auto floatStyleIt = k_styleFloatTable.find(varName);
+				auto vec2StyleIt = k_styleVec2Table.find(varName);
 
-				if (entry.isVec2 && varJson["value"].is_array() && varJson["value"].size() == 2)
+				if (floatStyleIt != k_styleFloatTable.end())
 				{
-					entry.vec2Val = {varJson["value"][0].get<float>(), varJson["value"][1].get<float>()};
-				}
-				else if (!entry.isVec2 && varJson["value"].is_number())
+					MkGuiStyleFloatEntry entry;
+					entry.var = floatStyleIt->second;
+
+					if (varJson["value"].is_number())
+					{
+						entry.floatVal = varJson["value"].get<float>();
+						style->floatVars.push_back(entry);
+					}
+					else
+					{
+						MIKAN_LOG_WARNING("MkGuiStyleManager::loadStyleFile") << "Mismatched value type for var: " << varName;
+					}
+				}				
+				else if (vec2StyleIt != k_styleVec2Table.end())
 				{
-					entry.floatVal = varJson["value"].get<float>();
+					MkGuiStyleVec2Entry entry;
+					entry.var = vec2StyleIt->second;
+
+					if (varJson["value"].is_array() && varJson["value"].size() == 2)
+					{
+						entry.vec2Val = { 
+							varJson["value"][0].get<float>(), 
+							varJson["value"][1].get<float>() 
+						};
+						style->vec2Vars.push_back(entry);
+					}
+					else
+					{
+						MIKAN_LOG_WARNING("MkGuiStyleManager::loadStyleFile") << "Mismatched value type for var: " << varName;
+						continue;
+					}
 				}
 				else
 				{
-					MIKAN_LOG_WARNING("MkGuiStyleManager::loadStyleFile") << "Mismatched value type for var: " << varName;
-					continue;
+					MIKAN_LOG_WARNING("MkGuiStyleManager::loadStyleFile") << "Unknown style var: " << varName;
 				}
-
-				style->vars.push_back(entry);
 			}
 		}
 
