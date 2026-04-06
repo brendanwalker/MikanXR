@@ -11,7 +11,7 @@ class MkGuiScopedStyle
 {
 public:
 	MkGuiScopedStyle() = default;
-	MkGuiScopedStyle(MkGuiStyleConstPtr style, class MkGuiContext* guiContext);
+	MkGuiScopedStyle(MkGuiStyleConstPtr style);
 	~MkGuiScopedStyle() = default;
 
 	MkGuiScopedStyle(const MkGuiScopedStyle&) = delete;

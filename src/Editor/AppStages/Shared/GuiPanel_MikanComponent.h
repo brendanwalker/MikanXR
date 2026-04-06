@@ -15,7 +15,6 @@ public:
 	virtual bool init() = 0;
 	virtual void onConstruct() {}
 
-	inline class AppStage* getOwnerAppStage() const { return m_entityAccessor->getOwnerAppStage(); }
 	inline GuiPanel_EntityAccessorPtr getPropertyInterface() const { return m_entityAccessor; }
 
 	MikanComponentPtr getComponent() const;
@@ -25,6 +24,8 @@ public:
 		const ConfigPropertyChangeSet& changedPropertySet) {}
 
 	// IGuiPanel
+	virtual class AppStage* getOwnerAppStage() const override { return m_entityAccessor->getOwnerAppStage(); }
+	virtual class MkGuiStyleManager* getGuiStyleManager() const override { return m_entityAccessor->getGuiStyleManager(); }
 	virtual void onGui() override;
 	virtual void dispose() override;
 	virtual void addDeferredGuiEvent(std::function<void()> callback) override;

@@ -100,7 +100,7 @@ namespace NodeEditorUI
 	bool DrawPropertySheetHeader(const std::string headerText, MkGuiStyleManager* styleManager)
 	{
 		ImGui::SetNextItemOpen(true, ImGuiCond_Once);
-		MkGuiScopedStyle headerStyle(styleManager->getStyle("node_editor_panel_header"), nullptr);
+		MkGuiScopedStyle headerStyle(styleManager->getStyle("node_editor_panel_header"));
 		return ImGui::CollapsingHeader(headerText.c_str(), ImGuiTreeNodeFlags_SpanAvailWidth);
 	}
 
@@ -109,7 +109,7 @@ namespace NodeEditorUI
 		ImGui::Text(label.c_str());
 		ImGui::SameLine(k_labelWidth);
 		ImGui::SetNextItemWidth(k_valueWidth);
-		MkGuiScopedStyle textStyle(styleManager->getStyle("node_editor_property_value"), nullptr);
+		MkGuiScopedStyle textStyle(styleManager->getStyle("node_editor_property_value"));
 		ImGui::Text(text.c_str());
 	}
 
@@ -132,7 +132,7 @@ namespace NodeEditorUI
 		ImGui::Text(label.c_str());
 		ImGui::SameLine(k_labelWidth);
 		ImGui::SetNextItemWidth(k_valueWidth);
-		MkGuiScopedStyle comboStyle(styleManager->getStyle("node_editor_property_value"), nullptr);
+		MkGuiScopedStyle comboStyle(styleManager->getStyle("node_editor_property_value"));
 		const std::string imguiElementName = makeImGuiElementName(fieldName);
 		return ImGui::Combo(imguiElementName.c_str(), &inout_selectedIdex, items);
 	}
@@ -170,7 +170,7 @@ namespace NodeEditorUI
 		ImGui::Text(label.c_str());
 		ImGui::SameLine(k_labelWidth);
 		ImGui::SetNextItemWidth(k_valueWidth);
-		MkGuiScopedStyle comboStyle(styleManager->getStyle("node_editor_property_value"), nullptr);
+		MkGuiScopedStyle comboStyle(styleManager->getStyle("node_editor_property_value"));
 		const std::string imguiElementName = makeImGuiElementName(fieldName);
 		return ImGui::Combo(imguiElementName.c_str(),
 			&inout_selectedIdex,

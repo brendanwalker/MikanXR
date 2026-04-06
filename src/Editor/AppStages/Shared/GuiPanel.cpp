@@ -1,4 +1,6 @@
 #include "GuiPanel.h"
+#include "AppStage.h"
+#include "IEditorWindow.h"
 
 GuiPanel::GuiPanel(AppStage* ownerAppStage)
 	: IGuiPanel()
@@ -9,6 +11,16 @@ GuiPanel::GuiPanel(AppStage* ownerAppStage)
 GuiPanel::~GuiPanel()
 {
 	dispose();
+}
+
+MkGuiStyleManager* GuiPanel::getGuiStyleManager() const
+{
+	AppStage* ownerAppStage = getOwnerAppStage();
+	if (ownerAppStage)
+	{
+		return ownerAppStage->getOwnerWindow()->getMkGuiStyleManager();
+	}
+	return nullptr;
 }
 
 void GuiPanel::addDeferredGuiEvent(std::function<void()> callback)

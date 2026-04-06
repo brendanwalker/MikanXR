@@ -9,6 +9,8 @@ public:
 	IGuiPanel() = default;
 	virtual ~IGuiPanel() = default;
 
+	virtual class AppStage* getOwnerAppStage() const = 0;
+	virtual class MkGuiStyleManager* getGuiStyleManager() const = 0;
 	virtual void onGui() = 0;
 	virtual void addDeferredGuiEvent(std::function<void()> callback) = 0;
 	virtual void processDeferredGuiEvents() = 0;
@@ -22,9 +24,9 @@ public:
 	GuiPanel(class AppStage* ownerAppStage);
 	virtual ~GuiPanel();
 
-	class AppStage* getOwnerAppStage() const { return m_ownerAppStage; }
-
 	// IGuiPanel
+	virtual class AppStage* getOwnerAppStage() const override { return m_ownerAppStage; }
+	virtual class MkGuiStyleManager* getGuiStyleManager() const override;
 	virtual void onGui() override {}
 	virtual void addDeferredGuiEvent(std::function<void()> callback) override;
 	virtual void processDeferredGuiEvents() override;

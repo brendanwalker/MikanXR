@@ -13,11 +13,12 @@ public:
 	virtual bool init() = 0;
 	virtual void onConstruct() {}
 
-	class AppStage* getOwnerAppStage() const { return m_entityAccessor->getOwnerAppStage(); }
 	MikanObjectSystemPtr getObjectSystem() const;
 	void setObjectSystem(MikanObjectSystemPtr objectSystem);
 
 	// IGuiPanel
+	virtual class AppStage* getOwnerAppStage() const override { return m_entityAccessor->getOwnerAppStage(); }
+	virtual class MkGuiStyleManager* getGuiStyleManager() const override { return m_entityAccessor->getGuiStyleManager(); }
 	virtual void onGui() override;
 	virtual void addDeferredGuiEvent(std::function<void()> callback) override;
 	virtual void processDeferredGuiEvents() override;

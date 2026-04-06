@@ -173,7 +173,7 @@ void CompositorNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& 
 
 void CompositorNodeEditorWindow::renderToolbar()
 {
-	MkGuiScopedStyle toolbarStyle(getMkGuiStyleManager()->getStyle("node_editor_toolbar"), m_guiContext.get());
+	MkGuiScopedStyle toolbarStyle(getMkGuiStyleManager()->getStyle("node_editor_toolbar"));
 
 	MkGuiScopedChild toolbarChild("Toolbar", ImVec2(ImGui::GetContentRegionAvail().x, 40));
 
@@ -186,7 +186,7 @@ void CompositorNodeEditorWindow::renderToolbar()
 
 	// Editor Control
 	{
-		MkGuiScopedStyle controlPanelStyle(getMkGuiStyleManager()->getStyle("node_editor_control_panel"), m_guiContext.get());
+		MkGuiScopedStyle controlPanelStyle(getMkGuiStyleManager()->getStyle("node_editor_control_panel"));
 
 		ImGui::SameLine();
 		MkGuiScopedChild editorControlChild("EditorControl", ImVec2(70, 30), true, ImGuiWindowFlags_NoScrollbar);
@@ -194,7 +194,7 @@ void CompositorNodeEditorWindow::renderToolbar()
 
 		{
 			const char* playStopStyleName = m_isRunningCompositor ? "compositor_stop_button" : "compositor_play_button";
-			MkGuiScopedStyle playStopStyle(getMkGuiStyleManager()->getStyle(playStopStyleName), m_guiContext.get());
+			MkGuiScopedStyle playStopStyle(getMkGuiStyleManager()->getStyle(playStopStyleName));
 			if (m_isRunningCompositor)
 			{
 				if (ImGui::SmallButton(ICON_FK_STOP))
@@ -213,7 +213,7 @@ void CompositorNodeEditorWindow::renderToolbar()
 
 		ImGui::SameLine();
 		{
-			MkGuiScopedStyle undoStyle(getMkGuiStyleManager()->getStyle("node_editor_undo_button"), m_guiContext.get());
+			MkGuiScopedStyle undoStyle(getMkGuiStyleManager()->getStyle("node_editor_undo_button"));
 			if (ImGui::SmallButton(ICON_FK_UNDO))
 			{
 				undo();

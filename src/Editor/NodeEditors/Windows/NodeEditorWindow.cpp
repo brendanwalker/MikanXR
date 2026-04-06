@@ -235,7 +235,7 @@ void NodeEditorWindow::render()
 
 void NodeEditorWindow::updateUI()
 {
-	MkGuiScopedStyle baseStyle(m_styleManager->getStyle("node_editor_base"), m_guiContext.get());
+	MkGuiScopedStyle baseStyle(m_styleManager->getStyle("node_editor_base"));
 
 	ImGui::SetNextWindowSize(ImVec2(getWidth(), getHeight()), ImGuiCond_Once);
 	MkGuiScopedWindow nodeEditorWindow("Node Editor", nullptr,
@@ -362,7 +362,7 @@ void NodeEditorWindow::renderNodeEvalErrors()
 				ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav);
 			{
 				MkGuiScopedGroup errorGroup;
-				MkGuiScopedStyle errorTextStyle(m_styleManager->getStyle("node_editor_error_text"), m_guiContext.get());
+				MkGuiScopedStyle errorTextStyle(m_styleManager->getStyle("node_editor_error_text"));
 				while (errorIter < m_lastNodeEvalErrors.size())
 				{
 					// Add a bullet point for each error on the same node
@@ -424,7 +424,7 @@ void NodeEditorWindow::renderMainFrameContextMenu(const NodeEditorState& editorS
 		}
 	}
 
-	MkGuiScopedStyle contextMenuStyle(m_styleManager->getStyle("node_editor_context_menu"), m_guiContext.get());
+	MkGuiScopedStyle contextMenuStyle(m_styleManager->getStyle("node_editor_context_menu"));
 	{
 		MkGuiScopedPopup nodePopup("editor_context_menu_node");
 		if (nodePopup)
@@ -491,7 +491,7 @@ void NodeEditorWindow::renderMainFrameContextMenu(const NodeEditorState& editorS
 
 void NodeEditorWindow::renderToolbar()
 {
-	MkGuiScopedStyle toolbarStyle(m_styleManager->getStyle("node_editor_toolbar"), m_guiContext.get());
+	MkGuiScopedStyle toolbarStyle(m_styleManager->getStyle("node_editor_toolbar"));
 
 	MkGuiScopedChild toolbarChild("Toolbar", ImVec2(ImGui::GetContentRegionAvail().x, 40));
 
@@ -504,7 +504,7 @@ void NodeEditorWindow::renderToolbar()
 
 	// Editor Control
 	{
-		MkGuiScopedStyle controlPanelStyle(m_styleManager->getStyle("node_editor_control_panel"), m_guiContext.get());
+		MkGuiScopedStyle controlPanelStyle(m_styleManager->getStyle("node_editor_control_panel"));
 
 		ImGui::SameLine();
 		MkGuiScopedChild editorControlChild("EditorControl", ImVec2(70, 30), true, ImGuiWindowFlags_NoScrollbar);
@@ -512,7 +512,7 @@ void NodeEditorWindow::renderToolbar()
 
 		ImGui::SameLine();
 		{
-			MkGuiScopedStyle undoStyle(m_styleManager->getStyle("node_editor_undo_button"), m_guiContext.get());
+			MkGuiScopedStyle undoStyle(m_styleManager->getStyle("node_editor_undo_button"));
 			if (ImGui::SmallButton(ICON_FK_UNDO))
 			{
 				undo();
@@ -530,13 +530,13 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 	ImGui::SetNextItemOpen(true, ImGuiCond_Once);
 	bool isNodeOpened;
 	{
-		MkGuiScopedStyle headerStyle(m_styleManager->getStyle("node_editor_panel_header"), m_guiContext.get());
+		MkGuiScopedStyle headerStyle(m_styleManager->getStyle("node_editor_panel_header"));
 		isNodeOpened = ImGui::CollapsingHeader("Variables", ImGuiTreeNodeFlags_SpanAvailWidth);
 	}
 
 	if (isNodeOpened)
 	{
-		MkGuiScopedStyle selectionStyle(m_styleManager->getStyle("node_editor_variable_list"), m_guiContext.get());
+		MkGuiScopedStyle selectionStyle(m_styleManager->getStyle("node_editor_variable_list"));
 
 		auto propertyMap = getNodeGraph()->getPropertyMap();
 		for (auto it = propertyMap.begin(); it != propertyMap.end(); it++)
@@ -581,7 +581,7 @@ void NodeEditorWindow::renderGraphVariablesPanel()
 
 			// Context menu
 			{
-				MkGuiScopedStyle varContextMenuStyle(m_styleManager->getStyle("node_editor_context_menu"), m_guiContext.get());
+				MkGuiScopedStyle varContextMenuStyle(m_styleManager->getStyle("node_editor_context_menu"));
 				MkGuiScopedPopupContextItem varContextMenu;
 				if (varContextMenu)
 				{
@@ -625,7 +625,7 @@ void NodeEditorWindow::renderNewGraphVariablesContextMenu(const NodeEditorState&
 		ImGui::OpenPopup("editor_context_menu_nodes");
 	}
 
-	MkGuiScopedStyle newVarMenuStyle(m_styleManager->getStyle("node_editor_context_menu"), m_guiContext.get());
+	MkGuiScopedStyle newVarMenuStyle(m_styleManager->getStyle("node_editor_context_menu"));
 	MkGuiScopedPopup newVarPopup("editor_context_menu_nodes");
 	if (newVarPopup)
 	{
@@ -664,7 +664,7 @@ void NodeEditorWindow::renderAssetsPanel()
 		MkGuiScopedTabBar assetTabBar("AssetsTabBar");
 		if (assetTabBar)
 		{
-			MkGuiScopedStyle assetTabStyle(m_styleManager->getStyle("node_editor_asset_tab"), m_guiContext.get());
+			MkGuiScopedStyle assetTabStyle(m_styleManager->getStyle("node_editor_asset_tab"));
 			MkGuiScopedTabItem assetTabItem("Assets");
 			if (assetTabItem)
 			{
@@ -754,7 +754,7 @@ void NodeEditorWindow::renderAssetsPanel()
 						// Context menu
 						bool itemDeleted = false;
 						{
-							MkGuiScopedStyle assetContextMenuStyle(m_styleManager->getStyle("node_editor_context_menu"), m_guiContext.get());
+							MkGuiScopedStyle assetContextMenuStyle(m_styleManager->getStyle("node_editor_context_menu"));
 							MkGuiScopedPopupContextItem assetContextMenu;
 							if (assetContextMenu)
 							{
