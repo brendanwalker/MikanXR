@@ -137,6 +137,11 @@ EventBus* MainWindow::getEventBus() const
 	return m_ownerApp->getEventBus();
 }
 
+class MkGuiStyleManager* MainWindow::getMkGuiStyleManager() const
+{
+	return m_styleManager.get();
+}
+
 LocalizationManager* MainWindow::getLocalizationManager() const
 {
 	return m_ownerApp->getLocalizationManager();

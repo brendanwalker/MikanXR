@@ -287,6 +287,12 @@ MikanComponentPtr EditorObjectSystem::getComponentById(int componentId) const
 	return MikanComponentPtr();
 }
 
+bool EditorObjectSystem::getComponentList(const std::string& componentClassName, std::vector<MikanComponentPtr>& outComponentList) const
+{
+	// EditorObjectSystem doesn't manage ownership of components
+	return false;
+}
+
 bool EditorObjectSystem::getComponentIdList(const std::string& componentClassName, std::vector<int>& outComponentIdList) const
 {
 	// EditorObjectSystem doesn't manage ownership of components

@@ -45,7 +45,7 @@ public:
 	virtual IMkTextureCache* getTextureCache() override;
 	virtual SdlWindow& getSdlWindow() override;
 	virtual class EventBus* getEventBus() const override;
-	virtual class MkGuiStyleManager* getMkGuiStyleManager() const override { return nullptr; }
+	virtual class MkGuiStyleManager* getMkGuiStyleManager() const override;
 	virtual class LocalizationManager* getLocalizationManager() const override;
 
 	// -- ISdlEventListener ----

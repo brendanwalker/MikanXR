@@ -1,13 +1,24 @@
+#include "AppStage.h"
 #include "GuiPanel_MikanComponent.h"
 #include "ComponentScriptContext.h"
 #include "MikanComponent.h"
+#include "MkGuiStyleManager.h"
 
 #include "imgui.h"
+
+const std::string GuiPanel_MikanComponent::k_defaultComponentStyleName = "default_component_panel";
 
 GuiPanel_MikanComponent::GuiPanel_MikanComponent(AppStage* ownerAppStage)
 	: m_component()
 	, m_entityAccessor(std::make_shared<GuiPanel_EntityAccessor>(ownerAppStage))
+	, m_defaultGuiStyle(
+		ownerAppStage->getOwnerWindow()->getMkGuiStyleManager()->getStyle(k_defaultComponentStyleName))
 {
+}
+
+ProjectManagerPtr GuiPanel_MikanComponent::getOwnerProject() const
+{
+	return getOwnerAppStage()->getProjectManager();
 }
 
 MikanComponentPtr GuiPanel_MikanComponent::getComponent() const

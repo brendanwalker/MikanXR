@@ -4,6 +4,7 @@
 #include "Shared/GuiPanel_EntityAccessor.h"
 
 class AppStage;
+using MkGuiStyleConstPtr = std::shared_ptr<const class MkGuiStyle>;
 
 class GuiPanel_MikanComponent : public IGuiPanel
 {
@@ -17,6 +18,7 @@ public:
 
 	inline GuiPanel_EntityAccessorPtr getPropertyInterface() const { return m_entityAccessor; }
 
+	ProjectManagerPtr getOwnerProject() const;
 	MikanComponentPtr getComponent() const;
 	virtual bool setComponent(MikanComponentPtr component);
 	virtual void onComponentPropertyChanged(
@@ -56,6 +58,9 @@ protected:
 
 	MikanComponentWeakPtr m_component;
 	GuiPanel_EntityAccessorPtr m_entityAccessor;
+	MkGuiStyleConstPtr m_defaultGuiStyle;
+
+	static const std::string k_defaultComponentStyleName;
 };
 
 using GuiPanel_MikanComponentPtr = std::shared_ptr<GuiPanel_MikanComponent>;

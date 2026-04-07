@@ -1,25 +1,22 @@
 #pragma once
 
 #include "Shared/GuiPanel_MikanComponent.h"
+#include "Shared/GuiDataSource_ComboBox.h"
 #include "StencilComponent.h"
-#include "AnchorObjectSystem.h"
 
 // Abstract base for stencil component panels - renders anchor dropdown + cull mode
 class GuiPanel_StencilComponent : public GuiPanel_MikanComponent
 {
 public:
-	GuiPanel_StencilComponent(AppStage* ownerAppStage) : GuiPanel_MikanComponent(ownerAppStage) {}
+	GuiPanel_StencilComponent(AppStage* ownerAppStage);
 
-	virtual void onConstruct() override;
-	virtual bool setComponent(MikanComponentPtr component) override;
 	virtual void onGui() override;
 
 protected:
 	StencilComponentPtr getStencilComponent() const;
-	void rebuildTransformIdList();
 
 private:
-	std::vector<int> m_transformIdList;  // cached list of transform IDs for the dropdown
+	GuiDataSource_ComboBox m_parentTransformDataSource;
 };
 
 class GuiPanel_QuadStencilComponent : public GuiPanel_StencilComponent

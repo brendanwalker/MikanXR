@@ -83,6 +83,7 @@ public:
 	const EditorSettings& getEditorSettings() const { return getEditorSystemConfigConst()->getEditorSettings(); }
 
 	virtual MikanComponentPtr getComponentById(int componentId) const override;
+	virtual bool getComponentList(const std::string& componentClassName, std::vector<MikanComponentPtr>& outComponentList) const override;
 	virtual bool getComponentIdList(const std::string& componentClassName, std::vector<int>& outComponentIdList) const override;
 
 	void bindViewport(MikanViewportWeakPtr viewportWeakPtr);

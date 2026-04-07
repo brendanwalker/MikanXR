@@ -89,7 +89,21 @@ public:
 		return std::static_pointer_cast<MikanComponent>(m_componentPool.getById(static_cast<TID>(componentId)));
 	}
 
-	virtual bool getComponentIdList(const std::string& componentClassName, std::vector<int>& outComponentIdList) const
+	virtual bool getComponentList(
+		const std::string& componentClassName, 
+		std::vector<MikanComponentPtr>& outComponentList) const
+	{
+		if (componentClassName == TComponent::k_componentClassName)
+		{
+			getTypedComponentList(outComponentList);
+			return true;
+		}
+		return false;
+	}
+
+	virtual bool getComponentIdList(
+		const std::string& componentClassName, 
+		std::vector<int>& outComponentIdList) const
 	{
 		if (componentClassName == TComponent::k_componentClassName)
 		{
@@ -97,6 +111,15 @@ public:
 			return true;
 		}
 		return false;
+	}
+
+	void getTypedComponentList(std::vector<MikanComponentPtr>& outComponentList) const
+	{
+		const typename Pool::ComponentMap& componentMap = m_componentPool.getAll();
+		for (const auto& kvpair : componentMap)
+		{
+			outComponentList.push_back(kvpair.second.lock());
+		}
 	}
 
 	void getTypedComponentIdList(std::vector<int>& outComponentIdList) const

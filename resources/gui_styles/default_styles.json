@@ -1,0 +1,8 @@
+{
+    "default_component_panel": {
+        "font": "normal_icon",
+        "colors": [
+            { "name": "Text",              "value": [0.94, 0.94, 0.94, 1.0] }
+        ]
+    }
+}

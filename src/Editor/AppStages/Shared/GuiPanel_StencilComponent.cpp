@@ -1,6 +1,8 @@
 #include "AppStage.h"
 #include "Shared/GuiPanel_StencilComponent.h"
+#include "AnchorComponent.h"
 #include "AnchorObjectSystem.h"
+#include "GuiDataSource_ComboBox.h"
 #include "QuadStencilComponent.h"
 #include "QuadStencilSystem.h"
 #include "BoxStencilComponent.h"
@@ -8,22 +10,21 @@
 #include "ModelStencilComponent.h"
 #include "ModelStencilSystem.h"
 #include "MikanCoreTypes.h"
+#include "MkGuiDrawUtils.h"
 
 #include "imgui.h"
 
-void GuiPanel_StencilComponent::onConstruct()
+GuiPanel_StencilComponent::GuiPanel_StencilComponent(AppStage* ownerAppStage) 
+	: GuiPanel_MikanComponent(ownerAppStage)
+	, m_parentTransformDataSource(
+		ownerAppStage->getProjectManager(), 
+		{
+			{ AnchorObjectSystem::k_objectSystemClassName, AnchorComponent::k_componentClassName },
+			{ QuadStencilSystem::k_objectSystemClassName, QuadStencilComponent::k_componentClassName },
+			{ BoxStencilSystem::k_objectSystemClassName, BoxStencilComponent::k_componentClassName },
+			{ ModelStencilSystem::k_objectSystemClassName, ModelStencilComponent::k_componentClassName }
+		})
 {
-}
-
-bool GuiPanel_StencilComponent::setComponent(MikanComponentPtr component)
-{
-	if (GuiPanel_MikanComponent::setComponent(component))
-	{
-		rebuildTransformIdList();
-		return true;
-	}
-
-	return false;
 }
 
 void GuiPanel_StencilComponent::onGui()
@@ -38,25 +39,29 @@ void GuiPanel_StencilComponent::onGui()
 	ImGui::Separator();
 
 	// Parent transform selection dropdown
-	// TODO: Turn this into a DataSource adapter
+	m_parentTransformDataSource.refreshEntries();
+	if (m_parentTransformDataSource.getEntryCount() > 0)
 	{
-		int currentParentId = stencilComponent->getStencilComponentDefinition()->getParentTransformId();
-		const char* previewLabel = (currentParentId == INVALID_MIKAN_ID) ? "None" : std::to_string(currentParentId).c_str();
-		if (ImGui::BeginCombo("Parent", previewLabel))
+		const MikanTransformID parentTransformId = 
+			stencilComponent->getStencilComponentDefinition()->getParentTransformId();
+		
+		int selectedIndex = m_parentTransformDataSource.getEntryIndexByComponentId(parentTransformId);
+		if (MkGui::drawComboBoxProperty(
+			m_defaultGuiStyle,
+			"stencilParentTransformIndex",
+			"Parent",
+			&m_parentTransformDataSource,
+			selectedIndex))
 		{
-			for (int transformId : m_transformIdList)
-			{
-				const bool bSelected = (transformId == currentParentId);
-				const std::string label = (transformId == INVALID_MIKAN_ID) ? "None" : std::to_string(transformId);
+			MikanComponentPtr newParent= m_parentTransformDataSource.getEntryAtIndex(selectedIndex);
 
-				if (ImGui::Selectable(label.c_str(), bSelected))
-				{
-					addDeferredGuiEvent([stencilComponent, transformId]() {
-						stencilComponent->getStencilComponentDefinition()->setParentTransformId(transformId);
+			if (newParent)
+			{
+				addDeferredGuiEvent([stencilComponent, newParent]() {
+					stencilComponent->getStencilComponentDefinition()->setParentTransformId(
+						newParent->getComponentId());
 					});
-				}
 			}
-			ImGui::EndCombo();
 		}
 	}
 }
@@ -69,22 +74,6 @@ StencilComponentPtr GuiPanel_StencilComponent::getStencilComponent() const
 		return std::static_pointer_cast<StencilComponent>(component);
 	}
 	return nullptr;
-}
-
-void GuiPanel_StencilComponent::rebuildTransformIdList()
-{
-	// Rebuild anchor ID list
-	m_transformIdList.clear();
-	m_transformIdList.push_back(INVALID_MIKAN_ID); // "none" option
-
-	MikanComponentPtr component = m_component.lock();
-	if (component)
-	{
-		component->getObjectSystemOfType<AnchorObjectSystem>()->getTypedComponentIdList(m_transformIdList);
-		component->getObjectSystemOfType<QuadStencilSystem>()->getTypedComponentIdList(m_transformIdList);
-		component->getObjectSystemOfType<BoxStencilSystem>()->getTypedComponentIdList(m_transformIdList);
-		component->getObjectSystemOfType<ModelStencilSystem>()->getTypedComponentIdList(m_transformIdList);
-	}
 }
 
 bool GuiPanel_QuadStencilComponent::init()

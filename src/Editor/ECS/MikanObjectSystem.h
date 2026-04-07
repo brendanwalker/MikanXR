@@ -69,6 +69,7 @@ public:
 	}
 
 	virtual MikanComponentPtr getComponentById(int componentId) const = 0;
+	virtual bool getComponentList(const std::string& componentClassName, std::vector<MikanComponentPtr>& outComponentList) const = 0;
 	virtual bool getComponentIdList(const std::string& componentClassName, std::vector<int>& outComponentIdList) const = 0;
 
 	MikanObjectPtr newEmptyObject();
