@@ -1395,11 +1395,12 @@ void USBVideoSourceComponent::getPropertyDescriptors(std::vector<PropertyDescrip
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			USBVideoSourceDefinition::k_desiredDevicePathPropertyId, MikanVariantType::STRING));
+			USBVideoSourceDefinition::k_desiredDevicePathPropertyId, MikanVariantType::STRING)
+			->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			USBVideoSourceComponent::k_currentDevicePathPropertyId, MikanVariantType::STRING)
-		->setReadOnly());
+			->setReadOnly());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			USBVideoSourceDefinition::k_videoModePropertyId, MikanVariantType::STRING));

@@ -1,20 +1,20 @@
 #pragma once
 
 #include "Shared/GuiPanel_MikanComponent.h"
+#include "Shared/GuiDataSource_ComboBox.h"
 #include "SceneComponent.h"
 
 class GuiPanel_SceneComponent : public GuiPanel_MikanComponent
 {
 public:
-	GuiPanel_SceneComponent(AppStage* ownerAppStage) : GuiPanel_MikanComponent(ownerAppStage) {}
+	GuiPanel_SceneComponent(AppStage* ownerAppStage);
 
 	virtual bool init() override;
-	virtual bool setComponent(MikanComponentPtr component) override;
-	virtual void onGui() override;
+	virtual void onConstruct() override;
 
 protected:
 	SceneComponentPtr getSceneComponent() const;
 
 private:
-	std::vector<int> m_compositorIdList;
+	GuiDataSource_ComboBox m_compositorDataSource;
 };

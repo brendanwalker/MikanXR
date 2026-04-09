@@ -1,108 +1,107 @@
 #include "AppStage.h"
 #include "Shared/GuiPanel_CameraComponent.h"
-#include "VRTrackingVolumeComponent.h"
-#include "VideoSourceQueries.h"
-#include "ProjectManager.h"
-#include "MikanCoreTypes.h"
+#include "MkGuiDrawUtils.h"
+#include "NetworkVideoSourceComponent.h"
+#include "NetworkVideoSourceSystem.h"
+#include "TrackingMountComponent.h"
+#include "TrackingMountObjectSystem.h"
+#include "USBVideoSourceComponent.h"
+#include "USBVideoSourceSystem.h"
 
-#include "imgui.h"
+GuiPanel_CameraComponent::GuiPanel_CameraComponent(AppStage* ownerAppStage)
+	: GuiPanel_MikanComponent(ownerAppStage)
+	, m_videoSourceDataSource(
+		ownerAppStage->getProjectManager(),
+		{
+			{ USBVideoSourceSystem::k_objectSystemClassName, USBVideoSourceComponent::k_componentClassName },
+			{ NetworkVideoSourceSystem::k_objectSystemClassName, NetworkVideoSourceComponent::k_componentClassName }
+		})
+	, m_trackingMountDataSource(
+		ownerAppStage->getProjectManager(),
+		{
+			{ TrackingMountObjectSystem::k_objectSystemClassName, TrackingMountComponent::k_componentClassName }
+		})
+{
+}
 
 bool GuiPanel_CameraComponent::init()
 {
 	return initTypedPropertyInterface<CameraComponent>();
 }
 
-bool GuiPanel_CameraComponent::setComponent(MikanComponentPtr component)
+void GuiPanel_CameraComponent::onConstruct()
 {
-	if (GuiPanel_MikanComponent::setComponent(component))
-	{
-		m_trackingMountIdList.clear();
-		m_videoSourceIdList.clear();
-
-		CameraComponentPtr cameraComp = getCameraComponent();
-		if (cameraComp)
+	m_entityAccessor->setPropertyRenderer(
+		CameraDefinition::k_videoSourceIdPropertyId,
+		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			// Tracking mount IDs from the owning VR tracking volume
-			auto vrVolumeDefinition = cameraComp->getVRTrackingVolumeDefinitionMutable();
-			if (vrVolumeDefinition)
+			CameraComponentPtr cameraComp = getCameraComponent();
+			if (!cameraComp)
+				return false;
+
+			m_videoSourceDataSource.refreshEntries();
+			if (m_videoSourceDataSource.getEntryCount() == 0)
+				return false;
+
+			const MikanVideoSourceID currentVideoSourceId =
+				cameraComp->getCameraDefinition()->getVideoSourceId();
+			int selectedIndex =
+				m_videoSourceDataSource.getEntryIndexByComponentId(currentVideoSourceId);
+
+			if (MkGui::drawComboBoxProperty(
+				m_defaultGuiStyle,
+				"cameraVideoSourceIndex",
+				"Video Source",
+				&m_videoSourceDataSource,
+				selectedIndex))
 			{
-				m_trackingMountIdList = vrVolumeDefinition->getTrackingMountIDs();
-			}
-
-			// Video source IDs from query
-			ProjectManagerPtr projectManager = cameraComp->getOwnerProjectManager();
-			m_videoSourceIdList = VideoSourceQueries::getVideoSourceIdList(projectManager);
-		}
-
-		return true;
-	}
-
-	return false;
-}
-
-void GuiPanel_CameraComponent::onGui()
-{
-	GuiPanel_MikanComponent::onGui();
-
-	CameraComponentPtr cameraComp = getCameraComponent();
-	if (!cameraComp)
-		return;
-
-	ImGui::Separator();
-
-	// Video source dropdown
-	{
-		int currentVideoSourceId = cameraComp->getCameraDefinition()->getVideoSourceId();
-		const std::string previewStr = (currentVideoSourceId == INVALID_MIKAN_ID) ? "None" : std::to_string(currentVideoSourceId);
-
-		// Refresh list on open
-		ProjectManagerPtr projectManager = cameraComp->getOwnerProjectManager();
-		std::vector<int> videoSourceIds = VideoSourceQueries::getVideoSourceIdList(projectManager);
-
-		if (ImGui::BeginCombo("Video Source", previewStr.c_str()))
-		{
-			for (int videoSourceId : videoSourceIds)
-			{
-				const bool bSelected = (videoSourceId == currentVideoSourceId);
-				const std::string label = std::to_string(videoSourceId);
-
-				if (ImGui::Selectable(label.c_str(), bSelected))
+				MikanComponentPtr newVideoSource = m_videoSourceDataSource.getEntryAtIndex(selectedIndex);
+				if (newVideoSource)
 				{
-					addDeferredGuiEvent([cameraComp, videoSourceId]() {
-						cameraComp->getCameraDefinition()->setVideoSourceId(videoSourceId);
+					addDeferredGuiEvent([cameraComp, newVideoSource]() {
+						cameraComp->getCameraDefinition()->setVideoSourceId(
+							newVideoSource->getComponentId());
 					});
 				}
 			}
-			ImGui::EndCombo();
-		}
-	}
+			return true;
+		});
 
-	// Tracking mount dropdown
-	{
-		int currentMountId = cameraComp->getCameraDefinition()->getTrackingMountId();
-		const std::string previewStr = (currentMountId == INVALID_MIKAN_ID) ? "None" : std::to_string(currentMountId);
-
-		if (ImGui::BeginCombo("Tracking Mount", previewStr.c_str()))
+	m_entityAccessor->setPropertyRenderer(
+		CameraDefinition::k_trackingMountIdPropertyId,
+		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			// Refresh tracking mount list from VR tracking volume
-			auto vrVolumeDefinition = cameraComp->getVRTrackingVolumeDefinitionMutable();
-			std::vector<int> mountIds = vrVolumeDefinition ? vrVolumeDefinition->getTrackingMountIDs() : std::vector<int>{};
+			CameraComponentPtr cameraComp = getCameraComponent();
+			if (!cameraComp)
+				return false;
 
-			for (int mountId : mountIds)
+			m_trackingMountDataSource.refreshEntries();
+			if (m_trackingMountDataSource.getEntryCount() == 0)
+				return false;
+
+			const MikanTrackingMountID currentMountId =
+				cameraComp->getCameraDefinition()->getTrackingMountId();
+			int selectedIndex =
+				m_trackingMountDataSource.getEntryIndexByComponentId(currentMountId);
+
+			if (MkGui::drawComboBoxProperty(
+				m_defaultGuiStyle,
+				"cameraTrackingMountIndex",
+				"Tracking Mount",
+				&m_trackingMountDataSource,
+				selectedIndex))
 			{
-				const bool bSelected = (mountId == currentMountId);
-				const std::string label = std::to_string(mountId);
-
-				if (ImGui::Selectable(label.c_str(), bSelected))
+				MikanComponentPtr newMount = m_trackingMountDataSource.getEntryAtIndex(selectedIndex);
+				if (newMount)
 				{
-					addDeferredGuiEvent([cameraComp, mountId]() {
-						cameraComp->getCameraDefinition()->setTrackingMountId(mountId);
+					addDeferredGuiEvent([cameraComp, newMount]() {
+						cameraComp->getCameraDefinition()->setTrackingMountId(
+							newMount->getComponentId());
 					});
 				}
 			}
-			ImGui::EndCombo();
-		}
-	}
+			return true;
+		});
 }
 
 CameraComponentPtr GuiPanel_CameraComponent::getCameraComponent() const

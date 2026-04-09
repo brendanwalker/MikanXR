@@ -578,19 +578,23 @@ void CameraComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConst
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(CameraDefinition::k_trackingMountIdPropertyId, MikanVariantType::INT)
-		->setDefaultValue(-1));
+		->setDefaultValue(-1)
+		->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(CameraDefinition::k_videoSourceIdPropertyId, MikanVariantType::INT)
-		->setDefaultValue(-1));
+		->setDefaultValue(-1)
+		->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(CameraDefinition::k_trackingFrameDelayPropertyId, MikanVariantType::INT)
 		->setDefaultValue(0));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(CameraDefinition::k_apertureOrientationOffsetPropertyId, MikanVariantType::VECTOR3F)
-		->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f)));
+		->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f))
+		->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(CameraDefinition::k_aperturePositionOffsetPropertyId, MikanVariantType::VECTOR3F)
-		->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f)));
+		->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f))
+		->setUIHidden());
 }
 
 bool CameraComponent::getPropertyValue(

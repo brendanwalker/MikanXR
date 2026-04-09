@@ -26,12 +26,17 @@ bool GuiPanel_EntityAccessor::init(
 	m_functionDescriptors.clear();
 	m_onConstructCallback = onConstructCallback;
 
+	if (onConstructCallback && !onConstructCallback())
+		return false;
+
 	for (const PropertyDescriptorConstPtr& descriptor : propertyDescriptors)
 	{
-		if (descriptor->isUIHidden())
+		const std::string propertyName = descriptor->getName();
+
+		if (descriptor->isUIHidden() && !m_propertyRenderers.contains(propertyName))
 			continue;
 
-		m_propertyDescriptors.insert({ descriptor->getName(), descriptor });
+		m_propertyDescriptors.insert({ propertyName, descriptor });
 		m_orderedPropertyDescriptors.push_back(descriptor);
 	}
 
@@ -39,9 +44,6 @@ bool GuiPanel_EntityAccessor::init(
 	{
 		m_functionDescriptors.push_back(descriptor);
 	}
-
-	if (onConstructCallback && !onConstructCallback())
-		return false;
 
 	return true;
 }
@@ -52,6 +54,7 @@ void GuiPanel_EntityAccessor::dispose()
 	m_propertyDescriptors.clear();
 	m_orderedPropertyDescriptors.clear();
 	m_functionDescriptors.clear();
+	m_propertyRenderers.clear();
 	m_onConstructCallback = nullptr;
 
 	GuiPanel::dispose();
@@ -105,6 +108,13 @@ void GuiPanel_EntityAccessor::setEntityAccessor(IEntityAccessorPtr newEntityAcce
 	}
 }
 
+void GuiPanel_EntityAccessor::setPropertyRenderer(
+	const std::string& propName,
+	PropertyRendererCallback renderer)
+{
+	m_propertyRenderers[propName] = renderer;
+}
+
 void GuiPanel_EntityAccessor::onGui()
 {
 	IEntityAccessorPtr accessor = m_entityAccessor.lock();
@@ -117,6 +127,12 @@ void GuiPanel_EntityAccessor::onGui()
 	for (const PropertyDescriptorConstPtr& desc : m_orderedPropertyDescriptors)
 	{
 		const std::string& propName = desc->getName();
+
+		// Check for a registered custom renderer; if it returns true the property is fully handled
+		auto rendererIt = m_propertyRenderers.find(propName);
+		if (rendererIt != m_propertyRenderers.end() && rendererIt->second(desc))
+			continue;
+
 		const bool isReadOnly = desc->isReadOnly();
 
 		MikanVariant value;

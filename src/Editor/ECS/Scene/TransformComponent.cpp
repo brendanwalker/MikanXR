@@ -526,7 +526,8 @@ void TransformComponent::getPropertyDescriptors(std::vector<PropertyDescriptorCo
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			TransformComponentDefinition::k_parentTransformIdPropertyId, MikanVariantType::INT)
-			->setDefaultValue(INVALID_MIKAN_ID));
+			->setDefaultValue(INVALID_MIKAN_ID)
+			->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			TransformComponentDefinition::k_relativeScalePropertyId, MikanVariantType::VECTOR3F)

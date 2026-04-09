@@ -851,11 +851,13 @@ void CompositorComponent::getPropertyDescriptors(std::vector<PropertyDescriptorC
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			CompositorDefinition::k_cameraIdPropertyId, MikanVariantType::INT)
-		->setDefaultValue(-1));
+		->setDefaultValue(-1)
+		->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			CompositorDefinition::k_ownerScenePropertyId, MikanVariantType::INT)
-		->setDefaultValue(-1));
+		->setDefaultValue(-1)
+		->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			CompositorDefinition::k_compositorGraphPathPropertyId, MikanVariantType::STRING));

@@ -1,66 +1,61 @@
 #include "AppStage.h"
 #include "Shared/GuiPanel_SceneComponent.h"
-#include "MikanCoreTypes.h"
+#include "CompositorComponent.h"
+#include "CompositorObjectSystem.h"
+#include "MkGuiDrawUtils.h"
 
-#include "imgui.h"
+GuiPanel_SceneComponent::GuiPanel_SceneComponent(AppStage* ownerAppStage)
+	: GuiPanel_MikanComponent(ownerAppStage)
+	, m_compositorDataSource(
+		ownerAppStage->getProjectManager(),
+		{
+			{ CompositorObjectSystem::k_objectSystemClassName, CompositorComponent::k_componentClassName }
+		})
+{
+}
 
 bool GuiPanel_SceneComponent::init()
 {
 	return initTypedPropertyInterface<SceneComponent>();
 }
 
-bool GuiPanel_SceneComponent::setComponent(MikanComponentPtr component)
+void GuiPanel_SceneComponent::onConstruct()
 {
-	if (GuiPanel_MikanComponent::setComponent(component))
-	{
-		m_compositorIdList.clear();
-
-		SceneComponentPtr sceneComp = getSceneComponent();
-		if (sceneComp)
+	m_entityAccessor->setPropertyRenderer(
+		SceneComponentDefinition::k_displayCompositorIdPropertyId,
+		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			m_compositorIdList = sceneComp->getOutputCompositorIDs();
-		}
+			SceneComponentPtr sceneComp = getSceneComponent();
+			if (!sceneComp)
+				return false;
 
-		return true;
-	}
+			m_compositorDataSource.refreshEntries();
+			if (m_compositorDataSource.getEntryCount() == 0)
+				return false;
 
-	return false;
-}
+			const MikanCompositorID currentCompositorId =
+				sceneComp->getSceneComponentDefinition()->getDisplayCompositorId();
+			int selectedIndex =
+				m_compositorDataSource.getEntryIndexByComponentId(currentCompositorId);
 
-void GuiPanel_SceneComponent::onGui()
-{
-	GuiPanel_MikanComponent::onGui();
-
-	SceneComponentPtr sceneComp = getSceneComponent();
-	if (!sceneComp)
-		return;
-
-	ImGui::Separator();
-
-	// Compositor dropdown
-	{
-		int currentCompositorId = sceneComp->getSceneComponentDefinition()->getDisplayCompositorId();
-		const std::string previewStr = std::to_string(currentCompositorId);
-
-		if (ImGui::BeginCombo("Display Compositor", previewStr.c_str()))
-		{
-			// Refresh compositor list each time combo opens
-			std::vector<int> freshList = sceneComp->getOutputCompositorIDs();
-			for (int compositorId : freshList)
+			if (MkGui::drawComboBoxProperty(
+				m_defaultGuiStyle,
+				"sceneDisplayCompositorIndex",
+				"Display Compositor",
+				&m_compositorDataSource,
+				selectedIndex))
 			{
-				const bool bSelected = (compositorId == currentCompositorId);
-				const std::string label = std::to_string(compositorId);
-
-				if (ImGui::Selectable(label.c_str(), bSelected))
+				MikanComponentPtr newCompositor = m_compositorDataSource.getEntryAtIndex(selectedIndex);
+				if (newCompositor)
 				{
-					addDeferredGuiEvent([sceneComp, compositorId]() {
-						sceneComp->getSceneComponentDefinition()->setDisplayCompositorId(compositorId);
+					addDeferredGuiEvent([sceneComp, newCompositor]() {
+						sceneComp->getSceneComponentDefinition()->setDisplayCompositorId(
+							newCompositor->getComponentId());
 					});
 				}
 			}
-			ImGui::EndCombo();
-		}
-	}
+			return true;
+		});
 }
 
 SceneComponentPtr GuiPanel_SceneComponent::getSceneComponent() const

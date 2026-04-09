@@ -10,7 +10,7 @@ class GuiPanel_StencilComponent : public GuiPanel_MikanComponent
 public:
 	GuiPanel_StencilComponent(AppStage* ownerAppStage);
 
-	virtual void onGui() override;
+	virtual void onConstruct() override;
 
 protected:
 	StencilComponentPtr getStencilComponent() const;

@@ -11,8 +11,7 @@
 #include "ModelStencilSystem.h"
 #include "MikanCoreTypes.h"
 #include "MkGuiDrawUtils.h"
-
-#include "imgui.h"
+#include "TransformComponent.h"
 
 GuiPanel_StencilComponent::GuiPanel_StencilComponent(AppStage* ownerAppStage) 
 	: GuiPanel_MikanComponent(ownerAppStage)
@@ -27,43 +26,43 @@ GuiPanel_StencilComponent::GuiPanel_StencilComponent(AppStage* ownerAppStage)
 {
 }
 
-void GuiPanel_StencilComponent::onGui()
+void GuiPanel_StencilComponent::onConstruct()
 {
-	// Auto-render base properties
-	GuiPanel_MikanComponent::onGui();
-
-	StencilComponentPtr stencilComponent = getStencilComponent();
-	if (!stencilComponent)
-		return;
-
-	ImGui::Separator();
-
-	// Parent transform selection dropdown
-	m_parentTransformDataSource.refreshEntries();
-	if (m_parentTransformDataSource.getEntryCount() > 0)
-	{
-		const MikanTransformID parentTransformId = 
-			stencilComponent->getStencilComponentDefinition()->getParentTransformId();
-		
-		int selectedIndex = m_parentTransformDataSource.getEntryIndexByComponentId(parentTransformId);
-		if (MkGui::drawComboBoxProperty(
-			m_defaultGuiStyle,
-			"stencilParentTransformIndex",
-			"Parent",
-			&m_parentTransformDataSource,
-			selectedIndex))
+	m_entityAccessor->setPropertyRenderer(
+		TransformComponentDefinition::k_parentTransformIdPropertyId,
+		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			MikanComponentPtr newParent= m_parentTransformDataSource.getEntryAtIndex(selectedIndex);
+			StencilComponentPtr stencilComponent = getStencilComponent();
+			if (!stencilComponent)
+				return false;
 
-			if (newParent)
+			m_parentTransformDataSource.refreshEntries();
+			if (m_parentTransformDataSource.getEntryCount() == 0)
+				return false;
+
+			const MikanTransformID parentTransformId =
+				stencilComponent->getStencilComponentDefinition()->getParentTransformId();
+			int selectedIndex =
+				m_parentTransformDataSource.getEntryIndexByComponentId(parentTransformId);
+
+			if (MkGui::drawComboBoxProperty(
+				m_defaultGuiStyle,
+				"stencilParentTransformIndex",
+				"Parent",
+				&m_parentTransformDataSource,
+				selectedIndex))
 			{
-				addDeferredGuiEvent([stencilComponent, newParent]() {
-					stencilComponent->getStencilComponentDefinition()->setParentTransformId(
-						newParent->getComponentId());
+				MikanComponentPtr newParent = m_parentTransformDataSource.getEntryAtIndex(selectedIndex);
+				if (newParent)
+				{
+					addDeferredGuiEvent([stencilComponent, newParent]() {
+						stencilComponent->getStencilComponentDefinition()->setParentTransformId(
+							newParent->getComponentId());
 					});
+				}
 			}
-		}
-	}
+			return true;
+		});
 }
 
 StencilComponentPtr GuiPanel_StencilComponent::getStencilComponent() const

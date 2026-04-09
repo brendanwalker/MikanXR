@@ -300,11 +300,13 @@ void SceneComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstP
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			SceneComponentDefinition::k_parentStagePropertyId, MikanVariantType::INT)
-		->setDefaultValue(-1));
+		->setDefaultValue(-1)
+		->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			SceneComponentDefinition::k_displayCompositorIdPropertyId, MikanVariantType::INT)
-		->setDefaultValue(-1));
+		->setDefaultValue(-1)
+		->setUIHidden());
 }
 
 bool SceneComponent::getPropertyValue(

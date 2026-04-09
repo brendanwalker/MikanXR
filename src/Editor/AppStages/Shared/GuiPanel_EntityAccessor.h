@@ -5,6 +5,7 @@
 #include "MulticastDelegate.h"
 #include "Shared/GuiPanel.h"
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <map>
@@ -44,6 +45,12 @@ public:
 	void setEntityAccessor(IEntityAccessorPtr newEntityAccessor);
 	inline IEntityAccessorPtr getEntityAccessor() const { return m_entityAccessor.lock(); }
 
+	// Returns true if the property was fully rendered (skip default widget).
+	using PropertyRendererCallback = std::function<bool(const PropertyDescriptorConstPtr&)>;
+
+	// Register a custom renderer for a named property.
+	void setPropertyRenderer(const std::string& propName, PropertyRendererCallback renderer);
+
 	MulticastDelegate<void(IEntityAccessorPtr accessorPtr, const ConfigPropertyChangeSet& changedPropertySet)> OnEntityPropertyChanged;
 
 protected:
@@ -57,6 +64,7 @@ private:
 	std::map<std::string, PropertyDescriptorConstPtr> m_propertyDescriptors;
 	std::vector<PropertyDescriptorConstPtr> m_orderedPropertyDescriptors;
 	std::vector<FunctionDescriptorConstPtr> m_functionDescriptors;
+	std::map<std::string, PropertyRendererCallback> m_propertyRenderers;
 	OnConstruct m_onConstructCallback;
 };
 

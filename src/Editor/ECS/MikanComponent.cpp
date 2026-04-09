@@ -436,14 +436,16 @@ void MikanComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstP
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			MikanComponentDefinition::k_componentIdPropertyId, MikanVariantType::INT)
-		->setReadOnly()
-		->setDefaultValue(-1));
+			->setReadOnly()
+			->setDefaultValue(-1)
+			->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			MikanComponentDefinition::k_componentNamePropertyId, MikanVariantType::STRING));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			MikanComponentDefinition::k_componentScriptPathPropertyId, MikanVariantType::STRING));
+			MikanComponentDefinition::k_componentScriptPathPropertyId, MikanVariantType::STRING)
+			->setUIHidden());
 }
 
 bool MikanComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const

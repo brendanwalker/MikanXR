@@ -135,7 +135,8 @@ void TrackingMountComponent::getPropertyDescriptors(std::vector<PropertyDescript
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			TrackingMountComponent::k_availableSocketNameListPropertyId, MikanVariantType::STRING_ARRAY)
-		->setReadOnly());
+		->setReadOnly()
+		->setUIHidden());
 }
 
 bool TrackingMountComponent::getPropertyValue(
