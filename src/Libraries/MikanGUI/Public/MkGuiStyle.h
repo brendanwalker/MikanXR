@@ -27,7 +27,7 @@ struct MkGuiStyleColorEntry
 class MkGuiStyle
 {
 public:
-	static constexpr int k_defaultLabelWidth = 100;
+	static constexpr int k_defaultLabelWidth = 200;
 	static constexpr int k_defaultValueWidth = 150;
 
 	std::string name;

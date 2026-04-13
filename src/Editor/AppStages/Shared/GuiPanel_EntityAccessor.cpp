@@ -1,10 +1,20 @@
 #include "GuiPanel_EntityAccessor.h"
 #include "CommonConfig.h"
 #include "MikanVariantTypes.h"
+#include "MkGuiStyleManager.h"
 
 #include "imgui.h"
 
 #include <assert.h>
+
+static const std::string k_defaultStyleName = "default_component_panel";
+
+GuiPanel_EntityAccessor::GuiPanel_EntityAccessor(AppStage* ownerAppStage)
+	: GuiPanel(ownerAppStage)
+{
+	if (MkGuiStyleManager* mgr = getGuiStyleManager())
+		m_defaultGuiStyle = mgr->getStyle(k_defaultStyleName);
+}
 
 GuiPanel_EntityAccessor::~GuiPanel_EntityAccessor()
 {
@@ -150,7 +160,7 @@ void GuiPanel_EntityAccessor::onGui()
 		if (variantType == MikanVariantType::BOOL)
 		{
 			bool v = value.getBoolValue();
-			if (ImGui::Checkbox(propName.c_str(), &v))
+			if (MkGui::drawCheckBoxProperty(m_defaultGuiStyle, propName, propName, v))
 			{
 				newValue = v;
 				bValueChanged = true;
@@ -159,7 +169,7 @@ void GuiPanel_EntityAccessor::onGui()
 		else if (variantType == MikanVariantType::INT)
 		{
 			int v = value.getIntValue();
-			if (ImGui::InputInt(propName.c_str(), &v))
+			if (MkGui::drawIntProperty(m_defaultGuiStyle, propName, propName, v))
 			{
 				newValue = v;
 				bValueChanged = true;
@@ -168,7 +178,7 @@ void GuiPanel_EntityAccessor::onGui()
 		else if (variantType == MikanVariantType::LONG)
 		{
 			int v = static_cast<int>(value.getLongValue());
-			if (ImGui::InputInt(propName.c_str(), &v))
+			if (MkGui::drawIntProperty(m_defaultGuiStyle, propName, propName, v))
 			{
 				newValue = static_cast<long>(v);
 				bValueChanged = true;
@@ -177,7 +187,7 @@ void GuiPanel_EntityAccessor::onGui()
 		else if (variantType == MikanVariantType::FLOAT)
 		{
 			float v = value.getFloatValue();
-			if (ImGui::InputFloat(propName.c_str(), &v))
+			if (MkGui::drawFloatProperty(m_defaultGuiStyle, propName, propName, v))
 			{
 				newValue = v;
 				bValueChanged = true;
@@ -185,9 +195,8 @@ void GuiPanel_EntityAccessor::onGui()
 		}
 		else if (variantType == MikanVariantType::DOUBLE)
 		{
-			double v = value.getDoubleValue();
-			float vf = static_cast<float>(v);
-			if (ImGui::InputFloat(propName.c_str(), &vf))
+			float vf = static_cast<float>(value.getDoubleValue());
+			if (MkGui::drawFloatProperty(m_defaultGuiStyle, propName, propName, vf))
 			{
 				newValue = static_cast<double>(vf);
 				bValueChanged = true;
@@ -198,7 +207,7 @@ void GuiPanel_EntityAccessor::onGui()
 			std::string v = value.getStringValue();
 			char buf[256];
 			strncpy_s(buf, sizeof(buf), v.c_str(), _TRUNCATE);
-			if (ImGui::InputText(propName.c_str(), buf, sizeof(buf)))
+			if (MkGui::drawStringProperty(m_defaultGuiStyle, propName, propName, buf, sizeof(buf)))
 			{
 				newValue = std::string(buf);
 				bValueChanged = true;
@@ -208,10 +217,9 @@ void GuiPanel_EntityAccessor::onGui()
 		{
 			const MikanVector2f& vec = value.getVector2fValue();
 			float v[2] = { vec.x, vec.y };
-			if (ImGui::InputFloat2(propName.c_str(), v))
+			if (MkGui::drawFloat2Property(m_defaultGuiStyle, propName, propName, v))
 			{
-				MikanVector2f newVec{ v[0], v[1] };
-				newValue = newVec;
+				newValue = MikanVector2f{ v[0], v[1] };
 				bValueChanged = true;
 			}
 		}
@@ -219,10 +227,9 @@ void GuiPanel_EntityAccessor::onGui()
 		{
 			const MikanVector3f& vec = value.getVector3fValue();
 			float v[3] = { vec.x, vec.y, vec.z };
-			if (ImGui::InputFloat3(propName.c_str(), v))
+			if (MkGui::drawFloat3Property(m_defaultGuiStyle, propName, propName, v))
 			{
-				MikanVector3f newVec{ v[0], v[1], v[2] };
-				newValue = newVec;
+				newValue = MikanVector3f{ v[0], v[1], v[2] };
 				bValueChanged = true;
 			}
 		}
@@ -230,10 +237,9 @@ void GuiPanel_EntityAccessor::onGui()
 		{
 			const MikanVector4f& vec = value.getVector4fValue();
 			float v[4] = { vec.x, vec.y, vec.z, vec.w };
-			if (ImGui::InputFloat4(propName.c_str(), v))
+			if (MkGui::drawFloat4Property(m_defaultGuiStyle, propName, propName, v))
 			{
-				MikanVector4f newVec{ v[0], v[1], v[2], v[3] };
-				newValue = newVec;
+				newValue = MikanVector4f{ v[0], v[1], v[2], v[3] };
 				bValueChanged = true;
 			}
 		}

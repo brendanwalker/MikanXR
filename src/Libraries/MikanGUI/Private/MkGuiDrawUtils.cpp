@@ -38,17 +38,96 @@ namespace MkGui
 		ImGui::Text(text.c_str());
 	}
 
-	void drawCheckBoxProperty(
+	bool drawCheckBoxProperty(
 		MkGuiStyleConstPtr style,
-		const std::string fieldName, 
-		const std::string label, 
+		const std::string fieldName,
+		const std::string label,
 		bool& inout_value)
 	{
 		ImGui::Text(label.c_str());
 		ImGui::SameLine(style->labelWidth);
 		ImGui::SetNextItemWidth(style->valueWidth);
-		const std::string imguiElementName= makeImGuiElementName(fieldName);
-		ImGui::Checkbox(imguiElementName.c_str(), &inout_value);
+		const std::string imguiElementName = makeImGuiElementName(fieldName);
+		return ImGui::Checkbox(imguiElementName.c_str(), &inout_value);
+	}
+
+	bool drawIntProperty(
+		MkGuiStyleConstPtr style,
+		const std::string fieldName,
+		const std::string label,
+		int& inout_value)
+	{
+		ImGui::Text(label.c_str());
+		ImGui::SameLine(style->labelWidth);
+		ImGui::SetNextItemWidth(style->valueWidth);
+		const std::string imguiElementName = makeImGuiElementName(fieldName);
+		return ImGui::InputInt(imguiElementName.c_str(), &inout_value);
+	}
+
+	bool drawFloatProperty(
+		MkGuiStyleConstPtr style,
+		const std::string fieldName,
+		const std::string label,
+		float& inout_value)
+	{
+		ImGui::Text(label.c_str());
+		ImGui::SameLine(style->labelWidth);
+		ImGui::SetNextItemWidth(style->valueWidth);
+		const std::string imguiElementName = makeImGuiElementName(fieldName);
+		return ImGui::InputFloat(imguiElementName.c_str(), &inout_value);
+	}
+
+	bool drawFloat2Property(
+		MkGuiStyleConstPtr style,
+		const std::string fieldName,
+		const std::string label,
+		float* inout_v)
+	{
+		ImGui::Text(label.c_str());
+		ImGui::SameLine(style->labelWidth);
+		ImGui::SetNextItemWidth(style->valueWidth);
+		const std::string imguiElementName = makeImGuiElementName(fieldName);
+		return ImGui::InputFloat2(imguiElementName.c_str(), inout_v);
+	}
+
+	bool drawFloat3Property(
+		MkGuiStyleConstPtr style,
+		const std::string fieldName,
+		const std::string label,
+		float* inout_v)
+	{
+		ImGui::Text(label.c_str());
+		ImGui::SameLine(style->labelWidth);
+		ImGui::SetNextItemWidth(style->valueWidth);
+		const std::string imguiElementName = makeImGuiElementName(fieldName);
+		return ImGui::InputFloat3(imguiElementName.c_str(), inout_v);
+	}
+
+	bool drawFloat4Property(
+		MkGuiStyleConstPtr style,
+		const std::string fieldName,
+		const std::string label,
+		float* inout_v)
+	{
+		ImGui::Text(label.c_str());
+		ImGui::SameLine(style->labelWidth);
+		ImGui::SetNextItemWidth(style->valueWidth);
+		const std::string imguiElementName = makeImGuiElementName(fieldName);
+		return ImGui::InputFloat4(imguiElementName.c_str(), inout_v);
+	}
+
+	bool drawStringProperty(
+		MkGuiStyleConstPtr style,
+		const std::string fieldName,
+		const std::string label,
+		char* buf,
+		size_t bufSize)
+	{
+		ImGui::Text(label.c_str());
+		ImGui::SameLine(style->labelWidth);
+		ImGui::SetNextItemWidth(style->valueWidth);
+		const std::string imguiElementName = makeImGuiElementName(fieldName);
+		return ImGui::InputText(imguiElementName.c_str(), buf, bufSize);
 	}
 
 	bool drawSimpleComboBoxProperty(

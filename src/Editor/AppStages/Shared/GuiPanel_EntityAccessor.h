@@ -2,6 +2,7 @@
 
 #include "CommonConfigFwd.h"
 #include "IEntityAccessor.h"
+#include "MkGuiDrawUtils.h"
 #include "MulticastDelegate.h"
 #include "Shared/GuiPanel.h"
 
@@ -14,7 +15,7 @@
 class GuiPanel_EntityAccessor : public GuiPanel
 {
 public:
-	GuiPanel_EntityAccessor(AppStage* ownerAppStage) : GuiPanel(ownerAppStage) {}
+	GuiPanel_EntityAccessor(AppStage* ownerAppStage);
 	virtual ~GuiPanel_EntityAccessor();
 
 	using OnConstruct = std::function<bool()>;
@@ -66,6 +67,7 @@ private:
 	std::vector<FunctionDescriptorConstPtr> m_functionDescriptors;
 	std::map<std::string, PropertyRendererCallback> m_propertyRenderers;
 	OnConstruct m_onConstructCallback;
+	MkGuiStyleConstPtr m_defaultGuiStyle;
 };
 
 using GuiPanel_EntityAccessorPtr = std::shared_ptr<GuiPanel_EntityAccessor>;

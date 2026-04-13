@@ -23,11 +23,42 @@ namespace MkGui
 		MkGuiStyleConstPtr style,
 		const std::string label, 
 		const std::string text);
-	void drawCheckBoxProperty(
+	bool drawCheckBoxProperty(
 		MkGuiStyleConstPtr style,
 		const std::string fieldName,
-		const std::string label, 
+		const std::string label,
 		bool& inout_value);
+	bool drawIntProperty(
+		MkGuiStyleConstPtr style,
+		const std::string fieldName,
+		const std::string label,
+		int& inout_value);
+	bool drawFloatProperty(
+		MkGuiStyleConstPtr style,
+		const std::string fieldName,
+		const std::string label,
+		float& inout_value);
+	bool drawFloat2Property(
+		MkGuiStyleConstPtr style,
+		const std::string fieldName,
+		const std::string label,
+		float* inout_v);
+	bool drawFloat3Property(
+		MkGuiStyleConstPtr style,
+		const std::string fieldName,
+		const std::string label,
+		float* inout_v);
+	bool drawFloat4Property(
+		MkGuiStyleConstPtr style,
+		const std::string fieldName,
+		const std::string label,
+		float* inout_v);
+	bool drawStringProperty(
+		MkGuiStyleConstPtr style,
+		const std::string fieldName,
+		const std::string label,
+		char* buf,
+		size_t bufSize);
 	bool drawSimpleComboBoxProperty(
 		MkGuiStyleConstPtr style,
 		const std::string fieldName,
