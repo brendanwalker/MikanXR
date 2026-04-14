@@ -2,45 +2,46 @@
 #include "Shared/GuiPanel_NetworkVideoSourceComponent.h"
 #include "NetworkVideoSourceComponent.h"
 
-#include "imgui.h"
-
 bool GuiPanel_NetworkVideoSourceComponent::init()
 {
 	return initTypedPropertyInterface<NetworkVideoSourceComponent>();
 }
 
-void GuiPanel_NetworkVideoSourceComponent::onGui()
+void GuiPanel_NetworkVideoSourceComponent::onConstruct()
 {
-	GuiPanel_MikanComponent::onGui();
+	// Build static protocol string list once
+	std::vector<std::string> protocolStrings;
+	for (int i = 0; i < (int)eNetworkVideoProtocol::COUNT; ++i)
+		protocolStrings.push_back(k_NetworkVideoProtocol[i]);
+	m_protocolDataSource.setEntries(protocolStrings);
 
-	auto videoSourceComp = getNetworkVideoSourceComponent();
-	if (!videoSourceComp)
-		return;
-
-	ImGui::Separator();
-
-	// Protocol selection (TODO: Make a data source adapter class for this)
-	auto definitionPtr= videoSourceComp->getNetworkVideoSourceDefinition();
-	const eNetworkVideoProtocol currentProtocol = definitionPtr->getProtocol();
-	const std::string& currentProtocolName = definitionPtr->getProtocolString();
-	if (ImGui::BeginCombo("Protocol", currentProtocolName.c_str()))
-	{
-		for (int enumIntValue= 0; enumIntValue < (int)eNetworkVideoProtocol::COUNT; enumIntValue++)
+	m_entityAccessor->setPropertyRenderer(
+		NetworkVideoSourceDefinition::k_protocolPropertyId,
+		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			const eNetworkVideoProtocol protocol = (eNetworkVideoProtocol)enumIntValue;
-			const std::string protocolString = k_NetworkVideoProtocol[enumIntValue];
-			bool selected = (protocol == currentProtocol);
-			if (ImGui::Selectable(protocolString.c_str(), selected))
+			auto videoSourceComp = getNetworkVideoSourceComponent();
+			if (!videoSourceComp) return false;
+
+			auto definitionPtr = videoSourceComp->getNetworkVideoSourceDefinition();
+			const eNetworkVideoProtocol currentProtocol = definitionPtr->getProtocol();
+			const int currentIndex =
+				(currentProtocol != eNetworkVideoProtocol::INVALID) ? (int)currentProtocol : -1;
+			int selectedIndex = currentIndex;
+
+			if (MkGui::drawComboBoxProperty(
+				m_defaultGuiStyle, "networkProtocol", "Protocol",
+				&m_protocolDataSource, selectedIndex))
 			{
-				addDeferredGuiEvent([videoSourceComp, protocol]() {
-					videoSourceComp->getNetworkVideoSourceDefinition()->setProtocol(protocol);
-				});
+				if (selectedIndex >= 0)
+				{
+					const eNetworkVideoProtocol newProtocol = (eNetworkVideoProtocol)selectedIndex;
+					addDeferredGuiEvent([videoSourceComp, newProtocol]() {
+						videoSourceComp->getNetworkVideoSourceDefinition()->setProtocol(newProtocol);
+					});
+				}
 			}
-			if (selected)
-				ImGui::SetItemDefaultFocus();
-		}
-		ImGui::EndCombo();
-	}
+			return true;
+		});
 }
 
 NetworkVideoSourceComponentPtr GuiPanel_NetworkVideoSourceComponent::getNetworkVideoSourceComponent() const

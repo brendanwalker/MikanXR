@@ -1,23 +1,25 @@
 #pragma once
 
 #include "Shared/GuiPanel_MikanComponent.h"
+#include "Shared/GuiDataSource_ComboBox.h"
+#include "Shared/GuiDataSource_StringList.h"
 #include "VRTrackingVolumeComponent.h"
 #include "MarkerObjectSystem.h"
-#include "TrackingMountObjectSystem.h"
 
 class GuiPanel_VRTrackingVolumeComponent : public GuiPanel_MikanComponent
 {
 public:
-	GuiPanel_VRTrackingVolumeComponent(AppStage* ownerAppStage) : GuiPanel_MikanComponent(ownerAppStage) {}
+	GuiPanel_VRTrackingVolumeComponent(AppStage* ownerAppStage);
 
 	virtual bool init() override;
+	virtual void onConstruct() override;
 	virtual void onGui() override;
 
 protected:
-	MarkerObjectSystemPtr getMarkerObjectSystem() const;
 	VRTrackingVolumeComponentPtr getVRTrackingVolumeComponent() const;
 
 private:
-	MarkerObjectSystemWeakPtr m_markerObjectSystem;
-	TrackingMountObjectSystemWeakPtr m_trackingMountObjectSystem;
+	GuiDataSource_StringList m_charucoMountDataSource;
+	GuiDataSource_ComboBox m_originMarkerDataSource;
+	GuiDataSource_ComboBox m_utilityMarkerDataSource;
 };

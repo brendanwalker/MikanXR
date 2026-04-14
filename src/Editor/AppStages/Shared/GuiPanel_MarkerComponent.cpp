@@ -3,8 +3,6 @@
 #include "Shared/GuiPanel_MarkerComponent.h"
 #include "MarkerObjectSystem.h"
 
-#include "imgui.h"
-
 bool GuiPanel_MarkerComponent::init()
 {
 	m_markerObjectSystem = getOwnerAppStage()->getSystemOfType<MarkerObjectSystem>();
@@ -25,55 +23,56 @@ bool GuiPanel_MarkerComponent::setComponent(MikanComponentPtr component)
 	return false;
 }
 
-void GuiPanel_MarkerComponent::onGui()
+void GuiPanel_MarkerComponent::onConstruct()
 {
-	GuiPanel_MikanComponent::onGui();
-
-	MarkerComponentPtr markerComp = getMarkerComponent();
-	if (!markerComp)
-		return;
-
-	ImGui::Separator();
-
-	// Aruco ID dropdown
-	{
-		int currentArucoId = markerComp->getMarkerDefinition()->getArucoId();
-
-		std::vector<int> arucoIds;
-		auto markerSystem = getMarkerObjectSystem();
-		if (markerSystem)
+	m_entityAccessor->setPropertyRenderer(
+		MarkerDefinition::k_arucoIdPropertyId,
+		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			for (const auto& it : markerSystem->getComponentMap())
+			MarkerComponentPtr markerComp = getMarkerComponent();
+			if (!markerComp) return false;
+
+			// Build aruco ID list from all markers in the system
+			auto markerSystem = getMarkerObjectSystem();
+			std::vector<std::string> arucoIdStrings;
+			if (markerSystem)
 			{
-				auto markerCompEntry = it.second.lock();
-				if (markerCompEntry)
+				for (const auto& it : markerSystem->getComponentMap())
 				{
-					auto markerCompTyped = std::static_pointer_cast<MarkerComponent>(markerCompEntry);
-					arucoIds.push_back(markerCompTyped->getMarkerDefinition()->getArucoId());
+					auto markerCompEntry = it.second.lock();
+					if (markerCompEntry)
+					{
+						auto markerTyped = std::static_pointer_cast<MarkerComponent>(markerCompEntry);
+						arucoIdStrings.push_back(
+							std::to_string(markerTyped->getMarkerDefinition()->getArucoId()));
+					}
 				}
 			}
-		}
+			m_arucoIdDataSource.setEntries(arucoIdStrings);
 
-		const std::string previewStr = std::to_string(currentArucoId);
-		if (ImGui::BeginCombo("Aruco ID", previewStr.c_str()))
-		{
-			for (int arucoId : arucoIds)
+			const int currentArucoId = markerComp->getMarkerDefinition()->getArucoId();
+			const std::string currentStr = std::to_string(currentArucoId);
+			int selectedIndex = m_arucoIdDataSource.getEntryIndexByString(currentStr);
+
+			if (MkGui::drawComboBoxProperty(
+				m_defaultGuiStyle, "markerArucoId", "Aruco ID",
+				&m_arucoIdDataSource, selectedIndex))
 			{
-				const bool bSelected = (arucoId == currentArucoId);
-				if (ImGui::Selectable(std::to_string(arucoId).c_str(), bSelected))
+				if (selectedIndex >= 0)
 				{
-					addDeferredGuiEvent([this, markerComp, arucoId]() {
-						markerComp->getMarkerDefinition()->setArucoId(arucoId);
+					const int newArucoId =
+						std::stoi(m_arucoIdDataSource.getEntryDisplayString(selectedIndex));
+					addDeferredGuiEvent([this, markerComp, newArucoId]() {
+						markerComp->getMarkerDefinition()->setArucoId(newArucoId);
 						if (OnMarkerSelected)
 						{
-							OnMarkerSelected(arucoId);
+							OnMarkerSelected(newArucoId);
 						}
 					});
 				}
 			}
-			ImGui::EndCombo();
-		}
-	}
+			return true;
+		});
 }
 
 MarkerObjectSystemPtr GuiPanel_MarkerComponent::getMarkerObjectSystem() const

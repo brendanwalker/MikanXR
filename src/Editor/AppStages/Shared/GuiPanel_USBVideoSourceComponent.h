@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Shared/GuiPanel_MikanComponent.h"
+#include "Shared/GuiDataSource_StringList.h"
 #include "USBVideoSourceComponent.h"
 #include "USBVideoSourceSystem.h"
 
@@ -10,8 +11,7 @@ public:
 	GuiPanel_USBVideoSourceComponent(AppStage* ownerAppStage) : GuiPanel_MikanComponent(ownerAppStage) {}
 
 	virtual bool init() override;
-	virtual bool setComponent(MikanComponentPtr component) override;
-	virtual void onGui() override;
+	virtual void onConstruct() override;
 
 protected:
 	USBVideoSourceSystemPtr getUSBVideoSourceSystem() const;
@@ -19,8 +19,8 @@ protected:
 
 private:
 	USBVideoSourceSystemWeakPtr m_usbVideoSourceSystem;
-	std::vector<std::string> m_usbDevicePaths;
-	std::vector<std::string> m_videoResolutions;
-	std::vector<std::string> m_videoFrameRates;
-	std::vector<std::string> m_videoFormats;
+	GuiDataSource_StringList m_devicePathDataSource;
+	GuiDataSource_StringList m_resolutionDataSource;
+	GuiDataSource_StringList m_frameRateDataSource;
+	GuiDataSource_StringList m_formatDataSource;
 };

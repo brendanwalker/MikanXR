@@ -3,12 +3,41 @@
 #include "SpoutTextureSourceComponent.h"
 #include "SpoutTextureSourceSystem.h"
 
-#include "imgui.h"
-
 bool GuiPanel_SpoutTextureSourceComponent::init()
 {
 	m_spoutTextureSourceSystem = getOwnerAppStage()->getObjectSystemOfType<SpoutTextureSourceSystem>();
 	return initTypedPropertyInterface<SpoutTextureSourceComponent>();
+}
+
+void GuiPanel_SpoutTextureSourceComponent::onConstruct()
+{
+	m_entityAccessor->setPropertyRenderer(
+		SpoutTextureSourceDefinition::k_spoutSourcePropertyId,
+		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
+		{
+			auto textureSourceComp = getSpoutTextureSourceComponent();
+			if (!textureSourceComp) return false;
+
+			m_spoutSenderDataSource.setEntries(m_spoutSenderNames);
+
+			const std::string& currentSource =
+				textureSourceComp->getSpoutTextureSourceDefinition()->getSpoutSource();
+			int selectedIndex = m_spoutSenderDataSource.getEntryIndexByString(currentSource);
+
+			if (MkGui::drawComboBoxProperty(
+				m_defaultGuiStyle, "spoutSource", "Spout Source",
+				&m_spoutSenderDataSource, selectedIndex))
+			{
+				if (selectedIndex >= 0)
+				{
+					const std::string newSource = m_spoutSenderDataSource.getEntryDisplayString(selectedIndex);
+					addDeferredGuiEvent([textureSourceComp, newSource]() {
+						textureSourceComp->getSpoutTextureSourceDefinition()->setSpoutSource(newSource);
+					});
+				}
+			}
+			return true;
+		});
 }
 
 void GuiPanel_SpoutTextureSourceComponent::update(float deltaSeconds)
@@ -23,41 +52,7 @@ void GuiPanel_SpoutTextureSourceComponent::update(float deltaSeconds)
 			m_timeSinceLastSourceListRefresh = 0.0f;
 
 			m_spoutSenderNames.clear();
-			std::vector<std::string> senderNames;
-			spoutSystem->getAvailableSpoutSenderNames(senderNames);
-			m_spoutSenderNames = senderNames;
-		}
-	}
-}
-
-void GuiPanel_SpoutTextureSourceComponent::onGui()
-{
-	GuiPanel_MikanComponent::onGui();
-
-	auto textureSourceComp = getSpoutTextureSourceComponent();
-	if (!textureSourceComp)
-		return;
-
-	ImGui::Separator();
-
-	// Spout source dropdown
-	{
-		const std::string& currentSourceName = textureSourceComp->getSpoutTextureSourceDefinition()->getSpoutSource();
-		const char* previewLabel = currentSourceName.empty() ? "None" : currentSourceName.c_str();
-
-		if (ImGui::BeginCombo("Spout Source", previewLabel))
-		{
-			for (const std::string& senderName : m_spoutSenderNames)
-			{
-				const bool bSelected = (senderName == currentSourceName);
-				if (ImGui::Selectable(senderName.c_str(), bSelected))
-				{
-					addDeferredGuiEvent([textureSourceComp, senderName]() {
-						textureSourceComp->getSpoutTextureSourceDefinition()->setSpoutSource(senderName);
-					});
-				}
-			}
-			ImGui::EndCombo();
+			spoutSystem->getAvailableSpoutSenderNames(m_spoutSenderNames);
 		}
 	}
 }

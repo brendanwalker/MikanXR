@@ -2,6 +2,8 @@
 #include "AppStage.h"
 #include "EditorObjectSystem.h"
 #include "LocalizationManager.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "Project/AppStage_Project.h"
 #include "Project/ProjectGuiPanelContext.h"
 
@@ -13,9 +15,12 @@ bool GuiPanel_ProjectSettings::init(ProjectGuiPanelContext* context)
 	AppStage_Project* ownerAppStage = context->getOwnerAppStage();
 	m_editorSystem = ownerAppStage->getObjectSystemOfType<EditorObjectSystem>();
 
+	m_defaultGuiStyle = getGuiStyleManager()->getStyle("default_component_panel");
+
 	LocalizationManager* locManager = ownerAppStage->getOwnerWindow()->getLocalizationManager();
 	m_selectedLanguageId = locManager->getLanguage();
 	m_languageIdList = locManager->getSupportedLanguages();
+	m_languageDataSource.setEntries(m_languageIdList);
 
 	return true;
 }
@@ -80,20 +85,18 @@ void GuiPanel_ProjectSettings::onGui()
 	LocalizationManager* locManager = ownerAppStage->getOwnerWindow()->getLocalizationManager();
 	m_selectedLanguageId = locManager->getLanguage();
 
-	if (ImGui::BeginCombo("Language", m_selectedLanguageId.c_str()))
+	m_languageDataSource.setEntries(m_languageIdList);
+	int selectedIndex = m_languageDataSource.getEntryIndexByString(m_selectedLanguageId);
+	if (MkGui::drawComboBoxProperty(
+		m_defaultGuiStyle, "projectLanguage", "Language",
+		&m_languageDataSource, selectedIndex))
 	{
-		for (const std::string& lang : m_languageIdList)
+		if (selectedIndex >= 0)
 		{
-			bool selected = (lang == m_selectedLanguageId);
-			if (ImGui::Selectable(lang.c_str(), selected))
-			{
-				addDeferredGuiEvent([locManager, lang]() {
-					locManager->setLanguage(lang);
-				});
-			}
-			if (selected)
-				ImGui::SetItemDefaultFocus();
+			const std::string lang = m_languageDataSource.getEntryDisplayString(selectedIndex);
+			addDeferredGuiEvent([locManager, lang]() {
+				locManager->setLanguage(lang);
+			});
 		}
-		ImGui::EndCombo();
 	}
 }

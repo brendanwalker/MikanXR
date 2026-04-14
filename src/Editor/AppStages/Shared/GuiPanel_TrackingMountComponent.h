@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Shared/GuiPanel_MikanComponent.h"
+#include "Shared/GuiDataSource_StringList.h"
 #include "TrackingMountComponent.h"
 #include "VRObjectSystem.h"
 
@@ -10,8 +11,7 @@ public:
 	GuiPanel_TrackingMountComponent(AppStage* ownerAppStage) : GuiPanel_MikanComponent(ownerAppStage) {}
 
 	virtual bool init() override;
-	virtual bool setComponent(MikanComponentPtr component) override;
-	virtual void onGui() override;
+	virtual void onConstruct() override;
 
 protected:
 	VRObjectSystemPtr getVRObjectSystem() const;
@@ -22,8 +22,8 @@ protected:
 
 private:
 	VRObjectSystemWeakPtr m_vrObjectSystem;
-	std::vector<std::string> m_vrDevicePaths;
-	std::vector<std::string> m_socketNames;
+	GuiDataSource_StringList m_devicePathDataSource;
+	GuiDataSource_StringList m_socketNameDataSource;
 };
 
 using GuiPanel_TrackingMountComponentPtr = std::shared_ptr<GuiPanel_TrackingMountComponent>;

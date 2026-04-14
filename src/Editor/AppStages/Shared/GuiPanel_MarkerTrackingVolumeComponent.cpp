@@ -1,67 +1,56 @@
 #include "AppStage.h"
+#include "MarkerComponent.h"
 #include "MarkerTrackingVolumeComponent.h"
-#include "Shared/GuiPanel_MarkerTrackingVolumeComponent.h"
-#include "MarkerObjectSystem.h"
-#include "TrackingMountObjectSystem.h"
 #include "MikanCoreTypes.h"
+#include "Shared/GuiPanel_MarkerTrackingVolumeComponent.h"
+#include "TrackingVolumeComponent.h"
 
-#include "imgui.h"
+GuiPanel_MarkerTrackingVolumeComponent::GuiPanel_MarkerTrackingVolumeComponent(AppStage* ownerAppStage)
+	: GuiPanel_MikanComponent(ownerAppStage)
+	, m_originMarkerDataSource(
+		ownerAppStage->getProjectManager(),
+		{ { MarkerObjectSystem::k_objectSystemClassName, MarkerComponent::k_componentClassName } })
+{
+}
 
 bool GuiPanel_MarkerTrackingVolumeComponent::init()
 {
-	m_markerObjectSystem = getOwnerAppStage()->getSystemOfType<MarkerObjectSystem>();
-	m_trackingMountObjectSystem = getOwnerAppStage()->getSystemOfType<TrackingMountObjectSystem>();
-
 	return initTypedPropertyInterface<MarkerTrackingVolumeComponent>();
 }
 
-void GuiPanel_MarkerTrackingVolumeComponent::onGui()
+void GuiPanel_MarkerTrackingVolumeComponent::onConstruct()
 {
-	GuiPanel_MikanComponent::onGui();
-
-	MarkerTrackingVolumeComponentPtr volumeComp = getMarkerTrackingVolumeComponent();
-	if (!volumeComp)
-		return;
-
-	ImGui::Separator();
-
-	// Origin marker dropdown
-	{
-		MarkerObjectSystemPtr markerSystem = getMarkerObjectSystem();
-		int currentMarkerId = volumeComp->getMarkerTrackingVolumeDefinition()->getOriginMarkerId();
-		const std::string previewStr = (currentMarkerId == INVALID_MIKAN_ID) ? "None" : std::to_string(currentMarkerId);
-
-		if (ImGui::BeginCombo("Origin Marker", previewStr.c_str()))
+	// Origin Marker — component combo (property in TrackingVolumeDefinition base class)
+	m_entityAccessor->setPropertyRenderer(
+		TrackingVolumeDefinition::k_originMarkerIdPropertyId,
+		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			if (markerSystem)
-			{
-				auto markerSystemDef = markerSystem->getTypedDefinition();
-				for (const auto& it : markerSystem->getComponentMap())
-				{
-					const int markerId = (int)it.first;
-					const bool bSelected = (markerId == currentMarkerId);
+			MarkerTrackingVolumeComponentPtr volumeComp = getMarkerTrackingVolumeComponent();
+			if (!volumeComp) return false;
+			auto volumeDef = volumeComp->getMarkerTrackingVolumeDefinition();
 
-					if (ImGui::Selectable(std::to_string(markerId).c_str(), bSelected))
+			m_originMarkerDataSource.refreshEntries();
+			const int currentId = volumeDef->getOriginMarkerId();
+			int selectedIndex = m_originMarkerDataSource.getEntryIndexByComponentId(currentId);
+
+			if (MkGui::drawComboBoxProperty(
+				m_defaultGuiStyle, "originMarkerId", "Origin Marker",
+				&m_originMarkerDataSource, selectedIndex))
+			{
+				if (selectedIndex >= 0)
+				{
+					MikanComponentPtr comp = m_originMarkerDataSource.getEntryAtIndex(selectedIndex);
+					if (comp)
 					{
-						addDeferredGuiEvent([volumeComp, markerId]() {
-							volumeComp->getMarkerTrackingVolumeDefinition()->setOriginMarkerId(markerId);
+						const int newId = comp->getComponentId();
+						addDeferredGuiEvent([volumeComp, newId]() {
+							volumeComp->getMarkerTrackingVolumeDefinition()->setOriginMarkerId(newId);
 						});
 					}
 				}
 			}
-			ImGui::EndCombo();
-		}
-	}
-}
-
-MarkerObjectSystemPtr GuiPanel_MarkerTrackingVolumeComponent::getMarkerObjectSystem() const
-{
-	return m_markerObjectSystem.lock();
-}
-
-TrackingMountObjectSystemPtr GuiPanel_MarkerTrackingVolumeComponent::getTrackingMountObjectSystem() const
-{
-	return m_trackingMountObjectSystem.lock();
+			return true;
+		});
 }
 
 MarkerTrackingVolumeComponentPtr GuiPanel_MarkerTrackingVolumeComponent::getMarkerTrackingVolumeComponent() const

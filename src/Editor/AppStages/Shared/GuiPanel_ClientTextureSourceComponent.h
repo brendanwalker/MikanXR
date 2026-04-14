@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Shared/GuiPanel_MikanComponent.h"
+#include "Shared/GuiDataSource_StringList.h"
 #include "ClientTextureSourceComponent.h"
 
 enum class eTextureSourceDisplayBufferType : int
@@ -23,4 +24,5 @@ public:
 
 private:
 	eTextureSourceDisplayBufferType m_displayBufferType = eTextureSourceDisplayBufferType::Color;
+	GuiDataSource_StringList m_displayBufferDataSource;
 };

@@ -3,116 +3,85 @@
 #include "VRObjectSystem.h"
 #include "VRDeviceComponent.h"
 
-#include "imgui.h"
-
 bool GuiPanel_TrackingMountComponent::init()
 {
 	m_vrObjectSystem = getOwnerAppStage()->getSystemOfType<VRObjectSystem>();
 	return initTypedPropertyInterface<TrackingMountComponent>();
 }
 
-bool GuiPanel_TrackingMountComponent::setComponent(MikanComponentPtr component)
+void GuiPanel_TrackingMountComponent::onConstruct()
 {
-	if (GuiPanel_MikanComponent::setComponent(component))
-	{
-		// Rebuild VR device path list
-		m_vrDevicePaths.clear();
-		VRObjectSystemPtr vrObjectSystem = getVRObjectSystem();
-		if (vrObjectSystem)
+	// VR Device path dropdown
+	m_entityAccessor->setPropertyRenderer(
+		TrackingMountDefinition::k_devicePathPropertyId,
+		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			for (const auto& it : vrObjectSystem->getComponentMap())
+			TrackingMountComponentPtr mountComp = getTrackingMountComponent();
+			if (!mountComp) return false;
+
+			VRObjectSystemPtr vrObjectSystem = getVRObjectSystem();
+			std::vector<std::string> devicePaths;
+			if (vrObjectSystem)
 			{
-				auto vrDeviceComp = it.second.lock();
-				if (vrDeviceComp)
+				for (const auto& it : vrObjectSystem->getComponentMap())
 				{
-					m_vrDevicePaths.push_back(vrDeviceComp->getVRDeviceDefinition()->getVRDevicePath());
+					auto vrDeviceComp = it.second.lock();
+					if (vrDeviceComp)
+					{
+						devicePaths.push_back(vrDeviceComp->getVRDeviceDefinition()->getVRDevicePath());
+					}
 				}
 			}
-		}
+			m_devicePathDataSource.setEntries(devicePaths);
 
-		// Rebuild socket names for current device
-		m_socketNames.clear();
-		auto vrDeviceComp = getVRDeviceComponent();
-		if (vrDeviceComp)
-		{
-			m_socketNames = vrDeviceComp->getSocketNames();
-		}
+			const std::string& currentPath = mountComp->getTrackingMountDefinition()->getDevicePath();
+			int selectedIndex = m_devicePathDataSource.getEntryIndexByString(currentPath);
 
-		return true;
-	}
-
-	return false;
-}
-
-void GuiPanel_TrackingMountComponent::onGui()
-{
-	GuiPanel_MikanComponent::onGui();
-
-	TrackingMountComponentPtr mountComp = getTrackingMountComponent();
-	if (!mountComp)
-		return;
-
-	ImGui::Separator();
-
-	// VR device path dropdown
-	{
-		const std::string& currentDevicePath = mountComp->getTrackingMountDefinition()->getDevicePath();
-		const char* previewLabel = currentDevicePath.empty() ? "None" : currentDevicePath.c_str();
-
-		// Refresh VR device path list from system
-		VRObjectSystemPtr vrObjectSystem = getVRObjectSystem();
-		std::vector<std::string> devicePaths;
-		if (vrObjectSystem)
-		{
-			for (const auto& it : vrObjectSystem->getComponentMap())
+			if (MkGui::drawComboBoxProperty(
+				m_defaultGuiStyle, "mountDevicePath", "VR Device",
+				&m_devicePathDataSource, selectedIndex))
 			{
-				auto vrDeviceComp = it.second.lock();
-				if (vrDeviceComp)
+				if (selectedIndex >= 0)
 				{
-					devicePaths.push_back(vrDeviceComp->getVRDeviceDefinition()->getVRDevicePath());
-				}
-			}
-		}
-
-		if (ImGui::BeginCombo("VR Device", previewLabel))
-		{
-			for (const std::string& devicePath : devicePaths)
-			{
-				const bool bSelected = (devicePath == currentDevicePath);
-				if (ImGui::Selectable(devicePath.c_str(), bSelected))
-				{
-					addDeferredGuiEvent([this, mountComp, devicePath]() {
-						setDevicePath(devicePath);
+					const std::string newPath = m_devicePathDataSource.getEntryDisplayString(selectedIndex);
+					addDeferredGuiEvent([this, newPath]() {
+						setDevicePath(newPath);
 					});
 				}
 			}
-			ImGui::EndCombo();
-		}
-	}
+			return true;
+		});
 
-	// Socket name dropdown (for currently selected VR device)
-	{
-		auto vrDeviceComp = getVRDeviceComponent();
-		std::vector<std::string> socketNames = vrDeviceComp ? vrDeviceComp->getSocketNames() : std::vector<std::string>{};
-
-		const std::string& currentSocketName = mountComp->getTrackingMountDefinition()->getSocketName();
-		const char* previewLabel = currentSocketName.empty() ? "None" : currentSocketName.c_str();
-
-		if (ImGui::BeginCombo("Socket", previewLabel))
+	// Socket name dropdown
+	m_entityAccessor->setPropertyRenderer(
+		TrackingMountDefinition::k_socketNamePropertyId,
+		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			for (const std::string& socketName : socketNames)
+			TrackingMountComponentPtr mountComp = getTrackingMountComponent();
+			if (!mountComp) return false;
+
+			auto vrDeviceComp = getVRDeviceComponent();
+			std::vector<std::string> socketNames =
+				vrDeviceComp ? vrDeviceComp->getSocketNames() : std::vector<std::string>{};
+			m_socketNameDataSource.setEntries(socketNames);
+
+			const std::string& currentSocket = mountComp->getTrackingMountDefinition()->getSocketName();
+			int selectedIndex = m_socketNameDataSource.getEntryIndexByString(currentSocket);
+
+			if (MkGui::drawComboBoxProperty(
+				m_defaultGuiStyle, "mountSocketName", "Socket",
+				&m_socketNameDataSource, selectedIndex))
 			{
-				const bool bSelected = (socketName == currentSocketName);
-				if (ImGui::Selectable(socketName.c_str(), bSelected))
+				if (selectedIndex >= 0)
 				{
-					addDeferredGuiEvent([mountComp, socketName]() {
-						mountComp->getTrackingMountDefinition()->setSocketName(socketName);
+					const std::string newSocket = m_socketNameDataSource.getEntryDisplayString(selectedIndex);
+					addDeferredGuiEvent([mountComp, newSocket]() {
+						mountComp->getTrackingMountDefinition()->setSocketName(newSocket);
 					});
 				}
 			}
-			ImGui::EndCombo();
-		}
-	}
+			return true;
+		});
 }
 
 VRObjectSystemPtr GuiPanel_TrackingMountComponent::getVRObjectSystem() const

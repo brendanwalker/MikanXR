@@ -6,6 +6,7 @@
 
 bool GuiPanel_ClientTextureSourceComponent::init()
 {
+	m_displayBufferDataSource.setEntries({ "Color", "Depth" });
 	return initTypedPropertyInterface<ClientTextureSourceComponent>();
 }
 
@@ -15,10 +16,12 @@ void GuiPanel_ClientTextureSourceComponent::onGui()
 
 	ImGui::Separator();
 
-	// Display buffer type selector (Color = 0, Depth = 1)
-	const char* bufferTypeNames[] = { "Color", "Depth" };
-	if (ImGui::Combo("Display Buffer", (int*)&m_displayBufferType, bufferTypeNames, 2))
+	// Display buffer type selector
+	int selectedIndex = (int)m_displayBufferType;
+	if (MkGui::drawComboBoxProperty(
+		m_defaultGuiStyle, "displayBufferType", "Display Buffer",
+		&m_displayBufferDataSource, selectedIndex))
 	{
-		// m_displayBufferType updated by ImGui directly
+		m_displayBufferType = (eTextureSourceDisplayBufferType)selectedIndex;
 	}
 }

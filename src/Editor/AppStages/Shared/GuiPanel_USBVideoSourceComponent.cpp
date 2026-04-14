@@ -3,162 +3,150 @@
 #include "USBVideoSourceComponent.h"
 #include "USBVideoSourceSystem.h"
 
-#include "imgui.h"
-
 bool GuiPanel_USBVideoSourceComponent::init()
 {
 	m_usbVideoSourceSystem = getOwnerAppStage()->getObjectSystemOfType<USBVideoSourceSystem>();
 	return initTypedPropertyInterface<USBVideoSourceComponent>();
 }
 
-bool GuiPanel_USBVideoSourceComponent::setComponent(MikanComponentPtr component)
+void GuiPanel_USBVideoSourceComponent::onConstruct()
 {
-	if (GuiPanel_MikanComponent::setComponent(component))
-	{
-		m_usbDevicePaths.clear();
-		m_videoResolutions.clear();
-		m_videoFrameRates.clear();
-		m_videoFormats.clear();
-
-		auto usbSystem = getUSBVideoSourceSystem();
-		if (usbSystem)
-		{
-			usbSystem->getConnectedUSBVideoSourcePaths(m_usbDevicePaths);
-		}
-
-		auto usbComp = getUSBVideoSourceComponent();
-		if (usbComp)
-		{
-			usbComp->getVideoResolutionNames(m_videoResolutions);
-			usbComp->getVideoFrameRateNames(m_videoFrameRates);
-			usbComp->getVideoFormatNames(m_videoFormats);
-		}
-
-		return true;
-	}
-
-	return false;
-}
-
-void GuiPanel_USBVideoSourceComponent::onGui()
-{
-	GuiPanel_MikanComponent::onGui();
-
-	auto usbComp = getUSBVideoSourceComponent();
-	if (!usbComp)
-		return;
-
-	ImGui::Separator();
-
 	// USB device path dropdown
-	{
-		const std::string& currentDevicePath = usbComp->getUSBVideoSourceDefinition()->getDevicePath();
-		const char* previewLabel = currentDevicePath.empty() ? "None" : currentDevicePath.c_str();
-
-		// Refresh device paths from system
-		auto usbSystem = getUSBVideoSourceSystem();
-		std::vector<std::string> devicePaths;
-		if (usbSystem)
+	m_entityAccessor->setPropertyRenderer(
+		USBVideoSourceDefinition::k_desiredDevicePathPropertyId,
+		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			usbSystem->getConnectedUSBVideoSourcePaths(devicePaths);
-		}
+			auto usbComp = getUSBVideoSourceComponent();
+			if (!usbComp) return false;
 
-		if (ImGui::BeginCombo("USB Device", previewLabel))
-		{
-			for (const std::string& devicePath : devicePaths)
+			auto usbSystem = getUSBVideoSourceSystem();
+			std::vector<std::string> devicePaths;
+			if (usbSystem)
+				usbSystem->getConnectedUSBVideoSourcePaths(devicePaths);
+			m_devicePathDataSource.setEntries(devicePaths);
+
+			const std::string& currentPath = usbComp->getUSBVideoSourceDefinition()->getDevicePath();
+			int selectedIndex = m_devicePathDataSource.getEntryIndexByString(currentPath);
+
+			if (MkGui::drawComboBoxProperty(
+				m_defaultGuiStyle, "usbDevicePath", "USB Device",
+				&m_devicePathDataSource, selectedIndex))
 			{
-				const bool bSelected = (devicePath == currentDevicePath);
-				if (ImGui::Selectable(devicePath.c_str(), bSelected))
+				if (selectedIndex >= 0)
 				{
-					addDeferredGuiEvent([usbComp, devicePath]() {
-						usbComp->getUSBVideoSourceDefinition()->setDevicePath(devicePath);
+					const std::string newPath = m_devicePathDataSource.getEntryDisplayString(selectedIndex);
+					addDeferredGuiEvent([usbComp, newPath]() {
+						usbComp->getUSBVideoSourceDefinition()->setDevicePath(newPath);
 					});
 				}
 			}
-			ImGui::EndCombo();
-		}
-	}
+			return true;
+		});
 
 	// Video resolution dropdown
-	{
-		std::string currentResolution;
-		usbComp->getVideoModeResolutionName(currentResolution);
-
-		std::vector<std::string> resolutions;
-		usbComp->getVideoResolutionNames(resolutions);
-
-		if (ImGui::BeginCombo("Resolution", currentResolution.c_str()))
+	m_entityAccessor->setPropertyRenderer(
+		USBVideoSourceDefinition::k_videoResolutionPropertyId,
+		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			for (const std::string& resolution : resolutions)
+			auto usbComp = getUSBVideoSourceComponent();
+			if (!usbComp) return false;
+
+			std::vector<std::string> resolutions;
+			usbComp->getVideoResolutionNames(resolutions);
+			m_resolutionDataSource.setEntries(resolutions);
+
+			std::string currentResolution;
+			usbComp->getVideoModeResolutionName(currentResolution);
+			int selectedIndex = m_resolutionDataSource.getEntryIndexByString(currentResolution);
+
+			if (MkGui::drawComboBoxProperty(
+				m_defaultGuiStyle, "usbVideoResolution", "Resolution",
+				&m_resolutionDataSource, selectedIndex))
 			{
-				const bool bSelected = (resolution == currentResolution);
-				if (ImGui::Selectable(resolution.c_str(), bSelected))
+				if (selectedIndex >= 0)
 				{
-					addDeferredGuiEvent([usbComp, resolution]() {
+					const std::string newResolution =
+						m_resolutionDataSource.getEntryDisplayString(selectedIndex);
+					addDeferredGuiEvent([usbComp, newResolution]() {
 						std::string frameRate, format;
 						usbComp->getVideoModeFrameRateName(frameRate);
 						usbComp->getVideoModeFormatName(format);
-						usbComp->setVideoModeToBestMatch(resolution, frameRate, format);
+						usbComp->setVideoModeToBestMatch(newResolution, frameRate, format);
 					});
 				}
 			}
-			ImGui::EndCombo();
-		}
-	}
+			return true;
+		});
 
 	// Video frame rate dropdown
-	{
-		std::string currentFrameRate;
-		usbComp->getVideoModeFrameRateName(currentFrameRate);
-
-		std::vector<std::string> frameRates;
-		usbComp->getVideoFrameRateNames(frameRates);
-
-		if (ImGui::BeginCombo("Frame Rate", currentFrameRate.c_str()))
+	m_entityAccessor->setPropertyRenderer(
+		USBVideoSourceDefinition::k_videoFrameRatePropertyId,
+		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			for (const std::string& frameRate : frameRates)
+			auto usbComp = getUSBVideoSourceComponent();
+			if (!usbComp) return false;
+
+			std::vector<std::string> frameRates;
+			usbComp->getVideoFrameRateNames(frameRates);
+			m_frameRateDataSource.setEntries(frameRates);
+
+			std::string currentFrameRate;
+			usbComp->getVideoModeFrameRateName(currentFrameRate);
+			int selectedIndex = m_frameRateDataSource.getEntryIndexByString(currentFrameRate);
+
+			if (MkGui::drawComboBoxProperty(
+				m_defaultGuiStyle, "usbVideoFrameRate", "Frame Rate",
+				&m_frameRateDataSource, selectedIndex))
 			{
-				const bool bSelected = (frameRate == currentFrameRate);
-				if (ImGui::Selectable(frameRate.c_str(), bSelected))
+				if (selectedIndex >= 0)
 				{
-					addDeferredGuiEvent([usbComp, frameRate]() {
+					const std::string newFrameRate =
+						m_frameRateDataSource.getEntryDisplayString(selectedIndex);
+					addDeferredGuiEvent([usbComp, newFrameRate]() {
 						std::string resolution, format;
 						usbComp->getVideoModeResolutionName(resolution);
 						usbComp->getVideoModeFormatName(format);
-						usbComp->setVideoModeToBestMatch(resolution, frameRate, format);
+						usbComp->setVideoModeToBestMatch(resolution, newFrameRate, format);
 					});
 				}
 			}
-			ImGui::EndCombo();
-		}
-	}
+			return true;
+		});
 
 	// Video format dropdown
-	{
-		std::string currentFormat;
-		usbComp->getVideoModeFormatName(currentFormat);
-
-		std::vector<std::string> formats;
-		usbComp->getVideoFormatNames(formats);
-
-		if (ImGui::BeginCombo("Format", currentFormat.c_str()))
+	m_entityAccessor->setPropertyRenderer(
+		USBVideoSourceDefinition::k_videoFormatPropertyId,
+		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			for (const std::string& format : formats)
+			auto usbComp = getUSBVideoSourceComponent();
+			if (!usbComp) return false;
+
+			std::vector<std::string> formats;
+			usbComp->getVideoFormatNames(formats);
+			m_formatDataSource.setEntries(formats);
+
+			std::string currentFormat;
+			usbComp->getVideoModeFormatName(currentFormat);
+			int selectedIndex = m_formatDataSource.getEntryIndexByString(currentFormat);
+
+			if (MkGui::drawComboBoxProperty(
+				m_defaultGuiStyle, "usbVideoFormat", "Format",
+				&m_formatDataSource, selectedIndex))
 			{
-				const bool bSelected = (format == currentFormat);
-				if (ImGui::Selectable(format.c_str(), bSelected))
+				if (selectedIndex >= 0)
 				{
-					addDeferredGuiEvent([usbComp, format]() {
+					const std::string newFormat =
+						m_formatDataSource.getEntryDisplayString(selectedIndex);
+					addDeferredGuiEvent([usbComp, newFormat]() {
 						std::string resolution, frameRate;
 						usbComp->getVideoModeResolutionName(resolution);
 						usbComp->getVideoModeFrameRateName(frameRate);
-						usbComp->setVideoModeToBestMatch(resolution, frameRate, format);
+						usbComp->setVideoModeToBestMatch(resolution, frameRate, newFormat);
 					});
 				}
 			}
-			ImGui::EndCombo();
-		}
-	}
+			return true;
+		});
 }
 
 USBVideoSourceSystemPtr GuiPanel_USBVideoSourceComponent::getUSBVideoSourceSystem() const

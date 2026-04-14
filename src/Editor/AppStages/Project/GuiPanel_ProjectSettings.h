@@ -1,7 +1,9 @@
 #pragma once
 
 #include "Shared/GuiPanel.h"
+#include "Shared/GuiDataSource_StringList.h"
 #include "EditorObjectSystem.h"
+#include "MkGuiStyle.h"
 #include "ObjectSystemFwd.h"
 
 class GuiPanel_ProjectSettings : public GuiPanel
@@ -19,4 +21,7 @@ private:
 
 	std::string m_selectedLanguageId;
 	std::vector<std::string> m_languageIdList;
+
+	MkGuiStyleConstPtr m_defaultGuiStyle;
+	GuiDataSource_StringList m_languageDataSource;
 };
