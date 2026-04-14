@@ -38,6 +38,13 @@ namespace MkGui
 		const std::string fieldName,
 		const std::string label,
 		float& inout_value);
+	bool drawFloatSliderProperty(
+		MkGuiStyleConstPtr style,
+		const std::string fieldName,
+		const std::string label,
+		float& inout_value,
+		float srcMin, float srcMax,
+		float displayMin, float displayMax);
 	bool drawFloat2Property(
 		MkGuiStyleConstPtr style,
 		const std::string fieldName,

@@ -16,6 +16,7 @@ public:
 	//-- GuiPanel_MikanComponent Interface
 	virtual bool init() override;
 	virtual void onConstruct() override;
+	virtual void onGui() override;
 
 protected:
 	USBVideoSourceSystemPtr getUSBVideoSourceSystem() const;

@@ -69,6 +69,10 @@ public:
 
 	std::string getDeviceFriendlyName() const;
 
+	bool hasVideoSetting(eVideoSettingType settingType) const;
+	bool getVideoSettingAsFloatFraction(eVideoSettingType settingType, float& outFloatFraction) const;
+	bool setVideoSettingAsFloatFraction(eVideoSettingType settingType, float outFloatFraction, bool bForce = false);
+
 	// VideoSourceComponent Interface
 	virtual std::string getDevicePath() const override;
 	virtual std::string getDeviceAPI() const override;
@@ -135,9 +139,6 @@ protected:
 	void handleWantsActiveStream();
 	void saveVideoSettingDefaultsFromCurrentMode();
 	void restoreVideoSettingsToCurrentMode();
-	bool hasVideoSetting(eVideoSettingType settingType) const;
-	bool getVideoSettingAsFloatFraction(eVideoSettingType settingType, float& outFloatFraction) const;
-	bool setVideoSettingAsFloatFraction(eVideoSettingType settingType, float outFloatFraction, bool bForce= false);
 	void rebuildVideoModeOptionLists();
 
 protected:

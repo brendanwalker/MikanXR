@@ -77,6 +77,34 @@ namespace MkGui
 		return ImGui::InputFloat(imguiElementName.c_str(), &inout_value);
 	}
 
+	bool drawFloatSliderProperty(
+		MkGuiStyleConstPtr style,
+		const std::string fieldName,
+		const std::string label,
+		float& inout_value,
+		float srcMin, float srcMax,
+		float displayMin, float displayMax)
+	{
+		const float srcRange = srcMax - srcMin;
+		float displayValue = (srcRange != 0.0f)
+			? displayMin + (inout_value - srcMin) / srcRange * (displayMax - displayMin)
+			: displayMin;
+
+		ImGui::Text(label.c_str());
+		ImGui::SameLine(style->labelWidth);
+		ImGui::SetNextItemWidth(style->valueWidth);
+		const std::string imguiElementName = makeImGuiElementName(fieldName);
+		if (ImGui::SliderFloat(imguiElementName.c_str(), &displayValue, displayMin, displayMax))
+		{
+			const float displayRange = displayMax - displayMin;
+			inout_value = (displayRange != 0.0f)
+				? srcMin + (displayValue - displayMin) / displayRange * (srcMax - srcMin)
+				: srcMin;
+			return true;
+		}
+		return false;
+	}
+
 	bool drawFloat2Property(
 		MkGuiStyleConstPtr style,
 		const std::string fieldName,

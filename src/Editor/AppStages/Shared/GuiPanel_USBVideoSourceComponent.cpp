@@ -3,6 +3,11 @@
 #include "USBVideoSourceComponent.h"
 #include "USBVideoSourceSystem.h"
 
+#include "imgui.h"
+
+#include <algorithm>
+#include <cctype>
+
 std::set<std::string> GuiPanel_USBVideoSourceComponent::k_compactGuiPropertiesSet = {
 	MikanComponentDefinition::k_componentNamePropertyId,
 	USBVideoSourceComponent::k_currentFriendlyNamePropertyId,
@@ -159,6 +164,51 @@ void GuiPanel_USBVideoSourceComponent::onConstruct()
 			}
 			return true;
 		});
+}
+
+void GuiPanel_USBVideoSourceComponent::onGui()
+{
+	GuiPanel_MikanComponent::onGui();
+
+	auto usbComp = getUSBVideoSourceComponent();
+	if (!usbComp)
+		return;
+
+	// Draw a slider for each supported video setting
+	bool anySettingSupported = false;
+	for (int settingIndex = 0; settingIndex < (int)eVideoSettingType::COUNT; ++settingIndex)
+	{
+		const eVideoSettingType settingType = (eVideoSettingType)settingIndex;
+		if (!usbComp->isVideoSettingSupported(settingType))
+			continue;
+
+		float fraction = 0.0f;
+		if (!usbComp->getVideoSettingAsFloatFraction(settingType, fraction))
+			continue;
+
+		if (!anySettingSupported)
+		{
+			ImGui::Separator();
+			anySettingSupported = true;
+		}
+
+		// Build display label: capitalize first char, replace '_' with ' '
+		const std::string& prefix =
+			USBVideoSourceComponent::k_videoSettingPropertyPrefixes[settingIndex];
+		std::string label = prefix;
+		if (!label.empty())
+			label[0] = (char)std::toupper((unsigned char)label[0]);
+		std::replace(label.begin(), label.end(), '_', ' ');
+
+		const std::string fieldName = prefix + "_slider";
+		if (MkGui::drawFloatSliderProperty(
+			m_defaultGuiStyle, fieldName, label, fraction, 0.0f, 1.0f, 0.0f, 100.0f))
+		{
+			addDeferredGuiEvent([usbComp, settingType, fraction]() {
+				usbComp->setVideoSettingAsFloatFraction(settingType, fraction);
+			});
+		}
+	}
 }
 
 USBVideoSourceSystemPtr GuiPanel_USBVideoSourceComponent::getUSBVideoSourceSystem() const
