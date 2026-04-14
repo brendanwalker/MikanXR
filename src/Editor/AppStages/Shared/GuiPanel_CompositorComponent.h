@@ -1,24 +1,22 @@
 #pragma once
 
 #include "Shared/GuiPanel_MikanComponent.h"
+#include "Shared/GuiDataSource_ComboBox.h"
 #include "CompositorComponent.h"
-#include "CameraObjectSystem.h"
 
 class GuiPanel_CompositorComponent : public GuiPanel_MikanComponent
 {
 public:
-	GuiPanel_CompositorComponent(AppStage* ownerAppStage) : GuiPanel_MikanComponent(ownerAppStage) {}
+	GuiPanel_CompositorComponent(AppStage* ownerAppStage);
 
 	virtual bool init() override;
-	virtual bool setComponent(MikanComponentPtr component) override;
-	virtual void onGui() override;
+	virtual void onConstruct() override;
 
 protected:
-	CameraObjectSystemPtr getCameraObjectSystem() const;
 	CompositorComponentPtr getCompositorComponent() const;
 
 private:
-	CameraObjectSystemWeakPtr m_cameraObjectSystem;
+	GuiDataSource_ComboBox m_cameraDataSource;
 };
 
 using GuiPanel_CompositorComponentPtr = std::shared_ptr<GuiPanel_CompositorComponent>;
