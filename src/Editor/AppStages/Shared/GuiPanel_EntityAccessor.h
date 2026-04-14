@@ -10,6 +10,7 @@
 #include <memory>
 #include <string>
 #include <map>
+#include <set>
 #include <vector>
 
 class GuiPanel_EntityAccessor : public GuiPanel
@@ -37,6 +38,11 @@ public:
 		const std::vector<PropertyDescriptorConstPtr>& propertyDescriptors,
 		const std::vector<FunctionDescriptorConstPtr>& functionDescriptors,
 		OnConstruct onConstructCallback = {});
+
+	void drawPropertiesGui();
+	void drawPropertiesGui(const std::set<std::string>& propertyNames);
+	void drawFunctionsGui();
+	void drawFunctionsGui(const std::set<std::string>& functionNames);
 
 	// IGuiPanel
 	virtual void onGui() override;

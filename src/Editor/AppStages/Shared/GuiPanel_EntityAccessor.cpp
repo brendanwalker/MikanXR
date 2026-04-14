@@ -125,7 +125,12 @@ void GuiPanel_EntityAccessor::setPropertyRenderer(
 	m_propertyRenderers[propName] = renderer;
 }
 
-void GuiPanel_EntityAccessor::onGui()
+void GuiPanel_EntityAccessor::drawPropertiesGui()
+{
+	drawPropertiesGui({});
+}
+
+void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& propertyNames)
 {
 	IEntityAccessorPtr accessor = m_entityAccessor.lock();
 	if (!accessor)
@@ -137,6 +142,10 @@ void GuiPanel_EntityAccessor::onGui()
 	for (const PropertyDescriptorConstPtr& desc : m_orderedPropertyDescriptors)
 	{
 		const std::string& propName = desc->getName();
+
+		// If a property name filter is provided, skip properties that aren't in the filter set
+		if (!propertyNames.empty() && propertyNames.find(propName) == propertyNames.end())
+			continue;
 
 		// Check for a registered custom renderer; if it returns true the property is fully handled
 		auto rendererIt = m_propertyRenderers.find(propName);
@@ -263,8 +272,22 @@ void GuiPanel_EntityAccessor::onGui()
 			// Capture by value for safe deferred use
 			addDeferredGuiEvent([accessor, propName, newValue]() mutable {
 				accessor->setPropertyValue(propName, newValue);
-			});
+				});
 		}
+	}
+}
+
+void GuiPanel_EntityAccessor::drawFunctionsGui()
+{
+	drawFunctionsGui({});
+}
+
+void GuiPanel_EntityAccessor::drawFunctionsGui(const std::set<std::string>& functionNames)
+{
+	IEntityAccessorPtr accessor = m_entityAccessor.lock();
+	if (!accessor)
+	{
+		return;
 	}
 
 	// Render function buttons
@@ -273,6 +296,13 @@ void GuiPanel_EntityAccessor::onGui()
 		ImGui::Separator();
 		for (const FunctionDescriptorConstPtr& funcDesc : m_functionDescriptors)
 		{
+			// If a function name filter is provided, skip functions that aren't in the filter set
+			if (!functionNames.empty() && 
+				functionNames.find(funcDesc->getFunctionName()) == functionNames.end())
+			{
+				continue;
+			}
+
 			if (ImGui::Button(funcDesc->getDisplayName().c_str()))
 			{
 				const std::string funcName = funcDesc->getFunctionName();
@@ -285,6 +315,12 @@ void GuiPanel_EntityAccessor::onGui()
 			}
 		}
 	}
+}
+
+void GuiPanel_EntityAccessor::onGui()
+{
+	drawPropertiesGui();
+	drawFunctionsGui();
 }
 
 void GuiPanel_EntityAccessor::onEntityDisposed(const IEntityAccessor* selfPtr)
