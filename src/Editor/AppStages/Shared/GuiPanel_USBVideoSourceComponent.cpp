@@ -3,6 +3,18 @@
 #include "USBVideoSourceComponent.h"
 #include "USBVideoSourceSystem.h"
 
+std::set<std::string> GuiPanel_USBVideoSourceComponent::k_compactGuiPropertiesSet = {
+	MikanComponentDefinition::k_componentNamePropertyId,
+	USBVideoSourceComponent::k_currentFriendlyNamePropertyId,
+	USBVideoSourceDefinition::k_videoResolutionPropertyId,
+	USBVideoSourceDefinition::k_videoFrameRatePropertyId,
+	USBVideoSourceDefinition::k_videoFormatPropertyId
+};
+
+std::set<std::string> GuiPanel_USBVideoSourceComponent::k_compactGuiFunctionsSet = {
+	USBVideoSourceComponent::k_showVideoSourceSettingsFunctionId
+};
+
 bool GuiPanel_USBVideoSourceComponent::init()
 {
 	m_usbVideoSourceSystem = getOwnerAppStage()->getObjectSystemOfType<USBVideoSourceSystem>();
@@ -162,4 +174,12 @@ USBVideoSourceComponentPtr GuiPanel_USBVideoSourceComponent::getUSBVideoSourceCo
 		return std::static_pointer_cast<USBVideoSourceComponent>(component);
 	}
 	return nullptr;
+}
+
+void GuiPanel_USBVideoSourceComponent::drawCompactGui()
+{
+	GuiPanel_EntityAccessorPtr entityAccessor= getPropertyInterface();
+
+	entityAccessor->drawPropertiesGui(k_compactGuiPropertiesSet);
+	entityAccessor->drawFunctionsGui(k_compactGuiFunctionsSet);
 }

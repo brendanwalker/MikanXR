@@ -10,6 +10,10 @@ class GuiPanel_USBVideoSourceComponent : public GuiPanel_MikanComponent
 public:
 	GuiPanel_USBVideoSourceComponent(AppStage* ownerAppStage) : GuiPanel_MikanComponent(ownerAppStage) {}
 
+	// Draw a compact version of the GUI that only shows the device path and video mode
+	void drawCompactGui();
+
+	//-- GuiPanel_MikanComponent Interface
 	virtual bool init() override;
 	virtual void onConstruct() override;
 
@@ -23,4 +27,7 @@ private:
 	GuiDataSource_StringList m_resolutionDataSource;
 	GuiDataSource_StringList m_frameRateDataSource;
 	GuiDataSource_StringList m_formatDataSource;
+
+	static std::set<std::string> k_compactGuiPropertiesSet;
+	static std::set<std::string> k_compactGuiFunctionsSet;
 };

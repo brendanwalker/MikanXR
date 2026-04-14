@@ -359,11 +359,13 @@ void VideoSourceComponent::getPropertyDescriptors(std::vector<PropertyDescriptor
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			VideoSourceDefinition::k_intrinsicsTypePropertyId, MikanVariantType::INT)
-		->setReadOnly());
+		->setReadOnly()
+		->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			VideoSourceDefinition::k_videoSourceIntrinsicsPropertyId, MikanVariantType::POLYMORPHIC_OBJECT)
-		->setReadOnly());	
+		->setReadOnly()
+		->setUIHidden());
 }
 
 bool VideoSourceComponent::getPropertyValue(

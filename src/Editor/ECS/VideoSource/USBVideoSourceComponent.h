@@ -110,6 +110,7 @@ public:
 
 	// -- IPropertyInterface ----
 	static const std::string k_currentDevicePathPropertyId;
+	static const std::string k_currentFriendlyNamePropertyId;
 	static const std::string k_currentVideoResolutionsPropertyId;
 	static const std::string k_currentVideoFrameRatesPropertyId;
 	static const std::string k_currentVideoFormatsPropertyId;

@@ -1346,6 +1346,7 @@ void USBVideoSourceComponent::notifyVideoFrameReceived(const UsbVideoFrameBuffer
 
 // -- IPropertyInterface ----
 const std::string USBVideoSourceComponent::k_currentDevicePathPropertyId = "current_device_path";
+const std::string USBVideoSourceComponent::k_currentFriendlyNamePropertyId = "current_friendly_name";
 const std::string USBVideoSourceComponent::k_currentVideoResolutionsPropertyId = "video_resolutions";
 const std::string USBVideoSourceComponent::k_currentVideoFrameRatesPropertyId = "video_frame_rates";
 const std::string USBVideoSourceComponent::k_currentVideoFormatsPropertyId = "video_formats";
@@ -1399,11 +1400,17 @@ void USBVideoSourceComponent::getPropertyDescriptors(std::vector<PropertyDescrip
 			->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			USBVideoSourceComponent::k_currentDevicePathPropertyId, MikanVariantType::STRING)
+			USBVideoSourceComponent::k_currentFriendlyNamePropertyId, MikanVariantType::STRING)
 			->setReadOnly());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			USBVideoSourceDefinition::k_videoModePropertyId, MikanVariantType::STRING));
+			USBVideoSourceComponent::k_currentDevicePathPropertyId, MikanVariantType::STRING)
+			->setReadOnly()
+			->setUIHidden());
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			USBVideoSourceDefinition::k_videoModePropertyId, MikanVariantType::STRING)
+		->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			USBVideoSourceDefinition::k_videoResolutionPropertyId, MikanVariantType::STRING)
@@ -1499,6 +1506,11 @@ bool USBVideoSourceComponent::getPropertyValue(
 	if (propertyName == USBVideoSourceDefinition::k_desiredDevicePathPropertyId)
 	{
 		outValue = getUSBVideoSourceDefinition()->getDevicePath();
+		return true;
+	}
+	else if (propertyName == USBVideoSourceComponent::k_currentFriendlyNamePropertyId)
+	{
+		outValue = (m_usbVideoDevice != nullptr) ? m_usbVideoDevice->getFriendlyName() : std::string();
 		return true;
 	}
 	else if (propertyName == USBVideoSourceComponent::k_currentDevicePathPropertyId)
