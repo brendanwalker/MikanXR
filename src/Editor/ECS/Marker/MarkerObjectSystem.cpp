@@ -196,7 +196,8 @@ void MarkerObjectSystem::getPropertyDescriptors(std::vector<PropertyDescriptorCo
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			MarkerObjectSystemDefinition::k_arucoIdListPropertyId, MikanVariantType::INT_ARRAY)
-		->setReadOnly());
+		->setReadOnly()
+		->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			MarkerObjectSystemDefinition::k_arucoDictionaryTypePropertyId, MikanVariantType::INT)

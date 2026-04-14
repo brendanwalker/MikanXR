@@ -232,7 +232,8 @@ void VRTrackingVolumeComponent::getPropertyDescriptors(std::vector<PropertyDescr
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			VRTrackingVolumeDefinition::k_trackingMountIdsPropertyId, MikanVariantType::INT_ARRAY)
-		->setReadOnly());
+		->setReadOnly()
+		->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			VRTrackingVolumeDefinition::k_vrDevicePoseOffsetPropertyId, MikanVariantType::MATRIX4F)
