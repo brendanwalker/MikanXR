@@ -7,6 +7,8 @@
 #include "Transform.h"
 #include "MikanCoreTypes.h"
 #include "MikanObject.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "ModelStencilSystem.h"
 #include "Project/AppStage_Project.h"
 #include "Project/ProjectGuiPanelContext.h"
@@ -38,6 +40,23 @@ bool GuiPanel_ProjectScenes::init(ProjectGuiPanelContext* context)
 	m_quadStencilSystem = ownerAppStage->getObjectSystemOfType<QuadStencilSystem>();
 	m_boxStencilSystem = ownerAppStage->getObjectSystemOfType<BoxStencilSystem>();
 	m_modelStencilSystem = ownerAppStage->getObjectSystemOfType<ModelStencilSystem>();
+
+	m_defaultGuiStyle = getGuiStyleManager()->getStyle("default_component_panel");
+
+	auto pm = ownerAppStage->getProjectManager();
+	m_sceneDataSource = std::make_unique<GuiDataSource_ComboBox>(pm,
+		std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
+			{ SceneObjectSystem::k_objectSystemClassName, SceneComponent::k_componentClassName }
+		});
+
+	m_compositorDataSource = std::make_unique<GuiDataSource_ComboBox>(pm,
+		std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
+			{ CompositorObjectSystem::k_objectSystemClassName, CompositorComponent::k_componentClassName }
+		});
+	m_compositorDataSource->setFilter([this](MikanComponentPtr comp) -> bool {
+		auto compositor = std::static_pointer_cast<CompositorComponent>(comp);
+		return compositor->getCompositorDefinition()->getOwnerSceneId() == m_selectedSceneId;
+	});
 
 	// Listen for anchor changes
 	AnchorObjectSystemPtr anchorSystem = m_anchorSystem.lock();
@@ -321,16 +340,7 @@ void GuiPanel_ProjectScenes::onGui()
 	if (!sceneSystem)
 		return;
 
-	// Scenes list
-	const auto& sceneMap = sceneSystem->getComponentMap();
-
-	// Validate scene selection
-	if (m_selectedSceneId != INVALID_MIKAN_ID &&
-		sceneMap.find(m_selectedSceneId) == sceneMap.end())
-	{
-		setSelectedSceneId(INVALID_MIKAN_ID);
-	}
-
+	// Scenes combo
 	if (ImGui::Button("Add Scene"))
 	{
 		addDeferredGuiEvent([this]() {
@@ -344,33 +354,29 @@ void GuiPanel_ProjectScenes::onGui()
 						return true;
 					});
 			}
-			});
+		});
 	}
 
-	ImGui::Text("Scenes");
-	if (ImGui::BeginListBox("##Scenes", ImVec2(-1, 80)))
+	m_sceneDataSource->refreshEntries();
+
+	if (m_selectedSceneId != INVALID_MIKAN_ID &&
+		m_sceneDataSource->getEntryIndexByComponentId(m_selectedSceneId) == -1)
 	{
-		for (const auto& [id, weakPtr] : sceneMap)
+		setSelectedSceneId(INVALID_MIKAN_ID);
+	}
+
+	int sceneIndex = m_sceneDataSource->getEntryIndexByComponentId(m_selectedSceneId);
+	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectScene", "Scene",
+		m_sceneDataSource.get(), sceneIndex))
+	{
+		if (sceneIndex >= 0)
 		{
-			SceneComponentPtr scene = std::static_pointer_cast<SceneComponent>(weakPtr.lock());
-			if (!scene)
-				continue;
-
-			std::string label = scene->getName().empty()
-				? ("Scene " + std::to_string(id))
-				: scene->getName();
-			label += "##scene" + std::to_string(id);
-
-			bool selected = (m_selectedSceneId == (int)id);
-			if (ImGui::Selectable(label.c_str(), selected))
+			if (MikanComponentPtr sel = m_sceneDataSource->getEntryAtIndex(sceneIndex))
 			{
-				int newId = (int)id;
-				addDeferredGuiEvent([this, newId]() {
-					setSelectedSceneId(newId);
-				});
+				int newId = sel->getComponentId();
+				addDeferredGuiEvent([this, newId]() { setSelectedSceneId(newId); });
 			}
 		}
-		ImGui::EndListBox();
 	}
 
 	if (m_selectedSceneId != INVALID_MIKAN_ID)
@@ -382,13 +388,12 @@ void GuiPanel_ProjectScenes::onGui()
 			});
 		}
 
-		// Render the select scene
 		m_context->getScenePanel()->onGui();
 	}
 
 	ImGui::Separator();
 
-	// Compositors list (filtered by selected scene)
+	// Compositors combo (filtered by selected scene)
 	CompositorObjectSystemPtr compositorSystem = m_compositorSystem.lock();
 	if (compositorSystem && m_selectedSceneId != INVALID_MIKAN_ID)
 	{
@@ -401,35 +406,31 @@ void GuiPanel_ProjectScenes::onGui()
 						def->setOwnerSceneId(sceneId);
 						return true;
 					});
-				});
+			});
 		}
 
-		ImGui::Text("Compositors");
-		if (ImGui::BeginListBox("##Compositors", ImVec2(-1, 80)))
+		m_compositorDataSource->refreshEntries();
+
+		if (m_selectedCompositorId != INVALID_MIKAN_ID &&
+			m_compositorDataSource->getEntryIndexByComponentId(m_selectedCompositorId) == -1)
 		{
-			for (const auto& [id, weakPtr] : compositorSystem->getComponentMap())
+			setSelectedCompositorId(INVALID_MIKAN_ID);
+		}
+
+		int compositorIndex = m_compositorDataSource->getEntryIndexByComponentId(m_selectedCompositorId);
+		if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectCompositor", "Compositor",
+			m_compositorDataSource.get(), compositorIndex))
+		{
+			if (compositorIndex >= 0)
 			{
-				CompositorComponentPtr comp = std::static_pointer_cast<CompositorComponent>(weakPtr.lock());
-				if (!comp)
-					continue;
-				if (comp->getCompositorDefinition()->getOwnerSceneId() != m_selectedSceneId)
-					continue;
-
-				std::string label = comp->getName().empty()
-					? ("Compositor " + std::to_string(id))
-					: comp->getName();
-				label += "##comp" + std::to_string(id);
-
-				bool selected = (m_selectedCompositorId == (int)id);
-				if (ImGui::Selectable(label.c_str(), selected))
+				if (MikanComponentPtr sel = m_compositorDataSource->getEntryAtIndex(compositorIndex))
 				{
-					int newId = (int)id;
+					int newId = sel->getComponentId();
 					addDeferredGuiEvent([this, newId]() {
 						setSelectedCompositorId((MikanCompositorID)newId);
 					});
 				}
 			}
-			ImGui::EndListBox();
 		}
 
 		if (m_selectedCompositorId != INVALID_MIKAN_ID)
@@ -438,10 +439,9 @@ void GuiPanel_ProjectScenes::onGui()
 			{
 				addDeferredGuiEvent([this]() {
 					m_compositorSystem.lock()->removeObjectByPrimaryComponentId(m_selectedCompositorId);
-					});
+				});
 			}
 
-			// Render the selected compositor
 			m_context->getCompositorPanel()->onGui();
 		}
 	}
@@ -460,7 +460,7 @@ void GuiPanel_ProjectScenes::onGui()
 						def->setParentTransformId(parentTransformId);
 						return true;
 					});
-				});
+			});
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Add Quad Stencil"))
@@ -477,7 +477,7 @@ void GuiPanel_ProjectScenes::onGui()
 						def->setIsDisabled(false);
 						return true;
 					});
-				});
+			});
 		}
 		if (ImGui::Button("Add Box Stencil"))
 		{
@@ -493,7 +493,7 @@ void GuiPanel_ProjectScenes::onGui()
 						def->setIsDisabled(false);
 						return true;
 					});
-				});
+			});
 		}
 		ImGui::SameLine();
 		if (ImGui::Button("Add Model Stencil"))
@@ -507,7 +507,7 @@ void GuiPanel_ProjectScenes::onGui()
 						def->setIsDisabled(false);
 						return true;
 					});
-				});
+			});
 		}
 
 		ImGui::Text("Scene Objects");
@@ -545,7 +545,6 @@ void GuiPanel_ProjectScenes::onGui()
 					m_sceneOutliner[m_selectedSceneObjectListIndex].selectionComponent.lock();
 				if (selComp)
 				{
-					// Find what system owns this component and remove it
 					MikanObjectPtr ownerObject = selComp->getOwnerObject();
 					MikanObjectSystemPtr ownerSystem = ownerObject->getOwnerSystem();
 
@@ -555,7 +554,6 @@ void GuiPanel_ProjectScenes::onGui()
 				}
 			}
 
-			// Render the select scene object 
 			m_context->getAnchorPanel()->onGui();
 			m_context->getQuadStencilPanel()->onGui();
 			m_context->getBoxStencilPanel()->onGui();

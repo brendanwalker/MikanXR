@@ -1,10 +1,14 @@
 #pragma once
 
 #include "Shared/GuiPanel.h"
+#include "Shared/GuiDataSource_ComboBox.h"
 #include "ComponentFwd.h"
 #include "MikanTypeFwd.h"
+#include "MkGuiStyle.h"
 #include "ObjectSystemFwd.h"
 #include "TrackingMountObjectSystem.h"
+
+#include <memory>
 
 class GuiPanel_ProjectTracking : public GuiPanel
 {
@@ -31,4 +35,8 @@ private:
 	int m_selectedTrackingVolumeId = INVALID_MIKAN_ID;
 	int m_selectedTrackingMountId = INVALID_MIKAN_ID;
 	bool m_isVRTrackingVolume = false;
+
+	MkGuiStyleConstPtr m_defaultGuiStyle;
+	std::unique_ptr<GuiDataSource_ComboBox> m_trackingVolumeDataSource;
+	std::unique_ptr<GuiDataSource_ComboBox> m_trackingMountDataSource;
 };

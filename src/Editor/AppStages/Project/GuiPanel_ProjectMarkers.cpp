@@ -2,11 +2,12 @@
 #include "MarkerComponent.h"
 #include "MarkerObjectSystem.h"
 #include "MikanCoreTypes.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "Project/AppStage_Project.h"
 #include "Project/ProjectGuiPanelContext.h"
 #include "Shared/GuiPanel_MarkerComponent.h"
 #include "Shared/GuiPanel_MarkerObjectSystem.h"
-#include "StringUtils.h"
 
 #include "imgui.h"
 
@@ -15,6 +16,21 @@ bool GuiPanel_ProjectMarkers::init(ProjectGuiPanelContext* context)
 	m_context = context;
 	AppStage_Project* ownerAppStage = context->getOwnerAppStage();
 	m_markerSystem = ownerAppStage->getObjectSystemOfType<MarkerObjectSystem>();
+
+	m_defaultGuiStyle = getGuiStyleManager()->getStyle("default_component_panel");
+
+	auto pm = ownerAppStage->getProjectManager();
+	m_markerDataSource = std::make_unique<GuiDataSource_ComboBox>(pm,
+		std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
+			{ MarkerObjectSystem::k_objectSystemClassName, MarkerComponent::k_componentClassName }
+		});
+	m_markerDataSource->setDisplayStringBuilder([](MikanComponentPtr comp) -> std::string {
+		auto marker = std::static_pointer_cast<MarkerComponent>(comp);
+		std::string name = comp->getName().empty()
+			? ("Marker " + std::to_string(comp->getComponentId()))
+			: comp->getName();
+		return name + " (Aruco:" + std::to_string(marker->getMarkerDefinition()->getArucoId()) + ")";
+	});
 
 	// Auto-select first marker if available
 	MarkerObjectSystemPtr markerSystem = getMarkerSystem();
@@ -63,15 +79,6 @@ void GuiPanel_ProjectMarkers::onGui()
 	if (!markerSystem)
 		return;
 
-	const auto& componentMap = markerSystem->getComponentMap();
-
-	// Validate selection
-	if (m_selectedMarkerId != INVALID_MIKAN_ID &&
-		componentMap.find(m_selectedMarkerId) == componentMap.end())
-	{
-		setSelectedMarkerId(INVALID_MIKAN_ID);
-	}
-
 	// Markers list
 	if (ImGui::Button("Add Marker"))
 	{
@@ -83,33 +90,32 @@ void GuiPanel_ProjectMarkers::onGui()
 				MikanMarkerID markerId = marker->getComponentId();
 				setSelectedMarkerId(markerId);
 			}
-			});
+		});
 	}
 
-	if (ImGui::BeginListBox("Markers", ImVec2(-1, 120)))
+	m_markerDataSource->refreshEntries();
+
+	// Validate selection
+	if (m_selectedMarkerId != INVALID_MIKAN_ID &&
+		m_markerDataSource->getEntryIndexByComponentId(m_selectedMarkerId) == -1)
 	{
-		for (const auto& [id, weakPtr] : componentMap)
+		setSelectedMarkerId(INVALID_MIKAN_ID);
+	}
+
+	int markerIndex = m_markerDataSource->getEntryIndexByComponentId(m_selectedMarkerId);
+	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectMarker", "Marker",
+		m_markerDataSource.get(), markerIndex))
+	{
+		if (markerIndex >= 0)
 		{
-			MarkerComponentPtr marker = std::static_pointer_cast<MarkerComponent>(weakPtr.lock());
-			if (!marker)
-				continue;
-
-			auto markerDefinition = marker->getMarkerDefinition();
-			std::string label = marker->getName().empty()
-				? ("Marker " + std::to_string(id))
-				: marker->getName();
-			label += " (Aruco:" + std::to_string(markerDefinition->getArucoId()) + ")##" + std::to_string(id);
-
-			bool selected = (m_selectedMarkerId == (int)id);
-			if (ImGui::Selectable(label.c_str(), selected))
+			if (MikanComponentPtr sel = m_markerDataSource->getEntryAtIndex(markerIndex))
 			{
-				int newId = (int)id;
+				int newId = sel->getComponentId();
 				addDeferredGuiEvent([this, newId]() {
 					setSelectedMarkerId((MikanMarkerID)newId);
 				});
 			}
 		}
-		ImGui::EndListBox();
 	}
 
 	if (m_selectedMarkerId != INVALID_MIKAN_ID)

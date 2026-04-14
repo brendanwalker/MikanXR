@@ -2,6 +2,8 @@
 #include "ClientTextureSourceComponent.h"
 #include "ClientTextureSourceSystem.h"
 #include "MikanCoreTypes.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "NetworkVideoSourceComponent.h"
 #include "NetworkVideoSourceSystem.h"
 #include "Project/AppStage_Project.h"
@@ -25,6 +27,22 @@ bool GuiPanel_ProjectSources::init(ProjectGuiPanelContext* context)
 	m_context = context;
 	AppStage_Project* ownerAppStage = context->getOwnerAppStage();
 	m_projectManager = ownerAppStage->getProjectManager();
+
+	m_defaultGuiStyle = getGuiStyleManager()->getStyle("default_component_panel");
+
+	auto pm = ownerAppStage->getProjectManager();
+	m_videoSourceDataSource = std::make_unique<GuiDataSource_ComboBox>(pm,
+		std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
+			{ USBVideoSourceSystem::k_objectSystemClassName, USBVideoSourceComponent::k_componentClassName },
+			{ NetworkVideoSourceSystem::k_objectSystemClassName, NetworkVideoSourceComponent::k_componentClassName }
+		});
+
+	m_textureSourceDataSource = std::make_unique<GuiDataSource_ComboBox>(pm,
+		std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
+			{ ClientTextureSourceSystem::k_objectSystemClassName, ClientTextureSourceComponent::k_componentClassName },
+			{ SpoutTextureSourceSystem::k_objectSystemClassName, SpoutTextureSourceComponent::k_componentClassName }
+		});
+
 	return true;
 }
 
@@ -77,7 +95,6 @@ void GuiPanel_ProjectSources::setSelectedVideoSourceId(MikanVideoSourceID videoS
 {
 	m_selectedVideoSourceId = (int)videoSourceId;
 
-	// Reset all video source panels first
 	m_context->getUSBVideoSourcePanel()->setComponent(nullptr);
 	m_context->getNetworkVideoSourcePanel()->setComponent(nullptr);
 
@@ -100,7 +117,6 @@ void GuiPanel_ProjectSources::setSelectedTextureSourceId(MikanTextureSourceID te
 {
 	m_selectedTextureSourceId = (int)textureSourceId;
 
-	// Reset all texture source panels first
 	m_context->getClientTextureSourcePanel()->setComponent(nullptr);
 	m_context->getSpoutTextureSourcePanel()->setComponent(nullptr);
 
@@ -126,23 +142,6 @@ void GuiPanel_ProjectSources::onGui()
 		return;
 
 	// Video Sources
-	ImGui::Text("Video Sources");
-
-	VideoSourceIdList videoIds = VideoSourceQueries::getVideoSourceIdList(pm);
-
-	// Validate selection
-	bool videoSelectionValid = false;
-	for (MikanVideoSourceID id : videoIds)
-	{
-		if ((int)id == m_selectedVideoSourceId)
-		{
-			videoSelectionValid = true;
-			break;
-		}
-	}
-	if (!videoSelectionValid && m_selectedVideoSourceId != INVALID_MIKAN_ID)
-		setSelectedVideoSourceId(INVALID_MIKAN_ID);
-
 	if (ImGui::Button("Add USB Source"))
 	{
 		addDeferredGuiEvent([this]() {
@@ -161,29 +160,30 @@ void GuiPanel_ProjectSources::onGui()
 		});
 	}
 
-	if (ImGui::BeginListBox("##VideoSources", ImVec2(-1, 80)))
-	{
-		for (MikanVideoSourceID id : videoIds)
-		{
-			VideoSourceComponentPtr source = VideoSourceQueries::getVideoSourceById(pm, id);
-			std::string label = source ? (source->getName().empty()
-				? "VideoSource " + std::to_string((int)id)
-				: source->getName()) : "VideoSource " + std::to_string((int)id);
-			label += "##vs" + std::to_string((int)id);
+	m_videoSourceDataSource->refreshEntries();
 
-			bool selected = (m_selectedVideoSourceId == (int)id);
-			if (ImGui::Selectable(label.c_str(), selected))
+	if (m_selectedVideoSourceId != INVALID_MIKAN_ID &&
+		m_videoSourceDataSource->getEntryIndexByComponentId(m_selectedVideoSourceId) == -1)
+	{
+		setSelectedVideoSourceId(INVALID_MIKAN_ID);
+	}
+
+	int videoIndex = m_videoSourceDataSource->getEntryIndexByComponentId(m_selectedVideoSourceId);
+	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectVideoSource", "Video Source",
+		m_videoSourceDataSource.get(), videoIndex))
+	{
+		if (videoIndex >= 0)
+		{
+			if (MikanComponentPtr sel = m_videoSourceDataSource->getEntryAtIndex(videoIndex))
 			{
-				int newId = (int)id;
+				int newId = sel->getComponentId();
 				addDeferredGuiEvent([this, newId]() {
 					setSelectedVideoSourceId((MikanVideoSourceID)newId);
 				});
 			}
 		}
-		ImGui::EndListBox();
 	}
 
-	// Render the selected Video Source Components
 	if (m_selectedVideoSourceId != INVALID_MIKAN_ID)
 	{
 		if (ImGui::Button("Remove Video Source"))
@@ -191,7 +191,7 @@ void GuiPanel_ProjectSources::onGui()
 			addDeferredGuiEvent([this]() {
 				auto pm = m_projectManager.lock();
 				VideoSourceQueries::removeVideoSource(pm, (MikanVideoSourceID)m_selectedVideoSourceId);
-				});
+			});
 		}
 
 		m_context->getUSBVideoSourcePanel()->onGui();
@@ -207,7 +207,7 @@ void GuiPanel_ProjectSources::onGui()
 			auto pm = m_projectManager.lock();
 			auto sys = pm->getSystemOfType<ClientTextureSourceSystem>();
 			sys->addNewObjectByTypedDefinition();
-			});
+		});
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("Add Spout Source"))
@@ -216,45 +216,31 @@ void GuiPanel_ProjectSources::onGui()
 			auto pm = m_projectManager.lock();
 			auto sys = pm->getSystemOfType<SpoutTextureSourceSystem>();
 			sys->addNewObjectByTypedDefinition();
-			});
+		});
 	}
 
-	ImGui::Text("Texture Sources");
-	TextureSourceIdList textureIds = TextureSourceQueries::getTextureSourceIdList(pm);
+	m_textureSourceDataSource->refreshEntries();
 
-	// Validate selection
-	bool textureSelectionValid = false;
-	for (MikanTextureSourceID id : textureIds)
+	if (m_selectedTextureSourceId != INVALID_MIKAN_ID &&
+		m_textureSourceDataSource->getEntryIndexByComponentId(m_selectedTextureSourceId) == -1)
 	{
-		if ((int)id == m_selectedTextureSourceId)
-		{
-			textureSelectionValid = true;
-			break;
-		}
-	}
-	if (!textureSelectionValid && m_selectedTextureSourceId != INVALID_MIKAN_ID)
 		setSelectedTextureSourceId(INVALID_MIKAN_ID);
+	}
 
-	if (ImGui::BeginListBox("##TextureSources", ImVec2(-1, 80)))
+	int textureIndex = m_textureSourceDataSource->getEntryIndexByComponentId(m_selectedTextureSourceId);
+	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectTextureSource", "Texture Source",
+		m_textureSourceDataSource.get(), textureIndex))
 	{
-		for (MikanTextureSourceID id : textureIds)
+		if (textureIndex >= 0)
 		{
-			TextureSourceComponentPtr source = TextureSourceQueries::getTextureSourceById(pm, id);
-			std::string label = source ? (source->getName().empty()
-				? "TextureSource " + std::to_string((int)id)
-				: source->getName()) : "TextureSource " + std::to_string((int)id);
-			label += "##ts" + std::to_string((int)id);
-
-			bool selected = (m_selectedTextureSourceId == (int)id);
-			if (ImGui::Selectable(label.c_str(), selected))
+			if (MikanComponentPtr sel = m_textureSourceDataSource->getEntryAtIndex(textureIndex))
 			{
-				int newId = (int)id;
+				int newId = sel->getComponentId();
 				addDeferredGuiEvent([this, newId]() {
 					setSelectedTextureSourceId((MikanTextureSourceID)newId);
 				});
 			}
 		}
-		ImGui::EndListBox();
 	}
 
 	if (m_selectedTextureSourceId != INVALID_MIKAN_ID)
@@ -267,7 +253,6 @@ void GuiPanel_ProjectSources::onGui()
 			});
 		}
 
-		// Render the selected Texture Source Components
 		m_context->getClientTextureSourcePanel()->onGui();
 		m_context->getSpoutTextureSourcePanel()->onGui();
 	}

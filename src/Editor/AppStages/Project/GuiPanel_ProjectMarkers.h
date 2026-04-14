@@ -1,8 +1,12 @@
 #pragma once
 
 #include "Shared/GuiPanel.h"
+#include "Shared/GuiDataSource_ComboBox.h"
 #include "MarkerObjectSystem.h"
+#include "MkGuiStyle.h"
 #include "ObjectSystemFwd.h"
+
+#include <memory>
 
 class GuiPanel_ProjectMarkers : public GuiPanel
 {
@@ -21,4 +25,7 @@ private:
 	class ProjectGuiPanelContext* m_context = nullptr;
 	MarkerObjectSystemWeakPtr m_markerSystem;
 	int m_selectedMarkerId = INVALID_MIKAN_ID;
+
+	MkGuiStyleConstPtr m_defaultGuiStyle;
+	std::unique_ptr<GuiDataSource_ComboBox> m_markerDataSource;
 };

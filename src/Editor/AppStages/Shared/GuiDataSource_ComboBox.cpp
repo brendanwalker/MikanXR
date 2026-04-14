@@ -8,12 +8,23 @@ GuiDataSource_ComboBox::GuiDataSource_ComboBox(
 	const std::vector<SystemComponentPair>& systemNameComponentPairs)
 	: m_projectManager(projectManager)
 	, m_systemComponentPairs(systemNameComponentPairs)
-{	
+{
+}
+
+void GuiDataSource_ComboBox::setFilter(ComponentFilter filter)
+{
+	m_filter = filter;
+}
+
+void GuiDataSource_ComboBox::setDisplayStringBuilder(DisplayStringBuilder builder)
+{
+	m_displayStringBuilder = builder;
 }
 
 void GuiDataSource_ComboBox::refreshEntries()
 {
 	m_comboEntrieValues.clear();
+	m_displayStrings.clear();
 
 	if (auto projectManager = m_projectManager.lock())
 	{
@@ -22,9 +33,20 @@ void GuiDataSource_ComboBox::refreshEntries()
 			const std::string& systemName = pair.first;
 			const std::string& componentName = pair.second;
 			MikanObjectSystemPtr objectSystem = projectManager->getSystemByName(systemName);
-			if (objectSystem)
+			if (!objectSystem)
+				continue;
+
+			std::vector<MikanComponentPtr> batch;
+			objectSystem->getComponentList(componentName, batch);
+
+			for (MikanComponentPtr comp : batch)
 			{
-				objectSystem->getComponentList(componentName, m_comboEntrieValues);
+				if (m_filter && !m_filter(comp))
+					continue;
+
+				m_comboEntrieValues.push_back(comp);
+				m_displayStrings.push_back(
+					m_displayStringBuilder ? m_displayStringBuilder(comp) : comp->getName());
 			}
 		}
 	}
@@ -65,5 +87,5 @@ int GuiDataSource_ComboBox::getEntryCount() const
 
 const std::string& GuiDataSource_ComboBox::getEntryDisplayString(int index) const
 {
-	return m_comboEntrieValues[index]->getName();
+	return m_displayStrings[index];
 }

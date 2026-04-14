@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Shared/GuiPanel.h"
+#include "Shared/GuiDataSource_ComboBox.h"
 #include "AnchorObjectSystem.h"
 #include "CommonConfigFwd.h"
 #include "BoxStencilSystem.h"
@@ -8,10 +9,13 @@
 #include "EditorObjectSystem.h"
 #include "ModelStencilSystem.h"
 #include "MikanTypeFwd.h"
+#include "MkGuiStyle.h"
 #include "ObjectFwd.h"
 #include "ObjectSystemFwd.h"
 #include "QuadStencilSystem.h"
 #include "SceneObjectSystem.h"
+
+#include <memory>
 
 struct SceneOutlinerEntry
 {
@@ -64,4 +68,8 @@ private:
 	int m_selectedSceneObjectListIndex = -1;
 
 	std::vector<SceneOutlinerEntry> m_sceneOutliner;
+
+	MkGuiStyleConstPtr m_defaultGuiStyle;
+	std::unique_ptr<GuiDataSource_ComboBox> m_sceneDataSource;
+	std::unique_ptr<GuiDataSource_ComboBox> m_compositorDataSource;
 };

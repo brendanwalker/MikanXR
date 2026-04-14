@@ -2,6 +2,8 @@
 #include "MarkerTrackingVolumeComponent.h"
 #include "MarkerTrackingVolumeSystem.h"
 #include "MikanCoreTypes.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
 #include "Project/AppStage_Project.h"
 #include "Project/ProjectGuiPanelContext.h"
 #include "ProjectManager.h"
@@ -10,7 +12,6 @@
 #include "Shared/GuiPanel_VRTrackingVolumeComponent.h"
 #include "TrackingMountComponent.h"
 #include "TrackingMountObjectSystem.h"
-#include "TrackingVolumeQueries.h"
 #include "VRTrackingVolumeComponent.h"
 #include "VRTrackingVolumeSystem.h"
 
@@ -23,12 +24,34 @@ bool GuiPanel_ProjectTracking::init(ProjectGuiPanelContext* context)
 	m_projectManager = ownerAppStage->getProjectManager();
 	m_trackingMountSystem = ownerAppStage->getObjectSystemOfType<TrackingMountObjectSystem>();
 
+	m_defaultGuiStyle = getGuiStyleManager()->getStyle("default_component_panel");
+
+	auto pm = ownerAppStage->getProjectManager();
+	m_trackingVolumeDataSource = std::make_unique<GuiDataSource_ComboBox>(pm,
+		std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
+			{ VRTrackingVolumeSystem::k_objectSystemClassName, VRTrackingVolumeComponent::k_componentClassName },
+			{ MarkerTrackingVolumeSystem::k_objectSystemClassName, MarkerTrackingVolumeComponent::k_componentClassName }
+		});
+
+	m_trackingMountDataSource = std::make_unique<GuiDataSource_ComboBox>(pm,
+		std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
+			{ TrackingMountObjectSystem::k_objectSystemClassName, TrackingMountComponent::k_componentClassName }
+		});
+	m_trackingMountDataSource->setFilter([this](MikanComponentPtr comp) -> bool {
+		VRTrackingVolumeComponentPtr vrVolume = getSelectedVRTrackingVolume();
+		if (!vrVolume) return false;
+		const auto& mountIds = vrVolume->getVRTrackingVolumeDefinition()->getTrackingMountIDs();
+		auto id = (MikanTrackingMountID)comp->getComponentId();
+		return std::find(mountIds.begin(), mountIds.end(), id) != mountIds.end();
+	});
+
 	// Auto-select first tracking volume if available
-	auto pm = m_projectManager.lock();
-	TrackingVolumeIdList volumeIds = TrackingVolumeQueries::getTrackingVolumeIdList(pm);
-	if (!volumeIds.empty())
+	auto pml = m_projectManager.lock();
+	m_trackingVolumeDataSource->refreshEntries();
+	if (m_trackingVolumeDataSource->getEntryCount() > 0)
 	{
-		setSelectedTrackingVolumeId(volumeIds[0]);
+		MikanComponentPtr first = m_trackingVolumeDataSource->getEntryAtIndex(0);
+		setSelectedTrackingVolumeId((MikanTrackingVolumeID)first->getComponentId());
 	}
 
 	return true;
@@ -109,22 +132,7 @@ void GuiPanel_ProjectTracking::onGui()
 	if (!pm)
 		return;
 
-	// Tracking Volumes list (combined VR + marker)
-	TrackingVolumeIdList volumeIds = TrackingVolumeQueries::getTrackingVolumeIdList(pm);
-
-	// Validate selection
-	bool volumeSelValid = false;
-	for (MikanTrackingVolumeID id : volumeIds)
-	{
-		if ((int)id == m_selectedTrackingVolumeId)
-		{
-			volumeSelValid = true;
-			break;
-		}
-	}
-	if (!volumeSelValid && m_selectedTrackingVolumeId != INVALID_MIKAN_ID)
-		setSelectedTrackingVolumeId(INVALID_MIKAN_ID);
-
+	// Tracking Volumes combo
 	if (ImGui::Button("Add SteamVR Volume"))
 	{
 		addDeferredGuiEvent([this]() {
@@ -133,7 +141,7 @@ void GuiPanel_ProjectTracking::onGui()
 			VRTrackingVolumeComponentPtr vol = sys->addNewVRTrackingVolume(eTrackingRuntime::SteamVR);
 			MikanTrackingVolumeID id = vol->getVRTrackingVolumeDefinition()->getTrackingVolumeId();
 			setSelectedTrackingVolumeId(id);
-			});
+		});
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("Add Marker Volume"))
@@ -144,72 +152,62 @@ void GuiPanel_ProjectTracking::onGui()
 			MarkerTrackingVolumeComponentPtr vol = sys->addNewObjectByTypedDefinition();
 			MikanTrackingVolumeID id = vol->getMarkerTrackingVolumeDefinition()->getTrackingVolumeId();
 			setSelectedTrackingVolumeId(id);
-			});
+		});
 	}
 
-	ImGui::Text("Tracking Volumes");
-	if (ImGui::BeginListBox("##TrackingVolumes", ImVec2(-1, 100)))
-	{
-		for (MikanTrackingVolumeID id : volumeIds)
-		{
-			TrackingVolumeComponentPtr vol = TrackingVolumeQueries::getTrackingVolumeById(pm, id);
-			std::string label = vol ? (vol->getName().empty()
-				? "Volume " + std::to_string((int)id)
-				: vol->getName()) : "Volume " + std::to_string((int)id);
-			label += "##vol" + std::to_string((int)id);
+	m_trackingVolumeDataSource->refreshEntries();
 
-			bool selected = (m_selectedTrackingVolumeId == (int)id);
-			if (ImGui::Selectable(label.c_str(), selected))
+	if (m_selectedTrackingVolumeId != INVALID_MIKAN_ID &&
+		m_trackingVolumeDataSource->getEntryIndexByComponentId(m_selectedTrackingVolumeId) == -1)
+	{
+		setSelectedTrackingVolumeId(INVALID_MIKAN_ID);
+	}
+
+	int volumeIndex = m_trackingVolumeDataSource->getEntryIndexByComponentId(m_selectedTrackingVolumeId);
+	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectTrackingVolume", "Tracking Volume",
+		m_trackingVolumeDataSource.get(), volumeIndex))
+	{
+		if (volumeIndex >= 0)
+		{
+			if (MikanComponentPtr sel = m_trackingVolumeDataSource->getEntryAtIndex(volumeIndex))
 			{
-				int newId = (int)id;
+				int newId = sel->getComponentId();
 				addDeferredGuiEvent([this, newId]() {
 					setSelectedTrackingVolumeId((MikanTrackingVolumeID)newId);
 				});
 			}
 		}
-		ImGui::EndListBox();
 	}
-	
+
 	if (m_selectedTrackingVolumeId != INVALID_MIKAN_ID)
 	{
 		if (ImGui::Button("Remove Volume"))
 		{
 			addDeferredGuiEvent([this]() {
 				auto pm = m_projectManager.lock();
-				TrackingVolumeQueries::removeTrackingVolume(pm, (MikanTrackingVolumeID)m_selectedTrackingVolumeId);
+				auto vrSys = pm->getSystemOfType<VRTrackingVolumeSystem>();
+				auto markerSys = pm->getSystemOfType<MarkerTrackingVolumeSystem>();
+				if (m_isVRTrackingVolume)
+					vrSys->removeObjectByPrimaryComponentId(m_selectedTrackingVolumeId);
+				else
+					markerSys->removeObjectByPrimaryComponentId(m_selectedTrackingVolumeId);
 			});
-
-			m_context->getMarkerTrackingVolumePanel()->onGui();
-			m_context->getVRTrackingVolumePanel()->onGui();
 		}
+
+		m_context->getMarkerTrackingVolumePanel()->onGui();
+		m_context->getVRTrackingVolumePanel()->onGui();
 	}
 
-	// Tracking Mounts sub-list (only for VR volumes)
+	// Tracking Mounts sub-combo (only for VR volumes)
 	if (m_isVRTrackingVolume && m_selectedTrackingVolumeId != INVALID_MIKAN_ID)
 	{
 		ImGui::Separator();
-		ImGui::Text("Tracking Mounts");
 
 		TrackingMountObjectSystemPtr mountSystem = getTrackingMountSystem();
 		VRTrackingVolumeComponentPtr vrVolume = getSelectedVRTrackingVolume();
 
 		if (vrVolume && mountSystem)
 		{
-			const auto& mountIds = vrVolume->getVRTrackingVolumeDefinition()->getTrackingMountIDs();
-
-			// Validate mount selection
-			bool mountSelValid = false;
-			for (MikanTrackingMountID id : mountIds)
-			{
-				if ((int)id == m_selectedTrackingMountId)
-				{
-					mountSelValid = true;
-					break;
-				}
-			}
-			if (!mountSelValid && m_selectedTrackingMountId != INVALID_MIKAN_ID)
-				setSelectedTrackingMountId(INVALID_MIKAN_ID);
-
 			if (ImGui::Button("Add Mount"))
 			{
 				addDeferredGuiEvent([this]() {
@@ -223,29 +221,31 @@ void GuiPanel_ProjectTracking::onGui()
 						vrVol->getVRTrackingVolumeDefinition()->addTrackingMountID(mountId);
 						setSelectedTrackingMountId(mountId);
 					}
-					});
+				});
 			}
 
-			if (ImGui::BeginListBox("##TrackingMounts", ImVec2(-1, 80)))
-			{
-				for (MikanTrackingMountID id : mountIds)
-				{
-					TrackingMountComponentPtr mount = mountSystem->getTypedComponentById(id);
-					std::string label = (mount && !mount->getName().empty())
-						? mount->getName()
-						: ("Mount " + std::to_string((int)id));
-					label += "##mount" + std::to_string((int)id);
+			m_trackingMountDataSource->refreshEntries();
 
-					bool selected = (m_selectedTrackingMountId == (int)id);
-					if (ImGui::Selectable(label.c_str(), selected))
+			if (m_selectedTrackingMountId != INVALID_MIKAN_ID &&
+				m_trackingMountDataSource->getEntryIndexByComponentId(m_selectedTrackingMountId) == -1)
+			{
+				setSelectedTrackingMountId(INVALID_MIKAN_ID);
+			}
+
+			int mountIndex = m_trackingMountDataSource->getEntryIndexByComponentId(m_selectedTrackingMountId);
+			if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectTrackingMount", "Tracking Mount",
+				m_trackingMountDataSource.get(), mountIndex))
+			{
+				if (mountIndex >= 0)
+				{
+					if (MikanComponentPtr sel = m_trackingMountDataSource->getEntryAtIndex(mountIndex))
 					{
-						int newId = (int)id;
+						int newId = sel->getComponentId();
 						addDeferredGuiEvent([this, newId]() {
 							setSelectedTrackingMountId((MikanTrackingMountID)newId);
 						});
 					}
 				}
-				ImGui::EndListBox();
 			}
 
 			if (m_selectedTrackingMountId != INVALID_MIKAN_ID)
