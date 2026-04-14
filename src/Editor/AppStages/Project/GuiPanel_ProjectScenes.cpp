@@ -1,6 +1,8 @@
 #include "GuiPanel_ProjectScenes.h"
+#include "AnchorComponent.h"
 #include "AnchorObjectSystem.h"
 #include "BoxStencilSystem.h"
+#include "StencilComponent.h"
 #include "CompositorComponent.h"
 #include "CompositorObjectSystem.h"
 #include "EditorObjectSystem.h"
@@ -324,12 +326,22 @@ void GuiPanel_ProjectScenes::addTransformComponent(TransformComponentPtr transfo
 	for (TransformComponentWeakPtr childWeakPtr : transformComponentPtr->getChildTransformComponents())
 	{
 		TransformComponentPtr child = childWeakPtr.lock();
-		if (child)
+		if (!child)
+			continue;
+
+		MikanObjectPtr childObject = child->getOwnerObject();
+		if (childObject != ownerObject)
 		{
-			int childDepth = depth;
-			if (child->getOwnerObject() != ownerObject)
-				childDepth++;
-			addTransformComponent(child, childDepth);
+			// Only show AnchorComponent and StencilComponent-derived objects in the outliner
+			if (!childObject->getComponentOfType<AnchorComponent>() &&
+				!childObject->getComponentOfType<StencilComponent>())
+				continue;
+
+			addTransformComponent(child, depth + 1);
+		}
+		else
+		{
+			addTransformComponent(child, depth);
 		}
 	}
 }
