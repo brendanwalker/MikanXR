@@ -11,6 +11,8 @@
 #include "ModelStencilSystem.h"
 #include "MikanCoreTypes.h"
 #include "MkGuiDrawUtils.h"
+#include "SceneComponent.h"
+#include "SceneObjectSystem.h"
 #include "TransformComponent.h"
 
 GuiPanel_StencilComponent::GuiPanel_StencilComponent(AppStage* ownerAppStage) 
@@ -19,6 +21,7 @@ GuiPanel_StencilComponent::GuiPanel_StencilComponent(AppStage* ownerAppStage)
 		ownerAppStage->getProjectManager(), 
 		{
 			{ AnchorObjectSystem::k_objectSystemClassName, AnchorComponent::k_componentClassName },
+			{ SceneObjectSystem::k_objectSystemClassName, SceneComponent::k_componentClassName },
 			{ QuadStencilSystem::k_objectSystemClassName, QuadStencilComponent::k_componentClassName },
 			{ BoxStencilSystem::k_objectSystemClassName, BoxStencilComponent::k_componentClassName },
 			{ ModelStencilSystem::k_objectSystemClassName, ModelStencilComponent::k_componentClassName }

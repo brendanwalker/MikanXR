@@ -8,6 +8,8 @@
 #include "MkGuiDrawUtils.h"
 #include "QuadStencilComponent.h"
 #include "QuadStencilSystem.h"
+#include "SceneComponent.h"
+#include "SceneObjectSystem.h"
 #include "TransformComponent.h"
 
 GuiPanel_AnchorComponent::GuiPanel_AnchorComponent(AppStage* ownerAppStage)
@@ -16,6 +18,7 @@ GuiPanel_AnchorComponent::GuiPanel_AnchorComponent(AppStage* ownerAppStage)
 		ownerAppStage->getProjectManager(),
 		{
 			{ AnchorObjectSystem::k_objectSystemClassName, AnchorComponent::k_componentClassName },
+			{ SceneObjectSystem::k_objectSystemClassName, SceneComponent::k_componentClassName },
 			{ QuadStencilSystem::k_objectSystemClassName, QuadStencilComponent::k_componentClassName },
 			{ BoxStencilSystem::k_objectSystemClassName, BoxStencilComponent::k_componentClassName },
 			{ ModelStencilSystem::k_objectSystemClassName, ModelStencilComponent::k_componentClassName }
