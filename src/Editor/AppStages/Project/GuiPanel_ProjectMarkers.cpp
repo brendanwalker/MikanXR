@@ -2,6 +2,7 @@
 #include "MarkerComponent.h"
 #include "MarkerObjectSystem.h"
 #include "MikanCoreTypes.h"
+#include "IconsForkAwesome.h"
 #include "MkGuiDrawUtils.h"
 #include "MkGuiStyleManager.h"
 #include "Project/AppStage_Project.h"
@@ -120,7 +121,8 @@ void GuiPanel_ProjectMarkers::onGui()
 
 	if (m_selectedMarkerId != INVALID_MIKAN_ID)
 	{
-		if (ImGui::Button("Remove Marker"))
+		ImGui::SameLine();
+		if (ImGui::Button(ICON_FK_MINUS_CIRCLE "##removeMarker"))
 		{
 			addDeferredGuiEvent([this]() {
 				MarkerObjectSystemPtr sys = getMarkerSystem();

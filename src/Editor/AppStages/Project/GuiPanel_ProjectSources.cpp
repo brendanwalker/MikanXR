@@ -2,6 +2,7 @@
 #include "ClientTextureSourceComponent.h"
 #include "ClientTextureSourceSystem.h"
 #include "MikanCoreTypes.h"
+#include "IconsForkAwesome.h"
 #include "MkGuiDrawUtils.h"
 #include "MkGuiStyleManager.h"
 #include "NetworkVideoSourceComponent.h"
@@ -186,7 +187,8 @@ void GuiPanel_ProjectSources::onGui()
 
 	if (m_selectedVideoSourceId != INVALID_MIKAN_ID)
 	{
-		if (ImGui::Button("Remove Video Source"))
+		ImGui::SameLine();
+		if (ImGui::Button(ICON_FK_MINUS_CIRCLE "##removeVideoSource"))
 		{
 			addDeferredGuiEvent([this]() {
 				auto pm = m_projectManager.lock();
@@ -245,7 +247,8 @@ void GuiPanel_ProjectSources::onGui()
 
 	if (m_selectedTextureSourceId != INVALID_MIKAN_ID)
 	{
-		if (ImGui::Button("Remove Texture Source"))
+		ImGui::SameLine();
+		if (ImGui::Button(ICON_FK_MINUS_CIRCLE "##removeTextureSource"))
 		{
 			addDeferredGuiEvent([this]() {
 				auto pm = m_projectManager.lock();

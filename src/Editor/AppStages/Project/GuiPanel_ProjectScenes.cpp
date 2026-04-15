@@ -9,6 +9,7 @@
 #include "Transform.h"
 #include "MikanCoreTypes.h"
 #include "MikanObject.h"
+#include "IconsForkAwesome.h"
 #include "MkGuiDrawUtils.h"
 #include "MkGuiStyleManager.h"
 #include "ModelStencilSystem.h"
@@ -393,7 +394,8 @@ void GuiPanel_ProjectScenes::onGui()
 
 	if (m_selectedSceneId != INVALID_MIKAN_ID)
 	{
-		if (ImGui::Button("Remove Scene"))
+		ImGui::SameLine();
+		if (ImGui::Button(ICON_FK_MINUS_CIRCLE "##removeScene"))
 		{
 			addDeferredGuiEvent([this]() {
 				m_sceneSystem.lock()->removeObjectByPrimaryComponentId(m_selectedSceneId);
@@ -447,7 +449,8 @@ void GuiPanel_ProjectScenes::onGui()
 
 		if (m_selectedCompositorId != INVALID_MIKAN_ID)
 		{
-			if (ImGui::Button("Remove Compositor"))
+			ImGui::SameLine();
+			if (ImGui::Button(ICON_FK_MINUS_CIRCLE "##removeCompositor"))
 			{
 				addDeferredGuiEvent([this]() {
 					m_compositorSystem.lock()->removeObjectByPrimaryComponentId(m_selectedCompositorId);

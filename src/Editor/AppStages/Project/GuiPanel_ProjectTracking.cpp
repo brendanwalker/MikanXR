@@ -2,6 +2,7 @@
 #include "MarkerTrackingVolumeComponent.h"
 #include "MarkerTrackingVolumeSystem.h"
 #include "MikanCoreTypes.h"
+#include "IconsForkAwesome.h"
 #include "MkGuiDrawUtils.h"
 #include "MkGuiStyleManager.h"
 #include "Project/AppStage_Project.h"
@@ -181,7 +182,8 @@ void GuiPanel_ProjectTracking::onGui()
 
 	if (m_selectedTrackingVolumeId != INVALID_MIKAN_ID)
 	{
-		if (ImGui::Button("Remove Volume"))
+		ImGui::SameLine();
+		if (ImGui::Button(ICON_FK_MINUS_CIRCLE "##removeVolume"))
 		{
 			addDeferredGuiEvent([this]() {
 				auto pm = m_projectManager.lock();
@@ -250,7 +252,8 @@ void GuiPanel_ProjectTracking::onGui()
 
 			if (m_selectedTrackingMountId != INVALID_MIKAN_ID)
 			{
-				if (ImGui::Button("Remove Mount"))
+				ImGui::SameLine();
+				if (ImGui::Button(ICON_FK_MINUS_CIRCLE "##removeMount"))
 				{
 					addDeferredGuiEvent([this]() {
 						VRTrackingVolumeComponentPtr vrVol = getSelectedVRTrackingVolume();

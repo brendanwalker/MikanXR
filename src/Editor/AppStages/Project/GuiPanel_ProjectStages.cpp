@@ -3,6 +3,7 @@
 #include "CameraObjectSystem.h"
 #include "Transform.h"
 #include "MikanCoreTypes.h"
+#include "IconsForkAwesome.h"
 #include "MkGuiDrawUtils.h"
 #include "MkGuiStyleManager.h"
 #include "Project/AppStage_Project.h"
@@ -146,7 +147,8 @@ void GuiPanel_ProjectStages::onGui()
 
 	if (m_selectedStageId != INVALID_MIKAN_ID)
 	{
-		if (ImGui::Button("Remove Stage"))
+		ImGui::SameLine();
+		if (ImGui::Button(ICON_FK_MINUS_CIRCLE "##removeStage"))
 		{
 			addDeferredGuiEvent([this]() {
 				getStageSystem()->removeObjectByPrimaryComponentId(m_selectedStageId);
@@ -195,7 +197,8 @@ void GuiPanel_ProjectStages::onGui()
 
 	if (m_selectedCameraId != INVALID_MIKAN_ID)
 	{
-		if (ImGui::Button("Remove Camera"))
+		ImGui::SameLine();
+		if (ImGui::Button(ICON_FK_MINUS_CIRCLE "##removeCamera"))
 		{
 			addDeferredGuiEvent([this]() {
 				getCameraSystem()->removeObjectByPrimaryComponentId(m_selectedCameraId);
