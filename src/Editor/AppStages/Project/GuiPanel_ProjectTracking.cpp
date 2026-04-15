@@ -47,12 +47,19 @@ bool GuiPanel_ProjectTracking::init(ProjectGuiPanelContext* context)
 	});
 
 	// Auto-select first tracking volume if available
-	auto pml = m_projectManager.lock();
 	m_trackingVolumeDataSource->refreshEntries();
 	if (m_trackingVolumeDataSource->getEntryCount() > 0)
 	{
 		MikanComponentPtr first = m_trackingVolumeDataSource->getEntryAtIndex(0);
 		setSelectedTrackingVolumeId((MikanTrackingVolumeID)first->getComponentId());
+	}
+
+	// Auto-select first tracking mount for the selected volume
+	m_trackingMountDataSource->refreshEntries();
+	if (m_trackingMountDataSource->getEntryCount() > 0)
+	{
+		if (MikanComponentPtr first = m_trackingMountDataSource->getEntryAtIndex(0))
+			setSelectedTrackingMountId((MikanTrackingMountID)first->getComponentId());
 	}
 
 	return true;

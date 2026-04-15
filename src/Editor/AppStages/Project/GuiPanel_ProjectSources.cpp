@@ -44,6 +44,22 @@ bool GuiPanel_ProjectSources::init(ProjectGuiPanelContext* context)
 			{ SpoutTextureSourceSystem::k_objectSystemClassName, SpoutTextureSourceComponent::k_componentClassName }
 		});
 
+	// Auto-select first available video source
+	m_videoSourceDataSource->refreshEntries();
+	if (m_videoSourceDataSource->getEntryCount() > 0)
+	{
+		if (MikanComponentPtr first = m_videoSourceDataSource->getEntryAtIndex(0))
+			setSelectedVideoSourceId((MikanVideoSourceID)first->getComponentId());
+	}
+
+	// Auto-select first available texture source
+	m_textureSourceDataSource->refreshEntries();
+	if (m_textureSourceDataSource->getEntryCount() > 0)
+	{
+		if (MikanComponentPtr first = m_textureSourceDataSource->getEntryAtIndex(0))
+			setSelectedTextureSourceId((MikanTextureSourceID)first->getComponentId());
+	}
+
 	return true;
 }
 

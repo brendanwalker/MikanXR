@@ -109,6 +109,14 @@ bool GuiPanel_ProjectScenes::init(ProjectGuiPanelContext* context)
 		setSelectedSceneId(currentScene->getSceneId());
 	}
 
+	// Auto-select first compositor for the selected scene
+	m_compositorDataSource->refreshEntries();
+	if (m_compositorDataSource->getEntryCount() > 0)
+	{
+		if (MikanComponentPtr first = m_compositorDataSource->getEntryAtIndex(0))
+			setSelectedCompositorId((MikanCompositorID)first->getComponentId());
+	}
+
 	return true;
 }
 

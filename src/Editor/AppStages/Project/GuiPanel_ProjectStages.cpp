@@ -50,6 +50,14 @@ bool GuiPanel_ProjectStages::init(ProjectGuiPanelContext* context)
 		setSelectedStageId(parentStageId);
 	}
 
+	// Auto-select first camera for the selected stage
+	m_cameraDataSource->refreshEntries();
+	if (m_cameraDataSource->getEntryCount() > 0)
+	{
+		if (MikanComponentPtr first = m_cameraDataSource->getEntryAtIndex(0))
+			setSelectedCameraId((MikanCameraID)first->getComponentId());
+	}
+
 	return true;
 }
 
