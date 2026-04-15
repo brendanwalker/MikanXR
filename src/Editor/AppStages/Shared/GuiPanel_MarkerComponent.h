@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Shared/GuiPanel_MikanComponent.h"
-#include "Shared/GuiDataSource_StringList.h"
+#include "Shared/GuiDataSource_IntList.h"
 #include "MarkerComponent.h"
 #include "MarkerObjectSystem.h"
 #include "SinglecastDelegate.h"
@@ -24,5 +24,5 @@ protected:
 
 private:
 	MarkerObjectSystemWeakPtr m_markerObjectSystem;
-	GuiDataSource_StringList m_arucoIdDataSource;
+	GuiDataSource_IntList m_arucoIdDataSource;
 };

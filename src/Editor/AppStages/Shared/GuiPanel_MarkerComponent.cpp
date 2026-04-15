@@ -1,5 +1,6 @@
 #include "AppStage.h"
 #include "MarkerComponent.h"
+#include "Shared/GuiDataSource_IntList.h"
 #include "Shared/GuiPanel_MarkerComponent.h"
 #include "MarkerObjectSystem.h"
 
@@ -33,26 +34,12 @@ void GuiPanel_MarkerComponent::onConstruct()
 			if (!markerComp) return false;
 
 			// Build aruco ID list from all markers in the system
-			auto markerSystem = getMarkerObjectSystem();
-			std::vector<std::string> arucoIdStrings;
-			if (markerSystem)
-			{
-				for (const auto& it : markerSystem->getComponentMap())
-				{
-					auto markerCompEntry = it.second.lock();
-					if (markerCompEntry)
-					{
-						auto markerTyped = std::static_pointer_cast<MarkerComponent>(markerCompEntry);
-						arucoIdStrings.push_back(
-							std::to_string(markerTyped->getMarkerDefinition()->getArucoId()));
-					}
-				}
-			}
-			m_arucoIdDataSource.setEntries(arucoIdStrings);
+			std::vector<int> markerIdList;
+			getMarkerObjectSystem()->getTypedDefinition()->getArucoIdList(markerIdList);
+			m_arucoIdDataSource.setEntries(markerIdList);
 
 			const int currentArucoId = markerComp->getMarkerDefinition()->getArucoId();
-			const std::string currentStr = std::to_string(currentArucoId);
-			int selectedIndex = m_arucoIdDataSource.getEntryIndexByString(currentStr);
+			int selectedIndex = m_arucoIdDataSource.getEntryIndexByValue(currentArucoId);
 
 			if (MkGui::drawComboBoxProperty(
 				m_defaultGuiStyle, "markerArucoId", "Aruco ID",
@@ -60,8 +47,7 @@ void GuiPanel_MarkerComponent::onConstruct()
 			{
 				if (selectedIndex >= 0)
 				{
-					const int newArucoId =
-						std::stoi(m_arucoIdDataSource.getEntryDisplayString(selectedIndex));
+					const int newArucoId = m_arucoIdDataSource.getEntryValue(selectedIndex);
 					addDeferredGuiEvent([this, markerComp, newArucoId]() {
 						markerComp->getMarkerDefinition()->setArucoId(newArucoId);
 						if (OnMarkerSelected)
