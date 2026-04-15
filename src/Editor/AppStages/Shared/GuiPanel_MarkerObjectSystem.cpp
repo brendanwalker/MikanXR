@@ -1,5 +1,8 @@
 #include "AppStage.h"
 #include "MarkerObjectSystem.h"
+#include "MkGuiDrawUtils.h"
+#include "MkGuiStyleManager.h"
+#include "ProjectConfigConstants.h"
 #include "Shared/GuiPanel_MarkerObjectSystem.h"
 
 bool GuiPanel_MarkerObjectSystem::init()
@@ -9,6 +12,53 @@ bool GuiPanel_MarkerObjectSystem::init()
 
 void GuiPanel_MarkerObjectSystem::onConstruct()
 {
+	if (MkGuiStyleManager* mgr = getGuiStyleManager())
+		m_defaultGuiStyle = mgr->getStyle("default_component_panel");
+
+	std::vector<std::string> dictStrings;
+	for (int i = 0; i < (int)eCharucoDictionaryType::COUNT; ++i)
+		dictStrings.push_back(k_charucoDictionaryStrings[i]);
+	m_dictDataSource.setEntries(dictStrings);
+
+	m_entityAccessor->setPropertyRenderer(
+		MarkerObjectSystemDefinition::k_arucoDictionaryTypePropertyId,
+		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
+		{
+			auto def = getMarkerObjectSystemDefinition();
+			if (!def) return false;
+
+			int selectedIndex = (int)def->getArucoDictionaryType();
+			if (MkGui::drawComboBoxProperty(
+				m_defaultGuiStyle, "arucoDictionaryType", "Aruco Dictionary",
+				&m_dictDataSource, selectedIndex))
+			{
+				addDeferredGuiEvent([this, selectedIndex]() {
+					if (auto d = getMarkerObjectSystemDefinition())
+						d->setArucoDictionaryType((eCharucoDictionaryType)selectedIndex);
+				});
+			}
+			return true;
+		});
+
+	m_entityAccessor->setPropertyRenderer(
+		MarkerObjectSystemDefinition::k_charucoDictionaryTypePropertyId,
+		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
+		{
+			auto def = getMarkerObjectSystemDefinition();
+			if (!def) return false;
+
+			int selectedIndex = (int)def->getCharucoDictionaryType();
+			if (MkGui::drawComboBoxProperty(
+				m_defaultGuiStyle, "charucoDictionaryType", "Charuco Dictionary",
+				&m_dictDataSource, selectedIndex))
+			{
+				addDeferredGuiEvent([this, selectedIndex]() {
+					if (auto d = getMarkerObjectSystemDefinition())
+						d->setCharucoDictionaryType((eCharucoDictionaryType)selectedIndex);
+				});
+			}
+			return true;
+		});
 }
 
 void GuiPanel_MarkerObjectSystem::onGui()
