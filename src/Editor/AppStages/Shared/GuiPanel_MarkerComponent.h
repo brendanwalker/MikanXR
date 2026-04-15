@@ -2,6 +2,7 @@
 
 #include "Shared/GuiPanel_MikanComponent.h"
 #include "Shared/GuiDataSource_IntList.h"
+#include "MkRendererFwd.h"
 #include "MarkerComponent.h"
 #include "MarkerObjectSystem.h"
 #include "SinglecastDelegate.h"
@@ -25,4 +26,6 @@ protected:
 private:
 	MarkerObjectSystemWeakPtr m_markerObjectSystem;
 	GuiDataSource_IntList m_arucoIdDataSource;
+	int m_cachedArucoId = -1;
+	IMkTexturePtr m_cachedMarkerTexture;
 };

@@ -186,6 +186,12 @@ namespace MkGui
 		ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
 	}
 
+	void drawImage(IMkTextureConstPtr image, float width, float height)
+	{
+		uint32_t glTextureId = image ? image->getGlTextureId() : 0;
+		ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(width, height));
+	}
+
 	bool ComboBoxDataSource::itemGetter(void* data, int idx, const char** out_str)
 	{
 		auto* dataSource = (ComboBoxDataSource*)data;

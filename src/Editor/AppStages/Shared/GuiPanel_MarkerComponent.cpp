@@ -1,8 +1,14 @@
 #include "AppStage.h"
+#include "CalibrationPatternFinder.h"
+#include "IMkTexture.h"
 #include "MarkerComponent.h"
+#include "OpenCVFwd.h"
 #include "Shared/GuiDataSource_IntList.h"
 #include "Shared/GuiPanel_MarkerComponent.h"
 #include "MarkerObjectSystem.h"
+
+#include "opencv2/objdetect/aruco_detector.hpp"
+#include "opencv2/imgproc.hpp"
 
 bool GuiPanel_MarkerComponent::init()
 {
@@ -57,6 +63,45 @@ void GuiPanel_MarkerComponent::onConstruct()
 					});
 				}
 			}
+			// Regenerate cached texture when the selected aruco ID changes
+			if (currentArucoId >= 0 && currentArucoId != m_cachedArucoId)
+			{
+				m_cachedArucoId = currentArucoId;
+				m_cachedMarkerTexture.reset();
+
+				const eCharucoDictionaryType dictType =
+					getMarkerObjectSystemDefinition()->getArucoDictionaryType();
+				ArucoDictionaryPtr dictionary =
+					CalibrationPatternFinder::getArucoDictionary(dictType);
+
+				if (dictionary)
+				{
+					const int imageSize = 128;
+					const int maxMarkerId = dictionary->bytesList.rows - 1;
+					const int clampedId = std::max(0, std::min(currentArucoId, maxMarkerId));
+
+					cv::Mat markerImage;
+					cv::aruco::generateImageMarker(*dictionary, clampedId, imageSize, markerImage, 1);
+
+					cv::Mat rgbImage;
+					cv::cvtColor(markerImage, rgbImage, cv::COLOR_GRAY2RGB);
+
+					IMkTexturePtr tex = CreateMkTexture(
+						(uint16_t)imageSize, (uint16_t)imageSize,
+						rgbImage.data,
+						MK_RGB,
+						MK_RGB);
+					if (tex->createTexture())
+						m_cachedMarkerTexture = tex;
+				}
+			}
+
+			// Display the marker preview
+			if (m_cachedMarkerTexture)
+			{
+				MkGui::drawImage(m_cachedMarkerTexture, 128.0f, 128.0f);
+			}
+
 			return true;
 		});
 }

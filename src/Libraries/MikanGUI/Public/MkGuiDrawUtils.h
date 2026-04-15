@@ -74,8 +74,12 @@ namespace MkGui
 		int& inout_selectedIdex);
 	void drawImageProperty(
 		MkGuiStyleConstPtr style,
-		const std::string label, 
+		const std::string label,
 		IMkTextureConstPtr image);
+	void drawImage(
+		IMkTextureConstPtr image,
+		float width,
+		float height);
 
 	class ComboBoxDataSource
 	{
