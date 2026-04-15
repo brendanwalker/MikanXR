@@ -195,7 +195,7 @@ void GuiPanel_ProjectSources::onGui()
 		}
 
 		m_context->getUSBVideoSourcePanel()->drawCompactGui();
-		m_context->getNetworkVideoSourcePanel()->onGui();
+		m_context->getNetworkVideoSourcePanel()->drawCompactGui();
 	}
 
 	ImGui::Separator();

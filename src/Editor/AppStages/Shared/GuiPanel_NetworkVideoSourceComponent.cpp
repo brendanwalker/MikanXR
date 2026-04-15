@@ -2,6 +2,7 @@
 #include "Shared/GuiPanel_NetworkVideoSourceComponent.h"
 #include "NetworkVideoSourceComponent.h"
 
+
 bool GuiPanel_NetworkVideoSourceComponent::init()
 {
 	return initTypedPropertyInterface<NetworkVideoSourceComponent>();
@@ -52,4 +53,19 @@ NetworkVideoSourceComponentPtr GuiPanel_NetworkVideoSourceComponent::getNetworkV
 		return std::static_pointer_cast<NetworkVideoSourceComponent>(component);
 	}
 	return nullptr;
+}
+
+void GuiPanel_NetworkVideoSourceComponent::drawCompactGui()
+{
+	GuiPanel_EntityAccessorPtr entityAccessor = getPropertyInterface();
+
+	static const std::set<std::string> compactProperties = {
+		MikanComponentDefinition::k_componentNamePropertyId,
+		NetworkVideoSourceDefinition::k_addressPropertyId,
+	};
+	static const std::set<std::string> compactFunctions = {
+		NetworkVideoSourceComponent::k_showVideoSourceSettingsFunctionId
+	};
+	entityAccessor->drawPropertiesGui(compactProperties);
+	entityAccessor->drawFunctionsGui(compactFunctions);
 }

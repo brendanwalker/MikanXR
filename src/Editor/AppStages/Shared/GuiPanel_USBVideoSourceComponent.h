@@ -29,6 +29,4 @@ private:
 	GuiDataSource_StringList m_frameRateDataSource;
 	GuiDataSource_StringList m_formatDataSource;
 
-	static std::set<std::string> k_compactGuiPropertiesSet;
-	static std::set<std::string> k_compactGuiFunctionsSet;
 };

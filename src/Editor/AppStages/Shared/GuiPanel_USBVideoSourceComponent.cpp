@@ -8,17 +8,6 @@
 #include <algorithm>
 #include <cctype>
 
-std::set<std::string> GuiPanel_USBVideoSourceComponent::k_compactGuiPropertiesSet = {
-	MikanComponentDefinition::k_componentNamePropertyId,
-	USBVideoSourceComponent::k_currentFriendlyNamePropertyId,
-	USBVideoSourceDefinition::k_videoResolutionPropertyId,
-	USBVideoSourceDefinition::k_videoFrameRatePropertyId,
-	USBVideoSourceDefinition::k_videoFormatPropertyId
-};
-
-std::set<std::string> GuiPanel_USBVideoSourceComponent::k_compactGuiFunctionsSet = {
-	USBVideoSourceComponent::k_showVideoSourceSettingsFunctionId
-};
 
 bool GuiPanel_USBVideoSourceComponent::init()
 {
@@ -230,6 +219,16 @@ void GuiPanel_USBVideoSourceComponent::drawCompactGui()
 {
 	GuiPanel_EntityAccessorPtr entityAccessor= getPropertyInterface();
 
-	entityAccessor->drawPropertiesGui(k_compactGuiPropertiesSet);
-	entityAccessor->drawFunctionsGui(k_compactGuiFunctionsSet);
+	static const std::set<std::string> compactProperties = {
+		MikanComponentDefinition::k_componentNamePropertyId,
+		USBVideoSourceComponent::k_currentFriendlyNamePropertyId,
+		USBVideoSourceDefinition::k_videoResolutionPropertyId,
+		USBVideoSourceDefinition::k_videoFrameRatePropertyId,
+		USBVideoSourceDefinition::k_videoFormatPropertyId
+	};
+	static const std::set<std::string> compactFunctions = {
+		USBVideoSourceComponent::k_showVideoSourceSettingsFunctionId
+	};
+	entityAccessor->drawPropertiesGui(compactProperties);
+	entityAccessor->drawFunctionsGui(compactFunctions);
 }
