@@ -7,6 +7,7 @@
 #include "CalibrationRenderHelpers.h"
 #include "MikanCamera.h"
 #include "IMkFrameBuffer.h"
+#include "IMkGraphicsContext.h"
 #include "MikanLineRenderer.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
@@ -38,8 +39,6 @@
 #include "VRDeviceComponent.h"
 #include "VideoSourceComponent.h"
 
-#include "SDL_keycode.h"
-
 #include "glm/gtc/quaternion.hpp"
 
 #include "MkGuiScopedWindow.h"
@@ -58,7 +57,7 @@ AppStage_StencilAlignment::AppStage_StencilAlignment(IEditorWindow* ownerWindow)
 	, m_scene(std::make_shared<MkScene>())
 	, m_mkCamera(nullptr)
 	, m_frameBuffer(createMkFrameBuffer())
-	, m_fullscreenRGBQuad(createFullscreenQuadMesh(ownerWindow, false))
+	, m_fullscreenRGBQuad(createFullscreenQuadMesh(ownerWindow->getGraphicsContext().get(), false))
 {
 }
 
@@ -277,7 +276,7 @@ void AppStage_StencilAlignment::render(IMkViewportPtr targetViewport)
 	if (m_frameBuffer->isValid())
 	{
 		MkScopedObjectBinding colorFramebufferBinding(
-			m_ownerWindow->getMkStateStack().getCurrentState(),
+			m_ownerWindow->getGraphicsContext()->getMkStateStack().getCurrentState(),
 			"Color Framebuffer Scope",
 			m_frameBuffer);
 
@@ -315,8 +314,8 @@ void AppStage_StencilAlignment::render(IMkViewportPtr targetViewport)
 			}
 
 			// Render any lines and text that were added to the scene by the calibrator in the frame buffer's viewport
-			m_ownerWindow->getLineRenderer()->render();
-			m_ownerWindow->getTextRenderer()->render();
+			m_ownerWindow->getGraphicsContext()->getLineRenderer()->render();
+			m_ownerWindow->getGraphicsContext()->getTextRenderer()->render();
 		}
 	}
 
@@ -344,7 +343,7 @@ void AppStage_StencilAlignment::render(IMkViewportPtr targetViewport)
 
 void AppStage_StencilAlignment::renderStencilScene()
 {
-	m_scene->render(m_mkCamera, m_ownerWindow->getMkStateStack());
+	m_scene->render(m_mkCamera, m_ownerWindow->getGraphicsContext()->getMkStateStack());
 
 	if (m_targetStencilComponent)
 	{
@@ -460,7 +459,7 @@ void AppStage_StencilAlignment::onMouseRayChanged(const glm::vec3& rayOrigin, co
 
 void AppStage_StencilAlignment::onMouseRayButtonUp(const glm::vec3& rayOrigin, const glm::vec3& rayDir, int button)
 {
-	if (button != SDL_BUTTON_LEFT)
+	if (button != MkMouseButton::LEFT)
 		return;
 
 	eStencilAlignmentMenuState menuState= m_calibrationPanel->getMenuState();

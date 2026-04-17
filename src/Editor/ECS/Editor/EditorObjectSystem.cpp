@@ -26,14 +26,6 @@
 #include "ModelStencilSystem.h"
 #include "Transform.h"
 
-#if defined(_WIN32)
-#include <SDL_keycode.h>
-#include <SDL_mouse.h>
-#else
-#include <SDL2/SDL_keycode.h>
-#include <SDL2/SDL_mouse.h>
-#endif
-
 // -- AnchorObjectSystemConfig -----
 const std::string EditorObjectSystemDefinition::k_renderOriginFlagPropertyId = "render_origin";
 const std::string EditorObjectSystemDefinition::k_renderAnchorsPropertyId = "render_anchors";
@@ -366,7 +358,7 @@ void EditorObjectSystem::onAppStageEntered(class AppStage* oldAppStage, class Ap
 	{
 		m_gizmoComponentWeakPtr.lock()->bindInput();
 
-		InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_DELETE)->OnKeyPressed +=
+		getOwnerWindow()->getInputManager()->fetchOrAddKeyBindings(MkKey::DELETE_KEYCODE)->OnKeyPressed +=
 			MakeDelegate(this, &EditorObjectSystem::onDeletePressed);
 	}
 }
@@ -432,7 +424,7 @@ void EditorObjectSystem::onMouseRayButtonDown(const glm::vec3& rayOrigin, const 
 {
 	SelectionComponentPtr currentHoverPtr= m_hoverComponentWeakPtr.lock();
 
-	if (button == SDL_BUTTON_LEFT)
+	if (button == MkMouseButton::LEFT)
 	{
 		// See if the current selection is changing
 		SelectionComponentPtr oldSelectedComponentPtr = m_selectedComponentWeakPtr.lock();

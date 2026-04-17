@@ -2,8 +2,8 @@
 #include "CompositorComponent.h"
 #include "CameraComponent.h"
 #include "ClientTextureSourceComponent.h"
-#include "SdlCommon.h"
 #include "IMkFrameBuffer.h"
+#include "IMkGraphicsContext.h"
 #include "MkMaterial.h"
 #include "IMkShader.h"
 #include "MikanRenderModelResource.h"
@@ -178,7 +178,7 @@ bool CompositorNodeGraph::compositeFrame(NodeEvaluator& evaluator)
 
 		// Create a scoped binding for the video export framebuffer
 		MkScopedObjectBinding compositorFramebufferBinding(
-			evaluator.getCurrentWindow()->getMkStateStack().getCurrentState(),
+			evaluator.getCurrentWindow()->getGraphicsContext()->getMkStateStack().getCurrentState(),
 			"Compositor Framebuffer Scope",
 			m_compositingFrameBuffer);
 		if (compositorFramebufferBinding)
@@ -310,8 +310,8 @@ MikanRenderModelResourcePtr CompositorNodeGraph::getOrLoadStencilRenderModel(
 		IEditorWindow* ownerWindow= getOwnerWindow();
 
 		// Load the stencil model and render it using the flat textured material
-		auto stencilMaterial= 
-			ownerWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED);
+		auto stencilMaterial=
+			ownerWindow->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED);
 		auto renderModelPtr= 
 			ownerWindow->getModelResourceManager()->fetchRenderModel(
 				stencilDefinition->getModelPath(), stencilMaterial);
@@ -336,11 +336,11 @@ MikanRenderModelResourcePtr CompositorNodeGraph::getOrLoadDepthRenderModel(Model
 	}
 	else
 	{
-		ISdlMkWindow* ownerWindow= static_cast<ISdlMkWindow*>(getOwnerWindow());
+		IEditorWindow* ownerWindow= getOwnerWindow();
 
 		// Load the depth model and render it using the simple depth material
 		auto depthMaterial =
-			ownerWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_LINEAR_DEPTH);
+			ownerWindow->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_LINEAR_DEPTH);
 		auto renderModelPtr =
 			ownerWindow->getModelResourceManager()->fetchRenderModel(
 				stencilDefinition->getModelPath(), depthMaterial);
@@ -396,7 +396,7 @@ bool CompositorNodeGraph::createLayerQuadMeshes()
 {
 	static uint16_t x_indices[] = {0, 1, 2, 0, 2, 3};
 
-	auto material = getOwnerWindow()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE);
+	auto material = getOwnerWindow()->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE);
 	assert(material);
 
 	struct QuadVertex
@@ -418,7 +418,7 @@ bool CompositorNodeGraph::createLayerQuadMeshes()
 
 		m_layerMesh = 
 			createMkTriangulatedMesh(
-				getOwnerWindow(),
+				getOwnerWindow()->getGraphicsContext().get(),
 				"layer_quad_mesh",
 				(const uint8_t*)x_vertices,
 				vertexSize,
@@ -449,7 +449,7 @@ bool CompositorNodeGraph::createLayerQuadMeshes()
 
 		m_layerVFlippedMesh = 
 			createMkTriangulatedMesh(
-				getOwnerWindow(),
+				getOwnerWindow()->getGraphicsContext().get(),
 				"layer_vflipped_quad_mesh",
 				(const uint8_t*)x_vertices,
 				vertexSize,
@@ -472,9 +472,9 @@ bool CompositorNodeGraph::createLayerQuadMeshes()
 
 bool CompositorNodeGraph::createQuadMeshes()
 {
-	auto stencilMaterial = getOwnerWindow()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_SOLID_COLOR);
+	auto stencilMaterial = getOwnerWindow()->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_SOLID_COLOR);
 	assert(stencilMaterial);
-	auto depthMaterial = getOwnerWindow()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_LINEAR_DEPTH);
+	auto depthMaterial = getOwnerWindow()->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_LINEAR_DEPTH);
 	assert(depthMaterial);
 
 	struct QuadlVertex
@@ -496,7 +496,7 @@ bool CompositorNodeGraph::createQuadMeshes()
 
 		m_stencilQuadMesh = 
 			createMkTriangulatedMesh(
-				getOwnerWindow(),
+				getOwnerWindow()->getGraphicsContext().get(),
 				"quad_stencil_mesh",
 				(const uint8_t*)x_vertices,
 				vertexSize,
@@ -515,7 +515,7 @@ bool CompositorNodeGraph::createQuadMeshes()
 
 		m_depthQuadMesh = 
 			createMkTriangulatedMesh(
-				getOwnerWindow(),
+				getOwnerWindow()->getGraphicsContext().get(),
 				"quad_depth_mesh",
 				(const uint8_t*)x_vertices,
 				vertexSize,
@@ -538,9 +538,9 @@ bool CompositorNodeGraph::createQuadMeshes()
 
 bool CompositorNodeGraph::createBoxMeshes()
 {
-	auto stencilMaterial = getOwnerWindow()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_SOLID_COLOR);
+	auto stencilMaterial = getOwnerWindow()->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_SOLID_COLOR);
 	assert(stencilMaterial);
-	auto depthMaterial = getOwnerWindow()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_LINEAR_DEPTH);
+	auto depthMaterial = getOwnerWindow()->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_LINEAR_DEPTH);
 	assert(depthMaterial);
 
 	struct BoxVertex
@@ -573,7 +573,7 @@ bool CompositorNodeGraph::createBoxMeshes()
 
 		m_stencilBoxMesh = 
 			createMkTriangulatedMesh(
-				getOwnerWindow(),
+				getOwnerWindow()->getGraphicsContext().get(),
 				"box_stencil_mesh",
 				(const uint8_t*)x_vertices,
 				vertexSize,
@@ -591,7 +591,7 @@ bool CompositorNodeGraph::createBoxMeshes()
 
 		m_depthBoxMesh = 
 			createMkTriangulatedMesh(
-				getOwnerWindow(),
+				getOwnerWindow()->getGraphicsContext().get(),
 				"box_depth_mesh",
 				(const uint8_t*)x_vertices,
 				vertexSize,

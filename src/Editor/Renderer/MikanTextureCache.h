@@ -18,7 +18,7 @@ class MikanTextureCache : public IMkTextureCache
 {
 public:
 	MikanTextureCache()= delete;
-	MikanTextureCache(IMkWindow* ownerWindow);
+	MikanTextureCache(IMkGraphicsContext* graphicsContext);
 
 	IMkTexturePtr loadTextureAssetReference(TextureAssetReferencePtr textureAssetRef);
 

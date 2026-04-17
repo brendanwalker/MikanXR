@@ -2,8 +2,8 @@
 #include "Colors.h"
 #include "MikanCamera.h"
 #include "MkError.h"
-#include "SdlCommon.h"
 #include "MikanLineRenderer.h"
+#include "IMkGraphicsContext.h"
 #include "IMkLineRenderer.h"
 #include "IMkShader.h"
 #include "MkStateStack.h"
@@ -19,9 +19,9 @@
 #include "glm/ext/matrix_clip_space.hpp"
 
 #define GET_LINE_RENDERER_OR_RETURN()										\
-	IMkWindow* window= App::getInstance()->getCurrentGlContext();			\
+	IMkWindow* window= App::getInstance()->getWindowManager()->getCurrentWindowContext();			\
 	assert(window != nullptr);												\
-	IMkLineRenderer* lineRenderer = window->getLineRenderer();				\
+	IMkLineRenderer* lineRenderer = window->getGraphicsContext()->getLineRenderer();				\
 	if (lineRenderer == nullptr)											\
 		return;																\
 

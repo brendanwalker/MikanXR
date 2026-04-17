@@ -8,8 +8,6 @@
 #include "MathGLM.h"
 #include "MikanObject.h"
 
-#include "SDL_mouse.h"
-
 GizmoTranslateComponent::GizmoTranslateComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
 { }

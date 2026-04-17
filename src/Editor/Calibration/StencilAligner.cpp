@@ -5,7 +5,6 @@
 #include "CameraComponent.h"
 #include "CameraMath.h"
 #include "Colors.h"
-#include "SdlCommon.h"
 #include "MikanLineRenderer.h"
 #include "MikanTextRenderer.h"
 #include "InputManager.h"

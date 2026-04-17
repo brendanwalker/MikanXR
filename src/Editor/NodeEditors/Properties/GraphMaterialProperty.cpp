@@ -1,5 +1,6 @@
 #include "GraphMaterialProperty.h"
 #include "MkMaterial.h"
+#include "IMkGraphicsContext.h"
 #include "IMkVertexDefinition.h"
 #include "Graphs/NodeGraph.h"
 #include "Logger.h"
@@ -160,9 +161,9 @@ void GraphMaterialProperty::setMaterialAssetReference(MaterialAssetReferencePtr 
 		// re-create a material from the asset reference
 		if (m_materialAssetRef->isValid())
 		{
-			MikanShaderCache* shaderCache = 
+			MikanShaderCache* shaderCache =
 				reinterpret_cast<MikanShaderCache*>(
-					getOwnerGraph()->getOwnerWindow()->getShaderCache());
+					getOwnerGraph()->getOwnerWindow()->getGraphicsContext()->getShaderCache());
 			assert(shaderCache);
 
 			m_materialResource = shaderCache->loadMaterialAssetReference(m_materialAssetRef);

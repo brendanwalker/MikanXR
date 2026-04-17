@@ -3,13 +3,13 @@
 //-- includes -----
 #include "AssetFwd.h"
 #include "MkGuiFwd.h"
-#include "SdlFwd.h"
 #include "IEditorWindow.h"
 #include "IMkWindowEventListener.h"
+#include "MkWindowFwd.h"
+#include "MikanRendererFwd.h"
 #include "NodeEditorFwd.h"
 #include "NodeFwd.h"
 #include "NodeEditorState.h"
-#include "MikanRendererFwd.h"
 
 #include "Graphs/GraphObjectSelection.h"
 #include "Graphs/NodeError.h"
@@ -41,30 +41,39 @@ public:
 	virtual bool startup() override;
 	virtual void update(float deltaSeconds) override;
 	virtual void render() override;
+	virtual void present() override;
 	virtual void shutdown() override;
 
+	virtual const char* getTitle() const override;
 	virtual float getWidth() const override;
 	virtual float getHeight() const override;
 	virtual float getAspectRatio() const override;
 	virtual bool getIsRenderingStage() const override { return false; }
 
+	virtual void getMouseScreenPosition(int& outScreenX, int& outScreenY) const override;
+
+	virtual eWindowAPI getWindowAPI() const override;
+	virtual void* getNativeWindowHandle() const override;
+	virtual IMkGraphicsContextPtr getGraphicsContext() const override;
 	virtual IMkViewportPtr getRenderingViewport() const override { return nullptr; }
-	virtual MkStateStack& getMkStateStack() override;
-	virtual IMkLineRenderer* getLineRenderer() override;
-	virtual IMkTextRenderer* getTextRenderer() override;
+	virtual void makeContextCurrent() override;
+	virtual bool wantsDestroy() const override;
+	virtual void setTitle(const std::string& title) override;
+	virtual void setSize(int width, int height) override;
+	virtual void handleEvents(class IMkWindowEventListener* eventListener) override;
+	virtual bool hasMouseFocus() const override;
+	virtual bool hasKeyboardFocus() const override;
+
 	virtual MikanModelResourceManager* getModelResourceManager() override;
-	virtual IMkShaderCache* getShaderCache() override;
-	virtual IMkTextureCache* getTextureCache() override;
-	virtual SdlWindow& getSdlWindow() override;
 
 	// -- IMkWindowEventListener
-	virtual bool onWindowEvent(const SDL_Event* event) override;
+	virtual bool onWindowEvent(const MkWindowEvent& event) override;
 
 	// -- IEditorWindow
 	class MainWindow* getMainWindow() const;
 	virtual ProjectManagerPtr getProjectManager() const override;
 	virtual class MikanServer* getMikanServer() const override;
-	virtual class MikanFontManager* getFontManager() const override;
+	virtual class IMkFontManager* getFontManager() const override;
 	virtual class InputManager* getInputManager() const override;
 	virtual class OpenCVManager* getOpenCVManager() const override;
 	virtual class ClientSourceManager* getClientSourceManager() const override;
@@ -108,8 +117,8 @@ protected:
 
 protected:
 	class App* m_ownerApp = nullptr;
-	SdlWindowUniquePtr m_sdlWindow;
-	MkStateStackUniquePtr m_mkStateStack;
+	IMkWindowPtr m_mkWindow;
+	IMkGraphicsContextPtr m_graphicsContext;
 	MkGuiContextPtr m_guiContext;
 	std::unique_ptr<class MkGuiStyleManager> m_styleManager;
 
@@ -119,12 +128,6 @@ protected:
 
 	// Models loaded by the shader graph
 	MikanModelResourceManagerUniquePtr m_modelResourceManager;
-
-	// OpenGL shader program cache
-	MikanShaderCacheUniquePtr m_shaderCache;
-
-	// OpenGL texture cache
-	MikanTextureCacheUniquePtr m_textureCache;
 
 	// Errors that occurred during the last graph evaluation
 	std::vector<NodeEvaluationError> m_lastNodeEvalErrors;

@@ -8,7 +8,7 @@ class MikanShaderCache : public IMkShaderCache
 {
 public:
 	MikanShaderCache()= delete;
-	MikanShaderCache(IMkWindow* ownerWindow);
+	MikanShaderCache(IMkGraphicsContext* graphicsContext);
 
 	virtual bool startup() override;
 	virtual void shutdown() override;

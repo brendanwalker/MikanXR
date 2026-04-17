@@ -4,7 +4,6 @@
 #include "CameraMath.h"
 #include "Colors.h"
 #include "IEditorWindow.h"
-#include "SdlCommon.h"
 #include "MikanLineRenderer.h"
 #include "MikanTextRenderer.h"
 #include "MathGLM.h"

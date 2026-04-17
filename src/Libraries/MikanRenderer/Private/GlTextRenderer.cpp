@@ -10,7 +10,7 @@
 #include "IMkTextRenderer.h"
 #include "IMkTexture.h"
 #include "IMkViewport.h"
-#include "IMkWindow.h"
+#include "IMkGraphicsContext.h"
 #include "Logger.h"
 
 #include "glm/ext/matrix_projection.hpp"
@@ -19,8 +19,8 @@ class MikanTextRenderer : public IMkTextRenderer
 {
 public:
 	MikanTextRenderer() = delete;
-	MikanTextRenderer(IMkWindow* ownerWindow, IMkFontManager* fontManager)
-		: m_ownerWindow(ownerWindow)
+	MikanTextRenderer(IMkGraphicsContext* ownerContext, IMkFontManager* fontManager)
+		: m_ownerContext(ownerContext)
 		, m_fontManager(fontManager)
 		, m_maxTextQuadVertexCount(kMaxTextQuads * 6) // 6 vertices per quad
 		, m_textQuadVertices(new TextQuadVertex[m_maxTextQuadVertexCount])
@@ -33,7 +33,7 @@ public:
 
 	virtual bool startup() override
 	{
-		m_textMaterial = m_ownerWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_TEXT);
+		m_textMaterial = m_ownerContext->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_TEXT);
 
 		if (m_textMaterial == nullptr)
 		{
@@ -90,7 +90,7 @@ public:
 		// Same material used for all text quads
 		if (auto materialBinding = m_textMaterial->bindMaterial())
 		{
-			MkScopedState stateScope = m_ownerWindow->getMkStateStack().createScopedState("MikanTextRenderer");
+			MkScopedState stateScope = m_ownerContext->getMkStateStack().createScopedState("MikanTextRenderer");
 			IMkState* mkState = stateScope.getStackState();
 
 			// Render text over top of everything with alpha blending
@@ -104,8 +104,8 @@ public:
 			glBufferSubData(GL_ARRAY_BUFFER, 0, m_textQuadVertexCount * sizeof(TextQuadVertex), m_textQuadVertices);
 
 			// Get the screen dimensions
-			const float screenWidth = m_ownerWindow->getWidth();
-			const float screenHeight = m_ownerWindow->getHeight();
+			const float screenWidth = m_ownerContext->getWidth();
+			const float screenHeight = m_ownerContext->getHeight();
 			const glm::vec2 screenSize(screenWidth, screenHeight);
 
 			// Draw all of the baked text quads (one unique texture per quad)
@@ -234,7 +234,7 @@ protected:
 
 private:
 	static const int kMaxTextQuads = 1024;
-	IMkWindow* m_ownerWindow = nullptr;
+	IMkGraphicsContext* m_ownerContext = nullptr;
 	IMkFontManager* m_fontManager = nullptr;
 
 	std::vector<BakedTextQuad> m_bakedTextQuads;
@@ -248,8 +248,8 @@ private:
 };
 
 IMkTextRendererPtr createMkTextRenderer(
-	IMkWindow* ownerWindow,
+	IMkGraphicsContext* ownerContext,
 	IMkFontManager* fontManager)
 {
-	return std::make_shared<MikanTextRenderer>(ownerWindow, fontManager);
+	return std::make_shared<MikanTextRenderer>(ownerContext, fontManager);
 }

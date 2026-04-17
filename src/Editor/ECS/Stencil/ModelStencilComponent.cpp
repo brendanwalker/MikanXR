@@ -6,6 +6,7 @@
 #include "ModalSelectCamera/ModalDialog_SelectCamera.h"
 #include "StencilAlignment/AppStage_StencilAlignment.h"
 #include "IEditorWindow.h"
+#include "IMkGraphicsContext.h"
 #include "IMkLineRenderer.h"
 #include "MkMaterialInstance.h"
 #include "MikanModelResourceManager.h"
@@ -309,8 +310,8 @@ void ModelStencilComponent::rebuildMeshComponents()
 	// Fetch the stencil model resource
 	IEditorWindow* ownerWindow = getOwnerEditorWindow();
 	MikanModelResourceManager* modelResourceManager= ownerWindow->getModelResourceManager();
-	MkMaterialConstPtr stencilMaterial= 
-		ownerWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED);
+	MkMaterialConstPtr stencilMaterial=
+		ownerWindow->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED);
 	MikanRenderModelResourcePtr modelResourcePtr= 
 		modelResourceManager->fetchRenderModel(
 			modelStencilDefinition->getModelPath(), stencilMaterial);

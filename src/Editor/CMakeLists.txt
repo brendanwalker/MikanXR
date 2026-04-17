@@ -385,13 +385,6 @@ file(GLOB MIKAN_SCRIPTING_SRC
 )
 source_group("Scripting" FILES ${MIKAN_SCRIPTING_SRC})
 
-# SDL
-file(GLOB MIKAN_SDL_SRC
-    "${CMAKE_CURRENT_LIST_DIR}/SDL/*.cpp"
-    "${CMAKE_CURRENT_LIST_DIR}/SDL/*.h"
-)
-source_group("SDL" FILES ${MIKAN_SDL_SRC})
-
 # Server
 file(GLOB MIKAN_SERVER_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Server/*.cpp"
@@ -424,7 +417,6 @@ set(MIKAN_SRC
     ${MIKAN_PROJECT_SRC}
     ${MIKAN_RENDERER_SRC}
     ${MIKAN_SCRIPTING_SRC}
-    ${MIKAN_SDL_SRC}
     ${MIKAN_SERVER_SRC}
     ${MIKAN_SYSTEM_SRC}
     ${IMGUI_SOURCE}
@@ -464,7 +456,6 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/OpenCV
   ${CMAKE_CURRENT_LIST_DIR}/Project
   ${CMAKE_CURRENT_LIST_DIR}/Renderer
-  ${CMAKE_CURRENT_LIST_DIR}/SDL
   ${CMAKE_CURRENT_LIST_DIR}/Server
   ${CMAKE_CURRENT_LIST_DIR}/Scripting
   ${MIKAN_LIBRARIES_DIR}/MikanClientAPI/Public
@@ -473,12 +464,12 @@ list(APPEND MIKAN_INCL_DIRS
   ${MIKAN_LIBRARIES_DIR}/MikanGUI/Public
   ${MIKAN_LIBRARIES_DIR}/MikanMath/Public
   ${MIKAN_LIBRARIES_DIR}/MikanObject/Public
+  ${MIKAN_LIBRARIES_DIR}/MikanWindow/Public
   ${MIKAN_LIBRARIES_DIR}/MikanRenderer/Public
   ${MIKAN_LIBRARIES_DIR}/MikanSerialization/Public
   ${MIKAN_LIBRARIES_DIR}/MikanSharedTexture/Public
   ${MIKAN_LIBRARIES_DIR}/MikanUtility/Public
   ${MIKAN_PLUGINS_DIR}/MikanGStreamer/Public
-  ${CMAKE_CURRENT_LIST_DIR}/SDL/Public
   ${RFK_GENERATED_ROOT_DIR}/MikanClientCore
   ${RFK_GENERATED_ROOT_DIR}/MikanClientAPI
   ${RFK_GENERATED_ROOT_DIR}/MikanSerialization
@@ -493,9 +484,6 @@ list(APPEND MIKAN_INCL_DIRS
   ${NLOHMANN_JSON_INCLUDE_DIR}
   ${OpenCV_INCLUDE_DIR}
   ${OPENVR_INCLUDE_DIR}
-  ${SDL2_INCLUDE_DIR}
-  ${SDL2_IMAGE_INCLUDE_DIR}
-  ${SDL2TTF_INCLUDE_DIR}
   ${STB_INCLUDE_DIRS}
   ${TINYFILEDIALOGS_DIR}
   ${GLEW_INCLUDE_DIRS}
@@ -510,9 +498,6 @@ list(APPEND MIKAN_INCL_DIRS
 list(APPEND MIKAN_REQ_LIBS
   ${OpenCV_LIBS}
   ${OPENVR_LIBRARY}
-  ${SDL2_LIBRARY}
-  ${SDL2_IMAGE_LIBRARY}
-  ${SDL2TTF_LIBRARY}
   ${MIKAN_EXTRA_LIBS}
   ${GLEW_LIBRARIES}
   ${SPOUT2_LIBRARIES}
@@ -531,7 +516,8 @@ list(APPEND MIKAN_REQ_LIBS
   MikanRenderer
   MikanSerialization
   MikanSharedTexture
-  MikanUtility)
+  MikanUtility
+  MikanWindow)
 
 # Remove problematic files from the unity builds (header file inclusion ordering issues)
 set_source_files_properties(${IMGUI_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
@@ -557,7 +543,6 @@ target_compile_definitions(Mikan PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
 
 # Runtime dependencies
 set(SDL2_DLL ${ROOT_DIR}/deps/SDL2-2.0.10/lib/x64/SDL2.dll)
-set(SDL2_IMAGE_DLL_FOLDER ${ROOT_DIR}/deps/SDL2_image-2.0.5/lib/x64)
 set(SDL2_TTF_DLL_FOLDER ${ROOT_DIR}/deps/SDL2_ttf-2.0.15/lib/x64)
 set(EASY_PROFILER_FOLDER ${ROOT_DIR}/deps/easy_profiler/bin)
 set(OPENVR_DLL ${ROOT_DIR}/thirdparty/openvr/bin/win64/openvr_api.dll)
@@ -583,6 +568,9 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanRenderer>/MikanRenderer.dll $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanWindow>/MikanWindow.dll $<TARGET_FILE_DIR:Mikan>)
+  add_custom_command(
+    TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanSharedTexture>/MikanSharedTexture.dll $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
@@ -598,6 +586,9 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_custom_command(
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanUtility>/MikanUtility.dll $<TARGET_FILE_DIR:Mikan>)
+  add_custom_command(
+    TARGET Mikan POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanWindow>/MikanWindow.dll $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${OpenCV_DIR}/x64/vc16/bin/opencv_world4100d.dll $<TARGET_FILE_DIR:Mikan>)
@@ -619,16 +610,6 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_custom_command(
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${SDL2_DLL} $<TARGET_FILE_DIR:Mikan>)
-  add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy 
-    "${SDL2_IMAGE_DLL_FOLDER}/libjpeg-9.dll" 
-    "${SDL2_IMAGE_DLL_FOLDER}/libpng16-16.dll"
-    "${SDL2_IMAGE_DLL_FOLDER}/libtiff-5.dll"
-    "${SDL2_IMAGE_DLL_FOLDER}/libwebp-7.dll"
-    "${SDL2_IMAGE_DLL_FOLDER}/SDL2_image.dll"
-    "${SDL2_IMAGE_DLL_FOLDER}/zlib1.dll"
-    $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy 
@@ -684,21 +665,12 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
 	  
   install(FILES "${RFK_SHARED_LIBRARIES}"
-      DESTINATION ${MIKAN_ARCH_INSTALL_PATH})	  
-      
-  install(FILES 
-      "${SDL2_IMAGE_DLL_FOLDER}/libjpeg-9.dll" 
-      "${SDL2_IMAGE_DLL_FOLDER}/libpng16-16.dll"
-      "${SDL2_IMAGE_DLL_FOLDER}/libtiff-5.dll"
-      "${SDL2_IMAGE_DLL_FOLDER}/libwebp-7.dll"
-      "${SDL2_IMAGE_DLL_FOLDER}/SDL2_image.dll"
-      "${SDL2_IMAGE_DLL_FOLDER}/zlib1.dll"
       DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
 
   install(FILES 
       "${SDL2_TTF_DLL_FOLDER}/SDL2_ttf.dll"
       DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
-      
+
   install(FILES
       "${GLEW_SHARED_LIBRARIES}"
       DESTINATION ${MIKAN_ARCH_INSTALL_PATH})

@@ -10,8 +10,6 @@
 #include "MikanObject.h"
 #include "ProjectConfig.h"
 
-#include "SDL_mouse.h"
-
 static const float k_dragScaleFactor= 1.f;
 
 GizmoScaleComponent::GizmoScaleComponent(MikanObjectWeakPtr owner)

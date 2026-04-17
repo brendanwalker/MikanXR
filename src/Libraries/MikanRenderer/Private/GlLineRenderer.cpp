@@ -9,7 +9,7 @@
 #include "IMkShaderCode.h"
 #include "IMkVertexDefinition.h"
 #include "IMkViewport.h"
-#include "IMkWindow.h"
+#include "IMkGraphicsContext.h"
 #include "Logger.h"
 
 #include "glm/ext/matrix_clip_space.hpp"
@@ -172,7 +172,7 @@ protected:
 	}
 
 private:
-	class IMkWindow* m_ownerWindow = nullptr;
+	class IMkGraphicsContext* m_ownerContext = nullptr;
 
 	IMkShaderPtr m_program = nullptr;
 	std::string m_modelViewUniformName;
@@ -185,8 +185,8 @@ private:
 	bool m_bDisable3dDepth = false;
 
 public:
-	GlLineRenderer(IMkWindow* m_ownerWindow)
-		: m_ownerWindow(m_ownerWindow)
+	GlLineRenderer(IMkGraphicsContext* ownerContext)
+		: m_ownerContext(ownerContext)
 		, m_program(nullptr)
 		, m_points3d(k_max_points)
 		, m_lines3d(k_max_segments * 2)
@@ -201,7 +201,7 @@ public:
 
 	virtual bool startup() override
 	{
-		m_program = m_ownerWindow->getShaderCache()->fetchCompiledIMkShader(getShaderCode());
+		m_program = m_ownerContext->getShaderCache()->fetchCompiledIMkShader(getShaderCode());
 		if (m_program == nullptr)
 		{
 			MIKAN_LOG_ERROR("GlLineRenderer::startup") << "Failed to build shader program";
@@ -226,13 +226,13 @@ public:
 
 	virtual void render() override
 	{
-		if (m_ownerWindow == nullptr)
+		if (m_ownerContext == nullptr)
 			return;
 
 		if (m_points3d.hasPoints() || m_lines3d.hasPoints() ||
 			m_points2d.hasPoints() || m_lines2d.hasPoints())
 		{
-			MkScopedState stateScope = m_ownerWindow->getMkStateStack().createScopedState("GlLineRenderer");
+			MkScopedState stateScope = m_ownerContext->getMkStateStack().createScopedState("GlLineRenderer");
 			IMkState* mkState = stateScope.getStackState();
 
 			// This has to be enabled since the point drawing shader will use gl_PointSize.
@@ -242,14 +242,14 @@ public:
 
 			if (m_points3d.hasPoints() || m_lines3d.hasPoints())
 			{
-				IMkViewportConstPtr viewport = m_ownerWindow->getRenderingViewport();
+				IMkViewportConstPtr viewport = m_ownerContext->getRenderingViewport();
 				IMkCameraPtr camera = (viewport != nullptr) ? viewport->getCurrentCamera() : nullptr;
 
 				if (camera != nullptr)
 				{
 					const glm::mat4 cameraVPMatrix = camera->getViewProjectionMatrix();
 
-					MkScopedState scopedState = m_ownerWindow->getMkStateStack().createScopedState("GlLineRenderer_3dLines");
+					MkScopedState scopedState = m_ownerContext->getMkStateStack().createScopedState("GlLineRenderer_3dLines");
 					if (m_bDisable3dDepth)
 					{
 						scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
@@ -271,7 +271,7 @@ public:
 
 				glm::i32vec2 renderingOrigin;
 				glm::i32vec2 renderingSize;
-				IMkViewportConstPtr viewport = m_ownerWindow->getRenderingViewport();
+				IMkViewportConstPtr viewport = m_ownerContext->getRenderingViewport();
 				if (viewport != nullptr &&
 					viewport->getRenderingViewport(renderingOrigin, renderingSize))
 				{
@@ -283,9 +283,9 @@ public:
 				else
 				{
 					left = 0;
-					right = m_ownerWindow->getWidth();
+					right = m_ownerContext->getWidth();
 					top = 0;
-					bottom = m_ownerWindow->getHeight();
+					bottom = m_ownerContext->getHeight();
 				}
 
 				const glm::mat4 orthoMat = glm::ortho(left, right, bottom, top, 1.0f, -1.0f);
@@ -294,7 +294,7 @@ public:
 
 				{
 					// disable the depth buffer to allow overdraw 
-					MkScopedState scopedState = m_ownerWindow->getMkStateStack().createScopedState("GlLineRenderer_2dLines");
+					MkScopedState scopedState = m_ownerContext->getMkStateStack().createScopedState("GlLineRenderer_2dLines");
 					scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
 
 					m_points2d.drawGlBufferState(GL_POINTS);
@@ -358,7 +358,7 @@ public:
 	}
 };
 
-IMkLineRendererPtr createMkLineRenderer(IMkWindow* ownerWindow)
+IMkLineRendererPtr createMkLineRenderer(IMkGraphicsContext* ownerContext)
 {
-	return std::make_shared<GlLineRenderer>(ownerWindow);
+	return std::make_shared<GlLineRenderer>(ownerContext);
 }

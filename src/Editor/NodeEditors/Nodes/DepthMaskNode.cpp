@@ -231,7 +231,7 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 	{
 		// Bind the depth frame buffer
 		MkScopedObjectBinding depthFramebufferBinding(
-			evaluator.getCurrentWindow()->getMkStateStack().getCurrentState(),
+			evaluator.getCurrentWindow()->getGraphicsContext()->getMkStateStack().getCurrentState(),
 			"Depth Mask Framebuffer Scope",
 			m_linearDepthFrameBuffer);
 		if (depthFramebufferBinding)

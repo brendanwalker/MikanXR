@@ -47,6 +47,9 @@ list(APPEND MIKAN_RENDERER_REQ_LIBS
   MikanCoreApp
   MikanUtility)
 
+ # Remove problematic files from the unity builds (header file inclusion ordering issues)
+set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Private/GlGraphicsContext.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
+
 add_library(MikanRenderer SHARED ${MIKAN_RENDERER_SRC})
 target_link_libraries(MikanRenderer ${MIKAN_RENDERER_REQ_LIBS})
 target_include_directories(MikanRenderer PRIVATE ${MIKAN_RENDERER_INCL_DIRS})

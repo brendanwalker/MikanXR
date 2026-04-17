@@ -3,7 +3,9 @@
 #include "VideoDisplayConstants.h"
 #include "OpenCVFwd.h"
 #include "MikanRendererFwd.h"
+
 #include <memory>
+#include <chrono>
 
 class VideoSourceComponent;
 typedef std::shared_ptr<VideoSourceComponent> VideoSourceComponentPtr;
@@ -78,7 +80,7 @@ protected:
 	unsigned int m_bgrSourceBufferCount;
 	unsigned int m_bgrSourceBufferWriteIndex;
 	int64_t m_lastVideoFrameReadIndex;
-	uint32_t m_lastFrameTimestamp;
+	std::chrono::steady_clock::time_point m_lastFrameTimestamp;
 
 	// Video frame buffers (24-BPP, BGR color format)
 	cv::Mat* m_bgrSourceBuffer_OGL; // 24-BPP(BGR color format) source buffer on GPU

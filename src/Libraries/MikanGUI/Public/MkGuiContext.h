@@ -1,13 +1,15 @@
 #pragma once
 
 #include "MkGuiFwd.h"
+#include "IMkWindow.h"
 #include "IMkWindowEventListener.h"
+#include "IMkGraphicsContext.h"
 
 class MkGuiContext : public IMkWindowEventListener
 {
 public:
 	MkGuiContext()= delete;
-	MkGuiContext(SDL_Window* windowContext, void* glContext);
+	MkGuiContext(class IMkWindow* window);
 	virtual ~MkGuiContext();
 
 	bool startup();
@@ -19,19 +21,21 @@ public:
 	struct ImFont* getBigIconFont() const { return m_BigIconFont; }
 
 	// -- IMkWindowEventListener
-	virtual bool onWindowEvent(const SDL_Event* event) override;
+	virtual bool onWindowEvent(const MkWindowEvent& event) override;
 
 protected:
+	bool initImGuiSDLBackend();
+	bool initImGuiOpenGlBackend();
+
 	void configImGui();
 	void configImNodes();
-	
+
 private:
-	SDL_Window* m_windowContext= nullptr;
-	void* m_glContext= nullptr;
+	class IMkWindow* m_window= nullptr;
 	struct ImGuiContext* m_imguiContext= nullptr;
 	struct ImNodesContext* m_imnodesContext= nullptr;
 	struct ImFont* m_NormalIconFont = nullptr;
 	struct ImFont* m_BigIconFont = nullptr;
-	bool m_imguiSDLBackendInitialised= false;
-	bool m_imguiOpenGLBackendInitialised= false;
+	eWindowAPI m_imguiWindowAPI = eWindowAPI::INVALID;
+	eGraphicsAPI m_imguiGraphicsAPI = eGraphicsAPI::INVALID;
 };

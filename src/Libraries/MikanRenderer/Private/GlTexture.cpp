@@ -7,6 +7,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+
 class GlTexture : public IMkTexture
 {
 public:
@@ -953,4 +956,58 @@ IMkExternalTexturePtr CreateMkExternalTexture()
 IMkExternalTexturePtr CreateMkExternalTexture(void* platformTexture)
 {
 	return std::make_shared<GlExternalTexture>(platformTexture);
+}
+
+bool saveMkTextureToPNG(IMkTexturePtr texture, const char* filename)
+{
+	int channels = 0;
+	bool bIsBGR = false;
+	switch (texture->getBufferFormat())
+	{
+		case MK_RGB:
+			channels = 3;
+			break;
+		case MK_BGR:
+			channels = 3;
+			bIsBGR = true;
+			break;
+		case MK_RGBA:
+			channels = 4;
+			break;
+		case MK_BGRA:
+			channels = 4;
+			bIsBGR = true;
+			break;
+		default:
+			break;
+	}
+
+	const int width = texture->getTextureWidth();
+	const int height = texture->getTextureHeight();
+
+	if (width == 0 || height == 0 || channels == 0)
+	{
+		return false;
+	}
+
+	const size_t bufferSize = (size_t)width * height * channels;
+	uint8_t* buffer = new uint8_t[bufferSize];
+
+	texture->copyTextureIntoBuffer(buffer, bufferSize);
+
+	if (bIsBGR)
+	{
+		// Swap R and B channels so stbi_write_png outputs standard RGB(A)
+		for (size_t i = 0; i < bufferSize; i += channels)
+		{
+			std::swap(buffer[i], buffer[i + 2]);
+		}
+	}
+
+	const int stride = width * channels;
+	const bool bSuccess = stbi_write_png(filename, width, height, channels, buffer, stride) != 0;
+
+	delete[] buffer;
+
+	return bSuccess;
 }

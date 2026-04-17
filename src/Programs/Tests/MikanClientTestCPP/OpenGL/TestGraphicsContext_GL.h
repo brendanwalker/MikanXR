@@ -40,7 +40,7 @@ protected:
 		const glm::vec3& cameraRight) const;
 
 private:
-	IMkWindowPtr m_mkWindow;
+	IMkGraphicsContextPtr m_mkWindow;
 	IMkTriangulatedMeshPtr m_viewportQuadMesh;
 	IMkTriangulatedMeshPtr m_depthNormalizeQuadMesh;
 	IMkTriangulatedMeshPtr m_boxMesh;

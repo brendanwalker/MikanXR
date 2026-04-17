@@ -4,7 +4,6 @@
 #include "CameraComponent.h"
 #include "CameraMath.h"
 #include "Colors.h"
-#include "SdlCommon.h"
 #include "MikanLineRenderer.h"
 #include "MikanTextRenderer.h"
 #include "InputManager.h"
@@ -127,10 +126,11 @@ void AnchorTriangulator::sampleMouseScreenPosition()
 
 glm::vec2 AnchorTriangulator::computeMouseScreenPosition() const
 {
-	int mouseScreenX = 0, mouseScreenY;
-	InputManager::getInstance()->getMouseScreenPosition(mouseScreenX, mouseScreenY);
-	
 	IEditorWindow* window = m_cameraComponent->getOwnerEditorWindow();
+	
+	int mouseScreenX = 0, mouseScreenY;
+	window->getInputManager()->getMouseScreenPosition(mouseScreenX, mouseScreenY);
+	
 	const float screenWidth = window->getWidth();
 	const float screenHeight = window->getHeight();
 

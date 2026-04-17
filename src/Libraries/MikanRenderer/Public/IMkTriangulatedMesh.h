@@ -17,9 +17,9 @@ public:
 };
 
 // -- Drawing Helpers ---
-MIKAN_RENDERER_FUNC(IMkTriangulatedMeshPtr) createMkTriangulatedMesh(class IMkWindow* ownerWindow);
+MIKAN_RENDERER_FUNC(IMkTriangulatedMeshPtr) createMkTriangulatedMesh(class IMkGraphicsContext* ownerContext);
 MIKAN_RENDERER_FUNC(IMkTriangulatedMeshPtr) createMkTriangulatedMesh(
-	class IMkWindow* ownerWindow,
+	class IMkGraphicsContext* ownerContext,
 	std::string name,
 	const uint8_t* vertexData,
 	const size_t vertexSize,
@@ -29,11 +29,11 @@ MIKAN_RENDERER_FUNC(IMkTriangulatedMeshPtr) createMkTriangulatedMesh(
 	uint32_t triangleCount,
 	bool bOwnsVertexData);
 MIKAN_RENDERER_FUNC(IMkTriangulatedMeshPtr) createFullscreenQuadMesh(
-	IMkWindow* ownerWindow,
+	IMkGraphicsContext* ownerContext,
 	bool vFlipped,
 	bool bHasAlpha= false);
 MIKAN_RENDERER_FUNC(IMkTriangulatedMeshPtr) createFullscreenQuadMesh(
-	IMkWindow* ownerWindow,
+	IMkGraphicsContext* ownerContext,
 	MkMaterialConstPtr material,
 	bool vFlipped);
 MIKAN_RENDERER_FUNC(void) drawTransformedTriangulatedMesh(

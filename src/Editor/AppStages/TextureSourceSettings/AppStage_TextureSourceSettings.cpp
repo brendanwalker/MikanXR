@@ -8,6 +8,7 @@
 #include "IMkShaderCache.h"
 #include "IMkTriangulatedMesh.h"
 #include "IMkWindow.h"
+#include "IMkGraphicsContext.h"
 #include "TextureSourceSettings/AppStage_TextureSourceSettings.h"
 #include "Shared/GuiPanel_ClientTextureSourceComponent.h"
 #include "Shared/GuiPanel_SpoutTextureSourceComponent.h"
@@ -66,12 +67,13 @@ void AppStage_TextureSourceSettings::enter()
 	}
 
 	// Create a meshes used to render the video frame
-	m_fullscreenRGBQuad = createFullscreenQuadMesh(m_ownerWindow, true, false);
-	m_fullscreenRGBAQuad = createFullscreenQuadMesh(m_ownerWindow, true, true);
+	IMkGraphicsContext* graphicsContext = m_ownerWindow->getGraphicsContext().get();
+	m_fullscreenRGBQuad = createFullscreenQuadMesh(graphicsContext, true, false);
+	m_fullscreenRGBAQuad = createFullscreenQuadMesh(graphicsContext, true, true);
 	m_fullscreenDepthUnpackQuad = 
 		createFullscreenQuadMesh(
-			m_ownerWindow, 
-			m_ownerWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE),
+			graphicsContext,
+			graphicsContext->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE),
 			true);
 }
 

@@ -6,10 +6,7 @@
 #include "GizmoRotateComponent.h"
 #include "MikanObject.h"
 #include "MathGLM.h"
-#include "MikanObject.h"
 #include "SelectionComponent.h"
-
-#include "SDL_mouse.h"
 
 static const float k_dragAngleFactor= k_real_two_pi; // 360 degrees / meter
 

@@ -6,18 +6,18 @@
 #include "IMkShader.h"
 #include "IMkShaderCache.h"
 #include "IMkVertexDefinition.h"
-#include "IMkWindow.h"
+#include "IMkGraphicsContext.h"
 #include "Logger.h"
 
 class GlTriangulatedMesh : public IMkTriangulatedMesh
 {
 public:
-	GlTriangulatedMesh(class IMkWindow* ownerWindow)
-		: m_ownerWindow(ownerWindow)
+	GlTriangulatedMesh(class IMkGraphicsContext* ownerContext)
+		: m_ownerContext(ownerContext)
 	{}
 
 	GlTriangulatedMesh(
-		class IMkWindow* ownerWindow,
+		class IMkGraphicsContext* ownerContext,
 		std::string name,
 		const uint8_t* vertexData,
 		const size_t vertexSize,
@@ -26,7 +26,7 @@ public:
 		const size_t indexSize,
 		uint32_t triangleCount,
 		bool bOwnsVertexData)
-		: m_ownerWindow(ownerWindow)
+		: m_ownerContext(ownerContext)
 		, m_name(name)
 		, m_vertexData(vertexData)
 		, m_vertexSize(vertexSize)
@@ -171,7 +171,7 @@ public:
 
 	virtual std::string getName() const override { return m_name; }
 	virtual std::shared_ptr<class MkMaterialInstance> getMaterialInstance() const { return m_materialInstance; };
-	virtual class IMkWindow* getOwnerWindow() const { return m_ownerWindow; }
+	virtual class IMkGraphicsContext* getOwnerContext() const override { return m_ownerContext; }
 	virtual const uint8_t* getVertexData() const override { return m_vertexData; }
 	virtual const uint32_t getVertexCount() const override { return m_vertexCount; }
 
@@ -181,7 +181,7 @@ public:
 	virtual const size_t getIndexSize() const override { return m_indexSize; }
 
 protected:
-	class IMkWindow* m_ownerWindow = nullptr;
+	class IMkGraphicsContext* m_ownerContext = nullptr;
 	MkMaterialInstancePtr m_materialInstance;
 	std::string m_name;
 
@@ -198,13 +198,13 @@ protected:
 	uint32_t m_glIndexBuffer = 0;
 };
 
-IMkTriangulatedMeshPtr createMkTriangulatedMesh(class IMkWindow* ownerWindow)
+IMkTriangulatedMeshPtr createMkTriangulatedMesh(class IMkGraphicsContext* ownerContext)
 {
-	return std::make_shared<GlTriangulatedMesh>(ownerWindow);
+	return std::make_shared<GlTriangulatedMesh>(ownerContext);
 }
 
 IMkTriangulatedMeshPtr createMkTriangulatedMesh(
-	class IMkWindow* ownerWindow,
+	class IMkGraphicsContext* ownerContext,
 	std::string name,
 	const uint8_t* vertexData,
 	const size_t vertexSize,
@@ -215,7 +215,7 @@ IMkTriangulatedMeshPtr createMkTriangulatedMesh(
 	bool bOwnsVertexData)
 {
 	return std::make_shared<GlTriangulatedMesh>(
-		ownerWindow,
+		ownerContext,
 		name,
 		vertexData,
 		vertexSize,
@@ -227,13 +227,13 @@ IMkTriangulatedMeshPtr createMkTriangulatedMesh(
 }
 
 IMkTriangulatedMeshPtr createFullscreenQuadMesh(
-	IMkWindow* ownerWindow, 
+	IMkGraphicsContext* ownerContext,
 	bool vFlipped,
 	bool bHasAlpha)
 {
 	static uint16_t x_indices[] = {0, 1, 2, 0, 2, 3};
 
-	auto shaderCache= ownerWindow->getShaderCache();
+	auto shaderCache= ownerContext->getShaderCache();
 	auto material = 
 		bHasAlpha ?
 		shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_FULLSCREEN_RGBA_TEXTURE) :
@@ -267,7 +267,7 @@ IMkTriangulatedMeshPtr createFullscreenQuadMesh(
 	QuadVertex* vertices= vFlipped ? x_flippedVertices : x_vertices;
 	auto fullscreenQuad =
 		createMkTriangulatedMesh(
-			ownerWindow,
+			ownerContext,
 			"layer_quad_mesh",
 			(const uint8_t*)vertices,
 			vertexSize,
@@ -288,7 +288,7 @@ IMkTriangulatedMeshPtr createFullscreenQuadMesh(
 }
 
 IMkTriangulatedMeshPtr createFullscreenQuadMesh(
-	IMkWindow* ownerWindow,
+	IMkGraphicsContext* ownerContext,
 	MkMaterialConstPtr material,
 	bool vFlipped)
 {
@@ -323,7 +323,7 @@ IMkTriangulatedMeshPtr createFullscreenQuadMesh(
 	QuadVertex* vertices= vFlipped ? x_flippedVertices : x_vertices;
 	auto fullscreenQuad =
 		createMkTriangulatedMesh(
-			ownerWindow,
+			ownerContext,
 			"custom_material_quad_mesh",
 			(const uint8_t*)vertices,
 			vertexSize,

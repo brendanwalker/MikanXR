@@ -4,18 +4,9 @@
 #include "EditorObjectSystem.h"
 #include "MikanViewport.h"
 #include "IEditorWindow.h"
-#include "SdlWindow.h"
 #include "Shared/ModalDialog.h"
 
 #include <filesystem>
-
-#if defined(_WIN32)
-#include <SDL_events.h>
-#include <SDL_keycode.h>
-#else
-#include <SDL2/SDL_events.h>
-#include <SDL2/SDL_keycode.h>
-#endif
 
 AppStage::AppStage(
 	IEditorWindow* ownerWindow,
@@ -105,7 +96,7 @@ void AppStage::exit()
 	}
 }
 
-void AppStage::onSDLEvent(const SDL_Event* event)
+void AppStage::onWindowEvent(const MkWindowEvent& event)
 {
 
 }

@@ -5,10 +5,11 @@
 #include "CameraRequestHandler.h"
 #include "ClientSourceManager.h"
 #include "CompositorComponent.h"
-#include "COmpositorObjectSystem.h"
+#include "CompositorObjectSystem.h"
 #include "IMkState.h"
 #include "IMkTexture.h"
 #include "IMkTriangulatedMesh.h"
+#include "IMkGraphicsContext.h"
 #include "Logger.h"
 #include "MainWindow.h"
 #include "MathTypeConversion.h"
@@ -203,7 +204,7 @@ void CompositorComponent::init()
 
 	m_nodeGraphAssetRef = std::make_shared<NodeGraphAssetReference>();
 	m_editorFrameBufferTexture = CreateMkTexture();
-	m_viewportQuadMesh = createFullscreenQuadMesh(getOwnerWindow(), false);
+	m_viewportQuadMesh = createFullscreenQuadMesh(getOwnerWindow()->getGraphicsContext().get(), false);
 
 	// Initialize the compositor graph if we have one assigned
 	handleCompositorNodeGraphChanged(getCompositorGraphAssetPath());
@@ -595,7 +596,7 @@ void CompositorComponent::renderToViewportQuad() const
 			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
 			{
 				MkScopedState scopedState = 
-					getOwnerWindow()->getMkStateStack().createScopedState("CompositorComponentRender");
+					getOwnerWindow()->getGraphicsContext()->getMkStateStack().createScopedState("CompositorComponentRender");
 				scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
 
 				m_viewportQuadMesh->drawElements();

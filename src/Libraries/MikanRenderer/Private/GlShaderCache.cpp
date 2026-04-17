@@ -13,8 +13,8 @@ class GlShaderCache : public IMkShaderCache
 {
 public:
 	GlShaderCache() = delete;
-	GlShaderCache(IMkWindow* ownerWindow)
-		: m_ownerWindow(ownerWindow)
+	GlShaderCache(IMkGraphicsContext* ownerContext)
+		: m_ownerContext(ownerContext)
 	{
 	}
 	virtual ~GlShaderCache()
@@ -104,14 +104,14 @@ public:
 	}
 
 private:
-	IMkWindow* m_ownerWindow;
+	IMkGraphicsContext* m_ownerContext;
 	std::map<std::string, IMkShaderPtr> m_programCache;
 	std::map<std::string, MkMaterialPtr> m_materialCache;
 };
 
-IMkShaderCachePtr createMkShaderCache(class IMkWindow* ownerWindow)
+IMkShaderCachePtr createMkShaderCache(class IMkGraphicsContext* ownerContext)
 {
-	return std::make_shared<GlShaderCache>(ownerWindow);
+	return std::make_shared<GlShaderCache>(ownerContext);
 }
 
 namespace InternalShaders

@@ -151,7 +151,7 @@ IMkTexturePtr DepthTextureSourceNode::getDepthSourceTexture() const
 		}
 		else
 		{
-			auto* textureCache = getOwnerGraph()->getOwnerWindow()->getTextureCache();
+			auto* textureCache = getOwnerGraph()->getOwnerWindow()->getGraphicsContext()->getTextureCache();
 
 			if (m_clientTextureType == eTextureSourceDepthType::depthPackRGBA )
 			{
@@ -182,14 +182,14 @@ void DepthTextureSourceNode::updateLinearDepthFrameBuffer(NodeEvaluator& evaluat
 
 	IMkWindow* ownerWindow= evaluator.getCurrentWindow();
 	MkScopedObjectBinding depthFramebufferBinding(
-		ownerWindow->getMkStateStack().getCurrentState(),
+		ownerWindow->getGraphicsContext()->getMkStateStack().getCurrentState(),
 		"Depth Texture Framebuffer Scope",
 		m_linearDepthFrameBuffer);
 	if (depthFramebufferBinding)
 	{
 		IMkState* glState = depthFramebufferBinding.getMkState();
 		MkMaterialConstPtr depthUnpackMaterial =
-			ownerWindow->getShaderCache()->getMaterialByName(
+			ownerWindow->getGraphicsContext()->getShaderCache()->getMaterialByName(
 				INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE);
 
 		if (depthUnpackMaterial != nullptr)

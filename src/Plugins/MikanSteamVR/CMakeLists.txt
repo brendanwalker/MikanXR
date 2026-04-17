@@ -24,6 +24,7 @@ list(APPEND MIKAN_STEAMVR_INCL_DIRS
 	${CMAKE_CURRENT_LIST_DIR}/Public
 	${CMAKE_CURRENT_LIST_DIR}/Private
 	${MIKAN_LIBRARIES_DIR}/MikanCoreApp/Public
+	${MIKAN_LIBRARIES_DIR}/MikanWindow/Public
 	${MIKAN_LIBRARIES_DIR}/MikanRenderer/Public
 	${MIKAN_LIBRARIES_DIR}/MikanUtility/Public
 	${OPENVR_INCLUDE_DIR}
@@ -34,6 +35,7 @@ list(APPEND MIKAN_GSTREAMER_REQ_LIBS
 	${OPENVR_LIBRARY}
 	MikanCoreApp
 	MikanRenderer
+	MikanWindow
 	MikanUtility)
 
 add_library(MikanSteamVR SHARED ${MIKAN_STEAMVR_SRC})

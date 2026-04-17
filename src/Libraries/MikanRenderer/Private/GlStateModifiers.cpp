@@ -4,8 +4,8 @@
 #include "MkStateModifiers.h"
 #include "IMkState.h"
 #include "IMkStateModifier.h"
+#include "IMkGraphicsContext.h"
 #include "IMkViewport.h"
-#include "IMkWindow.h"
 
 #include "memory"
 #include "vector"
@@ -22,7 +22,7 @@ public:
 
 	inline IMkState* getOwnerGlState() { return m_ownerGlState; }
 	inline MkStateStack& getOwnerMkStateStack() { return m_ownerGlState->getOwnerStateStack(); }
-	inline IMkWindow* getOwnerWindow() { return getOwnerMkStateStack().getOwnerWindow(); }
+	inline IMkGraphicsContext* getOwnerContext() { return getOwnerMkStateStack().getOwnerContext(); }
 
 	inline static const std::string k_modifierID = "<INVALID>";
 	virtual const std::string& getModifierID() const override { return k_modifierID; }
@@ -137,7 +137,7 @@ public:
 		getStateLog() << "Apply Viewport: " << m_x << ", " << m_y << ", " << m_width << ", " << m_height;
 
 		// Tell the owner window that we are applying new viewport bounds
-		IMkViewportPtr viewport= getOwnerWindow()->getRenderingViewport();
+		IMkViewportPtr viewport= getOwnerContext()->getRenderingViewport();
 		if (viewport)
 		{
 			viewport->onRenderingViewportApply(m_x, m_y, m_width, m_height);
@@ -150,7 +150,7 @@ public:
 		getStateLog() << "Revert Viewport: " << m_prevX << ", " << m_prevY << ", " << m_prevWidth << ", " << m_prevHeight;
 
 		// Tell the owner window that we are restoring previous viewport bounds
-		IMkViewportPtr viewport = getOwnerWindow()->getRenderingViewport();
+		IMkViewportPtr viewport = getOwnerContext()->getRenderingViewport();
 		if (viewport)
 		{
 			viewport->onRenderingViewportRevert(m_x, m_y, m_width, m_height);

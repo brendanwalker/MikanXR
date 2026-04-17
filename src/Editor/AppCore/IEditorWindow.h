@@ -1,17 +1,18 @@
 #pragma once
 
-#include "ISdlMkWindow.h"
+#include "IMkWindow.h"
 #include "ObjectSystemFwd.h"
 #include "MulticastDelegate.h"
 
 #include <string>
 
-class IEditorWindow : public ISdlMkWindow
+class IEditorWindow : public IMkWindow
 {
 public:
+	virtual class MikanModelResourceManager* getModelResourceManager() = 0;
 	virtual ProjectManagerPtr getProjectManager() const = 0;
 	virtual class MikanServer* getMikanServer() const = 0;
-	virtual class MikanFontManager* getFontManager() const = 0;
+	virtual class IMkFontManager* getFontManager() const = 0;
 	virtual class InputManager* getInputManager() const = 0;
 	virtual class OpenCVManager* getOpenCVManager() const = 0;
 	virtual class ClientSourceManager* getClientSourceManager() const = 0;

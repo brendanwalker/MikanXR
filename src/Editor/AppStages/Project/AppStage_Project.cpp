@@ -6,6 +6,7 @@
 #include "CompositorComponent.h"
 #include "EditorObjectSystem.h"
 #include "InputManager.h"
+#include "IMkGraphicsContext.h"
 #include "IMkLineRenderer.h"
 #include "IMkTextRenderer.h"
 #include "IMkTexture.h"
@@ -32,8 +33,6 @@
 #include "Project/GuiPanel_ProjectTracking.h"
 #include "Shared/GuiPanel_MarkerComponent.h"
 #include "SceneComponent.h"
-#include "SdlCommon.h"
-#include "SdlUtility.h"
 #include "SceneObjectSystem.h"
 #include "TextStyle.h"
 #include "VideoSourceComponent.h"
@@ -104,12 +103,12 @@ void AppStage_Project::enter()
 
 	// Setup hotkeys
 	{
-		InputManager* inputManager = InputManager::getInstance();
+		InputManager* inputManager = getOwnerWindow()->getInputManager();
 
 		// Hotkeys for switching between viewport modes
-		inputManager->fetchOrAddKeyBindings(SDLK_COMMA)->OnKeyPressed +=
+		inputManager->fetchOrAddKeyBindings(MkKey::COMMA)->OnKeyPressed +=
 			MakeDelegate(this, &AppStage_Project::cyclePreviousCompositorCamera);
-		inputManager->fetchOrAddKeyBindings(SDLK_PERIOD)->OnKeyPressed +=
+		inputManager->fetchOrAddKeyBindings(MkKey::PERIOD)->OnKeyPressed +=
 			MakeDelegate(this, &AppStage_Project::cycleNextCompositorCamera);
 	}
 
@@ -376,7 +375,7 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 	{
 		currentScene->renderEditorScene(
 			viewportCamera,
-			m_ownerWindow->getMkStateStack());
+			m_ownerWindow->getGraphicsContext()->getMkStateStack());
 	}
 
 	// Perform component custom rendering

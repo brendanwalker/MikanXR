@@ -51,7 +51,7 @@ public:
 	virtual void onGui();
 	virtual void render(IMkViewportPtr targetViewport);
 
-	virtual void onSDLEvent(const SDL_Event* event);
+	virtual void onWindowEvent(const MkWindowEvent& event);
 
 	MikanViewportPtr getFirstViewport() const { return m_viewports[0]; }
 	const MikanViewportList& getViewportList() const { return m_viewports; }

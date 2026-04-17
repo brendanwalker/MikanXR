@@ -11,13 +11,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
 
-#if defined(_WIN32)
-	#include <SDL_events.h>
-#else
-	#include <SDL2/SDL_events.h>
-#endif
-
-
 MikanCamera::MikanCamera()
 {
 	m_viewMatrix = glm::mat4(1.f);

@@ -7,6 +7,7 @@
 #include "CameraObjectSystem.h"
 #include "MikanCamera.h"
 #include "IMkFrameBuffer.h"
+#include "IMkGraphicsContext.h"
 #include "MikanLineRenderer.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
@@ -28,8 +29,6 @@
 #include "VRTrackingVolumeSystem.h"
 #include "VideoSourceComponent.h"
 
-#include "SDL_keycode.h"
-
 #include "glm/gtc/quaternion.hpp"
 
 #include "MkGuiScopedWindow.h"
@@ -47,7 +46,7 @@ AppStage_VRTrackingRecenter::AppStage_VRTrackingRecenter(IEditorWindow* ownerWin
 	, m_monoDistortionView(nullptr)
 	, m_mkCamera(nullptr)
 	, m_frameBuffer(createMkFrameBuffer())
-	, m_fullscreenRGBQuad(createFullscreenQuadMesh(ownerWindow, false))
+	, m_fullscreenRGBQuad(createFullscreenQuadMesh(ownerWindow->getGraphicsContext().get(), false))
 {
 }
 
@@ -256,7 +255,7 @@ void AppStage_VRTrackingRecenter::render(IMkViewportPtr targetViewport)
 	if (m_frameBuffer->isValid())
 	{
 		MkScopedObjectBinding colorFramebufferBinding(
-			m_ownerWindow->getMkStateStack().getCurrentState(),
+			m_ownerWindow->getGraphicsContext()->getMkStateStack().getCurrentState(),
 			"Color Framebuffer Scope",
 			m_frameBuffer);
 
@@ -288,8 +287,8 @@ void AppStage_VRTrackingRecenter::render(IMkViewportPtr targetViewport)
 		}
 
 		// Render any lines and text that were added to the scene by the calibrator in the frame buffer's viewport
-		m_ownerWindow->getLineRenderer()->render();
-		m_ownerWindow->getTextRenderer()->render();
+		m_ownerWindow->getGraphicsContext()->getLineRenderer()->render();
+		m_ownerWindow->getGraphicsContext()->getTextRenderer()->render();
 	}
 
 	// Render the frame buffer to the screen

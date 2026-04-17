@@ -1,9 +1,9 @@
 #include "App.h"
 #include "CalibrationRenderHelpers.h"
-#include "MikanFontManager.h"
+#include "IMkGraphicsContext.h"
+#include "IMkTextRenderer.h"
 #include "MikanCamera.h"
 #include "MkError.h"
-#include "SdlCommon.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "IMkShader.h"
@@ -20,6 +20,8 @@
 
 #include "glm/ext/matrix_projection.hpp"
 
+#include <stdarg.h>
+
 //-- Drawing Methods -----
 void drawTextAtWorldPosition(
 	const TextStyle& style,
@@ -30,7 +32,7 @@ void drawTextAtWorldPosition(
 	IMkWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
 	assert(window != nullptr);
 
-	IMkTextRenderer * textRenderer = window->getTextRenderer();
+	IMkTextRenderer * textRenderer = window->getGraphicsContext()->getTextRenderer();
 	if (textRenderer == nullptr)
 		return;
 
@@ -76,7 +78,7 @@ void drawTextAtScreenPosition(
 	IMkWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
 	assert(window != nullptr);
 
-	IMkTextRenderer* textRenderer = window->getTextRenderer();
+	IMkTextRenderer* textRenderer = window->getGraphicsContext()->getTextRenderer();
 	if (textRenderer == nullptr)
 		return;
 
@@ -93,7 +95,7 @@ void drawTextAtTrackerPosition(
 	IMkWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
 	assert(window != nullptr);
 
-	IMkTextRenderer* textRenderer = window->getTextRenderer();
+	IMkTextRenderer* textRenderer = window->getGraphicsContext()->getTextRenderer();
 	if (textRenderer == nullptr)
 		return;
 
@@ -137,7 +139,7 @@ void drawTextAtCameraPosition(
 	IMkWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
 	assert(window != nullptr);
 
-	IMkTextRenderer* textRenderer = window->getTextRenderer();
+	IMkTextRenderer* textRenderer = window->getGraphicsContext()->getTextRenderer();
 	if (textRenderer == nullptr)
 		return;
 

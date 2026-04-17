@@ -5,8 +5,8 @@
 #include "Logger.h"
 #include "PathUtils.h"
 
-MikanTextureCache::MikanTextureCache(IMkWindow* ownerWindow)
-	: m_textureCache(createMkTextureCache(ownerWindow))
+MikanTextureCache::MikanTextureCache(IMkGraphicsContext* graphicsContext)
+	: m_textureCache(createMkTextureCache(graphicsContext))
 {
 }
 

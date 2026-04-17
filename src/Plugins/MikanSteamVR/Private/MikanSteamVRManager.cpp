@@ -1,5 +1,6 @@
 #include "MikanSteamVRManager.h"
 #include "MikanSteamVRDevice.h"
+#include "IMkGraphicsContext.h"
 #include "IMkWindow.h"
 #include "IVRDevice.h"
 #include "Logger.h"
@@ -116,7 +117,7 @@ const float MikanSteamVRManager::k_reconnectTimeoutDuration = 1.f;
 const int MikanSteamVRManager::k_maxReconnectAttempts = 5;
 
 MikanSteamVRManager::MikanSteamVRManager()
-	: m_ownerWindow(nullptr)
+	: m_ownerContext(nullptr)
 	, m_reconnectTimeout(0.f)
 	, m_reconnectAttemptCount(0)
 	, m_devicePoseHistory(std::unique_ptr<DeviceSetPoseHistory>(new DeviceSetPoseHistory(MAX_POSE_HISTORY_FRAMES)))
@@ -148,9 +149,9 @@ void MikanSteamVRManager::removeListener(IVRDeviceManagerListener* eventListener
 
 bool MikanSteamVRManager::startup(IMkWindow* ownerWindow)
 {
-	m_ownerWindow= ownerWindow;
+	m_ownerContext= ownerWindow->getGraphicsContext().get();
 
-	m_resourceManager->init(ownerWindow);
+	m_resourceManager->init(m_ownerContext);
 
 	if (!tryConnect())
 	{

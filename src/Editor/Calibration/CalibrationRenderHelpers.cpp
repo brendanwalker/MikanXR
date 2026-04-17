@@ -2,25 +2,26 @@
 #include "MikanViewport.h"
 #include "ColorUtils.h"
 #include "CalibrationRenderHelpers.h"
+#include "IMkGraphicsContext.h"
 #include "IMkLineRenderer.h"
 #include "MikanLineRenderer.h"
 #include "MathUtility.h"
 
 IMkLineRenderer* getLineRenderer()
 {
-	IMkWindow* window = App::getInstance()->getCurrentGlContext();
+	IMkWindow* window = App::getInstance()->getWindowManager()->getCurrentWindowContext();
 	assert(window != nullptr);
 
-	return window->getLineRenderer();
+	return window->getGraphicsContext()->getLineRenderer();
 }
 
 IMkLineRenderer* getLineRendererAndViewportBounds(
 	float& outViewportX0, float& outViewportY0,
 	float& outViewportX1, float& outViewportY1)
 {
-	IMkWindow* window = App::getInstance()->getCurrentGlContext();
+	IMkWindow* window = App::getInstance()->getWindowManager()->getCurrentWindowContext();
 	assert(window != nullptr);
-	IMkLineRenderer* lineRenderer = window->getLineRenderer();
+	IMkLineRenderer* lineRenderer = window->getGraphicsContext()->getLineRenderer();
 	if (lineRenderer == nullptr)
 		return nullptr;
 

@@ -18,23 +18,21 @@
 
 #include "App.h"
 #include "AssetReference.h"
-#include "SdlCommon.h"
+#include "IMkGraphicsContext.h"
+#include "IMkWindow.h"
 #include "MikanModelResourceManager.h"
 #include "IMkViewport.h"
 #include "MkStateStack.h"
 #include "IMkState.h"
 #include "MainWindow.h"
 #include "MkStateModifiers.h"
-#include "MikanShaderCache.h"
+#include "MkWindowEvent.h"
 #include "IMkTexture.h"
-#include "MikanTextureCache.h"
 #include "Graphs/NodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
 #include "Nodes/Node.h"
 #include "NodeEditorUI.h"
 #include "PathUtils.h"
-#include "SdlManager.h"
-#include "SdlWindow.h"
 #include "StringUtils.h"
 #include "TextStyle.h"
 
@@ -59,25 +57,13 @@
 //-- public methods -----
 NodeEditorWindow::NodeEditorWindow(App* ownerApp)
 	: m_ownerApp(ownerApp)
-	, m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
-	, m_mkStateStack(MkStateStackUniquePtr(new MkStateStack(this)))
+	, m_graphicsContext(createMkGraphicsContext(eGraphicsAPI::OpenGL, nullptr))
+	, m_mkWindow(createMkWindow(ownerApp->getWindowManager(), m_graphicsContext))
 	, m_modelResourceManager(MikanModelResourceManagerUniquePtr(new MikanModelResourceManager(this)))
-	, m_shaderCache(MikanShaderCacheUniquePtr(new MikanShaderCache(this)))
-	, m_textureCache(MikanTextureCacheUniquePtr(new MikanTextureCache(this)))
 {}
 
 NodeEditorWindow::~NodeEditorWindow()
 {
-}
-
-IMkLineRenderer* NodeEditorWindow::getLineRenderer()
-{
-	return nullptr;
-}
-
-IMkTextRenderer* NodeEditorWindow::getTextRenderer()
-{
-	return nullptr;
 }
 
 MikanModelResourceManager* NodeEditorWindow::getModelResourceManager()
@@ -85,24 +71,64 @@ MikanModelResourceManager* NodeEditorWindow::getModelResourceManager()
 	return m_modelResourceManager.get();
 }
 
-IMkShaderCache* NodeEditorWindow::getShaderCache()
+IMkGraphicsContextPtr NodeEditorWindow::getGraphicsContext() const
 {
-	return m_shaderCache.get();
+	return m_graphicsContext;
 }
 
-IMkTextureCache* NodeEditorWindow::getTextureCache()
+void NodeEditorWindow::getMouseScreenPosition(int& outScreenX, int& outScreenY) const
 {
-	return m_textureCache.get();
+	m_mkWindow->getMouseScreenPosition(outScreenX, outScreenY);
 }
 
-MkStateStack& NodeEditorWindow::getMkStateStack()
+eWindowAPI NodeEditorWindow::getWindowAPI() const
 {
-	return *m_mkStateStack.get();
+	return m_mkWindow->getWindowAPI();
 }
 
-SdlWindow& NodeEditorWindow::getSdlWindow()
+void* NodeEditorWindow::getNativeWindowHandle() const
 {
-	return *m_sdlWindow.get();
+	return m_mkWindow->getNativeWindowHandle();
+}
+
+void NodeEditorWindow::makeContextCurrent()
+{
+	m_mkWindow->makeContextCurrent();
+}
+
+bool NodeEditorWindow::wantsDestroy() const
+{
+	return m_mkWindow->wantsDestroy();
+}
+
+void NodeEditorWindow::setTitle(const std::string& title)
+{
+	m_mkWindow->setTitle(title);
+}
+
+void NodeEditorWindow::setSize(int width, int height)
+{
+	m_mkWindow->setSize(width, height);
+}
+
+void NodeEditorWindow::handleEvents(IMkWindowEventListener* eventListener)
+{
+	m_mkWindow->handleEvents(eventListener);
+}
+
+bool NodeEditorWindow::hasMouseFocus() const
+{
+	return m_mkWindow->hasMouseFocus();
+}
+
+bool NodeEditorWindow::hasKeyboardFocus() const
+{
+	return m_mkWindow->hasKeyboardFocus();
+}
+
+void NodeEditorWindow::present()
+{
+	m_mkWindow->present();
 }
 
 // -- IMkWindow ----
@@ -118,11 +144,9 @@ bool NodeEditorWindow::startup()
 	static const int k_node_window_pixel_height = 720;
 
 	auto windowTitle = "Node Editor";
-	m_sdlWindow
-		->enableGLDataSharing() // Want access to video textures owned by MainWindow's GL Context
-		->setTitle(windowTitle)
-		->setSize(k_node_window_pixel_width, k_node_window_pixel_height);
-	if (!m_sdlWindow->startup())
+	m_mkWindow->setTitle(windowTitle);
+	m_mkWindow->setSize(k_node_window_pixel_width, k_node_window_pixel_height);
+	if (!m_mkWindow->startup())
 	{
 		MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Unable to initialize main SDK window: ";
 		success = false;
@@ -131,9 +155,7 @@ bool NodeEditorWindow::startup()
 	// Setup ImGui/ImNodes context
 	if (success)
 	{
-		m_guiContext = std::make_shared<MkGuiContext>(
-			m_sdlWindow->getInternalSdlWindow(),
-			m_sdlWindow->getInternalGlContext());
+		m_guiContext = std::make_shared<MkGuiContext>(this);
 		if (!m_guiContext->startup())
 		{
 			MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Unable to create GUI context";
@@ -156,18 +178,6 @@ bool NodeEditorWindow::startup()
 		}
 	}
 
-	if (success && !m_textureCache->startup())
-	{
-		MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Failed to initialize texture cache!";
-		success = false;
-	}
-
-	if (success && !m_shaderCache->startup())
-	{
-		MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Failed to initialize shader cache!";
-		success = false;
-	}
-
 	if (success)
 	{
 		if (!m_modelResourceManager->startup())
@@ -180,7 +190,7 @@ bool NodeEditorWindow::startup()
 	if (success)
 	{
 		// Set default state flags at the base of the stack
-		IMkState* mkBaseState= m_mkStateStack->pushState("NodeEditor Root Scope");
+		IMkState* mkBaseState= m_graphicsContext->getMkStateStack().pushState("NodeEditor Root Scope");
 		assert(mkBaseState->getStackDepth() == 0);
 
 		mkBaseState
@@ -203,7 +213,7 @@ void NodeEditorWindow::update(float deltaSeconds)
 	MkGuiScopedUpdate scopedCtx(*m_guiContext);
 
 	// Process most recent SDL events (keyboard, mouse, etc)
-	m_sdlWindow->handleSDLEvents(this);
+	m_mkWindow->handleEvents(this);
 
 	// Process UI input and build ImGui draw lists
 	updateUI();
@@ -216,21 +226,24 @@ void NodeEditorWindow::render()
 	EASY_FUNCTION();
 
 	// Clear the window
-	m_sdlWindow->renderBegin();
+	m_graphicsContext->renderBegin();
 
 	{
 		// Create a scoped UI rendering settings
-		MkScopedState scopedState = m_mkStateStack->createScopedState("appStage renderUI");
+		MkScopedState scopedState = m_graphicsContext->getMkStateStack().createScopedState("appStage renderUI");
 		IMkState* glState = scopedState.getStackState();
 
-		mkStateSetViewport(glState, 0, 0, m_sdlWindow->getWidth(), m_sdlWindow->getHeight());
+		mkStateSetViewport(glState, 0, 0, (int)m_mkWindow->getWidth(), (int)m_mkWindow->getHeight());
 
 		// Submit the MkGui draw calls
 		m_guiContext->submitDrawData();
 	}
 
-	// Call SDL_GL_SwapWindow
-	m_sdlWindow->renderEnd();
+	// Finalize rendering
+	m_graphicsContext->renderEnd();
+
+	// Present the rendered frame
+	m_mkWindow->present();
 }
 
 void NodeEditorWindow::updateUI()
@@ -1031,20 +1044,6 @@ void NodeEditorWindow::shutdown()
 	m_editorState.nodeGraph= nullptr;
 	m_editorState.nodeGraphPath.clear();
 
-	m_mkStateStack = nullptr;
-
-	if (m_shaderCache != nullptr)
-	{
-		m_shaderCache->shutdown();
-		m_shaderCache = nullptr;
-	}
-
-	if (m_textureCache != nullptr)
-	{
-		m_textureCache->shutdown();
-		m_textureCache = nullptr;
-	}
-
 	if (m_styleManager != nullptr)
 	{
 		m_styleManager->shutdown();
@@ -1057,30 +1056,37 @@ void NodeEditorWindow::shutdown()
 		m_guiContext = nullptr;
 	}
 
-	if (m_sdlWindow != nullptr)
+	if (m_mkWindow != nullptr)
 	{
-		m_sdlWindow->shutdown();
-		m_sdlWindow = nullptr;
+		m_mkWindow->shutdown();
+		m_mkWindow = nullptr;
 	}
+
+	m_graphicsContext = nullptr;
 }
- 
+
+const char* NodeEditorWindow::getTitle() const
+{
+	return m_mkWindow->getTitle();
+}
+
 float NodeEditorWindow::getWidth() const
 {
-	return (float)m_sdlWindow->getWidth();
+	return m_mkWindow->getWidth();
 }
 
 float NodeEditorWindow::getHeight() const
 {
-	return (float)m_sdlWindow->getHeight();
+	return m_mkWindow->getHeight();
 }
 
 float NodeEditorWindow::getAspectRatio() const
 {
-	return (float)m_sdlWindow->getAspectRatio();
+	return m_mkWindow->getAspectRatio();
 }
 
 // -- IMkWindowEventListener
-bool NodeEditorWindow::onWindowEvent(const SDL_Event* event)
+bool NodeEditorWindow::onWindowEvent(const MkWindowEvent& event)
 {
 	return m_guiContext->onWindowEvent(event);
 }
@@ -1101,7 +1107,7 @@ MikanServer* NodeEditorWindow::getMikanServer() const
 	return getMainWindow()->getMikanServer();
 }
 
-MikanFontManager* NodeEditorWindow::getFontManager() const
+IMkFontManager* NodeEditorWindow::getFontManager() const
 {
 	return getMainWindow()->getFontManager();
 }

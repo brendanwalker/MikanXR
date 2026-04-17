@@ -1,6 +1,6 @@
 #include "GlCommon.h"
 #include "IMkCamera.h"
-#include "IMkWindow.h"
+#include "IMkGraphicsContext.h"
 #include "IMkShader.h"
 #include "IMkShaderCache.h"
 #include "MkMaterial.h"
@@ -13,12 +13,12 @@ class GlWireframeMesh : public IMkWireframeMesh
 {
 public:
 	GlWireframeMesh() = default;
-	GlWireframeMesh(IMkWindow* ownerWindow)
-		: m_ownerWindow(ownerWindow)
+	GlWireframeMesh(IMkGraphicsContext* ownerContext)
+		: m_ownerContext(ownerContext)
 	{}
 
 	GlWireframeMesh(
-		IMkWindow* ownerWindow,
+		IMkGraphicsContext* ownerContext,
 		std::string name,
 		const uint8_t* vertexData,
 		const size_t vertexSize,
@@ -27,7 +27,7 @@ public:
 		const size_t indexSize,
 		uint32_t lineCount,
 		bool bOwnsVertexData)
-		: m_ownerWindow(ownerWindow)
+		: m_ownerContext(ownerContext)
 	{
 		m_name = name;
 		m_vertexData = vertexData;
@@ -55,7 +55,7 @@ public:
 
 	virtual std::string getName() const override { return m_name; }
 	virtual MkMaterialInstancePtr getMaterialInstance() const { return m_materialInstance; };
-	virtual class IMkWindow* getOwnerWindow() const override { return m_ownerWindow; }
+	virtual class IMkGraphicsContext* getOwnerContext() const override { return m_ownerContext; }
 	virtual const uint8_t* getVertexData() const override { return m_vertexData; }
 	virtual const uint32_t getVertexCount() const override { return m_vertexCount; }
 
@@ -93,7 +93,7 @@ public:
 			return false;
 		}
 
-		IMkShaderCache* shaderCache = getOwnerWindow()->getShaderCache();
+		IMkShaderCache* shaderCache = getOwnerContext()->getShaderCache();
 		MkMaterialConstPtr material = shaderCache->getMaterialByName(INTERNAL_MATERIAL_P_WIREFRAME);
 		if (!material)
 		{
@@ -159,7 +159,7 @@ public:
 	}
 
 protected:
-	class IMkWindow* m_ownerWindow = nullptr;
+	class IMkGraphicsContext* m_ownerContext = nullptr;
 	MkMaterialInstancePtr m_materialInstance;
 
 	std::string m_name;
@@ -177,13 +177,13 @@ protected:
 	uint32_t m_glIndexBuffer = 0;
 };
 
-IMkWireframeMeshPtr CreateMkWireframeMesh(IMkWindow* ownerWindow)
+IMkWireframeMeshPtr CreateMkWireframeMesh(IMkGraphicsContext* ownerContext)
 {
-	return std::make_shared<GlWireframeMesh>(ownerWindow);
+	return std::make_shared<GlWireframeMesh>(ownerContext);
 }
 
 IMkWireframeMeshPtr CreateMkWireframeMesh(
-	class IMkWindow* ownerWindow,
+	class IMkGraphicsContext* ownerContext,
 	std::string name,
 	const uint8_t* vertexData,
 	const size_t vertexSize,
@@ -194,7 +194,7 @@ IMkWireframeMeshPtr CreateMkWireframeMesh(
 	bool bOwnsVertexData)
 {
 	return std::make_shared<GlWireframeMesh>(
-		ownerWindow,
+		ownerContext,
 		name,
 		vertexData,
 		vertexSize,

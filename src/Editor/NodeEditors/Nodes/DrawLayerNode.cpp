@@ -311,7 +311,7 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 
 		{	
 			MkScopedState mkStateScope = 	
-				evaluator.getCurrentWindow()->getMkStateStack().createScopedState("Draw Layer Node");	
+				evaluator.getCurrentWindow()->getGraphicsContext()->getMkStateStack().createScopedState("Draw Layer Node");	
 			IMkState* mkState = mkStateScope.getStackState();	
 
 			// Set the blend mode	

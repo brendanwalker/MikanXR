@@ -32,6 +32,7 @@ list(APPEND MIKAN_GUI_INCL_DIRS
 	${CMAKE_CURRENT_LIST_DIR}/Public
 	${CMAKE_CURRENT_LIST_DIR}/Private
 	${MIKAN_LIBRARIES_DIR}/MikanCoreApp/Public
+	${MIKAN_LIBRARIES_DIR}/MikanWindow/Public
 	${MIKAN_LIBRARIES_DIR}/MikanRenderer/Public
 	${MIKAN_LIBRARIES_DIR}/MikanUtility/Public
 	${ROOT_DIR}/thirdparty/glm/
@@ -56,14 +57,15 @@ elseif(CMAKE_SYSTEM MATCHES "Linux")
 endif()
 list(APPEND OPENGL_LIBS ${GLEW_LIBRARIES})
 
-list(APPEND MIKAN_GUI_REQ_LIBS 
+list(APPEND MIKAN_GUI_REQ_LIBS
 	${OPENGL_LIBS}
 	${SDL2_LIBRARY}
 	${SDL2_IMAGE_LIBRARY}
 	${SDL2TTF_LIBRARY}
 	MikanCoreApp
 	MikanRenderer
-	MikanUtility)
+	MikanUtility
+	MikanWindow)
 
 # Remove problematic files from the unity builds (header file inclusion ordering issues)
 set_source_files_properties(${IMGUI_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)

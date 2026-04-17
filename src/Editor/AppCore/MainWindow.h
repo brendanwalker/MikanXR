@@ -2,15 +2,15 @@
 
 //-- includes -----
 #include "AppStage.h"
+#include "IMkFontManager.h"
 #include "MkGuiFwd.h"
 #include "MikanRendererFwd.h"
-#include "SdlFwd.h"
 #include "IEditorWindow.h"
 #include "IMkWindowEventListener.h"
+#include "MkWindowFwd.h"
 #include "MulticastDelegate.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
-#include "SDL_events.h"
 
 #include <memory>
 #include <string>
@@ -29,27 +29,36 @@ public:
 	virtual bool startup() override;
 	virtual void update(float deltaSeconds) override;
 	virtual void render() override;
+	virtual void present() override;
 	virtual void shutdown() override;
 
+	virtual const char* getTitle() const override;
 	virtual float getWidth() const override;
 	virtual float getHeight() const override;
 	virtual float getAspectRatio() const override;
 	virtual bool getIsRenderingStage() const override { return m_isRenderingStage; }
 
+	virtual void getMouseScreenPosition(int& outScreenX, int& outScreenY) const override;
+
+	virtual eWindowAPI getWindowAPI() const override;
+	virtual void* getNativeWindowHandle() const override;
+	virtual IMkGraphicsContextPtr getGraphicsContext() const override;
 	virtual IMkViewportPtr getRenderingViewport() const override;
-	virtual MkStateStack& getMkStateStack() override;
-	virtual IMkLineRenderer* getLineRenderer() override;
-	virtual IMkTextRenderer* getTextRenderer() override;
+	virtual void makeContextCurrent() override;
+	virtual bool wantsDestroy() const override;
+	virtual void setTitle(const std::string& title) override;
+	virtual void setSize(int width, int height) override;
+	virtual void handleEvents(class IMkWindowEventListener* eventListener) override;
+	virtual bool hasMouseFocus() const override;
+	virtual bool hasKeyboardFocus() const override;
+
 	virtual MikanModelResourceManager* getModelResourceManager() override;
-	virtual IMkShaderCache* getShaderCache() override;
-	virtual IMkTextureCache* getTextureCache() override;
-	virtual SdlWindow& getSdlWindow() override;
 	virtual class EventBus* getEventBus() const override;
 	virtual class MkGuiStyleManager* getMkGuiStyleManager() const override;
 	virtual class LocalizationManager* getLocalizationManager() const override;
 
-	// -- ISdlEventListener ----
-	virtual bool onWindowEvent(const SDL_Event* event) override;
+	// -- IMkWindowEventListener ----
+	virtual bool onWindowEvent(const MkWindowEvent& event) override;
 
 	// -- IEditorWindow ----
 	virtual class MikanServer* getMikanServer() const override { return m_mikanServer; }
@@ -57,7 +66,7 @@ public:
 	virtual class InputManager* getInputManager() const override { return m_inputManager; }
 	virtual ProjectManagerPtr getProjectManager() const override { return m_projectManager; }
 	virtual class OpenCVManager* getOpenCVManager() const override { return m_openCVManager; }
-	virtual class MikanFontManager* getFontManager() const override { return m_fontManager; }
+	virtual class IMkFontManager* getFontManager() const override { return m_fontManager.get(); }
 
 	virtual class App* getOwnerApp() const override { return m_ownerApp; }
 	virtual AppStage* getCurrentAppStage() const override;
@@ -91,20 +100,18 @@ private:
 	class OpenCVManager* m_openCVManager;
 
 	// OpenGL/SDL font/baked text string texture cache
-	class MikanFontManager* m_fontManager = nullptr;
+	IMkFontManagerPtr m_fontManager;
 
 	// App Stages
 	AppStageFactory m_appStageFactory;
 	int m_appStageStackIndex = -1;
 	std::vector<AppStagePtr> m_appStageStack;
 
-	SdlWindowUniquePtr m_sdlWindow;
+	IMkWindowPtr m_mkWindow;
+	IMkGraphicsContextPtr m_graphicsContext;
 	IMkViewportPtr m_uiViewport;
 	IMkViewportPtr m_renderingViewport;
 
-	MkStateStackUniquePtr m_mkStateStack;
-	IMkLineRendererPtr m_lineRenderer;
-	IMkTextRendererPtr m_textRenderer;
 	MikanModelResourceManagerUniquePtr m_modelResourceManager;
 	MkGuiContextPtr m_guiContext;
 	std::unique_ptr<class MkGuiStyleManager> m_styleManager;
@@ -127,10 +134,4 @@ private:
 	bool m_isRenderingStage;
 	bool m_isRenderingUI;
 	bool m_bIsDebugGuiEnabled = false;
-
-	// OpenGL shader program cache
-	MikanShaderCacheUniquePtr m_shaderCache;
-
-	// OpenGL texture program cache
-	MikanTextureCacheUniquePtr m_textureCache;
 };

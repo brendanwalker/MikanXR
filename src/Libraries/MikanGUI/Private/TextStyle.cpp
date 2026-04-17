@@ -18,21 +18,14 @@ const TextStyle& getDefaultTextStyle()
 
 const std::filesystem::path getDefaultJapaneseFontPath()
 {
-	const std::filesystem::path japaneseFontPath= getFontPath("mona");
+	const std::filesystem::path japaneseFontPath= PathUtils::getFontPath("mona");
 
 	return japaneseFontPath;
 }
 
 const std::filesystem::path getForkAwesomeWebFontPath()
 {
-	const std::filesystem::path fontPath = getFontPath("forkawesome-webfont");
+	const std::filesystem::path fontPath = PathUtils::getFontPath("forkawesome-webfont");
 
 	return fontPath;
-}
-
-const std::filesystem::path getFontPath(const std::string& fontName)
-{
-	const std::string fileFilename= fontName + ".ttf";
-
-	return PathUtils::getResourceDirectory() / "font" / fileFilename;
 }

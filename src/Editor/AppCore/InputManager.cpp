@@ -1,19 +1,11 @@
+#include "IEditorWindow.h"
 #include "InputManager.h"
-
-#if defined(_WIN32)
-#include <SDL_events.h>
-#include <SDL_keycode.h>
-#else
-#include <SDL2/SDL_events.h>
-#include <SDL2/SDL_keycode.h>
-#endif
+#include "MkWindowEvent.h"
 
 // -- InputManager ------
-InputManager* InputManager::m_inputManager= nullptr;
-
-InputManager::InputManager()
+InputManager::InputManager(class IEditorWindow* ownerWindow)
+	: m_ownerWindow(ownerWindow)
 {
-	m_inputManager= this;
 }
 
 InputManager::~InputManager()
@@ -22,31 +14,29 @@ InputManager::~InputManager()
 	{
 		popEventBindingSet();
 	}
-
-	m_inputManager= nullptr;
 }
 
-bool InputManager::onSDLEvent(const SDL_Event* event)
+bool InputManager::onWindowEvent(const MkWindowEvent& event)
 {	
 	bool bHandled= false;
 
-	switch (event->type)
+	switch (event.getEventType())
 	{
-	case SDL_KEYDOWN:
+	case eMkWindowEventType::KeyDown:
 		{
-			KeyEventBindings* keybinds= getKeyBindings(event->key.keysym.sym);
+			KeyEventBindings* keybinds= getKeyBindings(event.getKeySym());
 			if (keybinds != nullptr && keybinds->OnKeyPressed)
 			{
 				keybinds->OnKeyPressed();
 				bHandled = true;
 			}
 		} break;
-	case SDL_KEYUP:
+	case eMkWindowEventType::KeyUp:
 		{
-			KeyEventBindings* keybinds = getKeyBindings(event->key.keysym.sym);
+			KeyEventBindings* keybinds = getKeyBindings(event.getKeySym());
 			if (keybinds != nullptr)
 			{
-				if (event->key.repeat > 0)
+				if (event.getKeyRepeat())
 				{
 					if (keybinds->OnKeyRepeated)
 					{
@@ -64,39 +54,39 @@ bool InputManager::onSDLEvent(const SDL_Event* event)
 				}
 			}
 		} break;
-	case SDL_MOUSEWHEEL:
+	case eMkWindowEventType::MouseWheel:
 		{
 			EventBindingSet* bindingSet = getCurrentEventBindingSet();
 			if (bindingSet != nullptr && bindingSet->OnMouseWheelScrolledEvent)
 			{
-				bindingSet->OnMouseWheelScrolledEvent(event->wheel.y);
+				bindingSet->OnMouseWheelScrolledEvent(event.getMouseWheelScrollAmount());
 				bHandled = true;
 			}
 		} break;
-	case SDL_MOUSEBUTTONDOWN:
+	case eMkWindowEventType::MouseButtonDown:
 		{
 			EventBindingSet* bindingSet = getCurrentEventBindingSet();
 			if (bindingSet != nullptr && bindingSet->OnMouseButtonPressedEvent)
 			{
-				bindingSet->OnMouseButtonPressedEvent(event->button.button);
+				bindingSet->OnMouseButtonPressedEvent(event.getMouseButton());
 				bHandled = true;
 			}
 		} break;
-	case SDL_MOUSEBUTTONUP:
+	case eMkWindowEventType::MouseButtonUp:
 		{
 			EventBindingSet* bindingSet = getCurrentEventBindingSet();
 			if (bindingSet != nullptr && bindingSet->OnMouseButtonReleasedEvent)
 			{
-				bindingSet->OnMouseButtonReleasedEvent(event->button.button);
+				bindingSet->OnMouseButtonReleasedEvent(event.getMouseButton());
 				bHandled = true;
 			}
 		} break;
-	case SDL_MOUSEMOTION:
+	case eMkWindowEventType::MouseMotion:
 		{
 			EventBindingSet* bindingSet = getCurrentEventBindingSet();
 			if (bindingSet != nullptr && bindingSet->OnMouseMotionEvent)
 			{
-				bindingSet->OnMouseMotionEvent(event->motion.xrel, event->motion.yrel);
+				bindingSet->OnMouseMotionEvent(event.getMouseMotionXRel(), event.getMouseMotionYRel());
 				bHandled = true;
 			}
 		} break;
@@ -109,10 +99,18 @@ bool InputManager::onSDLEvent(const SDL_Event* event)
 
 void InputManager::getMouseScreenPosition(int& outScreenX, int& outScreenY) const
 {
-	SDL_GetMouseState(&outScreenX, &outScreenY);
+	if (m_ownerWindow)
+	{
+		m_ownerWindow->getMouseScreenPosition(outScreenX, outScreenY);
+	}
+	else
+	{
+		outScreenX = 0;
+		outScreenY = 0;
+	}
 }
 
-KeyEventBindings* InputManager::getKeyBindings(SDL_Keycode key)
+KeyEventBindings* InputManager::getKeyBindings(MkKeySym key)
 {
 	EventBindingSet* bindingSet= getCurrentEventBindingSet();
 	if (bindingSet == nullptr)
@@ -127,7 +125,7 @@ KeyEventBindings* InputManager::getKeyBindings(SDL_Keycode key)
 	return nullptr;
 }
 
-KeyEventBindings* InputManager::fetchOrAddKeyBindings(SDL_Keycode key)
+KeyEventBindings* InputManager::fetchOrAddKeyBindings(MkKeySym key)
 {
 	EventBindingSet* bindingSet = getCurrentEventBindingSet();
 	if (bindingSet == nullptr)

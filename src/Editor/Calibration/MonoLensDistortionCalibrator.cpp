@@ -1,7 +1,6 @@
 #include "CalibrationRenderHelpers.h"
 #include "CalibrationPatternFinder_Charuco.h"
 #include "Colors.h"
-#include "SdlCommon.h"
 #include "Logger.h"
 #include "MathUtility.h"
 #include "MarkerObjectSystem.h"
