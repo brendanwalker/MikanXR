@@ -20,7 +20,7 @@ CompositorNodeEditorWindow::CompositorNodeEditorWindow(App* ownerApp)
 {
 }
 
-// -- IMkWindow ----
+// -- IEditorWindow ----
 bool CompositorNodeEditorWindow::startup()
 {
 	// Start the node editor window

@@ -4,7 +4,6 @@
 #include "IMkShader.h"
 #include "MikanShaderCache.h"
 #include "IMkVertexDefinition.h"
-#include "IMkWindow.h"
 #include "Logger.h"
 #include "ObjModelImporter.h"
 #include "ObjModelExporter.h"

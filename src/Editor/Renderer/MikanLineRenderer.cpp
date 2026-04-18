@@ -11,7 +11,6 @@
 #include "MikanTextRenderer.h"
 #include "IMkVertexDefinition.h"
 #include "MikanViewport.h"
-#include "IMkWindow.h"
 #include "Logger.h"
 #include "MathGLM.h"
 #include "TextStyle.h"

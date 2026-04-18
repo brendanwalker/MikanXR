@@ -1,6 +1,5 @@
 #include "ObjModelImporter.h"
 #include "Colors.h"
-#include "IMkWindow.h"
 #include "IMkGraphicsContext.h"
 #include "MikanRenderModelResource.h"
 #include "MikanModelResourceManager.h"

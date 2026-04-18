@@ -33,7 +33,7 @@ public:
 	virtual bool saveGraph(bool bShowFileDialog);
 	virtual void undo();
 
-	// -- IMkWindow ----
+	// -- IEditorWindow ----
 	virtual bool startup() override;
 	virtual void update(float deltaSeconds) override;
 	virtual void render() override;

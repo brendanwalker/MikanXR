@@ -1,4 +1,3 @@
-#include "IMkWindow.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "IMkTexture.h"

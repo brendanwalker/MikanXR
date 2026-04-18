@@ -19,7 +19,6 @@
 #include "App.h"
 #include "AssetReference.h"
 #include "IMkGraphicsContext.h"
-#include "IMkWindow.h"
 #include "MikanModelResourceManager.h"
 #include "IMkViewport.h"
 #include "MkStateStack.h"
@@ -69,7 +68,7 @@ NodeEditorWindow::~NodeEditorWindow()
 {
 }
 
-// -- IMkWindow ----
+// -- IEditorWindow ----
 bool NodeEditorWindow::startup()
 {
 	EASY_FUNCTION();

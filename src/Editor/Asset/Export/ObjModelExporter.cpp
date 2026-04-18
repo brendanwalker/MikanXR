@@ -1,6 +1,5 @@
 #include "ObjModelExporter.h"
 #include "Colors.h"
-#include "IMkWindow.h"
 #include "MikanRenderModelResource.h"
 #include "MikanModelResourceManager.h"
 #include "MkMaterialInstance.h"

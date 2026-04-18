@@ -7,7 +7,6 @@
 #include "CameraObjectSystem.h"
 #include "CompositorObjectSystem.h"
 #include "EditorObjectSystem.h"
-#include "IMkWindow.h"
 #include "PropertyInterface.h"
 #include "MainWindow.h"
 #include "MarkerObjectSystem.h"

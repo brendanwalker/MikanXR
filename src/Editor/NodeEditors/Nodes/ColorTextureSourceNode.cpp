@@ -4,7 +4,6 @@
 #include "IEditorWindow.h"
 #include "IMkGraphicsContext.h"
 #include "IMkFrameBuffer.h"
-#include "IMkWindow.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "MikanShaderCache.h"

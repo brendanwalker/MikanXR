@@ -7,7 +7,6 @@
 #include "CompositorObjectSystem.h"
 #include "IMkShaderCache.h"
 #include "IMkTriangulatedMesh.h"
-#include "IMkWindow.h"
 #include "IMkGraphicsContext.h"
 #include "TextureSourceSettings/AppStage_TextureSourceSettings.h"
 #include "Shared/GuiPanel_ClientTextureSourceComponent.h"
