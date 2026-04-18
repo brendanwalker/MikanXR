@@ -322,6 +322,8 @@ namespace KdTree
 		if (currentNode == nullptr)
 			return;
 
+		IMkGraphicsContext* graphicsContext = meshAccessor->getMesh()->getOwnerContext();
+
 		float aabbIntDistance;
 		if (glm_intersect_aabb_with_ray(
 				request.origin, request.direction, 
@@ -331,6 +333,7 @@ namespace KdTree
 			if (request.debugDraw)
 			{
 				drawTransformedBox(
+					graphicsContext,
 					request.worldMatrix, 
 					currentNode->getMin(), currentNode->getMax(), 
 					Colors::Red);
@@ -354,7 +357,9 @@ namespace KdTree
 			{
 				if (request.debugDraw)
 				{
-					drawTransformedTriangle(request.worldMatrix, tri, Colors::Yellow);
+					drawTransformedTriangle(
+						graphicsContext, 
+						request.worldMatrix, tri, Colors::Yellow);
 				}
 
 				if (!result.hit || intDistance < result.distance)

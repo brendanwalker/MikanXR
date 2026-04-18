@@ -359,6 +359,7 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 {
 	MikanCameraPtr viewportCamera = m_viewport->getCurrentMikanCamera();
 	int viewportCameraIndex = m_viewport->getCurrentCameraIndex();
+	IMkGraphicsContext* graphicsContext = getGraphicsContext();
 
 	// If we are looking through a compositor camera,
 	// we need to render the compositor output to a quad first
@@ -394,14 +395,15 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 		const float zFar = fminf(viewportCamera->getZFar(), 2.0f);
 
 		drawTransformedFrustum(
+			graphicsContext,
 			glmCameraXform,
 			hfov_radians, vfov_radians,
 			zNear, zFar,
 			Colors::Yellow);
-		drawTransformedAxes(glmCameraXform, 0.1f);
+		drawTransformedAxes(graphicsContext, glmCameraXform, 0.1f);
 		
 		// Draw tracking space
-		drawGrid(glm::mat4(1.f), 10.f, 10.f, 20, 20, Colors::GhostWhite);
+		drawGrid(graphicsContext, glm::mat4(1.f), 10.f, 10.f, 20, 20, Colors::GhostWhite);
 	}
 
 	if (getEditorSettings().bRenderOrigin)
@@ -412,9 +414,10 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 
 void AppStage_Project::debugRenderOrigin() const
 {
+	IMkGraphicsContext* graphicsContext = getGraphicsContext();
 	TextStyle style = getDefaultTextStyle();
 
-	drawTransformedAxes(glm::mat4(1.f), 1.f, 1.f, 1.f);
+	drawTransformedAxes(graphicsContext, glm::mat4(1.f), 1.f, 1.f, 1.f);
 	drawTextAtWorldPosition(style, glm::vec3(0.f, 0.f, 0.f), L"(0,0,0)");
 }
 

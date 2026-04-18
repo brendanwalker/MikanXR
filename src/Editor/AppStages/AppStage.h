@@ -29,7 +29,7 @@ public:
 	virtual ~AppStage();
 
 	IEditorWindow* getOwnerWindow() const { return m_ownerWindow; }
-	IMkGraphicsContext* getOwnerGraphicsContext() const;
+	IMkGraphicsContext* getGraphicsContext() const;
 	ProjectManagerPtr getProjectManager() const;
 	ProjectConfigPtr getProjectConfig() const;
 	const struct EditorSettings& getEditorSettings() const;

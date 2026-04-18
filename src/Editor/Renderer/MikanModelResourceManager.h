@@ -17,7 +17,7 @@ public:
 	bool startup();
 	void shutdown();
 
-	inline IMkGraphicsContext* getOwnerGraphicsContext() const { return m_ownerGraphicsContext; }
+	inline IMkGraphicsContext* getGraphicsContext() const { return m_ownerGraphicsContext; }
 
 	MikanRenderModelResourcePtr fetchRenderModel(
 		const std::filesystem::path& modelFilePath,

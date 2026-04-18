@@ -204,7 +204,7 @@ void CompositorComponent::init()
 
 	m_nodeGraphAssetRef = std::make_shared<NodeGraphAssetReference>();
 	m_editorFrameBufferTexture = CreateMkTexture();
-	m_viewportQuadMesh = createFullscreenQuadMesh(getOwnerGraphicsContext(), false);
+	m_viewportQuadMesh = createFullscreenQuadMesh(getGraphicsContext(), false);
 
 	// Initialize the compositor graph if we have one assigned
 	handleCompositorNodeGraphChanged(getCompositorGraphAssetPath());
@@ -549,7 +549,7 @@ void CompositorComponent::updateCompositeFrameNodeGraph()
 {
 	NodeEvaluator evaluator = {};
 	evaluator
-		.setCurrentGraphicsContext(getOwnerGraphicsContext())
+		.setCurrentGraphicsContext(getGraphicsContext())
 		.setDeltaSeconds(m_timeSinceLastFrameComposited);
 
 	if (m_nodeGraph->compositeFrame(evaluator))
@@ -594,7 +594,7 @@ void CompositorComponent::renderToViewportQuad() const
 			// Draw the color texture
 			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
 			{
-				MkStateStack& stateStack= getOwnerGraphicsContext()->getMkStateStack();
+				MkStateStack& stateStack= getGraphicsContext()->getMkStateStack();
 				MkScopedState scopedState = stateStack.createScopedState("CompositorComponentRender");
 				scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
 

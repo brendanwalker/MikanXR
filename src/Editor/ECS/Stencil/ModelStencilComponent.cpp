@@ -171,6 +171,7 @@ void ModelStencilComponent::customRender()
 {
 	ModelStencilDefinitionPtr modelStencilDefinition= getModelStencilDefinition();
 	auto editorObjectSystem = getObjectSystemOfType<EditorObjectSystem>();
+	IMkGraphicsContext* graphicsContext = editorObjectSystem->getGraphicsContext();
 
 	if (!modelStencilDefinition->getIsDisabled() &&
 		editorObjectSystem->getEditorSystemConfigConst()->getRenderModelStencilsFlag())
@@ -180,7 +181,7 @@ void ModelStencilComponent::customRender()
 		const glm::mat4 xform = getWorldTransform();
 		const glm::vec3 position = glm::vec3(xform[3]);
 
-		drawTransformedAxes(xform, 0.1f, 0.1f, 0.1f);
+		drawTransformedAxes(graphicsContext, xform, 0.1f, 0.1f, 0.1f);
 		drawTextAtWorldPosition(style, position, L"Stencil %d", modelStencilDefinition->getComponentId());
 	}
 }

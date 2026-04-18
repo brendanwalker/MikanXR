@@ -55,10 +55,11 @@ glm::vec3 GizmoScaleComponent::getColliderColor(
 static void drawScaleBoxHandle(BoxColliderComponentWeakPtr colliderWeakPtr, const glm::vec3 color)
 {
 	BoxColliderComponentPtr collidePtr = colliderWeakPtr.lock();
+	IMkGraphicsContext* graphicsContext = collidePtr->getGraphicsContext();
 
 	const glm::mat4 xform = collidePtr->getWorldTransform();
 	const glm::vec3 halfExtents = collidePtr->getHalfExtents();
-	drawTransformedBox(xform, halfExtents, color);
+	drawTransformedBox(graphicsContext, xform, halfExtents, color);
 }
 
 static void drawScaleArrowHandle(
@@ -66,15 +67,18 @@ static void drawScaleArrowHandle(
 	BoxColliderComponentWeakPtr axisColliderWeakPtr,
 	const glm::vec3 color)
 {
+	BoxColliderComponentPtr centerColliderPtr = centerColliderWeakPtr.lock();
+	IMkGraphicsContext* graphicsContext = centerColliderPtr->getGraphicsContext();
+
 	BoxColliderComponentPtr axisCollidePtr = axisColliderWeakPtr.lock();
 	const glm::mat4 axisBoxXform = axisCollidePtr->getWorldTransform();
 	const glm::vec3 axisBoxHalfExtents = axisCollidePtr->getHalfExtents();
-	drawTransformedBox(axisBoxXform, axisBoxHalfExtents, color);
+	drawTransformedBox(graphicsContext, axisBoxXform, axisBoxHalfExtents, color);
 
 	BoxColliderComponentPtr centerCollidePtr = centerColliderWeakPtr.lock();
 	const glm::vec3 origin = glm_mat4_get_position(centerCollidePtr->getWorldTransform());
 	const glm::vec3 axisBoxCenter = axisBoxXform * glm::vec4(glm::vec3(0.f), 1.f);
-	drawSegment(glm::mat4(1.f), origin, axisBoxCenter, color);
+	drawSegment(graphicsContext, glm::mat4(1.f), origin, axisBoxCenter, color);
 }
 
 void GizmoScaleComponent::customRender()

@@ -162,7 +162,7 @@ bool StencilAligner::computeStencilTransform(glm::mat4& outStencilTransform)
 
 void StencilAligner::renderPixelSamples()
 {
-	IMkGraphicsContext* graphicsContext = m_cameraComponent->getOwnerGraphicsContext();
+	IMkGraphicsContext* graphicsContext = m_cameraComponent->getGraphicsContext();
 
 	glm::vec3 glm_points[4];
 	const int pointCount = (int)m_calibrationState->pixelSamples.size();
@@ -209,6 +209,8 @@ void StencilAligner::renderPixelSamples()
 
 void StencilAligner::renderVertexSamples()
 {
+	IMkGraphicsContext* graphicsContext = m_cameraComponent->getGraphicsContext();
+
 	const glm::mat4& xform= m_modelStencil->getWorldTransform();
 	const int pointCount = (int)m_calibrationState->glLocalVertexSamples.size();
 
@@ -234,7 +236,9 @@ void StencilAligner::renderVertexSamples()
 				case 2: color = Colors::Green; break;
 				case 3: color = Colors::Blue; break;
 			}
-			drawSegment(xform, m_calibrationState->glLocalVertexSamples[0], localVertex, color, color);
+			drawSegment(
+				graphicsContext, 
+				xform, m_calibrationState->glLocalVertexSamples[0], localVertex, color, color);
 		}
 	}
 }

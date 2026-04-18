@@ -272,7 +272,7 @@ IMkGraphicsContext* VideoFrameDistortionView::getGraphicsContext() const
 {
 	if (m_videoSourceComponent != nullptr)
 	{
-		return m_videoSourceComponent->getOwnerGraphicsContext();
+		return m_videoSourceComponent->getGraphicsContext();
 	}
 
 	return nullptr;

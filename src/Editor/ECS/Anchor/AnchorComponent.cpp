@@ -105,7 +105,8 @@ void AnchorComponent::customRender()
 		}
 	}
 
-	drawTransformedAxes(anchorXform, 0.1f, 0.1f, 0.1f, xColor, yColor, zColor);
+	IMkGraphicsContext* graphicsContext = getGraphicsContext();
+	drawTransformedAxes(graphicsContext, anchorXform, 0.1f, 0.1f, 0.1f, xColor, yColor, zColor);
 	drawTextAtWorldPosition(style, anchorPos, L"%s", wszAnchorName);
 }
 

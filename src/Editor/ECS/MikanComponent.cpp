@@ -253,7 +253,7 @@ IEditorWindow* MikanComponent::getOwnerEditorWindow() const
 	return nullptr;
 }
 
-IMkGraphicsContext* MikanComponent::getOwnerGraphicsContext() const
+IMkGraphicsContext* MikanComponent::getGraphicsContext() const
 {
 	IEditorWindow* ownerEditorWindow = getOwnerEditorWindow();
 	if (ownerEditorWindow)

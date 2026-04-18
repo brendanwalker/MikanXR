@@ -75,11 +75,12 @@ bool GizmoRotateComponent::getColliderRotationAxis(
 static void drawRotateDiscHandle(DiskColliderComponentWeakPtr colliderWeakPtr, const glm::vec3 color)
 {
 	DiskColliderComponentPtr collidePtr = colliderWeakPtr.lock();
+	IMkGraphicsContext* graphicsContext = collidePtr->getGraphicsContext();
 
 	const glm::mat4 xform = collidePtr->getWorldTransform();
 	const float radius = collidePtr->getRadius();
 
-	drawTransformedCircle(xform, radius, color);
+	drawTransformedCircle(graphicsContext, xform, radius, color);
 }
 
 void GizmoRotateComponent::customRender()
@@ -93,10 +94,13 @@ void GizmoRotateComponent::customRender()
 		ColliderComponentPtr dragComponentPtr = m_dragComponent.lock();
 		if (dragComponentPtr)
 		{
+			IMkGraphicsContext* graphicsContext = dragComponentPtr->getGraphicsContext();
 			auto diskComponentPtr = std::static_pointer_cast<DiskColliderComponent>(dragComponentPtr);
 			const float radius = diskComponentPtr->getRadius();
 
-			drawTransformedSpiralArc(m_worldSpaceDragBasis, radius, 0.05f, m_dragAngle, Colors::Yellow);
+			drawTransformedSpiralArc(
+				graphicsContext, 
+				m_worldSpaceDragBasis, radius, 0.05f, m_dragAngle, Colors::Yellow);
 		}
 	}
 }

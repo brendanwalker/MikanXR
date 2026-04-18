@@ -218,7 +218,7 @@ bool AnchorTriangulator::computeAnchorTransform(AnchorTriangulatorInfo& anchorIn
 
 void AnchorTriangulator::renderInitialPoint2dSegements()
 {
-	IMkGraphicsContext* graphicsContext = m_cameraComponent->getOwnerGraphicsContext();
+	IMkGraphicsContext* graphicsContext = m_cameraComponent->getGraphicsContext();
 
 	glm::vec3 glm_points[3];
 	const int pointCount = m_calibrationState->initialPointSampleCount;
@@ -266,6 +266,7 @@ void AnchorTriangulator::renderInitialPoint2dSegements()
 
 void AnchorTriangulator::renderInitialPoint3dRays()
 {
+	IMkGraphicsContext* graphicsContext = m_cameraComponent->getGraphicsContext();
 	const glm::mat4 glmCameraXform = m_calibrationState->initialCameraPoseSample;
 
 	// Draw the frustum for the initial camera pose
@@ -274,11 +275,12 @@ void AnchorTriangulator::renderInitialPoint3dRays()
 	const float zNear = fmaxf(m_calibrationState->inputCameraIntrinsics.znear, 0.1f);
 	const float zFar = fminf(m_calibrationState->inputCameraIntrinsics.zfar, 2.0f);
 	drawTransformedFrustum(
+		graphicsContext,
 		glmCameraXform,
 		hfov_radians, vfov_radians,
 		zNear, zFar,
 		Colors::Yellow);
-	drawTransformedAxes(glmCameraXform, 0.1f);
+	drawTransformedAxes(graphicsContext, glmCameraXform, 0.1f);
 
 	// Draw the rays corresponding to each pixel sample
 	for (int i = 0; i < 3; i++)
@@ -296,7 +298,7 @@ void AnchorTriangulator::renderInitialPoint3dRays()
 			rayDirection);
 		glm::vec3 rayEnd= rayStart + rayDirection*1000.f;
 
-		drawSegment(glm::mat4(1.f), rayStart, rayEnd, k_anchorRayColors[i]);
+		drawSegment(graphicsContext, glm::mat4(1.f), rayStart, rayEnd, k_anchorRayColors[i]);
 	}
 }
 
@@ -304,6 +306,8 @@ void AnchorTriangulator::renderCurrentPointTriangulation()
 {
 	if (m_calibrationState->initialPointSampleCount < 3)
 		return;
+
+	IMkGraphicsContext* graphicsContext = m_cameraComponent->getGraphicsContext();
 
 	// Get the next image point
 	const int sampleIndex= m_calibrationState->triangulatedPointSampleCount;
@@ -318,10 +322,14 @@ void AnchorTriangulator::renderCurrentPointTriangulation()
 		initialPointRayStart,
 		initialPointRayDirection);
 	glm::vec3 initialPointRayEnd = initialPointRayStart + initialPointRayDirection * 1000.f;
-	drawSegment(glm::mat4(1.f), initialPointRayStart, initialPointRayEnd, k_anchorRayColors[sampleIndex]);
+	drawSegment(
+		graphicsContext,
+		glm::mat4(1.f), initialPointRayStart, initialPointRayEnd, k_anchorRayColors[sampleIndex]);
 	
 	// Draw the most recently computed triangulation
-	drawPoint(glm::mat4(1.f), m_calibrationState->lastWorldTriangulatedPoint, Colors::Yellow, 5.f);
+	drawPoint(
+		graphicsContext,
+		glm::mat4(1.f), m_calibrationState->lastWorldTriangulatedPoint, Colors::Yellow, 5.f);
 
 	// Draw the label for the current point index
 	TextStyle style = getDefaultTextStyle();
@@ -371,12 +379,14 @@ void AnchorTriangulator::computeCameraRayAtPixel(
 
 void AnchorTriangulator::renderAllTriangulatedPoints(bool bShowCameraFrustum)
 {
+	IMkGraphicsContext* graphicsContext = m_cameraComponent->getGraphicsContext();
+
 	const glm::vec3 p0= m_calibrationState->triangulatedPointSamples[0];
 	const glm::vec3 p1= m_calibrationState->triangulatedPointSamples[1];
 	const glm::vec3 p2= m_calibrationState->triangulatedPointSamples[2];
 
-	drawSegment(glm::mat4(1.f), p0, p1, Colors::Red);
-	drawSegment(glm::mat4(1.f), p0, p2, Colors::Green);
+	drawSegment(graphicsContext, glm::mat4(1.f), p0, p1, Colors::Red);
+	drawSegment(graphicsContext, glm::mat4(1.f), p0, p2, Colors::Green);
 
 	TextStyle style = getDefaultTextStyle();
 	for (int i = 0; i < 3; i++)
@@ -396,16 +406,19 @@ void AnchorTriangulator::renderAllTriangulatedPoints(bool bShowCameraFrustum)
 			const float zFar = fminf(m_calibrationState->inputCameraIntrinsics.zfar, 2.0f);
 
 			drawTransformedFrustum(
+				graphicsContext,
 				glm_camera_xform,
 				hfov_radians, vfov_radians,
 				zNear, zFar,
 				Colors::Yellow);
-			drawTransformedAxes(glm_camera_xform, 0.1f);
+			drawTransformedAxes(graphicsContext, glm_camera_xform, 0.1f);
 		}
 	}
 }
 
 void AnchorTriangulator::renderAnchorTransform()
 {
-	drawTransformedAxes(m_calibrationState->anchorWorldXform, 0.1f, 0.1f, 0.1f);
+	IMkGraphicsContext* graphicsContext = m_cameraComponent->getGraphicsContext();
+
+	drawTransformedAxes(graphicsContext, m_calibrationState->anchorWorldXform, 0.1f, 0.1f, 0.1f);
 }

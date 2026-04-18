@@ -170,7 +170,7 @@ MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 	const std::filesystem::path& modelPath,
 	MkMaterialConstPtr overrideMaterial)
 {
-	IMkGraphicsContext* graphicsContext = m_ownerManager->getOwnerGraphicsContext();
+	IMkGraphicsContext* graphicsContext = m_ownerManager->getGraphicsContext();
 	IMkShaderCache* shaderCache= graphicsContext->getShaderCache();
 
 	MikanRenderModelResourcePtr modelResource;
@@ -200,7 +200,7 @@ MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 		// Create a new model resource
 		modelResource = 
 			std::make_shared<MikanRenderModelResource>(
-				m_ownerManager->getOwnerGraphicsContext());
+				m_ownerManager->getGraphicsContext());
 		modelResource->setName(modelNameString);
 		modelResource->setModelFilePath(modelPath);
 

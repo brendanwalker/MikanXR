@@ -382,8 +382,8 @@ void AppStage_AlignmentCalibration::render(IMkViewportPtr targetViewport)
 
 void AppStage_AlignmentCalibration::renderVRScene()
 {
+	IMkGraphicsContext* graphicsContext = getGraphicsContext();
 	MkScene* scene= m_scene.get();
-	
 
 	// Rebuild list of renderables
 	scene->removeAllInstances();
@@ -392,9 +392,9 @@ void AppStage_AlignmentCalibration::renderVRScene()
 	addAllVRDevicesToMkScene(getObjectSystemOfType<VRObjectSystem>(), m_scene);
 
 	// Render the scene
-	scene->render(m_mkCamera, m_ownerWindow->getGraphicsContext()->getMkStateStack());
+	scene->render(m_mkCamera, graphicsContext->getMkStateStack());
 
-	drawTransformedAxes(glm::mat4(1.f), 1.0f);
+	drawTransformedAxes(graphicsContext, glm::mat4(1.f), 1.0f);
 
 	TextStyle style = getDefaultTextStyle();
 	drawTextAtWorldPosition(style, glm::vec3(1.f, 0.f, 0.f), L"X");

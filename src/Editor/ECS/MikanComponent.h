@@ -71,7 +71,7 @@ public:
 	const std::string& getName() const { return m_name; }
 
 	class IEditorWindow* getOwnerEditorWindow() const;
-	class IMkGraphicsContext* getOwnerGraphicsContext() const;
+	class IMkGraphicsContext* getGraphicsContext() const;
 	MikanObjectPtr getOwnerObject() const { return m_ownerObject.lock(); }
 	ProjectManagerPtr getOwnerProjectManager() const;
 	bool destroyOwnerObject();

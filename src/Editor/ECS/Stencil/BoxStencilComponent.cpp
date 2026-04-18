@@ -128,6 +128,7 @@ void BoxStencilComponent::customRender()
 {
 	BoxStencilDefinitionPtr boxDefinition= getBoxStencilDefinition();
 	auto editorObjectSystem = getObjectSystemOfType<EditorObjectSystem>();
+	IMkGraphicsContext* graphicsContext = editorObjectSystem->getGraphicsContext();
 
 	if (!boxDefinition->getIsDisabled() &&
 		editorObjectSystem->getEditorSystemConfigConst()->getRenderBoxStencilsFlag())
@@ -151,8 +152,8 @@ void BoxStencilComponent::customRender()
 				color= Colors::LightGray;
 		}
 		
-		drawTransformedBox(xform, half_extents, color);
-		drawTransformedAxes(xform, 0.1f, 0.1f, 0.1f);
+		drawTransformedBox(graphicsContext, xform, half_extents, color);
+		drawTransformedAxes(graphicsContext, xform, 0.1f, 0.1f, 0.1f);
 		drawTextAtWorldPosition(style, position, L"Stencil %d", boxDefinition->getComponentId());
 	}
 }

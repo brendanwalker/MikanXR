@@ -250,11 +250,13 @@ void AppStage_VRTrackingRecenter::update(float deltaSeconds)
 
 void AppStage_VRTrackingRecenter::render(IMkViewportPtr targetViewport)
 {
+	IMkGraphicsContext* graphicsContext = getGraphicsContext();
+
 	// Render the scene into the frame buffer
 	if (m_frameBuffer->isValid())
 	{
 		MkScopedObjectBinding colorFramebufferBinding(
-			m_ownerWindow->getGraphicsContext()->getMkStateStack().getCurrentState(),
+			graphicsContext->getMkStateStack().getCurrentState(),
 			"Color Framebuffer Scope",
 			m_frameBuffer);
 
@@ -276,7 +278,7 @@ void AppStage_VRTrackingRecenter::render(IMkViewportPtr targetViewport)
 					{
 						// Draw the origin after calibrating
 						glm::mat4 origin(1.f);
-						drawTransformedAxes(origin, 0.1f);
+						drawTransformedAxes(graphicsContext, origin, 0.1f);
 
 						TextStyle style = getDefaultTextStyle();
 						drawTextAtWorldPosition(style, glm_mat4_get_position(origin), L"Origin");
@@ -286,8 +288,8 @@ void AppStage_VRTrackingRecenter::render(IMkViewportPtr targetViewport)
 		}
 
 		// Render any lines and text that were added to the scene by the calibrator in the frame buffer's viewport
-		m_ownerWindow->getGraphicsContext()->getLineRenderer()->render();
-		m_ownerWindow->getGraphicsContext()->getTextRenderer()->render();
+		graphicsContext->getLineRenderer()->render();
+		graphicsContext->getTextRenderer()->render();
 	}
 
 	// Render the frame buffer to the screen

@@ -342,18 +342,21 @@ void AppStage_StencilAlignment::render(IMkViewportPtr targetViewport)
 
 void AppStage_StencilAlignment::renderStencilScene()
 {
-	m_scene->render(m_mkCamera, m_ownerWindow->getGraphicsContext()->getMkStateStack());
+	IMkGraphicsContext* graphicsContext = getGraphicsContext();
+
+	m_scene->render(m_mkCamera, graphicsContext->getMkStateStack());
 
 	if (m_targetStencilComponent)
 	{
 		// Draw the stencil's local axes
 		glm::mat4 stencilXform= m_targetStencilComponent->getWorldTransform();
-		drawTransformedAxes(stencilXform, m_boundingSphereRadius * 1.1f, true);
+		drawTransformedAxes(graphicsContext, stencilXform, m_boundingSphereRadius * 1.1f, true);
 
 		if (m_hoverResult.hitValid)
 		{
 			// Draw collision normal
 			drawSegment(
+				graphicsContext,
 				glm::mat4(1.f),
 				m_hoverResult.hitLocation,
 				m_hoverResult.hitLocation + m_hoverResult.hitNormal*0.01f,
@@ -361,6 +364,7 @@ void AppStage_StencilAlignment::renderStencilScene()
 
 			// Draw the closest vertex to the collision point
 			drawSegment(
+				graphicsContext,
 				glm::mat4(1.f),
 				m_hoverResult.closestVertexWorld,
 				m_hoverResult.closestVertexWorld + m_hoverResult.hitNormal * 0.01f,
