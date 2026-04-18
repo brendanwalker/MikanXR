@@ -59,8 +59,10 @@ NodeEditorWindow::NodeEditorWindow(App* ownerApp)
 	: EditorWindow(ownerApp)
 {
 	m_graphicsContext = createMkGraphicsContext(eGraphicsAPI::OpenGL, nullptr);
-	m_mkWindow = createMkWindow(ownerApp->getWindowManager(), m_graphicsContext);
-	m_modelResourceManager = MikanModelResourceManagerUniquePtr(new MikanModelResourceManager(this));
+	m_mkWindowContext = createMkWindow(ownerApp->getWindowManager(), m_graphicsContext);
+	m_modelResourceManager = 
+		MikanModelResourceManagerUniquePtr(
+			new MikanModelResourceManager(m_graphicsContext.get()));
 }
 
 NodeEditorWindow::~NodeEditorWindow()
@@ -130,7 +132,7 @@ void NodeEditorWindow::update(float deltaSeconds)
 	MkGuiScopedUpdate scopedCtx(*m_guiContext);
 
 	// Process most recent SDL events (keyboard, mouse, etc)
-	m_mkWindow->handleEvents(this);
+	m_mkWindowContext->handleEvents(this);
 
 	// Process UI input and build ImGui draw lists
 	updateUI();
@@ -150,7 +152,7 @@ void NodeEditorWindow::render()
 		MkScopedState scopedState = m_graphicsContext->getMkStateStack().createScopedState("appStage renderUI");
 		IMkState* glState = scopedState.getStackState();
 
-		mkStateSetViewport(glState, 0, 0, (int)m_mkWindow->getWidth(), (int)m_mkWindow->getHeight());
+		mkStateSetViewport(glState, 0, 0, (int)m_mkWindowContext->getWidth(), (int)m_mkWindowContext->getHeight());
 
 		// Submit the MkGui draw calls
 		m_guiContext->submitDrawData();
@@ -160,7 +162,7 @@ void NodeEditorWindow::render()
 	m_graphicsContext->renderEnd();
 
 	// Present the rendered frame
-	m_mkWindow->present();
+	m_mkWindowContext->present();
 }
 
 void NodeEditorWindow::updateUI()

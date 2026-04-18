@@ -73,7 +73,7 @@ void CompositorNodeEditorWindow::update(float deltaSeconds)
 
 			NodeEvaluator evaluator = {};
 			evaluator
-				.setCurrentWindow(this)
+				.setCurrentGraphicsContext(getGraphicsContext().get())
 				.setDeltaSeconds(deltaSeconds);
 
 			auto node_graph = std::static_pointer_cast<CompositorNodeGraph>(m_editorState.nodeGraph);

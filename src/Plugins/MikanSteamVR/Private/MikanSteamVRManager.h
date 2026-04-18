@@ -24,7 +24,7 @@ public:
 	virtual void addListener(IVRDeviceManagerListener* eventListener) override;
 	virtual void removeListener(IVRDeviceManagerListener* eventListener) override;
 
-	virtual bool startup(class IMkWindow* ownerWindow) override;
+	virtual bool startup(class IMkGraphicsContext* graphicsContext) override;
 	virtual void update(float deltaTime) override;
 	virtual void shutdown()  override;
 

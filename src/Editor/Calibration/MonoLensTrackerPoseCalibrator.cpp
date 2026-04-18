@@ -94,7 +94,7 @@ MonoLensTrackerPoseCalibrator::MonoLensTrackerPoseCalibrator(
 {
 	StageComponentConstPtr ownerStage = cameraComponent->getOwnerStageComponent();
 	assert(ownerStage != nullptr);
-	IEditorWindow* ownerWindow = static_cast<IEditorWindow*>(ownerStage->getOwnerWindow());
+	IEditorWindow* ownerWindow = ownerStage->getOwnerEditorWindow();
 	assert(ownerWindow != nullptr);
 	MarkerObjectSystemPtr markerSystem =
 		ownerWindow->getProjectManager()->getSystemOfType<MarkerObjectSystem>();

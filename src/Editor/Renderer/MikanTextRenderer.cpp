@@ -29,7 +29,7 @@ void drawTextAtWorldPosition(
 	const wchar_t* format,
 	...)
 {
-	IMkWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
+	IEditorWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
 	assert(window != nullptr);
 
 	IMkTextRenderer * textRenderer = window->getGraphicsContext()->getTextRenderer();
@@ -75,7 +75,7 @@ void drawTextAtScreenPosition(
 	text[(sizeof(text) / sizeof(wchar_t)) - 1] = L'\0';
 	va_end(args);
 
-	IMkWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
+	IEditorWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
 	assert(window != nullptr);
 
 	IMkTextRenderer* textRenderer = window->getGraphicsContext()->getTextRenderer();
@@ -92,7 +92,7 @@ void drawTextAtTrackerPosition(
 	const wchar_t* format,
 	...)
 {
-	IMkWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
+	IEditorWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
 	assert(window != nullptr);
 
 	IMkTextRenderer* textRenderer = window->getGraphicsContext()->getTextRenderer();
@@ -136,7 +136,7 @@ void drawTextAtCameraPosition(
 	text[(sizeof(text) / sizeof(wchar_t)) - 1] = L'\0';
 	va_end(args);
 
-	IMkWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
+	IEditorWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
 	assert(window != nullptr);
 
 	IMkTextRenderer* textRenderer = window->getGraphicsContext()->getTextRenderer();

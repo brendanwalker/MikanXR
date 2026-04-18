@@ -22,7 +22,10 @@ public:
 	MainWindow(class App* ownerApp);
 	~MainWindow();
 
-	// -- IMkWindow ----
+	// -- IMkWindowEventListener ----
+	virtual bool onWindowEvent(const MkWindowEvent& event) override;
+
+	// -- IEditorWindow ----
 	virtual bool startup() override;
 	virtual void update(float deltaSeconds) override;
 	virtual void render() override;
@@ -33,11 +36,6 @@ public:
 
 	virtual class EventBus* getEventBus() const override;
 	virtual class LocalizationManager* getLocalizationManager() const override;
-
-	// -- IMkWindowEventListener ----
-	virtual bool onWindowEvent(const MkWindowEvent& event) override;
-
-	// -- IEditorWindow ----
 	virtual class MikanServer* getMikanServer() const override { return m_mikanServer; }
 	virtual class ClientSourceManager* getClientSourceManager() const override { return m_clientSourceManager; }
 	virtual class InputManager* getInputManager() const override { return m_inputManager; }

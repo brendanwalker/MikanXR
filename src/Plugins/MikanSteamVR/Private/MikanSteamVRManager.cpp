@@ -147,9 +147,9 @@ void MikanSteamVRManager::removeListener(IVRDeviceManagerListener* eventListener
 	}
 }
 
-bool MikanSteamVRManager::startup(IMkWindow* ownerWindow)
+bool MikanSteamVRManager::startup(IMkGraphicsContext* graphicsContext)
 {
-	m_ownerContext= ownerWindow->getGraphicsContext().get();
+	m_ownerContext= graphicsContext;
 
 	m_resourceManager->init(m_ownerContext);
 

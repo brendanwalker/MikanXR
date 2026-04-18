@@ -73,8 +73,10 @@ MainWindow::MainWindow(App* ownerApp)
 	, m_isRenderingUI(false)
 {
 	m_graphicsContext = createMkGraphicsContext(eGraphicsAPI::OpenGL, m_fontManager.get());
-	m_mkWindow = createMkWindow(m_ownerApp->getWindowManager(), m_graphicsContext);
-	m_modelResourceManager = MikanModelResourceManagerUniquePtr(new MikanModelResourceManager(this));
+	m_mkWindowContext = createMkWindow(m_ownerApp->getWindowManager(), m_graphicsContext);
+	m_modelResourceManager = 
+		MikanModelResourceManagerUniquePtr(
+			new MikanModelResourceManager(getGraphicsContext().get()));
 
 	m_appStageFactory.addAppStageConstructor<AppStage_AlignmentCalibration>();
 	m_appStageFactory.addAppStageConstructor<AppStage_AnchorTriangulation>();
@@ -161,7 +163,7 @@ bool MainWindow::startup()
 		}
 	}
 
-	if (success && !m_clientSourceManager->startup(this))
+	if (success && !m_clientSourceManager->startup())
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the client source manager";
 		success = false;
@@ -186,7 +188,7 @@ bool MainWindow::startup()
 		mkStateSetClearColor(mkState, k_clear_color);
 
 		// Default to the full window viewport
-		mkStateSetViewport(mkState, 0, 0, m_mkWindow->getWidth(), m_mkWindow->getHeight());
+		mkStateSetViewport(mkState, 0, 0, m_mkWindowContext->getWidth(), m_mkWindowContext->getHeight());
 
 		// Create a fullscreen viewport for the UI (which creates it's own camera)
 		m_uiViewport = 
@@ -218,7 +220,7 @@ void MainWindow::update(float deltaSeconds)
 	processPendingAppStageOps();
 
 	// Process most recent SDL events (keyboard, mouse, etc)
-	m_mkWindow->handleEvents(this);
+	m_mkWindowContext->handleEvents(this);
 
 	// Update objects in the object system
 	m_projectManager->update(deltaSeconds);
@@ -267,7 +269,7 @@ void MainWindow::render()
 		m_graphicsContext->renderEnd();
 
 		// Present the rendered frame to the window
-		m_mkWindow->present();
+		m_mkWindowContext->present();
 	}
 }
 
@@ -408,7 +410,7 @@ bool MainWindow::onWindowEvent(const MkWindowEvent& event)
 	// Then see if the main window object simulation wants to handle the event
 	if (!bHandled)
 	{
-		if (m_mkWindow->hasMouseFocus() || m_mkWindow->hasKeyboardFocus())
+		if (m_mkWindowContext->hasMouseFocus() || m_mkWindowContext->hasKeyboardFocus())
 		{
 			bHandled = m_inputManager->onWindowEvent(event);
 		}

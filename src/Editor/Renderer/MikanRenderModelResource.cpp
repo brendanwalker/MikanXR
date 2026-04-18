@@ -4,8 +4,8 @@
 #include "MikanRenderModelResource.h"
 
 
-MikanRenderModelResource::MikanRenderModelResource(IMkWindow* ownerWindow)
-	: m_ownerWindow(ownerWindow)
+MikanRenderModelResource::MikanRenderModelResource(IMkGraphicsContext* ownerGraphicsContext)
+	: m_ownerGraphicsContext(ownerGraphicsContext)
 {
 }
 
@@ -18,6 +18,7 @@ void MikanRenderModelResource::addTriangulatedMesh(IMkTriangulatedMeshPtr mesh)
 {
 	if (mesh != nullptr)
 	{
+		assert(mesh->getOwnerContext() == m_ownerGraphicsContext);
 		m_triangulatedMeshes.push_back(mesh);
 	}
 }
@@ -26,6 +27,7 @@ void MikanRenderModelResource::addWireframeMesh(IMkWireframeMeshPtr mesh)
 {
 	if (mesh != nullptr)
 	{
+		assert(mesh->getOwnerContext() == m_ownerGraphicsContext);
 		m_wireframeMeshes.push_back(mesh);
 	}
 }

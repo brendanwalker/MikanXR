@@ -46,24 +46,22 @@ SdlWindow* SdlWindow::enableGLDataSharing()
 
 void SdlWindow::setTitle(const std::string& title)
 {
+	m_title = title;
+
 	if (m_sdlWindow != nullptr)
 	{
 		SDL_SetWindowTitle(m_sdlWindow, title.c_str());
 	}
-
-	m_title = title;
 }
 
 void SdlWindow::setSize(int width, int height)
 {
+	m_width = width;
+	m_height = height;
+
 	if (m_sdlWindow != nullptr)
 	{
 		SDL_SetWindowSize(m_sdlWindow, width, height);
-	}
-	else
-	{
-		m_width = width;
-		m_height = height;
 	}
 }
 

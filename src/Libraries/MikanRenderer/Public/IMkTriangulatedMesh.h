@@ -17,7 +17,8 @@ public:
 };
 
 // -- Drawing Helpers ---
-MIKAN_RENDERER_FUNC(IMkTriangulatedMeshPtr) createMkTriangulatedMesh(class IMkGraphicsContext* ownerContext);
+MIKAN_RENDERER_FUNC(IMkTriangulatedMeshPtr) createMkTriangulatedMesh(
+	class IMkGraphicsContext* ownerContext);
 MIKAN_RENDERER_FUNC(IMkTriangulatedMeshPtr) createMkTriangulatedMesh(
 	class IMkGraphicsContext* ownerContext,
 	std::string name,

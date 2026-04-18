@@ -62,12 +62,11 @@ struct OpenCVMonoCameraIntrinsics
 };
 
 VideoFrameDistortionView::VideoFrameDistortionView(
-	IMkWindow* ownerWindow,
+	IMkGraphicsContext* graphicsContext,
 	VideoSourceComponentPtr videoSourceComponent,
 	unsigned int bufferBitmask,
 	unsigned int frameQueueSize)
-	: m_ownerWindow(ownerWindow)
-	, m_videoDisplayMode(eVideoDisplayMode::mode_bgr)
+	: m_videoDisplayMode(eVideoDisplayMode::mode_bgr)
 	, m_videoSourceComponent(videoSourceComponent)
 	, m_bufferBitmask(bufferBitmask)
 	, m_frameWidth(0)
@@ -92,7 +91,6 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	, m_distortionTextureMap(nullptr)
 	, m_videoTexture(nullptr)
 {
-
 	// Source Video Frame data
 	m_bgrSourceBuffers = new SourceBufferEntry[m_bgrSourceBufferCount];
 	for (unsigned int queueIndex = 0; queueIndex < m_bgrSourceBufferCount; ++queueIndex)
@@ -130,7 +128,7 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	}
 
 	// Create a mesh used to render the video frame
-	m_fullscreenRGBQuad= createFullscreenQuadMesh(m_ownerWindow->getGraphicsContext().get(), true);
+	m_fullscreenRGBQuad= createFullscreenQuadMesh(graphicsContext, true);
 }
 
 VideoFrameDistortionView::~VideoFrameDistortionView()

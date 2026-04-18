@@ -114,7 +114,7 @@ void AppStage_AlignmentCalibration::enter()
 		// Allocate all distortion and video buffers
 		m_monoDistortionView = 
 			new VideoFrameDistortionView(
-				m_ownerWindow,
+				getOwnerGraphicsContext(),
 				m_videoSourceComponent,
 				VIDEO_FRAME_HAS_ALL);
 		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);

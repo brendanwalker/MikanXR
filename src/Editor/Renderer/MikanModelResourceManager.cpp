@@ -9,8 +9,8 @@
 #include "ObjModelImporter.h"
 #include "ObjModelExporter.h"
 
-MikanModelResourceManager::MikanModelResourceManager(IMkWindow* ownerWindow)
-	: m_ownerWindow(ownerWindow)
+MikanModelResourceManager::MikanModelResourceManager(IMkGraphicsContext* ownerGraphicsContext)
+	: m_ownerGraphicsContext(ownerGraphicsContext)
 {
 	// Register model importers
 	m_modelImporters.insert({".obj", std::make_shared<ObjModelImporter>(this)});

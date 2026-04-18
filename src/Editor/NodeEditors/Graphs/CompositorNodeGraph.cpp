@@ -177,8 +177,9 @@ bool CompositorNodeGraph::compositeFrame(NodeEvaluator& evaluator)
 		updateCompositingFrameBufferSize(evaluator);
 
 		// Create a scoped binding for the video export framebuffer
+		IMkGraphicsContext* graphicsContext = evaluator.getCurrentGraphicsContext();
 		MkScopedObjectBinding compositorFramebufferBinding(
-			evaluator.getCurrentWindow()->getGraphicsContext()->getMkStateStack().getCurrentState(),
+			graphicsContext->getMkStateStack().getCurrentState(),
 			"Compositor Framebuffer Scope",
 			m_compositingFrameBuffer);
 		if (compositorFramebufferBinding)

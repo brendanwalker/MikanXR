@@ -27,6 +27,11 @@ ProjectManagerPtr AppStage::getProjectManager() const
 	return m_ownerWindow->getProjectManager();
 }
 
+IMkGraphicsContext* AppStage::getOwnerGraphicsContext() const
+{
+	return m_ownerWindow->getGraphicsContext().get();
+}
+
 ProjectConfigPtr AppStage::getProjectConfig() const
 {
 	return getProjectManager()->getProjectConfig();

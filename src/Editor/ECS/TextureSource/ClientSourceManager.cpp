@@ -6,10 +6,8 @@
 #include "SharedTextureReader.h"
 #include "CameraRequestHandler.h"
 
-bool ClientSourceManager::startup(IMkWindow* ownerWindow)
+bool ClientSourceManager::startup()
 {
-	m_ownerWindow= ownerWindow;
-
 	MikanServer* mikanServer = MikanServer::getInstance();
 
 	// Create layers for all connected clients with allocated render targets

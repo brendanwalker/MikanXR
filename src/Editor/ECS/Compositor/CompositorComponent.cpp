@@ -204,7 +204,7 @@ void CompositorComponent::init()
 
 	m_nodeGraphAssetRef = std::make_shared<NodeGraphAssetReference>();
 	m_editorFrameBufferTexture = CreateMkTexture();
-	m_viewportQuadMesh = createFullscreenQuadMesh(getOwnerWindow()->getGraphicsContext().get(), false);
+	m_viewportQuadMesh = createFullscreenQuadMesh(getOwnerGraphicsContext(), false);
 
 	// Initialize the compositor graph if we have one assigned
 	handleCompositorNodeGraphChanged(getCompositorGraphAssetPath());
@@ -393,7 +393,7 @@ void CompositorComponent::allocateVideoBuffers(VideoSourceComponentPtr videoSour
 {
 	// Create a distortion view to read the incoming video frames into a texture
 	m_videoDistortionView = std::make_shared<VideoFrameDistortionView>(
-		getOwnerWindow(),
+		getOwnerGraphicsContext(),
 		videoSource,
 		VIDEO_FRAME_HAS_BGR_UNDISTORT_FLAG | VIDEO_FRAME_HAS_GL_TEXTURE_FLAG,
 		videoSource->getVideoSourceDefinition()->getVideoFrameQueueSize());
@@ -550,7 +550,7 @@ void CompositorComponent::updateCompositeFrameNodeGraph()
 {
 	NodeEvaluator evaluator = {};
 	evaluator
-		.setCurrentWindow(getOwnerWindow())
+		.setCurrentGraphicsContext(getOwnerGraphicsContext())
 		.setDeltaSeconds(m_timeSinceLastFrameComposited);
 
 	if (m_nodeGraph->compositeFrame(evaluator))
@@ -595,8 +595,8 @@ void CompositorComponent::renderToViewportQuad() const
 			// Draw the color texture
 			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
 			{
-				MkScopedState scopedState = 
-					getOwnerWindow()->getGraphicsContext()->getMkStateStack().createScopedState("CompositorComponentRender");
+				MkStateStack& stateStack= getOwnerGraphicsContext()->getMkStateStack();
+				MkScopedState scopedState = stateStack.createScopedState("CompositorComponentRender");
 				scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
 
 				m_viewportQuadMesh->drawElements();

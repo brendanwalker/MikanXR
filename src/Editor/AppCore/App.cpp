@@ -5,6 +5,7 @@
 #include "EventBus.h"
 #include "FrameTimer.h"
 #include "Graphs/CompositorNodeGraph.h"
+#include "IEditorWindow.h"
 #include "IMkGraphicsContext.h"
 #include "MkError.h"
 #include "MkStateStack.h"
@@ -81,6 +82,11 @@ int App::exec(int argc, char** argv)
 	shutdown();
 
 	return result;
+}
+
+IEditorWindow* App::getCurrentlyRenderingWindow() const
+{ 
+	return m_renderingWindow; 
 }
 
 //-- private methods -----
@@ -164,7 +170,7 @@ void App::shutdown()
 	// Dispose all app windows (but the main window)
 	while (m_appWindows.size() > 0)
 	{
-		IMkWindow* appWindow= m_appWindows[0];
+		EditorWindow* appWindow= m_appWindows[0];
 
 		if (m_mainWindow != appWindow)
 		{
@@ -233,40 +239,42 @@ void App::tickWindows(const float deltaSeconds)
 
 	// Update each window
 	static bool bDebugPrintStack = false;
-	for (IMkWindow* window : m_appWindows)
+	for (EditorWindow* appWindow : m_appWindows)
 	{
+		IMkWindow* appWindowContext = appWindow->getMkWindowContext().get();
+
 		// Mark this window as the current window getting updated
-		m_windowManager->pushCurrentWindowContext(window);
+		m_windowManager->pushCurrentWindowContext(appWindowContext);
 
 		// Process window simulation based on time
 		{
 			EASY_BLOCK("UpdateWindow");
-			window->update(deltaSeconds);
+			appWindow->update(deltaSeconds);
 		}
 
 		// Render the window
 		{
 			EASY_BLOCK("RenderWindow");
 
-			MkStateStack& mkStateStack = window->getGraphicsContext()->getMkStateStack();
+			MkStateStack& mkStateStack = appWindow->getGraphicsContext()->getMkStateStack();
 			mkStateStack.setDebugPrintEnabled(bDebugPrintStack);
 
-			m_renderingWindow = window;
-			window->render();
+			m_renderingWindow = appWindow;
+			appWindowContext->render();
 			m_renderingWindow = nullptr;
 
 			mkStateStack.setDebugPrintEnabled(false);
 		}
 
 		// Restore back to the main window
-		m_windowManager->popCurrentWindowContext(window);
+		m_windowManager->popCurrentWindowContext(appWindowContext);
 	}
 	bDebugPrintStack = false;
 
 	// Destroy any windows that have been marked for destruction
 	for (int windowIndex= (int)m_appWindows.size() - 1; windowIndex >= 0; windowIndex--)
 	{
-		IMkWindow* window = m_appWindows[windowIndex];
+		EditorWindow* window = m_appWindows[windowIndex];
 
 		if (window->wantsDestroy())
 		{
@@ -276,3 +284,53 @@ void App::tickWindows(const float deltaSeconds)
 	}
 }
 
+bool App::createAppWindowInternal(EditorWindow* appWindow)
+{
+	// Destroy the window if it fails to initialize properly
+	if (!appWindow->startup())
+	{
+		destroyAppWindow(appWindow);
+		return false;
+	}
+
+	// pop this window context this window added if it created one
+	// and return back to the previous window context
+	IMkWindow* appWindowContext = appWindow->getMkWindowContext().get();
+	if (m_windowManager->getCurrentWindowContext() == appWindowContext)
+	{
+		m_windowManager->popCurrentWindowContext(appWindowContext);
+	}
+
+	// Add the window to the list of windows
+	m_appWindows.push_back(appWindow);
+
+	return true;
+}
+
+void App::destroyAppWindow(EditorWindow* appWindow)
+{
+	// If this window was the current window, pop it from the current window stack
+	IMkWindow* appWindowContext = appWindow->getMkWindowContext().get();
+	if (m_windowManager->getCurrentWindowContext() == appWindowContext)
+	{
+		m_windowManager->popCurrentWindowContext(appWindowContext);
+	}
+
+	// Tear down the window and graphics context it owns
+	appWindow->shutdown();
+
+	// Remove the window from the list of windows (should deallocate it)
+	auto it = std::find(m_appWindows.begin(), m_appWindows.end(), appWindow);
+	if (it != m_appWindows.end())
+	{
+		m_appWindows.erase(it);
+	}
+
+	// If this was the main window pointer, make sure to invalidate that pointer
+	if (m_mainWindow == appWindow)
+	{
+		m_mainWindow = nullptr;
+	}
+
+	delete appWindow;
+}

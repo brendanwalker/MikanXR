@@ -1,5 +1,6 @@
 #pragma once
 
+#include "IEditorWindow.h"
 #include "VideoDisplayConstants.h"
 #include "OpenCVFwd.h"
 #include "MikanRendererFwd.h"
@@ -14,7 +15,7 @@ class VideoFrameDistortionView
 {
 public:
 	VideoFrameDistortionView(
-		class IMkWindow* ownerWindow,
+		IMkGraphicsContext* graphicsContext,
 		VideoSourceComponentPtr view, 
 		unsigned int bufferBitmask, 
 		unsigned int frameQueueSize=1);
@@ -61,8 +62,6 @@ protected:
 	static void copyOpenCVMatIntoGLTexture(const cv::Mat& mat, IMkTexturePtr texture);
 
 protected:
-	IMkWindow* m_ownerWindow= nullptr;
-
 	eVideoDisplayMode m_videoDisplayMode;
 	VideoSourceComponentPtr m_videoSourceComponent;
 	unsigned int m_bufferBitmask;

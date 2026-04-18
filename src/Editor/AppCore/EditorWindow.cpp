@@ -17,89 +17,41 @@ EditorWindow::EditorWindow(App* ownerApp)
 EditorWindow::~EditorWindow()
 {}
 
-// -- IMkWindow delegation ----
+// -- IEditorWindow ----
+IMkGraphicsContextPtr EditorWindow::getGraphicsContext() const 
+{ 
+	return m_graphicsContext; 
+}
+
+IMkWindowPtr EditorWindow::getMkWindowContext() const 
+{ 
+	return m_mkWindowContext; 
+}
 
 const char* EditorWindow::getTitle() const
 {
-	return m_mkWindow->getTitle();
+	return m_mkWindowContext->getTitle();
 }
 
 float EditorWindow::getWidth() const
 {
-	return m_mkWindow->getWidth();
+	return m_mkWindowContext->getWidth();
 }
 
 float EditorWindow::getHeight() const
 {
-	return m_mkWindow->getHeight();
+	return m_mkWindowContext->getHeight();
 }
 
 float EditorWindow::getAspectRatio() const
 {
-	return m_mkWindow->getAspectRatio();
+	return m_mkWindowContext->getAspectRatio();
 }
 
 void EditorWindow::getMouseScreenPosition(int& outScreenX, int& outScreenY) const
 {
-	m_mkWindow->getMouseScreenPosition(outScreenX, outScreenY);
+	m_mkWindowContext->getMouseScreenPosition(outScreenX, outScreenY);
 }
-
-eWindowAPI EditorWindow::getWindowAPI() const
-{
-	return m_mkWindow->getWindowAPI();
-}
-
-void* EditorWindow::getNativeWindowHandle() const
-{
-	return m_mkWindow->getNativeWindowHandle();
-}
-
-IMkGraphicsContextPtr EditorWindow::getGraphicsContext() const
-{
-	return m_graphicsContext;
-}
-
-void EditorWindow::makeContextCurrent()
-{
-	m_mkWindow->makeContextCurrent();
-}
-
-bool EditorWindow::wantsDestroy() const
-{
-	return m_mkWindow->wantsDestroy();
-}
-
-void EditorWindow::present()
-{
-	m_mkWindow->present();
-}
-
-void EditorWindow::setTitle(const std::string& title)
-{
-	m_mkWindow->setTitle(title);
-}
-
-void EditorWindow::setSize(int width, int height)
-{
-	m_mkWindow->setSize(width, height);
-}
-
-void EditorWindow::handleEvents(IMkWindowEventListener* eventListener)
-{
-	m_mkWindow->handleEvents(eventListener);
-}
-
-bool EditorWindow::hasMouseFocus() const
-{
-	return m_mkWindow->hasMouseFocus();
-}
-
-bool EditorWindow::hasKeyboardFocus() const
-{
-	return m_mkWindow->hasKeyboardFocus();
-}
-
-// -- IEditorWindow ----
 
 MikanModelResourceManager* EditorWindow::getModelResourceManager()
 {
@@ -116,13 +68,64 @@ App* EditorWindow::getOwnerApp() const
 	return m_ownerApp;
 }
 
+// -- IMkWindow delegation ----
+eWindowAPI EditorWindow::getWindowAPI() const
+{
+	return m_mkWindowContext->getWindowAPI();
+}
+
+void* EditorWindow::getNativeWindowHandle() const
+{
+	return m_mkWindowContext->getNativeWindowHandle();
+}
+
+void EditorWindow::makeContextCurrent()
+{
+	m_mkWindowContext->makeContextCurrent();
+}
+
+bool EditorWindow::wantsDestroy() const
+{
+	return m_mkWindowContext->wantsDestroy();
+}
+
+void EditorWindow::present()
+{
+	m_mkWindowContext->present();
+}
+
+void EditorWindow::setTitle(const std::string& title)
+{
+	m_mkWindowContext->setTitle(title);
+}
+
+void EditorWindow::setSize(int width, int height)
+{
+	m_mkWindowContext->setSize(width, height);
+}
+
+void EditorWindow::handleEvents(IMkWindowEventListener* eventListener)
+{
+	m_mkWindowContext->handleEvents(eventListener);
+}
+
+bool EditorWindow::hasMouseFocus() const
+{
+	return m_mkWindowContext->hasMouseFocus();
+}
+
+bool EditorWindow::hasKeyboardFocus() const
+{
+	return m_mkWindowContext->hasKeyboardFocus();
+}
+
 // -- Protected startup/shutdown helpers ----
 
 bool EditorWindow::startupWindow(const std::string& title, int width, int height)
 {
-	m_mkWindow->setTitle(title);
-	m_mkWindow->setSize(width, height);
-	if (!m_mkWindow->startup())
+	m_mkWindowContext->setTitle(title);
+	m_mkWindowContext->setSize(width, height);
+	if (!m_mkWindowContext->startup())
 	{
 		MIKAN_LOG_ERROR("EditorWindow::startupWindow") << "Unable to initialize window: " << title;
 		return false;
@@ -132,7 +135,7 @@ bool EditorWindow::startupWindow(const std::string& title, int width, int height
 
 bool EditorWindow::startupGuiContext()
 {
-	m_guiContext = std::make_shared<MkGuiContext>(this);
+	m_guiContext = std::make_shared<MkGuiContext>(getMkWindowContext().get());
 	if (!m_guiContext->startup())
 	{
 		MIKAN_LOG_ERROR("EditorWindow::startupGuiContext") << "Unable to create GUI context";
@@ -192,9 +195,9 @@ void EditorWindow::shutdownGuiContext()
 
 void EditorWindow::shutdownWindow()
 {
-	if (m_mkWindow != nullptr)
+	if (m_mkWindowContext != nullptr)
 	{
-		m_mkWindow->shutdown();
-		m_mkWindow = nullptr;
+		m_mkWindowContext->shutdown();
+		m_mkWindowContext = nullptr;
 	}
 }

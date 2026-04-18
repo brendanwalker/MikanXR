@@ -4,7 +4,7 @@
 #include "Graphs/NodeEvaluator.h"
 #include "Pins/NodePin.h"
 #include "Pins/FloatPin.h"
-#include "IMkWindow.h"
+#include "IMkGraphicsContext.h"
 #include "MikanViewport.h"
 
 #include "imgui.h"
@@ -15,9 +15,10 @@ bool MousePosNode::evaluateNode(NodeEvaluator& evaluator)
 	Float2PinPtr outPin= getFirstPinOfType<Float2Pin>(eNodePinDirection::OUTPUT);
 
 	glm::vec2 pixelPos;
+	auto graphicsContext = evaluator.getCurrentGraphicsContext();
 	auto viewport= 
 		std::static_pointer_cast<MikanViewport>(
-			evaluator.getCurrentWindow()->getRenderingViewport());
+			graphicsContext->getRenderingViewport());
 	if (viewport && viewport->getCursorViewportPixelPos(pixelPos))
 	{
 		auto viewportSize= viewport->getViewportSize();

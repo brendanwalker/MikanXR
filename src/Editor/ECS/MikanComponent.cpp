@@ -242,7 +242,7 @@ int MikanComponent::getComponentId() const
 	return INVALID_MIKAN_ID;
 }
 
-IMkWindow* MikanComponent::getOwnerWindow() const
+IEditorWindow* MikanComponent::getOwnerEditorWindow() const
 {
 	MikanObjectPtr ownerObject = m_ownerObject.lock();
 	if (ownerObject)
@@ -253,9 +253,15 @@ IMkWindow* MikanComponent::getOwnerWindow() const
 	return nullptr;
 }
 
-IEditorWindow* MikanComponent::getOwnerEditorWindow() const
+IMkGraphicsContext* MikanComponent::getOwnerGraphicsContext() const
 {
-	return dynamic_cast<IEditorWindow*>(getOwnerWindow());
+	IEditorWindow* ownerEditorWindow = getOwnerEditorWindow();
+	if (ownerEditorWindow)
+	{
+		return ownerEditorWindow->getGraphicsContext().get();
+	}
+
+	return nullptr;
 }
 
 void MikanComponent::setName(const std::string& name)

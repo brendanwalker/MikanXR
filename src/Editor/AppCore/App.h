@@ -4,6 +4,7 @@
 #include "AppStage.h"
 #include "IMkWindow.h"
 #include "IMkWindowManager.h"
+#include "IEditorWindow.h"
 #include "ObjectSystemConfigFwd.h"
 
 #include <chrono>
@@ -14,7 +15,10 @@
 #include <stdint.h>
 
 // Forward declarations
+class EditorWindow;
 class EventBus;
+class LocalizationManager;
+class MainWindow;
 
 //-- definitions -----
 class App 
@@ -28,7 +32,7 @@ public:
 	inline AppSettingsConfigPtr getAppSettings() const { return m_appSettings; }
 	inline class MainWindow* getMainWindow() const { return m_mainWindow; }
 	inline IMkWindowManagerPtr getWindowManager() const { return m_windowManager; }
-	inline class IMkWindow* getCurrentlyRenderingWindow() const { return m_renderingWindow; }
+	IEditorWindow* getCurrentlyRenderingWindow() const;
 	inline EventBus* getEventBus() const { return m_eventBus.get(); }
 	inline class LocalizationManager* getLocalizationManager() const { return m_localizationManager; }
 
@@ -46,59 +50,22 @@ public:
 	{
 		t_app_window* appWindow= new t_app_window(this);
 		
-		if (appWindow->startup())
+		// Setup the window
+		// Destroy the window if setup fails
+		if (!createAppWindowInternal(appWindow))
 		{
-			// pop this window context this window added if it created one
-			// and return back to the previous window context
-			if (m_windowManager->getCurrentWindowContext() == appWindow)
-			{
-				m_windowManager->popCurrentWindowContext(appWindow);
-			}
-
-			m_appWindows.push_back(appWindow);
-
-			return appWindow;
-		}
-		else
-		{
-			destroyAppWindow(appWindow);
+			return nullptr;
 		}
 
 		return appWindow;
 	}
 
-	template<typename t_app_window>
-	void destroyAppWindow(t_app_window* appWindow)
-	{
-		// If this window was the current window, pop it from the current window stack
-		if (m_windowManager->getCurrentWindowContext() == appWindow)
-		{
-			m_windowManager->popCurrentWindowContext(appWindow);
-		}
-
-		// Tear down the window and graphics context it owns
-		appWindow->shutdown();
-
-		// Remove the window from the list of windows (should deallocate it)
-		auto it= std::find(m_appWindows.begin(), m_appWindows.end(), appWindow);
-		if (it != m_appWindows.end())
-		{
-			m_appWindows.erase(it);
-		}
-
-		// If this was the main window pointer, make sure to invalidate that pointer
-		if ((void *)appWindow == (void *)m_mainWindow)
-		{
-			m_mainWindow = nullptr;
-		}
-
-		delete appWindow;
-	}
+	void destroyAppWindow(EditorWindow* appWindow);
 
 	template<typename t_app_window>
 	bool hasWindowOfType() const
 	{
-		for (IMkWindow* window : m_appWindows)
+		for (EditorWindow* window : m_appWindows)
 		{
 			if (dynamic_cast<t_app_window*>(window) != nullptr)
 			{
@@ -116,6 +83,8 @@ protected:
 	void tick();
 	void tickWindows(const float deltaSeconds);
 
+	bool createAppWindowInternal(EditorWindow* appWindow);
+
 private:
 	static App* m_instance;
 
@@ -126,19 +95,19 @@ private:
 	std::unique_ptr<EventBus> m_eventBus;
 
 	// Localization manager
-	class LocalizationManager* m_localizationManager= nullptr;
+	LocalizationManager* m_localizationManager= nullptr;
 
-	// Window Manager
+	// Window Context Manager
 	IMkWindowManagerPtr m_windowManager;
 
 	// Open windows (including the MainWindow)
-	std::vector<IMkWindow*> m_appWindows;
+	std::vector<EditorWindow*> m_appWindows;
 
 	// The window being currently rendered
-	IMkWindow* m_renderingWindow = nullptr;
+	EditorWindow* m_renderingWindow = nullptr;
 
 	// The main window for the application
-	class MainWindow* m_mainWindow= nullptr;
+	MainWindow* m_mainWindow= nullptr;
 
 	// Flag requesting that we exit the update loop
 	bool m_bShutdownRequested= false;

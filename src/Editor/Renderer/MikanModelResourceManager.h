@@ -11,13 +11,13 @@
 class MikanModelResourceManager
 {
 public:
-	MikanModelResourceManager(class IMkWindow* ownerWindow);
+	MikanModelResourceManager(class IMkGraphicsContext* ownerGraphicsContext);
 	virtual ~MikanModelResourceManager();
 
 	bool startup();
 	void shutdown();
 
-	inline IMkWindow* getOwnerWindow() const { return m_ownerWindow; }
+	inline IMkGraphicsContext* getOwnerGraphicsContext() const { return m_ownerGraphicsContext; }
 
 	MikanRenderModelResourcePtr fetchRenderModel(
 		const std::filesystem::path& modelFilePath,
@@ -29,7 +29,7 @@ public:
 		const std::filesystem::path& modelPath);
 
 private:
-	class IMkWindow* m_ownerWindow= nullptr;
+	class IMkGraphicsContext* m_ownerGraphicsContext= nullptr;
 
 	std::map<std::string, MikanRenderModelResourcePtr> m_renderModelCache;
 	std::map<std::string, IModelImporterPtr> m_modelImporters;

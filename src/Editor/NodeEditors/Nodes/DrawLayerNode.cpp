@@ -11,7 +11,7 @@
 #include "IMkTexture.h"	
 #include "IMkTriangulatedMesh.h"	
 #include "MkMaterialInstance.h"	
-#include "IMkWindow.h"	
+#include "IMkGraphicsContext.h"	
 #include "Logger.h"	
 #include "MainWindow.h"	
 #include "NodeEditorState.h"	
@@ -310,8 +310,9 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 		}	
 
 		{	
+			IMkGraphicsContext* graphicsContext = evaluator.getCurrentGraphicsContext();
 			MkScopedState mkStateScope = 	
-				evaluator.getCurrentWindow()->getGraphicsContext()->getMkStateStack().createScopedState("Draw Layer Node");	
+				graphicsContext->getMkStateStack().createScopedState("Draw Layer Node");	
 			IMkState* mkState = mkStateScope.getStackState();	
 
 			// Set the blend mode	
