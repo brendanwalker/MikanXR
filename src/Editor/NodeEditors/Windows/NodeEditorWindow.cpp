@@ -56,79 +56,15 @@
 
 //-- public methods -----
 NodeEditorWindow::NodeEditorWindow(App* ownerApp)
-	: m_ownerApp(ownerApp)
-	, m_graphicsContext(createMkGraphicsContext(eGraphicsAPI::OpenGL, nullptr))
-	, m_mkWindow(createMkWindow(ownerApp->getWindowManager(), m_graphicsContext))
-	, m_modelResourceManager(MikanModelResourceManagerUniquePtr(new MikanModelResourceManager(this)))
-{}
+	: EditorWindow(ownerApp)
+{
+	m_graphicsContext = createMkGraphicsContext(eGraphicsAPI::OpenGL, nullptr);
+	m_mkWindow = createMkWindow(ownerApp->getWindowManager(), m_graphicsContext);
+	m_modelResourceManager = MikanModelResourceManagerUniquePtr(new MikanModelResourceManager(this));
+}
 
 NodeEditorWindow::~NodeEditorWindow()
 {
-}
-
-MikanModelResourceManager* NodeEditorWindow::getModelResourceManager()
-{
-	return m_modelResourceManager.get();
-}
-
-IMkGraphicsContextPtr NodeEditorWindow::getGraphicsContext() const
-{
-	return m_graphicsContext;
-}
-
-void NodeEditorWindow::getMouseScreenPosition(int& outScreenX, int& outScreenY) const
-{
-	m_mkWindow->getMouseScreenPosition(outScreenX, outScreenY);
-}
-
-eWindowAPI NodeEditorWindow::getWindowAPI() const
-{
-	return m_mkWindow->getWindowAPI();
-}
-
-void* NodeEditorWindow::getNativeWindowHandle() const
-{
-	return m_mkWindow->getNativeWindowHandle();
-}
-
-void NodeEditorWindow::makeContextCurrent()
-{
-	m_mkWindow->makeContextCurrent();
-}
-
-bool NodeEditorWindow::wantsDestroy() const
-{
-	return m_mkWindow->wantsDestroy();
-}
-
-void NodeEditorWindow::setTitle(const std::string& title)
-{
-	m_mkWindow->setTitle(title);
-}
-
-void NodeEditorWindow::setSize(int width, int height)
-{
-	m_mkWindow->setSize(width, height);
-}
-
-void NodeEditorWindow::handleEvents(IMkWindowEventListener* eventListener)
-{
-	m_mkWindow->handleEvents(eventListener);
-}
-
-bool NodeEditorWindow::hasMouseFocus() const
-{
-	return m_mkWindow->hasMouseFocus();
-}
-
-bool NodeEditorWindow::hasKeyboardFocus() const
-{
-	return m_mkWindow->hasKeyboardFocus();
-}
-
-void NodeEditorWindow::present()
-{
-	m_mkWindow->present();
 }
 
 // -- IMkWindow ----
@@ -143,48 +79,29 @@ bool NodeEditorWindow::startup()
 	static const int k_node_window_pixel_width = 1080;
 	static const int k_node_window_pixel_height = 720;
 
-	auto windowTitle = "Node Editor";
-	m_mkWindow->setTitle(windowTitle);
-	m_mkWindow->setSize(k_node_window_pixel_width, k_node_window_pixel_height);
-	if (!m_mkWindow->startup())
+	if (success && !startupWindow("Node Editor", k_node_window_pixel_width, k_node_window_pixel_height))
 	{
-		MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Unable to initialize main SDK window: ";
 		success = false;
 	}
 
-	// Setup ImGui/ImNodes context
-	if (success)
+	if (success && !startupGuiContext())
 	{
-		m_guiContext = std::make_shared<MkGuiContext>(this);
-		if (!m_guiContext->startup())
-		{
-			MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Unable to create GUI context";
-			success = false;
-		}
+		success = false;
+	}
+
+	if (success && !startupStyleManager())
+	{
+		success = false;
 	}
 
 	if (success)
 	{
-		m_styleManager = std::make_unique<MkGuiStyleManager>();
-		const auto stylesPath = PathUtils::getResourceDirectory() / "gui_styles";
-		if (!m_styleManager->startup(m_guiContext.get(), stylesPath))
-		{
-			MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Failed to initialize style manager";
-			success = false;
-		}
-		else
-		{
-			m_editorState.styleManager = m_styleManager.get();
-		}
+		m_editorState.styleManager = m_styleManager.get();
 	}
 
-	if (success)
+	if (success && !startupModelResourceManager())
 	{
-		if (!m_modelResourceManager->startup())
-		{
-			MIKAN_LOG_ERROR("NodeEditorWindow::init") << "Unable to initialize model resource manager";
-			success = false;
-		}
+		success = false;
 	}
 
 	if (success)
@@ -1044,45 +961,9 @@ void NodeEditorWindow::shutdown()
 	m_editorState.nodeGraph= nullptr;
 	m_editorState.nodeGraphPath.clear();
 
-	if (m_styleManager != nullptr)
-	{
-		m_styleManager->shutdown();
-		m_styleManager = nullptr;
-	}
-
-	if (m_guiContext != nullptr)
-	{
-		m_guiContext->shutdown();
-		m_guiContext = nullptr;
-	}
-
-	if (m_mkWindow != nullptr)
-	{
-		m_mkWindow->shutdown();
-		m_mkWindow = nullptr;
-	}
-
-	m_graphicsContext = nullptr;
-}
-
-const char* NodeEditorWindow::getTitle() const
-{
-	return m_mkWindow->getTitle();
-}
-
-float NodeEditorWindow::getWidth() const
-{
-	return m_mkWindow->getWidth();
-}
-
-float NodeEditorWindow::getHeight() const
-{
-	return m_mkWindow->getHeight();
-}
-
-float NodeEditorWindow::getAspectRatio() const
-{
-	return m_mkWindow->getAspectRatio();
+	shutdownStyleManager();
+	shutdownGuiContext();
+	shutdownWindow();
 }
 
 // -- IMkWindowEventListener
@@ -1135,16 +1016,6 @@ LocalizationManager* NodeEditorWindow::getLocalizationManager() const
 EventBus* NodeEditorWindow::getEventBus() const
 {
 	return getMainWindow()->getEventBus();
-}
-
-MkGuiStyleManager* NodeEditorWindow::getMkGuiStyleManager() const
-{
-	return m_styleManager.get();
-}
-
-App* NodeEditorWindow::getOwnerApp() const
-{
-	return m_ownerApp;
 }
 
 AppStage* NodeEditorWindow::getCurrentAppStage() const

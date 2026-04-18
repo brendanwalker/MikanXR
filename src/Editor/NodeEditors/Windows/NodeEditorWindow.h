@@ -2,11 +2,7 @@
 
 //-- includes -----
 #include "AssetFwd.h"
-#include "MkGuiFwd.h"
-#include "IEditorWindow.h"
-#include "IMkWindowEventListener.h"
-#include "MkWindowFwd.h"
-#include "MikanRendererFwd.h"
+#include "EditorWindow.h"
 #include "NodeEditorFwd.h"
 #include "NodeFwd.h"
 #include "NodeEditorState.h"
@@ -22,7 +18,7 @@
 #include <vector>
 
 //-- definitions -----
-class NodeEditorWindow : public IEditorWindow, public IMkWindowEventListener
+class NodeEditorWindow : public EditorWindow
 {
 public:
 	NodeEditorWindow(App* ownerApp);
@@ -41,30 +37,10 @@ public:
 	virtual bool startup() override;
 	virtual void update(float deltaSeconds) override;
 	virtual void render() override;
-	virtual void present() override;
 	virtual void shutdown() override;
 
-	virtual const char* getTitle() const override;
-	virtual float getWidth() const override;
-	virtual float getHeight() const override;
-	virtual float getAspectRatio() const override;
 	virtual bool getIsRenderingStage() const override { return false; }
-
-	virtual void getMouseScreenPosition(int& outScreenX, int& outScreenY) const override;
-
-	virtual eWindowAPI getWindowAPI() const override;
-	virtual void* getNativeWindowHandle() const override;
-	virtual IMkGraphicsContextPtr getGraphicsContext() const override;
 	virtual IMkViewportPtr getRenderingViewport() const override { return nullptr; }
-	virtual void makeContextCurrent() override;
-	virtual bool wantsDestroy() const override;
-	virtual void setTitle(const std::string& title) override;
-	virtual void setSize(int width, int height) override;
-	virtual void handleEvents(class IMkWindowEventListener* eventListener) override;
-	virtual bool hasMouseFocus() const override;
-	virtual bool hasKeyboardFocus() const override;
-
-	virtual MikanModelResourceManager* getModelResourceManager() override;
 
 	// -- IMkWindowEventListener
 	virtual bool onWindowEvent(const MkWindowEvent& event) override;
@@ -79,9 +55,6 @@ public:
 	virtual class ClientSourceManager* getClientSourceManager() const override;
 	virtual class LocalizationManager* getLocalizationManager() const override;
 	virtual class EventBus* getEventBus() const override;
-	virtual class MkGuiStyleManager* getMkGuiStyleManager() const override;
-
-	virtual class App* getOwnerApp() const override;
 	virtual class AppStage* getCurrentAppStage() const override;
 	virtual class AppStage* getParentAppStage() const override;
 	virtual class AppStage* pushAppStage(const std::string& appStageName) override;
@@ -116,18 +89,9 @@ protected:
 	virtual void onAssetReferenceDeleted(AssetReferencePtr assetRef) {}
 
 protected:
-	class App* m_ownerApp = nullptr;
-	IMkWindowPtr m_mkWindow;
-	IMkGraphicsContextPtr m_graphicsContext;
-	MkGuiContextPtr m_guiContext;
-	std::unique_ptr<class MkGuiStyleManager> m_styleManager;
-
 	NodeEditorState m_editorState;
 
 	GraphObjectSelection m_objectSelection;
-
-	// Models loaded by the shader graph
-	MikanModelResourceManagerUniquePtr m_modelResourceManager;
 
 	// Errors that occurred during the last graph evaluation
 	std::vector<NodeEvaluationError> m_lastNodeEvalErrors;

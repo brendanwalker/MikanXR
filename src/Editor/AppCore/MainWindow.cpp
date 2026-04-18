@@ -61,7 +61,7 @@ static const glm::vec3 k_frustum_color = glm::vec3(0.1f, 0.7f, 0.3f);
 
 //-- public methods -----
 MainWindow::MainWindow(App* ownerApp)
-	: m_ownerApp(ownerApp)
+	: EditorWindow(ownerApp)
 	, m_mikanServer(new MikanServer())
 	, m_clientSourceManager(new ClientSourceManager())
 	, m_inputManager(new InputManager(this))
@@ -69,12 +69,13 @@ MainWindow::MainWindow(App* ownerApp)
 	, m_openCVManager(new OpenCVManager())
 	, m_fontManager(createMkFontManager())
 	, m_appStageFactory(this)
-	, m_graphicsContext(createMkGraphicsContext(eGraphicsAPI::OpenGL, m_fontManager.get()))
-	, m_mkWindow(createMkWindow(m_ownerApp->getWindowManager(), m_graphicsContext))
-	, m_modelResourceManager(MikanModelResourceManagerUniquePtr(new MikanModelResourceManager(this)))
 	, m_isRenderingStage(false)
 	, m_isRenderingUI(false)
 {
+	m_graphicsContext = createMkGraphicsContext(eGraphicsAPI::OpenGL, m_fontManager.get());
+	m_mkWindow = createMkWindow(m_ownerApp->getWindowManager(), m_graphicsContext);
+	m_modelResourceManager = MikanModelResourceManagerUniquePtr(new MikanModelResourceManager(this));
+
 	m_appStageFactory.addAppStageConstructor<AppStage_AlignmentCalibration>();
 	m_appStageFactory.addAppStageConstructor<AppStage_AnchorTriangulation>();
 	m_appStageFactory.addAppStageConstructor<AppStage_MainMenu>();
@@ -95,79 +96,9 @@ MainWindow::~MainWindow()
 	delete m_clientSourceManager;
 }
 
-MikanModelResourceManager* MainWindow::getModelResourceManager()
-{
-	return m_modelResourceManager.get();
-}
-
-void MainWindow::getMouseScreenPosition(int& outScreenX, int& outScreenY) const
-{
-	m_mkWindow->getMouseScreenPosition(outScreenX, outScreenY);
-}
-
-eWindowAPI MainWindow::getWindowAPI() const
-{
-	return m_mkWindow->getWindowAPI();
-}
-
-void* MainWindow::getNativeWindowHandle() const
-{
-	return m_mkWindow->getNativeWindowHandle();
-}
-
-IMkGraphicsContextPtr MainWindow::getGraphicsContext() const
-{
-	return m_graphicsContext;
-}
-
-void MainWindow::makeContextCurrent()
-{
-	m_mkWindow->makeContextCurrent();
-}
-
-void MainWindow::present()
-{
-	m_mkWindow->present();
-}
-
-bool MainWindow::wantsDestroy() const
-{
-	return m_mkWindow->wantsDestroy();
-}
-
-void MainWindow::setTitle(const std::string& title)
-{
-	m_mkWindow->setTitle(title);
-}
-
-void MainWindow::setSize(int width, int height)
-{
-	m_mkWindow->setSize(width, height);
-}
-
-void MainWindow::handleEvents(IMkWindowEventListener* eventListener)
-{
-	m_mkWindow->handleEvents(eventListener);
-}
-
-bool MainWindow::hasMouseFocus() const
-{
-	return m_mkWindow->hasMouseFocus();
-}
-
-bool MainWindow::hasKeyboardFocus() const
-{
-	return m_mkWindow->hasKeyboardFocus();
-}
-
 EventBus* MainWindow::getEventBus() const
 {
 	return m_ownerApp->getEventBus();
-}
-
-class MkGuiStyleManager* MainWindow::getMkGuiStyleManager() const
-{
-	return m_styleManager.get();
 }
 
 LocalizationManager* MainWindow::getLocalizationManager() const
@@ -189,33 +120,19 @@ bool MainWindow::startup()
 	MIKAN_LOG_INFO("MainWindow::init()") << "Initializing MainWindow";
 
 	auto windowTitle= StringUtils::stringify("MikanXR v", MIKAN_RELEASE_VERSION_STRING);
-	m_mkWindow->setTitle(windowTitle);
-	m_mkWindow->setSize(k_window_pixel_width, k_window_pixel_height);
-	if (!m_mkWindow->startup())
+	if (success && !startupWindow(windowTitle, k_window_pixel_width, k_window_pixel_height))
 	{
-		MIKAN_LOG_ERROR("MainWindow::startup") << "Unable to initialize main SDK window: ";
 		success = false;
 	}
 
-	if (success)
+	if (success && !startupGuiContext())
 	{
-		m_guiContext = std::make_shared<MkGuiContext>(this);
-		if (!m_guiContext->startup())
-		{
-			MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Unable to create GUI context";
-			success = false;
-		}
+		success = false;
 	}
 
-	if (success)
+	if (success && !startupStyleManager())
 	{
-		m_styleManager = std::make_unique<MkGuiStyleManager>();
-		const auto stylesPath = PathUtils::getResourceDirectory() / "gui_styles";
-		if (!m_styleManager->startup(m_guiContext.get(), stylesPath))
-		{
-			MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Failed to initialize style manager";
-			success = false;
-		}
+		success = false;
 	}
 
 	if (success && !m_openCVManager->startup())
@@ -224,9 +141,8 @@ bool MainWindow::startup()
 		success = false;
 	}
 
-	if (success && !m_modelResourceManager->startup())
+	if (success && !startupModelResourceManager())
 	{
-		MIKAN_LOG_ERROR("MainWindow::init") << "Unable to initialize model resource manager";
 		success = false;
 	}
 
@@ -449,49 +365,10 @@ void MainWindow::shutdown()
 	assert(m_fontManager != nullptr);
 	m_fontManager->shutdown();
 
-	if (m_modelResourceManager != nullptr)
-	{
-		m_modelResourceManager->shutdown();
-		m_modelResourceManager= nullptr;
-	}
-
-	if (m_styleManager != nullptr)
-	{
-		m_styleManager->shutdown();
-		m_styleManager = nullptr;
-	}
-
-	if (m_guiContext != nullptr)
-	{
-		m_guiContext->shutdown();
-		m_guiContext = nullptr;
-	}
-
-	if (m_mkWindow != nullptr)
-	{
-		m_mkWindow->shutdown();
-		m_mkWindow = nullptr;
-	}
-}
-
-const char* MainWindow::getTitle() const
-{
-	return m_mkWindow->getTitle();
-}
-
-float MainWindow::getWidth() const
-{
-	return m_mkWindow->getWidth();
-}
-
-float MainWindow::getHeight() const
-{
-	return m_mkWindow->getHeight();
-}
-
-float MainWindow::getAspectRatio() const
-{
-	return m_mkWindow->getAspectRatio();
+	shutdownModelResourceManager();
+	shutdownStyleManager();
+	shutdownGuiContext();
+	shutdownWindow();
 }
 
 bool MainWindow::onWindowEvent(const MkWindowEvent& event)
