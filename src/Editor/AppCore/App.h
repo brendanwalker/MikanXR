@@ -2,8 +2,8 @@
 
 //-- includes -----
 #include "AppStage.h"
-#include "IMkWindow.h"
-#include "IMkWindowManager.h"
+#include "IMkWindowContext.h"
+#include "IMkWindowContextManager.h"
 #include "IEditorWindow.h"
 #include "ObjectSystemConfigFwd.h"
 
@@ -31,7 +31,7 @@ public:
 
 	inline AppSettingsConfigPtr getAppSettings() const { return m_appSettings; }
 	inline class MainWindow* getMainWindow() const { return m_mainWindow; }
-	inline IMkWindowManagerPtr getWindowManager() const { return m_windowManager; }
+	inline IMkWindowContextManagerPtr getWindowManager() const { return m_windowManager; }
 	IEditorWindow* getCurrentlyRenderingWindow() const;
 	inline EventBus* getEventBus() const { return m_eventBus.get(); }
 	inline class LocalizationManager* getLocalizationManager() const { return m_localizationManager; }
@@ -98,7 +98,7 @@ private:
 	LocalizationManager* m_localizationManager= nullptr;
 
 	// Window Context Manager
-	IMkWindowManagerPtr m_windowManager;
+	IMkWindowContextManagerPtr m_windowManager;
 
 	// Open windows (including the MainWindow)
 	std::vector<EditorWindow*> m_appWindows;

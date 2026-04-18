@@ -2,14 +2,14 @@
 
 #include <memory>
 
-class IMkWindowManager;
-using IMkWindowManagerPtr = std::shared_ptr<IMkWindowManager>;
-using IMkWindowManagerConstPtr = std::shared_ptr<const IMkWindowManager>;
-using IMkWindowManagerWeakPtr = std::weak_ptr<IMkWindowManager>;
+class IMkWindowContextManager;
+using IMkWindowContextManagerPtr = std::shared_ptr<IMkWindowContextManager>;
+using IMkWindowContextManagerConstPtr = std::shared_ptr<const IMkWindowContextManager>;
+using IMkWindowContextManagerWeakPtr = std::weak_ptr<IMkWindowContextManager>;
 
-class IMkWindow;
-using IMkWindowPtr = std::shared_ptr<IMkWindow>;
-using IMkWindowConstPtr = std::shared_ptr<const IMkWindow>;
-using IMkWindowWeakPtr = std::weak_ptr<IMkWindow>;
+class IMkWindowContext;
+using IMkWindowContextPtr = std::shared_ptr<IMkWindowContext>;
+using IMkWindowContextConstPtr = std::shared_ptr<const IMkWindowContext>;
+using IMkWindowContextWeakPtr = std::weak_ptr<IMkWindowContext>;
 
 class MkWindowEvent;

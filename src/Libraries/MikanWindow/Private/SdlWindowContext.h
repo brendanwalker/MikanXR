@@ -1,21 +1,21 @@
 #pragma once
 
-#include "IMkWindow.h"
+#include "IMkWindowContext.h"
 #include "SdlFwd.h"
 
 #include <memory>
 #include <string>
 
-class IMkWindowManager;
+class IMkWindowContextManager;
 
-class SdlWindow : public IMkWindow
+class SdlWindowContext : public IMkWindowContext
 {
 public:
-	SdlWindow() = delete;
-	SdlWindow(IMkWindowManagerPtr ownerWindowManager, IMkGraphicsContextPtr graphicsContext);
-	virtual ~SdlWindow();
+	SdlWindowContext() = delete;
+	SdlWindowContext(IMkWindowContextManagerPtr ownerWindowManager, IMkGraphicsContextPtr graphicsContext);
+	virtual ~SdlWindowContext();
 
-	// -- IMkWindow interface --
+	// -- IMkWindowContext interface --
 	virtual bool startup() override;
 	virtual void update(float deltaSeconds) override;
 	virtual void render() override;
@@ -37,19 +37,19 @@ public:
 	virtual void makeContextCurrent() override;
 	virtual bool wantsDestroy() const override { return m_wantsDestroy; }
 
-	// -- IMkWindow overrides --
+	// -- IMkWindowContext overrides --
 	virtual void setTitle(const std::string& title) override;
 	virtual void setSize(int width, int height) override;
 	virtual void handleEvents(class IMkWindowEventListener* eventListener) override;
 	virtual bool hasMouseFocus() const override { return m_hasMouseFocus; }
 	virtual bool hasKeyboardFocus() const override { return m_hasKeyboardFocus; }
 
-	// -- SdlWindow specific --
+	// -- SdlWindowContext specific --
 	void focus();
 
 	int getWindowId() const { return m_windowId; }
 
-	SdlWindow* enableGLDataSharing();
+	SdlWindowContext* enableGLDataSharing();
 	bool isGlDataSharingEnabled() const { return m_bGLDataSharingEnabled; }
 
 	bool isMinimized() const { return m_isMinimized; }
@@ -59,7 +59,7 @@ protected:
 	bool handleSDLWindowEvent(const SDL_Event* event);
 
 private:
-	IMkWindowManagerWeakPtr m_ownerWindowManager;
+	IMkWindowContextManagerWeakPtr m_ownerWindowManager;
 	IMkGraphicsContextWeakPtr m_graphicsContext;
 	SDL_Window* m_sdlWindow = nullptr;
 	void* m_glContext = nullptr;
@@ -80,4 +80,4 @@ private:
 	bool m_isShown = false;
 	bool m_wantsDestroy = false;
 };
-using SdlWindowUniquePtr = std::unique_ptr<SdlWindow>;
+using SdlWindowUniquePtr = std::unique_ptr<SdlWindowContext>;

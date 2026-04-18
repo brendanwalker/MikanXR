@@ -34,7 +34,7 @@ public:
 	virtual class MkGuiStyleManager* getMkGuiStyleManager() const = 0;
 
 	virtual IMkGraphicsContextPtr getGraphicsContext() const = 0;
-	virtual IMkWindowPtr getMkWindowContext() const = 0;
+	virtual IMkWindowContextPtr getMkWindowContext() const = 0;
 	virtual class App* getOwnerApp() const = 0;
 	virtual class AppStage* getCurrentAppStage() const = 0;
 	virtual class AppStage* getParentAppStage() const = 0;

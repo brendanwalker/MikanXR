@@ -10,7 +10,7 @@
 #include "EditorObjectSystem.h"
 #include "InputManager.h"
 #include "IMkGraphicsContext.h"
-#include "IMkWindow.h"
+#include "IMkWindowContext.h"
 #include "IMkState.h"
 #include "IMkTexture.h"
 #include "IMkTextRenderer.h"
@@ -73,7 +73,7 @@ MainWindow::MainWindow(App* ownerApp)
 	, m_isRenderingUI(false)
 {
 	m_graphicsContext = createMkGraphicsContext(eGraphicsAPI::OpenGL, m_fontManager.get());
-	m_mkWindowContext = createMkWindow(m_ownerApp->getWindowManager(), m_graphicsContext);
+	m_mkWindowContext = createMkWindowContext(m_ownerApp->getWindowManager(), m_graphicsContext);
 	m_modelResourceManager = 
 		MikanModelResourceManagerUniquePtr(
 			new MikanModelResourceManager(getGraphicsContext().get()));

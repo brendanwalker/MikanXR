@@ -1,7 +1,7 @@
 #include "MikanSteamVRManager.h"
 #include "MikanSteamVRDevice.h"
 #include "IMkGraphicsContext.h"
-#include "IMkWindow.h"
+#include "IMkWindowContext.h"
 #include "IVRDevice.h"
 #include "Logger.h"
 #include "PathUtils.h"

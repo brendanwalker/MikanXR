@@ -1,8 +1,8 @@
 #include "IMkGraphicsContext.h"
 #include "IMkWindowEventListener.h"
-#include "IMkWindowManager.h"
-#include "SdlWindow.h"
-#include "SdlWindowManager.h"
+#include "IMkWindowContextManager.h"
+#include "SdlWindowContext.h"
+#include "SdlWindowContextManager.h"
 #include "SdlWindowEventListener.h"
 #include "Logger.h"
 
@@ -24,27 +24,27 @@
 
 #include "SdlCommon.h"
 
-SdlWindow::SdlWindow(
-	IMkWindowManagerPtr ownerWindowManager, 
+SdlWindowContext::SdlWindowContext(
+	IMkWindowContextManagerPtr ownerWindowManager, 
 	IMkGraphicsContextPtr graphicsContext)
 	: m_ownerWindowManager(ownerWindowManager)
 	, m_graphicsContext(graphicsContext)
 {
 }
 
-SdlWindow::~SdlWindow()
+SdlWindowContext::~SdlWindowContext()
 {
 	shutdown();
 }
 
-SdlWindow* SdlWindow::enableGLDataSharing()
+SdlWindowContext* SdlWindowContext::enableGLDataSharing()
 {
 	assert(m_sdlWindow == nullptr);
 	m_bGLDataSharingEnabled = true;
 	return this;
 }
 
-void SdlWindow::setTitle(const std::string& title)
+void SdlWindowContext::setTitle(const std::string& title)
 {
 	m_title = title;
 
@@ -54,7 +54,7 @@ void SdlWindow::setTitle(const std::string& title)
 	}
 }
 
-void SdlWindow::setSize(int width, int height)
+void SdlWindowContext::setSize(int width, int height)
 {
 	m_width = width;
 	m_height = height;
@@ -65,9 +65,9 @@ void SdlWindow::setSize(int width, int height)
 	}
 }
 
-bool SdlWindow::startup()
+bool SdlWindowContext::startup()
 {
-	IMkWindowManagerPtr ownerWindowManager = m_ownerWindowManager.lock();
+	IMkWindowContextManagerPtr ownerWindowManager = m_ownerWindowManager.lock();
 	assert(ownerWindowManager != nullptr && ownerWindowManager->getIsInitialized());
 	IMkGraphicsContextPtr graphicsContext = m_graphicsContext.lock();
 	assert(graphicsContext != nullptr && graphicsContext->getGraphicsAPI() == eGraphicsAPI::OpenGL);
@@ -87,7 +87,7 @@ bool SdlWindow::startup()
 								   window_flags);
 	if (m_sdlWindow == nullptr)
 	{
-		MIKAN_LOG_ERROR("SdlWindow::startup") << "Unable to initialize SDL window: " << SDL_GetError();
+		MIKAN_LOG_ERROR("SdlWindowContext::startup") << "Unable to initialize SDL window: " << SDL_GetError();
 		success = false;
 	}
 
@@ -101,7 +101,7 @@ bool SdlWindow::startup()
 		}
 		else
 		{
-			MIKAN_LOG_ERROR("SdlWindow::startup") << "Unable to initialize SDL OpenGL context: " << SDL_GetError();
+			MIKAN_LOG_ERROR("SdlWindowContext::startup") << "Unable to initialize SDL OpenGL context: " << SDL_GetError();
 			success = false;
 		}
 	}
@@ -111,7 +111,7 @@ bool SdlWindow::startup()
 		graphicsContext->onNativeContextCreated(m_glContext);
 		if (!graphicsContext->startup())
 		{
-			MIKAN_LOG_ERROR("SdlWindow::startup") << "Unable to initialize graphics context";
+			MIKAN_LOG_ERROR("SdlWindowContext::startup") << "Unable to initialize graphics context";
 			success = false;
 		}
 	}
@@ -128,7 +128,7 @@ bool SdlWindow::startup()
 	return success;
 }
 
-void SdlWindow::shutdown()
+void SdlWindowContext::shutdown()
 {
 	IMkGraphicsContextPtr graphicsContext = m_graphicsContext.lock();
 	if (graphicsContext)
@@ -154,39 +154,39 @@ void SdlWindow::shutdown()
 	m_height = 0;
 }
 
-void SdlWindow::update(float deltaSeconds)
+void SdlWindowContext::update(float deltaSeconds)
 {
 	// Base implementation - subclasses override for app logic
 }
 
-void SdlWindow::render()
+void SdlWindowContext::render()
 {
 	// Base implementation - subclasses override for render logic
 }
 
-void SdlWindow::present()
+void SdlWindowContext::present()
 {
 	SDL_GL_SwapWindow(m_sdlWindow);
 }
 
-IMkViewportPtr SdlWindow::getRenderingViewport() const
+IMkViewportPtr SdlWindowContext::getRenderingViewport() const
 {
 	IMkGraphicsContextPtr graphicsContext = m_graphicsContext.lock();
 
 	return graphicsContext ? graphicsContext->getRenderingViewport() : IMkViewportPtr();
 }
 
-void SdlWindow::getMouseScreenPosition(int& outScreenX, int& outScreenY) const
+void SdlWindowContext::getMouseScreenPosition(int& outScreenX, int& outScreenY) const
 {
 	SDL_GetMouseState(&outScreenX, &outScreenY);
 }
 
-void SdlWindow::handleEvents(IMkWindowEventListener* eventListener)
+void SdlWindowContext::handleEvents(IMkWindowEventListener* eventListener)
 {
-	IMkWindowManagerPtr ownerWindowManager = m_ownerWindowManager.lock();
+	IMkWindowContextManagerPtr ownerWindowManager = m_ownerWindowManager.lock();
 	assert(ownerWindowManager != nullptr);
 
-	std::vector<SDL_Event>& events = static_cast<SdlWindowManager*>(ownerWindowManager.get())->getEvents();
+	std::vector<SDL_Event>& events = static_cast<SdlWindowContextManager*>(ownerWindowManager.get())->getEvents();
 	auto it = events.begin();
 	while (it != events.end())
 	{
@@ -216,7 +216,7 @@ void SdlWindow::handleEvents(IMkWindowEventListener* eventListener)
 	}
 }
 
-bool SdlWindow::handleSDLWindowEvent(const SDL_Event* event)
+bool SdlWindowContext::handleSDLWindowEvent(const SDL_Event* event)
 {
 	bool bHandled = true;
 
@@ -289,7 +289,7 @@ bool SdlWindow::handleSDLWindowEvent(const SDL_Event* event)
 	return bHandled;
 }
 
-void SdlWindow::focus()
+void SdlWindowContext::focus()
 {
 	if (!m_isShown)
 	{
@@ -299,21 +299,21 @@ void SdlWindow::focus()
 	SDL_RaiseWindow(m_sdlWindow);
 }
 
-void SdlWindow::makeContextCurrent()
+void SdlWindowContext::makeContextCurrent()
 {
 	int result = SDL_GL_MakeCurrent(m_sdlWindow, m_glContext);
 	if (result != 0)
 	{
 		const char* errorMessage = SDL_GetError();
-		MIKAN_LOG_ERROR("SdlWindow::makeContextCurrent") << "Error with SDL_GL_MakeCurrent: " << errorMessage;
+		MIKAN_LOG_ERROR("SdlWindowContext::makeContextCurrent") << "Error with SDL_GL_MakeCurrent: " << errorMessage;
 	}
 }
 
-IMkWindowPtr createMkWindow(
-	IMkWindowManagerPtr ownerWindowManager,
+IMkWindowContextPtr createMkWindowContext(
+	IMkWindowContextManagerPtr ownerWindowManager,
 	IMkGraphicsContextPtr graphicsContext)
 {
 	// TODO: Use the graphics context API to determine which window type to create 
 	// (e.g. OpenGL = SdlGlWindow, Vulkan = SdlVulkanWindow, etc.)
-	return std::make_shared<SdlWindow>(ownerWindowManager, graphicsContext);
+	return std::make_shared<SdlWindowContext>(ownerWindowManager, graphicsContext);
 }

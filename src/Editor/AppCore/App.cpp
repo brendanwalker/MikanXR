@@ -7,6 +7,7 @@
 #include "Graphs/CompositorNodeGraph.h"
 #include "IEditorWindow.h"
 #include "IMkGraphicsContext.h"
+#include "IMkWindowContext.h"
 #include "MkError.h"
 #include "MkStateStack.h"
 #include "LocalizationManager.h"
@@ -15,7 +16,7 @@
 #include "MikanModuleManager.h"
 #include "PathUtils.h"
 #include "ProjectConfig.h"
-#include "IMkWindowManager.h"
+#include "IMkWindowContextManager.h"
 #include "TypeRegistry.h"
 
 //#include "Windows/TestNodeEditorWindow.h"
@@ -37,7 +38,7 @@ App::App()
 	: m_appSettings(std::make_shared<AppSettingsConfig>())
 	, m_eventBus(std::make_unique<EventBus>())
 	, m_localizationManager(new LocalizationManager())
-	, m_windowManager(createMkWindowManager())
+	, m_windowManager(createMkWindowContextManager())
 	, m_bShutdownRequested(false)
 {
 	m_instance= this;
@@ -241,7 +242,7 @@ void App::tickWindows(const float deltaSeconds)
 	static bool bDebugPrintStack = false;
 	for (EditorWindow* appWindow : m_appWindows)
 	{
-		IMkWindow* appWindowContext = appWindow->getMkWindowContext().get();
+		IMkWindowContext* appWindowContext = appWindow->getMkWindowContext().get();
 
 		// Mark this window as the current window getting updated
 		m_windowManager->pushCurrentWindowContext(appWindowContext);
@@ -260,7 +261,7 @@ void App::tickWindows(const float deltaSeconds)
 			mkStateStack.setDebugPrintEnabled(bDebugPrintStack);
 
 			m_renderingWindow = appWindow;
-			appWindowContext->render();
+			appWindow->render();
 			m_renderingWindow = nullptr;
 
 			mkStateStack.setDebugPrintEnabled(false);
@@ -295,7 +296,7 @@ bool App::createAppWindowInternal(EditorWindow* appWindow)
 
 	// pop this window context this window added if it created one
 	// and return back to the previous window context
-	IMkWindow* appWindowContext = appWindow->getMkWindowContext().get();
+	IMkWindowContext* appWindowContext = appWindow->getMkWindowContext().get();
 	if (m_windowManager->getCurrentWindowContext() == appWindowContext)
 	{
 		m_windowManager->popCurrentWindowContext(appWindowContext);
@@ -310,7 +311,7 @@ bool App::createAppWindowInternal(EditorWindow* appWindow)
 void App::destroyAppWindow(EditorWindow* appWindow)
 {
 	// If this window was the current window, pop it from the current window stack
-	IMkWindow* appWindowContext = appWindow->getMkWindowContext().get();
+	IMkWindowContext* appWindowContext = appWindow->getMkWindowContext().get();
 	if (m_windowManager->getCurrentWindowContext() == appWindowContext)
 	{
 		m_windowManager->popCurrentWindowContext(appWindowContext);

@@ -2,7 +2,7 @@
 #include "EditorWindow.h"
 #include "Logger.h"
 
-#include "IMkWindow.h"
+#include "IMkWindowContext.h"
 #include "IMkGraphicsContext.h"
 #include "MikanModelResourceManager.h"
 #include "MkGuiContext.h"
@@ -23,7 +23,7 @@ IMkGraphicsContextPtr EditorWindow::getGraphicsContext() const
 	return m_graphicsContext; 
 }
 
-IMkWindowPtr EditorWindow::getMkWindowContext() const 
+IMkWindowContextPtr EditorWindow::getMkWindowContext() const 
 { 
 	return m_mkWindowContext; 
 }
@@ -68,7 +68,7 @@ App* EditorWindow::getOwnerApp() const
 	return m_ownerApp;
 }
 
-// -- IMkWindow delegation ----
+// -- IMkWindowContext delegation ----
 eWindowAPI EditorWindow::getWindowAPI() const
 {
 	return m_mkWindowContext->getWindowAPI();

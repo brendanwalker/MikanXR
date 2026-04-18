@@ -1,7 +1,7 @@
 #pragma once
 
 //-- includes -----
-#include "IMkWindow.h"
+#include "IMkWindowContext.h"
 #include "IEditorWindow.h"
 #include "IMkWindowEventListener.h"
 #include "MkGuiFwd.h"
@@ -44,7 +44,7 @@ public:
 	virtual class MkGuiStyleManager* getMkGuiStyleManager() const override;
 
 	virtual IMkGraphicsContextPtr getGraphicsContext() const override;
-	virtual IMkWindowPtr getMkWindowContext() const override;
+	virtual IMkWindowContextPtr getMkWindowContext() const override;
 	virtual class App* getOwnerApp() const override;
 	//virtual class AppStage* getCurrentAppStage() const = 0;
 	//virtual class AppStage* getParentAppStage() const = 0;
@@ -75,7 +75,7 @@ protected:
 	void shutdownWindow();
 
 	class App* m_ownerApp = nullptr;
-	IMkWindowPtr m_mkWindowContext;
+	IMkWindowContextPtr m_mkWindowContext;
 	IMkGraphicsContextPtr m_graphicsContext;
 	MkGuiContextPtr m_guiContext;
 	std::unique_ptr<class MkGuiStyleManager> m_styleManager;

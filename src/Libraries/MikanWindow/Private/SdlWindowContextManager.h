@@ -1,20 +1,20 @@
 #pragma once
 
 //-- includes -----
-#include "IMkWindowManager.h"
+#include "IMkWindowContextManager.h"
 #include "SdlFwd.h"
 
 #include <string>
 #include <vector>
 
 //-- definitions -----
-class SdlWindowManager : public IMkWindowManager
+class SdlWindowContextManager : public IMkWindowContextManager
 {
 public:
-	SdlWindowManager();
-	~SdlWindowManager();
+	SdlWindowContextManager();
+	~SdlWindowContextManager();
 
-	// -- IMkWindowManager --
+	// -- IMkWindowContextManager --
 	virtual bool startup() override;
 	virtual void shutdown() override;
 	virtual void pollEvents() override;
@@ -23,9 +23,9 @@ public:
 	virtual const std::string& getGlslVersion() const override { return m_glslVersion; }
 	virtual void setMouseCursor(const std::string& cursorName) override;
 
-	virtual void pushCurrentWindowContext(IMkWindow* window) override;
-	virtual IMkWindow* getCurrentWindowContext() const override;
-	virtual void popCurrentWindowContext(IMkWindow* window) override;
+	virtual void pushCurrentWindowContext(IMkWindowContext* window) override;
+	virtual IMkWindowContext* getCurrentWindowContext() const override;
+	virtual void popCurrentWindowContext(IMkWindowContext* window) override;
 
 	std::vector<SDL_Event>& getEvents() { return m_events; }
 
@@ -33,7 +33,7 @@ private:
 	bool m_sdlInitialized= false;
 	std::string m_glslVersion;
 
-	std::vector<IMkWindow*> m_mkWindowContextStack;
+	std::vector<IMkWindowContext*> m_mkWindowContextStack;
 
 	SDL_Cursor* cursor_default = nullptr;
 	SDL_Cursor* cursor_move = nullptr;

@@ -1,6 +1,6 @@
 //-- includes -----
-#include "SdlWindowManager.h"
-#include "IMkWindow.h"
+#include "SdlWindowContextManager.h"
+#include "IMkWindowContext.h"
 #include "Logger.h"
 #include "MkError.h"
 
@@ -22,20 +22,20 @@
 #include <assert.h>
 
 //-- public methods -----
-SdlWindowManager::SdlWindowManager()
+SdlWindowContextManager::SdlWindowContextManager()
 	: m_sdlInitialized(false)
 {}
 
-SdlWindowManager::~SdlWindowManager()
+SdlWindowContextManager::~SdlWindowContextManager()
 {
 	assert(!m_sdlInitialized);
 }
 
-bool SdlWindowManager::startup()
+bool SdlWindowContextManager::startup()
 {
 	bool success = true;
 
-	MIKAN_LOG_INFO("SdlWindowManager::startup()") << "Initializing SDL Library";
+	MIKAN_LOG_INFO("SdlWindowContextManager::startup()") << "Initializing SDL Library";
 
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) == 0)
 	{
@@ -43,7 +43,7 @@ bool SdlWindowManager::startup()
 	}
 	else
 	{
-		MIKAN_LOG_ERROR("SdlWindowManager::startup") << "Unable to initialize SDL: " << SDL_GetError();
+		MIKAN_LOG_ERROR("SdlWindowContextManager::startup") << "Unable to initialize SDL: " << SDL_GetError();
 		success = false;
 	}
 
@@ -92,7 +92,7 @@ bool SdlWindowManager::startup()
 	return success;
 }
 
-void SdlWindowManager::shutdown()
+void SdlWindowContextManager::shutdown()
 {
 	// Free cursors
 	if (cursor_default != nullptr)
@@ -138,7 +138,7 @@ void SdlWindowManager::shutdown()
 	}
 }
 
-void SdlWindowManager::pollEvents()
+void SdlWindowContextManager::pollEvents()
 {
 	m_events.clear();
 
@@ -149,7 +149,7 @@ void SdlWindowManager::pollEvents()
 	}
 }
 
-void SdlWindowManager::setMouseCursor(const std::string& cursor_name)
+void SdlWindowContextManager::setMouseCursor(const std::string& cursor_name)
 {
 	SDL_Cursor* cursor = nullptr;
 
@@ -172,7 +172,7 @@ void SdlWindowManager::setMouseCursor(const std::string& cursor_name)
 		SDL_SetCursor(cursor);
 }
 
-void SdlWindowManager::pushCurrentWindowContext(IMkWindow* window)
+void SdlWindowContextManager::pushCurrentWindowContext(IMkWindowContext* window)
 {
 	if (m_mkWindowContextStack.size() == 0 || m_mkWindowContextStack.back() != window)
 	{
@@ -184,23 +184,23 @@ void SdlWindowManager::pushCurrentWindowContext(IMkWindow* window)
 	}
 	else
 	{
-		MIKAN_LOG_WARNING("SdlWindowManager::pushCurrentWindowContext")
+		MIKAN_LOG_WARNING("SdlWindowContextManager::pushCurrentWindowContext")
 			<< "Unable to push window "
 			<< window->getTitle()
 			<< " (already current)";
 	}
 }
 
-IMkWindow* SdlWindowManager::getCurrentWindowContext() const
+IMkWindowContext* SdlWindowContextManager::getCurrentWindowContext() const
 {
 	return m_mkWindowContextStack.size() > 0 ? m_mkWindowContextStack.back() : nullptr;
 }
 
-void SdlWindowManager::popCurrentWindowContext(IMkWindow* window)
+void SdlWindowContextManager::popCurrentWindowContext(IMkWindowContext* window)
 {
-	if (checkHasAnyMkError("SdlWindowManager::popCurrentWindowContext", __FILE__, __LINE__))
+	if (checkHasAnyMkError("SdlWindowContextManager::popCurrentWindowContext", __FILE__, __LINE__))
 	{
-		MIKAN_LOG_ERROR("SdlWindowManager::popCurrentWindowContext") << "Unhandled Mk Error found before popping window";
+		MIKAN_LOG_ERROR("SdlWindowContextManager::popCurrentWindowContext") << "Unhandled Mk Error found before popping window";
 	}
 
 	if (m_mkWindowContextStack.size() > 0 && m_mkWindowContextStack.back() == window)
@@ -216,14 +216,14 @@ void SdlWindowManager::popCurrentWindowContext(IMkWindow* window)
 	}
 	else
 	{
-		MIKAN_LOG_WARNING("SdlWindowManager::popCurrentWindowContext")
+		MIKAN_LOG_WARNING("SdlWindowContextManager::popCurrentWindowContext")
 			<< "Unable to pop window "
 			<< window->getTitle()
 			<< " (not current)";
 	}
 }
 
-IMkWindowManagerPtr createMkWindowManager()
+IMkWindowContextManagerPtr createMkWindowContextManager()
 {
-	return std::make_shared<SdlWindowManager>();
+	return std::make_shared<SdlWindowContextManager>();
 }

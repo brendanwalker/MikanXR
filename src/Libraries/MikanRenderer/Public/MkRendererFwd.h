@@ -100,10 +100,10 @@ using IMkGraphicsContextPtr = std::shared_ptr<IMkGraphicsContext>;
 using IMkGraphicsContextConstPtr = std::shared_ptr<const IMkGraphicsContext>;
 using IMkGraphicsContextWeakPtr = std::weak_ptr<IMkGraphicsContext>;
 
-class IMkWindow;
-using IMkWindowPtr = std::shared_ptr<IMkWindow>;
-using IMkWindowConstPtr = std::shared_ptr<const IMkWindow>;
-using IMkWindowWeakPtr = std::weak_ptr<IMkWindow>;
+class IMkWindowContext;
+using IMkWindowContextPtr = std::shared_ptr<IMkWindowContext>;
+using IMkWindowContextConstPtr = std::shared_ptr<const IMkWindowContext>;
+using IMkWindowContextWeakPtr = std::weak_ptr<IMkWindowContext>;
 
 class IMkMesh;
 using IMkMeshPtr = std::shared_ptr<IMkMesh>;

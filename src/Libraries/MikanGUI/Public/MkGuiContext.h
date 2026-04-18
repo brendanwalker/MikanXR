@@ -1,7 +1,7 @@
 #pragma once
 
 #include "MkGuiFwd.h"
-#include "IMkWindow.h"
+#include "IMkWindowContext.h"
 #include "IMkWindowEventListener.h"
 #include "IMkGraphicsContext.h"
 
@@ -9,7 +9,7 @@ class MkGuiContext : public IMkWindowEventListener
 {
 public:
 	MkGuiContext()= delete;
-	MkGuiContext(class IMkWindow* window);
+	MkGuiContext(class IMkWindowContext* window);
 	virtual ~MkGuiContext();
 
 	bool startup();
@@ -31,7 +31,7 @@ protected:
 	void configImNodes();
 
 private:
-	class IMkWindow* m_window= nullptr;
+	class IMkWindowContext* m_window= nullptr;
 	struct ImGuiContext* m_imguiContext= nullptr;
 	struct ImNodesContext* m_imnodesContext= nullptr;
 	struct ImFont* m_NormalIconFont = nullptr;

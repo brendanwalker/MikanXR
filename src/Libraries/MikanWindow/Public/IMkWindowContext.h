@@ -15,10 +15,10 @@ enum class eWindowAPI
 	COUNT
 };
 
-class IMkWindow
+class IMkWindowContext
 {
 public:
-	virtual ~IMkWindow() {}
+	virtual ~IMkWindowContext() {}
 
 	virtual bool startup() = 0;
 	virtual void update(float deltaSeconds) = 0;
@@ -50,6 +50,6 @@ public:
 	virtual bool hasKeyboardFocus() const = 0;
 };
 
-MIKAN_WINDOW_FUNC(IMkWindowPtr) createMkWindow(
-	IMkWindowManagerPtr ownerWindowManager,
+MIKAN_WINDOW_FUNC(IMkWindowContextPtr) createMkWindowContext(
+	IMkWindowContextManagerPtr ownerWindowManager,
 	IMkGraphicsContextPtr graphicsContext);

@@ -58,7 +58,7 @@ NodeEditorWindow::NodeEditorWindow(App* ownerApp)
 	: EditorWindow(ownerApp)
 {
 	m_graphicsContext = createMkGraphicsContext(eGraphicsAPI::OpenGL, nullptr);
-	m_mkWindowContext = createMkWindow(ownerApp->getWindowManager(), m_graphicsContext);
+	m_mkWindowContext = createMkWindowContext(ownerApp->getWindowManager(), m_graphicsContext);
 	m_modelResourceManager = 
 		MikanModelResourceManagerUniquePtr(
 			new MikanModelResourceManager(m_graphicsContext.get()));
