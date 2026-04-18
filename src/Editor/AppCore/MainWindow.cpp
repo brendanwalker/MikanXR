@@ -328,6 +328,7 @@ void MainWindow::renderStageUI(AppStage* appStage)
 	style.horizontalAlignment = eHorizontalTextAlignment::Right;
 	style.verticalAlignment = eVerticalTextAlignment::Bottom;
 	drawTextAtScreenPosition(
+		m_graphicsContext.get(),
 		style,
 		glm::vec2(getWidth() - 1, getHeight() - 1),
 		L"%.1ffps", App::getInstance()->getFPS());

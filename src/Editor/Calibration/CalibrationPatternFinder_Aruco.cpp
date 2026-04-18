@@ -215,6 +215,7 @@ void CalibrationPatternFinder_Aruco::renderCalibrationPattern2D() const
 			opencv_point2f_compute_average(corners, quadCenter);
 
 			drawTextAtTrackerPosition(
+				graphicsContext,
 				style,
 				m_frameWidth, m_frameHeight,
 				glm::vec2(quadCenter.x, quadCenter.y),

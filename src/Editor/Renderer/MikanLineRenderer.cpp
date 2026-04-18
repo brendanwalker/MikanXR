@@ -126,9 +126,15 @@ void drawTransformedAxes(
 	if (drawLabels)
 	{
 		TextStyle style = getDefaultTextStyle();
-		drawTextAtWorldPosition(style, glm::vec3(transform * glm::vec4(xAxis, 1.0f)), L"X");
-		drawTextAtWorldPosition(style, glm::vec3(transform * glm::vec4(yAxis, 1.0f)), L"Y");
-		drawTextAtWorldPosition(style, glm::vec3(transform * glm::vec4(zAxis, 1.0f)), L"Z");
+		drawTextAtWorldPosition(
+			graphicsContext, 
+			style, glm::vec3(transform * glm::vec4(xAxis, 1.0f)), L"X");
+		drawTextAtWorldPosition(
+			graphicsContext, 
+			style, glm::vec3(transform * glm::vec4(yAxis, 1.0f)), L"Y");
+		drawTextAtWorldPosition(
+			graphicsContext, 
+			style, glm::vec3(transform * glm::vec4(zAxis, 1.0f)), L"Z");
 	}
 }
 

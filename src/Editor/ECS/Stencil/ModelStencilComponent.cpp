@@ -182,7 +182,9 @@ void ModelStencilComponent::customRender()
 		const glm::vec3 position = glm::vec3(xform[3]);
 
 		drawTransformedAxes(graphicsContext, xform, 0.1f, 0.1f, 0.1f);
-		drawTextAtWorldPosition(style, position, L"Stencil %d", modelStencilDefinition->getComponentId());
+		drawTextAtWorldPosition(
+			graphicsContext,
+			style, position, L"Stencil %d", modelStencilDefinition->getComponentId());
 	}
 }
 

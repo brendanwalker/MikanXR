@@ -163,7 +163,9 @@ void QuadStencilComponent::customRender()
 			graphicsContext,
 			xform, quadDefinition->getQuadWidth(), quadDefinition->getQuadHeight(), color);
 		drawTransformedAxes(graphicsContext, xform, 0.1f, 0.1f, 0.1f);
-		drawTextAtWorldPosition(style, position, L"Stencil %d", quadDefinition->getComponentId());
+		drawTextAtWorldPosition(
+			graphicsContext, 
+			style, position, L"Stencil %d", quadDefinition->getComponentId());
 	}
 }
 

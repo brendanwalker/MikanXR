@@ -304,8 +304,12 @@ void MonoLensTrackerPoseCalibrator::renderCameraSpaceCalibrationState()
 		drawTransformedAxes(graphicsContext, cameraToMatPuckXform, 0.1f);
 
 		TextStyle style = getDefaultTextStyle();
-		drawTextAtWorldPosition(style, glm_mat4_get_position(cameraToPatternXform), L"Mat");
-		drawTextAtWorldPosition(style, glm_mat4_get_position(cameraToMatPuckXform), L"Puck");
+		drawTextAtWorldPosition(
+			graphicsContext, 
+			style, glm_mat4_get_position(cameraToPatternXform), L"Mat");
+		drawTextAtWorldPosition(
+			graphicsContext, 
+			style, glm_mat4_get_position(cameraToMatPuckXform), L"Puck");
 	}
 }
 

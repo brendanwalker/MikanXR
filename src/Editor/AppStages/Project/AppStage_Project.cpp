@@ -418,7 +418,7 @@ void AppStage_Project::debugRenderOrigin() const
 	TextStyle style = getDefaultTextStyle();
 
 	drawTransformedAxes(graphicsContext, glm::mat4(1.f), 1.f, 1.f, 1.f);
-	drawTextAtWorldPosition(style, glm::vec3(0.f, 0.f, 0.f), L"(0,0,0)");
+	drawTextAtWorldPosition(graphicsContext, style, glm::vec3(0.f, 0.f, 0.f), L"(0,0,0)");
 }
 
 // -- IRemoteControllable Interface -- //

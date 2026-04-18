@@ -1,4 +1,3 @@
-#include "App.h"
 #include "CalibrationRenderHelpers.h"
 #include "IMkGraphicsContext.h"
 #include "IMkTextRenderer.h"
@@ -24,25 +23,23 @@
 
 //-- Drawing Methods -----
 void drawTextAtWorldPosition(
+	IMkGraphicsContext* graphicsContext,
 	const TextStyle& style,
 	const glm::vec3& position,
 	const wchar_t* format,
 	...)
 {
-	IEditorWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
-	assert(window != nullptr);
-
-	IMkTextRenderer * textRenderer = window->getGraphicsContext()->getTextRenderer();
+	IMkTextRenderer * textRenderer = graphicsContext->getTextRenderer();
 	if (textRenderer == nullptr)
 		return;
 
-	IMkCameraPtr camera = window->getRenderingViewport()->getCurrentCamera();
+	IMkCameraPtr camera = graphicsContext->getRenderingViewport()->getCurrentCamera();
 	if (camera == nullptr)
 		return;
 
 	// Convert the world space coordinates into screen space
-	const int screenWidth = (int)window->getWidth();
-	const int screenHeight = (int)window->getHeight();
+	const int screenWidth = (int)graphicsContext->getWidth();
+	const int screenHeight = (int)graphicsContext->getHeight();
 	glm::vec3 screenCoords =
 		glm::project(
 			position,
@@ -62,6 +59,7 @@ void drawTextAtWorldPosition(
 }
 
 void drawTextAtScreenPosition(
+	IMkGraphicsContext* graphicsContext,
 	const TextStyle& style,
 	const glm::vec2& screenCoords,
 	const wchar_t* format,
@@ -75,10 +73,7 @@ void drawTextAtScreenPosition(
 	text[(sizeof(text) / sizeof(wchar_t)) - 1] = L'\0';
 	va_end(args);
 
-	IEditorWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
-	assert(window != nullptr);
-
-	IMkTextRenderer* textRenderer = window->getGraphicsContext()->getTextRenderer();
+	IMkTextRenderer* textRenderer = graphicsContext->getTextRenderer();
 	if (textRenderer == nullptr)
 		return;
 
@@ -86,16 +81,14 @@ void drawTextAtScreenPosition(
 }
 
 void drawTextAtTrackerPosition(
+	IMkGraphicsContext* graphicsContext,
 	const TextStyle& style,
 	const float trackerWidth, const float trackerHeight,
 	const glm::vec2& trackerCoords,
 	const wchar_t* format,
 	...)
 {
-	IEditorWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
-	assert(window != nullptr);
-
-	IMkTextRenderer* textRenderer = window->getGraphicsContext()->getTextRenderer();
+	IMkTextRenderer* textRenderer = graphicsContext->getTextRenderer();
 	if (textRenderer == nullptr)
 		return;
 
@@ -107,8 +100,8 @@ void drawTextAtTrackerPosition(
 	va_end(args);
 
 	// Convert the tracker space coordinates into screen space
-	const float windowWidth = window->getWidth();
-	const float windowHeight = window->getHeight();
+	const float windowWidth = graphicsContext->getWidth();
+	const float windowHeight = graphicsContext->getHeight();
 	const float windowX0 = 0.0f, windowY0 = 0.f;
 	const float windowX1 = windowWidth - 1.f, windowY1 = windowHeight - 1.f;
 	glm::vec2 screenCoords =
@@ -122,6 +115,7 @@ void drawTextAtTrackerPosition(
 }
 
 void drawTextAtCameraPosition(
+	IMkGraphicsContext* graphicsContext,
 	const TextStyle& style,
 	const float cameraWidth, const float cameraHeight,
 	const glm::vec2& cameraCoords,
@@ -136,15 +130,12 @@ void drawTextAtCameraPosition(
 	text[(sizeof(text) / sizeof(wchar_t)) - 1] = L'\0';
 	va_end(args);
 
-	IEditorWindow* window = App::getInstance()->getCurrentlyRenderingWindow();
-	assert(window != nullptr);
-
-	IMkTextRenderer* textRenderer = window->getGraphicsContext()->getTextRenderer();
+	IMkTextRenderer* textRenderer = graphicsContext->getTextRenderer();
 	if (textRenderer == nullptr)
 		return;
 
-	const float windowWidth = window->getWidth();
-	const float windowHeight = window->getHeight();
+	const float windowWidth = graphicsContext->getWidth();
+	const float windowHeight = graphicsContext->getHeight();
 	const float windowX0 = 0.0f, windowY0 = 0.f;
 	const float windowX1 = windowWidth - 1.f, windowY1 = windowHeight - 1.f;
 

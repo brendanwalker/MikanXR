@@ -281,7 +281,7 @@ void AppStage_VRTrackingRecenter::render(IMkViewportPtr targetViewport)
 						drawTransformedAxes(graphicsContext, origin, 0.1f);
 
 						TextStyle style = getDefaultTextStyle();
-						drawTextAtWorldPosition(style, glm_mat4_get_position(origin), L"Origin");
+						drawTextAtWorldPosition(graphicsContext, style, glm_mat4_get_position(origin), L"Origin");
 					}
 					break;
 			}

@@ -397,9 +397,9 @@ void AppStage_AlignmentCalibration::renderVRScene()
 	drawTransformedAxes(graphicsContext, glm::mat4(1.f), 1.0f);
 
 	TextStyle style = getDefaultTextStyle();
-	drawTextAtWorldPosition(style, glm::vec3(1.f, 0.f, 0.f), L"X");
-	drawTextAtWorldPosition(style, glm::vec3(0.f, 1.f, 0.f), L"Y");
-	drawTextAtWorldPosition(style, glm::vec3(0.f, 0.f, 1.f), L"Z");
+	drawTextAtWorldPosition(graphicsContext, style, glm::vec3(1.f, 0.f, 0.f), L"X");
+	drawTextAtWorldPosition(graphicsContext, style, glm::vec3(0.f, 1.f, 0.f), L"Y");
+	drawTextAtWorldPosition(graphicsContext, style, glm::vec3(0.f, 0.f, 1.f), L"Z");
 }
 
 void AppStage_AlignmentCalibration::setMenuState(eAlignmentCalibrationMenuState newState)

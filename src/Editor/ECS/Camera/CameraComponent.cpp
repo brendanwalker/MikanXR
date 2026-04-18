@@ -252,7 +252,7 @@ void CameraComponent::customRender()
 
 	IMkGraphicsContext* graphicsContext = getGraphicsContext();
 	drawTransformedAxes(graphicsContext, CameraXform, 0.1f, 0.1f, 0.1f, xColor, yColor, zColor);
-	drawTextAtWorldPosition(style, CameraPos, L"%s", wszCameraName);
+	drawTextAtWorldPosition(graphicsContext, style, CameraPos, L"%s", wszCameraName);
 }
 
 StageComponentConstPtr CameraComponent::getOwnerStageComponent() const

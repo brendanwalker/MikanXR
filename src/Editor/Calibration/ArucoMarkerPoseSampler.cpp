@@ -205,7 +205,9 @@ void ArucoMarkerPoseSampler::renderCameraSpaceCalibrationState()
 		drawTransformedAxes(graphicsContext, cameraToMarkerXform, 0.1f);
 
 		TextStyle style = getDefaultTextStyle();
-		drawTextAtWorldPosition(style, glm_mat4_get_position(cameraToMarkerXform), L"Marker");
+		drawTextAtWorldPosition(
+			graphicsContext, 
+			style, glm_mat4_get_position(cameraToMarkerXform), L"Marker");
 	}
 }
 

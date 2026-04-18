@@ -233,6 +233,7 @@ void AnchorTriangulator::renderInitialPoint2dSegements()
 		style.horizontalAlignment = eHorizontalTextAlignment::Middle;
 		style.verticalAlignment = eVerticalTextAlignment::Bottom;
 		drawTextAtCameraPosition(
+			graphicsContext,
 			style,
 			m_frameWidth, m_frameHeight,
 			glm_points[i],
@@ -336,6 +337,7 @@ void AnchorTriangulator::renderCurrentPointTriangulation()
 	style.horizontalAlignment = eHorizontalTextAlignment::Middle;
 	style.verticalAlignment = eVerticalTextAlignment::Bottom;
 	drawTextAtCameraPosition(
+		graphicsContext,
 		style,
 		m_frameWidth, m_frameHeight,
 		m_calibrationState->lastWorldTriangulatedPoint,
@@ -391,7 +393,9 @@ void AnchorTriangulator::renderAllTriangulatedPoints(bool bShowCameraFrustum)
 	TextStyle style = getDefaultTextStyle();
 	for (int i = 0; i < 3; i++)
 	{
-		drawTextAtWorldPosition(style, m_calibrationState->triangulatedPointSamples[i], L"P%d", i);
+		drawTextAtWorldPosition(
+			graphicsContext, 
+			style, m_calibrationState->triangulatedPointSamples[i], L"P%d", i);
 	}
 
 	if (bShowCameraFrustum)

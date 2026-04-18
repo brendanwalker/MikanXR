@@ -178,6 +178,7 @@ void StencilAligner::renderPixelSamples()
 		style.horizontalAlignment = eHorizontalTextAlignment::Middle;
 		style.verticalAlignment = eVerticalTextAlignment::Bottom;
 		drawTextAtCameraPosition(
+			graphicsContext,
 			style,
 			m_frameWidth, m_frameHeight,
 			glm_points[i],
@@ -223,6 +224,7 @@ void StencilAligner::renderVertexSamples()
 		style.horizontalAlignment = eHorizontalTextAlignment::Middle;
 		style.verticalAlignment = eVerticalTextAlignment::Bottom;
 		drawTextAtWorldPosition(
+			graphicsContext,
 			style,
 			worldVertex,
 			L"P%d", i);
