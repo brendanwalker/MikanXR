@@ -218,6 +218,8 @@ bool AnchorTriangulator::computeAnchorTransform(AnchorTriangulatorInfo& anchorIn
 
 void AnchorTriangulator::renderInitialPoint2dSegements()
 {
+	IMkGraphicsContext* graphicsContext = m_cameraComponent->getOwnerGraphicsContext();
+
 	glm::vec3 glm_points[3];
 	const int pointCount = m_calibrationState->initialPointSampleCount;
 
@@ -239,15 +241,27 @@ void AnchorTriangulator::renderInitialPoint2dSegements()
 
 	if (pointCount >= 2)
 	{
-		drawSegment2d(m_frameWidth, m_frameHeight, glm_points[0], glm_points[1], Colors::Red, Colors::Green);
+		drawSegment2d(
+			graphicsContext, 
+			m_frameWidth, m_frameHeight, 
+			glm_points[0], glm_points[1], 
+			Colors::Red, Colors::Green);
 	}
 
 	if (pointCount >= 3)
 	{
-		drawSegment2d(m_frameWidth, m_frameHeight, glm_points[0], glm_points[2], Colors::Red, Colors::Blue);
+		drawSegment2d(
+			graphicsContext,
+			m_frameWidth, m_frameHeight, 
+			glm_points[0], glm_points[2], 
+			Colors::Red, Colors::Blue);
 	}
 
-	drawPointList2d(m_frameWidth, m_frameHeight, glm_points, pointCount, Colors::Yellow, 2.f);
+	drawPointList2d(
+		graphicsContext, 
+		m_frameWidth, m_frameHeight, 
+		glm_points, pointCount, 
+		Colors::Yellow, 2.f);
 }
 
 void AnchorTriangulator::renderInitialPoint3dRays()

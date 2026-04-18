@@ -393,7 +393,6 @@ void CompositorComponent::allocateVideoBuffers(VideoSourceComponentPtr videoSour
 {
 	// Create a distortion view to read the incoming video frames into a texture
 	m_videoDistortionView = std::make_shared<VideoFrameDistortionView>(
-		getOwnerGraphicsContext(),
 		videoSource,
 		VIDEO_FRAME_HAS_BGR_UNDISTORT_FLAG | VIDEO_FRAME_HAS_GL_TEXTURE_FLAG,
 		videoSource->getVideoSourceDefinition()->getVideoFrameQueueSize());

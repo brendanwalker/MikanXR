@@ -183,6 +183,8 @@ void CalibrationPatternFinder_Aruco::renderCalibrationPattern2D() const
 {
 	CalibrationPatternFinder::renderCalibrationPattern2D();
 
+	IMkGraphicsContext* graphicsContext = getDistortionView()->getGraphicsContext();
+
 	// Draw the marker corners, if any
 	TextStyle style = getDefaultTextStyle();
 	style.horizontalAlignment = eHorizontalTextAlignment::Middle;
@@ -199,6 +201,7 @@ void CalibrationPatternFinder_Aruco::renderCalibrationPattern2D() const
 		const t_opencv_point2d_list& corners = m_markerData->markerCorners[quadIndex];
 
 		drawQuadList2d(
+			graphicsContext,
 			m_frameWidth, m_frameHeight,
 			(float*)corners.data(), // cv::point2f is just two floats 
 			(int)corners.size(),

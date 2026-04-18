@@ -1,4 +1,3 @@
-#include "App.h"
 #include "MikanViewport.h"
 #include "ColorUtils.h"
 #include "CalibrationRenderHelpers.h"
@@ -7,28 +6,18 @@
 #include "MikanLineRenderer.h"
 #include "MathUtility.h"
 
-IMkLineRenderer* getLineRenderer()
-{
-	IMkWindow* window = App::getInstance()->getWindowManager()->getCurrentWindowContext();
-	assert(window != nullptr);
-
-	return window->getGraphicsContext()->getLineRenderer();
-}
-
 IMkLineRenderer* getLineRendererAndViewportBounds(
+	IMkGraphicsContext* graphicsContext,
 	float& outViewportX0, float& outViewportY0,
 	float& outViewportX1, float& outViewportY1)
 {
-	IMkWindow* window = App::getInstance()->getWindowManager()->getCurrentWindowContext();
-	assert(window != nullptr);
-	IMkLineRenderer* lineRenderer = window->getGraphicsContext()->getLineRenderer();
+	IMkLineRenderer* lineRenderer = graphicsContext->getLineRenderer();
 	if (lineRenderer == nullptr)
 		return nullptr;
 
-	assert(window->getIsRenderingStage());
 	glm::i32vec2 renderingOrigin;
 	glm::i32vec2 renderingSize;
-	IMkViewportConstPtr viewport = window->getRenderingViewport();
+	IMkViewportConstPtr viewport = graphicsContext->getRenderingViewport();
 	if (viewport == nullptr ||
 		!viewport->getRenderingViewport(renderingOrigin, renderingSize))
 		return nullptr;
@@ -56,12 +45,14 @@ glm::vec2 remapPointIntoTarget(
 }
 
 void drawSegment2d(
+	IMkGraphicsContext* graphicsContext,
 	const float cameraWidth, const float cameraHeight,
 	const glm::vec3& cameraSegmentStart, const glm::vec3& cameraSegmentEnd,
 	const glm::vec3& colorStart, const glm::vec3& colorEnd)
 {
 	float viewportX0, viewportY0, viewportX1, viewportY1;
 	IMkLineRenderer* lineRenderer= getLineRendererAndViewportBounds(
+		graphicsContext,
 		viewportX0, viewportY0,
 		viewportX1, viewportY1);
 	if (lineRenderer == nullptr)
@@ -85,6 +76,7 @@ void drawSegment2d(
 }
 
 void drawPointList2d(
+	IMkGraphicsContext* graphicsContext,
 	const float trackerWidth, const float trackerHeight,
 	const glm::vec3* trackerPoints2D,
 	const int trackerPointCount,
@@ -93,6 +85,7 @@ void drawPointList2d(
 {
 	float viewportX0, viewportY0, viewportX1, viewportY1;
 	IMkLineRenderer* lineRenderer = getLineRendererAndViewportBounds(
+		graphicsContext,
 		viewportX0, viewportY0,
 		viewportX1, viewportY1);
 	if (lineRenderer == nullptr)
@@ -112,6 +105,7 @@ void drawPointList2d(
 }
 
 void drawQuadList2d(
+	IMkGraphicsContext* graphicsContext,
 	const float trackerWidth, const float trackerHeight,
 	const float* trackerPoints2D,
 	const int trackerPointCount,
@@ -121,6 +115,7 @@ void drawQuadList2d(
 
 	float viewportX0, viewportY0, viewportX1, viewportY1;
 	IMkLineRenderer* lineRenderer = getLineRendererAndViewportBounds(
+		graphicsContext,
 		viewportX0, viewportY0,
 		viewportX1, viewportY1);
 	if (lineRenderer == nullptr)
@@ -162,12 +157,14 @@ void drawQuadList2d(
 }
 
 void drawOpenCVChessBoard2D(
+	IMkGraphicsContext* graphicsContext,
 	const float trackerWidth, const float trackerHeight,
 	const float* trackerPoints2d, const int trackerPointCount,
 	bool validPoints)
 {
 	float viewportX0, viewportY0, viewportX1, viewportY1;
 	IMkLineRenderer* lineRenderer = getLineRendererAndViewportBounds(
+		graphicsContext,
 		viewportX0, viewportY0,
 		viewportX1, viewportY1);
 	if (lineRenderer == nullptr)
@@ -253,12 +250,13 @@ void drawOpenCVChessBoard2D(
 }
 
 void drawOpenCVChessBoard3D(
+	IMkGraphicsContext* graphicsContext,
 	const glm::mat4& xform,
 	const glm::vec3* points3d, 
 	const int pointCount,
 	bool validPoints)
 {
-	IMkLineRenderer* lineRenderer = getLineRenderer();
+	IMkLineRenderer* lineRenderer = graphicsContext->getLineRenderer();
 	if (lineRenderer == nullptr)
 		return;
 

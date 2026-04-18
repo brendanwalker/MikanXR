@@ -124,7 +124,6 @@ void AppStage_VideoSourceSettings::onVideoSourceStarted(VideoSourceComponentPtr 
 
 	// Create a texture to hold the video frame
 	m_videoBufferView = std::make_shared<VideoFrameDistortionView>(
-		getOwnerGraphicsContext(),
 		videoSource,
 		VIDEO_FRAME_HAS_GL_TEXTURE_FLAG);
 }
@@ -135,7 +134,6 @@ void AppStage_VideoSourceSettings::onVideoSourceFrameSizeChanged(VideoSourceComp
 
 	// Create a texture to hold the video frame
 	m_videoBufferView = std::make_shared<VideoFrameDistortionView>(
-		getOwnerGraphicsContext(),
 		videoSource,
 		VIDEO_FRAME_HAS_GL_TEXTURE_FLAG);
 }

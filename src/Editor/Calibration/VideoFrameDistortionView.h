@@ -15,13 +15,13 @@ class VideoFrameDistortionView
 {
 public:
 	VideoFrameDistortionView(
-		IMkGraphicsContext* graphicsContext,
 		VideoSourceComponentPtr view, 
 		unsigned int bufferBitmask, 
 		unsigned int frameQueueSize=1);
 	virtual ~VideoFrameDistortionView();
 
 	inline VideoSourceComponentPtr getVideoSourceComponent() const { return m_videoSourceComponent; }
+	inline IMkGraphicsContext* getGraphicsContext() const;
 
 	inline int getFrameWidth() const { return m_frameWidth; }
 	inline int getFrameHeight() const { return m_frameHeight; }
