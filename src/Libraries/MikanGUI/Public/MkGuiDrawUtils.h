@@ -80,6 +80,10 @@ namespace MkGui
 		IMkTextureConstPtr image,
 		float width,
 		float height);
+	bool drawImageButton(
+		MkGuiStyleConstPtr style,
+		const std::string& fieldName,
+		const std::string& imageName);
 
 	class ComboBoxDataSource
 	{

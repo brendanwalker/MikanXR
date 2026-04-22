@@ -192,6 +192,24 @@ namespace MkGui
 		ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(width, height));
 	}
 
+	bool drawImageButton(
+		MkGuiStyleConstPtr style,
+		const std::string& fieldName,
+		const std::string& imageName)
+	{
+		auto it = style->textures.find(imageName);
+		if (it == style->textures.end())
+			return false;
+
+		const MkGuiStyleTextureEntry& entry = it->second;
+		uint32_t glTextureId = entry.texture ? entry.texture->getGlTextureId() : 0;
+		const std::string imguiElementName = makeImGuiElementName(fieldName);
+		return ImGui::ImageButton(
+			imguiElementName.c_str(),
+			(ImTextureID)(intptr_t)glTextureId,
+			ImVec2(entry.x, entry.y));
+	}
+
 	bool ComboBoxDataSource::itemGetter(void* data, int idx, const char** out_str)
 	{
 		auto* dataSource = (ComboBoxDataSource*)data;

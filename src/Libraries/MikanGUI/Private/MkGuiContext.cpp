@@ -4,6 +4,7 @@
 #include "Logger.h"
 #include "IMkWindowContext.h"
 #include "IMkGraphicsContext.h"
+#include "IMkTextureCache.h"
 #include "MkWindowEvent.h"
 #include <GL/glew.h>
 
@@ -53,6 +54,11 @@ MkGuiContext::MkGuiContext(class IMkWindowContext* window)
 MkGuiContext::~MkGuiContext()
 {
 	shutdown();
+}
+
+IMkTextureCache* MkGuiContext::getTextureCache() const
+{
+	return m_window->getGraphicsContext()->getTextureCache();
 }
 
 bool MkGuiContext::startup()

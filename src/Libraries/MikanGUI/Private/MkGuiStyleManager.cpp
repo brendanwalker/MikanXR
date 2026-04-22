@@ -1,5 +1,6 @@
 #include "MkGuiStyleManager.h"
 #include "MkGuiContext.h"
+#include "IMkTextureCache.h"
 #include "Logger.h"
 
 #include "nlohmann/json.hpp"
@@ -277,6 +278,35 @@ bool MkGuiStyleManager::loadStyleFile(const std::filesystem::path& filePath)
 					colorJson["value"][3].get<float>()
 				};
 				style->colors.push_back(entry);
+			}
+		}
+
+		// Style textures
+		if (styleJson.contains("textures") && styleJson["textures"].is_array())
+		{
+			IMkTextureCache* textureCache = m_guiContext->getTextureCache();
+			for (const auto& texJson : styleJson["textures"])
+			{
+				if (!texJson.contains("name") || !texJson.contains("path"))
+					continue;
+
+				const std::string texName = texJson["name"].get<std::string>();
+				const std::filesystem::path texPath = texJson["path"].get<std::string>();
+
+				MkGuiStyleTextureEntry entry;
+				entry.x = texJson.value("width", 16.f);
+				entry.y = texJson.value("height", 16.f);
+				entry.texture = textureCache->loadTexturePath(texPath);
+
+				if (entry.texture)
+				{
+					style->textures[texName] = entry;
+				}
+				else
+				{
+					MIKAN_LOG_WARNING("MkGuiStyleManager::loadStyleFile")
+						<< "Failed to load texture: " << texPath;
+				}
 			}
 		}
 

@@ -19,6 +19,7 @@ public:
 
 	struct ImFont* getNormalIconFont() const { return m_NormalIconFont; }
 	struct ImFont* getBigIconFont() const { return m_BigIconFont; }
+	class IMkTextureCache* getTextureCache() const;
 
 	// -- IMkWindowEventListener
 	virtual bool onWindowEvent(const MkWindowEvent& event) override;
