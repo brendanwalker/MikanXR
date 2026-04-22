@@ -156,7 +156,7 @@ void GuiPanel_ProjectStages::onGui()
 	if (m_selectedStageId != INVALID_MIKAN_ID)
 	{
 		ImGui::SameLine();
-		if (ImGui::Button(ICON_FK_MINUS_CIRCLE "##removeStage"))
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "removeStage", "delete_component"))
 		{
 			addDeferredGuiEvent([this]() {
 				getStageSystem()->removeObjectByPrimaryComponentId(m_selectedStageId);
@@ -206,7 +206,7 @@ void GuiPanel_ProjectStages::onGui()
 	if (m_selectedCameraId != INVALID_MIKAN_ID)
 	{
 		ImGui::SameLine();
-		if (ImGui::Button(ICON_FK_MINUS_CIRCLE "##removeCamera"))
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "removeCamera", "delete_component"))
 		{
 			addDeferredGuiEvent([this]() {
 				getCameraSystem()->removeObjectByPrimaryComponentId(m_selectedCameraId);

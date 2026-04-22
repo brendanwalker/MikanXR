@@ -190,7 +190,7 @@ void GuiPanel_ProjectTracking::onGui()
 	if (m_selectedTrackingVolumeId != INVALID_MIKAN_ID)
 	{
 		ImGui::SameLine();
-		if (ImGui::Button(ICON_FK_MINUS_CIRCLE "##removeVolume"))
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "removeVolume", "delete_component"))
 		{
 			addDeferredGuiEvent([this]() {
 				auto pm = m_projectManager.lock();
@@ -260,7 +260,7 @@ void GuiPanel_ProjectTracking::onGui()
 			if (m_selectedTrackingMountId != INVALID_MIKAN_ID)
 			{
 				ImGui::SameLine();
-				if (ImGui::Button(ICON_FK_MINUS_CIRCLE "##removeMount"))
+				if (MkGui::drawImageButton(m_defaultGuiStyle, "removeMount", "delete_component"))
 				{
 					addDeferredGuiEvent([this]() {
 						VRTrackingVolumeComponentPtr vrVol = getSelectedVRTrackingVolume();

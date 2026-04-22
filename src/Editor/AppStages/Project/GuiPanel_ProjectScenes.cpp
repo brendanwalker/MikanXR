@@ -403,7 +403,7 @@ void GuiPanel_ProjectScenes::onGui()
 	if (m_selectedSceneId != INVALID_MIKAN_ID)
 	{
 		ImGui::SameLine();
-		if (ImGui::Button(ICON_FK_MINUS_CIRCLE "##removeScene"))
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "removeScene", "delete_component"))
 		{
 			addDeferredGuiEvent([this]() {
 				m_sceneSystem.lock()->removeObjectByPrimaryComponentId(m_selectedSceneId);
@@ -458,7 +458,7 @@ void GuiPanel_ProjectScenes::onGui()
 		if (m_selectedCompositorId != INVALID_MIKAN_ID)
 		{
 			ImGui::SameLine();
-			if (ImGui::Button(ICON_FK_MINUS_CIRCLE "##removeCompositor"))
+			if (MkGui::drawImageButton(m_defaultGuiStyle, "removeCompositor", "delete_component"))
 			{
 				addDeferredGuiEvent([this]() {
 					m_compositorSystem.lock()->removeObjectByPrimaryComponentId(m_selectedCompositorId);

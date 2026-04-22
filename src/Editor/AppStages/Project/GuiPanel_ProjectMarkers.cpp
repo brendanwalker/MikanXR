@@ -122,7 +122,7 @@ void GuiPanel_ProjectMarkers::onGui()
 	if (m_selectedMarkerId != INVALID_MIKAN_ID)
 	{
 		ImGui::SameLine();
-		if (ImGui::Button(ICON_FK_MINUS_CIRCLE "##removeMarker"))
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "removeMarker", "delete_component"))
 		{
 			addDeferredGuiEvent([this]() {
 				MarkerObjectSystemPtr sys = getMarkerSystem();

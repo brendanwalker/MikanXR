@@ -3,6 +3,9 @@
         "font": "normal_icon",
         "colors": [
             { "name": "Text",              "value": [0.94, 0.94, 0.94, 1.0] }
+        ],
+        "textures": [
+            { "name": "delete_component", "path": "textures/delete_component_icon.png", "width": 30, "height": 30 }
         ]
     }
 }

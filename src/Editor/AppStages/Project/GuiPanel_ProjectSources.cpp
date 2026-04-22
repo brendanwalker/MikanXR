@@ -204,7 +204,7 @@ void GuiPanel_ProjectSources::onGui()
 	if (m_selectedVideoSourceId != INVALID_MIKAN_ID)
 	{
 		ImGui::SameLine();
-		if (ImGui::Button(ICON_FK_MINUS_CIRCLE "##removeVideoSource"))
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "removeVideoSource", "delete_component"))
 		{
 			addDeferredGuiEvent([this]() {
 				auto pm = m_projectManager.lock();
@@ -264,7 +264,7 @@ void GuiPanel_ProjectSources::onGui()
 	if (m_selectedTextureSourceId != INVALID_MIKAN_ID)
 	{
 		ImGui::SameLine();
-		if (ImGui::Button(ICON_FK_MINUS_CIRCLE "##removeTextureSource"))
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "removeTextureSource", "delete_component"))
 		{
 			addDeferredGuiEvent([this]() {
 				auto pm = m_projectManager.lock();

@@ -1,6 +1,7 @@
 #include "MkGuiStyleManager.h"
 #include "MkGuiContext.h"
 #include "IMkTextureCache.h"
+#include "PathUtils.h"
 #include "Logger.h"
 
 #include "nlohmann/json.hpp"
@@ -291,7 +292,9 @@ bool MkGuiStyleManager::loadStyleFile(const std::filesystem::path& filePath)
 					continue;
 
 				const std::string texName = texJson["name"].get<std::string>();
-				const std::filesystem::path texPath = texJson["path"].get<std::string>();
+				// Paths in JSON are relative to the resources directory
+				const std::filesystem::path texPath =
+					PathUtils::getResourceDirectory() / texJson["path"].get<std::string>();
 
 				MkGuiStyleTextureEntry entry;
 				entry.x = texJson.value("width", 16.f);
