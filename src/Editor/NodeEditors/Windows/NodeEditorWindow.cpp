@@ -828,13 +828,33 @@ NodeGraphFactoryPtr NodeEditorWindow::getNodeGraphFactory() const
 
 void NodeEditorWindow::newGraph()
 {
+	// Push this window's GL context before graph resource creation (VAOs, VBOs).
+	// Graph creation may be triggered while a different window's context is current
+	// (e.g. when bindCompositorComponent is called after createAppWindowInternal pops
+	// the editor window's context). VAOs are not shared between GL contexts.
+	auto* ownerApp = getOwnerApp();
+	auto* windowContext = m_mkWindowContext.get();
+	ownerApp->getWindowManager()->pushCurrentWindowContext(windowContext);
+
 	m_editorState.nodeGraph= getNodeGraphFactory()->initialCreateNodeGraph(this);
+
+	ownerApp->getWindowManager()->popCurrentWindowContext(windowContext);
+
 	onNodeGraphCreated();
 }
 
 bool NodeEditorWindow::loadGraph(const std::filesystem::path& path)
 {
+	// Push this window's GL context before graph resource creation (VAOs, VBOs).
+	// See comment in newGraph() for details.
+	auto* ownerApp = getOwnerApp();
+	auto* windowContext = m_mkWindowContext.get();
+	ownerApp->getWindowManager()->pushCurrentWindowContext(windowContext);
+
 	m_editorState.nodeGraph= NodeGraphFactory::loadNodeGraph(this, path);
+
+	ownerApp->getWindowManager()->popCurrentWindowContext(windowContext);
+
 	if (m_editorState.nodeGraph)
 	{
 		m_editorState.nodeGraphPath= path;
