@@ -79,7 +79,6 @@ private:
 	std::vector<AppStagePtr> m_appStageStack;
 
 	IMkViewportPtr m_uiViewport;
-	IMkViewportPtr m_renderingViewport;
 
 	enum class AppStageOperation : int
 	{

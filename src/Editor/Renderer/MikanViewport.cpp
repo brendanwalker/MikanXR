@@ -1,5 +1,7 @@
 #include "App.h"
 #include "EditorObjectSystem.h"
+#include "IEditorWindow.h"
+#include "IMkGraphicsContext.h"
 #include "MikanViewport.h"
 #include "MikanCamera.h"
 #include "MkScene.h"
@@ -41,15 +43,20 @@ MikanViewport::~MikanViewport()
 	unbindInput();
 }
 
-void MikanViewport::applyRenderingViewport(IMkState* glState) const
+void MikanViewport::applyRenderingViewport(IMkState* glState)
 {
+	// Register this viewport on the graphics context BEFORE mkStateSetViewport is
+	// called, so that mkStateSetViewportImpl::apply() can find us via
+	// getOwnerContext()->getRenderingViewport() and call onRenderingViewportApply.
+	m_ownerWindow->getGraphicsContext()->setRenderingViewport(shared_from_this());
+
 	mkStateSetClearColor(glState, m_backgroundColor);
 
-	// This calls onRenderingViewportApply from mkStateSetViewportImpl
-	// onRenderingViewportRevert is called when the state is popped
+	// This calls onRenderingViewportApply from mkStateSetViewportImpl.
+	// onRenderingViewportRevert is called when the scoped state is popped.
 	mkStateSetViewport(
-		glState, 
-		m_viewportOrigin.x, m_windowSize.y - (m_viewportOrigin.y + m_viewportSize.y), 
+		glState,
+		m_viewportOrigin.x, m_windowSize.y - (m_viewportOrigin.y + m_viewportSize.y),
 		m_viewportSize.x, m_viewportSize.y);
 }
 
@@ -63,6 +70,9 @@ void MikanViewport::onRenderingViewportRevert(int x, int y, int width, int heigh
 {
 	m_renderOrigin = glm::i32vec2(x, y);
 	m_renderSize = glm::i32vec2(width, height);
+
+	// Deregister from the graphics context when the scoped state is popped.
+	m_ownerWindow->getGraphicsContext()->setRenderingViewport(nullptr);
 }
 
 bool MikanViewport::getRenderingViewport(glm::i32vec2& outOrigin, glm::i32vec2& outSize) const

@@ -110,7 +110,7 @@ LocalizationManager* MainWindow::getLocalizationManager() const
 
 IMkViewportPtr MainWindow::getRenderingViewport() const
 {
-	return m_renderingViewport;
+	return m_graphicsContext->getRenderingViewport();
 }
 
 bool MainWindow::startup()
@@ -280,10 +280,10 @@ void MainWindow::renderStageViewport(AppStage* appStage, IMkViewportPtr targetVi
 	MkScopedState scopedState = m_graphicsContext->getMkStateStack().createScopedState("appStage viewport render");
 	IMkState* glState = scopedState.getStackState();
 
-	// Set the rendering viewport used to render the stage
-	// (adds mkStateSetViewport Modifier to the glState)
-	m_renderingViewport = targetViewport;
-	m_renderingViewport->applyRenderingViewport(glState);
+	// Registers this viewport with the graphics context for the duration of the
+	// scoped state. Deregisters automatically via onRenderingViewportRevert when
+	// the scoped state pops at end of this function.
+	targetViewport->applyRenderingViewport(glState);
 
 	// Set window state flag that we are in the middle of rendering a stage
 	// Used for safety checks in the render functions
@@ -300,10 +300,6 @@ void MainWindow::renderStageViewport(AppStage* appStage, IMkViewportPtr targetVi
 
 	// Rendering the state is done
 	m_isRenderingStage = false;
-
-	// Forget about the target viewport
-	// (will be deleted when glState goes out of scope)
-	m_renderingViewport = nullptr;
 }
 
 void MainWindow::renderStageUI(AppStage* appStage)
@@ -313,10 +309,10 @@ void MainWindow::renderStageUI(AppStage* appStage)
 	MkScopedState scopedState = m_graphicsContext->getMkStateStack().createScopedState("appStage renderUI");
 	IMkState* glState = scopedState.getStackState();
 
-	// Set the rendering viewport used to render the stage
-	// (adds mkStateSetViewport Modifier to the glState)
-	m_renderingViewport = m_uiViewport;
-	m_renderingViewport->applyRenderingViewport(glState);
+	// Registers the UI viewport with the graphics context for the duration of the
+	// scoped state. Deregisters automatically via onRenderingViewportRevert when
+	// the scoped state pops at end of this function.
+	m_uiViewport->applyRenderingViewport(glState);
 
 	m_isRenderingUI = true;
 
@@ -340,8 +336,6 @@ void MainWindow::renderStageUI(AppStage* appStage)
 	m_graphicsContext->getTextRenderer()->render();
 
 	m_isRenderingUI = false;
-
-	m_renderingViewport = nullptr;
 }
 
 void MainWindow::shutdown()
