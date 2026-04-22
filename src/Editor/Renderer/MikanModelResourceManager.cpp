@@ -10,6 +10,7 @@
 
 MikanModelResourceManager::MikanModelResourceManager(IMkGraphicsContext* ownerGraphicsContext)
 	: m_ownerGraphicsContext(ownerGraphicsContext)
+	, m_shaderCache(std::make_unique<MikanShaderCache>(ownerGraphicsContext))
 {
 	// Register model importers
 	m_modelImporters.insert({".obj", std::make_shared<ObjModelImporter>(this)});
@@ -25,12 +26,13 @@ MikanModelResourceManager::~MikanModelResourceManager()
 
 bool MikanModelResourceManager::startup()
 {
-	return true;
+	return m_shaderCache->startup();
 }
 
 void MikanModelResourceManager::shutdown()
 {
 	m_renderModelCache.clear();
+	m_shaderCache->shutdown();
 }
 
 MikanRenderModelResourcePtr MikanModelResourceManager::fetchRenderModel(
