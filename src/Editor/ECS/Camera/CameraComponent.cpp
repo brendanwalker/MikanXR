@@ -359,14 +359,20 @@ bool CameraComponent::getAperturePose(
 	switch (space)
 	{
 	case eVRDevicePoseSpace::MikanTrackingVolumePose:
-		bValidPose = m_trackingMountPoseView_SceneSpace->getPose(
-			getSelfPtr<const CameraComponent>(),
-			vrDevicePose);
+		if (m_trackingMountPoseView_SceneSpace)
+		{
+			bValidPose = m_trackingMountPoseView_SceneSpace->getPose(
+				getSelfPtr<const CameraComponent>(),
+				vrDevicePose);
+		}
 		break;
 	case eVRDevicePoseSpace::VRTrackingSystemPose:
-		bValidPose = m_trackingMountPoseView_VRSpace->getPose(
-			getSelfPtr<const CameraComponent>(),
-			vrDevicePose);
+		if (m_trackingMountPoseView_VRSpace)
+		{
+			bValidPose = m_trackingMountPoseView_VRSpace->getPose(
+				getSelfPtr<const CameraComponent>(),
+				vrDevicePose);
+		}
 		break;
 	}
 
