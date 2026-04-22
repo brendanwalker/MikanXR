@@ -1,4 +1,5 @@
 //-- inludes -----
+#include "IMkGraphicsContext.h"
 #include "IMkShaderCode.h"
 #include "IMkShaderCache.h"
 #include "MkMaterial.h"
@@ -181,13 +182,13 @@ void AppStage_MainMenu::enter()
 		// Create a shader for rendering the background
 		IMkShaderCodePtr backgroundShaderCode = MainMenuGfx::getTextureProgramCode();
 		IMkShaderPtr backgroundShader =
-			getOwnerWindow()->getShaderCache()->fetchCompiledIMkShader(backgroundShaderCode);
+			getOwnerWindow()->getGraphicsContext()->getShaderCache()->fetchCompiledIMkShader(backgroundShaderCode);
 		auto backgroundMaterial = std::make_shared<MkMaterial>("MainMenuBackground", backgroundShader);
 
 		// Create a quad to render the background on
 		m_fullscreenRGBQuad =
 			createFullscreenQuadMesh(
-				getOwnerWindow(),
+				getOwnerWindow()->getGraphicsContext().get(),
 				backgroundMaterial,
 				false);
 	}
@@ -195,7 +196,7 @@ void AppStage_MainMenu::enter()
 	// Load the background texture
 	if (!m_backgroundTexture)
 	{
-		m_backgroundTexture = getOwnerWindow()->getTextureCache()->loadTexturePath(
+		m_backgroundTexture = getOwnerWindow()->getGraphicsContext()->getTextureCache()->loadTexturePath(
 			PathUtils::getResourceDirectory() / "icons" / "mikan_icon.png");
 
 		// Set the texture to repeat for the scrolling background effect
@@ -334,7 +335,7 @@ void AppStage_MainMenu::render(IMkViewportPtr targetViewport)
 			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
 			{
 				MkScopedState scopedState =
-					getOwnerWindow()->getMkStateStack().createScopedState("MainTargetDepthRender");
+					getOwnerWindow()->getGraphicsContext()->getMkStateStack().createScopedState("MainTargetDepthRender");
 				IMkState* mkState= scopedState.getStackState();
 
 				mkState->disableFlag(eMkStateFlagType::depthTest);

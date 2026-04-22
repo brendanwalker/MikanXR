@@ -2,8 +2,8 @@
 #include "Colors.h"
 #include "MikanCamera.h"
 #include "MkError.h"
-#include "SdlCommon.h"
 #include "MikanLineRenderer.h"
+#include "IMkGraphicsContext.h"
 #include "IMkLineRenderer.h"
 #include "IMkShader.h"
 #include "MkStateStack.h"
@@ -11,59 +11,50 @@
 #include "MikanTextRenderer.h"
 #include "IMkVertexDefinition.h"
 #include "MikanViewport.h"
-#include "IMkWindow.h"
 #include "Logger.h"
 #include "MathGLM.h"
 #include "TextStyle.h"
 
 #include "glm/ext/matrix_clip_space.hpp"
 
-#define GET_LINE_RENDERER_OR_RETURN()										\
-	IMkWindow* window= App::getInstance()->getCurrentGlContext();			\
-	assert(window != nullptr);												\
-	IMkLineRenderer* lineRenderer = window->getLineRenderer();				\
-	if (lineRenderer == nullptr)											\
-		return;																\
-
 void drawPoint(
+	IMkGraphicsContext* graphicsContext,
 	const glm::mat4& transform, 
 	const glm::vec3& point, 
 	const glm::vec3& color,
 	const float size)
 {
-	GET_LINE_RENDERER_OR_RETURN()
-
-	lineRenderer->addPoint3d(transform, point, color, size);
+	graphicsContext->getLineRenderer()->addPoint3d(transform, point, color, size);
 }
 
 void drawSegment(
+	IMkGraphicsContext* graphicsContext,
 	const glm::mat4& transform,
 	const glm::vec3& start,
 	const glm::vec3& end,
 	const glm::vec3& color)
 {
-	GET_LINE_RENDERER_OR_RETURN()
-
-	lineRenderer->addSegment3d(transform, start, color, end, color);
+	graphicsContext->getLineRenderer()->addSegment3d(transform, start, color, end, color);
 }
 
-void drawSegment(const glm::mat4& transform,
-				 const glm::vec3& start, const glm::vec3& end,
-				 const glm::vec3& colorStart, const glm::vec3& colorEnd)
+void drawSegment(
+	IMkGraphicsContext* graphicsContext,
+	const glm::mat4& transform,
+	const glm::vec3& start, const glm::vec3& end,
+	const glm::vec3& colorStart, const glm::vec3& colorEnd)
 {
-	GET_LINE_RENDERER_OR_RETURN()
-
-	lineRenderer->addSegment3d(transform, start, colorStart, end, colorEnd);
+	graphicsContext->getLineRenderer()->addSegment3d(transform, start, colorStart, end, colorEnd);
 }
 
 void drawArrow(
+	IMkGraphicsContext* graphicsContext,
 	const glm::mat4& transform,
 	const glm::vec3& start,
 	const glm::vec3& end,
 	const float headFraction,
 	const glm::vec3& color)
 {
-	GET_LINE_RENDERER_OR_RETURN()
+	IMkLineRenderer* lineRenderer = graphicsContext->getLineRenderer();
 
 	const glm::vec3 headAxis = end - start;
 	const float headSize = headAxis.length() * headFraction * 0.1f;
@@ -95,17 +86,18 @@ void drawArrow(
 	lineRenderer->addSegment3d(transform, headYPos, color, headYNeg, color);
 }
 
-void drawTransformedAxes(const glm::mat4& transform, float scale, bool drawLabels)
+void drawTransformedAxes(IMkGraphicsContext* graphicsContext, const glm::mat4& transform, float scale, bool drawLabels)
 {
-	drawTransformedAxes(transform, scale, scale, scale, drawLabels);
+	drawTransformedAxes(graphicsContext, transform, scale, scale, scale, drawLabels);
 }
 
-void drawTransformedAxes(
+void drawTransformedAxes(IMkGraphicsContext* graphicsContext,
 	const glm::mat4& transform,
 	float xScale, float yScale, float zScale, 
 	bool drawLabels)
 {
 	drawTransformedAxes(
+		graphicsContext,
 		transform,
 		xScale, yScale, zScale,
 		Colors::Red, Colors::Green, Colors::Blue,
@@ -113,12 +105,13 @@ void drawTransformedAxes(
 }
 
 void drawTransformedAxes(
+	IMkGraphicsContext* graphicsContext,
 	const glm::mat4& transform,
 	float xScale, float yScale, float zScale,
 	const glm::vec3& xColor, const glm::vec3& yColor, const glm::vec3& zColor,
 	bool drawLabels)
 {
-	GET_LINE_RENDERER_OR_RETURN()
+	IMkLineRenderer* lineRenderer = graphicsContext->getLineRenderer();
 
 	glm::vec3 origin(0.f, 0.f, 0.f);
 	glm::vec3 xAxis(xScale, 0.f, 0.f);
@@ -132,15 +125,23 @@ void drawTransformedAxes(
 	if (drawLabels)
 	{
 		TextStyle style = getDefaultTextStyle();
-		drawTextAtWorldPosition(style, glm::vec3(transform * glm::vec4(xAxis, 1.0f)), L"X");
-		drawTextAtWorldPosition(style, glm::vec3(transform * glm::vec4(yAxis, 1.0f)), L"Y");
-		drawTextAtWorldPosition(style, glm::vec3(transform * glm::vec4(zAxis, 1.0f)), L"Z");
+		drawTextAtWorldPosition(
+			graphicsContext, 
+			style, glm::vec3(transform * glm::vec4(xAxis, 1.0f)), L"X");
+		drawTextAtWorldPosition(
+			graphicsContext, 
+			style, glm::vec3(transform * glm::vec4(yAxis, 1.0f)), L"Y");
+		drawTextAtWorldPosition(
+			graphicsContext, 
+			style, glm::vec3(transform * glm::vec4(zAxis, 1.0f)), L"Z");
 	}
 }
 
-void drawTransformedCircle(const glm::mat4& transform, float radius, const glm::vec3& color)
+void drawTransformedCircle(
+	IMkGraphicsContext* graphicsContext, 
+	const glm::mat4& transform, float radius, const glm::vec3& color)
 {
-	GET_LINE_RENDERER_OR_RETURN()
+	IMkLineRenderer* lineRenderer = graphicsContext->getLineRenderer();
 
 	static const float k_segmentMaxLength= 0.01f;
 	static const float k_maxAngleStep= k_real_quarter_pi;
@@ -157,13 +158,14 @@ void drawTransformedCircle(const glm::mat4& transform, float radius, const glm::
 }
 
 void drawTransformedSpiralArc(
+	IMkGraphicsContext* graphicsContext,
 	const glm::mat4& transform, 
 	float radius, 
 	float radiusFractionPerCircle, 
 	float totalAngle, 
 	const glm::vec3& color)
 {
-	GET_LINE_RENDERER_OR_RETURN()
+	IMkLineRenderer* lineRenderer = graphicsContext->getLineRenderer();
 
 	static const float k_segmentMaxLength = 0.01f;
 	static const float k_maxAngleStep = k_real_quarter_pi;
@@ -194,9 +196,11 @@ void drawTransformedSpiralArc(
 	lineRenderer->addSegment3d(transform, glm::vec3(0.f), color, prevPoint, color);
 }
 
-void drawGrid(const glm::mat4& transform, float xSize, float zSize, int xSubDiv, int zSubDiv, const glm::vec3& color)
+void drawGrid(
+	IMkGraphicsContext* graphicsContext,
+	const glm::mat4& transform, float xSize, float zSize, int xSubDiv, int zSubDiv, const glm::vec3& color)
 {
-	GET_LINE_RENDERER_OR_RETURN()
+	IMkLineRenderer* lineRenderer = graphicsContext->getLineRenderer();
 
 	int x0 = -xSize / 2.f;
 	int x1 = xSize / 2.f;
@@ -213,9 +217,11 @@ void drawGrid(const glm::mat4& transform, float xSize, float zSize, int xSubDiv,
 	}
 }
 
-void drawTransformedQuad(const glm::mat4& transform, float xSize, float ySize, const glm::vec3& color)
+void drawTransformedQuad(
+	IMkGraphicsContext* graphicsContext,
+	const glm::mat4& transform, float xSize, float ySize, const glm::vec3& color)
 {
-	GET_LINE_RENDERER_OR_RETURN()
+	IMkLineRenderer* lineRenderer = graphicsContext->getLineRenderer();
 
 	const glm::vec3 p0(xSize / 2.f, ySize / 2.f, 0.f);
 	const glm::vec3 p1(xSize / 2.f, -ySize / 2.f, 0.f);
@@ -228,23 +234,29 @@ void drawTransformedQuad(const glm::mat4& transform, float xSize, float ySize, c
 	lineRenderer->addSegment3d(transform, p3, color, p0, color);	
 }
 
-void drawTransformedTriangle(const glm::mat4& transform, const GlmTriangle& tri, const glm::vec3& color)
+void drawTransformedTriangle(
+	IMkGraphicsContext* graphicsContext,
+	const glm::mat4& transform, const GlmTriangle& tri, const glm::vec3& color)
 {
-	GET_LINE_RENDERER_OR_RETURN()
+	IMkLineRenderer* lineRenderer = graphicsContext->getLineRenderer();
 
 	lineRenderer->addSegment3d(transform, tri.v0, color, tri.v1, color);
 	lineRenderer->addSegment3d(transform, tri.v1, color, tri.v2, color);
 	lineRenderer->addSegment3d(transform, tri.v2, color, tri.v0, color);
 }
 
-void drawTransformedBox(const glm::mat4& transform, const glm::vec3& half_extents, const glm::vec3& color)
+void drawTransformedBox(
+	IMkGraphicsContext* graphicsContext,
+	const glm::mat4& transform, const glm::vec3& half_extents, const glm::vec3& color)
 {
-	drawTransformedBox(transform, -half_extents, half_extents, color);
+	drawTransformedBox(graphicsContext, transform, -half_extents, half_extents, color);
 }
 
-void drawTransformedBox(const glm::mat4& transform, const glm::vec3& box_min, const glm::vec3& box_max, const glm::vec3& color)
+void drawTransformedBox(
+	IMkGraphicsContext* graphicsContext,
+	const glm::mat4& transform, const glm::vec3& box_min, const glm::vec3& box_max, const glm::vec3& color)
 {
-	GET_LINE_RENDERER_OR_RETURN()
+	IMkLineRenderer* lineRenderer = graphicsContext->getLineRenderer();
 
 	const glm::vec3 v0(box_max.x, box_max.y, box_max.z);
 	const glm::vec3 v1(box_min.x, box_max.y, box_max.z);
@@ -272,6 +284,7 @@ void drawTransformedBox(const glm::mat4& transform, const glm::vec3& box_min, co
 }
 
 void drawTransformedFrustum(
+	IMkGraphicsContext* graphicsContext,
 	const glm::mat4& transform, 
 	const float hfov_radians, 
 	const float vfov_radians,
@@ -279,7 +292,7 @@ void drawTransformedFrustum(
 	const float zFar,
 	const glm::vec3& color)
 {
-	GET_LINE_RENDERER_OR_RETURN()
+	IMkLineRenderer* lineRenderer = graphicsContext->getLineRenderer();
 
 	const float HRatio = tanf(hfov_radians / 2.f);
 	const float VRatio = tanf(vfov_radians / 2.f);

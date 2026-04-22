@@ -2,8 +2,12 @@
 
 //-- includes -----
 #include "AppStage.h"
-#include "ISdlMkWindow.h"
+#include "IMkWindowContext.h"
+#include "IMkWindowContextManager.h"
+#include "IEditorWindow.h"
 #include "ObjectSystemConfigFwd.h"
+
+#include <chrono>
 
 #include <memory>
 #include <vector>
@@ -11,7 +15,10 @@
 #include <stdint.h>
 
 // Forward declarations
+class EditorWindow;
 class EventBus;
+class LocalizationManager;
+class MainWindow;
 
 //-- definitions -----
 class App 
@@ -24,8 +31,8 @@ public:
 
 	inline AppSettingsConfigPtr getAppSettings() const { return m_appSettings; }
 	inline class MainWindow* getMainWindow() const { return m_mainWindow; }
-	inline class SdlManager* getSdlManager() const { return m_sdlManager; }
-	inline class ISdlMkWindow* getCurrentlyRenderingWindow() const { return m_renderingWindow; }
+	inline IMkWindowContextManagerPtr getWindowManager() const { return m_windowManager; }
+	IEditorWindow* getCurrentlyRenderingWindow() const;
 	inline EventBus* getEventBus() const { return m_eventBus.get(); }
 	inline class LocalizationManager* getLocalizationManager() const { return m_localizationManager; }
 
@@ -43,59 +50,22 @@ public:
 	{
 		t_app_window* appWindow= new t_app_window(this);
 		
-		if (appWindow->startup())
+		// Setup the window
+		// Destroy the window if setup fails
+		if (!createAppWindowInternal(appWindow))
 		{
-			// pop this GL Context this window added if it created one 
-			// and return back to the previous GL Context
-			if (getCurrentGlContext() == appWindow)
-			{
-				popCurrentGlContext(appWindow);
-			}
-
-			m_appWindows.push_back(appWindow);
-
-			return appWindow;
-		}
-		else
-		{
-			destroyAppWindow(appWindow);
+			return nullptr;
 		}
 
 		return appWindow;
 	}
 
-	template<typename t_app_window>
-	void destroyAppWindow(t_app_window* appWindow)
-	{
-		// If this window was the current window, pop it from the current window stack
-		if (m_glContextStack.size() > 0 && m_glContextStack.back() == appWindow)
-		{
-			popCurrentGlContext(appWindow);
-		}
-
-		// Tear down the SDL window and OpenGL context
-		appWindow->shutdown();
-
-		// Remove the window from the list of windows (should deallocate it)
-		auto it= std::find(m_appWindows.begin(), m_appWindows.end(), appWindow);
-		if (it != m_appWindows.end())
-		{
-			m_appWindows.erase(it);
-		}
-
-		// If this was the main window pointer, make sure to invalidate that pointer
-		if ((void *)appWindow == (void *)m_mainWindow)
-		{
-			m_mainWindow = nullptr;
-		}
-
-		delete appWindow;
-	}
+	void destroyAppWindow(EditorWindow* appWindow);
 
 	template<typename t_app_window>
 	bool hasWindowOfType() const
 	{
-		for (ISdlMkWindow* window : m_appWindows)
+		for (EditorWindow* window : m_appWindows)
 		{
 			if (dynamic_cast<t_app_window*>(window) != nullptr)
 			{
@@ -106,16 +76,14 @@ public:
 		return false;
 	}
 
-	void pushCurrentGLContext(class ISdlMkWindow* window);
-	class ISdlMkWindow* getCurrentGlContext() const;
-	void popCurrentGlContext(class ISdlMkWindow* window);
-
 protected:
 	bool startup(int argc, char** argv);
 	void shutdown();
 
 	void tick();
 	void tickWindows(const float deltaSeconds);
+
+	bool createAppWindowInternal(EditorWindow* appWindow);
 
 private:
 	static App* m_instance;
@@ -127,27 +95,24 @@ private:
 	std::unique_ptr<EventBus> m_eventBus;
 
 	// Localization manager
-	class LocalizationManager* m_localizationManager= nullptr;
+	LocalizationManager* m_localizationManager= nullptr;
 
-	// SDL Top Level Management
-	class SdlManager* m_sdlManager;
+	// Window Context Manager
+	IMkWindowContextManagerPtr m_windowManager;
 
 	// Open windows (including the MainWindow)
-	std::vector<ISdlMkWindow*> m_appWindows;
-
-	// The stack of current windows being updated
-	std::vector<ISdlMkWindow*> m_glContextStack;
+	std::vector<EditorWindow*> m_appWindows;
 
 	// The window being currently rendered
-	ISdlMkWindow* m_renderingWindow = nullptr;
+	EditorWindow* m_renderingWindow = nullptr;
 
 	// The main window for the application
-	class MainWindow* m_mainWindow= nullptr;
+	MainWindow* m_mainWindow= nullptr;
 
 	// Flag requesting that we exit the update loop
 	bool m_bShutdownRequested= false;
 
 	// Current FPS rate
-	uint32_t m_lastFrameTimestamp= 0;
+	std::chrono::steady_clock::time_point m_lastFrameTimestamp;
 	float m_fps= 0.f;
 };

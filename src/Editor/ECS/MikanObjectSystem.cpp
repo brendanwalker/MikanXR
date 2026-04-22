@@ -70,6 +70,17 @@ IEditorWindow* MikanObjectSystem::getOwnerWindow() const
 	return getOwnerProjectManager()->getOwnerWindow();
 }
 
+IMkGraphicsContext* MikanObjectSystem::getGraphicsContext() const
+{
+	IEditorWindow* ownerWindow = getOwnerWindow();
+	if (ownerWindow)
+	{
+		return ownerWindow->getGraphicsContext().get();
+	}
+
+	return nullptr;
+}
+
 MikanObjectPtr MikanObjectSystem::newEmptyObject()
 {
 	MikanObjectPtr objectPtr = std::make_shared<MikanObject>(shared_from_this());

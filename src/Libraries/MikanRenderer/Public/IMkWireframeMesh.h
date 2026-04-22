@@ -12,9 +12,9 @@ class IMkWireframeMesh : public IMkMesh
 public:
 };
 
-MIKAN_RENDERER_FUNC(IMkWireframeMeshPtr) CreateMkWireframeMesh(class IMkWindow* ownerWindow);
+MIKAN_RENDERER_FUNC(IMkWireframeMeshPtr) CreateMkWireframeMesh(class IMkGraphicsContext* ownerContext);
 MIKAN_RENDERER_FUNC(IMkWireframeMeshPtr) CreateMkWireframeMesh(
-	class IMkWindow* ownerWindow,
+	class IMkGraphicsContext* ownerContext,
 	std::string name,
 	const uint8_t* vertexData,
 	const size_t vertexSize,

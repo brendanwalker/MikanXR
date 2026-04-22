@@ -4,7 +4,7 @@
 #include "IMkShaderCache.h"
 #include "IMkTextureCache.h"
 #include "IMkTriangulatedMesh.h"
-#include "IMkWindow.h"
+#include "IMkGraphicsContext.h"
 #include "IMkState.h"
 #include "MkStateStack.h"
 #include "MkStateModifiers.h"
@@ -46,16 +46,12 @@
 
 #include <memory>
 
-// -- Internal Mikan Window adapter -----
-class TestMkWindow : public IMkWindow
+// -- Internal graphics context adapter -----
+class TestMkWindow : public IMkGraphicsContext
 {
 public:
 	TestMkWindow(int windowWidth, int windowHeight)
-		: IMkWindow()
-		, m_mkStateStack(std::make_shared<MkStateStack>(this))
-		, m_shaderCache(createMkShaderCache(this))
-		, m_textureCache(createMkTextureCache(this))
-		, m_sdlWindow(nullptr)
+		: m_sdlWindow(nullptr)
 		, m_glContext(nullptr)
 		, m_windowWidth(windowWidth)
 		, m_windowHeight(windowHeight)
@@ -80,8 +76,30 @@ public:
 		m_windowHeight = height;
 	}
 
-	virtual bool startup() override 
+	// -- IMkGraphicsContext --
+	virtual eGraphicsAPI getGraphicsAPI() const override { return eGraphicsAPI::OpenGL; }
+
+	virtual void onNativeContextCreated(void* nativeContext) override { m_glContext = nativeContext; }
+	virtual void* getNativeGraphicsContext() const override { return m_glContext; }
+
+	virtual void onWindowSizeChanged(int width, int height) override
 	{
+		m_windowWidth = width;
+		m_windowHeight = height;
+	}
+
+	virtual IMkViewportPtr getRenderingViewport() const override { return m_renderingViewport; }
+	virtual void setRenderingViewport(IMkViewportPtr viewport) override { m_renderingViewport = viewport; }
+
+	virtual bool renderBegin() override { return true; }
+	virtual bool renderEnd() override { return true; }
+
+	virtual bool startup() override
+	{
+		m_mkStateStack = std::make_shared<MkStateStack>(this);
+		m_shaderCache = createMkShaderCache(this);
+		m_textureCache = createMkTextureCache(this);
+
 		const char* glsl_version = nullptr;
 		// Decide GL+GLSL versions
 #if defined(__APPLE__)
@@ -175,14 +193,13 @@ public:
 		return true;
 	}
 
-	virtual void update(float deltaSeconds) override {}
-
-	virtual void render() override 
+	// Present rendered frame (called externally by the test main loop)
+	void present()
 	{
 		SDL_GL_SwapWindow(m_sdlWindow);
 	}
 
-	virtual void shutdown() override 
+	virtual void shutdown() override
 	{
 		// Unwind any remaining states to ensure proper cleanup of GL resources owned by states (e.g. depth state buffers)
 		m_mkStateStack = nullptr;
@@ -205,9 +222,6 @@ public:
 
 	virtual float getWidth() const override { return (float)m_windowWidth; }
 	virtual float getHeight() const override { return (float)m_windowHeight; }
-	virtual float getAspectRatio() const override { return (float)m_windowWidth / (float)m_windowHeight; }
-	virtual bool getIsRenderingStage() const override { return false; }
-	virtual IMkViewportPtr getRenderingViewport() const override { return nullptr; }
 	virtual MkStateStack& getMkStateStack() override { return *m_mkStateStack.get(); }
 	virtual class IMkLineRenderer* getLineRenderer() override { return nullptr; }
 	virtual class IMkTextRenderer* getTextRenderer() override { return nullptr; }
@@ -218,6 +232,7 @@ private:
 	MkStateStackSharedPtr m_mkStateStack;
 	IMkShaderCachePtr m_shaderCache;
 	IMkTextureCachePtr m_textureCache;
+	IMkViewportPtr m_renderingViewport;
 
 	SDL_Window* m_sdlWindow;
 	void* m_glContext;
@@ -429,7 +444,7 @@ void TestGraphicsContext_GL::renderMainTarget() const
 	}
 
 	// Draw the window contents to the screen
-	m_mkWindow->render();
+	getTestMkWindow()->present();
 }
 
 bool TestGraphicsContext_GL::renderToCameraTarget(

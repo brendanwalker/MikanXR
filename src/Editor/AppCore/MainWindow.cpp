@@ -9,7 +9,8 @@
 #include "ClientSourceManager.h"
 #include "EditorObjectSystem.h"
 #include "InputManager.h"
-#include "SdlCommon.h"
+#include "IMkGraphicsContext.h"
+#include "IMkWindowContext.h"
 #include "IMkState.h"
 #include "IMkTexture.h"
 #include "IMkTextRenderer.h"
@@ -17,11 +18,8 @@
 #include "MathUtility.h"
 #include "MathGLM.h"
 #include "MikanCamera.h"
-#include "MikanFontManager.h"
-#include "MikanShaderCache.h"
+#include "IMkFontManager.h"
 #include "MikanServer.h"
-#include "MikanTextureCache.h"
-#include "MikanTextRenderer.h"
 #include "MikanViewport.h"
 #include "MikanModelResourceManager.h"
 #include "MkGuiContext.h"
@@ -29,12 +27,14 @@
 #include "MkGuiStyleManager.h"
 #include "MkStateStack.h"
 #include "MkStateModifiers.h"
+#include "MikanTextRenderer.h"
+#include "MkWindowEvent.h"
 #include "PathUtils.h"
 #include "ProjectManager.h"
 #include "OpenCVManager.h"
-#include "SdlWindow.h"
 #include "StencilUtils.h"
 #include "StringUtils.h"
+#include "TextStyle.h"
 
 // App Stages
 #include "AlignmentCalibration/AppStage_AlignmentCalibration.h"
@@ -61,24 +61,23 @@ static const glm::vec3 k_frustum_color = glm::vec3(0.1f, 0.7f, 0.3f);
 
 //-- public methods -----
 MainWindow::MainWindow(App* ownerApp)
-	: m_ownerApp(ownerApp)
+	: EditorWindow(ownerApp)
 	, m_mikanServer(new MikanServer())
 	, m_clientSourceManager(new ClientSourceManager())
-	, m_inputManager(new InputManager())
+	, m_inputManager(new InputManager(this))
 	, m_projectManager(std::make_shared<ProjectManager>(this))
 	, m_openCVManager(new OpenCVManager())
-	, m_fontManager(new MikanFontManager())
+	, m_fontManager(createMkFontManager())
 	, m_appStageFactory(this)
-	, m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
-	, m_mkStateStack(MkStateStackUniquePtr(new MkStateStack(this)))
-	, m_lineRenderer(createMkLineRenderer(this))
-	, m_textRenderer(createMkTextRenderer(this, m_fontManager))
-	, m_modelResourceManager(MikanModelResourceManagerUniquePtr(new MikanModelResourceManager(this)))
 	, m_isRenderingStage(false)
 	, m_isRenderingUI(false)
-	, m_shaderCache(MikanShaderCacheUniquePtr(new MikanShaderCache(this)))
-	, m_textureCache(MikanTextureCacheUniquePtr(new MikanTextureCache(this)))
 {
+	m_graphicsContext = createMkGraphicsContext(eGraphicsAPI::OpenGL, m_fontManager.get());
+	m_mkWindowContext = createMkWindowContext(m_ownerApp->getWindowManager(), m_graphicsContext);
+	m_modelResourceManager = 
+		MikanModelResourceManagerUniquePtr(
+			new MikanModelResourceManager(getGraphicsContext().get()));
+
 	m_appStageFactory.addAppStageConstructor<AppStage_AlignmentCalibration>();
 	m_appStageFactory.addAppStageConstructor<AppStage_AnchorTriangulation>();
 	m_appStageFactory.addAppStageConstructor<AppStage_MainMenu>();
@@ -97,49 +96,11 @@ MainWindow::~MainWindow()
 	delete m_inputManager;
 	delete m_mikanServer;
 	delete m_clientSourceManager;
-
-	assert(m_textRenderer == nullptr);
-	assert(m_lineRenderer == nullptr);
-}
-
-IMkLineRenderer* MainWindow::getLineRenderer()
-{
-	return m_lineRenderer.get();
-}
-
-IMkTextRenderer* MainWindow::getTextRenderer()
-{
-	return m_textRenderer.get();
-}
-
-IMkShaderCache* MainWindow::getShaderCache()
-{
-	return m_shaderCache.get();
-}
-
-IMkTextureCache* MainWindow::getTextureCache()
-{
-	return m_textureCache.get();
-}
-
-MikanModelResourceManager* MainWindow::getModelResourceManager()
-{
-	return m_modelResourceManager.get();
-}
-
-SdlWindow& MainWindow::getSdlWindow()
-{
-	return *m_sdlWindow.get();
 }
 
 EventBus* MainWindow::getEventBus() const
 {
 	return m_ownerApp->getEventBus();
-}
-
-class MkGuiStyleManager* MainWindow::getMkGuiStyleManager() const
-{
-	return m_styleManager.get();
 }
 
 LocalizationManager* MainWindow::getLocalizationManager() const
@@ -149,11 +110,7 @@ LocalizationManager* MainWindow::getLocalizationManager() const
 
 IMkViewportPtr MainWindow::getRenderingViewport() const
 {
-	return m_renderingViewport;
-}
-MkStateStack& MainWindow::getMkStateStack()
-{
-	return *m_mkStateStack.get();
+	return m_graphicsContext->getRenderingViewport();
 }
 
 bool MainWindow::startup()
@@ -165,36 +122,19 @@ bool MainWindow::startup()
 	MIKAN_LOG_INFO("MainWindow::init()") << "Initializing MainWindow";
 
 	auto windowTitle= StringUtils::stringify("MikanXR v", MIKAN_RELEASE_VERSION_STRING);
-	m_sdlWindow
-		->setTitle(windowTitle)
-		->setSize(k_window_pixel_width, k_window_pixel_height);
-	if (!m_sdlWindow->startup())
+	if (success && !startupWindow(windowTitle, k_window_pixel_width, k_window_pixel_height))
 	{
-		MIKAN_LOG_ERROR("MainWindow::startup") << "Unable to initialize main SDK window: ";
 		success = false;
 	}
 
-	if (success)
+	if (success && !startupGuiContext())
 	{
-		m_guiContext = std::make_shared<MkGuiContext>(
-			m_sdlWindow->getInternalSdlWindow(),
-			m_sdlWindow->getInternalGlContext());
-		if (!m_guiContext->startup())
-		{
-			MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Unable to create GUI context";
-			success = false;
-		}
+		success = false;
 	}
 
-	if (success)
+	if (success && !startupStyleManager())
 	{
-		m_styleManager = std::make_unique<MkGuiStyleManager>();
-		const auto stylesPath = PathUtils::getResourceDirectory() / "gui_styles";
-		if (!m_styleManager->startup(m_guiContext.get(), stylesPath))
-		{
-			MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Failed to initialize style manager";
-			success = false;
-		}
+		success = false;
 	}
 
 	if (success && !m_openCVManager->startup())
@@ -203,33 +143,8 @@ bool MainWindow::startup()
 		success = false;
 	}
 
-	if (success && !m_textureCache->startup())
+	if (success && !startupModelResourceManager())
 	{
-		MIKAN_LOG_ERROR("MainWindow::startup") << "Failed to initialize texture cache!";
-		success = false;
-	}
-
-	if (success && !m_shaderCache->startup())
-	{
-		MIKAN_LOG_ERROR("MainWindow::startup") << "Failed to initialize shader cache!";
-		success = false;
-	}
-
-	if (success && !m_modelResourceManager->startup())
-	{
-		MIKAN_LOG_ERROR("MainWindow::init") << "Unable to initialize model resource manager";
-		success = false;
-	}
-
-	if (success && !m_lineRenderer->startup())
-	{
-		MIKAN_LOG_ERROR("MainWindow::init") << "Unable to initialize line renderer";
-		success = false;
-	}
-
-	if (success && !m_textRenderer->startup())
-	{
-		MIKAN_LOG_ERROR("MainWindow::init") << "Unable to initialize line renderer";
 		success = false;
 	}
 
@@ -248,7 +163,7 @@ bool MainWindow::startup()
 		}
 	}
 
-	if (success && !m_clientSourceManager->startup(this))
+	if (success && !m_clientSourceManager->startup())
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the client source manager";
 		success = false;
@@ -263,7 +178,7 @@ bool MainWindow::startup()
 	if (success)
 	{
 		// Create the base GL state for the window
-		IMkState* mkState= m_mkStateStack->pushState("MainWindow Root");
+		IMkState* mkState= m_graphicsContext->getMkStateStack().pushState("MainWindow Root");
 		assert(mkState->getStackDepth() == 0);
 
 		// Set default state flags at the base of the stack
@@ -273,7 +188,7 @@ bool MainWindow::startup()
 		mkStateSetClearColor(mkState, k_clear_color);
 
 		// Default to the full window viewport
-		mkStateSetViewport(mkState, 0, 0, m_sdlWindow->getWidth(), m_sdlWindow->getHeight());
+		mkStateSetViewport(mkState, 0, 0, m_mkWindowContext->getWidth(), m_mkWindowContext->getHeight());
 
 		// Create a fullscreen viewport for the UI (which creates it's own camera)
 		m_uiViewport = 
@@ -305,7 +220,7 @@ void MainWindow::update(float deltaSeconds)
 	processPendingAppStageOps();
 
 	// Process most recent SDL events (keyboard, mouse, etc)
-	m_sdlWindow->handleSDLEvents(this);
+	m_mkWindowContext->handleEvents(this);
 
 	// Update objects in the object system
 	m_projectManager->update(deltaSeconds);
@@ -335,7 +250,8 @@ void MainWindow::render()
 
 	if (appStage != nullptr)
 	{
-		m_sdlWindow->renderBegin();
+		// Clear the window
+		m_graphicsContext->renderBegin();
 
 		// Render all enabled 3d viewports for the app state
 		for (MikanViewportPtr viewpoint : appStage->getViewportList())
@@ -349,7 +265,11 @@ void MainWindow::render()
 		// Render the UI on top
 		renderStageUI(appStage);
 
-		m_sdlWindow->renderEnd();
+		// Finalize rendering
+		m_graphicsContext->renderEnd();
+
+		// Present the rendered frame to the window
+		m_mkWindowContext->present();
 	}
 }
 
@@ -357,13 +277,13 @@ void MainWindow::renderStageViewport(AppStage* appStage, IMkViewportPtr targetVi
 {
 	EASY_FUNCTION();
 
-	MkScopedState scopedState = m_mkStateStack->createScopedState("appStage viewport render");
+	MkScopedState scopedState = m_graphicsContext->getMkStateStack().createScopedState("appStage viewport render");
 	IMkState* glState = scopedState.getStackState();
 
-	// Set the rendering viewport used to render the stage
-	// (adds mkStateSetViewport Modifier to the glState)
-	m_renderingViewport = targetViewport;
-	m_renderingViewport->applyRenderingViewport(glState);
+	// Registers this viewport with the graphics context for the duration of the
+	// scoped state. Deregisters automatically via onRenderingViewportRevert when
+	// the scoped state pops at end of this function.
+	targetViewport->applyRenderingViewport(glState);
 
 	// Set window state flag that we are in the middle of rendering a stage
 	// Used for safety checks in the render functions
@@ -373,30 +293,26 @@ void MainWindow::renderStageViewport(AppStage* appStage, IMkViewportPtr targetVi
 	appStage->render(targetViewport);
 
 	// Render any 3D line segments emitted by the AppStage
-	m_lineRenderer->render();
+	m_graphicsContext->getLineRenderer()->render();
 
 	// Render any glyphs emitted by the AppStage
-	m_textRenderer->render();
+	m_graphicsContext->getTextRenderer()->render();
 
 	// Rendering the state is done
 	m_isRenderingStage = false;
-
-	// Forget about the target viewport
-	// (will be deleted when glState goes out of scope)
-	m_renderingViewport = nullptr;
 }
 
 void MainWindow::renderStageUI(AppStage* appStage)
 {
 	EASY_FUNCTION();
 
-	MkScopedState scopedState = m_mkStateStack->createScopedState("appStage renderUI");
+	MkScopedState scopedState = m_graphicsContext->getMkStateStack().createScopedState("appStage renderUI");
 	IMkState* glState = scopedState.getStackState();
 
-	// Set the rendering viewport used to render the stage
-	// (adds mkStateSetViewport Modifier to the glState)
-	m_renderingViewport = m_uiViewport;
-	m_renderingViewport->applyRenderingViewport(glState);
+	// Registers the UI viewport with the graphics context for the duration of the
+	// scoped state. Deregisters automatically via onRenderingViewportRevert when
+	// the scoped state pops at end of this function.
+	m_uiViewport->applyRenderingViewport(glState);
 
 	m_isRenderingUI = true;
 
@@ -408,25 +324,23 @@ void MainWindow::renderStageUI(AppStage* appStage)
 	style.horizontalAlignment = eHorizontalTextAlignment::Right;
 	style.verticalAlignment = eVerticalTextAlignment::Bottom;
 	drawTextAtScreenPosition(
+		m_graphicsContext.get(),
 		style,
 		glm::vec2(getWidth() - 1, getHeight() - 1),
 		L"%.1ffps", App::getInstance()->getFPS());
 
 	// Render any 2D line segments emitted by the AppStage renderUI phase
-	m_lineRenderer->render();
+	m_graphicsContext->getLineRenderer()->render();
 
 	// Render any glyphs emitted by the AppStage renderUI phase
-	m_textRenderer->render();
+	m_graphicsContext->getTextRenderer()->render();
 
 	m_isRenderingUI = false;
-
-	m_renderingViewport = nullptr;
 }
 
 void MainWindow::shutdown()
 {
 	m_uiViewport = nullptr;
-	m_mkStateStack= nullptr;
 
 	// Tear down all active app stages
 	while (getCurrentAppStage() != nullptr)
@@ -448,75 +362,29 @@ void MainWindow::shutdown()
 	assert(m_fontManager != nullptr);
 	m_fontManager->shutdown();
 
-	if (m_modelResourceManager != nullptr)
-	{
-		m_modelResourceManager->shutdown();
-		m_modelResourceManager= nullptr;
-	}
-
-	m_textRenderer= nullptr;
-	m_lineRenderer= nullptr;
-
-	if (m_shaderCache != nullptr)
-	{
-		m_shaderCache->shutdown();
-		m_shaderCache= nullptr;
-	}
-
-	if (m_textureCache != nullptr)
-	{
-		m_textureCache->shutdown();
-		m_textureCache = nullptr;
-	}
-
-	if (m_styleManager != nullptr)
-	{
-		m_styleManager->shutdown();
-		m_styleManager = nullptr;
-	}
-
-	if (m_guiContext != nullptr)
-	{
-		m_guiContext->shutdown();
-		m_guiContext = nullptr;
-	}
-
-	if (m_sdlWindow != nullptr)
-	{
-		m_sdlWindow->shutdown();
-		m_sdlWindow = nullptr;
-	}
+	shutdownModelResourceManager();
+	shutdownStyleManager();
+	shutdownGuiContext();
+	shutdownWindow();
 }
 
-float MainWindow::getWidth() const
-{
-	return (float)m_sdlWindow->getWidth();
-}
-
-float MainWindow::getHeight() const
-{
-	return (float)m_sdlWindow->getHeight();
-}
-
-float MainWindow::getAspectRatio() const
-{
-	return (float)m_sdlWindow->getAspectRatio();
-}
-
-bool MainWindow::onWindowEvent(const SDL_Event* event)
+bool MainWindow::onWindowEvent(const MkWindowEvent& event)
 {
 	bool bHandled = false;
 
+	const auto eventType = event.getEventType();
+	const auto keySym = event.getKeySym();
+
 	// First see if we got an app shutdown request
-	if (event->type == SDL_QUIT ||
-		(event->type == SDL_KEYDOWN && event->key.keysym.sym == SDLK_ESCAPE))
+	if (eventType == eMkWindowEventType::Quit ||
+		(eventType == eMkWindowEventType::KeyDown && keySym == MkKey::ESCAPE))
 	{
 		MIKAN_LOG_INFO("App::exec") << "QUIT message received";
 		App::getInstance()->requestShutdown();
-		bHandled= true;
+		bHandled = true;
 	}
 	// Toggle debug UI with F11
-	else if (event->type == SDL_KEYUP && event->key.keysym.sym == SDLK_F11)
+	else if (eventType == eMkWindowEventType::KeyUp && keySym == MkKey::F11)
 	{
 		m_bIsDebugGuiEnabled = !m_bIsDebugGuiEnabled;
 	}
@@ -524,24 +392,22 @@ bool MainWindow::onWindowEvent(const SDL_Event* event)
 	// Then see if the UI wants to handle the event
 	if (!bHandled && m_bIsDebugGuiEnabled)
 	{
-		bHandled= m_guiContext->onWindowEvent(event);
+		bHandled = m_guiContext->onWindowEvent(event);
 	}
 
 	// Then see if the current app stage wants to handle the event
 	AppStage* appStage = getCurrentAppStage();
 	if (appStage != nullptr)
 	{
-		appStage->onSDLEvent(event);
+		appStage->onWindowEvent(event);
 	}
 
 	// Then see if the main window object simulation wants to handle the event
 	if (!bHandled)
 	{
-		SdlWindow& sdlWindow= getSdlWindow();
-		
-		if (sdlWindow.hasMouseFocus() || sdlWindow.hasKeyboardFocus())
+		if (m_mkWindowContext->hasMouseFocus() || m_mkWindowContext->hasKeyboardFocus())
 		{
-			bHandled = m_inputManager->onSDLEvent(event);
+			bHandled = m_inputManager->onWindowEvent(event);
 		}
 	}
 
@@ -605,7 +471,6 @@ void MainWindow::processPendingAppStageOps()
 	// Disallow app stack operations during enter or exit
 	bAppStackOperationAllowed = false;
 
-	InputManager* inputManager = InputManager::getInstance();
 	for (auto& pendingAppStageOp : m_pendingAppStageOps)
 	{
 		switch (pendingAppStageOp.op)
@@ -619,7 +484,7 @@ void MainWindow::processPendingAppStageOps()
 						pendingAppStageOp.parentAppStage->pause();
 
 					// Create a new input event set for the app state
-					inputManager->pushEventBindingSet();
+					m_inputManager->pushEventBindingSet();
 
 					// Enter the new app stage
 					pendingAppStageOp.appStage->enter();
@@ -640,7 +505,7 @@ void MainWindow::processPendingAppStageOps()
 					pendingAppStageOp.appStage->exit();
 
 					// Clean up the input event set for the deactivated app stage
-					inputManager->popEventBindingSet();
+					m_inputManager->popEventBindingSet();
 
 					// Resume the parent app stage we are restoring (if any)
 					if (pendingAppStageOp.parentAppStage != nullptr)

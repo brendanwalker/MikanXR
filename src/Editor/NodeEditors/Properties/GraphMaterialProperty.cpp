@@ -4,6 +4,7 @@
 #include "Graphs/NodeGraph.h"
 #include "Logger.h"
 #include "MaterialAssetReference.h"
+#include "MikanModelResourceManager.h"
 #include "NodeEditorUI.h"
 #include "NodeEditorState.h"
 #include "Nodes/MaterialNode.h"
@@ -160,9 +161,8 @@ void GraphMaterialProperty::setMaterialAssetReference(MaterialAssetReferencePtr 
 		// re-create a material from the asset reference
 		if (m_materialAssetRef->isValid())
 		{
-			MikanShaderCache* shaderCache = 
-				reinterpret_cast<MikanShaderCache*>(
-					getOwnerGraph()->getOwnerWindow()->getShaderCache());
+			MikanShaderCache* shaderCache =
+				getOwnerGraph()->getOwnerWindow()->getModelResourceManager()->getShaderCache();
 			assert(shaderCache);
 
 			m_materialResource = shaderCache->loadMaterialAssetReference(m_materialAssetRef);

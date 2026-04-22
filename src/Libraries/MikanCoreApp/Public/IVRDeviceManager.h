@@ -22,7 +22,7 @@ public:
 	virtual void addListener(IVRDeviceManagerListener* eventListener) = 0;
 	virtual void removeListener(IVRDeviceManagerListener* eventListener) = 0;
 
-	virtual bool startup(class IMkWindow* ownerWindow) = 0;
+	virtual bool startup(class IMkGraphicsContext* graphicsContext) = 0;
 	virtual void update(float deltaTime) = 0;
 	virtual void shutdown() = 0;
 

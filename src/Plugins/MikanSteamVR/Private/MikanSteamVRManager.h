@@ -24,7 +24,7 @@ public:
 	virtual void addListener(IVRDeviceManagerListener* eventListener) override;
 	virtual void removeListener(IVRDeviceManagerListener* eventListener) override;
 
-	virtual bool startup(class IMkWindow* ownerWindow) override;
+	virtual bool startup(class IMkGraphicsContext* graphicsContext) override;
 	virtual void update(float deltaTime) override;
 	virtual void shutdown()  override;
 
@@ -33,7 +33,7 @@ public:
 	virtual class IVRDevice* getDeviceByPath(const char* devicePath) override;
 
 	// MikanSteamVRManager
-	inline class IMkWindow* getOwnerWindow() const { return m_ownerWindow; }
+	inline class IMkGraphicsContext* getOwnerContext() const { return m_ownerContext; }
 	inline std::unique_ptr<class SteamVRResourceManager>& getResourceManager() { return m_resourceManager; }
 	SteamVRDeviceList getActiveDevices() const;
 	SteamVRDeviceList getActiveDevicesOfType(eVRDeviceType deviceType) const;
@@ -54,7 +54,7 @@ private:
 	static const float k_reconnectTimeoutDuration;
 	static const int k_maxReconnectAttempts;
 
-	class IMkWindow* m_ownerWindow;
+	class IMkGraphicsContext* m_ownerContext;
 	std::vector<IVRDeviceManagerListener*> m_listeners;
 	float m_reconnectTimeout;
 	int m_reconnectAttemptCount;

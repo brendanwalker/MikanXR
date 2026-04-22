@@ -1,6 +1,6 @@
 #include "ObjModelImporter.h"
 #include "Colors.h"
-#include "IMkWindow.h"
+#include "IMkGraphicsContext.h"
 #include "MikanRenderModelResource.h"
 #include "MikanModelResourceManager.h"
 #include "MkMaterialInstance.h"
@@ -153,15 +153,15 @@ namespace ObjUtils
 	using MaterialTriMeshDataConstPtr = std::shared_ptr<const MaterialTriMeshData>;
 
 	MkMaterialInstancePtr createTriMeshMaterialInstance(
-		IMkWindow* ownerWindow,
+		IMkGraphicsContext* graphicsContext,
 		MkMaterialConstPtr material,
 		const fastObjMesh* objMesh,
 		const fastObjMaterial& objMaterial);
 	IMkTriangulatedMeshPtr createTriangulatedMeshResource(
-		IMkWindow* ownerWindow,
+		IMkGraphicsContext* graphicsContext,
 		MaterialTriMeshDataConstPtr triMeshData);
 	IMkWireframeMeshPtr createWireframeMeshResource(
-		IMkWindow* ownerWindow,
+		IMkGraphicsContext* graphicsContext,
 		MaterialTriMeshDataConstPtr triMeshData);
 };
 
@@ -169,8 +169,8 @@ MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 	const std::filesystem::path& modelPath,
 	MkMaterialConstPtr overrideMaterial)
 {
-	IMkWindow* ownerWindow= m_ownerManager->getOwnerWindow();
-	IMkShaderCache* shaderCache= ownerWindow->getShaderCache();
+	IMkGraphicsContext* graphicsContext = m_ownerManager->getGraphicsContext();
+	IMkShaderCache* shaderCache= graphicsContext->getShaderCache();
 
 	MikanRenderModelResourcePtr modelResource;
 
@@ -197,7 +197,9 @@ MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 	if (objData != nullptr)
 	{
 		// Create a new model resource
-		modelResource = std::make_shared<MikanRenderModelResource>(m_ownerManager->getOwnerWindow());
+		modelResource = 
+			std::make_shared<MikanRenderModelResource>(
+				m_ownerManager->getGraphicsContext());
 		modelResource->setName(modelNameString);
 		modelResource->setModelFilePath(modelPath);
 
@@ -211,7 +213,7 @@ MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 
 				MkMaterialInstancePtr materialInst =
 					ObjUtils::createTriMeshMaterialInstance(
-						ownerWindow,
+						graphicsContext,
 						triMeshMaterial,
 						objData,
 						objMaterial);
@@ -238,7 +240,7 @@ MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 
 			MkMaterialInstancePtr materialInst =
 				ObjUtils::createTriMeshMaterialInstance(
-					ownerWindow,
+					graphicsContext,
 					triMeshMaterial,
 					objData,
 					defaultObjMaterial);
@@ -302,8 +304,8 @@ MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 		// Create the meshes for each material instance
 		for (ObjUtils::MaterialTriMeshDataPtr triMeshData : materialToTrimeshMap)
 		{
-			IMkTriangulatedMeshPtr trimesh= ObjUtils::createTriangulatedMeshResource(ownerWindow, triMeshData);
-			IMkWireframeMeshPtr wiremesh= ObjUtils::createWireframeMeshResource(ownerWindow, triMeshData);
+			IMkTriangulatedMeshPtr trimesh= ObjUtils::createTriangulatedMeshResource(graphicsContext, triMeshData);
+			IMkWireframeMeshPtr wiremesh= ObjUtils::createWireframeMeshResource(graphicsContext, triMeshData);
 
 			modelResource->addTriangulatedMesh(trimesh);
 			modelResource->addWireframeMesh(wiremesh);
@@ -371,12 +373,12 @@ namespace ObjUtils
 	}
 
 	MkMaterialInstancePtr createTriMeshMaterialInstance(
-		IMkWindow* ownerWindow,
+		IMkGraphicsContext* graphicsContext,
 		MkMaterialConstPtr material,
 		const fastObjMesh* objMesh,
 		const fastObjMaterial& objMaterial)
 	{
-		MikanTextureCache* textureCache = static_cast<MikanTextureCache *>(ownerWindow->getTextureCache());
+		MikanTextureCache* textureCache = static_cast<MikanTextureCache *>(graphicsContext->getTextureCache());
 		MkMaterialInstancePtr materialInstance = createMkMaterialInstance(material);
 
 		materialInstance->setVec3BySemantic(
@@ -422,7 +424,7 @@ namespace ObjUtils
 
 
 	IMkTriangulatedMeshPtr createTriangulatedMeshResource(
-		IMkWindow* ownerWindow,
+		IMkGraphicsContext* graphicsContext,
 		MaterialTriMeshDataConstPtr triMeshData)
 	{
 		if (!triMeshData->isValid())
@@ -446,7 +448,7 @@ namespace ObjUtils
 		std::memcpy(indexBuffer, triMeshData->getIndexData(), indexBufferSize);
 
 		IMkTriangulatedMeshPtr triMesh = createMkTriangulatedMesh(
-			ownerWindow,
+			graphicsContext,
 			triMeshData->getMaterialName(),
 			(const uint8_t*)vertexBuffer,
 			vertexSize,
@@ -468,7 +470,7 @@ namespace ObjUtils
 	}
 
 	IMkWireframeMeshPtr createWireframeMeshResource(
-		IMkWindow* ownerWindow,
+		IMkGraphicsContext* graphicsContext,
 		MaterialTriMeshDataConstPtr triMeshData)
 	{
 		if (!triMeshData->isValid())
@@ -529,7 +531,7 @@ namespace ObjUtils
 		}
 
 		IMkWireframeMeshPtr wireMesh = CreateMkWireframeMesh(
-			ownerWindow,
+			graphicsContext,
 			triMeshData->getMaterialName(),
 			(const uint8_t*)writeVertexData,
 			writeVertexSize,

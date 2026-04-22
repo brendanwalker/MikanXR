@@ -14,10 +14,6 @@
 #include "VideoSourceComponent.h"
 #include "VideoFrameDistortionView.h"
 
-#include "SDL_keycode.h"
-
-
-
 //-- statics ----
 const char* AppStage_MonoLensCalibration::APP_STAGE_NAME = "MonoCalibration";
 
@@ -61,7 +57,7 @@ void AppStage_MonoLensCalibration::enter()
 
 	// Bind to space bar to capture frames
 	// (Auto cleared on AppStage exit)
-	InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_SPACE)->OnKeyPressed +=
+	getOwnerWindow()->getInputManager()->fetchOrAddKeyBindings(MkKey::SPACE)->OnKeyPressed +=
 		MakeDelegate(this, &AppStage_MonoLensCalibration::onCaptureKeyPressed);
 
 	// Initialize video stream + lens calibrator
@@ -71,7 +67,6 @@ void AppStage_MonoLensCalibration::enter()
 	{
 		// Allocate all distortion and video buffers
 		m_monoDistortionView = new VideoFrameDistortionView(
-			m_ownerWindow,
 			m_videoSourceComponent, 
 			VIDEO_FRAME_HAS_ALL);
 

@@ -95,9 +95,15 @@ class IMkCamera;
 using IMkCameraPtr = std::shared_ptr<IMkCamera>;
 using IMkCameraConstPtr = std::shared_ptr<const IMkCamera>;
 
-class IMkWindow;
-using IMkWindowPtr = std::shared_ptr<IMkWindow>;
-using IMkWindowConstPtr = std::shared_ptr<const IMkWindow>;
+class IMkGraphicsContext;
+using IMkGraphicsContextPtr = std::shared_ptr<IMkGraphicsContext>;
+using IMkGraphicsContextConstPtr = std::shared_ptr<const IMkGraphicsContext>;
+using IMkGraphicsContextWeakPtr = std::weak_ptr<IMkGraphicsContext>;
+
+class IMkWindowContext;
+using IMkWindowContextPtr = std::shared_ptr<IMkWindowContext>;
+using IMkWindowContextConstPtr = std::shared_ptr<const IMkWindowContext>;
+using IMkWindowContextWeakPtr = std::weak_ptr<IMkWindowContext>;
 
 class IMkMesh;
 using IMkMeshPtr = std::shared_ptr<IMkMesh>;

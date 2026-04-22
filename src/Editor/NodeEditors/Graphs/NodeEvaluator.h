@@ -13,10 +13,10 @@ class NodeEvaluator
 public:
 	NodeEvaluator()= default;
 
-	inline NodeEvaluator& setCurrentWindow(class IMkWindow* inWindow)
-	{ m_currentWindow= inWindow; return *this; }
-	inline class IMkWindow* getCurrentWindow() const 
-	{ return m_currentWindow; }
+	inline NodeEvaluator& setCurrentGraphicsContext(class IMkGraphicsContext* inGraphicsContext)
+	{ m_currentGraphicsContext= inGraphicsContext; return *this; }
+	inline class IMkGraphicsContext* getCurrentGraphicsContext() const 
+	{ return m_currentGraphicsContext; }
 
 	inline NodeEvaluator& setDeltaSeconds(float inDeltaSeconds) 
 	{ m_deltaSeconds= inDeltaSeconds; return *this; }
@@ -33,7 +33,7 @@ public:
 	bool evaluateFlowPinChain(NodePtr startNode);
 
 protected:
-	class IMkWindow* m_currentWindow= nullptr;
+	class IMkGraphicsContext* m_currentGraphicsContext= nullptr;
 	float m_deltaSeconds= 0.f;
 	CompositorComponentPtr m_compositor;
 

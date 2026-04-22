@@ -2,8 +2,8 @@
 #include "CameraComponent.h"
 #include "MkScopedObjectBinding.h"
 #include "IEditorWindow.h"
+#include "IMkGraphicsContext.h"
 #include "IMkFrameBuffer.h"
-#include "IMkWindow.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "MikanShaderCache.h"
@@ -155,7 +155,7 @@ IMkTexturePtr ColorTextureSourceNode::getColorSourceTexture() const
 		}
 		else
 		{
-			auto* textureCache = getOwnerGraph()->getOwnerWindow()->getTextureCache();
+			auto* textureCache = getOwnerGraph()->getOwnerWindow()->getGraphicsContext()->getTextureCache();
 
 			if (m_clientTextureType == eTextureSourceColorType::colorRGBA)
 			{
@@ -173,7 +173,7 @@ IMkTexturePtr ColorTextureSourceNode::getColorSourceTexture() const
 
 void ColorTextureSourceNode::updateColorFrameBuffer(NodeEvaluator& evaluator, IMkTexturePtr clientTexture)
 {
-	IMkWindow* ownerWindow = evaluator.getCurrentWindow();
+	IMkGraphicsContext* graphicsContext = evaluator.getCurrentGraphicsContext();
 
 	assert(m_clientTextureType == eTextureSourceColorType::colorRGBA || 
 		   m_clientTextureType == eTextureSourceColorType::colorRGB);
@@ -220,7 +220,7 @@ void ColorTextureSourceNode::updateColorFrameBuffer(NodeEvaluator& evaluator, IM
 				? INTERNAL_MATERIAL_PT_FULLSCREEN_RGBA_TEXTURE
 				: INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE;
 			MkMaterialConstPtr colorMaterial =
-				ownerWindow->getShaderCache()->getMaterialByName(colorMaterialName);
+				graphicsContext->getShaderCache()->getMaterialByName(colorMaterialName);
 			if (colorMaterial != nullptr)
 			{
 				m_colorMaterialInstance = createMkMaterialInstance(colorMaterial);
@@ -237,7 +237,7 @@ void ColorTextureSourceNode::updateColorFrameBuffer(NodeEvaluator& evaluator, IM
 	if (m_bVerticalFlip && m_colorMaterialInstance)
 	{
 		MkScopedObjectBinding colorFramebufferBinding(
-			ownerWindow->getMkStateStack().getCurrentState(),
+			graphicsContext->getMkStateStack().getCurrentState(),
 			"Color Texture Framebuffer Scope",
 			m_colorFrameBuffer);
 		if (colorFramebufferBinding)

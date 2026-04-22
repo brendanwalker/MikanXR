@@ -1,4 +1,5 @@
 #include "MkStateStack.h"
+#include "IMkGraphicsContext.h"
 #include "IMkState.h"
 
 #include <vector>
@@ -7,14 +8,14 @@
 struct MkStateStackData
 {
 	std::vector<IMkState*> stateStack;
-	class IMkWindow* ownerWindow = nullptr;
+	class IMkGraphicsContext* ownerContext = nullptr;
 	bool bDebugPrint = false;
 };
 
-MkStateStack::MkStateStack(IMkWindow* ownerWindow) 
+MkStateStack::MkStateStack(IMkGraphicsContext* ownerContext)
 	: m_data(new MkStateStackData())
 {
-	m_data->ownerWindow = ownerWindow;
+	m_data->ownerContext = ownerContext;
 	m_data->bDebugPrint = false;
 }
 
@@ -57,9 +58,9 @@ IMkState* MkStateStack::getCurrentState() const
 	return getState(getCurrentStackDepth()); 
 }
 
-IMkWindow* MkStateStack::getOwnerWindow() const 
+IMkGraphicsContext* MkStateStack::getOwnerContext() const
 {
-	return m_data->ownerWindow; 
+	return m_data->ownerContext;
 }
 
 void MkStateStack::setDebugPrintEnabled(bool bDebugPrint)

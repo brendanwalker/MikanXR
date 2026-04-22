@@ -23,4 +23,4 @@ public:
 	virtual bool removeTexureFromCache(IMkTexturePtr texture) = 0;
 };
 
-MIKAN_RENDERER_FUNC(IMkTextureCachePtr) createMkTextureCache(class IMkWindow* ownerWindow);
+MIKAN_RENDERER_FUNC(IMkTextureCachePtr) createMkTextureCache(class IMkGraphicsContext* ownerContext);

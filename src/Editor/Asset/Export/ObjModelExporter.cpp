@@ -1,6 +1,5 @@
 #include "ObjModelExporter.h"
 #include "Colors.h"
-#include "IMkWindow.h"
 #include "MikanRenderModelResource.h"
 #include "MikanModelResourceManager.h"
 #include "MkMaterialInstance.h"
@@ -10,8 +9,8 @@
 #include "MikanTextureCache.h"
 #include "IMkTriangulatedMesh.h"
 #include "IMkWireframeMesh.h"
+#include "IMkTexture.h"
 #include "Logger.h"
-#include "SdlUtility.h"
 #include "StringUtils.h"
 #include "Version.h"
 
@@ -100,7 +99,7 @@ namespace ObjUtils
 			const std::filesystem::path textureFullPath = mtlPath.parent_path() / textureFileName;
 			const std::string texturePathString = textureFullPath.string();
 
-			if (SdlUtility::saveTextureToPNG(texture, texturePathString.c_str()))
+			if (saveMkTextureToPNG(texture, texturePathString.c_str()))
 			{
 				outRelativeTexturePath = textureFileName;
 				return true;

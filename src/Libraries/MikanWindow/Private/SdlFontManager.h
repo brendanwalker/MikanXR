@@ -1,7 +1,5 @@
 #pragma once
 
-#include "TextStyle.h"
-#include "MikanRendererFwd.h"
 #include "IMkTextRenderer.h"
 
 #include <string>
@@ -9,11 +7,11 @@
 
 #include <stdint.h>
 
-class MikanFontManager : public IMkFontManager
+class SdlFontManager : public IMkFontManager
 {
 public:
-	MikanFontManager();
-	virtual ~MikanFontManager();
+	SdlFontManager();
+	virtual ~SdlFontManager();
 
 	virtual bool startup() override;
 	virtual void garbageCollect() override;

@@ -10,7 +10,7 @@ class MIKAN_RENDERER_CLASS MkStateStack
 {
 public:
 	MkStateStack() = delete;
-	MkStateStack(IMkWindow* ownerWindow);
+	MkStateStack(IMkGraphicsContext* ownerContext);
 	virtual ~MkStateStack();
 
 	IMkState* pushState(const std::string& scopeName);
@@ -20,7 +20,7 @@ public:
 	IMkState* getState(const int depth) const;
 
 	IMkState* getCurrentState() const;
-	IMkWindow* getOwnerWindow() const;
+	IMkGraphicsContext* getOwnerContext() const;
 
 	void setDebugPrintEnabled(bool bDebugPrint);
 	bool isDebugPrintEnabled() const;

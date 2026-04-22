@@ -1,5 +1,3 @@
-#include "IMkWindow.h"
-#include "SdlCommon.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "IMkTexture.h"
@@ -13,8 +11,6 @@
 
 #include "opencv2/opencv.hpp"
 #include "opencv2/calib3d/calib3d.hpp"
-
-#include "SDL_timer.h"
 
 #include "assert.h"
 
@@ -65,12 +61,10 @@ struct OpenCVMonoCameraIntrinsics
 };
 
 VideoFrameDistortionView::VideoFrameDistortionView(
-	IMkWindow* ownerWindow,
 	VideoSourceComponentPtr videoSourceComponent,
 	unsigned int bufferBitmask,
 	unsigned int frameQueueSize)
-	: m_ownerWindow(ownerWindow)
-	, m_videoDisplayMode(eVideoDisplayMode::mode_bgr)
+	: m_videoDisplayMode(eVideoDisplayMode::mode_bgr)
 	, m_videoSourceComponent(videoSourceComponent)
 	, m_bufferBitmask(bufferBitmask)
 	, m_frameWidth(0)
@@ -81,7 +75,7 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	, m_bgrSourceBufferCount(frameQueueSize)
 	, m_bgrSourceBufferWriteIndex(0)
 	, m_lastVideoFrameReadIndex(0)
-	, m_lastFrameTimestamp(0)
+	, m_lastFrameTimestamp()
 	, m_bgrUndistortBuffer(nullptr)
 	// Grayscale video frame buffers
 	, m_gsSourceBuffer(nullptr)
@@ -95,7 +89,6 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	, m_distortionTextureMap(nullptr)
 	, m_videoTexture(nullptr)
 {
-
 	// Source Video Frame data
 	m_bgrSourceBuffers = new SourceBufferEntry[m_bgrSourceBufferCount];
 	for (unsigned int queueIndex = 0; queueIndex < m_bgrSourceBufferCount; ++queueIndex)
@@ -133,7 +126,7 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	}
 
 	// Create a mesh used to render the video frame
-	m_fullscreenRGBQuad= createFullscreenQuadMesh(m_ownerWindow, true);
+	m_fullscreenRGBQuad= createFullscreenQuadMesh(getGraphicsContext(), true);
 }
 
 VideoFrameDistortionView::~VideoFrameDistortionView()
@@ -263,8 +256,8 @@ void VideoFrameDistortionView::ensureFrameBufferSize(int width, int height)
 			m_frameWidth,
 			m_frameHeight,
 			nullptr,
-			GL_RGB, // texture format
-			GL_BGR); // buffer format
+			MK_RGB, // texture format
+			MK_BGR); // buffer format
 		m_videoTexture->setGenerateMipMap(false);
 		m_videoTexture->setPixelBufferObjectMode(IMkTexture::PixelBufferObjectMode::DoublePBOWrite);
 		m_videoTexture->createTexture();
@@ -272,6 +265,16 @@ void VideoFrameDistortionView::ensureFrameBufferSize(int width, int height)
 
 	// Generate the distortion map for the new frame size
 	rebuildDistortionMap();
+}
+
+IMkGraphicsContext* VideoFrameDistortionView::getGraphicsContext() const
+{
+	if (m_videoSourceComponent != nullptr)
+	{
+		return m_videoSourceComponent->getGraphicsContext();
+	}
+
+	return nullptr;
 }
 
 bool VideoFrameDistortionView::hasNewVideoFrame() const
@@ -286,8 +289,10 @@ int64_t VideoFrameDistortionView::readNextVideoFrame()
 	// Copy the image from the video view
 	if (m_videoSourceComponent->hasNewVideoFrameAvailable(VideoFrameSection::Primary))
 	{
-		const uint32_t now = SDL_GetTicks();
-		const float deltaSeconds = fminf((float)(now - m_lastFrameTimestamp) / 1000.f, 0.1f);
+		const auto now = std::chrono::steady_clock::now();
+		const float deltaSeconds = fminf(
+			std::chrono::duration<float>(now - m_lastFrameTimestamp).count(),
+			0.1f);
 		const float fps = deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
 		m_fps = (m_fps * 0.9f) + (fps * 0.1f);
 		m_lastFrameTimestamp = now;
@@ -471,7 +476,7 @@ void VideoFrameDistortionView::rebuildDistortionMap()
 				}
 			}
 
-			m_distortionTextureMap = CreateMkTexture(m_frameWidth, m_frameHeight, (uint8_t *)data, GL_RG32F, GL_RG);
+			m_distortionTextureMap = CreateMkTexture(m_frameWidth, m_frameHeight, (uint8_t *)data, MK_RG32F, MK_RG);
 			m_distortionTextureMap->createTexture();
 
 			delete[] data;

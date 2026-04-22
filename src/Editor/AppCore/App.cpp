@@ -5,25 +5,22 @@
 #include "EventBus.h"
 #include "FrameTimer.h"
 #include "Graphs/CompositorNodeGraph.h"
-#include "SdlCommon.h"
-#include "MikanShaderCache.h"
-#include "MkStateStack.h"
+#include "IEditorWindow.h"
+#include "IMkGraphicsContext.h"
+#include "IMkWindowContext.h"
 #include "MkError.h"
-#include "MikanTextRenderer.h"
+#include "MkStateStack.h"
 #include "LocalizationManager.h"
 #include "Logger.h"
 #include "MainWindow.h"
 #include "MikanModuleManager.h"
 #include "PathUtils.h"
 #include "ProjectConfig.h"
-#include "SdlManager.h"
-#include "SdlWindow.h"
+#include "IMkWindowContextManager.h"
 #include "TypeRegistry.h"
 
 //#include "Windows/TestNodeEditorWindow.h"
 #include "Windows/CompositorNodeEditorWindow.h"
-
-#include "SDL_timer.h"
 
 #include <easy/profiler.h>
 
@@ -41,7 +38,7 @@ App::App()
 	: m_appSettings(std::make_shared<AppSettingsConfig>())
 	, m_eventBus(std::make_unique<EventBus>())
 	, m_localizationManager(new LocalizationManager())
-	, m_sdlManager(new SdlManager)
+	, m_windowManager(createMkWindowContextManager())
 	, m_bShutdownRequested(false)
 {
 	m_instance= this;
@@ -51,7 +48,7 @@ App::~App()
 {
 	m_mainWindow = nullptr;
 
-	delete m_sdlManager;
+	m_windowManager.reset();
 	delete m_localizationManager;
 
 	m_appSettings.reset();
@@ -68,8 +65,6 @@ int App::exec(int argc, char** argv)
 
 	if (startup(argc, argv))
 	{
-		SDL_Event e;
-
 		while (!m_bShutdownRequested && m_mainWindow != nullptr)
 		{
 			FrameTimer frameTimer(11); // 11ms = 90fps
@@ -88,6 +83,11 @@ int App::exec(int argc, char** argv)
 	shutdown();
 
 	return result;
+}
+
+IEditorWindow* App::getCurrentlyRenderingWindow() const
+{ 
+	return m_renderingWindow; 
 }
 
 //-- private methods -----
@@ -138,9 +138,9 @@ bool App::startup(int argc, char** argv)
 		success = false;
 	}
 
-	if (success && !m_sdlManager->startup())
+	if (success && !m_windowManager->startup())
 	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize SDL manager!";
+		MIKAN_LOG_ERROR("App::init") << "Failed to initialize window manager!";
 		success = false;
 	}
 
@@ -160,7 +160,7 @@ bool App::startup(int argc, char** argv)
 
 	if (success)
 	{
-		m_lastFrameTimestamp= SDL_GetTicks();
+		m_lastFrameTimestamp = std::chrono::steady_clock::now();
 	}
 
 	return success;
@@ -171,7 +171,7 @@ void App::shutdown()
 	// Dispose all app windows (but the main window)
 	while (m_appWindows.size() > 0)
 	{
-		ISdlMkWindow* appWindow= m_appWindows[0];
+		EditorWindow* appWindow= m_appWindows[0];
 
 		if (m_mainWindow != appWindow)
 		{
@@ -194,8 +194,8 @@ void App::shutdown()
 		m_mainWindow = nullptr;
 	}
 
-	assert(m_sdlManager != nullptr);
-	m_sdlManager->shutdown();
+	assert(m_windowManager != nullptr);
+	m_windowManager->shutdown();
 
 	assert(m_localizationManager != nullptr);
 	m_localizationManager->shutdown();
@@ -213,14 +213,16 @@ void App::tick()
 	EASY_FUNCTION();
 
 	// Update the frame rate
-	const uint32_t now = SDL_GetTicks();
-	const float deltaSeconds = fminf((float)(now - m_lastFrameTimestamp) / 1000.f, 0.1f);
+	const auto now = std::chrono::steady_clock::now();
+	const float deltaSeconds = fminf(
+		std::chrono::duration<float>(now - m_lastFrameTimestamp).count(),
+		0.1f);
 	m_fps = deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
 	m_lastFrameTimestamp = now;
 
 	// Refresh the latest events from SDL
 	// Each window will process the events it cares about
-	m_sdlManager->pollEvents();
+	m_windowManager->pollEvents();
 
 	// Tick the sim and then render each window
 	tickWindows(deltaSeconds);
@@ -233,47 +235,49 @@ void App::tickWindows(const float deltaSeconds)
 {
 	EASY_FUNCTION();
 
-	assert(m_glContextStack.size() == 0);
+	assert(m_windowManager->getCurrentWindowContext() == nullptr);
 
 
 	// Update each window
 	static bool bDebugPrintStack = false;
-	for (ISdlMkWindow* window : m_appWindows)
+	for (EditorWindow* appWindow : m_appWindows)
 	{
+		IMkWindowContext* appWindowContext = appWindow->getMkWindowContext().get();
+
 		// Mark this window as the current window getting updated
-		pushCurrentGLContext(window);
+		m_windowManager->pushCurrentWindowContext(appWindowContext);
 
 		// Process window simulation based on time
 		{
 			EASY_BLOCK("UpdateWindow");
-			window->update(deltaSeconds);
+			appWindow->update(deltaSeconds);
 		}
 
 		// Render the window
 		{
 			EASY_BLOCK("RenderWindow");
 
-			MkStateStack& MkStateStack = window->getMkStateStack();
-			MkStateStack.setDebugPrintEnabled(bDebugPrintStack);
+			MkStateStack& mkStateStack = appWindow->getGraphicsContext()->getMkStateStack();
+			mkStateStack.setDebugPrintEnabled(bDebugPrintStack);
 
-			m_renderingWindow = window;
-			window->render();
+			m_renderingWindow = appWindow;
+			appWindow->render();
 			m_renderingWindow = nullptr;
 
-			MkStateStack.setDebugPrintEnabled(false);
+			mkStateStack.setDebugPrintEnabled(false);
 		}
 
 		// Restore back to the main window
-		popCurrentGlContext(window);
+		m_windowManager->popCurrentWindowContext(appWindowContext);
 	}
 	bDebugPrintStack = false;
 
 	// Destroy any windows that have been marked for destruction
 	for (int windowIndex= (int)m_appWindows.size() - 1; windowIndex >= 0; windowIndex--)
 	{
-		ISdlMkWindow* window = m_appWindows[windowIndex];
+		EditorWindow* window = m_appWindows[windowIndex];
 
-		if (window->getSdlWindow().wantsDestroy())
+		if (window->wantsDestroy())
 		{
 			// remove the window from the window list
 			destroyAppWindow(window);
@@ -281,53 +285,53 @@ void App::tickWindows(const float deltaSeconds)
 	}
 }
 
-void App::pushCurrentGLContext(ISdlMkWindow* window)
+bool App::createAppWindowInternal(EditorWindow* appWindow)
 {
-	if (m_glContextStack.size() == 0 || m_glContextStack.back() != window)
+	// Destroy the window if it fails to initialize properly
+	if (!appWindow->startup())
 	{
-		// Add the window to the window stack
-		m_glContextStack.push_back(window);
+		destroyAppWindow(appWindow);
+		return false;
+	}
 
-		// Make the window's GL context current
-		window->getSdlWindow().makeGlContextCurrent();
-	}
-	else
+	// pop this window context this window added if it created one
+	// and return back to the previous window context
+	IMkWindowContext* appWindowContext = appWindow->getMkWindowContext().get();
+	if (m_windowManager->getCurrentWindowContext() == appWindowContext)
 	{
-		MIKAN_LOG_WARNING("App::popCurrentWindow")
-			<< "Unable to push window "
-			<< window->getSdlWindow().getTitle()
-			<< " (already current)";
+		m_windowManager->popCurrentWindowContext(appWindowContext);
 	}
+
+	// Add the window to the list of windows
+	m_appWindows.push_back(appWindow);
+
+	return true;
 }
 
-ISdlMkWindow* App::getCurrentGlContext() const
+void App::destroyAppWindow(EditorWindow* appWindow)
 {
-	return m_glContextStack.size() > 0 ? m_glContextStack.back() : nullptr;
-}
-
-void App::popCurrentGlContext(ISdlMkWindow* window)
-{
-	if (checkHasAnyMkError("IMkShader::createProgram()", __FILE__, __LINE__))
+	// If this window was the current window, pop it from the current window stack
+	IMkWindowContext* appWindowContext = appWindow->getMkWindowContext().get();
+	if (m_windowManager->getCurrentWindowContext() == appWindowContext)
 	{
-		MIKAN_LOG_ERROR("App::popCurrentWindow") << "Unhandled GL error found before popping window";
+		m_windowManager->popCurrentWindowContext(appWindowContext);
 	}
 
-	if (m_glContextStack.size() > 0 && m_glContextStack.back() == window)
-	{
-		// Remove the window from the window stack
-		m_glContextStack.pop_back();
+	// Tear down the window and graphics context it owns
+	appWindow->shutdown();
 
-		// Make the previous window's GL context current
-		if (m_glContextStack.size() > 0)
-		{
-			m_glContextStack.back()->getSdlWindow().makeGlContextCurrent();
-		}
-	}
-	else
+	// Remove the window from the list of windows (should deallocate it)
+	auto it = std::find(m_appWindows.begin(), m_appWindows.end(), appWindow);
+	if (it != m_appWindows.end())
 	{
-		MIKAN_LOG_ERROR("App::popCurrentWindow")
-			<< "Unable to pop window "
-			<< window->getSdlWindow().getTitle()
-			<< " (not current)";
+		m_appWindows.erase(it);
 	}
+
+	// If this was the main window pointer, make sure to invalidate that pointer
+	if (m_mainWindow == appWindow)
+	{
+		m_mainWindow = nullptr;
+	}
+
+	delete appWindow;
 }

@@ -5,7 +5,6 @@
 #include "CameraComponent.h"
 #include "CameraMath.h"
 #include "Colors.h"
-#include "SdlCommon.h"
 #include "MikanLineRenderer.h"
 #include "MikanTextRenderer.h"
 #include "InputManager.h"
@@ -163,6 +162,8 @@ bool StencilAligner::computeStencilTransform(glm::mat4& outStencilTransform)
 
 void StencilAligner::renderPixelSamples()
 {
+	IMkGraphicsContext* graphicsContext = m_cameraComponent->getGraphicsContext();
+
 	glm::vec3 glm_points[4];
 	const int pointCount = (int)m_calibrationState->pixelSamples.size();
 	assert(pointCount <= 4);
@@ -177,6 +178,7 @@ void StencilAligner::renderPixelSamples()
 		style.horizontalAlignment = eHorizontalTextAlignment::Middle;
 		style.verticalAlignment = eVerticalTextAlignment::Bottom;
 		drawTextAtCameraPosition(
+			graphicsContext,
 			style,
 			m_frameWidth, m_frameHeight,
 			glm_points[i],
@@ -191,15 +193,25 @@ void StencilAligner::renderPixelSamples()
 				case 2: color = Colors::Green; break;
 				case 3: color = Colors::Blue; break;
 			}
-			drawSegment2d(m_frameWidth, m_frameHeight, glm_points[0], glm_points[i], color, color);
+			drawSegment2d(
+				graphicsContext,
+				m_frameWidth, m_frameHeight, 
+				glm_points[0], glm_points[i], 
+				color, color);
 		}
 	}
 
-	drawPointList2d(m_frameWidth, m_frameHeight, glm_points, pointCount, Colors::Yellow, 2.f);
+	drawPointList2d(
+		graphicsContext, 
+		m_frameWidth, m_frameHeight, 
+		glm_points, pointCount, 
+		Colors::Yellow, 2.f);
 }
 
 void StencilAligner::renderVertexSamples()
 {
+	IMkGraphicsContext* graphicsContext = m_cameraComponent->getGraphicsContext();
+
 	const glm::mat4& xform= m_modelStencil->getWorldTransform();
 	const int pointCount = (int)m_calibrationState->glLocalVertexSamples.size();
 
@@ -212,6 +224,7 @@ void StencilAligner::renderVertexSamples()
 		style.horizontalAlignment = eHorizontalTextAlignment::Middle;
 		style.verticalAlignment = eVerticalTextAlignment::Bottom;
 		drawTextAtWorldPosition(
+			graphicsContext,
 			style,
 			worldVertex,
 			L"P%d", i);
@@ -225,7 +238,9 @@ void StencilAligner::renderVertexSamples()
 				case 2: color = Colors::Green; break;
 				case 3: color = Colors::Blue; break;
 			}
-			drawSegment(xform, m_calibrationState->glLocalVertexSamples[0], localVertex, color, color);
+			drawSegment(
+				graphicsContext, 
+				xform, m_calibrationState->glLocalVertexSamples[0], localVertex, color, color);
 		}
 	}
 }

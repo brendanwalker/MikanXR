@@ -6,6 +6,7 @@
 #include "CompositorComponent.h"
 #include "EditorObjectSystem.h"
 #include "InputManager.h"
+#include "IMkGraphicsContext.h"
 #include "IMkLineRenderer.h"
 #include "IMkTextRenderer.h"
 #include "IMkTexture.h"
@@ -32,8 +33,6 @@
 #include "Project/GuiPanel_ProjectTracking.h"
 #include "Shared/GuiPanel_MarkerComponent.h"
 #include "SceneComponent.h"
-#include "SdlCommon.h"
-#include "SdlUtility.h"
 #include "SceneObjectSystem.h"
 #include "TextStyle.h"
 #include "VideoSourceComponent.h"
@@ -104,12 +103,12 @@ void AppStage_Project::enter()
 
 	// Setup hotkeys
 	{
-		InputManager* inputManager = InputManager::getInstance();
+		InputManager* inputManager = getOwnerWindow()->getInputManager();
 
 		// Hotkeys for switching between viewport modes
-		inputManager->fetchOrAddKeyBindings(SDLK_COMMA)->OnKeyPressed +=
+		inputManager->fetchOrAddKeyBindings(MkKey::COMMA)->OnKeyPressed +=
 			MakeDelegate(this, &AppStage_Project::cyclePreviousCompositorCamera);
-		inputManager->fetchOrAddKeyBindings(SDLK_PERIOD)->OnKeyPressed +=
+		inputManager->fetchOrAddKeyBindings(MkKey::PERIOD)->OnKeyPressed +=
 			MakeDelegate(this, &AppStage_Project::cycleNextCompositorCamera);
 	}
 
@@ -360,6 +359,7 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 {
 	MikanCameraPtr viewportCamera = m_viewport->getCurrentMikanCamera();
 	int viewportCameraIndex = m_viewport->getCurrentCameraIndex();
+	IMkGraphicsContext* graphicsContext = getGraphicsContext();
 
 	// If we are looking through a compositor camera,
 	// we need to render the compositor output to a quad first
@@ -376,7 +376,7 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 	{
 		currentScene->renderEditorScene(
 			viewportCamera,
-			m_ownerWindow->getMkStateStack());
+			m_ownerWindow->getGraphicsContext()->getMkStateStack());
 	}
 
 	// Perform component custom rendering
@@ -395,14 +395,15 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 		const float zFar = fminf(viewportCamera->getZFar(), 2.0f);
 
 		drawTransformedFrustum(
+			graphicsContext,
 			glmCameraXform,
 			hfov_radians, vfov_radians,
 			zNear, zFar,
 			Colors::Yellow);
-		drawTransformedAxes(glmCameraXform, 0.1f);
+		drawTransformedAxes(graphicsContext, glmCameraXform, 0.1f);
 		
 		// Draw tracking space
-		drawGrid(glm::mat4(1.f), 10.f, 10.f, 20, 20, Colors::GhostWhite);
+		drawGrid(graphicsContext, glm::mat4(1.f), 10.f, 10.f, 20, 20, Colors::GhostWhite);
 	}
 
 	if (getEditorSettings().bRenderOrigin)
@@ -413,10 +414,11 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 
 void AppStage_Project::debugRenderOrigin() const
 {
+	IMkGraphicsContext* graphicsContext = getGraphicsContext();
 	TextStyle style = getDefaultTextStyle();
 
-	drawTransformedAxes(glm::mat4(1.f), 1.f, 1.f, 1.f);
-	drawTextAtWorldPosition(style, glm::vec3(0.f, 0.f, 0.f), L"(0,0,0)");
+	drawTransformedAxes(graphicsContext, glm::mat4(1.f), 1.f, 1.f, 1.f);
+	drawTextAtWorldPosition(graphicsContext, style, glm::vec3(0.f, 0.f, 0.f), L"(0,0,0)");
 }
 
 // -- IRemoteControllable Interface -- //

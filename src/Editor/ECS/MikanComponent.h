@@ -56,9 +56,6 @@ class MikanComponent :
 public:
 	MikanComponent(MikanObjectWeakPtr owner);
 
-	class IMkWindow* getOwnerWindow() const;
-	class IEditorWindow* getOwnerEditorWindow() const;
-
 	inline bool getWasInitialized() const { return m_bWasInitialized; }
 	inline bool getWasDisposed() const { return m_bWasDisposed; }
 	
@@ -73,6 +70,8 @@ public:
 	void setName(const std::string& name);
 	const std::string& getName() const { return m_name; }
 
+	class IEditorWindow* getOwnerEditorWindow() const;
+	class IMkGraphicsContext* getGraphicsContext() const;
 	MikanObjectPtr getOwnerObject() const { return m_ownerObject.lock(); }
 	ProjectManagerPtr getOwnerProjectManager() const;
 	bool destroyOwnerObject();

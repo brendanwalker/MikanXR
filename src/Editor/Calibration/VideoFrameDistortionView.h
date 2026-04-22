@@ -1,9 +1,12 @@
 #pragma once
 
+#include "IEditorWindow.h"
 #include "VideoDisplayConstants.h"
 #include "OpenCVFwd.h"
 #include "MikanRendererFwd.h"
+
 #include <memory>
+#include <chrono>
 
 class VideoSourceComponent;
 typedef std::shared_ptr<VideoSourceComponent> VideoSourceComponentPtr;
@@ -12,13 +15,13 @@ class VideoFrameDistortionView
 {
 public:
 	VideoFrameDistortionView(
-		class IMkWindow* ownerWindow,
 		VideoSourceComponentPtr view, 
 		unsigned int bufferBitmask, 
 		unsigned int frameQueueSize=1);
 	virtual ~VideoFrameDistortionView();
 
 	inline VideoSourceComponentPtr getVideoSourceComponent() const { return m_videoSourceComponent; }
+	inline IMkGraphicsContext* getGraphicsContext() const;
 
 	inline int getFrameWidth() const { return m_frameWidth; }
 	inline int getFrameHeight() const { return m_frameHeight; }
@@ -59,8 +62,6 @@ protected:
 	static void copyOpenCVMatIntoGLTexture(const cv::Mat& mat, IMkTexturePtr texture);
 
 protected:
-	IMkWindow* m_ownerWindow= nullptr;
-
 	eVideoDisplayMode m_videoDisplayMode;
 	VideoSourceComponentPtr m_videoSourceComponent;
 	unsigned int m_bufferBitmask;
@@ -78,7 +79,7 @@ protected:
 	unsigned int m_bgrSourceBufferCount;
 	unsigned int m_bgrSourceBufferWriteIndex;
 	int64_t m_lastVideoFrameReadIndex;
-	uint32_t m_lastFrameTimestamp;
+	std::chrono::steady_clock::time_point m_lastFrameTimestamp;
 
 	// Video frame buffers (24-BPP, BGR color format)
 	cv::Mat* m_bgrSourceBuffer_OGL; // 24-BPP(BGR color format) source buffer on GPU

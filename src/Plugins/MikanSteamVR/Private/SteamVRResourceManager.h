@@ -9,12 +9,12 @@ public:
 	SteamVRResourceManager();
 	virtual ~SteamVRResourceManager();
 
-	void init(class IMkWindow* ownerWindow);
+	void init(class IMkGraphicsContext* ownerWindow);
 	void cleanup();
 
 	class SteamVRRenderModelResource* fetchRenderModel(const std::string& renderModelName);
 
 private:
-	class IMkWindow* m_ownerWindow = nullptr;
+	class IMkGraphicsContext* m_ownerContext = nullptr;
 	std::map<std::string, class SteamVRRenderModelResource*> m_renderModelCache;
 };

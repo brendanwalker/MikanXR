@@ -1,7 +1,6 @@
 #include "CalibrationRenderHelpers.h"
 #include "CalibrationPatternFinder_Charuco.h"
 #include "Colors.h"
-#include "SdlCommon.h"
 #include "Logger.h"
 #include "MathUtility.h"
 #include "MarkerObjectSystem.h"
@@ -236,6 +235,8 @@ float MonoLensDistortionCalibrator::getReprojectionError() const
 
 void MonoLensDistortionCalibrator::renderCalibrationState()
 {
+	IMkGraphicsContext* graphicsContext = m_distortionView->getGraphicsContext();
+
 	// Draw the most recently capture chessboard
 	m_patternFinder->renderCalibrationPattern2D();
 
@@ -243,6 +244,7 @@ void MonoLensDistortionCalibrator::renderCalibrationState()
 	if (m_calibrationState->quadList.size() > 0)
 	{
 		drawQuadList2d(
+			graphicsContext,
 			frameWidth, frameHeight,
 			(float*)m_calibrationState->quadList.data(), // cv::point2f is just two floats 
 			(int)m_calibrationState->quadList.size(),

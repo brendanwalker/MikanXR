@@ -65,4 +65,4 @@ public:
 		const std::wstring& text) = 0;
 };
 
-MIKAN_RENDERER_FUNC(IMkTextRendererPtr) createMkTextRenderer(IMkWindow* ownerWindow, IMkFontManager* fontManager);
+MIKAN_RENDERER_FUNC(IMkTextRendererPtr) createMkTextRenderer(IMkGraphicsContext* ownerContext, IMkFontManager* fontManager);

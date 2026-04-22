@@ -18,6 +18,8 @@ namespace PathUtils
 	/// Get the location of resource files 
 	MIKAN_UTILITY_FUNC(std::filesystem::path) getResourceDirectory();
 
+	MIKAN_UTILITY_FUNC(std::filesystem::path) getFontPath(const std::string& fontName);
+
 	/// Make a relative 
 	MIKAN_UTILITY_FUNC(std::filesystem::path) makeAbsoluteResourceFilePath(const std::filesystem::path& relative_path);
 

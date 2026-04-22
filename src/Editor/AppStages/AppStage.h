@@ -29,6 +29,7 @@ public:
 	virtual ~AppStage();
 
 	IEditorWindow* getOwnerWindow() const { return m_ownerWindow; }
+	IMkGraphicsContext* getGraphicsContext() const;
 	ProjectManagerPtr getProjectManager() const;
 	ProjectConfigPtr getProjectConfig() const;
 	const struct EditorSettings& getEditorSettings() const;
@@ -51,7 +52,7 @@ public:
 	virtual void onGui();
 	virtual void render(IMkViewportPtr targetViewport);
 
-	virtual void onSDLEvent(const SDL_Event* event);
+	virtual void onWindowEvent(const class MkWindowEvent& event);
 
 	MikanViewportPtr getFirstViewport() const { return m_viewports[0]; }
 	const MikanViewportList& getViewportList() const { return m_viewports; }

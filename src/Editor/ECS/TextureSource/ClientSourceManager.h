@@ -26,7 +26,7 @@ public:
 	ClientSourceManager() = default;
 	virtual ~ClientSourceManager() = default;
 
-	bool startup(class IMkWindow* ownerWindow);
+	bool startup();
 	void shutdown();
 
 	inline const NamedValueTable<ClientSource*>& getClientSources() const { return m_clientSources; }
@@ -52,8 +52,6 @@ protected:
 	void onClientRenderTargetUpdated(const std::string& clientId, MikanCameraID cameraId, int64_t frameIndex);
 
 private:
-	class IMkWindow* m_ownerWindow= nullptr;
-
 	// Data sources used by the compositor layers
 	NamedValueTable<ClientSource*> m_clientSources;
 };

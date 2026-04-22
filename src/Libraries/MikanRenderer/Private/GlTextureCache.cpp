@@ -6,7 +6,7 @@ class GlTextureCache : public IMkTextureCache
 {
 public:
 	GlTextureCache() = delete;
-	GlTextureCache(IMkWindow* ownerWindow) : m_ownerWindow(ownerWindow) {}
+	GlTextureCache(IMkGraphicsContext* ownerContext) : m_ownerContext(ownerContext) {}
 	virtual ~GlTextureCache() 
 	{
 		shutdown();	
@@ -80,11 +80,11 @@ public:
 	}
 
 private:
-	IMkWindow* m_ownerWindow;
+	IMkGraphicsContext* m_ownerContext;
 	std::map<std::string, IMkTexturePtr> m_textureCache;
 };
 
-IMkTextureCachePtr createMkTextureCache(class IMkWindow* ownerWindow)
+IMkTextureCachePtr createMkTextureCache(class IMkGraphicsContext* ownerContext)
 {
-	return std::make_shared<GlTextureCache>(ownerWindow);
+	return std::make_shared<GlTextureCache>(ownerContext);
 }

@@ -11,7 +11,7 @@
 #include "IMkTexture.h"
 #include "IMkTriangulatedMesh.h"
 #include "MkMaterialInstance.h"
-#include "IMkWindow.h"
+#include "IMkGraphicsContext.h"
 #include "Logger.h"
 #include "MainWindow.h"
 #include "NodeEditorState.h"
@@ -230,8 +230,9 @@ bool DepthMaskNode::evaluateNode(NodeEvaluator& evaluator)
 	if (bSuccess && (bAnyQuadStencils || bAnyBoxStencils || bAnyModelStencils))
 	{
 		// Bind the depth frame buffer
+		IMkGraphicsContext* graphicsContext = evaluator.getCurrentGraphicsContext();
 		MkScopedObjectBinding depthFramebufferBinding(
-			evaluator.getCurrentWindow()->getMkStateStack().getCurrentState(),
+			graphicsContext->getMkStateStack().getCurrentState(),
 			"Depth Mask Framebuffer Scope",
 			m_linearDepthFrameBuffer);
 		if (depthFramebufferBinding)

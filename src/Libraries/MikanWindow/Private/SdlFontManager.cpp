@@ -1,8 +1,6 @@
-#include "MikanFontManager.h"
-#include "SdlCommon.h"
-#include "MikanShaderCache.h"
-#include "IMkShader.h"
+#include "SdlFontManager.h"
 #include "IMkTexture.h"
+#include "IMkFontManager.h"
 #include "Logger.h"
 #include "PathUtils.h"
 #include "StringUtils.h"
@@ -11,20 +9,16 @@
 
 #include <unordered_map>
 
-#include <easy/profiler.h>
-
-MikanFontManager::MikanFontManager()
+SdlFontManager::SdlFontManager()
 {
 }
 
-MikanFontManager::~MikanFontManager()
+SdlFontManager::~SdlFontManager()
 {
 }
 
-bool MikanFontManager::startup()
+bool SdlFontManager::startup()
 {
-	EASY_FUNCTION();
-
 	if (TTF_WasInit() == 0)
 	{
 		if (TTF_Init() == -1)
@@ -37,13 +31,11 @@ bool MikanFontManager::startup()
 	return true;
 }
 
-void MikanFontManager::garbageCollect()
+void SdlFontManager::garbageCollect()
 {
-	EASY_FUNCTION();
-
 	for (auto it = m_bakedTextCache.begin(); it != m_bakedTextCache.end(); )
 	{
-		MikanFontManager::MkBakedText& bakedText = it->second;
+		SdlFontManager::MkBakedText& bakedText = it->second;
 
 		// Age the baked text
 		--bakedText.lifetime;
@@ -62,8 +54,8 @@ void MikanFontManager::garbageCollect()
 	}
 }
 
-void MikanFontManager::shutdown()
-{	
+void SdlFontManager::shutdown()
+{
 	// Flush any remaining baked textures
 	m_bakedTextCache.clear();
 
@@ -85,12 +77,12 @@ size_t computeTextHash(const TextStyle& style, const std::wstring& text)
 		style.fontName.c_str(),
 		style.pointSize,
 		style.styleBitmask);
-	
+
 	return hasher(text + szStyleString);
 }
 
-IMkTexturePtr MikanFontManager::fetchBakedText(
-	const TextStyle& style, 
+IMkTexturePtr SdlFontManager::fetchBakedText(
+	const TextStyle& style,
 	const std::wstring& text)
 {
 	const int defaultLifetime= 10;
@@ -113,7 +105,7 @@ IMkTexturePtr MikanFontManager::fetchBakedText(
 			typedef std::basic_string<Uint16, std::char_traits<Uint16>, std::allocator<Uint16> > u16string;
 			u16string utext_sf_str(text.begin(), text.end());
 
-			SDL_Color sdlColor = { 
+			SDL_Color sdlColor = {
 				(Uint8)(style.color.r * 255.f),
 				(Uint8)(style.color.g * 255.f),
 				(Uint8)(style.color.b * 255.f), 255 };
@@ -125,7 +117,7 @@ IMkTexturePtr MikanFontManager::fetchBakedText(
 					CreateMkTexture(
 						(uint16_t)sdlSurface->w, (uint16_t)sdlSurface->h,
 						(const uint8_t *)sdlSurface->pixels,
-						GL_RGBA, GL_BGRA);
+						MK_RGBA, MK_BGRA);
 
 				if (texture->createTexture())
 				{
@@ -160,7 +152,7 @@ size_t computeFontHash(const std::string& fontName, int pointSize)
 	return hasher(szStyleString);
 }
 
-void* MikanFontManager::fetchFont(const std::string& fontName, int pointSize)
+void* SdlFontManager::fetchFont(const std::string& fontName, int pointSize)
 {
 	const size_t hash = computeFontHash(fontName, pointSize);
 
@@ -170,7 +162,7 @@ void* MikanFontManager::fetchFont(const std::string& fontName, int pointSize)
 	}
 	else
 	{
-		const std::filesystem::path fontPath= getFontPath(fontName);
+		const std::filesystem::path fontPath= PathUtils::getFontPath(fontName);
 		const std::string fontPathString= fontPath.string();
 
 		TTF_Font* font= TTF_OpenFont(fontPathString.c_str(), pointSize);
@@ -185,4 +177,9 @@ void* MikanFontManager::fetchFont(const std::string& fontName, int pointSize)
 			return nullptr;
 		}
 	}
+}
+
+IMkFontManagerPtr createMkFontManager()
+{
+	return std::make_shared<SdlFontManager>();
 }

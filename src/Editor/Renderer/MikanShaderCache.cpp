@@ -11,8 +11,8 @@
 #include <filesystem>
 #include <string>
 
-MikanShaderCache::MikanShaderCache(IMkWindow* ownerWindow)
-	: m_shaderCache(createMkShaderCache(ownerWindow))
+MikanShaderCache::MikanShaderCache(IMkGraphicsContext* graphicsContext)
+	: m_shaderCache(createMkShaderCache(graphicsContext))
 {
 }
 

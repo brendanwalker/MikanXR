@@ -107,7 +107,10 @@ void CalibrationPatternFinder::renderCalibrationPattern2D() const
 {
 	if (areCurrentImagePointsValid())
 	{
+		IMkGraphicsContext* graphicsContext = m_distortionView->getGraphicsContext();
+
 		drawOpenCVChessBoard2D(
+			graphicsContext,
 			m_frameWidth, m_frameHeight,
 			(float*)m_currentImagePoints.data(), // cv::point2f is just two floats 
 			(int)m_currentImagePoints.size(),
@@ -119,7 +122,10 @@ void CalibrationPatternFinder::renderSolvePnPPattern3D(const glm::mat4& xform) c
 {
 	if (areCurrentImagePointsValid())
 	{
+		IMkGraphicsContext* graphicsContext = m_distortionView->getGraphicsContext();
+
 		drawOpenCVChessBoard3D(
+			graphicsContext,
 			xform,
 			m_openglSolvePnPGeometry.points.data(), // cv::point3f is just three floats 
 			(int)m_openglSolvePnPGeometry.points.size(),

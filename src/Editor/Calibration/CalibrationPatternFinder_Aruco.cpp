@@ -46,7 +46,7 @@ CalibrationPatternFinder_Aruco::CalibrationPatternFinder_Aruco(
 {
 	StageComponentConstPtr ownerStage= cameraComponent->getOwnerStageComponent();
 	assert(ownerStage != nullptr);
-	IEditorWindow* ownerWindow= static_cast<IEditorWindow *>(ownerStage->getOwnerWindow());
+	IEditorWindow* ownerWindow= ownerStage->getOwnerEditorWindow();
 	assert(ownerWindow != nullptr);
 	MarkerObjectSystemPtr markerSystem= 
 		ownerWindow->getProjectManager()->getSystemOfType<MarkerObjectSystem>();
@@ -183,6 +183,8 @@ void CalibrationPatternFinder_Aruco::renderCalibrationPattern2D() const
 {
 	CalibrationPatternFinder::renderCalibrationPattern2D();
 
+	IMkGraphicsContext* graphicsContext = getDistortionView()->getGraphicsContext();
+
 	// Draw the marker corners, if any
 	TextStyle style = getDefaultTextStyle();
 	style.horizontalAlignment = eHorizontalTextAlignment::Middle;
@@ -199,6 +201,7 @@ void CalibrationPatternFinder_Aruco::renderCalibrationPattern2D() const
 		const t_opencv_point2d_list& corners = m_markerData->markerCorners[quadIndex];
 
 		drawQuadList2d(
+			graphicsContext,
 			m_frameWidth, m_frameHeight,
 			(float*)corners.data(), // cv::point2f is just two floats 
 			(int)corners.size(),
@@ -212,6 +215,7 @@ void CalibrationPatternFinder_Aruco::renderCalibrationPattern2D() const
 			opencv_point2f_compute_average(corners, quadCenter);
 
 			drawTextAtTrackerPosition(
+				graphicsContext,
 				style,
 				m_frameWidth, m_frameHeight,
 				glm::vec2(quadCenter.x, quadCenter.y),

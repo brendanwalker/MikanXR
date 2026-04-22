@@ -64,6 +64,13 @@ namespace PathUtils
 		return resourceDir;
 	}
 
+	std::filesystem::path getFontPath(const std::string& fontName)
+	{
+		const std::string fileFilename = fontName + ".ttf";
+
+		return getResourceDirectory() / "font" / fileFilename;
+	}
+
 	std::filesystem::path makeAbsoluteResourceFilePath(const std::filesystem::path& relative_path)
 	{
 		if (relative_path.is_absolute())

@@ -10,7 +10,7 @@
 class MikanRenderModelResource
 {
 public:
-	MikanRenderModelResource(class IMkWindow* ownerWindow);
+	MikanRenderModelResource(class IMkGraphicsContext* ownerGraphicsContext);
 	virtual ~MikanRenderModelResource();
 
 	inline const std::string& getName() const { return m_name; }
@@ -35,7 +35,7 @@ public:
 protected:
 	void disposeMeshRenderResources();
 
-	class IMkWindow* m_ownerWindow= nullptr;
+	class IMkGraphicsContext* m_ownerGraphicsContext = nullptr;
 
 	std::string m_name;
 	std::filesystem::path m_renderModelFilepath;

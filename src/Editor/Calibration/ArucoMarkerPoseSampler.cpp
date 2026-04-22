@@ -3,7 +3,6 @@
 #include "CameraComponent.h"
 #include "CameraMath.h"
 #include "Colors.h"
-#include "SdlCommon.h"
 #include "MikanLineRenderer.h"
 #include "MikanTextRenderer.h"
 #include "MathGLM.h"
@@ -192,6 +191,8 @@ bool ArucoMarkerPoseSampler::computeCalibratedMarkerPose(
 
 void ArucoMarkerPoseSampler::renderCameraSpaceCalibrationState()
 {
+	IMkGraphicsContext* graphicsContext = m_calibrationCamera->getGraphicsContext();
+
 	// Draw the most recently capture chessboard in camera space
 	m_markerFinder->renderCalibrationPattern2D();
 
@@ -201,22 +202,26 @@ void ArucoMarkerPoseSampler::renderCameraSpaceCalibrationState()
 	{
 		const glm::mat4 cameraToMarkerXform = glm::mat4(m_calibrationState->cameraToMarkerXform);
 
-		drawTransformedAxes(cameraToMarkerXform, 0.1f);
+		drawTransformedAxes(graphicsContext, cameraToMarkerXform, 0.1f);
 
 		TextStyle style = getDefaultTextStyle();
-		drawTextAtWorldPosition(style, glm_mat4_get_position(cameraToMarkerXform), L"Marker");
+		drawTextAtWorldPosition(
+			graphicsContext, 
+			style, glm_mat4_get_position(cameraToMarkerXform), L"Marker");
 	}
 }
 
 void ArucoMarkerPoseSampler::renderVRSpaceCalibrationState()
 {
+	IMkGraphicsContext* graphicsContext = m_calibrationCamera->getGraphicsContext();
+
 	// Compute the camera pose in VRSpace
 	glm::dmat4 cameraXform_VRSpace;
 	if (m_calibrationCamera->getAperturePose(cameraXform_VRSpace, eVRDevicePoseSpace::VRTrackingSystemPose))
 	{
 		// Draw the marker transform
 		const glm::mat4 markerXform = glm::mat4(m_calibrationState->vrSpaceMarkerXform);
-		drawTransformedAxes(markerXform, 0.1f);
+		drawTransformedAxes(graphicsContext, markerXform, 0.1f);
 
 		// Draw the most recently derived camera transform derived from the mat puck
 		const float hfov_radians = degrees_to_radians(m_calibrationState->inputCameraIntrinsics.hfov);
@@ -224,10 +229,11 @@ void ArucoMarkerPoseSampler::renderVRSpaceCalibrationState()
 		const float zNear = fmaxf(m_calibrationState->inputCameraIntrinsics.znear, 0.1f);
 		const float zFar = fminf(m_calibrationState->inputCameraIntrinsics.zfar, 2.0f);
 		drawTransformedFrustum(
+			graphicsContext,
 			cameraXform_VRSpace,
 			hfov_radians, vfov_radians,
 			zNear, zFar,
 			Colors::Yellow);
-		drawTransformedAxes(cameraXform_VRSpace, 0.1f);
+		drawTransformedAxes(graphicsContext, cameraXform_VRSpace, 0.1f);
 	}
 }

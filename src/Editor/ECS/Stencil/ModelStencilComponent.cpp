@@ -6,6 +6,7 @@
 #include "ModalSelectCamera/ModalDialog_SelectCamera.h"
 #include "StencilAlignment/AppStage_StencilAlignment.h"
 #include "IEditorWindow.h"
+#include "IMkGraphicsContext.h"
 #include "IMkLineRenderer.h"
 #include "MkMaterialInstance.h"
 #include "MikanModelResourceManager.h"
@@ -170,6 +171,7 @@ void ModelStencilComponent::customRender()
 {
 	ModelStencilDefinitionPtr modelStencilDefinition= getModelStencilDefinition();
 	auto editorObjectSystem = getObjectSystemOfType<EditorObjectSystem>();
+	IMkGraphicsContext* graphicsContext = editorObjectSystem->getGraphicsContext();
 
 	if (!modelStencilDefinition->getIsDisabled() &&
 		editorObjectSystem->getEditorSystemConfigConst()->getRenderModelStencilsFlag())
@@ -179,8 +181,10 @@ void ModelStencilComponent::customRender()
 		const glm::mat4 xform = getWorldTransform();
 		const glm::vec3 position = glm::vec3(xform[3]);
 
-		drawTransformedAxes(xform, 0.1f, 0.1f, 0.1f);
-		drawTextAtWorldPosition(style, position, L"Stencil %d", modelStencilDefinition->getComponentId());
+		drawTransformedAxes(graphicsContext, xform, 0.1f, 0.1f, 0.1f);
+		drawTextAtWorldPosition(
+			graphicsContext,
+			style, position, L"Stencil %d", modelStencilDefinition->getComponentId());
 	}
 }
 
@@ -309,8 +313,8 @@ void ModelStencilComponent::rebuildMeshComponents()
 	// Fetch the stencil model resource
 	IEditorWindow* ownerWindow = getOwnerEditorWindow();
 	MikanModelResourceManager* modelResourceManager= ownerWindow->getModelResourceManager();
-	MkMaterialConstPtr stencilMaterial= 
-		ownerWindow->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED);
+	MkMaterialConstPtr stencilMaterial=
+		ownerWindow->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED);
 	MikanRenderModelResourcePtr modelResourcePtr= 
 		modelResourceManager->fetchRenderModel(
 			modelStencilDefinition->getModelPath(), stencilMaterial);

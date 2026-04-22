@@ -1,0 +1,169 @@
+#pragma once
+
+#include "MkWindowExport.h"
+#include <stdint.h>
+
+using MkKeySym = int32_t;
+
+// Based on SDL keycode encoding - scancodes are mapped to the Unicode private use area
+#define MK_SCANCODE_MASK (1<<30)
+#define MK_SCANCODE_TO_KEYCODE(X)  (X | MK_SCANCODE_MASK)
+
+namespace MkKey
+{
+	constexpr MkKeySym UNKNOWN = 0;
+
+	constexpr MkKeySym RETURN = '\r';
+	constexpr MkKeySym ESCAPE = '\033';
+	constexpr MkKeySym BACKSPACE = '\b';
+	constexpr MkKeySym TAB = '\t';
+	constexpr MkKeySym SPACE = ' ';
+	constexpr MkKeySym EXCLAIM = '!';
+	constexpr MkKeySym QUOTEDBL = '"';
+	constexpr MkKeySym HASH = '#';
+	constexpr MkKeySym PERCENT = '%';
+	constexpr MkKeySym DOLLAR = '$';
+	constexpr MkKeySym AMPERSAND = '&';
+	constexpr MkKeySym QUOTE = '\'';
+	constexpr MkKeySym LEFTPAREN = '(';
+	constexpr MkKeySym RIGHTPAREN = ')';
+	constexpr MkKeySym ASTERISK = '*';
+	constexpr MkKeySym PLUS = '+';
+	constexpr MkKeySym COMMA = ';';
+	constexpr MkKeySym MINUS = '-';
+	constexpr MkKeySym PERIOD = '.';
+	constexpr MkKeySym SLASH = '/';
+	constexpr MkKeySym NUM_0 = '0';
+	constexpr MkKeySym NUM_1 = '1';
+	constexpr MkKeySym NUM_2 = '2';
+	constexpr MkKeySym NUM_3 = '3';
+	constexpr MkKeySym NUM_4 = '4';
+	constexpr MkKeySym NUM_5 = '5';
+	constexpr MkKeySym NUM_6 = '6';
+	constexpr MkKeySym NUM_7 = '7';
+	constexpr MkKeySym NUM_8 = '8';
+	constexpr MkKeySym NUM_9 = '9';
+	constexpr MkKeySym COLON = ':';
+	constexpr MkKeySym SEMICOLON = ';';
+	constexpr MkKeySym LESS = '<';
+	constexpr MkKeySym EQUALS = '=';
+	constexpr MkKeySym GREATER = '>';
+	constexpr MkKeySym QUESTION = '?';
+	constexpr MkKeySym AT = '@';
+
+	constexpr MkKeySym LEFTBRACKET = '[';
+	constexpr MkKeySym BACKSLASH = '\\';
+	constexpr MkKeySym RIGHTBRACKET = ']';
+	constexpr MkKeySym CARET = '^';
+	constexpr MkKeySym UNDERSCORE = '_';
+	constexpr MkKeySym BACKQUOTE = '`';
+	constexpr MkKeySym LETTER_a = 'a';
+	constexpr MkKeySym LETTER_b = 'b';
+	constexpr MkKeySym LETTER_c = 'c';
+	constexpr MkKeySym LETTER_d = 'd';
+	constexpr MkKeySym LETTER_e = 'e';
+	constexpr MkKeySym LETTER_f = 'f';
+	constexpr MkKeySym LETTER_g = 'g';
+	constexpr MkKeySym LETTER_h = 'h';
+	constexpr MkKeySym LETTER_i = 'i';
+	constexpr MkKeySym LETTER_j = 'j';
+	constexpr MkKeySym LETTER_k = 'k';
+	constexpr MkKeySym LETTER_l = 'l';
+	constexpr MkKeySym LETTER_m = 'm';
+	constexpr MkKeySym LETTER_n = 'n';
+	constexpr MkKeySym LETTER_o = 'o';
+	constexpr MkKeySym LETTER_p = 'p';
+	constexpr MkKeySym LETTER_q = 'q';
+	constexpr MkKeySym LETTER_r = 'r';
+	constexpr MkKeySym LETTER_s = 's';
+	constexpr MkKeySym LETTER_t = 't';
+	constexpr MkKeySym LETTER_u = 'u';
+	constexpr MkKeySym LETTER_v = 'v';
+	constexpr MkKeySym LETTER_w = 'w';
+	constexpr MkKeySym LETTER_x = 'x';
+	constexpr MkKeySym LETTER_y = 'y';
+	constexpr MkKeySym LETTER_z = 'z';
+
+	constexpr MkKeySym PRINTSCREEN = MK_SCANCODE_TO_KEYCODE(70);
+	constexpr MkKeySym SCROLLLOCK = MK_SCANCODE_TO_KEYCODE(71);
+	constexpr MkKeySym PAUSE = MK_SCANCODE_TO_KEYCODE(72);
+	constexpr MkKeySym INSERT = MK_SCANCODE_TO_KEYCODE(73);
+	constexpr MkKeySym HOME = MK_SCANCODE_TO_KEYCODE(74);
+	constexpr MkKeySym PAGEUP = MK_SCANCODE_TO_KEYCODE(75);
+	constexpr MkKeySym DELETE_KEYCODE = '\177';
+	constexpr MkKeySym END = MK_SCANCODE_TO_KEYCODE(77);
+	constexpr MkKeySym PAGEDOWN = MK_SCANCODE_TO_KEYCODE(78);
+	constexpr MkKeySym RIGHT = MK_SCANCODE_TO_KEYCODE(79);
+	constexpr MkKeySym LEFT = MK_SCANCODE_TO_KEYCODE(80);
+	constexpr MkKeySym DOWN = MK_SCANCODE_TO_KEYCODE(81);
+	constexpr MkKeySym UP = MK_SCANCODE_TO_KEYCODE(82);
+
+	constexpr MkKeySym F1 = MK_SCANCODE_TO_KEYCODE(58);
+	constexpr MkKeySym F2 = MK_SCANCODE_TO_KEYCODE(59);
+	constexpr MkKeySym F3 = MK_SCANCODE_TO_KEYCODE(60);
+	constexpr MkKeySym F4 = MK_SCANCODE_TO_KEYCODE(61);
+	constexpr MkKeySym F5 = MK_SCANCODE_TO_KEYCODE(62);
+	constexpr MkKeySym F6 = MK_SCANCODE_TO_KEYCODE(63);
+	constexpr MkKeySym F7 = MK_SCANCODE_TO_KEYCODE(64);
+	constexpr MkKeySym F8 = MK_SCANCODE_TO_KEYCODE(65);
+	constexpr MkKeySym F9 = MK_SCANCODE_TO_KEYCODE(66);
+	constexpr MkKeySym F10 = MK_SCANCODE_TO_KEYCODE(67);
+	constexpr MkKeySym F11 = MK_SCANCODE_TO_KEYCODE(68);
+	constexpr MkKeySym F12 = MK_SCANCODE_TO_KEYCODE(69);
+};
+
+namespace MkMouseButton
+{
+	constexpr int UNKNOWN = 0;
+
+	constexpr int LEFT = 1;
+	constexpr int MIDDLE = 2;
+	constexpr int RIGHT = 3;
+};
+
+enum class eMkWindowEventType
+{
+	Quit,
+	KeyDown,
+	KeyUp,
+	MouseWheel,
+	MouseButtonDown,
+	MouseButtonUp,
+	MouseMotion,
+	WindowEvent,
+	Other
+};
+
+enum class eMkWindowEventID
+{
+	Shown,
+	Hidden,
+	SizeChanged,
+	Enter,
+	Leave,
+	FocusGained,
+	FocusLost,
+	Minimized,
+	Maximized,
+	Restored,
+	Close,
+	Unknown
+};
+
+class MkWindowEvent
+{
+public:
+	virtual ~MkWindowEvent() {}
+
+	virtual eMkWindowEventType getEventType() const = 0;
+	virtual eMkWindowEventID getWindowEventID() const = 0;
+	virtual MkKeySym getKeySym() const = 0;
+	virtual int getKeyRepeat() const = 0;
+	virtual int getMouseWheelScrollAmount() const = 0;
+	virtual int getMouseButton() const = 0;
+	virtual int getMouseMotionXRel() const = 0;
+	virtual int getMouseMotionYRel() const = 0;
+	virtual int getWindowData1() const = 0;
+	virtual int getWindowData2() const = 0;
+	virtual const void* getInternalWindowEvent() const = 0;
+};

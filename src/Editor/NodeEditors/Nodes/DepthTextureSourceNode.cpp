@@ -3,7 +3,7 @@
 #include "MkScopedObjectBinding.h"
 #include "IEditorWindow.h"
 #include "IMkFrameBuffer.h"
-#include "IMkWindow.h"
+#include "IMkGraphicsContext.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "MikanShaderCache.h"
@@ -151,7 +151,7 @@ IMkTexturePtr DepthTextureSourceNode::getDepthSourceTexture() const
 		}
 		else
 		{
-			auto* textureCache = getOwnerGraph()->getOwnerWindow()->getTextureCache();
+			auto* textureCache = getOwnerGraph()->getOwnerWindow()->getGraphicsContext()->getTextureCache();
 
 			if (m_clientTextureType == eTextureSourceDepthType::depthPackRGBA )
 			{
@@ -180,16 +180,16 @@ void DepthTextureSourceNode::updateLinearDepthFrameBuffer(NodeEvaluator& evaluat
 		m_linearDepthFrameBuffer->createResources();
 	}
 
-	IMkWindow* ownerWindow= evaluator.getCurrentWindow();
+	IMkGraphicsContext* graphicsContext = evaluator.getCurrentGraphicsContext();
 	MkScopedObjectBinding depthFramebufferBinding(
-		ownerWindow->getMkStateStack().getCurrentState(),
+		graphicsContext->getMkStateStack().getCurrentState(),
 		"Depth Texture Framebuffer Scope",
 		m_linearDepthFrameBuffer);
 	if (depthFramebufferBinding)
 	{
 		IMkState* glState = depthFramebufferBinding.getMkState();
 		MkMaterialConstPtr depthUnpackMaterial =
-			ownerWindow->getShaderCache()->getMaterialByName(
+			graphicsContext->getShaderCache()->getMaterialByName(
 				INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE);
 
 		if (depthUnpackMaterial != nullptr)

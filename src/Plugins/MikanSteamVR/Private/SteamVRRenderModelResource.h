@@ -14,7 +14,7 @@ namespace vr
 class SteamVRRenderModelResource
 {
 public:
-	SteamVRRenderModelResource(class IMkWindow* ownerWindow);
+	SteamVRRenderModelResource(class IMkGraphicsContext* ownerContext);
 	virtual ~SteamVRRenderModelResource();
 
 	bool createRenderResources();
@@ -41,7 +41,7 @@ protected:
 		const std::string& meshName,
 		const vr::RenderModel_t* steamVRRenderModel);
 
-	IMkWindow* m_ownerWindow = nullptr;
+	IMkGraphicsContext* m_ownerContext = nullptr;
 	std::string m_renderModelName;
 
 	vr::RenderModel_t* m_steamVRRenderModel = nullptr;

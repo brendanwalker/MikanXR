@@ -170,8 +170,8 @@ bool VRObjectSystem::createTrackingRuntime(eTrackingRuntime desiredRuntime)
 				<< "Allocated TrackingRuntime for " << moduleName;
 
 			// Attempt to startup the vr device manager
-			IMkWindow* ownerWindow = getOwnerProjectManager()->getOwnerWindow();
-			if (vrDeviceManager->startup(ownerWindow))
+			IEditorWindow* ownerWindow = getOwnerProjectManager()->getOwnerWindow();
+			if (vrDeviceManager->startup(ownerWindow->getGraphicsContext().get()))
 			{
 				MIKAN_LOG_INFO("VRObjectSystem::createVRTrackingRuntime")
 					<< "Started VRDeviceManger for " << moduleName;

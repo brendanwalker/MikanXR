@@ -1,5 +1,7 @@
 #pragma once
 
+#include "IMkGraphicsContext.h"
+
 #include "glm/ext/vector_float2.hpp"
 #include "glm/ext/vector_float3.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
@@ -11,11 +13,13 @@ glm::vec2 remapPointIntoTarget(
 	const glm::vec2& in_point);
 
 void drawSegment2d(
+	IMkGraphicsContext* graphicsContext,
 	const float cameraWidth, const float cameraHeight,
 	const glm::vec3& cameraSegmentStart, const glm::vec3& cameraSegmentEnd,
 	const glm::vec3& colorStart, const glm::vec3& colorEnd);
 
 void drawPointList2d(
+	IMkGraphicsContext* graphicsContext,
 	const float trackerWidth, const float trackerHeight,
 	const glm::vec3* trackerPoints2D,
 	const int trackerPointCount,
@@ -23,17 +27,20 @@ void drawPointList2d(
 	const float point_size);
 
 void drawQuadList2d(
+	IMkGraphicsContext* graphicsContext,
 	const float trackerWidth, const float trackerHeight,
 	const float* point_data_2d,
 	const int point_count,
 	const glm::vec3& color);
 
 void drawOpenCVChessBoard2D(
+	IMkGraphicsContext* graphicsContext,
 	const float trackerWidth, const float trackerHeight,
 	const float* points2d, const int point_count,
 	bool validPoints);
 
 void drawOpenCVChessBoard3D(
+	IMkGraphicsContext* graphicsContext,
 	const glm::mat4& xform,
 	const glm::vec3* points3d,
 	const int pointCount,

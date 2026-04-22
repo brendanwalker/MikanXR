@@ -124,7 +124,6 @@ void AppStage_VideoSourceSettings::onVideoSourceStarted(VideoSourceComponentPtr 
 
 	// Create a texture to hold the video frame
 	m_videoBufferView = std::make_shared<VideoFrameDistortionView>(
-		m_ownerWindow,
 		videoSource,
 		VIDEO_FRAME_HAS_GL_TEXTURE_FLAG);
 }
@@ -135,7 +134,6 @@ void AppStage_VideoSourceSettings::onVideoSourceFrameSizeChanged(VideoSourceComp
 
 	// Create a texture to hold the video frame
 	m_videoBufferView = std::make_shared<VideoFrameDistortionView>(
-		m_ownerWindow,
 		videoSource,
 		VIDEO_FRAME_HAS_GL_TEXTURE_FLAG);
 }
@@ -195,6 +193,7 @@ void AppStage_VideoSourceSettings::render(IMkViewportPtr targetViewport)
 	style.horizontalAlignment = eHorizontalTextAlignment::Left;
 	style.verticalAlignment = eVerticalTextAlignment::Bottom;
 	drawTextAtScreenPosition(
+		getGraphicsContext(),
 		style,
 		glm::vec2(0.f, m_ownerWindow->getHeight() - 1),
 		L"Camera %.1ffps", m_videoBufferView ? m_videoBufferView->getFPS() : 0.f);

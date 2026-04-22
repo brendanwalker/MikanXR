@@ -5,11 +5,10 @@
 #include "GizmoRotateComponent.h"
 #include "GizmoScaleComponent.h"
 #include "InputManager.h"
+#include "IEditorWindow.h"
 #include "MathGLM.h"
 #include "MikanObject.h"
 #include "SelectionComponent.h"
-
-#include "SDL_keycode.h"
 
 GizmoTransformComponent::GizmoTransformComponent(MikanObjectWeakPtr owner)
 	: TransformComponent(owner)
@@ -38,11 +37,13 @@ void GizmoTransformComponent::init()
 
 void GizmoTransformComponent::bindInput()
 {
-	InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_t)->OnKeyPressed +=
+	InputManager* inputManager= getOwnerEditorWindow()->getInputManager();
+
+	inputManager->fetchOrAddKeyBindings(MkKey::LETTER_t)->OnKeyPressed +=
 		MakeDelegate(this, &GizmoTransformComponent::selectTranslateMode);
-	InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_r)->OnKeyPressed +=
+	inputManager->fetchOrAddKeyBindings(MkKey::LETTER_r)->OnKeyPressed +=
 		MakeDelegate(this, &GizmoTransformComponent::selectRotateMode);
-	InputManager::getInstance()->fetchOrAddKeyBindings(SDLK_y)->OnKeyPressed +=
+	inputManager->fetchOrAddKeyBindings(MkKey::LETTER_y)->OnKeyPressed +=
 		MakeDelegate(this, &GizmoTransformComponent::selectScaleMode);
 }
 

@@ -8,7 +8,7 @@ class CompositorNodeEditorWindow : public NodeEditorWindow
 public:
 	CompositorNodeEditorWindow(class App* ownerApp);
 
-	// -- IMkWindow ----
+	// -- IEditorWindow ----
 	virtual bool startup() override;
 	virtual void update(float deltaSeconds) override;
 	virtual void shutdown() override;

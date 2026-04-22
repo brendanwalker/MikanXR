@@ -250,8 +250,9 @@ void CameraComponent::customRender()
 		}
 	}
 
-	drawTransformedAxes(CameraXform, 0.1f, 0.1f, 0.1f, xColor, yColor, zColor);
-	drawTextAtWorldPosition(style, CameraPos, L"%s", wszCameraName);
+	IMkGraphicsContext* graphicsContext = getGraphicsContext();
+	drawTransformedAxes(graphicsContext, CameraXform, 0.1f, 0.1f, 0.1f, xColor, yColor, zColor);
+	drawTextAtWorldPosition(graphicsContext, style, CameraPos, L"%s", wszCameraName);
 }
 
 StageComponentConstPtr CameraComponent::getOwnerStageComponent() const
@@ -358,14 +359,20 @@ bool CameraComponent::getAperturePose(
 	switch (space)
 	{
 	case eVRDevicePoseSpace::MikanTrackingVolumePose:
-		bValidPose = m_trackingMountPoseView_SceneSpace->getPose(
-			getSelfPtr<const CameraComponent>(),
-			vrDevicePose);
+		if (m_trackingMountPoseView_SceneSpace)
+		{
+			bValidPose = m_trackingMountPoseView_SceneSpace->getPose(
+				getSelfPtr<const CameraComponent>(),
+				vrDevicePose);
+		}
 		break;
 	case eVRDevicePoseSpace::VRTrackingSystemPose:
-		bValidPose = m_trackingMountPoseView_VRSpace->getPose(
-			getSelfPtr<const CameraComponent>(),
-			vrDevicePose);
+		if (m_trackingMountPoseView_VRSpace)
+		{
+			bValidPose = m_trackingMountPoseView_VRSpace->getPose(
+				getSelfPtr<const CameraComponent>(),
+				vrDevicePose);
+		}
 		break;
 	}
 

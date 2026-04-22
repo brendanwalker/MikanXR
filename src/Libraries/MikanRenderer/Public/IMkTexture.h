@@ -13,6 +13,8 @@
 #define MK_RGB					0x1907
 #define MK_BGR					0x80E0
 #define MK_BGRA					0x80E1
+#define MK_RG32F				0x8230
+#define MK_RG					0x8227
 
 class IMkTexture
 {
@@ -83,3 +85,5 @@ MIKAN_RENDERER_FUNC(IMkTexturePtr) CreateMkTexture(
 
 MIKAN_RENDERER_FUNC(IMkExternalTexturePtr) CreateMkExternalTexture();
 MIKAN_RENDERER_FUNC(IMkExternalTexturePtr) CreateMkExternalTexture(void* platformTexture);
+
+MIKAN_RENDERER_FUNC(bool) saveMkTextureToPNG(IMkTexturePtr texture, const char* filename);

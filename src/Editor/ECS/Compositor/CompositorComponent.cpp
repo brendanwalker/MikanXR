@@ -5,10 +5,11 @@
 #include "CameraRequestHandler.h"
 #include "ClientSourceManager.h"
 #include "CompositorComponent.h"
-#include "COmpositorObjectSystem.h"
+#include "CompositorObjectSystem.h"
 #include "IMkState.h"
 #include "IMkTexture.h"
 #include "IMkTriangulatedMesh.h"
+#include "IMkGraphicsContext.h"
 #include "Logger.h"
 #include "MainWindow.h"
 #include "MathTypeConversion.h"
@@ -203,7 +204,7 @@ void CompositorComponent::init()
 
 	m_nodeGraphAssetRef = std::make_shared<NodeGraphAssetReference>();
 	m_editorFrameBufferTexture = CreateMkTexture();
-	m_viewportQuadMesh = createFullscreenQuadMesh(getOwnerWindow(), false);
+	m_viewportQuadMesh = createFullscreenQuadMesh(getGraphicsContext(), false);
 
 	// Initialize the compositor graph if we have one assigned
 	handleCompositorNodeGraphChanged(getCompositorGraphAssetPath());
@@ -392,7 +393,6 @@ void CompositorComponent::allocateVideoBuffers(VideoSourceComponentPtr videoSour
 {
 	// Create a distortion view to read the incoming video frames into a texture
 	m_videoDistortionView = std::make_shared<VideoFrameDistortionView>(
-		getOwnerWindow(),
 		videoSource,
 		VIDEO_FRAME_HAS_BGR_UNDISTORT_FLAG | VIDEO_FRAME_HAS_GL_TEXTURE_FLAG,
 		videoSource->getVideoSourceDefinition()->getVideoFrameQueueSize());
@@ -549,7 +549,7 @@ void CompositorComponent::updateCompositeFrameNodeGraph()
 {
 	NodeEvaluator evaluator = {};
 	evaluator
-		.setCurrentWindow(getOwnerWindow())
+		.setCurrentGraphicsContext(getGraphicsContext())
 		.setDeltaSeconds(m_timeSinceLastFrameComposited);
 
 	if (m_nodeGraph->compositeFrame(evaluator))
@@ -594,8 +594,8 @@ void CompositorComponent::renderToViewportQuad() const
 			// Draw the color texture
 			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
 			{
-				MkScopedState scopedState = 
-					getOwnerWindow()->getMkStateStack().createScopedState("CompositorComponentRender");
+				MkStateStack& stateStack= getGraphicsContext()->getMkStateStack();
+				MkScopedState scopedState = stateStack.createScopedState("CompositorComponentRender");
 				scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
 
 				m_viewportQuadMesh->drawElements();

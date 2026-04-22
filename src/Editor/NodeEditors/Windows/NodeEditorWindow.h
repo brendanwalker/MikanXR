@@ -2,14 +2,10 @@
 
 //-- includes -----
 #include "AssetFwd.h"
-#include "MkGuiFwd.h"
-#include "SdlFwd.h"
-#include "IEditorWindow.h"
-#include "IMkWindowEventListener.h"
+#include "EditorWindow.h"
 #include "NodeEditorFwd.h"
 #include "NodeFwd.h"
 #include "NodeEditorState.h"
-#include "MikanRendererFwd.h"
 
 #include "Graphs/GraphObjectSelection.h"
 #include "Graphs/NodeError.h"
@@ -22,7 +18,7 @@
 #include <vector>
 
 //-- definitions -----
-class NodeEditorWindow : public IEditorWindow, public IMkWindowEventListener
+class NodeEditorWindow : public EditorWindow
 {
 public:
 	NodeEditorWindow(App* ownerApp);
@@ -37,42 +33,28 @@ public:
 	virtual bool saveGraph(bool bShowFileDialog);
 	virtual void undo();
 
-	// -- IMkWindow ----
+	// -- IEditorWindow ----
 	virtual bool startup() override;
 	virtual void update(float deltaSeconds) override;
 	virtual void render() override;
 	virtual void shutdown() override;
 
-	virtual float getWidth() const override;
-	virtual float getHeight() const override;
-	virtual float getAspectRatio() const override;
 	virtual bool getIsRenderingStage() const override { return false; }
-
 	virtual IMkViewportPtr getRenderingViewport() const override { return nullptr; }
-	virtual MkStateStack& getMkStateStack() override;
-	virtual IMkLineRenderer* getLineRenderer() override;
-	virtual IMkTextRenderer* getTextRenderer() override;
-	virtual MikanModelResourceManager* getModelResourceManager() override;
-	virtual IMkShaderCache* getShaderCache() override;
-	virtual IMkTextureCache* getTextureCache() override;
-	virtual SdlWindow& getSdlWindow() override;
 
 	// -- IMkWindowEventListener
-	virtual bool onWindowEvent(const SDL_Event* event) override;
+	virtual bool onWindowEvent(const MkWindowEvent& event) override;
 
 	// -- IEditorWindow
 	class MainWindow* getMainWindow() const;
 	virtual ProjectManagerPtr getProjectManager() const override;
 	virtual class MikanServer* getMikanServer() const override;
-	virtual class MikanFontManager* getFontManager() const override;
+	virtual class IMkFontManager* getFontManager() const override;
 	virtual class InputManager* getInputManager() const override;
 	virtual class OpenCVManager* getOpenCVManager() const override;
 	virtual class ClientSourceManager* getClientSourceManager() const override;
 	virtual class LocalizationManager* getLocalizationManager() const override;
 	virtual class EventBus* getEventBus() const override;
-	virtual class MkGuiStyleManager* getMkGuiStyleManager() const override;
-
-	virtual class App* getOwnerApp() const override;
 	virtual class AppStage* getCurrentAppStage() const override;
 	virtual class AppStage* getParentAppStage() const override;
 	virtual class AppStage* pushAppStage(const std::string& appStageName) override;
@@ -107,24 +89,9 @@ protected:
 	virtual void onAssetReferenceDeleted(AssetReferencePtr assetRef) {}
 
 protected:
-	class App* m_ownerApp = nullptr;
-	SdlWindowUniquePtr m_sdlWindow;
-	MkStateStackUniquePtr m_mkStateStack;
-	MkGuiContextPtr m_guiContext;
-	std::unique_ptr<class MkGuiStyleManager> m_styleManager;
-
 	NodeEditorState m_editorState;
 
 	GraphObjectSelection m_objectSelection;
-
-	// Models loaded by the shader graph
-	MikanModelResourceManagerUniquePtr m_modelResourceManager;
-
-	// OpenGL shader program cache
-	MikanShaderCacheUniquePtr m_shaderCache;
-
-	// OpenGL texture cache
-	MikanTextureCacheUniquePtr m_textureCache;
 
 	// Errors that occurred during the last graph evaluation
 	std::vector<NodeEvaluationError> m_lastNodeEvalErrors;

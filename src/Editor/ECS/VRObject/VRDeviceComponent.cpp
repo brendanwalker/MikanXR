@@ -394,8 +394,9 @@ void VRDeviceComponent::customRender()
 		}
 	}
 
-	drawTransformedAxes(anchorXform, 0.1f, 0.1f, 0.1f, xColor, yColor, zColor);
-	drawTextAtWorldPosition(style, anchorPos, L"%s", wszVRDeviceName);
+	IMkGraphicsContext* graphicsContext = getGraphicsContext();
+	drawTransformedAxes(graphicsContext, anchorXform, 0.1f, 0.1f, 0.1f, xColor, yColor, zColor);
+	drawTextAtWorldPosition(graphicsContext, style, anchorPos, L"%s", wszVRDeviceName);
 }
 
 void VRDeviceComponent::updateWireframeMeshColor()

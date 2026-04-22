@@ -4,7 +4,6 @@
 #include "CameraMath.h"
 #include "Colors.h"
 #include "IEditorWindow.h"
-#include "SdlCommon.h"
 #include "MikanLineRenderer.h"
 #include "MikanTextRenderer.h"
 #include "MathGLM.h"
@@ -95,7 +94,7 @@ MonoLensTrackerPoseCalibrator::MonoLensTrackerPoseCalibrator(
 {
 	StageComponentConstPtr ownerStage = cameraComponent->getOwnerStageComponent();
 	assert(ownerStage != nullptr);
-	IEditorWindow* ownerWindow = static_cast<IEditorWindow*>(ownerStage->getOwnerWindow());
+	IEditorWindow* ownerWindow = ownerStage->getOwnerEditorWindow();
 	assert(ownerWindow != nullptr);
 	MarkerObjectSystemPtr markerSystem =
 		ownerWindow->getProjectManager()->getSystemOfType<MarkerObjectSystem>();
@@ -287,6 +286,8 @@ bool MonoLensTrackerPoseCalibrator::computeCalibratedCameraTrackerOffset(
 
 void MonoLensTrackerPoseCalibrator::renderCameraSpaceCalibrationState()
 {
+	IMkGraphicsContext* graphicsContext = m_cameraComponent->getGraphicsContext();
+
 	// Draw the most recently capture chessboard in camera space
 	m_patternFinder->renderCalibrationPattern2D();
 
@@ -299,17 +300,23 @@ void MonoLensTrackerPoseCalibrator::renderCameraSpaceCalibrationState()
 
 		m_patternFinder->renderSolvePnPPattern3D(cameraToPatternXform);
 
-		drawTransformedAxes(cameraToPatternXform, 0.1f);
-		drawTransformedAxes(cameraToMatPuckXform, 0.1f);
+		drawTransformedAxes(graphicsContext, cameraToPatternXform, 0.1f);
+		drawTransformedAxes(graphicsContext, cameraToMatPuckXform, 0.1f);
 
 		TextStyle style = getDefaultTextStyle();
-		drawTextAtWorldPosition(style, glm_mat4_get_position(cameraToPatternXform), L"Mat");
-		drawTextAtWorldPosition(style, glm_mat4_get_position(cameraToMatPuckXform), L"Puck");
+		drawTextAtWorldPosition(
+			graphicsContext, 
+			style, glm_mat4_get_position(cameraToPatternXform), L"Mat");
+		drawTextAtWorldPosition(
+			graphicsContext, 
+			style, glm_mat4_get_position(cameraToMatPuckXform), L"Puck");
 	}
 }
 
 void MonoLensTrackerPoseCalibrator::renderVRSpaceCalibrationState()
 {
+	IMkGraphicsContext* graphicsContext = m_cameraComponent->getGraphicsContext();
+
 	// Draw the most recently captured chessboard projected into VR
 	m_patternFinder->renderSolvePnPPattern3D(m_calibrationState->patternXform_VRSpace);
 
@@ -317,14 +324,14 @@ void MonoLensTrackerPoseCalibrator::renderVRSpaceCalibrationState()
 	glm::mat4 cameraPuckXform;
 	if (m_cameraComponent->getAperturePose(cameraPuckXform, eVRDevicePoseSpace::VRTrackingSystemPose))
 	{
-		drawTransformedAxes(cameraPuckXform, 0.1f);
+		drawTransformedAxes(graphicsContext, cameraPuckXform, 0.1f);
 	}
 
 	// Draw the mat puck transform
 	glm::mat4 matPuckXform;
 	if (m_matTrackingPuckPoseView->getPose(m_cameraComponent, matPuckXform))
 	{
-		drawTransformedAxes(matPuckXform, 0.1f);
+		drawTransformedAxes(graphicsContext, matPuckXform, 0.1f);
 	}
 
 	// Draw the most recently derived camera transform derived from the mat puck
@@ -333,9 +340,10 @@ void MonoLensTrackerPoseCalibrator::renderVRSpaceCalibrationState()
 	const float zNear= fmaxf(m_calibrationState->inputCameraIntrinsics.znear, 0.1f);
 	const float zFar = fminf(m_calibrationState->inputCameraIntrinsics.zfar, 2.0f);
 	drawTransformedFrustum(
+		graphicsContext,
 		m_calibrationState->cameraXform_VRSpace,
 		hfov_radians, vfov_radians,
 		zNear, zFar,
 		Colors::Yellow);
-	drawTransformedAxes(m_calibrationState->cameraXform_VRSpace, 0.1f);
+	drawTransformedAxes(graphicsContext, m_calibrationState->cameraXform_VRSpace, 0.1f);
 }

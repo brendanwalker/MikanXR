@@ -1,7 +1,8 @@
 #include "App.h"
 #include "EditorObjectSystem.h"
+#include "IEditorWindow.h"
+#include "IMkGraphicsContext.h"
 #include "MikanViewport.h"
-#include "SdlCommon.h"
 #include "MikanCamera.h"
 #include "MkScene.h"
 #include "MkStateStack.h"
@@ -9,12 +10,6 @@
 #include "MathUtility.h"
 #include "Colors.h"
 #include "InputManager.h"
-
-#if defined(_WIN32)
-#include <SDL_events.h>
-#else
-#include <SDL2/SDL_events.h>
-#endif
 
 // -- GlViewport --
 MikanViewport::MikanViewport(
@@ -48,15 +43,20 @@ MikanViewport::~MikanViewport()
 	unbindInput();
 }
 
-void MikanViewport::applyRenderingViewport(IMkState* glState) const
+void MikanViewport::applyRenderingViewport(IMkState* glState)
 {
+	// Register this viewport on the graphics context BEFORE mkStateSetViewport is
+	// called, so that mkStateSetViewportImpl::apply() can find us via
+	// getOwnerContext()->getRenderingViewport() and call onRenderingViewportApply.
+	m_ownerWindow->getGraphicsContext()->setRenderingViewport(shared_from_this());
+
 	mkStateSetClearColor(glState, m_backgroundColor);
 
-	// This calls onRenderingViewportApply from mkStateSetViewportImpl
-	// onRenderingViewportRevert is called when the state is popped
+	// This calls onRenderingViewportApply from mkStateSetViewportImpl.
+	// onRenderingViewportRevert is called when the scoped state is popped.
 	mkStateSetViewport(
-		glState, 
-		m_viewportOrigin.x, m_windowSize.y - (m_viewportOrigin.y + m_viewportSize.y), 
+		glState,
+		m_viewportOrigin.x, m_windowSize.y - (m_viewportOrigin.y + m_viewportSize.y),
 		m_viewportSize.x, m_viewportSize.y);
 }
 
@@ -70,6 +70,9 @@ void MikanViewport::onRenderingViewportRevert(int x, int y, int width, int heigh
 {
 	m_renderOrigin = glm::i32vec2(x, y);
 	m_renderSize = glm::i32vec2(width, height);
+
+	// Deregister from the graphics context when the scoped state is popped.
+	m_ownerWindow->getGraphicsContext()->setRenderingViewport(nullptr);
 }
 
 bool MikanViewport::getRenderingViewport(glm::i32vec2& outOrigin, glm::i32vec2& outSize) const
@@ -210,31 +213,31 @@ void MikanViewport::bindInput()
 		bindingSet->OnMouseMotionEvent += MakeDelegate(this, &MikanViewport::onMouseMotion);
 		bindingSet->OnMouseWheelScrolledEvent += MakeDelegate(this, &MikanViewport::onMouseWheel);
 
-		inputManager->fetchOrAddKeyBindings(SDLK_a)->OnKeyPressed += 
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_a)->OnKeyPressed += 
 			MakeDelegate(this, &MikanViewport::onLeftButtonPressed);
-		inputManager->fetchOrAddKeyBindings(SDLK_a)->OnKeyReleased += 
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_a)->OnKeyReleased +=
 			MakeDelegate(this, &MikanViewport::onLeftButtonReleased);
-		inputManager->fetchOrAddKeyBindings(SDLK_d)->OnKeyPressed += 
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_d)->OnKeyPressed +=
 			MakeDelegate(this, &MikanViewport::onRightButtonPressed);
-		inputManager->fetchOrAddKeyBindings(SDLK_d)->OnKeyReleased += 
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_d)->OnKeyReleased +=
 			MakeDelegate(this, &MikanViewport::onRightButtonReleased);
 
-		inputManager->fetchOrAddKeyBindings(SDLK_w)->OnKeyPressed +=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_w)->OnKeyPressed +=
 			MakeDelegate(this, &MikanViewport::onForwardButtonPressed);
-		inputManager->fetchOrAddKeyBindings(SDLK_w)->OnKeyReleased +=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_w)->OnKeyReleased +=
 			MakeDelegate(this, &MikanViewport::onForwardButtonReleased);
-		inputManager->fetchOrAddKeyBindings(SDLK_s)->OnKeyPressed +=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_s)->OnKeyPressed +=
 			MakeDelegate(this, &MikanViewport::onBackwardButtonPressed);
-		inputManager->fetchOrAddKeyBindings(SDLK_s)->OnKeyReleased +=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_s)->OnKeyReleased +=
 			MakeDelegate(this, &MikanViewport::onBackwardButtonReleased);
 
-		inputManager->fetchOrAddKeyBindings(SDLK_e)->OnKeyPressed +=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_e)->OnKeyPressed +=
 			MakeDelegate(this, &MikanViewport::onUpButtonPressed);
-		inputManager->fetchOrAddKeyBindings(SDLK_e)->OnKeyReleased +=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_e)->OnKeyReleased +=
 			MakeDelegate(this, &MikanViewport::onUpButtonReleased);
-		inputManager->fetchOrAddKeyBindings(SDLK_q)->OnKeyPressed +=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_q)->OnKeyPressed +=
 			MakeDelegate(this, &MikanViewport::onDownButtonPressed);
-		inputManager->fetchOrAddKeyBindings(SDLK_q)->OnKeyReleased +=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_q)->OnKeyReleased +=
 			MakeDelegate(this, &MikanViewport::onDownButtonReleased);
 
 		m_bIsInputBound = true;
@@ -253,31 +256,31 @@ void MikanViewport::unbindInput()
 		bindingSet->OnMouseMotionEvent -= MakeDelegate(this, &MikanViewport::onMouseMotion);
 		bindingSet->OnMouseWheelScrolledEvent -= MakeDelegate(this, &MikanViewport::onMouseWheel);
 
-		inputManager->fetchOrAddKeyBindings(SDLK_a)->OnKeyPressed -=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_a)->OnKeyPressed -=
 			MakeDelegate(this, &MikanViewport::onLeftButtonPressed);
-		inputManager->fetchOrAddKeyBindings(SDLK_a)->OnKeyReleased -=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_a)->OnKeyReleased -=
 			MakeDelegate(this, &MikanViewport::onLeftButtonReleased);
-		inputManager->fetchOrAddKeyBindings(SDLK_d)->OnKeyPressed -=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_d)->OnKeyPressed -=
 			MakeDelegate(this, &MikanViewport::onRightButtonPressed);
-		inputManager->fetchOrAddKeyBindings(SDLK_d)->OnKeyReleased -=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_d)->OnKeyReleased -=
 			MakeDelegate(this, &MikanViewport::onRightButtonReleased);
 
-		inputManager->fetchOrAddKeyBindings(SDLK_w)->OnKeyPressed -=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_w)->OnKeyPressed -=
 			MakeDelegate(this, &MikanViewport::onForwardButtonPressed);
-		inputManager->fetchOrAddKeyBindings(SDLK_w)->OnKeyReleased -=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_w)->OnKeyReleased -=
 			MakeDelegate(this, &MikanViewport::onForwardButtonReleased);
-		inputManager->fetchOrAddKeyBindings(SDLK_s)->OnKeyPressed -=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_s)->OnKeyPressed -=
 			MakeDelegate(this, &MikanViewport::onBackwardButtonPressed);
-		inputManager->fetchOrAddKeyBindings(SDLK_s)->OnKeyReleased -=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_s)->OnKeyReleased -=
 			MakeDelegate(this, &MikanViewport::onBackwardButtonReleased);
 
-		inputManager->fetchOrAddKeyBindings(SDLK_e)->OnKeyPressed -=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_e)->OnKeyPressed -=
 			MakeDelegate(this, &MikanViewport::onUpButtonPressed);
-		inputManager->fetchOrAddKeyBindings(SDLK_e)->OnKeyReleased -=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_e)->OnKeyReleased -=
 			MakeDelegate(this, &MikanViewport::onUpButtonReleased);
-		inputManager->fetchOrAddKeyBindings(SDLK_q)->OnKeyPressed -=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_q)->OnKeyPressed -=
 			MakeDelegate(this, &MikanViewport::onDownButtonPressed);
-		inputManager->fetchOrAddKeyBindings(SDLK_q)->OnKeyReleased -=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_q)->OnKeyReleased -=
 			MakeDelegate(this, &MikanViewport::onDownButtonReleased);
 
 		m_bIsInputBound = false;
@@ -374,7 +377,7 @@ void MikanViewport::onMouseButtonPressed(int button)
 		if (OnMouseRayButtonDown)
 			OnMouseRayButtonDown(rayOrigin, rayDir, button);
 
-		if (button == SDL_BUTTON_RIGHT)
+		if (button == MkMouseButton::RIGHT)
 		{
 			m_isCameraRotateButtonPressed = true;
 		}
@@ -395,7 +398,7 @@ void MikanViewport::onMouseButtonReleased(int button)
 		if (OnMouseRayButtonUp)
 			OnMouseRayButtonUp(rayOrigin, rayDir, button);
 
-		if (button == SDL_BUTTON_RIGHT)
+		if (button == MkMouseButton::RIGHT)
 		{
 			m_isCameraRotateButtonPressed = false;
 		}

@@ -5,7 +5,7 @@
 #include "IMkTexture.h"
 #include "IMkShader.h"
 #include "IMkShaderCache.h"
-#include "IMkWindow.h"
+#include "IMkGraphicsContext.h"
 #include "IMkVertexDefinition.h"
 #include "SteamVRRenderModelResource.h"
 #include "ThreadUtils.h"
@@ -14,8 +14,8 @@
 #include "openvr.h"
 
 SteamVRRenderModelResource::SteamVRRenderModelResource(
-	class IMkWindow* ownerWindow)
-	: m_ownerWindow(ownerWindow)
+	class IMkGraphicsContext* ownerContext)
+	: m_ownerContext(ownerContext)
 	, m_steamVRRenderModel(nullptr)
 	, m_steamVRTextureMap(nullptr)
 	, m_mkTriangulatedMesh(nullptr)
@@ -154,7 +154,7 @@ IMkTexturePtr SteamVRRenderModelResource::createTextureResource(
 MkMaterialInstancePtr SteamVRRenderModelResource::createMaterialInstance(
 	IMkTexturePtr texture)
 {
-	IMkShaderCache* shaderCache = m_ownerWindow->getShaderCache();
+	IMkShaderCache* shaderCache = m_ownerContext->getShaderCache();
 	MkMaterialConstPtr material = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED);
 	assert(material != nullptr);
 	MkMaterialInstancePtr materialInstance = createMkMaterialInstance(material);
@@ -179,7 +179,7 @@ IMkTriangulatedMeshPtr SteamVRRenderModelResource::createTriangulatedMeshResourc
 	if (steamVRRenderModel != nullptr)
 	{
 		glMesh = createMkTriangulatedMesh(
-			m_ownerWindow,
+			m_ownerContext,
 			meshName,
 			(const uint8_t*)steamVRRenderModel->rVertexData,
 			sizeof(vr::RenderModel_Vertex_t),
@@ -262,7 +262,7 @@ IMkWireframeMeshPtr SteamVRRenderModelResource::createWireframeMeshResource(
 	}
 
 	IMkWireframeMeshPtr wireMesh = CreateMkWireframeMesh(
-		m_ownerWindow,
+		m_ownerContext,
 		meshName,
 		(const uint8_t*)writeVertexData,
 		writeVertexSize,

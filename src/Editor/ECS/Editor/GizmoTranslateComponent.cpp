@@ -8,8 +8,6 @@
 #include "MathGLM.h"
 #include "MikanObject.h"
 
-#include "SDL_mouse.h"
-
 GizmoTranslateComponent::GizmoTranslateComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
 { }
@@ -57,10 +55,11 @@ glm::vec3 GizmoTranslateComponent::getColliderColor(
 static void drawTranslationBoxHandle(BoxColliderComponentWeakPtr colliderWeakPtr, const glm::vec3 color)
 {
 	BoxColliderComponentPtr collidePtr = colliderWeakPtr.lock();
+	IMkGraphicsContext* graphicsContext = collidePtr->getGraphicsContext();
 
 	const glm::mat4 xform = collidePtr->getWorldTransform();
 	const glm::vec3 halfExtents = collidePtr->getHalfExtents();
-	drawTransformedBox(xform, halfExtents, color);
+	drawTransformedBox(graphicsContext, xform, halfExtents, color);
 }
 
 static void drawTranslationArrowHandle(
@@ -70,12 +69,13 @@ static void drawTranslationArrowHandle(
 {
 	BoxColliderComponentPtr centerCollidePtr = centerColliderWeakPtr.lock();
 	BoxColliderComponentPtr axisCollidePtr = axisColliderWeakPtr.lock();
+	IMkGraphicsContext* graphicsContext = centerCollidePtr->getGraphicsContext();
 
 	const glm::vec3 origin = glm_mat4_get_position(centerCollidePtr->getWorldTransform());
 	const glm::vec3 axisCenter = glm_mat4_get_position(axisCollidePtr->getWorldTransform());
 	const glm::vec3 axisEnd= origin + (axisCenter - origin) * 2.f;
 
-	drawArrow(glm::mat4(1.f), origin, axisEnd, 0.05f, color);
+	drawArrow(graphicsContext, glm::mat4(1.f), origin, axisEnd, 0.05f, color);
 }
 
 void GizmoTranslateComponent::customRender()

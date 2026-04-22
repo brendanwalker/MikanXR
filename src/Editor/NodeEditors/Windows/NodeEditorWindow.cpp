@@ -18,23 +18,20 @@
 
 #include "App.h"
 #include "AssetReference.h"
-#include "SdlCommon.h"
+#include "IMkGraphicsContext.h"
 #include "MikanModelResourceManager.h"
 #include "IMkViewport.h"
 #include "MkStateStack.h"
 #include "IMkState.h"
 #include "MainWindow.h"
 #include "MkStateModifiers.h"
-#include "MikanShaderCache.h"
+#include "MkWindowEvent.h"
 #include "IMkTexture.h"
-#include "MikanTextureCache.h"
 #include "Graphs/NodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
 #include "Nodes/Node.h"
 #include "NodeEditorUI.h"
 #include "PathUtils.h"
-#include "SdlManager.h"
-#include "SdlWindow.h"
 #include "StringUtils.h"
 #include "TextStyle.h"
 
@@ -58,54 +55,20 @@
 
 //-- public methods -----
 NodeEditorWindow::NodeEditorWindow(App* ownerApp)
-	: m_ownerApp(ownerApp)
-	, m_sdlWindow(SdlWindowUniquePtr(new SdlWindow(this)))
-	, m_mkStateStack(MkStateStackUniquePtr(new MkStateStack(this)))
-	, m_modelResourceManager(MikanModelResourceManagerUniquePtr(new MikanModelResourceManager(this)))
-	, m_shaderCache(MikanShaderCacheUniquePtr(new MikanShaderCache(this)))
-	, m_textureCache(MikanTextureCacheUniquePtr(new MikanTextureCache(this)))
-{}
+	: EditorWindow(ownerApp)
+{
+	m_graphicsContext = createMkGraphicsContext(eGraphicsAPI::OpenGL, nullptr);
+	m_mkWindowContext = createMkWindowContext(ownerApp->getWindowManager(), m_graphicsContext);
+	m_modelResourceManager = 
+		MikanModelResourceManagerUniquePtr(
+			new MikanModelResourceManager(m_graphicsContext.get()));
+}
 
 NodeEditorWindow::~NodeEditorWindow()
 {
 }
 
-IMkLineRenderer* NodeEditorWindow::getLineRenderer()
-{
-	return nullptr;
-}
-
-IMkTextRenderer* NodeEditorWindow::getTextRenderer()
-{
-	return nullptr;
-}
-
-MikanModelResourceManager* NodeEditorWindow::getModelResourceManager()
-{
-	return m_modelResourceManager.get();
-}
-
-IMkShaderCache* NodeEditorWindow::getShaderCache()
-{
-	return m_shaderCache.get();
-}
-
-IMkTextureCache* NodeEditorWindow::getTextureCache()
-{
-	return m_textureCache.get();
-}
-
-MkStateStack& NodeEditorWindow::getMkStateStack()
-{
-	return *m_mkStateStack.get();
-}
-
-SdlWindow& NodeEditorWindow::getSdlWindow()
-{
-	return *m_sdlWindow.get();
-}
-
-// -- IMkWindow ----
+// -- IEditorWindow ----
 bool NodeEditorWindow::startup()
 {
 	EASY_FUNCTION();
@@ -117,70 +80,35 @@ bool NodeEditorWindow::startup()
 	static const int k_node_window_pixel_width = 1080;
 	static const int k_node_window_pixel_height = 720;
 
-	auto windowTitle = "Node Editor";
-	m_sdlWindow
-		->enableGLDataSharing() // Want access to video textures owned by MainWindow's GL Context
-		->setTitle(windowTitle)
-		->setSize(k_node_window_pixel_width, k_node_window_pixel_height);
-	if (!m_sdlWindow->startup())
+	if (success && !startupWindow("Node Editor", k_node_window_pixel_width, k_node_window_pixel_height))
 	{
-		MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Unable to initialize main SDK window: ";
 		success = false;
 	}
 
-	// Setup ImGui/ImNodes context
-	if (success)
+	if (success && !startupGuiContext())
 	{
-		m_guiContext = std::make_shared<MkGuiContext>(
-			m_sdlWindow->getInternalSdlWindow(),
-			m_sdlWindow->getInternalGlContext());
-		if (!m_guiContext->startup())
-		{
-			MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Unable to create GUI context";
-			success = false;
-		}
-	}
-
-	if (success)
-	{
-		m_styleManager = std::make_unique<MkGuiStyleManager>();
-		const auto stylesPath = PathUtils::getResourceDirectory() / "gui_styles";
-		if (!m_styleManager->startup(m_guiContext.get(), stylesPath))
-		{
-			MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Failed to initialize style manager";
-			success = false;
-		}
-		else
-		{
-			m_editorState.styleManager = m_styleManager.get();
-		}
-	}
-
-	if (success && !m_textureCache->startup())
-	{
-		MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Failed to initialize texture cache!";
 		success = false;
 	}
 
-	if (success && !m_shaderCache->startup())
+	if (success && !startupStyleManager())
 	{
-		MIKAN_LOG_ERROR("NodeEditorWindow::startup") << "Failed to initialize shader cache!";
 		success = false;
 	}
 
 	if (success)
 	{
-		if (!m_modelResourceManager->startup())
-		{
-			MIKAN_LOG_ERROR("NodeEditorWindow::init") << "Unable to initialize model resource manager";
-			success = false;
-		}
+		m_editorState.styleManager = m_styleManager.get();
+	}
+
+	if (success && !startupModelResourceManager())
+	{
+		success = false;
 	}
 
 	if (success)
 	{
 		// Set default state flags at the base of the stack
-		IMkState* mkBaseState= m_mkStateStack->pushState("NodeEditor Root Scope");
+		IMkState* mkBaseState= m_graphicsContext->getMkStateStack().pushState("NodeEditor Root Scope");
 		assert(mkBaseState->getStackDepth() == 0);
 
 		mkBaseState
@@ -203,7 +131,7 @@ void NodeEditorWindow::update(float deltaSeconds)
 	MkGuiScopedUpdate scopedCtx(*m_guiContext);
 
 	// Process most recent SDL events (keyboard, mouse, etc)
-	m_sdlWindow->handleSDLEvents(this);
+	m_mkWindowContext->handleEvents(this);
 
 	// Process UI input and build ImGui draw lists
 	updateUI();
@@ -216,21 +144,24 @@ void NodeEditorWindow::render()
 	EASY_FUNCTION();
 
 	// Clear the window
-	m_sdlWindow->renderBegin();
+	m_graphicsContext->renderBegin();
 
 	{
 		// Create a scoped UI rendering settings
-		MkScopedState scopedState = m_mkStateStack->createScopedState("appStage renderUI");
+		MkScopedState scopedState = m_graphicsContext->getMkStateStack().createScopedState("appStage renderUI");
 		IMkState* glState = scopedState.getStackState();
 
-		mkStateSetViewport(glState, 0, 0, m_sdlWindow->getWidth(), m_sdlWindow->getHeight());
+		mkStateSetViewport(glState, 0, 0, (int)m_mkWindowContext->getWidth(), (int)m_mkWindowContext->getHeight());
 
 		// Submit the MkGui draw calls
 		m_guiContext->submitDrawData();
 	}
 
-	// Call SDL_GL_SwapWindow
-	m_sdlWindow->renderEnd();
+	// Finalize rendering
+	m_graphicsContext->renderEnd();
+
+	// Present the rendered frame
+	m_mkWindowContext->present();
 }
 
 void NodeEditorWindow::updateUI()
@@ -897,13 +828,33 @@ NodeGraphFactoryPtr NodeEditorWindow::getNodeGraphFactory() const
 
 void NodeEditorWindow::newGraph()
 {
+	// Push this window's GL context before graph resource creation (VAOs, VBOs).
+	// Graph creation may be triggered while a different window's context is current
+	// (e.g. when bindCompositorComponent is called after createAppWindowInternal pops
+	// the editor window's context). VAOs are not shared between GL contexts.
+	auto* ownerApp = getOwnerApp();
+	auto* windowContext = m_mkWindowContext.get();
+	ownerApp->getWindowManager()->pushCurrentWindowContext(windowContext);
+
 	m_editorState.nodeGraph= getNodeGraphFactory()->initialCreateNodeGraph(this);
+
+	ownerApp->getWindowManager()->popCurrentWindowContext(windowContext);
+
 	onNodeGraphCreated();
 }
 
 bool NodeEditorWindow::loadGraph(const std::filesystem::path& path)
 {
+	// Push this window's GL context before graph resource creation (VAOs, VBOs).
+	// See comment in newGraph() for details.
+	auto* ownerApp = getOwnerApp();
+	auto* windowContext = m_mkWindowContext.get();
+	ownerApp->getWindowManager()->pushCurrentWindowContext(windowContext);
+
 	m_editorState.nodeGraph= NodeGraphFactory::loadNodeGraph(this, path);
+
+	ownerApp->getWindowManager()->popCurrentWindowContext(windowContext);
+
 	if (m_editorState.nodeGraph)
 	{
 		m_editorState.nodeGraphPath= path;
@@ -1031,56 +982,13 @@ void NodeEditorWindow::shutdown()
 	m_editorState.nodeGraph= nullptr;
 	m_editorState.nodeGraphPath.clear();
 
-	m_mkStateStack = nullptr;
-
-	if (m_shaderCache != nullptr)
-	{
-		m_shaderCache->shutdown();
-		m_shaderCache = nullptr;
-	}
-
-	if (m_textureCache != nullptr)
-	{
-		m_textureCache->shutdown();
-		m_textureCache = nullptr;
-	}
-
-	if (m_styleManager != nullptr)
-	{
-		m_styleManager->shutdown();
-		m_styleManager = nullptr;
-	}
-
-	if (m_guiContext != nullptr)
-	{
-		m_guiContext->shutdown();
-		m_guiContext = nullptr;
-	}
-
-	if (m_sdlWindow != nullptr)
-	{
-		m_sdlWindow->shutdown();
-		m_sdlWindow = nullptr;
-	}
-}
- 
-float NodeEditorWindow::getWidth() const
-{
-	return (float)m_sdlWindow->getWidth();
-}
-
-float NodeEditorWindow::getHeight() const
-{
-	return (float)m_sdlWindow->getHeight();
-}
-
-float NodeEditorWindow::getAspectRatio() const
-{
-	return (float)m_sdlWindow->getAspectRatio();
+	shutdownStyleManager();
+	shutdownGuiContext();
+	shutdownWindow();
 }
 
 // -- IMkWindowEventListener
-bool NodeEditorWindow::onWindowEvent(const SDL_Event* event)
+bool NodeEditorWindow::onWindowEvent(const MkWindowEvent& event)
 {
 	return m_guiContext->onWindowEvent(event);
 }
@@ -1101,7 +1009,7 @@ MikanServer* NodeEditorWindow::getMikanServer() const
 	return getMainWindow()->getMikanServer();
 }
 
-MikanFontManager* NodeEditorWindow::getFontManager() const
+IMkFontManager* NodeEditorWindow::getFontManager() const
 {
 	return getMainWindow()->getFontManager();
 }
@@ -1129,16 +1037,6 @@ LocalizationManager* NodeEditorWindow::getLocalizationManager() const
 EventBus* NodeEditorWindow::getEventBus() const
 {
 	return getMainWindow()->getEventBus();
-}
-
-MkGuiStyleManager* NodeEditorWindow::getMkGuiStyleManager() const
-{
-	return m_styleManager.get();
-}
-
-App* NodeEditorWindow::getOwnerApp() const
-{
-	return m_ownerApp;
 }
 
 AppStage* NodeEditorWindow::getCurrentAppStage() const

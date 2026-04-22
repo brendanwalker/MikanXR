@@ -10,6 +10,7 @@
 #include "CameraComponent.h"
 #include "Colors.h"
 #include "MkScene.h"
+#include "IMkGraphicsContext.h"
 #include "IMkFrameBuffer.h"
 #include "IMkTriangulatedMesh.h"
 #include "IMkLineRenderer.h"
@@ -35,8 +36,6 @@
 #include "VRDeviceComponent.h"
 #include "VRTrackingVolumeComponent.h"
 
-#include "SDL_keycode.h"
-
 #include "glm/gtc/quaternion.hpp"
 #include "glm/ext/vector_float4.hpp"
 
@@ -61,7 +60,7 @@ AppStage_AlignmentCalibration::AppStage_AlignmentCalibration(IEditorWindow* owne
 	, m_scene(std::make_shared<MkScene>())
 	, m_mkCamera(nullptr)
 	, m_frameBuffer(createMkFrameBuffer())
-	, m_fullscreenRGBQuad(createFullscreenQuadMesh(ownerWindow, false))
+	, m_fullscreenRGBQuad(createFullscreenQuadMesh(ownerWindow->getGraphicsContext().get(), false))
 {
 }
 
@@ -115,7 +114,6 @@ void AppStage_AlignmentCalibration::enter()
 		// Allocate all distortion and video buffers
 		m_monoDistortionView = 
 			new VideoFrameDistortionView(
-				m_ownerWindow,
 				m_videoSourceComponent,
 				VIDEO_FRAME_HAS_ALL);
 		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
@@ -309,7 +307,7 @@ void AppStage_AlignmentCalibration::render(IMkViewportPtr targetViewport)
 	if (m_frameBuffer->isValid())
 	{
 		MkScopedObjectBinding colorFramebufferBinding(
-			m_ownerWindow->getMkStateStack().getCurrentState(),
+			m_ownerWindow->getGraphicsContext()->getMkStateStack().getCurrentState(),
 			"Color Framebuffer Scope",
 			m_frameBuffer);
 
@@ -356,8 +354,8 @@ void AppStage_AlignmentCalibration::render(IMkViewportPtr targetViewport)
 		}
 
 		// Render any lines and text that were added to the scene by the calibrator in the frame buffer's viewport
-		m_ownerWindow->getLineRenderer()->render();
-		m_ownerWindow->getTextRenderer()->render();
+		m_ownerWindow->getGraphicsContext()->getLineRenderer()->render();
+		m_ownerWindow->getGraphicsContext()->getTextRenderer()->render();
 	}
 
 	// Render the frame buffer to the screen
@@ -384,8 +382,8 @@ void AppStage_AlignmentCalibration::render(IMkViewportPtr targetViewport)
 
 void AppStage_AlignmentCalibration::renderVRScene()
 {
+	IMkGraphicsContext* graphicsContext = getGraphicsContext();
 	MkScene* scene= m_scene.get();
-	
 
 	// Rebuild list of renderables
 	scene->removeAllInstances();
@@ -394,14 +392,14 @@ void AppStage_AlignmentCalibration::renderVRScene()
 	addAllVRDevicesToMkScene(getObjectSystemOfType<VRObjectSystem>(), m_scene);
 
 	// Render the scene
-	scene->render(m_mkCamera, m_ownerWindow->getMkStateStack());
+	scene->render(m_mkCamera, graphicsContext->getMkStateStack());
 
-	drawTransformedAxes(glm::mat4(1.f), 1.0f);
+	drawTransformedAxes(graphicsContext, glm::mat4(1.f), 1.0f);
 
 	TextStyle style = getDefaultTextStyle();
-	drawTextAtWorldPosition(style, glm::vec3(1.f, 0.f, 0.f), L"X");
-	drawTextAtWorldPosition(style, glm::vec3(0.f, 1.f, 0.f), L"Y");
-	drawTextAtWorldPosition(style, glm::vec3(0.f, 0.f, 1.f), L"Z");
+	drawTextAtWorldPosition(graphicsContext, style, glm::vec3(1.f, 0.f, 0.f), L"X");
+	drawTextAtWorldPosition(graphicsContext, style, glm::vec3(0.f, 1.f, 0.f), L"Y");
+	drawTextAtWorldPosition(graphicsContext, style, glm::vec3(0.f, 0.f, 1.f), L"Z");
 }
 
 void AppStage_AlignmentCalibration::setMenuState(eAlignmentCalibrationMenuState newState)

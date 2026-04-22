@@ -33,4 +33,4 @@ public:
 	virtual IMkShaderPtr fetchCompiledIMkShader(IMkShaderCodeConstPtr code) = 0;
 };
 
-MIKAN_RENDERER_FUNC(IMkShaderCachePtr) createMkShaderCache(class IMkWindow* ownerWindow);
+MIKAN_RENDERER_FUNC(IMkShaderCachePtr) createMkShaderCache(class IMkGraphicsContext* ownerContext);

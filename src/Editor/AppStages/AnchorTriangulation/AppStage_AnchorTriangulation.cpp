@@ -9,6 +9,7 @@
 #include "CameraObjectSystem.h"
 #include "Colors.h"
 #include "IEditorWindow.h"
+#include "IMkGraphicsContext.h"
 #include "IMkLineRenderer.h"
 #include "MikanCamera.h"
 #include "MikanLineRenderer.h"
@@ -27,14 +28,6 @@
 #include "TextStyle.h"
 #include "VideoSourceComponent.h"
 #include "VideoFrameDistortionView.h"
-
-#if defined(_WIN32)
-#include <SDL_keycode.h>
-#include <SDL_mouse.h>
-#else
-#include <SDL2/SDL_keycode.h>
-#include <SDL2/SDL_mouse.h>
-#endif
 
 #include "glm/gtc/quaternion.hpp"
 
@@ -77,7 +70,7 @@ void AppStage_AnchorTriangulation::enter()
 	AppStage::enter();
 
 	// Disable depth testing on the line renderer while in this app stage
-	getOwnerWindow()->getLineRenderer()->setDisable3dDepth(true);
+	getOwnerWindow()->getGraphicsContext()->getLineRenderer()->setDisable3dDepth(true);
 
 	// Create a new camera to view the scene
 	m_mkCamera = getFirstViewport()->getCurrentMikanCamera();
@@ -129,7 +122,7 @@ void AppStage_AnchorTriangulation::enter()
 	// Bind to space bar to capture frames
 	// (Auto cleared on AppStage exit)
 	{
-		EventBindingSet* bindingSet = InputManager::getInstance()->getCurrentEventBindingSet();
+		EventBindingSet* bindingSet = getOwnerWindow()->getInputManager()->getCurrentEventBindingSet();
 
 		bindingSet->OnMouseButtonReleasedEvent += MakeDelegate(this, &AppStage_AnchorTriangulation::onMouseButtonUp);
 	}
@@ -161,7 +154,6 @@ void AppStage_AnchorTriangulation::setupDistortionView()
 	// Allocate all distortion and video buffers
 	m_monoDistortionView =
 		new VideoFrameDistortionView(
-			m_ownerWindow,
 			m_videoSourceComponent,
 			VIDEO_FRAME_HAS_ALL);
 	m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
@@ -178,7 +170,7 @@ void AppStage_AnchorTriangulation::exit()
 	setMenuState(eAnchorTriangulationMenuState::inactive);
 
 	// Re-Enable depth testing on the line renderer while in this app stage
-	getOwnerWindow()->getLineRenderer()->setDisable3dDepth(false);
+	getOwnerWindow()->getGraphicsContext()->getLineRenderer()->setDisable3dDepth(false);
 
 	m_currentSceneCameraComponent = nullptr;
 	m_mkCamera= nullptr;
@@ -304,7 +296,7 @@ void AppStage_AnchorTriangulation::onMouseButtonUp(int button)
 		menuState == eAnchorTriangulationMenuState::captureXAxis2 ||
 		menuState == eAnchorTriangulationMenuState::captureYAxis2)
 	{
-		if (button == SDL_BUTTON_LEFT)
+		if (button == MkMouseButton::LEFT)
 		{
 			m_anchorTriangulator->sampleMouseScreenPosition();
 		}

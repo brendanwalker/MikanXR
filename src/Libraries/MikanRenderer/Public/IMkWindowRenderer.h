@@ -2,10 +2,10 @@
 
 #include "MkRendererFwd.h"
 
-class IMkWindow
+class IMkWindowRenderer
 {
 public:
-	virtual ~IMkWindow() {}
+	virtual ~IMkWindowRenderer() {}
 
 	virtual bool startup()= 0;
 	virtual void update(float deltaSeconds) = 0;

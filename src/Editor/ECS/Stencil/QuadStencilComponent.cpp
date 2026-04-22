@@ -1,5 +1,6 @@
 #include "AnchorObjectSystem.h"
 #include "Colors.h"
+#include "IEditorWindow.h"
 #include "MikanLineRenderer.h"
 #include "MikanTextRenderer.h"
 #include "AnchorComponent.h"
@@ -138,6 +139,7 @@ void QuadStencilComponent::customRender()
 {
 	QuadStencilDefinitionPtr quadDefinition= getQuadStencilDefinition();
 	auto editorObjectSystem = getObjectSystemOfType<EditorObjectSystem>();
+	IMkGraphicsContext* graphicsContext = editorObjectSystem->getGraphicsContext();
 
 	if (!quadDefinition->getIsDisabled() &&
 		editorObjectSystem->getEditorSystemConfigConst()->getRenderQuadStencilsFlag())
@@ -157,9 +159,13 @@ void QuadStencilComponent::customRender()
 				color = Colors::LightGray;
 		}
 
-		drawTransformedQuad(xform, quadDefinition->getQuadWidth(), quadDefinition->getQuadHeight(), color);
-		drawTransformedAxes(xform, 0.1f, 0.1f, 0.1f);
-		drawTextAtWorldPosition(style, position, L"Stencil %d", quadDefinition->getComponentId());
+		drawTransformedQuad(
+			graphicsContext,
+			xform, quadDefinition->getQuadWidth(), quadDefinition->getQuadHeight(), color);
+		drawTransformedAxes(graphicsContext, xform, 0.1f, 0.1f, 0.1f);
+		drawTextAtWorldPosition(
+			graphicsContext, 
+			style, position, L"Stencil %d", quadDefinition->getComponentId());
 	}
 }
 
