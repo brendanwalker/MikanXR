@@ -81,19 +81,6 @@ void GuiPanel_ProjectMarkers::onGui()
 		return;
 
 	// Markers list
-	if (ImGui::Button("Add Marker"))
-	{
-		addDeferredGuiEvent([this]() {
-			MarkerObjectSystemPtr sys = getMarkerSystem();
-			if (sys)
-			{
-				MarkerComponentPtr marker = sys->addNewObjectByTypedDefinition();
-				MikanMarkerID markerId = marker->getComponentId();
-				setSelectedMarkerId(markerId);
-			}
-		});
-	}
-
 	m_markerDataSource->refreshEntries();
 
 	// Validate selection
@@ -117,6 +104,20 @@ void GuiPanel_ProjectMarkers::onGui()
 				});
 			}
 		}
+	}
+
+	ImGui::SameLine();
+	if (MkGui::drawImageButton(m_defaultGuiStyle, "addMarker", "add_component"))
+	{
+		addDeferredGuiEvent([this]() {
+			MarkerObjectSystemPtr sys = getMarkerSystem();
+			if (sys)
+			{
+				MarkerComponentPtr marker = sys->addNewObjectByTypedDefinition();
+				MikanMarkerID markerId = marker->getComponentId();
+				setSelectedMarkerId(markerId);
+			}
+			});
 	}
 
 	if (m_selectedMarkerId != INVALID_MIKAN_ID)

@@ -1,11 +1,25 @@
 {
     "default_component_panel": {
+        "labelWidth": 190,
+        "valueWidth": 150,
         "font": "normal_icon",
         "colors": [
             { "name": "Text",              "value": [0.94, 0.94, 0.94, 1.0] }
         ],
         "textures": [
-            { "name": "delete_component", "path": "textures/delete_component_icon.png", "width": 30, "height": 30 }
+            { "name": "add_component", "path": "textures/add_component_icon.png", "width": 20, "height": 20 },
+            { "name": "edit_component", "path": "textures/edit_component_icon.png", "width": 20, "height": 20 },
+            { "name": "delete_component", "path": "textures/delete_component_icon.png", "width": 20, "height": 20 },
+            { "name": "add_anchor", "path": "textures/add_anchor_icon.png", "width": 50, "height": 50 },
+            { "name": "add_quad_stencil", "path": "textures/add_quad_stencil_icon.png", "width": 50, "height": 50 },
+            { "name": "add_box_stencil", "path": "textures/add_box_stencil_icon.png", "width": 50, "height": 50 },
+            { "name": "add_model_stencil", "path": "textures/add_model_stencil_icon.png", "width": 50, "height": 50 },
+            { "name": "add_client_source", "path": "textures/add_client_texture_source_icon.png", "width": 44, "height": 44 },
+            { "name": "add_spout_source", "path": "textures/add_spout_texture_source_icon.png", "width": 44, "height": 44 },
+            { "name": "add_usb_source", "path": "textures/add_usb_camera_source_icon.png", "width": 60, "height": 45 },
+            { "name": "add_network_source", "path": "textures/add_networked_camera_source_icon.png", "width": 60, "height": 45 },
+            { "name": "add_vr_tracking", "path": "textures/add_vr_tracking_icon.png", "width": 50, "height": 50 },
+            { "name": "add_marker_tracking", "path": "textures/add_marker_tracking_icon.png", "width": 50, "height": 50 }
         ]
     }
 }

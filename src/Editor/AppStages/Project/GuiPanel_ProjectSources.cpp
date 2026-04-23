@@ -159,7 +159,7 @@ void GuiPanel_ProjectSources::onGui()
 		return;
 
 	// Video Sources
-	if (ImGui::Button("Add USB Source"))
+	if (MkGui::drawImageButton(m_defaultGuiStyle, "addUSBSource", "add_usb_source"))
 	{
 		addDeferredGuiEvent([this]() {
 			auto pm = m_projectManager.lock();
@@ -168,7 +168,7 @@ void GuiPanel_ProjectSources::onGui()
 		});
 	}
 	ImGui::SameLine();
-	if (ImGui::Button("Add Network Source"))
+	if (MkGui::drawImageButton(m_defaultGuiStyle, "addNetworkSource", "add_network_source"))
 	{
 		addDeferredGuiEvent([this]() {
 			auto pm = m_projectManager.lock();
@@ -219,7 +219,7 @@ void GuiPanel_ProjectSources::onGui()
 	ImGui::Separator();
 
 	// Texture Sources
-	if (ImGui::Button("Add Client Source"))
+	if (MkGui::drawImageButton(m_defaultGuiStyle, "addClientSource", "add_client_source"))
 	{
 		addDeferredGuiEvent([this]() {
 			auto pm = m_projectManager.lock();
@@ -228,7 +228,7 @@ void GuiPanel_ProjectSources::onGui()
 		});
 	}
 	ImGui::SameLine();
-	if (ImGui::Button("Add Spout Source"))
+	if (MkGui::drawImageButton(m_defaultGuiStyle, "addSpoutSource", "add_spout_source"))
 	{
 		addDeferredGuiEvent([this]() {
 			auto pm = m_projectManager.lock();

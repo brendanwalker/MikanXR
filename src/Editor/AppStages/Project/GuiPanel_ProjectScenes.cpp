@@ -362,22 +362,6 @@ void GuiPanel_ProjectScenes::onGui()
 		return;
 
 	// Scenes combo
-	if (ImGui::Button("Add Scene"))
-	{
-		addDeferredGuiEvent([this]() {
-			StageObjectSystemPtr stageSys = m_stageSystem.lock();
-			MikanStageID firstStageId = stageSys ? stageSys->getFirstComponentId() : INVALID_MIKAN_ID;
-			if (firstStageId != INVALID_MIKAN_ID)
-			{
-				m_sceneSystem.lock()->addNewObjectByTypedDefinition(
-					[firstStageId](auto def) {
-						def->setParentStageId(firstStageId);
-						return true;
-					});
-			}
-		});
-	}
-
 	m_sceneDataSource->refreshEntries();
 
 	if (m_selectedSceneId != INVALID_MIKAN_ID &&
@@ -400,6 +384,23 @@ void GuiPanel_ProjectScenes::onGui()
 		}
 	}
 
+	ImGui::SameLine();
+	if (MkGui::drawImageButton(m_defaultGuiStyle, "addScene", "add_component"))
+	{
+		addDeferredGuiEvent([this]() {
+			StageObjectSystemPtr stageSys = m_stageSystem.lock();
+			MikanStageID firstStageId = stageSys ? stageSys->getFirstComponentId() : INVALID_MIKAN_ID;
+			if (firstStageId != INVALID_MIKAN_ID)
+			{
+				m_sceneSystem.lock()->addNewObjectByTypedDefinition(
+					[firstStageId](auto def) {
+						def->setParentStageId(firstStageId);
+						return true;
+					});
+			}
+			});
+	}
+
 	if (m_selectedSceneId != INVALID_MIKAN_ID)
 	{
 		ImGui::SameLine();
@@ -419,18 +420,6 @@ void GuiPanel_ProjectScenes::onGui()
 	CompositorObjectSystemPtr compositorSystem = m_compositorSystem.lock();
 	if (compositorSystem && m_selectedSceneId != INVALID_MIKAN_ID)
 	{
-		if (ImGui::Button("Add Compositor"))
-		{
-			addDeferredGuiEvent([this]() {
-				int sceneId = m_selectedSceneId;
-				m_compositorSystem.lock()->addNewObjectByTypedDefinition(
-					[sceneId](auto def) {
-						def->setOwnerSceneId(sceneId);
-						return true;
-					});
-			});
-		}
-
 		m_compositorDataSource->refreshEntries();
 
 		if (m_selectedCompositorId != INVALID_MIKAN_ID &&
@@ -455,6 +444,19 @@ void GuiPanel_ProjectScenes::onGui()
 			}
 		}
 
+		ImGui::SameLine();
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "addCompositor", "add_component"))
+		{
+			addDeferredGuiEvent([this]() {
+				int sceneId = m_selectedSceneId;
+				m_compositorSystem.lock()->addNewObjectByTypedDefinition(
+					[sceneId](auto def) {
+						def->setOwnerSceneId(sceneId);
+						return true;
+					});
+				});
+		}
+
 		if (m_selectedCompositorId != INVALID_MIKAN_ID)
 		{
 			ImGui::SameLine();
@@ -474,7 +476,7 @@ void GuiPanel_ProjectScenes::onGui()
 	// Scene outliner
 	if (m_selectedSceneId != INVALID_MIKAN_ID)
 	{
-		if (ImGui::Button("Add Anchor"))
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "addAnchor", "add_anchor"))
 		{
 			addDeferredGuiEvent([this]() {
 				int parentTransformId = m_selectedTransformId;
@@ -486,7 +488,7 @@ void GuiPanel_ProjectScenes::onGui()
 			});
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Add Quad Stencil"))
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "addQuadStencil", "add_quad_stencil"))
 		{
 			addDeferredGuiEvent([this]() {
 				int parentTransformId = m_selectedTransformId;
@@ -502,7 +504,8 @@ void GuiPanel_ProjectScenes::onGui()
 					});
 			});
 		}
-		if (ImGui::Button("Add Box Stencil"))
+		ImGui::SameLine();
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "addBoxStencil", "add_box_stencil"))
 		{
 			addDeferredGuiEvent([this]() {
 				int parentTransformId = m_selectedTransformId;
@@ -519,7 +522,7 @@ void GuiPanel_ProjectScenes::onGui()
 			});
 		}
 		ImGui::SameLine();
-		if (ImGui::Button("Add Model Stencil"))
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "addModelStencil", "add_model_stencil"))
 		{
 			addDeferredGuiEvent([this]() {
 				int parentTransformId = m_selectedTransformId;

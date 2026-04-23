@@ -172,29 +172,13 @@ void MarkerComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConst
 
 bool MarkerComponent::invokeFunction(const std::string& functionName)
 {
-	if (functionName == k_deleteMarkerFunctionId)
-	{
-		deleteMarker();
-		return true;
-	}
-	else if (functionName == k_printMarkerFunctionId)
+	if (functionName == k_printMarkerFunctionId)
 	{
 		printMarker();
 		return true;
 	}
 
 	return MikanComponent::invokeFunction(functionName);
-}
-
-void MarkerComponent::deleteMarker()
-{
-	MarkerDefinitionPtr markerDefinition = getMarkerDefinition();
-	if (markerDefinition)
-	{
-		const MikanMarkerID markerId = markerDefinition->getMarkerId();
-
-		getOwnerMarkerSystem()->removeObjectByPrimaryComponentId(markerId);
-	}
 }
 
 void MarkerComponent::printMarker()

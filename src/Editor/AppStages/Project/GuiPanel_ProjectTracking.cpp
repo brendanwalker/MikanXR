@@ -141,7 +141,7 @@ void GuiPanel_ProjectTracking::onGui()
 		return;
 
 	// Tracking Volumes combo
-	if (ImGui::Button("Add SteamVR Volume"))
+	if (MkGui::drawImageButton(m_defaultGuiStyle, "addVRTracking", "add_vr_tracking"))
 	{
 		addDeferredGuiEvent([this]() {
 			auto pm = m_projectManager.lock();
@@ -152,7 +152,7 @@ void GuiPanel_ProjectTracking::onGui()
 		});
 	}
 	ImGui::SameLine();
-	if (ImGui::Button("Add Marker Volume"))
+	if (MkGui::drawImageButton(m_defaultGuiStyle, "addMarkerTracking", "add_marker_tracking"))
 	{
 		addDeferredGuiEvent([this]() {
 			auto pm = m_projectManager.lock();
@@ -217,22 +217,6 @@ void GuiPanel_ProjectTracking::onGui()
 
 		if (vrVolume && mountSystem)
 		{
-			if (ImGui::Button("Add Mount"))
-			{
-				addDeferredGuiEvent([this]() {
-					VRTrackingVolumeComponentPtr vrVol = getSelectedVRTrackingVolume();
-					TrackingMountObjectSystemPtr mountSys = getTrackingMountSystem();
-					if (vrVol && mountSys)
-					{
-						TrackingMountComponentPtr mount = mountSys->addNewObjectByTypedDefinition();
-						MikanTrackingMountID mountId =
-							mount->getTrackingMountDefinition()->getTrackingMountId();
-						vrVol->getVRTrackingVolumeDefinition()->addTrackingMountID(mountId);
-						setSelectedTrackingMountId(mountId);
-					}
-				});
-			}
-
 			m_trackingMountDataSource->refreshEntries();
 
 			if (m_selectedTrackingMountId != INVALID_MIKAN_ID &&
@@ -255,6 +239,23 @@ void GuiPanel_ProjectTracking::onGui()
 						});
 					}
 				}
+			}
+
+			ImGui::SameLine();
+			if (MkGui::drawImageButton(m_defaultGuiStyle, "addMount", "add_component"))
+			{
+				addDeferredGuiEvent([this]() {
+					VRTrackingVolumeComponentPtr vrVol = getSelectedVRTrackingVolume();
+					TrackingMountObjectSystemPtr mountSys = getTrackingMountSystem();
+					if (vrVol && mountSys)
+					{
+						TrackingMountComponentPtr mount = mountSys->addNewObjectByTypedDefinition();
+						MikanTrackingMountID mountId =
+							mount->getTrackingMountDefinition()->getTrackingMountId();
+						vrVol->getVRTrackingVolumeDefinition()->addTrackingMountID(mountId);
+						setSelectedTrackingMountId(mountId);
+					}
+					});
 			}
 
 			if (m_selectedTrackingMountId != INVALID_MIKAN_ID)
