@@ -91,7 +91,6 @@ void MarkerDefinition::setLengthMM(float lengthMM)
 }
 
 // -- MarkerComponent -----
-const std::string MarkerComponent::k_deleteMarkerFunctionId = "delete_marker";
 const std::string MarkerComponent::k_printMarkerFunctionId = "print_marker";
 
 MarkerComponent::MarkerComponent(MikanObjectWeakPtr owner)
@@ -162,9 +161,6 @@ void MarkerComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConst
 {
 	MikanComponent::getFunctionDescriptors(outDescriptors);
 
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_deleteMarkerFunctionId, "Delete Marker"));
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(
 			k_printMarkerFunctionId, "Print Marker"));
