@@ -70,6 +70,8 @@ public:
 	glm::mat4 getVRDevicePoseOffset() const;
 	void setVRDevicePoseOffset(const glm::mat4& poseOffset);
 
+	bool ownsTrackingMount(MikanTrackingMountID mountId) const;
+
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
 

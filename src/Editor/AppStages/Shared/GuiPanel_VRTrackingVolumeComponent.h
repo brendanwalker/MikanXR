@@ -2,7 +2,6 @@
 
 #include "Shared/GuiPanel_MikanComponent.h"
 #include "Shared/GuiDataSource_ComboBox.h"
-#include "Shared/GuiDataSource_StringList.h"
 #include "VRTrackingVolumeComponent.h"
 #include "MarkerObjectSystem.h"
 
@@ -19,7 +18,7 @@ protected:
 	VRTrackingVolumeComponentPtr getVRTrackingVolumeComponent() const;
 
 private:
-	GuiDataSource_StringList m_charucoMountDataSource;
+	GuiDataSource_ComboBox m_charucoMountDataSource;
 	GuiDataSource_ComboBox m_originMarkerDataSource;
 	GuiDataSource_ComboBox m_utilityMarkerDataSource;
 };

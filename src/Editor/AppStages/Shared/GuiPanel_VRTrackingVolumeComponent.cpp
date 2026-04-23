@@ -3,9 +3,16 @@
 #include "MikanCoreTypes.h"
 #include "Shared/GuiPanel_VRTrackingVolumeComponent.h"
 #include "TrackingVolumeComponent.h"
+#include "TrackingMountObjectSystem.h"
 
 GuiPanel_VRTrackingVolumeComponent::GuiPanel_VRTrackingVolumeComponent(AppStage* ownerAppStage)
 	: GuiPanel_MikanComponent(ownerAppStage)
+	, m_charucoMountDataSource(
+		ownerAppStage->getProjectManager(),
+		{{ 
+				TrackingMountObjectSystem::k_objectSystemClassName,
+				TrackingMountComponent::k_componentClassName 
+		}})
 	, m_originMarkerDataSource(
 		ownerAppStage->getProjectManager(),
 		{ { MarkerObjectSystem::k_objectSystemClassName, MarkerComponent::k_componentClassName } })
@@ -13,6 +20,15 @@ GuiPanel_VRTrackingVolumeComponent::GuiPanel_VRTrackingVolumeComponent(AppStage*
 		ownerAppStage->getProjectManager(),
 		{ { MarkerObjectSystem::k_objectSystemClassName, MarkerComponent::k_componentClassName } })
 {
+	m_charucoMountDataSource.setFilter([this](MikanComponentPtr comp) -> bool {
+		VRTrackingVolumeComponentPtr ownerVolume= getVRTrackingVolumeComponent();
+		if (ownerVolume)
+		{
+			auto trackingMount = std::static_pointer_cast<TrackingMountComponent>(comp);
+			return ownerVolume->ownsTrackingMount(trackingMount->getComponentId());
+		}
+		return false;
+	});
 }
 
 bool GuiPanel_VRTrackingVolumeComponent::init()
@@ -22,7 +38,7 @@ bool GuiPanel_VRTrackingVolumeComponent::init()
 
 void GuiPanel_VRTrackingVolumeComponent::onConstruct()
 {
-	// Charuco Mount — string list built from this volume's mount IDs
+	// Charuco Mount — component combo (property in VRTrackingVolumeDefinition)
 	m_entityAccessor->setPropertyRenderer(
 		VRTrackingVolumeDefinition::k_charucoMountIdPropertyId,
 		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
@@ -31,15 +47,9 @@ void GuiPanel_VRTrackingVolumeComponent::onConstruct()
 			if (!vol) return false;
 			auto volumeDef = vol->getVRTrackingVolumeDefinition();
 
-			std::vector<std::string> mountIdStrings;
-			for (int id : volumeDef->getTrackingMountIDs())
-				mountIdStrings.push_back(std::to_string(id));
-			m_charucoMountDataSource.setEntries(mountIdStrings);
-
+			m_charucoMountDataSource.refreshEntries();
 			const int currentId = volumeDef->getCharucoTrackingMountId();
-			const std::string currentStr =
-				(currentId == INVALID_MIKAN_ID) ? "" : std::to_string(currentId);
-			int selectedIndex = m_charucoMountDataSource.getEntryIndexByString(currentStr);
+			int selectedIndex = m_charucoMountDataSource.getEntryIndexByComponentId(currentId);
 
 			if (MkGui::drawComboBoxProperty(
 				m_defaultGuiStyle, "charucoMountId", "Charuco Mount",
@@ -47,11 +57,14 @@ void GuiPanel_VRTrackingVolumeComponent::onConstruct()
 			{
 				if (selectedIndex >= 0)
 				{
-					const int newId =
-						std::stoi(m_charucoMountDataSource.getEntryDisplayString(selectedIndex));
-					addDeferredGuiEvent([volumeDef, newId]() {
-						volumeDef->setCharucoTrackingMountId(newId);
-					});
+					MikanComponentPtr comp = m_charucoMountDataSource.getEntryAtIndex(selectedIndex);
+					if (comp)
+					{
+						const int newId = comp->getComponentId();
+						addDeferredGuiEvent([volumeDef, newId]() {
+							volumeDef->setCharucoTrackingMountId(newId);
+							});
+					}
 				}
 			}
 			return true;

@@ -204,6 +204,13 @@ void VRTrackingVolumeComponent::setVRDevicePoseOffset(const glm::mat4& poseOffse
 	getVRTrackingVolumeDefinition()->setVRDevicePoseOffset(glm_mat4_to_MikanMatrix4f(poseOffset));
 }
 
+bool VRTrackingVolumeComponent::ownsTrackingMount(MikanTrackingMountID mountId) const
+{
+	const auto& ownedIds = getVRTrackingVolumeDefinition()->getTrackingMountIDs();
+
+	return std::find(ownedIds.begin(), ownedIds.end(), mountId) != ownedIds.end();
+}
+
 // -- IPropertyInterface ----
 const std::string VRTrackingVolumeComponent::k_vrDevicePositionOffsetPropertyId= "vr_device_position_offset";
 const std::string VRTrackingVolumeComponent::k_vrDeviceRotationOffsetPropertyId= "vr_device_rotation_offset";
