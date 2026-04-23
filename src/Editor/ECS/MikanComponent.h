@@ -129,6 +129,7 @@ public:
 	void removeComponentScript();
 
 	// -- IEntityAccessor ----
+	virtual std::string getEntityUIIdentifier() const override;
 	virtual CommonConfigPtr getEntityConfig() override { return m_definition; }
 	virtual rfk::Struct const* getClientAPIValuesStructType() const;
 

@@ -9,6 +9,7 @@
 #include "MikanServer.h"
 #include "ProjectManager.h"
 #include "ScriptRequestHandler.h"
+#include "StringUtils.h"
 
 #include "lua.hpp"
 #include "LuaBridge/LuaBridge.h"
@@ -431,6 +432,11 @@ void MikanComponent::disposeScriptContext()
 }
 
 // -- IEntityAccessor ----
+std::string MikanComponent::getEntityUIIdentifier() const
+{
+	return StringUtils::stringify(getComponentClassName(), getComponentId());
+}
+
 rfk::Struct const* MikanComponent::getClientAPIValuesStructType() const
 {
 	return &MikanComponentValues::staticGetArchetype();

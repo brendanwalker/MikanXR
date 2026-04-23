@@ -16,7 +16,8 @@ class IEntityAccessor :
 {
 public:
 	MulticastDelegate<void(const IEntityAccessor* selfPtr)> onDisposed;
-
+	
+	virtual std::string getEntityUIIdentifier() const = 0;
 	virtual CommonConfigPtr getEntityConfig() = 0;
 	virtual rfk::Struct const* getClientAPIValuesStructType() const = 0;
 };
