@@ -13,6 +13,8 @@
 #include "ProjectConfigConstants.h"
 #include "VRDeviceComponent.h"
 
+#include <future>
+#include <map>
 #include <memory>
 #include <string>
 
@@ -57,6 +59,15 @@ public:
 
 	bool createTrackingRuntime(eTrackingRuntime desiredRuntime);
 
+	enum class eTrackingRuntimeState
+	{
+		uninitialized,
+		initializing,
+		ready,
+		failed
+	};
+	eTrackingRuntimeState getTrackingRuntimeState(eTrackingRuntime runtime) const;
+
 	VRDeviceComponentPtr getVRDeviceByPath(const std::string& VRDevicePath) const;
 	void getVRDevicePathList(std::vector<std::string>& outDevicePathList) const;
 
@@ -99,8 +110,21 @@ protected:
 	virtual void onDevicePosesChanged(IVRDeviceManager* deviceManager, int64_t newFrameId) override;
 
 private:
+	struct TrackingRuntimeInitResult
+	{
+		eTrackingRuntime runtime = eTrackingRuntime::INVALID;
+		class IVRDeviceModule* module = nullptr;
+		IVRDeviceManagerPtr manager;
+	};
+	static TrackingRuntimeInitResult initTrackingRuntimeOnThread(
+		eTrackingRuntime runtime,
+		const std::string& moduleName,
+		class IMkGraphicsContext* graphicsContext);
+
 	using VRTrackingRuntimePtr = std::shared_ptr<class VRTrackingRuntime>;
 	std::map<eTrackingRuntime, VRTrackingRuntimePtr> m_trackingRuntimes;
+	std::map<eTrackingRuntime, eTrackingRuntimeState> m_trackingRuntimeStates;
+	std::map<eTrackingRuntime, std::future<TrackingRuntimeInitResult>> m_pendingRuntimeFutures;
 	ProjectConfigWeakPtr m_projectConfigWeakPtr;
 };
 

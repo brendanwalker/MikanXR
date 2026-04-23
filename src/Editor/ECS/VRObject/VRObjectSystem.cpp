@@ -1,6 +1,9 @@
 #include "App.h"
 #include "BoxColliderComponent.h"
+#include "IMkGraphicsContext.h"
 #include "IMkScene.h"
+#include "IMkWindowContext.h"
+#include "IEditorWindow.h"
 #include "IVRDeviceModule.h"
 #include "IVRDevice.h"
 #include "TransformComponent.h"
@@ -12,10 +15,13 @@
 #include "MikanModuleManager.h"
 #include "MulticastDelegate.h"
 #include "ProjectConfig.h"
+#include "ProjectManager.h"
 #include "SelectionComponent.h"
 #include "StringUtils.h"
 #include "VRObjectSystem.h"
 #include "VRDeviceComponent.h"
+
+#include <chrono>
 
 // -- VRObjectSystemConfig -----
 VRObjectSystemDefinition::VRObjectSystemDefinition(
@@ -100,6 +106,37 @@ bool VRObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 
 void VRObjectSystem::update(float deltaSeconds)
 {
+	// Poll pending async runtime inits
+	for (auto it = m_pendingRuntimeFutures.begin(); it != m_pendingRuntimeFutures.end(); )
+	{
+		if (it->second.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+		{
+			auto result = it->second.get();
+			const std::string runtimeName = k_trackingRuntimeStrings[(int)result.runtime];
+			if (result.manager)
+			{
+				m_trackingRuntimeStates[result.runtime] = eTrackingRuntimeState::ready;
+				m_trackingRuntimes[result.runtime] =
+					std::make_shared<VRTrackingRuntime>(
+						this, result.runtime, result.module, result.manager);
+				onActiveDeviceListChanged(result.manager.get());
+				MIKAN_LOG_INFO("VRObjectSystem::update")
+					<< "Tracking runtime ready for " << runtimeName;
+			}
+			else
+			{
+				m_trackingRuntimeStates[result.runtime] = eTrackingRuntimeState::failed;
+				MIKAN_LOG_ERROR("VRObjectSystem::update")
+					<< "Async tracking runtime init failed for " << runtimeName;
+			}
+			it = m_pendingRuntimeFutures.erase(it);
+		}
+		else
+		{
+			++it;
+		}
+	}
+
 	for (auto it = m_trackingRuntimes.begin(); it != m_trackingRuntimes.end(); it++)
 	{
 		it->second->update(deltaSeconds);
@@ -114,6 +151,23 @@ void VRObjectSystem::dispose()
 		projectConfigPtr->OnPropertyChanged -=
 			MakeDelegate(this, &VRObjectSystem::onProjectConfigMarkedDirty);
 	}
+
+	// Wait for any in-flight async inits before cleaning up
+	for (auto& [runtime, future] : m_pendingRuntimeFutures)
+	{
+		if (future.valid())
+		{
+			auto result = future.get();
+			if (result.manager)
+			{
+				// Init completed during disposal — shut it down immediately
+				result.manager->shutdown();
+				getMikanModuleManager()->disposeModule(result.module);
+			}
+		}
+	}
+	m_pendingRuntimeFutures.clear();
+	m_trackingRuntimeStates.clear();
 
 	// Clean up all tracking modules
 	m_trackingRuntimes.clear();
@@ -138,89 +192,107 @@ bool VRObjectSystem::createTrackingRuntime(eTrackingRuntime desiredRuntime)
 {
 	if (desiredRuntime == eTrackingRuntime::INVALID)
 	{
-		MIKAN_LOG_WARNING("VRObjectSystem::createVRTrackingRuntime") << "Invalid tracking runtime type requested";
+		MIKAN_LOG_WARNING("VRObjectSystem::createTrackingRuntime") << "Invalid tracking runtime type requested";
 		return false;
 	}
 
-	const std::string runtimeName = k_trackingRuntimeStrings[(int)desiredRuntime];
-	if (m_trackingRuntimes.find(desiredRuntime) != m_trackingRuntimes.end())
+	switch (getTrackingRuntimeState(desiredRuntime))
 	{
-		MIKAN_LOG_INFO("VRObjectSystem::createVRTrackingRuntime") 
-			<< "Tracking runtime already exists for " << runtimeName;
+	case eTrackingRuntimeState::ready:
 		return true;
+	case eTrackingRuntimeState::initializing:
+		return false;
+	case eTrackingRuntimeState::failed:
+		return false;
+	default:
+		break;
 	}
 
-	IVRDeviceModule* vrDeviceModule = nullptr;
-	IVRDeviceManagerPtr vrDeviceManager;
-	bool bSuccess = false;
+	const std::string runtimeName = k_trackingRuntimeStrings[(int)desiredRuntime];
+	const std::string moduleName = StringUtils::stringify("Mikan", runtimeName);
+
+	// Capture the graphics context on the main thread before launching the async task
+	IEditorWindow* ownerWindow = getOwnerProjectManager()->getOwnerWindow();
+	IMkGraphicsContext* graphicsContext = ownerWindow->getGraphicsContext().get();
+
+	MIKAN_LOG_INFO("VRObjectSystem::createTrackingRuntime")
+		<< "Launching async init for tracking runtime " << moduleName;
+	m_trackingRuntimeStates[desiredRuntime] = eTrackingRuntimeState::initializing;
+	m_pendingRuntimeFutures[desiredRuntime] = std::async(
+		std::launch::async,
+		&VRObjectSystem::initTrackingRuntimeOnThread,
+		desiredRuntime, moduleName, graphicsContext);
+
+	return false;
+}
+
+VRObjectSystem::eTrackingRuntimeState VRObjectSystem::getTrackingRuntimeState(eTrackingRuntime runtime) const
+{
+	auto it = m_trackingRuntimeStates.find(runtime);
+	return it != m_trackingRuntimeStates.end() ? it->second : eTrackingRuntimeState::uninitialized;
+}
+
+VRObjectSystem::TrackingRuntimeInitResult VRObjectSystem::initTrackingRuntimeOnThread(
+	eTrackingRuntime runtime,
+	const std::string& moduleName,
+	IMkGraphicsContext* graphicsContext)
+{
+	TrackingRuntimeInitResult result;
+	result.runtime = runtime;
 
 	// Attempt to load the vr device module
-	std::string moduleName = StringUtils::stringify("Mikan", runtimeName);
-	vrDeviceModule = getMikanModuleManager()->getModule<IVRDeviceModule>(moduleName);
-	if (vrDeviceModule)
+	result.module = getMikanModuleManager()->getModule<IVRDeviceModule>(moduleName);
+	if (result.module)
 	{
-		MIKAN_LOG_INFO("VRObjectSystem::createVRTrackingRuntime")
+		MIKAN_LOG_INFO("VRObjectSystem::initTrackingRuntimeOnThread")
 			<< "Loaded module " << moduleName;
 
 		// Attempt to create a vr device manager
-		vrDeviceManager = vrDeviceModule->createTrackingRuntime();
-		if (vrDeviceManager)
+		result.manager = result.module->createTrackingRuntime();
+		if (result.manager)
 		{
-			MIKAN_LOG_INFO("VRObjectSystem::createVRTrackingRuntime") 
+			MIKAN_LOG_INFO("VRObjectSystem::initTrackingRuntimeOnThread")
 				<< "Allocated TrackingRuntime for " << moduleName;
 
 			// Attempt to startup the vr device manager
-			IEditorWindow* ownerWindow = getOwnerProjectManager()->getOwnerWindow();
-			if (vrDeviceManager->startup(ownerWindow->getGraphicsContext().get()))
+			if (result.manager->startup(graphicsContext))
 			{
-				MIKAN_LOG_INFO("VRObjectSystem::createVRTrackingRuntime")
+				MIKAN_LOG_INFO("VRObjectSystem::initTrackingRuntimeOnThread")
 					<< "Started VRDeviceManger for " << moduleName;
 
-				// Add the new tracking runtime to the tracking system map
-				m_trackingRuntimes[desiredRuntime] =
-					std::make_unique<VRTrackingRuntime>(
-						this, desiredRuntime, vrDeviceModule, vrDeviceManager);
-
-				// Rebuild attached device list
-				onActiveDeviceListChanged(vrDeviceManager.get());
-
-				bSuccess = true;
+				return result;
 			}
 			else
 			{
-				MIKAN_LOG_WARNING("VRObjectSystem::createVRTrackingRuntime")
+				MIKAN_LOG_WARNING("VRObjectSystem::initTrackingRuntimeOnThread")
 					<< "Failed to startup VRDeviceManger for " << moduleName;
 			}
 		}
 		else
 		{
-			MIKAN_LOG_WARNING("VRObjectSystem::createVRTrackingRuntime")
+			MIKAN_LOG_WARNING("VRObjectSystem::initTrackingRuntimeOnThread")
 				<< "Failed to allocate TrackingRuntime for " << moduleName;
 		}
 	}
 	else
 	{
-		MIKAN_LOG_ERROR("VRObjectSystem::createVRTrackingRuntime") 
-			<< "Failed to load module" << moduleName;
+		MIKAN_LOG_ERROR("VRObjectSystem::initTrackingRuntimeOnThread")
+			<< "Failed to load module " << moduleName;
 	}
 
-	// Clean up if anything failed
-	if (!bSuccess)
+	// Clean up on failure
+	if (result.manager)
 	{
-		if (vrDeviceManager)
-		{
-			vrDeviceManager->shutdown();
-			vrDeviceManager = nullptr;
-		}
-
-		if (vrDeviceModule)
-		{
-			getMikanModuleManager()->disposeModule(vrDeviceModule);
-			vrDeviceModule = nullptr;
-		}		
+		result.manager->shutdown();
+		result.manager = nullptr;
+	}
+	if (result.module)
+	{
+		getMikanModuleManager()->disposeModule(result.module);
+		result.module = nullptr;
 	}
 
-	return bSuccess;
+	return result;
 }
 
 eTrackingRuntime VRObjectSystem::findTrackingRuntimeForDeviceManager(

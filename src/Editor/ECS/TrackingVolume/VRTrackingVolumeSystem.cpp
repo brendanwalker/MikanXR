@@ -67,9 +67,13 @@ VRTrackingVolumeIdList VRTrackingVolumeSystem::getTrackingVolumeIdList() const
 
 VRTrackingVolumeComponentPtr VRTrackingVolumeSystem::addNewVRTrackingVolume(eTrackingRuntime trackingRuntime)
 {
-	// Ensure the VRObjectSystem has a runtime for this type
+	// Ensure the VRObjectSystem has a runtime for this type (launches async init if needed)
 	auto vrObjectSystem = getOwnerProjectManager()->getSystemOfType<VRObjectSystem>();
-	if (!vrObjectSystem->createTrackingRuntime(trackingRuntime))
+	vrObjectSystem->createTrackingRuntime(trackingRuntime);
+
+	// Only block creation if the runtime definitively failed (not just pending)
+	if (vrObjectSystem->getTrackingRuntimeState(trackingRuntime) ==
+		VRObjectSystem::eTrackingRuntimeState::failed)
 	{
 		return VRTrackingVolumeComponentPtr();
 	}
