@@ -91,9 +91,12 @@ public:
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
 
+	bool isPendingOpen() const { return m_bPendingOpen; }
+
 protected:
 	void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
 private:
 	INetworkVideoDevicePtr m_networkVideoDevice = nullptr;
+	bool m_bPendingOpen = false;
 };

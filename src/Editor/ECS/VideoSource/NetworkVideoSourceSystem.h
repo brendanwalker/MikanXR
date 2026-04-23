@@ -8,6 +8,7 @@
 #include "ObjectSystemConfigFwd.h"
 #include "VideoSourceQueries.h"
 
+#include <future>
 #include <string>
 
 class NetworkVideoSourceSystemDefinition :
@@ -44,11 +45,19 @@ public:
 
     INetworkVideoDeviceManagerPtr getNetworkVideoDeviceManager() const { return m_networkVideoDeviceManager; }
 
+	enum class eNetworkVideoManagerState
+	{
+		uninitialized,
+		initializing,
+		ready,
+		failed
+	};
+	eNetworkVideoManagerState getNetworkVideoManagerState() const { return m_networkVideoManagerState; }
+
     VideoSourceIdList getVideoSourceIdList() const;
 
 protected:
 	bool ensureNetworkDeviceManager();
-	bool createNetworkVideoDeviceManager(const std::string& moduleName);
 	void disposeNetworkVideoDeviceManager();
 
 	virtual void additionalComponentFactory(
@@ -56,6 +65,15 @@ protected:
 		NetworkVideoSourceDefinitionPtr componentDefinition) override;
 
 private:
+	struct NetworkVideoDeviceManagerInitResult
+	{
+		class INetworkVideoDeviceModule* module = nullptr;
+		INetworkVideoDeviceManagerPtr manager;
+	};
+	static NetworkVideoDeviceManagerInitResult initNetworkVideoDeviceManagerOnThread(const std::string& moduleName);
+
+	eNetworkVideoManagerState m_networkVideoManagerState = eNetworkVideoManagerState::uninitialized;
+	std::future<NetworkVideoDeviceManagerInitResult> m_networkVideoManagerFuture;
 	class INetworkVideoDeviceModule* m_networkVideoDeviceModule = nullptr;
 	INetworkVideoDeviceManagerPtr m_networkVideoDeviceManager = nullptr;
 };

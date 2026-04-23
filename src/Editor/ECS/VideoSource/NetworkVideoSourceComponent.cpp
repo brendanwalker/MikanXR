@@ -307,12 +307,22 @@ bool NetworkVideoSourceComponent::openVideoSource()
 		return false;
 
 	// Create the network video device
-	auto networkVideoSourceSystem = 
+	auto networkVideoSourceSystem =
 		std::static_pointer_cast<NetworkVideoSourceSystem>(getOwnerObject()->getOwnerSystem());
-	INetworkVideoDeviceManagerPtr networkVideoDeviceManager = 
+	INetworkVideoDeviceManagerPtr networkVideoDeviceManager =
 		networkVideoSourceSystem->getNetworkVideoDeviceManager();
 	if (!networkVideoDeviceManager)
+	{
+		// If the manager is still initializing, mark this component as pending so the
+		// system will retry openVideoSource() once the manager is ready
+		if (networkVideoSourceSystem->getNetworkVideoManagerState() ==
+			NetworkVideoSourceSystem::eNetworkVideoManagerState::initializing)
+		{
+			m_bPendingOpen = true;
+		}
 		return false;
+	}
+	m_bPendingOpen = false;
 
 	NetworkVideoConnectionSettings connectionSettings;
 	connectionSettings.protocol = definition->getProtocol();
@@ -351,6 +361,8 @@ bool NetworkVideoSourceComponent::openVideoSource()
 
 void NetworkVideoSourceComponent::closeVideoSource()
 {
+	m_bPendingOpen = false;
+
 	if (m_networkVideoDevice != nullptr)
 	{
 		// Remove the listener for the Network video device
