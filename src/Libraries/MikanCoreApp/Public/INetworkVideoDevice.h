@@ -43,6 +43,9 @@ struct NetworkVideoFrameBuffer
 class INetworkVideoDeviceListener
 {
 public:
+	// Called when the async open has completed successfully
+	virtual void notifyVideoDeviceOpened(const class INetworkVideoDevice* device) {}
+
 	// Called when the video source has been disconnected
 	virtual void notifyVideoDeviceClosed(const class INetworkVideoDevice* device) = 0;
 
@@ -72,8 +75,8 @@ public:
 	virtual bool getStreamProperties(NetworkVideoStreamProperties& outProperties) const = 0;
 
 	// -- Device Activation
-	virtual bool getIsOpen() const = 0;
-	virtual bool open() = 0;
+	virtual eVideoOpeningStatus getVideoOpeningStatus() const = 0;
+	virtual eVideoOpeningStatus open() = 0;
 	virtual void close() = 0;
 
 	// -- Video Streaming

@@ -334,25 +334,15 @@ bool NetworkVideoSourceComponent::openVideoSource()
 	if (m_networkVideoDevice == nullptr)
 		return false;
 
-	// Attempt to open the Network video device
-	if (!m_networkVideoDevice->open())
-		return false;
-
-	// Listen for events from the Network video device
+	// Listen for events from the Network video device before calling open()
+	// so that notifyVideoDeviceOpened() is received when the async open completes
 	m_networkVideoDevice->addListener(this);
 
-	// Apply the side effect of video mode changes 
-	notifyVideoModePropertiesChanged(m_networkVideoDevice.get());
-	if (OnFrameSizeChanged)
+	// Kick off the async open — post-open setup happens in notifyVideoDeviceOpened()
+	if (m_networkVideoDevice->open() == eVideoOpeningStatus::failed)
 	{
-		OnFrameSizeChanged(getSelfPtr<VideoSourceComponent>());
-	}
-
-	// Let any connected clients know that the video source closed
-	MikanServer::getInstance()->getVideoSourceRequestHandler()->publishVideoSourceOpenedEvent();
-	if (OnOpened)
-	{
-		OnOpened(getSelfPtr<VideoSourceComponent>());
+		m_networkVideoDevice->removeListener(this);
+		return false;
 	}
 
 	return true;
@@ -452,6 +442,27 @@ bool NetworkVideoSourceComponent::getVideoPixelDimensions(int& outPixelWidth, in
 }
 
 // -- INetworkVideoDeviceListener ----
+void NetworkVideoSourceComponent::notifyVideoDeviceOpened(
+	const INetworkVideoDevice* device)
+{
+	if (device != m_networkVideoDevice.get())
+		return;
+
+	// Apply the side effect of video mode changes now that the device is fully open
+	notifyVideoModePropertiesChanged(m_networkVideoDevice.get());
+	if (OnFrameSizeChanged)
+	{
+		OnFrameSizeChanged(getSelfPtr<VideoSourceComponent>());
+	}
+
+	// Let any connected clients know that the video source opened
+	MikanServer::getInstance()->getVideoSourceRequestHandler()->publishVideoSourceOpenedEvent();
+	if (OnOpened)
+	{
+		OnOpened(getSelfPtr<VideoSourceComponent>());
+	}
+}
+
 void NetworkVideoSourceComponent::notifyVideoDeviceClosed(
 	const INetworkVideoDevice* device)
 {

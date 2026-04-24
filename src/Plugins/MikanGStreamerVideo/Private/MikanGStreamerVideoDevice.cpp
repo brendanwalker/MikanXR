@@ -10,6 +10,7 @@
 #include <gst/app/gstappsink.h>
 
 #include "assert.h"
+#include <chrono>
 
 const std::string g_GStreamerProtocolStrings[(int)eNetworkVideoProtocol::COUNT] = {
 	"rtmp",
@@ -293,7 +294,7 @@ const char* MikanGStreamerVideoDevice::getFriendlyName() const
 
 bool MikanGStreamerVideoDevice::getStreamProperties(NetworkVideoStreamProperties& outProperties) const
 {
-	if (getIsOpen() && GStreamerImpl::isFrameInfoValid(m_streamInfo))
+	if (m_openState == eOpenState::open && GStreamerImpl::isFrameInfoValid(m_streamInfo))
 	{
 		outProperties = m_streamInfo;
 		return true;
@@ -303,59 +304,105 @@ bool MikanGStreamerVideoDevice::getStreamProperties(NetworkVideoStreamProperties
 }
 
 // -- Device Activation
-bool MikanGStreamerVideoDevice::open()
+eVideoOpeningStatus MikanGStreamerVideoDevice::open()
 {
-	if (getIsOpen())
-	{
-		return true;
-	}
+	if (m_openState == eOpenState::open || m_openState == eOpenState::opening)
+		return getVideoOpeningStatus();
 
+	// Launch the slow GStreamer pipeline setup on a background thread
+	m_openState = eOpenState::opening;
+	m_openFuture = std::async(std::launch::async, &MikanGStreamerVideoDevice::openOnThread, this);
+
+	return eVideoOpeningStatus::opening;
+}
+
+bool MikanGStreamerVideoDevice::openOnThread()
+{
+	// gst_parse_launch is the primary source of latency on first call (loads GStreamer DLLs)
 	GError* error = nullptr;
 	std::string pipelineString = m_impl->buildGStreamerPipelineString();
 	m_impl->pipeline = gst_parse_launch(pipelineString.c_str(), &error);
 	if (error)
 	{
-		MIKAN_LOG_INFO("MikanGStreamerVideoDevice::open") << "Failed to create pipeline: " << error->message;
+		MIKAN_LOG_INFO("MikanGStreamerVideoDevice::openOnThread") << "Failed to create pipeline: " << error->message;
 		g_error_free(error);
-		close();
 		return false;
 	}
 
 	m_impl->appsink = gst_bin_get_by_name(GST_BIN(m_impl->pipeline), "sink");
 	if (!m_impl->appsink)
 	{
-		MIKAN_LOG_INFO("MikanGStreamerVideoDevice::open") << "Failed to get appsink from pipeline!";
-		close();
+		MIKAN_LOG_INFO("MikanGStreamerVideoDevice::openOnThread") << "Failed to get appsink from pipeline!";
 		return false;
 	}
 
-	// add a message handler
 	m_impl->bus = gst_pipeline_get_bus(GST_PIPELINE(m_impl->pipeline));
 	if (!m_impl->bus)
 	{
-		MIKAN_LOG_INFO("MikanGStreamerVideoDevice::open") << "Failed to get bus from pipeline!";
-		close();
+		MIKAN_LOG_INFO("MikanGStreamerVideoDevice::openOnThread") << "Failed to get bus from pipeline!";
 		return false;
 	}
-
-	// Register the bus callback
-	gst_bus_add_watch(m_impl->bus, GStreamerImpl::busCallback, this);
-
-	gst_app_sink_set_emit_signals(GST_APP_SINK(m_impl->appsink), FALSE);
-	gst_app_sink_set_drop(GST_APP_SINK(m_impl->appsink), TRUE);
-	gst_app_sink_set_max_buffers(GST_APP_SINK(m_impl->appsink), 1);
 
 	return true;
 }
 
-bool MikanGStreamerVideoDevice::getIsOpen() const
+eVideoOpeningStatus MikanGStreamerVideoDevice::getVideoOpeningStatus() const
 {
-	return m_impl->pipeline != nullptr && m_impl->appsink != nullptr && m_impl->bus != nullptr;
+	switch (m_openState)
+	{
+	case eOpenState::open:    return eVideoOpeningStatus::open;
+	case eOpenState::opening: return eVideoOpeningStatus::opening;
+	case eOpenState::failed:  return eVideoOpeningStatus::failed;
+	default:                  return eVideoOpeningStatus::closed;
+	}
 }
 
 void MikanGStreamerVideoDevice::update(float deltaSeconds)
 {
-	assert(getIsOpen());
+	// Poll the async open future
+	if (m_openState == eOpenState::opening)
+	{
+		if (m_openFuture.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+		{
+			bool bSuccess = m_openFuture.get();
+			if (bSuccess)
+			{
+				// Complete the remaining setup on the main thread (GLib main context calls)
+				gst_bus_add_watch(m_impl->bus, GStreamerImpl::busCallback, this);
+				gst_app_sink_set_emit_signals(GST_APP_SINK(m_impl->appsink), FALSE);
+				gst_app_sink_set_drop(GST_APP_SINK(m_impl->appsink), TRUE);
+				gst_app_sink_set_max_buffers(GST_APP_SINK(m_impl->appsink), 1);
+
+				m_openState = eOpenState::open;
+				notifyVideoDeviceOpened();
+			}
+			else
+			{
+				m_openState = eOpenState::failed;
+				// Clean up whatever the thread managed to allocate before failing
+				if (m_impl->bus != nullptr)
+				{
+					gst_object_unref(m_impl->bus);
+					m_impl->bus = nullptr;
+				}
+				if (m_impl->appsink != nullptr)
+				{
+					gst_object_unref(m_impl->appsink);
+					m_impl->appsink = nullptr;
+				}
+				if (m_impl->pipeline != nullptr)
+				{
+					gst_element_set_state(m_impl->pipeline, GST_STATE_NULL);
+					gst_object_unref(m_impl->pipeline);
+					m_impl->pipeline = nullptr;
+				}
+				notifyVideoDeviceClosed();
+			}
+		}
+		return;
+	}
+
+	assert(m_openState == eOpenState::open);
 
 	GstSample* sample = gst_app_sink_try_pull_sample(GST_APP_SINK(m_impl->appsink), 0);
 	if (sample)
@@ -397,14 +444,19 @@ void MikanGStreamerVideoDevice::update(float deltaSeconds)
 	}
 }
 
+void MikanGStreamerVideoDevice::notifyVideoDeviceOpened()
+{
+	for (INetworkVideoDeviceListener* listener : m_listeners)
+	{
+		listener->notifyVideoDeviceOpened(this);
+	}
+}
+
 void MikanGStreamerVideoDevice::notifyVideoDeviceClosed()
 {
-	if (getIsOpen())
+	for (INetworkVideoDeviceListener* listener : m_listeners)
 	{
-		for (INetworkVideoDeviceListener* listener : m_listeners)
-		{
-			listener->notifyVideoDeviceClosed(this);
-		}
+		listener->notifyVideoDeviceClosed(this);
 	}
 }
 
@@ -426,7 +478,19 @@ void MikanGStreamerVideoDevice::notifyVideoFrameReceived(const NetworkVideoFrame
 
 void MikanGStreamerVideoDevice::close()
 {
-	notifyVideoDeviceClosed();
+	// If async open is in-flight, block until it completes so we can safely clean up
+	if (m_openState == eOpenState::opening && m_openFuture.valid())
+	{
+		m_openFuture.get();
+		// Don't notify — the device was never fully open from the caller's perspective
+	}
+	else if (m_openState == eOpenState::open)
+	{
+		notifyVideoDeviceClosed();
+	}
+
+	m_openState = eOpenState::closed;
+	m_bIsStreaming = false;
 
 	// Make sure the pipeline is stopped first
 	if (m_impl->pipeline != nullptr)
@@ -482,7 +546,7 @@ int MikanGStreamerVideoDevice::getVideoSetting(const eVideoSettingType property_
 // -- Video Streaming
 eVideoStreamingStatus MikanGStreamerVideoDevice::startVideoStream()
 {
-	if (getIsOpen())
+	if (m_openState == eOpenState::open)
 	{
 		eVideoStreamingStatus status= getVideoStreamingStatus();
 
@@ -503,7 +567,7 @@ eVideoStreamingStatus MikanGStreamerVideoDevice::startVideoStream()
 
 eVideoStreamingStatus MikanGStreamerVideoDevice::getVideoStreamingStatus() const
 {
-	if (getIsOpen())
+	if (m_openState == eOpenState::open)
 	{
 		return m_bIsStreaming
 			? eVideoStreamingStatus::started
@@ -515,7 +579,7 @@ eVideoStreamingStatus MikanGStreamerVideoDevice::getVideoStreamingStatus() const
 
 void MikanGStreamerVideoDevice::stopVideoStream()
 {
-	if (getIsOpen())
+	if (m_openState == eOpenState::open)
 	{
 		gst_element_set_state(m_impl->pipeline, GST_STATE_PAUSED);
 	}

@@ -4,6 +4,7 @@
 #include "WorkerThread.h"
 
 #include <array>
+#include <future>
 #include <string>
 #include <set>
 
@@ -30,8 +31,8 @@ public:
 	virtual bool getStreamProperties(NetworkVideoStreamProperties& outProperties) const override;
 
 	// -- Device Activation
-	virtual bool getIsOpen() const override;
-	virtual bool open() override;
+	virtual eVideoOpeningStatus getVideoOpeningStatus() const override;
+	virtual eVideoOpeningStatus open() override;
 	virtual void close() override;
 
 	// -- Video Settings
@@ -48,16 +49,23 @@ public:
 	virtual void stopVideoStream() override;
 	
 protected:
+	void notifyVideoDeviceOpened();
 	void notifyVideoDeviceClosed();
 	void notifyVideoModePropertiesChanged();
 	void notifyVideoFrameReceived(const NetworkVideoFrameBuffer& newBuffer);
 
 private:
+	bool openOnThread();
+
+	enum class eOpenState { closed, opening, open, failed };
+
 	class MikanGStreamerVideoDeviceManager* m_ownerDeviceManager;
 	NetworkVideoConnectionSettings m_connectionInfo;
 	NetworkVideoStreamProperties m_streamInfo;
 	std::string m_url;
 	struct GStreamerImpl* m_impl;
+	eOpenState m_openState = eOpenState::closed;
+	std::future<bool> m_openFuture;
 	bool m_bIsStreaming;
 
 	std::set<INetworkVideoDeviceListener*> m_listeners;

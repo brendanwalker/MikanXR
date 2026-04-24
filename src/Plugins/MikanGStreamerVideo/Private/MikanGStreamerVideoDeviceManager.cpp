@@ -8,7 +8,7 @@ void MikanGStreamerVideoDeviceManager::update(float deltaTime)
 {
 	for (auto& device : m_deviceList)
 	{
-		if (device && device->getIsOpen())
+		if (device && device->getVideoOpeningStatus() >= eVideoOpeningStatus::opening)
 		{
 			device->update(deltaTime);
 		}

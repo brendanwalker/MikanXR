@@ -79,6 +79,7 @@ public:
 	virtual bool getVideoPixelDimensions(int& outPixelWidth, int& outPixelHeight) const override;
 
 	// -- INetworkVideoDeviceListener ----
+	virtual void notifyVideoDeviceOpened(const class INetworkVideoDevice* device) override;
 	virtual void notifyVideoDeviceClosed(const class INetworkVideoDevice* device) override;
 	virtual void notifyVideoModePropertiesChanged(const class INetworkVideoDevice* device) override;
 	virtual void notifyVideoFrameReceived(const NetworkVideoFrameBuffer& bufferInfo) override;

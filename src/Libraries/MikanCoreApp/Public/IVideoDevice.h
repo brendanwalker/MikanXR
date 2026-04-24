@@ -4,6 +4,14 @@
 #include <memory>
 
 // -- definitions -----
+enum class eVideoOpeningStatus : int
+{
+	failed = -1,
+	closed = 0,
+	opening = 1,
+	open = 2,
+};
+
 enum class eVideoStreamingStatus : int
 {
 	failed = -1,
