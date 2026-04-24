@@ -24,6 +24,9 @@
 
 #include <easy/profiler.h>
 
+#include <chrono>
+#include <thread>
+
 #ifdef _WIN32
 #include "Objbase.h"
 #endif //_WIN32
@@ -129,6 +132,16 @@ bool App::startup(int argc, char** argv)
 	log_init(settings);
 
 	profiler::startListen();
+
+	if (hasCommandLineFlag("waitForProfiler"))
+	{
+		MIKAN_LOG_INFO("App::init") << "Waiting for profiler client to connect...";
+		while (!profiler::isCapturing())
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		}
+		MIKAN_LOG_INFO("App::init") << "Profiler client connected, continuing startup.";
+	}
 
 #ifdef _WIN32
 	HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);

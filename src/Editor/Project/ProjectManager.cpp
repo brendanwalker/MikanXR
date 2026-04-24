@@ -28,6 +28,8 @@
 #include "USBVideoSourceSystem.h"
 #include "VRObjectSystem.h"
 
+#include <easy/profiler.h>
+
 #define PROJECT_SAVE_COOLDOWN	3.f
 
 const char* ProjectManager::k_mikanProjectFileExtension= ".mikanproj";
@@ -185,6 +187,8 @@ bool ProjectManager::newProject(const std::string& projectFilePath)
 
 bool ProjectManager::loadProject(const std::string& projectFilePath)
 {
+	EASY_FUNCTION();
+
 	// Early out if the project file path is invalid
 	if (projectFilePath.empty() || !std::filesystem::exists(projectFilePath))
 	{

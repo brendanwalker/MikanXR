@@ -9,6 +9,8 @@
 #include "MkGuiStyleManager.h"
 #include "PathUtils.h"
 
+#include <easy/profiler.h>
+
 //-- public methods -----
 EditorWindow::EditorWindow(App* ownerApp)
 	: m_ownerApp(ownerApp)
@@ -123,6 +125,8 @@ bool EditorWindow::hasKeyboardFocus() const
 
 bool EditorWindow::startupWindow(const std::string& title, int width, int height)
 {
+	EASY_FUNCTION();
+
 	m_mkWindowContext->setTitle(title);
 	m_mkWindowContext->setSize(width, height);
 	if (!m_mkWindowContext->startup())
@@ -135,6 +139,8 @@ bool EditorWindow::startupWindow(const std::string& title, int width, int height
 
 bool EditorWindow::startupGuiContext()
 {
+	EASY_FUNCTION();
+
 	m_guiContext = std::make_shared<MkGuiContext>(getMkWindowContext().get());
 	if (!m_guiContext->startup())
 	{
@@ -146,6 +152,8 @@ bool EditorWindow::startupGuiContext()
 
 bool EditorWindow::startupStyleManager()
 {
+	EASY_FUNCTION();
+
 	m_styleManager = std::make_unique<MkGuiStyleManager>();
 	const auto stylesPath = PathUtils::getResourceDirectory() / "gui_styles";
 	if (!m_styleManager->startup(m_guiContext.get(), stylesPath))
@@ -158,6 +166,8 @@ bool EditorWindow::startupStyleManager()
 
 bool EditorWindow::startupModelResourceManager()
 {
+	EASY_FUNCTION();
+
 	if (!m_modelResourceManager->startup())
 	{
 		MIKAN_LOG_ERROR("EditorWindow::startupModelResourceManager") << "Unable to initialize model resource manager";
