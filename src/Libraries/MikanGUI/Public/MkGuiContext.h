@@ -1,11 +1,12 @@
 #pragma once
 
+#include "MkGuiExport.h"
 #include "MkGuiFwd.h"
 #include "IMkWindowContext.h"
 #include "IMkWindowEventListener.h"
 #include "IMkGraphicsContext.h"
 
-class MkGuiContext : public IMkWindowEventListener
+class MIKAN_GUI_CLASS MkGuiContext : public IMkWindowEventListener
 {
 public:
 	MkGuiContext()= delete;

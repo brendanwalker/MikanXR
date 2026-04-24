@@ -1,10 +1,10 @@
 #pragma once
 
 #include "ComponentFwd.h"
+#include "IMkGuiStyle.h"
 #include "Shared/GuiPanel_EntityAccessor.h"
 
 class AppStage;
-using MkGuiStyleConstPtr = std::shared_ptr<const class MkGuiStyle>;
 
 class GuiPanel_MikanComponent : public IGuiPanel
 {

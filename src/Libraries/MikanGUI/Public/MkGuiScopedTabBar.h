@@ -1,8 +1,9 @@
 #pragma once
 
+#include "MkGuiExport.h"
 #include "imgui.h"
 
-class MkGuiScopedTabBar
+class MIKAN_GUI_CLASS MkGuiScopedTabBar
 {
 public:
 	explicit MkGuiScopedTabBar(const char* str_id, ImGuiTabBarFlags flags = 0);

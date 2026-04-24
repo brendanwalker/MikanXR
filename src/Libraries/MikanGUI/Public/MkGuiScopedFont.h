@@ -1,8 +1,9 @@
 #pragma once
 
+#include "MkGuiExport.h"
 #include "MkGuiFwd.h"
 
-class MkGuiScopedFont
+class MIKAN_GUI_CLASS MkGuiScopedFont
 {
 public:
 	explicit MkGuiScopedFont(ImFont* font);

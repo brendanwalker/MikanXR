@@ -1,8 +1,9 @@
 #pragma once
 
+#include "MkGuiExport.h"
 #include "imgui.h"
 
-class MkGuiScopedDragDropSource
+class MIKAN_GUI_CLASS MkGuiScopedDragDropSource
 {
 public:
 	explicit MkGuiScopedDragDropSource(ImGuiDragDropFlags flags = 0);

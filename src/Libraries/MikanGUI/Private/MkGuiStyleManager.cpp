@@ -1,4 +1,5 @@
 #include "MkGuiStyleManager.h"
+#include "MkGuiStyle.h"
 #include "MkGuiContext.h"
 #include "IMkTextureCache.h"
 #include "PathUtils.h"
@@ -7,6 +8,23 @@
 #include "nlohmann/json.hpp"
 
 #include <fstream>
+#include <unordered_map>
+
+struct MkGuiStyleManager::Impl
+{
+	MkGuiContext* guiContext = nullptr;
+	std::unordered_map<std::string, MkGuiStylePtr> styles;
+};
+
+MkGuiStyleManager::MkGuiStyleManager()
+	: m_impl(new Impl())
+{
+}
+
+MkGuiStyleManager::~MkGuiStyleManager()
+{
+	delete m_impl;
+}
 
 // Maps JSON var name to ImGuiStyleVar enum
 static const std::unordered_map<std::string, ImGuiStyleVar> k_styleFloatTable = {
@@ -101,7 +119,7 @@ static const std::unordered_map<std::string, ImGuiCol> k_styleColorTable = {
 
 bool MkGuiStyleManager::startup(MkGuiContext* guiContext, const std::filesystem::path& stylesDir)
 {
-	m_guiContext = guiContext;
+	m_impl->guiContext = guiContext;
 
 	if (!std::filesystem::exists(stylesDir))
 	{
@@ -126,14 +144,14 @@ bool MkGuiStyleManager::startup(MkGuiContext* guiContext, const std::filesystem:
 
 void MkGuiStyleManager::shutdown()
 {
-	m_styles.clear();
-	m_guiContext = nullptr;
+	m_impl->styles.clear();
+	m_impl->guiContext = nullptr;
 }
 
 MkGuiStyleConstPtr MkGuiStyleManager::getStyle(const std::string& name) const
 {
-	auto it = m_styles.find(name);
-	if (it == m_styles.end())
+	auto it = m_impl->styles.find(name);
+	if (it == m_impl->styles.end())
 	{
 		MIKAN_LOG_ERROR("MkGuiStyleManager::getStyle") << "Style not found: " << name;
 		return nullptr;
@@ -165,7 +183,7 @@ bool MkGuiStyleManager::loadStyleFile(const std::filesystem::path& filePath)
 	for (auto& [styleName, styleJson] : root.items())
 	{
 		auto style = std::make_shared<MkGuiStyle>();
-		style->name = styleName;
+		style->name() = styleName;
 
 		// Optional font
 		if (styleJson.contains("font") && styleJson["font"].is_string())
@@ -174,24 +192,24 @@ bool MkGuiStyleManager::loadStyleFile(const std::filesystem::path& filePath)
 
 			if (fontName == "normal_icon")
 			{
-				style->font = m_guiContext->getNormalIconFont();
+				style->font() = m_impl->guiContext->getNormalIconFont();
 			}
 			else if (fontName == "big_icon")
 			{
-				style->font = m_guiContext->getBigIconFont();
+				style->font() = m_impl->guiContext->getBigIconFont();
 			}
 		}
 
 		// Optional label widths
 		if (styleJson.contains("labelWidth") && styleJson["labelWidth"].is_number())
 		{
-			style->labelWidth = styleJson["labelWidth"].get<int>();
+			style->labelWidth() = styleJson["labelWidth"].get<int>();
 		}
 
 		// Optional value widths
 		if (styleJson.contains("valueWidth") && styleJson["valueWidth"].is_number())
 		{
-			style->valueWidth = styleJson["valueWidth"].get<int>();
+			style->valueWidth() = styleJson["valueWidth"].get<int>();
 		}
 
 		// Style vars
@@ -215,7 +233,7 @@ bool MkGuiStyleManager::loadStyleFile(const std::filesystem::path& filePath)
 					if (varJson["value"].is_number())
 					{
 						entry.floatVal = varJson["value"].get<float>();
-						style->floatVars.push_back(entry);
+						style->floatVars().push_back(entry);
 					}
 					else
 					{
@@ -233,7 +251,7 @@ bool MkGuiStyleManager::loadStyleFile(const std::filesystem::path& filePath)
 							varJson["value"][0].get<float>(), 
 							varJson["value"][1].get<float>() 
 						};
-						style->vec2Vars.push_back(entry);
+						style->vec2Vars().push_back(entry);
 					}
 					else
 					{
@@ -278,14 +296,14 @@ bool MkGuiStyleManager::loadStyleFile(const std::filesystem::path& filePath)
 					colorJson["value"][2].get<float>(),
 					colorJson["value"][3].get<float>()
 				};
-				style->colors.push_back(entry);
+				style->colors().push_back(entry);
 			}
 		}
 
 		// Style textures
 		if (styleJson.contains("textures") && styleJson["textures"].is_array())
 		{
-			IMkTextureCache* textureCache = m_guiContext->getTextureCache();
+			IMkTextureCache* textureCache = m_impl->guiContext->getTextureCache();
 			for (const auto& texJson : styleJson["textures"])
 			{
 				if (!texJson.contains("name") || !texJson.contains("path"))
@@ -303,7 +321,7 @@ bool MkGuiStyleManager::loadStyleFile(const std::filesystem::path& filePath)
 
 				if (entry.texture)
 				{
-					style->textures[texName] = entry;
+					style->textures()[texName] = entry;
 				}
 				else
 				{
@@ -313,7 +331,7 @@ bool MkGuiStyleManager::loadStyleFile(const std::filesystem::path& filePath)
 			}
 		}
 
-		m_styles[styleName] = style;
+		m_impl->styles[styleName] = style;
 	}
 
 	return bSuccess;

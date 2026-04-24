@@ -1,6 +1,8 @@
 #pragma once
 
-class MkNodesScopedNodeTitleBar
+#include "MkGuiExport.h"
+
+class MIKAN_GUI_CLASS MkNodesScopedNodeTitleBar
 {
 public:
 	MkNodesScopedNodeTitleBar();

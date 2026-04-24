@@ -1,6 +1,8 @@
 #pragma once
 
-class MkGuiScopedGroup
+#include "MkGuiExport.h"
+
+class MIKAN_GUI_CLASS MkGuiScopedGroup
 {
 public:
 	MkGuiScopedGroup();

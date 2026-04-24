@@ -1,6 +1,8 @@
 #pragma once
 
-class MkGuiScopedDragDropTarget
+#include "MkGuiExport.h"
+
+class MIKAN_GUI_CLASS MkGuiScopedDragDropTarget
 {
 public:
 	MkGuiScopedDragDropTarget();

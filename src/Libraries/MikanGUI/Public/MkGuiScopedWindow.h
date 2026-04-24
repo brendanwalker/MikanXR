@@ -1,8 +1,9 @@
 #pragma once
 
+#include "MkGuiExport.h"
 #include "imgui.h"
 
-class MkGuiScopedWindow
+class MIKAN_GUI_CLASS MkGuiScopedWindow
 {
 public:
 	MkGuiScopedWindow(const char* name,

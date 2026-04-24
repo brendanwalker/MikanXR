@@ -1,8 +1,9 @@
 #pragma once
 
+#include "MkGuiExport.h"
 #include "imgui.h"
 
-class MkGuiScopedStyleColor
+class MIKAN_GUI_CLASS MkGuiScopedStyleColor
 {
 public:
 	MkGuiScopedStyleColor() = default;

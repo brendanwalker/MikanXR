@@ -1,26 +1,19 @@
 #pragma once
 
-#include "MkGuiStyle.h"
-#include "MkGuiScopedStyleVar.h"
-#include "MkGuiScopedStyleColor.h"
-#include "MkGuiScopedFont.h"
+#include "MkGuiExport.h"
+#include "IMkGuiStyle.h"
 
-#include <memory>
-
-class MkGuiScopedStyle
+class MIKAN_GUI_CLASS MkGuiScopedStyle
 {
 public:
 	MkGuiScopedStyle() = default;
 	MkGuiScopedStyle(MkGuiStyleConstPtr style);
-	~MkGuiScopedStyle() = default;
+	~MkGuiScopedStyle();
 
 	MkGuiScopedStyle(const MkGuiScopedStyle&) = delete;
 	MkGuiScopedStyle& operator=(const MkGuiScopedStyle&) = delete;
 
 private:
-	// Destruction order is reverse of declaration order (LIFO):
-	// m_colors pops first, then m_vars, then m_font
-	std::unique_ptr<MkGuiScopedFont> m_font;
-	MkGuiScopedStyleVar m_vars;
-	MkGuiScopedStyleColor m_colors;
+	struct Impl;
+	Impl* m_impl = nullptr;
 };

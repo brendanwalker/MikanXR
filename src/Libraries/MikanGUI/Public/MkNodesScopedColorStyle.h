@@ -1,6 +1,8 @@
 #pragma once
 
-class MkNodesScopedColorStyle
+#include "MkGuiExport.h"
+
+class MIKAN_GUI_CLASS MkNodesScopedColorStyle
 {
 public:
 	MkNodesScopedColorStyle() = default;

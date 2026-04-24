@@ -1,8 +1,9 @@
 #pragma once
 
+#include "MkGuiExport.h"
 #include "imgui.h"
 
-class MkGuiScopedStyleVar
+class MIKAN_GUI_CLASS MkGuiScopedStyleVar
 {
 public:
 	MkGuiScopedStyleVar() = default;

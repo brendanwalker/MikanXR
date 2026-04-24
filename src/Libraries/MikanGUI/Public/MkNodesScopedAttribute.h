@@ -1,8 +1,9 @@
 #pragma once
 
+#include "MkGuiExport.h"
 #include "MkGuiFwd.h"
 
-class MkNodesScopedAttribute
+class MIKAN_GUI_CLASS MkNodesScopedAttribute
 {
 public:
 	// shape default = 4 (ImNodesPinShape_CircleFilled)

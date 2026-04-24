@@ -1,11 +1,12 @@
 #pragma once
 
+#include "MkGuiExport.h"
 #include "IMkTextRenderer.h"
 
 #include <filesystem>
 #include <string>
 
-const TextStyle& getDefaultTextStyle();
-const std::filesystem::path getDefaultJapaneseFontPath();
-const std::filesystem::path getForkAwesomeWebFontPath();
+MIKAN_GUI_FUNC(const TextStyle&) getDefaultTextStyle();
+MIKAN_GUI_FUNC(const std::filesystem::path) getDefaultJapaneseFontPath();
+MIKAN_GUI_FUNC(const std::filesystem::path) getForkAwesomeWebFontPath();
 

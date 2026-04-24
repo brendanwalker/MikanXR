@@ -32,8 +32,8 @@ namespace MkGui
 		const std::string text)
 	{
 		ImGui::Text(label.c_str());
-		ImGui::SameLine(style->labelWidth);
-		ImGui::SetNextItemWidth(style->valueWidth);
+		ImGui::SameLine(style->getLabelWidth());
+		ImGui::SetNextItemWidth(style->getValueWidth());
 		MkGuiScopedStyle textStyle(style);
 		ImGui::Text(text.c_str());
 	}
@@ -45,8 +45,8 @@ namespace MkGui
 		bool& inout_value)
 	{
 		ImGui::Text(label.c_str());
-		ImGui::SameLine(style->labelWidth);
-		ImGui::SetNextItemWidth(style->valueWidth);
+		ImGui::SameLine(style->getLabelWidth());
+		ImGui::SetNextItemWidth(style->getValueWidth());
 		const std::string imguiElementName = makeImGuiElementName(fieldName);
 		return ImGui::Checkbox(imguiElementName.c_str(), &inout_value);
 	}
@@ -58,8 +58,8 @@ namespace MkGui
 		int& inout_value)
 	{
 		ImGui::Text(label.c_str());
-		ImGui::SameLine(style->labelWidth);
-		ImGui::SetNextItemWidth(style->valueWidth);
+		ImGui::SameLine(style->getLabelWidth());
+		ImGui::SetNextItemWidth(style->getValueWidth());
 		const std::string imguiElementName = makeImGuiElementName(fieldName);
 		return ImGui::InputInt(imguiElementName.c_str(), &inout_value);
 	}
@@ -71,8 +71,8 @@ namespace MkGui
 		float& inout_value)
 	{
 		ImGui::Text(label.c_str());
-		ImGui::SameLine(style->labelWidth);
-		ImGui::SetNextItemWidth(style->valueWidth);
+		ImGui::SameLine(style->getLabelWidth());
+		ImGui::SetNextItemWidth(style->getValueWidth());
 		const std::string imguiElementName = makeImGuiElementName(fieldName);
 		return ImGui::InputFloat(imguiElementName.c_str(), &inout_value);
 	}
@@ -91,8 +91,8 @@ namespace MkGui
 			: displayMin;
 
 		ImGui::Text(label.c_str());
-		ImGui::SameLine(style->labelWidth);
-		ImGui::SetNextItemWidth(style->valueWidth);
+		ImGui::SameLine(style->getLabelWidth());
+		ImGui::SetNextItemWidth(style->getValueWidth());
 		const std::string imguiElementName = makeImGuiElementName(fieldName);
 		if (ImGui::SliderFloat(imguiElementName.c_str(), &displayValue, displayMin, displayMax))
 		{
@@ -112,8 +112,8 @@ namespace MkGui
 		float* inout_v)
 	{
 		ImGui::Text(label.c_str());
-		ImGui::SameLine(style->labelWidth);
-		ImGui::SetNextItemWidth(style->valueWidth);
+		ImGui::SameLine(style->getLabelWidth());
+		ImGui::SetNextItemWidth(style->getValueWidth());
 		const std::string imguiElementName = makeImGuiElementName(fieldName);
 		return ImGui::InputFloat2(imguiElementName.c_str(), inout_v);
 	}
@@ -125,8 +125,8 @@ namespace MkGui
 		float* inout_v)
 	{
 		ImGui::Text(label.c_str());
-		ImGui::SameLine(style->labelWidth);
-		ImGui::SetNextItemWidth(style->valueWidth);
+		ImGui::SameLine(style->getLabelWidth());
+		ImGui::SetNextItemWidth(style->getValueWidth());
 		const std::string imguiElementName = makeImGuiElementName(fieldName);
 		return ImGui::InputFloat3(imguiElementName.c_str(), inout_v);
 	}
@@ -138,8 +138,8 @@ namespace MkGui
 		float* inout_v)
 	{
 		ImGui::Text(label.c_str());
-		ImGui::SameLine(style->labelWidth);
-		ImGui::SetNextItemWidth(style->valueWidth);
+		ImGui::SameLine(style->getLabelWidth());
+		ImGui::SetNextItemWidth(style->getValueWidth());
 		const std::string imguiElementName = makeImGuiElementName(fieldName);
 		return ImGui::InputFloat4(imguiElementName.c_str(), inout_v);
 	}
@@ -152,8 +152,8 @@ namespace MkGui
 		size_t bufSize)
 	{
 		ImGui::Text(label.c_str());
-		ImGui::SameLine(style->labelWidth);
-		ImGui::SetNextItemWidth(style->valueWidth);
+		ImGui::SameLine(style->getLabelWidth());
+		ImGui::SetNextItemWidth(style->getValueWidth());
 		const std::string imguiElementName = makeImGuiElementName(fieldName);
 		return ImGui::InputText(imguiElementName.c_str(), buf, bufSize);
 	}
@@ -166,8 +166,8 @@ namespace MkGui
 		int& inout_selectedIdex)
 	{
 		ImGui::Text(label.c_str());
-		ImGui::SameLine(style->labelWidth);
-		ImGui::SetNextItemWidth(style->valueWidth);
+		ImGui::SameLine(style->getLabelWidth());
+		ImGui::SetNextItemWidth(style->getValueWidth());
 		MkGuiScopedStyle comboStyle(style);
 		const std::string imguiElementName = makeImGuiElementName(fieldName);
 		return ImGui::Combo(imguiElementName.c_str(), &inout_selectedIdex, items);
@@ -179,8 +179,8 @@ namespace MkGui
 		IMkTextureConstPtr image)
 	{
 		ImGui::Text(label.c_str());
-		ImGui::SameLine(style->labelWidth);
-		ImGui::SetNextItemWidth(style->valueWidth);
+		ImGui::SameLine(style->getLabelWidth());
+		ImGui::SetNextItemWidth(style->getValueWidth());
 		ImGui::Dummy(ImVec2(1.0f, 0.5f));
 		uint32_t glTextureId = image ? image->getGlTextureId() : 0;
 		ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
@@ -197,17 +197,15 @@ namespace MkGui
 		const std::string& fieldName,
 		const std::string& imageName)
 	{
-		auto it = style->textures.find(imageName);
-		if (it == style->textures.end())
+		const MkGuiStyleTextureEntry* entry = style->findTexture(imageName);
+		if (!entry)
 			return false;
-
-		const MkGuiStyleTextureEntry& entry = it->second;
-		uint32_t glTextureId = entry.texture ? entry.texture->getGlTextureId() : 0;
+		uint32_t glTextureId = entry->texture ? entry->texture->getGlTextureId() : 0;
 		const std::string imguiElementName = makeImGuiElementName(fieldName);
 		return ImGui::ImageButton(
 			imguiElementName.c_str(),
 			(ImTextureID)(intptr_t)glTextureId,
-			ImVec2(entry.x, entry.y));
+			ImVec2(entry->x, entry->y));
 	}
 
 	bool ComboBoxDataSource::itemGetter(void* data, int idx, const char** out_str)
@@ -231,8 +229,8 @@ namespace MkGui
 		int& inout_selectedIdex)
 	{
 		ImGui::Text(label.c_str());
-		ImGui::SameLine(style->labelWidth);
-		ImGui::SetNextItemWidth(style->valueWidth);
+		ImGui::SameLine(style->getLabelWidth());
+		ImGui::SetNextItemWidth(style->getValueWidth());
 		MkGuiScopedStyle comboStyle(style);
 		const std::string imguiElementName = makeImGuiElementName(fieldName);
 		return ImGui::Combo(imguiElementName.c_str(),

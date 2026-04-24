@@ -1,8 +1,9 @@
 #pragma once
 
+#include "MkGuiExport.h"
 #include "imgui.h"
 
-class MkGuiScopedTabItem
+class MIKAN_GUI_CLASS MkGuiScopedTabItem
 {
 public:
 	explicit MkGuiScopedTabItem(const char* label,

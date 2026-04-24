@@ -2,9 +2,8 @@
 
 #include "Shared/GuiDataSource_StringList.h"
 #include "Shared/GuiPanel_MikanObjectSystem.h"
+#include "IMkGuiStyle.h"
 #include "MarkerObjectSystem.h"
-
-using MkGuiStyleConstPtr = std::shared_ptr<const class MkGuiStyle>;
 
 class GuiPanel_MarkerObjectSystem : public GuiPanel_MikanObjectSystem
 {

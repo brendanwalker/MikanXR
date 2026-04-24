@@ -71,9 +71,15 @@ list(APPEND MIKAN_GUI_REQ_LIBS
 set_source_files_properties(${IMGUI_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${IMNODES_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 
-add_library(MikanGUI STATIC ${MIKAN_GUI_SRC})
+add_library(MikanGUI SHARED ${MIKAN_GUI_SRC})
 target_include_directories(MikanGUI PRIVATE ${MIKAN_GUI_INCL_DIRS})
 target_link_libraries(MikanGUI ${MIKAN_GUI_REQ_LIBS})
+target_compile_definitions(MikanGUI PRIVATE MIKAN_GUI_EXPORTS)
+IF(WIN32)
+  target_compile_definitions(MikanGUI
+    PRIVATE   "IMGUI_API=__declspec(dllexport)" "IMNODES_API=__declspec(dllexport)"
+    INTERFACE "IMGUI_API=__declspec(dllimport)" "IMNODES_API=__declspec(dllimport)")
+ENDIF()
 set_target_properties(MikanGUI PROPERTIES FOLDER MikanLibraries)
 set_target_properties(MikanGUI PROPERTIES PUBLIC_HEADER "${MIKAN_GUI_HEADER}")
 

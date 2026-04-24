@@ -1,6 +1,8 @@
 #pragma once
 
-class MkNodesScopedNodeEditor
+#include "MkGuiExport.h"
+
+class MIKAN_GUI_CLASS MkNodesScopedNodeEditor
 {
 public:
 	MkNodesScopedNodeEditor();

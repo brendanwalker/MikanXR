@@ -1,14 +1,17 @@
 #pragma once
 
-#include "MkGuiStyle.h"
+#include "MkGuiExport.h"
+#include "IMkGuiStyle.h"
 
 #include <filesystem>
 #include <string>
-#include <unordered_map>
 
-class MkGuiStyleManager
+class MIKAN_GUI_CLASS MkGuiStyleManager
 {
 public:
+	MkGuiStyleManager();
+	~MkGuiStyleManager();
+
 	bool startup(class MkGuiContext* guiContext, const std::filesystem::path& stylesDir);
 	void shutdown();
 
@@ -17,6 +20,6 @@ public:
 private:
 	bool loadStyleFile(const std::filesystem::path& filePath);
 
-	class MkGuiContext* m_guiContext = nullptr;
-	std::unordered_map<std::string, MkGuiStylePtr> m_styles;
+	struct Impl;
+	Impl* m_impl = nullptr;
 };

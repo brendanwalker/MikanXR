@@ -1,8 +1,9 @@
 #pragma once
 
+#include "MkGuiExport.h"
 #include "MkGuiFwd.h"
 
-class MkGuiScopedContext
+class MIKAN_GUI_CLASS MkGuiScopedContext
 {
 public:
 	MkGuiScopedContext() = delete;

@@ -1,8 +1,9 @@
 #pragma once
 
+#include "MkGuiExport.h"
 #include "imgui.h"
 
-class MkGuiScopedPopup
+class MIKAN_GUI_CLASS MkGuiScopedPopup
 {
 public:
 	explicit MkGuiScopedPopup(const char* str_id, ImGuiWindowFlags flags = 0);
@@ -17,7 +18,7 @@ private:
 	bool m_open = false;
 };
 
-class MkGuiScopedPopupContextItem
+class MIKAN_GUI_CLASS MkGuiScopedPopupContextItem
 {
 public:
 	explicit MkGuiScopedPopupContextItem(const char* str_id = nullptr,

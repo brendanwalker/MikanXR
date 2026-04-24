@@ -275,12 +275,6 @@ set(MIKAN_ECS_SRC
     ${MIKAN_ECS_VIDEO_SOURCE_SRC}
 )
 
-# ImGUI's source files are included in directly, rather than linking against a lib
-source_group("ImGui" FILES ${IMGUI_SOURCE})
-
-# ImNodes's source files are included in directly, rather than linking against a lib
-source_group("ImNodes" FILES ${IMNODES_SOURCE})
-
 # Interprocess
 file(GLOB MIKAN_INTERPROCESS_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Interprocess/*.cpp"
@@ -419,8 +413,6 @@ set(MIKAN_SRC
     ${MIKAN_SCRIPTING_SRC}
     ${MIKAN_SERVER_SRC}
     ${MIKAN_SYSTEM_SRC}
-    ${IMGUI_SOURCE}
-    ${IMNODES_SOURCE}
     ${TINYFILEDIALOGS_SOURCE}
 )
 
@@ -520,8 +512,6 @@ list(APPEND MIKAN_REQ_LIBS
   MikanWindow)
 
 # Remove problematic files from the unity builds (header file inclusion ordering issues)
-set_source_files_properties(${IMGUI_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
-set_source_files_properties(${IMNODES_SOURCE} PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Device/Enumerator/OpenCVCameraEnumerator.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/WebsocketInterprocessMessageServer.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/SharedTextureReader.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
@@ -560,6 +550,9 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   add_custom_command(
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanCoreApp>/MikanCoreApp.dll $<TARGET_FILE_DIR:Mikan>)
+  add_custom_command(
+    TARGET Mikan POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanGUI>/MikanGUI.dll $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanMath>/MikanMath.dll $<TARGET_FILE_DIR:Mikan>)

@@ -1,91 +1,86 @@
 #pragma once
 
+#include "MkGuiExport.h"
+#include "IMkGuiStyle.h"
+
 #include <memory>
 #include <string>
-
-class MkGuiStyleManager;
-
-struct ImVec2;
-struct ImVec4;
-
-class MkGuiStyle;
-using MkGuiStyleConstPtr = std::shared_ptr<const MkGuiStyle>;
 
 class IMkTexture;
 using IMkTextureConstPtr = std::shared_ptr<const IMkTexture>;
 
 namespace MkGui
 {
-	bool drawPropertySheetHeader(
+	MIKAN_GUI_FUNC(bool) drawPropertySheetHeader(
 		MkGuiStyleConstPtr style,
 		const std::string headerText);
-	void drawStaticTextProperty(
+	MIKAN_GUI_FUNC(void) drawStaticTextProperty(
 		MkGuiStyleConstPtr style,
-		const std::string label, 
+		const std::string label,
 		const std::string text);
-	bool drawCheckBoxProperty(
+	MIKAN_GUI_FUNC(bool) drawCheckBoxProperty(
 		MkGuiStyleConstPtr style,
 		const std::string fieldName,
 		const std::string label,
 		bool& inout_value);
-	bool drawIntProperty(
+	MIKAN_GUI_FUNC(bool) drawIntProperty(
 		MkGuiStyleConstPtr style,
 		const std::string fieldName,
 		const std::string label,
 		int& inout_value);
-	bool drawFloatProperty(
+	MIKAN_GUI_FUNC(bool) drawFloatProperty(
 		MkGuiStyleConstPtr style,
 		const std::string fieldName,
 		const std::string label,
 		float& inout_value);
-	bool drawFloatSliderProperty(
+	MIKAN_GUI_FUNC(bool) drawFloatSliderProperty(
 		MkGuiStyleConstPtr style,
 		const std::string fieldName,
 		const std::string label,
 		float& inout_value,
 		float srcMin, float srcMax,
 		float displayMin, float displayMax);
-	bool drawFloat2Property(
+	MIKAN_GUI_FUNC(bool) drawFloat2Property(
 		MkGuiStyleConstPtr style,
 		const std::string fieldName,
 		const std::string label,
 		float* inout_v);
-	bool drawFloat3Property(
+	MIKAN_GUI_FUNC(bool) drawFloat3Property(
 		MkGuiStyleConstPtr style,
 		const std::string fieldName,
 		const std::string label,
 		float* inout_v);
-	bool drawFloat4Property(
+	MIKAN_GUI_FUNC(bool) drawFloat4Property(
 		MkGuiStyleConstPtr style,
 		const std::string fieldName,
 		const std::string label,
 		float* inout_v);
-	bool drawStringProperty(
+	MIKAN_GUI_FUNC(bool) drawStringProperty(
 		MkGuiStyleConstPtr style,
 		const std::string fieldName,
 		const std::string label,
 		char* buf,
 		size_t bufSize);
-	bool drawSimpleComboBoxProperty(
+	MIKAN_GUI_FUNC(bool) drawSimpleComboBoxProperty(
 		MkGuiStyleConstPtr style,
 		const std::string fieldName,
 		const std::string label,
 		const char* items,
 		int& inout_selectedIdex);
-	void drawImageProperty(
+	MIKAN_GUI_FUNC(void) drawImageProperty(
 		MkGuiStyleConstPtr style,
 		const std::string label,
 		IMkTextureConstPtr image);
-	void drawImage(
+	MIKAN_GUI_FUNC(void) drawImage(
 		IMkTextureConstPtr image,
 		float width,
 		float height);
-	bool drawImageButton(
+	MIKAN_GUI_FUNC(bool) drawImageButton(
 		MkGuiStyleConstPtr style,
 		const std::string& fieldName,
 		const std::string& imageName);
 
-	class ComboBoxDataSource
+	class MIKAN_GUI_CLASS ComboBoxDataSource
 	{
 	public:
 		virtual int getEntryCount() const = 0;
@@ -93,14 +88,14 @@ namespace MkGui
 
 		static bool itemGetter(void* data, int idx, const char** out_str);
 	};
-	bool drawComboBoxProperty(
+	MIKAN_GUI_FUNC(bool) drawComboBoxProperty(
 		MkGuiStyleConstPtr style,
 		const std::string fieldName,
 		const std::string label,
 		ComboBoxDataSource* dataSource,
 		int& inout_selectedIdex);
 
-	void* receiveDragDropPayload(const std::string& PayloadType);
+	MIKAN_GUI_FUNC(void*) receiveDragDropPayload(const std::string& PayloadType);
 	template <class t_payload_type>
 	std::shared_ptr<t_payload_type> receiveTypedDragDropPayload(const std::string& PayloadType)
 	{
