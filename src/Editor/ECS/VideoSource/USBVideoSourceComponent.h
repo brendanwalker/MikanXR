@@ -67,6 +67,7 @@ public:
 	inline static const std::string k_componentClassName = "USBVideoSourceComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
+	inline bool isPendingOpen() const { return m_bPendingOpen; }
 	std::string getDeviceFriendlyName() const;
 
 	bool hasVideoSetting(eVideoSettingType settingType) const;
@@ -153,4 +154,5 @@ protected:
 	bool m_bSettingsChanged = false;
 	bool m_bPendingStartStream = false;
 	bool m_bWantsStreamActive = false;
+	bool m_bPendingOpen = false;
 };

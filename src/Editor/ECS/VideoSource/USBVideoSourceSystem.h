@@ -9,6 +9,7 @@
 #include "USBVideoSourceComponent.h"
 #include "VideoSourceQueries.h"
 
+#include <future>
 #include <map>
 #include <string>
 
@@ -43,9 +44,19 @@ public:
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
     virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
+    virtual void update(float deltaTime) override;
     virtual void dispose() override;
 
 	IUsbVideoDeviceManagerPtr getUSBVideoDeviceManager() const { return m_usbVideoDeviceManager; }
+
+	enum class eUsbVideoManagerState
+	{
+		uninitialized,
+		initializing,
+		ready,
+		failed
+	};
+	eUsbVideoManagerState getUsbVideoManagerState() const { return m_usbVideoManagerState; }
 
 	bool getConnectedUSBVideoSourcePaths(USBVideoSourcePathList& outVideoSourcePathList) const;
 	bool getConnectedUSBVideoSourcePathMap(USBVideoSourcePathMap& outVideoSourcePathMap) const;
@@ -65,13 +76,22 @@ public:
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
 
 protected:
-    bool createUsbVideoDeviceManager(const std::string& moduleName);
+    bool ensureUsbVideoDeviceManager();
     void disposeUsbVideoDeviceManager();
 
 	// IUsbVideoDeviceManagerListener interface
 	virtual void onConnectedDeviceListChanged() override;
 
 private:
+	struct UsbVideoDeviceManagerInitResult
+	{
+		class IUsbVideoDeviceModule* module = nullptr;
+		IUsbVideoDeviceManagerPtr manager;
+	};
+	static UsbVideoDeviceManagerInitResult initUsbVideoDeviceManagerOnThread(const std::string& moduleName);
+
+	eUsbVideoManagerState m_usbVideoManagerState = eUsbVideoManagerState::uninitialized;
+	std::future<UsbVideoDeviceManagerInitResult> m_usbVideoManagerFuture;
     class IUsbVideoDeviceModule* m_usbVideoDeviceModule = nullptr;
     IUsbVideoDeviceManagerPtr m_usbVideoDeviceManager = nullptr;
 };

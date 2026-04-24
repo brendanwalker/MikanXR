@@ -10,6 +10,7 @@
 #include "MikanObject.h"
 
 #include <assert.h>
+#include <chrono>
 
 #define USB_VIDEO_DEVICE_MODULE_NAME "MikanWMFVideo"
 
@@ -28,95 +29,154 @@ USBVideoSourceSystem::USBVideoSourceSystem(ProjectManagerPtr ownerObjectSystem)
 
 bool USBVideoSourceSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
-    if (!createUsbVideoDeviceManager(USB_VIDEO_DEVICE_MODULE_NAME))
-    {
-        MIKAN_LOG_ERROR("USBVideoSourceSystem::init") <<
-            "Failed to load USB video device module " << USB_VIDEO_DEVICE_MODULE_NAME;
-		return false;
-    }
+    // Launch async init (non-blocking) — components will open once the manager is ready
+    ensureUsbVideoDeviceManager();
 
-	Super::init(definitionPtr);
+    Super::init(definitionPtr);
 
     return true;
 }
 
-void USBVideoSourceSystem::dispose()
+void USBVideoSourceSystem::update(float deltaTime)
 {
-	Super::dispose();
-	disposeUsbVideoDeviceManager();
-}
-
-bool USBVideoSourceSystem::createUsbVideoDeviceManager(const std::string& moduleName)
-{
-	// Bail if we didn't select a valid runtime type to use
-    if (moduleName.empty())
+    // Poll for async manager init completion
+    if (m_usbVideoManagerState == eUsbVideoManagerState::initializing)
     {
-		MIKAN_LOG_ERROR("USBVideoSourceSystem::createUsbVideoDeviceManager")
-			<< "Missing USB video device module name";
-		return false;
+        if (m_usbVideoManagerFuture.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
+        {
+            auto result = m_usbVideoManagerFuture.get();
+            if (result.manager)
+            {
+                m_usbVideoDeviceModule = result.module;
+                m_usbVideoDeviceManager = result.manager;
+                m_usbVideoDeviceManager->addListener(this);
+                m_usbVideoManagerState = eUsbVideoManagerState::ready;
+                MIKAN_LOG_INFO("USBVideoSourceSystem::update")
+                    << "USB video device manager is ready";
+
+                // Retry openVideoSource() on any components that were waiting
+                for (const auto& [id, weakComp] : Super::getComponentMap())
+                {
+                    if (auto comp = weakComp.lock(); comp && comp->isPendingOpen())
+                        comp->openVideoSource();
+                }
+            }
+            else
+            {
+                m_usbVideoManagerState = eUsbVideoManagerState::failed;
+                MIKAN_LOG_ERROR("USBVideoSourceSystem::update")
+                    << "Async USB video device manager init failed";
+            }
+        }
     }
 
-	// Attempt to load the usb device module
-	bool bSuccess = false;
-    m_usbVideoDeviceModule = getMikanModuleManager()->getModule<IUsbVideoDeviceModule>(moduleName);
-	if (m_usbVideoDeviceModule)
-	{
-		MIKAN_LOG_INFO("USBVideoSourceSystem::createUsbVideoDeviceManager")
-			<< "Loaded module " << moduleName;
+    Super::update(deltaTime);
+}
 
-		// Attempt to create a device manager
-        m_usbVideoDeviceManager = m_usbVideoDeviceModule->createUsbVideoDeviceManager();
-		if (m_usbVideoDeviceManager)
-		{
-			MIKAN_LOG_INFO("USBVideoSourceSystem::createUsbVideoDeviceManager")
-				<< "Allocated USB device manager for " << moduleName;
+void USBVideoSourceSystem::dispose()
+{
+    // If async init is still in-flight, block until it completes so we can safely clean up
+    if (m_usbVideoManagerFuture.valid())
+    {
+        auto result = m_usbVideoManagerFuture.get();
+        m_usbVideoDeviceModule = result.module;
+        m_usbVideoDeviceManager = result.manager;
+    }
 
-			// Attempt to startup the usb device manager
-			if (m_usbVideoDeviceManager->startup())
-			{
-				MIKAN_LOG_INFO("USBVideoSourceSystem::createUsbVideoDeviceManager")
-					<< "Started USBDeviceManger for " << moduleName;
+    Super::dispose();
+    disposeUsbVideoDeviceManager();
+}
 
-				// Listen for device manager changes
-				m_usbVideoDeviceManager->addListener(this);
+bool USBVideoSourceSystem::ensureUsbVideoDeviceManager()
+{
+    switch (m_usbVideoManagerState)
+    {
+    case eUsbVideoManagerState::ready:
+        return true;
+    case eUsbVideoManagerState::initializing:
+        return false;
+    case eUsbVideoManagerState::failed:
+        return false;
+    default:
+        break;
+    }
 
-				bSuccess = true;
-			}
-			else
-			{
-				MIKAN_LOG_WARNING("USBVideoSourceSystem::createUsbVideoDeviceManager")
-					<< "Failed to startup UsbVideoDeviceManger for " << moduleName;
-			}
-		}
-		else
-		{
-			MIKAN_LOG_WARNING("USBVideoSourceSystem::createUsbVideoDeviceManager")
-				<< "Failed to allocate UsbVideoDeviceManger for " << moduleName;
-		}
-	}
-	else
-	{
-		MIKAN_LOG_ERROR("USBVideoSourceSystem::createUsbVideoDeviceManager")
-			<< "Failed to load module" << moduleName;
-	}
+    const std::string moduleName = USB_VIDEO_DEVICE_MODULE_NAME;
+    if (moduleName.empty())
+    {
+        m_usbVideoManagerState = eUsbVideoManagerState::failed;
+        return false;
+    }
 
-	// Clean up if anything failed
-	if (!bSuccess)
-	{
-		if (m_usbVideoDeviceManager)
-		{
-            m_usbVideoDeviceManager->shutdown();
-            m_usbVideoDeviceManager = nullptr;
-		}
+    MIKAN_LOG_INFO("USBVideoSourceSystem::ensureUsbVideoDeviceManager")
+        << "Launching async init for USB video device module " << moduleName;
+    m_usbVideoManagerState = eUsbVideoManagerState::initializing;
+    m_usbVideoManagerFuture = std::async(
+        std::launch::async,
+        &USBVideoSourceSystem::initUsbVideoDeviceManagerOnThread,
+        moduleName);
 
-		if (m_usbVideoDeviceModule)
-		{
-			getMikanModuleManager()->disposeModule(m_usbVideoDeviceModule);
-            m_usbVideoDeviceModule = nullptr;
-		}
-	}
+    return false;
+}
 
-    return bSuccess;
+USBVideoSourceSystem::UsbVideoDeviceManagerInitResult
+USBVideoSourceSystem::initUsbVideoDeviceManagerOnThread(const std::string& moduleName)
+{
+    UsbVideoDeviceManagerInitResult result;
+
+    // Attempt to load the usb device module
+    result.module = getMikanModuleManager()->getModule<IUsbVideoDeviceModule>(moduleName);
+    if (result.module)
+    {
+        MIKAN_LOG_INFO("USBVideoSourceSystem::initUsbVideoDeviceManagerOnThread")
+            << "Loaded module " << moduleName;
+
+        // Attempt to create a device manager
+        result.manager = result.module->createUsbVideoDeviceManager();
+        if (result.manager)
+        {
+            MIKAN_LOG_INFO("USBVideoSourceSystem::initUsbVideoDeviceManagerOnThread")
+                << "Allocated USB device manager for " << moduleName;
+
+            // Attempt to startup the usb device manager
+            if (result.manager->startup())
+            {
+                MIKAN_LOG_INFO("USBVideoSourceSystem::initUsbVideoDeviceManagerOnThread")
+                    << "Started USBDeviceManger for " << moduleName;
+
+                return result;
+            }
+            else
+            {
+                MIKAN_LOG_WARNING("USBVideoSourceSystem::initUsbVideoDeviceManagerOnThread")
+                    << "Failed to startup UsbVideoDeviceManger for " << moduleName;
+            }
+        }
+        else
+        {
+            MIKAN_LOG_WARNING("USBVideoSourceSystem::initUsbVideoDeviceManagerOnThread")
+                << "Failed to allocate UsbVideoDeviceManger for " << moduleName;
+        }
+    }
+    else
+    {
+        MIKAN_LOG_ERROR("USBVideoSourceSystem::initUsbVideoDeviceManagerOnThread")
+            << "Failed to load module " << moduleName;
+    }
+
+    // Clean up on failure
+    if (result.manager)
+    {
+        result.manager->shutdown();
+        result.manager = nullptr;
+    }
+    if (result.module)
+    {
+        getMikanModuleManager()->disposeModule(result.module);
+        result.module = nullptr;
+    }
+
+    return result;
 }
 
 void USBVideoSourceSystem::disposeUsbVideoDeviceManager()

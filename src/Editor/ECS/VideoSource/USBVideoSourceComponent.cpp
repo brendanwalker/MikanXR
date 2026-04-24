@@ -273,6 +273,18 @@ bool USBVideoSourceComponent::openVideoSource()
 	// Find the USB video device by its path
 	auto usbVideoSourceSystem = std::static_pointer_cast<USBVideoSourceSystem>(getOwnerObject()->getOwnerSystem());
 	IUsbVideoDeviceManagerPtr usbVideoDeviceManager = usbVideoSourceSystem->getUSBVideoDeviceManager();
+	if (!usbVideoDeviceManager)
+	{
+		// If the manager is still initializing, mark this component as pending so the
+		// system will retry openVideoSource() once the manager is ready
+		if (usbVideoSourceSystem->getUsbVideoManagerState() ==
+			USBVideoSourceSystem::eUsbVideoManagerState::initializing)
+		{
+			m_bPendingOpen = true;
+		}
+		return false;
+	}
+	m_bPendingOpen = false;
 
 	m_usbVideoDevice= usbVideoDeviceManager->getDeviceByPath(devicePath.c_str());
 	if (m_usbVideoDevice == nullptr)
@@ -709,6 +721,8 @@ bool USBVideoSourceComponent::setVideoSettingAsFloatFraction(
 
 void USBVideoSourceComponent::closeVideoSource()
 {
+	m_bPendingOpen = false;
+
 	if (m_usbVideoDevice != nullptr)
 	{
 		// Let any connected clients know that the video source closed
