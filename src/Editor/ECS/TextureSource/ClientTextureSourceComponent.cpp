@@ -156,12 +156,14 @@ const std::string& ClientTextureSourceComponent::getClientSourceName() const
 
 void ClientTextureSourceComponent::showTextureSourceSettings()
 {
-	auto* appStage = getOwnerEditorWindow()->pushAppStageOfType<AppStage_TextureSourceSettings>();
+	AppStage* currentAppStage = getOwnerEditorWindow()->getCurrentAppStage();
 
 	ModalDialog_SelectCamera::selectCamera(
-		appStage,
-		[this, appStage](MikanCameraID cameraId) {
-			appStage->setSourceCameraId(cameraId);
-			appStage->setTextureSourceComponent(getSelfPtr<TextureSourceComponent>());
+		currentAppStage,
+		[this](MikanCameraID cameraId) {
+			auto* newAppStage = getOwnerEditorWindow()->pushAppStageOfType<AppStage_TextureSourceSettings>();
+
+			newAppStage->setSourceCameraId(cameraId);
+			newAppStage->setTextureSourceComponent(getSelfPtr<TextureSourceComponent>());
 	});
 }
