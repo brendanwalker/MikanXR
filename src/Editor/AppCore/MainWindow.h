@@ -97,5 +97,5 @@ private:
 
 	bool m_isRenderingStage;
 	bool m_isRenderingUI;
-	bool m_bIsDebugGuiEnabled = false;
+	bool m_bIsMainWindowGuiHidden = false;
 };

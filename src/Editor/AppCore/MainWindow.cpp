@@ -71,6 +71,7 @@ MainWindow::MainWindow(App* ownerApp)
 	, m_appStageFactory(this)
 	, m_isRenderingStage(false)
 	, m_isRenderingUI(false)
+	, m_bIsMainWindowGuiHidden(ownerApp->hasCommandLineFlag("hideMainWindowGUI"))
 {
 	m_graphicsContext = createMkGraphicsContext(eGraphicsAPI::OpenGL, m_fontManager.get());
 	m_mkWindowContext = createMkWindowContext(m_ownerApp->getWindowManager(), m_graphicsContext);
@@ -230,7 +231,7 @@ void MainWindow::update(float deltaSeconds)
 	if (appStage != nullptr && appStage->getIsUpdateActive())
 	{
 		// Process input events in the Debug UI and render the UI
-		if (m_bIsDebugGuiEnabled)
+		if (!m_bIsMainWindowGuiHidden)
 		{
 			EASY_BLOCK("appStage onGui");
 			appStage->onGui();
@@ -386,11 +387,11 @@ bool MainWindow::onWindowEvent(const MkWindowEvent& event)
 	// Toggle debug UI with F11
 	else if (eventType == eMkWindowEventType::KeyUp && keySym == MkKey::F11)
 	{
-		m_bIsDebugGuiEnabled = !m_bIsDebugGuiEnabled;
+		m_bIsMainWindowGuiHidden = !m_bIsMainWindowGuiHidden;
 	}
 
 	// Then see if the UI wants to handle the event
-	if (!bHandled && m_bIsDebugGuiEnabled)
+	if (!bHandled && !m_bIsMainWindowGuiHidden)
 	{
 		bHandled = m_guiContext->onWindowEvent(event);
 	}

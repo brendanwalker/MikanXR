@@ -9,7 +9,10 @@
 
 #include <chrono>
 
+#include <map>
 #include <memory>
+#include <set>
+#include <string>
 #include <vector>
 #include <assert.h>
 #include <stdint.h>
@@ -37,6 +40,9 @@ public:
 	inline class LocalizationManager* getLocalizationManager() const { return m_localizationManager; }
 
 	inline float getFPS() const { return m_fps; }
+
+	bool hasCommandLineFlag(const std::string& flag) const;
+	std::string getCommandLineStringArg(const std::string& key, const std::string& defaultValue = "") const;
 
 	int exec(int argc, char** argv);
 
@@ -111,6 +117,10 @@ private:
 
 	// Flag requesting that we exit the update loop
 	bool m_bShutdownRequested= false;
+
+	// Command line arguments parsed at startup
+	std::map<std::string, std::string> m_commandLineParams;
+	std::set<std::string> m_commandLineFlags;
 
 	// Current FPS rate
 	std::chrono::steady_clock::time_point m_lastFrameTimestamp;

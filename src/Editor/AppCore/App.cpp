@@ -90,10 +90,36 @@ IEditorWindow* App::getCurrentlyRenderingWindow() const
 	return m_renderingWindow; 
 }
 
+bool App::hasCommandLineFlag(const std::string& flag) const
+{
+	return m_commandLineFlags.count(flag) > 0;
+}
+
+std::string App::getCommandLineStringArg(const std::string& key, const std::string& defaultValue) const
+{
+	auto it = m_commandLineParams.find(key);
+	return it != m_commandLineParams.end() ? it->second : defaultValue;
+}
+
 //-- private methods -----
 bool App::startup(int argc, char** argv)
 {
 	bool success = true;
+
+	// Parse command line arguments
+	for (int i = 1; i < argc; ++i)
+	{
+		std::string arg = argv[i];
+		if (arg.size() > 1 && arg[0] == '-')
+		{
+			std::string key = arg.substr(1); // strip leading '-'
+			auto eqPos = key.find('=');
+			if (eqPos != std::string::npos)
+				m_commandLineParams[key.substr(0, eqPos)] = key.substr(eqPos + 1);
+			else
+				m_commandLineFlags.insert(key);
+		}
+	}
 
 	LoggerSettings settings = {};
 	settings.min_log_level = LogSeverityLevel::debug;
