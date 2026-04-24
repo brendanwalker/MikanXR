@@ -21,7 +21,8 @@
 	url = https://github.com/ocornut/imgui.git
 [submodule "thirdparty/imnodes"]
 	path = thirdparty/imnodes
-	url = https://github.com/Nelarius/imnodes.git
+	url = https://github.com/MikanXR/imnodes.git
+	branch = mikanxr-patches
 [submodule "thirdparty/fast_obj"]
 	path = thirdparty/fast_obj
 	url = https://github.com/thisistherk/fast_obj.git
