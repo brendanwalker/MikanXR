@@ -202,8 +202,30 @@ bool MkGuiContext::initImGuiOpenGlBackend()
 
 bool MkGuiContext::onWindowEvent(const MkWindowEvent& event)
 {
+	// Make sure this ImGui context is current when reading IO state
+	MkGuiScopedContext scopedContext(*this);
+
 	const SDL_Event* sdlEvent = (const SDL_Event*)event.getInternalWindowEvent();
-	return ImGui_ImplSDL2_ProcessEvent(sdlEvent);
+	ImGui_ImplSDL2_ProcessEvent(sdlEvent);
+
+	// Only block the event from reaching the rest of the app if ImGui is actually
+	// consuming that input type. WantCaptureMouse/WantCaptureKeyboard reflect the
+	// previous frame's state, which is the standard ImGui approach for event-time
+	// filtering when events are processed before ImGui::NewFrame().
+	const ImGuiIO& io = ImGui::GetIO();
+	switch (event.getEventType())
+	{
+	case eMkWindowEventType::MouseButtonDown:
+	case eMkWindowEventType::MouseButtonUp:
+	case eMkWindowEventType::MouseMotion:
+	case eMkWindowEventType::MouseWheel:
+		return io.WantCaptureMouse;
+	case eMkWindowEventType::KeyDown:
+	case eMkWindowEventType::KeyUp:
+		return io.WantCaptureKeyboard;
+	default:
+		return false;
+	}
 }
 
 void MkGuiContext::shutdown()
