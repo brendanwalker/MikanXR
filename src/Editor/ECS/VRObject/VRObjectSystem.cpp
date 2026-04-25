@@ -22,6 +22,11 @@
 #include "VRDeviceComponent.h"
 
 #include <chrono>
+#include <thread>
+
+#ifdef _WIN32
+#include <objbase.h>
+#endif //_WIN32
 
 // -- VRObjectSystemConfig -----
 VRObjectSystemDefinition::VRObjectSystemDefinition(
@@ -106,6 +111,10 @@ bool VRObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 
 void VRObjectSystem::update(float deltaSeconds)
 {
+	// On first update (after all startup), launch any deferred runtime threads
+	if (!m_deferredRuntimeLaunches.empty())
+		launchDeferredRuntimeThreads();
+
 	// Poll pending async runtime inits
 	for (auto it = m_pendingRuntimeFutures.begin(); it != m_pendingRuntimeFutures.end(); )
 	{
@@ -208,22 +217,41 @@ bool VRObjectSystem::createTrackingRuntime(eTrackingRuntime desiredRuntime)
 		break;
 	}
 
-	const std::string runtimeName = k_trackingRuntimeStrings[(int)desiredRuntime];
-	const std::string moduleName = StringUtils::stringify("Mikan", runtimeName);
+	// Already queued for deferred launch
+	if (m_deferredRuntimeLaunches.count(desiredRuntime) > 0)
+		return false;
 
-	// Capture the graphics context on the main thread before launching the async task
-	IEditorWindow* ownerWindow = getOwnerProjectManager()->getOwnerWindow();
-	IMkGraphicsContext* graphicsContext = ownerWindow->getGraphicsContext().get();
-
+	// Defer the thread launch to the first update() call, so that DLL loading
+	// doesn't hold the loader lock while mikanServer::startup / ImGui init run.
+	const std::string moduleName = StringUtils::stringify("Mikan", k_trackingRuntimeStrings[(int)desiredRuntime]);
 	MIKAN_LOG_INFO("VRObjectSystem::createTrackingRuntime")
-		<< "Launching async init for tracking runtime " << moduleName;
-	m_trackingRuntimeStates[desiredRuntime] = eTrackingRuntimeState::initializing;
-	m_pendingRuntimeFutures[desiredRuntime] = std::async(
-		std::launch::async,
-		&VRObjectSystem::initTrackingRuntimeOnThread,
-		desiredRuntime, moduleName, graphicsContext);
+		<< "Deferring async init for tracking runtime " << moduleName;
+	m_deferredRuntimeLaunches.insert(desiredRuntime);
 
 	return false;
+}
+
+void VRObjectSystem::launchDeferredRuntimeThreads()
+{
+	for (eTrackingRuntime desiredRuntime : m_deferredRuntimeLaunches)
+	{
+		const std::string runtimeName = k_trackingRuntimeStrings[(int)desiredRuntime];
+		const std::string moduleName = StringUtils::stringify("Mikan", runtimeName);
+
+		// Capture the graphics context on the main thread before launching the async task
+		IEditorWindow* ownerWindow = getOwnerProjectManager()->getOwnerWindow();
+		IMkGraphicsContext* graphicsContext = ownerWindow->getGraphicsContext().get();
+
+		MIKAN_LOG_INFO("VRObjectSystem::launchDeferredRuntimeThreads")
+			<< "Launching async init for tracking runtime " << moduleName;
+		m_trackingRuntimeStates[desiredRuntime] = eTrackingRuntimeState::initializing;
+		auto promise = std::make_shared<std::promise<TrackingRuntimeInitResult>>();
+		m_pendingRuntimeFutures[desiredRuntime] = promise->get_future();
+		std::thread([promise, desiredRuntime, moduleName, graphicsContext]() mutable {
+			promise->set_value(initTrackingRuntimeOnThread(desiredRuntime, moduleName, graphicsContext));
+		}).detach();
+	}
+	m_deferredRuntimeLaunches.clear();
 }
 
 VRObjectSystem::eTrackingRuntimeState VRObjectSystem::getTrackingRuntimeState(eTrackingRuntime runtime) const
@@ -237,6 +265,13 @@ VRObjectSystem::TrackingRuntimeInitResult VRObjectSystem::initTrackingRuntimeOnT
 	const std::string& moduleName,
 	IMkGraphicsContext* graphicsContext)
 {
+#ifdef _WIN32
+	// Initialize COM in MTA on this thread so that OpenVR/SteamVR initialization
+	// doesn't try to marshal COM calls to the main thread's COM apartment
+	const HRESULT comInitResult = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+	const bool bComInitialized = (comInitResult == S_OK);
+#endif // _WIN32
+
 	TrackingRuntimeInitResult result;
 	result.runtime = runtime;
 
@@ -260,6 +295,7 @@ VRObjectSystem::TrackingRuntimeInitResult VRObjectSystem::initTrackingRuntimeOnT
 				MIKAN_LOG_INFO("VRObjectSystem::initTrackingRuntimeOnThread")
 					<< "Started VRDeviceManger for " << moduleName;
 
+				if (bComInitialized) CoUninitialize();
 				return result;
 			}
 			else
@@ -291,6 +327,10 @@ VRObjectSystem::TrackingRuntimeInitResult VRObjectSystem::initTrackingRuntimeOnT
 		getMikanModuleManager()->disposeModule(result.module);
 		result.module = nullptr;
 	}
+
+#ifdef _WIN32
+	if (bComInitialized) CoUninitialize();
+#endif // _WIN32
 
 	return result;
 }

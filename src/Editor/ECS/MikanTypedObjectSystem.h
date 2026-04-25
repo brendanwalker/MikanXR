@@ -7,6 +7,9 @@
 #include "MikanFunctionDatabase.h"
 #include "TransformComponent.h"
 
+#include "Logger.h"
+
+#include <chrono>
 #include <memory>
 #include <string>
 
@@ -280,9 +283,23 @@ private:
 	ComponentPtr objectFactory(ComponentDefinitionPtr componentDefinition)
 	{
 		SystemDefinitionPtr systemDefinition = getTypedDefinition();
+		const std::string systemName = getObjectSystemClassName();
+		const std::string compName = componentDefinition->getComponentName();
+
+#define MIKAN_FACTORY_TIMED(label, expr) \
+		do { \
+			auto _t0 = std::chrono::high_resolution_clock::now(); \
+			expr; \
+			auto _ms = std::chrono::duration_cast<std::chrono::milliseconds>( \
+				std::chrono::high_resolution_clock::now() - _t0).count(); \
+			if (_ms >= 10) { \
+				MIKAN_LOG_INFO("MikanTypedObjectSystem::objectFactory") \
+					<< systemName << "[" << compName << "] " label ": " << _ms << "ms"; \
+			} \
+		} while (0)
 
 		MikanObjectPtr mikanObject = newEmptyObject();
-		mikanObject->setName(componentDefinition->getComponentName());
+		mikanObject->setName(compName);
 
 		// Add the primary component to the object
 		ComponentPtr componentPtr = mikanObject->template addComponent<TComponent>();
@@ -296,16 +313,19 @@ private:
 		}
 
 		// Allow derived systems to add additional components
-		additionalComponentFactory(mikanObject, componentDefinition);
+		MIKAN_FACTORY_TIMED("additionalComponentFactory",
+			additionalComponentFactory(mikanObject, componentDefinition));
 
 		// Init the object once all components are added
-		mikanObject->init();
+		MIKAN_FACTORY_TIMED("init", mikanObject->init());
 
 		// Then run post-init after all the component are initialized
-		mikanObject->postInit();
+		MIKAN_FACTORY_TIMED("postInit", mikanObject->postInit());
 
 		// Add definition to pool (fires property change event now that object is fully built)
-		systemDefinition->addDefinition(componentDefinition);
+		MIKAN_FACTORY_TIMED("addDefinition", systemDefinition->addDefinition(componentDefinition));
+
+#undef MIKAN_FACTORY_TIMED
 
 		return componentPtr;
 	}

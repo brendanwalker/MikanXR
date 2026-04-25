@@ -28,6 +28,9 @@
 #include "USBVideoSourceSystem.h"
 #include "VRObjectSystem.h"
 
+#include "Logger.h"
+
+#include <chrono>
 #include <easy/profiler.h>
 
 #define PROJECT_SAVE_COOLDOWN	3.f
@@ -208,14 +211,23 @@ bool ProjectManager::loadProject(const std::string& projectFilePath)
 	m_projectConfig = createEmptyProjectConfig();
 
 	// Attempt to load and init the new project
+	auto loadStart = std::chrono::high_resolution_clock::now();
 	bool bSuccess = m_projectConfig->load(projectFilePath);
+	auto loadEnd = std::chrono::high_resolution_clock::now();
+	MIKAN_LOG_INFO("ProjectManager::loadProject")
+		<< "Config load: "
+		<< std::chrono::duration_cast<std::chrono::milliseconds>(loadEnd - loadStart).count()
+		<< "ms";
+
 	if (bSuccess)
 	{
 		// Initialize all systems using the loaded project config
 		for (int i = 0; i < (int)m_systems.size(); i++)
 		{
 			MikanObjectSystemPtr system = m_systems[i];
-			MikanObjectSystemDefinitionPtr systemDefinition= 
+
+			auto initStart = std::chrono::high_resolution_clock::now();
+			MikanObjectSystemDefinitionPtr systemDefinition=
 				m_projectConfig->getDefinitionForSystem(system);
 
 			if (!system->init(systemDefinition))
@@ -223,16 +235,27 @@ bool ProjectManager::loadProject(const std::string& projectFilePath)
 				bSuccess = false;
 				break;
 			}
+			auto initEnd = std::chrono::high_resolution_clock::now();
+			MIKAN_LOG_INFO("ProjectManager::loadProject")
+				<< system->getObjectSystemClassName() << "::init: "
+				<< std::chrono::duration_cast<std::chrono::milliseconds>(initEnd - initStart).count()
+				<< "ms";
 		}
 
-		// Once all systems are successfully initialized, 
-		// call postInit on all systems to allow them to perform any setup 
+		// Once all systems are successfully initialized,
+		// call postInit on all systems to allow them to perform any setup
 		// that requires other systems/components to be initialized
 		// (e.g. TransformComponent wants to attach to its parent in postInit)
+		auto postInitStart = std::chrono::high_resolution_clock::now();
 		for (int i = 0; i < (int)m_systems.size(); i++)
 		{
 			m_systems[i]->postInit();
 		}
+		auto postInitEnd = std::chrono::high_resolution_clock::now();
+		MIKAN_LOG_INFO("ProjectManager::loadProject")
+			<< "postInit (all systems): "
+			<< std::chrono::duration_cast<std::chrono::milliseconds>(postInitEnd - postInitStart).count()
+			<< "ms";
 	}
 
 	if (bSuccess)

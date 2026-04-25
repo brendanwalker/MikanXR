@@ -11,6 +11,7 @@
 
 #include "assert.h"
 #include <chrono>
+#include <thread>
 
 const std::string g_GStreamerProtocolStrings[(int)eNetworkVideoProtocol::COUNT] = {
 	"rtmp",
@@ -311,7 +312,11 @@ eVideoOpeningStatus MikanGStreamerVideoDevice::open()
 
 	// Launch the slow GStreamer pipeline setup on a background thread
 	m_openState = eOpenState::opening;
-	m_openFuture = std::async(std::launch::async, &MikanGStreamerVideoDevice::openOnThread, this);
+	auto promise = std::make_shared<std::promise<bool>>();
+	m_openFuture = promise->get_future();
+	std::thread([promise, this]() mutable {
+		promise->set_value(openOnThread());
+	}).detach();
 
 	return eVideoOpeningStatus::opening;
 }

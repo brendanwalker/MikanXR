@@ -36,6 +36,8 @@
 #include "StringUtils.h"
 #include "TextStyle.h"
 
+#include <chrono>
+
 // App Stages
 #include "AlignmentCalibration/AppStage_AlignmentCalibration.h"
 #include "AnchorTriangulation/AppStage_AnchorTriangulation.h"
@@ -122,59 +124,100 @@ bool MainWindow::startup()
 
 	MIKAN_LOG_INFO("MainWindow::init()") << "Initializing MainWindow";
 
+#define MIKAN_TIMED_STARTUP(label, expr) \
+	do { \
+		auto _t0 = std::chrono::high_resolution_clock::now(); \
+		expr; \
+		auto _t1 = std::chrono::high_resolution_clock::now(); \
+		MIKAN_LOG_INFO("MainWindow::startup") \
+			<< label ": " \
+			<< std::chrono::duration_cast<std::chrono::milliseconds>(_t1 - _t0).count() \
+			<< "ms"; \
+	} while (0)
+
 	auto windowTitle= StringUtils::stringify("MikanXR v", MIKAN_RELEASE_VERSION_STRING);
 	if (success && !startupWindow(windowTitle, k_window_pixel_width, k_window_pixel_height))
 	{
 		success = false;
 	}
 
-	if (success && !startupGuiContext())
+	if (success)
 	{
-		success = false;
-	}
-
-	if (success && !startupStyleManager())
-	{
-		success = false;
-	}
-
-	if (success && !m_openCVManager->startup())
-	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize OpenCV manager!";
-		success = false;
-	}
-
-	if (success && !startupModelResourceManager())
-	{
-		success = false;
-	}
-
-	if (success && !m_fontManager->startup())
-	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize baked text cache!";
-		success = false;
+		bool ok = false;
+		MIKAN_TIMED_STARTUP("startupGuiContext", ok = startupGuiContext());
+		if (!ok) success = false;
 	}
 
 	if (success)
 	{
-		if (!m_projectManager->startup(this))
-		{			
+		bool ok = false;
+		MIKAN_TIMED_STARTUP("startupStyleManager", ok = startupStyleManager());
+		if (!ok) success = false;
+	}
+
+	if (success)
+	{
+		bool ok = false;
+		MIKAN_TIMED_STARTUP("openCVManager::startup", ok = m_openCVManager->startup());
+		if (!ok)
+		{
+			MIKAN_LOG_ERROR("App::init") << "Failed to initialize OpenCV manager!";
+			success = false;
+		}
+	}
+
+	if (success)
+	{
+		bool ok = false;
+		MIKAN_TIMED_STARTUP("startupModelResourceManager", ok = startupModelResourceManager());
+		if (!ok) success = false;
+	}
+
+	if (success)
+	{
+		bool ok = false;
+		MIKAN_TIMED_STARTUP("fontManager::startup", ok = m_fontManager->startup());
+		if (!ok)
+		{
+			MIKAN_LOG_ERROR("App::init") << "Failed to initialize baked text cache!";
+			success = false;
+		}
+	}
+
+	if (success)
+	{
+		bool ok = false;
+		MIKAN_TIMED_STARTUP("projectManager::startup", ok = m_projectManager->startup(this));
+		if (!ok)
+		{
 			MIKAN_LOG_ERROR("App::init") << "Failed to initialize the object system manager";
 			success = false;
 		}
 	}
 
-	if (success && !m_clientSourceManager->startup())
+	if (success)
 	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the client source manager";
-		success = false;
+		bool ok = false;
+		MIKAN_TIMED_STARTUP("clientSourceManager::startup", ok = m_clientSourceManager->startup());
+		if (!ok)
+		{
+			MIKAN_LOG_ERROR("App::init") << "Failed to initialize the client source manager";
+			success = false;
+		}
 	}
 
-	if (success && !m_mikanServer->startup(this))
+	if (success)
 	{
-		MIKAN_LOG_ERROR("App::init") << "Failed to initialize the MikanXR server";
-		success = false;
+		bool ok = false;
+		MIKAN_TIMED_STARTUP("mikanServer::startup", ok = m_mikanServer->startup(this));
+		if (!ok)
+		{
+			MIKAN_LOG_ERROR("App::init") << "Failed to initialize the MikanXR server";
+			success = false;
+		}
 	}
+
+#undef MIKAN_TIMED_STARTUP
 
 	if (success)
 	{
@@ -208,7 +251,6 @@ bool MainWindow::startup()
 
 void MainWindow::update(float deltaSeconds)
 {
-	// Push the ImGui Update scope
 	MkGuiScopedUpdate mkScopedCtx(*m_guiContext);
 
 	// Poll rendered frames from client connections
@@ -269,7 +311,7 @@ void MainWindow::render()
 		// Finalize rendering
 		m_graphicsContext->renderEnd();
 
-		// Present the rendered frame to the window
+		// Present the rendered frame to the window (may block on vsync or SteamVR overlay DWM handshake)
 		m_mkWindowContext->present();
 	}
 }

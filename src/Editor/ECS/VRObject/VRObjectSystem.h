@@ -16,6 +16,7 @@
 #include <future>
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 
 #include <glm/glm.hpp>
@@ -58,6 +59,7 @@ public:
 	virtual void dispose() override;
 
 	bool createTrackingRuntime(eTrackingRuntime desiredRuntime);
+	void launchDeferredRuntimeThreads();
 
 	enum class eTrackingRuntimeState
 	{
@@ -125,6 +127,7 @@ private:
 	std::map<eTrackingRuntime, VRTrackingRuntimePtr> m_trackingRuntimes;
 	std::map<eTrackingRuntime, eTrackingRuntimeState> m_trackingRuntimeStates;
 	std::map<eTrackingRuntime, std::future<TrackingRuntimeInitResult>> m_pendingRuntimeFutures;
+	std::set<eTrackingRuntime> m_deferredRuntimeLaunches; // Runtimes requested during init, launched on first update
 	ProjectConfigWeakPtr m_projectConfigWeakPtr;
 };
 

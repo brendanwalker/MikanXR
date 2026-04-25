@@ -11,6 +11,11 @@
 
 #include <assert.h>
 #include <chrono>
+#include <thread>
+
+#ifdef _WIN32
+#include <objbase.h>
+#endif //_WIN32
 
 #define USB_VIDEO_DEVICE_MODULE_NAME "MikanWMFVideo"
 
@@ -29,9 +34,9 @@ USBVideoSourceSystem::USBVideoSourceSystem(ProjectManagerPtr ownerObjectSystem)
 
 bool USBVideoSourceSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
-    // Launch async init (non-blocking) — components will open once the manager is ready
-    ensureUsbVideoDeviceManager();
-
+    // NOTE: intentionally NOT launching the async thread here.
+    // Deferring to the first update() avoids DLL loader-lock contention
+    // with the websocket server and ImGui startup happening on the main thread.
     Super::init(definitionPtr);
 
     return true;
@@ -39,6 +44,9 @@ bool USBVideoSourceSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 
 void USBVideoSourceSystem::update(float deltaTime)
 {
+    // Lazy-launch async init on first update (after all startup work has completed)
+    ensureUsbVideoDeviceManager();
+
     // Poll for async manager init completion
     if (m_usbVideoManagerState == eUsbVideoManagerState::initializing)
     {
@@ -111,10 +119,11 @@ bool USBVideoSourceSystem::ensureUsbVideoDeviceManager()
     MIKAN_LOG_INFO("USBVideoSourceSystem::ensureUsbVideoDeviceManager")
         << "Launching async init for USB video device module " << moduleName;
     m_usbVideoManagerState = eUsbVideoManagerState::initializing;
-    m_usbVideoManagerFuture = std::async(
-        std::launch::async,
-        &USBVideoSourceSystem::initUsbVideoDeviceManagerOnThread,
-        moduleName);
+    auto promise = std::make_shared<std::promise<UsbVideoDeviceManagerInitResult>>();
+    m_usbVideoManagerFuture = promise->get_future();
+    std::thread([promise, moduleName]() mutable {
+        promise->set_value(initUsbVideoDeviceManagerOnThread(moduleName));
+    }).detach();
 
     return false;
 }
@@ -122,6 +131,13 @@ bool USBVideoSourceSystem::ensureUsbVideoDeviceManager()
 USBVideoSourceSystem::UsbVideoDeviceManagerInitResult
 USBVideoSourceSystem::initUsbVideoDeviceManagerOnThread(const std::string& moduleName)
 {
+#ifdef _WIN32
+    // Initialize COM in MTA on this thread so that WMF device enumeration
+    // doesn't try to marshal calls to the main thread's COM apartment
+    const HRESULT comInitResult = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+    const bool bComInitialized = (comInitResult == S_OK);
+#endif // _WIN32
+
     UsbVideoDeviceManagerInitResult result;
 
     // Attempt to load the usb device module
@@ -144,6 +160,7 @@ USBVideoSourceSystem::initUsbVideoDeviceManagerOnThread(const std::string& modul
                 MIKAN_LOG_INFO("USBVideoSourceSystem::initUsbVideoDeviceManagerOnThread")
                     << "Started USBDeviceManger for " << moduleName;
 
+                if (bComInitialized) CoUninitialize();
                 return result;
             }
             else
@@ -175,6 +192,10 @@ USBVideoSourceSystem::initUsbVideoDeviceManagerOnThread(const std::string& modul
         getMikanModuleManager()->disposeModule(result.module);
         result.module = nullptr;
     }
+    
+#ifdef _WIN32
+    if (bComInitialized) CoUninitialize();
+#endif // _WIN32
 
     return result;
 }

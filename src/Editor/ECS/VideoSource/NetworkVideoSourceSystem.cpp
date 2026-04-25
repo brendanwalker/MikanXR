@@ -11,6 +11,11 @@
 
 #include <assert.h>
 #include <chrono>
+#include <thread>
+
+#ifdef _WIN32
+#include <objbase.h>
+#endif //_WIN32
 
 #define GSTREAMER_VIDEO_DEVICE_MODULE_NAME  "MikanGStreamerVideo"
 #define NETWORK_VIDEO_DEVICE_MODULE_NAME    GSTREAMER_VIDEO_DEVICE_MODULE_NAME
@@ -42,6 +47,9 @@ NetworkVideoSourceSystem::NetworkVideoSourceSystem(ProjectManagerPtr ownerObject
 
 void NetworkVideoSourceSystem::update(float deltaTime)
 {
+    // Lazy-launch async init on first update (after all startup work has completed)
+    ensureNetworkDeviceManager();
+
     // Poll for async manager init completion
     if (m_networkVideoManagerState == eNetworkVideoManagerState::initializing)
     {
@@ -149,10 +157,11 @@ bool NetworkVideoSourceSystem::ensureNetworkDeviceManager()
 	MIKAN_LOG_INFO("NetworkVideoSourceSystem::ensureNetworkDeviceManager")
 		<< "Launching async init for network video device module " << moduleName;
 	m_networkVideoManagerState = eNetworkVideoManagerState::initializing;
-	m_networkVideoManagerFuture = std::async(
-		std::launch::async,
-		&NetworkVideoSourceSystem::initNetworkVideoDeviceManagerOnThread,
-		moduleName);
+	auto promise = std::make_shared<std::promise<NetworkVideoDeviceManagerInitResult>>();
+	m_networkVideoManagerFuture = promise->get_future();
+	std::thread([promise, moduleName]() mutable {
+		promise->set_value(initNetworkVideoDeviceManagerOnThread(moduleName));
+	}).detach();
 
 	return false;
 }
@@ -160,6 +169,13 @@ bool NetworkVideoSourceSystem::ensureNetworkDeviceManager()
 NetworkVideoSourceSystem::NetworkVideoDeviceManagerInitResult
 NetworkVideoSourceSystem::initNetworkVideoDeviceManagerOnThread(const std::string& moduleName)
 {
+#ifdef _WIN32
+	// Initialize COM in MTA on this thread to prevent any COM-based operations
+	// from marshaling calls back to the main thread's COM apartment
+	const HRESULT comInitResult = CoInitializeEx(NULL, COINIT_MULTITHREADED);
+	const bool bComInitialized = (comInitResult == S_OK);
+#endif // _WIN32
+
 	NetworkVideoDeviceManagerInitResult result;
 
 	// Attempt to load the video device module
@@ -182,6 +198,7 @@ NetworkVideoSourceSystem::initNetworkVideoDeviceManagerOnThread(const std::strin
 				MIKAN_LOG_INFO("NetworkVideoSourceSystem::initNetworkVideoDeviceManagerOnThread")
 					<< "Started NetworkVideoDeviceManger for " << moduleName;
 
+				if (bComInitialized) CoUninitialize();
 				return result;
 			}
 			else
@@ -213,6 +230,10 @@ NetworkVideoSourceSystem::initNetworkVideoDeviceManagerOnThread(const std::strin
 		getMikanModuleManager()->disposeModule(result.module);
 		result.module = nullptr;
 	}
+	
+#ifdef _WIN32
+	if (bComInitialized) CoUninitialize();
+#endif // _WIN32
 
 	return result;
 }
@@ -230,12 +251,4 @@ void NetworkVideoSourceSystem::disposeNetworkVideoDeviceManager()
 		getMikanModuleManager()->disposeModule(m_networkVideoDeviceModule);
         m_networkVideoDeviceModule = nullptr;
 	}
-}
-
-void NetworkVideoSourceSystem::additionalComponentFactory(
-	MikanObjectPtr ownerComponentObject,
-	NetworkVideoSourceDefinitionPtr componentDefinition)
-{
-	// Lazy create a network video device manager, if possible
-	ensureNetworkDeviceManager();
 }

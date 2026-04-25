@@ -60,10 +60,6 @@ protected:
 	bool ensureNetworkDeviceManager();
 	void disposeNetworkVideoDeviceManager();
 
-	virtual void additionalComponentFactory(
-		MikanObjectPtr ownerComponentObject,
-		NetworkVideoSourceDefinitionPtr componentDefinition) override;
-
 private:
 	struct NetworkVideoDeviceManagerInitResult
 	{
