@@ -379,6 +379,10 @@ void MainWindow::renderStageUI(AppStage* appStage)
 		loadingStyle.horizontalAlignment = eHorizontalTextAlignment::Middle;
 		loadingStyle.verticalAlignment = eVerticalTextAlignment::Middle;
 		loadingStyle.pointSize = 96;
+		loadingStyle.hasShadow = true;
+		loadingStyle.shadowColor = { 0.f, 0.f, 0.f };
+		loadingStyle.shadowOffset = { 3, 3 };
+		loadingStyle.shadowOpacity = 0.8f;
 		drawTextAtScreenPosition(
 			m_graphicsContext.get(),
 			loadingStyle,

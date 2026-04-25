@@ -8,7 +8,11 @@ static TextStyle gDefaultTextStyle = {
 	TEXT_STYLE_NORMAL,
 	eHorizontalTextAlignment::Middle,
 	eVerticalTextAlignment::Middle,
-	{ 0.972549f, 0.972549f, 1.000000f }
+	{ 0.972549f, 0.972549f, 1.000000f },
+	false,              // hasShadow
+	{ 0.f, 0.f, 0.f }, // shadowColor
+	{ 2, 2 },           // shadowOffset
+	0.7f                // shadowOpacity
 };
 
 const TextStyle& getDefaultTextStyle()

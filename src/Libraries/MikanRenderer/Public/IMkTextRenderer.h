@@ -5,6 +5,7 @@
 
 #include "glm/ext/vector_float2.hpp"
 #include "glm/ext/vector_float3.hpp"
+#include "glm/ext/vector_int2.hpp"
 
 #include <string>
 
@@ -36,6 +37,10 @@ struct TextStyle
 	eHorizontalTextAlignment horizontalAlignment;
 	eVerticalTextAlignment verticalAlignment;
 	glm::vec3 color;
+	bool hasShadow;
+	glm::vec3 shadowColor;
+	glm::ivec2 shadowOffset; // pixels, positive = right/down
+	float shadowOpacity;     // [0, 1]
 };
 
 class IMkFontManager
