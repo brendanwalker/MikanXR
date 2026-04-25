@@ -52,7 +52,7 @@ void GuiPanel_MonoLensCalibration::onGui()
 			ImGui::Text("Pattern Detected: %s", m_areCurrentImagePointsValid ? "Yes" : "No");
 			ImGui::Text("Pattern Stable: %s", m_areCurrentImagePointsStable ? "Yes" : "No");
 			ImGui::Spacing();
-			ImGui::Text("Hold the calibration board steady in different positions.");
+			ImGui::Text("Hold the calibration board steady in different positions. Press SPACE to sample.");
 			ImGui::Spacing();
 			ImGui::ProgressBar(m_calibrationPercent / 100.f);
 			ImGui::Spacing();
