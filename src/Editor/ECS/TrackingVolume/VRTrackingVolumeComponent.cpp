@@ -7,6 +7,7 @@
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
 #include "MikanTrackingVolumeTypes.h"
+#include "ModalMessageBox/ModalDialog_MessageBox.h"
 #include "ModalSelectCamera/ModalDialog_SelectCamera.h"
 #include "ProjectConfig.h"
 #include "SelectionComponent.h"
@@ -381,14 +382,23 @@ void VRTrackingVolumeComponent::alignTrackingVolume()
 
 	ModalDialog_SelectCamera::selectCamera(
 		ownerAppStage,
-		[this](MikanCameraID cameraId) {
+		[this, ownerAppStage](MikanCameraID cameraId) {
 			const MikanTrackingVolumeID volumeId = getTrackingVolumeDefinition()->getTrackingVolumeId();
 			CameraComponentPtr cameraComponent = getObjectSystemOfType<CameraObjectSystem>()->getCameraById(cameraId);
 
-			AppStage_VRTrackingRecenter* vrTrackingRecenterStage =
-				getOwnerEditorWindow()->pushAppStageOfType<AppStage_VRTrackingRecenter>();
+			if (cameraComponent->areApertureIntrinsicsValid())
+			{
+				AppStage_VRTrackingRecenter* vrTrackingRecenterStage =
+					getOwnerEditorWindow()->pushAppStageOfType<AppStage_VRTrackingRecenter>();
 
-			vrTrackingRecenterStage->setSourceCamera(cameraComponent);
-			vrTrackingRecenterStage->setTargetVRTrackingVolumeId(volumeId);
+				vrTrackingRecenterStage->setSourceCamera(cameraComponent);
+				vrTrackingRecenterStage->setTargetVRTrackingVolumeId(volumeId);
+			}
+			else
+			{
+				ModalDialog_MessageBox::showMessageBox(
+					ownerAppStage,
+					"Selected camera does not have valid aperture intrinsics. Please calibrate the camera's intrinsics before using it for alignment.");
+			}
 		});
 }
