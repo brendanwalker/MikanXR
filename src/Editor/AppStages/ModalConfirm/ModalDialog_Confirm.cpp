@@ -74,18 +74,24 @@ void ModalDialog_Confirm::onGui()
 
 void ModalDialog_Confirm::onAcceptQuestion()
 {
-	if (m_acceptCallback)
-		m_acceptCallback();
+	ConfirmCallback callback = std::move(m_acceptCallback);
+	AppStage* ownerAppStage = m_ownerAppStage;
 
-	assert(m_ownerAppStage->getCurrentModalDialog() == this);
-	m_ownerAppStage->popModalDialog();
+	assert(ownerAppStage->getCurrentModalDialog() == this);
+	ownerAppStage->popModalDialog(); // deletes 'this'
+
+	if (callback)
+		callback();
 }
 
 void ModalDialog_Confirm::onRejectQuestion()
 {
-	if (m_rejectCallback)
-		m_rejectCallback();
+	ConfirmCallback callback = std::move(m_rejectCallback);
+	AppStage* ownerAppStage = m_ownerAppStage;
 
-	assert(m_ownerAppStage->getCurrentModalDialog() == this);
-	m_ownerAppStage->popModalDialog();
+	assert(ownerAppStage->getCurrentModalDialog() == this);
+	ownerAppStage->popModalDialog(); // deletes 'this'
+
+	if (callback)
+		callback();
 }

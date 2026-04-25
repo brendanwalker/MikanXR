@@ -97,18 +97,25 @@ void ModalDialog_SelectCamera::onGui()
 
 void ModalDialog_SelectCamera::onSelectCamera()
 {
-	if (m_selectCallback && !m_cameraIds.empty())
-		m_selectCallback(m_cameraIds[m_selectedIndex]);
+	SelectCallback callback = std::move(m_selectCallback);
+	MikanCameraID cameraId = !m_cameraIds.empty() ? m_cameraIds[m_selectedIndex] : -1;
+	AppStage* ownerAppStage = m_ownerAppStage;
 
-	assert(m_ownerAppStage->getCurrentModalDialog() == this);
-	m_ownerAppStage->popModalDialog();
+	assert(ownerAppStage->getCurrentModalDialog() == this);
+	ownerAppStage->popModalDialog(); // deletes 'this'
+
+	if (callback && cameraId != -1)
+		callback(cameraId);
 }
 
 void ModalDialog_SelectCamera::onCancel()
 {
-	if (m_cancelCallback)
-		m_cancelCallback();
+	CancelCallback callback = std::move(m_cancelCallback);
+	AppStage* ownerAppStage = m_ownerAppStage;
 
-	assert(m_ownerAppStage->getCurrentModalDialog() == this);
-	m_ownerAppStage->popModalDialog();
+	assert(ownerAppStage->getCurrentModalDialog() == this);
+	ownerAppStage->popModalDialog(); // deletes 'this'
+
+	if (callback)
+		callback();
 }
