@@ -315,12 +315,17 @@ bool NetworkVideoSourceComponent::openVideoSource()
 	{
 		// If the manager is still initializing, mark this component as pending so the
 		// system will retry openVideoSource() once the manager is ready
-		if (networkVideoSourceSystem->getNetworkVideoManagerState() ==
-			NetworkVideoSourceSystem::eNetworkVideoManagerState::initializing)
+		auto networkVideoManagerState = networkVideoSourceSystem->getNetworkVideoManagerState();
+		if (networkVideoManagerState == NetworkVideoSourceSystem::eNetworkVideoManagerState::uninitialized ||
+			networkVideoManagerState == NetworkVideoSourceSystem::eNetworkVideoManagerState::initializing)
 		{
 			m_bPendingOpen = true;
+			return true;
 		}
-		return false;
+		else
+		{
+			return false;
+		}
 	}
 	m_bPendingOpen = false;
 
