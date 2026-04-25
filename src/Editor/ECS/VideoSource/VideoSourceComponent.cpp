@@ -204,9 +204,14 @@ bool VideoSourceComponent::getFrameRate(float& outFrameRate) const
 	return false;
 }
 
+bool VideoSourceComponent::areCameraIntrinsicsValid() const
+{
+	return getVideoSourceDefinition()->getCameraIntrinsicsType() != MikanIntrinsicsType::INVALID_CAMERA_INTRINSICS;
+}
+
 bool VideoSourceComponent::getCameraIntrinsics(MikanVideoSourceIntrinsics& out_camera_intrinsics) const
 {
-	if (getVideoSourceDefinition()->getCameraIntrinsicsType() != MikanIntrinsicsType::INVALID_CAMERA_INTRINSICS)
+	if (areCameraIntrinsicsValid())
 	{
 		out_camera_intrinsics = MikanVideoSourceIntrinsics();
 

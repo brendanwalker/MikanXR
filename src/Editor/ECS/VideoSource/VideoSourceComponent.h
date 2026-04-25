@@ -87,6 +87,7 @@ public:
 
 	virtual bool getVideoModeName(std::string& outVideoModeName) const;
 	virtual bool getFrameRate(float& outFrameRate) const;
+	virtual bool areCameraIntrinsicsValid() const;
 	virtual bool getCameraIntrinsics(MikanVideoSourceIntrinsics& out_camera_intrinsics) const;
 	virtual bool setCameraIntrinsics(const MikanVideoSourceIntrinsics& camera_intrinsics);
 	virtual glm::mat4 getProjectionMatrix() const;

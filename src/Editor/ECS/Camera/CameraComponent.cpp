@@ -338,6 +338,16 @@ bool CameraComponent::getAperturePixelDimensions(int& outWidth, int& outHeight) 
 	return false;
 }
 
+bool CameraComponent::areApertureIntrinsicsValid() const
+{
+	VideoSourceComponentPtr videoSourceComponent = getVideoSourceComponent();
+	if (videoSourceComponent)
+	{
+		return videoSourceComponent->areCameraIntrinsicsValid();
+	}
+	return false;
+}
+
 bool CameraComponent::getApertureIntrinsics(MikanVideoSourceIntrinsics& outIntrinsics) const
 {
 	VideoSourceComponentPtr videoSourceComponent = getVideoSourceComponent();

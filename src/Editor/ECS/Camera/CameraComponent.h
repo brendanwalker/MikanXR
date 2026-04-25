@@ -89,6 +89,7 @@ public:
 
 	// Helper functions used to fetch camera lens pose properties
 	bool getAperturePixelDimensions(int& outWidth, int& outHeight) const;
+	bool areApertureIntrinsicsValid() const;
 	bool getApertureIntrinsics(struct MikanVideoSourceIntrinsics& outIntrinsics) const;
 	bool getAperturePose(
 		glm::mat4& outCameraPose, 
