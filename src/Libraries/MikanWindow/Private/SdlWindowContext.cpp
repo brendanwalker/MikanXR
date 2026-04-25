@@ -90,6 +90,10 @@ bool SdlWindowContext::startup()
 		MIKAN_LOG_ERROR("SdlWindowContext::startup") << "Unable to initialize SDL window: " << SDL_GetError();
 		success = false;
 	}
+	else
+	{
+		graphicsContext->onWindowSizeChanged(m_width, m_height);
+	}
 
 	if (success)
 	{
