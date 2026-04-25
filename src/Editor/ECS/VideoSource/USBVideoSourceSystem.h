@@ -46,6 +46,7 @@ public:
     virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
     virtual void update(float deltaTime) override;
     virtual void dispose() override;
+	virtual bool isLoading() const override { return m_usbVideoManagerState == eUsbVideoManagerState::initializing; }
 
 	IUsbVideoDeviceManagerPtr getUSBVideoDeviceManager() const { return m_usbVideoDeviceManager; }
 

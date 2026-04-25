@@ -273,7 +273,7 @@ void MainWindow::update(float deltaSeconds)
 	if (appStage != nullptr && appStage->getIsUpdateActive())
 	{
 		// Process input events in the Debug UI and render the UI
-		if (!m_bIsMainWindowGuiHidden)
+		if (!m_bIsMainWindowGuiHidden && !m_projectManager->isAnySystemLoading())
 		{
 			EASY_BLOCK("appStage onGui");
 			appStage->onGui();
@@ -371,6 +371,20 @@ void MainWindow::renderStageUI(AppStage* appStage)
 		style,
 		glm::vec2(getWidth() - 1, getHeight() - 1),
 		L"%.1ffps", App::getInstance()->getFPS());
+
+	// Show "Loading..." centered on screen while background systems are initializing
+	if (m_projectManager->isAnySystemLoading())
+	{
+		TextStyle loadingStyle = getDefaultTextStyle();
+		loadingStyle.horizontalAlignment = eHorizontalTextAlignment::Middle;
+		loadingStyle.verticalAlignment = eVerticalTextAlignment::Middle;
+		loadingStyle.pointSize = 96;
+		drawTextAtScreenPosition(
+			m_graphicsContext.get(),
+			loadingStyle,
+			glm::vec2(getWidth() * 0.5f, getHeight() * 0.5f),
+			L"Loading...");
+	}
 
 	// Render any 2D line segments emitted by the AppStage renderUI phase
 	m_graphicsContext->getLineRenderer()->render();

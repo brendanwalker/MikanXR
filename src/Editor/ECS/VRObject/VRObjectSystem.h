@@ -57,6 +57,7 @@ public:
 	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
 	virtual void update(float deltaSeconds) override;
 	virtual void dispose() override;
+	virtual bool isLoading() const override { return !m_deferredRuntimeLaunches.empty() || !m_pendingRuntimeFutures.empty(); }
 
 	bool createTrackingRuntime(eTrackingRuntime desiredRuntime);
 	void launchDeferredRuntimeThreads();

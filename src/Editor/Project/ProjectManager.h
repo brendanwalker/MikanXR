@@ -72,6 +72,7 @@ public:
 	static const char* k_mikanProjectFileExtension;
 
 	bool hasLoadedProject() const;
+	bool isAnySystemLoading() const;
 	bool newProject(const std::string& projectFilePath);
 	bool loadProject(const std::string& projectFilePath);
 	bool saveProject(const std::string& projectFilePath);

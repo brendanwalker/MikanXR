@@ -42,6 +42,7 @@ public:
 
 	virtual void update(float deltaTime) override;
     virtual void dispose() override;
+	virtual bool isLoading() const override { return m_networkVideoManagerState == eNetworkVideoManagerState::initializing; }
 
     INetworkVideoDeviceManagerPtr getNetworkVideoDeviceManager() const { return m_networkVideoDeviceManager; }
 

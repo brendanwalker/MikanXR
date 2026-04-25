@@ -180,6 +180,16 @@ bool ProjectManager::hasLoadedProject() const
 	return m_projectConfig != nullptr;
 }
 
+bool ProjectManager::isAnySystemLoading() const
+{
+	for (const MikanObjectSystemPtr& system : m_systems)
+	{
+		if (system->isLoading())
+			return true;
+	}
+	return false;
+}
+
 bool ProjectManager::newProject(const std::string& projectFilePath)
 {
 	auto newProjectConfig = createEmptyProjectConfig();
