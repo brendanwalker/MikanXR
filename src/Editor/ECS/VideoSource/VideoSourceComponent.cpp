@@ -478,11 +478,16 @@ void VideoSourceComponent::showVideoSourceSettings()
 
 void VideoSourceComponent::calibrateIntrinsics()
 {
-	getOwnerEditorWindow()->pushAppStageOfType<AppStage_MonoLensCalibration>();
+	auto* monoLensCalibration =
+		getOwnerEditorWindow()->pushAppStageOfType<AppStage_MonoLensCalibration>();
+	monoLensCalibration->setVideoSourceComponent(getSelfPtr<VideoSourceComponent>());
+
 }
 
 void VideoSourceComponent::testIntrinsics()
 {
-	getOwnerEditorWindow()->pushAppStageOfType<AppStage_MonoLensCalibration>()
-		->setBypassCalibrationFlag(true);
+	auto* monoLensCalibration = 
+		getOwnerEditorWindow()->pushAppStageOfType<AppStage_MonoLensCalibration>();
+	monoLensCalibration->setBypassCalibrationFlag(true);
+	monoLensCalibration->setVideoSourceComponent(getSelfPtr<VideoSourceComponent>());
 }
