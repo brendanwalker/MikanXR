@@ -1,18 +1,20 @@
 #include "AppSettingsConfig.h"
 #include "LocalizationManager.h"
+#include "LocalizationRemoteFetcher.h"
 #include "Logger.h"
 #include "PathUtils.h"
 #include "StringUtils.h"
+#include "Version.h"
 
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 4458) // declaration of 'file_name' hides class member
 #pragma warning(disable: 4267) //'return' : conversion from 'size_t' to 'int', possible loss of data
-#endif 
+#endif
 #include "csv.h"
 #ifdef _MSC_VER
 #pragma warning(pop)
-#endif 
+#endif
 
 #include <locale>
 #include <codecvt>
@@ -56,11 +58,19 @@ bool LocalizationManager::startup(AppSettingsConfigPtr appSettings)
 		}
 	}
 
+	startRemoteFetch();
+
 	return true;
 }
 
 void LocalizationManager::shutdown()
 {
+	if (m_remoteFetcher)
+	{
+		m_remoteFetcher->cancelFetch();
+		m_remoteFetcher.reset();
+	}
+
 	unloadLanguages();
 }
 
@@ -103,11 +113,10 @@ t_language_tags LocalizationManager::getSystemLanguage() const
 	return result;
 }
 
-void LocalizationManager::reloadLangages()
+void LocalizationManager::loadCSVsFromDirectory(
+	const std::filesystem::path& locFolderPath,
+	bool allowOverwrite)
 {
-	unloadLanguages();
-
-	const std::filesystem::path locFolderPath = PathUtils::getResourceDirectory() / std::string("localization");
 	const std::vector<std::string> locFiles= PathUtils::listFilenamesInDirectory(locFolderPath, ".csv");
 
 	for (auto baseFileName : locFiles)
@@ -121,7 +130,7 @@ void LocalizationManager::reloadLangages()
 			const std::string& tableName= parts[0];
 			const std::string& langCode = parts[1];
 
-			// Fetch the language
+			// Fetch or create the language
 			Language* language= nullptr;
 			auto langIt= m_languages.find(langCode);
 			if (langIt != m_languages.end())
@@ -134,7 +143,7 @@ void LocalizationManager::reloadLangages()
 				m_languages.insert({ langCode, language });
 			}
 
-			// Fetch the string table
+			// Fetch or create the string table
 			StringTable* stringTable= nullptr;
 			auto tableIt= language->stringTables.find(tableName);
 			if (tableIt != language->stringTables.end())
@@ -149,31 +158,51 @@ void LocalizationManager::reloadLangages()
 
 			io::CSVReader<2> in(locFilePath.string());
 			in.read_header(io::ignore_extra_column, "key", "text");
-			
+
 			std::string key; char* utf8Text;
 			while (in.read_row(key, utf8Text))
 			{
+				std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convert;
+				std::wstring myunicodestr = convert.from_bytes(utf8Text);
+				StringEntry entry= { utf8Text, myunicodestr };
+
 				auto keyIt= stringTable->keyToTextMap.find(key);
 				if (keyIt == stringTable->keyToTextMap.end())
 				{
-					std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convert;
-					std::wstring myunicodestr = convert.from_bytes(utf8Text);
-
-					StringEntry entry= { utf8Text, myunicodestr };
-
+					stringTable->keyToTextMap.insert({ key, entry });
+				}
+				else if (allowOverwrite)
+				{
+					stringTable->keyToTextMap.erase(keyIt);
 					stringTable->keyToTextMap.insert({ key, entry });
 				}
 				else
 				{
-					MIKAN_LOG_WARNING("LocalizationManager::reloadLangages") << 
+					MIKAN_LOG_WARNING("LocalizationManager::loadCSVsFromDirectory") <<
 						"Duplicate key \'" << key << "\' in table \'" << tableName << "\'";
 				}
 			}
 		}
 		else
 		{
-			MIKAN_LOG_WARNING("LocalizationManager::reloadLangages") << "Malformed loc filename: " << locFilePath;
+			MIKAN_LOG_WARNING("LocalizationManager::loadCSVsFromDirectory") << "Malformed loc filename: " << locFilePath;
 		}
+	}
+}
+
+void LocalizationManager::reloadLangages()
+{
+	unloadLanguages();
+
+	// Load bundled strings shipped with the app
+	const std::filesystem::path bundledLocPath = PathUtils::getResourceDirectory() / std::string("localization");
+	loadCSVsFromDirectory(bundledLocPath, /*allowOverwrite=*/false);
+
+	// Overlay cached strings fetched from the remote CDN (community translations)
+	const std::filesystem::path cacheLocPath = getUserLocalizationCacheDir();
+	if (std::filesystem::exists(cacheLocPath))
+	{
+		loadCSVsFromDirectory(cacheLocPath, /*allowOverwrite=*/true);
 	}
 }
 
@@ -196,6 +225,22 @@ void LocalizationManager::unloadLanguages()
 	}
 }
 
+std::filesystem::path LocalizationManager::getUserLocalizationCacheDir() const
+{
+	return PathUtils::getHomeDirectory() / "MikanXR" / "localization";
+}
+
+void LocalizationManager::startRemoteFetch()
+{
+	// Use @main so community translation updates reach users without requiring a new build.
+	// Version-pinned tags (e.g. @v1.0.0) are permanently cached by jsDelivr and cannot be
+	// updated after tagging, which would defeat the purpose of remote localization.
+	const std::string baseUrl =
+		"https://cdn.jsdelivr.net/gh/brendanwalker/MikanXR@main/resources/localization";
+
+	m_remoteFetcher = std::make_unique<LocalizationRemoteFetcher>(baseUrl, getUserLocalizationCacheDir());
+	m_remoteFetcher->startFetch();
+}
 
 bool LocalizationManager::isLanguageSupported(const char* langCode) const
 {
@@ -241,7 +286,7 @@ bool LocalizationManager::setLanguage(const std::string& languageId)
 		m_currentLanguageCode = languageId;
 
 		// Update the app settings with the new language.
-		// Any other systems that need to know about the language change 
+		// Any other systems that need to know about the language change
 		// can listen for changes to the app settings now that it has been updated.
 		m_appSettings.lock()->setAppLanguage(languageId);
 
@@ -252,7 +297,7 @@ bool LocalizationManager::setLanguage(const std::string& languageId)
 }
 
 const char* LocalizationManager::fetchUTF8Text(
-	const char* tableName, 
+	const char* tableName,
 	const char* stringKey,
 	bool* outHasString)
 {
@@ -302,8 +347,8 @@ const char* LocalizationManager::fetchUTF8Text(
 }
 
 const wchar_t* LocalizationManager::fetchUTF16Text(
-	const char* tableName, 
-	const char* stringKey, 
+	const char* tableName,
+	const char* stringKey,
 	bool* outHasString)
 {
 	const char* actualTableName= tableName;

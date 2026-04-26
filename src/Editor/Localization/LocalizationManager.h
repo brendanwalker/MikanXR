@@ -2,10 +2,13 @@
 
 #include "ObjectSystemConfigFwd.h"
 
+#include <filesystem>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
+class LocalizationRemoteFetcher;
 typedef std::vector<std::string> t_language_tags;
 
 class LocalizationManager
@@ -30,6 +33,9 @@ public:
 
 private:
 	void unloadLanguages();
+	void loadCSVsFromDirectory(const std::filesystem::path& dirPath, bool allowOverwrite = false);
+	void startRemoteFetch();
+	std::filesystem::path getUserLocalizationCacheDir() const;
 
 	struct StringEntry
 	{
@@ -51,4 +57,5 @@ private:
 	std::map<std::string, Language*> m_languages;
 	std::string m_currentLanguageCode;
 	Language* m_currentLanguage;
+	std::unique_ptr<LocalizationRemoteFetcher> m_remoteFetcher;
 };

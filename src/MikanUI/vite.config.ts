@@ -3,6 +3,10 @@ import vue from '@vitejs/plugin-vue'
 import path from 'path'
 import fs from 'fs'
 
+// Read app version from package.json so it matches Version.h
+const pkg = JSON.parse(fs.readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8')) as { version: string }
+const appVersion = pkg.version // e.g. "1.0.0"
+
 // Plugin to clean old hashed files before build
 function cleanOldBuildFiles() {
   return {
@@ -35,6 +39,10 @@ function cleanOldBuildFiles() {
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [vue(), cleanOldBuildFiles()],
+  define: {
+    // Inject app version for the localization CDN URL. Keep in sync with Version.h.
+    __MIKAN_VERSION__: JSON.stringify(appVersion),
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src/ts'),
