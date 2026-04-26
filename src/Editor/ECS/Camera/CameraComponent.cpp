@@ -3,6 +3,7 @@
 #include "CameraMath.h"
 #include "App.h"
 #include "AlignmentCalibration/AppStage_AlignmentCalibration.h"
+#include "ModalMessageBox/ModalDialog_MessageBox.h"
 #include "Colors.h"
 #include "IEditorWindow.h"
 #include "MikanCameraEvents.h"
@@ -26,6 +27,7 @@
 #include "VRObjectSystem.h"
 #include "VideoSourceQueries.h"
 #include "VRTrackingVolumeComponent.h"
+
 
 // -- CameraConfig -----
 const std::string CameraDefinition::k_ownerStageIdPropertyId = "stage_id";
@@ -195,10 +197,17 @@ void CameraComponent::init()
 
 	// Listen for changes to the tracking mount definition
 	getCameraDefinition()->OnPropertyChanged += MakeDelegate(this, &CameraComponent::onDefinitionChanged);
+
+	// Re-refresh when VR devices connect/disconnect
+	auto vrObjectSystem = getObjectSystemOfType<VRObjectSystem>();
+	vrObjectSystem->OnActiveDeviceListChanged += MakeDelegate(this, &CameraComponent::onActiveDeviceListChanged);
 }
 
 void CameraComponent::dispose()
 {
+	auto vrObjectSystem = getObjectSystemOfType<VRObjectSystem>();
+	vrObjectSystem->OnActiveDeviceListChanged -= MakeDelegate(this, &CameraComponent::onActiveDeviceListChanged);
+
 	getCameraDefinition()->OnPropertyChanged -= MakeDelegate(this, &CameraComponent::onDefinitionChanged);
 
 	TransformComponent::dispose();
@@ -325,6 +334,11 @@ void CameraComponent::setVideoSourceById(MikanVideoSourceID videoSourceId)
 	CameraDefinitionPtr cameraDefinition = getCameraDefinition();
 
 	cameraDefinition->setVideoSourceId(videoSourceId);
+}
+
+bool CameraComponent::hasValidTrackingMountPoseView() const
+{
+	return m_trackingMountPoseView_SceneSpace != nullptr && m_trackingMountPoseView_VRSpace != nullptr;
 }
 
 bool CameraComponent::getAperturePixelDimensions(int& outWidth, int& outHeight) const
@@ -557,6 +571,11 @@ void CameraComponent::onDefinitionChanged(CommonConfigPtr configPtr, const Confi
 	}
 }
 
+void CameraComponent::onActiveDeviceListChanged(eTrackingRuntime runtime)
+{
+	refreshTrackingMount();
+}
+
 void CameraComponent::refreshTrackingMount()
 {
 	// Forget the old pose views
@@ -705,8 +724,23 @@ void CameraComponent::alignCamera()
 
 	if (vrTrackingMount)
 	{
-		auto* alignmentCalibration = ownerWindow->pushAppStageOfType<AppStage_AlignmentCalibration>();
-		alignmentCalibration->setTargetCameraComponent(getSelfPtr<CameraComponent>());
+		if (!hasValidTrackingMountPoseView())
+		{
+			ModalDialog_MessageBox::showMessageBox(
+				getOwnerEditorWindow()->getCurrentAppStage(),
+				"Camera tracking mount device is not connected. Please ensure the VR device is active before aligning.");
+		}
+		else if (areApertureIntrinsicsValid())
+		{
+			auto* alignmentCalibration = ownerWindow->pushAppStageOfType<AppStage_AlignmentCalibration>();
+			alignmentCalibration->setTargetCameraComponent(getSelfPtr<CameraComponent>());
+		}
+		else
+		{
+			ModalDialog_MessageBox::showMessageBox(
+				getOwnerEditorWindow()->getCurrentAppStage(),
+				"Camera does not have valid aperture intrinsics. Please calibrate the camera's intrinsics before using it for alignment.");
+		}
 	}
 	else
 	{

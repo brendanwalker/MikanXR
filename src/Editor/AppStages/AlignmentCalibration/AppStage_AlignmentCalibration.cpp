@@ -623,7 +623,7 @@ VRDevicePoseViewPtr AppStage_AlignmentCalibration::makeMatPoseViewFromCamera(Cam
 	VRTrackingVolumeDefinitionConstPtr vrTrackingVolume =
 		targetCameraComponent->getVRTrackingVolumeDefinition();
 
-	if (!vrTrackingVolume)
+	if (vrTrackingVolume)
 	{
 		MikanTrackingMountID matMountId = vrTrackingVolume->getCharucoTrackingMountId();
 

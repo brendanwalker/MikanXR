@@ -53,6 +53,9 @@ public:
 	inline MikanVector3d getApertureOffsetPosition() const { return m_aperturePositionOffset; }
 	void setAperturePoseOffset(const MikanQuatd& q, const MikanVector3d& p);
 
+	// Don't send property update for transform property updates as they are spammy
+	virtual bool isAutoNotifyTransformPropertyChangeDisabled() override { return true; }
+
 private:
 	MikanStageID m_stageId = INVALID_MIKAN_ID;
 	MikanTrackingMountID m_trackingMountId = INVALID_MIKAN_ID;
@@ -88,6 +91,7 @@ public:
 	void setVideoSourceById(MikanVideoSourceID videoSourceId);
 
 	// Helper functions used to fetch camera lens pose properties
+	bool hasValidTrackingMountPoseView() const;
 	bool getAperturePixelDimensions(int& outWidth, int& outHeight) const;
 	bool areApertureIntrinsicsValid() const;
 	bool getApertureIntrinsics(struct MikanVideoSourceIntrinsics& outIntrinsics) const;
@@ -125,6 +129,7 @@ public:
 protected:
 	void onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 	void refreshTrackingMount();
+	void onActiveDeviceListChanged(eTrackingRuntime runtime);
 
 private:
 	SelectionComponentWeakPtr m_selectionComponent;

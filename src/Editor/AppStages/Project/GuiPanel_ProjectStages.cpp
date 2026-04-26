@@ -201,9 +201,10 @@ void GuiPanel_ProjectStages::onGui()
 			getCameraSystem()->addNewObjectByTypedDefinition([stageId](auto def) {
 				def->setRelativeTransform(GlmTransform());
 				def->setOwnerStageId(stageId);
+
 				return true;
-				});
 			});
+		});
 	}
 
 	if (m_selectedCameraId != INVALID_MIKAN_ID)
