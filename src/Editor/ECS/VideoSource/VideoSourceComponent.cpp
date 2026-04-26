@@ -213,7 +213,7 @@ bool VideoSourceComponent::getCameraIntrinsics(MikanVideoSourceIntrinsics& out_c
 {
 	if (areCameraIntrinsicsValid())
 	{
-		out_camera_intrinsics = MikanVideoSourceIntrinsics();
+		out_camera_intrinsics = getVideoSourceDefinition()->getCameraIntrinsics();
 
 		return true;
 	}
