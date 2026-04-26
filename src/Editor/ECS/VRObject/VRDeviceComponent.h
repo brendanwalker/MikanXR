@@ -42,6 +42,8 @@ public:
 	inline const std::string getVRDevicePath() const { return m_vrDevicePath; }
 	void setVRDevicePath(const std::string& vrDevicePath);
 
+	// Don't send property update for transform property updates as they are spammy
+	virtual bool isAutoNotifyTransformPropertyChangeDisabled() override { return true; }
 	// VRDeviceDefinition is runtime only and isn't saved to the project file
 	virtual bool wantsSaveForPropertyChange(const ConfigPropertyChangeSet& changedPropertySet) const { return false; }
 

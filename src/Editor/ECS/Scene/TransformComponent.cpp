@@ -150,7 +150,7 @@ void TransformComponentDefinition::setRelativeTransform(const GlmTransform& tran
 	m_relativeTransform.rotation = glm_quat_to_MikanQuatf(transform.getRotation());
 	m_relativeTransform.scale = glm_vec3_to_MikanVector3f(transform.getScale());
 
-	if (!m_bDisableAutoNotifyPropertyChange)
+	if (!isAutoNotifyTransformPropertyChangeDisabled())
 	{
 		sendTransformPropertyChangeNotification();
 	}
@@ -169,7 +169,7 @@ void TransformComponentDefinition::setRelativeScale(const MikanVector3f& scale)
 {
 	m_relativeTransform.scale = scale;
 
-	if (!m_bDisableAutoNotifyPropertyChange)
+	if (!isAutoNotifyTransformPropertyChangeDisabled())
 	{
 		sendScalePropertyChangeNotification();
 	}
@@ -179,7 +179,7 @@ void TransformComponentDefinition::setRelativeRotation(const MikanQuatf& quat)
 {
 	m_relativeTransform.rotation = quat;
 
-	if (!m_bDisableAutoNotifyPropertyChange)
+	if (!isAutoNotifyTransformPropertyChangeDisabled())
 	{
 		sendRotationPropertyChangeNotification();
 	}
@@ -189,7 +189,7 @@ void TransformComponentDefinition::setRelativePosition(const MikanVector3f& tran
 {
 	m_relativeTransform.position = translation;
 
-	if (!m_bDisableAutoNotifyPropertyChange)
+	if (!isAutoNotifyTransformPropertyChangeDisabled())
 	{
 		sendPositionPropertyChangeNotification();
 	}

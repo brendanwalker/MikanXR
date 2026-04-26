@@ -29,8 +29,7 @@ public:
 		const std::string& componentName, 
 		const MikanTransform& xform);
 
-	inline void setDisableAutoNotifyTransformPropertyChanges(bool bDisable) 
-	{ m_bDisableAutoNotifyPropertyChange = bDisable; }
+	virtual bool isAutoNotifyTransformPropertyChangeDisabled() { return false; }
 	void sendTransformPropertyChangeNotification();
 	void sendScalePropertyChangeNotification();
 	void sendRotationPropertyChangeNotification();
@@ -67,7 +66,6 @@ public:
 protected:
 	MikanTransformID m_parentTransformId = INVALID_MIKAN_ID;
 	MikanTransform m_relativeTransform;
-	bool m_bDisableAutoNotifyPropertyChange = false;
 };
 
 class TransformComponent : public MikanComponent
