@@ -169,55 +169,47 @@ bool MonoLensTrackerPoseCalibrator::computeCameraToPuckXform()
 		return false;
 	}
 
-	// Compute the VR tracking space location of the camera.
-	// We start at the tracking puck on the mat and apply offsets to get to the camera.
-	//---------------------------------------
-
-	// Compute the VR tracking space offset from matPuck to calibration pattern
-	// using the measured offsets on the paper calibration mat
-	VRTrackingVolumeDefinitionConstPtr vrTrackingConfig = 
+	// Get the physical offset from the mat puck to the calibration pattern center (in mm)
+	VRTrackingVolumeDefinitionConstPtr vrTrackingConfig =
 		m_cameraComponent->getVRTrackingVolumeDefinition();
-	MikanVector3f puckOffset= vrTrackingConfig->getCharucoMountOffsetMM();
-	const double puckToPatternX = (double)puckOffset.x * k_millimeters_to_meters;
-	const double puckToPatternY = (double)puckOffset.y * k_millimeters_to_meters;
-	const double puckToPatternZ = (double)puckOffset.z * k_millimeters_to_meters;
-	const glm::dmat4 puckYawRot180 = 
-		glm::rotate(
-			glm::dmat4(1.f), 
-			k_real64_pi, 
-			glm::dvec3(0.0, 1.f, 0.f));
+	const MikanVector3f puckOffset = vrTrackingConfig->getCharucoMountOffsetMM();
+
+	// Compute the camera-to-puck offset using the pure math function
+	glm::dmat4 cameraToCameraPuckXform;
+	if (!computeCameraToPuckXformFromPoses(
+			cameraPuckXform_VRSpace,
+			matPuckXform_VRSpace,
+			cameraToPatternXform,
+			glm::dvec3(puckOffset.x, puckOffset.y, puckOffset.z),
+			cameraToCameraPuckXform))
+	{
+		return false;
+	}
+
+	// Recompute intermediate transforms needed for calibration state display
+	const glm::dmat4 puckYawRot180 =
+		glm::rotate(glm::dmat4(1.0), k_real64_pi, glm::dvec3(0.0, 1.0, 0.0));
 	const glm::dmat4 translateToPatternXform =
 		glm::translate(
 			glm::dmat4(1.0),
-			glm::dvec3(puckToPatternX, puckToPatternZ, puckToPatternY));
+			glm::dvec3(
+				(double)puckOffset.x * k_millimeters_to_meters,
+				(double)puckOffset.z * k_millimeters_to_meters,
+				(double)puckOffset.y * k_millimeters_to_meters));
 	const glm::dmat4 matPuckToPatternXform = glm_composite_xform(puckYawRot180, translateToPatternXform);
-
-	// Compute the transform from the camera to the mat puck
 	const glm::dmat4 patternToMatPuckXform = glm::inverse(matPuckToPatternXform);
-	const glm::dmat4 cameraToMatPuckXform= glm_composite_xform(patternToMatPuckXform, cameraToPatternXform);
-
-	// Compute the pattern transform in VR tracking space
+	const glm::dmat4 cameraToMatPuckXform = glm_composite_xform(patternToMatPuckXform, cameraToPatternXform);
 	const glm::dmat4 patternXform_VRSpace = glm_composite_xform(matPuckToPatternXform, matPuckXform_VRSpace);
-
-	// Then compute the camera transform in VR tracking space
-	// by applying the inverse of the cameraToPatternXform 
-	// computed optically by OpenCV
-	const glm::dmat4 patternToCameraXform = glm::inverse(cameraToPatternXform);
-	const glm::dmat4 cameraXform_VRSpace = glm_composite_xform(patternToCameraXform, patternXform_VRSpace);
-
-	// Finally compute the transform to go from the camera tracking puck to the camera 
-	// (i.e. the relative offset of the camera from camera tracking puck)
-	const glm::dmat4 invCameraPuckXform = glm::inverse(cameraPuckXform_VRSpace);
-	const glm::dmat4 cameraToCameraPuckXform = glm_composite_xform(cameraXform_VRSpace, invCameraPuckXform);
+	const glm::dmat4 cameraXform_VRSpace = glm_composite_xform(glm::inverse(cameraToPatternXform), patternXform_VRSpace);
 
 	// Save the the last computed transform to the calibration state
 	m_calibrationState->patternXform_VRSpace = patternXform_VRSpace;
 	m_calibrationState->cameraXform_VRSpace = cameraXform_VRSpace;
-	m_calibrationState->cameraToPatternXform= cameraToPatternXform;
-	m_calibrationState->cameraToMatPuckXform= cameraToMatPuckXform;
+	m_calibrationState->cameraToPatternXform = cameraToPatternXform;
+	m_calibrationState->cameraToMatPuckXform = cameraToMatPuckXform;
 	m_calibrationState->cameraToCameraPuckXform = cameraToCameraPuckXform;
-	m_calibrationState->patternToMatPuckXform = glm::inverse(matPuckToPatternXform);
-	m_calibrationState->hasValidCapture= true;
+	m_calibrationState->patternToMatPuckXform = patternToMatPuckXform;
+	m_calibrationState->hasValidCapture = true;
 
 	return true;
 }

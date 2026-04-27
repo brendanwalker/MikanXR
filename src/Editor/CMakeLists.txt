@@ -151,6 +151,11 @@ file(GLOB MIKAN_CALIBRATION_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Calibration/*.h"
 )
 source_group("Calibration" FILES ${MIKAN_CALIBRATION_SRC})
+file(GLOB MIKAN_CALIBRATION_TEST_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Calibration/Test/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Calibration/Test/*.h"
+)
+source_group("Calibration\\Test" FILES ${MIKAN_CALIBRATION_TEST_SRC})
 
 # Config
 file(GLOB MIKAN_CONFIG_SRC
@@ -404,6 +409,7 @@ set(MIKAN_SRC
     ${MIKAN_ASSET_IMPORT_SRC}
     ${MIKAN_ASSET_EXPORT_SRC}
     ${MIKAN_CALIBRATION_SRC}
+    ${MIKAN_CALIBRATION_TEST_SRC}
     ${MIKAN_COMPONENTS_SRC}
     ${MIKAN_CONFIG_SRC}
     ${MIKAN_DELEGATES_SRC}
@@ -430,6 +436,8 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Asset/Import
   ${CMAKE_CURRENT_LIST_DIR}/Asset/Export
   ${CMAKE_CURRENT_LIST_DIR}/Calibration
+  ${CMAKE_CURRENT_LIST_DIR}/Calibration/Test
+  ${ROOT_DIR}/src/Programs/Tests/UnitTests
   ${CMAKE_CURRENT_LIST_DIR}/Config
   ${CMAKE_CURRENT_LIST_DIR}/Delegates
   ${CMAKE_CURRENT_LIST_DIR}/Events

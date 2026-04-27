@@ -7,6 +7,8 @@
 
 #include "glm/ext/quaternion_float.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
+#include "glm/ext/matrix_double4x4.hpp"
+#include "glm/ext/vector_double3.hpp"
 
 #include <memory>
 
@@ -77,6 +79,19 @@ void createDefautMonoIntrinsics(
 	int pixelWidth,
 	int pixelHeight,
 	struct MikanMonoIntrinsics& outIntrinsics);
+
+// Computes the fixed camera-to-puck offset transform from known VR-space and optical poses.
+// cameraPuckXform_VRSpace: camera's tracking puck pose in VR tracking space
+// matPuckXform_VRSpace:    mat's tracking puck pose in VR tracking space
+// cameraToPatternXform:    camera-to-pattern transform from solvePnP (optical measurement)
+// matPuckOffsetMM:         physical offset (X, Y, Z mm) from mat puck origin to pattern center
+// outCameraToCameraPuckXform: result - relative offset of the camera from its tracking puck
+bool computeCameraToPuckXformFromPoses(
+	const glm::dmat4& cameraPuckXform_VRSpace,
+	const glm::dmat4& matPuckXform_VRSpace,
+	const glm::dmat4& cameraToPatternXform,
+	const glm::dvec3& matPuckOffsetMM,
+	glm::dmat4& outCameraToCameraPuckXform);
 
 void computeOpenGLProjMatFromCameraIntrinsics(
 	const struct MikanMonoIntrinsics& intrinsics,
