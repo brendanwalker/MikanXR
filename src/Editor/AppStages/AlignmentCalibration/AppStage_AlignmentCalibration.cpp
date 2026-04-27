@@ -89,6 +89,21 @@ void AppStage_AlignmentCalibration::enter()
 	m_videoSourceComponent = m_targetCameraComponent->getVideoSourceComponent();
 	m_matTrackingPuckPoseView = makeMatPoseViewFromCamera(m_targetCameraComponent);
 
+	// Create a VR-space pose view for the camera's own tracking puck
+	TrackingMountDefinitionConstPtr cameraTrackingMount = m_targetCameraComponent->getTrackingMountDefinition();
+	if (cameraTrackingMount)
+	{
+		auto vrSystem = getSystemOfType<VRObjectSystem>();
+		VRDeviceComponentPtr cameraTrackingPuck =
+			vrSystem->getVRDeviceByPath(cameraTrackingMount->getDevicePath());
+		if (cameraTrackingPuck)
+		{
+			m_cameraTrackingPuckPoseView = cameraTrackingPuck->makePoseView(
+				eVRDevicePoseSpace::VRTrackingSystemPose,
+				cameraTrackingMount->getSocketName());
+		}
+	}
+
 	// Fetch the new mk camera associated with the viewport
 	m_mkCamera= getFirstViewport()->getCurrentMikanCamera();
 
@@ -217,7 +232,8 @@ void AppStage_AlignmentCalibration::updateCamera()
 			if (m_calibrationPanel->getMenuState() == eAlignmentCalibrationMenuState::testCalibration)
 			{
 				// Use the calibrated offset on the video source to get the camera pose
-				m_targetCameraComponent->getAperturePose(cameraPose);
+				// Use VR tracking space to match the space the VR render models are in
+				bValidPose = m_targetCameraComponent->getAperturePose(cameraPose, eVRDevicePoseSpace::VRTrackingSystemPose);
 			}
 			else
 			{
