@@ -32,6 +32,13 @@ CalibrationPatternFinder::CalibrationPatternFinder(
 {
 }
 
+CalibrationPatternFinder::CalibrationPatternFinder(int frameWidth, int frameHeight)
+	: m_distortionView(nullptr)
+	, m_frameWidth((float)frameWidth)
+	, m_frameHeight((float)frameHeight)
+{
+}
+
 CalibrationPatternFinder::~CalibrationPatternFinder()
 {
 }

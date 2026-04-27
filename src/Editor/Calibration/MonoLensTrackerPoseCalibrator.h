@@ -33,6 +33,16 @@ public:
 	void renderVRSpaceCalibrationState();
 
 protected:
+	// Protected constructor for test subclasses (bypasses CameraComponent + VideoFrameDistortionView)
+	MonoLensTrackerPoseCalibrator(
+		class CalibrationPatternFinder* patternFinder,
+		const struct MikanMonoIntrinsics& cameraIntrinsics,
+		int desiredSampleCount);
+
+	// Overridable input accessors — test subclasses return stored test values
+	virtual bool fetchCameraPuckVRSpacePose(glm::dmat4& outPose) const;
+	virtual bool fetchMatPuckVRSpacePose(glm::dmat4& outPose) const;
+	virtual glm::dvec3 fetchMatPuckOffsetMM() const;
 
 	float frameWidth;
 	float frameHeight;

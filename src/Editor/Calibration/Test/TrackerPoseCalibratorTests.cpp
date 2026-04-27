@@ -3,6 +3,9 @@
 #include "MathGLM.h"
 #include "MathUtility.h"
 #include "MathTypeConversion.h"
+#include "MikanVideoSourceTypes.h"
+#include "TestCalibrationPatternFinder.h"
+#include "TestMonoLensTrackerPoseCalibrator.h"
 #include "unit_test.h"
 
 #include "glm/gtc/matrix_transform.hpp"
@@ -146,6 +149,144 @@ bool tracker_pose_calibrator_test_puck_offset()
 	UNIT_TEST_COMPLETE()
 }
 
+// ---- Integration test helpers ----
+
+static MikanMonoIntrinsics make_default_mono_intrinsics()
+{
+	MikanMonoIntrinsics intrinsics = {};
+	intrinsics.pixel_width = 1920;
+	intrinsics.pixel_height = 1080;
+	intrinsics.hfov = 90.0;
+	intrinsics.vfov = 60.0;
+	intrinsics.znear = 0.1;
+	intrinsics.zfar = 100.0;
+	return intrinsics;
+}
+
+// ---- Integration tests (MonoLensTrackerPoseCalibrator) ----
+
+// Integration Test 1: identity — all poses are identity, no puck offset.
+// computeCameraToPuckXform() should succeed and produce an identity cameraToCameraPuckXform.
+bool tracker_pose_calibrator_integration_test_identity()
+{
+	UNIT_TEST_BEGIN("integration identity: full pipeline produces identity offset")
+
+	const glm::dmat4 cameraPuckXform_VRSpace = glm::dmat4(1.0);
+	const glm::dmat4 matPuckXform_VRSpace    = glm::dmat4(1.0);
+	const glm::dvec3 matPuckOffsetMM         = glm::dvec3(0.0, 0.0, 0.0);
+	const glm::dmat4 cameraToPatternXform    = make_puck_yaw_rot180();
+
+	TestMonoLensTrackerPoseCalibrator calibrator(
+		cameraPuckXform_VRSpace,
+		matPuckXform_VRSpace,
+		matPuckOffsetMM,
+		new TestCalibrationPatternFinder(1920, 1080, cameraToPatternXform),
+		make_default_mono_intrinsics(),
+		1);
+
+	success = calibrator.computeCameraToPuckXform();
+	assert(success);
+	assert(calibrator.hasValidCameraToPuckXform());
+
+	calibrator.sampleLastCameraToPuckXform();
+	assert(calibrator.hasFinishedSampling());
+
+	MikanQuatd outRotation;
+	MikanVector3d outTranslation;
+	success = calibrator.computeCalibratedCameraTrackerOffset(outRotation, outTranslation);
+	assert(success);
+
+	// Identity rotation: (w=1, x=0, y=0, z=0)
+	success = fabs(outRotation.w - 1.0) < k_test_epsilon
+		&& fabs(outRotation.x) < k_test_epsilon
+		&& fabs(outRotation.y) < k_test_epsilon
+		&& fabs(outRotation.z) < k_test_epsilon;
+	assert(success);
+
+	// Zero translation
+	success = fabs(outTranslation.x) < k_test_epsilon
+		&& fabs(outTranslation.y) < k_test_epsilon
+		&& fabs(outTranslation.z) < k_test_epsilon;
+	assert(success);
+
+	UNIT_TEST_COMPLETE()
+}
+
+// Integration Test 2: camera puck is 1m to the right (+X).
+// The calibrated offset should be translate(-1, 0, 0).
+bool tracker_pose_calibrator_integration_test_known_translation()
+{
+	UNIT_TEST_BEGIN("integration known translation: full pipeline produces (-1,0,0) offset")
+
+	const glm::dmat4 cameraPuckXform_VRSpace =
+		glm::translate(glm::dmat4(1.0), glm::dvec3(1.0, 0.0, 0.0));
+	const glm::dmat4 matPuckXform_VRSpace = glm::dmat4(1.0);
+	const glm::dvec3 matPuckOffsetMM      = glm::dvec3(0.0, 0.0, 0.0);
+	const glm::dmat4 cameraToPatternXform = make_puck_yaw_rot180();
+
+	TestMonoLensTrackerPoseCalibrator calibrator(
+		cameraPuckXform_VRSpace,
+		matPuckXform_VRSpace,
+		matPuckOffsetMM,
+		new TestCalibrationPatternFinder(1920, 1080, cameraToPatternXform),
+		make_default_mono_intrinsics(),
+		1);
+
+	success = calibrator.computeCameraToPuckXform();
+	assert(success);
+
+	calibrator.sampleLastCameraToPuckXform();
+	assert(calibrator.hasFinishedSampling());
+
+	MikanQuatd outRotation;
+	MikanVector3d outTranslation;
+	success = calibrator.computeCalibratedCameraTrackerOffset(outRotation, outTranslation);
+	assert(success);
+
+	success = fabs(outTranslation.x - (-1.0)) < k_test_epsilon
+		&& fabs(outTranslation.y) < k_test_epsilon
+		&& fabs(outTranslation.z) < k_test_epsilon;
+	assert(success);
+
+	UNIT_TEST_COMPLETE()
+}
+
+// Integration Test 3: puck offset of 100mm in X shifts camera 0.1m in +X.
+bool tracker_pose_calibrator_integration_test_puck_offset()
+{
+	UNIT_TEST_BEGIN("integration puck offset: full pipeline produces (0.1,0,0) offset")
+
+	const glm::dmat4 cameraPuckXform_VRSpace = glm::dmat4(1.0);
+	const glm::dmat4 matPuckXform_VRSpace    = glm::dmat4(1.0);
+	const glm::dvec3 matPuckOffsetMM         = glm::dvec3(100.0, 0.0, 0.0);
+	const glm::dmat4 cameraToPatternXform    = make_puck_yaw_rot180();
+	TestMonoLensTrackerPoseCalibrator calibrator(
+		cameraPuckXform_VRSpace,
+		matPuckXform_VRSpace,
+		matPuckOffsetMM,
+		new TestCalibrationPatternFinder(1920, 1080, cameraToPatternXform),
+		make_default_mono_intrinsics(),
+		1);
+
+	success = calibrator.computeCameraToPuckXform();
+	assert(success);
+
+	calibrator.sampleLastCameraToPuckXform();
+	assert(calibrator.hasFinishedSampling());
+
+	MikanQuatd outRotation;
+	MikanVector3d outTranslation;
+	success = calibrator.computeCalibratedCameraTrackerOffset(outRotation, outTranslation);
+	assert(success);
+
+	success = fabs(outTranslation.x - 0.1) < k_test_epsilon
+		&& fabs(outTranslation.y) < k_test_epsilon
+		&& fabs(outTranslation.z) < k_test_epsilon;
+	assert(success);
+
+	UNIT_TEST_COMPLETE()
+}
+
 // ---- Module entry ----
 
 bool run_tracker_pose_calibrator_unit_tests()
@@ -154,5 +295,8 @@ bool run_tracker_pose_calibrator_unit_tests()
 		UNIT_TEST_MODULE_CALL_TEST(tracker_pose_calibrator_test_identity);
 		UNIT_TEST_MODULE_CALL_TEST(tracker_pose_calibrator_test_known_translation);
 		UNIT_TEST_MODULE_CALL_TEST(tracker_pose_calibrator_test_puck_offset);
+		UNIT_TEST_MODULE_CALL_TEST(tracker_pose_calibrator_integration_test_identity);
+		UNIT_TEST_MODULE_CALL_TEST(tracker_pose_calibrator_integration_test_known_translation);
+		UNIT_TEST_MODULE_CALL_TEST(tracker_pose_calibrator_integration_test_puck_offset);
 	UNIT_TEST_MODULE_END()
 }

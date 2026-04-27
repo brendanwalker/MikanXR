@@ -61,6 +61,14 @@ struct MonoLensTrackerCalibrationState
 		resetCalibration();
 	}
 
+	void init(const MikanMonoIntrinsics& intrinsics, int patternCount)
+	{
+		inputCameraIntrinsics = intrinsics;
+		desiredSampleCount = patternCount;
+
+		resetCalibration();
+	}
+
 	void resetCalibration()
 	{
 		// Reset the capture state
@@ -116,6 +124,41 @@ MonoLensTrackerPoseCalibrator::MonoLensTrackerPoseCalibrator(
 	m_calibrationState->init(cameraComponent, desiredSampleCount);
 }
 
+MonoLensTrackerPoseCalibrator::MonoLensTrackerPoseCalibrator(
+	CalibrationPatternFinder* patternFinder,
+	const MikanMonoIntrinsics& cameraIntrinsics,
+	int desiredSampleCount)
+	: m_calibrationState(new MonoLensTrackerCalibrationState)
+	, m_cameraComponent(nullptr)
+	, m_matTrackingPuckPoseView(nullptr)
+	, m_distortionView(nullptr)
+	, m_patternFinder(patternFinder)
+{
+	frameWidth = patternFinder->getFrameWidth();
+	frameHeight = patternFinder->getFrameHeight();
+
+	m_calibrationState->init(cameraIntrinsics, desiredSampleCount);
+}
+
+bool MonoLensTrackerPoseCalibrator::fetchCameraPuckVRSpacePose(glm::dmat4& outPose) const
+{
+	return m_cameraComponent->getAperturePose(outPose, eVRDevicePoseSpace::VRTrackingSystemPose);
+}
+
+bool MonoLensTrackerPoseCalibrator::fetchMatPuckVRSpacePose(glm::dmat4& outPose) const
+{
+	assert(m_matTrackingPuckPoseView->getPoseSpace() == eVRDevicePoseSpace::VRTrackingSystemPose);
+	return m_matTrackingPuckPoseView->getPose(m_cameraComponent, outPose);
+}
+
+glm::dvec3 MonoLensTrackerPoseCalibrator::fetchMatPuckOffsetMM() const
+{
+	VRTrackingVolumeDefinitionConstPtr vrTrackingConfig =
+		m_cameraComponent->getVRTrackingVolumeDefinition();
+	const MikanVector3f off = vrTrackingConfig->getCharucoMountOffsetMM();
+	return glm::dvec3(off.x, off.y, off.z);
+}
+
 MonoLensTrackerPoseCalibrator::~MonoLensTrackerPoseCalibrator()
 {
 	delete m_patternFinder;
@@ -151,13 +194,12 @@ bool MonoLensTrackerPoseCalibrator::computeCameraToPuckXform()
 
 	// Fetch the calibration poses from the devices
 	glm::dmat4 cameraPuckXform_VRSpace;
-	if (!m_cameraComponent->getAperturePose(cameraPuckXform_VRSpace, eVRDevicePoseSpace::VRTrackingSystemPose))
+	if (!fetchCameraPuckVRSpacePose(cameraPuckXform_VRSpace))
 	{
 		return false;
 	}
 	glm::dmat4 matPuckXform_VRSpace;
-	assert(m_matTrackingPuckPoseView->getPoseSpace() == eVRDevicePoseSpace::VRTrackingSystemPose);
-	if (!m_matTrackingPuckPoseView->getPose(m_cameraComponent, matPuckXform_VRSpace))
+	if (!fetchMatPuckVRSpacePose(matPuckXform_VRSpace))
 	{
 		return false;
 	}
@@ -170,9 +212,7 @@ bool MonoLensTrackerPoseCalibrator::computeCameraToPuckXform()
 	}
 
 	// Get the physical offset from the mat puck to the calibration pattern center (in mm)
-	VRTrackingVolumeDefinitionConstPtr vrTrackingConfig =
-		m_cameraComponent->getVRTrackingVolumeDefinition();
-	const MikanVector3f puckOffset = vrTrackingConfig->getCharucoMountOffsetMM();
+	const glm::dvec3 puckOffsetMM = fetchMatPuckOffsetMM();
 
 	// Compute the camera-to-puck offset using the pure math function
 	glm::dmat4 cameraToCameraPuckXform;
@@ -180,7 +220,7 @@ bool MonoLensTrackerPoseCalibrator::computeCameraToPuckXform()
 			cameraPuckXform_VRSpace,
 			matPuckXform_VRSpace,
 			cameraToPatternXform,
-			glm::dvec3(puckOffset.x, puckOffset.y, puckOffset.z),
+			puckOffsetMM,
 			cameraToCameraPuckXform))
 	{
 		return false;
@@ -193,9 +233,9 @@ bool MonoLensTrackerPoseCalibrator::computeCameraToPuckXform()
 		glm::translate(
 			glm::dmat4(1.0),
 			glm::dvec3(
-				(double)puckOffset.x * k_millimeters_to_meters,
-				(double)puckOffset.z * k_millimeters_to_meters,
-				(double)puckOffset.y * k_millimeters_to_meters));
+				puckOffsetMM.x * k_millimeters_to_meters,
+				puckOffsetMM.z * k_millimeters_to_meters,
+				puckOffsetMM.y * k_millimeters_to_meters));
 	const glm::dmat4 matPuckToPatternXform = glm_composite_xform(puckYawRot180, translateToPatternXform);
 	const glm::dmat4 patternToMatPuckXform = glm::inverse(matPuckToPatternXform);
 	const glm::dmat4 cameraToMatPuckXform = glm_composite_xform(patternToMatPuckXform, cameraToPatternXform);

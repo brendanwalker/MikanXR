@@ -45,6 +45,9 @@ public:
 	static ArucoDictionaryPtr getArucoDictionary(eCharucoDictionaryType dictionaryType);
 
 protected:
+	// Constructor for test subclasses that provide fixed poses and don't need a video frame
+	CalibrationPatternFinder(int frameWidth, int frameHeight);
+
 	// Video buffer state
 	class VideoFrameDistortionView* m_distortionView;
 
