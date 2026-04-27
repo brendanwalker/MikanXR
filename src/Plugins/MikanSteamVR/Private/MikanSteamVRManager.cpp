@@ -161,6 +161,11 @@ bool MikanSteamVRManager::startup(IMkGraphicsContext* graphicsContext)
 	return true;
 }
 
+void MikanSteamVRManager::createGraphicsResources()
+{
+	m_resourceManager->createPendingGraphicsResources();
+}
+
 void MikanSteamVRManager::update(float deltaTime)
 {
 	vr::IVRSystem* vrSystem = vr::VRSystem();
@@ -398,6 +403,9 @@ void MikanSteamVRManager::handleTrackedDeviceActivated(vr::TrackedDeviceIndex_t 
 
 		m_activeSteamVRDeviceList.push_back(devicePtr);
 
+		// Create GL resources for any newly fetched render models (main thread)
+		createGraphicsResources();
+
 		for (IVRDeviceManagerListener* listener : m_listeners)
 		{
 			listener->onActiveDeviceListChanged(this);
@@ -439,6 +447,9 @@ void MikanSteamVRManager::handleTrackedDevicePropertyChanged(vr::TrackedDeviceIn
 	{
 		// Refresh the device properties
 		it->get()->updateProperties();
+
+		// Create GL resources for any newly fetched render models (main thread)
+		createGraphicsResources();
 
 		// Tell any listeners that the device properties changed for this device index
 		for (IVRDeviceManagerListener* listener : m_listeners)

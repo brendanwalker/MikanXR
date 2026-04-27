@@ -21,6 +21,5 @@ private:
 	MikanSteamVRDevice* m_ownerDevice = nullptr;
 	std::string m_componentName;
 	std::string m_renderModelName;
-	IMkTriangulatedMeshPtr m_triangulatedMesh;
-	IMkWireframeMeshPtr m_wireframeMesh;
+	class SteamVRRenderModelResource* m_renderModelResource = nullptr;
 };

@@ -237,7 +237,6 @@ void VRDeviceComponent::rebuildMeshComponents()
 					triMeshPtr->getName(),
 					triMeshPtr);
 			triMeshInstancePtr->setVisible(true);
-			triMeshInstancePtr->setIsVisibleToCamera("vrViewpoint", true);
 
 			// Create a new (hidden) static mesh instance from the mesh resources
 			IMkStaticMeshInstancePtr wireframeMeshInstancePtr =

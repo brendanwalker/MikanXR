@@ -28,25 +28,23 @@ SteamVRRenderModelResource::~SteamVRRenderModelResource()
 	disposeSteamVRResources();
 }
 
-bool SteamVRRenderModelResource::createRenderResources()
+bool SteamVRRenderModelResource::createGraphicsResources()
 {
-	bool bSuccess = false;
+	if (m_steamVRRenderModel == nullptr || m_steamVRTextureMap == nullptr)
+		return false;
 
-	if (loadSteamVRResources())
-	{
-		m_mkDiffuseTexture = createTextureResource(m_steamVRTextureMap);
-		m_mkMaterialInstance = createMaterialInstance(m_mkDiffuseTexture);
-		m_mkTriangulatedMesh = createTriangulatedMeshResource(
-			m_renderModelName, m_mkMaterialInstance, m_steamVRRenderModel);
-		m_mkWireframeMesh = createWireframeMeshResource(
-			m_renderModelName, m_steamVRRenderModel);
+	m_mkDiffuseTexture = createTextureResource(m_steamVRTextureMap);
+	m_mkMaterialInstance = createMaterialInstance(m_mkDiffuseTexture);
+	m_mkTriangulatedMesh = createTriangulatedMeshResource(
+		m_renderModelName, m_mkMaterialInstance, m_steamVRRenderModel);
+	m_mkWireframeMesh = createWireframeMeshResource(
+		m_renderModelName, m_steamVRRenderModel);
 
-		bSuccess = 
-			m_mkDiffuseTexture != nullptr && 
-			m_mkMaterialInstance != nullptr && 
-			m_mkTriangulatedMesh != nullptr &&
-			m_mkWireframeMesh != nullptr;
-	}
+	const bool bSuccess =
+		m_mkDiffuseTexture != nullptr &&
+		m_mkMaterialInstance != nullptr &&
+		m_mkTriangulatedMesh != nullptr &&
+		m_mkWireframeMesh != nullptr;
 
 	if (!bSuccess)
 	{

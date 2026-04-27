@@ -128,6 +128,11 @@ void VRObjectSystem::update(float deltaSeconds)
 				m_trackingRuntimes[result.runtime] =
 					std::make_shared<VRTrackingRuntime>(
 						this, result.runtime, result.module, result.manager);
+				
+				// Create graphics resources for render models that were
+				// previously loaded on the async VR-Runtime init thread
+				result.manager->createGraphicsResources();
+
 				onActiveDeviceListChanged(result.manager.get());
 				MIKAN_LOG_INFO("VRObjectSystem::update")
 					<< "Tracking runtime ready for " << runtimeName;

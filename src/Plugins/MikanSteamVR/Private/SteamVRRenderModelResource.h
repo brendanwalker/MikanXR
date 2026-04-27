@@ -17,7 +17,12 @@ public:
 	SteamVRRenderModelResource(class IMkGraphicsContext* ownerContext);
 	virtual ~SteamVRRenderModelResource();
 
-	bool createRenderResources();
+	// Phase 1: Load raw SteamVR model/texture data (safe to call on background thread)
+	bool loadSteamVRResources();
+	// Phase 2: Create GL textures and meshes from loaded data (must call on main/GL thread)
+	bool createGraphicsResources();
+	bool hasGraphicsResources() const { return m_mkDiffuseTexture != nullptr; }
+
 	void disposeRenderResources();
 
 	void setRenderModelName(const std::string& inRenderModelName) { m_renderModelName = inRenderModelName; }
@@ -27,7 +32,6 @@ public:
 	const IMkWireframeMeshPtr getWireframeMesh() const { return m_mkWireframeMesh; }
 
 protected:
-	bool loadSteamVRResources();
 	void disposeSteamVRResources();
 
 	IMkTexturePtr createTextureResource(

@@ -25,6 +25,7 @@ public:
 	virtual void removeListener(IVRDeviceManagerListener* eventListener) override;
 
 	virtual bool startup(class IMkGraphicsContext* graphicsContext) override;
+	virtual void createGraphicsResources() override;
 	virtual void update(float deltaTime) override;
 	virtual void shutdown()  override;
 

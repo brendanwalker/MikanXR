@@ -23,6 +23,7 @@ public:
 	virtual void removeListener(IVRDeviceManagerListener* eventListener) = 0;
 
 	virtual bool startup(class IMkGraphicsContext* graphicsContext) = 0;
+	virtual void createGraphicsResources() {}
 	virtual void update(float deltaTime) = 0;
 	virtual void shutdown() = 0;
 

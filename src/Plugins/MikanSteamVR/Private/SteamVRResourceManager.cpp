@@ -30,26 +30,34 @@ void SteamVRResourceManager::cleanup()
 SteamVRRenderModelResource* SteamVRResourceManager::fetchRenderModel(
 	const std::string& renderModelName)
 {
-	if (m_renderModelCache.find(renderModelName) != m_renderModelCache.end())
+	auto it = m_renderModelCache.find(renderModelName);
+	if (it != m_renderModelCache.end())
 	{
-		return m_renderModelCache[renderModelName];
+		return it->second;
 	}
-	else
+
+	SteamVRRenderModelResource* resource = new SteamVRRenderModelResource(m_ownerContext);
+	resource->setRenderModelName(renderModelName);
+
+	// Phase 1 only: load raw SteamVR data (safe on background thread)
+	if (resource->loadSteamVRResources())
 	{
-		SteamVRRenderModelResource* resource = new SteamVRRenderModelResource(m_ownerContext);
+		m_renderModelCache[renderModelName] = resource;
+		return resource;
+	}
 
-		resource->setRenderModelName(renderModelName);
-		if (resource->createRenderResources())
+	delete resource;
+	return nullptr;
+}
+
+void SteamVRResourceManager::createPendingGraphicsResources()
+{
+	for (auto& kvpair : m_renderModelCache)
+	{
+		SteamVRRenderModelResource* resource = kvpair.second;
+		if (!resource->hasGraphicsResources())
 		{
-			m_renderModelCache[renderModelName] = resource;
-
-			return resource;
-		}
-		else
-		{
-			delete resource;
-
-			return nullptr;
+			resource->createGraphicsResources();
 		}
 	}
 }
