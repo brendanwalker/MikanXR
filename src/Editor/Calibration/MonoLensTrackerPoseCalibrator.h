@@ -12,6 +12,7 @@ class MonoLensTrackerPoseCalibrator
 public:
 	MonoLensTrackerPoseCalibrator(
 		CameraComponentPtr cameraComponent,
+		VRDevicePoseViewPtr cameraPuckPoseView,
 		VRDevicePoseViewPtr matTrackingPuckView,
 		class VideoFrameDistortionView* distortionView,
 		int desiredSampleCount);
@@ -25,7 +26,7 @@ public:
 
 	bool computeCameraToPuckXform();
 	bool hasValidCameraToPuckXform() const;
-	bool getLastCameraPose(VRDevicePoseViewPtr attachedVRDevicePtr, glm::mat4& outCameraPose) const;
+	bool getLastSceneSpaceAperturePose(VRDevicePoseViewPtr attachedVRDevicePtr, glm::mat4& outCameraPose) const;
 	void sampleLastCameraToPuckXform();
 	bool computeCalibratedCameraTrackerOffset(MikanQuatd& outRotationOffset, MikanVector3d& outTranslationOffset);
 
@@ -52,7 +53,8 @@ protected:
 
 	// Tracking used for calibration
 	CameraComponentPtr m_cameraComponent;
-	VRDevicePoseViewPtr m_matTrackingPuckPoseView;
+	VRDevicePoseViewPtr m_cameraPuckPose_VRSystemSpace;
+	VRDevicePoseViewPtr m_matPuckPose_VRSystemSpace;
 
 	// Video buffer state
 	class VideoFrameDistortionView* m_distortionView;

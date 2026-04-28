@@ -191,7 +191,7 @@ void AppStage_StencilAlignment::updateXRCamera()
 {
 	// Update the transform of the camera so that vr models align over the tracking puck
 	glm::mat4 cameraPose;	
-	if (m_cameraComponent->getAperturePose(cameraPose))
+	if (m_cameraComponent->getSceneSpaceAperturePose(cameraPose))
 	{
 		m_mkCamera->setCameraTransform(cameraPose);
 	}

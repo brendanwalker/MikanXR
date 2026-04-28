@@ -2,6 +2,7 @@
 
 const std::string g_alignmentCalibrationMenuStateStrings[(int)eAlignmentCalibrationMenuState::COUNT] = {
 	"inactive",
+	"pendingVideoStart",
 	"verifySetup",
 	"capture",
 	"testCalibration",

@@ -12,6 +12,7 @@
 #include "ProjectConfig.h"
 #include "SelectionComponent.h"
 #include "StringUtils.h"
+#include "TrackingMountObjectSystem.h"
 #include "VRTrackingRecenter/AppStage_VRTrackingRecenter.h"
 
 // -- VRTrackingVolumeDefinition -----
@@ -210,6 +211,25 @@ bool VRTrackingVolumeComponent::ownsTrackingMount(MikanTrackingMountID mountId) 
 	const auto& ownedIds = getVRTrackingVolumeDefinition()->getTrackingMountIDs();
 
 	return std::find(ownedIds.begin(), ownedIds.end(), mountId) != ownedIds.end();
+}
+
+VRDevicePoseViewPtr VRTrackingVolumeComponent::makeChArUcoTrackingMountPoseView(
+	eVRDevicePoseSpace space) const
+{
+	MikanTrackingMountID mountId = getVRTrackingVolumeDefinition()->getCharucoTrackingMountId();
+	if (mountId != INVALID_MIKAN_ID)
+	{
+		const auto trackingMountSystem = getObjectSystemOfType<TrackingMountObjectSystem>();
+		assert(trackingMountSystem);
+
+		const auto mountComponent = trackingMountSystem->getTypedComponentById(mountId);
+		if (mountComponent)
+		{
+			return mountComponent->makePoseView(space);
+		}
+	}
+
+	return VRDevicePoseView::makeInvalidPoseView();
 }
 
 // -- IPropertyInterface ----

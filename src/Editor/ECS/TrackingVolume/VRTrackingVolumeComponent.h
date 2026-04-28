@@ -71,6 +71,7 @@ public:
 	void setVRDevicePoseOffset(const glm::mat4& poseOffset);
 
 	bool ownsTrackingMount(MikanTrackingMountID mountId) const;
+	VRDevicePoseViewPtr makeChArUcoTrackingMountPoseView(eVRDevicePoseSpace space) const;
 
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;

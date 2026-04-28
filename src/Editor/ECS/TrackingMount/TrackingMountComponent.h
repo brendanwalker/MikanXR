@@ -8,6 +8,7 @@
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
 #include "ProjectConfigConstants.h"
+#include "VRDevicePoseView.h"
 
 #include <memory>
 #include <string>
@@ -54,6 +55,7 @@ public:
 	{ return std::static_pointer_cast<TrackingMountDefinition>(m_definition); }
 	VRDeviceComponentPtr getVRDeviceComponent() const;
 
+	VRDevicePoseViewPtr makePoseView(eVRDevicePoseSpace space) const;
 	void deleteTrackingMount();
 
 	// -- IEntityAccessor ----

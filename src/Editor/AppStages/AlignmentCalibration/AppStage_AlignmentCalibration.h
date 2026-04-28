@@ -21,9 +21,16 @@ public:
 
 	AppStage_AlignmentCalibration(class IEditorWindow* ownerWindow);
 	virtual ~AppStage_AlignmentCalibration();
+	
+	static bool tryEnterAlignmentCalibration(
+		AppStage* fromAppStage,
+		CameraComponentPtr forCameraComponent);
 
 	void setBypassCalibrationFlag(bool flag);
 	void setTargetCameraComponent(CameraComponentPtr cameraComponent);
+	void setVideoSourceComponent(VideoSourceComponentPtr videoSourceComponent);
+	void setCameraPuckPose(VRDevicePoseViewPtr cameraPuckPose);
+	void setMatPuckPose(VRDevicePoseViewPtr matPuckPose);
 
 	virtual void enter() override;
 	virtual void exit() override;
@@ -32,6 +39,7 @@ public:
 	virtual void render(IMkViewportPtr targetViewport) override;
 
 protected:
+	void setupTrackerPoseCalibrator();
 	void updateCamera();
 	void renderVRScene();
 	void setMenuState(eAlignmentCalibrationMenuState newState);
@@ -59,8 +67,6 @@ protected:
 	bool handleGetChessboardStabilityCommand(std::vector<std::string>& outResults);
 	bool handleBeginCommand(std::vector<std::string>& outResults);
 	bool handleRestartCommand(std::vector<std::string>& outResults);
-
-	VRDevicePoseViewPtr makeMatPoseViewFromCamera(CameraComponentPtr m_targetCameraComponent);
 	
 private:
 	class GuiPanel_AlignmentCalibration* m_calibrationPanel = nullptr;
@@ -71,8 +77,8 @@ private:
 	VideoSourceComponentPtr m_videoSourceComponent;
 
 	// Tracking pucks used for calibration
-	VRDevicePoseViewPtr m_cameraTrackingPuckPoseView;
-	VRDevicePoseViewPtr m_matTrackingPuckPoseView;
+	VRDevicePoseViewPtr m_cameraPuckPose_VRSystemSpace;
+	VRDevicePoseViewPtr m_matPuckPose_VRSystemSpace;
 
 	class MonoLensTrackerPoseCalibrator* m_trackerPoseCalibrator;
 	class VideoFrameDistortionView* m_monoDistortionView;

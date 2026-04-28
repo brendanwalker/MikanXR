@@ -7,10 +7,11 @@ enum class eAlignmentCalibrationMenuState : int
 	INVALID= -1, 
 
 	inactive = 0,
-	verifySetup = 1,
-	capture = 2,
-	testCalibration = 3,
-	failedVideoStartStreamRequest = 4,
+	pendingVideoStart = 1,
+	verifySetup = 2,
+	capture = 3,
+	testCalibration = 4,
+	failedVideoStartStreamRequest = 5,
 
 	COUNT
 };

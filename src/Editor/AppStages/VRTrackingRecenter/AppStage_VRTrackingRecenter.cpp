@@ -166,7 +166,7 @@ void AppStage_VRTrackingRecenter::updateCameraPose()
 			{
 				// Use the re-centered scene space for the camera
 				glm::mat4 cameraPose;
-				if (m_cameraComponent->getAperturePose(cameraPose, eVRDevicePoseSpace::MikanTrackingVolumePose))
+				if (m_cameraComponent->getSceneSpaceAperturePose(cameraPose))
 				{
 					m_mkCamera->setCameraTransform(cameraPose);
 				}

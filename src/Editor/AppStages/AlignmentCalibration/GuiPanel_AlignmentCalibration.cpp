@@ -40,6 +40,13 @@ void GuiPanel_AlignmentCalibration::onGui()
 {
 	switch (m_menuState)
 	{
+		case eAlignmentCalibrationMenuState::pendingVideoStart:
+		{
+			ImGui::TextWrapped("Starting video stream...");
+			ImGui::Spacing();
+			if (ImGui::Button("Cancel")) { if (OnCancelEvent) OnCancelEvent(); }
+		} break;
+
 		case eAlignmentCalibrationMenuState::verifySetup:
 		{
 			ImGui::TextWrapped("Position the calibration chessboard so it is visible in the camera view.");

@@ -4,7 +4,7 @@
 #include "AlignmentCalibration/AppStage_AlignmentCalibration.h"
 #include "AlignmentCalibration/GuiPanel_AlignmentCalibration.h"
 #include "AlignmentCalibration/GuiPanel_AlignmentCameraSettings.h"
-#include "imgui.h"
+#include "ModalMessageBox/ModalDialog_MessageBox.h"
 #include "MkGuiScopedWindow.h"
 #include "CalibrationPatternFinder.h"
 #include "CameraComponent.h"
@@ -39,7 +39,7 @@
 #include "glm/gtc/quaternion.hpp"
 #include "glm/ext/vector_float4.hpp"
 
-
+#include "imgui.h"
 
 //-- statics ----
 const char* AppStage_AlignmentCalibration::APP_STAGE_NAME = "AlignmentCalibration";
@@ -68,6 +68,69 @@ AppStage_AlignmentCalibration::~AppStage_AlignmentCalibration()
 {
 }
 
+bool AppStage_AlignmentCalibration::tryEnterAlignmentCalibration(
+	AppStage* fromAppStage,
+	CameraComponentPtr forCameraComponent)
+{
+	IEditorWindow* ownerWindow= fromAppStage->getOwnerWindow();
+
+	VideoSourceComponentPtr videoSourceComponent = forCameraComponent->getVideoSourceComponent(); 
+	if (!videoSourceComponent)
+	{
+		ModalDialog_MessageBox::showMessageBox(
+			fromAppStage,
+			"Camera is not associated with a video source. Please set a video source for the camera before aligning.");
+		return false;
+	}
+
+	if (!videoSourceComponent->areCameraIntrinsicsValid())
+	{
+		ModalDialog_MessageBox::showMessageBox(
+			fromAppStage,
+			"Camera does not have valid aperture intrinsics. Please calibrate the camera's intrinsics before using it for alignment.");
+		return false;
+	}
+
+	VRDevicePoseViewPtr cameraPuckPose_VRSystemSpace=
+		forCameraComponent->makeTrackingMountPoseView(eVRDevicePoseSpace::VRTrackingSystemPose);
+	if (!cameraPuckPose_VRSystemSpace)
+	{
+		ModalDialog_MessageBox::showMessageBox(
+			fromAppStage,
+			"Camera is missing a tracking mount. Please ensure the camera tracking mount puck is on before aligning.");
+		return false;
+	}
+
+	VRTrackingVolumeComponentConstPtr trackingVolumeComponent = 
+		forCameraComponent->getVRTrackingVolumeComponent();
+	if (!trackingVolumeComponent)
+	{
+		ModalDialog_MessageBox::showMessageBox(
+			fromAppStage,
+			"Camera is not associated with a VR tracking volume. Please assign a VR tracking volume to the stage this camera is attached to before aligning.");
+		return false;
+	}
+
+	VRDevicePoseViewPtr matPuckPose_VRSystemSpace=
+		trackingVolumeComponent->makeChArUcoTrackingMountPoseView(
+			eVRDevicePoseSpace::VRTrackingSystemPose);
+	if (!matPuckPose_VRSystemSpace)
+	{
+		ModalDialog_MessageBox::showMessageBox(
+			fromAppStage,
+			"VRTracking volume missing ChArUco Mount. Please ensure the ChArUco tracking puck is on before aligning.");
+		return false;
+	}
+
+	auto* alignmentCalibration = ownerWindow->pushAppStageOfType<AppStage_AlignmentCalibration>();
+	alignmentCalibration->setTargetCameraComponent(forCameraComponent);
+	alignmentCalibration->setVideoSourceComponent(videoSourceComponent);
+	alignmentCalibration->setCameraPuckPose(cameraPuckPose_VRSystemSpace);
+	alignmentCalibration->setMatPuckPose(matPuckPose_VRSystemSpace);
+
+	return true;
+}
+
 void AppStage_AlignmentCalibration::setBypassCalibrationFlag(bool flag)
 {
 	m_bypassCalibrationFlag = flag;
@@ -80,29 +143,29 @@ void AppStage_AlignmentCalibration::setTargetCameraComponent(CameraComponentPtr 
 	m_targetCameraComponent = cameraComponent;
 }
 
+void AppStage_AlignmentCalibration::setVideoSourceComponent(VideoSourceComponentPtr videoSourceComponent)
+{
+	m_videoSourceComponent = videoSourceComponent;
+}
+
+void AppStage_AlignmentCalibration::setCameraPuckPose(VRDevicePoseViewPtr cameraPuckPose)
+{
+	m_cameraPuckPose_VRSystemSpace = cameraPuckPose;
+}
+
+void AppStage_AlignmentCalibration::setMatPuckPose(VRDevicePoseViewPtr matPuckPose)
+{
+	m_matPuckPose_VRSystemSpace = matPuckPose;
+}
+
 void AppStage_AlignmentCalibration::enter()
 {
 	AppStage::enter();
 	assert(m_targetCameraComponent != nullptr);
-
-	// Bind components needed for calibration
-	m_videoSourceComponent = m_targetCameraComponent->getVideoSourceComponent();
-	m_matTrackingPuckPoseView = makeMatPoseViewFromCamera(m_targetCameraComponent);
-
-	// Create a VR-space pose view for the camera's own tracking puck
-	TrackingMountDefinitionConstPtr cameraTrackingMount = m_targetCameraComponent->getTrackingMountDefinition();
-	if (cameraTrackingMount)
-	{
-		auto vrSystem = getSystemOfType<VRObjectSystem>();
-		VRDeviceComponentPtr cameraTrackingPuck =
-			vrSystem->getVRDeviceByPath(cameraTrackingMount->getDevicePath());
-		if (cameraTrackingPuck)
-		{
-			m_cameraTrackingPuckPoseView = cameraTrackingPuck->makePoseView(
-				eVRDevicePoseSpace::VRTrackingSystemPose,
-				cameraTrackingMount->getSocketName());
-		}
-	}
+	assert(m_videoSourceComponent);
+	assert(m_videoSourceComponent->areCameraIntrinsicsValid());
+	assert(m_cameraPuckPose_VRSystemSpace);
+	assert(m_matPuckPose_VRSystemSpace);
 
 	// Fetch the new mk camera associated with the viewport
 	m_mkCamera= getFirstViewport()->getCurrentMikanCamera();
@@ -123,37 +186,26 @@ void AppStage_AlignmentCalibration::enter()
 
 	// Fire up the video scene in the background + pose calibrator
 	eAlignmentCalibrationMenuState newState;
-	//TODO: Handle pendingStart
-	if ((int)m_videoSourceComponent->startVideoStream() > 0)
+	switch (m_videoSourceComponent->startVideoStream())
 	{
-		// Allocate all distortion and video buffers
-		m_monoDistortionView = 
-			new VideoFrameDistortionView(
-				m_videoSourceComponent,
-				VIDEO_FRAME_HAS_ALL);
-		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
-
-		// Create a calibrator to do the actual pattern recording and calibration
-		m_trackerPoseCalibrator =
-			new MonoLensTrackerPoseCalibrator(
-				m_targetCameraComponent,
-				m_matTrackingPuckPoseView,
-				m_monoDistortionView,
-				DESIRED_CAPTURE_BOARD_COUNT);
-
-		// If bypassing the calibration, then jump straight to the test calibration state
-		if (m_bypassCalibrationFlag)
+	case eVideoStreamingStatus::pendingStart:
+		// Wait for the video stream to start in the update loop
+		newState = eAlignmentCalibrationMenuState::pendingVideoStart;
+		break;
+	case eVideoStreamingStatus::started:
 		{
-			newState = eAlignmentCalibrationMenuState::testCalibration;
+			// Immediately setup the calibrator
+			setupTrackerPoseCalibrator();
+
+			// If bypassing the calibration, then jump straight to the test calibration state
+			newState = (m_bypassCalibrationFlag) 
+				? eAlignmentCalibrationMenuState::testCalibration
+				: eAlignmentCalibrationMenuState::verifySetup;
 		}
-		else
-		{
-			newState = eAlignmentCalibrationMenuState::verifySetup;
-		}
-	}
-	else
-	{
+		break;
+	default:
 		newState = eAlignmentCalibrationMenuState::failedVideoStartStreamRequest;
+		break;
 	}
 
 	// Create GUI panels
@@ -181,6 +233,25 @@ void AppStage_AlignmentCalibration::enter()
 	}
 
 	setMenuState(newState);
+}
+
+void AppStage_AlignmentCalibration::setupTrackerPoseCalibrator()
+{
+	// Allocate all distortion and video buffers
+	m_monoDistortionView =
+		new VideoFrameDistortionView(
+			m_videoSourceComponent,
+			VIDEO_FRAME_HAS_ALL);
+	m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
+
+	// Create a calibrator to do the actual pattern recording and calibration
+	m_trackerPoseCalibrator =
+		new MonoLensTrackerPoseCalibrator(
+			m_targetCameraComponent,
+			m_cameraPuckPose_VRSystemSpace,
+			m_matPuckPose_VRSystemSpace,
+			m_monoDistortionView,
+			DESIRED_CAPTURE_BOARD_COUNT);
 }
 
 void AppStage_AlignmentCalibration::exit()
@@ -231,16 +302,15 @@ void AppStage_AlignmentCalibration::updateCamera()
 			glm::mat4 cameraPose;
 			if (m_calibrationPanel->getMenuState() == eAlignmentCalibrationMenuState::testCalibration)
 			{
-				// Use the calibrated offset on the video source to get the camera pose
-				// Use VR tracking space to match the space the VR render models are in
-				bValidPose = m_targetCameraComponent->getAperturePose(cameraPose, eVRDevicePoseSpace::VRTrackingSystemPose);
+				// Use the calibrated aperture offset on the video source to get the camera pose
+				bValidPose = m_targetCameraComponent->getSceneSpaceAperturePose(cameraPose);
 			}
 			else
 			{
 				// Use the last computed preview camera alignment
 				bValidPose = 
-					m_trackerPoseCalibrator->getLastCameraPose(
-						m_cameraTrackingPuckPoseView, cameraPose);
+					m_trackerPoseCalibrator->getLastSceneSpaceAperturePose(
+						m_cameraPuckPose_VRSystemSpace, cameraPose);
 			}
 
 			if (bValidPose)
@@ -258,62 +328,87 @@ void AppStage_AlignmentCalibration::update(float deltaSeconds)
 
 	switch(m_calibrationPanel->getMenuState())
 	{
-		case eAlignmentCalibrationMenuState::verifySetup:
+	case eAlignmentCalibrationMenuState::pendingVideoStart:
+		{
+			// Check if the video stream has started yet
+			eVideoStreamingStatus status = m_videoSourceComponent->getVideoStreamingStatus();
+			if (status == eVideoStreamingStatus::started)
 			{
-				// Update the video frame buffers to preview the calibration mat
-				m_monoDistortionView->readAndProcessVideoFrame();
-
-				// Look for a calibration pattern so that we can preview if it's in frame
-				m_trackerPoseCalibrator->computeCameraToPuckXform();
-
-				// See if we can compute a camera to puck transform this frame
-				m_calibrationPanel->setCurrentChessboardValid(m_trackerPoseCalibrator->hasValidCameraToPuckXform());
-
-				// Update the time tha the chessboard has been stable for
-				m_calibrationPanel->updateChessboardStabilityTimer(deltaSeconds);
+				// If it has, then setup the calibrator and move to the next state
+				setupTrackerPoseCalibrator();
+				setMenuState(
+					m_bypassCalibrationFlag
+						? eAlignmentCalibrationMenuState::testCalibration
+						: eAlignmentCalibrationMenuState::verifySetup);
 			}
-			break;
-		case eAlignmentCalibrationMenuState::capture:
+			else if (status == eVideoStreamingStatus::stopped)
 			{
-				// Update the video frame buffers
-				m_monoDistortionView->readAndProcessVideoFrame();
+				// If stopped, try to restart the video stream
+				m_videoSourceComponent->startVideoStream();
+			}
+			else if (status == eVideoStreamingStatus::failed)
+			{
+				// If it failed to start, then move to the failed state
+				setMenuState(eAlignmentCalibrationMenuState::failedVideoStartStreamRequest);
+			}
+		}
+		break;
+	case eAlignmentCalibrationMenuState::verifySetup:
+		{
+			// Update the video frame buffers to preview the calibration mat
+			m_monoDistortionView->readAndProcessVideoFrame();
 
-				// Update the chess board capture state
-				if (m_trackerPoseCalibrator->computeCameraToPuckXform())
+			// Look for a calibration pattern so that we can preview if it's in frame
+			m_trackerPoseCalibrator->computeCameraToPuckXform();
+
+			// See if we can compute a camera to puck transform this frame
+			m_calibrationPanel->setCurrentChessboardValid(m_trackerPoseCalibrator->hasValidCameraToPuckXform());
+
+			// Update the time that the chessboard has been stable for
+			m_calibrationPanel->updateChessboardStabilityTimer(deltaSeconds);
+		}
+		break;
+	case eAlignmentCalibrationMenuState::capture:
+		{
+			// Update the video frame buffers
+			m_monoDistortionView->readAndProcessVideoFrame();
+
+			// Update the chess board capture state
+			if (m_trackerPoseCalibrator->computeCameraToPuckXform())
+			{
+				m_trackerPoseCalibrator->sampleLastCameraToPuckXform();
+
+				// Update the calibration fraction on the UI Model
+				m_calibrationPanel->setCalibrationFraction(m_trackerPoseCalibrator->getCalibrationProgress());
+			}
+
+			// See if we have gotten all the samples we require
+			if (m_trackerPoseCalibrator->hasFinishedSampling())
+			{
+				MikanQuatd rotationOffset;
+				MikanVector3d translationOffset;
+				if (m_trackerPoseCalibrator->computeCalibratedCameraTrackerOffset(
+					rotationOffset,
+					translationOffset))
 				{
-					m_trackerPoseCalibrator->sampleLastCameraToPuckXform();
+					// Store the calibrated camera offset on the video source settings
+					m_targetCameraComponent->getCameraDefinition()->setAperturePoseOffset(
+						rotationOffset, translationOffset);
 
-					// Update the calibration fraction on the UI Model
-					m_calibrationPanel->setCalibrationFraction(m_trackerPoseCalibrator->getCalibrationProgress());
-				}
-
-				// See if we have gotten all the samples we require
-				if (m_trackerPoseCalibrator->hasFinishedSampling())
-				{
-					MikanQuatd rotationOffset;
-					MikanVector3d translationOffset;
-					if (m_trackerPoseCalibrator->computeCalibratedCameraTrackerOffset(
-						rotationOffset,
-						translationOffset))
-					{
-						// Store the calibrated camera offset on the video source settings
-						m_targetCameraComponent->getCameraDefinition()->setAperturePoseOffset(
-							rotationOffset, translationOffset);
-
-						// Go to the test calibration state
-						m_cameraSettingsPanel->setViewpointMode(
-							eAlignmentCalibrationViewpointMode::compositor);
-						setMenuState(eAlignmentCalibrationMenuState::testCalibration);
-					}
+					// Go to the test calibration state
+					m_cameraSettingsPanel->setViewpointMode(
+						eAlignmentCalibrationViewpointMode::compositor);
+					setMenuState(eAlignmentCalibrationMenuState::testCalibration);
 				}
 			}
-			break;
-		case eAlignmentCalibrationMenuState::testCalibration:
-			{
-				// Update the video frame buffers using the existing distortion calibration
-				m_monoDistortionView->readAndProcessVideoFrame();
-			}
-			break;
+		}
+		break;
+	case eAlignmentCalibrationMenuState::testCalibration:
+		{
+			// Update the video frame buffers using the existing distortion calibration
+			m_monoDistortionView->readAndProcessVideoFrame();
+		}
+		break;
 	}
 }
 
@@ -632,40 +727,4 @@ void AppStage_AlignmentCalibration::onGui()
 
 	for (IGuiPanel* guiPanel : m_guiPanels)
 		guiPanel->onGui();
-}
-
-VRDevicePoseViewPtr AppStage_AlignmentCalibration::makeMatPoseViewFromCamera(CameraComponentPtr targetCameraComponent)
-{
-	VRTrackingVolumeDefinitionConstPtr vrTrackingVolume =
-		targetCameraComponent->getVRTrackingVolumeDefinition();
-
-	if (vrTrackingVolume)
-	{
-		MikanTrackingMountID matMountId = vrTrackingVolume->getCharucoTrackingMountId();
-
-		if (matMountId != INVALID_MIKAN_ID)
-		{
-			auto trackingMountSystem= getSystemOfType<TrackingMountObjectSystem>();
-			TrackingMountComponentPtr trackingMount=
-				trackingMountSystem->getTypedComponentById(matMountId);
-
-			if (trackingMount)
-			{
-				TrackingMountDefinitionConstPtr matTrackingMountDefinition =
-					trackingMount->getTrackingMountDefinition();
-
-				auto vrSystem = getSystemOfType<VRObjectSystem>();
-				VRDeviceComponentPtr matTrackingPuck =
-					vrSystem->getVRDeviceByPath(matTrackingMountDefinition->getDevicePath());
-
-				if (matTrackingPuck)
-				{
-					return matTrackingPuck->makePoseView(eVRDevicePoseSpace::VRTrackingSystemPose);
-				}
-			}
-		}
-	}
-
-	// Return an empty pose view if we couldn't find the MAT device
-	return std::make_shared<VRDevicePoseView>();
 }

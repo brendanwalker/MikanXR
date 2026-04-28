@@ -77,6 +77,7 @@ ArucoMarkerPoseSampler::ArucoMarkerPoseSampler(
 	int desiredSampleCount)
 	: m_calibrationState(new ArucoMarkerPoseSamplerState)
 	, m_calibrationCamera(cameraComponent)
+	, m_cameraPuckPose_VRSystemSpace(cameraComponent->makeTrackingMountPoseView(eVRDevicePoseSpace::VRTrackingSystemPose))
 	, m_markerFinder(new CalibrationPatternFinder_Aruco(cameraComponent, distortionView))
 {
 	frameWidth = distortionView->getFrameWidth();
@@ -123,7 +124,7 @@ bool ArucoMarkerPoseSampler::computeVRSpaceMarkerXform()
 
 	// Compute the camera pose in VRSpace
 	glm::dmat4 cameraXform_VRSpace;
-	if (!m_calibrationCamera->getAperturePose(cameraXform_VRSpace, eVRDevicePoseSpace::VRTrackingSystemPose))
+	if (!m_calibrationCamera->getSceneSpaceAperturePose(cameraXform_VRSpace))
 	{
 		return false;
 	}
@@ -217,7 +218,7 @@ void ArucoMarkerPoseSampler::renderVRSpaceCalibrationState()
 
 	// Compute the camera pose in VRSpace
 	glm::dmat4 cameraXform_VRSpace;
-	if (m_calibrationCamera->getAperturePose(cameraXform_VRSpace, eVRDevicePoseSpace::VRTrackingSystemPose))
+	if (m_cameraPuckPose_VRSystemSpace->getPose(m_calibrationCamera, cameraXform_VRSpace))
 	{
 		// Draw the marker transform
 		const glm::mat4 markerXform = glm::mat4(m_calibrationState->vrSpaceMarkerXform);

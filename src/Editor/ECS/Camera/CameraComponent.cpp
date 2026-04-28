@@ -271,17 +271,41 @@ StageComponentConstPtr CameraComponent::getOwnerStageComponent() const
 	return getObjectSystemOfType<StageObjectSystem>()->getStageById(stageId);
 }
 
-VRTrackingVolumeDefinitionConstPtr CameraComponent::getVRTrackingVolumeDefinition() const
+eTrackingVolumeType CameraComponent::getTrackingVolumeType() const
 {
 	StageComponentConstPtr ownerStage = getOwnerStageComponent();
 	if (ownerStage != nullptr)
 	{
 		TrackingVolumeDefinitionConstPtr trackingVolume = ownerStage->getTrackingVolumeDefinitionConst();
+		if (trackingVolume != nullptr)
+		{
+			return trackingVolume->getTrackingVolumeType();
+		}
+	}
+	return eTrackingVolumeType::INVALID;
+}
+
+VRTrackingVolumeComponentConstPtr CameraComponent::getVRTrackingVolumeComponent() const
+{
+	StageComponentConstPtr ownerStage = getOwnerStageComponent();
+	if (ownerStage != nullptr)
+	{
+		TrackingVolumeComponentConstPtr trackingVolume = ownerStage->getTrackingVolumeConst();
 		if (trackingVolume != nullptr &&
 			trackingVolume->getTrackingVolumeType() == eTrackingVolumeType::vr)
 		{
-			return std::static_pointer_cast<const VRTrackingVolumeDefinition>(trackingVolume);
+			return std::static_pointer_cast<const VRTrackingVolumeComponent>(trackingVolume);
 		}
+	}
+
+	return VRTrackingVolumeComponentConstPtr();
+}
+VRTrackingVolumeDefinitionConstPtr CameraComponent::getVRTrackingVolumeDefinition() const
+{
+	VRTrackingVolumeComponentConstPtr vrTrackingVolumeComponent = getVRTrackingVolumeComponent();
+	if (vrTrackingVolumeComponent != nullptr)
+	{
+		return vrTrackingVolumeComponent->getVRTrackingVolumeDefinition();
 	}
 
 	return VRTrackingVolumeDefinitionConstPtr();
@@ -292,29 +316,42 @@ VRTrackingVolumeDefinitionPtr CameraComponent::getVRTrackingVolumeDefinitionMuta
 	return std::const_pointer_cast<VRTrackingVolumeDefinition>(getVRTrackingVolumeDefinition());
 }
 
-TrackingMountDefinitionConstPtr CameraComponent::getTrackingMountDefinition() const
+TrackingMountComponentConstPtr CameraComponent::getTrackingMountComponent() const
 {
 	CameraDefinitionPtr cameraDefinition = getCameraDefinition();
 	MikanTrackingMountID trackingMountId = cameraDefinition->getTrackingMountId();
-
 	if (trackingMountId != INVALID_MIKAN_ID)
 	{
 		auto trackingMountSystem= getObjectSystemOfType<TrackingMountObjectSystem>(); 
-		TrackingMountComponentPtr trackingMount= 
-			trackingMountSystem->getTypedComponentById(trackingMountId);
-
-		if (trackingMount)
-		{
-			return trackingMount->getTrackingMountDefinition();
-		}
+		return trackingMountSystem->getTypedComponentById(trackingMountId);
 	}
+	return TrackingMountComponentConstPtr();
+}
 
+TrackingMountDefinitionConstPtr CameraComponent::getTrackingMountDefinition() const
+{
+	TrackingMountComponentConstPtr trackingMountComponent = getTrackingMountComponent();
+	if (trackingMountComponent != nullptr)
+	{
+		return trackingMountComponent->getTrackingMountDefinition();
+	}
 	return TrackingMountDefinitionConstPtr();
 }
 
 TrackingMountDefinitionPtr CameraComponent::getTrackingMountDefinitionMutable()
 {
 	return std::const_pointer_cast<TrackingMountDefinition>(getTrackingMountDefinition());
+}
+
+VRDevicePoseViewPtr CameraComponent::makeTrackingMountPoseView(eVRDevicePoseSpace space) const
+{
+	TrackingMountComponentConstPtr trackingMountComponent = getTrackingMountComponent();
+	if (trackingMountComponent != nullptr)
+	{
+		return trackingMountComponent->makePoseView(space);
+	}
+
+	return VRDevicePoseViewPtr();
 }
 
 VideoSourceComponentPtr CameraComponent::getVideoSourceComponent() const
@@ -338,7 +375,7 @@ void CameraComponent::setVideoSourceById(MikanVideoSourceID videoSourceId)
 
 bool CameraComponent::hasValidTrackingMountPoseView() const
 {
-	return m_trackingMountPoseView_SceneSpace != nullptr && m_trackingMountPoseView_VRSpace != nullptr;
+	return m_trackingMountPoseView_SceneSpace != nullptr;
 }
 
 bool CameraComponent::getAperturePixelDimensions(int& outWidth, int& outHeight) const
@@ -373,31 +410,16 @@ bool CameraComponent::getApertureIntrinsics(MikanVideoSourceIntrinsics& outIntri
 	return false;
 }
 
-bool CameraComponent::getAperturePose(
-	glm::mat4& outCameraPose,
-	eVRDevicePoseSpace space) const
+bool CameraComponent::getSceneSpaceAperturePose(glm::mat4& outCameraPose) const
 {
 	// Get the pose of the VR device we want to compute the camera pose from
 	bool bValidPose = false;
 	glm::mat4 vrDevicePose;
-	switch (space)
+	if (m_trackingMountPoseView_SceneSpace)
 	{
-	case eVRDevicePoseSpace::MikanTrackingVolumePose:
-		if (m_trackingMountPoseView_SceneSpace)
-		{
-			bValidPose = m_trackingMountPoseView_SceneSpace->getPose(
-				getSelfPtr<const CameraComponent>(),
-				vrDevicePose);
-		}
-		break;
-	case eVRDevicePoseSpace::VRTrackingSystemPose:
-		if (m_trackingMountPoseView_VRSpace)
-		{
-			bValidPose = m_trackingMountPoseView_VRSpace->getPose(
-				getSelfPtr<const CameraComponent>(),
-				vrDevicePose);
-		}
-		break;
+		bValidPose = m_trackingMountPoseView_SceneSpace->getPose(
+			getSelfPtr<const CameraComponent>(),
+			vrDevicePose);
 	}
 
 	// Apply the pre-calibrated offset from the VR device to the camera aperture
@@ -420,12 +442,10 @@ bool CameraComponent::getAperturePose(
 	return false;
 }
 
-bool CameraComponent::getAperturePose(
-	glm::dmat4& outCameraPose,
-	eVRDevicePoseSpace space) const
+bool CameraComponent::getSceneSpaceAperturePose(glm::dmat4& outCameraPose) const
 {
 	glm::mat4 cameraPose;
-	if (getAperturePose(cameraPose, space))
+	if (getSceneSpaceAperturePose(cameraPose))
 	{
 		outCameraPose = glm::dmat4(cameraPose);
 		return true;
@@ -460,7 +480,7 @@ bool CameraComponent::getApertureProjectionMatrix(
 bool CameraComponent::getApertureViewMatrix(glm::mat4& outViewMatrix) const
 {
 	glm::mat4 cameraPose;
-	if (getAperturePose(cameraPose))
+	if (getSceneSpaceAperturePose(cameraPose))
 	{
 		outViewMatrix = computeGLMCameraViewMatrix(cameraPose);
 		return true;
@@ -580,7 +600,6 @@ void CameraComponent::refreshTrackingMount()
 {
 	// Forget the old pose views
 	m_trackingMountPoseView_SceneSpace = nullptr;
-	m_trackingMountPoseView_VRSpace = nullptr;
 
 	// Try and create a new pose views for the tracking mount
 	TrackingMountDefinitionConstPtr trackingMount = getTrackingMountDefinition();
@@ -596,12 +615,6 @@ void CameraComponent::refreshTrackingMount()
 			m_trackingMountPoseView_SceneSpace = 
 				vrDeviceComponent->makePoseView(
 					eVRDevicePoseSpace::MikanTrackingVolumePose,
-					trackingMount->getSocketName());
-
-			// Tracking mount pose in the space of the VR tracking system
-			m_trackingMountPoseView_VRSpace =
-				vrDeviceComponent->makePoseView(
-					eVRDevicePoseSpace::VRTrackingSystemPose,
 					trackingMount->getSocketName());
 		}
 	}
@@ -719,34 +732,23 @@ bool CameraComponent::invokeFunction(const std::string& functionName)
 
 void CameraComponent::alignCamera()
 {
-	IEditorWindow* ownerWindow = getOwnerEditorWindow();
-	TrackingMountDefinitionConstPtr vrTrackingMount= getTrackingMountDefinition();
+	AppStage* currentAppStage= getOwnerEditorWindow()->getCurrentAppStage();
 
-	if (vrTrackingMount)
+	switch (getTrackingVolumeType())
 	{
-		if (!hasValidTrackingMountPoseView())
-		{
-			ModalDialog_MessageBox::showMessageBox(
-				getOwnerEditorWindow()->getCurrentAppStage(),
-				"Camera tracking mount device is not connected. Please ensure the VR device is active before aligning.");
-		}
-		else if (areApertureIntrinsicsValid())
-		{
-			auto* alignmentCalibration = ownerWindow->pushAppStageOfType<AppStage_AlignmentCalibration>();
-			alignmentCalibration->setTargetCameraComponent(getSelfPtr<CameraComponent>());
-		}
-		else
-		{
-			ModalDialog_MessageBox::showMessageBox(
-				getOwnerEditorWindow()->getCurrentAppStage(),
-				"Camera does not have valid aperture intrinsics. Please calibrate the camera's intrinsics before using it for alignment.");
-		}
-	}
-	else
-	{
-		//TODO
-		//// Show Camera Triangulation Tool
-		//AppStage_CameraTriangulation* CameraTriangulation = ownerWindow->pushAppStageOfType<AppStage_CameraTriangulation>();
-		//CameraTriangulation->setTargetCameraDefinition(getCameraDefinition());
+	case eTrackingVolumeType::vr:
+		AppStage_AlignmentCalibration::tryEnterAlignmentCalibration(
+			currentAppStage, 
+			getSelfPtr<CameraComponent>());
+	case eTrackingVolumeType::marker:
+		//TODO:
+		//AppStage_MarkerAlignmentCalibration::tryEnterAlignmentCalibration(
+		//	currentAppStage,
+		//	getSelfPtr<CameraComponent>());
+	default:
+		ModalDialog_MessageBox::showMessageBox(
+			currentAppStage,
+			"Stage missing tracking volume. Please assign a tracking volume to the stage this camera is attached to.");
+		break;
 	}
 }

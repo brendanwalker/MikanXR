@@ -203,7 +203,7 @@ void AppStage_AnchorTriangulation::updateCamera()
 {
 	// Update the transform of the camera so that vr models align over the tracking puck
 	glm::mat4 cameraPose;
-	if (m_currentSceneCameraComponent->getAperturePose(cameraPose))
+	if (m_currentSceneCameraComponent->getSceneSpaceAperturePose(cameraPose))
 	{
 		m_mkCamera->setCameraTransform(cameraPose);
 	}

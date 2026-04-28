@@ -43,7 +43,7 @@ bool computeOpenCVCameraExtrinsicMatrix(
 {
     // Extrinsic matrix is the inverse of the camera pose matrix
     glm::mat4 glm_camera_xform;
-	if (cameraComponent->getAperturePose(glm_camera_xform))
+	if (cameraComponent->getSceneSpaceAperturePose(glm_camera_xform))
 	{
 		const glm::mat4 glm_mat = glm::inverse(glm_camera_xform);
 

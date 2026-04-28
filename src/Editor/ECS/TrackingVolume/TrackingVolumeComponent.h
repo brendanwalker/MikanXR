@@ -52,6 +52,8 @@ public:
 
 	inline TrackingVolumeDefinitionPtr getTrackingVolumeDefinition() const
 	{ return std::static_pointer_cast<TrackingVolumeDefinition>(m_definition); }
+	inline eTrackingVolumeType getTrackingVolumeType() const
+	{ return getTrackingVolumeDefinition()->getTrackingVolumeType(); }
 
 	void deleteTrackingVolume();
 

@@ -109,6 +109,23 @@ VRDeviceComponentPtr TrackingMountComponent::getVRDeviceComponent() const
 	return vrObjectSystem->getVRDeviceByPath(vrDevicePath);
 }
 
+VRDevicePoseViewPtr TrackingMountComponent::makePoseView(eVRDevicePoseSpace space) const
+{
+	TrackingMountDefinitionConstPtr trackingMount = getTrackingMountDefinition();
+	assert(trackingMount);
+
+	auto vrObjectSystem = getObjectSystemOfType<VRObjectSystem>();
+	VRDeviceComponentPtr vrDeviceComponent =
+		vrObjectSystem->getVRDeviceByPath(trackingMount->getDevicePath());
+
+	if (vrDeviceComponent)
+	{
+		return vrDeviceComponent->makePoseView(space, trackingMount->getSocketName());
+	}
+
+	return VRDevicePoseViewPtr();
+}
+
 void TrackingMountComponent::deleteTrackingMount()
 {
 	TrackingMountDefinitionPtr trackingMountDefinition = getTrackingMountDefinition();

@@ -83,10 +83,14 @@ public:
 	}
 	inline MikanCameraID getCameraId() const { return getCameraDefinition()->getComponentId(); }
 	StageComponentConstPtr getOwnerStageComponent() const;
+	eTrackingVolumeType getTrackingVolumeType() const;
+	VRTrackingVolumeComponentConstPtr getVRTrackingVolumeComponent() const;
 	VRTrackingVolumeDefinitionConstPtr getVRTrackingVolumeDefinition() const;
 	VRTrackingVolumeDefinitionPtr getVRTrackingVolumeDefinitionMutable();
+	TrackingMountComponentConstPtr getTrackingMountComponent() const;
 	TrackingMountDefinitionConstPtr getTrackingMountDefinition() const;
 	TrackingMountDefinitionPtr getTrackingMountDefinitionMutable();
+	VRDevicePoseViewPtr makeTrackingMountPoseView(eVRDevicePoseSpace space) const;
 	VideoSourceComponentPtr getVideoSourceComponent() const;
 	void setVideoSourceById(MikanVideoSourceID videoSourceId);
 
@@ -95,12 +99,8 @@ public:
 	bool getAperturePixelDimensions(int& outWidth, int& outHeight) const;
 	bool areApertureIntrinsicsValid() const;
 	bool getApertureIntrinsics(struct MikanVideoSourceIntrinsics& outIntrinsics) const;
-	bool getAperturePose(
-		glm::mat4& outCameraPose, 
-		eVRDevicePoseSpace space = eVRDevicePoseSpace::MikanTrackingVolumePose) const;
-	bool getAperturePose(
-		glm::dmat4& outCameraPose, 
-		eVRDevicePoseSpace space = eVRDevicePoseSpace::MikanTrackingVolumePose) const;
+	bool getSceneSpaceAperturePose(glm::mat4& outCameraPose) const;
+	bool getSceneSpaceAperturePose(glm::dmat4& outCameraPose) const;
 	bool getApertureProjectionMatrix(glm::mat4& outProjectionMatrix, bool bVerticalFlip = false) const;
 	bool getApertureViewMatrix(glm::mat4& outViewMatrix) const;
 	bool getApertureViewProjectionMatrix(glm::mat4& outVPMatrix, bool bVerticalFlip =false) const;
@@ -134,5 +134,4 @@ protected:
 private:
 	SelectionComponentWeakPtr m_selectionComponent;
 	VRDevicePoseViewPtr m_trackingMountPoseView_SceneSpace;
-	VRDevicePoseViewPtr m_trackingMountPoseView_VRSpace;
 };

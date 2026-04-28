@@ -671,7 +671,7 @@ void DrawLayerNode::evaluateQuadStencils(
 
 	// Get the camera pose matrix for the current tracked video source	
 	glm::mat4 cameraXform;	
-	if (!cameraComponent->getAperturePose(cameraXform))
+	if (!cameraComponent->getSceneSpaceAperturePose(cameraXform))
 		return;	
 
 	// Also get the the view-projection matrix for the tracked video source	
@@ -792,7 +792,7 @@ void DrawLayerNode::evaluateBoxStencils(
 
 	// Get the camera pose matrix for the current tracked video source	
 	glm::mat4 cameraXform;	
-	if (!cameraComponent->getAperturePose(cameraXform))
+	if (!cameraComponent->getSceneSpaceAperturePose(cameraXform))
 		return;	
 
 	// Also get the the view-projection matrix for the tracked video source	
@@ -880,7 +880,7 @@ void DrawLayerNode::evaluateModelStencils(
 
 	// Get the camera pose matrix for the current tracked video source	
 	glm::mat4 cameraXform;	
-	if (!cameraComponent->getAperturePose(cameraXform))
+	if (!cameraComponent->getSceneSpaceAperturePose(cameraXform))
 		return;	
 
 	// Also get the the view-projection matrix for the tracked video source	

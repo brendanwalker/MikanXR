@@ -382,7 +382,7 @@ void DepthMaskNode::evaluateQuadDepthMasks(
 
 	// Get the camera pose matrix for the current tracked video source
 	glm::mat4 cameraXform;
-	if (!cameraComponent->getAperturePose(cameraXform))
+	if (!cameraComponent->getSceneSpaceAperturePose(cameraXform))
 		return;
 
 	// Collect stencil in view of the tracked camera
@@ -465,7 +465,7 @@ void DepthMaskNode::evaluateBoxDepthMasks(
 
 	// Get the camera pose matrix for the current tracked video source
 	glm::mat4 cameraXform;
-	if (!cameraComponent->getAperturePose(cameraXform))
+	if (!cameraComponent->getSceneSpaceAperturePose(cameraXform))
 		return;
 
 	// Collect stencil in view of the tracked camera
@@ -547,7 +547,7 @@ void DepthMaskNode::evaluateModelDepthMasks(
 
 	// Get the camera pose matrix for the current tracked video source
 	glm::mat4 cameraXform;
-	if (!cameraComponent->getAperturePose(cameraXform))
+	if (!cameraComponent->getSceneSpaceAperturePose(cameraXform))
 		return;
 
 	// Collect stencil in view of the tracked camera

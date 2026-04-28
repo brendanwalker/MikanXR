@@ -144,7 +144,7 @@ glm::vec2 AnchorTriangulator::computeMouseScreenPosition() const
 void AnchorTriangulator::sampleCameraPose()
 {
 	glm::mat4 glm_camera_xform;
-	if (m_cameraComponent->getAperturePose(glm_camera_xform))
+	if (m_cameraComponent->getSceneSpaceAperturePose(glm_camera_xform))
 	{
 		m_calibrationState->initialCameraPoseSample = glm_camera_xform;
 	}
@@ -167,7 +167,7 @@ void AnchorTriangulator::computeCurrentTriangulation()
 
 	// Compute a ray for triangulating new sample pixel
 	glm::mat4 triangulatingCameraXform;
-	if (m_cameraComponent->getAperturePose(triangulatingCameraXform))
+	if (m_cameraComponent->getSceneSpaceAperturePose(triangulatingCameraXform))
 	{
 		const glm::vec2 triangulatingPointSample = computeMouseScreenPosition();
 		glm::vec3 triangulatingPointRayStart;
@@ -402,7 +402,7 @@ void AnchorTriangulator::renderAllTriangulatedPoints(bool bShowCameraFrustum)
 	{
 		// Draw the most recently derived camera transform derived from the mat puck
 		glm::mat4 glm_camera_xform;
-		if (m_cameraComponent->getAperturePose(glm_camera_xform))
+		if (m_cameraComponent->getSceneSpaceAperturePose(glm_camera_xform))
 		{
 			const float hfov_radians = degrees_to_radians(m_calibrationState->inputCameraIntrinsics.hfov);
 			const float vfov_radians = degrees_to_radians(m_calibrationState->inputCameraIntrinsics.vfov);

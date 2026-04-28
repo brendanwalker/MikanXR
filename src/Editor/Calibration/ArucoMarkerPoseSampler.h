@@ -42,6 +42,9 @@ protected:
 	// Tracked camera used for calibration
 	CameraComponentPtr m_calibrationCamera;
 
+	// VR System-space pose of the camera puck
+	VRDevicePoseViewPtr m_cameraPuckPose_VRSystemSpace;
+
 	// Calibration pattern being used
 	class CalibrationPatternFinder_Aruco* m_markerFinder;
 };
