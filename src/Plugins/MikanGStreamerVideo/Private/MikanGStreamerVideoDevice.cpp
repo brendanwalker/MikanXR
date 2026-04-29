@@ -219,7 +219,6 @@ MikanGStreamerVideoDevice::MikanGStreamerVideoDevice(
 	, m_connectionInfo(connectionInfo)
 	, m_url(constructURL(connectionInfo))
 	, m_impl(new GStreamerImpl(connectionInfo))
-	, m_bIsStreaming(false)
 {
 	std::memset(&m_streamInfo, 0, sizeof(NetworkVideoStreamProperties));
 }
@@ -417,6 +416,13 @@ void MikanGStreamerVideoDevice::update(float deltaSeconds)
 		NetworkVideoStreamProperties newFrameInfo;
 		if (GStreamerImpl::extractVideoFrameInfo(caps, newFrameInfo))
 		{
+			if (m_streamingStatus == eVideoStreamingStatus::pendingStart)
+			{
+				MIKAN_LOG_INFO("GStreamerVideoDevice::update") << "stream started";
+				m_streamingStatus = eVideoStreamingStatus::started;
+				//TODO: notify listener about stream start?
+			}
+
 			// See if the new frame info is different from the current video mode settings
 			if (GStreamerImpl::hasFrameInfoChanged(m_streamInfo, newFrameInfo))
 			{
@@ -495,7 +501,7 @@ void MikanGStreamerVideoDevice::close()
 	}
 
 	m_openState = eOpenState::closed;
-	m_bIsStreaming = false;
+	m_streamingStatus = eVideoStreamingStatus::stopped;
 
 	// Make sure the pipeline is stopped first
 	if (m_impl->pipeline != nullptr)
@@ -553,18 +559,14 @@ eVideoStreamingStatus MikanGStreamerVideoDevice::startVideoStream()
 {
 	if (m_openState == eOpenState::open)
 	{
-		eVideoStreamingStatus status= getVideoStreamingStatus();
-
-		if (status == eVideoStreamingStatus::stopped ||
-			status == eVideoStreamingStatus::failed)
+		if (m_streamingStatus == eVideoStreamingStatus::stopped ||
+			m_streamingStatus == eVideoStreamingStatus::failed)
 		{
 			gst_element_set_state(m_impl->pipeline, GST_STATE_PLAYING);
-			m_bIsStreaming = true;
-
-			status = eVideoStreamingStatus::started;
+			m_streamingStatus = eVideoStreamingStatus::pendingStart;
 		}
 
-		return status;
+		return m_streamingStatus;
 	}
 
 	return eVideoStreamingStatus::failed;
@@ -572,14 +574,7 @@ eVideoStreamingStatus MikanGStreamerVideoDevice::startVideoStream()
 
 eVideoStreamingStatus MikanGStreamerVideoDevice::getVideoStreamingStatus() const
 {
-	if (m_openState == eOpenState::open)
-	{
-		return m_bIsStreaming
-			? eVideoStreamingStatus::started
-			: eVideoStreamingStatus::stopped;
-	}
-
-	return eVideoStreamingStatus::failed;
+	return m_streamingStatus;
 }
 
 void MikanGStreamerVideoDevice::stopVideoStream()
@@ -589,5 +584,5 @@ void MikanGStreamerVideoDevice::stopVideoStream()
 		gst_element_set_state(m_impl->pipeline, GST_STATE_PAUSED);
 	}
 
-	m_bIsStreaming = false;
+	m_streamingStatus = eVideoStreamingStatus::stopped;
 }

@@ -396,7 +396,10 @@ eVideoStreamingStatus NetworkVideoSourceComponent::startVideoStream()
 	if (m_networkVideoDevice != nullptr)
 	{
 		eVideoStreamingStatus status = m_networkVideoDevice->startVideoStream();
-		if (status == eVideoStreamingStatus::started && OnStarted)
+		// TODO: Move to INetworkVideoDeviceListener event
+		if (OnStarted &&
+			(status == eVideoStreamingStatus::started || 
+			 status == eVideoStreamingStatus::pendingStart)) 
 		{
 			OnStarted(getSelfPtr<VideoSourceComponent>());
 		}

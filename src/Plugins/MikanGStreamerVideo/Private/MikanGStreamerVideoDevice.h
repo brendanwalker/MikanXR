@@ -66,7 +66,7 @@ private:
 	struct GStreamerImpl* m_impl;
 	eOpenState m_openState = eOpenState::closed;
 	std::future<bool> m_openFuture;
-	bool m_bIsStreaming;
+	eVideoStreamingStatus m_streamingStatus = eVideoStreamingStatus::stopped;
 
 	std::set<INetworkVideoDeviceListener*> m_listeners;
 };
