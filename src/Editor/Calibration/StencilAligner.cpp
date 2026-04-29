@@ -150,7 +150,7 @@ bool StencilAligner::computeStencilTransform(glm::mat4& outStencilTransform)
 
 	// Compute world transform from the current camera pose
 	glm::mat4 cameraPose;
-	if (!m_cameraComponent->getSceneSpaceAperturePose(cameraPose))
+	if (!m_cameraComponent->getStageSpaceAperturePose(cameraPose))
 	{
 		return false;
 	}

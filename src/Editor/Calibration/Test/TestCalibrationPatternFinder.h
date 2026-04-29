@@ -6,9 +6,9 @@
 class TestCalibrationPatternFinder : public CalibrationPatternFinder
 {
 public:
-	TestCalibrationPatternFinder(int frameWidth, int frameHeight, const glm::dmat4& cameraToPatternXform)
+	TestCalibrationPatternFinder(int frameWidth, int frameHeight, const glm::dmat4& apertureToPatternXform)
 		: CalibrationPatternFinder(frameWidth, frameHeight)
-		, m_cameraToPatternXform(cameraToPatternXform) {}
+		, m_cameraToPatternXform(apertureToPatternXform) {}
 
 	bool estimateNewCalibrationPatternPose(glm::dmat4& outXform) override
 	{

@@ -80,18 +80,23 @@ void createDefautMonoIntrinsics(
 	int pixelHeight,
 	struct MikanMonoIntrinsics& outIntrinsics);
 
-// Computes the fixed camera-to-puck offset transform from known VR-space and optical poses.
-// cameraPuckXform_VRSpace: camera's tracking puck pose in VR tracking space
-// matPuckXform_VRSpace:    mat's tracking puck pose in VR tracking space
-// cameraToPatternXform:    camera-to-pattern transform from solvePnP (optical measurement)
-// matPuckOffsetMM:         physical offset (X, Y, Z mm) from mat puck origin to pattern center
-// outCameraToCameraPuckXform: result - relative offset of the camera from its tracking puck
-bool computeCameraToPuckXformFromPoses(
+/**
+ * Computes the camera tracking mount (or "puck") to aperature offset transform
+ * from known VR-space tracking mount poses and optical offset from tracking pattern.
+ *
+ * Params:
+ * cameraPuckXform_VRSpace: camera's tracking mount pose in VR tracking space
+ * matPuckXform_VRSpace:    mat's tracking mount pose in VR tracking space
+ * apertureToPatternXform:    camera-to-pattern transform from solvePnP (optical measurement)
+ * matPuckOffsetMM:         physical offset (X, Y, Z) in mm from mat puck origin to pattern origin
+ *
+ * Return: relative offset of the aperture from its tracking puck
+ */
+glm::dmat4 computeCameraPuckToApertureXform(
 	const glm::dmat4& cameraPuckXform_VRSpace,
 	const glm::dmat4& matPuckXform_VRSpace,
-	const glm::dmat4& cameraToPatternXform,
-	const glm::dvec3& matPuckOffsetMM,
-	glm::dmat4& outCameraToCameraPuckXform);
+	const glm::dmat4& apertureToPatternXform,
+	const glm::dvec3& matPuckOffsetMM);
 
 void computeOpenGLProjMatFromCameraIntrinsics(
 	const struct MikanMonoIntrinsics& intrinsics,

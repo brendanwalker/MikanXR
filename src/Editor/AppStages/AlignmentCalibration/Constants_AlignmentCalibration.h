@@ -21,9 +21,9 @@ enum class eAlignmentCalibrationViewpointMode : int
 {
 	INVALID= -1, 
 
-	cameraViewpoint,
-	scene,
-	compositor,
+	calibration,
+	stageView,
+	xrView,
 
 	COUNT
 };

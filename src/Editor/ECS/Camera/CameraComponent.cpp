@@ -36,6 +36,7 @@ const std::string CameraDefinition::k_videoSourceIdPropertyId = "video_source_id
 const std::string CameraDefinition::k_trackingFrameDelayPropertyId = "tracking_frame_delay";
 const std::string CameraDefinition::k_apertureOrientationOffsetPropertyId = "aperture_orientation_offset";
 const std::string CameraDefinition::k_aperturePositionOffsetPropertyId = "aperture_position_offset";
+const std::string CameraDefinition::k_hasValidApertureOffsetPropertyId = "has_valid_aperture_offset";
 
 CameraDefinition::CameraDefinition()
 	: TransformComponentDefinition()
@@ -69,6 +70,7 @@ configuru::Config CameraDefinition::writeToJSON()
 
 	writeQuaderntiond(pt, "aperture_orientation_offset", m_apertureOrientationOffset);
 	writeVector3d(pt, "aperture_position_offset", m_aperturePositionOffset);
+	pt["has_valid_aperture_offset"] = m_bHasValidApertureOffset;
 
 	return pt;
 }
@@ -84,6 +86,8 @@ void CameraDefinition::readFromJSON(const configuru::Config& pt)
 
 	readQuaterniond(pt, "aperture_orientation_offset", m_apertureOrientationOffset);
 	readVector3d(pt, "aperture_position_offset", m_aperturePositionOffset);
+	m_bHasValidApertureOffset = 
+		pt.get_or<bool>("has_valid_aperture_offset", m_bHasValidApertureOffset);
 }
 
 bool CameraDefinition::readFromInitParams(
@@ -161,9 +165,25 @@ void CameraDefinition::setAperturePoseOffset(const MikanQuatd& q, const MikanVec
 {
 	m_apertureOrientationOffset = q;
 	m_aperturePositionOffset = p;
+	m_bHasValidApertureOffset = true;
 	notifyPropertyChanged(ConfigPropertyChangeSet()
 		.addPropertyName(k_apertureOrientationOffsetPropertyId)
-		.addPropertyName(k_aperturePositionOffsetPropertyId));
+		.addPropertyName(k_aperturePositionOffsetPropertyId)
+		.addPropertyName(k_hasValidApertureOffsetPropertyId));
+}
+
+void CameraDefinition::clearAperturePoseOffset()
+{
+	if (m_bHasValidApertureOffset)
+	{
+		m_apertureOrientationOffset = MikanQuatd{ 1, 0, 0, 0 };
+		m_aperturePositionOffset = MikanVector3d{ 0, 0, 0 };
+		m_bHasValidApertureOffset = false;
+		notifyPropertyChanged(ConfigPropertyChangeSet()
+			.addPropertyName(k_apertureOrientationOffsetPropertyId)
+			.addPropertyName(k_aperturePositionOffsetPropertyId)
+			.addPropertyName(k_hasValidApertureOffsetPropertyId));
+	}
 }
 
 // -- CameraComponent -----
@@ -190,9 +210,9 @@ void CameraComponent::init()
 	m_selectionComponent = getOwnerObject()->getComponentOfType<SelectionComponent>();
 
 	// Refresh the pose view for the tracking mount
-	refreshTrackingMount();
+	rebuildStageSpacePoseView();
 
-	// Push our world transform to all child scene components
+	// Push our world transform to all child stageView components
 	propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
 
 	// Listen for changes to the tracking mount definition
@@ -218,10 +238,10 @@ void CameraComponent::update(float deltaSeconds)
 	TransformComponent::update(deltaSeconds);
 
 	// Scene-space pose view is used to update the component transform
-	// of the camera in the scene
+	// of the camera in the stageView
 	glm::mat4 poseInStageSpace;
-	if (m_trackingMountPoseView_SceneSpace && 
-		m_trackingMountPoseView_SceneSpace->getPose(
+	if (m_trackingMountPoseView_StageSpace && 
+		m_trackingMountPoseView_StageSpace->getPose(
 			getSelfPtr<CameraComponent>(),
 			poseInStageSpace))
 	{
@@ -375,7 +395,7 @@ void CameraComponent::setVideoSourceById(MikanVideoSourceID videoSourceId)
 
 bool CameraComponent::hasValidTrackingMountPoseView() const
 {
-	return m_trackingMountPoseView_SceneSpace != nullptr;
+	return m_trackingMountPoseView_StageSpace != nullptr;
 }
 
 bool CameraComponent::getAperturePixelDimensions(int& outWidth, int& outHeight) const
@@ -410,31 +430,20 @@ bool CameraComponent::getApertureIntrinsics(MikanVideoSourceIntrinsics& outIntri
 	return false;
 }
 
-bool CameraComponent::getSceneSpaceAperturePose(glm::mat4& outCameraPose) const
+bool CameraComponent::getApertureOffsetXform(glm::mat4& outTrackingMountToApertureXform) const
 {
-	// Get the pose of the VR device we want to compute the camera pose from
-	bool bValidPose = false;
-	glm::mat4 vrDevicePose;
-	if (m_trackingMountPoseView_SceneSpace)
-	{
-		bValidPose = m_trackingMountPoseView_SceneSpace->getPose(
-			getSelfPtr<const CameraComponent>(),
-			vrDevicePose);
-	}
+	// Get the offset from the puck to the camera
+	CameraDefinitionPtr cameraDefinition = getCameraDefinition();
 
-	// Apply the pre-calibrated offset from the VR device to the camera aperture
-	if (bValidPose)
+	if (cameraDefinition->hasValidApertureOffset())
 	{
-		// Get the offset from the puck to the camera
-		CameraDefinitionPtr cameraDefinition= getCameraDefinition();
-		const glm::vec3 cameraOffsetPos = 
+		const glm::vec3 apertureOffsetPos =
 			MikanVector3d_to_glm_dvec3(cameraDefinition->getApertureOffsetPosition());
-		const glm::quat cameraOffsetQuat = 
+		const glm::quat apertureOffsetQuat =
 			MikanQuatd_to_glm_dquat(cameraDefinition->getApertureOffsetOrientation());
-		const glm::mat4 cameraOffsetXform = glm_mat4_from_pose(cameraOffsetQuat, cameraOffsetPos);
 
-		// Update the transform of the camera so that vr models align over the tracking puck
-		outCameraPose = glm_composite_xform(cameraOffsetXform, vrDevicePose);
+		outTrackingMountToApertureXform = 
+			glm_mat4_from_pose(apertureOffsetQuat, apertureOffsetPos);
 
 		return true;
 	}
@@ -442,10 +451,31 @@ bool CameraComponent::getSceneSpaceAperturePose(glm::mat4& outCameraPose) const
 	return false;
 }
 
-bool CameraComponent::getSceneSpaceAperturePose(glm::dmat4& outCameraPose) const
+bool CameraComponent::getStageSpaceAperturePose(glm::mat4& outCameraPose) const
+{
+	// Compute the aperture pose in stage space 
+	glm::mat4 trackingMountPose_StageSpace;
+	glm::mat4 trackingMountToApertureXform;
+	if (m_trackingMountPoseView_StageSpace &&
+		m_trackingMountPoseView_StageSpace->getPose(
+			getSelfPtr<const CameraComponent>(),
+			trackingMountPose_StageSpace) &&
+		getApertureOffsetXform(trackingMountToApertureXform))
+	{
+		outCameraPose = 
+			glm_composite_xform(
+				trackingMountToApertureXform, trackingMountPose_StageSpace);
+
+		return true;
+	}
+
+	return false;
+}
+
+bool CameraComponent::getStageSpaceAperturePose(glm::dmat4& outCameraPose) const
 {
 	glm::mat4 cameraPose;
-	if (getSceneSpaceAperturePose(cameraPose))
+	if (getStageSpaceAperturePose(cameraPose))
 	{
 		outCameraPose = glm::dmat4(cameraPose);
 		return true;
@@ -480,7 +510,7 @@ bool CameraComponent::getApertureProjectionMatrix(
 bool CameraComponent::getApertureViewMatrix(glm::mat4& outViewMatrix) const
 {
 	glm::mat4 cameraPose;
-	if (getSceneSpaceAperturePose(cameraPose))
+	if (getStageSpaceAperturePose(cameraPose))
 	{
 		outViewMatrix = computeGLMCameraViewMatrix(cameraPose);
 		return true;
@@ -587,19 +617,19 @@ void CameraComponent::onDefinitionChanged(CommonConfigPtr configPtr, const Confi
 {
 	if (changedPropertySet.hasPropertyName(CameraDefinition::k_trackingMountIdPropertyId))
 	{
-		refreshTrackingMount();
+		rebuildStageSpacePoseView();
 	}
 }
 
 void CameraComponent::onActiveDeviceListChanged(eTrackingRuntime runtime)
 {
-	refreshTrackingMount();
+	rebuildStageSpacePoseView();
 }
 
-void CameraComponent::refreshTrackingMount()
+void CameraComponent::rebuildStageSpacePoseView()
 {
 	// Forget the old pose views
-	m_trackingMountPoseView_SceneSpace = nullptr;
+	m_trackingMountPoseView_StageSpace = nullptr;
 
 	// Try and create a new pose views for the tracking mount
 	TrackingMountDefinitionConstPtr trackingMount = getTrackingMountDefinition();
@@ -612,7 +642,7 @@ void CameraComponent::refreshTrackingMount()
 		if (vrDeviceComponent)
 		{
 			// Tracking mount pose in the space of the stage the camera is in
-			m_trackingMountPoseView_SceneSpace = 
+			m_trackingMountPoseView_StageSpace = 
 				vrDeviceComponent->makePoseView(
 					eVRDevicePoseSpace::MikanTrackingVolumePose,
 					trackingMount->getSocketName());

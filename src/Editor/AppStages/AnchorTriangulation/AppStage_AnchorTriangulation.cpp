@@ -199,11 +199,11 @@ void AppStage_AnchorTriangulation::exit()
 	AppStage::exit();
 }
 
-void AppStage_AnchorTriangulation::updateCamera()
+void AppStage_AnchorTriangulation::updateCameraTransform()
 {
 	// Update the transform of the camera so that vr models align over the tracking puck
 	glm::mat4 cameraPose;
-	if (m_currentSceneCameraComponent->getSceneSpaceAperturePose(cameraPose))
+	if (m_currentSceneCameraComponent->getStageSpaceAperturePose(cameraPose))
 	{
 		m_mkCamera->setCameraTransform(cameraPose);
 	}
@@ -213,7 +213,7 @@ void AppStage_AnchorTriangulation::update(float deltaSeconds)
 {
 	AppStage::update(deltaSeconds);
 
-	updateCamera();
+	updateCameraTransform();
 
 	// Update the video frame buffers to preview the calibration mat
 	if (m_monoDistortionView != nullptr)

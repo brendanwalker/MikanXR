@@ -52,6 +52,10 @@ public:
 	inline MikanQuatd getApertureOffsetOrientation() const { return m_apertureOrientationOffset; }
 	inline MikanVector3d getApertureOffsetPosition() const { return m_aperturePositionOffset; }
 	void setAperturePoseOffset(const MikanQuatd& q, const MikanVector3d& p);
+	void clearAperturePoseOffset();
+
+	static const std::string k_hasValidApertureOffsetPropertyId;
+	bool hasValidApertureOffset() const { return m_bHasValidApertureOffset; }
 
 	// Don't send property update for transform property updates as they are spammy
 	virtual bool isAutoNotifyTransformPropertyChangeDisabled() override { return true; }
@@ -63,6 +67,7 @@ private:
 	int m_trackingFrameDelay= 0;
 	MikanQuatd m_apertureOrientationOffset;
 	MikanVector3d m_aperturePositionOffset;
+	bool m_bHasValidApertureOffset = false;
 };
 
 class CameraComponent : public TransformComponent
@@ -99,8 +104,9 @@ public:
 	bool getAperturePixelDimensions(int& outWidth, int& outHeight) const;
 	bool areApertureIntrinsicsValid() const;
 	bool getApertureIntrinsics(struct MikanVideoSourceIntrinsics& outIntrinsics) const;
-	bool getSceneSpaceAperturePose(glm::mat4& outCameraPose) const;
-	bool getSceneSpaceAperturePose(glm::dmat4& outCameraPose) const;
+	bool getApertureOffsetXform(glm::mat4& outAperatureToTrackingMountXform) const;
+	bool getStageSpaceAperturePose(glm::mat4& outCameraPose) const;
+	bool getStageSpaceAperturePose(glm::dmat4& outCameraPose) const;
 	bool getApertureProjectionMatrix(glm::mat4& outProjectionMatrix, bool bVerticalFlip = false) const;
 	bool getApertureViewMatrix(glm::mat4& outViewMatrix) const;
 	bool getApertureViewProjectionMatrix(glm::mat4& outVPMatrix, bool bVerticalFlip =false) const;
@@ -128,10 +134,10 @@ public:
 
 protected:
 	void onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
-	void refreshTrackingMount();
+	void rebuildStageSpacePoseView();
 	void onActiveDeviceListChanged(eTrackingRuntime runtime);
 
 private:
 	SelectionComponentWeakPtr m_selectionComponent;
-	VRDevicePoseViewPtr m_trackingMountPoseView_SceneSpace;
+	VRDevicePoseViewPtr m_trackingMountPoseView_StageSpace;
 };

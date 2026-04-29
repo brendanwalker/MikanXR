@@ -43,7 +43,7 @@ bool computeOpenCVCameraExtrinsicMatrix(
 {
     // Extrinsic matrix is the inverse of the camera pose matrix
     glm::mat4 glm_camera_xform;
-	if (cameraComponent->getSceneSpaceAperturePose(glm_camera_xform))
+	if (cameraComponent->getStageSpaceAperturePose(glm_camera_xform))
 	{
 		const glm::mat4 glm_mat = glm::inverse(glm_camera_xform);
 
@@ -461,12 +461,11 @@ void computeOpenGLProjMatFromCameraIntrinsics(
 		outViewport);
 }
 
-bool computeCameraToPuckXformFromPoses(
+glm::dmat4 computeCameraPuckToApertureXform(
 	const glm::dmat4& cameraPuckXform_VRSpace,
 	const glm::dmat4& matPuckXform_VRSpace,
-	const glm::dmat4& cameraToPatternXform,
-	const glm::dvec3& matPuckOffsetMM,
-	glm::dmat4& outCameraToCameraPuckXform)
+	const glm::dmat4& apertureToPatternXform_CameraSpace,
+	const glm::dvec3& matPuckOffsetMM)
 {
 	// Convert mm offset to meters.
 	// NOTE: Y and Z are intentionally swapped here to convert from the
@@ -480,25 +479,28 @@ bool computeCameraToPuckXformFromPoses(
 	const glm::dmat4 puckYawRot180 =
 		glm::rotate(glm::dmat4(1.0), k_real64_pi, glm::dvec3(0.0, 1.0, 0.0));
 
-	// Physical translation from mat puck origin to pattern center (Y/Z swapped)
+	// Physical translation from mat puck origin to pattern origin (Y/Z swapped)
 	const glm::dmat4 translateToPatternXform =
-		glm::translate(glm::dmat4(1.0), glm::dvec3(puckToPatternX, puckToPatternZ, puckToPatternY));
+		glm::translate(
+			glm::dmat4(1.0), 
+			glm::dvec3(puckToPatternX, puckToPatternZ, puckToPatternY));
 
-	// Combined puck-to-pattern transform: rotate first, then translate
-	const glm::dmat4 matPuckToPatternXform = glm_composite_xform(puckYawRot180, translateToPatternXform);
+	// Combined mat-puck-to-pattern-origin transform: rotate first, then translate
+	const glm::dmat4 matPuckToPatternXform = 
+		glm_composite_xform(puckYawRot180, translateToPatternXform);
 
 	// Place the pattern in VR tracking space using the mat puck's pose
-	const glm::dmat4 patternXform_VRSpace = glm_composite_xform(matPuckToPatternXform, matPuckXform_VRSpace);
+	const glm::dmat4 patternXform_VRSpace = 
+		glm_composite_xform(matPuckToPatternXform, matPuckXform_VRSpace);
 
-	// Invert the optical camera-to-pattern transform to get pattern-to-camera
-	const glm::dmat4 patternToCameraXform = glm::inverse(cameraToPatternXform);
+	// Invert the aperture-to-pattern transform to get pattern-to-aperture
+	const glm::dmat4 patternToApertureXform = glm::inverse(apertureToPatternXform_CameraSpace);
 
-	// Derive the camera's pose in VR tracking space
-	const glm::dmat4 cameraXform_VRSpace = glm_composite_xform(patternToCameraXform, patternXform_VRSpace);
+	// Derive the aperture's pose in VR tracking space
+	const glm::dmat4 apertureXform_VRSpace = 
+		glm_composite_xform(patternToApertureXform, patternXform_VRSpace);
 
-	// Compute the relative offset of the camera from its tracking puck
+	// Compute the relative offset from the camera tracking puck to the aperture
 	const glm::dmat4 invCameraPuckXform = glm::inverse(cameraPuckXform_VRSpace);
-	outCameraToCameraPuckXform = glm_composite_xform(cameraXform_VRSpace, invCameraPuckXform);
-
-	return true;
+	return glm_composite_xform(invCameraPuckXform, apertureXform_VRSpace);
 }

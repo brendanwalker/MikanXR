@@ -34,6 +34,8 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraTypes")) MikanC
 	MikanQuatd aperture_orientation_offset;
 	FIELD()
 	MikanVector3d aperture_position_offset;
+	FIELD()
+	bool has_valid_aperture_offset = false;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanCameraComponentValues_GENERATED

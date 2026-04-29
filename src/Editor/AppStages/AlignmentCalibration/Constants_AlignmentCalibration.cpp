@@ -11,8 +11,8 @@ const std::string g_alignmentCalibrationMenuStateStrings[(int)eAlignmentCalibrat
 const std::string* k_alignmentCalibrationMenuStateStrings = g_alignmentCalibrationMenuStateStrings;
 
 const std::string g_alignmentCalibrationViewpointModeStrings[(int)eAlignmentCalibrationViewpointMode::COUNT] = {
-	"cameraViewpoint",
-	"vrViewpoint",
-	"mixedRealityViewpoint"
+	"Calibration",
+	"Stage View",
+	"XR View"
 };
-extern const std::string* k_alignmentCalibrationViewpointModeStrings= g_alignmentCalibrationViewpointModeStrings;
+const std::string* k_alignmentCalibrationViewpointModeStrings= g_alignmentCalibrationViewpointModeStrings;

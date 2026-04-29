@@ -14,8 +14,7 @@ void GuiPanel_AlignmentCameraSettings::setCameraDefinition(CameraDefinitionConst
 void GuiPanel_AlignmentCameraSettings::onGui()
 {
 	// Only show camera settings during capture and test states
-	if (m_menuState != eAlignmentCalibrationMenuState::capture &&
-		m_menuState != eAlignmentCalibrationMenuState::testCalibration)
+	if (m_menuState != eAlignmentCalibrationMenuState::testCalibration)
 	{
 		return;
 	}
@@ -28,9 +27,14 @@ void GuiPanel_AlignmentCameraSettings::onGui()
 	const eAlignmentCalibrationViewpointMode prevMode = m_viewpointMode;
 
 	int modeInt = (int)m_viewpointMode;
-	ImGui::RadioButton("Camera Viewpoint", &modeInt, (int)eAlignmentCalibrationViewpointMode::cameraViewpoint);
-	ImGui::RadioButton("VR Scene", &modeInt, (int)eAlignmentCalibrationViewpointMode::scene);
-	ImGui::RadioButton("Compositor", &modeInt, (int)eAlignmentCalibrationViewpointMode::compositor);
+	ImGui::RadioButton(
+		k_alignmentCalibrationViewpointModeStrings[(int)eAlignmentCalibrationViewpointMode::stageView].c_str(),
+		&modeInt, 
+		(int)eAlignmentCalibrationViewpointMode::stageView);
+	ImGui::RadioButton(
+		k_alignmentCalibrationViewpointModeStrings[(int)eAlignmentCalibrationViewpointMode::xrView].c_str(), 
+		&modeInt, 
+		(int)eAlignmentCalibrationViewpointMode::xrView);
 
 	if ((eAlignmentCalibrationViewpointMode)modeInt != prevMode)
 	{
@@ -38,7 +42,7 @@ void GuiPanel_AlignmentCameraSettings::onGui()
 		if (OnViewpointModeChanged)
 			OnViewpointModeChanged(m_viewpointMode);
 	}
-
+	
 	ImGui::Spacing();
 
 	// VR Frame Delay slider

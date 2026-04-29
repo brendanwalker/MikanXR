@@ -32,7 +32,7 @@ public:
 protected:
 	void onVideoSourceReady(VideoSourceComponentPtr videoSourceComponent);
 	void setupDistortionView();
-	void updateCamera();
+	void updateCameraTransform();
 	void setMenuState(eAnchorTriangulationMenuState newState);
 
 	// Input Events

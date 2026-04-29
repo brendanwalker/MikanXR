@@ -28,7 +28,7 @@ public:
 	void sampleLastVRSpaceMarkerXform();
 	bool computeCalibratedMarkerPose(MikanQuatd& outRotation, MikanVector3d& outTranslation);
 
-	void renderCameraSpaceCalibrationState();
+	void renderApertureSpaceCalibrationState();
 	void renderVRSpaceCalibrationState();
 
 protected:

@@ -166,7 +166,7 @@ void AppStage_VRTrackingRecenter::updateCameraPose()
 			{
 				// Use the re-centered scene space for the camera
 				glm::mat4 cameraPose;
-				if (m_cameraComponent->getSceneSpaceAperturePose(cameraPose))
+				if (m_cameraComponent->getStageSpaceAperturePose(cameraPose))
 				{
 					m_mkCamera->setCameraTransform(cameraPose);
 				}
@@ -271,7 +271,7 @@ void AppStage_VRTrackingRecenter::render(IMkViewportPtr targetViewport)
 				case eVRTrackingRecenterMenuState::capture:
 					{
 						// draw the camera relative calibration state when calibrating
-						m_markerPoseSampler->renderCameraSpaceCalibrationState();
+						m_markerPoseSampler->renderApertureSpaceCalibrationState();
 					}
 					break;
 				case eVRTrackingRecenterMenuState::testCalibration:

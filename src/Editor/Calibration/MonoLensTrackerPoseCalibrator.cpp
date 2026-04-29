@@ -32,17 +32,17 @@ struct MonoLensTrackerCalibrationState
 
 	// Computed every frame
 	glm::dmat4 patternXform_VRSpace;
-	glm::dmat4 cameraXform_VRSpace;
-	glm::dmat4 cameraToPatternXform;
-	glm::dmat4 cameraToMatPuckXform;
-	glm::dmat4 cameraToCameraPuckXform;
+	glm::dmat4 apertureXform_VRSpace;
+	glm::dmat4 apertureToPatternXform;
+	glm::dmat4 apertureToMatPuckXform;
+	glm::dmat4 cameraPuckToApertureXform;
 	glm::dmat4 patternToMatPuckXform;
 	bool hasValidCapture;
 
 	// Sample State
 	int capturedSampleCount;
-	std::vector<cv::Quatd> cameraOffsetQuats;
-	std::vector<cv::Vec3d> cameraOffsetPositions; // meters
+	std::vector<cv::Quatd> cv_apertureOffsetQuats;
+	std::vector<cv::Vec3d> cv_apertureOffsetPositions; // meters
 
 	// Result
 	glm::dquat rotationOffset;
@@ -73,15 +73,15 @@ struct MonoLensTrackerCalibrationState
 	{
 		// Reset the capture state
 		patternXform_VRSpace = glm::dmat4(1.0);
-		cameraXform_VRSpace = glm::dmat4(1.0);
-		cameraToPatternXform = glm::dmat4(1.0);
-		cameraToCameraPuckXform = glm::dmat4(1.0);
+		apertureXform_VRSpace = glm::dmat4(1.0);
+		apertureToPatternXform = glm::dmat4(1.0);
+		cameraPuckToApertureXform = glm::dmat4(1.0);
 		patternToMatPuckXform = glm::dmat4(1.0);
 		hasValidCapture= false;
 
 		capturedSampleCount = 0;
-		cameraOffsetQuats.clear();
-		cameraOffsetPositions.clear();
+		cv_apertureOffsetQuats.clear();
+		cv_apertureOffsetPositions.clear();
 
 		// Reset the output
 		rotationOffset= glm::dquat();
@@ -188,10 +188,10 @@ void MonoLensTrackerPoseCalibrator::resetCalibrationState()
 	m_calibrationState->resetCalibration();
 }
 
-bool MonoLensTrackerPoseCalibrator::computeCameraToPuckXform()
+bool MonoLensTrackerPoseCalibrator::computeCalibrationSample()
 {
-	// Gather inputs
-	//---------------
+	// Gather Inputs
+	//--------------
 
 	// Mark the last capture as invalid
 	m_calibrationState->hasValidCapture= false;
@@ -209,8 +209,8 @@ bool MonoLensTrackerPoseCalibrator::computeCameraToPuckXform()
 	}
 
 	// Look for the calibration pattern in the latest video frame
-	glm::dmat4 cameraToPatternXform;
-	if (!m_patternFinder->estimateNewCalibrationPatternPose(cameraToPatternXform))
+	glm::dmat4 apertureToPatternXform;
+	if (!m_patternFinder->estimateNewCalibrationPatternPose(apertureToPatternXform))
 	{
 		return false;
 	}
@@ -218,19 +218,18 @@ bool MonoLensTrackerPoseCalibrator::computeCameraToPuckXform()
 	// Get the physical offset from the mat puck to the calibration pattern center (in mm)
 	const glm::dvec3 puckOffsetMM = fetchMatPuckOffsetMM();
 
-	// Compute the camera-to-puck offset using the pure math function
-	glm::dmat4 cameraToCameraPuckXform;
-	if (!computeCameraToPuckXformFromPoses(
+	// Compute State
+	// -------------
+	
+	// Compute the camera-puck-to-aperture offset
+	glm::dmat4 cameraPuckToApertureXform= 
+		computeCameraPuckToApertureXform(
 			cameraPuckXform_VRSpace,
 			matPuckXform_VRSpace,
-			cameraToPatternXform,
-			puckOffsetMM,
-			cameraToCameraPuckXform))
-	{
-		return false;
-	}
+			apertureToPatternXform,
+			puckOffsetMM);
 
-	// Recompute intermediate transforms needed for calibration state display
+	// Recompute intermediate transforms needed for calibration debug display
 	const glm::dmat4 puckYawRot180 =
 		glm::rotate(glm::dmat4(1.0), k_real64_pi, glm::dvec3(0.0, 1.0, 0.0));
 	const glm::dmat4 translateToPatternXform =
@@ -240,67 +239,67 @@ bool MonoLensTrackerPoseCalibrator::computeCameraToPuckXform()
 				puckOffsetMM.x * k_millimeters_to_meters,
 				puckOffsetMM.z * k_millimeters_to_meters,
 				puckOffsetMM.y * k_millimeters_to_meters));
-	const glm::dmat4 matPuckToPatternXform = glm_composite_xform(puckYawRot180, translateToPatternXform);
-	const glm::dmat4 patternToMatPuckXform = glm::inverse(matPuckToPatternXform);
-	const glm::dmat4 cameraToMatPuckXform = glm_composite_xform(patternToMatPuckXform, cameraToPatternXform);
-	const glm::dmat4 patternXform_VRSpace = glm_composite_xform(matPuckToPatternXform, matPuckXform_VRSpace);
-	const glm::dmat4 cameraXform_VRSpace = glm_composite_xform(glm::inverse(cameraToPatternXform), patternXform_VRSpace);
+	const glm::dmat4 matPuckToPatternXform = 
+		glm_composite_xform(puckYawRot180, translateToPatternXform);
+	const glm::dmat4 patternToMatPuckXform = 
+		glm::inverse(matPuckToPatternXform);
+	const glm::dmat4 apertureToMatPuckXform = 
+		glm_composite_xform(patternToMatPuckXform, apertureToPatternXform);
+	const glm::dmat4 patternXform_VRSpace = 
+		glm_composite_xform(matPuckToPatternXform, matPuckXform_VRSpace);
+	const glm::dmat4 apertureXform_VRSpace = 
+		glm_composite_xform(glm::inverse(apertureToPatternXform), patternXform_VRSpace);
+
+	// Store Results
+	// -------------
 
 	// Save the the last computed transform to the calibration state
 	m_calibrationState->patternXform_VRSpace = patternXform_VRSpace;
-	m_calibrationState->cameraXform_VRSpace = cameraXform_VRSpace;
-	m_calibrationState->cameraToPatternXform = cameraToPatternXform;
-	m_calibrationState->cameraToMatPuckXform = cameraToMatPuckXform;
-	m_calibrationState->cameraToCameraPuckXform = cameraToCameraPuckXform;
+	m_calibrationState->apertureXform_VRSpace = apertureXform_VRSpace;
+	m_calibrationState->apertureToPatternXform = apertureToPatternXform;
+	m_calibrationState->apertureToMatPuckXform = apertureToMatPuckXform;
+	m_calibrationState->cameraPuckToApertureXform = cameraPuckToApertureXform;
 	m_calibrationState->patternToMatPuckXform = patternToMatPuckXform;
 	m_calibrationState->hasValidCapture = true;
 
 	return true;
 }
 
-bool MonoLensTrackerPoseCalibrator::hasValidCameraToPuckXform() const
+bool MonoLensTrackerPoseCalibrator::hasValidCameraPuckToApertureXform() const
 {
 	return m_calibrationState->hasValidCapture;
 }
 
-bool MonoLensTrackerPoseCalibrator::getLastSceneSpaceAperturePose(
-	VRDevicePoseViewPtr attachedVRDevicePtr,
-	glm::mat4& outCameraPose) const
+bool MonoLensTrackerPoseCalibrator::getLastCameraPuckToApertureXform(glm::mat4& outCameraToCameraPuckXform) const
 {
-	assert(attachedVRDevicePtr);
-	assert(attachedVRDevicePtr->getPoseSpace() == eVRDevicePoseSpace::VRTrackingSystemPose);
-
-	glm::mat4 vrDevicePose;
-	if (attachedVRDevicePtr->getPose(m_cameraComponent, vrDevicePose))
+	if (m_calibrationState->hasValidCapture)
 	{
-		const glm::mat4 cameraOffsetXform = glm::mat4(m_calibrationState->cameraToCameraPuckXform);
-
-		outCameraPose = vrDevicePose * cameraOffsetXform;
+		outCameraToCameraPuckXform = glm::mat4(m_calibrationState->cameraPuckToApertureXform);
 		return true;
 	}
 
 	return false;
 }
 
-void MonoLensTrackerPoseCalibrator::sampleLastCameraToPuckXform()
+void MonoLensTrackerPoseCalibrator::recordCalibrationSample()
 {
 	if (!m_calibrationState->hasValidCapture)
 		return;
 
-	// Extract the rotation and translation offsets from the cameraToCameraPuckXform transform
-	glm::dvec3 glm_translationOffset = m_calibrationState->cameraToCameraPuckXform[3];
-	glm::dquat glm_rotationOffset = glm::quat_cast(m_calibrationState->cameraToCameraPuckXform);
+	// Extract the rotation and translation offsets from the cameraPuckToApertureXform transform
+	glm::dvec3 glm_translationOffset = m_calibrationState->cameraPuckToApertureXform[3];
+	glm::dquat glm_rotationOffset = glm::quat_cast(m_calibrationState->cameraPuckToApertureXform);
 
-	// Need to store this as OpenCV types for averaging operation in computeCalibratedCameraTrackerOffset
+	// Need to store this as OpenCV types for averaging operation in computeAverageCameraPuckToApertureOffset
 	cv::Vec3d cv_translationOffset = glm_dvec3_to_cv_vec3d(glm_translationOffset);
 	cv::Quatd cv_rotationOffset = glm_dquat_to_cv_quatd(glm_rotationOffset);
 
-	m_calibrationState->cameraOffsetQuats.push_back(cv_rotationOffset);
-	m_calibrationState->cameraOffsetPositions.push_back(cv_translationOffset);
+	m_calibrationState->cv_apertureOffsetQuats.push_back(cv_rotationOffset);
+	m_calibrationState->cv_apertureOffsetPositions.push_back(cv_translationOffset);
 	m_calibrationState->capturedSampleCount++;
 }
 
-bool MonoLensTrackerPoseCalibrator::computeCalibratedCameraTrackerOffset(
+bool MonoLensTrackerPoseCalibrator::computeAverageCameraPuckToApertureOffset(
 	MikanQuatd& outRotationOffset, 
 	MikanVector3d& outTranslationOffset)
 {
@@ -308,8 +307,12 @@ bool MonoLensTrackerPoseCalibrator::computeCalibratedCameraTrackerOffset(
 	cv::Quatd cv_cameraOffsetQuat;
 
 	if (hasFinishedSampling() &&
-		opencv_quaternion_compute_average(m_calibrationState->cameraOffsetQuats, cv_cameraOffsetQuat) &&
-		opencv_vec3d_compute_average(m_calibrationState->cameraOffsetPositions, cv_cameraOffsetPosition))
+		opencv_quaternion_compute_average(
+			m_calibrationState->cv_apertureOffsetQuats, 
+			cv_cameraOffsetQuat) &&
+		opencv_vec3d_compute_average(
+			m_calibrationState->cv_apertureOffsetPositions, 
+			cv_cameraOffsetPosition))
 	{
 		outRotationOffset= cv_quatd_to_MikanQuatd(cv_cameraOffsetQuat);
 		outTranslationOffset= cv_vec3d_to_MikanVector3d(cv_cameraOffsetPosition);
@@ -320,7 +323,7 @@ bool MonoLensTrackerPoseCalibrator::computeCalibratedCameraTrackerOffset(
 	return false;
 }
 
-void MonoLensTrackerPoseCalibrator::renderCameraSpaceCalibrationState()
+void MonoLensTrackerPoseCalibrator::renderApertureSpaceCalibrationState()
 {
 	IMkGraphicsContext* graphicsContext = m_cameraComponent->getGraphicsContext();
 
@@ -331,43 +334,50 @@ void MonoLensTrackerPoseCalibrator::renderCameraSpaceCalibrationState()
 	// and the mat puck location offset from the pattern origin
 	if (m_calibrationState->hasValidCapture)
 	{
-		const glm::mat4 cameraToPatternXform = glm::mat4(m_calibrationState->cameraToPatternXform);
-		const glm::mat4 cameraToMatPuckXform = glm::mat4(m_calibrationState->cameraToMatPuckXform);
+		const glm::mat4 apertureToPatternXform = glm::mat4(m_calibrationState->apertureToPatternXform);
+		const glm::mat4 apertureToMatPuckXform = glm::mat4(m_calibrationState->apertureToMatPuckXform);
 
-		m_patternFinder->renderSolvePnPPattern3D(cameraToPatternXform);
+		m_patternFinder->renderSolvePnPPattern3D(apertureToPatternXform);
 
-		drawTransformedAxes(graphicsContext, cameraToPatternXform, 0.1f);
-		drawTransformedAxes(graphicsContext, cameraToMatPuckXform, 0.1f);
+		drawTransformedAxes(graphicsContext, apertureToPatternXform, 0.1f);
+		drawTransformedAxes(graphicsContext, apertureToMatPuckXform, 0.1f);
 
 		TextStyle style = getDefaultTextStyle();
 		drawTextAtWorldPosition(
 			graphicsContext, 
-			style, glm_mat4_get_position(cameraToPatternXform), L"Mat");
+			style, glm_mat4_get_position(apertureToPatternXform), L"Pattern (Aperture Space)");
 		drawTextAtWorldPosition(
 			graphicsContext, 
-			style, glm_mat4_get_position(cameraToMatPuckXform), L"Puck");
+			style, glm_mat4_get_position(apertureToMatPuckXform), L"Mat Puck (Aperture Space)");
 	}
 }
 
 void MonoLensTrackerPoseCalibrator::renderVRSpaceCalibrationState()
 {
 	IMkGraphicsContext* graphicsContext = m_cameraComponent->getGraphicsContext();
+	TextStyle style = getDefaultTextStyle();
 
 	// Draw the most recently captured chessboard projected into VR
 	m_patternFinder->renderSolvePnPPattern3D(m_calibrationState->patternXform_VRSpace);
 
 	// Draw the camera puck transform
-	glm::mat4 cameraPuckXform;
-	if (m_cameraPuckPose_VRSystemSpace->getPose(m_cameraComponent, cameraPuckXform))
+	glm::mat4 cameraPuckXform_VRSpace;
+	if (m_cameraPuckPose_VRSystemSpace->getPose(m_cameraComponent, cameraPuckXform_VRSpace))
 	{
-		drawTransformedAxes(graphicsContext, cameraPuckXform, 0.1f);
+		drawTransformedAxes(graphicsContext, cameraPuckXform_VRSpace, 0.1f);
+		drawTextAtWorldPosition(
+			graphicsContext,
+			style, glm_mat4_get_position(cameraPuckXform_VRSpace), L"Camera Puck (VR Space)");
 	}
 
 	// Draw the mat puck transform
-	glm::mat4 matPuckXform;
-	if (m_matPuckPose_VRSystemSpace->getPose(m_cameraComponent, matPuckXform))
+	glm::mat4 matPuckXform_VRSpace;
+	if (m_matPuckPose_VRSystemSpace->getPose(m_cameraComponent, matPuckXform_VRSpace))
 	{
-		drawTransformedAxes(graphicsContext, matPuckXform, 0.1f);
+		drawTransformedAxes(graphicsContext, matPuckXform_VRSpace, 0.1f);
+		drawTextAtWorldPosition(
+			graphicsContext,
+			style, glm_mat4_get_position(matPuckXform_VRSpace), L"Mat Puck (VR Space)");
 	}
 
 	// Draw the most recently derived camera transform derived from the mat puck
@@ -377,9 +387,14 @@ void MonoLensTrackerPoseCalibrator::renderVRSpaceCalibrationState()
 	const float zFar = fminf(m_calibrationState->inputCameraIntrinsics.zfar, 2.0f);
 	drawTransformedFrustum(
 		graphicsContext,
-		m_calibrationState->cameraXform_VRSpace,
+		m_calibrationState->apertureXform_VRSpace,
 		hfov_radians, vfov_radians,
 		zNear, zFar,
 		Colors::Yellow);
-	drawTransformedAxes(graphicsContext, m_calibrationState->cameraXform_VRSpace, 0.1f);
+	drawTransformedAxes(graphicsContext, m_calibrationState->apertureXform_VRSpace, 0.1f);
+	drawTextAtWorldPosition(
+		graphicsContext,
+		style, 
+		glm_mat4_get_position(m_calibrationState->apertureXform_VRSpace), 
+		L"Aperture (VR Space)");
 }

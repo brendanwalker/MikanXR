@@ -17,6 +17,7 @@
 #include "IMkTextRenderer.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
+#include "MathGLM.h"
 #include "MikanCamera.h"
 #include "MikanLineRenderer.h"
 #include "MikanTextRenderer.h"
@@ -228,8 +229,8 @@ void AppStage_AlignmentCalibration::enter()
 			[this](int delay) { onVRFrameDelayChanged(delay); };
 		m_cameraSettingsPanel->setViewpointMode(
 			m_bypassCalibrationFlag
-				? eAlignmentCalibrationViewpointMode::compositor
-				: eAlignmentCalibrationViewpointMode::cameraViewpoint);
+				? eAlignmentCalibrationViewpointMode::xrView
+				: eAlignmentCalibrationViewpointMode::calibration);
 	}
 
 	setMenuState(newState);
@@ -284,38 +285,50 @@ void AppStage_AlignmentCalibration::exit()
 	AppStage::exit();
 }
 
-void AppStage_AlignmentCalibration::updateCamera()
+void AppStage_AlignmentCalibration::updateCameraTransform()
 {
 	switch (m_cameraSettingsPanel->getViewpointMode())
 	{
-	case eAlignmentCalibrationViewpointMode::cameraViewpoint:
-	case eAlignmentCalibrationViewpointMode::scene:
+	case eAlignmentCalibrationViewpointMode::calibration:
+	case eAlignmentCalibrationViewpointMode::stageView:
 		{
 			// Nothing to do
 		}
 		break;
-	case eAlignmentCalibrationViewpointMode::compositor:
+	case eAlignmentCalibrationViewpointMode::xrView:
 		{
-			bool bValidPose= false;
+			glm::mat4 cameraPuckPose_VRSystemSpace;
+			if (m_cameraPuckPose_VRSystemSpace->getPose(
+					m_targetCameraComponent, 
+					cameraPuckPose_VRSystemSpace))
+			{
+				bool bValidOffset = false;
 
-			// Update the transform of the camera so that vr models align over the tracking puck
-			glm::mat4 cameraPose;
-			if (m_calibrationPanel->getMenuState() == eAlignmentCalibrationMenuState::testCalibration)
-			{
-				// Use the calibrated aperture offset on the video source to get the camera pose
-				bValidPose = m_targetCameraComponent->getSceneSpaceAperturePose(cameraPose);
-			}
-			else
-			{
-				// Use the last computed preview camera alignment
-				bValidPose = 
-					m_trackerPoseCalibrator->getLastSceneSpaceAperturePose(
-						m_cameraPuckPose_VRSystemSpace, cameraPose);
-			}
+				glm::mat4 cameraPuckToApertureXform;
+				if (m_calibrationPanel->getMenuState() == eAlignmentCalibrationMenuState::testCalibration)
+				{
+					// Use the calibrated aperture offset
+					bValidOffset =
+						m_targetCameraComponent->getApertureOffsetXform(
+							cameraPuckToApertureXform);
+				}
+				else
+				{
+					// Use the calibrator's most recent estimate of the aperture offset
+					bValidOffset =
+						m_trackerPoseCalibrator->getLastCameraPuckToApertureXform(
+							cameraPuckToApertureXform);
+				}
 
-			if (bValidPose)
-			{
-				m_mkCamera->setCameraTransform(cameraPose);
+
+				if (bValidOffset)
+				{
+					// Update the camera transform so that it reflects 
+					// the current aperture pose in VRSystemSpace
+					m_mkCamera->setCameraTransform(
+						glm_composite_xform(
+							cameraPuckToApertureXform, cameraPuckPose_VRSystemSpace));
+				}
 			}
 		}
 		break;
@@ -324,7 +337,7 @@ void AppStage_AlignmentCalibration::updateCamera()
 
 void AppStage_AlignmentCalibration::update(float deltaSeconds)
 {
-	updateCamera();
+	updateCameraTransform();
 
 	switch(m_calibrationPanel->getMenuState())
 	{
@@ -359,10 +372,10 @@ void AppStage_AlignmentCalibration::update(float deltaSeconds)
 			m_monoDistortionView->readAndProcessVideoFrame();
 
 			// Look for a calibration pattern so that we can preview if it's in frame
-			m_trackerPoseCalibrator->computeCameraToPuckXform();
+			m_trackerPoseCalibrator->computeCalibrationSample();
 
 			// See if we can compute a camera to puck transform this frame
-			m_calibrationPanel->setCurrentChessboardValid(m_trackerPoseCalibrator->hasValidCameraToPuckXform());
+			m_calibrationPanel->setCurrentChessboardValid(m_trackerPoseCalibrator->hasValidCameraPuckToApertureXform());
 
 			// Update the time that the chessboard has been stable for
 			m_calibrationPanel->updateChessboardStabilityTimer(deltaSeconds);
@@ -374,9 +387,9 @@ void AppStage_AlignmentCalibration::update(float deltaSeconds)
 			m_monoDistortionView->readAndProcessVideoFrame();
 
 			// Update the chess board capture state
-			if (m_trackerPoseCalibrator->computeCameraToPuckXform())
+			if (m_trackerPoseCalibrator->computeCalibrationSample())
 			{
-				m_trackerPoseCalibrator->sampleLastCameraToPuckXform();
+				m_trackerPoseCalibrator->recordCalibrationSample();
 
 				// Update the calibration fraction on the UI Model
 				m_calibrationPanel->setCalibrationFraction(m_trackerPoseCalibrator->getCalibrationProgress());
@@ -387,7 +400,7 @@ void AppStage_AlignmentCalibration::update(float deltaSeconds)
 			{
 				MikanQuatd rotationOffset;
 				MikanVector3d translationOffset;
-				if (m_trackerPoseCalibrator->computeCalibratedCameraTrackerOffset(
+				if (m_trackerPoseCalibrator->computeAverageCameraPuckToApertureOffset(
 					rotationOffset,
 					translationOffset))
 				{
@@ -397,7 +410,7 @@ void AppStage_AlignmentCalibration::update(float deltaSeconds)
 
 					// Go to the test calibration state
 					m_cameraSettingsPanel->setViewpointMode(
-						eAlignmentCalibrationViewpointMode::compositor);
+						eAlignmentCalibrationViewpointMode::xrView);
 					setMenuState(eAlignmentCalibrationMenuState::testCalibration);
 				}
 			}
@@ -414,7 +427,7 @@ void AppStage_AlignmentCalibration::update(float deltaSeconds)
 
 void AppStage_AlignmentCalibration::render(IMkViewportPtr targetViewport)
 {
-	// Render the scene into the frame buffer
+	// Render the stageView into the frame buffer
 	if (m_frameBuffer->isValid())
 	{
 		MkScopedObjectBinding colorFramebufferBinding(
@@ -430,15 +443,15 @@ void AppStage_AlignmentCalibration::render(IMkViewportPtr targetViewport)
 					{
 						switch (m_cameraSettingsPanel->getViewpointMode())
 						{
-							case eAlignmentCalibrationViewpointMode::cameraViewpoint:
+							case eAlignmentCalibrationViewpointMode::calibration:
 								m_monoDistortionView->renderSelectedVideoBuffers();
-								m_trackerPoseCalibrator->renderCameraSpaceCalibrationState();
+								m_trackerPoseCalibrator->renderApertureSpaceCalibrationState();
 								break;
-							case eAlignmentCalibrationViewpointMode::scene:
+							case eAlignmentCalibrationViewpointMode::stageView:
 								m_trackerPoseCalibrator->renderVRSpaceCalibrationState();
 								renderVRScene();
 								break;
-							case eAlignmentCalibrationViewpointMode::compositor:
+							case eAlignmentCalibrationViewpointMode::xrView:
 								m_monoDistortionView->renderSelectedVideoBuffers();
 								renderVRScene();
 								break;
@@ -448,12 +461,12 @@ void AppStage_AlignmentCalibration::render(IMkViewportPtr targetViewport)
 				case eAlignmentCalibrationMenuState::capture:
 					{
 						m_monoDistortionView->renderSelectedVideoBuffers();
-						m_trackerPoseCalibrator->renderCameraSpaceCalibrationState();
+						m_trackerPoseCalibrator->renderApertureSpaceCalibrationState();
 					}
 					break;
 				case eAlignmentCalibrationMenuState::testCalibration:
 					{
-						if (m_cameraSettingsPanel->getViewpointMode() == eAlignmentCalibrationViewpointMode::compositor)
+						if (m_cameraSettingsPanel->getViewpointMode() == eAlignmentCalibrationViewpointMode::xrView)
 						{
 							m_monoDistortionView->renderSelectedVideoBuffers();
 						}
@@ -464,7 +477,7 @@ void AppStage_AlignmentCalibration::render(IMkViewportPtr targetViewport)
 			}
 		}
 
-		// Render any lines and text that were added to the scene by the calibrator in the frame buffer's viewport
+		// Render any lines and text that were added to the stageView by the calibrator in the frame buffer's viewport
 		m_ownerWindow->getGraphicsContext()->getLineRenderer()->render();
 		m_ownerWindow->getGraphicsContext()->getTextRenderer()->render();
 	}
@@ -494,16 +507,16 @@ void AppStage_AlignmentCalibration::render(IMkViewportPtr targetViewport)
 void AppStage_AlignmentCalibration::renderVRScene()
 {
 	IMkGraphicsContext* graphicsContext = getGraphicsContext();
-	MkScene* scene= m_scene.get();
+	MkScene* stageView= m_scene.get();
 
 	// Rebuild list of renderables
-	scene->removeAllInstances();
+	stageView->removeAllInstances();
 
 	// Add all renderable VR objects
 	addAllVRDevicesToMkScene(getObjectSystemOfType<VRObjectSystem>(), m_scene);
 
-	// Render the scene
-	scene->render(m_mkCamera, graphicsContext->getMkStateStack());
+	// Render the stageView
+	stageView->render(m_mkCamera, graphicsContext->getMkStateStack());
 
 	drawTransformedAxes(graphicsContext, glm::mat4(1.f), 1.0f);
 
@@ -551,7 +564,7 @@ bool AppStage_AlignmentCalibration::tryBeginCapture()
 		m_calibrationPanel->setCalibrationFraction(0.f);
 
 		// Go back to the camera viewpoint (in case we are in VR view)
-		m_cameraSettingsPanel->setViewpointMode(eAlignmentCalibrationViewpointMode::cameraViewpoint);
+		m_cameraSettingsPanel->setViewpointMode(eAlignmentCalibrationViewpointMode::calibration);
 
 		// Advance to the capture state
 		setMenuState(eAlignmentCalibrationMenuState::capture);
@@ -578,7 +591,7 @@ bool AppStage_AlignmentCalibration::tryRestartCapture()
 		m_calibrationPanel->setCalibrationFraction(0.f);
 
 		// Go back to the camera viewpoint (in case we are in VR view)
-		m_cameraSettingsPanel->setViewpointMode(eAlignmentCalibrationViewpointMode::cameraViewpoint);
+		m_cameraSettingsPanel->setViewpointMode(eAlignmentCalibrationViewpointMode::calibration);
 
 		// Return to the capture state
 		setMenuState(eAlignmentCalibrationMenuState::verifySetup);
@@ -612,16 +625,16 @@ void AppStage_AlignmentCalibration::onViewportModeChanged(eAlignmentCalibrationV
 {
 	switch (newViewMode)
 	{
-		case eAlignmentCalibrationViewpointMode::cameraViewpoint:
+		case eAlignmentCalibrationViewpointMode::calibration:
 			{
 				m_mkCamera->setCameraMovementMode(eCameraMovementMode::stationary);
 				m_mkCamera->setCameraTransform(glm::mat4(1.f));
 			} break;
-		case eAlignmentCalibrationViewpointMode::scene:
+		case eAlignmentCalibrationViewpointMode::stageView:
 			{
 				m_mkCamera->setCameraMovementMode(eCameraMovementMode::fly);
 			} break;
-		case eAlignmentCalibrationViewpointMode::compositor:
+		case eAlignmentCalibrationViewpointMode::xrView:
 			{
 				m_mkCamera->setCameraMovementMode(eCameraMovementMode::stationary);
 			} break;

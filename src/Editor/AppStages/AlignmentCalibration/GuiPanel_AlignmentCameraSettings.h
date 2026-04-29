@@ -29,6 +29,6 @@ public:
 
 private:
 	eAlignmentCalibrationMenuState m_menuState = eAlignmentCalibrationMenuState::inactive;
-	eAlignmentCalibrationViewpointMode m_viewpointMode = eAlignmentCalibrationViewpointMode::cameraViewpoint;
+	eAlignmentCalibrationViewpointMode m_viewpointMode = eAlignmentCalibrationViewpointMode::calibration;
 	int m_vrFrameDelay = 0;
 };

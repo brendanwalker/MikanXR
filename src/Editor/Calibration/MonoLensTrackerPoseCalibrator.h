@@ -24,13 +24,13 @@ public:
 	float getCalibrationProgress() const;
 	void resetCalibrationState();
 
-	bool computeCameraToPuckXform();
-	bool hasValidCameraToPuckXform() const;
-	bool getLastSceneSpaceAperturePose(VRDevicePoseViewPtr attachedVRDevicePtr, glm::mat4& outCameraPose) const;
-	void sampleLastCameraToPuckXform();
-	bool computeCalibratedCameraTrackerOffset(MikanQuatd& outRotationOffset, MikanVector3d& outTranslationOffset);
+	bool computeCalibrationSample();
+	bool hasValidCameraPuckToApertureXform() const;
+	bool getLastCameraPuckToApertureXform(glm::mat4& outCameraToCameraPuckXform) const;
+	void recordCalibrationSample();
+	bool computeAverageCameraPuckToApertureOffset(MikanQuatd& outRotationOffset, MikanVector3d& outTranslationOffset);
 
-	void renderCameraSpaceCalibrationState();
+	void renderApertureSpaceCalibrationState();
 	void renderVRSpaceCalibrationState();
 
 protected:

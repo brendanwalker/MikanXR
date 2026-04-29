@@ -31,8 +31,8 @@ struct ArucoMarkerPoseSamplerState
 
 	// Sample State
 	int capturedSampleCount;
-	std::vector<cv::Quatd> cameraOffsetQuats;
-	std::vector<cv::Vec3d> cameraOffsetPositions; // meters
+	std::vector<cv::Quatd> cv_apertureOffsetQuats;
+	std::vector<cv::Vec3d> cv_apertureOffsetPositions; // meters
 
 	// Result
 	glm::dquat rotationOffset;
@@ -61,8 +61,8 @@ struct ArucoMarkerPoseSamplerState
 		hasValidCapture= false;
 
 		capturedSampleCount = 0;
-		cameraOffsetQuats.clear();
-		cameraOffsetPositions.clear();
+		cv_apertureOffsetQuats.clear();
+		cv_apertureOffsetPositions.clear();
 
 		// Reset the output
 		rotationOffset= glm::dquat();
@@ -123,24 +123,24 @@ bool ArucoMarkerPoseSampler::computeVRSpaceMarkerXform()
 	m_calibrationState->hasValidCapture= false;
 
 	// Compute the camera pose in VRSpace
-	glm::dmat4 cameraXform_VRSpace;
-	if (!m_calibrationCamera->getSceneSpaceAperturePose(cameraXform_VRSpace))
+	glm::dmat4 apertureXform_VRSpace;
+	if (!m_calibrationCamera->getStageSpaceAperturePose(apertureXform_VRSpace))
 	{
 		return false;
 	}
 
 	// Look for the calibration pattern in the latest video frame
-	glm::dmat4 cameraToPatternXform;
-	if (!m_markerFinder->estimateNewCalibrationPatternPose(cameraToPatternXform))
+	glm::dmat4 apertureToPatternXform;
+	if (!m_markerFinder->estimateNewCalibrationPatternPose(apertureToPatternXform))
 	{
 		return false;
 	}
 
 	// Compute the marker transform in VR tracking space
-	const glm::dmat4 patternXform_VRSpace = glm_composite_xform(cameraToPatternXform, cameraXform_VRSpace);
+	const glm::dmat4 patternXform_VRSpace = glm_composite_xform(apertureToPatternXform, apertureXform_VRSpace);
 
 	// Save the the last computed transform to the calibration state
-	m_calibrationState->cameraToMarkerXform= cameraToPatternXform;
+	m_calibrationState->cameraToMarkerXform= apertureToPatternXform;
 	m_calibrationState->vrSpaceMarkerXform= patternXform_VRSpace;
 	m_calibrationState->hasValidCapture= true;
 
@@ -165,8 +165,8 @@ void ArucoMarkerPoseSampler::sampleLastVRSpaceMarkerXform()
 	cv::Vec3d cv_translationOffset = glm_dvec3_to_cv_vec3d(glm_translationOffset);
 	cv::Quatd cv_rotationOffset = glm_dquat_to_cv_quatd(glm_rotationOffset);
 
-	m_calibrationState->cameraOffsetQuats.push_back(cv_rotationOffset);
-	m_calibrationState->cameraOffsetPositions.push_back(cv_translationOffset);
+	m_calibrationState->cv_apertureOffsetQuats.push_back(cv_rotationOffset);
+	m_calibrationState->cv_apertureOffsetPositions.push_back(cv_translationOffset);
 	m_calibrationState->capturedSampleCount++;
 }
 
@@ -178,8 +178,8 @@ bool ArucoMarkerPoseSampler::computeCalibratedMarkerPose(
 	cv::Quatd cv_cameraOffsetQuat;
 
 	if (hasFinishedSampling() &&
-		opencv_quaternion_compute_average(m_calibrationState->cameraOffsetQuats, cv_cameraOffsetQuat) &&
-		opencv_vec3d_compute_average(m_calibrationState->cameraOffsetPositions, cv_cameraOffsetPosition))
+		opencv_quaternion_compute_average(m_calibrationState->cv_apertureOffsetQuats, cv_cameraOffsetQuat) &&
+		opencv_vec3d_compute_average(m_calibrationState->cv_apertureOffsetPositions, cv_cameraOffsetPosition))
 	{
 		outRotation= cv_quatd_to_MikanQuatd(cv_cameraOffsetQuat);
 		outTranslation= cv_vec3d_to_MikanVector3d(cv_cameraOffsetPosition);
@@ -190,7 +190,7 @@ bool ArucoMarkerPoseSampler::computeCalibratedMarkerPose(
 	return false;
 }
 
-void ArucoMarkerPoseSampler::renderCameraSpaceCalibrationState()
+void ArucoMarkerPoseSampler::renderApertureSpaceCalibrationState()
 {
 	IMkGraphicsContext* graphicsContext = m_calibrationCamera->getGraphicsContext();
 
@@ -217,8 +217,8 @@ void ArucoMarkerPoseSampler::renderVRSpaceCalibrationState()
 	IMkGraphicsContext* graphicsContext = m_calibrationCamera->getGraphicsContext();
 
 	// Compute the camera pose in VRSpace
-	glm::dmat4 cameraXform_VRSpace;
-	if (m_cameraPuckPose_VRSystemSpace->getPose(m_calibrationCamera, cameraXform_VRSpace))
+	glm::dmat4 apertureXform_VRSpace;
+	if (m_cameraPuckPose_VRSystemSpace->getPose(m_calibrationCamera, apertureXform_VRSpace))
 	{
 		// Draw the marker transform
 		const glm::mat4 markerXform = glm::mat4(m_calibrationState->vrSpaceMarkerXform);
@@ -231,10 +231,10 @@ void ArucoMarkerPoseSampler::renderVRSpaceCalibrationState()
 		const float zFar = fminf(m_calibrationState->inputCameraIntrinsics.zfar, 2.0f);
 		drawTransformedFrustum(
 			graphicsContext,
-			cameraXform_VRSpace,
+			apertureXform_VRSpace,
 			hfov_radians, vfov_radians,
 			zNear, zFar,
 			Colors::Yellow);
-		drawTransformedAxes(graphicsContext, cameraXform_VRSpace, 0.1f);
+		drawTransformedAxes(graphicsContext, apertureXform_VRSpace, 0.1f);
 	}
 }

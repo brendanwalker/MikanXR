@@ -40,7 +40,7 @@ public:
 
 protected:
 	void setupTrackerPoseCalibrator();
-	void updateCamera();
+	void updateCameraTransform();
 	void renderVRScene();
 	void setMenuState(eAlignmentCalibrationMenuState newState);
 
