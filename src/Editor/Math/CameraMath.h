@@ -80,6 +80,18 @@ void createDefautMonoIntrinsics(
 	int pixelHeight,
 	struct MikanMonoIntrinsics& outIntrinsics);
 
+void computeOpenGLProjMatFromCameraIntrinsics(
+	const struct MikanMonoIntrinsics& intrinsics,
+	glm::mat4& outProjection,
+	int* outViewport= nullptr);
+
+enum class eStereoIntrinsicsSide { left, right };
+void computeOpenGLProjMatFromCameraIntrinsics(
+	const struct MikanStereoIntrinsics& intrinsics,
+	eStereoIntrinsicsSide side,
+	glm::mat4& outProjection,
+	int* outViewport = nullptr);
+
 /**
  * Computes the camera tracking mount (or "puck") to aperature offset transform
  * from known VR-space tracking mount poses and optical offset from tracking pattern.
@@ -92,20 +104,29 @@ void createDefautMonoIntrinsics(
  *
  * Return: relative offset of the aperture from its tracking puck
  */
-glm::dmat4 computeCameraPuckToApertureXform(
+struct CameraPuckToApertureResults
+{
+	glm::dmat4 patternXform_VRSpace;
+	glm::dmat4 apertureXform_VRSpace;
+	glm::dmat4 apertureToPatternXform_CameraSpace;
+	glm::dmat4 apertureToMatPuckXform_CameraSpace;
+	glm::dmat4 cameraPuckToApertureXform;
+	bool bIsValid = false;
+
+	void reset()
+	{
+		patternXform_VRSpace = glm::dmat4(1.0);
+		apertureXform_VRSpace = glm::dmat4(1.0);
+		apertureToPatternXform_CameraSpace = glm::dmat4(1.0);
+		apertureToMatPuckXform_CameraSpace = glm::dmat4(1.0);
+		cameraPuckToApertureXform = glm::dmat4(1.0);
+		bIsValid = false;
+	}
+};
+
+void computeCameraPuckToApertureXform(
 	const glm::dmat4& cameraPuckXform_VRSpace,
 	const glm::dmat4& matPuckXform_VRSpace,
 	const glm::dmat4& apertureToPatternXform,
-	const glm::dvec3& matPuckOffsetMM);
-
-void computeOpenGLProjMatFromCameraIntrinsics(
-	const struct MikanMonoIntrinsics& intrinsics,
-	glm::mat4& outProjection,
-	int* outViewport= nullptr);
-
-enum class eStereoIntrinsicsSide { left, right };
-void computeOpenGLProjMatFromCameraIntrinsics(
-	const struct MikanStereoIntrinsics& intrinsics,
-	eStereoIntrinsicsSide side,
-	glm::mat4& outProjection,
-	int* outViewport = nullptr);
+	const glm::dvec3& matPuckOffsetMM,
+	CameraPuckToApertureResults& outResults);

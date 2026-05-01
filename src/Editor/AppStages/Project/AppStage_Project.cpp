@@ -310,7 +310,7 @@ void AppStage_Project::updateCompositorCameras()
 			if (cameraComponent)
 			{
 				glm::mat4 cameraXform;
-				if (cameraComponent->getSceneSpaceAperturePose(cameraXform))
+				if (cameraComponent->getStageSpaceAperturePose(cameraXform))
 				{
 					camera->setCameraTransform(cameraXform);
 				}

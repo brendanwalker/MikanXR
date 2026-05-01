@@ -461,11 +461,12 @@ void computeOpenGLProjMatFromCameraIntrinsics(
 		outViewport);
 }
 
-glm::dmat4 computeCameraPuckToApertureXform(
+void computeCameraPuckToApertureXform(
 	const glm::dmat4& cameraPuckXform_VRSpace,
 	const glm::dmat4& matPuckXform_VRSpace,
 	const glm::dmat4& apertureToPatternXform_CameraSpace,
-	const glm::dvec3& matPuckOffsetMM)
+	const glm::dvec3& matPuckOffsetMM,
+	CameraPuckToApertureResults& outResults)
 {
 	// Convert mm offset to meters.
 	// NOTE: Y and Z are intentionally swapped here to convert from the
@@ -501,6 +502,18 @@ glm::dmat4 computeCameraPuckToApertureXform(
 		glm_composite_xform(patternToApertureXform, patternXform_VRSpace);
 
 	// Compute the relative offset from the camera tracking puck to the aperture
-	const glm::dmat4 invCameraPuckXform = glm::inverse(cameraPuckXform_VRSpace);
-	return glm_composite_xform(invCameraPuckXform, apertureXform_VRSpace);
+	const glm::dmat4 cameraPuckToApertureXform= 
+		glm_relative_xform(cameraPuckXform_VRSpace, apertureXform_VRSpace);
+
+	outResults.apertureToPatternXform_CameraSpace = apertureToPatternXform_CameraSpace;
+	outResults.apertureToMatPuckXform_CameraSpace =
+		glm_composite_xform(
+			glm::inverse(matPuckToPatternXform),
+			apertureToPatternXform_CameraSpace);
+
+	outResults.patternXform_VRSpace = patternXform_VRSpace;
+	outResults.apertureXform_VRSpace = apertureXform_VRSpace;
+	outResults.cameraPuckToApertureXform = cameraPuckToApertureXform;
+
+	outResults.bIsValid = true;
 }

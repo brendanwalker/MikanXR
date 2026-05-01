@@ -27,6 +27,7 @@ public:
 	bool computeCalibrationSample();
 	bool hasValidCameraPuckToApertureXform() const;
 	bool getLastCameraPuckToApertureXform(glm::mat4& outCameraToCameraPuckXform) const;
+	bool getLastCameraPuckToApertureResults(CameraPuckToApertureResults& outResults) const;
 	void recordCalibrationSample();
 	bool computeAverageCameraPuckToApertureOffset(MikanQuatd& outRotationOffset, MikanVector3d& outTranslationOffset);
 

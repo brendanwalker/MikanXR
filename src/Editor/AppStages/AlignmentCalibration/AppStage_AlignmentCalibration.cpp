@@ -320,7 +320,6 @@ void AppStage_AlignmentCalibration::updateCameraTransform()
 							cameraPuckToApertureXform);
 				}
 
-
 				if (bValidOffset)
 				{
 					// Update the camera transform so that it reflects 
@@ -453,6 +452,7 @@ void AppStage_AlignmentCalibration::render(IMkViewportPtr targetViewport)
 								break;
 							case eAlignmentCalibrationViewpointMode::xrView:
 								m_monoDistortionView->renderSelectedVideoBuffers();
+								m_trackerPoseCalibrator->renderVRSpaceCalibrationState();
 								renderVRScene();
 								break;
 						}
@@ -518,12 +518,11 @@ void AppStage_AlignmentCalibration::renderVRScene()
 	// Render the stageView
 	stageView->render(m_mkCamera, graphicsContext->getMkStateStack());
 
-	drawTransformedAxes(graphicsContext, glm::mat4(1.f), 1.0f);
-
 	TextStyle style = getDefaultTextStyle();
 	drawTextAtWorldPosition(graphicsContext, style, glm::vec3(1.f, 0.f, 0.f), L"X");
 	drawTextAtWorldPosition(graphicsContext, style, glm::vec3(0.f, 1.f, 0.f), L"Y");
 	drawTextAtWorldPosition(graphicsContext, style, glm::vec3(0.f, 0.f, 1.f), L"Z");
+
 }
 
 void AppStage_AlignmentCalibration::setMenuState(eAlignmentCalibrationMenuState newState)

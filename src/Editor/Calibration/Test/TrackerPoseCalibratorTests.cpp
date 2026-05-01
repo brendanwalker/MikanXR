@@ -70,14 +70,16 @@ bool tracker_pose_calibrator_test_identity()
 	const glm::dmat4 apertureToPatternXform    = make_puck_yaw_rot180();
 	const glm::dvec3 matPuckOffsetMM         = glm::dvec3(0.0, 0.0, 0.0);
 
-	glm::dmat4 result = computeCameraPuckToApertureXform(
+	CameraPuckToApertureResults results;
+	computeCameraPuckToApertureXform(
 		cameraPuckXform_VRSpace,
 		matPuckXform_VRSpace,
 		apertureToPatternXform,
-		matPuckOffsetMM);
+		matPuckOffsetMM,
+		results);
 	assert(success);
 
-	success = dmat4_is_nearly_equal(result, glm::dmat4(1.0));
+	success = dmat4_is_nearly_equal(results.cameraPuckToApertureXform, glm::dmat4(1.0));
 	assert(success);
 
 	UNIT_TEST_COMPLETE()
@@ -96,16 +98,18 @@ bool tracker_pose_calibrator_test_known_translation()
 	const glm::dmat4 apertureToPatternXform = make_puck_yaw_rot180();
 	const glm::dvec3 matPuckOffsetMM      = glm::dvec3(0.0, 0.0, 0.0);
 
-	glm::dmat4 result = computeCameraPuckToApertureXform(
+	CameraPuckToApertureResults results;
+	computeCameraPuckToApertureXform(
 		cameraPuckXform_VRSpace,
 		matPuckXform_VRSpace,
 		apertureToPatternXform,
-		matPuckOffsetMM);
+		matPuckOffsetMM,
+		results);
 	assert(success);
 
 	const glm::dmat4 expected =
 		glm::translate(glm::dmat4(1.0), glm::dvec3(-1.0, 0.0, 0.0));
-	success = dmat4_is_nearly_equal(result, expected);
+	success = dmat4_is_nearly_equal(results.cameraPuckToApertureXform, expected);
 	assert(success);
 
 	UNIT_TEST_COMPLETE()
@@ -128,16 +132,18 @@ bool tracker_pose_calibrator_test_puck_offset()
 	const glm::dmat4 apertureToPatternXform    = make_puck_yaw_rot180();
 	const glm::dvec3 matPuckOffsetMM         = glm::dvec3(100.0, 0.0, 0.0);
 
-	glm::dmat4 result = computeCameraPuckToApertureXform(
+	CameraPuckToApertureResults results;
+	computeCameraPuckToApertureXform(
 		cameraPuckXform_VRSpace,
 		matPuckXform_VRSpace,
 		apertureToPatternXform,
-		matPuckOffsetMM);
+		matPuckOffsetMM,
+		results);
 	assert(success);
 
 	const glm::dmat4 expected =
 		glm::translate(glm::dmat4(1.0), glm::dvec3(0.1, 0.0, 0.0));
-	success = dmat4_is_nearly_equal(result, expected);
+	success = dmat4_is_nearly_equal(results.cameraPuckToApertureXform, expected);
 	assert(success);
 
 	UNIT_TEST_COMPLETE()

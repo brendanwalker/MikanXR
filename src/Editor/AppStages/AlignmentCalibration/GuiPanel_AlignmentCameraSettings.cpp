@@ -14,7 +14,8 @@ void GuiPanel_AlignmentCameraSettings::setCameraDefinition(CameraDefinitionConst
 void GuiPanel_AlignmentCameraSettings::onGui()
 {
 	// Only show camera settings during capture and test states
-	if (m_menuState != eAlignmentCalibrationMenuState::testCalibration)
+	if (m_menuState != eAlignmentCalibrationMenuState::verifySetup &&
+		m_menuState != eAlignmentCalibrationMenuState::testCalibration)
 	{
 		return;
 	}
@@ -27,6 +28,13 @@ void GuiPanel_AlignmentCameraSettings::onGui()
 	const eAlignmentCalibrationViewpointMode prevMode = m_viewpointMode;
 
 	int modeInt = (int)m_viewpointMode;
+	if (m_menuState == eAlignmentCalibrationMenuState::verifySetup)
+	{
+		ImGui::RadioButton(
+			k_alignmentCalibrationViewpointModeStrings[(int)eAlignmentCalibrationViewpointMode::calibration].c_str(),
+			&modeInt,
+			(int)eAlignmentCalibrationViewpointMode::calibration);
+	}
 	ImGui::RadioButton(
 		k_alignmentCalibrationViewpointModeStrings[(int)eAlignmentCalibrationViewpointMode::stageView].c_str(),
 		&modeInt, 
