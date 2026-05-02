@@ -11,6 +11,7 @@ enum class eVRTrackingRecenterMenuState : int
 	capture = 2,
 	testCalibration = 3,
 	failedVideoStartStreamRequest = 4,
+	pendingVideoStart = 5,
 
 	COUNT
 };

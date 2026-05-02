@@ -40,6 +40,13 @@ void GuiPanel_VRTrackingRecenter::onGui()
 {
 	switch (m_menuState)
 	{
+		case eVRTrackingRecenterMenuState::pendingVideoStart:
+		{
+			ImGui::TextWrapped("Starting video stream...");
+			ImGui::Spacing();
+			if (ImGui::Button("Cancel")) { if (OnCancelEvent) OnCancelEvent(); }
+		} break;
+
 		case eVRTrackingRecenterMenuState::verifySetup:
 		{
 			ImGui::TextWrapped("Place the Aruco marker on the floor at the desired tracking origin.");

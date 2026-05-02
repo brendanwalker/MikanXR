@@ -39,6 +39,7 @@ public:
 
 protected:
 	void setMenuState(eVRTrackingRecenterMenuState newState);
+	void setupMarkerPoseSampler();
 	void updateCameraPose();
 
 	// Calibration Model UI Events

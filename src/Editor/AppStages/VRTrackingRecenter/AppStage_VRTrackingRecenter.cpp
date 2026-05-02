@@ -135,27 +135,20 @@ void AppStage_VRTrackingRecenter::enter()
 	m_frameBuffer->createResources();
 
 	// Fire up the video scene in the background + pose calibrator
-	eVRTrackingRecenterMenuState newState= eVRTrackingRecenterMenuState::verifySetup;
-	//TODO: Handle pendingStart
-	if ((int)m_videoSourceComponent->startVideoStream() > 0)
+	eVRTrackingRecenterMenuState newState;
+	switch (m_videoSourceComponent->startVideoStream())
 	{
-		// Allocate all distortion and video buffers
-		m_monoDistortionView = 
-			new VideoFrameDistortionView(
-				m_videoSourceComponent, 
-				VIDEO_FRAME_HAS_ALL);
-		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
-
-		// Create a sampler to do the actual marker pose recording
-		m_markerPoseSampler =
-			new ArucoMarkerPoseSampler(
-				m_cameraComponent,
-				m_monoDistortionView,
-				DESIRED_MARKER_SAMPLE_COUNT);
-	}
-	else
-	{
+	case eVideoStreamingStatus::pendingStart:
+		// Wait for the video stream to start in the update loop
+		newState = eVRTrackingRecenterMenuState::pendingVideoStart;
+		break;
+	case eVideoStreamingStatus::started:
+		setupMarkerPoseSampler();
+		newState = eVRTrackingRecenterMenuState::verifySetup;
+		break;
+	default:
 		newState = eVRTrackingRecenterMenuState::failedVideoStartStreamRequest;
+		break;
 	}
 
 	// Create app stage GUI panels
@@ -202,6 +195,23 @@ void AppStage_VRTrackingRecenter::exit()
 	AppStage::exit();
 }
 
+void AppStage_VRTrackingRecenter::setupMarkerPoseSampler()
+{
+	// Allocate all distortion and video buffers
+	m_monoDistortionView =
+		new VideoFrameDistortionView(
+			m_videoSourceComponent,
+			VIDEO_FRAME_HAS_ALL);
+	m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
+
+	// Create a sampler to do the actual marker pose recording
+	m_markerPoseSampler =
+		new ArucoMarkerPoseSampler(
+			m_cameraComponent,
+			m_monoDistortionView,
+			DESIRED_MARKER_SAMPLE_COUNT);
+}
+
 void AppStage_VRTrackingRecenter::updateCameraPose()
 {
 	switch (m_calibrationPanel->getMenuState())
@@ -233,6 +243,26 @@ void AppStage_VRTrackingRecenter::update(float deltaSeconds)
 
 	switch(m_calibrationPanel->getMenuState())
 	{
+		case eVRTrackingRecenterMenuState::pendingVideoStart:
+			{
+				// Check if the video stream has started yet
+				eVideoStreamingStatus status = m_videoSourceComponent->getVideoStreamingStatus();
+				if (status == eVideoStreamingStatus::started)
+				{
+					setupMarkerPoseSampler();
+					setMenuState(eVRTrackingRecenterMenuState::verifySetup);
+				}
+				else if (status == eVideoStreamingStatus::stopped)
+				{
+					// If stopped, try to restart the video stream
+					m_videoSourceComponent->startVideoStream();
+				}
+				else if (status == eVideoStreamingStatus::failed)
+				{
+					setMenuState(eVRTrackingRecenterMenuState::failedVideoStartStreamRequest);
+				}
+			}
+			break;
 		case eVRTrackingRecenterMenuState::verifySetup:
 			{
 				// Update the video frame buffers to preview the calibration mat
@@ -296,6 +326,9 @@ void AppStage_VRTrackingRecenter::update(float deltaSeconds)
 void AppStage_VRTrackingRecenter::render(IMkViewportPtr targetViewport)
 {
 	IMkGraphicsContext* graphicsContext = getGraphicsContext();
+
+	// Distortion view won't be valid if we haven't started the video stream yet
+	if (!m_monoDistortionView) return;
 
 	// Render the scene into the frame buffer
 	if (m_frameBuffer->isValid())

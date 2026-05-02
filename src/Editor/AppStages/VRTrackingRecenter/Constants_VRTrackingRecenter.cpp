@@ -5,6 +5,7 @@ const std::string g_VRTrackingRecenterMenuStateStrings[(int)eVRTrackingRecenterM
 	"verifySetup",
 	"capture",
 	"testCalibration",
-	"failedVideoStartStreamRequest"
+	"failedVideoStartStreamRequest",
+	"pendingVideoStart"
 };
 const std::string* k_VRTrackingRecenterMenuStateStrings = g_VRTrackingRecenterMenuStateStrings;
