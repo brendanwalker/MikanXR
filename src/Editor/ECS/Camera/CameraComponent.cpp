@@ -770,11 +770,13 @@ void CameraComponent::alignCamera()
 		AppStage_AlignmentCalibration::tryEnterAlignmentCalibration(
 			currentAppStage, 
 			getSelfPtr<CameraComponent>());
+		break;
 	case eTrackingVolumeType::marker:
 		//TODO:
 		//AppStage_MarkerAlignmentCalibration::tryEnterAlignmentCalibration(
 		//	currentAppStage,
 		//	getSelfPtr<CameraComponent>());
+		break;
 	default:
 		ModalDialog_MessageBox::showMessageBox(
 			currentAppStage,
