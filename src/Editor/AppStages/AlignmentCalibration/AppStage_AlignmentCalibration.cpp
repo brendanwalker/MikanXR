@@ -159,6 +159,7 @@ void AppStage_AlignmentCalibration::setMatPuckPose(VRDevicePoseViewPtr matPuckPo
 	m_matPuckPose_VRSystemSpace = matPuckPose;
 }
 
+// -- AppStage -- //
 void AppStage_AlignmentCalibration::enter()
 {
 	AppStage::enter();
@@ -336,6 +337,8 @@ void AppStage_AlignmentCalibration::updateCameraTransform()
 
 void AppStage_AlignmentCalibration::update(float deltaSeconds)
 {
+	AppStage::update(deltaSeconds);
+
 	updateCameraTransform();
 
 	switch(m_calibrationPanel->getMenuState())
@@ -426,6 +429,8 @@ void AppStage_AlignmentCalibration::update(float deltaSeconds)
 
 void AppStage_AlignmentCalibration::render(IMkViewportPtr targetViewport)
 {
+	AppStage::render(targetViewport);
+
 	// Render the stageView into the frame buffer
 	if (m_frameBuffer->isValid())
 	{
@@ -727,10 +732,9 @@ void AppStage_AlignmentCalibration::onGui()
 
 	constexpr float k_panelWidth = 415.f;
 	const float displayWidth = m_ownerWindow->getWidth();
-	const float displayHeight = m_ownerWindow->getHeight();
 
 	ImGui::SetNextWindowPos(ImVec2(displayWidth - k_panelWidth, 0.f), ImGuiCond_Always);
-	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, displayHeight), ImGuiCond_Always);
+	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, 0), ImGuiCond_Always);
 	constexpr ImGuiWindowFlags k_flags =
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;

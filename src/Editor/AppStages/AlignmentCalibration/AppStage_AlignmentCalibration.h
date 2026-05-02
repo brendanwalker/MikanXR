@@ -32,6 +32,7 @@ public:
 	void setCameraPuckPose(VRDevicePoseViewPtr cameraPuckPose);
 	void setMatPuckPose(VRDevicePoseViewPtr matPuckPose);
 
+	// -- AppStage -- //
 	virtual void enter() override;
 	virtual void exit() override;
 	virtual void update(float deltaSeconds) override;
