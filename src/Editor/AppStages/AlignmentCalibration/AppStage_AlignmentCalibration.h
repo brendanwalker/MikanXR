@@ -41,8 +41,9 @@ public:
 
 protected:
 	void setupTrackerPoseCalibrator();
-	void updateCameraTransform();
-	void renderVRScene();
+	void updateXRViewTransform();
+	void renderVRDevices(IMkCameraConstPtr camera);
+	void renderVRStageViewDebug();
 	void setMenuState(eAlignmentCalibrationMenuState newState);
 
 	// Calibration Model UI Events
@@ -85,7 +86,9 @@ private:
 	class VideoFrameDistortionView* m_monoDistortionView;
 
 	MkScenePtr m_scene;
-	MikanCameraPtr m_mkCamera;
+	MikanCameraPtr m_mkCalibrationView;
+	MikanCameraPtr m_mkStageView;
+	MikanCameraPtr m_mkXRView;
 	IMkFrameBufferPtr m_frameBuffer;
 	IMkTriangulatedMeshPtr m_fullscreenRGBQuad;
 };

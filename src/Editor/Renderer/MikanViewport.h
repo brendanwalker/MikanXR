@@ -44,6 +44,7 @@ public:
 	virtual IMkCameraPtr getCameraByIndex(int cameraIndex) override;
 	virtual bool removeCameraByIndex(int cameraIndex) override;
 	virtual void setCurrentCamera(int cameraIndex) override;
+	virtual void setCurrentCamera(IMkCameraPtr camera) override;
 	bool getIsMouseInViewport() const { return m_isMouseInViewport; }
 
 	MikanCameraPtr getCurrentMikanCamera() const;

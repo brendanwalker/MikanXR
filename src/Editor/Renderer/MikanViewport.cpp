@@ -186,6 +186,18 @@ void MikanViewport::setCurrentCamera(int cameraIndex)
 	}
 }
 
+void MikanViewport::setCurrentCamera(IMkCameraPtr camera)
+{
+	for (int i = 0; i < getCameraCount(); ++i)
+	{
+		if (m_cameraPool[i] == camera)
+		{
+			m_currentCameraIndex = i;
+			return;
+		}
+	}
+}
+
 MikanCameraPtr MikanViewport::getCurrentMikanCamera() const
 {
 	return std::static_pointer_cast<MikanCamera>(getCurrentCamera());

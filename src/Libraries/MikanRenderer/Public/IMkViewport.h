@@ -33,4 +33,5 @@ public:
 	virtual IMkCameraPtr getCameraByIndex(int cameraIndex) = 0;
 	virtual bool removeCameraByIndex(int cameraIndex) = 0;
 	virtual void setCurrentCamera(int cameraIndex) = 0;
+	virtual void setCurrentCamera(IMkCameraPtr camera) = 0;
 };
