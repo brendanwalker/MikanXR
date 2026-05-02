@@ -430,6 +430,11 @@ bool CameraComponent::getApertureIntrinsics(MikanVideoSourceIntrinsics& outIntri
 	return false;
 }
 
+bool CameraComponent::hasValidApertureOffsetXform() const
+{
+	return getCameraDefinition()->hasValidApertureOffset();
+}
+
 bool CameraComponent::getApertureOffsetXform(glm::mat4& outTrackingMountToApertureXform) const
 {
 	// Get the offset from the puck to the camera

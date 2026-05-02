@@ -65,7 +65,10 @@ void ModalDialog_SelectCamera::onGui()
 	}
 
 	ImGui::SetNextWindowPos(
-		ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+		ImGui::GetMainViewport()->GetCenter(), 
+		ImGuiCond_Appearing, 
+		ImVec2(0.5f, 0.5f));
+
 	if (ImGui::BeginPopupModal(k_popupId, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
 	{
 		ImGui::Text("Select Calibration Camera");
@@ -77,7 +80,7 @@ void ModalDialog_SelectCamera::onGui()
 			*out = (*names)[idx].c_str();
 			return true;
 		};
-		ImGui::ListBox("##cameras", &m_selectedIndex, itemGetter, &m_cameraNames, (int)m_cameraNames.size(), 8);
+		ImGui::ListBox("##cameras", &m_selectedIndex, itemGetter, &m_cameraNames, (int)m_cameraNames.size());
 
 		ImGui::Spacing();
 
@@ -90,7 +93,7 @@ void ModalDialog_SelectCamera::onGui()
 		if (ImGui::Button("Cancel")) { ImGui::CloseCurrentPopup(); cancelled = true; }
 		ImGui::EndPopup();
 
-		if (selected)  onSelectCamera();
+		if (selected) onSelectCamera();
 		else if (cancelled) onCancel();
 	}
 }

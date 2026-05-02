@@ -22,8 +22,14 @@ public:
 	AppStage_VRTrackingRecenter(class IEditorWindow* ownerWindow);
 	virtual ~AppStage_VRTrackingRecenter();
 
+	static bool tryEnterAlignmentCalibration(
+		class AppStage* fromAppStage,
+		CameraComponentPtr withCameraComponent,
+		VRTrackingVolumeComponentPtr forTrackingVolume);
+
 	void setSourceCamera(CameraComponentPtr cameraComponent);
-	inline void setTargetVRTrackingVolumeId(MikanTrackingVolumeID volumeId) { m_targetVolumeId = volumeId; }
+	inline void setTargetVRTrackingVolume(VRTrackingVolumeComponentPtr trackingVolume) 
+	{ m_targetTrackingVolume = trackingVolume; }
 
 	virtual void enter() override;
 	virtual void exit() override;
@@ -58,11 +64,9 @@ protected:
 private:
 	class GuiPanel_VRTrackingRecenter* m_calibrationPanel = nullptr;
 
-	MikanTrackingVolumeID m_targetVolumeId = INVALID_MIKAN_ID;
-	bool m_bHasModifiedCameraSettings= false;
-
 	CameraComponentPtr m_cameraComponent;
 	VideoSourceComponentPtr m_videoSourceComponent;
+	VRTrackingVolumeComponentPtr m_targetTrackingVolume;
 
 	class ArucoMarkerPoseSampler* m_markerPoseSampler;
 	class VideoFrameDistortionView* m_monoDistortionView;

@@ -398,27 +398,19 @@ bool VRTrackingVolumeComponent::invokeFunction(const std::string& functionName)
 
 void VRTrackingVolumeComponent::alignTrackingVolume()
 {
-	AppStage* ownerAppStage = getOwnerEditorWindow()->getCurrentAppStage();
+	AppStage* currentAppStage = getOwnerEditorWindow()->getCurrentAppStage();
 
 	ModalDialog_SelectCamera::selectCamera(
-		ownerAppStage,
-		[this, ownerAppStage](MikanCameraID cameraId) {
+		currentAppStage,
+		[this, currentAppStage](MikanCameraID cameraId) {
 			const MikanTrackingVolumeID volumeId = getTrackingVolumeDefinition()->getTrackingVolumeId();
-			CameraComponentPtr cameraComponent = getObjectSystemOfType<CameraObjectSystem>()->getCameraById(cameraId);
+			CameraComponentPtr cameraComponent = 
+				getObjectSystemOfType<CameraObjectSystem>()->getCameraById(cameraId);
 
-			if (cameraComponent->areApertureIntrinsicsValid())
-			{
-				AppStage_VRTrackingRecenter* vrTrackingRecenterStage =
-					getOwnerEditorWindow()->pushAppStageOfType<AppStage_VRTrackingRecenter>();
-
-				vrTrackingRecenterStage->setSourceCamera(cameraComponent);
-				vrTrackingRecenterStage->setTargetVRTrackingVolumeId(volumeId);
-			}
-			else
-			{
-				ModalDialog_MessageBox::showMessageBox(
-					ownerAppStage,
-					"Selected camera does not have valid aperture intrinsics. Please calibrate the camera's intrinsics before using it for alignment.");
-			}
+			AppStage_VRTrackingRecenter::tryEnterAlignmentCalibration(
+				currentAppStage,
+				cameraComponent,
+				getSelfPtr<VRTrackingVolumeComponent>());
 		});
+
 }

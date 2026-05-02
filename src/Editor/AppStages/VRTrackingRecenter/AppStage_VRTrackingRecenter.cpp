@@ -3,6 +3,7 @@
 #include "VRTrackingRecenter/GuiPanel_VRTrackingRecenter.h"
 #include "ArucoMarkerPoseSampler.h"
 #include "App.h"
+#include "CalibrationPatternFinder.h"
 #include "CameraComponent.h"
 #include "CameraObjectSystem.h"
 #include "MikanCamera.h"
@@ -22,7 +23,7 @@
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
 #include "MathGLM.h"
-#include "CalibrationPatternFinder.h"
+#include "ModalMessageBox/ModalDialog_MessageBox.h"
 #include "TextStyle.h"
 #include "VideoFrameDistortionView.h"
 #include "VRObjectSystem.h"
@@ -52,6 +53,57 @@ AppStage_VRTrackingRecenter::AppStage_VRTrackingRecenter(IEditorWindow* ownerWin
 
 AppStage_VRTrackingRecenter::~AppStage_VRTrackingRecenter()
 {
+}
+
+bool AppStage_VRTrackingRecenter::tryEnterAlignmentCalibration(
+	class AppStage* fromAppStage,
+	CameraComponentPtr withCameraComponent,
+	VRTrackingVolumeComponentPtr forTrackingVolume)
+{
+	assert(fromAppStage);
+	assert(withCameraComponent);
+	assert(forTrackingVolume);
+
+	VideoSourceComponentPtr videoSourceComponent = withCameraComponent->getVideoSourceComponent();
+	if (!videoSourceComponent)
+	{
+		ModalDialog_MessageBox::showMessageBox(
+			fromAppStage,
+			"Camera is not associated with a video source. Please set a video source for the camera.");
+		return false;
+	}
+
+	if (!withCameraComponent->areApertureIntrinsicsValid())
+	{
+		ModalDialog_MessageBox::showMessageBox(
+			fromAppStage,
+			"Selected camera does not have valid aperture intrinsics. Please calibrate the camera's intrinsics.");
+
+		return false;
+	}
+
+	if (!withCameraComponent->hasValidTrackingMountPoseView())
+	{
+		ModalDialog_MessageBox::showMessageBox(
+			fromAppStage,
+			"Selected camera does not have a valid tracking mount pose. Please assign a tracking mount to the camera.");
+		return false;
+	}
+
+	if (!withCameraComponent->hasValidApertureOffsetXform())
+	{
+		ModalDialog_MessageBox::showMessageBox(
+			fromAppStage,
+			"Selected camera does not have a valid aperture offset transform. Please calibrate the camera's tracking mount offset.");
+		return false;
+	}
+
+	IEditorWindow* ownerWindow = fromAppStage->getOwnerWindow();
+	auto* vrTrackingRecenterStage = ownerWindow->pushAppStageOfType<AppStage_VRTrackingRecenter>();
+	vrTrackingRecenterStage->setSourceCamera(withCameraComponent);
+	vrTrackingRecenterStage->setTargetVRTrackingVolume(forTrackingVolume);
+
+	return true;
 }
 
 void AppStage_VRTrackingRecenter::setSourceCamera(CameraComponentPtr cameraComponent)
@@ -225,14 +277,7 @@ void AppStage_VRTrackingRecenter::update(float deltaSeconds)
 						glm::mat4 glmVRDevicePoseOffset= glm::inverse(glmXform);
 
 						// Publish the new VR device pose offset to the target tracking volume
-						if (m_targetVolumeId != INVALID_MIKAN_ID)
-						{
-							auto vrTrackingVolumeSystem = getSystemOfType<VRTrackingVolumeSystem>();
-							VRTrackingVolumeComponentPtr trackingVolume =
-								vrTrackingVolumeSystem->getVRTrackingVolumeById(m_targetVolumeId);
-
-							trackingVolume->setVRDevicePoseOffset(glmVRDevicePoseOffset);
-						}
+						m_targetTrackingVolume->setVRDevicePoseOffset(glmVRDevicePoseOffset);
 
 						setMenuState(eVRTrackingRecenterMenuState::testCalibration);
 					}
@@ -320,9 +365,8 @@ void AppStage_VRTrackingRecenter::onGui()
 
 	constexpr float k_panelWidth = 415.f;
 	const float displayWidth = m_ownerWindow->getWidth();
-	const float displayHeight = m_ownerWindow->getHeight();
 	ImGui::SetNextWindowPos(ImVec2(displayWidth - k_panelWidth, 0.f), ImGuiCond_Always);
-	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, displayHeight), ImGuiCond_Always);
+	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, 0), ImGuiCond_Always);
 
 	constexpr ImGuiWindowFlags k_flags =
 		ImGuiWindowFlags_NoMove |

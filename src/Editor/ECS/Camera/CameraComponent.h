@@ -104,6 +104,7 @@ public:
 	bool getAperturePixelDimensions(int& outWidth, int& outHeight) const;
 	bool areApertureIntrinsicsValid() const;
 	bool getApertureIntrinsics(struct MikanVideoSourceIntrinsics& outIntrinsics) const;
+	bool hasValidApertureOffsetXform() const;
 	bool getApertureOffsetXform(glm::mat4& outAperatureToTrackingMountXform) const;
 	bool getStageSpaceAperturePose(glm::mat4& outCameraPose) const;
 	bool getStageSpaceAperturePose(glm::dmat4& outCameraPose) const;
