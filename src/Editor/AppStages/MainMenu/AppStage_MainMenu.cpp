@@ -250,12 +250,6 @@ void AppStage_MainMenu::onNewProject()
 	handleNewProjectCommand(parameters, outResults);
 }
 
-void AppStage_MainMenu::onTutorial()
-{
-	std::vector<std::string> outResults;
-	handleTutorialCommand(outResults);
-}
-
 void AppStage_MainMenu::onExit()
 {
 	std::vector<std::string> outResults;
@@ -267,10 +261,9 @@ void AppStage_MainMenu::onGui()
 	AppStage::onGui();
 
 	constexpr float k_panelWidth = 300.f;
-	constexpr float k_panelHeight = 220.f;
 	const ImVec2 center = ImGui::GetMainViewport()->GetCenter();
 	ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, k_panelHeight), ImGuiCond_Always);
+	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, 0), ImGuiCond_Always);
 
 	constexpr ImGuiWindowFlags k_flags =
 		ImGuiWindowFlags_NoMove |
@@ -297,8 +290,6 @@ void AppStage_MainMenu::onGui()
 	if (ImGui::Button("Open Project",   ImVec2(buttonWidth, 0))) onOpenProject();
 	ImGui::SetCursorPosX((k_panelWidth - buttonWidth) * 0.5f);
 	if (ImGui::Button("New Project",    ImVec2(buttonWidth, 0))) onNewProject();
-	ImGui::SetCursorPosX((k_panelWidth - buttonWidth) * 0.5f);
-	if (ImGui::Button("Tutorial",       ImVec2(buttonWidth, 0))) onTutorial();
 	ImGui::SetCursorPosX((k_panelWidth - buttonWidth) * 0.5f);
 	if (ImGui::Button("Exit",           ImVec2(buttonWidth, 0))) onExit();
 }
@@ -372,10 +363,6 @@ bool AppStage_MainMenu::handleRemoteControlCommand(
 	else if (command == "new_project")
 	{
 		return handleNewProjectCommand(parameters, outResults);
-	}
-	else if (command == "tutorial")
-	{
-		return handleTutorialCommand(outResults);
 	}
 	else if (command == "exit")
 	{
@@ -460,13 +447,6 @@ bool AppStage_MainMenu::handleNewProjectCommand(
 		return true;
 	}
 
-	outResults.push_back(IRemoteControllable::k_failure);
-	return false;
-}
-
-bool AppStage_MainMenu::handleTutorialCommand(std::vector<std::string>& outResults)
-{
-	//TODO
 	outResults.push_back(IRemoteControllable::k_failure);
 	return false;
 }
