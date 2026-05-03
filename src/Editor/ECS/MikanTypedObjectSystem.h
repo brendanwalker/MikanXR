@@ -216,7 +216,19 @@ public:
 		}
 
 		// Create the component object using the pool (will add definition to pool after object is built)
-		return m_componentPool.create(componentDefinition);
+		ComponentPtr component= m_componentPool.create(componentDefinition);
+
+		// Notify external listeners that the newly created object is fully setup
+		if (component)
+		{
+			MikanObjectPtr objectPtr = component->getOwnerObject();
+			assert(objectPtr);
+
+			if (OnNewObjectFinalized)
+				OnNewObjectFinalized(shared_from_this(), objectPtr);
+		}
+
+		return component;
 	}
 
 	bool removeObjectByPrimaryComponentId(TID componentId)

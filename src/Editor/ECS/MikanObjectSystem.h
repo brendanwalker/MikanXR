@@ -82,7 +82,7 @@ public:
 	void deleteAllObjects();
 	inline const MikanObjectList& getObjectList() const { return m_objects; }
 
-	MulticastDelegate<void(MikanObjectSystemPtr, MikanObjectPtr)> OnObjectInitialized;
+	MulticastDelegate<void(MikanObjectSystemPtr, MikanObjectPtr)> OnNewObjectFinalized;
 	MulticastDelegate<void(MikanObjectSystemPtr, MikanObjectConstPtr)> OnObjectDisposed;
 	MulticastDelegate<void(MikanObjectSystemPtr, MikanComponentPtr)> OnComponentInitialized;
 	MulticastDelegate<void(MikanObjectSystemPtr, MikanComponentConstPtr)> OnComponentDisposed;

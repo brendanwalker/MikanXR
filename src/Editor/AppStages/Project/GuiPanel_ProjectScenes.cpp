@@ -26,7 +26,6 @@
 #include "StageObjectSystem.h"
 #include "TransformComponent.h"
 #include "MikanComponent.h"
-#include "TransformComponent.h"
 
 #include "imgui.h"
 
@@ -65,7 +64,7 @@ bool GuiPanel_ProjectScenes::init(ProjectGuiPanelContext* context)
 	AnchorObjectSystemPtr anchorSystem = m_anchorSystem.lock();
 	anchorSystem->getTypedDefinition()->OnPropertyChanged +=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onAnchorSystemConfigChanged);
-	anchorSystem->OnObjectInitialized +=
+	anchorSystem->OnNewObjectFinalized +=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
 	anchorSystem->OnObjectDisposed +=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
@@ -78,7 +77,7 @@ bool GuiPanel_ProjectScenes::init(ProjectGuiPanelContext* context)
 	QuadStencilSystemPtr quadStencilSystem = m_quadStencilSystem.lock();
 	quadStencilSystem->getTypedDefinition()->OnPropertyChanged +=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onStencilSystemConfigChanged);
-	quadStencilSystem->OnObjectInitialized +=
+	quadStencilSystem->OnNewObjectFinalized +=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
 	quadStencilSystem->OnObjectDisposed +=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
@@ -86,7 +85,7 @@ bool GuiPanel_ProjectScenes::init(ProjectGuiPanelContext* context)
 	BoxStencilSystemPtr boxStencilSystem = m_boxStencilSystem.lock();
 	boxStencilSystem->getTypedDefinition()->OnPropertyChanged +=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onStencilSystemConfigChanged);
-	boxStencilSystem->OnObjectInitialized +=
+	boxStencilSystem->OnNewObjectFinalized +=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
 	boxStencilSystem->OnObjectDisposed +=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
@@ -94,7 +93,7 @@ bool GuiPanel_ProjectScenes::init(ProjectGuiPanelContext* context)
 	ModelStencilSystemPtr modelStencilSystem = m_modelStencilSystem.lock();
 	modelStencilSystem->getTypedDefinition()->OnPropertyChanged +=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onStencilSystemConfigChanged);
-	modelStencilSystem->OnObjectInitialized +=
+	modelStencilSystem->OnNewObjectFinalized +=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
 	modelStencilSystem->OnObjectDisposed +=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
@@ -126,7 +125,7 @@ void GuiPanel_ProjectScenes::dispose()
 	{
 		sys->getTypedDefinition()->OnPropertyChanged -=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onAnchorSystemConfigChanged);
-		sys->OnObjectInitialized -=
+		sys->OnNewObjectFinalized -=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
 		sys->OnObjectDisposed -=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
@@ -142,7 +141,7 @@ void GuiPanel_ProjectScenes::dispose()
 	{
 		sys->getTypedDefinition()->OnPropertyChanged -=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onStencilSystemConfigChanged);
-		sys->OnObjectInitialized -=
+		sys->OnNewObjectFinalized -=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
 		sys->OnObjectDisposed -=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
@@ -152,7 +151,7 @@ void GuiPanel_ProjectScenes::dispose()
 	{
 		sys->getTypedDefinition()->OnPropertyChanged -=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onStencilSystemConfigChanged);
-		sys->OnObjectInitialized -=
+		sys->OnNewObjectFinalized -=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
 		sys->OnObjectDisposed -=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
@@ -162,7 +161,7 @@ void GuiPanel_ProjectScenes::dispose()
 	{
 		sys->getTypedDefinition()->OnPropertyChanged -=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onStencilSystemConfigChanged);
-		sys->OnObjectInitialized -=
+		sys->OnNewObjectFinalized -=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
 		sys->OnObjectDisposed -=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);

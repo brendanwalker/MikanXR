@@ -21,10 +21,6 @@ void MikanObject::init()
 	{
 		component->init();
 	}
-
-	MikanObjectSystemPtr objectSystem= m_ownerObjectSystemManager.lock();
-	if (objectSystem->OnObjectInitialized)
-		objectSystem->OnObjectInitialized(objectSystem, shared_from_this());
 }
 
 void MikanObject::postInit()
