@@ -84,14 +84,10 @@ public:
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
 
 	// -- IFunctionInterface ----
-	static const std::string k_addNewModelFunctionId;
-	static const std::string k_removeModelFunctionId;
 	static const std::string k_alignStencilFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
 	virtual bool invokeFunction(const std::string& functionName) override;
 
-	void addNewModel();
-	void removeModel();
 	void alignStencil();
 
 	// -- Lua Binding ----

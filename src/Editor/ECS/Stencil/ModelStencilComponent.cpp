@@ -489,8 +489,6 @@ bool ModelStencilComponent::setPropertyValue(
 }
 
 // -- IFunctionInterface ----
-const std::string ModelStencilComponent::k_addNewModelFunctionId = "add_new_model";
-const std::string ModelStencilComponent::k_removeModelFunctionId = "remove_model";
 const std::string ModelStencilComponent::k_alignStencilFunctionId = "align_stencil";
 
 void ModelStencilComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
@@ -499,55 +497,17 @@ void ModelStencilComponent::getFunctionDescriptors(std::vector<FunctionDescripto
 
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(
-			k_addNewModelFunctionId, "Add New Model"));
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_removeModelFunctionId, "Remove Model"));
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
 			k_alignStencilFunctionId, "Align Stencil"));
 }
 
 bool ModelStencilComponent::invokeFunction(const std::string& functionName)
 {
-	if (functionName == ModelStencilComponent::k_addNewModelFunctionId)
-	{
-		addNewModel();
-	}
-	else if (functionName == ModelStencilComponent::k_removeModelFunctionId)
-	{
-		removeModel();
-	}
-	else if (functionName == ModelStencilComponent::k_alignStencilFunctionId)
+	if (functionName == ModelStencilComponent::k_alignStencilFunctionId)
 	{
 		alignStencil();
 	}
 
 	return StencilComponent::invokeFunction(functionName);
-}
-
-void ModelStencilComponent::addNewModel()
-{
-	ModelAssetReferenceFactory assetRefFactory;
-	std::filesystem::path newAssetPath =
-		tinyfd_openFileDialog(
-			assetRefFactory.getFileDialogTitle(),
-			assetRefFactory.getDefaultPath(),
-			assetRefFactory.getFilterPatternCount(),
-			assetRefFactory.getFilterPatterns(),
-			assetRefFactory.getFilterDescription(),
-			1);
-
-	if (m_modelAssetRef->getAssetPath() != newAssetPath)
-	{
-		// This will trigger the model to be initialized via the definition dirty event
-		setModelPath(newAssetPath);
-	}
-}
-
-void ModelStencilComponent::removeModel()
-{
-	setModelPath(std::filesystem::path());
 }
 
 void ModelStencilComponent::alignStencil()
