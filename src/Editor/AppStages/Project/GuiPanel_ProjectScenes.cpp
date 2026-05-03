@@ -312,6 +312,12 @@ void GuiPanel_ProjectScenes::updateSelection()
 			break;
 		}
 	}
+
+	if (m_selectedTransformId == -1)
+	{
+		// Use the selected scene itself as the transform to attach to
+		m_selectedTransformId = m_selectedSceneId;
+	}
 }
 
 void GuiPanel_ProjectScenes::addTransformComponent(TransformComponentPtr transformComponentPtr, int depth)
