@@ -82,6 +82,9 @@ void AppStage_Project::enter()
 		MikanCameraPtr sceneCamera = m_viewport->getCurrentMikanCamera();
 		sceneCamera->setCameraMovementMode(eCameraMovementMode::fly);
 		sceneCamera->setName("scene camera");
+
+		// Register the scene with the primary viewport
+		m_editorSystem.lock()->bindViewport(m_viewport);
 	}
 
 	// Listen for changes to the current active scene
