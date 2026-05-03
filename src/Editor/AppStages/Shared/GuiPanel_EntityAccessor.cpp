@@ -1,10 +1,12 @@
 #include "GuiPanel_EntityAccessor.h"
+#include "AssetReferencePropertyMetaData.h"
 #include "CommonConfig.h"
 #include "MikanVariantTypes.h"
 #include "MkGuiStyleManager.h"
 #include "StringUtils.h"
 
 #include "imgui.h"
+#include "tinyfiledialogs.h"
 
 #include <assert.h>
 
@@ -218,12 +220,35 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 		else if (variantType == MikanVariantType::STRING)
 		{
 			std::string v = value.getStringValue();
-			char buf[256];
-			strncpy_s(buf, sizeof(buf), v.c_str(), _TRUNCATE);
-			if (MkGui::drawStringProperty(m_defaultGuiStyle, uiFieldId, propName, buf, sizeof(buf)))
+			const auto* assetMeta = desc->getMetaDataOfType<AssetReferenceFactoryMetaData>();
+			if (assetMeta)
 			{
-				newValue = std::string(buf);
-				bValueChanged = true;
+				if (MkGui::drawFilePathProperty(m_defaultGuiStyle, uiFieldId, propName, v))
+				{
+					const AssetReferenceFactory* factory = assetMeta->getFactory();
+					const char* result = tinyfd_openFileDialog(
+						factory->getFileDialogTitle(),
+						factory->getDefaultPath(),
+						factory->getFilterPatternCount(),
+						factory->getFilterPatterns(),
+						factory->getFilterDescription(),
+						0);
+					if (result)
+					{
+						newValue = std::string(result);
+						bValueChanged = true;
+					}
+				}
+			}
+			else
+			{
+				char buf[256];
+				strncpy_s(buf, sizeof(buf), v.c_str(), _TRUNCATE);
+				if (MkGui::drawStringProperty(m_defaultGuiStyle, uiFieldId, propName, buf, sizeof(buf)))
+				{
+					newValue = std::string(buf);
+					bValueChanged = true;
+				}
 			}
 		}
 		else if (variantType == MikanVariantType::VECTOR2F)

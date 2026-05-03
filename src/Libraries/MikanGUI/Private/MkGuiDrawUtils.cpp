@@ -158,6 +158,28 @@ namespace MkGui
 		return ImGui::InputText(imguiElementName.c_str(), buf, bufSize);
 	}
 
+	bool drawFilePathProperty(
+		MkGuiStyleConstPtr style,
+		const std::string fieldName,
+		const std::string label,
+		const std::string& path)
+	{
+		ImGui::Text(label.c_str());
+		ImGui::SameLine(style->getLabelWidth());
+
+		const float browseButtonWidth = 30.f;
+		const float pathWidth = style->getValueWidth() - browseButtonWidth - ImGui::GetStyle().ItemSpacing.x;
+		ImGui::SetNextItemWidth(pathWidth);
+		const std::string imguiPathName = makeImGuiElementName(fieldName + "_path");
+		char buf[512];
+		strncpy_s(buf, sizeof(buf), path.c_str(), _TRUNCATE);
+		ImGui::InputText(imguiPathName.c_str(), buf, sizeof(buf), ImGuiInputTextFlags_ReadOnly);
+
+		ImGui::SameLine();
+		const std::string imguiBrowseName = makeImGuiElementName(fieldName + "_browse");
+		return ImGui::Button(("...##" + imguiBrowseName).c_str(), ImVec2(browseButtonWidth, 0));
+	}
+
 	bool drawSimpleComboBoxProperty(
 		MkGuiStyleConstPtr style,
 		const std::string fieldName,

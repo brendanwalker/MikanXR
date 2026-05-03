@@ -30,6 +30,7 @@ PropertyDescriptor::PropertyDescriptor(const PropertyDescriptor& other)
 	, m_bIsReadable(other.m_bIsReadable)
 	, m_bIsWritable(other.m_bIsWritable)
 	, m_defaultValue(std::make_unique<MikanVariant>(*(other.m_defaultValue.get())))
+	, m_metaDataList(other.m_metaDataList)
 {}
 
 PropertyDescriptorPtr PropertyDescriptor::setReadOnly()
@@ -44,5 +45,11 @@ PropertyDescriptorPtr PropertyDescriptor::setUIHidden()
 {
 	assert(m_dataType != MikanVariantType::INVALID);
 	m_bIsUIHidden = true;
+	return shared_from_this();
+}
+
+PropertyDescriptorPtr PropertyDescriptor::addMetaData(PropertyMetaDataPtr metaData)
+{
+	m_metaDataList.push_back(std::move(metaData));
 	return shared_from_this();
 }

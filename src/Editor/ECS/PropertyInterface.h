@@ -4,6 +4,14 @@
 
 #include <string>
 #include <memory>
+#include <vector>
+
+class PropertyMetaData
+{
+public:
+	virtual ~PropertyMetaData() = default;
+};
+using PropertyMetaDataPtr = std::shared_ptr<PropertyMetaData>;
 
 class PropertyDescriptor;
 using PropertyDescriptorPtr = std::shared_ptr<PropertyDescriptor>;
@@ -25,6 +33,7 @@ public:
 	bool isUIHidden() const { return m_bIsUIHidden; }
 	PropertyDescriptorPtr setReadOnly();
 	PropertyDescriptorPtr setUIHidden();
+	PropertyDescriptorPtr addMetaData(PropertyMetaDataPtr metaData);
 
 	template <typename t_value_type>
 	PropertyDescriptorPtr setDefaultValue(t_value_type value)
@@ -34,7 +43,18 @@ public:
 		return shared_from_this();
 	}
 	const MikanVariant& getDefaultValue() const { return *(m_defaultValue.get()); }
-	
+
+	template <class t_meta_type>
+	const t_meta_type* getMetaDataOfType() const
+	{
+		for (const PropertyMetaDataPtr& meta : m_metaDataList)
+		{
+			if (const t_meta_type* typed = dynamic_cast<const t_meta_type*>(meta.get()))
+				return typed;
+		}
+		return nullptr;
+	}
+
 private:
 	std::string m_propertyName;
 	MikanVariantType m_dataType = MikanVariantType::INVALID;
@@ -42,6 +62,7 @@ private:
 	bool m_bIsWritable = true;
 	bool m_bIsUIHidden = false;
 	std::unique_ptr<MikanVariant> m_defaultValue;
+	std::vector<PropertyMetaDataPtr> m_metaDataList;
 };
 
 class IPropertyInterface

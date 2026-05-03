@@ -61,6 +61,11 @@ namespace MkGui
 		const std::string label,
 		char* buf,
 		size_t bufSize);
+	MIKAN_GUI_FUNC(bool) drawFilePathProperty(
+		MkGuiStyleConstPtr style,
+		const std::string fieldName,
+		const std::string label,
+		const std::string& path);
 	MIKAN_GUI_FUNC(bool) drawSimpleComboBoxProperty(
 		MkGuiStyleConstPtr style,
 		const std::string fieldName,

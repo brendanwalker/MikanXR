@@ -30,6 +30,7 @@
 #include "MikanTextRenderer.h"
 #include "MikanObject.h"
 #include "MikanStencilTypes.h"
+#include "AssetReferencePropertyMetaData.h"
 #include "ModelAssetReference.h"
 #include "ModelStencilComponent.h"
 #include "MulticastDelegate.h"
@@ -451,7 +452,9 @@ void ModelStencilComponent::getPropertyDescriptors(std::vector<PropertyDescripto
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			ModelStencilDefinition::k_modelStencilObjPathPropertyId, MikanVariantType::STRING));
+			ModelStencilDefinition::k_modelStencilObjPathPropertyId, MikanVariantType::STRING)
+		->addMetaData(std::make_shared<AssetReferenceFactoryMetaData>(
+			AssetReferenceFactory::createFactory<ModelAssetReferenceFactory>())));
 }
 
 bool ModelStencilComponent::getPropertyValue(
