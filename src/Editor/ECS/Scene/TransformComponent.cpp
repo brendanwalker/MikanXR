@@ -239,19 +239,44 @@ void TransformComponent::postInit()
 
 void TransformComponent::dispose()
 {
-	// Detach all children from this scene component first
+	// Capture grandparent before any mutations clear m_parentComponent
+	TransformComponentPtr grandparent = m_parentComponent.lock();
+
+	// Reparent all children to grandparent instead of orphaning them
 	while (m_childComponents.size() > 0)
 	{
-		TransformComponentPtr childComponent= m_childComponents[0].lock();
+		TransformComponentPtr childComponent = m_childComponents[0].lock();
 
 		if (childComponent)
 		{
-			childComponent->detachFromParent(eDetachReason::parentDisposed);
+			if (grandparent)
+			{
+				// Save world transform before attachToComponent() clobbers it
+				const glm::mat4 savedChildWorld = childComponent->getWorldTransform();
+
+				// attachToComponent() internally detaches child from us (removes from m_childComponents)
+				// then attaches to grandparent — safe for the while-loop pattern
+				childComponent->attachToComponent(grandparent);
+
+				// Restore correct world position; setWorldTransform recomputes
+				// relative = inv(grandparent_world) * savedChildWorld
+				childComponent->setWorldTransform(savedChildWorld);
+			}
+			else
+			{
+				// No grandparent: existing behavior — detach child to root level
+				childComponent->detachFromParent(eDetachReason::parentDisposed);
+			}
+		}
+		else
+		{
+			// Stale weak ptr — remove manually to avoid infinite loop
+			m_childComponents.erase(m_childComponents.begin());
 		}
 	}
 
-	// Detach from our parent next
-	if (m_parentComponent.lock())
+	// Detach self from parent
+	if (grandparent)
 	{
 		detachFromParent(eDetachReason::selfDisposed);
 	}
