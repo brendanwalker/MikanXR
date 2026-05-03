@@ -16,5 +16,6 @@ const std::string g_StencilAlignmentMenuStateStrings[(int)eStencilAlignmentMenuS
 	"verifyPointsCapture",
 	"testCalibration",
 	"failedVideoStartStreamRequest",
+	"pendingVideoStart"
 };
 const std::string* k_StencilAlignmentMenuStateStrings = g_StencilAlignmentMenuStateStrings;

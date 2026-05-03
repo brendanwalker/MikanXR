@@ -109,28 +109,19 @@ void AppStage_StencilAlignment::enter()
 
 	// Fire up the video scene in the background + pose calibrator
 	eStencilAlignmentMenuState newState;
-	//TODO: Handle pendingStart
-	if ((int)m_videoSourceComponent->startVideoStream() > 0)
+	switch (m_videoSourceComponent->startVideoStream())
 	{
-		// Allocate all distortion and video buffers
-		m_monoDistortionView = 
-			new VideoFrameDistortionView(
-				m_videoSourceComponent, 
-				VIDEO_FRAME_HAS_ALL);
-		m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
-
-		// Create a aligner to calibrate the stencil
-		m_stencilAligner =
-			new StencilAligner(
-				m_cameraComponent,
-				m_monoDistortionView,
-				m_targetStencilComponent);
-
+	case eVideoStreamingStatus::pendingStart:
+		// Wait for the video stream to start in the update loop
+		newState = eStencilAlignmentMenuState::pendingVideoStart;
+		break;
+	case eVideoStreamingStatus::started:
+		setupStencilAligner();
 		newState = eStencilAlignmentMenuState::verifyInitialCameraSetup;
-	}
-	else
-	{
+		break;
+	default:
 		newState = eStencilAlignmentMenuState::failedVideoStartStreamRequest;
+		break;
 	}
 
 	// Create app stage GUI panels
@@ -185,6 +176,23 @@ void AppStage_StencilAlignment::exit()
 	}
 
 	AppStage::exit();
+}
+
+void AppStage_StencilAlignment::setupStencilAligner()
+{
+	// Allocate all distortion and video buffers
+	m_monoDistortionView =
+		new VideoFrameDistortionView(
+			m_videoSourceComponent,
+			VIDEO_FRAME_HAS_ALL);
+	m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
+
+	// Create a aligner to calibrate the stencil
+	m_stencilAligner =
+		new StencilAligner(
+			m_cameraComponent,
+			m_monoDistortionView,
+			m_targetStencilComponent);
 }
 
 void AppStage_StencilAlignment::updateXRCamera()
@@ -243,6 +251,26 @@ void AppStage_StencilAlignment::update(float deltaSeconds)
 
 	switch (m_calibrationPanel->getMenuState())
 	{
+		case eStencilAlignmentMenuState::pendingVideoStart:
+			{
+				// Check if the video stream has started yet
+				eVideoStreamingStatus status = m_videoSourceComponent->getVideoStreamingStatus();
+				if (status == eVideoStreamingStatus::started)
+				{
+					setupStencilAligner();
+					setMenuState(eStencilAlignmentMenuState::verifyInitialCameraSetup);
+				}
+				else if (status == eVideoStreamingStatus::stopped)
+				{
+					// If stopped, try to restart the video stream
+					m_videoSourceComponent->startVideoStream();
+				}
+				else if (status == eVideoStreamingStatus::failed)
+				{
+					setMenuState(eStencilAlignmentMenuState::failedVideoStartStreamRequest);
+				}
+			}
+			break;
 		case eStencilAlignmentMenuState::verifyInitialCameraSetup:
 		case eStencilAlignmentMenuState::verifyPointsCapture:
 		case eStencilAlignmentMenuState::captureOriginPixel:

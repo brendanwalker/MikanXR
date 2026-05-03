@@ -6,6 +6,13 @@ void GuiPanel_StencilAlignment::onGui()
 {
 	switch (m_menuState)
 	{
+		case eStencilAlignmentMenuState::pendingVideoStart:
+		{
+			ImGui::TextWrapped("Starting video stream...");
+			ImGui::Spacing();
+			if (ImGui::Button("Cancel")) { if (OnCancelEvent) OnCancelEvent(); }
+		} break;
+
 		case eStencilAlignmentMenuState::verifyInitialCameraSetup:
 		{
 			ImGui::TextWrapped("Verify that the camera is positioned and video stream is running.");

@@ -19,6 +19,7 @@ enum class eStencilAlignmentMenuState : int
 	verifyPointsCapture,
 	testCalibration,
 	failedVideoStartStreamRequest,
+	pendingVideoStart,
 
 	COUNT
 };

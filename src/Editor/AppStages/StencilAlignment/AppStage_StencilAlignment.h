@@ -31,6 +31,7 @@ public:
 	virtual void render(IMkViewportPtr targetViewport) override;
 
 protected:
+	void setupStencilAligner();
 	void updateXRCamera();
 	void updateVRCamera();
 	void renderStencilScene();
