@@ -12,6 +12,7 @@ namespace MikanXR
 		public int tracking_frame_delay;
 		public MikanQuatd aperture_orientation_offset;
 		public MikanVector3d aperture_position_offset;
+		public bool has_valid_aperture_offset;
 	};
 
 }

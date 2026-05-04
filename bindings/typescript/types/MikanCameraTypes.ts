@@ -11,6 +11,7 @@ export class MikanCameraComponentValues extends MikanTransformComponentValues {
   tracking_frame_delay: number = 0;
   aperture_orientation_offset: MikanQuatd = new MikanQuatd();
   aperture_position_offset: MikanVector3d = new MikanVector3d();
+  has_valid_aperture_offset: boolean = false;
 
   static __serializationMetadata: SerializationField[] = [
     { name: 'stage_id', type: 'int32' },
@@ -18,7 +19,8 @@ export class MikanCameraComponentValues extends MikanTransformComponentValues {
     { name: 'video_source_id', type: 'int32' },
     { name: 'tracking_frame_delay', type: 'int32' },
     { name: 'aperture_orientation_offset', type: 'MikanQuatd' },
-    { name: 'aperture_position_offset', type: 'MikanVector3d' }
+    { name: 'aperture_position_offset', type: 'MikanVector3d' },
+    { name: 'has_valid_aperture_offset', type: 'boolean' }
   ];
 }
 

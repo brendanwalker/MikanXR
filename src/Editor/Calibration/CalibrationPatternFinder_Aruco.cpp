@@ -38,6 +38,61 @@ public:
 };
 
 //-- CalibrationPatternFinder_Aruco -----
+static void initArucoBoardData(
+	ArucoBoardData* markerData,
+	OpenCVCalibrationGeometry& opencvSolvePnPGeometry,
+	OpenCVCalibrationGeometry& opencvLensCalibrationGeometry,
+	OpenGLCalibrationGeometry& openglSolvePnPGeometry,
+	MarkerObjectSystemPtr markerSystem,
+	MarkerDefinitionConstPtr markerDefinition)
+{
+	const int desiredArucoId = markerDefinition->getArucoId();
+	const float markerLengthMM = markerDefinition->getLengthMM();
+	ArucoDictionaryPtr dictionary =
+		CalibrationPatternFinder::getArucoDictionary(
+			markerSystem->getTypedDefinition()->getArucoDictionaryType());
+
+	// Use corner refinement to get the best possible corner locations
+	cv::aruco::DetectorParameters detectorParams;
+	detectorParams.cornerRefinementMethod = cv::aruco::CORNER_REFINE_SUBPIX;
+
+	markerData->desiredArucoId = desiredArucoId;
+	markerData->markerLengthMM = markerLengthMM;
+	markerData->detector = cv::makePtr<cv::aruco::ArucoDetector>(*dictionary.get(), detectorParams);
+
+	// The Aruco board is a square, so we can hardcode the points in ARUCO_CCW_CENTER style
+	// Solve PnP points are on the XZ Plane
+	opencvSolvePnPGeometry.points.clear();
+	opencvSolvePnPGeometry.points.push_back(cv::Point3f(-markerLengthMM / 2.f, 0.f, markerLengthMM / 2.f));
+	opencvSolvePnPGeometry.points.push_back(cv::Point3f(markerLengthMM / 2.f, 0.f, markerLengthMM / 2.f));
+	opencvSolvePnPGeometry.points.push_back(cv::Point3f(markerLengthMM / 2.f, 0.f, -markerLengthMM / 2.f));
+	opencvSolvePnPGeometry.points.push_back(cv::Point3f(-markerLengthMM / 2.f, 0.f, -markerLengthMM / 2.f));
+
+	// Derive the other geometry from the OpenCV SolvePnP geometry
+	opencvLensCalibrationGeometry.points.clear();
+	openglSolvePnPGeometry.points.clear();
+	for (int index = 0; index < 4; index++)
+	{
+		// Solve PnP points are on the XZ Plane
+		const cv::Point3f& openCVSolvePnPPoint = opencvSolvePnPGeometry.points[index];
+
+		// Lens calibration points are on the XY Plane
+		cv::Point3f openCVLensCalibrationPoint(
+			openCVSolvePnPPoint.x,
+			openCVSolvePnPPoint.z,
+			0.f);
+		opencvLensCalibrationGeometry.points.push_back(openCVLensCalibrationPoint);
+
+		// OpenCV -> OpenGL coordinate system transform
+		// Rendering world units in meters, not mm
+		glm::vec3 openGLPoint(
+			openCVSolvePnPPoint.x * k_millimeters_to_meters,
+			-openCVSolvePnPPoint.y * k_millimeters_to_meters,
+			-openCVSolvePnPPoint.z * k_millimeters_to_meters);
+		openglSolvePnPGeometry.points.push_back(openGLPoint);
+	}
+}
+
 CalibrationPatternFinder_Aruco::CalibrationPatternFinder_Aruco(
 	CameraComponentConstPtr cameraComponent,
 	VideoFrameDistortionView* distortionView)
@@ -48,7 +103,7 @@ CalibrationPatternFinder_Aruco::CalibrationPatternFinder_Aruco(
 	assert(ownerStage != nullptr);
 	IEditorWindow* ownerWindow= ownerStage->getOwnerEditorWindow();
 	assert(ownerWindow != nullptr);
-	MarkerObjectSystemPtr markerSystem= 
+	MarkerObjectSystemPtr markerSystem=
 		ownerWindow->getProjectManager()->getSystemOfType<MarkerObjectSystem>();
 	assert(markerSystem != nullptr);
 	TrackingVolumeDefinitionConstPtr trackingVolume = ownerStage->getTrackingVolumeDefinitionConst();
@@ -56,51 +111,32 @@ CalibrationPatternFinder_Aruco::CalibrationPatternFinder_Aruco(
 	MarkerDefinitionConstPtr originMarker= trackingVolume->getOriginMarker();
 	assert(originMarker != nullptr);
 
-	int desiredArucoId = originMarker->getArucoId();
-	float markerLengthMM = originMarker->getLengthMM();
-	ArucoDictionaryPtr dictionary= 
-		getArucoDictionary(
-			markerSystem->getTypedDefinition()->getArucoDictionaryType());
+	initArucoBoardData(
+		m_markerData,
+		m_opencvSolvePnPGeometry, m_opencvLensCalibrationGeometry, m_openglSolvePnPGeometry,
+		markerSystem, originMarker);
+}
 
-	// Use corner refinement to get the best possible corner locations
-	cv::aruco::DetectorParameters detectorParams;
-	detectorParams.cornerRefinementMethod= cv::aruco::CORNER_REFINE_SUBPIX;
+CalibrationPatternFinder_Aruco::CalibrationPatternFinder_Aruco(
+	CameraComponentConstPtr cameraComponent,
+	VideoFrameDistortionView* distortionView,
+	MarkerDefinitionConstPtr markerDefinition)
+	: CalibrationPatternFinder(distortionView)
+	, m_markerData(new ArucoBoardData())
+{
+	StageComponentConstPtr ownerStage = cameraComponent->getOwnerStageComponent();
+	assert(ownerStage != nullptr);
+	IEditorWindow* ownerWindow = ownerStage->getOwnerEditorWindow();
+	assert(ownerWindow != nullptr);
+	MarkerObjectSystemPtr markerSystem =
+		ownerWindow->getProjectManager()->getSystemOfType<MarkerObjectSystem>();
+	assert(markerSystem != nullptr);
+	assert(markerDefinition != nullptr);
 
-	m_markerData->desiredArucoId = desiredArucoId;
-	m_markerData->markerLengthMM = markerLengthMM;
-	m_markerData->detector = cv::makePtr<cv::aruco::ArucoDetector>(*dictionary.get(), detectorParams);
-
-	// The Aruco board is a square, so we can hardcode the points in ARUCO_CCW_CENTER style
-	// Solve PnP points are on the XZ Plane
-	m_opencvSolvePnPGeometry.points.clear();
-	m_opencvSolvePnPGeometry.points.push_back(cv::Point3f(-markerLengthMM / 2.f, 0.f, markerLengthMM / 2.f));
-	m_opencvSolvePnPGeometry.points.push_back(cv::Point3f(markerLengthMM / 2.f, 0.f, markerLengthMM / 2.f));
-	m_opencvSolvePnPGeometry.points.push_back(cv::Point3f(markerLengthMM / 2.f, 0.f, -markerLengthMM / 2.f));
-	m_opencvSolvePnPGeometry.points.push_back(cv::Point3f(-markerLengthMM / 2.f, 0.f, -markerLengthMM / 2.f));
-
-	// Derive the other geometry from the OpenCV SolvePnP geometry
-	m_opencvLensCalibrationGeometry.points.clear();
-	m_openglSolvePnPGeometry.points.clear();
-	for (int index = 0; index < 4; index++)
-	{
-		// Solve PnP points are on the XZ Plane
-		const cv::Point3f& openCVSolvePnPPoint= m_opencvSolvePnPGeometry.points[index];
-
-		// Lens calibration points are on the XY Plane
-		cv::Point3f openCVLensCalibrationPoint(
-			openCVSolvePnPPoint.x,
-			openCVSolvePnPPoint.z,
-			0.f);
-		m_opencvLensCalibrationGeometry.points.push_back(openCVLensCalibrationPoint);
-
-		// OpenCV -> OpenGL coordinate system transform
-		// Rendering world units in meters, not mm
-		glm::vec3 openGLPoint(
-			openCVSolvePnPPoint.x * k_millimeters_to_meters,
-			-openCVSolvePnPPoint.y * k_millimeters_to_meters,
-			-openCVSolvePnPPoint.z * k_millimeters_to_meters);
-		m_openglSolvePnPGeometry.points.push_back(openGLPoint);
-	}
+	initArucoBoardData(
+		m_markerData,
+		m_opencvSolvePnPGeometry, m_opencvLensCalibrationGeometry, m_openglSolvePnPGeometry,
+		markerSystem, markerDefinition);
 }
 
 CalibrationPatternFinder_Aruco::~CalibrationPatternFinder_Aruco()

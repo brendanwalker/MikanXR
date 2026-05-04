@@ -17,11 +17,12 @@ ModalDialog_SelectCamera::ModalDialog_SelectCamera(AppStage* appStage)
 bool ModalDialog_SelectCamera::selectCamera(
 	AppStage* appStage,
 	SelectCallback selectCallback,
-	CancelCallback cancelCallback)
+	CancelCallback cancelCallback,
+	FilterCallback filterCallback)
 {
 	ModalDialog_SelectCamera* dialog = appStage->pushModalDialog<ModalDialog_SelectCamera>();
 
-	if (!dialog->init(selectCallback, cancelCallback))
+	if (!dialog->init(selectCallback, cancelCallback, filterCallback))
 	{
 		appStage->popModalDialog();
 		return false;
@@ -32,10 +33,12 @@ bool ModalDialog_SelectCamera::selectCamera(
 
 bool ModalDialog_SelectCamera::init(
 	SelectCallback selectCallback,
-	CancelCallback cancelCallback)
+	CancelCallback cancelCallback,
+	FilterCallback filterCallback)
 {
 	m_selectCallback = selectCallback;
 	m_cancelCallback = cancelCallback;
+	m_filterCallback = filterCallback;
 
 	CameraObjectSystemPtr cameraSystem = m_ownerAppStage->getSystemOfType<CameraObjectSystem>();
 	if (!cameraSystem)
@@ -45,6 +48,9 @@ bool ModalDialog_SelectCamera::init(
 	{
 		CameraComponentPtr camera = std::static_pointer_cast<CameraComponent>(weakPtr.lock());
 		if (!camera)
+			continue;
+
+		if (m_filterCallback && !m_filterCallback(camera))
 			continue;
 
 		m_cameraIds.push_back((MikanCameraID)id);

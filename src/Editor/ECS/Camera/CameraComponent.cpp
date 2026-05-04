@@ -3,6 +3,7 @@
 #include "CameraMath.h"
 #include "App.h"
 #include "AlignmentCalibration/AppStage_AlignmentCalibration.h"
+#include "AlignCameraByUtilityMarker/AppStage_AlignCameraByUtilityMarker.h"
 #include "ModalMessageBox/ModalDialog_MessageBox.h"
 #include "Colors.h"
 #include "IEditorWindow.h"
@@ -334,6 +335,14 @@ VRTrackingVolumeDefinitionConstPtr CameraComponent::getVRTrackingVolumeDefinitio
 VRTrackingVolumeDefinitionPtr CameraComponent::getVRTrackingVolumeDefinitionMutable() 
 {
 	return std::const_pointer_cast<VRTrackingVolumeDefinition>(getVRTrackingVolumeDefinition());
+}
+
+bool CameraComponent::hasValidTrackingMountComponent() const
+{
+	CameraDefinitionPtr cameraDefinition = getCameraDefinition();
+	MikanTrackingMountID trackingMountId = cameraDefinition->getTrackingMountId();
+
+	return (trackingMountId != INVALID_MIKAN_ID);
 }
 
 TrackingMountComponentConstPtr CameraComponent::getTrackingMountComponent() const
@@ -772,13 +781,22 @@ void CameraComponent::alignCamera()
 	switch (getTrackingVolumeType())
 	{
 	case eTrackingVolumeType::vr:
-		AppStage_AlignmentCalibration::tryEnterAlignmentCalibration(
-			currentAppStage, 
-			getSelfPtr<CameraComponent>());
+		if (hasValidTrackingMountComponent())
+		{
+			AppStage_AlignmentCalibration::tryEnterAlignmentCalibration(
+				currentAppStage,
+				getSelfPtr<CameraComponent>());
+		}
+		else
+		{
+			AppStage_AlignCameraByUtilityMarker::tryEnterCalibration(
+				currentAppStage,
+				getSelfPtr<CameraComponent>());
+		}
 		break;
 	case eTrackingVolumeType::marker:
 		//TODO:
-		//AppStage_MarkerAlignmentCalibration::tryEnterAlignmentCalibration(
+		//AppStage_AlignCameraByOriginMarker::tryEnterAlignmentCalibration(
 		//	currentAppStage,
 		//	getSelfPtr<CameraComponent>());
 		break;

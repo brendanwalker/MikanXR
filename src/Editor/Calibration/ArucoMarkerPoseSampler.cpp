@@ -89,6 +89,24 @@ ArucoMarkerPoseSampler::ArucoMarkerPoseSampler(
 		desiredSampleCount);
 }
 
+ArucoMarkerPoseSampler::ArucoMarkerPoseSampler(
+	CameraComponentPtr cameraComponent,
+	VideoFrameDistortionView* distortionView,
+	int desiredSampleCount,
+	MarkerDefinitionConstPtr markerDefinition)
+	: m_calibrationState(new ArucoMarkerPoseSamplerState)
+	, m_calibrationCamera(cameraComponent)
+	, m_cameraPuckPose_VRSystemSpace(cameraComponent->makeTrackingMountPoseView(eVRDevicePoseSpace::VRTrackingSystemPose))
+	, m_markerFinder(new CalibrationPatternFinder_Aruco(cameraComponent, distortionView, markerDefinition))
+{
+	frameWidth = distortionView->getFrameWidth();
+	frameHeight = distortionView->getFrameHeight();
+
+	m_calibrationState->init(
+		cameraComponent,
+		desiredSampleCount);
+}
+
 ArucoMarkerPoseSampler::~ArucoMarkerPoseSampler()
 {
 	delete m_markerFinder;
@@ -123,11 +141,18 @@ bool ArucoMarkerPoseSampler::computeVRSpaceMarkerXform()
 	m_calibrationState->hasValidCapture= false;
 
 	// Compute the camera pose in VRSpace
-	glm::dmat4 apertureXform_VRSpace;
-	if (!m_calibrationCamera->getStageSpaceAperturePose(apertureXform_VRSpace))
+	glm::mat4 cameraPuckPose_VRSpace;
+	glm::mat4 cameraPuckToApertureXform;
+	if (!m_cameraPuckPose_VRSystemSpace ||
+		!m_cameraPuckPose_VRSystemSpace->getPose(m_calibrationCamera, cameraPuckPose_VRSpace) ||
+		!m_calibrationCamera->getApertureOffsetXform(cameraPuckToApertureXform))
 	{
 		return false;
 	}
+	glm::dmat4 apertureXform_VRSpace =
+		glm_composite_xform(
+			cameraPuckToApertureXform, cameraPuckPose_VRSpace);
+
 
 	// Look for the calibration pattern in the latest video frame
 	glm::dmat4 apertureToPatternXform;

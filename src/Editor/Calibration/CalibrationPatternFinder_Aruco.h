@@ -5,9 +5,16 @@
 class CalibrationPatternFinder_Aruco : public CalibrationPatternFinder
 {
 public:
+	// Detects the stage's origin marker (default behavior)
 	CalibrationPatternFinder_Aruco(
 		CameraComponentConstPtr cameraComponent,
 		VideoFrameDistortionView* distortionView);
+
+	// Detects an explicit marker definition (e.g., a utility marker)
+	CalibrationPatternFinder_Aruco(
+		CameraComponentConstPtr cameraComponent,
+		VideoFrameDistortionView* distortionView,
+		MarkerDefinitionConstPtr markerDefinition);
 	virtual ~CalibrationPatternFinder_Aruco();
 
 	virtual eCalibrationPatternType getCalibrationPatternType() const override 

@@ -92,6 +92,7 @@ public:
 	VRTrackingVolumeComponentConstPtr getVRTrackingVolumeComponent() const;
 	VRTrackingVolumeDefinitionConstPtr getVRTrackingVolumeDefinition() const;
 	VRTrackingVolumeDefinitionPtr getVRTrackingVolumeDefinitionMutable();
+	bool hasValidTrackingMountComponent() const;
 	TrackingMountComponentConstPtr getTrackingMountComponent() const;
 	TrackingMountDefinitionConstPtr getTrackingMountDefinition() const;
 	TrackingMountDefinitionPtr getTrackingMountDefinitionMutable();
