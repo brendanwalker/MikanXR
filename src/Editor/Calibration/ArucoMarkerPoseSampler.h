@@ -32,13 +32,12 @@ public:
 	float getCalibrationProgress() const;
 	void resetCalibrationState();
 
-	bool computeVRSpaceMarkerXform();
-	bool hasValidVRSpaceMarkerXform() const;
-	void sampleLastVRSpaceMarkerXform();
+	bool computeApertureRelativeMarkerXform();
+	bool hasValidApertureRelativeMarkerXform() const;
+	void sampleLastApertureRelativeMarkerXform();
 	bool computeCalibratedMarkerPose(MikanQuatd& outRotation, MikanVector3d& outTranslation);
 
 	void renderApertureSpaceCalibrationState();
-	void renderVRSpaceCalibrationState();
 
 protected:
 
@@ -50,9 +49,6 @@ protected:
 
 	// Tracked camera used for calibration
 	CameraComponentPtr m_calibrationCamera;
-
-	// VR System-space pose of the camera puck
-	VRDevicePoseViewPtr m_cameraPuckPose_VRSystemSpace;
 
 	// Calibration pattern being used
 	class CalibrationPatternFinder_Aruco* m_markerFinder;

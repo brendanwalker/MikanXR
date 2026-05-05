@@ -70,6 +70,7 @@ private:
 	VRTrackingVolumeComponentPtr m_targetTrackingVolume;
 
 	class ArucoMarkerPoseSampler* m_markerPoseSampler;
+	class VRDevicePoseSampler* m_puckSampler = nullptr;
 	class VideoFrameDistortionView* m_monoDistortionView;
 
 	MikanCameraPtr m_mkCamera;

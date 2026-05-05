@@ -58,22 +58,20 @@ private:
 	CameraComponentPtr         m_targetCameraComponent;
 	VideoSourceComponentPtr    m_targetVideoSource;
 	class VideoFrameDistortionView*        m_targetDistortionView = nullptr;
-	class CalibrationPatternFinder_Aruco*  m_targetMarkerFinder = nullptr;
+	class ArucoMarkerPoseSampler*          m_targetMarkerSampler  = nullptr;
 
 	// Source camera (already calibrated with tracking mount + aperture offset)
 	CameraComponentPtr         m_sourceCameraComponent;
 	VideoSourceComponentPtr    m_sourceVideoSource;
 	class VideoFrameDistortionView*        m_sourceDistortionView = nullptr;
-	class ArucoMarkerPoseSampler*          m_sourceMarkerSampler = nullptr;
+	class ArucoMarkerPoseSampler*          m_sourceMarkerSampler  = nullptr;
+	class VRDevicePoseSampler*             m_sourcePuckSampler    = nullptr;
 
 	// Utility marker ID from tracking volume
 	MikanMarkerID m_utilityMarkerId = INVALID_MIKAN_ID;
 
-	// Sample accumulation for target camera (camera-space transforms), stored in PIMPL struct
-	struct TargetMarkerSamples* m_targetSamples = nullptr;
-
 	// Averaged results
-	glm::dmat4 m_markerXform_VRSpace;          // from source sampler
+	glm::dmat4 m_markerXform_VRSpace;          // from source sampler + puck compose
 	glm::dmat4 m_targetApertureXform_StageSpace;  // final computed pose
 
 	IMkFrameBufferPtr      m_frameBuffer;

@@ -4,7 +4,8 @@
 #include "ModalMessageBox/ModalDialog_MessageBox.h"
 #include "ModalSelectCamera/ModalDialog_SelectCamera.h"
 #include "ArucoMarkerPoseSampler.h"
-#include "CalibrationPatternFinder_Aruco.h"
+#include "VRDevicePoseSampler.h"
+#include "VRDevicePoseView.h"
 #include "CalibrationRenderHelpers.h"
 #include "CameraComponent.h"
 #include "CameraObjectSystem.h"
@@ -16,7 +17,6 @@
 #include "MarkerComponent.h"
 #include "MarkerObjectSystem.h"
 #include "MathGLM.h"
-#include "MathOpenCV.h"
 #include "MathTypeConversion.h"
 #include "MikanCamera.h"
 #include "MikanLineRenderer.h"
@@ -38,28 +38,12 @@
 
 #include "imgui.h"
 
-//-- internal structs -----
-struct TargetMarkerSamples
-{
-	std::vector<cv::Quatd>  quats;
-	std::vector<cv::Vec3d>  positions;
-
-	int size() const { return (int)positions.size(); }
-
-	void clear()
-	{
-		quats.clear();
-		positions.clear();
-	}
-};
-
 //-- statics ----
 const char* AppStage_AlignCameraByUtilityMarker::APP_STAGE_NAME = "AlignCameraByUtilityMarker";
 
 //-- public methods -----
 AppStage_AlignCameraByUtilityMarker::AppStage_AlignCameraByUtilityMarker(IEditorWindow* ownerWindow)
 	: AppStage(ownerWindow, AppStage_AlignCameraByUtilityMarker::APP_STAGE_NAME)
-	, m_targetSamples(new TargetMarkerSamples())
 	, m_frameBuffer(createMkFrameBuffer())
 	, m_fullscreenQuad(createFullscreenQuadMesh(ownerWindow->getGraphicsContext().get(), false))
 {
@@ -67,7 +51,6 @@ AppStage_AlignCameraByUtilityMarker::AppStage_AlignCameraByUtilityMarker(IEditor
 
 AppStage_AlignCameraByUtilityMarker::~AppStage_AlignCameraByUtilityMarker()
 {
-	delete m_targetSamples;
 }
 
 bool AppStage_AlignCameraByUtilityMarker::tryEnterCalibration(
@@ -187,6 +170,11 @@ void AppStage_AlignCameraByUtilityMarker::exit()
 		delete m_sourceMarkerSampler;
 		m_sourceMarkerSampler = nullptr;
 	}
+	if (m_sourcePuckSampler != nullptr)
+	{
+		delete m_sourcePuckSampler;
+		m_sourcePuckSampler = nullptr;
+	}
 	if (m_sourceDistortionView != nullptr)
 	{
 		delete m_sourceDistortionView;
@@ -194,10 +182,10 @@ void AppStage_AlignCameraByUtilityMarker::exit()
 	}
 
 	// Free target calibration objects
-	if (m_targetMarkerFinder != nullptr)
+	if (m_targetMarkerSampler != nullptr)
 	{
-		delete m_targetMarkerFinder;
-		m_targetMarkerFinder = nullptr;
+		delete m_targetMarkerSampler;
+		m_targetMarkerSampler = nullptr;
 	}
 	if (m_targetDistortionView != nullptr)
 	{
@@ -498,13 +486,22 @@ void AppStage_AlignCameraByUtilityMarker::setupCalibrators()
 		ALIGN_CAMERA_BY_UTILITY_MARKER_SAMPLE_COUNT,
 		utilityMarkerDef);
 
-	// Set up target camera (no tracking mount - use CalibrationPatternFinder_Aruco directly)
+	// Set up target camera (no tracking mount - ArucoMarkerPoseSampler for aperture-relative samples)
 	m_targetDistortionView = new VideoFrameDistortionView(m_targetVideoSource, VIDEO_FRAME_HAS_ALL);
 	m_targetDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
-	m_targetMarkerFinder = new CalibrationPatternFinder_Aruco(
+	m_targetMarkerSampler = new ArucoMarkerPoseSampler(
 		m_targetCameraComponent,
 		m_targetDistortionView,
+		ALIGN_CAMERA_BY_UTILITY_MARKER_SAMPLE_COUNT,
 		utilityMarkerDef);
+
+	// Set up source puck sampler
+	VRDevicePoseViewPtr puckPoseView =
+		m_sourceCameraComponent->makeTrackingMountPoseView(eVRDevicePoseSpace::VRTrackingSystemPose);
+	m_sourcePuckSampler = new VRDevicePoseSampler(
+		puckPoseView,
+		m_sourceCameraComponent,
+		ALIGN_CAMERA_BY_UTILITY_MARKER_SAMPLE_COUNT);
 
 	// Set up framebuffer for testCalibration view
 	MikanVideoSourceIntrinsics cameraIntrinsics;
@@ -516,8 +513,6 @@ void AppStage_AlignCameraByUtilityMarker::setupCalibrators()
 	m_frameBuffer->createResources();
 	m_frameBuffer->setClearColor(glm::vec4(Colors::CornflowerBlue, 1.f));
 
-	// Clear sample accumulators
-	m_targetSamples->clear();
 }
 
 void AppStage_AlignCameraByUtilityMarker::updateVerifySetup()
@@ -530,12 +525,11 @@ void AppStage_AlignCameraByUtilityMarker::updateVerifySetup()
 	m_targetDistortionView->readAndProcessVideoFrame();
 
 	// Check if source camera sees the utility marker
-	const bool sourceCanSeeMarker = m_sourceMarkerSampler->computeVRSpaceMarkerXform();
+	const bool sourceCanSeeMarker = m_sourceMarkerSampler->computeApertureRelativeMarkerXform();
 	m_calibrationPanel->setSourceMarkerVisible(sourceCanSeeMarker);
 
 	// Check if target camera sees the utility marker
-	glm::dmat4 dummy;
-	const bool targetCanSeeMarker = m_targetMarkerFinder->estimateNewCalibrationPatternPose(dummy);
+	const bool targetCanSeeMarker = m_targetMarkerSampler->computeApertureRelativeMarkerXform();
 	m_calibrationPanel->setTargetMarkerVisible(targetCanSeeMarker);
 }
 
@@ -548,36 +542,36 @@ void AppStage_AlignCameraByUtilityMarker::updateCapturing()
 	m_sourceDistortionView->readAndProcessVideoFrame();
 	m_targetDistortionView->readAndProcessVideoFrame();
 
-	// Sample from source camera (computes marker_StageSpace)
-	if (m_sourceMarkerSampler->computeVRSpaceMarkerXform())
+	// Sample from source camera: marker pose + puck pose
+	if (m_sourcePuckSampler->computeVRDeviceXform() &&
+		m_sourceMarkerSampler->computeApertureRelativeMarkerXform())
 	{
+		if (!m_sourcePuckSampler->hasFinishedSampling())
+		{
+			m_sourcePuckSampler->sampleLastVRDeviceXform();
+		}
+
 		if (!m_sourceMarkerSampler->hasFinishedSampling())
-			m_sourceMarkerSampler->sampleLastVRSpaceMarkerXform();
+		{
+			m_sourceMarkerSampler->sampleLastApertureRelativeMarkerXform();
+		}
 	}
 
-	// Sample from target camera (records raw camera-space apertureToMarker transform)
-	if (m_targetSamples->size() < ALIGN_CAMERA_BY_UTILITY_MARKER_SAMPLE_COUNT)
+	// Sample from target camera (aperture-relative marker pose)
+	if (m_targetMarkerSampler->computeApertureRelativeMarkerXform())
 	{
-		glm::dmat4 apertureToMarkerXform;
-		if (m_targetMarkerFinder->estimateNewCalibrationPatternPose(apertureToMarkerXform))
+		if (!m_targetMarkerSampler->hasFinishedSampling())
 		{
-			const glm::dvec3 t = glm::dvec3(apertureToMarkerXform[3]);
-			const glm::dquat q = glm::quat_cast(apertureToMarkerXform);
-			m_targetSamples->quats.push_back(glm_dquat_to_cv_quatd(q));
-			m_targetSamples->positions.push_back(glm_dvec3_to_cv_vec3d(t));
+			m_targetMarkerSampler->sampleLastApertureRelativeMarkerXform();
 		}
 	}
 
 	// Update progress
-	const float sourceFraction = m_sourceMarkerSampler->getCalibrationProgress();
-	const float targetFraction =
-		(float)m_targetSamples->size() / (float)ALIGN_CAMERA_BY_UTILITY_MARKER_SAMPLE_COUNT;
-	m_calibrationPanel->setSourceCaptureFraction(sourceFraction);
-	m_calibrationPanel->setTargetCaptureFraction(targetFraction);
+	m_calibrationPanel->setSourceCaptureFraction(m_sourceMarkerSampler->getCalibrationProgress());
+	m_calibrationPanel->setTargetCaptureFraction(m_targetMarkerSampler->getCalibrationProgress());
 
 	// Check if both have finished sampling
-	if (m_sourceMarkerSampler->hasFinishedSampling() &&
-		m_targetSamples->size() >= ALIGN_CAMERA_BY_UTILITY_MARKER_SAMPLE_COUNT)
+	if (m_sourceMarkerSampler->hasFinishedSampling() && m_targetMarkerSampler->hasFinishedSampling())
 	{
 		computeAndApplyTargetTransform();
 	}
@@ -585,42 +579,61 @@ void AppStage_AlignCameraByUtilityMarker::updateCapturing()
 
 void AppStage_AlignCameraByUtilityMarker::computeAndApplyTargetTransform()
 {
-	// 1. Get averaged marker stage-space pose from source sampler
-	MikanQuatd srcRot;
-	MikanVector3d srcTrans;
-	if (!m_sourceMarkerSampler->computeCalibratedMarkerPose(srcRot, srcTrans))
+	// 1. Averaged source puck pose in VR space
+	MikanQuatd puckRot;
+	MikanVector3d puckPos;
+	if (!m_sourcePuckSampler->computeCalibratedDevicePose(puckRot, puckPos))
 		return;
+	const glm::dmat4 avgSourcePuckXform_VRSpace =
+		glm_mat4_from_pose(
+			MikanQuatd_to_glm_dquat(puckRot),
+			MikanVector3d_to_glm_dvec3(puckPos));
 
-	const glm::dquat markerRot = MikanQuatd_to_glm_dquat(srcRot);
-	const glm::dvec3 markerPos = MikanVector3d_to_glm_dvec3(srcTrans);
-	m_markerXform_VRSpace = glm_mat4_from_pose(markerRot, markerPos);
+	// 2. Source aperture offset (fixed, not sampled)
+	glm::mat4 sourceApertureOffset;
+	m_sourceCameraComponent->getApertureOffsetXform(sourceApertureOffset);
 
-	// 2. Average target camera-space samples
-	cv::Quatd cv_avgTargetQuat;
-	cv::Vec3d cv_avgTargetTrans;
-	if (!opencv_quaternion_compute_average(m_targetSamples->quats, cv_avgTargetQuat) ||
-		!opencv_vec3d_compute_average(m_targetSamples->positions, cv_avgTargetTrans))
+	// 3. Averaged source aperture-to-marker transform
+	MikanQuatd srcMarkerRot;
+	MikanVector3d srcMarkerPos;
+	if (!m_sourceMarkerSampler->computeCalibratedMarkerPose(srcMarkerRot, srcMarkerPos))
 		return;
+	const glm::dmat4 avgSrcApertureToMarker =
+		glm_mat4_from_pose(
+			MikanQuatd_to_glm_dquat(srcMarkerRot),
+			MikanVector3d_to_glm_dvec3(srcMarkerPos));
 
-	const glm::dquat avgTargetQuat = cv_quatd_to_glm_dquat(cv_avgTargetQuat);
-	const glm::dvec3 avgTargetTrans = cv_vec3d_to_glm_dvec3(cv_avgTargetTrans);
-	const glm::dmat4 apertureToMarker = glm_mat4_from_pose(avgTargetQuat, avgTargetTrans);
+	// 4. Compose to get marker in VR Tracking Space
+	glm::dmat4 srcApertureXform_VRSpace=
+		glm_composite_xform(glm::dmat4(sourceApertureOffset), avgSourcePuckXform_VRSpace);
+	m_markerXform_VRSpace =
+		glm_composite_xform(avgSrcApertureToMarker, srcApertureXform_VRSpace);
 
-	// 3. Convert the target aperture transform in VRSpace
-	const glm::dmat4 markerToAperture = glm::inverse(apertureToMarker);
-	const glm::dmat4 targetApertureXform_VRSpace = glm_composite_xform(markerToAperture, m_markerXform_VRSpace);
+	// 5. Averaged target aperture-to-marker transform
+	MikanQuatd targetMarkerRot;
+	MikanVector3d targetMarkerPos;
+	if (!m_targetMarkerSampler->computeCalibratedMarkerPose(targetMarkerRot, targetMarkerPos))
+		return;
+	const glm::dmat4 avgTargetApertureToMarker =
+		glm_mat4_from_pose(
+			MikanQuatd_to_glm_dquat(targetMarkerRot),
+			MikanVector3d_to_glm_dvec3(targetMarkerPos));
 
-	// 4. Convert the target aperture transform from VRSpace to StageSpace
+	// 6. Compute the target aperture transform in VRSpace
+	const glm::dmat4 avgMarkerToTargetAperture = glm::inverse(avgTargetApertureToMarker);
+	const glm::dmat4 targetApertureXform_VRSpace = 
+		glm_composite_xform(avgMarkerToTargetAperture, m_markerXform_VRSpace);
+
+	// 7. Convert the target aperture transform from VRSpace to StageSpace
 	const auto stageComponent = m_targetCameraComponent->getOwnerStageComponent();
 	const auto trackingVolumeDefinition =
 		std::static_pointer_cast<const VRTrackingVolumeComponent>(
 			stageComponent->getTrackingVolumeConst());
-	glm::mat4 glmVRDevicePoseOffset = trackingVolumeDefinition->getVRDevicePoseOffset();
+	const glm::mat4 glmVRDevicePoseOffset = trackingVolumeDefinition->getVRDevicePoseOffset();
 
-	m_targetApertureXform_StageSpace = 
+	// 8. Compute final target aperture pose in stage space and apply
+	m_targetApertureXform_StageSpace =
 		glm_composite_xform(targetApertureXform_VRSpace, glmVRDevicePoseOffset);
-
-	// 4. Update the target camera's stage-space transform to match the computed aperture pose
 	m_targetCameraComponent->setRelativeTransform(glm::mat4(m_targetApertureXform_StageSpace));
 
 	setMenuState(eAlignCameraByUtilityMarkerMenuState::testCalibration);
@@ -634,20 +647,26 @@ void AppStage_AlignCameraByUtilityMarker::setMenuState(eAlignCameraByUtilityMark
 
 void AppStage_AlignCameraByUtilityMarker::onBeginEvent()
 {
-	// Reset sample accumulators
-	m_targetSamples->clear();
+	// Reset all samplers
 	if (m_sourceMarkerSampler)
 		m_sourceMarkerSampler->resetCalibrationState();
+	if (m_sourcePuckSampler)
+		m_sourcePuckSampler->resetCalibrationState();
+	if (m_targetMarkerSampler)
+		m_targetMarkerSampler->resetCalibrationState();
 
 	setMenuState(eAlignCameraByUtilityMarkerMenuState::capturing);
 }
 
 void AppStage_AlignCameraByUtilityMarker::onRestartEvent()
 {
-	// Reset and go back to verifySetup
-	m_targetSamples->clear();
+	// Reset all samplers
 	if (m_sourceMarkerSampler)
 		m_sourceMarkerSampler->resetCalibrationState();
+	if (m_sourcePuckSampler)
+		m_sourcePuckSampler->resetCalibrationState();
+	if (m_targetMarkerSampler)
+		m_targetMarkerSampler->resetCalibrationState();
 	m_calibrationPanel->setSourceCaptureFraction(0.f);
 	m_calibrationPanel->setTargetCaptureFraction(0.f);
 

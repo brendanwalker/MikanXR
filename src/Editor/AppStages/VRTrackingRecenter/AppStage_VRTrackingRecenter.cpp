@@ -2,6 +2,8 @@
 #include "VRTrackingRecenter/AppStage_VRTrackingRecenter.h"
 #include "VRTrackingRecenter/GuiPanel_VRTrackingRecenter.h"
 #include "ArucoMarkerPoseSampler.h"
+#include "VRDevicePoseSampler.h"
+#include "VRDevicePoseView.h"
 #include "App.h"
 #include "CalibrationPatternFinder.h"
 #include "CameraComponent.h"
@@ -178,11 +180,17 @@ void AppStage_VRTrackingRecenter::exit()
 		m_videoSourceComponent = nullptr;
 	}
 
-	// Free the calibrator
+	// Free the calibrators
 	if (m_markerPoseSampler != nullptr)
 	{
 		delete m_markerPoseSampler;
 		m_markerPoseSampler = nullptr;
+	}
+
+	if (m_puckSampler != nullptr)
+	{
+		delete m_puckSampler;
+		m_puckSampler = nullptr;
 	}
 
 	// Free the distortion view buffers
@@ -209,6 +217,15 @@ void AppStage_VRTrackingRecenter::setupMarkerPoseSampler()
 		new ArucoMarkerPoseSampler(
 			m_cameraComponent,
 			m_monoDistortionView,
+			DESIRED_MARKER_SAMPLE_COUNT);
+
+	// Create a sampler to record the camera puck pose in VR tracking space
+	VRDevicePoseViewPtr puckPoseView =
+		m_cameraComponent->makeTrackingMountPoseView(eVRDevicePoseSpace::VRTrackingSystemPose);
+	m_puckSampler =
+		new VRDevicePoseSampler(
+			puckPoseView,
+			m_cameraComponent,
 			DESIRED_MARKER_SAMPLE_COUNT);
 }
 
@@ -269,10 +286,10 @@ void AppStage_VRTrackingRecenter::update(float deltaSeconds)
 				m_monoDistortionView->readAndProcessVideoFrame();
 
 				// Look for a marker pose so that we can preview if it's in frame
-				m_markerPoseSampler->computeVRSpaceMarkerXform();
+				m_markerPoseSampler->computeApertureRelativeMarkerXform();
 
 				// See if we can compute a valid marker pose
-				m_calibrationPanel->setCurrentMarkerValid(m_markerPoseSampler->hasValidVRSpaceMarkerXform());
+				m_calibrationPanel->setCurrentMarkerValid(m_markerPoseSampler->hasValidApertureRelativeMarkerXform());
 
 				// Update the time that the chessboard has been stable for
 				m_calibrationPanel->updateMarkerStabilityTimer(deltaSeconds);
@@ -283,10 +300,12 @@ void AppStage_VRTrackingRecenter::update(float deltaSeconds)
 				// Update the video frame buffers
 				m_monoDistortionView->readAndProcessVideoFrame();
 
-				// Update the chess board capture state
-				if (m_markerPoseSampler->computeVRSpaceMarkerXform())
+				// Sample marker and puck together each frame
+				if (m_markerPoseSampler->computeApertureRelativeMarkerXform() &&
+					m_puckSampler->computeVRDeviceXform())
 				{
-					m_markerPoseSampler->sampleLastVRSpaceMarkerXform();
+					m_markerPoseSampler->sampleLastApertureRelativeMarkerXform();
+					m_puckSampler->sampleLastVRDeviceXform();
 
 					// Update the calibration fraction on the UI Model
 					m_calibrationPanel->setCalibrationFraction(m_markerPoseSampler->getCalibrationProgress());
@@ -295,16 +314,29 @@ void AppStage_VRTrackingRecenter::update(float deltaSeconds)
 				// See if we have gotten all the samples we require
 				if (m_markerPoseSampler->hasFinishedSampling())
 				{
-					MikanQuatd rotation;
-					MikanVector3d translation;
-					if (m_markerPoseSampler->computeCalibratedMarkerPose(rotation, translation))
+					MikanQuatd puckRot;   MikanVector3d puckPos;
+					MikanQuatd markerRot; MikanVector3d markerPos;
+					glm::mat4 apertureOffsetXform;
+					if (m_puckSampler->computeCalibratedDevicePose(puckRot, puckPos) &&
+						m_markerPoseSampler->computeCalibratedMarkerPose(markerRot, markerPos) &&
+						m_cameraComponent->getApertureOffsetXform(apertureOffsetXform))
 					{
+						// markerPose_VRSpace = puck x apertureOffset x apertureToMarker
+						glm::dmat4 avgPuckXform_VRSpace =
+							glm_mat4_from_pose(
+								MikanQuatd_to_glm_dquat(puckRot), 
+								MikanVector3d_to_glm_dvec3(puckPos));
+						glm::dmat4 avgApertureToMarker =
+							glm_mat4_from_pose(
+								MikanQuatd_to_glm_dquat(markerRot),
+								MikanVector3d_to_glm_dvec3(markerPos));
+						glm::dmat4 avgAperturePose_VRSpace =
+							glm_composite_xform(apertureOffsetXform, avgPuckXform_VRSpace);
+						glm::dmat4 markerXform_VRSpace =
+							glm_composite_xform(avgApertureToMarker, avgAperturePose_VRSpace);
+
 						// The VR device pose offset is the inverse of the marker pose
-						// (This makes the marker pose the tracking origin)
-						glm::vec3 glmPosition = MikanVector3d_to_glm_dvec3(translation);
-						glm::quat glmOrientation = MikanQuatd_to_glm_dquat(rotation);
-						glm::mat4 glmXform= glm_mat4_from_pose(glmOrientation, glmPosition);
-						glm::mat4 glmVRDevicePoseOffset= glm::inverse(glmXform);
+						glm::mat4 glmVRDevicePoseOffset = glm::inverse(glm::mat4(markerXform_VRSpace));
 
 						// Publish the new VR device pose offset to the target tracking volume
 						m_targetTrackingVolume->setVRDevicePoseOffset(glmVRDevicePoseOffset);
@@ -446,6 +478,7 @@ bool AppStage_VRTrackingRecenter::tryBeginCapture()
 	{
 		// Clear out all of the calibration data we recorded
 		m_markerPoseSampler->resetCalibrationState();
+		m_puckSampler->resetCalibrationState();
 
 		// Reset all calibration state on the calibration UI model
 		m_calibrationPanel->setCalibrationFraction(0.f);
@@ -470,6 +503,7 @@ bool AppStage_VRTrackingRecenter::tryRestartCapture()
 	{
 		// Clear out all of the calibration data we recorded
 		m_markerPoseSampler->resetCalibrationState();
+		m_puckSampler->resetCalibrationState();
 
 		// Reset all calibration state on the calibration UI model
 		m_calibrationPanel->setCalibrationFraction(0.f);
