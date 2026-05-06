@@ -241,8 +241,6 @@ void AppStage_AlignCameraByUtilityMarker::update(float deltaSeconds)
 	case eAlignCameraByUtilityMarkerMenuState::testCalibration:
 		{
 			// Keep video feeds updated for preview
-			if (m_sourceDistortionView)
-				m_sourceDistortionView->readAndProcessVideoFrame();
 			if (m_targetDistortionView)
 				m_targetDistortionView->readAndProcessVideoFrame();
 		}
@@ -261,29 +259,27 @@ void AppStage_AlignCameraByUtilityMarker::onGui()
 	const eAlignCameraByUtilityMarkerMenuState state = m_calibrationPanel->getMenuState();
 	const bool bShowVideo =
 		state == eAlignCameraByUtilityMarkerMenuState::verifySetup ||
-		state == eAlignCameraByUtilityMarkerMenuState::capturing ||
-		state == eAlignCameraByUtilityMarkerMenuState::testCalibration;
+		state == eAlignCameraByUtilityMarkerMenuState::capturing;
 
 	if (bShowVideo)
 	{
 		const ImVec2 displaySize = ImGui::GetMainViewport()->Size;
 		constexpr float k_panelWidth = 415.f;
 		const float videoAreaWidth = displaySize.x - k_panelWidth;
-		const float halfW = videoAreaWidth * 0.5f;
-		const float h = displaySize.y;
-
-		ImGui::SetNextWindowPos(ImVec2(0.f, 0.f));
-		ImGui::SetNextWindowSize(ImVec2(videoAreaWidth, h));
-		ImGui::SetNextWindowBgAlpha(0.0f);
+		const float halfH = displaySize.y * 0.5f;
 		constexpr ImGuiWindowFlags k_bgFlags =
 			ImGuiWindowFlags_NoDecoration |
 			ImGuiWindowFlags_NoInputs |
 			ImGuiWindowFlags_NoBringToFrontOnFocus |
 			ImGuiWindowFlags_NoFocusOnAppearing |
 			ImGuiWindowFlags_NoNav;
-		if (ImGui::Begin("##VideoBg", nullptr, k_bgFlags))
+
+		ImGui::SetNextWindowPos(ImVec2(0.f, 0.f));
+		ImGui::SetNextWindowSize(ImVec2(videoAreaWidth, halfH));
+		ImGui::SetNextWindowBgAlpha(0.0f);
+		if (ImGui::Begin("##VideoSourceBg", nullptr, k_bgFlags))
 		{
-			// Source video (left)
+			// Source video (top)
 			IMkTexturePtr srcTex = m_sourceDistortionView
 				? m_sourceDistortionView->getVideoTexture()
 				: nullptr;
@@ -291,17 +287,18 @@ void AppStage_AlignCameraByUtilityMarker::onGui()
 			{
 				ImGui::Image(
 					(void*)(intptr_t)srcTex->getGlTextureId(),
-					ImVec2(halfW, h),
-					ImVec2(0, 1), ImVec2(1, 0));
+					ImVec2(videoAreaWidth, halfH),
+					ImVec2(0, 0), ImVec2(1, 1));
 			}
-			else
-			{
-				ImGui::Dummy(ImVec2(halfW, h));
-			}
+		}
+		ImGui::End();
 
-			ImGui::SameLine(0, 0);
-
-			// Target video (right)
+		ImGui::SetNextWindowPos(ImVec2(0.f, halfH));
+		ImGui::SetNextWindowSize(ImVec2(videoAreaWidth, halfH));
+		ImGui::SetNextWindowBgAlpha(0.0f);
+		if (ImGui::Begin("##VideoTargetBg", nullptr, k_bgFlags))
+		{
+			// Target video (Bottom)
 			IMkTexturePtr tgtTex = m_targetDistortionView
 				? m_targetDistortionView->getVideoTexture()
 				: nullptr;
@@ -309,12 +306,8 @@ void AppStage_AlignCameraByUtilityMarker::onGui()
 			{
 				ImGui::Image(
 					(void*)(intptr_t)tgtTex->getGlTextureId(),
-					ImVec2(halfW, h),
-					ImVec2(0, 1), ImVec2(1, 0));
-			}
-			else
-			{
-				ImGui::Dummy(ImVec2(halfW, h));
+					ImVec2(videoAreaWidth, halfH),
+					ImVec2(0, 0), ImVec2(1, 1));
 			}
 		}
 		ImGui::End();
@@ -642,7 +635,19 @@ void AppStage_AlignCameraByUtilityMarker::computeAndApplyTargetTransform()
 void AppStage_AlignCameraByUtilityMarker::setMenuState(eAlignCameraByUtilityMarkerMenuState newState)
 {
 	if (m_calibrationPanel)
+	{
 		m_calibrationPanel->setMenuState(newState);
+	}
+
+	if (newState == eAlignCameraByUtilityMarkerMenuState::testCalibration)
+	{
+		if (m_targetCameraComponent)
+		{
+			MikanCameraPtr mkCamera = getFirstViewport()->getCurrentMikanCamera();
+
+			mkCamera->setCameraTransform(m_targetCameraComponent->getRelativeTransform().getMat4());
+		}
+	}
 }
 
 void AppStage_AlignCameraByUtilityMarker::onBeginEvent()
