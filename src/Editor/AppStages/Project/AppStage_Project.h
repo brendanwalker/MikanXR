@@ -31,6 +31,9 @@ public:
 	virtual void render(IMkViewportPtr targetViewport) override;
 
 protected:
+	// Scene Rendering
+	void renderCameraComponents(SceneComponentConstPtr scene) const;
+
 	// Camera
 	void createCompositorViewportCameras();
 	void disposeCompositorViewportCameras();

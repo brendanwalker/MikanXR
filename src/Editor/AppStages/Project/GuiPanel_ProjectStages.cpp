@@ -201,6 +201,7 @@ void GuiPanel_ProjectStages::onGui()
 			getCameraSystem()->addNewObjectByTypedDefinition([stageId](auto def) {
 				def->setRelativeTransform(GlmTransform());
 				def->setOwnerStageId(stageId);
+				def->setParentTransformId(stageId);
 
 				return true;
 			});

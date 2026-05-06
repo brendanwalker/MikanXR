@@ -15,6 +15,7 @@
 #include "StageComponent.h"
 #include "StageObjectSystem.h"
 #include "TransformComponent.h"
+#include "VRObjectSystem.h"
 
 #include "lua.hpp"
 #include "LuaBridge/LuaBridge.h"
@@ -288,6 +289,7 @@ void SceneComponent::renderEditorScene(MikanCameraConstPtr camera, MkStateStack&
 				mkScene->addInstance(renderable);
 			}
 		});
+	addAllVRDevicesToMkScene(getObjectSystemOfType<VRObjectSystem>(), m_mkScene);
 
 	// Render the scene
 	mkScene->render(camera, MkStateStack);

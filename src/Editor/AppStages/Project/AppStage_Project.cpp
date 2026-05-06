@@ -360,58 +360,73 @@ void AppStage_Project::onMarkerSelected(int arucoId)
 
 void AppStage_Project::render(IMkViewportPtr targetViewport)
 {
-	MikanCameraPtr viewportCamera = m_viewport->getCurrentMikanCamera();
-	int viewportCameraIndex = m_viewport->getCurrentCameraIndex();
 	IMkGraphicsContext* graphicsContext = getGraphicsContext();
-
-	// If we are looking through a compositor camera,
-	// we need to render the compositor output to a quad first
-	int compositorIndex = viewportCameraIndex - 1; // Skip the first camera which is the vr camera
-	if (compositorIndex >= 0 && compositorIndex < (int)m_activeCompositors.size())
-	{
-		CompositorComponentPtr compositor= m_activeCompositors[compositorIndex].lock();
-		compositor->renderToViewportQuad();
-	}
+	MikanCameraPtr viewportCamera = m_viewport->getCurrentMikanCamera();
 
 	// Render the editor scene
 	SceneComponentConstPtr currentScene = getSystemOfType<SceneObjectSystem>()->getCurrentScene();
 	if (currentScene)
 	{
+		// Render the camera components from the parent stage
+		renderCameraComponents(currentScene);
+
+		// Render actors in the scene
 		currentScene->renderEditorScene(
 			viewportCamera,
 			m_ownerWindow->getGraphicsContext()->getMkStateStack());
 	}
 
-	// Perform component custom rendering
-	m_ownerWindow->getProjectManager()->customRender();
-
-	// Special debug rendering for just the scene view
-	if (compositorIndex == 0)
-	{
-		// Draw the mouse cursor ray from the pov of the xr camera
-		const glm::mat4 glmCameraXform= viewportCamera->getCameraTransformFromViewMatrix();
-
-		// Draw the frustum for the initial camera pose
-		const float hfov_radians = degrees_to_radians(viewportCamera->getHorizontalFOVDegrees());
-		const float vfov_radians = degrees_to_radians(viewportCamera->getVerticalFOVDegrees());
-		const float zNear = fmaxf(viewportCamera->getZNear(), 0.1f);
-		const float zFar = fminf(viewportCamera->getZFar(), 2.0f);
-
-		drawTransformedFrustum(
-			graphicsContext,
-			glmCameraXform,
-			hfov_radians, vfov_radians,
-			zNear, zFar,
-			Colors::Yellow);
-		drawTransformedAxes(graphicsContext, glmCameraXform, 0.1f);
-		
-		// Draw tracking space
-		drawGrid(graphicsContext, glm::mat4(1.f), 10.f, 10.f, 20, 20, Colors::GhostWhite);
-	}
+	// Draw tracking space
+	drawGrid(graphicsContext, glm::mat4(1.f), 10.f, 10.f, 20, 20, Colors::GhostWhite);
 
 	if (getEditorSettings().bRenderOrigin)
 	{
 		debugRenderOrigin();
+	}
+
+	// Perform component custom rendering
+	m_ownerWindow->getProjectManager()->customRender();
+}
+
+void AppStage_Project::renderCameraComponents(SceneComponentConstPtr scene) const
+{
+	IMkGraphicsContext* graphicsContext = getGraphicsContext();
+	auto cameraSystem = getObjectSystemOfType<CameraObjectSystem>();
+	StageComponentPtr stageComponent = scene->getParentStage();
+
+	for (const auto cameraMapPair : cameraSystem->getComponentMap())
+	{
+		CameraComponentPtr camera = cameraMapPair.second.lock();
+
+		if (camera->getOwnerStageComponent() == stageComponent)
+		{
+			// Get the camera pose in stage space
+			assert(camera->getParentTransformComponent() == stageComponent);
+			const glm::mat4 glmCameraXform = camera->getRelativeTransform().getMat4();
+
+			// Render the camera frustum if the camera has calibrated intrinsics
+			MikanVideoSourceIntrinsics intrinsics;
+			if (camera->getApertureIntrinsics(intrinsics))
+			{
+				const auto monoIntrinsics = intrinsics.getMonoIntrinsics();
+
+				// Draw the frustum for the camera
+				const float hfov_radians = degrees_to_radians(monoIntrinsics.hfov);
+				const float vfov_radians = degrees_to_radians(monoIntrinsics.vfov);
+				const float zNear = fmaxf(monoIntrinsics.znear, 0.1f);
+				const float zFar = fminf(monoIntrinsics.zfar, 2.0f);
+
+				drawTransformedFrustum(
+					graphicsContext,
+					glmCameraXform,
+					hfov_radians, vfov_radians,
+					zNear, zFar,
+					Colors::Yellow);
+			}
+
+			// Draw the camera transform
+			drawTransformedAxes(graphicsContext, glmCameraXform, 0.1f);
+		}
 	}
 }
 
