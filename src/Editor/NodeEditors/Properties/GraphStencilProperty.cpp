@@ -30,6 +30,11 @@ public:
 		StencilComponentPtr stencilComponent,
 		eStencilType stencilType)
 	{
+		if (!stencilComponent)
+		{
+			return;
+		}
+
 		int listIndex = 0;
 
 		switch (stencilType)
@@ -97,6 +102,8 @@ public:
 
 	inline StencilComponentPtr getEntryStencil(int index)
 	{
+		assert(index > 0 && index < (int)comboEntries.size());
+
 		return comboEntries[index].stencil;
 	}
 
@@ -107,6 +114,7 @@ public:
 
 	virtual const std::string& getEntryDisplayString(int index) override
 	{
+		assert(index > 0 && index < (int)comboEntries.size()); 
 		return comboEntries[index].entryString;
 	}
 
