@@ -4,6 +4,7 @@
 #include "App.h"
 #include "AlignmentCalibration/AppStage_AlignmentCalibration.h"
 #include "AlignCameraByUtilityMarker/AppStage_AlignCameraByUtilityMarker.h"
+#include "AlignCameraByOriginMarker/AppStage_AlignCameraByOriginMarker.h"
 #include "ModalMessageBox/ModalDialog_MessageBox.h"
 #include "Colors.h"
 #include "IEditorWindow.h"
@@ -795,10 +796,9 @@ void CameraComponent::alignCamera()
 		}
 		break;
 	case eTrackingVolumeType::marker:
-		//TODO:
-		//AppStage_AlignCameraByOriginMarker::tryEnterAlignmentCalibration(
-		//	currentAppStage,
-		//	getSelfPtr<CameraComponent>());
+		AppStage_AlignCameraByOriginMarker::tryEnterCalibration(
+			currentAppStage,
+			getSelfPtr<CameraComponent>());
 		break;
 	default:
 		ModalDialog_MessageBox::showMessageBox(
