@@ -301,6 +301,12 @@ void App::tickWindows(const float deltaSeconds)
 		EditorWindow* appWindow = m_appWindows[windowIndex];
 		IMkWindowContext* appWindowContext = appWindow->getMkWindowContext().get();
 
+		// Skip any windows that have been marked for destruction
+		if (appWindow->wantsDestroy())
+		{
+			continue;
+		}
+
 		// Mark this window as the current window getting updated
 		m_windowManager->pushCurrentWindowContext(appWindowContext);
 

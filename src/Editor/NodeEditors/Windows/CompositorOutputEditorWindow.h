@@ -1,7 +1,9 @@
 #pragma once
 
 //-- includes -----
+#include "CommonConfig.h"
 #include "ComponentFwd.h"
+#include "SceneFwd.h"
 #include "EditorWindow.h"
 #include "MikanRendererFwd.h"
 #include "ObjectSystemConfigFwd.h"
@@ -14,7 +16,7 @@ class CompositorOutputEditorWindow : public EditorWindow
 public:
 	CompositorOutputEditorWindow(class App* ownerApp);
 
-	bool bindCompositorComponent(CompositorComponentPtr compositorComponent);
+	bool bindSceneComponent(SceneComponentPtr sceneComponent);
 
 	// -- IEditorWindow --
 	virtual bool startup() override;
@@ -44,6 +46,12 @@ public:
 	virtual void popAppState() override;
 
 private:
+	void rebindCompositorFromScene();
+	void onSceneDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
+	void onSceneComponentDisposed(MikanObjectSystemPtr objectSystem, MikanComponentConstPtr component);
+	void onCompositorComponentDisposed(MikanObjectSystemPtr objectSystem, MikanComponentConstPtr component);
+
+	SceneComponentWeakPtr m_sceneComponent;
 	CompositorComponentWeakPtr m_compositorComponent;
 	MikanCameraPtr m_viewCamera;					// scene rendering camera
 	IMkTriangulatedMeshPtr m_compositedFrameQuad;	// fullscreen quad for compositor texture

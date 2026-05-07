@@ -5,6 +5,7 @@
 #include "CameraComponent.h"
 #include "ClientSourceManager.h"
 #include "CompositorComponent.h"
+#include "CompositorObjectSystem.h"
 #include "EventBus.h"
 #include "IMkLineRenderer.h"
 #include "IMkGraphicsContext.h"
@@ -112,26 +113,113 @@ bool CompositorOutputEditorWindow::startup()
 		m_viewCamera->setCameraMovementMode(eCameraMovementMode::stationary);
 	}
 
+	// Listen for scene and compositor disposal so we can self-close
+	auto sceneSystem = getProjectManager()->getSystemOfType<SceneObjectSystem>();
+	if (sceneSystem)
+	{
+		sceneSystem->OnComponentDisposed +=
+			MakeDelegate(this, &CompositorOutputEditorWindow::onSceneComponentDisposed);
+	}
+	auto compositorSystem = getProjectManager()->getSystemOfType<CompositorObjectSystem>();
+	if (compositorSystem)
+	{
+		compositorSystem->OnComponentDisposed +=
+			MakeDelegate(this, &CompositorOutputEditorWindow::onCompositorComponentDisposed);
+	}
+
 	return success;
 }
 
-bool CompositorOutputEditorWindow::bindCompositorComponent(CompositorComponentPtr compositorComponent)
+bool CompositorOutputEditorWindow::bindSceneComponent(SceneComponentPtr sceneComponent)
 {
-	m_compositorComponent = compositorComponent;
-
-	// Apply video source camera intrinsics to the view camera
-	VideoSourceComponentPtr videoSource = compositorComponent->getVideoSourceComponent();
-	if (videoSource != nullptr && m_viewCamera != nullptr)
+	// Unregister from old scene
+	SceneComponentPtr oldScene = m_sceneComponent.lock();
+	if (oldScene)
 	{
-		MikanVideoSourceIntrinsics cameraIntrinsics;
-		videoSource->getCameraIntrinsics(cameraIntrinsics);
-		m_viewCamera->applyMonoCameraIntrinsics(&cameraIntrinsics);
+		oldScene->getSceneComponentDefinition()->OnPropertyChanged -=
+			MakeDelegate(this, &CompositorOutputEditorWindow::onSceneDefinitionChanged);
 	}
 
-	// Update window title with the compositor name
-	setTitle(compositorComponent->getName() + " - Compositor Output");
+	m_sceneComponent = sceneComponent;
+
+	if (sceneComponent)
+	{
+		// Listen for display compositor changes on the new scene's definition
+		sceneComponent->getSceneComponentDefinition()->OnPropertyChanged +=
+			MakeDelegate(this, &CompositorOutputEditorWindow::onSceneDefinitionChanged);
+
+		rebindCompositorFromScene();
+	}
 
 	return true;
+}
+
+void CompositorOutputEditorWindow::rebindCompositorFromScene()
+{
+	SceneComponentPtr sceneComponent = m_sceneComponent.lock();
+	if (!sceneComponent)
+		return;
+
+	MikanCompositorID compositorId =
+		sceneComponent->getSceneComponentDefinition()->getDisplayCompositorId();
+
+	CompositorComponentPtr compositor;
+	if (compositorId != INVALID_MIKAN_ID)
+	{
+		auto compositorSystem = getProjectManager()->getSystemOfType<CompositorObjectSystem>();
+		if (compositorSystem)
+			compositor = compositorSystem->getCompositorById(compositorId);
+	}
+
+	m_compositorComponent = compositor;
+
+	// Apply video source camera intrinsics to the view camera
+	if (compositor && m_viewCamera)
+	{
+		VideoSourceComponentPtr videoSource = compositor->getVideoSourceComponent();
+		if (videoSource)
+		{
+			MikanVideoSourceIntrinsics cameraIntrinsics;
+			videoSource->getCameraIntrinsics(cameraIntrinsics);
+			m_viewCamera->applyMonoCameraIntrinsics(&cameraIntrinsics);
+		}
+	}
+
+	// Update window title
+	std::string compositorName = compositor ? compositor->getName() : "No Compositor";
+	setTitle(compositorName + " - Compositor Output");
+}
+
+void CompositorOutputEditorWindow::onSceneDefinitionChanged(
+	CommonConfigPtr configPtr,
+	const ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (changedPropertySet.hasPropertyName(SceneComponentDefinition::k_displayCompositorIdPropertyId))
+	{
+		rebindCompositorFromScene();
+	}
+}
+
+void CompositorOutputEditorWindow::onSceneComponentDisposed(
+	MikanObjectSystemPtr objectSystem,
+	MikanComponentConstPtr component)
+{
+	SceneComponentPtr sceneComponent = m_sceneComponent.lock();
+	if (sceneComponent && component->getComponentId() == sceneComponent->getComponentId())
+	{
+		m_mkWindowContext->requestClose();
+	}
+}
+
+void CompositorOutputEditorWindow::onCompositorComponentDisposed(
+	MikanObjectSystemPtr objectSystem, 
+	MikanComponentConstPtr component)
+{
+	if (m_compositorComponent.lock() && 
+		component->getComponentId() == m_compositorComponent.lock()->getComponentId())
+	{
+		m_mkWindowContext->requestClose();
+	}
 }
 
 void CompositorOutputEditorWindow::update(float deltaSeconds)
@@ -318,6 +406,31 @@ void CompositorOutputEditorWindow::render()
 
 void CompositorOutputEditorWindow::shutdown()
 {
+	// Unregister scene delegates before clearing the reference
+	SceneComponentPtr sceneComponent = m_sceneComponent.lock();
+	if (sceneComponent)
+	{
+		sceneComponent->getSceneComponentDefinition()->OnPropertyChanged -=
+			MakeDelegate(this, &CompositorOutputEditorWindow::onSceneDefinitionChanged);
+	}
+
+	// Stop listening for scene and compositor disposal
+	auto sceneSystem = getProjectManager()->getSystemOfType<SceneObjectSystem>();
+	if (sceneSystem)
+	{
+		sceneSystem->OnComponentDisposed -=
+			MakeDelegate(this, &CompositorOutputEditorWindow::onSceneComponentDisposed);
+	}
+	auto compositorSystem = getProjectManager()->getSystemOfType<CompositorObjectSystem>();
+	if (compositorSystem)
+	{
+		compositorSystem->OnComponentDisposed -=
+			MakeDelegate(this, &CompositorOutputEditorWindow::onCompositorComponentDisposed);
+	}
+
+	m_sceneComponent.reset();
+	m_compositorComponent.reset();
+
 	m_compositedFrameQuad = nullptr;
 	m_backgroundQuad = nullptr;
 	m_viewCamera = nullptr;

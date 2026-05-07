@@ -30,7 +30,6 @@
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceComponent.h"
 #include "Windows/CompositorNodeEditorWindow.h"
-#include "Windows/CompositorOutputEditorWindow.h"
 
 #include "NodeGraphAssetReference.h"
 #include "Graphs/CompositorNodeGraph.h"
@@ -535,17 +534,6 @@ void CompositorComponent::editCompositorGraph()
 	}
 }
 
-void CompositorComponent::showCompositorOutput()
-{
-	App* app = App::getInstance();
-
-	if (!app->hasWindowOfType<CompositorOutputEditorWindow>())
-	{
-		app->createAppWindow<CompositorOutputEditorWindow>()
-			->bindCompositorComponent(getSelfPtr<CompositorComponent>());
-	}
-}
-
 void CompositorComponent::addNewCompositorGraph()
 {
 	removeCompositorGraph();
@@ -956,7 +944,6 @@ bool CompositorComponent::setPropertyValue(
 
 // -- IFunctionInterface ----
 const std::string CompositorComponent::k_editCompositorGraphFunctionId = "edit_compositor_graph";
-const std::string CompositorComponent::k_showCompositorOutputFunctionId = "show_compositor_output";
 const std::string CompositorComponent::k_addNewScriptFunctionId = "add_new_compositor_graph";
 const std::string CompositorComponent::k_removeCompositorGraphFunctionId = "remove_compositor_graph";
 
@@ -967,9 +954,6 @@ void CompositorComponent::getFunctionDescriptors(std::vector<FunctionDescriptorC
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(
 			k_editCompositorGraphFunctionId, "Edit Compositor Graph"));
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_showCompositorOutputFunctionId, "Show Compositor Output"));
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(
 			k_addNewScriptFunctionId, "Add Compositor Graph"));
@@ -983,11 +967,6 @@ bool CompositorComponent::invokeFunction(const std::string& functionName)
 	if (functionName == CompositorComponent::k_editCompositorGraphFunctionId)
 	{
 		editCompositorGraph();
-		return true;
-	}
-	else if (functionName == CompositorComponent::k_showCompositorOutputFunctionId)
-	{
-		showCompositorOutput();
 		return true;
 	}
 	else if (functionName == CompositorComponent::k_addNewScriptFunctionId)

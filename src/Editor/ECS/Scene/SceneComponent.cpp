@@ -1,5 +1,7 @@
+#include "App.h"
 #include "CompositorObjectSystem.h"
 #include "CompositorComponent.h"
+#include "Windows/CompositorOutputEditorWindow.h"
 #include "IMkSceneRenderable.h"
 #include "ModalSceneAddCompositor/ModalDialog_SceneAddCompositor.h"
 #include "MikanObject.h"
@@ -254,6 +256,20 @@ SelectionComponentPtr SceneComponent::findClosestSelectionTarget(
 	return raycastQuery.closestSelectionComponent;
 }
 
+void SceneComponent::showCompositorOutput()
+{
+	App* app = App::getInstance();
+	CompositorOutputEditorWindow* window = app->getWindowOfType<CompositorOutputEditorWindow>();
+	if (!window)
+	{
+		window = app->createAppWindow<CompositorOutputEditorWindow>();
+	}
+	if (window)
+	{
+		window->bindSceneComponent(getSelfPtr<SceneComponent>());
+	}
+}
+
 void SceneComponent::activateScene()
 {
 	CompositorObjectSystemPtr compositorSystem = getObjectSystemOfType<CompositorObjectSystem>();
@@ -268,6 +284,14 @@ void SceneComponent::activateScene()
 
 	// Set active compositors for this scene
 	compositorSystem->setActiveCompositors(activeCompositorIDs);
+
+	// If the compositor output window is already open, rebind it to this scene
+	CompositorOutputEditorWindow* window =
+		App::getInstance()->getWindowOfType<CompositorOutputEditorWindow>();
+	if (window)
+	{
+		window->bindSceneComponent(getSelfPtr<SceneComponent>());
+	}
 }
 
 void SceneComponent::deactivateScene()
@@ -353,6 +377,29 @@ bool SceneComponent::setPropertyValue(
 	}
 
 	return TransformComponent::setPropertyValue(propertyName, inValue);
+}
+
+// -- IFunctionInterface ----
+const std::string SceneComponent::k_showCompositorOutputFunctionId = "show_compositor_output";
+
+void SceneComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
+{
+	TransformComponent::getFunctionDescriptors(outDescriptors);
+
+	outDescriptors.push_back(
+		std::make_shared<FunctionDescriptor>(
+			k_showCompositorOutputFunctionId, "Show Compositor Output"));
+}
+
+bool SceneComponent::invokeFunction(const std::string& functionName)
+{
+	if (functionName == SceneComponent::k_showCompositorOutputFunctionId)
+	{
+		showCompositorOutput();
+		return true;
+	}
+
+	return TransformComponent::invokeFunction(functionName);
 }
 
 // -- Lua Binding ----

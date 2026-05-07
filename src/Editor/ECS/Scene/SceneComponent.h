@@ -61,6 +61,11 @@ public:
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
 
+	// -- IFunctionInterface ----
+	static const std::string k_showCompositorOutputFunctionId;
+	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
+	virtual bool invokeFunction(const std::string& functionName) override;
+
 	// -- Lua Binding ----
 	static void bindLuaFunctions(struct lua_State* L);
 
@@ -75,6 +80,7 @@ public:
 		const glm::vec3& rayOrigin,
 		const glm::vec3& rayDir,
 		ColliderRaycastHitResult& outRaycastResult) const;
+	void showCompositorOutput();
 	void activateScene();
 	void deactivateScene();
 	void renderEditorScene(MikanCameraConstPtr camera, class MkStateStack& MkStateStack) const;
