@@ -292,9 +292,13 @@ void App::tickWindows(const float deltaSeconds)
 
 
 	// Update each window
+	// Capture size before the loop — new windows added during update() (e.g. from UI events)
+	// will be ticked starting next frame, avoiding iterator invalidation on m_appWindows.
 	static bool bDebugPrintStack = false;
-	for (EditorWindow* appWindow : m_appWindows)
+	const int windowCount = (int)m_appWindows.size();
+	for (int windowIndex = 0; windowIndex < windowCount; ++windowIndex)
 	{
+		EditorWindow* appWindow = m_appWindows[windowIndex];
 		IMkWindowContext* appWindowContext = appWindow->getMkWindowContext().get();
 
 		// Mark this window as the current window getting updated
