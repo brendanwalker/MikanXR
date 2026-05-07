@@ -22,7 +22,6 @@ protected:
 	void onExit();
 
 	// -- AppStage --
-	virtual void update(float deltaSeconds);
 	virtual void onGui() override;
 	virtual void render(IMkViewportPtr targetViewport);
 
@@ -39,7 +38,5 @@ protected:
 private:
 	AppSettingsConfigPtr m_appSettingsConfig;
 	ProjectManagerPtr m_projectManager;
-	IMkTexturePtr m_backgroundTexture;
 	IMkTriangulatedMeshPtr m_fullscreenRGBQuad;
-	float m_shaderTime = 0.f;
 };

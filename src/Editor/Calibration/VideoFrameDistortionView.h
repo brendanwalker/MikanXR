@@ -64,6 +64,7 @@ protected:
 protected:
 	eVideoDisplayMode m_videoDisplayMode;
 	VideoSourceComponentPtr m_videoSourceComponent;
+	bool m_bVideoIsStreaming;
 	unsigned int m_bufferBitmask;
 	int m_frameWidth;
 	int m_frameHeight;
@@ -101,8 +102,11 @@ protected:
 	// Texture used for display
 	IMkTexturePtr m_videoTexture = nullptr;
 
-	// Quad used for fullscreen rendering
-	IMkTriangulatedMeshPtr m_fullscreenRGBQuad;
+	// Quad used for fullscreen video rendering
+	IMkTriangulatedMeshPtr m_fullscreenRGBVideoQuad;
+
+	// Quad used for fullscreen rendering when no video is available
+	IMkTriangulatedMeshPtr m_fullscreenRGBNoVideoQuad;
 
 	// Runtime flags
 	bool m_bColorUndistortDisabled= false;

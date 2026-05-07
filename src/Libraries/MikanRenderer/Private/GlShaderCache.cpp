@@ -682,6 +682,182 @@ namespace InternalShaders
 		return x_shaderCode;
 	}
 
+	IMkShaderCodeConstPtr getPM5544TestCardShaderCode()
+	{
+		static IMkShaderCodePtr x_shaderCode = nullptr;
+
+		if (x_shaderCode == nullptr)
+		{
+			// PM5544 Test Card from here: https://www.shadertoy.com/view/4ccyWH
+			// CRT effects from here: https://www.shadertoy.com/view/XtlSD7
+			x_shaderCode = createIMkShaderCode(
+				INTERNAL_MATERIAL_PT_PM5544_TEST_CARD,
+				// vertex shader
+				R""""(
+				#version 330 core
+				layout (location = 0) in vec2 aPos;
+				layout (location = 1) in vec2 aTexCoords;
+
+				out vec2 TexCoords;
+
+				void main()
+				{
+					TexCoords = aTexCoords;
+					gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0);
+				}
+				)"""",
+				// fragment shader
+				R""""(
+				#version 330 core
+				out vec4 FragColor;
+
+				uniform vec2  screenSize;
+				uniform float time;
+
+				#define color(a, b) ((b) ? 244. - (a) : (a)) / 255.
+				const vec2 R = vec2(768, 576);
+
+				// ---- CRT effects ------------------------------------------------
+
+				vec2 CRTCurveUV(vec2 uv)
+				{
+					uv = uv * 2.0 - 1.0;
+					vec2 offset = abs(uv.yx) / vec2(6.0, 4.0);
+					uv = uv + uv * offset * offset;
+					uv = uv * 0.5 + 0.5;
+					return uv;
+				}
+
+				void DrawVignette(inout vec3 color, vec2 uv)
+				{
+					float vignette = uv.x * uv.y * (1.0 - uv.x) * (1.0 - uv.y);
+					vignette = clamp(pow(16.0 * vignette, 0.3), 0.0, 1.0);
+					color *= vignette;
+				}
+
+				void DrawScanline(inout vec3 color, vec2 uv)
+				{
+					float scanline = clamp(0.95 + 0.05 * cos(3.14 * (uv.y + 0.008 * time) * 240.0), 0.0, 1.0);
+					float grille   = 0.85 + 0.15 * clamp(1.5 * cos(3.14 * uv.x * 640.0), 0.0, 1.0);
+					color *= scanline * grille * 1.2;
+				}
+
+				// ---- PM5544 test card -------------------------------------------
+
+				vec3 PM5544(vec2 I)
+				{
+					vec3 col = vec3(122) / 255.;
+
+					I = (I - .5) * R;
+
+					vec2 i = I / 42. + .5,
+					     p = fract(i) * 42.,
+					     q = abs(I);
+
+					if (length(I) < 252.)
+					{
+						int y = int(I.y) / 21,
+						    i = int(ceil(I.x / 84.));
+
+						vec2 c = vec2(61, 242) / 255.;
+
+						if      (y < -8) col = q.x < 19. ? c.yxx : c.yyx;
+						else if (y < -6) col = vec3(float(q.x > 126.));
+						else if (y < -4) col = .2 * vec3(floor((I.x+sin(time)*100.0) / 84.)) + .6;
+						else if (y <  0)
+						{
+							float w, p;
+							if (i == -2) { w = 1.5;  p = 5.4; }
+							if (i == -1) { w = 2.5;  p = 5.3; }
+							if (i ==  0) { w = 3.5;  p = 3.3; }
+							if (i ==  1) { w = 4.;   p = 0.8; }
+							if (i ==  2) { w = 4.5;  p = 4.1; }
+							if (i ==  3) { w = 5.25; p = 1.1; }
+							col = .3625 * vec3(sin(36.8 * w * fract(I.x / 84.) + p + time*5.0) + 1.);
+						}
+						else if (y < 1)
+						{
+							col = vec3(0);
+							if (p.x > 40. || p.x <  2.) col = vec3(2) / 3.;
+							if (p.x > 41. || p.x <  1.) col = vec3(1);
+							if (q.x < 2.) col = vec3(float(4 - int(q.x))) / 3.;
+							if (abs(p.y - 21.) < 1.) col = vec3(1);
+						}
+						else if (q.x < 19. && y < 3) col = vec3(float(q.x < 2. ? 4 - int(q.x) : 0)) / 3.;
+						else if (y < 5)
+						{ 
+							int i2 = int(ceil((I.x-sin(time)*75.0) / 84.));
+
+							col = vec3(c[(5 * i2 + 3) / 7 & 1], c[int(i2 < 1)], c[i2 & 1]);
+						}
+						else if (y < 7) col = vec3(1) - .75 * mod(ceil((I.x+time*25.0) / 29.6), 2.);
+						else if (y < 9)
+						{
+							col = vec3(float(q.x < 126.));
+							I.x = abs(I.x + 105.);
+							if (I.x < 2.) col = vec3(float(int(I.x) - 1)) / 3.;
+						}
+						else col = vec3(float(q.x > 84. || y > 10));
+					}
+					else
+					{
+						i = floor(i);
+						if (abs(i.x) > 8. || abs(i.y) > 6.) col = vec3(float(mod(i.x + i.y, 2.) < .5));
+						if (p.y > 41. || p.y < 1.) col = vec3(1);
+						if (q.x > 273. && q.x < 314. && q.y < 230.)
+							col = I.x > 0. ? color(vec3(122, 100, 233), I.y > 0.)
+							               : color(vec3(184,  90, 122), I.y > 0.);
+						if (q.x > 232. && q.x < 273. && q.y > 148. && q.y < 230.)
+							col = color(vec3(157, 122, 30), I.y > 0.);
+						if (q.x < 271. || q.x > 275. || q.y < 148. || q.y > 230.)
+						{
+							if (p.x > 40. || p.x < 2.) col = (col + 2.) / 3.;
+							if (p.x > 41. || p.x < 1.) col = vec3(1);
+						}
+					}
+
+					return col;
+				}
+
+				// ---- Entry point ------------------------------------------------
+
+				void main()
+				{
+					FragColor = vec4(0, 0, 0, 1);
+
+					// Flat UV [0,1] and CRT-curved UV
+					vec2 uv    = gl_FragCoord.xy / screenSize;
+					vec2 crtUV = CRTCurveUV(uv);
+
+					// Black outside the curved screen edge
+					if (crtUV.x < 0.0 || crtUV.x > 1.0 || crtUV.y < 0.0 || crtUV.y > 1.0)
+						return;
+
+					// Map curved UV back to PM5544 pixel space
+					vec2 I = crtUV * screenSize;
+					if (1.5 * abs(I.x - .5 * screenSize.x) > screenSize.y) return;
+					I.x -= .5 * screenSize.x;
+					I /= R * screenSize.y / R.y;
+					I.x += .5;
+
+					vec3 col = PM5544(I);
+
+					// CRT post-processing (vignette uses curved UV, scanlines use flat UV)
+					DrawVignette(col, crtUV);
+					DrawScanline(col, uv);
+
+					FragColor = vec4(col, 1.0);
+				}
+				)"""");
+			x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
+			x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+			x_shaderCode->addUniform("screenSize", eUniformSemantic::screenSize);
+			x_shaderCode->addUniform("time", eUniformSemantic::floatConstant0);
+		}
+
+		return x_shaderCode;
+	}
+
 	bool registerInternalShaders(IMkShaderCache* shaderCache)
 	{
 		std::vector<IMkShaderCodeConstPtr> internalShaders = {
@@ -696,6 +872,7 @@ namespace InternalShaders
 			getPNTTexturedColoredShaderCode(),
 			getPLinearDepthShaderCode(),
 			getPTVisualizeGLDepthShaderCode(),
+			getPM5544TestCardShaderCode(),
 		};
 
 		bool bSuccess = true;

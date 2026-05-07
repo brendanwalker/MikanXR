@@ -270,6 +270,7 @@ void App::tick()
 		std::chrono::duration<float>(now - m_lastFrameTimestamp).count(),
 		0.1f);
 	m_fps = deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
+	m_secondsSinceAppStart += deltaSeconds;
 	m_lastFrameTimestamp = now;
 
 	// Refresh the latest events from SDL

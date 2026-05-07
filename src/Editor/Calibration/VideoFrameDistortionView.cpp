@@ -1,5 +1,7 @@
+#include "App.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
+#include "IMkGraphicsContext.h"
 #include "IMkTexture.h"
 #include "IMkTriangulatedMesh.h"
 #include "MikanShaderCache.h"
@@ -66,6 +68,7 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	unsigned int frameQueueSize)
 	: m_videoDisplayMode(eVideoDisplayMode::mode_bgr)
 	, m_videoSourceComponent(videoSourceComponent)
+	, m_bVideoIsStreaming(false)
 	, m_bufferBitmask(bufferBitmask)
 	, m_frameWidth(0)
 	, m_frameHeight(0)
@@ -126,7 +129,20 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	}
 
 	// Create a mesh used to render the video frame
-	m_fullscreenRGBQuad= createFullscreenQuadMesh(getGraphicsContext(), true);
+	m_fullscreenRGBVideoQuad= createFullscreenQuadMesh(getGraphicsContext(), true);
+
+	// Optionally create a mesh for rendering when no video frame is available
+	if (bufferBitmask & VIDEO_FRAME_HAS_NO_VIDEO_SHADER_FLAG)
+	{
+		MkMaterialConstPtr noVideoMaterial =
+			getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_PM5544_TEST_CARD);
+
+		m_fullscreenRGBNoVideoQuad =
+			createFullscreenQuadMesh(
+				getGraphicsContext(),
+				noVideoMaterial,
+				false);
+	}
 }
 
 VideoFrameDistortionView::~VideoFrameDistortionView()
@@ -286,27 +302,36 @@ int64_t VideoFrameDistortionView::readNextVideoFrame()
 {
 	EASY_FUNCTION();
 
-	// Copy the image from the video view
-	if (m_videoSourceComponent->hasNewVideoFrameAvailable(VideoFrameSection::Primary))
+	if (m_videoSourceComponent->getVideoStreamingStatus() == eVideoStreamingStatus::started)
 	{
-		const auto now = std::chrono::steady_clock::now();
-		const float deltaSeconds = fminf(
-			std::chrono::duration<float>(now - m_lastFrameTimestamp).count(),
-			0.1f);
-		const float fps = deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
-		m_fps = (m_fps * 0.9f) + (fps * 0.1f);
-		m_lastFrameTimestamp = now;
+		// Copy the image from the video view
+		if (m_videoSourceComponent->hasNewVideoFrameAvailable(VideoFrameSection::Primary))
+		{
+			const auto now = std::chrono::steady_clock::now();
+			const float deltaSeconds = fminf(
+				std::chrono::duration<float>(now - m_lastFrameTimestamp).count(),
+				0.1f);
+			const float fps = deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
+			m_fps = (m_fps * 0.9f) + (fps * 0.1f);
+			m_lastFrameTimestamp = now;
 
-		// Reallocate the frame buffer if the video source has changed resolution
-		// (This can happen on streaming video sources)
-		int frameWidth, frameHeight;
-		m_videoSourceComponent->getVideoPixelDimensions(frameWidth, frameHeight);
-		ensureFrameBufferSize(frameWidth, frameHeight);
+			// Reallocate the frame buffer if the video source has changed resolution
+			// (This can happen on streaming video sources)
+			int frameWidth, frameHeight;
+			m_videoSourceComponent->getVideoPixelDimensions(frameWidth, frameHeight);
+			ensureFrameBufferSize(frameWidth, frameHeight);
 
-		cv::Mat* bgrSourceBuffer = m_bgrSourceBuffers[m_bgrSourceBufferWriteIndex].bgrSourceBuffer;
-		m_lastVideoFrameReadIndex= m_videoSourceComponent->readVideoFrameSectionBuffer(VideoFrameSection::Primary, bgrSourceBuffer);
-		m_bgrSourceBuffers[m_bgrSourceBufferWriteIndex].frameIndex= m_lastVideoFrameReadIndex;
-		m_bgrSourceBufferWriteIndex = (m_bgrSourceBufferWriteIndex + 1) % m_bgrSourceBufferCount;
+			cv::Mat* bgrSourceBuffer = m_bgrSourceBuffers[m_bgrSourceBufferWriteIndex].bgrSourceBuffer;
+			m_lastVideoFrameReadIndex = m_videoSourceComponent->readVideoFrameSectionBuffer(VideoFrameSection::Primary, bgrSourceBuffer);
+			m_bgrSourceBuffers[m_bgrSourceBufferWriteIndex].frameIndex = m_lastVideoFrameReadIndex;
+			m_bgrSourceBufferWriteIndex = (m_bgrSourceBufferWriteIndex + 1) % m_bgrSourceBufferCount;
+
+			m_bVideoIsStreaming = true;
+		}
+	}
+	else
+	{
+		m_bVideoIsStreaming = false;
 	}
 
 	return m_lastVideoFrameReadIndex;
@@ -486,20 +511,45 @@ void VideoFrameDistortionView::rebuildDistortionMap()
 
 void VideoFrameDistortionView::renderSelectedVideoBuffers()
 {
-	if (m_videoTexture != nullptr && m_fullscreenRGBQuad != nullptr)
+	if (m_bVideoIsStreaming)
 	{
-		MkMaterialInstancePtr materialInstance= m_fullscreenRGBQuad->getMaterialInstance();
-		MkMaterialConstPtr material = materialInstance->getMaterial();
+		if (m_videoTexture != nullptr && m_fullscreenRGBVideoQuad != nullptr)
+		{
+			MkMaterialInstancePtr materialInstance = m_fullscreenRGBVideoQuad->getMaterialInstance();
+			MkMaterialConstPtr material = materialInstance->getMaterial();
 
+			if (auto materialBinding = material->bindMaterial())
+			{
+				// Bind the color texture
+				materialInstance->setTextureBySemantic(eUniformSemantic::rgbTexture, m_videoTexture);
+
+				// Draw the color texture
+				if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+				{
+					m_fullscreenRGBVideoQuad->drawElements();
+				}
+			}
+		}
+	}
+	else if (m_fullscreenRGBNoVideoQuad != nullptr)
+	{
+		MkMaterialInstancePtr materialInstance = m_fullscreenRGBNoVideoQuad->getMaterialInstance();
+		MkMaterialConstPtr material = materialInstance->getMaterial();
 		if (auto materialBinding = material->bindMaterial())
 		{
-			// Bind the color texture
-			materialInstance->setTextureBySemantic(eUniformSemantic::rgbTexture, m_videoTexture);
+			//TODO: "Time" and "ScreenSize" are uniforms that all materials
+			// should have available by default in the graphics context
+			IEditorWindow* ownerWindow= m_videoSourceComponent->getOwnerEditorWindow();
+			const double currentTimeSeconds = ownerWindow->getOwnerApp()->getSecondsSinceAppStart();
+			const float shaderTime = (float)fmodf(currentTimeSeconds, 1000.0);
+			const glm::vec2 screenSize(ownerWindow->getWidth(), ownerWindow->getHeight());
+			materialInstance->setVec2BySemantic(eUniformSemantic::screenSize, screenSize);
+			materialInstance->setFloatBySemantic(eUniformSemantic::floatConstant0, shaderTime);
 
-			// Draw the color texture
+			// Draw the "no video" shader
 			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
 			{
-				m_fullscreenRGBQuad->drawElements();
+				m_fullscreenRGBNoVideoQuad->drawElements();
 			}
 		}
 	}
