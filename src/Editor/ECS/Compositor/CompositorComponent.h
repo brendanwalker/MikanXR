@@ -115,6 +115,7 @@ public:
 	inline int64_t getLastCompositedFrameIndex() const { return m_lastCompositedFrameIndex; }
 
 	void editCompositorGraph();
+	void showCompositorOutput();
 	void addNewCompositorGraph();
 	void removeCompositorGraph();
 
@@ -130,6 +131,7 @@ public:
 
 	// -- IFunctionInterface ----
 	static const std::string k_editCompositorGraphFunctionId;
+	static const std::string k_showCompositorOutputFunctionId;
 	static const std::string k_addNewScriptFunctionId;
 	static const std::string k_removeCompositorGraphFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);

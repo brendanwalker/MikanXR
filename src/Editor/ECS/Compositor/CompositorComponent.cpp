@@ -30,6 +30,7 @@
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceComponent.h"
 #include "Windows/CompositorNodeEditorWindow.h"
+#include "Windows/CompositorOutputEditorWindow.h"
 
 #include "NodeGraphAssetReference.h"
 #include "Graphs/CompositorNodeGraph.h"
@@ -394,7 +395,7 @@ void CompositorComponent::allocateVideoBuffers(VideoSourceComponentPtr videoSour
 	// Create a distortion view to read the incoming video frames into a texture
 	m_videoDistortionView = std::make_shared<VideoFrameDistortionView>(
 		videoSource,
-		VIDEO_FRAME_HAS_BGR_UNDISTORT_FLAG | VIDEO_FRAME_HAS_GL_TEXTURE_FLAG,
+		VIDEO_FRAME_HAS_BGR_UNDISTORT_FLAG | VIDEO_FRAME_HAS_GL_TEXTURE_FLAG | VIDEO_FRAME_HAS_NO_VIDEO_SHADER_FLAG,
 		videoSource->getVideoSourceDefinition()->getVideoFrameQueueSize());
 
 	// Always use the undistorted video frame for compositing
@@ -530,6 +531,17 @@ void CompositorComponent::editCompositorGraph()
 	if (!app->hasWindowOfType<CompositorNodeEditorWindow>())
 	{
 		app->createAppWindow<CompositorNodeEditorWindow>()
+			->bindCompositorComponent(getSelfPtr<CompositorComponent>());
+	}
+}
+
+void CompositorComponent::showCompositorOutput()
+{
+	App* app = App::getInstance();
+
+	if (!app->hasWindowOfType<CompositorOutputEditorWindow>())
+	{
+		app->createAppWindow<CompositorOutputEditorWindow>()
 			->bindCompositorComponent(getSelfPtr<CompositorComponent>());
 	}
 }
@@ -944,6 +956,7 @@ bool CompositorComponent::setPropertyValue(
 
 // -- IFunctionInterface ----
 const std::string CompositorComponent::k_editCompositorGraphFunctionId = "edit_compositor_graph";
+const std::string CompositorComponent::k_showCompositorOutputFunctionId = "show_compositor_output";
 const std::string CompositorComponent::k_addNewScriptFunctionId = "add_new_compositor_graph";
 const std::string CompositorComponent::k_removeCompositorGraphFunctionId = "remove_compositor_graph";
 
@@ -954,6 +967,9 @@ void CompositorComponent::getFunctionDescriptors(std::vector<FunctionDescriptorC
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(
 			k_editCompositorGraphFunctionId, "Edit Compositor Graph"));
+	outDescriptors.push_back(
+		std::make_shared<FunctionDescriptor>(
+			k_showCompositorOutputFunctionId, "Show Compositor Output"));
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(
 			k_addNewScriptFunctionId, "Add Compositor Graph"));
@@ -967,6 +983,11 @@ bool CompositorComponent::invokeFunction(const std::string& functionName)
 	if (functionName == CompositorComponent::k_editCompositorGraphFunctionId)
 	{
 		editCompositorGraph();
+		return true;
+	}
+	else if (functionName == CompositorComponent::k_showCompositorOutputFunctionId)
+	{
+		showCompositorOutput();
 		return true;
 	}
 	else if (functionName == CompositorComponent::k_addNewScriptFunctionId)

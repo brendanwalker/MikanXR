@@ -50,7 +50,6 @@ void AppStage_MainMenu::enter()
 				backgroundMaterial,
 				false);
 	}
-
 }
 
 void AppStage_MainMenu::onResumeProject()

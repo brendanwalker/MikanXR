@@ -1,0 +1,401 @@
+//-- includes -----
+#include "CompositorOutputEditorWindow.h"
+
+#include "App.h"
+#include "CameraComponent.h"
+#include "ClientSourceManager.h"
+#include "CompositorComponent.h"
+#include "EventBus.h"
+#include "IMkLineRenderer.h"
+#include "IMkGraphicsContext.h"
+#include "IMkShaderCode.h"
+#include "IMkShaderCache.h"
+#include "IMkState.h"
+#include "IMkTexture.h"
+#include "IMkTextureCache.h"
+#include "IMkTriangulatedMesh.h"
+#include "InputManager.h"
+#include "LocalizationManager.h"
+#include "MainWindow.h"
+#include "MikanCamera.h"
+#include "MikanModelResourceManager.h"
+#include "MikanServer.h"
+#include "MikanTextRenderer.h"
+#include "MkMaterial.h"
+#include "MkMaterialInstance.h"
+#include "MkScopedState.h"
+#include "MkStateModifiers.h"
+#include "MkStateStack.h"
+#include "MkGuiContext.h"
+#include "MkGuiScopedUpdate.h"
+#include "MkWindowEvent.h"
+#include "OpenCVManager.h"
+#include "PathUtils.h"
+#include "ProjectManager.h"
+#include "SceneComponent.h"
+#include "SceneObjectSystem.h"
+#include "TextStyle.h"
+#include "VideoSourceComponent.h"
+
+#include "IMkFontManager.h"
+
+#include <easy/profiler.h>
+
+//-- constants -----
+static const int k_compositor_output_window_width = 1280;
+static const int k_compositor_output_window_height = 720;
+
+//-- public methods -----
+CompositorOutputEditorWindow::CompositorOutputEditorWindow(App* ownerApp)
+	: EditorWindow(ownerApp)
+{
+	// Share the main window's GL context so all scene resources (VAOs, FBOs, textures) remain accessible
+	m_graphicsContext = ownerApp->getMainWindow()->getGraphicsContext();
+	m_mkWindowContext = createMkWindowContext(ownerApp->getWindowManager(), m_graphicsContext);
+	m_mkWindowContext->useExistingGLContext();	// attach to main window's context, don't create a new one
+	m_modelResourceManager =
+		MikanModelResourceManagerUniquePtr(
+			new MikanModelResourceManager(m_graphicsContext.get()));
+}
+
+bool CompositorOutputEditorWindow::startup()
+{
+	EASY_FUNCTION();
+
+	bool success = true;
+
+	if (success && !startupWindow("Compositor Output", k_compositor_output_window_width, k_compositor_output_window_height))
+	{
+		success = false;
+	}
+
+	if (success && !startupGuiContext())
+	{
+		success = false;
+	}
+
+	if (success && !startupStyleManager())
+	{
+		success = false;
+	}
+
+	if (success && !startupModelResourceManager())
+	{
+		success = false;
+	}
+
+	// Build the compositor frame fullscreen quad (uses built-in RGB material)
+	if (success)
+	{
+		m_compositedFrameQuad = createFullscreenQuadMesh(m_graphicsContext.get(), false, false);
+	}
+
+	// Build the "no composited frame" mesh
+	if (success)
+	{
+		MkMaterialConstPtr backgroundMaterial =
+			m_graphicsContext->getShaderCache()->getMaterialByName(
+				INTERNAL_MATERIAL_PT_PM5544_TEST_CARD);
+
+		m_backgroundQuad =
+			createFullscreenQuadMesh(
+				m_graphicsContext.get(),
+				backgroundMaterial,
+				false);
+	}
+
+	// Create a standalone stationary camera for scene rendering
+	if (success)
+	{
+		m_viewCamera = std::make_shared<MikanCamera>();
+		m_viewCamera->setName("compositor output camera");
+		m_viewCamera->setCameraMovementMode(eCameraMovementMode::stationary);
+	}
+
+	return success;
+}
+
+bool CompositorOutputEditorWindow::bindCompositorComponent(CompositorComponentPtr compositorComponent)
+{
+	m_compositorComponent = compositorComponent;
+
+	// Apply video source camera intrinsics to the view camera
+	VideoSourceComponentPtr videoSource = compositorComponent->getVideoSourceComponent();
+	if (videoSource != nullptr && m_viewCamera != nullptr)
+	{
+		MikanVideoSourceIntrinsics cameraIntrinsics;
+		videoSource->getCameraIntrinsics(cameraIntrinsics);
+		m_viewCamera->applyMonoCameraIntrinsics(&cameraIntrinsics);
+	}
+
+	// Update window title with the compositor name
+	setTitle(compositorComponent->getName() + " - Compositor Output");
+
+	return true;
+}
+
+void CompositorOutputEditorWindow::update(float deltaSeconds)
+{
+	EASY_FUNCTION();
+
+	m_shaderTime += deltaSeconds;
+
+	// Push ImGui update scope (handles events, builds draw lists)
+	MkGuiScopedUpdate scopedCtx(*m_guiContext);
+
+	// Process SDL events
+	m_mkWindowContext->handleEvents(this);
+
+	// Update compositor camera transform each frame
+	CompositorComponentPtr compositor = m_compositorComponent.lock();
+	if (compositor)
+	{
+		CameraComponentPtr cameraComponent = compositor->getCameraComponent();
+		if (cameraComponent && m_viewCamera)
+		{
+			glm::mat4 cameraXform;
+			if (cameraComponent->getStageSpaceAperturePose(cameraXform))
+			{
+				m_viewCamera->setCameraTransform(cameraXform);
+			}
+		}
+	}
+}
+
+void CompositorOutputEditorWindow::render()
+{
+	EASY_FUNCTION();
+
+	IMkGraphicsContext* gfx = m_graphicsContext.get();
+	MkStateStack& stateStack = gfx->getMkStateStack();
+
+	// Clear the window
+	gfx->renderBegin();
+
+	{
+		MkScopedState scopedState = stateStack.createScopedState("CompositorOutput renderScene");
+		IMkState* glState = scopedState.getStackState();
+
+		mkStateSetViewport(glState, 0, 0, (int)m_mkWindowContext->getWidth(), (int)m_mkWindowContext->getHeight());
+
+		CompositorComponentPtr compositor = m_compositorComponent.lock();
+		IMkTextureConstPtr frameTexture = compositor ? compositor->getCompositedFrameTexture() : nullptr;
+
+		// --- Layer 1: Compositor frame or scrolling background ---
+		if (frameTexture && m_compositedFrameQuad)
+		{
+			// Render compositor output frame fullscreen
+			MkMaterialInstancePtr materialInstance = m_compositedFrameQuad->getMaterialInstance();
+			MkMaterialConstPtr material = materialInstance->getMaterial();
+
+			if (auto materialBinding = material->bindMaterial())
+			{
+				materialInstance->setTextureBySemantic(eUniformSemantic::rgbTexture, frameTexture);
+
+				if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+				{
+					MkScopedState frameScopedState = stateStack.createScopedState("CompositorFrame");
+					frameScopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
+
+					m_compositedFrameQuad->drawElements();
+				}
+			}
+		}
+		else if (m_backgroundQuad)
+		{
+			MkMaterialInstancePtr materialInstance = m_backgroundQuad->getMaterialInstance();
+			MkMaterialConstPtr material = materialInstance->getMaterial();
+
+			if (auto materialBinding = material->bindMaterial())
+			{
+				//TODO: "Time" and "ScreenSize" are uniforms that all materials
+				// should have available by default in the graphics context
+				const double currentTimeSeconds = getOwnerApp()->getSecondsSinceAppStart();
+				const float shaderTime = (float)fmodf(currentTimeSeconds, 1000.0);
+				const float screenWidth = m_mkWindowContext->getWidth();
+				const float screenHeight = m_mkWindowContext->getHeight();
+				const glm::vec2 screenSize(screenWidth, screenHeight);
+
+				materialInstance->setVec2BySemantic(eUniformSemantic::screenSize, screenSize);
+				materialInstance->setFloatBySemantic(eUniformSemantic::floatConstant0, shaderTime);
+
+				if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+				{
+					MkScopedState bgScopedState = stateStack.createScopedState("MainTargetDepthRender");
+					IMkState* bgState = bgScopedState.getStackState();
+
+					bgState->disableFlag(eMkStateFlagType::depthTest);
+					bgState->disableFlag(eMkStateFlagType::cullFace);
+					bgState->enableFlag(eMkStateFlagType::texture2d);
+					bgState->enableFlag(eMkStateFlagType::blend);
+
+					mkStateSetBlendEquation(bgState, eMkBlendEquation::ADD);
+					mkStateSetBlendFunc(bgState, eMkBlendFunction::SRC_ALPHA, eMkBlendFunction::ONE_MINUS_SRC_ALPHA);
+
+					m_backgroundQuad->drawElements();
+				}
+			}
+		}
+
+		// --- Layer 2: Editor scene overlay from compositor camera perspective ---
+		if (compositor && m_viewCamera)
+		{
+			MainWindow* mainWindow = getMainWindow();
+			auto sceneSystem = mainWindow->getProjectManager()->getSystemOfType<SceneObjectSystem>();
+			if (sceneSystem)
+			{
+				SceneComponentConstPtr currentScene = sceneSystem->getCurrentScene();
+				if (currentScene)
+				{
+					currentScene->renderEditorScene(m_viewCamera, stateStack);
+				}
+			}
+		}
+	}
+
+	// --- Layer 3: HUD text ---
+	{
+		MkScopedState scopedState = stateStack.createScopedState("CompositorOutput renderUI");
+		IMkState* glState = scopedState.getStackState();
+		mkStateSetViewport(glState, 0, 0, (int)m_mkWindowContext->getWidth(), (int)m_mkWindowContext->getHeight());
+
+		CompositorComponentPtr compositor = m_compositorComponent.lock();
+
+		// Upper left: compositor name | video source name
+		{
+			TextStyle style = getDefaultTextStyle();
+			style.horizontalAlignment = eHorizontalTextAlignment::Left;
+			style.verticalAlignment = eVerticalTextAlignment::Top;
+
+			std::string compositorName = compositor ? compositor->getName() : "No Compositor";
+			std::string videoSourceName;
+			if (compositor)
+			{
+				VideoSourceComponentPtr vs = compositor->getVideoSourceComponent();
+				if (vs)
+					videoSourceName = vs->getName();
+			}
+
+			drawTextAtScreenPosition(
+				gfx,
+				style,
+				glm::vec2(1.f, 1.f),
+				L"%hs | %hs",
+				compositorName.c_str(),
+				videoSourceName.c_str());
+		}
+
+		// Lower right: FPS
+		{
+			TextStyle style = getDefaultTextStyle();
+			style.horizontalAlignment = eHorizontalTextAlignment::Right;
+			style.verticalAlignment = eVerticalTextAlignment::Bottom;
+
+			drawTextAtScreenPosition(
+				gfx,
+				style,
+				glm::vec2(m_mkWindowContext->getWidth() - 1.f, m_mkWindowContext->getHeight() - 1.f),
+				L"%.1ffps",
+				App::getInstance()->getFPS());
+		}
+
+		// Submit ImGui draw data
+		m_guiContext->submitDrawData();
+	}
+
+	// Render any 2D line segments emitted by the AppStage renderUI phase
+	gfx->getLineRenderer()->render();
+
+	// Render any glyphs emitted by the AppStage renderUI phase
+	gfx->getTextRenderer()->render();
+
+	// Finalize rendering
+	gfx->renderEnd();
+
+	// Present the rendered frame
+	m_mkWindowContext->present();
+}
+
+void CompositorOutputEditorWindow::shutdown()
+{
+	m_compositedFrameQuad = nullptr;
+	m_backgroundQuad = nullptr;
+	m_viewCamera = nullptr;
+
+	shutdownModelResourceManager();
+	shutdownStyleManager();
+	shutdownGuiContext();
+	shutdownWindow();
+}
+
+// -- IMkWindowEventListener
+bool CompositorOutputEditorWindow::onWindowEvent(const MkWindowEvent& event)
+{
+	return m_guiContext->onWindowEvent(event);
+}
+
+// -- IEditorWindow service delegation --
+MainWindow* CompositorOutputEditorWindow::getMainWindow() const
+{
+	return getOwnerApp()->getMainWindow();
+}
+
+ProjectManagerPtr CompositorOutputEditorWindow::getProjectManager() const
+{
+	return getMainWindow()->getProjectManager();
+}
+
+MikanServer* CompositorOutputEditorWindow::getMikanServer() const
+{
+	return getMainWindow()->getMikanServer();
+}
+
+IMkFontManager* CompositorOutputEditorWindow::getFontManager() const
+{
+	return getMainWindow()->getFontManager();
+}
+
+InputManager* CompositorOutputEditorWindow::getInputManager() const
+{
+	return getMainWindow()->getInputManager();
+}
+
+OpenCVManager* CompositorOutputEditorWindow::getOpenCVManager() const
+{
+	return getMainWindow()->getOpenCVManager();
+}
+
+ClientSourceManager* CompositorOutputEditorWindow::getClientSourceManager() const
+{
+	return getMainWindow()->getClientSourceManager();
+}
+
+LocalizationManager* CompositorOutputEditorWindow::getLocalizationManager() const
+{
+	return getMainWindow()->getLocalizationManager();
+}
+
+EventBus* CompositorOutputEditorWindow::getEventBus() const
+{
+	return getMainWindow()->getEventBus();
+}
+
+AppStage* CompositorOutputEditorWindow::getCurrentAppStage() const
+{
+	return getMainWindow()->getCurrentAppStage();
+}
+
+AppStage* CompositorOutputEditorWindow::getParentAppStage() const
+{
+	return getMainWindow()->getParentAppStage();
+}
+
+AppStage* CompositorOutputEditorWindow::pushAppStage(const std::string& appStageName)
+{
+	return getMainWindow()->pushAppStage(appStageName);
+}
+
+void CompositorOutputEditorWindow::popAppState()
+{
+	return getMainWindow()->popAppState();
+}
