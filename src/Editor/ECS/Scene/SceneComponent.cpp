@@ -284,14 +284,6 @@ void SceneComponent::activateScene()
 
 	// Set active compositors for this scene
 	compositorSystem->setActiveCompositors(activeCompositorIDs);
-
-	// If the compositor output window is already open, rebind it to this scene
-	CompositorOutputEditorWindow* window =
-		App::getInstance()->getWindowOfType<CompositorOutputEditorWindow>();
-	if (window)
-	{
-		window->bindSceneComponent(getSelfPtr<SceneComponent>());
-	}
 }
 
 void SceneComponent::deactivateScene()

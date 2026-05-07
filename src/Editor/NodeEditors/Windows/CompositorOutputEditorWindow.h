@@ -47,6 +47,7 @@ public:
 
 private:
 	void rebindCompositorFromScene();
+	void onSceneActivated(SceneComponentPtr newScene);
 	void onSceneDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 	void onSceneComponentDisposed(MikanObjectSystemPtr objectSystem, MikanComponentConstPtr component);
 	void onCompositorComponentDisposed(MikanObjectSystemPtr objectSystem, MikanComponentConstPtr component);

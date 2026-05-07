@@ -113,10 +113,12 @@ bool CompositorOutputEditorWindow::startup()
 		m_viewCamera->setCameraMovementMode(eCameraMovementMode::stationary);
 	}
 
-	// Listen for scene and compositor disposal so we can self-close
+	// Listen for scene activation and disposal
 	auto sceneSystem = getProjectManager()->getSystemOfType<SceneObjectSystem>();
 	if (sceneSystem)
 	{
+		sceneSystem->OnSceneActivated +=
+			MakeDelegate(this, &CompositorOutputEditorWindow::onSceneActivated);
 		sceneSystem->OnComponentDisposed +=
 			MakeDelegate(this, &CompositorOutputEditorWindow::onSceneComponentDisposed);
 	}
@@ -188,6 +190,11 @@ void CompositorOutputEditorWindow::rebindCompositorFromScene()
 	// Update window title
 	std::string compositorName = compositor ? compositor->getName() : "No Compositor";
 	setTitle(compositorName + " - Compositor Output");
+}
+
+void CompositorOutputEditorWindow::onSceneActivated(SceneComponentPtr newScene)
+{
+	bindSceneComponent(newScene);
 }
 
 void CompositorOutputEditorWindow::onSceneDefinitionChanged(
@@ -414,10 +421,12 @@ void CompositorOutputEditorWindow::shutdown()
 			MakeDelegate(this, &CompositorOutputEditorWindow::onSceneDefinitionChanged);
 	}
 
-	// Stop listening for scene and compositor disposal
+	// Stop listening for scene activation and disposal
 	auto sceneSystem = getProjectManager()->getSystemOfType<SceneObjectSystem>();
 	if (sceneSystem)
 	{
+		sceneSystem->OnSceneActivated -=
+			MakeDelegate(this, &CompositorOutputEditorWindow::onSceneActivated);
 		sceneSystem->OnComponentDisposed -=
 			MakeDelegate(this, &CompositorOutputEditorWindow::onSceneComponentDisposed);
 	}
