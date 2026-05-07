@@ -36,6 +36,7 @@ public:
 	virtual IMkViewportPtr getRenderingViewport() const override;
 	virtual void makeContextCurrent() override;
 	virtual bool wantsDestroy() const override { return m_wantsDestroy; }
+	virtual void requestClose() override;
 
 	// -- IMkWindowContext overrides --
 	virtual void setTitle(const std::string& title) override;

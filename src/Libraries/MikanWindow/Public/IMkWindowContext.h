@@ -44,6 +44,7 @@ public:
 
 	virtual void makeContextCurrent() = 0;
 	virtual bool wantsDestroy() const = 0;
+	virtual void requestClose() {}
 
 	virtual void setTitle(const std::string& title) = 0;
 	virtual void setSize(int width, int height) = 0;

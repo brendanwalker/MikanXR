@@ -332,6 +332,15 @@ void SdlWindowContext::focus()
 	SDL_RaiseWindow(m_sdlWindow);
 }
 
+void SdlWindowContext::requestClose()
+{
+	if (m_sdlWindow)
+	{
+		SDL_HideWindow(m_sdlWindow);
+	}
+	m_wantsDestroy = true;
+}
+
 void SdlWindowContext::makeContextCurrent()
 {
 	int result = SDL_GL_MakeCurrent(m_sdlWindow, m_glContext);
