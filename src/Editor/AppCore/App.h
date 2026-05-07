@@ -83,6 +83,19 @@ public:
 		return false;
 	}
 
+	template<typename t_app_window>
+	t_app_window* getWindowOfType() const
+	{
+		for (EditorWindow* window : m_appWindows)
+		{
+			t_app_window* typedWindow = dynamic_cast<t_app_window*>(window);
+			if (typedWindow != nullptr)
+				return typedWindow;
+		}
+
+		return nullptr;
+	}
+
 protected:
 	bool startup(int argc, char** argv);
 	void shutdown();
