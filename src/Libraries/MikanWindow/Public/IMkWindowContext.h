@@ -26,6 +26,9 @@ public:
 	virtual void present() = 0;
 	virtual void shutdown() = 0;
 
+	virtual void enableGLDataSharing() {}		// enable GL resource sharing before startup()
+	virtual void useExistingGLContext() {}		// attach to the currently active GL context instead of creating a new one
+
 	virtual const char* getTitle() const = 0;
 	virtual float getWidth() const = 0;
 	virtual float getHeight() const = 0;

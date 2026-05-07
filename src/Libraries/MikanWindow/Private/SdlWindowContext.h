@@ -49,8 +49,9 @@ public:
 
 	int getWindowId() const { return m_windowId; }
 
-	SdlWindowContext* enableGLDataSharing();
+	virtual void enableGLDataSharing() override;
 	bool isGlDataSharingEnabled() const { return m_bGLDataSharingEnabled; }
+	virtual void useExistingGLContext() override;
 
 	bool isMinimized() const { return m_isMinimized; }
 	bool isShown() const { return m_isShown; }
@@ -67,6 +68,7 @@ private:
 	bool m_isRenderingStage = false;
 
 	bool m_bGLDataSharingEnabled = false;
+	bool m_bOwnsGLContext = true;			// false when attaching to an existing GL context
 
 	std::string m_title = "Mikan Window";
 

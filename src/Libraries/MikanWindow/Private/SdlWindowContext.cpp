@@ -37,11 +37,16 @@ SdlWindowContext::~SdlWindowContext()
 	shutdown();
 }
 
-SdlWindowContext* SdlWindowContext::enableGLDataSharing()
+void SdlWindowContext::enableGLDataSharing()
 {
 	assert(m_sdlWindow == nullptr);
 	m_bGLDataSharingEnabled = true;
-	return this;
+}
+
+void SdlWindowContext::useExistingGLContext()
+{
+	assert(m_sdlWindow == nullptr);  // must be called before startup()
+	m_bOwnsGLContext = false;
 }
 
 void SdlWindowContext::setTitle(const std::string& title)
@@ -97,21 +102,42 @@ bool SdlWindowContext::startup()
 
 	if (success)
 	{
-		m_glContext = SDL_GL_CreateContext(m_sdlWindow);
-		if (m_glContext != NULL)
+		if (m_bOwnsGLContext)
 		{
-			ownerWindowManager->pushCurrentWindowContext(this);
-			SDL_GL_SetSwapInterval(0);
+			// Create a new GL context owned by this window
+			m_glContext = SDL_GL_CreateContext(m_sdlWindow);
+			if (m_glContext != NULL)
+			{
+				ownerWindowManager->pushCurrentWindowContext(this);
+				SDL_GL_SetSwapInterval(0);
+			}
+			else
+			{
+				MIKAN_LOG_ERROR("SdlWindowContext::startup") << "Unable to initialize SDL OpenGL context: " << SDL_GetError();
+				success = false;
+			}
 		}
 		else
 		{
-			MIKAN_LOG_ERROR("SdlWindowContext::startup") << "Unable to initialize SDL OpenGL context: " << SDL_GetError();
-			success = false;
+			// Attach this window to the currently active GL context (owned by another window)
+			m_glContext = SDL_GL_GetCurrentContext();
+			if (m_glContext != NULL)
+			{
+				SDL_GL_MakeCurrent(m_sdlWindow, m_glContext);
+				ownerWindowManager->pushCurrentWindowContext(this);
+			}
+			else
+			{
+				MIKAN_LOG_ERROR("SdlWindowContext::startup") << "No active GL context to attach to";
+				success = false;
+			}
 		}
 	}
 
-	if (success)
+	if (success && m_bOwnsGLContext)
 	{
+		// Only initialize the graphics context for the context owner.
+		// Secondary windows share an already-initialized graphics context.
 		graphicsContext->onNativeContextCreated(m_glContext);
 		if (!graphicsContext->startup())
 		{
@@ -135,14 +161,17 @@ bool SdlWindowContext::startup()
 void SdlWindowContext::shutdown()
 {
 	IMkGraphicsContextPtr graphicsContext = m_graphicsContext.lock();
-	if (graphicsContext)
+	if (graphicsContext && m_bOwnsGLContext)
 	{
 		graphicsContext->shutdown();
 	}
 
 	if (m_glContext != NULL)
 	{
-		SDL_GL_DeleteContext(m_glContext);
+		if (m_bOwnsGLContext)
+		{
+			SDL_GL_DeleteContext(m_glContext);
+		}
 		m_glContext = NULL;
 	}
 
@@ -310,6 +339,15 @@ void SdlWindowContext::makeContextCurrent()
 	{
 		const char* errorMessage = SDL_GetError();
 		MIKAN_LOG_ERROR("SdlWindowContext::makeContextCurrent") << "Error with SDL_GL_MakeCurrent: " << errorMessage;
+	}
+
+	// Keep graphics context width/height in sync with whichever window is currently active.
+	// This is required for text rendering and other screen-space calculations when a single
+	// GL context is shared across multiple windows.
+	IMkGraphicsContextPtr graphicsContext = m_graphicsContext.lock();
+	if (graphicsContext)
+	{
+		graphicsContext->onWindowSizeChanged(m_width, m_height);
 	}
 }
 

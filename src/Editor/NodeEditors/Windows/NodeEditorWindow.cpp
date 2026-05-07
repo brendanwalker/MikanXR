@@ -57,9 +57,11 @@
 NodeEditorWindow::NodeEditorWindow(App* ownerApp)
 	: EditorWindow(ownerApp)
 {
-	m_graphicsContext = createMkGraphicsContext(eGraphicsAPI::OpenGL, nullptr);
+	// Share the main window's GL context so all scene resources (VAOs, FBOs, textures) remain accessible
+	m_graphicsContext = ownerApp->getMainWindow()->getGraphicsContext();
 	m_mkWindowContext = createMkWindowContext(ownerApp->getWindowManager(), m_graphicsContext);
-	m_modelResourceManager = 
+	m_mkWindowContext->useExistingGLContext();	// attach to main window's context, don't create a new one
+	m_modelResourceManager =
 		MikanModelResourceManagerUniquePtr(
 			new MikanModelResourceManager(m_graphicsContext.get()));
 }
@@ -103,21 +105,6 @@ bool NodeEditorWindow::startup()
 	if (success && !startupModelResourceManager())
 	{
 		success = false;
-	}
-
-	if (success)
-	{
-		// Set default state flags at the base of the stack
-		IMkState* mkBaseState= m_graphicsContext->getMkStateStack().pushState("NodeEditor Root Scope");
-		assert(mkBaseState->getStackDepth() == 0);
-
-		mkBaseState
-		->enableFlag(eMkStateFlagType::texture2d)
-		->enableFlag(eMkStateFlagType::depthTest)
-		->disableFlag(eMkStateFlagType::cullFace);
-
-		static const glm::vec4 k_clear_color = glm::vec4(0.45f, 0.45f, 0.5f, 1.f);
-		mkStateSetClearColor(mkBaseState, k_clear_color);
 	}
 
 	return success;
