@@ -4,9 +4,11 @@
 #include "GizmoTranslateComponent.h"
 #include "GizmoRotateComponent.h"
 #include "GizmoScaleComponent.h"
+#include "EditorObjectSystem.h"
 #include "InputManager.h"
 #include "IEditorWindow.h"
 #include "MathGLM.h"
+#include "MikanCamera.h"
 #include "MikanObject.h"
 #include "SelectionComponent.h"
 
@@ -14,6 +16,7 @@ GizmoTransformComponent::GizmoTransformComponent(MikanObjectWeakPtr owner)
 	: TransformComponent(owner)
 {
 	m_bWantsCustomRender= true;
+	m_bWantsUpdate= true;
 }
 
 void GizmoTransformComponent::init()
@@ -33,6 +36,34 @@ void GizmoTransformComponent::init()
 	m_translateComponent = translateComponent;
 	m_rotateComponent = rotateComponent;
 	m_scaleComponent = scaleComponent;
+}
+
+void GizmoTransformComponent::update(float deltaSeconds)
+{
+	m_displayScale = computeDisplayScale();
+	updateGizmoColliderScales();
+}
+
+float GizmoTransformComponent::computeDisplayScale() const
+{
+	auto editorSystem = getObjectSystemOfType<EditorObjectSystem>();
+	if (!editorSystem) return 1.0f;
+
+	MikanCameraPtr camera = editorSystem->getPrimaryCamera();
+	if (!camera) return 1.0f;
+
+	const glm::vec3 cameraPos = camera->getCameraPositionFromViewMatrix();
+	const glm::vec3 gizmoPos = getWorldLocation();
+	const float distance = glm::length(cameraPos - gizmoPos);
+
+	return glm::max(distance * k_gizmoScreenSizeFactor, 0.001f);
+}
+
+void GizmoTransformComponent::updateGizmoColliderScales()
+{
+	if (auto t = m_translateComponent.lock()) t->updateColliderScales(m_displayScale);
+	if (auto r = m_rotateComponent.lock())    r->updateColliderScales(m_displayScale);
+	if (auto s = m_scaleComponent.lock())     s->updateColliderScales(m_displayScale);
 }
 
 void GizmoTransformComponent::bindInput()

@@ -95,6 +95,7 @@ public:
 	MulticastDelegate<void()> OnSelectionChanged;
 
 	inline MikanObjectPtr getGizmoObject() const { return m_gizmoObjectWeakPtr.lock(); }
+	MikanCameraPtr getPrimaryCamera() const;
 
 	virtual void registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase) override;
 	virtual void registerFunctionDescriptors(MikanFunctionDatabasePtr functionDatabase) override;

@@ -20,6 +20,7 @@ public:
 	virtual void dispose() override;
 
 	void setEnabled(bool bEnabled);
+	void updateColliderScales(float displayScale);
 
 	SinglecastDelegate<void(const glm::vec3& position)> OnTranslationRequested;
 

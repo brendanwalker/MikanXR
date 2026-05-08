@@ -153,7 +153,8 @@ void BoxStencilComponent::customRender()
 		}
 		
 		drawTransformedBox(graphicsContext, xform, half_extents, color);
-		drawTransformedAxes(graphicsContext, xform, 0.1f, 0.1f, 0.1f);
+		if (!selectionComponent || !selectionComponent->getIsSelected())
+			drawTransformedAxes(graphicsContext, xform, 0.1f, 0.1f, 0.1f);
 		drawTextAtWorldPosition(graphicsContext, style, position, L"Stencil %d", boxDefinition->getComponentId());
 	}
 }

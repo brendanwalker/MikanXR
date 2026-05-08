@@ -21,6 +21,7 @@ public:
 	virtual void dispose() override;
 
 	void setEnabled(bool bEnabled);
+	void updateColliderScales(float displayScale);
 
 	SinglecastDelegate<void(const glm::quat& objectSpaceRotation)> OnRotateRequested;
 

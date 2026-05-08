@@ -2,6 +2,7 @@
 
 #include "BoxColliderComponent.h"
 #include "Colors.h"
+#include "GizmoTransformComponent.h"
 #include "GizmoTranslateComponent.h"
 #include "MikanLineRenderer.h"
 #include "SelectionComponent.h"
@@ -75,7 +76,7 @@ static void drawTranslationArrowHandle(
 	const glm::vec3 axisCenter = glm_mat4_get_position(axisCollidePtr->getWorldTransform());
 	const glm::vec3 axisEnd= origin + (axisCenter - origin) * 2.f;
 
-	drawArrow(graphicsContext, glm::mat4(1.f), origin, axisEnd, 0.05f, color);
+	drawArrow(graphicsContext, glm::mat4(1.f), origin, axisEnd, 0.1f, color);
 }
 
 void GizmoTranslateComponent::customRender()
@@ -96,6 +97,21 @@ void GizmoTranslateComponent::customRender()
 		drawTranslationArrowHandle(m_centerHandle, m_zAxisHandle, getColliderColor(m_zAxisHandle, Colors::Blue, Colors::LightBlue));
 		//drawTranslationBoxHandle(m_zAxisHandle, getColliderColor(m_zAxisHandle, Colors::DarkGray, Colors::LightGray));
 	}
+}
+
+void GizmoTranslateComponent::updateColliderScales(float displayScale)
+{
+	const float R = GizmoTransformComponent::k_gizmoBaseRadius * displayScale;
+	const float W = GizmoTransformComponent::k_gizmoBaseWidth * displayScale;
+	const float P = R * 0.05f;
+
+	if (auto h = m_centerHandle.lock())  { h->setRelativePosition({0, 0, 0});       h->setHalfExtents({W, W, W}); }
+	if (auto h = m_xyHandle.lock())      { h->setRelativePosition({P, P, 0});        h->setHalfExtents({P, P, W * 0.1f}); }
+	if (auto h = m_xzHandle.lock())      { h->setRelativePosition({P, 0, P});        h->setHalfExtents({P, W * 0.1f, P}); }
+	if (auto h = m_yzHandle.lock())      { h->setRelativePosition({0, P, P});        h->setHalfExtents({W * 0.1f, P, P}); }
+	if (auto h = m_xAxisHandle.lock())   { h->setRelativePosition({R / 2.f, 0, 0}); h->setHalfExtents({R / 2.f, W, W}); }
+	if (auto h = m_yAxisHandle.lock())   { h->setRelativePosition({0, R / 2.f, 0}); h->setHalfExtents({W, R / 2.f, W}); }
+	if (auto h = m_zAxisHandle.lock())   { h->setRelativePosition({0, 0, R / 2.f}); h->setHalfExtents({W, W, R / 2.f}); }
 }
 
 void GizmoTranslateComponent::setEnabled(bool bEnabled)

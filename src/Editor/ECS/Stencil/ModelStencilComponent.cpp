@@ -182,7 +182,9 @@ void ModelStencilComponent::customRender()
 		const glm::mat4 xform = getWorldTransform();
 		const glm::vec3 position = glm::vec3(xform[3]);
 
-		drawTransformedAxes(graphicsContext, xform, 0.1f, 0.1f, 0.1f);
+		SelectionComponentPtr selectionComponent = m_selectionComponentWeakPtr.lock();
+		if (!selectionComponent || !selectionComponent->getIsSelected())
+			drawTransformedAxes(graphicsContext, xform, 0.1f, 0.1f, 0.1f);
 		drawTextAtWorldPosition(
 			graphicsContext,
 			style, position, L"Stencil %d", modelStencilDefinition->getComponentId());

@@ -3,6 +3,7 @@
 #include "App.h"
 #include "BoxColliderComponent.h"
 #include "Colors.h"
+#include "GizmoTransformComponent.h"
 #include "GizmoScaleComponent.h"
 #include "MikanLineRenderer.h"
 #include "SelectionComponent.h"
@@ -90,6 +91,16 @@ void GizmoScaleComponent::customRender()
 		drawScaleArrowHandle(m_centerHandle, m_yAxisHandle, getColliderColor(m_yAxisHandle, Colors::Green));
 		drawScaleArrowHandle(m_centerHandle, m_zAxisHandle, getColliderColor(m_zAxisHandle, Colors::Blue));
 	}
+}
+
+void GizmoScaleComponent::updateColliderScales(float displayScale)
+{
+	const float R = GizmoTransformComponent::k_gizmoBaseRadius * displayScale;
+	const float W = GizmoTransformComponent::k_gizmoBaseWidth * displayScale;
+	if (auto h = m_centerHandle.lock())  { h->setRelativePosition({0, 0, 0}); h->setHalfExtents({W, W, W}); }
+	if (auto h = m_xAxisHandle.lock())   { h->setRelativePosition({R, 0, 0}); h->setHalfExtents({W, W, W}); }
+	if (auto h = m_yAxisHandle.lock())   { h->setRelativePosition({0, R, 0}); h->setHalfExtents({W, W, W}); }
+	if (auto h = m_zAxisHandle.lock())   { h->setRelativePosition({0, 0, R}); h->setHalfExtents({W, W, W}); }
 }
 
 void GizmoScaleComponent::setEnabled(bool bEnabled)

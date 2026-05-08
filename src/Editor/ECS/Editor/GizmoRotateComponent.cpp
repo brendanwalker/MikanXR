@@ -2,6 +2,7 @@
 
 #include "Colors.h"
 #include "DiskColliderComponent.h"
+#include "GizmoTransformComponent.h"
 #include "MikanLineRenderer.h"
 #include "GizmoRotateComponent.h"
 #include "MikanObject.h"
@@ -103,6 +104,14 @@ void GizmoRotateComponent::customRender()
 				m_worldSpaceDragBasis, radius, 0.05f, m_dragAngle, Colors::Yellow);
 		}
 	}
+}
+
+void GizmoRotateComponent::updateColliderScales(float displayScale)
+{
+	const float R = GizmoTransformComponent::k_gizmoBaseRadius * displayScale;
+	if (auto h = m_xAxisHandle.lock()) h->setRadius(R);
+	if (auto h = m_yAxisHandle.lock()) h->setRadius(R);
+	if (auto h = m_zAxisHandle.lock()) h->setRadius(R);
 }
 
 void GizmoRotateComponent::setEnabled(bool bEnabled)

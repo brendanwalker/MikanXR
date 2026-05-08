@@ -21,7 +21,12 @@ public:
 	inline static const std::string k_componentClassName = "GizmoTransformComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
+	static constexpr float k_gizmoBaseRadius = 0.5f;
+	static constexpr float k_gizmoBaseWidth = 0.05f;
+	static constexpr float k_gizmoScreenSizeFactor = 0.15f;
+
 	virtual void init() override;
+	virtual void update(float deltaSeconds) override;
 	virtual void customRender() override;
 
 	void bindInput();
@@ -45,7 +50,10 @@ protected:
 	TransformComponentWeakPtr m_transformTarget;
 
 	glm::vec3 m_targetScale;
+	float m_displayScale = 1.0f;
 	bool m_bIsApplyingTransformToTarget= false;
+	float computeDisplayScale() const;
+	void updateGizmoColliderScales();
 	void applyTransformToTarget();
 	void applyTransformToGizmo();
 
