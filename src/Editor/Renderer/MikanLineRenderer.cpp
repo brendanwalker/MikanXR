@@ -57,7 +57,7 @@ void drawArrow(
 	IMkLineRenderer* lineRenderer = graphicsContext->getLineRenderer();
 
 	const glm::vec3 headAxis = end - start;
-	const float headSize = headAxis.length() * headFraction * 0.1f;
+	const float headSize = glm::length(headAxis) * headFraction;
 	const glm::vec3 headOrigin = glm_vec3_lerp(end, start, headFraction);
 
 	const glm::vec3 worldUp = glm::vec3(0, 1, 0);
