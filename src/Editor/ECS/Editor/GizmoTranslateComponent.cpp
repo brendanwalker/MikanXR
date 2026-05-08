@@ -2,12 +2,19 @@
 
 #include "BoxColliderComponent.h"
 #include "Colors.h"
+#include "DiskColliderComponent.h"
+#include "EditorObjectSystem.h"
 #include "GizmoTransformComponent.h"
 #include "GizmoTranslateComponent.h"
+#include "MikanCamera.h"
 #include "MikanLineRenderer.h"
+#include "MikanTextRenderer.h"
 #include "SelectionComponent.h"
 #include "MathGLM.h"
 #include "MikanObject.h"
+#include "TextStyle.h"
+
+#include <glm/ext/quaternion_float.hpp>
 
 GizmoTranslateComponent::GizmoTranslateComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
@@ -26,11 +33,13 @@ void GizmoTranslateComponent::init()
 	m_xAxisHandle= owner->getComponentOfTypeAndName<BoxColliderComponent>("xAxisTranslateHandle");
 	m_yAxisHandle= owner->getComponentOfTypeAndName<BoxColliderComponent>("yAxisTranslateHandle");
 	m_zAxisHandle= owner->getComponentOfTypeAndName<BoxColliderComponent>("zAxisTranslateHandle");
+	m_viewPlaneHandle= owner->getComponentOfTypeAndName<DiskColliderComponent>("viewPlaneTranslateHandle");
 
 	m_selectionComponent= owner->getComponentOfType<SelectionComponent>();
 
 	m_dragComponent.reset();
 	m_dragOrigin= glm::vec3(0.f);
+	m_viewPlaneDragNormal= glm::vec3(0.f, 0.f, 1.f);
 }
 
 void GizmoTranslateComponent::dispose()
@@ -89,13 +98,43 @@ void GizmoTranslateComponent::customRender()
 		drawTranslationBoxHandle(m_yzHandle, getColliderColor(m_yzHandle, Colors::DarkGray, Colors::LightGray));
 
 		drawTranslationArrowHandle(m_centerHandle, m_xAxisHandle, getColliderColor(m_xAxisHandle, Colors::Red,  Colors::Pink));
-		//drawTranslationBoxHandle(m_xAxisHandle, getColliderColor(m_xAxisHandle, Colors::DarkGray, Colors::LightGray));
-
 		drawTranslationArrowHandle(m_centerHandle, m_yAxisHandle, getColliderColor(m_yAxisHandle, Colors::Green, Colors::LightGreen));
-		//drawTranslationBoxHandle(m_yAxisHandle, getColliderColor(m_yAxisHandle, Colors::DarkGray, Colors::LightGray));
-
 		drawTranslationArrowHandle(m_centerHandle, m_zAxisHandle, getColliderColor(m_zAxisHandle, Colors::Blue, Colors::LightBlue));
-		//drawTranslationBoxHandle(m_zAxisHandle, getColliderColor(m_zAxisHandle, Colors::DarkGray, Colors::LightGray));
+
+		// View-plane handle: camera-facing circle at center
+		if (auto vph = m_viewPlaneHandle.lock())
+		{
+			ColliderComponentPtr vphBase = vph;
+			glm::vec3 vphColor = Colors::DarkGray;
+			if (vphBase == m_dragComponent.lock()) vphColor = Colors::Yellow;
+			else if (vphBase == m_hoverComponent.lock()) vphColor = Colors::LightGray;
+
+			drawTransformedCircle(
+				vph->getGraphicsContext(), vph->getWorldTransform(), vph->getRadius(), vphColor);
+		}
+
+		// Axis labels at arrow tips
+		BoxColliderComponentPtr centerPtr = m_centerHandle.lock();
+		if (centerPtr)
+		{
+			IMkGraphicsContext* graphicsContext = centerPtr->getGraphicsContext();
+			TextStyle style = getDefaultTextStyle();
+			const glm::vec3 origin = glm_mat4_get_position(centerPtr->getWorldTransform());
+
+			auto drawAxisLabel = [&](BoxColliderComponentWeakPtr axisHandle, const wchar_t* label)
+			{
+				if (auto axisPtr = axisHandle.lock())
+				{
+					const glm::vec3 axisCenter = glm_mat4_get_position(axisPtr->getWorldTransform());
+					const glm::vec3 tip = origin + (axisCenter - origin) * 2.f;
+					drawTextAtWorldPosition(graphicsContext, style, tip, label);
+				}
+			};
+
+			drawAxisLabel(m_xAxisHandle, L"X");
+			drawAxisLabel(m_yAxisHandle, L"Y");
+			drawAxisLabel(m_zAxisHandle, L"Z");
+		}
 	}
 }
 
@@ -112,6 +151,32 @@ void GizmoTranslateComponent::updateColliderScales(float displayScale)
 	if (auto h = m_xAxisHandle.lock())   { h->setRelativePosition({R / 2.f, 0, 0}); h->setHalfExtents({R / 2.f, W, W}); }
 	if (auto h = m_yAxisHandle.lock())   { h->setRelativePosition({0, R / 2.f, 0}); h->setHalfExtents({W, R / 2.f, W}); }
 	if (auto h = m_zAxisHandle.lock())   { h->setRelativePosition({0, 0, R / 2.f}); h->setHalfExtents({W, W, R / 2.f}); }
+
+	if (auto h = m_viewPlaneHandle.lock())
+	{
+		h->setRelativePosition({0, 0, 0});
+		h->setRadius(W * 3.f);
+
+		auto editorSystem = getObjectSystemOfType<EditorObjectSystem>();
+		if (editorSystem)
+		{
+			MikanCameraPtr camera = editorSystem->getPrimaryCamera();
+			if (camera)
+			{
+				const glm::vec3 cameraForward = camera->getCameraForwardFromViewMatrix();
+				const glm::vec3 yAxis(0.f, 1.f, 0.f);
+				const glm::vec3 rotAxis = glm::cross(yAxis, cameraForward);
+				const float crossLen = glm::length(rotAxis);
+				const float dotVal = glm::clamp(glm::dot(yAxis, cameraForward), -1.f, 1.f);
+				const float angle = acosf(dotVal);
+				const glm::quat faceCamera =
+					(crossLen > 1e-6f)
+					? glm::angleAxis(angle, rotAxis / crossLen)
+					: glm::quat(1.f, 0.f, 0.f, 0.f);
+				h->setRelativeRotation(faceCamera);
+			}
+		}
+	}
 }
 
 void GizmoTranslateComponent::setEnabled(bool bEnabled)
@@ -144,6 +209,7 @@ void GizmoTranslateComponent::setEnabled(bool bEnabled)
 		m_xAxisHandle.lock()->setEnabled(bEnabled);
 		m_yAxisHandle.lock()->setEnabled(bEnabled);
 		m_zAxisHandle.lock()->setEnabled(bEnabled);
+		if (auto h = m_viewPlaneHandle.lock()) h->setEnabled(bEnabled);
 		m_bEnabled= bEnabled;
 	}
 }
@@ -160,9 +226,21 @@ void GizmoTranslateComponent::onInteractionRayOverlapExit(const ColliderRaycastH
 
 void GizmoTranslateComponent::onInteractionGrab(const ColliderRaycastHitResult& hitResult)
 {
-	ColliderComponentPtr dragColliderPtr = hitResult.hitComponent.lock();
-
 	m_dragComponent = hitResult.hitComponent;
+
+	DiskColliderComponentPtr vph = m_viewPlaneHandle.lock();
+	if (hitResult.hitComponent.lock() == vph)
+	{
+		auto editorSystem = getObjectSystemOfType<EditorObjectSystem>();
+		if (editorSystem)
+		{
+			MikanCameraPtr camera = editorSystem->getPrimaryCamera();
+			if (camera)
+				m_viewPlaneDragNormal = camera->getCameraForwardFromViewMatrix();
+		}
+		m_dragOrigin = hitResult.hitLocation;
+		m_bValidDragOrigin = true;
+	}
 }
 
 void GizmoTranslateComponent::onInteractionMove(const glm::vec3& rayOrigin, const glm::vec3& rayDir)
@@ -180,8 +258,24 @@ void GizmoTranslateComponent::onInteractionMove(const glm::vec3& rayOrigin, cons
 	glm::vec3 closestPoint = rayOrigin;
 	bool hasClosestPoint = false;
 
+	// View-plane handle drag (camera-facing plane)
+	if (dragColliderPtr == m_viewPlaneHandle.lock())
+	{
+		if (m_bValidDragOrigin)
+		{
+			hasClosestPoint = glm_intersect_plane_with_ray(
+				m_dragOrigin, m_viewPlaneDragNormal,
+				rayOrigin, rayDir,
+				closestTime, closestPoint);
+		}
+		else
+		{
+			closestPoint = dragColliderPtr->getWorldLocation();
+			hasClosestPoint = true;
+		}
+	}
 	// Center handle drag
-	if (dragColliderPtr == m_centerHandle.lock())
+	else if (dragColliderPtr == m_centerHandle.lock())
 	{
 		if (m_bValidDragOrigin)
 		{

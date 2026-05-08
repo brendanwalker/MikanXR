@@ -4,10 +4,12 @@
 #include "DiskColliderComponent.h"
 #include "GizmoTransformComponent.h"
 #include "MikanLineRenderer.h"
+#include "MikanTextRenderer.h"
 #include "GizmoRotateComponent.h"
 #include "MikanObject.h"
 #include "MathGLM.h"
 #include "SelectionComponent.h"
+#include "TextStyle.h"
 
 static const float k_dragAngleFactor= k_real_two_pi; // 360 degrees / meter
 
@@ -73,6 +75,8 @@ bool GizmoRotateComponent::getColliderRotationAxis(
 	return false;
 }
 
+static constexpr float k_innerRingScale = 0.85f;
+
 static void drawRotateDiscHandle(DiskColliderComponentWeakPtr colliderWeakPtr, const glm::vec3 color)
 {
 	DiskColliderComponentPtr collidePtr = colliderWeakPtr.lock();
@@ -82,6 +86,7 @@ static void drawRotateDiscHandle(DiskColliderComponentWeakPtr colliderWeakPtr, c
 	const float radius = collidePtr->getRadius();
 
 	drawTransformedCircle(graphicsContext, xform, radius, color);
+	drawTransformedCircle(graphicsContext, xform, radius * k_innerRingScale, color);
 }
 
 void GizmoRotateComponent::customRender()
@@ -100,8 +105,15 @@ void GizmoRotateComponent::customRender()
 			const float radius = diskComponentPtr->getRadius();
 
 			drawTransformedSpiralArc(
-				graphicsContext, 
+				graphicsContext,
 				m_worldSpaceDragBasis, radius, 0.05f, m_dragAngle, Colors::Yellow);
+
+			const glm::vec3 center = glm_mat4_get_position(diskComponentPtr->getWorldTransform());
+			const float angleDeg = glm::degrees(m_dragAngle);
+			TextStyle style = getDefaultTextStyle();
+
+			const glm::vec3 labelPos = center + glm_mat4_get_x_axis(m_worldSpaceDragBasis) * radius * 1.5f;
+			drawTextAtWorldPosition(graphicsContext, style, labelPos, L"%.1f\u00b0", angleDeg);
 		}
 	}
 }

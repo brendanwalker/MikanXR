@@ -46,10 +46,12 @@ protected:
 	BoxColliderComponentWeakPtr m_xAxisHandle;
 	BoxColliderComponentWeakPtr m_yAxisHandle;
 	BoxColliderComponentWeakPtr m_zAxisHandle;
+	DiskColliderComponentWeakPtr m_viewPlaneHandle;
 
 	SelectionComponentWeakPtr m_selectionComponent;
 	ColliderComponentWeakPtr m_hoverComponent;
 	ColliderComponentWeakPtr m_dragComponent;
 	glm::vec3 m_dragOrigin;
+	glm::vec3 m_viewPlaneDragNormal;
 	bool m_bValidDragOrigin= false;
 };

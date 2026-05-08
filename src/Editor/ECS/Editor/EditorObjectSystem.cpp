@@ -174,6 +174,8 @@ void EditorObjectSystem::createSceneTransformGizmo(SceneComponentPtr ownerScene)
 	createGizmoBoxCollider(gizmoObjectPtr, "xAxisTranslateHandle", glm::vec3(R/2.f, 0.f, 0.f), glm::vec3(R/2.f, W, W));
 	createGizmoBoxCollider(gizmoObjectPtr, "yAxisTranslateHandle", glm::vec3(0.f, R/2.f, 0.f), glm::vec3(W, R/2.f, W));
 	createGizmoBoxCollider(gizmoObjectPtr, "zAxisTranslateHandle", glm::vec3(0.f, 0.f, R/2.f), glm::vec3(W, W, R/2.f));
+	createGizmoDiskCollider(gizmoObjectPtr, "viewPlaneTranslateHandle", glm::vec3(0.f), glm::vec3(0.f, 0.f, 1.f), W * 3.f);
+	gizmoObjectPtr->getComponentOfTypeAndName<DiskColliderComponent>("viewPlaneTranslateHandle")->setPriority(0);
 
 	GizmoRotateComponentPtr rotateComponentPtr= gizmoObjectPtr->addComponent<GizmoRotateComponent>();
 	createGizmoDiskCollider(gizmoObjectPtr, "xAxisRotateHandle", glm::vec3(0.f), glm::vec3(1.f, 0.f, 0.f), R);

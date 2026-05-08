@@ -6,10 +6,12 @@
 #include "GizmoTransformComponent.h"
 #include "GizmoScaleComponent.h"
 #include "MikanLineRenderer.h"
+#include "MikanTextRenderer.h"
 #include "SelectionComponent.h"
 #include "MathGLM.h"
 #include "MikanObject.h"
 #include "ProjectConfig.h"
+#include "TextStyle.h"
 
 static const float k_dragScaleFactor= 1.f;
 
@@ -90,6 +92,25 @@ void GizmoScaleComponent::customRender()
 		drawScaleArrowHandle(m_centerHandle, m_xAxisHandle, getColliderColor(m_xAxisHandle, Colors::Red));
 		drawScaleArrowHandle(m_centerHandle, m_yAxisHandle, getColliderColor(m_yAxisHandle, Colors::Green));
 		drawScaleArrowHandle(m_centerHandle, m_zAxisHandle, getColliderColor(m_zAxisHandle, Colors::Blue));
+
+		// Axis labels at handle positions
+		BoxColliderComponentPtr centerPtr = m_centerHandle.lock();
+		if (centerPtr)
+		{
+			IMkGraphicsContext* graphicsContext = centerPtr->getGraphicsContext();
+			TextStyle style = getDefaultTextStyle();
+
+			auto drawAxisLabel = [&](BoxColliderComponentWeakPtr axisHandle, const wchar_t* label)
+			{
+				if (auto axisPtr = axisHandle.lock())
+					drawTextAtWorldPosition(graphicsContext, style,
+						glm_mat4_get_position(axisPtr->getWorldTransform()), label);
+			};
+
+			drawAxisLabel(m_xAxisHandle, L"X");
+			drawAxisLabel(m_yAxisHandle, L"Y");
+			drawAxisLabel(m_zAxisHandle, L"Z");
+		}
 	}
 }
 

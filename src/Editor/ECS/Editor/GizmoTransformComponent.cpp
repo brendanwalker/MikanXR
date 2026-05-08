@@ -5,6 +5,8 @@
 #include "GizmoRotateComponent.h"
 #include "GizmoScaleComponent.h"
 #include "EditorObjectSystem.h"
+#include "IMkGraphicsContext.h"
+#include "IMkLineRenderer.h"
 #include "InputManager.h"
 #include "IEditorWindow.h"
 #include "MathGLM.h"
@@ -80,6 +82,12 @@ void GizmoTransformComponent::bindInput()
 
 void GizmoTransformComponent::customRender()
 {
+	auto editorSystem = getObjectSystemOfType<EditorObjectSystem>();
+	if (!editorSystem) return;
+
+	IMkLineRenderer* lineRenderer = editorSystem->getGraphicsContext()->getLineRenderer();
+	lineRenderer->setDisable3dDepth(true);
+
 	GizmoTranslateComponentPtr translatePtr = m_translateComponent.lock();
 	GizmoRotateComponentPtr rotatePtr = m_rotateComponent.lock();
 	GizmoScaleComponentPtr scalePtr = m_scaleComponent.lock();
@@ -96,6 +104,8 @@ void GizmoTransformComponent::customRender()
 		scalePtr->customRender();
 		break;
 	}
+
+	lineRenderer->setDisable3dDepth(false);
 }
 
 void GizmoTransformComponent::setGizmoMode(eGizmoMode newMode)
