@@ -11,7 +11,6 @@
 #include "SelectionComponent.h"
 #include "TextStyle.h"
 
-static const float k_dragAngleFactor= k_real_two_pi; // 360 degrees / meter
 
 GizmoRotateComponent::GizmoRotateComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
@@ -101,16 +100,7 @@ void GizmoRotateComponent::customRender()
 			drawRotateDiscHandle(m_yAxisHandle, getColliderColor(m_yAxisHandle, Colors::Green));
 			drawRotateDiscHandle(m_zAxisHandle, getColliderColor(m_zAxisHandle, Colors::Blue));
 		}
-		else
-		{
-			// Only draw the active handle while dragging
-			if (dragComponentPtr == m_xAxisHandle.lock())
-				drawRotateDiscHandle(m_xAxisHandle, Colors::Yellow);
-			else if (dragComponentPtr == m_yAxisHandle.lock())
-				drawRotateDiscHandle(m_yAxisHandle, Colors::Yellow);
-			else if (dragComponentPtr == m_zAxisHandle.lock())
-				drawRotateDiscHandle(m_zAxisHandle, Colors::Yellow);
-		}
+
 		if (dragComponentPtr)
 		{
 			IMkGraphicsContext* graphicsContext = dragComponentPtr->getGraphicsContext();
@@ -202,7 +192,6 @@ void GizmoRotateComponent::onInteractionGrab(const ColliderRaycastHitResult& hit
 				glm::vec4(y_axis, 0.f), 
 				glm::vec4(z_axis, 0.f), 
 				glm::vec4(worldSpaceRotationOrigin, 1.f));
-		//glm::lookAt(worldSpaceRotationOrigin, hitResult.hitLocation, m_worldSpaceRotationAxis);
 		m_worldSpaceDragStart = hitResult.hitLocation;
 
 		m_dragComponent = hitResult.hitComponent;
@@ -229,7 +218,9 @@ void GizmoRotateComponent::onInteractionMove(const glm::vec3& rayOrigin, const g
 			rayOrigin, rayDir,
 			dragRayTime, dragRayPoint))
 		{
-			const float newDragAngle = dragRayTime * k_dragAngleFactor;
+			auto diskPtr = std::static_pointer_cast<DiskColliderComponent>(m_dragComponent.lock());
+			const float diskRadius = diskPtr->getRadius();
+			const float newDragAngle = (diskRadius > 1e-6f) ? (dragRayTime / diskRadius) : 0.f;
 			const float dragAngleDelta = newDragAngle - m_dragAngle;
 			const glm::quat deltaRotation = glm::angleAxis(dragAngleDelta, m_worldSpaceRotationAxis);
 
