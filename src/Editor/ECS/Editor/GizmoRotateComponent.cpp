@@ -93,11 +93,24 @@ void GizmoRotateComponent::customRender()
 {
 	if (m_bEnabled)
 	{
-		drawRotateDiscHandle(m_xAxisHandle, getColliderColor(m_xAxisHandle, Colors::Red));
-		drawRotateDiscHandle(m_yAxisHandle, getColliderColor(m_yAxisHandle, Colors::Green));
-		drawRotateDiscHandle(m_zAxisHandle, getColliderColor(m_zAxisHandle, Colors::Blue));
-
 		ColliderComponentPtr dragComponentPtr = m_dragComponent.lock();
+
+		if (!dragComponentPtr)
+		{
+			drawRotateDiscHandle(m_xAxisHandle, getColliderColor(m_xAxisHandle, Colors::Red));
+			drawRotateDiscHandle(m_yAxisHandle, getColliderColor(m_yAxisHandle, Colors::Green));
+			drawRotateDiscHandle(m_zAxisHandle, getColliderColor(m_zAxisHandle, Colors::Blue));
+		}
+		else
+		{
+			// Only draw the active handle while dragging
+			if (dragComponentPtr == m_xAxisHandle.lock())
+				drawRotateDiscHandle(m_xAxisHandle, Colors::Yellow);
+			else if (dragComponentPtr == m_yAxisHandle.lock())
+				drawRotateDiscHandle(m_yAxisHandle, Colors::Yellow);
+			else if (dragComponentPtr == m_zAxisHandle.lock())
+				drawRotateDiscHandle(m_zAxisHandle, Colors::Yellow);
+		}
 		if (dragComponentPtr)
 		{
 			IMkGraphicsContext* graphicsContext = dragComponentPtr->getGraphicsContext();
@@ -194,6 +207,12 @@ void GizmoRotateComponent::onInteractionGrab(const ColliderRaycastHitResult& hit
 
 		m_dragComponent = hitResult.hitComponent;
 		m_dragAngle= 0.f;
+
+		// Disable the non-active handles so they don't interfere during drag
+		ColliderComponentPtr dragPtr = m_dragComponent.lock();
+		if (auto h = m_xAxisHandle.lock()) h->setEnabled(dragPtr == h);
+		if (auto h = m_yAxisHandle.lock()) h->setEnabled(dragPtr == h);
+		if (auto h = m_zAxisHandle.lock()) h->setEnabled(dragPtr == h);
 	}
 }
 
@@ -227,6 +246,14 @@ void GizmoRotateComponent::onInteractionRelease()
 	m_worldSpaceDragBasis = glm::mat4(1.f);
 	m_worldSpaceDragStart = glm::vec3(0.f);
 	m_worldSpaceRotationAxis= glm::vec3(0.f);
+
+	// Re-enable all handles now that the drag is finished
+	if (m_bEnabled)
+	{
+		if (auto h = m_xAxisHandle.lock()) h->setEnabled(true);
+		if (auto h = m_yAxisHandle.lock()) h->setEnabled(true);
+		if (auto h = m_zAxisHandle.lock()) h->setEnabled(true);
+	}
 }
 
 void GizmoRotateComponent::requestRotation(const glm::quat& worldSpaceRotation)
