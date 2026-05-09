@@ -188,26 +188,29 @@ void drawTransformedSpiralArc(
 		static const float k_maxAngleStep = k_real_quarter_pi;
 		angleStep = fminf(k_segmentMaxLength / radius, k_maxAngleStep) * sgn(totalAngle);
 	}
-	const float radiusStep = -radius * radiusFractionPerCircle * fabsf(angleStep) / k_real_two_pi;
-	const int totalSteps= int(fabsf(totalAngle) / fabsf(angleStep));
+	const float radiusStepPerFullSegment = -radius * radiusFractionPerCircle * fabsf(angleStep) / k_real_two_pi;
+	const float absTotal = fabsf(totalAngle);
+	const float absStep = fabsf(angleStep);
 
-	float angle = angleStep; 
+	float currentAngle = 0.f;
 	float spiralRadius = radius;
 	glm::vec3 prevPoint = glm::vec3(spiralRadius, 0.f, 0.f);
 
 	// Draw start radial line
 	lineRenderer->addSegment3d(transform, glm::vec3(0.f), color, prevPoint, color);
 
-	// Draw the spiral arc
-	for (int step= 0; step < totalSteps; ++step)
+	// Draw the spiral arc, clamping the last segment to exactly totalAngle
+	while (fabsf(currentAngle) < absTotal - 1e-6f)
 	{
-		const glm::vec3 nextPoint = glm::vec3(cosf(angle), 0.f, sin(angle)) * spiralRadius;
+		const float remaining = absTotal - fabsf(currentAngle);
+		const float stepFrac = (remaining < absStep) ? (remaining / absStep) : 1.f;
+		const float nextAngle = currentAngle + angleStep * stepFrac;
+		const glm::vec3 nextPoint = glm::vec3(cosf(nextAngle), 0.f, sinf(nextAngle)) * spiralRadius;
 
 		lineRenderer->addSegment3d(transform, prevPoint, color, nextPoint, color);
 		prevPoint = nextPoint;
-
-		angle += angleStep;
-		spiralRadius += radiusStep;
+		currentAngle = nextAngle;
+		spiralRadius += radiusStepPerFullSegment * stepFrac;
 	}
 
 	// Draw the end radial line
