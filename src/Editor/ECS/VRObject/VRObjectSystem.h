@@ -133,4 +133,7 @@ private:
 };
 
 // -- Utility Methods
-void addAllVRDevicesToMkScene(VRObjectSystemPtr vrObjectSystem, IMkScenePtr mkScenePtr);
+void addAllVRDevicesToMkScene(
+	VRObjectSystemPtr vrObjectSystem,
+	IMkScenePtr mkScenePtr,
+	const glm::mat4& vrSpaceToStageSpace = glm::mat4(1.f));

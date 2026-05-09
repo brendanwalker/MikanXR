@@ -576,17 +576,23 @@ bool VRObjectSystem::removeVRDevice(MikanVRDeviceID vrDeviceId)
 }
 
 // -- Utility Methods
-void addAllVRDevicesToMkScene(VRObjectSystemPtr vrObjectSystem, IMkScenePtr mkScenePtr)
+void addAllVRDevicesToMkScene(
+	VRObjectSystemPtr vrObjectSystem,
+	IMkScenePtr mkScenePtr,
+	const glm::mat4& vrSpaceToStageSpace)
 {
-	IMkScenePtr scene = mkScenePtr;
-
-	vrObjectSystem->visitComponents([scene](VRDeviceComponentPtr vrDeviceComponent) {
-		vrDeviceComponent->visitAllTransformComponentsConst(
-			[scene](const TransformComponent* transformComponent) {
-			IMkSceneRenderableConstPtr renderable = transformComponent->getGlSceneRenderableConst();
+	vrObjectSystem->visitComponents([&mkScenePtr, &vrSpaceToStageSpace](VRDeviceComponentPtr vrDeviceComponent) {
+		vrDeviceComponent->visitAllTransformComponents(
+			[&mkScenePtr, &vrSpaceToStageSpace](TransformComponent* transformComponent) {
+			IMkSceneRenderablePtr renderable = transformComponent->getGlSceneRenderable();
 			if (renderable)
 			{
-				scene->addInstance(renderable);
+				// Apply VRSpace -> StageSpace offset to the renderable's model matrix.
+				// VRObjectSystem resets this each frame via refreshDevicePose(), so
+				// temporarily overwriting it here is safe.
+				renderable->setModelMatrix(
+					glm_composite_xform(renderable->getModelMatrix(), vrSpaceToStageSpace));
+				mkScenePtr->addInstance(renderable);
 			}
 		});
 	});

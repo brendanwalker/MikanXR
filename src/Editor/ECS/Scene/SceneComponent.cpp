@@ -19,6 +19,7 @@
 #include "StageObjectSystem.h"
 #include "TransformComponent.h"
 #include "VRObjectSystem.h"
+#include "VRTrackingVolumeComponent.h"
 
 #include "lua.hpp"
 #include "LuaBridge/LuaBridge.h"
@@ -306,7 +307,20 @@ void SceneComponent::renderEditorScene(MikanCameraConstPtr camera, MkStateStack&
 				mkScene->addInstance(renderable);
 			}
 		});
-	addAllVRDevicesToMkScene(getObjectSystemOfType<VRObjectSystem>(), m_mkScene);
+	// Resolve VRSpace -> StageSpace offset from the parent stage's VR tracking volume (if any)
+	glm::mat4 vrSpaceToStageSpace = glm::mat4(1.f);
+	StageComponentPtr parentStage = getParentStage();
+	if (parentStage)
+	{
+		auto trackingVolume = parentStage->getTrackingVolumeConst();
+		auto vrTrackingVolume =
+			std::dynamic_pointer_cast<const VRTrackingVolumeComponent>(trackingVolume);
+		if (vrTrackingVolume)
+		{
+			vrSpaceToStageSpace = vrTrackingVolume->getVRDevicePoseOffset();
+		}
+	}
+	addAllVRDevicesToMkScene(getObjectSystemOfType<VRObjectSystem>(), m_mkScene, vrSpaceToStageSpace);
 
 	// Render the scene
 	mkScene->render(camera, MkStateStack);
