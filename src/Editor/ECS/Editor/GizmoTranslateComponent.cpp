@@ -240,13 +240,14 @@ void GizmoTranslateComponent::onInteractionGrab(const ColliderRaycastHitResult& 
 void GizmoTranslateComponent::onInteractionMove(const glm::vec3& rayOrigin, const glm::vec3& rayDir)
 {
 	ColliderComponentPtr dragColliderPtr = m_dragComponent.lock();
-	DiskColliderComponentPtr vph = m_viewPlaneHandle.lock();
 
-	const glm::mat4 centerXform = vph->getWorldTransform();
-	const glm::vec3 origin = glm_mat4_get_position(centerXform);
-	const glm::vec3 xAxis = glm::normalize(glm_mat4_get_x_axis(centerXform));
-	const glm::vec3 yAxis = glm::normalize(glm_mat4_get_y_axis(centerXform));
-	const glm::vec3 zAxis = glm::normalize(glm_mat4_get_z_axis(centerXform));
+	// Use the gizmo root's world transform for axes — the view-plane disk has a
+	// camera-facing orientation so its axes are screen-space, not gizmo-space.
+	const glm::mat4 gizmoXform = getOwnerObject()->getRootComponent()->getWorldTransform();
+	const glm::vec3 origin = glm_mat4_get_position(gizmoXform);
+	const glm::vec3 xAxis = glm::normalize(glm_mat4_get_x_axis(gizmoXform));
+	const glm::vec3 yAxis = glm::normalize(glm_mat4_get_y_axis(gizmoXform));
+	const glm::vec3 zAxis = glm::normalize(glm_mat4_get_z_axis(gizmoXform));
 
 	float closestTime = 0.f;
 	glm::vec3 closestPoint = rayOrigin;
