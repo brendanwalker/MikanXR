@@ -405,6 +405,7 @@ void EditorObjectSystem::onActorDisposed(MikanObjectSystemPtr system, MikanCompo
 	{
 		hoverComponentPtr->notifyHoverExit(m_lastestRaycastResult);
 		m_hoverComponentWeakPtr.reset();
+		m_hoverColliderWeakPtr.reset();
 	}
 
 	SelectionComponentPtr selectedComponent= m_selectedComponentWeakPtr.lock();
@@ -427,6 +428,7 @@ void EditorObjectSystem::onMouseExited()
 		oldHoverComponentPtr->notifyHoverExit(m_lastestRaycastResult);
 
 		m_hoverComponentWeakPtr.reset();
+		m_hoverColliderWeakPtr.reset();
 		m_lastestRaycastResult = ColliderRaycastHitResult();
 	}
 }
@@ -466,20 +468,27 @@ void EditorObjectSystem::onMouseRayChanged(const glm::vec3& rayOrigin, const glm
 	SelectionComponentPtr newHoverComponentPtr =
 		findClosestSelectionTarget(rayOrigin, rayDir, m_lastestRaycastResult);
 
+	ColliderComponentPtr oldHoverColliderPtr = m_hoverColliderWeakPtr.lock();
+	ColliderComponentPtr newHoverColliderPtr = m_lastestRaycastResult.hitComponent.lock();
+
 	if (newHoverComponentPtr != oldHoverComponentPtr)
 	{
 		if (oldHoverComponentPtr)
-		{
 			oldHoverComponentPtr->notifyHoverExit(prevRaycastResult);
-		}
-
 		if (newHoverComponentPtr)
-		{
 			newHoverComponentPtr->notifyHoverEnter(m_lastestRaycastResult);
-		}
-
 		m_hoverComponentWeakPtr = newHoverComponentPtr;
 	}
+	else if (newHoverColliderPtr != oldHoverColliderPtr && oldHoverComponentPtr)
+	{
+		// Same SelectionComponent but different collider — fire exit+enter so
+		// per-handle highlighting works (e.g. moving between gizmo handles).
+		oldHoverComponentPtr->notifyHoverExit(prevRaycastResult);
+		if (newHoverColliderPtr)
+			oldHoverComponentPtr->notifyHoverEnter(m_lastestRaycastResult);
+	}
+
+	m_hoverColliderWeakPtr = newHoverColliderPtr;
 
 	SelectionComponentPtr selectedComponentPtr = m_selectedComponentWeakPtr.lock();
 	if (selectedComponentPtr)

@@ -115,6 +115,7 @@ protected:
 	
 	ColliderRaycastHitResult m_lastestRaycastResult;
 	SelectionComponentWeakPtr m_hoverComponentWeakPtr;
+	ColliderComponentWeakPtr m_hoverColliderWeakPtr;
 	SelectionComponentWeakPtr m_selectedComponentWeakPtr;
 
 	MikanObjectWeakPtr m_gizmoObjectWeakPtr;
