@@ -85,8 +85,8 @@ static void drawRotateDiscHandle(DiskColliderComponentWeakPtr colliderWeakPtr, c
 	const glm::mat4 xform = collidePtr->getWorldTransform();
 	const float radius = collidePtr->getRadius();
 
-	drawTransformedCircle(graphicsContext, xform, radius, color);
-	drawTransformedCircle(graphicsContext, xform, radius * k_innerRingScale, color);
+	drawTransformedCircle(graphicsContext, xform, radius, color, GizmoTransformComponent::k_gizmoCircleSegments);
+	drawTransformedCircle(graphicsContext, xform, radius * k_innerRingScale, color, GizmoTransformComponent::k_gizmoCircleSegments);
 }
 
 void GizmoRotateComponent::customRender()
@@ -106,7 +106,8 @@ void GizmoRotateComponent::customRender()
 
 			drawTransformedSpiralArc(
 				graphicsContext,
-				m_worldSpaceDragBasis, radius, 0.05f, m_dragAngle, Colors::Yellow);
+				m_worldSpaceDragBasis, radius, 0.05f, m_dragAngle, Colors::Yellow,
+				GizmoTransformComponent::k_gizmoCircleSegments);
 
 			const glm::vec3 center = glm_mat4_get_position(diskComponentPtr->getWorldTransform());
 			const float angleDeg = glm::degrees(m_dragAngle);

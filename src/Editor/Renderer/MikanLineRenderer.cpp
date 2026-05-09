@@ -138,19 +138,28 @@ void drawTransformedAxes(
 }
 
 void drawTransformedCircle(
-	IMkGraphicsContext* graphicsContext, 
-	const glm::mat4& transform, float radius, const glm::vec3& color)
+	IMkGraphicsContext* graphicsContext,
+	const glm::mat4& transform, float radius, const glm::vec3& color,
+	int segmentCount)
 {
 	IMkLineRenderer* lineRenderer = graphicsContext->getLineRenderer();
 
-	static const float k_segmentMaxLength= 0.01f;
-	static const float k_maxAngleStep= k_real_quarter_pi;
-	const float angleStep= fminf(k_segmentMaxLength / radius, k_maxAngleStep);
-	
+	float angleStep;
+	if (segmentCount > 0)
+	{
+		angleStep = k_real_two_pi / (float)segmentCount;
+	}
+	else
+	{
+		static const float k_segmentMaxLength = 0.01f;
+		static const float k_maxAngleStep = k_real_quarter_pi;
+		angleStep = fminf(k_segmentMaxLength / radius, k_maxAngleStep);
+	}
+
 	glm::vec3 prevPoint= glm::vec3(radius, 0.f, 0.f);
 	for (float angle= angleStep; angle < k_real_two_pi; angle+= angleStep)
 	{
-		const glm::vec3 nextPoint= glm::vec3(cosf(angle), 0.f, sin(angle)) * radius;
+		const glm::vec3 nextPoint= glm::vec3(cosf(angle), 0.f, sinf(angle)) * radius;
 
 		lineRenderer->addSegment3d(transform, prevPoint, color, nextPoint, color);
 		prevPoint= nextPoint;
@@ -159,17 +168,26 @@ void drawTransformedCircle(
 
 void drawTransformedSpiralArc(
 	IMkGraphicsContext* graphicsContext,
-	const glm::mat4& transform, 
-	float radius, 
-	float radiusFractionPerCircle, 
-	float totalAngle, 
-	const glm::vec3& color)
+	const glm::mat4& transform,
+	float radius,
+	float radiusFractionPerCircle,
+	float totalAngle,
+	const glm::vec3& color,
+	int segmentCount)
 {
 	IMkLineRenderer* lineRenderer = graphicsContext->getLineRenderer();
 
-	static const float k_segmentMaxLength = 0.01f;
-	static const float k_maxAngleStep = k_real_quarter_pi;
-	const float angleStep = fminf(k_segmentMaxLength / radius, k_maxAngleStep) * sgn(totalAngle);
+	float angleStep;
+	if (segmentCount > 0)
+	{
+		angleStep = (k_real_two_pi / (float)segmentCount) * sgn(totalAngle);
+	}
+	else
+	{
+		static const float k_segmentMaxLength = 0.01f;
+		static const float k_maxAngleStep = k_real_quarter_pi;
+		angleStep = fminf(k_segmentMaxLength / radius, k_maxAngleStep) * sgn(totalAngle);
+	}
 	const float radiusStep = -radius * radiusFractionPerCircle * fabsf(angleStep) / k_real_two_pi;
 	const int totalSteps= int(fabsf(totalAngle) / fabsf(angleStep));
 

@@ -27,14 +27,16 @@ void drawTransformedQuad(
 	const glm::mat4& transform, float xSize, float ySize, const glm::vec3& color);
 void drawTransformedCircle(
 	IMkGraphicsContext* graphicsContext,
-	const glm::mat4& transform, float radius, const glm::vec3& color);
+	const glm::mat4& transform, float radius, const glm::vec3& color,
+	int segmentCount= 0);
 void drawTransformedSpiralArc(
 	IMkGraphicsContext* graphicsContext,
 	const glm::mat4& transform,
 	float radius,
 	float radiusFractionPerCircle,
 	float totalAngle,
-	const glm::vec3& color);
+	const glm::vec3& color,
+	int segmentCount= 0);
 void drawTransformedAxes(
 	IMkGraphicsContext* graphicsContext,
 	const glm::mat4& transform, float scale, bool drawLabels= false);

@@ -24,6 +24,7 @@ public:
 	static constexpr float k_gizmoBaseRadius = 0.5f;
 	static constexpr float k_gizmoBaseWidth = 0.05f;
 	static constexpr float k_gizmoScreenSizeFactor = 0.15f;
+	static constexpr int k_gizmoCircleSegments = 64;
 
 	virtual void init() override;
 	virtual void update(float deltaSeconds) override;
