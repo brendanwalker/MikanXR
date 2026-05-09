@@ -549,6 +549,25 @@ void EditorObjectSystem::onSelectionChanged(
 		OnSelectionChanged();
 }
 
+SelectionComponentPtr EditorObjectSystem::getSelectedSceneActor() const
+{
+	SelectionComponentPtr currentSelection = m_selectedComponentWeakPtr.lock();
+	if (!currentSelection)
+		return nullptr;
+
+	// If the selected component belongs to the gizmo, return what the gizmo is manipulating instead
+	MikanObjectPtr gizmoObject = m_gizmoObjectWeakPtr.lock();
+	if (gizmoObject && currentSelection->getOwnerObject() == gizmoObject)
+	{
+		GizmoTransformComponentPtr gizmoComponent = m_gizmoComponentWeakPtr.lock();
+		if (gizmoComponent)
+			return gizmoComponent->getSelectionTarget();
+		return nullptr;
+	}
+
+	return currentSelection;
+}
+
 void EditorObjectSystem::setSelection(SelectionComponentPtr newSelectedComponentPtr)
 {
 	// See if the current selection is changing

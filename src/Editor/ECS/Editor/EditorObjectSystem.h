@@ -91,6 +91,7 @@ public:
 	void clearViewports();
 
 	SelectionComponentPtr getSelection() const { return m_selectedComponentWeakPtr.lock(); }
+	SelectionComponentPtr getSelectedSceneActor() const;
 	void setSelection(SelectionComponentPtr newComponentPtr);
 	MulticastDelegate<void()> OnSelectionChanged;
 

@@ -300,7 +300,7 @@ void GuiPanel_ProjectScenes::updateSelection()
 	m_selectedSceneObjectListIndex = -1;
 	m_selectedTransformId = -1;
 
-	SelectionComponentPtr currentSelection = m_editorSystem.lock()->getSelection();
+	SelectionComponentPtr currentSelection = m_editorSystem.lock()->getSelectedSceneActor();
 	for (int i = 0; i < (int)m_sceneOutliner.size(); ++i)
 	{
 		SelectionComponentPtr test = m_sceneOutliner[i].selectionComponent.lock();
