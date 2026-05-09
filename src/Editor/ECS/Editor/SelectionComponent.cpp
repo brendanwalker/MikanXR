@@ -28,35 +28,6 @@ void SelectionComponent::rebindColliders()
 	getOwnerObject()->getComponentsOfWeakType<ColliderComponent>(m_colliders);
 }
 
-bool SelectionComponent::computeRayIntersection(
-	const ColliderRaycastHitRequest& request,
-	ColliderRaycastHitResult& outResult) const
-{
-	bool bAnyHits= false;
-
-	for (auto& colliderWeakPtr : m_colliders)
-	{
-		auto colliderPtr= colliderWeakPtr.lock();
-
-		if (colliderPtr && colliderPtr->getEnabled())
-		{
-			ColliderRaycastHitResult result;
-			if (colliderPtr->computeRayIntersection(request, result))
-			{
-				if (!bAnyHits || 
-					result.hitDistance < outResult.hitDistance || 
-					result.hitPriority > outResult.hitPriority)
-				{
-					outResult = result;
-					bAnyHits = true;
-				}
-			}
-		}
-	}
-
-	return bAnyHits;
-}
-
 void SelectionComponent::notifyHoverEnter(const ColliderRaycastHitResult& hitResult)
 {
 	m_bIsHovered= true;

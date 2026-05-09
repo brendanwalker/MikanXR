@@ -23,9 +23,6 @@ public:
 	{ m_bIsTransformGizmoAllowed= bAllowed; }
 
 	void rebindColliders();
-	bool computeRayIntersection(
-		const ColliderRaycastHitRequest& request,
-		ColliderRaycastHitResult& outResult) const;
 
 	void notifyHoverEnter(const ColliderRaycastHitResult& hitResult);
 	MulticastDelegate<void(const ColliderRaycastHitResult& hitResult)> OnInteractionRayOverlapEnter;

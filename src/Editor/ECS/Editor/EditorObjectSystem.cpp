@@ -164,29 +164,27 @@ void EditorObjectSystem::createSceneTransformGizmo(SceneComponentPtr ownerScene)
 
 	const float W= GizmoTransformComponent::k_gizmoBaseWidth;
 	const float R= GizmoTransformComponent::k_gizmoBaseRadius;
-	const float P= R * 0.05f;
+	const float P= R * 0.1f;
 
 	GizmoTranslateComponentPtr translateComponentPtr= gizmoObjectPtr->addComponent<GizmoTranslateComponent>();
-	createGizmoBoxCollider(gizmoObjectPtr, "centerTranslateHandle", glm::vec3(0.f, 0.f, 0.f), glm::vec3(W, W, W));
-	createGizmoBoxCollider(gizmoObjectPtr, "xyTranslateHandle", glm::vec3(P, P, 0.f), glm::vec3(P, P, W * 0.1f));
-	createGizmoBoxCollider(gizmoObjectPtr, "xzTranslateHandle", glm::vec3(P, 0.f, P), glm::vec3(P, W * 0.1f, P));
-	createGizmoBoxCollider(gizmoObjectPtr, "yzTranslateHandle", glm::vec3(0.f, P, P), glm::vec3(W * 0.1f, P, P));
-	createGizmoBoxCollider(gizmoObjectPtr, "xAxisTranslateHandle", glm::vec3(R/2.f, 0.f, 0.f), glm::vec3(R/2.f, W, W));
-	createGizmoBoxCollider(gizmoObjectPtr, "yAxisTranslateHandle", glm::vec3(0.f, R/2.f, 0.f), glm::vec3(W, R/2.f, W));
-	createGizmoBoxCollider(gizmoObjectPtr, "zAxisTranslateHandle", glm::vec3(0.f, 0.f, R/2.f), glm::vec3(W, W, R/2.f));
-	createGizmoDiskCollider(gizmoObjectPtr, "viewPlaneTranslateHandle", glm::vec3(0.f), glm::vec3(0.f, 0.f, 1.f), W * 3.f);
-	gizmoObjectPtr->getComponentOfTypeAndName<DiskColliderComponent>("viewPlaneTranslateHandle")->setPriority(0);
+	createGizmoBoxCollider(gizmoObjectPtr, "xyTranslateHandle", glm::vec3(P, P, 0.f), glm::vec3(P, P, W * 0.1f), 3);
+	createGizmoBoxCollider(gizmoObjectPtr, "xzTranslateHandle", glm::vec3(P, 0.f, P), glm::vec3(P, W * 0.1f, P), 3);
+	createGizmoBoxCollider(gizmoObjectPtr, "yzTranslateHandle", glm::vec3(0.f, P, P), glm::vec3(W * 0.1f, P, P), 3);
+	createGizmoDiskCollider(gizmoObjectPtr, "viewPlaneTranslateHandle", glm::vec3(0.f), glm::vec3(0.f, 0.f, 1.f), W * 2.5f, 2);
+	createGizmoBoxCollider(gizmoObjectPtr, "xAxisTranslateHandle", glm::vec3(R/2.f, 0.f, 0.f), glm::vec3(R/2.f, W, W), 1);
+	createGizmoBoxCollider(gizmoObjectPtr, "yAxisTranslateHandle", glm::vec3(0.f, R/2.f, 0.f), glm::vec3(W, R/2.f, W), 1);
+	createGizmoBoxCollider(gizmoObjectPtr, "zAxisTranslateHandle", glm::vec3(0.f, 0.f, R/2.f), glm::vec3(W, W, R/2.f), 1);
 
 	GizmoRotateComponentPtr rotateComponentPtr= gizmoObjectPtr->addComponent<GizmoRotateComponent>();
-	createGizmoDiskCollider(gizmoObjectPtr, "xAxisRotateHandle", glm::vec3(0.f), glm::vec3(1.f, 0.f, 0.f), R);
-	createGizmoDiskCollider(gizmoObjectPtr, "yAxisRotateHandle", glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f), R);
-	createGizmoDiskCollider(gizmoObjectPtr, "zAxisRotateHandle", glm::vec3(0.f), glm::vec3(0.f, 0.f, 1.f), R);
+	createGizmoDiskCollider(gizmoObjectPtr, "xAxisRotateHandle", glm::vec3(0.f), glm::vec3(1.f, 0.f, 0.f), R, 1);
+	createGizmoDiskCollider(gizmoObjectPtr, "yAxisRotateHandle", glm::vec3(0.f), glm::vec3(0.f, 1.f, 0.f), R, 1);
+	createGizmoDiskCollider(gizmoObjectPtr, "zAxisRotateHandle", glm::vec3(0.f), glm::vec3(0.f, 0.f, 1.f), R, 1);
 
 	GizmoScaleComponentPtr scaleComponentPtr= gizmoObjectPtr->addComponent<GizmoScaleComponent>();
-	createGizmoBoxCollider(gizmoObjectPtr, "centerScaleHandle", glm::vec3(0.f, 0.f, 0.f), glm::vec3(W, W, W));
-	createGizmoBoxCollider(gizmoObjectPtr, "xAxisScaleHandle", glm::vec3(R, 0.f, 0.f), glm::vec3(W, W, W));
-	createGizmoBoxCollider(gizmoObjectPtr, "yAxisScaleHandle", glm::vec3(0.f, R, 0.f), glm::vec3(W, W, W));
-	createGizmoBoxCollider(gizmoObjectPtr, "zAxisScaleHandle", glm::vec3(0.f, 0.f, R), glm::vec3(W, W, W));
+	createGizmoBoxCollider(gizmoObjectPtr, "centerScaleHandle", glm::vec3(0.f, 0.f, 0.f), glm::vec3(W, W, W), 1);
+	createGizmoBoxCollider(gizmoObjectPtr, "xAxisScaleHandle", glm::vec3(R, 0.f, 0.f), glm::vec3(W, W, W), 1);
+	createGizmoBoxCollider(gizmoObjectPtr, "yAxisScaleHandle", glm::vec3(0.f, R, 0.f), glm::vec3(W, W, W), 1);
+	createGizmoBoxCollider(gizmoObjectPtr, "zAxisScaleHandle", glm::vec3(0.f, 0.f, R), glm::vec3(W, W, W), 1);
 
 	gizmoObjectPtr->init();
 
@@ -210,7 +208,8 @@ void EditorObjectSystem::createGizmoBoxCollider(
 	MikanObjectPtr gizmoObjectPtr,
 	const std::string& name,
 	const glm::vec3& center,
-	const glm::vec3& halfExtents)
+	const glm::vec3& halfExtents, 
+	const int priority)
 {
 	BoxColliderComponentPtr colliderPtr= gizmoObjectPtr->addComponent<BoxColliderComponent>(name);
 
@@ -219,7 +218,7 @@ void EditorObjectSystem::createGizmoBoxCollider(
 	colliderPtr->setRelativeTransform(GlmTransform(center));
 	colliderPtr->attachToComponent(gizmoObjectPtr->getRootComponent());
 	colliderPtr->setEnabled(false);
-	colliderPtr->setPriority(1);
+	colliderPtr->setPriority(priority);
 }
 
 void EditorObjectSystem::createGizmoDiskCollider(
@@ -227,7 +226,8 @@ void EditorObjectSystem::createGizmoDiskCollider(
 	const std::string& name,
 	const glm::vec3& center,
 	const glm::vec3& normal,
-	const float radius)
+	const float radius,
+	const int priority)
 {
 	DiskColliderComponentPtr colliderPtr = gizmoObjectPtr->addComponent<DiskColliderComponent>(name);
 
@@ -237,7 +237,7 @@ void EditorObjectSystem::createGizmoDiskCollider(
 	colliderPtr->setRadius(radius);
 	colliderPtr->setName(name);
 	colliderPtr->setEnabled(false);
-	colliderPtr->setPriority(1);
+	colliderPtr->setPriority(priority);
 }
 
 void EditorObjectSystem::dispose()

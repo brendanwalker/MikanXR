@@ -39,7 +39,6 @@ protected:
 	void requestTranslation(const glm::vec3& worldSpaceTranslation);
 	
 	bool m_bEnabled= false;
-	BoxColliderComponentWeakPtr m_centerHandle;
 	BoxColliderComponentWeakPtr m_xyHandle;
 	BoxColliderComponentWeakPtr m_xzHandle;
 	BoxColliderComponentWeakPtr m_yzHandle;

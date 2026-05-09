@@ -1,6 +1,7 @@
 #include "App.h"
 #include "CompositorObjectSystem.h"
 #include "CompositorComponent.h"
+#include "ColliderComponent.h"
 #include "Windows/CompositorOutputEditorWindow.h"
 #include "IMkSceneRenderable.h"
 #include "ModalSceneAddCompositor/ModalDialog_SceneAddCompositor.h"
@@ -235,17 +236,17 @@ SelectionComponentPtr SceneComponent::findClosestSelectionTarget(
 
 	visitAllTransformComponentsConst(
 		[&raycastQuery](const TransformComponent* transformComponent) {
-			MikanObjectPtr ownerObjectPtr = transformComponent->getOwnerObject();
-			SelectionComponentPtr selectionComponentPtr = ownerObjectPtr->getComponentOfType<SelectionComponent>();
-			if (selectionComponentPtr)
+			const auto* colliderComponent = dynamic_cast<const ColliderComponent *>(transformComponent);
+			if (colliderComponent)
 			{
 				ColliderRaycastHitResult result;
 
-				if (selectionComponentPtr->computeRayIntersection(raycastQuery.request, result) &&
-					(result.hitDistance < raycastQuery.result.hitDistance || 
-					 result.hitPriority > raycastQuery.result.hitPriority))
+				if (colliderComponent->computeRayIntersection(raycastQuery.request, result) &&
+					result.isHigherPriorityThan(raycastQuery.result))
 				{
-					raycastQuery.closestSelectionComponent = selectionComponentPtr;
+					MikanObjectPtr ownerObjectPtr = colliderComponent->getOwnerObject();
+
+					raycastQuery.closestSelectionComponent = ownerObjectPtr->getComponentOfType<SelectionComponent>();
 					raycastQuery.result= result;
 				}
 			}

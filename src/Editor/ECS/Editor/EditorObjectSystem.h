@@ -145,13 +145,15 @@ protected:
 		MikanObjectPtr gizmoObjectPtr, 
 		const std::string& name,
 		const glm::vec3& center,
-		const glm::vec3& halfExtents);
+		const glm::vec3& halfExtents,
+		const int priority);
 	void createGizmoDiskCollider(
 		MikanObjectPtr gizmoObjectPtr,
 		const std::string& name,
 		const glm::vec3& center,
 		const glm::vec3& normal,
-		const float radius);
+		const float radius,
+		const int priority);
 	SelectionComponentPtr findClosestSelectionTarget(
 		const glm::vec3& rayOrigin, const glm::vec3& rayDir,
 		ColliderRaycastHitResult& outRaycastResult) const;
