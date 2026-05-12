@@ -167,14 +167,14 @@ IF %ERRORLEVEL% NEQ 0 (
 
 :: Download pre-compiled Refureku libraries
 echo "Downloading Refureku..."
-curl -L https://github.com/MikanXR/Refureku/releases/download/v2.2.1/rfk_v2.2.1_windows.zip --output rfk_v2.2.1_windows.zip
+curl -L https://github.com/MikanXR/Refureku/releases/download/v2.2.2/rfk_v2.2.1_windows.7z --output rfk_v2.2.1_windows.7z
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading rfk_v2.2.1_windows.zip"
+  echo "Error downloading rfk_v2.2.1_windows.7z"
   goto failure
 )
-%UNZIP_EXE% e rfk_v2.2.1_windows.zip -y -r -spf -orfk
+%UNZIP_EXE% e rfk_v2.2.1_windows.7z -y -r -spf -orfk
 IF %ERRORLEVEL% NEQ 0 (
-  echo "Error unzipping rfk_v2.2.1_windows.zip"
+  echo "Error unzipping rfk_v2.2.1_windows.7z"
   goto failure
 )
 
