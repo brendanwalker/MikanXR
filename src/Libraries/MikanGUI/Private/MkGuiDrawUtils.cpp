@@ -262,6 +262,47 @@ namespace MkGui
 			dataSource->getEntryCount());
 	}
 
+	bool drawEnumComboBoxProperty(
+		MkGuiStyleConstPtr style,
+		const std::string fieldName,
+		const std::string label,
+		const std::vector<std::string>& entries,
+		int& inout_selectedIndex)
+	{
+		ImGui::Text(label.c_str());
+		ImGui::SameLine(style->getLabelWidth());
+		ImGui::SetNextItemWidth(style->getValueWidth());
+		MkGuiScopedStyle comboStyle(style);
+		const std::string imguiElementName = makeImGuiElementName(fieldName);
+		return ImGui::Combo(
+			imguiElementName.c_str(),
+			&inout_selectedIndex,
+			[](void* data, int n, const char** out) -> bool {
+				auto* v = static_cast<const std::vector<std::string>*>(data);
+				if (n >= 0 && n < (int)v->size()) { *out = (*v)[n].c_str(); return true; }
+				return false;
+			},
+			(void*)&entries,
+			(int)entries.size());
+	}
+
+	bool drawRadioButtonsProperty(
+		MkGuiStyleConstPtr style,
+		const std::string fieldName,
+		const std::string label,
+		const std::vector<std::string>& entries,
+		int& inout_selectedIndex)
+	{
+		ImGui::Text(label.c_str());
+		const int prevIndex = inout_selectedIndex;
+		for (int i = 0; i < (int)entries.size(); i++)
+		{
+			const std::string id = StringUtils::stringify(entries[i], "##", fieldName, "_", i);
+			ImGui::RadioButton(id.c_str(), &inout_selectedIndex, i);
+		}
+		return inout_selectedIndex != prevIndex;
+	}
+
 	void* receiveDragDropPayload(const std::string& PayloadType)
 	{
 		void* payload= nullptr;

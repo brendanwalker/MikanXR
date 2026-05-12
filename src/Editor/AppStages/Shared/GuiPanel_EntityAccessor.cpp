@@ -1,5 +1,6 @@
 #include "GuiPanel_EntityAccessor.h"
 #include "AssetReferencePropertyMetaData.h"
+#include "EnumPropertyMetaData.h"
 #include "CommonConfig.h"
 #include "MikanVariantTypes.h"
 #include "MkGuiStyleManager.h"
@@ -184,10 +185,27 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 		else if (variantType == MikanVariantType::INT)
 		{
 			int v = value.getIntValue();
-			if (MkGui::drawIntProperty(m_defaultGuiStyle, uiFieldId, propName, v))
+			const auto* enumMeta = desc->getMetaDataOfType<EnumPropertyMetaData>();
+			if (enumMeta)
 			{
-				newValue = v;
-				bValueChanged = true;
+				bool changed = false;
+				if (enumMeta->getDisplayStyle() == eEnumDisplayStyle::RadioButtons)
+					changed = MkGui::drawRadioButtonsProperty(m_defaultGuiStyle, uiFieldId, propName, enumMeta->getStrings(), v);
+				else
+					changed = MkGui::drawEnumComboBoxProperty(m_defaultGuiStyle, uiFieldId, propName, enumMeta->getStrings(), v);
+				if (changed)
+				{
+					newValue = v;
+					bValueChanged = true;
+				}
+			}
+			else
+			{
+				if (MkGui::drawIntProperty(m_defaultGuiStyle, uiFieldId, propName, v))
+				{
+					newValue = v;
+					bValueChanged = true;
+				}
 			}
 		}
 		else if (variantType == MikanVariantType::LONG)

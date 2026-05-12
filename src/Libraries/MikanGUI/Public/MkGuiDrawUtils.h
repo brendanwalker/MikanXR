@@ -5,6 +5,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 class IMkTexture;
 using IMkTextureConstPtr = std::shared_ptr<const IMkTexture>;
@@ -99,6 +100,18 @@ namespace MkGui
 		const std::string label,
 		ComboBoxDataSource* dataSource,
 		int& inout_selectedIdex);
+	MIKAN_GUI_FUNC(bool) drawEnumComboBoxProperty(
+		MkGuiStyleConstPtr style,
+		const std::string fieldName,
+		const std::string label,
+		const std::vector<std::string>& entries,
+		int& inout_selectedIndex);
+	MIKAN_GUI_FUNC(bool) drawRadioButtonsProperty(
+		MkGuiStyleConstPtr style,
+		const std::string fieldName,
+		const std::string label,
+		const std::vector<std::string>& entries,
+		int& inout_selectedIndex);
 
 	MIKAN_GUI_FUNC(void*) receiveDragDropPayload(const std::string& PayloadType);
 	template <class t_payload_type>
