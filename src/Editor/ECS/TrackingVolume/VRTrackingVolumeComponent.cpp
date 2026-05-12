@@ -1,4 +1,5 @@
 #include "VRTrackingVolumeComponent.h"
+#include "EnumPropertyMetaData.h"
 #include "CameraObjectSystem.h"
 #include "MarkerObjectSystem.h"
 #include "MathGLM.h"
@@ -237,6 +238,8 @@ const std::string VRTrackingVolumeComponent::k_vrDevicePositionOffsetPropertyId=
 const std::string VRTrackingVolumeComponent::k_vrDeviceRotationOffsetPropertyId= "vr_device_rotation_offset";
 const std::string VRTrackingVolumeComponent::k_displayTrackingSpacePropertyId= "display_tracking_space";
 
+static const std::string k_trackingSpaceStrings[] = { "Stage Space", "VR Space" };
+
 void VRTrackingVolumeComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	TrackingVolumeComponent::getPropertyDescriptors(outDescriptors);
@@ -282,7 +285,9 @@ void VRTrackingVolumeComponent::getPropertyDescriptors(std::vector<PropertyDescr
 		->setReadOnly());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(k_displayTrackingSpacePropertyId, MikanVariantType::INT)
-		->setDefaultValue(0));
+		->setDefaultValue(0)
+		->addMetaData(std::make_shared<EnumPropertyMetaData>(
+			k_trackingSpaceStrings, 2, eEnumDisplayStyle::RadioButtons)));
 }
 
 bool VRTrackingVolumeComponent::getPropertyValue(
