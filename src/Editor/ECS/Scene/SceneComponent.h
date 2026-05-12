@@ -49,10 +49,6 @@ public:
 	inline static const std::string k_componentClassName = "SceneComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
-	// -- MikanComponent ----
-	virtual void init() override;
-	virtual void dispose() override;
-
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
 
@@ -83,12 +79,8 @@ public:
 	void showCompositorOutput();
 	void activateScene();
 	void deactivateScene();
-	void renderEditorScene(MikanCameraConstPtr camera, class MkStateStack& MkStateStack) const;
+	void addActorsToMkScene(IMkScenePtr mkScene) const;
 
 protected:
 	virtual ComponentScriptContextPtr allocateScriptContext() override;
-
-private:
-	// Scene Rendering
-	IMkScenePtr m_mkScene;
 };

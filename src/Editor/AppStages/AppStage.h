@@ -89,6 +89,12 @@ public:
 		return m_ownerWindow->getProjectManager()->getSystemOfType<t_system_type>();
 	}
 
+	template<class t_system_type>
+	std::shared_ptr<const t_system_type> getSystemOfTypeConst() const
+	{
+		return m_ownerWindow->getProjectManager()->getSystemOfTypeConst<const t_system_type>();
+	}
+
 	// -- IRemoteControllable Interface -- //
 	virtual bool handleRemoteControlCommand(
 		const std::string& command,

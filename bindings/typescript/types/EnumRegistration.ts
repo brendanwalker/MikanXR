@@ -7,7 +7,7 @@ import { MikanMarkerDictionaryType } from './MikanMarkerTypes.js';
 import { MikanPropertyNotifyMode } from './MikanPropertyRequests.js';
 import { MikanStageTrackingVolume } from './MikanStageTypes.js';
 import { MikanStencilCullMode } from './MikanStencilTypes.js';
-import { MikanTrackingRuntime, MikanTrackingVolumeType } from './MikanTrackingVolumeTypes.js';
+import { MikanTrackingRuntime, MikanTrackingSpace, MikanTrackingVolumeType } from './MikanTrackingVolumeTypes.js';
 import { MikanVRDeviceApi, MikanVRDeviceType } from './MikanVRDeviceTypes.js';
 import { MikanVariantType } from './MikanVariantTypes.js';
 import { MikanIntrinsicsType, MikanVideoSettingType, MikanVideoSourceType } from './MikanVideoSourceTypes.js';
@@ -26,6 +26,7 @@ export function registerAllEnums(): void {
   EnumRegistry.register('MikanStageTrackingVolume', MikanStageTrackingVolume);
   EnumRegistry.register('MikanStencilCullMode', MikanStencilCullMode);
   EnumRegistry.register('MikanTrackingRuntime', MikanTrackingRuntime);
+  EnumRegistry.register('MikanTrackingSpace', MikanTrackingSpace);
   EnumRegistry.register('MikanTrackingVolumeType', MikanTrackingVolumeType);
   EnumRegistry.register('MikanVRDeviceApi', MikanVRDeviceApi);
   EnumRegistry.register('MikanVRDeviceType', MikanVRDeviceType);

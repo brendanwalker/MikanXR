@@ -14,6 +14,20 @@
 #include "CompositorConstants.h"
 
 //-- definitions -----
+enum class eProjectAppStageActivePanel : int
+{
+	INVALID = -1,
+
+	Scenes = 0,
+	Stages = 1,
+	Sources = 2,
+	Tracking = 3,
+	Markers = 4,
+	Settings = 5,
+
+	COUNT
+};
+
 class AppStage_Project : public AppStage
 {
 public:
@@ -31,8 +45,26 @@ public:
 	virtual void render(IMkViewportPtr targetViewport) override;
 
 protected:
-	// Scene Rendering
-	void renderCameraComponents(SceneComponentConstPtr scene) const;
+	SceneComponentConstPtr getCurrentSceneConst() const;
+	StageComponentConstPtr getCurrentStageConst() const;
+	TrackingVolumeComponentConstPtr getCurrentTrackingVolumeConst() const;
+
+	// Project Rendering
+	void renderProjectScene(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const;
+	void renderProjectStage(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const;
+	void renderProjectTracking(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const;
+	void renderCameraComponents(
+		IMkGraphicsContext* graphicsContext,
+		MikanCameraPtr viewportCamera, 
+		StageComponentConstPtr stageComponent) const;
+	void renderVRTrackingVolume(
+		IMkGraphicsContext* graphicsContext,
+		MikanCameraPtr viewportCamera,
+		VRTrackingVolumeComponentConstPtr vrTrackingVolume) const;
+	void renderMarkerTrackingVolume(
+		IMkGraphicsContext* graphicsContext,
+		MikanCameraPtr viewportCamera,
+		MarkerTrackingVolumeComponentConstPtr markerTrackingVolume) const;
 
 	// Camera
 	void createCompositorViewportCameras();
@@ -60,6 +92,7 @@ protected:
 		const std::vector<std::string>& parameters,
 		std::vector<std::string>& outResults) override;
 
+protected:
 	ProjectConfigPtr m_project;
 
 	EditorObjectSystemWeakPtr m_editorSystem;
@@ -75,9 +108,11 @@ protected:
 	class GuiPanel_ProjectTracking* m_projectTrackingPanel = nullptr;
 	class GuiPanel_ProjectMarkers* m_projectMarkersPanel = nullptr;
 	class GuiPanel_ProjectSettings* m_projectSettingsPanel = nullptr;
+	eProjectAppStageActivePanel m_activePanel = eProjectAppStageActivePanel::INVALID;
 
 	MikanViewportPtr m_viewport;
 	std::vector<CompositorComponentWeakPtr> m_activeCompositors;
+	IMkScenePtr m_mkScene;
 
 	bool m_bAddingNewConfig= false;
 };

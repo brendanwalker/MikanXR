@@ -235,6 +235,7 @@ VRDevicePoseViewPtr VRTrackingVolumeComponent::makeChArUcoTrackingMountPoseView(
 // -- IPropertyInterface ----
 const std::string VRTrackingVolumeComponent::k_vrDevicePositionOffsetPropertyId= "vr_device_position_offset";
 const std::string VRTrackingVolumeComponent::k_vrDeviceRotationOffsetPropertyId= "vr_device_rotation_offset";
+const std::string VRTrackingVolumeComponent::k_displayTrackingSpacePropertyId= "display_tracking_space";
 
 void VRTrackingVolumeComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
@@ -279,6 +280,9 @@ void VRTrackingVolumeComponent::getPropertyDescriptors(std::vector<PropertyDescr
 		std::make_shared<PropertyDescriptor>(k_vrDeviceRotationOffsetPropertyId, MikanVariantType::VECTOR3F)
 		->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f))
 		->setReadOnly());
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(k_displayTrackingSpacePropertyId, MikanVariantType::INT)
+		->setDefaultValue(0));
 }
 
 bool VRTrackingVolumeComponent::getPropertyValue(
@@ -332,6 +336,12 @@ bool VRTrackingVolumeComponent::getPropertyValue(
 		outValue = glm_vec3_to_MikanVector3f(glm::vec3(angles[0], angles[1], angles[2]));
 		return true;
 	}
+	else if (propertyName == k_displayTrackingSpacePropertyId)
+	{
+		int trackingSpaceInt = (int)m_displayTrackingSpace;
+		outValue = trackingSpaceInt;
+		return true;
+	}
 
 	return TrackingVolumeComponent::getPropertyValue(propertyName, outValue);
 }
@@ -367,6 +377,11 @@ bool VRTrackingVolumeComponent::setPropertyValue(
 		MikanMatrix4f poseOffset = inValue.getMatrix4fValue();
 
 		getVRTrackingVolumeDefinition()->setVRDevicePoseOffset(poseOffset);
+		return true;
+	}
+	else if (propertyName == k_displayTrackingSpacePropertyId)
+	{
+		m_displayTrackingSpace = (MikanTrackingSpace)inValue.getIntValue();
 		return true;
 	}
 

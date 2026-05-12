@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MikanMathTypes.h"
+#include "MikanTrackingVolumeTypes.h"
 #include "TrackingMountComponent.h"
 #include "TrackingVolumeComponent.h"
 #include "Transform.h"
@@ -67,6 +68,8 @@ public:
 	inline static const std::string k_componentClassName = "VRTrackingVolumeComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
+	MikanTrackingSpace getDisplayTrackingSpace() const { return m_displayTrackingSpace; }
+
 	glm::mat4 getVRDevicePoseOffset() const;
 	void setVRDevicePoseOffset(const glm::mat4& poseOffset);
 
@@ -79,6 +82,7 @@ public:
 	// -- IPropertyInterface ----
 	static const std::string k_vrDevicePositionOffsetPropertyId;
 	static const std::string k_vrDeviceRotationOffsetPropertyId;
+	static const std::string k_displayTrackingSpacePropertyId;
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
@@ -93,4 +97,5 @@ protected:
 
 private:
 	GlmTransform m_vrDevicePoseOffset;
+	MikanTrackingSpace m_displayTrackingSpace = MikanTrackingSpace_VR;
 };

@@ -15,12 +15,14 @@
 #include "MathMikan.h"
 #include "MainWindow.h"
 #include "MarkerObjectSystem.h"
+#include "MarkerTrackingVolumeComponent.h"
 #include "MikanCamera.h"
 #include "MikanViewport.h"
 #include "MikanObjectSystem.h"
 #include "MikanLineRenderer.h"
 #include "MikanTextRenderer.h"
 #include "MikanObject.h"
+#include "MkScene.h"
 #include "ProjectConfig.h"
 #include "ProjectManager.h"
 #include "Project/AppStage_Project.h"
@@ -35,6 +37,9 @@
 #include "SceneComponent.h"
 #include "SceneObjectSystem.h"
 #include "TextStyle.h"
+#include "TrackingVolumeComponent.h"
+#include "VRTrackingVolumeComponent.h"
+#include "VRObjectSystem.h"
 #include "VideoSourceComponent.h"
 
 #include <easy/profiler.h>
@@ -62,6 +67,9 @@ AppStage_Project::~AppStage_Project()
 void AppStage_Project::enter()
 {
 	AppStage::enter();
+
+	// Create a mikan scene for 3d rendering
+	m_mkScene = std::make_shared<MkScene>();
 
 	// Cache a ref to the project
 	m_project = getProjectConfig();
@@ -146,6 +154,9 @@ void AppStage_Project::enter()
 
 void AppStage_Project::exit()
 {
+	// Clean up the 3d scene
+	m_mkScene = nullptr;
+
 	// Clean up the GuiPanel Context (panels themselves are owned by AppStage::m_guiPanels)
 	delete m_projectGuiPanelContext;
 	m_projectGuiPanelContext = nullptr;
@@ -222,10 +233,10 @@ void AppStage_Project::onGui()
 	if (!panel)
 		return;
 
-	static const char* k_tabLabels[] = {
+	static const char* k_tabLabels[(int)eProjectAppStageActivePanel::COUNT] = {
 		"Scenes", "Stages", "Sources", "Tracking", "Markers", "Settings"
 	};
-	IGuiPanel* k_tabPanels[] = {
+	IGuiPanel* k_tabPanels[(int)eProjectAppStageActivePanel::COUNT] = {
 		m_projectScenesPanel,
 		m_projectStagesPanel,
 		m_projectSourcesPanel,
@@ -245,7 +256,10 @@ void AppStage_Project::onGui()
 			if (tabItem)
 			{
 				if (k_tabPanels[i] != nullptr)
+				{
+					m_activePanel = (eProjectAppStageActivePanel)i;
 					k_tabPanels[i]->onGui();
+				}
 			}
 		}
 	}
@@ -363,18 +377,28 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 	IMkGraphicsContext* graphicsContext = getGraphicsContext();
 	MikanCameraPtr viewportCamera = m_viewport->getCurrentMikanCamera();
 
-	// Render the editor scene
-	SceneComponentConstPtr currentScene = getSystemOfType<SceneObjectSystem>()->getCurrentScene();
-	if (currentScene)
-	{
-		// Render the camera components from the parent stage
-		renderCameraComponents(currentScene);
+	// Clear the scene of any previously rendered instances
+	m_mkScene->removeAllInstances();
 
-		// Render actors in the scene
-		currentScene->renderEditorScene(
-			viewportCamera,
-			m_ownerWindow->getGraphicsContext()->getMkStateStack());
+	// Panel specific rendering
+	switch (m_activePanel)
+	{
+	case eProjectAppStageActivePanel::Scenes:
+	case eProjectAppStageActivePanel::Settings:
+		renderProjectScene(graphicsContext, viewportCamera);
+		break;
+	case eProjectAppStageActivePanel::Stages:
+	case eProjectAppStageActivePanel::Sources:
+		renderProjectStage(graphicsContext, viewportCamera);
+		break;
+	case eProjectAppStageActivePanel::Tracking:
+	case eProjectAppStageActivePanel::Markers:
+		renderProjectTracking(graphicsContext, viewportCamera);
+		break;
 	}
+
+	// Render the 3d scene
+	m_mkScene->render(viewportCamera, graphicsContext->getMkStateStack());
 
 	// Draw tracking space
 	drawGrid(graphicsContext, glm::mat4(1.f), 10.f, 10.f, 20, 20, Colors::GhostWhite);
@@ -388,11 +412,112 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 	m_ownerWindow->getProjectManager()->customRender();
 }
 
-void AppStage_Project::renderCameraComponents(SceneComponentConstPtr scene) const
+SceneComponentConstPtr AppStage_Project::getCurrentSceneConst() const
 {
-	IMkGraphicsContext* graphicsContext = getGraphicsContext();
+	return getSystemOfTypeConst<const SceneObjectSystem>()->getCurrentScene();
+}
+
+StageComponentConstPtr AppStage_Project::getCurrentStageConst() const
+{
+	SceneComponentConstPtr currentScene = getCurrentSceneConst();
+	if (currentScene)
+	{
+		return currentScene->getParentStage();
+	}
+	return nullptr;
+}
+
+TrackingVolumeComponentConstPtr AppStage_Project::getCurrentTrackingVolumeConst() const
+{
+	StageComponentConstPtr currentStage = getCurrentStageConst();
+	if (currentStage)
+	{
+		return currentStage->getTrackingVolumeConst();
+	}
+	return nullptr;
+}
+
+void AppStage_Project::renderProjectScene(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
+{
+	SceneComponentConstPtr currentScene = getCurrentSceneConst();
+	if (currentScene)
+	{
+		// Add actors in the scene
+		currentScene->addActorsToMkScene(m_mkScene);
+
+		// Render the stage
+		renderProjectStage(graphicsContext, viewportCamera);
+	}
+}
+
+void AppStage_Project::renderProjectStage(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
+{
+	StageComponentConstPtr stageComponent = getCurrentStageConst();
+	if (stageComponent)
+	{
+		// Draw the cameras on the stage
+		renderCameraComponents(graphicsContext, viewportCamera, stageComponent);
+
+		// Draw the tracking volume for the stage
+		renderProjectTracking(graphicsContext, viewportCamera);
+	}
+}
+
+void AppStage_Project::renderProjectTracking(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
+{
+	TrackingVolumeComponentConstPtr trackingVolume = getCurrentTrackingVolumeConst();
+	if (trackingVolume)
+	{
+		switch (trackingVolume->getTrackingVolumeType())
+		{
+		case eTrackingVolumeType::vr:
+			renderVRTrackingVolume(
+				graphicsContext, 
+				viewportCamera, 
+				std::dynamic_pointer_cast<const VRTrackingVolumeComponent>(trackingVolume));
+			break;
+		case eTrackingVolumeType::marker:
+			renderMarkerTrackingVolume(
+				graphicsContext, 
+				viewportCamera, 
+				std::dynamic_pointer_cast<const MarkerTrackingVolumeComponent>(trackingVolume));
+			break;
+		}
+	}
+}
+
+void AppStage_Project::renderVRTrackingVolume(
+	IMkGraphicsContext* graphicsContext, 
+	MikanCameraPtr viewportCamera, 
+	VRTrackingVolumeComponentConstPtr vrTrackingVolume) const
+{
+	VRObjectSystemPtr vrObjectSystem = getObjectSystemOfType<VRObjectSystem>();
+
+	// Resolve VRSpace -> StageSpace offset from the VR tracking volume
+	glm::mat4 vrSpaceToStageSpace = glm::mat4(1.f);
+	if (vrTrackingVolume->getDisplayTrackingSpace() == MikanTrackingSpace_Stage ||
+		 m_activePanel != eProjectAppStageActivePanel::Tracking)
+	{
+		vrSpaceToStageSpace = vrTrackingVolume->getVRDevicePoseOffset();
+	}
+
+	addAllVRDevicesToMkScene(vrObjectSystem, m_mkScene, vrSpaceToStageSpace);
+}
+
+void AppStage_Project::renderMarkerTrackingVolume(
+	IMkGraphicsContext* graphicsContext, 
+	MikanCameraPtr viewportCamera, 
+	MarkerTrackingVolumeComponentConstPtr markerTrackingVolume) const
+{
+	//TODO
+}
+
+void AppStage_Project::renderCameraComponents(
+	IMkGraphicsContext* graphicsContext, 
+	MikanCameraPtr viewportCamera,
+	StageComponentConstPtr stageComponent) const
+{
 	auto cameraSystem = getObjectSystemOfType<CameraObjectSystem>();
-	StageComponentPtr stageComponent = scene->getParentStage();
 
 	for (const auto cameraMapPair : cameraSystem->getComponentMap())
 	{

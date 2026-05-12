@@ -24,6 +24,7 @@
 #include "MikanTextRenderer.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
+#include "MkScene.h"
 #include "MkScopedState.h"
 #include "MkStateModifiers.h"
 #include "MkStateStack.h"
@@ -111,6 +112,9 @@ bool CompositorOutputEditorWindow::startup()
 		m_viewCamera = std::make_shared<MikanCamera>();
 		m_viewCamera->setName("compositor output camera");
 		m_viewCamera->setCameraMovementMode(eCameraMovementMode::stationary);
+
+		// Create a mikan scene for 3d rendering
+		m_mkScene = std::make_shared<MkScene>();
 	}
 
 	// Listen for scene activation and disposal
@@ -342,7 +346,14 @@ void CompositorOutputEditorWindow::render()
 				SceneComponentConstPtr currentScene = sceneSystem->getCurrentScene();
 				if (currentScene)
 				{
-					currentScene->renderEditorScene(m_viewCamera, stateStack);
+					// Clear the scene of any previously rendered instances
+					m_mkScene->removeAllInstances();
+
+					// Add scene actors to the MkScene for rendering
+					currentScene->addActorsToMkScene(m_mkScene);
+
+					// Render the 3d scene
+					m_mkScene->render(m_viewCamera, stateStack);
 				}
 			}
 		}
@@ -443,6 +454,7 @@ void CompositorOutputEditorWindow::shutdown()
 	m_compositedFrameQuad = nullptr;
 	m_backgroundQuad = nullptr;
 	m_viewCamera = nullptr;
+	m_mkScene = nullptr;
 
 	shutdownModelResourceManager();
 	shutdownStyleManager();

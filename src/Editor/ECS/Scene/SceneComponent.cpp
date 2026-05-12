@@ -194,20 +194,6 @@ void SceneComponent::attachToStage(MikanStageID newParentId)
 	}
 }
 
-void SceneComponent::init()
-{
-	TransformComponent::init();
-
-	m_mkScene = std::make_shared<MkScene>();
-}
-
-void SceneComponent::dispose()
-{
-	m_mkScene= nullptr;
-
-	TransformComponent::dispose();
-}
-
 ComponentScriptContextPtr SceneComponent::allocateScriptContext()
 {
 	return std::make_shared<SceneComponentScriptContext>(getSelfPtr<SceneComponent>());
@@ -293,12 +279,9 @@ void SceneComponent::deactivateScene()
 
 }
 
-void SceneComponent::renderEditorScene(MikanCameraConstPtr camera, MkStateStack& MkStateStack) const
+void SceneComponent::addActorsToMkScene(IMkScenePtr mkScene) const
 {
-	IMkScene* mkScene = m_mkScene.get();
-
 	// Rebuild list of renderables
-	mkScene->removeAllInstances();
 	visitAllTransformComponentsConst(
 		[mkScene](const TransformComponent* transformComponent) {
 			IMkSceneRenderableConstPtr renderable = transformComponent->getGlSceneRenderableConst();
@@ -307,23 +290,6 @@ void SceneComponent::renderEditorScene(MikanCameraConstPtr camera, MkStateStack&
 				mkScene->addInstance(renderable);
 			}
 		});
-	// Resolve VRSpace -> StageSpace offset from the parent stage's VR tracking volume (if any)
-	glm::mat4 vrSpaceToStageSpace = glm::mat4(1.f);
-	StageComponentPtr parentStage = getParentStage();
-	if (parentStage)
-	{
-		auto trackingVolume = parentStage->getTrackingVolumeConst();
-		auto vrTrackingVolume =
-			std::dynamic_pointer_cast<const VRTrackingVolumeComponent>(trackingVolume);
-		if (vrTrackingVolume)
-		{
-			vrSpaceToStageSpace = vrTrackingVolume->getVRDevicePoseOffset();
-		}
-	}
-	addAllVRDevicesToMkScene(getObjectSystemOfType<VRObjectSystem>(), m_mkScene, vrSpaceToStageSpace);
-
-	// Render the scene
-	mkScene->render(camera, MkStateStack);
 }
 
 void SceneComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)

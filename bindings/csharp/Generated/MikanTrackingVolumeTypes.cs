@@ -10,6 +10,13 @@ namespace MikanXR
 		SteamVR= 0,
 	};
 
+	public enum MikanTrackingSpace
+	{
+		INVALID= -1,
+		StageSpace= 0,
+		VRSpace= 1,
+	};
+
 	public enum MikanTrackingVolumeType
 	{
 		INVALID= -1,
@@ -34,6 +41,7 @@ namespace MikanXR
 		public int utility_marker_id;
 		public List<int> tracking_mount_ids;
 		public MikanMatrix4f vr_device_pose_offset;
+		public MikanTrackingSpace display_tracking_space;
 	};
 
 }

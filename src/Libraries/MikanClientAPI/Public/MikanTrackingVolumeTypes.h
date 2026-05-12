@@ -27,6 +27,13 @@ enum ENUM(Serialization::CodeGenModule("MikanTrackingVolumeTypes")) MikanTrackin
 	MikanTrackingRuntime_SteamVR ENUMVALUE_STRING("SteamVR"),
 };
 
+enum ENUM(Serialization::CodeGenModule("MikanTrackingVolumeTypes")) MikanTrackingSpace
+{
+	MikanTrackingSpace_INVALID ENUMVALUE_STRING("INVALID") = -1,
+	MikanTrackingSpace_Stage ENUMVALUE_STRING("StageSpace"),
+	MikanTrackingSpace_VR ENUMVALUE_STRING("VRSpace"),
+};
+
 // Structures
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTrackingVolumeTypes")) MikanTrackingVolumeComponentValues :
 	public MikanComponentValues
@@ -68,6 +75,8 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTrackingVolumeTypes")
 	Serialization::List<MikanTrackingMountID> tracking_mount_ids;
 	FIELD()
 	MikanMatrix4f vr_device_pose_offset;
+	FIELD()
+	MikanTrackingSpace display_tracking_space = MikanTrackingSpace_INVALID;
 
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVRTrackingVolumeComponentValues_GENERATED

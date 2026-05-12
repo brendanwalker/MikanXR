@@ -53,6 +53,23 @@ public:
 		return nullptr;
 	}
 
+	template<class t_system_type>
+	std::shared_ptr<const t_system_type> getSystemOfTypeConst() const
+	{
+		for (MikanObjectSystemPtr system : m_systems)
+		{
+			std::shared_ptr<const t_system_type> derivedSystem = 
+				std::dynamic_pointer_cast<const t_system_type>(system);
+
+			if (derivedSystem != nullptr)
+			{
+				return derivedSystem;
+			}
+		}
+
+		return nullptr;
+	}
+
 	MikanComponentPtr getComponentById(MikanComponentID componentId) const;
 	template<class t_component_type>
 	std::shared_ptr<t_component_type> getTypedComponentById(MikanComponentID componentId) const
