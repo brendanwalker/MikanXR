@@ -54,6 +54,8 @@ public:
 	{ return std::static_pointer_cast<TrackingVolumeDefinition>(m_definition); }
 	inline eTrackingVolumeType getTrackingVolumeType() const
 	{ return getTrackingVolumeDefinition()->getTrackingVolumeType(); }
+	inline MikanMarkerID getOriginMarkerId() const
+	{ return getTrackingVolumeDefinition()->getOriginMarkerId(); }
 
 	void deleteTrackingVolume();
 

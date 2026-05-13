@@ -26,6 +26,4 @@ protected:
 private:
 	MarkerObjectSystemWeakPtr m_markerObjectSystem;
 	GuiDataSource_IntList m_arucoIdDataSource;
-	int m_cachedArucoId = -1;
-	IMkTexturePtr m_cachedMarkerTexture;
 };

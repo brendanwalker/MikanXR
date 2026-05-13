@@ -1,12 +1,17 @@
 #include "MarkerComponent.h"
 #include "App.h"
 #include "CalibrationPatternFinder.h"
+#include "IMkGraphicsContext.h"
+#include "IMkShaderCache.h"
+#include "IMkTexture.h"
+#include "IMkTriangulatedMesh.h"
 #include "Logger.h"
 #include "MarkerObjectSystem.h"
 #include "MikanAPITypes.h"
 #include "MikanMarkerTypes.h"
 #include "MikanMathTypes.h"
 #include "MikanObject.h"
+#include "MkMaterialInstance.h"
 #include "OSUtils.h"
 #include "ProjectConfig.h"
 #include "SelectionComponent.h"
@@ -266,5 +271,108 @@ void MarkerComponent::printMarker()
 	if (!OSUtils::openFileWithDefaultApplication(pdfFilePath))
 	{
 		MIKAN_LOG_ERROR("MarkerComponent::printMarker") << "Failed to open PDF viewer";
+	}
+}
+
+// -- Rendering ----
+void MarkerComponent::ensureMarkerResources(IMkGraphicsContext* graphicsContext)
+{
+	MarkerDefinitionPtr markerDef = getMarkerDefinition();
+	const int currentArucoId = markerDef->getArucoId();
+	const float currentLengthMM = markerDef->getLengthMM();
+
+	if (currentArucoId == m_cachedArucoId &&
+		currentLengthMM == m_cachedLengthMM &&
+		m_markerMesh != nullptr)
+	{
+		return;
+	}
+
+	m_cachedArucoId = currentArucoId;
+	m_cachedLengthMM = currentLengthMM;
+	m_markerTexture.reset();
+	m_markerMesh.reset();
+
+	if (currentArucoId < 0)
+		return;
+
+	// Generate ArUco texture
+	MarkerObjectSystemPtr markerSystem = getOwnerMarkerSystem();
+	ArucoDictionaryPtr dictionary =
+		CalibrationPatternFinder::getArucoDictionary(
+			markerSystem->getTypedDefinitionConst()->getArucoDictionaryType());
+	if (!dictionary)
+		return;
+
+	const int imageSize = 128;
+	const int maxMarkerId = dictionary->bytesList.rows - 1;
+	const int clampedId = std::max(0, std::min(currentArucoId, maxMarkerId));
+
+	cv::Mat markerImage;
+	cv::aruco::generateImageMarker(*dictionary, clampedId, imageSize, markerImage, 1);
+
+	cv::Mat rgbImage;
+	cv::cvtColor(markerImage, rgbImage, cv::COLOR_GRAY2RGB);
+
+	IMkTexturePtr tex = CreateMkTexture(
+		(uint16_t)imageSize, (uint16_t)imageSize,
+		rgbImage.data,
+		MK_RGB,
+		MK_RGB);
+	if (!tex->createTexture())
+		return;
+	m_markerTexture = tex;
+
+	// Build world-space quad mesh (XY plane, facing +Z)
+	const float halfSize = currentLengthMM / 2000.f; // mm -> m, halved
+
+	struct QuadVertex { glm::vec3 pos; glm::vec2 uv; };
+	static const uint16_t k_indices[] = {0, 1, 2, 0, 2, 3};
+	QuadVertex verts[4] = {
+		{ glm::vec3(-halfSize, 0.f, -halfSize), glm::vec2(0.f, 0.f) },
+		{ glm::vec3(-halfSize, 0.f,  halfSize), glm::vec2(0.f, 1.f) },
+		{ glm::vec3( halfSize, 0.f,  halfSize), glm::vec2(1.f, 1.f) },
+		{ glm::vec3( halfSize, 0.f, -halfSize), glm::vec2(1.f, 0.f) },
+	};
+
+	MkMaterialConstPtr material =
+		graphicsContext->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
+	if (!material)
+		return;
+
+	IMkTriangulatedMeshPtr mesh = createMkTriangulatedMesh(
+		graphicsContext,
+		"aruco_marker_quad",
+		(const uint8_t*)verts, sizeof(QuadVertex),
+		4,
+		(const uint8_t*)k_indices, sizeof(uint16_t),
+		2,
+		false);
+
+	if (!mesh->setMaterial(material) || !mesh->createResources())
+		return;
+
+	mesh->getMaterialInstance()->setTextureBySemantic(
+		eUniformSemantic::rgbTexture, m_markerTexture);
+
+	m_markerMesh = mesh;
+}
+
+IMkTexturePtr MarkerComponent::getMarkerTexture(IMkGraphicsContext* graphicsContext)
+{
+	ensureMarkerResources(graphicsContext);
+	return m_markerTexture;
+}
+
+void MarkerComponent::renderArucoMarker(
+	IMkGraphicsContext* graphicsContext,
+	IMkCameraConstPtr camera,
+	const glm::mat4& transform)
+{
+	ensureMarkerResources(graphicsContext);
+
+	if (m_markerMesh)
+	{
+		drawTransformedTriangulatedMesh(camera, transform, m_markerMesh);
 	}
 }

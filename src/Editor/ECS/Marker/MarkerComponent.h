@@ -4,11 +4,13 @@
 #include "ComponentFwd.h"
 #include "MikanComponent.h"
 #include "MikanTypeFwd.h"
+#include "MkRendererFwd.h"
 #include "ObjectFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
 #include "ProjectConfigConstants.h"
 
+#include <glm/ext/matrix_float4x4.hpp>
 #include <memory>
 #include <string>
 
@@ -67,4 +69,19 @@ public:
 	virtual bool invokeFunction(const std::string& functionName) override;
 
 	void printMarker();
+
+	// -- Rendering ----
+	IMkTexturePtr getMarkerTexture(class IMkGraphicsContext* graphicsContext);
+	void renderArucoMarker(
+		class IMkGraphicsContext* graphicsContext,
+		IMkCameraConstPtr camera,
+		const glm::mat4& transform);
+
+private:
+	void ensureMarkerResources(class IMkGraphicsContext* graphicsContext);
+
+	int m_cachedArucoId = -1;
+	float m_cachedLengthMM = -1.f;
+	IMkTexturePtr m_markerTexture;
+	IMkTriangulatedMeshPtr m_markerMesh;
 };

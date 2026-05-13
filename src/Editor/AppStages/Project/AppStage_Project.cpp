@@ -494,22 +494,58 @@ void AppStage_Project::renderVRTrackingVolume(
 	VRObjectSystemPtr vrObjectSystem = getObjectSystemOfType<VRObjectSystem>();
 
 	// Resolve VRSpace -> StageSpace offset from the VR tracking volume
-	glm::mat4 vrSpaceToStageSpace = glm::mat4(1.f);
+	glm::mat4 vrSpaceToStageSpace = vrTrackingVolume->getVRDevicePoseOffset();
+	glm::mat4 stageSpaceToVRSpace = glm::inverse(vrSpaceToStageSpace);
+
+	// Get the tracking volume origin marker (if it exists) so we can render it in the correct space
+	const MikanMarkerID originMarkerId = vrTrackingVolume->getOriginMarkerId();
+	MarkerComponentPtr markerComp;
+	if (originMarkerId != INVALID_MIKAN_ID)
+	{
+		MarkerObjectSystemPtr markerSystem = getObjectSystemOfType<MarkerObjectSystem>();
+		markerComp = markerSystem->getMarkerById(originMarkerId);
+	}
+
 	if (vrTrackingVolume->getDisplayTrackingSpace() == MikanTrackingSpace_Stage ||
 		 m_activePanel != eProjectAppStageActivePanel::Tracking)
 	{
-		vrSpaceToStageSpace = vrTrackingVolume->getVRDevicePoseOffset();
-	}
+		// Render the VR devices in scene space
+		addAllVRDevicesToMkScene(vrObjectSystem, m_mkScene, vrSpaceToStageSpace);
 
-	addAllVRDevicesToMkScene(vrObjectSystem, m_mkScene, vrSpaceToStageSpace);
+		// Render the origin marker as a textured quad at world origin
+		if (markerComp)
+		{
+			markerComp->renderArucoMarker(graphicsContext, viewportCamera, glm::mat4(1.f));
+		}
+	}
+	else
+	{
+		// Render the VR devices in VR space
+		addAllVRDevicesToMkScene(vrObjectSystem, m_mkScene, glm::mat4(1.f));
+
+		// Render the origin marker as a textured quad at VRSpace Origun
+		if (markerComp)
+		{
+			markerComp->renderArucoMarker(graphicsContext, viewportCamera, stageSpaceToVRSpace);
+		}
+	}
 }
 
 void AppStage_Project::renderMarkerTrackingVolume(
-	IMkGraphicsContext* graphicsContext, 
-	MikanCameraPtr viewportCamera, 
+	IMkGraphicsContext* graphicsContext,
+	MikanCameraPtr viewportCamera,
 	MarkerTrackingVolumeComponentConstPtr markerTrackingVolume) const
 {
-	//TODO
+	const MikanMarkerID originMarkerId = markerTrackingVolume->getOriginMarkerId();
+	if (originMarkerId != INVALID_MIKAN_ID)
+	{
+		MarkerObjectSystemPtr markerSystem = getObjectSystemOfType<MarkerObjectSystem>();
+		MarkerComponentPtr markerComp = markerSystem->getMarkerById(originMarkerId);
+		if (markerComp)
+		{
+			markerComp->renderArucoMarker(graphicsContext, viewportCamera, glm::mat4(1.f));
+		}
+	}
 }
 
 void AppStage_Project::renderCameraComponents(

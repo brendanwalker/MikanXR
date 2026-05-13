@@ -422,6 +422,54 @@ namespace InternalShaders
 		return x_shaderCode;
 	}
 
+	IMkShaderCodeConstPtr getPTTexturedShaderCode()
+	{
+		static IMkShaderCodePtr x_shaderCode = nullptr;
+
+		if (x_shaderCode == nullptr)
+		{
+			x_shaderCode = createIMkShaderCode(
+				INTERNAL_MATERIAL_PT_TEXTURED,
+				// vertex shader
+				R""""(
+				#version 330 core
+				layout (location = 0) in vec3 aPos;
+				layout (location = 1) in vec2 aTexCoords;
+
+				uniform mat4 mvpMatrix;
+
+				out vec2 TexCoords;
+
+				void main()
+				{
+					TexCoords = aTexCoords;
+					gl_Position = mvpMatrix * vec4(aPos, 1.0);
+				}
+				)"""",
+				// fragment shader
+				R""""(
+				#version 330 core
+				out vec4 FragColor;
+
+				in vec2 TexCoords;
+
+				uniform sampler2D rgbTexture;
+
+				void main()
+				{
+					vec3 col = texture(rgbTexture, TexCoords).rgb;
+					FragColor = vec4(col, 1.0);
+				}
+				)"""");
+			x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position);
+			x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+			x_shaderCode->addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix);
+			x_shaderCode->addUniform("rgbTexture", eUniformSemantic::rgbTexture);
+		}
+
+		return x_shaderCode;
+	}
+
 	IMkShaderCodeConstPtr getPNTTexturedShaderCode()
 	{
 		static IMkShaderCodePtr x_shaderCode = nullptr;
@@ -868,6 +916,7 @@ namespace InternalShaders
 			getPWireframeShaderCode(),
 			getPSolidColorShaderCode(),
 			getPCUnlitColorShaderCode(),
+			getPTTexturedShaderCode(),
 			getPNTTexturedShaderCode(),
 			getPNTTexturedColoredShaderCode(),
 			getPLinearDepthShaderCode(),

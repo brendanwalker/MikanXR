@@ -19,6 +19,7 @@
 #define INTERNAL_MATERIAL_P_LINEAR_DEPTH				"Internal_P_LinearDepth"
 #define INTERNAL_MATERIAL_PT_NORMALIZE_DEPTH			"Internal_PT_NormalizeDepth"
 #define INTERNAL_MATERIAL_PT_PM5544_TEST_CARD			"Internal_PT_PM5544TestCard"
+#define INTERNAL_MATERIAL_PT_TEXTURED					"Internal_PT_Textured"
 
 class IMkShaderCache
 {
