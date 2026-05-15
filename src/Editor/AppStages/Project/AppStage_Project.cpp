@@ -460,6 +460,9 @@ void AppStage_Project::renderProjectStage(IMkGraphicsContext* graphicsContext, M
 
 		// Draw the tracking volume for the stage
 		renderProjectTracking(graphicsContext, viewportCamera);
+
+		// Draw the state bounds
+		stageComponent->renderStageBounds(graphicsContext, glm::mat4(1.f));
 	}
 }
 

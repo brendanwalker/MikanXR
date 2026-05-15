@@ -27,8 +27,18 @@ public:
 	MikanTrackingVolumeID getTrackingVolumeId() const { return m_trackingVolumeId; }
 	void setTrackingVolumeId(MikanTrackingVolumeID volumeId);
 
+	static const std::string k_stageBoundsMinPropertyId;
+	MikanVector3f getStageBoundsMinMM() const { return m_stageBoundsMinMM; }
+	void setStageBoundsMinMM(const MikanVector3f& minMM);
+
+	static const std::string k_stageBoundsMaxPropertyId;
+	MikanVector3f getStageBoundsMaxMM() const { return m_stageBoundsMaxMM; }
+	void setStageBoundsMaxMM(const MikanVector3f& maxMM);
+
 protected:
 	MikanTrackingVolumeID m_trackingVolumeId = INVALID_MIKAN_ID;
+	MikanVector3f m_stageBoundsMinMM;
+	MikanVector3f m_stageBoundsMaxMM;
 };
 
 class StageComponent final : public TransformComponent
@@ -67,4 +77,5 @@ public:
 	// -- StageComponent ----
 	MikanStageID getStageId() const;
 	void setTrackingVolumeId(MikanTrackingVolumeID volumeId);
+	void renderStageBounds(class IMkGraphicsContext* graphicsContext, const glm::mat4& transform) const;
 };

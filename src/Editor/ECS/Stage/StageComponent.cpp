@@ -1,7 +1,9 @@
+#include "Colors.h"
 #include "StageComponent.h"
 #include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
+#include "MikanLineRenderer.h"
 #include "MikanObject.h"
 #include "MikanStageTypes.h"
 #include "ProjectManager.h"
@@ -13,17 +15,25 @@
 
 // -- StageComponentDefinition -----
 const std::string StageComponentDefinition::k_trackingVolumeIdPropertyId = "tracking_volume_id";
+const std::string StageComponentDefinition::k_stageBoundsMinPropertyId = "stage_bounds_min";
+const std::string StageComponentDefinition::k_stageBoundsMaxPropertyId = "stage_bounds_max";
 
 StageComponentDefinition::StageComponentDefinition(
 	MikanStageID sceneId)
 	: TransformComponentDefinition(sceneId, "", glm_transform_to_MikanTransform(GlmTransform()))
+	, m_trackingVolumeId(INVALID_MIKAN_ID)
+	, m_stageBoundsMinMM(MikanVector3f(0.0f))
+	, m_stageBoundsMaxMM(MikanVector3f(0.0f))
 {}
+
 
 configuru::Config StageComponentDefinition::writeToJSON()
 {
 	configuru::Config pt = TransformComponentDefinition::writeToJSON();
 
 	pt[k_trackingVolumeIdPropertyId] = m_trackingVolumeId;
+	writeVector3f(pt, k_stageBoundsMinPropertyId.c_str(), m_stageBoundsMinMM);
+	writeVector3f(pt, k_stageBoundsMaxPropertyId.c_str(), m_stageBoundsMaxMM);
 
 	return pt;
 }
@@ -33,6 +43,8 @@ void StageComponentDefinition::readFromJSON(const configuru::Config& pt)
 	TransformComponentDefinition::readFromJSON(pt);
 
 	m_trackingVolumeId = pt.get_or<int>(k_trackingVolumeIdPropertyId, INVALID_MIKAN_ID);
+	readVector3f(pt, k_stageBoundsMinPropertyId.c_str(), m_stageBoundsMinMM);
+	readVector3f(pt, k_stageBoundsMaxPropertyId.c_str(), m_stageBoundsMaxMM);
 }
 
 bool StageComponentDefinition::readFromInitParams(
@@ -60,13 +72,25 @@ void StageComponentDefinition::setTrackingVolumeId(MikanTrackingVolumeID trackin
 	}
 }
 
+void StageComponentDefinition::setStageBoundsMinMM(const MikanVector3f& minMM)
+{
+	m_stageBoundsMinMM = minMM;
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_stageBoundsMinPropertyId));
+}
+
+void StageComponentDefinition::setStageBoundsMaxMM(const MikanVector3f& maxMM)
+{
+	m_stageBoundsMaxMM = maxMM;
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_stageBoundsMaxPropertyId));
+}
+
 // -- StageComponent -----
 StageComponent::StageComponent(MikanObjectWeakPtr owner)
 	: TransformComponent(owner)
 {
+	m_bWantsCustomRender = true;
 }
 
-// -- IEntityAccessor ----
 rfk::Struct const* StageComponent::getClientAPIValuesStructType() const
 {
 	return &MikanStageComponentValues::staticGetArchetype();
@@ -87,6 +111,18 @@ void StageComponent::dispose()
 	TransformComponent::dispose();
 }
 
+void StageComponent::renderStageBounds(
+	IMkGraphicsContext* graphicsContext,
+	const glm::mat4& transform) const
+{
+	StageComponentDefinitionConstPtr definition= getStageComponentDefinitionConst();
+
+	const glm::vec3 box_min= MikanVector3f_to_glm_vec3(definition->getStageBoundsMinMM()) * k_centimeters_to_meters;
+	const glm::vec3 box_max= MikanVector3f_to_glm_vec3(definition->getStageBoundsMaxMM()) * k_centimeters_to_meters;
+
+	drawTransformedBox(graphicsContext, transform, box_min, box_max, Colors::Yellow);
+}
+
 void StageComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	TransformComponent::getPropertyDescriptors(outDescriptors);
@@ -95,6 +131,14 @@ void StageComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstP
 		std::make_shared<PropertyDescriptor>(
 			StageComponentDefinition::k_trackingVolumeIdPropertyId, MikanVariantType::INT)
 			->setDefaultValue(-1));
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			StageComponentDefinition::k_stageBoundsMinPropertyId, MikanVariantType::VECTOR3F)
+			->setDefaultValue(MikanVector3f(0, 0, 0)));
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			StageComponentDefinition::k_stageBoundsMaxPropertyId, MikanVariantType::VECTOR3F)
+			->setDefaultValue(MikanVector3f(0, 0, 0)));
 }
 
 bool StageComponent::getPropertyValue(
@@ -104,6 +148,16 @@ bool StageComponent::getPropertyValue(
 	if (propertyName == StageComponentDefinition::k_trackingVolumeIdPropertyId)
 	{
 		outValue = (int)getStageComponentDefinitionConst()->getTrackingVolumeId();
+		return true;
+	}
+	else if (propertyName == StageComponentDefinition::k_stageBoundsMinPropertyId)
+	{
+		outValue = getStageComponentDefinitionConst()->getStageBoundsMinMM();
+		return true;
+	}
+	else if (propertyName == StageComponentDefinition::k_stageBoundsMaxPropertyId)
+	{
+		outValue = getStageComponentDefinitionConst()->getStageBoundsMaxMM();
 		return true;
 	}
 
@@ -117,6 +171,16 @@ bool StageComponent::setPropertyValue(
 	if (propertyName == StageComponentDefinition::k_trackingVolumeIdPropertyId)
 	{
 		getStageComponentDefinition()->setTrackingVolumeId((MikanTrackingVolumeID)inValue.getIntValue());
+		return true;
+	}
+	else if (propertyName == StageComponentDefinition::k_stageBoundsMinPropertyId)
+	{
+		getStageComponentDefinition()->setStageBoundsMinMM(inValue.getVector3fValue());
+		return true;
+	}
+	else if (propertyName == StageComponentDefinition::k_stageBoundsMaxPropertyId)
+	{
+		getStageComponentDefinition()->setStageBoundsMaxMM(inValue.getVector3fValue());
 		return true;
 	}
 

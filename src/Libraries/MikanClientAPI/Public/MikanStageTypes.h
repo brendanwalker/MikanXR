@@ -27,6 +27,12 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStageTypes")) MikanSt
 	FIELD()
 	MikanTrackingVolumeID tracking_volume_id = INVALID_MIKAN_ID;
 
+	FIELD()
+	MikanVector3f stage_bounds_min;
+
+	FIELD()
+	MikanVector3f stage_bounds_max;
+
 	#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStageComponentValues_GENERATED
 	#endif
