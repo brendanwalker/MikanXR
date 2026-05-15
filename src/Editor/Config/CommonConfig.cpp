@@ -373,7 +373,7 @@ void CommonConfig::readMatrix3d(
     const char *matrix_name,
     MikanMatrix3d& outMatrix)
 {
-    if (pt[matrix_name].is_array())
+    if (pt.has_key(matrix_name) && pt[matrix_name].is_array())
     {
         int row= 0;
         int col= 0;
@@ -414,7 +414,7 @@ void CommonConfig::readMatrix43d(
     const char *matrix_name,
     MikanMatrix4x3d& outMatrix)
 {
-    if (pt[matrix_name].is_array())
+    if (pt.has_key(matrix_name) && pt[matrix_name].is_array())
     {
         int row= 0;
         int col= 0;
@@ -455,7 +455,7 @@ void CommonConfig::readMatrix4d(
     const char *matrix_name,
     MikanMatrix4d& outMatrix)
 {
-    if (pt[matrix_name].is_array())
+    if (pt.has_key(matrix_name) && pt[matrix_name].is_array())
     {
         int row= 0;
         int col= 0;
@@ -497,7 +497,7 @@ void CommonConfig::readMatrix4f(
 {
     auto m = reinterpret_cast<float(*)[4][4]>(&outMatrix);
 
-	if (pt[matrix_name].is_array())
+	if (pt.has_key(matrix_name) && pt[matrix_name].is_array())
 	{
 		int row = 0;
 		int col = 0;
