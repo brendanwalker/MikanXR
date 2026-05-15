@@ -22,11 +22,11 @@ const std::string VRTrackingVolumeDefinition::k_charucoMountIdPropertyId = "char
 const std::string VRTrackingVolumeDefinition::k_charucoMountOffsetPropertyId = "charuco_mount_offset_mm";
 const std::string VRTrackingVolumeDefinition::k_utilityMarkerIdPropertyId = "utility_marker_id";
 const std::string VRTrackingVolumeDefinition::k_trackingMountIdsPropertyId = "tracking_mount_ids";
-const std::string VRTrackingVolumeDefinition::k_vrDevicePoseOffsetPropertyId = "vr_device_pose_offset";
+const std::string VRTrackingVolumeDefinition::k_vrSpaceToStageSpacePropertyId = "vr_space_to_stage_space";
 
 VRTrackingVolumeDefinition::VRTrackingVolumeDefinition()
 	: TrackingVolumeDefinition()
-	, m_vrDevicePoseOffset({
+	, m_vrSpaceToStageSpace({
 		1.f, 0.f, 0.f, 0.f,
 		0.f, 1.f, 0.f, 0.f,
 		0.f, 0.f, 1.f, 0.f,
@@ -45,7 +45,7 @@ VRTrackingVolumeDefinition::VRTrackingVolumeDefinition(
 		DEFAULT_PUCK_VERTICAL_OFFSET_MM,
 		DEFAULT_PUCK_DEPTH_OFFSET_MM
 		})
-	, m_vrDevicePoseOffset({
+	, m_vrSpaceToStageSpace({
 		1.f, 0.f, 0.f, 0.f,
 		0.f, 1.f, 0.f, 0.f,
 		0.f, 0.f, 1.f, 0.f,
@@ -68,7 +68,7 @@ configuru::Config VRTrackingVolumeDefinition::writeToJSON()
 
 	writeVector3f(pt, k_charucoMountOffsetPropertyId.c_str(), m_charucoMountOffsetMM);
 	writeStdValueVector(pt, k_trackingMountIdsPropertyId.c_str(), m_trackingMountIDs);
-	writeMatrix4f(pt, k_vrDevicePoseOffsetPropertyId.c_str(), m_vrDevicePoseOffset);
+	writeMatrix4f(pt, k_vrSpaceToStageSpacePropertyId.c_str(), m_vrSpaceToStageSpace);
 
 	return pt;
 }
@@ -86,7 +86,7 @@ void VRTrackingVolumeDefinition::readFromJSON(const configuru::Config& pt)
 
 	readVector3f(pt, k_charucoMountOffsetPropertyId.c_str(), m_charucoMountOffsetMM);
 	readStdValueVector(pt, k_trackingMountIdsPropertyId.c_str(), m_trackingMountIDs);
-	readMatrix4f(pt, k_vrDevicePoseOffsetPropertyId.c_str(), m_vrDevicePoseOffset);
+	readMatrix4f(pt, k_vrSpaceToStageSpacePropertyId.c_str(), m_vrSpaceToStageSpace);
 }
 
 bool VRTrackingVolumeDefinition::readFromInitParams(
@@ -113,7 +113,7 @@ bool VRTrackingVolumeDefinition::readFromInitParams(
 			m_trackingMountIDs.push_back(mountId);
 		}
 
-		m_vrDevicePoseOffset = componentValues->vr_device_pose_offset;
+		m_vrSpaceToStageSpace = componentValues->vr_space_to_stage_space;
 	}
 
 	return true;
@@ -178,10 +178,10 @@ bool VRTrackingVolumeDefinition::removeTrackingMountID(MikanTrackingMountID moun
 	return false;
 }
 
-void VRTrackingVolumeDefinition::setVRDevicePoseOffset(const MikanMatrix4f& poseOffset)
+void VRTrackingVolumeDefinition::setVRSpaceToStageSpace(const MikanMatrix4f& poseOffset)
 {
-	m_vrDevicePoseOffset = poseOffset;
-	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_vrDevicePoseOffsetPropertyId));
+	m_vrSpaceToStageSpace = poseOffset;
+	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_vrSpaceToStageSpacePropertyId));
 }
 
 // -- VRTrackingVolumeComponent -----
@@ -196,15 +196,15 @@ rfk::Struct const* VRTrackingVolumeComponent::getClientAPIValuesStructType() con
 	return &MikanVRTrackingVolumeComponentValues::staticGetArchetype();
 }
 
-glm::mat4 VRTrackingVolumeComponent::getVRDevicePoseOffset() const
+glm::mat4 VRTrackingVolumeComponent::getVRSpaceToStageSpace() const
 { 
-	return m_vrDevicePoseOffset.getMat4(); 
+	return m_vrSpaceToStageSpace.getMat4(); 
 }
 
-void VRTrackingVolumeComponent::setVRDevicePoseOffset(const glm::mat4& poseOffset)
+void VRTrackingVolumeComponent::setVRSpaceToStageSpace(const glm::mat4& poseOffset)
 {
-	m_vrDevicePoseOffset = GlmTransform(poseOffset);
-	getVRTrackingVolumeDefinition()->setVRDevicePoseOffset(glm_mat4_to_MikanMatrix4f(poseOffset));
+	m_vrSpaceToStageSpace = GlmTransform(poseOffset);
+	getVRTrackingVolumeDefinition()->setVRSpaceToStageSpace(glm_mat4_to_MikanMatrix4f(poseOffset));
 }
 
 bool VRTrackingVolumeComponent::ownsTrackingMount(MikanTrackingMountID mountId) const
@@ -268,7 +268,7 @@ void VRTrackingVolumeComponent::getPropertyDescriptors(std::vector<PropertyDescr
 		->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			VRTrackingVolumeDefinition::k_vrDevicePoseOffsetPropertyId, MikanVariantType::MATRIX4F)
+			VRTrackingVolumeDefinition::k_vrSpaceToStageSpacePropertyId, MikanVariantType::MATRIX4F)
 		->setDefaultValue(
 			MikanMatrix4f(
 				1.f, 0.f, 0.f, 0.f,
@@ -319,21 +319,21 @@ bool VRTrackingVolumeComponent::getPropertyValue(
 		outValue = getVRTrackingVolumeDefinition()->getTrackingMountIDs();
 		return true;
 	}
-	else if (propertyName == VRTrackingVolumeDefinition::k_vrDevicePoseOffsetPropertyId)
+	else if (propertyName == VRTrackingVolumeDefinition::k_vrSpaceToStageSpacePropertyId)
 	{
-		outValue = getVRTrackingVolumeDefinition()->getVRDevicePoseOffset();
+		outValue = getVRTrackingVolumeDefinition()->getVRSpaceToStageSpace();
 		return true;
 	}
 	else if (propertyName == k_vrDevicePositionOffsetPropertyId)
 	{
-		const glm::vec3 positionOffset = m_vrDevicePoseOffset.getPosition();
+		const glm::vec3 positionOffset = m_vrSpaceToStageSpace.getPosition();
 		outValue = glm_vec3_to_MikanVector3f(positionOffset);
 		return true;
 	}
 	else if (propertyName == k_vrDeviceRotationOffsetPropertyId)
 	{
 		float angles[3]{};
-		glm_quat_to_euler_angles(m_vrDevicePoseOffset.getRotation(), angles[0], angles[1], angles[2]);
+		glm_quat_to_euler_angles(m_vrSpaceToStageSpace.getRotation(), angles[0], angles[1], angles[2]);
 		angles[0] *= k_radians_to_degrees;
 		angles[1] *= k_radians_to_degrees;
 		angles[2] *= k_radians_to_degrees;
@@ -377,11 +377,11 @@ bool VRTrackingVolumeComponent::setPropertyValue(
 		getVRTrackingVolumeDefinition()->setUtilityMarkerId(inValue.getIntValue());
 		return true;
 	}
-	else if (propertyName == VRTrackingVolumeDefinition::k_vrDevicePoseOffsetPropertyId)
+	else if (propertyName == VRTrackingVolumeDefinition::k_vrSpaceToStageSpacePropertyId)
 	{
 		MikanMatrix4f poseOffset = inValue.getMatrix4fValue();
 
-		getVRTrackingVolumeDefinition()->setVRDevicePoseOffset(poseOffset);
+		getVRTrackingVolumeDefinition()->setVRSpaceToStageSpace(poseOffset);
 		return true;
 	}
 	else if (propertyName == k_displayTrackingSpacePropertyId)

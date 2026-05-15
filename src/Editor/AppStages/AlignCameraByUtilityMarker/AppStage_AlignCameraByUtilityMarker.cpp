@@ -622,11 +622,11 @@ void AppStage_AlignCameraByUtilityMarker::computeAndApplyTargetTransform()
 	const auto trackingVolumeDefinition =
 		std::static_pointer_cast<const VRTrackingVolumeComponent>(
 			stageComponent->getTrackingVolumeConst());
-	const glm::mat4 glmVRDevicePoseOffset = trackingVolumeDefinition->getVRDevicePoseOffset();
+	const glm::mat4 vrSpaceToStageSpace = trackingVolumeDefinition->getVRSpaceToStageSpace();
 
 	// 8. Compute final target aperture pose in stage space and apply
 	m_targetApertureXform_StageSpace =
-		glm_composite_xform(targetApertureXform_VRSpace, glmVRDevicePoseOffset);
+		glm_composite_xform(targetApertureXform_VRSpace, vrSpaceToStageSpace);
 	m_targetCameraComponent->setRelativeTransform(glm::mat4(m_targetApertureXform_StageSpace));
 
 	setMenuState(eAlignCameraByUtilityMarkerMenuState::testCalibration);

@@ -321,25 +321,31 @@ void AppStage_VRTrackingRecenter::update(float deltaSeconds)
 						m_markerPoseSampler->computeCalibratedMarkerPose(markerRot, markerPos) &&
 						m_cameraComponent->getApertureOffsetXform(apertureOffsetXform))
 					{
-						// markerPose_VRSpace = puck x apertureOffset x apertureToMarker
+						// Compute the puck pose in VRSpace
 						glm::dmat4 avgPuckXform_VRSpace =
 							glm_mat4_from_pose(
 								MikanQuatd_to_glm_dquat(puckRot), 
 								MikanVector3d_to_glm_dvec3(puckPos));
+
+						// Compute the aperture pose in VR space by applying the aperture offset to the puck pose
+						glm::dmat4 avgAperturePose_VRSpace =
+							glm_composite_xform(apertureOffsetXform, avgPuckXform_VRSpace);
+
+						// Compute the marker pose in aperture space
 						glm::dmat4 avgApertureToMarker =
 							glm_mat4_from_pose(
 								MikanQuatd_to_glm_dquat(markerRot),
 								MikanVector3d_to_glm_dvec3(markerPos));
-						glm::dmat4 avgAperturePose_VRSpace =
-							glm_composite_xform(apertureOffsetXform, avgPuckXform_VRSpace);
-						glm::dmat4 markerXform_VRSpace =
-							glm_composite_xform(avgApertureToMarker, avgAperturePose_VRSpace);
 
-						// The VR device pose offset is the inverse of the marker pose
-						glm::mat4 glmVRDevicePoseOffset = glm::inverse(glm::mat4(markerXform_VRSpace));
+						// The conversion from stage space to VR tracking space is given 
+						// by the marker pose in VR space since the marker is at the origin of stage space
+						glm::dmat4 stageSpaceToVRSpace =
+							glm_composite_xform(avgApertureToMarker, avgAperturePose_VRSpace);
+						// Thus the conversion from VR tracking space to stage space is the inverse of that
+						glm::mat4 vrSpaceToStageSpace = glm::inverse(glm::mat4(stageSpaceToVRSpace));
 
 						// Publish the new VR device pose offset to the target tracking volume
-						m_targetTrackingVolume->setVRDevicePoseOffset(glmVRDevicePoseOffset);
+						m_targetTrackingVolume->setVRSpaceToStageSpace(vrSpaceToStageSpace);
 
 						setMenuState(eVRTrackingRecenterMenuState::testCalibration);
 					}

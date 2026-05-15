@@ -74,7 +74,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTrackingVolumeTypes")
 	FIELD()
 	Serialization::List<MikanTrackingMountID> tracking_mount_ids;
 	FIELD()
-	MikanMatrix4f vr_device_pose_offset;
+	MikanMatrix4f vr_space_to_stage_space;
 	FIELD()
 	MikanTrackingSpace display_tracking_space = MikanTrackingSpace_INVALID;
 

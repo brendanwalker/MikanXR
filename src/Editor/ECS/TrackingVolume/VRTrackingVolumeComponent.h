@@ -44,9 +44,9 @@ public:
 	bool addTrackingMountID(MikanTrackingMountID mountId);
 	bool removeTrackingMountID(MikanTrackingMountID mountId);
 
-	static const std::string k_vrDevicePoseOffsetPropertyId;
-	MikanMatrix4f getVRDevicePoseOffset() const { return m_vrDevicePoseOffset; }
-	void setVRDevicePoseOffset(const MikanMatrix4f& poseOffset);
+	static const std::string k_vrSpaceToStageSpacePropertyId;
+	MikanMatrix4f getVRSpaceToStageSpace() const { return m_vrSpaceToStageSpace; }
+	void setVRSpaceToStageSpace(const MikanMatrix4f& poseOffset);
 
 private:
 	eTrackingRuntime m_trackingRuntime = eTrackingRuntime::INVALID;
@@ -54,7 +54,7 @@ private:
 	MikanVector3f m_charucoMountOffsetMM;
 	MikanMarkerID m_utilityMarkerId;
 	std::vector<MikanTrackingMountID> m_trackingMountIDs;
-	MikanMatrix4f m_vrDevicePoseOffset;
+	MikanMatrix4f m_vrSpaceToStageSpace;
 };
 
 class VRTrackingVolumeComponent : public TrackingVolumeComponent
@@ -70,8 +70,8 @@ public:
 
 	MikanTrackingSpace getDisplayTrackingSpace() const { return m_displayTrackingSpace; }
 
-	glm::mat4 getVRDevicePoseOffset() const;
-	void setVRDevicePoseOffset(const glm::mat4& poseOffset);
+	glm::mat4 getVRSpaceToStageSpace() const;
+	void setVRSpaceToStageSpace(const glm::mat4& poseOffset);
 
 	bool ownsTrackingMount(MikanTrackingMountID mountId) const;
 	VRDevicePoseViewPtr makeChArUcoTrackingMountPoseView(eVRDevicePoseSpace space) const;
@@ -96,6 +96,6 @@ protected:
 	void alignTrackingVolume();
 
 private:
-	GlmTransform m_vrDevicePoseOffset;
+	GlmTransform m_vrSpaceToStageSpace;
 	MikanTrackingSpace m_displayTrackingSpace = MikanTrackingSpace_VR;
 };

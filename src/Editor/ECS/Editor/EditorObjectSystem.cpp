@@ -190,6 +190,9 @@ void EditorObjectSystem::createSceneTransformGizmo(SceneComponentPtr ownerScene)
 
 	// Attach the gizmo to the scene
 	gizmoObjectPtr->getRootComponent()->attachToComponent(ownerScene);
+
+	// Listen for gizmo hot-keys
+	transformGizmoPtr->bindInput();
 }
 
 void EditorObjectSystem::disposeSceneTransformGizmo()
@@ -367,8 +370,6 @@ void EditorObjectSystem::onAppStageEntered(class AppStage* oldAppStage, class Ap
 {
 	if (newAppStage->getAppStageName() == AppStage_Project::APP_STAGE_NAME)
 	{
-		m_gizmoComponentWeakPtr.lock()->bindInput();
-
 		getOwnerWindow()->getInputManager()->fetchOrAddKeyBindings(MkKey::DELETE_KEYCODE)->OnKeyPressed +=
 			MakeDelegate(this, &EditorObjectSystem::onDeletePressed);
 	}

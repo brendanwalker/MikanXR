@@ -76,7 +76,7 @@ bool VRDevicePoseView::getPose(
 			const auto trackingVolumeDefinition= 
 				std::static_pointer_cast<const VRTrackingVolumeComponent>(
 					stageComponent->getTrackingVolumeConst());			
-			const glm::mat4 glmVRDevicePoseOffset = trackingVolumeDefinition->getVRDevicePoseOffset();
+			const glm::mat4 glmVRDevicePoseOffset = trackingVolumeDefinition->getVRSpaceToStageSpace();
 
 			// Convert the vr tracking space pose to Mikan scene space
 			outXformInSpace = glm_composite_xform(vrTrackingSpaceXform, glmVRDevicePoseOffset);

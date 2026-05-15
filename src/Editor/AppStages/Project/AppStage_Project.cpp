@@ -497,7 +497,7 @@ void AppStage_Project::renderVRTrackingVolume(
 	VRObjectSystemPtr vrObjectSystem = getObjectSystemOfType<VRObjectSystem>();
 
 	// Resolve VRSpace -> StageSpace offset from the VR tracking volume
-	glm::mat4 vrSpaceToStageSpace = vrTrackingVolume->getVRDevicePoseOffset();
+	glm::mat4 vrSpaceToStageSpace = vrTrackingVolume->getVRSpaceToStageSpace();
 	glm::mat4 stageSpaceToVRSpace = glm::inverse(vrSpaceToStageSpace);
 
 	// Get the tracking volume origin marker (if it exists) so we can render it in the correct space
@@ -526,7 +526,7 @@ void AppStage_Project::renderVRTrackingVolume(
 		// Render the VR devices in VR space
 		addAllVRDevicesToMkScene(vrObjectSystem, m_mkScene, glm::mat4(1.f));
 
-		// Render the origin marker as a textured quad at VRSpace Origun
+		// Render the origin marker as a textured quad at VRSpace Origin
 		if (markerComp)
 		{
 			markerComp->renderArucoMarker(graphicsContext, viewportCamera, stageSpaceToVRSpace);
