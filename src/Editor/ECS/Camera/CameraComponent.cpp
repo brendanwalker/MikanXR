@@ -238,13 +238,11 @@ void CameraComponent::update(float deltaSeconds)
 {
 	TransformComponent::update(deltaSeconds);
 
-	// Scene-space pose view is used to update the component transform
-	// of the camera in the stageView
-	glm::mat4 poseInStageSpace;
-	if (m_trackingMountPoseView_StageSpace && 
-		m_trackingMountPoseView_StageSpace->getPose(
-			getSelfPtr<CameraComponent>(),
-			poseInStageSpace))
+	// If the camera is attached to a tracking puck, 
+	// update the transform of the camera
+	// (camera pose == aperture transform)
+	glm::mat4 poseInStageSpace;	
+	if (getStageSpaceAperturePose(poseInStageSpace))
 	{
 		setRelativeTransform(GlmTransform(poseInStageSpace));
 	}
