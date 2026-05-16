@@ -15,6 +15,7 @@
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "MkScene.h"
+#include "MkStateModifiers.h"
 #include "MkScopedObjectBinding.h"
 #include "MkStateStack.h"
 #include "IMkTriangulatedMesh.h"
@@ -402,6 +403,10 @@ void AppStage_VRTrackingRecenter::render(IMkViewportPtr targetViewport)
 					break;
 			}
 		}
+
+		// Clear the depth buffer before drawing the scene
+		IMkState* mkState = graphicsContext->getMkStateStack().getCurrentState();
+		mkStateClearBuffer(mkState, eMkClearFlags::depth);
 
 		// Render any lines and text that were added to the scene by the calibrator in the frame buffer's viewport
 		graphicsContext->getLineRenderer()->render();

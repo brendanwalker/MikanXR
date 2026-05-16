@@ -22,6 +22,7 @@
 #include "MikanLineRenderer.h"
 #include "MikanTextRenderer.h"
 #include "MikanViewport.h"
+#include "MkStateModifiers.h"
 #include "MainWindow.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
@@ -497,6 +498,10 @@ void AppStage_AlignmentCalibration::render(IMkViewportPtr targetViewport)
 					break;
 			}
 		}
+
+		// Clear the depth buffer before drawing the scene
+		IMkState* mkState = m_ownerWindow->getGraphicsContext()->getMkStateStack().getCurrentState();
+		mkStateClearBuffer(mkState, eMkClearFlags::depth);
 
 		// Render any lines and text that were added to the stageView by the calibrator in the frame buffer's viewport
 		m_ownerWindow->getGraphicsContext()->getLineRenderer()->render();
