@@ -290,7 +290,8 @@ std::string ColorTextureSourceNode::editorGetTitle() const
 {
 	if (!isDefaultNode())
 	{ 
-		std::string sourceId = getTextureSourceComponent()->getName();
+		TextureSourceComponentPtr textureSource= getTextureSourceComponent();
+		std::string sourceId = textureSource ? textureSource->getName() : "<None>";
 
 		return StringUtils::stringify("Color Source ", sourceId);
 	}
@@ -343,13 +344,15 @@ void ColorTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& ed
 			TextureSourceComponentPtr TextureSourceComponent = getTextureSourceComponent();
 
 			int selectedIndex = dataSource.getEntryIndex(TextureSourceComponent);
-			NodeEditorUI::DrawComboBoxProperty(
+			if (NodeEditorUI::DrawComboBoxProperty(
 				"textureSourceIndex",
 				"Source",
 				&dataSource,
 				selectedIndex,
-				editorState.styleManager);
-			m_textureSourceComponent = dataSource.getEntryAtIndex(selectedIndex);
+				editorState.styleManager))
+			{
+				m_textureSourceComponent = dataSource.getEntryAtIndex(selectedIndex);
+			}
 		}
 
 		// Vertical Flip

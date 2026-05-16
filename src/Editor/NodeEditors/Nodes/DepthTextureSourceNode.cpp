@@ -299,13 +299,15 @@ void DepthTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& ed
 			TextureSourceComponentPtr videoSourceComponent= getTextureSourceComponent();
 
 			int selectedIndex = dataSource.getEntryIndex(videoSourceComponent);
-			NodeEditorUI::DrawComboBoxProperty(
+			if (NodeEditorUI::DrawComboBoxProperty(
 				"textureSourceIndex",
 				"Source",
 				&dataSource,
 				selectedIndex,
-				editorState.styleManager);
-			m_textureSourceComponent = dataSource.getEntryAtIndex(selectedIndex);
+				editorState.styleManager))
+			{
+				m_textureSourceComponent = dataSource.getEntryAtIndex(selectedIndex);
+			}
 		}
 
 		// Vertical Flip
