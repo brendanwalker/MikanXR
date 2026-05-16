@@ -190,6 +190,14 @@ VRTrackingVolumeComponent::VRTrackingVolumeComponent(MikanObjectWeakPtr owner)
 {
 }
 
+void VRTrackingVolumeComponent::init()
+{
+	TrackingVolumeComponent::init();
+
+	const MikanMatrix4f vrSpaceToStageSpace = getVRTrackingVolumeDefinition()->getVRSpaceToStageSpace();
+	m_vrSpaceToStageSpace = GlmTransform(MikanMatrix4f_to_glm_mat4(vrSpaceToStageSpace));
+}
+
 // -- IEntityAccessor ----
 rfk::Struct const* VRTrackingVolumeComponent::getClientAPIValuesStructType() const
 {

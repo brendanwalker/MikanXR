@@ -62,6 +62,8 @@ class VRTrackingVolumeComponent : public TrackingVolumeComponent
 public:
 	VRTrackingVolumeComponent(MikanObjectWeakPtr owner);
 
+	virtual void init() override;
+
 	inline VRTrackingVolumeDefinitionPtr getVRTrackingVolumeDefinition() const
 	{ return std::static_pointer_cast<VRTrackingVolumeDefinition>(m_definition); }
 
