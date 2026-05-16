@@ -343,7 +343,7 @@ void MikanComponent::reloadComponentScript()
 void MikanComponent::addNewComponentScript()
 {
 	ScriptAssetReferenceFactory assetRefFactory;
-	std::filesystem::path newAssetPath =
+	const char* picked =
 		tinyfd_openFileDialog(
 			assetRefFactory.getFileDialogTitle(),
 			assetRefFactory.getDefaultPath(),
@@ -352,11 +352,16 @@ void MikanComponent::addNewComponentScript()
 			assetRefFactory.getFilterDescription(),
 			1);
 
-	if (m_scriptAssetRef->getAssetPath() != newAssetPath)
+	if (picked != nullptr && picked[0] != '\0')
 	{
-		// Set the new script path in the component definition
-		// This will trigger the script context to be initialized via the definition dirty event
-		getDefinition()->setComponentScriptPath(newAssetPath);
+		std::filesystem::path newAssetPath(picked);
+
+		if (m_scriptAssetRef->getAssetPath() != newAssetPath)
+		{
+			// Set the new script path in the component definition
+			// This will trigger the script context to be initialized via the definition dirty event
+			getDefinition()->setComponentScriptPath(newAssetPath);
+		}
 	}
 }
 

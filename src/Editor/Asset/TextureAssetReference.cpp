@@ -56,7 +56,7 @@ void TextureAssetReference::editorRenderPropertySheet(const NodeEditorState& edi
 		{
 			static std::string texturePath = TextureAssetReferenceFactory::getDefaultTexturePath();
 
-			auto assetPath =
+			const char* picked =
 				tinyfd_openFileDialog(
 					"Load Texture",
 					texturePath.c_str(),
@@ -64,7 +64,11 @@ void TextureAssetReference::editorRenderPropertySheet(const NodeEditorState& edi
 					TextureAssetReferenceFactory::getTextureFilterPatterns(),
 					TextureAssetReferenceFactory::getTextureFilterDescription(),
 					0); // disallow multiple selections
-			setAssetPath(assetPath);
+
+			if (picked != nullptr && picked[0] != '\0')
+			{
+				setAssetPath(picked);
+			}
 		}
 	}
 }

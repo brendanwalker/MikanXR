@@ -50,7 +50,7 @@ void MaterialAssetReference::editorRenderPropertySheet(const NodeEditorState& ed
 			static std::string materialPath= MaterialAssetReferenceFactory::getDefaultMaterialPath();
 			static const char* filterItems[1] = {"*.mat"};
 
-			auto assetPath =
+			const char* picked =
 				tinyfd_openFileDialog(
 					"Load Material",
 					materialPath.c_str(),
@@ -58,7 +58,11 @@ void MaterialAssetReference::editorRenderPropertySheet(const NodeEditorState& ed
 					filterItems,
 					"Material Files (*.mat)",
 					0); // disallow multiple selections
-			setAssetPath(assetPath);
+
+			if (picked != nullptr && picked[0] != '\0')
+			{
+				setAssetPath(picked);
+			}
 		}
 	}
 }

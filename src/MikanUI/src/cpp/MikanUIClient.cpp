@@ -81,7 +81,7 @@ private:
         const char* filterPatterns[1] = { filter.c_str() };
 
         // Show the file dialog
-        const char* filePath = tinyfd_openFileDialog(
+        const char* picked = tinyfd_openFileDialog(
             title.c_str(),
             defaultPath.c_str(),
             1,
@@ -92,10 +92,10 @@ private:
 
         // Build response
         json response;
-        if (filePath != nullptr && filePath[0] != '\0')
+        if (picked != nullptr && picked[0] != '\0')
         {
             response["success"] = true;
-            response["filePath"] = filePath;
+            response["filePath"] = picked;
         }
         else
         {

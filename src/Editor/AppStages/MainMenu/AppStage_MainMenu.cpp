@@ -62,14 +62,19 @@ void AppStage_MainMenu::onOpenProject()
 {
 	std::string defaultPath = (PathUtils::getHomeDirectory() / "").string();
 	static const char* filterItems[1] = { "*.mikanproj" };
-	std::filesystem::path projectFilePath =
-		tinyfd_openFileDialog(
-			"Open Project",
-			defaultPath.c_str(),
-			1,
-			filterItems,
-			"Project Files (*.mikanproj)",
-			1);
+
+	const char* picked = tinyfd_openFileDialog(
+		"Open Project",
+		defaultPath.c_str(),
+		1,
+		filterItems,
+		"Project Files (*.mikanproj)",
+		1);
+
+	if (picked == nullptr || picked[0] == '\0')
+		return;
+
+	std::filesystem::path projectFilePath(picked);
 
 	std::vector<std::string> parameters = { projectFilePath.string() };
 	std::vector<std::string> outResults;
@@ -80,13 +85,18 @@ void AppStage_MainMenu::onNewProject()
 {
 	std::string defaultPath = (PathUtils::getHomeDirectory() / "").string();
 	static const char* filterItems[1] = { "*.mikanproj" };
-	std::filesystem::path projectFilePath =
-		tinyfd_saveFileDialog(
-			"New Project",
-			defaultPath.c_str(),
-			1,
-			filterItems,
-			"Project Files (*.mikanproj)");
+
+	const char* picked = tinyfd_saveFileDialog(
+		"New Project",
+		defaultPath.c_str(),
+		1,
+		filterItems,
+		"Project Files (*.mikanproj)");
+
+	if (picked == nullptr || picked[0] == '\0')
+		return;
+
+	std::filesystem::path projectFilePath(picked);
 
 	std::vector<std::string> parameters = { projectFilePath.string() };
 	std::vector<std::string> outResults;

@@ -601,7 +601,7 @@ void NodeEditorWindow::renderAssetsPanel()
 
 						if (ImGui::SmallButton(buttonName.c_str()))
 						{
-							auto assetPath =
+							const char* picked =
 								tinyfd_openFileDialog(
 									assetRefFactory->getFileDialogTitle(),
 									assetRefFactory->getDefaultPath(),
@@ -610,9 +610,9 @@ void NodeEditorWindow::renderAssetsPanel()
 									assetRefFactory->getFilterDescription(),
 									1);
 
-							if (assetPath)
+							if (picked != nullptr && picked[0] != '\0')
 							{
-								std::stringstream ssPaths(assetPath);
+								std::stringstream ssPaths(picked);
 								std::string path;
 								while (std::getline(ssPaths, path, '|'))
 								{
@@ -865,10 +865,14 @@ bool NodeEditorWindow::saveGraph(bool bShowFileDialog)
 		std::string defautPath= (PathUtils::getResourceDirectory() / "graphs" / "new_graph.graph").string();
 		const char* filterItems[1] = {"*.graph"};
 		const char* filterDesc = "Graph Files (*.graph)";
-		auto path = tinyfd_saveFileDialog("Save Compositor Graph", defautPath.c_str(), 1, filterItems, filterDesc);
-		if (path)
+
+		const char* picked = 
+			tinyfd_saveFileDialog(
+				"Save Compositor Graph", defautPath.c_str(), 1, filterItems, filterDesc);
+
+		if (picked != nullptr && picked[0] == '\0')
 		{
-			m_editorState.nodeGraphPath= path;
+			m_editorState.nodeGraphPath= picked;
 		}
 	}
 

@@ -244,16 +244,16 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 				if (MkGui::drawFilePathProperty(m_defaultGuiStyle, uiFieldId, propName, v))
 				{
 					const AssetReferenceFactory* factory = assetMeta->getFactory();
-					const char* result = tinyfd_openFileDialog(
+					const char* picked = tinyfd_openFileDialog(
 						factory->getFileDialogTitle(),
 						factory->getDefaultPath(),
 						factory->getFilterPatternCount(),
 						factory->getFilterPatterns(),
 						factory->getFilterDescription(),
 						0);
-					if (result)
+					if (picked && picked[0] != '\0')
 					{
-						newValue = std::string(result);
+						newValue = std::string(picked);
 						bValueChanged = true;
 					}
 				}
