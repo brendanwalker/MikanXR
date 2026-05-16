@@ -679,7 +679,7 @@ void NodeEditorWindow::renderAssetsPanel()
 								ImNodes::ClearLinkSelection();
 								ImNodes::ClearNodeSelection();
 
-								m_objectSelection = GraphObjectSelection(GraphObjectIdType::ASSET, assetIndex);
+								m_objectSelection = GraphObjectSelection(GraphObjectIdType::ASSET, 1);
 								m_objectSelection.setObjectId(0, assetIndex);
 
 								if (ImGui::MenuItem("Delete", ICON_FK_TRASH, "DELETE"))
