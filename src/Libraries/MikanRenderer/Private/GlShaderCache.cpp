@@ -569,20 +569,29 @@ namespace InternalShaders
 				uniform vec3 lightColor; // The color of the light
 				uniform vec4 modelColor;
 				uniform float ambientStrength;
+				uniform vec3 cameraPos;
+				uniform vec3 specularColor;
+				uniform float shininess;
 
 				void main()
 				{
 					// Ambient
 					vec3 ambient = ambientStrength * lightColor;
-    
+
 					// Diffuse
 					vec3 norm = normalize(Normal);
 					vec3 lightDirNormalized = normalize(-lightDir);
 					float diff = max(dot(norm, lightDirNormalized), 0.0);
 					vec3 diffuse = diff * lightColor;
-    
-					// Combine the two diffuse and ambient
-					vec4 lighting = vec4(ambient + diffuse, 1.0);
+
+					// Specular
+					vec3 viewDir = normalize(cameraPos - FragPos);
+					vec3 reflectDir = reflect(lightDir, norm);
+					float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+					vec3 specular = spec * specularColor * lightColor;
+
+					// Combine ambient, diffuse, and specular
+					vec4 lighting = vec4(ambient + diffuse + specular, 1.0);
 
 					FragColor = texture(diffuse_tex, TexCoords) * lighting * modelColor;
 				}
@@ -598,6 +607,9 @@ namespace InternalShaders
 			x_shaderCode->addUniform("lightDir", eUniformSemantic::lightDirection);
 			x_shaderCode->addUniform("lightColor", eUniformSemantic::lightColorRGB);
 			x_shaderCode->addUniform("ambientStrength", eUniformSemantic::ambientStrength);
+			x_shaderCode->addUniform("cameraPos", eUniformSemantic::cameraPosition);
+			x_shaderCode->addUniform("specularColor", eUniformSemantic::specularColorRGB);
+			x_shaderCode->addUniform("shininess", eUniformSemantic::specularHighlights);
 		}
 
 		return x_shaderCode;

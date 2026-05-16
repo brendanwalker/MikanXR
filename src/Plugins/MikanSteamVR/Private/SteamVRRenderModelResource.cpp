@@ -164,6 +164,8 @@ MkMaterialInstancePtr SteamVRRenderModelResource::createMaterialInstance(
 	}
 	materialInstance->setVec4BySemantic(eUniformSemantic::diffuseColorRGBA, glm::vec4(1.f));
 	materialInstance->setFloatBySemantic(eUniformSemantic::ambientStrength, 0.3f);
+	materialInstance->setVec3BySemantic(eUniformSemantic::specularColorRGB, glm::vec3(0.5f));
+	materialInstance->setFloatBySemantic(eUniformSemantic::specularHighlights, 32.f);
 
 	return materialInstance;
 }

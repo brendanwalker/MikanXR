@@ -256,6 +256,20 @@ eUniformBindResult MkScene::materialBindCallback(
 				bindResult = eUniformBindResult::error;
 			}
 		} break;
+	case eUniformSemantic::cameraPosition:
+		{
+			if (camera != nullptr)
+			{
+				bindResult =
+					program->setVector3Uniform(uniformName, camera->getCameraPositionFromViewMatrix())
+					? eUniformBindResult::bound
+					: eUniformBindResult::error;
+			}
+			else
+			{
+				bindResult = eUniformBindResult::error;
+			}
+		} break;
 	}
 
 	return bindResult;
