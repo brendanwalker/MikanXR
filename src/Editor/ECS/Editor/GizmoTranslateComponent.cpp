@@ -87,7 +87,9 @@ static void drawTranslationArrowHandle(
 	drawArrow(graphicsContext, glm::mat4(1.f), origin, axisEnd, 0.1f, color);
 }
 
-void GizmoTranslateComponent::customRender()
+void GizmoTranslateComponent::customRender(
+	IMkGraphicsContext* graphicsContext, 
+	MikanCameraPtr viewportCamera) const
 {
 	if (m_bEnabled)
 	{
@@ -102,7 +104,6 @@ void GizmoTranslateComponent::customRender()
 		// View-plane handle: camera-facing circle at center
 		if (auto vph = m_viewPlaneHandle.lock())
 		{
-			IMkGraphicsContext* graphicsContext = vph->getGraphicsContext();
 			TextStyle style = getDefaultTextStyle();
 
 			const glm::vec3 origin = glm_mat4_get_position(vph->getWorldTransform());
@@ -128,7 +129,7 @@ void GizmoTranslateComponent::customRender()
 			drawAxisLabel(m_zAxisHandle, L"Z");
 
 			drawTransformedCircle(
-				vph->getGraphicsContext(), vph->getWorldTransform(), vph->getRadius(), vphColor,
+				graphicsContext, vph->getWorldTransform(), vph->getRadius(), vphColor,
 				GizmoTransformComponent::k_gizmoCircleSegments);
 		}
 	}

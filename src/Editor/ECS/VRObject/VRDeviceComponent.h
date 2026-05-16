@@ -61,7 +61,6 @@ class VRDeviceComponent : public TransformComponent
 public:
 	VRDeviceComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
-	virtual void customRender() override;
 
 	inline static const std::string k_componentClassName = "VRDeviceComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
@@ -83,6 +82,10 @@ public:
 		const std::string& socketName= "") const;
 
 	void refreshDevicePose();
+	void renderVRDeviceInfo(
+		IMkGraphicsContext* graphicsContext,
+		IMkCameraConstPtr camera,
+		const glm::mat4& transformToTargetSpace) const;
 
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
@@ -93,7 +96,7 @@ public:
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
 
 protected:
-	void updateWireframeMeshColor();
+	void updateWireframeMeshDisplay();
 
 	// Selection Events
 	void onInteractionRayOverlapEnter(const struct ColliderRaycastHitResult& hitResult);

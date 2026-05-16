@@ -2,7 +2,6 @@
 #include "AnchorObjectSystem.h"
 #include "AnchorTriangulation/AppStage_AnchorTriangulation.h"
 #include "CameraObjectSystem.h"
-#include "EditorObjectSystem.h"
 #include "ModalSelectCamera/ModalDialog_SelectCamera.h"
 #include "App.h"
 #include "Colors.h"
@@ -51,7 +50,6 @@ bool AnchorDefinition::readFromInitParams(
 AnchorComponent::AnchorComponent(MikanObjectWeakPtr owner)
 	: TransformComponent(owner)
 {
-	m_bWantsCustomRender= true;
 }
 
 // -- IEntityAccessor ----
@@ -71,12 +69,10 @@ void AnchorComponent::init()
 	propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
 }
 
-void AnchorComponent::customRender()
+void AnchorComponent::customRender(
+	IMkGraphicsContext* graphicsContext, 
+	MikanCameraPtr viewportCamera) const
 {	
-	auto editorObjectSystem= getObjectSystemOfType<EditorObjectSystem>();
-	if (!editorObjectSystem->getEditorSettings().bDebugRenderAnchors)
-		return;
-
 	TextStyle style = getDefaultTextStyle();
 
 	AnchorDefinitionPtr anchorDefinition= getAnchorDefinition();
@@ -105,7 +101,6 @@ void AnchorComponent::customRender()
 		}
 	}
 
-	IMkGraphicsContext* graphicsContext = getGraphicsContext();
 	drawTransformedAxes(graphicsContext, anchorXform, 0.1f, 0.1f, 0.1f, xColor, yColor, zColor);
 	drawTextAtWorldPosition(graphicsContext, style, anchorPos, L"%s", wszAnchorName);
 }

@@ -28,7 +28,7 @@ public:
 
 	virtual void init() override;
 	virtual void update(float deltaSeconds) override;
-	virtual void customRender() override;
+	virtual void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const override;
 
 	void bindInput();
 

@@ -41,7 +41,7 @@ class ModelStencilComponent : public StencilComponent
 public:
 	ModelStencilComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
-	virtual void customRender() override;
+	virtual void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const override;
 	virtual void dispose() override;
 
 	inline static const std::string k_componentClassName = "ModelStencilComponent";

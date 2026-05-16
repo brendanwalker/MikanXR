@@ -17,7 +17,7 @@ public:
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	virtual void init() override;
-	virtual void customRender() override;
+	virtual void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const override;
 	virtual void dispose() override;
 
 	void setEnabled(bool bEnabled);

@@ -194,7 +194,6 @@ const std::string CameraComponent::k_alignCameraFunctionId = "align_camera";
 CameraComponent::CameraComponent(MikanObjectWeakPtr owner)
 	: TransformComponent(owner)
 {
-	m_bWantsCustomRender= true;
 	m_bWantsUpdate = true;
 }
 
@@ -251,39 +250,42 @@ void CameraComponent::update(float deltaSeconds)
 	}
 }
 
-void CameraComponent::customRender()
+void CameraComponent::customRender(
+	IMkGraphicsContext* graphicsContext, 
+	MikanCameraPtr viewportCamera) const
 {	
+	CameraDefinitionPtr cameraDefinition= getCameraDefinition();
+	const glm::mat4 glmCameraXform = getRelativeTransform().getMat4();
+	glm::vec3 cameraPos(glmCameraXform[3]);
+
+	// Draw the camera name at the camera position
 	TextStyle style = getDefaultTextStyle();
-
-	CameraDefinitionPtr CameraDefinition= getCameraDefinition();
 	wchar_t wszCameraName[256];
-	StringUtils::convertMbsToWcs(CameraDefinition->getComponentName().c_str(), wszCameraName, sizeof(wszCameraName));
-	glm::mat4 CameraXform = getWorldTransform();
-	glm::vec3 CameraPos(CameraXform[3]);
+	StringUtils::convertMbsToWcs(cameraDefinition->getComponentName().c_str(), wszCameraName, sizeof(wszCameraName));
+	drawTextAtWorldPosition(graphicsContext, style, cameraPos, L"%s", wszCameraName);
 
-	glm::vec3 xColor = Colors::DarkRed;
-	glm::vec3 yColor = Colors::DarkGreen;
-	glm::vec3 zColor = Colors::DarkBlue;
-	SelectionComponentPtr selectionComponent = m_selectionComponent.lock();
-	if (selectionComponent)
+	// Render the camera frustum if the camera has calibrated intrinsics
+	MikanVideoSourceIntrinsics intrinsics;
+	if (getApertureIntrinsics(intrinsics))
 	{
-		if (selectionComponent->getIsSelected())
-		{
-			xColor = Colors::Red;
-			yColor = Colors::Green;
-			zColor = Colors::Blue;
-		}
-		else if (selectionComponent->getIsHovered())
-		{
-			xColor = Colors::LightGreen;
-			yColor = Colors::LightGreen;
-			zColor = Colors::LightBlue;
-		}
+		const auto monoIntrinsics = intrinsics.getMonoIntrinsics();
+
+		// Draw the frustum for the camera
+		const float hfov_radians = degrees_to_radians(monoIntrinsics.hfov);
+		const float vfov_radians = degrees_to_radians(monoIntrinsics.vfov);
+		const float zNear = fmaxf(monoIntrinsics.znear, 0.1f);
+		const float zFar = fminf(monoIntrinsics.zfar, 2.0f);
+
+		drawTransformedFrustum(
+			graphicsContext,
+			glmCameraXform,
+			hfov_radians, vfov_radians,
+			zNear, zFar,
+			Colors::Yellow);
 	}
 
-	IMkGraphicsContext* graphicsContext = getGraphicsContext();
-	drawTransformedAxes(graphicsContext, CameraXform, 0.1f, 0.1f, 0.1f, xColor, yColor, zColor);
-	drawTextAtWorldPosition(graphicsContext, style, CameraPos, L"%s", wszCameraName);
+	// Draw the camera transform
+	drawTransformedAxes(graphicsContext, glmCameraXform, 0.1f);
 }
 
 StageComponentConstPtr CameraComponent::getOwnerStageComponent() const

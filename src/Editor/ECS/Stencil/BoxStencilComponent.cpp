@@ -107,7 +107,6 @@ void BoxStencilDefinition::setBoxSize(float xSize, float ySize, float zSize)
 BoxStencilComponent::BoxStencilComponent(MikanObjectWeakPtr owner)
 	: StencilComponent(owner)
 {
-	m_bWantsCustomRender= true;
 }
 
 // -- IEntityAccessor ----
@@ -124,14 +123,13 @@ void BoxStencilComponent::init()
 	m_selectionComponent = getOwnerObject()->getComponentOfType<SelectionComponent>();
 }
 
-void BoxStencilComponent::customRender()
+void BoxStencilComponent::customRender(
+	IMkGraphicsContext* graphicsContext, 
+	MikanCameraPtr viewportCamera) const
 {
 	BoxStencilDefinitionPtr boxDefinition= getBoxStencilDefinition();
-	auto editorObjectSystem = getObjectSystemOfType<EditorObjectSystem>();
-	IMkGraphicsContext* graphicsContext = editorObjectSystem->getGraphicsContext();
 
-	if (!boxDefinition->getIsDisabled() &&
-		editorObjectSystem->getEditorSystemConfigConst()->getRenderBoxStencilsFlag())
+	if (!boxDefinition->getIsDisabled())
 	{
 		TextStyle style = getDefaultTextStyle();
 

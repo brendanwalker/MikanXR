@@ -407,9 +407,6 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 	{
 		debugRenderOrigin();
 	}
-
-	// Perform component custom rendering
-	m_ownerWindow->getProjectManager()->customRender();
 }
 
 SceneComponentConstPtr AppStage_Project::getCurrentSceneConst() const
@@ -442,11 +439,37 @@ void AppStage_Project::renderProjectScene(IMkGraphicsContext* graphicsContext, M
 	SceneComponentConstPtr currentScene = getCurrentSceneConst();
 	if (currentScene)
 	{
+		auto editorObjectSystem = getObjectSystemOfType<EditorObjectSystem>();
+		const EditorSettings& editorSettings = editorObjectSystem->getEditorSettings();
+
 		// Add actors in the scene
 		currentScene->addActorsToMkScene(m_mkScene);
 
 		// Render the stage
 		renderProjectStage(graphicsContext, viewportCamera);
+
+		// Render the editor gizmo if an actor is selected
+		editorObjectSystem->customRender(graphicsContext, viewportCamera);
+
+		// Render anchors if enabled
+		if (editorSettings.bDebugRenderAnchors)
+		{
+			getObjectSystemOfType<AnchorObjectSystem>()->customRender(graphicsContext, viewportCamera);
+		}
+
+		// Render the stencils if enabled
+		if (editorSettings.bDebugRenderBoxStencils)
+		{
+			getObjectSystemOfType<BoxStencilSystem>()->customRender(graphicsContext, viewportCamera);
+		}
+		if (editorSettings.bDebugRenderModelStencils)
+		{
+			getObjectSystemOfType<ModelStencilSystem>()->customRender(graphicsContext, viewportCamera);
+		}
+		if (editorSettings.bDebugRenderQuadStencils)
+		{
+			getObjectSystemOfType<QuadStencilSystem>()->customRender(graphicsContext, viewportCamera);
+		}
 	}
 }
 
@@ -466,7 +489,9 @@ void AppStage_Project::renderProjectStage(IMkGraphicsContext* graphicsContext, M
 	}
 }
 
-void AppStage_Project::renderProjectTracking(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
+void AppStage_Project::renderProjectTracking(
+	IMkGraphicsContext* graphicsContext, 
+	MikanCameraPtr viewportCamera) const
 {
 	TrackingVolumeComponentConstPtr trackingVolume = getCurrentTrackingVolumeConst();
 	if (trackingVolume)
@@ -498,7 +523,6 @@ void AppStage_Project::renderVRTrackingVolume(
 
 	// Resolve VRSpace -> StageSpace offset from the VR tracking volume
 	glm::mat4 vrSpaceToStageSpace = vrTrackingVolume->getVRSpaceToStageSpace();
-	glm::mat4 stageSpaceToVRSpace = glm::inverse(vrSpaceToStageSpace);
 
 	// Get the tracking volume origin marker (if it exists) so we can render it in the correct space
 	const MikanMarkerID originMarkerId = vrTrackingVolume->getOriginMarkerId();
@@ -509,8 +533,45 @@ void AppStage_Project::renderVRTrackingVolume(
 		markerComp = markerSystem->getMarkerById(originMarkerId);
 	}
 
-	if (vrTrackingVolume->getDisplayTrackingSpace() == MikanTrackingSpace_Stage ||
-		 m_activePanel != eProjectAppStageActivePanel::Tracking)
+	if (m_activePanel == eProjectAppStageActivePanel::Tracking)
+	{
+
+		switch (vrTrackingVolume->getDisplayTrackingSpace())
+		{
+		case MikanTrackingSpace_VR:
+			{
+				// Render the VR devices in VR space
+				addAllVRDevicesToMkScene(vrObjectSystem, m_mkScene, glm::mat4(1.f));
+
+				// Render the VR Device info in VR space
+				renderAllVRDeviceInfo(vrObjectSystem, graphicsContext, viewportCamera, glm::mat4(1.f));
+
+				// Render the origin marker as a textured quad at VRSpace Origin
+				if (markerComp)
+				{
+					glm::mat4 stageSpaceToVRSpace = glm::inverse(vrSpaceToStageSpace);
+
+					markerComp->renderArucoMarker(graphicsContext, viewportCamera, stageSpaceToVRSpace);
+				}
+			} break;
+		case MikanTrackingSpace_Stage:
+			{
+				// Render the VR devices in stage space
+				addAllVRDevicesToMkScene(vrObjectSystem, m_mkScene, vrSpaceToStageSpace);
+
+				// Render the VR Device info in stage space
+				renderAllVRDeviceInfo(vrObjectSystem, graphicsContext, viewportCamera, vrSpaceToStageSpace);
+
+				// Render the origin marker as a textured quad at world origin
+				if (markerComp)
+				{
+					markerComp->renderArucoMarker(graphicsContext, viewportCamera, glm::mat4(1.f));
+				}
+			}
+			break;
+		}
+	}
+	else
 	{
 		// Render the VR devices in scene space
 		addAllVRDevicesToMkScene(vrObjectSystem, m_mkScene, vrSpaceToStageSpace);
@@ -519,17 +580,6 @@ void AppStage_Project::renderVRTrackingVolume(
 		if (markerComp)
 		{
 			markerComp->renderArucoMarker(graphicsContext, viewportCamera, glm::mat4(1.f));
-		}
-	}
-	else
-	{
-		// Render the VR devices in VR space
-		addAllVRDevicesToMkScene(vrObjectSystem, m_mkScene, glm::mat4(1.f));
-
-		// Render the origin marker as a textured quad at VRSpace Origin
-		if (markerComp)
-		{
-			markerComp->renderArucoMarker(graphicsContext, viewportCamera, stageSpaceToVRSpace);
 		}
 	}
 }
@@ -556,42 +606,12 @@ void AppStage_Project::renderCameraComponents(
 	MikanCameraPtr viewportCamera,
 	StageComponentConstPtr stageComponent) const
 {
-	auto cameraSystem = getObjectSystemOfType<CameraObjectSystem>();
-
-	for (const auto cameraMapPair : cameraSystem->getComponentMap())
-	{
-		CameraComponentPtr camera = cameraMapPair.second.lock();
-
-		if (camera->getOwnerStageComponent() == stageComponent)
-		{
-			// Get the camera pose in stage space
-			assert(camera->getParentTransformComponent() == stageComponent);
-			const glm::mat4 glmCameraXform = camera->getRelativeTransform().getMat4();
-
-			// Render the camera frustum if the camera has calibrated intrinsics
-			MikanVideoSourceIntrinsics intrinsics;
-			if (camera->getApertureIntrinsics(intrinsics))
-			{
-				const auto monoIntrinsics = intrinsics.getMonoIntrinsics();
-
-				// Draw the frustum for the camera
-				const float hfov_radians = degrees_to_radians(monoIntrinsics.hfov);
-				const float vfov_radians = degrees_to_radians(monoIntrinsics.vfov);
-				const float zNear = fmaxf(monoIntrinsics.znear, 0.1f);
-				const float zFar = fminf(monoIntrinsics.zfar, 2.0f);
-
-				drawTransformedFrustum(
-					graphicsContext,
-					glmCameraXform,
-					hfov_radians, vfov_radians,
-					zNear, zFar,
-					Colors::Yellow);
-			}
-
-			// Draw the camera transform
-			drawTransformedAxes(graphicsContext, glmCameraXform, 0.1f);
-		}
-	}
+	getObjectSystemOfType<CameraObjectSystem>()->customRender(
+		graphicsContext, 
+		viewportCamera, 
+		[stageComponent](CameraComponentPtr camera) {
+			return camera->getOwnerStageComponent() == stageComponent;
+		});
 }
 
 void AppStage_Project::debugRenderOrigin() const

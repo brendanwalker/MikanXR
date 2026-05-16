@@ -17,7 +17,6 @@
 GizmoTransformComponent::GizmoTransformComponent(MikanObjectWeakPtr owner)
 	: TransformComponent(owner)
 {
-	m_bWantsCustomRender= true;
 	m_bWantsUpdate= true;
 }
 
@@ -80,12 +79,11 @@ void GizmoTransformComponent::bindInput()
 		MakeDelegate(this, &GizmoTransformComponent::selectScaleMode);
 }
 
-void GizmoTransformComponent::customRender()
+void GizmoTransformComponent::customRender(
+	IMkGraphicsContext* graphicsContext, 
+	MikanCameraPtr viewportCamera) const
 {
-	auto editorSystem = getObjectSystemOfType<EditorObjectSystem>();
-	if (!editorSystem) return;
-
-	IMkLineRenderer* lineRenderer = editorSystem->getGraphicsContext()->getLineRenderer();
+	IMkLineRenderer* lineRenderer = graphicsContext->getLineRenderer();
 	lineRenderer->setDisable3dDepth(true);
 
 	GizmoTranslateComponentPtr translatePtr = m_translateComponent.lock();
@@ -95,13 +93,13 @@ void GizmoTransformComponent::customRender()
 	switch (m_gizmoMode)
 	{
 	case eGizmoMode::rotate:
-		rotatePtr->customRender();
+		rotatePtr->customRender(graphicsContext, viewportCamera);
 		break;
 	case eGizmoMode::translate:
-		translatePtr->customRender();
+		translatePtr->customRender(graphicsContext, viewportCamera);
 		break;
 	case eGizmoMode::scale:
-		scalePtr->customRender();
+		scalePtr->customRender(graphicsContext, viewportCamera);
 		break;
 	}
 

@@ -46,7 +46,6 @@ public:
 	virtual void postInit();
 	virtual void dispose();
 	virtual void update(float deltaSeconds);
-	virtual void customRender();
 	virtual bool isLoading() const { return false; }
 
 	inline static const std::string k_objectSystemClassName = "MikanObjectSystem";

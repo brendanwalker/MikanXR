@@ -5,7 +5,9 @@
 #include "ComponentFwd.h"
 #include "CommonConfigFwd.h"
 #include "IEntityAccessor.h"
+#include "IMkGraphicsContext.h"
 #include "ObjectFwd.h"
+#include "MikanRendererFwd.h"
 #include "MulticastDelegate.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ProjectManager.h"
@@ -113,8 +115,8 @@ public:
 	// set m_bWantsUpdate to true in constructor to make this function be called
 	virtual void update(float deltaSeconds) {}
 
-	// set m_bWantsCustomRender to true in constructor to make this function be called
-	virtual void customRender() {}
+	// Invoked manually from MikanTypedObjectSystem
+	virtual void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const {}
 
 	// -- Scripting ----
 	static const std::string k_reloadScriptFunctionId;
@@ -156,7 +158,6 @@ protected:
 	bool m_bWasInitialized= false;
 	bool m_bWasDisposed= false;
 	bool m_bWantsUpdate= false;
-	bool m_bWantsCustomRender= false;
 	std::string m_name;
 	MikanObjectWeakPtr m_ownerObject;
 	MikanComponentDefinitionPtr m_definition;

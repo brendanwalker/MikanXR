@@ -9,6 +9,7 @@
 #include "TransformComponent.h"
 #include "Logger.h"
 #include "MathTypeConversion.h"
+#include "MathGLM.h"
 #include "MikanObject.h"
 #include "MikanAPITypes.h"
 #include "MikanMathTypes.h"
@@ -596,4 +597,16 @@ void addAllVRDevicesToMkScene(
 			}
 		});
 	});
+}
+
+void renderAllVRDeviceInfo(
+	VRObjectSystemPtr vrObjectSystem,
+	IMkGraphicsContext* graphicsContext,
+	IMkCameraConstPtr camera,
+	const glm::mat4& vrSpaceToStageSpace)
+{
+	vrObjectSystem->visitComponents([graphicsContext, camera, &vrSpaceToStageSpace](VRDeviceComponentPtr vrDeviceComponent) {
+		vrDeviceComponent->renderVRDeviceInfo(
+			graphicsContext, camera, vrSpaceToStageSpace);
+		});
 }

@@ -267,6 +267,15 @@ void EditorObjectSystem::dispose()
 	MikanObjectSystem::dispose();
 }
 
+void EditorObjectSystem::customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera)
+{
+	GizmoTransformComponentPtr gizmoComponent= m_gizmoComponentWeakPtr.lock();
+	if (gizmoComponent)
+	{
+		gizmoComponent->customRender(graphicsContext, viewportCamera);
+	}
+}
+
 EditorObjectSystemDefinitionConstPtr EditorObjectSystem::getEditorSystemConfigConst() const
 {
 	auto projectConfig= getProjectConfig();

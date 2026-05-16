@@ -137,3 +137,8 @@ void addAllVRDevicesToMkScene(
 	VRObjectSystemPtr vrObjectSystem,
 	IMkScenePtr mkScenePtr,
 	const glm::mat4& vrSpaceToStageSpace = glm::mat4(1.f));
+void renderAllVRDeviceInfo(
+	VRObjectSystemPtr vrObjectSystem,
+	IMkGraphicsContext* graphicsContext,
+	IMkCameraConstPtr camera,
+	const glm::mat4& vrSpaceToStageSpace = glm::mat4(1.f));

@@ -48,7 +48,7 @@ class BoxStencilComponent : public StencilComponent
 public:
 	BoxStencilComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
-	virtual void customRender() override;
+	virtual void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const override;
 
 	inline BoxStencilDefinitionPtr getBoxStencilDefinition() const
 	{

@@ -88,7 +88,6 @@ void StageComponentDefinition::setStageBoundsMaxMM(const MikanVector3f& maxMM)
 StageComponent::StageComponent(MikanObjectWeakPtr owner)
 	: TransformComponent(owner)
 {
-	m_bWantsCustomRender = true;
 }
 
 rfk::Struct const* StageComponent::getClientAPIValuesStructType() const

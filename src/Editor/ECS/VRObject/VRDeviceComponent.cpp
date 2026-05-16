@@ -62,7 +62,6 @@ void VRDeviceDefinition::setVRDevicePath(const std::string& vrDevicePath)
 VRDeviceComponent::VRDeviceComponent(MikanObjectWeakPtr owner)
 	: TransformComponent(owner)
 {
-	m_bWantsCustomRender = true;
 }
 
 // -- IEntityAccessor ----
@@ -89,7 +88,7 @@ void VRDeviceComponent::init()
 		m_selectionComponentWeakPtr = selectionComponentPtr;
 	}
 
-	// Push our world transform to all child scene components
+	// Push our world transformToTargetSpace to all child scene components
 	propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
 }
 
@@ -272,7 +271,7 @@ void VRDeviceComponent::rebuildMeshComponents()
 		}
 
 		// Update colors of all attached wireframe meshes
-		updateWireframeMeshColor();
+		updateWireframeMeshDisplay();
 
 		// Initialize all of the newly created components
 		for (auto& kvpair : m_meshComponentMap)
@@ -310,7 +309,7 @@ void VRDeviceComponent::refreshDevicePose()
 	if (m_vrDeviceInterface != nullptr &&
 		m_vrDeviceInterface->getDevicePose(vrFrameDelay, vrDevicePose))
 	{
-		// Set the parent device transform
+		// Set the parent device transformToTargetSpace
 		setRelativeTransform(VRDevicePose_to_GlmTransform(vrDevicePose));
 
 		// Update the child render mesh component relative transforms
@@ -335,7 +334,10 @@ void VRDeviceComponent::refreshDevicePose()
 					meshInfo.colliderComponent->setRelativeTransform(vrMeshTransform);
 
 					meshInfo.triStaticMeshComponent->getStaticMesh()->setVisible(bIsVisible);
-					meshInfo.wireStaticMeshComponent->getStaticMesh()->setVisible(bIsVisible);
+					if (!bIsVisible)
+					{
+						meshInfo.wireStaticMeshComponent->getStaticMesh()->setVisible(false);
+					}
 				}
 			}
 		}
@@ -363,15 +365,16 @@ void VRDeviceComponent::refreshDevicePose()
 	}
 }
 
-void VRDeviceComponent::customRender()
+void VRDeviceComponent::renderVRDeviceInfo(
+	IMkGraphicsContext* graphicsContext,
+	IMkCameraConstPtr camera,
+	const glm::mat4& transformToTargetSpace) const
 {
 	TextStyle style = getDefaultTextStyle();
 
-	VRDeviceDefinitionPtr anchorDefinition = getVRDeviceDefinition();
+	const IVRDevice* vrDevice= getVRDeviceInterface();
 	wchar_t wszVRDeviceName[256];
-	StringUtils::convertMbsToWcs(anchorDefinition->getComponentName().c_str(), wszVRDeviceName, sizeof(wszVRDeviceName));
-	glm::mat4 anchorXform = getWorldTransform();
-	glm::vec3 anchorPos(anchorXform[3]);
+	StringUtils::convertMbsToWcs(vrDevice->getDevicePath(), wszVRDeviceName, sizeof(wszVRDeviceName));
 
 	glm::vec3 xColor = Colors::DarkRed;
 	glm::vec3 yColor = Colors::DarkGreen;
@@ -393,40 +396,42 @@ void VRDeviceComponent::customRender()
 		}
 	}
 
-	IMkGraphicsContext* graphicsContext = getGraphicsContext();
-	drawTransformedAxes(graphicsContext, anchorXform, 0.1f, 0.1f, 0.1f, xColor, yColor, zColor);
-	drawTextAtWorldPosition(graphicsContext, style, anchorPos, L"%s", wszVRDeviceName);
+	glm::mat4 vrDeviceXform = glm_composite_xform(getRelativeTransform().getMat4(), transformToTargetSpace);
+	glm::vec3 vrDevicePos(vrDeviceXform[3]);
+
+	drawTransformedAxes(graphicsContext, vrDeviceXform, 0.1f, 0.1f, 0.1f, xColor, yColor, zColor);
+	drawTextAtWorldPosition(graphicsContext, style, vrDevicePos, L"%s", wszVRDeviceName);
 }
 
-void VRDeviceComponent::updateWireframeMeshColor()
+void VRDeviceComponent::updateWireframeMeshDisplay()
 {
 	glm::vec3 newColor = Colors::White;
+	bool bNewVisibility = false;
 
 	if (m_bIsSelected)
 	{
 		newColor = Colors::Yellow;
+		bNewVisibility = false;
 	}
 	else if (m_bIsHovered)
 	{
 		newColor = Colors::LightGray;
+		bNewVisibility = false;
 	}
 	else
 	{
-		newColor = Colors::DarkGray;
+		bNewVisibility = false;
 	}
 
-	SelectionComponentPtr selectionComponentPtr = m_selectionComponentWeakPtr.lock();
-	if (selectionComponentPtr)
+	for (auto& kvpair : m_meshComponentMap)
 	{
-		for (auto& kvpair : m_meshComponentMap)
-		{
-			VRDeviceMeshInfo& meshInfo = kvpair.second;
-			IMkStaticMeshInstancePtr meshPtr = meshInfo.wireStaticMeshComponent->getStaticMesh();
+		VRDeviceMeshInfo& meshInfo = kvpair.second;
+		IMkStaticMeshInstancePtr meshPtr = meshInfo.wireStaticMeshComponent->getStaticMesh();
 
-			meshPtr->getMaterialInstance()->setVec4BySemantic(
-				eUniformSemantic::diffuseColorRGBA,
-				glm::vec4(newColor, 1.f));
-		}
+		meshPtr->getMaterialInstance()->setVec4BySemantic(
+			eUniformSemantic::diffuseColorRGBA,
+			glm::vec4(newColor, 1.f));
+		meshPtr->setVisible(bNewVisibility);
 	}
 }
 
@@ -434,25 +439,25 @@ void VRDeviceComponent::updateWireframeMeshColor()
 void VRDeviceComponent::onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult)
 {
 	m_bIsHovered = true;
-	updateWireframeMeshColor();
+	updateWireframeMeshDisplay();
 }
 
 void VRDeviceComponent::onInteractionRayOverlapExit(const ColliderRaycastHitResult& hitResult)
 {
 	m_bIsHovered = false;
-	updateWireframeMeshColor();
+	updateWireframeMeshDisplay();
 }
 
 void VRDeviceComponent::onInteractionSelected()
 {
 	m_bIsSelected = true;
-	updateWireframeMeshColor();
+	updateWireframeMeshDisplay();
 }
 
 void VRDeviceComponent::onInteractionUnselected()
 {
 	m_bIsSelected = false;
-	updateWireframeMeshColor();
+	updateWireframeMeshDisplay();
 }
 
 // -- IPropertyInterface ----

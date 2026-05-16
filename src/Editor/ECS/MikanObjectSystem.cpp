@@ -54,12 +54,6 @@ void MikanObjectSystem::update(float deltaSeconds)
 		onUpdate(deltaSeconds);
 }
 
-void MikanObjectSystem::customRender()
-{
-	if (onCustomRender)
-		onCustomRender();
-}
-
 ProjectConfigPtr MikanObjectSystem::getProjectConfig() const
 {
 	return getOwnerProjectManager()->getProjectConfig();

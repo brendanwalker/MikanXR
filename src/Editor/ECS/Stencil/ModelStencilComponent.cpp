@@ -2,7 +2,6 @@
 #include "CameraObjectSystem.h"
 #include "CameraComponent.h"
 #include "Colors.h"
-#include "EditorObjectSystem.h"
 #include "ModalSelectCamera/ModalDialog_SelectCamera.h"
 #include "StencilAlignment/AppStage_StencilAlignment.h"
 #include "IEditorWindow.h"
@@ -121,7 +120,6 @@ ModelStencilComponent::ModelStencilComponent(MikanObjectWeakPtr owner)
 	: StencilComponent(owner)
 	, m_modelAssetRef(ModelAssetReferenceFactory().allocateAssetReference())
 {
-	m_bWantsCustomRender= true;
 }
 
 // -- IEntityAccessor ----
@@ -168,14 +166,14 @@ void ModelStencilComponent::init()
 	propogateWorldTransformChange(eTransformChangeType::propogateWorldTransform);
 }
 
-void ModelStencilComponent::customRender()
+void ModelStencilComponent::customRender(
+	IMkGraphicsContext* graphicsContext, 
+	MikanCameraPtr viewportCamera) const
 {
 	ModelStencilDefinitionPtr modelStencilDefinition= getModelStencilDefinition();
 	auto editorObjectSystem = getObjectSystemOfType<EditorObjectSystem>();
-	IMkGraphicsContext* graphicsContext = editorObjectSystem->getGraphicsContext();
 
-	if (!modelStencilDefinition->getIsDisabled() &&
-		editorObjectSystem->getEditorSystemConfigConst()->getRenderModelStencilsFlag())
+	if (!modelStencilDefinition->getIsDisabled())
 	{
 		TextStyle style = getDefaultTextStyle();
 

@@ -83,7 +83,6 @@ public:
 	bool startup(class MainWindow* mainWindow);
 	void shutdown();
 	void update(float deltaSeconds);
-	void customRender();
 
 	static std::filesystem::path getDefaultProjectFolder();
 	static const char* k_mikanProjectFileExtension;

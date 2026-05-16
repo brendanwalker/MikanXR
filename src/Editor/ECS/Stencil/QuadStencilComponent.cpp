@@ -113,7 +113,6 @@ void QuadStencilDefinition::setIsDoubleSided(bool flag)
 QuadStencilComponent::QuadStencilComponent(MikanObjectWeakPtr owner)
 	: StencilComponent(owner)
 {
-	m_bWantsCustomRender= true;
 }
 
 // -- IEntityAccessor ----
@@ -135,14 +134,13 @@ void QuadStencilComponent::init()
 	propogateWorldTransformChange(eTransformChangeType::propogateWorldTransform);
 }
 
-void QuadStencilComponent::customRender()
+void QuadStencilComponent::customRender(
+	IMkGraphicsContext* graphicsContext, 
+	MikanCameraPtr viewportCamera) const
 {
 	QuadStencilDefinitionPtr quadDefinition= getQuadStencilDefinition();
-	auto editorObjectSystem = getObjectSystemOfType<EditorObjectSystem>();
-	IMkGraphicsContext* graphicsContext = editorObjectSystem->getGraphicsContext();
 
-	if (!quadDefinition->getIsDisabled() &&
-		editorObjectSystem->getEditorSystemConfigConst()->getRenderQuadStencilsFlag())
+	if (!quadDefinition->getIsDisabled())
 	{
 		TextStyle style = getDefaultTextStyle();
 

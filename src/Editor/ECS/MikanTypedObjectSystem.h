@@ -161,13 +161,14 @@ public:
 	}
 
 	using VisitFunction = std::function<void(ComponentPtr)>;
-	void visitComponents(VisitFunction visitFunc) const
+	using FilterFunction = std::function<bool(ComponentPtr)>;
+	void visitComponents(VisitFunction visitFunc, FilterFunction filterFunc = {}) const
 	{
 		for (const auto& kvpair : getComponentMap())
 		{
 			ComponentPtr componentPtr = kvpair.second.lock();
 
-			if (componentPtr)
+			if (componentPtr && (!filterFunc || filterFunc(componentPtr)))
 			{
 				visitFunc(componentPtr);
 			}
@@ -252,6 +253,17 @@ public:
 		}
 
 		return false;
+	}
+
+	// -- Rendering -----
+	void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera, FilterFunction filterFunc = {})
+	{
+		visitComponents(
+			[graphicsContext, viewportCamera](ComponentPtr component) 
+			{
+				component->customRender(graphicsContext, viewportCamera);
+			}, 
+			filterFunc);
 	}
 
 	// -- IPropertyInterface ----

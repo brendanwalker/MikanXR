@@ -88,7 +88,9 @@ static void drawRotateDiscHandle(DiskColliderComponentWeakPtr colliderWeakPtr, c
 	drawTransformedCircle(graphicsContext, xform, radius * k_innerRingScale, color, GizmoTransformComponent::k_gizmoCircleSegments);
 }
 
-void GizmoRotateComponent::customRender()
+void GizmoRotateComponent::customRender(
+	IMkGraphicsContext* graphicsContext, 
+	MikanCameraPtr viewportCamera) const
 {
 	if (m_bEnabled)
 	{
@@ -103,7 +105,6 @@ void GizmoRotateComponent::customRender()
 
 		if (dragComponentPtr)
 		{
-			IMkGraphicsContext* graphicsContext = dragComponentPtr->getGraphicsContext();
 			auto diskComponentPtr = std::static_pointer_cast<DiskColliderComponent>(dragComponentPtr);
 			const float radius = diskComponentPtr->getRadius();
 

@@ -162,14 +162,6 @@ void ProjectManager::update(float deltaSeconds)
 	}
 }
 
-void ProjectManager::customRender()
-{
-	for (MikanObjectSystemPtr system : m_systems)
-	{
-		system->customRender();
-	}
-}
-
 std::filesystem::path ProjectManager::getDefaultProjectFolder()
 {
 	return PathUtils::getHomeDirectory() / "Mikan";

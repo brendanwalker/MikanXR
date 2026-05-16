@@ -77,6 +77,8 @@ public:
 
 	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
 	virtual void dispose() override;
+	
+	void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera);
 
 	EditorObjectSystemDefinitionConstPtr getEditorSystemConfigConst() const;
 	EditorObjectSystemDefinitionPtr getEditorSystemConfig();

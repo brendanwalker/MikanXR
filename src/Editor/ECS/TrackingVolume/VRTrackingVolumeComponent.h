@@ -97,5 +97,5 @@ protected:
 
 private:
 	GlmTransform m_vrSpaceToStageSpace;
-	MikanTrackingSpace m_displayTrackingSpace = MikanTrackingSpace_VR;
+	MikanTrackingSpace m_displayTrackingSpace = MikanTrackingSpace_Stage;
 };

@@ -140,11 +140,6 @@ void MikanComponent::init()
 		objectSystemPtr->onUpdate+= MakeDelegate(this, &MikanComponent::update);
 	}
 
-	if (m_bWantsCustomRender)
-	{
-		objectSystemPtr->onCustomRender += MakeDelegate(this, &MikanComponent::customRender);
-	}
-
 	m_bWasInitialized= true;
 
 	if (objectSystemPtr->OnComponentInitialized)
@@ -196,11 +191,6 @@ void MikanComponent::dispose()
 	if (m_bWantsUpdate)
 	{
 		objectSystemPtr->onUpdate -= MakeDelegate(this, &MikanComponent::update);
-	}
-
-	if (m_bWantsCustomRender)
-	{
-		objectSystemPtr->onCustomRender -= MakeDelegate(this, &MikanComponent::customRender);
 	}
 
 	if (onDisposed)

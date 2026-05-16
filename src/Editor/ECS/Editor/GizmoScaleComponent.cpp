@@ -84,7 +84,9 @@ static void drawScaleArrowHandle(
 	drawSegment(graphicsContext, glm::mat4(1.f), origin, axisBoxCenter, color);
 }
 
-void GizmoScaleComponent::customRender()
+void GizmoScaleComponent::customRender(
+	IMkGraphicsContext* graphicsContext, 
+	MikanCameraPtr viewportCamera) const
 {
 	if (m_bEnabled)
 	{
