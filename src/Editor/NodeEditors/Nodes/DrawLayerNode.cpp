@@ -506,13 +506,13 @@ void DrawLayerNode::rebuildInputPins()
 	assert(!isPendingDeletion());	
 
 	// Delete all dynamic material pins	
-	for (auto it = m_pinsIn.begin(); it != m_pinsIn.end(); it++)	
+	for (int pinIndex= (int)m_pinsIn.size() - 1; pinIndex >= 0; pinIndex--)
 	{	
-		NodePinPtr pin = *it;	
+		NodePinPtr pin = m_pinsIn[pinIndex];
 
 		if (pin->getIsDynamicPin())	
 		{	
-			getOwnerGraph()->deletePinById(pin->getId());	
+			getOwnerGraph()->deletePinById(pin->getId());
 		}	
 	}	
 
