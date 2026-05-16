@@ -8,6 +8,7 @@
 #include "InputManager.h"
 #include "IMkGraphicsContext.h"
 #include "IMkLineRenderer.h"
+#include "IMkState.h"
 #include "IMkTextRenderer.h"
 #include "IMkTexture.h"
 #include "IMkWireframeMesh.h"
@@ -23,6 +24,7 @@
 #include "MikanTextRenderer.h"
 #include "MikanObject.h"
 #include "MkScene.h"
+#include "MkStateStack.h"
 #include "ProjectConfig.h"
 #include "ProjectManager.h"
 #include "Project/AppStage_Project.h"
@@ -70,6 +72,8 @@ void AppStage_Project::enter()
 
 	// Create a mikan scene for 3d rendering
 	m_mkScene = std::make_shared<MkScene>();
+	m_mkScene->setLightColor(glm::vec4(1.f, 1.f, 1.f, 1.f));
+	m_mkScene->setLightDirection(glm::vec3(glm::normalize(glm::vec3(0.5f, -1.f, 0.5f))));
 
 	// Cache a ref to the project
 	m_project = getProjectConfig();
@@ -376,6 +380,13 @@ void AppStage_Project::render(IMkViewportPtr targetViewport)
 {
 	IMkGraphicsContext* graphicsContext = getGraphicsContext();
 	MikanCameraPtr viewportCamera = m_viewport->getCurrentMikanCamera();
+
+	MkStateStack& stageStack = graphicsContext->getMkStateStack();
+	MkScopedState scopedState = stageStack.createScopedState("AppStage_Project::render");
+	IMkState* mkState = scopedState.getStackState();
+
+	// Enable Depth Test while drawing the scene
+	mkState->enableFlag(eMkStateFlagType::depthTest);
 
 	// Clear the scene of any previously rendered instances
 	m_mkScene->removeAllInstances();

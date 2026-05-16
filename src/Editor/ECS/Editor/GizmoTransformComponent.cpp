@@ -83,9 +83,6 @@ void GizmoTransformComponent::customRender(
 	IMkGraphicsContext* graphicsContext, 
 	MikanCameraPtr viewportCamera) const
 {
-	IMkLineRenderer* lineRenderer = graphicsContext->getLineRenderer();
-	lineRenderer->setDisable3dDepth(true);
-
 	GizmoTranslateComponentPtr translatePtr = m_translateComponent.lock();
 	GizmoRotateComponentPtr rotatePtr = m_rotateComponent.lock();
 	GizmoScaleComponentPtr scalePtr = m_scaleComponent.lock();
@@ -102,8 +99,6 @@ void GizmoTransformComponent::customRender(
 		scalePtr->customRender(graphicsContext, viewportCamera);
 		break;
 	}
-
-	lineRenderer->setDisable3dDepth(false);
 }
 
 void GizmoTransformComponent::setGizmoMode(eGizmoMode newMode)

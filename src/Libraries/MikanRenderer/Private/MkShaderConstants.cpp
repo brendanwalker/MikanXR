@@ -16,6 +16,7 @@ const std::string g_UniformSemanticName[(int)eUniformSemantic::COUNT] = {
 	"lightColorRGB",
 	"lightDirection",
 	"screenPosition",
+	"screenSize",
 	"specularHighlights",
 	"opticalDensity",
 	"dissolve",
@@ -25,6 +26,7 @@ const std::string g_UniformSemanticName[(int)eUniformSemantic::COUNT] = {
 	"floatConstant1",
 	"floatConstant2",
 	"floatConstant3",
+	"ambientStrength",
 	"ambientTexture",
 	"diffuseTexture",
 	"specularTexture",
@@ -41,7 +43,7 @@ eUniformDataType getUniformSemanticDataType(eUniformSemantic semantic)
 {
 	eUniformDataType dataType= eUniformDataType::INVALID;
 
-	static_assert((int)eUniformSemantic::COUNT == 34, "getUniformSemanticDataType out of date with eUniformSemantic");
+	static_assert((int)eUniformSemantic::COUNT == 35, "getUniformSemanticDataType out of date with eUniformSemantic");
 	switch (semantic)
 	{
 		case eUniformSemantic::transformMatrix:
@@ -76,6 +78,7 @@ eUniformDataType getUniformSemanticDataType(eUniformSemantic semantic)
 		case eUniformSemantic::floatConstant1:
 		case eUniformSemantic::floatConstant2:
 		case eUniformSemantic::floatConstant3:
+		case eUniformSemantic::ambientStrength:
 			dataType = eUniformDataType::datatype_float;
 			break;
 		case eUniformSemantic::ambientTexture:

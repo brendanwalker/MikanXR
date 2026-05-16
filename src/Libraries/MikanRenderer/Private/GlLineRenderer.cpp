@@ -254,6 +254,10 @@ public:
 					{
 						scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
 					}
+					else
+					{
+						scopedState.getStackState()->enableFlag(eMkStateFlagType::depthTest);
+					}
 
 					m_program->setMatrix4x4Uniform(m_modelViewUniformName, cameraVPMatrix);
 

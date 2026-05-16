@@ -568,11 +568,11 @@ namespace InternalShaders
 				uniform vec3 lightDir; // The direction of the light
 				uniform vec3 lightColor; // The color of the light
 				uniform vec4 modelColor;
+				uniform float ambientStrength;
 
 				void main()
 				{
 					// Ambient
-					float ambientStrength = 0.1;
 					vec3 ambient = ambientStrength * lightColor;
     
 					// Diffuse
@@ -597,6 +597,7 @@ namespace InternalShaders
 			x_shaderCode->addUniform("modelColor", eUniformSemantic::diffuseColorRGBA);
 			x_shaderCode->addUniform("lightDir", eUniformSemantic::lightDirection);
 			x_shaderCode->addUniform("lightColor", eUniformSemantic::lightColorRGB);
+			x_shaderCode->addUniform("ambientStrength", eUniformSemantic::ambientStrength);
 		}
 
 		return x_shaderCode;

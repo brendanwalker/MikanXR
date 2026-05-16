@@ -399,6 +399,9 @@ namespace ObjUtils
 		materialInstance->setFloatBySemantic(
 			eUniformSemantic::dissolve,
 			objMaterial.d);
+		materialInstance->setFloatBySemantic(
+			eUniformSemantic::ambientStrength,
+			0.3f);
 
 		// Ambient Texture Map
 		addTextureToMaterialInstance(

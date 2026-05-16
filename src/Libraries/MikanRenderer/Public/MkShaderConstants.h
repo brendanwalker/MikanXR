@@ -49,6 +49,7 @@ enum class eUniformSemantic : int
 	floatConstant1,
 	floatConstant2,
 	floatConstant3,
+	ambientStrength,
 	ambientTexture,
 	diffuseTexture,
 	specularTexture,
