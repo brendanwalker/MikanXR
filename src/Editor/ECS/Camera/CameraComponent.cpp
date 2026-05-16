@@ -238,10 +238,18 @@ void CameraComponent::update(float deltaSeconds)
 {
 	TransformComponent::update(deltaSeconds);
 
-	// If the camera is attached to a tracking puck, 
-	// update the transform of the camera
-	// (camera pose == aperture transform)
-	glm::mat4 poseInStageSpace;	
+	// If the camera is attached to a tracking puck, update the transform of the camera aperture
+	if (hasValidTrackingMountComponent())
+	{
+		updateAperturePoseFromTrackingMount();
+	}
+}
+
+void CameraComponent::updateAperturePoseFromTrackingMount()
+{
+	assert(hasValidTrackingMountComponent());
+
+	glm::mat4 poseInStageSpace;
 	if (getStageSpaceAperturePose(poseInStageSpace))
 	{
 		setRelativeTransform(GlmTransform(poseInStageSpace));
@@ -661,6 +669,9 @@ void CameraComponent::rebuildStageSpacePoseView()
 				vrDeviceComponent->makePoseView(
 					eVRDevicePoseSpace::MikanTrackingVolumePose,
 					trackingMount->getSocketName());
+
+			// Recompute the aperture pose since the tracking mount pose view has changed
+			updateAperturePoseFromTrackingMount();
 		}
 	}
 }

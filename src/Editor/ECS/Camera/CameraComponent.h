@@ -57,8 +57,9 @@ public:
 	static const std::string k_hasValidApertureOffsetPropertyId;
 	bool hasValidApertureOffset() const { return m_bHasValidApertureOffset; }
 
-	// Don't send property update for transform property updates as they are spammy
-	virtual bool isAutoNotifyTransformPropertyChangeDisabled() override { return true; }
+	// Don't send transform property updates when attached to a tracking mount since they update every frame
+	virtual bool isAutoNotifyTransformPropertyChangeDisabled() override 
+	{ return m_trackingMountId != INVALID_MIKAN_ID; }
 
 private:
 	MikanStageID m_stageId = INVALID_MIKAN_ID;
@@ -137,6 +138,7 @@ public:
 protected:
 	void onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 	void rebuildStageSpacePoseView();
+	void updateAperturePoseFromTrackingMount();
 	void onActiveDeviceListChanged(eTrackingRuntime runtime);
 
 private:
