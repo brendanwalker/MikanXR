@@ -25,6 +25,7 @@
 #include "MkGuiScopedWindow.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
+#include "MkStateModifiers.h"
 #include "MkScopedObjectBinding.h"
 #include "MkStateStack.h"
 #include "StageComponent.h"
@@ -363,6 +364,10 @@ void AppStage_AlignCameraByUtilityMarker::render(IMkViewportPtr targetViewport)
 				glm_mat4_get_position(markerXform),
 				L"Utility Marker");
 		}
+
+		// Clear the depth buffer before drawing the scene
+		IMkState* mkState = m_ownerWindow->getGraphicsContext()->getMkStateStack().getCurrentState();
+		mkStateClearBuffer(mkState, eMkClearFlags::depth);
 
 		// Flush line and text renderers
 		m_ownerWindow->getGraphicsContext()->getLineRenderer()->render();

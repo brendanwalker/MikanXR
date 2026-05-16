@@ -23,6 +23,7 @@
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "MkScopedObjectBinding.h"
+#include "MkStateModifiers.h"
 #include "MkStateStack.h"
 #include "StageComponent.h"
 #include "TextStyle.h"
@@ -317,6 +318,10 @@ void AppStage_AlignCameraByOriginMarker::render(IMkViewportPtr targetViewport)
 				glm_mat4_get_position(stageOrigin),
 				L"Origin Marker");
 		}
+
+		// Clear the depth buffer before drawing the scene
+		IMkState* mkState = m_ownerWindow->getGraphicsContext()->getMkStateStack().getCurrentState();
+		mkStateClearBuffer(mkState, eMkClearFlags::depth);
 
 		// Flush line and text renderers
 		m_ownerWindow->getGraphicsContext()->getLineRenderer()->render();
