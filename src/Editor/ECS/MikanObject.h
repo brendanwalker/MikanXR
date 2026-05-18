@@ -115,4 +115,9 @@ protected:
 	MikanObjectSystemWeakPtr m_ownerObjectSystemManager;
 	TransformComponentWeakPtr m_rootTransformComponent;
 	std::vector<MikanComponentPtr> m_components;
+
+	// Object Flags
+	bool m_bIsInitialized= false;
+	bool m_bIsPostInitialized = false;
+	bool m_bIsDisposed = false;
 };

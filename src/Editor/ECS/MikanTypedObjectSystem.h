@@ -49,6 +49,9 @@ public:
 		SystemDefinitionConstPtr systemDefinition = getTypedDefinitionConst();
 		m_componentPool.initializeFromDefinitions(systemDefinition->getAllDefinitions());
 
+		// Mark the system as initialized
+		m_bIsInitialzed = true;
+
 		return true;
 	}
 
@@ -343,8 +346,11 @@ private:
 		// Init the object once all components are added
 		MIKAN_FACTORY_TIMED("init", mikanObject->init());
 
-		// Then run post-init after all the component are initialized
-		MIKAN_FACTORY_TIMED("postInit", mikanObject->postInit());
+		// If the system is already initialized then run post-init right away
+		if (m_bIsInitialzed)
+		{
+			MIKAN_FACTORY_TIMED("postInit", mikanObject->postInit());
+		}
 
 		// Add definition to pool (fires property change event now that object is fully built)
 		MIKAN_FACTORY_TIMED("addDefinition", systemDefinition->addDefinition(componentDefinition));
@@ -355,5 +361,6 @@ private:
 	}
 
 private:
+	bool m_bIsInitialzed = false;
 	Pool m_componentPool;
 };

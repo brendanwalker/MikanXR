@@ -17,22 +17,32 @@ MikanObject::~MikanObject()
 
 void MikanObject::init()
 {
+	assert(!m_bIsInitialized);
+
 	for (MikanComponentPtr component : m_components)
 	{
 		component->init();
 	}
+
+	m_bIsInitialized = true;
 }
 
 void MikanObject::postInit()
 {
+	assert(!m_bIsPostInitialized);
+
 	for (MikanComponentPtr component : m_components)
 	{
 		component->postInit();
 	}
+
+	m_bIsPostInitialized = true;
 }
 
 void MikanObject::dispose()
 {
+	assert(!m_bIsDisposed);
+
 	for (MikanComponentPtr component : m_components)
 	{
 		component->dispose();
@@ -46,4 +56,6 @@ void MikanObject::dispose()
 
 	m_components.clear();
 	m_ownerObjectSystemManager.reset();
+
+	m_bIsDisposed = true;
 }
