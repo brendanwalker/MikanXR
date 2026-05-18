@@ -870,7 +870,7 @@ bool NodeEditorWindow::saveGraph(bool bShowFileDialog)
 			tinyfd_saveFileDialog(
 				"Save Compositor Graph", defautPath.c_str(), 1, filterItems, filterDesc);
 
-		if (picked != nullptr && picked[0] == '\0')
+		if (picked != nullptr && picked[0] != '\0')
 		{
 			m_editorState.nodeGraphPath= picked;
 		}
