@@ -39,8 +39,7 @@ public:
 		auto it = m_materialCache.find(materialName);
 		if (it != m_materialCache.end())
 		{
-			MIKAN_LOG_ERROR("GlShaderCache::registerMaterial") << "Material already exists: " << materialName;
-			return MkMaterialPtr();
+			return it->second;
 		}
 
 		IMkShaderPtr program = fetchCompiledIMkShader(code);
