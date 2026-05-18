@@ -79,8 +79,10 @@ public:
 	void showCompositorOutput();
 	void activateScene();
 	void deactivateScene();
+	void refreshActiveCompositors();
 	void addActorsToMkScene(IMkScenePtr mkScene) const;
 
 protected:
 	virtual ComponentScriptContextPtr allocateScriptContext() override;
+	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet) override;
 };

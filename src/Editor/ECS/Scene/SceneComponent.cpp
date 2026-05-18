@@ -199,6 +199,16 @@ ComponentScriptContextPtr SceneComponent::allocateScriptContext()
 	return std::make_shared<SceneComponentScriptContext>(getSelfPtr<SceneComponent>());
 }
 
+void SceneComponent::onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet)
+{
+	TransformComponent::onDefinitionMarkedDirty(configPtr, changedPropertySet);
+
+	if (changedPropertySet.hasPropertyName(SceneComponentDefinition::k_displayCompositorIdPropertyId))
+	{
+		refreshActiveCompositors();
+	}
+}
+
 SelectionComponentPtr SceneComponent::findClosestSelectionTarget(
 	const glm::vec3& rayOrigin,
 	const glm::vec3& rayDir,
@@ -260,8 +270,18 @@ void SceneComponent::showCompositorOutput()
 
 void SceneComponent::activateScene()
 {
+	refreshActiveCompositors();
+}
+
+void SceneComponent::deactivateScene()
+{
+
+}
+
+void SceneComponent::refreshActiveCompositors()
+{
 	CompositorObjectSystemPtr compositorSystem = getObjectSystemOfType<CompositorObjectSystem>();
-	MikanCompositorID compositorId= getSceneComponentDefinition()->getDisplayCompositorId();
+	MikanCompositorID compositorId = getSceneComponentDefinition()->getDisplayCompositorId();
 
 	std::vector<MikanCompositorID> activeCompositorIDs;
 
@@ -272,11 +292,6 @@ void SceneComponent::activateScene()
 
 	// Set active compositors for this scene
 	compositorSystem->setActiveCompositors(activeCompositorIDs);
-}
-
-void SceneComponent::deactivateScene()
-{
-
 }
 
 void SceneComponent::addActorsToMkScene(IMkScenePtr mkScene) const
