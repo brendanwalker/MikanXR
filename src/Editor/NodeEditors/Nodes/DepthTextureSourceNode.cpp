@@ -1,4 +1,5 @@
 #include "CameraComponent.h"
+#include "CompositorComponent.h"
 #include "DepthTextureSourceNode.h"
 #include "MkScopedObjectBinding.h"
 #include "IEditorWindow.h"
@@ -122,7 +123,10 @@ bool DepthTextureSourceNode::evaluateNode(NodeEvaluator& evaluator)
 
 	// Update the linear depth texture from the client depth texture
 	IMkTexturePtr clientDepthTexture= getDepthSourceTexture();
-	updateLinearDepthFrameBuffer(evaluator, clientDepthTexture);
+	if (clientDepthTexture)
+	{
+		updateLinearDepthFrameBuffer(evaluator, clientDepthTexture);
+	}
 
 	// Return the linear depth texture from the frame buffer
 	IMkTexturePtr linearDepthTexture= getTextureResource();
@@ -135,14 +139,17 @@ IMkTexturePtr DepthTextureSourceNode::getDepthSourceTexture() const
 {
 	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
 	CameraComponentPtr boundCameraComponent = compositorGraph->getBoundCameraComponent();
+	CompositorComponentPtr boundCompositorComponent = compositorGraph->getBoundCompositorComponent();
 	TextureSourceComponentPtr textureSourceComponent = getTextureSourceComponent();
 
-	if (boundCameraComponent != nullptr && textureSourceComponent != nullptr)
+	if (boundCameraComponent != nullptr && boundCompositorComponent != nullptr && textureSourceComponent != nullptr)
 	{
+		const int64_t pendingFrameIndex = boundCompositorComponent->getPendingCompositedFrameIndex();
 		IMkTexturePtr clientTexture =
 			textureSourceComponent->getClientDepthSourceTexture(
 				boundCameraComponent->getCameraId(),
-				m_clientTextureType);
+				m_clientTextureType, 
+				pendingFrameIndex);
 
 		// If the client texture is not available, return a black texture
 		if (clientTexture)
@@ -244,7 +251,8 @@ std::string DepthTextureSourceNode::editorGetTitle() const
 {
 	if (!isDefaultNode())
 	{ 
-		std::string sourceId = getTextureSourceComponent()->getName();
+		TextureSourceComponentPtr textureSource= getTextureSourceComponent();
+		std::string sourceId = textureSource ? textureSource->getName() : "<NONE>";
 
 		return StringUtils::stringify("Depth Source", sourceId);
 	}

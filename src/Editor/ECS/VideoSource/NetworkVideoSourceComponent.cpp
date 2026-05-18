@@ -456,13 +456,6 @@ void NetworkVideoSourceComponent::notifyVideoDeviceOpened(
 	if (device != m_networkVideoDevice.get())
 		return;
 
-	// Apply the side effect of video mode changes now that the device is fully open
-	notifyVideoModePropertiesChanged(m_networkVideoDevice.get());
-	if (OnFrameSizeChanged)
-	{
-		OnFrameSizeChanged(getSelfPtr<VideoSourceComponent>());
-	}
-
 	// Let any connected clients know that the video source opened
 	MikanServer::getInstance()->getVideoSourceRequestHandler()->publishVideoSourceOpenedEvent();
 	if (OnOpened)
@@ -502,6 +495,10 @@ void NetworkVideoSourceComponent::notifyVideoModePropertiesChanged(
 
 	// Let any listeners know that the video frame sized changed
 	MikanServer::getInstance()->getVideoSourceRequestHandler()->publishVideoSourceModeChangedEvent();
+	if (OnFrameSizeChanged)
+	{
+		OnFrameSizeChanged(getSelfPtr<VideoSourceComponent>());
+	}
 }
 
 void NetworkVideoSourceComponent::notifyVideoFrameReceived(

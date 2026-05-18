@@ -1,4 +1,5 @@
 #include "ColorTextureSourceNode.h"
+#include "CompositorComponent.h"
 #include "CameraComponent.h"
 #include "MkScopedObjectBinding.h"
 #include "IEditorWindow.h"
@@ -139,14 +140,17 @@ IMkTexturePtr ColorTextureSourceNode::getColorSourceTexture() const
 {
 	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
 	CameraComponentPtr boundCameraComponent= compositorGraph->getBoundCameraComponent();
+	CompositorComponentPtr boundCompositorComponent = compositorGraph->getBoundCompositorComponent();
 	TextureSourceComponentPtr textureSourceComponent = getTextureSourceComponent();
 
-	if (boundCameraComponent && textureSourceComponent)
+	if (boundCompositorComponent && boundCameraComponent && textureSourceComponent)
 	{
+		const int64_t pendingFrameIndex= boundCompositorComponent->getPendingCompositedFrameIndex();
 		IMkTexturePtr clientTexture = 
 			textureSourceComponent->getClientColorSourceTexture(
 				boundCameraComponent->getCameraId(),
-				m_clientTextureType);
+				m_clientTextureType,
+				pendingFrameIndex);
 
 		// If the client texture is not available, return a black texture
 		if (clientTexture)

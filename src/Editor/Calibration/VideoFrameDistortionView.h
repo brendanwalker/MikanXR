@@ -36,25 +36,24 @@ public:
 	inline bool isGrayscaleUndistortDisabled() const { return m_bGrayscaleUndistortDisabled; }
 	inline void setGrayscaleUndistortDisabled(bool bDisabled) { m_bGrayscaleUndistortDisabled = bDisabled; }
 
-	inline unsigned int getMaxFrameQueueSize() const { return m_bgrSourceBufferCount; }
+	inline unsigned int getMaxFrameQueueSize() const { return m_videoFrameQueueSize; }
 	inline int64_t getLastVideoFrameReadIndex() const { return m_lastVideoFrameReadIndex; }
-
 	inline cv::Mat* getGrayscaleSourceBuffer() const { return m_gsSourceBuffer; }
 	inline cv::Mat* getGrayscaleUndistortBuffer() const { return m_gsUndistortBuffer; }
 	inline cv::Mat* getBGRUndistortBuffer() const { return m_bgrUndistortBuffer; }
 	inline cv::Mat* getBGRGsDisplayBuffer() const { return m_bgrGsDisplayBuffer; }
 	inline IMkTexturePtr getDistortionTexture() const { return m_distortionTextureMap; }
-	inline IMkTexturePtr getVideoTexture() const { return m_videoTexture; }
 
 	bool hasNewVideoFrame() const;
-	int64_t readNextVideoFrame();
-	bool processVideoFrame(int64_t desiredFrameIndex);
-	bool readAndProcessVideoFrame();
+	int64_t readAndProcessVideoFrame();
+	IMkTexturePtr getVideoTexture(int64_t desiredFrameIndex = -1) const;
 	void applyMonoCameraIntrinsics(const struct MikanMonoIntrinsics* instrinsics);
 
 	void renderSelectedVideoBuffers();
 
 protected:
+	int64_t readNextVideoFrame();
+	void processVideoFrame(int64_t newFrameIndex);
 	void ensureFrameBufferSize(int width, int height);
 	void rebuildDistortionMap();
 	void computeUndistortion(cv::Mat* bgrSourceBuffer);
@@ -70,15 +69,8 @@ protected:
 	int m_frameHeight;
 	float m_fps;
 	
-	// Circular BGR source buffer
-	struct SourceBufferEntry
-	{
-		cv::Mat* bgrSourceBuffer;
-		int64_t frameIndex;
-	};
-	SourceBufferEntry* m_bgrSourceBuffers;
-	unsigned int m_bgrSourceBufferCount;
-	unsigned int m_bgrSourceBufferWriteIndex;
+	// BGR source buffer
+	cv::Mat* m_bgrSourceBuffer;
 	int64_t m_lastVideoFrameReadIndex;
 	std::chrono::steady_clock::time_point m_lastFrameTimestamp;
 
@@ -99,8 +91,16 @@ protected:
 	cv::Mat* m_distortionMapY;
 	IMkTexturePtr m_distortionTextureMap= nullptr;
 
-	// Texture used for display
-	IMkTexturePtr m_videoTexture = nullptr;
+	// Circular RGB video frame queue
+	struct VideoFrameQueueEntry
+	{
+		IMkTexturePtr videoTexture;
+		int64_t frameIndex;
+	};
+	VideoFrameQueueEntry* m_videoFrameQueue = nullptr;
+	unsigned int m_videoFrameQueueSize= 0;
+	int m_videoFrameQueueLastWriteIndex= -1;
+	int m_videoFrameQueuePendingWriteIndex = 0;
 
 	// Quad used for fullscreen video rendering
 	IMkTriangulatedMeshPtr m_fullscreenRGBVideoQuad;

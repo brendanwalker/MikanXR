@@ -74,9 +74,7 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	, m_frameHeight(0)
 	, m_fps(0.f)
 	// Video frame buffers
-	, m_bgrSourceBuffers(nullptr)
-	, m_bgrSourceBufferCount(frameQueueSize)
-	, m_bgrSourceBufferWriteIndex(0)
+	, m_bgrSourceBuffer(nullptr)
 	, m_lastVideoFrameReadIndex(0)
 	, m_lastFrameTimestamp()
 	, m_bgrUndistortBuffer(nullptr)
@@ -90,16 +88,20 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	, m_distortionMapX(nullptr)
 	, m_distortionMapY(nullptr)
 	, m_distortionTextureMap(nullptr)
-	, m_videoTexture(nullptr)
+	// Video Frame Texture Queue
+	, m_videoFrameQueue(nullptr)
+	, m_videoFrameQueueSize(frameQueueSize)
+	, m_videoFrameQueueLastWriteIndex(-1)
+	, m_videoFrameQueuePendingWriteIndex(0)
 {
-	// Source Video Frame data
-	m_bgrSourceBuffers = new SourceBufferEntry[m_bgrSourceBufferCount];
-	for (unsigned int queueIndex = 0; queueIndex < m_bgrSourceBufferCount; ++queueIndex)
+	// Init Video Frame Texture Queue Entries
+	m_videoFrameQueue = new VideoFrameQueueEntry[frameQueueSize];
+	for (int queueIndex = 0; queueIndex < frameQueueSize; ++queueIndex)
 	{
-		SourceBufferEntry& frameEntry = m_bgrSourceBuffers[queueIndex];
+		VideoFrameQueueEntry& frameEntry = m_videoFrameQueue[queueIndex];
 
-		frameEntry.bgrSourceBuffer = nullptr;
-		frameEntry.frameIndex = 0;
+		frameEntry.videoTexture = IMkTexturePtr();
+		frameEntry.frameIndex = -1;
 	}
 
 	// Get the current video source pixel dimensions
@@ -147,19 +149,32 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 
 VideoFrameDistortionView::~VideoFrameDistortionView()
 {
+	// Free any textures in	the video frame queue
+	if (m_videoFrameQueue != nullptr)
+	{
+		for (int queueIndex = 0; queueIndex < m_videoFrameQueueSize; ++queueIndex)
+		{
+			VideoFrameQueueEntry& frameEntry = m_videoFrameQueue[queueIndex];
+
+			if (frameEntry.videoTexture)
+			{
+				frameEntry.videoTexture->disposeTexture();
+				frameEntry.videoTexture = IMkTexturePtr();
+			}
+		}
+
+		delete[] m_videoFrameQueue;
+	}
+
 	// Free the texture we were rendering to, if any
-	m_videoTexture= nullptr;
 	m_distortionTextureMap= nullptr;
 
 	// Video Frame data
-	if (m_bgrSourceBuffers != nullptr)
+	if (m_bgrSourceBuffer != nullptr)
 	{
-		for (int queueIndex = 0; queueIndex < m_bgrSourceBufferCount; ++queueIndex)
-		{
-			delete m_bgrSourceBuffers[queueIndex].bgrSourceBuffer;
-		}
-		delete[] m_bgrSourceBuffers;
+		delete m_bgrSourceBuffer;
 	}
+
 	if (m_bgrUndistortBuffer != nullptr)
 	{
 		delete m_bgrUndistortBuffer;
@@ -205,21 +220,14 @@ void VideoFrameDistortionView::ensureFrameBufferSize(int width, int height)
 	m_frameWidth = width;
 	m_frameHeight = height;
 
-	// Source Video Frame data
-	assert(m_bgrSourceBuffers != nullptr);
-	for (unsigned int queueIndex = 0; queueIndex < m_bgrSourceBufferCount; ++queueIndex)
+	// Free any existing buffer
+	if (m_bgrSourceBuffer != nullptr)
 	{
-		SourceBufferEntry& frameEntry = m_bgrSourceBuffers[queueIndex];
-
-		// Free any existing buffer
-		if (frameEntry.bgrSourceBuffer != nullptr)
-		{
-			delete frameEntry.bgrSourceBuffer;
-		}
-
-		// Allocate a new bgr source buffer
-		frameEntry.bgrSourceBuffer = new cv::Mat(m_frameHeight, m_frameWidth, CV_8UC3);
+		delete m_bgrSourceBuffer;
 	}
+
+	// Allocate a new bgr source buffer
+	m_bgrSourceBuffer = new cv::Mat(m_frameHeight, m_frameWidth, CV_8UC3);
 
 	// Distortion state
 	if (m_bufferBitmask & VIDEO_FRAME_HAS_BGR_UNDISTORT_FLAG)
@@ -268,15 +276,36 @@ void VideoFrameDistortionView::ensureFrameBufferSize(int width, int height)
 	// Create a texture to render the video frame to
 	if (m_bufferBitmask & VIDEO_FRAME_HAS_GL_TEXTURE_FLAG)
 	{
-		m_videoTexture = CreateMkTexture(
-			m_frameWidth,
-			m_frameHeight,
-			nullptr,
-			MK_RGB, // texture format
-			MK_BGR); // buffer format
-		m_videoTexture->setGenerateMipMap(false);
-		m_videoTexture->setPixelBufferObjectMode(IMkTexture::PixelBufferObjectMode::DoublePBOWrite);
-		m_videoTexture->createTexture();
+		// Re-init all video frame queue for the new frame size
+		for (int queueIndex = 0; queueIndex < m_videoFrameQueueSize; ++queueIndex)
+		{
+			VideoFrameQueueEntry& frameEntry = m_videoFrameQueue[queueIndex];
+
+			// Free any existing texture for this queue entry
+			if (frameEntry.videoTexture)
+			{
+				frameEntry.videoTexture->disposeTexture();
+			}
+
+			// Allocate a new texture for this queue entry
+			IMkTexturePtr videoTexture= CreateMkTexture(
+				m_frameWidth,
+				m_frameHeight,
+				nullptr,
+				MK_RGB, // texture format
+				MK_BGR); // buffer format
+			videoTexture->setGenerateMipMap(false);
+			videoTexture->setPixelBufferObjectMode(IMkTexture::PixelBufferObjectMode::DoublePBOWrite);
+			videoTexture->createTexture();
+
+			// Update the queue entry with the new texture and reset the frame index
+			frameEntry.videoTexture = videoTexture;
+			frameEntry.frameIndex = -1;
+		}
+
+		// Reset the video frame queue write indices since all frames have been invalidated by the size change
+		m_videoFrameQueueLastWriteIndex = -1;
+		m_videoFrameQueuePendingWriteIndex = 0;
 	}
 
 	// Generate the distortion map for the new frame size
@@ -321,10 +350,10 @@ int64_t VideoFrameDistortionView::readNextVideoFrame()
 			m_videoSourceComponent->getVideoPixelDimensions(frameWidth, frameHeight);
 			ensureFrameBufferSize(frameWidth, frameHeight);
 
-			cv::Mat* bgrSourceBuffer = m_bgrSourceBuffers[m_bgrSourceBufferWriteIndex].bgrSourceBuffer;
-			m_lastVideoFrameReadIndex = m_videoSourceComponent->readVideoFrameSectionBuffer(VideoFrameSection::Primary, bgrSourceBuffer);
-			m_bgrSourceBuffers[m_bgrSourceBufferWriteIndex].frameIndex = m_lastVideoFrameReadIndex;
-			m_bgrSourceBufferWriteIndex = (m_bgrSourceBufferWriteIndex + 1) % m_bgrSourceBufferCount;
+			// Read the next video frame into the source buffer and update the last read frame index
+			m_lastVideoFrameReadIndex = 
+				m_videoSourceComponent->readVideoFrameSectionBuffer(
+					VideoFrameSection::Primary, m_bgrSourceBuffer);
 
 			m_bVideoIsStreaming = true;
 		}
@@ -337,57 +366,51 @@ int64_t VideoFrameDistortionView::readNextVideoFrame()
 	return m_lastVideoFrameReadIndex;
 }
 
-bool VideoFrameDistortionView::processVideoFrame(int64_t desiredFrameIndex)
+void VideoFrameDistortionView::processVideoFrame(int64_t newFrameIndex)
 {
 	EASY_FUNCTION();
 
-	// Find the queue entry with the matching frame index
-	int desiredQueueIndex= -1;
-	for (int queueIndex = 0; queueIndex < m_bgrSourceBufferCount; ++queueIndex)
-	{
-		if (m_bgrSourceBuffers[queueIndex].frameIndex == desiredFrameIndex)
-		{
-			desiredQueueIndex = queueIndex;
-			break;
-		}
-	}
-
-	// If no queue entry was found with the desired frame index, then bail
-	if (desiredQueueIndex == -1)
-	{
-		MIKAN_LOG_ERROR("VideoFrameDistortionView::undistortVideoFrame") << "Missing expected frame " << desiredFrameIndex;
-		for (int queueIndex = 0; queueIndex < m_bgrSourceBufferCount; ++queueIndex)
-		{
-			MIKAN_LOG_ERROR("VideoFrameDistortionView::undistortVideoFrame") << "   queue: " << m_bgrSourceBuffers[queueIndex].frameIndex;
-		}
-		return false;
-	}
-
-	cv::Mat* bgrSourceBuffer = m_bgrSourceBuffers[desiredQueueIndex].bgrSourceBuffer;
-
 	// Apply undistortion maps to the video frame (if valid and desired)
-	computeUndistortion(bgrSourceBuffer);
+	computeUndistortion(m_bgrSourceBuffer);
+
+	// Get the next video texture in the queue to write to
+	// and record the frame index for that texture
+	IMkTexturePtr writeTexture;
+	if (m_videoFrameQueue != nullptr && m_videoFrameQueueSize > 0)
+	{
+		// Get the next video texture in the queue to write to
+		writeTexture = m_videoFrameQueue[m_videoFrameQueuePendingWriteIndex].videoTexture;
+	
+		// Record the frame index for this texture in the queue
+		m_videoFrameQueue[m_videoFrameQueuePendingWriteIndex].frameIndex = newFrameIndex;
+		
+		// Update the queue index of the most recently written video frame
+		m_videoFrameQueueLastWriteIndex = m_videoFrameQueuePendingWriteIndex;
+
+		// Advance the pending write index
+		m_videoFrameQueuePendingWriteIndex = (m_videoFrameQueuePendingWriteIndex + 1) % m_videoFrameQueueSize;
+	}
 
 	// Update the video frame display texture
-	if (m_videoTexture != nullptr)
+	if (writeTexture != nullptr)
 	{
 		EASY_BLOCK("Copy to Texture");
 
 		switch (m_videoDisplayMode)
 		{
 		case eVideoDisplayMode::mode_bgr:
-			copyOpenCVMatIntoGLTexture(*bgrSourceBuffer, m_videoTexture);
+			copyOpenCVMatIntoGLTexture(*m_bgrSourceBuffer, writeTexture);
 			break;
 		case eVideoDisplayMode::mode_undistored:
 			if (m_bgrUndistortBuffer != nullptr)
 			{
-				copyOpenCVMatIntoGLTexture(*m_bgrUndistortBuffer, m_videoTexture);
+				copyOpenCVMatIntoGLTexture(*m_bgrUndistortBuffer, writeTexture);
 			}
 			break;
 		case eVideoDisplayMode::mode_grayscale:
 			if (m_bgrGsDisplayBuffer != nullptr)
 			{
-				copyOpenCVMatIntoGLTexture(*m_bgrGsDisplayBuffer, m_videoTexture);
+				copyOpenCVMatIntoGLTexture(*m_bgrGsDisplayBuffer, writeTexture);
 			}
 			break;
 		default:
@@ -395,8 +418,6 @@ bool VideoFrameDistortionView::processVideoFrame(int64_t desiredFrameIndex)
 			break;
 		}
 	}
-
-	return true;
 }
 void VideoFrameDistortionView::computeUndistortion(cv::Mat* bgrSourceBuffer)
 {
@@ -445,21 +466,46 @@ void VideoFrameDistortionView::computeUndistortion(cv::Mat* bgrSourceBuffer)
 	}
 }
 
-bool VideoFrameDistortionView::readAndProcessVideoFrame()
+int64_t VideoFrameDistortionView::readAndProcessVideoFrame()
 {
 	EASY_FUNCTION();
-	bool bIsNewFrame = false;
 
 	if (hasNewVideoFrame())
 	{
-		const int64_t newestFrameIndex= readNextVideoFrame();
-		bool bUndistortedFrame= processVideoFrame(newestFrameIndex);
-		assert(bUndistortedFrame);
-
-		bIsNewFrame= true;
+		processVideoFrame(readNextVideoFrame());
 	}
 
-	return bIsNewFrame;
+	return m_lastVideoFrameReadIndex;
+}
+
+IMkTexturePtr VideoFrameDistortionView::getVideoTexture(int64_t desiredFrameIndex) const
+{
+	if (m_videoFrameQueue != nullptr)
+	{
+		// If a specific frame index was requested, then find it in the queue and return its texture
+		if (desiredFrameIndex != -1)
+		{
+			for (int queueIndex= 0; queueIndex < m_videoFrameQueueSize; queueIndex++)
+			{
+				const VideoFrameQueueEntry& queueEntry = m_videoFrameQueue[queueIndex];
+
+				if (queueEntry.frameIndex == desiredFrameIndex)
+				{
+					return queueEntry.videoTexture;
+				}
+			}
+		}
+
+		// If we get here, then either no specific frame index was requested, 
+		// or the requested index wasn't found in the queue.
+		// In either case, return the most recently written video texture in the queue (if valid)
+		if (m_videoFrameQueueLastWriteIndex >= 0)
+		{
+			return m_videoFrameQueue[m_videoFrameQueueLastWriteIndex].videoTexture;
+		}
+	}
+
+	return IMkTexturePtr();
 }
 
 void VideoFrameDistortionView::applyMonoCameraIntrinsics(
@@ -513,7 +559,8 @@ void VideoFrameDistortionView::renderSelectedVideoBuffers()
 {
 	if (m_bVideoIsStreaming)
 	{
-		if (m_videoTexture != nullptr && m_fullscreenRGBVideoQuad != nullptr)
+		IMkTexturePtr videoTexture = getVideoTexture();
+		if (videoTexture != nullptr && m_fullscreenRGBVideoQuad != nullptr)
 		{
 			MkMaterialInstancePtr materialInstance = m_fullscreenRGBVideoQuad->getMaterialInstance();
 			MkMaterialConstPtr material = materialInstance->getMaterial();
@@ -521,7 +568,7 @@ void VideoFrameDistortionView::renderSelectedVideoBuffers()
 			if (auto materialBinding = material->bindMaterial())
 			{
 				// Bind the color texture
-				materialInstance->setTextureBySemantic(eUniformSemantic::rgbTexture, m_videoTexture);
+				materialInstance->setTextureBySemantic(eUniformSemantic::rgbTexture, videoTexture);
 
 				// Draw the color texture
 				if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))

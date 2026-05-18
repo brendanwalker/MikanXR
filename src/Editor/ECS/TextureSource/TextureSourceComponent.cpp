@@ -51,12 +51,12 @@ MikanTextureSourceID TextureSourceComponent::getTextureSourceId() const
 	return getTextureSourceDefinition()->getTextureSourceId();
 }
 
-IMkTexturePtr TextureSourceComponent::getClientColorSourceTexture(MikanCameraID cameraId, eTextureSourceColorType textureSourceColorType) const
+IMkTexturePtr TextureSourceComponent::getClientColorSourceTexture(MikanCameraID cameraId, eTextureSourceColorType textureSourceColorType, int64_t frameIndex) const
 {
 	return IMkTexturePtr();
 }
 
-IMkTexturePtr TextureSourceComponent::getClientDepthSourceTexture(MikanCameraID cameraId, eTextureSourceDepthType textureSourceColorType) const
+IMkTexturePtr TextureSourceComponent::getClientDepthSourceTexture(MikanCameraID cameraId, eTextureSourceDepthType textureSourceDepthType, int64_t frameIndex) const
 {
 	return IMkTexturePtr();
 }

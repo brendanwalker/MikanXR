@@ -67,7 +67,7 @@ static const glm::vec3 k_frustum_color = glm::vec3(0.1f, 0.7f, 0.3f);
 MainWindow::MainWindow(App* ownerApp)
 	: EditorWindow(ownerApp)
 	, m_mikanServer(new MikanServer())
-	, m_clientSourceManager(new ClientSourceManager())
+	, m_clientSourceManager(new ClientSourceManager(DEFAULT_VIDEO_FRAME_QUEUE_SIZE))
 	, m_inputManager(new InputManager(this))
 	, m_projectManager(std::make_shared<ProjectManager>(this))
 	, m_openCVManager(new OpenCVManager())

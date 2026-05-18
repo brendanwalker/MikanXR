@@ -19,6 +19,7 @@
 #include "MkMaterialInstance.h"
 #include "MkScopedState.h"
 #include "MkStateStack.h"
+#include "NodeGraphAssetReference.h"
 #include "ProjectConfig.h"
 #include "ProjectConfigConstants.h"
 #include "SceneObjectSystem.h"
@@ -90,10 +91,10 @@ void CompositorDefinition::readFromJSON(const configuru::Config& pt)
 	if (m_spoutOutputName.empty())
 		m_spoutOutputName = DEFAULT_SPOUT_OUTPUT_NAME;
 
-	m_componentScriptAssetRefConfig = NodeGraphAssetReferenceFactory().allocateAssetReferenceConfig();
+	m_nodeGraphAssetRef = NodeGraphAssetReferenceFactory().allocateAssetReferenceConfig();
 	if (pt.has_key(k_compositorGraphPathPropertyId))
 	{
-		m_componentScriptAssetRefConfig->readFromJSON(pt[k_compositorGraphPathPropertyId]);
+		m_nodeGraphAssetRef->readFromJSON(pt[k_compositorGraphPathPropertyId]);
 	}
 }
 
@@ -163,7 +164,7 @@ void CompositorDefinition::setCompositorGraphPath(const std::filesystem::path& g
 	if (graphPath != m_nodeGraphAssetRef->assetPath)
 	{
 		m_nodeGraphAssetRef->assetPath= graphPath.string();
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(MikanComponentDefinition::k_componentScriptPathPropertyId));
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(CompositorDefinition::k_compositorGraphPathPropertyId));
 	}
 }
 
@@ -202,15 +203,28 @@ void CompositorComponent::init()
 {
 	MikanComponent::init();
 
-	m_nodeGraphAssetRef = std::make_shared<NodeGraphAssetReference>();
-	m_editorFrameBufferTexture = CreateMkTexture();
 	m_viewportQuadMesh = createFullscreenQuadMesh(getGraphicsContext(), false);
-
-	// Initialize the compositor graph if we have one assigned
-	handleCompositorNodeGraphChanged(getCompositorGraphAssetPath());
+	m_nodeGraphAssetRef =
+		std::static_pointer_cast<NodeGraphAssetReference>(
+			NodeGraphAssetReferenceFactory().allocateAssetReference());
 
 	// Listen for changes to the compositor definition
 	getCompositorDefinition()->OnPropertyChanged += MakeDelegate(this, &CompositorComponent::onDefinitionChanged);
+}
+
+void CompositorComponent::postInit()
+{
+	MikanComponent::postInit();
+
+	// Initialize the compositor graph if we have one assigned
+	handleCompositorNodeGraphChanged(getCompositorDefinition()->getCompositorGraphPath());
+
+	// Listen for the video source state changes
+	VideoSourceComponentPtr videoSourceComponent= getVideoSourceComponent();
+	if (videoSourceComponent)
+	{
+		bindVideoSourceEvents(videoSourceComponent);
+	}
 }
 
 void CompositorComponent::dispose()
@@ -219,12 +233,120 @@ void CompositorComponent::dispose()
 
 	getCompositorDefinition()->OnPropertyChanged -= MakeDelegate(this, &CompositorComponent::onDefinitionChanged);
 
-	m_editorFrameBufferTexture = nullptr;
 	m_nodeGraph = nullptr;
 	m_nodeGraphAssetRef = nullptr;
 	m_viewportQuadMesh= nullptr;
 
 	MikanComponent::dispose();
+}
+
+void CompositorComponent::tryCompositeOldestFrame(float deltaSeconds)
+{
+	EASY_FUNCTION();
+
+	// Wait until the source video frame queue is full to maximize the time
+	// clients have to generate their render targets for each frame before we composite it.
+	if (m_frameEventQueue.size() < m_videoDistortionView->getMaxFrameQueueSize())
+		return;
+
+	// Once the queue is full, we can composite at the source video frame rate, 
+	// so we track the time since the last frame was composited to enforce that
+	m_timeSinceLastFrameComposited += deltaSeconds;
+
+	// Wait until a new video frame is available to keep the compositor display rate 
+	// in sync with the source video frame rate
+	if (!m_videoDistortionView->hasNewVideoFrame())
+		return;
+
+	// The oldest pending frame is at the front of the queue
+	MikanCameraNewFrameEvent& oldestPendingFrame = m_frameEventQueue.front();
+
+	MIKAN_LOG_TRACE("CompositorComponent::tryCompositeOldestFrame") 
+		<< "Compositing frame " << oldestPendingFrame.frame;
+
+	// Try to get the editor node graph first...
+	CompositorNodeGraphPtr nodeGraph= m_editorNodeGraph.lock();
+	if (!nodeGraph)
+	{
+		// ...then fallback to asset reference (default case)
+		nodeGraph = m_nodeGraph;
+	}
+		
+	// If we have a valid compositor node graph, use that to composite the frame
+	if (nodeGraph)
+	{
+		evaluateCompositorNodeGraph(nodeGraph);
+	}
+
+	// Remember the index of the last frame we composited
+	m_lastCompositedFrameIndex = oldestPendingFrame.frame;
+
+	// Reset the time since the last frame was composited
+	m_timeSinceLastFrameComposited = 0.f;
+
+	// Tell any listeners that a new frame was composited
+	if (OnNewFrameComposited)
+	{
+		OnNewFrameComposited();
+	}
+
+	// Pop the frame event from the queue now that it's composited
+	m_frameEventQueue.pop();
+}
+
+void CompositorComponent::tryEnqueueNewFrame(CameraComponentPtr cameraComponent)
+{
+	EASY_FUNCTION();
+
+	// Read the next video frame (if any) and apply distortion correction.
+	// Returns the index of the latest video frame processed.
+	int64_t nextVideoFrameIndex = m_videoDistortionView->readAndProcessVideoFrame();
+
+	// Fetch new video frames if the video frame queue isn't full
+	if (m_lastReadVideoFrameIndex != nextVideoFrameIndex)
+	{
+		// Remember the index of the last video frame we read
+		m_lastReadVideoFrameIndex = nextVideoFrameIndex;
+
+		// tryCompositeOldestFrame should have prevented this, 
+		// but just in case, if the queue is full, drop frames until we have room for the new one
+		int droppedFrameCount = 0;
+		while (m_frameEventQueue.size() >= m_videoDistortionView->getMaxFrameQueueSize())
+		{
+			// Drop the oldest frame in the queue to make room for the new one
+			m_frameEventQueue.pop();
+			droppedFrameCount++;
+		}
+		if (droppedFrameCount > 0)
+		{
+			MIKAN_LOG_ERROR("CompositorComponent::tryEnqueueNewFrame") 
+				<< "Frame queue overflow. Dropped " << droppedFrameCount <<" frames";
+		}
+
+		// Try and make a new frame event with the current camera properties. 
+		// If we fail (e.g. due to invalid intrinsics), skip this frame and try again with the next one
+		if (MikanCameraNewFrameEvent newFrameEvent;
+			cameraComponent->makeNewCameraFrameEvent(
+				m_lastReadVideoFrameIndex,
+				0, 0, // no fallback render target size in this case
+				newFrameEvent))
+		{
+			MikanServer* mikanServer = getOwnerEditorWindow()->getMikanServer();
+			CameraRequestHandler* cameraRequestHandler = mikanServer->getCameraRequestHandler();
+
+			MIKAN_LOG_TRACE("CompositorComponent::tryEnqueueNewFrame") 
+				<< "Enqueue frame " << newFrameEvent.frame;
+			m_frameEventQueue.push(newFrameEvent);
+
+			// Tell all clients that we have a new frame to render
+			cameraRequestHandler->publishCameraNewFrameEvent(newFrameEvent);
+		}
+		else
+		{
+			MIKAN_LOG_TRACE("CompositorComponent::tryEnqueueNewFrame") 
+				<< "Invalid intrinsics for frame " << m_lastReadVideoFrameIndex << ". Skipping frame.";
+		}
+	}
 }
 
 void CompositorComponent::update(float deltaSeconds)
@@ -237,113 +359,25 @@ void CompositorComponent::update(float deltaSeconds)
 	if (getOwnerObjectSystem()->getAllCompositorsPaused())
 		return;
 
-	CameraComponentPtr cameraComponent= getCameraComponent();
+	CameraComponentPtr cameraComponent = getCameraComponent();
 	if (!cameraComponent)
 		return;
 
-	const glm::mat4 cameraXform = cameraComponent->getWorldTransform();
+	// Update the video source streaming state in case it changed while we were stopped
+	updateVideoSourceStreaming();
 
-	// Keep track of how long it's been since the last frame has been composited
-	// This is used to update the timer in compositorNodeGraph
-	m_timeSinceLastFrameComposited += deltaSeconds;
+	// Update the output streaming state in case it changed while we were stopped
+	updateOutputStreaming();
+
+	// Wait until we have a valid distortion view
+	if (m_videoDistortionView == nullptr)
+		return;
 
 	// Composite the next frame if we got all the renders back from the clients
-	std::set<std::string> activeClientSourceIds;
-	if (m_pendingCompositeFrameIndex != 0 && m_nodeGraph)
-	{
-		// Gather all client source IDs that are referenced by the node graph
-		m_nodeGraph->gatherAllReferencedClientSourceIDs(activeClientSourceIds);
+	tryCompositeOldestFrame(deltaSeconds);
 
-		// See if all client render targets have been updated
-		auto* clientSourceManager = getOwnerEditorWindow()->getClientSourceManager();
-		size_t clientSourceReadyCount = 0;
-		for (const std::string& clientSourceId : activeClientSourceIds)
-		{
-			// If the client source is not registered, register it
-			if (!clientSourceManager->getIsSourcePendingRender(clientSourceId, cameraComponent->getCameraId()))
-			{
-				clientSourceReadyCount++;
-			}
-		}
-		
-		// If the video frame and client sources are fresh, composite them together
-		if (clientSourceReadyCount == activeClientSourceIds.size())
-		{
-			// Pop the frame event from the queue now that we are compositing it
-			assert(m_frameEventQueue.front().frame == m_pendingCompositeFrameIndex);
-			m_frameEventQueue.pop();
-
-			MIKAN_LOG_TRACE("CompositorComponent::update") << "Composite frame " << m_pendingCompositeFrameIndex;
-			updateCompositeFrame();
-		}
-	}
-
-	// Fetch new video frames if the video frame queue isn't full
-	if (m_videoDistortionView != nullptr && m_videoDistortionView->hasNewVideoFrame())
-	{
-		// If the queue is full, drop all queued frames to catch up
-		if (m_frameEventQueue.size() < m_videoDistortionView->getMaxFrameQueueSize())
-		{
-			m_lastReadVideoFrameIndex = m_videoDistortionView->readNextVideoFrame();
-
-			// Try and make a new frame event with the current camera properties. 
-			// If we fail (e.g. due to invalid intrinsics), skip this frame and try again with the next one
-			if (MikanCameraNewFrameEvent newFrameEvent;
-				cameraComponent->makeNewCameraFrameEvent(
-					m_lastReadVideoFrameIndex, 
-					0, 0, // no fallback render target size in this case
-					newFrameEvent))
-			{
-				MIKAN_LOG_TRACE("CompositorComponent::update") << "Enqueue frame " << m_lastReadVideoFrameIndex;
-				m_frameEventQueue.push(newFrameEvent);
-				m_droppedFrameCounter = 0;
-			}
-			else
-			{
-				MIKAN_LOG_TRACE("CompositorComponent::update") << "Invalid intrinsics for frame " << m_lastReadVideoFrameIndex << ". Skipping frame.";
-			}
-		}
-		else
-		{
-			m_droppedFrameCounter++;
-			MIKAN_LOG_WARNING("CompositorComponent::update") << "Frame queue overflow. Dropped " << m_droppedFrameCounter << " frames";
-
-			if (m_droppedFrameCounter > 10)
-			{
-				m_droppedFrameCounter = 0;
-				MIKAN_LOG_WARNING("CompositorComponent::update") << "Exceeded dropped frame limit. Flushing frame queue.";
-
-				while (m_frameEventQueue.size() > 0)
-				{
-					m_frameEventQueue.pop();
-				}
-				m_pendingCompositeFrameIndex = 0;
-			}
-		}
-	}
-
-	// If we don't have a pending frame to composite and have a queued frame,
-	// the send off the next frame to the clients to render
-	if (m_pendingCompositeFrameIndex == 0 && m_frameEventQueue.size() > 0)
-	{
-		// Grab the next frame event off the queue
-		MikanCameraNewFrameEvent newFrameEvent = m_frameEventQueue.front();
-
-		// Mark all client sources as pending
-		auto* clientSourceManager = getOwnerEditorWindow()->getClientSourceManager();
-		for (const std::string& clientSourceId : activeClientSourceIds)
-		{
-			clientSourceManager->markSourceAsPendingRender(clientSourceId, newFrameEvent.camera_id);
-		}
-
-		// Track the index of the pending frame
-		m_pendingCompositeFrameIndex = newFrameEvent.frame;
-
-		// Tell all clients that we have a new frame to render
-		// TODO: Send this event to the camera system instead
-		MIKAN_LOG_TRACE("CompositorComponent::update") << "Send frame " << m_pendingCompositeFrameIndex;		
-		getOwnerEditorWindow()->getMikanServer()->getCameraRequestHandler()->publishCameraNewFrameEvent(newFrameEvent);
-	}
+	// Try to add new frames from the video source if we have room in the queue
+	tryEnqueueNewFrame(cameraComponent);
 }
 
 void CompositorComponent::handleCameraChange(
@@ -401,79 +435,34 @@ void CompositorComponent::allocateVideoBuffers(VideoSourceComponentPtr videoSour
 	m_videoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 }
 
-void CompositorComponent::disposeCompositingTextures()
-{
-	m_editorFrameBufferTexture->disposeTexture();
-}
-
-void CompositorComponent::createCompositingTextures(int width, int height)
-{
-	// Also create a texture a for the editor to render to when the editor is active
-	m_editorFrameBufferTexture->setSize(width, height);
-	m_editorFrameBufferTexture->setTextureFormat(MK_RGBA);
-	m_editorFrameBufferTexture->setBufferFormat(MK_RGBA);
-	m_editorFrameBufferTexture->setGenerateMipMap(false);
-	// ... but don't allocate it create texture until we need it
-}
-
 void CompositorComponent::onVideoFrameSizeChanged(VideoSourceComponentPtr videoSource)
 {
-	disposeCompositingTextures();
 	disposeVideoBuffers();
 
 	// Create a frame buffer and texture to do the compositing work in
 	int frameWidth, frameHeight;
 	if (videoSource->getVideoPixelDimensions(frameWidth, frameHeight))
 	{
-		createCompositingTextures(frameWidth, frameHeight);
 		allocateVideoBuffers(videoSource);
-	}
-}
-
-void CompositorComponent::updateCompositeFrame()
-{
-	EASY_FUNCTION();
-
-	assert(m_pendingCompositeFrameIndex != 0);
-
-	// Compute the next undistorted video frame
-	m_videoDistortionView->processVideoFrame(m_pendingCompositeFrameIndex);
-
-	// Perform the compositor evaluation if in MainWindow mode
-	// (Editor window runs graph evaluation in its own update loop)
-	if (m_evaluatorWindow == eCompositorEvaluatorWindow::mainWindow)
-	{
-		// If we have a valid compositor node graph, use that to composite the frame
-		if (m_nodeGraph)
-		{
-			updateCompositeFrameNodeGraph();
-		}
-	}
-
-	// Remember the index of the last frame we composited
-	m_lastCompositedFrameIndex = m_pendingCompositeFrameIndex;
-
-	// Clear the pending composite frame index
-	m_pendingCompositeFrameIndex = 0;
-
-	// Reset the time since the last frame was composited
-	m_timeSinceLastFrameComposited = 0.f;
-
-	// Tell any listeners that a new frame was composited
-	if (OnNewFrameComposited)
-	{
-		OnNewFrameComposited();
 	}
 }
 
 IMkTexturePtr CompositorComponent::getVideoSourceTexture(eVideoTextureSource textureSource) const
 {
+	const int64 pendingFrameIndex = getPendingCompositedFrameIndex();
+
 	switch (textureSource)
 	{
 	case eVideoTextureSource::video_texture:
-		return (m_videoDistortionView != nullptr) ? m_videoDistortionView->getVideoTexture() : IMkTexturePtr();
+		return 
+			(m_videoDistortionView != nullptr) 
+			? m_videoDistortionView->getVideoTexture(pendingFrameIndex) 
+			: IMkTexturePtr();
 	case eVideoTextureSource::distortion_texture:
-		return (m_videoDistortionView != nullptr) ? m_videoDistortionView->getDistortionTexture() : IMkTexturePtr();
+		return 
+			(m_videoDistortionView != nullptr) 
+			? m_videoDistortionView->getDistortionTexture() 
+			: IMkTexturePtr();
 	}
 
 	return IMkTexturePtr();
@@ -485,42 +474,24 @@ IMkTexturePtr CompositorComponent::getVideoPreviewTexture(eVideoTextureSource te
 	return getVideoSourceTexture(textureSource);
 }
 
-void CompositorComponent::setCompositorEvaluatorWindow(eCompositorEvaluatorWindow evalWindow)
+void CompositorComponent::setEditorCompositorNodeGraph(CompositorNodeGraphPtr editorNodeGraph)
 {
-	if (m_evaluatorWindow != evalWindow)
-	{
-		m_editorFrameBufferTexture->disposeTexture();
-
-		if (evalWindow == eCompositorEvaluatorWindow::editorWindow)
-		{
-			m_editorFrameBufferTexture->createTexture();
-		}
-
-		m_evaluatorWindow = evalWindow;
-	}
-}
-
-IMkTexturePtr CompositorComponent::getEditorWritableFrameTexture() const
-{
-	return m_editorFrameBufferTexture;
+	m_editorNodeGraph = editorNodeGraph;
 }
 
 IMkTextureConstPtr CompositorComponent::getCompositedFrameTexture() const
 {
-	switch (m_evaluatorWindow)
-	{
-	case eCompositorEvaluatorWindow::mainWindow:
-		return m_nodeGraph ? m_nodeGraph->getCompositedFrameTexture() : IMkTextureConstPtr();
-	case eCompositorEvaluatorWindow::editorWindow:
-		return m_editorFrameBufferTexture;
-	}
-
-	return IMkTextureConstPtr();
+	return m_nodeGraph ? m_nodeGraph->getCompositedFrameTexture() : IMkTextureConstPtr();
 }
 
 IMkTexturePtr CompositorComponent::getCompositedFrameTextureMutable()
 {
 	return std::const_pointer_cast<IMkTexture>(getCompositedFrameTexture());
+}
+
+int64_t CompositorComponent::getPendingCompositedFrameIndex() const
+{
+	return !m_frameEventQueue.empty() ? m_frameEventQueue.front().frame : -1;
 }
 
 void CompositorComponent::editCompositorGraph()
@@ -545,14 +516,14 @@ void CompositorComponent::removeCompositorGraph()
 	getCompositorDefinition()->setCompositorGraphPath(std::filesystem::path());
 }
 
-void CompositorComponent::updateCompositeFrameNodeGraph()
+void CompositorComponent::evaluateCompositorNodeGraph(CompositorNodeGraphPtr nodeGraph)
 {
 	NodeEvaluator evaluator = {};
 	evaluator
 		.setCurrentGraphicsContext(getGraphicsContext())
 		.setDeltaSeconds(m_timeSinceLastFrameComposited);
 
-	if (m_nodeGraph->compositeFrame(evaluator))
+	if (nodeGraph->compositeFrame(evaluator))
 	{
 		// Publish the composited frame to Spout if streaming is enabled
 		if (getIsOutputStreaming())
@@ -572,7 +543,7 @@ void CompositorComponent::updateCompositeFrameNodeGraph()
 	{
 		for (const NodeEvaluationError& error : evaluator.getErrors())
 		{
-			MIKAN_LOG_ERROR("CompositorComponent::updateCompositeFrame")
+			MIKAN_LOG_ERROR("CompositorComponent::compositeFrame")
 				<< "Compositor graph eval error: " << error.errorMessage;
 		}
 	}
@@ -669,8 +640,6 @@ bool CompositorComponent::startOutputStreaming()
 	if (getIsOutputStreaming())
 		return true;
 
-	
-
 	// Make sure we have a valid texture to stream
 	const std::string& spoutOutputName= getCompositorDefinition()->getSpoutOutputName();
 	if (spoutOutputName.empty())
@@ -719,12 +688,6 @@ bool CompositorComponent::start()
 
 	m_bIsRunning = true;
 	m_timeSinceLastFrameComposited = 0.f;
-
-	// Update the video source streaming state in case it changed while we were stopped
-	updateVideoSourceStreaming();
-
-	// Update the output streaming state in case it changed while we were stopped
-	updateOutputStreaming();
 
 	return true;
 }
@@ -788,12 +751,12 @@ void CompositorComponent::setCameraComponent(CameraComponentPtr newCameraCompone
 
 std::filesystem::path CompositorComponent::getCompositorGraphAssetPath() const
 {
-	return getCompositorDefinition()->getCompositorGraphPath();
+	return m_nodeGraphAssetRef->getAssetPath();
 }
 
 void CompositorComponent::setCompositorGraphAssetPath(const std::filesystem::path& assetRefPath)
 {
-	if (getCompositorDefinition()->getCompositorGraphPath() != assetRefPath)
+	if (m_nodeGraphAssetRef->getAssetPath() != assetRefPath)
 	{
 		handleCompositorNodeGraphChanged(assetRefPath);
 		getCompositorDefinition()->setCompositorGraphPath(assetRefPath);

@@ -40,8 +40,8 @@ public:
 	const std::string& getClientSourceName() const;
 
 	// Texture Source Interface
-	IMkTexturePtr getClientColorSourceTexture(MikanCameraID cameraId, eTextureSourceColorType textureSourceColorType) const;
-	IMkTexturePtr getClientDepthSourceTexture(MikanCameraID cameraId, eTextureSourceDepthType textureSourceColorType) const;
+	IMkTexturePtr getClientColorSourceTexture(MikanCameraID cameraId, eTextureSourceColorType textureSourceColorType, int64_t frameIndex = -1) const;
+	IMkTexturePtr getClientDepthSourceTexture(MikanCameraID cameraId, eTextureSourceDepthType textureSourceDepthType, int64_t frameIndex = -1) const;
 
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;

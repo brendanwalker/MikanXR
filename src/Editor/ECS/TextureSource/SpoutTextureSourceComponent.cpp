@@ -209,7 +209,8 @@ void SpoutTextureSourceComponent::openTextureSource()
 // -- Texture Source Interface ---
 IMkTexturePtr SpoutTextureSourceComponent::getClientColorSourceTexture(
 	MikanCameraID cameraId,
-	eTextureSourceColorType textureSourceColorType) const
+	eTextureSourceColorType textureSourceColorType,
+	int64_t frameIndex) const
 {
 	return m_colorTexture;
 }

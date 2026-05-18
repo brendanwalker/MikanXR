@@ -6,6 +6,11 @@
 #include "SharedTextureReader.h"
 #include "CameraRequestHandler.h"
 
+ClientSourceManager::ClientSourceManager(int textureQueueSize)
+	: m_textureQueueSize(textureQueueSize)
+{
+}
+
 bool ClientSourceManager::startup()
 {
 	MikanServer* mikanServer = MikanServer::getInstance();
@@ -53,8 +58,13 @@ void ClientSourceManager::shutdown()
 	{
 		ClientSource* clientSource = iter->second;
 
-		clientSource->colorTexture = nullptr;
-		clientSource->depthTexture = nullptr;
+		if (clientSource->textureQueue != nullptr)
+		{
+			clientSource->textureQueue->dispose();
+			delete clientSource->textureQueue;
+			clientSource->textureQueue = nullptr;
+		}
+		clientSource->readAccessor = nullptr;
 
 		delete clientSource;
 	}
@@ -87,28 +97,17 @@ bool ClientSourceManager::getClientSourceDimensions(
 IMkTexturePtr ClientSourceManager::getClientColorSourceTexture(
 	const std::string& clientId,
 	MikanCameraID cameraId,
-	eTextureSourceColorType textureSourceColorType) const
+	eTextureSourceColorType textureSourceColorType,
+	int64_t frameIndex) const
 {
 	ClientSource* clientSource= getClientSource(clientId, cameraId);
-	if (clientSource != nullptr)
+	if (clientSource != nullptr && clientSource->textureQueue != nullptr)
 	{
 		switch (textureSourceColorType)
 		{
 			case eTextureSourceColorType::colorRGB:
-				if (clientSource->colorTexture &&
-					(clientSource->colorTexture->getTextureFormat() == MK_RGB ||
-						clientSource->colorTexture->getTextureFormat() == MK_BGR))
-				{
-					return clientSource->colorTexture;
-				}
-				return clientSource->colorTexture;
 			case eTextureSourceColorType::colorRGBA:
-				if (clientSource->colorTexture &&
-					(clientSource->colorTexture->getTextureFormat() == MK_RGBA ||
-						clientSource->colorTexture->getTextureFormat() == MK_BGRA))
-				{
-					return clientSource->colorTexture;
-				}
+				return clientSource->textureQueue->getColorTexture(frameIndex);
 		}
 	}
 
@@ -118,44 +117,20 @@ IMkTexturePtr ClientSourceManager::getClientColorSourceTexture(
 IMkTexturePtr ClientSourceManager::getClientDepthSourceTexture(
 	const std::string& clientId,
 	MikanCameraID cameraId,
-	eTextureSourceDepthType textureSourceColorType) const
+	eTextureSourceDepthType textureSourceDepthType,
+	int64_t frameIndex) const
 {
 	ClientSource* clientSource= getClientSource(clientId, cameraId);
-	if (clientSource != nullptr)
+	if (clientSource != nullptr && clientSource->textureQueue != nullptr)
 	{
-		switch (textureSourceColorType)
+		switch (textureSourceDepthType)
 		{
 			case eTextureSourceDepthType::depthPackRGBA:
-				return clientSource->depthTexture;
+				return clientSource->textureQueue->getDepthTexture(frameIndex);
 		}
 	}
 
 	return IMkTexturePtr();
-}
-
-bool ClientSourceManager::getIsSourcePendingRender(
-	const std::string& clientId,
-	MikanCameraID cameraId) const
-{
-	ClientSource* clientSource= getClientSource(clientId, cameraId);
-	if (clientSource != nullptr)
-	{
-		return clientSource->bIsPendingRender;
-	}
-
-	return false;
-}
-
-bool ClientSourceManager::markSourceAsPendingRender(const std::string& clientId, MikanCameraID cameraId)
-{
-	ClientSource* clientSource= getClientSource(clientId, cameraId);
-	if (clientSource != nullptr)
-	{
-		clientSource->bIsPendingRender= true;
-		return true;
-	}
-
-	return false;
 }
 
 std::string ClientSourceManager::makeClientSourceTableKey(
@@ -195,69 +170,19 @@ bool ClientSourceManager::addClientSource(
 	clientSource->clientId = clientId;
 	clientSource->clientInfo = clientInfo;
 	clientSource->desc = desc;
+	clientSource->readAccessor = readAccessor;
 	clientSource->frameIndex = 0;
 
-	switch (desc.color_buffer_type)
-	{
-		case MikanColorBuffer_RGB24:
-			clientSource->colorTexture = CreateMkTexture();
-			clientSource->colorTexture->setTextureFormat(MK_RGB);
-			clientSource->colorTexture->setBufferFormat(MK_RGB);
-			break;
-		case MikanColorBuffer_RGBA32:
-			clientSource->colorTexture = CreateMkTexture();
-			clientSource->colorTexture->setTextureFormat(MK_RGBA);
-			clientSource->colorTexture->setBufferFormat(MK_RGBA);
-			break;
-		case MikanColorBuffer_BGRA32:
-			clientSource->colorTexture = CreateMkTexture();
-			clientSource->colorTexture->setTextureFormat(MK_RGBA);
-			clientSource->colorTexture->setBufferFormat(MK_BGRA);
-			break;
-	}
-
-	if (clientSource->colorTexture != nullptr)
-	{
-		clientSource->colorTexture->setSize(desc.width, desc.height);
-		clientSource->colorTexture->setGenerateMipMap(false);
-		clientSource->colorTexture->setPixelBufferObjectMode(
-			desc.graphicsAPI == MikanClientGraphicsApi_UNKNOWN
-			? IMkTexture::PixelBufferObjectMode::DoublePBOWrite
-			: IMkTexture::PixelBufferObjectMode::NoPBO);
-		bSuccess&= clientSource->colorTexture->createTexture();
-
-		readAccessor->setColorTexture(clientSource->colorTexture);
-	}
-
-	switch (desc.depth_buffer_type)
-	{
-		case MikanDepthBuffer_FLOAT_DEVICE_DEPTH:
-		case MikanDepthBuffer_FLOAT_SCENE_DEPTH:
-			clientSource->depthTexture = CreateMkTexture();
-			clientSource->depthTexture->setTextureFormat(MK_R32F);
-			clientSource->depthTexture->setBufferFormat(MK_RED);
-			break;
-		case MikanDepthBuffer_PACK_DEPTH_RGBA:
-			clientSource->depthTexture = CreateMkTexture();
-			clientSource->depthTexture->setTextureFormat(MK_RGBA);
-			clientSource->depthTexture->setBufferFormat(MK_RGBA);
-			break;
-	}
-
-	if (clientSource->depthTexture != nullptr)
-	{
-		clientSource->depthTexture->setSize(desc.width, desc.height);
-		clientSource->depthTexture->setPixelBufferObjectMode(
-			desc.graphicsAPI == MikanClientGraphicsApi_UNKNOWN
-			? IMkTexture::PixelBufferObjectMode::DoublePBOWrite
-			: IMkTexture::PixelBufferObjectMode::NoPBO);
-		bSuccess &= clientSource->depthTexture->createTexture();
-
-		readAccessor->setDepthTexture(clientSource->depthTexture);
-	}
+	// Create the circular texture frame queue
+	clientSource->textureQueue = new ClientTextureFrameQueue(m_textureQueueSize);
+	bSuccess = clientSource->textureQueue->initialize(desc);
 
 	if (bSuccess)
 	{
+		// Point the read accessor at the first pending write slot
+		readAccessor->setColorTexture(clientSource->textureQueue->getPendingWriteColorTexture());
+		readAccessor->setDepthTexture(clientSource->textureQueue->getPendingWriteDepthTexture());
+
 		// Add the client source to the data source table
 		const std::string tableKey = makeClientSourceTableKey(clientId, cameraId);
 		m_clientSources.setValue(tableKey, clientSource);
@@ -271,11 +196,12 @@ bool ClientSourceManager::addClientSource(
 	else
 	{
 		// Clean up on failure
-		clientSource->colorTexture = nullptr;
 		readAccessor->setColorTexture(nullptr);
-
-		clientSource->depthTexture = nullptr;
 		readAccessor->setDepthTexture(nullptr);
+
+		clientSource->textureQueue->dispose();
+		delete clientSource->textureQueue;
+		clientSource->readAccessor = nullptr;
 
 		delete clientSource;
 	}
@@ -292,11 +218,13 @@ bool ClientSourceManager::removeClientSource(
 	if (clientSource == nullptr)
 		return false;
 
-	clientSource->colorTexture = nullptr;
 	readAccessor->setColorTexture(nullptr);
-
-	clientSource->depthTexture = nullptr;
 	readAccessor->setDepthTexture(nullptr);
+
+	clientSource->textureQueue->dispose();
+	delete clientSource->textureQueue;
+	clientSource->textureQueue = nullptr;
+	clientSource->readAccessor = nullptr;
 
 	// Remove the client source entries from the data source tables
 	const std::string tableKey = makeClientSourceTableKey(clientId, cameraId);
@@ -341,13 +269,17 @@ void ClientSourceManager::onClientRenderTargetUpdated(
 	MIKAN_LOG_TRACE("ClientSourceManager::onClientRenderTargetUpdated") << "Recv frame " << frameIndex;
 
 	ClientSource* clientSource= getClientSource(clientId, cameraId);
-	if (clientSource != nullptr)
+	if (clientSource != nullptr && clientSource->textureQueue != nullptr)
 	{
-		// Update the frame index
+		// Stamp the frame index on the current slot and advance to the next
+		clientSource->textureQueue->advanceWriteIndex(frameIndex);
 		clientSource->frameIndex = frameIndex;
 
-		// Mark that the client source is no longer pending the render
-		//assert(clientSource->bIsPendingRender);
-		clientSource->bIsPendingRender = false;
+		// Re-point the accessor at the new pending write slot
+		if (clientSource->readAccessor != nullptr)
+		{
+			clientSource->readAccessor->setColorTexture(clientSource->textureQueue->getPendingWriteColorTexture());
+			clientSource->readAccessor->setDepthTexture(clientSource->textureQueue->getPendingWriteDepthTexture());
+		}
 	}
 }

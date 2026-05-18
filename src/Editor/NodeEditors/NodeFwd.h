@@ -34,6 +34,7 @@ using NodeGraphConfigConstPtr = std::shared_ptr<const NodeGraphConfig>;
 // Compositor Node Graph
 class CompositorNodeGraph;
 using CompositorNodeGraphPtr = std::shared_ptr<CompositorNodeGraph>;
+using CompositorNodeGraphWeakPtr = std::weak_ptr<CompositorNodeGraph>;
 using CompositorNodeGraphConstPtr = std::shared_ptr<const CompositorNodeGraph>;
 
 // Node Types

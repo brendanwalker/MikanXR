@@ -40,7 +40,7 @@ namespace MikanXR
 		public MikanVector3f charuco_mount_offset_mm;
 		public int utility_marker_id;
 		public List<int> tracking_mount_ids;
-		public MikanMatrix4f vr_device_pose_offset;
+		public MikanMatrix4f vr_space_to_stage_space;
 		public MikanTrackingSpace display_tracking_space;
 	};
 

@@ -81,13 +81,15 @@ void ClientTextureSourceComponent::setDefinition(MikanComponentDefinitionPtr def
 
 IMkTexturePtr ClientTextureSourceComponent::getClientColorSourceTexture(
 	MikanCameraID cameraId,
-	eTextureSourceColorType textureSourceColorType) const
+	eTextureSourceColorType textureSourceColorType,
+	int64_t frameIndex) const
 {
 	auto* clientSourceManager = getClientSourceManager();
 
 	if (clientSourceManager != nullptr)
 	{
-		return clientSourceManager->getClientColorSourceTexture(getClientSourceName(), cameraId, textureSourceColorType);
+		return clientSourceManager->getClientColorSourceTexture(
+			getClientSourceName(), cameraId, textureSourceColorType, frameIndex);
 	}
 
 	return IMkTexturePtr();
@@ -95,13 +97,15 @@ IMkTexturePtr ClientTextureSourceComponent::getClientColorSourceTexture(
 
 IMkTexturePtr ClientTextureSourceComponent::getClientDepthSourceTexture(
 	MikanCameraID cameraId,
-	eTextureSourceDepthType depthTextureType) const
+	eTextureSourceDepthType depthTextureType,
+	int64_t frameIndex) const
 {
 	auto* clientSourceManager = getClientSourceManager();
 
 	if (clientSourceManager != nullptr)
 	{
-		return clientSourceManager->getClientDepthSourceTexture(getClientSourceName(), cameraId, depthTextureType);
+		return clientSourceManager->getClientDepthSourceTexture(
+			getClientSourceName(), cameraId, depthTextureType, frameIndex);
 	}
 
 	return IMkTexturePtr();

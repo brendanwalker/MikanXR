@@ -13,6 +13,8 @@ namespace MikanXR
 	public class MikanStageComponentValues : MikanTransformComponentValues
 	{
 		public int tracking_volume_id;
+		public MikanVector3f stage_bounds_min;
+		public MikanVector3f stage_bounds_max;
 	};
 
 }

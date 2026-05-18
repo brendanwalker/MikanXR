@@ -35,7 +35,7 @@ export class MikanVRTrackingVolumeComponentValues extends MikanTrackingVolumeCom
   charuco_mount_offset_mm: MikanVector3f = new MikanVector3f();
   utility_marker_id: number = -1;
   tracking_mount_ids: number[] = [];
-  vr_device_pose_offset: MikanMatrix4f = new MikanMatrix4f();
+  vr_space_to_stage_space: MikanMatrix4f = new MikanMatrix4f();
   display_tracking_space: MikanTrackingSpace = MikanTrackingSpace.INVALID;
 
   static __serializationMetadata: SerializationField[] = [
@@ -44,7 +44,7 @@ export class MikanVRTrackingVolumeComponentValues extends MikanTrackingVolumeCom
     { name: 'charuco_mount_offset_mm', type: 'MikanVector3f' },
     { name: 'utility_marker_id', type: 'int32' },
     { name: 'tracking_mount_ids', type: 'int32', isArray: true },
-    { name: 'vr_device_pose_offset', type: 'MikanMatrix4f' },
+    { name: 'vr_space_to_stage_space', type: 'MikanMatrix4f' },
     { name: 'display_tracking_space', type: 'enum:MikanTrackingSpace' }
   ];
 }

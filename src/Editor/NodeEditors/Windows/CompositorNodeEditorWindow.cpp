@@ -37,9 +37,6 @@ bool CompositorNodeEditorWindow::bindCompositorComponent(CompositorComponentPtr 
 	assert(compositorComponent);
 	m_compositorComponent = compositorComponent;
 
-	// Tell the frame compositor to create a texture for the editor compositor to write to
-	m_compositorComponent->setCompositorEvaluatorWindow(eCompositorEvaluatorWindow::editorWindow);
-
 	// Load the graph from the asset path on the main window's frame compositor (if any)
 	auto graphAssetPath = m_compositorComponent->getCompositorDefinition()->getCompositorGraphPath();
 	if (!graphAssetPath.empty() && !loadGraph(graphAssetPath))
@@ -58,6 +55,9 @@ bool CompositorNodeEditorWindow::bindCompositorComponent(CompositorComponentPtr 
 		std::static_pointer_cast<CompositorNodeGraph>(m_editorState.nodeGraph);
 	compositorNodeGraph->bindToCompositorComponent(m_compositorComponent);
 
+	// Tell the compositor component about the node graph it's bound to
+	m_compositorComponent->setEditorCompositorNodeGraph(compositorNodeGraph);
+
 	return true;
 }
 
@@ -69,18 +69,7 @@ void CompositorNodeEditorWindow::update(float deltaSeconds)
 	{
 		if (m_compositorComponent != nullptr)
 		{
-			CameraComponentPtr cameraComponent = m_compositorComponent->getCameraComponent();
-
-			NodeEvaluator evaluator = {};
-			evaluator
-				.setCurrentGraphicsContext(getGraphicsContext().get())
-				.setDeltaSeconds(deltaSeconds);
-
-			auto node_graph = std::static_pointer_cast<CompositorNodeGraph>(m_editorState.nodeGraph);
-			if (!node_graph->compositeFrame(evaluator))
-			{
-				m_lastNodeEvalErrors = evaluator.getErrors();
-			}
+			m_lastNodeEvalErrors = m_compositorComponent->getLastNodeEvalErrors();
 		}
 	}
 
@@ -92,7 +81,7 @@ void CompositorNodeEditorWindow::shutdown()
 	// Tell the frame compositor to free the editor compositor texture
 	if (m_compositorComponent)
 	{
-		m_compositorComponent->setCompositorEvaluatorWindow(eCompositorEvaluatorWindow::mainWindow);
+		m_compositorComponent->setEditorCompositorNodeGraph(nullptr);
 		m_compositorComponent = nullptr;
 	}
 
@@ -103,16 +92,6 @@ void CompositorNodeEditorWindow::shutdown()
 NodeGraphFactoryPtr CompositorNodeEditorWindow::getNodeGraphFactory() const
 {
 	return std::make_shared<CompositorNodeGraphFactory>();
-}
-
-void CompositorNodeEditorWindow::onNodeGraphCreated()
-{
-	NodeEditorWindow::onNodeGraphCreated();
-
-	// Point the compositor to the editor window writable compositor texture shared from the main window
-	// This will allow the main window to editor compositor graph changes in real time
-	auto nodeGraph = std::static_pointer_cast<CompositorNodeGraph>(m_editorState.nodeGraph);
-	nodeGraph->setExternalCompositedFrameTexture(m_compositorComponent->getEditorWritableFrameTexture());
 }
 
 bool CompositorNodeEditorWindow::saveGraph(bool bShowFileDialog)

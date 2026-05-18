@@ -55,6 +55,7 @@ using IMkStaticMeshInstanceConstPtr = std::shared_ptr<const IMkStaticMeshInstanc
 
 class IMkTexture;
 using IMkTexturePtr = std::shared_ptr<IMkTexture>;
+using IMkTextureWeakPtr = std::weak_ptr<IMkTexture>;
 using IMkTextureConstPtr = std::shared_ptr<const IMkTexture>;
 
 class IMkExternalTexture;
