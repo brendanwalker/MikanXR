@@ -177,6 +177,12 @@ const std::vector<bool>& MikanVariant::getBoolArrayValue() const
 	return value_ptr.getTypedPointer<MikanBoolArrayValue>()->value.getVector();
 }
 
+const std::vector<uint8_t>& MikanVariant::getUByteArrayValue() const
+{
+	assert(value_type == MikanVariantType::UBYTE_ARRAY);
+	return value_ptr.getTypedPointer<MikanUByteArrayValue>()->value;
+}
+
 const std::vector<int>& MikanVariant::getIntArrayValue() const
 {
 	assert(value_type == MikanVariantType::INT_ARRAY);
@@ -260,6 +266,9 @@ void MikanVariant::setValue(const MikanVariant& other)
 	case MikanVariantType::BOOL_ARRAY:
 		setValue(other.getBoolArrayValue());
 		break;
+	case MikanVariantType::UBYTE_ARRAY:
+		setValue(other.getUByteArrayValue());
+		break;
 	case MikanVariantType::INT_ARRAY:
 		setValue(other.getIntArrayValue());
 		break;
@@ -326,6 +335,14 @@ void MikanVariant::setValue(const std::vector<bool>& value)
 		value_ptr.allocatedByType<MikanBoolArrayValue>()->value.getVectorMutable();
 
 	value_type = MikanVariantType::BOOL_ARRAY;
+	value_array = value;
+}
+
+void MikanVariant::setValue(const std::vector<uint8_t>& value)
+{
+	std::vector<uint8_t>& value_array =
+		value_ptr.allocatedByType<MikanUByteArrayValue>()->value;
+	value_type = MikanVariantType::UBYTE_ARRAY;
 	value_array = value;
 }
 

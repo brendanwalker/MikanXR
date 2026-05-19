@@ -12,6 +12,16 @@ export enum MikanMarkerDictionaryType {
   DICT_7x7 = 3
 }
 
+export class MikanMarkerComponentValues extends MikanComponentValues {
+  aruco_id: number = -1;
+  length_mm: number = 0;
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'aruco_id', type: 'int32' },
+    { name: 'length_mm', type: 'float' }
+  ];
+}
+
 export class MikanMarkerSystemValues extends MikanSystemValues {
   aruco_id_list: number[] = [];
   aruco_dictionary_type: MikanMarkerDictionaryType = MikanMarkerDictionaryType.INVALID;
@@ -29,16 +39,6 @@ export class MikanMarkerSystemValues extends MikanSystemValues {
     { name: 'charuco_square_length_mm', type: 'float' },
     { name: 'charuco_marker_length_mm', type: 'float' },
     { name: 'charuco_dictionary_type', type: 'enum:MikanMarkerDictionaryType' }
-  ];
-}
-
-export class MikanMarkerComponentValues extends MikanComponentValues {
-  aruco_id: number = -1;
-  length_mm: number = 0;
-
-  static __serializationMetadata: SerializationField[] = [
-    { name: 'aruco_id', type: 'int32' },
-    { name: 'length_mm', type: 'float' }
   ];
 }
 

@@ -4,43 +4,14 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	public class MikanRGBPixelGridCreatedEvent : MikanEvent
-	{
-		public int grid_id;
-
-		public MikanRGBPixelGridCreatedEvent()
-		{
-			eventTypeName = "MikanRGBPixelGridCreatedEvent";
-		}
-	};
-
-	public class MikanRGBPixelGridDeletedEvent : MikanEvent
-	{
-		public int grid_id;
-
-		public MikanRGBPixelGridDeletedEvent()
-		{
-			eventTypeName = "MikanRGBPixelGridDeletedEvent";
-		}
-	};
-
-	public class MikanRGBSpotLightCreatedEvent : MikanEvent
+	public class MikanLightDMXDataChangedEvent : MikanEvent
 	{
 		public int light_id;
+		public MikanDMXData dmx_data;
 
-		public MikanRGBSpotLightCreatedEvent()
+		public MikanLightDMXDataChangedEvent()
 		{
-			eventTypeName = "MikanRGBSpotLightCreatedEvent";
-		}
-	};
-
-	public class MikanRGBSpotLightDeletedEvent : MikanEvent
-	{
-		public int light_id;
-
-		public MikanRGBSpotLightDeletedEvent()
-		{
-			eventTypeName = "MikanRGBSpotLightDeletedEvent";
+			eventTypeName = "MikanLightDMXDataChangedEvent";
 		}
 	};
 

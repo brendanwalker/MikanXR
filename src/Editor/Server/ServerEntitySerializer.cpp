@@ -41,7 +41,11 @@ namespace Serialization
 							templateClassInstanceType->getTemplateArgumentAt(0));
 					rfk::Type const& elementType = templateArg.getType();
 
-					if (elementType == rfk::getType<int>())
+					if (elementType == rfk::getType<uint8_t>())
+					{
+						visitUByteList(accessor);
+					}
+					else if (elementType == rfk::getType<int>())
 					{
 						visitIntList(accessor);
 					}
@@ -122,6 +126,28 @@ namespace Serialization
 				throw std::runtime_error(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitBoolList() ",
 						"Missing valid BoolList for", arrayAccessor.getName()));
+			}
+		}
+
+		void visitUByteList(ValueAccessor const& arrayAccessor)
+		{
+			auto* destArray =
+				reinterpret_cast<Serialization::List<uint8_t> *>(
+					arrayAccessor.getUntypedValueMutablePtr());
+
+			MikanVariant sourcePropertyValue;
+			if (m_entityAccessor->getPropertyValue(arrayAccessor.getName(), sourcePropertyValue) &&
+				sourcePropertyValue.value_type == MikanVariantType::UBYTE_ARRAY)
+			{
+				const std::vector<uint8_t>& sourceArray = sourcePropertyValue.getUByteArrayValue();
+
+				destArray->assign(sourceArray.begin(), sourceArray.end());
+			}
+			else
+			{
+				throw std::runtime_error(
+					StringUtils::stringify("EntityAccessorReadVisitor::visitUByteList() ",
+						"Missing valid UByteList for", arrayAccessor.getName()));
 			}
 		}
 

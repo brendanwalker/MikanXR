@@ -84,20 +84,20 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanRG
 	static const char* k_ownerSystemName;
 
 	FIELD()
-	uint8_t red = 0;
+		uint8_t red = 0;
 
 	FIELD()
-	uint8_t green = 0;
+		uint8_t green = 0;
 
 	FIELD()
-	uint8_t blue = 0;
+		uint8_t blue = 0;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanRGBSpotLightComponentValues_GENERATED
 #endif
 };
 
-/// Pixel grid values — pixel data is NOT included (use SetRGBPixelGridData request for bulk writes).
+/// Pixel grid values — pixel data is NOT included (use SetLightDMXData request for bulk writes).
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanRGBPixelGridComponentValues :
 	public MikanDMXFixtureComponentValues
 {
@@ -112,6 +112,16 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanRG
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanRGBPixelGridComponentValues_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanDMXData
+{
+	FIELD()
+	Serialization::List<uint8_t> channel_data;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanDMXData_GENERATED
 #endif
 };
 

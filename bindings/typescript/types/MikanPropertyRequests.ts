@@ -12,6 +12,23 @@ export enum MikanPropertyNotifyMode {
   NAME_AND_VALUE = 2
 }
 
+export class ComponentGetValuesResponse extends MikanResponse {
+  ownerSystem: string = '';
+  componentClassName: string = '';
+  valuesObject: PolymorphicObject = new PolymorphicObject();
+
+  constructor() {
+    super();
+    this.responseTypeName = 'ComponentGetValuesResponse';
+  }
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'ownerSystem', type: 'string' },
+    { name: 'componentClassName', type: 'string' },
+    { name: 'valuesObject', type: 'PolymorphicObject' }
+  ];
+}
+
 export class PropertySetValueRequest extends MikanRequest {
   ownerSystem: string = '';
   componentId: number = -1;
@@ -28,38 +45,6 @@ export class PropertySetValueRequest extends MikanRequest {
     { name: 'componentId', type: 'int32' },
     { name: 'fieldName', type: 'string' },
     { name: 'fieldValue', type: 'MikanVariant' }
-  ];
-}
-
-export class SystemGetValuesResponse extends MikanResponse {
-  ownerSystem: string = '';
-  valuesObject: PolymorphicObject = new PolymorphicObject();
-
-  constructor() {
-    super();
-    this.responseTypeName = 'SystemGetValuesResponse';
-  }
-
-  static __serializationMetadata: SerializationField[] = [
-    { name: 'ownerSystem', type: 'string' },
-    { name: 'valuesObject', type: 'PolymorphicObject' }
-  ];
-}
-
-export class ComponentGetValuesResponse extends MikanResponse {
-  ownerSystem: string = '';
-  componentClassName: string = '';
-  valuesObject: PolymorphicObject = new PolymorphicObject();
-
-  constructor() {
-    super();
-    this.responseTypeName = 'ComponentGetValuesResponse';
-  }
-
-  static __serializationMetadata: SerializationField[] = [
-    { name: 'ownerSystem', type: 'string' },
-    { name: 'componentClassName', type: 'string' },
-    { name: 'valuesObject', type: 'PolymorphicObject' }
   ];
 }
 
@@ -227,6 +212,21 @@ export class ComponentListResponse extends MikanResponse {
 
   static __serializationMetadata: SerializationField[] = [
     { name: 'componentIdList', type: 'int32', isArray: true }
+  ];
+}
+
+export class SystemGetValuesResponse extends MikanResponse {
+  ownerSystem: string = '';
+  valuesObject: PolymorphicObject = new PolymorphicObject();
+
+  constructor() {
+    super();
+    this.responseTypeName = 'SystemGetValuesResponse';
+  }
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'ownerSystem', type: 'string' },
+    { name: 'valuesObject', type: 'PolymorphicObject' }
   ];
 }
 

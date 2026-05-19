@@ -4,130 +4,46 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
-	public class CreateRGBPixelGrid : MikanRequest
-	{
-
-		public CreateRGBPixelGrid()
-		{
-			requestTypeName = "CreateRGBPixelGrid";
-		}
-	};
-
-	public class CreateRGBSpotLight : MikanRequest
-	{
-
-		public CreateRGBSpotLight()
-		{
-			requestTypeName = "CreateRGBSpotLight";
-		}
-	};
-
-	public class DestroyRGBPixelGrid : MikanRequest
-	{
-		public int grid_id;
-
-		public DestroyRGBPixelGrid()
-		{
-			requestTypeName = "DestroyRGBPixelGrid";
-		}
-	};
-
-	public class DestroyRGBSpotLight : MikanRequest
+	public class GetLightDMXData : MikanRequest
 	{
 		public int light_id;
 
-		public DestroyRGBSpotLight()
+		public GetLightDMXData()
 		{
-			requestTypeName = "DestroyRGBSpotLight";
+			requestTypeName = "GetLightDMXData";
 		}
 	};
 
-	public class GetRGBPixelGrid : MikanRequest
-	{
-		public int grid_id;
-
-		public GetRGBPixelGrid()
-		{
-			requestTypeName = "GetRGBPixelGrid";
-		}
-	};
-
-	public class GetRGBPixelGridList : MikanRequest
-	{
-
-		public GetRGBPixelGridList()
-		{
-			requestTypeName = "GetRGBPixelGridList";
-		}
-	};
-
-	public class GetRGBSpotLight : MikanRequest
+	public class MikanLightDMXDataResponse : MikanResponse
 	{
 		public int light_id;
+		public MikanDMXData dmx_data;
 
-		public GetRGBSpotLight()
+		public MikanLightDMXDataResponse()
 		{
-			requestTypeName = "GetRGBSpotLight";
+			responseTypeName = "MikanLightDMXDataResponse";
 		}
 	};
 
-	public class GetRGBSpotLightList : MikanRequest
+	public class SetLightDMXData : MikanRequest
 	{
+		public int light_id;
+		public MikanDMXData dmx_data;
 
-		public GetRGBSpotLightList()
+		public SetLightDMXData()
 		{
-			requestTypeName = "GetRGBSpotLightList";
+			requestTypeName = "SetLightDMXData";
 		}
 	};
 
-	public class MikanRGBPixelGridListResponse : MikanResponse
+	public class SetLightDMXDataSubcription : MikanRequest
 	{
-		public List<int> grid_ids;
+		public int light_id;
+		public bool subscribe;
 
-		public MikanRGBPixelGridListResponse()
+		public SetLightDMXDataSubcription()
 		{
-			responseTypeName = "MikanRGBPixelGridListResponse";
-		}
-	};
-
-	public class MikanRGBPixelGridResponse : MikanResponse
-	{
-		public MikanRGBPixelGridComponentValues grid_info;
-
-		public MikanRGBPixelGridResponse()
-		{
-			responseTypeName = "MikanRGBPixelGridResponse";
-		}
-	};
-
-	public class MikanRGBSpotLightListResponse : MikanResponse
-	{
-		public List<int> light_ids;
-
-		public MikanRGBSpotLightListResponse()
-		{
-			responseTypeName = "MikanRGBSpotLightListResponse";
-		}
-	};
-
-	public class MikanRGBSpotLightResponse : MikanResponse
-	{
-		public MikanRGBSpotLightComponentValues light_info;
-
-		public MikanRGBSpotLightResponse()
-		{
-			responseTypeName = "MikanRGBSpotLightResponse";
-		}
-	};
-
-	public class SetRGBPixelGridData : MikanRequest
-	{
-		public int grid_id;
-		public List<byte> pixel_data;
-
-		public SetRGBPixelGridData()
-		{
-			requestTypeName = "SetRGBPixelGridData";
+			requestTypeName = "SetLightDMXDataSubcription";
 		}
 	};
 

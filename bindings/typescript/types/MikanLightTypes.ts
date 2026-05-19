@@ -4,6 +4,14 @@ import { MikanSystemValues } from './MikanPropertyTypes.js';
 import { MikanTransformComponentValues } from './MikanTransformTypes.js';
 import type { SerializationField } from './SerializationTypes.js';
 
+export class MikanDMXData {
+  channel_data: number[] = [];
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'channel_data', type: 'uint8', isArray: true }
+  ];
+}
+
 export class MikanDMXObjectSystemValues extends MikanSystemValues {
   network_interface_ip: string = '';
   dmx_priority: number = 100;

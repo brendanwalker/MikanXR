@@ -4,6 +4,11 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
+	public class MikanDMXData
+	{
+		public List<byte> channel_data;
+	};
+
 	public class MikanDMXFixtureComponentValues : MikanTransformComponentValues
 	{
 		public ushort dmx_universe;

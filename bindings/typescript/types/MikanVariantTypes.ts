@@ -22,11 +22,12 @@ export enum MikanVariantType {
   VECTOR4D_TYPE = 14,
   QUATERNIOND_TYPE = 15,
   BOOL_ARRAY_TYPE = 16,
-  INT_ARRAY_TYPE = 17,
-  FLOAT_ARRAY_TYPE = 18,
-  STRING_ARRAY_TYPE = 19,
-  STRING_MAP_TYPE = 20,
-  POLYMORPHIC_OBJECT_TYPE = 21
+  UBYTE_ARRAY_TYPE = 17,
+  INT_ARRAY_TYPE = 18,
+  FLOAT_ARRAY_TYPE = 19,
+  STRING_ARRAY_TYPE = 20,
+  STRING_MAP_TYPE = 21,
+  POLYMORPHIC_OBJECT_TYPE = 22
 }
 
 export class MikanVariantBase extends PolymorphicStruct {
@@ -178,6 +179,14 @@ export class MikanBoolArrayValue extends MikanVariantBase {
 
   static __serializationMetadata: SerializationField[] = [
     { name: 'value', type: 'boolean' }
+  ];
+}
+
+export class MikanUByteArrayValue extends MikanVariantBase {
+  value: number[] = [];
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'value', type: 'uint8', isArray: true }
   ];
 }
 

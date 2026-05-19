@@ -10,209 +10,77 @@
 #include "MikanLightRequests.rfkh.h"
 #endif
 
-// -- RGB Spot Light Requests --
-
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) CreateRGBSpotLight :
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) SetLightDMXDataSubcription :
 	public MikanRequest
 {
-	CreateRGBSpotLight()
+	SetLightDMXDataSubcription()
 	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(CreateRGBSpotLight)
+		MIKAN_REQUEST_TYPE_INFO_INIT(SetLightDMXDataSubcription)
 	}
 
+	FIELD()
+	MikanLightID light_id = INVALID_MIKAN_ID;
+
+	FIELD()
+	bool subscribe = false;
+
 #ifdef MIKANAPI_REFLECTION_ENABLED
-	CreateRGBSpotLight_GENERATED
+	SetLightDMXDataSubcription_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) DestroyRGBSpotLight :
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) SetLightDMXData :
 	public MikanRequest
 {
-	DestroyRGBSpotLight()
+	SetLightDMXData()
 	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(DestroyRGBSpotLight)
+		MIKAN_REQUEST_TYPE_INFO_INIT(SetLightDMXData)
+	}
+
+	FIELD()
+	MikanLightID light_id = INVALID_MIKAN_ID;
+
+	FIELD()
+	MikanDMXData dmx_data;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	SetLightDMXData_GENERATED
+#endif
+};
+
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) GetLightDMXData :
+	public MikanRequest
+{
+	GetLightDMXData()
+	{
+		MIKAN_REQUEST_TYPE_INFO_INIT(GetLightDMXData)
 	}
 
 	FIELD()
 	MikanLightID light_id = INVALID_MIKAN_ID;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
-	DestroyRGBSpotLight_GENERATED
+	GetLightDMXData_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) GetRGBSpotLightList :
-	public MikanRequest
-{
-	GetRGBSpotLightList()
-	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(GetRGBSpotLightList)
-	}
-
-#ifdef MIKANAPI_REFLECTION_ENABLED
-	GetRGBSpotLightList_GENERATED
-#endif
-};
-
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) MikanRGBSpotLightListResponse :
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) MikanLightDMXDataResponse :
 	public MikanResponse
 {
-	MikanRGBSpotLightListResponse()
+	MikanLightDMXDataResponse()
 	{
-		MIKAN_RESPONSE_TYPE_INFO_INIT(MikanRGBSpotLightListResponse)
-	}
-
-	FIELD()
-	Serialization::List<MikanLightID> light_ids;
-
-#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanRGBSpotLightListResponse_GENERATED
-#endif
-};
-
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) GetRGBSpotLight :
-	public MikanRequest
-{
-	GetRGBSpotLight()
-	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(GetRGBSpotLight)
+		MIKAN_RESPONSE_TYPE_INFO_INIT(MikanLightDMXDataResponse)
 	}
 
 	FIELD()
 	MikanLightID light_id = INVALID_MIKAN_ID;
 
-#ifdef MIKANAPI_REFLECTION_ENABLED
-	GetRGBSpotLight_GENERATED
-#endif
-};
-
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) MikanRGBSpotLightResponse :
-	public MikanResponse
-{
-	MikanRGBSpotLightResponse()
-	{
-		MIKAN_RESPONSE_TYPE_INFO_INIT(MikanRGBSpotLightResponse)
-	}
-
 	FIELD()
-	MikanRGBSpotLightComponentValues light_info;
+	MikanDMXData dmx_data;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanRGBSpotLightResponse_GENERATED
-#endif
-};
-
-// -- RGB Pixel Grid Requests --
-
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) CreateRGBPixelGrid :
-	public MikanRequest
-{
-	CreateRGBPixelGrid()
-	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(CreateRGBPixelGrid)
-	}
-
-#ifdef MIKANAPI_REFLECTION_ENABLED
-	CreateRGBPixelGrid_GENERATED
-#endif
-};
-
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) DestroyRGBPixelGrid :
-	public MikanRequest
-{
-	DestroyRGBPixelGrid()
-	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(DestroyRGBPixelGrid)
-	}
-
-	FIELD()
-	MikanLightID grid_id = INVALID_MIKAN_ID;
-
-#ifdef MIKANAPI_REFLECTION_ENABLED
-	DestroyRGBPixelGrid_GENERATED
-#endif
-};
-
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) GetRGBPixelGridList :
-	public MikanRequest
-{
-	GetRGBPixelGridList()
-	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(GetRGBPixelGridList)
-	}
-
-#ifdef MIKANAPI_REFLECTION_ENABLED
-	GetRGBPixelGridList_GENERATED
-#endif
-};
-
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) MikanRGBPixelGridListResponse :
-	public MikanResponse
-{
-	MikanRGBPixelGridListResponse()
-	{
-		MIKAN_RESPONSE_TYPE_INFO_INIT(MikanRGBPixelGridListResponse)
-	}
-
-	FIELD()
-	Serialization::List<MikanLightID> grid_ids;
-
-#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanRGBPixelGridListResponse_GENERATED
-#endif
-};
-
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) GetRGBPixelGrid :
-	public MikanRequest
-{
-	GetRGBPixelGrid()
-	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(GetRGBPixelGrid)
-	}
-
-	FIELD()
-	MikanLightID grid_id = INVALID_MIKAN_ID;
-
-#ifdef MIKANAPI_REFLECTION_ENABLED
-	GetRGBPixelGrid_GENERATED
-#endif
-};
-
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) MikanRGBPixelGridResponse :
-	public MikanResponse
-{
-	MikanRGBPixelGridResponse()
-	{
-		MIKAN_RESPONSE_TYPE_INFO_INIT(MikanRGBPixelGridResponse)
-	}
-
-	FIELD()
-	MikanRGBPixelGridComponentValues grid_info;
-
-#ifdef MIKANAPI_REFLECTION_ENABLED
-	MikanRGBPixelGridResponse_GENERATED
-#endif
-};
-
-/// Bulk pixel write — bypasses the property system for performance.
-/// pixel_data is a flat array of R,G,B triples in row-major order.
-/// The count must match grid_columns * grid_rows * 3.
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) SetRGBPixelGridData :
-	public MikanRequest
-{
-	SetRGBPixelGridData()
-	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(SetRGBPixelGridData)
-	}
-
-	FIELD()
-	MikanLightID grid_id = INVALID_MIKAN_ID;
-
-	FIELD()
-	Serialization::List<uint8_t> pixel_data;
-
-#ifdef MIKANAPI_REFLECTION_ENABLED
-	SetRGBPixelGridData_GENERATED
+	MikanLightDMXDataResponse_GENERATED
 #endif
 };
 
