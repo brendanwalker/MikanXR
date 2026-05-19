@@ -1,6 +1,7 @@
 #include "RGBSpotLightComponent.h"
 #include "Colors.h"
 #include "DMXFixtureComponent.h"
+#include "DMXObjectSystem.h"
 #include "IDMXManager.h"
 #include "MikanLineRenderer.h"
 #include "MikanObject.h"
@@ -64,24 +65,44 @@ void RGBSpotLightComponent::init()
 
 void RGBSpotLightComponent::setRed(uint8_t v)
 {
-	m_red = v;
+	if (v != m_red)
+	{
+		m_red = v;
+
+		notifyDMXDataChanged();
+	}
 }
 
 void RGBSpotLightComponent::setGreen(uint8_t v)
 {
-	m_green = v;
+	if (v != m_green)
+	{
+		m_green = v;
+
+		notifyDMXDataChanged();
+	}
 }
 
 void RGBSpotLightComponent::setBlue(uint8_t v)
 {
-	m_blue = v;
+	if (v != m_blue)
+	{
+		m_blue = v;
+
+		notifyDMXDataChanged();
+	}
 }
 
 void RGBSpotLightComponent::setRGB(uint8_t r, uint8_t g, uint8_t b)
 {
-	m_red = r;
-	m_green = g;
-	m_blue = b;
+	if (r != m_red || g != m_green || b != m_blue)
+	{
+		m_red = r;
+		m_green = g;
+		m_blue = b;
+
+		notifyDMXDataChanged();
+	}
 }
 
 void RGBSpotLightComponent::sendDMXData(IDMXManager* manager) const
@@ -95,6 +116,23 @@ void RGBSpotLightComponent::sendDMXData(IDMXManager* manager) const
 		def->getDMXUniverse(),
 		def->getDMXStartChannel(),
 		rgb, 3);
+}
+
+void RGBSpotLightComponent::getDMXData(MikanDMXData& outData) const
+{
+	outData.channel_data.clear();
+	outData.channel_data.push_back(m_red);
+	outData.channel_data.push_back(m_green);
+	outData.channel_data.push_back(m_blue);
+}
+
+void RGBSpotLightComponent::setDMXData(const MikanDMXData& data)
+{
+	const auto& ch = data.channel_data;
+	const uint8_t r = ch.size() > 0 ? ch[0] : 0;
+	const uint8_t g = ch.size() > 1 ? ch[1] : 0;
+	const uint8_t b = ch.size() > 2 ? ch[2] : 0;
+	setRGB(r, g, b);
 }
 
 // -- IEntityAccessor --

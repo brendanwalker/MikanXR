@@ -78,6 +78,8 @@ public:
 
 	/// Write all pixel data across one or more E1.31 universes.
 	virtual void sendDMXData(IDMXManager* manager) const override;
+	virtual void getDMXData(MikanDMXData& outData) const override;
+	virtual void setDMXData(const MikanDMXData& data) override;
 
 	// -- IEntityAccessor --
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;

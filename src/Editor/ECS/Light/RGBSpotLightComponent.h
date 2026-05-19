@@ -63,6 +63,8 @@ public:
 	void setRGB(uint8_t r, uint8_t g, uint8_t b);
 
 	virtual void sendDMXData(IDMXManager* manager) const override;
+	virtual void getDMXData(MikanDMXData& outData) const override;
+	virtual void setDMXData(const MikanDMXData& data) override;
 
 	// -- IEntityAccessor --
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;

@@ -1,7 +1,10 @@
 #include "DMXFixtureComponent.h"
+#include "DMXObjectSystem.h"
 #include "MikanLightTypes.h"
 #include "MikanObject.h"
+#include "MikanObjectSystem.h"
 #include "MikanVariantTypes.h"
+#include "ProjectManager.h"
 #include "StringUtils.h"
 
 #include "lua.hpp"
@@ -104,6 +107,21 @@ void DMXFixtureComponentDefinition::setDMXChannelCount(uint16_t count)
 DMXFixtureComponent::DMXFixtureComponent(MikanObjectWeakPtr owner)
 	: TransformComponent(owner)
 {
+}
+
+void DMXFixtureComponent::init()
+{
+	TransformComponent::init();
+
+	m_dmxObjectSystem= getObjectSystemOfType<DMXObjectSystem>();
+}
+
+void DMXFixtureComponent::notifyDMXDataChanged()
+{
+	DMXObjectSystemPtr dmxSystem = m_dmxObjectSystem.lock();
+
+	if (dmxSystem)
+		dmxSystem->OnDMXDataChanged(getComponentId());
 }
 
 // -- IEntityAccessor --

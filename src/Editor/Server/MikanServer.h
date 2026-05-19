@@ -39,6 +39,7 @@ public:
 	inline class IInterprocessMessageServer* getMessageServer() { return m_messageServer; }
 	inline class CameraRequestHandler* getCameraRequestHandler() const { return m_cameraRequestHandler; }
 	inline class FunctionRequestHandler* getFunctionRequestHandler() const { return m_functionRequestHandler; }
+	inline class LightRequestHandler* getLightRequestHandler() const { return m_lightRequestHandler; }
 	inline class PropertyRequestHandler* getPropertyRequestHandler() const { return m_propertyRequestHandler; }
 	inline class ScriptRequestHandler* getScriptRequestHandler() const { return m_scriptRequestHandler; }
 	inline class RemoteControlManager* getRemoteControlManager() const { return m_remoteControlManager; }
@@ -84,6 +85,7 @@ private:
 
 	class CameraRequestHandler* m_cameraRequestHandler;
 	class FunctionRequestHandler* m_functionRequestHandler;
+	class LightRequestHandler* m_lightRequestHandler;
 	class PropertyRequestHandler* m_propertyRequestHandler;
 	class RemoteControlManager* m_remoteControlManager;
 	class ScriptRequestHandler* m_scriptRequestHandler;

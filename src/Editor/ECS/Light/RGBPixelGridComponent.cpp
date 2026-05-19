@@ -1,6 +1,7 @@
 #include "RGBPixelGridComponent.h"
 #include "Colors.h"
 #include "IDMXManager.h"
+#include "DMXObjectSystem.h"
 #include "MikanLineRenderer.h"
 #include "MikanObject.h"
 #include "MikanTextRenderer.h"
@@ -142,6 +143,7 @@ void RGBPixelGridComponent::setAllPixels(const uint8_t* rgbData, int count)
 {
 	const int copyCount = std::min(count, static_cast<int>(m_pixelData.size()));
 	std::memcpy(m_pixelData.data(), rgbData, copyCount);
+	notifyDMXDataChanged();
 }
 
 void RGBPixelGridComponent::fillPixels(uint8_t r, uint8_t g, uint8_t b)
@@ -152,6 +154,8 @@ void RGBPixelGridComponent::fillPixels(uint8_t r, uint8_t g, uint8_t b)
 		m_pixelData[i + 1] = g;
 		m_pixelData[i + 2] = b;
 	}
+
+	notifyDMXDataChanged();
 }
 
 void RGBPixelGridComponent::sendDMXData(IDMXManager* manager) const
@@ -191,6 +195,17 @@ void RGBPixelGridComponent::sendDMXData(IDMXManager* manager) const
 		pixelDataOffset   += chunkSize;
 		channelsRemaining -= chunkSize;
 	}
+}
+
+void RGBPixelGridComponent::getDMXData(MikanDMXData& outData) const
+{
+	outData.channel_data.assign(m_pixelData.begin(), m_pixelData.end());
+}
+
+void RGBPixelGridComponent::setDMXData(const MikanDMXData& data)
+{
+	const auto& ch = data.channel_data;
+	setAllPixels(ch.data(), static_cast<int>(ch.size()));
 }
 
 // -- IEntityAccessor --

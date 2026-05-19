@@ -67,6 +67,10 @@ public:
 	/// The DMX manager owned by this system. RGBPixelGridSystem borrows this pointer.
 	IDMXManager* getDMXManager() const { return m_dmxManager.get(); }
 
+	/// Fired whenever any light fixture's DMX channel data changes.
+	/// Parameter is the light's component ID (== MikanLightID).
+	MulticastDelegate<void(MikanLightID)> OnDMXDataChanged;
+
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
 
