@@ -276,6 +276,12 @@ file(GLOB MIKAN_ECS_VROBJECT_SRC
     "${CMAKE_CURRENT_LIST_DIR}/ECS/VRObject/*.h"
 )
 source_group("ECS\\VRObject" FILES ${MIKAN_ECS_VROBJECT_SRC})
+## Light
+file(GLOB MIKAN_ECS_LIGHT_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/ECS/Light/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/ECS/Light/*.h"
+)
+source_group("ECS\\Light" FILES ${MIKAN_ECS_LIGHT_SRC})
 ## Video Source
 file(GLOB MIKAN_ECS_VIDEO_SOURCE_SRC
     "${CMAKE_CURRENT_LIST_DIR}/ECS/VideoSource/*.cpp"
@@ -299,6 +305,7 @@ set(MIKAN_ECS_SRC
     ${MIKAN_ECS_TRACKINGVOLUME_SRC}
     ${MIKAN_ECS_VROBJECT_SRC}
     ${MIKAN_ECS_VIDEO_SOURCE_SRC}
+    ${MIKAN_ECS_LIGHT_SRC}
 )
 
 # Interprocess
@@ -470,6 +477,8 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/ECS/TrackingVolume
   ${CMAKE_CURRENT_LIST_DIR}/ECS/VRObject
   ${CMAKE_CURRENT_LIST_DIR}/ECS/VideoSource
+  ${CMAKE_CURRENT_LIST_DIR}/ECS/Light
+  ${MIKAN_LIBRARIES_DIR}/MikanDMX/Public
   ${CMAKE_CURRENT_LIST_DIR}/Interprocess
   ${CMAKE_CURRENT_LIST_DIR}/Localization
   ${CMAKE_CURRENT_LIST_DIR}/Math
@@ -532,6 +541,7 @@ list(APPEND MIKAN_REQ_LIBS
   MikanClientAPI
   MikanClientCore
   MikanCoreApp
+  MikanDMX
   MikanGUI
   MikanMath
   MikanRenderer

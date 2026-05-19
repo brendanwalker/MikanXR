@@ -53,6 +53,10 @@ target_compile_definitions(MikanClientAPI PRIVATE ENABLE_MIKANCORE_REFLECTION)
 target_compile_definitions(MikanClientAPI PRIVATE ENABLE_SERIALIZATION_REFLECTION)
 target_compile_definitions(MikanClientAPI PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
 
+if(MSVC)
+  target_compile_options(MikanClientAPI PRIVATE /bigobj)
+endif()
+
 # Add dependencies
 add_dependencies(MikanClientAPI MikanClientCore)
 add_dependencies(MikanClientAPI MikanCoreApp)

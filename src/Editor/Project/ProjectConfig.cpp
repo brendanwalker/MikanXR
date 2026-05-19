@@ -4,6 +4,7 @@
 #include "CameraObjectSystem.h"
 #include "ClientTextureSourceSystem.h"
 #include "CompositorObjectSystem.h"
+#include "DMXObjectSystem.h"
 #include "EditorObjectSystem.h"
 #include "MathUtility.h"
 #include "MarkerObjectSystem.h"
@@ -14,6 +15,8 @@
 #include "ProjectConfigConstants.h"
 #include "PathUtils.h"
 #include "QuadStencilSystem.h"
+#include "RGBSpotLightSystem.h"
+#include "RGBPixelGridSystem.h"
 #include "SceneObjectSystem.h"
 #include "StageObjectSystem.h"
 #include "SpoutTextureSourceSystem.h"
@@ -57,6 +60,9 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	networkVideoSourceSystemConfig = addTypedDefinition<NetworkVideoSourceSystemDefinition, NetworkVideoSourceSystem>(persistentIDAllocator);
 	usbVideoSourceSystemConfig = addTypedDefinition<USBVideoSourceSystemDefinition, USBVideoSourceSystem>(persistentIDAllocator);
 	vrTrackingVolumeConfig = addTypedDefinition<VRTrackingVolumeSystemDefinition, VRTrackingVolumeSystem>(persistentIDAllocator);
+	dmxObjectSystemDefinition = addTypedDefinition<DMXObjectSystemDefinition, DMXObjectSystem>(persistentIDAllocator);
+	rgbSpotLightSystemDefinition = addTypedDefinition<RGBSpotLightSystemDefinition, RGBSpotLightSystem>(persistentIDAllocator);
+	rgbPixelGridSystemDefinition = addTypedDefinition<RGBPixelGridSystemDefinition, RGBPixelGridSystem>(persistentIDAllocator);
 
 	// Create object system definitions for the runtime only components, using the transient ID allocator
 	vrObjectConfig = addTypedDefinition<VRObjectSystemDefinition, VRObjectSystem>(transientIDAllocator);
@@ -104,8 +110,6 @@ void ProjectConfig::readFromJSON(const configuru::Config& pt)
 			}
 		}
 	}
-
-	
 
 	// Mark the component ID allocator as safe to allocate 
 	persistentIDAllocator->markSafeToAllocate();

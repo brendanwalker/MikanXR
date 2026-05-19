@@ -12,22 +12,37 @@ export enum MikanPropertyNotifyMode {
   NAME_AND_VALUE = 2
 }
 
-export class SetPropertyNotifyMode extends MikanRequest {
-  systemFilter: string = '';
-  componentFilter: string = '';
-  propertyFilter: string = '';
-  notifyMode: MikanPropertyNotifyMode = MikanPropertyNotifyMode.NONE;
+export class PropertySetValueRequest extends MikanRequest {
+  ownerSystem: string = '';
+  componentId: number = -1;
+  fieldName: string = '';
+  fieldValue: MikanVariant = new MikanVariant();
 
   constructor() {
     super();
-    this.requestTypeName = 'SetPropertyNotifyMode';
+    this.requestTypeName = 'PropertySetValueRequest';
   }
 
   static __serializationMetadata: SerializationField[] = [
-    { name: 'systemFilter', type: 'string' },
-    { name: 'componentFilter', type: 'string' },
-    { name: 'propertyFilter', type: 'string' },
-    { name: 'notifyMode', type: 'enum:MikanPropertyNotifyMode' }
+    { name: 'ownerSystem', type: 'string' },
+    { name: 'componentId', type: 'int32' },
+    { name: 'fieldName', type: 'string' },
+    { name: 'fieldValue', type: 'MikanVariant' }
+  ];
+}
+
+export class SystemGetValuesResponse extends MikanResponse {
+  ownerSystem: string = '';
+  valuesObject: PolymorphicObject = new PolymorphicObject();
+
+  constructor() {
+    super();
+    this.responseTypeName = 'SystemGetValuesResponse';
+  }
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'ownerSystem', type: 'string' },
+    { name: 'valuesObject', type: 'PolymorphicObject' }
   ];
 }
 
@@ -48,42 +63,6 @@ export class ComponentGetValuesResponse extends MikanResponse {
   ];
 }
 
-export class SystemCreateObjectRequest extends MikanRequest {
-  ownerSystem: string = '';
-  componentClassName: string = '';
-  initParams: PolymorphicObject = new PolymorphicObject();
-
-  constructor() {
-    super();
-    this.requestTypeName = 'SystemCreateObjectRequest';
-  }
-
-  static __serializationMetadata: SerializationField[] = [
-    { name: 'ownerSystem', type: 'string' },
-    { name: 'componentClassName', type: 'string' },
-    { name: 'initParams', type: 'PolymorphicObject' }
-  ];
-}
-
-export class PropertySetValueRequest extends MikanRequest {
-  ownerSystem: string = '';
-  componentId: number = -1;
-  fieldName: string = '';
-  fieldValue: MikanVariant = new MikanVariant();
-
-  constructor() {
-    super();
-    this.requestTypeName = 'PropertySetValueRequest';
-  }
-
-  static __serializationMetadata: SerializationField[] = [
-    { name: 'ownerSystem', type: 'string' },
-    { name: 'componentId', type: 'int32' },
-    { name: 'fieldName', type: 'string' },
-    { name: 'fieldValue', type: 'MikanVariant' }
-  ];
-}
-
 export class GetComponentListRequest extends MikanRequest {
   ownerSystem: string = '';
   componentClassName: string = '';
@@ -96,21 +75,6 @@ export class GetComponentListRequest extends MikanRequest {
   static __serializationMetadata: SerializationField[] = [
     { name: 'ownerSystem', type: 'string' },
     { name: 'componentClassName', type: 'string' }
-  ];
-}
-
-export class ComponentGetValuesRequest extends MikanRequest {
-  ownerSystem: string = '';
-  componentId: number = -1;
-
-  constructor() {
-    super();
-    this.requestTypeName = 'ComponentGetValuesRequest';
-  }
-
-  static __serializationMetadata: SerializationField[] = [
-    { name: 'ownerSystem', type: 'string' },
-    { name: 'componentId', type: 'int32' }
   ];
 }
 
@@ -131,6 +95,21 @@ export class PropertyGetValueRequest extends MikanRequest {
   ];
 }
 
+export class ComponentGetValuesRequest extends MikanRequest {
+  ownerSystem: string = '';
+  componentId: number = -1;
+
+  constructor() {
+    super();
+    this.requestTypeName = 'ComponentGetValuesRequest';
+  }
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'ownerSystem', type: 'string' },
+    { name: 'componentId', type: 'int32' }
+  ];
+}
+
 export class SystemGetValuesRequest extends MikanRequest {
   ownerSystem: string = '';
 
@@ -141,6 +120,23 @@ export class SystemGetValuesRequest extends MikanRequest {
 
   static __serializationMetadata: SerializationField[] = [
     { name: 'ownerSystem', type: 'string' }
+  ];
+}
+
+export class SystemCreateObjectRequest extends MikanRequest {
+  ownerSystem: string = '';
+  componentClassName: string = '';
+  initParams: PolymorphicObject = new PolymorphicObject();
+
+  constructor() {
+    super();
+    this.requestTypeName = 'SystemCreateObjectRequest';
+  }
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'ownerSystem', type: 'string' },
+    { name: 'componentClassName', type: 'string' },
+    { name: 'initParams', type: 'PolymorphicObject' }
   ];
 }
 
@@ -158,6 +154,25 @@ export class SystemDestroyObjectRequest extends MikanRequest {
     { name: 'ownerSystem', type: 'string' },
     { name: 'componentClassName', type: 'string' },
     { name: 'componentId', type: 'int32' }
+  ];
+}
+
+export class SetPropertyNotifyMode extends MikanRequest {
+  systemFilter: string = '';
+  componentFilter: string = '';
+  propertyFilter: string = '';
+  notifyMode: MikanPropertyNotifyMode = MikanPropertyNotifyMode.NONE;
+
+  constructor() {
+    super();
+    this.requestTypeName = 'SetPropertyNotifyMode';
+  }
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'systemFilter', type: 'string' },
+    { name: 'componentFilter', type: 'string' },
+    { name: 'propertyFilter', type: 'string' },
+    { name: 'notifyMode', type: 'enum:MikanPropertyNotifyMode' }
   ];
 }
 
@@ -212,21 +227,6 @@ export class ComponentListResponse extends MikanResponse {
 
   static __serializationMetadata: SerializationField[] = [
     { name: 'componentIdList', type: 'int32', isArray: true }
-  ];
-}
-
-export class SystemGetValuesResponse extends MikanResponse {
-  ownerSystem: string = '';
-  valuesObject: PolymorphicObject = new PolymorphicObject();
-
-  constructor() {
-    super();
-    this.responseTypeName = 'SystemGetValuesResponse';
-  }
-
-  static __serializationMetadata: SerializationField[] = [
-    { name: 'ownerSystem', type: 'string' },
-    { name: 'valuesObject', type: 'PolymorphicObject' }
   ];
 }
 

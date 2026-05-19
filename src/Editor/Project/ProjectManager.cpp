@@ -6,6 +6,7 @@
 #include "ClientTextureSourceSystem.h"
 #include "CameraObjectSystem.h"
 #include "CompositorObjectSystem.h"
+#include "DMXObjectSystem.h"
 #include "EditorObjectSystem.h"
 #include "PropertyInterface.h"
 #include "MainWindow.h"
@@ -21,6 +22,8 @@
 #include "BoxStencilSystem.h"
 #include "ModelStencilSystem.h"
 #include "QuadStencilSystem.h"
+#include "RGBSpotLightSystem.h"
+#include "RGBPixelGridSystem.h"
 #include "StageObjectSystem.h"
 #include "TrackingMountObjectSystem.h"
 #include "MarkerTrackingVolumeSystem.h"
@@ -67,6 +70,9 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	addSystem<TrackingMountObjectSystem>();
 	addSystem<MarkerTrackingVolumeSystem>();
 	addSystem<VRTrackingVolumeSystem>();
+	addSystem<DMXObjectSystem>();
+	addSystem<RGBSpotLightSystem>();
+	addSystem<RGBPixelGridSystem>();
 
 	// Gather all property descriptors from all the systems and add them to the database
 	for (int i = 0; i < (int)m_systems.size(); i++)
