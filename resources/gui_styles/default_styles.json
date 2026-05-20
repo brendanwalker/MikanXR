@@ -19,7 +19,9 @@
             { "name": "add_usb_source", "path": "textures/add_usb_camera_source_icon.png", "width": 60, "height": 45 },
             { "name": "add_network_source", "path": "textures/add_networked_camera_source_icon.png", "width": 60, "height": 45 },
             { "name": "add_vr_tracking", "path": "textures/add_vr_tracking_icon.png", "width": 50, "height": 50 },
-            { "name": "add_marker_tracking", "path": "textures/add_marker_tracking_icon.png", "width": 50, "height": 50 }
+            { "name": "add_marker_tracking", "path": "textures/add_marker_tracking_icon.png", "width": 50, "height": 50 },
+            { "name": "add_pixel_grid", "path": "textures/add_pixel_grid_icon.png", "width": 50, "height": 50 },
+            { "name": "add_spot_light", "path": "textures/add_spot_light_icon.png", "width": 50, "height": 50 }
         ]
     }
 }
