@@ -2,13 +2,26 @@
 #include "Colors.h"
 #include "DMXFixtureComponent.h"
 #include "DMXObjectSystem.h"
+#include "IEditorWindow.h"
 #include "IDMXManager.h"
+#include "IMkGraphicsContext.h"
+#include "IMkStaticMeshInstance.h"
+#include "IMkTriangulatedMesh.h"
+#include "IMkWireframeMesh.h"
+#include "MeshColliderComponent.h"
 #include "MikanLineRenderer.h"
+#include "MikanModelResourceManager.h"
 #include "MikanObject.h"
+#include "MikanRenderModelResource.h"
+#include "MikanShaderCache.h"
+#include "MikanTextureCache.h"
 #include "MikanTextRenderer.h"
 #include "MikanLightTypes.h"
 #include "MikanVariantTypes.h"
+#include "MkMaterialInstance.h"
+#include "PathUtils.h"
 #include "SelectionComponent.h"
+#include "StaticMeshComponent.h"
 #include "TextStyle.h"
 
 #include "lua.hpp"
@@ -56,11 +69,203 @@ RGBSpotLightComponent::RGBSpotLightComponent(MikanObjectWeakPtr owner)
 {
 }
 
+static const std::filesystem::path k_spotLightModelRelPath =
+	std::filesystem::path("models") / "spot_light" / "spot_light.obj";
+
 void RGBSpotLightComponent::init()
 {
 	DMXFixtureComponent::init();
 
-	m_selectionComponent = getOwnerObject()->getComponentOfType<SelectionComponent>();
+	SelectionComponentPtr selectionComponentPtr = getOwnerObject()->getComponentOfType<SelectionComponent>();
+	if (selectionComponentPtr)
+	{
+		selectionComponentPtr->OnInteractionRayOverlapEnter += MakeDelegate(this, &RGBSpotLightComponent::onInteractionRayOverlapEnter);
+		selectionComponentPtr->OnInteractionRayOverlapExit += MakeDelegate(this, &RGBSpotLightComponent::onInteractionRayOverlapExit);
+		selectionComponentPtr->OnInteractionSelected += MakeDelegate(this, &RGBSpotLightComponent::onInteractionSelected);
+		selectionComponentPtr->OnInteractionUnselected += MakeDelegate(this, &RGBSpotLightComponent::onInteractionUnselected);
+		selectionComponentPtr->OnTransformGizmoBound += MakeDelegate(this, &RGBSpotLightComponent::onTransformGizmoBound);
+		selectionComponentPtr->OnTransformGizmoUnbound += MakeDelegate(this, &RGBSpotLightComponent::onTransformGizmoUnbound);
+
+		m_selectionComponent = selectionComponentPtr;
+	}
+
+	propogateWorldTransformChange(eTransformChangeType::propogateWorldTransform);
+}
+
+void RGBSpotLightComponent::dispose()
+{
+	SelectionComponentPtr selectionComponentPtr = m_selectionComponent.lock();
+	if (selectionComponentPtr)
+	{
+		selectionComponentPtr->OnInteractionRayOverlapEnter -= MakeDelegate(this, &RGBSpotLightComponent::onInteractionRayOverlapEnter);
+		selectionComponentPtr->OnInteractionRayOverlapExit -= MakeDelegate(this, &RGBSpotLightComponent::onInteractionRayOverlapExit);
+		selectionComponentPtr->OnInteractionSelected -= MakeDelegate(this, &RGBSpotLightComponent::onInteractionSelected);
+		selectionComponentPtr->OnInteractionUnselected -= MakeDelegate(this, &RGBSpotLightComponent::onInteractionUnselected);
+		selectionComponentPtr->OnTransformGizmoBound -= MakeDelegate(this, &RGBSpotLightComponent::onTransformGizmoBound);
+		selectionComponentPtr->OnTransformGizmoUnbound -= MakeDelegate(this, &RGBSpotLightComponent::onTransformGizmoUnbound);
+	}
+
+	DMXFixtureComponent::dispose();
+}
+
+void RGBSpotLightComponent::disposeMeshComponents()
+{
+	while (m_meshComponents.size() > 0)
+	{
+		TransformComponentPtr componentPtr = m_meshComponents[m_meshComponents.size() - 1];
+		componentPtr->dispose();
+		m_meshComponents.pop_back();
+	}
+
+	m_colliderComponents.clear();
+	m_triMeshComponents.clear();
+	m_wireframeMeshes.clear();
+}
+
+void RGBSpotLightComponent::rebuildMeshComponents()
+{
+	MikanObjectPtr ownerObject = getOwnerObject();
+	RGBSpotLightComponentPtr selfPtr = getSelfPtr<RGBSpotLightComponent>();
+
+	disposeMeshComponents();
+
+	IEditorWindow* ownerWindow = getOwnerEditorWindow();
+	IMkGraphicsContextPtr graphicsContext = ownerWindow->getGraphicsContext();
+	MikanModelResourceManager* modelResourceManager = ownerWindow->getModelResourceManager();
+	MikanTextureCache* textureCache = ownerWindow->getTextureCache();
+	IMkTexturePtr texture = textureCache->tryGetTextureByName(INTERNAL_TEXTURE_BLACK_RGB);
+	MkMaterialConstPtr material =
+		graphicsContext->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED);
+
+	const std::filesystem::path modelPath =
+		PathUtils::makeAbsoluteResourceFilePath(k_spotLightModelRelPath);
+	MikanRenderModelResourcePtr modelResourcePtr =
+		modelResourceManager->fetchRenderModel(modelPath, material);
+
+	if (modelResourcePtr)
+	{
+		// Add static tri meshes + colliders
+		for (int meshIndex = 0; meshIndex < modelResourcePtr->getTriangulatedMeshCount(); ++meshIndex)
+		{
+			IMkTriangulatedMeshPtr triMeshPtr = modelResourcePtr->getTriangulatedMesh(meshIndex);
+
+			IMkStaticMeshInstancePtr triMeshInstancePtr =
+				createMkStaticMeshInstance(triMeshPtr->getName(), triMeshPtr);
+			triMeshInstancePtr->setVisible(true);
+			triMeshInstancePtr->getMaterialInstance()->setTextureBySemantic(eUniformSemantic::diffuseTexture, texture);
+
+			StaticMeshComponentPtr meshComponentPtr = ownerObject->addComponent<StaticMeshComponent>();
+			meshComponentPtr->setName(triMeshPtr->getName());
+			meshComponentPtr->setStaticMesh(triMeshInstancePtr);
+			meshComponentPtr->attachToComponent(selfPtr);
+			m_meshComponents.push_back(meshComponentPtr);
+			m_triMeshComponents.push_back(meshComponentPtr);
+
+			MeshColliderComponentPtr colliderPtr = ownerObject->addComponent<MeshColliderComponent>();
+			colliderPtr->setName(triMeshPtr->getName());
+			colliderPtr->setStaticMeshComponent(meshComponentPtr);
+			colliderPtr->attachToComponent(selfPtr);
+			m_colliderComponents.push_back(colliderPtr);
+			m_meshComponents.push_back(colliderPtr);
+		}
+
+		// Add wireframe meshes
+		for (int meshIndex = 0; meshIndex < modelResourcePtr->getWireframeMeshCount(); ++meshIndex)
+		{
+			IMkWireframeMeshPtr wireframeMeshPtr = modelResourcePtr->getWireframeMesh(meshIndex);
+
+			IMkStaticMeshInstancePtr wireframeMeshInstancePtr =
+				createMkStaticMeshInstance("wireframe", wireframeMeshPtr);
+			m_wireframeMeshes.push_back(wireframeMeshInstancePtr);
+
+			StaticMeshComponentPtr meshComponentPtr = ownerObject->addComponent<StaticMeshComponent>();
+			meshComponentPtr->setName(wireframeMeshPtr->getName());
+			meshComponentPtr->setStaticMesh(wireframeMeshInstancePtr);
+			meshComponentPtr->attachToComponent(selfPtr);
+			m_meshComponents.push_back(meshComponentPtr);
+		}
+
+		updateWireframeMeshColor();
+
+		for (TransformComponentPtr childComponentPtr : m_meshComponents)
+			childComponentPtr->init();
+
+		for (TransformComponentPtr childComponentPtr : m_meshComponents)
+			childComponentPtr->postInit();
+	}
+
+	// Rebuild the collider list on the selection component
+	SelectionComponentPtr selectionComponentPtr = m_selectionComponent.lock();
+	if (selectionComponentPtr)
+		selectionComponentPtr->rebindColliders();
+}
+
+void RGBSpotLightComponent::updateWireframeMeshColor()
+{
+	glm::vec3 color;
+
+	if (m_bIsTransformGizmoBound)
+	{
+		color = Colors::GreenYellow;
+	}
+	else if (m_bIsSelected)
+	{
+		color = Colors::Yellow;
+	}
+	else if (m_bIsHovered)
+	{
+		color = Colors::LightGray;
+	}
+	else
+	{
+		const float r = m_red   / 255.0f;
+		const float g = m_green / 255.0f;
+		const float b = m_blue  / 255.0f;
+		color = (r + g + b > 0.01f) ? glm::vec3(r, g, b) : Colors::DarkGray;
+	}
+
+	for (IMkStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
+	{
+		meshPtr->getMaterialInstance()->setVec4BySemantic(
+			eUniformSemantic::diffuseColorRGBA,
+			glm::vec4(color, 1.f));
+	}
+}
+
+void RGBSpotLightComponent::onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult)
+{
+	m_bIsHovered = true;
+	updateWireframeMeshColor();
+}
+
+void RGBSpotLightComponent::onInteractionRayOverlapExit(const ColliderRaycastHitResult& hitResult)
+{
+	m_bIsHovered = false;
+	updateWireframeMeshColor();
+}
+
+void RGBSpotLightComponent::onInteractionSelected()
+{
+	m_bIsSelected = true;
+	updateWireframeMeshColor();
+}
+
+void RGBSpotLightComponent::onInteractionUnselected()
+{
+	m_bIsSelected = false;
+	updateWireframeMeshColor();
+}
+
+void RGBSpotLightComponent::onTransformGizmoBound()
+{
+	m_bIsTransformGizmoBound = true;
+	updateWireframeMeshColor();
+}
+
+void RGBSpotLightComponent::onTransformGizmoUnbound()
+{
+	m_bIsTransformGizmoBound = false;
+	updateWireframeMeshColor();
 }
 
 void RGBSpotLightComponent::setRed(uint8_t v)
@@ -102,6 +307,7 @@ void RGBSpotLightComponent::setRGB(uint8_t r, uint8_t g, uint8_t b)
 		m_blue = b;
 
 		notifyDMXDataChanged();
+		updateWireframeMeshColor();
 	}
 }
 
@@ -213,33 +419,21 @@ void RGBSpotLightComponent::customRender(
 	if (!def || def->getIsDisabled())
 		return;
 
-	const glm::mat4 xform = getWorldTransform();
-	const glm::vec3 position = glm::vec3(xform[3]);
-
-	// Color the icon by actual RGB value; fall back to dim white when dark
-	const float r = getRed()   / 255.0f;
-	const float g = getGreen() / 255.0f;
-	const float b = getBlue()  / 255.0f;
-	glm::vec3 iconColor = (r + g + b > 0.01f) ? glm::vec3(r, g, b) : Colors::DarkGray;
-
-	SelectionComponentPtr sel = m_selectionComponent.lock();
-	if (sel)
+	if (!m_bIsTransformGizmoBound)
 	{
-		if (sel->getIsSelected())
-			iconColor = Colors::Yellow;
-		else if (sel->getIsHovered())
-			iconColor = Colors::LightGray;
+		const glm::mat4 xform = getWorldTransform();
+		const glm::vec3 position = glm::vec3(xform[3]);
+
+		drawTransformedAxes(graphicsContext, xform, 0.05f, 0.05f, 0.05f);
+
+		TextStyle style = getDefaultTextStyle();
+		drawTextAtWorldPosition(graphicsContext, style, position,
+			L"Light %d [%d,%d,%d]",
+			def->getComponentId(),
+			static_cast<int>(getRed()),
+			static_cast<int>(getGreen()),
+			static_cast<int>(getBlue()));
 	}
-
-	drawTransformedAxes(graphicsContext, xform, 0.05f, 0.05f, 0.05f);
-
-	TextStyle style = getDefaultTextStyle();
-	drawTextAtWorldPosition(graphicsContext, style, position,
-		L"Light %d [%d,%d,%d]",
-		def->getComponentId(),
-		static_cast<int>(getRed()),
-		static_cast<int>(getGreen()),
-		static_cast<int>(getBlue()));
 }
 
 // -- Lua Binding --

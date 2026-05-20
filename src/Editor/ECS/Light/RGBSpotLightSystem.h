@@ -46,4 +46,8 @@ public:
 	inline RGBSpotLightComponentPtr getLightByName(const std::string& name) const
 	{ return Super::getTypedComponentByName(name); }
 
+protected:
+	virtual void additionalComponentFactory(
+		MikanObjectPtr ownerComponentObject,
+		ComponentDefinitionPtr componentDefinition) override;
 };

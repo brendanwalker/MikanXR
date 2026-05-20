@@ -1,13 +1,16 @@
 #pragma once
 
+#include "ColliderQuery.h"
 #include "CommonConfig.h"
 #include "ComponentFwd.h"
 #include "DMXFixtureComponent.h"
 #include "LightSystemFwd.h"
 #include "MikanLightTypes.h"
+#include "MikanRendererFwd.h"
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 // ============================================================
 // RGBSpotLightDefinition
@@ -36,9 +39,21 @@ public:
 	RGBSpotLightComponent(MikanObjectWeakPtr owner);
 
 	virtual void init() override;
+	virtual void dispose() override;
 	virtual void customRender(
 		IMkGraphicsContext* graphicsContext,
 		MikanCameraPtr viewportCamera) const override;
+
+	void disposeMeshComponents();
+	void rebuildMeshComponents();
+
+	// Selection event handlers
+	void onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult);
+	void onInteractionRayOverlapExit(const ColliderRaycastHitResult& hitResult);
+	void onInteractionSelected();
+	void onInteractionUnselected();
+	void onTransformGizmoBound();
+	void onTransformGizmoUnbound();
 
 	inline static const std::string k_componentClassName = "RGBSpotLightComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
@@ -82,8 +97,18 @@ public:
 	static void bindLuaFunctions(struct lua_State* L);
 
 protected:
+	void updateWireframeMeshColor();
+
+protected:
 	uint8_t m_red = 0;
 	uint8_t m_green = 0;
 	uint8_t m_blue = 0;
 	SelectionComponentWeakPtr m_selectionComponent;
+	std::vector<IMkStaticMeshInstancePtr> m_wireframeMeshes;
+	std::vector<TransformComponentPtr> m_meshComponents;
+	std::vector<StaticMeshComponentPtr> m_triMeshComponents;
+	std::vector<MeshColliderComponentPtr> m_colliderComponents;
+	bool m_bIsHovered = false;
+	bool m_bIsSelected = false;
+	bool m_bIsTransformGizmoBound = false;
 };
