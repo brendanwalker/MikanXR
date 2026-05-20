@@ -23,6 +23,7 @@ public:
 	virtual void getMouseScreenPosition(int& outScreenX, int& outScreenY) const = 0;
 
 	virtual class MikanModelResourceManager* getModelResourceManager() = 0;
+	virtual class MikanTextureCache* getTextureCache() = 0;
 	virtual ProjectManagerPtr getProjectManager() const = 0;
 	virtual class MikanServer* getMikanServer() const = 0;
 	virtual class IMkFontManager* getFontManager() const = 0;

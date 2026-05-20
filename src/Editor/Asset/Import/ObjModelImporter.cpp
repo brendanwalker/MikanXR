@@ -323,7 +323,7 @@ MikanRenderModelResourcePtr ObjModelImporter::importModelFromFile(
 namespace ObjUtils
 {
 	bool addTextureToMaterialInstance(
-		MikanTextureCache* textureCache,
+		IMkTextureCache* textureCache,
 		MkMaterialInstancePtr materialInstance,
 		const fastObjMesh* objMesh,
 		unsigned int textureIndex,
@@ -378,7 +378,7 @@ namespace ObjUtils
 		const fastObjMesh* objMesh,
 		const fastObjMaterial& objMaterial)
 	{
-		MikanTextureCache* textureCache = static_cast<MikanTextureCache *>(graphicsContext->getTextureCache());
+		IMkTextureCache* textureCache = graphicsContext->getTextureCache();
 		MkMaterialInstancePtr materialInstance = createMkMaterialInstance(material);
 
 		materialInstance->setVec3BySemantic(

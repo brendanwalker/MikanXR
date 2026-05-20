@@ -13,7 +13,6 @@
 #include "MkStateStack.h"
 #include "IMkTriangulatedMesh.h"
 #include "MikanShaderCache.h"
-#include "MikanTextureCache.h"
 #include "IMkVertexDefinition.h"
 #include "IMkState.h"
 #include "IEditorWindow.h"

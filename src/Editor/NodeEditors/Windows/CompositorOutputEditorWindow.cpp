@@ -81,6 +81,11 @@ bool CompositorOutputEditorWindow::startup()
 		success = false;
 	}
 
+	if (success && !startupTextureCache())
+	{
+		success = false;
+	}
+
 	if (success && !startupModelResourceManager())
 	{
 		success = false;
@@ -457,6 +462,7 @@ void CompositorOutputEditorWindow::shutdown()
 	m_mkScene = nullptr;
 
 	shutdownModelResourceManager();
+	shutdownTextureCache();
 	shutdownStyleManager();
 	shutdownGuiContext();
 	shutdownWindow();

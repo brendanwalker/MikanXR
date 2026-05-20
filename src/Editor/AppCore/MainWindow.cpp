@@ -175,6 +175,13 @@ bool MainWindow::startup()
 	if (success)
 	{
 		bool ok = false;
+		MIKAN_TIMED_STARTUP("startupTextureCache", ok = startupTextureCache());
+		if (!ok) success = false;
+	}
+
+	if (success)
+	{
+		bool ok = false;
 		MIKAN_TIMED_STARTUP("startupModelResourceManager", ok = startupModelResourceManager());
 		if (!ok) success = false;
 	}
@@ -430,6 +437,7 @@ void MainWindow::shutdown()
 	m_fontManager->shutdown();
 
 	shutdownModelResourceManager();
+	shutdownTextureCache();
 	shutdownStyleManager();
 	shutdownGuiContext();
 	shutdownWindow();

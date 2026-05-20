@@ -5,6 +5,7 @@
 #include "IMkWindowContext.h"
 #include "IMkGraphicsContext.h"
 #include "MikanModelResourceManager.h"
+#include "MikanTextureCache.h"
 #include "MkGuiContext.h"
 #include "MkGuiStyleManager.h"
 #include "PathUtils.h"
@@ -58,6 +59,11 @@ void EditorWindow::getMouseScreenPosition(int& outScreenX, int& outScreenY) cons
 MikanModelResourceManager* EditorWindow::getModelResourceManager()
 {
 	return m_modelResourceManager.get();
+}
+
+MikanTextureCache* EditorWindow::getTextureCache()
+{
+	return m_textureCache.get();
 }
 
 MkGuiStyleManager* EditorWindow::getMkGuiStyleManager() const
@@ -134,6 +140,7 @@ bool EditorWindow::startupWindow(const std::string& title, int width, int height
 		MIKAN_LOG_ERROR("EditorWindow::startupWindow") << "Unable to initialize window: " << title;
 		return false;
 	}
+
 	return true;
 }
 
@@ -164,6 +171,21 @@ bool EditorWindow::startupStyleManager()
 	return true;
 }
 
+bool EditorWindow::startupTextureCache()
+{
+	EASY_FUNCTION();
+
+	m_textureCache = std::make_unique<MikanTextureCache>(getMkWindowContext()->getGraphicsContext().get());
+
+	if (!m_textureCache->startup())
+	{
+		MIKAN_LOG_ERROR("EditorWindow::startupModelResourceManager") << "Unable to initialize texture cache";
+		return false;
+	}
+	return true;
+}
+
+
 bool EditorWindow::startupModelResourceManager()
 {
 	EASY_FUNCTION();
@@ -174,6 +196,15 @@ bool EditorWindow::startupModelResourceManager()
 		return false;
 	}
 	return true;
+}
+
+void EditorWindow::shutdownTextureCache()
+{
+	if (m_textureCache != nullptr)
+	{
+		m_textureCache->shutdown();
+		m_textureCache = nullptr;
+	}
 }
 
 void EditorWindow::shutdownModelResourceManager()

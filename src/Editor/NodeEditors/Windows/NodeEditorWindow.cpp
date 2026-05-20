@@ -102,6 +102,11 @@ bool NodeEditorWindow::startup()
 		m_editorState.styleManager = m_styleManager.get();
 	}
 
+	if (success && !startupTextureCache())
+	{
+		success = false;
+	}
+
 	if (success && !startupModelResourceManager())
 	{
 		success = false;
@@ -973,6 +978,8 @@ void NodeEditorWindow::shutdown()
 	m_editorState.nodeGraph= nullptr;
 	m_editorState.nodeGraphPath.clear();
 
+	shutdownTextureCache();
+	shutdownModelResourceManager();
 	shutdownStyleManager();
 	shutdownGuiContext();
 	shutdownWindow();
