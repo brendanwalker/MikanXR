@@ -72,10 +72,6 @@ public:
 	std::vector<MikanCompositorID> getOutputCompositorIDs() const;
 	std::vector<CompositorComponentPtr> getOutputCompositors() const;
 	void attachToStage(MikanStageID newParentId);
-	SelectionComponentPtr findClosestSelectionTarget(
-		const glm::vec3& rayOrigin,
-		const glm::vec3& rayDir,
-		ColliderRaycastHitResult& outRaycastResult) const;
 	void showCompositorOutput();
 	void activateScene();
 	void deactivateScene();

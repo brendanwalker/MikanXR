@@ -19,6 +19,7 @@
 #include "MikanEditorTypes.h"
 #include "SceneObjectSystem.h"
 #include "SceneComponent.h"
+#include "StageComponent.h"
 #include "ProjectConfig.h"
 #include "SelectionComponent.h"
 #include "QuadStencilSystem.h"
@@ -608,8 +609,10 @@ SelectionComponentPtr EditorObjectSystem::findClosestSelectionTarget(
 	SceneComponentConstPtr currentScene= sceneObjectSystem->getCurrentScene();
 	if (currentScene)
 	{
+		StageComponentConstPtr currentStage= currentScene->getParentStage();
+
 		closestSelectionComponent= 
-			currentScene->findClosestSelectionTarget(
+			currentStage->findClosestSelectionTarget(
 				rayOrigin, rayDir, outRaycastResult);
 	}
 

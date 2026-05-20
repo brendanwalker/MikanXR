@@ -209,51 +209,6 @@ void SceneComponent::onDefinitionMarkedDirty(CommonConfigPtr configPtr, const Co
 	}
 }
 
-SelectionComponentPtr SceneComponent::findClosestSelectionTarget(
-	const glm::vec3& rayOrigin,
-	const glm::vec3& rayDir,
-	ColliderRaycastHitResult& outRaycastResult) const
-{
-	struct
-	{
-		ColliderRaycastHitRequest request;
-		ColliderRaycastHitResult result;
-		SelectionComponentPtr closestSelectionComponent;
-	} raycastQuery;
-	
-	raycastQuery.request.rayOrigin= rayOrigin;
-	raycastQuery.request.rayDirection= rayDir;
-
-	raycastQuery.result.hitDistance = k_real_max;
-	raycastQuery.result.hitPriority = 0;
-	raycastQuery.result.hitLocation = glm::vec3();
-	raycastQuery.result.hitNormal = glm::vec3();
-
-	raycastQuery.closestSelectionComponent.reset();
-
-	visitAllTransformComponentsConst(
-		[&raycastQuery](const TransformComponent* transformComponent) {
-			const auto* colliderComponent = dynamic_cast<const ColliderComponent *>(transformComponent);
-			if (colliderComponent)
-			{
-				ColliderRaycastHitResult result;
-
-				if (colliderComponent->computeRayIntersection(raycastQuery.request, result) &&
-					result.isHigherPriorityThan(raycastQuery.result))
-				{
-					MikanObjectPtr ownerObjectPtr = colliderComponent->getOwnerObject();
-
-					raycastQuery.closestSelectionComponent = ownerObjectPtr->getComponentOfType<SelectionComponent>();
-					raycastQuery.result= result;
-				}
-			}
-		});
-
-	outRaycastResult= raycastQuery.result;
-
-	return raycastQuery.closestSelectionComponent;
-}
-
 void SceneComponent::showCompositorOutput()
 {
 	App* app = App::getInstance();

@@ -77,5 +77,10 @@ public:
 	// -- StageComponent ----
 	MikanStageID getStageId() const;
 	void setTrackingVolumeId(MikanTrackingVolumeID volumeId);
+	SelectionComponentPtr findClosestSelectionTarget(
+		const glm::vec3& rayOrigin,
+		const glm::vec3& rayDir,
+		ColliderRaycastHitResult& outRaycastResult) const;
 	void renderStageBounds(class IMkGraphicsContext* graphicsContext, const glm::mat4& transform) const;
+	void addActorsToMkScene(IMkScenePtr mkScene) const;
 };
