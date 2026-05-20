@@ -61,6 +61,9 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanDM
 	public MikanTransformComponentValues
 {
 	FIELD()
+	MikanStageID stage_id = INVALID_MIKAN_ID;
+
+	FIELD()
 	uint16_t dmx_universe = 1;
 
 	FIELD()

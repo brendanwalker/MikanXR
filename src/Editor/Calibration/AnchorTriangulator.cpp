@@ -160,6 +160,7 @@ void AnchorTriangulator::computeCurrentTriangulation()
 	glm::vec3 initialPointRayStart;
 	glm::vec3 initialPointRayDirection;
 	computeCameraRayAtPixel(
+		m_calibrationState->inputCameraIntrinsics,
 		m_calibrationState->initialCameraPoseSample,
 		m_calibrationState->initialPointSamples[sampleIndex],
 		initialPointRayStart,
@@ -173,6 +174,7 @@ void AnchorTriangulator::computeCurrentTriangulation()
 		glm::vec3 triangulatingPointRayStart;
 		glm::vec3 triangulatingPointRayDirection;
 		computeCameraRayAtPixel(
+			m_calibrationState->inputCameraIntrinsics,
 			triangulatingCameraXform,
 			triangulatingPointSample,
 			triangulatingPointRayStart,
@@ -293,6 +295,7 @@ void AnchorTriangulator::renderInitialPoint3dRays()
 		glm::vec3 rayStart;
 		glm::vec3 rayDirection;
 		computeCameraRayAtPixel(
+			m_calibrationState->inputCameraIntrinsics,
 			glmCameraXform,
 			imagePoint,
 			rayStart,
@@ -318,6 +321,7 @@ void AnchorTriangulator::renderCurrentPointTriangulation()
 	glm::vec3 initialPointRayStart;
 	glm::vec3 initialPointRayDirection;
 	computeCameraRayAtPixel(
+		m_calibrationState->inputCameraIntrinsics,
 		m_calibrationState->initialCameraPoseSample,
 		m_calibrationState->initialPointSamples[sampleIndex],
 		initialPointRayStart,
@@ -342,41 +346,6 @@ void AnchorTriangulator::renderCurrentPointTriangulation()
 		m_frameWidth, m_frameHeight,
 		m_calibrationState->lastWorldTriangulatedPoint,
 		L"P%d", sampleIndex);
-}
-
-void AnchorTriangulator::computeCameraRayAtPixel(
-	const glm::mat4 cameraXform,
-	const glm::vec2& imagePoint,
-	glm::vec3& outRayStart,
-	glm::vec3& outRayDirection) const
-{
-	const glm::vec3 glmCameraRight = cameraXform[0];
-	const glm::vec3 glmCameraUp = cameraXform[1];
-	const glm::vec3 glmCameraForward = cameraXform[2] * -1.f; // camera forward is down -z
-	const glm::vec3 glmCameraCenter = cameraXform[3];
-
-	float focal_length_x;
-	float focal_length_y;
-	float principal_point_x;
-	float principal_point_y;
-	float skew;
-	extractCameraIntrinsicMatrixParameters(
-		m_calibrationState->inputCameraIntrinsics.undistorted_camera_matrix,
-		focal_length_x,
-		focal_length_y,
-		principal_point_x,
-		principal_point_y,
-		skew);
-
-	const float local_x = (imagePoint.x - principal_point_x) / focal_length_x;
-	const float local_y = (principal_point_y - imagePoint.y) / focal_length_y; // flip y-axis
-	
-	outRayStart= glmCameraCenter;
-	outRayDirection =
-		glm::normalize(
-			local_x * glmCameraRight
-			+ local_y * glmCameraUp
-			+ glmCameraForward);
 }
 
 void AnchorTriangulator::renderAllTriangulatedPoints(bool bShowCameraFrustum)

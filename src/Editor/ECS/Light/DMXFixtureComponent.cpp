@@ -1,16 +1,25 @@
+#include "AppStage.h"
+#include "CameraObjectSystem.h"
 #include "DMXFixtureComponent.h"
 #include "DMXObjectSystem.h"
+#include "LightFixtureCalibration\AppStage_LightFixtureCalibration.h"
 #include "MikanLightTypes.h"
 #include "MikanObject.h"
 #include "MikanObjectSystem.h"
 #include "MikanVariantTypes.h"
+#include "ModalMessageBox/ModalDialog_MessageBox.h"
+#include "ModalSelectCamera/ModalDialog_SelectCamera.h"
 #include "ProjectManager.h"
 #include "StringUtils.h"
+#include "StageObjectSystem.h"
+#include "StageComponent.h"
+#include "TrackingVolumeComponent.h"
 
 #include "lua.hpp"
 #include "LuaBridge/LuaBridge.h"
 
 // -- DMXFixtureComponentDefinition -----
+const std::string DMXFixtureComponentDefinition::k_ownerStageIdPropertyId = "stage_id";
 const std::string DMXFixtureComponentDefinition::k_dmxUniversePropertyId = "dmx_universe";
 const std::string DMXFixtureComponentDefinition::k_dmxStartChannelPropertyId = "dmx_start_channel";
 const std::string DMXFixtureComponentDefinition::k_dmxChannelCountPropertyId = "dmx_channel_count";
@@ -30,6 +39,7 @@ configuru::Config DMXFixtureComponentDefinition::writeToJSON()
 {
 	configuru::Config pt = TransformComponentDefinition::writeToJSON();
 
+	pt[k_ownerStageIdPropertyId] = m_stageId;
 	pt[k_dmxUniversePropertyId] = m_dmxUniverse;
 	pt[k_dmxStartChannelPropertyId] = m_dmxStartChannel;
 	pt[k_dmxChannelCountPropertyId] = m_dmxChannelCount;
@@ -42,6 +52,7 @@ void DMXFixtureComponentDefinition::readFromJSON(const configuru::Config& pt)
 {
 	TransformComponentDefinition::readFromJSON(pt);
 
+	m_stageId = pt.get_or<MikanStageID>(k_ownerStageIdPropertyId, m_stageId);
 	m_dmxUniverse = pt.get_or<uint16_t>(k_dmxUniversePropertyId, 1);
 	m_dmxStartChannel = pt.get_or<uint16_t>(k_dmxStartChannelPropertyId, 1);
 	m_dmxChannelCount = pt.get_or<uint16_t>(k_dmxChannelCountPropertyId, 3);
@@ -58,13 +69,37 @@ bool DMXFixtureComponentDefinition::readFromInitParams(
 	const auto* values = initParams.getTypedPointer<MikanDMXFixtureComponentValues>();
 	if (values)
 	{
+		m_stageId = values->stage_id;
 		m_dmxUniverse = values->dmx_universe;
 		m_dmxStartChannel = values->dmx_start_channel;
 		m_dmxChannelCount = values->dmx_channel_count;
 		m_bIsDisabled = values->is_disabled;
+
+		// Make sure our parent is always the stage component (if a stage was given)
+		if (m_stageId != INVALID_MIKAN_ID)
+		{
+			m_parentTransformId = m_stageId;
+		}
+	}
+
+	if (m_stageId == INVALID_MIKAN_ID)
+	{
+		// If no owning stage was specified, use the first one
+		auto stageSystem = ownerObjectSystem->getObjectSystemOfType<StageObjectSystem>();
+
+		m_stageId = stageSystem->getFirstComponentId();
 	}
 
 	return true;
+}
+
+void DMXFixtureComponentDefinition::setOwnerStageId(MikanStageID stageId)
+{
+	if (stageId != m_stageId)
+	{
+		m_stageId = stageId;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_ownerStageIdPropertyId));
+	}
 }
 
 void DMXFixtureComponentDefinition::setDMXUniverse(uint16_t universe)
@@ -104,6 +139,8 @@ void DMXFixtureComponentDefinition::setDMXChannelCount(uint16_t count)
 }
 
 // -- DMXFixtureComponent -----
+const std::string DMXFixtureComponent::k_triangulateLightFunctionId = "triangulate_light";
+
 DMXFixtureComponent::DMXFixtureComponent(MikanObjectWeakPtr owner)
 	: TransformComponent(owner)
 {
@@ -122,6 +159,27 @@ void DMXFixtureComponent::notifyDMXDataChanged()
 
 	if (dmxSystem)
 		dmxSystem->OnDMXDataChanged(getComponentId());
+}
+
+StageComponentConstPtr DMXFixtureComponent::getOwnerStageComponent() const
+{
+	MikanStageID stageId = getDMXFixtureDefinition()->getOwnerStageId();
+
+	return getObjectSystemOfType<StageObjectSystem>()->getStageById(stageId);
+}
+
+eTrackingVolumeType DMXFixtureComponent::getTrackingVolumeType() const
+{
+	StageComponentConstPtr ownerStage = getOwnerStageComponent();
+	if (ownerStage != nullptr)
+	{
+		TrackingVolumeDefinitionConstPtr trackingVolume = ownerStage->getTrackingVolumeDefinitionConst();
+		if (trackingVolume != nullptr)
+		{
+			return trackingVolume->getTrackingVolumeType();
+		}
+	}
+	return eTrackingVolumeType::INVALID;
 }
 
 // -- IEntityAccessor --
@@ -203,6 +261,63 @@ bool DMXFixtureComponent::setPropertyValue(
 	}
 
 	return TransformComponent::setPropertyValue(propertyName, inValue);
+}
+
+// -- IFunctionInterface ----
+void DMXFixtureComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
+{
+	TransformComponent::getFunctionDescriptors(outDescriptors);
+
+	outDescriptors.push_back(
+		std::make_shared<FunctionDescriptor>(
+			k_triangulateLightFunctionId, "Triangulate Light"));
+}
+
+bool DMXFixtureComponent::invokeFunction(const std::string& functionName)
+{
+	if (functionName == DMXFixtureComponent::k_triangulateLightFunctionId)
+	{
+		triangulateLight();
+	}
+
+	return TransformComponent::invokeFunction(functionName);
+}
+
+void DMXFixtureComponent::triangulateLight()
+{
+	AppStage* currentAppStage = getOwnerEditorWindow()->getCurrentAppStage();
+
+	switch (getTrackingVolumeType())
+	{
+	case eTrackingVolumeType::vr:
+		{
+			AppStage* currentAppStage = getOwnerEditorWindow()->getCurrentAppStage();
+
+			ModalDialog_SelectCamera::selectCamera(
+				currentAppStage,
+				[this](MikanCameraID cameraId) {
+					// Show Light Triangulation Tool
+					AppStage_LightFixtureCalibration* anchorTriangulation =
+						getOwnerEditorWindow()->pushAppStageOfType<AppStage_LightFixtureCalibration>();
+					CameraComponentPtr camera = 
+						getObjectSystemOfType<CameraObjectSystem>()->getCameraById(cameraId);
+
+					anchorTriangulation->setSourceCamera(camera);
+					anchorTriangulation->setTargetFixture(getSelfPtr<DMXFixtureComponent>());
+				});
+		}
+		break;
+	case eTrackingVolumeType::marker:
+		ModalDialog_MessageBox::showMessageBox(
+			currentAppStage,
+			"Unable to triangulate lights using marker based tracking.");
+		break;
+	default:
+		ModalDialog_MessageBox::showMessageBox(
+			currentAppStage,
+			"Stage missing tracking volume. Please assign a tracking volume to the stage this camera is attached to.");
+		break;
+	}
 }
 
 // -- Lua Binding --

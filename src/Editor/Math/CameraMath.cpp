@@ -461,6 +461,35 @@ void computeOpenGLProjMatFromCameraIntrinsics(
 		outViewport);
 }
 
+void computeCameraRayAtPixel(
+	const struct MikanMonoIntrinsics& intrinsics,
+	const glm::mat4& cameraXform,
+	const glm::vec2& imagePoint,
+	glm::vec3& outRayStart,
+	glm::vec3& outRayDirection)
+{
+	const glm::vec3 glmCameraRight = cameraXform[0];
+	const glm::vec3 glmCameraUp = cameraXform[1];
+	const glm::vec3 glmCameraForward = cameraXform[2] * -1.f; // -Z is forward
+	const glm::vec3 glmCameraCenter = cameraXform[3];
+
+	float focal_length_x, focal_length_y, principal_point_x, principal_point_y, skew;
+	extractCameraIntrinsicMatrixParameters(
+		intrinsics.undistorted_camera_matrix,
+		focal_length_x, focal_length_y,
+		principal_point_x, principal_point_y,
+		skew);
+
+	const float local_x = (imagePoint.x - principal_point_x) / focal_length_x;
+	const float local_y = (principal_point_y - imagePoint.y) / focal_length_y; // flip y
+
+	outRayStart = glmCameraCenter;
+	outRayDirection = glm::normalize(
+		local_x * glmCameraRight
+		+ local_y * glmCameraUp
+		+ glmCameraForward);
+}
+
 void computeCameraPuckToApertureXform(
 	const glm::dmat4& cameraPuckXform_VRSpace,
 	const glm::dmat4& matPuckXform_VRSpace,
