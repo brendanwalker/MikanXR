@@ -282,6 +282,7 @@ void GuiPanel_ProjectStages::onGui()
 				RGBSpotLightComponentPtr light = spotSystem->addNewObjectByTypedDefinition(
 					[stageId](auto def) {
 						def->setOwnerStageId((MikanStageID)stageId);
+						def->setParentTransformId(stageId);
 						def->setRelativeTransform(GlmTransform());
 						return true;
 					});
@@ -302,6 +303,7 @@ void GuiPanel_ProjectStages::onGui()
 				RGBPixelGridComponentPtr grid = gridSystem->addNewObjectByTypedDefinition(
 					[stageId](auto def) {
 						def->setOwnerStageId((MikanStageID)stageId);
+						def->setParentTransformId(stageId);
 						def->setRelativeTransform(GlmTransform());
 						return true;
 					});
