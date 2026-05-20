@@ -453,8 +453,8 @@ void AppStage_Project::renderProjectScene(IMkGraphicsContext* graphicsContext, M
 		auto editorObjectSystem = getObjectSystemOfType<EditorObjectSystem>();
 		const EditorSettings& editorSettings = editorObjectSystem->getEditorSettings();
 
-		// Add actors in the scene
-		currentScene->addActorsToMkScene(m_mkScene);
+		// Add all renderable meshes on the stage in the current scene
+		currentScene->getParentStage()->addActorsToMkScene(m_mkScene);
 
 		// Render the stage
 		renderProjectStage(graphicsContext, viewportCamera);
