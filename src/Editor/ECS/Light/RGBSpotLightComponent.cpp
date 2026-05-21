@@ -306,7 +306,7 @@ void RGBSpotLightComponent::rebuildConeMesh()
 	if (m_coneMesh)
 	{
 		MkMaterialConstPtr material =
-			graphicsContext->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_SOLID_COLOR);
+			graphicsContext->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_CONE_VOLUME);
 		m_coneMesh->setMaterial(material);
 		m_coneMesh->createResources();
 		updateConeColor();
