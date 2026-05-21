@@ -19,6 +19,7 @@
 #include "MarkerTrackingVolumeComponent.h"
 #include "MikanCamera.h"
 #include "MikanViewport.h"
+#include "ObjectSystemRenderQueries.h"
 #include "MikanObjectSystem.h"
 #include "MikanLineRenderer.h"
 #include "MikanTextRenderer.h"
@@ -35,6 +36,8 @@
 #include "Project/GuiPanel_ProjectSources.h"
 #include "Project/GuiPanel_ProjectStages.h"
 #include "Project/GuiPanel_ProjectTracking.h"
+#include "RGBSpotLightSystem.h"
+#include "RGBPixelGridSystem.h"
 #include "Shared/GuiPanel_MarkerComponent.h"
 #include "SceneComponent.h"
 #include "SceneObjectSystem.h"
@@ -82,6 +85,30 @@ void AppStage_Project::enter()
 	ProjectManagerPtr objectSystemManager = m_ownerWindow->getProjectManager();
 	m_editorSystem = objectSystemManager->getSystemOfType<EditorObjectSystem>();
 	m_sceneObjectSystem = objectSystemManager->getSystemOfType<SceneObjectSystem>();
+	m_anchorObjectSystem = objectSystemManager->getSystemOfType<AnchorObjectSystem>();
+	m_cameraObjectSystem = objectSystemManager->getSystemOfType<CameraObjectSystem>();
+	m_markerObjectSystem = objectSystemManager->getSystemOfType<MarkerObjectSystem>();
+	m_quadStencilSystem = objectSystemManager->getSystemOfType<QuadStencilSystem>();
+	m_boxStencilSystem = objectSystemManager->getSystemOfType<BoxStencilSystem>();
+	m_modelStencilSystem = objectSystemManager->getSystemOfType<ModelStencilSystem>();
+	m_pixelGridLightSystem = objectSystemManager->getSystemOfType<RGBPixelGridSystem>();
+	m_spotLightSystem = objectSystemManager->getSystemOfType<RGBSpotLightSystem>();
+
+	// Stage Panel collision set
+	m_stageObjectSystemFilter.insert(m_editorSystem.lock().get());
+	m_stageObjectSystemFilter.insert(m_cameraObjectSystem.lock().get());
+	m_stageObjectSystemFilter.insert(m_pixelGridLightSystem.lock().get());
+	m_stageObjectSystemFilter.insert(m_spotLightSystem.lock().get());
+
+	// Scene Panel collision set
+	m_sceneObjectSystemFilter.insert(m_anchorObjectSystem.lock().get());
+	m_sceneObjectSystemFilter.insert(m_quadStencilSystem.lock().get());
+	m_sceneObjectSystemFilter.insert(m_boxStencilSystem.lock().get());
+	m_sceneObjectSystemFilter.insert(m_modelStencilSystem.lock().get());
+	m_sceneObjectSystemFilter.insert(m_stageObjectSystemFilter.begin(), m_stageObjectSystemFilter.end());
+
+	// Tracking Panel collision set
+	// nothing for now
 
 	// Setup Scene viewport
 	{
@@ -154,6 +181,9 @@ void AppStage_Project::enter()
 		m_projectSettingsPanel = addGuiPanel<GuiPanel_ProjectSettings>();
 		m_projectSettingsPanel->init(m_projectGuiPanelContext);
 	}
+
+	// Start of in the stages panel
+	setActivePanel(eProjectAppStageActivePanel::Stages);
 }
 
 void AppStage_Project::exit()
@@ -261,11 +291,39 @@ void AppStage_Project::onGui()
 			{
 				if (k_tabPanels[i] != nullptr)
 				{
-					m_activePanel = (eProjectAppStageActivePanel)i;
+					setActivePanel((eProjectAppStageActivePanel)i);
 					k_tabPanels[i]->onGui();
 				}
 			}
 		}
+	}
+}
+
+// Panel Selection
+void AppStage_Project::setActivePanel(eProjectAppStageActivePanel newPanel)
+{
+	if (newPanel != m_activePanel)
+	{
+		m_activePanel = newPanel;
+		onActivePanelChanged();
+	}
+}
+
+void AppStage_Project::onActivePanelChanged()
+{
+	// Update the collision filter on the editor system
+	switch (m_activePanel)
+	{
+	case eProjectAppStageActivePanel::Scenes:
+	case eProjectAppStageActivePanel::Settings:
+		m_editorSystem.lock()->setObjectSystemSelectionFilter(m_sceneObjectSystemFilter);
+		break;
+	case eProjectAppStageActivePanel::Stages:
+	case eProjectAppStageActivePanel::Sources:
+		m_editorSystem.lock()->setObjectSystemSelectionFilter(m_stageObjectSystemFilter);
+		break;
+	default:
+		m_editorSystem.lock()->setObjectSystemSelectionFilter(m_emptyObjectSystemFilter);
 	}
 }
 
@@ -453,9 +511,6 @@ void AppStage_Project::renderProjectScene(IMkGraphicsContext* graphicsContext, M
 		auto editorObjectSystem = getObjectSystemOfType<EditorObjectSystem>();
 		const EditorSettings& editorSettings = editorObjectSystem->getEditorSettings();
 
-		// Add all renderable meshes on the stage in the current scene
-		currentScene->getParentStage()->addActorsToMkScene(m_mkScene);
-
 		// Render the stage
 		renderProjectStage(graphicsContext, viewportCamera);
 
@@ -465,21 +520,33 @@ void AppStage_Project::renderProjectScene(IMkGraphicsContext* graphicsContext, M
 		// Render anchors if enabled
 		if (editorSettings.bDebugRenderAnchors)
 		{
-			getObjectSystemOfType<AnchorObjectSystem>()->customRender(graphicsContext, viewportCamera);
+			AnchorObjectSystemPtr anchorSystem= m_anchorObjectSystem.lock();
+
+			addAllRenderablesToMkScene(anchorSystem, m_mkScene);
+			anchorSystem->customRender(graphicsContext, viewportCamera);
 		}
 
 		// Render the stencils if enabled
 		if (editorSettings.bDebugRenderBoxStencils)
 		{
-			getObjectSystemOfType<BoxStencilSystem>()->customRender(graphicsContext, viewportCamera);
+			BoxStencilSystemPtr boxStencilSystem = m_boxStencilSystem.lock();
+
+			addAllRenderablesToMkScene(boxStencilSystem, m_mkScene);
+			boxStencilSystem->customRender(graphicsContext, viewportCamera);
 		}
 		if (editorSettings.bDebugRenderModelStencils)
 		{
-			getObjectSystemOfType<ModelStencilSystem>()->customRender(graphicsContext, viewportCamera);
+			ModelStencilSystemPtr modelStencilSystem = m_modelStencilSystem.lock();
+
+			addAllRenderablesToMkScene(modelStencilSystem, m_mkScene);
+			modelStencilSystem->customRender(graphicsContext, viewportCamera);
 		}
 		if (editorSettings.bDebugRenderQuadStencils)
 		{
-			getObjectSystemOfType<QuadStencilSystem>()->customRender(graphicsContext, viewportCamera);
+			QuadStencilSystemPtr quadStencilSystem = m_quadStencilSystem.lock();
+
+			addAllRenderablesToMkScene(quadStencilSystem, m_mkScene);
+			quadStencilSystem->customRender(graphicsContext, viewportCamera);
 		}
 	}
 }
@@ -489,6 +556,11 @@ void AppStage_Project::renderProjectStage(IMkGraphicsContext* graphicsContext, M
 	StageComponentConstPtr stageComponent = getCurrentStageConst();
 	if (stageComponent)
 	{
+		// Render static meshes for cameras and light objects
+		addAllRenderablesToMkScene(m_cameraObjectSystem.lock(), m_mkScene);
+		addAllRenderablesToMkScene(m_pixelGridLightSystem.lock(), m_mkScene);
+		addAllRenderablesToMkScene(m_spotLightSystem.lock(), m_mkScene);
+
 		// Draw the cameras on the stage
 		renderCameraComponents(graphicsContext, viewportCamera, stageComponent);
 

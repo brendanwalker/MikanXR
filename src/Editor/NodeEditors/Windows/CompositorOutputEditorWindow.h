@@ -52,6 +52,10 @@ private:
 	void onSceneComponentDisposed(MikanObjectSystemPtr objectSystem, MikanComponentConstPtr component);
 	void onCompositorComponentDisposed(MikanObjectSystemPtr objectSystem, MikanComponentConstPtr component);
 
+	BoxStencilSystemWeakPtr m_boxStencilSystem;
+	QuadStencilSystemWeakPtr m_quadStencilSystem;
+	ModelStencilSystemWeakPtr m_modelStencilSystem;
+
 	SceneComponentWeakPtr m_sceneComponent;
 	CompositorComponentWeakPtr m_compositorComponent;
 	MikanCameraPtr m_viewCamera;					// scene rendering camera

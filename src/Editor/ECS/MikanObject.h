@@ -101,6 +101,19 @@ public:
 		}
 	}
 
+	using VisitFunction = std::function<void(MikanComponentPtr)>;
+	using FilterFunction = std::function<bool(MikanComponentPtr)>;
+	void visitAllComponents(VisitFunction visitFunc, FilterFunction filterFunc = {}) const
+	{
+		for (MikanComponentPtr component : m_components)
+		{
+			if (component && (!filterFunc || filterFunc(component)))
+			{
+				visitFunc(component);
+			}
+		}
+	}
+
 	inline MikanObjectSystemPtr getOwnerSystem() const { return m_ownerObjectSystemManager.lock(); }
 	inline TransformComponentPtr getRootComponent() const { return m_rootTransformComponent.lock(); }
 	inline void setRootComponent(TransformComponentPtr transformComponent) { m_rootTransformComponent= transformComponent; }

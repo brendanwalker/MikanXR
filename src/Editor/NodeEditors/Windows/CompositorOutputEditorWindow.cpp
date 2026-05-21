@@ -2,6 +2,7 @@
 #include "CompositorOutputEditorWindow.h"
 
 #include "App.h"
+#include "BoxStencilSystem.h"
 #include "CameraComponent.h"
 #include "ClientSourceManager.h"
 #include "CompositorComponent.h"
@@ -20,8 +21,10 @@
 #include "MainWindow.h"
 #include "MikanCamera.h"
 #include "MikanModelResourceManager.h"
+#include "ObjectSystemRenderQueries.h"
 #include "MikanServer.h"
 #include "MikanTextRenderer.h"
+#include "ModelStencilSystem.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "MkScene.h"
@@ -34,6 +37,7 @@
 #include "OpenCVManager.h"
 #include "PathUtils.h"
 #include "ProjectManager.h"
+#include "QuadStencilSystem.h"
 #include "SceneComponent.h"
 #include "SceneObjectSystem.h"
 #include "TextStyle.h"
@@ -137,6 +141,10 @@ bool CompositorOutputEditorWindow::startup()
 		compositorSystem->OnComponentDisposed +=
 			MakeDelegate(this, &CompositorOutputEditorWindow::onCompositorComponentDisposed);
 	}
+
+	m_boxStencilSystem = getProjectManager()->getSystemOfType<BoxStencilSystem>();
+	m_quadStencilSystem = getProjectManager()->getSystemOfType<QuadStencilSystem>();
+	m_modelStencilSystem = getProjectManager()->getSystemOfType<ModelStencilSystem>();
 
 	return success;
 }
@@ -355,7 +363,9 @@ void CompositorOutputEditorWindow::render()
 					m_mkScene->removeAllInstances();
 
 					// Add scene actors to the MkScene for rendering
-					currentScene->addActorsToMkScene(m_mkScene);
+					addAllRenderablesToMkScene(m_boxStencilSystem.lock(), m_mkScene);
+					addAllRenderablesToMkScene(m_modelStencilSystem.lock(), m_mkScene);
+					addAllRenderablesToMkScene(m_quadStencilSystem.lock(), m_mkScene);
 
 					// Render the 3d scene
 					m_mkScene->render(m_viewCamera, stateStack);

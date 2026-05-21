@@ -76,7 +76,6 @@ public:
 	void activateScene();
 	void deactivateScene();
 	void refreshActiveCompositors();
-	void addActorsToMkScene(IMkScenePtr mkScene) const;
 
 protected:
 	virtual ComponentScriptContextPtr allocateScriptContext() override;

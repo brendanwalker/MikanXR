@@ -4,6 +4,7 @@
 #include "AppStage.h"
 #include "CommonConfigFwd.h"
 #include "ComponentFwd.h"
+#include "LightSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ObjectSystemFwd.h"
 #include "MikanRendererFwd.h"
@@ -66,6 +67,10 @@ protected:
 		MikanCameraPtr viewportCamera,
 		MarkerTrackingVolumeComponentConstPtr markerTrackingVolume) const;
 
+	// Panel Selection
+	void setActivePanel(eProjectAppStageActivePanel newPanel);
+	void onActivePanelChanged();
+
 	// Camera
 	void createCompositorViewportCameras();
 	void disposeCompositorViewportCameras();
@@ -97,6 +102,21 @@ protected:
 
 	EditorObjectSystemWeakPtr m_editorSystem;
 	SceneObjectSystemWeakPtr m_sceneObjectSystem;
+
+	// Systems with object that care about depending on active panel
+	AnchorObjectSystemWeakPtr m_anchorObjectSystem;
+	CameraObjectSystemWeakPtr m_cameraObjectSystem;
+	MarkerObjectSystemWeakPtr m_markerObjectSystem;
+	QuadStencilSystemWeakPtr m_quadStencilSystem;
+	BoxStencilSystemWeakPtr m_boxStencilSystem;
+	ModelStencilSystemWeakPtr m_modelStencilSystem;
+	RGBPixelGridSystemWeakPtr m_pixelGridLightSystem;
+	RGBSpotLightSystemWeakPtr m_spotLightSystem;
+
+	// Collision Systems Filters 
+	std::set<const MikanObjectSystem*> m_sceneObjectSystemFilter;
+	std::set<const MikanObjectSystem*> m_stageObjectSystemFilter;
+	std::set<const MikanObjectSystem*> m_emptyObjectSystemFilter;
 
 	// Shared context for GuiPanel component/system panels
 	class ProjectGuiPanelContext* m_projectGuiPanelContext = nullptr;

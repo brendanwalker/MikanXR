@@ -35,7 +35,7 @@ private:
 	StageObjectSystemWeakPtr m_stageSystem;
 	CameraObjectSystemWeakPtr m_cameraSystem;
 	RGBSpotLightSystemWeakPtr m_spotLightSystem;
-	RGBPixelGridSystemWeakPtr m_pixelGridSystem;
+	RGBPixelGridSystemWeakPtr m_pixelGridLightSystem;
 	int m_selectedStageId = INVALID_MIKAN_ID;
 	int m_selectedCameraId = INVALID_MIKAN_ID;
 	int m_selectedLightId = INVALID_MIKAN_ID;

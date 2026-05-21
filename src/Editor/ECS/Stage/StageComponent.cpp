@@ -112,51 +112,6 @@ void StageComponent::dispose()
 	TransformComponent::dispose();
 }
 
-SelectionComponentPtr StageComponent::findClosestSelectionTarget(
-	const glm::vec3& rayOrigin,
-	const glm::vec3& rayDir,
-	ColliderRaycastHitResult& outRaycastResult) const
-{
-	struct
-	{
-		ColliderRaycastHitRequest request;
-		ColliderRaycastHitResult result;
-		SelectionComponentPtr closestSelectionComponent;
-	} raycastQuery;
-
-	raycastQuery.request.rayOrigin = rayOrigin;
-	raycastQuery.request.rayDirection = rayDir;
-
-	raycastQuery.result.hitDistance = k_real_max;
-	raycastQuery.result.hitPriority = 0;
-	raycastQuery.result.hitLocation = glm::vec3();
-	raycastQuery.result.hitNormal = glm::vec3();
-
-	raycastQuery.closestSelectionComponent.reset();
-
-	visitAllTransformComponentsConst(
-		[&raycastQuery](const TransformComponent* transformComponent) {
-			const auto* colliderComponent = dynamic_cast<const ColliderComponent*>(transformComponent);
-			if (colliderComponent)
-			{
-				ColliderRaycastHitResult result;
-
-				if (colliderComponent->computeRayIntersection(raycastQuery.request, result) &&
-					result.isHigherPriorityThan(raycastQuery.result))
-				{
-					MikanObjectPtr ownerObjectPtr = colliderComponent->getOwnerObject();
-
-					raycastQuery.closestSelectionComponent = ownerObjectPtr->getComponentOfType<SelectionComponent>();
-					raycastQuery.result = result;
-				}
-			}
-		});
-
-	outRaycastResult = raycastQuery.result;
-
-	return raycastQuery.closestSelectionComponent;
-}
-
 void StageComponent::renderStageBounds(
 	IMkGraphicsContext* graphicsContext,
 	const glm::mat4& transform) const
@@ -167,19 +122,6 @@ void StageComponent::renderStageBounds(
 	const glm::vec3 box_max= MikanVector3f_to_glm_vec3(definition->getStageBoundsMaxMM()) * k_centimeters_to_meters;
 
 	drawTransformedBox(graphicsContext, transform, box_min, box_max, Colors::Yellow);
-}
-
-void StageComponent::addActorsToMkScene(IMkScenePtr mkScene) const
-{
-	// Rebuild list of renderables
-	visitAllTransformComponentsConst(
-		[mkScene](const TransformComponent* transformComponent) {
-			IMkSceneRenderableConstPtr renderable = transformComponent->getGlSceneRenderableConst();
-			if (renderable)
-			{
-				mkScene->addInstance(renderable);
-			}
-		});
 }
 
 void StageComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)

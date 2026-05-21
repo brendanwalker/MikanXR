@@ -92,6 +92,7 @@ public:
 	void unbindViewport(MikanViewportWeakPtr viewportWeakPtr);
 	void clearViewports();
 
+	void setObjectSystemSelectionFilter(const std::set<const MikanObjectSystem*>& objectSystemFilter);
 	SelectionComponentPtr getSelection() const { return m_selectedComponentWeakPtr.lock(); }
 	SelectionComponentPtr getSelectedSceneActor() const;
 	void setSelection(SelectionComponentPtr newComponentPtr);
@@ -116,6 +117,7 @@ public:
 protected:
 	std::vector<MikanViewportWeakPtr> m_viewports;
 	
+	std::set<const MikanObjectSystem*> m_objectSystemSelectionFilter;
 	ColliderRaycastHitResult m_lastestRaycastResult;
 	SelectionComponentWeakPtr m_hoverComponentWeakPtr;
 	ColliderComponentWeakPtr m_hoverColliderWeakPtr;
@@ -161,4 +163,6 @@ protected:
 	SelectionComponentPtr findClosestSelectionTarget(
 		const glm::vec3& rayOrigin, const glm::vec3& rayDir,
 		ColliderRaycastHitResult& outRaycastResult) const;
+	void clearHoveredComponent();
+	void clearSelectedComponent();
 };

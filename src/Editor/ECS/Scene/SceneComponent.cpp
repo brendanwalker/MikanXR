@@ -249,19 +249,6 @@ void SceneComponent::refreshActiveCompositors()
 	compositorSystem->setActiveCompositors(activeCompositorIDs);
 }
 
-void SceneComponent::addActorsToMkScene(IMkScenePtr mkScene) const
-{
-	// Rebuild list of renderables
-	visitAllTransformComponentsConst(
-		[mkScene](const TransformComponent* transformComponent) {
-			IMkSceneRenderableConstPtr renderable = transformComponent->getGlSceneRenderableConst();
-			if (renderable)
-			{
-				mkScene->addInstance(renderable);
-			}
-		});
-}
-
 void SceneComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	TransformComponent::getPropertyDescriptors(outDescriptors);

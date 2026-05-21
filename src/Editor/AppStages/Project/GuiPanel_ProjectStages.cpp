@@ -31,7 +31,7 @@ bool GuiPanel_ProjectStages::init(ProjectGuiPanelContext* context)
 	m_stageSystem = ownerAppStage->getObjectSystemOfType<StageObjectSystem>();
 	m_cameraSystem = ownerAppStage->getObjectSystemOfType<CameraObjectSystem>();
 	m_spotLightSystem = ownerAppStage->getObjectSystemOfType<RGBSpotLightSystem>();
-	m_pixelGridSystem = ownerAppStage->getObjectSystemOfType<RGBPixelGridSystem>();
+	m_pixelGridLightSystem = ownerAppStage->getObjectSystemOfType<RGBPixelGridSystem>();
 
 	m_defaultGuiStyle = getGuiStyleManager()->getStyle("default_component_panel");
 
@@ -92,7 +92,7 @@ RGBSpotLightSystemPtr GuiPanel_ProjectStages::getSpotLightSystem() const
 
 RGBPixelGridSystemPtr GuiPanel_ProjectStages::getPixelGridSystem() const
 {
-	return m_pixelGridSystem.lock();
+	return m_pixelGridLightSystem.lock();
 }
 
 StageComponentPtr GuiPanel_ProjectStages::getSelectedStage() const
