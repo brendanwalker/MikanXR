@@ -27,6 +27,18 @@ public:
 	virtual bool readFromInitParams(
 		MikanObjectSystem* ownerObjectSystem,
 		const Serialization::PolymorphicObjectPtr& initParams) override;
+
+	static const std::string k_coneAngleDegreesPropertyId;
+	float getConeAngleDegrees() const { return m_coneAngleDegrees; }
+	void setConeAngleDegrees(float deg);
+
+	static const std::string k_coneRangeMetersPropertyId;
+	float getConeRangeMeters() const { return m_coneRangeMeters; }
+	void setConeRangeMeters(float m);
+
+protected:
+	float m_coneAngleDegrees = 30.0f;
+	float m_coneRangeMeters = 2.0f;
 };
 
 // ============================================================
@@ -46,6 +58,8 @@ public:
 
 	void disposeMeshComponents();
 	void rebuildMeshComponents();
+	void rebuildConeMesh();
+	void updateConeColor();
 
 	// Selection event handlers
 	void onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult);
@@ -108,6 +122,8 @@ protected:
 	std::vector<TransformComponentPtr> m_meshComponents;
 	std::vector<StaticMeshComponentPtr> m_triMeshComponents;
 	std::vector<MeshColliderComponentPtr> m_colliderComponents;
+	IMkTriangulatedMeshPtr m_coneMesh;
+	static constexpr float k_coneAlpha = 0.15f;
 	bool m_bIsHovered = false;
 	bool m_bIsSelected = false;
 	bool m_bIsTransformGizmoBound = false;

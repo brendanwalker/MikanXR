@@ -561,6 +561,10 @@ void AppStage_Project::renderProjectStage(IMkGraphicsContext* graphicsContext, M
 		addAllRenderablesToMkScene(m_pixelGridLightSystem.lock(), m_mkScene);
 		addAllRenderablesToMkScene(m_spotLightSystem.lock(), m_mkScene);
 
+		// Draw volumetric cone visualizations for spot lights
+		if (auto spotLightSystem = m_spotLightSystem.lock())
+			spotLightSystem->customRender(graphicsContext, viewportCamera);
+
 		// Draw the cameras on the stage
 		renderCameraComponents(graphicsContext, viewportCamera, stageComponent);
 

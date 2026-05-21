@@ -5,10 +5,14 @@
 #include "IEditorWindow.h"
 #include "IDMXManager.h"
 #include "IMkGraphicsContext.h"
+#include "IMkState.h"
 #include "IMkStaticMeshInstance.h"
 #include "IMkTriangulatedMesh.h"
 #include "IMkWireframeMesh.h"
+#include "MkStateModifiers.h"
+#include "MkStateStack.h"
 #include "MeshColliderComponent.h"
+#include "MikanCamera.h"
 #include "MikanLineRenderer.h"
 #include "MikanModelResourceManager.h"
 #include "MikanObject.h"
@@ -24,10 +28,15 @@
 #include "StaticMeshComponent.h"
 #include "TextStyle.h"
 
+#include <cmath>
+
 #include "lua.hpp"
 #include "LuaBridge/LuaBridge.h"
 
 // -- RGBSpotLightDefinition -----
+const std::string RGBSpotLightDefinition::k_coneAngleDegreesPropertyId = "cone_angle_degrees";
+const std::string RGBSpotLightDefinition::k_coneRangeMetersPropertyId = "cone_range_meters";
+
 RGBSpotLightDefinition::RGBSpotLightDefinition()
 	: DMXFixtureComponentDefinition()
 {
@@ -40,9 +49,22 @@ RGBSpotLightDefinition::RGBSpotLightDefinition(MikanLightID lightId)
 	setDMXChannelCount(3);
 }
 
+void RGBSpotLightDefinition::setConeAngleDegrees(float deg)
+{
+	m_coneAngleDegrees = deg;
+}
+
+void RGBSpotLightDefinition::setConeRangeMeters(float m)
+{
+	m_coneRangeMeters = m;
+}
+
 configuru::Config RGBSpotLightDefinition::writeToJSON()
 {
 	configuru::Config pt = DMXFixtureComponentDefinition::writeToJSON();
+
+	pt[k_coneAngleDegreesPropertyId] = m_coneAngleDegrees;
+	pt[k_coneRangeMetersPropertyId] = m_coneRangeMeters;
 
 	return pt;
 }
@@ -50,6 +72,9 @@ configuru::Config RGBSpotLightDefinition::writeToJSON()
 void RGBSpotLightDefinition::readFromJSON(const configuru::Config& pt)
 {
 	DMXFixtureComponentDefinition::readFromJSON(pt);
+
+	m_coneAngleDegrees = pt.get_or<float>(k_coneAngleDegreesPropertyId, 30.0f);
+	m_coneRangeMeters = pt.get_or<float>(k_coneRangeMetersPropertyId, 2.0f);
 }
 
 bool RGBSpotLightDefinition::readFromInitParams(
@@ -120,6 +145,7 @@ void RGBSpotLightComponent::disposeMeshComponents()
 	m_colliderComponents.clear();
 	m_triMeshComponents.clear();
 	m_wireframeMeshes.clear();
+	m_coneMesh = nullptr;
 }
 
 void RGBSpotLightComponent::rebuildMeshComponents()
@@ -198,6 +224,8 @@ void RGBSpotLightComponent::rebuildMeshComponents()
 	SelectionComponentPtr selectionComponentPtr = m_selectionComponent.lock();
 	if (selectionComponentPtr)
 		selectionComponentPtr->rebindColliders();
+
+	rebuildConeMesh();
 }
 
 void RGBSpotLightComponent::updateWireframeMeshColor()
@@ -230,6 +258,66 @@ void RGBSpotLightComponent::updateWireframeMeshColor()
 			eUniformSemantic::diffuseColorRGBA,
 			glm::vec4(color, 1.f));
 	}
+}
+
+void RGBSpotLightComponent::rebuildConeMesh()
+{
+	m_coneMesh = nullptr;
+
+	IEditorWindow* ownerWindow = getOwnerEditorWindow();
+	if (!ownerWindow) return;
+
+	IMkGraphicsContextPtr graphicsContext = ownerWindow->getGraphicsContext();
+
+	// Build position-only cone (tip at origin, base circle at z=-1, radius=1, N segments)
+	constexpr int N = 16;
+	struct PosVert { float x, y, z; };
+	std::vector<PosVert> verts;
+	verts.reserve(N + 2);
+	verts.push_back({0.f, 0.f, 0.f}); // tip: index 0
+	for (int i = 0; i < N; ++i)
+	{
+		const float a = (float)i / (float)N * (2.0f * 3.14159265f);
+		verts.push_back({cosf(a), sinf(a), -1.f}); // base circle: indices 1..N
+	}
+	verts.push_back({0.f, 0.f, -1.f}); // base center: index N+1
+
+	std::vector<uint32_t> indices;
+	indices.reserve(2 * N * 3);
+	for (int i = 0; i < N; ++i)
+	{
+		// Lateral triangle: tip -> edge[i] -> edge[i+1]
+		indices.push_back(0);
+		indices.push_back(i + 1);
+		indices.push_back((i + 1) % N + 1);
+		// Cap triangle: center -> edge[i+1] -> edge[i]  (reversed winding for back face)
+		indices.push_back(N + 1);
+		indices.push_back((i + 1) % N + 1);
+		indices.push_back(i + 1);
+	}
+
+	m_coneMesh = createMkTriangulatedMesh(
+		graphicsContext.get(),
+		"spotLightCone",
+		reinterpret_cast<const uint8_t*>(verts.data()), sizeof(PosVert), (uint32_t)verts.size(),
+		reinterpret_cast<const uint8_t*>(indices.data()), sizeof(uint32_t), N * 2,
+		false); // data uploaded to GPU in createResources(), no need for mesh to own CPU copy
+
+	if (m_coneMesh)
+	{
+		MkMaterialConstPtr material =
+			graphicsContext->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_P_SOLID_COLOR);
+		m_coneMesh->setMaterial(material);
+		m_coneMesh->createResources();
+		updateConeColor();
+	}
+}
+
+void RGBSpotLightComponent::updateConeColor()
+{
+	if (!m_coneMesh) return;
+	const glm::vec4 col(m_red / 255.f, m_green / 255.f, m_blue / 255.f, k_coneAlpha);
+	m_coneMesh->getMaterialInstance()->setVec4BySemantic(eUniformSemantic::diffuseColorRGBA, col);
 }
 
 void RGBSpotLightComponent::onInteractionRayOverlapEnter(const ColliderRaycastHitResult& hitResult)
@@ -270,32 +358,17 @@ void RGBSpotLightComponent::onTransformGizmoUnbound()
 
 void RGBSpotLightComponent::setRed(uint8_t v)
 {
-	if (v != m_red)
-	{
-		m_red = v;
-
-		notifyDMXDataChanged();
-	}
+	setRGB(v, m_green, m_blue);
 }
 
 void RGBSpotLightComponent::setGreen(uint8_t v)
 {
-	if (v != m_green)
-	{
-		m_green = v;
-
-		notifyDMXDataChanged();
-	}
+	setRGB(m_red, v, m_blue);
 }
 
 void RGBSpotLightComponent::setBlue(uint8_t v)
 {
-	if (v != m_blue)
-	{
-		m_blue = v;
-
-		notifyDMXDataChanged();
-	}
+	setRGB(m_red, m_green, v);
 }
 
 void RGBSpotLightComponent::setRGB(uint8_t r, uint8_t g, uint8_t b)
@@ -308,6 +381,7 @@ void RGBSpotLightComponent::setRGB(uint8_t r, uint8_t g, uint8_t b)
 
 		notifyDMXDataChanged();
 		updateWireframeMeshColor();
+		updateConeColor();
 	}
 }
 
@@ -358,6 +432,10 @@ void RGBSpotLightComponent::getPropertyDescriptors(std::vector<PropertyDescripto
 		RGBSpotLightComponent::k_greenPropertyId, MikanVariantType::INT));
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
 		RGBSpotLightComponent::k_bluePropertyId, MikanVariantType::INT));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+		RGBSpotLightDefinition::k_coneAngleDegreesPropertyId, MikanVariantType::FLOAT));
+	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
+		RGBSpotLightDefinition::k_coneRangeMetersPropertyId, MikanVariantType::FLOAT));
 }
 
 bool RGBSpotLightComponent::getPropertyValue(
@@ -380,6 +458,14 @@ bool RGBSpotLightComponent::getPropertyValue(
 	{
 		outValue = static_cast<int>(getBlue());
 		return true;
+	}
+	else if (propertyName == RGBSpotLightDefinition::k_coneAngleDegreesPropertyId)
+	{
+		if (def) { outValue = def->getConeAngleDegrees(); return true; }
+	}
+	else if (propertyName == RGBSpotLightDefinition::k_coneRangeMetersPropertyId)
+	{
+		if (def) { outValue = def->getConeRangeMeters(); return true; }
 	}
 
 	return DMXFixtureComponent::getPropertyValue(propertyName, outValue);
@@ -405,6 +491,14 @@ bool RGBSpotLightComponent::setPropertyValue(
 	{
 		setBlue(static_cast<uint8_t>(inValue.getIntValue()));
 		return true;
+	}
+	else if (propertyName == RGBSpotLightDefinition::k_coneAngleDegreesPropertyId)
+	{
+		if (def) { def->setConeAngleDegrees(inValue.getFloatValue()); return true; }
+	}
+	else if (propertyName == RGBSpotLightDefinition::k_coneRangeMetersPropertyId)
+	{
+		if (def) { def->setConeRangeMeters(inValue.getFloatValue()); return true; }
 	}
 
 	return DMXFixtureComponent::setPropertyValue(propertyName, inValue);
@@ -433,6 +527,32 @@ void RGBSpotLightComponent::customRender(
 			static_cast<int>(getRed()),
 			static_cast<int>(getGreen()),
 			static_cast<int>(getBlue()));
+	}
+
+	// Render the volumetric cone visualization
+	if (m_coneMesh)
+	{
+		const float halfAngleRad = def->getConeAngleDegrees() * 0.5f * (3.14159265f / 180.0f);
+		const float range = def->getConeRangeMeters();
+		const float radius = tanf(halfAngleRad) * range;
+
+		// Scale the unit cone (radius=1, height=1 along -Z) to match light properties
+		glm::mat4 coneScale(1.f);
+		coneScale[0][0] = radius;
+		coneScale[1][1] = radius;
+		coneScale[2][2] = range;
+		const glm::mat4 coneXform = getWorldTransform() * coneScale;
+
+		MkStateStack& stateStack = graphicsContext->getMkStateStack();
+		IMkState* coneState = stateStack.pushState("spotLightConeVolume");
+		coneState->enableFlag(eMkStateFlagType::blend);
+		coneState->disableFlag(eMkStateFlagType::cullFace);
+		mkStateSetBlendFunc(coneState, eMkBlendFunction::ONE, eMkBlendFunction::ONE);
+		mkStateSetDepthMask(coneState, false);
+
+		drawTransformedTriangulatedMesh(viewportCamera, coneXform, m_coneMesh);
+
+		stateStack.popState();
 	}
 }
 
