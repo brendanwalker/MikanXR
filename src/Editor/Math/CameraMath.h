@@ -92,6 +92,13 @@ void computeOpenGLProjMatFromCameraIntrinsics(
 	glm::mat4& outProjection,
 	int* outViewport = nullptr);
 
+void computeCameraRayAtPixel(
+	const struct MikanMonoIntrinsics& intrinsics,
+	const glm::mat4& cameraXform,
+	const glm::vec2& imagePoint,
+	glm::vec3& outRayStart,
+	glm::vec3& outRayDirection);
+
 /**
  * Computes the camera tracking mount (or "puck") to aperature offset transform
  * from known VR-space tracking mount poses and optical offset from tracking pattern.

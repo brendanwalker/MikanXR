@@ -11,6 +11,7 @@
 #include "MikanViewport.h"
 #include "MikanPropertyDatabase.h"
 #include "MikanFunctionDatabase.h"
+#include "ObjectSystemColliderQueries.h"
 #include "InputManager.h"
 #include "IEditorWindow.h"
 #include "ProjectManager.h"
@@ -19,6 +20,7 @@
 #include "MikanEditorTypes.h"
 #include "SceneObjectSystem.h"
 #include "SceneComponent.h"
+#include "StageComponent.h"
 #include "ProjectConfig.h"
 #include "SelectionComponent.h"
 #include "QuadStencilSystem.h"
@@ -190,9 +192,6 @@ void EditorObjectSystem::createSceneTransformGizmo(SceneComponentPtr ownerScene)
 
 	// Attach the gizmo to the scene
 	gizmoObjectPtr->getRootComponent()->attachToComponent(ownerScene);
-
-	// Listen for gizmo hot-keys
-	transformGizmoPtr->bindInput();
 }
 
 void EditorObjectSystem::disposeSceneTransformGizmo()
@@ -379,8 +378,11 @@ void EditorObjectSystem::onAppStageEntered(class AppStage* oldAppStage, class Ap
 {
 	if (newAppStage->getAppStageName() == AppStage_Project::APP_STAGE_NAME)
 	{
-		getOwnerWindow()->getInputManager()->fetchOrAddKeyBindings(MkKey::DELETE_KEYCODE)->OnKeyPressed +=
+		InputManager* inputManager= getOwnerWindow()->getInputManager();
+		inputManager->fetchOrAddKeyBindings(MkKey::DELETE_KEYCODE)->OnKeyPressed +=
 			MakeDelegate(this, &EditorObjectSystem::onDeletePressed);
+
+		m_gizmoComponentWeakPtr.lock()->bindInput();
 	}
 }
 
@@ -405,6 +407,9 @@ void EditorObjectSystem::onSceneActivated(SceneComponentPtr newScene)
 
 void EditorObjectSystem::onSceneDeactivated(SceneComponentPtr oldScene)
 {
+	clearSelectedComponent();
+	clearHoveredComponent();
+
 	disposeSceneTransformGizmo();
 }
 
@@ -413,19 +418,13 @@ void EditorObjectSystem::onActorDisposed(MikanObjectSystemPtr system, MikanCompo
 	SelectionComponentPtr hoverComponentPtr= m_hoverComponentWeakPtr.lock();
 	if (hoverComponentPtr == component)
 	{
-		hoverComponentPtr->notifyHoverExit(m_lastestRaycastResult);
-		m_hoverComponentWeakPtr.reset();
-		m_hoverColliderWeakPtr.reset();
+		clearHoveredComponent();
 	}
 
 	SelectionComponentPtr selectedComponent= m_selectedComponentWeakPtr.lock();
 	if (selectedComponent == component)
 	{
-		// Clear the currently selected component first in case selection handler asks
-		m_selectedComponentWeakPtr.reset();
-
-		// Signal that the selection changed to nothing
-		onSelectionChanged(selectedComponent, nullptr);
+		clearSelectedComponent();
 	}
 }
 
@@ -559,6 +558,19 @@ void EditorObjectSystem::onSelectionChanged(
 		OnSelectionChanged();
 }
 
+void EditorObjectSystem::setObjectSystemSelectionFilter(
+	const std::set<const MikanObjectSystem*>& objectSystemFilter)
+{
+	if (m_objectSystemSelectionFilter != objectSystemFilter)
+	{
+		// Flush any previous selection/hover since the filter is changing
+		clearHoveredComponent();
+		clearSelectedComponent();
+
+		m_objectSystemSelectionFilter = objectSystemFilter;
+	}
+}
+
 SelectionComponentPtr EditorObjectSystem::getSelectedSceneActor() const
 {
 	SelectionComponentPtr currentSelection = m_selectedComponentWeakPtr.lock();
@@ -597,23 +609,47 @@ SelectionComponentPtr EditorObjectSystem::findClosestSelectionTarget(
 	const glm::vec3& rayDir,
 	ColliderRaycastHitResult& outRaycastResult) const
 {
-	SelectionComponentPtr closestSelectionComponent;
-	
-	outRaycastResult.hitDistance= k_real_max;
-	outRaycastResult.hitPriority= 0;
-	outRaycastResult.hitLocation = glm::vec3();
-	outRaycastResult.hitNormal = glm::vec3();
+	ColliderRaycastHitRequest request = {};
+	request.rayOrigin = rayOrigin;
+	request.rayDirection = rayDir;
 
-	SceneObjectSystemPtr sceneObjectSystem = getObjectSystemOfType<SceneObjectSystem>();
-	SceneComponentConstPtr currentScene= sceneObjectSystem->getCurrentScene();
-	if (currentScene)
+	// Find the closest collision result in the 
+	outRaycastResult = findClosestCollisionAlongRay(m_objectSystemSelectionFilter, request);
+
+	SelectionComponentPtr closestSelectionComponent;
+	ColliderComponentPtr hitCollider= outRaycastResult.hitComponent.lock();
+	if (hitCollider)
 	{
-		closestSelectionComponent= 
-			currentScene->findClosestSelectionTarget(
-				rayOrigin, rayDir, outRaycastResult);
+		MikanObjectPtr hitObject= hitCollider->getOwnerObject();
+
+		closestSelectionComponent= hitObject->getComponentOfType<SelectionComponent>();
 	}
 
 	return closestSelectionComponent;
+}
+
+void EditorObjectSystem::clearHoveredComponent()
+{
+	SelectionComponentPtr hoverComponentPtr = m_hoverComponentWeakPtr.lock();
+	if (hoverComponentPtr)
+	{
+		hoverComponentPtr->notifyHoverExit(m_lastestRaycastResult);
+		m_hoverComponentWeakPtr.reset();
+		m_hoverColliderWeakPtr.reset();
+	}
+}
+
+void EditorObjectSystem::clearSelectedComponent()
+{
+	SelectionComponentPtr selectedComponent = m_selectedComponentWeakPtr.lock();
+	if (selectedComponent)
+	{
+		// Clear the currently selected component first in case selection handler asks
+		m_selectedComponentWeakPtr.reset();
+
+		// Signal that the selection changed to nothing
+		onSelectionChanged(selectedComponent, nullptr);
+	}
 }
 
 void EditorObjectSystem::registerPropertyDescriptors(MikanPropertyDatabasePtr propertyDatabase)

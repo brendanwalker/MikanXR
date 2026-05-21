@@ -45,11 +45,6 @@ public:
 
 protected:
 	glm::vec2 computeMouseScreenPosition() const;
-	void computeCameraRayAtPixel(
-		const glm::mat4 cameraXform,
-		const glm::vec2& imagePoint,
-		glm::vec3& outRayStart,
-		glm::vec3& outRayDirection) const;
 
 	float m_frameWidth;
 	float m_frameHeight;

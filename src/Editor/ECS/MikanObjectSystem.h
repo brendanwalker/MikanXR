@@ -69,6 +69,18 @@ public:
 		return m_definitionWeakPtr.lock();
 	}
 
+	using VisitFunction = std::function<void(MikanObjectPtr)>;
+	void visitAllObjects(VisitFunction visitFunc) const
+	{
+		for (const auto& objectPtr : m_objects)
+		{
+			if (objectPtr)
+			{
+				visitFunc(objectPtr);
+			}
+		}
+	}
+
 	virtual MikanComponentPtr getComponentById(int componentId) const = 0;
 	virtual bool getComponentList(const std::string& componentClassName, std::vector<MikanComponentPtr>& outComponentList) const = 0;
 	virtual bool getComponentIdList(const std::string& componentClassName, std::vector<int>& outComponentIdList) const = 0;

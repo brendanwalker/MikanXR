@@ -106,3 +106,13 @@ class VRTrackingVolumeSystemDefinition;
 using VRTrackingVolumeSystemDefinitionPtr = std::shared_ptr<VRTrackingVolumeSystemDefinition>;
 using VRTrackingVolumeSystemDefinitionConstPtr = std::shared_ptr<const VRTrackingVolumeSystemDefinition>;
 using VRTrackingVolumeSystemDefinitionWeakPtr = std::weak_ptr<VRTrackingVolumeSystemDefinition>;
+
+class RGBSpotLightSystemDefinition;
+using RGBSpotLightSystemDefinitionPtr = std::shared_ptr<RGBSpotLightSystemDefinition>;
+using RGBSpotLightSystemDefinitionConstPtr = std::shared_ptr<const RGBSpotLightSystemDefinition>;
+using RGBSpotLightSystemDefinitionWeakPtr = std::weak_ptr<RGBSpotLightSystemDefinition>;
+
+class RGBPixelGridSystemDefinition;
+using RGBPixelGridSystemDefinitionPtr = std::shared_ptr<RGBPixelGridSystemDefinition>;
+using RGBPixelGridSystemDefinitionConstPtr = std::shared_ptr<const RGBPixelGridSystemDefinition>;
+using RGBPixelGridSystemDefinitionWeakPtr = std::weak_ptr<RGBPixelGridSystemDefinition>;

@@ -28,6 +28,10 @@
 #include "MikanFunctionTypes.rfks.h"
 #include "MikanFunctionRequests.rfks.h"
 
+#include "MikanLightEvents.rfks.h"
+#include "MikanLightTypes.rfks.h"
+#include "MikanLightRequests.rfks.h"
+
 #include "MikanMarkerTypes.rfks.h"
 #include "MikanMarkerRequests.rfks.h"
 
@@ -75,6 +79,7 @@
 #include "MikanFunctionTypes.h"
 #include "MikanCameraTypes.h"
 #include "MikanCompositorTypes.h"
+#include "MikanLightTypes.h"
 #include "MikanMarkerTypes.h"
 #include "MikanSceneTypes.h"
 #include "MikanStageTypes.h"
@@ -93,8 +98,10 @@ const char* MikanQuadStencilSystemValues::k_systemName = "QuadStencilSystem";
 const char* MikanModelStencilSystemValues::k_systemName = "ModelStencilSystem";
 const char* MikanMarkerSystemValues::k_systemName = "MarkerObjectSystem";
 const char* MikanSceneSystemValues::k_systemName = "SceneObjectSystem";
+const char* MikanDMXObjectSystemValues::k_systemName = "DMXObjectSystem";
+const char* MikanRGBSpotLightSystemValues::k_systemName = "RGBSpotLightSystem";
+const char* MikanRGBPixelGridSystemValues::k_systemName = "RGBPixelGridSystem";
 const char* MikanVRObjectSystemValues::k_systemName = "VRObjectSystem";
-
 
 // Static component class name and owner system name definitions
 // TODO: Make these come from the System and component classes
@@ -121,6 +128,12 @@ const char* MikanQuadStencilComponentValues::k_ownerSystemName = "QuadStencilObj
 
 const char* MikanBoxStencilComponentValues::k_componentClassName = "BoxStencilComponent";
 const char* MikanBoxStencilComponentValues::k_ownerSystemName = "BoxStencilSystem";
+
+const char* MikanRGBSpotLightComponentValues::k_componentClassName= "RGBSpotLightComponent";
+const char* MikanRGBSpotLightComponentValues::k_ownerSystemName= MikanRGBSpotLightSystemValues::k_systemName;
+
+const char* MikanRGBPixelGridComponentValues::k_componentClassName = "RGBPixelGridComponent";
+const char* MikanRGBPixelGridComponentValues::k_ownerSystemName = MikanRGBPixelGridSystemValues::k_systemName;
 
 const char* MikanModelStencilComponentValues::k_componentClassName = "ModelStencilComponent";
 const char* MikanModelStencilComponentValues::k_ownerSystemName = "ModelStencilSystem";

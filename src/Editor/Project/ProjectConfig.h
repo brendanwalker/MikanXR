@@ -5,6 +5,7 @@
 #include "MikanMathTypes.h"
 #include "ObjectSystemFwd.h"
 #include "ObjectSystemConfigFwd.h"
+#include "LightSystemFwd.h"
 #include "ProjectConfigConstants.h"
 #include "MonotonicIDAllocator.h"
 #include "PersistentIDAllocator.h"
@@ -58,6 +59,9 @@ public:
 	USBVideoSourceSystemDefinitionPtr usbVideoSourceSystemConfig;
 	VRObjectSystemDefinitionPtr vrObjectConfig;
 	VRTrackingVolumeSystemDefinitionPtr vrTrackingVolumeConfig;
+	DMXObjectSystemDefinitionPtr dmxObjectSystemDefinition;
+	RGBSpotLightSystemDefinitionPtr rgbSpotLightSystemDefinition;
+	RGBPixelGridSystemDefinitionPtr rgbPixelGridSystemDefinition;
 
 protected:
 	// Max transient component ID (used for runtime-only components that aren't saved to the project file)

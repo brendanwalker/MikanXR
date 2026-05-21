@@ -1,5 +1,7 @@
 #include "Colors.h"
+#include "ColliderComponent.h"
 #include "StageComponent.h"
+#include "IMkScene.h"
 #include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"

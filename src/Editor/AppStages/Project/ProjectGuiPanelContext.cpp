@@ -1,16 +1,20 @@
 #include "AppStage_Project.h"
+#include "DMXObjectSystem.h"
 #include "MarkerObjectSystem.h"
 #include "ProjectGuiPanelContext.h"
 #include "Shared/GuiPanel_AnchorComponent.h"
 #include "Shared/GuiPanel_CameraComponent.h"
 #include "Shared/GuiPanel_ClientTextureSourceComponent.h"
 #include "Shared/GuiPanel_CompositorComponent.h"
+#include "Shared/GuiPanel_DMXObjectSystem.h"
 #include "Shared/GuiPanel_MarkerObjectSystem.h"
 #include "Shared/GuiPanel_MarkerTrackingVolumeComponent.h"
 #include "Shared/GuiPanel_MarkerComponent.h"
 #include "Shared/GuiPanel_NetworkVideoSourceComponent.h"
 #include "Shared/GuiPanel_SceneComponent.h"
 #include "Shared/GuiPanel_SpoutTextureSourceComponent.h"
+#include "Shared/GuiPanel_RGBPixelGridComponent.h"
+#include "Shared/GuiPanel_RGBSpotLightComponent.h"
 #include "Shared/GuiPanel_StencilComponent.h"
 #include "Shared/GuiPanel_StageComponent.h"
 #include "Shared/GuiPanel_TrackingMountComponent.h"
@@ -25,6 +29,10 @@ ProjectGuiPanelContext::ProjectGuiPanelContext(AppStage_Project* ownerAppStage)
 bool ProjectGuiPanelContext::init()
 {
 	// System Panels
+	m_dmxSystemPanel = m_ownerAppStage->addGuiPanel<GuiPanel_DMXObjectSystem>();
+	m_dmxSystemPanel->init();
+	m_dmxSystemPanel->setObjectSystem(m_ownerAppStage->getObjectSystemOfType<DMXObjectSystem>());
+
 	m_markerSystemPanel = m_ownerAppStage->addGuiPanel<GuiPanel_MarkerObjectSystem>();
 	m_markerSystemPanel->init();
 	m_markerSystemPanel->setObjectSystem(m_ownerAppStage->getObjectSystemOfType<MarkerObjectSystem>());
@@ -57,8 +65,14 @@ bool ProjectGuiPanelContext::init()
 	m_networkVideoSourcePanel = m_ownerAppStage->addGuiPanel<GuiPanel_NetworkVideoSourceComponent>();
 	m_networkVideoSourcePanel->init();
 
+	m_pixelGridPanel = m_ownerAppStage->addGuiPanel<GuiPanel_RGBPixelGridComponent>();
+	m_pixelGridPanel->init();
+
 	m_quadStencilPanel = m_ownerAppStage->addGuiPanel<GuiPanel_QuadStencilComponent>();
 	m_quadStencilPanel->init();
+
+	m_spotLightPanel = m_ownerAppStage->addGuiPanel<GuiPanel_RGBSpotLightComponent>();
+	m_spotLightPanel->init();
 
 	m_scenePanel = m_ownerAppStage->addGuiPanel<GuiPanel_SceneComponent>();
 	m_scenePanel->init();

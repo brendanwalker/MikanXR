@@ -126,6 +126,30 @@ export class MikanRotator3f {
   ];
 }
 
+export class MikanQuatf {
+  w: number = 0;
+  x: number = 0;
+  y: number = 0;
+  z: number = 0;
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'w', type: 'float' },
+    { name: 'x', type: 'float' },
+    { name: 'y', type: 'float' },
+    { name: 'z', type: 'float' }
+  ];
+}
+
+export class MikanVector2i {
+  x: number = 0;
+  y: number = 0;
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'x', type: 'int32' },
+    { name: 'y', type: 'int32' }
+  ];
+}
+
 export class MikanVector4f {
   x: number = 0;
   y: number = 0;
@@ -137,16 +161,6 @@ export class MikanVector4f {
     { name: 'y', type: 'float' },
     { name: 'z', type: 'float' },
     { name: 'w', type: 'float' }
-  ];
-}
-
-export class MikanVector2i {
-  x: number = 0;
-  y: number = 0;
-
-  static __serializationMetadata: SerializationField[] = [
-    { name: 'x', type: 'int32' },
-    { name: 'y', type: 'int32' }
   ];
 }
 
@@ -235,20 +249,6 @@ export class MikanMatrix4x3d {
     { name: 'z1', type: 'double' },
     { name: 'z2', type: 'double' },
     { name: 'z3', type: 'double' }
-  ];
-}
-
-export class MikanQuatf {
-  w: number = 0;
-  x: number = 0;
-  y: number = 0;
-  z: number = 0;
-
-  static __serializationMetadata: SerializationField[] = [
-    { name: 'w', type: 'float' },
-    { name: 'x', type: 'float' },
-    { name: 'y', type: 'float' },
-    { name: 'z', type: 'float' }
   ];
 }
 

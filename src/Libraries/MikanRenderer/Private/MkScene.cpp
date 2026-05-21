@@ -287,6 +287,22 @@ eUniformBindResult MkScene::materialInstanceBindCallback(
 
 	switch (uniformSemantic)
 	{
+		case eUniformSemantic::diffuseColorRGB:
+			{
+				bindResult = 
+					program->setVector3Uniform(uniformName, glm::vec3(1.f, 1.f, 1.f))
+					? eUniformBindResult::bound
+					: eUniformBindResult::error;
+			}
+			break;
+		case eUniformSemantic::diffuseColorRGBA:
+			{
+				bindResult =
+					program->setVector4Uniform(uniformName, glm::vec4(1.f, 1.f, 1.f, 1.f))
+					? eUniformBindResult::bound
+					: eUniformBindResult::error;
+			}
+			break;
 		case eUniformSemantic::modelMatrix:
 			{
 				const glm::mat4 modelMat = renderableInstance->getModelMatrix();

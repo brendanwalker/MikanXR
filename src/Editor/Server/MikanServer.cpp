@@ -1,6 +1,7 @@
 //-- includes -----
 #include "CameraRequestHandler.h"
 #include "FunctionRequestHandler.h"
+#include "LightRequestHandler.h"
 #include "MarkerRequestHandler.h"
 #include "JsonDeserializer.h"
 #include "JsonSerializer.h"
@@ -46,6 +47,7 @@ MikanServer::MikanServer()
 	: m_messageServer(new WebsocketInterprocessMessageServer())
 	, m_cameraRequestHandler(new CameraRequestHandler(this))
 	, m_functionRequestHandler(new FunctionRequestHandler(this))
+	, m_lightRequestHandler(new LightRequestHandler(this))
 	, m_propertyRequestHandler(new PropertyRequestHandler(this))
 	, m_remoteControlManager(new RemoteControlManager(this))
 	, m_markerRequestHandler(new MarkerRequestHandler(this))
@@ -66,6 +68,7 @@ MikanServer::~MikanServer()
 	delete m_scriptRequestHandler;
 	delete m_remoteControlManager;
 	delete m_propertyRequestHandler;
+	delete m_lightRequestHandler;
 	delete m_functionRequestHandler;
 	delete m_cameraRequestHandler;
 	delete m_messageServer;
@@ -95,6 +98,12 @@ bool MikanServer::startup(MainWindow* mainWindow)
 	if (!m_functionRequestHandler->startup(mainWindow))
 	{
 		MIKAN_LOG_ERROR("MikanServer::startup()") << "Failed to bind function request handlers";
+		return false;
+	}
+
+	if (!m_lightRequestHandler->startup(mainWindow))
+	{
+		MIKAN_LOG_ERROR("MikanServer::startup()") << "Failed to bind light request handlers";
 		return false;
 	}
 
@@ -182,6 +191,7 @@ void MikanServer::shutdown()
 
 	m_cameraRequestHandler->shutdown();
 	m_functionRequestHandler->shutdown();
+	m_lightRequestHandler->shutdown();
 	m_propertyRequestHandler->shutdown();
 	m_scriptRequestHandler->shutdown();
 	m_markerRequestHandler->shutdown();

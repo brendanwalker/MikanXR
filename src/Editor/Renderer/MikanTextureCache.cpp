@@ -1,4 +1,5 @@
 #include "MikanTextureCache.h"
+#include "IMkGraphicsContext.h"
 #include "IMkTexture.h"
 #include "IMkTextureCache.h"
 #include "TextureAssetReference.h"
@@ -6,7 +7,7 @@
 #include "PathUtils.h"
 
 MikanTextureCache::MikanTextureCache(IMkGraphicsContext* graphicsContext)
-	: m_textureCache(createMkTextureCache(graphicsContext))
+	: m_textureCache(graphicsContext->getTextureCache())
 {
 }
 
@@ -25,7 +26,7 @@ bool MikanTextureCache::startup()
 
 void MikanTextureCache::shutdown()
 {
-	m_textureCache->shutdown();
+	m_textureCache = nullptr;;
 }
 
 IMkTexturePtr MikanTextureCache::tryGetTextureByName(const std::string& textureName)

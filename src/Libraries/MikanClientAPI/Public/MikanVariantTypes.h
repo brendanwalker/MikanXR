@@ -40,6 +40,7 @@ enum class ENUM(Serialization::CodeGenModule("MikanVariantTypes")) MikanVariantT
 	
 	// Array Types
 	BOOL_ARRAY ENUMVALUE_STRING("BOOL_ARRAY_TYPE"),
+	UBYTE_ARRAY ENUMVALUE_STRING("UBYTE_ARRAY_TYPE"),
 	INT_ARRAY ENUMVALUE_STRING("INT_ARRAY_TYPE"),
 	FLOAT_ARRAY ENUMVALUE_STRING("FLOAT_ARRAY_TYPE"),
 	STRING_ARRAY ENUMVALUE_STRING("STRING_ARRAY_TYPE"),
@@ -99,6 +100,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	const MikanQuatd& getQuaterniondValue() const;
 	const float getVectorComponentValue(size_t index) const;
 	const std::vector<bool>& getBoolArrayValue() const;
+	const std::vector<uint8_t>& getUByteArrayValue() const;
 	const std::vector<int>& getIntArrayValue() const;
 	const std::vector<float>& getFloatArrayValue() const;
 	const std::vector<Serialization::String>& getStringArrayValue() const;
@@ -125,6 +127,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	void setValue(const MikanQuatd& value);
 	void setVectorComponentValue(size_t index, float value);
 	void setValue(const std::vector<bool>& value);
+	void setValue(const std::vector<uint8_t>& value);
 	void setValue(const std::vector<int>& value);
 	void setValue(const std::vector<float>& value);
 	void setValue(const std::vector<std::string>& value);
@@ -319,6 +322,17 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanBoolArrayValue_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanUByteArrayValue
+	: public MikanVariantBase
+{
+	FIELD()
+	Serialization::List<uint8_t> value;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanUByteArrayValue_GENERATED
 #endif
 };
 

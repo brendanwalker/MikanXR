@@ -33,6 +33,7 @@ public:
 	virtual void getMouseScreenPosition(int& outScreenX, int& outScreenY) const override;
 
 	virtual MikanModelResourceManager* getModelResourceManager() override;
+	virtual MikanTextureCache* getTextureCache() override;
 	//virtual ProjectManagerPtr getProjectManager() const = 0;
 	//virtual class MikanServer* getMikanServer() const = 0;
 	//virtual class IMkFontManager* getFontManager() const = 0;
@@ -67,9 +68,11 @@ protected:
 	bool startupWindow(const std::string& title, int width, int height);
 	bool startupGuiContext();
 	bool startupStyleManager();
+	bool startupTextureCache();
 	bool startupModelResourceManager();
 
 	void shutdownModelResourceManager();
+	void shutdownTextureCache();
 	void shutdownStyleManager();
 	void shutdownGuiContext();
 	void shutdownWindow();
@@ -77,6 +80,7 @@ protected:
 	class App* m_ownerApp = nullptr;
 	IMkWindowContextPtr m_mkWindowContext;
 	IMkGraphicsContextPtr m_graphicsContext;
+	MikanTextureCacheUniquePtr m_textureCache;
 	MkGuiContextPtr m_guiContext;
 	std::unique_ptr<class MkGuiStyleManager> m_styleManager;
 	MikanModelResourceManagerUniquePtr m_modelResourceManager;

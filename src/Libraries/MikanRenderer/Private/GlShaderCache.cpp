@@ -918,6 +918,54 @@ namespace InternalShaders
 		return x_shaderCode;
 	}
 
+	IMkShaderCodeConstPtr getPConeVolumeShaderCode()
+	{
+		static IMkShaderCodePtr x_shaderCode = nullptr;
+
+		if (x_shaderCode == nullptr)
+		{
+			x_shaderCode = createIMkShaderCode(
+				INTERNAL_MATERIAL_P_CONE_VOLUME,
+				// vertex shader
+				R""""(
+				#version 330 core
+				layout (location = 0) in vec3 aPos;
+
+				uniform mat4 mvpMatrix;
+
+				out float vertZ;
+
+				void main()
+				{
+					vertZ = aPos.z;
+					gl_Position = mvpMatrix * vec4(aPos, 1.0);
+				}
+				)"""",
+				// fragment shader
+				R""""(
+				#version 330 core
+				out vec4 FragColor;
+
+				in float vertZ;
+
+				uniform vec4 diffuseColor;
+
+				void main()
+				{
+					// Bake intensity fade into RGB so it works with additive (ONE, ONE) blending.
+					// fade = 1 at tip (z=0), 0 at base (z=-1).
+					float fade = clamp(1.0 + vertZ, 0.0, 1.0);
+					FragColor = vec4(diffuseColor.rgb * (diffuseColor.a * fade), 1.0);
+				}
+				)"""");
+			x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position);
+			x_shaderCode->addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix);
+			x_shaderCode->addUniform("diffuseColor", eUniformSemantic::diffuseColorRGBA);
+		}
+
+		return x_shaderCode;
+	}
+
 	bool registerInternalShaders(IMkShaderCache* shaderCache)
 	{
 		std::vector<IMkShaderCodeConstPtr> internalShaders = {
@@ -934,6 +982,7 @@ namespace InternalShaders
 			getPLinearDepthShaderCode(),
 			getPTVisualizeGLDepthShaderCode(),
 			getPM5544TestCardShaderCode(),
+			getPConeVolumeShaderCode(),
 		};
 
 		bool bSuccess = true;
