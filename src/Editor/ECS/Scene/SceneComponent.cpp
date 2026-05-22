@@ -194,11 +194,6 @@ void SceneComponent::attachToStage(MikanStageID newParentId)
 	}
 }
 
-ComponentScriptContextPtr SceneComponent::allocateScriptContext()
-{
-	return std::make_shared<ComponentScriptContext>(getSelfPtr<SceneComponent>());
-}
-
 void SceneComponent::onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet)
 {
 	TransformComponent::onDefinitionMarkedDirty(configPtr, changedPropertySet);

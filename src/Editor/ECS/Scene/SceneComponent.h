@@ -78,6 +78,5 @@ public:
 	void refreshActiveCompositors();
 
 protected:
-	virtual ComponentScriptContextPtr allocateScriptContext() override;
 	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet) override;
 };

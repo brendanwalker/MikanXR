@@ -399,8 +399,7 @@ void MikanComponent::removeComponentScript()
 
 ComponentScriptContextPtr MikanComponent::allocateScriptContext()
 {
-	// Only overridden components will provide custom script context implementations
-	return ComponentScriptContextPtr();
+	return std::make_shared<ComponentScriptContext>(getSelfPtr<MikanComponent>());
 }
 
 void MikanComponent::initScriptContext()
