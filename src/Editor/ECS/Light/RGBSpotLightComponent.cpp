@@ -590,5 +590,19 @@ void RGBSpotLightComponent::bindLuaFunctions(lua_State* L)
 					static_cast<uint8_t>(g),
 					static_cast<uint8_t>(b));
 			})
+		.addProperty("coneAngleDegrees",
+			[](RGBSpotLightComponent* c) -> float {
+				return c->getRGBSpotLightDefinition()->getConeAngleDegrees();
+			},
+			[](RGBSpotLightComponent* c, float v) {
+				c->getRGBSpotLightDefinition()->setConeAngleDegrees(v);
+			})
+		.addProperty("coneRangeMeters",
+			[](RGBSpotLightComponent* c) -> float {
+				return c->getRGBSpotLightDefinition()->getConeRangeMeters();
+			},
+			[](RGBSpotLightComponent* c, float v) {
+				c->getRGBSpotLightDefinition()->setConeRangeMeters(v);
+			})
 		.endClass();
 }

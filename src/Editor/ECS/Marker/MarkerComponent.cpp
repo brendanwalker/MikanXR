@@ -17,6 +17,9 @@
 #include "SelectionComponent.h"
 #include "StringUtils.h"
 
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
+
 #include <opencv2/opencv.hpp>
 #include <opencv2/objdetect/aruco_detector.hpp>
 #include <hpdf.h>
@@ -375,4 +378,31 @@ void MarkerComponent::renderArucoMarker(
 	{
 		drawTransformedTriangulatedMesh(camera, transform, m_markerMesh);
 	}
+}
+
+// -- Lua Binding ----
+void MarkerComponent::bindLuaFunctions(struct lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.deriveClass<MarkerComponent, MikanComponent>(
+			MarkerComponent::k_componentClassName.c_str())
+		.addProperty("arucoId",
+			[](MarkerComponent* c) -> int {
+				return c->getMarkerDefinition()->getArucoId();
+			},
+			[](MarkerComponent* c, int v) {
+				c->getMarkerDefinition()->setArucoId(v);
+			})
+		.addProperty("lengthMM",
+			[](MarkerComponent* c) -> float {
+				return c->getMarkerDefinition()->getLengthMM();
+			},
+			[](MarkerComponent* c, float v) {
+				c->getMarkerDefinition()->setLengthMM(v);
+			})
+		.addFunction("printMarker",
+			[](MarkerComponent* c) {
+				c->printMarker();
+			})
+		.endClass();
 }

@@ -18,6 +18,9 @@
 #include "MathTypeConversion.h"
 #include "StringUtils.h"
 
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
+
 // -- AnchorConfig -----
 AnchorDefinition::AnchorDefinition()
 	: TransformComponentDefinition()
@@ -156,4 +159,17 @@ void AnchorComponent::editAnchor()
 			});
 
 	}
+}
+
+// -- Lua Binding ----
+void AnchorComponent::bindLuaFunctions(struct lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.deriveClass<AnchorComponent, TransformComponent>(
+			AnchorComponent::k_componentClassName.c_str())
+		.addFunction("editAnchor",
+			[](AnchorComponent* c) {
+				c->editAnchor();
+			})
+		.endClass();
 }

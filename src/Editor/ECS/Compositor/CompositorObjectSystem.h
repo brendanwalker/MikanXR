@@ -53,6 +53,9 @@ public:
 	MulticastDelegate<void(CompositorComponentPtr newCompositor)> OnCompositorActivated;
 
 	inline void setAllCompositorsPaused(bool bIsPaused) { m_bAllCompositorsPaused = bIsPaused; }
+
+	// -- Lua Binding ----
+	static void bindLuaFunctions(struct lua_State* L);
 	bool getAllCompositorsPaused() const { return m_bAllCompositorsPaused; }
 
 private:

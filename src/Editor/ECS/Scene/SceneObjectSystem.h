@@ -76,6 +76,9 @@ public:
 	MulticastDelegate<void(SceneComponentPtr oldScene)> OnSceneDeactivated;
 	MulticastDelegate<void(SceneComponentPtr newScene)> OnSceneActivated;
 
+	// -- Lua Binding ----
+	static void bindLuaFunctions(struct lua_State* L);
+
 	// -- IPropertyInterface ----
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;

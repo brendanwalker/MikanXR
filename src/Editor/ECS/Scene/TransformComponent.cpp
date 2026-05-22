@@ -671,7 +671,7 @@ void TransformComponent::bindLuaFunctions(struct lua_State* L)
 					return LuaVec3f(component->getRelativeScale());
 				},
 				[](TransformComponent* component, const LuaVec3f& scale) {
-					component->setRelativePosition(scale.toGlmVec3f());
+					component->setRelativeScale(scale.toGlmVec3f());
 				})
 		.endClass();
 }

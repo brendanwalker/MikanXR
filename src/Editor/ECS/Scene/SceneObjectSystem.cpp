@@ -5,6 +5,9 @@
 #include "SceneObjectSystem.h"
 #include "ProjectConfig.h"
 
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
+
 // -- SceneObjectSystemDefinition -----
 const std::string SceneObjectSystemDefinition::k_currentSceneIdPropertyId = "current_scene_id";
 
@@ -182,4 +185,34 @@ bool SceneObjectSystem::setPropertyValue(const std::string& propertyName, const 
 	}
 
 	return MikanObjectSystem::setPropertyValue(propertyName, inValue);
+}
+// -- Lua Binding ----
+void SceneObjectSystem::bindLuaFunctions(struct lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.beginClass<SceneObjectSystem>("SceneObjectSystem")
+		.addFunction("getCurrentScene",
+			[](SceneObjectSystem* s) -> SceneComponent* {
+				return s->getCurrentScene().get();
+			})
+		.addFunction("getSceneById",
+			[](SceneObjectSystem* s, int id) -> SceneComponent* {
+				return s->getSceneById(static_cast<MikanSceneID>(id)).get();
+			})
+		.addFunction("getSceneByName",
+			[](SceneObjectSystem* s, const std::string& name) -> SceneComponent* {
+				return s->getSceneByName(name).get();
+			})
+		.addFunction("getSceneCount",
+			[](SceneObjectSystem* s) -> int {
+				return static_cast<int>(s->getComponentMap().size());
+			})
+		.addFunction("getSceneAtIndex",
+			[](SceneObjectSystem* s, int i) -> SceneComponent* {
+				int n = 0;
+				for (auto& [id, wp] : s->getComponentMap())
+					if (n++ == i) return wp.lock().get();
+				return nullptr;
+			})
+		.endClass();
 }

@@ -86,6 +86,9 @@ public:
 	/// Implementations should notify DMXObjectSystem::OnDMXDataChanged after updating.
 	virtual void setDMXData(const MikanDMXData& data) = 0;
 
+	// -- Lua Binding --
+	static void bindLuaFunctions(struct lua_State* L);
+
 protected:
 	/// Cached pointer to the DMXObjectSystem for firing OnDMXDataChanged. Set during init().
 	DMXObjectSystemWeakPtr m_dmxObjectSystem;
@@ -106,7 +109,4 @@ protected:
 	virtual bool invokeFunction(const std::string& functionName) override;
 
 	void triangulateLight();
-
-	// -- Lua Binding --
-	static void bindLuaFunctions(struct lua_State* L);
 };

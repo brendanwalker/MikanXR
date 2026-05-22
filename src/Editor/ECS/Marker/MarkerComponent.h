@@ -70,6 +70,9 @@ public:
 
 	void printMarker();
 
+	// -- Lua Binding ----
+	static void bindLuaFunctions(struct lua_State* L);
+
 	// -- Rendering ----
 	IMkTexturePtr getMarkerTexture(class IMkGraphicsContext* graphicsContext);
 	void renderArucoMarker(

@@ -4,6 +4,12 @@
 #include "ProjectManager.h"
 #include "MikanLightTypes.h"
 #include "ProjectConfig.h"
+#include "RGBPixelGridComponent.h"
+#include "RGBSpotLightComponent.h"
+
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
+
 
 // -- DMXObjectSystemDefinition -----
 const std::string DMXObjectSystemDefinition::k_networkInterfaceIPPropertyId = "network_interface_ip";
@@ -216,4 +222,40 @@ bool DMXObjectSystem::setPropertyValue(const std::string& propertyName, const Mi
 	}
 
 	return MikanObjectSystem::setPropertyValue(propertyName, inValue);
+}
+
+// -- Lua Binding ----
+void DMXObjectSystem::bindLuaFunctions(struct lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.beginClass<DMXObjectSystem>("DMXObjectSystem")
+		.addFunction("getSpotLightCount",
+			[](DMXObjectSystem* s) -> int {
+				std::vector<MikanComponentPtr> v;
+				s->getComponentList(RGBSpotLightComponent::k_componentClassName, v);
+				return static_cast<int>(v.size());
+			})
+		.addFunction("getSpotLightAtIndex",
+			[](DMXObjectSystem* s, int i) -> RGBSpotLightComponent* {
+				std::vector<MikanComponentPtr> v;
+				s->getComponentList(RGBSpotLightComponent::k_componentClassName, v);
+				if (i >= 0 && i < static_cast<int>(v.size()))
+					return std::dynamic_pointer_cast<RGBSpotLightComponent>(v[i]).get();
+				return nullptr;
+			})
+		.addFunction("getPixelGridCount",
+			[](DMXObjectSystem* s) -> int {
+				std::vector<MikanComponentPtr> v;
+				s->getComponentList(RGBPixelGridComponent::k_componentClassName, v);
+				return static_cast<int>(v.size());
+			})
+		.addFunction("getPixelGridAtIndex",
+			[](DMXObjectSystem* s, int i) -> RGBPixelGridComponent* {
+				std::vector<MikanComponentPtr> v;
+				s->getComponentList(RGBPixelGridComponent::k_componentClassName, v);
+				if (i >= 0 && i < static_cast<int>(v.size()))
+					return std::dynamic_pointer_cast<RGBPixelGridComponent>(v[i]).get();
+				return nullptr;
+			})
+		.endClass();
 }

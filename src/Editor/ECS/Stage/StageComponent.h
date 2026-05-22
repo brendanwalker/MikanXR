@@ -78,4 +78,7 @@ public:
 	MikanStageID getStageId() const;
 	void setTrackingVolumeId(MikanTrackingVolumeID volumeId);
 	void renderStageBounds(class IMkGraphicsContext* graphicsContext, const glm::mat4& transform) const;
+
+	// -- Lua Binding ----
+	static void bindLuaFunctions(struct lua_State* L);
 };

@@ -39,4 +39,7 @@ public:
 	inline CameraComponentPtr getCameraByName(const std::string& cameraName) const {
 		return Super::getTypedComponentByName(cameraName);
 	}
+
+	// -- Lua Binding ----
+	static void bindLuaFunctions(struct lua_State* L);
 };

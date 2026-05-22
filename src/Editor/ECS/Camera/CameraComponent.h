@@ -127,13 +127,16 @@ public:
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
-	
+
 	// -- IFunctionInterface ----
 	static const std::string k_alignCameraFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames);
 	virtual bool invokeFunction(const std::string& functionName) override;
 
 	void alignCamera();
+
+	// -- Lua Binding ----
+	static void bindLuaFunctions(struct lua_State* L);
 
 protected:
 	void onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);

@@ -5,6 +5,9 @@
 #include "CompositorObjectSystem.h"
 #include "ProjectConfig.h"
 
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
+
 // -- CompositorObjectSystemDefinition -----
 CompositorObjectSystemDefinition::CompositorObjectSystemDefinition(
 	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
@@ -66,4 +69,42 @@ void CompositorObjectSystem::setActiveCompositors(
 			}
 		}
 	}
+}
+// -- Lua Binding ----
+void CompositorObjectSystem::bindLuaFunctions(struct lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.beginClass<CompositorObjectSystem>("CompositorObjectSystem")
+		.addFunction("getCompositorById",
+			[](CompositorObjectSystem* s, int id) -> CompositorComponent* {
+				return s->getCompositorById(static_cast<MikanCompositorID>(id)).get();
+			})
+		.addFunction("getCompositorByName",
+			[](CompositorObjectSystem* s, const std::string& name) -> CompositorComponent* {
+				return s->getCompositorByName(name).get();
+			})
+		.addFunction("getCompositorCount",
+			[](CompositorObjectSystem* s) -> int {
+				return static_cast<int>(s->getComponentMap().size());
+			})
+		.addFunction("getCompositorAtIndex",
+			[](CompositorObjectSystem* s, int i) -> CompositorComponent* {
+				int n = 0;
+				for (auto& [id, wp] : s->getComponentMap())
+					if (n++ == i) return wp.lock().get();
+				return nullptr;
+			})
+		.addFunction("getCompositorCountForStage",
+			[](CompositorObjectSystem* s, int stageId) -> int {
+				return static_cast<int>(
+					s->getCompositorIdListForStage(static_cast<MikanStageID>(stageId)).size());
+			})
+		.addFunction("getCompositorForStageAtIndex",
+			[](CompositorObjectSystem* s, int stageId, int i) -> CompositorComponent* {
+				auto ids = s->getCompositorIdListForStage(static_cast<MikanStageID>(stageId));
+				if (i >= 0 && i < static_cast<int>(ids.size()))
+					return s->getCompositorById(ids[i]).get();
+				return nullptr;
+			})
+		.endClass();
 }

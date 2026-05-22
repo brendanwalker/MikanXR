@@ -54,6 +54,9 @@ public:
 
 	void editAnchor();
 
+	// -- Lua Binding ----
+	static void bindLuaFunctions(struct lua_State* L);
+
 protected:
 	SelectionComponentWeakPtr m_selectionComponent;
 };

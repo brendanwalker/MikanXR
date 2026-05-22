@@ -30,6 +30,9 @@
 #include "VideoSourceQueries.h"
 #include "VRTrackingVolumeComponent.h"
 
+#include "LuaMath.h"
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
 
 // -- CameraConfig -----
 const std::string CameraDefinition::k_ownerStageIdPropertyId = "stage_id";
@@ -817,4 +820,54 @@ void CameraComponent::alignCamera()
 			"Stage missing tracking volume. Please assign a tracking volume to the stage this camera is attached to.");
 		break;
 	}
+}
+
+// -- Lua Binding ----
+void CameraComponent::bindLuaFunctions(struct lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.deriveClass<CameraComponent, TransformComponent>(
+			CameraComponent::k_componentClassName.c_str())
+		.addProperty("trackingFrameDelay",
+			[](CameraComponent* c) -> int {
+				return c->getCameraDefinition()->getTrackingFrameDelay();
+			},
+			[](CameraComponent* c, int v) {
+				c->getCameraDefinition()->setTrackingFrameDelay(v);
+			})
+		.addFunction("alignCamera",
+			[](CameraComponent* c) {
+				c->alignCamera();
+			})
+		.addProperty("ownerStageId",
+			[](CameraComponent* c) -> int {
+				return c->getCameraDefinition()->getOwnerStageId();
+			})
+		.addProperty("trackingMountId",
+			[](CameraComponent* c) -> int {
+				return c->getCameraDefinition()->getTrackingMountId();
+			})
+		.addProperty("videoSourceId",
+			[](CameraComponent* c) -> int {
+				return c->getCameraDefinition()->getVideoSourceId();
+			})
+		.addProperty("hasValidApertureOffset",
+			[](CameraComponent* c) -> bool {
+				return c->getCameraDefinition()->hasValidApertureOffset();
+			})
+		.addProperty("aperturePositionOffset",
+			[](CameraComponent* c) -> LuaVec3f {
+				MikanVector3d p = c->getCameraDefinition()->getApertureOffsetPosition();
+				return LuaVec3f((float)p.x, (float)p.y, (float)p.z);
+			})
+		.addProperty("apertureOrientationOffset",
+			[](CameraComponent* c) -> LuaVec3f {
+				MikanQuatd q = c->getCameraDefinition()->getApertureOffsetOrientation();
+				return LuaVec3f(glm_quat_to_MikanRotator3f(MikanQuatd_to_glm_quat(q)));
+			})
+		.addFunction("getOwnerStage",
+			[](CameraComponent* c) -> StageComponent* {
+				return const_cast<StageComponent*>(c->getOwnerStageComponent().get());
+			})
+		.endClass();
 }

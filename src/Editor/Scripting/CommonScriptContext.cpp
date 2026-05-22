@@ -1,8 +1,13 @@
 #include "CommonScriptContext.h"
+#include "AnchorObjectSystem.h"
+#include "CameraObjectSystem.h"
 #include "CompositorConstants.h"
+#include "CompositorObjectSystem.h"
+#include "DMXObjectSystem.h"
 #include "MathGLM.h"
 #include "LuaMath.h"
 #include "Logger.h"
+#include "SceneObjectSystem.h"
 
 #include <algorithm>
 #include <assert.h>
@@ -152,6 +157,13 @@ bool CommonScriptContext::bindContextFunctions()
 
 	bindCommonScriptFunctions();
 	LuaVec3f::bindFunctions(m_luaState);
+
+	// Register object system classes before component classes
+	CameraObjectSystem::bindLuaFunctions(m_luaState);
+	SceneObjectSystem::bindLuaFunctions(m_luaState);
+	DMXObjectSystem::bindLuaFunctions(m_luaState);
+	AnchorObjectSystem::bindLuaFunctions(m_luaState);
+	CompositorObjectSystem::bindLuaFunctions(m_luaState);
 
 	return true;
 }

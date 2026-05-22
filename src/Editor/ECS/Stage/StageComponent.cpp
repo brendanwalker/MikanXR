@@ -2,6 +2,7 @@
 #include "ColliderComponent.h"
 #include "StageComponent.h"
 #include "IMkScene.h"
+#include "LuaMath.h"
 #include "MainWindow.h"
 #include "MathTypeConversion.h"
 #include "MathUtility.h"
@@ -12,6 +13,9 @@
 #include "SelectionComponent.h"
 #include "TrackingVolumeQueries.h"
 #include "TransformComponent.h"
+
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
 
 #include <queue>
 
@@ -219,4 +223,32 @@ MikanStageID StageComponent::getStageId() const
 void StageComponent::setTrackingVolumeId(MikanTrackingVolumeID volumeId)
 {
 	getStageComponentDefinition()->setTrackingVolumeId(volumeId);
+}
+
+// -- Lua Binding ----
+void StageComponent::bindLuaFunctions(struct lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.deriveClass<StageComponent, TransformComponent>(
+			StageComponent::k_componentClassName.c_str())
+		.addProperty("stageId",
+			[](StageComponent* c) -> int {
+				return c->getStageId();
+			})
+		.addProperty("trackingVolumeId",
+			[](StageComponent* c) -> int {
+				return c->getStageComponentDefinitionConst()->getTrackingVolumeId();
+			},
+			[](StageComponent* c, int v) {
+				c->setTrackingVolumeId(static_cast<MikanTrackingVolumeID>(v));
+			})
+		.addProperty("stageBoundsMin",
+			[](StageComponent* c) -> LuaVec3f {
+				return LuaVec3f(c->getStageComponentDefinitionConst()->getStageBoundsMinMM());
+			})
+		.addProperty("stageBoundsMax",
+			[](StageComponent* c) -> LuaVec3f {
+				return LuaVec3f(c->getStageComponentDefinitionConst()->getStageBoundsMaxMM());
+			})
+		.endClass();
 }

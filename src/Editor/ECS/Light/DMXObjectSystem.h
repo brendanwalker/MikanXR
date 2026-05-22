@@ -81,6 +81,9 @@ public:
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
 
+	// -- Lua Binding ----
+	static void bindLuaFunctions(struct lua_State* L);
+
 protected:
 	void onDefinitionMarkedDirty(
 		CommonConfigPtr configPtr,

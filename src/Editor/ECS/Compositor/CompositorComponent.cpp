@@ -36,6 +36,9 @@
 #include "Graphs/CompositorNodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
 
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
+
 #include <assert.h>
 #include <easy/profiler.h>
 
@@ -944,4 +947,44 @@ bool CompositorComponent::invokeFunction(const std::string& functionName)
 	}
 
 	return MikanComponent::invokeFunction(functionName);
+}
+
+// -- Lua Binding ----
+void CompositorComponent::bindLuaFunctions(struct lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.deriveClass<CompositorComponent, MikanComponent>(
+			CompositorComponent::k_componentClassName.c_str())
+		.addProperty("compositorId",
+			[](CompositorComponent* c) -> int {
+				return c->getCompositorId();
+			})
+		.addProperty("cameraId",
+			[](CompositorComponent* c) -> int {
+				return c->getCompositorDefinition()->getCameraId();
+			})
+		.addProperty("ownerSceneId",
+			[](CompositorComponent* c) -> int {
+				return c->getCompositorDefinition()->getOwnerSceneId();
+			})
+		.addProperty("ownerStageId",
+			[](CompositorComponent* c) -> int {
+				return c->getOwnerStageId();
+			})
+		.addProperty("isSpoutOutputStreaming",
+			[](CompositorComponent* c) -> bool {
+				return c->getCompositorDefinition()->getIsSpoutOutputStreaming();
+			},
+			[](CompositorComponent* c, bool v) {
+				c->getCompositorDefinition()->setIsSpoutOutputStreaming(v);
+			})
+		.addFunction("editCompositorGraph",
+			[](CompositorComponent* c) {
+				c->editCompositorGraph();
+			})
+		.addFunction("getOwnerStage",
+			[](CompositorComponent* c) -> StageComponent* {
+				return c->getOwnerStageComponent().get();
+			})
+		.endClass();
 }

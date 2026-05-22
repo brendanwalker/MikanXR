@@ -11,6 +11,9 @@
 #include "SelectionComponent.h"
 #include "StringUtils.h"
 
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
+
 // -- AnchorObjectSystemDefinition -----
 AnchorObjectSystemDefinition::AnchorObjectSystemDefinition(
 	const std::string& configName,
@@ -81,4 +84,30 @@ bool AnchorObjectSystem::getPropertyValue(const std::string& propertyName, Mikan
 bool AnchorObjectSystem::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
 	return MikanObjectSystem::setPropertyValue(propertyName, inValue);
+}
+// -- Lua Binding ----
+void AnchorObjectSystem::bindLuaFunctions(struct lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.beginClass<AnchorObjectSystem>("AnchorObjectSystem")
+		.addFunction("getAnchorById",
+			[](AnchorObjectSystem* s, int id) -> AnchorComponent* {
+				return s->getSpatialAnchorById(static_cast<MikanSpatialAnchorID>(id)).get();
+			})
+		.addFunction("getAnchorByName",
+			[](AnchorObjectSystem* s, const std::string& name) -> AnchorComponent* {
+				return s->getSpatialAnchorByName(name).get();
+			})
+		.addFunction("getAnchorCount",
+			[](AnchorObjectSystem* s) -> int {
+				return static_cast<int>(s->getComponentMap().size());
+			})
+		.addFunction("getAnchorAtIndex",
+			[](AnchorObjectSystem* s, int i) -> AnchorComponent* {
+				int n = 0;
+				for (auto& [id, wp] : s->getComponentMap())
+					if (n++ == i) return wp.lock().get();
+				return nullptr;
+			})
+		.endClass();
 }

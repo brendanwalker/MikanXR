@@ -1,5 +1,10 @@
+#include "AnchorObjectSystem.h"
+#include "CameraObjectSystem.h"
 #include "ComponentScriptContext.h"
+#include "CompositorObjectSystem.h"
+#include "DMXObjectSystem.h"
 #include "IEditorWindow.h"
+#include "SceneObjectSystem.h"
 #include "ScriptAssetReference.h"
 #include "MikanComponent.h"
 #include "MikanComponentTypes.h"
@@ -329,6 +334,26 @@ void MikanComponent::bindLuaFunctions(struct lua_State* L)
 		.beginClass<MikanComponent>("MikanComponent")
 		.addProperty("name", &MikanComponent::getName, &MikanComponent::setName)
 		.addProperty("className", &MikanComponent::getComponentClassName)
+		.addFunction("getCameraSystem",
+			[](MikanComponent* c) -> CameraObjectSystem* {
+				return c->getObjectSystemOfType<CameraObjectSystem>().get();
+			})
+		.addFunction("getSceneSystem",
+			[](MikanComponent* c) -> SceneObjectSystem* {
+				return c->getObjectSystemOfType<SceneObjectSystem>().get();
+			})
+		.addFunction("getDMXSystem",
+			[](MikanComponent* c) -> DMXObjectSystem* {
+				return c->getObjectSystemOfType<DMXObjectSystem>().get();
+			})
+		.addFunction("getAnchorSystem",
+			[](MikanComponent* c) -> AnchorObjectSystem* {
+				return c->getObjectSystemOfType<AnchorObjectSystem>().get();
+			})
+		.addFunction("getCompositorSystem",
+			[](MikanComponent* c) -> CompositorObjectSystem* {
+				return c->getObjectSystemOfType<CompositorObjectSystem>().get();
+			})
 		.endClass();
 }
 

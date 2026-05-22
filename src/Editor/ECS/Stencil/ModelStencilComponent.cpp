@@ -540,5 +540,9 @@ void ModelStencilComponent::bindLuaFunctions(lua_State* L)
 			[](ModelStencilComponent* component) -> std::string {
 				return component->getModelStencilDefinition()->getModelPath().string();
 			})
+		.addFunction("alignStencil",
+			[](ModelStencilComponent* c) {
+				c->alignStencil();
+			})
 		.endClass();
 }

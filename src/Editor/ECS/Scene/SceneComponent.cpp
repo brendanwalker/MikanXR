@@ -1,6 +1,7 @@
 #include "App.h"
 #include "CompositorObjectSystem.h"
 #include "CompositorComponent.h"
+#include "ComponentScriptContext.h"
 #include "ColliderComponent.h"
 #include "Windows/CompositorOutputEditorWindow.h"
 #include "IMkSceneRenderable.h"
@@ -12,7 +13,6 @@
 #include "MathUtility.h"
 #include "MikanCamera.h"
 #include "SceneComponent.h"
-#include "SceneComponentScriptContext.h"
 #include "SelectionComponent.h"
 #include "SceneObjectSystem.h"
 #include "StageComponent.h"
@@ -196,7 +196,7 @@ void SceneComponent::attachToStage(MikanStageID newParentId)
 
 ComponentScriptContextPtr SceneComponent::allocateScriptContext()
 {
-	return std::make_shared<SceneComponentScriptContext>(getSelfPtr<SceneComponent>());
+	return std::make_shared<ComponentScriptContext>(getSelfPtr<SceneComponent>());
 }
 
 void SceneComponent::onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet)
@@ -341,44 +341,26 @@ void SceneComponent::bindLuaFunctions(struct lua_State* L)
 			[](SceneComponent* component) -> int {
 				return component->getSceneComponentDefinition()->getParentStageId();
 			})
-		//TODO
-		//.addProperty("parentStage",
-		//	[](SceneComponent* component) -> StageComponent* {
-		//		return component->getParentStage().get();
-		//	})
-		//TODO
-		//.addFunction("getCompositorByIndex",
-		//	[](int index) -> CompositorComponent* {
-		//		return component->getCompositorByIndex(index).get();
-		//	})
 		.addProperty("displayCompositorId",
-			[](SceneComponent* component) -> LuaVec3f {
-				return LuaVec3f(component->getRelativeScale());
+			[](SceneComponent* component) -> int {
+				return component->getSceneComponentDefinition()->getDisplayCompositorId();
 			})
-		//TODO
-		//.addProperty("quadStencilCount",
-		//	[](SceneComponent* component) -> int {
-		//		return component->getQuadStencilCount();
-		//	})
-		//.addFunction("getQuadStencilByIndex",
-		//	[](int index) -> QuadStencilComponent* {
-		//		return component->getQuadStencilByIndex(index).get();
-		//	})
-		//.addProperty("boxStencilCount",
-		//	[](SceneComponent* component) -> int {
-		//		return component->getBoxStencilCount();
-		//	})
-		//.addFunction("getBoxStencilByIndex",
-		//	[](int index) -> BoxStencilComponent* {
-		//		return component->getBoxStencilByIndex(index).get();
-		//	})
-		//.addProperty("modelStencilCount",
-		//	[](SceneComponent* component) -> int {
-		//		return component->getModelStencilCount();
-		//	})
-		//.addFunction("getModelStencilByIndex",
-		//	[](int index) -> ModelStencilComponent* {
-		//		return component->getModelStencilByIndex(index).get();
-		//	})
+		.addFunction("showCompositorOutput",
+			[](SceneComponent* c) {
+				c->showCompositorOutput();
+			})
+		.addFunction("getParentStage",
+			[](SceneComponent* c) -> StageComponent* {
+				return c->getParentStage().get();
+			})
+		.addFunction("getOutputCompositorCount",
+			[](SceneComponent* c) -> int {
+				return static_cast<int>(c->getOutputCompositors().size());
+			})
+		.addFunction("getOutputCompositorAtIndex",
+			[](SceneComponent* c, int i) -> CompositorComponent* {
+				auto v = c->getOutputCompositors();
+				return (i >= 0 && i < static_cast<int>(v.size())) ? v[i].get() : nullptr;
+			})
 		.endClass();
 }
