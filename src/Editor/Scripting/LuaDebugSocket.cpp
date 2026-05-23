@@ -142,6 +142,7 @@ void LuaDebugSocket::readAvailable()
 				if (!line.empty() && line.back() == '\r')
 					line.pop_back();
 
+				MIKAN_LOG_DEBUG("LuaDebugSocket") << "RX: " << line;
 				if (on_data) on_data(line);
 			}
 		}
@@ -246,6 +247,8 @@ void LuaDebugSocket::wait_for_connection()
 bool LuaDebugSocket::send_message(const std::string& message)
 {
 	if (!is_open()) return false;
+
+	MIKAN_LOG_DEBUG("LuaDebugSocket") << "TX: " << message;
 
 	std::string data = message + "\r\n";
 	SOCKET client = static_cast<SOCKET>(m_clientSocket);

@@ -62,6 +62,12 @@ public:
 	/// even when Lua is not executing.
 	void poll();
 
+	/// Request a pause on the next Lua line event.
+	/// Bind this to a Lua global (e.g. lrdb_break) so scripts can set
+	/// programmatic breakpoints without relying on the VSCode extension
+	/// to transmit gutter breakpoints.
+	void pauseOnNextLine();
+
 private:
 	LuaDebugServer() = default;
 

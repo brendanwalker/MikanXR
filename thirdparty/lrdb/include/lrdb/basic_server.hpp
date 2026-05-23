@@ -65,6 +65,10 @@ class basic_server {
   /// time, but Lua will not stall waiting for the initial connection.
   void set_wait_for_connection(bool wait) { wait_for_connect_ = wait; }
 
+  /// @brief Trigger a pause on the next Lua line event.
+  /// Useful for binding a programmatic breakpoint (e.g. lrdb_break()) in Lua.
+  void pause() { debugger_.pause(); }
+
   StreamType& command_stream() { return command_stream_; };
 
  private:

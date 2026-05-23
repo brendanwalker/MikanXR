@@ -84,6 +84,14 @@ void LuaDebugServer::detach()
     m_attachedContext = nullptr;
 }
 
+// ---- Programmatic break ----------------------------------------------------
+
+void LuaDebugServer::pauseOnNextLine()
+{
+    if (m_server && m_attachedContext)
+        m_server->pause();
+}
+
 // ---- Per-frame polling -----------------------------------------------------
 
 void LuaDebugServer::poll()

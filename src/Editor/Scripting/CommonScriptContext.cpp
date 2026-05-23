@@ -108,7 +108,8 @@ bool CommonScriptContext::loadScript(const std::filesystem::path& scriptPath)
 		return false;
 	}
 
-	const std::string scriptPathString= scriptPath.string();
+	// Use forward slashes so debuggers (e.g. lrdb) can map source paths correctly on Windows.
+	const std::string scriptPathString= scriptPath.generic_string();
 	int ret= luaL_dofile(m_luaState, scriptPathString.c_str());
 	if (!checkLuaResult(ret, __FILE__, __LINE__))
 	{
@@ -307,6 +308,13 @@ void CommonScriptContext::bindCommonScriptFunctions()
 	addEnumToLua<eStencilCullMode>(contextNamespace, "CullMode", k_stencilCullModeStrings);
 
 	contextNamespace.endNamespace();
+
+	// Programmatic breakpoint helper: call lrdb_break() anywhere in a script to
+	// force a pause on the next line event, without needing gutter breakpoints.
+	luabridge::getGlobalNamespace(m_luaState)
+		.addFunction("lrdb_break", []() {
+			LuaDebugServer::getInstance()->pauseOnNextLine();
+		});
 }
 
 void CommonScriptContext::disposeScriptState()
