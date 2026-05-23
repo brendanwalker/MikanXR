@@ -21,6 +21,7 @@ public:
 	void updateScript(float deltaSeconds);
 	inline bool hasScriptFilename() const { return !m_scriptFilename.empty(); }
 	inline bool hasLoadedScript() const { return m_luaState != nullptr; }
+	inline lua_State* getLuaState() const { return m_luaState; }
 
 	const std::vector<std::string>& getScriptTriggers() const
 	{ return m_triggers; }

@@ -528,6 +528,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${SPOUT2_INCLUDE_DIRS}
   ${LUA_INCLUDE_DIRS}
   ${LUA_BRIDGE_INCLUDE_DIRS}
+  ${ROOT_DIR}/thirdparty/lrdb/include
   ${FAST_OBJ_LOADER_INCLUDE_DIRS}
   ${libharu_SOURCE_DIR}/include
   ${libharu_BINARY_DIR}/include)

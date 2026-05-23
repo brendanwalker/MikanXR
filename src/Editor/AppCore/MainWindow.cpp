@@ -32,6 +32,7 @@
 #include "PathUtils.h"
 #include "ProjectManager.h"
 #include "OpenCVManager.h"
+#include "LuaDebugServer.h"
 #include "StencilUtils.h"
 #include "StringUtils.h"
 #include "TextStyle.h"
@@ -230,6 +231,13 @@ bool MainWindow::startup()
 		}
 	}
 
+	if (success)
+	{
+		// Start the Lua remote debug server (non-blocking; attach a script
+		// context via LuaDebugServer::getInstance()->attach() from the UI)
+		LuaDebugServer::getInstance()->startListening();
+	}
+
 #undef MIKAN_TIMED_STARTUP
 
 	if (success)
@@ -268,6 +276,9 @@ void MainWindow::update(float deltaSeconds)
 
 	// Poll rendered frames from client connections
 	m_mikanServer->update();
+
+	// Service Lua debugger socket I/O (between Lua script updates)
+	LuaDebugServer::getInstance()->poll();
 
 	// Garbage collect stale baked text
 	m_fontManager->garbageCollect();
