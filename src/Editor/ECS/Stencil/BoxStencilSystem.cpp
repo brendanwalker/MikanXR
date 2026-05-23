@@ -8,6 +8,9 @@
 #include "ProjectConfig.h"
 #include "SelectionComponent.h"
 
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
+
 #include <assert.h>
 
 // -- BoxStencilSystemDefinition -----
@@ -160,4 +163,31 @@ bool BoxStencilSystem::getPropertyValue(const std::string& propertyName, MikanVa
 bool BoxStencilSystem::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
 	return MikanObjectSystem::setPropertyValue(propertyName, inValue);
+}
+
+// -- Lua Binding ----
+void BoxStencilSystem::bindLuaFunctions(struct lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.beginClass<BoxStencilSystem>("BoxStencilSystem")
+		.addFunction("getBoxStencilById",
+			[](BoxStencilSystem* s, int id) -> BoxStencilComponent* {
+				return s->getBoxStencilById(static_cast<MikanStencilID>(id)).get();
+			})
+		.addFunction("getBoxStencilByName",
+			[](BoxStencilSystem* s, const std::string& name) -> BoxStencilComponent* {
+				return s->getBoxStencilByName(name).get();
+			})
+		.addFunction("getBoxStencilCount",
+			[](BoxStencilSystem* s) -> int {
+				return static_cast<int>(s->getComponentMap().size());
+			})
+		.addFunction("getBoxStencilAtIndex",
+			[](BoxStencilSystem* s, int i) -> BoxStencilComponent* {
+				int n = 0;
+				for (auto& [id, wp] : s->getComponentMap())
+					if (n++ == i) return wp.lock().get();
+				return nullptr;
+			})
+		.endClass();
 }

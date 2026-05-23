@@ -8,6 +8,9 @@
 #include "ProjectConfig.h"
 #include "SelectionComponent.h"
 
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
+
 #include <assert.h>
 
 // -- QuadStencilSystemDefinition -----
@@ -146,4 +149,31 @@ bool QuadStencilSystem::getPropertyValue(const std::string& propertyName, MikanV
 bool QuadStencilSystem::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
 	return MikanObjectSystem::setPropertyValue(propertyName, inValue);
+}
+
+// -- Lua Binding ----
+void QuadStencilSystem::bindLuaFunctions(struct lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.beginClass<QuadStencilSystem>("QuadStencilSystem")
+		.addFunction("getQuadStencilById",
+			[](QuadStencilSystem* s, int id) -> QuadStencilComponent* {
+				return s->getQuadStencilById(static_cast<MikanStencilID>(id)).get();
+			})
+		.addFunction("getQuadStencilByName",
+			[](QuadStencilSystem* s, const std::string& name) -> QuadStencilComponent* {
+				return s->getQuadStencilByName(name).get();
+			})
+		.addFunction("getQuadStencilCount",
+			[](QuadStencilSystem* s) -> int {
+				return static_cast<int>(s->getComponentMap().size());
+			})
+		.addFunction("getQuadStencilAtIndex",
+			[](QuadStencilSystem* s, int i) -> QuadStencilComponent* {
+				int n = 0;
+				for (auto& [id, wp] : s->getComponentMap())
+					if (n++ == i) return wp.lock().get();
+				return nullptr;
+			})
+		.endClass();
 }

@@ -57,6 +57,9 @@ public:
 		const glm::vec3& cameraForward,
 		std::vector<QuadStencilComponentPtr>& outStencilList) const;
 
+	// -- Lua Binding ----
+	static void bindLuaFunctions(struct lua_State* L);
+
 	// -- IPropertyInterface ----
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
