@@ -20,6 +20,8 @@ bool GuiPanel_MarkerTrackingVolumeComponent::init()
 
 void GuiPanel_MarkerTrackingVolumeComponent::onConstruct()
 {
+	GuiPanel_MikanComponent::onConstruct();
+
 	// Origin Marker — component combo (property in TrackingVolumeDefinition base class)
 	m_entityAccessor->setPropertyRenderer(
 		TrackingVolumeDefinition::k_originMarkerIdPropertyId,

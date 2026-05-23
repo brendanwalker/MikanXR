@@ -11,6 +11,8 @@ bool GuiPanel_RGBSpotLightComponent::init()
 
 void GuiPanel_RGBSpotLightComponent::onConstruct()
 {
+	GuiPanel_MikanComponent::onConstruct();
+
 	m_entityAccessor->setPropertyRenderer(
 		RGBSpotLightComponent::k_redPropertyId,
 		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool

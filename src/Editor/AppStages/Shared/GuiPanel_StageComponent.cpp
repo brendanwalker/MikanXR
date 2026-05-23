@@ -24,6 +24,8 @@ bool GuiPanel_StageComponent::init()
 
 void GuiPanel_StageComponent::onConstruct()
 {
+	GuiPanel_MikanComponent::onConstruct();
+
 	m_entityAccessor->setPropertyRenderer(
 		StageComponentDefinition::k_trackingVolumeIdPropertyId,
 		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool

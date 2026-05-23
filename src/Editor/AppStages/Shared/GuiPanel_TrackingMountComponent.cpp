@@ -11,6 +11,8 @@ bool GuiPanel_TrackingMountComponent::init()
 
 void GuiPanel_TrackingMountComponent::onConstruct()
 {
+	GuiPanel_MikanComponent::onConstruct();
+
 	// VR Device path dropdown
 	m_entityAccessor->setPropertyRenderer(
 		TrackingMountDefinition::k_devicePathPropertyId,

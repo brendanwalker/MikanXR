@@ -31,6 +31,8 @@ GuiPanel_StencilComponent::GuiPanel_StencilComponent(AppStage* ownerAppStage)
 
 void GuiPanel_StencilComponent::onConstruct()
 {
+	GuiPanel_MikanComponent::onConstruct();
+
 	m_entityAccessor->setPropertyRenderer(
 		TransformComponentDefinition::k_parentTransformIdPropertyId,
 		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool

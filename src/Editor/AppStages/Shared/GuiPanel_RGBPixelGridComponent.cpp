@@ -11,6 +11,8 @@ bool GuiPanel_RGBPixelGridComponent::init()
 
 void GuiPanel_RGBPixelGridComponent::onConstruct()
 {
+	GuiPanel_MikanComponent::onConstruct();
+
 	m_entityAccessor->setPropertyRenderer(
 		RGBPixelGridDefinition::k_gridColumnsPropertyId,
 		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool

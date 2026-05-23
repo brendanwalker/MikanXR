@@ -10,6 +10,8 @@ bool GuiPanel_NetworkVideoSourceComponent::init()
 
 void GuiPanel_NetworkVideoSourceComponent::onConstruct()
 {
+	GuiPanel_MikanComponent::onConstruct();
+
 	// Build static protocol string list once
 	std::vector<std::string> protocolStrings;
 	for (int i = 0; i < (int)eNetworkVideoProtocol::COUNT; ++i)

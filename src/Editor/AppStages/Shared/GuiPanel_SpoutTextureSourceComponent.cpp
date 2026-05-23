@@ -11,6 +11,8 @@ bool GuiPanel_SpoutTextureSourceComponent::init()
 
 void GuiPanel_SpoutTextureSourceComponent::onConstruct()
 {
+	GuiPanel_MikanComponent::onConstruct();
+
 	m_entityAccessor->setPropertyRenderer(
 		SpoutTextureSourceDefinition::k_spoutSourcePropertyId,
 		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool

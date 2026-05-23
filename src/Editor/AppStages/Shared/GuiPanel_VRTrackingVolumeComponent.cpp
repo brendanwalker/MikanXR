@@ -38,6 +38,8 @@ bool GuiPanel_VRTrackingVolumeComponent::init()
 
 void GuiPanel_VRTrackingVolumeComponent::onConstruct()
 {
+	GuiPanel_MikanComponent::onConstruct();
+
 	// Charuco Mount — component combo (property in VRTrackingVolumeDefinition)
 	m_entityAccessor->setPropertyRenderer(
 		VRTrackingVolumeDefinition::k_charucoMountIdPropertyId,

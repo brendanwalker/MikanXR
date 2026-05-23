@@ -17,6 +17,8 @@ bool GuiPanel_USBVideoSourceComponent::init()
 
 void GuiPanel_USBVideoSourceComponent::onConstruct()
 {
+	GuiPanel_MikanComponent::onConstruct();
+
 	// USB device path dropdown
 	m_entityAccessor->setPropertyRenderer(
 		USBVideoSourceDefinition::k_desiredDevicePathPropertyId,

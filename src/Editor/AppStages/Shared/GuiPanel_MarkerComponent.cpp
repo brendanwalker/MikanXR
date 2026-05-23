@@ -28,6 +28,8 @@ bool GuiPanel_MarkerComponent::setComponent(MikanComponentPtr component)
 
 void GuiPanel_MarkerComponent::onConstruct()
 {
+	GuiPanel_MikanComponent::onConstruct();
+
 	m_entityAccessor->setPropertyRenderer(
 		MarkerDefinition::k_arucoIdPropertyId,
 		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool

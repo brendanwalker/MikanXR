@@ -21,6 +21,8 @@ bool GuiPanel_SceneComponent::init()
 
 void GuiPanel_SceneComponent::onConstruct()
 {
+	GuiPanel_MikanComponent::onConstruct();
+
 	m_entityAccessor->setPropertyRenderer(
 		SceneComponentDefinition::k_displayCompositorIdPropertyId,
 		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool

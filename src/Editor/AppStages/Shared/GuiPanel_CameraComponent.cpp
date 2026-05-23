@@ -31,6 +31,8 @@ bool GuiPanel_CameraComponent::init()
 
 void GuiPanel_CameraComponent::onConstruct()
 {
+	GuiPanel_MikanComponent::onConstruct();
+
 	m_entityAccessor->setPropertyRenderer(
 		CameraDefinition::k_videoSourceIdPropertyId,
 		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool

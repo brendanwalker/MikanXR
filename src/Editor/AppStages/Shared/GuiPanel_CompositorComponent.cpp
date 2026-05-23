@@ -23,6 +23,8 @@ bool GuiPanel_CompositorComponent::init()
 
 void GuiPanel_CompositorComponent::onConstruct()
 {
+	GuiPanel_MikanComponent::onConstruct();
+
 	m_entityAccessor->setPropertyRenderer(
 		CompositorDefinition::k_cameraIdPropertyId,
 		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
