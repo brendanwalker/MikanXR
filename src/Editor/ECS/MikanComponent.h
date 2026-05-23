@@ -121,8 +121,8 @@ public:
 	// -- Scripting ----
 	inline ComponentScriptContextPtr getScriptContext() { return m_scriptContext; }
 	inline ComponentScriptContextConstPtr getScriptContext() const { return m_scriptContext; }
-	inline bool hasValidScriptContext() const { return m_scriptContext != nullptr; }
 
+	bool hasValidComponentScript() const;
 	void reloadComponentScript();
 	void addNewComponentScript();
 	void removeComponentScript();

@@ -319,6 +319,11 @@ void MikanComponent::bindLuaFunctions(struct lua_State* L)
 		.endClass();
 }
 
+bool MikanComponent::hasValidComponentScript() const
+{
+	return m_scriptContext != nullptr ? m_scriptContext->hasLoadedScript() : false;
+}
+
 void MikanComponent::reloadComponentScript()
 {
 	if (m_scriptContext)
