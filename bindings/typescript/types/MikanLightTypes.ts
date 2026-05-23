@@ -37,12 +37,14 @@ export class MikanRGBPixelGridSystemValues extends MikanSystemValues {
 }
 
 export class MikanDMXFixtureComponentValues extends MikanTransformComponentValues {
+  stage_id: number = -1;
   dmx_universe: number = 1;
   dmx_start_channel: number = 1;
   dmx_channel_count: number = 3;
   is_disabled: boolean = false;
 
   static __serializationMetadata: SerializationField[] = [
+    { name: 'stage_id', type: 'int32' },
     { name: 'dmx_universe', type: 'uint16' },
     { name: 'dmx_start_channel', type: 'uint16' },
     { name: 'dmx_channel_count', type: 'uint16' },

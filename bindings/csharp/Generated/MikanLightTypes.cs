@@ -11,6 +11,7 @@ namespace MikanXR
 
 	public class MikanDMXFixtureComponentValues : MikanTransformComponentValues
 	{
+		public int stage_id;
 		public ushort dmx_universe;
 		public ushort dmx_start_channel;
 		public ushort dmx_channel_count;
