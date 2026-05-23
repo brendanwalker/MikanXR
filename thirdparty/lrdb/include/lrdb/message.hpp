@@ -127,13 +127,14 @@ inline std::string serialize(const response_message& msg) {
   json::object obj;
   obj["jsonrpc"] = json::value("2.0");
 
-  obj["result"] = msg.result;
-
+  // JSON-RPC 2.0: "result" and "error" are mutually exclusive.
   if (msg.error) {
     json::object error = {{"code", json::value(double(msg.error->code))},
                           {"message", json::value(msg.error->message)},
                           {"data", json::value(msg.error->data)}};
     obj["error"] = json::value(error);
+  } else {
+    obj["result"] = msg.result;
   }
 
   obj["id"] = msg.id;
