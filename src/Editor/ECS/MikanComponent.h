@@ -119,13 +119,10 @@ public:
 	virtual void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const {}
 
 	// -- Scripting ----
-	static const std::string k_reloadScriptFunctionId;
-	static const std::string k_addNewScriptFunctionId;
-	static const std::string k_removeScriptFunctionId;
-	static void addScriptingFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
-	bool invokeScriptingFunction(const std::string& functionName);
 	inline ComponentScriptContextPtr getScriptContext() { return m_scriptContext; }
 	inline ComponentScriptContextConstPtr getScriptContext() const { return m_scriptContext; }
+	inline bool hasValidScriptContext() const { return m_scriptContext != nullptr; }
+
 	void reloadComponentScript();
 	void addNewComponentScript();
 	void removeComponentScript();
@@ -141,6 +138,9 @@ public:
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
 
 	// -- IFunctionInterface ----
+	static const std::string k_reloadScriptFunctionId;
+	static const std::string k_addNewScriptFunctionId;
+	static const std::string k_removeScriptFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
 	virtual bool invokeFunction(const std::string& functionName) override;
 
@@ -148,10 +148,12 @@ public:
 	static void bindLuaFunctions(struct lua_State* L);
 
 protected:
+	// -- Scripting ----
 	virtual ComponentScriptContextPtr allocateScriptContext();
 	void initScriptContext();
 	void disposeScriptContext();
 	void updateScriptContext(float deltaSeconds);
+
 	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
 protected:

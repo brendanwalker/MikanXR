@@ -343,6 +343,12 @@ void GuiPanel_EntityAccessor::drawFunctionsGui(const std::set<std::string>& func
 		ImGui::Separator();
 		for (const FunctionDescriptorConstPtr& funcDesc : m_functionDescriptors)
 		{
+			// If a function is UI hidden, skip it
+			if (funcDesc->isUIHidden())
+			{
+				continue;
+			}
+
 			// If a function name filter is provided, skip functions that aren't in the filter set
 			if (!functionNames.empty() && 
 				functionNames.find(funcDesc->getFunctionName()) == functionNames.end())

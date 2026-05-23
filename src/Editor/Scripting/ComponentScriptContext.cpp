@@ -1,15 +1,20 @@
-#include "ComponentScriptContext.h"
+#include "AnchorObjectSystem.h"
 #include "AnchorComponent.h"
 #include "BoxStencilComponent.h"
+#include "CameraObjectSystem.h"
+#include "CompositorObjectSystem.h"
+#include "ComponentScriptContext.h"
 #include "CameraComponent.h"
 #include "CompositorComponent.h"
 #include "DMXFixtureComponent.h"
+#include "DMXObjectSystem.h"
 #include "LuaMath.h"
 #include "MarkerComponent.h"
 #include "MikanComponent.h"
 #include "ModelStencilComponent.h"
 #include "RGBPixelGridComponent.h"
 #include "RGBSpotLightComponent.h"
+#include "SceneObjectSystem.h"
 #include "QuadStencilComponent.h"
 #include "SceneComponent.h"
 #include "StageComponent.h"
@@ -30,6 +35,13 @@ bool ComponentScriptContext::bindContextFunctions()
 	if (!CommonScriptContext::bindContextFunctions())
 		return false;
 
+	// Register object system classes before component classes
+	CameraObjectSystem::bindLuaFunctions(m_luaState);
+	SceneObjectSystem::bindLuaFunctions(m_luaState);
+	DMXObjectSystem::bindLuaFunctions(m_luaState);
+	AnchorObjectSystem::bindLuaFunctions(m_luaState);
+	CompositorObjectSystem::bindLuaFunctions(m_luaState);
+
 	// Bind in dependency order: parent classes before derived classes
 	MikanComponent::bindLuaFunctions(m_luaState);
 	CompositorComponent::bindLuaFunctions(m_luaState);
@@ -47,7 +59,8 @@ bool ComponentScriptContext::bindContextFunctions()
 	AnchorComponent::bindLuaFunctions(m_luaState);
 	MarkerComponent::bindLuaFunctions(m_luaState);
 
-	luabridge::setGlobal(m_luaState, this, "ownerComponent");
+	MikanComponent* ownerComponent= m_ownerComponent.lock().get();
+	luabridge::setGlobal(m_luaState, ownerComponent, "ownerComponent");
 
 	return true;
 }

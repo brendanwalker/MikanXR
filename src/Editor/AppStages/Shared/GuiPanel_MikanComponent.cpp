@@ -1,4 +1,5 @@
 #include "AppStage.h"
+#include "AssetReferencePropertyMetaData.h"
 #include "GuiPanel_MikanComponent.h"
 #include "ComponentScriptContext.h"
 #include "MikanComponent.h"
@@ -6,14 +7,20 @@
 
 #include "imgui.h"
 
+#include "tinyfiledialogs.h"
+
 const std::string GuiPanel_MikanComponent::k_defaultComponentStyleName = "default_component_panel";
+const std::string GuiPanel_MikanComponent::k_scriptPathStyleName = "script_path";
 
 GuiPanel_MikanComponent::GuiPanel_MikanComponent(AppStage* ownerAppStage)
 	: m_component()
 	, m_entityAccessor(std::make_shared<GuiPanel_EntityAccessor>(ownerAppStage))
-	, m_defaultGuiStyle(
-		ownerAppStage->getOwnerWindow()->getMkGuiStyleManager()->getStyle(k_defaultComponentStyleName))
+
 {
+	auto* styleManager= ownerAppStage->getOwnerWindow()->getMkGuiStyleManager();
+
+	m_defaultGuiStyle = styleManager->getStyle(k_defaultComponentStyleName);
+	m_scriptPathGuiStyle = styleManager->getStyle(k_scriptPathStyleName);
 }
 
 ProjectManagerPtr GuiPanel_MikanComponent::getOwnerProject() const
@@ -46,6 +53,56 @@ bool GuiPanel_MikanComponent::setComponent(MikanComponentPtr component)
 	}
 
 	return false;
+}
+
+void GuiPanel_MikanComponent::onConstruct()
+{
+	m_entityAccessor->setPropertyRenderer(
+		MikanComponentDefinition::k_componentScriptPathPropertyId,
+		[this](const PropertyDescriptorConstPtr& desc) -> bool
+		{
+			MikanComponentPtr component = getComponent();
+			if (!component) return false;
+
+			if (component->hasValidScriptContext())
+			{
+				const auto* assetMeta = desc->getMetaDataOfType<AssetReferenceFactoryMetaData>();
+				MikanComponentDefinitionPtr componentDef = component->getDefinition();
+				const std::string scriptPath = componentDef->getComponentScriptPath().generic_string();
+
+				if (MkGui::drawFilePathProperty(m_scriptPathGuiStyle, "mikanComponentScriptPath", "Script", scriptPath))
+				{
+					addDeferredGuiEvent([component]() {
+						component->addNewComponentScript();
+					});
+				}
+				ImGui::SameLine();
+				if (MkGui::drawImageButton(m_scriptPathGuiStyle, "reloadScript", "reload_script"))
+				{
+					addDeferredGuiEvent([component]() {
+						component->reloadComponentScript();
+					});
+				}
+				ImGui::SameLine();
+				if (MkGui::drawImageButton(m_scriptPathGuiStyle, "deleteScript", "delete_script"))
+				{
+					addDeferredGuiEvent([component]() {
+						component->removeComponentScript();
+					});
+				}
+			}
+			else
+			{
+				if (ImGui::Button("Add Script"))
+				{
+					addDeferredGuiEvent([component]() {
+						component->addNewComponentScript();
+					});
+				}
+			}
+
+			return true;
+		});
 }
 
 void GuiPanel_MikanComponent::onGui()

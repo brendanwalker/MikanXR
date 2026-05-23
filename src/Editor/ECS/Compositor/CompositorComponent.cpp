@@ -32,7 +32,7 @@
 #include "VideoSourceComponent.h"
 #include "Windows/CompositorNodeEditorWindow.h"
 
-#include "NodeGraphAssetReference.h"
+#include "AssetReferencePropertyMetaData.h"
 #include "Graphs/CompositorNodeGraph.h"
 #include "Graphs/NodeEvaluator.h"
 
@@ -826,7 +826,9 @@ void CompositorComponent::getPropertyDescriptors(std::vector<PropertyDescriptorC
 		->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			CompositorDefinition::k_compositorGraphPathPropertyId, MikanVariantType::STRING));
+			CompositorDefinition::k_compositorGraphPathPropertyId, MikanVariantType::STRING)
+		->addMetaData(std::make_shared<AssetReferenceFactoryMetaData>(
+			AssetReferenceFactory::createFactory<NodeGraphAssetReferenceFactory>())));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			CompositorDefinition::k_spoutEnableOutputNamePropertyId, MikanVariantType::BOOL));

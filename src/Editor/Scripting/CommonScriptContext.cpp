@@ -1,13 +1,8 @@
 #include "CommonScriptContext.h"
-#include "AnchorObjectSystem.h"
-#include "CameraObjectSystem.h"
 #include "CompositorConstants.h"
-#include "CompositorObjectSystem.h"
-#include "DMXObjectSystem.h"
 #include "MathGLM.h"
 #include "LuaMath.h"
 #include "Logger.h"
-#include "SceneObjectSystem.h"
 
 #include <algorithm>
 #include <assert.h>
@@ -158,13 +153,6 @@ bool CommonScriptContext::bindContextFunctions()
 	bindCommonScriptFunctions();
 	LuaVec3f::bindFunctions(m_luaState);
 
-	// Register object system classes before component classes
-	CameraObjectSystem::bindLuaFunctions(m_luaState);
-	SceneObjectSystem::bindLuaFunctions(m_luaState);
-	DMXObjectSystem::bindLuaFunctions(m_luaState);
-	AnchorObjectSystem::bindLuaFunctions(m_luaState);
-	CompositorObjectSystem::bindLuaFunctions(m_luaState);
-
 	return true;
 }
 
@@ -288,36 +276,36 @@ static void addEnumToLua(
 	const std::string& enumName, 
 	const std::string* enumStrings)
 {
-	auto enumNamespace= globalNamespace.beginNamespace(enumName.c_str());
-
 	for (int enumIntValue = 0; enumIntValue < (int)t_enum_class::COUNT; ++enumIntValue)
 	{
 		const std::string enumString = enumStrings[enumIntValue];
 
-		enumNamespace.addProperty(enumString.c_str(), [enumIntValue]() { return enumIntValue; });
+		globalNamespace.addProperty(enumString.c_str(), [enumIntValue]() { return enumIntValue; });
 	}
-		
-	enumNamespace.endNamespace();
 }
 
 void CommonScriptContext::bindCommonScriptFunctions()
 {
 	auto globalNamespace= luabridge::getGlobalNamespace(m_luaState);
-	globalNamespace.beginNamespace("ScriptContext")
-			.addFunction("registerTrigger", [this](const char* functionName) {
-				m_triggers.push_back(functionName);
-			})
-			.addFunction("registerMessageHandler", [this](const char* functionName) {
-				m_messageHandlers.push_back(functionName);
-			})
-			.addFunction("broadcastMessage", [this](const char* message) {
-				if (OnScriptMessage)
-					OnScriptMessage(message);
-			})
-		.endNamespace();
+	auto contextNamespace = globalNamespace.beginNamespace("ScriptContext");
+
+	contextNamespace.addFunction("registerTrigger", [this](const char* functionName) {
+		m_triggers.push_back(functionName);
+	});
+
+	contextNamespace.addFunction("registerMessageHandler", [this](const char* functionName) {
+		m_messageHandlers.push_back(functionName);
+	});
+
+	contextNamespace.addFunction("broadcastMessage", [this](const char* message) {
+		if (OnScriptMessage)
+			OnScriptMessage(message);
+	});
 
 	// Register enums
-	addEnumToLua<eStencilCullMode>(globalNamespace, "CullMode", k_stencilCullModeStrings);
+	addEnumToLua<eStencilCullMode>(contextNamespace, "CullMode", k_stencilCullModeStrings);
+
+	contextNamespace.endNamespace();
 }
 
 void CommonScriptContext::disposeScriptState()

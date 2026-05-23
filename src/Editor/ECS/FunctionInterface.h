@@ -3,7 +3,11 @@
 #include <string>
 #include <memory>
 
-class FunctionDescriptor
+class FunctionDescriptor;
+using FunctionDescriptorPtr = std::shared_ptr<FunctionDescriptor>;
+using FunctionDescriptorConstPtr = std::shared_ptr<const FunctionDescriptor>;
+
+class FunctionDescriptor : public std::enable_shared_from_this<FunctionDescriptor>
 {
 public:
 	FunctionDescriptor() = default;
@@ -16,12 +20,14 @@ public:
 
 	inline const std::string& getFunctionName() const { return m_functionName; }
 	inline const std::string& getDisplayName() const { return m_displayName; }
+	bool isUIHidden() const { return m_bIsUIHidden; }
+	FunctionDescriptorPtr setUIHidden() { m_bIsUIHidden = true; return shared_from_this(); }
 
 private:
 	std::string m_functionName;
 	std::string m_displayName;
+	bool m_bIsUIHidden = false;
 };
-using FunctionDescriptorConstPtr = std::shared_ptr<const FunctionDescriptor>;
 
 class IFunctionInterface
 {

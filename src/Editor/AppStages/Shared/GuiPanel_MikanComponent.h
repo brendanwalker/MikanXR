@@ -14,7 +14,7 @@ public:
 	virtual ~GuiPanel_MikanComponent() = default;
 
 	virtual bool init() = 0;
-	virtual void onConstruct() {}
+	virtual void onConstruct();
 
 	inline GuiPanel_EntityAccessorPtr getPropertyInterface() const { return m_entityAccessor; }
 
@@ -59,8 +59,10 @@ protected:
 	MikanComponentWeakPtr m_component;
 	GuiPanel_EntityAccessorPtr m_entityAccessor;
 	MkGuiStyleConstPtr m_defaultGuiStyle;
+	MkGuiStyleConstPtr m_scriptPathGuiStyle;
 
 	static const std::string k_defaultComponentStyleName;
+	static const std::string k_scriptPathStyleName;
 };
 
 using GuiPanel_MikanComponentPtr = std::shared_ptr<GuiPanel_MikanComponent>;

@@ -23,5 +23,17 @@
             { "name": "add_pixel_grid", "path": "textures/add_pixel_grid_icon.png", "width": 50, "height": 50 },
             { "name": "add_spot_light", "path": "textures/add_spot_light_icon.png", "width": 50, "height": 50 }
         ]
+    },
+    "script_path": {
+        "labelWidth": 190,
+        "valueWidth": 100,
+        "font": "normal_icon",
+        "colors": [
+            { "name": "Text",              "value": [0.94, 0.94, 0.94, 1.0] }
+        ],
+        "textures": [
+            { "name": "reload_script", "path": "textures/edit_component_icon.png", "width": 20, "height": 20 },
+            { "name": "delete_script", "path": "textures/delete_component_icon.png", "width": 20, "height": 20 }
+        ]
     }
 }

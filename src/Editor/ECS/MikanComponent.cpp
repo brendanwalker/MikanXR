@@ -1,4 +1,5 @@
 #include "AnchorObjectSystem.h"
+#include "AssetReferencePropertyMetaData.h"
 #include "CameraObjectSystem.h"
 #include "ComponentScriptContext.h"
 #include "CompositorObjectSystem.h"
@@ -288,45 +289,6 @@ bool MikanComponent::destroyOwnerObject()
 	return false;
 }
 
-// -- Scripting ----
-const std::string MikanComponent::k_reloadScriptFunctionId = "reload_script";
-const std::string MikanComponent::k_addNewScriptFunctionId = "add_new_script";
-const std::string MikanComponent::k_removeScriptFunctionId = "remove_script";
-
-void MikanComponent::addScriptingFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
-{
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_reloadScriptFunctionId, "Reload Script"));
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_addNewScriptFunctionId, "Add New Script"));
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_removeScriptFunctionId, "Remove Script"));
-}
-
-bool MikanComponent::invokeScriptingFunction(const std::string& functionName)
-{
-	if (functionName == MikanComponent::k_reloadScriptFunctionId)
-	{
-		reloadComponentScript();
-		return true;
-	}
-	else if (functionName == MikanComponent::k_addNewScriptFunctionId)
-	{
-		addNewComponentScript();
-		return true;
-	}
-	else if (functionName == MikanComponent::k_removeScriptFunctionId)
-	{
-		removeComponentScript();
-		return true;
-	}
-
-	return false;
-}
-
 // -- Lua Binding ----
 void MikanComponent::bindLuaFunctions(struct lua_State* L)
 {
@@ -413,8 +375,10 @@ void MikanComponent::initScriptContext()
 
 	// Create and load the script context
 	m_scriptContext = allocateScriptContext();
-	if (m_scriptContext->loadScript(scriptPath))
+	if (!m_scriptContext->loadScript(scriptPath))
 	{
+		MIKAN_LOG_WARNING("MikanComponent::initScriptContext") << "Failed to load script " << scriptPath;
+
 		// Failed to load script
 		m_scriptContext = nullptr;
 		return;
@@ -476,7 +440,8 @@ void MikanComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstP
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			MikanComponentDefinition::k_componentScriptPathPropertyId, MikanVariantType::STRING)
-			->setUIHidden());
+		->addMetaData(std::make_shared<AssetReferenceFactoryMetaData>(
+			AssetReferenceFactory::createFactory<ScriptAssetReferenceFactory>())));
 }
 
 bool MikanComponent::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
@@ -526,13 +491,43 @@ bool MikanComponent::setPropertyValue(const std::string& propertyName, const Mik
 }
 
 // -- IFunctionInterface ----
+const std::string MikanComponent::k_reloadScriptFunctionId = "reload_script";
+const std::string MikanComponent::k_addNewScriptFunctionId = "add_new_script";
+const std::string MikanComponent::k_removeScriptFunctionId = "remove_script";
+
 void MikanComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
-	// Add function descriptors here
+	outDescriptors.push_back(
+		std::make_shared<FunctionDescriptor>(
+			k_reloadScriptFunctionId, "Reload Script")
+		->setUIHidden());
+	outDescriptors.push_back(
+		std::make_shared<FunctionDescriptor>(
+			k_addNewScriptFunctionId, "Add New Script")
+		->setUIHidden());
+	outDescriptors.push_back(
+		std::make_shared<FunctionDescriptor>(
+			k_removeScriptFunctionId, "Remove Script")
+		->setUIHidden());
 }
 
 bool MikanComponent::invokeFunction(const std::string& functionName)
 {
-	// Implement function invocation here
+	if (functionName == MikanComponent::k_reloadScriptFunctionId)
+	{
+		reloadComponentScript();
+		return true;
+	}
+	else if (functionName == MikanComponent::k_addNewScriptFunctionId)
+	{
+		addNewComponentScript();
+		return true;
+	}
+	else if (functionName == MikanComponent::k_removeScriptFunctionId)
+	{
+		removeComponentScript();
+		return true;
+	}
+
 	return false;
 }

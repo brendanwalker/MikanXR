@@ -296,10 +296,6 @@ bool SceneComponent::setPropertyValue(
 		getSceneComponentDefinition()->setDisplayCompositorId(compositorId);
 		return true;
 	}
-	else if (MikanComponent::invokeScriptingFunction(propertyName))
-	{
-		return true;
-	}
 
 	return TransformComponent::setPropertyValue(propertyName, inValue);
 }
