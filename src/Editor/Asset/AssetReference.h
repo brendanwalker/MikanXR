@@ -97,7 +97,11 @@ public:
 
 	virtual AssetReferenceConfigPtr allocateAssetReferenceConfig() const override
 	{
-		return std::make_shared<t_assetref_config_class>();
+		AssetReferenceConfigPtr configPtr= std::make_shared<t_assetref_config_class>();
+
+		configPtr->className = t_assetref_class::k_assetClassName;
+
+		return configPtr;
 	}
 
 	virtual AssetReferencePtr allocateAssetReference() const override
