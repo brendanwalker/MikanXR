@@ -22,9 +22,9 @@ public:
 	virtual char const* getFileDialogTitle() const { return "Load Script"; }
 	virtual char const* const* getFilterPatterns() const
 	{
-		static const char* filterItems[5] = {"*.lua"};
+		static const char* filterItems[1] = {"*.lua"};
 		return filterItems;
 	}
-	virtual int getFilterPatternCount() const { return 5; }
+	virtual int getFilterPatternCount() const { return 1; }
 	virtual char const* getFilterDescription() const { return "Script Files (*.lua)"; }
 };
