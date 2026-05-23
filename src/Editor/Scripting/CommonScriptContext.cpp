@@ -7,6 +7,8 @@
 
 #include <algorithm>
 #include <assert.h>
+#include <fstream>
+#include <filesystem>
 
 #include "lua.hpp"
 #include "LuaBridge/LuaBridge.h"
@@ -108,9 +110,30 @@ bool CommonScriptContext::loadScript(const std::filesystem::path& scriptPath)
 		return false;
 	}
 
-	// Use forward slashes so debuggers (e.g. lrdb) can map source paths correctly on Windows.
-	const std::string scriptPathString= scriptPath.generic_string();
-	int ret= luaL_dofile(m_luaState, scriptPathString.c_str());
+	// Build a chunk name that is relative to CWD (= the workspace / repo root when
+	// launched from VS Code).  The vscode-lrdb extension converts editor paths to
+	// paths relative to its "sourceRoot" setting (${workspaceFolder}), so both
+	// sides must agree on the same relative form for breakpoint matching to work.
+	std::filesystem::path cwd = std::filesystem::current_path();
+	std::filesystem::path relPath = scriptPath.lexically_relative(cwd);
+	bool isUnderCwd = !relPath.empty() &&
+	                  relPath.native().substr(0, 2) != L".." &&
+	                  relPath.native().front() != L'/';
+	std::string chunkName = "@" + (isUnderCwd ? relPath.generic_string()
+	                                           : scriptPath.generic_string());
+
+	// Read the file ourselves so we can supply the custom chunk name to lua_load.
+	std::ifstream scriptFile(scriptPath, std::ios::binary);
+	if (!scriptFile.is_open())
+	{
+		MIKAN_LOG_ERROR("CommonScriptContext::loadScript") << "Failed to open lua script " << scriptPath;
+		return false;
+	}
+	std::string scriptContent((std::istreambuf_iterator<char>(scriptFile)), {});
+
+	int ret = luaL_loadbuffer(m_luaState, scriptContent.c_str(), scriptContent.size(), chunkName.c_str());
+	if (ret == LUA_OK)
+		ret = lua_pcall(m_luaState, 0, LUA_MULTRET, 0);
 	if (!checkLuaResult(ret, __FILE__, __LINE__))
 	{
 		MIKAN_LOG_ERROR("CommonScriptContext::loadScript") << "Failed to load lua script " << scriptPath;
