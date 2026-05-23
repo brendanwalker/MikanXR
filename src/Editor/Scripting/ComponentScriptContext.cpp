@@ -1,6 +1,7 @@
 #include "AnchorObjectSystem.h"
 #include "AnchorComponent.h"
 #include "BoxStencilComponent.h"
+#include "BoxStencilSystem.h"
 #include "CameraObjectSystem.h"
 #include "CompositorObjectSystem.h"
 #include "ComponentScriptContext.h"
@@ -12,10 +13,12 @@
 #include "MarkerComponent.h"
 #include "MikanComponent.h"
 #include "ModelStencilComponent.h"
+#include "ModelStencilSystem.h"
+#include "QuadStencilComponent.h"
+#include "QuadStencilSystem.h"
 #include "RGBPixelGridComponent.h"
 #include "RGBSpotLightComponent.h"
 #include "SceneObjectSystem.h"
-#include "QuadStencilComponent.h"
 #include "SceneComponent.h"
 #include "StageComponent.h"
 #include "TransformComponent.h"
@@ -41,6 +44,9 @@ bool ComponentScriptContext::bindContextFunctions()
 	DMXObjectSystem::bindLuaFunctions(m_luaState);
 	AnchorObjectSystem::bindLuaFunctions(m_luaState);
 	CompositorObjectSystem::bindLuaFunctions(m_luaState);
+	ModelStencilSystem::bindLuaFunctions(m_luaState);
+	BoxStencilSystem::bindLuaFunctions(m_luaState);
+	QuadStencilSystem::bindLuaFunctions(m_luaState);
 
 	// Bind in dependency order: parent classes before derived classes
 	MikanComponent::bindLuaFunctions(m_luaState);
@@ -61,6 +67,17 @@ bool ComponentScriptContext::bindContextFunctions()
 
 	MikanComponent* ownerComponent= m_ownerComponent.lock().get();
 	luabridge::setGlobal(m_luaState, ownerComponent, "ownerComponent");
+
+	// Expose stencil system singletons so scripts can look up stencils by name
+	luabridge::setGlobal(m_luaState,
+		ownerComponent->getObjectSystemOfType<ModelStencilSystem>().get(),
+		"ModelStencilSystem");
+	luabridge::setGlobal(m_luaState,
+		ownerComponent->getObjectSystemOfType<BoxStencilSystem>().get(),
+		"BoxStencilSystem");
+	luabridge::setGlobal(m_luaState,
+		ownerComponent->getObjectSystemOfType<QuadStencilSystem>().get(),
+		"QuadStencilSystem");
 
 	return true;
 }
