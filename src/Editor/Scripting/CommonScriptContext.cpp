@@ -1,5 +1,6 @@
 #include "CommonScriptContext.h"
 #include "CompositorConstants.h"
+#include "LuaDebugServer.h"
 #include "MathGLM.h"
 #include "LuaMath.h"
 #include "Logger.h"
@@ -314,6 +315,12 @@ void CommonScriptContext::disposeScriptState()
 
 	if (m_luaState != nullptr)
 	{
+		// Detach the debug server before closing the Lua state so it doesn't
+		// call lua_sethook on a freed state during its own teardown.
+		auto* debugServer = LuaDebugServer::getInstance();
+		if (debugServer->getAttachedContext() == this)
+			debugServer->detach();
+
 		lua_close(m_luaState);
 		m_luaState= nullptr;
 	}
