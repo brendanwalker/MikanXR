@@ -2,7 +2,6 @@
 #include "AssetReferencePropertyMetaData.h"
 #include "GuiPanel_MikanComponent.h"
 #include "ComponentScriptContext.h"
-#include "LuaDebugServer.h"
 #include "MikanComponent.h"
 #include "MkGuiStyleManager.h"
 
@@ -90,35 +89,6 @@ void GuiPanel_MikanComponent::onConstruct()
 					addDeferredGuiEvent([component]() {
 						component->removeComponentScript();
 					});
-				}
-
-				auto* debugServer = LuaDebugServer::getInstance();
-				if (debugServer->isListening())
-				{
-					ComponentScriptContextPtr scriptContext= component->getScriptContext();
-
-					if (debugServer->getAttachedContext() == scriptContext.get())
-					{
-						if (MkGui::drawImageButton(m_scriptPathGuiStyle, "detachDebugger", "detach_debugger"))
-						{
-							addDeferredGuiEvent([]() {
-								LuaDebugServer::getInstance()->detach();
-							});
-						}
-						ImGui::SameLine();
-						ImGui::TextColored({ 1.0f, 0.2f, 0.2f, 1.0f }, "Detach Debugger");
-					}
-					else
-					{
-						if (MkGui::drawImageButton(m_scriptPathGuiStyle, "attachDebugger", "attach_debugger"))
-						{
-							addDeferredGuiEvent([scriptContext]() {
-								LuaDebugServer::getInstance()->attach(scriptContext.get());
-							});
-						}
-						ImGui::SameLine();
-						ImGui::TextColored({ 0.2f, 1.0f, 0.2f, 1.0f }, "Attach Debugger");
-					}
 				}
 			}
 			else
