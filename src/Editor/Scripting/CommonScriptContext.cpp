@@ -155,12 +155,45 @@ bool CommonScriptContext::reloadScript()
 	return false;
 }
 
+// RAII guard: temporarily redirects the Lua debug server to this context
+// for the duration of a Lua execution call, then restores the previous context.
+// This lets the debugger follow whichever script is actively executing without
+// requiring the user to manually attach to each component.
+namespace {
+struct LuaDebugContextGuard
+{
+	explicit LuaDebugContextGuard(CommonScriptContext* ctx)
+	{
+		auto* dbg = LuaDebugServer::getInstance();
+		if (dbg->isListening())
+		{
+			m_server = dbg;
+			m_prevContext = dbg->getAttachedContext();
+			dbg->attach(ctx);
+		}
+	}
+	~LuaDebugContextGuard()
+	{
+		if (m_server)
+		{
+			if (m_prevContext)
+				m_server->attach(m_prevContext);
+			else
+				m_server->detach();
+		}
+	}
+	LuaDebugServer*      m_server      = nullptr;
+	CommonScriptContext* m_prevContext  = nullptr;
+};
+} // namespace
+
 void CommonScriptContext::updateScript(float deltaSeconds)
 {
 	EASY_FUNCTION();
 
 	if (m_luaState != nullptr)
 	{
+		LuaDebugContextGuard debugGuard(this);
 		lua_getglobal(m_luaState, "update_scheduler");
 		int ret= lua_pcall(m_luaState, 0, 0, 0);
 		checkLuaResult(ret, __FILE__, __LINE__);
@@ -185,6 +218,7 @@ bool CommonScriptContext::invokeScriptTrigger(const std::string& triggerName)
 {
 	if (std::find(m_triggers.begin(), m_triggers.end(), triggerName) != m_triggers.end())
 	{
+		LuaDebugContextGuard debugGuard(this);
 		lua_getglobal(m_luaState, triggerName.c_str());
 		int ret= lua_pcall(m_luaState, 0, 0, 0);
 		return !checkLuaResult(ret, __FILE__,  __LINE__);

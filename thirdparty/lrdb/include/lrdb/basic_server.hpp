@@ -43,7 +43,9 @@ class basic_server {
 
   ~basic_server() { exit(); }
 
-  /// @brief attach (or detach) for debug target
+  /// @brief attach (or detach) for debug target, closing the socket on detach.
+  /// Use for full teardown (e.g. stopListening). For temporary context
+  /// switches use detach_lua() / attach_lua() so the socket stays open.
   /// @param lua_State*  debug target
   void reset(lua_State* L = 0) {
     debugger_.reset(L);
@@ -51,6 +53,12 @@ class basic_server {
       exit();
     }
   }
+
+  /// @brief Unhook from the current Lua state without closing the debug socket.
+  void detach_lua() { debugger_.reset(nullptr); }
+
+  /// @brief Hook onto a new Lua state without any teardown of the socket.
+  void attach_lua(lua_State* L) { debugger_.reset(L); }
 
   /// @brief Exit debug server
   void exit() {
@@ -68,6 +76,11 @@ class basic_server {
   /// @brief Trigger a pause on the next Lua line event.
   /// Useful for binding a programmatic breakpoint (e.g. lrdb_break()) in Lua.
   void pause() { debugger_.pause(); }
+
+  /// @brief Clear any pending pause/step state and return to running mode.
+  /// Call this when switching to a new Lua context so that step mode from
+  /// the previous context does not immediately pause the new one.
+  void resume() { debugger_.unpause(); }
 
   StreamType& command_stream() { return command_stream_; };
 

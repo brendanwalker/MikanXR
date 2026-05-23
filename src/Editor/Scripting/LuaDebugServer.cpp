@@ -52,19 +52,20 @@ void LuaDebugServer::attach(CommonScriptContext* context)
         return;
     }
 
-    // Detach from current context first (resets the Lua hook)
+    // Switch Lua hooks without touching the socket.
+    // Clear any pending step state so it doesn't carry over and immediately
+    // pause the new context on its first line event.
     if (m_attachedContext)
     {
-        m_server->reset(nullptr);
-        MIKAN_LOG_INFO("LuaDebugServer") << "Lua debugger detached from previous context";
+        m_server->resume();
+        m_server->detach_lua();
     }
 
     m_attachedContext = context;
 
     if (context && context->hasLoadedScript())
     {
-        m_server->reset(context->getLuaState());
-        MIKAN_LOG_INFO("LuaDebugServer") << "Lua debugger attached to script context";
+        m_server->attach_lua(context->getLuaState());
     }
     else
     {
@@ -77,10 +78,8 @@ void LuaDebugServer::attach(CommonScriptContext* context)
 void LuaDebugServer::detach()
 {
     if (m_server && m_attachedContext)
-    {
-        m_server->reset(nullptr);
-        MIKAN_LOG_INFO("LuaDebugServer") << "Lua debugger detached";
-    }
+        m_server->detach_lua();
+
     m_attachedContext = nullptr;
 }
 
