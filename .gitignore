@@ -53,7 +53,8 @@ deps
 
 #vscode
 .vs
-.vscode
+.vscode/*
+!.vscode/launch.json
 .claude
 
 #Mikan
