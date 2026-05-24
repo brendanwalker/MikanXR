@@ -379,6 +379,13 @@ void MikanGStreamerVideoDevice::update(float deltaSeconds)
 
 				m_openState = eOpenState::open;
 				notifyVideoDeviceOpened();
+
+				// If this open was triggered by a watchdog restart, resume streaming
+				if (m_pendingStreamStartAfterOpen)
+				{
+					m_pendingStreamStartAfterOpen = false;
+					startVideoStream();
+				}
 			}
 			else
 			{
@@ -411,6 +418,9 @@ void MikanGStreamerVideoDevice::update(float deltaSeconds)
 	GstSample* sample = gst_app_sink_try_pull_sample(GST_APP_SINK(m_impl->appsink), 0);
 	if (sample)
 	{
+		// Reset the watchdog whenever a frame arrives
+		m_timeSinceLastFrameSeconds = 0.0f;
+
 		GstBuffer* buffer = gst_sample_get_buffer(sample);
 		GstCaps* caps = gst_sample_get_caps(sample);
 		NetworkVideoStreamProperties newFrameInfo;
@@ -452,6 +462,23 @@ void MikanGStreamerVideoDevice::update(float deltaSeconds)
 		}
 
 		gst_sample_unref(sample);
+	}
+	else if (m_streamingStatus == eVideoStreamingStatus::started)
+	{
+		// No frame arrived this tick — accumulate the watchdog timer.
+		// If update() was frozen (e.g. at a debugger breakpoint), deltaSeconds will be
+		// large on the first tick after resuming and immediately trigger the restart.
+		m_timeSinceLastFrameSeconds += deltaSeconds;
+		if (m_timeSinceLastFrameSeconds >= k_streamTimeoutSeconds)
+		{
+			MIKAN_LOG_WARNING("GStreamerVideoDevice::update")
+				<< "No frame received for " << m_timeSinceLastFrameSeconds
+				<< "s — restarting stream pipeline";
+			m_timeSinceLastFrameSeconds = 0.0f;
+			m_pendingStreamStartAfterOpen = true;
+			close();
+			open();
+		}
 	}
 }
 
@@ -562,6 +589,7 @@ eVideoStreamingStatus MikanGStreamerVideoDevice::startVideoStream()
 		if (m_streamingStatus == eVideoStreamingStatus::stopped ||
 			m_streamingStatus == eVideoStreamingStatus::failed)
 		{
+			m_timeSinceLastFrameSeconds = 0.0f;
 			gst_element_set_state(m_impl->pipeline, GST_STATE_PLAYING);
 			m_streamingStatus = eVideoStreamingStatus::pendingStart;
 		}

@@ -59,6 +59,8 @@ private:
 
 	enum class eOpenState { closed, opening, open, failed };
 
+	static constexpr float k_streamTimeoutSeconds = 10.0f;
+
 	class MikanGStreamerVideoDeviceManager* m_ownerDeviceManager;
 	NetworkVideoConnectionSettings m_connectionInfo;
 	NetworkVideoStreamProperties m_streamInfo;
@@ -67,6 +69,8 @@ private:
 	eOpenState m_openState = eOpenState::closed;
 	std::future<bool> m_openFuture;
 	eVideoStreamingStatus m_streamingStatus = eVideoStreamingStatus::stopped;
+	float m_timeSinceLastFrameSeconds = 0.0f;
+	bool m_pendingStreamStartAfterOpen = false;
 
 	std::set<INetworkVideoDeviceListener*> m_listeners;
 };
