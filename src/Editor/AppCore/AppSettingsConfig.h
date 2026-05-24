@@ -23,7 +23,12 @@ public:
 	inline const std::string& getAppLanguage() const { return m_appLanguage; }
 	void setAppLanguage(const std::string& appLanguage);
 
+	static const std::string k_scriptEditorCommandPropertyId;
+	inline const std::string& getScriptEditorCommand() const { return m_scriptEditorCommand; }
+	void setScriptEditorCommand(const std::string& command);
+
 protected:
 	std::filesystem::path m_lastProjectPath;
 	std::string m_appLanguage;
+	std::string m_scriptEditorCommand = "code --reuse-window";
 };

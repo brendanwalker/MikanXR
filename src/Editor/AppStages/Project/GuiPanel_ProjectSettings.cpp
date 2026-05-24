@@ -1,4 +1,6 @@
 #include "GuiPanel_ProjectSettings.h"
+#include "App.h"
+#include "AppSettingsConfig.h"
 #include "AppStage.h"
 #include "EditorObjectSystem.h"
 #include "LocalizationManager.h"
@@ -9,6 +11,7 @@
 #include "Shared/GuiPanel_DMXObjectSystem.h"
 
 #include "imgui.h"
+#include <cstring>
 
 bool GuiPanel_ProjectSettings::init(ProjectGuiPanelContext* context)
 {
@@ -97,6 +100,22 @@ void GuiPanel_ProjectSettings::onGui()
 			const std::string lang = m_languageDataSource.getEntryDisplayString(selectedIndex);
 			addDeferredGuiEvent([locManager, lang]() {
 				locManager->setLanguage(lang);
+			});
+		}
+	}
+
+	ImGui::Separator();
+
+	// Script editor command (e.g. "code --reuse-window", "devenv /edit", "" = OS default)
+	{
+		auto appSettings = App::getInstance()->getAppSettings();
+		char editorBuf[256];
+		strncpy_s(editorBuf, appSettings->getScriptEditorCommand().c_str(), sizeof(editorBuf) - 1);
+		if (ImGui::InputText("Script Editor Command", editorBuf, sizeof(editorBuf)))
+		{
+			const std::string newCmd(editorBuf);
+			addDeferredGuiEvent([appSettings, newCmd]() {
+				appSettings->setScriptEditorCommand(newCmd);
 			});
 		}
 	}

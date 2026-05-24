@@ -11,6 +11,32 @@
 // -- public methods -----
 namespace OSUtils
 {
+	bool openFileWithApplication(
+		const std::filesystem::path& filePath,
+		const std::string& editorCommand)
+	{
+		if (editorCommand.empty())
+			return openFileWithDefaultApplication(filePath);
+
+		// Split "exe [args]" on the first space so ShellExecute gets exe and
+		// parameters separately (avoids a console window on Windows).
+		const size_t spacePos = editorCommand.find(' ');
+		const std::string exe  = editorCommand.substr(0, spacePos);
+		const std::string existingArgs =
+			(spacePos != std::string::npos) ? editorCommand.substr(spacePos + 1) + " " : "";
+		const std::string quotedPath = "\"" + filePath.generic_string() + "\"";
+		const std::string fullArgs   = existingArgs + quotedPath;
+
+#if defined WIN32 || defined _WIN32 || defined WINCE
+		HINSTANCE result = ShellExecuteA(
+			NULL, "open", exe.c_str(), fullArgs.c_str(), NULL, SW_SHOWNORMAL);
+		return reinterpret_cast<intptr_t>(result) > 32;
+#else
+		const std::string cmd = editorCommand + " " + quotedPath;
+		return system(cmd.c_str()) == 0;
+#endif
+	}
+
 	bool openFileWithDefaultApplication(const std::filesystem::path& filePath)
 	{
 #if defined WIN32 || defined _WIN32 || defined WINCE
