@@ -117,9 +117,11 @@ public:
 	int64_t getPendingCompositedFrameIndex() const;
 	inline int64_t getLastCompositedFrameIndex() const { return m_lastCompositedFrameIndex; }
 
-	void editCompositorGraph();
+	bool hasValidCompositorGraph() const;
 	void addNewCompositorGraph();
+	void editCompositorGraph();
 	void removeCompositorGraph();
+	void selectCompositorGraph();
 
 	MulticastDelegate<void()> OnNewFrameComposited;
 
@@ -132,9 +134,10 @@ public:
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
 
 	// -- IFunctionInterface ----
+	static const std::string k_addNewCompositorGraphFunctionId;
 	static const std::string k_editCompositorGraphFunctionId;
-	static const std::string k_addNewScriptFunctionId;
 	static const std::string k_removeCompositorGraphFunctionId;
+	static const std::string k_selectCompositorGraphFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
 	virtual bool invokeFunction(const std::string& functionName) override;
 

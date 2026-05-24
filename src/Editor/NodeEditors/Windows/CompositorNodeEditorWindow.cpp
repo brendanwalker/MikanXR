@@ -98,8 +98,7 @@ bool CompositorNodeEditorWindow::saveGraph(bool bShowFileDialog)
 {
 	if (NodeEditorWindow::saveGraph(bShowFileDialog))
 	{
-		m_compositorComponent->getCompositorDefinition()->setCompositorGraphPath(
-			m_editorState.nodeGraphPath);
+		m_compositorComponent->setCompositorGraphAssetPath(m_editorState.nodeGraphPath);
 	}
 
 	return false;

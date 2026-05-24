@@ -13,7 +13,12 @@
 #include "MikanObjectSystem.h"
 #include "MikanPropertyTypes.h"
 #include "MikanServer.h"
+#include "App.h"
+#include "AppSettingsConfig.h"
+#include "OSUtils.h"
+#include "PathUtils.h"
 #include "ProjectManager.h"
+#include <fstream>
 #include "ScriptRequestHandler.h"
 #include "StringUtils.h"
 
@@ -324,6 +329,32 @@ bool MikanComponent::hasValidComponentScript() const
 	return m_scriptContext != nullptr ? m_scriptContext->hasLoadedScript() : false;
 }
 
+void MikanComponent::addNewComponentScript()
+{
+	const std::filesystem::path scriptsDir = PathUtils::getResourceDirectory() / "scripts";
+	std::filesystem::create_directories(scriptsDir);
+
+	const std::string prefix =
+		getComponentClassName() + std::to_string(getDefinition()->getComponentId());
+	const std::filesystem::path scriptPath =
+		PathUtils::makeTimestampedFilePath(scriptsDir, prefix, ".lua");
+
+	// Create an empty Lua file at the new path
+	std::ofstream(scriptPath).flush();
+
+	getDefinition()->setComponentScriptPath(scriptPath);
+}
+
+void MikanComponent::editComponentScript()
+{
+	const auto scriptPath = getDefinition()->getComponentScriptPath();
+	if (scriptPath.empty()) return;
+
+	const std::string editorCmd =
+		App::getInstance()->getAppSettings()->getScriptEditorCommand();
+	OSUtils::openFileWithApplication(scriptPath, editorCmd);
+}
+
 void MikanComponent::reloadComponentScript()
 {
 	if (m_scriptContext)
@@ -332,7 +363,14 @@ void MikanComponent::reloadComponentScript()
 	}
 }
 
-void MikanComponent::addNewComponentScript()
+void MikanComponent::removeComponentScript()
+{
+	disposeScriptContext();
+
+	getDefinition()->setComponentScriptPath(std::filesystem::path());
+}
+
+void MikanComponent::selectComponentScript()
 {
 	ScriptAssetReferenceFactory assetRefFactory;
 	const char* picked =
@@ -355,13 +393,6 @@ void MikanComponent::addNewComponentScript()
 			getDefinition()->setComponentScriptPath(newAssetPath);
 		}
 	}
-}
-
-void MikanComponent::removeComponentScript()
-{
-	disposeScriptContext();
-
-	getDefinition()->setComponentScriptPath(std::filesystem::path());
 }
 
 ComponentScriptContextPtr MikanComponent::allocateScriptContext()
@@ -420,9 +451,9 @@ void MikanComponent::disposeScriptContext()
 }
 
 // -- IEntityAccessor ----
-std::string MikanComponent::getEntityUIIdentifier() const
+std::string MikanComponent::makePropertyUIIdentifier(const std::string& propName) const
 {
-	return StringUtils::stringify(getComponentClassName(), getComponentId());
+	return StringUtils::stringify(getComponentClassName(), getComponentId(), "_", propName);
 }
 
 rfk::Struct const* MikanComponent::getClientAPIValuesStructType() const
@@ -497,40 +528,60 @@ bool MikanComponent::setPropertyValue(const std::string& propertyName, const Mik
 
 // -- IFunctionInterface ----
 const std::string MikanComponent::k_reloadScriptFunctionId = "reload_script";
+const std::string MikanComponent::k_editScriptFunctionId = "edit_script";
 const std::string MikanComponent::k_addNewScriptFunctionId = "add_new_script";
 const std::string MikanComponent::k_removeScriptFunctionId = "remove_script";
+const std::string MikanComponent::k_selectScriptFunctionId = "select_script";
 
 void MikanComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
-	outDescriptors.push_back(
-		std::make_shared<FunctionDescriptor>(
-			k_reloadScriptFunctionId, "Reload Script")
-		->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(
 			k_addNewScriptFunctionId, "Add New Script")
 		->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<FunctionDescriptor>(
+			k_editScriptFunctionId, "Add New Script")
+		->setUIHidden());
+	outDescriptors.push_back(
+		std::make_shared<FunctionDescriptor>(
+			k_reloadScriptFunctionId, "Reload Script")
+		->setUIHidden());
+	outDescriptors.push_back(
+		std::make_shared<FunctionDescriptor>(
 			k_removeScriptFunctionId, "Remove Script")
+		->setUIHidden());
+	outDescriptors.push_back(
+		std::make_shared<FunctionDescriptor>(
+			k_removeScriptFunctionId, "Select Script")
 		->setUIHidden());
 }
 
 bool MikanComponent::invokeFunction(const std::string& functionName)
 {
-	if (functionName == MikanComponent::k_reloadScriptFunctionId)
-	{
-		reloadComponentScript();
-		return true;
-	}
-	else if (functionName == MikanComponent::k_addNewScriptFunctionId)
+	if (functionName == MikanComponent::k_addNewScriptFunctionId)
 	{
 		addNewComponentScript();
+		return true;
+	}
+	else if (functionName == MikanComponent::k_editScriptFunctionId)
+	{
+		editComponentScript();
+		return true;
+	}
+	else if (functionName == MikanComponent::k_reloadScriptFunctionId)
+	{
+		reloadComponentScript();
 		return true;
 	}
 	else if (functionName == MikanComponent::k_removeScriptFunctionId)
 	{
 		removeComponentScript();
+		return true;
+	}
+	else if (functionName == MikanComponent::k_selectScriptFunctionId)
+	{
+		selectComponentScript();
 		return true;
 	}
 

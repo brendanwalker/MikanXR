@@ -80,6 +80,8 @@ void GuiPanel_MikanComponent::onConstruct()
 					});
 				}
 
+				MkGui::drawStaticTextProperty(m_defaultGuiStyle, "", "");
+				ImGui::SameLine();
 				if (MkGui::drawImageButton(
 					m_defaultGuiStyle,
 					component->makePropertyUIIdentifier(MikanComponent::k_editScriptFunctionId),
@@ -112,6 +114,8 @@ void GuiPanel_MikanComponent::onConstruct()
 			}
 			else
 			{
+				MkGui::drawStaticTextProperty(m_defaultGuiStyle, "Script", "<No Script>");
+				ImGui::SameLine();
 				if (MkGui::drawImageButton(
 						m_defaultGuiStyle,
 						component->makePropertyUIIdentifier(MikanComponent::k_addNewScriptFunctionId),

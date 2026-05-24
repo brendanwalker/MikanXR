@@ -5,6 +5,7 @@
 #include "MkGuiDrawUtils.h"
 
 #include "imgui.h"
+#include "AssetReferencePropertyMetaData.h"
 
 GuiPanel_CompositorComponent::GuiPanel_CompositorComponent(AppStage* ownerAppStage)
 	: GuiPanel_MikanComponent(ownerAppStage)
@@ -42,7 +43,7 @@ void GuiPanel_CompositorComponent::onConstruct()
 
 			if (MkGui::drawComboBoxProperty(
 				m_defaultGuiStyle,
-				"compositorCameraIndex",
+				compositorComp->makePropertyUIIdentifier(CompositorDefinition::k_cameraIdPropertyId),
 				"Camera",
 				&m_cameraDataSource,
 				selectedIndex))
@@ -59,6 +60,81 @@ void GuiPanel_CompositorComponent::onConstruct()
 					}
 				}
 			}
+			return true;
+		});
+
+	m_entityAccessor->setPropertyRenderer(
+		CompositorDefinition::k_compositorGraphPathPropertyId,
+		[this](const PropertyDescriptorConstPtr& desc) -> bool
+		{
+			CompositorComponentPtr compositorComp = getCompositorComponent();
+			if (!compositorComp)
+				return false;
+
+			if (compositorComp->hasValidCompositorGraph())
+			{
+				const auto* assetMeta = desc->getMetaDataOfType<AssetReferenceFactoryMetaData>();
+				CompositorDefinitionPtr componentDef = compositorComp->getCompositorDefinition();
+				const std::string scriptPath = componentDef->getCompositorGraphPath().generic_string();
+
+				if (MkGui::drawFilePathProperty(
+					m_defaultGuiStyle, 
+					compositorComp->makePropertyUIIdentifier(CompositorComponent::k_addNewCompositorGraphFunctionId),
+					"Graph", 
+					scriptPath))
+				{
+					addDeferredGuiEvent([compositorComp]() {
+						compositorComp->addNewCompositorGraph();
+					});
+				}
+
+				MkGui::drawStaticTextProperty(m_defaultGuiStyle, "", "");
+				ImGui::SameLine();
+				if (MkGui::drawImageButton(
+						m_defaultGuiStyle, 
+						compositorComp->makePropertyUIIdentifier(CompositorComponent::k_editCompositorGraphFunctionId),
+						"edit_component"))
+				{
+					addDeferredGuiEvent([compositorComp]() {
+						compositorComp->editCompositorGraph();
+					});
+				}
+				ImGui::SameLine();
+				if (MkGui::drawImageButton(
+						m_defaultGuiStyle, 
+						compositorComp->makePropertyUIIdentifier(CompositorComponent::k_removeCompositorGraphFunctionId),
+						"delete_component"))
+				{
+					addDeferredGuiEvent([compositorComp]() {
+						compositorComp->removeCompositorGraph();
+					});
+				}
+			}
+			else
+			{
+				MkGui::drawStaticTextProperty(m_defaultGuiStyle, "Graph", "<No Graph>");
+				ImGui::SameLine();
+				if (MkGui::drawImageButton(
+						m_defaultGuiStyle,
+						compositorComp->makePropertyUIIdentifier(CompositorComponent::k_addNewCompositorGraphFunctionId),
+						"add_component"))
+				{
+					addDeferredGuiEvent([compositorComp]() {
+						compositorComp->addNewCompositorGraph();
+					});
+				}
+				ImGui::SameLine();
+				if (MkGui::drawImageButton(
+						m_defaultGuiStyle,
+						compositorComp->makePropertyUIIdentifier(CompositorComponent::k_selectCompositorGraphFunctionId),
+						"select_component"))
+				{
+					addDeferredGuiEvent([compositorComp]() {
+						compositorComp->selectCompositorGraph();
+					});
+				}
+			}
+
 			return true;
 		});
 }

@@ -59,7 +59,6 @@ protected:
 	MikanComponentWeakPtr m_component;
 	GuiPanel_EntityAccessorPtr m_entityAccessor;
 	MkGuiStyleConstPtr m_defaultGuiStyle;
-	MkGuiStyleConstPtr m_scriptPathGuiStyle;
 
 	static const std::string k_defaultComponentStyleName;
 	static const std::string k_scriptPathStyleName;

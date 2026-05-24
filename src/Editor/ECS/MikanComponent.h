@@ -123,12 +123,14 @@ public:
 	inline ComponentScriptContextConstPtr getScriptContext() const { return m_scriptContext; }
 
 	bool hasValidComponentScript() const;
-	void reloadComponentScript();
 	void addNewComponentScript();
+	void editComponentScript();
+	void reloadComponentScript();
 	void removeComponentScript();
+	void selectComponentScript();
 
 	// -- IEntityAccessor ----
-	virtual std::string getEntityUIIdentifier() const override;
+	virtual std::string makePropertyUIIdentifier(const std::string& propName) const override;
 	virtual CommonConfigPtr getEntityConfig() override { return m_definition; }
 	virtual rfk::Struct const* getClientAPIValuesStructType() const;
 
@@ -138,9 +140,11 @@ public:
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
 
 	// -- IFunctionInterface ----
-	static const std::string k_reloadScriptFunctionId;
 	static const std::string k_addNewScriptFunctionId;
+	static const std::string k_editScriptFunctionId;
+	static const std::string k_reloadScriptFunctionId;
 	static const std::string k_removeScriptFunctionId;
+	static const std::string k_selectScriptFunctionId;
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
 	virtual bool invokeFunction(const std::string& functionName) override;
 
