@@ -5,6 +5,7 @@
 #include "MikanVariantTypes.h"
 #include "MikanPropertyTypes.h"
 #include "IEditorWindow.h"
+#include "StringUtils.h"
 
 #include "assert.h"
 
@@ -138,6 +139,11 @@ void MikanObjectSystem::registerFunctionDescriptors(MikanFunctionDatabasePtr fun
 }
 
 // -- IEntityAccessor ----
+std::string MikanObjectSystem::makePropertyUIIdentifier(const std::string& propName) const
+{
+	return StringUtils::stringify(getObjectSystemClassName(), "_", propName);
+}
+
 rfk::Struct const* MikanObjectSystem::getClientAPIValuesStructType() const
 {
 	return &MikanSystemValues::staticGetArchetype();

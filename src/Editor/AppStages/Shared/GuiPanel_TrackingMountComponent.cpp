@@ -40,7 +40,9 @@ void GuiPanel_TrackingMountComponent::onConstruct()
 			int selectedIndex = m_devicePathDataSource.getEntryIndexByString(currentPath);
 
 			if (MkGui::drawComboBoxProperty(
-				m_defaultGuiStyle, "mountDevicePath", "VR Device",
+				m_defaultGuiStyle, 
+				mountComp->makePropertyUIIdentifier(TrackingMountDefinition::k_devicePathPropertyId),
+				"VR Device",
 				&m_devicePathDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
@@ -71,7 +73,9 @@ void GuiPanel_TrackingMountComponent::onConstruct()
 			int selectedIndex = m_socketNameDataSource.getEntryIndexByString(currentSocket);
 
 			if (MkGui::drawComboBoxProperty(
-				m_defaultGuiStyle, "mountSocketName", "Socket",
+				m_defaultGuiStyle, 
+				mountComp->makePropertyUIIdentifier(TrackingMountDefinition::k_socketNamePropertyId),
+				"Socket",
 				&m_socketNameDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)

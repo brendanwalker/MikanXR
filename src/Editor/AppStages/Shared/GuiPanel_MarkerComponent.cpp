@@ -46,7 +46,9 @@ void GuiPanel_MarkerComponent::onConstruct()
 			int selectedIndex = m_arucoIdDataSource.getEntryIndexByValue(currentArucoId);
 
 			if (MkGui::drawComboBoxProperty(
-				m_defaultGuiStyle, "markerArucoId", "Aruco ID",
+				m_defaultGuiStyle, 
+				markerComp->makePropertyUIIdentifier(MarkerDefinition::k_arucoIdPropertyId),
+				"Aruco ID",
 				&m_arucoIdDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)

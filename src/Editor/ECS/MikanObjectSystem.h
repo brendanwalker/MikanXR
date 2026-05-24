@@ -99,7 +99,7 @@ public:
 	MulticastDelegate<void(MikanObjectSystemPtr, MikanComponentConstPtr)> OnComponentDisposed;
 	
 	// -- IEntityAccessor ----
-	virtual std::string getEntityUIIdentifier() const override { return getObjectSystemClassName(); }
+	virtual std::string makePropertyUIIdentifier(const std::string& propName) const override;
 	virtual CommonConfigPtr getEntityConfig() override { return getDefinition(); }
 	virtual rfk::Struct const* getClientAPIValuesStructType() const;
 

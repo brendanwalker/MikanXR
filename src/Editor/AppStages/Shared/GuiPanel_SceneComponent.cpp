@@ -42,7 +42,7 @@ void GuiPanel_SceneComponent::onConstruct()
 
 			if (MkGui::drawComboBoxProperty(
 				m_defaultGuiStyle,
-				"sceneDisplayCompositorIndex",
+				sceneComp->makePropertyUIIdentifier(SceneComponentDefinition::k_displayCompositorIdPropertyId),
 				"Display Compositor",
 				&m_compositorDataSource,
 				selectedIndex))

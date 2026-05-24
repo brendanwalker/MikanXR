@@ -142,13 +142,11 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 		return;
 	}
 
-	std::string propertyNamePrefix = accessor->getEntityUIIdentifier();
-
 	// Render auto-generated property widgets
 	for (const PropertyDescriptorConstPtr& desc : m_orderedPropertyDescriptors)
 	{
 		const std::string& propName = desc->getName();
-		const std::string uiFieldId = StringUtils::stringify(propertyNamePrefix, "_", propName);
+		const std::string uiFieldId = accessor->makePropertyUIIdentifier(propName);
 
 		// If a property name filter is provided, skip properties that aren't in the filter set
 		if (!propertyNames.empty() && propertyNames.find(propName) == propertyNames.end())

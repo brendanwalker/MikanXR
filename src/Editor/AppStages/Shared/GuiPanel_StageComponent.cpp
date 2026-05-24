@@ -45,7 +45,7 @@ void GuiPanel_StageComponent::onConstruct()
 
 			if (MkGui::drawComboBoxProperty(
 				m_defaultGuiStyle,
-				"stageTrackingVolumeIndex",
+				stageComp->makePropertyUIIdentifier(StageComponentDefinition::k_trackingVolumeIdPropertyId),
 				"Tracking Volume",
 				&m_trackingVolumeDataSource,
 				selectedIndex))

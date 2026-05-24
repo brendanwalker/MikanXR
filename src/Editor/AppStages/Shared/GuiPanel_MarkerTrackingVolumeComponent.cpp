@@ -36,7 +36,9 @@ void GuiPanel_MarkerTrackingVolumeComponent::onConstruct()
 			int selectedIndex = m_originMarkerDataSource.getEntryIndexByComponentId(currentId);
 
 			if (MkGui::drawComboBoxProperty(
-				m_defaultGuiStyle, "originMarkerId", "Origin Marker",
+				m_defaultGuiStyle, 
+				volumeComp->makePropertyUIIdentifier(TrackingVolumeDefinition::k_originMarkerIdPropertyId),
+				"Origin Marker",
 				&m_originMarkerDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)

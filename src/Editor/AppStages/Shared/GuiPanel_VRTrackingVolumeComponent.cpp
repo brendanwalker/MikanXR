@@ -54,7 +54,9 @@ void GuiPanel_VRTrackingVolumeComponent::onConstruct()
 			int selectedIndex = m_charucoMountDataSource.getEntryIndexByComponentId(currentId);
 
 			if (MkGui::drawComboBoxProperty(
-				m_defaultGuiStyle, "charucoMountId", "Charuco Mount",
+				m_defaultGuiStyle, 
+				vol->makePropertyUIIdentifier(VRTrackingVolumeDefinition::k_charucoMountIdPropertyId),
+				"Charuco Mount",
 				&m_charucoMountDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
@@ -86,7 +88,9 @@ void GuiPanel_VRTrackingVolumeComponent::onConstruct()
 			int selectedIndex = m_originMarkerDataSource.getEntryIndexByComponentId(currentId);
 
 			if (MkGui::drawComboBoxProperty(
-				m_defaultGuiStyle, "originMarkerId", "Origin Marker",
+				m_defaultGuiStyle, 
+				vol->makePropertyUIIdentifier(VRTrackingVolumeDefinition::k_originMarkerIdPropertyId),
+				"Origin Marker",
 				&m_originMarkerDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
@@ -118,7 +122,9 @@ void GuiPanel_VRTrackingVolumeComponent::onConstruct()
 			int selectedIndex = m_utilityMarkerDataSource.getEntryIndexByComponentId(currentId);
 
 			if (MkGui::drawComboBoxProperty(
-				m_defaultGuiStyle, "utilityMarkerId", "Utility Marker",
+				m_defaultGuiStyle, 
+				vol->makePropertyUIIdentifier(VRTrackingVolumeDefinition::k_utilityMarkerIdPropertyId),
+				"Utility Marker",
 				&m_utilityMarkerDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)

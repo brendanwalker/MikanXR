@@ -52,7 +52,7 @@ void GuiPanel_AnchorComponent::onConstruct()
 
 			if (MkGui::drawComboBoxProperty(
 				m_defaultGuiStyle,
-				"anchorParentTransformIndex",
+				anchorComp->makePropertyUIIdentifier(TransformComponentDefinition::k_parentTransformIdPropertyId),
 				"Parent",
 				&m_parentTransformDataSource,
 				selectedIndex))

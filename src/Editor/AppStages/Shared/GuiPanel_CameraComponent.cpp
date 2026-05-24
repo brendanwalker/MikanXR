@@ -52,7 +52,7 @@ void GuiPanel_CameraComponent::onConstruct()
 
 			if (MkGui::drawComboBoxProperty(
 				m_defaultGuiStyle,
-				"cameraVideoSourceIndex",
+				cameraComp->makePropertyUIIdentifier(CameraDefinition::k_videoSourceIdPropertyId),
 				"Video Source",
 				&m_videoSourceDataSource,
 				selectedIndex))
@@ -88,7 +88,7 @@ void GuiPanel_CameraComponent::onConstruct()
 
 			if (MkGui::drawComboBoxProperty(
 				m_defaultGuiStyle,
-				"cameraTrackingMountIndex",
+				cameraComp->makePropertyUIIdentifier(CameraDefinition::k_trackingMountIdPropertyId),
 				"Tracking Mount",
 				&m_trackingMountDataSource,
 				selectedIndex))

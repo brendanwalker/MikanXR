@@ -32,7 +32,9 @@ void GuiPanel_NetworkVideoSourceComponent::onConstruct()
 			int selectedIndex = currentIndex;
 
 			if (MkGui::drawComboBoxProperty(
-				m_defaultGuiStyle, "networkProtocol", "Protocol",
+				m_defaultGuiStyle, 
+				videoSourceComp->makePropertyUIIdentifier(NetworkVideoSourceDefinition::k_protocolPropertyId),
+				"Protocol",
 				&m_protocolDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)

@@ -20,7 +20,6 @@ GuiPanel_MikanComponent::GuiPanel_MikanComponent(AppStage* ownerAppStage)
 	auto* styleManager= ownerAppStage->getOwnerWindow()->getMkGuiStyleManager();
 
 	m_defaultGuiStyle = styleManager->getStyle(k_defaultComponentStyleName);
-	m_scriptPathGuiStyle = styleManager->getStyle(k_scriptPathStyleName);
 }
 
 ProjectManagerPtr GuiPanel_MikanComponent::getOwnerProject() const
@@ -70,21 +69,41 @@ void GuiPanel_MikanComponent::onConstruct()
 				MikanComponentDefinitionPtr componentDef = component->getDefinition();
 				const std::string scriptPath = componentDef->getComponentScriptPath().generic_string();
 
-				if (MkGui::drawFilePathProperty(m_scriptPathGuiStyle, "mikanComponentScriptPath", "Script", scriptPath))
+				if (MkGui::drawFilePathProperty(
+						m_defaultGuiStyle,
+						component->makePropertyUIIdentifier(MikanComponent::k_addNewScriptFunctionId),
+						"Script", 
+						scriptPath))
 				{
 					addDeferredGuiEvent([component]() {
-						component->addNewComponentScript();
+						component->selectComponentScript();
+					});
+				}
+
+				if (MkGui::drawImageButton(
+					m_defaultGuiStyle,
+					component->makePropertyUIIdentifier(MikanComponent::k_editScriptFunctionId),
+					"edit_component"))
+				{
+					addDeferredGuiEvent([component]() {
+						component->editComponentScript();
 					});
 				}
 				ImGui::SameLine();
-				if (MkGui::drawImageButton(m_scriptPathGuiStyle, "reloadScript", "reload_script"))
+				if (MkGui::drawImageButton(
+						m_defaultGuiStyle, 
+						component->makePropertyUIIdentifier(MikanComponent::k_reloadScriptFunctionId),
+						"reload_component"))
 				{
 					addDeferredGuiEvent([component]() {
 						component->reloadComponentScript();
 					});
 				}
 				ImGui::SameLine();
-				if (MkGui::drawImageButton(m_scriptPathGuiStyle, "deleteScript", "delete_script"))
+				if (MkGui::drawImageButton(
+						m_defaultGuiStyle,
+						component->makePropertyUIIdentifier(MikanComponent::k_removeScriptFunctionId),
+						"delete_component"))
 				{
 					addDeferredGuiEvent([component]() {
 						component->removeComponentScript();
@@ -93,11 +112,24 @@ void GuiPanel_MikanComponent::onConstruct()
 			}
 			else
 			{
-				if (ImGui::Button("Add Script"))
+				if (MkGui::drawImageButton(
+						m_defaultGuiStyle,
+						component->makePropertyUIIdentifier(MikanComponent::k_addNewScriptFunctionId),
+						"add_component"))
 				{
 					addDeferredGuiEvent([component]() {
 						component->addNewComponentScript();
 					});
+				}
+				ImGui::SameLine();
+				if (MkGui::drawImageButton(
+					m_defaultGuiStyle,
+					component->makePropertyUIIdentifier(MikanComponent::k_selectScriptFunctionId),
+					"select_component"))
+				{
+					addDeferredGuiEvent([component]() {
+						component->selectComponentScript();
+						});
 				}
 			}
 

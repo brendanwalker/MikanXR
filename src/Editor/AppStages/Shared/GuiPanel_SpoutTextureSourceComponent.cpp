@@ -27,7 +27,9 @@ void GuiPanel_SpoutTextureSourceComponent::onConstruct()
 			int selectedIndex = m_spoutSenderDataSource.getEntryIndexByString(currentSource);
 
 			if (MkGui::drawComboBoxProperty(
-				m_defaultGuiStyle, "spoutSource", "Spout Source",
+				m_defaultGuiStyle, 
+				textureSourceComp->makePropertyUIIdentifier(SpoutTextureSourceDefinition::k_spoutSourcePropertyId),
+				"Spout Source",
 				&m_spoutSenderDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)

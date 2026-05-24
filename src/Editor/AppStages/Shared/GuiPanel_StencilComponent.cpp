@@ -52,7 +52,7 @@ void GuiPanel_StencilComponent::onConstruct()
 
 			if (MkGui::drawComboBoxProperty(
 				m_defaultGuiStyle,
-				"stencilParentTransformIndex",
+				stencilComponent->makePropertyUIIdentifier(TransformComponentDefinition::k_parentTransformIdPropertyId),
 				"Parent",
 				&m_parentTransformDataSource,
 				selectedIndex))

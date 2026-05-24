@@ -37,7 +37,9 @@ void GuiPanel_USBVideoSourceComponent::onConstruct()
 			int selectedIndex = m_devicePathDataSource.getEntryIndexByString(currentPath);
 
 			if (MkGui::drawComboBoxProperty(
-				m_defaultGuiStyle, "usbDevicePath", "USB Device",
+				m_defaultGuiStyle, 
+				usbComp->makePropertyUIIdentifier(USBVideoSourceDefinition::k_desiredDevicePathPropertyId),
+				"USB Device",
 				&m_devicePathDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
@@ -68,7 +70,9 @@ void GuiPanel_USBVideoSourceComponent::onConstruct()
 			int selectedIndex = m_resolutionDataSource.getEntryIndexByString(currentResolution);
 
 			if (MkGui::drawComboBoxProperty(
-				m_defaultGuiStyle, "usbVideoResolution", "Resolution",
+				m_defaultGuiStyle, 
+				usbComp->makePropertyUIIdentifier(USBVideoSourceDefinition::k_videoResolutionPropertyId),
+				"Resolution",
 				&m_resolutionDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
@@ -103,7 +107,9 @@ void GuiPanel_USBVideoSourceComponent::onConstruct()
 			int selectedIndex = m_frameRateDataSource.getEntryIndexByString(currentFrameRate);
 
 			if (MkGui::drawComboBoxProperty(
-				m_defaultGuiStyle, "usbVideoFrameRate", "Frame Rate",
+				m_defaultGuiStyle, 
+				usbComp->makePropertyUIIdentifier(USBVideoSourceDefinition::k_videoFrameRatePropertyId),
+				"Frame Rate",
 				&m_frameRateDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)
@@ -138,7 +144,9 @@ void GuiPanel_USBVideoSourceComponent::onConstruct()
 			int selectedIndex = m_formatDataSource.getEntryIndexByString(currentFormat);
 
 			if (MkGui::drawComboBoxProperty(
-				m_defaultGuiStyle, "usbVideoFormat", "Format",
+				m_defaultGuiStyle, 
+				usbComp->makePropertyUIIdentifier(USBVideoSourceDefinition::k_videoFormatPropertyId),
+				"Format",
 				&m_formatDataSource, selectedIndex))
 			{
 				if (selectedIndex >= 0)

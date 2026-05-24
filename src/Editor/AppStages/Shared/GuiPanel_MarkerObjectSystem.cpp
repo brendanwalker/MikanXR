@@ -24,12 +24,16 @@ void GuiPanel_MarkerObjectSystem::onConstruct()
 		MarkerObjectSystemDefinition::k_arucoDictionaryTypePropertyId,
 		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			auto def = getMarkerObjectSystemDefinition();
+			auto markerSystem = getMarkerObjectSystem();
+			if (!markerSystem) return false;
+			auto def = markerSystem->getTypedDefinition();
 			if (!def) return false;
 
 			int selectedIndex = (int)def->getArucoDictionaryType();
 			if (MkGui::drawComboBoxProperty(
-				m_defaultGuiStyle, "arucoDictionaryType", "Aruco Dictionary",
+				m_defaultGuiStyle, 
+				markerSystem->makePropertyUIIdentifier(MarkerObjectSystemDefinition::k_arucoDictionaryTypePropertyId),
+				"Aruco Dictionary",
 				&m_dictDataSource, selectedIndex))
 			{
 				addDeferredGuiEvent([this, selectedIndex]() {
@@ -44,12 +48,16 @@ void GuiPanel_MarkerObjectSystem::onConstruct()
 		MarkerObjectSystemDefinition::k_charucoDictionaryTypePropertyId,
 		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			auto def = getMarkerObjectSystemDefinition();
+			auto markerSystem = getMarkerObjectSystem();
+			if (!markerSystem) return false;
+			auto def = markerSystem->getTypedDefinition();
 			if (!def) return false;
 
 			int selectedIndex = (int)def->getCharucoDictionaryType();
 			if (MkGui::drawComboBoxProperty(
-				m_defaultGuiStyle, "charucoDictionaryType", "Charuco Dictionary",
+				m_defaultGuiStyle, 
+				markerSystem->makePropertyUIIdentifier(MarkerObjectSystemDefinition::k_charucoDictionaryTypePropertyId),
+				"Charuco Dictionary",
 				&m_dictDataSource, selectedIndex))
 			{
 				addDeferredGuiEvent([this, selectedIndex]() {
