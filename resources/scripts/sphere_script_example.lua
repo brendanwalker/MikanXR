@@ -23,12 +23,12 @@ local function sphere_scale_bounce_coroutine()
   end
 end
 
-function play_stencil_scale_bounce()
+function Play_stencil_scale_bounce()
   start_coroutine(sphere_scale_bounce_coroutine)
   ScriptContext.broadcastMessage("startCameraZoom")
 end
 
-function reset_stencil_scale()
+function Reset_stencil_scale()
   local sphere_stencil = ModelStencilSystem:getModelStencilByName("Sphere")
   if sphere_stencil == nil then
     print("sphere_script_example: could not find ModelStencil named 'Sphere'")
@@ -38,5 +38,5 @@ function reset_stencil_scale()
   ScriptContext.broadcastMessage("resetCameraZoom")
 end
 
-ScriptContext.registerTrigger("play_stencil_scale_bounce")
-ScriptContext.registerTrigger("reset_stencil_scale")
+ScriptContext.registerTrigger("Play_stencil_scale_bounce")
+ScriptContext.registerTrigger("Reset_stencil_scale")
