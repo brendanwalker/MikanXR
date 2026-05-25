@@ -45,6 +45,7 @@
 #include "Nodes/MaterialNode.h"
 #include "Nodes/MousePosNode.h"
 #include "Nodes/StencilNode.h"
+#include "Nodes/StencilSelectNode.h"
 #include "Nodes/TextureNode.h"
 #include "Nodes/TimeNode.h"
 #include "Nodes/VideoTextureNode.h"
@@ -80,6 +81,7 @@ CompositorNodeGraph::CompositorNodeGraph() : NodeGraph()
 	addNodeFactory<MousePosNodeFactory>();
 	addNodeFactory<MaterialNodeFactory>();
 	addNodeFactory<StencilNodeFactory>();
+	addNodeFactory<StencilSelectNodeFactory>();
 	addNodeFactory<TextureNodeFactory>();
 	addNodeFactory<TimeNodeFactory>();
 	addNodeFactory<VideoTextureNodeFactory>();
