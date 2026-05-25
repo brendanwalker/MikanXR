@@ -436,7 +436,7 @@ void VRObjectSystem::onActiveDeviceListChanged(IVRDeviceManager* deviceManager)
 		for (size_t deviceIndex = 0; deviceIndex < deviceManager->getDeviceCount(); deviceIndex++)
 		{
 			IVRDevice* vrDeviceInterface = deviceManager->getDeviceByIndex(deviceIndex);
-			const std::string devicePath = vrDeviceInterface->getDevicePath();
+			const std::string devicePath = vrDeviceInterface ? vrDeviceInterface->getDevicePath() : "";
 
 			if (!devicePath.empty())
 			{
