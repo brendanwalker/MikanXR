@@ -91,11 +91,33 @@ IMkTexturePtr VideoTextureNode::getPreviewTextureResource() const
 
 bool VideoTextureNode::evaluateNode(NodeEvaluator& evaluator)
 {
+	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
+	CompositorComponentPtr compositorComponent = compositorGraph->getBoundCompositorComponent();
+
 	// Since the frame compositor can change the video source texture can change out from under us
 	// it's safest to just refresh the output texture pin every frame
 	auto outputPin= getFirstPinOfType<TexturePin>(eNodePinDirection::OUTPUT);
-	outputPin->setValue(getTextureResource());
+	IMkTexturePtr textureResource = getTextureResource();
+	outputPin->setValue(textureResource);
 	outputPin->editorSetShowPinName(false);
+
+	if (!compositorComponent->getIsRunning())
+	{
+		evaluator.addError(
+			NodeEvaluationError(
+				eNodeEvaluationErrorCode::missingInput,
+				StringUtils::stringify("Compositor ", compositorComponent->getName(), " is not active"),
+				this));
+	}
+	else if (!textureResource || !textureResource->getIsValid())
+	{
+		evaluator.addError(
+			NodeEvaluationError(
+				eNodeEvaluationErrorCode::missingInput,
+				StringUtils::stringify("Compositor ", compositorComponent->getName(), " missing output"),
+				this));
+	}
+
 
 	return true;
 }
