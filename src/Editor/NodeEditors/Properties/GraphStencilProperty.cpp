@@ -27,10 +27,11 @@ class StencilComboDataSource : public NodeEditorUI::ComboBoxDataSource
 {
 public:
 	StencilComboDataSource(
+		NodeGraphPtr ownerGraph,
 		StencilComponentPtr stencilComponent,
 		eStencilType stencilType)
 	{
-		if (!stencilComponent)
+		if (!ownerGraph)
 		{
 			return;
 		}
@@ -41,7 +42,7 @@ public:
 		{
 			case eStencilType::box:
 				{
-					auto boxStencilSystem = stencilComponent->getObjectSystemOfType<BoxStencilSystem>();
+					auto boxStencilSystem = ownerGraph->getObjectSystemOfType<BoxStencilSystem>();
 					for (auto it = boxStencilSystem->getComponentMap().begin();
 						 it != boxStencilSystem->getComponentMap().end();
 						 it++)
@@ -58,7 +59,7 @@ public:
 				break;
 			case eStencilType::quad:
 				{
-					auto quadStencilSystem = stencilComponent->getObjectSystemOfType<QuadStencilSystem>();
+					auto quadStencilSystem = ownerGraph->getObjectSystemOfType<QuadStencilSystem>();
 					for (auto it = quadStencilSystem->getComponentMap().begin();
 						 it != quadStencilSystem->getComponentMap().end();
 						 it++)
@@ -75,7 +76,7 @@ public:
 				break;
 			case eStencilType::model:
 				{
-					auto modelStencilSystem = stencilComponent->getObjectSystemOfType<ModelStencilSystem>();
+					auto modelStencilSystem = ownerGraph->getObjectSystemOfType<ModelStencilSystem>();
 					for (auto it = modelStencilSystem->getComponentMap().begin();
 						 it != modelStencilSystem->getComponentMap().end();
 						 it++)
@@ -102,7 +103,7 @@ public:
 
 	inline StencilComponentPtr getEntryStencil(int index)
 	{
-		assert(index > 0 && index < (int)comboEntries.size());
+		assert(index >= 0 && index < (int)comboEntries.size());
 
 		return comboEntries[index].stencil;
 	}
@@ -114,7 +115,7 @@ public:
 
 	virtual const std::string& getEntryDisplayString(int index) override
 	{
-		assert(index > 0 && index < (int)comboEntries.size()); 
+		assert(index >= 0 && index < (int)comboEntries.size()); 
 		return comboEntries[index].entryString;
 	}
 
@@ -262,7 +263,7 @@ void GraphStencilProperty::editorRenderPropertySheet(const class NodeEditorState
 		}
 
 		// Stencil
-		StencilComboDataSource dataSource(m_stencilComponent, m_stencilType);
+		StencilComboDataSource dataSource(m_ownerGraph, m_stencilComponent, m_stencilType);
 		int selectedIndex= dataSource.getCurrentStencilIndex();
 		if (NodeEditorUI::DrawComboBoxProperty(
 				"stencilSelection", 
