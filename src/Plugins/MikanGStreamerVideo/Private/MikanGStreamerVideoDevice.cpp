@@ -498,6 +498,9 @@ void MikanGStreamerVideoDevice::notifyVideoDeviceClosed()
 	{
 		listener->notifyVideoDeviceClosed(this);
 	}
+
+	// Clients need to reregister as listeners when they reopen
+	m_listeners.clear();
 }
 
 void MikanGStreamerVideoDevice::notifyVideoModePropertiesChanged()
