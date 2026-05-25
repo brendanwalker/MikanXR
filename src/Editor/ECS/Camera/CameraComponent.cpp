@@ -685,6 +685,11 @@ void CameraComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConst
 	TransformComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(CameraDefinition::k_ownerStageIdPropertyId, MikanVariantType::INT)
+		->setDefaultValue(-1)
+		->setReadOnly()
+		->setUIHidden());
+	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(CameraDefinition::k_trackingMountIdPropertyId, MikanVariantType::INT)
 		->setDefaultValue(-1)
 		->setUIHidden());
@@ -696,12 +701,19 @@ void CameraComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConst
 		std::make_shared<PropertyDescriptor>(CameraDefinition::k_trackingFrameDelayPropertyId, MikanVariantType::INT)
 		->setDefaultValue(0));
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(CameraDefinition::k_apertureOrientationOffsetPropertyId, MikanVariantType::VECTOR3F)
+		std::make_shared<PropertyDescriptor>(CameraDefinition::k_apertureOrientationOffsetPropertyId, MikanVariantType::QUATERNIOND)
 		->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f))
+		->setReadOnly()
 		->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(CameraDefinition::k_aperturePositionOffsetPropertyId, MikanVariantType::VECTOR3F)
 		->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f))
+		->setReadOnly()
+		->setUIHidden());
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(CameraDefinition::k_hasValidApertureOffsetPropertyId, MikanVariantType::BOOL)
+		->setDefaultValue(false)
+		->setReadOnly()
 		->setUIHidden());
 }
 
@@ -737,6 +749,11 @@ bool CameraComponent::getPropertyValue(
 	else if (propertyName == CameraDefinition::k_aperturePositionOffsetPropertyId)
 	{
 		outValue = getCameraDefinition()->getApertureOffsetPosition();
+		return true;
+	}
+	else if (propertyName == CameraDefinition::k_hasValidApertureOffsetPropertyId)
+	{
+		outValue = getCameraDefinition()->hasValidApertureOffset();
 		return true;
 	}
 
