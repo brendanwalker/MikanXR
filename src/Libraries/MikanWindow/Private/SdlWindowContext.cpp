@@ -109,6 +109,8 @@ bool SdlWindowContext::startup()
 			if (m_glContext != NULL)
 			{
 				ownerWindowManager->pushCurrentWindowContext(this);
+
+				// Disable vsync on swap
 				SDL_GL_SetSwapInterval(0);
 			}
 			else
@@ -123,8 +125,12 @@ bool SdlWindowContext::startup()
 			m_glContext = SDL_GL_GetCurrentContext();
 			if (m_glContext != NULL)
 			{
-				SDL_GL_MakeCurrent(m_sdlWindow, m_glContext);
+				// pushCurrentWindowContext calls makeContextCurrent which binds m_sdlWindow+m_glContext.
 				ownerWindowManager->pushCurrentWindowContext(this);
+
+				// wglSwapIntervalEXT is per-drawable on Windows, so call SetSwapInterval(0) afterwards
+				// to ensure this window doesn't inherit the default vsync-on swap interval.
+				SDL_GL_SetSwapInterval(0);
 			}
 			else
 			{
