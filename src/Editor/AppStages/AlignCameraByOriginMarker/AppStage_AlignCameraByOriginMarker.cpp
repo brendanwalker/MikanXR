@@ -156,13 +156,6 @@ void AppStage_AlignCameraByOriginMarker::exit()
 {
 	setMenuState(eAlignCameraByOriginMarkerMenuState::inactive);
 
-	// Stop and release target video
-	if (m_targetVideoSource)
-	{
-		m_targetVideoSource->stopVideoStream();
-		m_targetVideoSource = nullptr;
-	}
-
 	// Free target calibration objects
 	if (m_targetMarkerSampler != nullptr)
 	{
@@ -171,9 +164,12 @@ void AppStage_AlignCameraByOriginMarker::exit()
 	}
 	if (m_targetDistortionView != nullptr)
 	{
+		if (m_targetVideoSource)
+			m_targetVideoSource->stopVideoStream(m_targetDistortionView);
 		delete m_targetDistortionView;
 		m_targetDistortionView = nullptr;
 	}
+	m_targetVideoSource = nullptr;
 
 	m_targetCameraComponent = nullptr;
 
@@ -192,16 +188,14 @@ void AppStage_AlignCameraByOriginMarker::update(float deltaSeconds)
 	{
 	case eAlignCameraByOriginMarkerMenuState::pendingVideoStart:
 		{
-			const eVideoStreamingStatus targetStatus = m_targetVideoSource->getVideoStreamingStatus();
-
-			if (targetStatus == eVideoStreamingStatus::failed)
-			{
-				setMenuState(eAlignCameraByOriginMarkerMenuState::failedVideoStart);
-			}
-			else if (targetStatus == eVideoStreamingStatus::started)
+			if (m_targetDistortionView->isReceivingFrames())
 			{
 				setupCalibrator();
 				setMenuState(eAlignCameraByOriginMarkerMenuState::verifySetup);
+			}
+			else if (m_targetVideoSource->getVideoStreamingStatus() == eVideoStreamingStatus::failed)
+			{
+				setMenuState(eAlignCameraByOriginMarkerMenuState::failedVideoStart);
 			}
 		}
 		break;
@@ -350,23 +344,14 @@ void AppStage_AlignCameraByOriginMarker::render(IMkViewportPtr targetViewport)
 
 void AppStage_AlignCameraByOriginMarker::startVideoStream()
 {
-	const eVideoStreamingStatus targetStatus = m_targetVideoSource->startVideoStream();
+	// Create the distortion view eagerly — it is the stream ownership token
+	m_targetDistortionView = new VideoFrameDistortionView(m_targetVideoSource, VIDEO_FRAME_HAS_ALL);
+	m_targetDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
-	if (targetStatus == eVideoStreamingStatus::failed)
-	{
-		setMenuState(eAlignCameraByOriginMarkerMenuState::failedVideoStart);
-		return;
-	}
+	// Register as a stream consumer — VideoSourceComponent::update() drives the retry loop
+	m_targetVideoSource->startVideoStream(m_targetDistortionView);
 
-	if (targetStatus == eVideoStreamingStatus::started)
-	{
-		setupCalibrator();
-		setMenuState(eAlignCameraByOriginMarkerMenuState::verifySetup);
-	}
-	else
-	{
-		setMenuState(eAlignCameraByOriginMarkerMenuState::pendingVideoStart);
-	}
+	setMenuState(eAlignCameraByOriginMarkerMenuState::pendingVideoStart);
 }
 
 void AppStage_AlignCameraByOriginMarker::setupCalibrator()
@@ -381,9 +366,7 @@ void AppStage_AlignCameraByOriginMarker::setupCalibrator()
 	MarkerDefinitionConstPtr originMarkerDef = originMarkerComponent->getMarkerDefinition();
 	assert(originMarkerDef != nullptr);
 
-	// Set up target camera distortion view and marker sampler
-	m_targetDistortionView = new VideoFrameDistortionView(m_targetVideoSource, VIDEO_FRAME_HAS_ALL);
-	m_targetDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
+	// Set up target camera marker sampler (view already created in startVideoStream)
 	m_targetMarkerSampler = new ArucoMarkerPoseSampler(
 		m_targetCameraComponent,
 		m_targetDistortionView,

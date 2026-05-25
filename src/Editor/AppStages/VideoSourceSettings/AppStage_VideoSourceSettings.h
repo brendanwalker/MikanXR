@@ -37,11 +37,6 @@ protected:
 	// UI Events
 	void onReturnEvent();
 
-	// Video Source Events
-	void onVideoSourceStarted(VideoSourceComponentPtr videoSource);
-	void onVideoSourceStopped(VideoSourceComponentPtr videoSource);
-	void onVideoSourceFrameSizeChanged(VideoSourceComponentPtr videoSource);
-
 	// Remote Control
 	bool handleRemoteControlCommand(
 		const std::string& command,

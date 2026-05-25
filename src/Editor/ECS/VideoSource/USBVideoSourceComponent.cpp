@@ -3,7 +3,6 @@
 #include "MathUtility.h"
 #include "MikanServer.h"
 #include "MikanObject.h"
-#include "OpenCVVideoFrameBuffer.h"
 #include "ThreadUtils.h"
 #include "USBVideoSourceComponent.h"
 #include "USBVideoSourceSystem.h"
@@ -733,7 +732,7 @@ void USBVideoSourceComponent::closeVideoSource()
 		}
 
 		// Stop the video stream if it is running
-		stopVideoStream();
+		forceStopVideoStream();
 
 		// Close the USB video device
 		m_usbVideoDevice->close();
@@ -744,12 +743,9 @@ void USBVideoSourceComponent::closeVideoSource()
 		// Clear the USB video device pointer
 		m_usbVideoDevice = nullptr;
 	}
-
-	// Release any OpenCV buffer state
-	releaseOpencvBufferState();
 }
 
-eVideoStreamingStatus USBVideoSourceComponent::startVideoStream()
+eVideoStreamingStatus USBVideoSourceComponent::startVideoStreamInternal()
 {
 	if (m_usbVideoDevice != nullptr)
 	{
@@ -774,7 +770,7 @@ eVideoStreamingStatus USBVideoSourceComponent::getVideoStreamingStatus() const
 	return eVideoStreamingStatus::failed;
 }
 
-void USBVideoSourceComponent::stopVideoStream()
+void USBVideoSourceComponent::stopVideoStreamInternal()
 {
 	if (m_usbVideoDevice != nullptr)
 	{
@@ -1209,9 +1205,6 @@ void USBVideoSourceComponent::notifyVideoModePropertiesChanged(const class IUsbV
 	// If this changes, we will need to refactor this function to be thread safe.
 	assert(ThreadUtils::isRunningInMainThread());
 
-	// Allocate the open cv buffers used for tracking filtering
-	reallocateOpencvBufferState();
-
 	// Recompute the projection matrix
 	recomputeCameraProjectionMatrix();
 
@@ -1318,6 +1311,7 @@ void USBVideoSourceComponent::notifyVideoFrameReceived(const UsbVideoFrameBuffer
 
 	// Now bgrMat contains the BGR image data that writeVideoFrame expects
 	const unsigned char* bgrData = bgrMat.data;
+	const cv::Size bufferDimensions = bgrMat.size();
 
 	// Fetch the latest video buffer frame from the device
 	if (intrinsics.intrinsics_type == MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS)
@@ -1330,31 +1324,25 @@ void USBVideoSourceComponent::notifyVideoFrameReceived(const UsbVideoFrameBuffer
 		cv::Rect right_bounds = cv::Rect(section_width, 0, section_width, section_height);
 
 		// Cache the left raw video frame
-		if (m_opencv_buffer_state[(int)VideoFrameSection::Left] != nullptr)
-		{
-			m_opencv_buffer_state[(int)VideoFrameSection::Left]->writeStereoVideoFrameSection(
-				bgrData,
-				is_buffer_flipped ? right_bounds : left_bounds,
-				is_frame_flipped);
-		}
+		writeStereoVideoFrameSection(
+			bufferInfo.data,
+			bufferDimensions,
+			is_frame_flipped,
+			VideoFrameSection::Left,
+			is_buffer_flipped ? right_bounds : left_bounds);
 
 		// Cache the right raw video frame
-		if (m_opencv_buffer_state[(int)VideoFrameSection::Right] != nullptr)
-		{
-			m_opencv_buffer_state[(int)VideoFrameSection::Right]->writeStereoVideoFrameSection(
-				bgrData,
-				is_buffer_flipped ? left_bounds : right_bounds,
-				is_frame_flipped);
-		}
+		writeStereoVideoFrameSection(
+			bufferInfo.data,
+			bufferDimensions,
+			is_frame_flipped,
+			VideoFrameSection::Right,
+			is_buffer_flipped ? left_bounds : right_bounds);
 	}
 	else
 	{
 		// Cache the raw video frame
-		if (m_opencv_buffer_state[(int)VideoFrameSection::Primary] != nullptr)
-		{
-			m_opencv_buffer_state[(int)VideoFrameSection::Primary]->writeVideoFrame(
-				bgrData, is_frame_flipped);
-		}
+		writeVideoFrame(bgrData, bgrMat.size(), is_frame_flipped);
 	}
 }
 

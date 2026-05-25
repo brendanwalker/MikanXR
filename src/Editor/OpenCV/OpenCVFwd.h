@@ -64,6 +64,9 @@ namespace cv {
 	typedef Point3_<float> Point3f;
 	typedef Point3_<double> Point3d;
 
+	template<typename _Tp> class Size_;
+	typedef Size_<int> Size;
+
 	namespace aruco {
 		class Dictionary;
 	}

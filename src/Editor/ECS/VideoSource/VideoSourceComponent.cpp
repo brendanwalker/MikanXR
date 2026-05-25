@@ -1,11 +1,12 @@
 #include "CameraMath.h"
+#include "Logger.h"
+#include "VideoFrameDistortionView.h"
 #include "IEditorWindow.h"
 #include "MikanCoreTypes.h"
 #include "MikanObject.h"
 #include "MikanVideoSourceTypes.h"
 #include "MonoLensCalibration/AppStage_MonoLensCalibration.h"
 #include "VideoSourceSettings/AppStage_VideoSourceSettings.h"
-#include "OpenCVVideoFrameBuffer.h"
 #include "VideoSourceComponent.h"
 
 #include <easy/profiler.h>
@@ -135,12 +136,55 @@ void VideoSourceDefinition::setCameraIntrinsics(
 // -- VideoSourceComponent -----
 VideoSourceComponent::VideoSourceComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
-	, m_lastVideoFrameReadIndex(0)
 	, m_projectionMatrix(glm::mat4(1.f))
 {
-	for (int i = 0; i < MAX_PROJECTION_COUNT; ++i)
+	m_bWantsUpdate = true;
+}
+
+void VideoSourceComponent::startVideoStream(VideoFrameDistortionView* view)
+{
+	std::lock_guard<std::mutex> lock(m_activeViewMutex);
+
+	m_activeViews.insert(view);
+	m_bHasAnyActiveViews.store(true);
+}
+
+void VideoSourceComponent::stopVideoStream(VideoFrameDistortionView* view)
+{
 	{
-		m_opencv_buffer_state[i] = nullptr;
+		std::lock_guard<std::mutex> lock(m_activeViewMutex);
+
+		m_activeViews.erase(view);
+		m_bHasAnyActiveViews = !m_activeViews.empty();
+	}
+
+	if (m_bHasAnyActiveViews)
+	{
+		const eVideoStreamingStatus status = getVideoStreamingStatus();
+		if (status == eVideoStreamingStatus::started || status == eVideoStreamingStatus::pendingStart)
+			stopVideoStreamInternal();
+	}
+}
+
+void VideoSourceComponent::forceStopVideoStream()
+{
+	{
+		std::lock_guard<std::mutex> lock(m_activeViewMutex);
+
+		m_activeViews.clear();
+		m_bHasAnyActiveViews = false;
+	}
+
+	stopVideoStreamInternal();
+}
+
+void VideoSourceComponent::update(float deltaSeconds)
+{
+	if (m_bHasAnyActiveViews)
+	{
+		const eVideoStreamingStatus status = getVideoStreamingStatus();
+		if (status != eVideoStreamingStatus::started && status != eVideoStreamingStatus::pendingStart)
+			startVideoStreamInternal();
 	}
 }
 
@@ -165,33 +209,6 @@ MikanVideoSourceID VideoSourceComponent::getVideoSourceId() const
 bool VideoSourceComponent::getVideoPixelDimensions(int& outPixelWidth, int& outPixelHeight) const
 {
 	return false;
-}
-
-bool VideoSourceComponent::hasNewVideoFrameAvailable(VideoFrameSection section) const
-{
-	if (m_opencv_buffer_state[(int)section] != nullptr)
-	{
-		int64_t lastFrameWriteIndex = m_opencv_buffer_state[(int)section]->getLastVideoFrameWriteIndex();
-
-		return lastFrameWriteIndex != m_lastVideoFrameReadIndex;
-	}
-
-	return false;
-}
-
-int64_t VideoSourceComponent::readVideoFrameSectionBuffer(VideoFrameSection section, cv::Mat* outBuffer)
-{
-	EASY_FUNCTION();
-
-	if (m_opencv_buffer_state[(int)section] != nullptr)
-	{
-		m_lastVideoFrameReadIndex =
-			m_opencv_buffer_state[(int)section]->readVideoFrame(
-				outBuffer,
-				m_lastVideoFrameReadIndex);
-	}
-
-	return m_lastVideoFrameReadIndex;
 }
 
 bool VideoSourceComponent::getVideoModeName(std::string& outVideoModeName) const
@@ -249,75 +266,6 @@ bool VideoSourceComponent::getVideoSetting(const eVideoSettingType property_type
 	return false;
 }
 
-bool VideoSourceComponent::hasAllocatedOpencvBufferState() const
-{
-	return m_opencv_buffer_state[0] != nullptr;
-}
-
-bool VideoSourceComponent::reallocateOpencvBufferState()
-{
-	releaseOpencvBufferState();
-
-	int videoPixelWidth, videoPixelHeight;
-	if (!getVideoPixelDimensions(videoPixelWidth, videoPixelHeight))
-		return false;
-
-	
-	if (MikanVideoSourceIntrinsics intrinsics;
-		getCameraIntrinsics(intrinsics))
-	{
-		// Allocate the OpenCV scratch buffers used for finding tracking blobs
-		if (intrinsics.intrinsics_type == MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS)
-		{
-			const MikanStereoIntrinsics& stereoIntrinsics = intrinsics.getStereoIntrinsics();
-
-			m_opencv_buffer_state[(int)VideoFrameSection::Left] =
-				new OpenCVVideoFrameBuffer(
-					videoPixelWidth, videoPixelHeight,
-					stereoIntrinsics.pixel_width, stereoIntrinsics.pixel_width,
-					VideoFrameSection::Left);
-			m_opencv_buffer_state[(int)VideoFrameSection::Right] =
-				new OpenCVVideoFrameBuffer(
-					videoPixelWidth, videoPixelHeight,
-					stereoIntrinsics.pixel_width, stereoIntrinsics.pixel_width,
-					VideoFrameSection::Right);
-		}
-		else if (intrinsics.intrinsics_type == MikanIntrinsicsType::MONO_CAMERA_INTRINSICS)
-		{
-			const MikanMonoIntrinsics& monoIntrinsics = intrinsics.getMonoIntrinsics();
-
-			m_opencv_buffer_state[(int)VideoFrameSection::Primary] =
-				new OpenCVVideoFrameBuffer(
-					videoPixelWidth, videoPixelHeight,
-					monoIntrinsics.pixel_width, monoIntrinsics.pixel_width,
-					VideoFrameSection::Primary);
-		}
-	}
-	else
-	{
-		m_opencv_buffer_state[(int)VideoFrameSection::Primary] =
-			new OpenCVVideoFrameBuffer(
-				videoPixelWidth, videoPixelHeight,
-				videoPixelWidth, videoPixelHeight, // Frame Size == Buffer Size
-				VideoFrameSection::Primary);
-	}
-
-	return true;
-}
-
-void VideoSourceComponent::releaseOpencvBufferState()
-{
-	// Delete any existing OpenCV buffers
-	for (int i = 0; i < MAX_PROJECTION_COUNT; ++i)
-	{
-		if (m_opencv_buffer_state[i] != nullptr)
-		{
-			delete m_opencv_buffer_state[i];
-			m_opencv_buffer_state[i] = nullptr;
-		}
-	}
-}
-
 void VideoSourceComponent::recomputeCameraProjectionMatrix()
 {
 	MikanVideoSourceIntrinsics intrinsics;
@@ -342,6 +290,63 @@ void VideoSourceComponent::recomputeCameraProjectionMatrix()
 					eStereoIntrinsicsSide::left,
 					m_projectionMatrix);
 			} break;
+		}
+	}
+}
+
+size_t VideoSourceComponent::getActiveViews(
+	VideoFrameDistortionView** outActiveViewsList,
+	size_t activeViewsMaxListSize)
+{
+	std::lock_guard<std::mutex> lock(m_activeViewMutex);
+
+	size_t resultCount = 0;
+	for (VideoFrameDistortionView* activeView : m_activeViews)
+	{
+		if (resultCount < activeViewsMaxListSize)
+		{
+			outActiveViewsList[resultCount] = activeView;
+			++resultCount;
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	return resultCount;
+}
+
+void VideoSourceComponent::writeVideoFrame(
+	const unsigned char* videoBuffer,
+	const cv::Size& bufferDimensions,
+	const bool bIsFlipped)
+{
+	VideoFrameDistortionView* activeViews[k_maxActiveViews];
+	size_t activeViewCount = getActiveViews(activeViews, k_maxActiveViews);
+
+	for (size_t viewIndex = 0; viewIndex < activeViewCount; ++viewIndex)
+	{
+		activeViews[viewIndex]->writeVideoFrame(videoBuffer, bufferDimensions, bIsFlipped);
+	}
+}
+
+void VideoSourceComponent::writeStereoVideoFrameSection(
+	const unsigned char* videoBuffer,
+	const cv::Size& bufferDimensions,
+	const bool bIsFlipped,
+	const VideoFrameSection section,
+	const cv::Rect& bufferBounds)
+{
+	VideoFrameDistortionView* activeViews[k_maxActiveViews];
+	size_t activeViewCount = getActiveViews(activeViews, k_maxActiveViews);
+
+	for (size_t viewIndex = 0; viewIndex < activeViewCount; ++viewIndex)
+	{
+		if (activeViews[viewIndex]->getVideoFrameSection() == section)
+		{
+			activeViews[viewIndex]->writeStereoVideoFrameSection(
+				videoBuffer, bufferDimensions, bIsFlipped, bufferBounds);
 		}
 	}
 }

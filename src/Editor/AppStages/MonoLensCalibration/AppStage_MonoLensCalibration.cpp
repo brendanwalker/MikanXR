@@ -24,6 +24,7 @@ const std::string g_monoLensCalibrationMenuStateStrings[(int)eMonoLensCalibratio
 	"testCalibration",
 	"failedCalibration",
 	"failedVideoStartStreamRequest",
+	"pendingVideoStart",
 };
 
 //-- public methods -----
@@ -60,39 +61,15 @@ void AppStage_MonoLensCalibration::enter()
 	getOwnerWindow()->getInputManager()->fetchOrAddKeyBindings(MkKey::SPACE)->OnKeyPressed +=
 		MakeDelegate(this, &AppStage_MonoLensCalibration::onCaptureKeyPressed);
 
-	// Initialize video stream + lens calibrator
-	eMonoLensCalibrationMenuState newState;
-	//TODO: Handle pendingStart
-	if ((int)m_videoSourceComponent->startVideoStream() > 0)
-	{
-		// Allocate all distortion and video buffers
-		m_monoDistortionView = new VideoFrameDistortionView(
-			m_videoSourceComponent, 
-			VIDEO_FRAME_HAS_ALL);
+	// Create the distortion view eagerly — it is the stream ownership token
+	m_monoDistortionView = new VideoFrameDistortionView(
+		m_videoSourceComponent,
+		VIDEO_FRAME_HAS_ALL);
 
-		// Create a calibrator to do the actual pattern recording and calibration
-		m_monoLensCalibrator =
-			new MonoLensDistortionCalibrator(
-				getSystemOfType<MarkerObjectSystem>(),
-				m_monoDistortionView,
-				DESIRED_CAPTURE_BOARD_COUNT);
+	// Register as a stream consumer — VideoSourceComponent::update() drives the retry loop
+	m_videoSourceComponent->startVideoStream(m_monoDistortionView);
 
-		// If bypassing the calibration, then jump straight to the test calibration state
-		if (m_bypassCalibrationFlag)
-		{
-			newState= eMonoLensCalibrationMenuState::testCalibration;
-			m_monoDistortionView->setGrayscaleUndistortDisabled(false);
-		}
-		else
-		{
-			newState= eMonoLensCalibrationMenuState::capture;
-			m_monoDistortionView->setGrayscaleUndistortDisabled(true);
-		}
-	}
-	else
-	{
-		newState= eMonoLensCalibrationMenuState::failedVideoStartStreamRequest;
-	}
+	eMonoLensCalibrationMenuState newState = eMonoLensCalibrationMenuState::pendingVideoStart;
 
 	// Create GUI panels
 	// (Auto cleaned up on app state exit)
@@ -124,15 +101,14 @@ void AppStage_MonoLensCalibration::exit()
 		m_monoLensCalibrator = nullptr;
 	}
 
-	// Free the distortion view buffers
+	// Stop the stream and free the distortion view buffers
 	if (m_monoDistortionView != nullptr)
 	{
+		m_videoSourceComponent->stopVideoStream(m_monoDistortionView);
 		delete m_monoDistortionView;
 		m_monoDistortionView = nullptr;
 	}
 
-	// Turn back off the video feed
-	//m_videoSourceComponent->stopVideoStream();
 	m_videoSourceComponent = nullptr;
 
 	AppStage::exit();
@@ -148,6 +124,19 @@ void AppStage_MonoLensCalibration::update(float deltaSeconds)
 		case eMonoLensCalibrationMenuState::inactive:
 			{
 
+			} break;
+
+		case eMonoLensCalibrationMenuState::pendingVideoStart:
+			{
+				if (m_monoDistortionView->isReceivingFrames())
+				{
+					setupMonoLensCalibrator();
+					// State transition is handled inside setupMonoLensCalibrator()
+				}
+				else if (m_videoSourceComponent->getVideoStreamingStatus() == eVideoStreamingStatus::failed)
+				{
+					setMenuState(eMonoLensCalibrationMenuState::failedVideoStartStreamRequest);
+				}
 			} break;
 
 		case eMonoLensCalibrationMenuState::capture:
@@ -268,6 +257,26 @@ bool AppStage_MonoLensCalibration::tryCapture()
 	}
 
 	return false;
+}
+
+void AppStage_MonoLensCalibration::setupMonoLensCalibrator()
+{
+	m_monoLensCalibrator =
+		new MonoLensDistortionCalibrator(
+			getSystemOfType<MarkerObjectSystem>(),
+			m_monoDistortionView,
+			DESIRED_CAPTURE_BOARD_COUNT);
+
+	if (m_bypassCalibrationFlag)
+	{
+		m_monoDistortionView->setGrayscaleUndistortDisabled(false);
+		setMenuState(eMonoLensCalibrationMenuState::testCalibration);
+	}
+	else
+	{
+		m_monoDistortionView->setGrayscaleUndistortDisabled(true);
+		setMenuState(eMonoLensCalibrationMenuState::capture);
+	}
 }
 
 void AppStage_MonoLensCalibration::setMenuState(eMonoLensCalibrationMenuState newState)

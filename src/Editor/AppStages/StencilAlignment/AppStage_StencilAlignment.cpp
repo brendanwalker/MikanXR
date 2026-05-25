@@ -107,22 +107,16 @@ void AppStage_StencilAlignment::enter()
 		}
 	}
 
-	// Fire up the video scene in the background + pose calibrator
-	eStencilAlignmentMenuState newState;
-	switch (m_videoSourceComponent->startVideoStream())
-	{
-	case eVideoStreamingStatus::pendingStart:
-		// Wait for the video stream to start in the update loop
-		newState = eStencilAlignmentMenuState::pendingVideoStart;
-		break;
-	case eVideoStreamingStatus::started:
-		setupStencilAligner();
-		newState = eStencilAlignmentMenuState::verifyInitialCameraSetup;
-		break;
-	default:
-		newState = eStencilAlignmentMenuState::failedVideoStartStreamRequest;
-		break;
-	}
+	// Create the distortion view (acts as stream ownership token)
+	m_monoDistortionView =
+		new VideoFrameDistortionView(
+			m_videoSourceComponent,
+			VIDEO_FRAME_HAS_ALL);
+	m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
+
+	// Register as a stream consumer — update() drives the retry loop
+	m_videoSourceComponent->startVideoStream(m_monoDistortionView);
+	eStencilAlignmentMenuState newState = eStencilAlignmentMenuState::pendingVideoStart;
 
 	// Create app stage GUI panels
 	// (Auto cleaned up on app state exit)
@@ -154,13 +148,6 @@ void AppStage_StencilAlignment::exit()
 	// Forget about the stencil model we added
 	m_scene->removeAllInstances();
 
-	if (m_videoSourceComponent)
-	{
-		// Turn back off the video feed
-		m_videoSourceComponent->stopVideoStream();
-		m_videoSourceComponent = nullptr;
-	}
-
 	// Free the aligner
 	if (m_stencilAligner != nullptr)
 	{
@@ -168,11 +155,16 @@ void AppStage_StencilAlignment::exit()
 		m_stencilAligner = nullptr;
 	}
 
-	// Free the distortion view buffers
-	if (m_monoDistortionView != nullptr)
+	if (m_videoSourceComponent)
 	{
-		delete m_monoDistortionView;
-		m_monoDistortionView = nullptr;
+		// Release stream ownership then free the view
+		if (m_monoDistortionView != nullptr)
+		{
+			m_videoSourceComponent->stopVideoStream(m_monoDistortionView);
+			delete m_monoDistortionView;
+			m_monoDistortionView = nullptr;
+		}
+		m_videoSourceComponent = nullptr;
 	}
 
 	AppStage::exit();
@@ -180,14 +172,8 @@ void AppStage_StencilAlignment::exit()
 
 void AppStage_StencilAlignment::setupStencilAligner()
 {
-	// Allocate all distortion and video buffers
-	m_monoDistortionView =
-		new VideoFrameDistortionView(
-			m_videoSourceComponent,
-			VIDEO_FRAME_HAS_ALL);
-	m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
-
 	// Create a aligner to calibrate the stencil
+	// (m_monoDistortionView is already created in enter())
 	m_stencilAligner =
 		new StencilAligner(
 			m_cameraComponent,
@@ -253,19 +239,13 @@ void AppStage_StencilAlignment::update(float deltaSeconds)
 	{
 		case eStencilAlignmentMenuState::pendingVideoStart:
 			{
-				// Check if the video stream has started yet
-				eVideoStreamingStatus status = m_videoSourceComponent->getVideoStreamingStatus();
-				if (status == eVideoStreamingStatus::started)
+				// Wait until the distortion view has a valid frame size (stream started + first frame size known)
+				if (m_monoDistortionView->isReceivingFrames())
 				{
 					setupStencilAligner();
 					setMenuState(eStencilAlignmentMenuState::verifyInitialCameraSetup);
 				}
-				else if (status == eVideoStreamingStatus::stopped)
-				{
-					// If stopped, try to restart the video stream
-					m_videoSourceComponent->startVideoStream();
-				}
-				else if (status == eVideoStreamingStatus::failed)
+				else if (m_videoSourceComponent->getVideoStreamingStatus() == eVideoStreamingStatus::failed)
 				{
 					setMenuState(eStencilAlignmentMenuState::failedVideoStartStreamRequest);
 				}

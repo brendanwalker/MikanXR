@@ -60,16 +60,13 @@ void AppStage_VideoSourceSettings::enter()
 
 	if (videoSourceComponent)
 	{
-		// Listen for video source events
-		videoSourceComponent->OnStarted +=
-			MakeDelegate(this, &AppStage_VideoSourceSettings::onVideoSourceStarted);
-		videoSourceComponent->OnStopped +=
-			MakeDelegate(this, &AppStage_VideoSourceSettings::onVideoSourceStopped);
-		videoSourceComponent->OnFrameSizeChanged +=
-			MakeDelegate(this, &AppStage_VideoSourceSettings::onVideoSourceFrameSizeChanged);
+		// Create the video buffer view eagerly — it registers itself for OnFrameSizeChanged
+		m_videoBufferView = std::make_shared<VideoFrameDistortionView>(
+			videoSourceComponent,
+			VIDEO_FRAME_HAS_GL_TEXTURE_FLAG | VIDEO_FRAME_HAS_NO_VIDEO_SHADER_FLAG);
 
-		// Fire up the video stream
-		videoSourceComponent->startVideoStream();
+		// Register as a stream consumer (VideoSourceComponent::update() drives the retry loop)
+		videoSourceComponent->startVideoStream(m_videoBufferView.get());
 	}
 }
 
@@ -77,18 +74,10 @@ void AppStage_VideoSourceSettings::exit()
 {
 	VideoSourceComponentPtr videoSourceComponent = m_videoSourceComponent.lock();
 
-	if (videoSourceComponent)
+	if (videoSourceComponent && m_videoBufferView)
 	{
-		// Fire up the video stream
-		videoSourceComponent->stopVideoStream();
-
-		// Listen for video source events
-		videoSourceComponent->OnStarted -=
-			MakeDelegate(this, &AppStage_VideoSourceSettings::onVideoSourceStarted);
-		videoSourceComponent->OnStopped -=
-			MakeDelegate(this, &AppStage_VideoSourceSettings::onVideoSourceStopped);
-		videoSourceComponent->OnFrameSizeChanged -=
-			MakeDelegate(this, &AppStage_VideoSourceSettings::onVideoSourceFrameSizeChanged);
+		videoSourceComponent->stopVideoStream(m_videoBufferView.get());
+		m_videoBufferView = nullptr;
 	}
 
 	AppStage::exit();
@@ -98,9 +87,9 @@ void AppStage_VideoSourceSettings::pause()
 {
 	VideoSourceComponentPtr videoSourceComponent = m_videoSourceComponent.lock();
 
-	if (videoSourceComponent)
+	if (videoSourceComponent && m_videoBufferView)
 	{
-		videoSourceComponent->stopVideoStream();
+		videoSourceComponent->stopVideoStream(m_videoBufferView.get());
 	}
 
 	AppStage::pause();
@@ -110,38 +99,12 @@ void AppStage_VideoSourceSettings::resume()
 {
 	VideoSourceComponentPtr videoSourceComponent = m_videoSourceComponent.lock();
 
-	if (videoSourceComponent)
+	if (videoSourceComponent && m_videoBufferView)
 	{
-		videoSourceComponent->startVideoStream();
+		videoSourceComponent->startVideoStream(m_videoBufferView.get());
 	}
 
 	AppStage::resume();
-}
-
-void AppStage_VideoSourceSettings::onVideoSourceStarted(VideoSourceComponentPtr videoSource)
-{
-	assert(videoSource != nullptr);
-
-	// Create a texture to hold the video frame
-	m_videoBufferView = std::make_shared<VideoFrameDistortionView>(
-		videoSource,
-		VIDEO_FRAME_HAS_GL_TEXTURE_FLAG | VIDEO_FRAME_HAS_NO_VIDEO_SHADER_FLAG);
-}
-
-void AppStage_VideoSourceSettings::onVideoSourceFrameSizeChanged(VideoSourceComponentPtr videoSource)
-{
-	assert(videoSource != nullptr);
-
-	// Create a texture to hold the video frame
-	m_videoBufferView = std::make_shared<VideoFrameDistortionView>(
-		videoSource,
-		VIDEO_FRAME_HAS_GL_TEXTURE_FLAG | VIDEO_FRAME_HAS_NO_VIDEO_SHADER_FLAG);
-}
-
-void AppStage_VideoSourceSettings::onVideoSourceStopped(VideoSourceComponentPtr videoSource)
-{
-	// Free the distortion view buffers
-	m_videoBufferView = nullptr;
 }
 
 void AppStage_VideoSourceSettings::update(float deltaSeconds)

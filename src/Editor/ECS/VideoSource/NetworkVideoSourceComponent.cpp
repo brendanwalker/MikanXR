@@ -5,7 +5,6 @@
 #include "MikanObject.h"
 #include "MikanServer.h"
 #include "MikanVideoSourceTypes.h"
-#include "OpenCVVideoFrameBuffer.h"
 #include "StringUtils.h"
 #include "ThreadUtils.h"
 #include "VideoSourceRequestHandler.h"
@@ -256,6 +255,7 @@ rfk::Struct const* NetworkVideoSourceComponent::getClientAPIValuesStructType() c
 
 void NetworkVideoSourceComponent::init()
 {
+	m_bWantsUpdate = true;
 	MikanComponent::init();
 
 	// Attempt to open the video source
@@ -364,7 +364,7 @@ void NetworkVideoSourceComponent::closeVideoSource()
 		m_networkVideoDevice->removeListener(this);
 
 		// Stop the video stream if it is running
-		stopVideoStream();
+		forceStopVideoStream();
 
 		// Close the Network video device
 		m_networkVideoDevice->close();
@@ -380,9 +380,6 @@ void NetworkVideoSourceComponent::closeVideoSource()
 		m_networkVideoDevice = nullptr;
 	}
 
-	// Release any OpenCV buffer state
-	releaseOpencvBufferState();
-
 	// Let any connected clients know that the video source closed
 	MikanServer::getInstance()->getVideoSourceRequestHandler()->publishVideoSourceClosedEvent();
 	if (OnClosed)
@@ -391,7 +388,7 @@ void NetworkVideoSourceComponent::closeVideoSource()
 	}
 }
 
-eVideoStreamingStatus NetworkVideoSourceComponent::startVideoStream()
+eVideoStreamingStatus NetworkVideoSourceComponent::startVideoStreamInternal()
 {
 	if (m_networkVideoDevice != nullptr)
 	{
@@ -420,7 +417,7 @@ eVideoStreamingStatus NetworkVideoSourceComponent::getVideoStreamingStatus() con
 	return eVideoStreamingStatus::failed;
 }
 
-void NetworkVideoSourceComponent::stopVideoStream()
+void NetworkVideoSourceComponent::stopVideoStreamInternal()
 {
 	if (m_networkVideoDevice != nullptr)
 	{
@@ -487,9 +484,6 @@ void NetworkVideoSourceComponent::notifyVideoModePropertiesChanged(
 	// If this changes, we will need to refactor this function to be thread safe.
 	assert(ThreadUtils::isRunningInMainThread());
 
-	// Allocate the open cv buffers used for tracking filtering
-	reallocateOpencvBufferState();
-
 	// Recompute the projection matrix
 	recomputeCameraProjectionMatrix();
 
@@ -515,6 +509,7 @@ void NetworkVideoSourceComponent::notifyVideoFrameReceived(
 
 	const bool is_frame_flipped = definition->getIsFrameMirrored();
 	const bool is_buffer_flipped = definition->getIsBufferMirrored();
+	cv::Size bufferDimensions(bufferInfo.width, bufferInfo.height);
 
 	// Fetch the latest video buffer frame from the device
 	if (intrinsics.intrinsics_type == MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS)
@@ -527,31 +522,25 @@ void NetworkVideoSourceComponent::notifyVideoFrameReceived(
 		cv::Rect right_bounds = cv::Rect(section_width, 0, section_width, section_height);
 
 		// Cache the left raw video frame
-		if (m_opencv_buffer_state[(int)VideoFrameSection::Left] != nullptr)
-		{
-			m_opencv_buffer_state[(int)VideoFrameSection::Left]->writeStereoVideoFrameSection(
-				bufferInfo.data,
-				is_buffer_flipped ? right_bounds : left_bounds,
-				is_frame_flipped);
-		}
+		writeStereoVideoFrameSection(
+			bufferInfo.data,
+			bufferDimensions,
+			is_frame_flipped,
+			VideoFrameSection::Left,
+			is_buffer_flipped ? right_bounds : left_bounds);
 
 		// Cache the right raw video frame
-		if (m_opencv_buffer_state[(int)VideoFrameSection::Right] != nullptr)
-		{
-			m_opencv_buffer_state[(int)VideoFrameSection::Right]->writeStereoVideoFrameSection(
-				bufferInfo.data,
-				is_buffer_flipped ? left_bounds : right_bounds,
-				is_frame_flipped);
-		}
+		writeStereoVideoFrameSection(
+			bufferInfo.data,
+			bufferDimensions,
+			is_frame_flipped,
+			VideoFrameSection::Right,
+			is_buffer_flipped ? left_bounds : right_bounds);
 	}
 	else
 	{
 		// Cache the raw video frame
-		if (m_opencv_buffer_state[(int)VideoFrameSection::Primary] != nullptr)
-		{
-			m_opencv_buffer_state[(int)VideoFrameSection::Primary]->writeVideoFrame(
-				bufferInfo.data, is_frame_flipped);
-		}
+		writeVideoFrame(bufferInfo.data, bufferDimensions, is_frame_flipped);
 	}
 }
 

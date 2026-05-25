@@ -446,6 +446,8 @@ void MikanGStreamerVideoDevice::update(float deltaSeconds)
 			if (gst_buffer_map(buffer, &map, GST_MAP_READ))
 			{
 				NetworkVideoFrameBuffer bufferInfo;
+				bufferInfo.width = newFrameInfo.width;
+				bufferInfo.height = newFrameInfo.height;
 				bufferInfo.data = map.data;
 				bufferInfo.byte_count = map.size;
 

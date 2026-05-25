@@ -30,7 +30,6 @@ public:
 	virtual void render(IMkViewportPtr targetViewport) override;
 
 protected:
-	void onVideoSourceReady(VideoSourceComponentPtr videoSourceComponent);
 	void setupDistortionView();
 	void updateCameraTransform();
 	void setMenuState(eAnchorTriangulationMenuState newState);

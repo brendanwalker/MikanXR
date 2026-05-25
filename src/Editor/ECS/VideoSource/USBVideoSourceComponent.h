@@ -79,9 +79,7 @@ public:
 	virtual std::string getDeviceAPI() const override;
 	virtual bool openVideoSource() override;
 	virtual void closeVideoSource() override;
-	virtual eVideoStreamingStatus startVideoStream() override;
 	virtual eVideoStreamingStatus getVideoStreamingStatus() const override;
-	virtual void stopVideoStream() override;
 	virtual bool getVideoModeName(std::string& outVideoModeName) const override;
 	virtual bool getVideoPixelDimensions(int& outPixelWidth, int& outPixelHeight) const override;
 	virtual bool isVideoSettingSupported(const eVideoSettingType property_type) const override;
@@ -132,6 +130,9 @@ public:
 	virtual bool invokeFunction(const std::string& functionName) override;
 
 protected:
+	virtual eVideoStreamingStatus startVideoStreamInternal() override;
+	virtual void stopVideoStreamInternal() override;
+
 	void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet) override;
 	bool updateVideoMode();
 	int findBestVideoModeIndex(int w, int h, int frameRate) const;

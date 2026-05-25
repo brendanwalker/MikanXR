@@ -65,16 +65,21 @@ struct OpenCVMonoCameraIntrinsics
 VideoFrameDistortionView::VideoFrameDistortionView(
 	VideoSourceComponentPtr videoSourceComponent,
 	unsigned int bufferBitmask,
-	unsigned int frameQueueSize)
-	: m_videoDisplayMode(eVideoDisplayMode::mode_bgr)
+	unsigned int frameQueueSize,
+	VideoFrameSection videoFramesection)
+	: m_videoFrameSection(videoFramesection)
+	, m_videoDisplayMode(eVideoDisplayMode::mode_bgr)
 	, m_videoSourceComponent(videoSourceComponent)
 	, m_bVideoIsStreaming(false)
 	, m_bufferBitmask(bufferBitmask)
 	, m_frameWidth(0)
 	, m_frameHeight(0)
 	, m_fps(0.f)
-	// Video frame buffers
+	// Video frame source buffer (from video thread)
 	, m_bgrSourceBuffer(nullptr)
+	, m_bgrSourceBufferWidth(0)
+	, m_bgrSourceBufferHeight(0)
+	, m_lastVideoFrameWriteIndex{0}
 	, m_lastVideoFrameReadIndex(0)
 	, m_lastFrameTimestamp()
 	, m_bgrUndistortBuffer(nullptr)
@@ -103,33 +108,7 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 		frameEntry.videoTexture = IMkTexturePtr();
 		frameEntry.frameIndex = -1;
 	}
-
-	// Get the current video source pixel dimensions
-	int pixelWidth = 0;
-	int pixelHeight = 0;
-	if (videoSourceComponent->getVideoPixelDimensions(pixelWidth, pixelHeight))
-	{
-		// Get the current camera intrinsics being used by the video source
-		MikanVideoSourceIntrinsics mikanIntrinsics;
-		m_videoSourceComponent->getCameraIntrinsics(mikanIntrinsics);
-		if (mikanIntrinsics.intrinsics_type == MikanIntrinsicsType::MONO_CAMERA_INTRINSICS)
-		{
-			m_intrinsics->init(mikanIntrinsics.getMonoIntrinsics());
-		}
-		else
-		{
-			m_intrinsics->init(pixelWidth, pixelHeight);
-			MIKAN_LOG_WARNING("VideoFrameDistortionView")
-				<< "VideoSource " << videoSourceComponent->getDevicePath()
-				<< " is not distortion calibrated. Using estimated focal length and no distortion.";
-		}
-
-		// Resize all desired video frame buffers to match the current video source view size
-		// It's possible that the video source doesn't have a valid size yet if it's a stream source
-		// So we'll have to resize once the first valid frame is read.
-		ensureFrameBufferSize(pixelWidth, pixelHeight);
-	}
-
+		
 	// Create a mesh used to render the video frame
 	m_fullscreenRGBVideoQuad= createFullscreenQuadMesh(getGraphicsContext(), true);
 
@@ -220,14 +199,27 @@ void VideoFrameDistortionView::ensureFrameBufferSize(int width, int height)
 	m_frameWidth = width;
 	m_frameHeight = height;
 
-	// Free any existing buffer
-	if (m_bgrSourceBuffer != nullptr)
+	// Update intrinsics first in case the resolution changed
+	MikanVideoSourceIntrinsics mikanIntrinsics;
+	if (m_videoSourceComponent->getCameraIntrinsics(mikanIntrinsics))
 	{
-		delete m_bgrSourceBuffer;
+		if (mikanIntrinsics.intrinsics_type == MikanIntrinsicsType::MONO_CAMERA_INTRINSICS)
+		{
+			m_intrinsics->init(mikanIntrinsics.getMonoIntrinsics());
+		}
+		else
+		{
+			//TODO: Handle stereo intrinsics
+			assert(false && "Unsupported Intrinsics type");
+		}
 	}
-
-	// Allocate a new bgr source buffer
-	m_bgrSourceBuffer = new cv::Mat(m_frameHeight, m_frameWidth, CV_8UC3);
+	else
+	{
+		m_intrinsics->init(width, height);
+		MIKAN_LOG_WARNING("VideoFrameDistortionView")
+			<< "VideoSource " << m_videoSourceComponent->getDevicePath()
+			<< " is not distortion calibrated. Using estimated focal length and no distortion.";
+	}
 
 	// Distortion state
 	if (m_bufferBitmask & VIDEO_FRAME_HAS_BGR_UNDISTORT_FLAG)
@@ -322,20 +314,105 @@ IMkGraphicsContext* VideoFrameDistortionView::getGraphicsContext() const
 	return nullptr;
 }
 
-bool VideoFrameDistortionView::hasNewVideoFrame() const
+void VideoFrameDistortionView::writeVideoFrame(
+	const unsigned char* videoBuffer,
+	const cv::Size& bufferDimensions,
+	bool bIsFlipped)
 {
-	return m_videoSourceComponent->hasNewVideoFrameAvailable(VideoFrameSection::Primary);
+	EASY_FUNCTION();
+	std::lock_guard<std::mutex> bufferLock(m_bgrSourceBufferMutex);
+
+	const int srcBufferWidth = bufferDimensions.width;
+	const int srcBufferHeight= bufferDimensions.height;
+	const cv::Mat videoBufferMat(
+		srcBufferHeight, srcBufferWidth, CV_8UC3, const_cast<unsigned char*>(videoBuffer));
+
+	// (Re)create the target buffer to match source size
+	if (m_bgrSourceBufferWidth != srcBufferWidth || m_bgrSourceBufferHeight != srcBufferHeight)
+	{
+		if (m_bgrSourceBuffer != nullptr)
+		{
+			delete m_bgrSourceBuffer;
+		}
+
+		// Allocate a new bgr source buffer
+		m_bgrSourceBuffer = new cv::Mat(srcBufferHeight, srcBufferWidth, CV_8UC3);
+		m_bgrSourceBufferWidth = srcBufferWidth;
+		m_bgrSourceBufferHeight = srcBufferHeight;
+	}
+
+	if (bIsFlipped)
+	{
+		cv::flip(videoBufferMat, *m_bgrSourceBuffer, +1);
+	}
+	else
+	{
+		videoBufferMat.copyTo(*m_bgrSourceBuffer);
+	}
+
+	// Atomically increment the frame index on the write thread
+	m_lastVideoFrameWriteIndex++;
 }
 
-int64_t VideoFrameDistortionView::readNextVideoFrame()
+void VideoFrameDistortionView::writeStereoVideoFrameSection(
+	const unsigned char* videoBuffer,
+	const cv::Size& bufferDimensions,
+	const bool bIsFlipped,
+	const cv::Rect& bufferBounds)
+{
+	EASY_FUNCTION();
+	std::lock_guard<std::mutex> bufferLock(m_bgrSourceBufferMutex);
+
+	const int srcBufferWidth = bufferDimensions.width;
+	const int srcBufferHeight = bufferDimensions.height;
+	const cv::Mat videoBufferMat(
+		srcBufferHeight, srcBufferWidth, CV_8UC3, const_cast<unsigned char*>(videoBuffer));
+
+
+	// (Re)create the target buffer to match source size
+	const int srcSectionWidth = bufferBounds.size().width;
+	const int srcSectionHeight = bufferBounds.size().height;
+	if (m_bgrSourceBufferWidth != srcSectionWidth || m_bgrSourceBufferHeight != srcSectionHeight)
+	{
+		if (m_bgrSourceBuffer != nullptr)
+		{
+			delete m_bgrSourceBuffer;
+		}
+
+		// Allocate a new bgr source buffer
+		m_bgrSourceBuffer = new cv::Mat(srcBufferHeight, srcBufferWidth, CV_8UC3);
+		m_bgrSourceBufferWidth = srcSectionWidth;
+		m_bgrSourceBufferHeight = srcSectionHeight;
+	}
+
+	if (bIsFlipped)
+	{
+		cv::flip(videoBufferMat(bufferBounds), *m_bgrSourceBuffer, +1);
+	}
+	else
+	{
+		videoBufferMat(bufferBounds).copyTo(*m_bgrSourceBuffer);
+	}
+
+	// Atomically increment the frame index on the write thread
+	m_lastVideoFrameWriteIndex++;
+}
+
+bool VideoFrameDistortionView::hasNewVideoFrame() const
+{
+	return m_lastVideoFrameReadIndex != m_lastVideoFrameWriteIndex;
+}
+
+int64_t VideoFrameDistortionView::readNextVideoFrameIndex()
 {
 	EASY_FUNCTION();
 
 	if (m_videoSourceComponent->getVideoStreamingStatus() == eVideoStreamingStatus::started)
 	{
 		// Copy the image from the video view
-		if (m_videoSourceComponent->hasNewVideoFrameAvailable(VideoFrameSection::Primary))
+		if (hasNewVideoFrame())
 		{
+			// Update framerate statistics
 			const auto now = std::chrono::steady_clock::now();
 			const float deltaSeconds = fminf(
 				std::chrono::duration<float>(now - m_lastFrameTimestamp).count(),
@@ -344,17 +421,10 @@ int64_t VideoFrameDistortionView::readNextVideoFrame()
 			m_fps = (m_fps * 0.9f) + (fps * 0.1f);
 			m_lastFrameTimestamp = now;
 
-			// Reallocate the frame buffer if the video source has changed resolution
-			// (This can happen on streaming video sources)
-			int frameWidth, frameHeight;
-			m_videoSourceComponent->getVideoPixelDimensions(frameWidth, frameHeight);
-			ensureFrameBufferSize(frameWidth, frameHeight);
-
 			// Read the next video frame into the source buffer and update the last read frame index
-			m_lastVideoFrameReadIndex = 
-				m_videoSourceComponent->readVideoFrameSectionBuffer(
-					VideoFrameSection::Primary, m_bgrSourceBuffer);
+			m_lastVideoFrameReadIndex = m_lastVideoFrameWriteIndex;
 
+			// Flag that we are receiving videoframes
 			m_bVideoIsStreaming = true;
 		}
 	}
@@ -369,6 +439,13 @@ int64_t VideoFrameDistortionView::readNextVideoFrame()
 void VideoFrameDistortionView::processVideoFrame(int64_t newFrameIndex)
 {
 	EASY_FUNCTION();
+
+	// Lock the source buffer state while we are processing it
+	std::lock_guard<std::mutex> bufferLock(m_bgrSourceBufferMutex);
+
+	// Reallocate the frame buffer if the video source has changed resolution
+	// (This can happen on streaming video sources)
+	ensureFrameBufferSize(m_bgrSourceBufferWidth, m_bgrSourceBufferHeight);
 
 	// Apply undistortion maps to the video frame (if valid and desired)
 	computeUndistortion(m_bgrSourceBuffer);
@@ -419,6 +496,7 @@ void VideoFrameDistortionView::processVideoFrame(int64_t newFrameIndex)
 		}
 	}
 }
+
 void VideoFrameDistortionView::computeUndistortion(cv::Mat* bgrSourceBuffer)
 {
 	if (m_bgrUndistortBuffer == nullptr || m_distortionMapX == nullptr || m_distortionMapY == nullptr)
@@ -472,7 +550,7 @@ int64_t VideoFrameDistortionView::readAndProcessVideoFrame()
 
 	if (hasNewVideoFrame())
 	{
-		processVideoFrame(readNextVideoFrame());
+		processVideoFrame(readNextVideoFrameIndex());
 	}
 
 	return m_lastVideoFrameReadIndex;

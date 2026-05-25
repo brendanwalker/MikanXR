@@ -137,22 +137,16 @@ void AppStage_VRTrackingRecenter::enter()
 	m_frameBuffer->setFrameBufferType(IMkFrameBuffer::eFrameBufferType::COLOR);
 	m_frameBuffer->createResources();
 
-	// Fire up the video scene in the background + pose calibrator
-	eVRTrackingRecenterMenuState newState;
-	switch (m_videoSourceComponent->startVideoStream())
-	{
-	case eVideoStreamingStatus::pendingStart:
-		// Wait for the video stream to start in the update loop
-		newState = eVRTrackingRecenterMenuState::pendingVideoStart;
-		break;
-	case eVideoStreamingStatus::started:
-		setupMarkerPoseSampler();
-		newState = eVRTrackingRecenterMenuState::verifySetup;
-		break;
-	default:
-		newState = eVRTrackingRecenterMenuState::failedVideoStartStreamRequest;
-		break;
-	}
+	// Create the distortion view (acts as stream ownership token)
+	m_monoDistortionView =
+		new VideoFrameDistortionView(
+			m_videoSourceComponent,
+			VIDEO_FRAME_HAS_ALL);
+	m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
+
+	// Register as a stream consumer — update() drives the retry loop
+	m_videoSourceComponent->startVideoStream(m_monoDistortionView);
+	eVRTrackingRecenterMenuState newState = eVRTrackingRecenterMenuState::pendingVideoStart;
 
 	// Create app stage GUI panels
 	// (Auto cleaned up on app state exit)
@@ -174,13 +168,6 @@ void AppStage_VRTrackingRecenter::exit()
 
 	m_mkCamera= nullptr;
 
-	if (m_videoSourceComponent)
-	{
-		// Turn back off the video feed
-		m_videoSourceComponent->stopVideoStream();
-		m_videoSourceComponent = nullptr;
-	}
-
 	// Free the calibrators
 	if (m_markerPoseSampler != nullptr)
 	{
@@ -194,11 +181,16 @@ void AppStage_VRTrackingRecenter::exit()
 		m_puckSampler = nullptr;
 	}
 
-	// Free the distortion view buffers
-	if (m_monoDistortionView != nullptr)
+	if (m_videoSourceComponent)
 	{
-		delete m_monoDistortionView;
-		m_monoDistortionView = nullptr;
+		// Release stream ownership then free the view
+		if (m_monoDistortionView != nullptr)
+		{
+			m_videoSourceComponent->stopVideoStream(m_monoDistortionView);
+			delete m_monoDistortionView;
+			m_monoDistortionView = nullptr;
+		}
+		m_videoSourceComponent = nullptr;
 	}
 
 	AppStage::exit();
@@ -206,14 +198,8 @@ void AppStage_VRTrackingRecenter::exit()
 
 void AppStage_VRTrackingRecenter::setupMarkerPoseSampler()
 {
-	// Allocate all distortion and video buffers
-	m_monoDistortionView =
-		new VideoFrameDistortionView(
-			m_videoSourceComponent,
-			VIDEO_FRAME_HAS_ALL);
-	m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
-
 	// Create a sampler to do the actual marker pose recording
+	// (m_monoDistortionView is already created in enter())
 	m_markerPoseSampler =
 		new ArucoMarkerPoseSampler(
 			m_cameraComponent,
@@ -263,19 +249,12 @@ void AppStage_VRTrackingRecenter::update(float deltaSeconds)
 	{
 		case eVRTrackingRecenterMenuState::pendingVideoStart:
 			{
-				// Check if the video stream has started yet
-				eVideoStreamingStatus status = m_videoSourceComponent->getVideoStreamingStatus();
-				if (status == eVideoStreamingStatus::started)
+				if (m_monoDistortionView->isReceivingFrames())
 				{
 					setupMarkerPoseSampler();
 					setMenuState(eVRTrackingRecenterMenuState::verifySetup);
 				}
-				else if (status == eVideoStreamingStatus::stopped)
-				{
-					// If stopped, try to restart the video stream
-					m_videoSourceComponent->startVideoStream();
-				}
-				else if (status == eVideoStreamingStatus::failed)
+				else if (m_videoSourceComponent->getVideoStreamingStatus() == eVideoStreamingStatus::failed)
 				{
 					setMenuState(eVRTrackingRecenterMenuState::failedVideoStartStreamRequest);
 				}

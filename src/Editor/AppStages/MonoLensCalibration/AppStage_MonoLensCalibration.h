@@ -30,6 +30,7 @@ public:
 
 protected:
 	void setMenuState(eMonoLensCalibrationMenuState newState);
+	void setupMonoLensCalibrator();
 	void onCaptureKeyPressed();
 	bool tryCapture();
 

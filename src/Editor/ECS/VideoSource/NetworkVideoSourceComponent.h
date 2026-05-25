@@ -73,9 +73,7 @@ public:
 	virtual std::string getDeviceAPI() const override;
 	virtual bool openVideoSource() override;
 	virtual void closeVideoSource() override;
-	virtual eVideoStreamingStatus startVideoStream() override;
 	virtual eVideoStreamingStatus getVideoStreamingStatus() const override;
-	virtual void stopVideoStream() override;
 	virtual bool getVideoPixelDimensions(int& outPixelWidth, int& outPixelHeight) const override;
 
 	// -- INetworkVideoDeviceListener ----
@@ -95,6 +93,9 @@ public:
 	bool isPendingOpen() const { return m_bPendingOpen; }
 
 protected:
+	virtual eVideoStreamingStatus startVideoStreamInternal() override;
+	virtual void stopVideoStreamInternal() override;
+
 	void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
 private:

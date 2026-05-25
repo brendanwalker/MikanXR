@@ -200,29 +200,16 @@ void AppStage_AlignmentCalibration::enter()
 	m_frameBuffer->createResources();
 	m_frameBuffer->setClearColor(glm::vec4(Colors::CornflowerBlue, 1.f));
 
-	// Fire up the video scene in the background + pose calibrator
-	eAlignmentCalibrationMenuState newState;
-	switch (m_videoSourceComponent->startVideoStream())
-	{
-	case eVideoStreamingStatus::pendingStart:
-		// Wait for the video stream to start in the update loop
-		newState = eAlignmentCalibrationMenuState::pendingVideoStart;
-		break;
-	case eVideoStreamingStatus::started:
-		{
-			// Immediately setup the calibrator
-			setupTrackerPoseCalibrator();
+	// Create the distortion view (acts as stream ownership token)
+	m_monoDistortionView =
+		new VideoFrameDistortionView(
+			m_videoSourceComponent,
+			VIDEO_FRAME_HAS_ALL);
+	m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
-			// If bypassing the calibration, then jump straight to the test calibration state
-			newState = (m_bypassCalibrationFlag) 
-				? eAlignmentCalibrationMenuState::testCalibration
-				: eAlignmentCalibrationMenuState::verifySetup;
-		}
-		break;
-	default:
-		newState = eAlignmentCalibrationMenuState::failedVideoStartStreamRequest;
-		break;
-	}
+	// Register as a stream consumer — update() drives the retry loop
+	m_videoSourceComponent->startVideoStream(m_monoDistortionView);
+	eAlignmentCalibrationMenuState newState = eAlignmentCalibrationMenuState::pendingVideoStart;
 
 	// Create GUI panels
 	// (Auto cleaned up on app state exit)
@@ -254,14 +241,8 @@ void AppStage_AlignmentCalibration::enter()
 
 void AppStage_AlignmentCalibration::setupTrackerPoseCalibrator()
 {
-	// Allocate all distortion and video buffers
-	m_monoDistortionView =
-		new VideoFrameDistortionView(
-			m_videoSourceComponent,
-			VIDEO_FRAME_HAS_ALL);
-	m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
-
 	// Create a calibrator to do the actual pattern recording and calibration
+	// (m_monoDistortionView is already created in enter())
 	m_trackerPoseCalibrator =
 		new MonoLensTrackerPoseCalibrator(
 			m_targetCameraComponent,
@@ -279,13 +260,6 @@ void AppStage_AlignmentCalibration::exit()
 	m_mkXRView = nullptr;
 	m_mkStageView = nullptr;
 
-	if (m_videoSourceComponent)
-	{
-		// Turn back off the video feed
-		m_videoSourceComponent->stopVideoStream();
-		m_videoSourceComponent = nullptr;
-	}
-
 	// Free the calibrator
 	if (m_trackerPoseCalibrator != nullptr)
 	{
@@ -293,11 +267,16 @@ void AppStage_AlignmentCalibration::exit()
 		m_trackerPoseCalibrator = nullptr;
 	}
 
-	// Free the distortion view buffers
-	if (m_monoDistortionView != nullptr)
+	if (m_videoSourceComponent)
 	{
-		delete m_monoDistortionView;
-		m_monoDistortionView = nullptr;
+		// Release stream ownership then free the view
+		if (m_monoDistortionView != nullptr)
+		{
+			m_videoSourceComponent->stopVideoStream(m_monoDistortionView);
+			delete m_monoDistortionView;
+			m_monoDistortionView = nullptr;
+		}
+		m_videoSourceComponent = nullptr;
 	}
 
 	AppStage::exit();
@@ -347,25 +326,16 @@ void AppStage_AlignmentCalibration::update(float deltaSeconds)
 	{
 	case eAlignmentCalibrationMenuState::pendingVideoStart:
 		{
-			// Check if the video stream has started yet
-			eVideoStreamingStatus status = m_videoSourceComponent->getVideoStreamingStatus();
-			if (status == eVideoStreamingStatus::started)
+			if (m_monoDistortionView->isReceivingFrames())
 			{
-				// If it has, then setup the calibrator and move to the next state
 				setupTrackerPoseCalibrator();
 				setMenuState(
 					m_bypassCalibrationFlag
 						? eAlignmentCalibrationMenuState::testCalibration
 						: eAlignmentCalibrationMenuState::verifySetup);
 			}
-			else if (status == eVideoStreamingStatus::stopped)
+			else if (m_videoSourceComponent->getVideoStreamingStatus() == eVideoStreamingStatus::failed)
 			{
-				// If stopped, try to restart the video stream
-				m_videoSourceComponent->startVideoStream();
-			}
-			else if (status == eVideoStreamingStatus::failed)
-			{
-				// If it failed to start, then move to the failed state
 				setMenuState(eAlignmentCalibrationMenuState::failedVideoStartStreamRequest);
 			}
 		}

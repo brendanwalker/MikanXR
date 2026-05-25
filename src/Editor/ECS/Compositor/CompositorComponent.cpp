@@ -224,13 +224,6 @@ void CompositorComponent::postInit()
 
 	// Initialize the compositor graph if we have one assigned
 	handleCompositorNodeGraphChanged(getCompositorDefinition()->getCompositorGraphPath());
-
-	// Listen for the video source state changes
-	VideoSourceComponentPtr videoSourceComponent= getVideoSourceComponent();
-	if (videoSourceComponent)
-	{
-		bindVideoSourceEvents(videoSourceComponent);
-	}
 }
 
 void CompositorComponent::dispose()
@@ -369,87 +362,20 @@ void CompositorComponent::update(float deltaSeconds)
 	if (!cameraComponent)
 		return;
 
-	// Update the video source streaming state in case it changed while we were stopped
+	// Update the video source streaming state in case settings changed
 	updateVideoSourceStreaming();
 
 	// Update the output streaming state in case it changed while we were stopped
 	updateOutputStreaming();
 
-	// Wait until we have a valid distortion view
-	if (m_videoDistortionView == nullptr)
-		return;
-
-	// Composite the next frame if we got all the renders back from the clients
-	tryCompositeOldestFrame(deltaSeconds);
-
-	// Try to add new frames from the video source if we have room in the queue
-	tryEnqueueNewFrame(cameraComponent);
-}
-
-void CompositorComponent::handleCameraChange(
-	CameraComponentPtr oldCameraComponent, 
-	CameraComponentPtr newCameraComponent)
-{
-	VideoSourceComponentPtr oldVideoSourceComponent= oldCameraComponent->getVideoSourceComponent();
-	VideoSourceComponentPtr newVideoSourceComponent = newCameraComponent->getVideoSourceComponent();
-
-	if (oldVideoSourceComponent)
+	// Wait until we have a valid distortion view with a known frame size
+	if (m_videoDistortionView)
 	{
-		unbindVideoSourceEvents(oldVideoSourceComponent);
-	}
+		// Composite the next frame if we got all the renders back from the clients
+		tryCompositeOldestFrame(deltaSeconds);
 
-	if (newVideoSourceComponent)
-	{
-		bindVideoSourceEvents(newVideoSourceComponent);
-	}
-
-	onVideoFrameSizeChanged(newVideoSourceComponent);
-}
-
-void CompositorComponent::unbindVideoSourceEvents(VideoSourceComponentPtr videoSource)
-{
-	if (videoSource != nullptr)
-	{
-		videoSource->OnFrameSizeChanged 
-			-= MakeDelegate(this, &CompositorComponent::onVideoFrameSizeChanged);
-	}
-}
-
-void CompositorComponent::bindVideoSourceEvents(VideoSourceComponentPtr videoSource)
-{
-	if (videoSource != nullptr)
-	{
-		videoSource->OnFrameSizeChanged 
-			+= MakeDelegate(this, &CompositorComponent::onVideoFrameSizeChanged);
-	}
-}
-
-void CompositorComponent::disposeVideoBuffers()
-{
-	m_videoDistortionView = nullptr;
-}
-
-void CompositorComponent::allocateVideoBuffers(VideoSourceComponentPtr videoSource)
-{
-	// Create a distortion view to read the incoming video frames into a texture
-	m_videoDistortionView = std::make_shared<VideoFrameDistortionView>(
-		videoSource,
-		VIDEO_FRAME_HAS_BGR_UNDISTORT_FLAG | VIDEO_FRAME_HAS_GL_TEXTURE_FLAG | VIDEO_FRAME_HAS_NO_VIDEO_SHADER_FLAG,
-		videoSource->getVideoSourceDefinition()->getVideoFrameQueueSize());
-
-	// Always use the undistorted video frame for compositing
-	m_videoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
-}
-
-void CompositorComponent::onVideoFrameSizeChanged(VideoSourceComponentPtr videoSource)
-{
-	disposeVideoBuffers();
-
-	// Create a frame buffer and texture to do the compositing work in
-	int frameWidth, frameHeight;
-	if (videoSource->getVideoPixelDimensions(frameWidth, frameHeight))
-	{
-		allocateVideoBuffers(videoSource);
+		// Try to add new frames from the video source if we have room in the queue
+		tryEnqueueNewFrame(cameraComponent);
 	}
 }
 
@@ -608,41 +534,65 @@ void CompositorComponent::renderToViewportQuad() const
 
 void CompositorComponent::updateVideoSourceStreaming()
 {
-	CameraComponentPtr cameraComponent = getCameraComponent();
-	if (cameraComponent)
+	if (m_bIsRunning)
 	{
-		VideoSourceComponentPtr videoSourceComponent = cameraComponent->getVideoSourceComponent();
-		if (videoSourceComponent)
-		{
-			const eVideoStreamingStatus videoStreamingStatus = videoSourceComponent->getVideoStreamingStatus();
-			const bool bWantsVideoStream= getIsRunning();
-			const bool bIsVideoStreaming = 
-				videoStreamingStatus == eVideoStreamingStatus::pendingStart ||
-				videoStreamingStatus == eVideoStreamingStatus::started;
+		VideoSourceComponentPtr currentDistortionSource = m_videoDistortionSource.lock();
+		VideoSourceComponentPtr desiredDistortionSource = getVideoSourceComponent();
 
-			if (bWantsVideoStream && !bIsVideoStreaming)
-			{
-				videoSourceComponent->startVideoStream();
-			}
-			else if (!bWantsVideoStream && bIsVideoStreaming)
-			{
-				videoSourceComponent->stopVideoStream();
-			}
+		if (desiredDistortionSource != currentDistortionSource)
+		{
+			startVideoSourceStreaming(desiredDistortionSource);
 		}
+	}
+	else
+	{
+		stopVideoSourceStreaming();
 	}
 }
 
 void CompositorComponent::stopVideoSourceStreaming()
 {
-	CameraComponentPtr cameraComponent = getCameraComponent();
-	if (cameraComponent)
+	if (m_videoDistortionView)
 	{
-		VideoSourceComponentPtr videoSourceComponent = cameraComponent->getVideoSourceComponent();
-		if (videoSourceComponent)
+		CameraComponentPtr cameraComponent = getCameraComponent();
+		if (cameraComponent)
 		{
-			videoSourceComponent->stopVideoStream();
+			VideoSourceComponentPtr videoSource = cameraComponent->getVideoSourceComponent();
+
+			if (videoSource)
+			{
+				videoSource->stopVideoStream(m_videoDistortionView.get());
+			}
 		}
+
+		m_videoDistortionSource.reset();
+		m_videoDistortionView = nullptr;
 	}
+}
+
+void CompositorComponent::startVideoSourceStreaming(VideoSourceComponentPtr videoSource)
+{
+	assert(getIsRunning());
+
+	// Clean up any pre-existing buffers
+	// Stop any existing streaming on existing video distortion source
+	stopVideoSourceStreaming();
+
+	// Remember which video distortion source we are creating the view for
+	m_videoDistortionSource = videoSource;
+
+	// Create a distortion view to read the incoming video frames into a texture
+	// (VideoFrameDistortionView subscribes to OnFrameSizeChanged internally)
+	m_videoDistortionView = std::make_shared<VideoFrameDistortionView>(
+		videoSource,
+		VIDEO_FRAME_HAS_BGR_UNDISTORT_FLAG | VIDEO_FRAME_HAS_GL_TEXTURE_FLAG | VIDEO_FRAME_HAS_NO_VIDEO_SHADER_FLAG,
+		videoSource->getVideoSourceDefinition()->getVideoFrameQueueSize());
+
+	// Always use the undistorted video frame for compositing
+	m_videoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
+
+	// Register the view as a stream consumer — VideoSourceComponent::update() drives the retry loop
+	videoSource->startVideoStream(m_videoDistortionView.get());
 }
 
 void CompositorComponent::updateOutputStreaming()
@@ -714,21 +664,23 @@ void CompositorComponent::stopOutputStreaming()
 
 bool CompositorComponent::start()
 {
-	if (getIsRunning())
-		return true;
+	if (!getIsRunning())
+	{
+		m_bIsRunning = true;
+		m_timeSinceLastFrameComposited = 0.f;
 
-	m_bIsRunning = true;
-	m_timeSinceLastFrameComposited = 0.f;
+		updateVideoSourceStreaming();
+	}
 
 	return true;
 }
 
 void CompositorComponent::stop()
 {
+	m_bIsRunning = false;
+
 	stopVideoSourceStreaming();
 	stopOutputStreaming();
-
-	m_bIsRunning = false;
 }
 
 CompositorObjectSystemPtr CompositorComponent::getOwnerObjectSystem() const
@@ -772,11 +724,11 @@ void CompositorComponent::setCameraComponent(CameraComponentPtr newCameraCompone
 
 	if (newCameraId != oldCameraId)
 	{
-		// Rebuild the compositor state since the camera has changed
-		handleCameraChange(oldCameraComponent, newCameraComponent);
-
 		// Update the camera ID in the compositor definition
 		getCompositorDefinition()->setCameraId(newCameraId);
+
+		// Update video streaming state for the new camera
+		updateVideoSourceStreaming();
 	}
 }
 

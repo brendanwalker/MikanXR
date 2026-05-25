@@ -151,20 +151,6 @@ void AppStage_AlignCameraByUtilityMarker::exit()
 {
 	setMenuState(eAlignCameraByUtilityMarkerMenuState::inactive);
 
-	// Stop and release target video
-	if (m_targetVideoSource)
-	{
-		m_targetVideoSource->stopVideoStream();
-		m_targetVideoSource = nullptr;
-	}
-
-	// Stop and release source video
-	if (m_sourceVideoSource)
-	{
-		m_sourceVideoSource->stopVideoStream();
-		m_sourceVideoSource = nullptr;
-	}
-
 	// Free source calibration objects
 	if (m_sourceMarkerSampler != nullptr)
 	{
@@ -178,9 +164,12 @@ void AppStage_AlignCameraByUtilityMarker::exit()
 	}
 	if (m_sourceDistortionView != nullptr)
 	{
+		if (m_sourceVideoSource)
+			m_sourceVideoSource->stopVideoStream(m_sourceDistortionView);
 		delete m_sourceDistortionView;
 		m_sourceDistortionView = nullptr;
 	}
+	m_sourceVideoSource = nullptr;
 
 	// Free target calibration objects
 	if (m_targetMarkerSampler != nullptr)
@@ -190,9 +179,12 @@ void AppStage_AlignCameraByUtilityMarker::exit()
 	}
 	if (m_targetDistortionView != nullptr)
 	{
+		if (m_targetVideoSource)
+			m_targetVideoSource->stopVideoStream(m_targetDistortionView);
 		delete m_targetDistortionView;
 		m_targetDistortionView = nullptr;
 	}
+	m_targetVideoSource = nullptr;
 
 	m_sourceCameraComponent = nullptr;
 	m_targetCameraComponent = nullptr;
@@ -212,18 +204,17 @@ void AppStage_AlignCameraByUtilityMarker::update(float deltaSeconds)
 	{
 	case eAlignCameraByUtilityMarkerMenuState::pendingVideoStart:
 		{
-			const eVideoStreamingStatus sourceStatus =
-				m_sourceVideoSource ? m_sourceVideoSource->getVideoStreamingStatus()
-									: eVideoStreamingStatus::failed;
-			const eVideoStreamingStatus targetStatus = m_targetVideoSource->getVideoStreamingStatus();
+			const bool sourceFailed = !m_sourceVideoSource ||
+				m_sourceVideoSource->getVideoStreamingStatus() == eVideoStreamingStatus::failed;
+			const bool targetFailed =
+				m_targetVideoSource->getVideoStreamingStatus() == eVideoStreamingStatus::failed;
 
-			if (sourceStatus == eVideoStreamingStatus::failed ||
-				targetStatus == eVideoStreamingStatus::failed)
+			if (sourceFailed || targetFailed)
 			{
 				setMenuState(eAlignCameraByUtilityMarkerMenuState::failedVideoStart);
 			}
-			else if (sourceStatus == eVideoStreamingStatus::started &&
-					 targetStatus == eVideoStreamingStatus::started)
+			else if (m_sourceDistortionView->isReceivingFrames() &&
+					 m_targetDistortionView->isReceivingFrames())
 			{
 				setupCalibrators();
 				setMenuState(eAlignCameraByUtilityMarkerMenuState::verifySetup);
@@ -440,26 +431,18 @@ void AppStage_AlignCameraByUtilityMarker::onSourceCameraSelected(MikanCameraID c
 
 void AppStage_AlignCameraByUtilityMarker::startVideoStreams()
 {
-	const eVideoStreamingStatus sourceStatus = m_sourceVideoSource->startVideoStream();
-	const eVideoStreamingStatus targetStatus = m_targetVideoSource->startVideoStream();
+	// Create views eagerly — they are the stream ownership tokens
+	m_sourceDistortionView = new VideoFrameDistortionView(m_sourceVideoSource, VIDEO_FRAME_HAS_ALL);
+	m_sourceDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
-	if (sourceStatus == eVideoStreamingStatus::failed ||
-		targetStatus == eVideoStreamingStatus::failed)
-	{
-		setMenuState(eAlignCameraByUtilityMarkerMenuState::failedVideoStart);
-		return;
-	}
+	m_targetDistortionView = new VideoFrameDistortionView(m_targetVideoSource, VIDEO_FRAME_HAS_ALL);
+	m_targetDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
-	if (sourceStatus == eVideoStreamingStatus::started &&
-		targetStatus == eVideoStreamingStatus::started)
-	{
-		setupCalibrators();
-		setMenuState(eAlignCameraByUtilityMarkerMenuState::verifySetup);
-	}
-	else
-	{
-		setMenuState(eAlignCameraByUtilityMarkerMenuState::pendingVideoStart);
-	}
+	// Register as stream consumers — VideoSourceComponent::update() drives the retry loop
+	m_sourceVideoSource->startVideoStream(m_sourceDistortionView);
+	m_targetVideoSource->startVideoStream(m_targetDistortionView);
+
+	setMenuState(eAlignCameraByUtilityMarkerMenuState::pendingVideoStart);
 }
 
 void AppStage_AlignCameraByUtilityMarker::setupCalibrators()
@@ -474,19 +457,15 @@ void AppStage_AlignCameraByUtilityMarker::setupCalibrators()
 	MarkerDefinitionConstPtr utilityMarkerDef = utilityMarkerComponent->getMarkerDefinition();
 	assert(utilityMarkerDef != nullptr);
 
-	// Set up source camera (has tracking mount - ArucoMarkerPoseSampler handles stage-space composition)
+	// Set up source camera samplers (views already created in startVideoStreams)
 	// Use explicit utilityMarkerDef so we track the utility marker, not the stage origin marker
-	m_sourceDistortionView = new VideoFrameDistortionView(m_sourceVideoSource, VIDEO_FRAME_HAS_ALL);
-	m_sourceDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 	m_sourceMarkerSampler = new ArucoMarkerPoseSampler(
 		m_sourceCameraComponent,
 		m_sourceDistortionView,
 		ALIGN_CAMERA_BY_UTILITY_MARKER_SAMPLE_COUNT,
 		utilityMarkerDef);
 
-	// Set up target camera (no tracking mount - ArucoMarkerPoseSampler for aperture-relative samples)
-	m_targetDistortionView = new VideoFrameDistortionView(m_targetVideoSource, VIDEO_FRAME_HAS_ALL);
-	m_targetDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
+	// Set up target camera samplers (views already created in startVideoStreams)
 	m_targetMarkerSampler = new ArucoMarkerPoseSampler(
 		m_targetCameraComponent,
 		m_targetDistortionView,

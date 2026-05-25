@@ -36,6 +36,8 @@ struct NetworkVideoStreamProperties
 
 struct NetworkVideoFrameBuffer
 {
+	int width; // width of the video frame in pixels
+	int height; // height of the video frame in pixels
 	const uint8_t* data;
 	size_t byte_count;
 };

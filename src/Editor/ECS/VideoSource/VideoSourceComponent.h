@@ -14,6 +14,8 @@
 
 #include <map>
 #include <memory>
+#include <mutex>
+#include <set>
 #include <string>
 
 class VideoSourceDefinition : public MikanComponentDefinition
@@ -59,6 +61,8 @@ private:
 class VideoSourceComponent : public MikanComponent
 {
 public:
+	static constexpr int k_maxActiveViews = 32;
+
 	VideoSourceComponent(MikanObjectWeakPtr owner);
 
 	inline VideoSourceDefinitionPtr getVideoSourceDefinition() const
@@ -77,13 +81,14 @@ public:
 	virtual std::string getDeviceAPI() const = 0;
 	virtual bool openVideoSource() = 0;
 	virtual void closeVideoSource() = 0;
-	virtual eVideoStreamingStatus startVideoStream() = 0;
+	void startVideoStream(class VideoFrameDistortionView* view);
+	void stopVideoStream(class VideoFrameDistortionView* view);
+	void forceStopVideoStream();
 	virtual eVideoStreamingStatus getVideoStreamingStatus() const = 0;
-	virtual void stopVideoStream() = 0;
+
+	virtual void update(float deltaSeconds) override;
 
 	virtual bool getVideoPixelDimensions(int& outPixelWidth, int& outPixelHeight) const;
-	virtual bool hasNewVideoFrameAvailable(VideoFrameSection section) const;
-	virtual int64_t readVideoFrameSectionBuffer(VideoFrameSection section, cv::Mat* outBuffer);
 
 	virtual bool getVideoModeName(std::string& outVideoModeName) const;
 	virtual bool getFrameRate(float& outFrameRate) const;
@@ -124,13 +129,28 @@ public:
 	void testIntrinsics();
 
 protected:
-	bool hasAllocatedOpencvBufferState() const;
-	bool reallocateOpencvBufferState();
-	void releaseOpencvBufferState();
+	virtual eVideoStreamingStatus startVideoStreamInternal() = 0;
+	virtual void stopVideoStreamInternal() = 0;
+
 	void recomputeCameraProjectionMatrix();
 
+	// Called by derived classes when raw video source frame is received in video receive thread
+	size_t getActiveViews(class VideoFrameDistortionView** outActiveViewsList, size_t activeViewsMaxListSize);
+	void writeVideoFrame(
+		const unsigned char* videoBuffer, 
+		const cv::Size& bufferDimensions, 
+		const bool bIsFlipped);
+	void writeStereoVideoFrameSection(
+		const unsigned char* videoBuffer, 
+		const cv::Size& bufferDimensions,
+		const bool bIsFlipped,
+		const VideoFrameSection section,
+		const cv::Rect& bufferBounds);
+
 protected:
-	int64_t m_lastVideoFrameReadIndex;
-	class OpenCVVideoFrameBuffer* m_opencv_buffer_state[MAX_PROJECTION_COUNT];
+	std::mutex m_activeViewMutex;
+	std::set<class VideoFrameDistortionView*> m_activeViews;
+	std::atomic_bool m_bHasAnyActiveViews{false};
+
 	glm::mat4 m_projectionMatrix;
 };

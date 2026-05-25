@@ -61,24 +61,15 @@ void AppStage_LightFixtureCalibration::enter()
 	// Flash fixture to white so it's visible in the video feed
 	flashFixtureWhite();
 
-	// Start the video stream
-	eLightFixtureCalibrationMenuState newState;
-	eVideoStreamingStatus streamingStatus = m_videoSourceComponent->startVideoStream();
-	if (streamingStatus == eVideoStreamingStatus::started)
-	{
-		setupDistortionView();
-		newState = eLightFixtureCalibrationMenuState::verifyInitialCameraSetup;
-	}
-	else if (streamingStatus == eVideoStreamingStatus::pendingStart)
-	{
-		m_videoSourceComponent->OnFrameSizeChanged +=
-			MakeDelegate(this, &AppStage_LightFixtureCalibration::onVideoSourceReady);
-		newState = eLightFixtureCalibrationMenuState::pendingVideoStartStreamRequest;
-	}
-	else
-	{
-		newState = eLightFixtureCalibrationMenuState::failedVideoStartStreamRequest;
-	}
+	// Create the distortion view eagerly — it is the stream ownership token
+	m_monoDistortionView =
+		new VideoFrameDistortionView(m_videoSourceComponent, VIDEO_FRAME_HAS_ALL);
+	m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
+
+	// Register as a stream consumer — VideoSourceComponent::update() drives the retry loop
+	m_videoSourceComponent->startVideoStream(m_monoDistortionView);
+
+	eLightFixtureCalibrationMenuState newState = eLightFixtureCalibrationMenuState::pendingVideoStartStreamRequest;
 
 	// Create GUI panel
 	m_calibrationPanel = addGuiPanel<GuiPanel_LightFixtureCalibration>();
@@ -95,22 +86,8 @@ void AppStage_LightFixtureCalibration::enter()
 	setMenuState(newState);
 }
 
-void AppStage_LightFixtureCalibration::onVideoSourceReady(
-	VideoSourceComponentPtr /*inVideoSourceComponent*/)
-{
-	m_videoSourceComponent->OnFrameSizeChanged -=
-		MakeDelegate(this, &AppStage_LightFixtureCalibration::onVideoSourceReady);
-
-	setupDistortionView();
-	setMenuState(eLightFixtureCalibrationMenuState::verifyInitialCameraSetup);
-}
-
 void AppStage_LightFixtureCalibration::setupDistortionView()
 {
-	m_monoDistortionView =
-		new VideoFrameDistortionView(m_videoSourceComponent, VIDEO_FRAME_HAS_ALL);
-	m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
-
 	m_triangulator =
 		new LightFixtureTriangulator(m_currentSceneCameraComponent, m_monoDistortionView);
 }
@@ -127,23 +104,22 @@ void AppStage_LightFixtureCalibration::exit()
 	m_currentSceneCameraComponent = nullptr;
 	m_mkCamera = nullptr;
 
-	if (m_videoSourceComponent)
-	{
-		m_videoSourceComponent->stopVideoStream();
-		m_videoSourceComponent = nullptr;
-	}
-
 	if (m_triangulator != nullptr)
 	{
 		delete m_triangulator;
 		m_triangulator = nullptr;
 	}
 
+	// Stop the stream and free the distortion view buffers
 	if (m_monoDistortionView != nullptr)
 	{
+		if (m_videoSourceComponent)
+			m_videoSourceComponent->stopVideoStream(m_monoDistortionView);
 		delete m_monoDistortionView;
 		m_monoDistortionView = nullptr;
 	}
+
+	m_videoSourceComponent = nullptr;
 
 	AppStage::exit();
 }
@@ -163,13 +139,28 @@ void AppStage_LightFixtureCalibration::update(float deltaSeconds)
 
 	updateCameraTransform();
 
-	if (m_monoDistortionView != nullptr)
+	eLightFixtureCalibrationMenuState calibrationState = m_calibrationPanel->getMenuState();
+
+	if (calibrationState == eLightFixtureCalibrationMenuState::pendingVideoStartStreamRequest)
+	{
+		if (m_monoDistortionView->isReceivingFrames())
+		{
+			setupDistortionView();
+			setMenuState(eLightFixtureCalibrationMenuState::verifyInitialCameraSetup);
+		}
+		else if (m_videoSourceComponent->getVideoStreamingStatus() == eVideoStreamingStatus::failed)
+		{
+			setMenuState(eLightFixtureCalibrationMenuState::failedVideoStartStreamRequest);
+		}
+		return;
+	}
+
+	if (m_monoDistortionView->isReceivingFrames())
 	{
 		m_monoDistortionView->readAndProcessVideoFrame();
 
 		// Run live triangulation while user is choosing camera position 2
-		if (m_calibrationPanel->getMenuState() ==
-			eLightFixtureCalibrationMenuState::capturePosition2)
+		if (calibrationState == eLightFixtureCalibrationMenuState::capturePosition2)
 		{
 			m_triangulator->computeCurrentTriangulation();
 		}

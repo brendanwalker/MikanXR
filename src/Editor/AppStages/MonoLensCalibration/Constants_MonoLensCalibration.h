@@ -10,6 +10,7 @@ enum class eMonoLensCalibrationMenuState : int
 	testCalibration = 3,
 	failedCalibration = 4,
 	failedVideoStartStreamRequest = 5,
+	pendingVideoStart = 6,
 
 	COUNT
 };

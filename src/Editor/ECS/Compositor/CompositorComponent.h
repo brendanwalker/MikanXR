@@ -149,7 +149,6 @@ protected:
 
 	// Video Source
 	void updateVideoSourceStreaming();
-	void stopVideoSourceStreaming();
 
 	// Spout Output
 	void updateOutputStreaming();
@@ -158,12 +157,8 @@ protected:
 	void stopOutputStreaming();
 
 	void handleCompositorNodeGraphChanged(const std::filesystem::path& newAssetRefPath);
-	void handleCameraChange(CameraComponentPtr oldCameraComponent, CameraComponentPtr newCameraComponent);
-	void unbindVideoSourceEvents(VideoSourceComponentPtr videoSource);
-	void bindVideoSourceEvents(VideoSourceComponentPtr videoSource);
-	void disposeVideoBuffers();
-	void allocateVideoBuffers(VideoSourceComponentPtr videoSource);
-	void onVideoFrameSizeChanged(VideoSourceComponentPtr videoSource);
+	void stopVideoSourceStreaming();
+	void startVideoSourceStreaming(VideoSourceComponentPtr videoSource);
 	void tryCompositeOldestFrame(float deltaSeconds);
 	void tryEnqueueNewFrame(CameraComponentPtr cameraComponent);
 	void evaluateCompositorNodeGraph(CompositorNodeGraphPtr nodeGraph);
@@ -184,6 +179,7 @@ private:
 	std::vector<NodeEvaluationError> m_lastNodeEvalErrors;
 
 	// Undistorted Video Frame Buffer
+	VideoSourceComponentWeakPtr m_videoDistortionSource;
 	VideoFrameDistortionViewPtr m_videoDistortionView;
 
 	// Output Spout Sender
