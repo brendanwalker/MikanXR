@@ -84,7 +84,7 @@ void GuiPanel_CompositorComponent::onConstruct()
 					scriptPath))
 				{
 					addDeferredGuiEvent([compositorComp]() {
-						compositorComp->addNewCompositorGraph();
+						compositorComp->selectCompositorGraph();
 					});
 				}
 
