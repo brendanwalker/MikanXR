@@ -495,14 +495,12 @@ void CompositorComponent::evaluateCompositorNodeGraph(CompositorNodeGraphPtr nod
 				m_renderTargetWriteAccessor->writeColorFrameTexture(platformTexturePtr);
 			}
 		}
+
+		m_lastNodeEvalErrors.clear();
 	}
 	else
 	{
-		for (const NodeEvaluationError& error : evaluator.getErrors())
-		{
-			MIKAN_LOG_ERROR("CompositorComponent::compositeFrame")
-				<< "Compositor graph eval error: " << error.errorMessage;
-		}
+		m_lastNodeEvalErrors = evaluator.getErrors();
 	}
 }
 
@@ -773,6 +771,9 @@ void CompositorComponent::handleCompositorNodeGraphChanged(const std::filesystem
 	{
 		m_nodeGraph = nullptr;
 	}
+
+	// Clear any previous graph eval errors
+	m_lastNodeEvalErrors.clear();
 }
 
 void CompositorComponent::onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet)
