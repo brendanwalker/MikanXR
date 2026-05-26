@@ -70,11 +70,6 @@ void StencilSelectNode::saveToConfig(NodeConfigPtr nodeConfig) const
 	Node::saveToConfig(nodeConfig);
 }
 
-void StencilSelectNode::setStencilsOutPin(ArrayPinPtr inPin)
-{
-	m_stencilsOutPin = inPin;
-}
-
 bool StencilSelectNode::evaluateNode(NodeEvaluator& evaluator)
 {
 	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
@@ -142,7 +137,12 @@ bool StencilSelectNode::evaluateNode(NodeEvaluator& evaluator)
 		}
 	}
 
-	m_stencilsOutPin->setArray(gathered);
+	// Assign the resulting array to the output pin
+	auto outputPin = getFirstPinOfType<ArrayPin>(eNodePinDirection::OUTPUT);
+	if (outputPin)
+	{
+		outputPin->setArray(gathered);
+	}
 
 	return true;
 }
@@ -196,7 +196,6 @@ NodePtr StencilSelectNodeFactory::createNode(const NodeEditorState& editorState)
 
 	ArrayPinPtr outPin = node->addPin<ArrayPin>("stencils", eNodePinDirection::OUTPUT);
 	outPin->setElementClassName(GraphStencilProperty::k_propertyClassName);
-	node->setStencilsOutPin(outPin);
 
 	autoConnectOutputPin(editorState, outPin);
 

@@ -38,8 +38,6 @@ protected:
 	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakeNodeStyle(const NodeEditorState& editorState) const override;
 	virtual std::string editorGetTitle() const override { return "Stencil Select"; }
 
-	void setStencilsOutPin(ArrayPinPtr inPin);
-
 protected:
 	ArrayPinPtr m_stencilsOutPin;
 
