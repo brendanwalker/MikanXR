@@ -331,9 +331,10 @@ bool DrawLayerNode::evaluateNode(NodeEvaluator& evaluator)
 						// (sB*sA) + (dB*(1-sA)) = rB	
 						// (sA*sA) + (dA*(1-sA)) = rA	
 						mkState->enableFlag(eMkStateFlagType::blend);	
-						glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);	
-						glBlendEquation(GL_FUNC_ADD);	
-					}	
+
+						mkStateSetBlendFunc(mkState, eMkBlendFunction::SRC_ALPHA, eMkBlendFunction::ONE_MINUS_SRC_ALPHA);
+						mkStateSetBlendEquation(mkState, eMkBlendEquation::ADD);
+				}
 					break;	
 			}	
 
