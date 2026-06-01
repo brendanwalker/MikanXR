@@ -63,7 +63,7 @@ void AppStage_VideoSourceSettings::enter()
 		// Create the video buffer view eagerly — it registers itself for OnFrameSizeChanged
 		m_videoBufferView = std::make_shared<VideoFrameDistortionView>(
 			videoSourceComponent,
-			VIDEO_FRAME_HAS_GL_TEXTURE_FLAG | VIDEO_FRAME_HAS_GL_BGR_UNDISTORT_FLAG);
+			eVideoFrameProcessorMode::COMPOSITOR);
 
 		// Register as a stream consumer (VideoSourceComponent::update() drives the retry loop)
 		videoSourceComponent->startVideoStream(m_videoBufferView.get());

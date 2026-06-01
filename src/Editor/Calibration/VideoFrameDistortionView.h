@@ -20,7 +20,7 @@ class VideoFrameDistortionView
 public:
 	VideoFrameDistortionView(
 		VideoSourceComponentPtr view,
-		unsigned int bufferBitmask,
+		eVideoFrameProcessorMode processorMode,
 		unsigned int frameQueueSize=1,
 		VideoFrameSection videoFramesection= VideoFrameSection::Primary);
 	virtual ~VideoFrameDistortionView();
@@ -81,7 +81,7 @@ protected:
 	eVideoDisplayMode m_videoDisplayMode;
 	VideoSourceComponentPtr m_videoSourceComponent;
 	bool m_bVideoIsStreaming;
-	unsigned int m_bufferBitmask;
+	eVideoFrameProcessorMode m_processorMode;
 	int m_frameWidth;
 	int m_frameHeight;
 	float m_fps;

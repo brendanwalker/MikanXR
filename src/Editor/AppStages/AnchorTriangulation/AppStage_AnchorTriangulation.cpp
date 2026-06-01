@@ -86,7 +86,7 @@ void AppStage_AnchorTriangulation::enter()
 	m_monoDistortionView =
 		new VideoFrameDistortionView(
 			m_videoSourceComponent,
-			VIDEO_FRAME_HAS_CALIBRATION_FLAGS);
+			eVideoFrameProcessorMode::CALIBRATION);
 	m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
 	// Register as a stream consumer — VideoSourceComponent::update() drives the retry loop

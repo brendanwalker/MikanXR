@@ -64,7 +64,7 @@ void AppStage_MonoLensCalibration::enter()
 	// Create the distortion view eagerly — it is the stream ownership token
 	m_monoDistortionView = new VideoFrameDistortionView(
 		m_videoSourceComponent,
-		VIDEO_FRAME_HAS_CALIBRATION_FLAGS);
+		eVideoFrameProcessorMode::CALIBRATION);
 
 	// Register as a stream consumer — VideoSourceComponent::update() drives the retry loop
 	m_videoSourceComponent->startVideoStream(m_monoDistortionView);

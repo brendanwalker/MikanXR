@@ -583,7 +583,7 @@ void CompositorComponent::startVideoSourceStreaming(VideoSourceComponentPtr vide
 	// (VideoFrameDistortionView subscribes to OnFrameSizeChanged internally)
 	m_videoDistortionView = std::make_shared<VideoFrameDistortionView>(
 		videoSource,
-		VIDEO_FRAME_HAS_COMPOSITOR_FLAGS,
+		eVideoFrameProcessorMode::COMPOSITOR,
 		videoSource->getVideoSourceDefinition()->getVideoFrameQueueSize());
 
 	// Always use the undistorted video frame for compositing

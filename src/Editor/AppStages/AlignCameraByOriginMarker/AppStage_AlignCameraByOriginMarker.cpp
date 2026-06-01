@@ -345,7 +345,7 @@ void AppStage_AlignCameraByOriginMarker::render(IMkViewportPtr targetViewport)
 void AppStage_AlignCameraByOriginMarker::startVideoStream()
 {
 	// Create the distortion view eagerly — it is the stream ownership token
-	m_targetDistortionView = new VideoFrameDistortionView(m_targetVideoSource, VIDEO_FRAME_HAS_CALIBRATION_FLAGS);
+	m_targetDistortionView = new VideoFrameDistortionView(m_targetVideoSource, eVideoFrameProcessorMode::CALIBRATION);
 	m_targetDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
 	// Register as a stream consumer — VideoSourceComponent::update() drives the retry loop

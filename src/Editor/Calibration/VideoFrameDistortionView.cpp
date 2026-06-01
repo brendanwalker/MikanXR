@@ -67,14 +67,14 @@ struct OpenCVMonoCameraIntrinsics
 
 VideoFrameDistortionView::VideoFrameDistortionView(
 	VideoSourceComponentPtr videoSourceComponent,
-	unsigned int bufferBitmask,
+	eVideoFrameProcessorMode processorMode,
 	unsigned int frameQueueSize,
 	VideoFrameSection videoFramesection)
 	: m_videoFrameSection(videoFramesection)
 	, m_videoDisplayMode(eVideoDisplayMode::mode_bgr)
 	, m_videoSourceComponent(videoSourceComponent)
 	, m_bVideoIsStreaming(false)
-	, m_bufferBitmask(bufferBitmask)
+	, m_processorMode(processorMode)
 	, m_frameWidth(0)
 	, m_frameHeight(0)
 	, m_fps(0.f)
@@ -117,14 +117,14 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	m_noVideoMaterial = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_PM5544_TEST_CARD);
 	m_noVideoMaterialInstance = createMkMaterialInstance(m_noVideoMaterial);
 
-	// Create CV processor when any OpenCV buffer flag is set
-	if (bufferBitmask & (VIDEO_FRAME_HAS_CV_BGR_UNDISTORT_FLAG | VIDEO_FRAME_HAS_CV_GRAYSCALE_FLAG))
+	// Create CV processor for calibration mode (CPU-based OpenCV undistortion)
+	if (processorMode == eVideoFrameProcessorMode::CALIBRATION)
 	{
 		m_cvProcessor = std::make_unique<CVVideoFrameProcessor>();
 	}
 
-	// Create GL processor when shader-based undistortion is requested
-	if (bufferBitmask & VIDEO_FRAME_HAS_GL_BGR_UNDISTORT_FLAG)
+	// Create GL processor for compositor mode (GPU-based shader undistortion)
+	if (processorMode == eVideoFrameProcessorMode::COMPOSITOR)
 	{
 		m_glProcessor = std::make_unique<GLVideoFrameProcessor>();
 		m_glProcessor->init(shaderCache);
@@ -253,17 +253,14 @@ void VideoFrameDistortionView::ensureFrameBufferSize(int width, int height)
 			<< " is not distortion calibrated. Using estimated focal length and no distortion.";
 	}
 
-	// Allocate distortion maps when any undistortion path is active
-	if (m_bufferBitmask & (VIDEO_FRAME_HAS_CV_BGR_UNDISTORT_FLAG | VIDEO_FRAME_HAS_GL_BGR_UNDISTORT_FLAG))
-	{
-		if (m_distortionMapX != nullptr)
-			delete m_distortionMapX;
-		m_distortionMapX = new cv::Mat(cv::Size(m_frameWidth, m_frameHeight), CV_32FC1);
+	// Both modes require distortion maps (CALIBRATION: for cv::remap, COMPOSITOR: for shader)
+	if (m_distortionMapX != nullptr)
+		delete m_distortionMapX;
+	m_distortionMapX = new cv::Mat(cv::Size(m_frameWidth, m_frameHeight), CV_32FC1);
 
-		if (m_distortionMapY != nullptr)
-			delete m_distortionMapY;
-		m_distortionMapY = new cv::Mat(cv::Size(m_frameWidth, m_frameHeight), CV_32FC1);
-	}
+	if (m_distortionMapY != nullptr)
+		delete m_distortionMapY;
+	m_distortionMapY = new cv::Mat(cv::Size(m_frameWidth, m_frameHeight), CV_32FC1);
 
 	// Resize CV processor buffers
 	if (m_cvProcessor)
@@ -277,8 +274,7 @@ void VideoFrameDistortionView::ensureFrameBufferSize(int width, int height)
 		m_glProcessor->ensureBufferSize(width, height);
 	}
 
-	// Create a texture to render the video frame to
-	if (m_bufferBitmask & VIDEO_FRAME_HAS_GL_TEXTURE_FLAG)
+	// Both modes render into a GL texture queue
 	{
 		// Re-init all video frame queue entries for the new frame size
 		for (int queueIndex = 0; queueIndex < m_videoFrameQueueSize; ++queueIndex)
