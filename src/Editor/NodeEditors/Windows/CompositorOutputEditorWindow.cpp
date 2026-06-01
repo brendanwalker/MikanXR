@@ -7,6 +7,7 @@
 #include "ClientSourceManager.h"
 #include "CompositorComponent.h"
 #include "CompositorObjectSystem.h"
+#include "EditorObjectSystem.h"
 #include "EventBus.h"
 #include "IMkLineRenderer.h"
 #include "IMkGraphicsContext.h"
@@ -98,7 +99,7 @@ bool CompositorOutputEditorWindow::startup()
 	// Build the compositor frame fullscreen quad (uses built-in RGB material)
 	if (success)
 	{
-		m_compositedFrameQuad = createFullscreenQuadMesh(m_graphicsContext.get(), false, false);
+		m_compositedFrameQuad = createFullscreenQuadMesh(m_graphicsContext.get(), true, false);
 	}
 
 	// Build the "no composited frame" mesh
@@ -353,19 +354,34 @@ void CompositorOutputEditorWindow::render()
 		if (compositor && m_viewCamera)
 		{
 			MainWindow* mainWindow = getMainWindow();
-			auto sceneSystem = mainWindow->getProjectManager()->getSystemOfType<SceneObjectSystem>();
-			if (sceneSystem)
+			ProjectManagerPtr projectManager= mainWindow->getProjectManager();
+			auto sceneSystem = projectManager->getSystemOfType<SceneObjectSystem>();
+			auto editorSystem = projectManager->getSystemOfType<EditorObjectSystem>();
+			if (sceneSystem && editorSystem)
 			{
 				SceneComponentConstPtr currentScene = sceneSystem->getCurrentScene();
+				const EditorSettings& editorConfig = editorSystem->getEditorSettings();
+
 				if (currentScene)
 				{
 					// Clear the scene of any previously rendered instances
 					m_mkScene->removeAllInstances();
 
 					// Add scene actors to the MkScene for rendering
-					addAllRenderablesToMkScene(m_boxStencilSystem.lock(), m_mkScene);
-					addAllRenderablesToMkScene(m_modelStencilSystem.lock(), m_mkScene);
-					addAllRenderablesToMkScene(m_quadStencilSystem.lock(), m_mkScene);
+					if (editorConfig.bDebugRenderBoxStencils)
+					{
+						addAllRenderablesToMkScene(m_boxStencilSystem.lock(), m_mkScene);
+					}
+
+					if (editorConfig.bDebugRenderModelStencils)
+					{
+						addAllRenderablesToMkScene(m_modelStencilSystem.lock(), m_mkScene);
+					}
+
+					if (editorConfig.bDebugRenderQuadStencils)
+					{
+						addAllRenderablesToMkScene(m_quadStencilSystem.lock(), m_mkScene);
+					}
 
 					// Render the 3d scene
 					m_mkScene->render(m_viewCamera, stateStack);

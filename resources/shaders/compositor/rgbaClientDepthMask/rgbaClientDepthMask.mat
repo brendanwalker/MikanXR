@@ -1,0 +1,22 @@
+{
+    "materialName": "rgbaClientDepthMask",
+    "vertexShaderPath": "../shared/compositorFrame.vert",
+    "fragmentShaderPath": "rgbaClientDepthMask.frag",
+    "vertexAttributes": [
+        {
+            "name": "aPos",
+            "dataType": "vec2",
+            "semantic": "position"
+        },
+        {
+            "name": "aTexCoords",
+            "dataType": "vec2",
+            "semantic": "texCoord"
+        }
+    ],
+    "uniformSemanticMap": {
+        "videoDepth": "depthTexture",
+        "clientRGBA": "rgbaTexture",
+        "clientDepth": "depthTexture"
+    }
+}

@@ -2,11 +2,14 @@
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "IMkGraphicsContext.h"
+#include "IMkFrameBuffer.h"
 #include "IMkTexture.h"
 #include "IMkTriangulatedMesh.h"
 #include "MikanShaderCache.h"
 #include "Logger.h"
 #include "MathTypeConversion.h"
+#include "MkScopedObjectBinding.h"
+#include "MkStateStack.h"
 #include "OpenCVManager.h"
 #include "VideoFrameDistortionView.h"
 #include "VideoSourceComponent.h"
@@ -99,6 +102,8 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	, m_videoFrameQueueLastWriteIndex(-1)
 	, m_videoFrameQueuePendingWriteIndex(0)
 {
+	IMkShaderCache* shaderCache = getGraphicsContext()->getShaderCache();
+
 	// Init Video Frame Texture Queue Entries
 	m_videoFrameQueue = new VideoFrameQueueEntry[frameQueueSize];
 	for (int queueIndex = 0; queueIndex < frameQueueSize; ++queueIndex)
@@ -110,19 +115,24 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	}
 		
 	// Create a mesh used to render the video frame
+	// (Assigns the INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE material on the mesh)
 	m_fullscreenRGBVideoQuad= createFullscreenQuadMesh(getGraphicsContext(), true);
 
-	// Optionally create a mesh for rendering when no video frame is available
-	if (bufferBitmask & VIDEO_FRAME_HAS_NO_VIDEO_SHADER_FLAG)
-	{
-		MkMaterialConstPtr noVideoMaterial =
-			getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_PM5544_TEST_CARD);
+	// Create a special material for to draw when no video is available
+	m_noVideoMaterial = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_PM5544_TEST_CARD);
+	m_noVideoMaterialInstance = createMkMaterialInstance(m_noVideoMaterial);
 
-		m_fullscreenRGBNoVideoQuad =
-			createFullscreenQuadMesh(
-				getGraphicsContext(),
-				noVideoMaterial,
-				false);
+	// Optionally create a frame buffer for GPU based undistortion rendering
+	if (bufferBitmask & VIDEO_FRAME_HAS_GL_BGR_UNDISTORT_FLAG)
+	{
+		// Create the RGB frame buffer; size and resources are initialized lazily in glComputeUndistortion
+		m_undistortionFrameBuffer = createMkFrameBuffer("Undistortion Frame Buffer");
+		m_undistortionFrameBuffer->setFrameBufferType(IMkFrameBuffer::eFrameBufferType::COLOR);
+		m_undistortionFrameBuffer->setColorFormat(IMkFrameBuffer::eColorFormat::RGB);
+
+		// Setup the undistortion material
+		m_undistortionMaterial = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_UNDISTORT_FULLSCREEN_RGB_TEXTURE);
+		m_undistortMaterialInstance = createMkMaterialInstance(m_undistortionMaterial);
 	}
 }
 
@@ -222,14 +232,17 @@ void VideoFrameDistortionView::ensureFrameBufferSize(int width, int height)
 	}
 
 	// Distortion state
-	if (m_bufferBitmask & VIDEO_FRAME_HAS_BGR_UNDISTORT_FLAG)
+	if (m_bufferBitmask & VIDEO_FRAME_HAS_CV_BGR_UNDISTORT_FLAG)
 	{
 		if (m_bgrUndistortBuffer != nullptr)
 		{
 			delete m_bgrUndistortBuffer;
 		}
 		m_bgrUndistortBuffer = new cv::Mat(cv::Size(m_frameWidth, m_frameHeight), CV_8UC3);
-
+	}
+	if (m_bufferBitmask & VIDEO_FRAME_HAS_CV_BGR_UNDISTORT_FLAG ||
+		m_bufferBitmask & VIDEO_FRAME_HAS_GL_BGR_UNDISTORT_FLAG)
+	{
 		if (m_distortionMapX != nullptr)
 		{
 			delete m_distortionMapX;
@@ -244,7 +257,7 @@ void VideoFrameDistortionView::ensureFrameBufferSize(int width, int height)
 	}
 
 	// Grayscale video frame buffers
-	if (m_bufferBitmask & VIDEO_FRAME_HAS_GRAYSCALE_FLAG)
+	if (m_bufferBitmask & VIDEO_FRAME_HAS_CV_GRAYSCALE_FLAG)
 	{
 		if (m_gsSourceBuffer != nullptr)
 		{
@@ -265,9 +278,30 @@ void VideoFrameDistortionView::ensureFrameBufferSize(int width, int height)
 		m_bgrGsDisplayBuffer = new cv::Mat(m_frameHeight, m_frameWidth, CV_8UC3);
 	}
 
+	// Keep the undistortion framebuffer size in sync so it gets re-created on the next render
+	if (m_undistortionFrameBuffer)
+	{
+		m_undistortionFrameBuffer->setSize(m_frameWidth, m_frameHeight);
+	}
+
 	// Create a texture to render the video frame to
 	if (m_bufferBitmask & VIDEO_FRAME_HAS_GL_TEXTURE_FLAG)
 	{
+		if (m_bufferBitmask & VIDEO_FRAME_HAS_GL_BGR_UNDISTORT_FLAG)
+		{
+			// Allocate a gl texture to copy the source video frame into
+			// This is only used when doing shader based undistortuin
+			m_bgrSourceTextureMap = CreateMkTexture(
+				m_frameWidth,
+				m_frameHeight,
+				nullptr,
+				MK_RGB, // texture format
+				MK_BGR); // buffer format
+			m_bgrSourceTextureMap->setGenerateMipMap(false);
+			m_bgrSourceTextureMap->setPixelBufferObjectMode(IMkTexture::PixelBufferObjectMode::DoublePBOWrite);
+			m_bgrSourceTextureMap->createTexture();
+		}
+
 		// Re-init all video frame queue for the new frame size
 		for (int queueIndex = 0; queueIndex < m_videoFrameQueueSize; ++queueIndex)
 		{
@@ -447,9 +481,6 @@ void VideoFrameDistortionView::processVideoFrame(int64_t newFrameIndex)
 	// (This can happen on streaming video sources)
 	ensureFrameBufferSize(m_bgrSourceBufferWidth, m_bgrSourceBufferHeight);
 
-	// Apply undistortion maps to the video frame (if valid and desired)
-	computeUndistortion(m_bgrSourceBuffer);
-
 	// Get the next video texture in the queue to write to
 	// and record the frame index for that texture
 	IMkTexturePtr writeTexture;
@@ -476,17 +507,36 @@ void VideoFrameDistortionView::processVideoFrame(int64_t newFrameIndex)
 		switch (m_videoDisplayMode)
 		{
 		case eVideoDisplayMode::mode_bgr:
+			// Copy BGR OpenCV buffer directly to texture with no processing
 			copyOpenCVMatIntoGLTexture(*m_bgrSourceBuffer, writeTexture);
 			break;
 		case eVideoDisplayMode::mode_undistored:
-			if (m_bgrUndistortBuffer != nullptr)
 			{
-				copyOpenCVMatIntoGLTexture(*m_bgrUndistortBuffer, writeTexture);
+				if (m_undistortionFrameBuffer)
+				{
+					// Copy BGR OpenCV buffer directly to texture with no processing
+					copyOpenCVMatIntoGLTexture(*m_bgrSourceBuffer, m_bgrSourceTextureMap);
+
+					// Compute the undistortion using an OpenGL shader
+					glComputeUndistortion(writeTexture);
+				}
+				else if (m_bgrUndistortBuffer)
+				{
+					// Apply undistortion to the video frame using OpenCV
+					cvComputeUndistortion();
+
+					// Copy the BGR OpenCV frame buffer to the output texture
+					copyOpenCVMatIntoGLTexture(*m_bgrUndistortBuffer, writeTexture);
+				}
 			}
 			break;
 		case eVideoDisplayMode::mode_grayscale:
 			if (m_bgrGsDisplayBuffer != nullptr)
 			{
+				// Apply undistortion to the video frame using OpenCV
+				cvComputeUndistortion();
+
+				// Copy the BGR-Grayscale OpenCV frame buffer to the output texture
 				copyOpenCVMatIntoGLTexture(*m_bgrGsDisplayBuffer, writeTexture);
 			}
 			break;
@@ -497,49 +547,111 @@ void VideoFrameDistortionView::processVideoFrame(int64_t newFrameIndex)
 	}
 }
 
-void VideoFrameDistortionView::computeUndistortion(cv::Mat* bgrSourceBuffer)
+void VideoFrameDistortionView::glComputeUndistortion(IMkTexturePtr writeTexture)
+{
+	IMkGraphicsContext* graphicsContext = getGraphicsContext();
+
+	// Point the framebuffer at the target queue slot texture.
+	// If the FBO already exists this is a cheap glFramebufferTexture2D re-attach;
+	// otherwise the texture is stored and used when createResources() is called below.
+	m_undistortionFrameBuffer->attachColorTexture(writeTexture);
+
+	// Lazily create (or re-create after a resolution change) the FBO
+	if (!m_undistortionFrameBuffer->isValid())
+	{
+		if (!m_undistortionFrameBuffer->createResources())
+		{
+			MIKAN_LOG_ERROR("glComputeUndistortion") << "Failed to create undistortion framebuffer";
+			return;
+		}
+	}
+
+	// Run the undistortion shader on the frame buffer
+	{
+		MkScopedObjectBinding colorFramebufferBinding(
+			graphicsContext->getMkStateStack().getCurrentState(),
+			"VideoFrameDistortionView Framebuffer Scope",
+			m_undistortionFrameBuffer);
+
+		if (colorFramebufferBinding)
+		{
+			if (auto materialBinding = m_undistortionMaterial->bindMaterial())
+			{
+				m_undistortMaterialInstance->setTextureBySemantic(eUniformSemantic::rgbTexture, m_bgrSourceTextureMap);
+				m_undistortMaterialInstance->setTextureBySemantic(eUniformSemantic::distortionTexture, m_distortionTextureMap);
+
+				// Draw the color texture
+				if (auto materialInstanceBinding = m_undistortMaterialInstance->bindMaterialInstance(materialBinding))
+				{
+					m_fullscreenRGBVideoQuad->drawElements();
+				}
+			}
+		}
+	}
+}
+
+void VideoFrameDistortionView::cvComputeUndistortion()
 {
 	if (m_bgrUndistortBuffer == nullptr || m_distortionMapX == nullptr || m_distortionMapY == nullptr)
 	{
 		return;
 	}
 
-	EASY_BLOCK("Undistort");
+	EASY_BLOCK("OpenCV Undistort");
 
 	// Apply the X and Y undistortion maps to create an undistorted 24-BPP image (for display)
 	if (!m_bColorUndistortDisabled &&
 		m_bgrUndistortBuffer != nullptr)
 	{
-		EASY_BLOCK("Color Remap");
+		EASY_BLOCK("Color Undistort");
 
 		cv::remap(
-			*bgrSourceBuffer, *m_bgrUndistortBuffer,
+			*m_bgrSourceBuffer, *m_bgrUndistortBuffer,
 			*m_distortionMapX, *m_distortionMapY,
 			cv::INTER_LINEAR, cv::BORDER_CONSTANT);
 	}
 
 	// Also, optionally do grayscale conversion (and maybe undistortion)
-	if (bgrSourceBuffer != nullptr && 
+	if (m_bgrSourceBuffer != nullptr &&
 		m_gsSourceBuffer != nullptr &&
 		m_bgrGsDisplayBuffer != nullptr)
 	{
 		if (!m_bGrayscaleUndistortDisabled && m_gsUndistortBuffer != nullptr)
 		{
-			EASY_BLOCK("Grayscale Convert and Remap");
+			{
+				EASY_BLOCK("BGR -> Grayscale");
 
-			cv::cvtColor(*bgrSourceBuffer, *m_gsSourceBuffer, cv::COLOR_BGR2GRAY);
-			cv::remap(
-				*m_gsSourceBuffer, *m_gsUndistortBuffer,
-				*m_distortionMapX, *m_distortionMapY,
-				cv::INTER_LINEAR, cv::BORDER_CONSTANT);
-			cv::cvtColor(*m_gsUndistortBuffer, *m_bgrGsDisplayBuffer, cv::COLOR_GRAY2BGR);
+				cv::cvtColor(*m_bgrSourceBuffer, *m_gsSourceBuffer, cv::COLOR_BGR2GRAY);
+			}
+
+			{
+				EASY_BLOCK("BGR -> Grayscale");
+
+				cv::remap(
+					*m_gsSourceBuffer, *m_gsUndistortBuffer,
+					*m_distortionMapX, *m_distortionMapY,
+					cv::INTER_LINEAR, cv::BORDER_CONSTANT);
+			}
+
+			{
+				EASY_BLOCK("Grayscale -> BGR");
+
+				cv::cvtColor(*m_gsUndistortBuffer, *m_bgrGsDisplayBuffer, cv::COLOR_GRAY2BGR);
+			}
 		}
 		else if (m_bGrayscaleUndistortDisabled)
 		{
-			EASY_BLOCK("Grayscale Convert");
+			{
+				EASY_BLOCK("BGR -> Grayscale");
 
-			cv::cvtColor(*bgrSourceBuffer, *m_gsSourceBuffer, cv::COLOR_BGR2GRAY);
-			cv::cvtColor(*m_gsSourceBuffer, *m_bgrGsDisplayBuffer, cv::COLOR_GRAY2BGR);
+				cv::cvtColor(*m_bgrSourceBuffer, *m_gsSourceBuffer, cv::COLOR_BGR2GRAY);
+			}
+
+			{
+				EASY_BLOCK("Grayscale -> BGR");
+
+				cv::cvtColor(*m_gsSourceBuffer, *m_bgrGsDisplayBuffer, cv::COLOR_GRAY2BGR);
+			}
 		}
 	}
 }
@@ -635,10 +747,11 @@ void VideoFrameDistortionView::rebuildDistortionMap()
 
 void VideoFrameDistortionView::renderSelectedVideoBuffers()
 {
-	if (m_bVideoIsStreaming)
+	if (m_fullscreenRGBVideoQuad != nullptr)
 	{
+		// Draw the undistorted video texture
 		IMkTexturePtr videoTexture = getVideoTexture();
-		if (videoTexture != nullptr && m_fullscreenRGBVideoQuad != nullptr)
+		if (videoTexture != nullptr && m_bVideoIsStreaming)
 		{
 			MkMaterialInstancePtr materialInstance = m_fullscreenRGBVideoQuad->getMaterialInstance();
 			MkMaterialConstPtr material = materialInstance->getMaterial();
@@ -655,26 +768,25 @@ void VideoFrameDistortionView::renderSelectedVideoBuffers()
 				}
 			}
 		}
-	}
-	else if (m_fullscreenRGBNoVideoQuad != nullptr)
-	{
-		MkMaterialInstancePtr materialInstance = m_fullscreenRGBNoVideoQuad->getMaterialInstance();
-		MkMaterialConstPtr material = materialInstance->getMaterial();
-		if (auto materialBinding = material->bindMaterial())
+		// Draw the "no-video" shader
+		else
 		{
-			//TODO: "Time" and "ScreenSize" are uniforms that all materials
-			// should have available by default in the graphics context
-			IEditorWindow* ownerWindow= m_videoSourceComponent->getOwnerEditorWindow();
-			const double currentTimeSeconds = ownerWindow->getOwnerApp()->getSecondsSinceAppStart();
-			const float shaderTime = (float)fmodf(currentTimeSeconds, 1000.0);
-			const glm::vec2 screenSize(ownerWindow->getWidth(), ownerWindow->getHeight());
-			materialInstance->setVec2BySemantic(eUniformSemantic::screenSize, screenSize);
-			materialInstance->setFloatBySemantic(eUniformSemantic::floatConstant0, shaderTime);
-
-			// Draw the "no video" shader
-			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+			if (auto materialBinding = m_noVideoMaterial->bindMaterial())
 			{
-				m_fullscreenRGBNoVideoQuad->drawElements();
+				//TODO: "Time" and "ScreenSize" are uniforms that all materials
+				// should have available by default in the graphics context
+				IEditorWindow* ownerWindow = m_videoSourceComponent->getOwnerEditorWindow();
+				const double currentTimeSeconds = ownerWindow->getOwnerApp()->getSecondsSinceAppStart();
+				const float shaderTime = (float)fmodf(currentTimeSeconds, 1000.0);
+				const glm::vec2 screenSize(ownerWindow->getWidth(), ownerWindow->getHeight());
+				m_noVideoMaterialInstance->setVec2BySemantic(eUniformSemantic::screenSize, screenSize);
+				m_noVideoMaterialInstance->setFloatBySemantic(eUniformSemantic::floatConstant0, shaderTime);
+
+				// Draw the no-video shader
+				if (auto materialInstanceBinding = m_noVideoMaterialInstance->bindMaterialInstance(materialBinding))
+				{
+					m_fullscreenRGBVideoQuad->drawElements();
+				}
 			}
 		}
 	}

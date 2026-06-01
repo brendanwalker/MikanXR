@@ -432,10 +432,10 @@ void AppStage_AlignCameraByUtilityMarker::onSourceCameraSelected(MikanCameraID c
 void AppStage_AlignCameraByUtilityMarker::startVideoStreams()
 {
 	// Create views eagerly — they are the stream ownership tokens
-	m_sourceDistortionView = new VideoFrameDistortionView(m_sourceVideoSource, VIDEO_FRAME_HAS_ALL);
+	m_sourceDistortionView = new VideoFrameDistortionView(m_sourceVideoSource, VIDEO_FRAME_HAS_CALIBRATION_FLAGS);
 	m_sourceDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
-	m_targetDistortionView = new VideoFrameDistortionView(m_targetVideoSource, VIDEO_FRAME_HAS_ALL);
+	m_targetDistortionView = new VideoFrameDistortionView(m_targetVideoSource, VIDEO_FRAME_HAS_CALIBRATION_FLAGS);
 	m_targetDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
 	// Register as stream consumers — VideoSourceComponent::update() drives the retry loop

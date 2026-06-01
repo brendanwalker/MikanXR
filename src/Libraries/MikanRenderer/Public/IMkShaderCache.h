@@ -7,20 +7,21 @@
 #include <string>
 #include <map>
 
-#define INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE		"Internal_PT_FullscreenRGBTexture"
-#define INTERNAL_MATERIAL_PT_FULLSCREEN_RGBA_TEXTURE	"Internal_PT_FullscreenRGBATexture"
-#define INTERNAL_MATERIAL_TEXT							"Internal_Text"
-#define INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE		"Internal_UnpackRGBADepthTexture"
-#define INTERNAL_MATERIAL_P_WIREFRAME					"Internal_P_Wireframe"
-#define INTERNAL_MATERIAL_P_SOLID_COLOR					"Internal_P_SolidColor"
-#define INTERNAL_MATERIAL_PC_UNLIT_COLOR				"Internal_PC_UnlitColor"
-#define INTERNAL_MATERIAL_PNT_TEXTURED					"Internal_PNT_Textured"
-#define INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED		"Internal_PNT_TexturedLitColored"
-#define INTERNAL_MATERIAL_P_LINEAR_DEPTH				"Internal_P_LinearDepth"
-#define INTERNAL_MATERIAL_PT_NORMALIZE_DEPTH			"Internal_PT_NormalizeDepth"
-#define INTERNAL_MATERIAL_PT_PM5544_TEST_CARD			"Internal_PT_PM5544TestCard"
-#define INTERNAL_MATERIAL_PT_TEXTURED					"Internal_PT_Textured"
-#define INTERNAL_MATERIAL_P_CONE_VOLUME					"Internal_P_ConeVolume"
+#define INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE				"Internal_PT_FullscreenRGBTexture"
+#define INTERNAL_MATERIAL_PT_UNDISTORT_FULLSCREEN_RGB_TEXTURE	"Internal_PT_UndistortFullscreenRGBTexture"
+#define INTERNAL_MATERIAL_PT_FULLSCREEN_RGBA_TEXTURE			"Internal_PT_FullscreenRGBATexture"
+#define INTERNAL_MATERIAL_TEXT									"Internal_Text"
+#define INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE				"Internal_UnpackRGBADepthTexture"
+#define INTERNAL_MATERIAL_P_WIREFRAME							"Internal_P_Wireframe"
+#define INTERNAL_MATERIAL_P_SOLID_COLOR							"Internal_P_SolidColor"
+#define INTERNAL_MATERIAL_PC_UNLIT_COLOR						"Internal_PC_UnlitColor"
+#define INTERNAL_MATERIAL_PNT_TEXTURED							"Internal_PNT_Textured"
+#define INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED				"Internal_PNT_TexturedLitColored"
+#define INTERNAL_MATERIAL_P_LINEAR_DEPTH						"Internal_P_LinearDepth"
+#define INTERNAL_MATERIAL_PT_NORMALIZE_DEPTH					"Internal_PT_NormalizeDepth"
+#define INTERNAL_MATERIAL_PT_PM5544_TEST_CARD					"Internal_PT_PM5544TestCard"
+#define INTERNAL_MATERIAL_PT_TEXTURED							"Internal_PT_Textured"
+#define INTERNAL_MATERIAL_P_CONE_VOLUME							"Internal_P_ConeVolume"
 
 class IMkShaderCache
 {

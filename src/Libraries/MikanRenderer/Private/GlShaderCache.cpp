@@ -137,8 +137,8 @@ namespace InternalShaders
 					gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
 				}
 				)"""",
-					//fragment shader
-					R""""(
+				//fragment shader
+				R""""(
 				#version 330 core
 				out vec4 FragColor;
 
@@ -155,6 +155,55 @@ namespace InternalShaders
 			x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
 			x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
 			x_shaderCode->addUniform("rgbTexture", eUniformSemantic::rgbTexture);
+		}
+
+		return x_shaderCode;
+	}
+
+	IMkShaderCodeConstPtr getPTUndistortTexturedFullScreenRGBQuad()
+	{
+		static IMkShaderCodePtr x_shaderCode = nullptr;
+
+		if (x_shaderCode == nullptr)
+		{
+			x_shaderCode = createIMkShaderCode(
+				INTERNAL_MATERIAL_PT_UNDISTORT_FULLSCREEN_RGB_TEXTURE,
+				// vertex shader
+				R""""(
+				#version 330 core
+				layout (location = 0) in vec2 aPos;
+				layout (location = 1) in vec2 aTexCoords;
+
+				out vec2 TexCoords;
+
+				void main()
+				{
+					TexCoords = aTexCoords;
+					gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
+				}
+				)"""",
+				//fragment shader
+				R""""(
+				#version 330 core
+				out vec4 FragColor;
+
+				in vec2 TexCoords;
+
+				uniform sampler2D rgbTexture;
+				uniform sampler2D distortionTexture;
+
+				void main()
+				{
+					vec2 offset = texture(distortionTexture, TexCoords.xy).rg;
+					vec3 col = texture(rgbTexture, offset).rgb;
+
+					FragColor = vec4(col, 1.0);
+				}
+				)"""");
+			x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
+			x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+			x_shaderCode->addUniform("rgbTexture", eUniformSemantic::rgbTexture);
+			x_shaderCode->addUniform("distortionTexture", eUniformSemantic::distortionTexture);
 		}
 
 		return x_shaderCode;
@@ -970,6 +1019,7 @@ namespace InternalShaders
 	{
 		std::vector<IMkShaderCodeConstPtr> internalShaders = {
 			getPTTexturedFullScreenRGBQuad(),
+			getPTUndistortTexturedFullScreenRGBQuad(),
 			getPTTexturedFullScreenRGBAQuad(),
 			getTextShaderCode(),
 			getUnpackRGBALinearDepthTextureShaderCode(),

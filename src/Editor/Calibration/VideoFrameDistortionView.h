@@ -70,7 +70,8 @@ protected:
 	void processVideoFrame(int64_t newFrameIndex);
 	void ensureFrameBufferSize(int width, int height);
 	void rebuildDistortionMap();
-	void computeUndistortion(cv::Mat* bgrSourceBuffer);
+	void glComputeUndistortion(IMkTexturePtr writeTexture);
+	void cvComputeUndistortion();
 
 	static void copyOpenCVMatIntoGLTexture(const cv::Mat& mat, IMkTexturePtr texture);
 
@@ -94,7 +95,6 @@ protected:
 	std::chrono::steady_clock::time_point m_lastFrameTimestamp;
 
 	// Video frame buffers (24-BPP, BGR color format)
-	cv::Mat* m_bgrSourceBuffer_OGL; // 24-BPP(BGR color format) source buffer on GPU
 	cv::Mat* m_bgrUndistortBuffer;
 
 	// Grayscale video frame buffers
@@ -108,7 +108,11 @@ protected:
 	// Distortion preview
 	cv::Mat* m_distortionMapX;
 	cv::Mat* m_distortionMapY;
-	IMkTexturePtr m_distortionTextureMap= nullptr;
+	IMkTexturePtr m_bgrSourceTextureMap;
+	IMkTexturePtr m_distortionTextureMap;
+	IMkFrameBufferPtr m_undistortionFrameBuffer;
+	MkMaterialConstPtr m_undistortionMaterial;
+	MkMaterialInstancePtr m_undistortMaterialInstance;
 
 	// Circular RGB video frame queue
 	struct VideoFrameQueueEntry
@@ -121,11 +125,10 @@ protected:
 	int m_videoFrameQueueLastWriteIndex= -1;
 	int m_videoFrameQueuePendingWriteIndex = 0;
 
-	// Quad used for fullscreen video rendering
+	// FrameBuffer used for fullscreen video rendering
 	IMkTriangulatedMeshPtr m_fullscreenRGBVideoQuad;
-
-	// Quad used for fullscreen rendering when no video is available
-	IMkTriangulatedMeshPtr m_fullscreenRGBNoVideoQuad;
+	MkMaterialConstPtr m_noVideoMaterial;
+	MkMaterialInstancePtr m_noVideoMaterialInstance;
 
 	// Runtime flags
 	bool m_bColorUndistortDisabled= false;

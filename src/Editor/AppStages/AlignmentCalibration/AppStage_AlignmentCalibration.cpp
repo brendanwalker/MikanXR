@@ -204,7 +204,7 @@ void AppStage_AlignmentCalibration::enter()
 	m_monoDistortionView =
 		new VideoFrameDistortionView(
 			m_videoSourceComponent,
-			VIDEO_FRAME_HAS_ALL);
+			VIDEO_FRAME_HAS_CALIBRATION_FLAGS);
 	m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
 	// Register as a stream consumer — update() drives the retry loop

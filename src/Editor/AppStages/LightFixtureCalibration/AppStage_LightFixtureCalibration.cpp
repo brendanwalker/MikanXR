@@ -63,7 +63,7 @@ void AppStage_LightFixtureCalibration::enter()
 
 	// Create the distortion view eagerly — it is the stream ownership token
 	m_monoDistortionView =
-		new VideoFrameDistortionView(m_videoSourceComponent, VIDEO_FRAME_HAS_ALL);
+		new VideoFrameDistortionView(m_videoSourceComponent, VIDEO_FRAME_HAS_CALIBRATION_FLAGS);
 	m_monoDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
 	// Register as a stream consumer — VideoSourceComponent::update() drives the retry loop

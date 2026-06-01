@@ -583,7 +583,7 @@ void CompositorComponent::startVideoSourceStreaming(VideoSourceComponentPtr vide
 	// (VideoFrameDistortionView subscribes to OnFrameSizeChanged internally)
 	m_videoDistortionView = std::make_shared<VideoFrameDistortionView>(
 		videoSource,
-		VIDEO_FRAME_HAS_BGR_UNDISTORT_FLAG | VIDEO_FRAME_HAS_GL_TEXTURE_FLAG | VIDEO_FRAME_HAS_NO_VIDEO_SHADER_FLAG,
+		VIDEO_FRAME_HAS_COMPOSITOR_FLAGS,
 		videoSource->getVideoSourceDefinition()->getVideoFrameQueueSize());
 
 	// Always use the undistorted video frame for compositing
@@ -737,11 +737,8 @@ std::filesystem::path CompositorComponent::getCompositorGraphAssetPath() const
 
 void CompositorComponent::setCompositorGraphAssetPath(const std::filesystem::path& assetRefPath)
 {
-	if (m_nodeGraphAssetRef->getAssetPath() != assetRefPath)
-	{
-		handleCompositorNodeGraphChanged(assetRefPath);
-		getCompositorDefinition()->setCompositorGraphPath(assetRefPath);
-	}
+	handleCompositorNodeGraphChanged(assetRefPath);
+	getCompositorDefinition()->setCompositorGraphPath(assetRefPath);
 }
 
 void CompositorComponent::handleCompositorNodeGraphChanged(const std::filesystem::path& newAssetRefPath)
