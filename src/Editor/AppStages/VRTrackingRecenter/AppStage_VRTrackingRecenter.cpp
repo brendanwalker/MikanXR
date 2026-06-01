@@ -388,7 +388,7 @@ void AppStage_VRTrackingRecenter::render(IMkViewportPtr targetViewport)
 		mkStateClearBuffer(mkState, eMkClearFlags::depth);
 
 		// Render any lines and text that were added to the scene by the calibrator in the frame buffer's viewport
-		graphicsContext->getLineRenderer()->render();
+		graphicsContext->getLineRenderer()->render(true);
 		graphicsContext->getTextRenderer()->render();
 	}
 

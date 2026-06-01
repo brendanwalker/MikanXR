@@ -14,10 +14,8 @@ public:
 	virtual ~IMkLineRenderer() {}
 
 	virtual bool startup() = 0;
-	virtual void render() = 0;
+	virtual void render(bool bDisableDepth) = 0;
 	virtual void shutdown() = 0;
-
-	virtual void setDisable3dDepth(bool bFlag) = 0;
 
 	// Draw 3d points and lines in world space
 	virtual void addPoint3d(

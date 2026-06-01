@@ -360,7 +360,7 @@ void MainWindow::renderStageViewport(AppStage* appStage, IMkViewportPtr targetVi
 	appStage->render(targetViewport);
 
 	// Render any 3D line segments emitted by the AppStage
-	m_graphicsContext->getLineRenderer()->render();
+	m_graphicsContext->getLineRenderer()->render(false);
 
 	// Render any glyphs emitted by the AppStage
 	m_graphicsContext->getTextRenderer()->render();
@@ -415,7 +415,7 @@ void MainWindow::renderStageUI(AppStage* appStage)
 	}
 
 	// Render any 2D line segments emitted by the AppStage renderUI phase
-	m_graphicsContext->getLineRenderer()->render();
+	m_graphicsContext->getLineRenderer()->render(true);
 
 	// Render any glyphs emitted by the AppStage renderUI phase
 	m_graphicsContext->getTextRenderer()->render();

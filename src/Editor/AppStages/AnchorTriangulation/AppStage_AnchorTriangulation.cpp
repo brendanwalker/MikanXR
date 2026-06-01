@@ -69,9 +69,6 @@ void AppStage_AnchorTriangulation::enter()
 {
 	AppStage::enter();
 
-	// Disable depth testing on the line renderer while in this app stage
-	getOwnerWindow()->getGraphicsContext()->getLineRenderer()->setDisable3dDepth(true);
-
 	// Create a new camera to view the scene
 	m_mkCamera = getFirstViewport()->getCurrentMikanCamera();
 	m_mkCamera->setCameraMovementMode(eCameraMovementMode::stationary);
@@ -127,9 +124,6 @@ void AppStage_AnchorTriangulation::setupDistortionView()
 void AppStage_AnchorTriangulation::exit()
 {
 	setMenuState(eAnchorTriangulationMenuState::inactive);
-
-	// Re-Enable depth testing on the line renderer while in this app stage
-	getOwnerWindow()->getGraphicsContext()->getLineRenderer()->setDisable3dDepth(false);
 
 	m_currentSceneCameraComponent = nullptr;
 	m_mkCamera= nullptr;
@@ -247,6 +241,9 @@ void AppStage_AnchorTriangulation::render(IMkViewportPtr targetViewport)
 			}
 			break;
 	}
+
+	// Render any pending lines with depth testing disabled
+	getGraphicsContext()->getLineRenderer()->render(true);
 }
 
 void AppStage_AnchorTriangulation::setMenuState(eAnchorTriangulationMenuState newState)

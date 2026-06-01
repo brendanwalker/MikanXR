@@ -474,7 +474,7 @@ void AppStage_AlignmentCalibration::render(IMkViewportPtr targetViewport)
 		mkStateClearBuffer(mkState, eMkClearFlags::depth);
 
 		// Render any lines and text that were added to the stageView by the calibrator in the frame buffer's viewport
-		m_ownerWindow->getGraphicsContext()->getLineRenderer()->render();
+		m_ownerWindow->getGraphicsContext()->getLineRenderer()->render(true);
 		m_ownerWindow->getGraphicsContext()->getTextRenderer()->render();
 	}
 

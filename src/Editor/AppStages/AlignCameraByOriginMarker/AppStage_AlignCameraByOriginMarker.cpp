@@ -318,7 +318,7 @@ void AppStage_AlignCameraByOriginMarker::render(IMkViewportPtr targetViewport)
 		mkStateClearBuffer(mkState, eMkClearFlags::depth);
 
 		// Flush line and text renderers
-		m_ownerWindow->getGraphicsContext()->getLineRenderer()->render();
+		m_ownerWindow->getGraphicsContext()->getLineRenderer()->render(true);
 		m_ownerWindow->getGraphicsContext()->getTextRenderer()->render();
 	}
 

@@ -441,7 +441,7 @@ void CompositorOutputEditorWindow::render()
 	}
 
 	// Render any 2D line segments emitted by the AppStage renderUI phase
-	gfx->getLineRenderer()->render();
+	gfx->getLineRenderer()->render(true);
 
 	// Render any glyphs emitted by the AppStage renderUI phase
 	gfx->getTextRenderer()->render();

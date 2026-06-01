@@ -224,7 +224,7 @@ public:
 	}
 
 
-	virtual void render() override
+	virtual void render(bool bDisable3dDepth) override
 	{
 		if (m_ownerContext == nullptr)
 			return;
@@ -250,7 +250,7 @@ public:
 					const glm::mat4 cameraVPMatrix = camera->getViewProjectionMatrix();
 
 					MkScopedState scopedState = m_ownerContext->getMkStateStack().createScopedState("GlLineRenderer_3dLines");
-					if (m_bDisable3dDepth)
+					if (bDisable3dDepth)
 					{
 						scopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
 					}
@@ -319,11 +319,6 @@ public:
 		m_lines3d.destroyGlBufferState();
 
 		m_program = nullptr;
-	}
-
-	virtual void setDisable3dDepth(bool bFlag) override
-	{
-		m_bDisable3dDepth = bFlag;
 	}
 
 	virtual void addPoint3d(

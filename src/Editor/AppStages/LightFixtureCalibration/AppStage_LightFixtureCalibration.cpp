@@ -49,8 +49,6 @@ void AppStage_LightFixtureCalibration::enter()
 {
 	AppStage::enter();
 
-	getOwnerWindow()->getGraphicsContext()->getLineRenderer()->setDisable3dDepth(true);
-
 	m_mkCamera = getFirstViewport()->getCurrentMikanCamera();
 	m_mkCamera->setCameraMovementMode(eCameraMovementMode::stationary);
 
@@ -95,8 +93,6 @@ void AppStage_LightFixtureCalibration::setupDistortionView()
 void AppStage_LightFixtureCalibration::exit()
 {
 	setMenuState(eLightFixtureCalibrationMenuState::inactive);
-
-	getOwnerWindow()->getGraphicsContext()->getLineRenderer()->setDisable3dDepth(false);
 
 	// Restore the fixture's previous color
 	restoreFixtureColor();
@@ -195,6 +191,9 @@ void AppStage_LightFixtureCalibration::render(IMkViewportPtr targetViewport)
 		default:
 			break;
 	}
+
+	// Render any pending lines with depth testing disabled
+	getGraphicsContext()->getLineRenderer()->render(true);
 }
 
 void AppStage_LightFixtureCalibration::setMenuState(eLightFixtureCalibrationMenuState newState)
