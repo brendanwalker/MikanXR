@@ -495,7 +495,12 @@ bool CameraComponent::getStageSpaceAperturePose(glm::mat4& outCameraPose) const
 		return true;
 	}
 
-	return false;
+	// If not attached to a tracking mount, then this must be a static camera
+	// Use the stage space transform of the camera directly
+	// TODO: Check if the camera pose has been calibrated via
+	// AlignCameraByUtilityMarker or AlignCameraByOriginMarker
+	outCameraPose = getRelativeTransform().getMat4();
+	return true;
 }
 
 bool CameraComponent::getStageSpaceAperturePose(glm::dmat4& outCameraPose) const
