@@ -38,7 +38,12 @@ public:
 	virtual void setSize(int width, int height) = 0;
 	virtual void setColorFormat(eColorFormat colorFormat) = 0;
 	virtual void setClearColor(const glm::vec4& clearColor) = 0;
-	virtual void setExternalColorTexture(IMkTexturePtr texture) = 0;
+
+	// Attach an externally-owned texture as the color render target.
+	// If the FBO is already created this does a cheap re-attach via glFramebufferTexture2D;
+	// otherwise the texture is stored and used when createResources() is next called.
+	// The texture will NOT be deleted by disposeResources().
+	virtual void attachColorTexture(IMkTexturePtr texture) = 0;
 
 	virtual std::string getName() const = 0;
 	virtual uint32_t getMkFrameBufferId() const = 0;

@@ -215,11 +215,6 @@ IMkTextureConstPtr CompositorNodeGraph::getCompositedFrameTexture() const
 	return m_compositingFrameBuffer ? m_compositingFrameBuffer->getColorTexture() : IMkTextureConstPtr();
 }
 
-void CompositorNodeGraph::setExternalCompositedFrameTexture(IMkTexturePtr externalTexture)
-{
-	m_compositingFrameBuffer->setExternalColorTexture(externalTexture);
-}
-
 bool CompositorNodeGraph::bindToCompositorComponent(CompositorComponentPtr compositorComponent)
 {
 	if (compositorComponent)

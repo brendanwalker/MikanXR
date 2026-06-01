@@ -291,26 +291,24 @@ public:
 		}
 	}
 	
-	void setClearColor(const glm::vec4& clearColor) 
-	{ 
-		m_clearColor = clearColor; 
+	virtual void setClearColor(const glm::vec4& clearColor) override
+	{
+		m_clearColor = clearColor;
 	}
 
-	void IMkFrameBuffer::setExternalColorTexture(IMkTexturePtr texture)
+	virtual void attachColorTexture(IMkTexturePtr texture) override
 	{
-		if (m_colorTexture != texture)
+		m_colorTexture = texture;
+		m_bIsExternalTexture = true;
+
+		// If the FBO already exists, do a cheap re-attach rather than a full re-create
+		if (m_glFrameBufferId != -1 && texture)
 		{
-			if (texture)
-			{
-				m_colorTexture = texture;
-				m_bIsExternalTexture = true;
-			}
-			else
-			{
-				m_colorTexture = nullptr;
-				m_bIsExternalTexture = false;
-			}
-			m_bIsValid = false;
+			GLint prevFrameBufferID = 0;
+			glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFrameBufferID);
+			glBindFramebuffer(GL_FRAMEBUFFER, m_glFrameBufferId);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture->getGlTextureId(), 0);
+			glBindFramebuffer(GL_FRAMEBUFFER, prevFrameBufferID);
 		}
 	}
 

@@ -24,7 +24,6 @@ public:
 	virtual bool loadFromConfig(const NodeGraphConfig& config) override;
 	bool compositeFrame(NodeEvaluator& evaluator);
 	IMkTextureConstPtr getCompositedFrameTexture() const;
-	void setExternalCompositedFrameTexture(IMkTexturePtr externalTexture);
 
 	// Compositor Component
 	bool bindToCompositorComponent(CompositorComponentPtr compositorComponent);
