@@ -1,4 +1,6 @@
 #include "App.h"
+#include "CVVideoFrameProcessor.h"
+#include "GLVideoFrameProcessor.h"
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "IMkGraphicsContext.h"
@@ -20,8 +22,6 @@
 #include "assert.h"
 
 #include <easy/profiler.h>
-
-#define SMALL_GS_FRAME_HEIGHT	480.f
 
 struct OpenCVMonoCameraIntrinsics
 {
@@ -85,14 +85,9 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	, m_lastVideoFrameWriteIndex{0}
 	, m_lastVideoFrameReadIndex(0)
 	, m_lastFrameTimestamp()
-	, m_bgrUndistortBuffer(nullptr)
-	// Grayscale video frame buffers
-	, m_gsSourceBuffer(nullptr)
-	, m_gsUndistortBuffer(nullptr)
-	, m_bgrGsDisplayBuffer(nullptr)
 	// Camera Intrinsics / Distortion parameters
 	, m_intrinsics(new OpenCVMonoCameraIntrinsics)
-	// Distortion preview
+	// Distortion maps
 	, m_distortionMapX(nullptr)
 	, m_distortionMapY(nullptr)
 	, m_distortionTextureMap(nullptr)
@@ -113,7 +108,7 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 		frameEntry.videoTexture = IMkTexturePtr();
 		frameEntry.frameIndex = -1;
 	}
-		
+
 	// Create a mesh used to render the video frame
 	// (Assigns the INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE material on the mesh)
 	m_fullscreenRGBVideoQuad= createFullscreenQuadMesh(getGraphicsContext(), true);
@@ -122,23 +117,23 @@ VideoFrameDistortionView::VideoFrameDistortionView(
 	m_noVideoMaterial = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_PM5544_TEST_CARD);
 	m_noVideoMaterialInstance = createMkMaterialInstance(m_noVideoMaterial);
 
-	// Optionally create a frame buffer for GPU based undistortion rendering
+	// Create CV processor when any OpenCV buffer flag is set
+	if (bufferBitmask & (VIDEO_FRAME_HAS_CV_BGR_UNDISTORT_FLAG | VIDEO_FRAME_HAS_CV_GRAYSCALE_FLAG))
+	{
+		m_cvProcessor = std::make_unique<CVVideoFrameProcessor>();
+	}
+
+	// Create GL processor when shader-based undistortion is requested
 	if (bufferBitmask & VIDEO_FRAME_HAS_GL_BGR_UNDISTORT_FLAG)
 	{
-		// Create the RGB frame buffer; size and resources are initialized lazily in glComputeUndistortion
-		m_undistortionFrameBuffer = createMkFrameBuffer("Undistortion Frame Buffer");
-		m_undistortionFrameBuffer->setFrameBufferType(IMkFrameBuffer::eFrameBufferType::COLOR);
-		m_undistortionFrameBuffer->setColorFormat(IMkFrameBuffer::eColorFormat::RGB);
-
-		// Setup the undistortion material
-		m_undistortionMaterial = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_UNDISTORT_FULLSCREEN_RGB_TEXTURE);
-		m_undistortMaterialInstance = createMkMaterialInstance(m_undistortionMaterial);
+		m_glProcessor = std::make_unique<GLVideoFrameProcessor>();
+		m_glProcessor->init(shaderCache);
 	}
 }
 
 VideoFrameDistortionView::~VideoFrameDistortionView()
 {
-	// Free any textures in	the video frame queue
+	// Free any textures in the video frame queue
 	if (m_videoFrameQueue != nullptr)
 	{
 		for (int queueIndex = 0; queueIndex < m_videoFrameQueueSize; ++queueIndex)
@@ -164,29 +159,10 @@ VideoFrameDistortionView::~VideoFrameDistortionView()
 		delete m_bgrSourceBuffer;
 	}
 
-	if (m_bgrUndistortBuffer != nullptr)
-	{
-		delete m_bgrUndistortBuffer;
-	}
-
-	// Grayscale video frame buffers
-	if (m_gsSourceBuffer != nullptr)
-	{
-		delete m_gsSourceBuffer;
-	}
-	if (m_gsUndistortBuffer != nullptr)
-	{
-		delete m_gsUndistortBuffer;
-	}
-	if (m_bgrGsDisplayBuffer != nullptr)
-	{
-		delete m_bgrGsDisplayBuffer;
-	}
-
 	// Camera Intrinsics
 	delete m_intrinsics;
 
-	// Distortion state
+	// Distortion maps
 	if (m_distortionMapX != nullptr)
 	{
 		delete m_distortionMapX;
@@ -195,7 +171,53 @@ VideoFrameDistortionView::~VideoFrameDistortionView()
 	{
 		delete m_distortionMapY;
 	}
+
+	// Processor objects cleaned up automatically via unique_ptr
 }
+
+// -- CVVideoFrameProcessor delegation --
+
+cv::Mat* VideoFrameDistortionView::getGrayscaleSourceBuffer() const
+{
+	return m_cvProcessor ? m_cvProcessor->getGrayscaleSourceBuffer() : nullptr;
+}
+
+cv::Mat* VideoFrameDistortionView::getGrayscaleUndistortBuffer() const
+{
+	return m_cvProcessor ? m_cvProcessor->getGrayscaleUndistortBuffer() : nullptr;
+}
+
+cv::Mat* VideoFrameDistortionView::getBGRUndistortBuffer() const
+{
+	return m_cvProcessor ? m_cvProcessor->getBGRUndistortBuffer() : nullptr;
+}
+
+cv::Mat* VideoFrameDistortionView::getBGRGsDisplayBuffer() const
+{
+	return m_cvProcessor ? m_cvProcessor->getBGRGsDisplayBuffer() : nullptr;
+}
+
+bool VideoFrameDistortionView::isColorUndistortDisabled() const
+{
+	return m_cvProcessor ? m_cvProcessor->isColorUndistortDisabled() : false;
+}
+
+void VideoFrameDistortionView::setColorUndistortDisabled(bool bDisabled)
+{
+	if (m_cvProcessor) m_cvProcessor->setColorUndistortDisabled(bDisabled);
+}
+
+bool VideoFrameDistortionView::isGrayscaleUndistortDisabled() const
+{
+	return m_cvProcessor ? m_cvProcessor->isGrayscaleUndistortDisabled() : false;
+}
+
+void VideoFrameDistortionView::setGrayscaleUndistortDisabled(bool bDisabled)
+{
+	if (m_cvProcessor) m_cvProcessor->setGrayscaleUndistortDisabled(bDisabled);
+}
+
+// -- end delegation --
 
 void VideoFrameDistortionView::ensureFrameBufferSize(int width, int height)
 {
@@ -231,78 +253,34 @@ void VideoFrameDistortionView::ensureFrameBufferSize(int width, int height)
 			<< " is not distortion calibrated. Using estimated focal length and no distortion.";
 	}
 
-	// Distortion state
-	if (m_bufferBitmask & VIDEO_FRAME_HAS_CV_BGR_UNDISTORT_FLAG)
-	{
-		if (m_bgrUndistortBuffer != nullptr)
-		{
-			delete m_bgrUndistortBuffer;
-		}
-		m_bgrUndistortBuffer = new cv::Mat(cv::Size(m_frameWidth, m_frameHeight), CV_8UC3);
-	}
-	if (m_bufferBitmask & VIDEO_FRAME_HAS_CV_BGR_UNDISTORT_FLAG ||
-		m_bufferBitmask & VIDEO_FRAME_HAS_GL_BGR_UNDISTORT_FLAG)
+	// Allocate distortion maps when any undistortion path is active
+	if (m_bufferBitmask & (VIDEO_FRAME_HAS_CV_BGR_UNDISTORT_FLAG | VIDEO_FRAME_HAS_GL_BGR_UNDISTORT_FLAG))
 	{
 		if (m_distortionMapX != nullptr)
-		{
 			delete m_distortionMapX;
-		}
 		m_distortionMapX = new cv::Mat(cv::Size(m_frameWidth, m_frameHeight), CV_32FC1);
 
 		if (m_distortionMapY != nullptr)
-		{
 			delete m_distortionMapY;
-		}
 		m_distortionMapY = new cv::Mat(cv::Size(m_frameWidth, m_frameHeight), CV_32FC1);
 	}
 
-	// Grayscale video frame buffers
-	if (m_bufferBitmask & VIDEO_FRAME_HAS_CV_GRAYSCALE_FLAG)
+	// Resize CV processor buffers
+	if (m_cvProcessor)
 	{
-		if (m_gsSourceBuffer != nullptr)
-		{
-			delete m_gsSourceBuffer;
-		}
-		m_gsSourceBuffer = new cv::Mat(m_frameHeight, m_frameWidth, CV_8UC1);
-
-		if (m_gsUndistortBuffer != nullptr)
-		{
-			delete m_gsUndistortBuffer;
-		}
-		m_gsUndistortBuffer = new cv::Mat(m_frameHeight, m_frameWidth, CV_8UC1);
-
-		if (m_bgrGsDisplayBuffer != nullptr)
-		{
-			delete m_bgrGsDisplayBuffer;
-		}
-		m_bgrGsDisplayBuffer = new cv::Mat(m_frameHeight, m_frameWidth, CV_8UC3);
+		m_cvProcessor->ensureBufferSize(width, height);
 	}
 
-	// Keep the undistortion framebuffer size in sync so it gets re-created on the next render
-	if (m_undistortionFrameBuffer)
+	// Resize GL processor buffers
+	if (m_glProcessor)
 	{
-		m_undistortionFrameBuffer->setSize(m_frameWidth, m_frameHeight);
+		m_glProcessor->ensureBufferSize(width, height);
 	}
 
 	// Create a texture to render the video frame to
 	if (m_bufferBitmask & VIDEO_FRAME_HAS_GL_TEXTURE_FLAG)
 	{
-		if (m_bufferBitmask & VIDEO_FRAME_HAS_GL_BGR_UNDISTORT_FLAG)
-		{
-			// Allocate a gl texture to copy the source video frame into
-			// This is only used when doing shader based undistortuin
-			m_bgrSourceTextureMap = CreateMkTexture(
-				m_frameWidth,
-				m_frameHeight,
-				nullptr,
-				MK_RGB, // texture format
-				MK_BGR); // buffer format
-			m_bgrSourceTextureMap->setGenerateMipMap(false);
-			m_bgrSourceTextureMap->setPixelBufferObjectMode(IMkTexture::PixelBufferObjectMode::DoublePBOWrite);
-			m_bgrSourceTextureMap->createTexture();
-		}
-
-		// Re-init all video frame queue for the new frame size
+		// Re-init all video frame queue entries for the new frame size
 		for (int queueIndex = 0; queueIndex < m_videoFrameQueueSize; ++queueIndex)
 		{
 			VideoFrameQueueEntry& frameEntry = m_videoFrameQueue[queueIndex];
@@ -321,7 +299,12 @@ void VideoFrameDistortionView::ensureFrameBufferSize(int width, int height)
 				MK_RGB, // texture format
 				MK_BGR); // buffer format
 			videoTexture->setGenerateMipMap(false);
-			videoTexture->setPixelBufferObjectMode(IMkTexture::PixelBufferObjectMode::DoublePBOWrite);
+			// Use PBO upload optimization only for CPU->GPU uploads (CV path).
+			// GL path writes to these textures as FBO render targets, so PBO mode is not applicable.
+			if (!m_glProcessor)
+			{
+				videoTexture->setPixelBufferObjectMode(IMkTexture::PixelBufferObjectMode::DoublePBOWrite);
+			}
 			videoTexture->createTexture();
 
 			// Update the queue entry with the new texture and reset the frame index
@@ -488,10 +471,10 @@ void VideoFrameDistortionView::processVideoFrame(int64_t newFrameIndex)
 	{
 		// Get the next video texture in the queue to write to
 		writeTexture = m_videoFrameQueue[m_videoFrameQueuePendingWriteIndex].videoTexture;
-	
+
 		// Record the frame index for this texture in the queue
 		m_videoFrameQueue[m_videoFrameQueuePendingWriteIndex].frameIndex = newFrameIndex;
-		
+
 		// Update the queue index of the most recently written video frame
 		m_videoFrameQueueLastWriteIndex = m_videoFrameQueuePendingWriteIndex;
 
@@ -512,146 +495,39 @@ void VideoFrameDistortionView::processVideoFrame(int64_t newFrameIndex)
 			break;
 		case eVideoDisplayMode::mode_undistored:
 			{
-				if (m_undistortionFrameBuffer)
+				if (m_glProcessor)
 				{
-					// Copy BGR OpenCV buffer directly to texture with no processing
-					copyOpenCVMatIntoGLTexture(*m_bgrSourceBuffer, m_bgrSourceTextureMap);
-
-					// Compute the undistortion using an OpenGL shader
-					glComputeUndistortion(writeTexture);
+					// Upload the source BGR frame to the GL texture, then run the undistortion shader
+					m_glProcessor->uploadSourceBuffer(*m_bgrSourceBuffer);
+					m_glProcessor->computeUndistortion(
+						writeTexture,
+						m_distortionTextureMap,
+						m_fullscreenRGBVideoQuad,
+						getGraphicsContext());
 				}
-				else if (m_bgrUndistortBuffer)
+				else if (m_cvProcessor && m_cvProcessor->getBGRUndistortBuffer())
 				{
 					// Apply undistortion to the video frame using OpenCV
-					cvComputeUndistortion();
+					m_cvProcessor->computeUndistortion(*m_bgrSourceBuffer, *m_distortionMapX, *m_distortionMapY);
 
 					// Copy the BGR OpenCV frame buffer to the output texture
-					copyOpenCVMatIntoGLTexture(*m_bgrUndistortBuffer, writeTexture);
+					copyOpenCVMatIntoGLTexture(*m_cvProcessor->getBGRUndistortBuffer(), writeTexture);
 				}
 			}
 			break;
 		case eVideoDisplayMode::mode_grayscale:
-			if (m_bgrGsDisplayBuffer != nullptr)
+			if (m_cvProcessor && m_cvProcessor->getBGRGsDisplayBuffer())
 			{
 				// Apply undistortion to the video frame using OpenCV
-				cvComputeUndistortion();
+				m_cvProcessor->computeUndistortion(*m_bgrSourceBuffer, *m_distortionMapX, *m_distortionMapY);
 
 				// Copy the BGR-Grayscale OpenCV frame buffer to the output texture
-				copyOpenCVMatIntoGLTexture(*m_bgrGsDisplayBuffer, writeTexture);
+				copyOpenCVMatIntoGLTexture(*m_cvProcessor->getBGRGsDisplayBuffer(), writeTexture);
 			}
 			break;
 		default:
 			assert(0 && "unreachable");
 			break;
-		}
-	}
-}
-
-void VideoFrameDistortionView::glComputeUndistortion(IMkTexturePtr writeTexture)
-{
-	IMkGraphicsContext* graphicsContext = getGraphicsContext();
-
-	// Point the framebuffer at the target queue slot texture.
-	// If the FBO already exists this is a cheap glFramebufferTexture2D re-attach;
-	// otherwise the texture is stored and used when createResources() is called below.
-	m_undistortionFrameBuffer->attachColorTexture(writeTexture);
-
-	// Lazily create (or re-create after a resolution change) the FBO
-	if (!m_undistortionFrameBuffer->isValid())
-	{
-		if (!m_undistortionFrameBuffer->createResources())
-		{
-			MIKAN_LOG_ERROR("glComputeUndistortion") << "Failed to create undistortion framebuffer";
-			return;
-		}
-	}
-
-	// Run the undistortion shader on the frame buffer
-	{
-		MkScopedObjectBinding colorFramebufferBinding(
-			graphicsContext->getMkStateStack().getCurrentState(),
-			"VideoFrameDistortionView Framebuffer Scope",
-			m_undistortionFrameBuffer);
-
-		if (colorFramebufferBinding)
-		{
-			if (auto materialBinding = m_undistortionMaterial->bindMaterial())
-			{
-				m_undistortMaterialInstance->setTextureBySemantic(eUniformSemantic::rgbTexture, m_bgrSourceTextureMap);
-				m_undistortMaterialInstance->setTextureBySemantic(eUniformSemantic::distortionTexture, m_distortionTextureMap);
-
-				// Draw the color texture
-				if (auto materialInstanceBinding = m_undistortMaterialInstance->bindMaterialInstance(materialBinding))
-				{
-					m_fullscreenRGBVideoQuad->drawElements();
-				}
-			}
-		}
-	}
-}
-
-void VideoFrameDistortionView::cvComputeUndistortion()
-{
-	if (m_bgrUndistortBuffer == nullptr || m_distortionMapX == nullptr || m_distortionMapY == nullptr)
-	{
-		return;
-	}
-
-	EASY_BLOCK("OpenCV Undistort");
-
-	// Apply the X and Y undistortion maps to create an undistorted 24-BPP image (for display)
-	if (!m_bColorUndistortDisabled &&
-		m_bgrUndistortBuffer != nullptr)
-	{
-		EASY_BLOCK("Color Undistort");
-
-		cv::remap(
-			*m_bgrSourceBuffer, *m_bgrUndistortBuffer,
-			*m_distortionMapX, *m_distortionMapY,
-			cv::INTER_LINEAR, cv::BORDER_CONSTANT);
-	}
-
-	// Also, optionally do grayscale conversion (and maybe undistortion)
-	if (m_bgrSourceBuffer != nullptr &&
-		m_gsSourceBuffer != nullptr &&
-		m_bgrGsDisplayBuffer != nullptr)
-	{
-		if (!m_bGrayscaleUndistortDisabled && m_gsUndistortBuffer != nullptr)
-		{
-			{
-				EASY_BLOCK("BGR -> Grayscale");
-
-				cv::cvtColor(*m_bgrSourceBuffer, *m_gsSourceBuffer, cv::COLOR_BGR2GRAY);
-			}
-
-			{
-				EASY_BLOCK("BGR -> Grayscale");
-
-				cv::remap(
-					*m_gsSourceBuffer, *m_gsUndistortBuffer,
-					*m_distortionMapX, *m_distortionMapY,
-					cv::INTER_LINEAR, cv::BORDER_CONSTANT);
-			}
-
-			{
-				EASY_BLOCK("Grayscale -> BGR");
-
-				cv::cvtColor(*m_gsUndistortBuffer, *m_bgrGsDisplayBuffer, cv::COLOR_GRAY2BGR);
-			}
-		}
-		else if (m_bGrayscaleUndistortDisabled)
-		{
-			{
-				EASY_BLOCK("BGR -> Grayscale");
-
-				cv::cvtColor(*m_bgrSourceBuffer, *m_gsSourceBuffer, cv::COLOR_BGR2GRAY);
-			}
-
-			{
-				EASY_BLOCK("Grayscale -> BGR");
-
-				cv::cvtColor(*m_gsSourceBuffer, *m_bgrGsDisplayBuffer, cv::COLOR_GRAY2BGR);
-			}
 		}
 	}
 }
@@ -686,7 +562,7 @@ IMkTexturePtr VideoFrameDistortionView::getVideoTexture(int64_t desiredFrameInde
 			}
 		}
 
-		// If we get here, then either no specific frame index was requested, 
+		// If we get here, then either no specific frame index was requested,
 		// or the requested index wasn't found in the queue.
 		// In either case, return the most recently written video texture in the queue (if valid)
 		if (m_videoFrameQueueLastWriteIndex >= 0)

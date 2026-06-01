@@ -12,12 +12,15 @@
 class VideoSourceComponent;
 typedef std::shared_ptr<VideoSourceComponent> VideoSourceComponentPtr;
 
+class CVVideoFrameProcessor;
+class GLVideoFrameProcessor;
+
 class VideoFrameDistortionView
 {
 public:
 	VideoFrameDistortionView(
-		VideoSourceComponentPtr view, 
-		unsigned int bufferBitmask, 
+		VideoSourceComponentPtr view,
+		unsigned int bufferBitmask,
 		unsigned int frameQueueSize=1,
 		VideoFrameSection videoFramesection= VideoFrameSection::Primary);
 	virtual ~VideoFrameDistortionView();
@@ -34,22 +37,22 @@ public:
 	inline eVideoDisplayMode getVideoDisplayMode() const { return m_videoDisplayMode; }
 	inline void setVideoDisplayMode(eVideoDisplayMode newMode) { m_videoDisplayMode= newMode; }
 
-	inline bool isColorUndistortDisabled() const { return m_bColorUndistortDisabled; }
-	inline void setColorUndistortDisabled(bool bDisabled) { m_bColorUndistortDisabled= bDisabled; }
+	bool isColorUndistortDisabled() const;
+	void setColorUndistortDisabled(bool bDisabled);
 
-	inline bool isGrayscaleUndistortDisabled() const { return m_bGrayscaleUndistortDisabled; }
-	inline void setGrayscaleUndistortDisabled(bool bDisabled) { m_bGrayscaleUndistortDisabled = bDisabled; }
+	bool isGrayscaleUndistortDisabled() const;
+	void setGrayscaleUndistortDisabled(bool bDisabled);
 
 	inline unsigned int getMaxFrameQueueSize() const { return m_videoFrameQueueSize; }
 	inline int64_t getLastVideoFrameWriteIndex() const { return m_lastVideoFrameReadIndex; }
-	inline cv::Mat* getGrayscaleSourceBuffer() const { return m_gsSourceBuffer; }
-	inline cv::Mat* getGrayscaleUndistortBuffer() const { return m_gsUndistortBuffer; }
-	inline cv::Mat* getBGRUndistortBuffer() const { return m_bgrUndistortBuffer; }
-	inline cv::Mat* getBGRGsDisplayBuffer() const { return m_bgrGsDisplayBuffer; }
+	cv::Mat* getGrayscaleSourceBuffer() const;
+	cv::Mat* getGrayscaleUndistortBuffer() const;
+	cv::Mat* getBGRUndistortBuffer() const;
+	cv::Mat* getBGRGsDisplayBuffer() const;
 	inline IMkTexturePtr getDistortionTexture() const { return m_distortionTextureMap; }
 
 	void writeVideoFrame(
-		const unsigned char* videoBuffer, 
+		const unsigned char* videoBuffer,
 		const cv::Size& bufferDimensions,
 		bool bIsFlipped);
 	void writeStereoVideoFrameSection(
@@ -70,8 +73,6 @@ protected:
 	void processVideoFrame(int64_t newFrameIndex);
 	void ensureFrameBufferSize(int width, int height);
 	void rebuildDistortionMap();
-	void glComputeUndistortion(IMkTexturePtr writeTexture);
-	void cvComputeUndistortion();
 
 	static void copyOpenCVMatIntoGLTexture(const cv::Mat& mat, IMkTexturePtr texture);
 
@@ -84,7 +85,7 @@ protected:
 	int m_frameWidth;
 	int m_frameHeight;
 	float m_fps;
-	
+
 	// BGR source buffer
 	std::mutex m_bgrSourceBufferMutex;
 	cv::Mat* m_bgrSourceBuffer;
@@ -94,25 +95,13 @@ protected:
 	int64_t m_lastVideoFrameReadIndex;
 	std::chrono::steady_clock::time_point m_lastFrameTimestamp;
 
-	// Video frame buffers (24-BPP, BGR color format)
-	cv::Mat* m_bgrUndistortBuffer;
-
-	// Grayscale video frame buffers
-	cv::Mat* m_gsSourceBuffer; // 8-BPP source buffer
-	cv::Mat* m_gsUndistortBuffer; // 8-BPP undistorted buffer
-	cv::Mat* m_bgrGsDisplayBuffer; // 24-BPP(BGR color format) debug display buffer
-
 	// Camera Intrinsics / Distortion parameters
 	struct OpenCVMonoCameraIntrinsics* m_intrinsics;
 
-	// Distortion preview
+	// Distortion maps (shared by both CV and GL paths)
 	cv::Mat* m_distortionMapX;
 	cv::Mat* m_distortionMapY;
-	IMkTexturePtr m_bgrSourceTextureMap;
 	IMkTexturePtr m_distortionTextureMap;
-	IMkFrameBufferPtr m_undistortionFrameBuffer;
-	MkMaterialConstPtr m_undistortionMaterial;
-	MkMaterialInstancePtr m_undistortMaterialInstance;
 
 	// Circular RGB video frame queue
 	struct VideoFrameQueueEntry
@@ -130,7 +119,7 @@ protected:
 	MkMaterialConstPtr m_noVideoMaterial;
 	MkMaterialInstancePtr m_noVideoMaterialInstance;
 
-	// Runtime flags
-	bool m_bColorUndistortDisabled= false;
-	bool m_bGrayscaleUndistortDisabled = false;
+	// Processor objects (at most one of each is active, depending on m_bufferBitmask)
+	std::unique_ptr<CVVideoFrameProcessor> m_cvProcessor; // null if no CV flags
+	std::unique_ptr<GLVideoFrameProcessor> m_glProcessor; // null if no GL undistort flag
 };
