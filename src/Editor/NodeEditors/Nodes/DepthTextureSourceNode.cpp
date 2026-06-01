@@ -151,7 +151,8 @@ IMkTexturePtr DepthTextureSourceNode::getDepthSourceTexture() const
 				m_clientTextureType, 
 				pendingFrameIndex);
 
-		// If the client texture is not available, return a black texture
+		// If the client texture is not available, return a white texture
+		// (white RGBA decodes to linearDepth ≈ 1.004, which is always behind videoZ ≤ 0.9998)
 		if (clientTexture)
 		{
 			return clientTexture;
@@ -162,7 +163,7 @@ IMkTexturePtr DepthTextureSourceNode::getDepthSourceTexture() const
 
 			if (m_clientTextureType == eTextureSourceDepthType::depthPackRGBA )
 			{
-				return textureCache->tryGetTextureByName(INTERNAL_TEXTURE_BLACK_RGBA);
+				return textureCache->tryGetTextureByName(INTERNAL_TEXTURE_WHITE_RGBA);
 			}
 		}
 	}

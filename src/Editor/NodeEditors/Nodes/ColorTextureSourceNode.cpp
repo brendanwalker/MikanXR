@@ -163,7 +163,7 @@ IMkTexturePtr ColorTextureSourceNode::getColorSourceTexture() const
 
 			if (m_clientTextureType == eTextureSourceColorType::colorRGBA)
 			{
-				return textureCache->tryGetTextureByName(INTERNAL_TEXTURE_BLACK_RGBA);
+				return textureCache->tryGetTextureByName(INTERNAL_TEXTURE_BLACK_RGBA_TRANSPARENT);
 			}
 			else
 			{
