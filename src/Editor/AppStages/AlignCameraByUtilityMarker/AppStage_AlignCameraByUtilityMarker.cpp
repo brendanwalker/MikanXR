@@ -126,6 +126,10 @@ void AppStage_AlignCameraByUtilityMarker::enter()
 	AppStage::enter();
 	assert(m_targetCameraComponent != nullptr);
 
+	// Make sure the viewport camera is in stationary mode for the test calibration state
+	MikanCameraPtr mkCamera = getFirstViewport()->getCurrentMikanCamera();
+	mkCamera->setCameraMovementMode(eCameraMovementMode::stationary);
+
 	// Fetch the utility marker ID from the tracking volume
 	VRTrackingVolumeComponentConstPtr trackingVolume =
 		m_targetCameraComponent->getVRTrackingVolumeComponent();
@@ -345,7 +349,7 @@ void AppStage_AlignCameraByUtilityMarker::render(IMkViewportPtr targetViewport)
 
 			// Draw axes at the utility marker's computed stage-space position
 			IMkGraphicsContext* graphicsContext = getGraphicsContext();
-			const glm::mat4 markerXform = glm::mat4(m_markerXform_VRSpace);
+			const glm::mat4 markerXform = glm::mat4(m_markerXform_StageSpace);
 			drawTransformedAxes(graphicsContext, markerXform, 0.1f);
 
 			TextStyle style = getDefaultTextStyle();
@@ -583,7 +587,7 @@ void AppStage_AlignCameraByUtilityMarker::computeAndApplyTargetTransform()
 	// 4. Compose to get marker in VR Tracking Space
 	glm::dmat4 srcApertureXform_VRSpace=
 		glm_composite_xform(glm::dmat4(sourceApertureOffset), avgSourcePuckXform_VRSpace);
-	m_markerXform_VRSpace =
+	glm::dmat4 markerXform_VRSpace =
 		glm_composite_xform(avgSrcApertureToMarker, srcApertureXform_VRSpace);
 
 	// 5. Averaged target aperture-to-marker transform
@@ -599,7 +603,7 @@ void AppStage_AlignCameraByUtilityMarker::computeAndApplyTargetTransform()
 	// 6. Compute the target aperture transform in VRSpace
 	const glm::dmat4 avgMarkerToTargetAperture = glm::inverse(avgTargetApertureToMarker);
 	const glm::dmat4 targetApertureXform_VRSpace = 
-		glm_composite_xform(avgMarkerToTargetAperture, m_markerXform_VRSpace);
+		glm_composite_xform(avgMarkerToTargetAperture, markerXform_VRSpace);
 
 	// 7. Convert the target aperture transform from VRSpace to StageSpace
 	const auto stageComponent = m_targetCameraComponent->getOwnerStageComponent();
@@ -612,6 +616,10 @@ void AppStage_AlignCameraByUtilityMarker::computeAndApplyTargetTransform()
 	m_targetApertureXform_StageSpace =
 		glm_composite_xform(targetApertureXform_VRSpace, vrSpaceToStageSpace);
 	m_targetCameraComponent->setRelativeTransform(glm::mat4(m_targetApertureXform_StageSpace));
+
+	// (For Debug) Compute the marker transform in stage space
+	m_markerXform_StageSpace = 
+		glm_composite_xform(avgTargetApertureToMarker, m_targetApertureXform_StageSpace);
 
 	setMenuState(eAlignCameraByUtilityMarkerMenuState::testCalibration);
 }

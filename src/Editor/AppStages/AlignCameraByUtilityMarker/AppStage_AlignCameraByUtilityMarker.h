@@ -71,7 +71,7 @@ private:
 	MikanMarkerID m_utilityMarkerId = INVALID_MIKAN_ID;
 
 	// Averaged results
-	glm::dmat4 m_markerXform_VRSpace;          // from source sampler + puck compose
+	glm::dmat4 m_markerXform_StageSpace;          // from source sampler + puck compose
 	glm::dmat4 m_targetApertureXform_StageSpace;  // final computed pose
 
 	IMkFrameBufferPtr      m_frameBuffer;
