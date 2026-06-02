@@ -83,7 +83,7 @@
 			"pos":                       [ 848.06787, 3.2984619 ],
 			"blend_mode":                "blendOn",
 			"stencil_mode":              "insideStencil",
-			"vertical_flip":             true,
+			"vertical_flip":             false,
 			"invert_when_camera_inside": false,
 			"float_defaults":            { },
 			"float2_defaults":           { },
@@ -98,7 +98,7 @@
 			"pos":                       [ 459.06787, 268.29846 ],
 			"texture_source_color_type": "colorRGBA",
 			"texture_source_id":         1034,
-			"vertical_flip":             true
+			"vertical_flip":             false
 		},
 		{
 			"class_name":                "DepthTextureSourceNode",
@@ -108,7 +108,7 @@
 			"pos":                       [ 461.06787, 105.29846 ],
 			"texture_source_depth_type": "depthPackRGBA",
 			"texture_source_id":         1034,
-			"vertical_flip":             true
+			"vertical_flip":             false
 		},
 		{
 			"class_name":             "DepthMaskNode",
