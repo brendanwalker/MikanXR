@@ -595,7 +595,7 @@ bool CameraComponent::makeNewCameraFrameEvent(
 			const MikanMatrix3d& cameraMatrix = monoIntrinsics.undistorted_camera_matrix;
 
 			outNewFrameEvent.focal_length = { cameraMatrix.x0, cameraMatrix.y1 };
-			outNewFrameEvent.principal_point = { cameraMatrix.x2, cameraMatrix.y2 };
+			outNewFrameEvent.principal_point = { cameraMatrix.z0, cameraMatrix.z1 };
 			outNewFrameEvent.pixel_size = { (int)monoIntrinsics.pixel_width, (int)monoIntrinsics.pixel_height };
 			outNewFrameEvent.z_bounds = { monoIntrinsics.znear, monoIntrinsics.zfar };
 
@@ -608,7 +608,7 @@ bool CameraComponent::makeNewCameraFrameEvent(
 			const MikanMatrix3d& cameraMatrix = stereoIntrinsics.left_camera_matrix;
 
 			outNewFrameEvent.focal_length = { cameraMatrix.x0, cameraMatrix.y1 };
-			outNewFrameEvent.principal_point = { cameraMatrix.x2, cameraMatrix.y2 };
+			outNewFrameEvent.principal_point = { cameraMatrix.z0, cameraMatrix.z1 };
 			outNewFrameEvent.pixel_size = { (int)stereoIntrinsics.pixel_width, (int)stereoIntrinsics.pixel_height };
 			outNewFrameEvent.z_bounds = { stereoIntrinsics.znear, stereoIntrinsics.zfar };
 
