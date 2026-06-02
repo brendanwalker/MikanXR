@@ -35,9 +35,6 @@ public:
 protected:
 	static const int DESIRED_SAMPLE_COUNT = 4;
 
-	float m_frameWidth;
-	float m_frameHeight;
-
 	// Internal Calibration State
 	struct StencilAlignmentState* m_calibrationState;
 

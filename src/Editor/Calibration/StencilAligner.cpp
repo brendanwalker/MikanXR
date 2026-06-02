@@ -67,9 +67,6 @@ StencilAligner::StencilAligner(
 	, m_distortionView(distortionView)
 	, m_modelStencil(modelStencil)
 {
-	m_frameWidth = distortionView->getFrameWidth();
-	m_frameHeight = distortionView->getFrameHeight();
-
 	// Private calibration state
 	m_calibrationState->init(distortionView->getVideoSourceComponent());
 }
@@ -162,6 +159,10 @@ bool StencilAligner::computeStencilTransform(glm::mat4& outStencilTransform)
 
 void StencilAligner::renderPixelSamples()
 {
+	int frameWidth = 0, frameHeight = 0;
+	if (!m_cameraComponent->getAperturePixelDimensions(frameWidth, frameHeight))
+		return;
+
 	IMkGraphicsContext* graphicsContext = m_cameraComponent->getGraphicsContext();
 
 	glm::vec3 glm_points[4];
@@ -180,7 +181,7 @@ void StencilAligner::renderPixelSamples()
 		drawTextAtCameraPosition(
 			graphicsContext,
 			style,
-			m_frameWidth, m_frameHeight,
+			frameWidth, frameHeight,
 			glm_points[i],
 			L"P%d", i);
 
@@ -195,7 +196,7 @@ void StencilAligner::renderPixelSamples()
 			}
 			drawSegment2d(
 				graphicsContext,
-				m_frameWidth, m_frameHeight, 
+				frameWidth, frameHeight, 
 				glm_points[0], glm_points[i], 
 				color, color);
 		}
@@ -203,7 +204,7 @@ void StencilAligner::renderPixelSamples()
 
 	drawPointList2d(
 		graphicsContext, 
-		m_frameWidth, m_frameHeight, 
+		frameWidth, frameHeight, 
 		glm_points, pointCount, 
 		Colors::Yellow, 2.f);
 }

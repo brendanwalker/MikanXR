@@ -101,7 +101,7 @@ public:
 	VideoSourceComponentPtr getVideoSourceComponent() const;
 	void setVideoSourceById(MikanVideoSourceID videoSourceId);
 
-	// Helper functions used to fetch camera lens pose properties
+	// Helper functions used to fetch camera lens properties
 	bool hasValidTrackingMountPoseView() const;
 	bool getAperturePixelDimensions(int& outWidth, int& outHeight) const;
 	bool areApertureIntrinsicsValid() const;

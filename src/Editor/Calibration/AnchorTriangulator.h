@@ -46,9 +46,6 @@ public:
 protected:
 	glm::vec2 computeMouseScreenPosition() const;
 
-	float m_frameWidth;
-	float m_frameHeight;
-
 	// Internal Calibration State
 	struct AnchorTriangulationState* m_calibrationState;
 

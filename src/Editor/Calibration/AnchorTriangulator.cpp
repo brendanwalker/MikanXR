@@ -77,9 +77,6 @@ AnchorTriangulator::AnchorTriangulator(
 	, m_cameraComponent(cameraComponent)
 	, m_distortionView(distortionView)
 {
-	m_frameWidth = distortionView->getFrameWidth();
-	m_frameHeight = distortionView->getFrameHeight();
-
 	// Private calibration state
 	m_calibrationState->init(cameraComponent);
 }
@@ -126,6 +123,10 @@ void AnchorTriangulator::sampleMouseScreenPosition()
 
 glm::vec2 AnchorTriangulator::computeMouseScreenPosition() const
 {
+	int frameWidth = 0, frameHeight = 0;
+	if (!m_cameraComponent->getAperturePixelDimensions(frameWidth, frameHeight))
+		return glm::vec2();
+
 	IEditorWindow* window = m_cameraComponent->getOwnerEditorWindow();
 	
 	int mouseScreenX = 0, mouseScreenY;
@@ -135,8 +136,8 @@ glm::vec2 AnchorTriangulator::computeMouseScreenPosition() const
 	const float screenHeight = window->getHeight();
 
 	glm::vec2 pointSample(
-		((float)mouseScreenX * m_frameWidth) / screenWidth,
-		((float)mouseScreenY * m_frameHeight) / screenHeight);
+		((float)mouseScreenX * frameWidth) / screenWidth,
+		((float)mouseScreenY * frameHeight) / screenHeight);
 
 	return pointSample;
 }
@@ -220,6 +221,10 @@ bool AnchorTriangulator::computeAnchorTransform(AnchorTriangulatorInfo& anchorIn
 
 void AnchorTriangulator::renderInitialPoint2dSegements()
 {
+	int frameWidth = 0, frameHeight = 0;
+	if (!m_cameraComponent->getAperturePixelDimensions(frameWidth, frameHeight))
+		return;
+
 	IMkGraphicsContext* graphicsContext = m_cameraComponent->getGraphicsContext();
 
 	glm::vec3 glm_points[3];
@@ -237,7 +242,7 @@ void AnchorTriangulator::renderInitialPoint2dSegements()
 		drawTextAtCameraPosition(
 			graphicsContext,
 			style,
-			m_frameWidth, m_frameHeight,
+			frameWidth, frameHeight,
 			glm_points[i],
 			L"P%d", i);
 	}
@@ -246,7 +251,7 @@ void AnchorTriangulator::renderInitialPoint2dSegements()
 	{
 		drawSegment2d(
 			graphicsContext, 
-			m_frameWidth, m_frameHeight, 
+			frameWidth, frameHeight, 
 			glm_points[0], glm_points[1], 
 			Colors::Red, Colors::Green);
 	}
@@ -255,14 +260,14 @@ void AnchorTriangulator::renderInitialPoint2dSegements()
 	{
 		drawSegment2d(
 			graphicsContext,
-			m_frameWidth, m_frameHeight, 
+			frameWidth, frameHeight, 
 			glm_points[0], glm_points[2], 
 			Colors::Red, Colors::Blue);
 	}
 
 	drawPointList2d(
 		graphicsContext, 
-		m_frameWidth, m_frameHeight, 
+		frameWidth, frameHeight, 
 		glm_points, pointCount, 
 		Colors::Yellow, 2.f);
 }
@@ -308,6 +313,10 @@ void AnchorTriangulator::renderInitialPoint3dRays()
 
 void AnchorTriangulator::renderCurrentPointTriangulation()
 {
+	int frameWidth = 0, frameHeight = 0;
+	if (!m_cameraComponent->getAperturePixelDimensions(frameWidth, frameHeight))
+		return;
+
 	if (m_calibrationState->initialPointSampleCount < 3)
 		return;
 
@@ -343,7 +352,7 @@ void AnchorTriangulator::renderCurrentPointTriangulation()
 	drawTextAtCameraPosition(
 		graphicsContext,
 		style,
-		m_frameWidth, m_frameHeight,
+		frameWidth, frameHeight,
 		m_calibrationState->lastWorldTriangulatedPoint,
 		L"P%d", sampleIndex);
 }
