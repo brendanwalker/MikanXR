@@ -25,6 +25,7 @@ private:
 	TextureSourceComponentPtr getSelectedTextureSource() const;
 	ClientTextureSourceComponentPtr getSelectedClientTextureSource() const;
 	SpoutTextureSourceComponentPtr getSelectedSpoutTextureSource() const;
+	CEFTextureSourceComponentPtr getSelectedCEFTextureSource() const;
 
 	void setSelectedVideoSourceId(MikanVideoSourceID videoSourceId);
 	void setSelectedTextureSourceId(MikanTextureSourceID textureSourceId);

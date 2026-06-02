@@ -69,6 +69,7 @@ enum class eTextureSourceType : int
 
 	client,
 	spout,
+	cef,
 
 	COUNT
 };

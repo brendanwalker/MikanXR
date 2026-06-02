@@ -12,6 +12,7 @@
 #include "Shared/GuiPanel_MarkerComponent.h"
 #include "Shared/GuiPanel_NetworkVideoSourceComponent.h"
 #include "Shared/GuiPanel_SceneComponent.h"
+#include "Shared/GuiPanel_CEFTextureSourceComponent.h"
 #include "Shared/GuiPanel_SpoutTextureSourceComponent.h"
 #include "Shared/GuiPanel_RGBPixelGridComponent.h"
 #include "Shared/GuiPanel_RGBSpotLightComponent.h"
@@ -76,6 +77,9 @@ bool ProjectGuiPanelContext::init()
 
 	m_scenePanel = m_ownerAppStage->addGuiPanel<GuiPanel_SceneComponent>();
 	m_scenePanel->init();
+
+	m_cefTextureSourcePanel = m_ownerAppStage->addGuiPanel<GuiPanel_CEFTextureSourceComponent>();
+	m_cefTextureSourcePanel->init();
 
 	m_spoutTextureSourcePanel = m_ownerAppStage->addGuiPanel<GuiPanel_SpoutTextureSourceComponent>();
 	m_spoutTextureSourcePanel->init();

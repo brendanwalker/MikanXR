@@ -47,11 +47,13 @@ const std::string* k_trackingRuntimeStrings = g_trackingRuntimeStrings;
 
 const char* g_szTextureSourceTypeStrings[(int)eTextureSourceType::COUNT] = {
 	"client",
-	"spout"
+	"spout",
+	"cef"
 };
 const std::string g_textureSourceTypeStrings[(int)eTextureSourceType::COUNT] = {
 	g_szTextureSourceTypeStrings[0],
-	g_szTextureSourceTypeStrings[1]
+	g_szTextureSourceTypeStrings[1],
+	g_szTextureSourceTypeStrings[2]
 };
 extern const char** k_szTextureSourceTypeStrings = g_szTextureSourceTypeStrings;
 extern const std::string* k_textureSourceTypeStrings= g_textureSourceTypeStrings;

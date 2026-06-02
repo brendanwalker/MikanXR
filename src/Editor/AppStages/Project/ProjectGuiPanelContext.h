@@ -18,6 +18,7 @@ class GuiPanel_QuadStencilComponent;
 class GuiPanel_RGBPixelGridComponent;
 class GuiPanel_RGBSpotLightComponent;
 class GuiPanel_SceneComponent;
+class GuiPanel_CEFTextureSourceComponent;
 class GuiPanel_SpoutTextureSourceComponent;
 class GuiPanel_StageComponent;
 class GuiPanel_TrackingMountComponent;
@@ -52,6 +53,7 @@ public:
 	inline GuiPanel_RGBPixelGridComponent* getPixelGridPanel() const { return m_pixelGridPanel; }
 	inline GuiPanel_RGBSpotLightComponent* getSpotLightPanel() const { return m_spotLightPanel; }
 	inline GuiPanel_SceneComponent* getScenePanel() const { return m_scenePanel; }
+	inline GuiPanel_CEFTextureSourceComponent* getCEFTextureSourcePanel() const { return m_cefTextureSourcePanel; }
 	inline GuiPanel_SpoutTextureSourceComponent* getSpoutTextureSourcePanel() const { return m_spoutTextureSourcePanel; }
 	inline GuiPanel_StageComponent* getStagePanel() const { return m_stagePanel; }
 	inline GuiPanel_TrackingMountComponent* getTrackingMountPanel() const { return m_trackingMountPanel; }
@@ -79,6 +81,7 @@ private:
 	GuiPanel_RGBPixelGridComponent* m_pixelGridPanel = nullptr;
 	GuiPanel_RGBSpotLightComponent* m_spotLightPanel = nullptr;
 	GuiPanel_SceneComponent* m_scenePanel = nullptr;
+	GuiPanel_CEFTextureSourceComponent* m_cefTextureSourcePanel = nullptr;
 	GuiPanel_SpoutTextureSourceComponent* m_spoutTextureSourcePanel = nullptr;
 	GuiPanel_StageComponent* m_stagePanel = nullptr;
 	GuiPanel_TrackingMountComponent* m_trackingMountPanel = nullptr;

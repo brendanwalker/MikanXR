@@ -4,6 +4,13 @@ using System.Collections.Generic;
 
 namespace MikanXR
 {
+	public class MikanCEFTextureSourceValues : MikanTextureSourceValues
+	{
+		public string url;
+		public int width;
+		public int height;
+	};
+
 	public class MikanClientTextureSourceValues : MikanTextureSourceValues
 	{
 		public string client_source;

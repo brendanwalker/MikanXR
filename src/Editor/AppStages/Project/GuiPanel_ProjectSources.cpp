@@ -1,4 +1,6 @@
 #include "GuiPanel_ProjectSources.h"
+#include "CEFTextureSourceComponent.h"
+#include "CEFTextureSourceSystem.h"
 #include "ClientTextureSourceComponent.h"
 #include "ClientTextureSourceSystem.h"
 #include "MikanCoreTypes.h"
@@ -12,6 +14,7 @@
 #include "ProjectManager.h"
 #include "Shared/GuiPanel_ClientTextureSourceComponent.h"
 #include "Shared/GuiPanel_NetworkVideoSourceComponent.h"
+#include "Shared/GuiPanel_CEFTextureSourceComponent.h"
 #include "Shared/GuiPanel_SpoutTextureSourceComponent.h"
 #include "Shared/GuiPanel_USBVideoSourceComponent.h"
 #include "SpoutTextureSourceComponent.h"
@@ -41,7 +44,8 @@ bool GuiPanel_ProjectSources::init(ProjectGuiPanelContext* context)
 	m_textureSourceDataSource = std::make_unique<GuiDataSource_ComboBox>(pm,
 		std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
 			{ ClientTextureSourceSystem::k_objectSystemClassName, ClientTextureSourceComponent::k_componentClassName },
-			{ SpoutTextureSourceSystem::k_objectSystemClassName, SpoutTextureSourceComponent::k_componentClassName }
+			{ SpoutTextureSourceSystem::k_objectSystemClassName, SpoutTextureSourceComponent::k_componentClassName },
+			{ CEFTextureSourceSystem::k_objectSystemClassName, CEFTextureSourceComponent::k_componentClassName }
 		});
 
 	// Auto-select first available video source
@@ -108,6 +112,13 @@ SpoutTextureSourceComponentPtr GuiPanel_ProjectSources::getSelectedSpoutTextureS
 	return sys->getTypedComponentById((MikanTextureSourceID)m_selectedTextureSourceId);
 }
 
+CEFTextureSourceComponentPtr GuiPanel_ProjectSources::getSelectedCEFTextureSource() const
+{
+	auto pm = m_projectManager.lock();
+	auto sys = pm->getSystemOfType<CEFTextureSourceSystem>();
+	return sys->getTypedComponentById((MikanTextureSourceID)m_selectedTextureSourceId);
+}
+
 void GuiPanel_ProjectSources::setSelectedVideoSourceId(MikanVideoSourceID videoSourceId)
 {
 	m_selectedVideoSourceId = (int)videoSourceId;
@@ -136,6 +147,7 @@ void GuiPanel_ProjectSources::setSelectedTextureSourceId(MikanTextureSourceID te
 
 	m_context->getClientTextureSourcePanel()->setComponent(nullptr);
 	m_context->getSpoutTextureSourcePanel()->setComponent(nullptr);
+	m_context->getCEFTextureSourcePanel()->setComponent(nullptr);
 
 	auto pm = m_projectManager.lock();
 	eTextureSourceType sourceType = TextureSourceQueries::getTextureSourceType(pm, textureSourceId);
@@ -148,6 +160,10 @@ void GuiPanel_ProjectSources::setSelectedTextureSourceId(MikanTextureSourceID te
 		case eTextureSourceType::spout:
 			if (SpoutTextureSourceComponentPtr src = getSelectedSpoutTextureSource())
 				m_context->getSpoutTextureSourcePanel()->setComponent(src);
+			break;
+		case eTextureSourceType::cef:
+			if (CEFTextureSourceComponentPtr src = getSelectedCEFTextureSource())
+				m_context->getCEFTextureSourcePanel()->setComponent(src);
 			break;
 	}
 }
@@ -236,6 +252,15 @@ void GuiPanel_ProjectSources::onGui()
 			sys->addNewObjectByTypedDefinition();
 		});
 	}
+	ImGui::SameLine();
+	if (MkGui::drawImageButton(m_defaultGuiStyle, "addCEFSource", "add_cef_source"))
+	{
+		addDeferredGuiEvent([this]() {
+			auto pm = m_projectManager.lock();
+			auto sys = pm->getSystemOfType<CEFTextureSourceSystem>();
+			sys->addNewObjectByTypedDefinition();
+		});
+	}
 
 	m_textureSourceDataSource->refreshEntries();
 
@@ -274,5 +299,6 @@ void GuiPanel_ProjectSources::onGui()
 
 		m_context->getClientTextureSourcePanel()->onGui();
 		m_context->getSpoutTextureSourcePanel()->onGui();
+		m_context->getCEFTextureSourcePanel()->onGui();
 	}
 }

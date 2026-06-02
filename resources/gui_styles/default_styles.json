@@ -10,6 +10,7 @@
             { "name": "add_anchor", "path": "textures/add_anchor_icon.png", "width": 50, "height": 50 },
             { "name": "add_box_stencil", "path": "textures/add_box_stencil_icon.png", "width": 50, "height": 50 },
             { "name": "add_component", "path": "textures/add_component_icon.png", "width": 20, "height": 20 },
+            { "name": "add_cef_source", "path": "textures/add_cef_texture_source_icon.png", "width": 44, "height": 44 },
             { "name": "add_client_source", "path": "textures/add_client_texture_source_icon.png", "width": 44, "height": 44 },
             { "name": "add_marker_tracking", "path": "textures/add_marker_tracking_icon.png", "width": 50, "height": 50 },
             { "name": "add_model_stencil", "path": "textures/add_model_stencil_icon.png", "width": 50, "height": 50 },

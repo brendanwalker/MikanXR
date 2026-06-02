@@ -19,6 +19,7 @@
 #include "ProjectManager.h"
 #include "SceneObjectSystem.h"
 #include "SpoutTextureSourceSystem.h"
+#include "CEFTextureSourceSystem.h"
 #include "BoxStencilSystem.h"
 #include "ModelStencilSystem.h"
 #include "QuadStencilSystem.h"
@@ -55,6 +56,7 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	addSystem<EditorObjectSystem>();
 	addSystem<ClientTextureSourceSystem>();
 	addSystem<SpoutTextureSourceSystem>();
+	addSystem<CEFTextureSourceSystem>();
 	addSystem<NetworkVideoSourceSystem>();
 	addSystem<USBVideoSourceSystem>();
 	addSystem<MarkerObjectSystem>();

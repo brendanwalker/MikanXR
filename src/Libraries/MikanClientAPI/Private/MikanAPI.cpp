@@ -153,6 +153,9 @@ const char* MikanClientTextureSourceValues::k_ownerSystemName = "ClientTextureSo
 const char* MikanSpoutTextureSourceValues::k_componentClassName = "SpoutTextureSourceComponent";
 const char* MikanSpoutTextureSourceValues::k_ownerSystemName = "SpoutTextureSourceSystem";
 
+const char* MikanCEFTextureSourceValues::k_componentClassName = "CEFTextureSourceComponent";
+const char* MikanCEFTextureSourceValues::k_ownerSystemName = "CEFTextureSourceSystem";
+
 const char* MikanNetworkVideoSourceValues::k_componentClassName = "NetworkVideoSourceComponent";
 const char* MikanNetworkVideoSourceValues::k_ownerSystemName = "NetworkVideoSourceSystem";
 

@@ -1,4 +1,6 @@
 #include "TextureSourceQueries.h"
+#include "CEFTextureSourceSystem.h"
+#include "CEFTextureSourceComponent.h"
 #include "ClientTextureSourceSystem.h"
 #include "ClientTextureSourceComponent.h"
 #include "ProjectManager.h"
@@ -19,6 +21,10 @@ namespace TextureSourceQueries
 		auto spoutTextureSourceComponents = spoutTextureSourceSystem->getTextureSourceComponentList();
 		componentList.insert(componentList.end(), spoutTextureSourceComponents.begin(), spoutTextureSourceComponents.end());
 
+		auto cefTextureSourceSystem = projectManager->getSystemOfType<CEFTextureSourceSystem>();
+		auto cefTextureSourceComponents = cefTextureSourceSystem->getTextureSourceComponentList();
+		componentList.insert(componentList.end(), cefTextureSourceComponents.begin(), cefTextureSourceComponents.end());
+
 		return componentList;
 	}
 
@@ -33,6 +39,10 @@ namespace TextureSourceQueries
 		auto spoutTextureSourceSystem = projectManager->getSystemOfType<SpoutTextureSourceSystem>();
 		auto spoutTextureSourceIds = spoutTextureSourceSystem->getTextureSourceIdList();
 		textureSourceIdList.insert(textureSourceIdList.end(), spoutTextureSourceIds.begin(), spoutTextureSourceIds.end());
+
+		auto cefTextureSourceSystem = projectManager->getSystemOfType<CEFTextureSourceSystem>();
+		auto cefTextureSourceIds = cefTextureSourceSystem->getTextureSourceIdList();
+		textureSourceIdList.insert(textureSourceIdList.end(), cefTextureSourceIds.begin(), cefTextureSourceIds.end());
 
 		return textureSourceIdList;
 	}
@@ -51,6 +61,13 @@ namespace TextureSourceQueries
 		if (spoutTextureSourcePtr)
 		{
 			return spoutTextureSourcePtr;
+		}
+
+		auto cefTextureSourceSystem = projectManager->getSystemOfType<CEFTextureSourceSystem>();
+		auto cefTextureSourcePtr = cefTextureSourceSystem->getTypedComponentById(textureSourceId);
+		if (cefTextureSourcePtr)
+		{
+			return cefTextureSourcePtr;
 		}
 
 		return TextureSourceComponentPtr();
@@ -72,6 +89,13 @@ namespace TextureSourceQueries
 			return eTextureSourceType::spout;
 		}
 
+		auto cefTextureSourceSystem = projectManager->getSystemOfType<CEFTextureSourceSystem>();
+		auto cefTextureSourcePtr = cefTextureSourceSystem->getTypedComponentById(textureSourceId);
+		if (cefTextureSourcePtr)
+		{
+			return eTextureSourceType::cef;
+		}
+
 		return eTextureSourceType::INVALID;
 	}
 
@@ -88,6 +112,11 @@ namespace TextureSourceQueries
 			{
 				auto spoutTextureSourceSystem = projectManager->getSystemOfType<SpoutTextureSourceSystem>();
 				return spoutTextureSourceSystem->removeObjectByPrimaryComponentId(textureSourceId);
+			}
+			case eTextureSourceType::cef:
+			{
+				auto cefTextureSourceSystem = projectManager->getSystemOfType<CEFTextureSourceSystem>();
+				return cefTextureSourceSystem->removeObjectByPrimaryComponentId(textureSourceId);
 			}
 		}
 

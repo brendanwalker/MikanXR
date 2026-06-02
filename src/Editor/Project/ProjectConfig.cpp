@@ -20,6 +20,7 @@
 #include "SceneObjectSystem.h"
 #include "StageObjectSystem.h"
 #include "SpoutTextureSourceSystem.h"
+#include "CEFTextureSourceSystem.h"
 #include "StringUtils.h"
 #include "SinglecastDelegate.h"
 #include "TrackingMountObjectSystem.h"
@@ -56,6 +57,7 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	sceneConfig = addTypedDefinition<SceneObjectSystemDefinition, SceneObjectSystem>(persistentIDAllocator);
 	stageConfig = addTypedDefinition<StageObjectSystemDefinition, StageObjectSystem>(persistentIDAllocator);
 	spoutConfig = addTypedDefinition<SpoutTextureSourceSystemDefinition, SpoutTextureSourceSystem>(persistentIDAllocator);
+	cefConfig = addTypedDefinition<CEFTextureSourceSystemDefinition, CEFTextureSourceSystem>(persistentIDAllocator);
 	trackingMountSystemConfig = addTypedDefinition<TrackingMountObjectSystemDefinition, TrackingMountObjectSystem>(persistentIDAllocator);
 	networkVideoSourceSystemConfig = addTypedDefinition<NetworkVideoSourceSystemDefinition, NetworkVideoSourceSystem>(persistentIDAllocator);
 	usbVideoSourceSystemConfig = addTypedDefinition<USBVideoSourceSystemDefinition, USBVideoSourceSystem>(persistentIDAllocator);

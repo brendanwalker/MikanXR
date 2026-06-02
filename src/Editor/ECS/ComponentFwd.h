@@ -125,6 +125,16 @@ using SpoutTextureSourceComponentPtr = std::shared_ptr<SpoutTextureSourceCompone
 using SpoutTextureSourceComponentConstPtr = std::shared_ptr<const SpoutTextureSourceComponent>;
 using SpoutTextureSourceComponentWeakPtr = std::weak_ptr<SpoutTextureSourceComponent>;
 
+class CEFTextureSourceDefinition;
+using CEFTextureSourceDefinitionPtr = std::shared_ptr<CEFTextureSourceDefinition>;
+using CEFTextureSourceDefinitionConstPtr = std::shared_ptr<const CEFTextureSourceDefinition>;
+using CEFTextureSourceDefinitionWeakPtr = std::weak_ptr<CEFTextureSourceDefinition>;
+
+class CEFTextureSourceComponent;
+using CEFTextureSourceComponentPtr = std::shared_ptr<CEFTextureSourceComponent>;
+using CEFTextureSourceComponentConstPtr = std::shared_ptr<const CEFTextureSourceComponent>;
+using CEFTextureSourceComponentWeakPtr = std::weak_ptr<CEFTextureSourceComponent>;
+
 class TextureSourceDefinition;
 using TextureSourceDefinitionPtr = std::shared_ptr<TextureSourceDefinition>;
 using TextureSourceDefinitionConstPtr = std::shared_ptr<const TextureSourceDefinition>;

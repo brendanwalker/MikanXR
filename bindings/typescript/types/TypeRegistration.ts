@@ -35,7 +35,7 @@ import { MikanStageComponentValues } from './MikanStageTypes.js';
 import { GetModelStencilRenderGeometry, MikanStencilModelRenderGeometryResponse } from './MikanStencilRequest.js';
 import { MikanModelStencilComponentValues, MikanQuadStencilSystemValues, MikanBoxStencilSystemValues, MikanModelStencilSystemValues, MikanStencilComponentValues, MikanQuadStencilComponentValues, MikanBoxStencilComponentValues, MikanTriagulatedMesh, MikanStencilModelRenderGeometry } from './MikanStencilTypes.js';
 import { MikanTextureSourceOpenedEvent, MikanTextureSourceClosedEvent } from './MikanTextureSourceEvents.js';
-import { MikanTextureSourceValues, MikanClientTextureSourceValues, MikanSpoutTextureSourceValues } from './MikanTextureSourceTypes.js';
+import { MikanCEFTextureSourceValues, MikanTextureSourceValues, MikanClientTextureSourceValues, MikanSpoutTextureSourceValues } from './MikanTextureSourceTypes.js';
 import { MikanTrackingMountComponentValues } from './MikanTrackingMountTypes.js';
 import { MikanVRTrackingVolumeComponentValues, MikanTrackingVolumeComponentValues, MikanMarkerTrackingVolumeComponentValues } from './MikanTrackingVolumeTypes.js';
 import { MikanTransformComponentValues } from './MikanTransformTypes.js';
@@ -152,6 +152,7 @@ export function registerAllTypes(): void {
   TypeRegistry.register('MikanStencilModelRenderGeometry', MikanStencilModelRenderGeometry);
   TypeRegistry.register('MikanTextureSourceOpenedEvent', MikanTextureSourceOpenedEvent);
   TypeRegistry.register('MikanTextureSourceClosedEvent', MikanTextureSourceClosedEvent);
+  TypeRegistry.register('MikanCEFTextureSourceValues', MikanCEFTextureSourceValues);
   TypeRegistry.register('MikanTextureSourceValues', MikanTextureSourceValues);
   TypeRegistry.register('MikanClientTextureSourceValues', MikanClientTextureSourceValues);
   TypeRegistry.register('MikanSpoutTextureSourceValues', MikanSpoutTextureSourceValues);

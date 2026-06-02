@@ -55,6 +55,10 @@ class SpoutTextureSourceSystem;
 using SpoutTextureSourceSystemPtr = std::shared_ptr<SpoutTextureSourceSystem>;
 using SpoutTextureSourceSystemWeakPtr = std::weak_ptr<SpoutTextureSourceSystem>;
 
+class CEFTextureSourceSystem;
+using CEFTextureSourceSystemPtr = std::shared_ptr<CEFTextureSourceSystem>;
+using CEFTextureSourceSystemWeakPtr = std::weak_ptr<CEFTextureSourceSystem>;
+
 class StageObjectSystem;
 using StageObjectSystemPtr = std::shared_ptr<StageObjectSystem>;
 using StageObjectSystemWeakPtr = std::weak_ptr<StageObjectSystem>;

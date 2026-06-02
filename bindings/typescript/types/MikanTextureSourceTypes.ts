@@ -9,6 +9,18 @@ export class MikanTextureSourceValues extends MikanComponentValues {
   ];
 }
 
+export class MikanCEFTextureSourceValues extends MikanTextureSourceValues {
+  url: string = '';
+  width: number = 1280;
+  height: number = 720;
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'url', type: 'string' },
+    { name: 'width', type: 'int32' },
+    { name: 'height', type: 'int32' }
+  ];
+}
+
 export class MikanClientTextureSourceValues extends MikanTextureSourceValues {
   client_source: string = '';
 

@@ -53,6 +53,7 @@ public:
 	QuadStencilSystemDefinitionPtr quadStencilSystemDefinition;
 	SceneObjectSystemDefinitionPtr sceneConfig;
 	SpoutTextureSourceSystemDefinitionPtr spoutConfig;
+	CEFTextureSourceSystemDefinitionPtr cefConfig;
 	StageObjectSystemDefinitionPtr stageConfig;
 	TrackingMountObjectSystemDefinitionPtr trackingMountSystemConfig;
 	NetworkVideoSourceSystemDefinitionPtr networkVideoSourceSystemConfig;

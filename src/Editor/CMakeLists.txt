@@ -2,6 +2,15 @@
 ## =======================
 MESSAGE(STATUS "Generating Mikan Editor Project")
 
+# CEF (Chromium Embedded Framework) - set up include path and lib variables
+if(DEFINED CEF_ROOT)
+  # Normalize path to forward slashes so cef_macros.cmake string expansions don't produce
+  # invalid backslash escape sequences (e.g. \G in \Github).
+  file(TO_CMAKE_PATH "${CEF_ROOT}" CEF_ROOT)
+  list(APPEND CMAKE_MODULE_PATH "${CEF_ROOT}/cmake")
+  find_package(CEF REQUIRED)
+endif()
+
 # Dependencies
 set(MIKAN_INCL_DIRS)
 set(MIKAN_REQ_LIBS)
@@ -526,6 +535,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${GLEW_INCLUDE_DIRS}
   ${FastCSV_INCLUDE_DIRS}
   ${SPOUT2_INCLUDE_DIRS}
+  ${CEF_INCLUDE_PATH}
   ${LUA_INCLUDE_DIRS}
   ${LUA_BRIDGE_INCLUDE_DIRS}
   ${ROOT_DIR}/thirdparty/lrdb/include
@@ -539,6 +549,12 @@ list(APPEND MIKAN_REQ_LIBS
   ${MIKAN_EXTRA_LIBS}
   ${GLEW_LIBRARIES}
   ${SPOUT2_LIBRARIES}
+  libcef_dll_wrapper
+  "$<$<CONFIG:Debug>:${CEF_LIB_DEBUG}>"
+  "$<$<CONFIG:Release>:${CEF_LIB_RELEASE}>"
+  crypt32
+  wintrust
+  shlwapi
   ${LIBHARU_LIBRARIES}
   ${LUA_LIBRARIES}
   ${RFK_LIBRARIES}
@@ -660,9 +676,14 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     COMMAND ${CMAKE_COMMAND} -E copy ${GLEW_SHARED_LIBRARIES} $<TARGET_FILE_DIR:Mikan>)
   add_custom_command(
     TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy 
-    "${SPOUT2_SHARED_LIBRARIES}" 
+    COMMAND ${CMAKE_COMMAND} -E copy
+    "${SPOUT2_SHARED_LIBRARIES}"
     $<TARGET_FILE_DIR:Mikan>)
+  # Copy CEF binary and resource files to build output
+  if(DEFINED CEF_ROOT)
+    COPY_FILES(Mikan "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "$<TARGET_FILE_DIR:Mikan>")
+    COPY_FILES(Mikan "${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" "$<TARGET_FILE_DIR:Mikan>")
+  endif()
   add_custom_command(
     TARGET Mikan POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy 

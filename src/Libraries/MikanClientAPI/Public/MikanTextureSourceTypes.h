@@ -45,6 +45,26 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTextureSourceTypes"))
 	#endif // MIKANAPI_REFLECTION_ENABLED
 };
 
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTextureSourceTypes")) MikanCEFTextureSourceValues :
+	public MikanTextureSourceValues
+{
+	static const char* k_componentClassName;
+	static const char* k_ownerSystemName;
+
+	FIELD()
+	Serialization::String url; ///< The URL of the web page to render
+
+	FIELD()
+	int width = 1280; ///< Pixel buffer width
+
+	FIELD()
+	int height = 720; ///< Pixel buffer height
+
+	#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanCEFTextureSourceValues_GENERATED
+	#endif // MIKANAPI_REFLECTION_ENABLED
+};
+
 #ifdef MIKANAPI_REFLECTION_ENABLED
 File_MikanTextureSourceTypes_GENERATED
 #endif

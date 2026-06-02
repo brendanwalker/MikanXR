@@ -32,6 +32,8 @@
 #include "Objbase.h"
 #endif //_WIN32
 
+#include "include/cef_app.h"
+
 #define SETTINGS_SAVE_COOLDOWN	3.f
 
 //-- static members -----
@@ -198,6 +200,26 @@ bool App::startup(int argc, char** argv)
 
 	if (success)
 	{
+		CefSettings settings;
+		settings.windowless_rendering_enabled = true;
+		settings.multi_threaded_message_loop = false;
+		settings.no_sandbox = false;
+
+#ifdef WIN32
+		CefMainArgs main_args(GetModuleHandle(nullptr));
+#else
+		CefMainArgs main_args(0, nullptr);
+#endif
+
+		if (!CefInitialize(main_args, settings, nullptr, nullptr))
+		{
+			MIKAN_LOG_ERROR("CEFTextureSourceSystem") << "CefInitialize failed";
+			return false;
+		}
+	}
+
+	if (success)
+	{
 		// Register node graph factories spawned by windows
 		NodeGraphFactory::registerFactory<CompositorNodeGraphFactory>();
 
@@ -220,6 +242,9 @@ bool App::startup(int argc, char** argv)
 
 void App::shutdown()
 {
+	// Tear down Chromium Embeded Framework
+	CefShutdown();
+
 	// Dispose all app windows (but the main window)
 	while (m_appWindows.size() > 0)
 	{
@@ -272,6 +297,9 @@ void App::tick()
 	m_fps = deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
 	m_secondsSinceAppStart += deltaSeconds;
 	m_lastFrameTimestamp = now;
+
+	// Pump the CEF message loop so browser callbacks (including OnPaint) fire
+	CefDoMessageLoopWork();
 
 	// Refresh the latest events from SDL
 	// Each window will process the events it cares about
