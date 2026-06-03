@@ -587,9 +587,17 @@ set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Device/Enumerator/OpenCVCa
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/WebsocketInterprocessMessageServer.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/SharedTextureReader.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 set(APP_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/winapp_resources.rc")
 add_executable(Mikan WIN32 ${MIKAN_SRC} ${APP_RESOURCE_WINDOWS})
+# Embed the application manifest so Windows reports the real OS version to all
+# CEF subprocess instances (which reuse Mikan.exe as the helper process).
+# Without this, base::win::OSInfo returns build 9200 (Win 8.1 compat shim)
+# instead of the real build, causing a DCHECK crash in the CEF media stack.
+target_link_options(Mikan PRIVATE
+    "/MANIFEST:EMBED"
+    "/MANIFESTINPUT:${CMAKE_CURRENT_SOURCE_DIR}/Mikan.exe.manifest"
+)
 ELSE() #Linux/Darwin
 add_executable(Mikan ${MIKAN_SRC})
 ENDIF()
