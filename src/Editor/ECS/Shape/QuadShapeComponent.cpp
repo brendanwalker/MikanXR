@@ -156,7 +156,7 @@ void QuadShapeComponent::openShape()
 		reinterpret_cast<const uint8_t*>(indices),
 		sizeof(uint16_t),
 		2,    // triangle count
-		true); // mesh owns a copy of the vertex/index data
+		false); // mesh does NOT own the vertex/index data (static array above)
 
 	if (!quadMesh)
 		return;
