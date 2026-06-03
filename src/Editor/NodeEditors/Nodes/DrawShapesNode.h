@@ -26,6 +26,7 @@ public:
 
 	inline static const std::string k_nodeClassName = "DrawShapesNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
+	virtual void setOwnerGraph(NodeGraphPtr ownerGraph) override;
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
 	virtual void saveToConfig(NodeConfigPtr nodeConfig) const override;
@@ -40,6 +41,12 @@ protected:
 	void evaluateQuadShapes(CameraComponentPtr cameraComponent, const glm::mat4& vpMatrix);
 	void evaluateBoxShapes(CameraComponentPtr cameraComponent, const glm::mat4& vpMatrix);
 	void evaluateModelShapes(CameraComponentPtr cameraComponent, const glm::mat4& vpMatrix);
+
+	void onGraphLoaded(bool success);
+	virtual void onLinkConnected(NodeLinkPtr link, NodePinPtr pin) override;
+	virtual void onLinkDisconnected(NodeLinkPtr link, NodePinPtr pin) override;
+
+	void setShapesPin(ArrayPinPtr inPin);
 
 	void drawShapeRenderable(
 		IMkSceneRenderableConstPtr renderable,

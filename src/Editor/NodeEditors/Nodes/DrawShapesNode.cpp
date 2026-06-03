@@ -91,6 +91,60 @@ void DrawShapesNode::saveToConfig(NodeConfigPtr nodeConfig) const
 	Node::saveToConfig(nodeConfig);
 }
 
+
+void DrawShapesNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
+{
+	if (newOwnerGraph != m_ownerGraph)
+	{
+		if (m_ownerGraph)
+		{
+			m_ownerGraph->OnGraphLoaded -= MakeDelegate(this, &DrawShapesNode::onGraphLoaded);
+			m_ownerGraph = nullptr;
+		}
+
+		if (newOwnerGraph)
+		{
+			newOwnerGraph->OnGraphLoaded += MakeDelegate(this, &DrawShapesNode::onGraphLoaded);
+			m_ownerGraph = newOwnerGraph;
+		}
+	}
+}
+
+void DrawShapesNode::setShapesPin(ArrayPinPtr inPin)
+{
+	m_shapesPin = inPin;
+}
+
+void DrawShapesNode::onGraphLoaded(bool success)
+{
+	// Don't bother with setup if the graph load failed
+	if (!success)
+		return;
+
+	// Optionally bind a stencil input pin
+	ArrayPinPtr shapesInPin = getFirstPinOfType<ArrayPin>(eNodePinDirection::INPUT);
+	if (shapesInPin && shapesInPin->getElementClassName() == GraphShapeProperty::k_propertyClassName)
+	{
+		setShapesPin(shapesInPin);
+	}
+}
+
+void DrawShapesNode::onLinkConnected(NodeLinkPtr link, NodePinPtr pin)
+{
+	if (pin == m_shapesPin)
+	{
+		m_shapesPin->copyValueFromSourcePin();
+	}
+}
+
+void DrawShapesNode::onLinkDisconnected(NodeLinkPtr link, NodePinPtr pin)
+{
+	if (pin == m_shapesPin)
+	{
+		m_shapesPin->clearArray();
+	}
+}
+
 bool DrawShapesNode::evaluateNode(NodeEvaluator& evaluator)
 {
 	if (!evaluateInputs(evaluator))
