@@ -9,6 +9,57 @@
 
 #include <easy/profiler.h>
 
+// -- CEFBrowserClient ------
+CEFBrowserClient::CEFBrowserClient(std::weak_ptr<CEFTextureSourceComponent> owner)
+	: m_owner(std::move(owner))
+{
+}
+
+void CEFBrowserClient::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
+{
+	if (auto comp = m_owner.lock())
+	{
+		comp->onCefGetViewRect(rect);
+	}
+	else
+	{
+		rect = CefRect(0, 0, 1280, 720);
+	}
+}
+
+void CEFBrowserClient::OnPaint(
+	CefRefPtr<CefBrowser> browser,
+	PaintElementType type,
+	const RectList& dirtyRects,
+	const void* buffer,
+	int width,
+	int height)
+{
+	if (type != PET_VIEW)
+		return;
+
+	if (auto comp = m_owner.lock())
+	{
+		comp->onCefPaint(buffer, width, height);
+	}
+}
+
+void CEFBrowserClient::OnAfterCreated(CefRefPtr<CefBrowser> browser)
+{
+	if (auto comp = m_owner.lock())
+	{
+		comp->onCefBrowserCreated(browser);
+	}
+}
+
+void CEFBrowserClient::OnBeforeClose(CefRefPtr<CefBrowser> browser)
+{
+	if (auto comp = m_owner.lock())
+	{
+		comp->onCefBrowserClosed();
+	}
+}
+
 // -- CEFTextureSourceDefinition ------
 const std::string CEFTextureSourceDefinition::k_urlPropertyId = "cef_url";
 const std::string CEFTextureSourceDefinition::k_widthPropertyId = "cef_width";
@@ -116,7 +167,17 @@ void CEFTextureSourceComponent::onDefinitionMarkedDirty(
 
 	if (changedPropertySet.hasPropertyName(CEFTextureSourceDefinition::k_urlPropertyId))
 	{
-		openTextureSource();
+		const std::string& url = getCEFTextureSourceDefinition()->getUrl();
+		if (m_browser && !url.empty())
+		{
+			// Navigate in-place — much cheaper than tearing down and recreating the browser.
+			m_browser->GetMainFrame()->LoadURL(url);
+		}
+		else
+		{
+			// No live browser yet (e.g. URL was previously empty); do a full open.
+			openTextureSource();
+		}
 	}
 	else if (changedPropertySet.hasPropertyName(CEFTextureSourceDefinition::k_widthPropertyId) ||
 	         changedPropertySet.hasPropertyName(CEFTextureSourceDefinition::k_heightPropertyId))
@@ -187,6 +248,9 @@ void CEFTextureSourceComponent::closeTextureSource()
 		m_browser = nullptr;
 	}
 
+	// Release the client after the browser is gone so CEF's refcount can reach zero cleanly
+	m_cefClient = nullptr;
+
 	if (m_colorTexture)
 	{
 		m_colorTexture->disposeTexture();
@@ -214,13 +278,15 @@ void CEFTextureSourceComponent::openTextureSource()
 	if (url.empty())
 		return;
 
+	m_cefClient = new CEFBrowserClient(getSelfPtr<CEFTextureSourceComponent>());
+
 	CefWindowInfo windowInfo;
 	windowInfo.SetAsWindowless(nullptr);
 
 	CefBrowserSettings browserSettings;
 	browserSettings.windowless_frame_rate = 60;
 
-	CefBrowserHost::CreateBrowser(windowInfo, this, url, browserSettings, nullptr, nullptr);
+	CefBrowserHost::CreateBrowser(windowInfo, m_cefClient, url, browserSettings, nullptr, nullptr);
 }
 
 // -- Texture Source Interface ---
@@ -232,8 +298,8 @@ IMkTexturePtr CEFTextureSourceComponent::getClientColorSourceTexture(
 	return m_colorTexture;
 }
 
-// -- CefRenderHandler ----
-void CEFTextureSourceComponent::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
+// -- CEFBrowserClient callbacks ----
+void CEFTextureSourceComponent::onCefGetViewRect(CefRect& rect)
 {
 	const auto def = getCEFTextureSourceDefinition();
 	if (def)
@@ -246,17 +312,8 @@ void CEFTextureSourceComponent::GetViewRect(CefRefPtr<CefBrowser> browser, CefRe
 	}
 }
 
-void CEFTextureSourceComponent::OnPaint(
-	CefRefPtr<CefBrowser> browser,
-	PaintElementType type,
-	const RectList& dirtyRects,
-	const void* buffer,
-	int width,
-	int height)
+void CEFTextureSourceComponent::onCefPaint(const void* buffer, int width, int height)
 {
-	if (type != PET_VIEW)
-		return;
-
 	const size_t bufferSize = (size_t)width * height * 4; // BGRA = 4 bytes per pixel
 
 	std::lock_guard<std::mutex> lock(m_stagingMutex);
@@ -267,13 +324,12 @@ void CEFTextureSourceComponent::OnPaint(
 	m_dirty = true;
 }
 
-// -- CefLifeSpanHandler ----
-void CEFTextureSourceComponent::OnAfterCreated(CefRefPtr<CefBrowser> browser)
+void CEFTextureSourceComponent::onCefBrowserCreated(CefRefPtr<CefBrowser> browser)
 {
 	m_browser = browser;
 }
 
-void CEFTextureSourceComponent::OnBeforeClose(CefRefPtr<CefBrowser> browser)
+void CEFTextureSourceComponent::onCefBrowserClosed()
 {
 	m_browser = nullptr;
 }

@@ -2,6 +2,7 @@
 
 #include "TextureSourceComponent.h"
 
+#include "include/cef_browser.h"
 #include "include/cef_client.h"
 #include "include/cef_life_span_handler.h"
 #include "include/cef_render_handler.h"
@@ -9,6 +10,47 @@
 #include <mutex>
 #include <vector>
 
+// Forward declaration so CEFBrowserClient can reference the component
+class CEFTextureSourceComponent;
+
+// -------------------------------------------------------------------------------------------------
+// CEFBrowserClient
+//
+// Owns all CefClient/CefRenderHandler/CefLifeSpanHandler interfaces so they are managed by CEF's
+// own refcounting (IMPLEMENT_REFCOUNTING) instead of by std::shared_ptr. This decouples the two
+// lifetime systems: the component is owned by the ECS, the client is owned by CEF. The client
+// holds only a weak_ptr back to the component so it can be safely destroyed first.
+// -------------------------------------------------------------------------------------------------
+class CEFBrowserClient
+	: public CefClient
+	, public CefRenderHandler
+	, public CefLifeSpanHandler
+{
+public:
+	explicit CEFBrowserClient(std::weak_ptr<CEFTextureSourceComponent> owner);
+
+	// -- CefClient ----
+	virtual CefRefPtr<CefRenderHandler> GetRenderHandler() override { return this; }
+	virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override { return this; }
+
+	// -- CefRenderHandler ----
+	virtual void GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) override;
+	virtual void OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type,
+		const RectList& dirtyRects, const void* buffer, int width, int height) override;
+
+	// -- CefLifeSpanHandler ----
+	virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) override;
+	virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) override;
+
+private:
+	std::weak_ptr<CEFTextureSourceComponent> m_owner;
+
+	IMPLEMENT_REFCOUNTING(CEFBrowserClient);
+};
+
+// -------------------------------------------------------------------------------------------------
+// CEFTextureSourceDefinition
+// -------------------------------------------------------------------------------------------------
 class CEFTextureSourceDefinition : public TextureSourceDefinition
 {
 public:
@@ -39,11 +81,10 @@ private:
 	int m_height = 720;
 };
 
-class CEFTextureSourceComponent
-	: public TextureSourceComponent
-	, public CefClient
-	, public CefRenderHandler
-	, public CefLifeSpanHandler
+// -------------------------------------------------------------------------------------------------
+// CEFTextureSourceComponent
+// -------------------------------------------------------------------------------------------------
+class CEFTextureSourceComponent : public TextureSourceComponent
 {
 public:
 	CEFTextureSourceComponent(MikanObjectWeakPtr owner);
@@ -75,18 +116,11 @@ public:
 	{ TextureSourceComponent::getFunctionDescriptors(outDescriptors); }
 	virtual void showTextureSourceSettings() override;
 
-	// -- CefClient ----
-	virtual CefRefPtr<CefRenderHandler> GetRenderHandler() override { return this; }
-	virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override { return this; }
-
-	// -- CefRenderHandler ----
-	virtual void GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) override;
-	virtual void OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type,
-		const RectList& dirtyRects, const void* buffer, int width, int height) override;
-
-	// -- CefLifeSpanHandler ----
-	virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) override;
-	virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) override;
+	// -- CEFBrowserClient callbacks (called from CEFBrowserClient) ----
+	void onCefGetViewRect(CefRect& rect);
+	void onCefPaint(const void* buffer, int width, int height);
+	void onCefBrowserCreated(CefRefPtr<CefBrowser> browser);
+	void onCefBrowserClosed();
 
 protected:
 	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet) override;
@@ -95,6 +129,7 @@ protected:
 
 private:
 	CefRefPtr<CefBrowser> m_browser;
+	CefRefPtr<CEFBrowserClient> m_cefClient;
 	IMkTexturePtr m_colorTexture;
 
 	std::mutex m_stagingMutex;
@@ -102,6 +137,4 @@ private:
 	int m_stagingWidth = 0;
 	int m_stagingHeight = 0;
 	bool m_dirty = false;
-
-	IMPLEMENT_REFCOUNTING(CEFTextureSourceComponent);
 };
