@@ -36,6 +36,9 @@
 #include "Project/GuiPanel_ProjectSources.h"
 #include "Project/GuiPanel_ProjectStages.h"
 #include "Project/GuiPanel_ProjectTracking.h"
+#include "BoxShapeSystem.h"
+#include "ModelShapeSystem.h"
+#include "QuadShapeSystem.h"
 #include "RGBSpotLightSystem.h"
 #include "RGBPixelGridSystem.h"
 #include "Shared/GuiPanel_MarkerComponent.h"
@@ -91,6 +94,9 @@ void AppStage_Project::enter()
 	m_quadStencilSystem = objectSystemManager->getSystemOfType<QuadStencilSystem>();
 	m_boxStencilSystem = objectSystemManager->getSystemOfType<BoxStencilSystem>();
 	m_modelStencilSystem = objectSystemManager->getSystemOfType<ModelStencilSystem>();
+	m_quadShapeSystem = objectSystemManager->getSystemOfType<QuadShapeSystem>();
+	m_boxShapeSystem = objectSystemManager->getSystemOfType<BoxShapeSystem>();
+	m_modelShapeSystem = objectSystemManager->getSystemOfType<ModelShapeSystem>();
 	m_pixelGridLightSystem = objectSystemManager->getSystemOfType<RGBPixelGridSystem>();
 	m_spotLightSystem = objectSystemManager->getSystemOfType<RGBSpotLightSystem>();
 
@@ -105,6 +111,9 @@ void AppStage_Project::enter()
 	m_sceneObjectSystemFilter.insert(m_quadStencilSystem.lock().get());
 	m_sceneObjectSystemFilter.insert(m_boxStencilSystem.lock().get());
 	m_sceneObjectSystemFilter.insert(m_modelStencilSystem.lock().get());
+	m_sceneObjectSystemFilter.insert(m_quadShapeSystem.lock().get());
+	m_sceneObjectSystemFilter.insert(m_boxShapeSystem.lock().get());
+	m_sceneObjectSystemFilter.insert(m_modelShapeSystem.lock().get());
 	m_sceneObjectSystemFilter.insert(m_stageObjectSystemFilter.begin(), m_stageObjectSystemFilter.end());
 
 	// Tracking Panel collision set
@@ -547,6 +556,29 @@ void AppStage_Project::renderProjectScene(IMkGraphicsContext* graphicsContext, M
 
 			addAllRenderablesToMkScene(quadStencilSystem, m_mkScene);
 			quadStencilSystem->customRender(graphicsContext, viewportCamera);
+		}
+
+		// Render the shapes if enabled
+		if (editorSettings.bDebugRenderQuadShapes)
+		{
+			QuadShapeSystemPtr quadShapeSystem = m_quadShapeSystem.lock();
+
+			addAllRenderablesToMkScene(quadShapeSystem, m_mkScene);
+			quadShapeSystem->customRender(graphicsContext, viewportCamera);
+		}
+		if (editorSettings.bDebugRenderBoxShapes)
+		{
+			BoxShapeSystemPtr boxShapeSystem = m_boxShapeSystem.lock();
+
+			addAllRenderablesToMkScene(boxShapeSystem, m_mkScene);
+			boxShapeSystem->customRender(graphicsContext, viewportCamera);
+		}
+		if (editorSettings.bDebugRenderModelShapes)
+		{
+			ModelShapeSystemPtr modelShapeSystem = m_modelShapeSystem.lock();
+
+			addAllRenderablesToMkScene(modelShapeSystem, m_mkScene);
+			modelShapeSystem->customRender(graphicsContext, viewportCamera);
 		}
 	}
 }

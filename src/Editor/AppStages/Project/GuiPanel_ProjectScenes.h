@@ -3,15 +3,18 @@
 #include "Shared/GuiPanel.h"
 #include "Shared/GuiDataSource_ComboBox.h"
 #include "AnchorObjectSystem.h"
+#include "BoxShapeSystem.h"
 #include "CommonConfigFwd.h"
 #include "BoxStencilSystem.h"
 #include "ComponentFwd.h"
 #include "EditorObjectSystem.h"
+#include "ModelShapeSystem.h"
 #include "ModelStencilSystem.h"
 #include "MikanTypeFwd.h"
 #include "MkGuiStyle.h"
 #include "ObjectFwd.h"
 #include "ObjectSystemFwd.h"
+#include "QuadShapeSystem.h"
 #include "QuadStencilSystem.h"
 #include "SceneObjectSystem.h"
 
@@ -48,6 +51,7 @@ private:
 	// Delegate handlers
 	void onAnchorSystemConfigChanged(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
 	void onStencilSystemConfigChanged(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
+	void onShapeSystemConfigChanged(CommonConfigPtr configPtr, const class ConfigPropertyChangeSet& changedPropertySet);
 	void onObjectInitialized(MikanObjectSystemPtr objectSystemPtr, MikanObjectPtr objectPtr);
 	void onObjectDisposed(MikanObjectSystemPtr objectSystemPtr, MikanObjectConstPtr objectPtr);
 	void onSelectionChanged();
@@ -61,6 +65,9 @@ private:
 	QuadStencilSystemWeakPtr m_quadStencilSystem;
 	BoxStencilSystemWeakPtr m_boxStencilSystem;
 	ModelStencilSystemWeakPtr m_modelStencilSystem;
+	QuadShapeSystemWeakPtr m_quadShapeSystem;
+	BoxShapeSystemWeakPtr m_boxShapeSystem;
+	ModelShapeSystemWeakPtr m_modelShapeSystem;
 
 	int m_selectedSceneId = INVALID_MIKAN_ID;
 	int m_selectedCompositorId = INVALID_MIKAN_ID;

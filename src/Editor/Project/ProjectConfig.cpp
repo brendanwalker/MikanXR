@@ -1,5 +1,6 @@
 // -- includes -----
 #include "AnchorObjectSystem.h"
+#include "BoxShapeSystem.h"
 #include "BoxStencilSystem.h"
 #include "CameraObjectSystem.h"
 #include "ClientTextureSourceSystem.h"
@@ -9,11 +10,13 @@
 #include "MathUtility.h"
 #include "MarkerObjectSystem.h"
 #include "MarkerTrackingVolumeSystem.h"
+#include "ModelShapeSystem.h"
 #include "ModelStencilSystem.h"
 #include "NetworkVideoSourceSystem.h"
 #include "ProjectConfig.h"
 #include "ProjectConfigConstants.h"
 #include "PathUtils.h"
+#include "QuadShapeSystem.h"
 #include "QuadStencilSystem.h"
 #include "RGBSpotLightSystem.h"
 #include "RGBPixelGridSystem.h"
@@ -45,6 +48,7 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 
 	// Create object system definitions for object systems with persistent components, using the shared persistent ID allocator
 	anchorConfig = addTypedDefinition<AnchorObjectSystemDefinition, AnchorObjectSystem>(persistentIDAllocator);
+	boxShapeSystemDefinition = addTypedDefinition<BoxShapeSystemDefinition, BoxShapeSystem>(persistentIDAllocator);
 	boxStencilSystemDefinition = addTypedDefinition<BoxStencilSystemDefinition, BoxStencilSystem>(persistentIDAllocator);
 	cameraConfig = addTypedDefinition<CameraObjectSystemDefinition, CameraObjectSystem>(persistentIDAllocator);
 	clientConfig = addTypedDefinition<ClientTextureSourceSystemDefinition, ClientTextureSourceSystem>(persistentIDAllocator);
@@ -52,7 +56,9 @@ ProjectConfig::ProjectConfig(const std::string& fnamebase)
 	editorConfig = addTypedDefinition<EditorObjectSystemDefinition, EditorObjectSystem>(persistentIDAllocator);
 	markerSystemDefinition = addTypedDefinition<MarkerObjectSystemDefinition, MarkerObjectSystem>(persistentIDAllocator);
 	markerTrackingVolumeConfig = addTypedDefinition<MarkerTrackingVolumeSystemDefinition, MarkerTrackingVolumeSystem>(persistentIDAllocator);
+	modelShapeSystemDefinition = addTypedDefinition<ModelShapeSystemDefinition, ModelShapeSystem>(persistentIDAllocator);
 	modelStencilSystemDefinition = addTypedDefinition<ModelStencilSystemDefinition, ModelStencilSystem>(persistentIDAllocator);
+	quadShapeSystemDefinition = addTypedDefinition<QuadShapeSystemDefinition, QuadShapeSystem>(persistentIDAllocator);
 	quadStencilSystemDefinition = addTypedDefinition<QuadStencilSystemDefinition, QuadStencilSystem>(persistentIDAllocator);
 	sceneConfig = addTypedDefinition<SceneObjectSystemDefinition, SceneObjectSystem>(persistentIDAllocator);
 	stageConfig = addTypedDefinition<StageObjectSystemDefinition, StageObjectSystem>(persistentIDAllocator);

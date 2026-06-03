@@ -1,9 +1,13 @@
 #include "GuiPanel_ProjectSources.h"
+#include "BoxShapeComponent.h"
+#include "BoxShapeSystem.h"
 #include "CEFTextureSourceComponent.h"
 #include "CEFTextureSourceSystem.h"
 #include "ClientTextureSourceComponent.h"
 #include "ClientTextureSourceSystem.h"
 #include "MikanCoreTypes.h"
+#include "ModelShapeComponent.h"
+#include "ModelShapeSystem.h"
 #include "IconsForkAwesome.h"
 #include "MkGuiDrawUtils.h"
 #include "MkGuiStyleManager.h"
@@ -12,7 +16,11 @@
 #include "Project/AppStage_Project.h"
 #include "Project/ProjectGuiPanelContext.h"
 #include "ProjectManager.h"
+#include "QuadShapeComponent.h"
+#include "QuadShapeSystem.h"
 #include "Shared/GuiPanel_ClientTextureSourceComponent.h"
+#include "Shared/GuiPanel_ShapeComponent.h"
+#include "ShapeUtils.h"
 #include "Shared/GuiPanel_NetworkVideoSourceComponent.h"
 #include "Shared/GuiPanel_CEFTextureSourceComponent.h"
 #include "Shared/GuiPanel_SpoutTextureSourceComponent.h"
@@ -46,6 +54,13 @@ bool GuiPanel_ProjectSources::init(ProjectGuiPanelContext* context)
 			{ ClientTextureSourceSystem::k_objectSystemClassName, ClientTextureSourceComponent::k_componentClassName },
 			{ SpoutTextureSourceSystem::k_objectSystemClassName, SpoutTextureSourceComponent::k_componentClassName },
 			{ CEFTextureSourceSystem::k_objectSystemClassName, CEFTextureSourceComponent::k_componentClassName }
+		});
+
+	m_shapeDataSource = std::make_unique<GuiDataSource_ComboBox>(pm,
+		std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
+			{ QuadShapeSystem::k_objectSystemClassName, QuadShapeComponent::k_componentClassName },
+			{ BoxShapeSystem::k_objectSystemClassName, BoxShapeComponent::k_componentClassName },
+			{ ModelShapeSystem::k_objectSystemClassName, ModelShapeComponent::k_componentClassName }
 		});
 
 	// Auto-select first available video source
@@ -119,6 +134,27 @@ CEFTextureSourceComponentPtr GuiPanel_ProjectSources::getSelectedCEFTextureSourc
 	return sys->getTypedComponentById((MikanTextureSourceID)m_selectedTextureSourceId);
 }
 
+QuadShapeComponentPtr GuiPanel_ProjectSources::getSelectedQuadShape() const
+{
+	auto pm = m_projectManager.lock();
+	auto sys = pm->getSystemOfType<QuadShapeSystem>();
+	return sys->getQuadShapeById((MikanShapeID)m_selectedShapeId);
+}
+
+BoxShapeComponentPtr GuiPanel_ProjectSources::getSelectedBoxShape() const
+{
+	auto pm = m_projectManager.lock();
+	auto sys = pm->getSystemOfType<BoxShapeSystem>();
+	return sys->getBoxShapeById((MikanShapeID)m_selectedShapeId);
+}
+
+ModelShapeComponentPtr GuiPanel_ProjectSources::getSelectedModelShape() const
+{
+	auto pm = m_projectManager.lock();
+	auto sys = pm->getSystemOfType<ModelShapeSystem>();
+	return sys->getModelShapeById((MikanShapeID)m_selectedShapeId);
+}
+
 void GuiPanel_ProjectSources::setSelectedVideoSourceId(MikanVideoSourceID videoSourceId)
 {
 	m_selectedVideoSourceId = (int)videoSourceId;
@@ -164,6 +200,33 @@ void GuiPanel_ProjectSources::setSelectedTextureSourceId(MikanTextureSourceID te
 		case eTextureSourceType::cef:
 			if (CEFTextureSourceComponentPtr src = getSelectedCEFTextureSource())
 				m_context->getCEFTextureSourcePanel()->setComponent(src);
+			break;
+	}
+}
+
+void GuiPanel_ProjectSources::setSelectedShapeId(MikanShapeID shapeId)
+{
+	m_selectedShapeId = (int)shapeId;
+
+	m_context->getQuadShapePanel()->setComponent(nullptr);
+	m_context->getBoxShapePanel()->setComponent(nullptr);
+	m_context->getModelShapePanel()->setComponent(nullptr);
+
+	auto pm = m_projectManager.lock();
+	eShapeType shapeType = ShapeUtils::getShapeType(pm, shapeId);
+	switch (shapeType)
+	{
+		case eShapeType::quad:
+			if (QuadShapeComponentPtr src = getSelectedQuadShape())
+				m_context->getQuadShapePanel()->setComponent(src);
+			break;
+		case eShapeType::box:
+			if (BoxShapeComponentPtr src = getSelectedBoxShape())
+				m_context->getBoxShapePanel()->setComponent(src);
+			break;
+		case eShapeType::model:
+			if (ModelShapeComponentPtr src = getSelectedModelShape())
+				m_context->getModelShapePanel()->setComponent(src);
 			break;
 	}
 }
@@ -300,5 +363,75 @@ void GuiPanel_ProjectSources::onGui()
 		m_context->getClientTextureSourcePanel()->onGui();
 		m_context->getSpoutTextureSourcePanel()->onGui();
 		m_context->getCEFTextureSourcePanel()->onGui();
+	}
+
+	ImGui::Separator();
+
+	// Shapes
+	if (MkGui::drawImageButton(m_defaultGuiStyle, "addQuadShape", "add_quad_shape"))
+	{
+		addDeferredGuiEvent([this]() {
+			auto pm = m_projectManager.lock();
+			auto sys = pm->getSystemOfType<QuadShapeSystem>();
+			sys->addNewObjectByTypedDefinition();
+		});
+	}
+	ImGui::SameLine();
+	if (MkGui::drawImageButton(m_defaultGuiStyle, "addBoxShape", "add_box_shape"))
+	{
+		addDeferredGuiEvent([this]() {
+			auto pm = m_projectManager.lock();
+			auto sys = pm->getSystemOfType<BoxShapeSystem>();
+			sys->addNewObjectByTypedDefinition();
+		});
+	}
+	ImGui::SameLine();
+	if (MkGui::drawImageButton(m_defaultGuiStyle, "addModelShape", "add_model_shape"))
+	{
+		addDeferredGuiEvent([this]() {
+			auto pm = m_projectManager.lock();
+			auto sys = pm->getSystemOfType<ModelShapeSystem>();
+			sys->addNewObjectByTypedDefinition();
+		});
+	}
+
+	m_shapeDataSource->refreshEntries();
+
+	if (m_selectedShapeId != INVALID_MIKAN_ID &&
+		m_shapeDataSource->getEntryIndexByComponentId(m_selectedShapeId) == -1)
+	{
+		setSelectedShapeId(INVALID_MIKAN_ID);
+	}
+
+	int shapeIndex = m_shapeDataSource->getEntryIndexByComponentId(m_selectedShapeId);
+	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectShape", "Shape",
+		m_shapeDataSource.get(), shapeIndex))
+	{
+		if (shapeIndex >= 0)
+		{
+			if (MikanComponentPtr sel = m_shapeDataSource->getEntryAtIndex(shapeIndex))
+			{
+				int newId = sel->getComponentId();
+				addDeferredGuiEvent([this, newId]() {
+					setSelectedShapeId((MikanShapeID)newId);
+				});
+			}
+		}
+	}
+
+	if (m_selectedShapeId != INVALID_MIKAN_ID)
+	{
+		ImGui::SameLine();
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "removeShape", "delete_component"))
+		{
+			addDeferredGuiEvent([this]() {
+				auto pm = m_projectManager.lock();
+				ShapeUtils::removeShape(pm, (MikanShapeID)m_selectedShapeId);
+			});
+		}
+
+		m_context->getQuadShapePanel()->onGui();
+		m_context->getBoxShapePanel()->onGui();
+		m_context->getModelShapePanel()->onGui();
 	}
 }

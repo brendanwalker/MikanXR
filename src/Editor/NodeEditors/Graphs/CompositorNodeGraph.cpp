@@ -32,6 +32,7 @@
 #include "Properties/GraphBoolProperty.h"
 #include "Properties/GraphMaterialProperty.h"
 #include "Properties/GraphModelProperty.h"
+#include "Properties/GraphShapeProperty.h"
 #include "Properties/GraphStencilProperty.h"
 #include "Properties/GraphTextureProperty.h"
 
@@ -41,9 +42,12 @@
 #include "Nodes/DepthTextureSourceNode.h"
 #include "Nodes/DepthMaskNode.h"
 #include "Nodes/DrawLayerNode.h"
+#include "Nodes/DrawShapesNode.h"
 #include "Nodes/EventNode.h"
 #include "Nodes/MaterialNode.h"
 #include "Nodes/MousePosNode.h"
+#include "Nodes/ShapeNode.h"
+#include "Nodes/ShapeSelectNode.h"
 #include "Nodes/StencilNode.h"
 #include "Nodes/StencilSelectNode.h"
 #include "Nodes/TextureNode.h"
@@ -69,6 +73,7 @@ CompositorNodeGraph::CompositorNodeGraph() : NodeGraph()
 	addPropertyFactory<GraphBoolPropertyFactory>();
 	addPropertyFactory<GraphMaterialPropertyFactory>();
 	addPropertyFactory<GraphTexturePropertyFactory>();
+	addPropertyFactory<GraphShapePropertyFactory>();
 	addPropertyFactory<GraphStencilPropertyFactory>();
 
 	// Nodes this graph can spawn
@@ -76,10 +81,13 @@ CompositorNodeGraph::CompositorNodeGraph() : NodeGraph()
 	addNodeFactory<ColorTextureSourceNodeFactory>();
 	addNodeFactory<DepthTextureSourceNodeFactory>();
 	addNodeFactory<DrawLayerNodeFactory>();
+	addNodeFactory<DrawShapesNodeFactory>();
 	addNodeFactory<DepthMaskNodeFactory>();
 	addNodeFactory<EventNodeFactory>();
 	addNodeFactory<MousePosNodeFactory>();
 	addNodeFactory<MaterialNodeFactory>();
+	addNodeFactory<ShapeNodeFactory>();
+	addNodeFactory<ShapeSelectNodeFactory>();
 	addNodeFactory<StencilNodeFactory>();
 	addNodeFactory<StencilSelectNodeFactory>();
 	addNodeFactory<TextureNodeFactory>();

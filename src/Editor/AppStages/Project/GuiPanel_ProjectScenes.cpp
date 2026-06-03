@@ -1,7 +1,14 @@
 #include "GuiPanel_ProjectScenes.h"
 #include "AnchorComponent.h"
 #include "AnchorObjectSystem.h"
+#include "BoxShapeComponent.h"
+#include "BoxShapeSystem.h"
 #include "BoxStencilSystem.h"
+#include "ModelShapeComponent.h"
+#include "ModelShapeSystem.h"
+#include "QuadShapeComponent.h"
+#include "QuadShapeSystem.h"
+#include "ShapeComponent.h"
 #include "StencilComponent.h"
 #include "CompositorComponent.h"
 #include "CompositorObjectSystem.h"
@@ -22,6 +29,7 @@
 #include "Shared/GuiPanel_AnchorComponent.h"
 #include "Shared/GuiPanel_CompositorComponent.h"
 #include "Shared/GuiPanel_SceneComponent.h"
+#include "Shared/GuiPanel_ShapeComponent.h"
 #include "Shared/GuiPanel_StencilComponent.h"
 #include "StageObjectSystem.h"
 #include "TransformComponent.h"
@@ -42,6 +50,9 @@ bool GuiPanel_ProjectScenes::init(ProjectGuiPanelContext* context)
 	m_quadStencilSystem = ownerAppStage->getObjectSystemOfType<QuadStencilSystem>();
 	m_boxStencilSystem = ownerAppStage->getObjectSystemOfType<BoxStencilSystem>();
 	m_modelStencilSystem = ownerAppStage->getObjectSystemOfType<ModelStencilSystem>();
+	m_quadShapeSystem = ownerAppStage->getObjectSystemOfType<QuadShapeSystem>();
+	m_boxShapeSystem = ownerAppStage->getObjectSystemOfType<BoxShapeSystem>();
+	m_modelShapeSystem = ownerAppStage->getObjectSystemOfType<ModelShapeSystem>();
 
 	m_defaultGuiStyle = getGuiStyleManager()->getStyle("default_component_panel");
 
@@ -96,6 +107,31 @@ bool GuiPanel_ProjectScenes::init(ProjectGuiPanelContext* context)
 	modelStencilSystem->OnNewObjectFinalized +=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
 	modelStencilSystem->OnObjectDisposed +=
+		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
+
+	// Listen for shape changes
+	QuadShapeSystemPtr quadShapeSystem = m_quadShapeSystem.lock();
+	quadShapeSystem->getTypedDefinition()->OnPropertyChanged +=
+		MakeDelegate(this, &GuiPanel_ProjectScenes::onShapeSystemConfigChanged);
+	quadShapeSystem->OnNewObjectFinalized +=
+		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
+	quadShapeSystem->OnObjectDisposed +=
+		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
+
+	BoxShapeSystemPtr boxShapeSystem = m_boxShapeSystem.lock();
+	boxShapeSystem->getTypedDefinition()->OnPropertyChanged +=
+		MakeDelegate(this, &GuiPanel_ProjectScenes::onShapeSystemConfigChanged);
+	boxShapeSystem->OnNewObjectFinalized +=
+		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
+	boxShapeSystem->OnObjectDisposed +=
+		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
+
+	ModelShapeSystemPtr modelShapeSystem = m_modelShapeSystem.lock();
+	modelShapeSystem->getTypedDefinition()->OnPropertyChanged +=
+		MakeDelegate(this, &GuiPanel_ProjectScenes::onShapeSystemConfigChanged);
+	modelShapeSystem->OnNewObjectFinalized +=
+		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
+	modelShapeSystem->OnObjectDisposed +=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 
 	// Build initial state
@@ -167,6 +203,36 @@ void GuiPanel_ProjectScenes::dispose()
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 	}
 
+	if (QuadShapeSystemPtr sys = m_quadShapeSystem.lock())
+	{
+		sys->getTypedDefinition()->OnPropertyChanged -=
+			MakeDelegate(this, &GuiPanel_ProjectScenes::onShapeSystemConfigChanged);
+		sys->OnNewObjectFinalized -=
+			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
+		sys->OnObjectDisposed -=
+			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
+	}
+
+	if (BoxShapeSystemPtr sys = m_boxShapeSystem.lock())
+	{
+		sys->getTypedDefinition()->OnPropertyChanged -=
+			MakeDelegate(this, &GuiPanel_ProjectScenes::onShapeSystemConfigChanged);
+		sys->OnNewObjectFinalized -=
+			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
+		sys->OnObjectDisposed -=
+			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
+	}
+
+	if (ModelShapeSystemPtr sys = m_modelShapeSystem.lock())
+	{
+		sys->getTypedDefinition()->OnPropertyChanged -=
+			MakeDelegate(this, &GuiPanel_ProjectScenes::onShapeSystemConfigChanged);
+		sys->OnNewObjectFinalized -=
+			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
+		sys->OnObjectDisposed -=
+			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
+	}
+
 	GuiPanel::dispose();
 }
 
@@ -223,6 +289,9 @@ void GuiPanel_ProjectScenes::setSelectedSceneObject(MikanObjectPtr selectedObjec
 	m_context->getBoxStencilPanel()->setComponent(nullptr);
 	m_context->getModelStencilPanel()->setComponent(nullptr);
 	m_context->getQuadStencilPanel()->setComponent(nullptr);
+	m_context->getBoxShapePanel()->setComponent(nullptr);
+	m_context->getModelShapePanel()->setComponent(nullptr);
+	m_context->getQuadShapePanel()->setComponent(nullptr);
 
 	if (auto component = selectedObject->getComponentOfType<AnchorComponent>())
 	{
@@ -240,6 +309,18 @@ void GuiPanel_ProjectScenes::setSelectedSceneObject(MikanObjectPtr selectedObjec
 	{
 		m_context->getQuadStencilPanel()->setComponent(component);
 	}
+	else if (auto component = selectedObject->getComponentOfType<BoxShapeComponent>())
+	{
+		m_context->getBoxShapePanel()->setComponent(component);
+	}
+	else if (auto component = selectedObject->getComponentOfType<ModelShapeComponent>())
+	{
+		m_context->getModelShapePanel()->setComponent(component);
+	}
+	else if (auto component = selectedObject->getComponentOfType<QuadShapeComponent>())
+	{
+		m_context->getQuadShapePanel()->setComponent(component);
+	}
 }
 
 void GuiPanel_ProjectScenes::onAnchorSystemConfigChanged(
@@ -253,6 +334,17 @@ void GuiPanel_ProjectScenes::onAnchorSystemConfigChanged(
 }
 
 void GuiPanel_ProjectScenes::onStencilSystemConfigChanged(
+	CommonConfigPtr configPtr,
+	const ConfigPropertyChangeSet& changedPropertySet)
+{
+	if (changedPropertySet.hasPropertyName(TransformComponentDefinition::k_parentTransformIdPropertyId) ||
+		changedPropertySet.hasPropertyName(MikanComponentDefinition::k_componentNamePropertyId))
+	{
+		rebuildSceneOutliner();
+	}
+}
+
+void GuiPanel_ProjectScenes::onShapeSystemConfigChanged(
 	CommonConfigPtr configPtr,
 	const ConfigPropertyChangeSet& changedPropertySet)
 {
@@ -346,9 +438,10 @@ void GuiPanel_ProjectScenes::addTransformComponent(TransformComponentPtr transfo
 		MikanObjectPtr childObject = child->getOwnerObject();
 		if (childObject != ownerObject)
 		{
-			// Only show AnchorComponent and StencilComponent-derived objects in the outliner
+			// Only show AnchorComponent, StencilComponent, and ShapeComponent-derived objects in the outliner
 			if (!childObject->getComponentOfType<AnchorComponent>() &&
-				!childObject->getComponentOfType<StencilComponent>())
+				!childObject->getComponentOfType<StencilComponent>() &&
+				!childObject->getComponentOfType<ShapeComponent>())
 				continue;
 
 			addTransformComponent(child, depth + 1);
@@ -540,6 +633,51 @@ void GuiPanel_ProjectScenes::onGui()
 					});
 			});
 		}
+		
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "addQuadShape", "add_quad_shape"))
+		{
+			addDeferredGuiEvent([this]() {
+				int parentTransformId = m_selectedTransformId;
+				m_quadShapeSystem.lock()->addNewObjectByTypedDefinition(
+					[parentTransformId](auto def) {
+						def->setQuadWidth(0.25f);
+						def->setQuadHeight(0.25f);
+						def->setIsDoubleSided(true);
+						def->setRelativeTransform(GlmTransform());
+						def->setParentTransformId(parentTransformId);
+						return true;
+					});
+			});
+		}
+		ImGui::SameLine();
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "addBoxShape", "add_box_shape"))
+		{
+			addDeferredGuiEvent([this]() {
+				int parentTransformId = m_selectedTransformId;
+				m_boxShapeSystem.lock()->addNewObjectByTypedDefinition(
+					[parentTransformId](auto def) {
+						def->setBoxXSize(0.25f);
+						def->setBoxYSize(0.25f);
+						def->setBoxZSize(0.25f);
+						def->setRelativeTransform(GlmTransform());
+						def->setParentTransformId(parentTransformId);
+						return true;
+					});
+			});
+		}
+		ImGui::SameLine();
+		if (MkGui::drawImageButton(m_defaultGuiStyle, "addModelShape", "add_model_shape"))
+		{
+			addDeferredGuiEvent([this]() {
+				int parentTransformId = m_selectedTransformId;
+				m_modelShapeSystem.lock()->addNewObjectByTypedDefinition(
+					[parentTransformId](auto def) {
+						def->setRelativeTransform(GlmTransform());
+						def->setParentTransformId(parentTransformId);
+						return true;
+					});
+			});
+		}
 
 		ImGui::Text("Scene Objects");
 		if (ImGui::BeginListBox("##SceneOutliner", ImVec2(-1, 120)))
@@ -589,6 +727,9 @@ void GuiPanel_ProjectScenes::onGui()
 			m_context->getQuadStencilPanel()->onGui();
 			m_context->getBoxStencilPanel()->onGui();
 			m_context->getModelStencilPanel()->onGui();
+			m_context->getQuadShapePanel()->onGui();
+			m_context->getBoxShapePanel()->onGui();
+			m_context->getModelShapePanel()->onGui();
 		}
 	}
 }

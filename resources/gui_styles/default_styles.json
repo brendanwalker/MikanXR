@@ -9,14 +9,17 @@
         "textures": [
             { "name": "add_anchor", "path": "textures/add_anchor_icon.png", "width": 50, "height": 50 },
             { "name": "add_box_stencil", "path": "textures/add_box_stencil_icon.png", "width": 50, "height": 50 },
+            { "name": "add_box_shape", "path": "textures/add_box_shape_icon.png", "width": 50, "height": 50 },
             { "name": "add_component", "path": "textures/add_component_icon.png", "width": 20, "height": 20 },
             { "name": "add_cef_source", "path": "textures/add_cef_texture_source_icon.png", "width": 44, "height": 44 },
             { "name": "add_client_source", "path": "textures/add_client_texture_source_icon.png", "width": 44, "height": 44 },
             { "name": "add_marker_tracking", "path": "textures/add_marker_tracking_icon.png", "width": 50, "height": 50 },
             { "name": "add_model_stencil", "path": "textures/add_model_stencil_icon.png", "width": 50, "height": 50 },
+            { "name": "add_model_shape", "path": "textures/add_model_shape_icon.png", "width": 50, "height": 50 },
             { "name": "add_network_source", "path": "textures/add_networked_camera_source_icon.png", "width": 60, "height": 45 },
             { "name": "add_pixel_grid", "path": "textures/add_pixel_grid_icon.png", "width": 50, "height": 50 },
             { "name": "add_quad_stencil", "path": "textures/add_quad_stencil_icon.png", "width": 50, "height": 50 },
+            { "name": "add_quad_shape", "path": "textures/add_quad_shape_icon.png", "width": 50, "height": 50 },
             { "name": "add_spot_light", "path": "textures/add_spot_light_icon.png", "width": 50, "height": 50 },
             { "name": "add_spout_source", "path": "textures/add_spout_texture_source_icon.png", "width": 44, "height": 44 },
             { "name": "add_usb_source", "path": "textures/add_usb_camera_source_icon.png", "width": 60, "height": 45 },
@@ -24,7 +27,7 @@
             { "name": "delete_component", "path": "textures/delete_component_icon.png", "width": 20, "height": 20 },
             { "name": "edit_component", "path": "textures/edit_component_icon.png", "width": 20, "height": 20 },
             { "name": "reload_component", "path": "textures/reload_component_icon.png", "width": 20, "height": 20 },
-			{ "name": "select_component", "path": "textures/select_component_icon.png", "width": 20, "height": 20 }
+            { "name": "select_component", "path": "textures/select_component_icon.png", "width": 20, "height": 20 }
         ]
     },
     "script_path": {

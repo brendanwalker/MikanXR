@@ -77,6 +77,21 @@ using StageObjectSystemDefinitionPtr = std::shared_ptr<StageObjectSystemDefiniti
 using StageObjectSystemDefinitionConstPtr = std::shared_ptr<const StageObjectSystemDefinition>;
 using StageObjectSystemDefinitionWeakPtr = std::weak_ptr<StageObjectSystemDefinition>;
 
+class BoxShapeSystemDefinition;
+using BoxShapeSystemDefinitionPtr = std::shared_ptr<BoxShapeSystemDefinition>;
+using BoxShapeSystemDefinitionConstPtr = std::shared_ptr<const BoxShapeSystemDefinition>;
+using BoxShapeSystemDefinitionWeakPtr = std::weak_ptr<BoxShapeSystemDefinition>;
+
+class ModelShapeSystemDefinition;
+using ModelShapeSystemDefinitionPtr = std::shared_ptr<ModelShapeSystemDefinition>;
+using ModelShapeSystemDefinitionConstPtr = std::shared_ptr<const ModelShapeSystemDefinition>;
+using ModelShapeSystemDefinitionWeakPtr = std::weak_ptr<ModelShapeSystemDefinition>;
+
+class QuadShapeSystemDefinition;
+using QuadShapeSystemDefinitionPtr = std::shared_ptr<QuadShapeSystemDefinition>;
+using QuadShapeSystemDefinitionConstPtr = std::shared_ptr<const QuadShapeSystemDefinition>;
+using QuadShapeSystemDefinitionWeakPtr = std::weak_ptr<QuadShapeSystemDefinition>;
+
 class BoxStencilSystemDefinition;
 using BoxStencilSystemDefinitionPtr = std::shared_ptr<BoxStencilSystemDefinition>;
 using BoxStencilSystemDefinitionConstPtr = std::shared_ptr<const BoxStencilSystemDefinition>;

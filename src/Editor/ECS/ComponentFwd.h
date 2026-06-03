@@ -198,6 +198,47 @@ class MeshColliderComponent;
 using MeshColliderComponentPtr= std::shared_ptr<MeshColliderComponent>;
 using MeshColliderComponentWeakPtr= std::weak_ptr<MeshColliderComponent>;
 
+// Shape Components
+class ShapeComponentDefinition;
+using ShapeComponentDefinitionPtr = std::shared_ptr<ShapeComponentDefinition>;
+using ShapeComponentDefinitionConstPtr = std::shared_ptr<const ShapeComponentDefinition>;
+using ShapeComponentDefinitionWeakPtr = std::weak_ptr<ShapeComponentDefinition>;
+
+class ShapeComponent;
+using ShapeComponentPtr = std::shared_ptr<ShapeComponent>;
+using ShapeComponentConstPtr = std::shared_ptr<const ShapeComponent>;
+using ShapeComponentWeakPtr = std::weak_ptr<ShapeComponent>;
+
+class QuadShapeDefinition;
+using QuadShapeDefinitionPtr = std::shared_ptr<QuadShapeDefinition>;
+using QuadShapeDefinitionConstPtr = std::shared_ptr<const QuadShapeDefinition>;
+using QuadShapeDefinitionWeakPtr = std::weak_ptr<QuadShapeDefinition>;
+
+class QuadShapeComponent;
+using QuadShapeComponentPtr = std::shared_ptr<QuadShapeComponent>;
+using QuadShapeComponentConstPtr = std::shared_ptr<const QuadShapeComponent>;
+using QuadShapeComponentWeakPtr = std::weak_ptr<QuadShapeComponent>;
+
+class BoxShapeDefinition;
+using BoxShapeDefinitionPtr = std::shared_ptr<BoxShapeDefinition>;
+using BoxShapeDefinitionConstPtr = std::shared_ptr<const BoxShapeDefinition>;
+using BoxShapeDefinitionWeakPtr = std::weak_ptr<BoxShapeDefinition>;
+
+class BoxShapeComponent;
+using BoxShapeComponentPtr = std::shared_ptr<BoxShapeComponent>;
+using BoxShapeComponentConstPtr = std::shared_ptr<const BoxShapeComponent>;
+using BoxShapeComponentWeakPtr = std::weak_ptr<BoxShapeComponent>;
+
+class ModelShapeDefinition;
+using ModelShapeDefinitionPtr = std::shared_ptr<ModelShapeDefinition>;
+using ModelShapeDefinitionConstPtr = std::shared_ptr<const ModelShapeDefinition>;
+using ModelShapeDefinitionWeakPtr = std::weak_ptr<ModelShapeDefinition>;
+
+class ModelShapeComponent;
+using ModelShapeComponentPtr = std::shared_ptr<ModelShapeComponent>;
+using ModelShapeComponentConstPtr = std::shared_ptr<const ModelShapeComponent>;
+using ModelShapeComponentWeakPtr = std::weak_ptr<ModelShapeComponent>;
+
 // Stencil Components
 class StencilComponentDefinition;
 using StencilComponentConfigPtr = std::shared_ptr<StencilComponentDefinition>;

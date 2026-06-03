@@ -20,8 +20,11 @@
 #include "SceneObjectSystem.h"
 #include "SpoutTextureSourceSystem.h"
 #include "CEFTextureSourceSystem.h"
+#include "BoxShapeSystem.h"
 #include "BoxStencilSystem.h"
+#include "ModelShapeSystem.h"
 #include "ModelStencilSystem.h"
+#include "QuadShapeSystem.h"
 #include "QuadStencilSystem.h"
 #include "RGBSpotLightSystem.h"
 #include "RGBPixelGridSystem.h"
@@ -65,6 +68,9 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	addSystem<CompositorObjectSystem>();
 	addSystem<CameraObjectSystem>();
 	addSystem<AnchorObjectSystem>();
+	addSystem<QuadShapeSystem>();
+	addSystem<BoxShapeSystem>();
+	addSystem<ModelShapeSystem>();
 	addSystem<QuadStencilSystem>();
 	addSystem<BoxStencilSystem>();
 	addSystem<ModelStencilSystem>();

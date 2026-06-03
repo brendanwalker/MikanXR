@@ -15,6 +15,19 @@ const std::string g_charucoDictionaryStrings[(int)eCharucoDictionaryType::COUNT]
 };
 const std::string* k_charucoDictionaryStrings = g_charucoDictionaryStrings;
 
+const char* g_szShapeTypeStrings[(int)eShapeType::COUNT] = {
+	"quad",
+	"box",
+	"model",
+};
+const std::string g_shapeTypeStrings[(int)eShapeType::COUNT] = {
+	g_szShapeTypeStrings[0],
+	g_szShapeTypeStrings[1],
+	g_szShapeTypeStrings[2],
+};
+const char** k_szShapeTypeStrings = g_szShapeTypeStrings;
+const std::string* k_shapeTypeStrings = g_shapeTypeStrings;
+
 const char* g_szStencilTypeStrings[(int)eStencilType::COUNT] = {
 	"quad",
 	"box",

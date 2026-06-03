@@ -29,6 +29,9 @@ using MikanSpatialAnchorID = int32_t;
 /// The ID of a stage
 using MikanStageID = int32_t;
 
+/// The ID of a shape
+using MikanShapeID = int32_t;
+
 /// The ID of a stencil
 using MikanStencilID = int32_t;
 

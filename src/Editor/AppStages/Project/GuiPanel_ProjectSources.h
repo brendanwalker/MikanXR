@@ -29,14 +29,21 @@ private:
 
 	void setSelectedVideoSourceId(MikanVideoSourceID videoSourceId);
 	void setSelectedTextureSourceId(MikanTextureSourceID textureSourceId);
+	void setSelectedShapeId(MikanShapeID shapeId);
+
+	QuadShapeComponentPtr getSelectedQuadShape() const;
+	BoxShapeComponentPtr getSelectedBoxShape() const;
+	ModelShapeComponentPtr getSelectedModelShape() const;
 
 	class ProjectGuiPanelContext* m_context = nullptr;
 	ProjectManagerWeakPtr m_projectManager;
 
 	int m_selectedVideoSourceId = INVALID_MIKAN_ID;
 	int m_selectedTextureSourceId = INVALID_MIKAN_ID;
+	int m_selectedShapeId = INVALID_MIKAN_ID;
 
 	MkGuiStyleConstPtr m_defaultGuiStyle;
 	std::unique_ptr<GuiDataSource_ComboBox> m_videoSourceDataSource;
 	std::unique_ptr<GuiDataSource_ComboBox> m_textureSourceDataSource;
+	std::unique_ptr<GuiDataSource_ComboBox> m_shapeDataSource;
 };

@@ -23,6 +23,9 @@ struct EditorSettings
 	bool bDebugRenderQuadStencils = true;
 	bool bDebugRenderBoxStencils = true;
 	bool bDebugRenderModelStencils = true;
+	bool bDebugRenderQuadShapes = true;
+	bool bDebugRenderBoxShapes = true;
+	bool bDebugRenderModelShapes = true;
 	float cameraSpeed = 1.f;
 };
 
@@ -58,6 +61,18 @@ public:
 	static const std::string k_renderModelStencilsPropertyId;
 	inline bool getRenderModelStencilsFlag() const { return m_editorSettings.bDebugRenderModelStencils; }
 	void setRenderModelStencilsFlag(bool flag);
+
+	static const std::string k_renderQuadShapesPropertyId;
+	inline bool getRenderQuadShapesFlag() const { return m_editorSettings.bDebugRenderQuadShapes; }
+	void setRenderQuadShapesFlag(bool flag);
+
+	static const std::string k_renderBoxShapesPropertyId;
+	inline bool getRenderBoxShapesFlag() const { return m_editorSettings.bDebugRenderBoxShapes; }
+	void setRenderBoxShapesFlag(bool flag);
+
+	static const std::string k_renderModelShapesPropertyId;
+	inline bool getRenderModelShapesFlag() const { return m_editorSettings.bDebugRenderModelShapes; }
+	void setRenderModelShapesFlag(bool flag);
 
 	static const std::string k_cameraSpeedPropertyId;
 	float getCameraSpeed() const { return m_editorSettings.cameraSpeed; }

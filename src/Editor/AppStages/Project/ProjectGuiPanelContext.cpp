@@ -16,6 +16,7 @@
 #include "Shared/GuiPanel_SpoutTextureSourceComponent.h"
 #include "Shared/GuiPanel_RGBPixelGridComponent.h"
 #include "Shared/GuiPanel_RGBSpotLightComponent.h"
+#include "Shared/GuiPanel_ShapeComponent.h"
 #include "Shared/GuiPanel_StencilComponent.h"
 #include "Shared/GuiPanel_StageComponent.h"
 #include "Shared/GuiPanel_TrackingMountComponent.h"
@@ -42,6 +43,9 @@ bool ProjectGuiPanelContext::init()
 	m_anchorPanel = m_ownerAppStage->addGuiPanel<GuiPanel_AnchorComponent>();
 	m_anchorPanel->init();
 
+	m_boxShapePanel = m_ownerAppStage->addGuiPanel<GuiPanel_BoxShapeComponent>();
+	m_boxShapePanel->init();
+
 	m_boxStencilPanel = m_ownerAppStage->addGuiPanel<GuiPanel_BoxStencilComponent>();
 	m_boxStencilPanel->init();
 
@@ -60,6 +64,9 @@ bool ProjectGuiPanelContext::init()
 	m_markerTrackingVolumePanel = m_ownerAppStage->addGuiPanel<GuiPanel_MarkerTrackingVolumeComponent>();
 	m_markerTrackingVolumePanel->init();
 
+	m_modelShapePanel = m_ownerAppStage->addGuiPanel<GuiPanel_ModelShapeComponent>();
+	m_modelShapePanel->init();
+
 	m_modelStencilPanel = m_ownerAppStage->addGuiPanel<GuiPanel_ModelStencilComponent>();
 	m_modelStencilPanel->init();
 
@@ -68,6 +75,9 @@ bool ProjectGuiPanelContext::init()
 
 	m_pixelGridPanel = m_ownerAppStage->addGuiPanel<GuiPanel_RGBPixelGridComponent>();
 	m_pixelGridPanel->init();
+
+	m_quadShapePanel = m_ownerAppStage->addGuiPanel<GuiPanel_QuadShapeComponent>();
+	m_quadShapePanel->init();
 
 	m_quadStencilPanel = m_ownerAppStage->addGuiPanel<GuiPanel_QuadStencilComponent>();
 	m_quadStencilPanel->init();

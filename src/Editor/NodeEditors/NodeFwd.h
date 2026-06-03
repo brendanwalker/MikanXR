@@ -70,6 +70,10 @@ class DrawLayerNode;
 using DrawLayerNodePtr = std::shared_ptr<DrawLayerNode>;
 using DrawLayerNodeConstPtr = std::shared_ptr<const DrawLayerNode>;
 
+class DrawShapesNode;
+using DrawShapesNodePtr = std::shared_ptr<DrawShapesNode>;
+using DrawShapesNodeConstPtr = std::shared_ptr<const DrawShapesNode>;
+
 class MaterialNode;
 using MaterialNodePtr = std::shared_ptr<MaterialNode>;
 using MaterialNodeConstPtr = std::shared_ptr<const MaterialNode>;
@@ -77,6 +81,14 @@ using MaterialNodeConstPtr = std::shared_ptr<const MaterialNode>;
 class ModelNode;
 using ModelNodePtr = std::shared_ptr<ModelNode>;
 using ModelNodeConstPtr = std::shared_ptr<const ModelNode>;
+
+class ShapeNode;
+using ShapeNodePtr = std::shared_ptr<ShapeNode>;
+using ShapeNodeConstPtr = std::shared_ptr<const ShapeNode>;
+
+class ShapeSelectNode;
+using ShapeSelectNodePtr = std::shared_ptr<ShapeSelectNode>;
+using ShapeSelectNodeConstPtr = std::shared_ptr<const ShapeSelectNode>;
 
 class StencilNode;
 using StencilNodePtr = std::shared_ptr<StencilNode>;
@@ -191,6 +203,10 @@ using GraphMaterialPropertyConstPtr = std::shared_ptr<const GraphMaterialPropert
 class GraphModelProperty;
 using GraphModelPropertyPtr = std::shared_ptr<GraphModelProperty>;
 using GraphModelPropertyConstPtr = std::shared_ptr<const GraphModelProperty>;
+
+class GraphShapeProperty;
+using GraphShapePropertyPtr = std::shared_ptr<GraphShapeProperty>;
+using GraphShapePropertyConstPtr = std::shared_ptr<const GraphShapeProperty>;
 
 class GraphStencilProperty;
 using GraphStencilPropertyPtr = std::shared_ptr<GraphStencilProperty>;

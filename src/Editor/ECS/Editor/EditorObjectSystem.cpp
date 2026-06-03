@@ -34,6 +34,9 @@ const std::string EditorObjectSystemDefinition::k_renderAnchorsPropertyId = "ren
 const std::string EditorObjectSystemDefinition::k_renderQuadStencilsPropertyId = "render_quad_stencils";
 const std::string EditorObjectSystemDefinition::k_renderBoxStencilsPropertyId = "render_box_stencils";
 const std::string EditorObjectSystemDefinition::k_renderModelStencilsPropertyId = "render_model_stencils";
+const std::string EditorObjectSystemDefinition::k_renderQuadShapesPropertyId = "render_quad_shapes";
+const std::string EditorObjectSystemDefinition::k_renderBoxShapesPropertyId = "render_box_shapes";
+const std::string EditorObjectSystemDefinition::k_renderModelShapesPropertyId = "render_model_shapes";
 const std::string EditorObjectSystemDefinition::k_cameraSpeedPropertyId= "camera_speed";
 
 configuru::Config EditorObjectSystemDefinition::writeToJSON()
@@ -45,6 +48,9 @@ configuru::Config EditorObjectSystemDefinition::writeToJSON()
 	pt[k_renderQuadStencilsPropertyId] = m_editorSettings.bDebugRenderQuadStencils;
 	pt[k_renderBoxStencilsPropertyId] = m_editorSettings.bDebugRenderBoxStencils;
 	pt[k_renderModelStencilsPropertyId] = m_editorSettings.bDebugRenderModelStencils;
+	pt[k_renderQuadShapesPropertyId] = m_editorSettings.bDebugRenderQuadShapes;
+	pt[k_renderBoxShapesPropertyId] = m_editorSettings.bDebugRenderBoxShapes;
+	pt[k_renderModelShapesPropertyId] = m_editorSettings.bDebugRenderModelShapes;
 	pt[k_cameraSpeedPropertyId] = m_editorSettings.cameraSpeed;
 
 	return pt;
@@ -59,6 +65,9 @@ void EditorObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 	m_editorSettings.bDebugRenderQuadStencils = pt.get_or<bool>(k_renderQuadStencilsPropertyId, m_editorSettings.bDebugRenderQuadStencils);
 	m_editorSettings.bDebugRenderBoxStencils = pt.get_or<bool>(k_renderBoxStencilsPropertyId, m_editorSettings.bDebugRenderBoxStencils);
 	m_editorSettings.bDebugRenderModelStencils = pt.get_or<bool>(k_renderModelStencilsPropertyId, m_editorSettings.bDebugRenderModelStencils);
+	m_editorSettings.bDebugRenderQuadShapes = pt.get_or<bool>(k_renderQuadShapesPropertyId, m_editorSettings.bDebugRenderQuadShapes);
+	m_editorSettings.bDebugRenderBoxShapes = pt.get_or<bool>(k_renderBoxShapesPropertyId, m_editorSettings.bDebugRenderBoxShapes);
+	m_editorSettings.bDebugRenderModelShapes = pt.get_or<bool>(k_renderModelShapesPropertyId, m_editorSettings.bDebugRenderModelShapes);
 	m_editorSettings.cameraSpeed = pt.get_or<float>(k_cameraSpeedPropertyId, m_editorSettings.cameraSpeed);
 }
 
@@ -104,6 +113,33 @@ void EditorObjectSystemDefinition::setRenderModelStencilsFlag(bool flag)
 	{
 		m_editorSettings.bDebugRenderModelStencils = flag;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderModelStencilsPropertyId));
+	}
+}
+
+void EditorObjectSystemDefinition::setRenderQuadShapesFlag(bool flag)
+{
+	if (m_editorSettings.bDebugRenderQuadShapes != flag)
+	{
+		m_editorSettings.bDebugRenderQuadShapes = flag;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderQuadShapesPropertyId));
+	}
+}
+
+void EditorObjectSystemDefinition::setRenderBoxShapesFlag(bool flag)
+{
+	if (m_editorSettings.bDebugRenderBoxShapes != flag)
+	{
+		m_editorSettings.bDebugRenderBoxShapes = flag;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderBoxShapesPropertyId));
+	}
+}
+
+void EditorObjectSystemDefinition::setRenderModelShapesFlag(bool flag)
+{
+	if (m_editorSettings.bDebugRenderModelShapes != flag)
+	{
+		m_editorSettings.bDebugRenderModelShapes = flag;
+		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderModelShapesPropertyId));
 	}
 }
 

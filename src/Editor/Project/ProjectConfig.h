@@ -42,6 +42,7 @@ public:
 
 	// Object system definitions
 	AnchorObjectSystemDefinitionPtr anchorConfig;
+	BoxShapeSystemDefinitionPtr boxShapeSystemDefinition;
 	BoxStencilSystemDefinitionPtr boxStencilSystemDefinition;
 	CameraObjectSystemDefinitionPtr cameraConfig;
 	ClientTextureSourceSystemDefinitionPtr clientConfig;
@@ -49,7 +50,9 @@ public:
 	EditorObjectSystemDefinitionPtr editorConfig;
 	MarkerObjectSystemDefinitionPtr markerSystemDefinition;
 	MarkerTrackingVolumeSystemDefinitionPtr markerTrackingVolumeConfig;
+	ModelShapeSystemDefinitionPtr modelShapeSystemDefinition;
 	ModelStencilSystemDefinitionPtr modelStencilSystemDefinition;
+	QuadShapeSystemDefinitionPtr quadShapeSystemDefinition;
 	QuadStencilSystemDefinitionPtr quadStencilSystemDefinition;
 	SceneObjectSystemDefinitionPtr sceneConfig;
 	SpoutTextureSourceSystemDefinitionPtr spoutConfig;

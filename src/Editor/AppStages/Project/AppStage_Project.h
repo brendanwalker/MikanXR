@@ -110,6 +110,9 @@ protected:
 	QuadStencilSystemWeakPtr m_quadStencilSystem;
 	BoxStencilSystemWeakPtr m_boxStencilSystem;
 	ModelStencilSystemWeakPtr m_modelStencilSystem;
+	QuadShapeSystemWeakPtr m_quadShapeSystem;
+	BoxShapeSystemWeakPtr m_boxShapeSystem;
+	ModelShapeSystemWeakPtr m_modelShapeSystem;
 	RGBPixelGridSystemWeakPtr m_pixelGridLightSystem;
 	RGBSpotLightSystemWeakPtr m_spotLightSystem;
 

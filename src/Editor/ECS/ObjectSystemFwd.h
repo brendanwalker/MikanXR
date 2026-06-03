@@ -63,6 +63,18 @@ class StageObjectSystem;
 using StageObjectSystemPtr = std::shared_ptr<StageObjectSystem>;
 using StageObjectSystemWeakPtr = std::weak_ptr<StageObjectSystem>;
 
+class BoxShapeSystem;
+using BoxShapeSystemPtr = std::shared_ptr<BoxShapeSystem>;
+using BoxShapeSystemWeakPtr = std::weak_ptr<BoxShapeSystem>;
+
+class ModelShapeSystem;
+using ModelShapeSystemPtr = std::shared_ptr<ModelShapeSystem>;
+using ModelShapeSystemWeakPtr = std::weak_ptr<ModelShapeSystem>;
+
+class QuadShapeSystem;
+using QuadShapeSystemPtr = std::shared_ptr<QuadShapeSystem>;
+using QuadShapeSystemWeakPtr = std::weak_ptr<QuadShapeSystem>;
+
 class BoxStencilSystem;
 using BoxStencilSystemPtr = std::shared_ptr<BoxStencilSystem>;
 using BoxStencilSystemWeakPtr = std::weak_ptr<BoxStencilSystem>;

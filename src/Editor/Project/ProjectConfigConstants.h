@@ -28,6 +28,19 @@ enum class eCharucoDictionaryType : int
 };
 extern const std::string* k_charucoDictionaryStrings;
 
+enum class eShapeType : int
+{
+	INVALID = -1,
+
+	quad,
+	box,
+	model,
+
+	COUNT
+};
+extern const char** k_szShapeTypeStrings;
+extern const std::string* k_shapeTypeStrings;
+
 enum class eStencilType : int
 {
 	INVALID = -1,
