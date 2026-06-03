@@ -155,7 +155,7 @@ namespace MkGui
 		ImGui::SameLine(style->getLabelWidth());
 		ImGui::SetNextItemWidth(style->getValueWidth());
 		const std::string imguiElementName = makeImGuiElementName(fieldName);
-		return ImGui::InputText(imguiElementName.c_str(), buf, bufSize);
+		return ImGui::InputText(imguiElementName.c_str(), buf, bufSize, ImGuiInputTextFlags_EnterReturnsTrue);
 	}
 
 	bool drawFilePathProperty(
