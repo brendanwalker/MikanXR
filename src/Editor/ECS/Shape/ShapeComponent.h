@@ -1,13 +1,20 @@
 #pragma once
 
+#include "AssetFwd.h"
 #include "ComponentFwd.h"
+#include "Graphs/NodeError.h"
 #include "MikanCoreTypes.h"
 #include "MikanTypeFwd.h"
 #include "MkRendererFwd.h"
+#include "NodeFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "TransformComponent.h"
 
+#include <filesystem>
 #include <string>
+#include <vector>
+
+#include "glm/ext/matrix_float4x4.hpp"
 
 class ShapeComponentDefinition : public TransformComponentDefinition
 {
@@ -22,8 +29,14 @@ public:
 	MikanTextureSourceID getTextureSourceId() const { return m_textureSourceId; }
 	void setTextureSourceId(MikanTextureSourceID id);
 
+	static const std::string k_shapeGraphPathPropertyId;
+	bool hasShapeGraphPath() const;
+	std::filesystem::path getShapeGraphPath() const;
+	void setShapeGraphPath(const std::filesystem::path& graphPath);
+
 protected:
 	MikanTextureSourceID m_textureSourceId = INVALID_MIKAN_ID;
+	AssetReferenceConfigPtr m_nodeGraphAssetRef;
 };
 
 class ShapeComponent : public TransformComponent
@@ -39,6 +52,10 @@ public:
 	inline static const std::string k_componentClassName = "ShapeComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
+	virtual void init() override;
+	virtual void postInit() override;
+	virtual void dispose() override;
+
 	MikanTextureSourceID getTextureSourceId() const;
 	void setTextureSourceId(MikanTextureSourceID id);
 
@@ -47,16 +64,48 @@ public:
 
 	virtual void update(float deltaSeconds) override;
 
+	// -- Shape Node Graph ----
+	bool hasValidShapeGraph() const;
+	void setEditorShapeNodeGraph(ShapeNodeGraphPtr editorNodeGraph);
+	void addNewShapeGraph();
+	void editShapeGraph();
+	void removeShapeGraph();
+	void selectShapeGraph();
+	void renderShapeGraph(const glm::mat4& vpMatrix, class IMkGraphicsContext* graphicsContext);
+	const std::vector<NodeEvaluationError>& getLastNodeEvalErrors() const { return m_lastNodeEvalErrors; }
+
+	std::filesystem::path getShapeGraphAssetPath() const;
+	void setShapeGraphAssetPath(const std::filesystem::path& assetRefPath);
+
+	// Function ID constants for GUI button identifiers
+	static const std::string k_addNewShapeGraphFunctionId;
+	static const std::string k_editShapeGraphFunctionId;
+	static const std::string k_removeShapeGraphFunctionId;
+	static const std::string k_selectShapeGraphFunctionId;
+
 	// -- IPropertyInterface ----
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;
+
+	// -- IFunctionInterface ----
+	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
+	virtual bool invokeFunction(const std::string& functionName) override;
 
 protected:
 	virtual void onDefinitionMarkedDirty(
 		CommonConfigPtr configPtr,
 		const ConfigPropertyChangeSet& changedPropertySet) override;
 
+	void onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
+	void handleShapeNodeGraphChanged(const std::filesystem::path& newAssetRefPath);
+
 	// Fetched each frame from the referenced TextureSourceComponent
 	IMkTexturePtr m_colorTexture;
+
+	// Shape Node Graph
+	NodeGraphAssetReferencePtr m_nodeGraphAssetRef;
+	ShapeNodeGraphPtr m_nodeGraph;            // asset-based (runtime default)
+	ShapeNodeGraphWeakPtr m_editorNodeGraph;  // editor override (priority)
+	std::vector<NodeEvaluationError> m_lastNodeEvalErrors;
 };

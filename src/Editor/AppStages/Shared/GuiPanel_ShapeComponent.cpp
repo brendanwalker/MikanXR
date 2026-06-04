@@ -1,5 +1,7 @@
 #include "AppStage.h"
+#include "AssetReferencePropertyMetaData.h"
 #include "Shared/GuiPanel_ShapeComponent.h"
+#include "MkGuiDrawUtils.h"
 #include "AnchorComponent.h"
 #include "AnchorObjectSystem.h"
 #include "CEFTextureSourceComponent.h"
@@ -87,6 +89,82 @@ void GuiPanel_ShapeComponent::onConstruct()
 					});
 				}
 			}
+			return true;
+		});
+
+	// Shape node graph path
+	m_entityAccessor->setPropertyRenderer(
+		ShapeComponentDefinition::k_shapeGraphPathPropertyId,
+		[this](const PropertyDescriptorConstPtr& desc) -> bool
+		{
+			ShapeComponentPtr shapeComponent = getShapeComponent();
+			if (!shapeComponent)
+				return false;
+
+			if (shapeComponent->hasValidShapeGraph())
+			{
+				const auto* assetMeta = desc->getMetaDataOfType<AssetReferenceFactoryMetaData>();
+				ShapeComponentDefinitionPtr componentDef = shapeComponent->getShapeComponentDefinition();
+				const std::string graphPath = componentDef->getShapeGraphPath().generic_string();
+
+				if (MkGui::drawFilePathProperty(
+					m_defaultGuiStyle,
+					shapeComponent->makePropertyUIIdentifier(ShapeComponent::k_addNewShapeGraphFunctionId),
+					"Graph",
+					graphPath))
+				{
+					addDeferredGuiEvent([shapeComponent]() {
+						shapeComponent->selectShapeGraph();
+					});
+				}
+
+				MkGui::drawStaticTextProperty(m_defaultGuiStyle, "", "");
+				ImGui::SameLine();
+				if (MkGui::drawImageButton(
+					m_defaultGuiStyle,
+					shapeComponent->makePropertyUIIdentifier(ShapeComponent::k_editShapeGraphFunctionId),
+					"edit_component"))
+				{
+					addDeferredGuiEvent([shapeComponent]() {
+						shapeComponent->editShapeGraph();
+					});
+				}
+				ImGui::SameLine();
+				if (MkGui::drawImageButton(
+					m_defaultGuiStyle,
+					shapeComponent->makePropertyUIIdentifier(ShapeComponent::k_removeShapeGraphFunctionId),
+					"delete_component"))
+				{
+					addDeferredGuiEvent([shapeComponent]() {
+						shapeComponent->removeShapeGraph();
+					});
+				}
+			}
+			else
+			{
+				MkGui::drawStaticTextProperty(m_defaultGuiStyle, "Graph", "<No Graph>");
+				ImGui::SameLine();
+				if (MkGui::drawImageButton(
+					m_defaultGuiStyle,
+					shapeComponent->makePropertyUIIdentifier(ShapeComponent::k_addNewShapeGraphFunctionId),
+					"add_component"))
+				{
+					addDeferredGuiEvent([shapeComponent]() {
+						shapeComponent->addNewShapeGraph();
+					});
+				}
+				ImGui::SameLine();
+				if (MkGui::drawImageButton(
+					m_defaultGuiStyle,
+					shapeComponent->makePropertyUIIdentifier(ShapeComponent::k_selectShapeGraphFunctionId),
+					"select_component"))
+				{
+					addDeferredGuiEvent([shapeComponent]() {
+						shapeComponent->selectShapeGraph();
+					});
+				}
+			}
+
 			return true;
 		});
 

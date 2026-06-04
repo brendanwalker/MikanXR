@@ -118,7 +118,6 @@ bool VideoTextureNode::evaluateNode(NodeEvaluator& evaluator)
 				this));
 	}
 
-
 	return true;
 }
 

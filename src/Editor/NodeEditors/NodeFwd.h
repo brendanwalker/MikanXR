@@ -37,6 +37,12 @@ using CompositorNodeGraphPtr = std::shared_ptr<CompositorNodeGraph>;
 using CompositorNodeGraphWeakPtr = std::weak_ptr<CompositorNodeGraph>;
 using CompositorNodeGraphConstPtr = std::shared_ptr<const CompositorNodeGraph>;
 
+// Shape Node Graph
+class ShapeNodeGraph;
+using ShapeNodeGraphPtr = std::shared_ptr<ShapeNodeGraph>;
+using ShapeNodeGraphWeakPtr = std::weak_ptr<ShapeNodeGraph>;
+using ShapeNodeGraphConstPtr = std::shared_ptr<const ShapeNodeGraph>;
+
 // Node Types
 class NodeFactory;
 using NodeFactoryPtr = std::shared_ptr<NodeFactory>;
@@ -97,6 +103,10 @@ using StencilNodeConstPtr = std::shared_ptr<const StencilNode>;
 class TextureNode;
 using TextureNodePtr = std::shared_ptr<TextureNode>;
 using TextureNodeConstPtr = std::shared_ptr<const TextureNode>;
+
+class TextureSourceNode;
+using TextureSourceNodePtr = std::shared_ptr<TextureSourceNode>;
+using TextureSourceNodeConstPtr = std::shared_ptr<const TextureSourceNode>;
 
 class TimeNode;
 using TimeNodePtr = std::shared_ptr<TimeNode>;
@@ -215,6 +225,10 @@ using GraphStencilPropertyConstPtr = std::shared_ptr<const GraphStencilProperty>
 class GraphTextureProperty;
 using GraphTexturePropertyPtr = std::shared_ptr<GraphTextureProperty>;
 using GraphTexturePropertyConstPtr = std::shared_ptr<const GraphTextureProperty>;
+
+class GraphTextureSourceProperty;
+using GraphTextureSourcePropertyPtr = std::shared_ptr<GraphTextureSourceProperty>;
+using GraphTextureSourcePropertyConstPtr = std::shared_ptr<const GraphTextureSourceProperty>;
 
 class GraphValueProperty;
 using GraphValuePropertyPtr = std::shared_ptr<GraphValueProperty>;

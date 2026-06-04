@@ -144,11 +144,31 @@ ClientSourceManager::ClientSource* ClientSourceManager::getClientSource(
 	const std::string& clientId,
 	MikanCameraID cameraId) const
 {
-	ClientSourceManager::ClientSource* clientSource = nullptr;
-	const std::string tableKey= makeClientSourceTableKey(clientId, cameraId);
-	if (m_clientSources.tryGetValue(tableKey, clientSource))
+	if (cameraId != INVALID_MIKAN_ID)
 	{
-		return clientSource;
+		ClientSourceManager::ClientSource* clientSource = nullptr;
+		const std::string tableKey = makeClientSourceTableKey(clientId, cameraId);
+		if (m_clientSources.tryGetValue(tableKey, clientSource))
+		{
+			return clientSource;
+		}
+	}
+	else
+	{
+		// If an invalid cameraId was provided, find the newest client source for the clientId regardless of cameraId. 
+		int64_t newestFrameIndex = -1;
+		ClientSourceManager::ClientSource* newestClientSource = nullptr;
+		for (auto iter = m_clientSources.getMap().begin(); iter != m_clientSources.getMap().end(); iter++)
+		{
+			ClientSourceManager::ClientSource* clientSource = iter->second;
+			if (clientSource->clientId == clientId && clientSource->frameIndex > newestFrameIndex)
+			{
+				newestFrameIndex = clientSource->frameIndex;
+				newestClientSource = clientSource;
+			}
+		}
+
+		return newestClientSource;
 	}
 
 	return nullptr;

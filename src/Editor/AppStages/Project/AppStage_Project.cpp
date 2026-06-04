@@ -36,9 +36,13 @@
 #include "Project/GuiPanel_ProjectSources.h"
 #include "Project/GuiPanel_ProjectStages.h"
 #include "Project/GuiPanel_ProjectTracking.h"
+#include "BoxShapeComponent.h"
 #include "BoxShapeSystem.h"
+#include "ModelShapeComponent.h"
 #include "ModelShapeSystem.h"
+#include "QuadShapeComponent.h"
 #include "QuadShapeSystem.h"
+#include "ShapeComponent.h"
 #include "RGBSpotLightSystem.h"
 #include "RGBPixelGridSystem.h"
 #include "Shared/GuiPanel_MarkerComponent.h"
@@ -559,26 +563,69 @@ void AppStage_Project::renderProjectScene(IMkGraphicsContext* graphicsContext, M
 		}
 
 		// Render the shapes if enabled
+		const glm::mat4 viewportVpMatrix = viewportCamera->getViewProjectionMatrix();
 		if (editorSettings.bDebugRenderQuadShapes)
 		{
 			QuadShapeSystemPtr quadShapeSystem = m_quadShapeSystem.lock();
 
-			addAllRenderablesToMkScene(quadShapeSystem, m_mkScene);
-			quadShapeSystem->customRender(graphicsContext, viewportCamera);
+			std::vector<QuadShapeComponentPtr> quadShapes;
+			quadShapeSystem->getQuadShapeComponentList(quadShapes);
+
+			bool bAnyLegacyShapes = false;
+			for (auto& shape : quadShapes)
+			{
+				if (shape->hasValidShapeGraph())
+					shape->renderShapeGraph(viewportVpMatrix, graphicsContext);
+				else
+					bAnyLegacyShapes = true;
+			}
+			if (bAnyLegacyShapes)
+			{
+				addAllRenderablesToMkScene(quadShapeSystem, m_mkScene);
+				quadShapeSystem->customRender(graphicsContext, viewportCamera);
+			}
 		}
 		if (editorSettings.bDebugRenderBoxShapes)
 		{
 			BoxShapeSystemPtr boxShapeSystem = m_boxShapeSystem.lock();
 
-			addAllRenderablesToMkScene(boxShapeSystem, m_mkScene);
-			boxShapeSystem->customRender(graphicsContext, viewportCamera);
+			std::vector<BoxShapeComponentPtr> boxShapes;
+			boxShapeSystem->getBoxShapeComponentList(boxShapes);
+
+			bool bAnyLegacyShapes = false;
+			for (auto& shape : boxShapes)
+			{
+				if (shape->hasValidShapeGraph())
+					shape->renderShapeGraph(viewportVpMatrix, graphicsContext);
+				else
+					bAnyLegacyShapes = true;
+			}
+			if (bAnyLegacyShapes)
+			{
+				addAllRenderablesToMkScene(boxShapeSystem, m_mkScene);
+				boxShapeSystem->customRender(graphicsContext, viewportCamera);
+			}
 		}
 		if (editorSettings.bDebugRenderModelShapes)
 		{
 			ModelShapeSystemPtr modelShapeSystem = m_modelShapeSystem.lock();
 
-			addAllRenderablesToMkScene(modelShapeSystem, m_mkScene);
-			modelShapeSystem->customRender(graphicsContext, viewportCamera);
+			std::vector<ModelShapeComponentPtr> modelShapes;
+			modelShapeSystem->getModelShapeComponentList(modelShapes);
+
+			bool bAnyLegacyShapes = false;
+			for (auto& shape : modelShapes)
+			{
+				if (shape->hasValidShapeGraph())
+					shape->renderShapeGraph(viewportVpMatrix, graphicsContext);
+				else
+					bAnyLegacyShapes = true;
+			}
+			if (bAnyLegacyShapes)
+			{
+				addAllRenderablesToMkScene(modelShapeSystem, m_mkScene);
+				modelShapeSystem->customRender(graphicsContext, viewportCamera);
+			}
 		}
 	}
 }

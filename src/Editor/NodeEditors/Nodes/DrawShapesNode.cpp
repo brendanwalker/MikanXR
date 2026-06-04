@@ -22,6 +22,7 @@
 #include "ModelShapeSystem.h"
 #include "QuadShapeComponent.h"
 #include "QuadShapeSystem.h"
+#include "ShapeComponent.h"
 #include "StaticMeshComponent.h"
 
 #include "Graphs/CompositorNodeGraph.h"
@@ -207,6 +208,13 @@ bool DrawShapesNode::evaluateNode(NodeEvaluator& evaluator)
 		ShapeComponentPtr shape = shapeProp->getShapeComponent();
 		if (!shape)
 			continue;
+
+		if (shape->hasValidShapeGraph())
+		{
+			// Delegate rendering to the shape's node graph
+			shape->renderShapeGraph(vpMatrix, graphicsContext);
+			continue;
+		}
 
 		IMkTexturePtr colorTexture = shape->getColorTexture();
 

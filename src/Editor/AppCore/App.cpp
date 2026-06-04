@@ -6,6 +6,7 @@
 #include "EventBus.h"
 #include "FrameTimer.h"
 #include "Graphs/CompositorNodeGraph.h"
+#include "Graphs/ShapeNodeGraph.h"
 #include "IEditorWindow.h"
 #include "IMkGraphicsContext.h"
 #include "IMkWindowContext.h"
@@ -223,6 +224,7 @@ bool App::startup(int argc, char** argv)
 	{
 		// Register node graph factories spawned by windows
 		NodeGraphFactory::registerFactory<CompositorNodeGraphFactory>();
+		NodeGraphFactory::registerFactory<ShapeNodeGraphFactory>();
 
 		// Create the main window
 		m_mainWindow = createAppWindow<MainWindow>();
