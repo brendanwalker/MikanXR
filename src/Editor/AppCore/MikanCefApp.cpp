@@ -18,6 +18,6 @@ void MikanCefApp::OnBeforeCommandLineProcessing(
 	// (ffmpeg_branding=Chromium), so H.264/AAC are not available via FFmpeg.
 	// Platform HEVC decoding uses the OS codec pack and does not require a
 	// proprietary CEF build.
-	command_line->AppendSwitchWithValue("enable-features", "PlatformHEVCDecoderSupport");
+	command_line->AppendSwitchWithValue("enable-features", "PlatformHEVCDecoderSupport,D3D11VideoDecoder");
 #endif
 }
