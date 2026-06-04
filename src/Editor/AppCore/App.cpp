@@ -32,7 +32,7 @@
 #include "Objbase.h"
 #endif //_WIN32
 
-#include "include/cef_app.h"
+#include "MikanCefApp.h"
 
 #define SETTINGS_SAVE_COOLDOWN	3.f
 
@@ -211,7 +211,8 @@ bool App::startup(int argc, char** argv)
 		CefMainArgs main_args(0, nullptr);
 #endif
 
-		if (!CefInitialize(main_args, settings, nullptr, nullptr))
+		CefRefPtr<MikanCefApp> cef_app = new MikanCefApp();
+		if (!CefInitialize(main_args, settings, cef_app, nullptr))
 		{
 			MIKAN_LOG_ERROR("CEFTextureSourceSystem") << "CefInitialize failed";
 			return false;

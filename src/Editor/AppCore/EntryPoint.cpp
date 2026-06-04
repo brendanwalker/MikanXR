@@ -1,7 +1,7 @@
 //-- includes -----
 #include "App.h"
+#include "MikanCefApp.h"
 #include "ThreadUtils.h"
-#include "include/cef_app.h"
 
 #ifdef WIN32
 #include <windows.h>
@@ -17,8 +17,11 @@ int __stdcall WinMain(
 {
 	// Allow Mikan.exe to act as its own CEF subprocess handler.
 	// Subprocess invocations return >= 0 and must exit immediately.
+	// MikanCefApp must be passed here so that OnBeforeCommandLineProcessing
+	// runs in every subprocess instance of Mikan.exe.
 	CefMainArgs cef_args(hInstance);
-	int cef_exit = CefExecuteProcess(cef_args, nullptr, nullptr);
+	CefRefPtr<MikanCefApp> cef_app = new MikanCefApp();
+	int cef_exit = CefExecuteProcess(cef_args, cef_app, nullptr);
 	if (cef_exit >= 0)
 		return cef_exit;
 
@@ -32,7 +35,8 @@ extern "C" int main(int argc, char* argv[])
 {
 	// On Linux/macOS, CefMainArgs wraps (argc, argv) instead of an HINSTANCE.
 	CefMainArgs cef_args(argc, argv);
-	int cef_exit = CefExecuteProcess(cef_args, nullptr, nullptr);
+	CefRefPtr<MikanCefApp> cef_app = new MikanCefApp();
+	int cef_exit = CefExecuteProcess(cef_args, cef_app, nullptr);
 	if (cef_exit >= 0)
 		return cef_exit;
 
