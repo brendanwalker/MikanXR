@@ -7,8 +7,8 @@
 #include "IMkTexture.h"
 #include "IMkMesh.h"
 #include "Logger.h"
-#include "MkMaterialInstance.h"
 #include "MkMaterial.h"
+#include "MkMaterialInstance.h"
 #include "MkStateStack.h"
 #include "MkStateModifiers.h"
 #include "IMkState.h"
@@ -249,9 +249,11 @@ void DrawShapesNode::drawShapeRenderable(
 	if (!material)
 		return;
 
-	// Set MVP = VP * model matrix (model matrix already set by shape's update())
-	const glm::mat4& modelMatrix = renderable->getModelMatrix();
-	matInst->setMat4BySemantic(eUniformSemantic::modelViewProjectionMatrix, vpMatrix * modelMatrix);
+	// Compute MVP without storing it on the material instance.
+	// Storing it via setMat4BySemantic would persist in mat4Sources, which runs
+	// AFTER the callback in bindMaterialInstance and would overwrite the scene
+	// camera MVP that MkScene::materialInstanceBindCallback correctly sets.
+	const glm::mat4 mvpMatrix = vpMatrix * renderable->getModelMatrix();
 
 	// Bind the color texture to the diffuse semantic
 	if (colorTexture)
@@ -259,12 +261,27 @@ void DrawShapesNode::drawShapeRenderable(
 		matInst->setTextureBySemantic(eUniformSemantic::diffuseTexture, colorTexture);
 	}
 
-	// Bind material and draw
+	// Bind material and draw, injecting MVP transiently via callback so it is
+	// never written into mat4Sources on the shared material instance.
 	if (auto materialBinding = material->bindMaterial())
 	{
-		if (auto matInstBinding = matInst->bindMaterialInstance(materialBinding))
+		BindUniformCallback mvpCallback = [&mvpMatrix](
+			IMkShaderPtr program,
+			eUniformDataType dataType,
+			eUniformSemantic semantic,
+			const std::string& uniformName) -> eUniformBindResult
 		{
-			// Get the mesh from the static mesh instance and draw it
+			if (semantic == eUniformSemantic::modelViewProjectionMatrix)
+			{
+				return program->setMatrix4x4Uniform(uniformName, mvpMatrix)
+					? eUniformBindResult::bound
+					: eUniformBindResult::error;
+			}
+			return eUniformBindResult::unbound;
+		};
+
+		if (auto matInstBinding = matInst->bindMaterialInstance(materialBinding, mvpCallback))
+		{
 			auto staticMeshInst = std::dynamic_pointer_cast<const IMkStaticMeshInstance>(renderable);
 			if (staticMeshInst)
 			{
