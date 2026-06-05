@@ -118,9 +118,10 @@ void BoxShapeComponent::update(float deltaSeconds)
 	meshInstance->setModelMatrix(scaledWorld);
 
 	MkMaterialInstancePtr matInst = meshInstance->getMaterialInstance();
-	if (matInst && m_colorTexture)
+	IMkTexturePtr colorTexture = getColorTexture();
+	if (matInst && colorTexture)
 	{
-		matInst->setTextureBySemantic(eUniformSemantic::diffuseTexture, m_colorTexture);
+		matInst->setTextureBySemantic(eUniformSemantic::rgbTexture, colorTexture);
 	}
 }
 
@@ -203,12 +204,13 @@ void BoxShapeComponent::openShape()
 		reinterpret_cast<const uint8_t*>(indices),
 		sizeof(uint16_t),
 		12,   // triangle count (6 faces × 2)
-		true); // mesh owns a copy of the vertex/index data
+		false); // mesh owns a copy of the vertex/index data
 
 	if (!boxMesh)
 		return;
 
 	boxMesh->setMaterial(material);
+	boxMesh->createResources();
 
 	IMkStaticMeshInstancePtr meshInstance = createMkStaticMeshInstance("box_shape", boxMesh);
 	meshInstance->setVisible(true);
