@@ -21,6 +21,7 @@ bool MikanTextureCache::startup()
 	bSuccess&= loadTexturePath(texturePath / "whiteRGBA.png", INTERNAL_TEXTURE_WHITE_RGBA) != nullptr;
 	bSuccess&= loadTexturePath(texturePath / "blackRGBA.png", INTERNAL_TEXTURE_BLACK_RGBA) != nullptr;
 	bSuccess&= loadTexturePath(texturePath / "blackRGBA_transparent.png", INTERNAL_TEXTURE_BLACK_RGBA_TRANSPARENT) != nullptr;
+	bSuccess&= loadTexturePath(texturePath / "missing_texture.png", INTERNAL_MISSING_TEXTURE_RGBA) != nullptr;
 
 	return bSuccess;
 }

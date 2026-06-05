@@ -118,9 +118,10 @@ void QuadShapeComponent::update(float deltaSeconds)
 
 	// Bind texture to material instance
 	MkMaterialInstancePtr matInst = meshInstance->getMaterialInstance();
-	if (matInst && m_colorTexture)
+	IMkTexturePtr colorTexture = getColorTexture();
+	if (matInst && colorTexture)
 	{
-		matInst->setTextureBySemantic(eUniformSemantic::rgbTexture, m_colorTexture);
+		matInst->setTextureBySemantic(eUniformSemantic::rgbTexture, colorTexture);
 	}
 }
 
@@ -196,18 +197,11 @@ void QuadShapeComponent::onDefinitionMarkedDirty(
 	const bool sizeChanged =
 		changedPropertySet.hasPropertyName(QuadShapeDefinition::k_quadWidthPropertyId) ||
 		changedPropertySet.hasPropertyName(QuadShapeDefinition::k_quadHeightPropertyId);
-	const bool textureChanged =
-		changedPropertySet.hasPropertyName(ShapeComponentDefinition::k_textureSourceIdPropertyId);
 
 	if (sizeChanged)
 	{
 		updateBoxColliderExtents();
 		// Model matrix update handled in update() each frame
-	}
-
-	if (textureChanged)
-	{
-		// Texture will be re-fetched in the next update()
 	}
 }
 

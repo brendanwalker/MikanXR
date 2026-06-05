@@ -154,7 +154,6 @@ function ModelStencilComponent:alignStencil() end
 ------------------------------------------------------------------------
 
 ---@class ShapeComponent : TransformComponent
----@field textureSourceId integer ID of the texture source bound to this shape (read/write)
 local ShapeComponent = {}
 
 ------------------------------------------------------------------------

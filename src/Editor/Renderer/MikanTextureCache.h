@@ -14,6 +14,7 @@
 #define INTERNAL_TEXTURE_WHITE_RGBA					"Internal_White_RGBA"
 #define INTERNAL_TEXTURE_BLACK_RGBA					"Internal_Black_RGBA"
 #define INTERNAL_TEXTURE_BLACK_RGBA_TRANSPARENT		"Internal_Black_RGBA_Transparent"
+#define INTERNAL_MISSING_TEXTURE_RGBA				"Internal_Missing_Texture_RGBA"
 
 class MikanTextureCache
 {

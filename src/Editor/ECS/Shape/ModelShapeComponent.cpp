@@ -104,7 +104,8 @@ void ModelShapeComponent::update(float deltaSeconds)
 	ShapeComponent::update(deltaSeconds);
 
 	// Bind the texture from the texture source to all mesh material instances
-	if (m_colorTexture)
+	IMkTexturePtr colorTexture = getColorTexture();
+	if (colorTexture)
 	{
 		for (StaticMeshComponentPtr meshComp : m_triMeshComponents)
 		{
@@ -114,7 +115,7 @@ void ModelShapeComponent::update(float deltaSeconds)
 				MkMaterialInstancePtr matInst = meshInstance->getMaterialInstance();
 				if (matInst)
 				{
-					matInst->setTextureBySemantic(eUniformSemantic::diffuseTexture, m_colorTexture);
+					matInst->setTextureBySemantic(eUniformSemantic::rgbTexture, colorTexture);
 				}
 			}
 		}

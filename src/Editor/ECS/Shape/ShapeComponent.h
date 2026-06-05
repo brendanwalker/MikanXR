@@ -25,17 +25,12 @@ public:
 	virtual configuru::Config writeToJSON() override;
 	virtual void readFromJSON(const configuru::Config& pt) override;
 
-	static const std::string k_textureSourceIdPropertyId;
-	MikanTextureSourceID getTextureSourceId() const { return m_textureSourceId; }
-	void setTextureSourceId(MikanTextureSourceID id);
-
 	static const std::string k_shapeGraphPathPropertyId;
 	bool hasShapeGraphPath() const;
 	std::filesystem::path getShapeGraphPath() const;
 	void setShapeGraphPath(const std::filesystem::path& graphPath);
 
 protected:
-	MikanTextureSourceID m_textureSourceId = INVALID_MIKAN_ID;
 	AssetReferenceConfigPtr m_nodeGraphAssetRef;
 };
 
@@ -56,13 +51,8 @@ public:
 	virtual void postInit() override;
 	virtual void dispose() override;
 
-	MikanTextureSourceID getTextureSourceId() const;
-	void setTextureSourceId(MikanTextureSourceID id);
-
-	// Returns the last texture fetched from the texture source (may be null)
-	inline IMkTexturePtr getColorTexture() const { return m_colorTexture; }
-
-	virtual void update(float deltaSeconds) override;
+	// Returns the missing texture from the texture cache (used as fallback when no ShapeGraph is set)
+	IMkTexturePtr getColorTexture() const;
 
 	// -- Shape Node Graph ----
 	bool hasValidShapeGraph() const;
@@ -102,9 +92,6 @@ protected:
 
 	void onDefinitionChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 	void handleShapeNodeGraphChanged(const std::filesystem::path& newAssetRefPath);
-
-	// Fetched each frame from the referenced TextureSourceComponent
-	IMkTexturePtr m_colorTexture;
 
 	// Shape Node Graph
 	NodeGraphAssetReferencePtr m_nodeGraphAssetRef;

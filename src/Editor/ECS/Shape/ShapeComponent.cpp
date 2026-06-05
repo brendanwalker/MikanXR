@@ -3,7 +3,9 @@
 #include "FunctionInterface.h"
 #include "IMkGraphicsContext.h"
 #include "IMkTexture.h"
+#include "IEditorWindow.h"
 #include "Logger.h"
+#include "MikanTextureCache.h"
 #include "MikanVariantTypes.h"
 #include "MikanObject.h"
 #include "NodeGraphAssetReference.h"
@@ -11,9 +13,6 @@
 #include "PropertyInterface.h"
 #include "ShapeComponent.h"
 #include "Windows/ShapeNodeEditorWindow.h"
-#include "TextureSourceComponent.h"
-#include "TextureSourceQueries.h"
-#include "VideoDisplayConstants.h"
 
 #include "Graphs/NodeEvaluator.h"
 #include "Graphs/NodeGraph.h"
@@ -25,7 +24,6 @@
 #include "LuaBridge/LuaBridge.h"
 
 // -- ShapeComponentDefinition ------
-const std::string ShapeComponentDefinition::k_textureSourceIdPropertyId = "shape_texture_source_id";
 const std::string ShapeComponentDefinition::k_shapeGraphPathPropertyId = "shape_graph_path";
 
 ShapeComponentDefinition::ShapeComponentDefinition()
@@ -44,8 +42,6 @@ configuru::Config ShapeComponentDefinition::writeToJSON()
 {
 	configuru::Config pt = TransformComponentDefinition::writeToJSON();
 
-	pt[k_textureSourceIdPropertyId] = m_textureSourceId;
-
 	if (m_nodeGraphAssetRef)
 	{
 		pt[k_shapeGraphPathPropertyId] = m_nodeGraphAssetRef->writeToJSON();
@@ -58,21 +54,10 @@ void ShapeComponentDefinition::readFromJSON(const configuru::Config& pt)
 {
 	TransformComponentDefinition::readFromJSON(pt);
 
-	m_textureSourceId = pt.get_or<int>(k_textureSourceIdPropertyId, INVALID_MIKAN_ID);
-
 	m_nodeGraphAssetRef = NodeGraphAssetReferenceFactory().allocateAssetReferenceConfig();
 	if (pt.has_key(k_shapeGraphPathPropertyId))
 	{
 		m_nodeGraphAssetRef->readFromJSON(pt[k_shapeGraphPathPropertyId]);
-	}
-}
-
-void ShapeComponentDefinition::setTextureSourceId(MikanTextureSourceID id)
-{
-	if (m_textureSourceId != id)
-	{
-		m_textureSourceId = id;
-		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_textureSourceIdPropertyId));
 	}
 }
 
@@ -151,42 +136,10 @@ void ShapeComponent::onDefinitionChanged(
 	}
 }
 
-MikanTextureSourceID ShapeComponent::getTextureSourceId() const
+IMkTexturePtr ShapeComponent::getColorTexture() const
 {
-	return getShapeComponentDefinition()->getTextureSourceId();
-}
-
-void ShapeComponent::setTextureSourceId(MikanTextureSourceID id)
-{
-	getShapeComponentDefinition()->setTextureSourceId(id);
-}
-
-void ShapeComponent::update(float deltaSeconds)
-{
-	// Refresh the cached texture from the referenced texture source component
-	const MikanTextureSourceID textureSourceId = getTextureSourceId();
-	if (textureSourceId != INVALID_MIKAN_ID)
-	{
-		ProjectManagerPtr projectManager = getOwnerProjectManager();
-		TextureSourceComponentPtr textureSource =
-			TextureSourceQueries::getTextureSourceById(projectManager, textureSourceId);
-
-		if (textureSource)
-		{
-			m_colorTexture = textureSource->getClientColorSourceTexture(
-				INVALID_MIKAN_ID,
-				eTextureSourceColorType::colorRGBA,
-				-1);
-		}
-		else
-		{
-			m_colorTexture = nullptr;
-		}
-	}
-	else
-	{
-		m_colorTexture = nullptr;
-	}
+	MikanTextureCache* textureCache = getOwnerEditorWindow()->getTextureCache();
+	return textureCache->tryGetTextureByName(INTERNAL_MISSING_TEXTURE_RGBA);
 }
 
 void ShapeComponent::onDefinitionMarkedDirty(
@@ -327,10 +280,6 @@ void ShapeComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstP
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			ShapeComponentDefinition::k_textureSourceIdPropertyId, MikanVariantType::INT)
-		->setDefaultValue(INVALID_MIKAN_ID));
-	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(
 			ShapeComponentDefinition::k_shapeGraphPathPropertyId, MikanVariantType::STRING)
 		->addMetaData(std::make_shared<AssetReferenceFactoryMetaData>(
 			AssetReferenceFactory::createFactory<NodeGraphAssetReferenceFactory>())));
@@ -340,12 +289,7 @@ bool ShapeComponent::getPropertyValue(
 	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	if (propertyName == ShapeComponentDefinition::k_textureSourceIdPropertyId)
-	{
-		outValue = (int)getTextureSourceId();
-		return true;
-	}
-	else if (propertyName == ShapeComponentDefinition::k_shapeGraphPathPropertyId)
+	if (propertyName == ShapeComponentDefinition::k_shapeGraphPathPropertyId)
 	{
 		outValue = getShapeComponentDefinition()->getShapeGraphPath().string();
 		return true;
@@ -358,12 +302,6 @@ bool ShapeComponent::setPropertyValue(
 	const std::string& propertyName,
 	const MikanVariant& inValue)
 {
-	if (propertyName == ShapeComponentDefinition::k_textureSourceIdPropertyId)
-	{
-		setTextureSourceId((MikanTextureSourceID)inValue.getIntValue());
-		return true;
-	}
-
 	return TransformComponent::setPropertyValue(propertyName, inValue);
 }
 
@@ -421,12 +359,5 @@ void ShapeComponent::bindLuaFunctions(lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
 		.deriveClass<ShapeComponent, TransformComponent>("ShapeComponent")
-		.addProperty("textureSourceId",
-			[](ShapeComponent* component) -> int {
-				return static_cast<int>(component->getTextureSourceId());
-			},
-			[](ShapeComponent* component, int id) {
-				component->setTextureSourceId(static_cast<MikanTextureSourceID>(id));
-			})
 		.endClass();
 }

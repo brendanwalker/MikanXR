@@ -4,7 +4,7 @@
 #include "Shared/GuiDataSource_ComboBox.h"
 #include "ShapeComponent.h"
 
-// Abstract base for shape component panels - renders parent dropdown + texture source picker
+// Abstract base for shape component panels - renders parent dropdown + shape graph picker
 class GuiPanel_ShapeComponent : public GuiPanel_MikanComponent
 {
 public:
@@ -17,7 +17,6 @@ protected:
 
 private:
 	GuiDataSource_ComboBox m_parentTransformDataSource;
-	GuiDataSource_ComboBox m_textureSourceDataSource;
 };
 
 class GuiPanel_QuadShapeComponent : public GuiPanel_ShapeComponent
