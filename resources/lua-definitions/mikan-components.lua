@@ -150,6 +150,42 @@ local ModelStencilComponent = {}
 function ModelStencilComponent:alignStencil() end
 
 ------------------------------------------------------------------------
+-- ShapeComponent : TransformComponent
+------------------------------------------------------------------------
+
+---@class ShapeComponent : TransformComponent
+---@field textureSourceId integer ID of the texture source bound to this shape (read/write)
+local ShapeComponent = {}
+
+------------------------------------------------------------------------
+-- QuadShapeComponent : ShapeComponent
+------------------------------------------------------------------------
+
+---@class QuadShapeComponent : ShapeComponent
+---@field quadWidth number Width of the quad shape in meters (read/write)
+---@field quadHeight number Height of the quad shape in meters (read/write)
+---@field isDoubleSided boolean Whether the quad shape is double-sided (read/write)
+local QuadShapeComponent = {}
+
+------------------------------------------------------------------------
+-- BoxShapeComponent : ShapeComponent
+------------------------------------------------------------------------
+
+---@class BoxShapeComponent : ShapeComponent
+---@field boxXSize number Size along X axis in meters (read/write)
+---@field boxYSize number Size along Y axis in meters (read/write)
+---@field boxZSize number Size along Z axis in meters (read/write)
+local BoxShapeComponent = {}
+
+------------------------------------------------------------------------
+-- ModelShapeComponent : ShapeComponent
+------------------------------------------------------------------------
+
+---@class ModelShapeComponent : ShapeComponent
+---@field modelPath string Path to the shape mesh file (read-only)
+local ModelShapeComponent = {}
+
+------------------------------------------------------------------------
 -- DMXFixtureComponent : TransformComponent
 ------------------------------------------------------------------------
 
@@ -240,9 +276,99 @@ function CompositorComponent:editCompositorGraph() end
 function CompositorComponent:getOwnerStage() end
 
 ------------------------------------------------------------------------
+-- QuadShapeSystem — singleton injected by ComponentScriptContext
+------------------------------------------------------------------------
+
+---@class QuadShapeSystem
+local QuadShapeSystem = {}
+
+--- Get a QuadShapeComponent by its shape ID.
+---@param id integer
+---@return QuadShapeComponent
+function QuadShapeSystem:getQuadShapeById(id) end
+
+--- Get a QuadShapeComponent by its name.
+---@param name string
+---@return QuadShapeComponent
+function QuadShapeSystem:getQuadShapeByName(name) end
+
+--- Get the total number of quad shapes in the system.
+---@return integer
+function QuadShapeSystem:getQuadShapeCount() end
+
+--- Get a QuadShapeComponent at a zero-based index.
+---@param index integer
+---@return QuadShapeComponent
+function QuadShapeSystem:getQuadShapeAtIndex(index) end
+
+------------------------------------------------------------------------
+-- BoxShapeSystem — singleton injected by ComponentScriptContext
+------------------------------------------------------------------------
+
+---@class BoxShapeSystem
+local BoxShapeSystem = {}
+
+--- Get a BoxShapeComponent by its shape ID.
+---@param id integer
+---@return BoxShapeComponent
+function BoxShapeSystem:getBoxShapeById(id) end
+
+--- Get a BoxShapeComponent by its name.
+---@param name string
+---@return BoxShapeComponent
+function BoxShapeSystem:getBoxShapeByName(name) end
+
+--- Get the total number of box shapes in the system.
+---@return integer
+function BoxShapeSystem:getBoxShapeCount() end
+
+--- Get a BoxShapeComponent at a zero-based index.
+---@param index integer
+---@return BoxShapeComponent
+function BoxShapeSystem:getBoxShapeAtIndex(index) end
+
+------------------------------------------------------------------------
+-- ModelShapeSystem — singleton injected by ComponentScriptContext
+------------------------------------------------------------------------
+
+---@class ModelShapeSystem
+local ModelShapeSystem = {}
+
+--- Get a ModelShapeComponent by its shape ID.
+---@param id integer
+---@return ModelShapeComponent
+function ModelShapeSystem:getModelShapeById(id) end
+
+--- Get a ModelShapeComponent by its name.
+---@param name string
+---@return ModelShapeComponent
+function ModelShapeSystem:getModelShapeByName(name) end
+
+--- Get the total number of model shapes in the system.
+---@return integer
+function ModelShapeSystem:getModelShapeCount() end
+
+--- Get a ModelShapeComponent at a zero-based index.
+---@param index integer
+---@return ModelShapeComponent
+function ModelShapeSystem:getModelShapeAtIndex(index) end
+
+------------------------------------------------------------------------
 -- Global injected by ComponentScriptContext
 ------------------------------------------------------------------------
 
 --- The component this script is attached to.
 ---@type MikanComponent
 ownerComponent = nil
+
+--- The QuadShapeSystem singleton.
+---@type QuadShapeSystem
+QuadShapeSystem = nil
+
+--- The BoxShapeSystem singleton.
+---@type BoxShapeSystem
+BoxShapeSystem = nil
+
+--- The ModelShapeSystem singleton.
+---@type ModelShapeSystem
+ModelShapeSystem = nil

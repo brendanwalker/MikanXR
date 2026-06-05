@@ -2,6 +2,9 @@
 
 #include "MikanShapeTypes.h"
 
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
+
 #include "BoxColliderComponent.h"
 #include "IEditorWindow.h"
 #include "IMkGraphicsContext.h"
@@ -289,4 +292,33 @@ bool QuadShapeComponent::setPropertyValue(
 	}
 
 	return ShapeComponent::setPropertyValue(propertyName, inValue);
+}
+
+// -- Lua Binding ----
+void QuadShapeComponent::bindLuaFunctions(lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.deriveClass<QuadShapeComponent, ShapeComponent>(QuadShapeComponent::k_componentClassName.c_str())
+		.addProperty("quadWidth",
+			[](QuadShapeComponent* component) -> float {
+				return component->getQuadShapeDefinition()->getQuadWidth();
+			},
+			[](QuadShapeComponent* component, float value) {
+				component->getQuadShapeDefinition()->setQuadWidth(value);
+			})
+		.addProperty("quadHeight",
+			[](QuadShapeComponent* component) -> float {
+				return component->getQuadShapeDefinition()->getQuadHeight();
+			},
+			[](QuadShapeComponent* component, float value) {
+				component->getQuadShapeDefinition()->setQuadHeight(value);
+			})
+		.addProperty("isDoubleSided",
+			[](QuadShapeComponent* component) -> bool {
+				return component->getQuadShapeDefinition()->getIsDoubleSided();
+			},
+			[](QuadShapeComponent* component, bool value) {
+				component->getQuadShapeDefinition()->setIsDoubleSided(value);
+			})
+		.endClass();
 }

@@ -4,6 +4,9 @@
 #include "MikanShapeTypes.h"
 #include "SelectionComponent.h"
 
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
+
 #include <assert.h>
 
 // -- QuadShapeSystemDefinition -----
@@ -64,4 +67,31 @@ void QuadShapeSystem::additionalComponentFactory(
 
 	// Attach selection component
 	ownerComponentObject->addComponent<SelectionComponent>();
+}
+
+// -- Lua Binding ----
+void QuadShapeSystem::bindLuaFunctions(struct lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.beginClass<QuadShapeSystem>("QuadShapeSystem")
+		.addFunction("getQuadShapeById",
+			[](QuadShapeSystem* s, int id) -> QuadShapeComponent* {
+				return s->getQuadShapeById(static_cast<MikanShapeID>(id)).get();
+			})
+		.addFunction("getQuadShapeByName",
+			[](QuadShapeSystem* s, const std::string& name) -> QuadShapeComponent* {
+				return s->getQuadShapeByName(name).get();
+			})
+		.addFunction("getQuadShapeCount",
+			[](QuadShapeSystem* s) -> int {
+				return static_cast<int>(s->getComponentMap().size());
+			})
+		.addFunction("getQuadShapeAtIndex",
+			[](QuadShapeSystem* s, int i) -> QuadShapeComponent* {
+				int n = 0;
+				for (auto& [id, wp] : s->getComponentMap())
+					if (n++ == i) return wp.lock().get();
+				return nullptr;
+			})
+		.endClass();
 }

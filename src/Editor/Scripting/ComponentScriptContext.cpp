@@ -1,5 +1,7 @@
 #include "AnchorObjectSystem.h"
 #include "AnchorComponent.h"
+#include "BoxShapeComponent.h"
+#include "BoxShapeSystem.h"
 #include "BoxStencilComponent.h"
 #include "BoxStencilSystem.h"
 #include "CameraObjectSystem.h"
@@ -12,10 +14,15 @@
 #include "LuaMath.h"
 #include "MarkerComponent.h"
 #include "MikanComponent.h"
+#include "ModelShapeComponent.h"
+#include "ModelShapeSystem.h"
 #include "ModelStencilComponent.h"
 #include "ModelStencilSystem.h"
+#include "QuadShapeComponent.h"
+#include "QuadShapeSystem.h"
 #include "QuadStencilComponent.h"
 #include "QuadStencilSystem.h"
+#include "ShapeComponent.h"
 #include "RGBPixelGridComponent.h"
 #include "RGBSpotLightComponent.h"
 #include "SceneObjectSystem.h"
@@ -47,6 +54,9 @@ bool ComponentScriptContext::bindContextFunctions()
 	ModelStencilSystem::bindLuaFunctions(m_luaState);
 	BoxStencilSystem::bindLuaFunctions(m_luaState);
 	QuadStencilSystem::bindLuaFunctions(m_luaState);
+	ModelShapeSystem::bindLuaFunctions(m_luaState);
+	BoxShapeSystem::bindLuaFunctions(m_luaState);
+	QuadShapeSystem::bindLuaFunctions(m_luaState);
 
 	// Bind in dependency order: parent classes before derived classes
 	MikanComponent::bindLuaFunctions(m_luaState);
@@ -58,6 +68,10 @@ bool ComponentScriptContext::bindContextFunctions()
 	QuadStencilComponent::bindLuaFunctions(m_luaState);
 	BoxStencilComponent::bindLuaFunctions(m_luaState);
 	ModelStencilComponent::bindLuaFunctions(m_luaState);
+	ShapeComponent::bindLuaFunctions(m_luaState);
+	QuadShapeComponent::bindLuaFunctions(m_luaState);
+	BoxShapeComponent::bindLuaFunctions(m_luaState);
+	ModelShapeComponent::bindLuaFunctions(m_luaState);
 	DMXFixtureComponent::bindLuaFunctions(m_luaState);
 	RGBSpotLightComponent::bindLuaFunctions(m_luaState);
 	RGBPixelGridComponent::bindLuaFunctions(m_luaState);
@@ -78,6 +92,17 @@ bool ComponentScriptContext::bindContextFunctions()
 	luabridge::setGlobal(m_luaState,
 		ownerComponent->getObjectSystemOfType<QuadStencilSystem>().get(),
 		"QuadStencilSystem");
+
+	// Expose shape system singletons so scripts can look up shapes by name or ID
+	luabridge::setGlobal(m_luaState,
+		ownerComponent->getObjectSystemOfType<ModelShapeSystem>().get(),
+		"ModelShapeSystem");
+	luabridge::setGlobal(m_luaState,
+		ownerComponent->getObjectSystemOfType<BoxShapeSystem>().get(),
+		"BoxShapeSystem");
+	luabridge::setGlobal(m_luaState,
+		ownerComponent->getObjectSystemOfType<QuadShapeSystem>().get(),
+		"QuadShapeSystem");
 
 	return true;
 }

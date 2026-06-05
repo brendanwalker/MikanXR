@@ -2,6 +2,9 @@
 
 #include "MikanShapeTypes.h"
 
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
+
 #include "AssetReference.h"
 #include "IEditorWindow.h"
 #include "IMkGraphicsContext.h"
@@ -257,4 +260,16 @@ bool ModelShapeComponent::setPropertyValue(
 	}
 
 	return ShapeComponent::setPropertyValue(propertyName, inValue);
+}
+
+// -- Lua Binding ----
+void ModelShapeComponent::bindLuaFunctions(lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.deriveClass<ModelShapeComponent, ShapeComponent>(ModelShapeComponent::k_componentClassName.c_str())
+		.addProperty("modelPath",
+			[](ModelShapeComponent* component) -> std::string {
+				return component->getModelShapeDefinition()->getModelPath().string();
+			})
+		.endClass();
 }

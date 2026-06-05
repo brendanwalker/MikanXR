@@ -54,6 +54,9 @@ public:
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
 
+	// -- Lua Binding ----
+	static void bindLuaFunctions(struct lua_State* L);
+
 protected:
 	virtual void additionalComponentFactory(
 		MikanObjectPtr ownerComponentObject,

@@ -4,6 +4,9 @@
 #include "MikanShapeTypes.h"
 #include "SelectionComponent.h"
 
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
+
 #include <assert.h>
 
 // -- BoxShapeSystemDefinition -----
@@ -67,4 +70,31 @@ void BoxShapeSystem::additionalComponentFactory(
 
 	// Attach selection component
 	ownerComponentObject->addComponent<SelectionComponent>();
+}
+
+// -- Lua Binding ----
+void BoxShapeSystem::bindLuaFunctions(struct lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.beginClass<BoxShapeSystem>("BoxShapeSystem")
+		.addFunction("getBoxShapeById",
+			[](BoxShapeSystem* s, int id) -> BoxShapeComponent* {
+				return s->getBoxShapeById(static_cast<MikanShapeID>(id)).get();
+			})
+		.addFunction("getBoxShapeByName",
+			[](BoxShapeSystem* s, const std::string& name) -> BoxShapeComponent* {
+				return s->getBoxShapeByName(name).get();
+			})
+		.addFunction("getBoxShapeCount",
+			[](BoxShapeSystem* s) -> int {
+				return static_cast<int>(s->getComponentMap().size());
+			})
+		.addFunction("getBoxShapeAtIndex",
+			[](BoxShapeSystem* s, int i) -> BoxShapeComponent* {
+				int n = 0;
+				for (auto& [id, wp] : s->getComponentMap())
+					if (n++ == i) return wp.lock().get();
+				return nullptr;
+			})
+		.endClass();
 }

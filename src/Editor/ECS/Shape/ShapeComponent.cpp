@@ -21,6 +21,9 @@
 
 #include "tinyfiledialogs.h"
 
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
+
 // -- ShapeComponentDefinition ------
 const std::string ShapeComponentDefinition::k_textureSourceIdPropertyId = "shape_texture_source_id";
 const std::string ShapeComponentDefinition::k_shapeGraphPathPropertyId = "shape_graph_path";
@@ -411,4 +414,19 @@ bool ShapeComponent::invokeFunction(const std::string& functionName)
 	}
 
 	return TransformComponent::invokeFunction(functionName);
+}
+
+// -- Lua Binding ----
+void ShapeComponent::bindLuaFunctions(lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.deriveClass<ShapeComponent, TransformComponent>("ShapeComponent")
+		.addProperty("textureSourceId",
+			[](ShapeComponent* component) -> int {
+				return static_cast<int>(component->getTextureSourceId());
+			},
+			[](ShapeComponent* component, int id) {
+				component->setTextureSourceId(static_cast<MikanTextureSourceID>(id));
+			})
+		.endClass();
 }

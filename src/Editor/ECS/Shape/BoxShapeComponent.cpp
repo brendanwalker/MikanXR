@@ -2,6 +2,9 @@
 
 #include "MikanShapeTypes.h"
 
+#include "lua.hpp"
+#include "LuaBridge/LuaBridge.h"
+
 #include "BoxColliderComponent.h"
 #include "IEditorWindow.h"
 #include "IMkGraphicsContext.h"
@@ -317,4 +320,33 @@ bool BoxShapeComponent::setPropertyValue(
 	}
 
 	return ShapeComponent::setPropertyValue(propertyName, inValue);
+}
+
+// -- Lua Binding ----
+void BoxShapeComponent::bindLuaFunctions(lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.deriveClass<BoxShapeComponent, ShapeComponent>(BoxShapeComponent::k_componentClassName.c_str())
+		.addProperty("boxXSize",
+			[](BoxShapeComponent* component) -> float {
+				return component->getBoxShapeDefinition()->getBoxXSize();
+			},
+			[](BoxShapeComponent* component, float value) {
+				component->getBoxShapeDefinition()->setBoxXSize(value);
+			})
+		.addProperty("boxYSize",
+			[](BoxShapeComponent* component) -> float {
+				return component->getBoxShapeDefinition()->getBoxYSize();
+			},
+			[](BoxShapeComponent* component, float value) {
+				component->getBoxShapeDefinition()->setBoxYSize(value);
+			})
+		.addProperty("boxZSize",
+			[](BoxShapeComponent* component) -> float {
+				return component->getBoxShapeDefinition()->getBoxZSize();
+			},
+			[](BoxShapeComponent* component, float value) {
+				component->getBoxShapeDefinition()->setBoxZSize(value);
+			})
+		.endClass();
 }

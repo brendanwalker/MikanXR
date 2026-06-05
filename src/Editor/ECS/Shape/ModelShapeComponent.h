@@ -69,6 +69,9 @@ public:
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 	{ ShapeComponent::getFunctionDescriptors(outDescriptors); }
 
+	// -- Lua Binding ----
+	static void bindLuaFunctions(struct lua_State* L);
+
 protected:
 	virtual void onDefinitionMarkedDirty(
 		CommonConfigPtr configPtr,

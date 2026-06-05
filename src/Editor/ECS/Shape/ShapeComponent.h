@@ -92,6 +92,9 @@ public:
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors);
 	virtual bool invokeFunction(const std::string& functionName) override;
 
+	// -- Lua Binding ----
+	static void bindLuaFunctions(struct lua_State* L);
+
 protected:
 	virtual void onDefinitionMarkedDirty(
 		CommonConfigPtr configPtr,
