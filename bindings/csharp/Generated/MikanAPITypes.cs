@@ -31,6 +31,7 @@ namespace MikanXR
 		InvalidCameraID= 105,
 		InvalidSceneID= 106,
 		InvalidStageID= 106,
+		InvalidShapeID= 107,
 	};
 
 	public class MikanEvent
