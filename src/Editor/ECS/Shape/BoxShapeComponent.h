@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ComponentFwd.h"
+#include "MikanShapeTypes.h"
 #include "MikanTypeFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ShapeComponent.h"
@@ -50,6 +51,9 @@ public:
 	virtual void init() override;
 	virtual void update(float deltaSeconds) override;
 	virtual void dispose() override;
+
+	// -- IEntityAccessor ----
+	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
 
 	// -- IPropertyInterface ----
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);

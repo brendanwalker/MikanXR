@@ -1,5 +1,7 @@
 #include "BoxShapeComponent.h"
 
+#include "MikanShapeTypes.h"
+
 #include "BoxColliderComponent.h"
 #include "IEditorWindow.h"
 #include "IMkGraphicsContext.h"
@@ -82,6 +84,12 @@ void BoxShapeDefinition::setBoxZSize(float size)
 BoxShapeComponent::BoxShapeComponent(MikanObjectWeakPtr owner)
 	: ShapeComponent(owner)
 {
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* BoxShapeComponent::getClientAPIValuesStructType() const
+{
+	return &MikanBoxShapeComponentValues::staticGetArchetype();
 }
 
 void BoxShapeComponent::init()

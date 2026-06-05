@@ -20,6 +20,7 @@
 #include "RemoteControlManager.h"
 #include "ScriptRequestHandler.h"
 #include "ServerResponseHelpers.h"
+#include "ShapeRequestHandler.h"
 #include "StencilRequestHandler.h"
 #include "StringUtils.h"
 #include "TextureSourceRequestHandler.h"
@@ -51,6 +52,7 @@ MikanServer::MikanServer()
 	, m_propertyRequestHandler(new PropertyRequestHandler(this))
 	, m_remoteControlManager(new RemoteControlManager(this))
 	, m_markerRequestHandler(new MarkerRequestHandler(this))
+	, m_shapeRequestHandler(new ShapeRequestHandler(this))
 	, m_scriptRequestHandler(new ScriptRequestHandler(this))
 	, m_stencilRequestHandler(new StencilRequestHandler(this))
 	, m_textureSourceRequestHandler(new TextureSourceRequestHandler(this))
@@ -64,6 +66,7 @@ MikanServer::~MikanServer()
 	delete m_videoSourceRequestHandler;
 	delete m_textureSourceRequestHandler;
 	delete m_markerRequestHandler;
+	delete m_shapeRequestHandler;
 	delete m_stencilRequestHandler;
 	delete m_scriptRequestHandler;
 	delete m_remoteControlManager;
@@ -122,6 +125,12 @@ bool MikanServer::startup(MainWindow* mainWindow)
 	if (!m_markerRequestHandler->startup(mainWindow))
 	{
 		MIKAN_LOG_ERROR("MikanServer::startup()") << "Failed to bind marker request handlers";
+		return false;
+	}
+
+	if (!m_shapeRequestHandler->startup(mainWindow))
+	{
+		MIKAN_LOG_ERROR("MikanServer::startup()") << "Failed to bind shape request handlers";
 		return false;
 	}
 
@@ -195,6 +204,7 @@ void MikanServer::shutdown()
 	m_propertyRequestHandler->shutdown();
 	m_scriptRequestHandler->shutdown();
 	m_markerRequestHandler->shutdown();
+	m_shapeRequestHandler->shutdown();
 	m_stencilRequestHandler->shutdown();
 	m_remoteControlManager->shutdown();
 	m_textureSourceRequestHandler->shutdown();

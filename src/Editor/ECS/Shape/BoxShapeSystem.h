@@ -51,6 +51,9 @@ public:
 
 	void getBoxShapeComponentList(std::vector<BoxShapeComponentPtr>& outList) const;
 
+	// -- IEntityAccessor ----
+	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
+
 protected:
 	virtual void additionalComponentFactory(
 		MikanObjectPtr ownerComponentObject,

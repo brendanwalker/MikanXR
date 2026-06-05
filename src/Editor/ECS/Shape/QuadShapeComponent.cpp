@@ -1,5 +1,7 @@
 #include "QuadShapeComponent.h"
 
+#include "MikanShapeTypes.h"
+
 #include "BoxColliderComponent.h"
 #include "IEditorWindow.h"
 #include "IMkGraphicsContext.h"
@@ -82,6 +84,12 @@ void QuadShapeDefinition::setIsDoubleSided(bool flag)
 QuadShapeComponent::QuadShapeComponent(MikanObjectWeakPtr owner)
 	: ShapeComponent(owner)
 {
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* QuadShapeComponent::getClientAPIValuesStructType() const
+{
+	return &MikanQuadShapeComponentValues::staticGetArchetype();
 }
 
 void QuadShapeComponent::init()

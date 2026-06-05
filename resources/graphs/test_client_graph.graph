@@ -1,6 +1,6 @@
 {
 	"class_name":      "CompositorNodeGraph",
-	"next_id":         42,
+	"next_id":         51,
 	"properties":      [
 		{
 			"class_name":      "GraphMaterialProperty",
@@ -129,6 +129,25 @@
 			"enable_quad_stencils":  false,
 			"enable_box_stencils":   false,
 			"enable_model_stencils": true
+		},
+		{
+			"class_name": "DrawShapesNode",
+			"id":         42,
+			"pins_in":    [ 43, 44 ],
+			"pins_out":   [ 45 ],
+			"pos":        [ 1195.0, 3.0 ],
+			"blend_mode": "blendOn",
+			"depth_test": false
+		},
+		{
+			"class_name":          "ShapeSelectNode",
+			"id":                  46,
+			"pins_in":             [ ],
+			"pins_out":            [ 47 ],
+			"pos":                 [ 1038.0, 72.0 ],
+			"enable_quad_shapes":  true,
+			"enable_box_shapes":   true,
+			"enable_model_shapes": true
 		}
 	],
 	"pins":            [
@@ -264,7 +283,7 @@
 			"id":                23,
 			"direction":         "output",
 			"owner_node_id":     19,
-			"connected_links":   [ ],
+			"connected_links":   [ 50 ],
 			"has_default_value": false,
 			"is_dynamic":        false
 		},
@@ -349,6 +368,48 @@
 			"has_default_value":  false,
 			"is_dynamic":         false,
 			"element_class_name": "GraphStencilProperty"
+		},
+		{
+			"class_name":        "FlowPin",
+			"pin_name":          "flowIn",
+			"id":                43,
+			"direction":         "input",
+			"owner_node_id":     42,
+			"connected_links":   [ 50 ],
+			"has_default_value": false,
+			"is_dynamic":        false
+		},
+		{
+			"class_name":         "ArrayPin",
+			"pin_name":           "shapes",
+			"id":                 44,
+			"direction":          "input",
+			"owner_node_id":      42,
+			"connected_links":    [ 48 ],
+			"has_default_value":  true,
+			"is_dynamic":         false,
+			"element_class_name": "GraphShapeProperty"
+		},
+		{
+			"class_name":        "FlowPin",
+			"pin_name":          "flowOut",
+			"id":                45,
+			"direction":         "output",
+			"owner_node_id":     42,
+			"connected_links":   [ ],
+			"has_default_value": false,
+			"is_dynamic":        false
+		},
+		{
+			"class_name":         "ArrayPin",
+			"pin_name":           "shapes",
+			"id":                 47,
+			"direction":          "output",
+			"owner_node_id":      46,
+			"connected_links":    [ 48 ],
+			"has_default_value":  false,
+			"is_dynamic":         false,
+			"element_class_name": "GraphShapeProperty"
 		}
 	],
 	"links":           [
@@ -396,6 +457,16 @@
 			"id":           41,
 			"start_pin_id": 37,
 			"end_pin_id":   27
+		},
+		{
+			"id":           48,
+			"start_pin_id": 47,
+			"end_pin_id":   44
+		},
+		{
+			"id":           50,
+			"start_pin_id": 23,
+			"end_pin_id":   43
 		}
 	]
 }

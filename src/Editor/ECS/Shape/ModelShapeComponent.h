@@ -3,6 +3,8 @@
 #include "AssetFwd.h"
 #include "ComponentFwd.h"
 #include "MikanRendererFwd.h"
+#include "MikanShapeTypes.h"
+#include "MikanStencilTypes.h"
 #include "MikanTypeFwd.h"
 #include "ObjectSystemConfigFwd.h"
 #include "ShapeComponent.h"
@@ -53,6 +55,10 @@ public:
 	void setModelPath(const std::filesystem::path& path);
 	void disposeMeshComponents();
 	void rebuildMeshComponents();
+	void extractRenderGeometry(MikanStencilModelRenderGeometry& outRenderGeometry);
+
+	// -- IEntityAccessor ----
+	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
 
 	// -- IPropertyInterface ----
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);

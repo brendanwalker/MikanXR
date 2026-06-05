@@ -1,6 +1,7 @@
 #include "QuadShapeSystem.h"
 #include "BoxColliderComponent.h"
 #include "MikanObject.h"
+#include "MikanShapeTypes.h"
 #include "SelectionComponent.h"
 
 #include <assert.h>
@@ -26,6 +27,12 @@ void QuadShapeSystemDefinition::readFromJSON(const configuru::Config& pt)
 QuadShapeSystem::QuadShapeSystem(ProjectManagerPtr ownerObjectSystem)
 	: Super::MikanTypedObjectSystem(ownerObjectSystem)
 {
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* QuadShapeSystem::getClientAPIValuesStructType() const
+{
+	return &MikanQuadShapeSystemValues::staticGetArchetype();
 }
 
 void QuadShapeSystem::getQuadShapeComponentList(std::vector<QuadShapeComponentPtr>& outList) const

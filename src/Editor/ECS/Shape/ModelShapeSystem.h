@@ -51,6 +51,9 @@ public:
 
 	void getModelShapeComponentList(std::vector<ModelShapeComponentPtr>& outList) const;
 
+	// -- IEntityAccessor ----
+	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
+
 protected:
 	virtual void additionalComponentFactory(
 		MikanObjectPtr ownerComponentObject,

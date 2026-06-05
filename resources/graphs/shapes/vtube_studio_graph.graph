@@ -1,0 +1,157 @@
+{
+	"class_name":      "ShapeNodeGraph",
+	"next_id":         16,
+	"properties":      [
+		{
+			"class_name":      "GraphMaterialProperty",
+			"id":              2,
+			"parent_id":       0,
+			"name":            "GraphMaterialProperty2",
+			"asset_ref_index": 0
+		},
+		{
+			"class_name":          "GraphTextureSourceProperty",
+			"id":                  5,
+			"parent_id":           0,
+			"name":                "TextureSource5",
+			"texture_source_type": "spout",
+			"texture_source_name": "VTubeStudioSource"
+		}
+	],
+	"assetReferences": [
+		{
+			"class_name": "MaterialAssetReference",
+			"asset_path": "D:/Github/git-BrendanWalker/MikanXR/resources/shaders/shape/shapePT/shapePT.mat"
+		}
+	],
+	"nodes":           [
+		{
+			"class_name": "EventNode",
+			"id":         0,
+			"pins_in":    [ ],
+			"pins_out":   [ 1 ],
+			"pos":        [ 0.0, 0.0 ],
+			"event_name": "OnRenderShape"
+		},
+		{
+			"class_name":           "MaterialNode",
+			"id":                   3,
+			"pins_in":              [ ],
+			"pins_out":             [ 4 ],
+			"pos":                  [ 162.0, 62.0 ],
+			"material_property_id": 2
+		},
+		{
+			"class_name":                 "TextureSourceNode",
+			"id":                         6,
+			"pins_in":                    [ ],
+			"pins_out":                   [ 7 ],
+			"pos":                        [ 70.0, 133.0 ],
+			"texture_source_property_id": 5
+		},
+		{
+			"class_name":      "DrawShapeMeshNode",
+			"id":              8,
+			"pins_in":         [ 9, 10, 14 ],
+			"pins_out":        [ 11 ],
+			"pos":             [ 327.0, 9.0 ],
+			"blend_mode":      "blendOn",
+			"depth_test":      false,
+			"float_defaults":  { },
+			"float2_defaults": { },
+			"float3_defaults": { },
+			"float4_defaults": { }
+		}
+	],
+	"pins":            [
+		{
+			"class_name":        "FlowPin",
+			"pin_name":          "flowOut",
+			"id":                1,
+			"direction":         "output",
+			"owner_node_id":     0,
+			"connected_links":   [ 12 ],
+			"has_default_value": false,
+			"is_dynamic":        false
+		},
+		{
+			"class_name":          "PropertyPin",
+			"pin_name":            "material",
+			"id":                  4,
+			"direction":           "output",
+			"owner_node_id":       3,
+			"connected_links":     [ 13 ],
+			"has_default_value":   false,
+			"is_dynamic":          false,
+			"property_class_name": "GraphMaterialProperty"
+		},
+		{
+			"class_name":        "TexturePin",
+			"pin_name":          "Texture",
+			"id":                7,
+			"direction":         "output",
+			"owner_node_id":     6,
+			"connected_links":   [ 15 ],
+			"has_default_value": false,
+			"is_dynamic":        false
+		},
+		{
+			"class_name":        "FlowPin",
+			"pin_name":          "flowIn",
+			"id":                9,
+			"direction":         "input",
+			"owner_node_id":     8,
+			"connected_links":   [ 12 ],
+			"has_default_value": false,
+			"is_dynamic":        false
+		},
+		{
+			"class_name":          "PropertyPin",
+			"pin_name":            "material",
+			"id":                  10,
+			"direction":           "input",
+			"owner_node_id":       8,
+			"connected_links":     [ 13 ],
+			"has_default_value":   false,
+			"is_dynamic":          false,
+			"property_class_name": "GraphMaterialProperty"
+		},
+		{
+			"class_name":        "FlowPin",
+			"pin_name":          "flowOut",
+			"id":                11,
+			"direction":         "output",
+			"owner_node_id":     8,
+			"connected_links":   [ ],
+			"has_default_value": false,
+			"is_dynamic":        false
+		},
+		{
+			"class_name":        "TexturePin",
+			"pin_name":          "rgbaTexture",
+			"id":                14,
+			"direction":         "input",
+			"owner_node_id":     8,
+			"connected_links":   [ 15 ],
+			"has_default_value": false,
+			"is_dynamic":        true
+		}
+	],
+	"links":           [
+		{
+			"id":           12,
+			"start_pin_id": 1,
+			"end_pin_id":   9
+		},
+		{
+			"id":           13,
+			"start_pin_id": 4,
+			"end_pin_id":   10
+		},
+		{
+			"id":           15,
+			"start_pin_id": 7,
+			"end_pin_id":   14
+		}
+	]
+}

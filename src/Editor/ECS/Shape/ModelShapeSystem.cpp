@@ -1,5 +1,6 @@
 #include "ModelShapeSystem.h"
 #include "MikanObject.h"
+#include "MikanShapeTypes.h"
 #include "SelectionComponent.h"
 
 #include <assert.h>
@@ -25,6 +26,12 @@ void ModelShapeSystemDefinition::readFromJSON(const configuru::Config& pt)
 ModelShapeSystem::ModelShapeSystem(ProjectManagerPtr ownerObjectSystem)
 	: Super::MikanTypedObjectSystem(ownerObjectSystem)
 {
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* ModelShapeSystem::getClientAPIValuesStructType() const
+{
+	return &MikanModelShapeSystemValues::staticGetArchetype();
 }
 
 void ModelShapeSystem::getModelShapeComponentList(std::vector<ModelShapeComponentPtr>& outList) const

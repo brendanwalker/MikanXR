@@ -1,6 +1,7 @@
 #include "BoxShapeSystem.h"
 #include "BoxColliderComponent.h"
 #include "MikanObject.h"
+#include "MikanShapeTypes.h"
 #include "SelectionComponent.h"
 
 #include <assert.h>
@@ -26,6 +27,12 @@ void BoxShapeSystemDefinition::readFromJSON(const configuru::Config& pt)
 BoxShapeSystem::BoxShapeSystem(ProjectManagerPtr ownerObjectSystem)
 	: Super::MikanTypedObjectSystem(ownerObjectSystem)
 {
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* BoxShapeSystem::getClientAPIValuesStructType() const
+{
+	return &MikanBoxShapeSystemValues::staticGetArchetype();
 }
 
 void BoxShapeSystem::getBoxShapeComponentList(std::vector<BoxShapeComponentPtr>& outList) const

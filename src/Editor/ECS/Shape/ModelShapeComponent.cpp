@@ -1,5 +1,7 @@
 #include "ModelShapeComponent.h"
 
+#include "MikanShapeTypes.h"
+
 #include "AssetReference.h"
 #include "IEditorWindow.h"
 #include "IMkGraphicsContext.h"
@@ -125,6 +127,23 @@ void ModelShapeComponent::dispose()
 void ModelShapeComponent::setModelPath(const std::filesystem::path& path)
 {
 	getModelShapeDefinition()->setModelPath(path);
+}
+
+// -- IEntityAccessor ----
+rfk::Struct const* ModelShapeComponent::getClientAPIValuesStructType() const
+{
+	return &MikanModelShapeComponentValues::staticGetArchetype();
+}
+
+void ModelShapeComponent::extractRenderGeometry(MikanStencilModelRenderGeometry& outRenderGeometry)
+{
+	for (StaticMeshComponentPtr mesh : m_triMeshComponents)
+	{
+		MikanTriagulatedMesh mikanMesh = {};
+		mesh->extractRenderGeometry(mikanMesh);
+
+		outRenderGeometry.meshes.push_back(mikanMesh);
+	}
 }
 
 void ModelShapeComponent::disposeMeshComponents()

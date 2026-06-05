@@ -53,6 +53,9 @@
 
 #include "MikanStageTypes.rfks.h"
 
+#include "MikanShapeTypes.rfks.h"
+#include "MikanShapeRequests.rfks.h"
+
 #include "MikanStencilTypes.rfks.h"
 #include "MikanStencilRequests.rfks.h"
 
@@ -83,6 +86,7 @@
 #include "MikanMarkerTypes.h"
 #include "MikanSceneTypes.h"
 #include "MikanStageTypes.h"
+#include "MikanShapeTypes.h"
 #include "MikanStencilTypes.h"
 #include "MikanTextureSourceTypes.h"
 #include "MikanTrackingMountTypes.h"
@@ -96,6 +100,9 @@ const char* MikanEditorSystemValues::k_systemName = "EditorObjectSystem";
 const char* MikanBoxStencilSystemValues::k_systemName = "BoxStencilSystem";
 const char* MikanQuadStencilSystemValues::k_systemName = "QuadStencilSystem";
 const char* MikanModelStencilSystemValues::k_systemName = "ModelStencilSystem";
+const char* MikanQuadShapeSystemValues::k_systemName = "QuadShapeSystem";
+const char* MikanBoxShapeSystemValues::k_systemName = "BoxShapeSystem";
+const char* MikanModelShapeSystemValues::k_systemName = "ModelShapeSystem";
 const char* MikanMarkerSystemValues::k_systemName = "MarkerObjectSystem";
 const char* MikanSceneSystemValues::k_systemName = "SceneObjectSystem";
 const char* MikanDMXObjectSystemValues::k_systemName = "DMXObjectSystem";
@@ -137,6 +144,15 @@ const char* MikanRGBPixelGridComponentValues::k_ownerSystemName = MikanRGBPixelG
 
 const char* MikanModelStencilComponentValues::k_componentClassName = "ModelStencilComponent";
 const char* MikanModelStencilComponentValues::k_ownerSystemName = "ModelStencilSystem";
+
+const char* MikanQuadShapeComponentValues::k_componentClassName = "QuadShapeComponent";
+const char* MikanQuadShapeComponentValues::k_ownerSystemName = "QuadShapeSystem";
+
+const char* MikanBoxShapeComponentValues::k_componentClassName = "BoxShapeComponent";
+const char* MikanBoxShapeComponentValues::k_ownerSystemName = "BoxShapeSystem";
+
+const char* MikanModelShapeComponentValues::k_componentClassName = "ModelShapeComponent";
+const char* MikanModelShapeComponentValues::k_ownerSystemName = "ModelShapeSystem";
 
 const char* MikanMarkerTrackingVolumeComponentValues::k_componentClassName = "MarkerTrackingVolumeComponent";
 const char* MikanMarkerTrackingVolumeComponentValues::k_ownerSystemName = "MarkerTrackingVolumeSystem";
