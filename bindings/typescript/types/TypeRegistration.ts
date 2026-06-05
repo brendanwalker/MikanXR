@@ -31,6 +31,8 @@ import { MikanSceneSystemValues, MikanSceneComponentValues } from './MikanSceneT
 import { MikanScriptMessagePostedEvent } from './MikanScriptEvents.js';
 import { InvokeComponentScriptTrigger, SendScriptMessage } from './MikanScriptRequest.js';
 import { MikanScriptMessageInfo } from './MikanScriptTypes.js';
+import { GetModelShapeRenderGeometry, MikanShapeModelRenderGeometryResponse } from './MikanShapeRequest.js';
+import { MikanQuadShapeSystemValues, MikanBoxShapeSystemValues, MikanModelShapeSystemValues, MikanShapeComponentValues, MikanQuadShapeComponentValues, MikanBoxShapeComponentValues, MikanModelShapeComponentValues } from './MikanShapeTypes.js';
 import { MikanStageComponentValues } from './MikanStageTypes.js';
 import { GetModelStencilRenderGeometry, MikanStencilModelRenderGeometryResponse } from './MikanStencilRequest.js';
 import { MikanModelStencilComponentValues, MikanQuadStencilSystemValues, MikanBoxStencilSystemValues, MikanModelStencilSystemValues, MikanStencilComponentValues, MikanQuadStencilComponentValues, MikanBoxStencilComponentValues, MikanTriagulatedMesh, MikanStencilModelRenderGeometry } from './MikanStencilTypes.js';
@@ -40,7 +42,7 @@ import { MikanTrackingMountComponentValues } from './MikanTrackingMountTypes.js'
 import { MikanVRTrackingVolumeComponentValues, MikanTrackingVolumeComponentValues, MikanMarkerTrackingVolumeComponentValues } from './MikanTrackingVolumeTypes.js';
 import { MikanTransformComponentValues } from './MikanTransformTypes.js';
 import { MikanVRDeviceComponentValues, MikanVRObjectSystemValues } from './MikanVRDeviceTypes.js';
-import { MikanVector2fValue, MikanStringValue, MikanVariant, MikanIntArrayValue, MikanMatrix4fValue, MikanVariantBase, MikanBoolValue, MikanIntValue, MikanLongValue, MikanFloatValue, MikanDoubleValue, MikanVector3fValue, MikanVector4fValue, MikanQuatfValue, MikanVector2dValue, MikanVector3dValue, MikanVector4dValue, MikanQuatdValue, MikanBoolArrayValue, MikanUByteArrayValue, MikanFloatArrayValue, MikanStringArrayValue, MikanStringMapValue } from './MikanVariantTypes.js';
+import { MikanVector2fValue, MikanStringValue, MikanVariant, MikanUByteArrayValue, MikanIntArrayValue, MikanMatrix4fValue, MikanVariantBase, MikanBoolValue, MikanIntValue, MikanLongValue, MikanFloatValue, MikanDoubleValue, MikanVector3fValue, MikanVector4fValue, MikanQuatfValue, MikanVector2dValue, MikanVector3dValue, MikanVector4dValue, MikanQuatdValue, MikanBoolArrayValue, MikanFloatArrayValue, MikanStringArrayValue, MikanStringMapValue } from './MikanVariantTypes.js';
 import { MikanVideoSourceOpenedEvent, MikanVideoSourceClosedEvent, MikanVideoSourceModeChangedEvent } from './MikanVideoSourceEvents.js';
 import { SetUSBVideoSourceDevice, SetUSBVideoSourceFormat, SetUSBVideoSourceFrameRate, MikanVideoSourceModeResponse, GetVideoSourceMode, GetVideoSourceIntrinsics, SetUSBVideoSourceResolution, MikanVideoSourceIntrinsicsResponse } from './MikanVideoSourceRequest.js';
 import { MikanUSBVideoSourceValues, MikanNetworkVideoSourceValues, MikanDistortionCoefficients, MikanBaseIntrinsics, MikanMonoIntrinsics, MikanStereoIntrinsics, MikanVideoSourceIntrinsics, MikanVideoSourceValues, MikanUSBVideoSourceSystemValues } from './MikanVideoSourceTypes.js';
@@ -138,6 +140,15 @@ export function registerAllTypes(): void {
   TypeRegistry.register('InvokeComponentScriptTrigger', InvokeComponentScriptTrigger);
   TypeRegistry.register('SendScriptMessage', SendScriptMessage);
   TypeRegistry.register('MikanScriptMessageInfo', MikanScriptMessageInfo);
+  TypeRegistry.register('GetModelShapeRenderGeometry', GetModelShapeRenderGeometry);
+  TypeRegistry.register('MikanShapeModelRenderGeometryResponse', MikanShapeModelRenderGeometryResponse);
+  TypeRegistry.register('MikanQuadShapeSystemValues', MikanQuadShapeSystemValues);
+  TypeRegistry.register('MikanBoxShapeSystemValues', MikanBoxShapeSystemValues);
+  TypeRegistry.register('MikanModelShapeSystemValues', MikanModelShapeSystemValues);
+  TypeRegistry.register('MikanShapeComponentValues', MikanShapeComponentValues);
+  TypeRegistry.register('MikanQuadShapeComponentValues', MikanQuadShapeComponentValues);
+  TypeRegistry.register('MikanBoxShapeComponentValues', MikanBoxShapeComponentValues);
+  TypeRegistry.register('MikanModelShapeComponentValues', MikanModelShapeComponentValues);
   TypeRegistry.register('MikanStageComponentValues', MikanStageComponentValues);
   TypeRegistry.register('GetModelStencilRenderGeometry', GetModelStencilRenderGeometry);
   TypeRegistry.register('MikanStencilModelRenderGeometryResponse', MikanStencilModelRenderGeometryResponse);
@@ -166,6 +177,7 @@ export function registerAllTypes(): void {
   TypeRegistry.register('MikanVector2fValue', MikanVector2fValue);
   TypeRegistry.register('MikanStringValue', MikanStringValue);
   TypeRegistry.register('MikanVariant', MikanVariant);
+  TypeRegistry.register('MikanUByteArrayValue', MikanUByteArrayValue);
   TypeRegistry.register('MikanIntArrayValue', MikanIntArrayValue);
   TypeRegistry.register('MikanMatrix4fValue', MikanMatrix4fValue);
   TypeRegistry.register('MikanVariantBase', MikanVariantBase);
@@ -182,7 +194,6 @@ export function registerAllTypes(): void {
   TypeRegistry.register('MikanVector4dValue', MikanVector4dValue);
   TypeRegistry.register('MikanQuatdValue', MikanQuatdValue);
   TypeRegistry.register('MikanBoolArrayValue', MikanBoolArrayValue);
-  TypeRegistry.register('MikanUByteArrayValue', MikanUByteArrayValue);
   TypeRegistry.register('MikanFloatArrayValue', MikanFloatArrayValue);
   TypeRegistry.register('MikanStringArrayValue', MikanStringArrayValue);
   TypeRegistry.register('MikanStringMapValue', MikanStringMapValue);

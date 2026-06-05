@@ -62,6 +62,14 @@ export class MikanVariant {
   ];
 }
 
+export class MikanUByteArrayValue extends MikanVariantBase {
+  value: number[] = [];
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'value', type: 'uint8', isArray: true }
+  ];
+}
+
 export class MikanIntArrayValue extends MikanVariantBase {
   value: number[] = [];
 
@@ -179,14 +187,6 @@ export class MikanBoolArrayValue extends MikanVariantBase {
 
   static __serializationMetadata: SerializationField[] = [
     { name: 'value', type: 'boolean' }
-  ];
-}
-
-export class MikanUByteArrayValue extends MikanVariantBase {
-  value: number[] = [];
-
-  static __serializationMetadata: SerializationField[] = [
-    { name: 'value', type: 'uint8', isArray: true }
   ];
 }
 

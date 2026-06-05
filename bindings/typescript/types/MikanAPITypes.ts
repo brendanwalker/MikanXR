@@ -27,7 +27,8 @@ export enum MikanAPIResult {
   InvalidAnchorID = 104,
   InvalidCameraID = 105,
   InvalidSceneID = 106,
-  InvalidStageID = 106
+  InvalidStageID = 106,
+  InvalidShapeID = 107
 }
 
 export class MikanResponse {

@@ -32,6 +32,8 @@ export * from './MikanSceneTypes.js';
 export * from './MikanScriptEvents.js';
 export * from './MikanScriptRequest.js';
 export * from './MikanScriptTypes.js';
+export * from './MikanShapeRequest.js';
+export * from './MikanShapeTypes.js';
 export * from './MikanStageTypes.js';
 export * from './MikanStencilRequest.js';
 export * from './MikanStencilTypes.js';
