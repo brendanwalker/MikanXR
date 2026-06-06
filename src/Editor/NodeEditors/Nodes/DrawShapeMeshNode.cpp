@@ -261,7 +261,7 @@ void DrawShapeMeshNode::rebuildInputPins()
 					}
 					else
 					{
-						MIKAN_LOG_WARNING("DrawShapeMeshNode does not support mat4 uniform '%s'", uniformName.c_str());
+						MIKAN_LOG_WARNING("DrawShapeMeshNode::rebuildInputPins") << "DrawShapeMeshNode does not support mat4 uniform" << uniformName;
 						assert(false);
 					}
 				default:
