@@ -34,9 +34,3 @@ endif()
 
 set_target_properties(MikanDMX PROPERTIES FOLDER MikanLibraries)
 set_target_properties(MikanDMX PROPERTIES PUBLIC_HEADER "${MIKAN_DMX_HEADER}")
-
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  install(TARGETS MikanDMX
-      ARCHIVE DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
-      PUBLIC_HEADER DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/include)
-ENDIF()
