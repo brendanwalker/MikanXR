@@ -726,11 +726,14 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       LIBRARY DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
       ARCHIVE DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib)
 
-  install(FILES 
+  install(FILES
       "${OpenCV_DIR}/x64/vc16/bin/opencv_world4100d.dll"
-      DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
-  install(FILES "${OpenCV_DIR}/x64/vc16/bin/opencv_world4100d.dll"
-      DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
+      DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
+      CONFIGURATIONS Debug)
+  install(FILES
+      "${OpenCV_DIR}/x64/vc16/bin/opencv_world4100.dll"
+      DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
+      CONFIGURATIONS Release RelWithDebInfo MinSizeRel)
 
   install(FILES "${SDL2_DLL}"
       DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
@@ -762,6 +765,23 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   install(DIRECTORY ${ROOT_DIR}/resources
     DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
     FILES_MATCHING PATTERN "*.jpg" PATTERN "*.png" PATTERN "*.ttf" PATTERN "*.json" PATTERN "*.csv" PATTERN "*.lua" PATTERN "*.onnx")
-    
+
+  # Install CEF binary and resource files
+  if(DEFINED CEF_ROOT)
+    foreach(_cef_file ${CEF_BINARY_FILES})
+      install(FILES "${CEF_BINARY_DIR_RELEASE}/${_cef_file}"
+          DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
+    endforeach()
+    foreach(_cef_file ${CEF_RESOURCE_FILES})
+      if(IS_DIRECTORY "${CEF_RESOURCE_DIR}/${_cef_file}")
+        install(DIRECTORY "${CEF_RESOURCE_DIR}/${_cef_file}"
+            DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
+      else()
+        install(FILES "${CEF_RESOURCE_DIR}/${_cef_file}"
+            DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
+      endif()
+    endforeach()
+  endif()
+
 ELSE() #Linux/Darwin
 ENDIF()
