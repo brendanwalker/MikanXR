@@ -403,7 +403,7 @@ void TestMikanClient::handleTransformPropertyUpdate(const MikanPropertyUpdateEve
 	{
 		handleTransformScaleChanged(propertyUpdateEvent);
 	}
-	else if (propertyUpdateEvent.propertyValue.fieldName.getValue() == "relative_rotation")
+	else if (propertyUpdateEvent.propertyValue.fieldName.getValue() == "relative_quaternion")
 	{
 		handleTransformOrientationChanged(propertyUpdateEvent);
 	}
@@ -433,12 +433,12 @@ void TestMikanClient::handleTransformOrientationChanged(const MikanPropertyUpdat
 {
 	const std::string& componentClass = propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
 	const std::string& componentName = propertyUpdateEvent.propertyValue.fieldValue.getStringValue();
-	const MikanVector3f& q = propertyUpdateEvent.propertyValue.fieldValue.getVector3fValue();
+	const MikanQuatf& q = propertyUpdateEvent.propertyValue.fieldValue.getQuaternionfValue();
 
 	MIKAN_LOG_INFO("handleTransformOrientationChanged")
 		<< "Component(class: " << componentClass
 		<< ", id: " << propertyUpdateEvent.propertyValue.componentId
-		<< "), Orientation Change: " << q.x << ", " << q.y << ", " << q.z;
+		<< "), Orientation Change: " << q.w << ", " << q.x << ", " << q.y << ", " << q.z;
 }
 
 void TestMikanClient::handleTransformPositionChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)

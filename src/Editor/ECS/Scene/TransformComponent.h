@@ -55,7 +55,7 @@ public:
 	const MikanVector3f getRelativeScale() const { return m_relativeTransform.scale; }
 	void setRelativeScale(const MikanVector3f& scale);
 
-	static const std::string k_relativeRotationPropertyId;
+	static const std::string k_relativeQuaternionPropertyId;
 	const MikanQuatf getRelativeRotation() const { return m_relativeTransform.rotation; }
 	void setRelativeRotation(const MikanQuatf& quat);
 
@@ -132,6 +132,7 @@ public:
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
 
 	// -- IPropertyInterface ----
+	static const std::string k_relativeRotationPropertyId;
 	static void getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors);
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override;
 	virtual bool setPropertyValue(const std::string& propertyName, const MikanVariant& inValue) override;

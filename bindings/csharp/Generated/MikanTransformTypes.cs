@@ -8,7 +8,7 @@ namespace MikanXR
 	{
 		public int parent_transform_id;
 		public MikanVector3f relative_scale;
-		public MikanVector3f relative_rotation;
+		public MikanQuatf relative_quaternion;
 		public MikanVector3f relative_position;
 	};
 

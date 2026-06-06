@@ -2,7 +2,8 @@
 -- Mikan scripting API — core types, globals, and coroutine scheduler.
 -- This file is a LuaLS definition file; it contains no executable code.
 -- Keep in sync with: src/Editor/Scripting/CommonScriptContext.cpp (bindCommonScriptFunctions,
--- addLuaCoroutineScheduler) and src/Editor/Scripting/LuaMath.cpp (LuaVec3f::bindFunctions).
+-- addLuaCoroutineScheduler) and src/Editor/Scripting/LuaMath.cpp (LuaVec3f::bindFunctions,
+-- LuaQuatf::bindFunctions).
 
 ------------------------------------------------------------------------
 -- Coroutine scheduler globals (injected by addLuaCoroutineScheduler)
@@ -86,6 +87,40 @@ function Vec3f.dot(a, b) end
 ---@param b Vec3f
 ---@return Vec3f
 function Vec3f.cross(a, b) end
+
+------------------------------------------------------------------------
+-- Quatf — unit quaternion rotation
+------------------------------------------------------------------------
+
+---@class Quatf
+---@field w number W component
+---@field x number X component
+---@field y number Y component
+---@field z number Z component
+---@overload fun(w: number, x: number, y: number, z: number): Quatf
+Quatf = {}
+
+--- Compose (multiply) two quaternions.
+---@param q Quatf
+---@return Quatf
+function Quatf:__mul(q) end
+
+--- Rotate a vector by this quaternion.
+---@param v Vec3f
+---@return Vec3f
+function Quatf:rotateVec3f(v) end
+
+--- Return the multiplicative inverse of this quaternion.
+---@return Quatf
+function Quatf:inverse() end
+
+--- Return the norm (length) of this quaternion.
+---@return number
+function Quatf:length() end
+
+--- Return a unit-length copy of this quaternion.
+---@return Quatf
+function Quatf:normalize() end
 
 ------------------------------------------------------------------------
 -- ScriptContext — script lifecycle and messaging helpers

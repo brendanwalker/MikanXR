@@ -1,4 +1,5 @@
 #include "MathUtility.h"
+#include "MathTypeConversion.h"
 #include "LuaMath.h"
 
 #include "lua.hpp"
@@ -132,5 +133,108 @@ void LuaVec3f::bindFunctions(lua_State* L)
 			.addFunction("length", &LuaVec3f::length)
 			.addFunction("normalize", &LuaVec3f::normalize)
 			.addFunction("__tostring", &LuaVec3f::toString)
+		.endClass();
+}
+
+// -- LuaQuatf -----
+LuaQuatf::LuaQuatf()
+{
+	w = 1.f;
+	x = 0.f;
+	y = 0.f;
+	z = 0.f;
+}
+
+LuaQuatf::LuaQuatf(float _w, float _x, float _y, float _z)
+{
+	w = _w;
+	x = _x;
+	y = _y;
+	z = _z;
+}
+
+LuaQuatf::LuaQuatf(const glm::quat& q)
+{
+	w = q.w;
+	x = q.x;
+	y = q.y;
+	z = q.z;
+}
+
+LuaQuatf::LuaQuatf(const MikanQuatf& q)
+{
+	w = q.w;
+	x = q.x;
+	y = q.y;
+	z = q.z;
+}
+
+MikanQuatf LuaQuatf::toMikanQuatf() const
+{
+	return { w, x, y, z };
+}
+
+glm::quat LuaQuatf::toGlmQuat() const
+{
+	return glm::quat(w, x, y, z);
+}
+
+LuaQuatf LuaQuatf::operator * (const LuaQuatf& q) const
+{
+	return LuaQuatf(toGlmQuat() * q.toGlmQuat());
+}
+
+LuaVec3f LuaQuatf::rotateVec3f(const LuaVec3f& v) const
+{
+	return LuaVec3f(toGlmQuat() * v.toGlmVec3f());
+}
+
+LuaQuatf LuaQuatf::inverse() const
+{
+	return LuaQuatf(glm::inverse(toGlmQuat()));
+}
+
+float LuaQuatf::length() const
+{
+	return glm::length(toGlmQuat());
+}
+
+LuaQuatf LuaQuatf::normalize() const
+{
+	return LuaQuatf(glm::normalize(toGlmQuat()));
+}
+
+std::string LuaQuatf::toString() const
+{
+	std::ostringstream os;
+
+	os << "(" << w << ", " << x << ", " << y << ", " << z << ")";
+
+	return os.str();
+}
+
+void LuaQuatf::bindFunctions(lua_State* L)
+{
+	luabridge::getGlobalNamespace(L)
+		.beginClass<LuaQuatf>("Quatf")
+			.addConstructor<void (*)(float, float, float, float)>()
+			.addProperty("w",
+				+[](const LuaQuatf* q) { return q->w; },
+				+[](LuaQuatf* q, float v) { q->w = v; })
+			.addProperty("x",
+				+[](const LuaQuatf* q) { return q->x; },
+				+[](LuaQuatf* q, float v) { q->x = v; })
+			.addProperty("y",
+				+[](const LuaQuatf* q) { return q->y; },
+				+[](LuaQuatf* q, float v) { q->y = v; })
+			.addProperty("z",
+				+[](const LuaQuatf* q) { return q->z; },
+				+[](LuaQuatf* q, float v) { q->z = v; })
+			.addFunction("__mul", &LuaQuatf::operator*)
+			.addFunction("rotateVec3f", &LuaQuatf::rotateVec3f)
+			.addFunction("inverse", &LuaQuatf::inverse)
+			.addFunction("length", &LuaQuatf::length)
+			.addFunction("normalize", &LuaQuatf::normalize)
+			.addFunction("__tostring", &LuaQuatf::toString)
 		.endClass();
 }

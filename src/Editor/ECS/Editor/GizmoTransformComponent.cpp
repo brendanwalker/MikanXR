@@ -329,7 +329,7 @@ void GizmoTransformComponent::onTransformTargetConfigChange(
 {
 	// Did a transform property of the gizmo target change?
 	if (changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativePositionPropertyId) ||
-		changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativeRotationPropertyId) ||
+		changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativeQuaternionPropertyId) ||
 		changedPropertySet.hasPropertyName(TransformComponentDefinition::k_relativeScalePropertyId))
 	{
 		// Ignore if this gizmo was the one applying the change (in applyTransformToTarget)

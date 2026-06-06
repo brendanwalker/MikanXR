@@ -19,7 +19,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTransformTypes")) Mik
 	FIELD()
 	MikanVector3f relative_scale;
 	FIELD()
-	MikanVector3f relative_rotation;
+	MikanQuatf relative_quaternion;
 	FIELD()
 	MikanVector3f relative_position;
 

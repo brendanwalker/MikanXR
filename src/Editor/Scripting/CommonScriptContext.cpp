@@ -210,6 +210,7 @@ bool CommonScriptContext::bindContextFunctions()
 
 	bindCommonScriptFunctions();
 	LuaVec3f::bindFunctions(m_luaState);
+	LuaQuatf::bindFunctions(m_luaState);
 
 	return true;
 }

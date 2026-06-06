@@ -16,7 +16,7 @@
 // -- ModelStencilConfig -----
 const std::string TransformComponentDefinition::k_parentTransformIdPropertyId = "parent_transform_id";
 const std::string TransformComponentDefinition::k_relativeScalePropertyId = "relative_scale";
-const std::string TransformComponentDefinition::k_relativeRotationPropertyId = "relative_rotation";
+const std::string TransformComponentDefinition::k_relativeQuaternionPropertyId = "relative_quaternion";
 const std::string TransformComponentDefinition::k_relativePositionPropertyId = "relative_position";
 
 TransformComponentDefinition::TransformComponentDefinition()
@@ -50,7 +50,7 @@ configuru::Config TransformComponentDefinition::writeToJSON()
 
 	pt[k_parentTransformIdPropertyId] = m_parentTransformId;
 	writeVector3f(pt, k_relativeScalePropertyId.c_str(), m_relativeTransform.scale);
-	writeQuatf(pt, k_relativeRotationPropertyId.c_str(), m_relativeTransform.rotation);
+	writeQuatf(pt, k_relativeQuaternionPropertyId.c_str(), m_relativeTransform.rotation);
 	writeVector3f(pt, k_relativePositionPropertyId.c_str(), m_relativeTransform.position);
 
 	return pt;
@@ -66,7 +66,7 @@ void TransformComponentDefinition::readFromJSON(const configuru::Config& pt)
 	m_relativeTransform.position = {0.f, 0.f, 0.f};
 
 	readVector3f(pt, k_relativeScalePropertyId.c_str(), m_relativeTransform.scale);
-	readQuatf(pt, k_relativeRotationPropertyId.c_str(), m_relativeTransform.rotation);
+	readQuatf(pt, k_relativeQuaternionPropertyId.c_str(), m_relativeTransform.rotation);
 	readVector3f(pt, k_relativePositionPropertyId.c_str(), m_relativeTransform.position);
 }
 
@@ -83,16 +83,7 @@ bool TransformComponentDefinition::readFromInitParams(
 		m_parentTransformId = componentValues->parent_transform_id;
 		m_relativeTransform.scale = componentValues->relative_scale;
 		m_relativeTransform.position = componentValues->relative_position;
-
-		// Convert relative rotation from Euler angles to quaternion
-		const MikanVector3f& angles = componentValues->relative_rotation;
-		glm::quat quat;
-		glm_euler_angles_to_quat(
-			angles.x * k_degrees_to_radians,
-			angles.y * k_degrees_to_radians,
-			angles.z * k_degrees_to_radians,
-			quat);
-		m_relativeTransform.rotation= glm_quat_to_MikanQuatf(quat);
+		m_relativeTransform.rotation = componentValues->relative_quaternion;
 	}
 
 	return true;
@@ -120,7 +111,7 @@ void TransformComponentDefinition::sendTransformPropertyChangeNotification()
 {
 	notifyPropertyChanged(ConfigPropertyChangeSet()
 		.addPropertyName(k_relativeScalePropertyId)
-		.addPropertyName(k_relativeRotationPropertyId)
+		.addPropertyName(k_relativeQuaternionPropertyId)
 		.addPropertyName(k_relativePositionPropertyId));
 }
 
@@ -133,7 +124,7 @@ void TransformComponentDefinition::sendScalePropertyChangeNotification()
 void TransformComponentDefinition::sendRotationPropertyChangeNotification()
 {
 	notifyPropertyChanged(ConfigPropertyChangeSet()
-		.addPropertyName(k_relativeRotationPropertyId));
+		.addPropertyName(k_relativeQuaternionPropertyId));
 }
 
 void TransformComponentDefinition::sendPositionPropertyChangeNotification()
@@ -544,6 +535,7 @@ void TransformComponent::visitAllTransformComponentsConst(TransformComponentCons
 }
 
 // -- IPropertyInterface ----
+const std::string TransformComponent::k_relativeRotationPropertyId = "relative_rotation";
 void TransformComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	MikanComponent::getPropertyDescriptors(outDescriptors);
@@ -559,12 +551,18 @@ void TransformComponent::getPropertyDescriptors(std::vector<PropertyDescriptorCo
 			->setDefaultValue(MikanVector3f(1.f)));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			TransformComponentDefinition::k_relativeRotationPropertyId, MikanVariantType::VECTOR3F)
-			->setDefaultValue(MikanVector3f(0.f)));
+			TransformComponentDefinition::k_relativeQuaternionPropertyId, MikanVariantType::QUATERNIONF)
+			->setDefaultValue(MikanQuatf(1.f, 0.f, 0.f, 0.f))
+			->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			TransformComponentDefinition::k_relativePositionPropertyId, MikanVariantType::VECTOR3F)
 			->setDefaultValue(MikanVector3f(0.f)));
+	// Virtual Property for Euler angles (not actually stored, but get/set translates to relativeQuaternion)
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			TransformComponent::k_relativeRotationPropertyId, MikanVariantType::VECTOR3F)
+		->setDefaultValue(MikanVector3f(0.f)));
 }
 
 bool TransformComponent::getPropertyValue(
@@ -583,7 +581,20 @@ bool TransformComponent::getPropertyValue(
 		outValue = glm_vec3_to_MikanVector3f(scale);
 		return true;
 	}
-	else if (propertyName == TransformComponentDefinition::k_relativeRotationPropertyId)
+	else if (propertyName == TransformComponentDefinition::k_relativeQuaternionPropertyId)
+	{
+		const glm::quat& quat = getRelativeRotation();
+		outValue = glm_quat_to_MikanQuatf(quat);
+		return true;
+	}
+	else if (propertyName == TransformComponentDefinition::k_relativePositionPropertyId)
+	{
+		const glm::vec3& pos = getRelativePosition();
+		outValue = glm_vec3_to_MikanVector3f(pos);
+		return true;
+	}
+	// Virtual Property for Euler angles (not actually stored, but get/set translates to relativeQuaternion)
+	else if (propertyName == TransformComponent::k_relativeRotationPropertyId)
 	{
 		const glm::quat& model_orientation = getRelativeRotation();
 
@@ -594,12 +605,6 @@ bool TransformComponent::getPropertyValue(
 		angles[2] *= k_radians_to_degrees;
 
 		outValue = MikanVector3f(angles[0], angles[1], angles[2]);
-		return true;
-	}
-	else if (propertyName == TransformComponentDefinition::k_relativePositionPropertyId)
-	{
-		const glm::vec3& pos = getRelativePosition();
-		outValue = glm_vec3_to_MikanVector3f(pos);
 		return true;
 	}
 
@@ -617,7 +622,14 @@ bool TransformComponent::setPropertyValue(
 		setRelativeScale(glm::vec3(scale.x, scale.y, scale.z));
 		return true;
 	}
-	else if (propertyName == TransformComponentDefinition::k_relativeRotationPropertyId)
+	else if (propertyName == TransformComponentDefinition::k_relativeQuaternionPropertyId)
+	{
+		glm::quat quat = MikanQuatf_to_glm_quat(inValue.getQuaternionfValue());
+
+		setRelativeRotation(quat);
+		return true;
+	}
+	else if (propertyName == TransformComponent::k_relativeRotationPropertyId)
 	{
 		MikanVector3f angles = inValue.getVector3fValue();
 
@@ -665,6 +677,13 @@ void TransformComponent::bindLuaFunctions(struct lua_State* L)
 				},
 				[](TransformComponent* component, const LuaVec3f& rotator) {
 					component->setRelativeRotation(MikanRotator3f_to_glm_quat(rotator.toMikanRotator3f()));
+				})
+			.addProperty("relativeQuaternion",
+				[](TransformComponent* component) -> LuaQuatf {
+					return LuaQuatf(component->getRelativeRotation());
+				},
+				[](TransformComponent* component, const LuaQuatf& quat) {
+					component->setRelativeRotation(quat.toGlmQuat());
 				})
 			.addProperty("relativeScale",
 				[](TransformComponent* component) -> LuaVec3f {

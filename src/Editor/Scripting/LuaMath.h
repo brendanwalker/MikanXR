@@ -3,6 +3,7 @@
 #include "MikanMathTypes.h"
 #include <string>
 #include "glm/ext/vector_float3.hpp"
+#include "glm/gtc/quaternion.hpp"
 
 //-- predeclarations -----
 struct lua_State;
@@ -30,6 +31,27 @@ public:
 	static LuaVec3f cross(const LuaVec3f& a, const LuaVec3f& b);
 	float length() const;
 	LuaVec3f normalize();
+	std::string toString() const;
+
+	static void bindFunctions(lua_State* L);
+};
+
+class LuaQuatf : public MikanQuatf
+{
+public:
+	LuaQuatf();
+	LuaQuatf(float _w, float _x, float _y, float _z);
+	LuaQuatf(const glm::quat& q);
+	LuaQuatf(const MikanQuatf& q);
+
+	MikanQuatf toMikanQuatf() const;
+	glm::quat toGlmQuat() const;
+
+	LuaQuatf operator * (const LuaQuatf& q) const;
+	LuaVec3f rotateVec3f(const LuaVec3f& v) const;
+	LuaQuatf inverse() const;
+	float length() const;
+	LuaQuatf normalize() const;
 	std::string toString() const;
 
 	static void bindFunctions(lua_State* L);
