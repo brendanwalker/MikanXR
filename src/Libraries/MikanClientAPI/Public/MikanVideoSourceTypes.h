@@ -181,7 +181,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 
 	const MikanMonoIntrinsics& getMonoIntrinsics() const
 	{
-		assert(intrinsics_type == MikanIntrinsicsType::MONO_CAMERA_INTRINSICS);
 		auto* monoIntrinsicsPtr = intrinsics_ptr.getTypedPointer<MikanMonoIntrinsics>();
 
 		return *monoIntrinsicsPtr;
@@ -194,7 +193,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 
 	const MikanStereoIntrinsics& getStereoIntrinsics() const
 	{
-		assert(intrinsics_type == MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS);
 		auto stereoIntrinsicsPtr = intrinsics_ptr.getTypedPointer<MikanStereoIntrinsics>();
 
 		return *stereoIntrinsicsPtr;
