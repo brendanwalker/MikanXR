@@ -54,16 +54,18 @@ namespace Serialization NAMESPACE()
 		template <typename t_derived_class>
 		const t_derived_class* getTypedPointer() const
 		{
+#ifdef SERIALIZATION_REFLECTION_ENABLED
 			// If reflection is enabled, 
 			// check if the stored object is compatible with the requested type before returning the pointer
-#ifdef SERIALIZATION_REFLECTION_ENABLED
 			if (isTypeCompatibleWith(t_derived_class::staticGetArchetype()))
-#endif
 			{
 				return reinterpret_cast<const t_derived_class*>(getRawPtr());
 			}
 
 			return nullptr;
+#else
+			return reinterpret_cast<const t_derived_class*>(getRawPtr());
+#endif
 		}
 
 		template <typename t_derived_class>
