@@ -37,7 +37,7 @@ namespace MikanXR
 
 	public class MikanShapeComponentValues : MikanTransformComponentValues
 	{
-		public bool is_disabled;
+		public string shape_graph_path;
 	};
 
 }

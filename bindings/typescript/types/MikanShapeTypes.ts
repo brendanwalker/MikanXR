@@ -23,10 +23,10 @@ export class MikanModelShapeSystemValues extends MikanSystemValues {
 }
 
 export class MikanShapeComponentValues extends MikanTransformComponentValues {
-  is_disabled: boolean = false;
+  shape_graph_path: string = '';
 
   static __serializationMetadata: SerializationField[] = [
-    { name: 'is_disabled', type: 'boolean' }
+    { name: 'shape_graph_path', type: 'string' }
   ];
 }
 

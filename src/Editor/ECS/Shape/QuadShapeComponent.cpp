@@ -24,7 +24,7 @@
 // -- QuadShapeDefinition ------
 const std::string QuadShapeDefinition::k_quadWidthPropertyId = "quad_width";
 const std::string QuadShapeDefinition::k_quadHeightPropertyId = "quad_height";
-const std::string QuadShapeDefinition::k_quadDoubleSidedPropertyId = "quad_double_sided";
+const std::string QuadShapeDefinition::k_quadDoubleSidedPropertyId = "is_double_sided";
 
 QuadShapeDefinition::QuadShapeDefinition()
 	: ShapeComponentDefinition()

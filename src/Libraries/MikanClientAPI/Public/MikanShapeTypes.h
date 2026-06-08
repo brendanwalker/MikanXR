@@ -46,7 +46,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanShapeTypes")) MikanSh
 	public MikanTransformComponentValues
 {
 	FIELD()
-	bool is_disabled = false;
+	Serialization::String shape_graph_path;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanShapeComponentValues_GENERATED
