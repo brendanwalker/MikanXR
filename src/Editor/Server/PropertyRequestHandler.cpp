@@ -307,11 +307,15 @@ void PropertyRequestHandler::getComponentValuesHandler(const ClientRequest& requ
 	getValuesResponse.componentClassName = componentPtr->getComponentClassName();
 
 	// Extract the values into the response polymorphic object
+	std::string serializeError;
 	if (!Serialization::serializeFromEntity(
 			std::static_pointer_cast<IEntityAccessor>(componentPtr),
 			getValuesResponse.valuesObject.allocateByType(valuesStruct),
-			*valuesStruct))
+			*valuesStruct,
+			serializeError))
 	{
+		MIKAN_LOG_ERROR("PropertyRequestHandler::getComponentValuesHandler") << 
+			"Failed to serialize component values: " << serializeError;
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 		return;
 	}
@@ -377,11 +381,15 @@ void PropertyRequestHandler::getSystemValuesHandler(const ClientRequest& request
 	getValuesResponse.ownerSystem = systemValuesRequest.ownerSystem;
 
 	// Extract the values into the response polymorphic object
+	std::string serializeError;
 	if (!Serialization::serializeFromEntity(
 			std::static_pointer_cast<IEntityAccessor>(objectSystem),
 			getValuesResponse.valuesObject.allocateByType(valuesStruct),
-			*valuesStruct))
+			*valuesStruct,
+			serializeError))
 	{
+		MIKAN_LOG_ERROR("PropertyRequestHandler::getSystemValuesHandler") <<
+			"Failed to serialize system values: " << serializeError;
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 		return;
 	}

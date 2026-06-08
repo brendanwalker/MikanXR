@@ -235,11 +235,13 @@ bool serialization_utility_test_reflection_from_json()
 		build_serialization_test_struct(expected);
 
 		std::string jsonString;
-		bool bCanSerialize= Serialization::serializeToJsonString(expected, jsonString);
+		std::string serializeError;
+		bool bCanSerialize= Serialization::serializeToJsonString(expected, jsonString, serializeError);
 		assert(bCanSerialize);
 
 		SerializationTestStruct actual= {};
-		bool bCanDeserialize = Serialization::deserializeFromJsonString(jsonString, actual);
+		std::string deserializeError;
+		bool bCanDeserialize = Serialization::deserializeFromJsonString(jsonString, actual, deserializeError);
 
 		verify_serialization_test_struct(actual, expected);
 
@@ -253,11 +255,15 @@ bool serialization_utility_test_reflection_from_bytes()
 		build_serialization_test_struct(expected);
 
 		std::vector<uint8_t> bytes;
-		bool bCanSerialize= Serialization::serializeToBytes(expected, bytes);
+		std::string serializeError;
+		bool bCanSerialize= Serialization::serializeToBytes(expected, bytes, serializeError);
 		assert(bCanSerialize);
 
+		std::string parseError;
 		SerializationTestStruct actual= {};
-		bool bCanDeserialize = Serialization::deserializeFromBytes(bytes, actual);
+		bool bCanDeserialize = Serialization::deserializeFromBytes(bytes, actual, parseError);
+		assert(bCanDeserialize);
+		assert(parseError.empty());
 
 		verify_serialization_test_struct(actual, expected);
 	UNIT_TEST_COMPLETE()
@@ -272,11 +278,15 @@ bool serialization_utility_test_remote_control()
 		expected.parameters.push_back("param2");
 
 		std::string jsonString;
-		bool bCanSerialize= Serialization::serializeToJsonString(expected, jsonString);
+		std::string serializeError;
+		bool bCanSerialize= Serialization::serializeToJsonString(expected, jsonString, serializeError);
 		assert(bCanSerialize);
 
 		MikanRemoteControlCommand actual= {};
-		bool bCanDeserialize = Serialization::deserializeFromJsonString(jsonString, actual);
+		std::string deserializeError;
+		bool bCanDeserialize = Serialization::deserializeFromJsonString(jsonString, actual, deserializeError);
+		assert(bCanDeserialize);
+		assert(deserializeError.empty());
 
 		assert(actual.command == expected.command);
 

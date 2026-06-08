@@ -55,10 +55,11 @@ namespace Serialization
 				}
 				else
 				{
-					throw std::runtime_error(
+					setError(
 						stringify("BinaryWriteVisitor::visitClass() ",
 								  "Class Field ", accessor.getName(),
 								  " was of expected type"));
+					return;
 
 				}
 			}
@@ -96,10 +97,11 @@ namespace Serialization
 				objectStruct = TypeRegistry::getStructByName(className);
 				if (objectStruct == nullptr)
 				{
-					throw std::runtime_error(
+					setError(
 						stringify("BinaryWriteVisitor::visitObjectPtr() ",
 							"TypedObjectPtr Accessor ", accessor.getName(),
 							" has an unknown class name ", className));
+					return;
 				}
 			}
 
@@ -119,8 +121,7 @@ namespace Serialization
 			// Serialize the object
 			if (isValidObject)
 			{
-				BinaryWriteVisitor elementVisitor(m_binaryWriter);
-				Serialization::visitStruct(objectInstance, *objectStruct, &elementVisitor);
+				Serialization::visitStruct(objectInstance, *objectStruct, this);
 			}
 		}
 
@@ -210,10 +211,11 @@ namespace Serialization
 			{
 				rfk::Archetype const* keyArchetype = keyType.getArchetype();
 
-				throw std::runtime_error(
+				setError(
 					stringify("BinaryWriteVisitor::visitMap() ",
 							  "Map Key Archetype ", keyArchetype != nullptr ? keyArchetype->getName() : "<Null Archetype>",
 							  " is not supported"));
+				return;
 			}
 		}
 
@@ -285,20 +287,22 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					stringify("BinaryWriteVisitor::visitEnum() ",
 							  "Enum Accessor ", accessor.getName(),
 							  " has an invalid memory size ", enumArchetype.getMemorySize()));
+				return;
 			}
 
 
 			rfk::EnumValue const* enumValue = enumType.getEnumValue(enumIntValue);
 			if (enumValue == nullptr)
 			{
-				throw std::runtime_error(
+				setError(
 					stringify("BinaryWriteVisitor::visitEnum() ",
 							  "Enum Accessor ", accessor.getName(),
 							  " has an invalid int value ", enumIntValue));
+				return;
 			}
 
 
@@ -367,20 +371,19 @@ namespace Serialization
 	};
 
 	// Public API
-	bool serializeToBytes(const void* instance, rfk::Struct const& structType, std::vector<uint8_t>& outBytes)
+	bool serializeToBytes(const void* instance, rfk::Struct const& structType, std::vector<uint8_t>& outBytes, std::string& outErrorMsg)
 	{
-		try
-		{
-			BinaryWriter writer(outBytes);
-			BinaryWriteVisitor visitor(writer);
-			Serialization::visitStruct(const_cast<void*>(instance), structType, &visitor);
+		BinaryWriter writer(outBytes);
+		BinaryWriteVisitor visitor(writer);
+		Serialization::visitStruct(const_cast<void*>(instance), structType, &visitor);
 
-			return true;
-		}
-		catch (std::runtime_error* e)
+		if (visitor.hasError())
 		{
+			outErrorMsg = visitor.getError();
 			return false;
 		}
+
+		return true;
 	}
 };
 

@@ -201,8 +201,16 @@ void RemoteControlManager::publishAppStageChangedEvent(
 	appStageChangedEvent.new_app_state_name.setValue(newAppStageName);
 
 	std::string jsonStr;
-	Serialization::serializeToJsonString(appStageChangedEvent, jsonStr);
-	m_owner->publishMikanJsonEvent(jsonStr);
+	std::string errorMsg;
+	if (Serialization::serializeToJsonString(appStageChangedEvent, jsonStr, errorMsg))
+	{
+		m_owner->publishMikanJsonEvent(jsonStr);
+	}
+	else
+	{
+		MIKAN_LOG_ERROR("RemoteControlManager::publishAppStageChangedEvent") <<
+			"Failed to serialize app stage changed event: " << errorMsg;
+	}
 }
 
 void RemoteControlManager::sendRemoteControlEvent(
@@ -224,6 +232,14 @@ void RemoteControlManager::sendRemoteControlEvent(
 	}
 
 	std::string jsonStr;
-	Serialization::serializeToJsonString(remoteControlEvent, jsonStr);
-	m_owner->publishMikanJsonEvent(jsonStr);
+	std::string errorMsg;
+	if (Serialization::serializeToJsonString(remoteControlEvent, jsonStr, errorMsg))
+	{
+		m_owner->publishMikanJsonEvent(jsonStr);
+	}
+	else
+	{
+		MIKAN_LOG_ERROR("RemoteControlManager::sendRemoteControlEvent") <<
+			"Failed to serialize remote control event: " << errorMsg;
+	}
 }

@@ -57,11 +57,11 @@ namespace Serialization
 				}
 				else
 				{
-					throw std::runtime_error(
+					setError(
 						stringify("JsonWriteVisitor::visitClass() ",
 								  "Class Field ", accessor.getName(),
 								  " was of expected type"));
-
+					return;
 				}
 			}
 			else
@@ -93,10 +93,11 @@ namespace Serialization
 				objectStruct = TypeRegistry::getStructByName(className);
 				if (objectStruct == nullptr)
 				{
-					throw std::runtime_error(
+					setError(
 						stringify("JsonWriteVisitor::visitObjectPtr() ",
 							"TypedObjectPtr Accessor ", accessor.getName(),
 							" has an unknown class name ", className));
+					return;
 				}
 			}
 
@@ -116,6 +117,11 @@ namespace Serialization
 			{
 				JsonWriteVisitor elementVisitor(objectJson);
 				Serialization::visitStruct(objectInstance, *objectStruct, &elementVisitor);
+				if (elementVisitor.hasError())
+				{
+					setError(elementVisitor.getError());
+					return;
+				}
 			}
 
 			// Add the child serialized object
@@ -179,6 +185,11 @@ namespace Serialization
 				json elementJson;
 				JsonWriteVisitor elementVisitor(elementJson);
 				Serialization::visitValue(elementAccessor, &elementVisitor);
+				if (elementVisitor.hasError())
+				{
+					setError(elementVisitor.getError());
+					return;
+				}
 
 				// Add the json element to the json array
 				arrayJson.push_back(elementJson);
@@ -211,10 +222,11 @@ namespace Serialization
 			{
 				rfk::Archetype const* keyArchetype = keyType.getArchetype();
 
-				throw std::runtime_error(
+				setError(
 					stringify("JsonWriteVisitor::visitMap() ",
 							  "Map Key Archetype ", keyArchetype != nullptr ? keyArchetype->getName() : "<Null Archetype>",
 							  " is not supported"));
+				return;
 			}
 		}
 
@@ -255,6 +267,11 @@ namespace Serialization
 				ValueAccessor valueAccessor(rawValue, valueType);
 				JsonWriteVisitor valueVisitor(valueJson);
 				Serialization::visitValue(valueAccessor, &valueVisitor);
+				if (valueVisitor.hasError())
+				{
+					setError(valueVisitor.getError());
+					return;
+				}
 				pairJson["value"]= valueJson;
 
 				// Add the key-value json object to the json array
@@ -277,6 +294,11 @@ namespace Serialization
 				json childJsonObject;
 				JsonWriteVisitor jsonVisitor(childJsonObject);
 				Serialization::visitStruct(childObjectInstance, *structType, &jsonVisitor);
+				if (jsonVisitor.hasError())
+				{
+					setError(jsonVisitor.getError());
+					return;
+				}
 
 				m_jsonObject[fieldName] = childJsonObject;
 			}
@@ -312,20 +334,22 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					stringify("JsonWriteVisitor::visitEnum() ",
 							  "Enum Accessor ", accessor.getName(),
 							  " has an invalid memory size ", enumArchetype.getMemorySize()));
+				return;
 			}
 
 
 			rfk::EnumValue const* enumValue = enumType.getEnumValue(enumIntValue);
 			if (enumValue == nullptr)
 			{
-				throw std::runtime_error(
+				setError(
 					stringify("JsonWriteVisitor::visitEnum() ",
 							  "Enum Accessor ", accessor.getName(),
 							  " has an invalid int value ", enumIntValue));
+				return;
 			}
 
 			std::string enumValueString= Serialization::getEnumStringValue(*enumValue);
@@ -384,10 +408,11 @@ namespace Serialization
 
 		virtual void visitULong(ValueAccessor const& accessor)
 		{
-			throw std::runtime_error(
+			setError(
 				stringify("JsonWriteVisitor::visitULong() ",
 						  "ULong Accessor ", accessor.getName(),
 						  " type not supported by all JSON libraries"));
+			return;
 		}
 
 		virtual void visitFloat(ValueAccessor const& accessor) override
@@ -442,39 +467,31 @@ namespace Serialization
 	};
 
 	// Public API
-	bool serializeToJsonString(const void* instance, rfk::Struct const& structType, std::string& jsonString)
+	bool serializeToJsonString(const void* instance, rfk::Struct const& structType, std::string& jsonString, std::string& outErrorMsg)
 	{
-		try
+		json jsonObject;
+
+		if (serializeToJson(instance, structType, jsonObject, outErrorMsg))
 		{
-			json jsonObject;
-
-			if (serializeToJson(instance, structType, jsonObject))
-			{
-				jsonString = jsonObject.dump();
-				return true;
-			}
-
-			return false;
-		}
-		catch (json::parse_error* e)
-		{
-			return false;
-		}
-	}
-
-	bool serializeToJson(const void* instance, rfk::Struct const& structType, nlohmann::json& jsonObject)
-	{
-		try
-		{
-			JsonWriteVisitor visitor(jsonObject);
-			Serialization::visitStruct(const_cast<void *>(instance), structType, &visitor);
-
+			jsonString = jsonObject.dump();
 			return true;
 		}
-		catch (std::runtime_error* e)
+
+		return false;
+	}
+
+	bool serializeToJson(const void* instance, rfk::Struct const& structType, nlohmann::json& jsonObject, std::string& outErrorMsg)
+	{
+		JsonWriteVisitor visitor(jsonObject);
+		Serialization::visitStruct(const_cast<void *>(instance), structType, &visitor);
+
+		if (visitor.hasError())
 		{
+			outErrorMsg = visitor.getError();
 			return false;
 		}
+
+		return true;
 	}
 };
 

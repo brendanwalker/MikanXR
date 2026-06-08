@@ -4,6 +4,7 @@
 #include <Refureku/Refureku.h>
 
 #include <algorithm>
+#include <string>
 
 namespace Serialization
 {
@@ -63,6 +64,29 @@ namespace Serialization
 			name(other.name)
 		{}
 	};
+
+	struct VisitorData
+	{
+		bool hasError = false;
+		std::string errorMessage;
+	};
+
+	IVisitor::IVisitor() : m_pimpl(new VisitorData()) {}
+	IVisitor::~IVisitor() { delete m_pimpl; }
+
+	bool IVisitor::hasError() const { return m_pimpl->hasError; }
+	const std::string& IVisitor::getError() const { return m_pimpl->errorMessage; }
+	void IVisitor::setError(const std::string& msg)
+	{
+		if (!m_pimpl->hasError)
+		{
+			m_pimpl->hasError = true;
+			m_pimpl->errorMessage = msg;
+#ifdef _DEBUG
+			__debugbreak();
+#endif
+		}
+	}
 
 	ValueAccessor::ValueAccessor(const void* instance, rfk::Field const& field) :
 		m_pimpl(new AccessorData(instance, field))
@@ -215,6 +239,7 @@ namespace Serialization
 		for (rfk::Field const* field : fields)
 		{
 			Serialization::visitField(instance, *field, visitor);
+			if (visitor->hasError()) break;
 		};
 	}
 
@@ -226,6 +251,7 @@ namespace Serialization
 		for (rfk::Field const* field : fields)
 		{
 			Serialization::visitField(instance, *field, visitor);
+			if (visitor->hasError()) break;
 		};
 	}
 
@@ -234,11 +260,13 @@ namespace Serialization
 		// Error if this field is non-public or is static
 		if (field.getAccess() != rfk::EAccessSpecifier::Public)
 		{
-			throw std::runtime_error(stringify("Field ", field.getName(), " was not public"));
+			visitor->setError(stringify("Field ", field.getName(), " was not public"));
+			return;
 		}
 		if (field.isStatic())
 		{
-			throw std::runtime_error(stringify("Field ", field.getName(), " is static"));
+			visitor->setError(stringify("Field ", field.getName(), " is static"));
+			return;
 		}
 
 		visitValue(ValueAccessor(instance, field), visitor);
@@ -249,18 +277,22 @@ namespace Serialization
 		// Error if this field is non-public or is static
 		if (field.getAccess() != rfk::EAccessSpecifier::Public)
 		{
-			throw std::runtime_error(stringify("Field ", field.getName(), " was not public"));
+			visitor->setError(stringify("Field ", field.getName(), " was not public"));
+			return;
 		}
 		if (field.isStatic())
 		{
-			throw std::runtime_error(stringify("Field ", field.getName(), " is static"));
+			visitor->setError(stringify("Field ", field.getName(), " is static"));
+			return;
 		}
-		
+
 		visitValue(ValueAccessor(instance, field), visitor);
 	}
 
 	void visitValue(ValueAccessor const& accessor, IVisitor* visitor)
 	{
+		if (visitor->hasError()) return;
+
 		rfk::Type const& fieldType = accessor.getType();
 		rfk::Archetype const* fieldArchetype = fieldType.getArchetype();
 		rfk::EEntityKind fieldArchetypeKind = fieldArchetype ? fieldArchetype->getKind() : rfk::EEntityKind::Undefined;
@@ -277,7 +309,7 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(stringify("Accessor ", accessor.getName(), " was not an class type"));
+				visitor->setError(stringify("Accessor ", accessor.getName(), " was not an class type"));
 			}
 		}
 		else if (fieldArchetypeKind == rfk::EEntityKind::Struct)
@@ -290,7 +322,7 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(stringify("Accessor ", accessor.getName(), " was not a struct type"));
+				visitor->setError(stringify("Accessor ", accessor.getName(), " was not a struct type"));
 			}
 		}
 		else if (fieldArchetypeKind == rfk::EEntityKind::Enum)
@@ -303,7 +335,7 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(stringify("Accessor ", accessor.getName(), " was not an enum type"));
+				visitor->setError(stringify("Accessor ", accessor.getName(), " was not an enum type"));
 			}
 		}
 		else if (fieldArchetypeKind == rfk::EEntityKind::FundamentalArchetype)
@@ -354,12 +386,12 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(stringify("Accessor ", accessor.getName(), " has unsupported type"));
+				visitor->setError(stringify("Accessor ", accessor.getName(), " has unsupported type"));
 			}
 		}
 		else
 		{
-			throw std::runtime_error(stringify("Unsupported archetype kind ", (int)fieldArchetypeKind));
+			visitor->setError(stringify("Unsupported archetype kind ", (int)fieldArchetypeKind));
 		}
 	}
 }

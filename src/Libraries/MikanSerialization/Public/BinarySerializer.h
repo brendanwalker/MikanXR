@@ -8,15 +8,16 @@
 namespace Serialization
 {
 	SERIALIZATION_API bool serializeToBytes(
-		const void* instance, 
-		rfk::Struct const& structType, 
-		std::vector<uint8_t>& outBytes);
+		const void* instance,
+		rfk::Struct const& structType,
+		std::vector<uint8_t>& outBytes,
+		std::string& outErrorMsg);
 
 #ifdef SERIALIZATION_REFLECTION_ENABLED
 	template<typename t_object_type>
-	bool serializeToBytes(const t_object_type& instance, std::vector<uint8_t>& outBytes)
+	bool serializeToBytes(const t_object_type& instance, std::vector<uint8_t>& outBytes, std::string& outErrorMsg)
 	{
-		return serializeToBytes(&instance, t_object_type::staticGetArchetype(), outBytes);
+		return serializeToBytes(&instance, t_object_type::staticGetArchetype(), outBytes, outErrorMsg);
 	}
 #endif // SERIALIZATION_REFLECTION_ENABLED
 };

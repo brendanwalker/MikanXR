@@ -58,10 +58,11 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					stringify("BinaryReadVisitor::visitClass() ",
 								"Class Field ", accessor.getName(),
 								" was not of expected type IEnumerable to deserialize json array value"));
+				return;
 			}
 		}
 
@@ -90,10 +91,12 @@ namespace Serialization
 				objectStruct = TypeRegistry::getStructByName(objectClassName);
 				if (objectStruct == nullptr)
 				{
-					throw std::runtime_error(
+					setError(
 						stringify("BinaryReadVisitor::visitObjectPtr() ",
 							"TypedObjectPtr Accessor ", accessor.getName(),
 							" used an unknown class_name ", objectClassName));
+					return;
+					return;
 				}
 			}
 
@@ -112,9 +115,8 @@ namespace Serialization
 					allocateMethod->invokeUnsafe<void*, const std::string&>(
 						objPtrInstance, objectClassName);
 
-				// Deserialize the object from the json
-				BinaryReadVisitor objectVisitor(m_binaryReader);
-				Serialization::visitStruct(objectInstance, *objectStruct, &objectVisitor);
+				// Deserialize the object from the binary stream
+				Serialization::visitStruct(objectInstance, *objectStruct, this);
 			}
 		}
 
@@ -173,8 +175,7 @@ namespace Serialization
 				ValueAccessor elementAccessor(elementInstance, elementType);
 
 				// Deserialize the element
-				BinaryReadVisitor elementVisitor(m_binaryReader);
-				Serialization::visitValue(elementAccessor, &elementVisitor);
+				Serialization::visitValue(elementAccessor, this);
 			}
 		}
 
@@ -200,10 +201,11 @@ namespace Serialization
 			{
 				rfk::Archetype const* keyArchetype = keyType.getArchetype();
 
-				throw std::runtime_error(
+				setError(
 					stringify("BinaryReadVisitor::visitMap() ",
 							  "Map Key Archetype ", keyArchetype != nullptr ? keyArchetype->getName() : "<Null Archetype>",
 							  " is not supported"));
+				return;
 			}
 		}
 
@@ -246,8 +248,7 @@ namespace Serialization
 				ValueAccessor valueAccessor(valueInstance, valueType);
 
 				// Deserialize the value
-				BinaryReadVisitor valueVisitor(m_binaryReader);
-				Serialization::visitValue(valueAccessor, &valueVisitor);
+				Serialization::visitValue(valueAccessor, this);
 			}
 		}
 
@@ -258,6 +259,11 @@ namespace Serialization
 			BinaryReadVisitor jsonVisitor(m_binaryReader);
 
 			Serialization::visitStruct(childObjectInstance, *structType, &jsonVisitor);
+			if (jsonVisitor.hasError())
+			{
+				setError(jsonVisitor.getError());
+				return;
+			}
 		}
 
 		virtual void visitEnum(ValueAccessor const& accessor) override
@@ -271,10 +277,12 @@ namespace Serialization
 			enumValue = Serialization::findEnumValueByString(enumType, enumStringValue.c_str());
 			if (enumValue == nullptr)
 			{
-				throw std::runtime_error(
+				setError(
 					stringify("BinaryReadVisitor::visitEnum() ",
 								"Enum Accessor ", accessor.getName(),
 								" has an invalid value ", enumStringValue));
+				return;
+				return;
 			}
 
 			void* enumInstance = accessor.getInstanceMutable();
@@ -362,29 +370,30 @@ namespace Serialization
 	bool deserializeFromBytes(
 		const std::vector<uint8_t>& inBytes,
 		void* instance,
-		rfk::Struct const& structType)
+		rfk::Struct const& structType,
+		std::string& outErrorMesg)
 	{
-		return deserializeFromBytes(inBytes.data(), inBytes.size(), instance, structType);
+		return deserializeFromBytes(inBytes.data(), inBytes.size(), instance, structType, outErrorMesg);
 	}
 
 	bool deserializeFromBytes(
 		const uint8_t* inBytes,
 		const size_t inSize,
 		void* instance,
-		rfk::Struct const& structType)
+		rfk::Struct const& structType,
+		std::string& outErrorMesg)
 	{
-		try
-		{
-			BinaryReader reader(inBytes, inSize);
-			BinaryReadVisitor visitor(reader);
-			Serialization::visitStruct(instance, structType, &visitor);
+		BinaryReader reader(inBytes, inSize);
+		BinaryReadVisitor visitor(reader);
+		Serialization::visitStruct(instance, structType, &visitor);
 
-			return true;
-		}
-		catch (std::runtime_error* e)
+		if (visitor.hasError())
 		{
+			outErrorMesg = visitor.getError();
 			return false;
 		}
+
+		return true;
 	}
 };
 

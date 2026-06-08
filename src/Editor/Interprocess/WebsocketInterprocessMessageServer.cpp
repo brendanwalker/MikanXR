@@ -476,7 +476,14 @@ void WebsocketInterprocessMessageServer::processRequests()
 				outResult.requestId= requestId;
 				outResult.resultCode= MikanAPIResult::UnknownFunction;
 
-				Serialization::serializeToJsonString(outResult, outResponse.utf8String);
+				std::string errorMsg;
+				if (!Serialization::serializeToJsonString(outResult, outResponse.utf8String, errorMsg))
+				{
+					MIKAN_LOG_WARNING("processRequests") <<
+						"Failed to serialize response for unknown request type: " << requestTypeName
+						<< ", error: " << errorMsg;
+					continue;
+				}
 			}
 
 			// Send the response back to the client

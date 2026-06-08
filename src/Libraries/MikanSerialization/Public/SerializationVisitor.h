@@ -123,6 +123,13 @@ namespace Serialization
 	class SERIALIZATION_API IVisitor
 	{
 	public:
+		IVisitor();
+		virtual ~IVisitor();
+
+		bool hasError() const;
+		const std::string& getError() const;
+		void setError(const std::string& msg);
+
 		virtual void visitClass(ValueAccessor const& accessor) { }
 		virtual void visitStruct(ValueAccessor const& accessor) { }
 		virtual void visitEnum(ValueAccessor const& accessor) { }
@@ -137,6 +144,9 @@ namespace Serialization
 		virtual void visitULong(ValueAccessor const& accessor) { }
 		virtual void visitFloat(ValueAccessor const& accessor) { }
 		virtual void visitDouble(ValueAccessor const& accessor) { }
+
+	private:
+		struct VisitorData* m_pimpl;
 	};
 
 	template <typename t_struct_type>

@@ -59,8 +59,9 @@ namespace Serialization
 					}
 					else
 					{
-						throw std::runtime_error(
+						setError(
 							"EntityAccessorReadVisitor::visitClass() List with unsupported element type");
+						return;
 					}
 				}
 				// See if the field is a Serialization::Map<K,V>
@@ -71,9 +72,10 @@ namespace Serialization
 				}
 				else
 				{
-					throw std::runtime_error(
+					setError(
 						StringUtils::stringify("EntityAccessorReadVisitor::visitClass() ",
 							"Template Class Type ", templateTypeName, " is not supported"));
+					return;
 				}
 			}
 			else if (fieldType == rfk::getType<PolymorphicObjectPtr>())
@@ -104,9 +106,10 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitObjectPtr() ",
 						"Missing valid PolymorphicObjectPtr for", accessor.getName()));
+				return;
 			}
 		}
 
@@ -123,9 +126,10 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitBoolList() ",
 						"Missing valid BoolList for", arrayAccessor.getName()));
+				return;
 			}
 		}
 
@@ -145,9 +149,10 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitUByteList() ",
 						"Missing valid UByteList for", arrayAccessor.getName()));
+				return;
 			}
 		}
 
@@ -167,9 +172,10 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitIntList() ",
 						"Missing valid IntList for", arrayAccessor.getName()));
+				return;
 			}
 		}
 
@@ -189,9 +195,10 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitFloatList() ",
 						"Missing valid FloatList for", arrayAccessor.getName()));
+				return;
 			}
 		}
 
@@ -211,9 +218,10 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitStringList() ",
 						"Missing valid StringList for", arrayAccessor.getName()));
+				return;
 			}
 		}
 
@@ -241,11 +249,12 @@ namespace Serialization
 				rfk::Archetype const* keyArchetype = keyType.getArchetype();
 				rfk::Archetype const* valueArchetype = valueType.getArchetype();
 
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitMap() ",
 						"Map Key Archetype ", keyArchetype != nullptr ? keyArchetype->getName() : "<Null Archetype>",
 						" Value Archetype ", valueArchetype != nullptr ? valueArchetype->getName() : "<Null Archetype>",
 						" is not supported"));
+				return;
 			}
 		}
 
@@ -269,9 +278,10 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitStringMap() ",
 						"Missing valid StringMap for", mapAccessor.getName()));
+				return;
 			}
 		}
 
@@ -287,9 +297,10 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitString() ",
 						"Missing valid String for", accessor.getName()));
+				return;
 			}
 		}
 
@@ -335,10 +346,11 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitStruct() ",
 						"Struct Accessor ", accessor.getName(),
 						" was not a recognized struct type"));
+				return;
 			}
 		}
 
@@ -354,10 +366,11 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitVector2f() ",
 						"Vector2f Accessor ", accessor.getName(),
 						" was not a Vector2f value"));
+				return;
 			}
 		}
 
@@ -372,10 +385,11 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitVector3f() ",
 						"Vector3f Accessor ", accessor.getName(),
 						" was not a Vector3f value"));
+				return;
 			}
 		}
 
@@ -390,10 +404,11 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitVector4f() ",
 						"Vector4f Accessor ", accessor.getName(),
 						" was not a Vector4f value"));
+				return;
 			}
 		}
 
@@ -408,10 +423,11 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitQuaternionf() ",
 						"Quaternionf Accessor ", accessor.getName(),
 						" was not a Quaternionf value"));
+				return;
 			}
 		}
 
@@ -426,10 +442,11 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitMatrix4f() ",
 						"Matrix4f Accessor ", accessor.getName(),
 						" was not a Matrix4f value"));
+				return;
 			}
 		}
 
@@ -444,10 +461,11 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitVector2d() ",
 						"Vector2d Accessor ", accessor.getName(),
 						" was not a Vector2d value"));
+				return;
 			}
 		}
 
@@ -462,10 +480,11 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitVector3d() ",
 						"Vector3d Accessor ", accessor.getName(),
 						" was not a Vector3d value"));
+				return;
 			}
 		}
 
@@ -480,10 +499,11 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitVector4d() ",
 						"Vector4d Accessor ", accessor.getName(),
 						" was not a Vector4d value"));
+				return;
 			}
 		}
 
@@ -498,10 +518,11 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitQuaterniond() ",
 						"Quaterniond Accessor ", accessor.getName(),
 						" was not a Quaterniond value"));
+				return;
 			}
 		}
 
@@ -534,17 +555,19 @@ namespace Serialization
 				}
 				else
 				{
-					throw std::runtime_error(
+					setError(
 						StringUtils::stringify("EntityAccessorReadVisitor::visitEnum() ",
 							"Enum Accessor ", accessor.getName(),
 							" has an invalid value ", sourceEnumIntValue));
+					return;
 				}
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitEnum() ",
 						"Missing valid Enum for", accessor.getName()));
+				return;
 			}
 		}
 
@@ -560,10 +583,11 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitBool() ",
 						"Bool Accessor ", accessor.getName(),
 						" was not a bool value"));
+				return;
 			}
 		}
 
@@ -579,10 +603,11 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitByte() ",
 						"Byte Accessor ", accessor.getName(),
 						" was not a integer value"));
+				return;
 			}
 		}
 
@@ -598,10 +623,11 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitUByte() ",
 						"UByte Accessor ", accessor.getName(),
 						" was not a integer value"));
+				return;
 			}
 		}
 
@@ -617,10 +643,11 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitShort() ",
 						"Short Accessor ", accessor.getName(),
 						" was not a integer value"));
+				return;
 			}
 		}
 
@@ -636,10 +663,11 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitUShort() ",
 						"UShort Accessor ", accessor.getName(),
 						" was not a integer value"));
+				return;
 			}
 		}
 
@@ -655,10 +683,11 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitInt() ",
 						"Int32 Accessor ", accessor.getName(),
 						" was not a integer value"));
+				return;
 			}
 		}
 
@@ -674,10 +703,11 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitUInt() ",
 						"UInt32 Accessor ", accessor.getName(),
 						" was not a integer value"));
+				return;
 			}
 		}
 
@@ -693,10 +723,11 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitLong() ",
 						"Int64 Accessor ", accessor.getName(),
 						" was not a long value"));
+				return;
 			}
 		}
 
@@ -712,10 +743,11 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitULong() ",
 						"UInt64 Accessor ", accessor.getName(),
 						" was not a long value"));
+				return;
 			}
 		}
 
@@ -731,10 +763,11 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitFloat() ",
 						"Float Accessor ", accessor.getName(),
 						" was not a float value"));
+				return;
 			}
 		}
 
@@ -750,10 +783,11 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					StringUtils::stringify("EntityAccessorReadVisitor::visitDouble() ",
 						"Double Accessor ", accessor.getName(),
 						" was not a double value"));
+				return;
 			}
 		}
 
@@ -762,19 +796,18 @@ namespace Serialization
 	};
 
 	// Public API
-	bool serializeFromEntity(IEntityAccessorConstPtr entityAccessor, void* instance, rfk::Struct const& structType)
+	bool serializeFromEntity(IEntityAccessorConstPtr entityAccessor, void* instance, rfk::Struct const& structType, std::string& outErrorMsg)
 	{
-		try
-		{
-			EntityAccessorReadVisitor visitor(entityAccessor);
-			Serialization::visitStruct(instance, structType, &visitor);
+		EntityAccessorReadVisitor visitor(entityAccessor);
+		Serialization::visitStruct(instance, structType, &visitor);
 
-			return true;
-		}
-		catch (std::runtime_error* e)
+		if (visitor.hasError())
 		{
-			MIKAN_LOG_ERROR("Serialization::serializeFromEntity") << e->what();
+			MIKAN_LOG_ERROR("Serialization::serializeFromEntity") << visitor.getError();
+			outErrorMsg = visitor.getError();
 			return false;
 		}
+
+		return true;
 	}
 };

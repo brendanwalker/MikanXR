@@ -119,7 +119,8 @@ bool mikan_api_test_request_no_type_id_in_json()
 		cmd.command = "test_command";
 
 		std::string jsonString;
-		bool bSerialize = Serialization::serializeToJsonString(cmd, jsonString);
+		std::string serializeError;
+		bool bSerialize = Serialization::serializeToJsonString(cmd, jsonString, serializeError);
 		assert(bSerialize);
 
 		json j = json::parse(jsonString);
@@ -145,14 +146,16 @@ bool mikan_api_test_response_round_trip()
 		expected.resultCode = MikanAPIResult::Success;
 
 		std::string jsonString;
-		bool bSerialize = Serialization::serializeToJsonString(expected, jsonString);
+		std::string serializeError;
+		bool bSerialize = Serialization::serializeToJsonString(expected, jsonString, serializeError);
 		assert(bSerialize);
 
 		// Simulate client parsing: first parse a header to extract responseTypeName
 		json j = json::parse(jsonString);
 		MikanResponse header = {};
+		std::string headerError;
 		bool bHeader = Serialization::deserializeFromJson(
-			j, &header, MikanResponse::staticGetArchetype());
+			j, &header, MikanResponse::staticGetArchetype(), headerError);
 		assert(bHeader);
 
 		// Look up the concrete struct type by name and create an instance
@@ -164,7 +167,8 @@ bool mikan_api_test_response_round_trip()
 		assert(instance != nullptr);
 
 		// Deserialize the full response into the dynamically created instance
-		bool bDeserialize = Serialization::deserializeFromJson(j, instance.get(), *responseStruct);
+		std::string deserializeError;
+		bool bDeserialize = Serialization::deserializeFromJson(j, instance.get(), *responseStruct, deserializeError);
 		assert(bDeserialize);
 
 		// Verify field values survived the round-trip

@@ -22,7 +22,9 @@ namespace Serialization
 
 		virtual void visitClass(ValueAccessor const& accessor) override
 		{
-			const json& fieldJsonObject = getJsonObjectFromAccessor(accessor);
+			const json* fieldJsonPtr = tryGetJsonObjectFromAccessor(accessor);
+			if (fieldJsonPtr == nullptr) return;
+			const json& fieldJsonObject = *fieldJsonPtr;
 
 			rfk::Type const& fieldType = accessor.getType();
 			rfk::Class const* fieldClassType = accessor.getClassType();
@@ -58,10 +60,11 @@ namespace Serialization
 				}
 				else
 				{
-					throw std::runtime_error(
+					setError(
 						stringify("JsonReadVisitor::visitClass() ",
 							"Class Field ", accessor.getName(),
 							" was not of expected type Serializable::List to deserialize json array value"));
+					return;
 				}
 			}
 			else if (fieldJsonObject.is_object())
@@ -85,10 +88,11 @@ namespace Serialization
 				}
 				else
 				{
-					throw std::runtime_error(
+					setError(
 						stringify("JsonReadVisitor::visitClass() ",
 								  "Class Field ", accessor.getName(),
 								  " was not of expected type Serializable::List to deserialize json array value"));
+					return;
 				}
 			}
 
@@ -112,10 +116,11 @@ namespace Serialization
 				objectStruct = TypeRegistry::getStructByName(objectClassName);
 				if (objectStruct == nullptr)
 				{
-					throw std::runtime_error(
+					setError(
 						stringify("JsonReadVisitor::visitObjectPtr() ",
 							"TypedObjectPtr Accessor ", accessor.getName(),
 							" used an unknown runtime class_name: ", objectClassName));
+					return;
 				}
 			}
 
@@ -135,6 +140,10 @@ namespace Serialization
 				json objectJson = ownerJsonObject["value"];
 				JsonReadVisitor objectVisitor(objectJson);
 				Serialization::visitStruct(objectInstance, *objectStruct, &objectVisitor);
+				if (objectVisitor.hasError())
+				{
+					setError(objectVisitor.getError());
+				}
 			}
 		}
 
@@ -160,11 +169,12 @@ namespace Serialization
 				}
 				else
 				{
-					throw std::runtime_error(
+					setError(
 						stringify("JsonReadVisitor::visitBool() ",
 								  "Bool Accessor ", arrayAccessor.getName(),
 								  "[", elementIndex, "] ",
 								  " was not a bool json value"));
+					return;
 				}
 			}
 		}
@@ -191,13 +201,13 @@ namespace Serialization
 			resizeMethod->invokeUnsafe<void>(arrayInstance, arraySize);
 
 			// Deserialize each element of the array
-			for (size_t elementIndex= 0; elementIndex < arraySize; ++elementIndex) 
+			for (size_t elementIndex= 0; elementIndex < arraySize; ++elementIndex)
 			{
 				// Get the source json array element
 				const json& elementJson = arrayJsonObject[elementIndex];
 
 				// Get the target element instance in the array
-				void* elementInstance= 
+				void* elementInstance=
 					getRawElementMutableMethod->invokeUnsafe<void*, const std::size_t&>(
 						arrayInstance, elementIndex);
 
@@ -207,6 +217,11 @@ namespace Serialization
 				// Deserialize the element
 				JsonReadVisitor elementVisitor(elementJson);
 				Serialization::visitValue(elementAccessor, &elementVisitor);
+				if (elementVisitor.hasError())
+				{
+					setError(elementVisitor.getError());
+					return;
+				}
 			}
 		}
 
@@ -233,7 +248,7 @@ namespace Serialization
 			{
 				rfk::Archetype const* keyArchetype= keyType.getArchetype();
 
-				throw std::runtime_error(
+				setError(
 					stringify("JsonReadVisitor::visitMap() ",
 						"Map Key Archetype ", keyArchetype != nullptr ? keyArchetype->getName() : "<Null Archetype>",
 						" is not supported"));
@@ -270,18 +285,20 @@ namespace Serialization
 
 				if (!pairJson.contains("key"))
 				{
-					throw std::runtime_error(
+					setError(
 						stringify("JsonReadVisitor::visitMapOfKey() ",
 								  "Map Pair ", pairIndex,
 								  " does not contain key"));
+					return;
 				}
 
 				if (!pairJson.contains("value"))
 				{
-					throw std::runtime_error(
+					setError(
 						stringify("JsonReadVisitor::visitMapOfKey() ",
 								  "Map Pair ", pairIndex,
 								  " does not contain value"));
+					return;
 				}
 
 				// Parse the key from json
@@ -298,12 +315,19 @@ namespace Serialization
 				// Deserialize the value
 				JsonReadVisitor valueVisitor(pairJson["value"]);
 				Serialization::visitValue(valueAccessor, &valueVisitor);
+				if (valueVisitor.hasError())
+				{
+					setError(valueVisitor.getError());
+					return;
+				}
 			}
 		}
 
 		virtual void visitStruct(ValueAccessor const& accessor) override
 		{
-			const json& childJsonObject= getJsonObjectFromAccessor(accessor);
+			const json* fieldJsonPtr = tryGetJsonObjectFromAccessor(accessor);
+			if (fieldJsonPtr == nullptr) return;
+			const json& childJsonObject = *fieldJsonPtr;
 
 			if (childJsonObject.is_object())
 			{
@@ -312,10 +336,14 @@ namespace Serialization
 				JsonReadVisitor jsonVisitor(childJsonObject);
 
 				Serialization::visitStruct(childObjectInstance, *structType, &jsonVisitor);
+				if (jsonVisitor.hasError())
+				{
+					setError(jsonVisitor.getError());
+				}
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					stringify("JsonReadVisitor::visitStruct() ",
 						"Struct Field ", accessor.getName(),
 						" was not of expected type object to deserialize json object value"));
@@ -324,7 +352,10 @@ namespace Serialization
 
 		virtual void visitEnum(ValueAccessor const& accessor) override
 		{
-			const json& fieldJsonObject= getJsonObjectFromAccessor(accessor);
+			const json* fieldJsonPtr = tryGetJsonObjectFromAccessor(accessor);
+			if (fieldJsonPtr == nullptr) return;
+			const json& fieldJsonObject = *fieldJsonPtr;
+
 			rfk::Enum const& enumType = *accessor.getEnumType();
 			rfk::Archetype const& enumArchetype = enumType.getUnderlyingArchetype();
 			rfk::EnumValue const* enumValue = nullptr;
@@ -336,10 +367,11 @@ namespace Serialization
 
 				if (enumValue == nullptr)
 				{
-					throw std::runtime_error(
+					setError(
 						stringify("JsonReadVisitor::visitEnum() ",
 								  "Enum Accessor ", accessor.getName(),
 								  " has an invalid value ", value));
+					return;
 				}
 			}
 			else if (fieldJsonObject.is_string())
@@ -349,18 +381,20 @@ namespace Serialization
 
 				if (enumValue == nullptr)
 				{
-					throw std::runtime_error(
+					setError(
 						stringify("JsonReadVisitor::visitEnum() ",
 									"Enum Accessor ", accessor.getName(),
 									" has an invalid value ", value));
+					return;
 				}
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					stringify("JsonReadVisitor::visitEnum() ",
 								"Enum Accessor ", accessor.getName(),
 								" was not an int or a string json value"));
+				return;
 			}
 
 			if (enumValue != nullptr)
@@ -382,7 +416,9 @@ namespace Serialization
 
 		virtual void visitBool(ValueAccessor const& accessor) override
 		{
-			const json& fieldJsonObject= getJsonObjectFromAccessor(accessor);
+			const json* fieldJsonPtr = tryGetJsonObjectFromAccessor(accessor);
+			if (fieldJsonPtr == nullptr) return;
+			const json& fieldJsonObject = *fieldJsonPtr;
 
 			if (fieldJsonObject.is_boolean())
 			{
@@ -392,7 +428,7 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					stringify("JsonReadVisitor::visitBool() ",
 							  "Bool Accessor ", accessor.getName(),
 							  " was not a bool json value"));
@@ -401,7 +437,9 @@ namespace Serialization
 
 		virtual void visitByte(ValueAccessor const& accessor) override
 		{
-			const json& fieldJsonObject= getJsonObjectFromAccessor(accessor);
+			const json* fieldJsonPtr = tryGetJsonObjectFromAccessor(accessor);
+			if (fieldJsonPtr == nullptr) return;
+			const json& fieldJsonObject = *fieldJsonPtr;
 
 			if (fieldJsonObject.is_number())
 			{
@@ -411,7 +449,7 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					stringify("JsonReadVisitor::visitByte() ",
 							  "Byte Accessor ", accessor.getName(),
 							  " was not a integer json value"));
@@ -420,7 +458,9 @@ namespace Serialization
 
 		virtual void visitUByte(ValueAccessor const& accessor) override
 		{
-			const json& fieldJsonObject= getJsonObjectFromAccessor(accessor);
+			const json* fieldJsonPtr = tryGetJsonObjectFromAccessor(accessor);
+			if (fieldJsonPtr == nullptr) return;
+			const json& fieldJsonObject = *fieldJsonPtr;
 
 			if (fieldJsonObject.is_number_unsigned())
 			{
@@ -436,7 +476,7 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					stringify("JsonReadVisitor::visitUByte() ",
 							  "UByte Accessor ", accessor.getName(),
 							  " was not a integer json value"));
@@ -445,7 +485,9 @@ namespace Serialization
 
 		virtual void visitShort(ValueAccessor const& accessor) override
 		{
-			const json& fieldJsonObject= getJsonObjectFromAccessor(accessor);
+			const json* fieldJsonPtr = tryGetJsonObjectFromAccessor(accessor);
+			if (fieldJsonPtr == nullptr) return;
+			const json& fieldJsonObject = *fieldJsonPtr;
 
 			if (fieldJsonObject.is_number_integer())
 			{
@@ -455,7 +497,7 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					stringify("JsonReadVisitor::visitShort() ",
 							  "Short Accessor ", accessor.getName(),
 							  " was not a integer json value"));
@@ -464,7 +506,9 @@ namespace Serialization
 
 		virtual void visitUShort(ValueAccessor const& accessor) override
 		{
-			const json& fieldJsonObject= getJsonObjectFromAccessor(accessor);
+			const json* fieldJsonPtr = tryGetJsonObjectFromAccessor(accessor);
+			if (fieldJsonPtr == nullptr) return;
+			const json& fieldJsonObject = *fieldJsonPtr;
 
 			if (fieldJsonObject.is_number_unsigned())
 			{
@@ -480,7 +524,7 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					stringify("JsonReadVisitor::visitUShort() ",
 							  "UShort Accessor ", accessor.getName(),
 							  " was not a integer json value"));
@@ -489,7 +533,9 @@ namespace Serialization
 
 		virtual void visitInt(ValueAccessor const& accessor) override
 		{
-			const json& fieldJsonObject= getJsonObjectFromAccessor(accessor);
+			const json* fieldJsonPtr = tryGetJsonObjectFromAccessor(accessor);
+			if (fieldJsonPtr == nullptr) return;
+			const json& fieldJsonObject = *fieldJsonPtr;
 
 			if (fieldJsonObject.is_number_integer())
 			{
@@ -499,7 +545,7 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					stringify("JsonReadVisitor::visitInt() ",
 							  "Int32 Accessor ", accessor.getName(),
 							  " was not a integer json value"));
@@ -508,7 +554,9 @@ namespace Serialization
 
 		virtual void visitUInt(ValueAccessor const& accessor) override
 		{
-			const json& fieldJsonObject= getJsonObjectFromAccessor(accessor);
+			const json* fieldJsonPtr = tryGetJsonObjectFromAccessor(accessor);
+			if (fieldJsonPtr == nullptr) return;
+			const json& fieldJsonObject = *fieldJsonPtr;
 
 			if (fieldJsonObject.is_number_unsigned())
 			{
@@ -524,7 +572,7 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					stringify("JsonReadVisitor::visitUInt() ",
 							  "UInt32 Accessor ", accessor.getName(),
 							  " was not a integer json value"));
@@ -533,7 +581,9 @@ namespace Serialization
 
 		virtual void visitLong(ValueAccessor const& accessor) override
 		{
-			const json& fieldJsonObject= getJsonObjectFromAccessor(accessor);
+			const json* fieldJsonPtr = tryGetJsonObjectFromAccessor(accessor);
+			if (fieldJsonPtr == nullptr) return;
+			const json& fieldJsonObject = *fieldJsonPtr;
 
 			if (fieldJsonObject.is_number_integer())
 			{
@@ -543,7 +593,7 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					stringify("JsonReadVisitor::visitLong() ",
 							  "Int64 Accessor ", accessor.getName(),
 							  " was not a integer json value"));
@@ -552,7 +602,7 @@ namespace Serialization
 
 		virtual void visitULong(ValueAccessor const& accessor)
 		{
-			throw std::runtime_error(
+			setError(
 				stringify("JsonWriteVisitor::visitULong() ",
 						  "ULong Accessor ", accessor.getName(),
 						  " type not supported by all JSON libraries"));
@@ -560,7 +610,9 @@ namespace Serialization
 
 		virtual void visitFloat(ValueAccessor const& accessor) override
 		{
-			const json& fieldJsonObject= getJsonObjectFromAccessor(accessor);
+			const json* fieldJsonPtr = tryGetJsonObjectFromAccessor(accessor);
+			if (fieldJsonPtr == nullptr) return;
+			const json& fieldJsonObject = *fieldJsonPtr;
 
 			if (fieldJsonObject.is_number())
 			{
@@ -570,7 +622,7 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					stringify("JsonReadVisitor::visitFloat() ",
 							  "Float Accessor ", accessor.getName(),
 							  " was not a float json value"));
@@ -579,7 +631,9 @@ namespace Serialization
 
 		virtual void visitDouble(ValueAccessor const& accessor) override
 		{
-			const json& fieldJsonObject= getJsonObjectFromAccessor(accessor);
+			const json* fieldJsonPtr = tryGetJsonObjectFromAccessor(accessor);
+			if (fieldJsonPtr == nullptr) return;
+			const json& fieldJsonObject = *fieldJsonPtr;
 
 			if (fieldJsonObject.is_number())
 			{
@@ -589,7 +643,7 @@ namespace Serialization
 			}
 			else
 			{
-				throw std::runtime_error(
+				setError(
 					stringify("JsonReadVisitor::visitDouble() ",
 							  "Double Accessor ", accessor.getName(),
 							  " was not a float json value"));
@@ -597,7 +651,7 @@ namespace Serialization
 		}
 
 	private:
-		const json& getJsonObjectFromAccessor(ValueAccessor const& accessor) const
+		const json* tryGetJsonObjectFromAccessor(ValueAccessor const& accessor)
 		{
 			rfk::Field const* field = accessor.getField();
 
@@ -607,15 +661,16 @@ namespace Serialization
 
 				if (!m_jsonObject.contains(fieldName))
 				{
-					throw std::runtime_error(stringify("Field ", field->getName(), " not found in json"));
+					setError(stringify("Field ", field->getName(), " not found in json"));
+					return nullptr;
 				}
 
-				return m_jsonObject[field->getName()];
+				return &m_jsonObject[field->getName()];
 			}
 			else
 			{
 				// The json object should contain the value we want to deserialize
-				return m_jsonObject;
+				return &m_jsonObject;
 			}
 		}
 
@@ -623,33 +678,33 @@ namespace Serialization
 	};
 
 	// Public API
-	bool deserializeFromJsonString(const std::string& jsonString, void* instance, rfk::Struct const& structType)
+	bool deserializeFromJsonString(const std::string& jsonString, void* instance, rfk::Struct const& structType, std::string& outErrorMsg)
 	{
 		try
 		{
 			json jsonObject = json::parse(jsonString);
 
-			return deserializeFromJson(jsonObject, instance, structType);
+			return deserializeFromJson(jsonObject, instance, structType, outErrorMsg);
 		}
-		catch (json::parse_error* e)
+		catch (json::parse_error& e)
 		{
+			outErrorMsg = e.what();
 			return false;
 		}
 	}
 
-	bool deserializeFromJson(const nlohmann::json& jsonObject, void* instance, rfk::Struct const& structType)
+	bool deserializeFromJson(const nlohmann::json& jsonObject, void* instance, rfk::Struct const& structType, std::string& outErrorMsg)
 	{
-		try
-		{
-			JsonReadVisitor visitor(jsonObject);
-			Serialization::visitStruct(instance, structType, &visitor);
+		JsonReadVisitor visitor(jsonObject);
+		Serialization::visitStruct(instance, structType, &visitor);
 
-			return true;
-		}
-		catch (std::runtime_error* e)
+		if (visitor.hasError())
 		{
+			outErrorMsg = visitor.getError();
 			return false;
 		}
+
+		return true;
 	}
 };
 

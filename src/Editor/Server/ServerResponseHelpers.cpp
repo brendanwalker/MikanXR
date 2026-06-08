@@ -9,7 +9,12 @@ void writeSimpleJsonResponse(MikanRequestID requestId, MikanAPIResult result, Cl
 		mikanResponse.requestId = requestId;
 		mikanResponse.resultCode = result;
 
-		Serialization::serializeToJsonString(mikanResponse, response.utf8String);
+		std::string errorMsg;
+		if (!Serialization::serializeToJsonString(mikanResponse, response.utf8String, errorMsg))
+		{
+			MIKAN_LOG_ERROR("ServerResponseHelpers::writeSimpleJsonResponse") 
+				<< "Failed to serialize MikanResponse to JSON string: " << errorMsg;
+		}
 	}
 	else
 	{
@@ -26,7 +31,12 @@ void writeSimpleBinaryResponse(MikanRequestID requestId, MikanAPIResult result, 
 		mikanResponse.requestId = requestId;
 		mikanResponse.resultCode = result;
 
-		Serialization::serializeToBytes<MikanResponse>(mikanResponse, response.binaryData);
+		std::string errorMsg;
+		if (!Serialization::serializeToBytes<MikanResponse>(mikanResponse, response.binaryData, errorMsg))
+		{
+			MIKAN_LOG_ERROR("ServerResponseHelpers::writeSimpleBinaryResponse")
+				<< "Failed to serialize MikanResponse to binary data: " << errorMsg;
+		}
 	}
 	else
 	{
