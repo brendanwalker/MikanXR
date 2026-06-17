@@ -128,7 +128,7 @@ bool TrackingVolumeComponent::getPropertyValue(
 {
 	if (propertyName == TrackingVolumeDefinition::k_originMarkerIdPropertyId)
 	{
-		outValue= getTrackingVolumeDefinition()->getTrackingVolumeId();
+		outValue= getTrackingVolumeDefinition()->getOriginMarkerId();
 		return true;
 	}
 

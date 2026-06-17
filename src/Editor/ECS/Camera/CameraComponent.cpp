@@ -707,12 +707,12 @@ void CameraComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConst
 		->setDefaultValue(0));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(CameraDefinition::k_apertureOrientationOffsetPropertyId, MikanVariantType::QUATERNIOND)
-		->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f))
+		->setDefaultValue(MikanQuatd())
 		->setReadOnly()
 		->setUIHidden());
 	outDescriptors.push_back(
-		std::make_shared<PropertyDescriptor>(CameraDefinition::k_aperturePositionOffsetPropertyId, MikanVariantType::VECTOR3F)
-		->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f))
+		std::make_shared<PropertyDescriptor>(CameraDefinition::k_aperturePositionOffsetPropertyId, MikanVariantType::VECTOR3D)
+		->setDefaultValue(MikanVector3d())
 		->setReadOnly()
 		->setUIHidden());
 	outDescriptors.push_back(

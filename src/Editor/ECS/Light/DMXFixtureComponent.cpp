@@ -217,7 +217,12 @@ bool DMXFixtureComponent::getPropertyValue(
 {
 	DMXFixtureComponentDefinitionPtr def = getDMXFixtureDefinition();
 
-	if (propertyName == DMXFixtureComponentDefinition::k_dmxUniversePropertyId)
+	if (propertyName == DMXFixtureComponentDefinition::k_ownerStageIdPropertyId)
+	{
+		outValue = def->getOwnerStageId();
+		return true;
+	}
+	else if (propertyName == DMXFixtureComponentDefinition::k_dmxUniversePropertyId)
 	{
 		outValue = def->getDMXUniverse();
 		return true;
@@ -247,14 +252,19 @@ bool DMXFixtureComponent::setPropertyValue(
 {
 	DMXFixtureComponentDefinitionPtr def = getDMXFixtureDefinition();
 
-	if (propertyName == DMXFixtureComponentDefinition::k_dmxUniversePropertyId)
+	if (propertyName == DMXFixtureComponentDefinition::k_ownerStageIdPropertyId)
 	{
-		def->setDMXUniverse(static_cast<uint16_t>(inValue.getIntValue()));
+		def->setOwnerStageId(inValue.getIntValue());
+		return true;
+	}
+	else if (propertyName == DMXFixtureComponentDefinition::k_dmxUniversePropertyId)
+	{
+		def->setDMXUniverse(inValue.getUShortValue());
 		return true;
 	}
 	else if (propertyName == DMXFixtureComponentDefinition::k_dmxStartChannelPropertyId)
 	{
-		def->setDMXStartChannel(static_cast<uint16_t>(inValue.getIntValue()));
+		def->setDMXStartChannel(inValue.getUShortValue());
 		return true;
 	}
 	else if (propertyName == DMXFixtureComponentDefinition::k_isDisabledPropertyId)

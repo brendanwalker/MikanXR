@@ -173,7 +173,7 @@ void DMXObjectSystem::getPropertyDescriptors(std::vector<PropertyDescriptorConst
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
 		DMXObjectSystemDefinition::k_networkInterfaceIPPropertyId, MikanVariantType::STRING));
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-		DMXObjectSystemDefinition::k_dmxPriorityPropertyId, MikanVariantType::INT));
+		DMXObjectSystemDefinition::k_dmxPriorityPropertyId, MikanVariantType::UBYTE));
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
 		DMXObjectSystemDefinition::k_transmitRateHzPropertyId, MikanVariantType::FLOAT));
 }
@@ -189,7 +189,7 @@ bool DMXObjectSystem::getPropertyValue(const std::string& propertyName, MikanVar
 	}
 	else if (propertyName == DMXObjectSystemDefinition::k_dmxPriorityPropertyId)
 	{
-		outValue = static_cast<int>(def->getDMXPriority());
+		outValue = def->getDMXPriority();
 		return true;
 	}
 	else if (propertyName == DMXObjectSystemDefinition::k_transmitRateHzPropertyId)
@@ -212,7 +212,7 @@ bool DMXObjectSystem::setPropertyValue(const std::string& propertyName, const Mi
 	}
 	else if (propertyName == DMXObjectSystemDefinition::k_dmxPriorityPropertyId)
 	{
-		def->setDMXPriority(static_cast<uint8_t>(inValue.getIntValue()));
+		def->setDMXPriority(inValue.getUByteValue());
 		return true;
 	}
 	else if (propertyName == DMXObjectSystemDefinition::k_transmitRateHzPropertyId)

@@ -85,9 +85,9 @@ bool RGBSpotLightDefinition::readFromInitParams(
 }
 
 // -- RGBSpotLightComponent -----
-const std::string RGBSpotLightComponent::k_redPropertyId = "rgb_red";
-const std::string RGBSpotLightComponent::k_greenPropertyId = "rgb_green";
-const std::string RGBSpotLightComponent::k_bluePropertyId = "rgb_blue";
+const std::string RGBSpotLightComponent::k_redPropertyId = "red";
+const std::string RGBSpotLightComponent::k_greenPropertyId = "green";
+const std::string RGBSpotLightComponent::k_bluePropertyId = "blue";
 
 RGBSpotLightComponent::RGBSpotLightComponent(MikanObjectWeakPtr owner)
 	: DMXFixtureComponent(owner)
@@ -446,17 +446,17 @@ bool RGBSpotLightComponent::getPropertyValue(
 
 	if (propertyName == RGBSpotLightComponent::k_redPropertyId)
 	{
-		outValue = static_cast<int>(getRed());
+		outValue = getRed();
 		return true;
 	}
 	else if (propertyName == RGBSpotLightComponent::k_greenPropertyId)
 	{
-		outValue = static_cast<int>(getGreen());
+		outValue = getGreen();
 		return true;
 	}
 	else if (propertyName == RGBSpotLightComponent::k_bluePropertyId)
 	{
-		outValue = static_cast<int>(getBlue());
+		outValue = getBlue();
 		return true;
 	}
 	else if (propertyName == RGBSpotLightDefinition::k_coneAngleDegreesPropertyId)
@@ -479,17 +479,17 @@ bool RGBSpotLightComponent::setPropertyValue(
 
 	if (propertyName == RGBSpotLightComponent::k_redPropertyId)
 	{
-		setRed(static_cast<uint8_t>(inValue.getIntValue()));
+		setRed(inValue.getUByteValue());
 		return true;
 	}
 	else if (propertyName == RGBSpotLightComponent::k_greenPropertyId)
 	{
-		setGreen(static_cast<uint8_t>(inValue.getIntValue()));
+		setGreen(inValue.getUByteValue());
 		return true;
 	}
 	else if (propertyName == RGBSpotLightComponent::k_bluePropertyId)
 	{
-		setBlue(static_cast<uint8_t>(inValue.getIntValue()));
+		setBlue(inValue.getUByteValue());
 		return true;
 	}
 	else if (propertyName == RGBSpotLightDefinition::k_coneAngleDegreesPropertyId)
