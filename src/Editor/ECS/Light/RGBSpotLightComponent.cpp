@@ -427,11 +427,11 @@ void RGBSpotLightComponent::getPropertyDescriptors(std::vector<PropertyDescripto
 	DMXFixtureComponent::getPropertyDescriptors(outDescriptors);
 
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-		RGBSpotLightComponent::k_redPropertyId, MikanVariantType::INT));
+		RGBSpotLightComponent::k_redPropertyId, MikanVariantType::UBYTE));
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-		RGBSpotLightComponent::k_greenPropertyId, MikanVariantType::INT));
+		RGBSpotLightComponent::k_greenPropertyId, MikanVariantType::UBYTE));
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
-		RGBSpotLightComponent::k_bluePropertyId, MikanVariantType::INT));
+		RGBSpotLightComponent::k_bluePropertyId, MikanVariantType::UBYTE));
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(
 		RGBSpotLightDefinition::k_coneAngleDegreesPropertyId, MikanVariantType::FLOAT));
 	outDescriptors.push_back(std::make_shared<PropertyDescriptor>(

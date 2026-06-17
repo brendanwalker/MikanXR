@@ -7,27 +7,29 @@ import type { SerializationField } from './SerializationTypes.js';
 export enum MikanVariantType {
   INVALID_TYPE = 0,
   BOOL_TYPE = 1,
-  INT_TYPE = 2,
-  LONG_TYPE = 3,
-  FLOAT_TYPE = 4,
-  DOUBLE_TYPE = 5,
-  MK_STRING_TYPE = 6,
-  VECTOR2F_TYPE = 7,
-  VECTOR3F_TYPE = 8,
-  VECTOR4F_TYPE = 9,
-  QUATERNIONF_TYPE = 10,
-  MATRIX4F_TYPE = 11,
-  VECTOR2D_TYPE = 12,
-  VECTOR3D_TYPE = 13,
-  VECTOR4D_TYPE = 14,
-  QUATERNIOND_TYPE = 15,
-  BOOL_ARRAY_TYPE = 16,
-  UBYTE_ARRAY_TYPE = 17,
-  INT_ARRAY_TYPE = 18,
-  FLOAT_ARRAY_TYPE = 19,
-  STRING_ARRAY_TYPE = 20,
-  STRING_MAP_TYPE = 21,
-  POLYMORPHIC_OBJECT_TYPE = 22
+  UBYTE_TYPE = 2,
+  USHORT_TYPE = 3,
+  INT_TYPE = 4,
+  LONG_TYPE = 5,
+  FLOAT_TYPE = 6,
+  DOUBLE_TYPE = 7,
+  MK_STRING_TYPE = 8,
+  VECTOR2F_TYPE = 9,
+  VECTOR3F_TYPE = 10,
+  VECTOR4F_TYPE = 11,
+  QUATERNIONF_TYPE = 12,
+  MATRIX4F_TYPE = 13,
+  VECTOR2D_TYPE = 14,
+  VECTOR3D_TYPE = 15,
+  VECTOR4D_TYPE = 16,
+  QUATERNIOND_TYPE = 17,
+  BOOL_ARRAY_TYPE = 18,
+  UBYTE_ARRAY_TYPE = 19,
+  INT_ARRAY_TYPE = 20,
+  FLOAT_ARRAY_TYPE = 21,
+  STRING_ARRAY_TYPE = 22,
+  STRING_MAP_TYPE = 23,
+  POLYMORPHIC_OBJECT_TYPE = 24
 }
 
 export class MikanVariantBase extends PolymorphicStruct {
@@ -41,6 +43,14 @@ export class MikanVector2fValue extends MikanVariantBase {
 
   static __serializationMetadata: SerializationField[] = [
     { name: 'value', type: 'MikanVector2f' }
+  ];
+}
+
+export class MikanUByteValue extends MikanVariantBase {
+  value: number = 0;
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'value', type: 'uint8' }
   ];
 }
 
@@ -91,6 +101,14 @@ export class MikanBoolValue extends MikanVariantBase {
 
   static __serializationMetadata: SerializationField[] = [
     { name: 'value', type: 'boolean' }
+  ];
+}
+
+export class MikanUShortValue extends MikanVariantBase {
+  value: number = 0;
+
+  static __serializationMetadata: SerializationField[] = [
+    { name: 'value', type: 'uint16' }
   ];
 }
 

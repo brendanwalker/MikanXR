@@ -595,9 +595,10 @@ namespace Serialization
 		{
 			MikanVariant sourcePropertyValue;
 			if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-				sourcePropertyValue.value_type == MikanVariantType::INT)
+				sourcePropertyValue.value_type == MikanVariantType::UBYTE)
 			{
-				int8_t value = (int8_t)sourcePropertyValue.getIntValue();
+				// Convert ubyte -> byte
+				int8_t value = (int8_t)sourcePropertyValue.getUByteValue();
 
 				accessor.setValueByType(value);
 			}
@@ -615,9 +616,9 @@ namespace Serialization
 		{
 			MikanVariant sourcePropertyValue;
 			if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-				sourcePropertyValue.value_type == MikanVariantType::INT)
+				sourcePropertyValue.value_type == MikanVariantType::UBYTE)
 			{
-				uint8_t value = (uint8_t)sourcePropertyValue.getIntValue();
+				uint8_t value = sourcePropertyValue.getUByteValue();
 
 				accessor.setValueByType(value);
 			}
@@ -635,9 +636,10 @@ namespace Serialization
 		{
 			MikanVariant sourcePropertyValue;
 			if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-				sourcePropertyValue.value_type == MikanVariantType::INT)
+				sourcePropertyValue.value_type == MikanVariantType::USHORT)
 			{
-				int16_t value = (int16_t)sourcePropertyValue.getIntValue();
+				// Convert ushort -> short
+				int16_t value = (int16_t)sourcePropertyValue.getUShortValue();
 
 				accessor.setValueByType(value);
 			}
@@ -655,9 +657,9 @@ namespace Serialization
 		{
 			MikanVariant sourcePropertyValue;
 			if (m_entityAccessor->getPropertyValue(accessor.getName(), sourcePropertyValue) &&
-				sourcePropertyValue.value_type == MikanVariantType::INT)
+				sourcePropertyValue.value_type == MikanVariantType::USHORT)
 			{
-				uint16_t value = (uint16_t)sourcePropertyValue.getIntValue();
+				uint16_t value = sourcePropertyValue.getUShortValue();
 
 				accessor.setValueByType(value);
 			}

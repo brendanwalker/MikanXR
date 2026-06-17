@@ -56,11 +56,15 @@ export class MikanRGBSpotLightComponentValues extends MikanDMXFixtureComponentVa
   red: number = 0;
   green: number = 0;
   blue: number = 0;
+  cone_angle_degrees: number = 0;
+  cone_range_meters: number = 0;
 
   static __serializationMetadata: SerializationField[] = [
     { name: 'red', type: 'uint8' },
     { name: 'green', type: 'uint8' },
-    { name: 'blue', type: 'uint8' }
+    { name: 'blue', type: 'uint8' },
+    { name: 'cone_angle_degrees', type: 'float' },
+    { name: 'cone_range_meters', type: 'float' }
   ];
 }
 

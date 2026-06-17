@@ -42,7 +42,7 @@ import { MikanTrackingMountComponentValues } from './MikanTrackingMountTypes.js'
 import { MikanVRTrackingVolumeComponentValues, MikanTrackingVolumeComponentValues, MikanMarkerTrackingVolumeComponentValues } from './MikanTrackingVolumeTypes.js';
 import { MikanTransformComponentValues } from './MikanTransformTypes.js';
 import { MikanVRDeviceComponentValues, MikanVRObjectSystemValues } from './MikanVRDeviceTypes.js';
-import { MikanVector2fValue, MikanStringValue, MikanVariant, MikanUByteArrayValue, MikanIntArrayValue, MikanMatrix4fValue, MikanVariantBase, MikanBoolValue, MikanIntValue, MikanLongValue, MikanFloatValue, MikanDoubleValue, MikanVector3fValue, MikanVector4fValue, MikanQuatfValue, MikanVector2dValue, MikanVector3dValue, MikanVector4dValue, MikanQuatdValue, MikanBoolArrayValue, MikanFloatArrayValue, MikanStringArrayValue, MikanStringMapValue } from './MikanVariantTypes.js';
+import { MikanVector2fValue, MikanUByteValue, MikanStringValue, MikanVariant, MikanUByteArrayValue, MikanIntArrayValue, MikanMatrix4fValue, MikanVariantBase, MikanBoolValue, MikanUShortValue, MikanIntValue, MikanLongValue, MikanFloatValue, MikanDoubleValue, MikanVector3fValue, MikanVector4fValue, MikanQuatfValue, MikanVector2dValue, MikanVector3dValue, MikanVector4dValue, MikanQuatdValue, MikanBoolArrayValue, MikanFloatArrayValue, MikanStringArrayValue, MikanStringMapValue } from './MikanVariantTypes.js';
 import { MikanVideoSourceOpenedEvent, MikanVideoSourceClosedEvent, MikanVideoSourceModeChangedEvent } from './MikanVideoSourceEvents.js';
 import { SetUSBVideoSourceDevice, SetUSBVideoSourceFormat, SetUSBVideoSourceFrameRate, MikanVideoSourceModeResponse, GetVideoSourceMode, GetVideoSourceIntrinsics, SetUSBVideoSourceResolution, MikanVideoSourceIntrinsicsResponse } from './MikanVideoSourceRequest.js';
 import { MikanUSBVideoSourceValues, MikanNetworkVideoSourceValues, MikanDistortionCoefficients, MikanBaseIntrinsics, MikanMonoIntrinsics, MikanStereoIntrinsics, MikanVideoSourceIntrinsics, MikanVideoSourceValues, MikanUSBVideoSourceSystemValues } from './MikanVideoSourceTypes.js';
@@ -175,6 +175,7 @@ export function registerAllTypes(): void {
   TypeRegistry.register('MikanVRDeviceComponentValues', MikanVRDeviceComponentValues);
   TypeRegistry.register('MikanVRObjectSystemValues', MikanVRObjectSystemValues);
   TypeRegistry.register('MikanVector2fValue', MikanVector2fValue);
+  TypeRegistry.register('MikanUByteValue', MikanUByteValue);
   TypeRegistry.register('MikanStringValue', MikanStringValue);
   TypeRegistry.register('MikanVariant', MikanVariant);
   TypeRegistry.register('MikanUByteArrayValue', MikanUByteArrayValue);
@@ -182,6 +183,7 @@ export function registerAllTypes(): void {
   TypeRegistry.register('MikanMatrix4fValue', MikanMatrix4fValue);
   TypeRegistry.register('MikanVariantBase', MikanVariantBase);
   TypeRegistry.register('MikanBoolValue', MikanBoolValue);
+  TypeRegistry.register('MikanUShortValue', MikanUShortValue);
   TypeRegistry.register('MikanIntValue', MikanIntValue);
   TypeRegistry.register('MikanLongValue', MikanLongValue);
   TypeRegistry.register('MikanFloatValue', MikanFloatValue);

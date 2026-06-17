@@ -87,13 +87,19 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightTypes")) MikanRG
 	static const char* k_ownerSystemName;
 
 	FIELD()
-		uint8_t red = 0;
+	uint8_t red = 0;
 
 	FIELD()
-		uint8_t green = 0;
+	uint8_t green = 0;
 
 	FIELD()
-		uint8_t blue = 0;
+	uint8_t blue = 0;
+
+	FIELD()
+	float cone_angle_degrees= 0.f;
+
+	FIELD()
+	float cone_range_meters = 0.f;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanRGBSpotLightComponentValues_GENERATED

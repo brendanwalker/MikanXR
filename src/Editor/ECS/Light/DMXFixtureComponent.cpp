@@ -195,13 +195,16 @@ void DMXFixtureComponent::getPropertyDescriptors(std::vector<PropertyDescriptorC
 
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			DMXFixtureComponentDefinition::k_dmxUniversePropertyId, MikanVariantType::INT));
+			DMXFixtureComponentDefinition::k_ownerStageIdPropertyId, MikanVariantType::INT));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			DMXFixtureComponentDefinition::k_dmxStartChannelPropertyId, MikanVariantType::INT));
+			DMXFixtureComponentDefinition::k_dmxUniversePropertyId, MikanVariantType::USHORT));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
-			DMXFixtureComponentDefinition::k_dmxChannelCountPropertyId, MikanVariantType::INT)
+			DMXFixtureComponentDefinition::k_dmxStartChannelPropertyId, MikanVariantType::USHORT));
+	outDescriptors.push_back(
+		std::make_shared<PropertyDescriptor>(
+			DMXFixtureComponentDefinition::k_dmxChannelCountPropertyId, MikanVariantType::USHORT)
 		->setReadOnly());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
@@ -216,17 +219,17 @@ bool DMXFixtureComponent::getPropertyValue(
 
 	if (propertyName == DMXFixtureComponentDefinition::k_dmxUniversePropertyId)
 	{
-		outValue = static_cast<int>(def->getDMXUniverse());
+		outValue = def->getDMXUniverse();
 		return true;
 	}
 	else if (propertyName == DMXFixtureComponentDefinition::k_dmxStartChannelPropertyId)
 	{
-		outValue = static_cast<int>(def->getDMXStartChannel());
+		outValue = def->getDMXStartChannel();
 		return true;
 	}
 	else if (propertyName == DMXFixtureComponentDefinition::k_dmxChannelCountPropertyId)
 	{
-		outValue = static_cast<int>(def->getDMXChannelCount());
+		outValue = def->getDMXChannelCount();
 		return true;
 	}
 	else if (propertyName == DMXFixtureComponentDefinition::k_isDisabledPropertyId)

@@ -40,6 +40,8 @@ namespace MikanXR
 		public byte red;
 		public byte green;
 		public byte blue;
+		public float cone_angle_degrees;
+		public float cone_range_meters;
 	};
 
 	public class MikanRGBSpotLightSystemValues : MikanSystemValues
