@@ -19,6 +19,18 @@ bool MikanVariant::getBoolValue() const
 	return value_ptr.getTypedPointer<MikanBoolValue>()->value;
 }
 
+uint8_t MikanVariant::getUByteValue() const
+{
+	assert(value_type == MikanVariantType::UBYTE);
+	return value_ptr.getTypedPointer<MikanUByteValue>()->value;
+}
+
+uint16_t MikanVariant::getUShortValue() const
+{
+	assert(value_type == MikanVariantType::USHORT);
+	return value_ptr.getTypedPointer<MikanUShortValue>()->value;
+}
+
 int MikanVariant::getIntValue() const
 {
 	assert(value_type == MikanVariantType::INT);
@@ -49,6 +61,10 @@ float MikanVariant::getFloatValue() const
 	{
 		return (float)value_ptr.getTypedPointer<MikanLongValue>()->value;
 	}
+	else if (value_type == MikanVariantType::USHORT)
+	{
+		return (float)value_ptr.getTypedPointer<MikanUShortValue>()->value;
+	}
 	else
 	{
 		assert(false && "Unsupported variant cast");
@@ -73,6 +89,10 @@ double MikanVariant::getDoubleValue() const
 	else if (value_type == MikanVariantType::LONG)
 	{
 		return (double)value_ptr.getTypedPointer<MikanLongValue>()->value;
+	}
+	else if (value_type == MikanVariantType::USHORT)
+	{
+		return (double)value_ptr.getTypedPointer<MikanUShortValue>()->value;
 	}
 	else
 	{
@@ -221,6 +241,12 @@ void MikanVariant::setValue(const MikanVariant& other)
 	case MikanVariantType::BOOL:
 		setValue(other.getBoolValue());
 		break;
+	case MikanVariantType::UBYTE:
+		setValue(other.getUByteValue());
+		break;
+	case MikanVariantType::USHORT:
+		setValue(other.getUShortValue());
+		break;
 	case MikanVariantType::INT:
 		setValue(other.getIntValue());
 		break;
@@ -291,6 +317,18 @@ void MikanVariant::setValue(bool value)
 {
 	value_type = MikanVariantType::BOOL;
 	value_ptr.allocatedByType<MikanBoolValue>()->value= value;
+}
+
+void MikanVariant::setValue(uint8_t value)
+{
+	value_type = MikanVariantType::UBYTE;
+	value_ptr.allocatedByType<MikanUByteValue>()->value = value;
+}
+
+void MikanVariant::setValue(uint16_t value)
+{
+	value_type = MikanVariantType::USHORT;
+	value_ptr.allocatedByType<MikanUShortValue>()->value = value;
 }
 
 void MikanVariant::setValue(int value)

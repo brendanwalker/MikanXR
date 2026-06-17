@@ -23,6 +23,8 @@ enum class ENUM(Serialization::CodeGenModule("MikanVariantTypes")) MikanVariantT
 	
 	// Primitive Types
 	BOOL ENUMVALUE_STRING("BOOL_TYPE"),
+	UBYTE ENUMVALUE_STRING("UBYTE_TYPE"),
+	USHORT ENUMVALUE_STRING("USHORT_TYPE"),
 	INT ENUMVALUE_STRING("INT_TYPE"),
 	LONG ENUMVALUE_STRING("LONG_TYPE"),
 	FLOAT ENUMVALUE_STRING("FLOAT_TYPE"),
@@ -84,6 +86,8 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	void clear();
 
 	bool getBoolValue() const;
+	uint8_t getUByteValue() const;
+	uint16_t getUShortValue() const;
 	int getIntValue() const;
 	long getLongValue() const;
 	float getFloatValue() const;
@@ -110,6 +114,8 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 #if defined(MIKANAPI_REFLECTION_ENABLED) && defined(SERIALIZATION_REFLECTION_ENABLED)
 	void setValue(const MikanVariant& other);
 	void setValue(bool value);
+	void setValue(uint8_t value);
+	void setValue(uint16_t value);
 	void setValue(int value);
 	void setValue(long value);
 	void setValue(float value);
@@ -157,6 +163,28 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanBoolValue_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanUByteValue
+	: public MikanVariantBase
+{
+	FIELD()
+	uint8_t value = false;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanUByteValue_GENERATED
+#endif
+};
+
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanUShortValue
+	: public MikanVariantBase
+{
+	FIELD()
+	uint16_t value = false;
+
+#ifdef MIKANAPI_REFLECTION_ENABLED
+	MikanUShortValue_GENERATED
 #endif
 };
 
