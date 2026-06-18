@@ -286,11 +286,13 @@ void VRTrackingVolumeComponent::getPropertyDescriptors(std::vector<PropertyDescr
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(k_vrDevicePositionOffsetPropertyId, MikanVariantType::VECTOR3F)
 		->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f))
-		->setReadOnly());
+		->setReadOnly()
+		->setClientAPIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(k_vrDeviceRotationOffsetPropertyId, MikanVariantType::VECTOR3F)
 		->setDefaultValue(MikanVector3f(0.f, 0.f, 0.f))
-		->setReadOnly());
+		->setReadOnly()
+		->setClientAPIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(k_displayTrackingSpacePropertyId, MikanVariantType::INT)
 		->setDefaultValue(0)

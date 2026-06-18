@@ -562,7 +562,8 @@ void TransformComponent::getPropertyDescriptors(std::vector<PropertyDescriptorCo
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			TransformComponent::k_relativeRotationPropertyId, MikanVariantType::VECTOR3F)
-		->setDefaultValue(MikanVector3f(0.f)));
+		->setDefaultValue(MikanVector3f(0.f))
+		->setClientAPIHidden());
 }
 
 bool TransformComponent::getPropertyValue(

@@ -1399,7 +1399,8 @@ void USBVideoSourceComponent::getPropertyDescriptors(std::vector<PropertyDescrip
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			USBVideoSourceDefinition::k_desiredDevicePathPropertyId, MikanVariantType::STRING)
-			->setUIHidden());
+			->setUIHidden()
+			->setClientAPIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			USBVideoSourceComponent::k_currentFriendlyNamePropertyId, MikanVariantType::STRING)

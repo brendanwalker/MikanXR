@@ -277,7 +277,8 @@ public:
 		outDescriptors.push_back(
 			std::make_shared<PropertyDescriptor>(TSystemDefinition::k_componentIdListPropertyId, MikanVariantType::INT_ARRAY)
 			->setReadOnly()
-			->setUIHidden());
+			->setUIHidden()
+			->setClientAPIHidden()); // Exposed via GetComponentListRequest, not PropertyGetValueRequest
 	}
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override
 	{
