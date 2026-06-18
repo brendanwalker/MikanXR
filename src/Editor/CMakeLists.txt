@@ -441,6 +441,11 @@ file(GLOB MIKAN_SERVER_SRC
     "${CMAKE_CURRENT_LIST_DIR}/Server/*.h"
 )
 source_group("Server" FILES ${MIKAN_SERVER_SRC})
+file(GLOB MIKAN_SERVER_TEST_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/Server/Test/*.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/Server/Test/*.h"
+)
+source_group("Server\\Test" FILES ${MIKAN_SERVER_TEST_SRC})
 
 # TinyFileDialogs's source files are included in directly, rather than linking against a lib
 source_group("TinyFileDialogs" FILES ${TINYFILEDIALOGS_SOURCE})
@@ -469,6 +474,7 @@ set(MIKAN_SRC
     ${MIKAN_RENDERER_SRC}
     ${MIKAN_SCRIPTING_SRC}
     ${MIKAN_SERVER_SRC}
+    ${MIKAN_SERVER_TEST_SRC}
     ${MIKAN_SYSTEM_SRC}
     ${TINYFILEDIALOGS_SOURCE}
 )
@@ -511,6 +517,7 @@ list(APPEND MIKAN_INCL_DIRS
   ${CMAKE_CURRENT_LIST_DIR}/Project
   ${CMAKE_CURRENT_LIST_DIR}/Renderer
   ${CMAKE_CURRENT_LIST_DIR}/Server
+  ${CMAKE_CURRENT_LIST_DIR}/Server/Test
   ${CMAKE_CURRENT_LIST_DIR}/Scripting
   ${MIKAN_LIBRARIES_DIR}/MikanClientAPI/Public
   ${MIKAN_LIBRARIES_DIR}/MikanClientCore/Public
