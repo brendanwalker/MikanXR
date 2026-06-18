@@ -1,0 +1,158 @@
+name: Build and Test
+
+on:
+  push:
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # ---------------------------------------------------------------
+      # Cache the deps folder keyed on InitialSetup_x64.bat so that
+      # the heavy downloads (OpenCV, CEF, SDL, etc.) are only fetched
+      # on the first run or when the setup script changes.
+      # GStreamer MSIs are excluded — they install system-wide and
+      # can't be restored from a folder cache, and we skip them anyway
+      # via SKIP_GSTREAMER since no test depends on GStreamer.
+      # ---------------------------------------------------------------
+      - name: Cache dependencies
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: |
+            deps
+            !deps/*.msi
+            !deps/*.exe
+          key: deps-${{ runner.os }}-${{ hashFiles('InitialSetup_x64.bat') }}
+          restore-keys: |
+            deps-${{ runner.os }}-
+
+      # ---------------------------------------------------------------
+      # Only fetch deps on a cache miss. SKIP_GSTREAMER=1 tells
+      # InitialSetup_x64.bat to skip the GStreamer MSI downloads and
+      # installs — none of the test targets depend on GStreamer, and
+      # skipping it saves several hundred MB of download on first run.
+      # ---------------------------------------------------------------
+      - name: Fetch dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        shell: cmd
+        env:
+          SKIP_GSTREAMER: "1"
+        run: |
+          call InitialSetup_x64.bat
+          if %ERRORLEVEL% NEQ 0 (
+            echo InitialSetup_x64.bat failed
+            exit /b 1
+          )
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v3
+        with:
+          msbuild-architecture: x64
+
+      # ---------------------------------------------------------------
+      # Configure the project. Key differences from a full local build:
+      #   -DMIKAN_WITH_GSTREAMER=OFF  skips the GStreamer find_package
+      #                               and the MikanGStreamerVideo plugin.
+      #   -DCMAKE_RUNTIME_OUTPUT_DIRECTORY  flattens all EXEs and DLLs
+      #                               to a single predictable location
+      #                               (build\bin\Release\) for the test
+      #                               steps below.
+      # ---------------------------------------------------------------
+      - name: Generate project files
+        shell: cmd
+        run: |
+          IF NOT EXIST build mkdir build
+          pushd build
+
+          set DEPS_ROOT_PATH=%GITHUB_WORKSPACE%\deps
+          set THIRDPARTY_ROOT_PATH=%GITHUB_WORKSPACE%\thirdparty
+          set DIST_ROOT_PATH=%GITHUB_WORKSPACE%\dist\Win64
+
+          cmake .. -G "Visual Studio 17 2022" -A x64 ^
+            -DCMAKE_INSTALL_PREFIX=%DIST_ROOT_PATH% ^
+            -DCEF_ROOT="%DEPS_ROOT_PATH%/cef/cef_binary_145.0.27+g4ddda2e+chromium-145.0.7632.117_windows64" ^
+            -DOpenCV_DIR=%DEPS_ROOT_PATH%\opencv\build ^
+            -DOPENVR_ROOT_DIR=%THIRDPARTY_ROOT_PATH%\openvr ^
+            -DOPENVR_HEADERS_ROOT_DIR=%THIRDPARTY_ROOT_PATH%\openvr\include ^
+            -DSDL2_LIBRARY="%DEPS_ROOT_PATH%\SDL2-2.0.10\lib\x64\sdl2.lib" ^
+            -DSDL2_INCLUDE_DIR="%DEPS_ROOT_PATH%\SDL2-2.0.10\include" ^
+            -DSDL2TTF_LIBRARY="%DEPS_ROOT_PATH%\SDL2_ttf-2.0.15\lib\x64\sdl2_ttf.lib" ^
+            -DSDL2TTF_INCLUDE_DIR="%DEPS_ROOT_PATH%\SDL2_ttf-2.0.15\include" ^
+            -DSDL2_IMAGE_LIBRARY="%DEPS_ROOT_PATH%\SDL2_image-2.0.5\lib\x64\sdl2_image.lib" ^
+            -DSDL2_IMAGE_INCLUDE_DIR="%DEPS_ROOT_PATH%\SDL2_image-2.0.5\include" ^
+            -DCMAKE_PREFIX_PATH="%DEPS_ROOT_PATH%\easy_profiler\lib\cmake\easy_profiler" ^
+            -DNUGET_PATH="%DEPS_ROOT_PATH%" ^
+            -DMIKAN_WITH_GSTREAMER=OFF ^
+            -DCMAKE_RUNTIME_OUTPUT_DIRECTORY="%GITHUB_WORKSPACE%\build\bin" ^
+            -DCMAKE_UNITY_BUILD=ON
+
+          if %ERRORLEVEL% NEQ 0 (
+            echo CMake configure failed
+            exit /b 1
+          )
+          popd
+
+      # ---------------------------------------------------------------
+      # Build each test target separately so failures are reported
+      # per-target. MikanCmd depends on Mikan (add_dependencies), so
+      # the full editor object library is compiled once here and reused
+      # by the other targets through the shared output directory.
+      # ---------------------------------------------------------------
+      - name: Build MikanCmd
+        shell: cmd
+        run: |
+          cmake --build build --config Release --target MikanCmd --parallel
+          if %ERRORLEVEL% NEQ 0 (
+            echo MikanCmd build failed
+            exit /b 1
+          )
+
+      - name: Build unit_test_suite_cpp
+        shell: cmd
+        run: |
+          cmake --build build --config Release --target unit_test_suite_cpp --parallel
+          if %ERRORLEVEL% NEQ 0 (
+            echo unit_test_suite_cpp build failed
+            exit /b 1
+          )
+
+      # ---------------------------------------------------------------
+      # Run tests. All binaries land in build\bin\Release\ thanks to
+      # CMAKE_RUNTIME_OUTPUT_DIRECTORY set during configure.
+      # ---------------------------------------------------------------
+      - name: Run MikanCmd tests
+        shell: cmd
+        run: |
+          build\bin\Release\MikanCmd.exe -runTests
+          if %ERRORLEVEL% NEQ 0 (
+            echo MikanCmd tests failed
+            exit /b 1
+          )
+
+      - name: Run C++ unit tests
+        shell: cmd
+        run: |
+          build\bin\Release\unit_test_suite_cpp.exe
+          if %ERRORLEVEL% NEQ 0 (
+            echo C++ unit tests failed
+            exit /b 1
+          )
+
+      # Upload all test binaries and their runtime DLLs for inspection,
+      # even on failure, so build artifacts are available for debugging.
+      - name: Upload build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: MikanXR-TestBinaries
+          path: build\bin\Release\
+          retention-days: 7

@@ -42,6 +42,8 @@
 build*
 dist*
 !OBJ-loader
+!.github/
+!.github/**
 !resources/models/*/*.obj
 
 # Third Party

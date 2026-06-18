@@ -127,13 +127,16 @@ option(IXWEBSOCKET_INSTALL "Install IXWebSocket" FALSE)
 set (IXWEBSOCKET_DIR ${ROOT_DIR}/thirdparty/IXWebSocket/)
 set (IXWEBSOCKET_INCLUDE_DIR ${IXWEBSOCKET_DIR})
 
-# GStreamer
-find_package(GStreamer REQUIRED COMPONENTS base)
-find_package(GStreamerPluginsBase COMPONENTS app)
-find_package(GStreamerPluginsBase COMPONENTS video)
-find_package(GLIB2 REQUIRED)
-find_package(GObject REQUIRED)
-set (GSTREAMER_BIN_DIR ${GSTREAMER_ROOT}/bin)
+# GStreamer (optional — disable for test-only / CI builds with -DMIKAN_WITH_GSTREAMER=OFF)
+option(MIKAN_WITH_GSTREAMER "Build the GStreamer video plugin" ON)
+if(MIKAN_WITH_GSTREAMER)
+  find_package(GStreamer REQUIRED COMPONENTS base)
+  find_package(GStreamerPluginsBase COMPONENTS app)
+  find_package(GStreamerPluginsBase COMPONENTS video)
+  find_package(GLIB2 REQUIRED)
+  find_package(GObject REQUIRED)
+  set(GSTREAMER_BIN_DIR ${GSTREAMER_ROOT}/bin)
+endif()
 
 # Nlohmann JSON
 set (NLOHMANN_JSON_INCLUDE_DIR ${ROOT_DIR}/thirdparty/nlohmann_json/include)

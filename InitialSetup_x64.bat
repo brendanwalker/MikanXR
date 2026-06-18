@@ -128,29 +128,31 @@ IF %ERRORLEVEL% NEQ 0 (
   goto failure
 )
 
-echo "Downloading gstreamer-runtime installer"
-curl -L https://gstreamer.freedesktop.org/data/pkg/windows/1.26.10/mingw/gstreamer-1.0-mingw-x86_64-1.26.10.msi --output gstreamer-1.0-mingw-x86_64-1.26.10.msi
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading gstreamer-1.0-mingw-x86_64-1.26.10.msi"
-  goto failure
-)
-msiexec /i gstreamer-1.0-mingw-x86_64-1.26.10.msi /qb
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error installing gstreamer-runtime installer"
-  goto failure
-)
+if not defined SKIP_GSTREAMER (
+  echo "Downloading gstreamer-runtime installer"
+  curl -L https://gstreamer.freedesktop.org/data/pkg/windows/1.26.10/mingw/gstreamer-1.0-mingw-x86_64-1.26.10.msi --output gstreamer-1.0-mingw-x86_64-1.26.10.msi
+  IF %ERRORLEVEL% NEQ 0 (
+    echo "Error downloading gstreamer-1.0-mingw-x86_64-1.26.10.msi"
+    goto failure
+  )
+  msiexec /i gstreamer-1.0-mingw-x86_64-1.26.10.msi /qb
+  IF %ERRORLEVEL% NEQ 0 (
+    echo "Error installing gstreamer-runtime installer"
+    goto failure
+  )
 
-echo "Downloading gstreamer-devel installer"
+  echo "Downloading gstreamer-devel installer"
 
-curl -L https://gstreamer.freedesktop.org/data/pkg/windows/1.26.10/mingw/gstreamer-1.0-devel-mingw-x86_64-1.26.10.msi --output gstreamer-1.0-devel-mingw-x86_64-1.26.10.msi
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error downloading gstreamer-1.0-devel-mingw-x86_64-1.26.10.msi"
-  goto failure
-)
-msiexec /i gstreamer-1.0-devel-mingw-x86_64-1.26.10.msi /qb
-IF %ERRORLEVEL% NEQ 0 (
-  echo "Error installing gstreamer-devel installer"
-  goto failure
+  curl -L https://gstreamer.freedesktop.org/data/pkg/windows/1.26.10/mingw/gstreamer-1.0-devel-mingw-x86_64-1.26.10.msi --output gstreamer-1.0-devel-mingw-x86_64-1.26.10.msi
+  IF %ERRORLEVEL% NEQ 0 (
+    echo "Error downloading gstreamer-1.0-devel-mingw-x86_64-1.26.10.msi"
+    goto failure
+  )
+  msiexec /i gstreamer-1.0-devel-mingw-x86_64-1.26.10.msi /qb
+  IF %ERRORLEVEL% NEQ 0 (
+    echo "Error installing gstreamer-devel installer"
+    goto failure
+  )
 )
 
 echo "Downloading easy_profiler..."
