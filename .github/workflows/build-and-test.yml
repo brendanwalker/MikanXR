@@ -25,10 +25,17 @@ jobs:
         run: |
           git submodule update --init --depth=1 \
             thirdparty/openvr \
+            thirdparty/glm \
+            thirdparty/Configuru \
+            thirdparty/stb \
+            thirdparty/fast-cpp-csv-parser \
+            thirdparty/LuaBridge3 \
             thirdparty/imgui \
             thirdparty/imnodes \
-            thirdparty/implot \
-            thirdparty/LuaBridge3
+            thirdparty/fast_obj \
+            thirdparty/IXWebSocket \
+            thirdparty/readerwriterqueue \
+            thirdparty/nlohmann_json
           # LuaBridge3 has its own sub-submodules we don't need, so skip them.
           # imnodes/vcpkg is also excluded for the same reason.
 
