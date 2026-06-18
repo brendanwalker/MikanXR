@@ -57,6 +57,7 @@ export class MikanVideoSourceValues extends MikanComponentValues {
 }
 
 export class MikanUSBVideoSourceValues extends MikanVideoSourceValues {
+  current_friendly_name: string = '';
   current_device_path: string = '';
   video_mode: string = '';
   video_resolution: string = '';
@@ -104,6 +105,7 @@ export class MikanUSBVideoSourceValues extends MikanVideoSourceValues {
   focus_fraction: number = 0;
 
   static __serializationMetadata: SerializationField[] = [
+    { name: 'current_friendly_name', type: 'string' },
     { name: 'current_device_path', type: 'string' },
     { name: 'video_mode', type: 'string' },
     { name: 'video_resolution', type: 'string' },

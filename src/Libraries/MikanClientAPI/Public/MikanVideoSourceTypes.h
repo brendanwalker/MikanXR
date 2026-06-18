@@ -272,6 +272,8 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 	static const char* k_ownerSystemName;
 
 	FIELD()
+	Serialization::String current_friendly_name; ///< Current device friendly name
+	FIELD()
 	Serialization::String current_device_path; ///< Current USB device path
 	FIELD()
 	Serialization::String video_mode; ///< Current video mode name

@@ -103,6 +103,7 @@ namespace MikanXR
 
 	public class MikanUSBVideoSourceValues : MikanVideoSourceValues
 	{
+		public string current_friendly_name;
 		public string current_device_path;
 		public string video_mode;
 		public string video_resolution;
