@@ -17,7 +17,7 @@
 #include <type_traits>
 #include <vector>
 
-enum class ENUM(Serialization::CodeGenModule("MikanVariantTypes")) MikanVariantType
+enum class ENUM(Serialization::CodeGenModule("MikanVariantTypes")) MikanVariantType : int
 {
 	INVALID ENUMVALUE_STRING("INVALID_TYPE"),
 	
@@ -53,6 +53,8 @@ enum class ENUM(Serialization::CodeGenModule("MikanVariantTypes")) MikanVariantT
 	// Object Types
 	POLYMORPHIC_OBJECT ENUMVALUE_STRING("POLYMORPHIC_OBJECT_TYPE"),
 };
+
+MIKAN_API_FUNC(const char*) mikanVariantTypeToString(MikanVariantType variantType);
 
 /// Bundle containing all intrinsic video source properties
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) MikanVariant
