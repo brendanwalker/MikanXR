@@ -1,5 +1,16 @@
 #include "MikanVariantTypes.h"
+#include "SerializationProperty.h"
+#include <Refureku/TypeInfo/Archetypes/EnumValue.h>
 #include <assert.h>
+
+const char* mikanVariantTypeToString(MikanVariantType variantType)
+{
+	int enumIntValue = (int)variantType;
+	rfk::Enum const* enumType = rfk::getEnum<MikanVariantType>();
+	rfk::EnumValue const* enumValue = enumType->getEnumValue(enumIntValue);
+
+	return Serialization::getEnumStringValue(*enumValue);
+}
 
 MikanVariant::MikanVariant()
 	: value_type(MikanVariantType::INVALID)

@@ -3,20 +3,26 @@
 #ifndef MIKAN_API
     #if defined(MIKAN_API_EXPORTS) 
         #if defined _WIN32 || defined __CYGWIN__
-            #define MIKAN_API                                __declspec(dllexport)
+            #define MIKAN_API_FUNC(rval)       __declspec(dllexport)                   rval
+            #define MIKAN_API                  __declspec(dllexport)
         #else  // Not Windows
             #if __GNUC__ >= 4
-                #define MIKAN_API                            __attribute__((visibility("default")))
+                #define MIKAN_API_FUNC(rval)   __attribute__((visibility("default")))  rval
+                #define MIKAN_API              __attribute__((visibility("default")))
             #else
+                #define MIKAN_API_FUNC(rval)   rval
                 #define MIKAN_API
             #endif
         #endif  //defined _WIN32 || defined __CYGWIN__
     #elif defined(MIKAN_CLIENT_NOEXPORT) || defined(MIKAN_CLIENT_CAPI_NOEXPORT)  // Building static lib
+        #define MIKAN_API_FUNC(rval)   rval
         #define MIKAN_API
     #else //This DLL/so/dylib is being imported
         #if defined _WIN32 || defined __CYGWIN__
-            #define MIKAN_API                                __declspec(dllimport)
+            #define MIKAN_API_FUNC(rval)        __declspec(dllimport)                  rval
+            #define MIKAN_API                   __declspec(dllimport)
         #else  // Not Windows
+            #define MIKAN_API_FUNC(rval)        rval
             #define MIKAN_API
         #endif  //defined _WIN32 || defined __CYGWIN__
     #endif //MIKAN_API_EXPORTS
