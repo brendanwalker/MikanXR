@@ -1,7 +1,5 @@
 //-- includes -----
 #include "App.h"
-#include "TrackerPoseCalibratorTests.h"
-#include "ClientApiPropertySchemaTests.h"
 #include "AppSettingsConfig.h"
 #include "CommonConfig.h"
 #include "EventBus.h"
@@ -82,10 +80,6 @@ int App::exec(int argc, char** argv)
 			frameTimer.waitForNextFrame();
 		}
 	}
-	else if (m_testMode)
-	{
-		result = m_testsPassed ? EXIT_SUCCESS : EXIT_FAILURE;
-	}
 	else
 	{
 		MIKAN_LOG_ERROR("App::exec") << "Failed to initialize application!";
@@ -139,14 +133,6 @@ bool App::startup(int argc, char** argv)
 	settings.log_filename= "MikanXR.log";
 
 	log_init(settings);
-
-	// Run unit tests if requested, then signal exec() to exit cleanly
-	if (hasCommandLineFlag("runTests"))
-	{
-		m_testMode = true;
-		m_testsPassed = runTests();
-		return false;
-	}
 
 	profiler::startListen();
 
@@ -429,13 +415,4 @@ void App::destroyAppWindow(EditorWindow* appWindow)
 	}
 
 	delete appWindow;
-}
-
-bool App::runTests()
-{
-	bool success = true;
-	success &= run_tracker_pose_calibrator_unit_tests();
-	success &= run_client_api_property_schema_tests();
-	// Future: add more test modules here
-	return success;
 }

@@ -17,11 +17,16 @@ set(MIKAN_REQ_LIBS)
 
 list(APPEND MIKAN_REQ_LIBS ${PLATFORM_LIBS})
 
-# AppCore 
+# AppCore
 file(GLOB MIKAN_APP_CORE_SRC
     "${CMAKE_CURRENT_LIST_DIR}/AppCore/*.cpp"
     "${CMAKE_CURRENT_LIST_DIR}/AppCore/*.h"
 )
+# The executable entry points are NOT part of the shared editor object library;
+# each executable (Mikan / MikanCmd) compiles its own entry point file.
+list(REMOVE_ITEM MIKAN_APP_CORE_SRC
+    "${CMAKE_CURRENT_LIST_DIR}/AppCore/EntryPoint.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/AppCore/CmdEntryPoint.cpp")
 source_group("AppCore" FILES ${MIKAN_APP_CORE_SRC})
 
 # AppStages 
@@ -594,9 +599,24 @@ set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Device/Enumerator/OpenCVCa
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/WebsocketInterprocessMessageServer.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 set_source_files_properties(${CMAKE_CURRENT_LIST_DIR}/Interprocess/SharedTextureReader.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 
+# All editor code is compiled once into a shared OBJECT library that both the
+# GUI executable (Mikan) and the command-line tool (MikanCmd) link.
+# Usage requirements are PUBLIC so they both compile the library sources and
+# propagate to each executable's entry-point translation unit.
+add_library(MikanEditor OBJECT ${MIKAN_SRC})
+target_include_directories(MikanEditor PUBLIC ${MIKAN_INCL_DIRS})
+target_link_libraries(MikanEditor PUBLIC ${MIKAN_REQ_LIBS})
+target_compile_definitions(MikanEditor PUBLIC ENABLE_SERIALIZATION_REFLECTION)
+target_compile_definitions(MikanEditor PUBLIC ENABLE_MIKANCORE_REFLECTION)
+target_compile_definitions(MikanEditor PUBLIC ENABLE_MIKANAPI_REFLECTION)
+target_compile_definitions(MikanEditor PUBLIC ENABLE_GL_PROGRAM_CONFIG)
+target_compile_definitions(MikanEditor PUBLIC JSON_DISABLE_ENUM_SERIALIZATION=1)
+set_target_properties(MikanEditor PROPERTIES FOLDER MikanLibraries)
+
+# GUI application (WinMain entry point)
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 set(APP_RESOURCE_WINDOWS "${CMAKE_CURRENT_SOURCE_DIR}/winapp_resources.rc")
-add_executable(Mikan WIN32 ${MIKAN_SRC} ${APP_RESOURCE_WINDOWS})
+add_executable(Mikan WIN32 "${CMAKE_CURRENT_LIST_DIR}/AppCore/EntryPoint.cpp" ${APP_RESOURCE_WINDOWS})
 # Embed the application manifest so Windows reports the real OS version to all
 # CEF subprocess instances (which reuse Mikan.exe as the helper process).
 # Without this, base::win::OSInfo returns build 9200 (Win 8.1 compat shim)
@@ -606,16 +626,20 @@ target_link_options(Mikan PRIVATE
     "/MANIFESTINPUT:${CMAKE_CURRENT_SOURCE_DIR}/Mikan.exe.manifest"
 )
 ELSE() #Linux/Darwin
-add_executable(Mikan ${MIKAN_SRC})
+add_executable(Mikan "${CMAKE_CURRENT_LIST_DIR}/AppCore/EntryPoint.cpp")
 ENDIF()
+target_link_libraries(Mikan PRIVATE MikanEditor)
 
-target_include_directories(Mikan PUBLIC ${MIKAN_INCL_DIRS})
-target_link_libraries(Mikan ${MIKAN_REQ_LIBS})
-target_compile_definitions(Mikan PRIVATE ENABLE_SERIALIZATION_REFLECTION)
-target_compile_definitions(Mikan PRIVATE ENABLE_MIKANCORE_REFLECTION)
-target_compile_definitions(Mikan PRIVATE ENABLE_MIKANAPI_REFLECTION)
-target_compile_definitions(Mikan PRIVATE ENABLE_GL_PROGRAM_CONFIG)
-target_compile_definitions(Mikan PRIVATE JSON_DISABLE_ENUM_SERIALIZATION=1)
+# Command-line tool (console subsystem, main() entry point).
+# Links the same editor object code but uses a stripped-down CmdApp that only
+# inits the logger + runs commands
+add_executable(MikanCmd "${CMAKE_CURRENT_LIST_DIR}/AppCore/CmdEntryPoint.cpp")
+target_link_libraries(MikanCmd PRIVATE MikanEditor)
+# Mikan and MikanCmd share an output directory, so only Mikan copies the runtime
+# DLLs (see copy_mikan_runtime_deps below). MikanCmd depends on Mikan so those
+# copies are present when MikanCmd is built, and so the two targets' post-build
+# steps never run concurrently and race to copy the same files.
+add_dependencies(MikanCmd Mikan)
 
 # Runtime dependencies
 set(SDL2_DLL ${ROOT_DIR}/deps/SDL2-2.0.10/lib/x64/SDL2.dll)
@@ -623,112 +647,126 @@ set(SDL2_TTF_DLL_FOLDER ${ROOT_DIR}/deps/SDL2_ttf-2.0.15/lib/x64)
 set(EASY_PROFILER_FOLDER ${ROOT_DIR}/deps/easy_profiler/bin)
 set(OPENVR_DLL ${ROOT_DIR}/thirdparty/openvr/bin/win64/openvr_api.dll)
 
-# Post build - copy runtime dependencies to binary build folder (for debugging)
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
-  set_property(TARGET Mikan PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "../../..")
+# Post build - copy runtime dependencies to binary build folder (for debugging).
+# Wrapped in a function so both Mikan and MikanCmd (which share an output dir and
+# link the same runtime DLLs) each receive the dependencies and stay independently
+# runnable.
+function(copy_mikan_runtime_deps mikan_target)
+  set_property(TARGET ${mikan_target} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "../../..")
 
   add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanClientAPI>/MikanClientAPI.dll $<TARGET_FILE_DIR:Mikan>)
+    TARGET ${mikan_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanClientAPI>/MikanClientAPI.dll $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanClientCore>/MikanClientCore.dll $<TARGET_FILE_DIR:Mikan>)
+    TARGET ${mikan_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanClientCore>/MikanClientCore.dll $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanCoreApp>/MikanCoreApp.dll $<TARGET_FILE_DIR:Mikan>)
+    TARGET ${mikan_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanCoreApp>/MikanCoreApp.dll $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanGUI>/MikanGUI.dll $<TARGET_FILE_DIR:Mikan>)
+    TARGET ${mikan_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanGUI>/MikanGUI.dll $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanMath>/MikanMath.dll $<TARGET_FILE_DIR:Mikan>)
+    TARGET ${mikan_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanMath>/MikanMath.dll $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanRenderer>/MikanRenderer.dll $<TARGET_FILE_DIR:Mikan>)
+    TARGET ${mikan_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanRenderer>/MikanRenderer.dll $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanWindow>/MikanWindow.dll $<TARGET_FILE_DIR:Mikan>)
+    TARGET ${mikan_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanWindow>/MikanWindow.dll $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanSharedTexture>/MikanSharedTexture.dll $<TARGET_FILE_DIR:Mikan>)
+    TARGET ${mikan_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanSharedTexture>/MikanSharedTexture.dll $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanSerialization>/MikanSerialization.dll $<TARGET_FILE_DIR:Mikan>)
+    TARGET ${mikan_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanSerialization>/MikanSerialization.dll $<TARGET_FILE_DIR:${mikan_target}>)
   set( MIKANSERIALIZATION_PDB_COPY_CMD
     ${CMAKE_COMMAND} -E
     copy
     "$<TARGET_FILE_DIR:MikanSerialization>/$<TARGET_FILE_BASE_NAME:MikanSerialization>.pdb"
-    "$<TARGET_FILE_DIR:Mikan>")
-  add_custom_command( TARGET Mikan POST_BUILD
+    "$<TARGET_FILE_DIR:${mikan_target}>")
+  add_custom_command( TARGET ${mikan_target} POST_BUILD
     COMMAND "$<$<CONFIG:Debug,RelWithDebInfo>:${MIKANSERIALIZATION_PDB_COPY_CMD}>"
     COMMAND_EXPAND_LISTS)
   add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanUtility>/MikanUtility.dll $<TARGET_FILE_DIR:Mikan>)
+    TARGET ${mikan_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanUtility>/MikanUtility.dll $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanWindow>/MikanWindow.dll $<TARGET_FILE_DIR:Mikan>)
+    TARGET ${mikan_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanWindow>/MikanWindow.dll $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${OpenCV_DIR}/x64/vc16/bin/opencv_world4100d.dll $<TARGET_FILE_DIR:Mikan>)
+    TARGET ${mikan_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${OpenCV_DIR}/x64/vc16/bin/opencv_world4100d.dll $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${OpenCV_DIR}/x64/vc16/bin/opencv_world4100.dll $<TARGET_FILE_DIR:Mikan>)
+    TARGET ${mikan_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${OpenCV_DIR}/x64/vc16/bin/opencv_world4100.dll $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanGStreamerVideo>/MikanGStreamerVideo.dll $<TARGET_FILE_DIR:Mikan>)
+    TARGET ${mikan_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanGStreamerVideo>/MikanGStreamerVideo.dll $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanSteamVR>/MikanSteamVR.dll $<TARGET_FILE_DIR:Mikan>)
+    TARGET ${mikan_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanSteamVR>/MikanSteamVR.dll $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${OPENVR_DLL} $<TARGET_FILE_DIR:Mikan>)
+    TARGET ${mikan_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${OPENVR_DLL} $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanWMFVideo>/MikanWMFVideo.dll $<TARGET_FILE_DIR:Mikan>)
+    TARGET ${mikan_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE_DIR:MikanWMFVideo>/MikanWMFVideo.dll $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${SDL2_DLL} $<TARGET_FILE_DIR:Mikan>)
+    TARGET ${mikan_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${SDL2_DLL} $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy 
+    TARGET ${mikan_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
     "${SDL2_TTF_DLL_FOLDER}/SDL2_ttf.dll"
-    $<TARGET_FILE_DIR:Mikan>)
+    $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${GLEW_SHARED_LIBRARIES} $<TARGET_FILE_DIR:Mikan>)
+    TARGET ${mikan_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${GLEW_SHARED_LIBRARIES} $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
-    TARGET Mikan POST_BUILD
+    TARGET ${mikan_target} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
     "${SPOUT2_SHARED_LIBRARIES}"
-    $<TARGET_FILE_DIR:Mikan>)
+    $<TARGET_FILE_DIR:${mikan_target}>)
   # Copy CEF binary and resource files to build output
   if(DEFINED CEF_ROOT)
-    COPY_FILES(Mikan "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "$<TARGET_FILE_DIR:Mikan>")
-    COPY_FILES(Mikan "${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" "$<TARGET_FILE_DIR:Mikan>")
+    COPY_FILES(${mikan_target} "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "$<TARGET_FILE_DIR:${mikan_target}>")
+    COPY_FILES(${mikan_target} "${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" "$<TARGET_FILE_DIR:${mikan_target}>")
   endif()
   add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy 
+    TARGET ${mikan_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
     "${EASY_PROFILER_FOLDER}/easy_profiler.dll"
-    $<TARGET_FILE_DIR:Mikan>)
+    $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
-    TARGET Mikan POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy 
-    "${LUA_SHARED_LIBRARIES}" 
-    $<TARGET_FILE_DIR:Mikan>)	
+    TARGET ${mikan_target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    "${LUA_SHARED_LIBRARIES}"
+    $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
-	TARGET Mikan POST_BUILD
+	TARGET ${mikan_target} POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy
 	"${RFK_SHARED_LIBRARIES}"
-	$<TARGET_FILE_DIR:Mikan>)	
-	
+	$<TARGET_FILE_DIR:${mikan_target}>)
+endfunction()
+
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  # Mikan and MikanCmd share an output directory, so a single copier is enough;
+  # MikanCmd depends on Mikan (above) to guarantee the deps are present and to
+  # avoid a parallel-build race copying the same files into the same folder.
+  copy_mikan_runtime_deps(Mikan)
 ELSE() #Linux/Darwin
 ENDIF()
 
 # Install - copy runtime dependencies to dist folder (for release)
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows") 
   install(TARGETS Mikan
+      RUNTIME DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
+      LIBRARY DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
+      ARCHIVE DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib)
+
+  install(TARGETS MikanCmd
       RUNTIME DESTINATION ${MIKAN_ARCH_INSTALL_PATH}
       LIBRARY DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib
       ARCHIVE DESTINATION ${MIKAN_ARCH_INSTALL_PATH}/lib)

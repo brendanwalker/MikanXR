@@ -105,14 +105,8 @@ protected:
 
 	bool createAppWindowInternal(EditorWindow* appWindow);
 
-	bool runTests();
-
 private:
 	static App* m_instance;
-
-	// Test mode state (set when -run-tests flag is present)
-	bool m_testMode = false;
-	bool m_testsPassed = false;
 
 	// App Settings Config
 	AppSettingsConfigPtr m_appSettings;
