@@ -199,7 +199,7 @@ IF %ERRORLEVEL% NEQ 0 (
   echo "Error downloading cef_binary_windows64.tar.bz2"
   goto failure
 )
-%UNZIP_EXE% x cef_binary_windows64.tar.bz2 -so | %UNZIP_EXE% x -aoa -si -ttar -ocef
+"%UNZIP_EXE%" x cef_binary_windows64.tar.bz2 -so | "%UNZIP_EXE%" x -aoa -si -ttar -ocef
 IF %ERRORLEVEL% NEQ 0 (
   echo "Error extracting cef_binary_windows64.tar.bz2"
   goto failure
