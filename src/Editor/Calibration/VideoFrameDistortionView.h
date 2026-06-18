@@ -26,7 +26,7 @@ public:
 	virtual ~VideoFrameDistortionView();
 
 	inline VideoSourceComponentPtr getVideoSourceComponent() const { return m_videoSourceComponent; }
-	inline IMkGraphicsContext* getGraphicsContext() const;
+	IMkGraphicsContext* getGraphicsContext() const;
 
 	inline VideoFrameSection getVideoFrameSection() const { return m_videoFrameSection; }
 	inline int getFrameWidth() const { return m_frameWidth; }
