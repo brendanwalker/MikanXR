@@ -31,8 +31,10 @@ public:
 	bool isWritable() const { return m_bIsWritable; }
 	bool isReadOnly() const { return m_bIsReadable && !m_bIsWritable; }
 	bool isUIHidden() const { return m_bIsUIHidden; }
+	bool isClientAPIHidden() const { return m_bIsClientAPIHidden; }
 	PropertyDescriptorPtr setReadOnly();
 	PropertyDescriptorPtr setUIHidden();
+	PropertyDescriptorPtr setClientAPIHidden();
 	PropertyDescriptorPtr addMetaData(PropertyMetaDataPtr metaData);
 
 	template <typename t_value_type>
@@ -61,6 +63,7 @@ private:
 	bool m_bIsReadable = true;
 	bool m_bIsWritable = true;
 	bool m_bIsUIHidden = false;
+	bool m_bIsClientAPIHidden = true;
 	std::unique_ptr<MikanVariant> m_defaultValue;
 	std::vector<PropertyMetaDataPtr> m_metaDataList;
 };
