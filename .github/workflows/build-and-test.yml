@@ -10,10 +10,35 @@ jobs:
     runs-on: windows-2022
 
     steps:
+      # ---------------------------------------------------------------
+      # Shallow checkout without recursive submodules. We init only the
+      # submodules actually needed for the build, skipping heavy/unused
+      # ones (LuaBridge3/ThirdParty nested submodules, imnodes/vcpkg).
+      # ---------------------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          submodules: recursive
+          submodules: false
+
+      - name: Init required submodules
+        shell: bash
+        run: |
+          git submodule update --init --depth=1 \
+            thirdparty/openvr \
+            thirdparty/imgui \
+            thirdparty/imnodes \
+            thirdparty/implot \
+            thirdparty/LuaBridge3
+          # LuaBridge3 has its own sub-submodules we don't need, so skip them.
+          # imnodes/vcpkg is also excluded for the same reason.
+
+      # ---------------------------------------------------------------
+      # sccache speeds up incremental builds by caching compiled object
+      # files in the GitHub Actions cache. On a re-push that touches only
+      # a few files this can cut 2-4 minutes off the build time.
+      # ---------------------------------------------------------------
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.9
 
       # ---------------------------------------------------------------
       # Cache the deps folder keyed on InitialSetup_x64.bat so that
@@ -69,6 +94,8 @@ jobs:
       # ---------------------------------------------------------------
       - name: Generate project files
         shell: cmd
+        env:
+          SCCACHE_GHA_ENABLED: "true"
         run: |
           IF NOT EXIST build mkdir build
           pushd build
@@ -93,6 +120,8 @@ jobs:
             -DNUGET_PATH="%DEPS_ROOT_PATH%" ^
             -DMIKAN_WITH_GSTREAMER=OFF ^
             -DCMAKE_RUNTIME_OUTPUT_DIRECTORY="%GITHUB_WORKSPACE%\build\bin" ^
+            -DCMAKE_C_COMPILER_LAUNCHER=sccache ^
+            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache ^
             -DCMAKE_UNITY_BUILD=ON
 
           if %ERRORLEVEL% NEQ 0 (
@@ -147,10 +176,11 @@ jobs:
             exit /b 1
           )
 
-      # Upload all test binaries and their runtime DLLs for inspection,
-      # even on failure, so build artifacts are available for debugging.
+      # Upload test binaries and runtime DLLs for inspection.
+      # Only upload on main branch pushes to avoid wasting storage on
+      # every feature-branch commit (~18s savings per branch push).
       - name: Upload build artifacts
-        if: always()
+        if: always() && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
           name: MikanXR-TestBinaries
