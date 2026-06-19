@@ -20,20 +20,22 @@
 //-- globals -----
 bool g_is_initialized= false;
 LogSeverityLevel g_min_log_level= LogSeverityLevel::info;
-bool g_is_console_log_enabled= false;
+bool g_owns_win32_console= false;
 std::ostream* g_file_stream = nullptr;
 std::mutex* g_logger_mutex = nullptr;
 t_logCallback g_logger_callback = nullptr;
 
 void log_default_callback(int log_level, const char* line)
 {
-	if (g_is_console_log_enabled)
-	{
-		if (log_level >= (int)LogSeverityLevel::error)
-			std::cerr << line << std::endl;
-		else
-			std::cout << line << std::endl;
-	}
+	// Always emit to the standard streams. For console apps (e.g. MikanCmd)
+	// these are the process's existing stdout/stderr; for a Win32 GUI app
+	// that opted into a console via enable_console, RedirectIOToConsole() has
+	// already pointed them at the allocated console. When a GUI app runs
+	// without a console the writes are simply discarded.
+	if (log_level >= (int)LogSeverityLevel::error)
+		std::cerr << line << std::endl;
+	else
+		std::cout << line << std::endl;
 
 	if (g_file_stream != nullptr)
 	{
@@ -72,16 +74,19 @@ void log_init(const LoggerSettings& settings)
 	{
 		g_min_log_level = settings.min_log_level;
 
+		// enable_console controls whether a Win32 GUI process (which has no
+		// attached console) allocates one and redirects stdout/stderr to it.
+		// Console apps and non-Windows platforms already have valid standard
+		// streams, so this is a no-op there; logging to the standard streams
+		// happens regardless in log_default_callback.
 		if (settings.enable_console)
 		{
 #ifdef WIN32
 			if (RedirectIOToConsole())
 			{
-				g_is_console_log_enabled = true;
+				g_owns_win32_console = true;
 			}
-#else
-			g_is_console_log_enabled = true;
-#endif			
+#endif
 		}
 
 		if (settings.log_filename.length() > 0)
@@ -118,12 +123,12 @@ void log_dispose()
 		g_logger_mutex = nullptr;
 	}
 
-	if (g_is_console_log_enabled)
+	if (g_owns_win32_console)
 	{
 #ifdef WIN32
 		FreeConsole();
 #endif
-		g_is_console_log_enabled = false;
+		g_owns_win32_console = false;
 	}
 
 	g_is_initialized = false;
