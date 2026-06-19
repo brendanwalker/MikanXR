@@ -152,7 +152,7 @@ void RemoteControlManager::remoteControlCommandHandler(
 				commandResponse.results.resize(resultCount);
 				for (size_t i = 0; i < resultCount; i++)
 				{
-					commandResponse.results[i].setValue(results[i]);
+					commandResponse.results[i].setValue(results[i].c_str());
 				}
 			}
 
@@ -197,8 +197,8 @@ void RemoteControlManager::publishAppStageChangedEvent(
 	const std::string& newAppStageName)
 {
 	MikanAppStageChangedEvent appStageChangedEvent = {};
-	appStageChangedEvent.old_app_state_name.setValue(oldAppStageName);
-	appStageChangedEvent.new_app_state_name.setValue(newAppStageName);
+	appStageChangedEvent.old_app_state_name.setValue(oldAppStageName.c_str());
+	appStageChangedEvent.new_app_state_name.setValue(newAppStageName.c_str());
 
 	std::string jsonStr;
 	std::string errorMsg;
@@ -218,7 +218,7 @@ void RemoteControlManager::sendRemoteControlEvent(
 	const std::vector<std::string>& parameters)
 {
 	MikanRemoteControlEvent remoteControlEvent = {};
-	remoteControlEvent.remoteControlEvent.setValue(event);
+	remoteControlEvent.remoteControlEvent.setValue(event.c_str());
 
 	const size_t parameterCount = parameters.size();
 	if (parameterCount > 0)
@@ -227,7 +227,7 @@ void RemoteControlManager::sendRemoteControlEvent(
 
 		for (size_t i = 0; i < parameterCount; i++)
 		{
-			remoteControlEvent.parameters[i].setValue(parameters[i]);
+			remoteControlEvent.parameters[i].setValue(parameters[i].c_str());
 		}
 	}
 

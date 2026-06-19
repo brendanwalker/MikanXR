@@ -25,7 +25,7 @@ namespace Serialization NAMESPACE()
 		String& operator=(const std::string& other);
 		String& operator=(const String& other);
 
-		void setValue(std::string const& string);
+		void setValue(const char* str);
 		const std::string& getValue() const;
 
 		bool operator==(std::string const& other) const;

@@ -204,24 +204,26 @@ void verify_serialization_test_struct(const SerializationTestStruct& actual, con
 	}
 
 	assert(actual.int_point_map.size() == expected.int_point_map.size());
-	for (const auto& pair : actual.int_point_map)
+	for (const auto& entry : actual.int_point_map)
 	{
-		const int key = pair.first;
-		const auto& actualPoint = pair.second;
-		const auto iter = expected.int_point_map.find(key);
-		const auto& expectedPoint = iter->second;
+		const int key = entry.key;
+		const auto& actualPoint = entry.value;
+		const auto* expectedValuePtr = expected.int_point_map.findValue(key);
+		assert(expectedValuePtr != nullptr);
+		const auto& expectedPoint = *expectedValuePtr;
 
 		assert(is_nearly_equal(actualPoint.x_field, expectedPoint.x_field, k_real_epsilon));
 		assert(is_nearly_equal(actualPoint.y_field, expectedPoint.y_field, k_real_epsilon));
 	}
 
 	assert(actual.string_point_map.size() == expected.string_point_map.size());
-	for (const auto& pair : actual.string_point_map)
+	for (const auto& entry : actual.string_point_map)
 	{
-		const std::string& key = pair.first;
-		const auto& actualPoint = pair.second;
-		const auto iter = expected.string_point_map.find(key);
-		const auto& expectedPoint = iter->second;
+		const std::string& key = entry.key;
+		const auto& actualPoint = entry.value;
+		const auto* expectedValuePtr = expected.string_point_map.findValue(key);
+		assert(expectedValuePtr != nullptr);
+		const auto& expectedPoint = *expectedValuePtr;
 
 		assert(is_nearly_equal(actualPoint.x_field, expectedPoint.x_field, k_real_epsilon));
 		assert(is_nearly_equal(actualPoint.y_field, expectedPoint.y_field, k_real_epsilon));

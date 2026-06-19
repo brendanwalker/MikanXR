@@ -143,9 +143,9 @@ namespace Serialization
 			if (m_entityAccessor->getPropertyValue(arrayAccessor.getName(), sourcePropertyValue) &&
 				sourcePropertyValue.value_type == MikanVariantType::UBYTE_ARRAY)
 			{
-				const std::vector<uint8_t>& sourceArray = sourcePropertyValue.getUByteArrayValue();
+				const auto& sourceArray = sourcePropertyValue.getUByteArrayValue();
 
-				destArray->assign(sourceArray.begin(), sourceArray.end());
+				destArray->assign(sourceArray.data(), sourceArray.data() + sourceArray.size());
 			}
 			else
 			{
@@ -166,9 +166,9 @@ namespace Serialization
 			if (m_entityAccessor->getPropertyValue(arrayAccessor.getName(), sourcePropertyValue) &&
 				sourcePropertyValue.value_type == MikanVariantType::INT_ARRAY)
 			{
-				const std::vector<int>& sourceArray = sourcePropertyValue.getIntArrayValue();
+				const auto& sourceArray = sourcePropertyValue.getIntArrayValue();
 
-				destArray->assign(sourceArray.begin(), sourceArray.end());
+				destArray->assign(sourceArray.data(), sourceArray.data() + sourceArray.size());
 			}
 			else
 			{
@@ -189,9 +189,9 @@ namespace Serialization
 			if (m_entityAccessor->getPropertyValue(arrayAccessor.getName(), sourcePropertyValue) &&
 				sourcePropertyValue.value_type == MikanVariantType::FLOAT_ARRAY)
 			{
-				const std::vector<float>& sourceArray = sourcePropertyValue.getFloatArrayValue();
+				const auto& sourceArray = sourcePropertyValue.getFloatArrayValue();
 
-				destArray->assign(sourceArray.begin(), sourceArray.end());
+				destArray->assign(sourceArray.data(), sourceArray.data() + sourceArray.size());
 			}
 			else
 			{
@@ -212,9 +212,9 @@ namespace Serialization
 			if (m_entityAccessor->getPropertyValue(arrayAccessor.getName(), sourcePropertyValue) &&
 				sourcePropertyValue.value_type == MikanVariantType::STRING_ARRAY)
 			{
-				const std::vector<Serialization::String>& sourceArray = sourcePropertyValue.getStringArrayValue();
+				const auto& sourceArray = sourcePropertyValue.getStringArrayValue();
 
-				destArray->assign(sourceArray.begin(), sourceArray.end());
+				destArray->assign(sourceArray.data(), sourceArray.data() + sourceArray.size());
 			}
 			else
 			{
@@ -274,7 +274,10 @@ namespace Serialization
 					sourcePropertyValue.getStringMapValue();
 
 				mapInstance->clear();
-				mapInstance->insert(sourceMap.begin(), sourceMap.end());
+				for (const auto& entry : sourceMap)
+				{
+					mapInstance->insert({entry.key, entry.value});
+				}
 			}
 			else
 			{
@@ -293,7 +296,7 @@ namespace Serialization
 			{
 				auto* variablePtr = accessor.getTypedValueMutablePtr<Serialization::String>();
 
-				variablePtr->setValue(sourcePropertyValue.getStringValue());
+				variablePtr->setValue(sourcePropertyValue.getStringValue().c_str());
 			}
 			else
 			{

@@ -199,7 +199,7 @@ void RGBPixelGridComponent::sendDMXData(IDMXManager* manager) const
 
 void RGBPixelGridComponent::getDMXData(MikanDMXData& outData) const
 {
-	outData.channel_data.assign(m_pixelData.begin(), m_pixelData.end());
+	outData.channel_data.assign(m_pixelData.data(), m_pixelData.data() + m_pixelData.size());
 }
 
 void RGBPixelGridComponent::setDMXData(const MikanDMXData& data)

@@ -299,7 +299,7 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 		}
 		else if (variantType == MikanVariantType::INT_ARRAY)
 		{
-			const std::vector<int>& intList = value.getIntArrayValue();
+			const auto& intList = value.getIntArrayValue();
 			ImGui::LabelText(propName.c_str(), "[%d items]", (int)intList.size());
 			for (int i = 0; i < (int)intList.size(); ++i)
 			{

@@ -1,5 +1,12 @@
 #pragma once
 
+// Serialization::List<T> and Serialization::Map<K,V> are custom flat-array containers
+// whose members are all primitive types (pointer + size_t) — ABI-safe across DLL
+// boundaries in all MSVC configurations. C4251 is a false positive for these types.
+#ifdef _MSC_VER
+    #pragma warning(disable: 4251)
+#endif
+
 #ifndef MIKAN_API
     #if defined(MIKAN_API_EXPORTS) 
         #if defined _WIN32 || defined __CYGWIN__

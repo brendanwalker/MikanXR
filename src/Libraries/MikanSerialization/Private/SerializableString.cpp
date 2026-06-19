@@ -39,10 +39,11 @@ namespace Serialization
 		return *this; 
 	}
 
-	void String::setValue(std::string const& string)
+	void String::setValue(const char* str)
 	{
-		m_pimpl->value= string;
+		m_pimpl->value = str ? str : "";
 	}
+
 	const std::string& String::getValue() const
 	{
 		return m_pimpl->value;

@@ -113,9 +113,9 @@ void PropertyRequestHandler::onObjectSystemDefinitionChanged(
 		return;
 
 	MikanPropertyValue propertyValue = {};
-	propertyValue.ownerSystem.setValue(ownerSystem->getObjectSystemClassName());
+	propertyValue.ownerSystem.setValue(ownerSystem->getObjectSystemClassName().c_str());
 	propertyValue.componentId = -1; // System properties use -1 for componentId
-	propertyValue.fieldName.setValue(propertyName);
+	propertyValue.fieldName.setValue(propertyName.c_str());
 	if (!ownerSystem->getPropertyValue(propertyName, propertyValue.fieldValue))
 		return;
 
@@ -147,10 +147,10 @@ void PropertyRequestHandler::onComponentDefinitionChanged(
 		return;
 
 	MikanPropertyValue propertyValue = {};
-	propertyValue.ownerSystem.setValue(ownerSystem->getObjectSystemClassName());
-	propertyValue.ownerComponentClass.setValue(ownerComponent->getComponentClassName());
+	propertyValue.ownerSystem.setValue(ownerSystem->getObjectSystemClassName().c_str());
+	propertyValue.ownerComponentClass.setValue(ownerComponent->getComponentClassName().c_str());
 	propertyValue.componentId = ownerComponent->getDefinition()->getComponentId();
-	propertyValue.fieldName.setValue(propertyName);
+	propertyValue.fieldName.setValue(propertyName.c_str());
 	if (!ownerComponent->getPropertyValue(propertyName, propertyValue.fieldValue))
 		return;
 
@@ -343,11 +343,13 @@ void PropertyRequestHandler::getComponentListHandler(const ClientRequest& reques
 	// Build the response
 	ComponentListResponse componentListResponse = {};
 	const std::string& componentClassName = getComponentListRequest.componentClassName.getValue();
-	if (!objectSystem->getComponentIdList(componentClassName, componentListResponse.componentIdList))
+	std::vector<int> componentIdVector;
+	if (!objectSystem->getComponentIdList(componentClassName, componentIdVector))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 		return;
 	}
+	componentListResponse.componentIdList.assign(componentIdVector.data(), componentIdVector.data() + componentIdVector.size());
 
 	writeTypedJsonResponse(request.requestId, componentListResponse, response);
 }
@@ -523,9 +525,9 @@ void PropertyRequestHandler::getPropertyDescriptorsHandler(
 		const MikanPropertyEntry* propertyEntry = propertyDatabase->getPropertyByIndex(propertyIndex);
 
 		MikanPropertyDescriptor descriptorResult = {};
-		descriptorResult.ownerSystemClass.setValue(propertyEntry->systemName);
-		descriptorResult.ownerComponentClass.setValue(propertyEntry->componentClassName);
-		descriptorResult.fieldName.setValue(propertyEntry->descriptor->getName());
+		descriptorResult.ownerSystemClass.setValue(propertyEntry->systemName.c_str());
+		descriptorResult.ownerComponentClass.setValue(propertyEntry->componentClassName.c_str());
+		descriptorResult.fieldName.setValue(propertyEntry->descriptor->getName().c_str());
 		descriptorResult.fieldType = propertyEntry->descriptor->getDataType();
 		descriptorResult.isReadOnly = propertyEntry->descriptor->isReadOnly();
 

@@ -76,7 +76,7 @@ MikanEventPtr MikanEventManager::parseEventString(const char* szUtf8EventString)
 
 			auto disconnectEventPtr= std::make_shared<MikanDisconnectedEvent>();
 			disconnectEventPtr->code = (MikanDisconnectCode)disconnectCode;
-			disconnectEventPtr->reason.setValue(disconnectReason);
+			disconnectEventPtr->reason.setValue(disconnectReason.c_str());
 
 			eventPtr= disconnectEventPtr;
 		}

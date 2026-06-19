@@ -83,7 +83,7 @@ namespace Serialization
 					std::string value = fieldJsonObject.get<std::string>();
 					auto* variablePtr = accessor.getTypedValueMutablePtr<Serialization::String>();
 
-					variablePtr->setValue(value);
+					variablePtr->setValue(value.c_str());
 					return;
 				}
 				else

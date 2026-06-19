@@ -72,7 +72,7 @@ namespace Serialization
 			auto* variablePtr = accessor.getTypedValueMutablePtr<Serialization::String>();
 
 			from_binary(m_binaryReader, value);
-			variablePtr->setValue(value);
+			variablePtr->setValue(value.c_str());
 		}
 
 		void visitObjectPtr(ValueAccessor const& accessor)

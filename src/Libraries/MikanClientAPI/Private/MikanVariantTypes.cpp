@@ -208,25 +208,25 @@ const std::vector<bool>& MikanVariant::getBoolArrayValue() const
 	return value_ptr.getTypedPointer<MikanBoolArrayValue>()->value.getVector();
 }
 
-const std::vector<uint8_t>& MikanVariant::getUByteArrayValue() const
+const Serialization::List<uint8_t>& MikanVariant::getUByteArrayValue() const
 {
 	assert(value_type == MikanVariantType::UBYTE_ARRAY);
 	return value_ptr.getTypedPointer<MikanUByteArrayValue>()->value;
 }
 
-const std::vector<int>& MikanVariant::getIntArrayValue() const
+const Serialization::List<int>& MikanVariant::getIntArrayValue() const
 {
 	assert(value_type == MikanVariantType::INT_ARRAY);
 	return value_ptr.getTypedPointer<MikanIntArrayValue>()->value;
 }
 
-const std::vector<float>& MikanVariant::getFloatArrayValue() const
+const Serialization::List<float>& MikanVariant::getFloatArrayValue() const
 {
 	assert(value_type == MikanVariantType::FLOAT_ARRAY);
 	return value_ptr.getTypedPointer<MikanFloatArrayValue>()->value;
 }
 
-const std::vector<Serialization::String>& MikanVariant::getStringArrayValue() const
+const Serialization::List<Serialization::String>& MikanVariant::getStringArrayValue() const
 {
 	assert(value_type == MikanVariantType::STRING_ARRAY);
 	return value_ptr.getTypedPointer<MikanStringArrayValue>()->value;
@@ -375,7 +375,7 @@ void MikanVariant::setValue(const char* value)
 void MikanVariant::setValue(const std::string& value)
 {
 	value_type = MikanVariantType::STRING;
-	value_ptr.allocatedByType<MikanStringValue>()->value.setValue(value);
+	value_ptr.allocatedByType<MikanStringValue>()->value.setValue(value.c_str());
 }
 
 void MikanVariant::setValue(const std::vector<bool>& value)
@@ -389,48 +389,72 @@ void MikanVariant::setValue(const std::vector<bool>& value)
 
 void MikanVariant::setValue(const std::vector<uint8_t>& value)
 {
-	std::vector<uint8_t>& value_array =
+	Serialization::List<uint8_t>& value_array =
 		value_ptr.allocatedByType<MikanUByteArrayValue>()->value;
 	value_type = MikanVariantType::UBYTE_ARRAY;
-	value_array = value;
+	value_array.assign(value.data(), value.data() + value.size());
 }
 
 void MikanVariant::setValue(const std::vector<int>& value)
 {
-	std::vector<int>& value_array = value_ptr.allocatedByType<MikanIntArrayValue>()->value;
+	Serialization::List<int>& value_array = value_ptr.allocatedByType<MikanIntArrayValue>()->value;
 
 	value_type = MikanVariantType::INT_ARRAY;
-	value_array = value;
+	value_array.assign(value.data(), value.data() + value.size());
 }
 
 void MikanVariant::setValue(const std::vector<float>& value)
 {
-	std::vector<float>& value_array = value_ptr.allocatedByType<MikanFloatArrayValue>()->value;
+	Serialization::List<float>& value_array = value_ptr.allocatedByType<MikanFloatArrayValue>()->value;
 
 	value_type = MikanVariantType::FLOAT_ARRAY;
-	value_array = value;
+	value_array.assign(value.data(), value.data() + value.size());
 }
 
 void MikanVariant::setValue(const std::vector<std::string>& value)
 {
-	std::vector<Serialization::String>& value_array =
+	Serialization::List<Serialization::String>& value_array =
 		value_ptr.allocatedByType<MikanStringArrayValue>()->value;
 
 	value_type = MikanVariantType::STRING_ARRAY;
 	value_array.clear();
 	for (const std::string& str : value)
 	{
-		value_array.emplace_back(str);
+		value_array.push_back(Serialization::String(str.c_str()));
 	}
 }
 
 void MikanVariant::setValue(const std::vector<Serialization::String>& value)
 {
-	std::vector<Serialization::String>& value_array =
+	Serialization::List<Serialization::String>& value_array =
 		value_ptr.allocatedByType<MikanStringArrayValue>()->value;
 
 	value_type = MikanVariantType::STRING_ARRAY;
-	value_array = value;
+	value_array.assign(value.data(), value.data() + value.size());
+}
+
+void MikanVariant::setValue(const Serialization::List<uint8_t>& value)
+{
+	value_ptr.allocatedByType<MikanUByteArrayValue>()->value = value;
+	value_type = MikanVariantType::UBYTE_ARRAY;
+}
+
+void MikanVariant::setValue(const Serialization::List<int>& value)
+{
+	value_ptr.allocatedByType<MikanIntArrayValue>()->value = value;
+	value_type = MikanVariantType::INT_ARRAY;
+}
+
+void MikanVariant::setValue(const Serialization::List<float>& value)
+{
+	value_ptr.allocatedByType<MikanFloatArrayValue>()->value = value;
+	value_type = MikanVariantType::FLOAT_ARRAY;
+}
+
+void MikanVariant::setValue(const Serialization::List<Serialization::String>& value)
+{
+	value_ptr.allocatedByType<MikanStringArrayValue>()->value = value;
+	value_type = MikanVariantType::STRING_ARRAY;
 }
 
 void MikanVariant::setValue(const Serialization::Map<std::string, Serialization::String>& value)

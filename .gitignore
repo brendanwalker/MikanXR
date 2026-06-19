@@ -78,3 +78,4 @@ src/MikanUI/resources/css
 bindings/csharp/*.bat
 bindings/typescript/node_modules
 bindings/typescript/package-lock.json
+*.log

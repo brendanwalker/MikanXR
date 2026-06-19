@@ -126,10 +126,10 @@ void FunctionRequestHandler::getFunctionListHandler(
 		const MikanFunctionEntry* propertyEntry = propertyDatabase->getFunctionByIndex(propertyIndex);
 
 		MikanFunctionDescriptor descriptorResult = {};
-		descriptorResult.ownerSystemClass.setValue(propertyEntry->systemName);
-		descriptorResult.ownerComponentClass.setValue(propertyEntry->componentClassName);
-		descriptorResult.functionName.setValue(propertyEntry->descriptor->getFunctionName());
-		descriptorResult.displayName.setValue(propertyEntry->descriptor->getDisplayName());
+		descriptorResult.ownerSystemClass.setValue(propertyEntry->systemName.c_str());
+		descriptorResult.ownerComponentClass.setValue(propertyEntry->componentClassName.c_str());
+		descriptorResult.functionName.setValue(propertyEntry->descriptor->getFunctionName().c_str());
+		descriptorResult.displayName.setValue(propertyEntry->descriptor->getDisplayName().c_str());
 
 		propertyDescriptorResponse.descriptor_list.push_back(descriptorResult);
 
