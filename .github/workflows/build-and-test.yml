@@ -193,6 +193,22 @@ jobs:
         run: sccache --show-stats
 
       # ---------------------------------------------------------------
+      # List the folder and dump every binary's imports for missing DLL
+      # diagnostics in case of a build failure
+      # ---------------------------------------------------------------
+      - name: Emit build\bin dependencies
+        shell: cmd
+        run: |
+          echo ===== build\bin contents =====
+          dir /b build\bin
+          echo ===== imports of each binary =====
+          for %%F in (build\bin\*.exe build\bin\*.dll) do (
+            echo --- %%~nxF ---
+            dumpbin /dependents "%%F" | findstr /i "\.dll"
+          )
+          exit /b 0
+
+      # ---------------------------------------------------------------
       # Run tests. All binaries land in build\bin\ thanks to
       # CMAKE_RUNTIME_OUTPUT_DIRECTORY set during configure (no per-config
       # subdirectory because Ninja is single-config).
