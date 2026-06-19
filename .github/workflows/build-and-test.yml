@@ -9,6 +9,14 @@ jobs:
   build:
     runs-on: windows-2022
 
+    # Enable the sccache GitHub Actions cache backend for the whole job.
+    # sccache runs as a background server whose storage backend is fixed
+    # by the first invocation that starts it, so this must be visible to
+    # every step (configure, builds, stats) — not just the build steps —
+    # otherwise the server can pin to local disk and nothing persists.
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+
     steps:
       # ---------------------------------------------------------------
       # Shallow checkout without recursive submodules. We init only the
@@ -115,8 +123,6 @@ jobs:
       # ---------------------------------------------------------------
       - name: Generate project files
         shell: cmd
-        env:
-          SCCACHE_GHA_ENABLED: "true"
         run: |
           IF NOT EXIST build mkdir build
           pushd build
@@ -160,8 +166,6 @@ jobs:
       # ---------------------------------------------------------------
       - name: Build MikanCmd
         shell: cmd
-        env:
-          SCCACHE_GHA_ENABLED: "true"
         run: |
           cmake --build build --target MikanCmd --parallel
           if %ERRORLEVEL% NEQ 0 (
@@ -171,8 +175,6 @@ jobs:
 
       - name: Build unit_test_suite_cpp
         shell: cmd
-        env:
-          SCCACHE_GHA_ENABLED: "true"
         run: |
           cmake --build build --target unit_test_suite_cpp --parallel
           if %ERRORLEVEL% NEQ 0 (
