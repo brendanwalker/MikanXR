@@ -721,10 +721,15 @@ function(copy_mikan_runtime_deps mikan_target)
   add_custom_command(
     TARGET ${mikan_target} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy ${SDL2_DLL} $<TARGET_FILE_DIR:${mikan_target}>)
+  # SDL2_ttf.dll depends on libfreetype-6.dll, which in turn depends on
+  # zlib1.dll. All three ship together in the SDL2_ttf distribution and must
+  # be copied alongside the app, otherwise SDL2_ttf fails to load.
   add_custom_command(
     TARGET ${mikan_target} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
     "${SDL2_TTF_DLL_FOLDER}/SDL2_ttf.dll"
+    "${SDL2_TTF_DLL_FOLDER}/libfreetype-6.dll"
+    "${SDL2_TTF_DLL_FOLDER}/zlib1.dll"
     $<TARGET_FILE_DIR:${mikan_target}>)
   add_custom_command(
     TARGET ${mikan_target} POST_BUILD
@@ -799,8 +804,12 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   install(FILES "${RFK_SHARED_LIBRARIES}"
       DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
 
-  install(FILES 
+  # SDL2_ttf.dll also needs libfreetype-6.dll and zlib1.dll (see the
+  # post-build copy in copy_mikan_runtime_deps above).
+  install(FILES
       "${SDL2_TTF_DLL_FOLDER}/SDL2_ttf.dll"
+      "${SDL2_TTF_DLL_FOLDER}/libfreetype-6.dll"
+      "${SDL2_TTF_DLL_FOLDER}/zlib1.dll"
       DESTINATION ${MIKAN_ARCH_INSTALL_PATH})
 
   install(FILES
