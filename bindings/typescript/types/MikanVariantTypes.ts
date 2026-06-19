@@ -204,7 +204,7 @@ export class MikanBoolArrayValue extends MikanVariantBase {
   value: boolean[] = [];
 
   static __serializationMetadata: SerializationField[] = [
-    { name: 'value', type: 'boolean' }
+    { name: 'value', type: 'boolean', isArray: true }
   ];
 }
 

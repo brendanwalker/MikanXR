@@ -21,11 +21,7 @@ namespace Serialization
 			rfk::Class const* fieldClassType = accessor.getClassType();
 			rfk::EClassKind classKind = fieldClassType->getClassKind();
 
-			if (fieldType == rfk::getType<Serialization::BoolList>())
-			{
-				visitBoolList(accessor);
-			}
-			else if (classKind == rfk::EClassKind::TemplateInstantiation)
+			if (classKind == rfk::EClassKind::TemplateInstantiation)
 			{
 				void* arrayInstance = accessor.getUntypedValueMutablePtr();
 				const auto* templateClassInstanceType = rfk::classTemplateInstantiationCast(fieldClassType);
@@ -41,7 +37,11 @@ namespace Serialization
 							templateClassInstanceType->getTemplateArgumentAt(0));
 					rfk::Type const& elementType = templateArg.getType();
 
-					if (elementType == rfk::getType<uint8_t>())
+					if (elementType == rfk::getType<bool>())
+					{
+						visitBoolList(accessor);
+					}
+					else if (elementType == rfk::getType<uint8_t>())
 					{
 						visitUByteList(accessor);
 					}
@@ -115,14 +115,15 @@ namespace Serialization
 
 		void visitBoolList(ValueAccessor const& arrayAccessor)
 		{
-			auto& boolListWrapper = arrayAccessor.getTypedValueMutableRef<Serialization::BoolList>();
-			auto& boolList = boolListWrapper.getVectorMutable();
+			auto* destArray = reinterpret_cast<Serialization::List<bool>*>(
+				arrayAccessor.getUntypedValueMutablePtr());
 
 			MikanVariant sourcePropertyValue;
 			if (m_entityAccessor->getPropertyValue(arrayAccessor.getName(), sourcePropertyValue) &&
 				sourcePropertyValue.value_type == MikanVariantType::BOOL_ARRAY)
 			{
-				boolList = sourcePropertyValue.getBoolArrayValue();
+				const auto& sourceArray = sourcePropertyValue.getBoolArrayValue();
+				destArray->assign(sourceArray.data(), sourceArray.data() + sourceArray.size());
 			}
 			else
 			{

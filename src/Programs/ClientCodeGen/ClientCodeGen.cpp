@@ -822,10 +822,6 @@ protected:
 			{
 				return type.isCArray() ? "string[]" : "string";
 			}
-			else if (cppType == "BoolList")
-			{
-				return "List<bool>";
-			}
 			else if (cppType == "PolymorphicObjectPtr")
 			{
 				return "PolymorphicObject";
@@ -1079,8 +1075,7 @@ protected:
 
 		// Skip primitive types and built-in types
 		if (kind == rfk::EEntityKind::FundamentalArchetype ||
-			typeName == "String" || 
-			typeName == "BoolList")
+			typeName == "String")
 		{
 			return;
 		}
@@ -1190,10 +1185,6 @@ protected:
 			if (cppType == "String")
 			{
 				return "string";
-			}
-			else if (cppType == "BoolList")
-			{
-				return "boolean";
 			}
 			else if (cppType == "PolymorphicObjectPtr")
 			{
@@ -1593,10 +1584,6 @@ protected:
 			{
 				return type.isCArray() ? "[]" : "''";
 			}
-			else if (cppType == "BoolList")
-			{
-				return "[]";
-			}
 			else if (cppType == "PolymorphicObjectPtr")
 			{
 				return "new PolymorphicObject()";
@@ -1709,10 +1696,6 @@ protected:
 			if (cppType == "String")
 			{
 				return type.isCArray() ? "string[]" : "string";
-			}
-			else if (cppType == "BoolList")
-			{
-				return "boolean[]";
 			}
 			else if (cppType == "PolymorphicObjectPtr")
 			{

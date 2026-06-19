@@ -118,7 +118,7 @@ struct STRUCT(Serialization::CodeGenModule("UnitTestTypes")) SerializationTestSt
 	Serialization::PolymorphicObjectPtr null_ptr_field;
 
 	FIELD()
-	Serialization::BoolList bool_array;
+	Serialization::List<bool> bool_array;
 
 	FIELD()
 	Serialization::List<int> int_array;

@@ -202,10 +202,10 @@ const float MikanVariant::getVectorComponentValue(size_t index) const
 	}
 }
 
-const std::vector<bool>& MikanVariant::getBoolArrayValue() const
+const Serialization::List<bool>& MikanVariant::getBoolArrayValue() const
 {
 	assert(value_type == MikanVariantType::BOOL_ARRAY);
-	return value_ptr.getTypedPointer<MikanBoolArrayValue>()->value.getVector();
+	return value_ptr.getTypedPointer<MikanBoolArrayValue>()->value;
 }
 
 const Serialization::List<uint8_t>& MikanVariant::getUByteArrayValue() const
@@ -380,11 +380,18 @@ void MikanVariant::setValue(const std::string& value)
 
 void MikanVariant::setValue(const std::vector<bool>& value)
 {
-	std::vector<bool>& value_array = 
-		value_ptr.allocatedByType<MikanBoolArrayValue>()->value.getVectorMutable();
-
+	Serialization::List<bool>& value_array =
+		value_ptr.allocatedByType<MikanBoolArrayValue>()->value;
 	value_type = MikanVariantType::BOOL_ARRAY;
-	value_array = value;
+	value_array.resize(value.size());
+	for (size_t i = 0; i < value.size(); ++i)
+		value_array[i] = value[i];
+}
+
+void MikanVariant::setValue(const Serialization::List<bool>& value)
+{
+	value_ptr.allocatedByType<MikanBoolArrayValue>()->value = value;
+	value_type = MikanVariantType::BOOL_ARRAY;
 }
 
 void MikanVariant::setValue(const std::vector<uint8_t>& value)

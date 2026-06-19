@@ -29,10 +29,6 @@ namespace Serialization
 			{
 				visitString(accessor);
 			}
-			else if (fieldType == rfk::getType<Serialization::BoolList>())
-			{
-				visitBoolList(accessor);
-			}
 			else if (fieldType == rfk::getType<Serialization::PolymorphicObjectPtr>())
 			{
 				visitObjectPtr(accessor);
@@ -117,27 +113,6 @@ namespace Serialization
 
 				// Deserialize the object from the binary stream
 				Serialization::visitStruct(objectInstance, *objectStruct, this);
-			}
-		}
-
-		void visitBoolList(ValueAccessor const& arrayAccessor)
-		{
-			auto& boolListWrapper = arrayAccessor.getTypedValueMutableRef<Serialization::BoolList>();
-			auto& boolList = boolListWrapper.getVectorMutable();
-
-			// Resize the array to the desired target size
-			int32_t int32ArraySize = 0;
-			from_binary(m_binaryReader, int32ArraySize);
-			size_t arraySize = static_cast<size_t>(int32ArraySize);
-
-			// Deserialize each element of the array
-
-			boolList.resize(arraySize);
-			for (size_t elementIndex = 0; elementIndex < arraySize; ++elementIndex)
-			{
-				bool value = false;
-				from_binary(m_binaryReader, value);
-				boolList[elementIndex] = value;
 			}
 		}
 

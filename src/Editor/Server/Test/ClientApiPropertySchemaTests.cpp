@@ -130,11 +130,7 @@ namespace
 			rfk::Type const& fieldType = a.getType();
 			rfk::Class const* fieldClassType = a.getClassType();
 
-			if (fieldType == rfk::getType<Serialization::BoolList>())
-			{
-				record(a, MikanVariantType::BOOL_ARRAY);
-			}
-			else if (fieldClassType != nullptr &&
+			if (fieldClassType != nullptr &&
 				fieldClassType->getClassKind() == rfk::EClassKind::TemplateInstantiation)
 			{
 				const auto* templateInst = rfk::classTemplateInstantiationCast(fieldClassType);
@@ -146,7 +142,8 @@ namespace
 						static_cast<rfk::TypeTemplateArgument const&>(templateInst->getTemplateArgumentAt(0));
 					rfk::Type const& elementType = templateArg.getType();
 
-					if (elementType == rfk::getType<uint8_t>()) record(a, MikanVariantType::UBYTE_ARRAY);
+					if (elementType == rfk::getType<bool>()) record(a, MikanVariantType::BOOL_ARRAY);
+					else if (elementType == rfk::getType<uint8_t>()) record(a, MikanVariantType::UBYTE_ARRAY);
 					else if (elementType == rfk::getType<int>()) record(a, MikanVariantType::INT_ARRAY);
 					else if (elementType == rfk::getType<float>()) record(a, MikanVariantType::FLOAT_ARRAY);
 					else if (elementType == rfk::getType<Serialization::String>()) record(a, MikanVariantType::STRING_ARRAY);

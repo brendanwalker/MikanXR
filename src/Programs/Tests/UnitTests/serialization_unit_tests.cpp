@@ -81,7 +81,7 @@ bool serialization_utility_test_endian_swap()
 void build_serialization_test_struct(SerializationTestStruct& outStruct)
 {
 
-	Serialization::BoolList boolArray;
+	Serialization::List<bool> boolArray;
 	boolArray.push_back(true);
 	boolArray.push_back(false);
 	boolArray.push_back(true);

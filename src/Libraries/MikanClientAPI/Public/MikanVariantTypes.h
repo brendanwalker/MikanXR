@@ -105,7 +105,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	const MikanVector4d& getVector4dValue() const;
 	const MikanQuatd& getQuaterniondValue() const;
 	const float getVectorComponentValue(size_t index) const;
-	const std::vector<bool>& getBoolArrayValue() const;
+	const Serialization::List<bool>& getBoolArrayValue() const;
 	const Serialization::List<uint8_t>& getUByteArrayValue() const;
 	const Serialization::List<int>& getIntArrayValue() const;
 	const Serialization::List<float>& getFloatArrayValue() const;
@@ -135,12 +135,13 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	void setValue(const MikanQuatd& value);
 	void setVectorComponentValue(size_t index, float value);
 	void setValue(const std::vector<bool>& value);
-	void setValue(const std::vector<uint8_t>& value);
+	void setValue(const Serialization::List<bool>& value);
 	void setValue(const std::vector<int>& value);
 	void setValue(const std::vector<float>& value);
 	void setValue(const std::vector<std::string>& value);
 	void setValue(const std::vector<Serialization::String>& value);
 	void setValue(const Serialization::List<uint8_t>& value);
+	void setValue(const std::vector<uint8_t>& value);
 	void setValue(const Serialization::List<int>& value);
 	void setValue(const Serialization::List<float>& value);
 	void setValue(const Serialization::List<Serialization::String>& value);
@@ -352,7 +353,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	: public MikanVariantBase
 {
 	FIELD()
-	Serialization::BoolList value;
+	Serialization::List<bool> value;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanBoolArrayValue_GENERATED

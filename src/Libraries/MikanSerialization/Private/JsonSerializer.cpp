@@ -32,10 +32,6 @@ namespace Serialization
 			{
 				visitString(accessor);
 			}
-			else if (fieldType == rfk::getType<Serialization::BoolList>())
-			{
-				visitBoolList(accessor, m_jsonObject);
-			}
 			else if (fieldType == rfk::getType<Serialization::PolymorphicObjectPtr>())
 			{
 				visitObjectPtr(accessor, m_jsonObject);
@@ -131,24 +127,6 @@ namespace Serialization
 
 			// Add the json array to the owner json object
 			ownerJsonObject[accessor.getName()] = objectPtrJson;
-		}
-
-		void visitBoolList(
-			ValueAccessor const& arrayAccessor,
-			json& ownerJsonObject)
-		{
-			const auto& boolListWrapper = arrayAccessor.getTypedValueRef<Serialization::BoolList>();
-			const auto& boolList = boolListWrapper.getVector();
-			std::size_t arraySize = boolList.size();
-			
-			json arrayJson = json::array();
-			for (size_t elementIndex = 0; elementIndex < arraySize; ++elementIndex)
-			{
-				arrayJson.push_back(boolList[elementIndex]);
-			}
-
-			// Add the json array to the owner json object
-			ownerJsonObject[arrayAccessor.getName()] = arrayJson;
 		}
 
 		void visitList(
