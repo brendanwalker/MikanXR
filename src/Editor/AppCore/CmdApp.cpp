@@ -21,6 +21,13 @@ namespace
 
 int CmdApp::exec(int argc, char** argv)
 {
+	// Run with unbuffered stdout so test progress survives a hard crash.
+	// When stdout is a pipe (e.g. CI) it is fully buffered by default, so a
+	// crash mid-test would discard all buffered fprintf output and hide which
+	// test was running. Unbuffered output makes the last printed line the
+	// crash site.
+	setvbuf(stdout, nullptr, _IONBF, 0);
+
 	parseCommandLine(argc, argv);
 
 	// Command output is written to stdout directly

@@ -197,12 +197,20 @@ jobs:
       # CMAKE_RUNTIME_OUTPUT_DIRECTORY set during configure (no per-config
       # subdirectory because Ninja is single-config).
       # ---------------------------------------------------------------
+      # MikanCmd writes test details to MikanCmd.log (in addition to the
+      # console). Dump that log and the actual exit code afterward so a
+      # failure shows which assertion failed (clean failure) or crashed
+      # (no flushed output, nonzero crash code like 0xC0000005).
       - name: Run MikanCmd tests
         shell: cmd
         run: |
           build\bin\MikanCmd.exe -runTests
-          if %ERRORLEVEL% NEQ 0 (
-            echo MikanCmd tests failed
+          set TEST_EXIT=%ERRORLEVEL%
+          echo ===== MikanCmd.log =====
+          if exist MikanCmd.log type MikanCmd.log
+          echo ========================
+          if %TEST_EXIT% NEQ 0 (
+            echo MikanCmd tests failed with exit code %TEST_EXIT%
             exit /b 1
           )
 
