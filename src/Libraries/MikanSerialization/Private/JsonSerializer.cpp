@@ -15,6 +15,8 @@ using json = nlohmann::json;
 
 namespace Serialization
 {
+	inline void to_json(nlohmann::json& j, const String& s) { j = s.getValue(); }
+
 	class JsonWriteVisitor : public IVisitor
 	{
 	public:
@@ -217,6 +219,10 @@ namespace Serialization
 			else if (keyType == rfk::getType<std::string>())
 			{
 				visitMapOfKey<std::string>(mapAccessor, templatedMapType, ownerJsonObject);
+			}
+			else if (keyType == rfk::getType<Serialization::String>())
+			{
+				visitMapOfKey<Serialization::String>(mapAccessor, templatedMapType, ownerJsonObject);
 			}
 			else
 			{

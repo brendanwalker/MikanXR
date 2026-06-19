@@ -1,4 +1,5 @@
 #include "BinaryUtility.h"
+#include "SerializableString.h"
 #include <cstring>
 #include <stdexcept>
 
@@ -370,4 +371,16 @@ void from_binary(BinaryReader& reader, std::string& outString)
 	from_binary(reader, stringLength);
 
 	outString= std::string((const char*)reader.readBytesNoCopy(stringLength), stringLength);
+}
+
+void to_binary(BinaryWriter& writer, const Serialization::String& inString)
+{
+	to_binary(writer, inString.getValue());
+}
+
+void from_binary(BinaryReader& reader, Serialization::String& outString)
+{
+	std::string tmp;
+	from_binary(reader, tmp);
+	outString.setValue(tmp.c_str());
 }

@@ -15,6 +15,8 @@ using json = nlohmann::json;
 
 namespace Serialization
 {
+	inline void from_json(const nlohmann::json& j, String& s) { s.setValue(j.get<std::string>().c_str()); }
+
 	class JsonReadVisitor : public IVisitor
 	{
 	public:
@@ -243,6 +245,10 @@ namespace Serialization
 			else if (keyType == rfk::getType<std::string>())
 			{
 				visitMapOfKey<std::string>(mapAccessor, templatedMapType, mapArrayJsonObject);
+			}
+			else if (keyType == rfk::getType<Serialization::String>())
+			{
+				visitMapOfKey<Serialization::String>(mapAccessor, templatedMapType, mapArrayJsonObject);
 			}
 			else
 			{

@@ -263,14 +263,14 @@ namespace Serialization
 		{
 			// Get an enumerator to the target string map
 			auto* mapInstance =
-				reinterpret_cast<Serialization::Map<std::string, Serialization::String> *>(
+				reinterpret_cast<Serialization::Map<Serialization::String, Serialization::String> *>(
 					mapAccessor.getUntypedValueMutablePtr());
 
 			MikanVariant sourcePropertyValue;
 			if (m_entityAccessor->getPropertyValue(mapAccessor.getName(), sourcePropertyValue) &&
 				sourcePropertyValue.value_type == MikanVariantType::STRING_MAP)
 			{
-				const Serialization::Map<std::string, Serialization::String>& sourceMap =
+				const Serialization::Map<Serialization::String, Serialization::String>& sourceMap =
 					sourcePropertyValue.getStringMapValue();
 
 				mapInstance->clear();

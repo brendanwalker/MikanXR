@@ -66,6 +66,8 @@ SERIALIZATION_API void to_binary(BinaryWriter& writer, int64_t inValue);
 SERIALIZATION_API void to_binary(BinaryWriter& writer, float inValue);
 SERIALIZATION_API void to_binary(BinaryWriter& writer, double inValue);
 SERIALIZATION_API void to_binary(BinaryWriter& writer, const std::string& inString);
+namespace Serialization { class String; }
+SERIALIZATION_API void to_binary(BinaryWriter& writer, const Serialization::String& inString);
 
 template<typename T, int Count>
 inline void to_binary(BinaryWriter& writer, const std::array<T, Count>& inArray)
@@ -123,6 +125,7 @@ SERIALIZATION_API void from_binary(BinaryReader& reader, int64_t& outValue);
 SERIALIZATION_API void from_binary(BinaryReader& reader, float& outValue);
 SERIALIZATION_API void from_binary(BinaryReader& reader, double& outValue);
 SERIALIZATION_API void from_binary(BinaryReader& reader, std::string& outString);
+SERIALIZATION_API void from_binary(BinaryReader& reader, Serialization::String& outString);
 
 template<typename T, int Count>
 inline void from_binary(BinaryReader& reader, std::array<T, Count>& outArray)

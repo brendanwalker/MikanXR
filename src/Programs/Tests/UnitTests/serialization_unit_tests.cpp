@@ -103,9 +103,9 @@ void build_serialization_test_struct(SerializationTestStruct& outStruct)
 	intPointMap.insert({1, {1.2345f, 5.4321f}});
 	intPointMap.insert({2, {5.4321f, 1.2345f}});
 
-	Serialization::Map<std::string, SerializationPoint2dStruct> stringPointMap;
-	stringPointMap.insert({"key1", {1.2345f, 5.4321f}});
-	stringPointMap.insert({"key2", {5.4321f, 1.2345f}});
+	Serialization::Map<Serialization::String, SerializationPoint2dStruct> stringPointMap;
+	stringPointMap.insert({Serialization::String("key1"), {1.2345f, 5.4321f}});
+	stringPointMap.insert({Serialization::String("key2"), {5.4321f, 1.2345f}});
 
 	SerializationPoint3dStruct point3d = {1.2345f, 5.4321f, 9.8765f};
 
@@ -219,7 +219,7 @@ void verify_serialization_test_struct(const SerializationTestStruct& actual, con
 	assert(actual.string_point_map.size() == expected.string_point_map.size());
 	for (const auto& entry : actual.string_point_map)
 	{
-		const std::string& key = entry.key;
+		const auto& key = entry.key;
 		const auto& actualPoint = entry.value;
 		const auto* expectedValuePtr = expected.string_point_map.findValue(key);
 		assert(expectedValuePtr != nullptr);

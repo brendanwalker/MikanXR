@@ -232,7 +232,7 @@ const Serialization::List<Serialization::String>& MikanVariant::getStringArrayVa
 	return value_ptr.getTypedPointer<MikanStringArrayValue>()->value;
 }
 
-const Serialization::Map<std::string, Serialization::String>& MikanVariant::getStringMapValue() const
+const Serialization::Map<Serialization::String, Serialization::String>& MikanVariant::getStringMapValue() const
 {
 	assert(value_type == MikanVariantType::STRING_MAP);
 	return value_ptr.getTypedPointer<MikanStringMapValue>()->value;
@@ -457,9 +457,9 @@ void MikanVariant::setValue(const Serialization::List<Serialization::String>& va
 	value_type = MikanVariantType::STRING_ARRAY;
 }
 
-void MikanVariant::setValue(const Serialization::Map<std::string, Serialization::String>& value)
+void MikanVariant::setValue(const Serialization::Map<Serialization::String, Serialization::String>& value)
 {
-	Serialization::Map<std::string, Serialization::String>& value_map =
+	Serialization::Map<Serialization::String, Serialization::String>& value_map =
 		value_ptr.allocatedByType<MikanStringMapValue>()->value;
 
 	value_type = MikanVariantType::STRING_MAP;

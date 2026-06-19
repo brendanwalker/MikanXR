@@ -394,7 +394,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 	static const char* k_systemName;
 
 	FIELD()
-	Serialization::Map<std::string, Serialization::String> usb_device_map; ///< Map of device path -> friendly name
+	Serialization::Map<Serialization::String, Serialization::String> usb_device_map; ///< Map of device path -> friendly name
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanUSBVideoSourceSystemValues_GENERATED

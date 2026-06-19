@@ -136,7 +136,7 @@ struct STRUCT(Serialization::CodeGenModule("UnitTestTypes")) SerializationTestSt
 	Serialization::Map<int, SerializationPoint2dStruct> int_point_map;
 
 	FIELD()
-	Serialization::Map<std::string, SerializationPoint2dStruct> string_point_map;
+	Serialization::Map<Serialization::String, SerializationPoint2dStruct> string_point_map;
 
 	#ifndef KODGEN_PARSING
 	SerializationTestStruct_GENERATED

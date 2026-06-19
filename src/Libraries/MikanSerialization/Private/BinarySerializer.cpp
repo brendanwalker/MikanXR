@@ -207,6 +207,10 @@ namespace Serialization
 			{
 				visitMapOfKey<std::string>(mapAccessor, templatedMapType);
 			}
+			else if (keyType == rfk::getType<Serialization::String>())
+			{
+				visitMapOfKey<Serialization::String>(mapAccessor, templatedMapType);
+			}
 			else
 			{
 				rfk::Archetype const* keyArchetype = keyType.getArchetype();

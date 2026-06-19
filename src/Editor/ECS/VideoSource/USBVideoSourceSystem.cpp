@@ -364,10 +364,10 @@ bool USBVideoSourceSystem::getPropertyValue(
 		getConnectedUSBVideoSourcePathMap(usbDevicePathMap);
 
 		// Convert std::map to Serialization::Map
-		Serialization::Map<std::string, Serialization::String> serializableMap;
+		Serialization::Map<Serialization::String, Serialization::String> serializableMap;
 		for (const auto& [path, friendlyName] : usbDevicePathMap)
 		{
-			serializableMap[path] = Serialization::String(friendlyName);
+			serializableMap[path.c_str()] = Serialization::String(friendlyName.c_str());
 		}
 
 		outValue = serializableMap;

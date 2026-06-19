@@ -110,7 +110,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	const Serialization::List<int>& getIntArrayValue() const;
 	const Serialization::List<float>& getFloatArrayValue() const;
 	const Serialization::List<Serialization::String>& getStringArrayValue() const;
-	const Serialization::Map<std::string, Serialization::String>& getStringMapValue() const;
+	const Serialization::Map<Serialization::String, Serialization::String>& getStringMapValue() const;
 	const Serialization::PolymorphicObjectPtr& getPolymorphicObjectValue() const;
 
 #if defined(MIKANAPI_REFLECTION_ENABLED) && defined(SERIALIZATION_REFLECTION_ENABLED)
@@ -144,7 +144,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	void setValue(const Serialization::List<int>& value);
 	void setValue(const Serialization::List<float>& value);
 	void setValue(const Serialization::List<Serialization::String>& value);
-	void setValue(const Serialization::Map<std::string, Serialization::String>& value);
+	void setValue(const Serialization::Map<Serialization::String, Serialization::String>& value);
 	void setValue(const Serialization::PolymorphicObjectPtr& value);
 #endif // MIKANAPI_REFLECTION_ENABLED && SERIALIZATION_REFLECTION_ENABLED
 
@@ -407,7 +407,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	: public MikanVariantBase
 {
 	FIELD()
-	Serialization::Map<std::string, Serialization::String> value;
+	Serialization::Map<Serialization::String, Serialization::String> value;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStringMapValue_GENERATED
