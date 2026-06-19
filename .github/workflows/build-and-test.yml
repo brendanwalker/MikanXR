@@ -85,10 +85,17 @@ jobs:
             exit /b 1
           )
 
-      - name: Add MSBuild to PATH
-        uses: microsoft/setup-msbuild@v3
+      # ---------------------------------------------------------------
+      # Put the MSVC toolchain (cl.exe, link.exe, etc.) on PATH. The
+      # Ninja generator invokes the compiler directly rather than going
+      # through MSBuild, so it needs the dev environment exported. This
+      # action writes the vcvars environment to $GITHUB_ENV so later
+      # steps inherit it. arch: x64 matches our build target.
+      # ---------------------------------------------------------------
+      - name: Setup MSVC dev environment
+        uses: ilammy/msvc-dev-cmd@v1
         with:
-          msbuild-architecture: x64
+          arch: x64
 
       # ---------------------------------------------------------------
       # Configure the project. Key differences from a full local build:
@@ -96,8 +103,15 @@ jobs:
       #                               and the MikanGStreamerVideo plugin.
       #   -DCMAKE_RUNTIME_OUTPUT_DIRECTORY  flattens all EXEs and DLLs
       #                               to a single predictable location
-      #                               (build\bin\Release\) for the test
-      #                               steps below.
+      #                               (build\bin\) for the test steps
+      #                               below.
+      #
+      # We use the Ninja generator (single-config) rather than the Visual
+      # Studio generator specifically so sccache works: CMAKE_<LANG>_
+      # COMPILER_LAUNCHER is only honored by Ninja/Makefile generators,
+      # not by the VS/MSBuild generator. Because Ninja is single-config,
+      # the build type is fixed at configure time via CMAKE_BUILD_TYPE
+      # and there is no per-config (\Release) output subdirectory.
       # ---------------------------------------------------------------
       - name: Generate project files
         shell: cmd
@@ -111,7 +125,8 @@ jobs:
           set THIRDPARTY_ROOT_PATH=%GITHUB_WORKSPACE%\thirdparty
           set DIST_ROOT_PATH=%GITHUB_WORKSPACE%\dist\Win64
 
-          cmake .. -G "Visual Studio 17 2022" -A x64 ^
+          cmake .. -G "Ninja" ^
+            -DCMAKE_BUILD_TYPE=Release ^
             -DCMAKE_INSTALL_PREFIX=%DIST_ROOT_PATH% ^
             -DCEF_ROOT="%DEPS_ROOT_PATH%/cef/cef_binary_145.0.27+g4ddda2e+chromium-145.0.7632.117_windows64" ^
             -DOpenCV_DIR=%DEPS_ROOT_PATH%\opencv\build ^
@@ -145,8 +160,10 @@ jobs:
       # ---------------------------------------------------------------
       - name: Build MikanCmd
         shell: cmd
+        env:
+          SCCACHE_GHA_ENABLED: "true"
         run: |
-          cmake --build build --config Release --target MikanCmd --parallel
+          cmake --build build --target MikanCmd --parallel
           if %ERRORLEVEL% NEQ 0 (
             echo MikanCmd build failed
             exit /b 1
@@ -154,21 +171,33 @@ jobs:
 
       - name: Build unit_test_suite_cpp
         shell: cmd
+        env:
+          SCCACHE_GHA_ENABLED: "true"
         run: |
-          cmake --build build --config Release --target unit_test_suite_cpp --parallel
+          cmake --build build --target unit_test_suite_cpp --parallel
           if %ERRORLEVEL% NEQ 0 (
             echo unit_test_suite_cpp build failed
             exit /b 1
           )
 
       # ---------------------------------------------------------------
-      # Run tests. All binaries land in build\bin\Release\ thanks to
-      # CMAKE_RUNTIME_OUTPUT_DIRECTORY set during configure.
+      # Print sccache stats so cache hit/miss behavior is visible in the
+      # run logs. After the first run populates the GHA cache, subsequent
+      # runs should show a non-zero "Cache hits" count here.
+      # ---------------------------------------------------------------
+      - name: Show sccache stats
+        shell: cmd
+        run: sccache --show-stats
+
+      # ---------------------------------------------------------------
+      # Run tests. All binaries land in build\bin\ thanks to
+      # CMAKE_RUNTIME_OUTPUT_DIRECTORY set during configure (no per-config
+      # subdirectory because Ninja is single-config).
       # ---------------------------------------------------------------
       - name: Run MikanCmd tests
         shell: cmd
         run: |
-          build\bin\Release\MikanCmd.exe -runTests
+          build\bin\MikanCmd.exe -runTests
           if %ERRORLEVEL% NEQ 0 (
             echo MikanCmd tests failed
             exit /b 1
@@ -177,7 +206,7 @@ jobs:
       - name: Run C++ unit tests
         shell: cmd
         run: |
-          build\bin\Release\unit_test_suite_cpp.exe
+          build\bin\unit_test_suite_cpp.exe
           if %ERRORLEVEL% NEQ 0 (
             echo C++ unit tests failed
             exit /b 1
@@ -191,5 +220,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: MikanXR-TestBinaries
-          path: build\bin\Release\
+          path: build\bin\
           retention-days: 7
