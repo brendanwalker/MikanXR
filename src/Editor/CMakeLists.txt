@@ -570,8 +570,11 @@ list(APPEND MIKAN_REQ_LIBS
   ${GLEW_LIBRARIES}
   ${SPOUT2_LIBRARIES}
   libcef_dll_wrapper
+  # CEF ships only Debug and Release binaries. Map every non-Debug config
+  # (Release, RelWithDebInfo, MinSizeRel) onto the Release libcef.lib so the
+  # wrapper's C API symbols (e.g. cef_string_utf16_clear) resolve.
   "$<$<CONFIG:Debug>:${CEF_LIB_DEBUG}>"
-  "$<$<CONFIG:Release>:${CEF_LIB_RELEASE}>"
+  "$<$<NOT:$<CONFIG:Debug>>:${CEF_LIB_RELEASE}>"
   crypt32
   wintrust
   shlwapi
@@ -733,7 +736,9 @@ function(copy_mikan_runtime_deps mikan_target)
     $<TARGET_FILE_DIR:${mikan_target}>)
   # Copy CEF binary and resource files to build output
   if(DEFINED CEF_ROOT)
-    COPY_FILES(${mikan_target} "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "$<TARGET_FILE_DIR:${mikan_target}>")
+    # CEF_BINARY_DIR resolves to ${CEF_ROOT}/$<CONFIG>, but CEF only ships Debug/
+    # and Release/ binaries. Map non-Debug configs (incl. RelWithDebInfo) to Release.
+    COPY_FILES(${mikan_target} "${CEF_BINARY_FILES}" "$<IF:$<CONFIG:Debug>,${CEF_BINARY_DIR_DEBUG},${CEF_BINARY_DIR_RELEASE}>" "$<TARGET_FILE_DIR:${mikan_target}>")
     COPY_FILES(${mikan_target} "${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" "$<TARGET_FILE_DIR:${mikan_target}>")
   endif()
   add_custom_command(
