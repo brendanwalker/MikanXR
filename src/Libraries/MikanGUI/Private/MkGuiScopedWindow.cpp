@@ -7,7 +7,7 @@ MkGuiScopedWindow::MkGuiScopedWindow(
 	bool* p_open,
 	ImGuiWindowFlags flags)
 {
-	m_visible = ImGui::Begin(name, p_open, flags);
+	m_visible= ImGui::Begin(name, p_open, flags);
 }
 
 MkGuiScopedWindow::~MkGuiScopedWindow()

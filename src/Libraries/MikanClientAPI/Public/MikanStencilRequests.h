@@ -12,40 +12,34 @@
 // Stencil Request Types
 // ------
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) GetModelStencilRenderGeometry :
-	public MikanRequest
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) GetModelStencilRenderGeometry : public MikanRequest
 {
 public:
-	GetModelStencilRenderGeometry()
-	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(GetModelStencilRenderGeometry)
-	}
+	GetModelStencilRenderGeometry(){
+		MIKAN_REQUEST_TYPE_INFO_INIT(GetModelStencilRenderGeometry)}
 
 	FIELD()
-	MikanStencilID stencilId = INVALID_MIKAN_ID;
+	MikanStencilID stencilId= INVALID_MIKAN_ID;
 
-	#ifdef MIKANAPI_REFLECTION_ENABLED
+#ifdef MIKANAPI_REFLECTION_ENABLED
 	GetModelStencilRenderGeometry_GENERATED
-	#endif
+#endif
 };
 
 // Stencil Response Types
 // ------
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) MikanStencilModelRenderGeometryResponse : 
-	public MikanResponse
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanStencilRequest")) MikanStencilModelRenderGeometryResponse : public MikanResponse
 {
-	MikanStencilModelRenderGeometryResponse()
-	{
-		MIKAN_RESPONSE_TYPE_INFO_INIT(MikanStencilModelRenderGeometryResponse)
-	}
+	MikanStencilModelRenderGeometryResponse(){
+		MIKAN_RESPONSE_TYPE_INFO_INIT(MikanStencilModelRenderGeometryResponse)}
 
 	FIELD()
 	MikanStencilModelRenderGeometry render_geometry;
 
-	#ifdef MIKANAPI_REFLECTION_ENABLED
+#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStencilModelRenderGeometryResponse_GENERATED
-	#endif
+#endif
 };
 
 #ifdef MIKANAPI_REFLECTION_ENABLED

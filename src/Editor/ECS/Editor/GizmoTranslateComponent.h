@@ -12,7 +12,7 @@ class GizmoTranslateComponent : public MikanComponent
 public:
 	GizmoTranslateComponent(MikanObjectWeakPtr owner);
 
-	inline static const std::string k_componentClassName = "GizmoTranslateComponent";
+	inline static const std::string k_componentClassName= "GizmoTranslateComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	virtual void init() override;
@@ -26,7 +26,7 @@ public:
 
 protected:
 	glm::vec3 getColliderColor(
-		BoxColliderComponentWeakPtr colliderPtr, 
+		BoxColliderComponentWeakPtr colliderPtr,
 		const glm::vec3& defaultColor,
 		const glm::vec3& hilightColor) const;
 
@@ -37,7 +37,7 @@ protected:
 	void onInteractionRelease();
 
 	void requestTranslation(const glm::vec3& worldSpaceTranslation);
-	
+
 	bool m_bEnabled= false;
 	BoxColliderComponentWeakPtr m_xyHandle;
 	BoxColliderComponentWeakPtr m_xzHandle;

@@ -37,8 +37,8 @@ public:
 	int getTotalChannels() const { return m_columns * m_rows * 3; }
 
 private:
-	int m_columns = 8;
-	int m_rows = 8;
+	int m_columns= 8;
+	int m_rows= 8;
 };
 
 // -- RGBPixelGridComponent -----
@@ -52,7 +52,7 @@ public:
 		IMkGraphicsContext* graphicsContext,
 		MikanCameraPtr viewportCamera) const override;
 
-	inline static const std::string k_componentClassName = "RGBPixelGridComponent";
+	inline static const std::string k_componentClassName= "RGBPixelGridComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	inline RGBPixelGridDefinitionConstPtr getRGBPixelGridDefinitionConst() const
@@ -70,7 +70,7 @@ public:
 	/// Set a single pixel.
 	void setPixel(int col, int row, uint8_t r, uint8_t g, uint8_t b);
 
-	/// Set all pixels at once. 
+	/// Set all pixels at once.
 	void setAllPixels(const uint8_t* rgbData, int count);
 
 	/// Set all pixels to the same color.
@@ -91,14 +91,16 @@ public:
 
 	// -- IFunctionInterface --
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
-	{ DMXFixtureComponent::getFunctionDescriptors(outDescriptors); }
+	{
+		DMXFixtureComponent::getFunctionDescriptors(outDescriptors);
+	}
 
 	// -- Lua Binding --
 	static void bindLuaFunctions(struct lua_State* L);
 
 protected:
 	virtual void onDefinitionMarkedDirty(
-		CommonConfigPtr configPtr, 
+		CommonConfigPtr configPtr,
 		const ConfigPropertyChangeSet& changedPropertySet) override;
 	void resizePixelDataBuffer();
 

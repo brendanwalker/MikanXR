@@ -6,7 +6,10 @@
 class StencilRequestHandler : public IServerRequestHandler
 {
 public:
-	StencilRequestHandler(class MikanServer* owner) : IServerRequestHandler(owner) {}
+	StencilRequestHandler(class MikanServer* owner)
+		: IServerRequestHandler(owner)
+	{
+	}
 
 	virtual bool startup(class MainWindow* mainWindow) override;
 

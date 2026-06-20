@@ -18,7 +18,7 @@ AppStage::AppStage(
 {
 }
 
-AppStage::~AppStage() 
+AppStage::~AppStage()
 {
 }
 
@@ -44,7 +44,7 @@ const EditorSettings& AppStage::getEditorSettings() const
 
 MikanViewportPtr AppStage::addViewport()
 {
-	auto viewport= 
+	auto viewport=
 		std::make_shared<MikanViewport>(
 			m_ownerWindow,
 			glm::i32vec2(m_ownerWindow->getWidth(), m_ownerWindow->getHeight()));
@@ -61,18 +61,18 @@ MikanViewportConstPtr AppStage::getRenderingViewport() const
 	return std::static_pointer_cast<const MikanViewport>(getOwnerWindow()->getRenderingViewport());
 }
 
-void AppStage::enter() 
+void AppStage::enter()
 {
 	if (!m_bIsEntered)
 	{
 		// Add a default fullscreen viewport for each appstage
 		addViewport();
 
-		m_bIsEntered = true;
+		m_bIsEntered= true;
 	}
 }
 
-void AppStage::exit() 
+void AppStage::exit()
 {
 	if (m_bIsEntered)
 	{
@@ -97,16 +97,15 @@ void AppStage::exit()
 		}
 		m_guiPanels.clear();
 
-		m_bIsEntered = false;
+		m_bIsEntered= false;
 	}
 }
 
 void AppStage::onWindowEvent(const MkWindowEvent& event)
 {
-
 }
 
-void AppStage::pause() 
+void AppStage::pause()
 {
 	if (!m_bIsPaused)
 	{
@@ -114,7 +113,7 @@ void AppStage::pause()
 	}
 }
 
-void AppStage::resume() 
+void AppStage::resume()
 {
 	if (m_bIsPaused)
 	{
@@ -125,7 +124,7 @@ void AppStage::resume()
 void AppStage::onGui()
 {
 	// Render the top-most modal dialog (if any)
-	ModalDialog* modalDialog = getCurrentModalDialog();
+	ModalDialog* modalDialog= getCurrentModalDialog();
 	if (modalDialog != nullptr)
 	{
 		modalDialog->onGui();
@@ -156,7 +155,7 @@ void AppStage::render(IMkViewportPtr targetViewport)
 
 void AppStage::popModalDialog()
 {
-	ModalDialog* modalDialog = getCurrentModalDialog();
+	ModalDialog* modalDialog= getCurrentModalDialog();
 	if (modalDialog != nullptr)
 	{
 		m_modalDialogStack.pop_back();

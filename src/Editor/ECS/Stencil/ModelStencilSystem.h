@@ -12,11 +12,10 @@
 
 #include <glm/glm.hpp>
 
-class ModelStencilSystemDefinition :
-	public MikanTypedObjectSystemDefinition<ModelStencilComponent, ModelStencilDefinition, MikanStencilID>
+class ModelStencilSystemDefinition : public MikanTypedObjectSystemDefinition<ModelStencilComponent, ModelStencilDefinition, MikanStencilID>
 {
 public:
-	using Super = MikanTypedObjectSystemDefinition<ModelStencilComponent, ModelStencilDefinition, MikanStencilID>;
+	using Super= MikanTypedObjectSystemDefinition<ModelStencilComponent, ModelStencilDefinition, MikanStencilID>;
 
 	ModelStencilSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
@@ -24,27 +23,28 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 };
 
-class ModelStencilSystem :
-	public MikanTypedObjectSystem<
-		ModelStencilComponent, ModelStencilDefinition,
-		MikanStencilID,
-		ModelStencilSystem, ModelStencilSystemDefinition>
+class ModelStencilSystem : public MikanTypedObjectSystem<
+							   ModelStencilComponent, ModelStencilDefinition,
+							   MikanStencilID,
+							   ModelStencilSystem, ModelStencilSystemDefinition>
 {
 public:
-	using Super = MikanTypedObjectSystem<
+	using Super= MikanTypedObjectSystem<
 		ModelStencilComponent, ModelStencilDefinition,
 		MikanStencilID,
 		ModelStencilSystem, ModelStencilSystemDefinition>;
 
 	ModelStencilSystem(ProjectManagerPtr ownerObjectSystem);
 
-	inline static const std::string k_objectSystemClassName = "ModelStencilSystem";
+	inline static const std::string k_objectSystemClassName= "ModelStencilSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
-	inline ModelStencilComponentPtr getModelStencilById(MikanStencilID stencilId) const {
+	inline ModelStencilComponentPtr getModelStencilById(MikanStencilID stencilId) const
+	{
 		return Super::getTypedComponentById(stencilId);
 	}
-	inline ModelStencilComponentPtr getModelStencilByName(const std::string& stencilName) const {
+	inline ModelStencilComponentPtr getModelStencilByName(const std::string& stencilName) const
+	{
 		return Super::getTypedComponentByName(stencilName);
 	}
 

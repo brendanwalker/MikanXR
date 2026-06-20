@@ -12,15 +12,15 @@ void FrameTimer::waitForNextFrame()
 {
 	std::this_thread::sleep_for(getTimeToNextFrame());
 
-	m_nextTime += m_tickInterval;
+	m_nextTime+= m_tickInterval;
 }
 
 std::chrono::milliseconds FrameTimer::getTimeToNextFrame() const
 {
-	const auto now = std::chrono::steady_clock::now();
-	const auto remaining = m_nextTime - now;
+	const auto now= std::chrono::steady_clock::now();
+	const auto remaining= m_nextTime - now;
 
 	return remaining > std::chrono::milliseconds::zero()
-		? std::chrono::duration_cast<std::chrono::milliseconds>(remaining)
-		: std::chrono::milliseconds::zero();
+			   ? std::chrono::duration_cast<std::chrono::milliseconds>(remaining)
+			   : std::chrono::milliseconds::zero();
 }

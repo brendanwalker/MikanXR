@@ -15,7 +15,7 @@ struct QuadVertex
 
 namespace SpoutGLDepthPackerShaderCode
 {
-	const char* packDeviceDepthVertexShader = R""""(
+const char* packDeviceDepthVertexShader= R""""(
 		#version 330 core
 		
 		layout(location = 0) in vec2 position;
@@ -30,7 +30,7 @@ namespace SpoutGLDepthPackerShaderCode
 		}
 	)"""";
 
-	const char* packDeviceDepthFragmentShader = R""""(
+const char* packDeviceDepthFragmentShader= R""""(
 		#version 330 core
 		
 		uniform sampler2D InputTexture;
@@ -65,7 +65,7 @@ namespace SpoutGLDepthPackerShaderCode
 		}
 	)"""";
 
-	const char* packSceneDepthVertexShader = R""""(
+const char* packSceneDepthVertexShader= R""""(
 		#version 330 core
 		
 		layout(location = 0) in vec2 position;
@@ -80,7 +80,7 @@ namespace SpoutGLDepthPackerShaderCode
 		}
 	)"""";
 
-	const char* packSceneDepthFragmentShader = R""""(
+const char* packSceneDepthFragmentShader= R""""(
 		#version 330 core
 		
 		uniform sampler2D InputTexture;
@@ -108,7 +108,7 @@ namespace SpoutGLDepthPackerShaderCode
 			FragColor = encodedValue;
 		}
 	)"""";
-}
+} // namespace SpoutGLDepthPackerShaderCode
 
 SpoutGLDepthTexturePacker::SpoutGLDepthTexturePacker(
 	SharedTextureLogger& logger,
@@ -148,7 +148,7 @@ GLuint SpoutGLDepthTexturePacker::packDepthTexture(
 	}
 
 	// Get the input texture dimensions
-	GLsizei inWidth = 0, inHeight = 0;
+	GLsizei inWidth= 0, inHeight= 0;
 	glBindTexture(GL_TEXTURE_2D, inDepthTexture);
 	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &inWidth);
 	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &inHeight);
@@ -167,17 +167,17 @@ GLuint SpoutGLDepthTexturePacker::packDepthTexture(
 		}
 
 		// Cache the input texture info
-		m_inFloatDepthTexture = inDepthTexture;
-		m_inFloatDepthTextureWidth = inWidth;
-		m_inFloatDepthTextureHeight = inHeight;
+		m_inFloatDepthTexture= inDepthTexture;
+		m_inFloatDepthTextureWidth= inWidth;
+		m_inFloatDepthTextureHeight= inHeight;
 	}
 
 	// Save current OpenGL state
-	GLint prevFramebuffer = 0;
+	GLint prevFramebuffer= 0;
 	GLint prevViewport[4];
-	GLint prevProgram = 0;
-	GLboolean prevDepthTestEnabled = glIsEnabled(GL_DEPTH_TEST);
-	GLboolean prevCullFaceEnabled = glIsEnabled(GL_CULL_FACE);
+	GLint prevProgram= 0;
+	GLboolean prevDepthTestEnabled= glIsEnabled(GL_DEPTH_TEST);
+	GLboolean prevCullFaceEnabled= glIsEnabled(GL_CULL_FACE);
 	glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFramebuffer);
 	glGetIntegerv(GL_VIEWPORT, prevViewport);
 	glGetIntegerv(GL_CURRENT_PROGRAM, &prevProgram);
@@ -188,7 +188,7 @@ GLuint SpoutGLDepthTexturePacker::packDepthTexture(
 	// Disable face culling for the fullscreen quad
 	glDisable(GL_CULL_FACE);
 
-	// Disable depth testing since we're rendering to a color-only framebuffer 
+	// Disable depth testing since we're rendering to a color-only framebuffer
 	glDisable(GL_DEPTH_TEST);
 
 	// Clear the render target
@@ -216,7 +216,8 @@ GLuint SpoutGLDepthTexturePacker::packDepthTexture(
 	glBindVertexArray(0);
 
 	// Restore cull face state
-	if (prevCullFaceEnabled) glEnable(GL_CULL_FACE);
+	if (prevCullFaceEnabled)
+		glEnable(GL_CULL_FACE);
 
 	// Restore previous OpenGL state
 	if (prevDepthTestEnabled)
@@ -236,31 +237,31 @@ void SpoutGLDepthTexturePacker::dispose()
 	if (m_vertexShader != 0)
 	{
 		glDeleteShader(m_vertexShader);
-		m_vertexShader = 0;
+		m_vertexShader= 0;
 	}
 
 	if (m_fragmentShader != 0)
 	{
 		glDeleteShader(m_fragmentShader);
-		m_fragmentShader = 0;
+		m_fragmentShader= 0;
 	}
 
 	if (m_shaderProgram != 0)
 	{
 		glDeleteProgram(m_shaderProgram);
-		m_shaderProgram = 0;
+		m_shaderProgram= 0;
 	}
 
 	if (m_quadVBO != 0)
 	{
 		glDeleteBuffers(1, &m_quadVBO);
-		m_quadVBO = 0;
+		m_quadVBO= 0;
 	}
 
 	if (m_quadVAO != 0)
 	{
 		glDeleteVertexArrays(1, &m_quadVAO);
-		m_quadVAO = 0;
+		m_quadVAO= 0;
 	}
 
 	disposeRenderTargetResources();
@@ -269,14 +270,14 @@ void SpoutGLDepthTexturePacker::dispose()
 bool SpoutGLDepthTexturePacker::initQuadGeometry()
 {
 	// Define a fullscreen quad (2 triangles)
-	QuadVertex vertices[] = {
-		{ {-1.0f,  1.0f}, {0.0f, 1.0f} },
-		{ {-1.0f, -1.0f}, {0.0f, 0.0f} },
-		{ { 1.0f, -1.0f}, {1.0f, 0.0f} },
+	QuadVertex vertices[]= {
+		{{-1.0f, 1.0f}, {0.0f, 1.0f}},
+		{{-1.0f, -1.0f}, {0.0f, 0.0f}},
+		{{1.0f, -1.0f}, {1.0f, 0.0f}},
 
-		{ {-1.0f,  1.0f}, {0.0f, 1.0f} },
-		{ { 1.0f, -1.0f}, {1.0f, 0.0f} },
-		{ { 1.0f,  1.0f}, {1.0f, 1.0f} },
+		{{-1.0f, 1.0f}, {0.0f, 1.0f}},
+		{{1.0f, -1.0f}, {1.0f, 0.0f}},
+		{{1.0f, 1.0f}, {1.0f, 1.0f}},
 	};
 
 	// Create and bind VAO
@@ -310,17 +311,17 @@ bool SpoutGLDepthTexturePacker::initShader()
 
 	if (m_mikanDescriptor.depth_buffer_type == SharedDepthBufferType::FLOAT_SCENE_DEPTH)
 	{
-		vertexShaderSource = SpoutGLDepthPackerShaderCode::packSceneDepthVertexShader;
-		fragmentShaderSource = SpoutGLDepthPackerShaderCode::packSceneDepthFragmentShader;
+		vertexShaderSource= SpoutGLDepthPackerShaderCode::packSceneDepthVertexShader;
+		fragmentShaderSource= SpoutGLDepthPackerShaderCode::packSceneDepthFragmentShader;
 	}
 	else
 	{
-		vertexShaderSource = SpoutGLDepthPackerShaderCode::packDeviceDepthVertexShader;
-		fragmentShaderSource = SpoutGLDepthPackerShaderCode::packDeviceDepthFragmentShader;
+		vertexShaderSource= SpoutGLDepthPackerShaderCode::packDeviceDepthVertexShader;
+		fragmentShaderSource= SpoutGLDepthPackerShaderCode::packDeviceDepthFragmentShader;
 	}
 
 	// Compile vertex shader
-	m_vertexShader = compileShader(vertexShaderSource, GL_VERTEX_SHADER);
+	m_vertexShader= compileShader(vertexShaderSource, GL_VERTEX_SHADER);
 	if (m_vertexShader == 0)
 	{
 		m_logger.log(SharedTextureLogLevel::error, "initShader - Failed to compile vertex shader");
@@ -328,7 +329,7 @@ bool SpoutGLDepthTexturePacker::initShader()
 	}
 
 	// Compile fragment shader
-	m_fragmentShader = compileShader(fragmentShaderSource, GL_FRAGMENT_SHADER);
+	m_fragmentShader= compileShader(fragmentShaderSource, GL_FRAGMENT_SHADER);
 	if (m_fragmentShader == 0)
 	{
 		m_logger.log(SharedTextureLogLevel::error, "initShader - Failed to compile fragment shader");
@@ -336,7 +337,7 @@ bool SpoutGLDepthTexturePacker::initShader()
 	}
 
 	// Link shader program
-	m_shaderProgram = linkProgram(m_vertexShader, m_fragmentShader);
+	m_shaderProgram= linkProgram(m_vertexShader, m_fragmentShader);
 	if (m_shaderProgram == 0)
 	{
 		m_logger.log(SharedTextureLogLevel::error, "initShader - Failed to link shader program");
@@ -348,7 +349,7 @@ bool SpoutGLDepthTexturePacker::initShader()
 
 GLuint SpoutGLDepthTexturePacker::compileShader(const char* shaderSource, GLenum shaderType)
 {
-	GLuint shader = glCreateShader(shaderType);
+	GLuint shader= glCreateShader(shaderType);
 	glShaderSource(shader, 1, &shaderSource, nullptr);
 	glCompileShader(shader);
 
@@ -373,7 +374,7 @@ GLuint SpoutGLDepthTexturePacker::compileShader(const char* shaderSource, GLenum
 
 GLuint SpoutGLDepthTexturePacker::linkProgram(GLuint vertexShader, GLuint fragmentShader)
 {
-	GLuint program = glCreateProgram();
+	GLuint program= glCreateProgram();
 	glAttachShader(program, vertexShader);
 	glAttachShader(program, fragmentShader);
 	glLinkProgram(program);
@@ -402,7 +403,7 @@ bool SpoutGLDepthTexturePacker::initRenderTargetResources(GLuint inDepthTexture)
 	disposeRenderTargetResources();
 
 	// Get the input texture dimensions
-	GLsizei inWidth = 0, inHeight = 0;
+	GLsizei inWidth= 0, inHeight= 0;
 	glBindTexture(GL_TEXTURE_2D, inDepthTexture);
 	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &inWidth);
 	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &inHeight);
@@ -426,7 +427,7 @@ bool SpoutGLDepthTexturePacker::initRenderTargetResources(GLuint inDepthTexture)
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_colorTargetTexture, 0);
 
 	// Check framebuffer completeness
-	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	GLenum status= glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if (status != GL_FRAMEBUFFER_COMPLETE)
 	{
 		std::stringstream ss;
@@ -448,16 +449,16 @@ void SpoutGLDepthTexturePacker::disposeRenderTargetResources()
 	if (m_colorTargetTexture != 0)
 	{
 		glDeleteTextures(1, &m_colorTargetTexture);
-		m_colorTargetTexture = 0;
+		m_colorTargetTexture= 0;
 	}
 
 	if (m_framebuffer != 0)
 	{
 		glDeleteFramebuffers(1, &m_framebuffer);
-		m_framebuffer = 0;
+		m_framebuffer= 0;
 	}
 
-	m_inFloatDepthTexture = 0;
-	m_inFloatDepthTextureWidth = 0;
-	m_inFloatDepthTextureHeight = 0;
+	m_inFloatDepthTexture= 0;
+	m_inFloatDepthTextureWidth= 0;
+	m_inFloatDepthTextureHeight= 0;
 }

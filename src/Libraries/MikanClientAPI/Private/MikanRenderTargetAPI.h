@@ -6,7 +6,7 @@
 class MikanRenderTargetAPI
 {
 public:
-	MikanRenderTargetAPI() = default;
+	MikanRenderTargetAPI()= default;
 	MikanRenderTargetAPI(class MikanRequestManager* requestManager);
 
 	MikanAPIResult setGraphicsDeviceInterface(MikanClientGraphicsApi api, void* graphicsDeviceInterface);
@@ -22,5 +22,5 @@ protected:
 	MikanResponseFuture freeRenderTargetTextures(MikanRequest& request);
 
 private:
-	class MikanRequestManager* m_requestManager = nullptr;
+	class MikanRequestManager* m_requestManager= nullptr;
 };

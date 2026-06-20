@@ -23,9 +23,9 @@
 // -- VideoTextureNodeConfig -----
 configuru::Config VideoTextureNodeConfig::writeToJSON()
 {
-	configuru::Config pt = NodeConfig::writeToJSON();
+	configuru::Config pt= NodeConfig::writeToJSON();
 
-	pt["video_texture_source"] = k_videoTextureStrings[(int)videoTextureSource];
+	pt["video_texture_source"]= k_videoTextureStrings[(int)videoTextureSource];
 
 	return pt;
 }
@@ -34,11 +34,11 @@ void VideoTextureNodeConfig::readFromJSON(const configuru::Config& pt)
 {
 	NodeConfig::readFromJSON(pt);
 
-	const std::string textureSourceString =
+	const std::string textureSourceString=
 		pt.get_or<std::string>(
 			"video_texture_source",
 			k_videoTextureStrings[(int)eVideoTextureSource::video_texture]);
-	videoTextureSource = 
+	videoTextureSource=
 		StringUtils::FindEnumValue<eVideoTextureSource>(
 			textureSourceString, k_videoTextureStrings);
 }
@@ -48,7 +48,7 @@ bool VideoTextureNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 {
 	if (Node::loadFromConfig(nodeConfig))
 	{
-		auto videoTextureNodeConfig = std::static_pointer_cast<const VideoTextureNodeConfig>(nodeConfig);
+		auto videoTextureNodeConfig= std::static_pointer_cast<const VideoTextureNodeConfig>(nodeConfig);
 
 		m_videoTextureSource= videoTextureNodeConfig->videoTextureSource;
 		return true;
@@ -59,15 +59,15 @@ bool VideoTextureNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 
 void VideoTextureNode::saveToConfig(NodeConfigPtr nodeConfig) const
 {
-	auto videoTextureNodeConfig = std::static_pointer_cast<VideoTextureNodeConfig>(nodeConfig);
-	videoTextureNodeConfig->videoTextureSource = m_videoTextureSource;
+	auto videoTextureNodeConfig= std::static_pointer_cast<VideoTextureNodeConfig>(nodeConfig);
+	videoTextureNodeConfig->videoTextureSource= m_videoTextureSource;
 
 	Node::saveToConfig(nodeConfig);
 }
 
 IMkTexturePtr VideoTextureNode::getTextureResource() const
 {
-	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
+	auto compositorGraph= std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
 	CompositorComponentPtr compositorComponent= compositorGraph->getBoundCompositorComponent();
 	if (compositorComponent != nullptr)
 	{
@@ -79,8 +79,8 @@ IMkTexturePtr VideoTextureNode::getTextureResource() const
 
 IMkTexturePtr VideoTextureNode::getPreviewTextureResource() const
 {
-	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
-	CompositorComponentPtr compositorComponent = compositorGraph->getBoundCompositorComponent();
+	auto compositorGraph= std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
+	CompositorComponentPtr compositorComponent= compositorGraph->getBoundCompositorComponent();
 	if (compositorComponent != nullptr)
 	{
 		return compositorComponent->getVideoPreviewTexture(m_videoTextureSource);
@@ -91,13 +91,13 @@ IMkTexturePtr VideoTextureNode::getPreviewTextureResource() const
 
 bool VideoTextureNode::evaluateNode(NodeEvaluator& evaluator)
 {
-	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
-	CompositorComponentPtr compositorComponent = compositorGraph->getBoundCompositorComponent();
+	auto compositorGraph= std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
+	CompositorComponentPtr compositorComponent= compositorGraph->getBoundCompositorComponent();
 
 	// Since the frame compositor can change the video source texture can change out from under us
 	// it's safest to just refresh the output texture pin every frame
 	auto outputPin= getFirstPinOfType<TexturePin>(eNodePinDirection::OUTPUT);
-	IMkTexturePtr textureResource = getTextureResource();
+	IMkTexturePtr textureResource= getTextureResource();
 	outputPin->setValue(textureResource);
 	outputPin->editorSetShowPinName(false);
 
@@ -123,7 +123,7 @@ bool VideoTextureNode::evaluateNode(NodeEvaluator& evaluator)
 
 std::shared_ptr<MkNodesScopedColorStyle> VideoTextureNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
 {
-	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225))
 		.push(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225))
 		.push(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
@@ -132,7 +132,7 @@ std::shared_ptr<MkNodesScopedColorStyle> VideoTextureNode::editorRenderMakeNodeS
 
 void VideoTextureNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	auto nodeStyle = editorRenderMakeNodeStyle(editorState);
+	auto nodeStyle= editorRenderMakeNodeStyle(editorState);
 	MkNodesScopedNode scopedNode(m_id);
 
 	// Title
@@ -140,8 +140,8 @@ void VideoTextureNode::editorRenderNode(const NodeEditorState& editorState)
 
 	// Texture
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
-	IMkTexturePtr textureResource = getPreviewTextureResource();
-	uint32_t glTextureId = textureResource ? textureResource->getGlTextureId() : 0;
+	IMkTexturePtr textureResource= getPreviewTextureResource();
+	uint32_t glTextureId= textureResource ? textureResource->getGlTextureId() : 0;
 	ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
 	ImGui::SameLine();
 
@@ -158,15 +158,15 @@ void VideoTextureNode::editorRenderPropertySheet(const NodeEditorState& editorSt
 		const char* k_videoSourceOptions= "Video\0Distortion\0";
 
 		// Texture Source
-		int iTextureSource = (int)m_videoTextureSource;
+		int iTextureSource= (int)m_videoTextureSource;
 		if (NodeEditorUI::DrawSimpleComboBoxProperty(
-			"videoTextureNodeSource",
-			"Source",
-			k_videoSourceOptions,
-			iTextureSource,
-			editorState.styleManager))
+				"videoTextureNodeSource",
+				"Source",
+				k_videoSourceOptions,
+				iTextureSource,
+				editorState.styleManager))
 		{
-			m_videoTextureSource = (eVideoTextureSource)iTextureSource;
+			m_videoTextureSource= (eVideoTextureSource)iTextureSource;
 		}
 	}
 }
@@ -175,8 +175,8 @@ void VideoTextureNode::editorRenderPropertySheet(const NodeEditorState& editorSt
 NodePtr VideoTextureNodeFactory::createNode(const NodeEditorState& editorState) const
 {
 	// Create the node and pins
-	NodePtr node = NodeFactory::createNode(editorState);
-	auto outputPin = node->addPin<TexturePin>("texture", eNodePinDirection::OUTPUT);
+	NodePtr node= NodeFactory::createNode(editorState);
+	auto outputPin= node->addPin<TexturePin>("texture", eNodePinDirection::OUTPUT);
 	outputPin->editorSetShowPinName(false);
 
 	// If spawned in an editor context from a dangling pin link

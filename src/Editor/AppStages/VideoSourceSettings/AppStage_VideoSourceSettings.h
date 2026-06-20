@@ -10,7 +10,6 @@
 class VideoFrameDistortionView;
 typedef std::shared_ptr<VideoFrameDistortionView> VideoFrameDistortionViewPtr;
 
-
 //-- definitions -----
 class AppStage_VideoSourceSettings : public AppStage
 {
@@ -20,7 +19,7 @@ public:
 
 	void setVideoSourceComponent(VideoSourceComponentPtr videoSourceComponent)
 	{
-		m_videoSourceComponent = videoSourceComponent;
+		m_videoSourceComponent= videoSourceComponent;
 	}
 
 	virtual void enter() override;

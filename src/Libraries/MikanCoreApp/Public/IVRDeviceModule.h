@@ -6,7 +6,7 @@
 class IVRDeviceModule : public IMikanModule
 {
 public:
-	IVRDeviceModule() = default;
+	IVRDeviceModule()= default;
 
-	virtual IVRDeviceManagerPtr createTrackingRuntime() = 0;
+	virtual IVRDeviceManagerPtr createTrackingRuntime()= 0;
 };

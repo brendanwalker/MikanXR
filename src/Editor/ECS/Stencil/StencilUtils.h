@@ -9,8 +9,8 @@
 
 namespace StencilUtils
 {
-	StencilComponentPtr getStencilById(ProjectManagerPtr projectManager, MikanStencilID stencilId);
-	eStencilType getStencilType(ProjectManagerPtr projectManager, MikanStencilID stencilId);
-	bool getStencilWorldTransform(ProjectManagerPtr projectManager, MikanStencilID parentStencilId, glm::mat4& outXform);
-	bool removeStencil(ProjectManagerPtr projectManager, MikanStencilID stencilId);
-}
+StencilComponentPtr getStencilById(ProjectManagerPtr projectManager, MikanStencilID stencilId);
+eStencilType getStencilType(ProjectManagerPtr projectManager, MikanStencilID stencilId);
+bool getStencilWorldTransform(ProjectManagerPtr projectManager, MikanStencilID parentStencilId, glm::mat4& outXform);
+bool removeStencil(ProjectManagerPtr projectManager, MikanStencilID stencilId);
+} // namespace StencilUtils

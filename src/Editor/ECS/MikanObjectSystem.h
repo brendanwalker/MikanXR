@@ -11,9 +11,9 @@
 
 #include <vector>
 
-using MikanObjectList = std::vector<MikanObjectPtr>;
-using MikanPropertyDatabasePtr = std::shared_ptr<class MikanPropertyDatabase>;
-using MikanFunctionDatabasePtr = std::shared_ptr<class MikanFunctionDatabase>;
+using MikanObjectList= std::vector<MikanObjectPtr>;
+using MikanPropertyDatabasePtr= std::shared_ptr<class MikanPropertyDatabase>;
+using MikanFunctionDatabasePtr= std::shared_ptr<class MikanFunctionDatabase>;
 
 class MikanObjectSystemDefinition : public CommonConfig
 {
@@ -27,16 +27,15 @@ public:
 	}
 
 	MikanObjectSystemPtr getOwnerSystem() const { return m_ownerSystem.lock(); }
-	void setOwnerSystem(MikanObjectSystemPtr ownerSystem) { m_ownerSystem = ownerSystem; }
+	void setOwnerSystem(MikanObjectSystemPtr ownerSystem) { m_ownerSystem= ownerSystem; }
 
 protected:
 	MikanObjectSystemWeakPtr m_ownerSystem;
 	IEntityIDAllocatorWeakPtr m_idAllocator;
 };
 
-class MikanObjectSystem : 
-	public std::enable_shared_from_this<MikanObjectSystem>,
-	public IEntityAccessor
+class MikanObjectSystem : public std::enable_shared_from_this<MikanObjectSystem>,
+						  public IEntityAccessor
 {
 public:
 	MikanObjectSystem(ProjectManagerPtr ownerObjectSystem);
@@ -48,7 +47,7 @@ public:
 	virtual void update(float deltaSeconds);
 	virtual bool isLoading() const { return false; }
 
-	inline static const std::string k_objectSystemClassName = "MikanObjectSystem";
+	inline static const std::string k_objectSystemClassName= "MikanObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
 	inline ProjectManagerPtr getOwnerProjectManager() const { return m_ownerObjectSystemManager.lock(); }
@@ -62,14 +61,16 @@ public:
 		return getOwnerProjectManager()->getSystemOfType<t_object_system_type>();
 	}
 
-	inline MikanObjectSystemDefinitionConstPtr getDefinitionConst() const {
+	inline MikanObjectSystemDefinitionConstPtr getDefinitionConst() const
+	{
 		return m_definitionWeakPtr.lock();
 	}
-	inline MikanObjectSystemDefinitionPtr getDefinition() {
+	inline MikanObjectSystemDefinitionPtr getDefinition()
+	{
 		return m_definitionWeakPtr.lock();
 	}
 
-	using VisitFunction = std::function<void(MikanObjectPtr)>;
+	using VisitFunction= std::function<void(MikanObjectPtr)>;
 	void visitAllObjects(VisitFunction visitFunc) const
 	{
 		for (const auto& objectPtr : m_objects)
@@ -81,13 +82,13 @@ public:
 		}
 	}
 
-	virtual MikanComponentPtr getComponentById(int componentId) const = 0;
-	virtual bool getComponentList(const std::string& componentClassName, std::vector<MikanComponentPtr>& outComponentList) const = 0;
-	virtual bool getComponentIdList(const std::string& componentClassName, std::vector<int>& outComponentIdList) const = 0;
+	virtual MikanComponentPtr getComponentById(int componentId) const= 0;
+	virtual bool getComponentList(const std::string& componentClassName, std::vector<MikanComponentPtr>& outComponentList) const= 0;
+	virtual bool getComponentIdList(const std::string& componentClassName, std::vector<int>& outComponentIdList) const= 0;
 
 	MikanObjectPtr newEmptyObject();
 	virtual MikanComponentPtr addNewObjectByUntypedDefinition(
-		const std::string& primaryComponentClass, 
+		const std::string& primaryComponentClass,
 		Serialization::PolymorphicObjectPtr initParams);
 	virtual bool deleteObject(MikanObjectPtr objectPtr);
 	void deleteAllObjects();
@@ -97,7 +98,7 @@ public:
 	MulticastDelegate<void(MikanObjectSystemPtr, MikanObjectConstPtr)> OnObjectDisposed;
 	MulticastDelegate<void(MikanObjectSystemPtr, MikanComponentPtr)> OnComponentInitialized;
 	MulticastDelegate<void(MikanObjectSystemPtr, MikanComponentConstPtr)> OnComponentDisposed;
-	
+
 	// -- IEntityAccessor ----
 	virtual std::string makePropertyUIIdentifier(const std::string& propName) const override;
 	virtual CommonConfigPtr getEntityConfig() override { return getDefinition(); }
@@ -113,7 +114,7 @@ public:
 	virtual void registerFunctionDescriptors(MikanFunctionDatabasePtr functionDatabase);
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors) {}
 	virtual bool invokeFunction(const std::string& functionName) override { return false; }
-		
+
 protected:
 	bool disposeObjectInternal(MikanObjectPtr objectPtr);
 

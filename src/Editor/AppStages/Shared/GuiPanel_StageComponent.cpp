@@ -9,11 +9,9 @@
 GuiPanel_StageComponent::GuiPanel_StageComponent(AppStage* ownerAppStage)
 	: GuiPanel_MikanComponent(ownerAppStage)
 	, m_trackingVolumeDataSource(
-		ownerAppStage->getProjectManager(),
-		{
-			{ VRTrackingVolumeSystem::k_objectSystemClassName, VRTrackingVolumeComponent::k_componentClassName },
-			{ MarkerTrackingVolumeSystem::k_objectSystemClassName, MarkerTrackingVolumeComponent::k_componentClassName }
-		})
+		  ownerAppStage->getProjectManager(),
+		  {{VRTrackingVolumeSystem::k_objectSystemClassName, VRTrackingVolumeComponent::k_componentClassName},
+		   {MarkerTrackingVolumeSystem::k_objectSystemClassName, MarkerTrackingVolumeComponent::k_componentClassName}})
 {
 }
 
@@ -30,7 +28,7 @@ void GuiPanel_StageComponent::onConstruct()
 		StageComponentDefinition::k_trackingVolumeIdPropertyId,
 		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			StageComponentPtr stageComp = getStageComponent();
+			StageComponentPtr stageComp= getStageComponent();
 			if (!stageComp)
 				return false;
 
@@ -38,24 +36,23 @@ void GuiPanel_StageComponent::onConstruct()
 			if (m_trackingVolumeDataSource.getEntryCount() == 0)
 				return false;
 
-			const MikanTrackingVolumeID currentVolumeId =
+			const MikanTrackingVolumeID currentVolumeId=
 				stageComp->getStageComponentDefinition()->getTrackingVolumeId();
-			int selectedIndex =
+			int selectedIndex=
 				m_trackingVolumeDataSource.getEntryIndexByComponentId(currentVolumeId);
 
 			if (MkGui::drawComboBoxProperty(
-				m_defaultGuiStyle,
-				stageComp->makePropertyUIIdentifier(StageComponentDefinition::k_trackingVolumeIdPropertyId),
-				"Tracking Volume",
-				&m_trackingVolumeDataSource,
-				selectedIndex))
+					m_defaultGuiStyle,
+					stageComp->makePropertyUIIdentifier(StageComponentDefinition::k_trackingVolumeIdPropertyId),
+					"Tracking Volume",
+					&m_trackingVolumeDataSource,
+					selectedIndex))
 			{
-				MikanComponentPtr newVolume = m_trackingVolumeDataSource.getEntryAtIndex(selectedIndex);
+				MikanComponentPtr newVolume= m_trackingVolumeDataSource.getEntryAtIndex(selectedIndex);
 				if (newVolume)
 				{
-					addDeferredGuiEvent([stageComp, newVolume]() {
-						stageComp->setTrackingVolumeId(newVolume->getComponentId());
-					});
+					addDeferredGuiEvent([stageComp, newVolume]()
+										{ stageComp->setTrackingVolumeId(newVolume->getComponentId()); });
 				}
 			}
 			return true;
@@ -64,7 +61,7 @@ void GuiPanel_StageComponent::onConstruct()
 
 StageComponentPtr GuiPanel_StageComponent::getStageComponent() const
 {
-	MikanComponentPtr component = m_component.lock();
+	MikanComponentPtr component= m_component.lock();
 	if (component)
 	{
 		return std::dynamic_pointer_cast<StageComponent>(component);

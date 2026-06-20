@@ -1,7 +1,8 @@
 #include "IntPin.h"
 
 // -- IntPin -----
-IntPinBase::IntPinBase() : NodePin()
+IntPinBase::IntPinBase()
+	: NodePin()
 {
 	setHasDefaultValue(true);
 }
@@ -26,7 +27,7 @@ ImNodesPinShape IntPinBase::editorComputePinShape() const
 
 std::shared_ptr<MkNodesScopedColorStyle> IntPinBase::editorRenderMakePinStyle(float alpha)
 {
-	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_Pin, IM_COL32(33, 227, 175, (unsigned char)(alpha * 255)))
 		.push(ImNodesCol_PinHovered, IM_COL32(135, 239, 195, (unsigned char)(alpha * 255)));
 	return style;
@@ -39,7 +40,7 @@ void IntPinBase::editorRenderContextMenu(const NodeEditorState& editorState)
 // -- IntPin -----
 void IntPin::copyValueFromSourcePin()
 {
-	IntPinPtr sourcePin = std::dynamic_pointer_cast<IntPin>(getConnectedSourcePin());
+	IntPinPtr sourcePin= std::dynamic_pointer_cast<IntPin>(getConnectedSourcePin());
 
 	if (sourcePin)
 	{
@@ -60,7 +61,7 @@ void IntPin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 // -- Int2Pin -----
 void Int2Pin::copyValueFromSourcePin()
 {
-	Int2PinPtr sourcePin = std::dynamic_pointer_cast<Int2Pin>(getConnectedSourcePin());
+	Int2PinPtr sourcePin= std::dynamic_pointer_cast<Int2Pin>(getConnectedSourcePin());
 
 	if (sourcePin)
 	{
@@ -82,7 +83,7 @@ void Int2Pin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 // -- Int3Pin -----
 void Int3Pin::copyValueFromSourcePin()
 {
-	Int3PinPtr sourcePin = std::dynamic_pointer_cast<Int3Pin>(getConnectedSourcePin());
+	Int3PinPtr sourcePin= std::dynamic_pointer_cast<Int3Pin>(getConnectedSourcePin());
 
 	if (sourcePin)
 	{
@@ -104,7 +105,7 @@ void Int3Pin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 // -- Int4Pin -----
 void Int4Pin::copyValueFromSourcePin()
 {
-	Int4PinPtr sourcePin = std::dynamic_pointer_cast<Int4Pin>(getConnectedSourcePin());
+	Int4PinPtr sourcePin= std::dynamic_pointer_cast<Int4Pin>(getConnectedSourcePin());
 
 	if (sourcePin)
 	{

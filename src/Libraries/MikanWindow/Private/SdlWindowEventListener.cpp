@@ -17,24 +17,24 @@ eMkWindowEventType SdlWindowEvent::getEventType() const
 {
 	switch (m_event->type)
 	{
-		case SDL_QUIT:
-			return eMkWindowEventType::Quit;
-		case SDL_KEYDOWN:
-			return eMkWindowEventType::KeyDown;
-		case SDL_KEYUP:
-			return eMkWindowEventType::KeyUp;
-		case SDL_MOUSEWHEEL:
-			return eMkWindowEventType::MouseWheel;
-		case SDL_MOUSEBUTTONDOWN:
-			return eMkWindowEventType::MouseButtonDown;
-		case SDL_MOUSEBUTTONUP:
-			return eMkWindowEventType::MouseButtonUp;
-		case SDL_MOUSEMOTION:
-			return eMkWindowEventType::MouseMotion;
-		case SDL_WINDOWEVENT:
-			return eMkWindowEventType::WindowEvent;
-		default:
-			return eMkWindowEventType::Other;
+	case SDL_QUIT:
+		return eMkWindowEventType::Quit;
+	case SDL_KEYDOWN:
+		return eMkWindowEventType::KeyDown;
+	case SDL_KEYUP:
+		return eMkWindowEventType::KeyUp;
+	case SDL_MOUSEWHEEL:
+		return eMkWindowEventType::MouseWheel;
+	case SDL_MOUSEBUTTONDOWN:
+		return eMkWindowEventType::MouseButtonDown;
+	case SDL_MOUSEBUTTONUP:
+		return eMkWindowEventType::MouseButtonUp;
+	case SDL_MOUSEMOTION:
+		return eMkWindowEventType::MouseMotion;
+	case SDL_WINDOWEVENT:
+		return eMkWindowEventType::WindowEvent;
+	default:
+		return eMkWindowEventType::Other;
 	}
 }
 
@@ -63,18 +63,30 @@ eMkWindowEventID SdlWindowEvent::getWindowEventID() const
 	{
 		switch (m_event->window.event)
 		{
-			case SDL_WINDOWEVENT_SHOWN:       return eMkWindowEventID::Shown;
-			case SDL_WINDOWEVENT_HIDDEN:      return eMkWindowEventID::Hidden;
-			case SDL_WINDOWEVENT_SIZE_CHANGED:return eMkWindowEventID::SizeChanged;
-			case SDL_WINDOWEVENT_ENTER:       return eMkWindowEventID::Enter;
-			case SDL_WINDOWEVENT_LEAVE:       return eMkWindowEventID::Leave;
-			case SDL_WINDOWEVENT_FOCUS_GAINED:return eMkWindowEventID::FocusGained;
-			case SDL_WINDOWEVENT_FOCUS_LOST:  return eMkWindowEventID::FocusLost;
-			case SDL_WINDOWEVENT_MINIMIZED:   return eMkWindowEventID::Minimized;
-			case SDL_WINDOWEVENT_MAXIMIZED:   return eMkWindowEventID::Maximized;
-			case SDL_WINDOWEVENT_RESTORED:    return eMkWindowEventID::Restored;
-			case SDL_WINDOWEVENT_CLOSE:       return eMkWindowEventID::Close;
-			default:                          return eMkWindowEventID::Unknown;
+		case SDL_WINDOWEVENT_SHOWN:
+			return eMkWindowEventID::Shown;
+		case SDL_WINDOWEVENT_HIDDEN:
+			return eMkWindowEventID::Hidden;
+		case SDL_WINDOWEVENT_SIZE_CHANGED:
+			return eMkWindowEventID::SizeChanged;
+		case SDL_WINDOWEVENT_ENTER:
+			return eMkWindowEventID::Enter;
+		case SDL_WINDOWEVENT_LEAVE:
+			return eMkWindowEventID::Leave;
+		case SDL_WINDOWEVENT_FOCUS_GAINED:
+			return eMkWindowEventID::FocusGained;
+		case SDL_WINDOWEVENT_FOCUS_LOST:
+			return eMkWindowEventID::FocusLost;
+		case SDL_WINDOWEVENT_MINIMIZED:
+			return eMkWindowEventID::Minimized;
+		case SDL_WINDOWEVENT_MAXIMIZED:
+			return eMkWindowEventID::Maximized;
+		case SDL_WINDOWEVENT_RESTORED:
+			return eMkWindowEventID::Restored;
+		case SDL_WINDOWEVENT_CLOSE:
+			return eMkWindowEventID::Close;
+		default:
+			return eMkWindowEventID::Unknown;
 		}
 	}
 	return eMkWindowEventID::Unknown;

@@ -24,11 +24,11 @@
 // -- StencilSelectNodeConfig -----
 configuru::Config StencilSelectNodeConfig::writeToJSON()
 {
-	configuru::Config pt = NodeConfig::writeToJSON();
+	configuru::Config pt= NodeConfig::writeToJSON();
 
-	pt["enable_quad_stencils"] = bEnableQuadStencils;
-	pt["enable_box_stencils"] = bEnableBoxStencils;
-	pt["enable_model_stencils"] = bEnableModelStencils;
+	pt["enable_quad_stencils"]= bEnableQuadStencils;
+	pt["enable_box_stencils"]= bEnableBoxStencils;
+	pt["enable_model_stencils"]= bEnableModelStencils;
 
 	return pt;
 }
@@ -37,9 +37,9 @@ void StencilSelectNodeConfig::readFromJSON(const configuru::Config& pt)
 {
 	NodeConfig::readFromJSON(pt);
 
-	bEnableQuadStencils = pt.get_or<bool>("enable_quad_stencils", true);
-	bEnableBoxStencils = pt.get_or<bool>("enable_box_stencils", true);
-	bEnableModelStencils = pt.get_or<bool>("enable_model_stencils", true);
+	bEnableQuadStencils= pt.get_or<bool>("enable_quad_stencils", true);
+	bEnableBoxStencils= pt.get_or<bool>("enable_box_stencils", true);
+	bEnableModelStencils= pt.get_or<bool>("enable_model_stencils", true);
 }
 
 // -- StencilSelectNode -----
@@ -47,11 +47,11 @@ bool StencilSelectNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 {
 	if (Node::loadFromConfig(nodeConfig))
 	{
-		auto config = std::static_pointer_cast<const StencilSelectNodeConfig>(nodeConfig);
+		auto config= std::static_pointer_cast<const StencilSelectNodeConfig>(nodeConfig);
 
-		m_bEnableQuadStencils = config->bEnableQuadStencils;
-		m_bEnableBoxStencils = config->bEnableBoxStencils;
-		m_bEnableModelStencils = config->bEnableModelStencils;
+		m_bEnableQuadStencils= config->bEnableQuadStencils;
+		m_bEnableBoxStencils= config->bEnableBoxStencils;
+		m_bEnableModelStencils= config->bEnableModelStencils;
 
 		return true;
 	}
@@ -61,19 +61,19 @@ bool StencilSelectNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 
 void StencilSelectNode::saveToConfig(NodeConfigPtr nodeConfig) const
 {
-	auto config = std::static_pointer_cast<StencilSelectNodeConfig>(nodeConfig);
+	auto config= std::static_pointer_cast<StencilSelectNodeConfig>(nodeConfig);
 
-	config->bEnableQuadStencils = m_bEnableQuadStencils;
-	config->bEnableBoxStencils = m_bEnableBoxStencils;
-	config->bEnableModelStencils = m_bEnableModelStencils;
+	config->bEnableQuadStencils= m_bEnableQuadStencils;
+	config->bEnableBoxStencils= m_bEnableBoxStencils;
+	config->bEnableModelStencils= m_bEnableModelStencils;
 
 	Node::saveToConfig(nodeConfig);
 }
 
 bool StencilSelectNode::evaluateNode(NodeEvaluator& evaluator)
 {
-	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
-	CameraComponentPtr cameraComponent = compositorGraph->getBoundCameraComponent();
+	auto compositorGraph= std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
+	CameraComponentPtr cameraComponent= compositorGraph->getBoundCameraComponent();
 	if (!cameraComponent)
 		return false;
 
@@ -97,7 +97,7 @@ bool StencilSelectNode::evaluateNode(NodeEvaluator& evaluator)
 
 		for (QuadStencilComponentPtr stencil : quadList)
 		{
-			auto prop = std::make_shared<GraphStencilProperty>();
+			auto prop= std::make_shared<GraphStencilProperty>();
 			prop->setStencilComponent(stencil);
 			gathered.push_back(prop);
 		}
@@ -114,7 +114,7 @@ bool StencilSelectNode::evaluateNode(NodeEvaluator& evaluator)
 
 		for (BoxStencilComponentPtr stencil : boxList)
 		{
-			auto prop = std::make_shared<GraphStencilProperty>();
+			auto prop= std::make_shared<GraphStencilProperty>();
 			prop->setStencilComponent(stencil);
 			gathered.push_back(prop);
 		}
@@ -131,14 +131,14 @@ bool StencilSelectNode::evaluateNode(NodeEvaluator& evaluator)
 
 		for (ModelStencilComponentPtr stencil : modelList)
 		{
-			auto prop = std::make_shared<GraphStencilProperty>();
+			auto prop= std::make_shared<GraphStencilProperty>();
 			prop->setStencilComponent(stencil);
 			gathered.push_back(prop);
 		}
 	}
 
 	// Assign the resulting array to the output pin
-	auto outputPin = getFirstPinOfType<ArrayPin>(eNodePinDirection::OUTPUT);
+	auto outputPin= getFirstPinOfType<ArrayPin>(eNodePinDirection::OUTPUT);
 	if (outputPin)
 	{
 		outputPin->setArray(gathered);
@@ -149,7 +149,7 @@ bool StencilSelectNode::evaluateNode(NodeEvaluator& evaluator)
 
 std::shared_ptr<MkNodesScopedColorStyle> StencilSelectNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
 {
-	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225))
 		.push(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225))
 		.push(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
@@ -158,7 +158,7 @@ std::shared_ptr<MkNodesScopedColorStyle> StencilSelectNode::editorRenderMakeNode
 
 void StencilSelectNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	auto nodeStyle = editorRenderMakeNodeStyle(editorState);
+	auto nodeStyle= editorRenderMakeNodeStyle(editorState);
 	MkNodesScopedNode scopedNode(m_id);
 
 	// Title
@@ -192,9 +192,9 @@ void StencilSelectNode::editorRenderPropertySheet(const NodeEditorState& editorS
 // -- StencilSelectNodeFactory -----
 NodePtr StencilSelectNodeFactory::createNode(const NodeEditorState& editorState) const
 {
-	auto node = std::static_pointer_cast<StencilSelectNode>(NodeFactory::createNode(editorState));
+	auto node= std::static_pointer_cast<StencilSelectNode>(NodeFactory::createNode(editorState));
 
-	ArrayPinPtr outPin = node->addPin<ArrayPin>("stencils", eNodePinDirection::OUTPUT);
+	ArrayPinPtr outPin= node->addPin<ArrayPin>("stencils", eNodePinDirection::OUTPUT);
 	outPin->setElementClassName(GraphStencilProperty::k_propertyClassName);
 
 	autoConnectOutputPin(editorState, outPin);

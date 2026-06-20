@@ -78,9 +78,8 @@ StencilAligner::~StencilAligner()
 
 bool StencilAligner::hasFinishedPointSampling() const
 {
-	return
-		m_calibrationState->pixelSamples.size() >= DESIRED_SAMPLE_COUNT && 
-		m_calibrationState->cvLocalVertexSamples.size() >= DESIRED_SAMPLE_COUNT;
+	return m_calibrationState->pixelSamples.size() >= DESIRED_SAMPLE_COUNT &&
+		   m_calibrationState->cvLocalVertexSamples.size() >= DESIRED_SAMPLE_COUNT;
 }
 
 void StencilAligner::resetCalibrationState()
@@ -102,8 +101,8 @@ void StencilAligner::sampleVertex(const glm::vec3& localVertex)
 	// * Convert from OpenGL coordinate system to OpenCV coordinate system
 	// (x, y, z) -> (x, -y, -z)
 	const cv::Point3d cv_localVertex(
-		localVertex.x * k_meters_to_millimeters, 
-		-localVertex.y * k_meters_to_millimeters, 
+		localVertex.x * k_meters_to_millimeters,
+		-localVertex.y * k_meters_to_millimeters,
 		-localVertex.z * k_meters_to_millimeters);
 
 	m_calibrationState->cvLocalVertexSamples.push_back(cv_localVertex);
@@ -124,17 +123,17 @@ bool StencilAligner::computeStencilTransform(glm::mat4& outStencilTransform)
 		return false;
 	}
 
-	// Given an object model and the image points samples we could be able to compute 
+	// Given an object model and the image points samples we could be able to compute
 	// a position and orientation of the calibration pattern relative to the camera
 	cv::Quatd cv_cameraToStencilRot;
 	cv::Vec3d cv_cameraToStencilVecMM; // Millimeters
 	const auto& monoIntrinsics= cameraIntrinsics.getMonoIntrinsics();
 	if (!computeOpenCVCameraRelativePatternTransform(
-		monoIntrinsics,
-		m_calibrationState->pixelSamples,
-		m_calibrationState->cvLocalVertexSamples,
-		cv_cameraToStencilRot,
-		cv_cameraToStencilVecMM))
+			monoIntrinsics,
+			m_calibrationState->pixelSamples,
+			m_calibrationState->cvLocalVertexSamples,
+			cv_cameraToStencilRot,
+			cv_cameraToStencilVecMM))
 	{
 		return false;
 	}
@@ -152,32 +151,32 @@ bool StencilAligner::computeStencilTransform(glm::mat4& outStencilTransform)
 		return false;
 	}
 
-	outStencilTransform = glm_composite_xform(cameraToStencilXform, cameraPose);
+	outStencilTransform= glm_composite_xform(cameraToStencilXform, cameraPose);
 
 	return true;
 }
 
 void StencilAligner::renderPixelSamples()
 {
-	int frameWidth = 0, frameHeight = 0;
+	int frameWidth= 0, frameHeight= 0;
 	if (!m_cameraComponent->getAperturePixelDimensions(frameWidth, frameHeight))
 		return;
 
-	IMkGraphicsContext* graphicsContext = m_cameraComponent->getGraphicsContext();
+	IMkGraphicsContext* graphicsContext= m_cameraComponent->getGraphicsContext();
 
 	glm::vec3 glm_points[4];
-	const int pointCount = (int)m_calibrationState->pixelSamples.size();
+	const int pointCount= (int)m_calibrationState->pixelSamples.size();
 	assert(pointCount <= 4);
 
-	for (int i = 0; i < pointCount; i++)
+	for (int i= 0; i < pointCount; i++)
 	{
-		const cv::Point2f& imagePoint = m_calibrationState->pixelSamples[i];
+		const cv::Point2f& imagePoint= m_calibrationState->pixelSamples[i];
 
-		glm_points[i] = glm::vec3(imagePoint.x, imagePoint.y, 0.5f);
+		glm_points[i]= glm::vec3(imagePoint.x, imagePoint.y, 0.5f);
 
-		TextStyle style = getDefaultTextStyle();
-		style.horizontalAlignment = eHorizontalTextAlignment::Middle;
-		style.verticalAlignment = eVerticalTextAlignment::Bottom;
+		TextStyle style= getDefaultTextStyle();
+		style.horizontalAlignment= eHorizontalTextAlignment::Middle;
+		style.verticalAlignment= eVerticalTextAlignment::Bottom;
 		drawTextAtCameraPosition(
 			graphicsContext,
 			style,
@@ -187,43 +186,49 @@ void StencilAligner::renderPixelSamples()
 
 		if (i > 0)
 		{
-			glm::vec3 color = Colors::White;
+			glm::vec3 color= Colors::White;
 			switch (i)
 			{
-				case 1: color = Colors::Red; break;
-				case 2: color = Colors::Green; break;
-				case 3: color = Colors::Blue; break;
+			case 1:
+				color= Colors::Red;
+				break;
+			case 2:
+				color= Colors::Green;
+				break;
+			case 3:
+				color= Colors::Blue;
+				break;
 			}
 			drawSegment2d(
 				graphicsContext,
-				frameWidth, frameHeight, 
-				glm_points[0], glm_points[i], 
+				frameWidth, frameHeight,
+				glm_points[0], glm_points[i],
 				color, color);
 		}
 	}
 
 	drawPointList2d(
-		graphicsContext, 
-		frameWidth, frameHeight, 
-		glm_points, pointCount, 
+		graphicsContext,
+		frameWidth, frameHeight,
+		glm_points, pointCount,
 		Colors::Yellow, 2.f);
 }
 
 void StencilAligner::renderVertexSamples()
 {
-	IMkGraphicsContext* graphicsContext = m_cameraComponent->getGraphicsContext();
+	IMkGraphicsContext* graphicsContext= m_cameraComponent->getGraphicsContext();
 
 	const glm::mat4& xform= m_modelStencil->getWorldTransform();
-	const int pointCount = (int)m_calibrationState->glLocalVertexSamples.size();
+	const int pointCount= (int)m_calibrationState->glLocalVertexSamples.size();
 
-	for (int i = 0; i < pointCount; i++)
+	for (int i= 0; i < pointCount; i++)
 	{
-		const glm::vec3& localVertex = m_calibrationState->glLocalVertexSamples[i];
-		glm::vec3 worldVertex = glm::vec3(xform * glm::vec4(localVertex, 1.f));
+		const glm::vec3& localVertex= m_calibrationState->glLocalVertexSamples[i];
+		glm::vec3 worldVertex= glm::vec3(xform * glm::vec4(localVertex, 1.f));
 
-		TextStyle style = getDefaultTextStyle();
-		style.horizontalAlignment = eHorizontalTextAlignment::Middle;
-		style.verticalAlignment = eVerticalTextAlignment::Bottom;
+		TextStyle style= getDefaultTextStyle();
+		style.horizontalAlignment= eHorizontalTextAlignment::Middle;
+		style.verticalAlignment= eVerticalTextAlignment::Bottom;
 		drawTextAtWorldPosition(
 			graphicsContext,
 			style,
@@ -232,15 +237,21 @@ void StencilAligner::renderVertexSamples()
 
 		if (i > 0)
 		{
-			glm::vec3 color = Colors::White;
+			glm::vec3 color= Colors::White;
 			switch (i)
 			{
-				case 1: color = Colors::Red; break;
-				case 2: color = Colors::Green; break;
-				case 3: color = Colors::Blue; break;
+			case 1:
+				color= Colors::Red;
+				break;
+			case 2:
+				color= Colors::Green;
+				break;
+			case 3:
+				color= Colors::Blue;
+				break;
 			}
 			drawSegment(
-				graphicsContext, 
+				graphicsContext,
 				xform, m_calibrationState->glLocalVertexSamples[0], localVertex, color, color);
 		}
 	}

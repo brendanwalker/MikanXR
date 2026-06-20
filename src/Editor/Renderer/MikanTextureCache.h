@@ -9,12 +9,12 @@
 #include <string>
 #include <map>
 
-#define INTERNAL_TEXTURE_WHITE_RGB					"Internal_White_RGB"
-#define INTERNAL_TEXTURE_BLACK_RGB					"Internal_Black_RGB"
-#define INTERNAL_TEXTURE_WHITE_RGBA					"Internal_White_RGBA"
-#define INTERNAL_TEXTURE_BLACK_RGBA					"Internal_Black_RGBA"
-#define INTERNAL_TEXTURE_BLACK_RGBA_TRANSPARENT		"Internal_Black_RGBA_Transparent"
-#define INTERNAL_MISSING_TEXTURE_RGBA				"Internal_Missing_Texture_RGBA"
+#define INTERNAL_TEXTURE_WHITE_RGB "Internal_White_RGB"
+#define INTERNAL_TEXTURE_BLACK_RGB "Internal_Black_RGB"
+#define INTERNAL_TEXTURE_WHITE_RGBA "Internal_White_RGBA"
+#define INTERNAL_TEXTURE_BLACK_RGBA "Internal_Black_RGBA"
+#define INTERNAL_TEXTURE_BLACK_RGBA_TRANSPARENT "Internal_Black_RGBA_Transparent"
+#define INTERNAL_MISSING_TEXTURE_RGBA "Internal_Missing_Texture_RGBA"
 
 class MikanTextureCache
 {
@@ -28,7 +28,7 @@ public:
 	virtual void shutdown();
 	virtual IMkTexturePtr tryGetTextureByName(const std::string& textureName);
 	virtual IMkTexturePtr loadTexturePath(
-		const std::filesystem::path& texturePath, 
+		const std::filesystem::path& texturePath,
 		const std::string& overrideName= "");
 	virtual bool removeTexureFromCache(IMkTexturePtr texture);
 

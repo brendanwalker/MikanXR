@@ -11,16 +11,12 @@
 GuiPanel_CameraComponent::GuiPanel_CameraComponent(AppStage* ownerAppStage)
 	: GuiPanel_MikanComponent(ownerAppStage)
 	, m_videoSourceDataSource(
-		ownerAppStage->getProjectManager(),
-		{
-			{ USBVideoSourceSystem::k_objectSystemClassName, USBVideoSourceComponent::k_componentClassName },
-			{ NetworkVideoSourceSystem::k_objectSystemClassName, NetworkVideoSourceComponent::k_componentClassName }
-		})
+		  ownerAppStage->getProjectManager(),
+		  {{USBVideoSourceSystem::k_objectSystemClassName, USBVideoSourceComponent::k_componentClassName},
+		   {NetworkVideoSourceSystem::k_objectSystemClassName, NetworkVideoSourceComponent::k_componentClassName}})
 	, m_trackingMountDataSource(
-		ownerAppStage->getProjectManager(),
-		{
-			{ TrackingMountObjectSystem::k_objectSystemClassName, TrackingMountComponent::k_componentClassName }
-		})
+		  ownerAppStage->getProjectManager(),
+		  {{TrackingMountObjectSystem::k_objectSystemClassName, TrackingMountComponent::k_componentClassName}})
 {
 }
 
@@ -37,7 +33,7 @@ void GuiPanel_CameraComponent::onConstruct()
 		CameraDefinition::k_videoSourceIdPropertyId,
 		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			CameraComponentPtr cameraComp = getCameraComponent();
+			CameraComponentPtr cameraComp= getCameraComponent();
 			if (!cameraComp)
 				return false;
 
@@ -45,25 +41,24 @@ void GuiPanel_CameraComponent::onConstruct()
 			if (m_videoSourceDataSource.getEntryCount() == 0)
 				return false;
 
-			const MikanVideoSourceID currentVideoSourceId =
+			const MikanVideoSourceID currentVideoSourceId=
 				cameraComp->getCameraDefinition()->getVideoSourceId();
-			int selectedIndex =
+			int selectedIndex=
 				m_videoSourceDataSource.getEntryIndexByComponentId(currentVideoSourceId);
 
 			if (MkGui::drawComboBoxProperty(
-				m_defaultGuiStyle,
-				cameraComp->makePropertyUIIdentifier(CameraDefinition::k_videoSourceIdPropertyId),
-				"Video Source",
-				&m_videoSourceDataSource,
-				selectedIndex))
+					m_defaultGuiStyle,
+					cameraComp->makePropertyUIIdentifier(CameraDefinition::k_videoSourceIdPropertyId),
+					"Video Source",
+					&m_videoSourceDataSource,
+					selectedIndex))
 			{
-				MikanComponentPtr newVideoSource = m_videoSourceDataSource.getEntryAtIndex(selectedIndex);
+				MikanComponentPtr newVideoSource= m_videoSourceDataSource.getEntryAtIndex(selectedIndex);
 				if (newVideoSource)
 				{
-					addDeferredGuiEvent([cameraComp, newVideoSource]() {
-						cameraComp->getCameraDefinition()->setVideoSourceId(
-							newVideoSource->getComponentId());
-					});
+					addDeferredGuiEvent([cameraComp, newVideoSource]()
+										{ cameraComp->getCameraDefinition()->setVideoSourceId(
+											  newVideoSource->getComponentId()); });
 				}
 			}
 			return true;
@@ -73,7 +68,7 @@ void GuiPanel_CameraComponent::onConstruct()
 		CameraDefinition::k_trackingMountIdPropertyId,
 		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			CameraComponentPtr cameraComp = getCameraComponent();
+			CameraComponentPtr cameraComp= getCameraComponent();
 			if (!cameraComp)
 				return false;
 
@@ -81,25 +76,24 @@ void GuiPanel_CameraComponent::onConstruct()
 			if (m_trackingMountDataSource.getEntryCount() == 0)
 				return false;
 
-			const MikanTrackingMountID currentMountId =
+			const MikanTrackingMountID currentMountId=
 				cameraComp->getCameraDefinition()->getTrackingMountId();
-			int selectedIndex =
+			int selectedIndex=
 				m_trackingMountDataSource.getEntryIndexByComponentId(currentMountId);
 
 			if (MkGui::drawComboBoxProperty(
-				m_defaultGuiStyle,
-				cameraComp->makePropertyUIIdentifier(CameraDefinition::k_trackingMountIdPropertyId),
-				"Tracking Mount",
-				&m_trackingMountDataSource,
-				selectedIndex))
+					m_defaultGuiStyle,
+					cameraComp->makePropertyUIIdentifier(CameraDefinition::k_trackingMountIdPropertyId),
+					"Tracking Mount",
+					&m_trackingMountDataSource,
+					selectedIndex))
 			{
-				MikanComponentPtr newMount = m_trackingMountDataSource.getEntryAtIndex(selectedIndex);
+				MikanComponentPtr newMount= m_trackingMountDataSource.getEntryAtIndex(selectedIndex);
 				if (newMount)
 				{
-					addDeferredGuiEvent([cameraComp, newMount]() {
-						cameraComp->getCameraDefinition()->setTrackingMountId(
-							newMount->getComponentId());
-					});
+					addDeferredGuiEvent([cameraComp, newMount]()
+										{ cameraComp->getCameraDefinition()->setTrackingMountId(
+											  newMount->getComponentId()); });
 				}
 			}
 			return true;
@@ -108,7 +102,7 @@ void GuiPanel_CameraComponent::onConstruct()
 
 CameraComponentPtr GuiPanel_CameraComponent::getCameraComponent() const
 {
-	MikanComponentPtr component = m_component.lock();
+	MikanComponentPtr component= m_component.lock();
 	if (component)
 	{
 		return std::static_pointer_cast<CameraComponent>(component);

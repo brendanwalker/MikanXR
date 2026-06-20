@@ -23,7 +23,7 @@ public:
 
 	inline void setTextureSourceComponent(TextureSourceComponentPtr textureSourceComponent)
 	{
-		m_textureSourceComponent = textureSourceComponent;
+		m_textureSourceComponent= textureSourceComponent;
 	}
 
 	virtual void enter() override;
@@ -46,7 +46,7 @@ protected:
 	bool handleGetTextureSourceComponentId(std::vector<std::string>& outResults);
 	bool handleReturnRequest(std::vector<std::string>& outResults);
 
-	GuiPanel_ClientTextureSourceComponent* m_clientTextureSourceComponentPanel = nullptr;
+	GuiPanel_ClientTextureSourceComponent* m_clientTextureSourceComponentPanel= nullptr;
 
 	MikanCameraID m_cameraId= INVALID_MIKAN_ID;
 	CameraComponentWeakPtr m_cameraComponent;
@@ -55,6 +55,6 @@ protected:
 	IMkTriangulatedMeshPtr m_fullscreenRGBAQuad;
 	IMkTriangulatedMeshPtr m_fullscreenDepthUnpackQuad;
 
-	float m_newFrameTimer = 0.f;
-	static constexpr float k_newFrameTimerDuration = 1.f / 30.f;
+	float m_newFrameTimer= 0.f;
+	static constexpr float k_newFrameTimerDuration= 1.f / 30.f;
 };

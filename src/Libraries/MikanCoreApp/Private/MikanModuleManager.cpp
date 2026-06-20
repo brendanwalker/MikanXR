@@ -9,7 +9,7 @@
 class MikanModuleManager : public IMikanModuleManager
 {
 public:
-	virtual ~MikanModuleManager() 
+	virtual ~MikanModuleManager()
 	{
 		shutdown();
 	};
@@ -32,14 +32,14 @@ public:
 	virtual IMikanModule* getModule(const std::string& moduleName) override
 	{
 		// Return the module if it's already loaded
-		auto it = m_modules.find(moduleName);
+		auto it= m_modules.find(moduleName);
 		if (it != m_modules.end())
 		{
 			return it->second->getModuleInterface();
 		}
 
 		// Attempt to load the module
-		MikanModule* module = new MikanModule(moduleName);
+		MikanModule* module= new MikanModule(moduleName);
 		if (module->load())
 		{
 			m_modules.insert({moduleName, module});
@@ -48,12 +48,12 @@ public:
 		}
 
 		// Return nullptr if the module failed to load
-		return nullptr;	
+		return nullptr;
 	}
 
 	virtual bool disposeModule(IMikanModule* moduleIterface) override
 	{
-		for (auto it = m_modules.begin(); it != m_modules.end(); it++)
+		for (auto it= m_modules.begin(); it != m_modules.end(); it++)
 		{
 			MikanModule* module= it->second;
 
@@ -79,18 +79,18 @@ private:
 	std::map<std::string, MikanModule*> m_modules;
 };
 
-static MikanModuleManager* g_moduleManager = nullptr;
+static MikanModuleManager* g_moduleManager= nullptr;
 
 bool initMikanModuleManager()
 {
 	if (g_moduleManager == nullptr)
 	{
-		g_moduleManager = new MikanModuleManager();
+		g_moduleManager= new MikanModuleManager();
 
 		if (!g_moduleManager->init())
 		{
 			delete g_moduleManager;
-			g_moduleManager = nullptr;
+			g_moduleManager= nullptr;
 		}
 	}
 
@@ -102,7 +102,7 @@ void shutdownMikanModuleManager()
 	if (g_moduleManager != nullptr)
 	{
 		delete g_moduleManager;
-		g_moduleManager = nullptr;
+		g_moduleManager= nullptr;
 	}
 }
 

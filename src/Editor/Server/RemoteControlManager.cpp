@@ -32,8 +32,8 @@ bool RemoteControlManager::startup(MainWindow* mainWindow)
 		std::bind(&RemoteControlManager::remoteControlCommandHandler, this, _1, _2));
 
 	m_mainWindow= mainWindow;
-	m_mainWindow->OnAppStageEntered += MakeDelegate(this, &RemoteControlManager::onAppStageEntered);
-	m_mainWindow->OnAppStageExited += MakeDelegate(this, &RemoteControlManager::onAppStageExited);
+	m_mainWindow->OnAppStageEntered+= MakeDelegate(this, &RemoteControlManager::onAppStageEntered);
+	m_mainWindow->OnAppStageExited+= MakeDelegate(this, &RemoteControlManager::onAppStageExited);
 
 	return true;
 }
@@ -42,8 +42,8 @@ void RemoteControlManager::shutdown()
 {
 	if (m_mainWindow != nullptr)
 	{
-		m_mainWindow->OnAppStageEntered -= MakeDelegate(this, &RemoteControlManager::onAppStageEntered);
-		m_mainWindow->OnAppStageExited -= MakeDelegate(this, &RemoteControlManager::onAppStageExited);
+		m_mainWindow->OnAppStageEntered-= MakeDelegate(this, &RemoteControlManager::onAppStageEntered);
+		m_mainWindow->OnAppStageExited-= MakeDelegate(this, &RemoteControlManager::onAppStageExited);
 		m_mainWindow= nullptr;
 	}
 }
@@ -72,7 +72,7 @@ void RemoteControlManager::pushAppStageHandler(
 }
 
 void RemoteControlManager::popAppStageHandler(
-	const ClientRequest& request, 
+	const ClientRequest& request,
 	ClientResponse& response)
 {
 	PopAppStage appStageRequest;
@@ -105,17 +105,17 @@ void RemoteControlManager::getAppStageInfoHandler(
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 		return;
 	}
-	
+
 	AppStage* currentAppStage= App::getInstance()->getMainWindow()->getCurrentAppStage();
 
 	MikanAppStageInfoResponse appStageInfoResult;
-	appStageInfoResult.app_stage_info.app_state_name = currentAppStage->getAppStageName();
+	appStageInfoResult.app_stage_info.app_state_name= currentAppStage->getAppStageName();
 
 	writeTypedJsonResponse(request.requestId, appStageInfoResult, response);
 }
 
 void RemoteControlManager::remoteControlCommandHandler(
-	const ClientRequest& request, 
+	const ClientRequest& request,
 	ClientResponse& response)
 {
 	MikanRemoteControlCommand remoteControlCommand;
@@ -133,7 +133,7 @@ void RemoteControlManager::remoteControlCommandHandler(
 	if (remoteControllableAppStage != nullptr)
 	{
 		// Pull args out of Serialization types
-		const std::string& command = remoteControlCommand.command.getValue();
+		const std::string& command= remoteControlCommand.command.getValue();
 		std::vector<std::string> parameters;
 		for (const auto& parameter : remoteControlCommand.parameters)
 		{
@@ -146,11 +146,11 @@ void RemoteControlManager::remoteControlCommandHandler(
 		if (remoteControllableAppStage->handleRemoteControlCommand(command, parameters, results))
 		{
 			MikanRemoteControlCommandResult commandResponse= {};
-			const size_t resultCount = results.size();
+			const size_t resultCount= results.size();
 			if (resultCount > 0)
 			{
 				commandResponse.results.resize(resultCount);
-				for (size_t i = 0; i < resultCount; i++)
+				for (size_t i= 0; i < resultCount; i++)
 				{
 					commandResponse.results[i].setValue(results[i].c_str());
 				}
@@ -172,7 +172,7 @@ void RemoteControlManager::remoteControlCommandHandler(
 // -- App Events ----
 void RemoteControlManager::onAppStageEntered(AppStage* oldAppStage, AppStage* newAppStage)
 {
-	// If the new app stage is remote-controllable, 
+	// If the new app stage is remote-controllable,
 	// store a reference to the remote control manager on it so that post reote control events
 	auto remoteControllable= dynamic_cast<IRemoteControllable*>(newAppStage);
 	if (remoteControllable != nullptr)
@@ -196,7 +196,7 @@ void RemoteControlManager::publishAppStageChangedEvent(
 	const std::string& oldAppStageName,
 	const std::string& newAppStageName)
 {
-	MikanAppStageChangedEvent appStageChangedEvent = {};
+	MikanAppStageChangedEvent appStageChangedEvent= {};
 	appStageChangedEvent.old_app_state_name.setValue(oldAppStageName.c_str());
 	appStageChangedEvent.new_app_state_name.setValue(newAppStageName.c_str());
 
@@ -208,8 +208,7 @@ void RemoteControlManager::publishAppStageChangedEvent(
 	}
 	else
 	{
-		MIKAN_LOG_ERROR("RemoteControlManager::publishAppStageChangedEvent") <<
-			"Failed to serialize app stage changed event: " << errorMsg;
+		MIKAN_LOG_ERROR("RemoteControlManager::publishAppStageChangedEvent") << "Failed to serialize app stage changed event: " << errorMsg;
 	}
 }
 
@@ -217,15 +216,15 @@ void RemoteControlManager::sendRemoteControlEvent(
 	const std::string& event,
 	const std::vector<std::string>& parameters)
 {
-	MikanRemoteControlEvent remoteControlEvent = {};
+	MikanRemoteControlEvent remoteControlEvent= {};
 	remoteControlEvent.remoteControlEvent.setValue(event.c_str());
 
-	const size_t parameterCount = parameters.size();
+	const size_t parameterCount= parameters.size();
 	if (parameterCount > 0)
 	{
 		remoteControlEvent.parameters.resize(parameterCount);
 
-		for (size_t i = 0; i < parameterCount; i++)
+		for (size_t i= 0; i < parameterCount; i++)
 		{
 			remoteControlEvent.parameters[i].setValue(parameters[i].c_str());
 		}
@@ -239,7 +238,6 @@ void RemoteControlManager::sendRemoteControlEvent(
 	}
 	else
 	{
-		MIKAN_LOG_ERROR("RemoteControlManager::sendRemoteControlEvent") <<
-			"Failed to serialize remote control event: " << errorMsg;
+		MIKAN_LOG_ERROR("RemoteControlManager::sendRemoteControlEvent") << "Failed to serialize remote control event: " << errorMsg;
 	}
 }

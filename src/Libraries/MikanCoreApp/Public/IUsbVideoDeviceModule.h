@@ -6,7 +6,7 @@
 class IUsbVideoDeviceModule : public IMikanModule
 {
 public:
-	IUsbVideoDeviceModule() = default;
+	IUsbVideoDeviceModule()= default;
 
-	virtual IUsbVideoDeviceManagerPtr createUsbVideoDeviceManager() = 0;
+	virtual IUsbVideoDeviceManagerPtr createUsbVideoDeviceManager()= 0;
 };

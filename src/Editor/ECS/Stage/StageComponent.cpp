@@ -20,9 +20,9 @@
 #include <queue>
 
 // -- StageComponentDefinition -----
-const std::string StageComponentDefinition::k_trackingVolumeIdPropertyId = "tracking_volume_id";
-const std::string StageComponentDefinition::k_stageBoundsMinPropertyId = "stage_bounds_min";
-const std::string StageComponentDefinition::k_stageBoundsMaxPropertyId = "stage_bounds_max";
+const std::string StageComponentDefinition::k_trackingVolumeIdPropertyId= "tracking_volume_id";
+const std::string StageComponentDefinition::k_stageBoundsMinPropertyId= "stage_bounds_min";
+const std::string StageComponentDefinition::k_stageBoundsMaxPropertyId= "stage_bounds_max";
 
 StageComponentDefinition::StageComponentDefinition(
 	MikanStageID sceneId)
@@ -30,14 +30,14 @@ StageComponentDefinition::StageComponentDefinition(
 	, m_trackingVolumeId(INVALID_MIKAN_ID)
 	, m_stageBoundsMinMM(MikanVector3f(0.0f))
 	, m_stageBoundsMaxMM(MikanVector3f(0.0f))
-{}
-
+{
+}
 
 configuru::Config StageComponentDefinition::writeToJSON()
 {
-	configuru::Config pt = TransformComponentDefinition::writeToJSON();
+	configuru::Config pt= TransformComponentDefinition::writeToJSON();
 
-	pt[k_trackingVolumeIdPropertyId] = m_trackingVolumeId;
+	pt[k_trackingVolumeIdPropertyId]= m_trackingVolumeId;
 	writeVector3f(pt, k_stageBoundsMinPropertyId.c_str(), m_stageBoundsMinMM);
 	writeVector3f(pt, k_stageBoundsMaxPropertyId.c_str(), m_stageBoundsMaxMM);
 
@@ -48,7 +48,7 @@ void StageComponentDefinition::readFromJSON(const configuru::Config& pt)
 {
 	TransformComponentDefinition::readFromJSON(pt);
 
-	m_trackingVolumeId = pt.get_or<int>(k_trackingVolumeIdPropertyId, INVALID_MIKAN_ID);
+	m_trackingVolumeId= pt.get_or<int>(k_trackingVolumeIdPropertyId, INVALID_MIKAN_ID);
 	readVector3f(pt, k_stageBoundsMinPropertyId.c_str(), m_stageBoundsMinMM);
 	readVector3f(pt, k_stageBoundsMaxPropertyId.c_str(), m_stageBoundsMaxMM);
 }
@@ -60,10 +60,10 @@ bool StageComponentDefinition::readFromInitParams(
 	if (!TransformComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
-	const auto* componentValues = initParams.getTypedPointer<MikanStageComponentValues>();
+	const auto* componentValues= initParams.getTypedPointer<MikanStageComponentValues>();
 	if (componentValues)
 	{
-		m_trackingVolumeId = componentValues->tracking_volume_id;
+		m_trackingVolumeId= componentValues->tracking_volume_id;
 	}
 
 	return true;
@@ -73,20 +73,20 @@ void StageComponentDefinition::setTrackingVolumeId(MikanTrackingVolumeID trackin
 {
 	if (m_trackingVolumeId != trackingVolumeId)
 	{
-		m_trackingVolumeId = trackingVolumeId;
+		m_trackingVolumeId= trackingVolumeId;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_trackingVolumeIdPropertyId));
 	}
 }
 
 void StageComponentDefinition::setStageBoundsMinMM(const MikanVector3f& minMM)
 {
-	m_stageBoundsMinMM = minMM;
+	m_stageBoundsMinMM= minMM;
 	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_stageBoundsMinPropertyId));
 }
 
 void StageComponentDefinition::setStageBoundsMaxMM(const MikanVector3f& maxMM)
 {
-	m_stageBoundsMaxMM = maxMM;
+	m_stageBoundsMaxMM= maxMM;
 	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_stageBoundsMaxPropertyId));
 }
 
@@ -152,17 +152,17 @@ bool StageComponent::getPropertyValue(
 {
 	if (propertyName == StageComponentDefinition::k_trackingVolumeIdPropertyId)
 	{
-		outValue = (int)getStageComponentDefinitionConst()->getTrackingVolumeId();
+		outValue= (int)getStageComponentDefinitionConst()->getTrackingVolumeId();
 		return true;
 	}
 	else if (propertyName == StageComponentDefinition::k_stageBoundsMinPropertyId)
 	{
-		outValue = getStageComponentDefinitionConst()->getStageBoundsMinMM();
+		outValue= getStageComponentDefinitionConst()->getStageBoundsMinMM();
 		return true;
 	}
 	else if (propertyName == StageComponentDefinition::k_stageBoundsMaxPropertyId)
 	{
-		outValue = getStageComponentDefinitionConst()->getStageBoundsMaxMM();
+		outValue= getStageComponentDefinitionConst()->getStageBoundsMaxMM();
 		return true;
 	}
 
@@ -194,10 +194,10 @@ bool StageComponent::setPropertyValue(
 
 TrackingVolumeComponentConstPtr StageComponent::getTrackingVolumeConst() const
 {
-	MikanTrackingVolumeID trackingVolumeId = getStageComponentDefinitionConst()->getTrackingVolumeId();
+	MikanTrackingVolumeID trackingVolumeId= getStageComponentDefinitionConst()->getTrackingVolumeId();
 	if (trackingVolumeId != INVALID_MIKAN_ID)
 	{
-		ProjectManagerPtr projectManager = getOwnerProjectManager();
+		ProjectManagerPtr projectManager= getOwnerProjectManager();
 		return TrackingVolumeQueries::getTrackingVolumeById(projectManager, trackingVolumeId);
 	}
 
@@ -232,23 +232,16 @@ void StageComponent::bindLuaFunctions(struct lua_State* L)
 		.deriveClass<StageComponent, TransformComponent>(
 			StageComponent::k_componentClassName.c_str())
 		.addProperty("stageId",
-			[](StageComponent* c) -> int {
-				return c->getStageId();
-			})
-		.addProperty("trackingVolumeId",
-			[](StageComponent* c) -> int {
-				return c->getStageComponentDefinitionConst()->getTrackingVolumeId();
-			},
-			[](StageComponent* c, int v) {
-				c->setTrackingVolumeId(static_cast<MikanTrackingVolumeID>(v));
-			})
-		.addProperty("stageBoundsMin",
-			[](StageComponent* c) -> LuaVec3f {
-				return LuaVec3f(c->getStageComponentDefinitionConst()->getStageBoundsMinMM());
-			})
-		.addProperty("stageBoundsMax",
-			[](StageComponent* c) -> LuaVec3f {
-				return LuaVec3f(c->getStageComponentDefinitionConst()->getStageBoundsMaxMM());
-			})
+					 [](StageComponent* c) -> int
+					 {
+						 return c->getStageId();
+					 })
+		.addProperty("trackingVolumeId", [](StageComponent* c) -> int
+					 { return c->getStageComponentDefinitionConst()->getTrackingVolumeId(); }, [](StageComponent* c, int v)
+					 { c->setTrackingVolumeId(static_cast<MikanTrackingVolumeID>(v)); })
+		.addProperty("stageBoundsMin", [](StageComponent* c) -> LuaVec3f
+					 { return LuaVec3f(c->getStageComponentDefinitionConst()->getStageBoundsMinMM()); })
+		.addProperty("stageBoundsMax", [](StageComponent* c) -> LuaVec3f
+					 { return LuaVec3f(c->getStageComponentDefinitionConst()->getStageBoundsMaxMM()); })
 		.endClass();
 }

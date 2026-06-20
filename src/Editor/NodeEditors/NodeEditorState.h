@@ -8,7 +8,7 @@
 class NodeEditorState
 {
 public:
-	NodeEditorState() = default;
+	NodeEditorState()= default;
 
 	NodeGraphPtr nodeGraph;
 	std::filesystem::path nodeGraphPath;

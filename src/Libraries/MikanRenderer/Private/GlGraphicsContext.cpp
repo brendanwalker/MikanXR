@@ -35,13 +35,13 @@ GlGraphicsContext::~GlGraphicsContext()
 
 void GlGraphicsContext::onNativeContextCreated(void* nativeContext)
 {
-	m_glContext = nativeContext;
+	m_glContext= nativeContext;
 }
 
 void GlGraphicsContext::onWindowSizeChanged(int width, int height)
 {
-	m_width = (float)width;
-	m_height = (float)height;
+	m_width= (float)width;
+	m_height= (float)height;
 }
 
 bool GlGraphicsContext::startup()
@@ -50,8 +50,8 @@ bool GlGraphicsContext::startup()
 
 	// Initialize GL Extension Wrangler (GLEW)
 	GLenum err;
-	glewExperimental = GL_TRUE; // Please expose OpenGL 3.x+ interfaces
-	err = glewInit();
+	glewExperimental= GL_TRUE; // Please expose OpenGL 3.x+ interfaces
+	err= glewInit();
 	if (err == GLEW_OK)
 	{
 		glEnable(GL_DEBUG_OUTPUT);
@@ -65,10 +65,10 @@ bool GlGraphicsContext::startup()
 	}
 
 	// Create state stack
-	m_stateStack = MkStateStackUniquePtr(new MkStateStack(this));
+	m_stateStack= MkStateStackUniquePtr(new MkStateStack(this));
 
 	// Create shader cache and register built-in shaders
-	m_shaderCache = createMkShaderCache(this);
+	m_shaderCache= createMkShaderCache(this);
 	if (!m_shaderCache->startup())
 	{
 		MIKAN_LOG_ERROR("GlGraphicsContext::startup") << "Failed to startup shader cache";
@@ -76,7 +76,7 @@ bool GlGraphicsContext::startup()
 	}
 
 	// Create texture cache
-	m_textureCache = createMkTextureCache(this);
+	m_textureCache= createMkTextureCache(this);
 	if (!m_textureCache->startup())
 	{
 		MIKAN_LOG_ERROR("GlGraphicsContext::startup") << "Failed to startup texture cache";
@@ -84,7 +84,7 @@ bool GlGraphicsContext::startup()
 	}
 
 	// Create line renderer
-	m_lineRenderer = createMkLineRenderer(this);
+	m_lineRenderer= createMkLineRenderer(this);
 	if (!m_lineRenderer->startup())
 	{
 		MIKAN_LOG_ERROR("GlGraphicsContext::startup") << "Failed to startup line renderer";
@@ -94,7 +94,7 @@ bool GlGraphicsContext::startup()
 	// Create text renderer (only if font manager is provided)
 	if (m_fontManager != nullptr)
 	{
-		m_textRenderer = createMkTextRenderer(this, m_fontManager);
+		m_textRenderer= createMkTextRenderer(this, m_fontManager);
 		if (!m_textRenderer->startup())
 		{
 			MIKAN_LOG_ERROR("GlGraphicsContext::startup") << "Failed to startup text renderer";
@@ -121,29 +121,29 @@ void GlGraphicsContext::shutdown()
 	if (m_textRenderer)
 	{
 		m_textRenderer->shutdown();
-		m_textRenderer = nullptr;
+		m_textRenderer= nullptr;
 	}
 
 	if (m_lineRenderer)
 	{
 		m_lineRenderer->shutdown();
-		m_lineRenderer = nullptr;
+		m_lineRenderer= nullptr;
 	}
 
 	if (m_textureCache)
 	{
 		m_textureCache->shutdown();
-		m_textureCache = nullptr;
+		m_textureCache= nullptr;
 	}
 
 	if (m_shaderCache)
 	{
 		m_shaderCache->shutdown();
-		m_shaderCache = nullptr;
+		m_shaderCache= nullptr;
 	}
 
-	m_stateStack = nullptr;
-	m_glContext = nullptr;
+	m_stateStack= nullptr;
+	m_glContext= nullptr;
 }
 
 MkStateStack& GlGraphicsContext::getMkStateStack()
@@ -189,7 +189,7 @@ enum class eGLErrorSeverity : int
 	medium,
 	high,
 };
-static const char* g_szGLErrorSeverityNames[] = {
+static const char* g_szGLErrorSeverityNames[]= {
 	"UNKNOWN",
 	"NOTIFICATION",
 	"LOW",
@@ -211,93 +211,112 @@ static void APIENTRY GLDebugMessageCallback(
 
 	switch (glMesgSource)
 	{
-		case GL_DEBUG_SOURCE_API:             glErrorSourceStr = "API"; break;
-		case GL_DEBUG_SOURCE_WINDOW_SYSTEM:   glErrorSourceStr = "WINDOW SYSTEM"; break;
-		case GL_DEBUG_SOURCE_SHADER_COMPILER: glErrorSourceStr = "SHADER COMPILER"; break;
-		case GL_DEBUG_SOURCE_THIRD_PARTY:     glErrorSourceStr = "THIRD PARTY"; break;
-		case GL_DEBUG_SOURCE_APPLICATION:     glErrorSourceStr = "APPLICATION"; break;
-		default:                              glErrorSourceStr = "UNKNOWN"; break;
+	case GL_DEBUG_SOURCE_API:
+		glErrorSourceStr= "API";
+		break;
+	case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+		glErrorSourceStr= "WINDOW SYSTEM";
+		break;
+	case GL_DEBUG_SOURCE_SHADER_COMPILER:
+		glErrorSourceStr= "SHADER COMPILER";
+		break;
+	case GL_DEBUG_SOURCE_THIRD_PARTY:
+		glErrorSourceStr= "THIRD PARTY";
+		break;
+	case GL_DEBUG_SOURCE_APPLICATION:
+		glErrorSourceStr= "APPLICATION";
+		break;
+	default:
+		glErrorSourceStr= "UNKNOWN";
+		break;
 	}
 
-	eGLErrorSeverity minSeverity = eGLErrorSeverity::low;
+	eGLErrorSeverity minSeverity= eGLErrorSeverity::low;
 	switch (glMesgType)
 	{
-		case GL_DEBUG_TYPE_ERROR:
-			glErrorTypeStr = "ERROR";
-			minSeverity = eGLErrorSeverity::notification;
-			break;
-		case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
-			glErrorTypeStr = "DEPRECATED BEHAVIOR";
-			minSeverity = eGLErrorSeverity::high;
-			break;
-		case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-			glErrorTypeStr = "UDEFINED BEHAVIOR";
-			minSeverity = eGLErrorSeverity::notification;
-			break;
-		case GL_DEBUG_TYPE_PORTABILITY:
-			glErrorTypeStr = "PORTABILITY";
-			minSeverity = eGLErrorSeverity::high;
-			break;
-		case GL_DEBUG_TYPE_PERFORMANCE:
-			glErrorTypeStr = "PERFORMANCE";
-			minSeverity = eGLErrorSeverity::high;
-			break;
-		case GL_DEBUG_TYPE_OTHER:
-			glErrorTypeStr = "OTHER";
-			minSeverity = eGLErrorSeverity::low;
-			break;
-		case GL_DEBUG_TYPE_MARKER:
-			glErrorTypeStr = "MARKER";
-			minSeverity = eGLErrorSeverity::low;
-			break;
-		default:
-			glErrorTypeStr = "UNKNOWN";
-			minSeverity = eGLErrorSeverity::low;
-			break;
+	case GL_DEBUG_TYPE_ERROR:
+		glErrorTypeStr= "ERROR";
+		minSeverity= eGLErrorSeverity::notification;
+		break;
+	case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+		glErrorTypeStr= "DEPRECATED BEHAVIOR";
+		minSeverity= eGLErrorSeverity::high;
+		break;
+	case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+		glErrorTypeStr= "UDEFINED BEHAVIOR";
+		minSeverity= eGLErrorSeverity::notification;
+		break;
+	case GL_DEBUG_TYPE_PORTABILITY:
+		glErrorTypeStr= "PORTABILITY";
+		minSeverity= eGLErrorSeverity::high;
+		break;
+	case GL_DEBUG_TYPE_PERFORMANCE:
+		glErrorTypeStr= "PERFORMANCE";
+		minSeverity= eGLErrorSeverity::high;
+		break;
+	case GL_DEBUG_TYPE_OTHER:
+		glErrorTypeStr= "OTHER";
+		minSeverity= eGLErrorSeverity::low;
+		break;
+	case GL_DEBUG_TYPE_MARKER:
+		glErrorTypeStr= "MARKER";
+		minSeverity= eGLErrorSeverity::low;
+		break;
+	default:
+		glErrorTypeStr= "UNKNOWN";
+		minSeverity= eGLErrorSeverity::low;
+		break;
 	}
 
-	eGLErrorSeverity eventSeverity = eGLErrorSeverity::unknown;
+	eGLErrorSeverity eventSeverity= eGLErrorSeverity::unknown;
 	switch (glMesgSeverity)
 	{
-		case GL_DEBUG_SEVERITY_HIGH:         eventSeverity = eGLErrorSeverity::high; break;
-		case GL_DEBUG_SEVERITY_MEDIUM:       eventSeverity = eGLErrorSeverity::medium; break;
-		case GL_DEBUG_SEVERITY_LOW:          eventSeverity = eGLErrorSeverity::low; break;
-		case GL_DEBUG_SEVERITY_NOTIFICATION: eventSeverity = eGLErrorSeverity::notification; break;
-		default:                             eventSeverity = eGLErrorSeverity::unknown; break;
+	case GL_DEBUG_SEVERITY_HIGH:
+		eventSeverity= eGLErrorSeverity::high;
+		break;
+	case GL_DEBUG_SEVERITY_MEDIUM:
+		eventSeverity= eGLErrorSeverity::medium;
+		break;
+	case GL_DEBUG_SEVERITY_LOW:
+		eventSeverity= eGLErrorSeverity::low;
+		break;
+	case GL_DEBUG_SEVERITY_NOTIFICATION:
+		eventSeverity= eGLErrorSeverity::notification;
+		break;
+	default:
+		eventSeverity= eGLErrorSeverity::unknown;
+		break;
 	}
 
 	if ((int)eventSeverity >= (int)minSeverity)
 	{
 		switch (eventSeverity)
 		{
-			case eGLErrorSeverity::high:
-			case eGLErrorSeverity::unknown:
-				MIKAN_LOG_ERROR("GlDebugCallback") <<
-					"OpenGL debug event [" << glMesgId << "]: "
-					<< glErrorTypeStr << " of "
-					<< g_szGLErrorSeverityNames[(int)eventSeverity] << " severity, raised from "
-					<< glErrorSourceStr << ": "
-					<< szGlMessage;
-				break;
-			case eGLErrorSeverity::medium:
-				MIKAN_LOG_WARNING("GlDebugCallback") <<
-					"OpenGL debug event [" << glMesgId << "]: "
-					<< glErrorTypeStr << " of "
-					<< g_szGLErrorSeverityNames[(int)eventSeverity] << " severity, raised from "
-					<< glErrorSourceStr << ": "
-					<< szGlMessage;
-				break;
-			case eGLErrorSeverity::low:
-			case eGLErrorSeverity::notification:
-				MIKAN_LOG_INFO("GlDebugCallback") <<
-					"OpenGL debug event [" << glMesgId << "]: "
-					<< glErrorTypeStr << " of "
-					<< g_szGLErrorSeverityNames[(int)eventSeverity] << " severity, raised from "
-					<< glErrorSourceStr << ": "
-					<< szGlMessage;
-				break;
-			default:
-				assert(false);
+		case eGLErrorSeverity::high:
+		case eGLErrorSeverity::unknown:
+			MIKAN_LOG_ERROR("GlDebugCallback") << "OpenGL debug event [" << glMesgId << "]: "
+											   << glErrorTypeStr << " of "
+											   << g_szGLErrorSeverityNames[(int)eventSeverity] << " severity, raised from "
+											   << glErrorSourceStr << ": "
+											   << szGlMessage;
+			break;
+		case eGLErrorSeverity::medium:
+			MIKAN_LOG_WARNING("GlDebugCallback") << "OpenGL debug event [" << glMesgId << "]: "
+												 << glErrorTypeStr << " of "
+												 << g_szGLErrorSeverityNames[(int)eventSeverity] << " severity, raised from "
+												 << glErrorSourceStr << ": "
+												 << szGlMessage;
+			break;
+		case eGLErrorSeverity::low:
+		case eGLErrorSeverity::notification:
+			MIKAN_LOG_INFO("GlDebugCallback") << "OpenGL debug event [" << glMesgId << "]: "
+											  << glErrorTypeStr << " of "
+											  << g_szGLErrorSeverityNames[(int)eventSeverity] << " severity, raised from "
+											  << glErrorSourceStr << ": "
+											  << szGlMessage;
+			break;
+		default:
+			assert(false);
 		}
 
 #ifdef _DEBUG

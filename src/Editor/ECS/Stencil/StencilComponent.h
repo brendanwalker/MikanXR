@@ -16,7 +16,7 @@ public:
 	StencilComponentDefinition();
 	StencilComponentDefinition(
 		MikanStencilID stencilId,
-		const std::string & componentName, 
+		const std::string& componentName,
 		const MikanTransform& xform);
 
 	virtual configuru::Config writeToJSON();
@@ -43,11 +43,12 @@ class StencilComponent : public TransformComponent
 public:
 	StencilComponent(MikanObjectWeakPtr owner);
 
-	inline StencilComponentConfigPtr getStencilComponentDefinition() const { 
-		return std::static_pointer_cast<StencilComponentDefinition>(m_definition); 
+	inline StencilComponentConfigPtr getStencilComponentDefinition() const
+	{
+		return std::static_pointer_cast<StencilComponentDefinition>(m_definition);
 	}
 
-	inline static const std::string k_componentClassName = "StencilComponent";
+	inline static const std::string k_componentClassName= "StencilComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	// -- IEntityAccessor ----

@@ -33,9 +33,9 @@ bool SdlFontManager::startup()
 
 void SdlFontManager::garbageCollect()
 {
-	for (auto it = m_bakedTextCache.begin(); it != m_bakedTextCache.end(); )
+	for (auto it= m_bakedTextCache.begin(); it != m_bakedTextCache.end();)
 	{
-		SdlFontManager::MkBakedText& bakedText = it->second;
+		SdlFontManager::MkBakedText& bakedText= it->second;
 
 		// Age the baked text
 		--bakedText.lifetime;
@@ -43,7 +43,7 @@ void SdlFontManager::garbageCollect()
 		// Kill any baked text whose lifetime has expired
 		if (bakedText.lifetime <= 0)
 		{
-			bakedText.texture = nullptr;
+			bakedText.texture= nullptr;
 
 			it= m_bakedTextCache.erase(it);
 		}
@@ -60,9 +60,9 @@ void SdlFontManager::shutdown()
 	m_bakedTextCache.clear();
 
 	// Flush any loaded fonts
-	for (auto it = m_ttfFontCache.begin(); it != m_ttfFontCache.end(); ++it)
+	for (auto it= m_ttfFontCache.begin(); it != m_ttfFontCache.end(); ++it)
 	{
-		TTF_Font* font= (TTF_Font *)it->second;
+		TTF_Font* font= (TTF_Font*)it->second;
 		TTF_CloseFont(font);
 	}
 	m_ttfFontCache.clear();
@@ -74,16 +74,16 @@ size_t computeTextHash(const TextStyle& style, const std::wstring& text)
 
 	wchar_t szStyleString[256];
 	StringUtils::formatWString(szStyleString, sizeof(szStyleString), L"%s_%d_%d_%d_%d_%d_%d_%d_%d_%d",
-		style.fontName.c_str(),
-		style.pointSize,
-		style.styleBitmask,
-		(int)style.hasShadow,
-		(int)(style.shadowColor.r * 255),
-		(int)(style.shadowColor.g * 255),
-		(int)(style.shadowColor.b * 255),
-		style.shadowOffset.x,
-		style.shadowOffset.y,
-		(int)(style.shadowOpacity * 255));
+							   style.fontName.c_str(),
+							   style.pointSize,
+							   style.styleBitmask,
+							   (int)style.hasShadow,
+							   (int)(style.shadowColor.r * 255),
+							   (int)(style.shadowColor.g * 255),
+							   (int)(style.shadowColor.b * 255),
+							   style.shadowOffset.x,
+							   style.shadowOffset.y,
+							   (int)(style.shadowOpacity * 255));
 
 	return hasher(text + szStyleString);
 }
@@ -92,17 +92,17 @@ IMkTexturePtr SdlFontManager::fetchBakedText(
 	const TextStyle& style,
 	const std::wstring& text)
 {
-	const int defaultLifetime = 10;
-	const size_t hash = computeTextHash(style, text);
+	const int defaultLifetime= 10;
+	const size_t hash= computeTextHash(style, text);
 
 	if (m_bakedTextCache.find(hash) != m_bakedTextCache.end())
 	{
-		MkBakedText& bakedText = m_bakedTextCache[hash];
-		bakedText.lifetime = defaultLifetime;
+		MkBakedText& bakedText= m_bakedTextCache[hash];
+		bakedText.lifetime= defaultLifetime;
 		return bakedText.texture;
 	}
 
-	TTF_Font* font = (TTF_Font*)fetchFont(style.fontName, style.pointSize);
+	TTF_Font* font= (TTF_Font*)fetchFont(style.fontName, style.pointSize);
 	if (font == nullptr)
 		return nullptr;
 
@@ -112,33 +112,33 @@ IMkTexturePtr SdlFontManager::fetchBakedText(
 	typedef std::basic_string<Uint16, std::char_traits<Uint16>, std::allocator<Uint16>> u16string;
 	const u16string utext(text.begin(), text.end());
 
-	SDL_Color fgColor = {
+	SDL_Color fgColor= {
 		(Uint8)(style.color.r * 255.f),
 		(Uint8)(style.color.g * 255.f),
-		(Uint8)(style.color.b * 255.f), 255 };
+		(Uint8)(style.color.b * 255.f), 255};
 
-	SDL_Surface* textSurface = TTF_RenderUNICODE_Blended(font, utext.c_str(), fgColor);
+	SDL_Surface* textSurface= TTF_RenderUNICODE_Blended(font, utext.c_str(), fgColor);
 	if (textSurface == nullptr)
 		return nullptr;
 
 	// Composite shadow + text into a single surface when a shadow is requested
-	SDL_Surface* finalSurface = nullptr;
+	SDL_Surface* finalSurface= nullptr;
 	if (style.hasShadow)
 	{
-		SDL_Color shadowSdlColor = {
+		SDL_Color shadowSdlColor= {
 			(Uint8)(style.shadowColor.r * 255.f),
 			(Uint8)(style.shadowColor.g * 255.f),
-			(Uint8)(style.shadowColor.b * 255.f), 255 };
+			(Uint8)(style.shadowColor.b * 255.f), 255};
 
-		SDL_Surface* shadowSurface = TTF_RenderUNICODE_Blended(font, utext.c_str(), shadowSdlColor);
+		SDL_Surface* shadowSurface= TTF_RenderUNICODE_Blended(font, utext.c_str(), shadowSdlColor);
 		if (shadowSurface != nullptr)
 		{
-			const int ox = style.shadowOffset.x;
-			const int oy = style.shadowOffset.y;
-			const int combinedW = textSurface->w + std::abs(ox);
-			const int combinedH = textSurface->h + std::abs(oy);
+			const int ox= style.shadowOffset.x;
+			const int oy= style.shadowOffset.y;
+			const int combinedW= textSurface->w + std::abs(ox);
+			const int combinedH= textSurface->h + std::abs(oy);
 
-			finalSurface = SDL_CreateRGBSurface(
+			finalSurface= SDL_CreateRGBSurface(
 				0, combinedW, combinedH,
 				textSurface->format->BitsPerPixel,
 				textSurface->format->Rmask,
@@ -149,17 +149,17 @@ IMkTexturePtr SdlFontManager::fetchBakedText(
 			if (finalSurface != nullptr)
 			{
 				SDL_FillRect(finalSurface, nullptr,
-					SDL_MapRGBA(finalSurface->format, 0, 0, 0, 0));
+							 SDL_MapRGBA(finalSurface->format, 0, 0, 0, 0));
 
 				// Blit shadow at offset, with reduced opacity
 				SDL_SetSurfaceAlphaMod(shadowSurface, (Uint8)(style.shadowOpacity * 255.f));
 				SDL_SetSurfaceBlendMode(shadowSurface, SDL_BLENDMODE_BLEND);
-				SDL_Rect shadowDst = { ox >= 0 ? ox : 0, oy >= 0 ? oy : 0, 0, 0 };
+				SDL_Rect shadowDst= {ox >= 0 ? ox : 0, oy >= 0 ? oy : 0, 0, 0};
 				SDL_BlitSurface(shadowSurface, nullptr, finalSurface, &shadowDst);
 
 				// Blit main text on top
 				SDL_SetSurfaceBlendMode(textSurface, SDL_BLENDMODE_BLEND);
-				SDL_Rect textDst = { ox >= 0 ? 0 : -ox, oy >= 0 ? 0 : -oy, 0, 0 };
+				SDL_Rect textDst= {ox >= 0 ? 0 : -ox, oy >= 0 ? 0 : -oy, 0, 0};
 				SDL_BlitSurface(textSurface, nullptr, finalSurface, &textDst);
 			}
 
@@ -169,10 +169,10 @@ IMkTexturePtr SdlFontManager::fetchBakedText(
 
 	// Fall back to plain text surface if shadow compositing failed or wasn't requested
 	if (finalSurface == nullptr)
-		finalSurface = textSurface;
+		finalSurface= textSurface;
 
 	IMkTexturePtr result;
-	IMkTexturePtr texture =
+	IMkTexturePtr texture=
 		CreateMkTexture(
 			(uint16_t)finalSurface->w, (uint16_t)finalSurface->h,
 			(const uint8_t*)finalSurface->pixels,
@@ -180,9 +180,9 @@ IMkTexturePtr SdlFontManager::fetchBakedText(
 
 	if (texture->createTexture())
 	{
-		MkBakedText bakedText = { texture, text, defaultLifetime };
-		m_bakedTextCache.insert({ hash, bakedText });
-		result = texture;
+		MkBakedText bakedText= {texture, text, defaultLifetime};
+		m_bakedTextCache.insert({hash, bakedText});
+		result= texture;
 	}
 
 	if (finalSurface != textSurface)
@@ -198,15 +198,15 @@ size_t computeFontHash(const std::string& fontName, int pointSize)
 
 	char szStyleString[256];
 	StringUtils::formatString(szStyleString, sizeof(szStyleString), "%s_%d",
-		fontName.c_str(),
-		pointSize);
+							  fontName.c_str(),
+							  pointSize);
 
 	return hasher(szStyleString);
 }
 
 void* SdlFontManager::fetchFont(const std::string& fontName, int pointSize)
 {
-	const size_t hash = computeFontHash(fontName, pointSize);
+	const size_t hash= computeFontHash(fontName, pointSize);
 
 	if (m_ttfFontCache.find(hash) != m_ttfFontCache.end())
 	{

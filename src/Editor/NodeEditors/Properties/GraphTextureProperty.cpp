@@ -16,26 +16,25 @@ class TextureAssetComboDataSource : public NodeEditorUI::ComboBoxDataSource
 public:
 	TextureAssetComboDataSource(GraphTexturePropertyPtr ownerProperty)
 	{
-		auto ownerGraph = ownerProperty->getOwnerGraph();
-		int listIndex = 0;
+		auto ownerGraph= ownerProperty->getOwnerGraph();
+		int listIndex= 0;
 
-		currentAssetRef = ownerProperty->getTextureAssetReference();
+		currentAssetRef= ownerProperty->getTextureAssetReference();
 
 		for (AssetReferencePtr assetRef : ownerGraph->getAssetReferences())
 		{
-			auto textureAssetRef = std::dynamic_pointer_cast<TextureAssetReference>(assetRef);
+			auto textureAssetRef= std::dynamic_pointer_cast<TextureAssetReference>(assetRef);
 
 			if (textureAssetRef)
 			{
 				if (textureAssetRef == currentAssetRef)
 				{
-					selectedAssetRefIndex = listIndex;
+					selectedAssetRefIndex= listIndex;
 				}
 
-				ComboEntry entry = {
+				ComboEntry entry= {
 					textureAssetRef,
-					textureAssetRef ? assetRef->getShortName() : "<No Asset Ref>"
-				};
+					textureAssetRef ? assetRef->getShortName() : "<No Asset Ref>"};
 
 				comboEntries.push_back(entry);
 				listIndex++;
@@ -72,22 +71,22 @@ private:
 
 	TextureAssetReferencePtr currentAssetRef;
 	std::vector<ComboEntry> comboEntries;
-	int selectedAssetRefIndex = -1;
+	int selectedAssetRefIndex= -1;
 };
 
 // -- GraphTexturePropertyConfig -----
 configuru::Config GraphTexturePropertyConfig::writeToJSON()
 {
-	configuru::Config pt = GraphPropertyConfig::writeToJSON();
+	configuru::Config pt= GraphPropertyConfig::writeToJSON();
 
-	pt["asset_ref_index"] = assetRefIndex;
+	pt["asset_ref_index"]= assetRefIndex;
 
 	return pt;
 }
 
 void GraphTexturePropertyConfig::readFromJSON(const configuru::Config& pt)
 {
-	assetRefIndex = pt.get_or<int>("asset_ref_index", -1);
+	assetRefIndex= pt.get_or<int>("asset_ref_index", -1);
 
 	GraphPropertyConfig::readFromJSON(pt);
 }
@@ -99,11 +98,11 @@ bool GraphTextureProperty::loadFromConfig(
 {
 	if (GraphProperty::loadFromConfig(propConfig, graphConfig))
 	{
-		const auto texturePropConfig = std::static_pointer_cast<const GraphTexturePropertyConfig>(propConfig);
+		const auto texturePropConfig= std::static_pointer_cast<const GraphTexturePropertyConfig>(propConfig);
 		if (texturePropConfig->assetRefIndex != -1)
 		{
-			auto assetRef = getOwnerGraph()->getAssetReferenceByIndex(texturePropConfig->assetRefIndex);
-			auto textureAssetRef = std::dynamic_pointer_cast<TextureAssetReference>(assetRef);
+			auto assetRef= getOwnerGraph()->getAssetReferenceByIndex(texturePropConfig->assetRefIndex);
+			auto textureAssetRef= std::dynamic_pointer_cast<TextureAssetReference>(assetRef);
 			if (textureAssetRef)
 			{
 				setTextureAssetReference(textureAssetRef);
@@ -111,7 +110,7 @@ bool GraphTextureProperty::loadFromConfig(
 			}
 			else
 			{
-				MIKAN_LOG_ERROR("GraphTextureProperty::loadFromConfig") 
+				MIKAN_LOG_ERROR("GraphTextureProperty::loadFromConfig")
 					<< "Invalid texture asset reference: " << texturePropConfig->assetRefIndex;
 				setTextureAssetReference(TextureAssetReferencePtr());
 			}
@@ -129,20 +128,20 @@ bool GraphTextureProperty::loadFromConfig(
 
 void GraphTextureProperty::saveToConfig(GraphPropertyConfigPtr config) const
 {
-	auto propConfig = std::static_pointer_cast<GraphTexturePropertyConfig>(config);
+	auto propConfig= std::static_pointer_cast<GraphTexturePropertyConfig>(config);
 
 	// Default asset ref to invalid
-	propConfig->assetRefIndex = -1;
+	propConfig->assetRefIndex= -1;
 
 	// If we have a valid asset ref, look up the index in the graph
 	if (m_textureAssetRef)
 	{
-		propConfig->assetRefIndex = getOwnerGraph()->getAssetReferenceIndex(m_textureAssetRef);
+		propConfig->assetRefIndex= getOwnerGraph()->getAssetReferenceIndex(m_textureAssetRef);
 
 		if (propConfig->assetRefIndex == -1)
 		{
-			MIKAN_LOG_ERROR("GraphTextureProperty::saveToConfig") 
-				<< "Texture property has orphaned asset reference: " 
+			MIKAN_LOG_ERROR("GraphTextureProperty::saveToConfig")
+				<< "Texture property has orphaned asset reference: "
 				<< m_textureAssetRef->getAssetPath();
 		}
 	}
@@ -150,29 +149,29 @@ void GraphTextureProperty::saveToConfig(GraphPropertyConfigPtr config) const
 	GraphProperty::saveToConfig(config);
 }
 
-void GraphTextureProperty::setTextureAssetReference(TextureAssetReferencePtr inAssetRef) 
-{ 
+void GraphTextureProperty::setTextureAssetReference(TextureAssetReferencePtr inAssetRef)
+{
 	if (m_textureAssetRef != inAssetRef)
 	{
-		m_textureAssetRef = inAssetRef;
+		m_textureAssetRef= inAssetRef;
 
 		// re-create a texture from the asset reference
 		if (m_textureAssetRef->isValid())
 		{
-			m_texture = CreateMkTexture();
+			m_texture= CreateMkTexture();
 			m_texture->setImagePath(inAssetRef->getAssetPath());
 			m_texture->reloadTextureFromImagePath();
 		}
 		else
 		{
-			m_texture = IMkTexturePtr();
+			m_texture= IMkTexturePtr();
 		}
 	}
 }
 
 void GraphTextureProperty::editorHandleMainFrameDragDrop(const NodeEditorState& editorState)
 {
-	auto textureNode = m_ownerGraph->createTypedNode<TextureNode>(editorState);
+	auto textureNode= m_ownerGraph->createTypedNode<TextureNode>(editorState);
 
 	// Set this as the source texture property for the new node
 	auto self= std::static_pointer_cast<GraphTextureProperty>(shared_from_this());
@@ -184,24 +183,24 @@ void GraphTextureProperty::editorRenderPropertySheet(const NodeEditorState& edit
 	if (NodeEditorUI::DrawPropertySheetHeader("Texture", editorState.styleManager))
 	{
 		// Name
-		std::string name = m_textureAssetRef ? m_textureAssetRef->getShortName() : "<No Texture>";
+		std::string name= m_textureAssetRef ? m_textureAssetRef->getShortName() : "<No Texture>";
 		NodeEditorUI::DrawStaticTextProperty("Name", name, editorState.styleManager);
 
 		// Texture Asset
 		TextureAssetComboDataSource dataSource(std::static_pointer_cast<GraphTextureProperty>(shared_from_this()));
-		int selectedIndex = dataSource.getCurrentAssetIndex();
+		int selectedIndex= dataSource.getCurrentAssetIndex();
 		if (NodeEditorUI::DrawComboBoxProperty(
-			"textureSelection", 
-			"Texture", 
-			&dataSource, 
-			selectedIndex, 
-			editorState.styleManager))
+				"textureSelection",
+				"Texture",
+				&dataSource,
+				selectedIndex,
+				editorState.styleManager))
 		{
 			setTextureAssetReference(dataSource.getEntryAssetRef(selectedIndex));
 		}
 
 		// Drag-Drop Handling
-		auto textureAssetRef =
+		auto textureAssetRef=
 			NodeEditorUI::receiveTypedDragDropPayload<TextureAssetReference>(
 				TextureAssetReference::k_assetClassName);
 		if (textureAssetRef)

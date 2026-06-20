@@ -9,7 +9,10 @@
 class FunctionRequestHandler : public IServerRequestHandler
 {
 public:
-	FunctionRequestHandler(class MikanServer* owner) : IServerRequestHandler(owner) {}
+	FunctionRequestHandler(class MikanServer* owner)
+		: IServerRequestHandler(owner)
+	{
+	}
 
 	virtual bool startup(class MainWindow* mainWindow) override;
 

@@ -14,7 +14,7 @@ MikanObjectSystemPtr GuiPanel_MikanObjectSystem::getObjectSystem() const
 
 void GuiPanel_MikanObjectSystem::setObjectSystem(MikanObjectSystemPtr objectSystem)
 {
-	m_objectSystem = objectSystem;
+	m_objectSystem= objectSystem;
 	m_entityAccessor->setEntityAccessor(objectSystem);
 }
 

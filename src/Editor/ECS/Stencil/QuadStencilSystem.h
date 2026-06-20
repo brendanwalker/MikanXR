@@ -12,11 +12,10 @@
 
 #include <glm/glm.hpp>
 
-class QuadStencilSystemDefinition :
-	public MikanTypedObjectSystemDefinition<QuadStencilComponent, QuadStencilDefinition, MikanStencilID>
+class QuadStencilSystemDefinition : public MikanTypedObjectSystemDefinition<QuadStencilComponent, QuadStencilDefinition, MikanStencilID>
 {
 public:
-	using Super = MikanTypedObjectSystemDefinition<QuadStencilComponent, QuadStencilDefinition, MikanStencilID>;
+	using Super= MikanTypedObjectSystemDefinition<QuadStencilComponent, QuadStencilDefinition, MikanStencilID>;
 
 	QuadStencilSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
@@ -26,27 +25,28 @@ public:
 protected:
 };
 
-class QuadStencilSystem :
-	public MikanTypedObjectSystem<
-		QuadStencilComponent, QuadStencilDefinition,
-		MikanStencilID,
-		QuadStencilSystem, QuadStencilSystemDefinition>
+class QuadStencilSystem : public MikanTypedObjectSystem<
+							  QuadStencilComponent, QuadStencilDefinition,
+							  MikanStencilID,
+							  QuadStencilSystem, QuadStencilSystemDefinition>
 {
 public:
-	using Super = MikanTypedObjectSystem<
+	using Super= MikanTypedObjectSystem<
 		QuadStencilComponent, QuadStencilDefinition,
 		MikanStencilID,
 		QuadStencilSystem, QuadStencilSystemDefinition>;
 
 	QuadStencilSystem(ProjectManagerPtr ownerObjectSystem);
 
-	inline static const std::string k_objectSystemClassName = "QuadStencilSystem";
+	inline static const std::string k_objectSystemClassName= "QuadStencilSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
-	inline QuadStencilComponentPtr getQuadStencilById(MikanStencilID stencilId) const {
+	inline QuadStencilComponentPtr getQuadStencilById(MikanStencilID stencilId) const
+	{
 		return Super::getTypedComponentById(stencilId);
 	}
-	inline QuadStencilComponentPtr getQuadStencilByName(const std::string& stencilName) const {
+	inline QuadStencilComponentPtr getQuadStencilByName(const std::string& stencilName) const
+	{
 		return Super::getTypedComponentByName(stencilName);
 	}
 

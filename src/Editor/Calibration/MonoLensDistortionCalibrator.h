@@ -41,7 +41,7 @@ protected:
 	float frameHeight;
 
 	// Internal Calibration State
-	struct MonoLensDistortionCalibrationState *m_calibrationState;
+	struct MonoLensDistortionCalibrationState* m_calibrationState;
 
 	// Video buffer state
 	class VideoFrameDistortionView* m_distortionView;

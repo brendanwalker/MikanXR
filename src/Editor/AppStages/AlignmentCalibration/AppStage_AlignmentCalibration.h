@@ -21,7 +21,7 @@ public:
 
 	AppStage_AlignmentCalibration(class IEditorWindow* ownerWindow);
 	virtual ~AppStage_AlignmentCalibration();
-	
+
 	static bool tryEnterAlignmentCalibration(
 		AppStage* fromAppStage,
 		CameraComponentPtr forCameraComponent);
@@ -69,12 +69,12 @@ protected:
 	bool handleGetChessboardStabilityCommand(std::vector<std::string>& outResults);
 	bool handleBeginCommand(std::vector<std::string>& outResults);
 	bool handleRestartCommand(std::vector<std::string>& outResults);
-	
-private:
-	class GuiPanel_AlignmentCalibration* m_calibrationPanel = nullptr;
-	class GuiPanel_AlignmentCameraSettings* m_cameraSettingsPanel = nullptr;
 
-	bool m_bypassCalibrationFlag = false;
+private:
+	class GuiPanel_AlignmentCalibration* m_calibrationPanel= nullptr;
+	class GuiPanel_AlignmentCameraSettings* m_cameraSettingsPanel= nullptr;
+
+	bool m_bypassCalibrationFlag= false;
 	CameraComponentPtr m_targetCameraComponent;
 	VideoSourceComponentPtr m_videoSourceComponent;
 

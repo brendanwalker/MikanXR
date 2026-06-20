@@ -15,8 +15,14 @@
 class NodePinConfig : public CommonConfig
 {
 public:
-	NodePinConfig() : CommonConfig() {}
-	NodePinConfig(const std::string& nodeName) : CommonConfig(nodeName) {}
+	NodePinConfig()
+		: CommonConfig()
+	{
+	}
+	NodePinConfig(const std::string& nodeName)
+		: CommonConfig(nodeName)
+	{
+	}
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -27,17 +33,17 @@ public:
 	eNodePinDirection direction;
 	t_node_id ownerNodeId;
 	std::vector<t_node_link_id> connectedLinkIds;
-	bool hasDefaultValue = false;
+	bool hasDefaultValue= false;
 	bool isDynamic= false;
 };
 
-class NodePin  : public std::enable_shared_from_this<NodePin>
+class NodePin : public std::enable_shared_from_this<NodePin>
 {
 public:
 	NodePin();
-	virtual ~NodePin() = default;
+	virtual ~NodePin()= default;
 
-	inline static const std::string k_pinClassName = "NodePin";
+	inline static const std::string k_pinClassName= "NodePin";
 	virtual std::string getClassName() const { return k_pinClassName; }
 
 	virtual bool loadFromConfig(NodeGraphPtr ownerGraph, NodePinConfigConstPtr config);
@@ -49,7 +55,7 @@ public:
 	inline void setDirection(eNodePinDirection direction) { m_direction= direction; }
 	inline eNodePinDirection getDirection() const { return m_direction; }
 
-	inline void setName(const std::string& name) { m_name = name; }
+	inline void setName(const std::string& name) { m_name= name; }
 	inline const std::string& getName() const { return m_name; }
 
 	inline void setOwnerNode(NodePtr ownerNode) { m_ownerNode= ownerNode; }
@@ -62,12 +68,12 @@ public:
 
 	// This is used that the pin provides a default value if no value feed into it
 	// (Primarily used for input pins to decide if the node can still be evaluated if an input is disconnected)
-	inline void setHasDefaultValue(bool bOptional) { m_bHasDefaultValue = bOptional; }
+	inline void setHasDefaultValue(bool bOptional) { m_bHasDefaultValue= bOptional; }
 	inline bool getHasDefaultValue() const { return m_bHasDefaultValue; }
 
 	// This is used that the pin that is dynamically created due to another pin
 	// (Like a material input pin that creates other parameter pins)
-	inline void setIsDynamicPin(bool bIsDynamic) { m_bIsDynamic = bIsDynamic; }
+	inline void setIsDynamicPin(bool bIsDynamic) { m_bIsDynamic= bIsDynamic; }
 	inline bool getIsDynamicPin() const { return m_bIsDynamic; }
 
 	virtual size_t getDataSize() const { return 0; }
@@ -96,7 +102,7 @@ protected:
 	std::string m_name;
 	NodePtr m_ownerNode;
 	std::vector<NodeLinkPtr> m_connectedLinks;
-	bool m_bHasDefaultValue = false;
+	bool m_bHasDefaultValue= false;
 	bool m_bIsDynamic= false;
 
 	// Editor Flags
@@ -106,7 +112,7 @@ protected:
 class NodePinFactory
 {
 public:
-	NodePinFactory() = default;
+	NodePinFactory()= default;
 
 	inline std::string getPinClassName() const { return m_defaultPinObject->getClassName(); }
 
@@ -126,7 +132,7 @@ public:
 		// This is used to ask questions about a pin without having to create one first.
 		// We have to do this work outside of the NodePinFactory constructor,
 		// because virtual functions aren't safe to call in constructor.
-		factory->m_defaultPinObject = factory->allocatePin();
+		factory->m_defaultPinObject= factory->allocatePin();
 
 		// Create a node factory instance
 		return factory;
@@ -140,7 +146,7 @@ template <class t_pin_class, class t_pin_config_class>
 class TypedNodePinFactory : public NodePinFactory
 {
 public:
-	TypedNodePinFactory() = default;
+	TypedNodePinFactory()= default;
 
 	virtual NodePinConfigPtr allocatePinConfig() const
 	{

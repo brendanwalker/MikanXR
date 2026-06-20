@@ -50,20 +50,20 @@ protected:
 	void onReturnEvent();
 
 private:
-	GuiPanel_AlignCameraByOriginMarker* m_calibrationPanel = nullptr;
+	GuiPanel_AlignCameraByOriginMarker* m_calibrationPanel= nullptr;
 
 	// Target camera (being calibrated - no tracking mount)
-	CameraComponentPtr                   m_targetCameraComponent;
-	VideoSourceComponentPtr              m_targetVideoSource;
-	class VideoFrameDistortionView*      m_targetDistortionView = nullptr;
-	class ArucoMarkerPoseSampler*        m_targetMarkerSampler  = nullptr;
+	CameraComponentPtr m_targetCameraComponent;
+	VideoSourceComponentPtr m_targetVideoSource;
+	class VideoFrameDistortionView* m_targetDistortionView= nullptr;
+	class ArucoMarkerPoseSampler* m_targetMarkerSampler= nullptr;
 
 	// Origin marker ID from tracking volume
-	MikanMarkerID m_originMarkerId = INVALID_MIKAN_ID;
+	MikanMarkerID m_originMarkerId= INVALID_MIKAN_ID;
 
 	// Final computed camera aperture pose in stage space
 	glm::dmat4 m_cameraApertureXform_StageSpace;
 
-	IMkFrameBufferPtr      m_frameBuffer;
+	IMkFrameBufferPtr m_frameBuffer;
 	IMkTriangulatedMeshPtr m_fullscreenQuad;
 };

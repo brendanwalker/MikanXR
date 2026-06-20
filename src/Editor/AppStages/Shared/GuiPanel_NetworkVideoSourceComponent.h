@@ -7,7 +7,10 @@
 class GuiPanel_NetworkVideoSourceComponent : public GuiPanel_MikanComponent
 {
 public:
-	GuiPanel_NetworkVideoSourceComponent(AppStage* ownerAppStage) : GuiPanel_MikanComponent(ownerAppStage) {}
+	GuiPanel_NetworkVideoSourceComponent(AppStage* ownerAppStage)
+		: GuiPanel_MikanComponent(ownerAppStage)
+	{
+	}
 
 	void drawCompactGui();
 
@@ -20,5 +23,4 @@ protected:
 
 private:
 	GuiDataSource_StringList m_protocolDataSource;
-
 };

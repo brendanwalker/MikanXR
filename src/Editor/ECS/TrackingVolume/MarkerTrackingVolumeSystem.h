@@ -12,13 +12,12 @@
 #include <string>
 #include <vector>
 
-using MarkerTrackingVolumeIdList = std::vector<MikanTrackingVolumeID>;
+using MarkerTrackingVolumeIdList= std::vector<MikanTrackingVolumeID>;
 
-class MarkerTrackingVolumeSystemDefinition :
-	public MikanTypedObjectSystemDefinition<MarkerTrackingVolumeComponent, MarkerTrackingVolumeDefinition, MikanTrackingVolumeID>
+class MarkerTrackingVolumeSystemDefinition : public MikanTypedObjectSystemDefinition<MarkerTrackingVolumeComponent, MarkerTrackingVolumeDefinition, MikanTrackingVolumeID>
 {
 public:
-	using Super = MikanTypedObjectSystemDefinition<MarkerTrackingVolumeComponent, MarkerTrackingVolumeDefinition, MikanTrackingVolumeID>;
+	using Super= MikanTypedObjectSystemDefinition<MarkerTrackingVolumeComponent, MarkerTrackingVolumeDefinition, MikanTrackingVolumeID>;
 
 	MarkerTrackingVolumeSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
@@ -26,21 +25,20 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 };
 
-class MarkerTrackingVolumeSystem :
-	public MikanTypedObjectSystem<
-		MarkerTrackingVolumeComponent, MarkerTrackingVolumeDefinition,
-		MikanTrackingVolumeID,
-		MarkerTrackingVolumeSystem, MarkerTrackingVolumeSystemDefinition>
+class MarkerTrackingVolumeSystem : public MikanTypedObjectSystem<
+									   MarkerTrackingVolumeComponent, MarkerTrackingVolumeDefinition,
+									   MikanTrackingVolumeID,
+									   MarkerTrackingVolumeSystem, MarkerTrackingVolumeSystemDefinition>
 {
 public:
-	using Super = MikanTypedObjectSystem<
+	using Super= MikanTypedObjectSystem<
 		MarkerTrackingVolumeComponent, MarkerTrackingVolumeDefinition,
 		MikanTrackingVolumeID,
 		MarkerTrackingVolumeSystem, MarkerTrackingVolumeSystemDefinition>;
 
 	MarkerTrackingVolumeSystem(ProjectManagerPtr ownerObjectSystemManager);
 
-	inline static const std::string k_objectSystemClassName = "MarkerTrackingVolumeSystem";
+	inline static const std::string k_objectSystemClassName= "MarkerTrackingVolumeSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
 	MarkerTrackingVolumeIdList getTrackingVolumeIdList() const;

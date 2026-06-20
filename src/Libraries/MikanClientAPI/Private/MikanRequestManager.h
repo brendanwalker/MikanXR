@@ -17,7 +17,7 @@ typedef void* MikanContext;
 class MikanRequestManager
 {
 public:
-	MikanRequestManager() = default;
+	MikanRequestManager()= default;
 
 	MikanAPIResult init(MikanContext context);
 	MikanContext getContext() const { return m_context; }
@@ -35,7 +35,7 @@ protected:
 	void binaryResponseHander(const uint8_t* buffer, size_t bufferSize);
 	MikanResponsePtr parseResponseBinaryReader(
 		const MikanResponse& requestHeader,
-		const uint8_t* buffer, 
+		const uint8_t* buffer,
 		size_t bufferSize);
 
 private:
@@ -44,7 +44,7 @@ private:
 		MikanRequestID id;
 		MikanResponsePromise promise;
 	};
-	using PendingRequestPtr = std::shared_ptr<PendingRequest>;
+	using PendingRequestPtr= std::shared_ptr<PendingRequest>;
 	void insertPendingRequest(MikanRequestManager::PendingRequestPtr pendingRequest);
 	PendingRequestPtr removePendingRequest(MikanRequestID requestId);
 

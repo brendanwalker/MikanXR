@@ -4,7 +4,7 @@
 
 MkNodesScopedColorStyle::~MkNodesScopedColorStyle()
 {
-	for (int i = 0; i < m_count; ++i)
+	for (int i= 0; i < m_count; ++i)
 		ImNodes::PopColorStyle();
 }
 

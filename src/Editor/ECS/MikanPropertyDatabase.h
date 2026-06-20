@@ -7,9 +7,9 @@
 #include <unordered_map>
 #include <vector>
 
-using MikanPropertyDatabasePtr = std::shared_ptr<class MikanPropertyDatabase>;
-using MikanPropertyDatabaseConstPtr = std::shared_ptr<const class MikanPropertyDatabase>;
-using MikanPropertyDatabaseWeakPtr = std::weak_ptr<class MikanPropertyDatabase>;
+using MikanPropertyDatabasePtr= std::shared_ptr<class MikanPropertyDatabase>;
+using MikanPropertyDatabaseConstPtr= std::shared_ptr<const class MikanPropertyDatabase>;
+using MikanPropertyDatabaseWeakPtr= std::weak_ptr<class MikanPropertyDatabase>;
 
 struct MikanPropertyEntry
 {
@@ -57,8 +57,8 @@ public:
 		for (const PropertyDescriptorConstPtr& descriptor : descriptors)
 		{
 			registerProperty(
-				t_system_class::k_objectSystemClassName, 
-				t_component_class::k_componentClassName, 
+				t_system_class::k_objectSystemClassName,
+				t_component_class::k_componentClassName,
 				descriptor);
 		}
 	}

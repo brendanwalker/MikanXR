@@ -5,7 +5,7 @@
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable: 4244) // conversion from X to Y, possible loss of data
+#pragma warning(disable : 4244) // conversion from X to Y, possible loss of data
 #endif
 #include <nlohmann/json.hpp>
 #ifdef _MSC_VER
@@ -38,57 +38,57 @@ void LocalizationRemoteFetcher::startFetch(std::function<void(bool)> onComplete)
 	if (m_thread.joinable())
 		return;
 
-	m_cancelled = false;
-	m_onComplete = onComplete;
-	m_thread = std::thread(&LocalizationRemoteFetcher::fetchThread, this);
+	m_cancelled= false;
+	m_onComplete= onComplete;
+	m_thread= std::thread(&LocalizationRemoteFetcher::fetchThread, this);
 }
 
 void LocalizationRemoteFetcher::cancelFetch()
 {
-	m_cancelled = true;
+	m_cancelled= true;
 	if (m_thread.joinable())
 		m_thread.join();
 }
 
 bool LocalizationRemoteFetcher::isCacheFresh() const
 {
-	const std::filesystem::path manifestPath = m_cacheDir / "manifest.json";
+	const std::filesystem::path manifestPath= m_cacheDir / "manifest.json";
 	if (!std::filesystem::exists(manifestPath))
 		return false;
 
 	std::error_code ec;
-	const auto mtime = std::filesystem::last_write_time(manifestPath, ec);
+	const auto mtime= std::filesystem::last_write_time(manifestPath, ec);
 	if (ec)
 		return false;
 
-	const auto age = std::filesystem::file_time_type::clock::now() - mtime;
+	const auto age= std::filesystem::file_time_type::clock::now() - mtime;
 	return age < m_cacheTTL;
 }
 
 bool LocalizationRemoteFetcher::httpGet(const std::string& url, std::string& outBody)
 {
-	outBody = "";
+	outBody= "";
 
 #ifdef _WIN32
 	// Expect "https://host/path"
-	const std::string httpsPrefix = "https://";
+	const std::string httpsPrefix= "https://";
 	if (url.substr(0, httpsPrefix.size()) != httpsPrefix)
 	{
 		MIKAN_LOG_ERROR("LocalizationRemoteFetcher::httpGet") << "Only HTTPS URLs are supported: " << url;
 		return false;
 	}
 
-	const std::string remainder = url.substr(httpsPrefix.size());
-	const auto slashPos = remainder.find('/');
-	const std::string hostStr = (slashPos != std::string::npos) ? remainder.substr(0, slashPos) : remainder;
-	const std::string pathStr = (slashPos != std::string::npos) ? remainder.substr(slashPos) : "/";
+	const std::string remainder= url.substr(httpsPrefix.size());
+	const auto slashPos= remainder.find('/');
+	const std::string hostStr= (slashPos != std::string::npos) ? remainder.substr(0, slashPos) : remainder;
+	const std::string pathStr= (slashPos != std::string::npos) ? remainder.substr(slashPos) : "/";
 
 	const std::wstring host(hostStr.begin(), hostStr.end());
 	const std::wstring path(pathStr.begin(), pathStr.end());
 
-	bool success = false;
+	bool success= false;
 
-	HINTERNET hSession = WinHttpOpen(
+	HINTERNET hSession= WinHttpOpen(
 		L"MikanXR/1.0",
 		WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
 		WINHTTP_NO_PROXY_NAME,
@@ -103,10 +103,10 @@ bool LocalizationRemoteFetcher::httpGet(const std::string& url, std::string& out
 	// Resolve/connect: 10s, send: 10s, receive: 30s
 	WinHttpSetTimeouts(hSession, 10000, 10000, 10000, 30000);
 
-	HINTERNET hConnect = WinHttpConnect(hSession, host.c_str(), INTERNET_DEFAULT_HTTPS_PORT, 0);
+	HINTERNET hConnect= WinHttpConnect(hSession, host.c_str(), INTERNET_DEFAULT_HTTPS_PORT, 0);
 	if (hConnect)
 	{
-		HINTERNET hRequest = WinHttpOpenRequest(
+		HINTERNET hRequest= WinHttpOpenRequest(
 			hConnect,
 			L"GET",
 			path.c_str(),
@@ -119,8 +119,8 @@ bool LocalizationRemoteFetcher::httpGet(const std::string& url, std::string& out
 			if (WinHttpSendRequest(hRequest, WINHTTP_NO_ADDITIONAL_HEADERS, 0, NULL, 0, 0, 0) &&
 				WinHttpReceiveResponse(hRequest, NULL))
 			{
-				DWORD statusCode = 0;
-				DWORD statusCodeSize = sizeof(statusCode);
+				DWORD statusCode= 0;
+				DWORD statusCodeSize= sizeof(statusCode);
 				WinHttpQueryHeaders(
 					hRequest,
 					WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
@@ -130,17 +130,17 @@ bool LocalizationRemoteFetcher::httpGet(const std::string& url, std::string& out
 
 				if (statusCode == 200)
 				{
-					DWORD bytesAvailable = 0;
+					DWORD bytesAvailable= 0;
 					while (!m_cancelled &&
-						WinHttpQueryDataAvailable(hRequest, &bytesAvailable) &&
-						bytesAvailable > 0)
+						   WinHttpQueryDataAvailable(hRequest, &bytesAvailable) &&
+						   bytesAvailable > 0)
 					{
 						std::vector<char> buffer(bytesAvailable);
-						DWORD bytesRead = 0;
+						DWORD bytesRead= 0;
 						if (WinHttpReadData(hRequest, buffer.data(), bytesAvailable, &bytesRead))
 							outBody.append(buffer.data(), bytesRead);
 					}
-					success = !m_cancelled;
+					success= !m_cancelled;
 				}
 				else
 				{
@@ -169,13 +169,13 @@ bool LocalizationRemoteFetcher::httpGet(const std::string& url, std::string& out
 
 bool LocalizationRemoteFetcher::fetchManifest(std::vector<std::string>& outFiles)
 {
-	const std::string manifestUrl = m_baseUrl + "/manifest.json";
+	const std::string manifestUrl= m_baseUrl + "/manifest.json";
 	std::string body;
 	if (!httpGet(manifestUrl, body))
 		return false;
 
 	// Write manifest to cache so its mtime tracks freshness
-	const std::filesystem::path manifestPath = m_cacheDir / "manifest.json";
+	const std::filesystem::path manifestPath= m_cacheDir / "manifest.json";
 	{
 		std::ofstream fileStream(manifestPath, std::ios::binary);
 
@@ -187,7 +187,7 @@ bool LocalizationRemoteFetcher::fetchManifest(std::vector<std::string>& outFiles
 
 	try
 	{
-		const nlohmann::json j = nlohmann::json::parse(body);
+		const nlohmann::json j= nlohmann::json::parse(body);
 		for (const auto& file : j.at("files"))
 			outFiles.push_back(file.get<std::string>());
 
@@ -204,12 +204,12 @@ bool LocalizationRemoteFetcher::fetchManifest(std::vector<std::string>& outFiles
 
 bool LocalizationRemoteFetcher::fetchFile(const std::string& filename)
 {
-	const std::string fileUrl = m_baseUrl + "/" + filename;
+	const std::string fileUrl= m_baseUrl + "/" + filename;
 	std::string body;
 	if (!httpGet(fileUrl, body))
 		return false;
 
-	const std::filesystem::path filePath = m_cacheDir / filename;
+	const std::filesystem::path filePath= m_cacheDir / filename;
 	std::ofstream out(filePath, std::ios::binary);
 	if (!out)
 	{
@@ -254,7 +254,7 @@ void LocalizationRemoteFetcher::fetchThread()
 
 	MIKAN_LOG_INFO("LocalizationRemoteFetcher") << "Fetching " << files.size() << " localization file(s) from CDN...";
 
-	bool allSucceeded = true;
+	bool allSucceeded= true;
 	for (const auto& filename : files)
 	{
 		if (m_cancelled)
@@ -263,7 +263,7 @@ void LocalizationRemoteFetcher::fetchThread()
 		if (!fetchFile(filename))
 		{
 			MIKAN_LOG_WARNING("LocalizationRemoteFetcher") << "Failed to fetch: " << filename;
-			allSucceeded = false;
+			allSucceeded= false;
 		}
 		else
 		{

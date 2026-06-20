@@ -38,11 +38,11 @@ public:
 
 private:
 	std::string m_name;
-	int m_labelWidth = IMkGuiStyle::k_defaultLabelWidth;
-	int m_valueWidth = IMkGuiStyle::k_defaultValueWidth;
+	int m_labelWidth= IMkGuiStyle::k_defaultLabelWidth;
+	int m_valueWidth= IMkGuiStyle::k_defaultValueWidth;
 	std::vector<MkGuiStyleFloatEntry> m_floatVars;
 	std::vector<MkGuiStyleVec2Entry> m_vec2Vars;
 	std::vector<MkGuiStyleColorEntry> m_colors;
 	std::map<std::string, MkGuiStyleTextureEntry> m_textures;
-	struct ImFont* m_font = nullptr;
+	struct ImFont* m_font= nullptr;
 };

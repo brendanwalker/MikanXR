@@ -35,8 +35,10 @@ public:
 protected:
 	// IUnknown methods
 	STDMETHODIMP QueryInterface(REFIID iid, void** ppv);
-	STDMETHODIMP_(ULONG) AddRef();
-	STDMETHODIMP_(ULONG) Release();
+	STDMETHODIMP_(ULONG)
+	AddRef();
+	STDMETHODIMP_(ULONG)
+	Release();
 
 	// IMFSourceReaderCallback methods
 	STDMETHODIMP OnReadSample(
@@ -59,7 +61,7 @@ private:
 
 	IMFSourceReader* m_pSourceReader;
 	IMFTransform* m_pDecoderTransform;
-	IMFMediaType* m_pNativeInputType;  // Saved native H.264 media type from camera
+	IMFMediaType* m_pNativeInputType; // Saved native H.264 media type from camera
 	bool m_bNeedsDecoder;
 	MFT_OUTPUT_STREAM_INFO m_decoderOutputInfo;
 

@@ -19,9 +19,9 @@
 // -- TextureSourceNodeConfig -----
 configuru::Config TextureSourceNodeConfig::writeToJSON()
 {
-	configuru::Config pt = NodeConfig::writeToJSON();
+	configuru::Config pt= NodeConfig::writeToJSON();
 
-	pt["texture_source_property_id"] = textureSourcePropertyId;
+	pt["texture_source_property_id"]= textureSourcePropertyId;
 
 	return pt;
 }
@@ -30,7 +30,7 @@ void TextureSourceNodeConfig::readFromJSON(const configuru::Config& pt)
 {
 	NodeConfig::readFromJSON(pt);
 
-	textureSourcePropertyId = pt.get_or<t_graph_property_id>("texture_source_property_id", -1);
+	textureSourcePropertyId= pt.get_or<t_graph_property_id>("texture_source_property_id", -1);
 }
 
 // -- TextureSourceNode -----
@@ -45,14 +45,14 @@ void TextureSourceNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 	{
 		if (m_ownerGraph)
 		{
-			m_ownerGraph->OnPropertyDeleted -= MakeDelegate(this, &TextureSourceNode::onGraphPropertyDeleted);
-			m_ownerGraph = nullptr;
+			m_ownerGraph->OnPropertyDeleted-= MakeDelegate(this, &TextureSourceNode::onGraphPropertyDeleted);
+			m_ownerGraph= nullptr;
 		}
 
 		if (newOwnerGraph)
 		{
-			newOwnerGraph->OnPropertyDeleted += MakeDelegate(this, &TextureSourceNode::onGraphPropertyDeleted);
-			m_ownerGraph = newOwnerGraph;
+			newOwnerGraph->OnPropertyDeleted+= MakeDelegate(this, &TextureSourceNode::onGraphPropertyDeleted);
+			m_ownerGraph= newOwnerGraph;
 		}
 	}
 }
@@ -61,7 +61,7 @@ bool TextureSourceNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 {
 	if (Node::loadFromConfig(nodeConfig))
 	{
-		auto textureSourceNodeConfig = std::static_pointer_cast<const TextureSourceNodeConfig>(nodeConfig);
+		auto textureSourceNodeConfig= std::static_pointer_cast<const TextureSourceNodeConfig>(nodeConfig);
 		t_graph_property_id propId= textureSourceNodeConfig->textureSourcePropertyId;
 
 		auto textureSourceProperty= getOwnerGraph()->getTypedPropertyById<GraphTextureSourceProperty>(propId);
@@ -83,7 +83,7 @@ bool TextureSourceNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 
 void TextureSourceNode::saveToConfig(NodeConfigPtr nodeConfig) const
 {
-	TextureSourceNodeConfigPtr textureSourceNodeConfig = std::static_pointer_cast<TextureSourceNodeConfig>(nodeConfig);
+	TextureSourceNodeConfigPtr textureSourceNodeConfig= std::static_pointer_cast<TextureSourceNodeConfig>(nodeConfig);
 	textureSourceNodeConfig->textureSourcePropertyId= m_sourceProperty ? m_sourceProperty->getId() : -1;
 
 	Node::saveToConfig(nodeConfig);
@@ -95,18 +95,18 @@ TextureSourceComponentPtr TextureSourceNode::getTextureSourceComponent() const
 }
 
 void TextureSourceNode::setTextureSourceProperty(GraphTextureSourcePropertyPtr inTextureSourceProperty)
-{ 
-	m_sourceProperty = inTextureSourceProperty; 
+{
+	m_sourceProperty= inTextureSourceProperty;
 }
 
 IMkTexturePtr TextureSourceNode::getTextureResource() const
 {
-	TextureSourceComponentPtr textureSourceComponent = getTextureSourceComponent();
+	TextureSourceComponentPtr textureSourceComponent= getTextureSourceComponent();
 	if (textureSourceComponent != nullptr)
 	{
 		// TODO: Not sure what to use for cameraId here (probably should come from NodeEvaluator context?)
 		// For now just pass an invalid ID and let the component decide what to do with it
-		MikanCameraID cameraId = INVALID_MIKAN_ID; 
+		MikanCameraID cameraId= INVALID_MIKAN_ID;
 		return textureSourceComponent->getClientColorSourceTexture(
 			cameraId, eTextureSourceColorType::colorRGBA);
 	}
@@ -116,12 +116,12 @@ IMkTexturePtr TextureSourceNode::getTextureResource() const
 
 bool TextureSourceNode::evaluateNode(NodeEvaluator& evaluator)
 {
-	TextureSourceComponentPtr textureSourceComponent = getTextureSourceComponent();
+	TextureSourceComponentPtr textureSourceComponent= getTextureSourceComponent();
 
 	// Since the editor can change the texture source texture can change out from under us
 	// it's safest to just refresh the output texture pin every frame
-	IMkTexturePtr textureResource = getTextureResource();
-	auto outputPin = getFirstPinOfType<TexturePin>(eNodePinDirection::OUTPUT);
+	IMkTexturePtr textureResource= getTextureResource();
+	auto outputPin= getFirstPinOfType<TexturePin>(eNodePinDirection::OUTPUT);
 	if (outputPin)
 	{
 		outputPin->setValue(textureResource);
@@ -151,7 +151,7 @@ bool TextureSourceNode::evaluateNode(NodeEvaluator& evaluator)
 std::shared_ptr<MkNodesScopedColorStyle> TextureSourceNode::editorRenderMakeNodeStyle(
 	const NodeEditorState& textureSourcePropertyId) const
 {
-	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225))
 		.push(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225))
 		.push(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
@@ -160,7 +160,7 @@ std::shared_ptr<MkNodesScopedColorStyle> TextureSourceNode::editorRenderMakeNode
 
 void TextureSourceNode::editorRenderNode(const NodeEditorState& textureSourcePropertyId)
 {
-	auto nodeStyle = editorRenderMakeNodeStyle(textureSourcePropertyId);
+	auto nodeStyle= editorRenderMakeNodeStyle(textureSourcePropertyId);
 	MkNodesScopedNode scopedNode(m_id);
 
 	// Title
@@ -168,8 +168,8 @@ void TextureSourceNode::editorRenderNode(const NodeEditorState& textureSourcePro
 
 	// Texture
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
-	IMkTexturePtr textureResource = getTextureResource();
-	uint32_t glTextureId = textureResource ? textureResource->getGlTextureId() : 0;
+	IMkTexturePtr textureResource= getTextureResource();
+	uint32_t glTextureId= textureResource ? textureResource->getGlTextureId() : 0;
 	ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
 	ImGui::SameLine();
 
@@ -213,8 +213,8 @@ void TextureSourceNode::onGraphPropertyDeleted(t_graph_property_id id)
 NodePtr TextureSourceNodeFactory::createNode(const NodeEditorState& textureSourcePropertyId) const
 {
 	// Create the node and pins
-	NodePtr node = NodeFactory::createNode(textureSourcePropertyId);
-	auto outputPin = node->addPin<TexturePin>("Texture", eNodePinDirection::OUTPUT);
+	NodePtr node= NodeFactory::createNode(textureSourcePropertyId);
+	auto outputPin= node->addPin<TexturePin>("Texture", eNodePinDirection::OUTPUT);
 	outputPin->editorSetShowPinName(false);
 
 	// If spawned in an editor context from a dangling pin link

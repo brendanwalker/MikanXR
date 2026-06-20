@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 
 using IMkTexturePtr= std::shared_ptr<class IMkTexture>;
-using TestGraphicsContext_GLPtr = std::shared_ptr<class TestGraphicsContext_GL>;
+using TestGraphicsContext_GLPtr= std::shared_ptr<class TestGraphicsContext_GL>;
 
 class TestCameraRenderTarget_GL : public TestCameraRenderTarget
 {
@@ -37,7 +37,7 @@ protected:
 	virtual void updateCameraViewMatrix(const struct MikanCameraNewFrameEvent& newFrameEvent) override;
 	virtual void updateCameraProjectionMatrix(const struct MikanCameraNewFrameEvent& newFrameEvent) override;
 
-private:	
+private:
 	std::string m_renderTargetName;
 
 	// Mikan Color and Depth Target

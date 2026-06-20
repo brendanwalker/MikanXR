@@ -36,7 +36,7 @@
 #include "imgui.h"
 
 //-- statics ----
-const char* AppStage_AlignCameraByOriginMarker::APP_STAGE_NAME = "AlignCameraByOriginMarker";
+const char* AppStage_AlignCameraByOriginMarker::APP_STAGE_NAME= "AlignCameraByOriginMarker";
 
 //-- public methods -----
 AppStage_AlignCameraByOriginMarker::AppStage_AlignCameraByOriginMarker(IEditorWindow* ownerWindow)
@@ -54,10 +54,10 @@ bool AppStage_AlignCameraByOriginMarker::tryEnterCalibration(
 	AppStage* fromAppStage,
 	CameraComponentPtr targetCameraComponent)
 {
-	IEditorWindow* ownerWindow = fromAppStage->getOwnerWindow();
+	IEditorWindow* ownerWindow= fromAppStage->getOwnerWindow();
 
 	// 1. Target camera must have a valid video source with valid intrinsics
-	VideoSourceComponentPtr videoSource = targetCameraComponent->getVideoSourceComponent();
+	VideoSourceComponentPtr videoSource= targetCameraComponent->getVideoSourceComponent();
 	if (!videoSource)
 	{
 		ModalDialog_MessageBox::showMessageBox(
@@ -84,7 +84,7 @@ bool AppStage_AlignCameraByOriginMarker::tryEnterCalibration(
 	}
 
 	// 3. Owner stage must have a marker tracking volume
-	StageComponentConstPtr ownerStage = targetCameraComponent->getOwnerStageComponent();
+	StageComponentConstPtr ownerStage= targetCameraComponent->getOwnerStageComponent();
 	if (!ownerStage)
 	{
 		ModalDialog_MessageBox::showMessageBox(
@@ -93,7 +93,7 @@ bool AppStage_AlignCameraByOriginMarker::tryEnterCalibration(
 		return false;
 	}
 
-	TrackingVolumeComponentConstPtr trackingVolume = ownerStage->getTrackingVolumeConst();
+	TrackingVolumeComponentConstPtr trackingVolume= ownerStage->getTrackingVolumeConst();
 	if (!trackingVolume || trackingVolume->getTrackingVolumeType() != eTrackingVolumeType::marker)
 	{
 		ModalDialog_MessageBox::showMessageBox(
@@ -103,7 +103,7 @@ bool AppStage_AlignCameraByOriginMarker::tryEnterCalibration(
 	}
 
 	// 4. Tracking volume must have a valid origin marker assigned
-	const MikanMarkerID originMarkerId =
+	const MikanMarkerID originMarkerId=
 		trackingVolume->getTrackingVolumeDefinition()->getOriginMarkerId();
 	if (originMarkerId == INVALID_MIKAN_ID)
 	{
@@ -113,7 +113,7 @@ bool AppStage_AlignCameraByOriginMarker::tryEnterCalibration(
 		return false;
 	}
 
-	auto* appStage = ownerWindow->pushAppStageOfType<AppStage_AlignCameraByOriginMarker>();
+	auto* appStage= ownerWindow->pushAppStageOfType<AppStage_AlignCameraByOriginMarker>();
 	appStage->setTargetCameraComponent(targetCameraComponent);
 
 	return true;
@@ -121,7 +121,7 @@ bool AppStage_AlignCameraByOriginMarker::tryEnterCalibration(
 
 void AppStage_AlignCameraByOriginMarker::setTargetCameraComponent(CameraComponentPtr cameraComponent)
 {
-	m_targetCameraComponent = cameraComponent;
+	m_targetCameraComponent= cameraComponent;
 }
 
 // -- AppStage -- //
@@ -131,22 +131,26 @@ void AppStage_AlignCameraByOriginMarker::enter()
 	assert(m_targetCameraComponent != nullptr);
 
 	// Fetch the origin marker ID from the tracking volume
-	StageComponentConstPtr ownerStage = m_targetCameraComponent->getOwnerStageComponent();
+	StageComponentConstPtr ownerStage= m_targetCameraComponent->getOwnerStageComponent();
 	assert(ownerStage != nullptr);
-	TrackingVolumeComponentConstPtr trackingVolume = ownerStage->getTrackingVolumeConst();
+	TrackingVolumeComponentConstPtr trackingVolume= ownerStage->getTrackingVolumeConst();
 	assert(trackingVolume != nullptr);
-	m_originMarkerId = trackingVolume->getTrackingVolumeDefinition()->getOriginMarkerId();
+	m_originMarkerId= trackingVolume->getTrackingVolumeDefinition()->getOriginMarkerId();
 
 	// Cache the target video source
-	m_targetVideoSource = m_targetCameraComponent->getVideoSourceComponent();
+	m_targetVideoSource= m_targetCameraComponent->getVideoSourceComponent();
 	assert(m_targetVideoSource != nullptr);
 
 	// Create GUI panel
-	m_calibrationPanel = addGuiPanel<GuiPanel_AlignCameraByOriginMarker>();
-	m_calibrationPanel->OnBeginEvent   = [this]() { onBeginEvent(); };
-	m_calibrationPanel->OnRestartEvent = [this]() { onRestartEvent(); };
-	m_calibrationPanel->OnCancelEvent  = [this]() { onCancelEvent(); };
-	m_calibrationPanel->OnReturnEvent  = [this]() { onReturnEvent(); };
+	m_calibrationPanel= addGuiPanel<GuiPanel_AlignCameraByOriginMarker>();
+	m_calibrationPanel->OnBeginEvent= [this]()
+	{ onBeginEvent(); };
+	m_calibrationPanel->OnRestartEvent= [this]()
+	{ onRestartEvent(); };
+	m_calibrationPanel->OnCancelEvent= [this]()
+	{ onCancelEvent(); };
+	m_calibrationPanel->OnReturnEvent= [this]()
+	{ onReturnEvent(); };
 
 	// Start the video stream immediately (no source camera selection needed)
 	startVideoStream();
@@ -160,18 +164,18 @@ void AppStage_AlignCameraByOriginMarker::exit()
 	if (m_targetMarkerSampler != nullptr)
 	{
 		delete m_targetMarkerSampler;
-		m_targetMarkerSampler = nullptr;
+		m_targetMarkerSampler= nullptr;
 	}
 	if (m_targetDistortionView != nullptr)
 	{
 		if (m_targetVideoSource)
 			m_targetVideoSource->stopVideoStream(m_targetDistortionView);
 		delete m_targetDistortionView;
-		m_targetDistortionView = nullptr;
+		m_targetDistortionView= nullptr;
 	}
-	m_targetVideoSource = nullptr;
+	m_targetVideoSource= nullptr;
 
-	m_targetCameraComponent = nullptr;
+	m_targetCameraComponent= nullptr;
 
 	// Release frame buffer resources
 	if (m_frameBuffer)
@@ -187,18 +191,18 @@ void AppStage_AlignCameraByOriginMarker::update(float deltaSeconds)
 	switch (m_calibrationPanel->getMenuState())
 	{
 	case eAlignCameraByOriginMarkerMenuState::pendingVideoStart:
+	{
+		if (m_targetDistortionView->isReceivingFrames())
 		{
-			if (m_targetDistortionView->isReceivingFrames())
-			{
-				setupCalibrator();
-				setMenuState(eAlignCameraByOriginMarkerMenuState::verifySetup);
-			}
-			else if (m_targetVideoSource->getVideoStreamingStatus() == eVideoStreamingStatus::failed)
-			{
-				setMenuState(eAlignCameraByOriginMarkerMenuState::failedVideoStart);
-			}
+			setupCalibrator();
+			setMenuState(eAlignCameraByOriginMarkerMenuState::verifySetup);
 		}
-		break;
+		else if (m_targetVideoSource->getVideoStreamingStatus() == eVideoStreamingStatus::failed)
+		{
+			setMenuState(eAlignCameraByOriginMarkerMenuState::failedVideoStart);
+		}
+	}
+	break;
 
 	case eAlignCameraByOriginMarkerMenuState::verifySetup:
 		updateVerifySetup();
@@ -209,12 +213,12 @@ void AppStage_AlignCameraByOriginMarker::update(float deltaSeconds)
 		break;
 
 	case eAlignCameraByOriginMarkerMenuState::testCalibration:
-		{
-			// Keep video feed updated for preview
-			if (m_targetDistortionView)
-				m_targetDistortionView->readAndProcessVideoFrame();
-		}
-		break;
+	{
+		// Keep video feed updated for preview
+		if (m_targetDistortionView)
+			m_targetDistortionView->readAndProcessVideoFrame();
+	}
+	break;
 
 	default:
 		break;
@@ -226,17 +230,17 @@ void AppStage_AlignCameraByOriginMarker::onGui()
 	AppStage::onGui();
 
 	// Video preview during active states
-	const eAlignCameraByOriginMarkerMenuState state = m_calibrationPanel->getMenuState();
-	const bool bShowVideo =
+	const eAlignCameraByOriginMarkerMenuState state= m_calibrationPanel->getMenuState();
+	const bool bShowVideo=
 		state == eAlignCameraByOriginMarkerMenuState::verifySetup ||
 		state == eAlignCameraByOriginMarkerMenuState::capturing;
 
 	if (bShowVideo)
 	{
-		const ImVec2 displaySize = ImGui::GetMainViewport()->Size;
-		constexpr float k_panelWidth = 415.f;
-		const float videoAreaWidth = displaySize.x - k_panelWidth;
-		constexpr ImGuiWindowFlags k_bgFlags =
+		const ImVec2 displaySize= ImGui::GetMainViewport()->Size;
+		constexpr float k_panelWidth= 415.f;
+		const float videoAreaWidth= displaySize.x - k_panelWidth;
+		constexpr ImGuiWindowFlags k_bgFlags=
 			ImGuiWindowFlags_NoDecoration |
 			ImGuiWindowFlags_NoInputs |
 			ImGuiWindowFlags_NoBringToFrontOnFocus |
@@ -248,9 +252,9 @@ void AppStage_AlignCameraByOriginMarker::onGui()
 		ImGui::SetNextWindowBgAlpha(0.0f);
 		if (ImGui::Begin("##VideoTargetBg", nullptr, k_bgFlags))
 		{
-			IMkTexturePtr tgtTex = m_targetDistortionView
-				? m_targetDistortionView->getVideoTexture()
-				: nullptr;
+			IMkTexturePtr tgtTex= m_targetDistortionView
+									  ? m_targetDistortionView->getVideoTexture()
+									  : nullptr;
 			if (tgtTex && tgtTex->getGlTextureId() != 0)
 			{
 				ImGui::Image(
@@ -263,16 +267,17 @@ void AppStage_AlignCameraByOriginMarker::onGui()
 	}
 
 	// Side panel with calibration controls
-	constexpr float k_panelWidth = 415.f;
-	const float displayWidth = m_ownerWindow->getWidth();
+	constexpr float k_panelWidth= 415.f;
+	const float displayWidth= m_ownerWindow->getWidth();
 
 	ImGui::SetNextWindowPos(ImVec2(displayWidth - k_panelWidth, 0.f), ImGuiCond_Always);
 	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, 0), ImGuiCond_Always);
-	constexpr ImGuiWindowFlags k_flags =
+	constexpr ImGuiWindowFlags k_flags=
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
 	MkGuiScopedWindow panel("##AlignCameraByOriginMarker", nullptr, k_flags);
-	if (!panel) return;
+	if (!panel)
+		return;
 
 	for (IGuiPanel* guiPanel : m_guiPanels)
 		guiPanel->onGui();
@@ -301,11 +306,11 @@ void AppStage_AlignCameraByOriginMarker::render(IMkViewportPtr targetViewport)
 				m_targetDistortionView->renderSelectedVideoBuffers();
 
 			// Draw axes at the stage origin (identity = where the physical origin marker is)
-			IMkGraphicsContext* graphicsContext = getGraphicsContext();
-			const glm::mat4 stageOrigin = glm::mat4(1.f);
+			IMkGraphicsContext* graphicsContext= getGraphicsContext();
+			const glm::mat4 stageOrigin= glm::mat4(1.f);
 			drawTransformedAxes(graphicsContext, stageOrigin, 0.1f);
 
-			TextStyle style = getDefaultTextStyle();
+			TextStyle style= getDefaultTextStyle();
 			drawTextAtWorldPosition(
 				graphicsContext,
 				style,
@@ -314,7 +319,7 @@ void AppStage_AlignCameraByOriginMarker::render(IMkViewportPtr targetViewport)
 		}
 
 		// Clear the depth buffer before drawing the scene
-		IMkState* mkState = m_ownerWindow->getGraphicsContext()->getMkStateStack().getCurrentState();
+		IMkState* mkState= m_ownerWindow->getGraphicsContext()->getMkStateStack().getCurrentState();
 		mkStateClearBuffer(mkState, eMkClearFlags::depth);
 
 		// Flush line and text renderers
@@ -324,15 +329,15 @@ void AppStage_AlignCameraByOriginMarker::render(IMkViewportPtr targetViewport)
 
 	// Blit framebuffer to screen as fullscreen quad
 	{
-		MkMaterialInstancePtr materialInstance = m_fullscreenQuad->getMaterialInstance();
-		MkMaterialConstPtr material = materialInstance->getMaterial();
+		MkMaterialInstancePtr materialInstance= m_fullscreenQuad->getMaterialInstance();
+		MkMaterialConstPtr material= materialInstance->getMaterial();
 
-		if (auto materialBinding = material->bindMaterial())
+		if (auto materialBinding= material->bindMaterial())
 		{
-			auto colorTexture = m_frameBuffer->getColorTexture();
+			auto colorTexture= m_frameBuffer->getColorTexture();
 			materialInstance->setTextureBySemantic(eUniformSemantic::rgbTexture, colorTexture);
 
-			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+			if (auto materialInstanceBinding= materialInstance->bindMaterialInstance(materialBinding))
 			{
 				m_fullscreenQuad->drawElements();
 			}
@@ -345,7 +350,7 @@ void AppStage_AlignCameraByOriginMarker::render(IMkViewportPtr targetViewport)
 void AppStage_AlignCameraByOriginMarker::startVideoStream()
 {
 	// Create the distortion view eagerly — it is the stream ownership token
-	m_targetDistortionView = new VideoFrameDistortionView(m_targetVideoSource, eVideoFrameProcessorMode::CALIBRATION);
+	m_targetDistortionView= new VideoFrameDistortionView(m_targetVideoSource, eVideoFrameProcessorMode::CALIBRATION);
 	m_targetDistortionView->setVideoDisplayMode(eVideoDisplayMode::mode_undistored);
 
 	// Register as a stream consumer — VideoSourceComponent::update() drives the retry loop
@@ -357,17 +362,17 @@ void AppStage_AlignCameraByOriginMarker::startVideoStream()
 void AppStage_AlignCameraByOriginMarker::setupCalibrator()
 {
 	// Get the origin marker definition
-	MarkerObjectSystemPtr markerSystem = getObjectSystemOfType<MarkerObjectSystem>();
+	MarkerObjectSystemPtr markerSystem= getObjectSystemOfType<MarkerObjectSystem>();
 	assert(markerSystem != nullptr);
 
-	MarkerComponentPtr originMarkerComponent = markerSystem->getMarkerById(m_originMarkerId);
+	MarkerComponentPtr originMarkerComponent= markerSystem->getMarkerById(m_originMarkerId);
 	assert(originMarkerComponent != nullptr);
 
-	MarkerDefinitionConstPtr originMarkerDef = originMarkerComponent->getMarkerDefinition();
+	MarkerDefinitionConstPtr originMarkerDef= originMarkerComponent->getMarkerDefinition();
 	assert(originMarkerDef != nullptr);
 
 	// Set up target camera marker sampler (view already created in startVideoStream)
-	m_targetMarkerSampler = new ArucoMarkerPoseSampler(
+	m_targetMarkerSampler= new ArucoMarkerPoseSampler(
 		m_targetCameraComponent,
 		m_targetDistortionView,
 		ALIGN_CAMERA_BY_ORIGIN_MARKER_SAMPLE_COUNT,
@@ -376,7 +381,7 @@ void AppStage_AlignCameraByOriginMarker::setupCalibrator()
 	// Set up framebuffer for testCalibration view
 	MikanVideoSourceIntrinsics cameraIntrinsics;
 	m_targetVideoSource->getCameraIntrinsics(cameraIntrinsics);
-	const MikanMonoIntrinsics& monoIntrinsics = cameraIntrinsics.getMonoIntrinsics();
+	const MikanMonoIntrinsics& monoIntrinsics= cameraIntrinsics.getMonoIntrinsics();
 	m_frameBuffer->setName("AlignCameraByOriginMarker");
 	m_frameBuffer->setSize(monoIntrinsics.pixel_width, monoIntrinsics.pixel_height);
 	m_frameBuffer->setFrameBufferType(IMkFrameBuffer::eFrameBufferType::COLOR);
@@ -393,7 +398,7 @@ void AppStage_AlignCameraByOriginMarker::updateVerifySetup()
 	m_targetDistortionView->readAndProcessVideoFrame();
 
 	// Check if camera sees the origin marker
-	const bool targetCanSeeMarker = m_targetMarkerSampler->computeApertureRelativeMarkerXform();
+	const bool targetCanSeeMarker= m_targetMarkerSampler->computeApertureRelativeMarkerXform();
 	m_calibrationPanel->setMarkerVisible(targetCanSeeMarker);
 }
 
@@ -431,7 +436,7 @@ void AppStage_AlignCameraByOriginMarker::computeAndApplyTargetTransform()
 	MikanVector3d markerPos;
 	if (!m_targetMarkerSampler->computeCalibratedMarkerPose(markerRot, markerPos))
 		return;
-	const glm::dmat4 avgApertureToMarker =
+	const glm::dmat4 avgApertureToMarker=
 		glm_mat4_from_pose(
 			MikanQuatd_to_glm_dquat(markerRot),
 			MikanVector3d_to_glm_dvec3(markerPos));
@@ -439,7 +444,7 @@ void AppStage_AlignCameraByOriginMarker::computeAndApplyTargetTransform()
 	// 2. The origin marker IS the stage origin, so marker_StageSpace = identity.
 	//    Therefore: cameraAperture_StageSpace = inverse(apertureToMarker) * identity
 	//                                         = inverse(apertureToMarker)
-	m_cameraApertureXform_StageSpace = glm::inverse(avgApertureToMarker);
+	m_cameraApertureXform_StageSpace= glm::inverse(avgApertureToMarker);
 
 	// 3. Apply final pose to the camera component
 	m_targetCameraComponent->setRelativeTransform(glm::mat4(m_cameraApertureXform_StageSpace));
@@ -458,7 +463,7 @@ void AppStage_AlignCameraByOriginMarker::setMenuState(eAlignCameraByOriginMarker
 	{
 		if (m_targetCameraComponent)
 		{
-			MikanCameraPtr mkCamera = getFirstViewport()->getCurrentMikanCamera();
+			MikanCameraPtr mkCamera= getFirstViewport()->getCurrentMikanCamera();
 			mkCamera->setCameraTransform(m_targetCameraComponent->getRelativeTransform().getMat4());
 		}
 	}

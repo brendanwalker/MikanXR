@@ -6,7 +6,7 @@
 class MIKAN_GUI_CLASS MkGuiScopedUpdate : public MkGuiScopedContext
 {
 public:
-	MkGuiScopedUpdate() = delete;
+	MkGuiScopedUpdate()= delete;
 	MkGuiScopedUpdate(MkGuiContext& context);
 	~MkGuiScopedUpdate();
 };

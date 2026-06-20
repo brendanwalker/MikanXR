@@ -14,15 +14,15 @@
 #include <queue>
 
 // -- ModelStencilConfig -----
-const std::string TransformComponentDefinition::k_parentTransformIdPropertyId = "parent_transform_id";
-const std::string TransformComponentDefinition::k_relativeScalePropertyId = "relative_scale";
-const std::string TransformComponentDefinition::k_relativeQuaternionPropertyId = "relative_quaternion";
-const std::string TransformComponentDefinition::k_relativePositionPropertyId = "relative_position";
+const std::string TransformComponentDefinition::k_parentTransformIdPropertyId= "parent_transform_id";
+const std::string TransformComponentDefinition::k_relativeScalePropertyId= "relative_scale";
+const std::string TransformComponentDefinition::k_relativeQuaternionPropertyId= "relative_quaternion";
+const std::string TransformComponentDefinition::k_relativePositionPropertyId= "relative_position";
 
 TransformComponentDefinition::TransformComponentDefinition()
 	: MikanComponentDefinition()
 {
-	m_relativeTransform.scale = {1.f, 1.f, 1.f};
+	m_relativeTransform.scale= {1.f, 1.f, 1.f};
 	m_relativeTransform.rotation= {1.f, 0.f, 0.f, 0.f};
 	m_relativeTransform.position= {0.f, 0.f, 0.f};
 }
@@ -30,7 +30,7 @@ TransformComponentDefinition::TransformComponentDefinition()
 TransformComponentDefinition::TransformComponentDefinition(int componentId)
 	: MikanComponentDefinition(componentId, "")
 {
-	m_relativeTransform.scale = {1.f, 1.f, 1.f};
+	m_relativeTransform.scale= {1.f, 1.f, 1.f};
 	m_relativeTransform.rotation= {1.f, 0.f, 0.f, 0.f};
 	m_relativeTransform.position= {0.f, 0.f, 0.f};
 }
@@ -46,9 +46,9 @@ TransformComponentDefinition::TransformComponentDefinition(
 
 configuru::Config TransformComponentDefinition::writeToJSON()
 {
-	configuru::Config pt = MikanComponentDefinition::writeToJSON();
+	configuru::Config pt= MikanComponentDefinition::writeToJSON();
 
-	pt[k_parentTransformIdPropertyId] = m_parentTransformId;
+	pt[k_parentTransformIdPropertyId]= m_parentTransformId;
 	writeVector3f(pt, k_relativeScalePropertyId.c_str(), m_relativeTransform.scale);
 	writeQuatf(pt, k_relativeQuaternionPropertyId.c_str(), m_relativeTransform.rotation);
 	writeVector3f(pt, k_relativePositionPropertyId.c_str(), m_relativeTransform.position);
@@ -60,10 +60,10 @@ void TransformComponentDefinition::readFromJSON(const configuru::Config& pt)
 {
 	MikanComponentDefinition::readFromJSON(pt);
 
-	m_parentTransformId = pt.get_or<int>(k_parentTransformIdPropertyId, -1);
-	m_relativeTransform.scale = {1.f, 1.f, 1.f};
-	m_relativeTransform.rotation = {1.f, 0.f, 0.f, 0.f};
-	m_relativeTransform.position = {0.f, 0.f, 0.f};
+	m_parentTransformId= pt.get_or<int>(k_parentTransformIdPropertyId, -1);
+	m_relativeTransform.scale= {1.f, 1.f, 1.f};
+	m_relativeTransform.rotation= {1.f, 0.f, 0.f, 0.f};
+	m_relativeTransform.position= {0.f, 0.f, 0.f};
 
 	readVector3f(pt, k_relativeScalePropertyId.c_str(), m_relativeTransform.scale);
 	readQuatf(pt, k_relativeQuaternionPropertyId.c_str(), m_relativeTransform.rotation);
@@ -77,13 +77,13 @@ bool TransformComponentDefinition::readFromInitParams(
 	if (!MikanComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
-	const auto* componentValues = initParams.getTypedPointer<MikanTransformComponentValues>();
+	const auto* componentValues= initParams.getTypedPointer<MikanTransformComponentValues>();
 	if (componentValues)
 	{
-		m_parentTransformId = componentValues->parent_transform_id;
-		m_relativeTransform.scale = componentValues->relative_scale;
-		m_relativeTransform.position = componentValues->relative_position;
-		m_relativeTransform.rotation = componentValues->relative_quaternion;
+		m_parentTransformId= componentValues->parent_transform_id;
+		m_relativeTransform.scale= componentValues->relative_scale;
+		m_relativeTransform.position= componentValues->relative_position;
+		m_relativeTransform.rotation= componentValues->relative_quaternion;
 	}
 
 	return true;
@@ -110,36 +110,36 @@ const GlmTransform TransformComponentDefinition::getRelativeTransform() const
 void TransformComponentDefinition::sendTransformPropertyChangeNotification()
 {
 	notifyPropertyChanged(ConfigPropertyChangeSet()
-		.addPropertyName(k_relativeScalePropertyId)
-		.addPropertyName(k_relativeQuaternionPropertyId)
-		.addPropertyName(k_relativePositionPropertyId));
+							  .addPropertyName(k_relativeScalePropertyId)
+							  .addPropertyName(k_relativeQuaternionPropertyId)
+							  .addPropertyName(k_relativePositionPropertyId));
 }
 
 void TransformComponentDefinition::sendScalePropertyChangeNotification()
 {
 	notifyPropertyChanged(ConfigPropertyChangeSet()
-		.addPropertyName(k_relativeScalePropertyId));
+							  .addPropertyName(k_relativeScalePropertyId));
 }
 
 void TransformComponentDefinition::sendRotationPropertyChangeNotification()
 {
 	notifyPropertyChanged(ConfigPropertyChangeSet()
-		.addPropertyName(k_relativeQuaternionPropertyId));
+							  .addPropertyName(k_relativeQuaternionPropertyId));
 }
 
 void TransformComponentDefinition::sendPositionPropertyChangeNotification()
 {
 	notifyPropertyChanged(ConfigPropertyChangeSet()
-		.addPropertyName(k_relativePositionPropertyId));
+							  .addPropertyName(k_relativePositionPropertyId));
 }
 
 void TransformComponentDefinition::setRelativeTransform(const GlmTransform& transform)
 {
-	glm::mat4 xform = transform.getMat4();
+	glm::mat4 xform= transform.getMat4();
 
-	m_relativeTransform.position = glm_vec3_to_MikanVector3f(transform.getPosition());
-	m_relativeTransform.rotation = glm_quat_to_MikanQuatf(transform.getRotation());
-	m_relativeTransform.scale = glm_vec3_to_MikanVector3f(transform.getScale());
+	m_relativeTransform.position= glm_vec3_to_MikanVector3f(transform.getPosition());
+	m_relativeTransform.rotation= glm_quat_to_MikanQuatf(transform.getRotation());
+	m_relativeTransform.scale= glm_vec3_to_MikanVector3f(transform.getScale());
 
 	if (!isAutoNotifyTransformPropertyChangeDisabled())
 	{
@@ -151,14 +151,14 @@ void TransformComponentDefinition::setParentTransformId(MikanTransformID parentI
 {
 	if (m_parentTransformId != parentId)
 	{
-		m_parentTransformId = parentId;
+		m_parentTransformId= parentId;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_parentTransformIdPropertyId));
 	}
 }
 
 void TransformComponentDefinition::setRelativeScale(const MikanVector3f& scale)
 {
-	m_relativeTransform.scale = scale;
+	m_relativeTransform.scale= scale;
 
 	if (!isAutoNotifyTransformPropertyChangeDisabled())
 	{
@@ -168,7 +168,7 @@ void TransformComponentDefinition::setRelativeScale(const MikanVector3f& scale)
 
 void TransformComponentDefinition::setRelativeRotation(const MikanQuatf& quat)
 {
-	m_relativeTransform.rotation = quat;
+	m_relativeTransform.rotation= quat;
 
 	if (!isAutoNotifyTransformPropertyChangeDisabled())
 	{
@@ -178,7 +178,7 @@ void TransformComponentDefinition::setRelativeRotation(const MikanQuatf& quat)
 
 void TransformComponentDefinition::setRelativePosition(const MikanVector3f& translation)
 {
-	m_relativeTransform.position = translation;
+	m_relativeTransform.position= translation;
 
 	if (!isAutoNotifyTransformPropertyChangeDisabled())
 	{
@@ -205,13 +205,13 @@ void TransformComponent::postInit()
 	MikanComponent::postInit();
 
 	// If we have a parent transform ID, try to attach to it
-	TransformComponentDefinitionPtr definitionPtr = getTransformComponentDefinition();
+	TransformComponentDefinitionPtr definitionPtr= getTransformComponentDefinition();
 	if (definitionPtr)
 	{
-		MikanTransformID parentId = definitionPtr->getParentTransformId();
+		MikanTransformID parentId= definitionPtr->getParentTransformId();
 		if (parentId != INVALID_MIKAN_ID)
 		{
-			TransformComponentPtr parentComponent = 
+			TransformComponentPtr parentComponent=
 				getOwnerProjectManager()->getTypedComponentById<TransformComponent>(parentId);
 
 			if (parentComponent)
@@ -220,9 +220,7 @@ void TransformComponent::postInit()
 			}
 			else
 			{
-				MIKAN_LOG_ERROR("TransformComponent::postInit") <<
-					"TransformComponent with ID " << getComponentId() <<
-					" has invalid parent transform ID " << parentId;
+				MIKAN_LOG_ERROR("TransformComponent::postInit") << "TransformComponent with ID " << getComponentId() << " has invalid parent transform ID " << parentId;
 			}
 		}
 	}
@@ -231,19 +229,19 @@ void TransformComponent::postInit()
 void TransformComponent::dispose()
 {
 	// Capture grandparent before any mutations clear m_parentComponent
-	TransformComponentPtr grandparent = m_parentComponent.lock();
+	TransformComponentPtr grandparent= m_parentComponent.lock();
 
 	// Reparent all children to grandparent instead of orphaning them
 	while (m_childComponents.size() > 0)
 	{
-		TransformComponentPtr childComponent = m_childComponents[0].lock();
+		TransformComponentPtr childComponent= m_childComponents[0].lock();
 
 		if (childComponent)
 		{
 			if (grandparent)
 			{
 				// Save world transform before attachToComponent() clobbers it
-				const glm::mat4 savedChildWorld = childComponent->getWorldTransform();
+				const glm::mat4 savedChildWorld= childComponent->getWorldTransform();
 
 				// attachToComponent() internally detaches child from us (removes from m_childComponents)
 				// then attaches to grandparent — safe for the while-loop pattern
@@ -283,8 +281,8 @@ void TransformComponent::setDefinition(MikanComponentDefinitionPtr config)
 
 	// Initially the model component isn't attached to anything
 	assert(m_parentComponent.lock() == nullptr);
-	m_worldTransform = transformComponentConfigPtr->getRelativeMat4();
-	m_relativeTransform = GlmTransform(m_worldTransform);
+	m_worldTransform= transformComponentConfigPtr->getRelativeMat4();
+	m_relativeTransform= GlmTransform(m_worldTransform);
 }
 
 bool TransformComponent::attachToComponent(TransformComponentPtr newParentComponent)
@@ -304,7 +302,7 @@ bool TransformComponent::attachToComponent(TransformComponentPtr newParentCompon
 	TransformComponentList& parentChildList= newParentComponent->m_childComponents;
 
 	parentChildList.push_back(getSelfWeakPtr<TransformComponent>());
-	m_parentComponent = newParentComponent;
+	m_parentComponent= newParentComponent;
 
 	// Refresh world transform
 	setRelativeTransform(m_relativeTransform);
@@ -323,9 +321,9 @@ void TransformComponent::detachFromParent(eDetachReason reason)
 	{
 		TransformComponentList& parentChildList= parent->m_childComponents;
 
-		for (auto it = parentChildList.begin(); it != parentChildList.end(); ++it)
+		for (auto it= parentChildList.begin(); it != parentChildList.end(); ++it)
 		{
-			TransformComponentPtr transformComponent= it->lock(); 
+			TransformComponentPtr transformComponent= it->lock();
 
 			if (transformComponent.get() == this)
 			{
@@ -336,12 +334,12 @@ void TransformComponent::detachFromParent(eDetachReason reason)
 	}
 
 	// Forget about our parent
-	m_parentComponent = TransformComponentPtr();
+	m_parentComponent= TransformComponentPtr();
 
 	// World transform is now the same as relative transform
 	m_worldTransform= m_relativeTransform.getMat4();
 
-	// Only bother propagating our new transform to our children 
+	// Only bother propagating our new transform to our children
 	// if we just doing a simple detach from our current parent
 	if (reason == eDetachReason::detachFromParent)
 	{
@@ -373,7 +371,7 @@ void TransformComponent::setRelativePosition(const glm::vec3& position)
 
 	if (m_bWasInitialized)
 	{
-		TransformComponentDefinitionPtr definitionPtr = getTransformComponentDefinition();
+		TransformComponentDefinitionPtr definitionPtr= getTransformComponentDefinition();
 		if (definitionPtr)
 			definitionPtr->setRelativePosition(glm_vec3_to_MikanVector3f(position));
 	}
@@ -386,7 +384,7 @@ void TransformComponent::setRelativeRotation(const glm::quat& quat)
 
 	if (m_bWasInitialized)
 	{
-		TransformComponentDefinitionPtr definitionPtr = getTransformComponentDefinition();
+		TransformComponentDefinitionPtr definitionPtr= getTransformComponentDefinition();
 		if (definitionPtr)
 			definitionPtr->setRelativeRotation(glm_quat_to_MikanQuatf(quat));
 	}
@@ -399,7 +397,7 @@ void TransformComponent::setRelativeScale(const glm::vec3& scale)
 
 	if (m_bWasInitialized)
 	{
-		TransformComponentDefinitionPtr definitionPtr = getTransformComponentDefinition();
+		TransformComponentDefinitionPtr definitionPtr= getTransformComponentDefinition();
 		if (definitionPtr)
 			definitionPtr->setRelativeScale(glm_vec3_to_MikanVector3f(scale));
 	}
@@ -412,7 +410,7 @@ void TransformComponent::setWorldTransform(const glm::mat4& newWorldXform)
 
 	// Subtract our new world transform from out parent to compute new relative transform
 	glm::mat4 invParentXform= glm::mat4(1.f);
-	TransformComponentPtr parent = m_parentComponent.lock();
+	TransformComponentPtr parent= m_parentComponent.lock();
 	if (parent != nullptr)
 	{
 		invParentXform= glm::inverse(parent->getWorldTransform());
@@ -441,7 +439,7 @@ const glm::vec3 TransformComponent::getWorldLocation() const
 
 void TransformComponent::onDetachedFromParent(TransformComponentPtr oldParent, eDetachReason reason)
 {
-	TransformComponentDefinitionPtr definition = getTransformComponentDefinition();
+	TransformComponentDefinitionPtr definition= getTransformComponentDefinition();
 
 	if (definition)
 	{
@@ -468,14 +466,14 @@ void TransformComponent::propogateWorldTransformChange(eTransformChangeType reas
 	if (reason == eTransformChangeType::recomputeWorldTransformAndPropogate)
 	{
 		// Concat our transform to our parent's world transform
-		TransformComponentPtr parent = m_parentComponent.lock();
+		TransformComponentPtr parent= m_parentComponent.lock();
 		if (parent != nullptr)
 		{
-			m_worldTransform = glm_composite_xform(m_relativeTransform.getMat4(), parent->getWorldTransform());
+			m_worldTransform= glm_composite_xform(m_relativeTransform.getMat4(), parent->getWorldTransform());
 		}
 		else
 		{
-			m_worldTransform = m_relativeTransform.getMat4();
+			m_worldTransform= m_relativeTransform.getMat4();
 		}
 	}
 
@@ -498,7 +496,7 @@ void TransformComponent::propogateWorldTransformChange(eTransformChangeType reas
 	}
 }
 
-template<typename t_component_type>
+template <typename t_component_type>
 void visitAllTransformComponentsHelper(
 	t_component_type* rootTransformComponent,
 	std::function<void(t_component_type* transformComponentPtr)> visitor)
@@ -508,14 +506,14 @@ void visitAllTransformComponentsHelper(
 
 	while (transformComponentStack.size() > 0)
 	{
-		t_component_type* currentTransformComponent = transformComponentStack.front();
+		t_component_type* currentTransformComponent= transformComponentStack.front();
 		transformComponentStack.pop();
 
 		visitor(currentTransformComponent);
 
 		for (TransformComponentWeakPtr childTransformWeakPtr : currentTransformComponent->getChildTransformComponents())
 		{
-			TransformComponentPtr childTransformPtr = childTransformWeakPtr.lock();
+			TransformComponentPtr childTransformPtr= childTransformWeakPtr.lock();
 			if (childTransformPtr)
 			{
 				transformComponentStack.push(childTransformPtr.get());
@@ -535,7 +533,7 @@ void TransformComponent::visitAllTransformComponentsConst(TransformComponentCons
 }
 
 // -- IPropertyInterface ----
-const std::string TransformComponent::k_relativeRotationPropertyId = "relative_rotation";
+const std::string TransformComponent::k_relativeRotationPropertyId= "relative_rotation";
 void TransformComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	MikanComponent::getPropertyDescriptors(outDescriptors);
@@ -562,8 +560,8 @@ void TransformComponent::getPropertyDescriptors(std::vector<PropertyDescriptorCo
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			TransformComponent::k_relativeRotationPropertyId, MikanVariantType::VECTOR3F)
-		->setDefaultValue(MikanVector3f(0.f))
-		->setClientAPIHidden());
+			->setDefaultValue(MikanVector3f(0.f))
+			->setClientAPIHidden());
 }
 
 bool TransformComponent::getPropertyValue(
@@ -572,40 +570,40 @@ bool TransformComponent::getPropertyValue(
 {
 	if (propertyName == TransformComponentDefinition::k_parentTransformIdPropertyId)
 	{
-		MikanTransformID parentId = getTransformComponentDefinitionConst()->getParentTransformId();
-		outValue = parentId;
+		MikanTransformID parentId= getTransformComponentDefinitionConst()->getParentTransformId();
+		outValue= parentId;
 		return true;
 	}
 	else if (propertyName == TransformComponentDefinition::k_relativeScalePropertyId)
 	{
-		const glm::vec3& scale = getRelativeScale();
-		outValue = glm_vec3_to_MikanVector3f(scale);
+		const glm::vec3& scale= getRelativeScale();
+		outValue= glm_vec3_to_MikanVector3f(scale);
 		return true;
 	}
 	else if (propertyName == TransformComponentDefinition::k_relativeQuaternionPropertyId)
 	{
-		const glm::quat& quat = getRelativeRotation();
-		outValue = glm_quat_to_MikanQuatf(quat);
+		const glm::quat& quat= getRelativeRotation();
+		outValue= glm_quat_to_MikanQuatf(quat);
 		return true;
 	}
 	else if (propertyName == TransformComponentDefinition::k_relativePositionPropertyId)
 	{
-		const glm::vec3& pos = getRelativePosition();
-		outValue = glm_vec3_to_MikanVector3f(pos);
+		const glm::vec3& pos= getRelativePosition();
+		outValue= glm_vec3_to_MikanVector3f(pos);
 		return true;
 	}
 	// Virtual Property for Euler angles (not actually stored, but get/set translates to relativeQuaternion)
 	else if (propertyName == TransformComponent::k_relativeRotationPropertyId)
 	{
-		const glm::quat& model_orientation = getRelativeRotation();
+		const glm::quat& model_orientation= getRelativeRotation();
 
 		float angles[3]{};
 		glm_quat_to_euler_angles(model_orientation, angles[0], angles[1], angles[2]);
-		angles[0] *= k_radians_to_degrees;
-		angles[1] *= k_radians_to_degrees;
-		angles[2] *= k_radians_to_degrees;
+		angles[0]*= k_radians_to_degrees;
+		angles[1]*= k_radians_to_degrees;
+		angles[2]*= k_radians_to_degrees;
 
-		outValue = MikanVector3f(angles[0], angles[1], angles[2]);
+		outValue= MikanVector3f(angles[0], angles[1], angles[2]);
 		return true;
 	}
 
@@ -618,21 +616,21 @@ bool TransformComponent::setPropertyValue(
 {
 	if (propertyName == TransformComponentDefinition::k_relativeScalePropertyId)
 	{
-		MikanVector3f scale = inValue.getVector3fValue();
+		MikanVector3f scale= inValue.getVector3fValue();
 
 		setRelativeScale(glm::vec3(scale.x, scale.y, scale.z));
 		return true;
 	}
 	else if (propertyName == TransformComponentDefinition::k_relativeQuaternionPropertyId)
 	{
-		glm::quat quat = MikanQuatf_to_glm_quat(inValue.getQuaternionfValue());
+		glm::quat quat= MikanQuatf_to_glm_quat(inValue.getQuaternionfValue());
 
 		setRelativeRotation(quat);
 		return true;
 	}
 	else if (propertyName == TransformComponent::k_relativeRotationPropertyId)
 	{
-		MikanVector3f angles = inValue.getVector3fValue();
+		MikanVector3f angles= inValue.getVector3fValue();
 
 		glm::quat quat;
 		glm_euler_angles_to_quat(
@@ -645,7 +643,7 @@ bool TransformComponent::setPropertyValue(
 	}
 	else if (propertyName == TransformComponentDefinition::k_relativePositionPropertyId)
 	{
-		MikanVector3f pos = inValue.getVector3fValue();
+		MikanVector3f pos= inValue.getVector3fValue();
 
 		setRelativePosition(glm::vec3(pos.x, pos.y, pos.z));
 		return true;
@@ -665,33 +663,17 @@ void TransformComponent::bindLuaFunctions(struct lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
 		.deriveClass<TransformComponent, MikanComponent>("TransformComponent")
-			.addProperty("relativePosition", 
-				[](TransformComponent* component) -> LuaVec3f {
-					return LuaVec3f(component->getRelativePosition());
-				},
-				[](TransformComponent* component, const LuaVec3f& position) {
-					component->setRelativePosition(position.toGlmVec3f());
-				})
-			.addProperty("relativeRotation",
-				[](TransformComponent* component) -> LuaVec3f {
-					return LuaVec3f(glm_quat_to_MikanRotator3f(component->getRelativeRotation()));
-				},
-				[](TransformComponent* component, const LuaVec3f& rotator) {
-					component->setRelativeRotation(MikanRotator3f_to_glm_quat(rotator.toMikanRotator3f()));
-				})
-			.addProperty("relativeQuaternion",
-				[](TransformComponent* component) -> LuaQuatf {
-					return LuaQuatf(component->getRelativeRotation());
-				},
-				[](TransformComponent* component, const LuaQuatf& quat) {
-					component->setRelativeRotation(quat.toGlmQuat());
-				})
-			.addProperty("relativeScale",
-				[](TransformComponent* component) -> LuaVec3f {
-					return LuaVec3f(component->getRelativeScale());
-				},
-				[](TransformComponent* component, const LuaVec3f& scale) {
-					component->setRelativeScale(scale.toGlmVec3f());
-				})
+		.addProperty("relativePosition", [](TransformComponent* component) -> LuaVec3f
+					 { return LuaVec3f(component->getRelativePosition()); }, [](TransformComponent* component, const LuaVec3f& position)
+					 { component->setRelativePosition(position.toGlmVec3f()); })
+		.addProperty("relativeRotation", [](TransformComponent* component) -> LuaVec3f
+					 { return LuaVec3f(glm_quat_to_MikanRotator3f(component->getRelativeRotation())); }, [](TransformComponent* component, const LuaVec3f& rotator)
+					 { component->setRelativeRotation(MikanRotator3f_to_glm_quat(rotator.toMikanRotator3f())); })
+		.addProperty("relativeQuaternion", [](TransformComponent* component) -> LuaQuatf
+					 { return LuaQuatf(component->getRelativeRotation()); }, [](TransformComponent* component, const LuaQuatf& quat)
+					 { component->setRelativeRotation(quat.toGlmQuat()); })
+		.addProperty("relativeScale", [](TransformComponent* component) -> LuaVec3f
+					 { return LuaVec3f(component->getRelativeScale()); }, [](TransformComponent* component, const LuaVec3f& scale)
+					 { component->setRelativeScale(scale.toGlmVec3f()); })
 		.endClass();
 }

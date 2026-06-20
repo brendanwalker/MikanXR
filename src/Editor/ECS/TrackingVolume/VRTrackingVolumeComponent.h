@@ -49,7 +49,7 @@ public:
 	void setVRSpaceToStageSpace(const MikanMatrix4f& poseOffset);
 
 private:
-	eTrackingRuntime m_trackingRuntime = eTrackingRuntime::INVALID;
+	eTrackingRuntime m_trackingRuntime= eTrackingRuntime::INVALID;
 	MikanTrackingMountID m_charucoMountId;
 	MikanVector3f m_charucoMountOffsetMM;
 	MikanMarkerID m_utilityMarkerId;
@@ -65,9 +65,11 @@ public:
 	virtual void init() override;
 
 	inline VRTrackingVolumeDefinitionPtr getVRTrackingVolumeDefinition() const
-	{ return std::static_pointer_cast<VRTrackingVolumeDefinition>(m_definition); }
+	{
+		return std::static_pointer_cast<VRTrackingVolumeDefinition>(m_definition);
+	}
 
-	inline static const std::string k_componentClassName = "VRTrackingVolumeComponent";
+	inline static const std::string k_componentClassName= "VRTrackingVolumeComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	MikanTrackingSpace getDisplayTrackingSpace() const { return m_displayTrackingSpace; }
@@ -99,5 +101,5 @@ protected:
 
 private:
 	GlmTransform m_vrSpaceToStageSpace;
-	MikanTrackingSpace m_displayTrackingSpace = MikanTrackingSpace_Stage;
+	MikanTrackingSpace m_displayTrackingSpace= MikanTrackingSpace_Stage;
 };

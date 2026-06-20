@@ -3,12 +3,13 @@
 
 struct MikanResponseFutureImpl
 {
-	MikanRequestManager* ownerRequestManager = nullptr;
+	MikanRequestManager* ownerRequestManager= nullptr;
 	MikanRequestID requestId= INVALID_MIKAN_ID;
 	std::future<MikanResponsePtr> future;
 };
 
-MikanResponseFuture::MikanResponseFuture() : m_impl(nullptr)
+MikanResponseFuture::MikanResponseFuture()
+	: m_impl(nullptr)
 {
 }
 
@@ -17,13 +18,13 @@ MikanResponseFuture::MikanResponseFuture(MikanAPIResult result)
 {
 	// Immediately set the result on the future
 	MikanResponsePromise promise;
-	m_impl->future = promise.get_future();
+	m_impl->future= promise.get_future();
 	promise.set_value(makeSimpleMikanResponse(result));
 }
 
 MikanResponseFuture::MikanResponseFuture(
-	MikanRequestManager* owner, 
-	MikanRequestID requestId, 
+	MikanRequestManager* owner,
+	MikanRequestID requestId,
 	MikanResponsePromise& promise)
 	: m_impl(new MikanResponseFutureImpl())
 {
@@ -35,9 +36,9 @@ MikanResponseFuture::MikanResponseFuture(
 MikanResponseFuture::MikanResponseFuture(MikanResponseFuture&& other) noexcept
 	: m_impl(new MikanResponseFutureImpl())
 {
-	m_impl->ownerRequestManager = other.m_impl->ownerRequestManager;
-	m_impl->requestId = other.m_impl->requestId;
-	m_impl->future = std::move(other.m_impl->future);
+	m_impl->ownerRequestManager= other.m_impl->ownerRequestManager;
+	m_impl->requestId= other.m_impl->requestId;
+	m_impl->future= std::move(other.m_impl->future);
 }
 
 MikanResponseFuture::~MikanResponseFuture()
@@ -62,12 +63,11 @@ bool MikanResponseFuture::isCompleted() const
 	}
 }
 
-
 bool MikanResponseFuture::tryFetchResponse(MikanResponsePtr& outResponse)
 {
 	if (isCompleted())
 	{
-		outResponse = m_impl->future.get();
+		outResponse= m_impl->future.get();
 		return true;
 	}
 
@@ -117,9 +117,9 @@ void MikanResponseFuture::awaitResponse(uint32_t timeoutMilliseconds)
 
 MikanResponsePtr MikanResponseFuture::makeSimpleMikanResponse(MikanAPIResult result)
 {
-	auto response = std::make_shared<MikanResponse>();
-	response->requestId = INVALID_MIKAN_ID;
-	response->resultCode = result;
+	auto response= std::make_shared<MikanResponse>();
+	response->requestId= INVALID_MIKAN_ID;
+	response->resultCode= result;
 
 	return response;
 }

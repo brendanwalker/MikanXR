@@ -7,7 +7,7 @@
 class VideoTextureNodeConfig : public NodeConfig
 {
 public:
-	VideoTextureNodeConfig() = default;
+	VideoTextureNodeConfig()= default;
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -18,9 +18,9 @@ public:
 class VideoTextureNode : public Node
 {
 public:
-	VideoTextureNode() = default;
+	VideoTextureNode()= default;
 
-	inline static const std::string k_nodeClassName = "VideoTextureNode";
+	inline static const std::string k_nodeClassName= "VideoTextureNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
@@ -44,7 +44,7 @@ protected:
 class VideoTextureNodeFactory : public TypedNodeFactory<VideoTextureNode, VideoTextureNodeConfig>
 {
 public:
-	VideoTextureNodeFactory() = default;
+	VideoTextureNodeFactory()= default;
 
 	virtual NodePtr createNode(const NodeEditorState& editorState) const override;
 };

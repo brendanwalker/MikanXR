@@ -27,18 +27,14 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanClientTypes")) MikanC
 	Serialization::String xrDeviceName;
 	FIELD()
 	MikanClientGraphicsApi graphicsAPI;
-	FIELD()
-	bool supportsRGB24= false;
-	FIELD()
-	bool supportsRGBA32= false;
-	FIELD()
-	bool supportsBGRA32= false;
-	FIELD()
-	bool supportsDepth= false;
+	FIELD() bool supportsRGB24= false;
+	FIELD() bool supportsRGBA32= false;
+	FIELD() bool supportsBGRA32= false;
+	FIELD() bool supportsDepth= false;
 
-	#ifdef MIKANAPI_REFLECTION_ENABLED
+#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanClientInfo_GENERATED
-	#endif // MIKANAPI_REFLECTION_ENABLED
+#endif // MIKANAPI_REFLECTION_ENABLED
 };
 
 #ifdef MIKANAPI_REFLECTION_ENABLED

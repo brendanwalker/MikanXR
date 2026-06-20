@@ -35,7 +35,6 @@ MarkerDefinition::MarkerDefinition()
 	, m_arucoId(DEFAULT_ORIGIN_MARKER_ID)
 	, m_lengthMM(DEFAULT_MARKER_SIZE_MM)
 {
-	
 }
 
 MarkerDefinition::MarkerDefinition(
@@ -43,14 +42,15 @@ MarkerDefinition::MarkerDefinition(
 	: MikanComponentDefinition(markerId, "")
 	, m_arucoId(DEFAULT_ORIGIN_MARKER_ID)
 	, m_lengthMM(DEFAULT_MARKER_SIZE_MM)
-{}
+{
+}
 
 configuru::Config MarkerDefinition::writeToJSON()
 {
-	configuru::Config pt = MikanComponentDefinition::writeToJSON();
+	configuru::Config pt= MikanComponentDefinition::writeToJSON();
 
-	pt[MarkerDefinition::k_arucoIdPropertyId] = m_arucoId;
-	pt[MarkerDefinition::k_lengthMMPropertyId] = m_lengthMM;
+	pt[MarkerDefinition::k_arucoIdPropertyId]= m_arucoId;
+	pt[MarkerDefinition::k_lengthMMPropertyId]= m_lengthMM;
 
 	return pt;
 }
@@ -59,8 +59,8 @@ void MarkerDefinition::readFromJSON(const configuru::Config& pt)
 {
 	MikanComponentDefinition::readFromJSON(pt);
 
-	m_arucoId = pt.get_or<int>(MarkerDefinition::k_arucoIdPropertyId, m_arucoId);
-	m_lengthMM = pt.get_or<float>(MarkerDefinition::k_lengthMMPropertyId, m_lengthMM);
+	m_arucoId= pt.get_or<int>(MarkerDefinition::k_arucoIdPropertyId, m_arucoId);
+	m_lengthMM= pt.get_or<float>(MarkerDefinition::k_lengthMMPropertyId, m_lengthMM);
 }
 
 bool MarkerDefinition::readFromInitParams(
@@ -70,11 +70,11 @@ bool MarkerDefinition::readFromInitParams(
 	if (!MikanComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
-	const auto* componentValues = initParams.getTypedPointer<MikanMarkerComponentValues>();
+	const auto* componentValues= initParams.getTypedPointer<MikanMarkerComponentValues>();
 	if (componentValues)
 	{
-		m_arucoId = componentValues->aruco_id;
-		m_lengthMM = componentValues->length_mm;
+		m_arucoId= componentValues->aruco_id;
+		m_lengthMM= componentValues->length_mm;
 	}
 
 	return true;
@@ -84,7 +84,7 @@ void MarkerDefinition::setArucoId(int arucoId)
 {
 	if (arucoId != m_arucoId)
 	{
-		m_arucoId = arucoId;
+		m_arucoId= arucoId;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_arucoIdPropertyId));
 	}
 }
@@ -93,13 +93,13 @@ void MarkerDefinition::setLengthMM(float lengthMM)
 {
 	if (lengthMM != m_lengthMM)
 	{
-		m_lengthMM = lengthMM;
+		m_lengthMM= lengthMM;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_lengthMMPropertyId));
 	}
 }
 
 // -- MarkerComponent -----
-const std::string MarkerComponent::k_printMarkerFunctionId = "print_marker";
+const std::string MarkerComponent::k_printMarkerFunctionId= "print_marker";
 
 MarkerComponent::MarkerComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
@@ -136,12 +136,12 @@ bool MarkerComponent::getPropertyValue(const std::string& propertyName, MikanVar
 {
 	if (propertyName == MarkerDefinition::k_arucoIdPropertyId)
 	{
-		outValue = getMarkerDefinition()->getArucoId();
+		outValue= getMarkerDefinition()->getArucoId();
 		return true;
 	}
 	else if (propertyName == MarkerDefinition::k_lengthMMPropertyId)
 	{
-		outValue = getMarkerDefinition()->getLengthMM();
+		outValue= getMarkerDefinition()->getLengthMM();
 		return true;
 	}
 
@@ -187,22 +187,22 @@ bool MarkerComponent::invokeFunction(const std::string& functionName)
 
 void MarkerComponent::printMarker()
 {
-	MarkerObjectSystemPtr markerSystem = getOwnerMarkerSystem();
-	ArucoDictionaryPtr dictionary =
+	MarkerObjectSystemPtr markerSystem= getOwnerMarkerSystem();
+	ArucoDictionaryPtr dictionary=
 		CalibrationPatternFinder::getArucoDictionary(
 			markerSystem->getTypedDefinitionConst()->getArucoDictionaryType());
 
-	MarkerDefinitionPtr markerDefinition = getMarkerDefinition();
-	const int arucoId = markerDefinition->getArucoId();
-	const float lengthMM = markerDefinition->getLengthMM();
+	MarkerDefinitionPtr markerDefinition= getMarkerDefinition();
+	const int arucoId= markerDefinition->getArucoId();
+	const float lengthMM= markerDefinition->getLengthMM();
 
 	// Generate ArUco marker image using OpenCV
 	cv::Mat markerImage;
-	const int markerSizePixels = 600; // High resolution for printing
+	const int markerSizePixels= 600; // High resolution for printing
 	cv::aruco::generateImageMarker(*dictionary.get(), arucoId, markerSizePixels, markerImage, 1);
 
 	// Create PDF using libharu
-	HPDF_Doc pdf = HPDF_New(NULL, NULL);
+	HPDF_Doc pdf= HPDF_New(NULL, NULL);
 	if (!pdf)
 	{
 		MIKAN_LOG_ERROR("MarkerComponent::printMarker") << "Failed to create PDF document";
@@ -210,27 +210,27 @@ void MarkerComponent::printMarker()
 	}
 
 	// Add a page (A4 size)
-	HPDF_Page page = HPDF_AddPage(pdf);
+	HPDF_Page page= HPDF_AddPage(pdf);
 	HPDF_Page_SetSize(page, HPDF_PAGE_SIZE_A4, HPDF_PAGE_PORTRAIT);
 
 	// Get page dimensions
-	const float pageWidth = HPDF_Page_GetWidth(page);
-	const float pageHeight = HPDF_Page_GetHeight(page);
+	const float pageWidth= HPDF_Page_GetWidth(page);
+	const float pageHeight= HPDF_Page_GetHeight(page);
 
 	// Calculate marker size in points (1mm = 2.83465 points)
-	const float mmToPoints = 2.83465f;
-	const float markerSizePoints = lengthMM * mmToPoints;
+	const float mmToPoints= 2.83465f;
+	const float markerSizePoints= lengthMM * mmToPoints;
 
 	// Center the marker on the page
-	const float xPos = (pageWidth - markerSizePoints) / 2.0f;
-	const float yPos = (pageHeight - markerSizePoints) / 2.0f;
+	const float xPos= (pageWidth - markerSizePoints) / 2.0f;
+	const float yPos= (pageHeight - markerSizePoints) / 2.0f;
 
 	// Convert OpenCV image to PNG format in memory
 	std::vector<uchar> pngBuffer;
 	cv::imencode(".png", markerImage, pngBuffer);
 
 	// Load image from memory into libharu
-	HPDF_Image image = HPDF_LoadPngImageFromMem(pdf, pngBuffer.data(), (HPDF_UINT)pngBuffer.size());
+	HPDF_Image image= HPDF_LoadPngImageFromMem(pdf, pngBuffer.data(), (HPDF_UINT)pngBuffer.size());
 	if (!image)
 	{
 		MIKAN_LOG_ERROR("MarkerComponent::printMarker") << "Failed to load marker image into PDF";
@@ -242,24 +242,24 @@ void MarkerComponent::printMarker()
 	HPDF_Page_DrawImage(page, image, xPos, yPos, markerSizePoints, markerSizePoints);
 
 	// Add text label below the marker
-	HPDF_Font font = HPDF_GetFont(pdf, "Helvetica", NULL);
+	HPDF_Font font= HPDF_GetFont(pdf, "Helvetica", NULL);
 	HPDF_Page_SetFontAndSize(page, font, 12);
 
-	std::string labelText = "ArUco Marker ID: " + std::to_string(arucoId) +
-	                        " | Size: " + std::to_string((int)lengthMM) + "mm";
-	const float textWidth = HPDF_Page_TextWidth(page, labelText.c_str());
-	const float textXPos = (pageWidth - textWidth) / 2.0f;
-	const float textYPos = yPos - 30.0f;
+	std::string labelText= "ArUco Marker ID: " + std::to_string(arucoId) +
+						   " | Size: " + std::to_string((int)lengthMM) + "mm";
+	const float textWidth= HPDF_Page_TextWidth(page, labelText.c_str());
+	const float textXPos= (pageWidth - textWidth) / 2.0f;
+	const float textYPos= yPos - 30.0f;
 
 	HPDF_Page_BeginText(page);
 	HPDF_Page_TextOut(page, textXPos, textYPos, labelText.c_str());
 	HPDF_Page_EndText(page);
 
 	// Save PDF to temp file
-	std::filesystem::path pdfFilePath = std::filesystem::temp_directory_path() /
-		("MikanMarker_" + std::to_string(arucoId) + ".pdf");
+	std::filesystem::path pdfFilePath= std::filesystem::temp_directory_path() /
+									   ("MikanMarker_" + std::to_string(arucoId) + ".pdf");
 
-	HPDF_STATUS status = HPDF_SaveToFile(pdf, pdfFilePath.string().c_str());
+	HPDF_STATUS status= HPDF_SaveToFile(pdf, pdfFilePath.string().c_str());
 	HPDF_Free(pdf);
 
 	if (status != HPDF_OK)
@@ -280,9 +280,9 @@ void MarkerComponent::printMarker()
 // -- Rendering ----
 void MarkerComponent::ensureMarkerResources(IMkGraphicsContext* graphicsContext)
 {
-	MarkerDefinitionPtr markerDef = getMarkerDefinition();
-	const int currentArucoId = markerDef->getArucoId();
-	const float currentLengthMM = markerDef->getLengthMM();
+	MarkerDefinitionPtr markerDef= getMarkerDefinition();
+	const int currentArucoId= markerDef->getArucoId();
+	const float currentLengthMM= markerDef->getLengthMM();
 
 	if (currentArucoId == m_cachedArucoId &&
 		currentLengthMM == m_cachedLengthMM &&
@@ -291,8 +291,8 @@ void MarkerComponent::ensureMarkerResources(IMkGraphicsContext* graphicsContext)
 		return;
 	}
 
-	m_cachedArucoId = currentArucoId;
-	m_cachedLengthMM = currentLengthMM;
+	m_cachedArucoId= currentArucoId;
+	m_cachedLengthMM= currentLengthMM;
 	m_markerTexture.reset();
 	m_markerMesh.reset();
 
@@ -300,16 +300,16 @@ void MarkerComponent::ensureMarkerResources(IMkGraphicsContext* graphicsContext)
 		return;
 
 	// Generate ArUco texture
-	MarkerObjectSystemPtr markerSystem = getOwnerMarkerSystem();
-	ArucoDictionaryPtr dictionary =
+	MarkerObjectSystemPtr markerSystem= getOwnerMarkerSystem();
+	ArucoDictionaryPtr dictionary=
 		CalibrationPatternFinder::getArucoDictionary(
 			markerSystem->getTypedDefinitionConst()->getArucoDictionaryType());
 	if (!dictionary)
 		return;
 
-	const int imageSize = 128;
-	const int maxMarkerId = dictionary->bytesList.rows - 1;
-	const int clampedId = std::max(0, std::min(currentArucoId, maxMarkerId));
+	const int imageSize= 128;
+	const int maxMarkerId= dictionary->bytesList.rows - 1;
+	const int clampedId= std::max(0, std::min(currentArucoId, maxMarkerId));
 
 	cv::Mat markerImage;
 	cv::aruco::generateImageMarker(*dictionary, clampedId, imageSize, markerImage, 1);
@@ -317,33 +317,37 @@ void MarkerComponent::ensureMarkerResources(IMkGraphicsContext* graphicsContext)
 	cv::Mat rgbImage;
 	cv::cvtColor(markerImage, rgbImage, cv::COLOR_GRAY2RGB);
 
-	IMkTexturePtr tex = CreateMkTexture(
+	IMkTexturePtr tex= CreateMkTexture(
 		(uint16_t)imageSize, (uint16_t)imageSize,
 		rgbImage.data,
 		MK_RGB,
 		MK_RGB);
 	if (!tex->createTexture())
 		return;
-	m_markerTexture = tex;
+	m_markerTexture= tex;
 
 	// Build world-space quad mesh (XY plane, facing +Z)
-	const float halfSize = currentLengthMM / 2000.f; // mm -> m, halved
+	const float halfSize= currentLengthMM / 2000.f; // mm -> m, halved
 
-	struct QuadVertex { glm::vec3 pos; glm::vec2 uv; };
-	static const uint16_t k_indices[] = {0, 1, 2, 0, 2, 3};
-	QuadVertex verts[4] = {
-		{ glm::vec3(-halfSize, 0.f, -halfSize), glm::vec2(0.f, 0.f) },
-		{ glm::vec3(-halfSize, 0.f,  halfSize), glm::vec2(0.f, 1.f) },
-		{ glm::vec3( halfSize, 0.f,  halfSize), glm::vec2(1.f, 1.f) },
-		{ glm::vec3( halfSize, 0.f, -halfSize), glm::vec2(1.f, 0.f) },
+	struct QuadVertex
+	{
+		glm::vec3 pos;
+		glm::vec2 uv;
+	};
+	static const uint16_t k_indices[]= {0, 1, 2, 0, 2, 3};
+	QuadVertex verts[4]= {
+		{glm::vec3(-halfSize, 0.f, -halfSize), glm::vec2(0.f, 0.f)},
+		{glm::vec3(-halfSize, 0.f, halfSize), glm::vec2(0.f, 1.f)},
+		{glm::vec3(halfSize, 0.f, halfSize), glm::vec2(1.f, 1.f)},
+		{glm::vec3(halfSize, 0.f, -halfSize), glm::vec2(1.f, 0.f)},
 	};
 
-	MkMaterialConstPtr material =
+	MkMaterialConstPtr material=
 		graphicsContext->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
 	if (!material)
 		return;
 
-	IMkTriangulatedMeshPtr mesh = createMkTriangulatedMesh(
+	IMkTriangulatedMeshPtr mesh= createMkTriangulatedMesh(
 		graphicsContext,
 		"aruco_marker_quad",
 		(const uint8_t*)verts, sizeof(QuadVertex),
@@ -358,7 +362,7 @@ void MarkerComponent::ensureMarkerResources(IMkGraphicsContext* graphicsContext)
 	mesh->getMaterialInstance()->setTextureBySemantic(
 		eUniformSemantic::rgbTexture, m_markerTexture);
 
-	m_markerMesh = mesh;
+	m_markerMesh= mesh;
 }
 
 IMkTexturePtr MarkerComponent::getMarkerTexture(IMkGraphicsContext* graphicsContext)
@@ -386,23 +390,13 @@ void MarkerComponent::bindLuaFunctions(struct lua_State* L)
 	luabridge::getGlobalNamespace(L)
 		.deriveClass<MarkerComponent, MikanComponent>(
 			MarkerComponent::k_componentClassName.c_str())
-		.addProperty("arucoId",
-			[](MarkerComponent* c) -> int {
-				return c->getMarkerDefinition()->getArucoId();
-			},
-			[](MarkerComponent* c, int v) {
-				c->getMarkerDefinition()->setArucoId(v);
-			})
-		.addProperty("lengthMM",
-			[](MarkerComponent* c) -> float {
-				return c->getMarkerDefinition()->getLengthMM();
-			},
-			[](MarkerComponent* c, float v) {
-				c->getMarkerDefinition()->setLengthMM(v);
-			})
-		.addFunction("printMarker",
-			[](MarkerComponent* c) {
-				c->printMarker();
-			})
+		.addProperty("arucoId", [](MarkerComponent* c) -> int
+					 { return c->getMarkerDefinition()->getArucoId(); }, [](MarkerComponent* c, int v)
+					 { c->getMarkerDefinition()->setArucoId(v); })
+		.addProperty("lengthMM", [](MarkerComponent* c) -> float
+					 { return c->getMarkerDefinition()->getLengthMM(); }, [](MarkerComponent* c, float v)
+					 { c->getMarkerDefinition()->setLengthMM(v); })
+		.addFunction("printMarker", [](MarkerComponent* c)
+					 { c->printMarker(); })
 		.endClass();
 }

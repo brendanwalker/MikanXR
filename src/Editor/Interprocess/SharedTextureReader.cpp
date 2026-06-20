@@ -5,7 +5,6 @@
 #include "MikanCoreCAPI.h"
 #include "SpoutLibrary.h"
 
-
 #include <easy/profiler.h>
 
 class SpoutTextureReader
@@ -29,7 +28,7 @@ public:
 
 		const std::string colorSenderName= m_parentAccessor->getColorSenderName();
 
-		m_spoutColorFrame = GetSpout();
+		m_spoutColorFrame= GetSpout();
 		if (m_spoutColorFrame != nullptr)
 		{
 			m_spoutColorFrame->EnableSpoutLog();
@@ -46,7 +45,7 @@ public:
 		{
 			const std::string depthSenderName= m_parentAccessor->getDepthSenderName();
 
-			m_spoutDepthFrame = GetSpout();
+			m_spoutDepthFrame= GetSpout();
 			if (m_spoutDepthFrame != nullptr)
 			{
 				m_spoutDepthFrame->EnableSpoutLog();
@@ -68,7 +67,7 @@ public:
 		if (m_spoutDepthFrame != nullptr)
 		{
 			m_spoutDepthFrame->Release();
-			m_spoutDepthFrame = nullptr;
+			m_spoutDepthFrame= nullptr;
 		}
 
 		if (m_spoutDepthFrame != nullptr)
@@ -80,9 +79,9 @@ public:
 
 	bool readRenderTargetTexture()
 	{
-		bool bSuccess = false;
+		bool bSuccess= false;
 
-		IMkTexturePtr colorTexture = m_parentAccessor->getColorTexture();
+		IMkTexturePtr colorTexture= m_parentAccessor->getColorTexture();
 		if (colorTexture != nullptr)
 		{
 			EASY_BLOCK("receive color texture");
@@ -99,7 +98,7 @@ public:
 			bSuccess= m_spoutColorFrame->ReceiveTexture(colorTexture->getGlTextureId(), GL_TEXTURE_2D);
 		}
 
-		IMkTexturePtr depthTexture = m_parentAccessor->getDepthTexture();
+		IMkTexturePtr depthTexture= m_parentAccessor->getDepthTexture();
 		if (depthTexture != nullptr)
 		{
 			EASY_BLOCK("receive depth texture");
@@ -142,9 +141,9 @@ SharedTextureReadAccessor::SharedTextureReadAccessor(const std::string& senderPr
 	, m_depthTexture(nullptr)
 	, m_readerImpl(new RenderTargetReaderImpl)
 {
-	m_descriptor = MikanRenderTargetDescriptor();
+	m_descriptor= MikanRenderTargetDescriptor();
 	m_readerImpl->readerApi.spoutTextureReader= nullptr;
-	m_readerImpl->graphicsAPI = MikanClientGraphicsApi_UNKNOWN;
+	m_readerImpl->graphicsAPI= MikanClientGraphicsApi_UNKNOWN;
 }
 
 SharedTextureReadAccessor::~SharedTextureReadAccessor()
@@ -156,7 +155,7 @@ SharedTextureReadAccessor::~SharedTextureReadAccessor()
 
 bool SharedTextureReadAccessor::initialize(const MikanRenderTargetDescriptor* descriptor)
 {
-	bool bSuccess = false;
+	bool bSuccess= false;
 
 	dispose();
 
@@ -198,10 +197,10 @@ bool SharedTextureReadAccessor::initialize(const MikanRenderTargetDescriptor* de
 		descriptor->graphicsAPI == MikanClientGraphicsApi_Direct3D12 ||
 		descriptor->graphicsAPI == MikanClientGraphicsApi_OpenGL)
 	{
-		m_readerImpl->readerApi.spoutTextureReader = new SpoutTextureReader(this);
-		m_readerImpl->graphicsAPI = descriptor->graphicsAPI;
+		m_readerImpl->readerApi.spoutTextureReader= new SpoutTextureReader(this);
+		m_readerImpl->graphicsAPI= descriptor->graphicsAPI;
 
-		bSuccess = m_readerImpl->readerApi.spoutTextureReader->init(descriptor);
+		bSuccess= m_readerImpl->readerApi.spoutTextureReader->init(descriptor);
 	}
 
 	return bSuccess;
@@ -219,30 +218,30 @@ void SharedTextureReadAccessor::dispose()
 		{
 			m_readerImpl->readerApi.spoutTextureReader->dispose();
 			delete m_readerImpl->readerApi.spoutTextureReader;
-			m_readerImpl->readerApi.spoutTextureReader = nullptr;
+			m_readerImpl->readerApi.spoutTextureReader= nullptr;
 		}
 	}
 
-	m_readerImpl->graphicsAPI = MikanClientGraphicsApi_UNKNOWN;
-	m_descriptor = {};
+	m_readerImpl->graphicsAPI= MikanClientGraphicsApi_UNKNOWN;
+	m_descriptor= {};
 }
 
 bool SharedTextureReadAccessor::readRenderTargetTextures(
 	const int64_t newFrameIndex)
 {
-	bool bSuccess = false;
+	bool bSuccess= false;
 
 	if (m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D9 ||
 		m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D11 ||
 		m_readerImpl->graphicsAPI == MikanClientGraphicsApi_Direct3D12 ||
 		m_readerImpl->graphicsAPI == MikanClientGraphicsApi_OpenGL)
 	{
-		m_lastFrameRenderedIndex = newFrameIndex;
+		m_lastFrameRenderedIndex= newFrameIndex;
 
 		if (m_readerImpl->readerApi.spoutTextureReader != nullptr &&
 			m_readerImpl->readerApi.spoutTextureReader->readRenderTargetTexture())
 		{
-			bSuccess = true;
+			bSuccess= true;
 		}
 	}
 

@@ -9,7 +9,7 @@
 class AppSettingsConfig : public CommonConfig
 {
 public:
-	AppSettingsConfig(const std::string& fnamebase = "AppSettingsConfig");
+	AppSettingsConfig(const std::string& fnamebase= "AppSettingsConfig");
 
 	virtual configuru::Config writeToJSON() override;
 	virtual void readFromJSON(const configuru::Config& pt) override;
@@ -30,5 +30,5 @@ public:
 protected:
 	std::filesystem::path m_lastProjectPath;
 	std::string m_appLanguage;
-	std::string m_scriptEditorCommand = "code --reuse-window";
+	std::string m_scriptEditorCommand= "code --reuse-window";
 };

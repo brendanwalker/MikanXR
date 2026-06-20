@@ -12,7 +12,7 @@
 
 struct MkGuiStyleManager::Impl
 {
-	MkGuiContext* guiContext = nullptr;
+	MkGuiContext* guiContext= nullptr;
 	std::unordered_map<std::string, MkGuiStylePtr> styles;
 };
 
@@ -27,114 +27,113 @@ MkGuiStyleManager::~MkGuiStyleManager()
 }
 
 // Maps JSON var name to ImGuiStyleVar enum
-static const std::unordered_map<std::string, ImGuiStyleVar> k_styleFloatTable = {
-	{"Alpha",                ImGuiStyleVar_Alpha},
-	{"DisabledAlpha",        ImGuiStyleVar_DisabledAlpha},
-	{"WindowRounding",       ImGuiStyleVar_WindowRounding},
-	{"WindowBorderSize",     ImGuiStyleVar_WindowBorderSize},
-	{"ChildRounding",        ImGuiStyleVar_ChildRounding},
-	{"ChildBorderSize",      ImGuiStyleVar_ChildBorderSize},
-	{"PopupRounding",        ImGuiStyleVar_PopupRounding},
-	{"PopupBorderSize",      ImGuiStyleVar_PopupBorderSize},
-	{"FrameRounding",        ImGuiStyleVar_FrameRounding},
-	{"FrameBorderSize",      ImGuiStyleVar_FrameBorderSize},
-	{"IndentSpacing",        ImGuiStyleVar_IndentSpacing},
-	{"ScrollbarSize",        ImGuiStyleVar_ScrollbarSize},
-	{"ScrollbarRounding",    ImGuiStyleVar_ScrollbarRounding},
-	{"GrabMinSize",          ImGuiStyleVar_GrabMinSize},
-	{"GrabRounding",         ImGuiStyleVar_GrabRounding},
-	{"TabRounding",          ImGuiStyleVar_TabRounding},
+static const std::unordered_map<std::string, ImGuiStyleVar> k_styleFloatTable= {
+	{"Alpha", ImGuiStyleVar_Alpha},
+	{"DisabledAlpha", ImGuiStyleVar_DisabledAlpha},
+	{"WindowRounding", ImGuiStyleVar_WindowRounding},
+	{"WindowBorderSize", ImGuiStyleVar_WindowBorderSize},
+	{"ChildRounding", ImGuiStyleVar_ChildRounding},
+	{"ChildBorderSize", ImGuiStyleVar_ChildBorderSize},
+	{"PopupRounding", ImGuiStyleVar_PopupRounding},
+	{"PopupBorderSize", ImGuiStyleVar_PopupBorderSize},
+	{"FrameRounding", ImGuiStyleVar_FrameRounding},
+	{"FrameBorderSize", ImGuiStyleVar_FrameBorderSize},
+	{"IndentSpacing", ImGuiStyleVar_IndentSpacing},
+	{"ScrollbarSize", ImGuiStyleVar_ScrollbarSize},
+	{"ScrollbarRounding", ImGuiStyleVar_ScrollbarRounding},
+	{"GrabMinSize", ImGuiStyleVar_GrabMinSize},
+	{"GrabRounding", ImGuiStyleVar_GrabRounding},
+	{"TabRounding", ImGuiStyleVar_TabRounding},
 };
 
 // Maps JSON var name to ImGuiStyleVar enum
-static const std::unordered_map<std::string, ImGuiStyleVar> k_styleVec2Table = {
-	{"WindowPadding",        ImGuiStyleVar_WindowPadding},
-	{"WindowMinSize",        ImGuiStyleVar_WindowMinSize},
-	{"WindowTitleAlign",     ImGuiStyleVar_WindowTitleAlign},
-	{"FramePadding",         ImGuiStyleVar_FramePadding},
-	{"ItemSpacing",          ImGuiStyleVar_ItemSpacing},
-	{"ItemInnerSpacing",     ImGuiStyleVar_ItemInnerSpacing},
-	{"CellPadding",          ImGuiStyleVar_CellPadding},
-	{"ButtonTextAlign",      ImGuiStyleVar_ButtonTextAlign},
-	{"SelectableTextAlign",  ImGuiStyleVar_SelectableTextAlign},
+static const std::unordered_map<std::string, ImGuiStyleVar> k_styleVec2Table= {
+	{"WindowPadding", ImGuiStyleVar_WindowPadding},
+	{"WindowMinSize", ImGuiStyleVar_WindowMinSize},
+	{"WindowTitleAlign", ImGuiStyleVar_WindowTitleAlign},
+	{"FramePadding", ImGuiStyleVar_FramePadding},
+	{"ItemSpacing", ImGuiStyleVar_ItemSpacing},
+	{"ItemInnerSpacing", ImGuiStyleVar_ItemInnerSpacing},
+	{"CellPadding", ImGuiStyleVar_CellPadding},
+	{"ButtonTextAlign", ImGuiStyleVar_ButtonTextAlign},
+	{"SelectableTextAlign", ImGuiStyleVar_SelectableTextAlign},
 };
 
-
 // Maps JSON color name to ImGuiCol enum
-static const std::unordered_map<std::string, ImGuiCol> k_styleColorTable = {
-	{"Text",                  ImGuiCol_Text},
-	{"TextDisabled",          ImGuiCol_TextDisabled},
-	{"WindowBg",              ImGuiCol_WindowBg},
-	{"ChildBg",               ImGuiCol_ChildBg},
-	{"PopupBg",               ImGuiCol_PopupBg},
-	{"Border",                ImGuiCol_Border},
-	{"BorderShadow",          ImGuiCol_BorderShadow},
-	{"FrameBg",               ImGuiCol_FrameBg},
-	{"FrameBgHovered",        ImGuiCol_FrameBgHovered},
-	{"FrameBgActive",         ImGuiCol_FrameBgActive},
-	{"TitleBg",               ImGuiCol_TitleBg},
-	{"TitleBgActive",         ImGuiCol_TitleBgActive},
-	{"TitleBgCollapsed",      ImGuiCol_TitleBgCollapsed},
-	{"MenuBarBg",             ImGuiCol_MenuBarBg},
-	{"ScrollbarBg",           ImGuiCol_ScrollbarBg},
-	{"ScrollbarGrab",         ImGuiCol_ScrollbarGrab},
-	{"ScrollbarGrabHovered",  ImGuiCol_ScrollbarGrabHovered},
-	{"ScrollbarGrabActive",   ImGuiCol_ScrollbarGrabActive},
-	{"CheckMark",             ImGuiCol_CheckMark},
-	{"SliderGrab",            ImGuiCol_SliderGrab},
-	{"SliderGrabActive",      ImGuiCol_SliderGrabActive},
-	{"Button",                ImGuiCol_Button},
-	{"ButtonHovered",         ImGuiCol_ButtonHovered},
-	{"ButtonActive",          ImGuiCol_ButtonActive},
-	{"Header",                ImGuiCol_Header},
-	{"HeaderHovered",         ImGuiCol_HeaderHovered},
-	{"HeaderActive",          ImGuiCol_HeaderActive},
-	{"Separator",             ImGuiCol_Separator},
-	{"SeparatorHovered",      ImGuiCol_SeparatorHovered},
-	{"SeparatorActive",       ImGuiCol_SeparatorActive},
-	{"ResizeGrip",            ImGuiCol_ResizeGrip},
-	{"ResizeGripHovered",     ImGuiCol_ResizeGripHovered},
-	{"ResizeGripActive",      ImGuiCol_ResizeGripActive},
-	{"Tab",                   ImGuiCol_Tab},
-	{"TabHovered",            ImGuiCol_TabHovered},
-	{"TabActive",             ImGuiCol_TabActive},
-	{"TabUnfocused",          ImGuiCol_TabUnfocused},
-	{"TabUnfocusedActive",    ImGuiCol_TabUnfocusedActive},
-	{"PlotLines",             ImGuiCol_PlotLines},
-	{"PlotLinesHovered",      ImGuiCol_PlotLinesHovered},
-	{"PlotHistogram",         ImGuiCol_PlotHistogram},
-	{"PlotHistogramHovered",  ImGuiCol_PlotHistogramHovered},
-	{"TableHeaderBg",         ImGuiCol_TableHeaderBg},
-	{"TableBorderStrong",     ImGuiCol_TableBorderStrong},
-	{"TableBorderLight",      ImGuiCol_TableBorderLight},
-	{"TableRowBg",            ImGuiCol_TableRowBg},
-	{"TableRowBgAlt",         ImGuiCol_TableRowBgAlt},
-	{"TextSelectedBg",        ImGuiCol_TextSelectedBg},
-	{"DragDropTarget",        ImGuiCol_DragDropTarget},
-	{"NavHighlight",          ImGuiCol_NavHighlight},
+static const std::unordered_map<std::string, ImGuiCol> k_styleColorTable= {
+	{"Text", ImGuiCol_Text},
+	{"TextDisabled", ImGuiCol_TextDisabled},
+	{"WindowBg", ImGuiCol_WindowBg},
+	{"ChildBg", ImGuiCol_ChildBg},
+	{"PopupBg", ImGuiCol_PopupBg},
+	{"Border", ImGuiCol_Border},
+	{"BorderShadow", ImGuiCol_BorderShadow},
+	{"FrameBg", ImGuiCol_FrameBg},
+	{"FrameBgHovered", ImGuiCol_FrameBgHovered},
+	{"FrameBgActive", ImGuiCol_FrameBgActive},
+	{"TitleBg", ImGuiCol_TitleBg},
+	{"TitleBgActive", ImGuiCol_TitleBgActive},
+	{"TitleBgCollapsed", ImGuiCol_TitleBgCollapsed},
+	{"MenuBarBg", ImGuiCol_MenuBarBg},
+	{"ScrollbarBg", ImGuiCol_ScrollbarBg},
+	{"ScrollbarGrab", ImGuiCol_ScrollbarGrab},
+	{"ScrollbarGrabHovered", ImGuiCol_ScrollbarGrabHovered},
+	{"ScrollbarGrabActive", ImGuiCol_ScrollbarGrabActive},
+	{"CheckMark", ImGuiCol_CheckMark},
+	{"SliderGrab", ImGuiCol_SliderGrab},
+	{"SliderGrabActive", ImGuiCol_SliderGrabActive},
+	{"Button", ImGuiCol_Button},
+	{"ButtonHovered", ImGuiCol_ButtonHovered},
+	{"ButtonActive", ImGuiCol_ButtonActive},
+	{"Header", ImGuiCol_Header},
+	{"HeaderHovered", ImGuiCol_HeaderHovered},
+	{"HeaderActive", ImGuiCol_HeaderActive},
+	{"Separator", ImGuiCol_Separator},
+	{"SeparatorHovered", ImGuiCol_SeparatorHovered},
+	{"SeparatorActive", ImGuiCol_SeparatorActive},
+	{"ResizeGrip", ImGuiCol_ResizeGrip},
+	{"ResizeGripHovered", ImGuiCol_ResizeGripHovered},
+	{"ResizeGripActive", ImGuiCol_ResizeGripActive},
+	{"Tab", ImGuiCol_Tab},
+	{"TabHovered", ImGuiCol_TabHovered},
+	{"TabActive", ImGuiCol_TabActive},
+	{"TabUnfocused", ImGuiCol_TabUnfocused},
+	{"TabUnfocusedActive", ImGuiCol_TabUnfocusedActive},
+	{"PlotLines", ImGuiCol_PlotLines},
+	{"PlotLinesHovered", ImGuiCol_PlotLinesHovered},
+	{"PlotHistogram", ImGuiCol_PlotHistogram},
+	{"PlotHistogramHovered", ImGuiCol_PlotHistogramHovered},
+	{"TableHeaderBg", ImGuiCol_TableHeaderBg},
+	{"TableBorderStrong", ImGuiCol_TableBorderStrong},
+	{"TableBorderLight", ImGuiCol_TableBorderLight},
+	{"TableRowBg", ImGuiCol_TableRowBg},
+	{"TableRowBgAlt", ImGuiCol_TableRowBgAlt},
+	{"TextSelectedBg", ImGuiCol_TextSelectedBg},
+	{"DragDropTarget", ImGuiCol_DragDropTarget},
+	{"NavHighlight", ImGuiCol_NavHighlight},
 	{"NavWindowingHighlight", ImGuiCol_NavWindowingHighlight},
-	{"NavWindowingDimBg",     ImGuiCol_NavWindowingDimBg},
-	{"ModalWindowDimBg",      ImGuiCol_ModalWindowDimBg},
+	{"NavWindowingDimBg", ImGuiCol_NavWindowingDimBg},
+	{"ModalWindowDimBg", ImGuiCol_ModalWindowDimBg},
 };
 
 bool MkGuiStyleManager::startup(MkGuiContext* guiContext, const std::filesystem::path& stylesDir)
 {
-	m_impl->guiContext = guiContext;
+	m_impl->guiContext= guiContext;
 
 	if (!std::filesystem::exists(stylesDir))
 	{
 		MIKAN_LOG_WARNING("MkGuiStyleManager::startup") << "Styles directory does not exist: " << stylesDir;
-		return true;  // Not a fatal error — styles are optional
+		return true; // Not a fatal error — styles are optional
 	}
 
-	bool bSuccess = true;
+	bool bSuccess= true;
 	for (const auto& entry : std::filesystem::directory_iterator(stylesDir))
 	{
 		if (entry.is_regular_file() && entry.path().extension() == ".json")
 		{
 			if (!loadStyleFile(entry.path()))
 			{
-				bSuccess = false;
+				bSuccess= false;
 			}
 		}
 	}
@@ -145,12 +144,12 @@ bool MkGuiStyleManager::startup(MkGuiContext* guiContext, const std::filesystem:
 void MkGuiStyleManager::shutdown()
 {
 	m_impl->styles.clear();
-	m_impl->guiContext = nullptr;
+	m_impl->guiContext= nullptr;
 }
 
 MkGuiStyleConstPtr MkGuiStyleManager::getStyle(const std::string& name) const
 {
-	auto it = m_impl->styles.find(name);
+	auto it= m_impl->styles.find(name);
 	if (it == m_impl->styles.end())
 	{
 		MIKAN_LOG_ERROR("MkGuiStyleManager::getStyle") << "Style not found: " << name;
@@ -171,7 +170,7 @@ bool MkGuiStyleManager::loadStyleFile(const std::filesystem::path& filePath)
 	nlohmann::json root;
 	try
 	{
-		root = nlohmann::json::parse(file);
+		root= nlohmann::json::parse(file);
 	}
 	catch (const nlohmann::json::parse_error& e)
 	{
@@ -179,37 +178,37 @@ bool MkGuiStyleManager::loadStyleFile(const std::filesystem::path& filePath)
 		return false;
 	}
 
-	bool bSuccess = true;
+	bool bSuccess= true;
 	for (auto& [styleName, styleJson] : root.items())
 	{
-		auto style = std::make_shared<MkGuiStyle>();
-		style->name() = styleName;
+		auto style= std::make_shared<MkGuiStyle>();
+		style->name()= styleName;
 
 		// Optional font
 		if (styleJson.contains("font") && styleJson["font"].is_string())
 		{
-			const std::string fontName = styleJson["font"].get<std::string>();
+			const std::string fontName= styleJson["font"].get<std::string>();
 
 			if (fontName == "normal_icon")
 			{
-				style->font() = m_impl->guiContext->getNormalIconFont();
+				style->font()= m_impl->guiContext->getNormalIconFont();
 			}
 			else if (fontName == "big_icon")
 			{
-				style->font() = m_impl->guiContext->getBigIconFont();
+				style->font()= m_impl->guiContext->getBigIconFont();
 			}
 		}
 
 		// Optional label widths
 		if (styleJson.contains("labelWidth") && styleJson["labelWidth"].is_number())
 		{
-			style->labelWidth() = styleJson["labelWidth"].get<int>();
+			style->labelWidth()= styleJson["labelWidth"].get<int>();
 		}
 
 		// Optional value widths
 		if (styleJson.contains("valueWidth") && styleJson["valueWidth"].is_number())
 		{
-			style->valueWidth() = styleJson["valueWidth"].get<int>();
+			style->valueWidth()= styleJson["valueWidth"].get<int>();
 		}
 
 		// Style vars
@@ -220,37 +219,36 @@ bool MkGuiStyleManager::loadStyleFile(const std::filesystem::path& filePath)
 				if (!varJson.contains("name") || !varJson.contains("value"))
 					continue;
 
-				const std::string varName = varJson["name"].get<std::string>();
+				const std::string varName= varJson["name"].get<std::string>();
 
-				auto floatStyleIt = k_styleFloatTable.find(varName);
-				auto vec2StyleIt = k_styleVec2Table.find(varName);
+				auto floatStyleIt= k_styleFloatTable.find(varName);
+				auto vec2StyleIt= k_styleVec2Table.find(varName);
 
 				if (floatStyleIt != k_styleFloatTable.end())
 				{
 					MkGuiStyleFloatEntry entry;
-					entry.var = floatStyleIt->second;
+					entry.var= floatStyleIt->second;
 
 					if (varJson["value"].is_number())
 					{
-						entry.floatVal = varJson["value"].get<float>();
+						entry.floatVal= varJson["value"].get<float>();
 						style->floatVars().push_back(entry);
 					}
 					else
 					{
 						MIKAN_LOG_WARNING("MkGuiStyleManager::loadStyleFile") << "Mismatched value type for var: " << varName;
 					}
-				}				
+				}
 				else if (vec2StyleIt != k_styleVec2Table.end())
 				{
 					MkGuiStyleVec2Entry entry;
-					entry.var = vec2StyleIt->second;
+					entry.var= vec2StyleIt->second;
 
 					if (varJson["value"].is_array() && varJson["value"].size() == 2)
 					{
-						entry.vec2Val = { 
-							varJson["value"][0].get<float>(), 
-							varJson["value"][1].get<float>() 
-						};
+						entry.vec2Val= {
+							varJson["value"][0].get<float>(),
+							varJson["value"][1].get<float>()};
 						style->vec2Vars().push_back(entry);
 					}
 					else
@@ -274,8 +272,8 @@ bool MkGuiStyleManager::loadStyleFile(const std::filesystem::path& filePath)
 				if (!colorJson.contains("name") || !colorJson.contains("value"))
 					continue;
 
-				const std::string colorName = colorJson["name"].get<std::string>();
-				auto it = k_styleColorTable.find(colorName);
+				const std::string colorName= colorJson["name"].get<std::string>();
+				auto it= k_styleColorTable.find(colorName);
 				if (it == k_styleColorTable.end())
 				{
 					MIKAN_LOG_WARNING("MkGuiStyleManager::loadStyleFile") << "Unknown style color: " << colorName;
@@ -289,13 +287,12 @@ bool MkGuiStyleManager::loadStyleFile(const std::filesystem::path& filePath)
 				}
 
 				MkGuiStyleColorEntry entry;
-				entry.col = it->second;
-				entry.value = {
+				entry.col= it->second;
+				entry.value= {
 					colorJson["value"][0].get<float>(),
 					colorJson["value"][1].get<float>(),
 					colorJson["value"][2].get<float>(),
-					colorJson["value"][3].get<float>()
-				};
+					colorJson["value"][3].get<float>()};
 				style->colors().push_back(entry);
 			}
 		}
@@ -303,25 +300,25 @@ bool MkGuiStyleManager::loadStyleFile(const std::filesystem::path& filePath)
 		// Style textures
 		if (styleJson.contains("textures") && styleJson["textures"].is_array())
 		{
-			IMkTextureCache* textureCache = m_impl->guiContext->getTextureCache();
+			IMkTextureCache* textureCache= m_impl->guiContext->getTextureCache();
 			for (const auto& texJson : styleJson["textures"])
 			{
 				if (!texJson.contains("name") || !texJson.contains("path"))
 					continue;
 
-				const std::string texName = texJson["name"].get<std::string>();
+				const std::string texName= texJson["name"].get<std::string>();
 				// Paths in JSON are relative to the resources directory
-				const std::filesystem::path texPath =
+				const std::filesystem::path texPath=
 					PathUtils::getResourceDirectory() / texJson["path"].get<std::string>();
 
 				MkGuiStyleTextureEntry entry;
-				entry.x = texJson.value("width", 16.f);
-				entry.y = texJson.value("height", 16.f);
-				entry.texture = textureCache->loadTexturePath(texPath);
+				entry.x= texJson.value("width", 16.f);
+				entry.y= texJson.value("height", 16.f);
+				entry.texture= textureCache->loadTexturePath(texPath);
 
 				if (entry.texture)
 				{
-					style->textures()[texName] = entry;
+					style->textures()[texName]= entry;
 				}
 				else
 				{
@@ -331,7 +328,7 @@ bool MkGuiStyleManager::loadStyleFile(const std::filesystem::path& filePath)
 			}
 		}
 
-		m_impl->styles[styleName] = style;
+		m_impl->styles[styleName]= style;
 	}
 
 	return bSuccess;

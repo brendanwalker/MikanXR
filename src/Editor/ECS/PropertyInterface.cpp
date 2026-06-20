@@ -8,7 +8,8 @@ PropertyDescriptor::PropertyDescriptor()
 	, m_bIsUIHidden(false)
 	, m_bIsClientAPIHidden(false)
 	, m_defaultValue(std::make_unique<MikanVariant>())
-{}
+{
+}
 
 PropertyDescriptor::PropertyDescriptor(const std::string& name)
 	: m_propertyName(name)
@@ -16,7 +17,8 @@ PropertyDescriptor::PropertyDescriptor(const std::string& name)
 	, m_bIsReadable(false)
 	, m_bIsWritable(false)
 	, m_bIsUIHidden(false)
-	, m_bIsClientAPIHidden(false), m_defaultValue(std::make_unique<MikanVariant>())
+	, m_bIsClientAPIHidden(false)
+	, m_defaultValue(std::make_unique<MikanVariant>())
 {
 }
 
@@ -28,7 +30,8 @@ PropertyDescriptor::PropertyDescriptor(const std::string& name, MikanVariantType
 	, m_bIsUIHidden(false)
 	, m_bIsClientAPIHidden(false)
 	, m_defaultValue(std::make_unique<MikanVariant>())
-{}
+{
+}
 
 PropertyDescriptor::PropertyDescriptor(const PropertyDescriptor& other)
 	: m_propertyName(other.m_propertyName)
@@ -38,27 +41,28 @@ PropertyDescriptor::PropertyDescriptor(const PropertyDescriptor& other)
 	, m_bIsClientAPIHidden(other.isClientAPIHidden())
 	, m_defaultValue(std::make_unique<MikanVariant>(*(other.m_defaultValue.get())))
 	, m_metaDataList(other.m_metaDataList)
-{}
+{
+}
 
 PropertyDescriptorPtr PropertyDescriptor::setReadOnly()
 {
 	assert(m_dataType != MikanVariantType::INVALID);
-	m_bIsReadable = true;
-	m_bIsWritable = false;
+	m_bIsReadable= true;
+	m_bIsWritable= false;
 	return shared_from_this();
 }
 
 PropertyDescriptorPtr PropertyDescriptor::setUIHidden()
 {
 	assert(m_dataType != MikanVariantType::INVALID);
-	m_bIsUIHidden = true;
+	m_bIsUIHidden= true;
 	return shared_from_this();
 }
 
 PropertyDescriptorPtr PropertyDescriptor::setClientAPIHidden()
 {
 	assert(m_dataType != MikanVariantType::INVALID);
-	m_bIsClientAPIHidden = true;
+	m_bIsClientAPIHidden= true;
 	return shared_from_this();
 }
 

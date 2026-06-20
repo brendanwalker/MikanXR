@@ -28,7 +28,7 @@ bool PropertyDatabaseEnumerator::isValid() const
 	if (!m_database)
 		return false;
 
-	const int totalPropertyCount = (int)m_database->getAllProperties().size();
+	const int totalPropertyCount= (int)m_database->getAllProperties().size();
 	return m_currentIndex < totalPropertyCount;
 }
 
@@ -37,7 +37,7 @@ void PropertyDatabaseEnumerator::next()
 	if (!m_database)
 		return;
 
-	const int totalPropertyCount = (int)m_database->getAllProperties().size();
+	const int totalPropertyCount= (int)m_database->getAllProperties().size();
 
 	// Advance to the next index
 	m_currentIndex++;
@@ -58,7 +58,7 @@ bool PropertyDatabaseEnumerator::matchesFilters(int propertyIndex) const
 	if (!m_database)
 		return false;
 
-	const MikanPropertyEntry* entry = m_database->getPropertyByIndex(propertyIndex);
+	const MikanPropertyEntry* entry= m_database->getPropertyByIndex(propertyIndex);
 	if (!entry)
 		return false;
 
@@ -84,13 +84,15 @@ bool PropertyDatabaseEnumerator::matchesFilter(const std::string& value, const s
 		return true;
 
 	// Convert both to lowercase for case-insensitive comparison
-	std::string lowerValue = value;
-	std::string lowerFilter = filter;
+	std::string lowerValue= value;
+	std::string lowerFilter= filter;
 
 	std::transform(lowerValue.begin(), lowerValue.end(), lowerValue.begin(),
-		[](unsigned char c) { return std::tolower(c); });
+				   [](unsigned char c)
+				   { return std::tolower(c); });
 	std::transform(lowerFilter.begin(), lowerFilter.end(), lowerFilter.begin(),
-		[](unsigned char c) { return std::tolower(c); });
+				   [](unsigned char c)
+				   { return std::tolower(c); });
 
 	return lowerValue == lowerFilter;
 }

@@ -12,17 +12,17 @@
 
 #include "nlohmann/json.hpp"
 
-#define WEBSOCKET_CONNECT_EVENT				"connect"
-#define WEBSOCKET_DISCONNECT_EVENT			"disconnect"
-#define WEBSOCKET_ERROR_EVENT				"error"
-#define WEBSOCKET_PING_EVENT				"ping"
-#define WEBSOCKET_PONG_EVENT				"pong"
+#define WEBSOCKET_CONNECT_EVENT "connect"
+#define WEBSOCKET_DISCONNECT_EVENT "disconnect"
+#define WEBSOCKET_ERROR_EVENT "error"
+#define WEBSOCKET_PING_EVENT "ping"
+#define WEBSOCKET_PONG_EVENT "pong"
 
-using json = nlohmann::json;
+using json= nlohmann::json;
 
 MikanAPIResult MikanEventManager::init(MikanContext context)
 {
-	m_context = context;
+	m_context= context;
 
 	return MikanAPIResult::Success;
 }
@@ -30,19 +30,19 @@ MikanAPIResult MikanEventManager::init(MikanContext context)
 MikanAPIResult MikanEventManager::fetchNextEvent(MikanEventPtr& out_event)
 {
 	char utf8Buffer[1024];
-	size_t utf8BytesWritten = 0;
+	size_t utf8BytesWritten= 0;
 
-	MikanAPIResult result = 
+	MikanAPIResult result=
 		(MikanAPIResult)Mikan_FetchNextEvent(
 			m_context, sizeof(utf8Buffer), utf8Buffer, &utf8BytesWritten);
 	if (result == MikanAPIResult::Success)
 	{
-		out_event = parseEventString(utf8Buffer);
+		out_event= parseEventString(utf8Buffer);
 		if (!out_event)
 		{
 			MIKAN_MT_LOG_WARNING("MikanClient::fetchNextEvent()")
 				<< "Failed to parse event string: " << utf8Buffer;
-			result = MikanAPIResult::MalformedResponse;
+			result= MikanAPIResult::MalformedResponse;
 		}
 	}
 
@@ -59,14 +59,14 @@ MikanEventPtr MikanEventManager::parseEventString(const char* szUtf8EventString)
 
 		if (eventString.rfind(WEBSOCKET_DISCONNECT_EVENT, 0) == 0)
 		{
-			int disconnectCode = 0;
-			std::string disconnectReason = "";
+			int disconnectCode= 0;
+			std::string disconnectReason= "";
 
-			std::vector<std::string> tokens = StringUtils::splitString(eventString, ':');
+			std::vector<std::string> tokens= StringUtils::splitString(eventString, ':');
 			if (tokens.size() >= 3)
 			{
-				disconnectCode = std::atoi(tokens[1].c_str());
-				disconnectReason = tokens[2].c_str();
+				disconnectCode= std::atoi(tokens[1].c_str());
+				disconnectReason= tokens[2].c_str();
 			}
 
 			MIKAN_MT_LOG_INFO("MikanClient::parseEventString()")
@@ -75,14 +75,14 @@ MikanEventPtr MikanEventManager::parseEventString(const char* szUtf8EventString)
 				<< ", protocol: " << disconnectReason;
 
 			auto disconnectEventPtr= std::make_shared<MikanDisconnectedEvent>();
-			disconnectEventPtr->code = (MikanDisconnectCode)disconnectCode;
+			disconnectEventPtr->code= (MikanDisconnectCode)disconnectCode;
 			disconnectEventPtr->reason.setValue(disconnectReason.c_str());
 
 			eventPtr= disconnectEventPtr;
 		}
 		else
 		{
-			json jsonResponse = json::parse(eventString);
+			json jsonResponse= json::parse(eventString);
 
 			MikanEvent eventHeader= {};
 			std::string parseHeaderError;
@@ -92,18 +92,18 @@ MikanEventPtr MikanEventManager::parseEventString(const char* szUtf8EventString)
 					<< "Failed to parse event header: " << parseHeaderError;
 			}
 
-			rfk::Struct const* eventStruct =
+			rfk::Struct const* eventStruct=
 				Serialization::TypeRegistry::getStructByName(eventHeader.eventTypeName.getValue());
 			if (eventStruct != nullptr)
 			{
-				eventPtr = eventStruct->makeSharedInstance<MikanEvent>();
+				eventPtr= eventStruct->makeSharedInstance<MikanEvent>();
 
 				std::string parseEventError;
 				if (!Serialization::deserializeFromJson(jsonResponse, eventPtr.get(), *eventStruct, parseEventError))
 				{
 					MIKAN_MT_LOG_ERROR("MikanClient::parseEventString()")
 						<< "Failed to parse event: " << parseEventError;
-					eventPtr = nullptr;
+					eventPtr= nullptr;
 				}
 			}
 			else

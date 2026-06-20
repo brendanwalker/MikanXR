@@ -5,7 +5,7 @@
 #include <memory>
 
 class WebsocketConnectionState;
-using WebsocketConnectionStatePtr = std::shared_ptr<WebsocketConnectionState>;
+using WebsocketConnectionStatePtr= std::shared_ptr<WebsocketConnectionState>;
 
 class WebsocketInterprocessMessageClient : public IInterprocessMessageClient
 {
@@ -20,7 +20,7 @@ public:
 	virtual void setBinaryResponseHandler(BinaryResponseHandler handler) override;
 
 	MikanCoreResult connect(
-		const std::string& host, 
+		const std::string& host,
 		const std::string& port) override;
 	void disconnect(uint16_t code, const std::string& reason) override;
 

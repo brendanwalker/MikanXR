@@ -5,7 +5,8 @@
 class MikanSteamVRModule : public IVRDeviceModule
 {
 public:
-	MikanSteamVRModule() : m_bIsInitialized(false)
+	MikanSteamVRModule()
+		: m_bIsInitialized(false)
 	{
 	}
 
@@ -17,7 +18,7 @@ public:
 	bool startup() override
 	{
 		MIKAN_LOG_INFO("MikanSteamVRModule") << "Initializing MikanSteamVRPlugin";
-		m_bIsInitialized = true;
+		m_bIsInitialized= true;
 
 		return m_bIsInitialized;
 	}

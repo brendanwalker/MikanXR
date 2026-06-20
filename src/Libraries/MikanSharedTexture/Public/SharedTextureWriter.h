@@ -11,7 +11,7 @@
 
 enum class SharedClientGraphicsApi : int
 {
-	UNKNOWN = -1,
+	UNKNOWN= -1,
 
 	Direct3D9,
 	Direct3D11,
@@ -45,11 +45,11 @@ enum class SharedDepthBufferType : int
 
 struct SharedTextureDescriptor
 {
-	SharedColorBufferType color_buffer_type = SharedColorBufferType::NOCOLOR;
-	SharedDepthBufferType depth_buffer_type = SharedDepthBufferType::NODEPTH;
-	uint32_t width = 0;
-	uint32_t height = 0;
-	SharedClientGraphicsApi graphicsAPI = SharedClientGraphicsApi::UNKNOWN;
+	SharedColorBufferType color_buffer_type= SharedColorBufferType::NOCOLOR;
+	SharedDepthBufferType depth_buffer_type= SharedDepthBufferType::NODEPTH;
+	uint32_t width= 0;
+	uint32_t height= 0;
+	SharedClientGraphicsApi graphicsAPI= SharedClientGraphicsApi::UNKNOWN;
 };
 
 class ISharedTextureWriteAccessor
@@ -58,17 +58,17 @@ public:
 	virtual ~ISharedTextureWriteAccessor() {}
 
 	virtual bool initialize(
-		const struct SharedTextureDescriptor* descriptor, 
-		bool bEnableFrameCounter, 
-		void* apiDeviceInterface= nullptr) = 0;
-	virtual void dispose() = 0;
+		const struct SharedTextureDescriptor* descriptor,
+		bool bEnableFrameCounter,
+		void* apiDeviceInterface= nullptr)= 0;
+	virtual void dispose()= 0;
 
-	virtual bool writeColorFrameTexture(void* ApiTexturePtr) = 0;
-	virtual bool writeDepthFrameTexture(void* ApiTexturePtr, float zNear, float zFar) = 0;
-	virtual void* getPackDepthTextureResourcePtr() const = 0;
-	virtual bool getIsInitialized() const = 0;
-	virtual const SharedTextureDescriptor* getRenderTargetDescriptor() const = 0;
-	virtual void setLogCallback(SharedTextureLogCallback callback) = 0;
+	virtual bool writeColorFrameTexture(void* ApiTexturePtr)= 0;
+	virtual bool writeDepthFrameTexture(void* ApiTexturePtr, float zNear, float zFar)= 0;
+	virtual void* getPackDepthTextureResourcePtr() const= 0;
+	virtual bool getIsInitialized() const= 0;
+	virtual const SharedTextureDescriptor* getRenderTargetDescriptor() const= 0;
+	virtual void setLogCallback(SharedTextureLogCallback callback)= 0;
 };
 
 MIKAN_SHAREDTEXTURE_FUNC(ISharedTextureWriteAccessorPtr) createSharedTextureWriteAccessor(const std::string& prefix, MikanCameraID cameraId);

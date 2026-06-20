@@ -24,7 +24,7 @@ void MikanObject::init()
 		component->init();
 	}
 
-	m_bIsInitialized = true;
+	m_bIsInitialized= true;
 }
 
 void MikanObject::postInit()
@@ -36,7 +36,7 @@ void MikanObject::postInit()
 		component->postInit();
 	}
 
-	m_bIsPostInitialized = true;
+	m_bIsPostInitialized= true;
 }
 
 void MikanObject::dispose()
@@ -48,7 +48,7 @@ void MikanObject::dispose()
 		component->dispose();
 	}
 
-	if (auto objectSystem = m_ownerObjectSystemManager.lock())
+	if (auto objectSystem= m_ownerObjectSystemManager.lock())
 	{
 		if (objectSystem->OnObjectDisposed)
 			objectSystem->OnObjectDisposed(objectSystem, shared_from_this());
@@ -57,5 +57,5 @@ void MikanObject::dispose()
 	m_components.clear();
 	m_ownerObjectSystemManager.reset();
 
-	m_bIsDisposed = true;
+	m_bIsDisposed= true;
 }

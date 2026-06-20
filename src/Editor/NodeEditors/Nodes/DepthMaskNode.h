@@ -11,15 +11,21 @@ typedef int32_t MikanStencilID;
 class DepthMaskNodeConfig : public NodeConfig
 {
 public:
-	DepthMaskNodeConfig() : NodeConfig() {}
-	DepthMaskNodeConfig(const std::string& nodeName) : NodeConfig(nodeName) {}
+	DepthMaskNodeConfig()
+		: NodeConfig()
+	{
+	}
+	DepthMaskNodeConfig(const std::string& nodeName)
+		: NodeConfig(nodeName)
+	{
+	}
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	bool bDisableQuadStencils = false;
-	bool bDisableBoxStencils = false;
-	bool bDisableModelStencils = false;
+	bool bDisableQuadStencils= false;
+	bool bDisableBoxStencils= false;
+	bool bDisableModelStencils= false;
 };
 
 class DepthMaskNode : public Node
@@ -31,7 +37,7 @@ public:
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig);
 	virtual void saveToConfig(NodeConfigPtr nodeConfig) const;
 
-	inline static const std::string k_nodeClassName = "DepthMaskNode";
+	inline static const std::string k_nodeClassName= "DepthMaskNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
 	virtual void setOwnerGraph(NodeGraphPtr ownerGraph) override;
 
@@ -65,9 +71,9 @@ protected:
 	MkMaterialInstancePtr m_depthMaterialInstance;
 	IMkFrameBufferPtr m_linearDepthFrameBuffer;
 
-	bool m_bDisableQuadStencil = false;
-	bool m_bDisableBoxStencil = false;
-	bool m_bDisableModelStencil = false;
+	bool m_bDisableQuadStencil= false;
+	bool m_bDisableBoxStencil= false;
+	bool m_bDisableModelStencil= false;
 
 	friend class DepthMaskNodeFactory;
 };
@@ -75,7 +81,7 @@ protected:
 class DepthMaskNodeFactory : public TypedNodeFactory<DepthMaskNode, DepthMaskNodeConfig>
 {
 public:
-	DepthMaskNodeFactory() = default;
+	DepthMaskNodeFactory()= default;
 
 	virtual NodePtr createNode(const class NodeEditorState& editorState) const override;
 };

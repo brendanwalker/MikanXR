@@ -5,7 +5,7 @@
 #define ANSI
 #define WIN32_LEAN_AND_MEAN
 
-#include <windows.h>  // Required for data types
+#include <windows.h> // Required for data types
 #include <winuser.h>
 #include <Dbt.h>
 #include <guiddef.h>
@@ -21,22 +21,22 @@
 #include <iomanip>
 
 //-- constants -----
-GUID GUID_DEVCLASS_IMAGE = { 0x6bdd1fc6, 0x810f, 0x11d0, 0xbe, 0xc7, 0x08, 0x00, 0x2b, 0xe2, 0x09, 0x2f };
+GUID GUID_DEVCLASS_IMAGE= {0x6bdd1fc6, 0x810f, 0x11d0, 0xbe, 0xc7, 0x08, 0x00, 0x2b, 0xe2, 0x09, 0x2f};
 
 #define CLS_NAME "DEVICE_LISTENER_CLASS"
-#define HWND_MESSAGE     ((HWND)-3)
+#define HWND_MESSAGE ((HWND) - 3)
 
 // -- globals ----
 struct DeviceHotplugNotifierImpl
 {
-	IDeviceHotplugListener* listener = nullptr;
-	HDEVNOTIFY hImageDeviceNotify = nullptr;
-	HWND hWnd = nullptr;
+	IDeviceHotplugListener* listener= nullptr;
+	HDEVNOTIFY hImageDeviceNotify= nullptr;
+	HWND hWnd= nullptr;
 	WNDCLASSEX wx;
 };
 
 //-- private prototypes -----
-static HDEVNOTIFY register_device_class_notification(HWND__* hwnd, const GUID &guid);
+static HDEVNOTIFY register_device_class_notification(HWND__* hwnd, const GUID& guid);
 static LRESULT message_handler(HWND__* hwnd, UINT uint, WPARAM wparam, LPARAM lparam);
 
 // -- definitions -----
@@ -50,38 +50,38 @@ DeviceHotplugNotifier::~DeviceHotplugNotifier()
 	delete m_impl;
 }
 
-bool DeviceHotplugNotifier::startup(IDeviceHotplugListener * listener)
+bool DeviceHotplugNotifier::startup(IDeviceHotplugListener* listener)
 {
-	bool bSuccess = true;
+	bool bSuccess= true;
 
 	if (m_impl->hWnd == nullptr)
 	{
 		ZeroMemory(&m_impl->wx, sizeof(m_impl->wx));
 
-		m_impl->wx.cbSize = sizeof(WNDCLASSEX);
-		m_impl->wx.lpfnWndProc = reinterpret_cast<WNDPROC>(message_handler);
-		m_impl->wx.style = CS_HREDRAW | CS_VREDRAW;
-		m_impl->wx.hInstance = GetModuleHandle(0);
-		m_impl->wx.hbrBackground = (HBRUSH)(COLOR_WINDOW);
-		m_impl->wx.lpszClassName = CLS_NAME;
+		m_impl->wx.cbSize= sizeof(WNDCLASSEX);
+		m_impl->wx.lpfnWndProc= reinterpret_cast<WNDPROC>(message_handler);
+		m_impl->wx.style= CS_HREDRAW | CS_VREDRAW;
+		m_impl->wx.hInstance= GetModuleHandle(0);
+		m_impl->wx.hbrBackground= (HBRUSH)(COLOR_WINDOW);
+		m_impl->wx.lpszClassName= CLS_NAME;
 
 		if (RegisterClassEx(&m_impl->wx))
 		{
-			m_impl->hWnd = CreateWindow(
+			m_impl->hWnd= CreateWindow(
 				CLS_NAME, "DevNotifWnd", WS_ICONIC,
 				0, 0, CW_USEDEFAULT, 0, HWND_MESSAGE,
-				NULL, GetModuleHandle(0), 
+				NULL, GetModuleHandle(0),
 				this); // Pass 'this' as the window lpParam
 		}
 
 		if (m_impl->hWnd != nullptr)
 		{
-			m_impl->listener = listener;
+			m_impl->listener= listener;
 		}
 		else
 		{
 			MIKAN_LOG_ERROR("DeviceHotplugAPIWin32::startup") << "Could not create message window!";
-			bSuccess = false;
+			bSuccess= false;
 		}
 	}
 	else
@@ -107,13 +107,13 @@ void DeviceHotplugNotifier::shutdown()
 	if (m_impl->hImageDeviceNotify != nullptr)
 	{
 		UnregisterDeviceNotification(m_impl->hImageDeviceNotify);
-		m_impl->hImageDeviceNotify = nullptr;
+		m_impl->hImageDeviceNotify= nullptr;
 	}
 
 	if (m_impl->hWnd != nullptr)
 	{
 		DestroyWindow(m_impl->hWnd);
-		m_impl->hWnd = nullptr;
+		m_impl->hWnd= nullptr;
 	}
 
 	if (m_impl->wx.hInstance != nullptr)
@@ -128,80 +128,79 @@ void DeviceHotplugNotifier::shutdown()
 //-- private helper methods -----
 LRESULT message_handler(HWND__* hwnd, UINT msg_type, WPARAM wparam, LPARAM lparam)
 {
-	auto pThis = reinterpret_cast<DeviceHotplugNotifier*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+	auto pThis= reinterpret_cast<DeviceHotplugNotifier*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 
 	switch (msg_type)
 	{
-		case WM_NCCREATE:
-		{
-			auto cs = reinterpret_cast<CREATESTRUCT*>(lparam);
-			auto pThis = static_cast<DeviceHotplugNotifier*>(cs->lpCreateParams);
+	case WM_NCCREATE:
+	{
+		auto cs= reinterpret_cast<CREATESTRUCT*>(lparam);
+		auto pThis= static_cast<DeviceHotplugNotifier*>(cs->lpCreateParams);
 
-			// Store pointer for later messages
-			SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
-		}
-		break;
+		// Store pointer for later messages
+		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pThis));
+	}
+	break;
 
-		case WM_DESTROY:
-		{
-			SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
-			PostQuitMessage(0);
-		}
+	case WM_DESTROY:
+	{
+		SetWindowLongPtr(hwnd, GWLP_USERDATA, 0);
+		PostQuitMessage(0);
+	}
 		return 0;
 
-		case WM_CREATE:
+	case WM_CREATE:
+	{
+		if (pThis != nullptr)
 		{
-			if (pThis != nullptr)
-			{
-				pThis->getPrivateImpl()->hImageDeviceNotify =
-					register_device_class_notification(hwnd, GUID_DEVCLASS_IMAGE);
-
-			}
-			break;
+			pThis->getPrivateImpl()->hImageDeviceNotify=
+				register_device_class_notification(hwnd, GUID_DEVCLASS_IMAGE);
 		}
+		break;
+	}
 
-		case WM_DEVICECHANGE:
+	case WM_DEVICECHANGE:
+	{
+		PDEV_BROADCAST_HDR lpdb= (PDEV_BROADCAST_HDR)lparam;
+
+		if (lpdb->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
 		{
-			PDEV_BROADCAST_HDR lpdb = (PDEV_BROADCAST_HDR)lparam;
+			PDEV_BROADCAST_DEVICEINTERFACE lpdbv= (PDEV_BROADCAST_DEVICEINTERFACE)lpdb;
+			std::string path= std::string(lpdbv->dbcc_name);
 
-			if (lpdb->dbch_devicetype == DBT_DEVTYP_DEVICEINTERFACE)
+			if (IsEqualCLSID(lpdbv->dbcc_classguid, GUID_DEVCLASS_IMAGE))
 			{
-				PDEV_BROADCAST_DEVICEINTERFACE lpdbv = (PDEV_BROADCAST_DEVICEINTERFACE)lpdb;
-				std::string path = std::string(lpdbv->dbcc_name);
-
-				if (IsEqualCLSID(lpdbv->dbcc_classguid, GUID_DEVCLASS_IMAGE))
+				switch (wparam)
 				{
-					switch (wparam)
-					{
-					case DBT_DEVICEARRIVAL:
-						pThis->getPrivateImpl()->listener->onDeviceConnected(path);
-						break;
+				case DBT_DEVICEARRIVAL:
+					pThis->getPrivateImpl()->listener->onDeviceConnected(path);
+					break;
 
-					case DBT_DEVICEREMOVECOMPLETE:
-						pThis->getPrivateImpl()->listener->onDeviceDisconnected(path);
-						break;
-					}
+				case DBT_DEVICEREMOVECOMPLETE:
+					pThis->getPrivateImpl()->listener->onDeviceDisconnected(path);
+					break;
 				}
 			}
-			break;
 		}
+		break;
+	}
 	}
 
 	return DefWindowProc(hwnd, msg_type, wparam, lparam);
 }
 
-static HDEVNOTIFY register_device_class_notification(HWND__* hwnd, const GUID &guid)
+static HDEVNOTIFY register_device_class_notification(HWND__* hwnd, const GUID& guid)
 {
 	DEV_BROADCAST_DEVICEINTERFACE NotificationFilter;
 	ZeroMemory(&NotificationFilter, sizeof(NotificationFilter));
-	NotificationFilter.dbcc_size = sizeof(DEV_BROADCAST_DEVICEINTERFACE);
-	NotificationFilter.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
-	NotificationFilter.dbcc_classguid = guid;
-	HDEVNOTIFY dev_notify = RegisterDeviceNotification(hwnd, &NotificationFilter, DEVICE_NOTIFY_WINDOW_HANDLE);	
+	NotificationFilter.dbcc_size= sizeof(DEV_BROADCAST_DEVICEINTERFACE);
+	NotificationFilter.dbcc_devicetype= DBT_DEVTYP_DEVICEINTERFACE;
+	NotificationFilter.dbcc_classguid= guid;
+	HDEVNOTIFY dev_notify= RegisterDeviceNotification(hwnd, &NotificationFilter, DEVICE_NOTIFY_WINDOW_HANDLE);
 
 	if (dev_notify == nullptr)
 	{
-		MIKAN_LOG_ERROR("RegisterDeviceClassNotification") 
+		MIKAN_LOG_ERROR("RegisterDeviceClassNotification")
 			<< "Could not register for device notifications!";
 	}
 

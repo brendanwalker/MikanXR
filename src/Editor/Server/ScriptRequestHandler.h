@@ -6,7 +6,10 @@
 class ScriptRequestHandler : public IServerRequestHandler
 {
 public:
-	ScriptRequestHandler(class MikanServer* owner) : IServerRequestHandler(owner) {}
+	ScriptRequestHandler(class MikanServer* owner)
+		: IServerRequestHandler(owner)
+	{
+	}
 
 	virtual bool startup(class MainWindow* mainWindow) override;
 	virtual void shutdown() override;

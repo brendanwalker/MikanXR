@@ -9,7 +9,7 @@ struct ClientTextureFrameEntry
 {
 	IMkTexturePtr colorTexture;
 	IMkTexturePtr depthTexture;
-	int64_t frameIndex = -1;
+	int64_t frameIndex= -1;
 };
 
 class ClientTextureFrameQueue
@@ -30,12 +30,12 @@ public:
 	void advanceWriteIndex(int64_t frameIndex);
 
 	// Lookup by frame index. Returns newest if frameIndex == -1 or not found.
-	IMkTexturePtr getColorTexture(int64_t frameIndex = -1) const;
-	IMkTexturePtr getDepthTexture(int64_t frameIndex = -1) const;
+	IMkTexturePtr getColorTexture(int64_t frameIndex= -1) const;
+	IMkTexturePtr getDepthTexture(int64_t frameIndex= -1) const;
 
 private:
-	ClientTextureFrameEntry* m_entries = nullptr;
-	int m_queueSize = 0;
-	int m_lastWriteIndex = -1;
-	int m_pendingWriteIndex = 0;
+	ClientTextureFrameEntry* m_entries= nullptr;
+	int m_queueSize= 0;
+	int m_lastWriteIndex= -1;
+	int m_pendingWriteIndex= 0;
 };

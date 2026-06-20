@@ -9,7 +9,7 @@
 #include <vector>
 
 //-- definitions -----
-class CommonScriptContext : public std::enable_shared_from_this<CommonScriptContext> 
+class CommonScriptContext : public std::enable_shared_from_this<CommonScriptContext>
 {
 public:
 	CommonScriptContext();
@@ -24,11 +24,15 @@ public:
 	inline lua_State* getLuaState() const { return m_luaState; }
 
 	const std::vector<std::string>& getScriptTriggers() const
-	{ return m_triggers; }
+	{
+		return m_triggers;
+	}
 	bool invokeScriptTrigger(const std::string& triggerName);
 
 	const std::vector<std::string>& getScriptMessageHandler() const
-	{ return m_messageHandlers; }
+	{
+		return m_messageHandlers;
+	}
 	bool invokeScriptMessageHandler(const std::string& message);
 
 	MulticastDelegate<void(const std::string& message)> OnScriptMessage;

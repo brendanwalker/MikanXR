@@ -4,17 +4,18 @@
 
 DiskColliderComponent::DiskColliderComponent(MikanObjectWeakPtr owner)
 	: ColliderComponent(owner)
-{}
+{
+}
 
 bool DiskColliderComponent::computeRayIntersection(
 	const ColliderRaycastHitRequest& request,
 	ColliderRaycastHitResult& outResult) const
 {
-	outResult.hitValid = false;
-	outResult.hitLocation = glm::vec3(0.f);
-	outResult.hitNormal = glm::vec3(0.f);
-	outResult.hitDistance = -1.f;
-	outResult.hitPriority = m_priority;
+	outResult.hitValid= false;
+	outResult.hitLocation= glm::vec3(0.f);
+	outResult.hitNormal= glm::vec3(0.f);
+	outResult.hitDistance= -1.f;
+	outResult.hitPriority= m_priority;
 	outResult.hitComponent.reset();
 
 	if (!m_bEnabled)
@@ -33,7 +34,7 @@ bool DiskColliderComponent::computeRayIntersection(
 
 	if (outResult.hitValid)
 	{
-		outResult.hitComponent =
+		outResult.hitComponent=
 			std::const_pointer_cast<ColliderComponent>(
 				getSelfPtr<const ColliderComponent>());
 	}

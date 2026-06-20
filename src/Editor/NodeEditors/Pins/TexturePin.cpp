@@ -2,7 +2,7 @@
 
 void TexturePin::copyValueFromSourcePin()
 {
-	TexturePinPtr sourcePin = std::dynamic_pointer_cast<TexturePin>(getConnectedSourcePin());
+	TexturePinPtr sourcePin= std::dynamic_pointer_cast<TexturePin>(getConnectedSourcePin());
 
 	if (sourcePin)
 	{
@@ -20,7 +20,7 @@ ImNodesPinShape TexturePin::editorComputePinShape() const
 
 std::shared_ptr<MkNodesScopedColorStyle> TexturePin::editorRenderMakePinStyle(float alpha)
 {
-	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_Pin, IM_COL32(148, 0, 0, (unsigned char)(alpha * 255)))
 		.push(ImNodesCol_PinHovered, IM_COL32(183, 137, 137, (unsigned char)(alpha * 255)));
 	return style;
@@ -28,7 +28,7 @@ std::shared_ptr<MkNodesScopedColorStyle> TexturePin::editorRenderMakePinStyle(fl
 
 std::shared_ptr<MkNodesScopedColorStyle> TexturePin::editorRenderMakeLinkStyle(float alpha)
 {
-	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_Link, IM_COL32(148, 0, 0, (unsigned char)alpha))
 		.push(ImNodesCol_LinkHovered, IM_COL32(183, 137, 137, (unsigned char)alpha))
 		.push(ImNodesCol_LinkSelected, IM_COL32(183, 137, 137, 255));

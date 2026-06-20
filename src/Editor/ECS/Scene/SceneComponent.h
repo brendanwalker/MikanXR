@@ -32,8 +32,8 @@ public:
 	void setDisplayCompositorId(MikanCompositorID compositorId);
 
 protected:
-	MikanStageID m_parentStageId = INVALID_MIKAN_ID;
-	MikanCompositorID m_displayCompositorId = INVALID_MIKAN_ID;
+	MikanStageID m_parentStageId= INVALID_MIKAN_ID;
+	MikanCompositorID m_displayCompositorId= INVALID_MIKAN_ID;
 };
 
 class SceneComponent final : public TransformComponent
@@ -46,7 +46,7 @@ public:
 		return std::static_pointer_cast<SceneComponentDefinition>(m_definition);
 	}
 
-	inline static const std::string k_componentClassName = "SceneComponent";
+	inline static const std::string k_componentClassName= "SceneComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	// -- IEntityAccessor ----

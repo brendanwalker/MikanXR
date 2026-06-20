@@ -6,8 +6,14 @@
 class MaterialNodeConfig : public NodeConfig
 {
 public:
-	MaterialNodeConfig() : NodeConfig() {}
-	MaterialNodeConfig(const std::string& nodeName) : NodeConfig(nodeName) {}
+	MaterialNodeConfig()
+		: NodeConfig()
+	{
+	}
+	MaterialNodeConfig(const std::string& nodeName)
+		: NodeConfig(nodeName)
+	{
+	}
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -18,10 +24,10 @@ public:
 class MaterialNode : public Node
 {
 public:
-	MaterialNode() = default;
+	MaterialNode()= default;
 	virtual ~MaterialNode();
 
-	inline static const std::string k_nodeClassName = "MaterialNode";
+	inline static const std::string k_nodeClassName= "MaterialNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
@@ -51,7 +57,7 @@ protected:
 class MaterialNodeFactory : public TypedNodeFactory<MaterialNode, MaterialNodeConfig>
 {
 public:
-	MaterialNodeFactory() = default;
+	MaterialNodeFactory()= default;
 
 	virtual bool editorCanCreate() const override { return false; }
 	virtual NodePtr createNode(const NodeEditorState& editorState) const override;

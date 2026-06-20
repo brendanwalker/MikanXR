@@ -18,7 +18,7 @@ bool ModalDialog_MessageBox::showMessageBox(
 	const std::string& buttonLabel,
 	DismissCallback dismissCallback)
 {
-	ModalDialog_MessageBox* messageBoxModal = appStage->pushModalDialog<ModalDialog_MessageBox>();
+	ModalDialog_MessageBox* messageBoxModal= appStage->pushModalDialog<ModalDialog_MessageBox>();
 
 	if (!messageBoxModal->init(message, buttonLabel, dismissCallback))
 	{
@@ -34,19 +34,19 @@ bool ModalDialog_MessageBox::init(
 	const std::string& buttonLabel,
 	DismissCallback dismissCallback)
 {
-	m_message = message;
-	m_buttonLabel = buttonLabel.empty() ? "OK" : buttonLabel;
-	m_dismissCallback = dismissCallback;
+	m_message= message;
+	m_buttonLabel= buttonLabel.empty() ? "OK" : buttonLabel;
+	m_dismissCallback= dismissCallback;
 	return true;
 }
 
 void ModalDialog_MessageBox::onGui()
 {
-	static const char* k_popupId = "##MessageBoxModal";
+	static const char* k_popupId= "##MessageBoxModal";
 	if (m_bNeedsOpen)
 	{
 		ImGui::OpenPopup(k_popupId);
-		m_bNeedsOpen = false;
+		m_bNeedsOpen= false;
 	}
 
 	ImGui::SetNextWindowPos(
@@ -56,18 +56,23 @@ void ModalDialog_MessageBox::onGui()
 		ImGui::TextUnformatted(m_message.c_str());
 		ImGui::Spacing();
 
-		bool dismissed = false;
-		if (ImGui::Button(m_buttonLabel.c_str())) { ImGui::CloseCurrentPopup(); dismissed = true; }
+		bool dismissed= false;
+		if (ImGui::Button(m_buttonLabel.c_str()))
+		{
+			ImGui::CloseCurrentPopup();
+			dismissed= true;
+		}
 		ImGui::EndPopup();
 
-		if (dismissed) onDismiss();
+		if (dismissed)
+			onDismiss();
 	}
 }
 
 void ModalDialog_MessageBox::onDismiss()
 {
-	DismissCallback callback = std::move(m_dismissCallback);
-	AppStage* ownerAppStage = m_ownerAppStage;
+	DismissCallback callback= std::move(m_dismissCallback);
+	AppStage* ownerAppStage= m_ownerAppStage;
 
 	assert(ownerAppStage->getCurrentModalDialog() == this);
 	ownerAppStage->popModalDialog(); // deletes 'this'

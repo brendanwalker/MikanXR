@@ -10,8 +10,14 @@
 class AssetReferenceConfig : public CommonConfig
 {
 public:
-	AssetReferenceConfig() : CommonConfig() {}
-	AssetReferenceConfig(const std::string& nodeName) : CommonConfig(nodeName) {}
+	AssetReferenceConfig()
+		: CommonConfig()
+	{
+	}
+	AssetReferenceConfig(const std::string& nodeName)
+		: CommonConfig(nodeName)
+	{
+	}
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -27,7 +33,7 @@ public:
 	AssetReference()= default;
 	virtual ~AssetReference();
 
-	inline static const std::string k_assetClassName = "AssetReference";
+	inline static const std::string k_assetClassName= "AssetReference";
 	virtual std::string getClassName() const { return k_assetClassName; }
 
 	virtual bool loadFromConfig(AssetReferenceConfigConstPtr config);
@@ -58,7 +64,7 @@ protected:
 class AssetReferenceFactory
 {
 public:
-	AssetReferenceFactory() = default;
+	AssetReferenceFactory()= default;
 
 	inline std::string getAssetRefClassName() const { return m_defaultAssetRefObject->getClassName(); }
 
@@ -93,13 +99,13 @@ template <class t_assetref_class, class t_assetref_config_class>
 class TypedAssetReferenceFactory : public AssetReferenceFactory
 {
 public:
-	TypedAssetReferenceFactory() = default;
+	TypedAssetReferenceFactory()= default;
 
 	virtual AssetReferenceConfigPtr allocateAssetReferenceConfig() const override
 	{
 		AssetReferenceConfigPtr configPtr= std::make_shared<t_assetref_config_class>();
 
-		configPtr->className = t_assetref_class::k_assetClassName;
+		configPtr->className= t_assetref_class::k_assetClassName;
 
 		return configPtr;
 	}

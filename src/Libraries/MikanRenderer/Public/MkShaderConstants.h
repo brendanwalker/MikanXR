@@ -6,7 +6,7 @@
 
 enum class eUniformDataType : int
 {
-	INVALID = -1,
+	INVALID= -1,
 
 	datatype_int,
 	datatype_int2,
@@ -23,7 +23,7 @@ enum class eUniformDataType : int
 // Don't forget to update IMkShader::getUniformSemanticDataType if chaning this enum
 enum class eUniformSemantic : int
 {
-	INVALID = -1,
+	INVALID= -1,
 
 	transformMatrix,
 	modelMatrix,
@@ -56,10 +56,10 @@ enum class eUniformSemantic : int
 	specularHightlightTexture,
 	alphaTexture,
 	bumpTexture,
-	rgbTexture, // 24-bit RGB texture
-	rgbaTexture, // 32-bit RGBA texture
+	rgbTexture,        // 24-bit RGB texture
+	rgbaTexture,       // 32-bit RGBA texture
 	distortionTexture, // vec2f texture applying lens undistortion
-	depthTexture, // float texture with depth values
+	depthTexture,      // float texture with depth values
 
 	COUNT
 };

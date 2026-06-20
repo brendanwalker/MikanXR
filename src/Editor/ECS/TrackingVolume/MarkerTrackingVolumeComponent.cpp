@@ -25,7 +25,7 @@ bool MarkerTrackingVolumeDefinition::readFromInitParams(
 	if (!TrackingVolumeDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
-	const auto* componentValues = initParams.getTypedPointer<MikanMarkerTrackingVolumeComponentValues>();
+	const auto* componentValues= initParams.getTypedPointer<MikanMarkerTrackingVolumeComponentValues>();
 	if (componentValues)
 	{
 		// No additional fields - just call parent and return

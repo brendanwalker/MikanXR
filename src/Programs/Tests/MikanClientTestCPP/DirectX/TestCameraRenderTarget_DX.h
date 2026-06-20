@@ -12,7 +12,7 @@ class TestCameraRenderTarget_DX : public TestCameraRenderTarget
 public:
 	TestCameraRenderTarget_DX(
 		TestGraphicsContextPtr ownerContext,
-		ID3D11Device* d3dDevice, 
+		ID3D11Device* d3dDevice,
 		int cameraId);
 	virtual ~TestCameraRenderTarget_DX();
 
@@ -25,16 +25,16 @@ public:
 	inline ID3D11ShaderResourceView* getColorTextureSRV() const { return m_colorTargetSRV; }
 	inline ID3D11ShaderResourceView* getFloatDepthTextureSRV() const { return m_floatDepthTargetSRV; }
 
-	inline bool getIsInitialized() const { m_colorTargetTexture != nullptr && m_floatDepthTargetTexture != nullptr; }
+	inline bool getIsInitialized() const { m_colorTargetTexture != nullptr&& m_floatDepthTargetTexture != nullptr; }
 
 	const DirectX::XMFLOAT3& getCameraPosition() const { return m_cameraPosition; }
 	const DirectX::XMFLOAT3& getCameraForward() const { return m_cameraForward; }
 	const DirectX::XMFLOAT3& getCameraUp() const { return m_cameraUp; }
 	const DirectX::XMFLOAT3& getCameraRight() const { return m_cameraRight; }
-	const DirectX::XMMATRIX getViewProjectionMatrix() const { 
+	const DirectX::XMMATRIX getViewProjectionMatrix() const
+	{
 		return DirectX::XMMatrixMultiply(m_viewMatrix, m_projMatrix);
 	}
-
 
 protected:
 	virtual bool createGraphicsAPIResources(int textureWidth, int textureHeight) override;
@@ -49,16 +49,16 @@ protected:
 
 private:
 	ID3D11Device* m_d3dDevice= nullptr;
-	
+
 	// Direct3D11 Color Target
-	ID3D11Texture2D* m_colorTargetTexture = nullptr;
-	ID3D11RenderTargetView* m_colorTargetView = nullptr;
-	ID3D11ShaderResourceView* m_colorTargetSRV = nullptr;
+	ID3D11Texture2D* m_colorTargetTexture= nullptr;
+	ID3D11RenderTargetView* m_colorTargetView= nullptr;
+	ID3D11ShaderResourceView* m_colorTargetSRV= nullptr;
 
 	// Direct3D11 Depth Target
-	ID3D11Texture2D* m_floatDepthTargetTexture = nullptr;
-	ID3D11DepthStencilView* m_floatDepthTargetView = nullptr;
-	ID3D11ShaderResourceView* m_floatDepthTargetSRV = nullptr;
+	ID3D11Texture2D* m_floatDepthTargetTexture= nullptr;
+	ID3D11DepthStencilView* m_floatDepthTargetView= nullptr;
+	ID3D11ShaderResourceView* m_floatDepthTargetSRV= nullptr;
 
 	DirectX::XMMATRIX m_projMatrix;
 	DirectX::XMMATRIX m_viewMatrix;

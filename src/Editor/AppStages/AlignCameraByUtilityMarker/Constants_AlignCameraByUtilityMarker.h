@@ -4,15 +4,15 @@
 
 enum class eAlignCameraByUtilityMarkerMenuState : int
 {
-	INVALID = -1,
+	INVALID= -1,
 
-	inactive = 0,
-	selectSourceCamera = 1,
-	pendingVideoStart = 2,
-	verifySetup = 3,
-	capturing = 4,
-	testCalibration = 5,
-	failedVideoStart = 6,
+	inactive= 0,
+	selectSourceCamera= 1,
+	pendingVideoStart= 2,
+	verifySetup= 3,
+	capturing= 4,
+	testCalibration= 5,
+	failedVideoStart= 6,
 
 	COUNT
 };

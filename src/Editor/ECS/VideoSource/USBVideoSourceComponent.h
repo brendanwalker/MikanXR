@@ -4,8 +4,8 @@
 #include "IUsbVideoDevice.h"
 #include "MulticastDelegate.h"
 
-using USBVideoSettingsArray = std::array<float, (int)eVideoSettingType::COUNT>;
-using USBVideoConstraintArray = std::array<VideoSettingConstraint, (int)eVideoSettingType::COUNT>;
+using USBVideoSettingsArray= std::array<float, (int)eVideoSettingType::COUNT>;
+using USBVideoConstraintArray= std::array<VideoSettingConstraint, (int)eVideoSettingType::COUNT>;
 
 class USBVideoSourceDefinition : public VideoSourceDefinition
 {
@@ -64,7 +64,7 @@ public:
 	}
 	virtual void setDefinition(MikanComponentDefinitionPtr definition) override;
 
-	inline static const std::string k_componentClassName = "USBVideoSourceComponent";
+	inline static const std::string k_componentClassName= "USBVideoSourceComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	inline bool isPendingOpen() const { return m_bPendingOpen; }
@@ -72,7 +72,7 @@ public:
 
 	bool hasVideoSetting(eVideoSettingType settingType) const;
 	bool getVideoSettingAsFloatFraction(eVideoSettingType settingType, float& outFloatFraction) const;
-	bool setVideoSettingAsFloatFraction(eVideoSettingType settingType, float outFloatFraction, bool bForce = false);
+	bool setVideoSettingAsFloatFraction(eVideoSettingType settingType, float outFloatFraction, bool bForce= false);
 
 	// VideoSourceComponent Interface
 	virtual std::string getDevicePath() const override;
@@ -151,9 +151,9 @@ protected:
 	std::vector<std::string> m_cachedVideoFrameRateNames;
 	std::vector<std::string> m_cachedVideoFormatNames;
 	bool m_bDeviceChanged= false;
-	bool m_bModeChanged = false;
-	bool m_bSettingsChanged = false;
-	bool m_bPendingStartStream = false;
-	bool m_bWantsStreamActive = false;
-	bool m_bPendingOpen = false;
+	bool m_bModeChanged= false;
+	bool m_bSettingsChanged= false;
+	bool m_bPendingStartStream= false;
+	bool m_bWantsStreamActive= false;
+	bool m_bPendingOpen= false;
 };

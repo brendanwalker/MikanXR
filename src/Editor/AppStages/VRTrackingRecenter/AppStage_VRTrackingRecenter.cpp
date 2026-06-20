@@ -40,7 +40,7 @@
 #include "imgui.h"
 
 //-- statics ----
-const char* AppStage_VRTrackingRecenter::APP_STAGE_NAME = "VRTrackingRecenter";
+const char* AppStage_VRTrackingRecenter::APP_STAGE_NAME= "VRTrackingRecenter";
 
 //-- public methods -----
 AppStage_VRTrackingRecenter::AppStage_VRTrackingRecenter(IEditorWindow* ownerWindow)
@@ -67,7 +67,7 @@ bool AppStage_VRTrackingRecenter::tryEnterAlignmentCalibration(
 	assert(withCameraComponent);
 	assert(forTrackingVolume);
 
-	VideoSourceComponentPtr videoSourceComponent = withCameraComponent->getVideoSourceComponent();
+	VideoSourceComponentPtr videoSourceComponent= withCameraComponent->getVideoSourceComponent();
 	if (!videoSourceComponent)
 	{
 		ModalDialog_MessageBox::showMessageBox(
@@ -101,8 +101,8 @@ bool AppStage_VRTrackingRecenter::tryEnterAlignmentCalibration(
 		return false;
 	}
 
-	IEditorWindow* ownerWindow = fromAppStage->getOwnerWindow();
-	auto* vrTrackingRecenterStage = ownerWindow->pushAppStageOfType<AppStage_VRTrackingRecenter>();
+	IEditorWindow* ownerWindow= fromAppStage->getOwnerWindow();
+	auto* vrTrackingRecenterStage= ownerWindow->pushAppStageOfType<AppStage_VRTrackingRecenter>();
 	vrTrackingRecenterStage->setSourceCamera(withCameraComponent);
 	vrTrackingRecenterStage->setTargetVRTrackingVolume(forTrackingVolume);
 
@@ -112,8 +112,8 @@ bool AppStage_VRTrackingRecenter::tryEnterAlignmentCalibration(
 void AppStage_VRTrackingRecenter::setSourceCamera(CameraComponentPtr cameraComponent)
 {
 	// Get the current video source based on the config
-	m_cameraComponent = cameraComponent;
-	m_videoSourceComponent = m_cameraComponent->getVideoSourceComponent();
+	m_cameraComponent= cameraComponent;
+	m_videoSourceComponent= m_cameraComponent->getVideoSourceComponent();
 }
 
 void AppStage_VRTrackingRecenter::enter()
@@ -138,7 +138,7 @@ void AppStage_VRTrackingRecenter::enter()
 	m_frameBuffer->createResources();
 
 	// Create the distortion view (acts as stream ownership token)
-	m_monoDistortionView =
+	m_monoDistortionView=
 		new VideoFrameDistortionView(
 			m_videoSourceComponent,
 			eVideoFrameProcessorMode::CALIBRATION);
@@ -146,17 +146,22 @@ void AppStage_VRTrackingRecenter::enter()
 
 	// Register as a stream consumer — update() drives the retry loop
 	m_videoSourceComponent->startVideoStream(m_monoDistortionView);
-	eVRTrackingRecenterMenuState newState = eVRTrackingRecenterMenuState::pendingVideoStart;
+	eVRTrackingRecenterMenuState newState= eVRTrackingRecenterMenuState::pendingVideoStart;
 
 	// Create app stage GUI panels
 	// (Auto cleaned up on app state exit)
 	{
-		m_calibrationPanel = addGuiPanel<GuiPanel_VRTrackingRecenter>();
-		m_calibrationPanel->OnBeginEvent = [this]() { onBeginEvent(); };
-		m_calibrationPanel->OnRestartEvent = [this]() { onRestartEvent(); };
-		m_calibrationPanel->OnCancelEvent = [this]() { onCancelEvent(); };
-		m_calibrationPanel->OnReturnEvent = [this]() { onReturnEvent(); };
-		m_calibrationPanel->OnMarkerStabilityChangedEvent = [this](bool b) { onMarkerStabilityChangedEvent(b); };
+		m_calibrationPanel= addGuiPanel<GuiPanel_VRTrackingRecenter>();
+		m_calibrationPanel->OnBeginEvent= [this]()
+		{ onBeginEvent(); };
+		m_calibrationPanel->OnRestartEvent= [this]()
+		{ onRestartEvent(); };
+		m_calibrationPanel->OnCancelEvent= [this]()
+		{ onCancelEvent(); };
+		m_calibrationPanel->OnReturnEvent= [this]()
+		{ onReturnEvent(); };
+		m_calibrationPanel->OnMarkerStabilityChangedEvent= [this](bool b)
+		{ onMarkerStabilityChangedEvent(b); };
 	}
 
 	setMenuState(newState);
@@ -172,13 +177,13 @@ void AppStage_VRTrackingRecenter::exit()
 	if (m_markerPoseSampler != nullptr)
 	{
 		delete m_markerPoseSampler;
-		m_markerPoseSampler = nullptr;
+		m_markerPoseSampler= nullptr;
 	}
 
 	if (m_puckSampler != nullptr)
 	{
 		delete m_puckSampler;
-		m_puckSampler = nullptr;
+		m_puckSampler= nullptr;
 	}
 
 	if (m_videoSourceComponent)
@@ -188,9 +193,9 @@ void AppStage_VRTrackingRecenter::exit()
 		{
 			m_videoSourceComponent->stopVideoStream(m_monoDistortionView);
 			delete m_monoDistortionView;
-			m_monoDistortionView = nullptr;
+			m_monoDistortionView= nullptr;
 		}
-		m_videoSourceComponent = nullptr;
+		m_videoSourceComponent= nullptr;
 	}
 
 	AppStage::exit();
@@ -200,16 +205,16 @@ void AppStage_VRTrackingRecenter::setupMarkerPoseSampler()
 {
 	// Create a sampler to do the actual marker pose recording
 	// (m_monoDistortionView is already created in enter())
-	m_markerPoseSampler =
+	m_markerPoseSampler=
 		new ArucoMarkerPoseSampler(
 			m_cameraComponent,
 			m_monoDistortionView,
 			DESIRED_MARKER_SAMPLE_COUNT);
 
 	// Create a sampler to record the camera puck pose in VR tracking space
-	VRDevicePoseViewPtr puckPoseView =
+	VRDevicePoseViewPtr puckPoseView=
 		m_cameraComponent->makeTrackingMountPoseView(eVRDevicePoseSpace::VRTrackingSystemPose);
-	m_puckSampler =
+	m_puckSampler=
 		new VRDevicePoseSampler(
 			puckPoseView,
 			m_cameraComponent,
@@ -220,24 +225,24 @@ void AppStage_VRTrackingRecenter::updateCameraPose()
 {
 	switch (m_calibrationPanel->getMenuState())
 	{
-		case eVRTrackingRecenterMenuState::verifySetup:
-		case eVRTrackingRecenterMenuState::capture:
-			{
-				// All debug rendering during calibration is camera relative
-				// so zero out the camera transform
-				m_mkCamera->setCameraTransform(glm::mat4(1.f));
-			}
-			break;
-		case eVRTrackingRecenterMenuState::testCalibration:
-			{
-				// Use the re-centered scene space for the camera
-				glm::mat4 cameraPose;
-				if (m_cameraComponent->getStageSpaceAperturePose(cameraPose))
-				{
-					m_mkCamera->setCameraTransform(cameraPose);
-				}
-			}
-			break;
+	case eVRTrackingRecenterMenuState::verifySetup:
+	case eVRTrackingRecenterMenuState::capture:
+	{
+		// All debug rendering during calibration is camera relative
+		// so zero out the camera transform
+		m_mkCamera->setCameraTransform(glm::mat4(1.f));
+	}
+	break;
+	case eVRTrackingRecenterMenuState::testCalibration:
+	{
+		// Use the re-centered scene space for the camera
+		glm::mat4 cameraPose;
+		if (m_cameraComponent->getStageSpaceAperturePose(cameraPose))
+		{
+			m_mkCamera->setCameraTransform(cameraPose);
+		}
+	}
+	break;
 	}
 }
 
@@ -245,108 +250,111 @@ void AppStage_VRTrackingRecenter::update(float deltaSeconds)
 {
 	updateCameraPose();
 
-	switch(m_calibrationPanel->getMenuState())
+	switch (m_calibrationPanel->getMenuState())
 	{
-		case eVRTrackingRecenterMenuState::pendingVideoStart:
+	case eVRTrackingRecenterMenuState::pendingVideoStart:
+	{
+		if (m_monoDistortionView->isReceivingFrames())
+		{
+			setupMarkerPoseSampler();
+			setMenuState(eVRTrackingRecenterMenuState::verifySetup);
+		}
+		else if (m_videoSourceComponent->getVideoStreamingStatus() == eVideoStreamingStatus::failed)
+		{
+			setMenuState(eVRTrackingRecenterMenuState::failedVideoStartStreamRequest);
+		}
+	}
+	break;
+	case eVRTrackingRecenterMenuState::verifySetup:
+	{
+		// Update the video frame buffers to preview the calibration mat
+		m_monoDistortionView->readAndProcessVideoFrame();
+
+		// Look for a marker pose so that we can preview if it's in frame
+		m_markerPoseSampler->computeApertureRelativeMarkerXform();
+
+		// See if we can compute a valid marker pose
+		m_calibrationPanel->setCurrentMarkerValid(m_markerPoseSampler->hasValidApertureRelativeMarkerXform());
+
+		// Update the time that the chessboard has been stable for
+		m_calibrationPanel->updateMarkerStabilityTimer(deltaSeconds);
+	}
+	break;
+	case eVRTrackingRecenterMenuState::capture:
+	{
+		// Update the video frame buffers
+		m_monoDistortionView->readAndProcessVideoFrame();
+
+		// Sample marker and puck together each frame
+		if (m_markerPoseSampler->computeApertureRelativeMarkerXform() &&
+			m_puckSampler->computeVRDeviceXform())
+		{
+			m_markerPoseSampler->sampleLastApertureRelativeMarkerXform();
+			m_puckSampler->sampleLastVRDeviceXform();
+
+			// Update the calibration fraction on the UI Model
+			m_calibrationPanel->setCalibrationFraction(m_markerPoseSampler->getCalibrationProgress());
+		}
+
+		// See if we have gotten all the samples we require
+		if (m_markerPoseSampler->hasFinishedSampling())
+		{
+			MikanQuatd puckRot;
+			MikanVector3d puckPos;
+			MikanQuatd markerRot;
+			MikanVector3d markerPos;
+			glm::mat4 apertureOffsetXform;
+			if (m_puckSampler->computeCalibratedDevicePose(puckRot, puckPos) &&
+				m_markerPoseSampler->computeCalibratedMarkerPose(markerRot, markerPos) &&
+				m_cameraComponent->getApertureOffsetXform(apertureOffsetXform))
 			{
-				if (m_monoDistortionView->isReceivingFrames())
-				{
-					setupMarkerPoseSampler();
-					setMenuState(eVRTrackingRecenterMenuState::verifySetup);
-				}
-				else if (m_videoSourceComponent->getVideoStreamingStatus() == eVideoStreamingStatus::failed)
-				{
-					setMenuState(eVRTrackingRecenterMenuState::failedVideoStartStreamRequest);
-				}
+				// Compute the puck pose in VRSpace
+				glm::dmat4 avgPuckXform_VRSpace=
+					glm_mat4_from_pose(
+						MikanQuatd_to_glm_dquat(puckRot),
+						MikanVector3d_to_glm_dvec3(puckPos));
+
+				// Compute the aperture pose in VR space by applying the aperture offset to the puck pose
+				glm::dmat4 avgAperturePose_VRSpace=
+					glm_composite_xform(apertureOffsetXform, avgPuckXform_VRSpace);
+
+				// Compute the marker pose in aperture space
+				glm::dmat4 avgApertureToMarker=
+					glm_mat4_from_pose(
+						MikanQuatd_to_glm_dquat(markerRot),
+						MikanVector3d_to_glm_dvec3(markerPos));
+
+				// The conversion from stage space to VR tracking space is given
+				// by the marker pose in VR space since the marker is at the origin of stage space
+				glm::dmat4 stageSpaceToVRSpace=
+					glm_composite_xform(avgApertureToMarker, avgAperturePose_VRSpace);
+				// Thus the conversion from VR tracking space to stage space is the inverse of that
+				glm::mat4 vrSpaceToStageSpace= glm::inverse(glm::mat4(stageSpaceToVRSpace));
+
+				// Publish the new VR device pose offset to the target tracking volume
+				m_targetTrackingVolume->setVRSpaceToStageSpace(vrSpaceToStageSpace);
+
+				setMenuState(eVRTrackingRecenterMenuState::testCalibration);
 			}
-			break;
-		case eVRTrackingRecenterMenuState::verifySetup:
-			{
-				// Update the video frame buffers to preview the calibration mat
-				m_monoDistortionView->readAndProcessVideoFrame();
-
-				// Look for a marker pose so that we can preview if it's in frame
-				m_markerPoseSampler->computeApertureRelativeMarkerXform();
-
-				// See if we can compute a valid marker pose
-				m_calibrationPanel->setCurrentMarkerValid(m_markerPoseSampler->hasValidApertureRelativeMarkerXform());
-
-				// Update the time that the chessboard has been stable for
-				m_calibrationPanel->updateMarkerStabilityTimer(deltaSeconds);
-			}
-			break;
-		case eVRTrackingRecenterMenuState::capture:
-			{
-				// Update the video frame buffers
-				m_monoDistortionView->readAndProcessVideoFrame();
-
-				// Sample marker and puck together each frame
-				if (m_markerPoseSampler->computeApertureRelativeMarkerXform() &&
-					m_puckSampler->computeVRDeviceXform())
-				{
-					m_markerPoseSampler->sampleLastApertureRelativeMarkerXform();
-					m_puckSampler->sampleLastVRDeviceXform();
-
-					// Update the calibration fraction on the UI Model
-					m_calibrationPanel->setCalibrationFraction(m_markerPoseSampler->getCalibrationProgress());
-				}
-
-				// See if we have gotten all the samples we require
-				if (m_markerPoseSampler->hasFinishedSampling())
-				{
-					MikanQuatd puckRot;   MikanVector3d puckPos;
-					MikanQuatd markerRot; MikanVector3d markerPos;
-					glm::mat4 apertureOffsetXform;
-					if (m_puckSampler->computeCalibratedDevicePose(puckRot, puckPos) &&
-						m_markerPoseSampler->computeCalibratedMarkerPose(markerRot, markerPos) &&
-						m_cameraComponent->getApertureOffsetXform(apertureOffsetXform))
-					{
-						// Compute the puck pose in VRSpace
-						glm::dmat4 avgPuckXform_VRSpace =
-							glm_mat4_from_pose(
-								MikanQuatd_to_glm_dquat(puckRot), 
-								MikanVector3d_to_glm_dvec3(puckPos));
-
-						// Compute the aperture pose in VR space by applying the aperture offset to the puck pose
-						glm::dmat4 avgAperturePose_VRSpace =
-							glm_composite_xform(apertureOffsetXform, avgPuckXform_VRSpace);
-
-						// Compute the marker pose in aperture space
-						glm::dmat4 avgApertureToMarker =
-							glm_mat4_from_pose(
-								MikanQuatd_to_glm_dquat(markerRot),
-								MikanVector3d_to_glm_dvec3(markerPos));
-
-						// The conversion from stage space to VR tracking space is given 
-						// by the marker pose in VR space since the marker is at the origin of stage space
-						glm::dmat4 stageSpaceToVRSpace =
-							glm_composite_xform(avgApertureToMarker, avgAperturePose_VRSpace);
-						// Thus the conversion from VR tracking space to stage space is the inverse of that
-						glm::mat4 vrSpaceToStageSpace = glm::inverse(glm::mat4(stageSpaceToVRSpace));
-
-						// Publish the new VR device pose offset to the target tracking volume
-						m_targetTrackingVolume->setVRSpaceToStageSpace(vrSpaceToStageSpace);
-
-						setMenuState(eVRTrackingRecenterMenuState::testCalibration);
-					}
-				}
-			}
-			break;
-		case eVRTrackingRecenterMenuState::testCalibration:
-			{
-				// Update the video frame buffers using the existing distortion calibration
-				m_monoDistortionView->readAndProcessVideoFrame();
-			}
-			break;
+		}
+	}
+	break;
+	case eVRTrackingRecenterMenuState::testCalibration:
+	{
+		// Update the video frame buffers using the existing distortion calibration
+		m_monoDistortionView->readAndProcessVideoFrame();
+	}
+	break;
 	}
 }
 
 void AppStage_VRTrackingRecenter::render(IMkViewportPtr targetViewport)
 {
-	IMkGraphicsContext* graphicsContext = getGraphicsContext();
+	IMkGraphicsContext* graphicsContext= getGraphicsContext();
 
 	// Distortion view won't be valid if we haven't started the video stream yet
-	if (!m_monoDistortionView) return;
+	if (!m_monoDistortionView)
+		return;
 
 	// Render the scene into the frame buffer
 	if (m_frameBuffer->isValid())
@@ -363,28 +371,28 @@ void AppStage_VRTrackingRecenter::render(IMkViewportPtr targetViewport)
 
 			switch (m_calibrationPanel->getMenuState())
 			{
-				case eVRTrackingRecenterMenuState::verifySetup:
-				case eVRTrackingRecenterMenuState::capture:
-					{
-						// draw the camera relative calibration state when calibrating
-						m_markerPoseSampler->renderApertureSpaceCalibrationState();
-					}
-					break;
-				case eVRTrackingRecenterMenuState::testCalibration:
-					{
-						// Draw the origin after calibrating
-						glm::mat4 origin(1.f);
-						drawTransformedAxes(graphicsContext, origin, 0.1f);
+			case eVRTrackingRecenterMenuState::verifySetup:
+			case eVRTrackingRecenterMenuState::capture:
+			{
+				// draw the camera relative calibration state when calibrating
+				m_markerPoseSampler->renderApertureSpaceCalibrationState();
+			}
+			break;
+			case eVRTrackingRecenterMenuState::testCalibration:
+			{
+				// Draw the origin after calibrating
+				glm::mat4 origin(1.f);
+				drawTransformedAxes(graphicsContext, origin, 0.1f);
 
-						TextStyle style = getDefaultTextStyle();
-						drawTextAtWorldPosition(graphicsContext, style, glm_mat4_get_position(origin), L"Origin");
-					}
-					break;
+				TextStyle style= getDefaultTextStyle();
+				drawTextAtWorldPosition(graphicsContext, style, glm_mat4_get_position(origin), L"Origin");
+			}
+			break;
 			}
 		}
 
 		// Clear the depth buffer before drawing the scene
-		IMkState* mkState = graphicsContext->getMkStateStack().getCurrentState();
+		IMkState* mkState= graphicsContext->getMkStateStack().getCurrentState();
 		mkStateClearBuffer(mkState, eMkClearFlags::depth);
 
 		// Render any lines and text that were added to the scene by the calibrator in the frame buffer's viewport
@@ -395,10 +403,10 @@ void AppStage_VRTrackingRecenter::render(IMkViewportPtr targetViewport)
 	// Render the frame buffer to the screen
 	if (m_frameBuffer->isValid())
 	{
-		MkMaterialInstancePtr materialInstance = m_fullscreenRGBQuad->getMaterialInstance();
-		MkMaterialConstPtr material = materialInstance->getMaterial();
+		MkMaterialInstancePtr materialInstance= m_fullscreenRGBQuad->getMaterialInstance();
+		MkMaterialConstPtr material= materialInstance->getMaterial();
 
-		if (auto materialBinding = material->bindMaterial())
+		if (auto materialBinding= material->bindMaterial())
 		{
 			auto colorTexture= m_frameBuffer->getColorTexture();
 
@@ -406,7 +414,7 @@ void AppStage_VRTrackingRecenter::render(IMkViewportPtr targetViewport)
 			materialInstance->setTextureBySemantic(eUniformSemantic::rgbTexture, colorTexture);
 
 			// Draw the color texture
-			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+			if (auto materialInstanceBinding= materialInstance->bindMaterialInstance(materialBinding))
 			{
 				m_fullscreenRGBQuad->drawElements();
 			}
@@ -418,19 +426,20 @@ void AppStage_VRTrackingRecenter::onGui()
 {
 	AppStage::onGui();
 
-	constexpr float k_panelWidth = 415.f;
-	const float displayWidth = m_ownerWindow->getWidth();
+	constexpr float k_panelWidth= 415.f;
+	const float displayWidth= m_ownerWindow->getWidth();
 	ImGui::SetNextWindowPos(ImVec2(displayWidth - k_panelWidth, 0.f), ImGuiCond_Always);
 	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, 0), ImGuiCond_Always);
 
-	constexpr ImGuiWindowFlags k_flags =
+	constexpr ImGuiWindowFlags k_flags=
 		ImGuiWindowFlags_NoMove |
 		ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoCollapse |
 		ImGuiWindowFlags_NoTitleBar;
 
 	MkGuiScopedWindow panel("##VRTrackingRecenter", nullptr, k_flags);
-	if (!panel) return;
+	if (!panel)
+		return;
 
 	for (IGuiPanel* guiPanel : m_guiPanels)
 		guiPanel->onGui();
@@ -557,8 +566,8 @@ bool AppStage_VRTrackingRecenter::handleRemoteControlCommand(
 bool AppStage_VRTrackingRecenter::handleGetStateCommand(
 	std::vector<std::string>& outResults)
 {
-	const eVRTrackingRecenterMenuState menuState = m_calibrationPanel->getMenuState();
-	const std::string& stateName = k_VRTrackingRecenterMenuStateStrings[(int)menuState];
+	const eVRTrackingRecenterMenuState menuState= m_calibrationPanel->getMenuState();
+	const std::string& stateName= k_VRTrackingRecenterMenuStateStrings[(int)menuState];
 
 	outResults.push_back(stateName);
 
@@ -568,7 +577,7 @@ bool AppStage_VRTrackingRecenter::handleGetStateCommand(
 bool AppStage_VRTrackingRecenter::handleGetChessboardStabilityCommand(
 	std::vector<std::string>& outResults)
 {
-	const bool bIsStable = m_calibrationPanel->getCurrentMarkerStable();
+	const bool bIsStable= m_calibrationPanel->getCurrentMarkerStable();
 	outResults.push_back(bIsStable ? IRemoteControllable::k_true : IRemoteControllable::k_false);
 
 	return true;

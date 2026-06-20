@@ -46,7 +46,7 @@
 #include "imgui.h"
 
 //-- statics ----
-const char* AppStage_StencilAlignment::APP_STAGE_NAME = "StencilAlignment";
+const char* AppStage_StencilAlignment::APP_STAGE_NAME= "StencilAlignment";
 
 //-- public methods -----
 AppStage_StencilAlignment::AppStage_StencilAlignment(IEditorWindow* ownerWindow)
@@ -70,7 +70,7 @@ void AppStage_StencilAlignment::enter()
 	AppStage::enter();
 
 	assert(m_cameraComponent);
-	m_videoSourceComponent = m_cameraComponent->getVideoSourceComponent();
+	m_videoSourceComponent= m_cameraComponent->getVideoSourceComponent();
 	assert(m_videoSourceComponent);
 
 	// Listen for mouse ray events
@@ -79,7 +79,7 @@ void AppStage_StencilAlignment::enter()
 	viewport->OnMouseRayButtonUp+= MakeDelegate(this, &AppStage_StencilAlignment::onMouseRayButtonUp);
 
 	// Create a new camera to view the scene
-	m_mkCamera = viewport->getCurrentMikanCamera();
+	m_mkCamera= viewport->getCurrentMikanCamera();
 	m_mkCamera->setCameraMovementMode(eCameraMovementMode::stationary);
 
 	// Center the orbit camera on the stencil model
@@ -92,7 +92,7 @@ void AppStage_StencilAlignment::enter()
 	m_mkCamera->applyMonoCameraIntrinsics(&cameraIntrinsics);
 
 	// Create a frame buffer to render the scene into using the resolution and fov from the camera intrinsics
-	const MikanMonoIntrinsics& monoIntrinsics = cameraIntrinsics.getMonoIntrinsics();
+	const MikanMonoIntrinsics& monoIntrinsics= cameraIntrinsics.getMonoIntrinsics();
 	m_frameBuffer->setName("StencilAlignment");
 	m_frameBuffer->setSize(monoIntrinsics.pixel_width, monoIntrinsics.pixel_height);
 	m_frameBuffer->setFrameBufferType(IMkFrameBuffer::eFrameBufferType::COLOR);
@@ -108,7 +108,7 @@ void AppStage_StencilAlignment::enter()
 	}
 
 	// Create the distortion view (acts as stream ownership token)
-	m_monoDistortionView =
+	m_monoDistortionView=
 		new VideoFrameDistortionView(
 			m_videoSourceComponent,
 			eVideoFrameProcessorMode::CALIBRATION);
@@ -116,15 +116,18 @@ void AppStage_StencilAlignment::enter()
 
 	// Register as a stream consumer — update() drives the retry loop
 	m_videoSourceComponent->startVideoStream(m_monoDistortionView);
-	eStencilAlignmentMenuState newState = eStencilAlignmentMenuState::pendingVideoStart;
+	eStencilAlignmentMenuState newState= eStencilAlignmentMenuState::pendingVideoStart;
 
 	// Create app stage GUI panels
 	// (Auto cleaned up on app state exit)
 	{
-		m_calibrationPanel = addGuiPanel<GuiPanel_StencilAlignment>();
-		m_calibrationPanel->OnOkEvent = [this]() { onOkEvent(); };
-		m_calibrationPanel->OnRedoEvent = [this]() { onRedoEvent(); };
-		m_calibrationPanel->OnCancelEvent = [this]() { onCancelEvent(); };
+		m_calibrationPanel= addGuiPanel<GuiPanel_StencilAlignment>();
+		m_calibrationPanel->OnOkEvent= [this]()
+		{ onOkEvent(); };
+		m_calibrationPanel->OnRedoEvent= [this]()
+		{ onRedoEvent(); };
+		m_calibrationPanel->OnCancelEvent= [this]()
+		{ onCancelEvent(); };
 	}
 
 	setMenuState(newState);
@@ -135,9 +138,9 @@ void AppStage_StencilAlignment::exit()
 	setMenuState(eStencilAlignmentMenuState::inactive);
 
 	// Stop listening to mouse ray events
-	MikanViewportPtr viewport = getFirstViewport();
-	viewport->OnMouseRayChanged -= MakeDelegate(this, &AppStage_StencilAlignment::onMouseRayChanged);
-	viewport->OnMouseRayButtonUp -= MakeDelegate(this, &AppStage_StencilAlignment::onMouseRayButtonUp);
+	MikanViewportPtr viewport= getFirstViewport();
+	viewport->OnMouseRayChanged-= MakeDelegate(this, &AppStage_StencilAlignment::onMouseRayChanged);
+	viewport->OnMouseRayButtonUp-= MakeDelegate(this, &AppStage_StencilAlignment::onMouseRayButtonUp);
 
 	// Forget about the stencil we were aligning
 	m_targetStencilComponent= nullptr;
@@ -152,7 +155,7 @@ void AppStage_StencilAlignment::exit()
 	if (m_stencilAligner != nullptr)
 	{
 		delete m_stencilAligner;
-		m_stencilAligner = nullptr;
+		m_stencilAligner= nullptr;
 	}
 
 	if (m_videoSourceComponent)
@@ -162,9 +165,9 @@ void AppStage_StencilAlignment::exit()
 		{
 			m_videoSourceComponent->stopVideoStream(m_monoDistortionView);
 			delete m_monoDistortionView;
-			m_monoDistortionView = nullptr;
+			m_monoDistortionView= nullptr;
 		}
-		m_videoSourceComponent = nullptr;
+		m_videoSourceComponent= nullptr;
 	}
 
 	AppStage::exit();
@@ -174,7 +177,7 @@ void AppStage_StencilAlignment::setupStencilAligner()
 {
 	// Create a aligner to calibrate the stencil
 	// (m_monoDistortionView is already created in enter())
-	m_stencilAligner =
+	m_stencilAligner=
 		new StencilAligner(
 			m_cameraComponent,
 			m_monoDistortionView,
@@ -184,7 +187,7 @@ void AppStage_StencilAlignment::setupStencilAligner()
 void AppStage_StencilAlignment::updateXRCamera()
 {
 	// Update the transform of the camera so that vr models align over the tracking puck
-	glm::mat4 cameraPose;	
+	glm::mat4 cameraPose;
 	if (m_cameraComponent->getStageSpaceAperturePose(cameraPose))
 	{
 		m_mkCamera->setCameraTransform(cameraPose);
@@ -196,7 +199,7 @@ void AppStage_StencilAlignment::updateVRCamera()
 	if (!m_targetStencilComponent)
 		return;
 
-	bool bValidBoundingSphere = false;
+	bool bValidBoundingSphere= false;
 
 	m_boundingSphereCenter= glm::vec3();
 	m_boundingSphereRadius= 1.f;
@@ -213,13 +216,12 @@ void AppStage_StencilAlignment::updateVRCamera()
 					m_boundingSphereCenter, m_boundingSphereRadius,
 					colliderCenter, colliderRadius,
 					m_boundingSphereCenter, m_boundingSphereRadius);
-
 			}
 			else
 			{
-				m_boundingSphereCenter = colliderCenter;
-				m_boundingSphereRadius = colliderRadius;
-				bValidBoundingSphere = true;
+				m_boundingSphereCenter= colliderCenter;
+				m_boundingSphereRadius= colliderRadius;
+				bValidBoundingSphere= true;
 			}
 		}
 	}
@@ -237,43 +239,43 @@ void AppStage_StencilAlignment::update(float deltaSeconds)
 
 	switch (m_calibrationPanel->getMenuState())
 	{
-		case eStencilAlignmentMenuState::pendingVideoStart:
-			{
-				// Wait until the distortion view has a valid frame size (stream started + first frame size known)
-				if (m_monoDistortionView->isReceivingFrames())
-				{
-					setupStencilAligner();
-					setMenuState(eStencilAlignmentMenuState::verifyInitialCameraSetup);
-				}
-				else if (m_videoSourceComponent->getVideoStreamingStatus() == eVideoStreamingStatus::failed)
-				{
-					setMenuState(eStencilAlignmentMenuState::failedVideoStartStreamRequest);
-				}
-			}
-			break;
-		case eStencilAlignmentMenuState::verifyInitialCameraSetup:
-		case eStencilAlignmentMenuState::verifyPointsCapture:
-		case eStencilAlignmentMenuState::captureOriginPixel:
-		case eStencilAlignmentMenuState::captureXAxisPixel:
-		case eStencilAlignmentMenuState::captureYAxisPixel:
-		case eStencilAlignmentMenuState::captureZAxisPixel:
-			{
-				m_monoDistortionView->readAndProcessVideoFrame();
-				updateXRCamera();
-			}
-			break;
-		case eStencilAlignmentMenuState::captureOriginVertex:
-		case eStencilAlignmentMenuState::captureXAxisVertex:
-		case eStencilAlignmentMenuState::captureYAxisVertex:
-		case eStencilAlignmentMenuState::captureZAxisVertex:
-			{
-			}
-			break;
-		case eStencilAlignmentMenuState::testCalibration:
-			{
-				m_monoDistortionView->readAndProcessVideoFrame();
-			}
-			break;
+	case eStencilAlignmentMenuState::pendingVideoStart:
+	{
+		// Wait until the distortion view has a valid frame size (stream started + first frame size known)
+		if (m_monoDistortionView->isReceivingFrames())
+		{
+			setupStencilAligner();
+			setMenuState(eStencilAlignmentMenuState::verifyInitialCameraSetup);
+		}
+		else if (m_videoSourceComponent->getVideoStreamingStatus() == eVideoStreamingStatus::failed)
+		{
+			setMenuState(eStencilAlignmentMenuState::failedVideoStartStreamRequest);
+		}
+	}
+	break;
+	case eStencilAlignmentMenuState::verifyInitialCameraSetup:
+	case eStencilAlignmentMenuState::verifyPointsCapture:
+	case eStencilAlignmentMenuState::captureOriginPixel:
+	case eStencilAlignmentMenuState::captureXAxisPixel:
+	case eStencilAlignmentMenuState::captureYAxisPixel:
+	case eStencilAlignmentMenuState::captureZAxisPixel:
+	{
+		m_monoDistortionView->readAndProcessVideoFrame();
+		updateXRCamera();
+	}
+	break;
+	case eStencilAlignmentMenuState::captureOriginVertex:
+	case eStencilAlignmentMenuState::captureXAxisVertex:
+	case eStencilAlignmentMenuState::captureYAxisVertex:
+	case eStencilAlignmentMenuState::captureZAxisVertex:
+	{
+	}
+	break;
+	case eStencilAlignmentMenuState::testCalibration:
+	{
+		m_monoDistortionView->readAndProcessVideoFrame();
+	}
+	break;
 	}
 }
 
@@ -293,33 +295,33 @@ void AppStage_StencilAlignment::render(IMkViewportPtr targetViewport)
 		{
 			switch (m_calibrationPanel->getMenuState())
 			{
-				case eStencilAlignmentMenuState::verifyInitialCameraSetup:
-				case eStencilAlignmentMenuState::verifyPointsCapture:
-				case eStencilAlignmentMenuState::captureOriginPixel:
-				case eStencilAlignmentMenuState::captureXAxisPixel:
-				case eStencilAlignmentMenuState::captureYAxisPixel:
-				case eStencilAlignmentMenuState::captureZAxisPixel:
-					{
-						m_monoDistortionView->renderSelectedVideoBuffers();
-						m_stencilAligner->renderPixelSamples();
-					}
-					break;
-				case eStencilAlignmentMenuState::captureOriginVertex:
-				case eStencilAlignmentMenuState::captureXAxisVertex:
-				case eStencilAlignmentMenuState::captureYAxisVertex:
-				case eStencilAlignmentMenuState::captureZAxisVertex:
-					{
-						renderStencilScene();
-						m_stencilAligner->renderVertexSamples();
-					}
-					break;
-				case eStencilAlignmentMenuState::testCalibration:
-					{
-						m_monoDistortionView->renderSelectedVideoBuffers();
-						m_stencilAligner->renderVertexSamples();
-						renderStencilScene();
-					}
-					break;
+			case eStencilAlignmentMenuState::verifyInitialCameraSetup:
+			case eStencilAlignmentMenuState::verifyPointsCapture:
+			case eStencilAlignmentMenuState::captureOriginPixel:
+			case eStencilAlignmentMenuState::captureXAxisPixel:
+			case eStencilAlignmentMenuState::captureYAxisPixel:
+			case eStencilAlignmentMenuState::captureZAxisPixel:
+			{
+				m_monoDistortionView->renderSelectedVideoBuffers();
+				m_stencilAligner->renderPixelSamples();
+			}
+			break;
+			case eStencilAlignmentMenuState::captureOriginVertex:
+			case eStencilAlignmentMenuState::captureXAxisVertex:
+			case eStencilAlignmentMenuState::captureYAxisVertex:
+			case eStencilAlignmentMenuState::captureZAxisVertex:
+			{
+				renderStencilScene();
+				m_stencilAligner->renderVertexSamples();
+			}
+			break;
+			case eStencilAlignmentMenuState::testCalibration:
+			{
+				m_monoDistortionView->renderSelectedVideoBuffers();
+				m_stencilAligner->renderVertexSamples();
+				renderStencilScene();
+			}
+			break;
 			}
 
 			// Render any lines and text that were added to the scene by the calibrator in the frame buffer's viewport
@@ -331,18 +333,18 @@ void AppStage_StencilAlignment::render(IMkViewportPtr targetViewport)
 	// Render the frame buffer to the screen
 	if (m_frameBuffer->isValid())
 	{
-		MkMaterialInstancePtr materialInstance = m_fullscreenRGBQuad->getMaterialInstance();
-		MkMaterialConstPtr material = materialInstance->getMaterial();
+		MkMaterialInstancePtr materialInstance= m_fullscreenRGBQuad->getMaterialInstance();
+		MkMaterialConstPtr material= materialInstance->getMaterial();
 
-		if (auto materialBinding = material->bindMaterial())
+		if (auto materialBinding= material->bindMaterial())
 		{
-			auto colorTexture = m_frameBuffer->getColorTexture();
+			auto colorTexture= m_frameBuffer->getColorTexture();
 
 			// Bind the color texture
 			materialInstance->setTextureBySemantic(eUniformSemantic::rgbTexture, colorTexture);
 
 			// Draw the color texture
-			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+			if (auto materialInstanceBinding= materialInstance->bindMaterialInstance(materialBinding))
 			{
 				m_fullscreenRGBQuad->drawElements();
 			}
@@ -352,7 +354,7 @@ void AppStage_StencilAlignment::render(IMkViewportPtr targetViewport)
 
 void AppStage_StencilAlignment::renderStencilScene()
 {
-	IMkGraphicsContext* graphicsContext = getGraphicsContext();
+	IMkGraphicsContext* graphicsContext= getGraphicsContext();
 
 	m_scene->render(m_mkCamera, graphicsContext->getMkStateStack());
 
@@ -369,7 +371,7 @@ void AppStage_StencilAlignment::renderStencilScene()
 				graphicsContext,
 				glm::mat4(1.f),
 				m_hoverResult.hitLocation,
-				m_hoverResult.hitLocation + m_hoverResult.hitNormal*0.01f,
+				m_hoverResult.hitLocation + m_hoverResult.hitNormal * 0.01f,
 				Colors::Green);
 
 			// Draw the closest vertex to the collision point
@@ -387,20 +389,21 @@ void AppStage_StencilAlignment::onGui()
 {
 	AppStage::onGui();
 
-	constexpr float k_panelWidth = 415.f;
-	const float displayWidth = m_ownerWindow->getWidth();
-	const float displayHeight = m_ownerWindow->getHeight();
+	constexpr float k_panelWidth= 415.f;
+	const float displayWidth= m_ownerWindow->getWidth();
+	const float displayHeight= m_ownerWindow->getHeight();
 	ImGui::SetNextWindowPos(ImVec2(displayWidth - k_panelWidth, 0.f), ImGuiCond_Always);
 	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, displayHeight), ImGuiCond_Always);
 
-	constexpr ImGuiWindowFlags k_flags =
+	constexpr ImGuiWindowFlags k_flags=
 		ImGuiWindowFlags_NoMove |
 		ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoCollapse |
 		ImGuiWindowFlags_NoTitleBar;
 
 	MkGuiScopedWindow panel("##StencilAlignment", nullptr, k_flags);
-	if (!panel) return;
+	if (!panel)
+		return;
 
 	for (IGuiPanel* guiPanel : m_guiPanels)
 		guiPanel->onGui();
@@ -414,14 +417,14 @@ void AppStage_StencilAlignment::setMenuState(eStencilAlignmentMenuState newState
 	{
 		switch (newState)
 		{
-			case eStencilAlignmentMenuState::captureOriginVertex:
-			case eStencilAlignmentMenuState::captureXAxisVertex:
-			case eStencilAlignmentMenuState::captureYAxisVertex:
-			case eStencilAlignmentMenuState::captureZAxisVertex:
-				m_mkCamera->setCameraMovementMode(eCameraMovementMode::orbit);
-				break;
-			default:
-				m_mkCamera->setCameraMovementMode(eCameraMovementMode::stationary);
+		case eStencilAlignmentMenuState::captureOriginVertex:
+		case eStencilAlignmentMenuState::captureXAxisVertex:
+		case eStencilAlignmentMenuState::captureYAxisVertex:
+		case eStencilAlignmentMenuState::captureZAxisVertex:
+			m_mkCamera->setCameraMovementMode(eCameraMovementMode::orbit);
+			break;
+		default:
+			m_mkCamera->setCameraMovementMode(eCameraMovementMode::stationary);
 		}
 
 		// Update menu state on the data models
@@ -432,34 +435,34 @@ void AppStage_StencilAlignment::setMenuState(eStencilAlignmentMenuState newState
 // Viewpoint Events
 void AppStage_StencilAlignment::onMouseRayChanged(const glm::vec3& rayOrigin, const glm::vec3& rayDir)
 {
-	eStencilAlignmentMenuState menuState = m_calibrationPanel->getMenuState();
+	eStencilAlignmentMenuState menuState= m_calibrationPanel->getMenuState();
 	if (menuState == eStencilAlignmentMenuState::captureOriginVertex ||
 		menuState == eStencilAlignmentMenuState::captureXAxisVertex ||
 		menuState == eStencilAlignmentMenuState::captureYAxisVertex ||
 		menuState == eStencilAlignmentMenuState::captureZAxisVertex)
 	{
-		m_hoverResult = ColliderRaycastHitResult();
+		m_hoverResult= ColliderRaycastHitResult();
 
 		if (m_targetStencilComponent)
 		{
 			glm::vec3 closestWorldspacePoint;
-			float closestDistance = std::numeric_limits<float>::max();
+			float closestDistance= std::numeric_limits<float>::max();
 
 			for (auto colliderComponent : m_targetStencilComponent->getColliderComponents())
 			{
-				ColliderRaycastHitRequest request = {rayOrigin, rayDir};
+				ColliderRaycastHitRequest request= {rayOrigin, rayDir};
 				ColliderRaycastHitResult result;
 
 				if (colliderComponent->computeRayIntersection(request, result) &&
 					result.hitDistance < closestDistance)
 				{
-					m_hoverResult = result;
-					closestDistance = result.hitDistance;
+					m_hoverResult= result;
+					closestDistance= result.hitDistance;
 				}
 			}
 
 			// Update the color of the wireframe meshes based on the hover result
-			glm::vec3 newColor = m_hoverResult.hitValid ? Colors::LightGray : Colors::DarkGray;
+			glm::vec3 newColor= m_hoverResult.hitValid ? Colors::LightGray : Colors::DarkGray;
 			for (IMkStaticMeshInstancePtr meshInstance : m_targetStencilComponent->getWireframeMeshes())
 			{
 				meshInstance->getMaterialInstance()->setVec4BySemantic(
@@ -479,50 +482,50 @@ void AppStage_StencilAlignment::onMouseRayButtonUp(const glm::vec3& rayOrigin, c
 	if (menuState >= eStencilAlignmentMenuState::captureOriginPixel &&
 		menuState <= eStencilAlignmentMenuState::captureZAxisVertex)
 	{
-		bool bValidSample = false;
+		bool bValidSample= false;
 
 		switch (menuState)
 		{
-			case eStencilAlignmentMenuState::captureOriginPixel:
-			case eStencilAlignmentMenuState::captureXAxisPixel:
-			case eStencilAlignmentMenuState::captureYAxisPixel:
-			case eStencilAlignmentMenuState::captureZAxisPixel:
-				{
-					MikanViewportPtr viewport= getFirstViewport();
+		case eStencilAlignmentMenuState::captureOriginPixel:
+		case eStencilAlignmentMenuState::captureXAxisPixel:
+		case eStencilAlignmentMenuState::captureYAxisPixel:
+		case eStencilAlignmentMenuState::captureZAxisPixel:
+		{
+			MikanViewportPtr viewport= getFirstViewport();
 
-					// Get the cursor position in the window viewport
-					glm::vec2 viewportPixel;
-					if (viewport->getCursorViewportPixelPos(viewportPixel))
-					{
-						// Remap from window viewport size to the frame buffer size
-						glm::i32vec2 windowViewportSize= viewport->getViewportSize();
-						glm::vec2 frameBufferPixel= remapPointIntoTarget(
-							(float)windowViewportSize.x, (float)windowViewportSize.y,
-							0.f, 0.f,
-							m_frameBuffer->getWidth(), m_frameBuffer->getHeight(),
-							viewportPixel);
+			// Get the cursor position in the window viewport
+			glm::vec2 viewportPixel;
+			if (viewport->getCursorViewportPixelPos(viewportPixel))
+			{
+				// Remap from window viewport size to the frame buffer size
+				glm::i32vec2 windowViewportSize= viewport->getViewportSize();
+				glm::vec2 frameBufferPixel= remapPointIntoTarget(
+					(float)windowViewportSize.x, (float)windowViewportSize.y,
+					0.f, 0.f,
+					m_frameBuffer->getWidth(), m_frameBuffer->getHeight(),
+					viewportPixel);
 
-						// Record the pixel location sample
-						m_stencilAligner->samplePixel(frameBufferPixel);
-						bValidSample = true;
-					}
-				}
-				break;
-			case eStencilAlignmentMenuState::captureOriginVertex:
-			case eStencilAlignmentMenuState::captureXAxisVertex:
-			case eStencilAlignmentMenuState::captureYAxisVertex:
-			case eStencilAlignmentMenuState::captureZAxisVertex:
-				if (m_hoverResult.closestVertexValid)
-				{
-					m_stencilAligner->sampleVertex(m_hoverResult.closestVertexLocal);
-					bValidSample = true;
-				}
-				break;
+				// Record the pixel location sample
+				m_stencilAligner->samplePixel(frameBufferPixel);
+				bValidSample= true;
+			}
+		}
+		break;
+		case eStencilAlignmentMenuState::captureOriginVertex:
+		case eStencilAlignmentMenuState::captureXAxisVertex:
+		case eStencilAlignmentMenuState::captureYAxisVertex:
+		case eStencilAlignmentMenuState::captureZAxisVertex:
+			if (m_hoverResult.closestVertexValid)
+			{
+				m_stencilAligner->sampleVertex(m_hoverResult.closestVertexLocal);
+				bValidSample= true;
+			}
+			break;
 		}
 
 		if (bValidSample)
 		{
-			eStencilAlignmentMenuState newMenuState = (eStencilAlignmentMenuState)((int)menuState + 1);
+			eStencilAlignmentMenuState newMenuState= (eStencilAlignmentMenuState)((int)menuState + 1);
 
 			setMenuState(newMenuState);
 		}
@@ -534,29 +537,32 @@ void AppStage_StencilAlignment::onOkEvent()
 {
 	switch (m_calibrationPanel->getMenuState())
 	{
-		case eStencilAlignmentMenuState::verifyInitialCameraSetup:
-			{
-				// Clear out all of the calibration data we recorded
-				m_stencilAligner->resetCalibrationState();
+	case eStencilAlignmentMenuState::verifyInitialCameraSetup:
+	{
+		// Clear out all of the calibration data we recorded
+		m_stencilAligner->resetCalibrationState();
 
-				setMenuState(eStencilAlignmentMenuState::captureOriginPixel);
-			} break;
-		case eStencilAlignmentMenuState::verifyPointsCapture:
-			{
+		setMenuState(eStencilAlignmentMenuState::captureOriginPixel);
+	}
+	break;
+	case eStencilAlignmentMenuState::verifyPointsCapture:
+	{
 
-				glm::mat4 newStencilTransform;
-				if (m_stencilAligner->computeStencilTransform(newStencilTransform))
-				{
-					m_targetStencilComponent->setWorldTransform(newStencilTransform);
-				}
+		glm::mat4 newStencilTransform;
+		if (m_stencilAligner->computeStencilTransform(newStencilTransform))
+		{
+			m_targetStencilComponent->setWorldTransform(newStencilTransform);
+		}
 
-				setMenuState(eStencilAlignmentMenuState::testCalibration);
-			} break;
-		case eStencilAlignmentMenuState::testCalibration:
-		case eStencilAlignmentMenuState::failedVideoStartStreamRequest:
-			{
-				m_ownerWindow->popAppState();
-			} break;
+		setMenuState(eStencilAlignmentMenuState::testCalibration);
+	}
+	break;
+	case eStencilAlignmentMenuState::testCalibration:
+	case eStencilAlignmentMenuState::failedVideoStartStreamRequest:
+	{
+		m_ownerWindow->popAppState();
+	}
+	break;
 	}
 }
 

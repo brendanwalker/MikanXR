@@ -15,7 +15,7 @@ GuiPanel::~GuiPanel()
 
 MkGuiStyleManager* GuiPanel::getGuiStyleManager() const
 {
-	AppStage* ownerAppStage = getOwnerAppStage();
+	AppStage* ownerAppStage= getOwnerAppStage();
 	if (ownerAppStage)
 	{
 		return ownerAppStage->getOwnerWindow()->getMkGuiStyleManager();
@@ -41,4 +41,3 @@ void GuiPanel::dispose()
 {
 	m_deferredGuiEvents.clear();
 }
-

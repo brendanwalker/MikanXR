@@ -10,8 +10,8 @@
 #include "LuaBridge/LuaBridge.h"
 
 // -- StencilComponentConfig -----
-const std::string StencilComponentDefinition::k_stencilDisabledPropertyId = "is_disabled";
-const std::string StencilComponentDefinition::k_stencilCullModePropertyId = "cull_mode";
+const std::string StencilComponentDefinition::k_stencilDisabledPropertyId= "is_disabled";
+const std::string StencilComponentDefinition::k_stencilCullModePropertyId= "cull_mode";
 
 StencilComponentDefinition::StencilComponentDefinition()
 	: TransformComponentDefinition()
@@ -21,7 +21,7 @@ StencilComponentDefinition::StencilComponentDefinition()
 
 StencilComponentDefinition::StencilComponentDefinition(
 	MikanStencilID stencilId,
-	const std::string& componentName, 
+	const std::string& componentName,
 	const MikanTransform& xform)
 	: TransformComponentDefinition(stencilId, componentName, xform)
 	, m_bIsDisabled(false)
@@ -30,9 +30,9 @@ StencilComponentDefinition::StencilComponentDefinition(
 
 configuru::Config StencilComponentDefinition::writeToJSON()
 {
-	configuru::Config pt = TransformComponentDefinition::writeToJSON();
+	configuru::Config pt= TransformComponentDefinition::writeToJSON();
 
-	pt[k_stencilDisabledPropertyId] = m_bIsDisabled;
+	pt[k_stencilDisabledPropertyId]= m_bIsDisabled;
 	pt[k_stencilCullModePropertyId]= k_stencilCullModeStrings[(int)m_cullMode];
 
 	return pt;
@@ -42,7 +42,7 @@ void StencilComponentDefinition::readFromJSON(const configuru::Config& pt)
 {
 	TransformComponentDefinition::readFromJSON(pt);
 
-	m_bIsDisabled = pt.get_or<bool>(k_stencilDisabledPropertyId, false);
+	m_bIsDisabled= pt.get_or<bool>(k_stencilDisabledPropertyId, false);
 
 	const std::string modeName= pt.get_or<std::string>(k_stencilCullModePropertyId, k_stencilCullModeStrings[0]);
 	m_cullMode= StringUtils::FindEnumValue<eStencilCullMode>(modeName, k_stencilCullModeStrings);
@@ -55,11 +55,11 @@ bool StencilComponentDefinition::readFromInitParams(
 	if (!TransformComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
-	const auto* componentValues = initParams.getTypedPointer<MikanStencilComponentValues>();
+	const auto* componentValues= initParams.getTypedPointer<MikanStencilComponentValues>();
 	if (componentValues)
 	{
-		m_bIsDisabled = componentValues->is_disabled;
-		m_cullMode = (eStencilCullMode)componentValues->cull_mode;
+		m_bIsDisabled= componentValues->is_disabled;
+		m_cullMode= (eStencilCullMode)componentValues->cull_mode;
 	}
 
 	return true;
@@ -69,7 +69,7 @@ void StencilComponentDefinition::setIsDisabled(bool flag)
 {
 	if (m_bIsDisabled != flag)
 	{
-		m_bIsDisabled = flag;
+		m_bIsDisabled= flag;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_stencilDisabledPropertyId));
 	}
 }
@@ -106,7 +106,7 @@ void StencilComponent::getPropertyDescriptors(std::vector<PropertyDescriptorCons
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			StencilComponentDefinition::k_stencilCullModePropertyId, MikanVariantType::INT)
-		->setDefaultValue((int)eStencilCullMode::none));
+			->setDefaultValue((int)eStencilCullMode::none));
 }
 
 bool StencilComponent::getPropertyValue(
@@ -115,12 +115,12 @@ bool StencilComponent::getPropertyValue(
 {
 	if (propertyName == StencilComponentDefinition::k_stencilDisabledPropertyId)
 	{
-		outValue = getStencilComponentDefinition()->getIsDisabled();
+		outValue= getStencilComponentDefinition()->getIsDisabled();
 		return true;
 	}
 	else if (propertyName == StencilComponentDefinition::k_stencilCullModePropertyId)
 	{
-		outValue = (int)getStencilComponentDefinition()->getCullMode();
+		outValue= (int)getStencilComponentDefinition()->getCullMode();
 		return true;
 	}
 
@@ -133,14 +133,14 @@ bool StencilComponent::setPropertyValue(
 {
 	if (propertyName == StencilComponentDefinition::k_stencilDisabledPropertyId)
 	{
-		bool bIsDisabled = inValue.getBoolValue();
+		bool bIsDisabled= inValue.getBoolValue();
 
 		getStencilComponentDefinition()->setIsDisabled(bIsDisabled);
 		return true;
 	}
 	else if (propertyName == StencilComponentDefinition::k_stencilCullModePropertyId)
 	{
-		eStencilCullMode cullMode = (eStencilCullMode)inValue.getIntValue();
+		eStencilCullMode cullMode= (eStencilCullMode)inValue.getIntValue();
 
 		getStencilComponentDefinition()->setCullMode(cullMode);
 		return true;
@@ -154,19 +154,11 @@ void StencilComponent::bindLuaFunctions(lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
 		.deriveClass<StencilComponent, TransformComponent>("StencilComponent")
-		.addProperty("isDisabled",
-			[](StencilComponent* component) -> bool {
-				return component->getStencilComponentDefinition()->getIsDisabled();
-			},
-			[](StencilComponent* component, bool isDisabled) {
-				component->getStencilComponentDefinition()->setIsDisabled(isDisabled);
-			})
-		.addProperty("cullMode",
-			[](StencilComponent* component) -> eStencilCullMode {
-				return component->getStencilComponentDefinition()->getCullMode();
-			},
-			[](StencilComponent* component, eStencilCullMode cullMode) {
-				component->getStencilComponentDefinition()->setCullMode(cullMode);
-			})
+		.addProperty("isDisabled", [](StencilComponent* component) -> bool
+					 { return component->getStencilComponentDefinition()->getIsDisabled(); }, [](StencilComponent* component, bool isDisabled)
+					 { component->getStencilComponentDefinition()->setIsDisabled(isDisabled); })
+		.addProperty("cullMode", [](StencilComponent* component) -> eStencilCullMode
+					 { return component->getStencilComponentDefinition()->getCullMode(); }, [](StencilComponent* component, eStencilCullMode cullMode)
+					 { component->getStencilComponentDefinition()->setCullMode(cullMode); })
 		.endClass();
 }

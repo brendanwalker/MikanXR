@@ -9,10 +9,11 @@ class MkStateLog
 public:
 	MkStateLog(const IMkState* state)
 		: m_loggerStream(LogSeverityLevel::info)
-		, m_state(state) 
-	{}
+		, m_state(state)
+	{
+	}
 
-	template<class T>
+	template <class T>
 	MkStateLog& operator<<(const T& x)
 	{
 		if (m_state->getOwnerStateStack().isDebugPrintEnabled())

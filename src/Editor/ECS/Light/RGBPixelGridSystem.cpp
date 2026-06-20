@@ -19,13 +19,13 @@ void RGBPixelGridSystem::update(float deltaSeconds)
 {
 	Super::update(deltaSeconds);
 
-	IDMXManager* dmxManager = getObjectSystemOfType<DMXObjectSystem>()->getDMXManager();
+	IDMXManager* dmxManager= getObjectSystemOfType<DMXObjectSystem>()->getDMXManager();
 	if (!dmxManager || !dmxManager->getIsRunning())
 		return;
 
 	for (const auto& [gridId, componentWeakPtr] : Super::getComponentMap())
 	{
-		RGBPixelGridComponentPtr component = componentWeakPtr.lock();
+		RGBPixelGridComponentPtr component= componentWeakPtr.lock();
 		if (component)
 			component->sendDMXData(dmxManager);
 	}

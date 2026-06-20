@@ -24,7 +24,7 @@ class LocalizationManager;
 class MainWindow;
 
 //-- definitions -----
-class App 
+class App
 {
 public:
 	App();
@@ -43,20 +43,20 @@ public:
 	inline float getFPS() const { return m_fps; }
 
 	bool hasCommandLineFlag(const std::string& flag) const;
-	std::string getCommandLineStringArg(const std::string& key, const std::string& defaultValue = "") const;
+	std::string getCommandLineStringArg(const std::string& key, const std::string& defaultValue= "") const;
 
 	int exec(int argc, char** argv);
 
 	inline void requestShutdown()
 	{
-		m_bShutdownRequested = true;
+		m_bShutdownRequested= true;
 	}
 
-	template<typename t_app_window>
+	template <typename t_app_window>
 	t_app_window* createAppWindow()
 	{
 		t_app_window* appWindow= new t_app_window(this);
-		
+
 		// Setup the window
 		// Destroy the window if setup fails
 		if (!createAppWindowInternal(appWindow))
@@ -69,7 +69,7 @@ public:
 
 	void destroyAppWindow(EditorWindow* appWindow);
 
-	template<typename t_app_window>
+	template <typename t_app_window>
 	bool hasWindowOfType() const
 	{
 		for (EditorWindow* window : m_appWindows)
@@ -83,12 +83,12 @@ public:
 		return false;
 	}
 
-	template<typename t_app_window>
+	template <typename t_app_window>
 	t_app_window* getWindowOfType() const
 	{
 		for (EditorWindow* window : m_appWindows)
 		{
-			t_app_window* typedWindow = dynamic_cast<t_app_window*>(window);
+			t_app_window* typedWindow= dynamic_cast<t_app_window*>(window);
 			if (typedWindow != nullptr)
 				return typedWindow;
 		}
@@ -124,7 +124,7 @@ private:
 	std::vector<EditorWindow*> m_appWindows;
 
 	// The window being currently rendered
-	EditorWindow* m_renderingWindow = nullptr;
+	EditorWindow* m_renderingWindow= nullptr;
 
 	// The main window for the application
 	MainWindow* m_mainWindow= nullptr;
@@ -137,7 +137,7 @@ private:
 	std::set<std::string> m_commandLineFlags;
 
 	// Current FPS rate
-	double m_secondsSinceAppStart = 0.0;
+	double m_secondsSinceAppStart= 0.0;
 	std::chrono::steady_clock::time_point m_lastFrameTimestamp;
 	float m_fps= 0.f;
 };

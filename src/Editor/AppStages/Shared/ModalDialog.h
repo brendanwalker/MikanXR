@@ -13,5 +13,5 @@ protected:
 	virtual ~ModalDialog();
 
 	class AppStage* m_ownerAppStage= nullptr;
-	bool m_bNeedsOpen = true;
+	bool m_bNeedsOpen= true;
 };

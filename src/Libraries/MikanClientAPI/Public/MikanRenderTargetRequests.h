@@ -8,9 +8,6 @@
 #include "MikanRenderTargetRequests.rfkh.h"
 #endif
 
-
-
-
 #ifdef MIKANAPI_REFLECTION_ENABLED
 File_MikanRenderTargetRequests_GENERATED
 #endif

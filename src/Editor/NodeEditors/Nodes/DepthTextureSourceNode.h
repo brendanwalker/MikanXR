@@ -10,7 +10,7 @@
 class DepthTextureSourceNodeConfig : public NodeConfig
 {
 public:
-	DepthTextureSourceNodeConfig() = default;
+	DepthTextureSourceNodeConfig()= default;
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -23,9 +23,9 @@ public:
 class DepthTextureSourceNode : public Node
 {
 public:
-	DepthTextureSourceNode() = default;
+	DepthTextureSourceNode()= default;
 
-	inline static const std::string k_nodeClassName = "DepthTextureSourceNode";
+	inline static const std::string k_nodeClassName= "DepthTextureSourceNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
@@ -57,7 +57,7 @@ protected:
 class DepthTextureSourceNodeFactory : public TypedNodeFactory<DepthTextureSourceNode, DepthTextureSourceNodeConfig>
 {
 public:
-	DepthTextureSourceNodeFactory() = default;
+	DepthTextureSourceNodeFactory()= default;
 
 	virtual NodePtr createNode(const NodeEditorState& editorState) const override;
 };

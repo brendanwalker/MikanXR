@@ -8,7 +8,10 @@
 class GuiPanel_TrackingMountComponent : public GuiPanel_MikanComponent
 {
 public:
-	GuiPanel_TrackingMountComponent(AppStage* ownerAppStage) : GuiPanel_MikanComponent(ownerAppStage) {}
+	GuiPanel_TrackingMountComponent(AppStage* ownerAppStage)
+		: GuiPanel_MikanComponent(ownerAppStage)
+	{
+	}
 
 	virtual bool init() override;
 	virtual void onConstruct() override;
@@ -26,4 +29,4 @@ private:
 	GuiDataSource_StringList m_socketNameDataSource;
 };
 
-using GuiPanel_TrackingMountComponentPtr = std::shared_ptr<GuiPanel_TrackingMountComponent>;
+using GuiPanel_TrackingMountComponentPtr= std::shared_ptr<GuiPanel_TrackingMountComponent>;

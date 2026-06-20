@@ -10,7 +10,8 @@
 class MikanGStreamerVideoModule : public INetworkVideoDeviceModule
 {
 public:
-	MikanGStreamerVideoModule() : m_bIsInitialized(false)
+	MikanGStreamerVideoModule()
+		: m_bIsInitialized(false)
 	{
 	}
 
@@ -25,10 +26,10 @@ public:
 
 		// Initialize GStreamer
 		// Intentionally don't pass in the command line arguments
-		GError* error = nullptr;
+		GError* error= nullptr;
 		if (gst_init_check(nullptr, nullptr, &error))
 		{
-			m_bIsInitialized = true;
+			m_bIsInitialized= true;
 		}
 		else
 		{

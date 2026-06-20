@@ -65,32 +65,32 @@ bool MikanWMFVideoDevice::open()
 
 	if (m_currentVideoModeIndex >= 0 && m_currentVideoModeIndex < m_deviceInfo.deviceAvailableFormats.size())
 	{
-		IMFAttributes* pAttributes = NULL;
-		IMFActivate* vd_pActivate = NULL;
+		IMFAttributes* pAttributes= NULL;
+		IMFActivate* vd_pActivate= NULL;
 
-		hr = MFCreateAttributes(&pAttributes, 1);
+		hr= MFCreateAttributes(&pAttributes, 1);
 
 		if (SUCCEEDED(hr))
 		{
-			hr = pAttributes->SetGUID(
+			hr= pAttributes->SetGUID(
 				MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
 				MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
 		}
 
-		IMFActivate* deviceActivationInterface = nullptr;
+		IMFActivate* deviceActivationInterface= nullptr;
 		if (SUCCEEDED(hr))
 		{
-			IMFActivate** ppDevices = nullptr;
+			IMFActivate** ppDevices= nullptr;
 			UINT32 wmfDeviceCount;
-			hr = MFEnumDeviceSources(pAttributes, &ppDevices, &wmfDeviceCount);
+			hr= MFEnumDeviceSources(pAttributes, &ppDevices, &wmfDeviceCount);
 
 			if (m_deviceInfo.wmfDeviceIndex >= 0 && m_deviceInfo.wmfDeviceIndex < (int)wmfDeviceCount)
 			{
-				deviceActivationInterface = ppDevices[m_deviceInfo.wmfDeviceIndex];
+				deviceActivationInterface= ppDevices[m_deviceInfo.wmfDeviceIndex];
 				deviceActivationInterface->AddRef();
 			}
 
-			for (UINT32 i = 0; i < wmfDeviceCount; i++)
+			for (UINT32 i= 0; i < wmfDeviceCount; i++)
 			{
 				MemoryUtils::safeRelease(&ppDevices[i]);
 			}
@@ -100,50 +100,50 @@ bool MikanWMFVideoDevice::open()
 
 		if (SUCCEEDED(hr))
 		{
-			hr = deviceActivationInterface->ActivateObject(
+			hr= deviceActivationInterface->ActivateObject(
 				__uuidof(IMFMediaSource),
 				(void**)&m_mediaSource);
 		}
 
-		IMFPresentationDescriptor* pPD = nullptr;
+		IMFPresentationDescriptor* pPD= nullptr;
 		if (SUCCEEDED(hr))
-			hr = m_mediaSource->CreatePresentationDescriptor(&pPD);
+			hr= m_mediaSource->CreatePresentationDescriptor(&pPD);
 
 		BOOL fSelected;
-		IMFStreamDescriptor* pSD = nullptr;
+		IMFStreamDescriptor* pSD= nullptr;
 		if (SUCCEEDED(hr))
-			hr = pPD->GetStreamDescriptorByIndex(0, &fSelected, &pSD);
+			hr= pPD->GetStreamDescriptorByIndex(0, &fSelected, &pSD);
 
-		IMFMediaTypeHandler* pHandler = nullptr;
+		IMFMediaTypeHandler* pHandler= nullptr;
 		if (SUCCEEDED(hr))
-			hr = pSD->GetMediaTypeHandler(&pHandler);
+			hr= pSD->GetMediaTypeHandler(&pHandler);
 
-		DWORD cTypes = 0;
+		DWORD cTypes= 0;
 		if (SUCCEEDED(hr))
-			hr = pHandler->GetMediaTypeCount(&cTypes);
+			hr= pHandler->GetMediaTypeCount(&cTypes);
 
-		IMFMediaType* pType = nullptr;
+		IMFMediaType* pType= nullptr;
 		if (SUCCEEDED(hr))
-			hr = pHandler->GetMediaTypeByIndex((DWORD)m_currentVideoModeIndex, &pType);
+			hr= pHandler->GetMediaTypeByIndex((DWORD)m_currentVideoModeIndex, &pType);
 
 		if (SUCCEEDED(hr))
-			hr = pHandler->SetCurrentMediaType(pType);
+			hr= pHandler->SetCurrentMediaType(pType);
 
 		if (SUCCEEDED(hr))
 		{
-			const WMFDeviceFormatInfo& deviceFormat =
+			const WMFDeviceFormatInfo& deviceFormat=
 				m_deviceInfo.deviceAvailableFormats[m_currentVideoModeIndex];
 
-			m_videoFrameProcessor =
+			m_videoFrameProcessor=
 				new WMFVideoFrameProcessor(
 					m_deviceInfo.wmfDeviceIndex, deviceFormat, this);
-			hr = m_videoFrameProcessor->init(m_mediaSource);
+			hr= m_videoFrameProcessor->init(m_mediaSource);
 		}
 
 		if (SUCCEEDED(hr))
 		{
 			// Update the property constraints for the current video format
-			for (int prop_index = 0; prop_index < (int)eVideoSettingType::COUNT; ++prop_index)
+			for (int prop_index= 0; prop_index < (int)eVideoSettingType::COUNT; ++prop_index)
 			{
 				getVideoSettingConstraint(
 					(eVideoSettingType)prop_index,
@@ -165,11 +165,10 @@ bool MikanWMFVideoDevice::open()
 	}
 	else
 	{
-		hr = E_INVALIDARG;
+		hr= E_INVALIDARG;
 	}
 
 	return SUCCEEDED(hr);
-
 }
 
 void MikanWMFVideoDevice::close()
@@ -177,7 +176,7 @@ void MikanWMFVideoDevice::close()
 	if (m_videoFrameProcessor != nullptr)
 	{
 		delete m_videoFrameProcessor;
-		m_videoFrameProcessor = nullptr;
+		m_videoFrameProcessor= nullptr;
 	}
 
 	if (m_mediaSource != nullptr)
@@ -195,16 +194,16 @@ size_t MikanWMFVideoDevice::getAvailableVideoModesCount() const
 
 bool MikanWMFVideoDevice::getVideoModeProperties(size_t index, UsbVideoModeProperties& outProperties) const
 {
-	if(index < m_deviceInfo.deviceAvailableFormats.size())
+	if (index < m_deviceInfo.deviceAvailableFormats.size())
 	{
-		const WMFDeviceFormatInfo& formatInfo = m_deviceInfo.deviceAvailableFormats[index];
-		outProperties.index = index;
-		outProperties.name = formatInfo.format_friendly_name.c_str();
-		outProperties.width = formatInfo.width;
-		outProperties.height = formatInfo.height;
-		outProperties.frame_rate_numerator = formatInfo.frame_rate_numerator;
-		outProperties.frame_rate_demonenator = formatInfo.frame_rate_denominator;
-		outProperties.format = formatInfo.sub_type_name.c_str();
+		const WMFDeviceFormatInfo& formatInfo= m_deviceInfo.deviceAvailableFormats[index];
+		outProperties.index= index;
+		outProperties.name= formatInfo.format_friendly_name.c_str();
+		outProperties.width= formatInfo.width;
+		outProperties.height= formatInfo.height;
+		outProperties.frame_rate_numerator= formatInfo.frame_rate_numerator;
+		outProperties.frame_rate_demonenator= formatInfo.frame_rate_denominator;
+		outProperties.format= formatInfo.sub_type_name.c_str();
 
 		return true;
 	}
@@ -219,7 +218,7 @@ int MikanWMFVideoDevice::getVideoModeIndex() const
 
 const char* MikanWMFVideoDevice::getVideoModeName() const
 {
-	if (m_currentVideoModeIndex >= 0 && 
+	if (m_currentVideoModeIndex >= 0 &&
 		m_currentVideoModeIndex < (int)m_deviceInfo.deviceAvailableFormats.size())
 	{
 		return m_deviceInfo.deviceAvailableFormats[m_currentVideoModeIndex].format_friendly_name.c_str();
@@ -232,7 +231,7 @@ bool MikanWMFVideoDevice::setVideoModeByName(const char* szVideoModeName)
 {
 	if (szVideoModeName != nullptr && !m_deviceInfo.deviceAvailableFormats.empty())
 	{
-		const int desiredFormatIndex = m_deviceInfo.findDeviceFormatByName(szVideoModeName);
+		const int desiredFormatIndex= m_deviceInfo.findDeviceFormatByName(szVideoModeName);
 
 		return setVideoModeByIndex(desiredFormatIndex);
 	}
@@ -249,7 +248,7 @@ bool MikanWMFVideoDevice::setVideoModeByIndex(size_t desiredFormatIndex)
 		// Stop streaming and close device
 		close();
 
-		m_currentVideoModeIndex = (int)desiredFormatIndex;
+		m_currentVideoModeIndex= (int)desiredFormatIndex;
 
 		notifyVideoModePropertiesChanged();
 		return true;
@@ -272,70 +271,70 @@ bool MikanWMFVideoDevice::getVideoSettingConstraint(
 {
 	if (!getIsOpen())
 	{
-		MIKAN_LOG_ERROR("MikanWMFVideoDevice::getVideoSettingConstraint") 
+		MIKAN_LOG_ERROR("MikanWMFVideoDevice::getVideoSettingConstraint")
 			<< "Unable to get video setting constraint: Device not open: " << m_deviceInfo.deviceFriendlyName;
 		return false;
 	}
 
-	bool bSuccess = false;
+	bool bSuccess= false;
 	switch (property_type)
 	{
 	case eVideoSettingType::Brightness:
-		bSuccess = getProcAmpRange(VideoProcAmp_Brightness, outConstraint);
+		bSuccess= getProcAmpRange(VideoProcAmp_Brightness, outConstraint);
 		break;
 	case eVideoSettingType::Contrast:
-		bSuccess = getProcAmpRange(VideoProcAmp_Contrast, outConstraint);
+		bSuccess= getProcAmpRange(VideoProcAmp_Contrast, outConstraint);
 		break;
 	case eVideoSettingType::Hue:
-		bSuccess = getProcAmpRange(VideoProcAmp_Hue, outConstraint);
+		bSuccess= getProcAmpRange(VideoProcAmp_Hue, outConstraint);
 		break;
 	case eVideoSettingType::Saturation:
-		bSuccess = getProcAmpRange(VideoProcAmp_Saturation, outConstraint);
+		bSuccess= getProcAmpRange(VideoProcAmp_Saturation, outConstraint);
 		break;
 	case eVideoSettingType::Sharpness:
-		bSuccess = getProcAmpRange(VideoProcAmp_Sharpness, outConstraint);
+		bSuccess= getProcAmpRange(VideoProcAmp_Sharpness, outConstraint);
 		break;
 	case eVideoSettingType::Gamma:
-		bSuccess = getProcAmpRange(VideoProcAmp_Gamma, outConstraint);
+		bSuccess= getProcAmpRange(VideoProcAmp_Gamma, outConstraint);
 		break;
 	case eVideoSettingType::WhiteBalance:
-		bSuccess = getProcAmpRange(VideoProcAmp_WhiteBalance, outConstraint);
+		bSuccess= getProcAmpRange(VideoProcAmp_WhiteBalance, outConstraint);
 		break;
 	case eVideoSettingType::RedBalance:
 	case eVideoSettingType::GreenBalance:
 	case eVideoSettingType::BlueBalance:
 		memset(&outConstraint, 0, sizeof(VideoSettingConstraint));
-		bSuccess = false;
+		bSuccess= false;
 		break;
 	case eVideoSettingType::Gain:
-		bSuccess = getProcAmpRange(VideoProcAmp_Gain, outConstraint);
+		bSuccess= getProcAmpRange(VideoProcAmp_Gain, outConstraint);
 		break;
 	case eVideoSettingType::Pan:
-		bSuccess = getCameraControlRange(CameraControl_Pan, outConstraint);
+		bSuccess= getCameraControlRange(CameraControl_Pan, outConstraint);
 		break;
 	case eVideoSettingType::Tilt:
-		bSuccess = getCameraControlRange(CameraControl_Tilt, outConstraint);
+		bSuccess= getCameraControlRange(CameraControl_Tilt, outConstraint);
 		break;
 	case eVideoSettingType::Roll:
-		bSuccess = getCameraControlRange(CameraControl_Roll, outConstraint);
+		bSuccess= getCameraControlRange(CameraControl_Roll, outConstraint);
 		break;
 	case eVideoSettingType::Zoom:
-		bSuccess = getCameraControlRange(CameraControl_Zoom, outConstraint);
+		bSuccess= getCameraControlRange(CameraControl_Zoom, outConstraint);
 		break;
 	case eVideoSettingType::Exposure:
-		bSuccess = getCameraControlRange(CameraControl_Exposure, outConstraint);
+		bSuccess= getCameraControlRange(CameraControl_Exposure, outConstraint);
 		break;
 	case eVideoSettingType::Iris:
-		bSuccess = getCameraControlRange(CameraControl_Iris, outConstraint);
+		bSuccess= getCameraControlRange(CameraControl_Iris, outConstraint);
 		break;
 	case eVideoSettingType::Focus:
-		bSuccess = getCameraControlRange(CameraControl_Focus, outConstraint);
+		bSuccess= getCameraControlRange(CameraControl_Focus, outConstraint);
 		break;
 	}
 
 	if (bSuccess)
 	{
-		bSuccess = outConstraint.max_value > outConstraint.min_value;
+		bSuccess= outConstraint.max_value > outConstraint.min_value;
 	}
 
 	return bSuccess;
@@ -415,29 +414,29 @@ int MikanWMFVideoDevice::getVideoSetting(const eVideoSettingType property_type) 
 		return 0;
 	}
 
-	int value = 0;
+	int value= 0;
 	switch (property_type)
 	{
 	case eVideoSettingType::Brightness:
-		value = getProcAmpProperty(VideoProcAmp_Brightness);
+		value= getProcAmpProperty(VideoProcAmp_Brightness);
 		break;
 	case eVideoSettingType::Contrast:
-		value = getProcAmpProperty(VideoProcAmp_Contrast);
+		value= getProcAmpProperty(VideoProcAmp_Contrast);
 		break;
 	case eVideoSettingType::Hue:
-		value = getProcAmpProperty(VideoProcAmp_Hue);
+		value= getProcAmpProperty(VideoProcAmp_Hue);
 		break;
 	case eVideoSettingType::Saturation:
-		value = getProcAmpProperty(VideoProcAmp_Saturation);
+		value= getProcAmpProperty(VideoProcAmp_Saturation);
 		break;
 	case eVideoSettingType::Sharpness:
-		value = getProcAmpProperty(VideoProcAmp_Sharpness);
+		value= getProcAmpProperty(VideoProcAmp_Sharpness);
 		break;
 	case eVideoSettingType::Gamma:
-		value = getProcAmpProperty(VideoProcAmp_Gamma);
+		value= getProcAmpProperty(VideoProcAmp_Gamma);
 		break;
 	case eVideoSettingType::WhiteBalance:
-		value = getProcAmpProperty(VideoProcAmp_WhiteBalance);
+		value= getProcAmpProperty(VideoProcAmp_WhiteBalance);
 		break;
 	case eVideoSettingType::RedBalance:
 	case eVideoSettingType::GreenBalance:
@@ -445,28 +444,28 @@ int MikanWMFVideoDevice::getVideoSetting(const eVideoSettingType property_type) 
 		// not supported
 		break;
 	case eVideoSettingType::Gain:
-		value = getProcAmpProperty(VideoProcAmp_Gain);
+		value= getProcAmpProperty(VideoProcAmp_Gain);
 		break;
 	case eVideoSettingType::Pan:
-		value = getCameraControlProperty(CameraControl_Pan);
+		value= getCameraControlProperty(CameraControl_Pan);
 		break;
 	case eVideoSettingType::Tilt:
-		value = getCameraControlProperty(CameraControl_Tilt);
+		value= getCameraControlProperty(CameraControl_Tilt);
 		break;
 	case eVideoSettingType::Roll:
-		value = getCameraControlProperty(CameraControl_Roll);
+		value= getCameraControlProperty(CameraControl_Roll);
 		break;
 	case eVideoSettingType::Zoom:
-		value = getCameraControlProperty(CameraControl_Zoom);
+		value= getCameraControlProperty(CameraControl_Zoom);
 		break;
 	case eVideoSettingType::Exposure:
-		value = getCameraControlProperty(CameraControl_Exposure);
+		value= getCameraControlProperty(CameraControl_Exposure);
 		break;
 	case eVideoSettingType::Iris:
-		value = getCameraControlProperty(CameraControl_Iris);
+		value= getCameraControlProperty(CameraControl_Iris);
 		break;
 	case eVideoSettingType::Focus:
-		value = getCameraControlProperty(CameraControl_Focus);
+		value= getCameraControlProperty(CameraControl_Focus);
 		break;
 	}
 
@@ -531,14 +530,14 @@ void MikanWMFVideoDevice::stopVideoStream()
 */
 bool MikanWMFVideoDevice::setProcAmpProperty(VideoProcAmpProperty propId, long value, bool bAuto)
 {
-	bool bSuccess = false;
+	bool bSuccess= false;
 
-	IAMVideoProcAmp* pProcAmp = NULL;
-	HRESULT hr = m_mediaSource->QueryInterface(IID_PPV_ARGS(&pProcAmp));
+	IAMVideoProcAmp* pProcAmp= NULL;
+	HRESULT hr= m_mediaSource->QueryInterface(IID_PPV_ARGS(&pProcAmp));
 
 	if (SUCCEEDED(hr))
 	{
-		hr = pProcAmp->Set(propId, value, bAuto ? VideoProcAmp_Flags_Auto : VideoProcAmp_Flags_Manual);
+		hr= pProcAmp->Set(propId, value, bAuto ? VideoProcAmp_Flags_Auto : VideoProcAmp_Flags_Manual);
 		pProcAmp->Release();
 	}
 
@@ -547,18 +546,18 @@ bool MikanWMFVideoDevice::setProcAmpProperty(VideoProcAmpProperty propId, long v
 
 long MikanWMFVideoDevice::getProcAmpProperty(VideoProcAmpProperty propId, bool* bIsAuto) const
 {
-	long intValue = 0;
-	IAMVideoProcAmp* pProcAmp = NULL;
-	HRESULT hr = m_mediaSource->QueryInterface(IID_PPV_ARGS(&pProcAmp));
+	long intValue= 0;
+	IAMVideoProcAmp* pProcAmp= NULL;
+	HRESULT hr= m_mediaSource->QueryInterface(IID_PPV_ARGS(&pProcAmp));
 
 	if (SUCCEEDED(hr))
 	{
 		long flags;
-		hr = pProcAmp->Get(propId, &intValue, &flags);
+		hr= pProcAmp->Get(propId, &intValue, &flags);
 
 		if (bIsAuto != nullptr)
 		{
-			*bIsAuto = flags == VideoProcAmp_Flags_Auto;
+			*bIsAuto= flags == VideoProcAmp_Flags_Auto;
 		}
 
 		pProcAmp->Release();
@@ -569,23 +568,23 @@ long MikanWMFVideoDevice::getProcAmpProperty(VideoProcAmpProperty propId, bool* 
 
 bool MikanWMFVideoDevice::getProcAmpRange(VideoProcAmpProperty propId, VideoSettingConstraint& constraint) const
 {
-	IAMVideoProcAmp* pProcAmp = NULL;
-	HRESULT hr = m_mediaSource->QueryInterface(IID_PPV_ARGS(&pProcAmp));
+	IAMVideoProcAmp* pProcAmp= NULL;
+	HRESULT hr= m_mediaSource->QueryInterface(IID_PPV_ARGS(&pProcAmp));
 
 	memset(&constraint, 0, sizeof(VideoSettingConstraint));
 
 	if (SUCCEEDED(hr))
 	{
 		long minValue, maxValue, stepSize, defaultValue, flags;
-		hr = pProcAmp->GetRange(propId, &minValue, &maxValue, &stepSize, &defaultValue, &flags);
+		hr= pProcAmp->GetRange(propId, &minValue, &maxValue, &stepSize, &defaultValue, &flags);
 
 		if (SUCCEEDED(hr))
 		{
-			constraint.default_value = defaultValue;
-			constraint.min_value = minValue;
-			constraint.max_value = maxValue;
-			constraint.stepping_delta = stepSize;
-			constraint.is_automatic = flags == VideoProcAmp_Flags_Auto;
+			constraint.default_value= defaultValue;
+			constraint.min_value= minValue;
+			constraint.max_value= maxValue;
+			constraint.stepping_delta= stepSize;
+			constraint.is_automatic= flags == VideoProcAmp_Flags_Auto;
 		}
 
 		pProcAmp->Release();
@@ -596,14 +595,14 @@ bool MikanWMFVideoDevice::getProcAmpRange(VideoProcAmpProperty propId, VideoSett
 
 bool MikanWMFVideoDevice::setCameraControlProperty(CameraControlProperty propId, long value, bool bAuto)
 {
-	bool bSuccess = false;
+	bool bSuccess= false;
 
-	IAMCameraControl* pProcControl = NULL;
-	HRESULT hr = m_mediaSource->QueryInterface(IID_PPV_ARGS(&pProcControl));
+	IAMCameraControl* pProcControl= NULL;
+	HRESULT hr= m_mediaSource->QueryInterface(IID_PPV_ARGS(&pProcControl));
 
 	if (SUCCEEDED(hr))
 	{
-		hr = pProcControl->Set(propId, value, bAuto ? CameraControl_Flags_Auto : CameraControl_Flags_Manual);
+		hr= pProcControl->Set(propId, value, bAuto ? CameraControl_Flags_Auto : CameraControl_Flags_Manual);
 
 		pProcControl->Release();
 	}
@@ -613,18 +612,18 @@ bool MikanWMFVideoDevice::setCameraControlProperty(CameraControlProperty propId,
 
 long MikanWMFVideoDevice::getCameraControlProperty(CameraControlProperty propId, bool* bIsAuto) const
 {
-	long intValue = 0;
-	IAMCameraControl* pCameraControl = NULL;
-	HRESULT hr = m_mediaSource->QueryInterface(IID_PPV_ARGS(&pCameraControl));
+	long intValue= 0;
+	IAMCameraControl* pCameraControl= NULL;
+	HRESULT hr= m_mediaSource->QueryInterface(IID_PPV_ARGS(&pCameraControl));
 
 	if (SUCCEEDED(hr))
 	{
 		long flags;
-		hr = pCameraControl->Get(propId, &intValue, &flags);
+		hr= pCameraControl->Get(propId, &intValue, &flags);
 
 		if (bIsAuto != nullptr)
 		{
-			*bIsAuto = flags == CameraControl_Flags_Auto;
+			*bIsAuto= flags == CameraControl_Flags_Auto;
 		}
 
 		pCameraControl->Release();
@@ -636,24 +635,24 @@ long MikanWMFVideoDevice::getCameraControlProperty(CameraControlProperty propId,
 bool MikanWMFVideoDevice::getCameraControlRange(
 	CameraControlProperty propId, VideoSettingConstraint& constraint) const
 {
-	double unitValue = 0;
-	IAMCameraControl* pCameraControl = NULL;
-	HRESULT hr = m_mediaSource->QueryInterface(IID_PPV_ARGS(&pCameraControl));
+	double unitValue= 0;
+	IAMCameraControl* pCameraControl= NULL;
+	HRESULT hr= m_mediaSource->QueryInterface(IID_PPV_ARGS(&pCameraControl));
 
 	memset(&constraint, 0, sizeof(VideoSettingConstraint));
 
 	if (SUCCEEDED(hr))
 	{
 		long minValue, maxValue, stepSize, defaultValue, flags;
-		hr = pCameraControl->GetRange(propId, &minValue, &maxValue, &stepSize, &defaultValue, &flags);
+		hr= pCameraControl->GetRange(propId, &minValue, &maxValue, &stepSize, &defaultValue, &flags);
 
 		if (SUCCEEDED(hr))
 		{
-			constraint.default_value = defaultValue;
-			constraint.min_value = minValue;
-			constraint.max_value = maxValue;
-			constraint.stepping_delta = stepSize;
-			constraint.is_automatic = flags == VideoProcAmp_Flags_Auto;
+			constraint.default_value= defaultValue;
+			constraint.min_value= minValue;
+			constraint.max_value= maxValue;
+			constraint.stepping_delta= stepSize;
+			constraint.is_automatic= flags == VideoProcAmp_Flags_Auto;
 		}
 
 		pCameraControl->Release();

@@ -17,11 +17,10 @@
 
 class GlmTransform;
 
-class AnchorObjectSystemDefinition :
-	public MikanTypedObjectSystemDefinition<AnchorComponent, AnchorDefinition, MikanSpatialAnchorID>
+class AnchorObjectSystemDefinition : public MikanTypedObjectSystemDefinition<AnchorComponent, AnchorDefinition, MikanSpatialAnchorID>
 {
 public:
-	using Super = MikanTypedObjectSystemDefinition<AnchorComponent, AnchorDefinition, MikanSpatialAnchorID>;
+	using Super= MikanTypedObjectSystemDefinition<AnchorComponent, AnchorDefinition, MikanSpatialAnchorID>;
 
 	AnchorObjectSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
@@ -29,27 +28,28 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 };
 
-class AnchorObjectSystem :
-	public MikanTypedObjectSystem<
-		AnchorComponent, AnchorDefinition,
-		MikanSpatialAnchorID,
-		AnchorObjectSystem, AnchorObjectSystemDefinition>
+class AnchorObjectSystem : public MikanTypedObjectSystem<
+							   AnchorComponent, AnchorDefinition,
+							   MikanSpatialAnchorID,
+							   AnchorObjectSystem, AnchorObjectSystemDefinition>
 {
 public:
-	using Super = MikanTypedObjectSystem<
+	using Super= MikanTypedObjectSystem<
 		AnchorComponent, AnchorDefinition,
 		MikanSpatialAnchorID,
 		AnchorObjectSystem, AnchorObjectSystemDefinition>;
 
 	AnchorObjectSystem(ProjectManagerPtr ownerObjectSystem);
 
-	inline static const std::string k_objectSystemClassName = "AnchorObjectSystem";
+	inline static const std::string k_objectSystemClassName= "AnchorObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
-	inline AnchorComponentPtr getSpatialAnchorById(MikanSpatialAnchorID anchorId) const {
+	inline AnchorComponentPtr getSpatialAnchorById(MikanSpatialAnchorID anchorId) const
+	{
 		return Super::getTypedComponentById(anchorId);
 	}
-	inline AnchorComponentPtr getSpatialAnchorByName(const std::string& anchorName) const {
+	inline AnchorComponentPtr getSpatialAnchorByName(const std::string& anchorName) const
+	{
 		return Super::getTypedComponentByName(anchorName);
 	}
 	bool getSpatialAnchorWorldTransform(MikanSpatialAnchorID anchorId, glm::mat4& outXform) const;

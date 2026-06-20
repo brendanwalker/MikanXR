@@ -6,7 +6,7 @@
 #include <string>
 #include <set>
 
-using UniformNameSet = std::set<std::string>;
+using UniformNameSet= std::set<std::string>;
 
 class MIKAN_RENDERER_CLASS MkScopedMaterialBinding
 {

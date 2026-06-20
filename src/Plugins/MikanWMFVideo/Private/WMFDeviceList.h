@@ -6,7 +6,7 @@
 class WMFDeviceList
 {
 public:
-	WMFDeviceList() = default;
+	WMFDeviceList()= default;
 
 	const std::vector<struct WMFDeviceInfo>& getDevices() const { return m_deviceList; }
 	bool isDevicePresent(const std::string& devicePath) const;

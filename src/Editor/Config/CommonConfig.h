@@ -18,23 +18,23 @@ class EventBus;
 struct PropertyChangedEvent;
 
 #ifdef _MSC_VER
-    #pragma warning (push)
-    #pragma warning (disable: 4996) // This function or variable may be unsafe
-    #pragma warning (disable: 4244) // 'return': conversion from 'const int64_t' to 'float', possible loss of data
-    #pragma warning (disable: 4715) // configuru::Config::operator[]': not all control paths return a value
+#pragma warning(push)
+#pragma warning(disable : 4996) // This function or variable may be unsafe
+#pragma warning(disable : 4244) // 'return': conversion from 'const int64_t' to 'float', possible loss of data
+#pragma warning(disable : 4715) // configuru::Config::operator[]': not all control paths return a value
 #endif
 #include <configuru.hpp>
 #ifdef _MSC_VER
-    #pragma warning (pop)
+#pragma warning(pop)
 #endif
 
 //-- definitions -----
 /*
-    Note that CommonConfig is an abstract class because it has 2 pure virtual functions.
-    Child classes must add public member variables that store the config data,
-    as well as implement writeToJSON and readFromJSON that use pt[key]= value and
-    pt.get_or<type>(), respectively, to convert between member variables and the
-    property tree. 
+	Note that CommonConfig is an abstract class because it has 2 pure virtual functions.
+	Child classes must add public member variables that store the config data,
+	as well as implement writeToJSON and readFromJSON that use pt[key]= value and
+	pt.get_or<type>(), respectively, to convert between member variables and the
+	property tree.
 */
 class ConfigPropertyChangeSet
 {
@@ -50,7 +50,7 @@ private:
 class CommonConfig : public std::enable_shared_from_this<CommonConfig>
 {
 public:
-    CommonConfig(const std::string &configName = std::string("CommonConfig"));
+	CommonConfig(const std::string& configName= std::string("CommonConfig"));
 
 	void addChildConfig(std::shared_ptr<CommonConfig> childConfig);
 	std::shared_ptr<CommonConfig> getChildConfig(const std::string& configName) const;
@@ -68,106 +68,106 @@ public:
 
 	const std::string& getConfigName() const { return m_configName; }
 	const std::filesystem::path getDefaultConfigPath() const;
-    const std::filesystem::path& getLoadedConfigPath() const { return m_configFullFilePath; }
+	const std::filesystem::path& getLoadedConfigPath() const { return m_configFullFilePath; }
 	void save();
 	void save(const std::filesystem::path& path);
-    bool load();
+	bool load();
 	bool load(const std::filesystem::path& path);
 
-    virtual configuru::Config writeToJSON();  // Implement by each device class' own Config
-    virtual void readFromJSON(const configuru::Config &pt);  // Implement by each device class' own Config
-    
-	template<typename t_value_type>
+	virtual configuru::Config writeToJSON();                // Implement by each device class' own Config
+	virtual void readFromJSON(const configuru::Config& pt); // Implement by each device class' own Config
+
+	template <typename t_value_type>
 	static void writeStdValueVector(
 		configuru::Config& pt,
 		const std::string& arrayName,
 		const std::vector<t_value_type>& vector)
 	{
-		auto configArray = configuru::Config::array();
+		auto configArray= configuru::Config::array();
 
-		for (auto it = vector.begin(); it != vector.end(); it++)
+		for (auto it= vector.begin(); it != vector.end(); it++)
 		{
 			configArray.push_back(*it);
 		}
 
-		pt[arrayName] = configArray;
+		pt[arrayName]= configArray;
 	}
-	template<typename t_value_type>
+	template <typename t_value_type>
 	static void readStdValueVector(
 		const configuru::Config& pt,
 		const std::string& arrayName,
 		std::vector<t_value_type>& vector)
 	{
-		const auto& configArray = pt[arrayName].as_array();
+		const auto& configArray= pt[arrayName].as_array();
 
 		vector.clear();
-		for (auto it = configArray.begin(); it != configArray.end(); it++)
+		for (auto it= configArray.begin(); it != configArray.end(); it++)
 		{
 			vector.push_back(it->get<t_value_type>());
 		}
 	}
 
-	template<class t_object_type>
+	template <class t_object_type>
 	static void writeStdConfigVector(
 		configuru::Config& pt,
 		const std::string& arrayName,
-		const std::vector< std::shared_ptr<t_object_type> >& vector)
+		const std::vector<std::shared_ptr<t_object_type>>& vector)
 	{
-		auto configArray = configuru::Config::array();
+		auto configArray= configuru::Config::array();
 
-		for (auto it = vector.begin(); it != vector.end(); it++)
+		for (auto it= vector.begin(); it != vector.end(); it++)
 		{
-			std::shared_ptr<t_object_type> childConfig = *it;
+			std::shared_ptr<t_object_type> childConfig= *it;
 			configuru::Config pt= childConfig->writeToJSON();
 
 			configArray.push_back(pt);
 		}
 
-		pt[arrayName] = configArray;
+		pt[arrayName]= configArray;
 	}
-	template<class t_object_type>
+	template <class t_object_type>
 	static void readStdConfigVector(
 		const configuru::Config& pt,
 		const std::string& arrayName,
-		std::vector< std::shared_ptr<t_object_type> >& vector)
+		std::vector<std::shared_ptr<t_object_type>>& vector)
 	{
-		const auto& configArray = pt[arrayName].as_array();
+		const auto& configArray= pt[arrayName].as_array();
 
 		vector.clear();
-		for (auto it = configArray.begin(); it != configArray.end(); it++)
+		for (auto it= configArray.begin(); it != configArray.end(); it++)
 		{
-			std::shared_ptr<t_object_type> childConfig = std::make_shared<t_object_type>();
+			std::shared_ptr<t_object_type> childConfig= std::make_shared<t_object_type>();
 			childConfig->readFromJSON(*it);
 
 			vector.push_back(childConfig);
 		}
 	}
 
-	template<typename t_value_type, size_t length>
+	template <typename t_value_type, size_t length>
 	static void writeStdArray(
 		configuru::Config& pt,
 		const std::string& arrayName,
 		const std::array<t_value_type, length>& array)
 	{
-		auto configArray = configuru::Config::array();
+		auto configArray= configuru::Config::array();
 
 		for (size_t i= 0; i < length; i++)
 		{
 			configArray.push_back(array[i]);
 		}
 
-		pt[arrayName] = configArray;
+		pt[arrayName]= configArray;
 	}
-	template<typename t_value_type, size_t length>
+	template <typename t_value_type, size_t length>
 	static void readStdArray(
 		const configuru::Config& pt,
 		const std::string& arrayName,
 		std::array<t_value_type, length>& array)
 	{
-		const auto& configArray = pt[arrayName].as_array();
+		const auto& configArray= pt[arrayName].as_array();
 
 		size_t index= 0;
-		for (auto it = configArray.begin(); it != configArray.end(); it++)
+		for (auto it= configArray.begin(); it != configArray.end(); it++)
 		{
 			if (index < length)
 			{
@@ -181,23 +181,23 @@ public:
 		}
 	}
 
-    template<typename t_value_type>
-    static void writeStdMap(
-        configuru::Config& pt, 
-        const std::string& mapName,
-        const std::map<std::string, t_value_type>& nameValueMap)
-    {
-        pt[mapName]= configuru::Config::object();
+	template <typename t_value_type>
+	static void writeStdMap(
+		configuru::Config& pt,
+		const std::string& mapName,
+		const std::map<std::string, t_value_type>& nameValueMap)
+	{
+		pt[mapName]= configuru::Config::object();
 
-        for (auto it = nameValueMap.begin(); it != nameValueMap.end(); ++it)
-        {
-            const std::string& name= it->first;
-            const t_value_type& value = it->second;
+		for (auto it= nameValueMap.begin(); it != nameValueMap.end(); ++it)
+		{
+			const std::string& name= it->first;
+			const t_value_type& value= it->second;
 
-            pt[mapName][name] = value;
-        }
-    }
-	template<typename t_value_type>
+			pt[mapName][name]= value;
+		}
+	}
+	template <typename t_value_type>
 	static void readStdMap(
 		const configuru::Config& pt,
 		const std::string& mapName,
@@ -205,38 +205,38 @@ public:
 	{
 		if (pt.has_key(mapName))
 		{
-			const configuru::Config::ConfigObject& configObject = pt[mapName].as_object();
+			const configuru::Config::ConfigObject& configObject= pt[mapName].as_object();
 
 			nameValueMap.clear();
-			for (configuru::Config::ConfigObject::const_iterator it = configObject.begin(); it != configObject.end(); ++it)
+			for (configuru::Config::ConfigObject::const_iterator it= configObject.begin(); it != configObject.end(); ++it)
 			{
-				const std::string& name = it.key();
-				const configuru::Config& config = it.value();
-				const t_value_type& value = config.get<t_value_type>();
+				const std::string& name= it.key();
+				const configuru::Config& config= it.value();
+				const t_value_type& value= config.get<t_value_type>();
 
 				nameValueMap.insert({name, value});
 			}
 		}
 	}
 
-	template<typename t_value_type, int N>
+	template <typename t_value_type, int N>
 	static void writeStdArrayMap(
 		configuru::Config& pt,
 		const std::string& mapName,
 		const std::map<std::string, std::array<t_value_type, N>>& nameValueMap)
 	{
-		pt[mapName] = configuru::Config::object();
+		pt[mapName]= configuru::Config::object();
 
-		for (auto it = nameValueMap.begin(); it != nameValueMap.end(); ++it)
+		for (auto it= nameValueMap.begin(); it != nameValueMap.end(); ++it)
 		{
-			const std::string& name = it->first;
-			const std::array<t_value_type, N>& valueArray = it->second;
+			const std::string& name= it->first;
+			const std::array<t_value_type, N>& valueArray= it->second;
 
-			pt[mapName][name] = configuru::Config::array(valueArray);
+			pt[mapName][name]= configuru::Config::array(valueArray);
 		}
 	}
 
-	template<typename t_value_type, int N>
+	template <typename t_value_type, int N>
 	static void readStdArrayMap(
 		const configuru::Config& pt,
 		const std::string& mapName,
@@ -244,20 +244,20 @@ public:
 	{
 		if (pt.has_key(mapName))
 		{
-			const configuru::Config::ConfigObject& configObject = pt[mapName].as_object();
+			const configuru::Config::ConfigObject& configObject= pt[mapName].as_object();
 
 			nameValueMap.clear();
-			for (configuru::Config::ConfigObject::const_iterator it = configObject.begin(); it != configObject.end(); ++it)
+			for (configuru::Config::ConfigObject::const_iterator it= configObject.begin(); it != configObject.end(); ++it)
 			{
-				const std::string& name = it.key();
-				const configuru::Config& configValue = it.value();
+				const std::string& name= it.key();
+				const configuru::Config& configValue= it.value();
 				if (configValue.is_array() && configValue.array_size() == N)
 				{
 					std::array<t_value_type, N> valueArray;
 
-					for (int i = 0; i < N; i++)
+					for (int i= 0; i < N; i++)
 					{
-						valueArray[i] = configValue[i].get<t_value_type>();
+						valueArray[i]= configValue[i].get<t_value_type>();
 					}
 
 					nameValueMap.insert({name, valueArray});
@@ -396,6 +396,6 @@ protected:
 	std::string m_configName;
 	std::filesystem::path m_configFullFilePath;
 
-	float m_autoSaveCooldownDuration = -1.f;
-	float m_autoSaveCooldownTimer = -1.f;
+	float m_autoSaveCooldownDuration= -1.f;
+	float m_autoSaveCooldownTimer= -1.f;
 };

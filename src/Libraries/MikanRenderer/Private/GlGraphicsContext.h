@@ -6,7 +6,7 @@
 class GlGraphicsContext : public IMkGraphicsContext
 {
 public:
-	GlGraphicsContext() = delete;
+	GlGraphicsContext()= delete;
 	GlGraphicsContext(class IMkFontManager* fontManager);
 	virtual ~GlGraphicsContext();
 
@@ -26,7 +26,7 @@ public:
 	virtual void onWindowSizeChanged(int width, int height) override;
 
 	virtual IMkViewportPtr getRenderingViewport() const override { return m_renderingViewport; }
-	virtual void setRenderingViewport(IMkViewportPtr viewport) override { m_renderingViewport = viewport; }
+	virtual void setRenderingViewport(IMkViewportPtr viewport) override { m_renderingViewport= viewport; }
 
 	virtual MkStateStack& getMkStateStack() override;
 	virtual class IMkLineRenderer* getLineRenderer() override;
@@ -36,17 +36,17 @@ public:
 
 private:
 	// Native GL context handle (void* from SDL_GL_CreateContext)
-	void* m_glContext = nullptr;
+	void* m_glContext= nullptr;
 
 	// Window dimensions (updated on resize)
-	float m_width = 0.f;
-	float m_height = 0.f;
+	float m_width= 0.f;
+	float m_height= 0.f;
 
 	// Rendering viewport
 	IMkViewportPtr m_renderingViewport;
 
 	// Font manager needed for text renderer creation (not owned)
-	class IMkFontManager* m_fontManager = nullptr;
+	class IMkFontManager* m_fontManager= nullptr;
 
 	// GL rendering resources (created during startup)
 	MkStateStackUniquePtr m_stateStack;

@@ -27,19 +27,19 @@ void CVVideoFrameProcessor::ensureBufferSize(int width, int height)
 {
 	if (m_bgrUndistortBuffer != nullptr)
 		delete m_bgrUndistortBuffer;
-	m_bgrUndistortBuffer = new cv::Mat(cv::Size(width, height), CV_8UC3);
+	m_bgrUndistortBuffer= new cv::Mat(cv::Size(width, height), CV_8UC3);
 
 	if (m_gsSourceBuffer != nullptr)
 		delete m_gsSourceBuffer;
-	m_gsSourceBuffer = new cv::Mat(height, width, CV_8UC1);
+	m_gsSourceBuffer= new cv::Mat(height, width, CV_8UC1);
 
 	if (m_gsUndistortBuffer != nullptr)
 		delete m_gsUndistortBuffer;
-	m_gsUndistortBuffer = new cv::Mat(height, width, CV_8UC1);
+	m_gsUndistortBuffer= new cv::Mat(height, width, CV_8UC1);
 
 	if (m_bgrGsDisplayBuffer != nullptr)
 		delete m_bgrGsDisplayBuffer;
-	m_bgrGsDisplayBuffer = new cv::Mat(height, width, CV_8UC3);
+	m_bgrGsDisplayBuffer= new cv::Mat(height, width, CV_8UC3);
 }
 
 void CVVideoFrameProcessor::computeUndistortion(

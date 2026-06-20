@@ -6,12 +6,12 @@
 class TexturePin : public NodePin
 {
 public:
-	TexturePin() = default;
+	TexturePin()= default;
 
 	IMkTexturePtr getValue() const { return m_value; }
-	void setValue(IMkTexturePtr inValue) { m_value = inValue; }
+	void setValue(IMkTexturePtr inValue) { m_value= inValue; }
 
-	inline static const std::string k_pinClassName = "TexturePin";
+	inline static const std::string k_pinClassName= "TexturePin";
 	virtual std::string getClassName() const override { return k_pinClassName; }
 	virtual size_t getDataSize() const { return sizeof(IMkTexturePtr); }
 	virtual void copyValueFromSourcePin() override;

@@ -20,8 +20,8 @@ const char* MikanSteamVRDeviceSocket::getName() const
 
 bool MikanSteamVRDeviceSocket::getSocketState(VRDevicePose& outRelativePose) const
 {
-	vr::IVRRenderModels* renderModelInterface = vr::VRRenderModels();
-	const std::string ownerRenderModelName =
+	vr::IVRRenderModels* renderModelInterface= vr::VRRenderModels();
+	const std::string ownerRenderModelName=
 		m_ownerDevice->getProperties()->getRenderModelName();
 
 	vr::VRControllerState_t* controllerState= nullptr;
@@ -36,10 +36,10 @@ bool MikanSteamVRDeviceSocket::getSocketState(VRDevicePose& outRelativePose) con
 			&componentModeState,
 			&componentState))
 	{
-		const glm::mat4 componentToRenderMat =
+		const glm::mat4 componentToRenderMat=
 			vr_HmdMatrix34_to_glm_mat4(componentState.mTrackingToComponentLocal);
 
-		outRelativePose = glm_mat4_to_VRDevicePose(componentToRenderMat);
+		outRelativePose= glm_mat4_to_VRDevicePose(componentToRenderMat);
 		return true;
 	}
 

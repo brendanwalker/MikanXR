@@ -7,10 +7,10 @@
 #include <map>
 #include <string>
 
-using PropertyNotifyDatabasePtr = std::shared_ptr<class PropertyNotifyDatabase>;
-using PropertyNotifyDatabaseConstPtr = std::shared_ptr<const class PropertyNotifyDatabase>;
+using PropertyNotifyDatabasePtr= std::shared_ptr<class PropertyNotifyDatabase>;
+using PropertyNotifyDatabaseConstPtr= std::shared_ptr<const class PropertyNotifyDatabase>;
 
-using MikanPropertyDatabaseConstPtr = std::shared_ptr<const class MikanPropertyDatabase>;
+using MikanPropertyDatabaseConstPtr= std::shared_ptr<const class MikanPropertyDatabase>;
 
 class PropertyNotifyDatabase
 {

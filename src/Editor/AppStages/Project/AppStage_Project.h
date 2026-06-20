@@ -17,14 +17,14 @@
 //-- definitions -----
 enum class eProjectAppStageActivePanel : int
 {
-	INVALID = -1,
+	INVALID= -1,
 
-	Scenes = 0,
-	Stages = 1,
-	Sources = 2,
-	Tracking = 3,
-	Markers = 4,
-	Settings = 5,
+	Scenes= 0,
+	Stages= 1,
+	Sources= 2,
+	Tracking= 3,
+	Markers= 4,
+	Settings= 5,
 
 	COUNT
 };
@@ -56,7 +56,7 @@ protected:
 	void renderProjectTracking(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const;
 	void renderCameraComponents(
 		IMkGraphicsContext* graphicsContext,
-		MikanCameraPtr viewportCamera, 
+		MikanCameraPtr viewportCamera,
 		StageComponentConstPtr stageComponent) const;
 	void renderVRTrackingVolume(
 		IMkGraphicsContext* graphicsContext,
@@ -116,22 +116,22 @@ protected:
 	RGBPixelGridSystemWeakPtr m_pixelGridLightSystem;
 	RGBSpotLightSystemWeakPtr m_spotLightSystem;
 
-	// Collision Systems Filters 
+	// Collision Systems Filters
 	std::set<const MikanObjectSystem*> m_sceneObjectSystemFilter;
 	std::set<const MikanObjectSystem*> m_stageObjectSystemFilter;
 	std::set<const MikanObjectSystem*> m_emptyObjectSystemFilter;
 
 	// Shared context for GuiPanel component/system panels
-	class ProjectGuiPanelContext* m_projectGuiPanelContext = nullptr;
+	class ProjectGuiPanelContext* m_projectGuiPanelContext= nullptr;
 
 	// Project-level ImGui panels
-	class GuiPanel_ProjectScenes* m_projectScenesPanel = nullptr;
-	class GuiPanel_ProjectStages* m_projectStagesPanel = nullptr;
-	class GuiPanel_ProjectSources* m_projectSourcesPanel = nullptr;
-	class GuiPanel_ProjectTracking* m_projectTrackingPanel = nullptr;
-	class GuiPanel_ProjectMarkers* m_projectMarkersPanel = nullptr;
-	class GuiPanel_ProjectSettings* m_projectSettingsPanel = nullptr;
-	eProjectAppStageActivePanel m_activePanel = eProjectAppStageActivePanel::INVALID;
+	class GuiPanel_ProjectScenes* m_projectScenesPanel= nullptr;
+	class GuiPanel_ProjectStages* m_projectStagesPanel= nullptr;
+	class GuiPanel_ProjectSources* m_projectSourcesPanel= nullptr;
+	class GuiPanel_ProjectTracking* m_projectTrackingPanel= nullptr;
+	class GuiPanel_ProjectMarkers* m_projectMarkersPanel= nullptr;
+	class GuiPanel_ProjectSettings* m_projectSettingsPanel= nullptr;
+	eProjectAppStageActivePanel m_activePanel= eProjectAppStageActivePanel::INVALID;
 
 	MikanViewportPtr m_viewport;
 	std::vector<CompositorComponentWeakPtr> m_activeCompositors;

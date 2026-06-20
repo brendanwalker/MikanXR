@@ -22,20 +22,29 @@ private:
 class GuiPanel_QuadShapeComponent : public GuiPanel_ShapeComponent
 {
 public:
-	GuiPanel_QuadShapeComponent(AppStage* ownerAppStage) : GuiPanel_ShapeComponent(ownerAppStage) {}
+	GuiPanel_QuadShapeComponent(AppStage* ownerAppStage)
+		: GuiPanel_ShapeComponent(ownerAppStage)
+	{
+	}
 	virtual bool init() override;
 };
 
 class GuiPanel_BoxShapeComponent : public GuiPanel_ShapeComponent
 {
 public:
-	GuiPanel_BoxShapeComponent(AppStage* ownerAppStage) : GuiPanel_ShapeComponent(ownerAppStage) {}
+	GuiPanel_BoxShapeComponent(AppStage* ownerAppStage)
+		: GuiPanel_ShapeComponent(ownerAppStage)
+	{
+	}
 	virtual bool init() override;
 };
 
 class GuiPanel_ModelShapeComponent : public GuiPanel_ShapeComponent
 {
 public:
-	GuiPanel_ModelShapeComponent(AppStage* ownerAppStage) : GuiPanel_ShapeComponent(ownerAppStage) {}
+	GuiPanel_ModelShapeComponent(AppStage* ownerAppStage)
+		: GuiPanel_ShapeComponent(ownerAppStage)
+	{
+	}
 	virtual bool init() override;
 };

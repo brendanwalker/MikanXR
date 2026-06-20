@@ -23,7 +23,7 @@
 class MikanClientConnectionState;
 using MikanClientConnectionStatePtr= std::shared_ptr<MikanClientConnectionState>;
 using MikanClientConnectionStateConstPtr= std::shared_ptr<const MikanClientConnectionState>;
-using MikanClientConnectionStateMap = std::map<std::string, MikanClientConnectionStatePtr>;
+using MikanClientConnectionStateMap= std::map<std::string, MikanClientConnectionStatePtr>;
 
 //-- definitions -----
 class MikanServer
@@ -59,7 +59,7 @@ public:
 	void getConnectedClientStateList(std::vector<MikanClientConnectionStateConstPtr>& outClientList) const;
 	const MikanClientConnectionStateMap& getConnectedClientStateMap() { return m_clientConnections; }
 
-	MulticastDelegate<void(const std::string& clientId, const MikanClientInfo& clientInfo) > OnClientInitialized;
+	MulticastDelegate<void(const std::string& clientId, const MikanClientInfo& clientInfo)> OnClientInitialized;
 	MulticastDelegate<void(const std::string& clientId)> OnClientDisposed;
 
 protected:
@@ -80,7 +80,7 @@ protected:
 
 private:
 	static MikanServer* m_instance;
-	class MainWindow* m_ownerWindow = nullptr;
+	class MainWindow* m_ownerWindow= nullptr;
 
 	class IInterprocessMessageServer* m_messageServer;
 

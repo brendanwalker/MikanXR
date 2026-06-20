@@ -6,30 +6,30 @@
 class MIKAN_GUI_CLASS MkGuiScopedPopup
 {
 public:
-	explicit MkGuiScopedPopup(const char* str_id, ImGuiWindowFlags flags = 0);
+	explicit MkGuiScopedPopup(const char* str_id, ImGuiWindowFlags flags= 0);
 	~MkGuiScopedPopup();
 
-	MkGuiScopedPopup(const MkGuiScopedPopup&) = delete;
-	MkGuiScopedPopup& operator=(const MkGuiScopedPopup&) = delete;
+	MkGuiScopedPopup(const MkGuiScopedPopup&)= delete;
+	MkGuiScopedPopup& operator=(const MkGuiScopedPopup&)= delete;
 
 	explicit operator bool() const { return m_open; }
 
 private:
-	bool m_open = false;
+	bool m_open= false;
 };
 
 class MIKAN_GUI_CLASS MkGuiScopedPopupContextItem
 {
 public:
-	explicit MkGuiScopedPopupContextItem(const char* str_id = nullptr,
-	                                     ImGuiPopupFlags popup_flags = 1);
+	explicit MkGuiScopedPopupContextItem(const char* str_id= nullptr,
+										 ImGuiPopupFlags popup_flags= 1);
 	~MkGuiScopedPopupContextItem();
 
-	MkGuiScopedPopupContextItem(const MkGuiScopedPopupContextItem&) = delete;
-	MkGuiScopedPopupContextItem& operator=(const MkGuiScopedPopupContextItem&) = delete;
+	MkGuiScopedPopupContextItem(const MkGuiScopedPopupContextItem&)= delete;
+	MkGuiScopedPopupContextItem& operator=(const MkGuiScopedPopupContextItem&)= delete;
 
 	explicit operator bool() const { return m_open; }
 
 private:
-	bool m_open = false;
+	bool m_open= false;
 };

@@ -8,7 +8,7 @@
 class DMXManager : public IDMXManager
 {
 public:
-	DMXManager() = default;
+	DMXManager()= default;
 	virtual ~DMXManager() override;
 
 	virtual bool startup(const DMXManagerConfig& config) override;

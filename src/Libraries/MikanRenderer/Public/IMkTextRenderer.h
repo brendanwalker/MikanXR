@@ -9,10 +9,10 @@
 
 #include <string>
 
-#define TEXT_STYLE_NORMAL        0x00
-#define TEXT_STYLE_BOLD          0x01
-#define TEXT_STYLE_ITALIC        0x02
-#define TEXT_STYLE_UNDERLINE     0x04
+#define TEXT_STYLE_NORMAL 0x00
+#define TEXT_STYLE_BOLD 0x01
+#define TEXT_STYLE_ITALIC 0x02
+#define TEXT_STYLE_UNDERLINE 0x04
 #define TEXT_STYLE_STRIKETHROUGH 0x08
 
 enum class eHorizontalTextAlignment : int
@@ -60,14 +60,14 @@ class IMkTextRenderer
 public:
 	virtual ~IMkTextRenderer() {}
 
-	virtual bool startup() = 0;
-	virtual void render() = 0;
-	virtual void shutdown() = 0;
+	virtual bool startup()= 0;
+	virtual void render()= 0;
+	virtual void shutdown()= 0;
 
 	virtual void addTextAtScreenPosition(
-		const TextStyle& style, 
-		const glm::vec2& screenCoords, 
-		const std::wstring& text) = 0;
+		const TextStyle& style,
+		const glm::vec2& screenCoords,
+		const std::wstring& text)= 0;
 };
 
 MIKAN_RENDERER_FUNC(IMkTextRendererPtr) createMkTextRenderer(IMkGraphicsContext* ownerContext, IMkFontManager* fontManager);

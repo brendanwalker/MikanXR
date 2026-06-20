@@ -1,10 +1,10 @@
 #include "IRemoteControllable.h"
 #include "RemoteControlManager.h"
 
-const std::string IRemoteControllable::k_success = "success";
-const std::string IRemoteControllable::k_failure = "failure";
-const std::string IRemoteControllable::k_true = "true";
-const std::string IRemoteControllable::k_false = "false";
+const std::string IRemoteControllable::k_success= "success";
+const std::string IRemoteControllable::k_failure= "failure";
+const std::string IRemoteControllable::k_true= "true";
+const std::string IRemoteControllable::k_false= "false";
 
 void IRemoteControllable::sendRemoteControlEvent(const std::string& event)
 {

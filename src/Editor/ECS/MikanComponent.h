@@ -24,7 +24,7 @@ public:
 	MikanComponentDefinition(int componentId, const std::string& componentName);
 
 	MikanComponentPtr getOwnerComponent() const { return m_ownerComponent.lock(); }
-	void setOwnerComponent(MikanComponentPtr ownerComponent) { m_ownerComponent = ownerComponent; }
+	void setOwnerComponent(MikanComponentPtr ownerComponent) { m_ownerComponent= ownerComponent; }
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -51,22 +51,21 @@ protected:
 	AssetReferenceConfigPtr m_componentScriptAssetRefConfig;
 };
 
-class MikanComponent : 
-	public std::enable_shared_from_this<MikanComponent>,
-	public IEntityAccessor
+class MikanComponent : public std::enable_shared_from_this<MikanComponent>,
+					   public IEntityAccessor
 {
 public:
 	MikanComponent(MikanObjectWeakPtr owner);
 
 	inline bool getWasInitialized() const { return m_bWasInitialized; }
 	inline bool getWasDisposed() const { return m_bWasDisposed; }
-	
+
 	virtual void setDefinition(MikanComponentDefinitionPtr config);
 	virtual MikanComponentDefinitionPtr getDefinition() const { return m_definition; }
 
 	int getComponentId() const;
 
-	inline static const std::string k_componentClassName = "MikanComponent";
+	inline static const std::string k_componentClassName= "MikanComponent";
 	virtual std::string getComponentClassName() const { return k_componentClassName; }
 
 	void setName(const std::string& name);
@@ -111,7 +110,7 @@ public:
 	virtual void init();
 	virtual void postInit();
 	virtual void dispose();
-	
+
 	// set m_bWantsUpdate to true in constructor to make this function be called
 	virtual void update(float deltaSeconds) {}
 
@@ -171,19 +170,19 @@ protected:
 	ComponentScriptContextPtr m_scriptContext;
 };
 
-template<class t_derived_type>
+template <class t_derived_type>
 std::shared_ptr<t_derived_type> ComponentCast(MikanComponentPtr component)
 {
 	return std::dynamic_pointer_cast<t_derived_type>(component);
 }
 
-template<class t_component_type>
+template <class t_component_type>
 const char* ComponentTypeName(MikanComponentPtr component)
 {
 	return typeid(*component.get()).name();
 }
 
-template<class t_component_type>
+template <class t_component_type>
 const char* ComponentTypeName()
 {
 	return typeid(t_component_type).name();

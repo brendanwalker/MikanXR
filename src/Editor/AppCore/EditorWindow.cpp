@@ -15,20 +15,22 @@
 //-- public methods -----
 EditorWindow::EditorWindow(App* ownerApp)
 	: m_ownerApp(ownerApp)
-{}
-
-EditorWindow::~EditorWindow()
-{}
-
-// -- IEditorWindow ----
-IMkGraphicsContextPtr EditorWindow::getGraphicsContext() const 
-{ 
-	return m_graphicsContext; 
+{
 }
 
-IMkWindowContextPtr EditorWindow::getMkWindowContext() const 
-{ 
-	return m_mkWindowContext; 
+EditorWindow::~EditorWindow()
+{
+}
+
+// -- IEditorWindow ----
+IMkGraphicsContextPtr EditorWindow::getGraphicsContext() const
+{
+	return m_graphicsContext;
+}
+
+IMkWindowContextPtr EditorWindow::getMkWindowContext() const
+{
+	return m_mkWindowContext;
 }
 
 const char* EditorWindow::getTitle() const
@@ -148,7 +150,7 @@ bool EditorWindow::startupGuiContext()
 {
 	EASY_FUNCTION();
 
-	m_guiContext = std::make_shared<MkGuiContext>(getMkWindowContext().get());
+	m_guiContext= std::make_shared<MkGuiContext>(getMkWindowContext().get());
 	if (!m_guiContext->startup())
 	{
 		MIKAN_LOG_ERROR("EditorWindow::startupGuiContext") << "Unable to create GUI context";
@@ -161,8 +163,8 @@ bool EditorWindow::startupStyleManager()
 {
 	EASY_FUNCTION();
 
-	m_styleManager = std::make_unique<MkGuiStyleManager>();
-	const auto stylesPath = PathUtils::getResourceDirectory() / "gui_styles";
+	m_styleManager= std::make_unique<MkGuiStyleManager>();
+	const auto stylesPath= PathUtils::getResourceDirectory() / "gui_styles";
 	if (!m_styleManager->startup(m_guiContext.get(), stylesPath))
 	{
 		MIKAN_LOG_ERROR("EditorWindow::startupStyleManager") << "Failed to initialize style manager";
@@ -175,7 +177,7 @@ bool EditorWindow::startupTextureCache()
 {
 	EASY_FUNCTION();
 
-	m_textureCache = std::make_unique<MikanTextureCache>(getMkWindowContext()->getGraphicsContext().get());
+	m_textureCache= std::make_unique<MikanTextureCache>(getMkWindowContext()->getGraphicsContext().get());
 
 	if (!m_textureCache->startup())
 	{
@@ -184,7 +186,6 @@ bool EditorWindow::startupTextureCache()
 	}
 	return true;
 }
-
 
 bool EditorWindow::startupModelResourceManager()
 {
@@ -203,7 +204,7 @@ void EditorWindow::shutdownTextureCache()
 	if (m_textureCache != nullptr)
 	{
 		m_textureCache->shutdown();
-		m_textureCache = nullptr;
+		m_textureCache= nullptr;
 	}
 }
 
@@ -212,7 +213,7 @@ void EditorWindow::shutdownModelResourceManager()
 	if (m_modelResourceManager != nullptr)
 	{
 		m_modelResourceManager->shutdown();
-		m_modelResourceManager = nullptr;
+		m_modelResourceManager= nullptr;
 	}
 }
 
@@ -221,7 +222,7 @@ void EditorWindow::shutdownStyleManager()
 	if (m_styleManager != nullptr)
 	{
 		m_styleManager->shutdown();
-		m_styleManager = nullptr;
+		m_styleManager= nullptr;
 	}
 }
 
@@ -230,7 +231,7 @@ void EditorWindow::shutdownGuiContext()
 	if (m_guiContext != nullptr)
 	{
 		m_guiContext->shutdown();
-		m_guiContext = nullptr;
+		m_guiContext= nullptr;
 	}
 }
 
@@ -239,6 +240,6 @@ void EditorWindow::shutdownWindow()
 	if (m_mkWindowContext != nullptr)
 	{
 		m_mkWindowContext->shutdown();
-		m_mkWindowContext = nullptr;
+		m_mkWindowContext= nullptr;
 	}
 }

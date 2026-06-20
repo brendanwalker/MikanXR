@@ -20,7 +20,7 @@ bool ModalDialog_SelectCamera::selectCamera(
 	CancelCallback cancelCallback,
 	FilterCallback filterCallback)
 {
-	ModalDialog_SelectCamera* dialog = appStage->pushModalDialog<ModalDialog_SelectCamera>();
+	ModalDialog_SelectCamera* dialog= appStage->pushModalDialog<ModalDialog_SelectCamera>();
 
 	if (!dialog->init(selectCallback, cancelCallback, filterCallback))
 	{
@@ -36,17 +36,17 @@ bool ModalDialog_SelectCamera::init(
 	CancelCallback cancelCallback,
 	FilterCallback filterCallback)
 {
-	m_selectCallback = selectCallback;
-	m_cancelCallback = cancelCallback;
-	m_filterCallback = filterCallback;
+	m_selectCallback= selectCallback;
+	m_cancelCallback= cancelCallback;
+	m_filterCallback= filterCallback;
 
-	CameraObjectSystemPtr cameraSystem = m_ownerAppStage->getSystemOfType<CameraObjectSystem>();
+	CameraObjectSystemPtr cameraSystem= m_ownerAppStage->getSystemOfType<CameraObjectSystem>();
 	if (!cameraSystem)
 		return false;
 
 	for (const auto& [id, weakPtr] : cameraSystem->getComponentMap())
 	{
-		CameraComponentPtr camera = std::static_pointer_cast<CameraComponent>(weakPtr.lock());
+		CameraComponentPtr camera= std::static_pointer_cast<CameraComponent>(weakPtr.lock());
 		if (!camera)
 			continue;
 
@@ -54,7 +54,7 @@ bool ModalDialog_SelectCamera::init(
 			continue;
 
 		m_cameraIds.push_back((MikanCameraID)id);
-		const std::string name = camera->getName();
+		const std::string name= camera->getName();
 		m_cameraNames.push_back(name.empty() ? ("Camera " + std::to_string(id)) : name);
 	}
 
@@ -63,16 +63,16 @@ bool ModalDialog_SelectCamera::init(
 
 void ModalDialog_SelectCamera::onGui()
 {
-	static const char* k_popupId = "Select Camera##SelectCameraModal";
+	static const char* k_popupId= "Select Camera##SelectCameraModal";
 	if (m_bNeedsOpen)
 	{
 		ImGui::OpenPopup(k_popupId);
-		m_bNeedsOpen = false;
+		m_bNeedsOpen= false;
 	}
 
 	ImGui::SetNextWindowPos(
-		ImGui::GetMainViewport()->GetCenter(), 
-		ImGuiCond_Appearing, 
+		ImGui::GetMainViewport()->GetCenter(),
+		ImGuiCond_Appearing,
 		ImVec2(0.5f, 0.5f));
 
 	if (ImGui::BeginPopupModal(k_popupId, nullptr, ImGuiWindowFlags_AlwaysAutoResize))
@@ -80,35 +80,49 @@ void ModalDialog_SelectCamera::onGui()
 		ImGui::Text("Select Calibration Camera");
 		ImGui::Separator();
 
-		auto itemGetter = [](void* data, int idx, const char** out) -> bool {
-			const auto* names = static_cast<std::vector<std::string>*>(data);
-			if (idx < 0 || idx >= (int)names->size()) return false;
-			*out = (*names)[idx].c_str();
+		auto itemGetter= [](void* data, int idx, const char** out) -> bool
+		{
+			const auto* names= static_cast<std::vector<std::string>*>(data);
+			if (idx < 0 || idx >= (int)names->size())
+				return false;
+			*out= (*names)[idx].c_str();
 			return true;
 		};
 		ImGui::ListBox("##cameras", &m_selectedIndex, itemGetter, &m_cameraNames, (int)m_cameraNames.size());
 
 		ImGui::Spacing();
 
-		bool selected = false, cancelled = false;
-		const bool hasSelection = !m_cameraIds.empty();
-		if (!hasSelection) ImGui::BeginDisabled();
-		if (ImGui::Button("Ok"))     { ImGui::CloseCurrentPopup(); selected = true; }
-		if (!hasSelection) ImGui::EndDisabled();
+		bool selected= false, cancelled= false;
+		const bool hasSelection= !m_cameraIds.empty();
+		if (!hasSelection)
+			ImGui::BeginDisabled();
+		if (ImGui::Button("Ok"))
+		{
+			ImGui::CloseCurrentPopup();
+			selected= true;
+		}
+		if (!hasSelection)
+			ImGui::EndDisabled();
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel")) { ImGui::CloseCurrentPopup(); cancelled = true; }
+		if (ImGui::Button("Cancel"))
+		{
+			ImGui::CloseCurrentPopup();
+			cancelled= true;
+		}
 		ImGui::EndPopup();
 
-		if (selected) onSelectCamera();
-		else if (cancelled) onCancel();
+		if (selected)
+			onSelectCamera();
+		else if (cancelled)
+			onCancel();
 	}
 }
 
 void ModalDialog_SelectCamera::onSelectCamera()
 {
-	SelectCallback callback = std::move(m_selectCallback);
-	MikanCameraID cameraId = !m_cameraIds.empty() ? m_cameraIds[m_selectedIndex] : -1;
-	AppStage* ownerAppStage = m_ownerAppStage;
+	SelectCallback callback= std::move(m_selectCallback);
+	MikanCameraID cameraId= !m_cameraIds.empty() ? m_cameraIds[m_selectedIndex] : -1;
+	AppStage* ownerAppStage= m_ownerAppStage;
 
 	assert(ownerAppStage->getCurrentModalDialog() == this);
 	ownerAppStage->popModalDialog(); // deletes 'this'
@@ -119,8 +133,8 @@ void ModalDialog_SelectCamera::onSelectCamera()
 
 void ModalDialog_SelectCamera::onCancel()
 {
-	CancelCallback callback = std::move(m_cancelCallback);
-	AppStage* ownerAppStage = m_ownerAppStage;
+	CancelCallback callback= std::move(m_cancelCallback);
+	AppStage* ownerAppStage= m_ownerAppStage;
 
 	assert(ownerAppStage->getCurrentModalDialog() == this);
 	ownerAppStage->popModalDialog(); // deletes 'this'

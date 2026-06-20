@@ -49,18 +49,18 @@
 #include <easy/profiler.h>
 
 //-- constants -----
-static const int k_compositor_output_window_width = 1280;
-static const int k_compositor_output_window_height = 720;
+static const int k_compositor_output_window_width= 1280;
+static const int k_compositor_output_window_height= 720;
 
 //-- public methods -----
 CompositorOutputEditorWindow::CompositorOutputEditorWindow(App* ownerApp)
 	: EditorWindow(ownerApp)
 {
 	// Share the main window's GL context so all scene resources (VAOs, FBOs, textures) remain accessible
-	m_graphicsContext = ownerApp->getMainWindow()->getGraphicsContext();
-	m_mkWindowContext = createMkWindowContext(ownerApp->getWindowManager(), m_graphicsContext);
-	m_mkWindowContext->useExistingGLContext();	// attach to main window's context, don't create a new one
-	m_modelResourceManager =
+	m_graphicsContext= ownerApp->getMainWindow()->getGraphicsContext();
+	m_mkWindowContext= createMkWindowContext(ownerApp->getWindowManager(), m_graphicsContext);
+	m_mkWindowContext->useExistingGLContext(); // attach to main window's context, don't create a new one
+	m_modelResourceManager=
 		MikanModelResourceManagerUniquePtr(
 			new MikanModelResourceManager(m_graphicsContext.get()));
 }
@@ -69,47 +69,47 @@ bool CompositorOutputEditorWindow::startup()
 {
 	EASY_FUNCTION();
 
-	bool success = true;
+	bool success= true;
 
 	if (success && !startupWindow("Compositor Output", k_compositor_output_window_width, k_compositor_output_window_height))
 	{
-		success = false;
+		success= false;
 	}
 
 	if (success && !startupGuiContext())
 	{
-		success = false;
+		success= false;
 	}
 
 	if (success && !startupStyleManager())
 	{
-		success = false;
+		success= false;
 	}
 
 	if (success && !startupTextureCache())
 	{
-		success = false;
+		success= false;
 	}
 
 	if (success && !startupModelResourceManager())
 	{
-		success = false;
+		success= false;
 	}
 
 	// Build the compositor frame fullscreen quad (uses built-in RGB material)
 	if (success)
 	{
-		m_compositedFrameQuad = createFullscreenQuadMesh(m_graphicsContext.get(), true, false);
+		m_compositedFrameQuad= createFullscreenQuadMesh(m_graphicsContext.get(), true, false);
 	}
 
 	// Build the "no composited frame" mesh
 	if (success)
 	{
-		MkMaterialConstPtr backgroundMaterial =
+		MkMaterialConstPtr backgroundMaterial=
 			m_graphicsContext->getShaderCache()->getMaterialByName(
 				INTERNAL_MATERIAL_PT_PM5544_TEST_CARD);
 
-		m_backgroundQuad =
+		m_backgroundQuad=
 			createFullscreenQuadMesh(
 				m_graphicsContext.get(),
 				backgroundMaterial,
@@ -119,33 +119,33 @@ bool CompositorOutputEditorWindow::startup()
 	// Create a standalone stationary camera for scene rendering
 	if (success)
 	{
-		m_viewCamera = std::make_shared<MikanCamera>();
+		m_viewCamera= std::make_shared<MikanCamera>();
 		m_viewCamera->setName("compositor output camera");
 		m_viewCamera->setCameraMovementMode(eCameraMovementMode::stationary);
 
 		// Create a mikan scene for 3d rendering
-		m_mkScene = std::make_shared<MkScene>();
+		m_mkScene= std::make_shared<MkScene>();
 	}
 
 	// Listen for scene activation and disposal
-	auto sceneSystem = getProjectManager()->getSystemOfType<SceneObjectSystem>();
+	auto sceneSystem= getProjectManager()->getSystemOfType<SceneObjectSystem>();
 	if (sceneSystem)
 	{
-		sceneSystem->OnSceneActivated +=
+		sceneSystem->OnSceneActivated+=
 			MakeDelegate(this, &CompositorOutputEditorWindow::onSceneActivated);
-		sceneSystem->OnComponentDisposed +=
+		sceneSystem->OnComponentDisposed+=
 			MakeDelegate(this, &CompositorOutputEditorWindow::onSceneComponentDisposed);
 	}
-	auto compositorSystem = getProjectManager()->getSystemOfType<CompositorObjectSystem>();
+	auto compositorSystem= getProjectManager()->getSystemOfType<CompositorObjectSystem>();
 	if (compositorSystem)
 	{
-		compositorSystem->OnComponentDisposed +=
+		compositorSystem->OnComponentDisposed+=
 			MakeDelegate(this, &CompositorOutputEditorWindow::onCompositorComponentDisposed);
 	}
 
-	m_boxStencilSystem = getProjectManager()->getSystemOfType<BoxStencilSystem>();
-	m_quadStencilSystem = getProjectManager()->getSystemOfType<QuadStencilSystem>();
-	m_modelStencilSystem = getProjectManager()->getSystemOfType<ModelStencilSystem>();
+	m_boxStencilSystem= getProjectManager()->getSystemOfType<BoxStencilSystem>();
+	m_quadStencilSystem= getProjectManager()->getSystemOfType<QuadStencilSystem>();
+	m_modelStencilSystem= getProjectManager()->getSystemOfType<ModelStencilSystem>();
 
 	return success;
 }
@@ -153,19 +153,19 @@ bool CompositorOutputEditorWindow::startup()
 bool CompositorOutputEditorWindow::bindSceneComponent(SceneComponentPtr sceneComponent)
 {
 	// Unregister from old scene
-	SceneComponentPtr oldScene = m_sceneComponent.lock();
+	SceneComponentPtr oldScene= m_sceneComponent.lock();
 	if (oldScene)
 	{
-		oldScene->getSceneComponentDefinition()->OnPropertyChanged -=
+		oldScene->getSceneComponentDefinition()->OnPropertyChanged-=
 			MakeDelegate(this, &CompositorOutputEditorWindow::onSceneDefinitionChanged);
 	}
 
-	m_sceneComponent = sceneComponent;
+	m_sceneComponent= sceneComponent;
 
 	if (sceneComponent)
 	{
 		// Listen for display compositor changes on the new scene's definition
-		sceneComponent->getSceneComponentDefinition()->OnPropertyChanged +=
+		sceneComponent->getSceneComponentDefinition()->OnPropertyChanged+=
 			MakeDelegate(this, &CompositorOutputEditorWindow::onSceneDefinitionChanged);
 
 		rebindCompositorFromScene();
@@ -176,27 +176,27 @@ bool CompositorOutputEditorWindow::bindSceneComponent(SceneComponentPtr sceneCom
 
 void CompositorOutputEditorWindow::rebindCompositorFromScene()
 {
-	SceneComponentPtr sceneComponent = m_sceneComponent.lock();
+	SceneComponentPtr sceneComponent= m_sceneComponent.lock();
 	if (!sceneComponent)
 		return;
 
-	MikanCompositorID compositorId =
+	MikanCompositorID compositorId=
 		sceneComponent->getSceneComponentDefinition()->getDisplayCompositorId();
 
 	CompositorComponentPtr compositor;
 	if (compositorId != INVALID_MIKAN_ID)
 	{
-		auto compositorSystem = getProjectManager()->getSystemOfType<CompositorObjectSystem>();
+		auto compositorSystem= getProjectManager()->getSystemOfType<CompositorObjectSystem>();
 		if (compositorSystem)
-			compositor = compositorSystem->getCompositorById(compositorId);
+			compositor= compositorSystem->getCompositorById(compositorId);
 	}
 
-	m_compositorComponent = compositor;
+	m_compositorComponent= compositor;
 
 	// Apply video source camera intrinsics to the view camera
 	if (compositor && m_viewCamera)
 	{
-		VideoSourceComponentPtr videoSource = compositor->getVideoSourceComponent();
+		VideoSourceComponentPtr videoSource= compositor->getVideoSourceComponent();
 		if (videoSource)
 		{
 			MikanVideoSourceIntrinsics cameraIntrinsics;
@@ -206,7 +206,7 @@ void CompositorOutputEditorWindow::rebindCompositorFromScene()
 	}
 
 	// Update window title
-	std::string compositorName = compositor ? compositor->getName() : "No Compositor";
+	std::string compositorName= compositor ? compositor->getName() : "No Compositor";
 	setTitle(compositorName + " - Compositor Output");
 }
 
@@ -229,7 +229,7 @@ void CompositorOutputEditorWindow::onSceneComponentDisposed(
 	MikanObjectSystemPtr objectSystem,
 	MikanComponentConstPtr component)
 {
-	SceneComponentPtr sceneComponent = m_sceneComponent.lock();
+	SceneComponentPtr sceneComponent= m_sceneComponent.lock();
 	if (sceneComponent && component->getComponentId() == sceneComponent->getComponentId())
 	{
 		m_mkWindowContext->requestClose();
@@ -237,10 +237,10 @@ void CompositorOutputEditorWindow::onSceneComponentDisposed(
 }
 
 void CompositorOutputEditorWindow::onCompositorComponentDisposed(
-	MikanObjectSystemPtr objectSystem, 
+	MikanObjectSystemPtr objectSystem,
 	MikanComponentConstPtr component)
 {
-	if (m_compositorComponent.lock() && 
+	if (m_compositorComponent.lock() &&
 		component->getComponentId() == m_compositorComponent.lock()->getComponentId())
 	{
 		m_mkWindowContext->requestClose();
@@ -251,7 +251,7 @@ void CompositorOutputEditorWindow::update(float deltaSeconds)
 {
 	EASY_FUNCTION();
 
-	m_shaderTime += deltaSeconds;
+	m_shaderTime+= deltaSeconds;
 
 	// Push ImGui update scope (handles events, builds draw lists)
 	MkGuiScopedUpdate scopedCtx(*m_guiContext);
@@ -260,10 +260,10 @@ void CompositorOutputEditorWindow::update(float deltaSeconds)
 	m_mkWindowContext->handleEvents(this);
 
 	// Update compositor camera transform each frame
-	CompositorComponentPtr compositor = m_compositorComponent.lock();
+	CompositorComponentPtr compositor= m_compositorComponent.lock();
 	if (compositor)
 	{
-		CameraComponentPtr cameraComponent = compositor->getCameraComponent();
+		CameraComponentPtr cameraComponent= compositor->getCameraComponent();
 		if (cameraComponent && m_viewCamera)
 		{
 			glm::mat4 cameraXform;
@@ -279,35 +279,35 @@ void CompositorOutputEditorWindow::render()
 {
 	EASY_FUNCTION();
 
-	IMkGraphicsContext* gfx = m_graphicsContext.get();
-	MkStateStack& stateStack = gfx->getMkStateStack();
+	IMkGraphicsContext* gfx= m_graphicsContext.get();
+	MkStateStack& stateStack= gfx->getMkStateStack();
 
 	// Clear the window
 	gfx->renderBegin();
 
 	{
-		MkScopedState scopedState = stateStack.createScopedState("CompositorOutput renderScene");
-		IMkState* glState = scopedState.getStackState();
+		MkScopedState scopedState= stateStack.createScopedState("CompositorOutput renderScene");
+		IMkState* glState= scopedState.getStackState();
 
 		mkStateSetViewport(glState, 0, 0, (int)m_mkWindowContext->getWidth(), (int)m_mkWindowContext->getHeight());
 
-		CompositorComponentPtr compositor = m_compositorComponent.lock();
-		IMkTextureConstPtr frameTexture = compositor ? compositor->getCompositedFrameTexture() : nullptr;
+		CompositorComponentPtr compositor= m_compositorComponent.lock();
+		IMkTextureConstPtr frameTexture= compositor ? compositor->getCompositedFrameTexture() : nullptr;
 
 		// --- Layer 1: Compositor frame or scrolling background ---
 		if (frameTexture && m_compositedFrameQuad)
 		{
 			// Render compositor output frame fullscreen
-			MkMaterialInstancePtr materialInstance = m_compositedFrameQuad->getMaterialInstance();
-			MkMaterialConstPtr material = materialInstance->getMaterial();
+			MkMaterialInstancePtr materialInstance= m_compositedFrameQuad->getMaterialInstance();
+			MkMaterialConstPtr material= materialInstance->getMaterial();
 
-			if (auto materialBinding = material->bindMaterial())
+			if (auto materialBinding= material->bindMaterial())
 			{
 				materialInstance->setTextureBySemantic(eUniformSemantic::rgbTexture, frameTexture);
 
-				if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+				if (auto materialInstanceBinding= materialInstance->bindMaterialInstance(materialBinding))
 				{
-					MkScopedState frameScopedState = stateStack.createScopedState("CompositorFrame");
+					MkScopedState frameScopedState= stateStack.createScopedState("CompositorFrame");
 					frameScopedState.getStackState()->disableFlag(eMkStateFlagType::depthTest);
 
 					m_compositedFrameQuad->drawElements();
@@ -316,26 +316,26 @@ void CompositorOutputEditorWindow::render()
 		}
 		else if (m_backgroundQuad)
 		{
-			MkMaterialInstancePtr materialInstance = m_backgroundQuad->getMaterialInstance();
-			MkMaterialConstPtr material = materialInstance->getMaterial();
+			MkMaterialInstancePtr materialInstance= m_backgroundQuad->getMaterialInstance();
+			MkMaterialConstPtr material= materialInstance->getMaterial();
 
-			if (auto materialBinding = material->bindMaterial())
+			if (auto materialBinding= material->bindMaterial())
 			{
-				//TODO: "Time" and "ScreenSize" are uniforms that all materials
-				// should have available by default in the graphics context
-				const double currentTimeSeconds = getOwnerApp()->getSecondsSinceAppStart();
-				const float shaderTime = (float)fmodf(currentTimeSeconds, 1000.0);
-				const float screenWidth = m_mkWindowContext->getWidth();
-				const float screenHeight = m_mkWindowContext->getHeight();
+				// TODO: "Time" and "ScreenSize" are uniforms that all materials
+				//  should have available by default in the graphics context
+				const double currentTimeSeconds= getOwnerApp()->getSecondsSinceAppStart();
+				const float shaderTime= (float)fmodf(currentTimeSeconds, 1000.0);
+				const float screenWidth= m_mkWindowContext->getWidth();
+				const float screenHeight= m_mkWindowContext->getHeight();
 				const glm::vec2 screenSize(screenWidth, screenHeight);
 
 				materialInstance->setVec2BySemantic(eUniformSemantic::screenSize, screenSize);
 				materialInstance->setFloatBySemantic(eUniformSemantic::floatConstant0, shaderTime);
 
-				if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+				if (auto materialInstanceBinding= materialInstance->bindMaterialInstance(materialBinding))
 				{
-					MkScopedState bgScopedState = stateStack.createScopedState("MainTargetDepthRender");
-					IMkState* bgState = bgScopedState.getStackState();
+					MkScopedState bgScopedState= stateStack.createScopedState("MainTargetDepthRender");
+					IMkState* bgState= bgScopedState.getStackState();
 
 					bgState->disableFlag(eMkStateFlagType::depthTest);
 					bgState->disableFlag(eMkStateFlagType::cullFace);
@@ -353,14 +353,14 @@ void CompositorOutputEditorWindow::render()
 		// --- Layer 2: Editor scene overlay from compositor camera perspective ---
 		if (compositor && m_viewCamera)
 		{
-			MainWindow* mainWindow = getMainWindow();
+			MainWindow* mainWindow= getMainWindow();
 			ProjectManagerPtr projectManager= mainWindow->getProjectManager();
-			auto sceneSystem = projectManager->getSystemOfType<SceneObjectSystem>();
-			auto editorSystem = projectManager->getSystemOfType<EditorObjectSystem>();
+			auto sceneSystem= projectManager->getSystemOfType<SceneObjectSystem>();
+			auto editorSystem= projectManager->getSystemOfType<EditorObjectSystem>();
 			if (sceneSystem && editorSystem)
 			{
-				SceneComponentConstPtr currentScene = sceneSystem->getCurrentScene();
-				const EditorSettings& editorConfig = editorSystem->getEditorSettings();
+				SceneComponentConstPtr currentScene= sceneSystem->getCurrentScene();
+				const EditorSettings& editorConfig= editorSystem->getEditorSettings();
 
 				if (currentScene)
 				{
@@ -392,25 +392,25 @@ void CompositorOutputEditorWindow::render()
 
 	// --- Layer 3: HUD text ---
 	{
-		MkScopedState scopedState = stateStack.createScopedState("CompositorOutput renderUI");
-		IMkState* glState = scopedState.getStackState();
+		MkScopedState scopedState= stateStack.createScopedState("CompositorOutput renderUI");
+		IMkState* glState= scopedState.getStackState();
 		mkStateSetViewport(glState, 0, 0, (int)m_mkWindowContext->getWidth(), (int)m_mkWindowContext->getHeight());
 
-		CompositorComponentPtr compositor = m_compositorComponent.lock();
+		CompositorComponentPtr compositor= m_compositorComponent.lock();
 
 		// Upper left: compositor name | video source name
 		{
-			TextStyle style = getDefaultTextStyle();
-			style.horizontalAlignment = eHorizontalTextAlignment::Left;
-			style.verticalAlignment = eVerticalTextAlignment::Top;
+			TextStyle style= getDefaultTextStyle();
+			style.horizontalAlignment= eHorizontalTextAlignment::Left;
+			style.verticalAlignment= eVerticalTextAlignment::Top;
 
-			std::string compositorName = compositor ? compositor->getName() : "No Compositor";
+			std::string compositorName= compositor ? compositor->getName() : "No Compositor";
 			std::string videoSourceName;
 			if (compositor)
 			{
-				VideoSourceComponentPtr vs = compositor->getVideoSourceComponent();
+				VideoSourceComponentPtr vs= compositor->getVideoSourceComponent();
 				if (vs)
-					videoSourceName = vs->getName();
+					videoSourceName= vs->getName();
 			}
 
 			drawTextAtScreenPosition(
@@ -424,9 +424,9 @@ void CompositorOutputEditorWindow::render()
 
 		// Lower right: FPS
 		{
-			TextStyle style = getDefaultTextStyle();
-			style.horizontalAlignment = eHorizontalTextAlignment::Right;
-			style.verticalAlignment = eVerticalTextAlignment::Bottom;
+			TextStyle style= getDefaultTextStyle();
+			style.horizontalAlignment= eHorizontalTextAlignment::Right;
+			style.verticalAlignment= eVerticalTextAlignment::Bottom;
 
 			drawTextAtScreenPosition(
 				gfx,
@@ -456,36 +456,36 @@ void CompositorOutputEditorWindow::render()
 void CompositorOutputEditorWindow::shutdown()
 {
 	// Unregister scene delegates before clearing the reference
-	SceneComponentPtr sceneComponent = m_sceneComponent.lock();
+	SceneComponentPtr sceneComponent= m_sceneComponent.lock();
 	if (sceneComponent)
 	{
-		sceneComponent->getSceneComponentDefinition()->OnPropertyChanged -=
+		sceneComponent->getSceneComponentDefinition()->OnPropertyChanged-=
 			MakeDelegate(this, &CompositorOutputEditorWindow::onSceneDefinitionChanged);
 	}
 
 	// Stop listening for scene activation and disposal
-	auto sceneSystem = getProjectManager()->getSystemOfType<SceneObjectSystem>();
+	auto sceneSystem= getProjectManager()->getSystemOfType<SceneObjectSystem>();
 	if (sceneSystem)
 	{
-		sceneSystem->OnSceneActivated -=
+		sceneSystem->OnSceneActivated-=
 			MakeDelegate(this, &CompositorOutputEditorWindow::onSceneActivated);
-		sceneSystem->OnComponentDisposed -=
+		sceneSystem->OnComponentDisposed-=
 			MakeDelegate(this, &CompositorOutputEditorWindow::onSceneComponentDisposed);
 	}
-	auto compositorSystem = getProjectManager()->getSystemOfType<CompositorObjectSystem>();
+	auto compositorSystem= getProjectManager()->getSystemOfType<CompositorObjectSystem>();
 	if (compositorSystem)
 	{
-		compositorSystem->OnComponentDisposed -=
+		compositorSystem->OnComponentDisposed-=
 			MakeDelegate(this, &CompositorOutputEditorWindow::onCompositorComponentDisposed);
 	}
 
 	m_sceneComponent.reset();
 	m_compositorComponent.reset();
 
-	m_compositedFrameQuad = nullptr;
-	m_backgroundQuad = nullptr;
-	m_viewCamera = nullptr;
-	m_mkScene = nullptr;
+	m_compositedFrameQuad= nullptr;
+	m_backgroundQuad= nullptr;
+	m_viewCamera= nullptr;
+	m_mkScene= nullptr;
 
 	shutdownModelResourceManager();
 	shutdownTextureCache();

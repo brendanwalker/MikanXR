@@ -40,7 +40,7 @@
 #include <chrono>
 #include <easy/profiler.h>
 
-#define PROJECT_SAVE_COOLDOWN	3.f
+#define PROJECT_SAVE_COOLDOWN 3.f
 
 const char* ProjectManager::k_mikanProjectFileExtension= ".mikanproj";
 
@@ -54,7 +54,7 @@ ProjectManager::ProjectManager(IEditorWindow* ownerWindow)
 bool ProjectManager::startup(MainWindow* mainWindow)
 {
 	// Allocate all systems, in the order we want to perform init and updates
-	// Init EditorSystem first so that it get component creation events 
+	// Init EditorSystem first so that it get component creation events
 	// from Anchor and Stencil Systems triggered during init call
 	addSystem<EditorObjectSystem>();
 	addSystem<ClientTextureSourceSystem>();
@@ -83,13 +83,13 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	addSystem<RGBPixelGridSystem>();
 
 	// Gather all property descriptors from all the systems and add them to the database
-	for (int i = 0; i < (int)m_systems.size(); i++)
+	for (int i= 0; i < (int)m_systems.size(); i++)
 	{
 		m_systems[i]->registerPropertyDescriptors(m_propertyDatabase);
 	}
 
 	// Gather all function descriptors from all the systems and add them to the database
-	for (int i = 0; i < (int)m_systems.size(); i++)
+	for (int i= 0; i < (int)m_systems.size(); i++)
 	{
 		m_systems[i]->registerFunctionDescriptors(m_functionDatabase);
 	}
@@ -98,7 +98,7 @@ bool ProjectManager::startup(MainWindow* mainWindow)
 	AppSettingsConfigPtr appSettings= mainWindow->getOwnerApp()->getAppSettings();
 	if (!loadProject(appSettings->getLastProjectPath().string()))
 	{
-		const std::filesystem::path defaultProjectPath =
+		const std::filesystem::path defaultProjectPath=
 			PathUtils::makeTimestampedFilePath(
 				getDefaultProjectFolder(), "Default", k_mikanProjectFileExtension);
 
@@ -122,18 +122,18 @@ ProjectConfigPtr ProjectManager::createEmptyProjectConfig() const
 
 void ProjectManager::registerSystem(MikanObjectSystemPtr system)
 {
-	const int systemIndex = (int)m_systems.size();
+	const int systemIndex= (int)m_systems.size();
 
-	m_systemNameToIndexMap.insert({ system->getObjectSystemClassName(), systemIndex });
+	m_systemNameToIndexMap.insert({system->getObjectSystemClassName(), systemIndex});
 	m_systems.push_back(system);
 }
 
 MikanObjectSystemPtr ProjectManager::getSystemByName(const std::string name) const
 {
-	auto it = m_systemNameToIndexMap.find(name);
+	auto it= m_systemNameToIndexMap.find(name);
 	if (it != m_systemNameToIndexMap.end())
 	{
-		const int systemIndex = it->second;
+		const int systemIndex= it->second;
 		assert(systemIndex >= 0 && systemIndex < (int)m_systems.size());
 
 		return m_systems[systemIndex];
@@ -146,7 +146,7 @@ MikanComponentPtr ProjectManager::getComponentById(MikanComponentID componentId)
 {
 	for (MikanObjectSystemPtr system : m_systems)
 	{
-		MikanComponentPtr componentPtr = system->getComponentById(componentId);
+		MikanComponentPtr componentPtr= system->getComponentById(componentId);
 		if (componentPtr)
 		{
 			return componentPtr;
@@ -198,7 +198,7 @@ bool ProjectManager::isAnySystemLoading() const
 
 bool ProjectManager::newProject(const std::string& projectFilePath)
 {
-	auto newProjectConfig = createEmptyProjectConfig();
+	auto newProjectConfig= createEmptyProjectConfig();
 	newProjectConfig->save(projectFilePath);
 
 	return loadProject(projectFilePath);
@@ -224,12 +224,12 @@ bool ProjectManager::loadProject(const std::string& projectFilePath)
 	unloadProject();
 
 	// create an empty project config
-	m_projectConfig = createEmptyProjectConfig();
+	m_projectConfig= createEmptyProjectConfig();
 
 	// Attempt to load and init the new project
-	auto loadStart = std::chrono::high_resolution_clock::now();
-	bool bSuccess = m_projectConfig->load(projectFilePath);
-	auto loadEnd = std::chrono::high_resolution_clock::now();
+	auto loadStart= std::chrono::high_resolution_clock::now();
+	bool bSuccess= m_projectConfig->load(projectFilePath);
+	auto loadEnd= std::chrono::high_resolution_clock::now();
 	MIKAN_LOG_INFO("ProjectManager::loadProject")
 		<< "Config load: "
 		<< std::chrono::duration_cast<std::chrono::milliseconds>(loadEnd - loadStart).count()
@@ -238,20 +238,20 @@ bool ProjectManager::loadProject(const std::string& projectFilePath)
 	if (bSuccess)
 	{
 		// Initialize all systems using the loaded project config
-		for (int i = 0; i < (int)m_systems.size(); i++)
+		for (int i= 0; i < (int)m_systems.size(); i++)
 		{
-			MikanObjectSystemPtr system = m_systems[i];
+			MikanObjectSystemPtr system= m_systems[i];
 
-			auto initStart = std::chrono::high_resolution_clock::now();
+			auto initStart= std::chrono::high_resolution_clock::now();
 			MikanObjectSystemDefinitionPtr systemDefinition=
 				m_projectConfig->getDefinitionForSystem(system);
 
 			if (!system->init(systemDefinition))
 			{
-				bSuccess = false;
+				bSuccess= false;
 				break;
 			}
-			auto initEnd = std::chrono::high_resolution_clock::now();
+			auto initEnd= std::chrono::high_resolution_clock::now();
 			MIKAN_LOG_INFO("ProjectManager::loadProject")
 				<< system->getObjectSystemClassName() << "::init: "
 				<< std::chrono::duration_cast<std::chrono::milliseconds>(initEnd - initStart).count()
@@ -262,12 +262,12 @@ bool ProjectManager::loadProject(const std::string& projectFilePath)
 		// call postInit on all systems to allow them to perform any setup
 		// that requires other systems/components to be initialized
 		// (e.g. TransformComponent wants to attach to its parent in postInit)
-		auto postInitStart = std::chrono::high_resolution_clock::now();
-		for (int i = 0; i < (int)m_systems.size(); i++)
+		auto postInitStart= std::chrono::high_resolution_clock::now();
+		for (int i= 0; i < (int)m_systems.size(); i++)
 		{
 			m_systems[i]->postInit();
 		}
-		auto postInitEnd = std::chrono::high_resolution_clock::now();
+		auto postInitEnd= std::chrono::high_resolution_clock::now();
 		MIKAN_LOG_INFO("ProjectManager::loadProject")
 			<< "postInit (all systems): "
 			<< std::chrono::duration_cast<std::chrono::milliseconds>(postInitEnd - postInitStart).count()
@@ -316,12 +316,12 @@ void ProjectManager::unloadProject()
 	// Call dispose in reverse order
 	// so that Editor system gets component destroy events
 	// from the Anchor and Stencil Systems triggered during dispose call
-	for (int i = (int)m_systems.size() - 1; i >= 0; i--)
+	for (int i= (int)m_systems.size() - 1; i >= 0; i--)
 	{
-		MikanObjectSystemPtr system = m_systems[i];
+		MikanObjectSystemPtr system= m_systems[i];
 
 		system->dispose();
 	}
 
-	m_projectConfig = nullptr;
+	m_projectConfig= nullptr;
 }

@@ -19,10 +19,10 @@ public:
 	GuiPanel_EntityAccessor(AppStage* ownerAppStage);
 	virtual ~GuiPanel_EntityAccessor();
 
-	using OnConstruct = std::function<bool()>;
+	using OnConstruct= std::function<bool()>;
 
 	template <class t_property_interface>
-	bool init(const std::string& modelName, OnConstruct onConstructCallback = {})
+	bool init(const std::string& modelName, OnConstruct onConstructCallback= {})
 	{
 		std::vector<PropertyDescriptorConstPtr> propertyDescriptors;
 		t_property_interface::getPropertyDescriptors(propertyDescriptors);
@@ -37,7 +37,7 @@ public:
 		const std::string& modelName,
 		const std::vector<PropertyDescriptorConstPtr>& propertyDescriptors,
 		const std::vector<FunctionDescriptorConstPtr>& functionDescriptors,
-		OnConstruct onConstructCallback = {});
+		OnConstruct onConstructCallback= {});
 
 	void drawPropertiesGui();
 	void drawPropertiesGui(const std::set<std::string>& propertyNames);
@@ -53,7 +53,7 @@ public:
 	inline IEntityAccessorPtr getEntityAccessor() const { return m_entityAccessor.lock(); }
 
 	// Returns true if the property was fully rendered (skip default widget).
-	using PropertyRendererCallback = std::function<bool(const PropertyDescriptorConstPtr&)>;
+	using PropertyRendererCallback= std::function<bool(const PropertyDescriptorConstPtr&)>;
 
 	// Register a custom renderer for a named property.
 	void setPropertyRenderer(const std::string& propName, PropertyRendererCallback renderer);
@@ -65,7 +65,7 @@ protected:
 	void onEntityConfigChanged(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
 private:
-	bool m_bWasAccessorSet = false;
+	bool m_bWasAccessorSet= false;
 	IEntityAccessorWeakPtr m_entityAccessor;
 	std::string m_modelName;
 	std::map<std::string, PropertyDescriptorConstPtr> m_propertyDescriptors;
@@ -76,4 +76,4 @@ private:
 	MkGuiStyleConstPtr m_defaultGuiStyle;
 };
 
-using GuiPanel_EntityAccessorPtr = std::shared_ptr<GuiPanel_EntityAccessor>;
+using GuiPanel_EntityAccessorPtr= std::shared_ptr<GuiPanel_EntityAccessor>;

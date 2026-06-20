@@ -6,11 +6,11 @@
 class GuiPanel_MikanObjectSystem : public IGuiPanel
 {
 public:
-	GuiPanel_MikanObjectSystem() = delete;
+	GuiPanel_MikanObjectSystem()= delete;
 	GuiPanel_MikanObjectSystem(class AppStage* ownerAppStage);
-	virtual ~GuiPanel_MikanObjectSystem() = default;
+	virtual ~GuiPanel_MikanObjectSystem()= default;
 
-	virtual bool init() = 0;
+	virtual bool init()= 0;
 	virtual void onConstruct() {}
 
 	MikanObjectSystemPtr getObjectSystem() const;
@@ -28,7 +28,7 @@ protected:
 	template <class t_object_system_type>
 	bool initTypedPropertyInterface(AppStage* ownerAppStage)
 	{
-		const bool bSuccess =
+		const bool bSuccess=
 			m_entityAccessor->init<t_object_system_type>(
 				t_object_system_type::k_objectSystemClassName,
 				[this]() -> bool

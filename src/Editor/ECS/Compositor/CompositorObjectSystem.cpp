@@ -27,7 +27,7 @@ std::vector<MikanCompositorID> CompositorObjectSystem::getCompositorIdListForSta
 
 	for (const auto& compositorPair : Super::getComponentMap())
 	{
-		CompositorComponentPtr componentPtr = compositorPair.second.lock();
+		CompositorComponentPtr componentPtr= compositorPair.second.lock();
 
 		if (componentPtr && componentPtr->getOwnerStageId() == stageId)
 		{
@@ -44,14 +44,14 @@ void CompositorObjectSystem::setActiveCompositors(
 	// Iterate through all compositor components
 	for (const auto& compositorPair : Super::getComponentMap())
 	{
-		MikanCompositorID compositorId = compositorPair.first;
-		CompositorComponentPtr compositor = compositorPair.second.lock();
+		MikanCompositorID compositorId= compositorPair.first;
+		CompositorComponentPtr compositor= compositorPair.second.lock();
 
 		if (compositor)
 		{
 			// Check if this compositor should be active
-			bool shouldBeActive = std::find(activeCompositorIdList.begin(), activeCompositorIdList.end(), compositorId) != activeCompositorIdList.end();
-			bool isCurrentlyRunning = compositor->getIsRunning();
+			bool shouldBeActive= std::find(activeCompositorIdList.begin(), activeCompositorIdList.end(), compositorId) != activeCompositorIdList.end();
+			bool isCurrentlyRunning= compositor->getIsRunning();
 
 			if (shouldBeActive && !isCurrentlyRunning)
 			{
@@ -76,35 +76,42 @@ void CompositorObjectSystem::bindLuaFunctions(struct lua_State* L)
 	luabridge::getGlobalNamespace(L)
 		.beginClass<CompositorObjectSystem>("CompositorObjectSystem")
 		.addFunction("getCompositorById",
-			[](CompositorObjectSystem* s, int id) -> CompositorComponent* {
-				return s->getCompositorById(static_cast<MikanCompositorID>(id)).get();
-			})
+					 [](CompositorObjectSystem* s, int id) -> CompositorComponent*
+					 {
+						 return s->getCompositorById(static_cast<MikanCompositorID>(id)).get();
+					 })
 		.addFunction("getCompositorByName",
-			[](CompositorObjectSystem* s, const std::string& name) -> CompositorComponent* {
-				return s->getCompositorByName(name).get();
-			})
+					 [](CompositorObjectSystem* s, const std::string& name) -> CompositorComponent*
+					 {
+						 return s->getCompositorByName(name).get();
+					 })
 		.addFunction("getCompositorCount",
-			[](CompositorObjectSystem* s) -> int {
-				return static_cast<int>(s->getComponentMap().size());
-			})
+					 [](CompositorObjectSystem* s) -> int
+					 {
+						 return static_cast<int>(s->getComponentMap().size());
+					 })
 		.addFunction("getCompositorAtIndex",
-			[](CompositorObjectSystem* s, int i) -> CompositorComponent* {
-				int n = 0;
-				for (auto& [id, wp] : s->getComponentMap())
-					if (n++ == i) return wp.lock().get();
-				return nullptr;
-			})
+					 [](CompositorObjectSystem* s, int i) -> CompositorComponent*
+					 {
+						 int n= 0;
+						 for (auto& [id, wp] : s->getComponentMap())
+							 if (n++ == i)
+								 return wp.lock().get();
+						 return nullptr;
+					 })
 		.addFunction("getCompositorCountForStage",
-			[](CompositorObjectSystem* s, int stageId) -> int {
-				return static_cast<int>(
-					s->getCompositorIdListForStage(static_cast<MikanStageID>(stageId)).size());
-			})
+					 [](CompositorObjectSystem* s, int stageId) -> int
+					 {
+						 return static_cast<int>(
+							 s->getCompositorIdListForStage(static_cast<MikanStageID>(stageId)).size());
+					 })
 		.addFunction("getCompositorForStageAtIndex",
-			[](CompositorObjectSystem* s, int stageId, int i) -> CompositorComponent* {
-				auto ids = s->getCompositorIdListForStage(static_cast<MikanStageID>(stageId));
-				if (i >= 0 && i < static_cast<int>(ids.size()))
-					return s->getCompositorById(ids[i]).get();
-				return nullptr;
-			})
+					 [](CompositorObjectSystem* s, int stageId, int i) -> CompositorComponent*
+					 {
+						 auto ids= s->getCompositorIdListForStage(static_cast<MikanStageID>(stageId));
+						 if (i >= 0 && i < static_cast<int>(ids.size()))
+							 return s->getCompositorById(ids[i]).get();
+						 return nullptr;
+					 })
 		.endClass();
 }

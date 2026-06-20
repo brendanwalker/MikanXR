@@ -38,7 +38,7 @@ public:
 
 	// -- SteamVR
 	inline class MikanSteamVRManager* getOwnerDeviceManager() { return m_ownerDeviceManager; }
-	inline class SteamVRDeviceProperties *getProperties() const { return m_deviceProperties; }
+	inline class SteamVRDeviceProperties* getProperties() const { return m_deviceProperties; }
 	void updateProperties();
 
 protected:
@@ -47,8 +47,7 @@ protected:
 
 private:
 	class MikanSteamVRManager* m_ownerDeviceManager;
-	class SteamVRDeviceProperties *m_deviceProperties;
+	class SteamVRDeviceProperties* m_deviceProperties;
 	std::map<std::string, MikanSteamVRDeviceSocketPtr> m_sockets;
 	std::map<std::string, MikanSteamVRDeviceMeshPtr> m_meshes;
 };
-

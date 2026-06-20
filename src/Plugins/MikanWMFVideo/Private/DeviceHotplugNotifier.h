@@ -5,8 +5,8 @@
 class IDeviceHotplugListener
 {
 public:
-	virtual void onDeviceConnected(const std::string& path) = 0;
-	virtual void onDeviceDisconnected(const std::string& path) = 0;
+	virtual void onDeviceConnected(const std::string& path)= 0;
+	virtual void onDeviceDisconnected(const std::string& path)= 0;
 };
 
 class DeviceHotplugNotifier

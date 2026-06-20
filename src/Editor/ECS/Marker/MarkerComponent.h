@@ -46,7 +46,7 @@ class MarkerComponent : public MikanComponent
 public:
 	MarkerComponent(MikanObjectWeakPtr owner);
 
-	inline static const std::string k_componentClassName = "MarkerComponent";
+	inline static const std::string k_componentClassName= "MarkerComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	MarkerObjectSystemPtr getOwnerMarkerSystem() const;
@@ -83,8 +83,8 @@ public:
 private:
 	void ensureMarkerResources(class IMkGraphicsContext* graphicsContext);
 
-	int m_cachedArucoId = -1;
-	float m_cachedLengthMM = -1.f;
+	int m_cachedArucoId= -1;
+	float m_cachedLengthMM= -1.f;
 	IMkTexturePtr m_markerTexture;
 	IMkTriangulatedMeshPtr m_markerMesh;
 };

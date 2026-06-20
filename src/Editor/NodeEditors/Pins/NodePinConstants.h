@@ -4,7 +4,7 @@
 
 enum class eNodePinDirection : int
 {
-	INVALID = -1,
+	INVALID= -1,
 
 	INPUT,
 	OUTPUT,

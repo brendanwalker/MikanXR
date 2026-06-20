@@ -23,8 +23,8 @@ public:
 	MikanRotator3f toMikanRotator3f() const;
 	glm::vec3 toGlmVec3f() const;
 
-	LuaVec3f operator + (const LuaVec3f& v) const;
-	LuaVec3f operator - (const LuaVec3f& v) const;
+	LuaVec3f operator+(const LuaVec3f& v) const;
+	LuaVec3f operator-(const LuaVec3f& v) const;
 	LuaVec3f scaleUniform(float s);
 	LuaVec3f scaleNonUniform(const LuaVec3f& s);
 	static float dot(const LuaVec3f& a, const LuaVec3f& b);
@@ -47,7 +47,7 @@ public:
 	MikanQuatf toMikanQuatf() const;
 	glm::quat toGlmQuat() const;
 
-	LuaQuatf operator * (const LuaQuatf& q) const;
+	LuaQuatf operator*(const LuaQuatf& q) const;
 	LuaVec3f rotateVec3f(const LuaVec3f& v) const;
 	LuaQuatf inverse() const;
 	float length() const;

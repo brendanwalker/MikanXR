@@ -22,7 +22,7 @@ ImNodesPinShape ValuePin::editorComputePinShape() const
 
 std::shared_ptr<MkNodesScopedColorStyle> ValuePin::editorRenderMakePinStyle(float alpha)
 {
-	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_Pin, editorValuePinColor(alpha))
 		.push(ImNodesCol_PinHovered, ImGui::GetColorU32(NodeEditorUI::getPinHoveredColor(alpha)));
 	return style;

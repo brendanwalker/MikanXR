@@ -11,7 +11,7 @@ class IMkWindowContextManager;
 class SdlWindowContext : public IMkWindowContext
 {
 public:
-	SdlWindowContext() = delete;
+	SdlWindowContext()= delete;
 	SdlWindowContext(IMkWindowContextManagerPtr ownerWindowManager, IMkGraphicsContextPtr graphicsContext);
 	virtual ~SdlWindowContext();
 
@@ -63,24 +63,24 @@ protected:
 private:
 	IMkWindowContextManagerWeakPtr m_ownerWindowManager;
 	IMkGraphicsContextWeakPtr m_graphicsContext;
-	SDL_Window* m_sdlWindow = nullptr;
-	void* m_glContext = nullptr;
-	int m_windowId = -1;
-	bool m_isRenderingStage = false;
+	SDL_Window* m_sdlWindow= nullptr;
+	void* m_glContext= nullptr;
+	int m_windowId= -1;
+	bool m_isRenderingStage= false;
 
-	bool m_bGLDataSharingEnabled = false;
-	bool m_bOwnsGLContext = true;			// false when attaching to an existing GL context
+	bool m_bGLDataSharingEnabled= false;
+	bool m_bOwnsGLContext= true; // false when attaching to an existing GL context
 
-	std::string m_title = "Mikan Window";
+	std::string m_title= "Mikan Window";
 
-	int m_width = 0;
-	int m_height = 0;
+	int m_width= 0;
+	int m_height= 0;
 
-	bool m_hasMouseFocus = false;
-	bool m_hasKeyboardFocus = false;
-	bool m_isfullScreen = false;
-	bool m_isMinimized = false;
-	bool m_isShown = false;
-	bool m_wantsDestroy = false;
+	bool m_hasMouseFocus= false;
+	bool m_hasKeyboardFocus= false;
+	bool m_isfullScreen= false;
+	bool m_isMinimized= false;
+	bool m_isShown= false;
+	bool m_wantsDestroy= false;
 };
-using SdlWindowUniquePtr = std::unique_ptr<SdlWindowContext>;
+using SdlWindowUniquePtr= std::unique_ptr<SdlWindowContext>;

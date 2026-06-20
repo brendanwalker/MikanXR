@@ -7,7 +7,7 @@ class FlowPin : public NodePin
 public:
 	FlowPin();
 
-	inline static const std::string k_pinClassName = "FlowPin";
+	inline static const std::string k_pinClassName= "FlowPin";
 	virtual std::string getClassName() const override { return k_pinClassName; }
 	virtual ImNodesPinShape editorComputePinShape() const override;
 	virtual std::shared_ptr<MkNodesScopedColorStyle> editorRenderMakePinStyle(float alpha) override;

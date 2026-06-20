@@ -9,13 +9,13 @@
 class PropertyMetaData
 {
 public:
-	virtual ~PropertyMetaData() = default;
+	virtual ~PropertyMetaData()= default;
 };
-using PropertyMetaDataPtr = std::shared_ptr<PropertyMetaData>;
+using PropertyMetaDataPtr= std::shared_ptr<PropertyMetaData>;
 
 class PropertyDescriptor;
-using PropertyDescriptorPtr = std::shared_ptr<PropertyDescriptor>;
-using PropertyDescriptorConstPtr = std::shared_ptr<const PropertyDescriptor>;
+using PropertyDescriptorPtr= std::shared_ptr<PropertyDescriptor>;
+using PropertyDescriptorConstPtr= std::shared_ptr<const PropertyDescriptor>;
 
 class PropertyDescriptor : public std::enable_shared_from_this<PropertyDescriptor>
 {
@@ -41,7 +41,7 @@ public:
 	PropertyDescriptorPtr setDefaultValue(t_value_type value)
 	{
 		assert(m_dataType != MikanVariantType::INVALID);
-		*m_defaultValue = value;
+		*m_defaultValue= value;
 		return shared_from_this();
 	}
 	const MikanVariant& getDefaultValue() const { return *(m_defaultValue.get()); }
@@ -51,7 +51,7 @@ public:
 	{
 		for (const PropertyMetaDataPtr& meta : m_metaDataList)
 		{
-			if (const t_meta_type* typed = dynamic_cast<const t_meta_type*>(meta.get()))
+			if (const t_meta_type* typed= dynamic_cast<const t_meta_type*>(meta.get()))
 				return typed;
 		}
 		return nullptr;
@@ -59,11 +59,11 @@ public:
 
 private:
 	std::string m_propertyName;
-	MikanVariantType m_dataType = MikanVariantType::INVALID;
-	bool m_bIsReadable = true;
-	bool m_bIsWritable = true;
-	bool m_bIsUIHidden = false;
-	bool m_bIsClientAPIHidden = true;
+	MikanVariantType m_dataType= MikanVariantType::INVALID;
+	bool m_bIsReadable= true;
+	bool m_bIsWritable= true;
+	bool m_bIsUIHidden= false;
+	bool m_bIsClientAPIHidden= true;
 	std::unique_ptr<MikanVariant> m_defaultValue;
 	std::vector<PropertyMetaDataPtr> m_metaDataList;
 };
@@ -84,6 +84,6 @@ public:
 		return false;
 	}
 };
-using IPropertyInterfacePtr = std::shared_ptr<IPropertyInterface>;
-using IPropertyInterfaceConstPtr = std::shared_ptr<const IPropertyInterface>;
-using IPropertyInterfaceWeakPtr = std::weak_ptr<IPropertyInterface>;
+using IPropertyInterfacePtr= std::shared_ptr<IPropertyInterface>;
+using IPropertyInterfaceConstPtr= std::shared_ptr<const IPropertyInterface>;
+using IPropertyInterfaceWeakPtr= std::weak_ptr<IPropertyInterface>;

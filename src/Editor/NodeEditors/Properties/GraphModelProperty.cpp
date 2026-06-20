@@ -14,16 +14,16 @@
 // -- GraphModelPropertyConfig -----
 configuru::Config GraphModelPropertyConfig::writeToJSON()
 {
-	configuru::Config pt = GraphPropertyConfig::writeToJSON();
+	configuru::Config pt= GraphPropertyConfig::writeToJSON();
 
-	pt["asset_ref_index"] = assetRefIndex;
+	pt["asset_ref_index"]= assetRefIndex;
 
 	return pt;
 }
 
 void GraphModelPropertyConfig::readFromJSON(const configuru::Config& pt)
 {
-	assetRefIndex = pt.get_or<int>("asset_ref_index", -1);
+	assetRefIndex= pt.get_or<int>("asset_ref_index", -1);
 
 	GraphPropertyConfig::readFromJSON(pt);
 }
@@ -35,11 +35,11 @@ bool GraphModelProperty::loadFromConfig(
 {
 	if (GraphProperty::loadFromConfig(propConfig, graphConfig))
 	{
-		const auto modelPropConfig = std::static_pointer_cast<const GraphModelPropertyConfig>(propConfig);
+		const auto modelPropConfig= std::static_pointer_cast<const GraphModelPropertyConfig>(propConfig);
 		if (modelPropConfig->assetRefIndex != -1)
 		{
-			auto assetRef = getOwnerGraph()->getAssetReferenceByIndex(modelPropConfig->assetRefIndex);
-			auto materialAssetRef = std::dynamic_pointer_cast<ModelAssetReference>(assetRef);
+			auto assetRef= getOwnerGraph()->getAssetReferenceByIndex(modelPropConfig->assetRefIndex);
+			auto materialAssetRef= std::dynamic_pointer_cast<ModelAssetReference>(assetRef);
 			if (materialAssetRef)
 			{
 				setModelAssetReference(materialAssetRef);
@@ -47,7 +47,7 @@ bool GraphModelProperty::loadFromConfig(
 			}
 			else
 			{
-				MIKAN_LOG_ERROR("GraphModelProperty::loadFromConfig") 
+				MIKAN_LOG_ERROR("GraphModelProperty::loadFromConfig")
 					<< "Invalid model asset reference: " << modelPropConfig->assetRefIndex;
 				setModelAssetReference(ModelAssetReferencePtr());
 			}
@@ -65,20 +65,20 @@ bool GraphModelProperty::loadFromConfig(
 
 void GraphModelProperty::saveToConfig(GraphPropertyConfigPtr config) const
 {
-	auto propConfig = std::static_pointer_cast<GraphModelPropertyConfig>(config);
+	auto propConfig= std::static_pointer_cast<GraphModelPropertyConfig>(config);
 
 	// Default asset ref to invalid
-	propConfig->assetRefIndex = -1;
+	propConfig->assetRefIndex= -1;
 
 	// If we have a valid asset ref, look up the index in the graph
 	if (m_modelAssetRef)
 	{
-		propConfig->assetRefIndex = getOwnerGraph()->getAssetReferenceIndex(m_modelAssetRef);
+		propConfig->assetRefIndex= getOwnerGraph()->getAssetReferenceIndex(m_modelAssetRef);
 
 		if (propConfig->assetRefIndex == -1)
 		{
-			MIKAN_LOG_ERROR("GraphMaterialProperty::saveToConfig") 
-				<< "Model property has orphaned asset reference: " 
+			MIKAN_LOG_ERROR("GraphMaterialProperty::saveToConfig")
+				<< "Model property has orphaned asset reference: "
 				<< m_modelAssetRef->getAssetPath();
 		}
 	}
@@ -88,10 +88,10 @@ void GraphModelProperty::saveToConfig(GraphPropertyConfigPtr config) const
 
 void GraphModelProperty::editorHandleMainFrameDragDrop(const class NodeEditorState& editorState)
 {
-	auto modelNode = m_ownerGraph->createTypedNode<ModelNode>(editorState);
+	auto modelNode= m_ownerGraph->createTypedNode<ModelNode>(editorState);
 
 	// Set this as the source model property for the new node
-	auto self = std::static_pointer_cast<GraphModelProperty>(shared_from_this());
+	auto self= std::static_pointer_cast<GraphModelProperty>(shared_from_this());
 	modelNode->setModelSource(self);
 }
 
@@ -101,12 +101,12 @@ void GraphModelProperty::editorRenderPropertySheet(const class NodeEditorState& 
 	{
 		// Name
 		NodeEditorUI::DrawStaticTextProperty(
-			"Name", 
-			m_modelResource->getName(), 
+			"Name",
+			m_modelResource->getName(),
 			editorState.styleManager);
 
 		// Drag-Drop Handling
-		auto modelAssetRef= 
+		auto modelAssetRef=
 			NodeEditorUI::receiveTypedDragDropPayload<ModelAssetReference>(
 				ModelAssetReference::k_assetClassName);
 		if (modelAssetRef)

@@ -30,9 +30,9 @@ public:
 	void setBoxZSize(float size);
 
 protected:
-	float m_xSize = 1.0f;
-	float m_ySize = 1.0f;
-	float m_zSize = 1.0f;
+	float m_xSize= 1.0f;
+	float m_ySize= 1.0f;
+	float m_zSize= 1.0f;
 };
 
 class BoxShapeComponent : public ShapeComponent
@@ -45,7 +45,7 @@ public:
 		return std::static_pointer_cast<BoxShapeDefinition>(m_definition);
 	}
 
-	inline static const std::string k_componentClassName = "BoxShapeComponent";
+	inline static const std::string k_componentClassName= "BoxShapeComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	virtual void init() override;
@@ -62,7 +62,9 @@ public:
 
 	// -- IFunctionInterface ----
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
-	{ ShapeComponent::getFunctionDescriptors(outDescriptors); }
+	{
+		ShapeComponent::getFunctionDescriptors(outDescriptors);
+	}
 
 	// -- Lua Binding ----
 	static void bindLuaFunctions(struct lua_State* L);

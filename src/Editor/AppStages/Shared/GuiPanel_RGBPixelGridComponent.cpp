@@ -17,17 +17,19 @@ void GuiPanel_RGBPixelGridComponent::onConstruct()
 		RGBPixelGridDefinition::k_gridColumnsPropertyId,
 		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			RGBPixelGridComponentPtr comp = getRGBPixelGridComponent();
-			if (!comp) return false;
+			RGBPixelGridComponentPtr comp= getRGBPixelGridComponent();
+			if (!comp)
+				return false;
 
-			int columns = comp->getRGBPixelGridDefinition()->getColumns();
+			int columns= comp->getRGBPixelGridDefinition()->getColumns();
 			if (ImGui::InputInt("Columns", &columns))
 			{
-				if (columns < 1) columns = 1;
-				addDeferredGuiEvent([this, columns]() {
+				if (columns < 1)
+					columns= 1;
+				addDeferredGuiEvent([this, columns]()
+									{
 					if (auto c = getRGBPixelGridComponent())
-						c->getRGBPixelGridDefinition()->setColumns(columns);
-				});
+						c->getRGBPixelGridDefinition()->setColumns(columns); });
 			}
 			return true;
 		});
@@ -36,17 +38,19 @@ void GuiPanel_RGBPixelGridComponent::onConstruct()
 		RGBPixelGridDefinition::k_gridRowsPropertyId,
 		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			RGBPixelGridComponentPtr comp = getRGBPixelGridComponent();
-			if (!comp) return false;
+			RGBPixelGridComponentPtr comp= getRGBPixelGridComponent();
+			if (!comp)
+				return false;
 
-			int rows = comp->getRGBPixelGridDefinition()->getRows();
+			int rows= comp->getRGBPixelGridDefinition()->getRows();
 			if (ImGui::InputInt("Rows", &rows))
 			{
-				if (rows < 1) rows = 1;
-				addDeferredGuiEvent([this, rows]() {
+				if (rows < 1)
+					rows= 1;
+				addDeferredGuiEvent([this, rows]()
+									{
 					if (auto c = getRGBPixelGridComponent())
-						c->getRGBPixelGridDefinition()->setRows(rows);
-				});
+						c->getRGBPixelGridDefinition()->setRows(rows); });
 			}
 			return true;
 		});
@@ -54,7 +58,7 @@ void GuiPanel_RGBPixelGridComponent::onConstruct()
 
 RGBPixelGridComponentPtr GuiPanel_RGBPixelGridComponent::getRGBPixelGridComponent() const
 {
-	MikanComponentPtr component = m_component.lock();
+	MikanComponentPtr component= m_component.lock();
 	if (component)
 		return std::static_pointer_cast<RGBPixelGridComponent>(component);
 	return nullptr;

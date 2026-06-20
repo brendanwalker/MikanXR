@@ -20,11 +20,11 @@ public:
 		, threadEnded({false})
 		, threadStarted(false)
 		, workerThread()
-	{}
+	{
+	}
 };
 
-
-WorkerThread::WorkerThread(const std::string thread_name) 
+WorkerThread::WorkerThread(const std::string thread_name)
 	: m_impl(new WorkerThreadImpl(thread_name))
 {
 }
@@ -46,61 +46,60 @@ bool WorkerThread::hasThreadEnded() const
 
 void WorkerThread::startThread()
 {
-    if (!m_impl->threadStarted)
-    {
+	if (!m_impl->threadStarted)
+	{
 		m_impl->threadEnded.store(false);
 		m_impl->exitSignaled= false;
 
-        MIKAN_LOG_INFO("WorkerThread::start") << "Starting worker thread: " << m_impl->threadName;
+		MIKAN_LOG_INFO("WorkerThread::start") << "Starting worker thread: " << m_impl->threadName;
 		onThreadStarted();
 
-        m_impl->workerThread = std::thread(&WorkerThread::threadFunc, this);
-        m_impl->threadStarted = true;
-    }
+		m_impl->workerThread= std::thread(&WorkerThread::threadFunc, this);
+		m_impl->threadStarted= true;
+	}
 }
 
 void WorkerThread::stopThread()
 {
-    if (m_impl->threadStarted)
-    {
-        if (!m_impl->exitSignaled)
-        {
-            MIKAN_LOG_INFO("WorkerThread::stop") << "Stopping worker thread: " << m_impl->threadName;
+	if (m_impl->threadStarted)
+	{
+		if (!m_impl->exitSignaled)
+		{
+			MIKAN_LOG_INFO("WorkerThread::stop") << "Stopping worker thread: " << m_impl->threadName;
 			// Set the atomic exit flag
-            m_impl->exitSignaled.store(true);
+			m_impl->exitSignaled.store(true);
 
 			// Give the thread a chance to set any state in response to the exit flag getting set
 			onThreadHaltBegin();
 
 			// Block until the worker thread exists
-            m_impl->workerThread.join();
+			m_impl->workerThread.join();
 
-            MIKAN_LOG_INFO("WorkerThread::stop") << "Worker thread stopped: " << m_impl->threadName;
+			MIKAN_LOG_INFO("WorkerThread::stop") << "Worker thread stopped: " << m_impl->threadName;
 			onThreadHaltComplete();
-        }
-        else
-        {
-            MIKAN_LOG_INFO("WorkerThread::stop") << "Worker thread already stopped: " << m_impl->threadName;
-        }
+		}
+		else
+		{
+			MIKAN_LOG_INFO("WorkerThread::stop") << "Worker thread already stopped: " << m_impl->threadName;
+		}
 
-        m_impl->threadStarted = false;
-        m_impl->exitSignaled = false;
-    }
+		m_impl->threadStarted= false;
+		m_impl->exitSignaled= false;
+	}
 }
-
 
 void WorkerThread::threadFunc()
 {
-    ThreadUtils::setCurrentThreadName(m_impl->threadName.c_str());
+	ThreadUtils::setCurrentThreadName(m_impl->threadName.c_str());
 
-    // Stay in the poll loop until asked to exit by the main thread
-    while (!m_impl->exitSignaled)
-    {
+	// Stay in the poll loop until asked to exit by the main thread
+	while (!m_impl->exitSignaled)
+	{
 		if (!doWork())
 		{
 			break;
 		}
-    }
+	}
 
 	m_impl->threadEnded.store(true);
 }

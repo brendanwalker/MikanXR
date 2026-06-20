@@ -37,7 +37,6 @@ ComponentScriptContext::ComponentScriptContext(MikanComponentPtr ownerComponent)
 	: CommonScriptContext()
 	, m_ownerComponent(ownerComponent)
 {
-
 }
 
 bool ComponentScriptContext::bindContextFunctions()
@@ -84,25 +83,25 @@ bool ComponentScriptContext::bindContextFunctions()
 
 	// Expose stencil system singletons so scripts can look up stencils by name
 	luabridge::setGlobal(m_luaState,
-		ownerComponent->getObjectSystemOfType<ModelStencilSystem>().get(),
-		"ModelStencilSystem");
+						 ownerComponent->getObjectSystemOfType<ModelStencilSystem>().get(),
+						 "ModelStencilSystem");
 	luabridge::setGlobal(m_luaState,
-		ownerComponent->getObjectSystemOfType<BoxStencilSystem>().get(),
-		"BoxStencilSystem");
+						 ownerComponent->getObjectSystemOfType<BoxStencilSystem>().get(),
+						 "BoxStencilSystem");
 	luabridge::setGlobal(m_luaState,
-		ownerComponent->getObjectSystemOfType<QuadStencilSystem>().get(),
-		"QuadStencilSystem");
+						 ownerComponent->getObjectSystemOfType<QuadStencilSystem>().get(),
+						 "QuadStencilSystem");
 
 	// Expose shape system singletons so scripts can look up shapes by name or ID
 	luabridge::setGlobal(m_luaState,
-		ownerComponent->getObjectSystemOfType<ModelShapeSystem>().get(),
-		"ModelShapeSystem");
+						 ownerComponent->getObjectSystemOfType<ModelShapeSystem>().get(),
+						 "ModelShapeSystem");
 	luabridge::setGlobal(m_luaState,
-		ownerComponent->getObjectSystemOfType<BoxShapeSystem>().get(),
-		"BoxShapeSystem");
+						 ownerComponent->getObjectSystemOfType<BoxShapeSystem>().get(),
+						 "BoxShapeSystem");
 	luabridge::setGlobal(m_luaState,
-		ownerComponent->getObjectSystemOfType<QuadShapeSystem>().get(),
-		"QuadShapeSystem");
+						 ownerComponent->getObjectSystemOfType<QuadShapeSystem>().get(),
+						 "QuadShapeSystem");
 
 	return true;
 }

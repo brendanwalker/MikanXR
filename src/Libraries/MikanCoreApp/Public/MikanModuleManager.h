@@ -10,9 +10,9 @@ class IMikanModuleManager
 public:
 	virtual ~IMikanModuleManager() {};
 
-	virtual IMikanModule* getModule(const std::string& moduleName) = 0;
-	virtual bool disposeModule(IMikanModule* moduleIterface) = 0;
-	
+	virtual IMikanModule* getModule(const std::string& moduleName)= 0;
+	virtual bool disposeModule(IMikanModule* moduleIterface)= 0;
+
 	template <typename t_module_type>
 	t_module_type* getModule(const std::string& moduleName)
 	{

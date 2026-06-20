@@ -29,14 +29,14 @@ eVRDeviceType MikanSteamVRDevice::getDeviceType() const
 {
 	switch (m_deviceProperties->getSteamVRDeviceClass())
 	{
-		case vr::TrackedDeviceClass_HMD:
-			return eVRDeviceType::HMD;
-		case vr::TrackedDeviceClass_Controller:
-			return eVRDeviceType::VRController;
-		case vr::TrackedDeviceClass_GenericTracker:
-			return eVRDeviceType::VRTracker;
-		default:
-			return eVRDeviceType::INVALID;
+	case vr::TrackedDeviceClass_HMD:
+		return eVRDeviceType::HMD;
+	case vr::TrackedDeviceClass_Controller:
+		return eVRDeviceType::VRController;
+	case vr::TrackedDeviceClass_GenericTracker:
+		return eVRDeviceType::VRTracker;
+	default:
+		return eVRDeviceType::INVALID;
 	}
 }
 
@@ -55,7 +55,7 @@ bool MikanSteamVRDevice::getDevicePose(int vrFrameDelay, VRDevicePose& outPose) 
 	{
 		// Convert the raw pose to our VRDevicePose format
 		glm::mat4 xform= vr_HmdMatrix34_to_glm_mat4(rawDevicePose->mDeviceToAbsoluteTracking);
-		outPose = glm_mat4_to_VRDevicePose(xform);
+		outPose= glm_mat4_to_VRDevicePose(xform);
 
 		return true;
 	}
@@ -102,7 +102,7 @@ IVRDeviceSocket* MikanSteamVRDevice::geSocketByIndex(size_t socketIndex) const
 {
 	if (socketIndex < m_sockets.size())
 	{
-		auto it = m_sockets.begin();
+		auto it= m_sockets.begin();
 		std::advance(it, socketIndex);
 		return it->second.get();
 	}
@@ -111,13 +111,12 @@ IVRDeviceSocket* MikanSteamVRDevice::geSocketByIndex(size_t socketIndex) const
 
 IVRDeviceSocket* MikanSteamVRDevice::getSocketByName(const char* socketName) const
 {
-	auto it = m_sockets.find(socketName);
+	auto it= m_sockets.find(socketName);
 	if (it != m_sockets.end())
 	{
 		return it->second.get();
 	}
 	return nullptr;
-
 }
 
 size_t MikanSteamVRDevice::getMeshCount() const
@@ -129,7 +128,7 @@ IVRDeviceMesh* MikanSteamVRDevice::getMeshByIndex(size_t meshIndex) const
 {
 	if (meshIndex < m_meshes.size())
 	{
-		auto it = m_meshes.begin();
+		auto it= m_meshes.begin();
 		std::advance(it, meshIndex);
 		return it->second.get();
 	}
@@ -138,7 +137,7 @@ IVRDeviceMesh* MikanSteamVRDevice::getMeshByIndex(size_t meshIndex) const
 
 IVRDeviceMesh* MikanSteamVRDevice::getMeshByName(const char* meshName) const
 {
-	auto it = m_meshes.find(meshName);
+	auto it= m_meshes.find(meshName);
 	if (it != m_meshes.end())
 	{
 		return it->second.get();
@@ -149,7 +148,7 @@ IVRDeviceMesh* MikanSteamVRDevice::getMeshByName(const char* meshName) const
 void MikanSteamVRDevice::updateProperties()
 {
 	// Fetch existing state to see what changes
-	const std::string oldRenderModelName = m_deviceProperties->getRenderModelName();
+	const std::string oldRenderModelName= m_deviceProperties->getRenderModelName();
 
 	// Fetch all the device properties again
 	m_deviceProperties->updateProperties();
@@ -173,20 +172,18 @@ void MikanSteamVRDevice::rebuildComponents()
 		{
 			if (definition.isRenderable)
 			{
-				m_meshes.insert({
-					definition.componentName, 
-					std::make_shared<MikanSteamVRDeviceMesh>(
-						this,
-						definition.componentName,
-						definition.renderModelName)});
+				m_meshes.insert({definition.componentName,
+								 std::make_shared<MikanSteamVRDeviceMesh>(
+									 this,
+									 definition.componentName,
+									 definition.renderModelName)});
 			}
 			else
 			{
-				m_sockets.insert({
-					definition.componentName,
-					std::make_shared<MikanSteamVRDeviceSocket>(
-						this,
-						definition.componentName)});
+				m_sockets.insert({definition.componentName,
+								  std::make_shared<MikanSteamVRDeviceSocket>(
+									  this,
+									  definition.componentName)});
 			}
 		}
 	}

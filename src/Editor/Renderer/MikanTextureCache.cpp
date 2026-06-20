@@ -28,7 +28,8 @@ bool MikanTextureCache::startup()
 
 void MikanTextureCache::shutdown()
 {
-	m_textureCache = nullptr;;
+	m_textureCache= nullptr;
+	;
 }
 
 IMkTexturePtr MikanTextureCache::tryGetTextureByName(const std::string& textureName)

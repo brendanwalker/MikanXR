@@ -16,7 +16,6 @@
 #include "glm/ext/vector_float4.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
 
-
 class MIKAN_RENDERER_CLASS MkScopedMaterialInstanceBinding
 {
 public:
@@ -35,7 +34,7 @@ private:
 	struct MkScopedMaterialInstanceBindingImpl* m_impl;
 };
 
-class MIKAN_RENDERER_CLASS MkMaterialInstance 
+class MIKAN_RENDERER_CLASS MkMaterialInstance
 {
 public:
 	MkMaterialInstance();
@@ -80,7 +79,7 @@ public:
 		const MkScopedMaterialBinding& materialBinding,
 		BindUniformCallback callback= BindUniformCallback()) const;
 
-protected: 
+protected:
 	friend class MkScopedMaterialInstanceBinding;
 	void unbindMaterialInstance() const;
 

@@ -16,8 +16,8 @@
 #include <vector>
 
 using TransformComponentList= std::vector<TransformComponentWeakPtr>;
-using TransformComponentVisitor = std::function<void(TransformComponent* transformComponentPtr)>;
-using TransformComponentConstVisitor = std::function<void(const TransformComponent* transformComponentPtr)>;
+using TransformComponentVisitor= std::function<void(TransformComponent* transformComponentPtr)>;
+using TransformComponentConstVisitor= std::function<void(const TransformComponent* transformComponentPtr)>;
 
 class TransformComponentDefinition : public MikanComponentDefinition
 {
@@ -26,7 +26,7 @@ public:
 	TransformComponentDefinition(int componentId);
 	TransformComponentDefinition(
 		int componentId,
-		const std::string& componentName, 
+		const std::string& componentName,
 		const MikanTransform& xform);
 
 	virtual bool isAutoNotifyTransformPropertyChangeDisabled() { return false; }
@@ -64,7 +64,7 @@ public:
 	void setRelativePosition(const MikanVector3f& translation);
 
 protected:
-	MikanTransformID m_parentTransformId = INVALID_MIKAN_ID;
+	MikanTransformID m_parentTransformId= INVALID_MIKAN_ID;
 	MikanTransform m_relativeTransform;
 };
 
@@ -76,7 +76,7 @@ public:
 	virtual void postInit() override;
 	virtual void dispose() override;
 
-	inline static const std::string k_componentClassName = "TransformComponent";
+	inline static const std::string k_componentClassName= "TransformComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	virtual void setDefinition(MikanComponentDefinitionPtr config) override;
@@ -84,18 +84,25 @@ public:
 	{
 		return std::static_pointer_cast<const TransformComponentDefinition>(m_definition);
 	}
-	inline TransformComponentDefinitionPtr getTransformComponentDefinition() { 
-		return std::static_pointer_cast<TransformComponentDefinition>(m_definition); 
+	inline TransformComponentDefinitionPtr getTransformComponentDefinition()
+	{
+		return std::static_pointer_cast<TransformComponentDefinition>(m_definition);
 	}
 
 	inline MikanTransformID getTransformId() const { return getComponentId(); }
 	inline MikanTransformID getParentTransformId() const
-	{ return getTransformComponentDefinitionConst()->getParentTransformId(); }
+	{
+		return getTransformComponentDefinitionConst()->getParentTransformId();
+	}
 	inline TransformComponentPtr getParentTransformComponent() const
-	{ return m_parentComponent.lock(); }
+	{
+		return m_parentComponent.lock();
+	}
 	inline const TransformComponentList& getChildTransformComponents() const
-	{ return m_childComponents; }
-	
+	{
+		return m_childComponents;
+	}
+
 	bool attachToComponent(TransformComponentPtr newParentComponent);
 	enum class eDetachReason : int
 	{
@@ -124,9 +131,13 @@ public:
 	void visitAllTransformComponentsConst(TransformComponentConstVisitor visitor) const;
 
 	inline IMkSceneRenderablePtr getGlSceneRenderable() const
-	{ return m_sceneRenderable; }
+	{
+		return m_sceneRenderable;
+	}
 	inline IMkSceneRenderableConstPtr getGlSceneRenderableConst() const
-	{ return m_sceneRenderable; }
+	{
+		return m_sceneRenderable;
+	}
 
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;

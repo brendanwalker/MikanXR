@@ -10,11 +10,10 @@
 #include <string>
 #include <vector>
 
-class ModelShapeSystemDefinition :
-	public MikanTypedObjectSystemDefinition<ModelShapeComponent, ModelShapeDefinition, MikanShapeID>
+class ModelShapeSystemDefinition : public MikanTypedObjectSystemDefinition<ModelShapeComponent, ModelShapeDefinition, MikanShapeID>
 {
 public:
-	using Super = MikanTypedObjectSystemDefinition<ModelShapeComponent, ModelShapeDefinition, MikanShapeID>;
+	using Super= MikanTypedObjectSystemDefinition<ModelShapeComponent, ModelShapeDefinition, MikanShapeID>;
 
 	ModelShapeSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
@@ -22,21 +21,20 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 };
 
-class ModelShapeSystem :
-	public MikanTypedObjectSystem<
-		ModelShapeComponent, ModelShapeDefinition,
-		MikanShapeID,
-		ModelShapeSystem, ModelShapeSystemDefinition>
+class ModelShapeSystem : public MikanTypedObjectSystem<
+							 ModelShapeComponent, ModelShapeDefinition,
+							 MikanShapeID,
+							 ModelShapeSystem, ModelShapeSystemDefinition>
 {
 public:
-	using Super = MikanTypedObjectSystem<
+	using Super= MikanTypedObjectSystem<
 		ModelShapeComponent, ModelShapeDefinition,
 		MikanShapeID,
 		ModelShapeSystem, ModelShapeSystemDefinition>;
 
 	ModelShapeSystem(ProjectManagerPtr ownerObjectSystem);
 
-	inline static const std::string k_objectSystemClassName = "ModelShapeSystem";
+	inline static const std::string k_objectSystemClassName= "ModelShapeSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
 	inline ModelShapeComponentPtr getModelShapeById(MikanShapeID shapeId) const
@@ -63,5 +61,5 @@ protected:
 		ComponentDefinitionPtr componentDefinition) override;
 };
 
-using ModelShapeSystemPtr = std::shared_ptr<ModelShapeSystem>;
-using ModelShapeSystemWeakPtr = std::weak_ptr<ModelShapeSystem>;
+using ModelShapeSystemPtr= std::shared_ptr<ModelShapeSystem>;
+using ModelShapeSystemWeakPtr= std::weak_ptr<ModelShapeSystem>;

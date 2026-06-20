@@ -6,7 +6,7 @@
 class TextureNodeConfig : public NodeConfig
 {
 public:
-	TextureNodeConfig() = default;
+	TextureNodeConfig()= default;
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -17,10 +17,10 @@ public:
 class TextureNode : public Node
 {
 public:
-	TextureNode() = default;
+	TextureNode()= default;
 	virtual ~TextureNode();
 
-	inline static const std::string k_nodeClassName = "TextureNode";
+	inline static const std::string k_nodeClassName= "TextureNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
@@ -50,7 +50,7 @@ protected:
 class TextureNodeFactory : public TypedNodeFactory<TextureNode, TextureNodeConfig>
 {
 public:
-	TextureNodeFactory() = default;
+	TextureNodeFactory()= default;
 
 	virtual NodePtr createNode(const NodeEditorState& editorState) const override;
 	virtual bool editorCanCreate() const override { return false; }

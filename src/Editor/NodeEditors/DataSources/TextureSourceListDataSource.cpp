@@ -6,7 +6,7 @@ TextureSourceListDataSource::TextureSourceListDataSource(ProjectManagerPtr proje
 {
 	if (projectManager != nullptr)
 	{
-		comboEntrieValues = TextureSourceQueries::getTextureSourceComponentList(projectManager);
+		comboEntrieValues= TextureSourceQueries::getTextureSourceComponentList(projectManager);
 
 		for (TextureSourceComponentPtr textureSourceComponent : comboEntrieValues)
 		{
@@ -17,7 +17,7 @@ TextureSourceListDataSource::TextureSourceListDataSource(ProjectManagerPtr proje
 
 int TextureSourceListDataSource::getEntryIndex(TextureSourceComponentPtr TextureSourceComponent) const
 {
-	auto it = std::find(comboEntrieValues.begin(), comboEntrieValues.end(), TextureSourceComponent);
+	auto it= std::find(comboEntrieValues.begin(), comboEntrieValues.end(), TextureSourceComponent);
 	if (it != comboEntrieValues.end())
 	{
 		return static_cast<int>(std::distance(comboEntrieValues.begin(), it));
@@ -32,7 +32,7 @@ int TextureSourceListDataSource::getEntryCount()
 }
 
 TextureSourceComponentPtr TextureSourceListDataSource::getEntryAtIndex(int index) const
-{ 
+{
 	return (index >= 0 && index < (int)comboEntrieNames.size()) ? comboEntrieValues[index] : TextureSourceComponentPtr();
 }
 

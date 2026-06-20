@@ -16,6 +16,6 @@ public:
 	virtual bool getSocketState(VRDevicePose& outRelativePose) const override;
 
 private:
-	MikanSteamVRDevice* m_ownerDevice = nullptr;
+	MikanSteamVRDevice* m_ownerDevice= nullptr;
 	std::string m_socketName;
 };

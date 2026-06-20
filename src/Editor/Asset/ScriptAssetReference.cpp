@@ -5,5 +5,5 @@
 ScriptAssetReferenceFactory::ScriptAssetReferenceFactory()
 	: TypedAssetReferenceFactory<ScriptAssetReference, AssetReferenceConfig>()
 {
-	m_defaultPath = (PathUtils::getResourceDirectory() / "scripts" / "").string();
+	m_defaultPath= (PathUtils::getResourceDirectory() / "scripts" / "").string();
 }

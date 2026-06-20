@@ -12,12 +12,13 @@
 #include "VRObjectSystem.h"
 
 // -- TrackingMountDefinition -----
-const std::string TrackingMountDefinition::k_devicePathPropertyId = "device_path";
-const std::string TrackingMountDefinition::k_socketNamePropertyId = "socket_name";
+const std::string TrackingMountDefinition::k_devicePathPropertyId= "device_path";
+const std::string TrackingMountDefinition::k_socketNamePropertyId= "socket_name";
 
-TrackingMountDefinition::TrackingMountDefinition() 
+TrackingMountDefinition::TrackingMountDefinition()
 	: MikanComponentDefinition()
-{}
+{
+}
 
 TrackingMountDefinition::TrackingMountDefinition(
 	MikanTrackingMountID trackingMountId)
@@ -27,10 +28,10 @@ TrackingMountDefinition::TrackingMountDefinition(
 
 configuru::Config TrackingMountDefinition::writeToJSON()
 {
-	configuru::Config pt = MikanComponentDefinition::writeToJSON();
-	
-	pt[k_devicePathPropertyId] = m_devicePath;
-	pt[k_socketNamePropertyId] = m_socketName;
+	configuru::Config pt= MikanComponentDefinition::writeToJSON();
+
+	pt[k_devicePathPropertyId]= m_devicePath;
+	pt[k_socketNamePropertyId]= m_socketName;
 
 	return pt;
 }
@@ -39,8 +40,8 @@ void TrackingMountDefinition::readFromJSON(const configuru::Config& pt)
 {
 	MikanComponentDefinition::readFromJSON(pt);
 
-	m_devicePath = pt.get_or<std::string>(k_devicePathPropertyId, m_devicePath);
-	m_socketName = pt.get_or<std::string>(k_socketNamePropertyId, m_socketName);
+	m_devicePath= pt.get_or<std::string>(k_devicePathPropertyId, m_devicePath);
+	m_socketName= pt.get_or<std::string>(k_socketNamePropertyId, m_socketName);
 }
 
 bool TrackingMountDefinition::readFromInitParams(
@@ -50,11 +51,11 @@ bool TrackingMountDefinition::readFromInitParams(
 	if (!MikanComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
-	const auto* componentValues = initParams.getTypedPointer<MikanTrackingMountComponentValues>();
+	const auto* componentValues= initParams.getTypedPointer<MikanTrackingMountComponentValues>();
 	if (componentValues)
 	{
-		m_devicePath = componentValues->device_path.getValue();
-		m_socketName = componentValues->socket_name.getValue();
+		m_devicePath= componentValues->device_path.getValue();
+		m_socketName= componentValues->socket_name.getValue();
 	}
 
 	return true;
@@ -64,7 +65,7 @@ void TrackingMountDefinition::setDevicePath(const std::string& devicePath)
 {
 	if (devicePath != m_devicePath)
 	{
-		m_devicePath = devicePath;
+		m_devicePath= devicePath;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_devicePathPropertyId));
 	}
 }
@@ -73,7 +74,7 @@ void TrackingMountDefinition::setSocketName(const std::string& socketName)
 {
 	if (socketName != m_socketName)
 	{
-		m_socketName = socketName;
+		m_socketName= socketName;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_socketNamePropertyId));
 	}
 }
@@ -82,7 +83,6 @@ void TrackingMountDefinition::setSocketName(const std::string& socketName)
 TrackingMountComponent::TrackingMountComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
 {
-
 }
 
 // -- IEntityAccessor ----
@@ -111,11 +111,11 @@ VRDeviceComponentPtr TrackingMountComponent::getVRDeviceComponent() const
 
 VRDevicePoseViewPtr TrackingMountComponent::makePoseView(eVRDevicePoseSpace space) const
 {
-	TrackingMountDefinitionConstPtr trackingMount = getTrackingMountDefinition();
+	TrackingMountDefinitionConstPtr trackingMount= getTrackingMountDefinition();
 	assert(trackingMount);
 
-	auto vrObjectSystem = getObjectSystemOfType<VRObjectSystem>();
-	VRDeviceComponentPtr vrDeviceComponent =
+	auto vrObjectSystem= getObjectSystemOfType<VRObjectSystem>();
+	VRDeviceComponentPtr vrDeviceComponent=
 		vrObjectSystem->getVRDeviceByPath(trackingMount->getDevicePath());
 
 	if (vrDeviceComponent)
@@ -128,16 +128,16 @@ VRDevicePoseViewPtr TrackingMountComponent::makePoseView(eVRDevicePoseSpace spac
 
 void TrackingMountComponent::deleteTrackingMount()
 {
-	TrackingMountDefinitionPtr trackingMountDefinition = getTrackingMountDefinition();
+	TrackingMountDefinitionPtr trackingMountDefinition= getTrackingMountDefinition();
 	if (trackingMountDefinition)
 	{
-		const MikanTrackingMountID trackingMountId = trackingMountDefinition->getTrackingMountId();
+		const MikanTrackingMountID trackingMountId= trackingMountDefinition->getTrackingMountId();
 		getOwnerTrackingMountSystem()->removeObjectByPrimaryComponentId(trackingMountId);
 	}
 }
 
 // -- IPropertyInterface ----
-const std::string TrackingMountComponent::k_availableSocketNameListPropertyId = "available_socket_names";
+const std::string TrackingMountComponent::k_availableSocketNameListPropertyId= "available_socket_names";
 
 void TrackingMountComponent::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
@@ -152,8 +152,8 @@ void TrackingMountComponent::getPropertyDescriptors(std::vector<PropertyDescript
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			TrackingMountComponent::k_availableSocketNameListPropertyId, MikanVariantType::STRING_ARRAY)
-		->setReadOnly()
-		->setUIHidden());
+			->setReadOnly()
+			->setUIHidden());
 }
 
 bool TrackingMountComponent::getPropertyValue(
@@ -162,18 +162,18 @@ bool TrackingMountComponent::getPropertyValue(
 {
 	if (propertyName == TrackingMountDefinition::k_devicePathPropertyId)
 	{
-		outValue = getTrackingMountDefinition()->getDevicePath();
+		outValue= getTrackingMountDefinition()->getDevicePath();
 		return true;
 	}
 	else if (propertyName == TrackingMountDefinition::k_socketNamePropertyId)
 	{
-		outValue = getTrackingMountDefinition()->getSocketName();
+		outValue= getTrackingMountDefinition()->getSocketName();
 		return true;
 	}
 	else if (propertyName == TrackingMountComponent::k_availableSocketNameListPropertyId)
 	{
-		VRDeviceComponentPtr vrDeviceComponent = getVRDeviceComponent();
-		outValue = vrDeviceComponent ? vrDeviceComponent->getSocketNames() : std::vector<std::string>();
+		VRDeviceComponentPtr vrDeviceComponent= getVRDeviceComponent();
+		outValue= vrDeviceComponent ? vrDeviceComponent->getSocketNames() : std::vector<std::string>();
 		return true;
 	}
 
@@ -199,7 +199,7 @@ bool TrackingMountComponent::setPropertyValue(
 }
 
 void TrackingMountComponent::onDefinitionMarkedDirty(
-	CommonConfigPtr configPtr, 
+	CommonConfigPtr configPtr,
 	const ConfigPropertyChangeSet& changedPropertySet)
 {
 	if (changedPropertySet.hasPropertyName(TrackingMountDefinition::k_devicePathPropertyId))

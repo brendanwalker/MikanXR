@@ -4,7 +4,7 @@
 
 MkGuiScopedDragDropSource::MkGuiScopedDragDropSource(ImGuiDragDropFlags flags)
 {
-	m_active = ImGui::BeginDragDropSource(flags);
+	m_active= ImGui::BeginDragDropSource(flags);
 }
 
 MkGuiScopedDragDropSource::~MkGuiScopedDragDropSource()

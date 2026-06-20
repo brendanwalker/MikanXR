@@ -35,13 +35,13 @@ private:
 
 	std::vector<IMkWindowContext*> m_mkWindowContextStack;
 
-	SDL_Cursor* cursor_default = nullptr;
-	SDL_Cursor* cursor_move = nullptr;
-	SDL_Cursor* cursor_pointer = nullptr;
-	SDL_Cursor* cursor_resize = nullptr;
-	SDL_Cursor* cursor_cross = nullptr;
-	SDL_Cursor* cursor_text = nullptr;
-	SDL_Cursor* cursor_unavailable = nullptr;
+	SDL_Cursor* cursor_default= nullptr;
+	SDL_Cursor* cursor_move= nullptr;
+	SDL_Cursor* cursor_pointer= nullptr;
+	SDL_Cursor* cursor_resize= nullptr;
+	SDL_Cursor* cursor_cross= nullptr;
+	SDL_Cursor* cursor_text= nullptr;
+	SDL_Cursor* cursor_unavailable= nullptr;
 
 	std::vector<SDL_Event> m_events;
 };

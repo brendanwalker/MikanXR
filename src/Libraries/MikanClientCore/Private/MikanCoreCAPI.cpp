@@ -9,37 +9,37 @@
 #include "MikanCoreTypes.rfks.h"
 
 #ifdef _MSC_VER
-	#pragma warning(disable:4996)  // ignore strncpy warning
+#pragma warning(disable : 4996) // ignore strncpy warning
 #endif
 
 // -- public interface -----
 
 MikanCoreResult Mikan_Initialize(
 	const char* client_name,
-	MikanLogLevel log_level, 
+	MikanLogLevel log_level,
 	MikanLogCallback log_callback,
 	MikanContext* outContextPtr)
 {
 	assert(outContextPtr != nullptr);
-    if (*outContextPtr != nullptr)
-        return MikanCoreResult_Success;
+	if (*outContextPtr != nullptr)
+		return MikanCoreResult_Success;
 
-    MikanClient* context = new MikanClient();
+	MikanClient* context= new MikanClient();
 
 	MikanCoreResult resultCode= context->startup(client_name, (ClientLogSeverityLevel)log_level, log_callback);
-    if (resultCode != MikanCoreResult_Success)
-    {
-        delete context;
-    }
+	if (resultCode != MikanCoreResult_Success)
+	{
+		delete context;
+	}
 
 	*outContextPtr= context;
 
-    return resultCode;
+	return resultCode;
 }
 
 const char* Mikan_GetClientName(MikanContext context)
 {
-	auto* mikanClient = reinterpret_cast<MikanClient*>(context);
+	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
 
 	return (mikanClient != nullptr) ? mikanClient->getClientName().c_str() : nullptr;
 }
@@ -54,7 +54,7 @@ MikanCoreResult Mikan_GetCameraRenderTargetDescriptor(
 	MikanCameraID camera_id,
 	MikanRenderTargetDescriptor* out_descriptor)
 {
-	auto* mikanClient = reinterpret_cast<MikanClient*>(context);
+	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
 	if (mikanClient == nullptr)
 		return MikanCoreResult_Uninitialized;
 
@@ -71,7 +71,7 @@ MikanCoreResult Mikan_AllocateCameraRenderTargetTextures(
 	MikanCameraID camera_id,
 	const MikanRenderTargetDescriptor* descriptor)
 {
-	auto* mikanClient = reinterpret_cast<MikanClient*>(context);
+	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
 	if (mikanClient == nullptr)
 		return MikanCoreResult_Uninitialized;
 
@@ -87,7 +87,7 @@ MikanCoreResult Mikan_FreeCameraRenderTargetTextures(
 	MikanContext context,
 	MikanCameraID camera_id)
 {
-	auto* mikanClient = reinterpret_cast<MikanClient*>(context);
+	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
 	if (mikanClient == nullptr)
 		return MikanCoreResult_Uninitialized;
 
@@ -95,11 +95,11 @@ MikanCoreResult Mikan_FreeCameraRenderTargetTextures(
 }
 
 MikanCoreResult Mikan_WriteCameraColorRenderTargetTexture(
-	MikanContext context, 
+	MikanContext context,
 	MikanCameraID camera_id,
 	void* color_texture)
 {
-	auto* mikanClient = reinterpret_cast<MikanClient*>(context);
+	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
 	if (mikanClient == nullptr)
 		return MikanCoreResult_Uninitialized;
 	if (!mikanClient->getIsConnected())
@@ -117,7 +117,7 @@ MikanCoreResult Mikan_WriteCameraDepthRenderTargetTexture(
 	float z_near,
 	float z_far)
 {
-	auto* mikanClient = reinterpret_cast<MikanClient*>(context);
+	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
 	if (mikanClient == nullptr)
 		return MikanCoreResult_Uninitialized;
 	if (!mikanClient->getIsConnected())
@@ -132,17 +132,17 @@ void* Mikan_GetCameraPackDepthTextureResourcePtr(
 	MikanContext context,
 	MikanCameraID camera_id)
 {
-	auto* mikanClient = reinterpret_cast<MikanClient*>(context);
+	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
 
 	return mikanClient != nullptr ? mikanClient->getCameraPackDepthTextureResourcePtr(camera_id) : nullptr;
 }
 
 MikanCoreResult Mikan_Connect(
-	MikanContext context, 
-	const char* host, 
+	MikanContext context,
+	const char* host,
 	const char* port)
 {
-	auto* mikanClient = reinterpret_cast<MikanClient*>(context);
+	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
 	if (mikanClient == nullptr)
 		return MikanCoreResult_Uninitialized;
 
@@ -184,13 +184,12 @@ MikanCoreResult Mikan_SendRequestJSON(
 	MikanContext context,
 	const char* utf8_request_json)
 {
-	auto* mikanClient = reinterpret_cast<MikanClient*>(context);
+	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
 	if (mikanClient == nullptr)
 		return MikanCoreResult_Uninitialized;
 
 	return mikanClient->sendRequestJSON(utf8_request_json);
 }
-
 
 MikanCoreResult Mikan_SetTextResponseCallback(
 	MikanContext context,
@@ -220,7 +219,7 @@ MikanCoreResult Mikan_SetBinaryResponseCallback(
 
 MikanCoreResult Mikan_SetGraphicsDeviceInterface(
 	MikanContext context,
-	MikanClientGraphicsApi api, 
+	MikanClientGraphicsApi api,
 	void* graphicsDeviceInterface)
 {
 	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
@@ -233,7 +232,7 @@ MikanCoreResult Mikan_SetGraphicsDeviceInterface(
 
 MikanCoreResult Mikan_GetGraphicsDeviceInterface(
 	MikanContext context,
-	MikanClientGraphicsApi api, 
+	MikanClientGraphicsApi api,
 	void** outGraphicsDeviceInterface)
 {
 	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
@@ -246,10 +245,10 @@ MikanCoreResult Mikan_GetGraphicsDeviceInterface(
 
 MikanCoreResult Mikan_Disconnect(
 	MikanContext context,
-	uint16_t code, 
+	uint16_t code,
 	const char* reason)
 {
-	auto* mikanClient = reinterpret_cast<MikanClient*>(context);
+	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
 
 	if (mikanClient == nullptr)
 		return MikanCoreResult_Uninitialized;
@@ -259,7 +258,7 @@ MikanCoreResult Mikan_Disconnect(
 
 MikanCoreResult Mikan_Shutdown(MikanContext context)
 {
-	auto* mikanClient = reinterpret_cast<MikanClient*>(context);
+	auto* mikanClient= reinterpret_cast<MikanClient*>(context);
 
 	if (mikanClient == nullptr)
 		return MikanCoreResult_Uninitialized;

@@ -58,12 +58,12 @@
 #include <easy/profiler.h>
 
 //-- constants -----
-static const int k_window_pixel_width = 1280;
-static const int k_window_pixel_height = 720;
+static const int k_window_pixel_width= 1280;
+static const int k_window_pixel_height= 720;
 
-static const glm::vec4 k_clear_color = glm::vec4(0.45f, 0.45f, 0.5f, 1.f);
+static const glm::vec4 k_clear_color= glm::vec4(0.45f, 0.45f, 0.5f, 1.f);
 
-static const glm::vec3 k_frustum_color = glm::vec3(0.1f, 0.7f, 0.3f);
+static const glm::vec3 k_frustum_color= glm::vec3(0.1f, 0.7f, 0.3f);
 
 //-- public methods -----
 MainWindow::MainWindow(App* ownerApp)
@@ -79,9 +79,9 @@ MainWindow::MainWindow(App* ownerApp)
 	, m_isRenderingUI(false)
 	, m_bIsMainWindowGuiHidden(ownerApp->hasCommandLineFlag("hideMainWindowGUI"))
 {
-	m_graphicsContext = createMkGraphicsContext(eGraphicsAPI::OpenGL, m_fontManager.get());
-	m_mkWindowContext = createMkWindowContext(m_ownerApp->getWindowManager(), m_graphicsContext);
-	m_modelResourceManager = 
+	m_graphicsContext= createMkGraphicsContext(eGraphicsAPI::OpenGL, m_fontManager.get());
+	m_mkWindowContext= createMkWindowContext(m_ownerApp->getWindowManager(), m_graphicsContext);
+	m_modelResourceManager=
 		MikanModelResourceManagerUniquePtr(
 			new MikanModelResourceManager(getGraphicsContext().get()));
 
@@ -101,7 +101,7 @@ MainWindow::MainWindow(App* ownerApp)
 
 MainWindow::~MainWindow()
 {
-	m_projectManager = nullptr;
+	m_projectManager= nullptr;
 	delete m_openCVManager;
 	delete m_inputManager;
 	delete m_mikanServer;
@@ -127,107 +127,112 @@ bool MainWindow::startup()
 {
 	EASY_FUNCTION();
 
-	bool success = true;
+	bool success= true;
 
 	MIKAN_LOG_INFO("MainWindow::init()") << "Initializing MainWindow";
 
-#define MIKAN_TIMED_STARTUP(label, expr) \
-	do { \
-		auto _t0 = std::chrono::high_resolution_clock::now(); \
-		expr; \
-		auto _t1 = std::chrono::high_resolution_clock::now(); \
-		MIKAN_LOG_INFO("MainWindow::startup") \
-			<< label ": " \
+#define MIKAN_TIMED_STARTUP(label, expr)                                                \
+	do                                                                                  \
+	{                                                                                   \
+		auto _t0= std::chrono::high_resolution_clock::now();                            \
+		expr;                                                                           \
+		auto _t1= std::chrono::high_resolution_clock::now();                            \
+		MIKAN_LOG_INFO("MainWindow::startup")                                           \
+			<< label ": "                                                               \
 			<< std::chrono::duration_cast<std::chrono::milliseconds>(_t1 - _t0).count() \
-			<< "ms"; \
+			<< "ms";                                                                    \
 	} while (0)
 
 	auto windowTitle= StringUtils::stringify("MikanXR v", MIKAN_RELEASE_VERSION_STRING);
 	if (success && !startupWindow(windowTitle, k_window_pixel_width, k_window_pixel_height))
 	{
-		success = false;
+		success= false;
 	}
 
 	if (success)
 	{
-		bool ok = false;
-		MIKAN_TIMED_STARTUP("startupGuiContext", ok = startupGuiContext());
-		if (!ok) success = false;
+		bool ok= false;
+		MIKAN_TIMED_STARTUP("startupGuiContext", ok= startupGuiContext());
+		if (!ok)
+			success= false;
 	}
 
 	if (success)
 	{
-		bool ok = false;
-		MIKAN_TIMED_STARTUP("startupStyleManager", ok = startupStyleManager());
-		if (!ok) success = false;
+		bool ok= false;
+		MIKAN_TIMED_STARTUP("startupStyleManager", ok= startupStyleManager());
+		if (!ok)
+			success= false;
 	}
 
 	if (success)
 	{
-		bool ok = false;
-		MIKAN_TIMED_STARTUP("openCVManager::startup", ok = m_openCVManager->startup());
+		bool ok= false;
+		MIKAN_TIMED_STARTUP("openCVManager::startup", ok= m_openCVManager->startup());
 		if (!ok)
 		{
 			MIKAN_LOG_ERROR("App::init") << "Failed to initialize OpenCV manager!";
-			success = false;
+			success= false;
 		}
 	}
 
 	if (success)
 	{
-		bool ok = false;
-		MIKAN_TIMED_STARTUP("startupTextureCache", ok = startupTextureCache());
-		if (!ok) success = false;
+		bool ok= false;
+		MIKAN_TIMED_STARTUP("startupTextureCache", ok= startupTextureCache());
+		if (!ok)
+			success= false;
 	}
 
 	if (success)
 	{
-		bool ok = false;
-		MIKAN_TIMED_STARTUP("startupModelResourceManager", ok = startupModelResourceManager());
-		if (!ok) success = false;
+		bool ok= false;
+		MIKAN_TIMED_STARTUP("startupModelResourceManager", ok= startupModelResourceManager());
+		if (!ok)
+			success= false;
 	}
 
 	if (success)
 	{
-		bool ok = false;
-		MIKAN_TIMED_STARTUP("fontManager::startup", ok = m_fontManager->startup());
+		bool ok= false;
+		MIKAN_TIMED_STARTUP("fontManager::startup", ok= m_fontManager->startup());
 		if (!ok)
 		{
 			MIKAN_LOG_ERROR("App::init") << "Failed to initialize baked text cache!";
-			success = false;
+			success= false;
 		}
 	}
 
 	if (success)
 	{
-		bool ok = false;
-		MIKAN_TIMED_STARTUP("projectManager::startup", ok = m_projectManager->startup(this));
+		bool ok= false;
+		MIKAN_TIMED_STARTUP("projectManager::startup", ok= m_projectManager->startup(this));
 		if (!ok)
 		{
 			MIKAN_LOG_ERROR("App::init") << "Failed to initialize the object system manager";
-			success = false;
+			success= false;
 		}
 	}
 
 	if (success)
 	{
-		bool ok = false;
-		MIKAN_TIMED_STARTUP("clientSourceManager::startup", ok = m_clientSourceManager->startup());
+		bool ok= false;
+		MIKAN_TIMED_STARTUP("clientSourceManager::startup", ok= m_clientSourceManager->startup());
 		if (!ok)
 		{
 			MIKAN_LOG_ERROR("App::init") << "Failed to initialize the client source manager";
-			success = false;
+			success= false;
 		}
 	}
 
 	if (success)
 	{
-		bool ok = false;
-		MIKAN_TIMED_STARTUP("mikanServer::startup", ok = m_mikanServer->startup(this));
+		bool ok= false;
+		MIKAN_TIMED_STARTUP("mikanServer::startup", ok= m_mikanServer->startup(this));
 		if (!ok)
 		{
 			MIKAN_LOG_ERROR("App::init") << "Failed to initialize the MikanXR server";
-			success = false;
+			success= false;
 		}
 	}
 
@@ -256,7 +261,7 @@ bool MainWindow::startup()
 		mkStateSetViewport(mkState, 0, 0, m_mkWindowContext->getWidth(), m_mkWindowContext->getHeight());
 
 		// Create a fullscreen viewport for the UI (which creates it's own camera)
-		m_uiViewport = 
+		m_uiViewport=
 			std::make_shared<MikanViewport>(
 				this,
 				glm::i32vec2(k_window_pixel_width, k_window_pixel_height));
@@ -293,7 +298,7 @@ void MainWindow::update(float deltaSeconds)
 	m_projectManager->update(deltaSeconds);
 
 	// Update the current app stage last
-	AppStage* appStage = getCurrentAppStage();
+	AppStage* appStage= getCurrentAppStage();
 	if (appStage != nullptr && appStage->getIsUpdateActive())
 	{
 		// Process input events in the Debug UI and render the UI
@@ -344,8 +349,8 @@ void MainWindow::renderStageViewport(AppStage* appStage, IMkViewportPtr targetVi
 {
 	EASY_FUNCTION();
 
-	MkScopedState scopedState = m_graphicsContext->getMkStateStack().createScopedState("appStage viewport render");
-	IMkState* glState = scopedState.getStackState();
+	MkScopedState scopedState= m_graphicsContext->getMkStateStack().createScopedState("appStage viewport render");
+	IMkState* glState= scopedState.getStackState();
 
 	// Registers this viewport with the graphics context for the duration of the
 	// scoped state. Deregisters automatically via onRenderingViewportRevert when
@@ -354,7 +359,7 @@ void MainWindow::renderStageViewport(AppStage* appStage, IMkViewportPtr targetVi
 
 	// Set window state flag that we are in the middle of rendering a stage
 	// Used for safety checks in the render functions
-	m_isRenderingStage = true;
+	m_isRenderingStage= true;
 
 	// Render the 3d geometry of the AppStage
 	appStage->render(targetViewport);
@@ -366,30 +371,30 @@ void MainWindow::renderStageViewport(AppStage* appStage, IMkViewportPtr targetVi
 	m_graphicsContext->getTextRenderer()->render();
 
 	// Rendering the state is done
-	m_isRenderingStage = false;
+	m_isRenderingStage= false;
 }
 
 void MainWindow::renderStageUI(AppStage* appStage)
 {
 	EASY_FUNCTION();
 
-	MkScopedState scopedState = m_graphicsContext->getMkStateStack().createScopedState("appStage renderUI");
-	IMkState* glState = scopedState.getStackState();
+	MkScopedState scopedState= m_graphicsContext->getMkStateStack().createScopedState("appStage renderUI");
+	IMkState* glState= scopedState.getStackState();
 
 	// Registers the UI viewport with the graphics context for the duration of the
 	// scoped state. Deregisters automatically via onRenderingViewportRevert when
 	// the scoped state pops at end of this function.
 	m_uiViewport->applyRenderingViewport(glState);
 
-	m_isRenderingUI = true;
+	m_isRenderingUI= true;
 
 	// Submit the MkGui draw call
 	m_guiContext->submitDrawData();
 
 	// Always draw the FPS in the lower right
-	TextStyle style = getDefaultTextStyle();
-	style.horizontalAlignment = eHorizontalTextAlignment::Right;
-	style.verticalAlignment = eVerticalTextAlignment::Bottom;
+	TextStyle style= getDefaultTextStyle();
+	style.horizontalAlignment= eHorizontalTextAlignment::Right;
+	style.verticalAlignment= eVerticalTextAlignment::Bottom;
 	drawTextAtScreenPosition(
 		m_graphicsContext.get(),
 		style,
@@ -399,14 +404,14 @@ void MainWindow::renderStageUI(AppStage* appStage)
 	// Show "Loading..." centered on screen while background systems are initializing
 	if (m_projectManager->isAnySystemLoading())
 	{
-		TextStyle loadingStyle = getDefaultTextStyle();
-		loadingStyle.horizontalAlignment = eHorizontalTextAlignment::Middle;
-		loadingStyle.verticalAlignment = eVerticalTextAlignment::Middle;
-		loadingStyle.pointSize = 96;
-		loadingStyle.hasShadow = true;
-		loadingStyle.shadowColor = { 0.f, 0.f, 0.f };
-		loadingStyle.shadowOffset = { 3, 3 };
-		loadingStyle.shadowOpacity = 0.8f;
+		TextStyle loadingStyle= getDefaultTextStyle();
+		loadingStyle.horizontalAlignment= eHorizontalTextAlignment::Middle;
+		loadingStyle.verticalAlignment= eVerticalTextAlignment::Middle;
+		loadingStyle.pointSize= 96;
+		loadingStyle.hasShadow= true;
+		loadingStyle.shadowColor= {0.f, 0.f, 0.f};
+		loadingStyle.shadowOffset= {3, 3};
+		loadingStyle.shadowOpacity= 0.8f;
 		drawTextAtScreenPosition(
 			m_graphicsContext.get(),
 			loadingStyle,
@@ -420,12 +425,12 @@ void MainWindow::renderStageUI(AppStage* appStage)
 	// Render any glyphs emitted by the AppStage renderUI phase
 	m_graphicsContext->getTextRenderer()->render();
 
-	m_isRenderingUI = false;
+	m_isRenderingUI= false;
 }
 
 void MainWindow::shutdown()
 {
-	m_uiViewport = nullptr;
+	m_uiViewport= nullptr;
 
 	// Tear down all active app stages
 	while (getCurrentAppStage() != nullptr)
@@ -456,10 +461,10 @@ void MainWindow::shutdown()
 
 bool MainWindow::onWindowEvent(const MkWindowEvent& event)
 {
-	bool bHandled = false;
+	bool bHandled= false;
 
-	const auto eventType = event.getEventType();
-	const auto keySym = event.getKeySym();
+	const auto eventType= event.getEventType();
+	const auto keySym= event.getKeySym();
 
 	// First see if we got an app shutdown request
 	if (eventType == eMkWindowEventType::Quit ||
@@ -467,22 +472,22 @@ bool MainWindow::onWindowEvent(const MkWindowEvent& event)
 	{
 		MIKAN_LOG_INFO("App::exec") << "QUIT message received";
 		App::getInstance()->requestShutdown();
-		bHandled = true;
+		bHandled= true;
 	}
 	// Toggle debug UI with F11
 	else if (eventType == eMkWindowEventType::KeyUp && keySym == MkKey::F11)
 	{
-		m_bIsMainWindowGuiHidden = !m_bIsMainWindowGuiHidden;
+		m_bIsMainWindowGuiHidden= !m_bIsMainWindowGuiHidden;
 	}
 
 	// Then see if the UI wants to handle the event
 	if (!bHandled && !m_bIsMainWindowGuiHidden)
 	{
-		bHandled = m_guiContext->onWindowEvent(event);
+		bHandled= m_guiContext->onWindowEvent(event);
 	}
 
 	// Then see if the current app stage wants to handle the event
-	AppStage* appStage = getCurrentAppStage();
+	AppStage* appStage= getCurrentAppStage();
 	if (appStage != nullptr)
 	{
 		appStage->onWindowEvent(event);
@@ -493,7 +498,7 @@ bool MainWindow::onWindowEvent(const MkWindowEvent& event)
 	{
 		if (m_mkWindowContext->hasMouseFocus() || m_mkWindowContext->hasKeyboardFocus())
 		{
-			bHandled = m_inputManager->onWindowEvent(event);
+			bHandled= m_inputManager->onWindowEvent(event);
 		}
 	}
 
@@ -517,13 +522,13 @@ AppStage* MainWindow::pushAppStage(const std::string& appStageName)
 	AppStagePtr newAppStage= m_appStageFactory.allocateAppStage(appStageName);
 	if (newAppStage)
 	{
-		AppStagePtr parentAppStage =
+		AppStagePtr parentAppStage=
 			m_appStageStack.size() > 0
-			? m_appStageStack[m_appStageStack.size() - 1]
-			: AppStagePtr();
+				? m_appStageStack[m_appStageStack.size() - 1]
+				: AppStagePtr();
 
 		m_appStageStack.push_back(newAppStage);
-		m_pendingAppStageOps.push_back({ parentAppStage, newAppStage, AppStageOperation::enter});
+		m_pendingAppStageOps.push_back({parentAppStage, newAppStage, AppStageOperation::enter});
 
 		return newAppStage.get();
 	}
@@ -534,76 +539,77 @@ AppStage* MainWindow::pushAppStage(const std::string& appStageName)
 void MainWindow::popAppState()
 {
 	assert(bAppStackOperationAllowed);
-	AppStagePtr appStage = 
+	AppStagePtr appStage=
 		m_appStageStack.size() > 0
-		? m_appStageStack[m_appStageStack.size() - 1]
-		: AppStagePtr();
+			? m_appStageStack[m_appStageStack.size() - 1]
+			: AppStagePtr();
 	if (appStage)
 	{
 		m_appStageStack.pop_back();
 
-		AppStagePtr parentAppStage =
+		AppStagePtr parentAppStage=
 			m_appStageStack.size() > 0
-			? m_appStageStack[m_appStageStack.size() - 1]
-			: AppStagePtr();
+				? m_appStageStack[m_appStageStack.size() - 1]
+				: AppStagePtr();
 
-		m_pendingAppStageOps.push_back({ parentAppStage, appStage, AppStageOperation::exit});
+		m_pendingAppStageOps.push_back({parentAppStage, appStage, AppStageOperation::exit});
 	}
 }
-
 
 void MainWindow::processPendingAppStageOps()
 {
 	// Disallow app stack operations during enter or exit
-	bAppStackOperationAllowed = false;
+	bAppStackOperationAllowed= false;
 
 	for (auto& pendingAppStageOp : m_pendingAppStageOps)
 	{
 		switch (pendingAppStageOp.op)
 		{
-			case AppStageOperation::enter:
-				{
-					EASY_BLOCK("appStage Enter");
+		case AppStageOperation::enter:
+		{
+			EASY_BLOCK("appStage Enter");
 
-					// Pause the parent app stage
-					if (pendingAppStageOp.parentAppStage)
-						pendingAppStageOp.parentAppStage->pause();
+			// Pause the parent app stage
+			if (pendingAppStageOp.parentAppStage)
+				pendingAppStageOp.parentAppStage->pause();
 
-					// Create a new input event set for the app state
-					m_inputManager->pushEventBindingSet();
+			// Create a new input event set for the app state
+			m_inputManager->pushEventBindingSet();
 
-					// Enter the new app stage
-					pendingAppStageOp.appStage->enter();
+			// Enter the new app stage
+			pendingAppStageOp.appStage->enter();
 
-					// Notify any object systems that care about app stage transitions 
-					if (OnAppStageEntered)
-						OnAppStageEntered(pendingAppStageOp.parentAppStage.get(), pendingAppStageOp.appStage.get());
-				} break;
-			case AppStageOperation::exit:
-				{
-					EASY_BLOCK("appStage Exit");
+			// Notify any object systems that care about app stage transitions
+			if (OnAppStageEntered)
+				OnAppStageEntered(pendingAppStageOp.parentAppStage.get(), pendingAppStageOp.appStage.get());
+		}
+		break;
+		case AppStageOperation::exit:
+		{
+			EASY_BLOCK("appStage Exit");
 
-					// Notify any object systems that care about app stage transitions 
-					if (OnAppStageExited)
-						OnAppStageExited(pendingAppStageOp.appStage.get(), pendingAppStageOp.parentAppStage.get());
+			// Notify any object systems that care about app stage transitions
+			if (OnAppStageExited)
+				OnAppStageExited(pendingAppStageOp.appStage.get(), pendingAppStageOp.parentAppStage.get());
 
-					// Exit the app stage we are leaving
-					pendingAppStageOp.appStage->exit();
+			// Exit the app stage we are leaving
+			pendingAppStageOp.appStage->exit();
 
-					// Clean up the input event set for the deactivated app stage
-					m_inputManager->popEventBindingSet();
+			// Clean up the input event set for the deactivated app stage
+			m_inputManager->popEventBindingSet();
 
-					// Resume the parent app stage we are restoring (if any)
-					if (pendingAppStageOp.parentAppStage != nullptr)
-						pendingAppStageOp.parentAppStage->resume();
+			// Resume the parent app stage we are restoring (if any)
+			if (pendingAppStageOp.parentAppStage != nullptr)
+				pendingAppStageOp.parentAppStage->resume();
 
-					// Free the app state
-					pendingAppStageOp.appStage= nullptr;
-				} break;
+			// Free the app state
+			pendingAppStageOp.appStage= nullptr;
+		}
+		break;
 		}
 	}
 	m_pendingAppStageOps.clear();
 
 	// App stack operations allowed during update
-	bAppStackOperationAllowed = true;
+	bAppStackOperationAllowed= true;
 }

@@ -13,9 +13,10 @@ MikanClientConnectionState::MikanClientConnectionState(
 	, m_connectionId(connectionId)
 	, m_renderTargetClientState(new RenderTargetClientState(this))
 	, m_propertyNotifyDatabase(
-		std::make_shared<PropertyNotifyDatabase>(
-			ownerServer->getProjectManager()->getPropertyDatabaseConst()))
-{}
+		  std::make_shared<PropertyNotifyDatabase>(
+			  ownerServer->getProjectManager()->getPropertyDatabaseConst()))
+{
+}
 
 MikanClientConnectionState::~MikanClientConnectionState()
 {
@@ -33,7 +34,7 @@ void MikanClientConnectionState::setMikanClientInfo(const MikanClientInfo& clien
 	m_renderTargetClientState->disposeAllRenderTargetAccessors();
 
 	// Set the new client info describing the client render capabilities
-	m_clientInfo = clientInfo;
+	m_clientInfo= clientInfo;
 }
 
 void MikanClientConnectionState::clearMikanClientInfo()
@@ -42,7 +43,7 @@ void MikanClientConnectionState::clearMikanClientInfo()
 	m_renderTargetClientState->disposeAllRenderTargetAccessors();
 
 	// Reset the client info with defaults
-	m_clientInfo = MikanClientInfo();
+	m_clientInfo= MikanClientInfo();
 }
 
 void MikanClientConnectionState::publishMikanJsonEvent(const std::string& mikanJsonEvent)
@@ -63,25 +64,25 @@ bool MikanClientConnectionState::setPropertyNotifyMode(
 
 void MikanClientConnectionState::publishPropertyChangedEvent(const MikanPropertyValue& propertyValue)
 {
-	MikanPropertyNotifyMode notifyMode =
+	MikanPropertyNotifyMode notifyMode=
 		m_propertyNotifyDatabase->getPropertyNotifyMode(
 			propertyValue, m_ownerServer->getProjectManager());
 
 	if (notifyMode != MikanPropertyNotifyMode::NONE)
 	{
-		MikanPropertyUpdateEvent propertyUpdateEvent = {};
-		propertyUpdateEvent.propertyValue = propertyValue;
-		propertyUpdateEvent.propertyValue.ownerComponentClass = propertyValue.ownerComponentClass;
-		propertyUpdateEvent.propertyValue.componentId = propertyValue.componentId;
-		propertyUpdateEvent.propertyValue.fieldName = propertyValue.fieldName;
+		MikanPropertyUpdateEvent propertyUpdateEvent= {};
+		propertyUpdateEvent.propertyValue= propertyValue;
+		propertyUpdateEvent.propertyValue.ownerComponentClass= propertyValue.ownerComponentClass;
+		propertyUpdateEvent.propertyValue.componentId= propertyValue.componentId;
+		propertyUpdateEvent.propertyValue.fieldName= propertyValue.fieldName;
 
 		if (notifyMode == MikanPropertyNotifyMode::NAME_AND_VALUE)
 		{
-			propertyUpdateEvent.propertyValue.fieldValue = propertyValue.fieldValue;
+			propertyUpdateEvent.propertyValue.fieldValue= propertyValue.fieldValue;
 		}
 
 		m_ownerServer->getMessageServer()->sendMessageToClient(
-			getConnectionId(), 
+			getConnectionId(),
 			mikanTypeToJsonString(propertyUpdateEvent));
 	}
 }

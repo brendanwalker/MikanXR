@@ -11,9 +11,9 @@
 class GuiDataSource_ComboBox : public MkGui::ComboBoxDataSource
 {
 public:
-	using SystemComponentPair = std::pair<std::string, std::string>;
-	using ComponentFilter = std::function<bool(MikanComponentPtr)>;
-	using DisplayStringBuilder = std::function<std::string(MikanComponentPtr)>;
+	using SystemComponentPair= std::pair<std::string, std::string>;
+	using ComponentFilter= std::function<bool(MikanComponentPtr)>;
+	using DisplayStringBuilder= std::function<std::string(MikanComponentPtr)>;
 
 	GuiDataSource_ComboBox(
 		ProjectManagerPtr projectManager,

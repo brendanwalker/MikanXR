@@ -17,7 +17,7 @@ using namespace std::placeholders;
 // -- MarkerRequestHandler -- //
 bool MarkerRequestHandler::startup(MainWindow* mainWindow)
 {
-	IInterprocessMessageServer* messageServer = m_owner->getMessageServer();
+	IInterprocessMessageServer* messageServer= m_owner->getMessageServer();
 
 	messageServer->setRequestHandler(
 		GetArucoMarkerImageRequest::staticGetArchetype().getName(),
@@ -37,17 +37,17 @@ void MarkerRequestHandler::getArucoMarkerImageHandler(
 		return;
 	}
 
-	auto markerSystem = getObjectSystemOfType<MarkerObjectSystem>();
+	auto markerSystem= getObjectSystemOfType<MarkerObjectSystem>();
 	if (!markerSystem)
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 		return;
 	}
 
-	const eCharucoDictionaryType dictionaryType =
+	const eCharucoDictionaryType dictionaryType=
 		markerSystem->getTypedDefinitionConst()->getArucoDictionaryType();
 
-	ArucoDictionaryPtr dictionary = CalibrationPatternFinder::getArucoDictionary(dictionaryType);
+	ArucoDictionaryPtr dictionary= CalibrationPatternFinder::getArucoDictionary(dictionaryType);
 	if (!dictionary)
 	{
 		MIKAN_LOG_ERROR("MarkerRequestHandler::getArucoMarkerImageHandler")
@@ -56,12 +56,12 @@ void MarkerRequestHandler::getArucoMarkerImageHandler(
 		return;
 	}
 
-	const int markerId = imageRequest.markerId;
-	const int imageSize = imageRequest.imageSize > 0 ? imageRequest.imageSize : 200;
+	const int markerId= imageRequest.markerId;
+	const int imageSize= imageRequest.imageSize > 0 ? imageRequest.imageSize : 200;
 
 	// Clamp marker ID to valid range
-	const int maxMarkerId = dictionary->bytesList.rows - 1;
-	const int clampedMarkerId = std::max(0, std::min(markerId, maxMarkerId));
+	const int maxMarkerId= dictionary->bytesList.rows - 1;
+	const int clampedMarkerId= std::max(0, std::min(markerId, maxMarkerId));
 
 	try
 	{

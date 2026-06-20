@@ -8,8 +8,8 @@
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable: 4458) // declaration of 'file_name' hides class member
-#pragma warning(disable: 4267) //'return' : conversion from 'size_t' to 'int', possible loss of data
+#pragma warning(disable : 4458) // declaration of 'file_name' hides class member
+#pragma warning(disable : 4267) //'return' : conversion from 'size_t' to 'int', possible loss of data
 #endif
 #include "csv.h"
 #ifdef _MSC_VER
@@ -42,7 +42,7 @@ bool LocalizationManager::startup(AppSettingsConfigPtr appSettings)
 {
 	EASY_FUNCTION();
 
-	m_appSettings = appSettings;
+	m_appSettings= appSettings;
 
 	reloadLangages();
 
@@ -84,7 +84,7 @@ t_language_tags LocalizationManager::getSystemLanguage() const
 	std::string localeName;
 
 #ifdef WIN32
-	LCID lcid = GetThreadLocale();
+	LCID lcid= GetThreadLocale();
 	wchar_t wszLocaleName[LOCALE_NAME_MAX_LENGTH];
 	if (LCIDToLocaleName(lcid, wszLocaleName, LOCALE_NAME_MAX_LENGTH, 0) != 0)
 	{
@@ -94,7 +94,7 @@ t_language_tags LocalizationManager::getSystemLanguage() const
 		localeName= szLocaleName;
 	}
 #else
-	localeName = std::locale("").name();
+	localeName= std::locale("").name();
 #endif
 
 	std::vector<std::string> result;
@@ -121,14 +121,14 @@ void LocalizationManager::loadCSVsFromDirectory(
 
 	for (auto baseFileName : locFiles)
 	{
-		const std::filesystem::path locFilePath = locFolderPath / baseFileName;
-		std::string baseFileNameNoExt = std::filesystem::path(baseFileName).stem().string();
+		const std::filesystem::path locFilePath= locFolderPath / baseFileName;
+		std::string baseFileNameNoExt= std::filesystem::path(baseFileName).stem().string();
 		std::vector<std::string> parts= StringUtils::splitString(baseFileNameNoExt, '_');
 
 		if (parts.size() == 2)
 		{
 			const std::string& tableName= parts[0];
-			const std::string& langCode = parts[1];
+			const std::string& langCode= parts[1];
 
 			// Fetch or create the language
 			Language* language= nullptr;
@@ -139,8 +139,8 @@ void LocalizationManager::loadCSVsFromDirectory(
 			}
 			else
 			{
-				language = new Language;
-				m_languages.insert({ langCode, language });
+				language= new Language;
+				m_languages.insert({langCode, language});
 			}
 
 			// Fetch or create the string table
@@ -152,34 +152,34 @@ void LocalizationManager::loadCSVsFromDirectory(
 			}
 			else
 			{
-				stringTable = new StringTable;
-				language->stringTables.insert({ tableName, stringTable });
+				stringTable= new StringTable;
+				language->stringTables.insert({tableName, stringTable});
 			}
 
 			io::CSVReader<2> in(locFilePath.string());
 			in.read_header(io::ignore_extra_column, "key", "text");
 
-			std::string key; char* utf8Text;
+			std::string key;
+			char* utf8Text;
 			while (in.read_row(key, utf8Text))
 			{
 				std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>, wchar_t> convert;
-				std::wstring myunicodestr = convert.from_bytes(utf8Text);
-				StringEntry entry= { utf8Text, myunicodestr };
+				std::wstring myunicodestr= convert.from_bytes(utf8Text);
+				StringEntry entry= {utf8Text, myunicodestr};
 
 				auto keyIt= stringTable->keyToTextMap.find(key);
 				if (keyIt == stringTable->keyToTextMap.end())
 				{
-					stringTable->keyToTextMap.insert({ key, entry });
+					stringTable->keyToTextMap.insert({key, entry});
 				}
 				else if (allowOverwrite)
 				{
 					stringTable->keyToTextMap.erase(keyIt);
-					stringTable->keyToTextMap.insert({ key, entry });
+					stringTable->keyToTextMap.insert({key, entry});
 				}
 				else
 				{
-					MIKAN_LOG_WARNING("LocalizationManager::loadCSVsFromDirectory") <<
-						"Duplicate key \'" << key << "\' in table \'" << tableName << "\'";
+					MIKAN_LOG_WARNING("LocalizationManager::loadCSVsFromDirectory") << "Duplicate key \'" << key << "\' in table \'" << tableName << "\'";
 				}
 			}
 		}
@@ -195,11 +195,11 @@ void LocalizationManager::reloadLangages()
 	unloadLanguages();
 
 	// Load bundled strings shipped with the app
-	const std::filesystem::path bundledLocPath = PathUtils::getResourceDirectory() / std::string("localization");
+	const std::filesystem::path bundledLocPath= PathUtils::getResourceDirectory() / std::string("localization");
 	loadCSVsFromDirectory(bundledLocPath, /*allowOverwrite=*/false);
 
 	// Overlay cached strings fetched from the remote CDN (community translations)
-	const std::filesystem::path cacheLocPath = getUserLocalizationCacheDir();
+	const std::filesystem::path cacheLocPath= getUserLocalizationCacheDir();
 	if (std::filesystem::exists(cacheLocPath))
 	{
 		loadCSVsFromDirectory(cacheLocPath, /*allowOverwrite=*/true);
@@ -208,20 +208,20 @@ void LocalizationManager::reloadLangages()
 
 void LocalizationManager::unloadLanguages()
 {
-	for (auto langIt = m_languages.begin(); langIt != m_languages.end(); )
+	for (auto langIt= m_languages.begin(); langIt != m_languages.end();)
 	{
-		Language* language = langIt->second;
+		Language* language= langIt->second;
 
-		for (auto tableIt = language->stringTables.begin(); tableIt != language->stringTables.end(); )
+		for (auto tableIt= language->stringTables.begin(); tableIt != language->stringTables.end();)
 		{
-			StringTable* stringTable = tableIt->second;
+			StringTable* stringTable= tableIt->second;
 			delete stringTable;
 
-			tableIt = language->stringTables.erase(tableIt);
+			tableIt= language->stringTables.erase(tableIt);
 		}
 
 		delete language;
-		langIt = m_languages.erase(langIt);
+		langIt= m_languages.erase(langIt);
 	}
 }
 
@@ -235,10 +235,10 @@ void LocalizationManager::startRemoteFetch()
 	// Use @main so community translation updates reach users without requiring a new build.
 	// Version-pinned tags (e.g. @v1.0.0) are permanently cached by jsDelivr and cannot be
 	// updated after tagging, which would defeat the purpose of remote localization.
-	const std::string baseUrl =
+	const std::string baseUrl=
 		"https://cdn.jsdelivr.net/gh/brendanwalker/MikanXR@main/resources/localization";
 
-	m_remoteFetcher = std::make_unique<LocalizationRemoteFetcher>(baseUrl, getUserLocalizationCacheDir());
+	m_remoteFetcher= std::make_unique<LocalizationRemoteFetcher>(baseUrl, getUserLocalizationCacheDir());
 	m_remoteFetcher->startFetch();
 }
 
@@ -283,7 +283,7 @@ bool LocalizationManager::setLanguage(const std::string& languageId)
 	if (langIt != m_languages.end())
 	{
 		m_currentLanguage= langIt->second;
-		m_currentLanguageCode = languageId;
+		m_currentLanguageCode= languageId;
 
 		// Update the app settings with the new language.
 		// Any other systems that need to know about the language change
@@ -301,10 +301,10 @@ const char* LocalizationManager::fetchUTF8Text(
 	const char* stringKey,
 	bool* outHasString)
 {
-	const char* actualTableName = tableName;
+	const char* actualTableName= tableName;
 	if (tableName == nullptr || tableName[0] == '\0')
 	{
-		actualTableName = "default";
+		actualTableName= "default";
 	}
 
 	bool bHasString= false;
@@ -312,25 +312,25 @@ const char* LocalizationManager::fetchUTF8Text(
 
 	if (m_currentLanguage != nullptr)
 	{
-		auto tableIt = m_currentLanguage->stringTables.find(actualTableName);
+		auto tableIt= m_currentLanguage->stringTables.find(actualTableName);
 		if (tableIt != m_currentLanguage->stringTables.end())
 		{
-			StringTable* stringTable = tableIt->second;
+			StringTable* stringTable= tableIt->second;
 
-			auto textIt = stringTable->keyToTextMap.find(stringKey);
+			auto textIt= stringTable->keyToTextMap.find(stringKey);
 			if (textIt != stringTable->keyToTextMap.end())
 			{
-				result = textIt->second.utf8Text.c_str();
+				result= textIt->second.utf8Text.c_str();
 				bHasString= true;
 			}
 			else
 			{
-				result = "<INVALID STRING KEY>";
+				result= "<INVALID STRING KEY>";
 			}
 		}
 		else
 		{
-			result = "<INVALID TABLE>";
+			result= "<INVALID TABLE>";
 		}
 	}
 	else
@@ -357,8 +357,8 @@ const wchar_t* LocalizationManager::fetchUTF16Text(
 		actualTableName= "default";
 	}
 
-	bool bHasString = false;
-	const wchar_t* result = nullptr;
+	bool bHasString= false;
+	const wchar_t* result= nullptr;
 
 	if (m_currentLanguage != nullptr)
 	{
@@ -370,27 +370,27 @@ const wchar_t* LocalizationManager::fetchUTF16Text(
 			auto textIt= stringTable->keyToTextMap.find(stringKey);
 			if (textIt != stringTable->keyToTextMap.end())
 			{
-				result = textIt->second.utf16Text.c_str();
-				bHasString = true;
+				result= textIt->second.utf16Text.c_str();
+				bHasString= true;
 			}
 			else
 			{
-				result = L"<INVALID STRING KEY>";
+				result= L"<INVALID STRING KEY>";
 			}
 		}
 		else
 		{
-			result = L"<INVALID TABLE>";
+			result= L"<INVALID TABLE>";
 		}
 	}
 	else
 	{
-		result = L"<INVALID LANGUAGE>";
+		result= L"<INVALID LANGUAGE>";
 	}
 
 	if (outHasString != nullptr)
 	{
-		*outHasString = bHasString;
+		*outHasString= bHasString;
 	}
 
 	return result;

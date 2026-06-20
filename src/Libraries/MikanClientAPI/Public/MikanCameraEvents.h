@@ -10,13 +10,10 @@
 #include "MikanCameraEvents.rfkh.h"
 #endif
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraEvents")) MikanCameraNewFrameEvent :
-	public MikanEvent
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraEvents")) MikanCameraNewFrameEvent : public MikanEvent
 {
-	MikanCameraNewFrameEvent()
-	{
-		MIKAN_EVENT_TYPE_INFO_INIT(MikanCameraNewFrameEvent)
-	}
+	MikanCameraNewFrameEvent(){
+		MIKAN_EVENT_TYPE_INFO_INIT(MikanCameraNewFrameEvent)}
 
 	FIELD()
 	MikanCameraID camera_id= INVALID_MIKAN_ID;
@@ -33,13 +30,13 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanCameraEvents")) Mikan
 	FIELD()
 	MikanVector2d principal_point;
 	FIELD()
-	MikanVector2d z_bounds; 
+	MikanVector2d z_bounds;
 	FIELD()
 	int64_t frame= 0;
 
-	#ifdef MIKANAPI_REFLECTION_ENABLED
+#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanCameraNewFrameEvent_GENERATED
-	#endif
+#endif
 };
 
 #ifdef MIKANAPI_REFLECTION_ENABLED

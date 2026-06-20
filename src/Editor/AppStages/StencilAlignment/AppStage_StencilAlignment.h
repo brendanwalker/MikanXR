@@ -21,7 +21,7 @@ public:
 	AppStage_StencilAlignment(class IEditorWindow* ownerWindow);
 	virtual ~AppStage_StencilAlignment();
 
-	inline void setSourceCamera(CameraComponentPtr camera) { m_cameraComponent = camera; }
+	inline void setSourceCamera(CameraComponentPtr camera) { m_cameraComponent= camera; }
 	inline void setTargetStencil(ModelStencilComponentPtr stencil) { m_targetStencilComponent= stencil; }
 
 	virtual void enter() override;
@@ -47,14 +47,14 @@ protected:
 	void onCancelEvent();
 
 private:
-	class GuiPanel_StencilAlignment* m_calibrationPanel = nullptr;
+	class GuiPanel_StencilAlignment* m_calibrationPanel= nullptr;
 
 	CameraComponentPtr m_cameraComponent;
 	VideoSourceComponentPtr m_videoSourceComponent;
 
 	StencilAligner* m_stencilAligner;
 	class VideoFrameDistortionView* m_monoDistortionView;
-	
+
 	ModelStencilComponentPtr m_targetStencilComponent;
 	glm::vec3 m_boundingSphereCenter;
 	float m_boundingSphereRadius;

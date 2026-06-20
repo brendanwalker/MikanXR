@@ -10,41 +10,41 @@
 
 // -- ClientTextureSourceSystemDefinition -----
 ClientTextureSourceSystemDefinition::ClientTextureSourceSystemDefinition(
-    const std::string& configName, IEntityIDAllocatorPtr idAllocator)
+	const std::string& configName, IEntityIDAllocatorPtr idAllocator)
 	: Super::MikanTypedObjectSystemDefinition(configName, idAllocator)
 {
 }
 
 // -- ClientTextureSourceSystem -----
 ClientTextureSourceSystem::ClientTextureSourceSystem(ProjectManagerPtr ownerObjectSystem)
-    : Super::MikanTypedObjectSystem(ownerObjectSystem)
+	: Super::MikanTypedObjectSystem(ownerObjectSystem)
 {
 }
 
 TextureSourceComponentList ClientTextureSourceSystem::getTextureSourceComponentList() const
 {
-    TextureSourceComponentList textureSourceComponentList;
-    for (const auto& it : Super::getComponentMap())
-    {
-        TextureSourceComponentPtr componentPtr = it.second.lock();
-        if (componentPtr)
-        {
-            textureSourceComponentList.push_back(componentPtr);
-        }
-    }
+	TextureSourceComponentList textureSourceComponentList;
+	for (const auto& it : Super::getComponentMap())
+	{
+		TextureSourceComponentPtr componentPtr= it.second.lock();
+		if (componentPtr)
+		{
+			textureSourceComponentList.push_back(componentPtr);
+		}
+	}
 	return textureSourceComponentList;
 }
 
 TextureSourceIdList ClientTextureSourceSystem::getTextureSourceIdList() const
 {
 	TextureSourceIdList textureSourceIdList;
-    for (const auto& it : Super::getComponentMap())
-    {
-        ClientTextureSourceComponentPtr componentPtr = it.second.lock();
-        if (componentPtr)
-        {
-            textureSourceIdList.push_back(componentPtr->getTextureSourceId());
-        }
-    }
+	for (const auto& it : Super::getComponentMap())
+	{
+		ClientTextureSourceComponentPtr componentPtr= it.second.lock();
+		if (componentPtr)
+		{
+			textureSourceIdList.push_back(componentPtr->getTextureSourceId());
+		}
+	}
 	return textureSourceIdList;
 }

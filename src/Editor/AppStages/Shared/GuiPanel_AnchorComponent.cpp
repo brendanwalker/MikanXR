@@ -15,14 +15,12 @@
 GuiPanel_AnchorComponent::GuiPanel_AnchorComponent(AppStage* ownerAppStage)
 	: GuiPanel_MikanComponent(ownerAppStage)
 	, m_parentTransformDataSource(
-		ownerAppStage->getProjectManager(),
-		{
-			{ AnchorObjectSystem::k_objectSystemClassName, AnchorComponent::k_componentClassName },
-			{ SceneObjectSystem::k_objectSystemClassName, SceneComponent::k_componentClassName },
-			{ QuadStencilSystem::k_objectSystemClassName, QuadStencilComponent::k_componentClassName },
-			{ BoxStencilSystem::k_objectSystemClassName, BoxStencilComponent::k_componentClassName },
-			{ ModelStencilSystem::k_objectSystemClassName, ModelStencilComponent::k_componentClassName }
-		})
+		  ownerAppStage->getProjectManager(),
+		  {{AnchorObjectSystem::k_objectSystemClassName, AnchorComponent::k_componentClassName},
+		   {SceneObjectSystem::k_objectSystemClassName, SceneComponent::k_componentClassName},
+		   {QuadStencilSystem::k_objectSystemClassName, QuadStencilComponent::k_componentClassName},
+		   {BoxStencilSystem::k_objectSystemClassName, BoxStencilComponent::k_componentClassName},
+		   {ModelStencilSystem::k_objectSystemClassName, ModelStencilComponent::k_componentClassName}})
 {
 }
 
@@ -37,7 +35,7 @@ void GuiPanel_AnchorComponent::onConstruct()
 		TransformComponentDefinition::k_parentTransformIdPropertyId,
 		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			AnchorComponentPtr anchorComp =
+			AnchorComponentPtr anchorComp=
 				std::static_pointer_cast<AnchorComponent>(getComponent());
 			if (!anchorComp)
 				return false;
@@ -46,24 +44,23 @@ void GuiPanel_AnchorComponent::onConstruct()
 			if (m_parentTransformDataSource.getEntryCount() == 0)
 				return false;
 
-			const MikanTransformID parentTransformId = anchorComp->getParentTransformId();
-			int selectedIndex =
+			const MikanTransformID parentTransformId= anchorComp->getParentTransformId();
+			int selectedIndex=
 				m_parentTransformDataSource.getEntryIndexByComponentId(parentTransformId);
 
 			if (MkGui::drawComboBoxProperty(
-				m_defaultGuiStyle,
-				anchorComp->makePropertyUIIdentifier(TransformComponentDefinition::k_parentTransformIdPropertyId),
-				"Parent",
-				&m_parentTransformDataSource,
-				selectedIndex))
+					m_defaultGuiStyle,
+					anchorComp->makePropertyUIIdentifier(TransformComponentDefinition::k_parentTransformIdPropertyId),
+					"Parent",
+					&m_parentTransformDataSource,
+					selectedIndex))
 			{
-				MikanComponentPtr newParent = m_parentTransformDataSource.getEntryAtIndex(selectedIndex);
+				MikanComponentPtr newParent= m_parentTransformDataSource.getEntryAtIndex(selectedIndex);
 				if (newParent)
 				{
-					addDeferredGuiEvent([anchorComp, newParent]() {
-						anchorComp->getAnchorDefinition()->setParentTransformId(
-							newParent->getComponentId());
-					});
+					addDeferredGuiEvent([anchorComp, newParent]()
+										{ anchorComp->getAnchorDefinition()->setParentTransformId(
+											  newParent->getComponentId()); });
 				}
 			}
 			return true;

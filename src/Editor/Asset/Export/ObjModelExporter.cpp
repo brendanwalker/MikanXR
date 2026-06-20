@@ -59,13 +59,13 @@ public:
 		}
 
 		memcpy(m_buffer + m_bufferSize, szLine, lineBytes);
-		m_bufferSize += lineBytes;
+		m_bufferSize+= lineBytes;
 	}
 
 private:
-	const size_t m_bufferCapacity = 1024;
+	const size_t m_bufferCapacity= 1024;
 	char* m_buffer= nullptr;
-	size_t m_bufferSize = 0;
+	size_t m_bufferSize= 0;
 	FILE* m_file= nullptr;
 
 	void flushBuffer()
@@ -73,47 +73,47 @@ private:
 		if (m_file != nullptr && m_bufferSize > 0)
 		{
 			fwrite(m_buffer, m_bufferSize, 1, m_file);
-			m_bufferSize = 0;
+			m_bufferSize= 0;
 		}
 	}
 };
 
 namespace ObjUtils
 {
-	bool writeMaterialInstanceTextureToFile(
-		MkMaterialInstanceConstPtr materialInstance,
-		const std::filesystem::path& mtlPath,
-		const eUniformSemantic semantic,
-		std::string& outRelativeTexturePath)
+bool writeMaterialInstanceTextureToFile(
+	MkMaterialInstanceConstPtr materialInstance,
+	const std::filesystem::path& mtlPath,
+	const eUniformSemantic semantic,
+	std::string& outRelativeTexturePath)
+{
+	IMkShaderPtr program= materialInstance->getMaterial()->getProgram();
+
+	std::string uniformName;
+	IMkTexturePtr texture;
+	if (program->getFirstUniformNameOfSemantic(semantic, uniformName) &&
+		materialInstance->getMutableTextureBySemantic(semantic, texture) &&
+		texture != nullptr)
 	{
-		IMkShaderPtr program = materialInstance->getMaterial()->getProgram();
+		const std::string modelFileStem= mtlPath.stem().string();
+		const std::string textureFileName= modelFileStem + std::string("_") + uniformName + std::string(".png");
+		const std::filesystem::path textureFullPath= mtlPath.parent_path() / textureFileName;
+		const std::string texturePathString= textureFullPath.string();
 
-		std::string uniformName;
-		IMkTexturePtr texture;
-		if (program->getFirstUniformNameOfSemantic(semantic, uniformName) &&
-			materialInstance->getMutableTextureBySemantic(semantic, texture) &&
-			texture != nullptr)
+		if (saveMkTextureToPNG(texture, texturePathString.c_str()))
 		{
-			const std::string modelFileStem = mtlPath.stem().string();
-			const std::string textureFileName = modelFileStem + std::string("_") + uniformName + std::string(".png");
-			const std::filesystem::path textureFullPath = mtlPath.parent_path() / textureFileName;
-			const std::string texturePathString = textureFullPath.string();
-
-			if (saveMkTextureToPNG(texture, texturePathString.c_str()))
-			{
-				outRelativeTexturePath = textureFileName;
-				return true;
-			}
-			else
-			{
-				MIKAN_LOG_ERROR("ObjUtils::writeMaterialInstanceTextureToFile()")
-					<< "Error writing out texture: " << texturePathString;
-			}
+			outRelativeTexturePath= textureFileName;
+			return true;
 		}
-
-		return false;
+		else
+		{
+			MIKAN_LOG_ERROR("ObjUtils::writeMaterialInstanceTextureToFile()")
+				<< "Error writing out texture: " << texturePathString;
+		}
 	}
-};
+
+	return false;
+}
+}; // namespace ObjUtils
 bool ObjModelExporter::exportModelToFile(
 	MikanRenderModelResourcePtr modelResource,
 	const std::filesystem::path& modelPath)
@@ -123,19 +123,18 @@ bool ObjModelExporter::exportModelToFile(
 		return false;
 	}
 
-	const std::string dir = modelPath.parent_path().string();
-	const std::string stem = modelPath.stem().string();
-	const std::filesystem::path mtlPath = modelPath.parent_path() / (stem + ".mtl");
-
+	const std::string dir= modelPath.parent_path().string();
+	const std::string stem= modelPath.stem().string();
+	const std::filesystem::path mtlPath= modelPath.parent_path() / (stem + ".mtl");
 
 	BufferedFileWriter objFile(modelPath, 1024 * 1024); // 1MB buffer for obj file
-	BufferedFileWriter mtlFile(mtlPath, 1024); // 1KB buffer for mtl file
+	BufferedFileWriter mtlFile(mtlPath, 1024);          // 1KB buffer for mtl file
 	if (objFile.isOpen() || mtlFile.isOpen())
 	{
 		char szLine[256];
 
 		// Write out the obj header
-		objFile.writeString(StringUtils::stringify("# Mikan: ", MIKAN_RELEASE_VERSION_STRING , "\n"));
+		objFile.writeString(StringUtils::stringify("# Mikan: ", MIKAN_RELEASE_VERSION_STRING, "\n"));
 		objFile.writeString(StringUtils::stringify("mtllib ", stem, ".mtl\n"));
 
 		// Write out the mtl header
@@ -144,18 +143,18 @@ bool ObjModelExporter::exportModelToFile(
 		// Write out each mesh and corresponding material definition
 		for (int triMeshIndex= 0; triMeshIndex < modelResource->getTriangulatedMeshCount(); triMeshIndex++)
 		{
-			const IMkTriangulatedMeshPtr triMesh = modelResource->getTriangulatedMesh(triMeshIndex);
+			const IMkTriangulatedMeshPtr triMesh= modelResource->getTriangulatedMesh(triMeshIndex);
 
 			// Make sure the material vertex definition has the needed attributes
-			MkMaterialInstanceConstPtr materialInstance = triMesh->getMaterialInstance();
-			MkMaterialConstPtr material = materialInstance->getMaterial();
-			IMkVertexDefinitionConstPtr vertexDefinition = material->getProgram()->getVertexDefinition();
-			const size_t vertexSize = vertexDefinition->getVertexSize();
-			const IMkVertexAttribute* posAttrib =
+			MkMaterialInstanceConstPtr materialInstance= triMesh->getMaterialInstance();
+			MkMaterialConstPtr material= materialInstance->getMaterial();
+			IMkVertexDefinitionConstPtr vertexDefinition= material->getProgram()->getVertexDefinition();
+			const size_t vertexSize= vertexDefinition->getVertexSize();
+			const IMkVertexAttribute* posAttrib=
 				vertexDefinition->getFirstAttributeBySemantic(eVertexSemantic::position);
-			const IMkVertexAttribute* normalAttrib =
+			const IMkVertexAttribute* normalAttrib=
 				vertexDefinition->getFirstAttributeBySemantic(eVertexSemantic::normal);
-			const IMkVertexAttribute* texelAttrib =
+			const IMkVertexAttribute* texelAttrib=
 				vertexDefinition->getFirstAttributeBySemantic(eVertexSemantic::texCoord);
 			if (posAttrib == nullptr)
 			{
@@ -166,22 +165,22 @@ bool ObjModelExporter::exportModelToFile(
 
 			objFile.writeString(StringUtils::stringify("o ", triMesh->getName(), "\n"));
 
-			const uint32_t vertexCount = triMesh->getVertexCount();
-			const uint8_t* vertexData = triMesh->getVertexData();
+			const uint32_t vertexCount= triMesh->getVertexCount();
+			const uint8_t* vertexData= triMesh->getVertexData();
 
 			// Write out the vertices
 			{
-				const uint8_t* posData = vertexData + posAttrib->getOffset();
-				for (uint32_t i = 0; i < vertexCount; i++)
+				const uint8_t* posData= vertexData + posAttrib->getOffset();
+				for (uint32_t i= 0; i < vertexCount; i++)
 				{
-					const glm::vec3& pos = *(const glm::vec3*)posData;
+					const glm::vec3& pos= *(const glm::vec3*)posData;
 
-					size_t numChars= 
+					size_t numChars=
 						StringUtils::formatString(
-							szLine, sizeof(szLine), 
-							"v %f %f %f\n", 
+							szLine, sizeof(szLine),
+							"v %f %f %f\n",
 							pos.x, pos.y, pos.z);
-					posData += vertexSize;
+					posData+= vertexSize;
 
 					objFile.writeChars(szLine, numChars);
 				}
@@ -190,17 +189,17 @@ bool ObjModelExporter::exportModelToFile(
 			// Write out the normals, if available
 			if (normalAttrib)
 			{
-				const uint8_t* normalData = vertexData + normalAttrib->getOffset();
-				for (uint32_t i = 0; i < vertexCount; i++)
+				const uint8_t* normalData= vertexData + normalAttrib->getOffset();
+				for (uint32_t i= 0; i < vertexCount; i++)
 				{
-					const glm::vec3& normal = *(const glm::vec3*)normalData;
+					const glm::vec3& normal= *(const glm::vec3*)normalData;
 
-					size_t numChars =
+					size_t numChars=
 						StringUtils::formatString(
 							szLine, sizeof(szLine),
 							"vn %f %f %f\n",
 							normal.x, normal.y, normal.z);
-					normalData += vertexSize;
+					normalData+= vertexSize;
 
 					objFile.writeChars(szLine, numChars);
 				}
@@ -209,17 +208,17 @@ bool ObjModelExporter::exportModelToFile(
 			// Write out the texels, if available
 			if (texelAttrib)
 			{
-				const uint8_t* texelData = vertexData + texelAttrib->getOffset();
-				for (uint32_t i = 0; i < vertexCount; i++)
+				const uint8_t* texelData= vertexData + texelAttrib->getOffset();
+				for (uint32_t i= 0; i < vertexCount; i++)
 				{
-					const glm::vec2& texel = *(const glm::vec2*)texelData;
+					const glm::vec2& texel= *(const glm::vec2*)texelData;
 
-					size_t numChars =
+					size_t numChars=
 						StringUtils::formatString(
 							szLine, sizeof(szLine),
 							"vt %f %f\n",
 							texel.x, texel.y);
-					texelData += vertexSize;
+					texelData+= vertexSize;
 
 					objFile.writeChars(szLine, numChars);
 				}
@@ -229,30 +228,30 @@ bool ObjModelExporter::exportModelToFile(
 			{
 				objFile.writeString(StringUtils::stringify("usemtl ", material->getName(), "\n"));
 
-				const uint8_t* indexData = triMesh->getIndexData();
-				const size_t indexPerElements = triMesh->getIndexPerElementCount();
-				const size_t indexSize = triMesh->getIndexSize();
+				const uint8_t* indexData= triMesh->getIndexData();
+				const size_t indexPerElements= triMesh->getIndexPerElementCount();
+				const size_t indexSize= triMesh->getIndexSize();
 
-				for (uint32_t i = 0; i < triMesh->getElementCount(); i++)
+				for (uint32_t i= 0; i < triMesh->getElementCount(); i++)
 				{
 					objFile.writeChars("f", 1);
 
-					for (size_t j = 0; j < indexPerElements; j++)
+					for (size_t j= 0; j < indexPerElements; j++)
 					{
-						uint32_t index = 0;
+						uint32_t index= 0;
 						if (indexSize == sizeof(uint16_t))
 						{
-							index = (uint32_t)(*(const uint16_t*)indexData);
+							index= (uint32_t)(*(const uint16_t*)indexData);
 						}
 						else
 						{
-							index = *(const uint32_t*)indexData;
+							index= *(const uint32_t*)indexData;
 						}
 
-						uint32_t oneBasedIndex = index + 1;
+						uint32_t oneBasedIndex= index + 1;
 						if (texelAttrib && normalAttrib)
 						{
-							size_t numChars = StringUtils::formatString(
+							size_t numChars= StringUtils::formatString(
 								szLine, sizeof(szLine),
 								" %d/%d/%d",
 								oneBasedIndex, oneBasedIndex, oneBasedIndex);
@@ -260,7 +259,7 @@ bool ObjModelExporter::exportModelToFile(
 						}
 						else if (normalAttrib)
 						{
-							size_t numChars = StringUtils::formatString(
+							size_t numChars= StringUtils::formatString(
 								szLine, sizeof(szLine),
 								" %d//%d",
 								oneBasedIndex, oneBasedIndex);
@@ -268,7 +267,7 @@ bool ObjModelExporter::exportModelToFile(
 						}
 						else if (texelAttrib)
 						{
-							size_t numChars = StringUtils::formatString(
+							size_t numChars= StringUtils::formatString(
 								szLine, sizeof(szLine),
 								" %d/%d",
 								oneBasedIndex, oneBasedIndex);
@@ -276,14 +275,14 @@ bool ObjModelExporter::exportModelToFile(
 						}
 						else
 						{
-							size_t numChars = StringUtils::formatString(
+							size_t numChars= StringUtils::formatString(
 								szLine, sizeof(szLine),
 								" %d",
 								oneBasedIndex);
 							objFile.writeChars(szLine, numChars);
 						}
 
-						indexData += indexSize;
+						indexData+= indexSize;
 					}
 
 					objFile.writeChars("\n", 1);
@@ -296,60 +295,60 @@ bool ObjModelExporter::exportModelToFile(
 				mtlFile.writeString(StringUtils::stringify("newmtl ", material->getName(), "\n"));
 
 				float Ns;
-				bool hasNs = materialInstance->getFloatBySemantic(eUniformSemantic::specularHighlights, Ns);
+				bool hasNs= materialInstance->getFloatBySemantic(eUniformSemantic::specularHighlights, Ns);
 				if (hasNs)
 				{
 					mtlFile.writeString(StringUtils::stringify("Ns ", Ns, "\n"));
 				}
 
 				glm::vec3 Ka;
-				bool hasKa = materialInstance->getVec3BySemantic(eUniformSemantic::ambientColorRGB, Ka);
+				bool hasKa= materialInstance->getVec3BySemantic(eUniformSemantic::ambientColorRGB, Ka);
 				if (hasKa)
 				{
 					mtlFile.writeString(StringUtils::stringify("Ka ", Ka.r, " ", Ka.g, " ", Ka.b, "\n"));
 				}
 
-				glm::vec3 Kd = glm::vec3(1.f);
-				bool hasKd = materialInstance->getVec3BySemantic(eUniformSemantic::diffuseColorRGB, Kd);
+				glm::vec3 Kd= glm::vec3(1.f);
+				bool hasKd= materialInstance->getVec3BySemantic(eUniformSemantic::diffuseColorRGB, Kd);
 				mtlFile.writeString(StringUtils::stringify("Kd ", Kd.r, " ", Kd.g, " ", Kd.b, "\n"));
 
 				glm::vec3 Ks;
-				bool hasKs = materialInstance->getVec3BySemantic(eUniformSemantic::specularColorRGB, Ks);
+				bool hasKs= materialInstance->getVec3BySemantic(eUniformSemantic::specularColorRGB, Ks);
 				if (hasKs)
 				{
 					mtlFile.writeString(StringUtils::stringify("Ks ", Ks.r, " ", Ks.g, " ", Ks.b, "\n"));
 				}
 
 				float Ni;
-				bool hasNi = materialInstance->getFloatBySemantic(eUniformSemantic::opticalDensity, Ni);
+				bool hasNi= materialInstance->getFloatBySemantic(eUniformSemantic::opticalDensity, Ni);
 				if (hasNi)
 				{
 					mtlFile.writeString(StringUtils::stringify("Ni ", Ni, "\n"));
 				}
 
 				float d;
-				float hasD = materialInstance->getFloatBySemantic(eUniformSemantic::dissolve, d);
+				float hasD= materialInstance->getFloatBySemantic(eUniformSemantic::dissolve, d);
 				if (hasD)
 				{
 					mtlFile.writeString(StringUtils::stringify("d ", d, "\n"));
 				}
 
-				//illum 2: a diffuse and specular illumination model using Lambertian shading 
-				// and Blinn's interpretation of Phong's specular illumination model, 
-				// taking into account Ka, Kd, Ks, and the intensity and position of 
-				// each light source and the angle at which it strikes the surface.
+				// illum 2: a diffuse and specular illumination model using Lambertian shading
+				//  and Blinn's interpretation of Phong's specular illumination model,
+				//  taking into account Ka, Kd, Ks, and the intensity and position of
+				//  each light source and the angle at which it strikes the surface.
 				if (hasKa && hasKd && hasKs)
 				{
 					mtlFile.writeString("illum 2\n");
 				}
-				//illum 1: a diffuse illumination model using Lambertian shading, 
-				//taking into account Ka, Kd, the intensity and position of each light source 
-				//and the angle at which it strikes the surface.
+				// illum 1: a diffuse illumination model using Lambertian shading,
+				// taking into account Ka, Kd, the intensity and position of each light source
+				// and the angle at which it strikes the surface.
 				else if (hasKa && hasKd)
 				{
 					mtlFile.writeString("illum 1\n");
 				}
-				//illum 0: a constant color illumination model, using the Kd for the material
+				// illum 0: a constant color illumination model, using the Kd for the material
 				else
 				{
 					mtlFile.writeString("illum 0\n");
@@ -358,32 +357,32 @@ bool ObjModelExporter::exportModelToFile(
 				// Write out the textures, if available
 				std::string relativeTexturePath;
 				if (ObjUtils::writeMaterialInstanceTextureToFile(
-					materialInstance, mtlPath, eUniformSemantic::ambientTexture, relativeTexturePath))
+						materialInstance, mtlPath, eUniformSemantic::ambientTexture, relativeTexturePath))
 				{
 					mtlFile.writeString(StringUtils::stringify("map_Ka ", relativeTexturePath, "\n"));
 				}
 				if (ObjUtils::writeMaterialInstanceTextureToFile(
-					materialInstance, mtlPath, eUniformSemantic::diffuseTexture, relativeTexturePath))
+						materialInstance, mtlPath, eUniformSemantic::diffuseTexture, relativeTexturePath))
 				{
 					mtlFile.writeString(StringUtils::stringify("map_Kd ", relativeTexturePath, "\n"));
 				}
 				if (ObjUtils::writeMaterialInstanceTextureToFile(
-					materialInstance, mtlPath, eUniformSemantic::specularTexture, relativeTexturePath))
+						materialInstance, mtlPath, eUniformSemantic::specularTexture, relativeTexturePath))
 				{
 					mtlFile.writeString(StringUtils::stringify("map_Ks ", relativeTexturePath, "\n"));
 				}
 				if (ObjUtils::writeMaterialInstanceTextureToFile(
-					materialInstance, mtlPath, eUniformSemantic::specularHightlightTexture, relativeTexturePath))
+						materialInstance, mtlPath, eUniformSemantic::specularHightlightTexture, relativeTexturePath))
 				{
 					mtlFile.writeString(StringUtils::stringify("map_Ns ", relativeTexturePath, "\n"));
 				}
 				if (ObjUtils::writeMaterialInstanceTextureToFile(
-					materialInstance, mtlPath, eUniformSemantic::alphaTexture, relativeTexturePath))
+						materialInstance, mtlPath, eUniformSemantic::alphaTexture, relativeTexturePath))
 				{
 					mtlFile.writeString(StringUtils::stringify("map_d ", relativeTexturePath, "\n"));
 				}
 				if (ObjUtils::writeMaterialInstanceTextureToFile(
-					materialInstance, mtlPath, eUniformSemantic::bumpTexture, relativeTexturePath))
+						materialInstance, mtlPath, eUniformSemantic::bumpTexture, relativeTexturePath))
 				{
 					mtlFile.writeString(StringUtils::stringify("map_bump ", relativeTexturePath, "\n"));
 				}

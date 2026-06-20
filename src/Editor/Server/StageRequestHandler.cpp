@@ -12,7 +12,7 @@ using namespace std::placeholders;
 // -- StageRequestHandler -- //
 bool StageRequestHandler::startup(MainWindow* mainWindow)
 {
-	IInterprocessMessageServer* messageServer = m_owner->getMessageServer();
+	IInterprocessMessageServer* messageServer= m_owner->getMessageServer();
 
 	// Register remote control request handlers
 
@@ -21,5 +21,4 @@ bool StageRequestHandler::startup(MainWindow* mainWindow)
 
 void StageRequestHandler::shutdown()
 {
-
 }

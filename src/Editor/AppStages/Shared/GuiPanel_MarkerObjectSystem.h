@@ -9,7 +9,9 @@ class GuiPanel_MarkerObjectSystem : public GuiPanel_MikanObjectSystem
 {
 public:
 	GuiPanel_MarkerObjectSystem(class AppStage* ownerAppStage)
-		: GuiPanel_MikanObjectSystem(ownerAppStage) {}
+		: GuiPanel_MikanObjectSystem(ownerAppStage)
+	{
+	}
 
 	virtual bool init() override;
 	virtual void onConstruct() override;

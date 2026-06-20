@@ -8,13 +8,13 @@
 #include <map>
 #include <memory>
 
-using SharedTextureReadAccessorPtr = std::shared_ptr<class SharedTextureReadAccessor>;
-using SharedTextureReadAccessorCameraMap = std::map<MikanCameraID, SharedTextureReadAccessorPtr>;
+using SharedTextureReadAccessorPtr= std::shared_ptr<class SharedTextureReadAccessor>;
+using SharedTextureReadAccessorCameraMap= std::map<MikanCameraID, SharedTextureReadAccessorPtr>;
 
 class RenderTargetClientState
 {
 public:
-	RenderTargetClientState() = default;
+	RenderTargetClientState()= default;
 	RenderTargetClientState(class MikanClientConnectionState* owner);
 	virtual ~RenderTargetClientState();
 
@@ -34,21 +34,24 @@ protected:
 	void disposeRenderTargetAccessor(MikanCameraID cameraId);
 
 private:
-	class MikanClientConnectionState* m_owner = nullptr;
+	class MikanClientConnectionState* m_owner= nullptr;
 	SharedTextureReadAccessorCameraMap m_renderTargetReadAccessorCameraMap;
 };
 
 class CameraRequestHandler : public IServerRequestHandler
 {
 public:
-	CameraRequestHandler(class MikanServer* owner) : IServerRequestHandler(owner) {}
+	CameraRequestHandler(class MikanServer* owner)
+		: IServerRequestHandler(owner)
+	{
+	}
 
 	virtual bool startup(class MainWindow* mainWindow) override;
 	virtual void shutdown() override {}
 
 	void publishCameraNewFrameEvent(const struct MikanCameraNewFrameEvent& newFrameEvent);
 
-	MulticastDelegate<void(const std::string& clientId, const struct MikanClientInfo& clientInfo, class SharedTextureReadAccessor* readAccessor) > OnClientRenderTargetAllocated;
+	MulticastDelegate<void(const std::string& clientId, const struct MikanClientInfo& clientInfo, class SharedTextureReadAccessor* readAccessor)> OnClientRenderTargetAllocated;
 	MulticastDelegate<void(const std::string& clientId, class SharedTextureReadAccessor* readAccessor)> OnClientRenderTargetReleased;
 	MulticastDelegate<void(const std::string& clientId, MikanCameraID cameraId, int64_t frameIndex)> OnClientRenderTargetUpdated;
 

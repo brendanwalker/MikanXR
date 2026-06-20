@@ -20,14 +20,14 @@ struct VRDevicePoseSamplerState
 
 	void init(int sampleCount)
 	{
-		desiredSampleCount = sampleCount;
+		desiredSampleCount= sampleCount;
 		reset();
 	}
 
 	void reset()
 	{
-		bHasValidXform = false;
-		capturedSampleCount = 0;
+		bHasValidXform= false;
+		capturedSampleCount= 0;
 		cv_poseQuats.clear();
 		cv_posePositions.clear();
 	}
@@ -67,9 +67,9 @@ void VRDevicePoseSampler::resetCalibrationState()
 
 bool VRDevicePoseSampler::computeVRDeviceXform()
 {
-	m_state->bHasValidXform = false;
+	m_state->bHasValidXform= false;
 
-	CameraComponentConstPtr cam = m_cameraContext.lock();
+	CameraComponentConstPtr cam= m_cameraContext.lock();
 	if (!cam)
 		return false;
 
@@ -77,8 +77,8 @@ bool VRDevicePoseSampler::computeVRDeviceXform()
 	if (!m_poseView->getPose(cam, poseXform))
 		return false;
 
-	m_state->vrDeviceXform = poseXform;
-	m_state->bHasValidXform = true;
+	m_state->vrDeviceXform= poseXform;
+	m_state->bHasValidXform= true;
 
 	return true;
 }
@@ -93,8 +93,8 @@ bool VRDevicePoseSampler::sampleLastVRDeviceXform()
 	if (!m_state->bHasValidXform)
 		return false;
 
-	const glm::dquat poseQuat = glm::quat_cast(m_state->vrDeviceXform);
-	const glm::dvec3 posePos = glm::dvec3(m_state->vrDeviceXform[3]);
+	const glm::dquat poseQuat= glm::quat_cast(m_state->vrDeviceXform);
+	const glm::dvec3 posePos= glm::dvec3(m_state->vrDeviceXform[3]);
 
 	m_state->cv_poseQuats.push_back(glm_dquat_to_cv_quatd(poseQuat));
 	m_state->cv_posePositions.push_back(glm_dvec3_to_cv_vec3d(posePos));
@@ -114,8 +114,8 @@ bool VRDevicePoseSampler::computeCalibratedDevicePose(
 		opencv_quaternion_compute_average(m_state->cv_poseQuats, cv_avgQuat) &&
 		opencv_vec3d_compute_average(m_state->cv_posePositions, cv_avgPosition))
 	{
-		outRotation = cv_quatd_to_MikanQuatd(cv_avgQuat);
-		outTranslation = cv_vec3d_to_MikanVector3d(cv_avgPosition);
+		outRotation= cv_quatd_to_MikanQuatd(cv_avgQuat);
+		outTranslation= cv_vec3d_to_MikanVector3d(cv_avgPosition);
 		return true;
 	}
 

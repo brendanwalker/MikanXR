@@ -25,7 +25,7 @@
 class ArucoBoardData
 {
 public:
-	ArucoBoardData() = default;
+	ArucoBoardData()= default;
 
 	int desiredArucoId;
 	float markerLengthMM;
@@ -46,19 +46,19 @@ static void initArucoBoardData(
 	MarkerObjectSystemPtr markerSystem,
 	MarkerDefinitionConstPtr markerDefinition)
 {
-	const int desiredArucoId = markerDefinition->getArucoId();
-	const float markerLengthMM = markerDefinition->getLengthMM();
-	ArucoDictionaryPtr dictionary =
+	const int desiredArucoId= markerDefinition->getArucoId();
+	const float markerLengthMM= markerDefinition->getLengthMM();
+	ArucoDictionaryPtr dictionary=
 		CalibrationPatternFinder::getArucoDictionary(
 			markerSystem->getTypedDefinition()->getArucoDictionaryType());
 
 	// Use corner refinement to get the best possible corner locations
 	cv::aruco::DetectorParameters detectorParams;
-	detectorParams.cornerRefinementMethod = cv::aruco::CORNER_REFINE_SUBPIX;
+	detectorParams.cornerRefinementMethod= cv::aruco::CORNER_REFINE_SUBPIX;
 
-	markerData->desiredArucoId = desiredArucoId;
-	markerData->markerLengthMM = markerLengthMM;
-	markerData->detector = cv::makePtr<cv::aruco::ArucoDetector>(*dictionary.get(), detectorParams);
+	markerData->desiredArucoId= desiredArucoId;
+	markerData->markerLengthMM= markerLengthMM;
+	markerData->detector= cv::makePtr<cv::aruco::ArucoDetector>(*dictionary.get(), detectorParams);
 
 	// The Aruco board is a square, so we can hardcode the points in ARUCO_CCW_CENTER style
 	// Solve PnP points are on the XZ Plane
@@ -71,10 +71,10 @@ static void initArucoBoardData(
 	// Derive the other geometry from the OpenCV SolvePnP geometry
 	opencvLensCalibrationGeometry.points.clear();
 	openglSolvePnPGeometry.points.clear();
-	for (int index = 0; index < 4; index++)
+	for (int index= 0; index < 4; index++)
 	{
 		// Solve PnP points are on the XZ Plane
-		const cv::Point3f& openCVSolvePnPPoint = opencvSolvePnPGeometry.points[index];
+		const cv::Point3f& openCVSolvePnPPoint= opencvSolvePnPGeometry.points[index];
 
 		// Lens calibration points are on the XY Plane
 		cv::Point3f openCVLensCalibrationPoint(
@@ -106,7 +106,7 @@ CalibrationPatternFinder_Aruco::CalibrationPatternFinder_Aruco(
 	MarkerObjectSystemPtr markerSystem=
 		ownerWindow->getProjectManager()->getSystemOfType<MarkerObjectSystem>();
 	assert(markerSystem != nullptr);
-	TrackingVolumeDefinitionConstPtr trackingVolume = ownerStage->getTrackingVolumeDefinitionConst();
+	TrackingVolumeDefinitionConstPtr trackingVolume= ownerStage->getTrackingVolumeDefinitionConst();
 	assert(trackingVolume != nullptr);
 	MarkerDefinitionConstPtr originMarker= trackingVolume->getOriginMarker();
 	assert(originMarker != nullptr);
@@ -124,11 +124,11 @@ CalibrationPatternFinder_Aruco::CalibrationPatternFinder_Aruco(
 	: CalibrationPatternFinder(distortionView)
 	, m_markerData(new ArucoBoardData())
 {
-	StageComponentConstPtr ownerStage = cameraComponent->getOwnerStageComponent();
+	StageComponentConstPtr ownerStage= cameraComponent->getOwnerStageComponent();
 	assert(ownerStage != nullptr);
-	IEditorWindow* ownerWindow = ownerStage->getOwnerEditorWindow();
+	IEditorWindow* ownerWindow= ownerStage->getOwnerEditorWindow();
 	assert(ownerWindow != nullptr);
-	MarkerObjectSystemPtr markerSystem =
+	MarkerObjectSystemPtr markerSystem=
 		ownerWindow->getProjectManager()->getSystemOfType<MarkerObjectSystem>();
 	assert(markerSystem != nullptr);
 	assert(markerDefinition != nullptr);
@@ -147,11 +147,11 @@ CalibrationPatternFinder_Aruco::~CalibrationPatternFinder_Aruco()
 bool CalibrationPatternFinder_Aruco::findNewCalibrationPattern(const float minSeperationDist)
 {
 	// Clear out the previous images points
-	bool bImagePointsValid = false;
+	bool bImagePointsValid= false;
 	m_currentImagePoints.clear();
 
 	// Fetch the source image buffer we are searching for the pattern in
-	cv::Mat* gsSourceBuffer = getGrayscaleVideoFrameInput();
+	cv::Mat* gsSourceBuffer= getGrayscaleVideoFrameInput();
 	if (gsSourceBuffer == nullptr)
 		return false;
 
@@ -161,12 +161,12 @@ bool CalibrationPatternFinder_Aruco::findNewCalibrationPattern(const float minSe
 		*gsSourceBuffer,
 		m_markerData->markerCorners,
 		m_markerData->markerVisibleIds);
-	const bool bFoundMarkers = m_markerData->markerVisibleIds.size() > 0;
+	const bool bFoundMarkers= m_markerData->markerVisibleIds.size() > 0;
 
 	// Re-clear out the image points if we decided the latest captured onces are invalid
 	if (bFoundMarkers)
 	{
-		for (int index = 0; index < m_markerData->markerVisibleIds.size(); ++index)
+		for (int index= 0; index < m_markerData->markerVisibleIds.size(); ++index)
 		{
 			if (m_markerData->markerVisibleIds[index] == m_markerData->desiredArucoId)
 			{
@@ -192,10 +192,10 @@ bool CalibrationPatternFinder_Aruco::fetchLastFoundCalibrationPattern(
 	if (areCurrentImagePointsValid())
 	{
 		// Keep track of the corners of all of the chessboards we sample
-		outBoundingQuad[0] = m_currentImagePoints[0];
-		outBoundingQuad[1] = m_currentImagePoints[1];
-		outBoundingQuad[2] = m_currentImagePoints[2];
-		outBoundingQuad[3] = m_currentImagePoints[3];
+		outBoundingQuad[0]= m_currentImagePoints[0];
+		outBoundingQuad[1]= m_currentImagePoints[1];
+		outBoundingQuad[2]= m_currentImagePoints[2];
+		outBoundingQuad[3]= m_currentImagePoints[3];
 
 		outImagePoints.clear();
 		for (const auto& imagePoint : m_currentImagePoints)
@@ -207,7 +207,7 @@ bool CalibrationPatternFinder_Aruco::fetchLastFoundCalibrationPattern(
 		outImagePointIDs.push_back(m_markerData->desiredArucoId);
 
 		// Remember the last valid captured points
-		m_lastValidImagePoints = m_currentImagePoints;
+		m_lastValidImagePoints= m_currentImagePoints;
 
 		return true;
 	}
@@ -219,33 +219,33 @@ void CalibrationPatternFinder_Aruco::renderCalibrationPattern2D() const
 {
 	CalibrationPatternFinder::renderCalibrationPattern2D();
 
-	IMkGraphicsContext* graphicsContext = getDistortionView()->getGraphicsContext();
+	IMkGraphicsContext* graphicsContext= getDistortionView()->getGraphicsContext();
 
 	// Draw the marker corners, if any
-	TextStyle style = getDefaultTextStyle();
-	style.horizontalAlignment = eHorizontalTextAlignment::Middle;
-	style.verticalAlignment = eVerticalTextAlignment::Middle;
-	style.color = Colors::Yellow;
+	TextStyle style= getDefaultTextStyle();
+	style.horizontalAlignment= eHorizontalTextAlignment::Middle;
+	style.verticalAlignment= eVerticalTextAlignment::Middle;
+	style.color= Colors::Yellow;
 
-	static int debugDrawIndex = -1;
+	static int debugDrawIndex= -1;
 
-	for (int quadIndex = 0; quadIndex < m_markerData->markerCorners.size(); quadIndex++)
+	for (int quadIndex= 0; quadIndex < m_markerData->markerCorners.size(); quadIndex++)
 	{
 		if (debugDrawIndex != -1 && debugDrawIndex != quadIndex)
 			continue;
 
-		const t_opencv_point2d_list& corners = m_markerData->markerCorners[quadIndex];
+		const t_opencv_point2d_list& corners= m_markerData->markerCorners[quadIndex];
 
 		drawQuadList2d(
 			graphicsContext,
 			m_frameWidth, m_frameHeight,
-			(float*)corners.data(), // cv::point2f is just two floats 
+			(float*)corners.data(), // cv::point2f is just two floats
 			(int)corners.size(),
 			Colors::Yellow);
 
 		if (quadIndex < m_markerData->markerVisibleIds.size())
 		{
-			int markerId = m_markerData->markerVisibleIds[quadIndex];
+			int markerId= m_markerData->markerVisibleIds[quadIndex];
 
 			cv::Point2f quadCenter;
 			opencv_point2f_compute_average(corners, quadCenter);

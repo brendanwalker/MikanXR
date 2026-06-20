@@ -54,7 +54,7 @@ public:
 		return std::static_pointer_cast<QuadStencilDefinition>(m_definition);
 	}
 
-	inline static const std::string k_componentClassName = "QuadStencilComponent";
+	inline static const std::string k_componentClassName= "QuadStencilComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	// -- IEntityAccessor ----
@@ -67,7 +67,9 @@ public:
 
 	// -- IFunctionInterface ----
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
-	{ StencilComponent::getFunctionDescriptors(outDescriptors); }
+	{
+		StencilComponent::getFunctionDescriptors(outDescriptors);
+	}
 
 	// -- Lua Binding ----
 	static void bindLuaFunctions(struct lua_State* L);

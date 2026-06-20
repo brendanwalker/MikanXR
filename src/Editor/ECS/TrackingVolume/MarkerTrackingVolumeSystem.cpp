@@ -16,7 +16,7 @@ MarkerTrackingVolumeSystemDefinition::MarkerTrackingVolumeSystemDefinition(
 
 configuru::Config MarkerTrackingVolumeSystemDefinition::writeToJSON()
 {
-	configuru::Config pt = Super::writeToJSON();
+	configuru::Config pt= Super::writeToJSON();
 
 	return pt;
 }

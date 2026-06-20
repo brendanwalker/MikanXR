@@ -1,7 +1,8 @@
 #include "FloatPin.h"
 
 // -- FloatPinBase -----
-FloatPinBase::FloatPinBase() : NodePin()
+FloatPinBase::FloatPinBase()
+	: NodePin()
 {
 	setHasDefaultValue(true);
 }
@@ -26,7 +27,7 @@ ImNodesPinShape FloatPinBase::editorComputePinShape() const
 
 std::shared_ptr<MkNodesScopedColorStyle> FloatPinBase::editorRenderMakePinStyle(float alpha)
 {
-	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_Pin, IM_COL32(156, 253, 65, (unsigned char)(alpha * 255)))
 		.push(ImNodesCol_PinHovered, IM_COL32(144, 225, 137, (unsigned char)(alpha * 255)));
 	return style;
@@ -59,7 +60,7 @@ void FloatPin::copyValueFromSourcePin()
 
 std::shared_ptr<MkNodesScopedColorStyle> FloatPin::editorRenderMakeLinkStyle(float alpha)
 {
-	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_Link, IM_COL32(156, 253, 65, (unsigned char)alpha))
 		.push(ImNodesCol_LinkHovered, IM_COL32(144, 225, 137, (unsigned char)alpha))
 		.push(ImNodesCol_LinkSelected, IM_COL32(144, 225, 137, 255));
@@ -74,7 +75,7 @@ ImU32 FloatPin::editorGetLinkStyleColor() const
 // -- Float2Pin -----
 void Float2Pin::copyValueFromSourcePin()
 {
-	Float2PinPtr sourcePin = std::dynamic_pointer_cast<Float2Pin>(getConnectedSourcePin());
+	Float2PinPtr sourcePin= std::dynamic_pointer_cast<Float2Pin>(getConnectedSourcePin());
 
 	if (sourcePin)
 	{
@@ -96,7 +97,7 @@ void Float2Pin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 // -- Float3Pin -----
 void Float3Pin::copyValueFromSourcePin()
 {
-	Float3PinPtr sourcePin = std::dynamic_pointer_cast<Float3Pin>(getConnectedSourcePin());
+	Float3PinPtr sourcePin= std::dynamic_pointer_cast<Float3Pin>(getConnectedSourcePin());
 
 	if (sourcePin)
 	{
@@ -118,7 +119,7 @@ void Float3Pin::editorRenderInputTextEntry(const NodeEditorState& editorState)
 // -- Float4Pin -----
 void Float4Pin::copyValueFromSourcePin()
 {
-	Float4PinPtr sourcePin = std::dynamic_pointer_cast<Float4Pin>(getConnectedSourcePin());
+	Float4PinPtr sourcePin= std::dynamic_pointer_cast<Float4Pin>(getConnectedSourcePin());
 
 	if (sourcePin)
 	{

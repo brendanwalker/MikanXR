@@ -7,7 +7,7 @@
 
 namespace ShapeUtils
 {
-	ShapeComponentPtr getShapeById(ProjectManagerPtr projectManager, MikanShapeID shapeId);
-	eShapeType getShapeType(ProjectManagerPtr projectManager, MikanShapeID shapeId);
-	bool removeShape(ProjectManagerPtr projectManager, MikanShapeID shapeId);
-}
+ShapeComponentPtr getShapeById(ProjectManagerPtr projectManager, MikanShapeID shapeId);
+eShapeType getShapeType(ProjectManagerPtr projectManager, MikanShapeID shapeId);
+bool removeShape(ProjectManagerPtr projectManager, MikanShapeID shapeId);
+} // namespace ShapeUtils

@@ -14,9 +14,9 @@ public:
 	void ensureNextIdGreaterThan(int32_t id) override;
 
 private:
-	int m_nextId = 0;
-	int m_maxId = 0;
+	int m_nextId= 0;
+	int m_maxId= 0;
 };
 
-using MonotonicIDAllocatorPtr = std::shared_ptr<MonotonicIDAllocator>;
-using MonotonicIDAllocatorWeakPtr = std::weak_ptr<MonotonicIDAllocator>;
+using MonotonicIDAllocatorPtr= std::shared_ptr<MonotonicIDAllocator>;
+using MonotonicIDAllocatorWeakPtr= std::weak_ptr<MonotonicIDAllocator>;

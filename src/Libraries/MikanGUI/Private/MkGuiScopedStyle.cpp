@@ -19,32 +19,32 @@ MkGuiScopedStyle::MkGuiScopedStyle(MkGuiStyleConstPtr style)
 	if (!style)
 		return;
 
-	m_impl = new Impl();
+	m_impl= new Impl();
 
 	// Push font first (popped last)
 	if (style->getFont())
 	{
-		m_impl->font = std::make_unique<MkGuiScopedFont>(style->getFont());
+		m_impl->font= std::make_unique<MkGuiScopedFont>(style->getFont());
 	}
 
 	// Push style floats
-	for (int i = 0; i < style->getFloatVarCount(); ++i)
+	for (int i= 0; i < style->getFloatVarCount(); ++i)
 	{
-		const MkGuiStyleFloatEntry& e = style->getFloatVar(i);
+		const MkGuiStyleFloatEntry& e= style->getFloatVar(i);
 		m_impl->vars.push(e.var, e.floatVal);
 	}
 
 	// Push style vecs
-	for (int i = 0; i < style->getVec2VarCount(); ++i)
+	for (int i= 0; i < style->getVec2VarCount(); ++i)
 	{
-		const MkGuiStyleVec2Entry& e = style->getVec2Var(i);
+		const MkGuiStyleVec2Entry& e= style->getVec2Var(i);
 		m_impl->vars.push(e.var, e.vec2Val);
 	}
 
 	// Push colors (popped first)
-	for (int i = 0; i < style->getColorCount(); ++i)
+	for (int i= 0; i < style->getColorCount(); ++i)
 	{
-		const MkGuiStyleColorEntry& e = style->getColor(i);
+		const MkGuiStyleColorEntry& e= style->getColor(i);
 		m_impl->colors.push(e.col, e.value);
 	}
 }

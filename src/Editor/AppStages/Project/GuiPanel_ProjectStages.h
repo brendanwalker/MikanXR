@@ -14,7 +14,10 @@
 class GuiPanel_ProjectStages : public GuiPanel
 {
 public:
-	GuiPanel_ProjectStages(AppStage* ownerAppStage) : GuiPanel(ownerAppStage) {}
+	GuiPanel_ProjectStages(AppStage* ownerAppStage)
+		: GuiPanel(ownerAppStage)
+	{
+	}
 
 	bool init(class ProjectGuiPanelContext* context);
 	virtual void onGui() override;
@@ -31,15 +34,15 @@ private:
 	void setSelectedCameraId(MikanCameraID cameraId);
 	void setSelectedLightId(MikanLightID lightId, bool isGrid);
 
-	class ProjectGuiPanelContext* m_context = nullptr;
+	class ProjectGuiPanelContext* m_context= nullptr;
 	StageObjectSystemWeakPtr m_stageSystem;
 	CameraObjectSystemWeakPtr m_cameraSystem;
 	RGBSpotLightSystemWeakPtr m_spotLightSystem;
 	RGBPixelGridSystemWeakPtr m_pixelGridLightSystem;
-	int m_selectedStageId = INVALID_MIKAN_ID;
-	int m_selectedCameraId = INVALID_MIKAN_ID;
-	int m_selectedLightId = INVALID_MIKAN_ID;
-	bool m_selectedLightIsGrid = false;
+	int m_selectedStageId= INVALID_MIKAN_ID;
+	int m_selectedCameraId= INVALID_MIKAN_ID;
+	int m_selectedLightId= INVALID_MIKAN_ID;
+	bool m_selectedLightIsGrid= false;
 
 	MkGuiStyleConstPtr m_defaultGuiStyle;
 	std::unique_ptr<GuiDataSource_ComboBox> m_stageDataSource;

@@ -29,7 +29,7 @@ class ClientTextureSourceComponent : public TextureSourceComponent
 public:
 	ClientTextureSourceComponent(MikanObjectWeakPtr owner);
 
-	inline static const std::string k_componentClassName = "ClientTextureSourceComponent";
+	inline static const std::string k_componentClassName= "ClientTextureSourceComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	inline ClientTextureSourceDefinitionPtr getClientTextureSourceDefinition() const
@@ -40,8 +40,8 @@ public:
 	const std::string& getClientSourceName() const;
 
 	// Texture Source Interface
-	IMkTexturePtr getClientColorSourceTexture(MikanCameraID cameraId, eTextureSourceColorType textureSourceColorType, int64_t frameIndex = -1) const;
-	IMkTexturePtr getClientDepthSourceTexture(MikanCameraID cameraId, eTextureSourceDepthType textureSourceDepthType, int64_t frameIndex = -1) const;
+	IMkTexturePtr getClientColorSourceTexture(MikanCameraID cameraId, eTextureSourceColorType textureSourceColorType, int64_t frameIndex= -1) const;
+	IMkTexturePtr getClientDepthSourceTexture(MikanCameraID cameraId, eTextureSourceDepthType textureSourceDepthType, int64_t frameIndex= -1) const;
 
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
@@ -53,13 +53,15 @@ public:
 
 	// -- IFunctionInterface ----
 	static void getFunctionNamesStatic(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
-	{ TextureSourceComponent::getFunctionDescriptors(outDescriptors); }
+	{
+		TextureSourceComponent::getFunctionDescriptors(outDescriptors);
+	}
 	virtual void showTextureSourceSettings() override;
 
 protected:
 	class ClientSourceManager* getClientSourceManager() const;
 
 private:
-	bool m_bIsClientSourceOpened = false;
-	bool m_bIsClientSourceStreaming = false;
+	bool m_bIsClientSourceOpened= false;
+	bool m_bIsClientSourceStreaming= false;
 };

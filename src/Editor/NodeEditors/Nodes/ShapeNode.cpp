@@ -14,9 +14,9 @@
 // -- ShapeNodeConfig -----
 configuru::Config ShapeNodeConfig::writeToJSON()
 {
-	configuru::Config pt = NodeConfig::writeToJSON();
+	configuru::Config pt= NodeConfig::writeToJSON();
 
-	pt["shape_property_id"] = shapePropertyId;
+	pt["shape_property_id"]= shapePropertyId;
 
 	return pt;
 }
@@ -25,7 +25,7 @@ void ShapeNodeConfig::readFromJSON(const configuru::Config& pt)
 {
 	NodeConfig::readFromJSON(pt);
 
-	shapePropertyId = pt.get_or<t_graph_property_id>("shape_property_id", -1);
+	shapePropertyId= pt.get_or<t_graph_property_id>("shape_property_id", -1);
 }
 
 // -- ShapeNode -----
@@ -40,14 +40,14 @@ void ShapeNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 	{
 		if (m_ownerGraph)
 		{
-			m_ownerGraph->OnPropertyDeleted -= MakeDelegate(this, &ShapeNode::onGraphPropertyDeleted);
-			m_ownerGraph = nullptr;
+			m_ownerGraph->OnPropertyDeleted-= MakeDelegate(this, &ShapeNode::onGraphPropertyDeleted);
+			m_ownerGraph= nullptr;
 		}
 
 		if (newOwnerGraph)
 		{
-			newOwnerGraph->OnPropertyDeleted += MakeDelegate(this, &ShapeNode::onGraphPropertyDeleted);
-			m_ownerGraph = newOwnerGraph;
+			newOwnerGraph->OnPropertyDeleted+= MakeDelegate(this, &ShapeNode::onGraphPropertyDeleted);
+			m_ownerGraph= newOwnerGraph;
 		}
 	}
 }
@@ -56,10 +56,10 @@ bool ShapeNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 {
 	if (Node::loadFromConfig(nodeConfig))
 	{
-		auto shapeNodeConfig = std::static_pointer_cast<const ShapeNodeConfig>(nodeConfig);
-		t_graph_property_id propId = shapeNodeConfig->shapePropertyId;
+		auto shapeNodeConfig= std::static_pointer_cast<const ShapeNodeConfig>(nodeConfig);
+		t_graph_property_id propId= shapeNodeConfig->shapePropertyId;
 
-		auto shapeProperty = getOwnerGraph()->getTypedPropertyById<GraphShapeProperty>(propId);
+		auto shapeProperty= getOwnerGraph()->getTypedPropertyById<GraphShapeProperty>(propId);
 		if (shapeProperty)
 		{
 			setShapeSource(shapeProperty);
@@ -78,8 +78,8 @@ bool ShapeNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 
 void ShapeNode::saveToConfig(NodeConfigPtr nodeConfig) const
 {
-	ShapeNodeConfigPtr shapeNodeConfig = std::static_pointer_cast<ShapeNodeConfig>(nodeConfig);
-	shapeNodeConfig->shapePropertyId = m_sourceProperty ? m_sourceProperty->getId() : -1;
+	ShapeNodeConfigPtr shapeNodeConfig= std::static_pointer_cast<ShapeNodeConfig>(nodeConfig);
+	shapeNodeConfig->shapePropertyId= m_sourceProperty ? m_sourceProperty->getId() : -1;
 
 	Node::saveToConfig(nodeConfig);
 }
@@ -91,9 +91,9 @@ ShapeComponentPtr ShapeNode::getShapeComponent() const
 
 void ShapeNode::setShapeSource(GraphShapePropertyPtr inShapeProperty)
 {
-	m_sourceProperty = inShapeProperty;
+	m_sourceProperty= inShapeProperty;
 
-	PropertyPinPtr outPin = getFirstPinOfType<PropertyPin>(eNodePinDirection::OUTPUT);
+	PropertyPinPtr outPin= getFirstPinOfType<PropertyPin>(eNodePinDirection::OUTPUT);
 	if (outPin)
 	{
 		outPin->setValue(inShapeProperty);
@@ -108,7 +108,7 @@ bool ShapeNode::evaluateNode(NodeEvaluator& evaluator)
 
 std::shared_ptr<MkNodesScopedColorStyle> ShapeNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
 {
-	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_TitleBar, IM_COL32(80, 150, 130, 225))
 		.push(ImNodesCol_TitleBarHovered, IM_COL32(80, 150, 130, 225))
 		.push(ImNodesCol_TitleBarSelected, IM_COL32(80, 150, 130, 225));
@@ -117,7 +117,7 @@ std::shared_ptr<MkNodesScopedColorStyle> ShapeNode::editorRenderMakeNodeStyle(co
 
 void ShapeNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	auto nodeStyle = editorRenderMakeNodeStyle(editorState);
+	auto nodeStyle= editorRenderMakeNodeStyle(editorState);
 	MkNodesScopedNode scopedNode(m_id);
 
 	editorRenderTitle(editorState);
@@ -130,7 +130,7 @@ std::string ShapeNode::editorGetTitle() const
 {
 	if (m_sourceProperty)
 	{
-		ShapeComponentPtr shapeComponent = m_sourceProperty->getShapeComponent();
+		ShapeComponentPtr shapeComponent= m_sourceProperty->getShapeComponent();
 		if (shapeComponent)
 		{
 			return shapeComponent->getName();
@@ -159,8 +159,8 @@ void ShapeNode::onGraphPropertyDeleted(t_graph_property_id id)
 // -- ShapeNode Factory -----
 NodePtr ShapeNodeFactory::createNode(const NodeEditorState& editorState) const
 {
-	NodePtr node = NodeFactory::createNode(editorState);
-	PropertyPinPtr outputPin = node->addPin<PropertyPin>("Shape", eNodePinDirection::OUTPUT);
+	NodePtr node= NodeFactory::createNode(editorState);
+	PropertyPinPtr outputPin= node->addPin<PropertyPin>("Shape", eNodePinDirection::OUTPUT);
 	outputPin->setPropertyClassName(GraphShapeProperty::k_propertyClassName);
 	outputPin->editorSetShowPinName(false);
 

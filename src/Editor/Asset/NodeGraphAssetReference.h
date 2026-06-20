@@ -5,9 +5,9 @@
 class NodeGraphAssetReference : public AssetReference
 {
 public:
-	NodeGraphAssetReference() = default;
+	NodeGraphAssetReference()= default;
 
-	inline static const std::string k_assetClassName = "NodeGraphAssetReference";
+	inline static const std::string k_assetClassName= "NodeGraphAssetReference";
 	virtual std::string getClassName() const override { return k_assetClassName; }
 	virtual std::string getAssetTypeName() const override { return "NodeGraph"; }
 
@@ -17,8 +17,7 @@ protected:
 	virtual void rebuildPreview() override;
 };
 
-class NodeGraphAssetReferenceFactory : 
-	public TypedAssetReferenceFactory<NodeGraphAssetReference, AssetReferenceConfig>
+class NodeGraphAssetReferenceFactory : public TypedAssetReferenceFactory<NodeGraphAssetReference, AssetReferenceConfig>
 {
 public:
 	NodeGraphAssetReferenceFactory();
@@ -27,7 +26,7 @@ public:
 	virtual char const* getFileDialogTitle() const { return "Load NodeGraph"; }
 	virtual char const* const* getFilterPatterns() const
 	{
-		static const char* filterItems[1] = {"*.graph"};
+		static const char* filterItems[1]= {"*.graph"};
 		return filterItems;
 	}
 	virtual int getFilterPatternCount() const { return 1; }

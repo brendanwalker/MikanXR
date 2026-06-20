@@ -7,12 +7,12 @@
 
 #include <vector>
 
-using VideoSourceIdList = std::vector<MikanVideoSourceID>;
+using VideoSourceIdList= std::vector<MikanVideoSourceID>;
 
 namespace VideoSourceQueries
 {
-	VideoSourceIdList getVideoSourceIdList(ProjectManagerConstPtr projectManager);
-	VideoSourceComponentPtr getVideoSourceById(ProjectManagerConstPtr projectManager, MikanVideoSourceID videoSourceId);
-	eVideoSourceType getVideoSourceType(ProjectManagerConstPtr projectManager, MikanVideoSourceID videoSourceId);
-	bool removeVideoSource(ProjectManagerConstPtr projectManager, MikanVideoSourceID videoSourceId);
-}
+VideoSourceIdList getVideoSourceIdList(ProjectManagerConstPtr projectManager);
+VideoSourceComponentPtr getVideoSourceById(ProjectManagerConstPtr projectManager, MikanVideoSourceID videoSourceId);
+eVideoSourceType getVideoSourceType(ProjectManagerConstPtr projectManager, MikanVideoSourceID videoSourceId);
+bool removeVideoSource(ProjectManagerConstPtr projectManager, MikanVideoSourceID videoSourceId);
+} // namespace VideoSourceQueries

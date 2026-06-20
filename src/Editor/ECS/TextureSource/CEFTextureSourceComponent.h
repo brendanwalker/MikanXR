@@ -39,8 +39,8 @@ public:
 
 private:
 	std::string m_url;
-	int m_width = 1280;
-	int m_height = 720;
+	int m_width= 1280;
+	int m_height= 720;
 };
 
 // -------------------------------------------------------------------------------------------------
@@ -59,11 +59,11 @@ public:
 	virtual void update(float deltaSeconds) override;
 	virtual void dispose() override;
 
-	inline static const std::string k_componentClassName = "CEFTextureSourceComponent";
+	inline static const std::string k_componentClassName= "CEFTextureSourceComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	// Texture Source Interface
-	virtual IMkTexturePtr getClientColorSourceTexture(MikanCameraID cameraId, eTextureSourceColorType textureSourceColorType, int64_t frameIndex = -1) const override;
+	virtual IMkTexturePtr getClientColorSourceTexture(MikanCameraID cameraId, eTextureSourceColorType textureSourceColorType, int64_t frameIndex= -1) const override;
 
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
@@ -75,7 +75,9 @@ public:
 
 	// -- IFunctionInterface ----
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
-	{ TextureSourceComponent::getFunctionDescriptors(outDescriptors); }
+	{
+		TextureSourceComponent::getFunctionDescriptors(outDescriptors);
+	}
 	virtual void showTextureSourceSettings() override;
 
 	// -- CEFBrowserClient callbacks (called from CEFBrowserClient) ----
@@ -96,7 +98,7 @@ private:
 
 	std::mutex m_stagingMutex;
 	std::vector<uint8_t> m_stagingBuffer;
-	int m_stagingWidth = 0;
-	int m_stagingHeight = 0;
-	bool m_dirty = false;
+	int m_stagingWidth= 0;
+	int m_stagingHeight= 0;
+	bool m_dirty= false;
 };

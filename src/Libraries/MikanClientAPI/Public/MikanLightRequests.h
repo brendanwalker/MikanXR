@@ -10,35 +10,28 @@
 #include "MikanLightRequests.rfkh.h"
 #endif
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) SetLightDMXDataSubcription :
-	public MikanRequest
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) SetLightDMXDataSubcription : public MikanRequest
 {
-	SetLightDMXDataSubcription()
-	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(SetLightDMXDataSubcription)
-	}
+	SetLightDMXDataSubcription(){
+		MIKAN_REQUEST_TYPE_INFO_INIT(SetLightDMXDataSubcription)}
 
 	FIELD()
-	MikanLightID light_id = INVALID_MIKAN_ID;
+	MikanLightID light_id= INVALID_MIKAN_ID;
 
-	FIELD()
-	bool subscribe = false;
+	FIELD() bool subscribe= false;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	SetLightDMXDataSubcription_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) SetLightDMXData :
-	public MikanRequest
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) SetLightDMXData : public MikanRequest
 {
-	SetLightDMXData()
-	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(SetLightDMXData)
-	}
+	SetLightDMXData(){
+		MIKAN_REQUEST_TYPE_INFO_INIT(SetLightDMXData)}
 
 	FIELD()
-	MikanLightID light_id = INVALID_MIKAN_ID;
+	MikanLightID light_id= INVALID_MIKAN_ID;
 
 	FIELD()
 	MikanDMXData dmx_data;
@@ -48,33 +41,26 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) SetL
 #endif
 };
 
-
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) GetLightDMXData :
-	public MikanRequest
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) GetLightDMXData : public MikanRequest
 {
-	GetLightDMXData()
-	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(GetLightDMXData)
-	}
+	GetLightDMXData(){
+		MIKAN_REQUEST_TYPE_INFO_INIT(GetLightDMXData)}
 
 	FIELD()
-	MikanLightID light_id = INVALID_MIKAN_ID;
+	MikanLightID light_id= INVALID_MIKAN_ID;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	GetLightDMXData_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) MikanLightDMXDataResponse :
-	public MikanResponse
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanLightRequests")) MikanLightDMXDataResponse : public MikanResponse
 {
-	MikanLightDMXDataResponse()
-	{
-		MIKAN_RESPONSE_TYPE_INFO_INIT(MikanLightDMXDataResponse)
-	}
+	MikanLightDMXDataResponse(){
+		MIKAN_RESPONSE_TYPE_INFO_INIT(MikanLightDMXDataResponse)}
 
 	FIELD()
-	MikanLightID light_id = INVALID_MIKAN_ID;
+	MikanLightID light_id= INVALID_MIKAN_ID;
 
 	FIELD()
 	MikanDMXData dmx_data;

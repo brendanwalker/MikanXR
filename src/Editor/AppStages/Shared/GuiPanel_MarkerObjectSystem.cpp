@@ -12,11 +12,11 @@ bool GuiPanel_MarkerObjectSystem::init()
 
 void GuiPanel_MarkerObjectSystem::onConstruct()
 {
-	if (MkGuiStyleManager* mgr = getGuiStyleManager())
-		m_defaultGuiStyle = mgr->getStyle("default_component_panel");
+	if (MkGuiStyleManager* mgr= getGuiStyleManager())
+		m_defaultGuiStyle= mgr->getStyle("default_component_panel");
 
 	std::vector<std::string> dictStrings;
-	for (int i = 0; i < (int)eCharucoDictionaryType::COUNT; ++i)
+	for (int i= 0; i < (int)eCharucoDictionaryType::COUNT; ++i)
 		dictStrings.push_back(k_charucoDictionaryStrings[i]);
 	m_dictDataSource.setEntries(dictStrings);
 
@@ -24,22 +24,24 @@ void GuiPanel_MarkerObjectSystem::onConstruct()
 		MarkerObjectSystemDefinition::k_arucoDictionaryTypePropertyId,
 		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			auto markerSystem = getMarkerObjectSystem();
-			if (!markerSystem) return false;
-			auto def = markerSystem->getTypedDefinition();
-			if (!def) return false;
+			auto markerSystem= getMarkerObjectSystem();
+			if (!markerSystem)
+				return false;
+			auto def= markerSystem->getTypedDefinition();
+			if (!def)
+				return false;
 
-			int selectedIndex = (int)def->getArucoDictionaryType();
+			int selectedIndex= (int)def->getArucoDictionaryType();
 			if (MkGui::drawComboBoxProperty(
-				m_defaultGuiStyle, 
-				markerSystem->makePropertyUIIdentifier(MarkerObjectSystemDefinition::k_arucoDictionaryTypePropertyId),
-				"Aruco Dictionary",
-				&m_dictDataSource, selectedIndex))
+					m_defaultGuiStyle,
+					markerSystem->makePropertyUIIdentifier(MarkerObjectSystemDefinition::k_arucoDictionaryTypePropertyId),
+					"Aruco Dictionary",
+					&m_dictDataSource, selectedIndex))
 			{
-				addDeferredGuiEvent([this, selectedIndex]() {
+				addDeferredGuiEvent([this, selectedIndex]()
+									{
 					if (auto d = getMarkerObjectSystemDefinition())
-						d->setArucoDictionaryType((eCharucoDictionaryType)selectedIndex);
-				});
+						d->setArucoDictionaryType((eCharucoDictionaryType)selectedIndex); });
 			}
 			return true;
 		});
@@ -48,22 +50,24 @@ void GuiPanel_MarkerObjectSystem::onConstruct()
 		MarkerObjectSystemDefinition::k_charucoDictionaryTypePropertyId,
 		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			auto markerSystem = getMarkerObjectSystem();
-			if (!markerSystem) return false;
-			auto def = markerSystem->getTypedDefinition();
-			if (!def) return false;
+			auto markerSystem= getMarkerObjectSystem();
+			if (!markerSystem)
+				return false;
+			auto def= markerSystem->getTypedDefinition();
+			if (!def)
+				return false;
 
-			int selectedIndex = (int)def->getCharucoDictionaryType();
+			int selectedIndex= (int)def->getCharucoDictionaryType();
 			if (MkGui::drawComboBoxProperty(
-				m_defaultGuiStyle, 
-				markerSystem->makePropertyUIIdentifier(MarkerObjectSystemDefinition::k_charucoDictionaryTypePropertyId),
-				"Charuco Dictionary",
-				&m_dictDataSource, selectedIndex))
+					m_defaultGuiStyle,
+					markerSystem->makePropertyUIIdentifier(MarkerObjectSystemDefinition::k_charucoDictionaryTypePropertyId),
+					"Charuco Dictionary",
+					&m_dictDataSource, selectedIndex))
 			{
-				addDeferredGuiEvent([this, selectedIndex]() {
+				addDeferredGuiEvent([this, selectedIndex]()
+									{
 					if (auto d = getMarkerObjectSystemDefinition())
-						d->setCharucoDictionaryType((eCharucoDictionaryType)selectedIndex);
-				});
+						d->setCharucoDictionaryType((eCharucoDictionaryType)selectedIndex); });
 			}
 			return true;
 		});
@@ -77,7 +81,7 @@ void GuiPanel_MarkerObjectSystem::onGui()
 
 MarkerObjectSystemPtr GuiPanel_MarkerObjectSystem::getMarkerObjectSystem() const
 {
-	MikanObjectSystemPtr objectSystem = m_objectSystem.lock();
+	MikanObjectSystemPtr objectSystem= m_objectSystem.lock();
 	if (objectSystem)
 	{
 		return std::static_pointer_cast<MarkerObjectSystem>(objectSystem);
@@ -87,7 +91,7 @@ MarkerObjectSystemPtr GuiPanel_MarkerObjectSystem::getMarkerObjectSystem() const
 
 MarkerObjectSystemDefinitionPtr GuiPanel_MarkerObjectSystem::getMarkerObjectSystemDefinition() const
 {
-	auto markerObjectSystem = getMarkerObjectSystem();
+	auto markerObjectSystem= getMarkerObjectSystem();
 	if (markerObjectSystem)
 	{
 		return markerObjectSystem->getTypedDefinition();

@@ -39,11 +39,11 @@
 // -- ClientTextureNodeConfig -----
 configuru::Config ColorTextureSourceNodeConfig::writeToJSON()
 {
-	configuru::Config pt = NodeConfig::writeToJSON();
+	configuru::Config pt= NodeConfig::writeToJSON();
 
-	pt["texture_source_color_type"] = k_textureSourceColorTypeStrings[(int)textureSourceColorType];
-	pt["texture_source_id"] = textureSourceId;
-	pt["vertical_flip"] = bVerticalFlip;
+	pt["texture_source_color_type"]= k_textureSourceColorTypeStrings[(int)textureSourceColorType];
+	pt["texture_source_id"]= textureSourceId;
+	pt["vertical_flip"]= bVerticalFlip;
 
 	return pt;
 }
@@ -52,16 +52,16 @@ void ColorTextureSourceNodeConfig::readFromJSON(const configuru::Config& pt)
 {
 	NodeConfig::readFromJSON(pt);
 
-	const std::string clientTextureTypeString =
+	const std::string clientTextureTypeString=
 		pt.get_or<std::string>(
 			"texture_source_color_type",
 			k_textureSourceColorTypeStrings[(int)eTextureSourceColorType::colorRGB]);
-	textureSourceColorType =
+	textureSourceColorType=
 		StringUtils::FindEnumValue<eTextureSourceColorType>(
 			clientTextureTypeString, k_textureSourceColorTypeStrings);
-	bVerticalFlip = pt.get_or<bool>("vertical_flip", false);
+	bVerticalFlip= pt.get_or<bool>("vertical_flip", false);
 
-	textureSourceId = pt.get_or<int>("texture_source_id", INVALID_MIKAN_ID);
+	textureSourceId= pt.get_or<int>("texture_source_id", INVALID_MIKAN_ID);
 }
 
 // -- ClientTextureNode -----
@@ -69,16 +69,16 @@ bool ColorTextureSourceNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 {
 	if (Node::loadFromConfig(nodeConfig))
 	{
-		auto textureSourceNodeConfig = std::static_pointer_cast<const ColorTextureSourceNodeConfig>(nodeConfig);
+		auto textureSourceNodeConfig= std::static_pointer_cast<const ColorTextureSourceNodeConfig>(nodeConfig);
 
 		m_clientTextureType= textureSourceNodeConfig->textureSourceColorType;
 		m_bVerticalFlip= textureSourceNodeConfig->bVerticalFlip;
 
 		// Get the client video source component corresponding to the saved video source id
-		ProjectManagerPtr projectManager = getOwnerProject();
+		ProjectManagerPtr projectManager= getOwnerProject();
 		if (projectManager)
 		{
-			m_textureSourceComponent =
+			m_textureSourceComponent=
 				TextureSourceQueries::getTextureSourceById(
 					projectManager,
 					textureSourceNodeConfig->textureSourceId);
@@ -92,15 +92,15 @@ bool ColorTextureSourceNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 
 void ColorTextureSourceNode::saveToConfig(NodeConfigPtr nodeConfig) const
 {
-	auto textureSourceNodeConfig = std::static_pointer_cast<ColorTextureSourceNodeConfig>(nodeConfig);
+	auto textureSourceNodeConfig= std::static_pointer_cast<ColorTextureSourceNodeConfig>(nodeConfig);
 	TextureSourceComponentPtr textureSourceComponent= getTextureSourceComponent();
 
-	textureSourceNodeConfig->textureSourceColorType = m_clientTextureType;
-	textureSourceNodeConfig->bVerticalFlip = m_bVerticalFlip;
-	textureSourceNodeConfig->textureSourceId =
-		textureSourceComponent 
-		? textureSourceComponent->getTextureSourceId() 
-		: INVALID_MIKAN_ID;
+	textureSourceNodeConfig->textureSourceColorType= m_clientTextureType;
+	textureSourceNodeConfig->bVerticalFlip= m_bVerticalFlip;
+	textureSourceNodeConfig->textureSourceId=
+		textureSourceComponent
+			? textureSourceComponent->getTextureSourceId()
+			: INVALID_MIKAN_ID;
 
 	Node::saveToConfig(nodeConfig);
 }
@@ -112,10 +112,9 @@ TextureSourceComponentPtr ColorTextureSourceNode::getTextureSourceComponent() co
 
 IMkTexturePtr ColorTextureSourceNode::getTextureResource() const
 {
-	return 
-		m_bVerticalFlip && m_colorFrameBuffer 
-		? m_colorFrameBuffer->getColorTexture() 
-		: getColorSourceTexture();
+	return m_bVerticalFlip && m_colorFrameBuffer
+			   ? m_colorFrameBuffer->getColorTexture()
+			   : getColorSourceTexture();
 }
 
 bool ColorTextureSourceNode::evaluateNode(NodeEvaluator& evaluator)
@@ -138,15 +137,15 @@ bool ColorTextureSourceNode::evaluateNode(NodeEvaluator& evaluator)
 
 IMkTexturePtr ColorTextureSourceNode::getColorSourceTexture() const
 {
-	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
+	auto compositorGraph= std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
 	CameraComponentPtr boundCameraComponent= compositorGraph->getBoundCameraComponent();
-	CompositorComponentPtr boundCompositorComponent = compositorGraph->getBoundCompositorComponent();
-	TextureSourceComponentPtr textureSourceComponent = getTextureSourceComponent();
+	CompositorComponentPtr boundCompositorComponent= compositorGraph->getBoundCompositorComponent();
+	TextureSourceComponentPtr textureSourceComponent= getTextureSourceComponent();
 
 	if (boundCompositorComponent && boundCameraComponent && textureSourceComponent)
 	{
 		const int64_t pendingFrameIndex= boundCompositorComponent->getPendingCompositedFrameIndex();
-		IMkTexturePtr clientTexture = 
+		IMkTexturePtr clientTexture=
 			textureSourceComponent->getClientColorSourceTexture(
 				boundCameraComponent->getCameraId(),
 				m_clientTextureType,
@@ -159,7 +158,7 @@ IMkTexturePtr ColorTextureSourceNode::getColorSourceTexture() const
 		}
 		else
 		{
-			auto* textureCache = getOwnerGraph()->getOwnerWindow()->getGraphicsContext()->getTextureCache();
+			auto* textureCache= getOwnerGraph()->getOwnerWindow()->getGraphicsContext()->getTextureCache();
 
 			if (m_clientTextureType == eTextureSourceColorType::colorRGBA)
 			{
@@ -177,15 +176,15 @@ IMkTexturePtr ColorTextureSourceNode::getColorSourceTexture() const
 
 void ColorTextureSourceNode::updateColorFrameBuffer(NodeEvaluator& evaluator, IMkTexturePtr clientTexture)
 {
-	IMkGraphicsContext* graphicsContext = evaluator.getCurrentGraphicsContext();
+	IMkGraphicsContext* graphicsContext= evaluator.getCurrentGraphicsContext();
 
-	assert(m_clientTextureType == eTextureSourceColorType::colorRGBA || 
+	assert(m_clientTextureType == eTextureSourceColorType::colorRGBA ||
 		   m_clientTextureType == eTextureSourceColorType::colorRGB);
 
 	// Create the color frame buffer if it doesn't exist yet and we want to flip the Y axis
 	if (m_colorFrameBuffer == nullptr && m_bVerticalFlip)
 	{
-		m_colorFrameBuffer = createMkFrameBuffer("ColorTextureSourceNode");
+		m_colorFrameBuffer= createMkFrameBuffer("ColorTextureSourceNode");
 		m_colorFrameBuffer->setFrameBufferType(IMkFrameBuffer::eFrameBufferType::COLOR);
 
 		switch (m_clientTextureType)
@@ -202,8 +201,8 @@ void ColorTextureSourceNode::updateColorFrameBuffer(NodeEvaluator& evaluator, IM
 	else if (m_colorFrameBuffer != nullptr && !m_bVerticalFlip)
 	{
 		m_colorFrameBuffer->disposeResources();
-		m_colorFrameBuffer = nullptr;
-		m_colorMaterialInstance = nullptr;
+		m_colorFrameBuffer= nullptr;
+		m_colorMaterialInstance= nullptr;
 	}
 
 	// Update the color frame buffer if it exists
@@ -219,19 +218,19 @@ void ColorTextureSourceNode::updateColorFrameBuffer(NodeEvaluator& evaluator, IM
 			m_colorFrameBuffer->createResources();
 
 			// Re-create the render material instance
-			const std::string colorMaterialName =
+			const std::string colorMaterialName=
 				m_clientTextureType == eTextureSourceColorType::colorRGBA
-				? INTERNAL_MATERIAL_PT_FULLSCREEN_RGBA_TEXTURE
-				: INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE;
-			MkMaterialConstPtr colorMaterial =
+					? INTERNAL_MATERIAL_PT_FULLSCREEN_RGBA_TEXTURE
+					: INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE;
+			MkMaterialConstPtr colorMaterial=
 				graphicsContext->getShaderCache()->getMaterialByName(colorMaterialName);
 			if (colorMaterial != nullptr)
 			{
-				m_colorMaterialInstance = createMkMaterialInstance(colorMaterial);
+				m_colorMaterialInstance= createMkMaterialInstance(colorMaterial);
 			}
 			else
 			{
-				m_colorMaterialInstance = nullptr;
+				m_colorMaterialInstance= nullptr;
 				MIKAN_LOG_ERROR("updateColorFrameBuffer") << "Failed to get color material";
 			}
 		}
@@ -246,7 +245,7 @@ void ColorTextureSourceNode::updateColorFrameBuffer(NodeEvaluator& evaluator, IM
 			m_colorFrameBuffer);
 		if (colorFramebufferBinding)
 		{
-			IMkState* glState = colorFramebufferBinding.getMkState();
+			IMkState* glState= colorFramebufferBinding.getMkState();
 
 			evaluateFlippedColorTexture(glState, clientTexture);
 		}
@@ -258,8 +257,8 @@ void ColorTextureSourceNode::evaluateFlippedColorTexture(IMkState* glState, IMkT
 	assert(colorTexture);
 	assert(m_colorMaterialInstance);
 
-	MkMaterialConstPtr material = m_colorMaterialInstance->getMaterial();
-	if (auto materialBinding = material->bindMaterial())
+	MkMaterialConstPtr material= m_colorMaterialInstance->getMaterial();
+	if (auto materialBinding= material->bindMaterial())
 	{
 		// Bind the color texture
 		if (m_clientTextureType == eTextureSourceColorType::colorRGBA)
@@ -272,9 +271,9 @@ void ColorTextureSourceNode::evaluateFlippedColorTexture(IMkState* glState, IMkT
 		}
 
 		// Draw the color texture
-		if (auto materialInstanceBinding = m_colorMaterialInstance->bindMaterialInstance(materialBinding))
+		if (auto materialInstanceBinding= m_colorMaterialInstance->bindMaterialInstance(materialBinding))
 		{
-			auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
+			auto compositorGraph= std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
 
 			compositorGraph->getLayerVFlippedMesh()->drawElements();
 		}
@@ -283,7 +282,7 @@ void ColorTextureSourceNode::evaluateFlippedColorTexture(IMkState* glState, IMkT
 
 std::shared_ptr<MkNodesScopedColorStyle> ColorTextureSourceNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
 {
-	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225))
 		.push(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225))
 		.push(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
@@ -293,9 +292,9 @@ std::shared_ptr<MkNodesScopedColorStyle> ColorTextureSourceNode::editorRenderMak
 std::string ColorTextureSourceNode::editorGetTitle() const
 {
 	if (!isDefaultNode())
-	{ 
+	{
 		TextureSourceComponentPtr textureSource= getTextureSourceComponent();
-		std::string sourceId = textureSource ? textureSource->getName() : "<None>";
+		std::string sourceId= textureSource ? textureSource->getName() : "<None>";
 
 		return StringUtils::stringify("Color Source ", sourceId);
 	}
@@ -305,7 +304,7 @@ std::string ColorTextureSourceNode::editorGetTitle() const
 
 void ColorTextureSourceNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	auto nodeStyle = editorRenderMakeNodeStyle(editorState);
+	auto nodeStyle= editorRenderMakeNodeStyle(editorState);
 	MkNodesScopedNode scopedNode(m_id);
 
 	// Title
@@ -313,8 +312,8 @@ void ColorTextureSourceNode::editorRenderNode(const NodeEditorState& editorState
 
 	// Texture Preview
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
-	IMkTexturePtr textureResource = getTextureResource();
-	uint32_t glTextureId = textureResource ? textureResource->getGlTextureId() : 0;
+	IMkTexturePtr textureResource= getTextureResource();
+	uint32_t glTextureId= textureResource ? textureResource->getGlTextureId() : 0;
 	ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
 	ImGui::SameLine();
 
@@ -331,31 +330,31 @@ void ColorTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& ed
 		// Texture Type
 		int iTextureType= (int)m_clientTextureType;
 		if (NodeEditorUI::DrawSimpleComboBoxProperty(
-			"textureSourceColorType",
-			"Type",
-			"colorRGB\0colorRGBA\0",
-			iTextureType,
-			editorState.styleManager))
+				"textureSourceColorType",
+				"Type",
+				"colorRGB\0colorRGBA\0",
+				iTextureType,
+				editorState.styleManager))
 		{
 			m_clientTextureType= (eTextureSourceColorType)iTextureType;
 		}
 
 		// Texture Type
-		ProjectManagerPtr projectManager = getOwnerProject();
+		ProjectManagerPtr projectManager= getOwnerProject();
 		TextureSourceListDataSource dataSource(projectManager);
 		if (dataSource.getEntryCount() > 0)
 		{
-			TextureSourceComponentPtr TextureSourceComponent = getTextureSourceComponent();
+			TextureSourceComponentPtr TextureSourceComponent= getTextureSourceComponent();
 
-			int selectedIndex = dataSource.getEntryIndex(TextureSourceComponent);
+			int selectedIndex= dataSource.getEntryIndex(TextureSourceComponent);
 			if (NodeEditorUI::DrawComboBoxProperty(
-				"textureSourceIndex",
-				"Source",
-				&dataSource,
-				selectedIndex,
-				editorState.styleManager))
+					"textureSourceIndex",
+					"Source",
+					&dataSource,
+					selectedIndex,
+					editorState.styleManager))
 			{
-				m_textureSourceComponent = dataSource.getEntryAtIndex(selectedIndex);
+				m_textureSourceComponent= dataSource.getEntryAtIndex(selectedIndex);
 			}
 		}
 
@@ -371,8 +370,8 @@ void ColorTextureSourceNode::editorRenderPropertySheet(const NodeEditorState& ed
 NodePtr ColorTextureSourceNodeFactory::createNode(const NodeEditorState& editorState) const
 {
 	// Create the node and pins
-	NodePtr node = NodeFactory::createNode(editorState);
-	auto outputPin = node->addPin<TexturePin>("texture", eNodePinDirection::OUTPUT);
+	NodePtr node= NodeFactory::createNode(editorState);
+	auto outputPin= node->addPin<TexturePin>("texture", eNodePinDirection::OUTPUT);
 	outputPin->editorSetShowPinName(false);
 
 	// If spawned in an editor context from a dangling pin link

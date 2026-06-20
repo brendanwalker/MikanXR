@@ -6,7 +6,7 @@
 class ArrayPinConfig : public NodePinConfig
 {
 public:
-	ArrayPinConfig() = default;
+	ArrayPinConfig()= default;
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -17,7 +17,7 @@ public:
 class ArrayPin : public NodePin
 {
 public:
-	ArrayPin() = default;
+	ArrayPin()= default;
 
 	virtual bool loadFromConfig(NodeGraphPtr ownerGraph, NodePinConfigConstPtr config) override;
 	virtual void saveToConfig(NodePinConfigPtr config) const override;
@@ -27,10 +27,10 @@ public:
 
 	inline const std::vector<GraphPropertyPtr>& getArray() const { return m_array; }
 	inline std::vector<GraphPropertyPtr>& getArrayMutable() { return m_array; }
-	inline void setArray(const std::vector<GraphPropertyPtr>& inArray) { m_array = inArray; }
+	inline void setArray(const std::vector<GraphPropertyPtr>& inArray) { m_array= inArray; }
 	inline void clearArray() { m_array.clear(); }
 
-	inline static const std::string k_pinClassName = "ArrayPin";
+	inline static const std::string k_pinClassName= "ArrayPin";
 	virtual std::string getClassName() const override { return k_pinClassName; }
 	virtual size_t getDataSize() const { return sizeof(GraphPropertyPtr) * m_array.size(); }
 	virtual bool canPinsBeConnected(NodePinPtr otherPinPtr) const override;

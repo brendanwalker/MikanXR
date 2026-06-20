@@ -8,7 +8,7 @@ enum class eVideoFrameProcessorMode : int
 	COMPOSITOR,  // GPU-based shader undistortion
 };
 
-#define LEFT_PROJECTION_INDEX  0
+#define LEFT_PROJECTION_INDEX 0
 #define RIGHT_PROJECTION_INDEX 1
 
 #define MONO_PROJECTION_COUNT 1
@@ -20,14 +20,14 @@ enum class eVideoFrameProcessorMode : int
 /// The list of possible sub sections to extract from a video frame
 enum class VideoFrameSection : int
 {
-	Left = 0, ///< The left frame from a stereo camera
-	Right = 1, ///< The right frame from a stereo camera
-	Primary = 0  ///< The only frame from a stereo camera
+	Left= 0,   ///< The left frame from a stereo camera
+	Right= 1,  ///< The right frame from a stereo camera
+	Primary= 0 ///< The only frame from a stereo camera
 };
 
 enum class eVideoDisplayMode : int
 {
-	INVALID = -1,
+	INVALID= -1,
 
 	mode_bgr,
 	mode_undistored,
@@ -39,7 +39,7 @@ extern const std::string* k_videoDisplayModeStrings;
 
 enum class eVideoTextureSource : int
 {
-	INVALID = -1,
+	INVALID= -1,
 
 	video_texture,
 	distortion_texture,

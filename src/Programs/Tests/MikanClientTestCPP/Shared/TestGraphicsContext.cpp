@@ -13,13 +13,13 @@ MikanVector2i TestGraphicsContext::getWindowPixelSize() const
 	int newWidth, newHeight;
 	SDL_GetWindowSize(getSDLWindow(), &newWidth, &newHeight);
 
-	return { newWidth, newHeight };
+	return {newWidth, newHeight};
 }
 
 // Camera Render Target Helpers
 TestCameraRenderTargetPtr TestGraphicsContext::getCameraRenderTarget(MikanCameraID cameraId) const
 {
-	auto it = m_cameraRenderTargetMap.find(cameraId);
+	auto it= m_cameraRenderTargetMap.find(cameraId);
 	if (it != m_cameraRenderTargetMap.end())
 	{
 		return it->second;
@@ -31,26 +31,26 @@ TestCameraRenderTargetPtr TestGraphicsContext::getCameraRenderTarget(MikanCamera
 TestCameraRenderTargetPtr TestGraphicsContext::getOrAddCameraRenderTarget(
 	MikanCameraID cameraId)
 {
-	TestCameraRenderTargetPtr renderTarget = getCameraRenderTarget(cameraId);
+	TestCameraRenderTargetPtr renderTarget= getCameraRenderTarget(cameraId);
 	if (!renderTarget)
 	{
-		renderTarget = allocateCameraRenderTarget(cameraId);
-		m_cameraRenderTargetMap.insert({ cameraId, renderTarget });
+		renderTarget= allocateCameraRenderTarget(cameraId);
+		m_cameraRenderTargetMap.insert({cameraId, renderTarget});
 	}
 
 	return renderTarget;
 }
 
 void TestGraphicsContext::removeCameraRenderTarget(
-	IMikanAPIPtr mikanApi, 
+	IMikanAPIPtr mikanApi,
 	MikanCameraID cameraId)
 {
-	auto it = m_cameraRenderTargetMap.find(cameraId);
+	auto it= m_cameraRenderTargetMap.find(cameraId);
 	if (it != m_cameraRenderTargetMap.end())
 	{
-		TestCameraRenderTargetPtr cameraRenderTarget = it->second;
+		TestCameraRenderTargetPtr cameraRenderTarget= it->second;
 
-		// Teardown the render target 
+		// Teardown the render target
 		cameraRenderTarget->dispose(mikanApi);
 
 		// Remove the entry from the map
@@ -62,8 +62,8 @@ void TestGraphicsContext::removeAllCameraRenderTargets(IMikanAPIPtr mikanApi)
 {
 	for (auto it : m_cameraRenderTargetMap)
 	{
-		TestCameraRenderTargetPtr cameraRenderTarget = it.second;
-		
+		TestCameraRenderTargetPtr cameraRenderTarget= it.second;
+
 		// Signal to mikan to tear down shared texture on its end
 		cameraRenderTarget->dispose(mikanApi);
 	}

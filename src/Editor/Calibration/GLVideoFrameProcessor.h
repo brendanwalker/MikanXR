@@ -9,7 +9,7 @@ class GLVideoFrameProcessor
 {
 public:
 	GLVideoFrameProcessor();
-	~GLVideoFrameProcessor() = default;
+	~GLVideoFrameProcessor()= default;
 
 	void init(IMkShaderCache* shaderCache);
 	void ensureBufferSize(int width, int height);

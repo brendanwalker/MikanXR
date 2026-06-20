@@ -27,9 +27,10 @@
 #include "Graphs/NodeEvaluator.h"
 
 // -- ShapeNodeGraph -----
-const std::string ShapeNodeGraph::k_renderShapeEventName = "OnRenderShape";
+const std::string ShapeNodeGraph::k_renderShapeEventName= "OnRenderShape";
 
-ShapeNodeGraph::ShapeNodeGraph() : NodeGraph()
+ShapeNodeGraph::ShapeNodeGraph()
+	: NodeGraph()
 {
 	// Assets this graph can reference
 	addAssetReferenceFactory<MaterialAssetReferenceFactory>();
@@ -54,16 +55,16 @@ ShapeNodeGraph::ShapeNodeGraph() : NodeGraph()
 
 bool ShapeNodeGraph::loadFromConfig(const NodeGraphConfig& config)
 {
-	bool bSuccess = true;
+	bool bSuccess= true;
 
 	if (NodeGraph::loadFromConfig(config))
 	{
-		bSuccess = bindEventNodes();
+		bSuccess= bindEventNodes();
 	}
 	else
 	{
 		MIKAN_LOG_ERROR("ShapeNodeGraph::loadFromConfig") << "Failed to parse node graph config";
-		bSuccess = false;
+		bSuccess= false;
 	}
 
 	return bSuccess;
@@ -71,14 +72,14 @@ bool ShapeNodeGraph::loadFromConfig(const NodeGraphConfig& config)
 
 bool ShapeNodeGraph::bindEventNodes()
 {
-	bool bSuccess = true;
+	bool bSuccess= true;
 
-	m_renderShapeEventNode = getEventNodeByName(k_renderShapeEventName);
+	m_renderShapeEventNode= getEventNodeByName(k_renderShapeEventName);
 	if (!m_renderShapeEventNode)
 	{
 		MIKAN_LOG_ERROR("ShapeNodeGraph::bindEventNodes")
 			<< "Failed to find event node: " << k_renderShapeEventName;
-		bSuccess = false;
+		bSuccess= false;
 	}
 
 	return bSuccess;
@@ -88,9 +89,9 @@ bool ShapeNodeGraph::renderShape(const glm::mat4& vpMatrix, NodeEvaluator& evalu
 {
 	if (m_renderShapeEventNode)
 	{
-		m_vpMatrix = vpMatrix;
+		m_vpMatrix= vpMatrix;
 		evaluator.evaluateFlowPinChain(m_renderShapeEventNode);
-		m_vpMatrix = glm::mat4(1.f);
+		m_vpMatrix= glm::mat4(1.f);
 	}
 	else
 	{
@@ -107,7 +108,7 @@ bool ShapeNodeGraph::bindToShapeComponent(ShapeComponentPtr shapeComponent)
 {
 	if (shapeComponent)
 	{
-		m_boundShapeComponent = shapeComponent;
+		m_boundShapeComponent= shapeComponent;
 		return true;
 	}
 
@@ -130,17 +131,17 @@ ShapeComponentPtr ShapeNodeGraph::getBoundShapeComponent() const
 // -- ShapeNodeGraphFactory -----
 NodeGraphPtr ShapeNodeGraphFactory::initialCreateNodeGraph(IEditorWindow* ownerWindow) const
 {
-	auto nodeGraph = NodeGraphFactory::initialCreateNodeGraph(ownerWindow);
+	auto nodeGraph= NodeGraphFactory::initialCreateNodeGraph(ownerWindow);
 	if (!nodeGraph)
 		return NodeGraphPtr();
 
-	auto shapeNodeGraph = std::static_pointer_cast<ShapeNodeGraph>(nodeGraph);
+	auto shapeNodeGraph= std::static_pointer_cast<ShapeNodeGraph>(nodeGraph);
 
 	// Add the default OnRenderShape event node
 	NodeEditorState editorState;
-	editorState.nodeGraph = shapeNodeGraph;
+	editorState.nodeGraph= shapeNodeGraph;
 
-	auto renderShapeNode = shapeNodeGraph->createTypedNode<EventNode>(editorState);
+	auto renderShapeNode= shapeNodeGraph->createTypedNode<EventNode>(editorState);
 	renderShapeNode->setName(ShapeNodeGraph::k_renderShapeEventName);
 
 	// Store off pointer to the event node we manually created

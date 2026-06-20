@@ -7,7 +7,7 @@
 class GraphArrayPropertyConfig : public GraphPropertyConfig
 {
 public:
-	GraphArrayPropertyConfig() = default;
+	GraphArrayPropertyConfig()= default;
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -18,9 +18,9 @@ public:
 class GraphArrayProperty : public GraphProperty
 {
 public:
-	GraphArrayProperty() = default;
+	GraphArrayProperty()= default;
 
-	inline static const std::string k_propertyClassName = "GraphArrayProperty";
+	inline static const std::string k_propertyClassName= "GraphArrayProperty";
 	virtual std::string getClassName() const override { return k_propertyClassName; }
 
 	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig,

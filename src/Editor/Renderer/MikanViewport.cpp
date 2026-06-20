@@ -25,8 +25,8 @@ MikanViewport::MikanViewport(
 
 void MikanViewport::setViewport(const glm::i32vec2& viewportOrigin, const glm::i32vec2& viewportSize)
 {
-	m_viewportOrigin = glm::max(glm::min(viewportOrigin, m_windowSize), glm::i32vec2(0, 0));
-	m_viewportSize = glm::min((m_viewportOrigin + viewportSize), m_windowSize) - m_viewportOrigin;
+	m_viewportOrigin= glm::max(glm::min(viewportOrigin, m_windowSize), glm::i32vec2(0, 0));
+	m_viewportSize= glm::min((m_viewportOrigin + viewportSize), m_windowSize) - m_viewportOrigin;
 
 	// Net valid until applyViewport
 	m_renderOrigin= glm::i32vec2();
@@ -62,14 +62,14 @@ void MikanViewport::applyRenderingViewport(IMkState* glState)
 
 void MikanViewport::onRenderingViewportApply(int x, int y, int width, int height)
 {
-	m_renderOrigin = glm::i32vec2(x, y);
-	m_renderSize = glm::i32vec2(width, height);
+	m_renderOrigin= glm::i32vec2(x, y);
+	m_renderSize= glm::i32vec2(width, height);
 }
 
 void MikanViewport::onRenderingViewportRevert(int x, int y, int width, int height)
 {
-	m_renderOrigin = glm::i32vec2(x, y);
-	m_renderSize = glm::i32vec2(width, height);
+	m_renderOrigin= glm::i32vec2(x, y);
+	m_renderSize= glm::i32vec2(width, height);
 
 	// Deregister from the graphics context when the scoped state is popped.
 	m_ownerWindow->getGraphicsContext()->setRenderingViewport(nullptr);
@@ -79,8 +79,8 @@ bool MikanViewport::getRenderingViewport(glm::i32vec2& outOrigin, glm::i32vec2& 
 {
 	if (m_renderSize.x > 0 && m_renderSize.y > 0)
 	{
-		outOrigin = m_renderOrigin;
-		outSize = m_renderSize;
+		outOrigin= m_renderOrigin;
+		outSize= m_renderSize;
 		return true;
 	}
 
@@ -101,29 +101,29 @@ void MikanViewport::update(float deltaSeconds)
 	if (camera->getCameraMovementMode() == fly)
 	{
 		auto editorObjectSystem= m_ownerWindow->getProjectManager()->getSystemOfType<EditorObjectSystem>();
-		const float cameraSpeed = editorObjectSystem->getEditorSystemConfig()->getCameraSpeed();
-		const float moveDelta = cameraSpeed * deltaSeconds;
+		const float cameraSpeed= editorObjectSystem->getEditorSystemConfig()->getCameraSpeed();
+		const float moveDelta= cameraSpeed * deltaSeconds;
 
 		if (m_isLeftPressed || m_isRightPressed)
 		{
-			const float leftDelta = (m_isLeftPressed) ? -moveDelta : 0.f;
-			const float rightDelta = (m_isRightPressed) ? moveDelta : 0.f;
+			const float leftDelta= (m_isLeftPressed) ? -moveDelta : 0.f;
+			const float rightDelta= (m_isRightPressed) ? moveDelta : 0.f;
 
 			camera->adjustFlyRight(leftDelta + rightDelta);
 		}
 
 		if (m_isForwardPressed || m_isBackwardPressed)
 		{
-			const float forwardDelta = (m_isForwardPressed) ? moveDelta : 0.f;
-			const float backwardDelta = (m_isBackwardPressed) ? -moveDelta : 0.f;
+			const float forwardDelta= (m_isForwardPressed) ? moveDelta : 0.f;
+			const float backwardDelta= (m_isBackwardPressed) ? -moveDelta : 0.f;
 
 			camera->adjustFlyForward(forwardDelta + backwardDelta);
 		}
 
 		if (m_isUpPressed || m_isDownPressed)
 		{
-			const float upDelta = (m_isUpPressed) ? moveDelta : 0.f;
-			const float downDelta = (m_isDownPressed) ? -moveDelta : 0.f;
+			const float upDelta= (m_isUpPressed) ? moveDelta : 0.f;
+			const float downDelta= (m_isDownPressed) ? -moveDelta : 0.f;
 
 			camera->adjustFlyUp(upDelta + downDelta);
 		}
@@ -142,7 +142,7 @@ int MikanViewport::getCurrentCameraIndex() const
 
 IMkCameraPtr MikanViewport::addCamera()
 {
-	MikanCameraPtr newCamera = std::make_shared<MikanCamera>();
+	MikanCameraPtr newCamera= std::make_shared<MikanCamera>();
 	m_cameraPool.push_back(newCamera);
 
 	return newCamera;
@@ -170,7 +170,7 @@ bool MikanViewport::removeCameraByIndex(int cameraIndex)
 		m_cameraPool.erase(m_cameraPool.begin() + cameraIndex);
 		if (m_currentCameraIndex >= getCameraCount())
 		{
-			m_currentCameraIndex = getCameraCount() - 1;
+			m_currentCameraIndex= getCameraCount() - 1;
 		}
 		return true;
 	}
@@ -188,11 +188,11 @@ void MikanViewport::setCurrentCamera(int cameraIndex)
 
 void MikanViewport::setCurrentCamera(IMkCameraPtr camera)
 {
-	for (int i = 0; i < getCameraCount(); ++i)
+	for (int i= 0; i < getCameraCount(); ++i)
 	{
 		if (m_cameraPool[i] == camera)
 		{
-			m_currentCameraIndex = i;
+			m_currentCameraIndex= i;
 			return;
 		}
 	}
@@ -218,41 +218,41 @@ void MikanViewport::bindInput()
 	if (!m_bIsInputBound)
 	{
 		InputManager* inputManager= m_ownerWindow->getInputManager();
-		EventBindingSet* bindingSet = inputManager->getCurrentEventBindingSet();
+		EventBindingSet* bindingSet= inputManager->getCurrentEventBindingSet();
 
-		bindingSet->OnMouseButtonPressedEvent += MakeDelegate(this, &MikanViewport::onMouseButtonPressed);
-		bindingSet->OnMouseButtonReleasedEvent += MakeDelegate(this, &MikanViewport::onMouseButtonReleased);
-		bindingSet->OnMouseMotionEvent += MakeDelegate(this, &MikanViewport::onMouseMotion);
-		bindingSet->OnMouseWheelScrolledEvent += MakeDelegate(this, &MikanViewport::onMouseWheel);
+		bindingSet->OnMouseButtonPressedEvent+= MakeDelegate(this, &MikanViewport::onMouseButtonPressed);
+		bindingSet->OnMouseButtonReleasedEvent+= MakeDelegate(this, &MikanViewport::onMouseButtonReleased);
+		bindingSet->OnMouseMotionEvent+= MakeDelegate(this, &MikanViewport::onMouseMotion);
+		bindingSet->OnMouseWheelScrolledEvent+= MakeDelegate(this, &MikanViewport::onMouseWheel);
 
-		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_a)->OnKeyPressed += 
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_a)->OnKeyPressed+=
 			MakeDelegate(this, &MikanViewport::onLeftButtonPressed);
-		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_a)->OnKeyReleased +=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_a)->OnKeyReleased+=
 			MakeDelegate(this, &MikanViewport::onLeftButtonReleased);
-		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_d)->OnKeyPressed +=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_d)->OnKeyPressed+=
 			MakeDelegate(this, &MikanViewport::onRightButtonPressed);
-		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_d)->OnKeyReleased +=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_d)->OnKeyReleased+=
 			MakeDelegate(this, &MikanViewport::onRightButtonReleased);
 
-		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_w)->OnKeyPressed +=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_w)->OnKeyPressed+=
 			MakeDelegate(this, &MikanViewport::onForwardButtonPressed);
-		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_w)->OnKeyReleased +=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_w)->OnKeyReleased+=
 			MakeDelegate(this, &MikanViewport::onForwardButtonReleased);
-		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_s)->OnKeyPressed +=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_s)->OnKeyPressed+=
 			MakeDelegate(this, &MikanViewport::onBackwardButtonPressed);
-		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_s)->OnKeyReleased +=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_s)->OnKeyReleased+=
 			MakeDelegate(this, &MikanViewport::onBackwardButtonReleased);
 
-		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_e)->OnKeyPressed +=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_e)->OnKeyPressed+=
 			MakeDelegate(this, &MikanViewport::onUpButtonPressed);
-		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_e)->OnKeyReleased +=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_e)->OnKeyReleased+=
 			MakeDelegate(this, &MikanViewport::onUpButtonReleased);
-		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_q)->OnKeyPressed +=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_q)->OnKeyPressed+=
 			MakeDelegate(this, &MikanViewport::onDownButtonPressed);
-		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_q)->OnKeyReleased +=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_q)->OnKeyReleased+=
 			MakeDelegate(this, &MikanViewport::onDownButtonReleased);
 
-		m_bIsInputBound = true;
+		m_bIsInputBound= true;
 	}
 }
 
@@ -260,42 +260,42 @@ void MikanViewport::unbindInput()
 {
 	if (m_bIsInputBound)
 	{
-		InputManager* inputManager = m_ownerWindow->getInputManager();
-		EventBindingSet* bindingSet = inputManager->getCurrentEventBindingSet();
+		InputManager* inputManager= m_ownerWindow->getInputManager();
+		EventBindingSet* bindingSet= inputManager->getCurrentEventBindingSet();
 
-		bindingSet->OnMouseButtonPressedEvent -= MakeDelegate(this, &MikanViewport::onMouseButtonPressed);
-		bindingSet->OnMouseButtonReleasedEvent -= MakeDelegate(this, &MikanViewport::onMouseButtonReleased);
-		bindingSet->OnMouseMotionEvent -= MakeDelegate(this, &MikanViewport::onMouseMotion);
-		bindingSet->OnMouseWheelScrolledEvent -= MakeDelegate(this, &MikanViewport::onMouseWheel);
+		bindingSet->OnMouseButtonPressedEvent-= MakeDelegate(this, &MikanViewport::onMouseButtonPressed);
+		bindingSet->OnMouseButtonReleasedEvent-= MakeDelegate(this, &MikanViewport::onMouseButtonReleased);
+		bindingSet->OnMouseMotionEvent-= MakeDelegate(this, &MikanViewport::onMouseMotion);
+		bindingSet->OnMouseWheelScrolledEvent-= MakeDelegate(this, &MikanViewport::onMouseWheel);
 
-		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_a)->OnKeyPressed -=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_a)->OnKeyPressed-=
 			MakeDelegate(this, &MikanViewport::onLeftButtonPressed);
-		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_a)->OnKeyReleased -=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_a)->OnKeyReleased-=
 			MakeDelegate(this, &MikanViewport::onLeftButtonReleased);
-		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_d)->OnKeyPressed -=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_d)->OnKeyPressed-=
 			MakeDelegate(this, &MikanViewport::onRightButtonPressed);
-		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_d)->OnKeyReleased -=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_d)->OnKeyReleased-=
 			MakeDelegate(this, &MikanViewport::onRightButtonReleased);
 
-		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_w)->OnKeyPressed -=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_w)->OnKeyPressed-=
 			MakeDelegate(this, &MikanViewport::onForwardButtonPressed);
-		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_w)->OnKeyReleased -=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_w)->OnKeyReleased-=
 			MakeDelegate(this, &MikanViewport::onForwardButtonReleased);
-		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_s)->OnKeyPressed -=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_s)->OnKeyPressed-=
 			MakeDelegate(this, &MikanViewport::onBackwardButtonPressed);
-		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_s)->OnKeyReleased -=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_s)->OnKeyReleased-=
 			MakeDelegate(this, &MikanViewport::onBackwardButtonReleased);
 
-		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_e)->OnKeyPressed -=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_e)->OnKeyPressed-=
 			MakeDelegate(this, &MikanViewport::onUpButtonPressed);
-		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_e)->OnKeyReleased -=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_e)->OnKeyReleased-=
 			MakeDelegate(this, &MikanViewport::onUpButtonReleased);
-		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_q)->OnKeyPressed -=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_q)->OnKeyPressed-=
 			MakeDelegate(this, &MikanViewport::onDownButtonPressed);
-		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_q)->OnKeyReleased -=
+		inputManager->fetchOrAddKeyBindings(MkKey::LETTER_q)->OnKeyReleased-=
 			MakeDelegate(this, &MikanViewport::onDownButtonReleased);
 
-		m_bIsInputBound = false;
+		m_bIsInputBound= false;
 	}
 }
 
@@ -304,10 +304,10 @@ bool MikanViewport::getCursorViewportPixelPos(glm::vec2& outViewportLocation) co
 	int mouse_x, mouse_y;
 	m_ownerWindow->getInputManager()->getMouseScreenPosition(mouse_x, mouse_y);
 
-	const int min_x = m_viewportOrigin.x;
-	const int min_y = m_viewportOrigin.y;
-	const int max_x = min_x + m_viewportSize.x;
-	const int max_y = min_y + m_viewportSize.y;
+	const int min_x= m_viewportOrigin.x;
+	const int min_y= m_viewportOrigin.y;
+	const int max_x= min_x + m_viewportSize.x;
+	const int max_y= min_y + m_viewportSize.y;
 
 	if (mouse_x >= min_x && mouse_x <= max_x && mouse_y >= min_y && mouse_y <= max_y)
 	{
@@ -321,14 +321,14 @@ bool MikanViewport::getCursorViewportPixelPos(glm::vec2& outViewportLocation) co
 
 void MikanViewport::onMouseMotion(int deltaX, int deltaY)
 {
-	MikanCameraPtr camera = std::static_pointer_cast<MikanCamera>(getCurrentCamera());
+	MikanCameraPtr camera= std::static_pointer_cast<MikanCamera>(getCurrentCamera());
 
 	glm::vec2 viewportPos;
 	if (camera && getCursorViewportPixelPos(viewportPos))
 	{
 		if (!m_isMouseInViewport)
 		{
-			m_isMouseInViewport = true;
+			m_isMouseInViewport= true;
 			if (OnMouseEntered)
 				OnMouseEntered();
 		}
@@ -342,25 +342,27 @@ void MikanViewport::onMouseMotion(int deltaX, int deltaY)
 
 		if (m_isCameraRotateButtonPressed)
 		{
-			float deltaYaw = -(float)deltaX * k_camera_mouse_pan_scalar;
-			float deltaPitch = (float)deltaY * k_camera_mouse_pan_scalar;
+			float deltaYaw= -(float)deltaX * k_camera_mouse_pan_scalar;
+			float deltaPitch= (float)deltaY * k_camera_mouse_pan_scalar;
 
 			switch (camera->getCameraMovementMode())
 			{
-				case eCameraMovementMode::fly:
-					{
-						if (!is_nearly_zero(deltaYaw))
-							camera->adjustFlyYaw(deltaYaw);
+			case eCameraMovementMode::fly:
+			{
+				if (!is_nearly_zero(deltaYaw))
+					camera->adjustFlyYaw(deltaYaw);
 
-						if (!is_nearly_zero(deltaPitch))
-							camera->adjustFlyPitch(deltaPitch);
-					} break;
-				case eCameraMovementMode::orbit:
-					{
-						camera->adjustOrbitAngles(deltaYaw, deltaPitch);
-					} break;
-				default:
-					break;
+				if (!is_nearly_zero(deltaPitch))
+					camera->adjustFlyPitch(deltaPitch);
+			}
+			break;
+			case eCameraMovementMode::orbit:
+			{
+				camera->adjustOrbitAngles(deltaYaw, deltaPitch);
+			}
+			break;
+			default:
+				break;
 			}
 		}
 	}
@@ -368,7 +370,7 @@ void MikanViewport::onMouseMotion(int deltaX, int deltaY)
 	{
 		if (m_isMouseInViewport)
 		{
-			m_isMouseInViewport = false;
+			m_isMouseInViewport= false;
 			if (OnMouseExited)
 				OnMouseExited();
 		}
@@ -377,7 +379,7 @@ void MikanViewport::onMouseMotion(int deltaX, int deltaY)
 
 void MikanViewport::onMouseButtonPressed(int button)
 {
-	MikanCameraPtr camera = std::static_pointer_cast<MikanCamera>(getCurrentCamera());
+	MikanCameraPtr camera= std::static_pointer_cast<MikanCamera>(getCurrentCamera());
 
 	glm::vec2 viewportPos;
 	if (camera && getCursorViewportPixelPos(viewportPos))
@@ -391,14 +393,14 @@ void MikanViewport::onMouseButtonPressed(int button)
 
 		if (button == MkMouseButton::RIGHT)
 		{
-			m_isCameraRotateButtonPressed = true;
+			m_isCameraRotateButtonPressed= true;
 		}
 	}
 }
 
 void MikanViewport::onMouseButtonReleased(int button)
 {
-	MikanCameraPtr camera = std::static_pointer_cast<MikanCamera>(getCurrentCamera());
+	MikanCameraPtr camera= std::static_pointer_cast<MikanCamera>(getCurrentCamera());
 
 	glm::vec2 viewportPos;
 	if (camera && getCursorViewportPixelPos(viewportPos))
@@ -412,16 +414,16 @@ void MikanViewport::onMouseButtonReleased(int button)
 
 		if (button == MkMouseButton::RIGHT)
 		{
-			m_isCameraRotateButtonPressed = false;
+			m_isCameraRotateButtonPressed= false;
 		}
 	}
 }
 
 void MikanViewport::onMouseWheel(int scrollAmount)
 {
-	float deltaRadius = (float)scrollAmount * k_camera_mouse_zoom_scalar;
+	float deltaRadius= (float)scrollAmount * k_camera_mouse_zoom_scalar;
 
-	MikanCameraPtr camera = std::static_pointer_cast<MikanCamera>(getCurrentCamera());
+	MikanCameraPtr camera= std::static_pointer_cast<MikanCamera>(getCurrentCamera());
 	if (camera)
 	{
 		camera->adjustOrbitRadius(deltaRadius);

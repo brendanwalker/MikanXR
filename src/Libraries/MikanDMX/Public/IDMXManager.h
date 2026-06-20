@@ -11,17 +11,17 @@
 class IDMXManager
 {
 public:
-	IDMXManager() = default;
-	virtual ~IDMXManager() = default;
+	IDMXManager()= default;
+	virtual ~IDMXManager()= default;
 
 	// Lifecycle
-	virtual bool startup(const DMXManagerConfig& config) = 0;
-	virtual void shutdown() = 0;
-	virtual bool getIsRunning() const = 0;
+	virtual bool startup(const DMXManagerConfig& config)= 0;
+	virtual void shutdown()= 0;
+	virtual bool getIsRunning() const= 0;
 
 	// Restart with a new config (e.g., when the user changes the network interface IP).
 	// Equivalent to shutdown() + startup(newConfig).
-	virtual bool restart(const DMXManagerConfig& config) = 0;
+	virtual bool restart(const DMXManagerConfig& config)= 0;
 
 	/// Overwrite a contiguous range of channels within a universe.
 	/// @param universe     E1.31 universe number (1–63999)
@@ -32,7 +32,7 @@ public:
 		uint16_t universe,
 		uint16_t startChannel,
 		const uint8_t* values,
-		uint16_t count) = 0;
+		uint16_t count)= 0;
 
 	/// Overwrite the full 512-slot buffer for a universe.
 	/// Zeros out any slots beyond slotCount.
@@ -42,10 +42,10 @@ public:
 	virtual void setUniverseData(
 		uint16_t universe,
 		const uint8_t* slotData,
-		uint16_t slotCount) = 0;
+		uint16_t slotCount)= 0;
 
 	/// Factory — creates the concrete E1.31 implementation.
 	static std::unique_ptr<IDMXManager> create();
 };
-using IDMXManagerPtr = std::shared_ptr<IDMXManager>;
-using IDMXManagerUniquePtr = std::unique_ptr<IDMXManager>;
+using IDMXManagerPtr= std::shared_ptr<IDMXManager>;
+using IDMXManagerUniquePtr= std::unique_ptr<IDMXManager>;

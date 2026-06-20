@@ -12,11 +12,11 @@
 
 #include <memory>
 
-#define DEFAULT_MONO_HFOV   60.0   // 60 degrees
-#define DEFAULT_MONO_ZNEAR  0.1    // 0.1 meters (10cm)
-#define DEFAULT_MONO_ZFAR   20.0   // 20 meters
+#define DEFAULT_MONO_HFOV 60.0 // 60 degrees
+#define DEFAULT_MONO_ZNEAR 0.1 // 0.1 meters (10cm)
+#define DEFAULT_MONO_ZFAR 20.0 // 20 meters
 
-using t_opengl_point3d_list = std::vector<glm::vec3>;
+using t_opengl_point3d_list= std::vector<glm::vec3>;
 
 struct OpenCVCalibrationGeometry
 {
@@ -31,8 +31,8 @@ struct OpenGLCalibrationGeometry
 // -- interface -----
 glm::mat4 computeGLMCameraViewMatrix(const glm::mat4& poseXform);
 bool computeOpenCVCameraExtrinsicMatrix(
-	CameraComponentPtr cameraComponent, 
-	cv::Matx34f &out);
+	CameraComponentPtr cameraComponent,
+	cv::Matx34f& out);
 
 bool computeMonoLensCameraCalibration(
 	const int frameWidth,
@@ -49,7 +49,7 @@ bool computeOpenCVCameraRelativePatternTransform(
 	const t_opencv_point3d_list& objectPointsMM,
 	cv::Quatd& outOrientation,
 	cv::Vec3d& outPositionMM,
-	double *outMeanError= nullptr);
+	double* outMeanError= nullptr);
 void convertOpenCVCameraRelativePoseToGLMMat(
 	const cv::Quatd& orientation,
 	const cv::Vec3d& positionMM,
@@ -72,8 +72,8 @@ void extractCameraIntrinsicMatrixParameters(
 bool computeOpenCVCameraRectification(
 	VideoSourceComponentPtr videoSource,
 	VideoFrameSection section,
-	cv::Matx33d &rotationOut,
-	cv::Matx34d &projectionOut);
+	cv::Matx33d& rotationOut,
+	cv::Matx34d& projectionOut);
 
 void createDefautMonoIntrinsics(
 	int pixelWidth,
@@ -85,12 +85,16 @@ void computeOpenGLProjMatFromCameraIntrinsics(
 	glm::mat4& outProjection,
 	int* outViewport= nullptr);
 
-enum class eStereoIntrinsicsSide { left, right };
+enum class eStereoIntrinsicsSide
+{
+	left,
+	right
+};
 void computeOpenGLProjMatFromCameraIntrinsics(
 	const struct MikanStereoIntrinsics& intrinsics,
 	eStereoIntrinsicsSide side,
 	glm::mat4& outProjection,
-	int* outViewport = nullptr);
+	int* outViewport= nullptr);
 
 void computeCameraRayAtPixel(
 	const struct MikanMonoIntrinsics& intrinsics,
@@ -118,16 +122,16 @@ struct CameraPuckToApertureResults
 	glm::dmat4 apertureToPatternXform_CameraSpace;
 	glm::dmat4 apertureToMatPuckXform_CameraSpace;
 	glm::dmat4 cameraPuckToApertureXform;
-	bool bIsValid = false;
+	bool bIsValid= false;
 
 	void reset()
 	{
-		patternXform_VRSpace = glm::dmat4(1.0);
-		apertureXform_VRSpace = glm::dmat4(1.0);
-		apertureToPatternXform_CameraSpace = glm::dmat4(1.0);
-		apertureToMatPuckXform_CameraSpace = glm::dmat4(1.0);
-		cameraPuckToApertureXform = glm::dmat4(1.0);
-		bIsValid = false;
+		patternXform_VRSpace= glm::dmat4(1.0);
+		apertureXform_VRSpace= glm::dmat4(1.0);
+		apertureToPatternXform_CameraSpace= glm::dmat4(1.0);
+		apertureToMatPuckXform_CameraSpace= glm::dmat4(1.0);
+		cameraPuckToApertureXform= glm::dmat4(1.0);
+		bIsValid= false;
 	}
 };
 

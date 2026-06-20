@@ -38,7 +38,7 @@ public:
 	inline IMkMeshConstPtr getMesh() const;
 
 	bool getLocalAABB(
-		glm::vec3& outMin, 
+		glm::vec3& outMin,
 		glm::vec3& outMax) const;
 	bool computeRayIntersection(
 		const KdTreeRaycastRequest& request,

@@ -47,10 +47,9 @@ cv::Mat* CalibrationPatternFinder::getGrayscaleVideoFrameInput() const
 {
 	// By default use the undistorted grayscale image unless explicitly disabled
 	// (which should only be the case during distortion calibration)
-	return
-		m_distortionView->isGrayscaleUndistortDisabled()
-		? m_distortionView->getGrayscaleSourceBuffer()
-		: m_distortionView->getGrayscaleUndistortBuffer();
+	return m_distortionView->isGrayscaleUndistortDisabled()
+			   ? m_distortionView->getGrayscaleSourceBuffer()
+			   : m_distortionView->getGrayscaleUndistortBuffer();
 }
 
 bool CalibrationPatternFinder::estimateNewCalibrationPatternPose(glm::dmat4& outCameraToPatternXform)
@@ -79,20 +78,20 @@ bool CalibrationPatternFinder::estimateNewCalibrationPatternPose(glm::dmat4& out
 	}
 
 	// Make a local copy of the mono camera intrinsics
-	MikanMonoIntrinsics monoIntrinsics = cameraIntrinsics.getMonoIntrinsics();
+	MikanMonoIntrinsics monoIntrinsics= cameraIntrinsics.getMonoIntrinsics();
 
-	// Given an object model and the image points samples we could be able to compute 
+	// Given an object model and the image points samples we could be able to compute
 	// a position and orientation of the calibration pattern relative to the camera
 	cv::Quatd cv_cameraToPatternRot;
 	cv::Vec3d cv_cameraToPatternVecMM; // Millimeters
-	double meanReprojectionError = 0.0;
+	double meanReprojectionError= 0.0;
 	if (!computeOpenCVCameraRelativePatternTransform(
-		monoIntrinsics,
-		imagePoints,
-		m_opencvSolvePnPGeometry.points,
-		cv_cameraToPatternRot,
-		cv_cameraToPatternVecMM,
-		&meanReprojectionError))
+			monoIntrinsics,
+			imagePoints,
+			m_opencvSolvePnPGeometry.points,
+			cv_cameraToPatternRot,
+			cv_cameraToPatternVecMM,
+			&meanReprojectionError))
 	{
 		return false;
 	}
@@ -114,12 +113,12 @@ void CalibrationPatternFinder::renderCalibrationPattern2D() const
 {
 	if (areCurrentImagePointsValid())
 	{
-		IMkGraphicsContext* graphicsContext = m_distortionView->getGraphicsContext();
+		IMkGraphicsContext* graphicsContext= m_distortionView->getGraphicsContext();
 
 		drawOpenCVChessBoard2D(
 			graphicsContext,
 			m_frameWidth, m_frameHeight,
-			(float*)m_currentImagePoints.data(), // cv::point2f is just two floats 
+			(float*)m_currentImagePoints.data(), // cv::point2f is just two floats
 			(int)m_currentImagePoints.size(),
 			true);
 	}
@@ -129,12 +128,12 @@ void CalibrationPatternFinder::renderSolvePnPPattern3D(const glm::mat4& xform) c
 {
 	if (areCurrentImagePointsValid())
 	{
-		IMkGraphicsContext* graphicsContext = m_distortionView->getGraphicsContext();
+		IMkGraphicsContext* graphicsContext= m_distortionView->getGraphicsContext();
 
 		drawOpenCVChessBoard3D(
 			graphicsContext,
 			xform,
-			m_openglSolvePnPGeometry.points.data(), // cv::point3f is just three floats 
+			m_openglSolvePnPGeometry.points.data(), // cv::point3f is just three floats
 			(int)m_openglSolvePnPGeometry.points.size(),
 			true);
 	}
@@ -147,23 +146,22 @@ ArucoDictionaryPtr CalibrationPatternFinder::getArucoDictionary(eCharucoDictiona
 	switch (dictionaryType)
 	{
 	case eCharucoDictionaryType::DICT_4X4:
-		cvDictionaryType = cv::aruco::DICT_4X4_250;
+		cvDictionaryType= cv::aruco::DICT_4X4_250;
 		break;
 	case eCharucoDictionaryType::DICT_5X5:
-		cvDictionaryType = cv::aruco::DICT_5X5_250;
+		cvDictionaryType= cv::aruco::DICT_5X5_250;
 		break;
 	case eCharucoDictionaryType::DICT_6X6:
-		cvDictionaryType = cv::aruco::DICT_6X6_250;
+		cvDictionaryType= cv::aruco::DICT_6X6_250;
 		break;
 	case eCharucoDictionaryType::DICT_7X7:
-		cvDictionaryType = cv::aruco::DICT_7X7_250;
+		cvDictionaryType= cv::aruco::DICT_7X7_250;
 		break;
 	default:
-		cvDictionaryType = cv::aruco::DICT_6X6_250;
+		cvDictionaryType= cv::aruco::DICT_6X6_250;
 		break;
 	}
 
-	return 
-		std::make_shared<cv::aruco::Dictionary>(
-			cv::aruco::getPredefinedDictionary(cvDictionaryType));
+	return std::make_shared<cv::aruco::Dictionary>(
+		cv::aruco::getPredefinedDictionary(cvDictionaryType));
 }

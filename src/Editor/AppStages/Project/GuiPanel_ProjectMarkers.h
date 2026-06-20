@@ -11,7 +11,10 @@
 class GuiPanel_ProjectMarkers : public GuiPanel
 {
 public:
-	GuiPanel_ProjectMarkers(AppStage* ownerAppStage) : GuiPanel(ownerAppStage) {}
+	GuiPanel_ProjectMarkers(AppStage* ownerAppStage)
+		: GuiPanel(ownerAppStage)
+	{
+	}
 
 	bool init(class ProjectGuiPanelContext* context);
 	virtual void onGui() override;
@@ -22,9 +25,9 @@ private:
 	MarkerComponentPtr getSelectedMarker() const;
 	void setSelectedMarkerId(MikanMarkerID markerId);
 
-	class ProjectGuiPanelContext* m_context = nullptr;
+	class ProjectGuiPanelContext* m_context= nullptr;
 	MarkerObjectSystemWeakPtr m_markerSystem;
-	int m_selectedMarkerId = INVALID_MIKAN_ID;
+	int m_selectedMarkerId= INVALID_MIKAN_ID;
 
 	MkGuiStyleConstPtr m_defaultGuiStyle;
 	std::unique_ptr<GuiDataSource_ComboBox> m_markerDataSource;

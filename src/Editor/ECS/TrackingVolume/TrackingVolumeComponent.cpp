@@ -13,7 +13,7 @@
 #include "TrackingVolumeQueries.h"
 
 // -- TrackingVolumeDefinition -----
-const std::string TrackingVolumeDefinition::k_originMarkerIdPropertyId = "origin_marker_id";
+const std::string TrackingVolumeDefinition::k_originMarkerIdPropertyId= "origin_marker_id";
 
 TrackingVolumeDefinition::TrackingVolumeDefinition()
 	: MikanComponentDefinition()
@@ -30,9 +30,9 @@ TrackingVolumeDefinition::TrackingVolumeDefinition(
 
 configuru::Config TrackingVolumeDefinition::writeToJSON()
 {
-	configuru::Config pt = MikanComponentDefinition::writeToJSON();
+	configuru::Config pt= MikanComponentDefinition::writeToJSON();
 
-	pt[k_originMarkerIdPropertyId.c_str()] = m_originMarkeId;
+	pt[k_originMarkerIdPropertyId.c_str()]= m_originMarkeId;
 
 	return pt;
 }
@@ -41,7 +41,7 @@ void TrackingVolumeDefinition::readFromJSON(const configuru::Config& pt)
 {
 	MikanComponentDefinition::readFromJSON(pt);
 
-	m_originMarkeId = pt.get_or<MikanMarkerID>(k_originMarkerIdPropertyId.c_str(), m_originMarkeId);
+	m_originMarkeId= pt.get_or<MikanMarkerID>(k_originMarkerIdPropertyId.c_str(), m_originMarkeId);
 }
 
 bool TrackingVolumeDefinition::readFromInitParams(
@@ -51,10 +51,10 @@ bool TrackingVolumeDefinition::readFromInitParams(
 	if (!MikanComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
-	const auto* componentValues = initParams.getTypedPointer<MikanTrackingVolumeComponentValues>();
+	const auto* componentValues= initParams.getTypedPointer<MikanTrackingVolumeComponentValues>();
 	if (componentValues)
 	{
-		m_originMarkeId = componentValues->origin_marker_id;
+		m_originMarkeId= componentValues->origin_marker_id;
 	}
 
 	return true;
@@ -69,7 +69,7 @@ void TrackingVolumeDefinition::setOriginMarkerId(MikanMarkerID arucoId)
 {
 	if (arucoId != m_originMarkeId)
 	{
-		m_originMarkeId = arucoId;
+		m_originMarkeId= arucoId;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_originMarkerIdPropertyId));
 	}
 }
@@ -103,10 +103,10 @@ void TrackingVolumeComponent::init()
 
 void TrackingVolumeComponent::deleteTrackingVolume()
 {
-	TrackingVolumeDefinitionPtr def = getTrackingVolumeDefinition();
+	TrackingVolumeDefinitionPtr def= getTrackingVolumeDefinition();
 	if (def)
 	{
-		ProjectManagerPtr projectManager = getOwnerProjectManager();
+		ProjectManagerPtr projectManager= getOwnerProjectManager();
 		TrackingVolumeQueries::removeTrackingVolume(projectManager, def->getTrackingVolumeId());
 	}
 }
@@ -141,7 +141,7 @@ bool TrackingVolumeComponent::setPropertyValue(
 {
 	if (propertyName == TrackingVolumeDefinition::k_originMarkerIdPropertyId)
 	{
-		MikanMarkerID markerId = inValue.getIntValue();
+		MikanMarkerID markerId= inValue.getIntValue();
 		getTrackingVolumeDefinition()->setOriginMarkerId(markerId);
 		return true;
 	}

@@ -8,7 +8,7 @@ MkGuiScopedChild::MkGuiScopedChild(
 	bool border,
 	ImGuiWindowFlags flags)
 {
-	m_visible = ImGui::BeginChild(str_id, size, border, flags);
+	m_visible= ImGui::BeginChild(str_id, size, border, flags);
 }
 
 MkGuiScopedChild::MkGuiScopedChild(
@@ -17,7 +17,7 @@ MkGuiScopedChild::MkGuiScopedChild(
 	bool border,
 	ImGuiWindowFlags flags)
 {
-	m_visible = ImGui::BeginChild(static_cast<ImGuiID>(id), size, border, flags);
+	m_visible= ImGui::BeginChild(static_cast<ImGuiID>(id), size, border, flags);
 }
 
 MkGuiScopedChild::~MkGuiScopedChild()

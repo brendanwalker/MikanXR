@@ -8,6 +8,6 @@ public:
 	explicit MkNodesScopedNode(int id);
 	~MkNodesScopedNode();
 
-	MkNodesScopedNode(const MkNodesScopedNode&) = delete;
-	MkNodesScopedNode& operator=(const MkNodesScopedNode&) = delete;
+	MkNodesScopedNode(const MkNodesScopedNode&)= delete;
+	MkNodesScopedNode& operator=(const MkNodesScopedNode&)= delete;
 };

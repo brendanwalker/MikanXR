@@ -18,6 +18,6 @@ public:
 	void createPendingGraphicsResources();
 
 private:
-	class IMkGraphicsContext* m_ownerContext = nullptr;
+	class IMkGraphicsContext* m_ownerContext= nullptr;
 	std::map<std::string, class SteamVRRenderModelResource*> m_renderModelCache;
 };

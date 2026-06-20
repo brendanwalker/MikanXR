@@ -2,17 +2,17 @@
 
 struct VRDevicePosition
 {
-	float x = 0.0f;
-	float y = 0.0f;
-	float z = 0.0f;
+	float x= 0.0f;
+	float y= 0.0f;
+	float z= 0.0f;
 };
 
 struct VRDeviceQuat
 {
-	float w = 1.f;
-	float x = 0.f;
-	float y = 0.f;
-	float z = 0.f;
+	float w= 1.f;
+	float x= 0.f;
+	float y= 0.f;
+	float z= 0.f;
 };
 
 // OpenGL right-handed coordinate system

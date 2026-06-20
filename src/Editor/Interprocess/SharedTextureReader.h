@@ -17,14 +17,14 @@ public:
 
 	bool initialize(const MikanRenderTargetDescriptor* descriptor);
 	void dispose();
-	void setColorTexture(IMkTexturePtr texture) { m_colorTexture = texture; }
-	void setDepthTexture(IMkTexturePtr texture) { m_depthTexture = texture; }
+	void setColorTexture(IMkTexturePtr texture) { m_colorTexture= texture; }
+	void setDepthTexture(IMkTexturePtr texture) { m_depthTexture= texture; }
 	inline MikanCameraID getCameraId() const { return m_cameraId; }
 	inline IMkTexturePtr getColorTexture() const { return m_colorTexture; }
 	inline IMkTexturePtr getDepthTexture() const { return m_depthTexture; }
 	inline int64_t getLastFrameRenderedIndex() const { return m_lastFrameRenderedIndex; }
 	bool readRenderTargetTextures(const int64_t newFrameIndex);
-	
+
 	MikanClientGraphicsApi getClientGraphicsAPI() const { return m_descriptor.graphicsAPI; }
 	inline const std::string& getColorSenderName() const { return m_colorSenderName; }
 	inline const std::string& getDepthSenderName() const { return m_depthSenderName; }
@@ -41,4 +41,4 @@ private:
 	IMkTexturePtr m_depthTexture;
 	struct RenderTargetReaderImpl* m_readerImpl;
 };
-using SharedTextureReadAccessorPtr = std::shared_ptr<SharedTextureReadAccessor>;
+using SharedTextureReadAccessorPtr= std::shared_ptr<SharedTextureReadAccessor>;

@@ -10,8 +10,13 @@ struct ImGuiContext;
 struct ImNodesContext;
 
 // Attribute type for MkNodesScopedAttribute
-enum class MkNodesAttributeType { Input, Output, Static };
+enum class MkNodesAttributeType
+{
+	Input,
+	Output,
+	Static
+};
 
 class MkGuiContext;
-using MkGuiContextPtr = std::shared_ptr<MkGuiContext>;
-using MkGuiContextConstPtr = std::shared_ptr<const MkGuiContext>;
+using MkGuiContextPtr= std::shared_ptr<MkGuiContext>;
+using MkGuiContextConstPtr= std::shared_ptr<const MkGuiContext>;

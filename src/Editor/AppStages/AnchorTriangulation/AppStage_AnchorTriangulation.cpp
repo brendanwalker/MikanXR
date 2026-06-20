@@ -31,9 +31,8 @@
 
 #include "glm/gtc/quaternion.hpp"
 
-
 //-- statics ----
-const char* AppStage_AnchorTriangulation::APP_STAGE_NAME = "AnchorTriangulation";
+const char* AppStage_AnchorTriangulation::APP_STAGE_NAME= "AnchorTriangulation";
 
 //-- public methods -----
 AppStage_AnchorTriangulation::AppStage_AnchorTriangulation(IEditorWindow* ownerWindow)
@@ -43,7 +42,7 @@ AppStage_AnchorTriangulation::AppStage_AnchorTriangulation(IEditorWindow* ownerW
 	, m_monoDistortionView(nullptr)
 	, m_mkCamera(nullptr)
 {
-	m_targetAnchor.anchorId = INVALID_MIKAN_ID;
+	m_targetAnchor.anchorId= INVALID_MIKAN_ID;
 	m_targetAnchor.anchorName= "";
 	m_targetAnchor.worldTransform= GlmTransform();
 }
@@ -54,15 +53,15 @@ AppStage_AnchorTriangulation::~AppStage_AnchorTriangulation()
 
 void AppStage_AnchorTriangulation::setBypassCalibrationFlag(bool flag)
 {
-	m_bypassCalibrationFlag = flag;
+	m_bypassCalibrationFlag= flag;
 	if (m_calibrationPanel != nullptr)
 		m_calibrationPanel->setBypassCalibrationFlag(flag);
 }
 
 void AppStage_AnchorTriangulation::setSourceCamera(CameraComponentPtr cameraComponent)
 {
-	m_currentSceneCameraComponent = cameraComponent;
-	m_videoSourceComponent = m_currentSceneCameraComponent->getVideoSourceComponent();
+	m_currentSceneCameraComponent= cameraComponent;
+	m_videoSourceComponent= m_currentSceneCameraComponent->getVideoSourceComponent();
 }
 
 void AppStage_AnchorTriangulation::enter()
@@ -70,7 +69,7 @@ void AppStage_AnchorTriangulation::enter()
 	AppStage::enter();
 
 	// Create a new camera to view the scene
-	m_mkCamera = getFirstViewport()->getCurrentMikanCamera();
+	m_mkCamera= getFirstViewport()->getCurrentMikanCamera();
 	m_mkCamera->setCameraMovementMode(eCameraMovementMode::stationary);
 
 	// Make sure the camera doing the 3d rendering has the same
@@ -80,7 +79,7 @@ void AppStage_AnchorTriangulation::enter()
 	m_mkCamera->applyMonoCameraIntrinsics(&cameraIntrinsics);
 
 	// Create the distortion view eagerly — it is the stream ownership token
-	m_monoDistortionView =
+	m_monoDistortionView=
 		new VideoFrameDistortionView(
 			m_videoSourceComponent,
 			eVideoFrameProcessorMode::CALIBRATION);
@@ -89,24 +88,27 @@ void AppStage_AnchorTriangulation::enter()
 	// Register as a stream consumer — VideoSourceComponent::update() drives the retry loop
 	m_videoSourceComponent->startVideoStream(m_monoDistortionView);
 
-	eAnchorTriangulationMenuState newState = eAnchorTriangulationMenuState::pendingVideoStartStreamRequest;
+	eAnchorTriangulationMenuState newState= eAnchorTriangulationMenuState::pendingVideoStartStreamRequest;
 
 	// Create GUI panels
 	// (Auto cleaned up on app state exit)
 	{
-		m_calibrationPanel = addGuiPanel<GuiPanel_AnchorTriangulation>();
+		m_calibrationPanel= addGuiPanel<GuiPanel_AnchorTriangulation>();
 		m_calibrationPanel->setBypassCalibrationFlag(m_bypassCalibrationFlag);
-		m_calibrationPanel->OnOkEvent = [this]() { onOkEvent(); };
-		m_calibrationPanel->OnRedoEvent = [this]() { onRedoEvent(); };
-		m_calibrationPanel->OnCancelEvent = [this]() { onCancelEvent(); };
+		m_calibrationPanel->OnOkEvent= [this]()
+		{ onOkEvent(); };
+		m_calibrationPanel->OnRedoEvent= [this]()
+		{ onRedoEvent(); };
+		m_calibrationPanel->OnCancelEvent= [this]()
+		{ onCancelEvent(); };
 	}
 
 	// Bind to space bar to capture frames
 	// (Auto cleared on AppStage exit)
 	{
-		EventBindingSet* bindingSet = getOwnerWindow()->getInputManager()->getCurrentEventBindingSet();
+		EventBindingSet* bindingSet= getOwnerWindow()->getInputManager()->getCurrentEventBindingSet();
 
-		bindingSet->OnMouseButtonReleasedEvent += MakeDelegate(this, &AppStage_AnchorTriangulation::onMouseButtonUp);
+		bindingSet->OnMouseButtonReleasedEvent+= MakeDelegate(this, &AppStage_AnchorTriangulation::onMouseButtonUp);
 	}
 
 	setMenuState(newState);
@@ -115,7 +117,7 @@ void AppStage_AnchorTriangulation::enter()
 void AppStage_AnchorTriangulation::setupDistortionView()
 {
 	// Create a calibrator to do the actual triangulation
-	m_anchorTriangulator =
+	m_anchorTriangulator=
 		new AnchorTriangulator(
 			m_currentSceneCameraComponent,
 			m_monoDistortionView);
@@ -125,14 +127,14 @@ void AppStage_AnchorTriangulation::exit()
 {
 	setMenuState(eAnchorTriangulationMenuState::inactive);
 
-	m_currentSceneCameraComponent = nullptr;
+	m_currentSceneCameraComponent= nullptr;
 	m_mkCamera= nullptr;
 
 	// Free the calibrator
 	if (m_anchorTriangulator != nullptr)
 	{
 		delete m_anchorTriangulator;
-		m_anchorTriangulator = nullptr;
+		m_anchorTriangulator= nullptr;
 	}
 
 	// Stop the stream and free the distortion view buffers
@@ -141,10 +143,10 @@ void AppStage_AnchorTriangulation::exit()
 		if (m_videoSourceComponent)
 			m_videoSourceComponent->stopVideoStream(m_monoDistortionView);
 		delete m_monoDistortionView;
-		m_monoDistortionView = nullptr;
+		m_monoDistortionView= nullptr;
 	}
 
-	m_videoSourceComponent = nullptr;
+	m_videoSourceComponent= nullptr;
 
 	AppStage::exit();
 }
@@ -165,7 +167,7 @@ void AppStage_AnchorTriangulation::update(float deltaSeconds)
 
 	updateCameraTransform();
 
-	eAnchorTriangulationMenuState calibrationState = m_calibrationPanel->getMenuState();
+	eAnchorTriangulationMenuState calibrationState= m_calibrationPanel->getMenuState();
 
 	if (calibrationState == eAnchorTriangulationMenuState::pendingVideoStartStreamRequest)
 	{
@@ -203,43 +205,43 @@ void AppStage_AnchorTriangulation::render(IMkViewportPtr targetViewport)
 {
 	switch (m_calibrationPanel->getMenuState())
 	{
-		case eAnchorTriangulationMenuState::verifyInitialCameraSetup:
-		case eAnchorTriangulationMenuState::captureOrigin1:
-		case eAnchorTriangulationMenuState::captureXAxis1:
-		case eAnchorTriangulationMenuState::captureYAxis1:
-		case eAnchorTriangulationMenuState::verifyInitialPointCapture:
-			{
-				m_monoDistortionView->renderSelectedVideoBuffers();
-				m_anchorTriangulator->renderInitialPoint2dSegements();
-			}
-			break;
-		case eAnchorTriangulationMenuState::moveCamera:
-			{
-				m_monoDistortionView->renderSelectedVideoBuffers();
-				m_anchorTriangulator->renderInitialPoint3dRays();
-			}
-			break;
-		case eAnchorTriangulationMenuState::captureOrigin2:
-		case eAnchorTriangulationMenuState::captureXAxis2:
-		case eAnchorTriangulationMenuState::captureYAxis2:
-			{
-				m_monoDistortionView->renderSelectedVideoBuffers();
-				m_anchorTriangulator->renderCurrentPointTriangulation();
-			}
-			break;
-		case eAnchorTriangulationMenuState::verifyTriangulatedPoints:
-			{
-				m_monoDistortionView->renderSelectedVideoBuffers();
-				m_anchorTriangulator->renderAllTriangulatedPoints(false);
-			}
-			break;
-		case eAnchorTriangulationMenuState::testCalibration:
-			{
-				m_monoDistortionView->renderSelectedVideoBuffers();
-				m_anchorTriangulator->renderAllTriangulatedPoints(false);
-				m_anchorTriangulator->renderAnchorTransform();
-			}
-			break;
+	case eAnchorTriangulationMenuState::verifyInitialCameraSetup:
+	case eAnchorTriangulationMenuState::captureOrigin1:
+	case eAnchorTriangulationMenuState::captureXAxis1:
+	case eAnchorTriangulationMenuState::captureYAxis1:
+	case eAnchorTriangulationMenuState::verifyInitialPointCapture:
+	{
+		m_monoDistortionView->renderSelectedVideoBuffers();
+		m_anchorTriangulator->renderInitialPoint2dSegements();
+	}
+	break;
+	case eAnchorTriangulationMenuState::moveCamera:
+	{
+		m_monoDistortionView->renderSelectedVideoBuffers();
+		m_anchorTriangulator->renderInitialPoint3dRays();
+	}
+	break;
+	case eAnchorTriangulationMenuState::captureOrigin2:
+	case eAnchorTriangulationMenuState::captureXAxis2:
+	case eAnchorTriangulationMenuState::captureYAxis2:
+	{
+		m_monoDistortionView->renderSelectedVideoBuffers();
+		m_anchorTriangulator->renderCurrentPointTriangulation();
+	}
+	break;
+	case eAnchorTriangulationMenuState::verifyTriangulatedPoints:
+	{
+		m_monoDistortionView->renderSelectedVideoBuffers();
+		m_anchorTriangulator->renderAllTriangulatedPoints(false);
+	}
+	break;
+	case eAnchorTriangulationMenuState::testCalibration:
+	{
+		m_monoDistortionView->renderSelectedVideoBuffers();
+		m_anchorTriangulator->renderAllTriangulatedPoints(false);
+		m_anchorTriangulator->renderAnchorTransform();
+	}
+	break;
 	}
 
 	// Render any pending lines with depth testing disabled
@@ -274,24 +276,24 @@ void AppStage_AnchorTriangulation::onMouseButtonUp(int button)
 
 		switch (menuState)
 		{
-			case eAnchorTriangulationMenuState::captureOrigin1:
-				setMenuState(eAnchorTriangulationMenuState::captureXAxis1);
-				break;
-			case eAnchorTriangulationMenuState::captureXAxis1:
-				setMenuState(eAnchorTriangulationMenuState::captureYAxis1);
-				break;
-			case eAnchorTriangulationMenuState::captureYAxis1:
-				setMenuState(eAnchorTriangulationMenuState::verifyInitialPointCapture);
-				break;
-			case eAnchorTriangulationMenuState::captureOrigin2:
-				setMenuState(eAnchorTriangulationMenuState::captureXAxis2);
-				break;
-			case eAnchorTriangulationMenuState::captureXAxis2:
-				setMenuState(eAnchorTriangulationMenuState::captureYAxis2);
-				break;
-			case eAnchorTriangulationMenuState::captureYAxis2:
-				setMenuState(eAnchorTriangulationMenuState::verifyTriangulatedPoints);
-				break;
+		case eAnchorTriangulationMenuState::captureOrigin1:
+			setMenuState(eAnchorTriangulationMenuState::captureXAxis1);
+			break;
+		case eAnchorTriangulationMenuState::captureXAxis1:
+			setMenuState(eAnchorTriangulationMenuState::captureYAxis1);
+			break;
+		case eAnchorTriangulationMenuState::captureYAxis1:
+			setMenuState(eAnchorTriangulationMenuState::verifyInitialPointCapture);
+			break;
+		case eAnchorTriangulationMenuState::captureOrigin2:
+			setMenuState(eAnchorTriangulationMenuState::captureXAxis2);
+			break;
+		case eAnchorTriangulationMenuState::captureXAxis2:
+			setMenuState(eAnchorTriangulationMenuState::captureYAxis2);
+			break;
+		case eAnchorTriangulationMenuState::captureYAxis2:
+			setMenuState(eAnchorTriangulationMenuState::verifyTriangulatedPoints);
+			break;
 		}
 	}
 }
@@ -301,60 +303,66 @@ void AppStage_AnchorTriangulation::onOkEvent()
 {
 	switch (m_calibrationPanel->getMenuState())
 	{
-		case eAnchorTriangulationMenuState::verifyInitialCameraSetup:
-			{
-				// Clear out all of the calibration data we recorded
-				m_anchorTriangulator->resetCalibrationState();
+	case eAnchorTriangulationMenuState::verifyInitialCameraSetup:
+	{
+		// Clear out all of the calibration data we recorded
+		m_anchorTriangulator->resetCalibrationState();
 
-				// Record the initial camera post
-				m_anchorTriangulator->sampleCameraPose();
+		// Record the initial camera post
+		m_anchorTriangulator->sampleCameraPose();
 
-				// Reset the capture point count on the UI model
-				m_calibrationPanel->setCapturedPointCount(0);
+		// Reset the capture point count on the UI model
+		m_calibrationPanel->setCapturedPointCount(0);
 
-				setMenuState(eAnchorTriangulationMenuState::captureOrigin1);
-			} break;
-		case eAnchorTriangulationMenuState::verifyInitialPointCapture:
-			{
-				setMenuState(eAnchorTriangulationMenuState::moveCamera);
-			} break;
-		case eAnchorTriangulationMenuState::moveCamera:
-			{
-				// Reset all calibration state on the calibration UI model
-				m_calibrationPanel->setCapturedPointCount(0);
+		setMenuState(eAnchorTriangulationMenuState::captureOrigin1);
+	}
+	break;
+	case eAnchorTriangulationMenuState::verifyInitialPointCapture:
+	{
+		setMenuState(eAnchorTriangulationMenuState::moveCamera);
+	}
+	break;
+	case eAnchorTriangulationMenuState::moveCamera:
+	{
+		// Reset all calibration state on the calibration UI model
+		m_calibrationPanel->setCapturedPointCount(0);
 
-				setMenuState(eAnchorTriangulationMenuState::captureOrigin2);
-			} break;
-		case eAnchorTriangulationMenuState::verifyTriangulatedPoints:
-			{
-				m_anchorTriangulator->computeAnchorTransform(m_targetAnchor);
+		setMenuState(eAnchorTriangulationMenuState::captureOrigin2);
+	}
+	break;
+	case eAnchorTriangulationMenuState::verifyTriangulatedPoints:
+	{
+		m_anchorTriangulator->computeAnchorTransform(m_targetAnchor);
 
-				if (m_targetAnchor.anchorId == INVALID_MIKAN_ID)
+		if (m_targetAnchor.anchorId == INVALID_MIKAN_ID)
+		{
+			getSystemOfType<AnchorObjectSystem>()->addNewObjectByTypedDefinition(
+				[this](AnchorDefinitionPtr anchorDefinition)
 				{
-					getSystemOfType<AnchorObjectSystem>()->addNewObjectByTypedDefinition(
-						[this](AnchorDefinitionPtr anchorDefinition) {
-							anchorDefinition->setComponentName(m_targetAnchor.anchorName);
-							// Newly created anchor has no parent, so relative transform is world transform
-							anchorDefinition->setRelativeTransform(m_targetAnchor.worldTransform);
-							return true;
-						});
-				}
-				else
-				{
-					AnchorComponentPtr anchorComponent=
-						getSystemOfType<AnchorObjectSystem>()->getSpatialAnchorById(
-							m_targetAnchor.anchorId);
+					anchorDefinition->setComponentName(m_targetAnchor.anchorName);
+					// Newly created anchor has no parent, so relative transform is world transform
+					anchorDefinition->setRelativeTransform(m_targetAnchor.worldTransform);
+					return true;
+				});
+		}
+		else
+		{
+			AnchorComponentPtr anchorComponent=
+				getSystemOfType<AnchorObjectSystem>()->getSpatialAnchorById(
+					m_targetAnchor.anchorId);
 
-					anchorComponent->setWorldTransform(m_targetAnchor.worldTransform.getMat4());
-				}
+			anchorComponent->setWorldTransform(m_targetAnchor.worldTransform.getMat4());
+		}
 
-				setMenuState(eAnchorTriangulationMenuState::testCalibration);
-			} break;
-		case eAnchorTriangulationMenuState::testCalibration:
-		case eAnchorTriangulationMenuState::failedVideoStartStreamRequest:
-			{
-				m_ownerWindow->popAppState();
-			} break;
+		setMenuState(eAnchorTriangulationMenuState::testCalibration);
+	}
+	break;
+	case eAnchorTriangulationMenuState::testCalibration:
+	case eAnchorTriangulationMenuState::failedVideoStartStreamRequest:
+	{
+		m_ownerWindow->popAppState();
+	}
+	break;
 	}
 }
 
@@ -369,19 +377,19 @@ void AppStage_AnchorTriangulation::onRedoEvent()
 	// Return to the capture state
 	switch (m_calibrationPanel->getMenuState())
 	{
-		case eAnchorTriangulationMenuState::captureOrigin1:
-		case eAnchorTriangulationMenuState::captureXAxis1:
-		case eAnchorTriangulationMenuState::captureYAxis1:
-		case eAnchorTriangulationMenuState::verifyInitialPointCapture:
-		case eAnchorTriangulationMenuState::testCalibration:
-			setMenuState(eAnchorTriangulationMenuState::verifyInitialCameraSetup);
-			break;
-		case eAnchorTriangulationMenuState::captureOrigin2:
-		case eAnchorTriangulationMenuState::captureXAxis2:
-		case eAnchorTriangulationMenuState::captureYAxis2:
-		case eAnchorTriangulationMenuState::verifyTriangulatedPoints:
-			setMenuState(eAnchorTriangulationMenuState::captureOrigin2);
-			break;
+	case eAnchorTriangulationMenuState::captureOrigin1:
+	case eAnchorTriangulationMenuState::captureXAxis1:
+	case eAnchorTriangulationMenuState::captureYAxis1:
+	case eAnchorTriangulationMenuState::verifyInitialPointCapture:
+	case eAnchorTriangulationMenuState::testCalibration:
+		setMenuState(eAnchorTriangulationMenuState::verifyInitialCameraSetup);
+		break;
+	case eAnchorTriangulationMenuState::captureOrigin2:
+	case eAnchorTriangulationMenuState::captureXAxis2:
+	case eAnchorTriangulationMenuState::captureYAxis2:
+	case eAnchorTriangulationMenuState::verifyTriangulatedPoints:
+		setMenuState(eAnchorTriangulationMenuState::captureOrigin2);
+		break;
 	}
 }
 
@@ -394,17 +402,18 @@ void AppStage_AnchorTriangulation::onGui()
 {
 	AppStage::onGui();
 
-	constexpr float k_panelWidth = 415.f;
-	const float displayWidth = m_ownerWindow->getWidth();
-	const float displayHeight = m_ownerWindow->getHeight();
+	constexpr float k_panelWidth= 415.f;
+	const float displayWidth= m_ownerWindow->getWidth();
+	const float displayHeight= m_ownerWindow->getHeight();
 
 	ImGui::SetNextWindowPos(ImVec2(displayWidth - k_panelWidth, 0.f), ImGuiCond_Always);
 	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, displayHeight), ImGuiCond_Always);
-	constexpr ImGuiWindowFlags k_flags =
+	constexpr ImGuiWindowFlags k_flags=
 		ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
 	MkGuiScopedWindow panel("##AnchorTriangulation", nullptr, k_flags);
-	if (!panel) return;
+	if (!panel)
+		return;
 
 	for (IGuiPanel* guiPanel : m_guiPanels)
 		guiPanel->onGui();

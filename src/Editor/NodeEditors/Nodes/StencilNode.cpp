@@ -14,9 +14,9 @@
 // -- StencilNodeConfig -----
 configuru::Config StencilNodeConfig::writeToJSON()
 {
-	configuru::Config pt = NodeConfig::writeToJSON();
+	configuru::Config pt= NodeConfig::writeToJSON();
 
-	pt["stencil_property_id"] = stencilPropertyId;
+	pt["stencil_property_id"]= stencilPropertyId;
 
 	return pt;
 }
@@ -25,7 +25,7 @@ void StencilNodeConfig::readFromJSON(const configuru::Config& pt)
 {
 	NodeConfig::readFromJSON(pt);
 
-	stencilPropertyId = pt.get_or<t_graph_property_id>("stencil_property_id", -1);
+	stencilPropertyId= pt.get_or<t_graph_property_id>("stencil_property_id", -1);
 }
 
 // -- StencilNode -----
@@ -40,14 +40,14 @@ void StencilNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 	{
 		if (m_ownerGraph)
 		{
-			m_ownerGraph->OnPropertyDeleted -= MakeDelegate(this, &StencilNode::onGraphPropertyDeleted);
-			m_ownerGraph = nullptr;
+			m_ownerGraph->OnPropertyDeleted-= MakeDelegate(this, &StencilNode::onGraphPropertyDeleted);
+			m_ownerGraph= nullptr;
 		}
 
 		if (newOwnerGraph)
 		{
-			newOwnerGraph->OnPropertyDeleted += MakeDelegate(this, &StencilNode::onGraphPropertyDeleted);
-			m_ownerGraph = newOwnerGraph;
+			newOwnerGraph->OnPropertyDeleted+= MakeDelegate(this, &StencilNode::onGraphPropertyDeleted);
+			m_ownerGraph= newOwnerGraph;
 		}
 	}
 }
@@ -56,7 +56,7 @@ bool StencilNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 {
 	if (Node::loadFromConfig(nodeConfig))
 	{
-		auto stencilNodeConfig = std::static_pointer_cast<const StencilNodeConfig>(nodeConfig);
+		auto stencilNodeConfig= std::static_pointer_cast<const StencilNodeConfig>(nodeConfig);
 		t_graph_property_id propId= stencilNodeConfig->stencilPropertyId;
 
 		auto StencilProperty= getOwnerGraph()->getTypedPropertyById<GraphStencilProperty>(propId);
@@ -78,7 +78,7 @@ bool StencilNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 
 void StencilNode::saveToConfig(NodeConfigPtr nodeConfig) const
 {
-	StencilNodeConfigPtr stencilNodeConfig = std::static_pointer_cast<StencilNodeConfig>(nodeConfig);
+	StencilNodeConfigPtr stencilNodeConfig= std::static_pointer_cast<StencilNodeConfig>(nodeConfig);
 	stencilNodeConfig->stencilPropertyId= m_sourceProperty ? m_sourceProperty->getId() : -1;
 
 	Node::saveToConfig(nodeConfig);
@@ -89,11 +89,11 @@ StencilComponentPtr StencilNode::getStencilComponent() const
 	return m_sourceProperty ? m_sourceProperty->getStencilComponent() : StencilComponentPtr();
 }
 
-void StencilNode::setStencilSource(GraphStencilPropertyPtr inStencilProperty) 
-{ 
-	m_sourceProperty = inStencilProperty; 
+void StencilNode::setStencilSource(GraphStencilPropertyPtr inStencilProperty)
+{
+	m_sourceProperty= inStencilProperty;
 
-	PropertyPinPtr outPin = getFirstPinOfType<PropertyPin>(eNodePinDirection::OUTPUT);
+	PropertyPinPtr outPin= getFirstPinOfType<PropertyPin>(eNodePinDirection::OUTPUT);
 	if (outPin)
 	{
 		outPin->setValue(inStencilProperty);
@@ -109,7 +109,7 @@ bool StencilNode::evaluateNode(NodeEvaluator& evaluator)
 
 std::shared_ptr<MkNodesScopedColorStyle> StencilNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
 {
-	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225))
 		.push(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225))
 		.push(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
@@ -118,18 +118,18 @@ std::shared_ptr<MkNodesScopedColorStyle> StencilNode::editorRenderMakeNodeStyle(
 
 void StencilNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	auto nodeStyle = editorRenderMakeNodeStyle(editorState);
+	auto nodeStyle= editorRenderMakeNodeStyle(editorState);
 	MkNodesScopedNode scopedNode(m_id);
 
 	// Title
 	editorRenderTitle(editorState);
 
-	//TODO - Preview Texture from stencil model
-	//ImGui::Dummy(ImVec2(1.0f, 0.5f));
-	//IMkTexturePtr textureResource = m_sourceProperty->getStencilAssetReference()->getPreviewTexture();
-	//uint32_t glTextureId = textureResource ? textureResource->getGlTextureId() : 0;
-	//ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
-	//ImGui::SameLine();
+	// TODO - Preview Texture from stencil model
+	// ImGui::Dummy(ImVec2(1.0f, 0.5f));
+	// IMkTexturePtr textureResource = m_sourceProperty->getStencilAssetReference()->getPreviewTexture();
+	// uint32_t glTextureId = textureResource ? textureResource->getGlTextureId() : 0;
+	// ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
+	// ImGui::SameLine();
 
 	// Outputs
 	editorRenderOutputPins(editorState);
@@ -171,8 +171,8 @@ void StencilNode::onGraphPropertyDeleted(t_graph_property_id id)
 NodePtr StencilNodeFactory::createNode(const NodeEditorState& editorState) const
 {
 	// Create the node and pins
-	NodePtr node = NodeFactory::createNode(editorState);
-	PropertyPinPtr outputPin = node->addPin<PropertyPin>("Stencil", eNodePinDirection::OUTPUT);
+	NodePtr node= NodeFactory::createNode(editorState);
+	PropertyPinPtr outputPin= node->addPin<PropertyPin>("Stencil", eNodePinDirection::OUTPUT);
 	outputPin->setPropertyClassName(GraphStencilProperty::k_propertyClassName);
 	outputPin->editorSetShowPinName(false);
 

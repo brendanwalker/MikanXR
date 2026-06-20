@@ -12,11 +12,10 @@
 
 #include <glm/glm.hpp>
 
-class BoxStencilSystemDefinition :
-	public MikanTypedObjectSystemDefinition<BoxStencilComponent, BoxStencilDefinition, MikanStencilID>
+class BoxStencilSystemDefinition : public MikanTypedObjectSystemDefinition<BoxStencilComponent, BoxStencilDefinition, MikanStencilID>
 {
 public:
-	using Super = MikanTypedObjectSystemDefinition<BoxStencilComponent, BoxStencilDefinition, MikanStencilID>;
+	using Super= MikanTypedObjectSystemDefinition<BoxStencilComponent, BoxStencilDefinition, MikanStencilID>;
 
 	BoxStencilSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
@@ -24,27 +23,28 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 };
 
-class BoxStencilSystem :
-	public MikanTypedObjectSystem<
-		BoxStencilComponent, BoxStencilDefinition,
-		MikanStencilID,
-		BoxStencilSystem, BoxStencilSystemDefinition>
+class BoxStencilSystem : public MikanTypedObjectSystem<
+							 BoxStencilComponent, BoxStencilDefinition,
+							 MikanStencilID,
+							 BoxStencilSystem, BoxStencilSystemDefinition>
 {
 public:
-	using Super = MikanTypedObjectSystem<
+	using Super= MikanTypedObjectSystem<
 		BoxStencilComponent, BoxStencilDefinition,
 		MikanStencilID,
 		BoxStencilSystem, BoxStencilSystemDefinition>;
 
 	BoxStencilSystem(ProjectManagerPtr ownerObjectSystem);
 
-	inline static const std::string k_objectSystemClassName = "BoxStencilSystem";
+	inline static const std::string k_objectSystemClassName= "BoxStencilSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
-	inline BoxStencilComponentPtr getBoxStencilById(MikanStencilID stencilId) const {
+	inline BoxStencilComponentPtr getBoxStencilById(MikanStencilID stencilId) const
+	{
 		return Super::getTypedComponentById(stencilId);
 	}
-	inline BoxStencilComponentPtr getBoxStencilByName(const std::string& stencilName) const {
+	inline BoxStencilComponentPtr getBoxStencilByName(const std::string& stencilName) const
+	{
 		return Super::getTypedComponentByName(stencilName);
 	}
 

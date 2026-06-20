@@ -16,9 +16,9 @@ typedef union SDL_Event SDL_Event;
 
 class ModalDialog;
 
-using AppStagePtr = std::shared_ptr<class AppStage>;
-using AppStageFactoryPtr = std::shared_ptr<class AppStageFactory>;
-using MikanViewportList = std::vector<MikanViewportPtr>;
+using AppStagePtr= std::shared_ptr<class AppStage>;
+using AppStageFactoryPtr= std::shared_ptr<class AppStageFactory>;
+using MikanViewportList= std::vector<MikanViewportPtr>;
 
 class AppStage : public IRemoteControllable
 {
@@ -59,10 +59,10 @@ public:
 	MikanViewportConstPtr getRenderingViewport() const;
 	MikanViewportPtr addViewport();
 
-	template<typename t_gui_panel>
+	template <typename t_gui_panel>
 	t_gui_panel* addGuiPanel()
 	{
-		t_gui_panel* panel = new t_gui_panel(this);
+		t_gui_panel* panel= new t_gui_panel(this);
 		m_guiPanels.push_back(panel);
 		return panel;
 	}
@@ -72,10 +72,10 @@ public:
 		return (m_modalDialogStack.size() > 0) ? m_modalDialogStack[m_modalDialogStack.size() - 1] : nullptr;
 	}
 
-	template<typename t_modal_dialog>
+	template <typename t_modal_dialog>
 	t_modal_dialog* pushModalDialog()
 	{
-		t_modal_dialog* modalDialog = new t_modal_dialog(this);
+		t_modal_dialog* modalDialog= new t_modal_dialog(this);
 		m_modalDialogStack.push_back(modalDialog);
 
 		return modalDialog;
@@ -83,13 +83,13 @@ public:
 
 	void popModalDialog();
 
-	template<class t_system_type>
+	template <class t_system_type>
 	std::shared_ptr<t_system_type> getSystemOfType()
 	{
 		return m_ownerWindow->getProjectManager()->getSystemOfType<t_system_type>();
 	}
 
-	template<class t_system_type>
+	template <class t_system_type>
 	std::shared_ptr<const t_system_type> getSystemOfTypeConst() const
 	{
 		return m_ownerWindow->getProjectManager()->getSystemOfTypeConst<const t_system_type>();
@@ -114,16 +114,17 @@ protected:
 class AppStageFactory
 {
 public:
-	using AppStageConstructorFunc = std::function<AppStagePtr()>;
+	using AppStageConstructorFunc= std::function<AppStagePtr()>;
 
-	AppStageFactory() = default;
-	AppStageFactory(IEditorWindow* ownerWindow) 
+	AppStageFactory()= default;
+	AppStageFactory(IEditorWindow* ownerWindow)
 		: m_ownerWindow(ownerWindow)
-	{}
+	{
+	}
 
 	AppStagePtr allocateAppStage(const std::string& stageName) const
 	{
-		auto it = m_appStageConstructors.find(stageName);
+		auto it= m_appStageConstructors.find(stageName);
 		if (it != m_appStageConstructors.end())
 		{
 			return it->second();
@@ -134,9 +135,9 @@ public:
 	template <class t_app_stage_factory_class>
 	void addAppStageConstructor()
 	{
-		const std::string stageName = t_app_stage_factory_class::APP_STAGE_NAME;
+		const std::string stageName= t_app_stage_factory_class::APP_STAGE_NAME;
 
-		const auto constructorFunc = [this]() -> AppStagePtr
+		const auto constructorFunc= [this]() -> AppStagePtr
 		{
 			return std::make_shared<t_app_stage_factory_class>(m_ownerWindow);
 		};

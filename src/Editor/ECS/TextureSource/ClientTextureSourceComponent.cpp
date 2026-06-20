@@ -11,22 +11,24 @@
 #include "opencv2/calib3d/calib3d.hpp"
 
 // -- ClientTextureSourceDefinition ------
-const std::string ClientTextureSourceDefinition::k_clientSourcePropertyId = "client_source";
+const std::string ClientTextureSourceDefinition::k_clientSourcePropertyId= "client_source";
 
 ClientTextureSourceDefinition::ClientTextureSourceDefinition()
 	: TextureSourceDefinition()
-{}
+{
+}
 
 ClientTextureSourceDefinition::ClientTextureSourceDefinition(
 	MikanTextureSourceID textureSourceId)
 	: TextureSourceDefinition(textureSourceId)
-{}
+{
+}
 
 configuru::Config ClientTextureSourceDefinition::writeToJSON()
 {
-	configuru::Config pt = TextureSourceDefinition::writeToJSON();
+	configuru::Config pt= TextureSourceDefinition::writeToJSON();
 
-	pt["client_source"] = m_clientSource;
+	pt["client_source"]= m_clientSource;
 
 	return pt;
 }
@@ -35,7 +37,7 @@ void ClientTextureSourceDefinition::readFromJSON(const configuru::Config& pt)
 {
 	TextureSourceDefinition::readFromJSON(pt);
 
-	m_clientSource = pt.get_or<std::string>("client_source", m_clientSource);
+	m_clientSource= pt.get_or<std::string>("client_source", m_clientSource);
 }
 
 bool ClientTextureSourceDefinition::readFromInitParams(
@@ -45,10 +47,10 @@ bool ClientTextureSourceDefinition::readFromInitParams(
 	if (!TextureSourceDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
-	const auto* componentValues = initParams.getTypedPointer<MikanClientTextureSourceValues>();
+	const auto* componentValues= initParams.getTypedPointer<MikanClientTextureSourceValues>();
 	if (componentValues)
 	{
-		m_clientSource = componentValues->client_source.getValue();
+		m_clientSource= componentValues->client_source.getValue();
 	}
 
 	return true;
@@ -58,7 +60,7 @@ void ClientTextureSourceDefinition::setClientSource(const std::string& clientSou
 {
 	if (clientSource != m_clientSource)
 	{
-		m_clientSource = clientSource;
+		m_clientSource= clientSource;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_clientSourcePropertyId));
 	}
 }
@@ -66,7 +68,8 @@ void ClientTextureSourceDefinition::setClientSource(const std::string& clientSou
 // -- ClientTextureSourceComponent -----
 ClientTextureSourceComponent::ClientTextureSourceComponent(MikanObjectWeakPtr owner)
 	: TextureSourceComponent(owner)
-{}
+{
+}
 
 // -- IEntityAccessor ----
 rfk::Struct const* ClientTextureSourceComponent::getClientAPIValuesStructType() const
@@ -84,7 +87,7 @@ IMkTexturePtr ClientTextureSourceComponent::getClientColorSourceTexture(
 	eTextureSourceColorType textureSourceColorType,
 	int64_t frameIndex) const
 {
-	auto* clientSourceManager = getClientSourceManager();
+	auto* clientSourceManager= getClientSourceManager();
 
 	if (clientSourceManager != nullptr)
 	{
@@ -100,7 +103,7 @@ IMkTexturePtr ClientTextureSourceComponent::getClientDepthSourceTexture(
 	eTextureSourceDepthType depthTextureType,
 	int64_t frameIndex) const
 {
-	auto* clientSourceManager = getClientSourceManager();
+	auto* clientSourceManager= getClientSourceManager();
 
 	if (clientSourceManager != nullptr)
 	{
@@ -127,7 +130,7 @@ bool ClientTextureSourceComponent::getPropertyValue(
 {
 	if (propertyName == ClientTextureSourceDefinition::k_clientSourcePropertyId)
 	{
-		outValue = getClientTextureSourceDefinition()->getClientSource();
+		outValue= getClientTextureSourceDefinition()->getClientSource();
 		return true;
 	}
 
@@ -140,7 +143,7 @@ bool ClientTextureSourceComponent::setPropertyValue(
 {
 	if (propertyName == ClientTextureSourceDefinition::k_clientSourcePropertyId)
 	{
-		std::string devicePath = inValue.getStringValue();
+		std::string devicePath= inValue.getStringValue();
 		getClientTextureSourceDefinition()->setClientSource(devicePath);
 		return true;
 	}
@@ -160,14 +163,15 @@ const std::string& ClientTextureSourceComponent::getClientSourceName() const
 
 void ClientTextureSourceComponent::showTextureSourceSettings()
 {
-	AppStage* currentAppStage = getOwnerEditorWindow()->getCurrentAppStage();
+	AppStage* currentAppStage= getOwnerEditorWindow()->getCurrentAppStage();
 
 	ModalDialog_SelectCamera::selectCamera(
 		currentAppStage,
-		[this](MikanCameraID cameraId) {
-			auto* newAppStage = getOwnerEditorWindow()->pushAppStageOfType<AppStage_TextureSourceSettings>();
+		[this](MikanCameraID cameraId)
+		{
+			auto* newAppStage= getOwnerEditorWindow()->pushAppStageOfType<AppStage_TextureSourceSettings>();
 
 			newAppStage->setSourceCameraId(cameraId);
 			newAppStage->setTextureSourceComponent(getSelfPtr<TextureSourceComponent>());
-	});
+		});
 }

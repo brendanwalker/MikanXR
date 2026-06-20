@@ -52,21 +52,21 @@ protected:
 	void restoreFixtureColor();
 
 private:
-	class GuiPanel_LightFixtureCalibration* m_calibrationPanel = nullptr;
+	class GuiPanel_LightFixtureCalibration* m_calibrationPanel= nullptr;
 
 	CameraComponentPtr m_currentSceneCameraComponent;
 	VideoSourceComponentPtr m_videoSourceComponent;
 
-	LightFixtureTriangulator* m_triangulator = nullptr;
-	class VideoFrameDistortionView* m_monoDistortionView = nullptr;
+	LightFixtureTriangulator* m_triangulator= nullptr;
+	class VideoFrameDistortionView* m_monoDistortionView= nullptr;
 
 	DMXFixtureComponentPtr m_targetFixture;
 
 	// Saved DMX color before we flash to white, for restoration on exit
-	uint8_t m_savedRed = 0;
-	uint8_t m_savedGreen = 0;
-	uint8_t m_savedBlue = 0;
-	bool m_colorSaved = false;
+	uint8_t m_savedRed= 0;
+	uint8_t m_savedGreen= 0;
+	uint8_t m_savedBlue= 0;
+	bool m_colorSaved= false;
 
 	MikanCameraPtr m_mkCamera;
 };

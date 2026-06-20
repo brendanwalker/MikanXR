@@ -5,10 +5,10 @@
 #include <string>
 
 //-- constants -----
-#define INVALID_DEVICE_FORMAT_INDEX			-1
-#define UNSPECIFIED_CAMERA_WIDTH			0xFFFFFFFF
-#define UNSPECIFIED_CAMERA_HEIGHT			0xFFFFFFFF
-#define UNSPECIFIED_CAMERA_FPS				0xFFFFFFFF
+#define INVALID_DEVICE_FORMAT_INDEX -1
+#define UNSPECIFIED_CAMERA_WIDTH 0xFFFFFFFF
+#define UNSPECIFIED_CAMERA_HEIGHT 0xFFFFFFFF
+#define UNSPECIFIED_CAMERA_FPS 0xFFFFFFFF
 
 // -- definitions -----
 struct WMFDeviceFormatInfo
@@ -16,29 +16,29 @@ struct WMFDeviceFormatInfo
 	int device_format_index= 0;
 
 	unsigned int frame_size= 0;
-	unsigned int height = 0;
-	unsigned int width = 0;
+	unsigned int height= 0;
+	unsigned int width= 0;
 
-	unsigned int yuv_matrix = 0; // MFVideoTransferMatrix Enum
-	unsigned int video_lighting = 0; // MFVideoLighting Enum
-	int default_stride = 0; // Stride is positive for top-down images, and negative for bottom-up images.
-	unsigned int video_chroma_siting = 0; //  MFVideoChromaSubsampling Enum
-	
-	unsigned int fixed_size_samples = 0;
-	unsigned int video_nominal_range = 0;
-	unsigned int frame_rate_numerator = 0;
-	unsigned int frame_rate_denominator = 0;
-	unsigned int pixel_aspect_ratio_horizontal = 0;
-	unsigned int pixel_aspect_ratio_vertical = 0;
-	unsigned int all_samples_independant = 0;
-	unsigned int frame_rate_range_min_numerator = 0;
-	unsigned int frame_rate_range_min_denominator = 0;
-	unsigned int sample_size = 0;
-	unsigned int video_primaries = 0;
-	unsigned int interlace_mode = 0;
-	unsigned int frame_rate_range_max_numerator = 0;
-	unsigned int frame_rate_range_max_denominator = 0;
-	
+	unsigned int yuv_matrix= 0;          // MFVideoTransferMatrix Enum
+	unsigned int video_lighting= 0;      // MFVideoLighting Enum
+	int default_stride= 0;               // Stride is positive for top-down images, and negative for bottom-up images.
+	unsigned int video_chroma_siting= 0; //  MFVideoChromaSubsampling Enum
+
+	unsigned int fixed_size_samples= 0;
+	unsigned int video_nominal_range= 0;
+	unsigned int frame_rate_numerator= 0;
+	unsigned int frame_rate_denominator= 0;
+	unsigned int pixel_aspect_ratio_horizontal= 0;
+	unsigned int pixel_aspect_ratio_vertical= 0;
+	unsigned int all_samples_independant= 0;
+	unsigned int frame_rate_range_min_numerator= 0;
+	unsigned int frame_rate_range_min_denominator= 0;
+	unsigned int sample_size= 0;
+	unsigned int video_primaries= 0;
+	unsigned int interlace_mode= 0;
+	unsigned int frame_rate_range_max_numerator= 0;
+	unsigned int frame_rate_range_max_denominator= 0;
+
 	std::string am_format_type_name;
 	std::string major_type_name;
 	std::string sub_type_name;
@@ -65,10 +65,11 @@ struct WMFDeviceInfo
 		, usbVendorId(0)
 		, usbProductId(0)
 		, deviceAvailableFormats()
-	{ }
+	{
+	}
 
 	int findDeviceFormatByName(const std::string& format_name) const;
 	int findBestDeviceFormatIndex(
 		unsigned int width, unsigned int height,
-		unsigned int frameRate, const char *buffer_format) const;
+		unsigned int frameRate, const char* buffer_format) const;
 };

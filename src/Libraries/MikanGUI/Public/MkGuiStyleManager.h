@@ -21,5 +21,5 @@ private:
 	bool loadStyleFile(const std::filesystem::path& filePath);
 
 	struct Impl;
-	Impl* m_impl = nullptr;
+	Impl* m_impl= nullptr;
 };

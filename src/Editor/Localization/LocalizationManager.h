@@ -23,17 +23,17 @@ public:
 
 	const std::string& getDefaultLanguage() const;
 	t_language_tags getSystemLanguage() const;
-	bool isLanguageSupported(const char *langCode) const;
+	bool isLanguageSupported(const char* langCode) const;
 	std::vector<std::string> getSupportedLanguages() const;
 	bool setLanguage(const t_language_tags& langCodes);
 	bool setLanguage(const std::string& languageId);
 	const std::string& getLanguage() const { return m_currentLanguageCode; }
-	const char* fetchUTF8Text(const char* tableName, const char* stringKey, bool* outHasString = nullptr);
-	const wchar_t* fetchUTF16Text(const char* tableName, const char* stringKey, bool* outHasString = nullptr);
+	const char* fetchUTF8Text(const char* tableName, const char* stringKey, bool* outHasString= nullptr);
+	const wchar_t* fetchUTF16Text(const char* tableName, const char* stringKey, bool* outHasString= nullptr);
 
 private:
 	void unloadLanguages();
-	void loadCSVsFromDirectory(const std::filesystem::path& dirPath, bool allowOverwrite = false);
+	void loadCSVsFromDirectory(const std::filesystem::path& dirPath, bool allowOverwrite= false);
 	void startRemoteFetch();
 	std::filesystem::path getUserLocalizationCacheDir() const;
 

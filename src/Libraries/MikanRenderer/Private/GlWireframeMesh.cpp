@@ -6,16 +6,17 @@
 #include "MkMaterial.h"
 #include "MkMaterialInstance.h"
 #include "IMKWireframeMesh.h"
-//#include "GlViewport.h"
+// #include "GlViewport.h"
 #include "Logger.h"
 
 class GlWireframeMesh : public IMkWireframeMesh
 {
 public:
-	GlWireframeMesh() = default;
+	GlWireframeMesh()= default;
 	GlWireframeMesh(IMkGraphicsContext* ownerContext)
 		: m_ownerContext(ownerContext)
-	{}
+	{
+	}
 
 	GlWireframeMesh(
 		IMkGraphicsContext* ownerContext,
@@ -29,14 +30,14 @@ public:
 		bool bOwnsVertexData)
 		: m_ownerContext(ownerContext)
 	{
-		m_name = name;
-		m_vertexData = vertexData;
-		m_vertexSize = vertexSize;
-		m_vertexCount = vertexCount;
-		m_indexData = indexData;
-		m_indexSize = indexSize;
-		m_lineCount = lineCount;
-		m_bOwnsVertexData = bOwnsVertexData;
+		m_name= name;
+		m_vertexData= vertexData;
+		m_vertexSize= vertexSize;
+		m_vertexCount= vertexCount;
+		m_indexData= indexData;
+		m_indexSize= indexSize;
+		m_lineCount= lineCount;
+		m_bOwnsVertexData= bOwnsVertexData;
 	}
 
 	virtual ~GlWireframeMesh()
@@ -66,18 +67,18 @@ public:
 
 	void GlWireframeMesh::drawElements() const
 	{
-		GLenum indexType = GL_UNSIGNED_SHORT;
+		GLenum indexType= GL_UNSIGNED_SHORT;
 		switch (m_indexSize)
 		{
-			case 4:
-				indexType = GL_UNSIGNED_INT;
-				break;
-			case 2:
-				indexType = GL_UNSIGNED_SHORT;
-				break;
-			case 1:
-				indexType = GL_UNSIGNED_BYTE;
-				break;
+		case 4:
+			indexType= GL_UNSIGNED_INT;
+			break;
+		case 2:
+			indexType= GL_UNSIGNED_SHORT;
+			break;
+		case 1:
+			indexType= GL_UNSIGNED_BYTE;
+			break;
 		}
 
 		glBindVertexArray(m_glVertArray);
@@ -93,22 +94,22 @@ public:
 			return false;
 		}
 
-		IMkShaderCache* shaderCache = getOwnerContext()->getShaderCache();
-		MkMaterialConstPtr material = shaderCache->getMaterialByName(INTERNAL_MATERIAL_P_WIREFRAME);
+		IMkShaderCache* shaderCache= getOwnerContext()->getShaderCache();
+		MkMaterialConstPtr material= shaderCache->getMaterialByName(INTERNAL_MATERIAL_P_WIREFRAME);
 		if (!material)
 		{
 			return false;
 		}
 
-		IMkVertexDefinitionConstPtr vertexDefinition = material->getProgram()->getVertexDefinition();
-		const size_t vertexSize = vertexDefinition->getVertexSize();
+		IMkVertexDefinitionConstPtr vertexDefinition= material->getProgram()->getVertexDefinition();
+		const size_t vertexSize= vertexDefinition->getVertexSize();
 		if (vertexSize != m_vertexSize)
 		{
 			return false;
 		}
 
 		// create a material instance from the default wireframe material
-		m_materialInstance = createMkMaterialInstance(material);
+		m_materialInstance= createMkMaterialInstance(material);
 		m_materialInstance->setVec4BySemantic(eUniformSemantic::diffuseColorRGBA, glm::vec4(1.f));
 
 		// create and bind a Vertex Array Object(VAO) to hold state for this model
@@ -152,29 +153,29 @@ public:
 		if (m_glVertBuffer != 0)
 			glDeleteBuffers(1, &m_glVertBuffer);
 
-		m_glIndexBuffer = 0;
-		m_glVertArray = 0;
-		m_glVertBuffer = 0;
-		m_vertexCount = 0;
+		m_glIndexBuffer= 0;
+		m_glVertArray= 0;
+		m_glVertBuffer= 0;
+		m_vertexCount= 0;
 	}
 
 protected:
-	class IMkGraphicsContext* m_ownerContext = nullptr;
+	class IMkGraphicsContext* m_ownerContext= nullptr;
 	MkMaterialInstancePtr m_materialInstance;
 
 	std::string m_name;
 
-	const uint8_t* m_vertexData = nullptr;
-	uint32_t m_vertexCount = 0;
-	size_t m_vertexSize = 0;
-	const uint8_t* m_indexData = nullptr;
-	size_t m_indexSize = 0;
-	uint32_t m_lineCount = 0;
-	bool m_bOwnsVertexData = false;
+	const uint8_t* m_vertexData= nullptr;
+	uint32_t m_vertexCount= 0;
+	size_t m_vertexSize= 0;
+	const uint8_t* m_indexData= nullptr;
+	size_t m_indexSize= 0;
+	uint32_t m_lineCount= 0;
+	bool m_bOwnsVertexData= false;
 
-	uint32_t m_glVertArray = 0;
-	uint32_t m_glVertBuffer = 0;
-	uint32_t m_glIndexBuffer = 0;
+	uint32_t m_glVertArray= 0;
+	uint32_t m_glVertBuffer= 0;
+	uint32_t m_glIndexBuffer= 0;
 };
 
 IMkWireframeMeshPtr CreateMkWireframeMesh(IMkGraphicsContext* ownerContext)
@@ -213,17 +214,17 @@ void drawTransformedWireframeMesh(
 {
 	if (camera != nullptr && wireframeMesh != nullptr)
 	{
-		MkMaterialInstancePtr materialInstance = wireframeMesh->getMaterialInstance();
-		MkMaterialConstPtr material = materialInstance->getMaterial();
+		MkMaterialInstancePtr materialInstance= wireframeMesh->getMaterialInstance();
+		MkMaterialConstPtr material= materialInstance->getMaterial();
 
-		if (auto materialBinding = material->bindMaterial())
+		if (auto materialBinding= material->bindMaterial())
 		{
-			const glm::mat4 vpMatrix = camera->getViewProjectionMatrix();
+			const glm::mat4 vpMatrix= camera->getViewProjectionMatrix();
 
 			materialInstance->setVec4BySemantic(eUniformSemantic::diffuseColorRGBA, glm::vec4(color, 1.f));
 			materialInstance->setMat4BySemantic(eUniformSemantic::modelViewProjectionMatrix, vpMatrix * transform);
-			
-			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+
+			if (auto materialInstanceBinding= materialInstance->bindMaterialInstance(materialBinding))
 			{
 				wireframeMesh->drawElements();
 			}

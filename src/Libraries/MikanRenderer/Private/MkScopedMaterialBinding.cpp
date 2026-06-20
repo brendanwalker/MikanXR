@@ -38,16 +38,16 @@ MkScopedMaterialBinding::~MkScopedMaterialBinding()
 }
 
 const MkMaterial* MkScopedMaterialBinding::getBoundMaterial() const
-{ 
-	return m_impl->boundMaterial; 
+{
+	return m_impl->boundMaterial;
 }
 
-const UniformNameSet& MkScopedMaterialBinding::getUnboundUniforms() const 
-{ 
-	return m_impl->unboundUniformNames; 
+const UniformNameSet& MkScopedMaterialBinding::getUnboundUniforms() const
+{
+	return m_impl->unboundUniformNames;
 }
 
-MkScopedMaterialBinding::operator bool() const 
-{ 
-	return !m_impl->bMaterialFailure; 
+MkScopedMaterialBinding::operator bool() const
+{
+	return !m_impl->bMaterialFailure;
 }

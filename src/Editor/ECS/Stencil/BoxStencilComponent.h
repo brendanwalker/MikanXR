@@ -22,7 +22,7 @@ public:
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 	virtual bool readFromInitParams(
-		MikanObjectSystem* ownerObjectSystem, 
+		MikanObjectSystem* ownerObjectSystem,
 		const Serialization::PolymorphicObjectPtr& initParams) override;
 
 	static const std::string k_boxStencilXSizePropertyId;
@@ -55,7 +55,7 @@ public:
 		return std::static_pointer_cast<BoxStencilDefinition>(m_definition);
 	}
 
-	inline static const std::string k_componentClassName = "BoxStencilComponent";
+	inline static const std::string k_componentClassName= "BoxStencilComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	// -- IEntityAccessor ----
@@ -68,7 +68,9 @@ public:
 
 	// -- IFunctionInterface ----
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outPropertyNames)
-	{ StencilComponent::getFunctionDescriptors(outPropertyNames); }
+	{
+		StencilComponent::getFunctionDescriptors(outPropertyNames);
+	}
 
 	// -- Lua Binding ----
 	static void bindLuaFunctions(struct lua_State* L);

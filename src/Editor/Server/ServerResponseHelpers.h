@@ -10,7 +10,7 @@
 
 #include <nlohmann/json.hpp>
 
-using json = nlohmann::json;
+using json= nlohmann::json;
 
 template <typename t_mikan_type>
 std::string mikanTypeToJsonString(const t_mikan_type& mikanType)
@@ -19,7 +19,7 @@ std::string mikanTypeToJsonString(const t_mikan_type& mikanType)
 	std::string errorMsg;
 	if (!Serialization::serializeToJsonString(mikanType, jsonStr, errorMsg))
 	{
-		MIKAN_LOG_ERROR("ServerResponseHelpers::mikanTypeToJsonString") 
+		MIKAN_LOG_ERROR("ServerResponseHelpers::mikanTypeToJsonString")
 			<< "Failed to serialize Mikan type to JSON string: " << errorMsg;
 	}
 
@@ -42,13 +42,13 @@ bool readTypedRequest(const std::string& utf8RequestString, t_mikan_type& outPar
 template <typename t_mikan_type>
 void writeTypedJsonResponse(MikanRequestID requestId, t_mikan_type& result, ClientResponse& response)
 {
-	result.requestId = requestId;
-	result.resultCode = MikanAPIResult::Success;
+	result.requestId= requestId;
+	result.resultCode= MikanAPIResult::Success;
 
 	std::string errorMsg;
 	if (!Serialization::serializeToJsonString(result, response.utf8String, errorMsg))
 	{
-		MIKAN_LOG_ERROR("ServerResponseHelpers::writeTypedJsonResponse") 
+		MIKAN_LOG_ERROR("ServerResponseHelpers::writeTypedJsonResponse")
 			<< "Failed to serialize MikanResponse to JSON string: " << errorMsg;
 	}
 }
@@ -59,8 +59,8 @@ void writeTypedBinaryResponse(
 	t_mikan_type& result,
 	ClientResponse& response)
 {
-	result.requestId = requestId;
-	result.resultCode = MikanAPIResult::Success;
+	result.requestId= requestId;
+	result.resultCode= MikanAPIResult::Success;
 
 	std::string errorMsg;
 	if (!Serialization::serializeToBytes<t_mikan_type>(result, response.binaryData, errorMsg))

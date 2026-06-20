@@ -10,11 +10,10 @@
 #include <string>
 #include <vector>
 
-class BoxShapeSystemDefinition :
-	public MikanTypedObjectSystemDefinition<BoxShapeComponent, BoxShapeDefinition, MikanShapeID>
+class BoxShapeSystemDefinition : public MikanTypedObjectSystemDefinition<BoxShapeComponent, BoxShapeDefinition, MikanShapeID>
 {
 public:
-	using Super = MikanTypedObjectSystemDefinition<BoxShapeComponent, BoxShapeDefinition, MikanShapeID>;
+	using Super= MikanTypedObjectSystemDefinition<BoxShapeComponent, BoxShapeDefinition, MikanShapeID>;
 
 	BoxShapeSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
@@ -22,21 +21,20 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 };
 
-class BoxShapeSystem :
-	public MikanTypedObjectSystem<
-		BoxShapeComponent, BoxShapeDefinition,
-		MikanShapeID,
-		BoxShapeSystem, BoxShapeSystemDefinition>
+class BoxShapeSystem : public MikanTypedObjectSystem<
+						   BoxShapeComponent, BoxShapeDefinition,
+						   MikanShapeID,
+						   BoxShapeSystem, BoxShapeSystemDefinition>
 {
 public:
-	using Super = MikanTypedObjectSystem<
+	using Super= MikanTypedObjectSystem<
 		BoxShapeComponent, BoxShapeDefinition,
 		MikanShapeID,
 		BoxShapeSystem, BoxShapeSystemDefinition>;
 
 	BoxShapeSystem(ProjectManagerPtr ownerObjectSystem);
 
-	inline static const std::string k_objectSystemClassName = "BoxShapeSystem";
+	inline static const std::string k_objectSystemClassName= "BoxShapeSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
 	inline BoxShapeComponentPtr getBoxShapeById(MikanShapeID shapeId) const
@@ -63,5 +61,5 @@ protected:
 		ComponentDefinitionPtr componentDefinition) override;
 };
 
-using BoxShapeSystemPtr = std::shared_ptr<BoxShapeSystem>;
-using BoxShapeSystemWeakPtr = std::weak_ptr<BoxShapeSystem>;
+using BoxShapeSystemPtr= std::shared_ptr<BoxShapeSystem>;
+using BoxShapeSystemWeakPtr= std::weak_ptr<BoxShapeSystem>;

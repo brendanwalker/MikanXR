@@ -17,79 +17,85 @@ InputManager::~InputManager()
 }
 
 bool InputManager::onWindowEvent(const MkWindowEvent& event)
-{	
+{
 	bool bHandled= false;
 
 	switch (event.getEventType())
 	{
 	case eMkWindowEventType::KeyDown:
+	{
+		KeyEventBindings* keybinds= getKeyBindings(event.getKeySym());
+		if (keybinds != nullptr && keybinds->OnKeyPressed)
 		{
-			KeyEventBindings* keybinds= getKeyBindings(event.getKeySym());
-			if (keybinds != nullptr && keybinds->OnKeyPressed)
-			{
-				keybinds->OnKeyPressed();
-				bHandled = true;
-			}
-		} break;
+			keybinds->OnKeyPressed();
+			bHandled= true;
+		}
+	}
+	break;
 	case eMkWindowEventType::KeyUp:
+	{
+		KeyEventBindings* keybinds= getKeyBindings(event.getKeySym());
+		if (keybinds != nullptr)
 		{
-			KeyEventBindings* keybinds = getKeyBindings(event.getKeySym());
-			if (keybinds != nullptr)
+			if (event.getKeyRepeat())
 			{
-				if (event.getKeyRepeat())
+				if (keybinds->OnKeyRepeated)
 				{
-					if (keybinds->OnKeyRepeated)
-					{
-						keybinds->OnKeyRepeated();
-						bHandled= true;
-					}
-				}
-				else
-				{
-					if (keybinds->OnKeyReleased)
-					{
-						keybinds->OnKeyReleased();
-						bHandled = true;
-					}
+					keybinds->OnKeyRepeated();
+					bHandled= true;
 				}
 			}
-		} break;
+			else
+			{
+				if (keybinds->OnKeyReleased)
+				{
+					keybinds->OnKeyReleased();
+					bHandled= true;
+				}
+			}
+		}
+	}
+	break;
 	case eMkWindowEventType::MouseWheel:
+	{
+		EventBindingSet* bindingSet= getCurrentEventBindingSet();
+		if (bindingSet != nullptr && bindingSet->OnMouseWheelScrolledEvent)
 		{
-			EventBindingSet* bindingSet = getCurrentEventBindingSet();
-			if (bindingSet != nullptr && bindingSet->OnMouseWheelScrolledEvent)
-			{
-				bindingSet->OnMouseWheelScrolledEvent(event.getMouseWheelScrollAmount());
-				bHandled = true;
-			}
-		} break;
+			bindingSet->OnMouseWheelScrolledEvent(event.getMouseWheelScrollAmount());
+			bHandled= true;
+		}
+	}
+	break;
 	case eMkWindowEventType::MouseButtonDown:
+	{
+		EventBindingSet* bindingSet= getCurrentEventBindingSet();
+		if (bindingSet != nullptr && bindingSet->OnMouseButtonPressedEvent)
 		{
-			EventBindingSet* bindingSet = getCurrentEventBindingSet();
-			if (bindingSet != nullptr && bindingSet->OnMouseButtonPressedEvent)
-			{
-				bindingSet->OnMouseButtonPressedEvent(event.getMouseButton());
-				bHandled = true;
-			}
-		} break;
+			bindingSet->OnMouseButtonPressedEvent(event.getMouseButton());
+			bHandled= true;
+		}
+	}
+	break;
 	case eMkWindowEventType::MouseButtonUp:
+	{
+		EventBindingSet* bindingSet= getCurrentEventBindingSet();
+		if (bindingSet != nullptr && bindingSet->OnMouseButtonReleasedEvent)
 		{
-			EventBindingSet* bindingSet = getCurrentEventBindingSet();
-			if (bindingSet != nullptr && bindingSet->OnMouseButtonReleasedEvent)
-			{
-				bindingSet->OnMouseButtonReleasedEvent(event.getMouseButton());
-				bHandled = true;
-			}
-		} break;
+			bindingSet->OnMouseButtonReleasedEvent(event.getMouseButton());
+			bHandled= true;
+		}
+	}
+	break;
 	case eMkWindowEventType::MouseMotion:
+	{
+		EventBindingSet* bindingSet= getCurrentEventBindingSet();
+		if (bindingSet != nullptr && bindingSet->OnMouseMotionEvent)
 		{
-			EventBindingSet* bindingSet = getCurrentEventBindingSet();
-			if (bindingSet != nullptr && bindingSet->OnMouseMotionEvent)
-			{
-				bindingSet->OnMouseMotionEvent(event.getMouseMotionXRel(), event.getMouseMotionYRel());
-				bHandled = true;
-			}
-		} break;
+			bindingSet->OnMouseMotionEvent(event.getMouseMotionXRel(), event.getMouseMotionYRel());
+			bHandled= true;
+		}
+	}
+	break;
 	default:
 		break;
 	}
@@ -105,8 +111,8 @@ void InputManager::getMouseScreenPosition(int& outScreenX, int& outScreenY) cons
 	}
 	else
 	{
-		outScreenX = 0;
-		outScreenY = 0;
+		outScreenX= 0;
+		outScreenY= 0;
 	}
 }
 
@@ -127,22 +133,22 @@ KeyEventBindings* InputManager::getKeyBindings(MkKeySym key)
 
 KeyEventBindings* InputManager::fetchOrAddKeyBindings(MkKeySym key)
 {
-	EventBindingSet* bindingSet = getCurrentEventBindingSet();
+	EventBindingSet* bindingSet= getCurrentEventBindingSet();
 	if (bindingSet == nullptr)
 	{
-		bindingSet = pushEventBindingSet();
+		bindingSet= pushEventBindingSet();
 	}
 
-	auto it = bindingSet->keybindings.find(key);
+	auto it= bindingSet->keybindings.find(key);
 	if (it != bindingSet->keybindings.end())
 	{
 		return it->second;
 	}
 	else
 	{
-		KeyEventBindings* emptyBindings = new KeyEventBindings();
+		KeyEventBindings* emptyBindings= new KeyEventBindings();
 
-		bindingSet->keybindings.insert({ key, emptyBindings });
+		bindingSet->keybindings.insert({key, emptyBindings});
 
 		return emptyBindings;
 	}
@@ -150,7 +156,7 @@ KeyEventBindings* InputManager::fetchOrAddKeyBindings(MkKeySym key)
 
 EventBindingSet* InputManager::pushEventBindingSet()
 {
-	EventBindingSet* newEventBindingSet = new EventBindingSet();
+	EventBindingSet* newEventBindingSet= new EventBindingSet();
 
 	m_eventBindings.push_back(newEventBindingSet);
 
@@ -199,7 +205,7 @@ EventBindingSet::~EventBindingSet()
 
 void EventBindingSet::clear()
 {
-	for (auto it = keybindings.begin(); it != keybindings.end(); ++it)
+	for (auto it= keybindings.begin(); it != keybindings.end(); ++it)
 	{
 		delete it->second;
 	}

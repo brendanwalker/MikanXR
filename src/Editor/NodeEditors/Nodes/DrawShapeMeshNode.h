@@ -12,14 +12,20 @@
 class DrawShapeMeshNodeConfig : public NodeConfig
 {
 public:
-	DrawShapeMeshNodeConfig() : NodeConfig() {}
-	DrawShapeMeshNodeConfig(const std::string& nodeName) : NodeConfig(nodeName) {}
+	DrawShapeMeshNodeConfig()
+		: NodeConfig()
+	{
+	}
+	DrawShapeMeshNodeConfig(const std::string& nodeName)
+		: NodeConfig(nodeName)
+	{
+	}
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	eCompositorBlendMode blendMode = eCompositorBlendMode::blendOn;
-	bool bDepthTest = false;
+	eCompositorBlendMode blendMode= eCompositorBlendMode::blendOn;
+	bool bDepthTest= false;
 	std::map<std::string, float> m_floatDefaults;
 	std::map<std::string, std::array<float, 2>> m_float2Defaults;
 	std::map<std::string, std::array<float, 3>> m_float3Defaults;
@@ -29,10 +35,10 @@ public:
 class DrawShapeMeshNode : public Node
 {
 public:
-	DrawShapeMeshNode() = default;
-	virtual ~DrawShapeMeshNode() = default;
+	DrawShapeMeshNode()= default;
+	virtual ~DrawShapeMeshNode()= default;
 
-	inline static const std::string k_nodeClassName = "DrawShapeMeshNode";
+	inline static const std::string k_nodeClassName= "DrawShapeMeshNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
 	virtual void setOwnerGraph(NodeGraphPtr ownerGraph) override;
 
@@ -70,8 +76,8 @@ protected:
 	std::map<std::string, std::array<float, 3>> m_float3Defaults;
 	std::map<std::string, std::array<float, 4>> m_float4Defaults;
 
-	eCompositorBlendMode m_blendMode = eCompositorBlendMode::blendOn;
-	bool m_bDepthTest = false;
+	eCompositorBlendMode m_blendMode= eCompositorBlendMode::blendOn;
+	bool m_bDepthTest= false;
 
 	friend class DrawShapeMeshNodeFactory;
 };
@@ -79,7 +85,7 @@ protected:
 class DrawShapeMeshNodeFactory : public TypedNodeFactory<DrawShapeMeshNode, DrawShapeMeshNodeConfig>
 {
 public:
-	DrawShapeMeshNodeFactory() = default;
+	DrawShapeMeshNodeFactory()= default;
 
 	virtual NodePtr createNode(const class NodeEditorState& editorState) const override;
 };

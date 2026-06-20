@@ -6,13 +6,13 @@
 
 namespace InternalShaders
 {
-	bool registerInternalShaders(IMkShaderCache* shaderCache);
+bool registerInternalShaders(IMkShaderCache* shaderCache);
 }
 
 class GlShaderCache : public IMkShaderCache
 {
 public:
-	GlShaderCache() = delete;
+	GlShaderCache()= delete;
 	GlShaderCache(IMkGraphicsContext* ownerContext)
 		: m_ownerContext(ownerContext)
 	{
@@ -34,18 +34,18 @@ public:
 
 	MkMaterialPtr GlShaderCache::registerMaterial(IMkShaderCodeConstPtr code)
 	{
-		const std::string materialName = code->getProgramName();
+		const std::string materialName= code->getProgramName();
 
-		auto it = m_materialCache.find(materialName);
+		auto it= m_materialCache.find(materialName);
 		if (it != m_materialCache.end())
 		{
 			return it->second;
 		}
 
-		IMkShaderPtr program = fetchCompiledIMkShader(code);
+		IMkShaderPtr program= fetchCompiledIMkShader(code);
 		if (program)
 		{
-			auto material = std::make_shared<MkMaterial>(materialName, program);
+			auto material= std::make_shared<MkMaterial>(materialName, program);
 
 			m_materialCache.insert({materialName, material});
 			return material;
@@ -59,7 +59,7 @@ public:
 
 	MkMaterialConstPtr GlShaderCache::getMaterialByName(const std::string& name)
 	{
-		auto it = m_materialCache.find(name);
+		auto it= m_materialCache.find(name);
 		if (it != m_materialCache.end())
 		{
 			return it->second;
@@ -71,10 +71,10 @@ public:
 	IMkShaderPtr GlShaderCache::fetchCompiledIMkShader(
 		IMkShaderCodeConstPtr code)
 	{
-		auto it = m_programCache.find(code->getProgramName());
+		auto it= m_programCache.find(code->getProgramName());
 		if (it != m_programCache.end())
 		{
-			IMkShaderPtr existingProgram = it->second;
+			IMkShaderPtr existingProgram= it->second;
 
 			if (existingProgram->getProgramCode()->getCodeHash() == code->getCodeHash())
 			{
@@ -89,10 +89,10 @@ public:
 		}
 
 		// (Re)compile program and add it to the cache
-		IMkShaderPtr program = createIMkShader(code);
+		IMkShaderPtr program= createIMkShader(code);
 		if (program->compileProgram())
 		{
-			m_programCache[code->getProgramName()] = program;
+			m_programCache[code->getProgramName()]= program;
 			return program;
 		}
 		else
@@ -115,16 +115,16 @@ IMkShaderCachePtr createMkShaderCache(class IMkGraphicsContext* ownerContext)
 
 namespace InternalShaders
 {
-	IMkShaderCodeConstPtr getPTTexturedFullScreenRGBQuad()
-	{
-		static IMkShaderCodePtr x_shaderCode = nullptr;
+IMkShaderCodeConstPtr getPTTexturedFullScreenRGBQuad()
+{
+	static IMkShaderCodePtr x_shaderCode= nullptr;
 
-		if (x_shaderCode == nullptr)
-		{
-			x_shaderCode = createIMkShaderCode(
-				INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE,
-				// vertex shader
-				R""""(
+	if (x_shaderCode == nullptr)
+	{
+		x_shaderCode= createIMkShaderCode(
+			INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE,
+			// vertex shader
+			R""""(
 				#version 330 core
 				layout (location = 0) in vec2 aPos;
 				layout (location = 1) in vec2 aTexCoords;
@@ -137,8 +137,8 @@ namespace InternalShaders
 					gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
 				}
 				)"""",
-				//fragment shader
-				R""""(
+			// fragment shader
+			R""""(
 				#version 330 core
 				out vec4 FragColor;
 
@@ -152,24 +152,24 @@ namespace InternalShaders
 					FragColor = vec4(col, 1.0);
 				} 
 				)"""");
-			x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
-			x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
-			x_shaderCode->addUniform("rgbTexture", eUniformSemantic::rgbTexture);
-		}
-
-		return x_shaderCode;
+		x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
+		x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+		x_shaderCode->addUniform("rgbTexture", eUniformSemantic::rgbTexture);
 	}
 
-	IMkShaderCodeConstPtr getPTUndistortTexturedFullScreenRGBQuad()
-	{
-		static IMkShaderCodePtr x_shaderCode = nullptr;
+	return x_shaderCode;
+}
 
-		if (x_shaderCode == nullptr)
-		{
-			x_shaderCode = createIMkShaderCode(
-				INTERNAL_MATERIAL_PT_UNDISTORT_FULLSCREEN_RGB_TEXTURE,
-				// vertex shader
-				R""""(
+IMkShaderCodeConstPtr getPTUndistortTexturedFullScreenRGBQuad()
+{
+	static IMkShaderCodePtr x_shaderCode= nullptr;
+
+	if (x_shaderCode == nullptr)
+	{
+		x_shaderCode= createIMkShaderCode(
+			INTERNAL_MATERIAL_PT_UNDISTORT_FULLSCREEN_RGB_TEXTURE,
+			// vertex shader
+			R""""(
 				#version 330 core
 				layout (location = 0) in vec2 aPos;
 				layout (location = 1) in vec2 aTexCoords;
@@ -182,8 +182,8 @@ namespace InternalShaders
 					gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
 				}
 				)"""",
-				//fragment shader
-				R""""(
+			// fragment shader
+			R""""(
 				#version 330 core
 				out vec4 FragColor;
 
@@ -200,25 +200,25 @@ namespace InternalShaders
 					FragColor = vec4(col, 1.0);
 				}
 				)"""");
-			x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
-			x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
-			x_shaderCode->addUniform("rgbTexture", eUniformSemantic::rgbTexture);
-			x_shaderCode->addUniform("distortionTexture", eUniformSemantic::distortionTexture);
-		}
-
-		return x_shaderCode;
+		x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
+		x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+		x_shaderCode->addUniform("rgbTexture", eUniformSemantic::rgbTexture);
+		x_shaderCode->addUniform("distortionTexture", eUniformSemantic::distortionTexture);
 	}
 
-	IMkShaderCodeConstPtr getPTTexturedFullScreenRGBAQuad()
-	{
-		static IMkShaderCodePtr x_shaderCode = nullptr;
+	return x_shaderCode;
+}
 
-		if (x_shaderCode == nullptr)
-		{
-			x_shaderCode = createIMkShaderCode(
-				INTERNAL_MATERIAL_PT_FULLSCREEN_RGBA_TEXTURE,
-				// vertex shader
-				R""""(
+IMkShaderCodeConstPtr getPTTexturedFullScreenRGBAQuad()
+{
+	static IMkShaderCodePtr x_shaderCode= nullptr;
+
+	if (x_shaderCode == nullptr)
+	{
+		x_shaderCode= createIMkShaderCode(
+			INTERNAL_MATERIAL_PT_FULLSCREEN_RGBA_TEXTURE,
+			// vertex shader
+			R""""(
 				#version 330 core
 				layout (location = 0) in vec2 aPos;
 				layout (location = 1) in vec2 aTexCoords;
@@ -231,8 +231,8 @@ namespace InternalShaders
 					gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
 				}
 				)"""",
-					//fragment shader
-					R""""(
+			// fragment shader
+			R""""(
 				#version 330 core
 				out vec4 FragColor;
 
@@ -245,24 +245,24 @@ namespace InternalShaders
 					FragColor = texture(rgbaTexture, TexCoords).rgba;
 				} 
 				)"""");
-			x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
-			x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
-			x_shaderCode->addUniform("rgbaTexture", eUniformSemantic::rgbaTexture);
-		}
-
-		return x_shaderCode;
+		x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
+		x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+		x_shaderCode->addUniform("rgbaTexture", eUniformSemantic::rgbaTexture);
 	}
 
-	IMkShaderCodeConstPtr getTextShaderCode()
-	{
-		static IMkShaderCodePtr x_shaderCode = nullptr;
+	return x_shaderCode;
+}
 
-		if (x_shaderCode == nullptr)
-		{
-			x_shaderCode = createIMkShaderCode(
-				INTERNAL_MATERIAL_TEXT,
-				// vertex shader
-				R""""(
+IMkShaderCodeConstPtr getTextShaderCode()
+{
+	static IMkShaderCodePtr x_shaderCode= nullptr;
+
+	if (x_shaderCode == nullptr)
+	{
+		x_shaderCode= createIMkShaderCode(
+			INTERNAL_MATERIAL_TEXT,
+			// vertex shader
+			R""""(
 				#version 330 core
 				layout (location = 0) in vec2 aPos;
 				layout (location = 1) in vec2 aTexCoords;
@@ -277,8 +277,8 @@ namespace InternalShaders
 					gl_Position = vec4(2.0*(aPos.x / screenSize.x) - 1.0, 1.0 - 2.0*(aPos.y / screenSize.y), 0.0, 1.0); 
 				}
 				)"""",
-					//fragment shader
-					R""""(
+			// fragment shader
+			R""""(
 				#version 330 core
 				out vec4 FragColor;
 
@@ -292,25 +292,25 @@ namespace InternalShaders
 					FragColor = col;
 				} 
 			)"""");
-			x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
-			x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
-			x_shaderCode->addUniform("glyphTexture", eUniformSemantic::rgbaTexture);
-			x_shaderCode->addUniform("screenSize", eUniformSemantic::screenSize);
-		}
-
-		return x_shaderCode;
+		x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
+		x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+		x_shaderCode->addUniform("glyphTexture", eUniformSemantic::rgbaTexture);
+		x_shaderCode->addUniform("screenSize", eUniformSemantic::screenSize);
 	}
 
-	IMkShaderCodeConstPtr getUnpackRGBALinearDepthTextureShaderCode()
-	{
-		static IMkShaderCodePtr x_shaderCode = nullptr;
+	return x_shaderCode;
+}
 
-		if (x_shaderCode == nullptr)
-		{
-			x_shaderCode = createIMkShaderCode(
-				INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE,
-				// vertex shader
-				R""""(
+IMkShaderCodeConstPtr getUnpackRGBALinearDepthTextureShaderCode()
+{
+	static IMkShaderCodePtr x_shaderCode= nullptr;
+
+	if (x_shaderCode == nullptr)
+	{
+		x_shaderCode= createIMkShaderCode(
+			INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE,
+			// vertex shader
+			R""""(
 				#version 330 core
 				layout (location = 0) in vec2 aPos;
 				layout (location = 1) in vec2 aTexCoords;
@@ -323,8 +323,8 @@ namespace InternalShaders
 					gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0); 
 				}
 				)"""",
-					//fragment shader
-					R""""(
+			// fragment shader
+			R""""(
 				#version 330 core
 				out vec4 FragColor;
 				out float gl_FragDepth;
@@ -344,24 +344,24 @@ namespace InternalShaders
 					gl_FragDepth = linearDepth;
 				} 
 				)"""");
-			x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
-			x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
-			x_shaderCode->addUniform("rgbaPackedDepthTexture", eUniformSemantic::rgbaTexture);
-		}
-
-		return x_shaderCode;
+		x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
+		x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+		x_shaderCode->addUniform("rgbaPackedDepthTexture", eUniformSemantic::rgbaTexture);
 	}
 
-	IMkShaderCodeConstPtr getPWireframeShaderCode()
-	{
-		static IMkShaderCodePtr x_shaderCode = nullptr;
+	return x_shaderCode;
+}
 
-		if (x_shaderCode == nullptr)
-		{
-			x_shaderCode = createIMkShaderCode(
-				INTERNAL_MATERIAL_P_WIREFRAME,
-				// vertex shader
-				R""""(
+IMkShaderCodeConstPtr getPWireframeShaderCode()
+{
+	static IMkShaderCodePtr x_shaderCode= nullptr;
+
+	if (x_shaderCode == nullptr)
+	{
+		x_shaderCode= createIMkShaderCode(
+			INTERNAL_MATERIAL_P_WIREFRAME,
+			// vertex shader
+			R""""(
 				#version 410 
 				uniform mat4 mvpMatrix; 
 				layout(location = 0) in vec3 in_position; 
@@ -370,8 +370,8 @@ namespace InternalShaders
 					gl_Position = mvpMatrix * vec4(in_position.xyz, 1); 
 				}
 				)"""",
-					//fragment shader
-					R""""(
+			// fragment shader
+			R""""(
 				#version 410 core
 				uniform vec4 diffuseColor; 
 				out vec4 out_FragColor;
@@ -380,24 +380,24 @@ namespace InternalShaders
 					out_FragColor = diffuseColor;
 				}
 				)"""");
-			x_shaderCode->addVertexAttribute("in_position", eVertexDataType::datatype_vec3, eVertexSemantic::position);
-			x_shaderCode->addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix);
-			x_shaderCode->addUniform("diffuseColor", eUniformSemantic::diffuseColorRGBA);
-		}
-
-		return x_shaderCode;
+		x_shaderCode->addVertexAttribute("in_position", eVertexDataType::datatype_vec3, eVertexSemantic::position);
+		x_shaderCode->addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix);
+		x_shaderCode->addUniform("diffuseColor", eUniformSemantic::diffuseColorRGBA);
 	}
 
-	IMkShaderCodeConstPtr getPSolidColorShaderCode()
+	return x_shaderCode;
+}
+
+IMkShaderCodeConstPtr getPSolidColorShaderCode()
+{
+	static IMkShaderCodePtr x_shaderCode= nullptr;
+
+	if (x_shaderCode == nullptr)
 	{
-		static IMkShaderCodePtr x_shaderCode = nullptr;
-		
-		if (x_shaderCode == nullptr)
-		{
-			x_shaderCode = createIMkShaderCode(
-				INTERNAL_MATERIAL_P_SOLID_COLOR,
-				// vertex shader
-				R""""(
+		x_shaderCode= createIMkShaderCode(
+			INTERNAL_MATERIAL_P_SOLID_COLOR,
+			// vertex shader
+			R""""(
 				#version 330 core
 				layout (location = 0) in vec3 aPos;
 
@@ -408,8 +408,8 @@ namespace InternalShaders
 					gl_Position = mvpMatrix * vec4(aPos, 1.0);
 				}
 				)"""",
-					//fragment shader
-					R""""(
+			// fragment shader
+			R""""(
 				#version 330 core
 				out vec4 FragColor;
 
@@ -420,24 +420,24 @@ namespace InternalShaders
 					FragColor = diffuseColor;
 				}
 				)"""");
-			x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position);
-			x_shaderCode->addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix);
-			x_shaderCode->addUniform("diffuseColor", eUniformSemantic::diffuseColorRGBA);
-		}
-
-		return x_shaderCode;
+		x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position);
+		x_shaderCode->addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix);
+		x_shaderCode->addUniform("diffuseColor", eUniformSemantic::diffuseColorRGBA);
 	}
 
-	IMkShaderCodeConstPtr getPCUnlitColorShaderCode()
-	{
-		static IMkShaderCodePtr x_shaderCode = nullptr;
+	return x_shaderCode;
+}
 
-		if (x_shaderCode == nullptr)
-		{
-			x_shaderCode = createIMkShaderCode(
-				INTERNAL_MATERIAL_PC_UNLIT_COLOR,
-				// vertex shader
-				R""""(
+IMkShaderCodeConstPtr getPCUnlitColorShaderCode()
+{
+	static IMkShaderCodePtr x_shaderCode= nullptr;
+
+	if (x_shaderCode == nullptr)
+	{
+		x_shaderCode= createIMkShaderCode(
+			INTERNAL_MATERIAL_PC_UNLIT_COLOR,
+			// vertex shader
+			R""""(
 				#version 330 core
 				layout (location = 0) in vec3 inPosition;
 				layout (location = 1) in vec4 inColor0; 
@@ -451,8 +451,8 @@ namespace InternalShaders
 					gl_Position = mvpMatrix * vec4(inPosition, 1.0);
 				}
 				)"""",
-				//fragment shader
-				R""""(
+			// fragment shader
+			R""""(
 				#version 330 core
 				in vec4 fragColor;
 				out vec4 finalColor;
@@ -462,24 +462,24 @@ namespace InternalShaders
 					finalColor = fragColor;
 				}
 				)"""");
-			x_shaderCode->addVertexAttribute("inPosition", eVertexDataType::datatype_vec3, eVertexSemantic::position);
-			x_shaderCode->addVertexAttribute("inColor0", eVertexDataType::datatype_vec4, eVertexSemantic::color);
-			x_shaderCode->addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix);
-		}
-
-		return x_shaderCode;
+		x_shaderCode->addVertexAttribute("inPosition", eVertexDataType::datatype_vec3, eVertexSemantic::position);
+		x_shaderCode->addVertexAttribute("inColor0", eVertexDataType::datatype_vec4, eVertexSemantic::color);
+		x_shaderCode->addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix);
 	}
 
-	IMkShaderCodeConstPtr getPTTexturedShaderCode()
-	{
-		static IMkShaderCodePtr x_shaderCode = nullptr;
+	return x_shaderCode;
+}
 
-		if (x_shaderCode == nullptr)
-		{
-			x_shaderCode = createIMkShaderCode(
-				INTERNAL_MATERIAL_PT_TEXTURED,
-				// vertex shader
-				R""""(
+IMkShaderCodeConstPtr getPTTexturedShaderCode()
+{
+	static IMkShaderCodePtr x_shaderCode= nullptr;
+
+	if (x_shaderCode == nullptr)
+	{
+		x_shaderCode= createIMkShaderCode(
+			INTERNAL_MATERIAL_PT_TEXTURED,
+			// vertex shader
+			R""""(
 				#version 330 core
 				layout (location = 0) in vec3 aPos;
 				layout (location = 1) in vec2 aTexCoords;
@@ -494,8 +494,8 @@ namespace InternalShaders
 					gl_Position = mvpMatrix * vec4(aPos, 1.0);
 				}
 				)"""",
-				// fragment shader
-				R""""(
+			// fragment shader
+			R""""(
 				#version 330 core
 				out vec4 FragColor;
 
@@ -509,25 +509,25 @@ namespace InternalShaders
 					FragColor = vec4(col, 1.0);
 				}
 				)"""");
-			x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position);
-			x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
-			x_shaderCode->addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix);
-			x_shaderCode->addUniform("rgbTexture", eUniformSemantic::rgbTexture);
-		}
-
-		return x_shaderCode;
+		x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position);
+		x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+		x_shaderCode->addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix);
+		x_shaderCode->addUniform("rgbTexture", eUniformSemantic::rgbTexture);
 	}
 
-	IMkShaderCodeConstPtr getPNTTexturedShaderCode()
+	return x_shaderCode;
+}
+
+IMkShaderCodeConstPtr getPNTTexturedShaderCode()
+{
+	static IMkShaderCodePtr x_shaderCode= nullptr;
+
+	if (x_shaderCode == nullptr)
 	{
-		static IMkShaderCodePtr x_shaderCode = nullptr;
-		
-		if (x_shaderCode == nullptr)
-		{
-			x_shaderCode = createIMkShaderCode(
-				INTERNAL_MATERIAL_PNT_TEXTURED,
-				// vertex shader
-				R""""(
+		x_shaderCode= createIMkShaderCode(
+			INTERNAL_MATERIAL_PNT_TEXTURED,
+			// vertex shader
+			R""""(
 				#version 330 core
 				layout (location = 0) in vec3 aPos;
 				layout(location = 1) in vec3 v3NormalIn; 
@@ -543,8 +543,8 @@ namespace InternalShaders
 					gl_Position = mvpMatrix * vec4(aPos, 1.0);
 				}  
 				)"""",
-					//fragment shader
-					R""""(
+			// fragment shader
+			R""""(
 				#version 330 core
 				out vec4 FragColor;
 
@@ -558,26 +558,26 @@ namespace InternalShaders
 					FragColor = vec4(col, 1.0);
 				} 
 				)"""");
-			x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position);
-			x_shaderCode->addVertexAttribute("v3NormalIn", eVertexDataType::datatype_vec3, eVertexSemantic::normal);
-			x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
-			x_shaderCode->addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix);
-			x_shaderCode->addUniform("rgbTexture", eUniformSemantic::diffuseTexture);
-		}
-
-		return x_shaderCode;
+		x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position);
+		x_shaderCode->addVertexAttribute("v3NormalIn", eVertexDataType::datatype_vec3, eVertexSemantic::normal);
+		x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+		x_shaderCode->addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix);
+		x_shaderCode->addUniform("rgbTexture", eUniformSemantic::diffuseTexture);
 	}
 
-	IMkShaderCodeConstPtr getPNTTexturedColoredShaderCode()
+	return x_shaderCode;
+}
+
+IMkShaderCodeConstPtr getPNTTexturedColoredShaderCode()
+{
+	static IMkShaderCodePtr x_shaderCode= nullptr;
+
+	if (x_shaderCode == nullptr)
 	{
-		static IMkShaderCodePtr x_shaderCode = nullptr;
-		
-		if (x_shaderCode == nullptr)
-		{
-			x_shaderCode = createIMkShaderCode(
-				INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED,
-				// vertex shader
-				R""""(
+		x_shaderCode= createIMkShaderCode(
+			INTERNAL_MATERIAL_PNT_TEXTURED_LIT_COLORED,
+			// vertex shader
+			R""""(
 				#version 410 
 				uniform mat4 matrix; 
 				layout(location = 0) in vec3 aPos; 
@@ -602,8 +602,8 @@ namespace InternalShaders
 
 				}
 				)"""",
-					//fragment shader
-					R""""(
+			// fragment shader
+			R""""(
 				#version 410 core
 
 				in vec3 Normal; // Normal from the vertex shader
@@ -644,35 +644,35 @@ namespace InternalShaders
 					FragColor = texture(diffuse_tex, TexCoords) * lighting * modelColor;
 				}
 				)"""");
-			x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position);
-			x_shaderCode->addVertexAttribute("v3NormalIn", eVertexDataType::datatype_vec3, eVertexSemantic::normal);
-			x_shaderCode->addVertexAttribute("v2TexCoordsIn", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
-			x_shaderCode->addUniform("model", eUniformSemantic::modelMatrix);
-			x_shaderCode->addUniform("view", eUniformSemantic::viewMatrix);
-			x_shaderCode->addUniform("projection", eUniformSemantic::projectionMatrix);
-			x_shaderCode->addUniform("diffuse_tex", eUniformSemantic::diffuseTexture);
-			x_shaderCode->addUniform("modelColor", eUniformSemantic::diffuseColorRGBA);
-			x_shaderCode->addUniform("lightDir", eUniformSemantic::lightDirection);
-			x_shaderCode->addUniform("lightColor", eUniformSemantic::lightColorRGB);
-			x_shaderCode->addUniform("ambientStrength", eUniformSemantic::ambientStrength);
-			x_shaderCode->addUniform("cameraPos", eUniformSemantic::cameraPosition);
-			x_shaderCode->addUniform("specularColor", eUniformSemantic::specularColorRGB);
-			x_shaderCode->addUniform("shininess", eUniformSemantic::specularHighlights);
-		}
-
-		return x_shaderCode;
+		x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position);
+		x_shaderCode->addVertexAttribute("v3NormalIn", eVertexDataType::datatype_vec3, eVertexSemantic::normal);
+		x_shaderCode->addVertexAttribute("v2TexCoordsIn", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+		x_shaderCode->addUniform("model", eUniformSemantic::modelMatrix);
+		x_shaderCode->addUniform("view", eUniformSemantic::viewMatrix);
+		x_shaderCode->addUniform("projection", eUniformSemantic::projectionMatrix);
+		x_shaderCode->addUniform("diffuse_tex", eUniformSemantic::diffuseTexture);
+		x_shaderCode->addUniform("modelColor", eUniformSemantic::diffuseColorRGBA);
+		x_shaderCode->addUniform("lightDir", eUniformSemantic::lightDirection);
+		x_shaderCode->addUniform("lightColor", eUniformSemantic::lightColorRGB);
+		x_shaderCode->addUniform("ambientStrength", eUniformSemantic::ambientStrength);
+		x_shaderCode->addUniform("cameraPos", eUniformSemantic::cameraPosition);
+		x_shaderCode->addUniform("specularColor", eUniformSemantic::specularColorRGB);
+		x_shaderCode->addUniform("shininess", eUniformSemantic::specularHighlights);
 	}
 
-	IMkShaderCodeConstPtr getPLinearDepthShaderCode()
-	{
-		static IMkShaderCodePtr x_shaderCode = nullptr;
+	return x_shaderCode;
+}
 
-		if (x_shaderCode == nullptr)
-		{
-			x_shaderCode = createIMkShaderCode(
-				INTERNAL_MATERIAL_P_LINEAR_DEPTH,
-				// vertex shader
-				R""""(
+IMkShaderCodeConstPtr getPLinearDepthShaderCode()
+{
+	static IMkShaderCodePtr x_shaderCode= nullptr;
+
+	if (x_shaderCode == nullptr)
+	{
+		x_shaderCode= createIMkShaderCode(
+			INTERNAL_MATERIAL_P_LINEAR_DEPTH,
+			// vertex shader
+			R""""(
 				#version 330 core
 				layout (location = 0) in vec3 aPos;
 
@@ -691,8 +691,8 @@ namespace InternalShaders
 					depth = -(mvMatrix * vec4(aPos, 1.0)).z;
 				}
 				)"""",
-					//fragment shader
-					R""""(
+			// fragment shader
+			R""""(
 				#version 330 core
 
 				uniform mat4 projMatrix;
@@ -718,29 +718,29 @@ namespace InternalShaders
 					gl_FragDepth = linearDepth;
 				}
 				)"""");
-			x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position);
-			x_shaderCode->addUniform("modelMatrix", eUniformSemantic::modelMatrix);
-			x_shaderCode->addUniform("viewMatrix", eUniformSemantic::viewMatrix);
-			x_shaderCode->addUniform("projMatrix", eUniformSemantic::projectionMatrix);
-		}
-
-		return x_shaderCode;
+		x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position);
+		x_shaderCode->addUniform("modelMatrix", eUniformSemantic::modelMatrix);
+		x_shaderCode->addUniform("viewMatrix", eUniformSemantic::viewMatrix);
+		x_shaderCode->addUniform("projMatrix", eUniformSemantic::projectionMatrix);
 	}
 
-	IMkShaderCodeConstPtr getPTVisualizeGLDepthShaderCode()
-	{
-		static IMkShaderCodePtr x_shaderCode = nullptr;
+	return x_shaderCode;
+}
 
-		if (x_shaderCode == nullptr)
-		{
-			// Assumes float depth texture with non-linear depth values in [0, 1] range
-			// and the perspective projection formula is using the OpenGL convention where:
-			// Near plane(z = zNear) -> NDC z = -1 -> depth buffer = 0
-			// Far plane(z = zFar) -> NDC z = 1 -> depth buffer = 1
-			x_shaderCode = createIMkShaderCode(
-				INTERNAL_MATERIAL_PT_NORMALIZE_DEPTH,
-				// vertex shader
-				R""""(
+IMkShaderCodeConstPtr getPTVisualizeGLDepthShaderCode()
+{
+	static IMkShaderCodePtr x_shaderCode= nullptr;
+
+	if (x_shaderCode == nullptr)
+	{
+		// Assumes float depth texture with non-linear depth values in [0, 1] range
+		// and the perspective projection formula is using the OpenGL convention where:
+		// Near plane(z = zNear) -> NDC z = -1 -> depth buffer = 0
+		// Far plane(z = zFar) -> NDC z = 1 -> depth buffer = 1
+		x_shaderCode= createIMkShaderCode(
+			INTERNAL_MATERIAL_PT_NORMALIZE_DEPTH,
+			// vertex shader
+			R""""(
 				#version 330 core
 				layout (location = 0) in vec2 aPos;
 				layout (location = 1) in vec2 aTexCoords;
@@ -753,8 +753,8 @@ namespace InternalShaders
 					gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0);
 				}
 				)"""",
-				//fragment shader
-				R""""(
+			// fragment shader
+			R""""(
 				#version 330 core
 				out vec4 FragColor;
 
@@ -781,28 +781,28 @@ namespace InternalShaders
 					FragColor = vec4(zNorm, zNorm, zNorm, 1.0);
 				}
 				)"""");
-			x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
-			x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
-			x_shaderCode->addUniform("depthTexture", eUniformSemantic::depthTexture);
-			x_shaderCode->addUniform("zNear", eUniformSemantic::zNear);
-			x_shaderCode->addUniform("zFar", eUniformSemantic::zFar);
-		}
-
-		return x_shaderCode;
+		x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
+		x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+		x_shaderCode->addUniform("depthTexture", eUniformSemantic::depthTexture);
+		x_shaderCode->addUniform("zNear", eUniformSemantic::zNear);
+		x_shaderCode->addUniform("zFar", eUniformSemantic::zFar);
 	}
 
-	IMkShaderCodeConstPtr getPM5544TestCardShaderCode()
-	{
-		static IMkShaderCodePtr x_shaderCode = nullptr;
+	return x_shaderCode;
+}
 
-		if (x_shaderCode == nullptr)
-		{
-			// PM5544 Test Card from here: https://www.shadertoy.com/view/4ccyWH
-			// CRT effects from here: https://www.shadertoy.com/view/XtlSD7
-			x_shaderCode = createIMkShaderCode(
-				INTERNAL_MATERIAL_PT_PM5544_TEST_CARD,
-				// vertex shader
-				R""""(
+IMkShaderCodeConstPtr getPM5544TestCardShaderCode()
+{
+	static IMkShaderCodePtr x_shaderCode= nullptr;
+
+	if (x_shaderCode == nullptr)
+	{
+		// PM5544 Test Card from here: https://www.shadertoy.com/view/4ccyWH
+		// CRT effects from here: https://www.shadertoy.com/view/XtlSD7
+		x_shaderCode= createIMkShaderCode(
+			INTERNAL_MATERIAL_PT_PM5544_TEST_CARD,
+			// vertex shader
+			R""""(
 				#version 330 core
 				layout (location = 0) in vec2 aPos;
 				layout (location = 1) in vec2 aTexCoords;
@@ -815,8 +815,8 @@ namespace InternalShaders
 					gl_Position = vec4(aPos.x, aPos.y, 0.0, 1.0);
 				}
 				)"""",
-				// fragment shader
-				R""""(
+			// fragment shader
+			R""""(
 				#version 330 core
 				out vec4 FragColor;
 
@@ -958,25 +958,25 @@ namespace InternalShaders
 					FragColor = vec4(col, 1.0);
 				}
 				)"""");
-			x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
-			x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
-			x_shaderCode->addUniform("screenSize", eUniformSemantic::screenSize);
-			x_shaderCode->addUniform("time", eUniformSemantic::floatConstant0);
-		}
-
-		return x_shaderCode;
+		x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec2, eVertexSemantic::position);
+		x_shaderCode->addVertexAttribute("aTexCoords", eVertexDataType::datatype_vec2, eVertexSemantic::texCoord);
+		x_shaderCode->addUniform("screenSize", eUniformSemantic::screenSize);
+		x_shaderCode->addUniform("time", eUniformSemantic::floatConstant0);
 	}
 
-	IMkShaderCodeConstPtr getPConeVolumeShaderCode()
-	{
-		static IMkShaderCodePtr x_shaderCode = nullptr;
+	return x_shaderCode;
+}
 
-		if (x_shaderCode == nullptr)
-		{
-			x_shaderCode = createIMkShaderCode(
-				INTERNAL_MATERIAL_P_CONE_VOLUME,
-				// vertex shader
-				R""""(
+IMkShaderCodeConstPtr getPConeVolumeShaderCode()
+{
+	static IMkShaderCodePtr x_shaderCode= nullptr;
+
+	if (x_shaderCode == nullptr)
+	{
+		x_shaderCode= createIMkShaderCode(
+			INTERNAL_MATERIAL_P_CONE_VOLUME,
+			// vertex shader
+			R""""(
 				#version 330 core
 				layout (location = 0) in vec3 aPos;
 
@@ -990,8 +990,8 @@ namespace InternalShaders
 					gl_Position = mvpMatrix * vec4(aPos, 1.0);
 				}
 				)"""",
-				// fragment shader
-				R""""(
+			// fragment shader
+			R""""(
 				#version 330 core
 				out vec4 FragColor;
 
@@ -1007,46 +1007,44 @@ namespace InternalShaders
 					FragColor = vec4(diffuseColor.rgb * (diffuseColor.a * fade), 1.0);
 				}
 				)"""");
-			x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position);
-			x_shaderCode->addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix);
-			x_shaderCode->addUniform("diffuseColor", eUniformSemantic::diffuseColorRGBA);
-		}
-
-		return x_shaderCode;
+		x_shaderCode->addVertexAttribute("aPos", eVertexDataType::datatype_vec3, eVertexSemantic::position);
+		x_shaderCode->addUniform("mvpMatrix", eUniformSemantic::modelViewProjectionMatrix);
+		x_shaderCode->addUniform("diffuseColor", eUniformSemantic::diffuseColorRGBA);
 	}
 
-	bool registerInternalShaders(IMkShaderCache* shaderCache)
+	return x_shaderCode;
+}
+
+bool registerInternalShaders(IMkShaderCache* shaderCache)
+{
+	std::vector<IMkShaderCodeConstPtr> internalShaders= {
+		getPTTexturedFullScreenRGBQuad(),
+		getPTUndistortTexturedFullScreenRGBQuad(),
+		getPTTexturedFullScreenRGBAQuad(),
+		getTextShaderCode(),
+		getUnpackRGBALinearDepthTextureShaderCode(),
+		getPWireframeShaderCode(),
+		getPSolidColorShaderCode(),
+		getPCUnlitColorShaderCode(),
+		getPTTexturedShaderCode(),
+		getPNTTexturedShaderCode(),
+		getPNTTexturedColoredShaderCode(),
+		getPLinearDepthShaderCode(),
+		getPTVisualizeGLDepthShaderCode(),
+		getPM5544TestCardShaderCode(),
+		getPConeVolumeShaderCode(),
+	};
+
+	bool bSuccess= true;
+	for (IMkShaderCodeConstPtr code : internalShaders)
 	{
-		std::vector<IMkShaderCodeConstPtr> internalShaders = {
-			getPTTexturedFullScreenRGBQuad(),
-			getPTUndistortTexturedFullScreenRGBQuad(),
-			getPTTexturedFullScreenRGBAQuad(),
-			getTextShaderCode(),
-			getUnpackRGBALinearDepthTextureShaderCode(),
-			getPWireframeShaderCode(),
-			getPSolidColorShaderCode(),
-			getPCUnlitColorShaderCode(),
-			getPTTexturedShaderCode(),
-			getPNTTexturedShaderCode(),
-			getPNTTexturedColoredShaderCode(),
-			getPLinearDepthShaderCode(),
-			getPTVisualizeGLDepthShaderCode(),
-			getPM5544TestCardShaderCode(),
-			getPConeVolumeShaderCode(),
-		};
-
-		bool bSuccess = true;
-		for (IMkShaderCodeConstPtr code : internalShaders)
+		if (!shaderCache->registerMaterial(code))
 		{
-			if (!shaderCache->registerMaterial(code))
-			{
-				MIKAN_LOG_ERROR("InternalShaders::registerInternalShaders()") <<
-					"Failed to compile " << code->getProgramName();
-				bSuccess = false;
-			}
+			MIKAN_LOG_ERROR("InternalShaders::registerInternalShaders()") << "Failed to compile " << code->getProgramName();
+			bSuccess= false;
 		}
-
-		return bSuccess;
 	}
-};
 
+	return bSuccess;
+}
+}; // namespace InternalShaders

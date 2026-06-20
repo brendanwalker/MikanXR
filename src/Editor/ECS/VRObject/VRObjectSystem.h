@@ -24,11 +24,10 @@
 
 class GlmTransform;
 
-class VRObjectSystemDefinition :
-	public MikanTypedObjectSystemDefinition<VRDeviceComponent, VRDeviceDefinition, MikanVRDeviceID>
+class VRObjectSystemDefinition : public MikanTypedObjectSystemDefinition<VRDeviceComponent, VRDeviceDefinition, MikanVRDeviceID>
 {
 public:
-	using Super = MikanTypedObjectSystemDefinition<VRDeviceComponent, VRDeviceDefinition, MikanVRDeviceID>;
+	using Super= MikanTypedObjectSystemDefinition<VRDeviceComponent, VRDeviceDefinition, MikanVRDeviceID>;
 
 	VRObjectSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
@@ -36,22 +35,24 @@ public:
 	virtual bool wantsConfigSerialization() const override { return false; }
 };
 
-class VRObjectSystem :
-	public MikanTypedObjectSystem<
-		VRDeviceComponent, VRDeviceDefinition,
-		MikanVRDeviceID,
-		VRObjectSystem, VRObjectSystemDefinition>,
-	public IVRDeviceManagerListener
+class VRObjectSystem : public MikanTypedObjectSystem<
+						   VRDeviceComponent, VRDeviceDefinition,
+						   MikanVRDeviceID,
+						   VRObjectSystem, VRObjectSystemDefinition>,
+					   public IVRDeviceManagerListener
 {
 public:
-	using Super = MikanTypedObjectSystem<
+	using Super= MikanTypedObjectSystem<
 		VRDeviceComponent, VRDeviceDefinition,
 		MikanVRDeviceID,
 		VRObjectSystem, VRObjectSystemDefinition>;
 
-	VRObjectSystem(ProjectManagerPtr ownerObjectSystem) : Super::MikanTypedObjectSystem(ownerObjectSystem) {}
+	VRObjectSystem(ProjectManagerPtr ownerObjectSystem)
+		: Super::MikanTypedObjectSystem(ownerObjectSystem)
+	{
+	}
 
-	inline static const std::string k_objectSystemClassName = "VRObjectSystem";
+	inline static const std::string k_objectSystemClassName= "VRObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
 	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
@@ -115,8 +116,8 @@ protected:
 private:
 	struct TrackingRuntimeInitResult
 	{
-		eTrackingRuntime runtime = eTrackingRuntime::INVALID;
-		class IVRDeviceModule* module = nullptr;
+		eTrackingRuntime runtime= eTrackingRuntime::INVALID;
+		class IVRDeviceModule* module= nullptr;
 		IVRDeviceManagerPtr manager;
 	};
 	static TrackingRuntimeInitResult initTrackingRuntimeOnThread(
@@ -124,7 +125,7 @@ private:
 		const std::string& moduleName,
 		class IMkGraphicsContext* graphicsContext);
 
-	using VRTrackingRuntimePtr = std::shared_ptr<class VRTrackingRuntime>;
+	using VRTrackingRuntimePtr= std::shared_ptr<class VRTrackingRuntime>;
 	std::map<eTrackingRuntime, VRTrackingRuntimePtr> m_trackingRuntimes;
 	std::map<eTrackingRuntime, eTrackingRuntimeState> m_trackingRuntimeStates;
 	std::map<eTrackingRuntime, std::future<TrackingRuntimeInitResult>> m_pendingRuntimeFutures;
@@ -136,9 +137,9 @@ private:
 void addAllVRDevicesToMkScene(
 	VRObjectSystemPtr vrObjectSystem,
 	IMkScenePtr mkScenePtr,
-	const glm::mat4& vrSpaceToStageSpace = glm::mat4(1.f));
+	const glm::mat4& vrSpaceToStageSpace= glm::mat4(1.f));
 void renderAllVRDeviceInfo(
 	VRObjectSystemPtr vrObjectSystem,
 	IMkGraphicsContext* graphicsContext,
 	IMkCameraConstPtr camera,
-	const glm::mat4& vrSpaceToStageSpace = glm::mat4(1.f));
+	const glm::mat4& vrSpaceToStageSpace= glm::mat4(1.f));

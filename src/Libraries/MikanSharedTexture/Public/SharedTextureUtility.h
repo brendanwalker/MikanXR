@@ -7,7 +7,7 @@
 
 enum class SharedTextureType : int
 {
-	UNKNOWN = -1,
+	UNKNOWN= -1,
 
 	COLOR,
 	DEPTH,

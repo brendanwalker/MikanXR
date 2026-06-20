@@ -9,7 +9,7 @@
 class ColorTextureSourceNodeConfig : public NodeConfig
 {
 public:
-	ColorTextureSourceNodeConfig() = default;
+	ColorTextureSourceNodeConfig()= default;
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -22,9 +22,9 @@ public:
 class ColorTextureSourceNode : public Node
 {
 public:
-	ColorTextureSourceNode() = default;
+	ColorTextureSourceNode()= default;
 
-	inline static const std::string k_nodeClassName = "ColorTextureSourceNode";
+	inline static const std::string k_nodeClassName= "ColorTextureSourceNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
@@ -56,7 +56,7 @@ protected:
 class ColorTextureSourceNodeFactory : public TypedNodeFactory<ColorTextureSourceNode, ColorTextureSourceNodeConfig>
 {
 public:
-	ColorTextureSourceNodeFactory() = default;
+	ColorTextureSourceNodeFactory()= default;
 
 	virtual NodePtr createNode(const NodeEditorState& editorState) const override;
 };

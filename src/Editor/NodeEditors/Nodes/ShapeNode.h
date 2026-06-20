@@ -6,24 +6,30 @@
 class ShapeNodeConfig : public NodeConfig
 {
 public:
-	ShapeNodeConfig() : NodeConfig() {}
-	ShapeNodeConfig(const std::string& nodeName) : NodeConfig(nodeName) {}
+	ShapeNodeConfig()
+		: NodeConfig()
+	{
+	}
+	ShapeNodeConfig(const std::string& nodeName)
+		: NodeConfig(nodeName)
+	{
+	}
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	t_graph_property_id shapePropertyId;
 };
-using ShapeNodeConfigPtr = std::shared_ptr<ShapeNodeConfig>;
-using ShapeNodeConfigConstPtr = std::shared_ptr<const ShapeNodeConfig>;
+using ShapeNodeConfigPtr= std::shared_ptr<ShapeNodeConfig>;
+using ShapeNodeConfigConstPtr= std::shared_ptr<const ShapeNodeConfig>;
 
 class ShapeNode : public Node
 {
 public:
-	ShapeNode() = default;
+	ShapeNode()= default;
 	virtual ~ShapeNode();
 
-	inline static const std::string k_nodeClassName = "ShapeNode";
+	inline static const std::string k_nodeClassName= "ShapeNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
@@ -53,7 +59,7 @@ protected:
 class ShapeNodeFactory : public TypedNodeFactory<ShapeNode, ShapeNodeConfig>
 {
 public:
-	ShapeNodeFactory() = default;
+	ShapeNodeFactory()= default;
 
 	virtual NodePtr createNode(const NodeEditorState& editorState) const override;
 	virtual bool editorCanCreate() const override { return false; }

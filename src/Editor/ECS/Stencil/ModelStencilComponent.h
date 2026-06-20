@@ -44,17 +44,20 @@ public:
 	virtual void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const override;
 	virtual void dispose() override;
 
-	inline static const std::string k_componentClassName = "ModelStencilComponent";
+	inline static const std::string k_componentClassName= "ModelStencilComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
-	inline ModelStencilDefinitionPtr getModelStencilDefinition() const { 
-		return std::static_pointer_cast<ModelStencilDefinition>(m_definition); 
+	inline ModelStencilDefinitionPtr getModelStencilDefinition() const
+	{
+		return std::static_pointer_cast<ModelStencilDefinition>(m_definition);
 	}
-	inline const std::vector<StaticMeshComponentPtr>& getTriangulatedMeshes() const { 
-		return m_triMeshComponents; 
+	inline const std::vector<StaticMeshComponentPtr>& getTriangulatedMeshes() const
+	{
+		return m_triMeshComponents;
 	}
-	inline const std::vector<IMkStaticMeshInstancePtr>& getWireframeMeshes() const { 
-		return m_wireframeMeshes; 
+	inline const std::vector<IMkStaticMeshInstancePtr>& getWireframeMeshes() const
+	{
+		return m_wireframeMeshes;
 	}
 	inline const std::vector<MeshColliderComponentPtr>& getColliderComponents() const
 	{

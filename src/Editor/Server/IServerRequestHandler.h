@@ -10,10 +10,13 @@ struct ClientResponse;
 class IServerRequestHandler
 {
 public:
-	IServerRequestHandler(class MikanServer* owner) : m_owner(owner) {}
+	IServerRequestHandler(class MikanServer* owner)
+		: m_owner(owner)
+	{
+	}
 	virtual ~IServerRequestHandler() {}
 
-	virtual bool startup(class MainWindow* mainWindow) = 0;
+	virtual bool startup(class MainWindow* mainWindow)= 0;
 	virtual void shutdown() {};
 
 	ProjectManagerPtr getProjectManager() const;
@@ -21,11 +24,11 @@ public:
 	template <class t_object_system_type>
 	std::shared_ptr<t_object_system_type> getObjectSystemOfType() const
 	{
-		auto projectManager = getProjectManager();
+		auto projectManager= getProjectManager();
 
-		return projectManager 
-			? projectManager->getSystemOfType<t_object_system_type>() 
-			: std::shared_ptr<t_object_system_type>();
+		return projectManager
+				   ? projectManager->getSystemOfType<t_object_system_type>()
+				   : std::shared_ptr<t_object_system_type>();
 	}
 
 protected:

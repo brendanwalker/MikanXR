@@ -8,7 +8,10 @@
 class GuiPanel_USBVideoSourceComponent : public GuiPanel_MikanComponent
 {
 public:
-	GuiPanel_USBVideoSourceComponent(AppStage* ownerAppStage) : GuiPanel_MikanComponent(ownerAppStage) {}
+	GuiPanel_USBVideoSourceComponent(AppStage* ownerAppStage)
+		: GuiPanel_MikanComponent(ownerAppStage)
+	{
+	}
 
 	// Draw a compact version of the GUI that only shows the device path and video mode
 	void drawCompactGui();
@@ -28,5 +31,4 @@ private:
 	GuiDataSource_StringList m_resolutionDataSource;
 	GuiDataSource_StringList m_frameRateDataSource;
 	GuiDataSource_StringList m_formatDataSource;
-
 };

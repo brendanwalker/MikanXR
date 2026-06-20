@@ -8,13 +8,13 @@
 struct MkGuiStyleFloatEntry
 {
 	ImGuiStyleVar var;
-	float floatVal = 0.f;
+	float floatVal= 0.f;
 };
 
 struct MkGuiStyleVec2Entry
 {
 	ImGuiStyleVar var;
-	ImVec2 vec2Val = { 0.f, 0.f };
+	ImVec2 vec2Val= {0.f, 0.f};
 };
 
 struct MkGuiStyleColorEntry
@@ -25,7 +25,7 @@ struct MkGuiStyleColorEntry
 
 struct MkGuiStyleTextureEntry
 {
-	float x = 0.f;  // display width
-	float y = 0.f;  // display height
+	float x= 0.f; // display width
+	float y= 0.f; // display height
 	IMkTextureConstPtr texture;
 };

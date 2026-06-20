@@ -6,14 +6,14 @@
 class MIKAN_GUI_CLASS MkGuiScopedDragDropSource
 {
 public:
-	explicit MkGuiScopedDragDropSource(ImGuiDragDropFlags flags = 0);
+	explicit MkGuiScopedDragDropSource(ImGuiDragDropFlags flags= 0);
 	~MkGuiScopedDragDropSource();
 
-	MkGuiScopedDragDropSource(const MkGuiScopedDragDropSource&) = delete;
-	MkGuiScopedDragDropSource& operator=(const MkGuiScopedDragDropSource&) = delete;
+	MkGuiScopedDragDropSource(const MkGuiScopedDragDropSource&)= delete;
+	MkGuiScopedDragDropSource& operator=(const MkGuiScopedDragDropSource&)= delete;
 
 	explicit operator bool() const { return m_active; }
 
 private:
-	bool m_active = false;
+	bool m_active= false;
 };

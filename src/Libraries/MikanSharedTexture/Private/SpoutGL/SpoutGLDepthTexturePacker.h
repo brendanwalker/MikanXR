@@ -33,17 +33,17 @@ private:
 	SPOUTLIBRARY* m_spout;
 	SharedTextureDescriptor m_mikanDescriptor;
 
-	GLuint m_inFloatDepthTexture = 0;
-	GLsizei m_inFloatDepthTextureWidth = 0;
-	GLsizei m_inFloatDepthTextureHeight = 0;
+	GLuint m_inFloatDepthTexture= 0;
+	GLsizei m_inFloatDepthTextureWidth= 0;
+	GLsizei m_inFloatDepthTextureHeight= 0;
 
-	GLuint m_vertexShader = 0;
-	GLuint m_fragmentShader = 0;
-	GLuint m_shaderProgram = 0;
+	GLuint m_vertexShader= 0;
+	GLuint m_fragmentShader= 0;
+	GLuint m_shaderProgram= 0;
 
-	GLuint m_quadVAO = 0;
-	GLuint m_quadVBO = 0;
+	GLuint m_quadVAO= 0;
+	GLuint m_quadVBO= 0;
 
-	GLuint m_colorTargetTexture = 0;
-	GLuint m_framebuffer = 0;
+	GLuint m_colorTargetTexture= 0;
+	GLuint m_framebuffer= 0;
 };

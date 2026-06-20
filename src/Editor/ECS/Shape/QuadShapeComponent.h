@@ -30,9 +30,9 @@ public:
 	void setIsDoubleSided(bool flag);
 
 protected:
-	float m_quadWidth = 1.0f;
-	float m_quadHeight = 1.0f;
-	bool m_bIsDoubleSided = true;
+	float m_quadWidth= 1.0f;
+	float m_quadHeight= 1.0f;
+	bool m_bIsDoubleSided= true;
 };
 
 class QuadShapeComponent : public ShapeComponent
@@ -45,7 +45,7 @@ public:
 		return std::static_pointer_cast<QuadShapeDefinition>(m_definition);
 	}
 
-	inline static const std::string k_componentClassName = "QuadShapeComponent";
+	inline static const std::string k_componentClassName= "QuadShapeComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	virtual void init() override;
@@ -62,7 +62,9 @@ public:
 
 	// -- IFunctionInterface ----
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
-	{ ShapeComponent::getFunctionDescriptors(outDescriptors); }
+	{
+		ShapeComponent::getFunctionDescriptors(outDescriptors);
+	}
 
 	// -- Lua Binding ----
 	static void bindLuaFunctions(struct lua_State* L);

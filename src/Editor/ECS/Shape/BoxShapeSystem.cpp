@@ -43,7 +43,7 @@ void BoxShapeSystem::getBoxShapeComponentList(std::vector<BoxShapeComponentPtr>&
 	outList.clear();
 	for (const auto& pair : Super::getComponentMap())
 	{
-		BoxShapeComponentPtr comp = pair.second.lock();
+		BoxShapeComponentPtr comp= pair.second.lock();
 		if (comp)
 			outList.push_back(comp);
 	}
@@ -53,14 +53,14 @@ void BoxShapeSystem::additionalComponentFactory(
 	MikanObjectPtr ownerComponentObject,
 	ComponentDefinitionPtr componentDefinition)
 {
-	TransformComponentPtr rootComponent = ownerComponentObject->getRootComponent();
+	TransformComponentPtr rootComponent= ownerComponentObject->getRootComponent();
 	assert(rootComponent);
 
-	BoxShapeDefinitionPtr boxDef =
+	BoxShapeDefinitionPtr boxDef=
 		std::static_pointer_cast<BoxShapeDefinition>(componentDefinition);
 
 	// Attach box collider sized to the box shape
-	BoxColliderComponentPtr boxCollider = ownerComponentObject->addComponent<BoxColliderComponent>();
+	BoxColliderComponentPtr boxCollider= ownerComponentObject->addComponent<BoxColliderComponent>();
 	boxCollider->setHalfExtents(
 		glm::vec3(
 			boxDef->getBoxXSize() * 0.5f,
@@ -78,23 +78,28 @@ void BoxShapeSystem::bindLuaFunctions(struct lua_State* L)
 	luabridge::getGlobalNamespace(L)
 		.beginClass<BoxShapeSystem>("BoxShapeSystem")
 		.addFunction("getBoxShapeById",
-			[](BoxShapeSystem* s, int id) -> BoxShapeComponent* {
-				return s->getBoxShapeById(static_cast<MikanShapeID>(id)).get();
-			})
+					 [](BoxShapeSystem* s, int id) -> BoxShapeComponent*
+					 {
+						 return s->getBoxShapeById(static_cast<MikanShapeID>(id)).get();
+					 })
 		.addFunction("getBoxShapeByName",
-			[](BoxShapeSystem* s, const std::string& name) -> BoxShapeComponent* {
-				return s->getBoxShapeByName(name).get();
-			})
+					 [](BoxShapeSystem* s, const std::string& name) -> BoxShapeComponent*
+					 {
+						 return s->getBoxShapeByName(name).get();
+					 })
 		.addFunction("getBoxShapeCount",
-			[](BoxShapeSystem* s) -> int {
-				return static_cast<int>(s->getComponentMap().size());
-			})
+					 [](BoxShapeSystem* s) -> int
+					 {
+						 return static_cast<int>(s->getComponentMap().size());
+					 })
 		.addFunction("getBoxShapeAtIndex",
-			[](BoxShapeSystem* s, int i) -> BoxShapeComponent* {
-				int n = 0;
-				for (auto& [id, wp] : s->getComponentMap())
-					if (n++ == i) return wp.lock().get();
-				return nullptr;
-			})
+					 [](BoxShapeSystem* s, int i) -> BoxShapeComponent*
+					 {
+						 int n= 0;
+						 for (auto& [id, wp] : s->getComponentMap())
+							 if (n++ == i)
+								 return wp.lock().get();
+						 return nullptr;
+					 })
 		.endClass();
 }

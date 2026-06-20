@@ -9,21 +9,21 @@ ColliderRaycastHitResult findClosestCollisionAlongRay(
 	std::set<const MikanObjectSystem*> objectSystems,
 	const ColliderRaycastHitRequest& request)
 {
-	ColliderRaycastHitResult closestResult = {};
+	ColliderRaycastHitResult closestResult= {};
 
 	for (const auto* objectSystem : objectSystems)
 	{
 		if (objectSystem)
 		{
-			ColliderRaycastHitResult result =
+			ColliderRaycastHitResult result=
 				findClosestCollisionAlongRay(
-					objectSystem->shared_from_this(), 
-					request, 
+					objectSystem->shared_from_this(),
+					request,
 					&closestResult);
 
 			if (result.hitValid && result.isHigherPriorityThan(closestResult))
 			{
-				closestResult = result;
+				closestResult= result;
 			}
 		}
 	}
@@ -40,17 +40,18 @@ ColliderRaycastHitResult findClosestCollisionAlongRay(
 
 	if (inPrevClosestResult)
 	{
-		closestResult = *inPrevClosestResult;
+		closestResult= *inPrevClosestResult;
 	}
 	else
 	{
-		closestResult = ColliderRaycastHitResult();
-		closestResult.hitDistance = k_real_max;
-		closestResult.hitPriority = 0;
+		closestResult= ColliderRaycastHitResult();
+		closestResult.hitDistance= k_real_max;
+		closestResult.hitPriority= 0;
 	}
 
-	objectSystem->visitAllObjects([&request, &closestResult](MikanObjectPtr objectPtr) {
-		objectPtr->visitAllComponents([objectPtr, &request, &closestResult](MikanComponentPtr componentPtr) {
+	objectSystem->visitAllObjects([&request, &closestResult](MikanObjectPtr objectPtr)
+								  { objectPtr->visitAllComponents([objectPtr, &request, &closestResult](MikanComponentPtr componentPtr)
+																  {
 			auto colliderComponent = std::dynamic_pointer_cast<ColliderComponent>(componentPtr);
 			if (colliderComponent)
 			{
@@ -61,9 +62,7 @@ ColliderRaycastHitResult findClosestCollisionAlongRay(
 				{
 					closestResult = colliderResult;
 				}
-			}
-		});
-	});
+			} }); });
 
 	return closestResult;
 }

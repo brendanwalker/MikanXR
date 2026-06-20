@@ -10,11 +10,10 @@
 #include <string>
 #include <vector>
 
-class QuadShapeSystemDefinition :
-	public MikanTypedObjectSystemDefinition<QuadShapeComponent, QuadShapeDefinition, MikanShapeID>
+class QuadShapeSystemDefinition : public MikanTypedObjectSystemDefinition<QuadShapeComponent, QuadShapeDefinition, MikanShapeID>
 {
 public:
-	using Super = MikanTypedObjectSystemDefinition<QuadShapeComponent, QuadShapeDefinition, MikanShapeID>;
+	using Super= MikanTypedObjectSystemDefinition<QuadShapeComponent, QuadShapeDefinition, MikanShapeID>;
 
 	QuadShapeSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
@@ -22,21 +21,20 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 };
 
-class QuadShapeSystem :
-	public MikanTypedObjectSystem<
-		QuadShapeComponent, QuadShapeDefinition,
-		MikanShapeID,
-		QuadShapeSystem, QuadShapeSystemDefinition>
+class QuadShapeSystem : public MikanTypedObjectSystem<
+							QuadShapeComponent, QuadShapeDefinition,
+							MikanShapeID,
+							QuadShapeSystem, QuadShapeSystemDefinition>
 {
 public:
-	using Super = MikanTypedObjectSystem<
+	using Super= MikanTypedObjectSystem<
 		QuadShapeComponent, QuadShapeDefinition,
 		MikanShapeID,
 		QuadShapeSystem, QuadShapeSystemDefinition>;
 
 	QuadShapeSystem(ProjectManagerPtr ownerObjectSystem);
 
-	inline static const std::string k_objectSystemClassName = "QuadShapeSystem";
+	inline static const std::string k_objectSystemClassName= "QuadShapeSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
 	inline QuadShapeComponentPtr getQuadShapeById(MikanShapeID shapeId) const
@@ -63,5 +61,5 @@ protected:
 		ComponentDefinitionPtr componentDefinition) override;
 };
 
-using QuadShapeSystemPtr = std::shared_ptr<QuadShapeSystem>;
-using QuadShapeSystemWeakPtr = std::weak_ptr<QuadShapeSystem>;
+using QuadShapeSystemPtr= std::shared_ptr<QuadShapeSystem>;
+using QuadShapeSystemWeakPtr= std::weak_ptr<QuadShapeSystem>;

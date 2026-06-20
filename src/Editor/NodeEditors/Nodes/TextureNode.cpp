@@ -15,9 +15,9 @@
 // -- TextureNodeConfig -----
 configuru::Config TextureNodeConfig::writeToJSON()
 {
-	configuru::Config pt = NodeConfig::writeToJSON();
+	configuru::Config pt= NodeConfig::writeToJSON();
 
-	pt["texture_property_id"] = texturePropertyId;
+	pt["texture_property_id"]= texturePropertyId;
 
 	return pt;
 }
@@ -26,7 +26,7 @@ void TextureNodeConfig::readFromJSON(const configuru::Config& pt)
 {
 	NodeConfig::readFromJSON(pt);
 
-	texturePropertyId = pt.get_or<t_graph_property_id>("texture_property_id", -1);
+	texturePropertyId= pt.get_or<t_graph_property_id>("texture_property_id", -1);
 }
 
 // -- TextureNode -----
@@ -42,13 +42,13 @@ void TextureNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 	{
 		if (m_ownerGraph)
 		{
-			m_ownerGraph->OnPropertyDeleted -= MakeDelegate(this, &TextureNode::onGraphPropertyDeleted);
+			m_ownerGraph->OnPropertyDeleted-= MakeDelegate(this, &TextureNode::onGraphPropertyDeleted);
 			m_ownerGraph= nullptr;
 		}
 
 		if (newOwnerGraph)
 		{
-			newOwnerGraph->OnPropertyDeleted += MakeDelegate(this, &TextureNode::onGraphPropertyDeleted);
+			newOwnerGraph->OnPropertyDeleted+= MakeDelegate(this, &TextureNode::onGraphPropertyDeleted);
 			m_ownerGraph= newOwnerGraph;
 		}
 	}
@@ -58,10 +58,10 @@ bool TextureNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 {
 	if (Node::loadFromConfig(nodeConfig))
 	{
-		auto textureNodeConfig = std::static_pointer_cast<const TextureNodeConfig>(nodeConfig);
-		t_graph_property_id propId = textureNodeConfig->texturePropertyId;
+		auto textureNodeConfig= std::static_pointer_cast<const TextureNodeConfig>(nodeConfig);
+		t_graph_property_id propId= textureNodeConfig->texturePropertyId;
 
-		auto textureProperty = getOwnerGraph()->getTypedPropertyById<GraphTextureProperty>(propId);
+		auto textureProperty= getOwnerGraph()->getTypedPropertyById<GraphTextureProperty>(propId);
 		if (textureProperty)
 		{
 			setTextureSource(textureProperty);
@@ -80,8 +80,8 @@ bool TextureNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 
 void TextureNode::saveToConfig(NodeConfigPtr nodeConfig) const
 {
-	auto textureNodeConfig = std::static_pointer_cast<TextureNodeConfig>(nodeConfig);
-	textureNodeConfig->texturePropertyId = m_sourceProperty ? m_sourceProperty->getId() : -1;
+	auto textureNodeConfig= std::static_pointer_cast<TextureNodeConfig>(nodeConfig);
+	textureNodeConfig->texturePropertyId= m_sourceProperty ? m_sourceProperty->getId() : -1;
 
 	Node::saveToConfig(nodeConfig);
 }
@@ -91,11 +91,11 @@ IMkTexturePtr TextureNode::getTextureResource() const
 	return m_sourceProperty ? m_sourceProperty->getTextureResource() : IMkTexturePtr();
 }
 
-void TextureNode::setTextureSource(GraphTexturePropertyPtr inTextureProperty) 
-{ 
-	m_sourceProperty= inTextureProperty; 
+void TextureNode::setTextureSource(GraphTexturePropertyPtr inTextureProperty)
+{
+	m_sourceProperty= inTextureProperty;
 
-	auto outPin = getFirstPinOfType<TexturePin>(eNodePinDirection::OUTPUT);
+	auto outPin= getFirstPinOfType<TexturePin>(eNodePinDirection::OUTPUT);
 	if (outPin)
 	{
 		outPin->setValue(m_sourceProperty->getTextureResource());
@@ -111,7 +111,7 @@ bool TextureNode::evaluateNode(NodeEvaluator& evaluator)
 
 std::shared_ptr<MkNodesScopedColorStyle> TextureNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
 {
-	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225))
 		.push(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225))
 		.push(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
@@ -122,7 +122,7 @@ std::string TextureNode::editorGetTitle() const
 {
 	if (m_sourceProperty)
 	{
-		auto assetRef = m_sourceProperty->getTextureAssetReference();
+		auto assetRef= m_sourceProperty->getTextureAssetReference();
 		if (assetRef)
 		{
 			return assetRef->getShortName();
@@ -140,7 +140,7 @@ std::string TextureNode::editorGetTitle() const
 
 void TextureNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	auto nodeStyle = editorRenderMakeNodeStyle(editorState);
+	auto nodeStyle= editorRenderMakeNodeStyle(editorState);
 	MkNodesScopedNode scopedNode(m_id);
 
 	// Title
@@ -148,7 +148,7 @@ void TextureNode::editorRenderNode(const NodeEditorState& editorState)
 
 	// Texture
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
-	IMkTexturePtr textureResource = getTextureResource();
+	IMkTexturePtr textureResource= getTextureResource();
 	uint32_t glTextureId= textureResource ? textureResource->getGlTextureId() : 0;
 	ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
 	ImGui::SameLine();
@@ -179,8 +179,8 @@ void TextureNode::onGraphPropertyDeleted(t_graph_property_id id)
 NodePtr TextureNodeFactory::createNode(const NodeEditorState& editorState) const
 {
 	// Create the node and pins
-	NodePtr node = NodeFactory::createNode(editorState);
-	auto outputPin = node->addPin<TexturePin>("texture", eNodePinDirection::OUTPUT);
+	NodePtr node= NodeFactory::createNode(editorState);
+	auto outputPin= node->addPin<TexturePin>("texture", eNodePinDirection::OUTPUT);
 	outputPin->editorSetShowPinName(false);
 
 	// If spawned in an editor context from a dangling pin link

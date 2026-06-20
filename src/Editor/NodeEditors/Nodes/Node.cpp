@@ -46,10 +46,9 @@ Node::Node()
 	, m_nodePos(glm::vec2(0.f))
 	, m_bIsPendingDeletion(false)
 {
-
 }
 
-Node::~Node() = default;
+Node::~Node()= default;
 
 bool Node::loadFromConfig(NodeConfigConstPtr nodeConfig)
 {
@@ -60,15 +59,15 @@ bool Node::loadFromConfig(NodeConfigConstPtr nodeConfig)
 
 	for (t_node_pin_id pinId : nodeConfig->pinIDsIn)
 	{
-		NodePinPtr pin = m_ownerGraph->getPinById(pinId);
+		NodePinPtr pin= m_ownerGraph->getPinById(pinId);
 		if (pin)
 		{
 			m_pinsIn.push_back(pin);
 		}
 		else
 		{
-			MIKAN_LOG_WARNING("Node::loadFromConfig") 
-				<< "Failed to find create input pin: " << pinId 
+			MIKAN_LOG_WARNING("Node::loadFromConfig")
+				<< "Failed to find create input pin: " << pinId
 				<< ", on node: " << getClassName();
 			success= false;
 		}
@@ -76,7 +75,7 @@ bool Node::loadFromConfig(NodeConfigConstPtr nodeConfig)
 
 	for (t_node_pin_id pinId : nodeConfig->pinIDsOut)
 	{
-		NodePinPtr pin = m_ownerGraph->getPinById(pinId);
+		NodePinPtr pin= m_ownerGraph->getPinById(pinId);
 		if (pin)
 		{
 			m_pinsOut.push_back(pin);
@@ -95,9 +94,9 @@ bool Node::loadFromConfig(NodeConfigConstPtr nodeConfig)
 
 void Node::saveToConfig(NodeConfigPtr nodeConfig) const
 {
-	nodeConfig->className = getClassName();
-	nodeConfig->id = m_id;
-	nodeConfig->pos = {m_nodePos.x, m_nodePos.y};
+	nodeConfig->className= getClassName();
+	nodeConfig->id= m_id;
+	nodeConfig->pos= {m_nodePos.x, m_nodePos.y};
 
 	for (NodePinPtr pin : m_pinsIn)
 	{
@@ -110,9 +109,9 @@ void Node::saveToConfig(NodeConfigPtr nodeConfig) const
 	}
 }
 
-void Node::setOwnerGraph(NodeGraphPtr ownerGraph) 
-{ 
-	m_ownerGraph = ownerGraph; 
+void Node::setOwnerGraph(NodeGraphPtr ownerGraph)
+{
+	m_ownerGraph= ownerGraph;
 }
 
 ProjectManagerPtr Node::getOwnerProject() const
@@ -122,7 +121,7 @@ ProjectManagerPtr Node::getOwnerProject() const
 
 NodePinPtr Node::addPinByClassName(const std::string& className, const std::string& name, eNodePinDirection direction)
 {
-	NodePtr ownerNode = shared_from_this();
+	NodePtr ownerNode= shared_from_this();
 	NodeGraphPtr ownerGraph= ownerNode->getOwnerGraph();
 	assert(ownerGraph);
 	NodePinFactoryPtr pinFactory= ownerGraph->getPinFactory(className);
@@ -134,8 +133,10 @@ NodePinPtr Node::addPinByClassName(const std::string& className, const std::stri
 	pin->setOwnerNode(ownerNode);
 	pin->setName(name);
 	pin->setDirection(direction);
-	if (direction == eNodePinDirection::OUTPUT) m_pinsOut.push_back(pin);
-	else if (direction == eNodePinDirection::INPUT) m_pinsIn.push_back(pin);
+	if (direction == eNodePinDirection::OUTPUT)
+		m_pinsOut.push_back(pin);
+	else if (direction == eNodePinDirection::INPUT)
+		m_pinsIn.push_back(pin);
 
 	// Tell the graph about the new pin
 	ownerGraph->addPin(pin);
@@ -147,7 +148,7 @@ bool Node::disconnectPin(NodePinPtr pinPtr)
 {
 	if (pinPtr->getDirection() == eNodePinDirection::INPUT)
 	{
-		auto it = std::find(m_pinsIn.begin(), m_pinsIn.end(), pinPtr);
+		auto it= std::find(m_pinsIn.begin(), m_pinsIn.end(), pinPtr);
 		if (it != m_pinsIn.end())
 		{
 			m_pinsIn.erase(it);
@@ -156,7 +157,7 @@ bool Node::disconnectPin(NodePinPtr pinPtr)
 	}
 	else if (pinPtr->getDirection() == eNodePinDirection::OUTPUT)
 	{
-		auto it = std::find(m_pinsOut.begin(), m_pinsOut.end(), pinPtr);
+		auto it= std::find(m_pinsOut.begin(), m_pinsOut.end(), pinPtr);
 		if (it != m_pinsOut.end())
 		{
 			m_pinsOut.erase(it);
@@ -168,15 +169,15 @@ bool Node::disconnectPin(NodePinPtr pinPtr)
 }
 
 void Node::disconnectAllPins()
-{	
+{
 	// Delete all the output pins associated with the node
 	while (m_pinsOut.size() > 0)
 	{
-		const t_node_pin_id pinId = m_pinsOut[0]->getId();
+		const t_node_pin_id pinId= m_pinsOut[0]->getId();
 
 		if (!m_ownerGraph->deletePinById(pinId))
 		{
-			MIKAN_LOG_ERROR("Node::disconnectAllPins") 
+			MIKAN_LOG_ERROR("Node::disconnectAllPins")
 				<< "Failed to delete output pin id: " << pinId
 				<< ", on node class: " << getClassName();
 			break;
@@ -186,7 +187,7 @@ void Node::disconnectAllPins()
 	// Delete all the input pins associated with the node
 	while (m_pinsIn.size() > 0)
 	{
-		const t_node_pin_id pinId = m_pinsIn[0]->getId();
+		const t_node_pin_id pinId= m_pinsIn[0]->getId();
 
 		if (!m_ownerGraph->deletePinById(pinId))
 		{
@@ -198,7 +199,7 @@ void Node::disconnectAllPins()
 	}
 }
 
-bool Node::evaluateNode(NodeEvaluator& evaluator) 
+bool Node::evaluateNode(NodeEvaluator& evaluator)
 {
 	evaluator.addError(
 		NodeEvaluationError(
@@ -227,7 +228,7 @@ bool Node::evaluateInputs(NodeEvaluator& evaluator)
 			continue;
 
 		// Get the output pin that this input pin feed by
-		NodePinPtr outputSourcePin = inputPin->getConnectedSourcePin();
+		NodePinPtr outputSourcePin= inputPin->getConnectedSourcePin();
 		if (!outputSourcePin)
 		{
 			if (inputPin->getHasDefaultValue())
@@ -248,7 +249,7 @@ bool Node::evaluateInputs(NodeEvaluator& evaluator)
 		}
 
 		// Recurse into node that owns the output and evaluate it's inputs ...
-		// ... unless the source node has flow pins, 
+		// ... unless the source node has flow pins,
 		// which means the source need should have already been evaluated
 		NodePtr sourceNode= outputSourcePin->getOwnerNode();
 		if (!sourceNode->hasAnyFlowPins())
@@ -258,7 +259,7 @@ bool Node::evaluateInputs(NodeEvaluator& evaluator)
 				return false;
 
 			// Then evaluate the node to update its output pins
-			// but disable input evaluation to avoid re-evaluating 
+			// but disable input evaluation to avoid re-evaluating
 			// the source inputs we just evaluated recursively
 			evaluator.setDisableInputEvaluation(true);
 			bool bEvaluationSuccess= sourceNode->evaluateNode(evaluator);
@@ -291,14 +292,14 @@ bool Node::hasAnyConnectedPins() const
 	return false;
 }
 
-FlowPinPtr Node::getOutputFlowPin() const 
-{ 
-	return FlowPinPtr(); 
+FlowPinPtr Node::getOutputFlowPin() const
+{
+	return FlowPinPtr();
 }
 
 void Node::editorRenderNode(const NodeEditorState& editorState)
 {
-	auto nodeStyle = editorRenderMakeNodeStyle(editorState);
+	auto nodeStyle= editorRenderMakeNodeStyle(editorState);
 	MkNodesScopedNode scopedNode(m_id);
 
 	// Title
@@ -317,7 +318,7 @@ void Node::editorRenderNode(const NodeEditorState& editorState)
 
 std::shared_ptr<MkNodesScopedColorStyle> Node::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
 {
-	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_TitleBar, IM_COL32(85, 85, 85, 255))
 		.push(ImNodesCol_TitleBarHovered, IM_COL32(85, 85, 85, 255))
 		.push(ImNodesCol_TitleBarSelected, IM_COL32(85, 85, 85, 255));
@@ -327,33 +328,33 @@ std::shared_ptr<MkNodesScopedColorStyle> Node::editorRenderMakeNodeStyle(const N
 void Node::editorComputeNodeDimensions(NodeDimensions& outDims) const
 {
 	const std::string titleString= editorGetTitle();
-	outDims.titleWidth = ImGui::CalcTextSize(titleString.c_str()).x;
+	outDims.titleWidth= ImGui::CalcTextSize(titleString.c_str()).x;
 	outDims.totalNodeWidth= outDims.titleWidth;
-	outDims.inputColomnWidth = 0.0f;
-	outDims.outputColomnWidth = 0.0f;
+	outDims.inputColomnWidth= 0.0f;
+	outDims.outputColomnWidth= 0.0f;
 
 	for (auto& pin : m_pinsIn)
 	{
-		float textWidth = ImGui::CalcTextSize(pin->getName().c_str()).x + 11.0f;
-		const float inputWidth = pin->editorComputeInputWidth();
+		float textWidth= ImGui::CalcTextSize(pin->getName().c_str()).x + 11.0f;
+		const float inputWidth= pin->editorComputeInputWidth();
 
-		outDims.inputColomnWidth = 
+		outDims.inputColomnWidth=
 			std::max(
-				outDims.inputColomnWidth, 
+				outDims.inputColomnWidth,
 				std::max(textWidth, inputWidth));
 	}
 
 	for (auto& pin : m_pinsOut)
 	{
-		outDims.outputColomnWidth = 
+		outDims.outputColomnWidth=
 			std::max(
-				outDims.outputColomnWidth, 
+				outDims.outputColomnWidth,
 				ImGui::CalcTextSize(pin->getName().c_str()).x + 11.0f);
 	}
 
-	outDims.totalNodeWidth = 
+	outDims.totalNodeWidth=
 		std::max(
-			outDims.totalNodeWidth, 
+			outDims.totalNodeWidth,
 			outDims.inputColomnWidth + outDims.outputColomnWidth);
 }
 
@@ -393,10 +394,8 @@ void Node::editorRenderOutputPins(const NodeEditorState& editorState) const
 	MkGuiScopedGroup group;
 	for (auto& pin : m_pinsOut)
 	{
-		const float prefixWidth =
-			nodeDims.totalNodeWidth
-			- nodeDims.inputColomnWidth
-			- ImGui::CalcTextSize(pin->getName().c_str()).x;
+		const float prefixWidth=
+			nodeDims.totalNodeWidth - nodeDims.inputColomnWidth - ImGui::CalcTextSize(pin->getName().c_str()).x;
 
 		pin->editorRenderOutputPin(editorState, prefixWidth);
 	}
@@ -432,7 +431,7 @@ void NodeFactory::autoConnectInputPin(const NodeEditorState& editorState, NodePi
 	// auto-connect the input pin to a compatible output pin
 	if (editorState.startedLinkPinId != -1)
 	{
-		NodePinPtr outputPin = editorState.nodeGraph->getPinById(editorState.startedLinkPinId);
+		NodePinPtr outputPin= editorState.nodeGraph->getPinById(editorState.startedLinkPinId);
 
 		if (inputPin->canPinsBeConnected(outputPin))
 		{
@@ -451,7 +450,7 @@ void NodeFactory::autoConnectOutputPin(const NodeEditorState& editorState, NodeP
 	// auto-connect the output pin to a compatible input pin
 	if (editorState.startedLinkPinId != -1)
 	{
-		NodePinPtr inputPin = editorState.nodeGraph->getPinById(editorState.startedLinkPinId);
+		NodePinPtr inputPin= editorState.nodeGraph->getPinById(editorState.startedLinkPinId);
 
 		if (outputPin->canPinsBeConnected(inputPin))
 		{

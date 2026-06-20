@@ -10,7 +10,7 @@
 
 //-- macros -----
 #if defined(__clang__) || defined(__GNUC__)
-#define GLYPH_PRINTFARGS(FMT) __attribute__((format(printf, FMT, (FMT+1))))
+#define GLYPH_PRINTFARGS(FMT) __attribute__((format(printf, FMT, (FMT + 1))))
 #else
 #define GLYPH_PRINTFARGS(FMT)
 #endif
@@ -18,13 +18,13 @@
 //-- drawing methods -----
 void drawTextAtWorldPosition(
 	IMkGraphicsContext* graphicsContext,
-	const TextStyle& style, 
-	const glm::vec3& position, 
+	const TextStyle& style,
+	const glm::vec3& position,
 	const wchar_t* format, ...) GLYPH_PRINTFARGS(2);
 void drawTextAtScreenPosition(
 	IMkGraphicsContext* graphicsContext,
-	const TextStyle& style, 
-	const glm::vec2& screenCoords, 
+	const TextStyle& style,
+	const glm::vec2& screenCoords,
 	const wchar_t* format, ...) GLYPH_PRINTFARGS(2);
 void drawTextAtCameraPosition(
 	IMkGraphicsContext* graphicsContext,

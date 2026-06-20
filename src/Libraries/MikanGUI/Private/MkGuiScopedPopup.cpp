@@ -6,7 +6,7 @@
 
 MkGuiScopedPopup::MkGuiScopedPopup(const char* str_id, ImGuiWindowFlags flags)
 {
-	m_open = ImGui::BeginPopup(str_id, flags);
+	m_open= ImGui::BeginPopup(str_id, flags);
 }
 
 MkGuiScopedPopup::~MkGuiScopedPopup()
@@ -21,7 +21,7 @@ MkGuiScopedPopupContextItem::MkGuiScopedPopupContextItem(
 	const char* str_id,
 	ImGuiPopupFlags popup_flags)
 {
-	m_open = ImGui::BeginPopupContextItem(str_id, popup_flags);
+	m_open= ImGui::BeginPopupContextItem(str_id, popup_flags);
 }
 
 MkGuiScopedPopupContextItem::~MkGuiScopedPopupContextItem()

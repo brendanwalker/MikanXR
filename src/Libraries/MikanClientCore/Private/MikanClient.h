@@ -12,15 +12,15 @@
 class MikanClient
 {
 public:
-    MikanClient();
-    virtual ~MikanClient();
+	MikanClient();
+	virtual ~MikanClient();
 
 	// -- State Queries ----
 	bool getIsConnected() const;
 	const std::string& getClientName() const;
 
-    // -- ClientMikanAPI System -----
-    MikanCoreResult startup(const char* client_name, ClientLogSeverityLevel log_level, t_logCallback log_callback);
+	// -- ClientMikanAPI System -----
+	MikanCoreResult startup(const char* client_name, ClientLogSeverityLevel log_level, t_logCallback log_callback);
 	MikanCoreResult connect(const std::string& host, const std::string& port);
 	MikanCoreResult disconnect(uint16_t code, const std::string& reason);
 	MikanCoreResult fetchNextEvent(size_t utf8_buffer_size, char* out_utf8_buffer, size_t* out_utf8_bytes_written);
@@ -54,7 +54,7 @@ private:
 
 	MikanTextResponseCallback m_textResponseCallback= nullptr;
 	void* m_textResponseCallbackUserData= nullptr;
-	MikanBinaryResponseCallback m_binaryResponseCallback = nullptr;
+	MikanBinaryResponseCallback m_binaryResponseCallback= nullptr;
 	void* m_binaryResponseCallbackUserData= nullptr;
 
 	std::string m_clientName;

@@ -20,7 +20,7 @@
 #include "IMkWindowContextManager.h"
 #include "TypeRegistry.h"
 
-//#include "Windows/TestNodeEditorWindow.h"
+// #include "Windows/TestNodeEditorWindow.h"
 #include "Windows/CompositorNodeEditorWindow.h"
 
 #include <easy/profiler.h>
@@ -34,7 +34,7 @@
 
 #include "MikanCefApp.h"
 
-#define SETTINGS_SAVE_COOLDOWN	3.f
+#define SETTINGS_SAVE_COOLDOWN 3.f
 
 //-- static members -----
 App* App::m_instance= nullptr;
@@ -52,7 +52,7 @@ App::App()
 
 App::~App()
 {
-	m_mainWindow = nullptr;
+	m_mainWindow= nullptr;
 
 	m_windowManager.reset();
 	delete m_localizationManager;
@@ -67,7 +67,7 @@ App::~App()
 
 int App::exec(int argc, char** argv)
 {
-	int result = 0;
+	int result= 0;
 
 	if (startup(argc, argv))
 	{
@@ -83,7 +83,7 @@ int App::exec(int argc, char** argv)
 	else
 	{
 		MIKAN_LOG_ERROR("App::exec") << "Failed to initialize application!";
-		result = -1;
+		result= -1;
 	}
 
 	shutdown();
@@ -92,8 +92,8 @@ int App::exec(int argc, char** argv)
 }
 
 IEditorWindow* App::getCurrentlyRenderingWindow() const
-{ 
-	return m_renderingWindow; 
+{
+	return m_renderingWindow;
 }
 
 bool App::hasCommandLineFlag(const std::string& flag) const
@@ -103,32 +103,32 @@ bool App::hasCommandLineFlag(const std::string& flag) const
 
 std::string App::getCommandLineStringArg(const std::string& key, const std::string& defaultValue) const
 {
-	auto it = m_commandLineParams.find(key);
+	auto it= m_commandLineParams.find(key);
 	return it != m_commandLineParams.end() ? it->second : defaultValue;
 }
 
 //-- private methods -----
 bool App::startup(int argc, char** argv)
 {
-	bool success = true;
+	bool success= true;
 
 	// Parse command line arguments
-	for (int i = 1; i < argc; ++i)
+	for (int i= 1; i < argc; ++i)
 	{
-		std::string arg = argv[i];
+		std::string arg= argv[i];
 		if (arg.size() > 1 && arg[0] == '-')
 		{
-			std::string key = arg.substr(1); // strip leading '-'
-			auto eqPos = key.find('=');
+			std::string key= arg.substr(1); // strip leading '-'
+			auto eqPos= key.find('=');
 			if (eqPos != std::string::npos)
-				m_commandLineParams[key.substr(0, eqPos)] = key.substr(eqPos + 1);
+				m_commandLineParams[key.substr(0, eqPos)]= key.substr(eqPos + 1);
 			else
 				m_commandLineFlags.insert(key);
 		}
 	}
 
-	LoggerSettings settings = {};
-	settings.min_log_level = LogSeverityLevel::debug;
+	LoggerSettings settings= {};
+	settings.min_log_level= LogSeverityLevel::debug;
 	settings.enable_console= true;
 	settings.log_filename= "MikanXR.log";
 
@@ -147,11 +147,11 @@ bool App::startup(int argc, char** argv)
 	}
 
 #ifdef _WIN32
-	HRESULT hr = CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
+	HRESULT hr= CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 	if (!SUCCEEDED(hr))
 	{
 		MIKAN_LOG_ERROR("App::init") << "Could not initialize COM";
-		success = false;
+		success= false;
 	}
 #endif // _WIN32
 
@@ -162,7 +162,7 @@ bool App::startup(int argc, char** argv)
 	if (success && !initMikanModuleManager())
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize module manager!";
-		success = false;
+		success= false;
 	}
 
 	// Load any saved app settings config
@@ -177,21 +177,21 @@ bool App::startup(int argc, char** argv)
 	if (success && !m_localizationManager->startup(m_appSettings))
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize localization manager!";
-		success = false;
+		success= false;
 	}
 
 	if (success && !m_windowManager->startup())
 	{
 		MIKAN_LOG_ERROR("App::init") << "Failed to initialize window manager!";
-		success = false;
+		success= false;
 	}
 
 	if (success)
 	{
 		CefSettings settings;
-		settings.windowless_rendering_enabled = true;
-		settings.multi_threaded_message_loop = false;
-		settings.no_sandbox = false;
+		settings.windowless_rendering_enabled= true;
+		settings.multi_threaded_message_loop= false;
+		settings.no_sandbox= false;
 
 #ifdef WIN32
 		CefMainArgs main_args(GetModuleHandle(nullptr));
@@ -199,7 +199,7 @@ bool App::startup(int argc, char** argv)
 		CefMainArgs main_args(0, nullptr);
 #endif
 
-		CefRefPtr<MikanCefApp> cef_app = new MikanCefApp();
+		CefRefPtr<MikanCefApp> cef_app= new MikanCefApp();
 		if (!CefInitialize(main_args, settings, cef_app, nullptr))
 		{
 			MIKAN_LOG_ERROR("CEFTextureSourceSystem") << "CefInitialize failed";
@@ -214,17 +214,17 @@ bool App::startup(int argc, char** argv)
 		NodeGraphFactory::registerFactory<ShapeNodeGraphFactory>();
 
 		// Create the main window
-		m_mainWindow = createAppWindow<MainWindow>();
+		m_mainWindow= createAppWindow<MainWindow>();
 		if (m_mainWindow == nullptr)
 		{
 			MIKAN_LOG_ERROR("App::init") << "Failed to initialize Main App Window!";
-			success = false;
+			success= false;
 		}
 	}
 
 	if (success)
 	{
-		m_lastFrameTimestamp = std::chrono::steady_clock::now();
+		m_lastFrameTimestamp= std::chrono::steady_clock::now();
 	}
 
 	return success;
@@ -246,7 +246,7 @@ void App::shutdown()
 		}
 		else
 		{
-			auto it = std::find(m_appWindows.begin(), m_appWindows.end(), appWindow);
+			auto it= std::find(m_appWindows.begin(), m_appWindows.end(), appWindow);
 			if (it != m_appWindows.end())
 			{
 				m_appWindows.erase(it);
@@ -258,7 +258,7 @@ void App::shutdown()
 	if (m_mainWindow != nullptr)
 	{
 		destroyAppWindow(m_mainWindow);
-		m_mainWindow = nullptr;
+		m_mainWindow= nullptr;
 	}
 
 	assert(m_windowManager != nullptr);
@@ -280,13 +280,13 @@ void App::tick()
 	EASY_FUNCTION();
 
 	// Update the frame rate
-	const auto now = std::chrono::steady_clock::now();
-	const float deltaSeconds = fminf(
+	const auto now= std::chrono::steady_clock::now();
+	const float deltaSeconds= fminf(
 		std::chrono::duration<float>(now - m_lastFrameTimestamp).count(),
 		0.1f);
-	m_fps = deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
-	m_secondsSinceAppStart += deltaSeconds;
-	m_lastFrameTimestamp = now;
+	m_fps= deltaSeconds > 0.f ? (1.0f / deltaSeconds) : 0.f;
+	m_secondsSinceAppStart+= deltaSeconds;
+	m_lastFrameTimestamp= now;
 
 	// Pump the CEF message loop so browser callbacks (including OnPaint) fire
 	CefDoMessageLoopWork();
@@ -308,16 +308,15 @@ void App::tickWindows(const float deltaSeconds)
 
 	assert(m_windowManager->getCurrentWindowContext() == nullptr);
 
-
 	// Update each window
 	// Capture size before the loop — new windows added during update() (e.g. from UI events)
 	// will be ticked starting next frame, avoiding iterator invalidation on m_appWindows.
-	static bool bDebugPrintStack = false;
-	const int windowCount = (int)m_appWindows.size();
-	for (int windowIndex = 0; windowIndex < windowCount; ++windowIndex)
+	static bool bDebugPrintStack= false;
+	const int windowCount= (int)m_appWindows.size();
+	for (int windowIndex= 0; windowIndex < windowCount; ++windowIndex)
 	{
-		EditorWindow* appWindow = m_appWindows[windowIndex];
-		IMkWindowContext* appWindowContext = appWindow->getMkWindowContext().get();
+		EditorWindow* appWindow= m_appWindows[windowIndex];
+		IMkWindowContext* appWindowContext= appWindow->getMkWindowContext().get();
 
 		// Skip any windows that have been marked for destruction
 		if (appWindow->wantsDestroy())
@@ -338,12 +337,12 @@ void App::tickWindows(const float deltaSeconds)
 		{
 			EASY_BLOCK("RenderWindow");
 
-			MkStateStack& mkStateStack = appWindow->getGraphicsContext()->getMkStateStack();
+			MkStateStack& mkStateStack= appWindow->getGraphicsContext()->getMkStateStack();
 			mkStateStack.setDebugPrintEnabled(bDebugPrintStack);
 
-			m_renderingWindow = appWindow;
+			m_renderingWindow= appWindow;
 			appWindow->render();
-			m_renderingWindow = nullptr;
+			m_renderingWindow= nullptr;
 
 			mkStateStack.setDebugPrintEnabled(false);
 		}
@@ -351,12 +350,12 @@ void App::tickWindows(const float deltaSeconds)
 		// Restore back to the main window
 		m_windowManager->popCurrentWindowContext(appWindowContext);
 	}
-	bDebugPrintStack = false;
+	bDebugPrintStack= false;
 
 	// Destroy any windows that have been marked for destruction
 	for (int windowIndex= (int)m_appWindows.size() - 1; windowIndex >= 0; windowIndex--)
 	{
-		EditorWindow* window = m_appWindows[windowIndex];
+		EditorWindow* window= m_appWindows[windowIndex];
 
 		if (window->wantsDestroy())
 		{
@@ -377,7 +376,7 @@ bool App::createAppWindowInternal(EditorWindow* appWindow)
 
 	// pop this window context this window added if it created one
 	// and return back to the previous window context
-	IMkWindowContext* appWindowContext = appWindow->getMkWindowContext().get();
+	IMkWindowContext* appWindowContext= appWindow->getMkWindowContext().get();
 	if (m_windowManager->getCurrentWindowContext() == appWindowContext)
 	{
 		m_windowManager->popCurrentWindowContext(appWindowContext);
@@ -392,7 +391,7 @@ bool App::createAppWindowInternal(EditorWindow* appWindow)
 void App::destroyAppWindow(EditorWindow* appWindow)
 {
 	// If this window was the current window, pop it from the current window stack
-	IMkWindowContext* appWindowContext = appWindow->getMkWindowContext().get();
+	IMkWindowContext* appWindowContext= appWindow->getMkWindowContext().get();
 	if (m_windowManager->getCurrentWindowContext() == appWindowContext)
 	{
 		m_windowManager->popCurrentWindowContext(appWindowContext);
@@ -402,7 +401,7 @@ void App::destroyAppWindow(EditorWindow* appWindow)
 	appWindow->shutdown();
 
 	// Remove the window from the list of windows (should deallocate it)
-	auto it = std::find(m_appWindows.begin(), m_appWindows.end(), appWindow);
+	auto it= std::find(m_appWindows.begin(), m_appWindows.end(), appWindow);
 	if (it != m_appWindows.end())
 	{
 		m_appWindows.erase(it);
@@ -411,7 +410,7 @@ void App::destroyAppWindow(EditorWindow* appWindow)
 	// If this was the main window pointer, make sure to invalidate that pointer
 	if (m_mainWindow == appWindow)
 	{
-		m_mainWindow = nullptr;
+		m_mainWindow= nullptr;
 	}
 
 	delete appWindow;

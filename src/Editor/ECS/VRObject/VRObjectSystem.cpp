@@ -40,11 +40,11 @@ VRObjectSystemDefinition::VRObjectSystemDefinition(
 class VRTrackingRuntime
 {
 public:
-	VRTrackingRuntime() = default;
+	VRTrackingRuntime()= default;
 	VRTrackingRuntime(
 		VRObjectSystem* ownerSystem,
-		eTrackingRuntime inRuntime, 
-		IVRDeviceModule* inModule, 
+		eTrackingRuntime inRuntime,
+		IVRDeviceModule* inModule,
 		IVRDeviceManagerPtr inManager)
 		: m_ownerSystem(ownerSystem)
 		, m_runtime(inRuntime)
@@ -63,7 +63,7 @@ public:
 		{
 			m_vrDeviceManager->removeListener(m_ownerSystem);
 			m_vrDeviceManager->shutdown();
-			m_vrDeviceManager = nullptr;
+			m_vrDeviceManager= nullptr;
 		}
 
 		if (m_vrDeviceModule)
@@ -85,10 +85,10 @@ public:
 	}
 
 private:
-	VRObjectSystem* m_ownerSystem = nullptr;
-	eTrackingRuntime m_runtime = eTrackingRuntime::INVALID;
-	IVRDeviceModule* m_vrDeviceModule = nullptr;
-	IVRDeviceManagerPtr m_vrDeviceManager = nullptr;
+	VRObjectSystem* m_ownerSystem= nullptr;
+	eTrackingRuntime m_runtime= eTrackingRuntime::INVALID;
+	IVRDeviceModule* m_vrDeviceModule= nullptr;
+	IVRDeviceManagerPtr m_vrDeviceManager= nullptr;
 };
 
 // -- VRObjectSystem -----
@@ -98,8 +98,8 @@ bool VRObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 		return false;
 
 	// Listen for project config changes
-	ProjectConfigPtr projectConfig = getProjectConfig();
-	projectConfig->OnPropertyChanged +=
+	ProjectConfigPtr projectConfig= getProjectConfig();
+	projectConfig->OnPropertyChanged+=
 		MakeDelegate(this, &VRObjectSystem::onProjectConfigMarkedDirty);
 	m_projectConfigWeakPtr= projectConfig;
 
@@ -117,19 +117,19 @@ void VRObjectSystem::update(float deltaSeconds)
 		launchDeferredRuntimeThreads();
 
 	// Poll pending async runtime inits
-	for (auto it = m_pendingRuntimeFutures.begin(); it != m_pendingRuntimeFutures.end(); )
+	for (auto it= m_pendingRuntimeFutures.begin(); it != m_pendingRuntimeFutures.end();)
 	{
 		if (it->second.wait_for(std::chrono::seconds(0)) == std::future_status::ready)
 		{
-			auto result = it->second.get();
-			const std::string runtimeName = k_trackingRuntimeStrings[(int)result.runtime];
+			auto result= it->second.get();
+			const std::string runtimeName= k_trackingRuntimeStrings[(int)result.runtime];
 			if (result.manager)
 			{
-				m_trackingRuntimeStates[result.runtime] = eTrackingRuntimeState::ready;
-				m_trackingRuntimes[result.runtime] =
+				m_trackingRuntimeStates[result.runtime]= eTrackingRuntimeState::ready;
+				m_trackingRuntimes[result.runtime]=
 					std::make_shared<VRTrackingRuntime>(
 						this, result.runtime, result.module, result.manager);
-				
+
 				// Create graphics resources for render models that were
 				// previously loaded on the async VR-Runtime init thread
 				result.manager->createGraphicsResources();
@@ -140,11 +140,11 @@ void VRObjectSystem::update(float deltaSeconds)
 			}
 			else
 			{
-				m_trackingRuntimeStates[result.runtime] = eTrackingRuntimeState::failed;
+				m_trackingRuntimeStates[result.runtime]= eTrackingRuntimeState::failed;
 				MIKAN_LOG_ERROR("VRObjectSystem::update")
 					<< "Async tracking runtime init failed for " << runtimeName;
 			}
-			it = m_pendingRuntimeFutures.erase(it);
+			it= m_pendingRuntimeFutures.erase(it);
 		}
 		else
 		{
@@ -152,7 +152,7 @@ void VRObjectSystem::update(float deltaSeconds)
 		}
 	}
 
-	for (auto it = m_trackingRuntimes.begin(); it != m_trackingRuntimes.end(); it++)
+	for (auto it= m_trackingRuntimes.begin(); it != m_trackingRuntimes.end(); it++)
 	{
 		it->second->update(deltaSeconds);
 	}
@@ -160,10 +160,10 @@ void VRObjectSystem::update(float deltaSeconds)
 
 void VRObjectSystem::dispose()
 {
-	ProjectConfigPtr projectConfigPtr = m_projectConfigWeakPtr.lock();
+	ProjectConfigPtr projectConfigPtr= m_projectConfigWeakPtr.lock();
 	if (projectConfigPtr)
 	{
-		projectConfigPtr->OnPropertyChanged -=
+		projectConfigPtr->OnPropertyChanged-=
 			MakeDelegate(this, &VRObjectSystem::onProjectConfigMarkedDirty);
 	}
 
@@ -172,7 +172,7 @@ void VRObjectSystem::dispose()
 	{
 		if (future.valid())
 		{
-			auto result = future.get();
+			auto result= future.get();
 			if (result.manager)
 			{
 				// Init completed during disposal — shut it down immediately
@@ -229,7 +229,7 @@ bool VRObjectSystem::createTrackingRuntime(eTrackingRuntime desiredRuntime)
 
 	// Defer the thread launch to the first update() call, so that DLL loading
 	// doesn't hold the loader lock while mikanServer::startup / ImGui init run.
-	const std::string moduleName = StringUtils::stringify("Mikan", k_trackingRuntimeStrings[(int)desiredRuntime]);
+	const std::string moduleName= StringUtils::stringify("Mikan", k_trackingRuntimeStrings[(int)desiredRuntime]);
 	MIKAN_LOG_INFO("VRObjectSystem::createTrackingRuntime")
 		<< "Deferring async init for tracking runtime " << moduleName;
 	m_deferredRuntimeLaunches.insert(desiredRuntime);
@@ -241,28 +241,28 @@ void VRObjectSystem::launchDeferredRuntimeThreads()
 {
 	for (eTrackingRuntime desiredRuntime : m_deferredRuntimeLaunches)
 	{
-		const std::string runtimeName = k_trackingRuntimeStrings[(int)desiredRuntime];
-		const std::string moduleName = StringUtils::stringify("Mikan", runtimeName);
+		const std::string runtimeName= k_trackingRuntimeStrings[(int)desiredRuntime];
+		const std::string moduleName= StringUtils::stringify("Mikan", runtimeName);
 
 		// Capture the graphics context on the main thread before launching the async task
-		IEditorWindow* ownerWindow = getOwnerProjectManager()->getOwnerWindow();
-		IMkGraphicsContext* graphicsContext = ownerWindow->getGraphicsContext().get();
+		IEditorWindow* ownerWindow= getOwnerProjectManager()->getOwnerWindow();
+		IMkGraphicsContext* graphicsContext= ownerWindow->getGraphicsContext().get();
 
 		MIKAN_LOG_INFO("VRObjectSystem::launchDeferredRuntimeThreads")
 			<< "Launching async init for tracking runtime " << moduleName;
-		m_trackingRuntimeStates[desiredRuntime] = eTrackingRuntimeState::initializing;
-		auto promise = std::make_shared<std::promise<TrackingRuntimeInitResult>>();
-		m_pendingRuntimeFutures[desiredRuntime] = promise->get_future();
-		std::thread([promise, desiredRuntime, moduleName, graphicsContext]() mutable {
-			promise->set_value(initTrackingRuntimeOnThread(desiredRuntime, moduleName, graphicsContext));
-		}).detach();
+		m_trackingRuntimeStates[desiredRuntime]= eTrackingRuntimeState::initializing;
+		auto promise= std::make_shared<std::promise<TrackingRuntimeInitResult>>();
+		m_pendingRuntimeFutures[desiredRuntime]= promise->get_future();
+		std::thread([promise, desiredRuntime, moduleName, graphicsContext]() mutable
+					{ promise->set_value(initTrackingRuntimeOnThread(desiredRuntime, moduleName, graphicsContext)); })
+			.detach();
 	}
 	m_deferredRuntimeLaunches.clear();
 }
 
 VRObjectSystem::eTrackingRuntimeState VRObjectSystem::getTrackingRuntimeState(eTrackingRuntime runtime) const
 {
-	auto it = m_trackingRuntimeStates.find(runtime);
+	auto it= m_trackingRuntimeStates.find(runtime);
 	return it != m_trackingRuntimeStates.end() ? it->second : eTrackingRuntimeState::uninitialized;
 }
 
@@ -274,22 +274,22 @@ VRObjectSystem::TrackingRuntimeInitResult VRObjectSystem::initTrackingRuntimeOnT
 #ifdef _WIN32
 	// Initialize COM in MTA on this thread so that OpenVR/SteamVR initialization
 	// doesn't try to marshal COM calls to the main thread's COM apartment
-	const HRESULT comInitResult = CoInitializeEx(NULL, COINIT_MULTITHREADED);
-	const bool bComInitialized = (comInitResult == S_OK);
+	const HRESULT comInitResult= CoInitializeEx(NULL, COINIT_MULTITHREADED);
+	const bool bComInitialized= (comInitResult == S_OK);
 #endif // _WIN32
 
 	TrackingRuntimeInitResult result;
-	result.runtime = runtime;
+	result.runtime= runtime;
 
 	// Attempt to load the vr device module
-	result.module = getMikanModuleManager()->getModule<IVRDeviceModule>(moduleName);
+	result.module= getMikanModuleManager()->getModule<IVRDeviceModule>(moduleName);
 	if (result.module)
 	{
 		MIKAN_LOG_INFO("VRObjectSystem::initTrackingRuntimeOnThread")
 			<< "Loaded module " << moduleName;
 
 		// Attempt to create a vr device manager
-		result.manager = result.module->createTrackingRuntime();
+		result.manager= result.module->createTrackingRuntime();
 		if (result.manager)
 		{
 			MIKAN_LOG_INFO("VRObjectSystem::initTrackingRuntimeOnThread")
@@ -301,7 +301,8 @@ VRObjectSystem::TrackingRuntimeInitResult VRObjectSystem::initTrackingRuntimeOnT
 				MIKAN_LOG_INFO("VRObjectSystem::initTrackingRuntimeOnThread")
 					<< "Started VRDeviceManger for " << moduleName;
 
-				if (bComInitialized) CoUninitialize();
+				if (bComInitialized)
+					CoUninitialize();
 				return result;
 			}
 			else
@@ -326,16 +327,17 @@ VRObjectSystem::TrackingRuntimeInitResult VRObjectSystem::initTrackingRuntimeOnT
 	if (result.manager)
 	{
 		result.manager->shutdown();
-		result.manager = nullptr;
+		result.manager= nullptr;
 	}
 	if (result.module)
 	{
 		getMikanModuleManager()->disposeModule(result.module);
-		result.module = nullptr;
+		result.module= nullptr;
 	}
 
 #ifdef _WIN32
-	if (bComInitialized) CoUninitialize();
+	if (bComInitialized)
+		CoUninitialize();
 #endif // _WIN32
 
 	return result;
@@ -361,25 +363,25 @@ bool VRObjectSystem::findMikanDeviceIdForDeviceIndex(
 	eTrackingRuntime& outRuntime,
 	MikanVRDeviceID& outMikanDeviceId) const
 {
-	outRuntime = findTrackingRuntimeForDeviceManager(deviceManager);
-	outMikanDeviceId = INVALID_MIKAN_ID;
+	outRuntime= findTrackingRuntimeForDeviceManager(deviceManager);
+	outMikanDeviceId= INVALID_MIKAN_ID;
 
 	if (outRuntime != eTrackingRuntime::INVALID)
 	{
 		for (const auto& kvpair : Super::getComponentMap())
 		{
-			MikanVRDeviceID vrDeviceId = kvpair.first;
-			VRDeviceComponentPtr vrDeviceComponentPtr = kvpair.second.lock();
+			MikanVRDeviceID vrDeviceId= kvpair.first;
+			VRDeviceComponentPtr vrDeviceComponentPtr= kvpair.second.lock();
 
 			if (vrDeviceComponentPtr)
 			{
-				VRDeviceDefinitionPtr vrDeviceDefinition = vrDeviceComponentPtr->getVRDeviceDefinition();
+				VRDeviceDefinitionPtr vrDeviceDefinition= vrDeviceComponentPtr->getVRDeviceDefinition();
 				if (vrDeviceDefinition->getTrackingRuntimeType() == outRuntime)
 				{
-					IVRDevice* vrDeviceInterface = vrDeviceComponentPtr->getVRDeviceInterface();
+					IVRDevice* vrDeviceInterface= vrDeviceComponentPtr->getVRDeviceInterface();
 					if (vrDeviceInterface && vrDeviceInterface->getDeviceIndex() == deviceIndex)
 					{
-						outMikanDeviceId = vrDeviceId;
+						outMikanDeviceId= vrDeviceId;
 						return true;
 					}
 				}
@@ -392,9 +394,8 @@ bool VRObjectSystem::findMikanDeviceIdForDeviceIndex(
 
 VRDeviceComponentPtr VRObjectSystem::getVRDeviceByPath(const std::string& VRDevicePath) const
 {
-	return Super::getTypedComponentByPredicate([VRDevicePath](VRDeviceComponentConstPtr componentPtr) {
-		return componentPtr->getVRDeviceDefinition()->getVRDevicePath() == VRDevicePath;
-	});
+	return Super::getTypedComponentByPredicate([VRDevicePath](VRDeviceComponentConstPtr componentPtr)
+											   { return componentPtr->getVRDeviceDefinition()->getVRDevicePath() == VRDevicePath; });
 }
 
 void VRObjectSystem::getVRDevicePathList(std::vector<std::string>& outDevicePathList) const
@@ -403,11 +404,11 @@ void VRObjectSystem::getVRDevicePathList(std::vector<std::string>& outDevicePath
 
 	for (const auto& kvpair : Super::getComponentMap())
 	{
-		VRDeviceComponentPtr vrDeviceComponentPtr = kvpair.second.lock();
+		VRDeviceComponentPtr vrDeviceComponentPtr= kvpair.second.lock();
 		if (vrDeviceComponentPtr)
 		{
-			VRDeviceDefinitionPtr vrDeviceDefinition = vrDeviceComponentPtr->getVRDeviceDefinition();
-			const std::string devicePath = vrDeviceDefinition->getVRDevicePath();
+			VRDeviceDefinitionPtr vrDeviceDefinition= vrDeviceComponentPtr->getVRDeviceDefinition();
+			const std::string devicePath= vrDeviceDefinition->getVRDevicePath();
 
 			outDevicePathList.push_back(devicePath);
 		}
@@ -416,15 +417,15 @@ void VRObjectSystem::getVRDevicePathList(std::vector<std::string>& outDevicePath
 
 void VRObjectSystem::onActiveDeviceListChanged(IVRDeviceManager* deviceManager)
 {
-	eTrackingRuntime runtimeType = findTrackingRuntimeForDeviceManager(deviceManager);
+	eTrackingRuntime runtimeType= findTrackingRuntimeForDeviceManager(deviceManager);
 
 	if (runtimeType != eTrackingRuntime::INVALID)
 	{
 		std::set<MikanVRDeviceID> pendingDeleteDeviceIds;
 		for (const auto& kvpair : Super::getComponentMap())
 		{
-			const MikanVRDeviceID vrDeviceId = kvpair.first;
-			VRDeviceComponentPtr vrDeviceComponentPtr = kvpair.second.lock();
+			const MikanVRDeviceID vrDeviceId= kvpair.first;
+			VRDeviceComponentPtr vrDeviceComponentPtr= kvpair.second.lock();
 
 			if (!vrDeviceComponentPtr ||
 				vrDeviceComponentPtr->getVRDeviceDefinition()->getTrackingRuntimeType() == runtimeType)
@@ -433,18 +434,18 @@ void VRObjectSystem::onActiveDeviceListChanged(IVRDeviceManager* deviceManager)
 			}
 		}
 
-		for (size_t deviceIndex = 0; deviceIndex < deviceManager->getDeviceCount(); deviceIndex++)
+		for (size_t deviceIndex= 0; deviceIndex < deviceManager->getDeviceCount(); deviceIndex++)
 		{
-			IVRDevice* vrDeviceInterface = deviceManager->getDeviceByIndex(deviceIndex);
-			const std::string devicePath = vrDeviceInterface ? vrDeviceInterface->getDevicePath() : "";
+			IVRDevice* vrDeviceInterface= deviceManager->getDeviceByIndex(deviceIndex);
+			const std::string devicePath= vrDeviceInterface ? vrDeviceInterface->getDevicePath() : "";
 
 			if (!devicePath.empty())
 			{
-				VRDeviceComponentPtr existingVRDeice = getVRDeviceByPath(devicePath);
+				VRDeviceComponentPtr existingVRDeice= getVRDeviceByPath(devicePath);
 
 				if (existingVRDeice)
 				{
-					const MikanVRDeviceID vrDeviceId = existingVRDeice->getVRDeviceDefinition()->getComponentId();
+					const MikanVRDeviceID vrDeviceId= existingVRDeice->getVRDeviceDefinition()->getComponentId();
 
 					pendingDeleteDeviceIds.erase(vrDeviceId);
 				}
@@ -475,7 +476,7 @@ void VRObjectSystem::onDevicePropertyChanged(IVRDeviceManager* deviceManager, in
 		MikanVRDeviceID vrDeviceId;
 
 		if (findMikanDeviceIdForDeviceIndex(
-				deviceManager, deviceId, 
+				deviceManager, deviceId,
 				runtimeType, vrDeviceId))
 		{
 			OnDevicePropertyChanged(runtimeType, vrDeviceId);
@@ -485,13 +486,13 @@ void VRObjectSystem::onDevicePropertyChanged(IVRDeviceManager* deviceManager, in
 
 void VRObjectSystem::onDevicePosesChanged(IVRDeviceManager* deviceManager, int64_t newFrameId)
 {
-	eTrackingRuntime runtimeType = findTrackingRuntimeForDeviceManager(deviceManager);
+	eTrackingRuntime runtimeType= findTrackingRuntimeForDeviceManager(deviceManager);
 
 	if (runtimeType != eTrackingRuntime::INVALID)
 	{
 		for (const auto& kvpair : Super::getComponentMap())
 		{
-			VRDeviceComponentPtr vrDeviceComponentPtr = kvpair.second.lock();
+			VRDeviceComponentPtr vrDeviceComponentPtr= kvpair.second.lock();
 
 			if (vrDeviceComponentPtr &&
 				vrDeviceComponentPtr->getVRDeviceDefinition()->getTrackingRuntimeType() == runtimeType)
@@ -513,9 +514,8 @@ rfk::Struct const* VRObjectSystem::getClientAPIValuesStructType() const
 	return &MikanVRObjectSystemValues::staticGetArchetype();
 }
 
-
 // -- IPropertyInterface ----
-const std::string VRObjectSystem::k_vrDevicePathListPropertyId = "vr_device_path_list";
+const std::string VRObjectSystem::k_vrDevicePathListPropertyId= "vr_device_path_list";
 void VRObjectSystem::getPropertyDescriptors(std::vector<PropertyDescriptorConstPtr>& outDescriptors)
 {
 	Super::getPropertyDescriptors(outDescriptors);
@@ -523,7 +523,7 @@ void VRObjectSystem::getPropertyDescriptors(std::vector<PropertyDescriptorConstP
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			VRObjectSystem::k_vrDevicePathListPropertyId, MikanVariantType::STRING_ARRAY)
-		->setReadOnly());
+			->setReadOnly());
 }
 
 bool VRObjectSystem::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
@@ -532,7 +532,7 @@ bool VRObjectSystem::getPropertyValue(const std::string& propertyName, MikanVari
 	{
 		std::vector<std::string> devicePathList;
 		getVRDevicePathList(devicePathList);
-		outValue = devicePathList;
+		outValue= devicePathList;
 		return true;
 	}
 
@@ -543,16 +543,17 @@ VRDeviceComponentPtr VRObjectSystem::addNewVRDevice(
 	eTrackingRuntime trackingRuntime,
 	IVRDevice* vrDeviceInterface)
 {
-	VRDeviceComponentPtr vrDeviceComponent = 
+	VRDeviceComponentPtr vrDeviceComponent=
 		Super::addNewObjectByTypedDefinition(
-			[trackingRuntime, vrDeviceInterface](VRDeviceDefinitionPtr def) {
-				const eVRDeviceType deviceType = vrDeviceInterface->getDeviceType();
-				const std::string vrDevicePath = vrDeviceInterface->getDevicePath();
-				const int vrFrameDelay = 0; // Use the latest pose for rendering
+			[trackingRuntime, vrDeviceInterface](VRDeviceDefinitionPtr def)
+			{
+				const eVRDeviceType deviceType= vrDeviceInterface->getDeviceType();
+				const std::string vrDevicePath= vrDeviceInterface->getDevicePath();
+				const int vrFrameDelay= 0; // Use the latest pose for rendering
 
-				VRDevicePose pose = {};
+				VRDevicePose pose= {};
 				vrDeviceInterface->getDevicePose(vrFrameDelay, pose);
-				GlmTransform glmTransform = VRDevicePose_to_GlmTransform(pose);
+				GlmTransform glmTransform= VRDevicePose_to_GlmTransform(pose);
 
 				def->setTrackingRuntimeType(trackingRuntime);
 				def->setVRDeviceIndex(vrDeviceInterface->getDeviceIndex());
@@ -560,7 +561,7 @@ VRDeviceComponentPtr VRObjectSystem::addNewVRDevice(
 				def->setRelativeTransform(glmTransform);
 
 				return true;
- 			});
+			});
 
 	if (vrDeviceComponent)
 	{
@@ -582,21 +583,21 @@ void addAllVRDevicesToMkScene(
 	IMkScenePtr mkScenePtr,
 	const glm::mat4& vrSpaceToStageSpace)
 {
-	vrObjectSystem->visitComponents([&mkScenePtr, &vrSpaceToStageSpace](VRDeviceComponentPtr vrDeviceComponent) {
-		vrDeviceComponent->visitAllTransformComponents(
-			[&mkScenePtr, &vrSpaceToStageSpace](TransformComponent* transformComponent) {
-			IMkSceneRenderablePtr renderable = transformComponent->getGlSceneRenderable();
-			if (renderable)
-			{
-				// Apply VRSpace -> StageSpace offset to the renderable's model matrix.
-				// VRObjectSystem resets this each frame via refreshDevicePose(), so
-				// temporarily overwriting it here is safe.
-				renderable->setModelMatrix(
-					glm_composite_xform(renderable->getModelMatrix(), vrSpaceToStageSpace));
-				mkScenePtr->addInstance(renderable);
-			}
-		});
-	});
+	vrObjectSystem->visitComponents([&mkScenePtr, &vrSpaceToStageSpace](VRDeviceComponentPtr vrDeviceComponent)
+									{ vrDeviceComponent->visitAllTransformComponents(
+										  [&mkScenePtr, &vrSpaceToStageSpace](TransformComponent* transformComponent)
+										  {
+											  IMkSceneRenderablePtr renderable= transformComponent->getGlSceneRenderable();
+											  if (renderable)
+											  {
+												  // Apply VRSpace -> StageSpace offset to the renderable's model matrix.
+												  // VRObjectSystem resets this each frame via refreshDevicePose(), so
+												  // temporarily overwriting it here is safe.
+												  renderable->setModelMatrix(
+													  glm_composite_xform(renderable->getModelMatrix(), vrSpaceToStageSpace));
+												  mkScenePtr->addInstance(renderable);
+											  }
+										  }); });
 }
 
 void renderAllVRDeviceInfo(
@@ -605,8 +606,7 @@ void renderAllVRDeviceInfo(
 	IMkCameraConstPtr camera,
 	const glm::mat4& vrSpaceToStageSpace)
 {
-	vrObjectSystem->visitComponents([graphicsContext, camera, &vrSpaceToStageSpace](VRDeviceComponentPtr vrDeviceComponent) {
-		vrDeviceComponent->renderVRDeviceInfo(
-			graphicsContext, camera, vrSpaceToStageSpace);
-		});
+	vrObjectSystem->visitComponents([graphicsContext, camera, &vrSpaceToStageSpace](VRDeviceComponentPtr vrDeviceComponent)
+									{ vrDeviceComponent->renderVRDeviceInfo(
+										  graphicsContext, camera, vrSpaceToStageSpace); });
 }

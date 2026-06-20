@@ -45,8 +45,8 @@ bool MeshColliderComponent::getBoundingSphere(glm::vec3& outCenter, float& outRa
 	const glm::vec3 minBounds= worldXform * glm::vec4(localMin, 1.f);
 	const glm::vec3 maxBounds= worldXform * glm::vec4(localMax, 1.f);
 
-	outCenter = (minBounds + maxBounds) * 0.5f;
-	outRadius = glm::distance(minBounds, outCenter);
+	outCenter= (minBounds + maxBounds) * 0.5f;
+	outRadius= glm::distance(minBounds, outCenter);
 
 	return true;
 }
@@ -71,31 +71,31 @@ bool MeshColliderComponent::computeRayIntersection(
 
 	if (m_kdTree->computeRayIntersection(kdTreeRequest, kdTreeResult))
 	{
-		outResult.hitValid = true;
-		outResult.hitLocation = worldXform * glm::vec4(kdTreeResult.position, 1.f);
-		outResult.hitNormal = worldXform * glm::vec4(kdTreeResult.normal, 0.f);
-		outResult.hitDistance = glm::distance(request.rayOrigin, outResult.hitLocation);
-		outResult.hitPriority = m_priority;
-		outResult.hitComponent =
+		outResult.hitValid= true;
+		outResult.hitLocation= worldXform * glm::vec4(kdTreeResult.position, 1.f);
+		outResult.hitNormal= worldXform * glm::vec4(kdTreeResult.normal, 0.f);
+		outResult.hitDistance= glm::distance(request.rayOrigin, outResult.hitLocation);
+		outResult.hitPriority= m_priority;
+		outResult.hitComponent=
 			std::const_pointer_cast<ColliderComponent>(
 				getSelfPtr<const ColliderComponent>());
 
 		// Compute closest vertex to the collision point in the local space of the mesh
 		glm::vec3 localClosestVertex;
 		if (m_kdTree->computeClosestVertex(
-			kdTreeResult.position,
-			kdTreeResult.triangleIndex,
-			localClosestVertex))
+				kdTreeResult.position,
+				kdTreeResult.triangleIndex,
+				localClosestVertex))
 		{
-			outResult.closestVertexLocal = localClosestVertex;
-			outResult.closestVertexWorld = worldXform * glm::vec4(localClosestVertex, 1.f);
-			outResult.closestVertexValid = true;
+			outResult.closestVertexLocal= localClosestVertex;
+			outResult.closestVertexWorld= worldXform * glm::vec4(localClosestVertex, 1.f);
+			outResult.closestVertexValid= true;
 		}
 		else
 		{
-			outResult.closestVertexLocal = glm::vec3(0.f);
-			outResult.closestVertexWorld = outResult.hitLocation;
-			outResult.closestVertexValid = false;
+			outResult.closestVertexLocal= glm::vec3(0.f);
+			outResult.closestVertexWorld= outResult.hitLocation;
+			outResult.closestVertexValid= false;
 		}
 	}
 
@@ -106,18 +106,18 @@ void MeshColliderComponent::setStaticMeshComponent(StaticMeshComponentWeakPtr st
 {
 	if (m_staticMeshWeakPtr.lock() != staticMeshWeakPtr.lock())
 	{
-		auto oldStaticMeshPtr = m_staticMeshWeakPtr.lock();
+		auto oldStaticMeshPtr= m_staticMeshWeakPtr.lock();
 		if (oldStaticMeshPtr)
 		{
-			oldStaticMeshPtr->OnMeshChanged -= MakeDelegate(this, &MeshColliderComponent::onStaticMeshChanged);
+			oldStaticMeshPtr->OnMeshChanged-= MakeDelegate(this, &MeshColliderComponent::onStaticMeshChanged);
 		}
 
-		m_staticMeshWeakPtr = staticMeshWeakPtr;
+		m_staticMeshWeakPtr= staticMeshWeakPtr;
 
 		auto staticMeshPtr= staticMeshWeakPtr.lock();
 		if (staticMeshPtr)
 		{
-			staticMeshPtr->OnMeshChanged += MakeDelegate(this, &MeshColliderComponent::onStaticMeshChanged);
+			staticMeshPtr->OnMeshChanged+= MakeDelegate(this, &MeshColliderComponent::onStaticMeshChanged);
 		}
 
 		rebuildCollisionGeometry();
@@ -134,22 +134,22 @@ void MeshColliderComponent::rebuildCollisionGeometry()
 {
 	m_kdTree->dispose();
 
-	auto staticMeshPtr = m_staticMeshWeakPtr.lock();
+	auto staticMeshPtr= m_staticMeshWeakPtr.lock();
 	if (!staticMeshPtr)
 		return;
 
-	auto glMeshInstancePtr = staticMeshPtr->getStaticMesh();
+	auto glMeshInstancePtr= staticMeshPtr->getStaticMesh();
 	if (!glMeshInstancePtr)
 		return;
 
-	auto glMeshDataPtr = glMeshInstancePtr->getMesh();
+	auto glMeshDataPtr= glMeshInstancePtr->getMesh();
 	if (!glMeshDataPtr)
 		return;
 
 	m_kdTree->setMesh(glMeshDataPtr);
 	if (!m_kdTree->init())
 	{
-		MIKAN_LOG_ERROR("MeshColliderComponent::rebuildCollisionGeometry") 
+		MIKAN_LOG_ERROR("MeshColliderComponent::rebuildCollisionGeometry")
 			<< "Failed to build kd-tree for mesh collider " << getName();
 	}
 }

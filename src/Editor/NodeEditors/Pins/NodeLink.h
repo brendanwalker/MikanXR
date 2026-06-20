@@ -6,8 +6,14 @@
 class NodeLinkConfig : public CommonConfig
 {
 public:
-	NodeLinkConfig() : CommonConfig() {}
-	NodeLinkConfig(const std::string& nodeName) : CommonConfig(nodeName) {}
+	NodeLinkConfig()
+		: CommonConfig()
+	{
+	}
+	NodeLinkConfig(const std::string& nodeName)
+		: CommonConfig(nodeName)
+	{
+	}
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -27,16 +33,16 @@ public:
 	virtual bool loadFromConfig(NodeLinkConfigConstPtr config);
 	virtual void saveToConfig(NodeLinkConfigPtr config) const;
 
-	inline void setId(t_node_link_id id) { m_id = id; }
+	inline void setId(t_node_link_id id) { m_id= id; }
 	inline t_node_link_id getId() const { return m_id; }
 
 	inline void setOwnerGraph(NodeGraphPtr ownerGraph) { m_ownerGraph= ownerGraph; }
 	inline NodeGraphPtr getOwnerGraph() const { return m_ownerGraph; }
 
-	inline void setStartPin(NodePinPtr pin) { m_startPin = pin; }
+	inline void setStartPin(NodePinPtr pin) { m_startPin= pin; }
 	inline NodePinPtr getStartPin() const { return m_startPin; }
 
-	inline void setEndPin(NodePinPtr pin) { m_endPin = pin; }
+	inline void setEndPin(NodePinPtr pin) { m_endPin= pin; }
 	inline NodePinPtr getEndPin() const { return m_endPin; }
 
 	NodePinPtr getConnectedPin(NodePinPtr pin) const;

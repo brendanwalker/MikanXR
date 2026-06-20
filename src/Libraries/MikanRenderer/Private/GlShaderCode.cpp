@@ -4,12 +4,13 @@
 class GlShaderCode : public IMkShaderCode
 {
 public:
-	GlShaderCode() = default;
+	GlShaderCode()= default;
 
 	GlShaderCode(const std::string& programName)
 		: m_programName(programName)
 		, m_shaderCodeHash(0)
-	{}
+	{
+	}
 
 	GlShaderCode(
 		const std::string& programName,
@@ -21,17 +22,17 @@ public:
 	{
 		std::hash<std::string> hasher;
 
-		m_shaderCodeHash = hasher(vertexCode + fragmentCode);
+		m_shaderCodeHash= hasher(vertexCode + fragmentCode);
 	}
 
-	virtual const std::string& getProgramName() const override 
-	{ 
-		return m_programName; 
+	virtual const std::string& getProgramName() const override
+	{
+		return m_programName;
 	}
 
-	virtual void setProgramName(const std::string& inName) override 
-	{ 
-		m_programName = inName;
+	virtual void setProgramName(const std::string& inName) override
+	{
+		m_programName= inName;
 	}
 
 	virtual const char* getVertexShaderCode() const override
@@ -39,7 +40,7 @@ public:
 		return m_vertexShaderCode.c_str();
 	}
 
-	virtual const std::filesystem::path& getVertexShaderFilePath() const override 
+	virtual const std::filesystem::path& getVertexShaderFilePath() const override
 	{
 		return m_vertexShaderFilePath;
 	}
@@ -54,7 +55,7 @@ public:
 		return m_fragmentShaderCode.c_str();
 	}
 
-	virtual const std::filesystem::path& getFragmentShaderFilePath() const override 
+	virtual const std::filesystem::path& getFragmentShaderFilePath() const override
 	{
 		return m_fragmentShaderFilePath;
 	}
@@ -64,14 +65,14 @@ public:
 		m_fragmentShaderFilePath= path;
 	}
 
-	virtual size_t getCodeHash() const override 
+	virtual size_t getCodeHash() const override
 	{
 		return m_shaderCodeHash;
 	}
 
 	virtual const std::vector<IMkVertexAttributeConstPtr>& getVertexAttributes() const override
-	{ 
-		return m_vertexAttributes; 
+	{
+		return m_vertexAttributes;
 	}
 
 	virtual void addVertexAttribute(
@@ -84,7 +85,7 @@ public:
 	}
 
 	virtual const std::vector<Uniform>& getUniformList() const override
-	{ 
+	{
 		return m_uniformList;
 	}
 
@@ -98,12 +99,12 @@ public:
 		return m_vertexShaderCode.size() > 0 && m_fragmentShaderCode.size() > 0;
 	}
 
-	virtual bool operator == (const IMkShaderCode& other) const override
+	virtual bool operator==(const IMkShaderCode& other) const override
 	{
 		return m_shaderCodeHash == other.getCodeHash();
 	}
 
-	virtual bool operator != (const IMkShaderCode& other) const override
+	virtual bool operator!=(const IMkShaderCode& other) const override
 	{
 		return m_shaderCodeHash != other.getCodeHash();
 	}

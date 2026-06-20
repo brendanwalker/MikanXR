@@ -16,9 +16,9 @@
 // -- MaterialNodeConfig -----
 configuru::Config MaterialNodeConfig::writeToJSON()
 {
-	configuru::Config pt = NodeConfig::writeToJSON();
+	configuru::Config pt= NodeConfig::writeToJSON();
 
-	pt["material_property_id"] = materialPropertyId;
+	pt["material_property_id"]= materialPropertyId;
 
 	return pt;
 }
@@ -27,7 +27,7 @@ void MaterialNodeConfig::readFromJSON(const configuru::Config& pt)
 {
 	NodeConfig::readFromJSON(pt);
 
-	materialPropertyId = pt.get_or<t_graph_property_id>("material_property_id", -1);
+	materialPropertyId= pt.get_or<t_graph_property_id>("material_property_id", -1);
 }
 
 // -- MaterialNode -----
@@ -42,14 +42,14 @@ void MaterialNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 	{
 		if (m_ownerGraph)
 		{
-			m_ownerGraph->OnPropertyDeleted -= MakeDelegate(this, &MaterialNode::onGraphPropertyDeleted);
-			m_ownerGraph = nullptr;
+			m_ownerGraph->OnPropertyDeleted-= MakeDelegate(this, &MaterialNode::onGraphPropertyDeleted);
+			m_ownerGraph= nullptr;
 		}
 
 		if (newOwnerGraph)
 		{
-			newOwnerGraph->OnPropertyDeleted += MakeDelegate(this, &MaterialNode::onGraphPropertyDeleted);
-			m_ownerGraph = newOwnerGraph;
+			newOwnerGraph->OnPropertyDeleted+= MakeDelegate(this, &MaterialNode::onGraphPropertyDeleted);
+			m_ownerGraph= newOwnerGraph;
 		}
 	}
 }
@@ -58,7 +58,7 @@ bool MaterialNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 {
 	if (Node::loadFromConfig(nodeConfig))
 	{
-		auto materialNodeConfig = std::static_pointer_cast<const MaterialNodeConfig>(nodeConfig);
+		auto materialNodeConfig= std::static_pointer_cast<const MaterialNodeConfig>(nodeConfig);
 		t_graph_property_id propId= materialNodeConfig->materialPropertyId;
 
 		auto materialProperty= getOwnerGraph()->getTypedPropertyById<GraphMaterialProperty>(propId);
@@ -88,7 +88,7 @@ void MaterialNode::editorRenderPropertySheet(const NodeEditorState& editorState)
 
 void MaterialNode::saveToConfig(NodeConfigPtr nodeConfig) const
 {
-	auto materialNodeConfig = std::static_pointer_cast<MaterialNodeConfig>(nodeConfig);
+	auto materialNodeConfig= std::static_pointer_cast<MaterialNodeConfig>(nodeConfig);
 	materialNodeConfig->materialPropertyId= m_sourceProperty ? m_sourceProperty->getId() : -1;
 
 	Node::saveToConfig(nodeConfig);
@@ -99,11 +99,11 @@ MkMaterialConstPtr MaterialNode::getMaterialResource() const
 	return m_sourceProperty ? m_sourceProperty->getMaterialResource() : MkMaterialConstPtr();
 }
 
-void MaterialNode::setMaterialSource(GraphMaterialPropertyPtr inMaterialProperty) 
-{ 
-	m_sourceProperty = inMaterialProperty; 
+void MaterialNode::setMaterialSource(GraphMaterialPropertyPtr inMaterialProperty)
+{
+	m_sourceProperty= inMaterialProperty;
 
-	auto outPin = getFirstPinOfType<PropertyPin>(eNodePinDirection::OUTPUT);
+	auto outPin= getFirstPinOfType<PropertyPin>(eNodePinDirection::OUTPUT);
 	if (outPin)
 	{
 		outPin->setValue(m_sourceProperty);
@@ -119,21 +119,21 @@ bool MaterialNode::evaluateNode(NodeEvaluator& evaluator)
 
 std::shared_ptr<MkNodesScopedColorStyle> MaterialNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
 {
-	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_TitleBar, IM_COL32(150, 130, 110, 225))
 		.push(ImNodesCol_TitleBarHovered, IM_COL32(150, 130, 110, 225))
 		.push(ImNodesCol_TitleBarSelected, IM_COL32(150, 130, 110, 225));
 	return style;
 }
 
-std::string MaterialNode::editorGetTitle() const 
-{ 
+std::string MaterialNode::editorGetTitle() const
+{
 	if (m_sourceProperty)
 	{
 		auto assetRef= m_sourceProperty->getMaterialAssetReference();
 		if (assetRef)
 		{
-			return assetRef->getShortName();		
+			return assetRef->getShortName();
 		}
 		else
 		{
@@ -148,7 +148,7 @@ std::string MaterialNode::editorGetTitle() const
 
 void MaterialNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	auto nodeStyle = editorRenderMakeNodeStyle(editorState);
+	auto nodeStyle= editorRenderMakeNodeStyle(editorState);
 	MkNodesScopedNode scopedNode(m_id);
 
 	// Title
@@ -156,14 +156,14 @@ void MaterialNode::editorRenderNode(const NodeEditorState& editorState)
 
 	// Texture
 	ImGui::Dummy(ImVec2(1.0f, 0.5f));
-	auto materialAssetRef = m_sourceProperty->getMaterialAssetReference();
+	auto materialAssetRef= m_sourceProperty->getMaterialAssetReference();
 	if (materialAssetRef)
 	{
 		auto previewTexture= materialAssetRef->getPreviewTexture();
 
 		if (previewTexture)
 		{
-			uint32_t glTextureId = previewTexture->getGlTextureId();
+			uint32_t glTextureId= previewTexture->getGlTextureId();
 			if (glTextureId != 0)
 			{
 				ImGui::Image((void*)(intptr_t)glTextureId, ImVec2(100, 100));
@@ -190,11 +190,11 @@ void MaterialNode::onGraphPropertyDeleted(t_graph_property_id id)
 NodePtr MaterialNodeFactory::createNode(const NodeEditorState& editorState) const
 {
 	// Create the node and pins
-	NodePtr node = NodeFactory::createNode(editorState);
-	PropertyPinPtr outputPin = node->addPin<PropertyPin>("material", eNodePinDirection::OUTPUT);
+	NodePtr node= NodeFactory::createNode(editorState);
+	PropertyPinPtr outputPin= node->addPin<PropertyPin>("material", eNodePinDirection::OUTPUT);
 	outputPin->setPropertyClassName(GraphMaterialProperty::k_propertyClassName);
 	outputPin->editorSetShowPinName(false);
-	//TODO: Add vertex definition attribute to the pin
+	// TODO: Add vertex definition attribute to the pin
 
 	// If spawned in an editor context from a dangling pin link
 	// auto-connect the output pin to a compatible input pin

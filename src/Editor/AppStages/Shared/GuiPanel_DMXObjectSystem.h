@@ -8,7 +8,9 @@ class GuiPanel_DMXObjectSystem : public GuiPanel_MikanObjectSystem
 {
 public:
 	GuiPanel_DMXObjectSystem(class AppStage* ownerAppStage)
-		: GuiPanel_MikanObjectSystem(ownerAppStage) {}
+		: GuiPanel_MikanObjectSystem(ownerAppStage)
+	{
+	}
 
 	virtual bool init() override;
 	virtual void onConstruct() override;

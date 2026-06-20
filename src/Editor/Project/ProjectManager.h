@@ -12,10 +12,10 @@
 #include <vector>
 #include <map>
 
-using MikanPropertyDatabasePtr = std::shared_ptr<class MikanPropertyDatabase>;
-using MikanPropertyDatabaseConstPtr = std::shared_ptr<const class MikanPropertyDatabase>;
-using MikanFunctionDatabasePtr = std::shared_ptr<class MikanFunctionDatabase>;
-using MikanFunctionDatabaseConstPtr = std::shared_ptr<const class MikanFunctionDatabase>;
+using MikanPropertyDatabasePtr= std::shared_ptr<class MikanPropertyDatabase>;
+using MikanPropertyDatabaseConstPtr= std::shared_ptr<const class MikanPropertyDatabase>;
+using MikanFunctionDatabasePtr= std::shared_ptr<class MikanFunctionDatabase>;
+using MikanFunctionDatabaseConstPtr= std::shared_ptr<const class MikanFunctionDatabase>;
 
 class ProjectManager : public std::enable_shared_from_this<ProjectManager>
 {
@@ -30,19 +30,20 @@ public:
 	inline MikanFunctionDatabaseConstPtr getFunctionDatabaseConst() const { return m_functionDatabase; }
 
 	template <class t_system_type>
-	std::shared_ptr<t_system_type> addSystem() { 
+	std::shared_ptr<t_system_type> addSystem()
+	{
 		std::shared_ptr<t_system_type> systemPtr= std::make_shared<t_system_type>(shared_from_this());
 		registerSystem(systemPtr);
 
 		return systemPtr;
 	}
 
-	template<class t_system_type>
+	template <class t_system_type>
 	std::shared_ptr<t_system_type> getSystemOfType() const
 	{
 		for (MikanObjectSystemPtr system : m_systems)
 		{
-			std::shared_ptr<t_system_type> derivedSystem = std::dynamic_pointer_cast<t_system_type>(system);
+			std::shared_ptr<t_system_type> derivedSystem= std::dynamic_pointer_cast<t_system_type>(system);
 
 			if (derivedSystem != nullptr)
 			{
@@ -53,12 +54,12 @@ public:
 		return nullptr;
 	}
 
-	template<class t_system_type>
+	template <class t_system_type>
 	std::shared_ptr<const t_system_type> getSystemOfTypeConst() const
 	{
 		for (MikanObjectSystemPtr system : m_systems)
 		{
-			std::shared_ptr<const t_system_type> derivedSystem = 
+			std::shared_ptr<const t_system_type> derivedSystem=
 				std::dynamic_pointer_cast<const t_system_type>(system);
 
 			if (derivedSystem != nullptr)
@@ -71,15 +72,15 @@ public:
 	}
 
 	MikanComponentPtr getComponentById(MikanComponentID componentId) const;
-	template<class t_component_type>
+	template <class t_component_type>
 	std::shared_ptr<t_component_type> getTypedComponentById(MikanComponentID componentId) const
 	{
-		MikanComponentPtr componentPtr = getComponentById(componentId);
+		MikanComponentPtr componentPtr= getComponentById(componentId);
 		return std::dynamic_pointer_cast<t_component_type>(componentPtr);
 	}
 
 	MikanObjectSystemPtr getSystemByName(const std::string name) const;
-	
+
 	bool startup(class MainWindow* mainWindow);
 	void shutdown();
 	void update(float deltaSeconds);
@@ -102,7 +103,7 @@ protected:
 	void registerSystem(MikanObjectSystemPtr system);
 
 private:
-	class IEditorWindow* m_ownerWindow = nullptr;
+	class IEditorWindow* m_ownerWindow= nullptr;
 	std::vector<MikanObjectSystemPtr> m_systems;
 	std::map<std::string, int> m_systemNameToIndexMap;
 	MikanPropertyDatabasePtr m_propertyDatabase;

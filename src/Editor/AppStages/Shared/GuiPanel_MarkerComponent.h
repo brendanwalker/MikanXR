@@ -10,7 +10,10 @@
 class GuiPanel_MarkerComponent : public GuiPanel_MikanComponent
 {
 public:
-	GuiPanel_MarkerComponent(AppStage* ownerAppStage) : GuiPanel_MikanComponent(ownerAppStage) {}
+	GuiPanel_MarkerComponent(AppStage* ownerAppStage)
+		: GuiPanel_MikanComponent(ownerAppStage)
+	{
+	}
 
 	virtual bool init() override;
 	virtual bool setComponent(MikanComponentPtr component) override;

@@ -8,11 +8,11 @@
 
 namespace Serialization
 {
-	class SERIALIZATION_API TypeRegistry
-	{
-	public:
-		static void buildFromRfkDatabase();
-		static rfk::Struct const* getStructByName(const std::string& typeName);
-	};
-}
+class SERIALIZATION_API TypeRegistry
+{
+public:
+	static void buildFromRfkDatabase();
+	static rfk::Struct const* getStructByName(const std::string& typeName);
+};
+} // namespace Serialization
 #endif // SERIALIZATION_REFLECTION_ENABLED

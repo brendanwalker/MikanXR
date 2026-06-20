@@ -4,11 +4,11 @@
 #include <map>
 #include <vector>
 
-template<typename t_value_type>
+template <typename t_value_type>
 class NamedValueTable
 {
 public:
-	using NamedValueMap = std::map<std::string, t_value_type>;
+	using NamedValueMap= std::map<std::string, t_value_type>;
 
 	int getNumEntries() const
 	{
@@ -24,7 +24,7 @@ public:
 	}
 	bool tryGetValue(const std::string& key, t_value_type& outValue) const
 	{
-		const auto& it = dataValueMap.find(key);
+		const auto& it= dataValueMap.find(key);
 		if (it != dataValueMap.end())
 		{
 			outValue= it->second;
@@ -37,13 +37,14 @@ public:
 	}
 	t_value_type getValueOrDefault(const std::string& key, t_value_type defaultValue) const
 	{
-		const auto& it = dataValueMap.find(key);
+		const auto& it= dataValueMap.find(key);
 		return (it != dataValueMap.end()) ? it->second : defaultValue;
 	}
 	void removeValue(const std::string& key)
 	{
-		const auto& it = dataValueMap.find(key);
-		if (it != dataValueMap.end()) dataValueMap.erase(it);
+		const auto& it= dataValueMap.find(key);
+		if (it != dataValueMap.end())
+			dataValueMap.erase(it);
 	}
 	const NamedValueMap& getMap() const
 	{
@@ -53,7 +54,7 @@ public:
 	{
 		std::vector<std::string> names;
 
-		for (auto it = dataValueMap.begin(); it != dataValueMap.end(); it++)
+		for (auto it= dataValueMap.begin(); it != dataValueMap.end(); it++)
 		{
 			names.push_back(it->first);
 		}

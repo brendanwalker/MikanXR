@@ -12,7 +12,10 @@
 class GuiPanel_ProjectSources : public GuiPanel
 {
 public:
-	GuiPanel_ProjectSources(AppStage* ownerAppStage) : GuiPanel(ownerAppStage) {}
+	GuiPanel_ProjectSources(AppStage* ownerAppStage)
+		: GuiPanel(ownerAppStage)
+	{
+	}
 
 	bool init(class ProjectGuiPanelContext* context);
 	virtual void onGui() override;
@@ -35,12 +38,12 @@ private:
 	BoxShapeComponentPtr getSelectedBoxShape() const;
 	ModelShapeComponentPtr getSelectedModelShape() const;
 
-	class ProjectGuiPanelContext* m_context = nullptr;
+	class ProjectGuiPanelContext* m_context= nullptr;
 	ProjectManagerWeakPtr m_projectManager;
 
-	int m_selectedVideoSourceId = INVALID_MIKAN_ID;
-	int m_selectedTextureSourceId = INVALID_MIKAN_ID;
-	int m_selectedShapeId = INVALID_MIKAN_ID;
+	int m_selectedVideoSourceId= INVALID_MIKAN_ID;
+	int m_selectedTextureSourceId= INVALID_MIKAN_ID;
+	int m_selectedShapeId= INVALID_MIKAN_ID;
 
 	MkGuiStyleConstPtr m_defaultGuiStyle;
 	std::unique_ptr<GuiDataSource_ComboBox> m_videoSourceDataSource;

@@ -20,59 +20,71 @@ enum ENUM() SerializationTestEnum
 	SerializationTestEnum_Value3 ENUMVALUE_STRING("Value3"),
 };
 
-struct STRUCT(Serialization::CodeGenModule("UnitTestTypes")) SerializationPointStruct 
+struct STRUCT(Serialization::CodeGenModule("UnitTestTypes")) SerializationPointStruct
 	: public Serialization::PolymorphicStruct
 {
-	virtual ~SerializationPointStruct() = default;
+	virtual ~SerializationPointStruct()= default;
 
-	#ifndef KODGEN_PARSING
+#ifndef KODGEN_PARSING
 	SerializationPointStruct_GENERATED
-	#endif
+#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("UnitTestTypes")) SerializationPoint2dStruct 
+struct STRUCT(Serialization::CodeGenModule("UnitTestTypes")) SerializationPoint2dStruct
 	: public SerializationPointStruct
 {
-	SerializationPoint2dStruct() : x_field{0.0f}, y_field{0.0f} {}
-	SerializationPoint2dStruct(float x, float y) : x_field{x}, y_field{y} {}
-	virtual ~SerializationPoint2dStruct() = default;
-	
-	FIELD()
-	float x_field;
+	SerializationPoint2dStruct()
+		: x_field{0.0f}
+		, y_field{0.0f}
+	{
+	}
+	SerializationPoint2dStruct(float x, float y)
+		: x_field{x}
+		, y_field{y}
+	{
+	}
+	virtual ~SerializationPoint2dStruct()= default;
 
-	FIELD()
-	float y_field;
+	FIELD() float x_field;
 
-	#ifndef KODGEN_PARSING
+	FIELD() float y_field;
+
+#ifndef KODGEN_PARSING
 	SerializationPoint2dStruct_GENERATED
-	#endif
+#endif
 };
 
-struct STRUCT(Serialization::CodeGenModule("UnitTestTypes")) SerializationPoint3dStruct 
+struct STRUCT(Serialization::CodeGenModule("UnitTestTypes")) SerializationPoint3dStruct
 	: public SerializationPointStruct
 {
-	SerializationPoint3dStruct() : x_field{0.0f}, y_field{0.0f}, z_field{0.0f} {}
-	SerializationPoint3dStruct(float x, float y, float z) : x_field{x}, y_field{y}, z_field{z} {}
-	virtual ~SerializationPoint3dStruct() = default;
+	SerializationPoint3dStruct()
+		: x_field{0.0f}
+		, y_field{0.0f}
+		, z_field{0.0f}
+	{
+	}
+	SerializationPoint3dStruct(float x, float y, float z)
+		: x_field{x}
+		, y_field{y}
+		, z_field{z}
+	{
+	}
+	virtual ~SerializationPoint3dStruct()= default;
 
-	FIELD()
-	float x_field;
+	FIELD() float x_field;
 
-	FIELD()
-	float y_field;
+	FIELD() float y_field;
 
-	FIELD()
-	float z_field;
+	FIELD() float z_field;
 
-	#ifndef KODGEN_PARSING
+#ifndef KODGEN_PARSING
 	SerializationPoint3dStruct_GENERATED
-	#endif
+#endif
 };
 
 struct STRUCT(Serialization::CodeGenModule("UnitTestTypes")) SerializationTestStruct
 {
-	FIELD()
-	bool bool_field;
+	FIELD() bool bool_field;
 
 	FIELD()
 	int8_t byte_field;
@@ -95,11 +107,9 @@ struct STRUCT(Serialization::CodeGenModule("UnitTestTypes")) SerializationTestSt
 	FIELD()
 	int64_t long_field;
 
-	FIELD()
-	float float_field;
+	FIELD() float float_field;
 
-	FIELD()
-	double double_field;
+	FIELD() double double_field;
 
 	FIELD()
 	Serialization::String string_field;
@@ -118,29 +128,36 @@ struct STRUCT(Serialization::CodeGenModule("UnitTestTypes")) SerializationTestSt
 	Serialization::PolymorphicObjectPtr null_ptr_field;
 
 	FIELD()
-	Serialization::List<bool> bool_array;
+	Serialization::List<bool>
+		bool_array;
 
 	FIELD()
-	Serialization::List<int> int_array;
+	Serialization::List<int>
+		int_array;
 
 	FIELD()
-	Serialization::List<float> float_array;
+	Serialization::List<float>
+		float_array;
 
 	FIELD()
-	Serialization::List<Serialization::String> string_array;
+	Serialization::List<Serialization::String>
+		string_array;
 
 	FIELD()
-	Serialization::List<SerializationPoint2dStruct> point2d_array;
+	Serialization::List<SerializationPoint2dStruct>
+		point2d_array;
 
 	FIELD()
-	Serialization::Map<int, SerializationPoint2dStruct> int_point_map;
+	Serialization::Map<int, SerializationPoint2dStruct>
+		int_point_map;
 
 	FIELD()
-	Serialization::Map<Serialization::String, SerializationPoint2dStruct> string_point_map;
+	Serialization::Map<Serialization::String, SerializationPoint2dStruct>
+		string_point_map;
 
-	#ifndef KODGEN_PARSING
+#ifndef KODGEN_PARSING
 	SerializationTestStruct_GENERATED
-	#endif
+#endif
 };
 
 #ifndef KODGEN_PARSING

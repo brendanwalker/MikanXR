@@ -44,7 +44,7 @@
 #include "tinyfiledialogs.h"
 
 // -- ModelStencilConfig -----
-const std::string ModelStencilDefinition::k_modelStencilObjPathPropertyId = "model_path";
+const std::string ModelStencilDefinition::k_modelStencilObjPathPropertyId= "model_path";
 
 ModelStencilDefinition::ModelStencilDefinition()
 	: StencilComponentDefinition()
@@ -60,11 +60,11 @@ ModelStencilDefinition::ModelStencilDefinition(MikanStencilID stencilId)
 
 configuru::Config ModelStencilDefinition::writeToJSON()
 {
-	configuru::Config pt = StencilComponentDefinition::writeToJSON();
+	configuru::Config pt= StencilComponentDefinition::writeToJSON();
 
 	if (m_modelAssetRefConfig)
 	{
-		pt[k_modelStencilObjPathPropertyId] = m_modelAssetRefConfig->writeToJSON();
+		pt[k_modelStencilObjPathPropertyId]= m_modelAssetRefConfig->writeToJSON();
 	}
 
 	return pt;
@@ -87,7 +87,7 @@ bool ModelStencilDefinition::readFromInitParams(
 	if (!StencilComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
-	const auto* componentValues = initParams.getTypedPointer<MikanModelStencilComponentValues>();
+	const auto* componentValues= initParams.getTypedPointer<MikanModelStencilComponentValues>();
 	if (componentValues)
 	{
 		setModelPath(std::filesystem::path(componentValues->model_path.getValue()));
@@ -110,7 +110,7 @@ void ModelStencilDefinition::setModelPath(const std::filesystem::path& path, boo
 {
 	if (bForceDirty || path.string() != m_modelAssetRefConfig->assetPath)
 	{
-		m_modelAssetRefConfig->assetPath = path.string();
+		m_modelAssetRefConfig->assetPath= path.string();
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_modelStencilObjPathPropertyId));
 	}
 }
@@ -132,34 +132,34 @@ void ModelStencilComponent::init()
 {
 	StencilComponent::init();
 
-	ModelStencilDefinitionPtr modelStencilDefinition = getModelStencilDefinition();
+	ModelStencilDefinitionPtr modelStencilDefinition= getModelStencilDefinition();
 	if (modelStencilDefinition)
 	{
 		// If the component definition has a model path, copy it to the model asset ref
-		const std::filesystem::path modelPath = modelStencilDefinition->getModelPath();
+		const std::filesystem::path modelPath= modelStencilDefinition->getModelPath();
 		if (!modelPath.empty())
 		{
 			m_modelAssetRef->setAssetPath(modelPath);
 		}
 
 		// Listen for definition changes
-		m_definition->OnPropertyChanged += MakeDelegate(this, &ModelStencilComponent::onStencilDefinitionMarkedDirty);
+		m_definition->OnPropertyChanged+= MakeDelegate(this, &ModelStencilComponent::onStencilDefinitionMarkedDirty);
 	}
 
 	// Create a selection component so that we can selection the mesh collision geometry
-	SelectionComponentPtr selectionComponentPtr = getOwnerObject()->getComponentOfType<SelectionComponent>();
+	SelectionComponentPtr selectionComponentPtr= getOwnerObject()->getComponentOfType<SelectionComponent>();
 	if (selectionComponentPtr)
 	{
 		// Bind selection events
-		selectionComponentPtr->OnInteractionRayOverlapEnter += MakeDelegate(this, &ModelStencilComponent::onInteractionRayOverlapEnter);
-		selectionComponentPtr->OnInteractionRayOverlapExit += MakeDelegate(this, &ModelStencilComponent::onInteractionRayOverlapExit);
-		selectionComponentPtr->OnInteractionSelected += MakeDelegate(this, &ModelStencilComponent::onInteractionSelected);
-		selectionComponentPtr->OnInteractionUnselected += MakeDelegate(this, &ModelStencilComponent::onInteractionUnselected);
-		selectionComponentPtr->OnTransformGizmoBound += MakeDelegate(this, &ModelStencilComponent::onTransformGizmoBound);
-		selectionComponentPtr->OnTransformGizmoUnbound += MakeDelegate(this, &ModelStencilComponent::onTransformGizmoUnbound);
+		selectionComponentPtr->OnInteractionRayOverlapEnter+= MakeDelegate(this, &ModelStencilComponent::onInteractionRayOverlapEnter);
+		selectionComponentPtr->OnInteractionRayOverlapExit+= MakeDelegate(this, &ModelStencilComponent::onInteractionRayOverlapExit);
+		selectionComponentPtr->OnInteractionSelected+= MakeDelegate(this, &ModelStencilComponent::onInteractionSelected);
+		selectionComponentPtr->OnInteractionUnselected+= MakeDelegate(this, &ModelStencilComponent::onInteractionUnselected);
+		selectionComponentPtr->OnTransformGizmoBound+= MakeDelegate(this, &ModelStencilComponent::onTransformGizmoBound);
+		selectionComponentPtr->OnTransformGizmoUnbound+= MakeDelegate(this, &ModelStencilComponent::onTransformGizmoUnbound);
 
 		// Remember the selection component
-		m_selectionComponentWeakPtr = selectionComponentPtr;
+		m_selectionComponentWeakPtr= selectionComponentPtr;
 	}
 
 	// Push our world transform to all child scene components
@@ -167,18 +167,18 @@ void ModelStencilComponent::init()
 }
 
 void ModelStencilComponent::customRender(
-	IMkGraphicsContext* graphicsContext, 
+	IMkGraphicsContext* graphicsContext,
 	MikanCameraPtr viewportCamera) const
 {
 	ModelStencilDefinitionPtr modelStencilDefinition= getModelStencilDefinition();
-	auto editorObjectSystem = getObjectSystemOfType<EditorObjectSystem>();
+	auto editorObjectSystem= getObjectSystemOfType<EditorObjectSystem>();
 
 	if (!modelStencilDefinition->getIsDisabled())
 	{
-		TextStyle style = getDefaultTextStyle();
+		TextStyle style= getDefaultTextStyle();
 
-		const glm::mat4 xform = getWorldTransform();
-		const glm::vec3 position = glm::vec3(xform[3]);
+		const glm::mat4 xform= getWorldTransform();
+		const glm::vec3 position= glm::vec3(xform[3]);
 
 		if (!m_bIsTransformGizmoBound)
 		{
@@ -192,20 +192,20 @@ void ModelStencilComponent::customRender(
 
 void ModelStencilComponent::dispose()
 {
-	getModelStencilDefinition()->OnPropertyChanged -=
+	getModelStencilDefinition()->OnPropertyChanged-=
 		MakeDelegate(this, &ModelStencilComponent::onStencilDefinitionMarkedDirty);
 
-	SelectionComponentPtr selectionComponentPtr = m_selectionComponentWeakPtr.lock();
+	SelectionComponentPtr selectionComponentPtr= m_selectionComponentWeakPtr.lock();
 	if (selectionComponentPtr)
 	{
-		selectionComponentPtr->OnInteractionRayOverlapEnter -= MakeDelegate(this, &ModelStencilComponent::onInteractionRayOverlapEnter);
-		selectionComponentPtr->OnInteractionRayOverlapExit -= MakeDelegate(this, &ModelStencilComponent::onInteractionRayOverlapExit);
-		selectionComponentPtr->OnInteractionSelected -= MakeDelegate(this, &ModelStencilComponent::onInteractionSelected);
-		selectionComponentPtr->OnInteractionUnselected -= MakeDelegate(this, &ModelStencilComponent::onInteractionUnselected);
-		selectionComponentPtr->OnTransformGizmoBound -= MakeDelegate(this, &ModelStencilComponent::onTransformGizmoBound);
-		selectionComponentPtr->OnTransformGizmoUnbound -= MakeDelegate(this, &ModelStencilComponent::onTransformGizmoUnbound);
+		selectionComponentPtr->OnInteractionRayOverlapEnter-= MakeDelegate(this, &ModelStencilComponent::onInteractionRayOverlapEnter);
+		selectionComponentPtr->OnInteractionRayOverlapExit-= MakeDelegate(this, &ModelStencilComponent::onInteractionRayOverlapExit);
+		selectionComponentPtr->OnInteractionSelected-= MakeDelegate(this, &ModelStencilComponent::onInteractionSelected);
+		selectionComponentPtr->OnInteractionUnselected-= MakeDelegate(this, &ModelStencilComponent::onInteractionUnselected);
+		selectionComponentPtr->OnTransformGizmoBound-= MakeDelegate(this, &ModelStencilComponent::onTransformGizmoBound);
+		selectionComponentPtr->OnTransformGizmoUnbound-= MakeDelegate(this, &ModelStencilComponent::onTransformGizmoUnbound);
 
-		m_selectionComponentWeakPtr = selectionComponentPtr;
+		m_selectionComponentWeakPtr= selectionComponentPtr;
 	}
 
 	StencilComponent::dispose();
@@ -240,7 +240,7 @@ void ModelStencilComponent::updateWireframeMeshColor()
 		newColor= Colors::DarkGray;
 	}
 
-	SelectionComponentPtr selectionComponentPtr = m_selectionComponentWeakPtr.lock();
+	SelectionComponentPtr selectionComponentPtr= m_selectionComponentWeakPtr.lock();
 	if (selectionComponentPtr)
 	{
 		for (IMkStaticMeshInstancePtr meshPtr : m_wireframeMeshes)
@@ -253,10 +253,10 @@ void ModelStencilComponent::updateWireframeMeshColor()
 }
 
 void ModelStencilComponent::onStencilDefinitionMarkedDirty(
-	CommonConfigPtr configPtr, 
+	CommonConfigPtr configPtr,
 	const ConfigPropertyChangeSet& changedPropertySet)
 {
-	ModelStencilDefinitionPtr modelStencilConfig = std::dynamic_pointer_cast<ModelStencilDefinition>(configPtr);
+	ModelStencilDefinitionPtr modelStencilConfig= std::dynamic_pointer_cast<ModelStencilDefinition>(configPtr);
 
 	if (modelStencilConfig != nullptr)
 	{
@@ -287,7 +287,7 @@ void ModelStencilComponent::disposeMeshComponents()
 	// Clean up any previously created mesh components
 	while (m_meshComponents.size() > 0)
 	{
-		TransformComponentPtr componentPtr = m_meshComponents[m_meshComponents.size() - 1];
+		TransformComponentPtr componentPtr= m_meshComponents[m_meshComponents.size() - 1];
 		componentPtr->dispose();
 
 		m_meshComponents.pop_back();
@@ -313,11 +313,11 @@ void ModelStencilComponent::rebuildMeshComponents()
 	disposeMeshComponents();
 
 	// Fetch the stencil model resource
-	IEditorWindow* ownerWindow = getOwnerEditorWindow();
+	IEditorWindow* ownerWindow= getOwnerEditorWindow();
 	MikanModelResourceManager* modelResourceManager= ownerWindow->getModelResourceManager();
 	MkMaterialConstPtr stencilMaterial=
 		ownerWindow->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED);
-	MikanRenderModelResourcePtr modelResourcePtr= 
+	MikanRenderModelResourcePtr modelResourcePtr=
 		modelResourceManager->fetchRenderModel(
 			modelStencilDefinition->getModelPath(), stencilMaterial);
 
@@ -325,20 +325,20 @@ void ModelStencilComponent::rebuildMeshComponents()
 	if (modelResourcePtr)
 	{
 		// Add static tri meshes
-		for (int meshIndex = 0; meshIndex < modelResourcePtr->getTriangulatedMeshCount(); ++meshIndex)
+		for (int meshIndex= 0; meshIndex < modelResourcePtr->getTriangulatedMeshCount(); ++meshIndex)
 		{
 			// Fetch the mesh and material resources
-			IMkTriangulatedMeshPtr triMeshPtr = modelResourcePtr->getTriangulatedMesh(meshIndex);
+			IMkTriangulatedMeshPtr triMeshPtr= modelResourcePtr->getTriangulatedMesh(meshIndex);
 
 			// Create a new static mesh instance from the mesh resources
-			IMkStaticMeshInstancePtr triMeshInstancePtr =
+			IMkStaticMeshInstancePtr triMeshInstancePtr=
 				createMkStaticMeshInstance(
 					triMeshPtr->getName(),
 					triMeshPtr);
 			triMeshInstancePtr->setVisible(true);
 
 			// Create a static mesh component to hold the mesh instance
-			StaticMeshComponentPtr meshComponentPtr = stencilObject->addComponent<StaticMeshComponent>();
+			StaticMeshComponentPtr meshComponentPtr= stencilObject->addComponent<StaticMeshComponent>();
 			meshComponentPtr->setName(triMeshPtr->getName());
 			meshComponentPtr->setStaticMesh(triMeshInstancePtr);
 			meshComponentPtr->attachToComponent(stencilComponentPtr);
@@ -346,7 +346,7 @@ void ModelStencilComponent::rebuildMeshComponents()
 			m_triMeshComponents.push_back(meshComponentPtr);
 
 			// Add a mesh collider component that generates collision from the mesh data
-			MeshColliderComponentPtr colliderPtr = stencilObject->addComponent<MeshColliderComponent>();
+			MeshColliderComponentPtr colliderPtr= stencilObject->addComponent<MeshColliderComponent>();
 			colliderPtr->setName(triMeshPtr->getName());
 			colliderPtr->setStaticMeshComponent(meshComponentPtr);
 			colliderPtr->attachToComponent(stencilComponentPtr);
@@ -355,20 +355,20 @@ void ModelStencilComponent::rebuildMeshComponents()
 		}
 
 		// Add static wireframe meshes
-		for (int meshIndex = 0; meshIndex < modelResourcePtr->getWireframeMeshCount(); ++meshIndex)
+		for (int meshIndex= 0; meshIndex < modelResourcePtr->getWireframeMeshCount(); ++meshIndex)
 		{
 			// Fetch the mesh and material resources
-			IMkWireframeMeshPtr wireframeMeshPtr = modelResourcePtr->getWireframeMesh(meshIndex);
+			IMkWireframeMeshPtr wireframeMeshPtr= modelResourcePtr->getWireframeMesh(meshIndex);
 
 			// Create a new (hidden) static mesh instance from the mesh resources
-			IMkStaticMeshInstancePtr wireframeMeshInstancePtr =
+			IMkStaticMeshInstancePtr wireframeMeshInstancePtr=
 				createMkStaticMeshInstance(
 					"wireframe",
 					wireframeMeshPtr);
 			m_wireframeMeshes.push_back(wireframeMeshInstancePtr);
 
 			// Create a static mesh component to hold the mesh instance
-			StaticMeshComponentPtr meshComponentPtr = stencilObject->addComponent<StaticMeshComponent>();
+			StaticMeshComponentPtr meshComponentPtr= stencilObject->addComponent<StaticMeshComponent>();
 			meshComponentPtr->setName(wireframeMeshPtr->getName());
 			meshComponentPtr->setStaticMesh(wireframeMeshInstancePtr);
 			meshComponentPtr->attachToComponent(stencilComponentPtr);
@@ -418,19 +418,19 @@ void ModelStencilComponent::onInteractionRayOverlapEnter(const ColliderRaycastHi
 
 void ModelStencilComponent::onInteractionRayOverlapExit(const ColliderRaycastHitResult& hitResult)
 {
-	m_bIsHovered = false;
+	m_bIsHovered= false;
 	updateWireframeMeshColor();
 }
 
 void ModelStencilComponent::onInteractionSelected()
 {
-	m_bIsSelected = true;
+	m_bIsSelected= true;
 	updateWireframeMeshColor();
 }
 
 void ModelStencilComponent::onInteractionUnselected()
 {
-	m_bIsSelected = false;
+	m_bIsSelected= false;
 	updateWireframeMeshColor();
 }
 
@@ -442,7 +442,7 @@ void ModelStencilComponent::onTransformGizmoBound()
 
 void ModelStencilComponent::onTransformGizmoUnbound()
 {
-	m_bIsTransformGizmoBound = false;
+	m_bIsTransformGizmoBound= false;
 	updateWireframeMeshColor();
 }
 
@@ -454,8 +454,8 @@ void ModelStencilComponent::getPropertyDescriptors(std::vector<PropertyDescripto
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			ModelStencilDefinition::k_modelStencilObjPathPropertyId, MikanVariantType::STRING)
-		->addMetaData(std::make_shared<AssetReferenceFactoryMetaData>(
-			AssetReferenceFactory::createFactory<ModelAssetReferenceFactory>())));
+			->addMetaData(std::make_shared<AssetReferenceFactoryMetaData>(
+				AssetReferenceFactory::createFactory<ModelAssetReferenceFactory>())));
 }
 
 bool ModelStencilComponent::getPropertyValue(
@@ -464,9 +464,9 @@ bool ModelStencilComponent::getPropertyValue(
 {
 	if (propertyName == ModelStencilDefinition::k_modelStencilObjPathPropertyId)
 	{
-		std::string filepath = getModelStencilDefinition()->getModelPath().string();
+		std::string filepath= getModelStencilDefinition()->getModelPath().string();
 
-		outValue = filepath;
+		outValue= filepath;
 		return true;
 	}
 
@@ -479,7 +479,7 @@ bool ModelStencilComponent::setPropertyValue(
 {
 	if (propertyName == ModelStencilDefinition::k_modelStencilObjPathPropertyId)
 	{
-		const std::string fileString = inValue.getStringValue();
+		const std::string fileString= inValue.getStringValue();
 		const std::filesystem::path filePath(fileString);
 
 		setModelPath(filePath);
@@ -490,7 +490,7 @@ bool ModelStencilComponent::setPropertyValue(
 }
 
 // -- IFunctionInterface ----
-const std::string ModelStencilComponent::k_alignStencilFunctionId = "align_stencil";
+const std::string ModelStencilComponent::k_alignStencilFunctionId= "align_stencil";
 
 void ModelStencilComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
@@ -517,9 +517,10 @@ void ModelStencilComponent::alignStencil()
 
 	ModalDialog_SelectCamera::selectCamera(
 		ownerAppStage,
-		[this](MikanCameraID cameraId) {
+		[this](MikanCameraID cameraId)
+		{
 			// Show Anchor Triangulation Tool
-			auto* stencilAligner = getOwnerEditorWindow()->pushAppStageOfType<AppStage_StencilAlignment>();
+			auto* stencilAligner= getOwnerEditorWindow()->pushAppStageOfType<AppStage_StencilAlignment>();
 			if (stencilAligner)
 			{
 				CameraComponentPtr cameraComponent=
@@ -537,12 +538,14 @@ void ModelStencilComponent::bindLuaFunctions(lua_State* L)
 	luabridge::getGlobalNamespace(L)
 		.deriveClass<ModelStencilComponent, StencilComponent>(ModelStencilComponent::k_componentClassName.c_str())
 		.addProperty("modelPath",
-			[](ModelStencilComponent* component) -> std::string {
-				return component->getModelStencilDefinition()->getModelPath().string();
-			})
+					 [](ModelStencilComponent* component) -> std::string
+					 {
+						 return component->getModelStencilDefinition()->getModelPath().string();
+					 })
 		.addFunction("alignStencil",
-			[](ModelStencilComponent* c) {
-				c->alignStencil();
-			})
+					 [](ModelStencilComponent* c)
+					 {
+						 c->alignStencil();
+					 })
 		.endClass();
 }

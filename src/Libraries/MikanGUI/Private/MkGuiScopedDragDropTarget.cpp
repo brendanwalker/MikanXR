@@ -4,7 +4,7 @@
 
 MkGuiScopedDragDropTarget::MkGuiScopedDragDropTarget()
 {
-	m_active = ImGui::BeginDragDropTarget();
+	m_active= ImGui::BeginDragDropTarget();
 }
 
 MkGuiScopedDragDropTarget::~MkGuiScopedDragDropTarget()

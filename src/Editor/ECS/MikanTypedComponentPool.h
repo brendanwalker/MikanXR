@@ -11,18 +11,18 @@
 
 // Template class for managing a runtime pool of components
 // Used by MikanObjectSystem subclasses to manage component instances
-template<class t_component_class, class t_definition_class, typename t_id_type>
+template <class t_component_class, class t_definition_class, typename t_id_type>
 class MikanTypedComponentPool
 {
 public:
-	using ComponentPtr = std::shared_ptr<t_component_class>;
-	using ComponentConstPtr = std::shared_ptr<const t_component_class>;
-	using ComponentWeakPtr = std::weak_ptr<t_component_class>;
-	using ComponentMap = std::map<t_id_type, ComponentWeakPtr>;
-	using ComponentDefinitionPtr = std::shared_ptr<t_definition_class>;
-	using DefinitionConstPtr = std::shared_ptr<const t_definition_class>;
-	using PoolDefinitionPtr = std::shared_ptr<MikanTypedComponentPoolDefinition<t_definition_class, t_id_type>>;
-	using FactoryFunction = std::function<ComponentPtr(ComponentDefinitionPtr)>;
+	using ComponentPtr= std::shared_ptr<t_component_class>;
+	using ComponentConstPtr= std::shared_ptr<const t_component_class>;
+	using ComponentWeakPtr= std::weak_ptr<t_component_class>;
+	using ComponentMap= std::map<t_id_type, ComponentWeakPtr>;
+	using ComponentDefinitionPtr= std::shared_ptr<t_definition_class>;
+	using DefinitionConstPtr= std::shared_ptr<const t_definition_class>;
+	using PoolDefinitionPtr= std::shared_ptr<MikanTypedComponentPoolDefinition<t_definition_class, t_id_type>>;
+	using FactoryFunction= std::function<ComponentPtr(ComponentDefinitionPtr)>;
 
 	MikanTypedComponentPool(
 		MikanObjectSystem* ownerSystem,
@@ -35,7 +35,7 @@ public:
 	// Lookup operations
 	ComponentPtr getById(t_id_type id) const
 	{
-		auto iter = m_components.find(id);
+		auto iter= m_components.find(id);
 		if (iter != m_components.end())
 		{
 			return iter->second.lock();
@@ -47,18 +47,20 @@ public:
 	ComponentPtr getByName(const std::string& name) const
 	{
 		return findByPredicate(
-			[&name](ComponentConstPtr componentPtr) {
+			[&name](ComponentConstPtr componentPtr)
+			{
 				return componentPtr->getName() == name;
 			});
 	}
 
-	using PredFunction = std::function<bool(ComponentConstPtr)>;
+	using PredFunction= std::function<bool(ComponentConstPtr)>;
 	ComponentPtr findByPredicate(PredFunction pred) const
 	{
-		auto it = std::find_if(
+		auto it= std::find_if(
 			m_components.begin(), m_components.end(),
-			[this, &pred](const auto& kvpair) {
-				ComponentPtr componentPtr = kvpair.second.lock();
+			[this, &pred](const auto& kvpair)
+			{
+				ComponentPtr componentPtr= kvpair.second.lock();
 				return componentPtr && pred(componentPtr);
 			});
 		if (it != m_components.end())
@@ -82,12 +84,12 @@ public:
 	// Lifecycle operations
 	ComponentPtr create(ComponentDefinitionPtr definition)
 	{
-		ComponentPtr component = m_factory(definition);
+		ComponentPtr component= m_factory(definition);
 		if (component)
 		{
-			const t_id_type id = definition->getComponentId();
+			const t_id_type id= definition->getComponentId();
 
-			m_components.insert({ id, component});
+			m_components.insert({id, component});
 		}
 
 		return component;
@@ -95,7 +97,7 @@ public:
 
 	bool dispose(t_id_type id)
 	{
-		auto it = m_components.find(id);
+		auto it= m_components.find(id);
 		if (it != m_components.end())
 		{
 			// Remove from component map
@@ -130,8 +132,8 @@ public:
 	{
 		for (auto definitionPtr : definitions)
 		{
-			t_id_type id = definitionPtr->getComponentId();
-			ComponentPtr component = m_factory(definitionPtr);
+			t_id_type id= definitionPtr->getComponentId();
+			ComponentPtr component= m_factory(definitionPtr);
 			if (component)
 			{
 				m_components.insert({id, component});

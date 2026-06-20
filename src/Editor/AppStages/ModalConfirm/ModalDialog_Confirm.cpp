@@ -19,7 +19,7 @@ bool ModalDialog_Confirm::confirmQuestion(
 	ConfirmCallback acceptCallback,
 	ConfirmCallback rejectCallback)
 {
-	ModalDialog_Confirm* confirmModal = appStage->pushModalDialog<ModalDialog_Confirm>();
+	ModalDialog_Confirm* confirmModal= appStage->pushModalDialog<ModalDialog_Confirm>();
 
 	if (!confirmModal->init(title, question, acceptCallback, rejectCallback))
 	{
@@ -36,20 +36,20 @@ bool ModalDialog_Confirm::init(
 	ConfirmCallback acceptCallback,
 	ConfirmCallback rejectCallback)
 {
-	m_title = title;
-	m_question = question;
-	m_acceptCallback = acceptCallback;
-	m_rejectCallback = rejectCallback;
+	m_title= title;
+	m_question= question;
+	m_acceptCallback= acceptCallback;
+	m_rejectCallback= rejectCallback;
 	return true;
 }
 
 void ModalDialog_Confirm::onGui()
 {
-	static const char* k_popupId = "##ConfirmModal";
+	static const char* k_popupId= "##ConfirmModal";
 	if (m_bNeedsOpen)
 	{
 		ImGui::OpenPopup(k_popupId);
-		m_bNeedsOpen = false;
+		m_bNeedsOpen= false;
 	}
 
 	ImGui::SetNextWindowPos(
@@ -61,21 +61,31 @@ void ModalDialog_Confirm::onGui()
 		ImGui::TextUnformatted(m_question.c_str());
 		ImGui::Spacing();
 
-		bool accepted = false, rejected = false;
-		if (ImGui::Button("Yes")) { ImGui::CloseCurrentPopup(); accepted = true; }
+		bool accepted= false, rejected= false;
+		if (ImGui::Button("Yes"))
+		{
+			ImGui::CloseCurrentPopup();
+			accepted= true;
+		}
 		ImGui::SameLine();
-		if (ImGui::Button("No"))  { ImGui::CloseCurrentPopup(); rejected = true; }
+		if (ImGui::Button("No"))
+		{
+			ImGui::CloseCurrentPopup();
+			rejected= true;
+		}
 		ImGui::EndPopup();
 
-		if (accepted) onAcceptQuestion();
-		else if (rejected) onRejectQuestion();
+		if (accepted)
+			onAcceptQuestion();
+		else if (rejected)
+			onRejectQuestion();
 	}
 }
 
 void ModalDialog_Confirm::onAcceptQuestion()
 {
-	ConfirmCallback callback = std::move(m_acceptCallback);
-	AppStage* ownerAppStage = m_ownerAppStage;
+	ConfirmCallback callback= std::move(m_acceptCallback);
+	AppStage* ownerAppStage= m_ownerAppStage;
 
 	assert(ownerAppStage->getCurrentModalDialog() == this);
 	ownerAppStage->popModalDialog(); // deletes 'this'
@@ -86,8 +96,8 @@ void ModalDialog_Confirm::onAcceptQuestion()
 
 void ModalDialog_Confirm::onRejectQuestion()
 {
-	ConfirmCallback callback = std::move(m_rejectCallback);
-	AppStage* ownerAppStage = m_ownerAppStage;
+	ConfirmCallback callback= std::move(m_rejectCallback);
+	AppStage* ownerAppStage= m_ownerAppStage;
 
 	assert(ownerAppStage->getCurrentModalDialog() == this);
 	ownerAppStage->popModalDialog(); // deletes 'this'

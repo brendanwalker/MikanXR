@@ -22,11 +22,11 @@
 // -- ShapeSelectNodeConfig -----
 configuru::Config ShapeSelectNodeConfig::writeToJSON()
 {
-	configuru::Config pt = NodeConfig::writeToJSON();
+	configuru::Config pt= NodeConfig::writeToJSON();
 
-	pt["enable_quad_shapes"] = bEnableQuadShapes;
-	pt["enable_box_shapes"] = bEnableBoxShapes;
-	pt["enable_model_shapes"] = bEnableModelShapes;
+	pt["enable_quad_shapes"]= bEnableQuadShapes;
+	pt["enable_box_shapes"]= bEnableBoxShapes;
+	pt["enable_model_shapes"]= bEnableModelShapes;
 
 	return pt;
 }
@@ -35,9 +35,9 @@ void ShapeSelectNodeConfig::readFromJSON(const configuru::Config& pt)
 {
 	NodeConfig::readFromJSON(pt);
 
-	bEnableQuadShapes = pt.get_or<bool>("enable_quad_shapes", true);
-	bEnableBoxShapes = pt.get_or<bool>("enable_box_shapes", true);
-	bEnableModelShapes = pt.get_or<bool>("enable_model_shapes", true);
+	bEnableQuadShapes= pt.get_or<bool>("enable_quad_shapes", true);
+	bEnableBoxShapes= pt.get_or<bool>("enable_box_shapes", true);
+	bEnableModelShapes= pt.get_or<bool>("enable_model_shapes", true);
 }
 
 // -- ShapeSelectNode -----
@@ -45,11 +45,11 @@ bool ShapeSelectNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 {
 	if (Node::loadFromConfig(nodeConfig))
 	{
-		auto config = std::static_pointer_cast<const ShapeSelectNodeConfig>(nodeConfig);
+		auto config= std::static_pointer_cast<const ShapeSelectNodeConfig>(nodeConfig);
 
-		m_bEnableQuadShapes = config->bEnableQuadShapes;
-		m_bEnableBoxShapes = config->bEnableBoxShapes;
-		m_bEnableModelShapes = config->bEnableModelShapes;
+		m_bEnableQuadShapes= config->bEnableQuadShapes;
+		m_bEnableBoxShapes= config->bEnableBoxShapes;
+		m_bEnableModelShapes= config->bEnableModelShapes;
 
 		return true;
 	}
@@ -59,11 +59,11 @@ bool ShapeSelectNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 
 void ShapeSelectNode::saveToConfig(NodeConfigPtr nodeConfig) const
 {
-	auto config = std::static_pointer_cast<ShapeSelectNodeConfig>(nodeConfig);
+	auto config= std::static_pointer_cast<ShapeSelectNodeConfig>(nodeConfig);
 
-	config->bEnableQuadShapes = m_bEnableQuadShapes;
-	config->bEnableBoxShapes = m_bEnableBoxShapes;
-	config->bEnableModelShapes = m_bEnableModelShapes;
+	config->bEnableQuadShapes= m_bEnableQuadShapes;
+	config->bEnableBoxShapes= m_bEnableBoxShapes;
+	config->bEnableModelShapes= m_bEnableModelShapes;
 
 	Node::saveToConfig(nodeConfig);
 }
@@ -79,7 +79,7 @@ bool ShapeSelectNode::evaluateNode(NodeEvaluator& evaluator)
 
 		for (QuadShapeComponentPtr shape : quadList)
 		{
-			auto prop = std::make_shared<GraphShapeProperty>();
+			auto prop= std::make_shared<GraphShapeProperty>();
 			prop->setShapeComponent(shape);
 			gathered.push_back(prop);
 		}
@@ -92,7 +92,7 @@ bool ShapeSelectNode::evaluateNode(NodeEvaluator& evaluator)
 
 		for (BoxShapeComponentPtr shape : boxList)
 		{
-			auto prop = std::make_shared<GraphShapeProperty>();
+			auto prop= std::make_shared<GraphShapeProperty>();
 			prop->setShapeComponent(shape);
 			gathered.push_back(prop);
 		}
@@ -105,13 +105,13 @@ bool ShapeSelectNode::evaluateNode(NodeEvaluator& evaluator)
 
 		for (ModelShapeComponentPtr shape : modelList)
 		{
-			auto prop = std::make_shared<GraphShapeProperty>();
+			auto prop= std::make_shared<GraphShapeProperty>();
 			prop->setShapeComponent(shape);
 			gathered.push_back(prop);
 		}
 	}
 
-	auto outputPin = getFirstPinOfType<ArrayPin>(eNodePinDirection::OUTPUT);
+	auto outputPin= getFirstPinOfType<ArrayPin>(eNodePinDirection::OUTPUT);
 	if (outputPin)
 	{
 		outputPin->setArray(gathered);
@@ -122,7 +122,7 @@ bool ShapeSelectNode::evaluateNode(NodeEvaluator& evaluator)
 
 std::shared_ptr<MkNodesScopedColorStyle> ShapeSelectNode::editorRenderMakeNodeStyle(const NodeEditorState& editorState) const
 {
-	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_TitleBar, IM_COL32(80, 150, 130, 225))
 		.push(ImNodesCol_TitleBarHovered, IM_COL32(80, 150, 130, 225))
 		.push(ImNodesCol_TitleBarSelected, IM_COL32(80, 150, 130, 225));
@@ -131,7 +131,7 @@ std::shared_ptr<MkNodesScopedColorStyle> ShapeSelectNode::editorRenderMakeNodeSt
 
 void ShapeSelectNode::editorRenderNode(const NodeEditorState& editorState)
 {
-	auto nodeStyle = editorRenderMakeNodeStyle(editorState);
+	auto nodeStyle= editorRenderMakeNodeStyle(editorState);
 	MkNodesScopedNode scopedNode(m_id);
 
 	editorRenderTitle(editorState);
@@ -162,9 +162,9 @@ void ShapeSelectNode::editorRenderPropertySheet(const NodeEditorState& editorSta
 // -- ShapeSelectNodeFactory -----
 NodePtr ShapeSelectNodeFactory::createNode(const NodeEditorState& editorState) const
 {
-	auto node = std::static_pointer_cast<ShapeSelectNode>(NodeFactory::createNode(editorState));
+	auto node= std::static_pointer_cast<ShapeSelectNode>(NodeFactory::createNode(editorState));
 
-	ArrayPinPtr outPin = node->addPin<ArrayPin>("shapes", eNodePinDirection::OUTPUT);
+	ArrayPinPtr outPin= node->addPin<ArrayPin>("shapes", eNodePinDirection::OUTPUT);
 	outPin->setElementClassName(GraphShapeProperty::k_propertyClassName);
 
 	autoConnectOutputPin(editorState, outPin);

@@ -13,7 +13,7 @@ class ColliderComponent : public TransformComponent
 public:
 	ColliderComponent(MikanObjectWeakPtr owner);
 
-	inline static const std::string k_componentClassName = "ColliderComponent";
+	inline static const std::string k_componentClassName= "ColliderComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	inline bool getEnabled() const { return m_bEnabled; }
@@ -22,7 +22,7 @@ public:
 	inline int getPriority() const { return m_priority; }
 	void setPriority(int priority) { m_priority= priority; }
 
-	virtual bool getBoundingSphere(glm::vec3 & outCenter, float& outRadius) const { return false; }
+	virtual bool getBoundingSphere(glm::vec3& outCenter, float& outRadius) const { return false; }
 	virtual bool computeRayIntersection(
 		const ColliderRaycastHitRequest& request,
 		ColliderRaycastHitResult& outResult) const;

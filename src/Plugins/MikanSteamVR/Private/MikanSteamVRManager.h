@@ -8,11 +8,11 @@
 #include <string>
 #include <vector>
 
-using SteamVRIdSet = std::set<int>;
-using SteamVRIdSetIter = std::set<int>::iterator;
+using SteamVRIdSet= std::set<int>;
+using SteamVRIdSetIter= std::set<int>::iterator;
 
-using SteamVRDeviceList = std::vector<IVRDevice*>;
-using SteamVRDeviceListIter = std::vector<IVRDevicePtr*>::iterator;
+using SteamVRDeviceList= std::vector<IVRDevice*>;
+using SteamVRDeviceListIter= std::vector<IVRDevicePtr*>::iterator;
 
 class MikanSteamVRManager : public IVRDeviceManager
 {
@@ -27,7 +27,7 @@ public:
 	virtual bool startup(class IMkGraphicsContext* graphicsContext) override;
 	virtual void createGraphicsResources() override;
 	virtual void update(float deltaTime) override;
-	virtual void shutdown()  override;
+	virtual void shutdown() override;
 
 	virtual size_t getDeviceCount() const override;
 	virtual class IVRDevice* getDeviceByIndex(size_t index) override;
@@ -59,9 +59,9 @@ private:
 	std::vector<IVRDeviceManagerListener*> m_listeners;
 	float m_reconnectTimeout;
 	int m_reconnectAttemptCount;
-	std::unique_ptr< class DeviceSetPoseHistory > m_devicePoseHistory;
+	std::unique_ptr<class DeviceSetPoseHistory> m_devicePoseHistory;
 	int64_t m_vrFrameCounter;
-	std::unique_ptr< class SteamVRResourceManager > m_resourceManager;
+	std::unique_ptr<class SteamVRResourceManager> m_resourceManager;
 	SteamVRIdSet m_activeSteamVRDeviceIdSet;
 	std::vector<MikanSteamVRDevicePtr> m_activeSteamVRDeviceList;
 };

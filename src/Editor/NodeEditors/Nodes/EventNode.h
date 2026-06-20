@@ -4,7 +4,7 @@
 class EventNodeConfig : public NodeConfig
 {
 public:
-	EventNodeConfig() = default;
+	EventNodeConfig()= default;
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -15,9 +15,9 @@ public:
 class EventNode : public Node
 {
 public:
-	EventNode() = default;
+	EventNode()= default;
 
-	inline static const std::string k_nodeClassName = "EventNode";
+	inline static const std::string k_nodeClassName= "EventNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig);
@@ -43,7 +43,7 @@ protected:
 class EventNodeFactory : public TypedNodeFactory<EventNode, EventNodeConfig>
 {
 public:
-	EventNodeFactory() = default;
+	EventNodeFactory()= default;
 
 	virtual NodePtr createNode(const class NodeEditorState& editorState) const override;
 	virtual bool editorCanCreate() const override { return false; }

@@ -10,7 +10,7 @@
 
 //-- macros -----
 #define assert_glm_vector3f_is_normalized(v) assert(is_nearly_equal(v.length(), 1.f, k_normal_epsilon))
-#define assert_glm_vectors_are_perpendicular(a,b) assert(is_nearly_equal(glm::dot(a,b), 0.f, k_normal_epsilon))
+#define assert_glm_vectors_are_perpendicular(a, b) assert(is_nearly_equal(glm::dot(a, b), 0.f, k_normal_epsilon))
 
 //-- types -----
 struct GlmTriangle
@@ -70,33 +70,33 @@ MIKAN_MATH_FUNC(bool) glm_intersect_plane_with_ray(
 	const glm::vec3& ray_start, const glm::vec3& ray_direction,
 	float& outIntDistance, glm::vec3& outIntPoint);
 MIKAN_MATH_FUNC(bool) glm_intersect_tri_with_ray(
-	const GlmTriangle& tri, 
+	const GlmTriangle& tri,
 	const glm::vec3& ray_start, const glm::vec3& ray_direction,
 	float& outIntDistance, glm::vec3& outIntPoint, glm::vec3& outIntNormal);
 MIKAN_MATH_FUNC(bool) glm_intersect_disk_with_ray(
-	const glm::vec3& ray_start,		// Ray origin, in world space
-	const glm::vec3& ray_direction,	// Ray direction, in world space. 
-	const glm::vec3& disk_center,	// Disk center, in world space
-	const glm::vec3& disk_normal,	// Disk normal, in world space
+	const glm::vec3& ray_start,     // Ray origin, in world space
+	const glm::vec3& ray_direction, // Ray direction, in world space.
+	const glm::vec3& disk_center,   // Disk center, in world space
+	const glm::vec3& disk_normal,   // Disk normal, in world space
 	const float disk_radius,
-	float& outIntDistance,			// Output: distance between ray_origin and the intersection with the OBB
-	glm::vec3& outIntPoint,			// Output: intersection point on the surface of the OBB
-	glm::vec3& outIntNormal);		// Output: intersection normal on the surface of the OBB
+	float& outIntDistance,    // Output: distance between ray_origin and the intersection with the OBB
+	glm::vec3& outIntPoint,   // Output: intersection point on the surface of the OBB
+	glm::vec3& outIntNormal); // Output: intersection normal on the surface of the OBB
 MIKAN_MATH_FUNC(bool) glm_intersect_obb_with_ray(
-	const glm::vec3& ray_start,		// Ray origin, in world space
-	const glm::vec3& ray_direction,	// Ray direction, in world space. 
-	const glm::vec3& aabb_min,		// Minimum X,Y,Z coords of the mesh when not transformed at all.
-	const glm::vec3& aabb_max,		// Maximum X,Y,Z coords. Often aabb_min*-1 if your mesh is centered, but it's not always the case.
-	const glm::mat4& xform,			// Transformation applied to the mesh (which will thus be also applied to its bounding box)
-	float& outIntDistance,			// Output: distance between ray_origin and the intersection with the OBB
-	glm::vec3& outIntPoint,			// Output: intersection point on the surface of the OBB
-	glm::vec3& outIntNormal);		// Output: intersection normal on the surface of the OBB
+	const glm::vec3& ray_start,     // Ray origin, in world space
+	const glm::vec3& ray_direction, // Ray direction, in world space.
+	const glm::vec3& aabb_min,      // Minimum X,Y,Z coords of the mesh when not transformed at all.
+	const glm::vec3& aabb_max,      // Maximum X,Y,Z coords. Often aabb_min*-1 if your mesh is centered, but it's not always the case.
+	const glm::mat4& xform,         // Transformation applied to the mesh (which will thus be also applied to its bounding box)
+	float& outIntDistance,          // Output: distance between ray_origin and the intersection with the OBB
+	glm::vec3& outIntPoint,         // Output: intersection point on the surface of the OBB
+	glm::vec3& outIntNormal);       // Output: intersection normal on the surface of the OBB
 MIKAN_MATH_FUNC(bool) glm_intersect_aabb_with_ray(
-	const glm::vec3& ray_start,		// Ray origin, in world space
-	const glm::vec3& ray_direction,	// Ray direction, in world space. 
-	const glm::vec3& aabb_min,		// Minimum X,Y,Z coords of the aabb
-	const glm::vec3& aabb_max,		// Maximum X,Y,Z coords of the aabb. Often aabb_min*-1 if your mesh is centered, but it's not always the case.
-	float& outIntDistance);			// Output: distance between ray_origin and the intersection with the AABB
+	const glm::vec3& ray_start,     // Ray origin, in world space
+	const glm::vec3& ray_direction, // Ray direction, in world space.
+	const glm::vec3& aabb_min,      // Minimum X,Y,Z coords of the aabb
+	const glm::vec3& aabb_max,      // Maximum X,Y,Z coords of the aabb. Often aabb_min*-1 if your mesh is centered, but it's not always the case.
+	float& outIntDistance);         // Output: distance between ray_origin and the intersection with the AABB
 
 MIKAN_MATH_FUNC(void) glm_sphere_union(
 	const glm::vec3& c1, const float r1,

@@ -6,25 +6,31 @@
 class StencilSelectNodeConfig : public NodeConfig
 {
 public:
-	StencilSelectNodeConfig() : NodeConfig() {}
-	StencilSelectNodeConfig(const std::string& nodeName) : NodeConfig(nodeName) {}
+	StencilSelectNodeConfig()
+		: NodeConfig()
+	{
+	}
+	StencilSelectNodeConfig(const std::string& nodeName)
+		: NodeConfig(nodeName)
+	{
+	}
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	bool bEnableQuadStencils = true;
-	bool bEnableBoxStencils = true;
-	bool bEnableModelStencils = true;
+	bool bEnableQuadStencils= true;
+	bool bEnableBoxStencils= true;
+	bool bEnableModelStencils= true;
 };
-using StencilSelectNodeConfigPtr = std::shared_ptr<StencilSelectNodeConfig>;
-using StencilSelectNodeConfigConstPtr = std::shared_ptr<const StencilSelectNodeConfig>;
+using StencilSelectNodeConfigPtr= std::shared_ptr<StencilSelectNodeConfig>;
+using StencilSelectNodeConfigConstPtr= std::shared_ptr<const StencilSelectNodeConfig>;
 
 class StencilSelectNode : public Node
 {
 public:
-	StencilSelectNode() = default;
+	StencilSelectNode()= default;
 
-	inline static const std::string k_nodeClassName = "StencilSelectNode";
+	inline static const std::string k_nodeClassName= "StencilSelectNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
@@ -41,9 +47,9 @@ protected:
 protected:
 	ArrayPinPtr m_stencilsOutPin;
 
-	bool m_bEnableQuadStencils = true;
-	bool m_bEnableBoxStencils = true;
-	bool m_bEnableModelStencils = true;
+	bool m_bEnableQuadStencils= true;
+	bool m_bEnableBoxStencils= true;
+	bool m_bEnableModelStencils= true;
 
 	friend class StencilSelectNodeFactory;
 };
@@ -51,7 +57,7 @@ protected:
 class StencilSelectNodeFactory : public TypedNodeFactory<StencilSelectNode, StencilSelectNodeConfig>
 {
 public:
-	StencilSelectNodeFactory() = default;
+	StencilSelectNodeFactory()= default;
 
 	virtual NodePtr createNode(const NodeEditorState& editorState) const override;
 };

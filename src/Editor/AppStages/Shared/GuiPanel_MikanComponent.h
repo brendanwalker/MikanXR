@@ -11,9 +11,9 @@ class GuiPanel_MikanComponent : public IGuiPanel
 public:
 	GuiPanel_MikanComponent()= delete;
 	GuiPanel_MikanComponent(class AppStage* ownerAppStage);
-	virtual ~GuiPanel_MikanComponent() = default;
+	virtual ~GuiPanel_MikanComponent()= default;
 
-	virtual bool init() = 0;
+	virtual bool init()= 0;
 	virtual void onConstruct();
 
 	inline GuiPanel_EntityAccessorPtr getPropertyInterface() const { return m_entityAccessor; }
@@ -37,7 +37,7 @@ protected:
 	template <class t_component_type>
 	bool initTypedPropertyInterface()
 	{
-		const bool bSuccess =
+		const bool bSuccess=
 			m_entityAccessor->init<t_component_type>(
 				t_component_type::k_componentClassName,
 				[this]() -> bool
@@ -48,7 +48,7 @@ protected:
 
 		if (bSuccess)
 		{
-			m_entityAccessor->OnEntityPropertyChanged += MakeDelegate(
+			m_entityAccessor->OnEntityPropertyChanged+= MakeDelegate(
 				this,
 				&GuiPanel_MikanComponent::onComponentPropertyChanged);
 		}
@@ -64,4 +64,4 @@ protected:
 	static const std::string k_scriptPathStyleName;
 };
 
-using GuiPanel_MikanComponentPtr = std::shared_ptr<GuiPanel_MikanComponent>;
+using GuiPanel_MikanComponentPtr= std::shared_ptr<GuiPanel_MikanComponent>;

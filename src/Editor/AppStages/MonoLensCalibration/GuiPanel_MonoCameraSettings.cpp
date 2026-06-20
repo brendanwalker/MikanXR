@@ -7,7 +7,7 @@ void GuiPanel_MonoCameraSettings::onGui()
 	ImGui::Separator();
 	ImGui::Text("Display Mode");
 
-	const int prevMode = m_videoDisplayMode;
+	const int prevMode= m_videoDisplayMode;
 
 	ImGui::RadioButton("Normal (BGR)", &m_videoDisplayMode, (int)eVideoDisplayMode::mode_bgr);
 	ImGui::RadioButton("Undistorted", &m_videoDisplayMode, (int)eVideoDisplayMode::mode_undistored);

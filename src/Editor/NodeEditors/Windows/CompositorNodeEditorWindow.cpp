@@ -35,10 +35,10 @@ bool CompositorNodeEditorWindow::startup()
 bool CompositorNodeEditorWindow::bindCompositorComponent(CompositorComponentPtr compositorComponent)
 {
 	assert(compositorComponent);
-	m_compositorComponent = compositorComponent;
+	m_compositorComponent= compositorComponent;
 
 	// Load the graph from the asset path on the main window's frame compositor (if any)
-	auto graphAssetPath = m_compositorComponent->getCompositorDefinition()->getCompositorGraphPath();
+	auto graphAssetPath= m_compositorComponent->getCompositorDefinition()->getCompositorGraphPath();
 	if (!graphAssetPath.empty() && !loadGraph(graphAssetPath))
 	{
 		return false;
@@ -51,7 +51,7 @@ bool CompositorNodeEditorWindow::bindCompositorComponent(CompositorComponentPtr 
 	}
 
 	// Tell the new node graph about the compositor component it's bound to
-	auto compositorNodeGraph = 
+	auto compositorNodeGraph=
 		std::static_pointer_cast<CompositorNodeGraph>(m_editorState.nodeGraph);
 	compositorNodeGraph->bindToCompositorComponent(m_compositorComponent);
 
@@ -69,7 +69,7 @@ void CompositorNodeEditorWindow::update(float deltaSeconds)
 	{
 		if (m_compositorComponent != nullptr)
 		{
-			m_lastNodeEvalErrors = m_compositorComponent->getLastNodeEvalErrors();
+			m_lastNodeEvalErrors= m_compositorComponent->getLastNodeEvalErrors();
 		}
 	}
 
@@ -82,7 +82,7 @@ void CompositorNodeEditorWindow::shutdown()
 	if (m_compositorComponent)
 	{
 		m_compositorComponent->setEditorCompositorNodeGraph(nullptr);
-		m_compositorComponent = nullptr;
+		m_compositorComponent= nullptr;
 	}
 
 	NodeEditorWindow::shutdown();
@@ -106,13 +106,13 @@ bool CompositorNodeEditorWindow::saveGraph(bool bShowFileDialog)
 
 void CompositorNodeEditorWindow::handleGraphVariablesDragDrop(const NodeEditorState& editorState)
 {
-	std::vector<AssetReferenceFactoryPtr> validAssetRefFactories =
+	std::vector<AssetReferenceFactoryPtr> validAssetRefFactories=
 		getNodeGraph()->editorGetValidAssetRefFactories(editorState);
 	for (auto factory : validAssetRefFactories)
 	{
-		if (auto assetRef =
-			NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(
-				factory->getAssetRefClassName()))
+		if (auto assetRef=
+				NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(
+					factory->getAssetRefClassName()))
 		{
 			assetRef->editorHandleGraphVariablesDragDrop(editorState);
 			return;
@@ -122,26 +122,26 @@ void CompositorNodeEditorWindow::handleGraphVariablesDragDrop(const NodeEditorSt
 
 void CompositorNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& editorState)
 {
-	std::vector<GraphPropertyFactoryPtr> validPropertyFactories= 
+	std::vector<GraphPropertyFactoryPtr> validPropertyFactories=
 		getNodeGraph()->editorGetValidPropertyFactories(editorState);
 	for (auto factory : validPropertyFactories)
 	{
-		if (auto property =
-			NodeEditorUI::receiveTypedDragDropPayload<GraphProperty>(
-				factory->getGraphPropertyClassName()))
+		if (auto property=
+				NodeEditorUI::receiveTypedDragDropPayload<GraphProperty>(
+					factory->getGraphPropertyClassName()))
 		{
 			property->editorHandleMainFrameDragDrop(editorState);
 			return;
 		}
 	}
 
-	std::vector<AssetReferenceFactoryPtr> validAssetRefFactories =
+	std::vector<AssetReferenceFactoryPtr> validAssetRefFactories=
 		getNodeGraph()->editorGetValidAssetRefFactories(editorState);
 	for (auto factory : validAssetRefFactories)
 	{
-		if (auto assetRef =
-			NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(
-				factory->getAssetRefClassName()))
+		if (auto assetRef=
+				NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(
+					factory->getAssetRefClassName()))
 		{
 			assetRef->editorHandleMainFrameDragDrop(editorState);
 			return;
@@ -171,20 +171,20 @@ void CompositorNodeEditorWindow::renderToolbar()
 		ImGui::SetCursorPosY((ImGui::GetWindowHeight() - ImGui::GetTextLineHeight()) * 0.5f);
 
 		{
-			const char* playStopStyleName = m_isRunningCompositor ? "compositor_stop_button" : "compositor_play_button";
+			const char* playStopStyleName= m_isRunningCompositor ? "compositor_stop_button" : "compositor_play_button";
 			MkGuiScopedStyle playStopStyle(getMkGuiStyleManager()->getStyle(playStopStyleName));
 			if (m_isRunningCompositor)
 			{
 				if (ImGui::SmallButton(ICON_FK_STOP))
 				{
-					m_isRunningCompositor = false;
+					m_isRunningCompositor= false;
 				}
 			}
 			else
 			{
 				if (ImGui::SmallButton(ICON_FK_PLAY))
 				{
-					m_isRunningCompositor = true;
+					m_isRunningCompositor= true;
 				}
 			}
 		}

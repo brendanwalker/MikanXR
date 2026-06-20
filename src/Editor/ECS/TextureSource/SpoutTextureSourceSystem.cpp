@@ -19,7 +19,7 @@ SpoutTextureSourceSystemDefinition::SpoutTextureSourceSystemDefinition(
 
 // -- SpoutTextureSourceSystem -----
 SpoutTextureSourceSystem::SpoutTextureSourceSystem(ProjectManagerPtr ownerObjectSystem)
-    : Super::MikanTypedObjectSystem(ownerObjectSystem)
+	: Super::MikanTypedObjectSystem(ownerObjectSystem)
 {
 }
 
@@ -27,18 +27,18 @@ bool SpoutTextureSourceSystem::init(MikanObjectSystemDefinitionPtr definitionPtr
 {
 	Super::init(definitionPtr);
 
-    m_spoutLibrary = GetSpout();
+	m_spoutLibrary= GetSpout();
 
-    return true;
+	return true;
 }
 
 void SpoutTextureSourceSystem::dispose()
 {
-    if (m_spoutLibrary)
-    {
-        m_spoutLibrary->Release();
-		m_spoutLibrary = nullptr;
-    }
+	if (m_spoutLibrary)
+	{
+		m_spoutLibrary->Release();
+		m_spoutLibrary= nullptr;
+	}
 
 	Super::dispose();
 }
@@ -48,7 +48,7 @@ TextureSourceComponentList SpoutTextureSourceSystem::getTextureSourceComponentLi
 	TextureSourceComponentList textureSourceComponentList;
 	for (const auto& it : Super::getComponentMap())
 	{
-		TextureSourceComponentPtr componentPtr = it.second.lock();
+		TextureSourceComponentPtr componentPtr= it.second.lock();
 		if (componentPtr)
 		{
 			textureSourceComponentList.push_back(componentPtr);
@@ -62,10 +62,10 @@ TextureSourceIdList SpoutTextureSourceSystem::getTextureSourceIdList() const
 	TextureSourceIdList textureSourceIdList;
 	for (const auto& it : Super::getComponentMap())
 	{
-        SpoutTextureSourceComponentPtr componentPtr = it.second.lock();
+		SpoutTextureSourceComponentPtr componentPtr= it.second.lock();
 		if (componentPtr)
 		{
-            textureSourceIdList.push_back(componentPtr->getTextureSourceId());
+			textureSourceIdList.push_back(componentPtr->getTextureSourceId());
 		}
 	}
 	return textureSourceIdList;
@@ -73,15 +73,15 @@ TextureSourceIdList SpoutTextureSourceSystem::getTextureSourceIdList() const
 
 void SpoutTextureSourceSystem::getAvailableSpoutSenderNames(std::vector<std::string>& outSenderNames) const
 {
-    if (m_spoutLibrary != nullptr)
-    {
-        for (int i = 0; i < m_spoutLibrary->GetSenderCount(); i++)
-        {
-            char sendername[256];
-            if (m_spoutLibrary->GetSender(i, sendername, 256))
-            {
-                outSenderNames.push_back(std::string(sendername));
-            }
+	if (m_spoutLibrary != nullptr)
+	{
+		for (int i= 0; i < m_spoutLibrary->GetSenderCount(); i++)
+		{
+			char sendername[256];
+			if (m_spoutLibrary->GetSender(i, sendername, 256))
+			{
+				outSenderNames.push_back(std::string(sendername));
+			}
 		}
-    }
+	}
 }

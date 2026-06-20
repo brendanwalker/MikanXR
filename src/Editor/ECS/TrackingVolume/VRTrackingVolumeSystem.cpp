@@ -17,7 +17,7 @@ VRTrackingVolumeSystemDefinition::VRTrackingVolumeSystemDefinition(
 
 configuru::Config VRTrackingVolumeSystemDefinition::writeToJSON()
 {
-	configuru::Config pt = Super::writeToJSON();
+	configuru::Config pt= Super::writeToJSON();
 
 	return pt;
 }
@@ -40,13 +40,13 @@ bool VRTrackingVolumeSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 		return false;
 
 	// Then ensure VR runtimes are created for all existing volumes
-	auto vrObjectSystem = getOwnerProjectManager()->getSystemOfType<VRObjectSystem>();
+	auto vrObjectSystem= getOwnerProjectManager()->getSystemOfType<VRObjectSystem>();
 	for (const auto& pair : Super::getComponentMap())
 	{
-		VRTrackingVolumeComponentPtr vrVolumeComponent = pair.second.lock();
+		VRTrackingVolumeComponentPtr vrVolumeComponent= pair.second.lock();
 		if (vrVolumeComponent)
 		{
-			VRTrackingVolumeDefinitionPtr vrDef = vrVolumeComponent->getVRTrackingVolumeDefinition();
+			VRTrackingVolumeDefinitionPtr vrDef= vrVolumeComponent->getVRTrackingVolumeDefinition();
 			vrObjectSystem->createTrackingRuntime(vrDef->getTrackingRuntime());
 		}
 	}
@@ -68,7 +68,7 @@ VRTrackingVolumeIdList VRTrackingVolumeSystem::getTrackingVolumeIdList() const
 VRTrackingVolumeComponentPtr VRTrackingVolumeSystem::addNewVRTrackingVolume(eTrackingRuntime trackingRuntime)
 {
 	// Ensure the VRObjectSystem has a runtime for this type (launches async init if needed)
-	auto vrObjectSystem = getOwnerProjectManager()->getSystemOfType<VRObjectSystem>();
+	auto vrObjectSystem= getOwnerProjectManager()->getSystemOfType<VRObjectSystem>();
 	vrObjectSystem->createTrackingRuntime(trackingRuntime);
 
 	// Only block creation if the runtime definitively failed (not just pending)
@@ -79,10 +79,10 @@ VRTrackingVolumeComponentPtr VRTrackingVolumeSystem::addNewVRTrackingVolume(eTra
 	}
 
 	// Use the base class method to create the object, with a custom definition init
-	return Super::addNewObjectByTypedDefinition([trackingRuntime](VRTrackingVolumeDefinitionPtr def) {
+	return Super::addNewObjectByTypedDefinition([trackingRuntime](VRTrackingVolumeDefinitionPtr def)
+												{
 		def->setTrackingRuntime(trackingRuntime);
-		return true;
-	});
+		return true; });
 }
 
 void VRTrackingVolumeSystem::additionalComponentFactory(
@@ -90,6 +90,6 @@ void VRTrackingVolumeSystem::additionalComponentFactory(
 	VRTrackingVolumeDefinitionPtr componentDefinition)
 {
 	// Ensure the VRObjectSystem has a runtime for this type
-	auto vrObjectSystem = getOwnerProjectManager()->getSystemOfType<VRObjectSystem>();
+	auto vrObjectSystem= getOwnerProjectManager()->getSystemOfType<VRObjectSystem>();
 	vrObjectSystem->createTrackingRuntime(componentDefinition->getTrackingRuntime());
 }

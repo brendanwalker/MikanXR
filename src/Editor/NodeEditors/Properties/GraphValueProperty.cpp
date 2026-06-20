@@ -6,10 +6,10 @@
 
 void GraphValueProperty::editorHandleMainFrameDragDrop(const class NodeEditorState& editorState)
 {
-	auto variableNode = m_ownerGraph->createTypedNode<VariableNode>(editorState);
+	auto variableNode= m_ownerGraph->createTypedNode<VariableNode>(editorState);
 
 	// Set this as the source value property for the new node
-	auto self = std::static_pointer_cast<GraphValueProperty>(shared_from_this());
+	auto self= std::static_pointer_cast<GraphValueProperty>(shared_from_this());
 	variableNode->setValueSource(self);
 }
 

@@ -16,15 +16,15 @@
 class ProjectConfig : public CommonConfig
 {
 public:
-	ProjectConfig(const std::string& fnamebase = "ProfileConfig");
+	ProjectConfig(const std::string& fnamebase= "ProfileConfig");
 
 	virtual configuru::Config writeToJSON() override;
 	virtual void readFromJSON(const configuru::Config& pt) override;
 
-	template<class t_system_config_type, class t_system_type>
+	template <class t_system_config_type, class t_system_type>
 	std::shared_ptr<t_system_config_type> addTypedDefinition(IEntityIDAllocatorPtr idAllocator)
 	{
-		std::shared_ptr<t_system_config_type> newConfig =
+		std::shared_ptr<t_system_config_type> newConfig=
 			std::make_shared<t_system_config_type>(
 				t_system_type::k_objectSystemClassName, idAllocator);
 		addChildConfig(newConfig);
@@ -32,7 +32,7 @@ public:
 	}
 	MikanObjectSystemDefinitionPtr getDefinitionForSystem(MikanObjectSystemPtr systemPtr) const;
 
-	// Transient Component ID allocator for all runtime-only components in the project 
+	// Transient Component ID allocator for all runtime-only components in the project
 	// (e.g., components on runtime-only object systems like VRObjectSystem)
 	MonotonicIDAllocatorPtr transientIDAllocator;
 

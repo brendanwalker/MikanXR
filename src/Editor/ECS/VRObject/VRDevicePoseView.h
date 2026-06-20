@@ -10,7 +10,7 @@
 #include "glm/ext/matrix_float4x4.hpp"
 
 class VRDevicePoseView;
-using VRDevicePoseViewPtr = std::shared_ptr<VRDevicePoseView>;
+using VRDevicePoseViewPtr= std::shared_ptr<VRDevicePoseView>;
 
 // -- constants -----
 enum class eVRDevicePoseSpace : int
@@ -31,12 +31,12 @@ public:
 	VRDevicePoseView(
 		const VRDeviceComponent* deviceComponent,
 		eVRDevicePoseSpace space,
-		const std::string& socketName = "");
+		const std::string& socketName= "");
 
 	static VRDevicePoseViewPtr makePoseView(
 		const VRDeviceComponent* deviceComponent,
 		eVRDevicePoseSpace space,
-		const std::string& socketName = "");
+		const std::string& socketName= "");
 	static VRDevicePoseViewPtr makeInvalidPoseView();
 
 	inline eVRDevicePoseSpace getPoseSpace() const { return m_poseSpace; }

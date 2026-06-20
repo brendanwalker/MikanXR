@@ -22,11 +22,10 @@
 
 class GlmTransform;
 
-class SceneObjectSystemDefinition : 
-	public MikanTypedObjectSystemDefinition<SceneComponent, SceneComponentDefinition, MikanSceneID>
+class SceneObjectSystemDefinition : public MikanTypedObjectSystemDefinition<SceneComponent, SceneComponentDefinition, MikanSceneID>
 {
 public:
-	using Super = MikanTypedObjectSystemDefinition<SceneComponent, SceneComponentDefinition, MikanSceneID>;
+	using Super= MikanTypedObjectSystemDefinition<SceneComponent, SceneComponentDefinition, MikanSceneID>;
 
 	SceneObjectSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
@@ -38,24 +37,23 @@ public:
 	void setCurrentSceneId(MikanSceneID sceneId);
 
 private:
-	MikanSceneID m_currentSceneId = -1;
+	MikanSceneID m_currentSceneId= -1;
 };
 
-class SceneObjectSystem : 
-	public MikanTypedObjectSystem<
-		SceneComponent, SceneComponentDefinition, 
-		MikanSceneID, 
-		SceneObjectSystem, SceneObjectSystemDefinition>
+class SceneObjectSystem : public MikanTypedObjectSystem<
+							  SceneComponent, SceneComponentDefinition,
+							  MikanSceneID,
+							  SceneObjectSystem, SceneObjectSystemDefinition>
 {
 public:
-	using Super = MikanTypedObjectSystem<
+	using Super= MikanTypedObjectSystem<
 		SceneComponent, SceneComponentDefinition,
 		MikanSceneID,
 		SceneObjectSystem, SceneObjectSystemDefinition>;
 
 	SceneObjectSystem(ProjectManagerPtr ownerObjectSystem);
 
-	inline static const std::string k_objectSystemClassName = "SceneObjectSystem";
+	inline static const std::string k_objectSystemClassName= "SceneObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
 	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
@@ -66,11 +64,13 @@ public:
 	void setCurrentScene(SceneComponentPtr scene);
 	void setCurrentSceneById(MikanSceneID sceneId);
 
-	inline SceneComponentPtr getSceneById(MikanSceneID sceneId) const {
-		return Super::getTypedComponentById(sceneId); 
+	inline SceneComponentPtr getSceneById(MikanSceneID sceneId) const
+	{
+		return Super::getTypedComponentById(sceneId);
 	}
-	inline SceneComponentPtr getSceneByName(const std::string& sceneName) const { 
-		return Super::getTypedComponentByName(sceneName); 
+	inline SceneComponentPtr getSceneByName(const std::string& sceneName) const
+	{
+		return Super::getTypedComponentByName(sceneName);
 	}
 
 	MulticastDelegate<void(SceneComponentPtr oldScene)> OnSceneDeactivated;

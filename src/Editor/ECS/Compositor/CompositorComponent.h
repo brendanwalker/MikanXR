@@ -26,7 +26,7 @@
 #include "glm/ext/matrix_float4x4.hpp"
 
 class VideoFrameDistortionView;
-using VideoFrameDistortionViewPtr = std::shared_ptr<VideoFrameDistortionView>;
+using VideoFrameDistortionViewPtr= std::shared_ptr<VideoFrameDistortionView>;
 
 class CompositorDefinition : public MikanComponentDefinition
 {
@@ -64,10 +64,10 @@ public:
 	void setSpoutOutputName(const std::string& spoutOutputName);
 
 private:
-	MikanSceneID m_ownerSceneId = INVALID_MIKAN_ID;
-	MikanCameraID m_cameraId = INVALID_MIKAN_ID;
+	MikanSceneID m_ownerSceneId= INVALID_MIKAN_ID;
+	MikanCameraID m_cameraId= INVALID_MIKAN_ID;
 	AssetReferenceConfigPtr m_nodeGraphAssetRef;
-	bool m_bIsSpoutOutputStreaming = false;
+	bool m_bIsSpoutOutputStreaming= false;
 	std::string m_spoutOutputName;
 };
 
@@ -85,7 +85,7 @@ public:
 	bool getIsRunning() const { return m_bIsRunning; }
 	void stop();
 
-	inline static const std::string k_componentClassName = "CompositorComponent";
+	inline static const std::string k_componentClassName= "CompositorComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	CompositorObjectSystemPtr getOwnerObjectSystem() const;
@@ -103,9 +103,9 @@ public:
 	{
 		return std::static_pointer_cast<CompositorDefinition>(m_definition);
 	}
-	inline MikanCompositorID getCompositorId() const 
-	{ 
-		return getCompositorDefinition()->getCompositorId(); 
+	inline MikanCompositorID getCompositorId() const
+	{
+		return getCompositorDefinition()->getCompositorId();
 	}
 
 	IMkTexturePtr getVideoSourceTexture(eVideoTextureSource textureSource) const;
@@ -185,8 +185,8 @@ private:
 	// Output Spout Sender
 	ISharedTextureWriteAccessorPtr m_renderTargetWriteAccessor;
 
-	bool m_bIsRunning = false;
-	int64_t m_lastReadVideoFrameIndex = 0;
-	int64_t m_lastCompositedFrameIndex = 0;
+	bool m_bIsRunning= false;
+	int64_t m_lastReadVideoFrameIndex= 0;
+	int64_t m_lastCompositedFrameIndex= 0;
 	float m_timeSinceLastFrameComposited= 0.f;
 };

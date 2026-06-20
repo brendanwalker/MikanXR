@@ -7,13 +7,12 @@
 
 #include <glm/glm.hpp>
 
-class TestGraphicsContext_GL : 
-	public TestGraphicsContext,
-	public std::enable_shared_from_this<TestGraphicsContext_GL>
+class TestGraphicsContext_GL : public TestGraphicsContext,
+							   public std::enable_shared_from_this<TestGraphicsContext_GL>
 {
 public:
 	TestGraphicsContext_GL(class TestApp* ownerApp);
-	
+
 	MkStateStack& getMkStateStack();
 
 	virtual MikanClientGraphicsApi getGraphicsApi() const override { return MikanClientGraphicsApi_OpenGL; }
@@ -46,5 +45,5 @@ private:
 	IMkTriangulatedMeshPtr m_boxMesh;
 	IMkExternalTexturePtr m_depthPackExternalTexture;
 
-	MikanCameraID m_lastRenderedCameraId = INVALID_MIKAN_ID;
+	MikanCameraID m_lastRenderedCameraId= INVALID_MIKAN_ID;
 };

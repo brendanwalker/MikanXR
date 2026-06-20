@@ -24,9 +24,9 @@
 #include "LuaBridge/LuaBridge.h"
 
 // -- QuadConfig -----
-const std::string QuadStencilDefinition::k_quadStencilWidthPropertyId = "quad_width";
-const std::string QuadStencilDefinition::k_quadStencilHeightPropertyId = "quad_height";
-const std::string QuadStencilDefinition::k_quadStencilDoubleSidedPropertyId = "is_double_sided";
+const std::string QuadStencilDefinition::k_quadStencilWidthPropertyId= "quad_width";
+const std::string QuadStencilDefinition::k_quadStencilHeightPropertyId= "quad_height";
+const std::string QuadStencilDefinition::k_quadStencilDoubleSidedPropertyId= "is_double_sided";
 
 QuadStencilDefinition::QuadStencilDefinition()
 	: StencilComponentDefinition()
@@ -46,11 +46,11 @@ QuadStencilDefinition::QuadStencilDefinition(MikanStencilID stencilId)
 
 configuru::Config QuadStencilDefinition::writeToJSON()
 {
-	configuru::Config pt = StencilComponentDefinition::writeToJSON();
+	configuru::Config pt= StencilComponentDefinition::writeToJSON();
 
-	pt["quad_width"] = m_quadWidth;
-	pt["quad_height"] = m_quadHeight;
-	pt["is_double_sided"] = m_bIsDoubleSided;
+	pt["quad_width"]= m_quadWidth;
+	pt["quad_height"]= m_quadHeight;
+	pt["is_double_sided"]= m_bIsDoubleSided;
 
 	return pt;
 }
@@ -59,9 +59,9 @@ void QuadStencilDefinition::readFromJSON(const configuru::Config& pt)
 {
 	StencilComponentDefinition::readFromJSON(pt);
 
-	m_quadWidth = pt.get_or<float>("quad_width", 0.25f);
-	m_quadHeight = pt.get_or<float>("quad_height", 0.25f);
-	m_bIsDoubleSided = pt.get_or<bool>("is_double_sided", false);
+	m_quadWidth= pt.get_or<float>("quad_width", 0.25f);
+	m_quadHeight= pt.get_or<float>("quad_height", 0.25f);
+	m_bIsDoubleSided= pt.get_or<bool>("is_double_sided", false);
 }
 
 bool QuadStencilDefinition::readFromInitParams(
@@ -71,12 +71,12 @@ bool QuadStencilDefinition::readFromInitParams(
 	if (!StencilComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
-	const auto* componentValues = initParams.getTypedPointer<MikanQuadStencilComponentValues>();
+	const auto* componentValues= initParams.getTypedPointer<MikanQuadStencilComponentValues>();
 	if (componentValues)
 	{
-		m_quadWidth = componentValues->quad_width;
-		m_quadHeight = componentValues->quad_height;
-		m_bIsDoubleSided = componentValues->is_double_sided;
+		m_quadWidth= componentValues->quad_width;
+		m_quadHeight= componentValues->quad_height;
+		m_bIsDoubleSided= componentValues->is_double_sided;
 	}
 
 	return true;
@@ -84,28 +84,28 @@ bool QuadStencilDefinition::readFromInitParams(
 
 void QuadStencilDefinition::setQuadWidth(float width)
 {
-	m_quadWidth = width;
+	m_quadWidth= width;
 	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_quadStencilWidthPropertyId));
 }
 
 void QuadStencilDefinition::setQuadHeight(float height)
 {
-	m_quadHeight = height;
+	m_quadHeight= height;
 	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_quadStencilHeightPropertyId));
 }
 
 void QuadStencilDefinition::setQuadSize(float width, float height)
 {
-	m_quadWidth = width;
-	m_quadHeight = height;
+	m_quadWidth= width;
+	m_quadHeight= height;
 	notifyPropertyChanged(ConfigPropertyChangeSet()
-				.addPropertyName(k_quadStencilWidthPropertyId)
-				.addPropertyName(k_quadStencilHeightPropertyId));
+							  .addPropertyName(k_quadStencilWidthPropertyId)
+							  .addPropertyName(k_quadStencilHeightPropertyId));
 }
 
 void QuadStencilDefinition::setIsDoubleSided(bool flag)
 {
-	m_bIsDoubleSided = flag;
+	m_bIsDoubleSided= flag;
 	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_quadStencilDoubleSidedPropertyId));
 }
 
@@ -125,8 +125,8 @@ void QuadStencilComponent::init()
 {
 	StencilComponent::init();
 
-	m_boxCollider = getOwnerObject()->getComponentOfType<BoxColliderComponent>();
-	m_selectionComponent = getOwnerObject()->getComponentOfType<SelectionComponent>();
+	m_boxCollider= getOwnerObject()->getComponentOfType<BoxColliderComponent>();
+	m_selectionComponent= getOwnerObject()->getComponentOfType<SelectionComponent>();
 
 	updateBoxColliderExtents();
 
@@ -135,26 +135,26 @@ void QuadStencilComponent::init()
 }
 
 void QuadStencilComponent::customRender(
-	IMkGraphicsContext* graphicsContext, 
+	IMkGraphicsContext* graphicsContext,
 	MikanCameraPtr viewportCamera) const
 {
 	QuadStencilDefinitionPtr quadDefinition= getQuadStencilDefinition();
 
 	if (!quadDefinition->getIsDisabled())
 	{
-		TextStyle style = getDefaultTextStyle();
+		TextStyle style= getDefaultTextStyle();
 
-		const glm::mat4 xform = getWorldTransform();
-		const glm::vec3 position = glm::vec3(xform[3]);
+		const glm::mat4 xform= getWorldTransform();
+		const glm::vec3 position= glm::vec3(xform[3]);
 
-		glm::vec3 color = Colors::DarkGray;
-		SelectionComponentPtr selectionComponent = m_selectionComponent.lock();
+		glm::vec3 color= Colors::DarkGray;
+		SelectionComponentPtr selectionComponent= m_selectionComponent.lock();
 		if (selectionComponent)
 		{
 			if (selectionComponent->getIsSelected())
-				color = Colors::Yellow;
+				color= Colors::Yellow;
 			else if (selectionComponent->getIsHovered())
-				color = Colors::LightGray;
+				color= Colors::LightGray;
 		}
 
 		drawTransformedQuad(
@@ -163,7 +163,7 @@ void QuadStencilComponent::customRender(
 		if (!selectionComponent || !selectionComponent->getIsSelected())
 			drawTransformedAxes(graphicsContext, xform, 0.1f, 0.1f, 0.1f);
 		drawTextAtWorldPosition(
-			graphicsContext, 
+			graphicsContext,
 			style, position, L"Stencil %d", quadDefinition->getComponentId());
 	}
 }
@@ -171,7 +171,7 @@ void QuadStencilComponent::customRender(
 void QuadStencilComponent::updateBoxColliderExtents()
 {
 	QuadStencilDefinitionPtr quadDefinition= getQuadStencilDefinition();
-	BoxColliderComponentPtr boxCollider = m_boxCollider.lock();
+	BoxColliderComponentPtr boxCollider= m_boxCollider.lock();
 	if (boxCollider)
 	{
 		boxCollider->setHalfExtents(glm::vec3(quadDefinition->getQuadWidth(), quadDefinition->getQuadHeight(), 0.01f) * 0.5f);
@@ -200,17 +200,17 @@ bool QuadStencilComponent::getPropertyValue(
 {
 	if (propertyName == QuadStencilDefinition::k_quadStencilWidthPropertyId)
 	{
-		outValue = getQuadStencilDefinition()->getQuadWidth();
+		outValue= getQuadStencilDefinition()->getQuadWidth();
 		return true;
 	}
 	else if (propertyName == QuadStencilDefinition::k_quadStencilHeightPropertyId)
 	{
-		outValue = getQuadStencilDefinition()->getQuadHeight();
+		outValue= getQuadStencilDefinition()->getQuadHeight();
 		return true;
 	}
 	else if (propertyName == QuadStencilDefinition::k_quadStencilDoubleSidedPropertyId)
 	{
-		outValue = getQuadStencilDefinition()->getIsDoubleSided();
+		outValue= getQuadStencilDefinition()->getIsDoubleSided();
 		return true;
 	}
 
@@ -223,21 +223,21 @@ bool QuadStencilComponent::setPropertyValue(
 {
 	if (propertyName == QuadStencilDefinition::k_quadStencilWidthPropertyId)
 	{
-		float width = inValue.getFloatValue();
+		float width= inValue.getFloatValue();
 
 		getQuadStencilDefinition()->setQuadWidth(width);
 		return true;
 	}
 	else if (propertyName == QuadStencilDefinition::k_quadStencilHeightPropertyId)
 	{
-		float height = inValue.getFloatValue();
+		float height= inValue.getFloatValue();
 
 		getQuadStencilDefinition()->setQuadHeight(height);
 		return true;
 	}
 	else if (propertyName == QuadStencilDefinition::k_quadStencilDoubleSidedPropertyId)
 	{
-		bool isDoubleSided = inValue.getBoolValue();
+		bool isDoubleSided= inValue.getBoolValue();
 
 		getQuadStencilDefinition()->setIsDoubleSided(isDoubleSided);
 		return true;
@@ -251,26 +251,14 @@ void QuadStencilComponent::bindLuaFunctions(lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
 		.deriveClass<QuadStencilComponent, StencilComponent>(QuadStencilComponent::k_componentClassName.c_str())
-		.addProperty("quadWidth",
-			[](QuadStencilComponent* component) -> float {
-				return component->getQuadStencilDefinition()->getQuadWidth();
-			},
-			[](QuadStencilComponent* component, float value) {
-				component->getQuadStencilDefinition()->setQuadWidth(value);
-			})
-		.addProperty("quadHeight",
-			[](QuadStencilComponent* component) -> float {
-				return component->getQuadStencilDefinition()->getQuadHeight();
-			},
-			[](QuadStencilComponent* component, float value) {
-				component->getQuadStencilDefinition()->setQuadHeight(value);
-			})
-		.addProperty("isDoubleSided",
-			[](QuadStencilComponent* component) -> bool {
-				return component->getQuadStencilDefinition()->getIsDoubleSided();
-			},
-			[](QuadStencilComponent* component, bool isDoubleSided) {
-				component->getQuadStencilDefinition()->setIsDoubleSided(isDoubleSided);
-			})
+		.addProperty("quadWidth", [](QuadStencilComponent* component) -> float
+					 { return component->getQuadStencilDefinition()->getQuadWidth(); }, [](QuadStencilComponent* component, float value)
+					 { component->getQuadStencilDefinition()->setQuadWidth(value); })
+		.addProperty("quadHeight", [](QuadStencilComponent* component) -> float
+					 { return component->getQuadStencilDefinition()->getQuadHeight(); }, [](QuadStencilComponent* component, float value)
+					 { component->getQuadStencilDefinition()->setQuadHeight(value); })
+		.addProperty("isDoubleSided", [](QuadStencilComponent* component) -> bool
+					 { return component->getQuadStencilDefinition()->getIsDoubleSided(); }, [](QuadStencilComponent* component, bool isDoubleSided)
+					 { component->getQuadStencilDefinition()->setIsDoubleSided(isDoubleSided); })
 		.endClass();
 }

@@ -9,22 +9,24 @@
 #include <easy/profiler.h>
 
 // -- SpoutTextureSourceDefinition ------
-const std::string SpoutTextureSourceDefinition::k_spoutSourcePropertyId = "spout_source";
+const std::string SpoutTextureSourceDefinition::k_spoutSourcePropertyId= "spout_source";
 
 SpoutTextureSourceDefinition::SpoutTextureSourceDefinition()
 	: TextureSourceDefinition()
-{}
+{
+}
 
 SpoutTextureSourceDefinition::SpoutTextureSourceDefinition(
 	MikanTextureSourceID textureSourceId)
 	: TextureSourceDefinition(textureSourceId)
-{}
+{
+}
 
 configuru::Config SpoutTextureSourceDefinition::writeToJSON()
 {
-	configuru::Config pt = TextureSourceDefinition::writeToJSON();
+	configuru::Config pt= TextureSourceDefinition::writeToJSON();
 
-	pt["spout_source"] = m_spoutSource;
+	pt["spout_source"]= m_spoutSource;
 
 	return pt;
 }
@@ -33,7 +35,7 @@ void SpoutTextureSourceDefinition::readFromJSON(const configuru::Config& pt)
 {
 	TextureSourceDefinition::readFromJSON(pt);
 
-	m_spoutSource = pt.get_or<std::string>("spout_source", m_spoutSource);
+	m_spoutSource= pt.get_or<std::string>("spout_source", m_spoutSource);
 }
 
 bool SpoutTextureSourceDefinition::readFromInitParams(
@@ -43,10 +45,10 @@ bool SpoutTextureSourceDefinition::readFromInitParams(
 	if (!TextureSourceDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
-	const auto* componentValues = initParams.getTypedPointer<MikanSpoutTextureSourceValues>();
+	const auto* componentValues= initParams.getTypedPointer<MikanSpoutTextureSourceValues>();
 	if (componentValues)
 	{
-		m_spoutSource = componentValues->spout_source.getValue();
+		m_spoutSource= componentValues->spout_source.getValue();
 	}
 
 	return true;
@@ -56,7 +58,7 @@ void SpoutTextureSourceDefinition::setSpoutSource(const std::string& spoutSource
 {
 	if (spoutSource != m_spoutSource)
 	{
-		m_spoutSource = spoutSource;
+		m_spoutSource= spoutSource;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_spoutSourcePropertyId));
 	}
 }
@@ -66,7 +68,7 @@ SpoutTextureSourceComponent::SpoutTextureSourceComponent(MikanObjectWeakPtr owne
 	: TextureSourceComponent(owner)
 	, m_spoutColorFrame(nullptr)
 {
-	m_bWantsUpdate = true;
+	m_bWantsUpdate= true;
 }
 
 // -- IEntityAccessor ----
@@ -110,12 +112,12 @@ void SpoutTextureSourceComponent::update(float deltaSeconds)
 		}
 
 		// Fetch the (now hopefully valid) sender size
-		const int senderWidth = m_spoutColorFrame->GetSenderWidth();
-		const int senderHeight = m_spoutColorFrame->GetSenderHeight();
+		const int senderWidth= m_spoutColorFrame->GetSenderWidth();
+		const int senderHeight= m_spoutColorFrame->GetSenderHeight();
 
 		// Get the current texture size
-		const int textureWidth = m_colorTexture ? m_colorTexture->getTextureWidth() : 0;
-		const int textureHeight = m_colorTexture ? m_colorTexture->getTextureHeight() : 0;
+		const int textureWidth= m_colorTexture ? m_colorTexture->getTextureWidth() : 0;
+		const int textureHeight= m_colorTexture ? m_colorTexture->getTextureHeight() : 0;
 
 		// If the read texture size doesn't match the sender size, reallocate it
 		if (senderWidth != textureWidth || senderHeight != textureHeight)
@@ -124,14 +126,14 @@ void SpoutTextureSourceComponent::update(float deltaSeconds)
 			if (m_colorTexture)
 			{
 				m_colorTexture->disposeTexture();
-				m_colorTexture = nullptr;
+				m_colorTexture= nullptr;
 			}
 
 			// Allocate a new texture to match the spout source shared texture
 			// (unless the sender size is new invalid)
 			if (senderWidth > 0 && senderHeight > 0)
 			{
-				m_colorTexture = CreateMkTexture();
+				m_colorTexture= CreateMkTexture();
 				m_colorTexture->setSize(senderWidth, senderHeight);
 				m_colorTexture->setTextureFormat(MK_RGBA);
 				m_colorTexture->setBufferFormat(MK_RGBA);
@@ -142,7 +144,7 @@ void SpoutTextureSourceComponent::update(float deltaSeconds)
 		// Read in the shared texture from Spout
 		if (m_colorTexture)
 		{
-			const GLuint textureId = m_colorTexture->getGlTextureId();
+			const GLuint textureId= m_colorTexture->getGlTextureId();
 
 			if (textureId != 0)
 			{
@@ -170,13 +172,13 @@ void SpoutTextureSourceComponent::closeTextureSource()
 	{
 		m_spoutColorFrame->ReleaseReceiver();
 		m_spoutColorFrame->Release();
-		m_spoutColorFrame = nullptr;
+		m_spoutColorFrame= nullptr;
 	}
 
 	if (m_colorTexture)
 	{
 		m_colorTexture->disposeTexture();
-		m_colorTexture = nullptr;
+		m_colorTexture= nullptr;
 	}
 }
 
@@ -184,17 +186,17 @@ void SpoutTextureSourceComponent::openTextureSource()
 {
 	closeTextureSource();
 
-	const std::string& spoutSourceName = getSpoutSourceName();
+	const std::string& spoutSourceName= getSpoutSourceName();
 
 	if (!spoutSourceName.empty())
 	{
-		m_spoutColorFrame = GetSpout();
+		m_spoutColorFrame= GetSpout();
 		if (m_spoutColorFrame != nullptr)
 		{
 
 			m_spoutColorFrame->EnableSpoutLog();
-			//m_spoutColorFrame->EnableSpoutLogFile("Mikan.log");
-			//m_spoutColorFrame->ShowSpoutLogs();
+			// m_spoutColorFrame->EnableSpoutLogFile("Mikan.log");
+			// m_spoutColorFrame->ShowSpoutLogs();
 			m_spoutColorFrame->SetSpoutLogLevel(LibLogLevel::SPOUT_LOG_VERBOSE);
 			m_spoutColorFrame->SetReceiverName(spoutSourceName.c_str());
 		}
@@ -202,7 +204,6 @@ void SpoutTextureSourceComponent::openTextureSource()
 		{
 			MIKAN_LOG_ERROR("SpoutTextureSourceComponent") << "Failed to open spout for sender: " << spoutSourceName;
 		}
-
 	}
 }
 
@@ -231,7 +232,7 @@ bool SpoutTextureSourceComponent::getPropertyValue(
 {
 	if (propertyName == SpoutTextureSourceDefinition::k_spoutSourcePropertyId)
 	{
-		outValue = getSpoutTextureSourceDefinition()->getSpoutSource();
+		outValue= getSpoutTextureSourceDefinition()->getSpoutSource();
 		return true;
 	}
 
@@ -244,7 +245,7 @@ bool SpoutTextureSourceComponent::setPropertyValue(
 {
 	if (propertyName == SpoutTextureSourceDefinition::k_spoutSourcePropertyId)
 	{
-		std::string devicePath = inValue.getStringValue();
+		std::string devicePath= inValue.getStringValue();
 		getSpoutTextureSourceDefinition()->setSpoutSource(devicePath);
 		return true;
 	}
@@ -254,7 +255,7 @@ bool SpoutTextureSourceComponent::setPropertyValue(
 
 void SpoutTextureSourceComponent::showTextureSourceSettings()
 {
-	auto* appStage = getOwnerEditorWindow()->pushAppStageOfType<AppStage_TextureSourceSettings>();
+	auto* appStage= getOwnerEditorWindow()->pushAppStageOfType<AppStage_TextureSourceSettings>();
 
 	appStage->setSourceCameraId(INVALID_MIKAN_ID); // No camera needed for spout sources
 	appStage->setTextureSourceComponent(getSelfPtr<TextureSourceComponent>());

@@ -37,17 +37,17 @@ float remap_float_to_float(
 	{
 		if (inB > inA)
 		{
-			float clampedValue = fmaxf(fminf(inValue, inB), inA);
-			float u = (clampedValue - inA) / (inB - inA);
-			float rempappedValue = ((1.f - u) * outA + u * outB);
+			float clampedValue= fmaxf(fminf(inValue, inB), inA);
+			float u= (clampedValue - inA) / (inB - inA);
+			float rempappedValue= ((1.f - u) * outA + u * outB);
 
 			return rempappedValue;
 		}
 		else
 		{
-			float clampedValue = fmaxf(fminf(inValue, inA), inB);
-			float u = (clampedValue - inB) / (inA - inB);
-			float rempappedValue = (u * outA + (1.f - u) * outB);
+			float clampedValue= fmaxf(fminf(inValue, inA), inB);
+			float u= (clampedValue - inB) / (inA - inB);
+			float rempappedValue= (u * outA + (1.f - u) * outB);
 
 			return rempappedValue;
 		}
@@ -131,7 +131,7 @@ float wrap_degrees(float angle)
 float wrap_range(float value, float range_min, float range_max)
 {
 	assert(range_max > range_min);
-	const float range = range_max - range_min;
+	const float range= range_max - range_min;
 
 	return range_min + fmodf((value - range_min) + range, range);
 }
@@ -139,7 +139,7 @@ float wrap_range(float value, float range_min, float range_max)
 double wrap_ranged(double value, double range_min, double range_max)
 {
 	assert(range_max > range_min);
-	const double range = range_max - range_min;
+	const double range= range_max - range_min;
 
 	return range_min + fmod((value - range_min) + range, range);
 }
@@ -147,16 +147,16 @@ double wrap_ranged(double value, double range_min, double range_max)
 float wrap_lerpf(float a, float b, float u, float range_min, float range_max)
 {
 	assert(range_max > range_min);
-	const float range = range_max - range_min;
-	float wrapped_a = a;
-	float wrapped_b = b;
+	const float range= range_max - range_min;
+	float wrapped_a= a;
+	float wrapped_b= b;
 
 	if (fabsf(a - b) >= (range / 2.f))
 	{
 		if (a > b)
-			wrapped_a = wrap_range(a, range_min, range_max) - range;
+			wrapped_a= wrap_range(a, range_min, range_max) - range;
 		else
-			wrapped_b = wrap_range(b, range_min, range_max) - range;
+			wrapped_b= wrap_range(b, range_min, range_max) - range;
 	}
 
 	return wrap_range(lerpf(wrapped_a, wrapped_b, u), range_min, range_max);

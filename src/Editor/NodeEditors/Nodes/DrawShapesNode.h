@@ -8,23 +8,29 @@
 class DrawShapesNodeConfig : public NodeConfig
 {
 public:
-	DrawShapesNodeConfig() : NodeConfig() {}
-	DrawShapesNodeConfig(const std::string& nodeName) : NodeConfig(nodeName) {}
+	DrawShapesNodeConfig()
+		: NodeConfig()
+	{
+	}
+	DrawShapesNodeConfig(const std::string& nodeName)
+		: NodeConfig(nodeName)
+	{
+	}
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	eCompositorBlendMode blendMode = eCompositorBlendMode::blendOn;
-	bool bDepthTest = false;
+	eCompositorBlendMode blendMode= eCompositorBlendMode::blendOn;
+	bool bDepthTest= false;
 };
 
 class DrawShapesNode : public Node
 {
 public:
-	DrawShapesNode() = default;
-	virtual ~DrawShapesNode() = default;
+	DrawShapesNode()= default;
+	virtual ~DrawShapesNode()= default;
 
-	inline static const std::string k_nodeClassName = "DrawShapesNode";
+	inline static const std::string k_nodeClassName= "DrawShapesNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
 	virtual void setOwnerGraph(NodeGraphPtr ownerGraph) override;
 
@@ -58,8 +64,8 @@ protected:
 protected:
 	ArrayPinPtr m_shapesPin;
 
-	eCompositorBlendMode m_blendMode = eCompositorBlendMode::blendOn;
-	bool m_bDepthTest = false;
+	eCompositorBlendMode m_blendMode= eCompositorBlendMode::blendOn;
+	bool m_bDepthTest= false;
 
 	friend class DrawShapesNodeFactory;
 };
@@ -67,7 +73,7 @@ protected:
 class DrawShapesNodeFactory : public TypedNodeFactory<DrawShapesNode, DrawShapesNodeConfig>
 {
 public:
-	DrawShapesNodeFactory() = default;
+	DrawShapesNodeFactory()= default;
 
 	virtual NodePtr createNode(const class NodeEditorState& editorState) const override;
 };

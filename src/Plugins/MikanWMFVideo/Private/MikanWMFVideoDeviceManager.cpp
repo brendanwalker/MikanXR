@@ -8,7 +8,8 @@
 MikanWMFVideoDeviceManager::MikanWMFVideoDeviceManager()
 	: m_wmfDeviceList(new WMFDeviceList())
 	, m_deviceHotplugNotifier(new DeviceHotplugNotifier())
-{}
+{
+}
 
 MikanWMFVideoDeviceManager::~MikanWMFVideoDeviceManager()
 {
@@ -17,7 +18,7 @@ MikanWMFVideoDeviceManager::~MikanWMFVideoDeviceManager()
 
 void MikanWMFVideoDeviceManager::addListener(IUsbVideoDeviceManagerListener* eventListener)
 {
-	auto it = std::find(m_eventListeners.begin(), m_eventListeners.end(), eventListener);
+	auto it= std::find(m_eventListeners.begin(), m_eventListeners.end(), eventListener);
 	if (it == m_eventListeners.end())
 	{
 		m_eventListeners.push_back(eventListener);
@@ -26,7 +27,7 @@ void MikanWMFVideoDeviceManager::addListener(IUsbVideoDeviceManagerListener* eve
 
 void MikanWMFVideoDeviceManager::removeListener(IUsbVideoDeviceManagerListener* eventListener)
 {
-	auto it = std::find(m_eventListeners.begin(), m_eventListeners.end(), eventListener);
+	auto it= std::find(m_eventListeners.begin(), m_eventListeners.end(), eventListener);
 	if (it != m_eventListeners.end())
 	{
 		m_eventListeners.erase(it);
@@ -65,7 +66,7 @@ IUsbVideoDevice* MikanWMFVideoDeviceManager::getDeviceByIndex(size_t index)
 {
 	if (index < m_deviceMap.size())
 	{
-		auto it = m_deviceMap.begin();
+		auto it= m_deviceMap.begin();
 		std::advance(it, index);
 		return it->second.get();
 	}
@@ -75,7 +76,7 @@ IUsbVideoDevice* MikanWMFVideoDeviceManager::getDeviceByIndex(size_t index)
 
 IUsbVideoDevice* MikanWMFVideoDeviceManager::getDeviceByPath(const char* devicePath)
 {
-	auto it = m_deviceMap.find(devicePath);
+	auto it= m_deviceMap.find(devicePath);
 	if (it != m_deviceMap.end())
 	{
 		return it->second.get();
@@ -104,26 +105,26 @@ void MikanWMFVideoDeviceManager::rebuildDeviceList()
 	// Create any new devices that are not already in the map
 	for (const auto& deviceInfo : m_wmfDeviceList->getDevices())
 	{
-		const std::string devicePath = deviceInfo.deviceSymbolicLink;
+		const std::string devicePath= deviceInfo.deviceSymbolicLink;
 
 		if (m_deviceMap.find(devicePath) == m_deviceMap.end())
 		{
-			m_deviceMap[devicePath] = std::make_unique<MikanWMFVideoDevice>(this, deviceInfo);
+			m_deviceMap[devicePath]= std::make_unique<MikanWMFVideoDevice>(this, deviceInfo);
 
 			MIKAN_LOG_INFO("MikanWMFVideoDeviceManager") << "New device added: " << devicePath;
 		}
 	}
 
 	// Remove devices that are no longer present
-	for (auto it = m_deviceMap.begin(); it != m_deviceMap.end();)
+	for (auto it= m_deviceMap.begin(); it != m_deviceMap.end();)
 	{
 		if (!m_wmfDeviceList->isDevicePresent(it->first))
 		{
 			// Ensure the device is properly shutdown and listeners notified before removal
-			it->second->notifyVideoDeviceDisconnected(); 
+			it->second->notifyVideoDeviceDisconnected();
 
 			MIKAN_LOG_INFO("MikanWMFVideoDeviceManager") << "Device removed: " << it->first;
-			it = m_deviceMap.erase(it);
+			it= m_deviceMap.erase(it);
 		}
 		else
 		{

@@ -10,77 +10,62 @@
 #include "MikanPropertyRequests.rfkh.h"
 #endif
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) PropertySetValueRequest :
-	public MikanRequest
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) PropertySetValueRequest : public MikanRequest
 {
 public:
-	PropertySetValueRequest()
-	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(PropertySetValueRequest)
-	}
+	PropertySetValueRequest(){
+		MIKAN_REQUEST_TYPE_INFO_INIT(PropertySetValueRequest)}
 
 	FIELD()
 	Serialization::String ownerSystem;
-	FIELD()
-	int componentId= INVALID_MIKAN_ID;
+	FIELD() int componentId= INVALID_MIKAN_ID;
 	FIELD()
 	Serialization::String fieldName;
 	FIELD()
 	MikanVariant fieldValue;
 
-	#ifdef MIKANAPI_REFLECTION_ENABLED
+#ifdef MIKANAPI_REFLECTION_ENABLED
 	PropertySetValueRequest_GENERATED
-	#endif
+#endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) PropertyGetValueRequest :
-	public MikanRequest
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) PropertyGetValueRequest : public MikanRequest
 {
 public:
-	PropertyGetValueRequest()
-	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(PropertyGetValueRequest)
-	}
+	PropertyGetValueRequest(){
+		MIKAN_REQUEST_TYPE_INFO_INIT(PropertyGetValueRequest)}
 
 	FIELD()
 	Serialization::String ownerSystem;
-	FIELD()
-	int componentId= INVALID_MIKAN_ID;
+	FIELD() int componentId= INVALID_MIKAN_ID;
 	FIELD()
 	Serialization::String fieldName;
 
-	#ifdef MIKANAPI_REFLECTION_ENABLED
+#ifdef MIKANAPI_REFLECTION_ENABLED
 	PropertyGetValueRequest_GENERATED
-	#endif
+#endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) ComponentGetValuesRequest :
-	public MikanRequest
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) ComponentGetValuesRequest : public MikanRequest
 {
 public:
-	ComponentGetValuesRequest()
-	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(ComponentGetValuesRequest)
-	}
+	ComponentGetValuesRequest(){
+		MIKAN_REQUEST_TYPE_INFO_INIT(ComponentGetValuesRequest)}
 
 	FIELD()
 	Serialization::String ownerSystem;
-	FIELD()
-	int componentId= INVALID_MIKAN_ID;
+	FIELD() int componentId= INVALID_MIKAN_ID;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	ComponentGetValuesRequest_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) GetComponentListRequest :
-	public MikanRequest
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) GetComponentListRequest : public MikanRequest
 {
 public:
-	GetComponentListRequest()
-	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(GetComponentListRequest)
-	}
+	GetComponentListRequest(){
+		MIKAN_REQUEST_TYPE_INFO_INIT(GetComponentListRequest)}
 
 	FIELD()
 	Serialization::String ownerSystem;
@@ -92,14 +77,11 @@ public:
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) SystemGetValuesRequest :
-	public MikanRequest
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) SystemGetValuesRequest : public MikanRequest
 {
 public:
-	SystemGetValuesRequest()
-	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(SystemGetValuesRequest)
-	}
+	SystemGetValuesRequest(){
+		MIKAN_REQUEST_TYPE_INFO_INIT(SystemGetValuesRequest)}
 
 	FIELD()
 	Serialization::String ownerSystem;
@@ -109,14 +91,11 @@ public:
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) SystemCreateObjectRequest :
-	public MikanRequest
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) SystemCreateObjectRequest : public MikanRequest
 {
 public:
-	SystemCreateObjectRequest()
-	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(SystemCreateObjectRequest)
-	}
+	SystemCreateObjectRequest(){
+		MIKAN_REQUEST_TYPE_INFO_INIT(SystemCreateObjectRequest)}
 
 	FIELD()
 	Serialization::String ownerSystem;
@@ -130,35 +109,28 @@ public:
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) SystemDestroyObjectRequest :
-	public MikanRequest
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) SystemDestroyObjectRequest : public MikanRequest
 {
 public:
-	SystemDestroyObjectRequest()
-	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(SystemDestroyObjectRequest)
-	}
+	SystemDestroyObjectRequest(){
+		MIKAN_REQUEST_TYPE_INFO_INIT(SystemDestroyObjectRequest)}
 
 	FIELD()
 	Serialization::String ownerSystem;
 	FIELD()
 	Serialization::String componentClassName;
-	FIELD()
-	int componentId= INVALID_MIKAN_ID;
+	FIELD() int componentId= INVALID_MIKAN_ID;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	SystemDestroyObjectRequest_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) SetPropertyNotifyMode :
-	public MikanRequest
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) SetPropertyNotifyMode : public MikanRequest
 {
 public:
-	SetPropertyNotifyMode()
-	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(SetPropertyNotifyMode)
-	}
+	SetPropertyNotifyMode(){
+		MIKAN_REQUEST_TYPE_INFO_INIT(SetPropertyNotifyMode)}
 
 	FIELD()
 	Serialization::String systemFilter;
@@ -177,14 +149,11 @@ public:
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) GetPropertyDescriptors :
-	public MikanRequest
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) GetPropertyDescriptors : public MikanRequest
 {
 public:
-	GetPropertyDescriptors()
-	{
-		MIKAN_REQUEST_TYPE_INFO_INIT(GetPropertyDescriptors)
-	}
+	GetPropertyDescriptors(){
+		MIKAN_REQUEST_TYPE_INFO_INIT(GetPropertyDescriptors)}
 
 	FIELD()
 	Serialization::String systemFilter;
@@ -203,28 +172,22 @@ public:
 // Property Response Types
 // ------
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) PropertySetValueResponse :
-	public MikanResponse
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) PropertySetValueResponse : public MikanResponse
 {
 public:
-	PropertySetValueResponse()
-	{
-		MIKAN_RESPONSE_TYPE_INFO_INIT(PropertySetValueResponse)
-	}
+	PropertySetValueResponse(){
+		MIKAN_RESPONSE_TYPE_INFO_INIT(PropertySetValueResponse)}
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	PropertySetValueResponse_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) PropertyGetValueResponse :
-	public MikanResponse
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) PropertyGetValueResponse : public MikanResponse
 {
 public:
-	PropertyGetValueResponse()
-	{
-		MIKAN_RESPONSE_TYPE_INFO_INIT(PropertyGetValueResponse)
-	}
+	PropertyGetValueResponse(){
+		MIKAN_RESPONSE_TYPE_INFO_INIT(PropertyGetValueResponse)}
 
 	FIELD()
 	MikanPropertyValue propertyValue;
@@ -234,14 +197,11 @@ public:
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) ComponentGetValuesResponse :
-	public MikanResponse
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) ComponentGetValuesResponse : public MikanResponse
 {
 public:
-	ComponentGetValuesResponse()
-	{
-		MIKAN_RESPONSE_TYPE_INFO_INIT(ComponentGetValuesResponse)
-	}
+	ComponentGetValuesResponse(){
+		MIKAN_RESPONSE_TYPE_INFO_INIT(ComponentGetValuesResponse)}
 
 	FIELD()
 	Serialization::String ownerSystem;
@@ -255,14 +215,11 @@ public:
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) ComponentListResponse :
-	public MikanResponse
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) ComponentListResponse : public MikanResponse
 {
 
-	ComponentListResponse()
-	{
-		MIKAN_RESPONSE_TYPE_INFO_INIT(ComponentListResponse)
-	}
+	ComponentListResponse(){
+		MIKAN_RESPONSE_TYPE_INFO_INIT(ComponentListResponse)}
 
 	FIELD()
 	Serialization::List<MikanComponentID> componentIdList;
@@ -272,14 +229,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) C
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) SystemGetValuesResponse :
-	public MikanResponse
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) SystemGetValuesResponse : public MikanResponse
 {
 public:
-	SystemGetValuesResponse()
-	{
-		MIKAN_RESPONSE_TYPE_INFO_INIT(SystemGetValuesResponse)
-	}
+	SystemGetValuesResponse(){
+		MIKAN_RESPONSE_TYPE_INFO_INIT(SystemGetValuesResponse)}
 
 	FIELD()
 	Serialization::String ownerSystem;
@@ -291,13 +245,10 @@ public:
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) PropertyDescriptorResponse :
-	public MikanResponse
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) PropertyDescriptorResponse : public MikanResponse
 {
-	PropertyDescriptorResponse()
-	{
-		MIKAN_RESPONSE_TYPE_INFO_INIT(PropertyDescriptorResponse)
-	}
+	PropertyDescriptorResponse(){
+		MIKAN_RESPONSE_TYPE_INFO_INIT(PropertyDescriptorResponse)}
 
 	FIELD()
 	Serialization::List<MikanPropertyDescriptor> descriptor_list;
@@ -306,7 +257,6 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyRequests")) P
 	PropertyDescriptorResponse_GENERATED
 #endif
 };
-
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 File_MikanPropertyRequests_GENERATED

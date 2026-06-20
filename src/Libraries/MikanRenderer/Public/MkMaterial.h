@@ -23,14 +23,14 @@ enum class eUniformBindResult : int
 	unbound,
 	error
 };
-using BindUniformCallback =
-std::function<eUniformBindResult(
-	std::shared_ptr<class IMkShader>, // Source program to bind the uniform for
-	eUniformDataType, // Data type of the uniform
-	eUniformSemantic, // Semantic of the uniform
-	const std::string&)>; // Name of the uniform
+using BindUniformCallback=
+	std::function<eUniformBindResult(
+		std::shared_ptr<class IMkShader>, // Source program to bind the uniform for
+		eUniformDataType,                 // Data type of the uniform
+		eUniformSemantic,                 // Semantic of the uniform
+		const std::string&)>;             // Name of the uniform
 
-class MIKAN_RENDERER_CLASS MkMaterial 
+class MIKAN_RENDERER_CLASS MkMaterial
 {
 public:
 	MkMaterial();
@@ -52,7 +52,7 @@ public:
 	bool setFloatBySemantic(eUniformSemantic semantic, float value);
 	bool getFloatBySemantic(eUniformSemantic semantic, float& outValue) const;
 	bool setFloatByUniformName(const std::string uniformName, float value);
-	bool getFloatByUniformName(const std::string uniformName, float &outValue) const;
+	bool getFloatByUniformName(const std::string uniformName, float& outValue) const;
 
 	bool setVec2BySemantic(eUniformSemantic semantic, const glm::vec2& value);
 	bool getVec2BySemantic(eUniformSemantic semantic, glm::vec2& outValue) const;

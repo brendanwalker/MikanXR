@@ -56,13 +56,13 @@ protected:
 
 private:
 	// Mikan API Server
-	class MikanServer* m_mikanServer = nullptr;
+	class MikanServer* m_mikanServer= nullptr;
 
 	// Client Source Manager
-	class ClientSourceManager* m_clientSourceManager = nullptr;
+	class ClientSourceManager* m_clientSourceManager= nullptr;
 
 	// Input Manager
-	class InputManager* m_inputManager = nullptr;
+	class InputManager* m_inputManager= nullptr;
 
 	// Object System manager
 	ProjectManagerPtr m_projectManager;
@@ -75,7 +75,7 @@ private:
 
 	// App Stages
 	AppStageFactory m_appStageFactory;
-	int m_appStageStackIndex = -1;
+	int m_appStageStackIndex= -1;
 	std::vector<AppStagePtr> m_appStageStack;
 
 	IMkViewportPtr m_uiViewport;
@@ -93,9 +93,9 @@ private:
 		AppStageOperation op;
 	};
 	std::vector<PendingAppStageOperation> m_pendingAppStageOps;
-	bool bAppStackOperationAllowed = true;
+	bool bAppStackOperationAllowed= true;
 
 	bool m_isRenderingStage;
 	bool m_isRenderingUI;
-	bool m_bIsMainWindowGuiHidden = false;
+	bool m_bIsMainWindowGuiHidden= false;
 };

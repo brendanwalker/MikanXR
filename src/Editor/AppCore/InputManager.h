@@ -11,7 +11,7 @@
 class KeyEventBindings
 {
 public:
-	KeyEventBindings() = default;
+	KeyEventBindings()= default;
 	virtual ~KeyEventBindings();
 
 	MulticastDelegate<void()> OnKeyPressed;
@@ -24,7 +24,7 @@ public:
 class EventBindingSet
 {
 public:
-	EventBindingSet() = default;
+	EventBindingSet()= default;
 	virtual ~EventBindingSet();
 
 	std::map<MkKeySym, KeyEventBindings*> keybindings;
@@ -44,7 +44,7 @@ public:
 	virtual ~InputManager();
 
 	bool onWindowEvent(const MkWindowEvent& event);
-	void getMouseScreenPosition(int &outScreenX, int &outScreenY) const;
+	void getMouseScreenPosition(int& outScreenX, int& outScreenY) const;
 
 	KeyEventBindings* getKeyBindings(MkKeySym key);
 	KeyEventBindings* fetchOrAddKeyBindings(MkKeySym key);

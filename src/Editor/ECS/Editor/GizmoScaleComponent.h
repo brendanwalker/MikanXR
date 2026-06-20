@@ -12,7 +12,7 @@ class GizmoScaleComponent : public MikanComponent
 public:
 	GizmoScaleComponent(MikanObjectWeakPtr owner);
 
-	inline static const std::string k_componentClassName = "GizmoScaleComponent";
+	inline static const std::string k_componentClassName= "GizmoScaleComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	virtual void init() override;

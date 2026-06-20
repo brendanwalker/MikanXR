@@ -52,28 +52,28 @@ protected:
 	void onReturnEvent();
 
 private:
-	GuiPanel_AlignCameraByUtilityMarker* m_calibrationPanel = nullptr;
+	GuiPanel_AlignCameraByUtilityMarker* m_calibrationPanel= nullptr;
 
 	// Target camera (being calibrated - no tracking mount)
-	CameraComponentPtr         m_targetCameraComponent;
-	VideoSourceComponentPtr    m_targetVideoSource;
-	class VideoFrameDistortionView*        m_targetDistortionView = nullptr;
-	class ArucoMarkerPoseSampler*          m_targetMarkerSampler  = nullptr;
+	CameraComponentPtr m_targetCameraComponent;
+	VideoSourceComponentPtr m_targetVideoSource;
+	class VideoFrameDistortionView* m_targetDistortionView= nullptr;
+	class ArucoMarkerPoseSampler* m_targetMarkerSampler= nullptr;
 
 	// Source camera (already calibrated with tracking mount + aperture offset)
-	CameraComponentPtr         m_sourceCameraComponent;
-	VideoSourceComponentPtr    m_sourceVideoSource;
-	class VideoFrameDistortionView*        m_sourceDistortionView = nullptr;
-	class ArucoMarkerPoseSampler*          m_sourceMarkerSampler  = nullptr;
-	class VRDevicePoseSampler*             m_sourcePuckSampler    = nullptr;
+	CameraComponentPtr m_sourceCameraComponent;
+	VideoSourceComponentPtr m_sourceVideoSource;
+	class VideoFrameDistortionView* m_sourceDistortionView= nullptr;
+	class ArucoMarkerPoseSampler* m_sourceMarkerSampler= nullptr;
+	class VRDevicePoseSampler* m_sourcePuckSampler= nullptr;
 
 	// Utility marker ID from tracking volume
-	MikanMarkerID m_utilityMarkerId = INVALID_MIKAN_ID;
+	MikanMarkerID m_utilityMarkerId= INVALID_MIKAN_ID;
 
 	// Averaged results
-	glm::dmat4 m_markerXform_StageSpace;          // from source sampler + puck compose
-	glm::dmat4 m_targetApertureXform_StageSpace;  // final computed pose
+	glm::dmat4 m_markerXform_StageSpace;         // from source sampler + puck compose
+	glm::dmat4 m_targetApertureXform_StageSpace; // final computed pose
 
-	IMkFrameBufferPtr      m_frameBuffer;
+	IMkFrameBufferPtr m_frameBuffer;
 	IMkTriangulatedMeshPtr m_fullscreenQuad;
 };

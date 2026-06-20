@@ -6,7 +6,7 @@
 class ModelNodeConfig : public NodeConfig
 {
 public:
-	ModelNodeConfig() = default;
+	ModelNodeConfig()= default;
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -17,10 +17,10 @@ public:
 class ModelNode : public Node
 {
 public:
-	ModelNode() = default;
+	ModelNode()= default;
 	virtual ~ModelNode();
 
-	inline static const std::string k_nodeClassName = "ModelNode";
+	inline static const std::string k_nodeClassName= "ModelNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
@@ -49,7 +49,7 @@ protected:
 class ModelNodeFactory : public TypedNodeFactory<ModelNode, ModelNodeConfig>
 {
 public:
-	ModelNodeFactory() = default;
+	ModelNodeFactory()= default;
 
 	virtual NodePtr createNode(const class NodeEditorState& editorState) const override;
 	virtual bool editorCanCreate() const override { return false; }

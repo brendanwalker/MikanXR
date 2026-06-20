@@ -13,14 +13,14 @@
 
 MikanCamera::MikanCamera()
 {
-	m_viewMatrix = glm::mat4(1.f);
+	m_viewMatrix= glm::mat4(1.f);
 
-	m_hFOVDegrees= k_default_camera_vfov*k_default_aspect_ratio;
+	m_hFOVDegrees= k_default_camera_vfov * k_default_aspect_ratio;
 	m_vFOVDegrees= k_default_camera_vfov;
 	m_zNear= k_default_camera_z_near;
 	m_zFar= k_default_camera_z_far;
 
-	m_projectionMatrix =
+	m_projectionMatrix=
 		glm::perspective(
 			degrees_to_radians(m_vFOVDegrees),
 			k_default_aspect_ratio,
@@ -31,26 +31,26 @@ MikanCamera::MikanCamera()
 	m_stationaryTransform= glm::mat4(1.f);
 
 	// Fly camera parameters
-	m_flyTransform = glm::mat4(1.f);
+	m_flyTransform= glm::mat4(1.f);
 
 	// Orbit camera parameters
-	m_orbitYawDegrees = 0.0f;
-	m_orbitPitchDegrees = 0.0f;
-	m_orbitRadius = k_camera_min_zoom;
+	m_orbitYawDegrees= 0.0f;
+	m_orbitPitchDegrees= 0.0f;
+	m_orbitRadius= k_camera_min_zoom;
 	m_orbitTargetPosition= glm::vec3(0.0f);
 
 	// Default to fly movement
-	m_flyYawDegrees = 0.0f;
-	m_flyPitchDegrees = 0.0f;
-	m_movementMode = eCameraMovementMode::fly;
+	m_flyYawDegrees= 0.0f;
+	m_flyPitchDegrees= 0.0f;
+	m_movementMode= eCameraMovementMode::fly;
 	applyFlyParamsToViewMatrix();
 }
 
 void MikanCamera::setOrbitLocation(float yawDegrees, float pitchDegrees, float radius)
 {
-	m_orbitYawDegrees = wrap_degrees(yawDegrees);
-	m_orbitPitchDegrees = clampf(pitchDegrees, 0.0f, 90.0f);
-	m_orbitRadius = fmaxf(radius, k_camera_min_zoom);
+	m_orbitYawDegrees= wrap_degrees(yawDegrees);
+	m_orbitPitchDegrees= clampf(pitchDegrees, 0.0f, 90.0f);
+	m_orbitRadius= fmaxf(radius, k_camera_min_zoom);
 	applyOrbitParamsToViewMatrix();
 }
 
@@ -60,15 +60,15 @@ void MikanCamera::setCameraMovementMode(eCameraMovementMode newMode)
 	{
 		switch (newMode)
 		{
-			case orbit:
-				applyOrbitParamsToViewMatrix();
-				break;
-			case fly:
-				applyFlyParamsToViewMatrix();
-				break;
-			case stationary:
-				applyStationaryParamsToViewMatrix();
-				break;
+		case orbit:
+			applyOrbitParamsToViewMatrix();
+			break;
+		case fly:
+			applyFlyParamsToViewMatrix();
+			break;
+		case stationary:
+			applyStationaryParamsToViewMatrix();
+			break;
 		}
 		m_movementMode= newMode;
 	}
@@ -78,17 +78,17 @@ void MikanCamera::setCameraTransform(const glm::mat4& xform)
 {
 	switch (m_movementMode)
 	{
-		case orbit:
-			// Ignored in this movement mode
-			break;
-		case fly:
-			m_flyTransform= xform;
-			applyFlyParamsToViewMatrix();
-			break;
-		case stationary:
-			m_stationaryTransform= xform;
-			applyStationaryParamsToViewMatrix();
-			break;
+	case orbit:
+		// Ignored in this movement mode
+		break;
+	case fly:
+		m_flyTransform= xform;
+		applyFlyParamsToViewMatrix();
+		break;
+	case stationary:
+		m_stationaryTransform= xform;
+		applyStationaryParamsToViewMatrix();
+		break;
 	}
 }
 
@@ -96,17 +96,17 @@ void MikanCamera::setPosition(const glm::vec3& location)
 {
 	switch (m_movementMode)
 	{
-		case orbit:
-			// Ignored in this movement mode
-			break;
-		case fly:
-			m_flyTransform[3]= glm::vec4(location, 1.f);
-			applyFlyParamsToViewMatrix();
-			break;
-		case stationary:
-			m_stationaryTransform[3]= glm::vec4(location, 1.f);
-			applyStationaryParamsToViewMatrix();
-			break;
+	case orbit:
+		// Ignored in this movement mode
+		break;
+	case fly:
+		m_flyTransform[3]= glm::vec4(location, 1.f);
+		applyFlyParamsToViewMatrix();
+		break;
+	case stationary:
+		m_stationaryTransform[3]= glm::vec4(location, 1.f);
+		applyStationaryParamsToViewMatrix();
+		break;
 	}
 }
 
@@ -114,29 +114,29 @@ void MikanCamera::lookAt(const glm::vec3& target)
 {
 	switch (m_movementMode)
 	{
-		case orbit:
-			// Ignored in this movement mode
-			break;
-		case fly:
-			{
-				m_viewMatrix =
-					glm::lookAt(
-						glm::vec3(m_flyTransform[3]),
-						target,
-						glm::vec3(0, 1, 0));    // +Y is up.
-				m_flyTransform= getCameraTransformFromViewMatrix();
-			}
-			break;
-		case stationary:
-			{
-				m_viewMatrix =
-					glm::lookAt(
-						glm::vec3(m_stationaryTransform[3]),
-						target,
-						glm::vec3(0, 1, 0));    // +Y is up.
-				m_flyTransform = getCameraTransformFromViewMatrix();
-			}
-			break;
+	case orbit:
+		// Ignored in this movement mode
+		break;
+	case fly:
+	{
+		m_viewMatrix=
+			glm::lookAt(
+				glm::vec3(m_flyTransform[3]),
+				target,
+				glm::vec3(0, 1, 0)); // +Y is up.
+		m_flyTransform= getCameraTransformFromViewMatrix();
+	}
+	break;
+	case stationary:
+	{
+		m_viewMatrix=
+			glm::lookAt(
+				glm::vec3(m_stationaryTransform[3]),
+				target,
+				glm::vec3(0, 1, 0)); // +Y is up.
+		m_flyTransform= getCameraTransformFromViewMatrix();
+	}
+	break;
 	}
 }
 
@@ -146,7 +146,7 @@ void MikanCamera::adjustFlyForward(float distance)
 	{
 		const glm::vec3 position= glm_mat4_get_position(m_flyTransform);
 		const glm::vec3 delta= -glm_mat4_get_z_axis(m_flyTransform) * distance;
-		glm_mat4_set_position(m_flyTransform, position+delta);
+		glm_mat4_set_position(m_flyTransform, position + delta);
 
 		applyFlyParamsToViewMatrix();
 	}
@@ -156,8 +156,8 @@ void MikanCamera::adjustFlyRight(float distance)
 {
 	if (m_movementMode == eCameraMovementMode::fly)
 	{
-		const glm::vec3 position = glm_mat4_get_position(m_flyTransform);
-		const glm::vec3 delta = glm_mat4_get_x_axis(m_flyTransform) * distance;
+		const glm::vec3 position= glm_mat4_get_position(m_flyTransform);
+		const glm::vec3 delta= glm_mat4_get_x_axis(m_flyTransform) * distance;
 		glm_mat4_set_position(m_flyTransform, position + delta);
 
 		applyFlyParamsToViewMatrix();
@@ -168,8 +168,8 @@ void MikanCamera::adjustFlyUp(float distance)
 {
 	if (m_movementMode == eCameraMovementMode::fly)
 	{
-		const glm::vec3 position = glm_mat4_get_position(m_flyTransform);
-		const glm::vec3 delta = glm_mat4_get_y_axis(m_flyTransform) * distance;
+		const glm::vec3 position= glm_mat4_get_position(m_flyTransform);
+		const glm::vec3 delta= glm_mat4_get_y_axis(m_flyTransform) * distance;
 		glm_mat4_set_position(m_flyTransform, position + delta);
 
 		applyFlyParamsToViewMatrix();
@@ -180,15 +180,15 @@ void MikanCamera::adjustFlyYaw(float deltaDegrees)
 {
 	if (m_movementMode == eCameraMovementMode::fly)
 	{
-		const glm::vec3 position = glm_mat4_get_position(m_flyTransform);
+		const glm::vec3 position= glm_mat4_get_position(m_flyTransform);
 
-		m_flyYawDegrees = wrap_degrees(m_flyYawDegrees + deltaDegrees);
-		const float yawRadians = degrees_to_radians(m_flyYawDegrees);
-		const float pitchRadians = degrees_to_radians(m_flyPitchDegrees);
+		m_flyYawDegrees= wrap_degrees(m_flyYawDegrees + deltaDegrees);
+		const float yawRadians= degrees_to_radians(m_flyYawDegrees);
+		const float pitchRadians= degrees_to_radians(m_flyPitchDegrees);
 		glm::mat3 yawRot= glm::rotate(glm::mat4(1.f), pitchRadians, glm::vec3(1.f, 0.f, 0.f));
 		glm::mat3 pitchRot= glm::rotate(glm::mat4(1.f), yawRadians, glm::vec3(0.f, 1.f, 0.f));
-		const glm::mat4 orientation = glm_composite_xform(yawRot, pitchRot);
-		
+		const glm::mat4 orientation= glm_composite_xform(yawRot, pitchRot);
+
 		glm_mat4_set_rotation(m_flyTransform, orientation);
 		glm_mat4_set_position(m_flyTransform, position);
 
@@ -200,14 +200,14 @@ void MikanCamera::adjustFlyPitch(float deltaDegrees)
 {
 	if (m_movementMode == eCameraMovementMode::fly)
 	{
-		const glm::vec3 position = glm_mat4_get_position(m_flyTransform);
+		const glm::vec3 position= glm_mat4_get_position(m_flyTransform);
 
-		m_flyPitchDegrees = clampf(m_flyPitchDegrees - deltaDegrees, -90.f, 90.f);
-		const float yawRadians = degrees_to_radians(m_flyYawDegrees);
-		const float pitchRadians = degrees_to_radians(m_flyPitchDegrees);
-		glm::mat3 yawRot = glm::rotate(glm::mat4(1.f), pitchRadians, glm::vec3(1.f, 0.f, 0.f));
-		glm::mat3 pitchRot = glm::rotate(glm::mat4(1.f), yawRadians, glm::vec3(0.f, 1.f, 0.f));
-		const glm::mat4 orientation = glm_composite_xform(yawRot, pitchRot);
+		m_flyPitchDegrees= clampf(m_flyPitchDegrees - deltaDegrees, -90.f, 90.f);
+		const float yawRadians= degrees_to_radians(m_flyYawDegrees);
+		const float pitchRadians= degrees_to_radians(m_flyPitchDegrees);
+		glm::mat3 yawRot= glm::rotate(glm::mat4(1.f), pitchRadians, glm::vec3(1.f, 0.f, 0.f));
+		glm::mat3 pitchRot= glm::rotate(glm::mat4(1.f), yawRadians, glm::vec3(0.f, 1.f, 0.f));
+		const glm::mat4 orientation= glm_composite_xform(yawRot, pitchRot);
 
 		glm_mat4_set_rotation(m_flyTransform, orientation);
 		glm_mat4_set_position(m_flyTransform, position);
@@ -236,7 +236,7 @@ void MikanCamera::setOrbitRadius(float radius)
 
 void MikanCamera::setOrbitTargetPosition(const glm::vec3& cameraTarget)
 {
-	m_orbitTargetPosition = cameraTarget;
+	m_orbitTargetPosition= cameraTarget;
 	applyOrbitParamsToViewMatrix();
 }
 
@@ -273,9 +273,9 @@ void MikanCamera::adjustOrbitTargetPosition(const glm::vec3& deltaTarget)
 
 void MikanCamera::applyMonoCameraIntrinsics(MikanVideoSourceIntrinsics* cameraIntrinsics)
 {
-	assert (cameraIntrinsics->intrinsics_type == MikanIntrinsicsType::MONO_CAMERA_INTRINSICS);
+	assert(cameraIntrinsics->intrinsics_type == MikanIntrinsicsType::MONO_CAMERA_INTRINSICS);
 
-	const MikanMonoIntrinsics& monoIntrinsics = cameraIntrinsics->getMonoIntrinsics();
+	const MikanMonoIntrinsics& monoIntrinsics= cameraIntrinsics->getMonoIntrinsics();
 	monoIntrinsics.undistorted_camera_matrix;
 
 	int unusedViewport[4];
@@ -284,28 +284,28 @@ void MikanCamera::applyMonoCameraIntrinsics(MikanVideoSourceIntrinsics* cameraIn
 		m_projectionMatrix,
 		unusedViewport);
 
-	m_aspectRatio = (float)monoIntrinsics.aspect_ratio;
-	m_vFOVDegrees = (float)monoIntrinsics.vfov;
-	m_hFOVDegrees = (float)monoIntrinsics.hfov;
-	m_zNear = (float)monoIntrinsics.znear;
-	m_zFar = (float)monoIntrinsics.zfar;
+	m_aspectRatio= (float)monoIntrinsics.aspect_ratio;
+	m_vFOVDegrees= (float)monoIntrinsics.vfov;
+	m_hFOVDegrees= (float)monoIntrinsics.hfov;
+	m_zNear= (float)monoIntrinsics.znear;
+	m_zFar= (float)monoIntrinsics.zfar;
 }
 
 void MikanCamera::applyStationaryParamsToViewMatrix()
 {
-	m_viewMatrix = computeGLMCameraViewMatrix(m_stationaryTransform);
+	m_viewMatrix= computeGLMCameraViewMatrix(m_stationaryTransform);
 }
 
 void MikanCamera::applyFlyParamsToViewMatrix()
 {
-	m_viewMatrix = computeGLMCameraViewMatrix(m_flyTransform);
+	m_viewMatrix= computeGLMCameraViewMatrix(m_flyTransform);
 }
 
 void MikanCamera::applyOrbitParamsToViewMatrix()
 {
-	const float yawRadians = degrees_to_radians(m_orbitYawDegrees);
-	const float pitchRadians = degrees_to_radians(m_orbitPitchDegrees);
-	const float xzRadiusAtPitch = m_orbitRadius * cosf(pitchRadians);
+	const float yawRadians= degrees_to_radians(m_orbitYawDegrees);
+	const float pitchRadians= degrees_to_radians(m_orbitPitchDegrees);
+	const float xzRadiusAtPitch= m_orbitRadius * cosf(pitchRadians);
 	const glm::vec3 cameraPosition(
 		m_orbitTargetPosition.x + xzRadiusAtPitch * sinf(yawRadians),
 		m_orbitTargetPosition.y + m_orbitRadius * sinf(pitchRadians),
@@ -313,15 +313,15 @@ void MikanCamera::applyOrbitParamsToViewMatrix()
 
 	if (fabsf(m_orbitPitchDegrees) < 85.0f)
 	{
-		m_viewMatrix =
+		m_viewMatrix=
 			glm::lookAt(
 				cameraPosition,
 				m_orbitTargetPosition, // Look at tracking origin
-				glm::vec3(0, 1, 0));    // +Y is up.
+				glm::vec3(0, 1, 0));   // +Y is up.
 	}
 	else
 	{
-		m_viewMatrix =
+		m_viewMatrix=
 			glm::lookAt(
 				cameraPosition,
 				m_orbitTargetPosition, // Look at tracking origin
@@ -331,10 +331,10 @@ void MikanCamera::applyOrbitParamsToViewMatrix()
 
 glm::vec3 MikanCamera::getCameraPositionFromViewMatrix() const
 {
-	// Assumes no scaling 
+	// Assumes no scaling
 	const glm::mat3 rotMat(m_viewMatrix);
 	const glm::vec3 d(m_viewMatrix[3]);
-	const glm::vec3 position = -d * rotMat;
+	const glm::vec3 position= -d * rotMat;
 
 	return position;
 }
@@ -357,12 +357,11 @@ glm::vec3 MikanCamera::getCameraForwardFromViewMatrix() const
 
 glm::mat4 MikanCamera::getCameraTransformFromViewMatrix() const
 {
-	return
-		glm::mat4(
-			glm::vec4(getCameraRightFromViewMatrix(), 0.f),
-			glm::vec4(getCameraUpFromViewMatrix(), 0.f),
-			glm::vec4(getCameraForwardFromViewMatrix()*-1.f, 0.f), // Camera forward is along negative Z-axis
-			glm::vec4(getCameraPositionFromViewMatrix(), 1.f));
+	return glm::mat4(
+		glm::vec4(getCameraRightFromViewMatrix(), 0.f),
+		glm::vec4(getCameraUpFromViewMatrix(), 0.f),
+		glm::vec4(getCameraForwardFromViewMatrix() * -1.f, 0.f), // Camera forward is along negative Z-axis
+		glm::vec4(getCameraPositionFromViewMatrix(), 1.f));
 }
 
 void MikanCamera::computeCameraRayThruPixel(
@@ -381,10 +380,10 @@ void MikanCamera::computeCameraRayThruPixel(
 		((2.f * viewportPixelPos.x) / viewportWidth) - 1.f,
 		1.f - ((2.f * viewportPixelPos.y) / viewportHeight),
 		1.f);
-	
+
 	// Convert the nds ray into a 4d-clip space ray
 	const glm::vec4 ray_clip(ray_nds.x, ray_nds.y, -1.f, 1.0);
-	
+
 	// Convert the clip space ray back into an eye space ray
 	glm::vec4 ray_eye= glm::inverse(m_projectionMatrix) * ray_clip;
 	ray_eye= glm::vec4(ray_eye.x, ray_eye.y, -1.f, 0.f);

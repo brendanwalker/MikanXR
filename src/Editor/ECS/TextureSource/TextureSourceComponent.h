@@ -39,14 +39,14 @@ public:
 	}
 	virtual void setDefinition(MikanComponentDefinitionPtr definition) override;
 
-	inline static const std::string k_componentClassName = "TextureSourceComponent";
+	inline static const std::string k_componentClassName= "TextureSourceComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	// Texture Source Interface
 	MikanTextureSourceID getTextureSourceId() const;
-	virtual IMkTexturePtr getClientColorSourceTexture(MikanCameraID cameraId, eTextureSourceColorType textureSourceColorType, int64_t frameIndex = -1) const;
-	virtual IMkTexturePtr getClientDepthSourceTexture(MikanCameraID cameraId, eTextureSourceDepthType textureSourceDepthType, int64_t frameIndex = -1) const;
-	
+	virtual IMkTexturePtr getClientColorSourceTexture(MikanCameraID cameraId, eTextureSourceColorType textureSourceColorType, int64_t frameIndex= -1) const;
+	virtual IMkTexturePtr getClientDepthSourceTexture(MikanCameraID cameraId, eTextureSourceDepthType textureSourceDepthType, int64_t frameIndex= -1) const;
+
 	// Video Source Events
 	MulticastDelegate<void(TextureSourceComponentPtr TextureSource)> OnOpened;
 	MulticastDelegate<void(TextureSourceComponentPtr TextureSource)> OnClosed;

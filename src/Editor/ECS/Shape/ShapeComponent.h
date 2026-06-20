@@ -44,7 +44,7 @@ public:
 		return std::static_pointer_cast<ShapeComponentDefinition>(m_definition);
 	}
 
-	inline static const std::string k_componentClassName = "ShapeComponent";
+	inline static const std::string k_componentClassName= "ShapeComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	virtual void init() override;
@@ -95,7 +95,7 @@ protected:
 
 	// Shape Node Graph
 	NodeGraphAssetReferencePtr m_nodeGraphAssetRef;
-	ShapeNodeGraphPtr m_nodeGraph;            // asset-based (runtime default)
-	ShapeNodeGraphWeakPtr m_editorNodeGraph;  // editor override (priority)
+	ShapeNodeGraphPtr m_nodeGraph;           // asset-based (runtime default)
+	ShapeNodeGraphWeakPtr m_editorNodeGraph; // editor override (priority)
 	std::vector<NodeEvaluationError> m_lastNodeEvalErrors;
 };

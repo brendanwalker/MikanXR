@@ -12,8 +12,8 @@ public:
 	~UdpMulticastSocket();
 
 	// Non-copyable
-	UdpMulticastSocket(const UdpMulticastSocket&) = delete;
-	UdpMulticastSocket& operator=(const UdpMulticastSocket&) = delete;
+	UdpMulticastSocket(const UdpMulticastSocket&)= delete;
+	UdpMulticastSocket& operator=(const UdpMulticastSocket&)= delete;
 
 	/// Open and bind the socket.
 	/// @param bindIP  Local interface IP to bind to ("0.0.0.0" for default)
@@ -35,12 +35,12 @@ public:
 
 private:
 #if defined(_WIN32)
-	using SocketHandle = uintptr_t;
-	static constexpr SocketHandle k_invalidSocket = static_cast<SocketHandle>(~0);
+	using SocketHandle= uintptr_t;
+	static constexpr SocketHandle k_invalidSocket= static_cast<SocketHandle>(~0);
 #else
-	using SocketHandle = int;
-	static constexpr SocketHandle k_invalidSocket = -1;
+	using SocketHandle= int;
+	static constexpr SocketHandle k_invalidSocket= -1;
 #endif
 
-	SocketHandle m_socket = k_invalidSocket;
+	SocketHandle m_socket= k_invalidSocket;
 };

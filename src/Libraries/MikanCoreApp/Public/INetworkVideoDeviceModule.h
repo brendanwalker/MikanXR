@@ -6,7 +6,7 @@
 class INetworkVideoDeviceModule : public IMikanModule
 {
 public:
-	INetworkVideoDeviceModule() = default;
+	INetworkVideoDeviceModule()= default;
 
-	virtual INetworkVideoDeviceManagerPtr createNetworkVideoDeviceManager() = 0;
+	virtual INetworkVideoDeviceManagerPtr createNetworkVideoDeviceManager()= 0;
 };

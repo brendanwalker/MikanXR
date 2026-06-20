@@ -4,9 +4,9 @@
 class TimeNode : public Node
 {
 public:
-	TimeNode() = default;
+	TimeNode()= default;
 
-	inline static const std::string k_nodeClassName = "TimeNode";
+	inline static const std::string k_nodeClassName= "TimeNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
 	virtual bool evaluateNode(NodeEvaluator& evaluator) override;
 

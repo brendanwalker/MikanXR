@@ -9,42 +9,40 @@
 
 #include <string>
 
-class SpoutTextureSourceSystemDefinition :
-	public MikanTypedObjectSystemDefinition<SpoutTextureSourceComponent, SpoutTextureSourceDefinition, MikanTextureSourceID>
+class SpoutTextureSourceSystemDefinition : public MikanTypedObjectSystemDefinition<SpoutTextureSourceComponent, SpoutTextureSourceDefinition, MikanTextureSourceID>
 {
 public:
-	using Super = MikanTypedObjectSystemDefinition<SpoutTextureSourceComponent, SpoutTextureSourceDefinition, MikanTextureSourceID>;
+	using Super= MikanTypedObjectSystemDefinition<SpoutTextureSourceComponent, SpoutTextureSourceDefinition, MikanTextureSourceID>;
 
 	SpoutTextureSourceSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 };
 
-class SpoutTextureSourceSystem :
-	public MikanTypedObjectSystem<
-		SpoutTextureSourceComponent, SpoutTextureSourceDefinition,
-		MikanTextureSourceID,
-		SpoutTextureSourceSystem, SpoutTextureSourceSystemDefinition>
+class SpoutTextureSourceSystem : public MikanTypedObjectSystem<
+									 SpoutTextureSourceComponent, SpoutTextureSourceDefinition,
+									 MikanTextureSourceID,
+									 SpoutTextureSourceSystem, SpoutTextureSourceSystemDefinition>
 {
 public:
-	using Super = MikanTypedObjectSystem<
+	using Super= MikanTypedObjectSystem<
 		SpoutTextureSourceComponent, SpoutTextureSourceDefinition,
 		MikanTextureSourceID,
 		SpoutTextureSourceSystem, SpoutTextureSourceSystemDefinition>;
 
-    SpoutTextureSourceSystem(ProjectManagerPtr ownerObjectSystem);
+	SpoutTextureSourceSystem(ProjectManagerPtr ownerObjectSystem);
 
-	inline static const std::string k_objectSystemClassName = "SpoutTextureSourceSystem";
+	inline static const std::string k_objectSystemClassName= "SpoutTextureSourceSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
 	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
-    virtual void dispose() override;
+	virtual void dispose() override;
 
-    TextureSourceComponentList getTextureSourceComponentList() const;
-    TextureSourceIdList getTextureSourceIdList() const;
+	TextureSourceComponentList getTextureSourceComponentList() const;
+	TextureSourceIdList getTextureSourceIdList() const;
 
 	void getAvailableSpoutSenderNames(std::vector<std::string>& outSenderNames) const;
 
 private:
-    struct SPOUTLIBRARY* m_spoutLibrary = nullptr;
+	struct SPOUTLIBRARY* m_spoutLibrary= nullptr;
 };
 
-using SpoutTextureSourceSystemPtr = std::shared_ptr<SpoutTextureSourceSystem>;
+using SpoutTextureSourceSystemPtr= std::shared_ptr<SpoutTextureSourceSystem>;

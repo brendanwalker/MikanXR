@@ -8,7 +8,6 @@
 #include <string>
 #include <set>
 
-
 class MikanGStreamerVideoDevice : public INetworkVideoDevice
 {
 public:
@@ -38,7 +37,7 @@ public:
 	// -- Video Settings
 	virtual bool isVideoSettingSupported(const eVideoSettingType property_type) const override;
 	virtual bool getVideoSettingConstraint(
-		const eVideoSettingType property_type, 
+		const eVideoSettingType property_type,
 		VideoSettingConstraint& outConstraint) const override;
 	virtual void setVideoSetting(const eVideoSettingType property_type, int desired_value) override;
 	virtual int getVideoSetting(const eVideoSettingType property_type) const override;
@@ -47,7 +46,7 @@ public:
 	virtual eVideoStreamingStatus startVideoStream() override;
 	virtual eVideoStreamingStatus getVideoStreamingStatus() const override;
 	virtual void stopVideoStream() override;
-	
+
 protected:
 	void notifyVideoDeviceOpened();
 	void notifyVideoDeviceClosed();
@@ -57,21 +56,26 @@ protected:
 private:
 	bool openOnThread();
 
-	enum class eOpenState { closed, opening, open, failed };
+	enum class eOpenState
+	{
+		closed,
+		opening,
+		open,
+		failed
+	};
 
-	static constexpr float k_streamTimeoutSeconds = 10.0f;
+	static constexpr float k_streamTimeoutSeconds= 10.0f;
 
 	class MikanGStreamerVideoDeviceManager* m_ownerDeviceManager;
 	NetworkVideoConnectionSettings m_connectionInfo;
 	NetworkVideoStreamProperties m_streamInfo;
 	std::string m_url;
 	struct GStreamerImpl* m_impl;
-	eOpenState m_openState = eOpenState::closed;
+	eOpenState m_openState= eOpenState::closed;
 	std::future<bool> m_openFuture;
-	eVideoStreamingStatus m_streamingStatus = eVideoStreamingStatus::stopped;
-	float m_timeSinceLastFrameSeconds = 0.0f;
-	bool m_pendingStreamStartAfterOpen = false;
+	eVideoStreamingStatus m_streamingStatus= eVideoStreamingStatus::stopped;
+	float m_timeSinceLastFrameSeconds= 0.0f;
+	bool m_pendingStreamStartAfterOpen= false;
 
 	std::set<INetworkVideoDeviceListener*> m_listeners;
 };
-

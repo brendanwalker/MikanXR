@@ -12,13 +12,12 @@
 #include <string>
 #include <vector>
 
-using VRTrackingVolumeIdList = std::vector<MikanTrackingVolumeID>;
+using VRTrackingVolumeIdList= std::vector<MikanTrackingVolumeID>;
 
-class VRTrackingVolumeSystemDefinition :
-	public MikanTypedObjectSystemDefinition<VRTrackingVolumeComponent, VRTrackingVolumeDefinition, MikanTrackingVolumeID>
+class VRTrackingVolumeSystemDefinition : public MikanTypedObjectSystemDefinition<VRTrackingVolumeComponent, VRTrackingVolumeDefinition, MikanTrackingVolumeID>
 {
 public:
-	using Super = MikanTypedObjectSystemDefinition<VRTrackingVolumeComponent, VRTrackingVolumeDefinition, MikanTrackingVolumeID>;
+	using Super= MikanTypedObjectSystemDefinition<VRTrackingVolumeComponent, VRTrackingVolumeDefinition, MikanTrackingVolumeID>;
 
 	VRTrackingVolumeSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator);
 
@@ -26,28 +25,28 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt);
 };
 
-class VRTrackingVolumeSystem :
-	public MikanTypedObjectSystem<
-		VRTrackingVolumeComponent, VRTrackingVolumeDefinition,
-		MikanTrackingVolumeID,
-		VRTrackingVolumeSystem, VRTrackingVolumeSystemDefinition>
+class VRTrackingVolumeSystem : public MikanTypedObjectSystem<
+								   VRTrackingVolumeComponent, VRTrackingVolumeDefinition,
+								   MikanTrackingVolumeID,
+								   VRTrackingVolumeSystem, VRTrackingVolumeSystemDefinition>
 {
 public:
-	using Super = MikanTypedObjectSystem<
+	using Super= MikanTypedObjectSystem<
 		VRTrackingVolumeComponent, VRTrackingVolumeDefinition,
 		MikanTrackingVolumeID,
 		VRTrackingVolumeSystem, VRTrackingVolumeSystemDefinition>;
 
 	VRTrackingVolumeSystem(ProjectManagerPtr ownerObjectSystemManager);
 
-	inline static const std::string k_objectSystemClassName = "VRTrackingVolumeSystem";
+	inline static const std::string k_objectSystemClassName= "VRTrackingVolumeSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
 	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
 
 	VRTrackingVolumeIdList getTrackingVolumeIdList() const;
 
-	inline VRTrackingVolumeComponentPtr getVRTrackingVolumeById(MikanTrackingVolumeID trackingVolumeId) const {
+	inline VRTrackingVolumeComponentPtr getVRTrackingVolumeById(MikanTrackingVolumeID trackingVolumeId) const
+	{
 		return Super::getTypedComponentById(trackingVolumeId);
 	}
 

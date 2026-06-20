@@ -20,9 +20,9 @@
 #include "LuaBridge/LuaBridge.h"
 
 // -- BoxStencilComponent -----
-const std::string BoxStencilDefinition::k_boxStencilXSizePropertyId = "box_x_size";
-const std::string BoxStencilDefinition::k_boxStencilYSizePropertyId = "box_y_size";
-const std::string BoxStencilDefinition::k_boxStencilZSizePropertyId = "box_z_size";
+const std::string BoxStencilDefinition::k_boxStencilXSizePropertyId= "box_x_size";
+const std::string BoxStencilDefinition::k_boxStencilYSizePropertyId= "box_y_size";
+const std::string BoxStencilDefinition::k_boxStencilZSizePropertyId= "box_z_size";
 
 BoxStencilDefinition::BoxStencilDefinition()
 	: StencilComponentDefinition()
@@ -38,11 +38,11 @@ BoxStencilDefinition::BoxStencilDefinition(MikanStencilID stencilId)
 
 configuru::Config BoxStencilDefinition::writeToJSON()
 {
-	configuru::Config pt = StencilComponentDefinition::writeToJSON();
+	configuru::Config pt= StencilComponentDefinition::writeToJSON();
 
-	pt["box_x_size"] = m_boxSize.x;
-	pt["box_y_size"] = m_boxSize.y;
-	pt["box_z_size"] = m_boxSize.z;
+	pt["box_x_size"]= m_boxSize.x;
+	pt["box_y_size"]= m_boxSize.y;
+	pt["box_z_size"]= m_boxSize.z;
 
 	return pt;
 }
@@ -51,9 +51,9 @@ void BoxStencilDefinition::readFromJSON(const configuru::Config& pt)
 {
 	StencilComponentDefinition::readFromJSON(pt);
 
-	m_boxSize.x = pt.get_or<float>("box_x_size", 0.25f);
-	m_boxSize.y = pt.get_or<float>("box_y_size", 0.25f);
-	m_boxSize.z = pt.get_or<float>("box_z_size", 0.25f);
+	m_boxSize.x= pt.get_or<float>("box_x_size", 0.25f);
+	m_boxSize.y= pt.get_or<float>("box_y_size", 0.25f);
+	m_boxSize.z= pt.get_or<float>("box_z_size", 0.25f);
 }
 
 bool BoxStencilDefinition::readFromInitParams(
@@ -63,12 +63,12 @@ bool BoxStencilDefinition::readFromInitParams(
 	if (!StencilComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
-	const auto* componentValues = initParams.getTypedPointer<MikanBoxStencilComponentValues>();
+	const auto* componentValues= initParams.getTypedPointer<MikanBoxStencilComponentValues>();
 	if (componentValues)
 	{
-		m_boxSize.x = componentValues->box_x_size;
-		m_boxSize.y = componentValues->box_y_size;
-		m_boxSize.z = componentValues->box_z_size;
+		m_boxSize.x= componentValues->box_x_size;
+		m_boxSize.y= componentValues->box_y_size;
+		m_boxSize.z= componentValues->box_z_size;
 	}
 
 	return true;
@@ -76,31 +76,31 @@ bool BoxStencilDefinition::readFromInitParams(
 
 void BoxStencilDefinition::setBoxXSize(float size)
 {
-	m_boxSize.x = size;
+	m_boxSize.x= size;
 	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_boxStencilXSizePropertyId));
 }
 
 void BoxStencilDefinition::setBoxYSize(float size)
 {
-	m_boxSize.y = size;
+	m_boxSize.y= size;
 	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_boxStencilYSizePropertyId));
 }
 
 void BoxStencilDefinition::setBoxZSize(float size)
 {
-	m_boxSize.z = size;
+	m_boxSize.z= size;
 	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_boxStencilZSizePropertyId));
 }
 
 void BoxStencilDefinition::setBoxSize(float xSize, float ySize, float zSize)
 {
-	m_boxSize.x = xSize;
-	m_boxSize.y = ySize;
-	m_boxSize.z = zSize;
+	m_boxSize.x= xSize;
+	m_boxSize.y= ySize;
+	m_boxSize.z= zSize;
 	notifyPropertyChanged(ConfigPropertyChangeSet()
-				.addPropertyName(k_boxStencilXSizePropertyId)
-				.addPropertyName(k_boxStencilYSizePropertyId)
-				.addPropertyName(k_boxStencilZSizePropertyId));
+							  .addPropertyName(k_boxStencilXSizePropertyId)
+							  .addPropertyName(k_boxStencilYSizePropertyId)
+							  .addPropertyName(k_boxStencilZSizePropertyId));
 }
 
 // -- BoxStencilComponent -----
@@ -119,26 +119,26 @@ void BoxStencilComponent::init()
 {
 	StencilComponent::init();
 
-	m_boxCollider = getOwnerObject()->getComponentOfType<BoxColliderComponent>();
-	m_selectionComponent = getOwnerObject()->getComponentOfType<SelectionComponent>();
+	m_boxCollider= getOwnerObject()->getComponentOfType<BoxColliderComponent>();
+	m_selectionComponent= getOwnerObject()->getComponentOfType<SelectionComponent>();
 }
 
 void BoxStencilComponent::customRender(
-	IMkGraphicsContext* graphicsContext, 
+	IMkGraphicsContext* graphicsContext,
 	MikanCameraPtr viewportCamera) const
 {
 	BoxStencilDefinitionPtr boxDefinition= getBoxStencilDefinition();
 
 	if (!boxDefinition->getIsDisabled())
 	{
-		TextStyle style = getDefaultTextStyle();
+		TextStyle style= getDefaultTextStyle();
 
 		const float xSize= boxDefinition->getBoxXSize();
 		const float ySize= boxDefinition->getBoxYSize();
 		const float zSize= boxDefinition->getBoxZSize();
-		const glm::mat4 xform = getWorldTransform();
+		const glm::mat4 xform= getWorldTransform();
 		const glm::vec3 half_extents(xSize / 2.f, ySize / 2.f, zSize / 2.f);
-		const glm::vec3 position = glm::vec3(xform[3]);
+		const glm::vec3 position= glm::vec3(xform[3]);
 
 		glm::vec3 color= Colors::DarkGray;
 		SelectionComponentPtr selectionComponent= m_selectionComponent.lock();
@@ -149,7 +149,7 @@ void BoxStencilComponent::customRender(
 			else if (selectionComponent->getIsHovered())
 				color= Colors::LightGray;
 		}
-		
+
 		drawTransformedBox(graphicsContext, xform, half_extents, color);
 		if (!selectionComponent || !selectionComponent->getIsSelected())
 			drawTransformedAxes(graphicsContext, xform, 0.1f, 0.1f, 0.1f);
@@ -164,9 +164,9 @@ void BoxStencilComponent::updateBoxColliderExtents()
 
 	if (boxCollider && boxDefinition)
 	{
-		const float xSize = boxDefinition->getBoxXSize();
-		const float ySize = boxDefinition->getBoxYSize();
-		const float zSize = boxDefinition->getBoxZSize();
+		const float xSize= boxDefinition->getBoxXSize();
+		const float ySize= boxDefinition->getBoxYSize();
+		const float zSize= boxDefinition->getBoxZSize();
 
 		boxCollider->setHalfExtents(glm::vec3(xSize, ySize, zSize) * 0.5f);
 	}
@@ -194,17 +194,17 @@ bool BoxStencilComponent::getPropertyValue(
 {
 	if (propertyName == BoxStencilDefinition::k_boxStencilXSizePropertyId)
 	{
-		outValue = getBoxStencilDefinition()->getBoxXSize();
+		outValue= getBoxStencilDefinition()->getBoxXSize();
 		return true;
 	}
 	else if (propertyName == BoxStencilDefinition::k_boxStencilYSizePropertyId)
 	{
-		outValue = getBoxStencilDefinition()->getBoxYSize();
+		outValue= getBoxStencilDefinition()->getBoxYSize();
 		return true;
 	}
 	else if (propertyName == BoxStencilDefinition::k_boxStencilZSizePropertyId)
 	{
-		outValue = getBoxStencilDefinition()->getBoxZSize();
+		outValue= getBoxStencilDefinition()->getBoxZSize();
 		return true;
 	}
 
@@ -217,21 +217,21 @@ bool BoxStencilComponent::setPropertyValue(
 {
 	if (propertyName == BoxStencilDefinition::k_boxStencilXSizePropertyId)
 	{
-		float xSize = inValue.getFloatValue();
+		float xSize= inValue.getFloatValue();
 
 		getBoxStencilDefinition()->setBoxXSize(xSize);
 		return true;
 	}
 	else if (propertyName == BoxStencilDefinition::k_boxStencilYSizePropertyId)
 	{
-		float ySize = inValue.getFloatValue();
+		float ySize= inValue.getFloatValue();
 
 		getBoxStencilDefinition()->setBoxYSize(ySize);
 		return true;
 	}
 	else if (propertyName == BoxStencilDefinition::k_boxStencilZSizePropertyId)
 	{
-		float zSize = inValue.getFloatValue();
+		float zSize= inValue.getFloatValue();
 
 		getBoxStencilDefinition()->setBoxZSize(zSize);
 		return true;
@@ -245,26 +245,14 @@ void BoxStencilComponent::bindLuaFunctions(lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
 		.deriveClass<BoxStencilComponent, StencilComponent>(BoxStencilComponent::k_componentClassName.c_str())
-		.addProperty("boxXSize",
-			[](BoxStencilComponent* component) -> float {
-				return component->getBoxStencilDefinition()->getBoxXSize();
-			},
-			[](BoxStencilComponent* component, float value) {
-				component->getBoxStencilDefinition()->setBoxXSize(value);
-			})
-		.addProperty("boxYSize",
-			[](BoxStencilComponent* component) -> float {
-				return component->getBoxStencilDefinition()->getBoxYSize();
-			},
-			[](BoxStencilComponent* component, float value) {
-				component->getBoxStencilDefinition()->setBoxYSize(value);
-			})
-		.addProperty("boxZSize",
-			[](BoxStencilComponent* component) -> float {
-				return component->getBoxStencilDefinition()->getBoxZSize();
-			},
-			[](BoxStencilComponent* component, float value) {
-				component->getBoxStencilDefinition()->setBoxZSize(value);
-			})
+		.addProperty("boxXSize", [](BoxStencilComponent* component) -> float
+					 { return component->getBoxStencilDefinition()->getBoxXSize(); }, [](BoxStencilComponent* component, float value)
+					 { component->getBoxStencilDefinition()->setBoxXSize(value); })
+		.addProperty("boxYSize", [](BoxStencilComponent* component) -> float
+					 { return component->getBoxStencilDefinition()->getBoxYSize(); }, [](BoxStencilComponent* component, float value)
+					 { component->getBoxStencilDefinition()->setBoxYSize(value); })
+		.addProperty("boxZSize", [](BoxStencilComponent* component) -> float
+					 { return component->getBoxStencilDefinition()->getBoxZSize(); }, [](BoxStencilComponent* component, float value)
+					 { component->getBoxStencilDefinition()->setBoxZSize(value); })
 		.endClass();
 }

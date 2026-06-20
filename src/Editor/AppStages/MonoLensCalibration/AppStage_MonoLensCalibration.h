@@ -54,10 +54,10 @@ protected:
 	bool handleCaptureCommand(std::vector<std::string>& outResults);
 
 private:
-	class GuiPanel_MonoLensCalibration* m_calibrationPanel = nullptr;
-	class GuiPanel_MonoCameraSettings* m_cameraSettingsPanel = nullptr;
+	class GuiPanel_MonoLensCalibration* m_calibrationPanel= nullptr;
+	class GuiPanel_MonoCameraSettings* m_cameraSettingsPanel= nullptr;
 
-	bool m_bypassCalibrationFlag = false;
+	bool m_bypassCalibrationFlag= false;
 	VideoSourceComponentPtr m_videoSourceComponent;
 	class MonoLensDistortionCalibrator* m_monoLensCalibrator;
 	class VideoFrameDistortionView* m_monoDistortionView;

@@ -3,10 +3,10 @@
 // -- Asset Reference Config -----
 configuru::Config AssetReferenceConfig::writeToJSON()
 {
-	configuru::Config pt = CommonConfig::writeToJSON();
+	configuru::Config pt= CommonConfig::writeToJSON();
 
-	pt["class_name"] = className;
-	pt["asset_path"] = assetPath;
+	pt["class_name"]= className;
+	pt["asset_path"]= assetPath;
 
 	return pt;
 }
@@ -15,8 +15,8 @@ void AssetReferenceConfig::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
-	className = pt.get_or<std::string>("class_name", "AssetReference");
-	assetPath = pt.get_or<std::string>("asset_path", "");
+	className= pt.get_or<std::string>("class_name", "AssetReference");
+	assetPath= pt.get_or<std::string>("asset_path", "");
 }
 
 bool AssetReferenceConfig::isValid() const
@@ -39,8 +39,8 @@ bool AssetReference::loadFromConfig(AssetReferenceConfigConstPtr config)
 
 void AssetReference::saveToConfig(AssetReferenceConfigPtr config) const
 {
-	config->className = getClassName();
-	config->assetPath = m_assetPath.string();
+	config->className= getClassName();
+	config->assetPath= m_assetPath.string();
 }
 
 void AssetReference::setAssetPath(const std::filesystem::path& inPath)

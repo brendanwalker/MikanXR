@@ -8,11 +8,10 @@
 #include <memory>
 #include <vector>
 
-using MikanWMFVideoDevicePtr = std::shared_ptr<class MikanWMFVideoDevice>;
+using MikanWMFVideoDevicePtr= std::shared_ptr<class MikanWMFVideoDevice>;
 
-class MikanWMFVideoDeviceManager : 
-	public IUsbVideoDeviceManager, 
-	public IDeviceHotplugListener
+class MikanWMFVideoDeviceManager : public IUsbVideoDeviceManager,
+								   public IDeviceHotplugListener
 {
 public:
 	MikanWMFVideoDeviceManager();

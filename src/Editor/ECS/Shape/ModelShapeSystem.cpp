@@ -42,7 +42,7 @@ void ModelShapeSystem::getModelShapeComponentList(std::vector<ModelShapeComponen
 	outList.clear();
 	for (const auto& pair : Super::getComponentMap())
 	{
-		ModelShapeComponentPtr comp = pair.second.lock();
+		ModelShapeComponentPtr comp= pair.second.lock();
 		if (comp)
 			outList.push_back(comp);
 	}
@@ -63,23 +63,28 @@ void ModelShapeSystem::bindLuaFunctions(struct lua_State* L)
 	luabridge::getGlobalNamespace(L)
 		.beginClass<ModelShapeSystem>("ModelShapeSystem")
 		.addFunction("getModelShapeById",
-			[](ModelShapeSystem* s, int id) -> ModelShapeComponent* {
-				return s->getModelShapeById(static_cast<MikanShapeID>(id)).get();
-			})
+					 [](ModelShapeSystem* s, int id) -> ModelShapeComponent*
+					 {
+						 return s->getModelShapeById(static_cast<MikanShapeID>(id)).get();
+					 })
 		.addFunction("getModelShapeByName",
-			[](ModelShapeSystem* s, const std::string& name) -> ModelShapeComponent* {
-				return s->getModelShapeByName(name).get();
-			})
+					 [](ModelShapeSystem* s, const std::string& name) -> ModelShapeComponent*
+					 {
+						 return s->getModelShapeByName(name).get();
+					 })
 		.addFunction("getModelShapeCount",
-			[](ModelShapeSystem* s) -> int {
-				return static_cast<int>(s->getComponentMap().size());
-			})
+					 [](ModelShapeSystem* s) -> int
+					 {
+						 return static_cast<int>(s->getComponentMap().size());
+					 })
 		.addFunction("getModelShapeAtIndex",
-			[](ModelShapeSystem* s, int i) -> ModelShapeComponent* {
-				int n = 0;
-				for (auto& [id, wp] : s->getComponentMap())
-					if (n++ == i) return wp.lock().get();
-				return nullptr;
-			})
+					 [](ModelShapeSystem* s, int i) -> ModelShapeComponent*
+					 {
+						 int n= 0;
+						 for (auto& [id, wp] : s->getComponentMap())
+							 if (n++ == i)
+								 return wp.lock().get();
+						 return nullptr;
+					 })
 		.endClass();
 }

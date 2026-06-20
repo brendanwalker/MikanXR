@@ -28,9 +28,9 @@ void TestLogUtils::logComponent(const MikanTransformComponentValues& transformIn
 {
 	logComponent((const MikanComponentValues&)transformInfo);
 
-	const MikanVector3f& s = transformInfo.relative_scale;
-	const MikanQuatf& q = transformInfo.relative_quaternion;
-	const MikanVector3f& t = transformInfo.relative_position;
+	const MikanVector3f& s= transformInfo.relative_scale;
+	const MikanQuatf& q= transformInfo.relative_quaternion;
+	const MikanVector3f& t= transformInfo.relative_position;
 
 	MIKAN_LOG_INFO("TransformComponent") << "Parent Transform Id: " << transformInfo.parent_transform_id;
 	MIKAN_LOG_INFO("TransformComponent") << "Scale: " << s.x << ", " << s.y << ", " << s.z;
@@ -41,7 +41,7 @@ void TestLogUtils::logComponent(const MikanTransformComponentValues& transformIn
 void TestLogUtils::logComponent(const MikanAnchorComponentValues& anchorInfo)
 {
 	logComponent((const MikanTransformComponentValues&)anchorInfo);
-		
+
 	MIKAN_LOG_INFO("AnchorComponent") << "Anchor Id: " << anchorInfo.component_id;
 }
 
@@ -84,9 +84,9 @@ void TestLogUtils::logComponent(const MikanVRDeviceComponentValues& vrDeviceInfo
 
 void TestLogUtils::logModelStencilGeometry(const MikanStencilModelRenderGeometry& geometry)
 {
-	for (size_t index = 0; index < geometry.meshes.size(); ++index)
+	for (size_t index= 0; index < geometry.meshes.size(); ++index)
 	{
-		const MikanTriagulatedMesh& mesh = geometry.meshes[index];
+		const MikanTriagulatedMesh& mesh= geometry.meshes[index];
 
 		MIKAN_LOG_INFO("logModelStencilGeometry") << "  Mesh Index: " << index;
 		logModelTriMesh(mesh);
@@ -103,9 +103,9 @@ void TestLogUtils::logModelTriMesh(const MikanTriagulatedMesh& triMesh)
 
 void TestLogUtils::logTransform(const MikanTransform& xform)
 {
-	const MikanVector3f& s = xform.scale;
-	const MikanVector3f& t = xform.position;
-	const MikanQuatf& q = xform.rotation;
+	const MikanVector3f& s= xform.scale;
+	const MikanVector3f& t= xform.position;
+	const MikanQuatf& q= xform.rotation;
 
 	MIKAN_LOG_INFO("TransformComponent") << "  Scale: " << s.x << ", " << s.y << ", " << s.z;
 	MIKAN_LOG_INFO("TransformComponent") << "  Rotation: " << q.x << ", " << q.y << ", " << q.z << ", " << q.w;

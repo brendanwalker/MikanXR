@@ -95,91 +95,91 @@
 #include "MikanVRDeviceTypes.h"
 
 // Static system class name definitions
-const char* MikanAnchorSystemValues::k_systemName = "AnchorObjectSystem";
-const char* MikanEditorSystemValues::k_systemName = "EditorObjectSystem";
-const char* MikanBoxStencilSystemValues::k_systemName = "BoxStencilSystem";
-const char* MikanQuadStencilSystemValues::k_systemName = "QuadStencilSystem";
-const char* MikanModelStencilSystemValues::k_systemName = "ModelStencilSystem";
-const char* MikanQuadShapeSystemValues::k_systemName = "QuadShapeSystem";
-const char* MikanBoxShapeSystemValues::k_systemName = "BoxShapeSystem";
-const char* MikanModelShapeSystemValues::k_systemName = "ModelShapeSystem";
-const char* MikanMarkerSystemValues::k_systemName = "MarkerObjectSystem";
-const char* MikanSceneSystemValues::k_systemName = "SceneObjectSystem";
-const char* MikanDMXObjectSystemValues::k_systemName = "DMXObjectSystem";
-const char* MikanRGBSpotLightSystemValues::k_systemName = "RGBSpotLightSystem";
-const char* MikanRGBPixelGridSystemValues::k_systemName = "RGBPixelGridSystem";
-const char* MikanVRObjectSystemValues::k_systemName = "VRObjectSystem";
+const char* MikanAnchorSystemValues::k_systemName= "AnchorObjectSystem";
+const char* MikanEditorSystemValues::k_systemName= "EditorObjectSystem";
+const char* MikanBoxStencilSystemValues::k_systemName= "BoxStencilSystem";
+const char* MikanQuadStencilSystemValues::k_systemName= "QuadStencilSystem";
+const char* MikanModelStencilSystemValues::k_systemName= "ModelStencilSystem";
+const char* MikanQuadShapeSystemValues::k_systemName= "QuadShapeSystem";
+const char* MikanBoxShapeSystemValues::k_systemName= "BoxShapeSystem";
+const char* MikanModelShapeSystemValues::k_systemName= "ModelShapeSystem";
+const char* MikanMarkerSystemValues::k_systemName= "MarkerObjectSystem";
+const char* MikanSceneSystemValues::k_systemName= "SceneObjectSystem";
+const char* MikanDMXObjectSystemValues::k_systemName= "DMXObjectSystem";
+const char* MikanRGBSpotLightSystemValues::k_systemName= "RGBSpotLightSystem";
+const char* MikanRGBPixelGridSystemValues::k_systemName= "RGBPixelGridSystem";
+const char* MikanVRObjectSystemValues::k_systemName= "VRObjectSystem";
 
 // Static component class name and owner system name definitions
 // TODO: Make these come from the System and component classes
-const char* MikanAnchorComponentValues::k_componentClassName = "AnchorComponent";
-const char* MikanAnchorComponentValues::k_ownerSystemName = "AnchorObjectSystem";
+const char* MikanAnchorComponentValues::k_componentClassName= "AnchorComponent";
+const char* MikanAnchorComponentValues::k_ownerSystemName= "AnchorObjectSystem";
 
-const char* MikanCameraComponentValues::k_componentClassName = "CameraComponent";
-const char* MikanCameraComponentValues::k_ownerSystemName = "CameraObjectSystem";
+const char* MikanCameraComponentValues::k_componentClassName= "CameraComponent";
+const char* MikanCameraComponentValues::k_ownerSystemName= "CameraObjectSystem";
 
-const char* MikanCompositorComponentValues::k_componentClassName = "CompositorComponent";
-const char* MikanCompositorComponentValues::k_ownerSystemName = "CompositorObjectSystem";
+const char* MikanCompositorComponentValues::k_componentClassName= "CompositorComponent";
+const char* MikanCompositorComponentValues::k_ownerSystemName= "CompositorObjectSystem";
 
-const char* MikanMarkerComponentValues::k_componentClassName = "MarkerComponent";
-const char* MikanMarkerComponentValues::k_ownerSystemName = MikanMarkerSystemValues::k_systemName;
+const char* MikanMarkerComponentValues::k_componentClassName= "MarkerComponent";
+const char* MikanMarkerComponentValues::k_ownerSystemName= MikanMarkerSystemValues::k_systemName;
 
-const char* MikanSceneComponentValues::k_componentClassName = "SceneComponent";
-const char* MikanSceneComponentValues::k_ownerSystemName = "SceneObjectSystem";
+const char* MikanSceneComponentValues::k_componentClassName= "SceneComponent";
+const char* MikanSceneComponentValues::k_ownerSystemName= "SceneObjectSystem";
 
-const char* MikanStageComponentValues::k_componentClassName = "StageComponent";
-const char* MikanStageComponentValues::k_ownerSystemName = "StageObjectSystem";
+const char* MikanStageComponentValues::k_componentClassName= "StageComponent";
+const char* MikanStageComponentValues::k_ownerSystemName= "StageObjectSystem";
 
-const char* MikanQuadStencilComponentValues::k_componentClassName = "QuadStencilComponent";
-const char* MikanQuadStencilComponentValues::k_ownerSystemName = "QuadStencilObjectSystem";
+const char* MikanQuadStencilComponentValues::k_componentClassName= "QuadStencilComponent";
+const char* MikanQuadStencilComponentValues::k_ownerSystemName= "QuadStencilObjectSystem";
 
-const char* MikanBoxStencilComponentValues::k_componentClassName = "BoxStencilComponent";
-const char* MikanBoxStencilComponentValues::k_ownerSystemName = "BoxStencilSystem";
+const char* MikanBoxStencilComponentValues::k_componentClassName= "BoxStencilComponent";
+const char* MikanBoxStencilComponentValues::k_ownerSystemName= "BoxStencilSystem";
 
 const char* MikanRGBSpotLightComponentValues::k_componentClassName= "RGBSpotLightComponent";
 const char* MikanRGBSpotLightComponentValues::k_ownerSystemName= MikanRGBSpotLightSystemValues::k_systemName;
 
-const char* MikanRGBPixelGridComponentValues::k_componentClassName = "RGBPixelGridComponent";
-const char* MikanRGBPixelGridComponentValues::k_ownerSystemName = MikanRGBPixelGridSystemValues::k_systemName;
+const char* MikanRGBPixelGridComponentValues::k_componentClassName= "RGBPixelGridComponent";
+const char* MikanRGBPixelGridComponentValues::k_ownerSystemName= MikanRGBPixelGridSystemValues::k_systemName;
 
-const char* MikanModelStencilComponentValues::k_componentClassName = "ModelStencilComponent";
-const char* MikanModelStencilComponentValues::k_ownerSystemName = "ModelStencilSystem";
+const char* MikanModelStencilComponentValues::k_componentClassName= "ModelStencilComponent";
+const char* MikanModelStencilComponentValues::k_ownerSystemName= "ModelStencilSystem";
 
-const char* MikanQuadShapeComponentValues::k_componentClassName = "QuadShapeComponent";
-const char* MikanQuadShapeComponentValues::k_ownerSystemName = "QuadShapeSystem";
+const char* MikanQuadShapeComponentValues::k_componentClassName= "QuadShapeComponent";
+const char* MikanQuadShapeComponentValues::k_ownerSystemName= "QuadShapeSystem";
 
-const char* MikanBoxShapeComponentValues::k_componentClassName = "BoxShapeComponent";
-const char* MikanBoxShapeComponentValues::k_ownerSystemName = "BoxShapeSystem";
+const char* MikanBoxShapeComponentValues::k_componentClassName= "BoxShapeComponent";
+const char* MikanBoxShapeComponentValues::k_ownerSystemName= "BoxShapeSystem";
 
-const char* MikanModelShapeComponentValues::k_componentClassName = "ModelShapeComponent";
-const char* MikanModelShapeComponentValues::k_ownerSystemName = "ModelShapeSystem";
+const char* MikanModelShapeComponentValues::k_componentClassName= "ModelShapeComponent";
+const char* MikanModelShapeComponentValues::k_ownerSystemName= "ModelShapeSystem";
 
-const char* MikanMarkerTrackingVolumeComponentValues::k_componentClassName = "MarkerTrackingVolumeComponent";
-const char* MikanMarkerTrackingVolumeComponentValues::k_ownerSystemName = "MarkerTrackingVolumeSystem";
+const char* MikanMarkerTrackingVolumeComponentValues::k_componentClassName= "MarkerTrackingVolumeComponent";
+const char* MikanMarkerTrackingVolumeComponentValues::k_ownerSystemName= "MarkerTrackingVolumeSystem";
 
-const char* MikanVRTrackingVolumeComponentValues::k_componentClassName = "VRTrackingVolumeComponent";
-const char* MikanVRTrackingVolumeComponentValues::k_ownerSystemName = "VRTrackingVolumeSystem";
+const char* MikanVRTrackingVolumeComponentValues::k_componentClassName= "VRTrackingVolumeComponent";
+const char* MikanVRTrackingVolumeComponentValues::k_ownerSystemName= "VRTrackingVolumeSystem";
 
-const char* MikanTrackingMountComponentValues::k_componentClassName = "TrackingMountComponent";
-const char* MikanTrackingMountComponentValues::k_ownerSystemName = "TrackingMountObjectSystem";
+const char* MikanTrackingMountComponentValues::k_componentClassName= "TrackingMountComponent";
+const char* MikanTrackingMountComponentValues::k_ownerSystemName= "TrackingMountObjectSystem";
 
-const char* MikanClientTextureSourceValues::k_componentClassName = "ClientTextureSourceComponent";
-const char* MikanClientTextureSourceValues::k_ownerSystemName = "ClientTextureSourceSystem";
+const char* MikanClientTextureSourceValues::k_componentClassName= "ClientTextureSourceComponent";
+const char* MikanClientTextureSourceValues::k_ownerSystemName= "ClientTextureSourceSystem";
 
-const char* MikanSpoutTextureSourceValues::k_componentClassName = "SpoutTextureSourceComponent";
-const char* MikanSpoutTextureSourceValues::k_ownerSystemName = "SpoutTextureSourceSystem";
+const char* MikanSpoutTextureSourceValues::k_componentClassName= "SpoutTextureSourceComponent";
+const char* MikanSpoutTextureSourceValues::k_ownerSystemName= "SpoutTextureSourceSystem";
 
-const char* MikanCEFTextureSourceValues::k_componentClassName = "CEFTextureSourceComponent";
-const char* MikanCEFTextureSourceValues::k_ownerSystemName = "CEFTextureSourceSystem";
+const char* MikanCEFTextureSourceValues::k_componentClassName= "CEFTextureSourceComponent";
+const char* MikanCEFTextureSourceValues::k_ownerSystemName= "CEFTextureSourceSystem";
 
-const char* MikanNetworkVideoSourceValues::k_componentClassName = "NetworkVideoSourceComponent";
-const char* MikanNetworkVideoSourceValues::k_ownerSystemName = "NetworkVideoSourceSystem";
+const char* MikanNetworkVideoSourceValues::k_componentClassName= "NetworkVideoSourceComponent";
+const char* MikanNetworkVideoSourceValues::k_ownerSystemName= "NetworkVideoSourceSystem";
 
-const char* MikanUSBVideoSourceValues::k_componentClassName = "USBVideoSourceComponent";
-const char* MikanUSBVideoSourceValues::k_ownerSystemName = "USBVideoSourceSystem";
+const char* MikanUSBVideoSourceValues::k_componentClassName= "USBVideoSourceComponent";
+const char* MikanUSBVideoSourceValues::k_ownerSystemName= "USBVideoSourceSystem";
 
-const char* MikanVRDeviceComponentValues::k_componentClassName = "VRDeviceComponent";
-const char* MikanVRDeviceComponentValues::k_ownerSystemName = "VRObjectSystem";
+const char* MikanVRDeviceComponentValues::k_componentClassName= "VRDeviceComponent";
+const char* MikanVRDeviceComponentValues::k_ownerSystemName= "VRObjectSystem";
 
 // -- MikanAPI Implementation -----
 class MikanAPI : public IMikanAPI
@@ -201,30 +201,30 @@ public:
 	// Initialize the Mikan API
 	virtual MikanAPIResult init(
 		const char* client_name,
-		MikanLogLevel min_log_level, 
+		MikanLogLevel min_log_level,
 		MikanLogCallback log_callback) override
 	{
-		MikanAPIResult result = (MikanAPIResult)Mikan_Initialize(client_name, min_log_level, log_callback, &m_context);
+		MikanAPIResult result= (MikanAPIResult)Mikan_Initialize(client_name, min_log_level, log_callback, &m_context);
 		if (result != MikanAPIResult::Success)
 		{
 			return result;
 		}
 
-		result = m_eventManager->init(m_context);
+		result= m_eventManager->init(m_context);
 		if (result != MikanAPIResult::Success)
 		{
 			return result;
 		}
 
-		result = m_requestManager->init(m_context);
+		result= m_requestManager->init(m_context);
 		if (result != MikanAPIResult::Success)
 		{
 			return result;
 		}
 
-		#ifdef MIKANAPI_REFLECTION_ENABLED
+#ifdef MIKANAPI_REFLECTION_ENABLED
 		Serialization::TypeRegistry::buildFromRfkDatabase();
-		#endif // MIKANAPI_REFLECTION_ENABLED
+#endif // MIKANAPI_REFLECTION_ENABLED
 
 		return MikanAPIResult::Success;
 	}
@@ -246,10 +246,10 @@ public:
 
 	virtual MikanClientInfo allocateClientInfo() const override
 	{
-		MikanClientInfo clientInfo = {};
+		MikanClientInfo clientInfo= {};
 
 		// Stamp the request with the core sdk version and client id
-		clientInfo.clientId = getClientName();
+		clientInfo.clientId= getClientName();
 
 		return clientInfo;
 	}
@@ -292,7 +292,7 @@ public:
 	}
 
 	virtual MikanAPIResult connect(
-		const std::string& host, 
+		const std::string& host,
 		const std::string& port) override
 	{
 		return (MikanAPIResult)Mikan_Connect(m_context, host.c_str(), port.c_str());

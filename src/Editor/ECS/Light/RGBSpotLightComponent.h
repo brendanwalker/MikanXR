@@ -37,8 +37,8 @@ public:
 	void setConeRangeMeters(float m);
 
 protected:
-	float m_coneAngleDegrees = 30.0f;
-	float m_coneRangeMeters = 2.0f;
+	float m_coneAngleDegrees= 30.0f;
+	float m_coneRangeMeters= 2.0f;
 };
 
 // ============================================================
@@ -69,7 +69,7 @@ public:
 	void onTransformGizmoBound();
 	void onTransformGizmoUnbound();
 
-	inline static const std::string k_componentClassName = "RGBSpotLightComponent";
+	inline static const std::string k_componentClassName= "RGBSpotLightComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	inline RGBSpotLightDefinitionPtr getRGBSpotLightDefinition() const
@@ -105,7 +105,9 @@ public:
 
 	// -- IFunctionInterface --
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
-	{ DMXFixtureComponent::getFunctionDescriptors(outDescriptors); }
+	{
+		DMXFixtureComponent::getFunctionDescriptors(outDescriptors);
+	}
 
 	// -- Lua Binding --
 	static void bindLuaFunctions(struct lua_State* L);
@@ -114,17 +116,17 @@ protected:
 	void updateWireframeMeshColor();
 
 protected:
-	uint8_t m_red = 0;
-	uint8_t m_green = 0;
-	uint8_t m_blue = 0;
+	uint8_t m_red= 0;
+	uint8_t m_green= 0;
+	uint8_t m_blue= 0;
 	SelectionComponentWeakPtr m_selectionComponent;
 	std::vector<IMkStaticMeshInstancePtr> m_wireframeMeshes;
 	std::vector<TransformComponentPtr> m_meshComponents;
 	std::vector<StaticMeshComponentPtr> m_triMeshComponents;
 	std::vector<MeshColliderComponentPtr> m_colliderComponents;
 	IMkTriangulatedMeshPtr m_coneMesh;
-	static constexpr float k_coneAlpha = 0.15f;
-	bool m_bIsHovered = false;
-	bool m_bIsSelected = false;
-	bool m_bIsTransformGizmoBound = false;
+	static constexpr float k_coneAlpha= 0.15f;
+	bool m_bIsHovered= false;
+	bool m_bIsSelected= false;
+	bool m_bIsTransformGizmoBound= false;
 };

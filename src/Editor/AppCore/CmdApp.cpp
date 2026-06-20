@@ -9,15 +9,15 @@
 
 namespace
 {
-	bool run_all_editor_unit_tests()
-	{
-		bool success = true;
-		success &= run_tracker_pose_calibrator_unit_tests();
-		success &= run_client_api_property_schema_tests();
-		// Future: add more test modules here
-		return success;
-	}
+bool run_all_editor_unit_tests()
+{
+	bool success= true;
+	success&= run_tracker_pose_calibrator_unit_tests();
+	success&= run_client_api_property_schema_tests();
+	// Future: add more test modules here
+	return success;
 }
+} // namespace
 
 int CmdApp::exec(int argc, char** argv)
 {
@@ -31,26 +31,26 @@ int CmdApp::exec(int argc, char** argv)
 	parseCommandLine(argc, argv);
 
 	// Command output is written to stdout directly
-	LoggerSettings settings = {};
-	settings.min_log_level = LogSeverityLevel::debug;
-	settings.enable_console = false;
-	settings.log_filename = "MikanCmd.log";
+	LoggerSettings settings= {};
+	settings.min_log_level= LogSeverityLevel::debug;
+	settings.enable_console= false;
+	settings.log_filename= "MikanCmd.log";
 	log_init(settings);
 
-	// Build the reflection type registry 
+	// Build the reflection type registry
 	// (Used by the serialization-based commands such as the unit tests).
 	Serialization::TypeRegistry::buildFromRfkDatabase();
 
-	// Dispatch to the requested command. 
-	int result = EXIT_SUCCESS;
+	// Dispatch to the requested command.
+	int result= EXIT_SUCCESS;
 	if (hasCommandLineFlag("runTests"))
 	{
-		result = runTests();
+		result= runTests();
 	}
 	else
 	{
 		printUsage();
-		result = EXIT_FAILURE;
+		result= EXIT_FAILURE;
 	}
 
 	log_dispose();
@@ -60,15 +60,15 @@ int CmdApp::exec(int argc, char** argv)
 
 void CmdApp::parseCommandLine(int argc, char** argv)
 {
-	for (int i = 1; i < argc; ++i)
+	for (int i= 1; i < argc; ++i)
 	{
-		std::string arg = argv[i];
+		std::string arg= argv[i];
 		if (arg.size() > 1 && arg[0] == '-')
 		{
-			std::string key = arg.substr(1); // strip leading '-'
-			auto eqPos = key.find('=');
+			std::string key= arg.substr(1); // strip leading '-'
+			auto eqPos= key.find('=');
 			if (eqPos != std::string::npos)
-				m_commandLineParams[key.substr(0, eqPos)] = key.substr(eqPos + 1);
+				m_commandLineParams[key.substr(0, eqPos)]= key.substr(eqPos + 1);
 			else
 				m_commandLineFlags.insert(key);
 		}
@@ -82,24 +82,24 @@ bool CmdApp::hasCommandLineFlag(const std::string& flag) const
 
 std::string CmdApp::getCommandLineStringArg(const std::string& key, const std::string& defaultValue) const
 {
-	auto it = m_commandLineParams.find(key);
+	auto it= m_commandLineParams.find(key);
 	return it != m_commandLineParams.end() ? it->second : defaultValue;
 }
 
 void CmdApp::printUsage() const
 {
 	fprintf(stdout,
-		"MikanCmd - Mikan command-line tool\n"
-		"\n"
-		"Usage: MikanCmd <command>\n"
-		"\n"
-		"Commands:\n"
-		"  -runTests    Run the editor unit test suites\n");
+			"MikanCmd - Mikan command-line tool\n"
+			"\n"
+			"Usage: MikanCmd <command>\n"
+			"\n"
+			"Commands:\n"
+			"  -runTests    Run the editor unit test suites\n");
 }
 
 int CmdApp::runTests() const
 {
-	const bool testsPassed = run_all_editor_unit_tests();
+	const bool testsPassed= run_all_editor_unit_tests();
 
 	return testsPassed ? EXIT_SUCCESS : EXIT_FAILURE;
 }

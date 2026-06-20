@@ -36,8 +36,8 @@ private:
 	class IMkWindowContext* m_window= nullptr;
 	struct ImGuiContext* m_imguiContext= nullptr;
 	struct ImNodesContext* m_imnodesContext= nullptr;
-	struct ImFont* m_NormalIconFont = nullptr;
-	struct ImFont* m_BigIconFont = nullptr;
-	eWindowAPI m_imguiWindowAPI = eWindowAPI::INVALID;
-	eGraphicsAPI m_imguiGraphicsAPI = eGraphicsAPI::INVALID;
+	struct ImFont* m_NormalIconFont= nullptr;
+	struct ImFont* m_BigIconFont= nullptr;
+	eWindowAPI m_imguiWindowAPI= eWindowAPI::INVALID;
+	eGraphicsAPI m_imguiGraphicsAPI= eGraphicsAPI::INVALID;
 };

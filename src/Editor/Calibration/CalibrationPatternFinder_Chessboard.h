@@ -12,7 +12,7 @@ public:
 		float squareLengthMM);
 
 	virtual eCalibrationPatternType getCalibrationPatternType() const override { return eCalibrationPatternType::mode_chessboard; }
-	virtual bool findNewCalibrationPattern(const float minSeperationDist = 0.f) override;
+	virtual bool findNewCalibrationPattern(const float minSeperationDist= 0.f) override;
 	virtual bool fetchLastFoundCalibrationPattern(
 		t_opencv_point2d_list& outImagePoints,
 		t_opencv_pointID_list& outImagePointIDs,

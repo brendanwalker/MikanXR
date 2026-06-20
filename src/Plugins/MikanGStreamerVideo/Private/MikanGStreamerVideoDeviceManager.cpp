@@ -2,7 +2,6 @@
 #include "MikanGStreamerVideoDevice.h"
 #include "Logger.h"
 
-
 // -- MikanGStreamerVideoDeviceManager ------
 void MikanGStreamerVideoDeviceManager::update(float deltaTime)
 {
@@ -42,12 +41,12 @@ INetworkVideoDevicePtr MikanGStreamerVideoDeviceManager::getDeviceByIndex(size_t
 
 INetworkVideoDevicePtr MikanGStreamerVideoDeviceManager::getDeviceByPath(const char* devicePath)
 {
-	size_t devicePathLen = strlen(devicePath);
+	size_t devicePathLen= strlen(devicePath);
 
 	auto it= std::find_if(
 		m_deviceList.begin(), m_deviceList.end(),
 		[devicePath, devicePathLen](const INetworkVideoDevicePtr& entry)
-		{ 
+		{
 			return strncmp(devicePath, entry->getDevicePath(), devicePathLen) != 0;
 		});
 
@@ -62,7 +61,7 @@ INetworkVideoDevicePtr MikanGStreamerVideoDeviceManager::getDeviceByPath(const c
 INetworkVideoDevicePtr MikanGStreamerVideoDeviceManager::createVideoDevice(
 	const NetworkVideoConnectionSettings& settings)
 {
-	INetworkVideoDevicePtr device = std::make_shared<MikanGStreamerVideoDevice>(this, settings);
+	INetworkVideoDevicePtr device= std::make_shared<MikanGStreamerVideoDevice>(this, settings);
 
 	m_deviceList.push_back(device);
 

@@ -28,18 +28,18 @@ void drawTextAtWorldPosition(
 	const wchar_t* format,
 	...)
 {
-	IMkTextRenderer * textRenderer = graphicsContext->getTextRenderer();
+	IMkTextRenderer* textRenderer= graphicsContext->getTextRenderer();
 	if (textRenderer == nullptr)
 		return;
 
-	IMkCameraPtr camera = graphicsContext->getRenderingViewport()->getCurrentCamera();
+	IMkCameraPtr camera= graphicsContext->getRenderingViewport()->getCurrentCamera();
 	if (camera == nullptr)
 		return;
 
 	// Convert the world space coordinates into screen space
-	const int screenWidth = (int)graphicsContext->getWidth();
-	const int screenHeight = (int)graphicsContext->getHeight();
-	glm::vec3 screenCoords =
+	const int screenWidth= (int)graphicsContext->getWidth();
+	const int screenHeight= (int)graphicsContext->getHeight();
+	glm::vec3 screenCoords=
 		glm::project(
 			position,
 			camera->getViewMatrix(),
@@ -50,8 +50,8 @@ void drawTextAtWorldPosition(
 	wchar_t text[1024];
 	va_list args;
 	va_start(args, format);
-	int w = vswprintf(text, sizeof(text), format, args);
-	text[(sizeof(text) / sizeof(wchar_t)) - 1] = L'\0';
+	int w= vswprintf(text, sizeof(text), format, args);
+	text[(sizeof(text) / sizeof(wchar_t)) - 1]= L'\0';
 	va_end(args);
 
 	textRenderer->addTextAtScreenPosition(style, glm::vec2(screenCoords.x, screenCoords.y), text);
@@ -68,11 +68,11 @@ void drawTextAtScreenPosition(
 	wchar_t text[1024];
 	va_list args;
 	va_start(args, format);
-	int w = vswprintf(text, sizeof(text), format, args);
-	text[(sizeof(text) / sizeof(wchar_t)) - 1] = L'\0';
+	int w= vswprintf(text, sizeof(text), format, args);
+	text[(sizeof(text) / sizeof(wchar_t)) - 1]= L'\0';
 	va_end(args);
 
-	IMkTextRenderer* textRenderer = graphicsContext->getTextRenderer();
+	IMkTextRenderer* textRenderer= graphicsContext->getTextRenderer();
 	if (textRenderer == nullptr)
 		return;
 
@@ -87,23 +87,23 @@ void drawTextAtTrackerPosition(
 	const wchar_t* format,
 	...)
 {
-	IMkTextRenderer* textRenderer = graphicsContext->getTextRenderer();
+	IMkTextRenderer* textRenderer= graphicsContext->getTextRenderer();
 	if (textRenderer == nullptr)
 		return;
 
 	wchar_t text[1024];
 	va_list args;
 	va_start(args, format);
-	int w = vswprintf(text, sizeof(text), format, args);
-	text[(sizeof(text) / sizeof(wchar_t)) - 1] = L'\0';
+	int w= vswprintf(text, sizeof(text), format, args);
+	text[(sizeof(text) / sizeof(wchar_t)) - 1]= L'\0';
 	va_end(args);
 
 	// Convert the tracker space coordinates into screen space
-	const float windowWidth = graphicsContext->getWidth();
-	const float windowHeight = graphicsContext->getHeight();
-	const float windowX0 = 0.0f, windowY0 = 0.f;
-	const float windowX1 = windowWidth - 1.f, windowY1 = windowHeight - 1.f;
-	glm::vec2 screenCoords =
+	const float windowWidth= graphicsContext->getWidth();
+	const float windowHeight= graphicsContext->getHeight();
+	const float windowX0= 0.0f, windowY0= 0.f;
+	const float windowX1= windowWidth - 1.f, windowY1= windowHeight - 1.f;
+	glm::vec2 screenCoords=
 		remapPointIntoTarget(
 			trackerWidth, trackerHeight,
 			windowX0, windowY0,
@@ -125,21 +125,21 @@ void drawTextAtCameraPosition(
 	wchar_t text[1024];
 	va_list args;
 	va_start(args, format);
-	int w = vswprintf(text, sizeof(text), format, args);
-	text[(sizeof(text) / sizeof(wchar_t)) - 1] = L'\0';
+	int w= vswprintf(text, sizeof(text), format, args);
+	text[(sizeof(text) / sizeof(wchar_t)) - 1]= L'\0';
 	va_end(args);
 
-	IMkTextRenderer* textRenderer = graphicsContext->getTextRenderer();
+	IMkTextRenderer* textRenderer= graphicsContext->getTextRenderer();
 	if (textRenderer == nullptr)
 		return;
 
-	const float windowWidth = graphicsContext->getWidth();
-	const float windowHeight = graphicsContext->getHeight();
-	const float windowX0 = 0.0f, windowY0 = 0.f;
-	const float windowX1 = windowWidth - 1.f, windowY1 = windowHeight - 1.f;
+	const float windowWidth= graphicsContext->getWidth();
+	const float windowHeight= graphicsContext->getHeight();
+	const float windowX0= 0.0f, windowY0= 0.f;
+	const float windowX1= windowWidth - 1.f, windowY1= windowHeight - 1.f;
 
 	// Remaps the camera relative segment to window relative coordinates
-	const glm::vec2 screenCoords =
+	const glm::vec2 screenCoords=
 		remapPointIntoTarget(
 			cameraWidth, cameraHeight,
 			windowX0, windowY0,

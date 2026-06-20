@@ -7,12 +7,12 @@
 // -- GraphPropertyConfig ------
 configuru::Config GraphPropertyConfig::writeToJSON()
 {
-	configuru::Config pt = CommonConfig::writeToJSON();
+	configuru::Config pt= CommonConfig::writeToJSON();
 
-	pt["class_name"] = className;
-	pt["id"] = id;
-	pt["parent_id"] = parentId;
-	pt["name"] = name;
+	pt["class_name"]= className;
+	pt["id"]= id;
+	pt["parent_id"]= parentId;
+	pt["name"]= name;
 
 	return pt;
 }
@@ -21,16 +21,16 @@ void GraphPropertyConfig::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
-	className = pt.get_or<std::string>("class_name", "GraphProperty");
-	id = pt.get_or<t_graph_property_id>("id", -1);
-	parentId = pt.get_or<t_graph_property_id>("parent_id", -1);
-	name = pt.get_or<std::string>("name", "");
+	className= pt.get_or<std::string>("class_name", "GraphProperty");
+	id= pt.get_or<t_graph_property_id>("id", -1);
+	parentId= pt.get_or<t_graph_property_id>("parent_id", -1);
+	name= pt.get_or<std::string>("name", "");
 }
 
 // -- GraphProperty ------
-std::string GraphProperty::editorGetIcon() const 
-{ 
-	return NodeEditorUI::getVariableIcon(); 
+std::string GraphProperty::editorGetIcon() const
+{
+	return NodeEditorUI::getVariableIcon();
 }
 
 const ImVec4 GraphProperty::editorGetIconColor() const

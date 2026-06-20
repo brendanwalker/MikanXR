@@ -18,7 +18,7 @@ public:
 	eVertexDataType dataType= eVertexDataType::INVALID;
 	eVertexSemantic semantic= eVertexSemantic::INVALID;
 };
-using GlVertexAttributeConfigPtr = std::shared_ptr<MikanVertexAttributeConfig>;
+using GlVertexAttributeConfigPtr= std::shared_ptr<MikanVertexAttributeConfig>;
 
 class MikanShaderConfig : public CommonConfig
 {

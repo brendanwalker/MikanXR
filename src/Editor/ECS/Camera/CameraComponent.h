@@ -17,7 +17,7 @@
 #include "glm/ext/matrix_float4x4.hpp"
 
 class VideoFrameDistortionView;
-using VideoFrameDistortionViewPtr = std::shared_ptr<VideoFrameDistortionView>;
+using VideoFrameDistortionViewPtr= std::shared_ptr<VideoFrameDistortionView>;
 
 class CameraDefinition : public TransformComponentDefinition
 {
@@ -58,17 +58,19 @@ public:
 	bool hasValidApertureOffset() const { return m_bHasValidApertureOffset; }
 
 	// Don't send transform property updates when attached to a tracking mount since they update every frame
-	virtual bool isAutoNotifyTransformPropertyChangeDisabled() override 
-	{ return m_trackingMountId != INVALID_MIKAN_ID; }
+	virtual bool isAutoNotifyTransformPropertyChangeDisabled() override
+	{
+		return m_trackingMountId != INVALID_MIKAN_ID;
+	}
 
 private:
-	MikanStageID m_stageId = INVALID_MIKAN_ID;
-	MikanTrackingMountID m_trackingMountId = INVALID_MIKAN_ID;
-	MikanVideoSourceID m_videoSourceId = INVALID_MIKAN_ID;
+	MikanStageID m_stageId= INVALID_MIKAN_ID;
+	MikanTrackingMountID m_trackingMountId= INVALID_MIKAN_ID;
+	MikanVideoSourceID m_videoSourceId= INVALID_MIKAN_ID;
 	int m_trackingFrameDelay= 0;
 	MikanQuatd m_apertureOrientationOffset;
 	MikanVector3d m_aperturePositionOffset;
-	bool m_bHasValidApertureOffset = false;
+	bool m_bHasValidApertureOffset= false;
 };
 
 class CameraComponent : public TransformComponent
@@ -80,7 +82,7 @@ public:
 	virtual void update(float deltaSeconds) override;
 	virtual void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const override;
 
-	inline static const std::string k_componentClassName = "CameraComponent";
+	inline static const std::string k_componentClassName= "CameraComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	inline CameraDefinitionPtr getCameraDefinition() const
@@ -110,13 +112,13 @@ public:
 	bool getApertureOffsetXform(glm::mat4& outAperatureToTrackingMountXform) const;
 	bool getStageSpaceAperturePose(glm::mat4& outCameraPose) const;
 	bool getStageSpaceAperturePose(glm::dmat4& outCameraPose) const;
-	bool getApertureProjectionMatrix(glm::mat4& outProjectionMatrix, bool bVerticalFlip = false) const;
+	bool getApertureProjectionMatrix(glm::mat4& outProjectionMatrix, bool bVerticalFlip= false) const;
 	bool getApertureViewMatrix(glm::mat4& outViewMatrix) const;
-	bool getApertureViewProjectionMatrix(glm::mat4& outVPMatrix, bool bVerticalFlip =false) const;
+	bool getApertureViewProjectionMatrix(glm::mat4& outVPMatrix, bool bVerticalFlip= false) const;
 
 	// Helper function to populate a new frame event with the current camera properties
 	bool makeNewCameraFrameEvent(
-		int64_t frameIndex, 
+		int64_t frameIndex,
 		int defaultWidth, int defaultHeight,
 		struct MikanCameraNewFrameEvent& newFrameEvent) const;
 

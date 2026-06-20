@@ -8,8 +8,8 @@ struct MkScopedStateImpl
 	IMkState* mkState;
 };
 
-MkScopedState::MkScopedState(IMkState* state) : 
-	m_impl(new MkScopedStateImpl())
+MkScopedState::MkScopedState(IMkState* state)
+	: m_impl(new MkScopedStateImpl())
 {
 	m_impl->mkState= state;
 }
@@ -26,12 +26,12 @@ MkScopedState::~MkScopedState()
 	delete m_impl;
 }
 
-IMkState* MkScopedState::getStackState() const 
-{ 
-	return m_impl->mkState; 
+IMkState* MkScopedState::getStackState() const
+{
+	return m_impl->mkState;
 }
 
-int MkScopedState::getStackDepth() const 
-{ 
-	return m_impl->mkState->getStackDepth(); 
+int MkScopedState::getStackDepth() const
+{
+	return m_impl->mkState->getStackDepth();
 }

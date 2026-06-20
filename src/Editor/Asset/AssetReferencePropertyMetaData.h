@@ -7,7 +7,9 @@ class AssetReferenceFactoryMetaData : public PropertyMetaData
 {
 public:
 	AssetReferenceFactoryMetaData(std::shared_ptr<AssetReferenceFactory> factory)
-		: m_factory(std::move(factory)) {}
+		: m_factory(std::move(factory))
+	{
+	}
 
 	const AssetReferenceFactory* getFactory() const { return m_factory.get(); }
 

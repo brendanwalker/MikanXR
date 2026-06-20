@@ -20,8 +20,8 @@ int __stdcall WinMain(
 	// MikanCefApp must be passed here so that OnBeforeCommandLineProcessing
 	// runs in every subprocess instance of Mikan.exe.
 	CefMainArgs cef_args(hInstance);
-	CefRefPtr<MikanCefApp> cef_app = new MikanCefApp();
-	int cef_exit = CefExecuteProcess(cef_args, cef_app, nullptr);
+	CefRefPtr<MikanCefApp> cef_app= new MikanCefApp();
+	int cef_exit= CefExecuteProcess(cef_args, cef_app, nullptr);
 	if (cef_exit >= 0)
 		return cef_exit;
 
@@ -35,8 +35,8 @@ extern "C" int main(int argc, char* argv[])
 {
 	// On Linux/macOS, CefMainArgs wraps (argc, argv) instead of an HINSTANCE.
 	CefMainArgs cef_args(argc, argv);
-	CefRefPtr<MikanCefApp> cef_app = new MikanCefApp();
-	int cef_exit = CefExecuteProcess(cef_args, cef_app, nullptr);
+	CefRefPtr<MikanCefApp> cef_app= new MikanCefApp();
+	int cef_exit= CefExecuteProcess(cef_args, cef_app, nullptr);
 	if (cef_exit >= 0)
 		return cef_exit;
 

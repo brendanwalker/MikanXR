@@ -15,10 +15,10 @@ bool ColliderComponent::computeRayIntersection(
 	ColliderRaycastHitResult& outResult) const
 {
 	outResult.hitValid= false;
-	outResult.hitLocation = glm::vec3(0.f);
-	outResult.hitNormal = glm::vec3(0.f);
-	outResult.hitDistance = -1.f;
-	outResult.hitPriority = m_priority;
+	outResult.hitLocation= glm::vec3(0.f);
+	outResult.hitNormal= glm::vec3(0.f);
+	outResult.hitDistance= -1.f;
+	outResult.hitPriority= m_priority;
 	outResult.hitComponent.reset();
 
 	return false;

@@ -10,7 +10,10 @@
 class LightRequestHandler : public IServerRequestHandler
 {
 public:
-	LightRequestHandler(class MikanServer* owner) : IServerRequestHandler(owner) {}
+	LightRequestHandler(class MikanServer* owner)
+		: IServerRequestHandler(owner)
+	{
+	}
 
 	virtual bool startup(class MainWindow* mainWindow) override;
 	virtual void shutdown() override;

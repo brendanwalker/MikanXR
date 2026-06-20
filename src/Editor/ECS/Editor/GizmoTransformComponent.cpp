@@ -26,66 +26,71 @@ void GizmoTransformComponent::init()
 
 	MikanObjectPtr owner= getOwnerObject();
 
-	GizmoTranslateComponentPtr translateComponent = owner->getComponentOfType<GizmoTranslateComponent>();
-	GizmoRotateComponentPtr rotateComponent = owner->getComponentOfType<GizmoRotateComponent>();
-	GizmoScaleComponentPtr scaleComponent = owner->getComponentOfType<GizmoScaleComponent>();
+	GizmoTranslateComponentPtr translateComponent= owner->getComponentOfType<GizmoTranslateComponent>();
+	GizmoRotateComponentPtr rotateComponent= owner->getComponentOfType<GizmoRotateComponent>();
+	GizmoScaleComponentPtr scaleComponent= owner->getComponentOfType<GizmoScaleComponent>();
 
-	translateComponent->OnTranslationRequested = MakeDelegate(this, &GizmoTransformComponent::onSelectionTranslationRequested);
-	rotateComponent->OnRotateRequested = MakeDelegate(this, &GizmoTransformComponent::onSelectionRotationRequested);
-	scaleComponent->OnScaleRequested = MakeDelegate(this, &GizmoTransformComponent::onSelectionScaleRequested);
+	translateComponent->OnTranslationRequested= MakeDelegate(this, &GizmoTransformComponent::onSelectionTranslationRequested);
+	rotateComponent->OnRotateRequested= MakeDelegate(this, &GizmoTransformComponent::onSelectionRotationRequested);
+	scaleComponent->OnScaleRequested= MakeDelegate(this, &GizmoTransformComponent::onSelectionScaleRequested);
 
-	m_translateComponent = translateComponent;
-	m_rotateComponent = rotateComponent;
-	m_scaleComponent = scaleComponent;
+	m_translateComponent= translateComponent;
+	m_rotateComponent= rotateComponent;
+	m_scaleComponent= scaleComponent;
 }
 
 void GizmoTransformComponent::update(float deltaSeconds)
 {
-	m_displayScale = computeDisplayScale();
+	m_displayScale= computeDisplayScale();
 	updateGizmoColliderScales();
 }
 
 float GizmoTransformComponent::computeDisplayScale() const
 {
-	auto editorSystem = getObjectSystemOfType<EditorObjectSystem>();
-	if (!editorSystem) return 1.0f;
+	auto editorSystem= getObjectSystemOfType<EditorObjectSystem>();
+	if (!editorSystem)
+		return 1.0f;
 
-	MikanCameraPtr camera = editorSystem->getPrimaryCamera();
-	if (!camera) return 1.0f;
+	MikanCameraPtr camera= editorSystem->getPrimaryCamera();
+	if (!camera)
+		return 1.0f;
 
-	const glm::vec3 cameraPos = camera->getCameraPositionFromViewMatrix();
-	const glm::vec3 gizmoPos = getWorldLocation();
-	const float distance = glm::length(cameraPos - gizmoPos);
+	const glm::vec3 cameraPos= camera->getCameraPositionFromViewMatrix();
+	const glm::vec3 gizmoPos= getWorldLocation();
+	const float distance= glm::length(cameraPos - gizmoPos);
 
 	return glm::max(distance * k_gizmoScreenSizeFactor, 0.001f);
 }
 
 void GizmoTransformComponent::updateGizmoColliderScales()
 {
-	if (auto t = m_translateComponent.lock()) t->updateColliderScales(m_displayScale);
-	if (auto r = m_rotateComponent.lock())    r->updateColliderScales(m_displayScale);
-	if (auto s = m_scaleComponent.lock())     s->updateColliderScales(m_displayScale);
+	if (auto t= m_translateComponent.lock())
+		t->updateColliderScales(m_displayScale);
+	if (auto r= m_rotateComponent.lock())
+		r->updateColliderScales(m_displayScale);
+	if (auto s= m_scaleComponent.lock())
+		s->updateColliderScales(m_displayScale);
 }
 
 void GizmoTransformComponent::bindInput()
 {
 	InputManager* inputManager= getOwnerEditorWindow()->getInputManager();
 
-	inputManager->fetchOrAddKeyBindings(MkKey::LETTER_t)->OnKeyPressed +=
+	inputManager->fetchOrAddKeyBindings(MkKey::LETTER_t)->OnKeyPressed+=
 		MakeDelegate(this, &GizmoTransformComponent::selectTranslateMode);
-	inputManager->fetchOrAddKeyBindings(MkKey::LETTER_r)->OnKeyPressed +=
+	inputManager->fetchOrAddKeyBindings(MkKey::LETTER_r)->OnKeyPressed+=
 		MakeDelegate(this, &GizmoTransformComponent::selectRotateMode);
-	inputManager->fetchOrAddKeyBindings(MkKey::LETTER_y)->OnKeyPressed +=
+	inputManager->fetchOrAddKeyBindings(MkKey::LETTER_y)->OnKeyPressed+=
 		MakeDelegate(this, &GizmoTransformComponent::selectScaleMode);
 }
 
 void GizmoTransformComponent::customRender(
-	IMkGraphicsContext* graphicsContext, 
+	IMkGraphicsContext* graphicsContext,
 	MikanCameraPtr viewportCamera) const
 {
-	GizmoTranslateComponentPtr translatePtr = m_translateComponent.lock();
-	GizmoRotateComponentPtr rotatePtr = m_rotateComponent.lock();
-	GizmoScaleComponentPtr scalePtr = m_scaleComponent.lock();
+	GizmoTranslateComponentPtr translatePtr= m_translateComponent.lock();
+	GizmoRotateComponentPtr rotatePtr= m_rotateComponent.lock();
+	GizmoScaleComponentPtr scalePtr= m_scaleComponent.lock();
 
 	switch (m_gizmoMode)
 	{
@@ -156,8 +161,8 @@ SelectionComponentPtr GizmoTransformComponent::getSelectionTarget() const
 void GizmoTransformComponent::onSelectionTranslationRequested(const glm::vec3& worldSpaceTranslation)
 {
 	// Translate the gizmo in world space
-	glm::mat4 newGizmoWorldTransform = this->getWorldTransform();
-	const glm::vec3 newGizmoPosition = glm_mat4_get_position(newGizmoWorldTransform) + worldSpaceTranslation;
+	glm::mat4 newGizmoWorldTransform= this->getWorldTransform();
+	const glm::vec3 newGizmoPosition= glm_mat4_get_position(newGizmoWorldTransform) + worldSpaceTranslation;
 	glm_mat4_set_position(newGizmoWorldTransform, newGizmoPosition);
 	this->setWorldTransform(newGizmoWorldTransform);
 
@@ -168,18 +173,18 @@ void GizmoTransformComponent::onSelectionTranslationRequested(const glm::vec3& w
 void GizmoTransformComponent::onSelectionRotationRequested(const glm::quat& worldSpaceRotation)
 {
 	// Rotate the gizmo in object space
-	const glm::mat4 oldGizmoTransform = this->getWorldTransform();
+	const glm::mat4 oldGizmoTransform= this->getWorldTransform();
 
 	// Compute composite transform to apply world space rotation
-	const glm::vec3 gizmoPosition = glm_mat4_get_position(oldGizmoTransform);
-	const glm::mat4 undoTranslation = glm::translate(glm::mat4(1.f), -gizmoPosition);
-	const glm::mat4 rotation = glm::mat4_cast(worldSpaceRotation);
-	const glm::mat4 redoTranslation = glm::translate(glm::mat4(1.f), gizmoPosition);
-	const glm::mat4 applyTransform =
+	const glm::vec3 gizmoPosition= glm_mat4_get_position(oldGizmoTransform);
+	const glm::mat4 undoTranslation= glm::translate(glm::mat4(1.f), -gizmoPosition);
+	const glm::mat4 rotation= glm::mat4_cast(worldSpaceRotation);
+	const glm::mat4 redoTranslation= glm::translate(glm::mat4(1.f), gizmoPosition);
+	const glm::mat4 applyTransform=
 		glm_composite_xform(glm_composite_xform(undoTranslation, rotation), redoTranslation);
 
-	// Compute new gizmo worldspace transform 
-	const glm::mat4 newGizmoTransform = glm_composite_xform(oldGizmoTransform, applyTransform);
+	// Compute new gizmo worldspace transform
+	const glm::mat4 newGizmoTransform= glm_composite_xform(oldGizmoTransform, applyTransform);
 
 	// Apply new gizmo transform to gizmo
 	this->setWorldTransform(newGizmoTransform);
@@ -207,24 +212,24 @@ void GizmoTransformComponent::setSelectionTarget(SelectionComponentPtr selection
 	// See if the target allows gizmo modification
 	if (selectionTarget->getIsTransformGizmoAllowed())
 	{
-		eGizmoMode oldGizmoMode = getGizmoMode();
-		eGizmoMode newGizmoMode = eGizmoMode::none;
+		eGizmoMode oldGizmoMode= getGizmoMode();
+		eGizmoMode newGizmoMode= eGizmoMode::none;
 
 		// Apply transforms to the root component of the mikan object that owns the selection target
-		TransformComponentPtr transformTarget = selectionTarget->getOwnerObject()->getRootComponent();
+		TransformComponentPtr transformTarget= selectionTarget->getOwnerObject()->getRootComponent();
 
 		// Tell the new selection target that the gizmo is bound to it
 		selectionTarget->notifyTransformGizmoBound();
 
 		// Remember the new selection and transform target
-		m_selectionTarget = selectionTarget;
-		m_transformTarget = transformTarget;
+		m_selectionTarget= selectionTarget;
+		m_transformTarget= transformTarget;
 
 		// Default to a transform mode gizmo if the gizmo wasn't active before
 		if (oldGizmoMode != eGizmoMode::none)
-			newGizmoMode = oldGizmoMode;
+			newGizmoMode= oldGizmoMode;
 		else
-			newGizmoMode = eGizmoMode::translate;
+			newGizmoMode= eGizmoMode::translate;
 
 		// Update the desired gizmo state
 		setGizmoMode(newGizmoMode);
@@ -233,7 +238,7 @@ void GizmoTransformComponent::setSelectionTarget(SelectionComponentPtr selection
 		applyTransformToGizmo();
 
 		// Listen for scene component transform changes committed by the UI
-		transformTarget->getDefinition()->OnPropertyChanged +=
+		transformTarget->getDefinition()->OnPropertyChanged+=
 			MakeDelegate(this, &GizmoTransformComponent::onTransformTargetConfigChange);
 	}
 	else
@@ -257,7 +262,7 @@ void GizmoTransformComponent::clearSelectionTarget()
 	// Stop listen for scene component transform changes committed by the UI
 	if (oldTransformTarget)
 	{
-		oldTransformTarget->getDefinition()->OnPropertyChanged -=
+		oldTransformTarget->getDefinition()->OnPropertyChanged-=
 			MakeDelegate(this, &GizmoTransformComponent::onTransformTargetConfigChange);
 	}
 
@@ -271,20 +276,20 @@ void GizmoTransformComponent::applyTransformToGizmo()
 {
 	assert(!m_bIsApplyingTransformToTarget);
 
-	TransformComponentPtr transformComponentTarget = m_transformTarget.lock();
+	TransformComponentPtr transformComponentTarget= m_transformTarget.lock();
 
 	if (transformComponentTarget)
 	{
 		// Extract scale from rotation&translation on target world transform
-		const glm::mat4 srtTransform = transformComponentTarget->getWorldTransform();
-		const glm::vec3 xAxis = glm_mat4_get_x_axis(srtTransform);
-		const glm::vec3 yAxis = glm_mat4_get_y_axis(srtTransform);
-		const glm::vec3 zAxis = glm_mat4_get_z_axis(srtTransform);
-		const glm::vec3 position = glm_mat4_get_position(srtTransform);
-		const float xScale = glm::length(xAxis);
-		const float yScale = glm::length(yAxis);
-		const float zScale = glm::length(zAxis);
-		const glm::mat4 rtTransform = glm::mat4(
+		const glm::mat4 srtTransform= transformComponentTarget->getWorldTransform();
+		const glm::vec3 xAxis= glm_mat4_get_x_axis(srtTransform);
+		const glm::vec3 yAxis= glm_mat4_get_y_axis(srtTransform);
+		const glm::vec3 zAxis= glm_mat4_get_z_axis(srtTransform);
+		const glm::vec3 position= glm_mat4_get_position(srtTransform);
+		const float xScale= glm::length(xAxis);
+		const float yScale= glm::length(yAxis);
+		const float zScale= glm::length(zAxis);
+		const glm::mat4 rtTransform= glm::mat4(
 			glm::vec4(xAxis / xScale, 0.f),
 			glm::vec4(yAxis / yScale, 0.f),
 			glm::vec4(zAxis / zScale, 0.f),
@@ -294,10 +299,9 @@ void GizmoTransformComponent::applyTransformToGizmo()
 		setWorldTransform(rtTransform);
 
 		// Store the target scene component's scale outside of the gizmo transform
-		m_targetScale = glm::vec3(xScale, yScale, zScale);
+		m_targetScale= glm::vec3(xScale, yScale, zScale);
 	}
 }
-
 
 void GizmoTransformComponent::applyTransformToTarget()
 {
@@ -306,25 +310,25 @@ void GizmoTransformComponent::applyTransformToTarget()
 	if (transformComponentTarget)
 	{
 		// Apply scale back to rotation&translation on target world transform
-		const glm::mat4 rtTransform = getWorldTransform();
-		const glm::vec3 xAxis = glm_mat4_get_x_axis(rtTransform);
-		const glm::vec3 yAxis = glm_mat4_get_y_axis(rtTransform);
-		const glm::vec3 zAxis = glm_mat4_get_z_axis(rtTransform);
-		const glm::vec3 position = glm_mat4_get_position(rtTransform);
-		const glm::mat4 srtTransform = glm::mat4(
+		const glm::mat4 rtTransform= getWorldTransform();
+		const glm::vec3 xAxis= glm_mat4_get_x_axis(rtTransform);
+		const glm::vec3 yAxis= glm_mat4_get_y_axis(rtTransform);
+		const glm::vec3 zAxis= glm_mat4_get_z_axis(rtTransform);
+		const glm::vec3 position= glm_mat4_get_position(rtTransform);
+		const glm::mat4 srtTransform= glm::mat4(
 			glm::vec4(xAxis * m_targetScale.x, 0.f),
 			glm::vec4(yAxis * m_targetScale.y, 0.f),
 			glm::vec4(zAxis * m_targetScale.z, 0.f),
 			glm::vec4(position, 1.f));
 
-		m_bIsApplyingTransformToTarget = true;
+		m_bIsApplyingTransformToTarget= true;
 		transformComponentTarget->setWorldTransform(srtTransform);
-		m_bIsApplyingTransformToTarget = false;
+		m_bIsApplyingTransformToTarget= false;
 	}
 }
 
 void GizmoTransformComponent::onTransformTargetConfigChange(
-	CommonConfigPtr configPtr, 
+	CommonConfigPtr configPtr,
 	const ConfigPropertyChangeSet& changedPropertySet)
 {
 	// Did a transform property of the gizmo target change?

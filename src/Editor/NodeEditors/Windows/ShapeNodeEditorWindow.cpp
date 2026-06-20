@@ -28,10 +28,10 @@ bool ShapeNodeEditorWindow::startup()
 bool ShapeNodeEditorWindow::bindShapeComponent(ShapeComponentPtr shapeComponent)
 {
 	assert(shapeComponent);
-	m_shapeComponent = shapeComponent;
+	m_shapeComponent= shapeComponent;
 
 	// Load the graph from the asset path on the shape component (if any)
-	auto graphAssetPath = m_shapeComponent->getShapeComponentDefinition()->getShapeGraphPath();
+	auto graphAssetPath= m_shapeComponent->getShapeComponentDefinition()->getShapeGraphPath();
 	if (!graphAssetPath.empty() && !loadGraph(graphAssetPath))
 	{
 		return false;
@@ -44,7 +44,7 @@ bool ShapeNodeEditorWindow::bindShapeComponent(ShapeComponentPtr shapeComponent)
 	}
 
 	// Tell the new node graph about the shape component it's bound to
-	auto shapeNodeGraph =
+	auto shapeNodeGraph=
 		std::static_pointer_cast<ShapeNodeGraph>(m_editorState.nodeGraph);
 	shapeNodeGraph->bindToShapeComponent(m_shapeComponent);
 
@@ -60,7 +60,7 @@ void ShapeNodeEditorWindow::update(float deltaSeconds)
 
 	if (m_shapeComponent != nullptr)
 	{
-		m_lastNodeEvalErrors = m_shapeComponent->getLastNodeEvalErrors();
+		m_lastNodeEvalErrors= m_shapeComponent->getLastNodeEvalErrors();
 	}
 
 	NodeEditorWindow::update(deltaSeconds);
@@ -72,7 +72,7 @@ void ShapeNodeEditorWindow::shutdown()
 	if (m_shapeComponent)
 	{
 		m_shapeComponent->setEditorShapeNodeGraph(nullptr);
-		m_shapeComponent = nullptr;
+		m_shapeComponent= nullptr;
 	}
 
 	NodeEditorWindow::shutdown();
@@ -96,13 +96,13 @@ bool ShapeNodeEditorWindow::saveGraph(bool bShowFileDialog)
 
 void ShapeNodeEditorWindow::handleGraphVariablesDragDrop(const NodeEditorState& editorState)
 {
-	std::vector<AssetReferenceFactoryPtr> validAssetRefFactories =
+	std::vector<AssetReferenceFactoryPtr> validAssetRefFactories=
 		getNodeGraph()->editorGetValidAssetRefFactories(editorState);
 	for (auto factory : validAssetRefFactories)
 	{
-		if (auto assetRef =
-			NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(
-				factory->getAssetRefClassName()))
+		if (auto assetRef=
+				NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(
+					factory->getAssetRefClassName()))
 		{
 			assetRef->editorHandleGraphVariablesDragDrop(editorState);
 			return;
@@ -112,26 +112,26 @@ void ShapeNodeEditorWindow::handleGraphVariablesDragDrop(const NodeEditorState& 
 
 void ShapeNodeEditorWindow::handleMainFrameDragDrop(const NodeEditorState& editorState)
 {
-	std::vector<GraphPropertyFactoryPtr> validPropertyFactories =
+	std::vector<GraphPropertyFactoryPtr> validPropertyFactories=
 		getNodeGraph()->editorGetValidPropertyFactories(editorState);
 	for (auto factory : validPropertyFactories)
 	{
-		if (auto property =
-			NodeEditorUI::receiveTypedDragDropPayload<GraphProperty>(
-				factory->getGraphPropertyClassName()))
+		if (auto property=
+				NodeEditorUI::receiveTypedDragDropPayload<GraphProperty>(
+					factory->getGraphPropertyClassName()))
 		{
 			property->editorHandleMainFrameDragDrop(editorState);
 			return;
 		}
 	}
 
-	std::vector<AssetReferenceFactoryPtr> validAssetRefFactories =
+	std::vector<AssetReferenceFactoryPtr> validAssetRefFactories=
 		getNodeGraph()->editorGetValidAssetRefFactories(editorState);
 	for (auto factory : validAssetRefFactories)
 	{
-		if (auto assetRef =
-			NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(
-				factory->getAssetRefClassName()))
+		if (auto assetRef=
+				NodeEditorUI::receiveTypedDragDropPayload<AssetReference>(
+					factory->getAssetRefClassName()))
 		{
 			assetRef->editorHandleMainFrameDragDrop(editorState);
 			return;

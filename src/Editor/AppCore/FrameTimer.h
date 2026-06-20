@@ -5,7 +5,7 @@
 class FrameTimer
 {
 public:
-	explicit FrameTimer(int tickIntervalMs = 30);
+	explicit FrameTimer(int tickIntervalMs= 30);
 
 	void waitForNextFrame();
 

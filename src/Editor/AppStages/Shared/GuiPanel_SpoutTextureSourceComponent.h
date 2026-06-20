@@ -8,7 +8,10 @@
 class GuiPanel_SpoutTextureSourceComponent : public GuiPanel_MikanComponent
 {
 public:
-	GuiPanel_SpoutTextureSourceComponent(AppStage* ownerAppStage) : GuiPanel_MikanComponent(ownerAppStage) {}
+	GuiPanel_SpoutTextureSourceComponent(AppStage* ownerAppStage)
+		: GuiPanel_MikanComponent(ownerAppStage)
+	{
+	}
 
 	void update(float deltaSeconds);
 
@@ -24,6 +27,6 @@ private:
 	SpoutTextureSourceSystemWeakPtr m_spoutTextureSourceSystem;
 	GuiDataSource_StringList m_spoutSenderDataSource;
 	std::vector<std::string> m_spoutSenderNames;
-	float m_timeSinceLastSourceListRefresh = 0.0f;
-	static constexpr float k_spoutSourceListUpdateInterval = 3.0f;
+	float m_timeSinceLastSourceListRefresh= 0.0f;
+	static constexpr float k_spoutSourceListUpdateInterval= 3.0f;
 };

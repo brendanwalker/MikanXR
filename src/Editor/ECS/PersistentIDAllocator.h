@@ -5,9 +5,8 @@
 #include "IEntityIDAllocator.h"
 #include "memory"
 
-class PersistentIDAllocator : 
-	public CommonConfig, 
-	public IEntityIDAllocator
+class PersistentIDAllocator : public CommonConfig,
+							  public IEntityIDAllocator
 {
 public:
 	PersistentIDAllocator();
@@ -18,7 +17,7 @@ public:
 	virtual void readFromJSON(const configuru::Config& pt) override;
 
 	// ID Allocation
-	void markSafeToAllocate() { m_bSafeToAllocate = true; }
+	void markSafeToAllocate() { m_bSafeToAllocate= true; }
 
 	// -- IEntityIDAllocator interface
 	virtual int allocateNextId() override;
@@ -26,8 +25,8 @@ public:
 
 private:
 	int m_nextId= 0;
-	bool m_bSafeToAllocate = false;
+	bool m_bSafeToAllocate= false;
 };
 
-using PersistentIDAllocatorPtr = std::shared_ptr<PersistentIDAllocator>;
-using PersistentIDAllocatorWeakPtr = std::weak_ptr<PersistentIDAllocator>;
+using PersistentIDAllocatorPtr= std::shared_ptr<PersistentIDAllocator>;
+using PersistentIDAllocatorWeakPtr= std::weak_ptr<PersistentIDAllocator>;

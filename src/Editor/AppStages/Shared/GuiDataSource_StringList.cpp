@@ -6,12 +6,12 @@ const std::string GuiDataSource_StringList::k_emptyString;
 
 void GuiDataSource_StringList::setEntries(const std::vector<std::string>& entries)
 {
-	m_entries = entries;
+	m_entries= entries;
 }
 
 int GuiDataSource_StringList::getEntryIndexByString(const std::string& value) const
 {
-	auto it = std::find(m_entries.begin(), m_entries.end(), value);
+	auto it= std::find(m_entries.begin(), m_entries.end(), value);
 	return (it != m_entries.end()) ? (int)(it - m_entries.begin()) : -1;
 }
 

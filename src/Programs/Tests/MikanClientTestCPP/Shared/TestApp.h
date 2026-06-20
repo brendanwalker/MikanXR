@@ -12,9 +12,9 @@
 
 #include <memory>
 
-using TestGraphicsContextPtr = std::shared_ptr<class TestGraphicsContext>;
-using TestMikanClientPtr = std::shared_ptr<class TestMikanClient>;
-using IMikanAPIPtr = std::shared_ptr<class IMikanAPI>;
+using TestGraphicsContextPtr= std::shared_ptr<class TestGraphicsContext>;
+using TestMikanClientPtr= std::shared_ptr<class TestMikanClient>;
+using IMikanAPIPtr= std::shared_ptr<class IMikanAPI>;
 
 enum class TestRenderMode : int
 {
@@ -35,7 +35,7 @@ public:
 	inline float getTimeSeconds() const { return m_timeSeconds; }
 
 	int exec(int argc, char** argv);
-	inline void requestShutdown() { m_bShutdownRequested = true; }
+	inline void requestShutdown() { m_bShutdownRequested= true; }
 
 protected:
 	bool startup(int argc, char** argv);
@@ -44,18 +44,18 @@ protected:
 
 	void update(float deltaSeconds);
 	void render();
-	
+
 private:
 	TestGraphicsContextPtr m_graphicsContext;
 	TestMikanClientPtr m_mikanClient;
 
-	TestRenderMode m_renderMode = TestRenderMode::Color;
-	MikanVector3f m_cubeOffset = {0.f, 0.f, 10.f}; // Default +Z offset of cube from camera
+	TestRenderMode m_renderMode= TestRenderMode::Color;
+	MikanVector3f m_cubeOffset= {0.f, 0.f, 10.f}; // Default +Z offset of cube from camera
 
 	// Flag requesting that we exit the update loop
-	bool m_bShutdownRequested = false;
+	bool m_bShutdownRequested= false;
 
 	// Current time
-	float m_timeSeconds = 0.f;
-	uint32_t m_lastFrameTimestamp = 0;
+	float m_timeSeconds= 0.f;
+	uint32_t m_lastFrameTimestamp= 0;
 };

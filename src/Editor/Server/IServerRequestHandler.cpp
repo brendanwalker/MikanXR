@@ -4,7 +4,7 @@
 
 ProjectManagerPtr IServerRequestHandler::getProjectManager() const
 {
-	auto* ownerWindow = m_owner->getOwnerWindow();
+	auto* ownerWindow= m_owner->getOwnerWindow();
 
 	return ownerWindow ? ownerWindow->getProjectManager() : ProjectManagerPtr();
 }

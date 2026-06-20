@@ -13,14 +13,14 @@ ClientSourceManager::ClientSourceManager(int textureQueueSize)
 
 bool ClientSourceManager::startup()
 {
-	MikanServer* mikanServer = MikanServer::getInstance();
+	MikanServer* mikanServer= MikanServer::getInstance();
 
 	// Create layers for all connected clients with allocated render targets
 	std::vector<MikanClientConnectionStateConstPtr> clientStateList;
 	mikanServer->getConnectedClientStateList(clientStateList);
 	for (MikanClientConnectionStateConstPtr clientState : clientStateList)
 	{
-		RenderTargetClientState* renderTargetClientState = clientState->getRenderTargetClientState();
+		RenderTargetClientState* renderTargetClientState= clientState->getRenderTargetClientState();
 		const SharedTextureReadAccessorCameraMap& readAccessorMap= renderTargetClientState->getRenderTargetAccessorMap();
 
 		for (auto it : readAccessorMap)
@@ -35,10 +35,10 @@ bool ClientSourceManager::startup()
 	}
 
 	// Listen for new render target events
-	auto* cameraRequestHandler = mikanServer->getCameraRequestHandler();
-	cameraRequestHandler->OnClientRenderTargetAllocated += MakeDelegate(this, &ClientSourceManager::onClientRenderTargetAllocated);
-	cameraRequestHandler->OnClientRenderTargetReleased += MakeDelegate(this, &ClientSourceManager::onClientRenderTargetReleased);
-	cameraRequestHandler->OnClientRenderTargetUpdated += MakeDelegate(this, &ClientSourceManager::onClientRenderTargetUpdated);
+	auto* cameraRequestHandler= mikanServer->getCameraRequestHandler();
+	cameraRequestHandler->OnClientRenderTargetAllocated+= MakeDelegate(this, &ClientSourceManager::onClientRenderTargetAllocated);
+	cameraRequestHandler->OnClientRenderTargetReleased+= MakeDelegate(this, &ClientSourceManager::onClientRenderTargetReleased);
+	cameraRequestHandler->OnClientRenderTargetUpdated+= MakeDelegate(this, &ClientSourceManager::onClientRenderTargetUpdated);
 
 	return true;
 }
@@ -46,25 +46,25 @@ bool ClientSourceManager::startup()
 void ClientSourceManager::shutdown()
 {
 	// Stop listening to render target events
-	MikanServer* mikanServer = MikanServer::getInstance();
-	auto* cameraRequestHandler = mikanServer->getCameraRequestHandler();
+	MikanServer* mikanServer= MikanServer::getInstance();
+	auto* cameraRequestHandler= mikanServer->getCameraRequestHandler();
 
-	cameraRequestHandler->OnClientRenderTargetAllocated -= MakeDelegate(this, &ClientSourceManager::onClientRenderTargetAllocated);
-	cameraRequestHandler->OnClientRenderTargetReleased -= MakeDelegate(this, &ClientSourceManager::onClientRenderTargetReleased);
-	cameraRequestHandler->OnClientRenderTargetUpdated -= MakeDelegate(this, &ClientSourceManager::onClientRenderTargetUpdated);
+	cameraRequestHandler->OnClientRenderTargetAllocated-= MakeDelegate(this, &ClientSourceManager::onClientRenderTargetAllocated);
+	cameraRequestHandler->OnClientRenderTargetReleased-= MakeDelegate(this, &ClientSourceManager::onClientRenderTargetReleased);
+	cameraRequestHandler->OnClientRenderTargetUpdated-= MakeDelegate(this, &ClientSourceManager::onClientRenderTargetUpdated);
 
 	// Clean up any allocated clientSources
-	for (auto iter = m_clientSources.getMap().begin(); iter != m_clientSources.getMap().end(); iter++)
+	for (auto iter= m_clientSources.getMap().begin(); iter != m_clientSources.getMap().end(); iter++)
 	{
-		ClientSource* clientSource = iter->second;
+		ClientSource* clientSource= iter->second;
 
 		if (clientSource->textureQueue != nullptr)
 		{
 			clientSource->textureQueue->dispose();
 			delete clientSource->textureQueue;
-			clientSource->textureQueue = nullptr;
+			clientSource->textureQueue= nullptr;
 		}
-		clientSource->readAccessor = nullptr;
+		clientSource->readAccessor= nullptr;
 
 		delete clientSource;
 	}
@@ -72,22 +72,22 @@ void ClientSourceManager::shutdown()
 }
 
 bool ClientSourceManager::hasClientSource(
-	const std::string& clientId, 
+	const std::string& clientId,
 	MikanCameraID cameraId) const
 {
 	return getClientSource(clientId, cameraId) != nullptr;
 }
 
 bool ClientSourceManager::getClientSourceDimensions(
-	const std::string& clientId, 
+	const std::string& clientId,
 	MikanCameraID cameraId,
 	int& outWidth, int& outHeight) const
 {
 	ClientSource* clientSource= getClientSource(clientId, cameraId);
 	if (clientSource != nullptr)
 	{
-		outWidth = clientSource->desc.width;
-		outHeight = clientSource->desc.height;
+		outWidth= clientSource->desc.width;
+		outHeight= clientSource->desc.height;
 		return true;
 	}
 
@@ -105,9 +105,9 @@ IMkTexturePtr ClientSourceManager::getClientColorSourceTexture(
 	{
 		switch (textureSourceColorType)
 		{
-			case eTextureSourceColorType::colorRGB:
-			case eTextureSourceColorType::colorRGBA:
-				return clientSource->textureQueue->getColorTexture(frameIndex);
+		case eTextureSourceColorType::colorRGB:
+		case eTextureSourceColorType::colorRGBA:
+			return clientSource->textureQueue->getColorTexture(frameIndex);
 		}
 	}
 
@@ -125,8 +125,8 @@ IMkTexturePtr ClientSourceManager::getClientDepthSourceTexture(
 	{
 		switch (textureSourceDepthType)
 		{
-			case eTextureSourceDepthType::depthPackRGBA:
-				return clientSource->textureQueue->getDepthTexture(frameIndex);
+		case eTextureSourceDepthType::depthPackRGBA:
+			return clientSource->textureQueue->getDepthTexture(frameIndex);
 		}
 	}
 
@@ -146,8 +146,8 @@ ClientSourceManager::ClientSource* ClientSourceManager::getClientSource(
 {
 	if (cameraId != INVALID_MIKAN_ID)
 	{
-		ClientSourceManager::ClientSource* clientSource = nullptr;
-		const std::string tableKey = makeClientSourceTableKey(clientId, cameraId);
+		ClientSourceManager::ClientSource* clientSource= nullptr;
+		const std::string tableKey= makeClientSourceTableKey(clientId, cameraId);
 		if (m_clientSources.tryGetValue(tableKey, clientSource))
 		{
 			return clientSource;
@@ -155,16 +155,16 @@ ClientSourceManager::ClientSource* ClientSourceManager::getClientSource(
 	}
 	else
 	{
-		// If an invalid cameraId was provided, find the newest client source for the clientId regardless of cameraId. 
-		int64_t newestFrameIndex = -1;
-		ClientSourceManager::ClientSource* newestClientSource = nullptr;
-		for (auto iter = m_clientSources.getMap().begin(); iter != m_clientSources.getMap().end(); iter++)
+		// If an invalid cameraId was provided, find the newest client source for the clientId regardless of cameraId.
+		int64_t newestFrameIndex= -1;
+		ClientSourceManager::ClientSource* newestClientSource= nullptr;
+		for (auto iter= m_clientSources.getMap().begin(); iter != m_clientSources.getMap().end(); iter++)
 		{
-			ClientSourceManager::ClientSource* clientSource = iter->second;
+			ClientSourceManager::ClientSource* clientSource= iter->second;
 			if (clientSource->clientId == clientId && clientSource->frameIndex > newestFrameIndex)
 			{
-				newestFrameIndex = clientSource->frameIndex;
-				newestClientSource = clientSource;
+				newestFrameIndex= clientSource->frameIndex;
+				newestClientSource= clientSource;
 			}
 		}
 
@@ -179,23 +179,23 @@ bool ClientSourceManager::addClientSource(
 	const MikanClientInfo& clientInfo,
 	SharedTextureReadAccessor* readAccessor)
 {
-	MikanCameraID cameraId = readAccessor->getCameraId();
+	MikanCameraID cameraId= readAccessor->getCameraId();
 	if (getClientSource(clientId, cameraId) != nullptr)
 		return false;
 
-	ClientSource* clientSource = new ClientSource();
-	bool bSuccess = true;
+	ClientSource* clientSource= new ClientSource();
+	bool bSuccess= true;
 
-	const MikanRenderTargetDescriptor& desc = readAccessor->getRenderTargetDescriptor();
-	clientSource->clientId = clientId;
-	clientSource->clientInfo = clientInfo;
-	clientSource->desc = desc;
-	clientSource->readAccessor = readAccessor;
-	clientSource->frameIndex = 0;
+	const MikanRenderTargetDescriptor& desc= readAccessor->getRenderTargetDescriptor();
+	clientSource->clientId= clientId;
+	clientSource->clientInfo= clientInfo;
+	clientSource->desc= desc;
+	clientSource->readAccessor= readAccessor;
+	clientSource->frameIndex= 0;
 
 	// Create the circular texture frame queue
-	clientSource->textureQueue = new ClientTextureFrameQueue(m_textureQueueSize);
-	bSuccess = clientSource->textureQueue->initialize(desc);
+	clientSource->textureQueue= new ClientTextureFrameQueue(m_textureQueueSize);
+	bSuccess= clientSource->textureQueue->initialize(desc);
 
 	if (bSuccess)
 	{
@@ -204,7 +204,7 @@ bool ClientSourceManager::addClientSource(
 		readAccessor->setDepthTexture(clientSource->textureQueue->getPendingWriteDepthTexture());
 
 		// Add the client source to the data source table
-		const std::string tableKey = makeClientSourceTableKey(clientId, cameraId);
+		const std::string tableKey= makeClientSourceTableKey(clientId, cameraId);
 		m_clientSources.setValue(tableKey, clientSource);
 
 		// Notify listeners that a new client source has connected
@@ -221,7 +221,7 @@ bool ClientSourceManager::addClientSource(
 
 		clientSource->textureQueue->dispose();
 		delete clientSource->textureQueue;
-		clientSource->readAccessor = nullptr;
+		clientSource->readAccessor= nullptr;
 
 		delete clientSource;
 	}
@@ -233,8 +233,8 @@ bool ClientSourceManager::removeClientSource(
 	const std::string& clientId,
 	SharedTextureReadAccessor* readAccessor)
 {
-	MikanCameraID cameraId = readAccessor->getCameraId();
-	ClientSource* clientSource = getClientSource(clientId, cameraId);
+	MikanCameraID cameraId= readAccessor->getCameraId();
+	ClientSource* clientSource= getClientSource(clientId, cameraId);
 	if (clientSource == nullptr)
 		return false;
 
@@ -243,11 +243,11 @@ bool ClientSourceManager::removeClientSource(
 
 	clientSource->textureQueue->dispose();
 	delete clientSource->textureQueue;
-	clientSource->textureQueue = nullptr;
-	clientSource->readAccessor = nullptr;
+	clientSource->textureQueue= nullptr;
+	clientSource->readAccessor= nullptr;
 
 	// Remove the client source entries from the data source tables
-	const std::string tableKey = makeClientSourceTableKey(clientId, cameraId);
+	const std::string tableKey= makeClientSourceTableKey(clientId, cameraId);
 	m_clientSources.removeValue(tableKey);
 
 	delete clientSource;
@@ -293,7 +293,7 @@ void ClientSourceManager::onClientRenderTargetUpdated(
 	{
 		// Stamp the frame index on the current slot and advance to the next
 		clientSource->textureQueue->advanceWriteIndex(frameIndex);
-		clientSource->frameIndex = frameIndex;
+		clientSource->frameIndex= frameIndex;
 
 		// Re-point the accessor at the new pending write slot
 		if (clientSource->readAccessor != nullptr)

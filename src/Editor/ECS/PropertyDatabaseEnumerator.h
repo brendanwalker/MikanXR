@@ -4,16 +4,16 @@
 
 #include <string>
 
-using MikanPropertyDatabaseConstPtr = std::shared_ptr<const class MikanPropertyDatabase>;
+using MikanPropertyDatabaseConstPtr= std::shared_ptr<const class MikanPropertyDatabase>;
 
 class PropertyDatabaseEnumerator
 {
 public:
 	PropertyDatabaseEnumerator(
 		MikanPropertyDatabaseConstPtr database,
-		const std::string& systemFilter = "",
-		const std::string& componentFilter = "",
-		const std::string& propertyFilter = "");
+		const std::string& systemFilter= "",
+		const std::string& componentFilter= "",
+		const std::string& propertyFilter= "");
 
 	bool isValid() const;
 	void next();

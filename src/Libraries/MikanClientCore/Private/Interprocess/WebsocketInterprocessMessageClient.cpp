@@ -7,12 +7,11 @@
 
 #include <ixwebsocket/IXWebSocket.h>
 
+using LockFreeEventQueue= moodycamel::ReaderWriterQueue<std::string>;
+using LockFreeEventQueuePtr= std::shared_ptr<LockFreeEventQueue>;
 
-using LockFreeEventQueue = moodycamel::ReaderWriterQueue<std::string>;
-using LockFreeEventQueuePtr = std::shared_ptr<LockFreeEventQueue>;
-
-using WebSocketWeakPtr = std::weak_ptr<ix::WebSocket>;
-using WebSocketPtr = std::shared_ptr<ix::WebSocket>;
+using WebSocketWeakPtr= std::weak_ptr<ix::WebSocket>;
+using WebSocketPtr= std::shared_ptr<ix::WebSocket>;
 
 //-- WebsocketConnectionState -----
 class WebsocketConnectionState
@@ -22,10 +21,9 @@ public:
 		: m_protocolVersion(protocolVersion)
 		, m_websocket(std::make_shared<ix::WebSocket>())
 		, m_eventQueue(std::make_shared<LockFreeEventQueue>())
-	{		
-		m_websocket->setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg) {
-			handleWebSocketMessage(msg);
-		});
+	{
+		m_websocket->setOnMessageCallback([this](const ix::WebSocketMessagePtr& msg)
+										  { handleWebSocketMessage(msg); });
 	}
 
 	~WebsocketConnectionState()
@@ -33,20 +31,22 @@ public:
 		disconnect();
 	}
 
-	const bool getIsConnected() const { 
+	const bool getIsConnected() const
+	{
 		auto readyState= m_websocket->getReadyState();
-		return readyState == ix::ReadyState::Open || readyState == ix::ReadyState::Connecting; 
+		return readyState == ix::ReadyState::Open || readyState == ix::ReadyState::Connecting;
 	}
-	
+
 	inline WebSocketPtr getWebSocket() { return m_websocket; }
 
 	inline LockFreeEventQueuePtr getServerEventQueue() { return m_eventQueue; }
-	inline void setTextResponseHandler(IInterprocessMessageClient::TextResponseHandler handler) { 
-		m_textResponseHandler= handler;  
+	inline void setTextResponseHandler(IInterprocessMessageClient::TextResponseHandler handler)
+	{
+		m_textResponseHandler= handler;
 	}
 	inline void setBinaryResponseHandler(IInterprocessMessageClient::BinaryResponseHandler handler)
 	{
-		m_binaryResponseHandler = handler;
+		m_binaryResponseHandler= handler;
 	}
 
 	MikanCoreResult connect(
@@ -70,7 +70,7 @@ public:
 		return MikanCoreResult_Success;
 	}
 
-	bool disconnect(uint16_t code = 0, const std::string& reason = "")
+	bool disconnect(uint16_t code= 0, const std::string& reason= "")
 	{
 		if (getIsConnected())
 		{
@@ -95,90 +95,91 @@ public:
 	{
 		switch (msg->type)
 		{
-			case ix::WebSocketMessageType::Open:
-				{
-					MIKAN_MT_LOG_INFO("handleWebSocketMessage") 
-						<< "New connection"
-						<< ", uri: " << msg->openInfo.uri
-						<< ", protocol: " << msg->openInfo.protocol;
-				}
-				break;
-			case ix::WebSocketMessageType::Close:
-				{
-					std::stringstream ss;
+		case ix::WebSocketMessageType::Open:
+		{
+			MIKAN_MT_LOG_INFO("handleWebSocketMessage")
+				<< "New connection"
+				<< ", uri: " << msg->openInfo.uri
+				<< ", protocol: " << msg->openInfo.protocol;
+		}
+		break;
+		case ix::WebSocketMessageType::Close:
+		{
+			std::stringstream ss;
 
-					ss << WEBSOCKET_DISCONNECT_EVENT;
-					ss << ":" << msg->closeInfo.code;
-					ss << ":" << msg->closeInfo.reason;
+			ss << WEBSOCKET_DISCONNECT_EVENT;
+			ss << ":" << msg->closeInfo.code;
+			ss << ":" << msg->closeInfo.reason;
 
-					m_eventQueue->enqueue(ss.str());
-				}
-				break;
-			case ix::WebSocketMessageType::Message:
+			m_eventQueue->enqueue(ss.str());
+		}
+		break;
+		case ix::WebSocketMessageType::Message:
+		{
+			if (!msg->binary)
+			{
+				JsonSaxStringValueSearcher searcher;
+
+				if (searcher.hasKey(msg->str, "eventTypeName"))
 				{
-					if (!msg->binary)
+					m_eventQueue->enqueue(msg->str);
+				}
+				else if (searcher.hasKey(msg->str, "responseTypeName"))
+				{
+					if (m_textResponseHandler != nullptr)
 					{
-						JsonSaxStringValueSearcher searcher;
-
-						if (searcher.hasKey(msg->str, "eventTypeName"))
-						{
-							m_eventQueue->enqueue(msg->str);
-						}
-						else if (searcher.hasKey(msg->str, "responseTypeName"))
-						{
-							if (m_textResponseHandler != nullptr)
-							{
-								m_textResponseHandler(msg->str);
-							}
-							else
-							{
-								MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage")
-									<< "Received response message but no handler set: " << msg->str;
-							}
-						}
-						else
-						{
-							MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage")
-								<< "Received unsupported message: " << msg->str;
-						}
+						m_textResponseHandler(msg->str);
 					}
 					else
 					{
-						// Binary message always assumed to	be a response (and not an event)
-						if (m_binaryResponseHandler != nullptr)
-						{
-							const uint8_t* buffer= reinterpret_cast<const uint8_t*>(msg->str.c_str());
-							const size_t bufferSize= msg->wireSize;
-
-							m_binaryResponseHandler(buffer, bufferSize);
-						}
-						else
-						{
-							MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage")
-								<< "Received binary message but no handler set";
-						}
+						MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage")
+							<< "Received response message but no handler set: " << msg->str;
 					}
-				} break;
-			case ix::WebSocketMessageType::Error:
-				{
-					MIKAN_MT_LOG_ERROR("handleWebSocketMessage") << "Error: " << msg->errorInfo.reason;
 				}
-				break;
-			case ix::WebSocketMessageType::Ping:
+				else
 				{
-					MIKAN_MT_LOG_TRACE("handleWebSocketMessage") << "Ping";
+					MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage")
+						<< "Received unsupported message: " << msg->str;
 				}
-				break;
-			case ix::WebSocketMessageType::Pong:
+			}
+			else
+			{
+				// Binary message always assumed to	be a response (and not an event)
+				if (m_binaryResponseHandler != nullptr)
 				{
-					MIKAN_MT_LOG_TRACE("handleWebSocketMessage") << "Pong";
+					const uint8_t* buffer= reinterpret_cast<const uint8_t*>(msg->str.c_str());
+					const size_t bufferSize= msg->wireSize;
+
+					m_binaryResponseHandler(buffer, bufferSize);
 				}
-				break;
-			case ix::WebSocketMessageType::Fragment:
+				else
 				{
-					MIKAN_MT_LOG_TRACE("handleWebSocketMessage") << "Fragment";
+					MIKAN_MT_LOG_ERROR("ClientConnectionState::handleClientMessage")
+						<< "Received binary message but no handler set";
 				}
-				break;
+			}
+		}
+		break;
+		case ix::WebSocketMessageType::Error:
+		{
+			MIKAN_MT_LOG_ERROR("handleWebSocketMessage") << "Error: " << msg->errorInfo.reason;
+		}
+		break;
+		case ix::WebSocketMessageType::Ping:
+		{
+			MIKAN_MT_LOG_TRACE("handleWebSocketMessage") << "Ping";
+		}
+		break;
+		case ix::WebSocketMessageType::Pong:
+		{
+			MIKAN_MT_LOG_TRACE("handleWebSocketMessage") << "Pong";
+		}
+		break;
+		case ix::WebSocketMessageType::Fragment:
+		{
+			MIKAN_MT_LOG_TRACE("handleWebSocketMessage") << "Fragment";
+		}
+		break;
 		}
 	}
 
@@ -214,13 +215,13 @@ void WebsocketInterprocessMessageClient::dispose()
 }
 
 const bool WebsocketInterprocessMessageClient::getIsConnected() const
-{ 
-	return m_connectionState->getIsConnected(); 
+{
+	return m_connectionState->getIsConnected();
 }
 
 void WebsocketInterprocessMessageClient::setTextResponseHandler(
-	IInterprocessMessageClient::TextResponseHandler handler) 
-{ 
+	IInterprocessMessageClient::TextResponseHandler handler)
+{
 	m_connectionState->setTextResponseHandler(handler);
 }
 
@@ -231,7 +232,7 @@ void WebsocketInterprocessMessageClient::setBinaryResponseHandler(
 }
 
 MikanCoreResult WebsocketInterprocessMessageClient::connect(
-	const std::string& host, 
+	const std::string& host,
 	const std::string& port)
 {
 	return m_connectionState->connect(host, port);
@@ -243,12 +244,12 @@ void WebsocketInterprocessMessageClient::disconnect(uint16_t code, const std::st
 }
 
 MikanCoreResult WebsocketInterprocessMessageClient::fetchNextEvent(
-	size_t utf8BufferSize, 
-	char* outUtf8Buffer, 
+	size_t utf8BufferSize,
+	char* outUtf8Buffer,
 	size_t* outUtf8BufferSizeNeeded)
 {
 	auto eventQueue= m_connectionState->getServerEventQueue();
-	const std::string* nextEvent = eventQueue->peek();
+	const std::string* nextEvent= eventQueue->peek();
 
 	if (nextEvent == nullptr)
 		return MikanCoreResult_NoData;
@@ -275,7 +276,7 @@ MikanCoreResult WebsocketInterprocessMessageClient::fetchNextEvent(
 
 		return MikanCoreResult_Success;
 	}
-	else 
+	else
 	{
 		if (outUtf8BufferSizeNeeded == nullptr)
 			return MikanCoreResult_NullParam;
@@ -291,7 +292,7 @@ MikanCoreResult WebsocketInterprocessMessageClient::sendRequest(const std::strin
 
 	if (!sendInfo.success)
 	{
-		MIKAN_LOG_ERROR("WebsocketInterprocessMessageClient::sendRequest()") 
+		MIKAN_LOG_ERROR("WebsocketInterprocessMessageClient::sendRequest()")
 			<< "Failed to send request: " << utf8RequestString;
 		return MikanCoreResult_SocketError;
 	}

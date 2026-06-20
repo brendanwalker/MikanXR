@@ -29,29 +29,29 @@
 #include "Transform.h"
 
 // -- AnchorObjectSystemConfig -----
-const std::string EditorObjectSystemDefinition::k_renderOriginFlagPropertyId = "render_origin";
-const std::string EditorObjectSystemDefinition::k_renderAnchorsPropertyId = "render_anchors";
-const std::string EditorObjectSystemDefinition::k_renderQuadStencilsPropertyId = "render_quad_stencils";
-const std::string EditorObjectSystemDefinition::k_renderBoxStencilsPropertyId = "render_box_stencils";
-const std::string EditorObjectSystemDefinition::k_renderModelStencilsPropertyId = "render_model_stencils";
-const std::string EditorObjectSystemDefinition::k_renderQuadShapesPropertyId = "render_quad_shapes";
-const std::string EditorObjectSystemDefinition::k_renderBoxShapesPropertyId = "render_box_shapes";
-const std::string EditorObjectSystemDefinition::k_renderModelShapesPropertyId = "render_model_shapes";
+const std::string EditorObjectSystemDefinition::k_renderOriginFlagPropertyId= "render_origin";
+const std::string EditorObjectSystemDefinition::k_renderAnchorsPropertyId= "render_anchors";
+const std::string EditorObjectSystemDefinition::k_renderQuadStencilsPropertyId= "render_quad_stencils";
+const std::string EditorObjectSystemDefinition::k_renderBoxStencilsPropertyId= "render_box_stencils";
+const std::string EditorObjectSystemDefinition::k_renderModelStencilsPropertyId= "render_model_stencils";
+const std::string EditorObjectSystemDefinition::k_renderQuadShapesPropertyId= "render_quad_shapes";
+const std::string EditorObjectSystemDefinition::k_renderBoxShapesPropertyId= "render_box_shapes";
+const std::string EditorObjectSystemDefinition::k_renderModelShapesPropertyId= "render_model_shapes";
 const std::string EditorObjectSystemDefinition::k_cameraSpeedPropertyId= "camera_speed";
 
 configuru::Config EditorObjectSystemDefinition::writeToJSON()
 {
-	configuru::Config pt = MikanObjectSystemDefinition::writeToJSON();
+	configuru::Config pt= MikanObjectSystemDefinition::writeToJSON();
 
-	pt[k_renderOriginFlagPropertyId] = m_editorSettings.bRenderOrigin;
-	pt[k_renderAnchorsPropertyId] = m_editorSettings.bDebugRenderAnchors;
-	pt[k_renderQuadStencilsPropertyId] = m_editorSettings.bDebugRenderQuadStencils;
-	pt[k_renderBoxStencilsPropertyId] = m_editorSettings.bDebugRenderBoxStencils;
-	pt[k_renderModelStencilsPropertyId] = m_editorSettings.bDebugRenderModelStencils;
-	pt[k_renderQuadShapesPropertyId] = m_editorSettings.bDebugRenderQuadShapes;
-	pt[k_renderBoxShapesPropertyId] = m_editorSettings.bDebugRenderBoxShapes;
-	pt[k_renderModelShapesPropertyId] = m_editorSettings.bDebugRenderModelShapes;
-	pt[k_cameraSpeedPropertyId] = m_editorSettings.cameraSpeed;
+	pt[k_renderOriginFlagPropertyId]= m_editorSettings.bRenderOrigin;
+	pt[k_renderAnchorsPropertyId]= m_editorSettings.bDebugRenderAnchors;
+	pt[k_renderQuadStencilsPropertyId]= m_editorSettings.bDebugRenderQuadStencils;
+	pt[k_renderBoxStencilsPropertyId]= m_editorSettings.bDebugRenderBoxStencils;
+	pt[k_renderModelStencilsPropertyId]= m_editorSettings.bDebugRenderModelStencils;
+	pt[k_renderQuadShapesPropertyId]= m_editorSettings.bDebugRenderQuadShapes;
+	pt[k_renderBoxShapesPropertyId]= m_editorSettings.bDebugRenderBoxShapes;
+	pt[k_renderModelShapesPropertyId]= m_editorSettings.bDebugRenderModelShapes;
+	pt[k_cameraSpeedPropertyId]= m_editorSettings.cameraSpeed;
 
 	return pt;
 }
@@ -60,22 +60,22 @@ void EditorObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 {
 	MikanObjectSystemDefinition::readFromJSON(pt);
 
-	m_editorSettings.bRenderOrigin = pt.get_or<bool>(k_renderOriginFlagPropertyId, m_editorSettings.bRenderOrigin);
-	m_editorSettings.bDebugRenderAnchors = pt.get_or<bool>(k_renderAnchorsPropertyId, m_editorSettings.bDebugRenderAnchors);
-	m_editorSettings.bDebugRenderQuadStencils = pt.get_or<bool>(k_renderQuadStencilsPropertyId, m_editorSettings.bDebugRenderQuadStencils);
-	m_editorSettings.bDebugRenderBoxStencils = pt.get_or<bool>(k_renderBoxStencilsPropertyId, m_editorSettings.bDebugRenderBoxStencils);
-	m_editorSettings.bDebugRenderModelStencils = pt.get_or<bool>(k_renderModelStencilsPropertyId, m_editorSettings.bDebugRenderModelStencils);
-	m_editorSettings.bDebugRenderQuadShapes = pt.get_or<bool>(k_renderQuadShapesPropertyId, m_editorSettings.bDebugRenderQuadShapes);
-	m_editorSettings.bDebugRenderBoxShapes = pt.get_or<bool>(k_renderBoxShapesPropertyId, m_editorSettings.bDebugRenderBoxShapes);
-	m_editorSettings.bDebugRenderModelShapes = pt.get_or<bool>(k_renderModelShapesPropertyId, m_editorSettings.bDebugRenderModelShapes);
-	m_editorSettings.cameraSpeed = pt.get_or<float>(k_cameraSpeedPropertyId, m_editorSettings.cameraSpeed);
+	m_editorSettings.bRenderOrigin= pt.get_or<bool>(k_renderOriginFlagPropertyId, m_editorSettings.bRenderOrigin);
+	m_editorSettings.bDebugRenderAnchors= pt.get_or<bool>(k_renderAnchorsPropertyId, m_editorSettings.bDebugRenderAnchors);
+	m_editorSettings.bDebugRenderQuadStencils= pt.get_or<bool>(k_renderQuadStencilsPropertyId, m_editorSettings.bDebugRenderQuadStencils);
+	m_editorSettings.bDebugRenderBoxStencils= pt.get_or<bool>(k_renderBoxStencilsPropertyId, m_editorSettings.bDebugRenderBoxStencils);
+	m_editorSettings.bDebugRenderModelStencils= pt.get_or<bool>(k_renderModelStencilsPropertyId, m_editorSettings.bDebugRenderModelStencils);
+	m_editorSettings.bDebugRenderQuadShapes= pt.get_or<bool>(k_renderQuadShapesPropertyId, m_editorSettings.bDebugRenderQuadShapes);
+	m_editorSettings.bDebugRenderBoxShapes= pt.get_or<bool>(k_renderBoxShapesPropertyId, m_editorSettings.bDebugRenderBoxShapes);
+	m_editorSettings.bDebugRenderModelShapes= pt.get_or<bool>(k_renderModelShapesPropertyId, m_editorSettings.bDebugRenderModelShapes);
+	m_editorSettings.cameraSpeed= pt.get_or<float>(k_cameraSpeedPropertyId, m_editorSettings.cameraSpeed);
 }
 
 void EditorObjectSystemDefinition::setRenderOriginFlag(bool flag)
 {
 	if (m_editorSettings.bRenderOrigin != flag)
 	{
-		m_editorSettings.bRenderOrigin = flag;
+		m_editorSettings.bRenderOrigin= flag;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderOriginFlagPropertyId));
 	}
 }
@@ -84,7 +84,7 @@ void EditorObjectSystemDefinition::setRenderAnchorsFlag(bool flag)
 {
 	if (m_editorSettings.bDebugRenderAnchors != flag)
 	{
-		m_editorSettings.bDebugRenderAnchors = flag;
+		m_editorSettings.bDebugRenderAnchors= flag;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderAnchorsPropertyId));
 	}
 }
@@ -93,7 +93,7 @@ void EditorObjectSystemDefinition::setRenderQuadStencilsFlag(bool flag)
 {
 	if (m_editorSettings.bDebugRenderQuadStencils != flag)
 	{
-		m_editorSettings.bDebugRenderQuadStencils = flag;
+		m_editorSettings.bDebugRenderQuadStencils= flag;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderQuadStencilsPropertyId));
 	}
 }
@@ -102,7 +102,7 @@ void EditorObjectSystemDefinition::setRenderBoxStencilsFlag(bool flag)
 {
 	if (m_editorSettings.bDebugRenderBoxStencils != flag)
 	{
-		m_editorSettings.bDebugRenderBoxStencils = flag;
+		m_editorSettings.bDebugRenderBoxStencils= flag;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderBoxStencilsPropertyId));
 	}
 }
@@ -111,7 +111,7 @@ void EditorObjectSystemDefinition::setRenderModelStencilsFlag(bool flag)
 {
 	if (m_editorSettings.bDebugRenderModelStencils != flag)
 	{
-		m_editorSettings.bDebugRenderModelStencils = flag;
+		m_editorSettings.bDebugRenderModelStencils= flag;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderModelStencilsPropertyId));
 	}
 }
@@ -120,7 +120,7 @@ void EditorObjectSystemDefinition::setRenderQuadShapesFlag(bool flag)
 {
 	if (m_editorSettings.bDebugRenderQuadShapes != flag)
 	{
-		m_editorSettings.bDebugRenderQuadShapes = flag;
+		m_editorSettings.bDebugRenderQuadShapes= flag;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderQuadShapesPropertyId));
 	}
 }
@@ -129,7 +129,7 @@ void EditorObjectSystemDefinition::setRenderBoxShapesFlag(bool flag)
 {
 	if (m_editorSettings.bDebugRenderBoxShapes != flag)
 	{
-		m_editorSettings.bDebugRenderBoxShapes = flag;
+		m_editorSettings.bDebugRenderBoxShapes= flag;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderBoxShapesPropertyId));
 	}
 }
@@ -138,7 +138,7 @@ void EditorObjectSystemDefinition::setRenderModelShapesFlag(bool flag)
 {
 	if (m_editorSettings.bDebugRenderModelShapes != flag)
 	{
-		m_editorSettings.bDebugRenderModelShapes = flag;
+		m_editorSettings.bDebugRenderModelShapes= flag;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_renderModelShapesPropertyId));
 	}
 }
@@ -147,7 +147,7 @@ void EditorObjectSystemDefinition::setCameraSpeed(float speed)
 {
 	if (m_editorSettings.cameraSpeed != speed)
 	{
-		m_editorSettings.cameraSpeed = speed;
+		m_editorSettings.cameraSpeed= speed;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_cameraSpeedPropertyId));
 	}
 }
@@ -159,26 +159,26 @@ bool EditorObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 
 	auto editorConfig= getEditorSystemConfig();
 
-	IEditorWindow* ownerWindow = getOwnerProjectManager()->getOwnerWindow();
-	ownerWindow->OnAppStageEntered += MakeDelegate(this, &EditorObjectSystem::onAppStageEntered);
+	IEditorWindow* ownerWindow= getOwnerProjectManager()->getOwnerWindow();
+	ownerWindow->OnAppStageEntered+= MakeDelegate(this, &EditorObjectSystem::onAppStageEntered);
 
-	SceneObjectSystemPtr sceneObjectSystem = getObjectSystemOfType<SceneObjectSystem>();
-	sceneObjectSystem->OnSceneActivated += MakeDelegate(this, &EditorObjectSystem::onSceneActivated);
-	sceneObjectSystem->OnSceneDeactivated += MakeDelegate(this, &EditorObjectSystem::onSceneDeactivated);
+	SceneObjectSystemPtr sceneObjectSystem= getObjectSystemOfType<SceneObjectSystem>();
+	sceneObjectSystem->OnSceneActivated+= MakeDelegate(this, &EditorObjectSystem::onSceneActivated);
+	sceneObjectSystem->OnSceneDeactivated+= MakeDelegate(this, &EditorObjectSystem::onSceneDeactivated);
 
 	AnchorObjectSystemPtr anchorObjectSystem= getObjectSystemOfType<AnchorObjectSystem>();
 	anchorObjectSystem->OnComponentDisposed+= MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
 
 	QuadStencilSystemPtr quadStencilSystem= getObjectSystemOfType<QuadStencilSystem>();
-	quadStencilSystem->OnComponentDisposed += MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
+	quadStencilSystem->OnComponentDisposed+= MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
 
 	BoxStencilSystemPtr boxStencilSystem= getObjectSystemOfType<BoxStencilSystem>();
-	boxStencilSystem->OnComponentDisposed += MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
+	boxStencilSystem->OnComponentDisposed+= MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
 
 	ModelStencilSystemPtr modelStencilSystem= getObjectSystemOfType<ModelStencilSystem>();
-	modelStencilSystem->OnComponentDisposed += MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
+	modelStencilSystem->OnComponentDisposed+= MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
 
-	m_lastestRaycastResult = ColliderRaycastHitResult();
+	m_lastestRaycastResult= ColliderRaycastHitResult();
 	m_hoverComponentWeakPtr.reset();
 	m_selectedComponentWeakPtr.reset();
 
@@ -189,7 +189,7 @@ void EditorObjectSystem::createSceneTransformGizmo(SceneComponentPtr ownerScene)
 {
 	disposeSceneTransformGizmo();
 
-	m_gizmoObjectWeakPtr = newEmptyObject();
+	m_gizmoObjectWeakPtr= newEmptyObject();
 	MikanObjectPtr gizmoObjectPtr= m_gizmoObjectWeakPtr.lock();
 	gizmoObjectPtr->setName("Gizmo");
 
@@ -209,9 +209,9 @@ void EditorObjectSystem::createSceneTransformGizmo(SceneComponentPtr ownerScene)
 	createGizmoBoxCollider(gizmoObjectPtr, "xzTranslateHandle", glm::vec3(P, 0.f, P), glm::vec3(P, W * 0.1f, P), 3);
 	createGizmoBoxCollider(gizmoObjectPtr, "yzTranslateHandle", glm::vec3(0.f, P, P), glm::vec3(W * 0.1f, P, P), 3);
 	createGizmoDiskCollider(gizmoObjectPtr, "viewPlaneTranslateHandle", glm::vec3(0.f), glm::vec3(0.f, 0.f, 1.f), W * 2.5f, 2);
-	createGizmoBoxCollider(gizmoObjectPtr, "xAxisTranslateHandle", glm::vec3(R/2.f, 0.f, 0.f), glm::vec3(R/2.f, W, W), 1);
-	createGizmoBoxCollider(gizmoObjectPtr, "yAxisTranslateHandle", glm::vec3(0.f, R/2.f, 0.f), glm::vec3(W, R/2.f, W), 1);
-	createGizmoBoxCollider(gizmoObjectPtr, "zAxisTranslateHandle", glm::vec3(0.f, 0.f, R/2.f), glm::vec3(W, W, R/2.f), 1);
+	createGizmoBoxCollider(gizmoObjectPtr, "xAxisTranslateHandle", glm::vec3(R / 2.f, 0.f, 0.f), glm::vec3(R / 2.f, W, W), 1);
+	createGizmoBoxCollider(gizmoObjectPtr, "yAxisTranslateHandle", glm::vec3(0.f, R / 2.f, 0.f), glm::vec3(W, R / 2.f, W), 1);
+	createGizmoBoxCollider(gizmoObjectPtr, "zAxisTranslateHandle", glm::vec3(0.f, 0.f, R / 2.f), glm::vec3(W, W, R / 2.f), 1);
 
 	GizmoRotateComponentPtr rotateComponentPtr= gizmoObjectPtr->addComponent<GizmoRotateComponent>();
 	createGizmoDiskCollider(gizmoObjectPtr, "xAxisRotateHandle", glm::vec3(0.f), glm::vec3(1.f, 0.f, 0.f), R, 1);
@@ -246,7 +246,7 @@ void EditorObjectSystem::createGizmoBoxCollider(
 	MikanObjectPtr gizmoObjectPtr,
 	const std::string& name,
 	const glm::vec3& center,
-	const glm::vec3& halfExtents, 
+	const glm::vec3& halfExtents,
 	const int priority)
 {
 	BoxColliderComponentPtr colliderPtr= gizmoObjectPtr->addComponent<BoxColliderComponent>(name);
@@ -267,7 +267,7 @@ void EditorObjectSystem::createGizmoDiskCollider(
 	const float radius,
 	const int priority)
 {
-	DiskColliderComponentPtr colliderPtr = gizmoObjectPtr->addComponent<DiskColliderComponent>(name);
+	DiskColliderComponentPtr colliderPtr= gizmoObjectPtr->addComponent<DiskColliderComponent>(name);
 
 	glm::quat orientation= glm::quat(glm::vec3(0.f, 1.f, 0.f), normal);
 	colliderPtr->setRelativeTransform(GlmTransform(center, orientation));
@@ -280,25 +280,25 @@ void EditorObjectSystem::createGizmoDiskCollider(
 
 void EditorObjectSystem::dispose()
 {
-	SceneObjectSystemPtr sceneObjectSystem = getObjectSystemOfType<SceneObjectSystem>();
-	sceneObjectSystem->OnSceneActivated -= MakeDelegate(this, &EditorObjectSystem::onSceneActivated);
-	sceneObjectSystem->OnSceneDeactivated -= MakeDelegate(this, &EditorObjectSystem::onSceneDeactivated);
+	SceneObjectSystemPtr sceneObjectSystem= getObjectSystemOfType<SceneObjectSystem>();
+	sceneObjectSystem->OnSceneActivated-= MakeDelegate(this, &EditorObjectSystem::onSceneActivated);
+	sceneObjectSystem->OnSceneDeactivated-= MakeDelegate(this, &EditorObjectSystem::onSceneDeactivated);
 
-	AnchorObjectSystemPtr anchorObjectSystem = getObjectSystemOfType<AnchorObjectSystem>();
-	anchorObjectSystem->OnComponentDisposed -= MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
+	AnchorObjectSystemPtr anchorObjectSystem= getObjectSystemOfType<AnchorObjectSystem>();
+	anchorObjectSystem->OnComponentDisposed-= MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
 
-	QuadStencilSystemPtr quadStencilSystem = getObjectSystemOfType<QuadStencilSystem>();
-	quadStencilSystem->OnComponentDisposed -= MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
+	QuadStencilSystemPtr quadStencilSystem= getObjectSystemOfType<QuadStencilSystem>();
+	quadStencilSystem->OnComponentDisposed-= MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
 
-	BoxStencilSystemPtr boxStencilSystem = getObjectSystemOfType<BoxStencilSystem>();
-	boxStencilSystem->OnComponentDisposed -= MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
+	BoxStencilSystemPtr boxStencilSystem= getObjectSystemOfType<BoxStencilSystem>();
+	boxStencilSystem->OnComponentDisposed-= MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
 
-	ModelStencilSystemPtr modelStencilSystem = getObjectSystemOfType<ModelStencilSystem>();
-	modelStencilSystem->OnComponentDisposed -= MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
+	ModelStencilSystemPtr modelStencilSystem= getObjectSystemOfType<ModelStencilSystem>();
+	modelStencilSystem->OnComponentDisposed-= MakeDelegate(this, &EditorObjectSystem::onActorDisposed);
 
 	m_gizmoObjectWeakPtr.reset();
 	m_gizmoComponentWeakPtr.reset();
-	
+
 	MikanObjectSystem::dispose();
 }
 
@@ -344,7 +344,7 @@ bool EditorObjectSystem::getComponentIdList(const std::string& componentClassNam
 MikanCameraPtr EditorObjectSystem::getPrimaryCamera() const
 {
 	if (!m_viewports.empty())
-		if (auto viewport = m_viewports[0].lock())
+		if (auto viewport= m_viewports[0].lock())
 			return viewport->getCurrentMikanCamera();
 	return nullptr;
 }
@@ -354,17 +354,18 @@ void EditorObjectSystem::bindViewport(MikanViewportWeakPtr viewportWeakPtr)
 	MikanViewportPtr viewportPtr= viewportWeakPtr.lock();
 	if (viewportPtr)
 	{
-		const auto it = std::find_if(
+		const auto it= std::find_if(
 			m_viewports.begin(), m_viewports.end(),
-			[viewportPtr](const MikanViewportWeakPtr& entry) {
+			[viewportPtr](const MikanViewportWeakPtr& entry)
+			{
 				return entry.lock() == viewportPtr;
 			});
 		if (it == m_viewports.end())
 		{
-			viewportPtr->OnMouseExited += MakeDelegate(this, &EditorObjectSystem::onMouseExited);
-			viewportPtr->OnMouseRayChanged += MakeDelegate(this, &EditorObjectSystem::onMouseRayChanged);
-			viewportPtr->OnMouseRayButtonUp += MakeDelegate(this, &EditorObjectSystem::onMouseRayButtonUp);
-			viewportPtr->OnMouseRayButtonDown += MakeDelegate(this, &EditorObjectSystem::onMouseRayButtonDown);
+			viewportPtr->OnMouseExited+= MakeDelegate(this, &EditorObjectSystem::onMouseExited);
+			viewportPtr->OnMouseRayChanged+= MakeDelegate(this, &EditorObjectSystem::onMouseRayChanged);
+			viewportPtr->OnMouseRayButtonUp+= MakeDelegate(this, &EditorObjectSystem::onMouseRayButtonUp);
+			viewportPtr->OnMouseRayButtonDown+= MakeDelegate(this, &EditorObjectSystem::onMouseRayButtonDown);
 
 			m_viewports.push_back(viewportWeakPtr);
 		}
@@ -373,20 +374,21 @@ void EditorObjectSystem::bindViewport(MikanViewportWeakPtr viewportWeakPtr)
 
 void EditorObjectSystem::unbindViewport(MikanViewportWeakPtr viewportWeakPtr)
 {
-	MikanViewportPtr viewportPtr = viewportWeakPtr.lock();
+	MikanViewportPtr viewportPtr= viewportWeakPtr.lock();
 	if (viewportPtr)
 	{
-		const auto it = std::find_if(
+		const auto it= std::find_if(
 			m_viewports.begin(), m_viewports.end(),
-			[viewportPtr](const MikanViewportWeakPtr& entry) {
+			[viewportPtr](const MikanViewportWeakPtr& entry)
+			{
 				return entry.lock() == viewportPtr;
 			});
 		if (it != m_viewports.end())
 		{
-			viewportPtr->OnMouseExited -= MakeDelegate(this, &EditorObjectSystem::onMouseExited);
-			viewportPtr->OnMouseRayChanged -= MakeDelegate(this, &EditorObjectSystem::onMouseRayChanged);
-			viewportPtr->OnMouseRayButtonUp -= MakeDelegate(this, &EditorObjectSystem::onMouseRayButtonUp);
-			viewportPtr->OnMouseRayButtonDown -= MakeDelegate(this, &EditorObjectSystem::onMouseRayButtonDown);
+			viewportPtr->OnMouseExited-= MakeDelegate(this, &EditorObjectSystem::onMouseExited);
+			viewportPtr->OnMouseRayChanged-= MakeDelegate(this, &EditorObjectSystem::onMouseRayChanged);
+			viewportPtr->OnMouseRayButtonUp-= MakeDelegate(this, &EditorObjectSystem::onMouseRayButtonUp);
+			viewportPtr->OnMouseRayButtonDown-= MakeDelegate(this, &EditorObjectSystem::onMouseRayButtonDown);
 
 			m_viewports.erase(it);
 		}
@@ -397,13 +399,13 @@ void EditorObjectSystem::clearViewports()
 {
 	for (MikanViewportWeakPtr& viewportWeakPtr : m_viewports)
 	{
-		MikanViewportPtr viewportPtr = viewportWeakPtr.lock();
+		MikanViewportPtr viewportPtr= viewportWeakPtr.lock();
 		if (viewportPtr)
 		{
 			viewportPtr->OnMouseExited-= MakeDelegate(this, &EditorObjectSystem::onMouseExited);
-			viewportPtr->OnMouseRayChanged -= MakeDelegate(this, &EditorObjectSystem::onMouseRayChanged);
-			viewportPtr->OnMouseRayButtonUp -= MakeDelegate(this, &EditorObjectSystem::onMouseRayButtonUp);
-			viewportPtr->OnMouseRayButtonDown -= MakeDelegate(this, &EditorObjectSystem::onMouseRayButtonDown);
+			viewportPtr->OnMouseRayChanged-= MakeDelegate(this, &EditorObjectSystem::onMouseRayChanged);
+			viewportPtr->OnMouseRayButtonUp-= MakeDelegate(this, &EditorObjectSystem::onMouseRayButtonUp);
+			viewportPtr->OnMouseRayButtonDown-= MakeDelegate(this, &EditorObjectSystem::onMouseRayButtonDown);
 		}
 	}
 	m_viewports.clear();
@@ -415,7 +417,7 @@ void EditorObjectSystem::onAppStageEntered(class AppStage* oldAppStage, class Ap
 	if (newAppStage->getAppStageName() == AppStage_Project::APP_STAGE_NAME)
 	{
 		InputManager* inputManager= getOwnerWindow()->getInputManager();
-		inputManager->fetchOrAddKeyBindings(MkKey::DELETE_KEYCODE)->OnKeyPressed +=
+		inputManager->fetchOrAddKeyBindings(MkKey::DELETE_KEYCODE)->OnKeyPressed+=
 			MakeDelegate(this, &EditorObjectSystem::onDeletePressed);
 
 		m_gizmoComponentWeakPtr.lock()->bindInput();
@@ -466,7 +468,7 @@ void EditorObjectSystem::onActorDisposed(MikanObjectSystemPtr system, MikanCompo
 
 void EditorObjectSystem::onMouseExited()
 {
-	SelectionComponentPtr oldHoverComponentPtr = m_hoverComponentWeakPtr.lock();
+	SelectionComponentPtr oldHoverComponentPtr= m_hoverComponentWeakPtr.lock();
 
 	if (oldHoverComponentPtr)
 	{
@@ -474,7 +476,7 @@ void EditorObjectSystem::onMouseExited()
 
 		m_hoverComponentWeakPtr.reset();
 		m_hoverColliderWeakPtr.reset();
-		m_lastestRaycastResult = ColliderRaycastHitResult();
+		m_lastestRaycastResult= ColliderRaycastHitResult();
 	}
 }
 
@@ -485,12 +487,12 @@ void EditorObjectSystem::onMouseRayButtonDown(const glm::vec3& rayOrigin, const 
 	if (button == MkMouseButton::LEFT)
 	{
 		// See if the current selection is changing
-		SelectionComponentPtr oldSelectedComponentPtr = m_selectedComponentWeakPtr.lock();
-		SelectionComponentPtr newSelectedComponentPtr = currentHoverPtr;
+		SelectionComponentPtr oldSelectedComponentPtr= m_selectedComponentWeakPtr.lock();
+		SelectionComponentPtr newSelectedComponentPtr= currentHoverPtr;
 		if (oldSelectedComponentPtr != newSelectedComponentPtr)
 		{
 			// Update the selection component weak ptr
-			m_selectedComponentWeakPtr = newSelectedComponentPtr;
+			m_selectedComponentWeakPtr= newSelectedComponentPtr;
 
 			// Send notification of selection change
 			onSelectionChanged(oldSelectedComponentPtr, newSelectedComponentPtr);
@@ -506,15 +508,15 @@ void EditorObjectSystem::onMouseRayButtonDown(const glm::vec3& rayOrigin, const 
 
 void EditorObjectSystem::onMouseRayChanged(const glm::vec3& rayOrigin, const glm::vec3& rayDir)
 {
-	ColliderRaycastHitResult prevRaycastResult = m_lastestRaycastResult;
-	m_lastestRaycastResult = ColliderRaycastHitResult();
+	ColliderRaycastHitResult prevRaycastResult= m_lastestRaycastResult;
+	m_lastestRaycastResult= ColliderRaycastHitResult();
 
-	SelectionComponentPtr oldHoverComponentPtr = m_hoverComponentWeakPtr.lock();
-	SelectionComponentPtr newHoverComponentPtr =
+	SelectionComponentPtr oldHoverComponentPtr= m_hoverComponentWeakPtr.lock();
+	SelectionComponentPtr newHoverComponentPtr=
 		findClosestSelectionTarget(rayOrigin, rayDir, m_lastestRaycastResult);
 
-	ColliderComponentPtr oldHoverColliderPtr = m_hoverColliderWeakPtr.lock();
-	ColliderComponentPtr newHoverColliderPtr = m_lastestRaycastResult.hitComponent.lock();
+	ColliderComponentPtr oldHoverColliderPtr= m_hoverColliderWeakPtr.lock();
+	ColliderComponentPtr newHoverColliderPtr= m_lastestRaycastResult.hitComponent.lock();
 
 	if (newHoverComponentPtr != oldHoverComponentPtr)
 	{
@@ -522,7 +524,7 @@ void EditorObjectSystem::onMouseRayChanged(const glm::vec3& rayOrigin, const glm
 			oldHoverComponentPtr->notifyHoverExit(prevRaycastResult);
 		if (newHoverComponentPtr)
 			newHoverComponentPtr->notifyHoverEnter(m_lastestRaycastResult);
-		m_hoverComponentWeakPtr = newHoverComponentPtr;
+		m_hoverComponentWeakPtr= newHoverComponentPtr;
 	}
 	else if (newHoverColliderPtr != oldHoverColliderPtr && oldHoverComponentPtr)
 	{
@@ -533,9 +535,9 @@ void EditorObjectSystem::onMouseRayChanged(const glm::vec3& rayOrigin, const glm
 			oldHoverComponentPtr->notifyHoverEnter(m_lastestRaycastResult);
 	}
 
-	m_hoverColliderWeakPtr = newHoverColliderPtr;
+	m_hoverColliderWeakPtr= newHoverColliderPtr;
 
-	SelectionComponentPtr selectedComponentPtr = m_selectedComponentWeakPtr.lock();
+	SelectionComponentPtr selectedComponentPtr= m_selectedComponentWeakPtr.lock();
 	if (selectedComponentPtr)
 	{
 		selectedComponentPtr->notifyMove(rayOrigin, rayDir);
@@ -544,7 +546,7 @@ void EditorObjectSystem::onMouseRayChanged(const glm::vec3& rayOrigin, const glm
 
 void EditorObjectSystem::onMouseRayButtonUp(const glm::vec3& rayOrigin, const glm::vec3& rayDir, int button)
 {
-	SelectionComponentPtr currentSelectedPtr = m_selectedComponentWeakPtr.lock();
+	SelectionComponentPtr currentSelectedPtr= m_selectedComponentWeakPtr.lock();
 	if (currentSelectedPtr)
 	{
 		currentSelectedPtr->notifyRelease();
@@ -552,10 +554,10 @@ void EditorObjectSystem::onMouseRayButtonUp(const glm::vec3& rayOrigin, const gl
 }
 
 void EditorObjectSystem::onSelectionChanged(
-	SelectionComponentPtr oldSelectedComponentPtr, 
+	SelectionComponentPtr oldSelectedComponentPtr,
 	SelectionComponentPtr newSelectedComponentPtr)
 {
-	GizmoTransformComponentPtr gizmoComponentPtr = m_gizmoComponentWeakPtr.lock();
+	GizmoTransformComponentPtr gizmoComponentPtr= m_gizmoComponentWeakPtr.lock();
 
 	// Tell the old selection that it's getting unselected
 	if (oldSelectedComponentPtr)
@@ -573,7 +575,7 @@ void EditorObjectSystem::onSelectionChanged(
 		if (newSelectedComponentPtr->getOwnerObject() != gizmoComponentPtr->getOwnerObject())
 		{
 			SelectionComponentPtr oldGizmoTargetPtr= gizmoComponentPtr->getSelectionTarget();
-			SelectionComponentPtr newGizmoTargetPtr = newSelectedComponentPtr;
+			SelectionComponentPtr newGizmoTargetPtr= newSelectedComponentPtr;
 
 			// Is the newly selected component not the one the transform gizmo is currently attached to?
 			if (newGizmoTargetPtr && oldGizmoTargetPtr != newGizmoTargetPtr)
@@ -603,21 +605,21 @@ void EditorObjectSystem::setObjectSystemSelectionFilter(
 		clearHoveredComponent();
 		clearSelectedComponent();
 
-		m_objectSystemSelectionFilter = objectSystemFilter;
+		m_objectSystemSelectionFilter= objectSystemFilter;
 	}
 }
 
 SelectionComponentPtr EditorObjectSystem::getSelectedSceneActor() const
 {
-	SelectionComponentPtr currentSelection = m_selectedComponentWeakPtr.lock();
+	SelectionComponentPtr currentSelection= m_selectedComponentWeakPtr.lock();
 	if (!currentSelection)
 		return nullptr;
 
 	// If the selected component belongs to the gizmo, return what the gizmo is manipulating instead
-	MikanObjectPtr gizmoObject = m_gizmoObjectWeakPtr.lock();
+	MikanObjectPtr gizmoObject= m_gizmoObjectWeakPtr.lock();
 	if (gizmoObject && currentSelection->getOwnerObject() == gizmoObject)
 	{
-		GizmoTransformComponentPtr gizmoComponent = m_gizmoComponentWeakPtr.lock();
+		GizmoTransformComponentPtr gizmoComponent= m_gizmoComponentWeakPtr.lock();
 		if (gizmoComponent)
 			return gizmoComponent->getSelectionTarget();
 		return nullptr;
@@ -629,11 +631,11 @@ SelectionComponentPtr EditorObjectSystem::getSelectedSceneActor() const
 void EditorObjectSystem::setSelection(SelectionComponentPtr newSelectedComponentPtr)
 {
 	// See if the current selection is changing
-	SelectionComponentPtr oldSelectedComponentPtr = m_selectedComponentWeakPtr.lock();
+	SelectionComponentPtr oldSelectedComponentPtr= m_selectedComponentWeakPtr.lock();
 	if (oldSelectedComponentPtr != newSelectedComponentPtr)
 	{
 		// Update the selection component weak ptr
-		m_selectedComponentWeakPtr = newSelectedComponentPtr;
+		m_selectedComponentWeakPtr= newSelectedComponentPtr;
 
 		// Send notification of selection change
 		onSelectionChanged(oldSelectedComponentPtr, newSelectedComponentPtr);
@@ -641,16 +643,16 @@ void EditorObjectSystem::setSelection(SelectionComponentPtr newSelectedComponent
 }
 
 SelectionComponentPtr EditorObjectSystem::findClosestSelectionTarget(
-	const glm::vec3& rayOrigin, 
+	const glm::vec3& rayOrigin,
 	const glm::vec3& rayDir,
 	ColliderRaycastHitResult& outRaycastResult) const
 {
-	ColliderRaycastHitRequest request = {};
-	request.rayOrigin = rayOrigin;
-	request.rayDirection = rayDir;
+	ColliderRaycastHitRequest request= {};
+	request.rayOrigin= rayOrigin;
+	request.rayDirection= rayDir;
 
-	// Find the closest collision result in the 
-	outRaycastResult = findClosestCollisionAlongRay(m_objectSystemSelectionFilter, request);
+	// Find the closest collision result in the
+	outRaycastResult= findClosestCollisionAlongRay(m_objectSystemSelectionFilter, request);
 
 	SelectionComponentPtr closestSelectionComponent;
 	ColliderComponentPtr hitCollider= outRaycastResult.hitComponent.lock();
@@ -666,7 +668,7 @@ SelectionComponentPtr EditorObjectSystem::findClosestSelectionTarget(
 
 void EditorObjectSystem::clearHoveredComponent()
 {
-	SelectionComponentPtr hoverComponentPtr = m_hoverComponentWeakPtr.lock();
+	SelectionComponentPtr hoverComponentPtr= m_hoverComponentWeakPtr.lock();
 	if (hoverComponentPtr)
 	{
 		hoverComponentPtr->notifyHoverExit(m_lastestRaycastResult);
@@ -677,7 +679,7 @@ void EditorObjectSystem::clearHoveredComponent()
 
 void EditorObjectSystem::clearSelectedComponent()
 {
-	SelectionComponentPtr selectedComponent = m_selectedComponentWeakPtr.lock();
+	SelectionComponentPtr selectedComponent= m_selectedComponentWeakPtr.lock();
 	if (selectedComponent)
 	{
 		// Clear the currently selected component first in case selection handler asks
@@ -736,55 +738,55 @@ void EditorObjectSystem::getPropertyDescriptors(std::vector<PropertyDescriptorCo
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			EditorObjectSystem::k_availableLanguageListPropertyId, MikanVariantType::STRING_ARRAY)
-		->setReadOnly());
+			->setReadOnly());
 }
 
 bool EditorObjectSystem::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
 	if (propertyName == EditorObjectSystemDefinition::k_renderOriginFlagPropertyId)
 	{
-		EditorObjectSystemDefinitionConstPtr definition = getEditorSystemConfigConst();
-		outValue = definition->getRenderOriginFlag();
+		EditorObjectSystemDefinitionConstPtr definition= getEditorSystemConfigConst();
+		outValue= definition->getRenderOriginFlag();
 		return true;
 	}
 	else if (propertyName == EditorObjectSystemDefinition::k_renderAnchorsPropertyId)
 	{
-		EditorObjectSystemDefinitionConstPtr definition = getEditorSystemConfigConst();
-		outValue = definition->getRenderAnchorsFlag();
+		EditorObjectSystemDefinitionConstPtr definition= getEditorSystemConfigConst();
+		outValue= definition->getRenderAnchorsFlag();
 		return true;
 	}
 	else if (propertyName == EditorObjectSystemDefinition::k_renderQuadStencilsPropertyId)
 	{
-		EditorObjectSystemDefinitionConstPtr definition = getEditorSystemConfigConst();
-		outValue = definition->getRenderQuadStencilsFlag();
+		EditorObjectSystemDefinitionConstPtr definition= getEditorSystemConfigConst();
+		outValue= definition->getRenderQuadStencilsFlag();
 		return true;
 	}
 	else if (propertyName == EditorObjectSystemDefinition::k_renderBoxStencilsPropertyId)
 	{
-		EditorObjectSystemDefinitionConstPtr definition = getEditorSystemConfigConst();
-		outValue = definition->getRenderBoxStencilsFlag();
+		EditorObjectSystemDefinitionConstPtr definition= getEditorSystemConfigConst();
+		outValue= definition->getRenderBoxStencilsFlag();
 		return true;
 	}
 	else if (propertyName == EditorObjectSystemDefinition::k_renderModelStencilsPropertyId)
 	{
-		EditorObjectSystemDefinitionConstPtr definition = getEditorSystemConfigConst();
-		outValue = definition->getRenderModelStencilsFlag();
+		EditorObjectSystemDefinitionConstPtr definition= getEditorSystemConfigConst();
+		outValue= definition->getRenderModelStencilsFlag();
 		return true;
 	}
 	else if (propertyName == EditorObjectSystemDefinition::k_cameraSpeedPropertyId)
 	{
-		EditorObjectSystemDefinitionConstPtr definition = getEditorSystemConfigConst();
-		outValue = definition->getCameraSpeed();
+		EditorObjectSystemDefinitionConstPtr definition= getEditorSystemConfigConst();
+		outValue= definition->getCameraSpeed();
 		return true;
 	}
 	else if (propertyName == EditorObjectSystem::k_selectedLanguagePropertyId)
 	{
-		outValue = getOwnerWindow()->getLocalizationManager()->getLanguage();
+		outValue= getOwnerWindow()->getLocalizationManager()->getLanguage();
 		return true;
 	}
 	else if (propertyName == EditorObjectSystem::k_availableLanguageListPropertyId)
 	{
-		outValue = getOwnerWindow()->getLocalizationManager()->getSupportedLanguages();
+		outValue= getOwnerWindow()->getLocalizationManager()->getSupportedLanguages();
 		return true;
 	}
 
@@ -795,37 +797,37 @@ bool EditorObjectSystem::setPropertyValue(const std::string& propertyName, const
 {
 	if (propertyName == EditorObjectSystemDefinition::k_renderOriginFlagPropertyId)
 	{
-		EditorObjectSystemDefinitionPtr definition = getEditorSystemConfig();
+		EditorObjectSystemDefinitionPtr definition= getEditorSystemConfig();
 		definition->setRenderOriginFlag(inValue.getBoolValue());
 		return true;
 	}
 	else if (propertyName == EditorObjectSystemDefinition::k_renderAnchorsPropertyId)
 	{
-		EditorObjectSystemDefinitionPtr definition = getEditorSystemConfig();
+		EditorObjectSystemDefinitionPtr definition= getEditorSystemConfig();
 		definition->setRenderAnchorsFlag(inValue.getBoolValue());
 		return true;
 	}
 	else if (propertyName == EditorObjectSystemDefinition::k_renderQuadStencilsPropertyId)
 	{
-		EditorObjectSystemDefinitionPtr definition = getEditorSystemConfig();
+		EditorObjectSystemDefinitionPtr definition= getEditorSystemConfig();
 		definition->setRenderQuadStencilsFlag(inValue.getBoolValue());
 		return true;
 	}
 	else if (propertyName == EditorObjectSystemDefinition::k_renderBoxStencilsPropertyId)
 	{
-		EditorObjectSystemDefinitionPtr definition = getEditorSystemConfig();
+		EditorObjectSystemDefinitionPtr definition= getEditorSystemConfig();
 		definition->setRenderBoxStencilsFlag(inValue.getBoolValue());
 		return true;
 	}
 	else if (propertyName == EditorObjectSystemDefinition::k_renderModelStencilsPropertyId)
 	{
-		EditorObjectSystemDefinitionPtr definition = getEditorSystemConfig();
+		EditorObjectSystemDefinitionPtr definition= getEditorSystemConfig();
 		definition->setRenderModelStencilsFlag(inValue.getBoolValue());
 		return true;
 	}
 	else if (propertyName == EditorObjectSystemDefinition::k_cameraSpeedPropertyId)
 	{
-		EditorObjectSystemDefinitionPtr definition = getEditorSystemConfig();
+		EditorObjectSystemDefinitionPtr definition= getEditorSystemConfig();
 		definition->setCameraSpeed(inValue.getFloatValue());
 		return true;
 	}

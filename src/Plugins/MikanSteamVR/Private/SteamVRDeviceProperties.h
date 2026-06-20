@@ -32,8 +32,10 @@ public:
 	const std::filesystem::path& getResourcesPath() const { return m_resourcesPath; }
 	const std::filesystem::path& getReadyIconPath() const { return m_readyIconPath; }
 	const std::string& getRenderModelName() const { return m_renderModelName; }
-	const std::vector<RenderComponentDefinition>& getRenderComponentDefinitions() const 
-	{ return m_renderComponentDefinitions; }
+	const std::vector<RenderComponentDefinition>& getRenderComponentDefinitions() const
+	{
+		return m_renderComponentDefinitions;
+	}
 
 	void updateProperties();
 	void updateResourcesPath();
@@ -49,8 +51,8 @@ public:
 		const std::string& default_string);
 
 private:
-	vr::TrackedDeviceIndex_t m_deviceIndex = 0;
-	vr::ETrackedDeviceClass m_deviceClass = vr::TrackedDeviceClass_Invalid;
+	vr::TrackedDeviceIndex_t m_deviceIndex= 0;
+	vr::ETrackedDeviceClass m_deviceClass= vr::TrackedDeviceClass_Invalid;
 	std::string m_devicePath;
 	std::string m_trackingVolumeSystem;
 	std::string m_trackingRole;

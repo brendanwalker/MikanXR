@@ -15,10 +15,10 @@ public:
 	EnumPropertyMetaData(
 		const std::string* strings,
 		int count,
-		eEnumDisplayStyle style = eEnumDisplayStyle::ComboBox)
+		eEnumDisplayStyle style= eEnumDisplayStyle::ComboBox)
 		: m_style(style)
 	{
-		for (int i = 0; i < count; i++)
+		for (int i= 0; i < count; i++)
 			m_strings.push_back(strings[i]);
 	}
 

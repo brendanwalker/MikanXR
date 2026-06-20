@@ -18,9 +18,9 @@ using namespace std::placeholders;
 // -- ScriptRequestHandler -- //
 bool ScriptRequestHandler::startup(MainWindow* mainWindow)
 {
-	IInterprocessMessageServer* messageServer = m_owner->getMessageServer();
+	IInterprocessMessageServer* messageServer= m_owner->getMessageServer();
 
-	// Script Requests	
+	// Script Requests
 	messageServer->setRequestHandler(
 		InvokeComponentScriptTrigger::staticGetArchetype().getName(),
 		std::bind(&ScriptRequestHandler::invokeComponentScriptTriggerHandler, this, _1, _2));
@@ -38,19 +38,19 @@ void ScriptRequestHandler::shutdown()
 void ScriptRequestHandler::bindScriptContect(CommonScriptContextPtr scriptContext)
 {
 	m_scriptContexts.push_back(scriptContext);
-	scriptContext->OnScriptMessage += MakeDelegate(this, &ScriptRequestHandler::publishScriptMessageEvent);
+	scriptContext->OnScriptMessage+= MakeDelegate(this, &ScriptRequestHandler::publishScriptMessageEvent);
 }
 
 void ScriptRequestHandler::unbindScriptContect(CommonScriptContextPtr scriptContext)
 {
-	for (auto it = m_scriptContexts.begin(); it < m_scriptContexts.end(); it++)
+	for (auto it= m_scriptContexts.begin(); it < m_scriptContexts.end(); it++)
 	{
-		CommonScriptContextPtr scriptContext = it->lock();
+		CommonScriptContextPtr scriptContext= it->lock();
 
 		if (scriptContext == scriptContext)
 		{
 			m_scriptContexts.erase(it);
-			scriptContext->OnScriptMessage -= MakeDelegate(this, &ScriptRequestHandler::publishScriptMessageEvent);
+			scriptContext->OnScriptMessage-= MakeDelegate(this, &ScriptRequestHandler::publishScriptMessageEvent);
 			break;
 		}
 	}
@@ -60,7 +60,7 @@ void ScriptRequestHandler::unbindScriptContect(CommonScriptContextPtr scriptCont
 void ScriptRequestHandler::publishScriptMessageEvent(const std::string& message)
 {
 	MikanScriptMessagePostedEvent messageInfo;
-	messageInfo.message = message;
+	messageInfo.message= message;
 
 	m_owner->publishMikanJsonEvent(mikanTypeToJsonString(messageInfo));
 }
@@ -75,22 +75,22 @@ void ScriptRequestHandler::invokeComponentScriptTriggerHandler(const ClientReque
 		return;
 	}
 
-	const std::string& ownerSystemName = scriptTriggerRequest.ownerSystem.getValue();
-	MikanObjectSystemPtr objectSystem = getProjectManager()->getSystemByName(ownerSystemName);
+	const std::string& ownerSystemName= scriptTriggerRequest.ownerSystem.getValue();
+	MikanObjectSystemPtr objectSystem= getProjectManager()->getSystemByName(ownerSystemName);
 	if (!objectSystem)
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 		return;
 	}
 
-	MikanComponentPtr componentPtr = objectSystem->getComponentById(scriptTriggerRequest.componentId);
+	MikanComponentPtr componentPtr= objectSystem->getComponentById(scriptTriggerRequest.componentId);
 	if (!componentPtr)
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 		return;
 	}
 
-	ComponentScriptContextPtr scriptContext = componentPtr->getScriptContext();
+	ComponentScriptContextPtr scriptContext= componentPtr->getScriptContext();
 	if (!scriptContext)
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::RequestFailed, response);
@@ -118,9 +118,9 @@ void ScriptRequestHandler::invokeScriptMessageHandler(
 	}
 
 	// Find the first script context that cares about the message
-	for (auto it = m_scriptContexts.begin(); it < m_scriptContexts.end(); it++)
+	for (auto it= m_scriptContexts.begin(); it < m_scriptContexts.end(); it++)
 	{
-		CommonScriptContextPtr scriptContext = it->lock();
+		CommonScriptContextPtr scriptContext= it->lock();
 
 		if (scriptContext == scriptContext)
 		{

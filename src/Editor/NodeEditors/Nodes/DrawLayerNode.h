@@ -15,32 +15,38 @@ typedef int32_t MikanStencilID;
 class DrawLayerNodeConfig : public NodeConfig
 {
 public:
-	DrawLayerNodeConfig() : NodeConfig() {}
-	DrawLayerNodeConfig(const std::string& nodeName) : NodeConfig(nodeName) {}
+	DrawLayerNodeConfig()
+		: NodeConfig()
+	{
+	}
+	DrawLayerNodeConfig(const std::string& nodeName)
+		: NodeConfig(nodeName)
+	{
+	}
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
-	eCompositorBlendMode blendMode = eCompositorBlendMode::blendOn;
-	eCompositorStencilMode stencilMode = eCompositorStencilMode::insideStencil;
+	eCompositorBlendMode blendMode= eCompositorBlendMode::blendOn;
+	eCompositorStencilMode stencilMode= eCompositorStencilMode::insideStencil;
 	bool bVerticalFlip= false;
 	bool bInvertWhenCameraInside= false;
 	std::map<std::string, float> m_floatDefaults;
-	std::map<std::string, std::array<float, 2> > m_float2Defaults;
-	std::map<std::string, std::array<float, 3> > m_float3Defaults;
-	std::map<std::string, std::array<float, 4> > m_float4Defaults;
+	std::map<std::string, std::array<float, 2>> m_float2Defaults;
+	std::map<std::string, std::array<float, 3>> m_float3Defaults;
+	std::map<std::string, std::array<float, 4>> m_float4Defaults;
 };
 
 class DrawLayerNode : public Node
 {
 public:
-	DrawLayerNode() = default;
+	DrawLayerNode()= default;
 	virtual ~DrawLayerNode();
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig);
 	virtual void saveToConfig(NodeConfigPtr nodeConfig) const;
 
-	inline static const std::string k_nodeClassName = "DrawLayerNode";
+	inline static const std::string k_nodeClassName= "DrawLayerNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
 	virtual void setOwnerGraph(NodeGraphPtr ownerGraph) override;
 
@@ -79,12 +85,12 @@ protected:
 	MkMaterialConstPtr m_material;
 	MkMaterialInstancePtr m_materialInstance;
 	std::map<std::string, float> m_floatDefaults;
-	std::map<std::string, std::array<float, 2> > m_float2Defaults;
-	std::map<std::string, std::array<float, 3> > m_float3Defaults;
-	std::map<std::string, std::array<float, 4> > m_float4Defaults;
+	std::map<std::string, std::array<float, 2>> m_float2Defaults;
+	std::map<std::string, std::array<float, 3>> m_float3Defaults;
+	std::map<std::string, std::array<float, 4>> m_float4Defaults;
 
-	eCompositorBlendMode m_blendMode = eCompositorBlendMode::blendOn;
-	eCompositorStencilMode m_stencilMode = eCompositorStencilMode::insideStencil;
+	eCompositorBlendMode m_blendMode= eCompositorBlendMode::blendOn;
+	eCompositorStencilMode m_stencilMode= eCompositorStencilMode::insideStencil;
 	bool m_bVerticalFlip= false;
 	bool m_bInvertWhenCameraInside= false;
 
@@ -94,7 +100,7 @@ protected:
 class DrawLayerNodeFactory : public TypedNodeFactory<DrawLayerNode, DrawLayerNodeConfig>
 {
 public:
-	DrawLayerNodeFactory() = default;
+	DrawLayerNodeFactory()= default;
 
 	virtual NodePtr createNode(const class NodeEditorState& editorState) const override;
 };

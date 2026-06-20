@@ -16,12 +16,22 @@ public:
 		: MonoLensTrackerPoseCalibrator(patternFinder, cameraIntrinsics, desiredSampleCount)
 		, m_cameraPuckXform(cameraPuckXform_VRSpace)
 		, m_matPuckXform(matPuckXform_VRSpace)
-		, m_puckOffsetMM(matPuckOffsetMM) {}
+		, m_puckOffsetMM(matPuckOffsetMM)
+	{
+	}
 
 protected:
-	bool fetchCameraPuckVRSpacePose(glm::dmat4& out) const override { out = m_cameraPuckXform; return true; }
-	bool fetchMatPuckVRSpacePose(glm::dmat4& out) const override    { out = m_matPuckXform;    return true; }
-	glm::dvec3 fetchMatPuckOffsetMM() const override                { return m_puckOffsetMM; }
+	bool fetchCameraPuckVRSpacePose(glm::dmat4& out) const override
+	{
+		out= m_cameraPuckXform;
+		return true;
+	}
+	bool fetchMatPuckVRSpacePose(glm::dmat4& out) const override
+	{
+		out= m_matPuckXform;
+		return true;
+	}
+	glm::dvec3 fetchMatPuckOffsetMM() const override { return m_puckOffsetMM; }
 
 private:
 	glm::dmat4 m_cameraPuckXform;

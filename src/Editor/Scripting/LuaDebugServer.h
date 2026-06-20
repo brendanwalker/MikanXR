@@ -3,12 +3,12 @@
 #include "LuaDebugSocket.h"
 
 #ifdef _MSC_VER
-#   pragma warning(push)
-#   pragma warning(disable: 4267)  // size_t → int conversion in third-party LRDB headers
+#pragma warning(push)
+#pragma warning(disable : 4267) // size_t → int conversion in third-party LRDB headers
 #endif
 #include "lrdb/basic_server.hpp"
 #ifdef _MSC_VER
-#   pragma warning(pop)
+#pragma warning(pop)
 #endif
 
 #include <cstdint>
@@ -38,7 +38,7 @@ public:
 	/// Start listening on the given TCP port.
 	/// @param port  Defaults to 21110 (LRDB VSCode extension default).
 	/// @returns false if the socket could not be opened.
-	bool startListening(uint16_t port = 21110);
+	bool startListening(uint16_t port= 21110);
 
 	/// Stop listening and close any connected client.
 	void stopListening();
@@ -69,10 +69,10 @@ public:
 	void pauseOnNextLine();
 
 private:
-	LuaDebugServer() = default;
+	LuaDebugServer()= default;
 
-	using Server = lrdb::basic_server<LuaDebugSocket>;
+	using Server= lrdb::basic_server<LuaDebugSocket>;
 
 	std::unique_ptr<Server> m_server;
-	CommonScriptContext*    m_attachedContext = nullptr;
+	CommonScriptContext* m_attachedContext= nullptr;
 };

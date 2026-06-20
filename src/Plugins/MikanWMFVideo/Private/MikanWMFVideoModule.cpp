@@ -11,7 +11,8 @@
 class MikanWMFVideoModule : public IUsbVideoDeviceModule
 {
 public:
-	MikanWMFVideoModule() : m_bIsInitialized(false)
+	MikanWMFVideoModule()
+		: m_bIsInitialized(false)
 	{
 	}
 
@@ -25,11 +26,11 @@ public:
 		if (!m_bIsInitialized)
 		{
 
-			HRESULT hr = MFStartup(MF_VERSION);
+			HRESULT hr= MFStartup(MF_VERSION);
 			if (SUCCEEDED(hr))
 			{
 				MIKAN_LOG_INFO("MikanWMFVideoModule") << "Successfully initialized Media Foundation";
-				m_bIsInitialized = true;
+				m_bIsInitialized= true;
 			}
 			else
 			{

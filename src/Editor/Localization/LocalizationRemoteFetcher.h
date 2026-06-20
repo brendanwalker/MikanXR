@@ -18,12 +18,12 @@ public:
 	LocalizationRemoteFetcher(
 		const std::string& baseUrl,
 		const std::filesystem::path& cacheDir,
-		std::chrono::hours cacheTTL = std::chrono::hours(24));
+		std::chrono::hours cacheTTL= std::chrono::hours(24));
 	~LocalizationRemoteFetcher();
 
 	// Starts a background fetch. Optional callback fires when the fetch completes.
 	// Safe to call only once; subsequent calls are ignored if already running.
-	void startFetch(std::function<void(bool)> onComplete = nullptr);
+	void startFetch(std::function<void(bool)> onComplete= nullptr);
 
 	// Signals the background thread to stop and blocks until it exits.
 	void cancelFetch();
@@ -43,6 +43,6 @@ private:
 	std::filesystem::path m_cacheDir;
 	std::chrono::hours m_cacheTTL;
 	std::thread m_thread;
-	std::atomic<bool> m_cancelled{ false };
+	std::atomic<bool> m_cancelled{false};
 	std::function<void(bool)> m_onComplete;
 };

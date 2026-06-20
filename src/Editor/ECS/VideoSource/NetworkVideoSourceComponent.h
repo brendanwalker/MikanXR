@@ -38,7 +38,7 @@ public:
 	void setPort(int port);
 
 	static bool parseUrl(
-		const std::string& url, 
+		const std::string& url,
 		eNetworkVideoProtocol& outProtocol,
 		std::string& outAddress,
 		int& outPort,
@@ -48,7 +48,7 @@ private:
 	eNetworkVideoProtocol m_protocol;
 	std::string m_address;
 	std::string m_path;
-	int m_port = 0;
+	int m_port= 0;
 };
 
 class NetworkVideoSourceComponent : public VideoSourceComponent, public INetworkVideoDeviceListener
@@ -59,7 +59,7 @@ public:
 	virtual void init() override;
 	virtual void dispose() override;
 
-	inline static const std::string k_componentClassName = "NetworkVideoSourceComponent";
+	inline static const std::string k_componentClassName= "NetworkVideoSourceComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	inline NetworkVideoSourceDefinitionPtr getNetworkVideoSourceDefinition() const
@@ -99,6 +99,6 @@ protected:
 	void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet);
 
 private:
-	INetworkVideoDevicePtr m_networkVideoDevice = nullptr;
-	bool m_bPendingOpen = false;
+	INetworkVideoDevicePtr m_networkVideoDevice= nullptr;
+	bool m_bPendingOpen= false;
 };

@@ -20,14 +20,14 @@ bool TextureSourceRequestHandler::startup(MainWindow* mainWindow)
 // Video Source Events
 void TextureSourceRequestHandler::publishTextureSourceOpenedEvent()
 {
-	MikanTextureSourceOpenedEvent openedEvent = {};
+	MikanTextureSourceOpenedEvent openedEvent= {};
 
 	m_owner->publishMikanJsonEvent(mikanTypeToJsonString(openedEvent));
 }
 
 void TextureSourceRequestHandler::publishTextureSourceClosedEvent()
 {
-	MikanTextureSourceClosedEvent closedEvent = {};
+	MikanTextureSourceClosedEvent closedEvent= {};
 
 	m_owner->publishMikanJsonEvent(mikanTypeToJsonString(closedEvent));
 }

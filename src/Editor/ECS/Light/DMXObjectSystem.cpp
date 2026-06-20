@@ -10,19 +10,18 @@
 #include "lua.hpp"
 #include "LuaBridge/LuaBridge.h"
 
-
 // -- DMXObjectSystemDefinition -----
-const std::string DMXObjectSystemDefinition::k_networkInterfaceIPPropertyId = "network_interface_ip";
-const std::string DMXObjectSystemDefinition::k_dmxPriorityPropertyId = "dmx_priority";
-const std::string DMXObjectSystemDefinition::k_transmitRateHzPropertyId = "transmit_rate_hz";
+const std::string DMXObjectSystemDefinition::k_networkInterfaceIPPropertyId= "network_interface_ip";
+const std::string DMXObjectSystemDefinition::k_dmxPriorityPropertyId= "dmx_priority";
+const std::string DMXObjectSystemDefinition::k_transmitRateHzPropertyId= "transmit_rate_hz";
 
 configuru::Config DMXObjectSystemDefinition::writeToJSON()
 {
-	configuru::Config pt = MikanObjectSystemDefinition::writeToJSON();
+	configuru::Config pt= MikanObjectSystemDefinition::writeToJSON();
 
-	pt[k_networkInterfaceIPPropertyId] = m_dmxConfig.networkInterfaceIP;
-	pt[k_dmxPriorityPropertyId] = m_dmxConfig.priority;
-	pt[k_transmitRateHzPropertyId] = m_dmxConfig.transmitRateHz;
+	pt[k_networkInterfaceIPPropertyId]= m_dmxConfig.networkInterfaceIP;
+	pt[k_dmxPriorityPropertyId]= m_dmxConfig.priority;
+	pt[k_transmitRateHzPropertyId]= m_dmxConfig.transmitRateHz;
 
 	return pt;
 }
@@ -31,11 +30,11 @@ void DMXObjectSystemDefinition::readFromJSON(const configuru::Config& pt)
 {
 	MikanObjectSystemDefinition::readFromJSON(pt);
 
-	m_dmxConfig.networkInterfaceIP =
+	m_dmxConfig.networkInterfaceIP=
 		pt.get_or<std::string>(k_networkInterfaceIPPropertyId, "0.0.0.0");
-	m_dmxConfig.priority =
+	m_dmxConfig.priority=
 		static_cast<uint8_t>(pt.get_or<int>(k_dmxPriorityPropertyId, 100));
-	m_dmxConfig.transmitRateHz =
+	m_dmxConfig.transmitRateHz=
 		pt.get_or<float>(k_transmitRateHzPropertyId, 44.0f);
 }
 
@@ -43,9 +42,9 @@ void DMXObjectSystemDefinition::setNetworkInterfaceIP(const std::string& ip)
 {
 	if (m_dmxConfig.networkInterfaceIP != ip)
 	{
-		m_dmxConfig.networkInterfaceIP = ip;
+		m_dmxConfig.networkInterfaceIP= ip;
 		notifyPropertyChanged(ConfigPropertyChangeSet()
-			.addPropertyName(k_networkInterfaceIPPropertyId));
+								  .addPropertyName(k_networkInterfaceIPPropertyId));
 	}
 }
 
@@ -53,9 +52,9 @@ void DMXObjectSystemDefinition::setDMXPriority(uint8_t priority)
 {
 	if (m_dmxConfig.priority != priority)
 	{
-		m_dmxConfig.priority = priority;
+		m_dmxConfig.priority= priority;
 		notifyPropertyChanged(ConfigPropertyChangeSet()
-			.addPropertyName(k_dmxPriorityPropertyId));
+								  .addPropertyName(k_dmxPriorityPropertyId));
 	}
 }
 
@@ -63,9 +62,9 @@ void DMXObjectSystemDefinition::setTransmitRateHz(float hz)
 {
 	if (m_dmxConfig.transmitRateHz != hz)
 	{
-		m_dmxConfig.transmitRateHz = hz;
+		m_dmxConfig.transmitRateHz= hz;
 		notifyPropertyChanged(ConfigPropertyChangeSet()
-			.addPropertyName(k_transmitRateHzPropertyId));
+								  .addPropertyName(k_transmitRateHzPropertyId));
 	}
 }
 
@@ -75,7 +74,7 @@ bool DMXObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 	MikanObjectSystem::init(definitionPtr);
 
 	// Start the DMX manager
-	m_dmxManager = IDMXManager::create();
+	m_dmxManager= IDMXManager::create();
 	if (!m_dmxManager->startup(getDMXManagerConfig()))
 	{
 		// Non-fatal: editor still loads, fixtures just won't send DMX
@@ -83,7 +82,7 @@ bool DMXObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 	}
 
 	// Listen for config property changes so we can restart the DMX manager
-	definitionPtr->OnPropertyChanged += MakeDelegate(this, &DMXObjectSystem::onDefinitionMarkedDirty);
+	definitionPtr->OnPropertyChanged+= MakeDelegate(this, &DMXObjectSystem::onDefinitionMarkedDirty);
 
 	return true;
 }
@@ -96,10 +95,10 @@ void DMXObjectSystem::dispose()
 		m_dmxManager.reset();
 	}
 
-	auto definitionPtr = getDefinition();
+	auto definitionPtr= getDefinition();
 	if (definitionPtr)
 	{
-		definitionPtr->OnPropertyChanged -= MakeDelegate(this, &DMXObjectSystem::onDefinitionMarkedDirty);
+		definitionPtr->OnPropertyChanged-= MakeDelegate(this, &DMXObjectSystem::onDefinitionMarkedDirty);
 	}
 
 	MikanObjectSystem::dispose();
@@ -180,21 +179,21 @@ void DMXObjectSystem::getPropertyDescriptors(std::vector<PropertyDescriptorConst
 
 bool DMXObjectSystem::getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const
 {
-	DMXObjectSystemDefinitionConstPtr def = getDMXObjectSystemConfigConst();
+	DMXObjectSystemDefinitionConstPtr def= getDMXObjectSystemConfigConst();
 
 	if (propertyName == DMXObjectSystemDefinition::k_networkInterfaceIPPropertyId)
 	{
-		outValue = def->getNetworkInterfaceIP();
+		outValue= def->getNetworkInterfaceIP();
 		return true;
 	}
 	else if (propertyName == DMXObjectSystemDefinition::k_dmxPriorityPropertyId)
 	{
-		outValue = def->getDMXPriority();
+		outValue= def->getDMXPriority();
 		return true;
 	}
 	else if (propertyName == DMXObjectSystemDefinition::k_transmitRateHzPropertyId)
 	{
-		outValue = def->getTransmitRateHz();
+		outValue= def->getTransmitRateHz();
 		return true;
 	}
 
@@ -203,7 +202,7 @@ bool DMXObjectSystem::getPropertyValue(const std::string& propertyName, MikanVar
 
 bool DMXObjectSystem::setPropertyValue(const std::string& propertyName, const MikanVariant& inValue)
 {
-	DMXObjectSystemDefinitionPtr def = getDMXObjectSystemConfig();
+	DMXObjectSystemDefinitionPtr def= getDMXObjectSystemConfig();
 
 	if (propertyName == DMXObjectSystemDefinition::k_networkInterfaceIPPropertyId)
 	{
@@ -230,32 +229,36 @@ void DMXObjectSystem::bindLuaFunctions(struct lua_State* L)
 	luabridge::getGlobalNamespace(L)
 		.beginClass<DMXObjectSystem>("DMXObjectSystem")
 		.addFunction("getSpotLightCount",
-			[](DMXObjectSystem* s) -> int {
-				std::vector<MikanComponentPtr> v;
-				s->getComponentList(RGBSpotLightComponent::k_componentClassName, v);
-				return static_cast<int>(v.size());
-			})
+					 [](DMXObjectSystem* s) -> int
+					 {
+						 std::vector<MikanComponentPtr> v;
+						 s->getComponentList(RGBSpotLightComponent::k_componentClassName, v);
+						 return static_cast<int>(v.size());
+					 })
 		.addFunction("getSpotLightAtIndex",
-			[](DMXObjectSystem* s, int i) -> RGBSpotLightComponent* {
-				std::vector<MikanComponentPtr> v;
-				s->getComponentList(RGBSpotLightComponent::k_componentClassName, v);
-				if (i >= 0 && i < static_cast<int>(v.size()))
-					return std::dynamic_pointer_cast<RGBSpotLightComponent>(v[i]).get();
-				return nullptr;
-			})
+					 [](DMXObjectSystem* s, int i) -> RGBSpotLightComponent*
+					 {
+						 std::vector<MikanComponentPtr> v;
+						 s->getComponentList(RGBSpotLightComponent::k_componentClassName, v);
+						 if (i >= 0 && i < static_cast<int>(v.size()))
+							 return std::dynamic_pointer_cast<RGBSpotLightComponent>(v[i]).get();
+						 return nullptr;
+					 })
 		.addFunction("getPixelGridCount",
-			[](DMXObjectSystem* s) -> int {
-				std::vector<MikanComponentPtr> v;
-				s->getComponentList(RGBPixelGridComponent::k_componentClassName, v);
-				return static_cast<int>(v.size());
-			})
+					 [](DMXObjectSystem* s) -> int
+					 {
+						 std::vector<MikanComponentPtr> v;
+						 s->getComponentList(RGBPixelGridComponent::k_componentClassName, v);
+						 return static_cast<int>(v.size());
+					 })
 		.addFunction("getPixelGridAtIndex",
-			[](DMXObjectSystem* s, int i) -> RGBPixelGridComponent* {
-				std::vector<MikanComponentPtr> v;
-				s->getComponentList(RGBPixelGridComponent::k_componentClassName, v);
-				if (i >= 0 && i < static_cast<int>(v.size()))
-					return std::dynamic_pointer_cast<RGBPixelGridComponent>(v[i]).get();
-				return nullptr;
-			})
+					 [](DMXObjectSystem* s, int i) -> RGBPixelGridComponent*
+					 {
+						 std::vector<MikanComponentPtr> v;
+						 s->getComponentList(RGBPixelGridComponent::k_componentClassName, v);
+						 if (i >= 0 && i < static_cast<int>(v.size()))
+							 return std::dynamic_pointer_cast<RGBPixelGridComponent>(v[i]).get();
+						 return nullptr;
+					 })
 		.endClass();
 }

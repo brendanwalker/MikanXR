@@ -17,7 +17,7 @@ template <typename t_property_type>
 class TComponentPropertyAccessor : public ComponentPropertyAccessor
 {
 public:
-	TComponentPropertyAccessor(t_property_type& propertyValue) 
+	TComponentPropertyAccessor(t_property_type& propertyValue)
 		: m_propertyValue(propertyValue)
 	{
 	}
@@ -60,15 +60,15 @@ private:
 	ComponentPropertyAccessorPtr m_valueAccessor;
 };
 
-#define COMPONENT_PROPERTY(PROPERTY_TYPE, PROPERTY_NAME)												\
-	PROPERTY_TYPE PROPERTY_NAME;																		\
-	void notify ## PROPERTY_NAME ## Changed()															\
-	{																									\
-		auto accessor= std::make_shared< TComponentPropertyAccessor<PROPERTY_TYPE> >(PROPERTY_NAME);	\
-		ComponentProperty componentProperty(															\
-			*this,																						\
-			#PROPERTY_TYPE,																				\
-			#PROPERTY_NAME,																				\
-			accessor);																					\
-		notifyComponentPropertyChanged(componentProperty);												\
-	}																									\
+#define COMPONENT_PROPERTY(PROPERTY_TYPE, PROPERTY_NAME)                                           \
+	PROPERTY_TYPE PROPERTY_NAME;                                                                   \
+	void notify##PROPERTY_NAME##Changed()                                                          \
+	{                                                                                              \
+		auto accessor= std::make_shared<TComponentPropertyAccessor<PROPERTY_TYPE>>(PROPERTY_NAME); \
+		ComponentProperty componentProperty(                                                       \
+			*this,                                                                                 \
+			#PROPERTY_TYPE,                                                                        \
+			#PROPERTY_NAME,                                                                        \
+			accessor);                                                                             \
+		notifyComponentPropertyChanged(componentProperty);                                         \
+	}\

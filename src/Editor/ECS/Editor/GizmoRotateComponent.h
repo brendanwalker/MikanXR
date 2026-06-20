@@ -13,7 +13,7 @@ class GizmoRotateComponent : public MikanComponent
 public:
 	GizmoRotateComponent(MikanObjectWeakPtr owner);
 
-	inline static const std::string k_componentClassName = "GizmoRotateComponent";
+	inline static const std::string k_componentClassName= "GizmoRotateComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	virtual void init() override;

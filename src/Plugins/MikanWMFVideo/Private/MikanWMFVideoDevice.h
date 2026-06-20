@@ -73,7 +73,7 @@ protected:
 	  VideoProcAmp_Gain				device dependent
 	*/
 	bool setProcAmpProperty(VideoProcAmpProperty propId, long desired_value, bool bAuto);
-	long getProcAmpProperty(VideoProcAmpProperty propId, bool* bIsAuto = nullptr) const;
+	long getProcAmpProperty(VideoProcAmpProperty propId, bool* bIsAuto= nullptr) const;
 	bool getProcAmpRange(VideoProcAmpProperty propId, VideoSettingConstraint& constraint) const;
 
 	/*
@@ -87,7 +87,7 @@ protected:
 		CameraControl_Focus			 optimally focused target, in millimeters
 	*/
 	bool setCameraControlProperty(CameraControlProperty propId, long desired_value, bool bAuto);
-	long getCameraControlProperty(CameraControlProperty propId, bool* bIsAuto = nullptr) const;
+	long getCameraControlProperty(CameraControlProperty propId, bool* bIsAuto= nullptr) const;
 	bool getCameraControlRange(CameraControlProperty propId, VideoSettingConstraint& constraint) const;
 
 	void notifyVideoModePropertiesChanged();
@@ -102,4 +102,3 @@ private:
 
 	std::set<IUsbVideoDeviceListener*> m_listeners;
 };
-

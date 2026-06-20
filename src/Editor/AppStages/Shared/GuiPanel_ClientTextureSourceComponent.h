@@ -6,14 +6,17 @@
 
 enum class eTextureSourceDisplayBufferType : int
 {
-	Color = 0,
-	Depth = 1,
+	Color= 0,
+	Depth= 1,
 };
 
 class GuiPanel_ClientTextureSourceComponent : public GuiPanel_MikanComponent
 {
 public:
-	GuiPanel_ClientTextureSourceComponent(AppStage* ownerAppStage) : GuiPanel_MikanComponent(ownerAppStage) {}
+	GuiPanel_ClientTextureSourceComponent(AppStage* ownerAppStage)
+		: GuiPanel_MikanComponent(ownerAppStage)
+	{
+	}
 	virtual bool init() override;
 	virtual void onGui() override;
 
@@ -23,6 +26,6 @@ public:
 	}
 
 private:
-	eTextureSourceDisplayBufferType m_displayBufferType = eTextureSourceDisplayBufferType::Color;
+	eTextureSourceDisplayBufferType m_displayBufferType= eTextureSourceDisplayBufferType::Color;
 	GuiDataSource_StringList m_displayBufferDataSource;
 };

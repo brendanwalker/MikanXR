@@ -6,24 +6,30 @@
 class TextureSourceNodeConfig : public NodeConfig
 {
 public:
-	TextureSourceNodeConfig() : NodeConfig() {}
-	TextureSourceNodeConfig(const std::string& nodeName) : NodeConfig(nodeName) {}
+	TextureSourceNodeConfig()
+		: NodeConfig()
+	{
+	}
+	TextureSourceNodeConfig(const std::string& nodeName)
+		: NodeConfig(nodeName)
+	{
+	}
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
 
 	t_graph_property_id textureSourcePropertyId;
 };
-using TextureSourceNodeConfigPtr = std::shared_ptr<TextureSourceNodeConfig>;
-using TextureSourceNodeConfigConstPtr = std::shared_ptr<const TextureSourceNodeConfig>;
+using TextureSourceNodeConfigPtr= std::shared_ptr<TextureSourceNodeConfig>;
+using TextureSourceNodeConfigConstPtr= std::shared_ptr<const TextureSourceNodeConfig>;
 
 class TextureSourceNode : public Node
 {
 public:
-	TextureSourceNode() = default;
+	TextureSourceNode()= default;
 	virtual ~TextureSourceNode();
 
-	inline static const std::string k_nodeClassName = "TextureSourceNode";
+	inline static const std::string k_nodeClassName= "TextureSourceNode";
 	virtual std::string getClassName() const override { return k_nodeClassName; }
 
 	virtual bool loadFromConfig(NodeConfigConstPtr nodeConfig) override;
@@ -55,7 +61,7 @@ protected:
 class TextureSourceNodeFactory : public TypedNodeFactory<TextureSourceNode, TextureSourceNodeConfig>
 {
 public:
-	TextureSourceNodeFactory() = default;
+	TextureSourceNodeFactory()= default;
 
 	virtual NodePtr createNode(const NodeEditorState& editorState) const override;
 	virtual bool editorCanCreate() const override { return false; }

@@ -30,7 +30,10 @@ struct SceneOutlinerEntry
 class GuiPanel_ProjectScenes : public GuiPanel
 {
 public:
-	GuiPanel_ProjectScenes(AppStage* ownerAppStage) : GuiPanel(ownerAppStage) {}
+	GuiPanel_ProjectScenes(AppStage* ownerAppStage)
+		: GuiPanel(ownerAppStage)
+	{
+	}
 
 	bool init(class ProjectGuiPanelContext* context);
 	virtual void onGui() override;
@@ -56,7 +59,7 @@ private:
 	void onObjectDisposed(MikanObjectSystemPtr objectSystemPtr, MikanObjectConstPtr objectPtr);
 	void onSelectionChanged();
 
-	class ProjectGuiPanelContext* m_context = nullptr;
+	class ProjectGuiPanelContext* m_context= nullptr;
 	AnchorObjectSystemWeakPtr m_anchorSystem;
 	CompositorObjectSystemWeakPtr m_compositorSystem;
 	EditorObjectSystemWeakPtr m_editorSystem;
@@ -69,10 +72,10 @@ private:
 	BoxShapeSystemWeakPtr m_boxShapeSystem;
 	ModelShapeSystemWeakPtr m_modelShapeSystem;
 
-	int m_selectedSceneId = INVALID_MIKAN_ID;
-	int m_selectedCompositorId = INVALID_MIKAN_ID;
-	int m_selectedTransformId = INVALID_MIKAN_ID;
-	int m_selectedSceneObjectListIndex = -1;
+	int m_selectedSceneId= INVALID_MIKAN_ID;
+	int m_selectedCompositorId= INVALID_MIKAN_ID;
+	int m_selectedTransformId= INVALID_MIKAN_ID;
+	int m_selectedSceneObjectListIndex= -1;
 
 	std::vector<SceneOutlinerEntry> m_sceneOutliner;
 

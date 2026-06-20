@@ -7,10 +7,8 @@
 GuiPanel_SceneComponent::GuiPanel_SceneComponent(AppStage* ownerAppStage)
 	: GuiPanel_MikanComponent(ownerAppStage)
 	, m_compositorDataSource(
-		ownerAppStage->getProjectManager(),
-		{
-			{ CompositorObjectSystem::k_objectSystemClassName, CompositorComponent::k_componentClassName }
-		})
+		  ownerAppStage->getProjectManager(),
+		  {{CompositorObjectSystem::k_objectSystemClassName, CompositorComponent::k_componentClassName}})
 {
 }
 
@@ -27,7 +25,7 @@ void GuiPanel_SceneComponent::onConstruct()
 		SceneComponentDefinition::k_displayCompositorIdPropertyId,
 		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			SceneComponentPtr sceneComp = getSceneComponent();
+			SceneComponentPtr sceneComp= getSceneComponent();
 			if (!sceneComp)
 				return false;
 
@@ -35,25 +33,24 @@ void GuiPanel_SceneComponent::onConstruct()
 			if (m_compositorDataSource.getEntryCount() == 0)
 				return false;
 
-			const MikanCompositorID currentCompositorId =
+			const MikanCompositorID currentCompositorId=
 				sceneComp->getSceneComponentDefinition()->getDisplayCompositorId();
-			int selectedIndex =
+			int selectedIndex=
 				m_compositorDataSource.getEntryIndexByComponentId(currentCompositorId);
 
 			if (MkGui::drawComboBoxProperty(
-				m_defaultGuiStyle,
-				sceneComp->makePropertyUIIdentifier(SceneComponentDefinition::k_displayCompositorIdPropertyId),
-				"Display Compositor",
-				&m_compositorDataSource,
-				selectedIndex))
+					m_defaultGuiStyle,
+					sceneComp->makePropertyUIIdentifier(SceneComponentDefinition::k_displayCompositorIdPropertyId),
+					"Display Compositor",
+					&m_compositorDataSource,
+					selectedIndex))
 			{
-				MikanComponentPtr newCompositor = m_compositorDataSource.getEntryAtIndex(selectedIndex);
+				MikanComponentPtr newCompositor= m_compositorDataSource.getEntryAtIndex(selectedIndex);
 				if (newCompositor)
 				{
-					addDeferredGuiEvent([sceneComp, newCompositor]() {
-						sceneComp->getSceneComponentDefinition()->setDisplayCompositorId(
-							newCompositor->getComponentId());
-					});
+					addDeferredGuiEvent([sceneComp, newCompositor]()
+										{ sceneComp->getSceneComponentDefinition()->setDisplayCompositorId(
+											  newCompositor->getComponentId()); });
 				}
 			}
 			return true;
@@ -62,7 +59,7 @@ void GuiPanel_SceneComponent::onConstruct()
 
 SceneComponentPtr GuiPanel_SceneComponent::getSceneComponent() const
 {
-	MikanComponentPtr component = m_component.lock();
+	MikanComponentPtr component= m_component.lock();
 	if (component)
 	{
 		return std::dynamic_pointer_cast<SceneComponent>(component);

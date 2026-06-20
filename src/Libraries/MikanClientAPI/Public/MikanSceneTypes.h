@@ -13,33 +13,31 @@
 #include "MikanSceneTypes.rfkh.h"
 #endif
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSceneTypes")) MikanSceneSystemValues :
-	public MikanSystemValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSceneTypes")) MikanSceneSystemValues : public MikanSystemValues
 {
 	static const char* k_systemName;
 
 	FIELD()
-	MikanSceneID current_scene_id = INVALID_MIKAN_ID;
+	MikanSceneID current_scene_id= INVALID_MIKAN_ID;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanSceneSystemValues_GENERATED
 #endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSceneTypes")) MikanSceneComponentValues :
-	public MikanTransformComponentValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanSceneTypes")) MikanSceneComponentValues : public MikanTransformComponentValues
 {
 	static const char* k_componentClassName;
 	static const char* k_ownerSystemName;
 
 	FIELD()
-	MikanStageID parent_stage_id = INVALID_MIKAN_ID;
+	MikanStageID parent_stage_id= INVALID_MIKAN_ID;
 	FIELD()
-	MikanCompositorID display_compositor_id = INVALID_MIKAN_ID;
+	MikanCompositorID display_compositor_id= INVALID_MIKAN_ID;
 
-	#ifdef MIKANAPI_REFLECTION_ENABLED
+#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanSceneComponentValues_GENERATED
-	#endif
+#endif
 };
 
 #ifdef MIKANAPI_REFLECTION_ENABLED

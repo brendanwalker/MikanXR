@@ -32,7 +32,7 @@ protected:
 	bool bindEventNodes();
 
 	ShapeComponentWeakPtr m_boundShapeComponent;
-	glm::mat4 m_vpMatrix = glm::mat4(1.f);
+	glm::mat4 m_vpMatrix= glm::mat4(1.f);
 	NodePtr m_renderShapeEventNode;
 
 	friend class ShapeNodeGraphFactory;
@@ -41,7 +41,7 @@ protected:
 class ShapeNodeGraphFactory : public TypedNodeGraphFactory<ShapeNodeGraph>
 {
 public:
-	ShapeNodeGraphFactory() = default;
+	ShapeNodeGraphFactory()= default;
 
 	virtual NodeGraphPtr initialCreateNodeGraph(class IEditorWindow* ownerWindow) const override;
 };

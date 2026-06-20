@@ -28,8 +28,10 @@ public:
 		VRTrackingVolumeComponentPtr forTrackingVolume);
 
 	void setSourceCamera(CameraComponentPtr cameraComponent);
-	inline void setTargetVRTrackingVolume(VRTrackingVolumeComponentPtr trackingVolume) 
-	{ m_targetTrackingVolume = trackingVolume; }
+	inline void setTargetVRTrackingVolume(VRTrackingVolumeComponentPtr trackingVolume)
+	{
+		m_targetTrackingVolume= trackingVolume;
+	}
 
 	virtual void enter() override;
 	virtual void exit() override;
@@ -61,16 +63,16 @@ protected:
 	bool handleGetChessboardStabilityCommand(std::vector<std::string>& outResults);
 	bool handleBeginCommand(std::vector<std::string>& outResults);
 	bool handleRestartCommand(std::vector<std::string>& outResults);
-	
+
 private:
-	class GuiPanel_VRTrackingRecenter* m_calibrationPanel = nullptr;
+	class GuiPanel_VRTrackingRecenter* m_calibrationPanel= nullptr;
 
 	CameraComponentPtr m_cameraComponent;
 	VideoSourceComponentPtr m_videoSourceComponent;
 	VRTrackingVolumeComponentPtr m_targetTrackingVolume;
 
 	class ArucoMarkerPoseSampler* m_markerPoseSampler;
-	class VRDevicePoseSampler* m_puckSampler = nullptr;
+	class VRDevicePoseSampler* m_puckSampler= nullptr;
 	class VideoFrameDistortionView* m_monoDistortionView;
 
 	MikanCameraPtr m_mkCamera;

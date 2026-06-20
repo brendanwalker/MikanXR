@@ -7,7 +7,7 @@
 class GraphModelPropertyConfig : public GraphPropertyConfig
 {
 public:
-	GraphModelPropertyConfig() = default;
+	GraphModelPropertyConfig()= default;
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -18,9 +18,9 @@ public:
 class GraphModelProperty : public GraphProperty
 {
 public:
-	GraphModelProperty() = default;
+	GraphModelProperty()= default;
 
-	inline static const std::string k_propertyClassName = "GraphModelProperty";
+	inline static const std::string k_propertyClassName= "GraphModelProperty";
 	virtual std::string getClassName() const override { return k_propertyClassName; }
 
 	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig,
@@ -42,4 +42,4 @@ protected:
 	MikanRenderModelResourcePtr m_modelResource;
 };
 
-using GraphModelPropertyFactory = TypedGraphPropertyFactory<GraphModelProperty, GraphModelPropertyConfig>;
+using GraphModelPropertyFactory= TypedGraphPropertyFactory<GraphModelProperty, GraphModelPropertyConfig>;

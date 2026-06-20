@@ -14,14 +14,14 @@ class ModalDialog_MessageBox : public ModalDialog
 {
 public:
 	ModalDialog_MessageBox(AppStage* ownerAppStage);
-	virtual ~ModalDialog_MessageBox() = default;
+	virtual ~ModalDialog_MessageBox()= default;
 
-	using DismissCallback = std::function<void()>;
+	using DismissCallback= std::function<void()>;
 	static bool showMessageBox(
 		AppStage* appStage,
 		const std::string& message,
-		const std::string& buttonLabel = "OK",
-		DismissCallback dismissCallback = {});
+		const std::string& buttonLabel= "OK",
+		DismissCallback dismissCallback= {});
 
 	virtual void onGui() override;
 

@@ -20,21 +20,21 @@ public:
 	inline cv::Mat* getBGRGsDisplayBuffer() const { return m_bgrGsDisplayBuffer; }
 
 	inline bool isColorUndistortDisabled() const { return m_bColorUndistortDisabled; }
-	inline void setColorUndistortDisabled(bool bDisabled) { m_bColorUndistortDisabled = bDisabled; }
+	inline void setColorUndistortDisabled(bool bDisabled) { m_bColorUndistortDisabled= bDisabled; }
 
 	inline bool isGrayscaleUndistortDisabled() const { return m_bGrayscaleUndistortDisabled; }
-	inline void setGrayscaleUndistortDisabled(bool bDisabled) { m_bGrayscaleUndistortDisabled = bDisabled; }
+	inline void setGrayscaleUndistortDisabled(bool bDisabled) { m_bGrayscaleUndistortDisabled= bDisabled; }
 
 private:
 	// Video frame buffers (24-BPP, BGR color format)
-	cv::Mat* m_bgrUndistortBuffer = nullptr;
+	cv::Mat* m_bgrUndistortBuffer= nullptr;
 
 	// Grayscale video frame buffers
-	cv::Mat* m_gsSourceBuffer = nullptr;    // 8-BPP source buffer
-	cv::Mat* m_gsUndistortBuffer = nullptr; // 8-BPP undistorted buffer
-	cv::Mat* m_bgrGsDisplayBuffer = nullptr; // 24-BPP(BGR color format) debug display buffer
+	cv::Mat* m_gsSourceBuffer= nullptr;     // 8-BPP source buffer
+	cv::Mat* m_gsUndistortBuffer= nullptr;  // 8-BPP undistorted buffer
+	cv::Mat* m_bgrGsDisplayBuffer= nullptr; // 24-BPP(BGR color format) debug display buffer
 
 	// Runtime flags
-	bool m_bColorUndistortDisabled = false;
-	bool m_bGrayscaleUndistortDisabled = false;
+	bool m_bColorUndistortDisabled= false;
+	bool m_bGrayscaleUndistortDisabled= false;
 };

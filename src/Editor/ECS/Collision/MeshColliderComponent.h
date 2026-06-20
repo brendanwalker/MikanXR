@@ -7,7 +7,7 @@
 #include "MikanRendererFwd.h"
 
 class StaticMeshKdTree;
-using StaticMeshKdTreePtr = std::shared_ptr<StaticMeshKdTree>;
+using StaticMeshKdTreePtr= std::shared_ptr<StaticMeshKdTree>;
 
 class MeshColliderComponent : public ColliderComponent
 {
@@ -16,7 +16,7 @@ public:
 
 	virtual void dispose() override;
 
-	inline static const std::string k_componentClassName = "MeshColliderComponent";
+	inline static const std::string k_componentClassName= "MeshColliderComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	void setStaticMeshComponent(StaticMeshComponentWeakPtr meshComponent);

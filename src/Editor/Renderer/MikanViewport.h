@@ -24,7 +24,7 @@ public:
 	virtual void setViewport(const glm::i32vec2& viewportOrigin, const glm::i32vec2& viewportSize) override;
 	virtual void setBackgroundColor(const glm::vec3& color) override;
 
-	inline void setIsRenderingEnabled(bool enabled) { m_bIsRenderingEnabled = enabled; }
+	inline void setIsRenderingEnabled(bool enabled) { m_bIsRenderingEnabled= enabled; }
 	inline bool getIsRenderingEnabled() const { return m_bIsRenderingEnabled; }
 
 	void bindInput();
@@ -33,7 +33,7 @@ public:
 	virtual void applyRenderingViewport(IMkState* mkState) override;
 	virtual void onRenderingViewportApply(int x, int y, int width, int height) override;
 	virtual void onRenderingViewportRevert(int x, int y, int width, int height) override;
-	virtual bool getRenderingViewport(glm::i32vec2 &outOrigin, glm::i32vec2 &outSize) const override;
+	virtual bool getRenderingViewport(glm::i32vec2& outOrigin, glm::i32vec2& outSize) const override;
 
 	void update(float deltaSeconds);
 
@@ -84,7 +84,7 @@ protected:
 private:
 	const IEditorWindow* m_ownerWindow;
 
-	bool m_bIsRenderingEnabled = true;
+	bool m_bIsRenderingEnabled= true;
 	bool m_bIsInputBound= false;
 	bool m_isCameraRotateButtonPressed= false;
 	bool m_isLeftPressed= false;
@@ -105,7 +105,7 @@ private:
 	std::vector<MikanCameraPtr> m_cameraPool;
 	int m_currentCameraIndex= 0;
 
-	const float k_camera_mouse_zoom_scalar = 0.1f;
-	const float k_camera_mouse_pan_scalar = 0.25f;
-	const float k_camera_min_zoom = 0.01f;
+	const float k_camera_mouse_zoom_scalar= 0.1f;
+	const float k_camera_mouse_pan_scalar= 0.25f;
+	const float k_camera_min_zoom= 0.01f;
 };

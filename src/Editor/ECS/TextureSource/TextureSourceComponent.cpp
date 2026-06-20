@@ -9,12 +9,14 @@
 // -- TextureSourceDefinition -----
 TextureSourceDefinition::TextureSourceDefinition()
 	: MikanComponentDefinition()
-{}
+{
+}
 
 TextureSourceDefinition::TextureSourceDefinition(
 	MikanTextureSourceID textureSourceId)
 	: MikanComponentDefinition(textureSourceId, "")
-{}
+{
+}
 
 bool TextureSourceDefinition::readFromInitParams(
 	MikanObjectSystem* ownerObjectSystem,
@@ -43,7 +45,7 @@ void TextureSourceComponent::setDefinition(MikanComponentDefinitionPtr definitio
 {
 	MikanComponent::setDefinition(definition);
 
-	auto TextureSourceDefinitionPtr = std::static_pointer_cast<TextureSourceDefinition>(definition);
+	auto TextureSourceDefinitionPtr= std::static_pointer_cast<TextureSourceDefinition>(definition);
 }
 
 MikanTextureSourceID TextureSourceComponent::getTextureSourceId() const
@@ -62,7 +64,7 @@ IMkTexturePtr TextureSourceComponent::getClientDepthSourceTexture(MikanCameraID 
 }
 
 // -- IFunctionInterface ----
-const std::string TextureSourceComponent::k_showTextureSourceSettingsFunctionId = "show_texture_source_settings";
+const std::string TextureSourceComponent::k_showTextureSourceSettingsFunctionId= "show_texture_source_settings";
 
 void TextureSourceComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {

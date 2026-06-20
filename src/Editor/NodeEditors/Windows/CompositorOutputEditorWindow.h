@@ -58,9 +58,9 @@ private:
 
 	SceneComponentWeakPtr m_sceneComponent;
 	CompositorComponentWeakPtr m_compositorComponent;
-	MikanCameraPtr m_viewCamera;					// scene rendering camera
+	MikanCameraPtr m_viewCamera; // scene rendering camera
 	IMkScenePtr m_mkScene;
-	IMkTriangulatedMeshPtr m_compositedFrameQuad;	// fullscreen quad for compositor texture
-	IMkTriangulatedMeshPtr m_backgroundQuad;		// fullscreen quad for scrolling background
-	float m_shaderTime = 0.f;
+	IMkTriangulatedMeshPtr m_compositedFrameQuad; // fullscreen quad for compositor texture
+	IMkTriangulatedMeshPtr m_backgroundQuad;      // fullscreen quad for scrolling background
+	float m_shaderTime= 0.f;
 };

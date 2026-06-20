@@ -23,7 +23,7 @@
 class VRDeviceDefinition : public TransformComponentDefinition
 {
 public:
-	VRDeviceDefinition() = default;
+	VRDeviceDefinition()= default;
 	VRDeviceDefinition(MikanVRDeviceID vrDeviceId);
 
 	static const std::string k_trackingRuntimeTypePropertyId;
@@ -49,9 +49,9 @@ public:
 
 private:
 	// These properties are set at VRDevice creation and are read-only after that
-	eTrackingRuntime m_trackingRuntime = eTrackingRuntime::INVALID;
+	eTrackingRuntime m_trackingRuntime= eTrackingRuntime::INVALID;
 	size_t m_vrDeviceIndex= 0;
-	eVRDeviceType m_vrDeviceType = eVRDeviceType::INVALID;
+	eVRDeviceType m_vrDeviceType= eVRDeviceType::INVALID;
 	std::string m_vrDevicePath;
 };
 
@@ -62,7 +62,7 @@ public:
 	VRDeviceComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
 
-	inline static const std::string k_componentClassName = "VRDeviceComponent";
+	inline static const std::string k_componentClassName= "VRDeviceComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	inline VRDeviceDefinitionPtr getVRDeviceDefinition() const
@@ -125,6 +125,6 @@ protected:
 	std::map<std::string, TransformComponentPtr> m_socketMap;
 	std::vector<std::string> m_socketNames;
 	std::map<std::string, VRDeviceMeshInfo> m_meshComponentMap;
-	bool m_bIsHovered = false;
-	bool m_bIsSelected = false;
+	bool m_bIsHovered= false;
+	bool m_bIsSelected= false;
 };

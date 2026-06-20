@@ -9,7 +9,7 @@
 class MIKAN_RENDERER_CLASS MkStateStack
 {
 public:
-	MkStateStack() = delete;
+	MkStateStack()= delete;
 	MkStateStack(IMkGraphicsContext* ownerContext);
 	virtual ~MkStateStack();
 

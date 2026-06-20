@@ -7,7 +7,7 @@
 class GraphShapePropertyConfig : public GraphPropertyConfig
 {
 public:
-	GraphShapePropertyConfig() = default;
+	GraphShapePropertyConfig()= default;
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -19,16 +19,16 @@ public:
 class GraphShapeProperty : public GraphProperty
 {
 public:
-	GraphShapeProperty() = default;
+	GraphShapeProperty()= default;
 
-	inline static const std::string k_propertyClassName = "GraphShapeProperty";
+	inline static const std::string k_propertyClassName= "GraphShapeProperty";
 	virtual std::string getClassName() const override { return k_propertyClassName; }
 
 	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig,
 								const NodeGraphConfig& graphConfig) override;
 	virtual void saveToConfig(GraphPropertyConfigPtr config) const override;
 
-	inline void setShapeComponent(ShapeComponentPtr inComponent) { m_shapeComponent = inComponent; }
+	inline void setShapeComponent(ShapeComponentPtr inComponent) { m_shapeComponent= inComponent; }
 	inline ShapeComponentPtr getShapeComponent() const { return m_shapeComponent; }
 
 	virtual void editorHandleMainFrameDragDrop(const class NodeEditorState& editorState) override;
@@ -38,7 +38,7 @@ public:
 
 protected:
 	ShapeComponentPtr m_shapeComponent;
-	eShapeType m_shapeType = eShapeType::INVALID;
+	eShapeType m_shapeType= eShapeType::INVALID;
 };
 
-using GraphShapePropertyFactory = TypedGraphPropertyFactory<GraphShapeProperty, GraphShapePropertyConfig>;
+using GraphShapePropertyFactory= TypedGraphPropertyFactory<GraphShapeProperty, GraphShapePropertyConfig>;

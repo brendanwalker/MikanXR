@@ -18,7 +18,7 @@ using namespace std::placeholders;
 // -- ShapeRequestHandler -- //
 bool ShapeRequestHandler::startup(MainWindow* mainWindow)
 {
-	IInterprocessMessageServer* messageServer = m_owner->getMessageServer();
+	IInterprocessMessageServer* messageServer= m_owner->getMessageServer();
 
 	// Shape Requests
 	messageServer->setRequestHandler(
@@ -37,11 +37,11 @@ void ShapeRequestHandler::getModelShapeRenderGeometryHandler(const ClientRequest
 		return;
 	}
 
-	ModelShapeComponentPtr modelShape =
+	ModelShapeComponentPtr modelShape=
 		getObjectSystemOfType<ModelShapeSystem>()->getModelShapeById(shapeRequest.shapeId);
 	if (modelShape)
 	{
-		MikanShapeModelRenderGeometryResponse renderGeometryResponse = {};
+		MikanShapeModelRenderGeometryResponse renderGeometryResponse= {};
 		modelShape->extractRenderGeometry(renderGeometryResponse.render_geometry);
 
 		writeTypedBinaryResponse(request.requestId, renderGeometryResponse, response);

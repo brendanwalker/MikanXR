@@ -21,13 +21,13 @@ GLVideoFrameProcessor::GLVideoFrameProcessor()
 void GLVideoFrameProcessor::init(IMkShaderCache* shaderCache)
 {
 	// Create the RGB frame buffer; size and resources are initialized lazily in computeUndistortion
-	m_undistortionFrameBuffer = createMkFrameBuffer("Undistortion Frame Buffer");
+	m_undistortionFrameBuffer= createMkFrameBuffer("Undistortion Frame Buffer");
 	m_undistortionFrameBuffer->setFrameBufferType(IMkFrameBuffer::eFrameBufferType::COLOR);
 	m_undistortionFrameBuffer->setColorFormat(IMkFrameBuffer::eColorFormat::RGB);
 
 	// Setup the undistortion material
-	m_undistortionMaterial = shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_UNDISTORT_FULLSCREEN_RGB_TEXTURE);
-	m_undistortMaterialInstance = createMkMaterialInstance(m_undistortionMaterial);
+	m_undistortionMaterial= shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_UNDISTORT_FULLSCREEN_RGB_TEXTURE);
+	m_undistortMaterialInstance= createMkMaterialInstance(m_undistortionMaterial);
 }
 
 void GLVideoFrameProcessor::ensureBufferSize(int width, int height)
@@ -40,11 +40,11 @@ void GLVideoFrameProcessor::ensureBufferSize(int width, int height)
 
 	// Allocate a GL texture to copy the source video frame into
 	// This is only used when doing shader based undistortion
-	m_bgrSourceTextureMap = CreateMkTexture(
+	m_bgrSourceTextureMap= CreateMkTexture(
 		width,
 		height,
 		nullptr,
-		MK_RGB, // texture format
+		MK_RGB,  // texture format
 		MK_BGR); // buffer format
 	m_bgrSourceTextureMap->setGenerateMipMap(false);
 	m_bgrSourceTextureMap->setPixelBufferObjectMode(IMkTexture::PixelBufferObjectMode::DoublePBOWrite);
@@ -55,7 +55,7 @@ void GLVideoFrameProcessor::uploadSourceBuffer(const cv::Mat& srcBuffer)
 {
 	if (m_bgrSourceTextureMap)
 	{
-		const size_t bufferSize = srcBuffer.step[0] * srcBuffer.rows;
+		const size_t bufferSize= srcBuffer.step[0] * srcBuffer.rows;
 		m_bgrSourceTextureMap->copyBufferIntoTexture(srcBuffer.data, bufferSize);
 	}
 }
@@ -90,13 +90,13 @@ void GLVideoFrameProcessor::computeUndistortion(
 
 		if (colorFramebufferBinding)
 		{
-			if (auto materialBinding = m_undistortionMaterial->bindMaterial())
+			if (auto materialBinding= m_undistortionMaterial->bindMaterial())
 			{
 				m_undistortMaterialInstance->setTextureBySemantic(eUniformSemantic::rgbTexture, m_bgrSourceTextureMap);
 				m_undistortMaterialInstance->setTextureBySemantic(eUniformSemantic::distortionTexture, distortionTexture);
 
 				// Draw the color texture
-				if (auto materialInstanceBinding = m_undistortMaterialInstance->bindMaterialInstance(materialBinding))
+				if (auto materialInstanceBinding= m_undistortMaterialInstance->bindMaterialInstance(materialBinding))
 				{
 					fullscreenQuad->drawElements();
 				}

@@ -10,13 +10,16 @@ class AppStage;
 class GuiPanel_VRTrackingRecenter : public GuiPanel
 {
 public:
-	GuiPanel_VRTrackingRecenter(AppStage* ownerAppStage) : GuiPanel(ownerAppStage) {}
+	GuiPanel_VRTrackingRecenter(AppStage* ownerAppStage)
+		: GuiPanel(ownerAppStage)
+	{
+	}
 	virtual void onGui() override;
 
 	eVRTrackingRecenterMenuState getMenuState() const { return m_menuState; }
-	void setMenuState(eVRTrackingRecenterMenuState newState) { m_menuState = newState; }
+	void setMenuState(eVRTrackingRecenterMenuState newState) { m_menuState= newState; }
 
-	void setCalibrationFraction(float fraction) { m_calibrationPercent = fraction * 100.f; }
+	void setCalibrationFraction(float fraction) { m_calibrationPercent= fraction * 100.f; }
 
 	bool getCurrentMarkerValid() const { return m_isCurrentMarkerValid; }
 	void setCurrentMarkerValid(bool valid);
@@ -32,11 +35,11 @@ public:
 	std::function<void(bool)> OnMarkerStabilityChangedEvent;
 
 private:
-	static constexpr float k_markerStabilityDuration = 1.0f;
+	static constexpr float k_markerStabilityDuration= 1.0f;
 
-	eVRTrackingRecenterMenuState m_menuState = eVRTrackingRecenterMenuState::inactive;
-	float m_calibrationPercent = 0.f;
-	bool m_isCurrentMarkerValid = false;
-	bool m_isCurrentMarkerStable = false;
-	float m_markerStabilityTimer = 0.f;
+	eVRTrackingRecenterMenuState m_menuState= eVRTrackingRecenterMenuState::inactive;
+	float m_calibrationPercent= 0.f;
+	bool m_isCurrentMarkerValid= false;
+	bool m_isCurrentMarkerStable= false;
+	float m_markerStabilityTimer= 0.f;
 };

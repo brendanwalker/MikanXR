@@ -14,14 +14,24 @@ public:
 	NodeEvaluator()= default;
 
 	inline NodeEvaluator& setCurrentGraphicsContext(class IMkGraphicsContext* inGraphicsContext)
-	{ m_currentGraphicsContext= inGraphicsContext; return *this; }
-	inline class IMkGraphicsContext* getCurrentGraphicsContext() const 
-	{ return m_currentGraphicsContext; }
+	{
+		m_currentGraphicsContext= inGraphicsContext;
+		return *this;
+	}
+	inline class IMkGraphicsContext* getCurrentGraphicsContext() const
+	{
+		return m_currentGraphicsContext;
+	}
 
-	inline NodeEvaluator& setDeltaSeconds(float inDeltaSeconds) 
-	{ m_deltaSeconds= inDeltaSeconds; return *this; }
-	inline float getDeltaSeconds() const 
-	{ return m_deltaSeconds; }
+	inline NodeEvaluator& setDeltaSeconds(float inDeltaSeconds)
+	{
+		m_deltaSeconds= inDeltaSeconds;
+		return *this;
+	}
+	inline float getDeltaSeconds() const
+	{
+		return m_deltaSeconds;
+	}
 
 	inline void setDisableInputEvaluation(bool bDisable) { m_bDisableInputEvaluation= bDisable; }
 	inline bool getIsInputEvaluationDisabled() const { return m_bDisableInputEvaluation; }

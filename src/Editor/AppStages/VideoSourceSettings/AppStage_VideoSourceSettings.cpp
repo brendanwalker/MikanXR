@@ -19,7 +19,7 @@
 #include "imgui.h"
 
 //-- statics ----__
-const char* AppStage_VideoSourceSettings::APP_STAGE_NAME = "VideoSourceSettings";
+const char* AppStage_VideoSourceSettings::APP_STAGE_NAME= "VideoSourceSettings";
 
 //-- public methods -----
 AppStage_VideoSourceSettings::AppStage_VideoSourceSettings(IEditorWindow* ownerWindow)
@@ -41,18 +41,18 @@ void AppStage_VideoSourceSettings::enter()
 	// Create app stage GUI panels
 	// (Auto cleaned up on app state exit)
 	{
-		auto* usbPanel = addGuiPanel<GuiPanel_USBVideoSourceComponent>();
+		auto* usbPanel= addGuiPanel<GuiPanel_USBVideoSourceComponent>();
 		usbPanel->init();
-		if (auto usbVideoSourceComponent =
-			std::dynamic_pointer_cast<USBVideoSourceComponent>(videoSourceComponent))
+		if (auto usbVideoSourceComponent=
+				std::dynamic_pointer_cast<USBVideoSourceComponent>(videoSourceComponent))
 		{
 			usbPanel->setComponent(usbVideoSourceComponent);
 		}
 
-		auto* networkPanel = addGuiPanel<GuiPanel_NetworkVideoSourceComponent>();
+		auto* networkPanel= addGuiPanel<GuiPanel_NetworkVideoSourceComponent>();
 		networkPanel->init();
-		if (auto networkVideoSourceComponent =
-			std::dynamic_pointer_cast<NetworkVideoSourceComponent>(videoSourceComponent))
+		if (auto networkVideoSourceComponent=
+				std::dynamic_pointer_cast<NetworkVideoSourceComponent>(videoSourceComponent))
 		{
 			networkPanel->setComponent(networkVideoSourceComponent);
 		}
@@ -61,7 +61,7 @@ void AppStage_VideoSourceSettings::enter()
 	if (videoSourceComponent)
 	{
 		// Create the video buffer view eagerly — it registers itself for OnFrameSizeChanged
-		m_videoBufferView = std::make_shared<VideoFrameDistortionView>(
+		m_videoBufferView= std::make_shared<VideoFrameDistortionView>(
 			videoSourceComponent,
 			eVideoFrameProcessorMode::COMPOSITOR);
 
@@ -72,12 +72,12 @@ void AppStage_VideoSourceSettings::enter()
 
 void AppStage_VideoSourceSettings::exit()
 {
-	VideoSourceComponentPtr videoSourceComponent = m_videoSourceComponent.lock();
+	VideoSourceComponentPtr videoSourceComponent= m_videoSourceComponent.lock();
 
 	if (videoSourceComponent && m_videoBufferView)
 	{
 		videoSourceComponent->stopVideoStream(m_videoBufferView.get());
-		m_videoBufferView = nullptr;
+		m_videoBufferView= nullptr;
 	}
 
 	AppStage::exit();
@@ -85,7 +85,7 @@ void AppStage_VideoSourceSettings::exit()
 
 void AppStage_VideoSourceSettings::pause()
 {
-	VideoSourceComponentPtr videoSourceComponent = m_videoSourceComponent.lock();
+	VideoSourceComponentPtr videoSourceComponent= m_videoSourceComponent.lock();
 
 	if (videoSourceComponent && m_videoBufferView)
 	{
@@ -97,7 +97,7 @@ void AppStage_VideoSourceSettings::pause()
 
 void AppStage_VideoSourceSettings::resume()
 {
-	VideoSourceComponentPtr videoSourceComponent = m_videoSourceComponent.lock();
+	VideoSourceComponentPtr videoSourceComponent= m_videoSourceComponent.lock();
 
 	if (videoSourceComponent && m_videoBufferView)
 	{
@@ -122,22 +122,24 @@ void AppStage_VideoSourceSettings::onGui()
 {
 	AppStage::onGui();
 
-	constexpr float k_panelWidth = 415.f;
-	const float displayWidth = m_ownerWindow->getWidth();
-	const float displayHeight = m_ownerWindow->getHeight();
+	constexpr float k_panelWidth= 415.f;
+	const float displayWidth= m_ownerWindow->getWidth();
+	const float displayHeight= m_ownerWindow->getHeight();
 	ImGui::SetNextWindowPos(ImVec2(displayWidth - k_panelWidth, 0.f), ImGuiCond_Always);
 	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, displayHeight), ImGuiCond_Always);
 
-	constexpr ImGuiWindowFlags k_flags =
+	constexpr ImGuiWindowFlags k_flags=
 		ImGuiWindowFlags_NoMove |
 		ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoCollapse |
 		ImGuiWindowFlags_NoTitleBar;
 
 	MkGuiScopedWindow panel("##VideoSourceSettings", nullptr, k_flags);
-	if (!panel) return;
+	if (!panel)
+		return;
 
-	if (ImGui::Button("Return")) onReturnEvent();
+	if (ImGui::Button("Return"))
+		onReturnEvent();
 	ImGui::Separator();
 
 	for (IGuiPanel* guiPanel : m_guiPanels)
@@ -152,9 +154,9 @@ void AppStage_VideoSourceSettings::render(IMkViewportPtr targetViewport)
 	}
 
 	// Always draw the FPS in the lower right
-	TextStyle style = getDefaultTextStyle();
-	style.horizontalAlignment = eHorizontalTextAlignment::Left;
-	style.verticalAlignment = eVerticalTextAlignment::Bottom;
+	TextStyle style= getDefaultTextStyle();
+	style.horizontalAlignment= eHorizontalTextAlignment::Left;
+	style.verticalAlignment= eVerticalTextAlignment::Bottom;
 	drawTextAtScreenPosition(
 		getGraphicsContext(),
 		style,

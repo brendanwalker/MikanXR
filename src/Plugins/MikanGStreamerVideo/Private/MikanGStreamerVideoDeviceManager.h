@@ -10,7 +10,7 @@
 class MikanGStreamerVideoDeviceManager : public INetworkVideoDeviceManager
 {
 public:
-	MikanGStreamerVideoDeviceManager() = default;
+	MikanGStreamerVideoDeviceManager()= default;
 	virtual ~MikanGStreamerVideoDeviceManager() {}
 
 	virtual bool startup() override { return true; }

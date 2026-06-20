@@ -7,25 +7,26 @@
 template <class R>
 struct MulticastDelegate; // Not defined
 
-/// @brief Not thread-safe multicast delegate container class. The class has a linked  
-/// list of Delegate<> instances. When invoked, each Delegate instance within the invocation 
-/// list is called. MulticastDelegate<> does not support return values. A void return  
+/// @brief Not thread-safe multicast delegate container class. The class has a linked
+/// list of Delegate<> instances. When invoked, each Delegate instance within the invocation
+/// list is called. MulticastDelegate<> does not support return values. A void return
 /// must always be used.
-template<class RetType, class... Args>
+template <class RetType, class... Args>
 class MulticastDelegate<RetType(Args...)>
 {
 public:
-	MulticastDelegate() { }
+	MulticastDelegate() {}
 	~MulticastDelegate() { Clear(); }
 
-	RetType operator()(Args... args) {
+	RetType operator()(Args... args)
+	{
 		// Use manual iteration to safely handle delegates that remove themselves during callback
-		auto it = m_delegates.begin();
+		auto it= m_delegates.begin();
 		while (it != m_delegates.end())
 		{
 			// Get current delegate and advance iterator BEFORE invoking
 			// This makes it safe for the delegate to remove itself during the callback
-			Delegate<RetType(Args...)>* delegate = *it;
+			Delegate<RetType(Args...)>* delegate= *it;
 			++it;
 
 			// Invoke delegate callback
@@ -33,11 +34,13 @@ public:
 		}
 	}
 
-	void operator+=(const Delegate<RetType(Args...)>& delegate) {
+	void operator+=(const Delegate<RetType(Args...)>& delegate)
+	{
 		m_delegates.push_back(delegate.Clone());
 	}
-	void operator-=(const Delegate<RetType(Args...)>& delegate) {
-		for (auto it = m_delegates.begin(); it != m_delegates.end(); ++it)
+	void operator-=(const Delegate<RetType(Args...)>& delegate)
+	{
+		for (auto it= m_delegates.begin(); it != m_delegates.end(); ++it)
 		{
 			if (*((DelegateBase*)&delegate) == *((DelegateBase*)(*it)))
 			{
@@ -52,12 +55,13 @@ public:
 	bool Empty() const { return m_delegates.empty(); }
 
 	/// Removal all registered delegates.
-	void Clear() {
-		auto it = m_delegates.begin();
+	void Clear()
+	{
+		auto it= m_delegates.begin();
 		while (it != m_delegates.end())
 		{
 			delete (*it);
-			it = m_delegates.erase(it);
+			it= m_delegates.erase(it);
 		}
 	}
 
@@ -65,8 +69,8 @@ public:
 
 private:
 	// Prevent copying objects
-	MulticastDelegate(const MulticastDelegate&) = delete;
-	MulticastDelegate& operator=(const MulticastDelegate&) = delete;
+	MulticastDelegate(const MulticastDelegate&)= delete;
+	MulticastDelegate& operator=(const MulticastDelegate&)= delete;
 
 	/// List of registered delegates
 	std::list<Delegate<RetType(Args...)>*> m_delegates;

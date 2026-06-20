@@ -8,7 +8,7 @@
 #include <string>
 
 class PropertyNotifyDatabase;
-using PropertyNotifyDatabasePtr = std::shared_ptr<class PropertyNotifyDatabase>;
+using PropertyNotifyDatabasePtr= std::shared_ptr<class PropertyNotifyDatabase>;
 
 class MikanClientConnectionState
 {
@@ -43,6 +43,6 @@ private:
 	class MikanServer* m_ownerServer;
 	std::string m_connectionId;
 	MikanClientInfo m_clientInfo;
-	class RenderTargetClientState* m_renderTargetClientState = nullptr;
+	class RenderTargetClientState* m_renderTargetClientState= nullptr;
 	PropertyNotifyDatabasePtr m_propertyNotifyDatabase;
 };

@@ -22,7 +22,7 @@ MkMaterial::MkMaterial()
 }
 
 MkMaterial::MkMaterial(
-	const std::string& name, 
+	const std::string& name,
 	IMkShaderPtr program)
 	: m_impl(new MkMaterialImpl())
 {
@@ -37,49 +37,49 @@ MkMaterial::~MkMaterial()
 	delete m_impl;
 }
 
-const std::string& MkMaterial::getName() const 
-{ 
-	return m_impl->name; 
+const std::string& MkMaterial::getName() const
+{
+	return m_impl->name;
 }
 
-const NamedValueTable<float>& MkMaterial::getFloatSources() const 
+const NamedValueTable<float>& MkMaterial::getFloatSources() const
 {
-	return m_impl->floatSources; 
+	return m_impl->floatSources;
 }
 
 const NamedValueTable<glm::vec2>& MkMaterial::getFloat2Sources() const
 {
-	return m_impl->float2Sources; 
+	return m_impl->float2Sources;
 }
 
-const NamedValueTable<glm::vec3>& MkMaterial::getFloat3Sources() const 
+const NamedValueTable<glm::vec3>& MkMaterial::getFloat3Sources() const
 {
-	return m_impl->float3Sources; 
+	return m_impl->float3Sources;
 }
 
 const NamedValueTable<glm::vec4>& MkMaterial::getFloat4Sources() const
 {
-	return m_impl->float4Sources; 
+	return m_impl->float4Sources;
 }
 
 const NamedValueTable<glm::mat4>& MkMaterial::getMat4Sources() const
 {
-	return m_impl->mat4Sources; 
+	return m_impl->mat4Sources;
 }
 
 const NamedValueTable<IMkTextureConstPtr>& MkMaterial::getTextureSources() const
-{ 
-	return m_impl->textureSources; 
-}
-
-void MkMaterial::setProgram(IMkShaderPtr program) 
-{ 
-	m_impl->program = program; 
-}
-
-IMkShaderPtr MkMaterial::getProgram() const 
 {
-	return m_impl->program.lock(); 
+	return m_impl->textureSources;
+}
+
+void MkMaterial::setProgram(IMkShaderPtr program)
+{
+	m_impl->program= program;
+}
+
+IMkShaderPtr MkMaterial::getProgram() const
+{
+	return m_impl->program.lock();
 }
 
 bool MkMaterial::setFloatBySemantic(eUniformSemantic semantic, float value)
@@ -129,7 +129,7 @@ bool MkMaterial::getFloatByUniformName(const std::string uniformName, float& out
 	IMkShaderPtr program= getProgram();
 	if (program != nullptr &&
 		program->getUniformDataType(uniformName, datatype) &&
-		datatype == eUniformDataType::datatype_float && 
+		datatype == eUniformDataType::datatype_float &&
 		m_impl->floatSources.tryGetValue(uniformName, outValue))
 	{
 		return true;
@@ -420,7 +420,7 @@ bool MkMaterial::getTextureByUniformName(const std::string uniformName, IMkTextu
 
 MkScopedMaterialBinding MkMaterial::bindMaterial(
 	BindUniformCallback callback) const
-{	
+{
 	bool bMaterialFailure= false;
 	UniformNameSet unboundUniformNames;
 	IMkShaderPtr program= getProgram();
@@ -428,7 +428,7 @@ MkScopedMaterialBinding MkMaterial::bindMaterial(
 	if (program != nullptr &&
 		program->bindProgram())
 	{
-		for (auto it = program->getUniformBegin(); it != program->getUniformEnd(); ++it)
+		for (auto it= program->getUniformBegin(); it != program->getUniformEnd(); ++it)
 		{
 			const std::string& uniformName= it->first;
 			eUniformSemantic uniformSemantic= it->second.semantic;
@@ -438,79 +438,79 @@ MkScopedMaterialBinding MkMaterial::bindMaterial(
 			switch (uniformDataType)
 			{
 			case eUniformDataType::datatype_float:
+			{
+				float value;
+				if (m_impl->floatSources.tryGetValue(uniformName, value))
 				{
-					float value;
-					if (m_impl->floatSources.tryGetValue(uniformName, value))
-					{
-						bindResult = 
-							program->setFloatUniform(uniformName, value)
+					bindResult=
+						program->setFloatUniform(uniformName, value)
 							? eUniformBindResult::bound
 							: eUniformBindResult::error;
-					}
 				}
-				break;
+			}
+			break;
 			case eUniformDataType::datatype_float2:
+			{
+				glm::vec2 value;
+				if (m_impl->float2Sources.tryGetValue(uniformName, value))
 				{
-					glm::vec2 value;
-					if (m_impl->float2Sources.tryGetValue(uniformName, value))
-					{
-						bindResult =
-							program->setVector2Uniform(uniformName, value)
+					bindResult=
+						program->setVector2Uniform(uniformName, value)
 							? eUniformBindResult::bound
 							: eUniformBindResult::error;
-					}
 				}
-				break;
+			}
+			break;
 			case eUniformDataType::datatype_float3:
+			{
+				glm::vec3 value;
+				if (m_impl->float3Sources.tryGetValue(uniformName, value))
 				{
-					glm::vec3 value;
-					if (m_impl->float3Sources.tryGetValue(uniformName, value))
-					{
-						bindResult= 
-							program->setVector3Uniform(uniformName, value)
+					bindResult=
+						program->setVector3Uniform(uniformName, value)
 							? eUniformBindResult::bound
 							: eUniformBindResult::error;
-					}
 				}
-				break;
+			}
+			break;
 			case eUniformDataType::datatype_float4:
+			{
+				glm::vec4 value;
+				if (m_impl->float4Sources.tryGetValue(uniformName, value))
 				{
-					glm::vec4 value;
-					if (m_impl->float4Sources.tryGetValue(uniformName, value))
-					{
-						bindResult= 
-							program->setVector4Uniform(uniformName, value)
+					bindResult=
+						program->setVector4Uniform(uniformName, value)
 							? eUniformBindResult::bound
 							: eUniformBindResult::error;
-					}
 				}
-				break;
+			}
+			break;
 			case eUniformDataType::datatype_mat4:
+			{
+				glm::mat4 value;
+				if (m_impl->mat4Sources.tryGetValue(uniformName, value))
 				{
-					glm::mat4 value;
-					if (m_impl->mat4Sources.tryGetValue(uniformName, value))
-					{
-						bindResult= 
-							program->setMatrix4x4Uniform(uniformName, value)
+					bindResult=
+						program->setMatrix4x4Uniform(uniformName, value)
 							? eUniformBindResult::bound
 							: eUniformBindResult::error;
-					}
 				}
-				break;
+			}
+			break;
 			case eUniformDataType::datatype_texture:
+			{
+				IMkTextureConstPtr texture;
+				int textureUnit= 0;
+				if (m_impl->textureSources.tryGetValue(uniformName, texture) &&
+					program->getUniformTextureUnit(uniformName, textureUnit))
 				{
-					IMkTextureConstPtr texture;
-					int textureUnit= 0;
-					if (m_impl->textureSources.tryGetValue(uniformName, texture) && 
-						program->getUniformTextureUnit(uniformName, textureUnit))
-					{
-						bindResult =
-							program->setTextureUniform(uniformName) && texture->bindTexture(textureUnit)
+					bindResult=
+						program->setTextureUniform(uniformName) && texture->bindTexture(textureUnit)
 							? eUniformBindResult::bound
 							: eUniformBindResult::error;
-					}
 				}
-				break;
+			}
+			break;
 			default:
 				assert(false);
 			}
@@ -524,7 +524,7 @@ MkScopedMaterialBinding MkMaterial::bindMaterial(
 			// Flag if there was an error binding a material parameter of any kind
 			if (bindResult == eUniformBindResult::error)
 			{
-				bMaterialFailure = true;
+				bMaterialFailure= true;
 			}
 			// Track all unbound material parameters.
 			// Verify in material instance that all unbound parameters are resolved.
@@ -550,16 +550,16 @@ MkScopedMaterialBinding MkMaterial::bindMaterial(
 
 void MkMaterial::unbindMaterial() const
 {
-	IMkShaderPtr program = getProgram();
+	IMkShaderPtr program= getProgram();
 	if (program != nullptr)
 	{
 		// Unbind all textures
-		for (auto it = m_impl->textureSources.getMap().begin(); it != m_impl->textureSources.getMap().end(); ++it)
+		for (auto it= m_impl->textureSources.getMap().begin(); it != m_impl->textureSources.getMap().end(); ++it)
 		{
-			const std::string& uniformName = it->first;
-			IMkTextureConstPtr texture = it->second;
+			const std::string& uniformName= it->first;
+			IMkTextureConstPtr texture= it->second;
 
-			int textureUnit = -1;
+			int textureUnit= -1;
 			if (program->getUniformTextureUnit(uniformName, textureUnit))
 			{
 				it->second->clearTexture(textureUnit);

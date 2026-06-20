@@ -12,10 +12,11 @@
 
 using namespace std::placeholders;
 
-// -- RenderTargetClientState ----- 
+// -- RenderTargetClientState -----
 RenderTargetClientState::RenderTargetClientState(class MikanClientConnectionState* owner)
 	: m_owner(owner)
-{}
+{
+}
 
 RenderTargetClientState::~RenderTargetClientState()
 {
@@ -24,7 +25,7 @@ RenderTargetClientState::~RenderTargetClientState()
 
 MikanClientGraphicsApi RenderTargetClientState::getClientGraphicsAPI(MikanCameraID cameraId) const
 {
-	SharedTextureReadAccessor* readAccessor = getRenderTargetReadAccessor(cameraId);
+	SharedTextureReadAccessor* readAccessor= getRenderTargetReadAccessor(cameraId);
 
 	return readAccessor ? readAccessor->getClientGraphicsAPI() : MikanClientGraphicsApi_UNKNOWN;
 }
@@ -33,15 +34,15 @@ SharedTextureReadAccessor* RenderTargetClientState::getOrAllocateRenderTargetAcc
 	MikanCameraID cameraId,
 	const MikanRenderTargetDescriptor& desc)
 {
-	SharedTextureReadAccessor* readAccessor = getRenderTargetReadAccessor(cameraId);
+	SharedTextureReadAccessor* readAccessor= getRenderTargetReadAccessor(cameraId);
 
 	if (readAccessor == nullptr)
 	{
-		SharedTextureReadAccessorPtr newReadAccessorPtr =
+		SharedTextureReadAccessorPtr newReadAccessorPtr=
 			std::make_shared<SharedTextureReadAccessor>(m_owner->getClientId(), cameraId);
 
-		m_renderTargetReadAccessorCameraMap.insert({ cameraId, newReadAccessorPtr });
-		readAccessor = newReadAccessorPtr.get();
+		m_renderTargetReadAccessorCameraMap.insert({cameraId, newReadAccessorPtr});
+		readAccessor= newReadAccessorPtr.get();
 	}
 
 	return readAccessor;
@@ -49,10 +50,10 @@ SharedTextureReadAccessor* RenderTargetClientState::getOrAllocateRenderTargetAcc
 
 void RenderTargetClientState::disposeRenderTargetAccessor(MikanCameraID cameraId)
 {
-	auto it = m_renderTargetReadAccessorCameraMap.find(cameraId);
+	auto it= m_renderTargetReadAccessorCameraMap.find(cameraId);
 	if (it != m_renderTargetReadAccessorCameraMap.end())
 	{
-		SharedTextureReadAccessorPtr readAccessor = it->second;
+		SharedTextureReadAccessorPtr readAccessor= it->second;
 
 		// invokes SharedTextureReadAccessor::dispose upon removal of SharedTextureReadAccessor
 		m_renderTargetReadAccessorCameraMap.erase(it);
@@ -67,10 +68,10 @@ void RenderTargetClientState::disposeAllRenderTargetAccessors()
 
 class SharedTextureReadAccessor* RenderTargetClientState::getRenderTargetReadAccessor(MikanCameraID cameraId) const
 {
-	auto it = m_renderTargetReadAccessorCameraMap.find(cameraId);
+	auto it= m_renderTargetReadAccessorCameraMap.find(cameraId);
 	if (it != m_renderTargetReadAccessorCameraMap.end())
 	{
-		SharedTextureReadAccessorPtr readAccessor = it->second;
+		SharedTextureReadAccessorPtr readAccessor= it->second;
 
 		return readAccessor.get();
 	}
@@ -80,15 +81,14 @@ class SharedTextureReadAccessor* RenderTargetClientState::getRenderTargetReadAcc
 
 bool RenderTargetClientState::hasAllocatedRenderTarget(MikanCameraID cameraId) const
 {
-	SharedTextureReadAccessor* readAccessor = getRenderTargetReadAccessor(cameraId);
+	SharedTextureReadAccessor* readAccessor= getRenderTargetReadAccessor(cameraId);
 
 	if (readAccessor != nullptr)
 	{
-		const MikanRenderTargetDescriptor& desc = readAccessor->getRenderTargetDescriptor();
+		const MikanRenderTargetDescriptor& desc= readAccessor->getRenderTargetDescriptor();
 
-		return
-			desc.color_buffer_type != MikanColorBuffer_NOCOLOR ||
-			desc.depth_buffer_type != MikanDepthBuffer_NODEPTH;
+		return desc.color_buffer_type != MikanColorBuffer_NOCOLOR ||
+			   desc.depth_buffer_type != MikanDepthBuffer_NODEPTH;
 	}
 
 	return false;
@@ -96,13 +96,13 @@ bool RenderTargetClientState::hasAllocatedRenderTarget(MikanCameraID cameraId) c
 
 bool RenderTargetClientState::allocateRenderTargetTextures(MikanCameraID cameraId, const MikanRenderTargetDescriptor& desc)
 {
-	SharedTextureReadAccessor* readAccessor = getOrAllocateRenderTargetAccessor(cameraId, desc);
+	SharedTextureReadAccessor* readAccessor= getOrAllocateRenderTargetAccessor(cameraId, desc);
 
 	// This will free any existing render target
 	if (readAccessor != nullptr &&
 		readAccessor->initialize(&desc))
 	{
-		auto* cameraRequestHandler = MikanServer::getInstance()->getCameraRequestHandler();
+		auto* cameraRequestHandler= MikanServer::getInstance()->getCameraRequestHandler();
 
 		if (cameraRequestHandler->OnClientRenderTargetAllocated)
 		{
@@ -120,11 +120,11 @@ bool RenderTargetClientState::allocateRenderTargetTextures(MikanCameraID cameraI
 
 void RenderTargetClientState::freeRenderTargetTexturesHandler(MikanCameraID cameraId)
 {
-	SharedTextureReadAccessor* readAccessor = getRenderTargetReadAccessor(cameraId);
+	SharedTextureReadAccessor* readAccessor= getRenderTargetReadAccessor(cameraId);
 
 	if (readAccessor)
 	{
-		auto* cameraRequestHandler = MikanServer::getInstance()->getCameraRequestHandler();
+		auto* cameraRequestHandler= MikanServer::getInstance()->getCameraRequestHandler();
 
 		if (cameraRequestHandler->OnClientRenderTargetReleased)
 		{
@@ -139,7 +139,7 @@ void RenderTargetClientState::freeRenderTargetTexturesHandler(MikanCameraID came
 
 bool RenderTargetClientState::readRenderTargetTextures(MikanCameraID cameraId, const int64_t newFrameIndex)
 {
-	SharedTextureReadAccessor* readAccessor = getRenderTargetReadAccessor(cameraId);
+	SharedTextureReadAccessor* readAccessor= getRenderTargetReadAccessor(cameraId);
 	if (readAccessor)
 	{
 		return readAccessor->readRenderTargetTextures(newFrameIndex);
@@ -149,9 +149,9 @@ bool RenderTargetClientState::readRenderTargetTextures(MikanCameraID cameraId, c
 }
 
 // --RenderTargetRequestHandler ----
-bool CameraRequestHandler::startup(MainWindow * mainWindow)
+bool CameraRequestHandler::startup(MainWindow* mainWindow)
 {
-	IInterprocessMessageServer* messageServer = m_owner->getMessageServer();
+	IInterprocessMessageServer* messageServer= m_owner->getMessageServer();
 
 	// Render Target Requests
 	messageServer->setRequestHandler(
@@ -163,7 +163,6 @@ bool CameraRequestHandler::startup(MainWindow * mainWindow)
 	messageServer->setRequestHandler(
 		PublishCameraRenderTargetTextures::staticGetArchetype().getName(),
 		std::bind(&CameraRequestHandler::frameRenderedHandler, this, _1, _2));
-
 
 	return true;
 }
@@ -179,14 +178,14 @@ void CameraRequestHandler::allocateRenderTargetTexturesHandler(
 		return;
 	}
 
-	MikanClientConnectionStatePtr clientState = m_owner->getConnectedClientState(request.connectionId);
+	MikanClientConnectionStatePtr clientState= m_owner->getConnectedClientState(request.connectionId);
 	if (!clientState)
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::UnknownClient, response);
 		return;
 	}
 
-	RenderTargetClientState* renderTargetState = clientState->getRenderTargetClientState();
+	RenderTargetClientState* renderTargetState= clientState->getRenderTargetClientState();
 	if (renderTargetState->allocateRenderTargetTextures(allocateRequest.camera_id, allocateRequest.descriptor))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
@@ -201,17 +200,17 @@ void CameraRequestHandler::freeRenderTargetTexturesHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
-	FreeCameraRenderTargetTextures freeRenderTargetTexturesRequest = {};
+	FreeCameraRenderTargetTextures freeRenderTargetTexturesRequest= {};
 	if (!readTypedRequest(request.utf8RequestString, freeRenderTargetTexturesRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 		return;
 	}
 
-	MikanClientConnectionStatePtr clientState = m_owner->getConnectedClientState(request.connectionId);
+	MikanClientConnectionStatePtr clientState= m_owner->getConnectedClientState(request.connectionId);
 	if (clientState)
 	{
-		RenderTargetClientState* renderTargetState = clientState->getRenderTargetClientState();
+		RenderTargetClientState* renderTargetState= clientState->getRenderTargetClientState();
 
 		// Broadcast that the client render target was disposed
 		if (OnClientRenderTargetReleased)
@@ -237,17 +236,17 @@ void CameraRequestHandler::frameRenderedHandler(
 	const ClientRequest& request,
 	ClientResponse& response)
 {
-	PublishCameraRenderTargetTextures frameRenderedRequest = {};
+	PublishCameraRenderTargetTextures frameRenderedRequest= {};
 	if (!readTypedRequest(request.utf8RequestString, frameRenderedRequest))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 		return;
 	}
 
-	MikanClientConnectionStatePtr clientState = m_owner->getConnectedClientState(request.connectionId);
+	MikanClientConnectionStatePtr clientState= m_owner->getConnectedClientState(request.connectionId);
 	if (clientState)
 	{
-		RenderTargetClientState* renderTargetState = clientState->getRenderTargetClientState();
+		RenderTargetClientState* renderTargetState= clientState->getRenderTargetClientState();
 
 		// Process incoming video frames, if we have a compositor active
 		if (OnClientRenderTargetUpdated)

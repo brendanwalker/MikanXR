@@ -45,9 +45,9 @@ TestMikanClient::~TestMikanClient()
 bool TestMikanClient::init(
 	const char* szClientName)
 {
-	LoggerSettings settings = {};
-	settings.min_log_level = LogSeverityLevel::info;
-	settings.enable_console = true;
+	LoggerSettings settings= {};
+	settings.min_log_level= LogSeverityLevel::info;
+	settings.enable_console= true;
 
 	log_init(settings);
 
@@ -57,9 +57,9 @@ bool TestMikanClient::init(
 		return false;
 	}
 
-	m_mikanInitialized = true;
+	m_mikanInitialized= true;
 	m_mikanApi->setGraphicsDeviceInterface(
-		m_graphicsContext->getGraphicsApi(), 
+		m_graphicsContext->getGraphicsApi(),
 		m_graphicsContext->getGraphicsDeviceInterface());
 
 	// Create a default camera render target to render to when we aren't connected to Mikan
@@ -76,11 +76,11 @@ void TestMikanClient::dispose()
 	// Shut down the mikan client connection
 	if (m_mikanInitialized)
 	{
-		// If we are currently connected, 
+		// If we are currently connected,
 		// gracefully cleanup the client info on the server first
 		if (m_mikanApi->getIsConnected())
 		{
-			DisposeClientRequest disposeRequest = {};
+			DisposeClientRequest disposeRequest= {};
 			m_mikanApi->sendRequest(disposeRequest).awaitResponse();
 		}
 
@@ -96,24 +96,24 @@ void TestMikanClient::onMikanLog(int log_level, const char* log_message)
 {
 	switch (log_level)
 	{
-		case MikanLogLevel_Debug:
-			MIKAN_LOG_DEBUG("onMikanLog") << log_message;
-			break;
-		case MikanLogLevel_Info:
-			MIKAN_LOG_INFO("onMikanLog") << log_message;
-			break;
-		case MikanLogLevel_Warning:
-			MIKAN_LOG_WARNING("onMikanLog") << log_message;
-			break;
-		case MikanLogLevel_Error:
-			MIKAN_LOG_ERROR("onMikanLog") << log_message;
-			break;
-		case MikanLogLevel_Fatal:
-			MIKAN_LOG_FATAL("onMikanLog") << log_message;
-			break;
-		default:
-			MIKAN_LOG_INFO("onMikanLog") << log_message;
-			break;
+	case MikanLogLevel_Debug:
+		MIKAN_LOG_DEBUG("onMikanLog") << log_message;
+		break;
+	case MikanLogLevel_Info:
+		MIKAN_LOG_INFO("onMikanLog") << log_message;
+		break;
+	case MikanLogLevel_Warning:
+		MIKAN_LOG_WARNING("onMikanLog") << log_message;
+		break;
+	case MikanLogLevel_Error:
+		MIKAN_LOG_ERROR("onMikanLog") << log_message;
+		break;
+	case MikanLogLevel_Fatal:
+		MIKAN_LOG_FATAL("onMikanLog") << log_message;
+		break;
+	default:
+		MIKAN_LOG_INFO("onMikanLog") << log_message;
+		break;
 	}
 }
 
@@ -131,21 +131,21 @@ void TestMikanClient::update(const float deltaSeconds)
 			}
 			else if (typeid(*mikanEvent) == typeid(MikanDisconnectedEvent))
 			{
-				auto disconnectEvent = std::static_pointer_cast<MikanDisconnectedEvent>(mikanEvent);
+				auto disconnectEvent= std::static_pointer_cast<MikanDisconnectedEvent>(mikanEvent);
 
 				handleMikanDisconnected(*disconnectEvent);
 			}
 			// Camera Frame Event
 			else if (typeid(*mikanEvent) == typeid(MikanCameraNewFrameEvent))
 			{
-				auto newFrameEvent = std::static_pointer_cast<MikanCameraNewFrameEvent>(mikanEvent);
+				auto newFrameEvent= std::static_pointer_cast<MikanCameraNewFrameEvent>(mikanEvent);
 
 				handleCameraNewFrameEvent(*newFrameEvent);
 			}
 			// Generic Property Events
 			else if (typeid(*mikanEvent) == typeid(MikanPropertyUpdateEvent))
 			{
-				auto propertyUpdateEvent = std::static_pointer_cast<MikanPropertyUpdateEvent>(mikanEvent);
+				auto propertyUpdateEvent= std::static_pointer_cast<MikanPropertyUpdateEvent>(mikanEvent);
 
 				handlePropertyUpdateEvent(*propertyUpdateEvent);
 			}
@@ -163,21 +163,21 @@ void TestMikanClient::update(const float deltaSeconds)
 		{
 			if (m_mikanApi->connect() != MikanAPIResult::Success || !m_mikanApi->getIsConnected())
 			{
-				m_mikanReconnectTimout = 1.0f;
+				m_mikanReconnectTimout= 1.0f;
 			}
 		}
 		else
 		{
-			m_mikanReconnectTimout -= deltaSeconds;
+			m_mikanReconnectTimout-= deltaSeconds;
 		}
 	}
 
-	// If we aren't connected to Mikan, 
+	// If we aren't connected to Mikan,
 	// send a fake camera frame event with default values to render the default camera target
 	if (!m_mikanApi->getIsConnected())
 	{
-		MikanCameraNewFrameEvent fakeNewFrameEvent = {};
-	
+		MikanCameraNewFrameEvent fakeNewFrameEvent= {};
+
 		makeFakeCameraNewFrameEvent(fakeNewFrameEvent);
 		handleCameraNewFrameEvent(fakeNewFrameEvent);
 	}
@@ -192,30 +192,29 @@ static void handleComponentListChanged(IMikanAPIPtr mikanApi)
 	listRequest.ownerSystem.setValue(t_component_values::k_ownerSystemName);
 	listRequest.componentClassName.setValue(t_component_values::k_componentClassName);
 
-	auto listResponse = mikanApi->sendRequest(listRequest).fetchResponse();
+	auto listResponse= mikanApi->sendRequest(listRequest).fetchResponse();
 	if (listResponse->resultCode == MikanAPIResult::Success)
 	{
-		auto componentList = std::static_pointer_cast<ComponentListResponse>(listResponse);
-		size_t componentCount = componentList->componentIdList.size();
+		auto componentList= std::static_pointer_cast<ComponentListResponse>(listResponse);
+		size_t componentCount= componentList->componentIdList.size();
 
-		MIKAN_LOG_INFO("handleComponentListChanged") <<
-			t_component_values::k_componentClassName << " Count: " << componentCount;
+		MIKAN_LOG_INFO("handleComponentListChanged") << t_component_values::k_componentClassName << " Count: " << componentCount;
 
-		for (size_t Index = 0; Index < componentCount; ++Index)
+		for (size_t Index= 0; Index < componentCount; ++Index)
 		{
-			const MikanComponentID componentId = componentList->componentIdList[Index];
+			const MikanComponentID componentId= componentList->componentIdList[Index];
 
 			// TODO: Handle component creation and deletion
 			ComponentGetValuesRequest componentRequest;
 			componentRequest.ownerSystem.setValue(t_component_values::k_ownerSystemName);
-			componentRequest.componentId = componentId;
+			componentRequest.componentId= componentId;
 
-			auto response = mikanApi->sendRequest(componentRequest).fetchResponse();
+			auto response= mikanApi->sendRequest(componentRequest).fetchResponse();
 			if (response->resultCode == MikanAPIResult::Success)
 			{
-				auto componentValuesResponse =
+				auto componentValuesResponse=
 					std::static_pointer_cast<ComponentGetValuesResponse>(response);
-				const auto* typedComponentValues =
+				const auto* typedComponentValues=
 					componentValuesResponse->valuesObject.getTypedPointer<t_component_values>();
 
 				TestLogUtils::logComponent(*typedComponentValues);
@@ -228,17 +227,17 @@ static void handleComponentListChanged(IMikanAPIPtr mikanApi)
 void TestMikanClient::handleMikanConnected()
 {
 	// Initialize the client info on the server
-	MikanClientInfo clientInfo = m_mikanApi->allocateClientInfo();
-	clientInfo.engineName = "MikanXR Test";
-	clientInfo.engineVersion = "1.0";
-	clientInfo.applicationName = "MikanXR Client Test C++";
-	clientInfo.applicationVersion = "1.0";
-	clientInfo.graphicsAPI = m_graphicsContext->getGraphicsApi();
-	clientInfo.supportsRGBA32 = true;
-	clientInfo.supportsDepth = true;
+	MikanClientInfo clientInfo= m_mikanApi->allocateClientInfo();
+	clientInfo.engineName= "MikanXR Test";
+	clientInfo.engineVersion= "1.0";
+	clientInfo.applicationName= "MikanXR Client Test C++";
+	clientInfo.applicationVersion= "1.0";
+	clientInfo.graphicsAPI= m_graphicsContext->getGraphicsApi();
+	clientInfo.supportsRGBA32= true;
+	clientInfo.supportsDepth= true;
 
-	InitClientRequest initClientRequest = {};
-	initClientRequest.clientInfo = clientInfo;
+	InitClientRequest initClientRequest= {};
+	initClientRequest.clientInfo= clientInfo;
 
 	m_mikanApi->sendRequest(initClientRequest).awaitResponse();
 
@@ -270,46 +269,46 @@ void TestMikanClient::handleMikanDisconnected(const MikanDisconnectedEvent& disc
 	{
 		// The server has disconnected us because we are using an incompatible version
 		// Shutdown since connection is never going to work
-		m_bShutdownRequested = true;
+		m_bShutdownRequested= true;
 		MIKAN_LOG_ERROR("MikanDisconnectedEvent") << "Shutting down due to incompatible client";
 	}
 }
 
-constexpr double degToRad(double degrees) 
+constexpr double degToRad(double degrees)
 {
 	return degrees * (3.14159265358979323846 / 180.0);
 }
 
 void TestMikanClient::makeFakeCameraNewFrameEvent(MikanCameraNewFrameEvent& fakeNewFrameEvent)
 {
-	static const float kDefaultHFov = 60.0f;
-	static const float kDefaultZNear = 0.1f;
-	static const float kDefaultZFar = 20.0f;
+	static const float kDefaultHFov= 60.0f;
+	static const float kDefaultZNear= 0.1f;
+	static const float kDefaultZFar= 20.0f;
 
-	MikanVector2i windowSize = m_graphicsContext->getWindowPixelSize();
+	MikanVector2i windowSize= m_graphicsContext->getWindowPixelSize();
 
-	double aspectRatio = (double)windowSize.y / (double)windowSize.x;
-	double c_x = (double)windowSize.x / 2.0;
-	double c_y = (double)windowSize.y / 2.0;
-	double hfov = kDefaultHFov;
-	double vfov = hfov * aspectRatio;
-	double f_x = c_x / tan(degToRad(hfov / 2.0));
-	double f_y = c_y / tan(degToRad(vfov / 2.0));
+	double aspectRatio= (double)windowSize.y / (double)windowSize.x;
+	double c_x= (double)windowSize.x / 2.0;
+	double c_y= (double)windowSize.y / 2.0;
+	double hfov= kDefaultHFov;
+	double vfov= hfov * aspectRatio;
+	double f_x= c_x / tan(degToRad(hfov / 2.0));
+	double f_y= c_y / tan(degToRad(vfov / 2.0));
 
-	fakeNewFrameEvent.camera_id = INVALID_MIKAN_ID;
-	fakeNewFrameEvent.camera_forward = { 0.f, 0.f, -1.f };
-	fakeNewFrameEvent.camera_up = { 0.f, 1.f, 0.f };
-	fakeNewFrameEvent.camera_position = { 0.f, 0.f, 0.f };
-	fakeNewFrameEvent.pixel_size = windowSize;
-	fakeNewFrameEvent.focal_length = { f_x, f_y };
-	fakeNewFrameEvent.principal_point = { c_x, c_y };
-	fakeNewFrameEvent.z_bounds = { kDefaultZNear, kDefaultZFar };
-	fakeNewFrameEvent.frame = 0;
+	fakeNewFrameEvent.camera_id= INVALID_MIKAN_ID;
+	fakeNewFrameEvent.camera_forward= {0.f, 0.f, -1.f};
+	fakeNewFrameEvent.camera_up= {0.f, 1.f, 0.f};
+	fakeNewFrameEvent.camera_position= {0.f, 0.f, 0.f};
+	fakeNewFrameEvent.pixel_size= windowSize;
+	fakeNewFrameEvent.focal_length= {f_x, f_y};
+	fakeNewFrameEvent.principal_point= {c_x, c_y};
+	fakeNewFrameEvent.z_bounds= {kDefaultZNear, kDefaultZFar};
+	fakeNewFrameEvent.frame= 0;
 }
 
 void TestMikanClient::handleCameraNewFrameEvent(const MikanCameraNewFrameEvent& newFrameEvent)
 {
-	TestCameraRenderTargetPtr renderTarget= 
+	TestCameraRenderTargetPtr renderTarget=
 		m_graphicsContext->getOrAddCameraRenderTarget(newFrameEvent.camera_id);
 
 	if (renderTarget)
@@ -331,14 +330,14 @@ void TestMikanClient::handleMikanEvent(MikanEventPtr mikanEvent)
 // Generic Property Events
 void TestMikanClient::handlePropertyUpdateEvent(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
-	const MikanPropertyValue& propertyValue = propertyUpdateEvent.propertyValue;
-	const std::string& systemName = propertyValue.ownerSystem.getValue();
-	const std::string& fieldName = propertyValue.fieldName.getValue();
+	const MikanPropertyValue& propertyValue= propertyUpdateEvent.propertyValue;
+	const std::string& systemName= propertyValue.ownerSystem.getValue();
+	const std::string& fieldName= propertyValue.fieldName.getValue();
 
 	if (propertyValue.componentId != INVALID_MIKAN_ID)
 	{
-		const std::string& componentClass = propertyValue.ownerComponentClass.getValue();
-		const std::string& componentName = propertyValue.fieldValue.getStringValue();
+		const std::string& componentClass= propertyValue.ownerComponentClass.getValue();
+		const std::string& componentName= propertyValue.fieldValue.getStringValue();
 
 		MIKAN_LOG_INFO("handlePropertyUpdateEvent")
 			<< "Component Field Changed: "
@@ -387,15 +386,15 @@ void TestMikanClient::handleComponentPropertyUpdate(const MikanPropertyUpdateEve
 
 void TestMikanClient::handleComponentNameChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
-	const std::string& componentClass = propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
-	const std::string& componentName = propertyUpdateEvent.propertyValue.fieldValue.getStringValue();
+	const std::string& componentClass= propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
+	const std::string& componentName= propertyUpdateEvent.propertyValue.fieldValue.getStringValue();
 
-	MIKAN_LOG_INFO("HandleComponentNameChanged") 
+	MIKAN_LOG_INFO("HandleComponentNameChanged")
 		<< "Component(class: " << componentClass
 		<< ", id: " << propertyUpdateEvent.propertyValue.componentId
 		<< "), Name Change: " << componentName;
 }
-	
+
 // Transform Component Events
 void TestMikanClient::handleTransformPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
@@ -419,9 +418,9 @@ void TestMikanClient::handleTransformPropertyUpdate(const MikanPropertyUpdateEve
 
 void TestMikanClient::handleTransformScaleChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
-	const std::string& componentClass = propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
-	const std::string& componentName = propertyUpdateEvent.propertyValue.fieldValue.getStringValue();
-	const MikanVector3f& s = propertyUpdateEvent.propertyValue.fieldValue.getVector3fValue();
+	const std::string& componentClass= propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
+	const std::string& componentName= propertyUpdateEvent.propertyValue.fieldValue.getStringValue();
+	const MikanVector3f& s= propertyUpdateEvent.propertyValue.fieldValue.getVector3fValue();
 
 	MIKAN_LOG_INFO("handleTransformScaleChanged")
 		<< "Component(class: " << componentClass
@@ -431,9 +430,9 @@ void TestMikanClient::handleTransformScaleChanged(const MikanPropertyUpdateEvent
 
 void TestMikanClient::handleTransformOrientationChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
-	const std::string& componentClass = propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
-	const std::string& componentName = propertyUpdateEvent.propertyValue.fieldValue.getStringValue();
-	const MikanQuatf& q = propertyUpdateEvent.propertyValue.fieldValue.getQuaternionfValue();
+	const std::string& componentClass= propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
+	const std::string& componentName= propertyUpdateEvent.propertyValue.fieldValue.getStringValue();
+	const MikanQuatf& q= propertyUpdateEvent.propertyValue.fieldValue.getQuaternionfValue();
 
 	MIKAN_LOG_INFO("handleTransformOrientationChanged")
 		<< "Component(class: " << componentClass
@@ -443,9 +442,9 @@ void TestMikanClient::handleTransformOrientationChanged(const MikanPropertyUpdat
 
 void TestMikanClient::handleTransformPositionChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
-	const std::string& componentClass = propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
-	const std::string& componentName = propertyUpdateEvent.propertyValue.fieldValue.getStringValue();
-	const MikanVector3f& v = propertyUpdateEvent.propertyValue.fieldValue.getVector3fValue();
+	const std::string& componentClass= propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
+	const std::string& componentName= propertyUpdateEvent.propertyValue.fieldValue.getStringValue();
+	const MikanVector3f& v= propertyUpdateEvent.propertyValue.fieldValue.getVector3fValue();
 
 	MIKAN_LOG_INFO("handleTransformPositionChanged")
 		<< "Component(class: " << componentClass

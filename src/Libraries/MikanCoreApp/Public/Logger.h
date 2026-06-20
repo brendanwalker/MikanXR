@@ -96,4 +96,3 @@ MIKAN_COREAPP_FUNC(std::string) log_get_timestamp_prefix();
 #define MIKAN_MT_LOG_WARNING(function_name) SELECT_MT_LOG_STREAM(LogSeverityLevel::warning) << log_get_timestamp_prefix() << function_name << " - "
 #define MIKAN_MT_LOG_ERROR(function_name) SELECT_MT_LOG_STREAM(LogSeverityLevel::error) << log_get_timestamp_prefix() << function_name << " - "
 #define MIKAN_MT_LOG_FATAL(function_name) SELECT_MT_LOG_STREAM(LogSeverityLevel::fatal) << log_get_timestamp_prefix() << function_name << " - "
-

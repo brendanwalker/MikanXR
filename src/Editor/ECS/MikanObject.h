@@ -16,10 +16,10 @@ public:
 	MikanObject(MikanObjectSystemWeakPtr ownerSystemPtr);
 	~MikanObject();
 
-	void setName(const std::string& name) { m_name = name; }
+	void setName(const std::string& name) { m_name= name; }
 	const std::string& getName() const { return m_name; }
 
-	template<class t_component_type>
+	template <class t_component_type>
 	std::shared_ptr<t_component_type> addComponent()
 	{
 
@@ -28,11 +28,11 @@ public:
 		return component;
 	}
 
-	template<class t_component_type>
+	template <class t_component_type>
 	std::shared_ptr<t_component_type> addComponent(const std::string& name)
 	{
 
-		std::shared_ptr<t_component_type> component = std::make_shared<t_component_type>(shared_from_this());
+		std::shared_ptr<t_component_type> component= std::make_shared<t_component_type>(shared_from_this());
 		component->setName(name);
 		m_components.push_back(component);
 		return component;
@@ -41,10 +41,10 @@ public:
 	inline std::vector<MikanComponentPtr>& getComponentsConst() { return m_components; }
 	inline const std::vector<MikanComponentPtr>& getComponentsConst() const { return m_components; }
 
-	template<class t_component_type>
+	template <class t_component_type>
 	std::shared_ptr<t_component_type> getComponentOfType()
 	{
-		for(MikanComponentPtr component : m_components)
+		for (MikanComponentPtr component : m_components)
 		{
 			std::shared_ptr<t_component_type> derivedComponent= ComponentCast<t_component_type>(component);
 
@@ -57,12 +57,12 @@ public:
 		return nullptr;
 	}
 
-	template<class t_component_type>
+	template <class t_component_type>
 	std::shared_ptr<t_component_type> getComponentOfTypeAndName(const std::string& name)
 	{
 		for (MikanComponentPtr component : m_components)
 		{
-			std::shared_ptr<t_component_type> derivedComponent = ComponentCast<t_component_type>(component);
+			std::shared_ptr<t_component_type> derivedComponent= ComponentCast<t_component_type>(component);
 
 			if (derivedComponent != nullptr && component->getName() == name)
 			{
@@ -73,12 +73,12 @@ public:
 		return nullptr;
 	}
 
-	template<class t_component_type>
-	void getComponentsOfType(std::vector< std::shared_ptr<t_component_type> >& outComponents)
+	template <class t_component_type>
+	void getComponentsOfType(std::vector<std::shared_ptr<t_component_type>>& outComponents)
 	{
 		for (MikanComponentPtr component : m_components)
 		{
-			std::shared_ptr<t_component_type> derivedComponent = ComponentCast<t_component_type>(component);
+			std::shared_ptr<t_component_type> derivedComponent= ComponentCast<t_component_type>(component);
 
 			if (derivedComponent != nullptr)
 			{
@@ -87,12 +87,12 @@ public:
 		}
 	}
 
-	template<class t_component_type>
-	void getComponentsOfWeakType(std::vector< std::weak_ptr<t_component_type> >& outComponents)
+	template <class t_component_type>
+	void getComponentsOfWeakType(std::vector<std::weak_ptr<t_component_type>>& outComponents)
 	{
 		for (MikanComponentPtr component : m_components)
 		{
-			std::shared_ptr<t_component_type> derivedComponent = ComponentCast<t_component_type>(component);
+			std::shared_ptr<t_component_type> derivedComponent= ComponentCast<t_component_type>(component);
 
 			if (derivedComponent != nullptr)
 			{
@@ -101,9 +101,9 @@ public:
 		}
 	}
 
-	using VisitFunction = std::function<void(MikanComponentPtr)>;
-	using FilterFunction = std::function<bool(MikanComponentPtr)>;
-	void visitAllComponents(VisitFunction visitFunc, FilterFunction filterFunc = {}) const
+	using VisitFunction= std::function<void(MikanComponentPtr)>;
+	using FilterFunction= std::function<bool(MikanComponentPtr)>;
+	void visitAllComponents(VisitFunction visitFunc, FilterFunction filterFunc= {}) const
 	{
 		for (MikanComponentPtr component : m_components)
 		{
@@ -131,6 +131,6 @@ protected:
 
 	// Object Flags
 	bool m_bIsInitialized= false;
-	bool m_bIsPostInitialized = false;
-	bool m_bIsDisposed = false;
+	bool m_bIsPostInitialized= false;
+	bool m_bIsDisposed= false;
 };

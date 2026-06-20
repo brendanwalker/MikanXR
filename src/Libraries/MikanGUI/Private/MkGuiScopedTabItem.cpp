@@ -7,7 +7,7 @@ MkGuiScopedTabItem::MkGuiScopedTabItem(
 	bool* p_open,
 	ImGuiTabItemFlags flags)
 {
-	m_selected = ImGui::BeginTabItem(label, p_open, flags);
+	m_selected= ImGui::BeginTabItem(label, p_open, flags);
 }
 
 MkGuiScopedTabItem::~MkGuiScopedTabItem()

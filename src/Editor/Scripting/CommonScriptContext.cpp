@@ -19,7 +19,6 @@
 CommonScriptContext::CommonScriptContext()
 	: m_luaState(nullptr)
 {
-
 }
 
 CommonScriptContext::~CommonScriptContext()
@@ -29,7 +28,7 @@ CommonScriptContext::~CommonScriptContext()
 
 int CommonScriptContext::panicHandler(lua_State* state)
 {
-	const char* err = lua_tostring(state, 1);
+	const char* err= lua_tostring(state, 1);
 	MIKAN_LOG_ERROR("CommonScriptContext::panicHandler") << err;
 
 	return -1;
@@ -40,42 +39,42 @@ bool CommonScriptContext::checkLuaResult(int ret, const char* filename, int line
 	if (m_luaState == nullptr)
 		return false;
 
-	if (ret != 0) 
+	if (ret != 0)
 	{
 		MIKAN_LOG_ERROR("CommonScriptContext::checkLuaState") << filename << ", Line " << line;
 
-		switch (ret) 
+		switch (ret)
 		{
 		case LUA_ERRFILE:
 			MIKAN_LOG_ERROR("CommonScriptContext::checkLuaState") << "Couldn't open the given file";
 			break;
 		case LUA_ERRSYNTAX:
-			{
-				luaL_traceback(m_luaState, m_luaState, nullptr, 1);
-				const std::string traceback = lua_tostring(m_luaState, -1);
+		{
+			luaL_traceback(m_luaState, m_luaState, nullptr, 1);
+			const std::string traceback= lua_tostring(m_luaState, -1);
 
-				MIKAN_LOG_ERROR("CommonScriptContext::checkLuaState") << "Syntax error during pre-compilation";
-				MIKAN_LOG_ERROR("CommonScriptContext::checkLuaState") << traceback;
-
-			} break;
+			MIKAN_LOG_ERROR("CommonScriptContext::checkLuaState") << "Syntax error during pre-compilation";
+			MIKAN_LOG_ERROR("CommonScriptContext::checkLuaState") << traceback;
+		}
+		break;
 		case LUA_ERRMEM:
 			MIKAN_LOG_ERROR("CommonScriptContext::checkLuaState") << "Memory allocation error";
 			break;
 		case LUA_ERRRUN:
-			{
-				const std::string errMsg = lua_tostring(m_luaState, -1);
-				luaL_traceback(m_luaState, m_luaState, nullptr, 1);
-				const std::string traceback = lua_tostring(m_luaState, -1);
+		{
+			const std::string errMsg= lua_tostring(m_luaState, -1);
+			luaL_traceback(m_luaState, m_luaState, nullptr, 1);
+			const std::string traceback= lua_tostring(m_luaState, -1);
 
-				MIKAN_LOG_ERROR("CommonScriptContext::checkLuaState") << errMsg;
-				MIKAN_LOG_ERROR("CommonScriptContext::checkLuaState") << traceback;
-
-			} break;
+			MIKAN_LOG_ERROR("CommonScriptContext::checkLuaState") << errMsg;
+			MIKAN_LOG_ERROR("CommonScriptContext::checkLuaState") << traceback;
+		}
+		break;
 		case LUA_ERRERR:
 			MIKAN_LOG_ERROR("CommonScriptContext::checkLuaState") << "Error while running the error handler function";
 			break;
 		default:
-			const std::string errMsg = lua_tostring(m_luaState, -1);
+			const std::string errMsg= lua_tostring(m_luaState, -1);
 			MIKAN_LOG_ERROR("CommonScriptContext::checkLuaState") << errMsg;
 			break;
 		}
@@ -93,7 +92,7 @@ bool CommonScriptContext::loadScript(const std::filesystem::path& scriptPath)
 {
 	disposeScriptState();
 
-	m_luaState = luaL_newstate();
+	m_luaState= luaL_newstate();
 	if (m_luaState == nullptr)
 	{
 		MIKAN_LOG_ERROR("CommonScriptContext::loadScript") << "Failed to create new Lua state";
@@ -114,13 +113,13 @@ bool CommonScriptContext::loadScript(const std::filesystem::path& scriptPath)
 	// launched from VS Code).  The vscode-lrdb extension converts editor paths to
 	// paths relative to its "sourceRoot" setting (${workspaceFolder}), so both
 	// sides must agree on the same relative form for breakpoint matching to work.
-	std::filesystem::path cwd = std::filesystem::current_path();
-	std::filesystem::path relPath = scriptPath.lexically_relative(cwd);
-	bool isUnderCwd = !relPath.empty() &&
-	                  relPath.native().substr(0, 2) != L".." &&
-	                  relPath.native().front() != L'/';
-	std::string chunkName = "@" + (isUnderCwd ? relPath.generic_string()
-	                                           : scriptPath.generic_string());
+	std::filesystem::path cwd= std::filesystem::current_path();
+	std::filesystem::path relPath= scriptPath.lexically_relative(cwd);
+	bool isUnderCwd= !relPath.empty() &&
+					 relPath.native().substr(0, 2) != L".." &&
+					 relPath.native().front() != L'/';
+	std::string chunkName= "@" + (isUnderCwd ? relPath.generic_string()
+											 : scriptPath.generic_string());
 
 	// Read the file ourselves so we can supply the custom chunk name to lua_load.
 	std::ifstream scriptFile(scriptPath, std::ios::binary);
@@ -131,9 +130,9 @@ bool CommonScriptContext::loadScript(const std::filesystem::path& scriptPath)
 	}
 	std::string scriptContent((std::istreambuf_iterator<char>(scriptFile)), {});
 
-	int ret = luaL_loadbuffer(m_luaState, scriptContent.c_str(), scriptContent.size(), chunkName.c_str());
+	int ret= luaL_loadbuffer(m_luaState, scriptContent.c_str(), scriptContent.size(), chunkName.c_str());
 	if (ret == LUA_OK)
-		ret = lua_pcall(m_luaState, 0, LUA_MULTRET, 0);
+		ret= lua_pcall(m_luaState, 0, LUA_MULTRET, 0);
 	if (!checkLuaResult(ret, __FILE__, __LINE__))
 	{
 		MIKAN_LOG_ERROR("CommonScriptContext::loadScript") << "Failed to load lua script " << scriptPath;
@@ -159,16 +158,17 @@ bool CommonScriptContext::reloadScript()
 // for the duration of a Lua execution call, then restores the previous context.
 // This lets the debugger follow whichever script is actively executing without
 // requiring the user to manually attach to each component.
-namespace {
+namespace
+{
 struct LuaDebugContextGuard
 {
 	explicit LuaDebugContextGuard(CommonScriptContext* ctx)
 	{
-		auto* dbg = LuaDebugServer::getInstance();
+		auto* dbg= LuaDebugServer::getInstance();
 		if (dbg->isListening())
 		{
-			m_server = dbg;
-			m_prevContext = dbg->getAttachedContext();
+			m_server= dbg;
+			m_prevContext= dbg->getAttachedContext();
 			dbg->attach(ctx);
 		}
 	}
@@ -182,8 +182,8 @@ struct LuaDebugContextGuard
 				m_server->detach();
 		}
 	}
-	LuaDebugServer*      m_server      = nullptr;
-	CommonScriptContext* m_prevContext  = nullptr;
+	LuaDebugServer* m_server= nullptr;
+	CommonScriptContext* m_prevContext= nullptr;
 };
 } // namespace
 
@@ -222,7 +222,7 @@ bool CommonScriptContext::invokeScriptTrigger(const std::string& triggerName)
 		LuaDebugContextGuard debugGuard(this);
 		lua_getglobal(m_luaState, triggerName.c_str());
 		int ret= lua_pcall(m_luaState, 0, 0, 0);
-		return !checkLuaResult(ret, __FILE__,  __LINE__);
+		return !checkLuaResult(ret, __FILE__, __LINE__);
 	}
 
 	MIKAN_LOG_ERROR("CommonScriptContext::invokeScriptTrigger") << "Failed to find triggerName " << triggerName;
@@ -242,7 +242,7 @@ bool CommonScriptContext::invokeScriptMessageHandler(const std::string& message)
 			lua_pushstring(m_luaState, message.c_str());
 
 			// Call the message handlers
-			int ret = lua_pcall(m_luaState, 1, 1, 0);
+			int ret= lua_pcall(m_luaState, 1, 1, 0);
 			if (checkLuaResult(ret, __FILE__, __LINE__))
 			{
 				// See if the message was considered handled
@@ -263,7 +263,7 @@ bool CommonScriptContext::addLuaCoroutineScheduler()
 {
 	// Adapted from: https://stackoverflow.com/a/24969185
 	static const char* x_coroutineScript=
-	R""""(
+		R""""(
 		local function make_coroutine_scheduler()
 			local coroutine_container = {}
 			return {
@@ -330,37 +330,36 @@ bool CommonScriptContext::addLuaCoroutineScheduler()
 	return checkLuaResult(ret, __FILE__, __LINE__);
 }
 
-template<typename t_enum_class>
+template <typename t_enum_class>
 static void addEnumToLua(
-	luabridge::Namespace& globalNamespace, 
-	const std::string& enumName, 
+	luabridge::Namespace& globalNamespace,
+	const std::string& enumName,
 	const std::string* enumStrings)
 {
-	for (int enumIntValue = 0; enumIntValue < (int)t_enum_class::COUNT; ++enumIntValue)
+	for (int enumIntValue= 0; enumIntValue < (int)t_enum_class::COUNT; ++enumIntValue)
 	{
-		const std::string enumString = enumStrings[enumIntValue];
+		const std::string enumString= enumStrings[enumIntValue];
 
-		globalNamespace.addProperty(enumString.c_str(), [enumIntValue]() { return enumIntValue; });
+		globalNamespace.addProperty(enumString.c_str(), [enumIntValue]()
+									{ return enumIntValue; });
 	}
 }
 
 void CommonScriptContext::bindCommonScriptFunctions()
 {
 	auto globalNamespace= luabridge::getGlobalNamespace(m_luaState);
-	auto contextNamespace = globalNamespace.beginNamespace("ScriptContext");
+	auto contextNamespace= globalNamespace.beginNamespace("ScriptContext");
 
-	contextNamespace.addFunction("registerTrigger", [this](const char* functionName) {
-		m_triggers.push_back(functionName);
-	});
+	contextNamespace.addFunction("registerTrigger", [this](const char* functionName)
+								 { m_triggers.push_back(functionName); });
 
-	contextNamespace.addFunction("registerMessageHandler", [this](const char* functionName) {
-		m_messageHandlers.push_back(functionName);
-	});
+	contextNamespace.addFunction("registerMessageHandler", [this](const char* functionName)
+								 { m_messageHandlers.push_back(functionName); });
 
-	contextNamespace.addFunction("broadcastMessage", [this](const char* message) {
+	contextNamespace.addFunction("broadcastMessage", [this](const char* message)
+								 {
 		if (OnScriptMessage)
-			OnScriptMessage(message);
-	});
+			OnScriptMessage(message); });
 
 	// Register enums
 	addEnumToLua<eStencilCullMode>(contextNamespace, "CullMode", k_stencilCullModeStrings);
@@ -370,9 +369,8 @@ void CommonScriptContext::bindCommonScriptFunctions()
 	// Programmatic breakpoint helper: call lrdb_break() anywhere in a script to
 	// force a pause on the next line event, without needing gutter breakpoints.
 	luabridge::getGlobalNamespace(m_luaState)
-		.addFunction("lrdb_break", []() {
-			LuaDebugServer::getInstance()->pauseOnNextLine();
-		});
+		.addFunction("lrdb_break", []()
+					 { LuaDebugServer::getInstance()->pauseOnNextLine(); });
 }
 
 void CommonScriptContext::disposeScriptState()
@@ -383,7 +381,7 @@ void CommonScriptContext::disposeScriptState()
 	{
 		// Detach the debug server before closing the Lua state so it doesn't
 		// call lua_sethook on a freed state during its own teardown.
-		auto* debugServer = LuaDebugServer::getInstance();
+		auto* debugServer= LuaDebugServer::getInstance();
 		if (debugServer->getAttachedContext() == this)
 			debugServer->detach();
 

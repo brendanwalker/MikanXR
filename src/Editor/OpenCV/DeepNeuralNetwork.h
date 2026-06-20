@@ -14,7 +14,7 @@ public:
 	bool loadOnnxFile(const std::filesystem::path& onnxPath);
 	void dispose();
 
-	void setName(const std::string& name) { m_name = name; }
+	void setName(const std::string& name) { m_name= name; }
 	const std::string getName() const { return m_name; }
 
 	int getInputWidth() const;

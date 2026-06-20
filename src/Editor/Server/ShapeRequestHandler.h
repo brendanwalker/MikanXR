@@ -6,7 +6,10 @@
 class ShapeRequestHandler : public IServerRequestHandler
 {
 public:
-	ShapeRequestHandler(class MikanServer* owner) : IServerRequestHandler(owner) {}
+	ShapeRequestHandler(class MikanServer* owner)
+		: IServerRequestHandler(owner)
+	{
+	}
 
 	virtual bool startup(class MainWindow* mainWindow) override;
 

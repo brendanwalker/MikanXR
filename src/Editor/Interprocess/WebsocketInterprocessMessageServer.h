@@ -9,13 +9,13 @@
 
 namespace ix
 {
-	class WebSocketServer;
-	class ConnectionState;
-}
-using WebSocketServerPtr = std::shared_ptr<ix::WebSocketServer>;
-using ConnectionStatePtr = std::shared_ptr<ix::ConnectionState>;
-using WebSocketClientConnectionPtr = std::shared_ptr<class WebSocketClientConnection>;
-using WebsocketClientEventQueuePtr = std::shared_ptr<class WebsocketClientEventQueue>;
+class WebSocketServer;
+class ConnectionState;
+} // namespace ix
+using WebSocketServerPtr= std::shared_ptr<ix::WebSocketServer>;
+using ConnectionStatePtr= std::shared_ptr<ix::ConnectionState>;
+using WebSocketClientConnectionPtr= std::shared_ptr<class WebSocketClientConnection>;
+using WebsocketClientEventQueuePtr= std::shared_ptr<class WebsocketClientEventQueue>;
 
 class WebsocketInterprocessMessageServer : public IInterprocessMessageServer
 {
@@ -44,6 +44,5 @@ private:
 	std::map<std::string, SocketEventHandler> m_socketEventHandlers;
 	std::map<std::string, RequestHandler> m_requestHandlers;
 };
-
 
 #pragma once

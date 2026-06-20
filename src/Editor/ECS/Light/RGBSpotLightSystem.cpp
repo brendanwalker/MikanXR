@@ -25,7 +25,7 @@ void RGBSpotLightSystem::additionalComponentFactory(
 	ownerComponentObject->addComponent<SelectionComponent>();
 
 	// Build mesh + collider components for the spot light model
-	RGBSpotLightComponentPtr lightComponentPtr =
+	RGBSpotLightComponentPtr lightComponentPtr=
 		ownerComponentObject->getComponentOfType<RGBSpotLightComponent>();
 	if (lightComponentPtr)
 		lightComponentPtr->rebuildMeshComponents();
@@ -35,13 +35,13 @@ void RGBSpotLightSystem::update(float deltaSeconds)
 {
 	Super::update(deltaSeconds);
 
-	IDMXManager* dmxManager = getObjectSystemOfType<DMXObjectSystem>()->getDMXManager();
+	IDMXManager* dmxManager= getObjectSystemOfType<DMXObjectSystem>()->getDMXManager();
 	if (!dmxManager || !dmxManager->getIsRunning())
 		return;
 
 	for (const auto& [lightId, componentWeakPtr] : Super::getComponentMap())
 	{
-		RGBSpotLightComponentPtr component = componentWeakPtr.lock();
+		RGBSpotLightComponentPtr component= componentWeakPtr.lock();
 
 		if (component)
 			component->sendDMXData(dmxManager);

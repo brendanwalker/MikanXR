@@ -11,11 +11,11 @@ struct MkScopedMaterialInstanceBindingImpl
 	bool bMaterialInstanceFailure;
 };
 
-MkScopedMaterialInstanceBinding::MkScopedMaterialInstanceBinding() 
+MkScopedMaterialInstanceBinding::MkScopedMaterialInstanceBinding()
 	: m_impl(new MkScopedMaterialInstanceBindingImpl)
 {
-	m_impl->boundMaterialInstance = nullptr;
-	m_impl->bMaterialInstanceFailure = true;
+	m_impl->boundMaterialInstance= nullptr;
+	m_impl->bMaterialInstanceFailure= true;
 }
 
 MkScopedMaterialInstanceBinding::MkScopedMaterialInstanceBinding(
@@ -39,19 +39,19 @@ MkScopedMaterialInstanceBinding::~MkScopedMaterialInstanceBinding()
 	delete m_impl;
 }
 
-const MkMaterialInstance* MkScopedMaterialInstanceBinding::getBoundMaterialInstance() const 
+const MkMaterialInstance* MkScopedMaterialInstanceBinding::getBoundMaterialInstance() const
 {
-	return m_impl->boundMaterialInstance; 
+	return m_impl->boundMaterialInstance;
 }
 
-const UniformNameSet& MkScopedMaterialInstanceBinding::getUnboundUniforms() const 
+const UniformNameSet& MkScopedMaterialInstanceBinding::getUnboundUniforms() const
 {
-	return m_impl->unboundUniformNames; 
+	return m_impl->unboundUniformNames;
 }
 
-MkScopedMaterialInstanceBinding::operator bool() const 
-{ 
-	return !m_impl->bMaterialInstanceFailure; 
+MkScopedMaterialInstanceBinding::operator bool() const
+{
+	return !m_impl->bMaterialInstanceFailure;
 }
 
 // -- MkMaterialInstance ------
@@ -68,7 +68,6 @@ struct MkMaterialInstanceImpl
 	NamedValueTable<IMkTextureConstPtr> textureSources;
 };
 
-
 MkMaterialInstance::MkMaterialInstance()
 	: m_impl(new MkMaterialInstanceImpl)
 {
@@ -78,7 +77,7 @@ MkMaterialInstance::MkMaterialInstance()
 MkMaterialInstance::MkMaterialInstance(MkMaterialConstPtr material)
 	: m_impl(new MkMaterialInstanceImpl)
 {
-	m_impl->parentMaterial = material;
+	m_impl->parentMaterial= material;
 }
 
 MkMaterialInstance::MkMaterialInstance(MkMaterialInstanceConstPtr materialInstance)
@@ -147,7 +146,6 @@ bool MkMaterialInstance::getFloatByUniformName(const std::string uniformName, fl
 			return m_impl->parentMaterial->getFloatByUniformName(uniformName, outValue);
 		else
 			return true;
-
 	}
 
 	return false;
@@ -398,7 +396,7 @@ bool MkMaterialInstance::getMutableTextureBySemantic(eUniformSemantic semantic, 
 	IMkTextureConstPtr constTexturePtr;
 	if (getTextureBySemantic(semantic, constTexturePtr))
 	{
-		outTexture = std::const_pointer_cast<IMkTexture>(constTexturePtr);
+		outTexture= std::const_pointer_cast<IMkTexture>(constTexturePtr);
 		return true;
 	}
 
@@ -410,7 +408,7 @@ bool MkMaterialInstance::getMutableTextureByUniformName(const std::string unifor
 	IMkTextureConstPtr constTexturePtr;
 	if (getTextureByUniformName(uniformName, constTexturePtr))
 	{
-		outTexture = std::const_pointer_cast<IMkTexture>(constTexturePtr);
+		outTexture= std::const_pointer_cast<IMkTexture>(constTexturePtr);
 		return true;
 	}
 	return false;
@@ -460,9 +458,9 @@ MkScopedMaterialInstanceBinding MkMaterialInstance::bindMaterialInstance(
 	BindUniformCallback callback) const
 {
 	bool bMaterialInstanceFailure= false;
-	UniformNameSet unboundUniforms = materialBinding.getUnboundUniforms();
+	UniformNameSet unboundUniforms= materialBinding.getUnboundUniforms();
 
-	if (m_impl->parentMaterial != nullptr && 
+	if (m_impl->parentMaterial != nullptr &&
 		materialBinding.getBoundMaterial() == m_impl->parentMaterial.get())
 	{
 		IMkShaderPtr program= m_impl->parentMaterial->getProgram();
@@ -470,26 +468,26 @@ MkScopedMaterialInstanceBinding MkMaterialInstance::bindMaterialInstance(
 		// Auto-apply callback specific uniform bindings first
 		if (callback)
 		{
-			for (auto it = program->getUniformBegin(); it != program->getUniformEnd(); it++)
+			for (auto it= program->getUniformBegin(); it != program->getUniformEnd(); it++)
 			{
-				const std::string& uniformName = it->first;
-				eUniformSemantic uniformSemantic = it->second.semantic;
-				eUniformDataType uniformDataType = getUniformSemanticDataType(uniformSemantic);
+				const std::string& uniformName= it->first;
+				eUniformSemantic uniformSemantic= it->second.semantic;
+				eUniformDataType uniformDataType= getUniformSemanticDataType(uniformSemantic);
 
-				eUniformBindResult bindResult = callback(program, uniformDataType, uniformSemantic, uniformName);
+				eUniformBindResult bindResult= callback(program, uniformDataType, uniformSemantic, uniformName);
 				if (bindResult == eUniformBindResult::bound)
 				{
 					mark_uniform_as_bound(uniformName, unboundUniforms);
 				}
 				else if (bindResult == eUniformBindResult::error)
 				{
-					bMaterialInstanceFailure = true;
+					bMaterialInstanceFailure= true;
 				}
 			}
 		}
 
 		// Apply float overrides
-		for (auto it = m_impl->floatSources.getMap().begin(); it != m_impl->floatSources.getMap().end(); ++it)
+		for (auto it= m_impl->floatSources.getMap().begin(); it != m_impl->floatSources.getMap().end(); ++it)
 		{
 			if (program->setFloatUniform(it->first, it->second))
 			{
@@ -502,7 +500,7 @@ MkScopedMaterialInstanceBinding MkMaterialInstance::bindMaterialInstance(
 		}
 
 		// Apply vec2 overrides
-		for (auto it = m_impl->float2Sources.getMap().begin(); it != m_impl->float2Sources.getMap().end(); ++it)
+		for (auto it= m_impl->float2Sources.getMap().begin(); it != m_impl->float2Sources.getMap().end(); ++it)
 		{
 			if (program->setVector2Uniform(it->first, it->second))
 			{
@@ -510,12 +508,12 @@ MkScopedMaterialInstanceBinding MkMaterialInstance::bindMaterialInstance(
 			}
 			else
 			{
-				bMaterialInstanceFailure = true;
+				bMaterialInstanceFailure= true;
 			}
 		}
 
 		// Apply vec3 overrides
-		for (auto it = m_impl->float3Sources.getMap().begin(); it != m_impl->float3Sources.getMap().end(); ++it)
+		for (auto it= m_impl->float3Sources.getMap().begin(); it != m_impl->float3Sources.getMap().end(); ++it)
 		{
 			if (program->setVector3Uniform(it->first, it->second))
 			{
@@ -523,12 +521,12 @@ MkScopedMaterialInstanceBinding MkMaterialInstance::bindMaterialInstance(
 			}
 			else
 			{
-				bMaterialInstanceFailure = true;
+				bMaterialInstanceFailure= true;
 			}
 		}
 
 		// Apply vec4 overrides
-		for (auto it = m_impl->float4Sources.getMap().begin(); it != m_impl->float4Sources.getMap().end(); ++it)
+		for (auto it= m_impl->float4Sources.getMap().begin(); it != m_impl->float4Sources.getMap().end(); ++it)
 		{
 			if (program->setVector4Uniform(it->first, it->second))
 			{
@@ -536,12 +534,12 @@ MkScopedMaterialInstanceBinding MkMaterialInstance::bindMaterialInstance(
 			}
 			else
 			{
-				bMaterialInstanceFailure = true;
+				bMaterialInstanceFailure= true;
 			}
 		}
 
 		// Apply mat4 overrides
-		for (auto it = m_impl->mat4Sources.getMap().begin(); it != m_impl->mat4Sources.getMap().end(); ++it)
+		for (auto it= m_impl->mat4Sources.getMap().begin(); it != m_impl->mat4Sources.getMap().end(); ++it)
 		{
 			if (program->setMatrix4x4Uniform(it->first, it->second))
 			{
@@ -549,12 +547,12 @@ MkScopedMaterialInstanceBinding MkMaterialInstance::bindMaterialInstance(
 			}
 			else
 			{
-				bMaterialInstanceFailure = true;
+				bMaterialInstanceFailure= true;
 			}
 		}
 
 		// Apply texture overrides
-		for (auto it = m_impl->textureSources.getMap().begin(); it != m_impl->textureSources.getMap().end(); ++it)
+		for (auto it= m_impl->textureSources.getMap().begin(); it != m_impl->textureSources.getMap().end(); ++it)
 		{
 			const std::string& uniformName= it->first;
 			IMkTextureConstPtr texture= it->second;
@@ -569,7 +567,7 @@ MkScopedMaterialInstanceBinding MkMaterialInstance::bindMaterialInstance(
 			}
 			else
 			{
-				bMaterialInstanceFailure = true;
+				bMaterialInstanceFailure= true;
 			}
 		}
 
@@ -594,10 +592,10 @@ void MkMaterialInstance::unbindMaterialInstance() const
 		return;
 
 	// Unbind all textures
-	for (auto it = m_impl->textureSources.getMap().begin(); it != m_impl->textureSources.getMap().end(); ++it)
+	for (auto it= m_impl->textureSources.getMap().begin(); it != m_impl->textureSources.getMap().end(); ++it)
 	{
-		const std::string& uniformName = it->first;
-		IMkTextureConstPtr texture = it->second;
+		const std::string& uniformName= it->first;
+		IMkTextureConstPtr texture= it->second;
 
 		int textureUnit= 0;
 		if (m_impl->parentMaterial->getProgram()->getUniformTextureUnit(uniformName, textureUnit))

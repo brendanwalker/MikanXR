@@ -62,17 +62,17 @@
 #include "opencv2/opencv.hpp"
 
 //-- statics ----
-const char* AppStage_Project::APP_STAGE_NAME = "Compositor";
+const char* AppStage_Project::APP_STAGE_NAME= "Compositor";
 
 //-- public methods -----
 AppStage_Project::AppStage_Project(IEditorWindow* ownerWindow)
-	: AppStage(ownerWindow, AppStage_Project::APP_STAGE_NAME)	
+	: AppStage(ownerWindow, AppStage_Project::APP_STAGE_NAME)
 {
 }
 
 AppStage_Project::~AppStage_Project()
 {
-	m_viewport = nullptr;
+	m_viewport= nullptr;
 	m_activeCompositors.clear();
 }
 
@@ -81,28 +81,28 @@ void AppStage_Project::enter()
 	AppStage::enter();
 
 	// Create a mikan scene for 3d rendering
-	m_mkScene = std::make_shared<MkScene>();
+	m_mkScene= std::make_shared<MkScene>();
 	m_mkScene->setLightColor(glm::vec4(1.f, 1.f, 1.f, 1.f));
 	m_mkScene->setLightDirection(glm::vec3(glm::normalize(glm::vec3(0.5f, -1.f, 0.5f))));
 
 	// Cache a ref to the project
-	m_project = getProjectConfig();
+	m_project= getProjectConfig();
 
 	// Cache object systems we'll be accessing
-	ProjectManagerPtr objectSystemManager = m_ownerWindow->getProjectManager();
-	m_editorSystem = objectSystemManager->getSystemOfType<EditorObjectSystem>();
-	m_sceneObjectSystem = objectSystemManager->getSystemOfType<SceneObjectSystem>();
-	m_anchorObjectSystem = objectSystemManager->getSystemOfType<AnchorObjectSystem>();
-	m_cameraObjectSystem = objectSystemManager->getSystemOfType<CameraObjectSystem>();
-	m_markerObjectSystem = objectSystemManager->getSystemOfType<MarkerObjectSystem>();
-	m_quadStencilSystem = objectSystemManager->getSystemOfType<QuadStencilSystem>();
-	m_boxStencilSystem = objectSystemManager->getSystemOfType<BoxStencilSystem>();
-	m_modelStencilSystem = objectSystemManager->getSystemOfType<ModelStencilSystem>();
-	m_quadShapeSystem = objectSystemManager->getSystemOfType<QuadShapeSystem>();
-	m_boxShapeSystem = objectSystemManager->getSystemOfType<BoxShapeSystem>();
-	m_modelShapeSystem = objectSystemManager->getSystemOfType<ModelShapeSystem>();
-	m_pixelGridLightSystem = objectSystemManager->getSystemOfType<RGBPixelGridSystem>();
-	m_spotLightSystem = objectSystemManager->getSystemOfType<RGBSpotLightSystem>();
+	ProjectManagerPtr objectSystemManager= m_ownerWindow->getProjectManager();
+	m_editorSystem= objectSystemManager->getSystemOfType<EditorObjectSystem>();
+	m_sceneObjectSystem= objectSystemManager->getSystemOfType<SceneObjectSystem>();
+	m_anchorObjectSystem= objectSystemManager->getSystemOfType<AnchorObjectSystem>();
+	m_cameraObjectSystem= objectSystemManager->getSystemOfType<CameraObjectSystem>();
+	m_markerObjectSystem= objectSystemManager->getSystemOfType<MarkerObjectSystem>();
+	m_quadStencilSystem= objectSystemManager->getSystemOfType<QuadStencilSystem>();
+	m_boxStencilSystem= objectSystemManager->getSystemOfType<BoxStencilSystem>();
+	m_modelStencilSystem= objectSystemManager->getSystemOfType<ModelStencilSystem>();
+	m_quadShapeSystem= objectSystemManager->getSystemOfType<QuadShapeSystem>();
+	m_boxShapeSystem= objectSystemManager->getSystemOfType<BoxShapeSystem>();
+	m_modelShapeSystem= objectSystemManager->getSystemOfType<ModelShapeSystem>();
+	m_pixelGridLightSystem= objectSystemManager->getSystemOfType<RGBPixelGridSystem>();
+	m_spotLightSystem= objectSystemManager->getSystemOfType<RGBSpotLightSystem>();
 
 	// Stage Panel collision set
 	m_stageObjectSystemFilter.insert(m_editorSystem.lock().get());
@@ -125,13 +125,13 @@ void AppStage_Project::enter()
 
 	// Setup Scene viewport
 	{
-		const glm::i32vec2 viewportOrigin = { 0, 45 };
-		const glm::i32vec2 viewportSize = { 1280, 720 };
+		const glm::i32vec2 viewportOrigin= {0, 45};
+		const glm::i32vec2 viewportSize= {1280, 720};
 
-		m_viewport = getFirstViewport();
+		m_viewport= getFirstViewport();
 		m_viewport->setViewport(viewportOrigin, viewportSize);
 
-		MikanCameraPtr sceneCamera = m_viewport->getCurrentMikanCamera();
+		MikanCameraPtr sceneCamera= m_viewport->getCurrentMikanCamera();
 		sceneCamera->setCameraMovementMode(eCameraMovementMode::fly);
 		sceneCamera->setName("scene camera");
 
@@ -141,13 +141,13 @@ void AppStage_Project::enter()
 
 	// Listen for changes to the current active scene
 	{
-		SceneObjectSystemPtr sceneSystem = getSystemOfType<SceneObjectSystem>();
+		SceneObjectSystemPtr sceneSystem= getSystemOfType<SceneObjectSystem>();
 
-		sceneSystem->OnSceneActivated +=
+		sceneSystem->OnSceneActivated+=
 			MakeDelegate(this, &AppStage_Project::onSceneActivated);
-		sceneSystem->OnSceneDeactivated +=
+		sceneSystem->OnSceneDeactivated+=
 			MakeDelegate(this, &AppStage_Project::onSceneDeactivated);
-		
+
 		// Rebuild compositor viewports for the active scene
 		SceneComponentPtr activeScene= sceneSystem->getCurrentScene();
 		if (activeScene)
@@ -158,40 +158,40 @@ void AppStage_Project::enter()
 
 	// Setup hotkeys
 	{
-		InputManager* inputManager = getOwnerWindow()->getInputManager();
+		InputManager* inputManager= getOwnerWindow()->getInputManager();
 
 		// Hotkeys for switching between viewport modes
-		inputManager->fetchOrAddKeyBindings(MkKey::COMMA)->OnKeyPressed +=
+		inputManager->fetchOrAddKeyBindings(MkKey::COMMA)->OnKeyPressed+=
 			MakeDelegate(this, &AppStage_Project::cyclePreviousCompositorCamera);
-		inputManager->fetchOrAddKeyBindings(MkKey::PERIOD)->OnKeyPressed +=
+		inputManager->fetchOrAddKeyBindings(MkKey::PERIOD)->OnKeyPressed+=
 			MakeDelegate(this, &AppStage_Project::cycleNextCompositorCamera);
 	}
 
 	// Create ImGui GuiPanel context and project panels
 	{
-		m_projectGuiPanelContext = new ProjectGuiPanelContext(this);
+		m_projectGuiPanelContext= new ProjectGuiPanelContext(this);
 		m_projectGuiPanelContext->init();
 
 		// Wire up component panel delegates
-		m_projectGuiPanelContext->getMarkerPanel()->OnMarkerSelected =
+		m_projectGuiPanelContext->getMarkerPanel()->OnMarkerSelected=
 			MakeDelegate(this, &AppStage_Project::onMarkerSelected);
 
-		m_projectScenesPanel = addGuiPanel<GuiPanel_ProjectScenes>();
+		m_projectScenesPanel= addGuiPanel<GuiPanel_ProjectScenes>();
 		m_projectScenesPanel->init(m_projectGuiPanelContext);
 
-		m_projectStagesPanel = addGuiPanel<GuiPanel_ProjectStages>();
+		m_projectStagesPanel= addGuiPanel<GuiPanel_ProjectStages>();
 		m_projectStagesPanel->init(m_projectGuiPanelContext);
 
-		m_projectSourcesPanel = addGuiPanel<GuiPanel_ProjectSources>();
+		m_projectSourcesPanel= addGuiPanel<GuiPanel_ProjectSources>();
 		m_projectSourcesPanel->init(m_projectGuiPanelContext);
 
-		m_projectTrackingPanel = addGuiPanel<GuiPanel_ProjectTracking>();
+		m_projectTrackingPanel= addGuiPanel<GuiPanel_ProjectTracking>();
 		m_projectTrackingPanel->init(m_projectGuiPanelContext);
 
-		m_projectMarkersPanel = addGuiPanel<GuiPanel_ProjectMarkers>();
+		m_projectMarkersPanel= addGuiPanel<GuiPanel_ProjectMarkers>();
 		m_projectMarkersPanel->init(m_projectGuiPanelContext);
 
-		m_projectSettingsPanel = addGuiPanel<GuiPanel_ProjectSettings>();
+		m_projectSettingsPanel= addGuiPanel<GuiPanel_ProjectSettings>();
 		m_projectSettingsPanel->init(m_projectGuiPanelContext);
 	}
 
@@ -202,31 +202,31 @@ void AppStage_Project::enter()
 void AppStage_Project::exit()
 {
 	// Clean up the 3d scene
-	m_mkScene = nullptr;
+	m_mkScene= nullptr;
 
 	// Clean up the GuiPanel Context (panels themselves are owned by AppStage::m_guiPanels)
 	delete m_projectGuiPanelContext;
-	m_projectGuiPanelContext = nullptr;
-	m_projectScenesPanel = nullptr;
-	m_projectStagesPanel = nullptr;
-	m_projectSourcesPanel = nullptr;
-	m_projectTrackingPanel = nullptr;
-	m_projectMarkersPanel = nullptr;
-	m_projectSettingsPanel = nullptr;
+	m_projectGuiPanelContext= nullptr;
+	m_projectScenesPanel= nullptr;
+	m_projectStagesPanel= nullptr;
+	m_projectSourcesPanel= nullptr;
+	m_projectTrackingPanel= nullptr;
+	m_projectMarkersPanel= nullptr;
+	m_projectSettingsPanel= nullptr;
 
 	{
-		SceneObjectSystemPtr sceneSystem = m_sceneObjectSystem.lock();
+		SceneObjectSystemPtr sceneSystem= m_sceneObjectSystem.lock();
 
 		// Rebuild compositor viewports for the active scene
-		SceneComponentPtr activeScene = sceneSystem->getCurrentScene();
+		SceneComponentPtr activeScene= sceneSystem->getCurrentScene();
 		if (activeScene)
 		{
 			onSceneDeactivated(activeScene);
 		}
 
-		sceneSystem->OnSceneActivated -=
+		sceneSystem->OnSceneActivated-=
 			MakeDelegate(this, &AppStage_Project::onSceneActivated);
-		sceneSystem->OnSceneDeactivated -=
+		sceneSystem->OnSceneDeactivated-=
 			MakeDelegate(this, &AppStage_Project::onSceneDeactivated);
 	}
 
@@ -263,14 +263,14 @@ void AppStage_Project::onGui()
 	// Process deferred events emitted due to Gui interaction
 	AppStage::onGui();
 
-	constexpr float k_panelWidth = 415.f;
-	const float displayWidth = m_ownerWindow->getWidth();
-	const float displayHeight = m_ownerWindow->getHeight();
+	constexpr float k_panelWidth= 415.f;
+	const float displayWidth= m_ownerWindow->getWidth();
+	const float displayHeight= m_ownerWindow->getHeight();
 
 	ImGui::SetNextWindowPos(ImVec2(displayWidth - k_panelWidth, 0.f), ImGuiCond_Always);
 	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, displayHeight), ImGuiCond_Always);
 
-	constexpr ImGuiWindowFlags k_panelFlags =
+	constexpr ImGuiWindowFlags k_panelFlags=
 		ImGuiWindowFlags_NoMove |
 		ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoCollapse |
@@ -280,23 +280,21 @@ void AppStage_Project::onGui()
 	if (!panel)
 		return;
 
-	static const char* k_tabLabels[(int)eProjectAppStageActivePanel::COUNT] = {
-		"Scenes", "Stages", "Sources", "Tracking", "Markers", "Settings"
-	};
-	IGuiPanel* k_tabPanels[(int)eProjectAppStageActivePanel::COUNT] = {
+	static const char* k_tabLabels[(int)eProjectAppStageActivePanel::COUNT]= {
+		"Scenes", "Stages", "Sources", "Tracking", "Markers", "Settings"};
+	IGuiPanel* k_tabPanels[(int)eProjectAppStageActivePanel::COUNT]= {
 		m_projectScenesPanel,
 		m_projectStagesPanel,
 		m_projectSourcesPanel,
 		m_projectTrackingPanel,
 		m_projectMarkersPanel,
-		m_projectSettingsPanel
-	};
-	constexpr int k_tabCount = (int)(sizeof(k_tabLabels) / sizeof(k_tabLabels[0]));
+		m_projectSettingsPanel};
+	constexpr int k_tabCount= (int)(sizeof(k_tabLabels) / sizeof(k_tabLabels[0]));
 
 	MkGuiScopedTabBar tabBar("##ProjectTabs");
 	if (tabBar)
 	{
-		for (int i = 0; i < k_tabCount; i++)
+		for (int i= 0; i < k_tabCount; i++)
 		{
 			MkGuiScopedTabItem tabItem(k_tabLabels[i]);
 
@@ -317,7 +315,7 @@ void AppStage_Project::setActivePanel(eProjectAppStageActivePanel newPanel)
 {
 	if (newPanel != m_activePanel)
 	{
-		m_activePanel = newPanel;
+		m_activePanel= newPanel;
 		onActivePanelChanged();
 	}
 }
@@ -365,7 +363,7 @@ void AppStage_Project::createCompositorViewportCameras()
 		mikanCamera->setCameraMovementMode(eCameraMovementMode::stationary);
 
 		// Apply video source camera intrinsics to the camera
-		VideoSourceComponentPtr videoSourceComponent = compositor->getVideoSourceComponent();
+		VideoSourceComponentPtr videoSourceComponent= compositor->getVideoSourceComponent();
 		if (videoSourceComponent != nullptr)
 		{
 			MikanVideoSourceIntrinsics cameraIntrinsics;
@@ -390,15 +388,15 @@ void AppStage_Project::disposeCompositorViewportCameras()
 
 void AppStage_Project::updateCompositorCameras()
 {
-	for (size_t compositorIndex = 0; compositorIndex < m_activeCompositors.size(); compositorIndex++)
+	for (size_t compositorIndex= 0; compositorIndex < m_activeCompositors.size(); compositorIndex++)
 	{
-		size_t cameraIndex = compositorIndex + 1; // Skip the first camera which is the vr camera
-		CompositorComponentPtr compositor = m_activeCompositors[compositorIndex].lock();
-		MikanCameraPtr camera = m_viewport->getMikanCameraByIndex((int)cameraIndex);
+		size_t cameraIndex= compositorIndex + 1; // Skip the first camera which is the vr camera
+		CompositorComponentPtr compositor= m_activeCompositors[compositorIndex].lock();
+		MikanCameraPtr camera= m_viewport->getMikanCameraByIndex((int)cameraIndex);
 
 		if (compositor && camera)
 		{
-			CameraComponentPtr cameraComponent = compositor->getCameraComponent();
+			CameraComponentPtr cameraComponent= compositor->getCameraComponent();
 			if (cameraComponent)
 			{
 				glm::mat4 cameraXform;
@@ -415,9 +413,9 @@ void AppStage_Project::cyclePreviousCompositorCamera()
 {
 	if (m_viewport->getIsMouseInViewport())
 	{
-		int newCameraIndex = m_viewport->getCurrentCameraIndex() - 1;
+		int newCameraIndex= m_viewport->getCurrentCameraIndex() - 1;
 		if (newCameraIndex < 0)
-			newCameraIndex = m_viewport->getCameraCount() - 1;
+			newCameraIndex= m_viewport->getCameraCount() - 1;
 
 		m_viewport->setCurrentCamera(newCameraIndex);
 	}
@@ -427,9 +425,9 @@ void AppStage_Project::cycleNextCompositorCamera()
 {
 	if (m_viewport->getIsMouseInViewport())
 	{
-		int newCameraIndex = m_viewport->getCurrentCameraIndex() + 1;
+		int newCameraIndex= m_viewport->getCurrentCameraIndex() + 1;
 		if (newCameraIndex >= m_viewport->getCameraCount())
-			newCameraIndex = 0;
+			newCameraIndex= 0;
 
 		m_viewport->setCurrentCamera(newCameraIndex);
 	}
@@ -441,7 +439,6 @@ void AppStage_Project::onReturnEvent()
 	m_ownerWindow->popAppState();
 }
 
-
 void AppStage_Project::onMarkerSelected(int arucoId)
 {
 	// Marker selected — arucoId can be used for custom rendering/preview in the future
@@ -449,12 +446,12 @@ void AppStage_Project::onMarkerSelected(int arucoId)
 
 void AppStage_Project::render(IMkViewportPtr targetViewport)
 {
-	IMkGraphicsContext* graphicsContext = getGraphicsContext();
-	MikanCameraPtr viewportCamera = m_viewport->getCurrentMikanCamera();
+	IMkGraphicsContext* graphicsContext= getGraphicsContext();
+	MikanCameraPtr viewportCamera= m_viewport->getCurrentMikanCamera();
 
-	MkStateStack& stageStack = graphicsContext->getMkStateStack();
-	MkScopedState scopedState = stageStack.createScopedState("AppStage_Project::render");
-	IMkState* mkState = scopedState.getStackState();
+	MkStateStack& stageStack= graphicsContext->getMkStateStack();
+	MkScopedState scopedState= stageStack.createScopedState("AppStage_Project::render");
+	IMkState* mkState= scopedState.getStackState();
 
 	// Enable Depth Test while drawing the scene
 	mkState->enableFlag(eMkStateFlagType::depthTest);
@@ -498,7 +495,7 @@ SceneComponentConstPtr AppStage_Project::getCurrentSceneConst() const
 
 StageComponentConstPtr AppStage_Project::getCurrentStageConst() const
 {
-	SceneComponentConstPtr currentScene = getCurrentSceneConst();
+	SceneComponentConstPtr currentScene= getCurrentSceneConst();
 	if (currentScene)
 	{
 		return currentScene->getParentStage();
@@ -508,7 +505,7 @@ StageComponentConstPtr AppStage_Project::getCurrentStageConst() const
 
 TrackingVolumeComponentConstPtr AppStage_Project::getCurrentTrackingVolumeConst() const
 {
-	StageComponentConstPtr currentStage = getCurrentStageConst();
+	StageComponentConstPtr currentStage= getCurrentStageConst();
 	if (currentStage)
 	{
 		return currentStage->getTrackingVolumeConst();
@@ -518,11 +515,11 @@ TrackingVolumeComponentConstPtr AppStage_Project::getCurrentTrackingVolumeConst(
 
 void AppStage_Project::renderProjectScene(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
 {
-	SceneComponentConstPtr currentScene = getCurrentSceneConst();
+	SceneComponentConstPtr currentScene= getCurrentSceneConst();
 	if (currentScene)
 	{
-		auto editorObjectSystem = getObjectSystemOfType<EditorObjectSystem>();
-		const EditorSettings& editorSettings = editorObjectSystem->getEditorSettings();
+		auto editorObjectSystem= getObjectSystemOfType<EditorObjectSystem>();
+		const EditorSettings& editorSettings= editorObjectSystem->getEditorSettings();
 
 		// Render the stage
 		renderProjectStage(graphicsContext, viewportCamera);
@@ -542,42 +539,42 @@ void AppStage_Project::renderProjectScene(IMkGraphicsContext* graphicsContext, M
 		// Render the stencils if enabled
 		if (editorSettings.bDebugRenderBoxStencils)
 		{
-			BoxStencilSystemPtr boxStencilSystem = m_boxStencilSystem.lock();
+			BoxStencilSystemPtr boxStencilSystem= m_boxStencilSystem.lock();
 
 			addAllRenderablesToMkScene(boxStencilSystem, m_mkScene);
 			boxStencilSystem->customRender(graphicsContext, viewportCamera);
 		}
 		if (editorSettings.bDebugRenderModelStencils)
 		{
-			ModelStencilSystemPtr modelStencilSystem = m_modelStencilSystem.lock();
+			ModelStencilSystemPtr modelStencilSystem= m_modelStencilSystem.lock();
 
 			addAllRenderablesToMkScene(modelStencilSystem, m_mkScene);
 			modelStencilSystem->customRender(graphicsContext, viewportCamera);
 		}
 		if (editorSettings.bDebugRenderQuadStencils)
 		{
-			QuadStencilSystemPtr quadStencilSystem = m_quadStencilSystem.lock();
+			QuadStencilSystemPtr quadStencilSystem= m_quadStencilSystem.lock();
 
 			addAllRenderablesToMkScene(quadStencilSystem, m_mkScene);
 			quadStencilSystem->customRender(graphicsContext, viewportCamera);
 		}
 
 		// Render the shapes if enabled
-		const glm::mat4 viewportVpMatrix = viewportCamera->getViewProjectionMatrix();
+		const glm::mat4 viewportVpMatrix= viewportCamera->getViewProjectionMatrix();
 		if (editorSettings.bDebugRenderQuadShapes)
 		{
-			QuadShapeSystemPtr quadShapeSystem = m_quadShapeSystem.lock();
+			QuadShapeSystemPtr quadShapeSystem= m_quadShapeSystem.lock();
 
 			std::vector<QuadShapeComponentPtr> quadShapes;
 			quadShapeSystem->getQuadShapeComponentList(quadShapes);
 
-			bool bAnyLegacyShapes = false;
+			bool bAnyLegacyShapes= false;
 			for (auto& shape : quadShapes)
 			{
 				if (shape->hasValidShapeGraph())
 					shape->renderShapeGraph(viewportVpMatrix, graphicsContext);
 				else
-					bAnyLegacyShapes = true;
+					bAnyLegacyShapes= true;
 			}
 			if (bAnyLegacyShapes)
 			{
@@ -587,18 +584,18 @@ void AppStage_Project::renderProjectScene(IMkGraphicsContext* graphicsContext, M
 		}
 		if (editorSettings.bDebugRenderBoxShapes)
 		{
-			BoxShapeSystemPtr boxShapeSystem = m_boxShapeSystem.lock();
+			BoxShapeSystemPtr boxShapeSystem= m_boxShapeSystem.lock();
 
 			std::vector<BoxShapeComponentPtr> boxShapes;
 			boxShapeSystem->getBoxShapeComponentList(boxShapes);
 
-			bool bAnyLegacyShapes = false;
+			bool bAnyLegacyShapes= false;
 			for (auto& shape : boxShapes)
 			{
 				if (shape->hasValidShapeGraph())
 					shape->renderShapeGraph(viewportVpMatrix, graphicsContext);
 				else
-					bAnyLegacyShapes = true;
+					bAnyLegacyShapes= true;
 			}
 			if (bAnyLegacyShapes)
 			{
@@ -608,18 +605,18 @@ void AppStage_Project::renderProjectScene(IMkGraphicsContext* graphicsContext, M
 		}
 		if (editorSettings.bDebugRenderModelShapes)
 		{
-			ModelShapeSystemPtr modelShapeSystem = m_modelShapeSystem.lock();
+			ModelShapeSystemPtr modelShapeSystem= m_modelShapeSystem.lock();
 
 			std::vector<ModelShapeComponentPtr> modelShapes;
 			modelShapeSystem->getModelShapeComponentList(modelShapes);
 
-			bool bAnyLegacyShapes = false;
+			bool bAnyLegacyShapes= false;
 			for (auto& shape : modelShapes)
 			{
 				if (shape->hasValidShapeGraph())
 					shape->renderShapeGraph(viewportVpMatrix, graphicsContext);
 				else
-					bAnyLegacyShapes = true;
+					bAnyLegacyShapes= true;
 			}
 			if (bAnyLegacyShapes)
 			{
@@ -632,7 +629,7 @@ void AppStage_Project::renderProjectScene(IMkGraphicsContext* graphicsContext, M
 
 void AppStage_Project::renderProjectStage(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const
 {
-	StageComponentConstPtr stageComponent = getCurrentStageConst();
+	StageComponentConstPtr stageComponent= getCurrentStageConst();
 	if (stageComponent)
 	{
 		// Render static meshes for cameras and light objects
@@ -641,7 +638,7 @@ void AppStage_Project::renderProjectStage(IMkGraphicsContext* graphicsContext, M
 		addAllRenderablesToMkScene(m_spotLightSystem.lock(), m_mkScene);
 
 		// Draw volumetric cone visualizations for spot lights
-		if (auto spotLightSystem = m_spotLightSystem.lock())
+		if (auto spotLightSystem= m_spotLightSystem.lock())
 			spotLightSystem->customRender(graphicsContext, viewportCamera);
 
 		// Draw the cameras on the stage
@@ -656,24 +653,24 @@ void AppStage_Project::renderProjectStage(IMkGraphicsContext* graphicsContext, M
 }
 
 void AppStage_Project::renderProjectTracking(
-	IMkGraphicsContext* graphicsContext, 
+	IMkGraphicsContext* graphicsContext,
 	MikanCameraPtr viewportCamera) const
 {
-	TrackingVolumeComponentConstPtr trackingVolume = getCurrentTrackingVolumeConst();
+	TrackingVolumeComponentConstPtr trackingVolume= getCurrentTrackingVolumeConst();
 	if (trackingVolume)
 	{
 		switch (trackingVolume->getTrackingVolumeType())
 		{
 		case eTrackingVolumeType::vr:
 			renderVRTrackingVolume(
-				graphicsContext, 
-				viewportCamera, 
+				graphicsContext,
+				viewportCamera,
 				std::dynamic_pointer_cast<const VRTrackingVolumeComponent>(trackingVolume));
 			break;
 		case eTrackingVolumeType::marker:
 			renderMarkerTrackingVolume(
-				graphicsContext, 
-				viewportCamera, 
+				graphicsContext,
+				viewportCamera,
 				std::dynamic_pointer_cast<const MarkerTrackingVolumeComponent>(trackingVolume));
 			break;
 		}
@@ -681,22 +678,22 @@ void AppStage_Project::renderProjectTracking(
 }
 
 void AppStage_Project::renderVRTrackingVolume(
-	IMkGraphicsContext* graphicsContext, 
-	MikanCameraPtr viewportCamera, 
+	IMkGraphicsContext* graphicsContext,
+	MikanCameraPtr viewportCamera,
 	VRTrackingVolumeComponentConstPtr vrTrackingVolume) const
 {
-	VRObjectSystemPtr vrObjectSystem = getObjectSystemOfType<VRObjectSystem>();
+	VRObjectSystemPtr vrObjectSystem= getObjectSystemOfType<VRObjectSystem>();
 
 	// Resolve VRSpace -> StageSpace offset from the VR tracking volume
-	glm::mat4 vrSpaceToStageSpace = vrTrackingVolume->getVRSpaceToStageSpace();
+	glm::mat4 vrSpaceToStageSpace= vrTrackingVolume->getVRSpaceToStageSpace();
 
 	// Get the tracking volume origin marker (if it exists) so we can render it in the correct space
-	const MikanMarkerID originMarkerId = vrTrackingVolume->getOriginMarkerId();
+	const MikanMarkerID originMarkerId= vrTrackingVolume->getOriginMarkerId();
 	MarkerComponentPtr markerComp;
 	if (originMarkerId != INVALID_MIKAN_ID)
 	{
-		MarkerObjectSystemPtr markerSystem = getObjectSystemOfType<MarkerObjectSystem>();
-		markerComp = markerSystem->getMarkerById(originMarkerId);
+		MarkerObjectSystemPtr markerSystem= getObjectSystemOfType<MarkerObjectSystem>();
+		markerComp= markerSystem->getMarkerById(originMarkerId);
 	}
 
 	if (m_activePanel == eProjectAppStageActivePanel::Tracking)
@@ -705,36 +702,37 @@ void AppStage_Project::renderVRTrackingVolume(
 		switch (vrTrackingVolume->getDisplayTrackingSpace())
 		{
 		case MikanTrackingSpace_VR:
+		{
+			// Render the VR devices in VR space
+			addAllVRDevicesToMkScene(vrObjectSystem, m_mkScene, glm::mat4(1.f));
+
+			// Render the VR Device info in VR space
+			renderAllVRDeviceInfo(vrObjectSystem, graphicsContext, viewportCamera, glm::mat4(1.f));
+
+			// Render the origin marker as a textured quad at VRSpace Origin
+			if (markerComp)
 			{
-				// Render the VR devices in VR space
-				addAllVRDevicesToMkScene(vrObjectSystem, m_mkScene, glm::mat4(1.f));
+				glm::mat4 stageSpaceToVRSpace= glm::inverse(vrSpaceToStageSpace);
 
-				// Render the VR Device info in VR space
-				renderAllVRDeviceInfo(vrObjectSystem, graphicsContext, viewportCamera, glm::mat4(1.f));
-
-				// Render the origin marker as a textured quad at VRSpace Origin
-				if (markerComp)
-				{
-					glm::mat4 stageSpaceToVRSpace = glm::inverse(vrSpaceToStageSpace);
-
-					markerComp->renderArucoMarker(graphicsContext, viewportCamera, stageSpaceToVRSpace);
-				}
-			} break;
-		case MikanTrackingSpace_Stage:
-			{
-				// Render the VR devices in stage space
-				addAllVRDevicesToMkScene(vrObjectSystem, m_mkScene, vrSpaceToStageSpace);
-
-				// Render the VR Device info in stage space
-				renderAllVRDeviceInfo(vrObjectSystem, graphicsContext, viewportCamera, vrSpaceToStageSpace);
-
-				// Render the origin marker as a textured quad at world origin
-				if (markerComp)
-				{
-					markerComp->renderArucoMarker(graphicsContext, viewportCamera, glm::mat4(1.f));
-				}
+				markerComp->renderArucoMarker(graphicsContext, viewportCamera, stageSpaceToVRSpace);
 			}
-			break;
+		}
+		break;
+		case MikanTrackingSpace_Stage:
+		{
+			// Render the VR devices in stage space
+			addAllVRDevicesToMkScene(vrObjectSystem, m_mkScene, vrSpaceToStageSpace);
+
+			// Render the VR Device info in stage space
+			renderAllVRDeviceInfo(vrObjectSystem, graphicsContext, viewportCamera, vrSpaceToStageSpace);
+
+			// Render the origin marker as a textured quad at world origin
+			if (markerComp)
+			{
+				markerComp->renderArucoMarker(graphicsContext, viewportCamera, glm::mat4(1.f));
+			}
+		}
+		break;
 		}
 	}
 	else
@@ -755,11 +753,11 @@ void AppStage_Project::renderMarkerTrackingVolume(
 	MikanCameraPtr viewportCamera,
 	MarkerTrackingVolumeComponentConstPtr markerTrackingVolume) const
 {
-	const MikanMarkerID originMarkerId = markerTrackingVolume->getOriginMarkerId();
+	const MikanMarkerID originMarkerId= markerTrackingVolume->getOriginMarkerId();
 	if (originMarkerId != INVALID_MIKAN_ID)
 	{
-		MarkerObjectSystemPtr markerSystem = getObjectSystemOfType<MarkerObjectSystem>();
-		MarkerComponentPtr markerComp = markerSystem->getMarkerById(originMarkerId);
+		MarkerObjectSystemPtr markerSystem= getObjectSystemOfType<MarkerObjectSystem>();
+		MarkerComponentPtr markerComp= markerSystem->getMarkerById(originMarkerId);
 		if (markerComp)
 		{
 			markerComp->renderArucoMarker(graphicsContext, viewportCamera, glm::mat4(1.f));
@@ -768,22 +766,23 @@ void AppStage_Project::renderMarkerTrackingVolume(
 }
 
 void AppStage_Project::renderCameraComponents(
-	IMkGraphicsContext* graphicsContext, 
+	IMkGraphicsContext* graphicsContext,
 	MikanCameraPtr viewportCamera,
 	StageComponentConstPtr stageComponent) const
 {
 	getObjectSystemOfType<CameraObjectSystem>()->customRender(
-		graphicsContext, 
-		viewportCamera, 
-		[stageComponent](CameraComponentPtr camera) {
+		graphicsContext,
+		viewportCamera,
+		[stageComponent](CameraComponentPtr camera)
+		{
 			return camera->getOwnerStageComponent() == stageComponent;
 		});
 }
 
 void AppStage_Project::debugRenderOrigin() const
 {
-	IMkGraphicsContext* graphicsContext = getGraphicsContext();
-	TextStyle style = getDefaultTextStyle();
+	IMkGraphicsContext* graphicsContext= getGraphicsContext();
+	TextStyle style= getDefaultTextStyle();
 
 	drawTransformedAxes(graphicsContext, glm::mat4(1.f), 1.f, 1.f, 1.f);
 	drawTextAtWorldPosition(graphicsContext, style, glm::vec3(0.f, 0.f, 0.f), L"(0,0,0)");

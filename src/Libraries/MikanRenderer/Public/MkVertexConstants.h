@@ -6,7 +6,7 @@
 
 enum class eVertexSemantic : int
 {
-	INVALID = -1,
+	INVALID= -1,
 
 	// Specific Semantic Types
 	generic,
@@ -22,7 +22,7 @@ extern MIKAN_RENDERER_CLASS const std::string* k_VertexSemanticNames;
 
 enum class eVertexDataType : int
 {
-	INVALID = -1,
+	INVALID= -1,
 
 	// Generic Unsigned Byte Types
 	datatype_ubyte,
@@ -60,9 +60,9 @@ extern MIKAN_RENDERER_CLASS const std::string* k_VertexDataTypeNames;
 
 namespace VertexConstantUtils
 {
-	MIKAN_RENDERER_FUNC(const std::string&) vertexSemanticToString(eVertexSemantic semantic);
-	MIKAN_RENDERER_FUNC(eVertexSemantic) vertexSemanticFromString(const std::string& semanticName);
+MIKAN_RENDERER_FUNC(const std::string&) vertexSemanticToString(eVertexSemantic semantic);
+MIKAN_RENDERER_FUNC(eVertexSemantic) vertexSemanticFromString(const std::string& semanticName);
 
-	MIKAN_RENDERER_FUNC(const std::string&) vertexDataTypeToString(eVertexDataType dataType);
-	MIKAN_RENDERER_FUNC(eVertexDataType) vertexDataTypeFromString(const std::string& dataTypeName);
-};
+MIKAN_RENDERER_FUNC(const std::string&) vertexDataTypeToString(eVertexDataType dataType);
+MIKAN_RENDERER_FUNC(eVertexDataType) vertexDataTypeFromString(const std::string& dataTypeName);
+}; // namespace VertexConstantUtils

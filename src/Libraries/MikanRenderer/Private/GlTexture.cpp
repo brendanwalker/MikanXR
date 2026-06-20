@@ -19,7 +19,8 @@ public:
 		, m_textureMapData(nullptr)
 		, m_pixelType(GL_UNSIGNED_BYTE)
 		, m_wrapMode(TextureWrapMode::ClampToEdge)
-	{}
+	{
+	}
 
 	GlTexture(
 		uint16_t width,
@@ -43,77 +44,77 @@ public:
 
 	virtual IMkTexture* setName(const std::string& name) override
 	{
-		m_name = name;
-		
+		m_name= name;
+
 		return this;
 	}
 
 	virtual IMkTexture* setSize(uint16_t width, uint16_t height) override
 	{
-		m_width = width;
-		m_height = height;
-		
+		m_width= width;
+		m_height= height;
+
 		return this;
 	}
 
 	virtual IMkTexture* setTextureMapData(const uint8_t* textureMapData) override
 	{
-		m_textureMapData = textureMapData;
-		
+		m_textureMapData= textureMapData;
+
 		return this;
 	}
 
 	virtual IMkTexture* setTextureFormat(uint32_t textureFormat) override
 	{
-		m_textureFormat = textureFormat;
-		m_bufferFormat = textureFormat;
+		m_textureFormat= textureFormat;
+		m_bufferFormat= textureFormat;
 		determinePixelType();
-		
+
 		return this;
 	}
 
 	virtual IMkTexture* setBufferFormat(uint32_t bufferFormat) override
 	{
-		m_bufferFormat = bufferFormat; 
-		
+		m_bufferFormat= bufferFormat;
+
 		return this;
 	}
 
 	virtual IMkTexture* setPixelType(uint32_t pixelType) override
 	{
-		m_pixelType = pixelType;
-		
+		m_pixelType= pixelType;
+
 		return this;
 	}
 
 	virtual IMkTexture* setGenerateMipMap(bool bFlag) override
 	{
-		m_bGenerateMipMap = bFlag;
-		
+		m_bGenerateMipMap= bFlag;
+
 		return this;
 	}
 
 	virtual IMkTexture* setPixelBufferObjectMode(PixelBufferObjectMode mode) override
 	{
-		m_pboMode = mode;
+		m_pboMode= mode;
 
 		return this;
 	}
 
 	virtual IMkTexture* setTextureWrapMode(TextureWrapMode mode) override
 	{
-		m_wrapMode = mode;
+		m_wrapMode= mode;
 
 		return this;
 	}
 
 	virtual void setImagePath(const std::filesystem::path& path) override
-	{ 
-		m_imagePath = path;
+	{
+		m_imagePath= path;
 	}
 
 	virtual const std::filesystem::path getImagePath() const override
-	{ 
+	{
 		return m_imagePath;
 	}
 
@@ -135,30 +136,30 @@ public:
 		disposeTexture();
 
 		int width, height, nrComponents;
-		unsigned char* data = stbi_load(m_imagePath.string().c_str(), &width, &height, &nrComponents, 0);
+		unsigned char* data= stbi_load(m_imagePath.string().c_str(), &width, &height, &nrComponents, 0);
 		if (data == nullptr)
 		{
 			MIKAN_LOG_ERROR("reloadTextureFromImagePath") << "Texture failed to load at path: " << m_imagePath;
 			stbi_image_free(data);
 		}
 
-		GLenum format = 0;
+		GLenum format= 0;
 
 		if (nrComponents == 1)
-			format = GL_RED;
+			format= GL_RED;
 		else if (nrComponents == 3)
-			format = GL_RGB;
+			format= GL_RGB;
 		else if (nrComponents == 4)
-			format = GL_RGBA;
+			format= GL_RGBA;
 
 		if (format != 0)
 		{
-			m_width = width;
-			m_height = height;
-			m_textureMapData = data;
-			m_textureFormat = format;
-			m_bufferFormat = format;
-			m_pixelType = GL_UNSIGNED_BYTE;
+			m_width= width;
+			m_height= height;
+			m_textureMapData= data;
+			m_textureFormat= format;
+			m_bufferFormat= format;
+			m_pixelType= GL_UNSIGNED_BYTE;
 
 			if (!createTexture())
 			{
@@ -201,28 +202,28 @@ public:
 				m_pixelType,
 				m_textureMapData);
 
-			bool bMipmapGenerated = false;
+			bool bMipmapGenerated= false;
 			if (m_bGenerateMipMap &&
 				m_textureMapData != nullptr &&
 				m_textureFormat != GL_R8 &&
 				m_bufferFormat != GL_DEPTH_COMPONENT)
 			{
 				glGenerateMipmap(GL_TEXTURE_2D);
-				bMipmapGenerated = true;
+				bMipmapGenerated= true;
 			}
 
-			GLenum glWrapMode = GL_CLAMP_TO_EDGE;
+			GLenum glWrapMode= GL_CLAMP_TO_EDGE;
 			switch (m_wrapMode)
 			{
-				case TextureWrapMode::ClampToEdge:
-					glWrapMode = GL_CLAMP_TO_EDGE;
-					break;
-				case TextureWrapMode::Repeat:
-					glWrapMode = GL_REPEAT;
-					break;
-				case TextureWrapMode::MirroredRepeat:
-					glWrapMode = GL_MIRRORED_REPEAT;
-					break;
+			case TextureWrapMode::ClampToEdge:
+				glWrapMode= GL_CLAMP_TO_EDGE;
+				break;
+			case TextureWrapMode::Repeat:
+				glWrapMode= GL_REPEAT;
+				break;
+			case TextureWrapMode::MirroredRepeat:
+				glWrapMode= GL_MIRRORED_REPEAT;
+				break;
 			}
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, glWrapMode);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, glWrapMode);
@@ -255,44 +256,48 @@ public:
 			if (m_pboMode != PixelBufferObjectMode::NoPBO)
 			{
 				// Assumes no extra padding in stride
-				m_PBOByteSize = m_width * m_height * getBytesPerPixel(m_bufferFormat, m_pixelType);
+				m_PBOByteSize= m_width * m_height * getBytesPerPixel(m_bufferFormat, m_pixelType);
 
 				switch (m_pboMode)
 				{
-					case PixelBufferObjectMode::DoublePBOWrite:
-						{
-							glGenBuffers(2, m_glPixelBufferObjectIDs);
-							glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_glPixelBufferObjectIDs[0]);
-							glBufferData(GL_PIXEL_UNPACK_BUFFER, m_PBOByteSize, 0, GL_STREAM_DRAW);
-							glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_glPixelBufferObjectIDs[1]);
-							glBufferData(GL_PIXEL_UNPACK_BUFFER, m_PBOByteSize, 0, GL_STREAM_DRAW);
-							glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-						} break;
-					case PixelBufferObjectMode::SinglePBOWrite:
-						{
-							glGenBuffers(1, m_glPixelBufferObjectIDs);
-							glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_glPixelBufferObjectIDs[0]);
-							glBufferData(GL_PIXEL_UNPACK_BUFFER, m_PBOByteSize, 0, GL_STREAM_DRAW);
-							m_glPixelBufferObjectIDs[1] = 0;
-							glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-						} break;
-					case PixelBufferObjectMode::DoublePBORead:
-						{
-							glGenBuffers(2, m_glPixelBufferObjectIDs);
-							glBindBuffer(GL_PIXEL_PACK_BUFFER, m_glPixelBufferObjectIDs[0]);
-							glBufferData(GL_PIXEL_PACK_BUFFER, m_PBOByteSize, 0, GL_STREAM_COPY);
-							glBindBuffer(GL_PIXEL_PACK_BUFFER, m_glPixelBufferObjectIDs[1]);
-							glBufferData(GL_PIXEL_PACK_BUFFER, m_PBOByteSize, 0, GL_STREAM_COPY);
-							glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-						} break;
-					case PixelBufferObjectMode::SinglePBORead:
-						{
-							glGenBuffers(1, m_glPixelBufferObjectIDs);
-							glBindBuffer(GL_PIXEL_PACK_BUFFER, m_glPixelBufferObjectIDs[0]);
-							glBufferData(GL_PIXEL_PACK_BUFFER, m_PBOByteSize, 0, GL_STREAM_COPY);
-							m_glPixelBufferObjectIDs[1] = 0;
-							glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-						} break;
+				case PixelBufferObjectMode::DoublePBOWrite:
+				{
+					glGenBuffers(2, m_glPixelBufferObjectIDs);
+					glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_glPixelBufferObjectIDs[0]);
+					glBufferData(GL_PIXEL_UNPACK_BUFFER, m_PBOByteSize, 0, GL_STREAM_DRAW);
+					glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_glPixelBufferObjectIDs[1]);
+					glBufferData(GL_PIXEL_UNPACK_BUFFER, m_PBOByteSize, 0, GL_STREAM_DRAW);
+					glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+				}
+				break;
+				case PixelBufferObjectMode::SinglePBOWrite:
+				{
+					glGenBuffers(1, m_glPixelBufferObjectIDs);
+					glBindBuffer(GL_PIXEL_UNPACK_BUFFER, m_glPixelBufferObjectIDs[0]);
+					glBufferData(GL_PIXEL_UNPACK_BUFFER, m_PBOByteSize, 0, GL_STREAM_DRAW);
+					m_glPixelBufferObjectIDs[1]= 0;
+					glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+				}
+				break;
+				case PixelBufferObjectMode::DoublePBORead:
+				{
+					glGenBuffers(2, m_glPixelBufferObjectIDs);
+					glBindBuffer(GL_PIXEL_PACK_BUFFER, m_glPixelBufferObjectIDs[0]);
+					glBufferData(GL_PIXEL_PACK_BUFFER, m_PBOByteSize, 0, GL_STREAM_COPY);
+					glBindBuffer(GL_PIXEL_PACK_BUFFER, m_glPixelBufferObjectIDs[1]);
+					glBufferData(GL_PIXEL_PACK_BUFFER, m_PBOByteSize, 0, GL_STREAM_COPY);
+					glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+				}
+				break;
+				case PixelBufferObjectMode::SinglePBORead:
+				{
+					glGenBuffers(1, m_glPixelBufferObjectIDs);
+					glBindBuffer(GL_PIXEL_PACK_BUFFER, m_glPixelBufferObjectIDs[0]);
+					glBufferData(GL_PIXEL_PACK_BUFFER, m_PBOByteSize, 0, GL_STREAM_COPY);
+					m_glPixelBufferObjectIDs[1]= 0;
+					glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+				}
+				break;
 				}
 			}
 
@@ -364,18 +369,18 @@ public:
 				// Make sure buffer size matches the PBO size
 				assert(bufferSize == m_PBOByteSize);
 
-				int nextPBOIndex = 0;
+				int nextPBOIndex= 0;
 
 				if (m_pboMode == PixelBufferObjectMode::SinglePBOWrite)
 				{
 					// In single PBO mode, the index and nextIndex are set to 0
-					m_pboWriteIndex = nextPBOIndex = 0;
+					m_pboWriteIndex= nextPBOIndex= 0;
 				}
 				else if (m_pboMode == PixelBufferObjectMode::DoublePBOWrite)
 				{
 					// In double PBO mode, increment current index first then get the next index
-					m_pboWriteIndex = (m_pboWriteIndex + 1) % 2;
-					nextPBOIndex = (m_pboWriteIndex + 1) % 2;
+					m_pboWriteIndex= (m_pboWriteIndex + 1) % 2;
+					nextPBOIndex= (m_pboWriteIndex + 1) % 2;
 				}
 
 				// Bind the the current PBO to write to the texture
@@ -405,7 +410,7 @@ public:
 				// glMapBuffer() returns a new allocated pointer immediately
 				// even if GPU is still working with the previous data.
 				glBufferData(GL_PIXEL_UNPACK_BUFFER, bufferSize, 0, GL_STREAM_DRAW);
-				GLubyte* writePointer = (GLubyte*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+				GLubyte* writePointer= (GLubyte*)glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
 				if (writePointer)
 				{
 					// update data directly on the mapped buffer
@@ -450,18 +455,18 @@ public:
 			// Make sure buffer size matches the PBO size
 			assert(bufferSize == m_PBOByteSize);
 
-			int nextPBOIndex = 0;
+			int nextPBOIndex= 0;
 
 			if (m_pboMode == PixelBufferObjectMode::SinglePBORead)
 			{
 				// In single PBO mode, the index and nextIndex are set to 0
-				m_pboWriteIndex = nextPBOIndex = 0;
+				m_pboWriteIndex= nextPBOIndex= 0;
 			}
 			else if (m_pboMode == PixelBufferObjectMode::DoublePBORead)
 			{
 				// In double PBO mode, increment current index first then get the next index
-				m_pboWriteIndex = (m_pboWriteIndex + 1) % 2;
-				nextPBOIndex = (m_pboWriteIndex + 1) % 2;
+				m_pboWriteIndex= (m_pboWriteIndex + 1) % 2;
+				nextPBOIndex= (m_pboWriteIndex + 1) % 2;
 			}
 
 			// Bind the the current PBO to write to the texture
@@ -490,7 +495,7 @@ public:
 			// glMapBuffer() returns a new allocated pointer immediately
 			// even if GPU is still working with the previous data.
 			glBufferData(GL_PIXEL_PACK_BUFFER, bufferSize, 0, GL_STREAM_READ);
-			GLubyte* readPointer = (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+			GLubyte* readPointer= (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
 			if (readPointer)
 			{
 				// update data directly on the mapped buffer
@@ -498,39 +503,39 @@ public:
 				glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
 			}
 
-			//ensure we don't try and read data before the transfer is complete
-	//		GLsync sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-	//
-	//		// then regularly check for completion
-	//		bool bCompleted= false;
-	//		while (!bCompleted)
-	//		{
-	//			GLint result;
-	//			glGetSynciv(sync, GL_SYNC_STATUS, sizeof(result), NULL, &result);
-	//			if (result == GL_SIGNALED)
-	//			{
-	//				glBindBuffer(GL_PIXEL_PACK_BUFFER, m_glPixelBufferObjectIDs[nextPBOIndex]);
-	//				void* readPointer = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
-	//
-	//				if (readPointer != nullptr)
-	//				{
-	//					std::memcpy(outBuffer, readPointer, bufferSize);
-	//					glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
-	//					bCompleted= true;
-	//				}
-	//			}
-	//			else
-	//			{
-	//#ifdef _MSC_VER
-	//				Sleep(1);
-	//#else
-	//				struct timespec req = { 0 };
-	//				req.tv_sec = 0;
-	//				req.tv_nsec = 1 * MILLISECONDS_TO_NANOSECONDS;
-	//				nanosleep(&req, (struct timespec*)NULL);
-	//#endif
-	//			}
-	//		}
+			// ensure we don't try and read data before the transfer is complete
+			//		GLsync sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+			//
+			//		// then regularly check for completion
+			//		bool bCompleted= false;
+			//		while (!bCompleted)
+			//		{
+			//			GLint result;
+			//			glGetSynciv(sync, GL_SYNC_STATUS, sizeof(result), NULL, &result);
+			//			if (result == GL_SIGNALED)
+			//			{
+			//				glBindBuffer(GL_PIXEL_PACK_BUFFER, m_glPixelBufferObjectIDs[nextPBOIndex]);
+			//				void* readPointer = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+			//
+			//				if (readPointer != nullptr)
+			//				{
+			//					std::memcpy(outBuffer, readPointer, bufferSize);
+			//					glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+			//					bCompleted= true;
+			//				}
+			//			}
+			//			else
+			//			{
+			// #ifdef _MSC_VER
+			//				Sleep(1);
+			// #else
+			//				struct timespec req = { 0 };
+			//				req.tv_sec = 0;
+			//				req.tv_nsec = 1 * MILLISECONDS_TO_NANOSECONDS;
+			//				nanosleep(&req, (struct timespec*)NULL);
+			// #endif
+			//			}
+			//		}
 
 			// it is good idea to release PBOs with ID 0 after use.
 			// Once bound with 0, all pixel operations behave normal ways.
@@ -553,7 +558,7 @@ public:
 		if (m_glTextureId != 0)
 		{
 			glDeleteTextures(1, &m_glTextureId);
-			m_glTextureId = 0;
+			m_glTextureId= 0;
 		}
 
 		if (m_pboMode == PixelBufferObjectMode::DoublePBOWrite)
@@ -564,8 +569,8 @@ public:
 		{
 			glDeleteBuffers(1, m_glPixelBufferObjectIDs);
 		}
-		m_glPixelBufferObjectIDs[0] = 0;
-		m_glPixelBufferObjectIDs[1] = 0;
+		m_glPixelBufferObjectIDs[0]= 0;
+		m_glPixelBufferObjectIDs[1]= 0;
 	}
 
 	virtual bool bindTexture(int textureUnit) const override
@@ -604,80 +609,86 @@ protected:
 		GLenum pixelType;
 		switch (m_textureFormat)
 		{
-			case GL_R32F:
-			case GL_RG32F:
-			case GL_RGB32F:
-			case GL_RGBA32F:
-			case GL_DEPTH_COMPONENT32F:
-				m_pixelType = GL_FLOAT;
-				break;
-			case GL_DEPTH_COMPONENT16:
-				m_pixelType = GL_UNSIGNED_SHORT;
-				break;
-			default:
-				m_pixelType = GL_UNSIGNED_BYTE;
+		case GL_R32F:
+		case GL_RG32F:
+		case GL_RGB32F:
+		case GL_RGBA32F:
+		case GL_DEPTH_COMPONENT32F:
+			m_pixelType= GL_FLOAT;
+			break;
+		case GL_DEPTH_COMPONENT16:
+			m_pixelType= GL_UNSIGNED_SHORT;
+			break;
+		default:
+			m_pixelType= GL_UNSIGNED_BYTE;
 		}
 	}
 
 	size_t getBytesPerPixel(uint32_t format, uint32_t pixelType)
 	{
-		size_t bytesPerChannel = 0;
+		size_t bytesPerChannel= 0;
 		switch (pixelType)
 		{
-			case GL_UNSIGNED_BYTE:
-			case GL_BYTE:
-				bytesPerChannel = 1;
-				break;
-			case GL_UNSIGNED_SHORT:
-			case GL_SHORT:
-				bytesPerChannel = 2;
-				break;
-			case GL_FLOAT:
-			case GL_UNSIGNED_INT_24_8:
-				bytesPerChannel = 4;
-				break;
-			default:
-				{
-					MIKAN_LOG_ERROR("getBytesPerPixel") << "Unknown pixelType: " << format;
-					assert(false);
-				}
+		case GL_UNSIGNED_BYTE:
+		case GL_BYTE:
+			bytesPerChannel= 1;
+			break;
+		case GL_UNSIGNED_SHORT:
+		case GL_SHORT:
+			bytesPerChannel= 2;
+			break;
+		case GL_FLOAT:
+		case GL_UNSIGNED_INT_24_8:
+			bytesPerChannel= 4;
+			break;
+		default:
+		{
+			MIKAN_LOG_ERROR("getBytesPerPixel") << "Unknown pixelType: " << format;
+			assert(false);
+		}
 		}
 
-		size_t bytesPerPixel = 0;
+		size_t bytesPerPixel= 0;
 		switch (format)
 		{
-			case GL_RED:
-				{
-					bytesPerPixel = bytesPerChannel;
-				} break;
-			case GL_RG:
-				{
-					bytesPerPixel = bytesPerChannel * 2;
-				} break;
-			case GL_RGB:
-			case GL_BGR:
-				{
-					bytesPerPixel = bytesPerChannel * 3;
-				} break;
-			case GL_RGBA:
-			case GL_BGRA:
-				{
-					bytesPerPixel = bytesPerChannel * 4;
-				} break;
-			case GL_DEPTH_COMPONENT:
-				{
-					bytesPerPixel = bytesPerChannel;
-				} break;
-			case GL_DEPTH_STENCIL:
-				{
-					assert(pixelType == GL_UNSIGNED_INT_24_8);
-					bytesPerPixel = bytesPerChannel;
-				} break;
-			default:
-				{
-					MIKAN_LOG_ERROR("getBytesPerPixel") << "Unknown format: " << format;
-					assert(false);
-				}
+		case GL_RED:
+		{
+			bytesPerPixel= bytesPerChannel;
+		}
+		break;
+		case GL_RG:
+		{
+			bytesPerPixel= bytesPerChannel * 2;
+		}
+		break;
+		case GL_RGB:
+		case GL_BGR:
+		{
+			bytesPerPixel= bytesPerChannel * 3;
+		}
+		break;
+		case GL_RGBA:
+		case GL_BGRA:
+		{
+			bytesPerPixel= bytesPerChannel * 4;
+		}
+		break;
+		case GL_DEPTH_COMPONENT:
+		{
+			bytesPerPixel= bytesPerChannel;
+		}
+		break;
+		case GL_DEPTH_STENCIL:
+		{
+			assert(pixelType == GL_UNSIGNED_INT_24_8);
+			bytesPerPixel= bytesPerChannel;
+		}
+		break;
+		default:
+		{
+			MIKAN_LOG_ERROR("getBytesPerPixel") << "Unknown format: " << format;
+			assert(false);
+		}
 		}
 
 		return bytesPerPixel;
@@ -685,18 +696,18 @@ protected:
 
 protected:
 	std::string m_name;
-	uint32_t m_glTextureId = 0;
-	uint16_t m_width = 0;
-	uint16_t m_height = 0;
-	uint32_t m_textureFormat = 0;
-	uint32_t m_bufferFormat = 0;
-	uint32_t m_pixelType = 0;
-	uint32_t m_glPixelBufferObjectIDs[2] = {0, 0};
-	uint16_t m_pboWriteIndex = 0;
-	PixelBufferObjectMode m_pboMode = PixelBufferObjectMode::NoPBO;
-	size_t m_PBOByteSize = 0;
-	bool m_bGenerateMipMap = true;
-	TextureWrapMode m_wrapMode = TextureWrapMode::ClampToEdge;
+	uint32_t m_glTextureId= 0;
+	uint16_t m_width= 0;
+	uint16_t m_height= 0;
+	uint32_t m_textureFormat= 0;
+	uint32_t m_bufferFormat= 0;
+	uint32_t m_pixelType= 0;
+	uint32_t m_glPixelBufferObjectIDs[2]= {0, 0};
+	uint16_t m_pboWriteIndex= 0;
+	PixelBufferObjectMode m_pboMode= PixelBufferObjectMode::NoPBO;
+	size_t m_PBOByteSize= 0;
+	bool m_bGenerateMipMap= true;
+	TextureWrapMode m_wrapMode= TextureWrapMode::ClampToEdge;
 	const uint8_t* m_textureMapData;
 	std::filesystem::path m_imagePath;
 };
@@ -715,63 +726,63 @@ public:
 
 	virtual void setExternalPlatformTexture(void* platformTexture) override
 	{
-		auto* glTextureId = reinterpret_cast<const uint32_t*>(platformTexture);
+		auto* glTextureId= reinterpret_cast<const uint32_t*>(platformTexture);
 
 		if (glTextureId != nullptr)
 		{
 			if (*glTextureId != m_glTextureId)
 			{
-				m_glTextureId = *glTextureId;
+				m_glTextureId= *glTextureId;
 
 				glBindTexture(GL_TEXTURE_2D, m_glTextureId);
 
 				// Width and height
-				GLint width = 0, height = 0;
+				GLint width= 0, height= 0;
 				glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
 				glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
-				m_width = static_cast<uint16_t>(width);
-				m_height = static_cast<uint16_t>(height);
+				m_width= static_cast<uint16_t>(width);
+				m_height= static_cast<uint16_t>(height);
 
 				// Internal (texture) format
-				GLint internalFormat = 0;
+				GLint internalFormat= 0;
 				glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &internalFormat);
-				m_textureFormat = static_cast<uint32_t>(internalFormat);
+				m_textureFormat= static_cast<uint32_t>(internalFormat);
 
 				switch (internalFormat)
 				{
 				case GL_RGBA8:
-					m_bufferFormat = GL_RGBA;
-					m_pixelType = GL_UNSIGNED_BYTE;
+					m_bufferFormat= GL_RGBA;
+					m_pixelType= GL_UNSIGNED_BYTE;
 					break;
 				case GL_RGB8:
-					m_bufferFormat = GL_RGB;
-					m_pixelType = GL_UNSIGNED_BYTE;
+					m_bufferFormat= GL_RGB;
+					m_pixelType= GL_UNSIGNED_BYTE;
 					break;
 				case GL_RG8:
-					m_bufferFormat = GL_RG;
-					m_pixelType = GL_UNSIGNED_BYTE;
+					m_bufferFormat= GL_RG;
+					m_pixelType= GL_UNSIGNED_BYTE;
 					break;
 				case GL_R8:
-					m_bufferFormat = GL_RED;
-					m_pixelType = GL_UNSIGNED_BYTE;
+					m_bufferFormat= GL_RED;
+					m_pixelType= GL_UNSIGNED_BYTE;
 					break;
 				case GL_RGBA16F:
-					m_bufferFormat = GL_RGBA;
-					m_pixelType = GL_HALF_FLOAT;
+					m_bufferFormat= GL_RGBA;
+					m_pixelType= GL_HALF_FLOAT;
 					break;
 				case GL_RGBA32F:
-					m_bufferFormat = GL_RGBA;
-					m_pixelType = GL_FLOAT;
+					m_bufferFormat= GL_RGBA;
+					m_pixelType= GL_FLOAT;
 					break;
 				case GL_DEPTH_COMPONENT24:
 				case GL_DEPTH_COMPONENT32F:
-					m_bufferFormat = GL_DEPTH_COMPONENT;
-					m_pixelType = GL_FLOAT;
+					m_bufferFormat= GL_DEPTH_COMPONENT;
+					m_pixelType= GL_FLOAT;
 					break;
 					// Add others as needed
 				default:
-					m_bufferFormat = GL_RGBA;
-					m_pixelType = GL_UNSIGNED_BYTE;
+					m_bufferFormat= GL_RGBA;
+					m_pixelType= GL_UNSIGNED_BYTE;
 					break;
 				}
 
@@ -780,18 +791,18 @@ public:
 		}
 		else
 		{
-			m_glTextureId = 0;
-			m_width = 0;
-			m_height = 0;
-			m_textureFormat = 0;
-			m_bufferFormat = 0;
-			m_pixelType = 0;
+			m_glTextureId= 0;
+			m_width= 0;
+			m_height= 0;
+			m_textureFormat= 0;
+			m_bufferFormat= 0;
+			m_pixelType= 0;
 		}
 	}
 
 	virtual IMkTexture* setName(const std::string& name) override
 	{
-		m_name = name;
+		m_name= name;
 
 		return this;
 	}
@@ -890,7 +901,7 @@ public:
 	virtual void disposeTexture() override
 	{
 		// Forget about the external texture, but don't delete it since we don't own it
-		m_glTextureId = 0;
+		m_glTextureId= 0;
 	}
 
 	virtual bool bindTexture(int textureUnit) const override
@@ -925,12 +936,12 @@ public:
 
 protected:
 	std::string m_name;
-	uint32_t m_glTextureId = 0;
-	uint16_t m_width = 0;
-	uint16_t m_height = 0;
-	uint32_t m_textureFormat = 0;
-	uint32_t m_bufferFormat = 0;
-	uint32_t m_pixelType = 0;
+	uint32_t m_glTextureId= 0;
+	uint16_t m_width= 0;
+	uint16_t m_height= 0;
+	uint32_t m_textureFormat= 0;
+	uint32_t m_bufferFormat= 0;
+	uint32_t m_pixelType= 0;
 };
 
 IMkTexturePtr CreateMkTexture()
@@ -960,52 +971,52 @@ IMkExternalTexturePtr CreateMkExternalTexture(void* platformTexture)
 
 bool saveMkTextureToPNG(IMkTexturePtr texture, const char* filename)
 {
-	int channels = 0;
-	bool bIsBGR = false;
+	int channels= 0;
+	bool bIsBGR= false;
 	switch (texture->getBufferFormat())
 	{
-		case MK_RGB:
-			channels = 3;
-			break;
-		case MK_BGR:
-			channels = 3;
-			bIsBGR = true;
-			break;
-		case MK_RGBA:
-			channels = 4;
-			break;
-		case MK_BGRA:
-			channels = 4;
-			bIsBGR = true;
-			break;
-		default:
-			break;
+	case MK_RGB:
+		channels= 3;
+		break;
+	case MK_BGR:
+		channels= 3;
+		bIsBGR= true;
+		break;
+	case MK_RGBA:
+		channels= 4;
+		break;
+	case MK_BGRA:
+		channels= 4;
+		bIsBGR= true;
+		break;
+	default:
+		break;
 	}
 
-	const int width = texture->getTextureWidth();
-	const int height = texture->getTextureHeight();
+	const int width= texture->getTextureWidth();
+	const int height= texture->getTextureHeight();
 
 	if (width == 0 || height == 0 || channels == 0)
 	{
 		return false;
 	}
 
-	const size_t bufferSize = (size_t)width * height * channels;
-	uint8_t* buffer = new uint8_t[bufferSize];
+	const size_t bufferSize= (size_t)width * height * channels;
+	uint8_t* buffer= new uint8_t[bufferSize];
 
 	texture->copyTextureIntoBuffer(buffer, bufferSize);
 
 	if (bIsBGR)
 	{
 		// Swap R and B channels so stbi_write_png outputs standard RGB(A)
-		for (size_t i = 0; i < bufferSize; i += channels)
+		for (size_t i= 0; i < bufferSize; i+= channels)
 		{
 			std::swap(buffer[i], buffer[i + 2]);
 		}
 	}
 
-	const int stride = width * channels;
-	const bool bSuccess = stbi_write_png(filename, width, height, channels, buffer, stride) != 0;
+	const int stride= width * channels;
+	const bool bSuccess= stbi_write_png(filename, width, height, channels, buffer, stride) != 0;
 
 	delete[] buffer;
 

@@ -9,7 +9,10 @@
 class PropertyRequestHandler : public IServerRequestHandler
 {
 public:
-	PropertyRequestHandler(class MikanServer* owner) : IServerRequestHandler(owner) {}
+	PropertyRequestHandler(class MikanServer* owner)
+		: IServerRequestHandler(owner)
+	{
+	}
 
 	virtual bool startup(class MainWindow* mainWindow) override;
 	virtual void shutdown() override;

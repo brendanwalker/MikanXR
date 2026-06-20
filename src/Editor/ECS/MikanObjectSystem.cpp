@@ -12,7 +12,6 @@
 MikanObjectSystem::MikanObjectSystem(ProjectManagerPtr ownerObjectSystem)
 	: m_ownerObjectSystemManager(ownerObjectSystem)
 {
-
 }
 
 MikanObjectSystem::~MikanObjectSystem()
@@ -22,7 +21,7 @@ MikanObjectSystem::~MikanObjectSystem()
 
 bool MikanObjectSystem::init(MikanObjectSystemDefinitionPtr definitionPtr)
 {
-	m_definitionWeakPtr = definitionPtr;
+	m_definitionWeakPtr= definitionPtr;
 	if (definitionPtr)
 	{
 		definitionPtr->setOwnerSystem(shared_from_this());
@@ -67,7 +66,7 @@ IEditorWindow* MikanObjectSystem::getOwnerWindow() const
 
 IMkGraphicsContext* MikanObjectSystem::getGraphicsContext() const
 {
-	IEditorWindow* ownerWindow = getOwnerWindow();
+	IEditorWindow* ownerWindow= getOwnerWindow();
 	if (ownerWindow)
 	{
 		return ownerWindow->getGraphicsContext().get();
@@ -78,7 +77,7 @@ IMkGraphicsContext* MikanObjectSystem::getGraphicsContext() const
 
 MikanObjectPtr MikanObjectSystem::newEmptyObject()
 {
-	MikanObjectPtr objectPtr = std::make_shared<MikanObject>(shared_from_this());
+	MikanObjectPtr objectPtr= std::make_shared<MikanObject>(shared_from_this());
 	m_objects.push_back(objectPtr);
 
 	return objectPtr;
@@ -101,7 +100,7 @@ bool MikanObjectSystem::disposeObjectInternal(MikanObjectPtr objectPtr)
 	// Only tear down this object if it belongs to this system
 	if (objectPtr)
 	{
-		auto it = std::find(m_objects.begin(), m_objects.end(), objectPtr);
+		auto it= std::find(m_objects.begin(), m_objects.end(), objectPtr);
 		if (it != m_objects.end())
 		{
 			// 1. Call dispose() on all components

@@ -15,24 +15,24 @@ static void setOpencvLoggingLevel(LogSeverityLevel logLevel)
 {
 	switch (logLevel)
 	{
-		case LogSeverityLevel::trace:
-			cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_VERBOSE);
-			break;
-		case LogSeverityLevel::debug:
-			cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_DEBUG);
-			break;
-		case LogSeverityLevel::info:
-			cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_INFO);
-			break;
-		case LogSeverityLevel::warning:
-			cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_WARNING);
-			break;
-		case LogSeverityLevel::error:
-			cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_ERROR);
-			break;
-		case LogSeverityLevel::fatal:
-			cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_FATAL);
-			break;
+	case LogSeverityLevel::trace:
+		cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_VERBOSE);
+		break;
+	case LogSeverityLevel::debug:
+		cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_DEBUG);
+		break;
+	case LogSeverityLevel::info:
+		cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_INFO);
+		break;
+	case LogSeverityLevel::warning:
+		cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_WARNING);
+		break;
+	case LogSeverityLevel::error:
+		cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_ERROR);
+		break;
+	case LogSeverityLevel::fatal:
+		cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_FATAL);
+		break;
 	}
 }
 
@@ -54,32 +54,32 @@ bool OpenCVManager::parseOpenCLBuildInfo()
 	if (cv::ocl::haveOpenCL())
 	{
 		// Test for OpenCL availability
-		cv::ocl::Device device = cv::ocl::Device::getDefault();
+		cv::ocl::Device device= cv::ocl::Device::getDefault();
 
-		const char* DeviceType = "Unknown";
+		const char* DeviceType= "Unknown";
 		switch (device.type())
 		{
-			case cv::ocl::Device::TYPE_DEFAULT:
-				DeviceType = "DEFAULT";
-				break;
-			case cv::ocl::Device::TYPE_CPU:
-				DeviceType = "CPU";
-				break;
-			case cv::ocl::Device::TYPE_GPU:
-				DeviceType = "GPU";
-				break;
-			case cv::ocl::Device::TYPE_ACCELERATOR:
-				DeviceType = "ACCELERATOR";
-				break;
-			case cv::ocl::Device::TYPE_DGPU:
-				DeviceType = "DGPU";
-				break;
-			case cv::ocl::Device::TYPE_IGPU:
-				DeviceType = "IGPU";
-				break;
-			case cv::ocl::Device::TYPE_ALL:
-				DeviceType = "ALL";
-				break;
+		case cv::ocl::Device::TYPE_DEFAULT:
+			DeviceType= "DEFAULT";
+			break;
+		case cv::ocl::Device::TYPE_CPU:
+			DeviceType= "CPU";
+			break;
+		case cv::ocl::Device::TYPE_GPU:
+			DeviceType= "GPU";
+			break;
+		case cv::ocl::Device::TYPE_ACCELERATOR:
+			DeviceType= "ACCELERATOR";
+			break;
+		case cv::ocl::Device::TYPE_DGPU:
+			DeviceType= "DGPU";
+			break;
+		case cv::ocl::Device::TYPE_IGPU:
+			DeviceType= "IGPU";
+			break;
+		case cv::ocl::Device::TYPE_ALL:
+			DeviceType= "ALL";
+			break;
 		}
 
 		MIKAN_LOG_INFO("OpenCL") << "Device Name: " << device.name();
@@ -102,7 +102,7 @@ bool OpenCVManager::parseOpenCLBuildInfo()
 void OpenCVManager::parseOpenCVBuildInfo()
 {
 	// Fetch full OpenCV build information report
-	const cv::String str = cv::getBuildInformation();
+	const cv::String str= cv::getBuildInformation();
 
 	MIKAN_LOG_INFO("OpenCV") << "OpenCV Build Info";
 	MIKAN_LOG_INFO("OpenCV") << "=================";
@@ -120,7 +120,7 @@ void OpenCVManager::parseOpenCVBuildInfo()
 			std::transform(line.begin(), line.end(), line.begin(), ::tolower);
 			if (line.find("yes") != std::string::npos)
 			{
-				m_bHasCudaDNN = true;
+				m_bHasCudaDNN= true;
 				break;
 			}
 		}
@@ -134,16 +134,16 @@ void OpenCVManager::shutdown()
 
 DeepNeuralNetworkPtr OpenCVManager::fetchDeepNeuralNetwork(const std::string& dnnFileName)
 {
-	auto it = m_dnnMap.find(dnnFileName);
+	auto it= m_dnnMap.find(dnnFileName);
 	if (it != m_dnnMap.end())
 	{
 		return it->second;
 	}
 	else
 	{
-		auto dnn = std::make_shared<DeepNeuralNetwork>();
+		auto dnn= std::make_shared<DeepNeuralNetwork>();
 
-		std::filesystem::path dnnPath = DeepNeuralNetwork::getOnnxFilePath(dnnFileName);
+		std::filesystem::path dnnPath= DeepNeuralNetwork::getOnnxFilePath(dnnFileName);
 		if (dnn->loadOnnxFile(dnnPath))
 		{
 			dnn->setName(dnnFileName);

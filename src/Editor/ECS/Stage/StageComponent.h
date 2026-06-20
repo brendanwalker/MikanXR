@@ -36,7 +36,7 @@ public:
 	void setStageBoundsMaxMM(const MikanVector3f& maxMM);
 
 protected:
-	MikanTrackingVolumeID m_trackingVolumeId = INVALID_MIKAN_ID;
+	MikanTrackingVolumeID m_trackingVolumeId= INVALID_MIKAN_ID;
 	MikanVector3f m_stageBoundsMinMM;
 	MikanVector3f m_stageBoundsMaxMM;
 };
@@ -55,7 +55,7 @@ public:
 		return std::static_pointer_cast<StageComponentDefinition>(m_definition);
 	}
 
-	inline static const std::string k_componentClassName = "StageComponent";
+	inline static const std::string k_componentClassName= "StageComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	TrackingVolumeComponentConstPtr getTrackingVolumeConst() const;

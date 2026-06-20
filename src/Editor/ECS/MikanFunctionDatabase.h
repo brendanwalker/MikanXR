@@ -7,9 +7,9 @@
 #include <unordered_map>
 #include <vector>
 
-using MikanFunctionDatabasePtr = std::shared_ptr<class MikanFunctionDatabase>;
-using MikanFunctionDatabaseConstPtr = std::shared_ptr<const class MikanFunctionDatabase>;
-using MikanFunctionDatabaseWeakPtr = std::weak_ptr<class MikanFunctionDatabase>;
+using MikanFunctionDatabasePtr= std::shared_ptr<class MikanFunctionDatabase>;
+using MikanFunctionDatabaseConstPtr= std::shared_ptr<const class MikanFunctionDatabase>;
+using MikanFunctionDatabaseWeakPtr= std::weak_ptr<class MikanFunctionDatabase>;
 
 struct MikanFunctionEntry
 {
@@ -57,8 +57,8 @@ public:
 		for (const FunctionDescriptorConstPtr& descriptor : descriptors)
 		{
 			registerFunction(
-				t_system_class::k_objectSystemClassName, 
-				t_component_class::k_componentClassName, 
+				t_system_class::k_objectSystemClassName,
+				t_component_class::k_componentClassName,
 				descriptor);
 		}
 	}

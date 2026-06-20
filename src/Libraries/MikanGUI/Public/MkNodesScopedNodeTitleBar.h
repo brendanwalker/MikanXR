@@ -8,6 +8,6 @@ public:
 	MkNodesScopedNodeTitleBar();
 	~MkNodesScopedNodeTitleBar();
 
-	MkNodesScopedNodeTitleBar(const MkNodesScopedNodeTitleBar&) = delete;
-	MkNodesScopedNodeTitleBar& operator=(const MkNodesScopedNodeTitleBar&) = delete;
+	MkNodesScopedNodeTitleBar(const MkNodesScopedNodeTitleBar&)= delete;
+	MkNodesScopedNodeTitleBar& operator=(const MkNodesScopedNodeTitleBar&)= delete;
 };

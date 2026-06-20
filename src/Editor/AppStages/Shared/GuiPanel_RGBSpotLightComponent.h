@@ -7,7 +7,9 @@ class GuiPanel_RGBSpotLightComponent : public GuiPanel_MikanComponent
 {
 public:
 	GuiPanel_RGBSpotLightComponent(class AppStage* ownerAppStage)
-		: GuiPanel_MikanComponent(ownerAppStage) {}
+		: GuiPanel_MikanComponent(ownerAppStage)
+	{
+	}
 
 	virtual bool init() override;
 	virtual void onConstruct() override;

@@ -45,10 +45,10 @@
 // -- DrawShapesNodeConfig -----
 configuru::Config DrawShapesNodeConfig::writeToJSON()
 {
-	configuru::Config pt = NodeConfig::writeToJSON();
+	configuru::Config pt= NodeConfig::writeToJSON();
 
-	pt["blend_mode"] = k_compositorBlendModeStrings[(int)blendMode];
-	pt["depth_test"] = bDepthTest;
+	pt["blend_mode"]= k_compositorBlendModeStrings[(int)blendMode];
+	pt["depth_test"]= bDepthTest;
 
 	return pt;
 }
@@ -57,13 +57,13 @@ void DrawShapesNodeConfig::readFromJSON(const configuru::Config& pt)
 {
 	NodeConfig::readFromJSON(pt);
 
-	const std::string blendModeString =
+	const std::string blendModeString=
 		pt.get_or<std::string>(
 			"blend_mode",
 			k_compositorBlendModeStrings[(int)eCompositorBlendMode::blendOn]);
-	blendMode = StringUtils::FindEnumValue<eCompositorBlendMode>(blendModeString, k_compositorBlendModeStrings);
+	blendMode= StringUtils::FindEnumValue<eCompositorBlendMode>(blendModeString, k_compositorBlendModeStrings);
 
-	bDepthTest = pt.get_or<bool>("depth_test", false);
+	bDepthTest= pt.get_or<bool>("depth_test", false);
 }
 
 // -- DrawShapesNode -----
@@ -71,10 +71,10 @@ bool DrawShapesNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 {
 	if (Node::loadFromConfig(nodeConfig))
 	{
-		auto config = std::static_pointer_cast<const DrawShapesNodeConfig>(nodeConfig);
+		auto config= std::static_pointer_cast<const DrawShapesNodeConfig>(nodeConfig);
 
-		m_blendMode = config->blendMode;
-		m_bDepthTest = config->bDepthTest;
+		m_blendMode= config->blendMode;
+		m_bDepthTest= config->bDepthTest;
 
 		return true;
 	}
@@ -84,14 +84,13 @@ bool DrawShapesNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 
 void DrawShapesNode::saveToConfig(NodeConfigPtr nodeConfig) const
 {
-	auto config = std::static_pointer_cast<DrawShapesNodeConfig>(nodeConfig);
+	auto config= std::static_pointer_cast<DrawShapesNodeConfig>(nodeConfig);
 
-	config->blendMode = m_blendMode;
-	config->bDepthTest = m_bDepthTest;
+	config->blendMode= m_blendMode;
+	config->bDepthTest= m_bDepthTest;
 
 	Node::saveToConfig(nodeConfig);
 }
-
 
 void DrawShapesNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 {
@@ -99,21 +98,21 @@ void DrawShapesNode::setOwnerGraph(NodeGraphPtr newOwnerGraph)
 	{
 		if (m_ownerGraph)
 		{
-			m_ownerGraph->OnGraphLoaded -= MakeDelegate(this, &DrawShapesNode::onGraphLoaded);
-			m_ownerGraph = nullptr;
+			m_ownerGraph->OnGraphLoaded-= MakeDelegate(this, &DrawShapesNode::onGraphLoaded);
+			m_ownerGraph= nullptr;
 		}
 
 		if (newOwnerGraph)
 		{
-			newOwnerGraph->OnGraphLoaded += MakeDelegate(this, &DrawShapesNode::onGraphLoaded);
-			m_ownerGraph = newOwnerGraph;
+			newOwnerGraph->OnGraphLoaded+= MakeDelegate(this, &DrawShapesNode::onGraphLoaded);
+			m_ownerGraph= newOwnerGraph;
 		}
 	}
 }
 
 void DrawShapesNode::setShapesPin(ArrayPinPtr inPin)
 {
-	m_shapesPin = inPin;
+	m_shapesPin= inPin;
 }
 
 void DrawShapesNode::onGraphLoaded(bool success)
@@ -123,7 +122,7 @@ void DrawShapesNode::onGraphLoaded(bool success)
 		return;
 
 	// Optionally bind a stencil input pin
-	ArrayPinPtr shapesInPin = getFirstPinOfType<ArrayPin>(eNodePinDirection::INPUT);
+	ArrayPinPtr shapesInPin= getFirstPinOfType<ArrayPin>(eNodePinDirection::INPUT);
 	if (shapesInPin && shapesInPin->getElementClassName() == GraphShapeProperty::k_propertyClassName)
 	{
 		setShapesPin(shapesInPin);
@@ -151,8 +150,8 @@ bool DrawShapesNode::evaluateNode(NodeEvaluator& evaluator)
 	if (!evaluateInputs(evaluator))
 		return false;
 
-	auto compositorGraph = std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
-	CameraComponentPtr cameraComponent = compositorGraph->getBoundCameraComponent();
+	auto compositorGraph= std::static_pointer_cast<CompositorNodeGraph>(getOwnerGraph());
+	CameraComponentPtr cameraComponent= compositorGraph->getBoundCameraComponent();
 	if (!cameraComponent)
 		return false;
 
@@ -166,7 +165,7 @@ bool DrawShapesNode::evaluateNode(NodeEvaluator& evaluator)
 	{
 		for (auto& propPtr : m_shapesPin->getArray())
 		{
-			auto shapeProp = std::dynamic_pointer_cast<GraphShapeProperty>(propPtr);
+			auto shapeProp= std::dynamic_pointer_cast<GraphShapeProperty>(propPtr);
 			if (shapeProp && shapeProp->getShapeComponent())
 				shapeProperties.push_back(shapeProp);
 		}
@@ -178,10 +177,10 @@ bool DrawShapesNode::evaluateNode(NodeEvaluator& evaluator)
 		return true;
 	}
 
-	IMkGraphicsContext* graphicsContext = evaluator.getCurrentGraphicsContext();
-	MkScopedState mkStateScope =
+	IMkGraphicsContext* graphicsContext= evaluator.getCurrentGraphicsContext();
+	MkScopedState mkStateScope=
 		graphicsContext->getMkStateStack().createScopedState("Draw Shapes Node");
-	IMkState* mkState = mkStateScope.getStackState();
+	IMkState* mkState= mkStateScope.getStackState();
 
 	// Set blend mode
 	switch (m_blendMode)
@@ -205,7 +204,7 @@ bool DrawShapesNode::evaluateNode(NodeEvaluator& evaluator)
 	// Draw each shape
 	for (auto& shapeProp : shapeProperties)
 	{
-		ShapeComponentPtr shape = shapeProp->getShapeComponent();
+		ShapeComponentPtr shape= shapeProp->getShapeComponent();
 		if (!shape)
 			continue;
 
@@ -216,25 +215,25 @@ bool DrawShapesNode::evaluateNode(NodeEvaluator& evaluator)
 			continue;
 		}
 
-		IMkTexturePtr colorTexture = shape->getColorTexture();
+		IMkTexturePtr colorTexture= shape->getColorTexture();
 
-		if (auto quadShape = std::dynamic_pointer_cast<QuadShapeComponent>(shape))
+		if (auto quadShape= std::dynamic_pointer_cast<QuadShapeComponent>(shape))
 		{
-			IMkSceneRenderableConstPtr renderable = quadShape->getGlSceneRenderableConst();
+			IMkSceneRenderableConstPtr renderable= quadShape->getGlSceneRenderableConst();
 			if (renderable)
 				drawShapeRenderable(renderable, vpMatrix, colorTexture);
 		}
-		else if (auto boxShape = std::dynamic_pointer_cast<BoxShapeComponent>(shape))
+		else if (auto boxShape= std::dynamic_pointer_cast<BoxShapeComponent>(shape))
 		{
-			IMkSceneRenderableConstPtr renderable = boxShape->getGlSceneRenderableConst();
+			IMkSceneRenderableConstPtr renderable= boxShape->getGlSceneRenderableConst();
 			if (renderable)
 				drawShapeRenderable(renderable, vpMatrix, colorTexture);
 		}
-		else if (auto modelShape = std::dynamic_pointer_cast<ModelShapeComponent>(shape))
+		else if (auto modelShape= std::dynamic_pointer_cast<ModelShapeComponent>(shape))
 		{
 			for (auto& meshComp : modelShape->getTriangulatedMeshes())
 			{
-				IMkSceneRenderableConstPtr renderable = meshComp->getGlSceneRenderableConst();
+				IMkSceneRenderableConstPtr renderable= meshComp->getGlSceneRenderableConst();
 				if (renderable)
 					drawShapeRenderable(renderable, vpMatrix, colorTexture);
 			}
@@ -249,11 +248,11 @@ void DrawShapesNode::drawShapeRenderable(
 	const glm::mat4& vpMatrix,
 	IMkTexturePtr colorTexture)
 {
-	MkMaterialInstancePtr matInst = renderable->getMaterialInstance();
+	MkMaterialInstancePtr matInst= renderable->getMaterialInstance();
 	if (!matInst)
 		return;
 
-	MkMaterialConstPtr material = matInst->getMaterial();
+	MkMaterialConstPtr material= matInst->getMaterial();
 	if (!material)
 		return;
 
@@ -261,7 +260,7 @@ void DrawShapesNode::drawShapeRenderable(
 	// Storing it via setMat4BySemantic would persist in mat4Sources, which runs
 	// AFTER the callback in bindMaterialInstance and would overwrite the scene
 	// camera MVP that MkScene::materialInstanceBindCallback correctly sets.
-	const glm::mat4 mvpMatrix = vpMatrix * renderable->getModelMatrix();
+	const glm::mat4 mvpMatrix= vpMatrix * renderable->getModelMatrix();
 
 	// Bind the color texture to the diffuse semantic
 	if (colorTexture)
@@ -271,29 +270,29 @@ void DrawShapesNode::drawShapeRenderable(
 
 	// Bind material and draw, injecting MVP transiently via callback so it is
 	// never written into mat4Sources on the shared material instance.
-	if (auto materialBinding = material->bindMaterial())
+	if (auto materialBinding= material->bindMaterial())
 	{
-		BindUniformCallback mvpCallback = [&mvpMatrix](
-			IMkShaderPtr program,
-			eUniformDataType dataType,
-			eUniformSemantic semantic,
-			const std::string& uniformName) -> eUniformBindResult
+		BindUniformCallback mvpCallback= [&mvpMatrix](
+											 IMkShaderPtr program,
+											 eUniformDataType dataType,
+											 eUniformSemantic semantic,
+											 const std::string& uniformName) -> eUniformBindResult
 		{
 			if (semantic == eUniformSemantic::modelViewProjectionMatrix)
 			{
 				return program->setMatrix4x4Uniform(uniformName, mvpMatrix)
-					? eUniformBindResult::bound
-					: eUniformBindResult::error;
+						   ? eUniformBindResult::bound
+						   : eUniformBindResult::error;
 			}
 			return eUniformBindResult::unbound;
 		};
 
-		if (auto matInstBinding = matInst->bindMaterialInstance(materialBinding, mvpCallback))
+		if (auto matInstBinding= matInst->bindMaterialInstance(materialBinding, mvpCallback))
 		{
-			auto staticMeshInst = std::dynamic_pointer_cast<const IMkStaticMeshInstance>(renderable);
+			auto staticMeshInst= std::dynamic_pointer_cast<const IMkStaticMeshInstance>(renderable);
 			if (staticMeshInst)
 			{
-				IMkMeshConstPtr mesh = staticMeshInst->getMesh();
+				IMkMeshConstPtr mesh= staticMeshInst->getMesh();
 				if (mesh)
 					mesh->drawElements();
 			}
@@ -311,15 +310,15 @@ void DrawShapesNode::editorRenderPropertySheet(const NodeEditorState& editorStat
 	if (NodeEditorUI::DrawPropertySheetHeader("Draw Shapes Node", editorState.styleManager))
 	{
 		// Blend Mode
-		int iBlendMode = (int)m_blendMode;
+		int iBlendMode= (int)m_blendMode;
 		if (NodeEditorUI::DrawSimpleComboBoxProperty(
-			"drawShapesNodeBlendMode",
-			"Blend Mode",
-			"Blend Off\0Blend On\0",
-			iBlendMode,
-			editorState.styleManager))
+				"drawShapesNodeBlendMode",
+				"Blend Mode",
+				"Blend Off\0Blend On\0",
+				iBlendMode,
+				editorState.styleManager))
 		{
-			m_blendMode = (eCompositorBlendMode)iBlendMode;
+			m_blendMode= (eCompositorBlendMode)iBlendMode;
 		}
 
 		// Depth Test
@@ -333,19 +332,19 @@ void DrawShapesNode::editorRenderPropertySheet(const NodeEditorState& editorStat
 // -- DrawShapesNodeFactory -----
 NodePtr DrawShapesNodeFactory::createNode(const NodeEditorState& editorState) const
 {
-	auto node = std::static_pointer_cast<DrawShapesNode>(NodeFactory::createNode(editorState));
+	auto node= std::static_pointer_cast<DrawShapesNode>(NodeFactory::createNode(editorState));
 
 	// Flow in
-	FlowPinPtr flowInPin = node->addPin<FlowPin>("flowIn", eNodePinDirection::INPUT);
+	FlowPinPtr flowInPin= node->addPin<FlowPin>("flowIn", eNodePinDirection::INPUT);
 
 	// Shapes array in
-	ArrayPinPtr shapesInPin = node->addPin<ArrayPin>("shapes", eNodePinDirection::INPUT);
+	ArrayPinPtr shapesInPin= node->addPin<ArrayPin>("shapes", eNodePinDirection::INPUT);
 	shapesInPin->setElementClassName(GraphShapeProperty::k_propertyClassName);
 	shapesInPin->setHasDefaultValue(true); // unconnected == no shapes
-	node->m_shapesPin = shapesInPin;
+	node->m_shapesPin= shapesInPin;
 
 	// Flow out
-	FlowPinPtr flowOutPin = node->addPin<FlowPin>("flowOut", eNodePinDirection::OUTPUT);
+	FlowPinPtr flowOutPin= node->addPin<FlowPin>("flowOut", eNodePinDirection::OUTPUT);
 
 	autoConnectInputPin(editorState, flowInPin);
 	autoConnectOutputPin(editorState, flowOutPin);

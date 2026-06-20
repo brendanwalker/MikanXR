@@ -13,40 +13,42 @@
 
 // -- VideoSourceDefinition -----
 const std::string VideoSourceDefinition::k_videoSourceIntrinsicsPropertyId= "intrinsics_ptr";
-const std::string VideoSourceDefinition::k_intrinsicsTypePropertyId = "intrinsics_type";
-const std::string VideoSourceDefinition::k_isFrameMirroredPropertyId = "is_frame_mirrored";
-const std::string VideoSourceDefinition::k_isBufferMirroredPropertyId = "is_buffer_mirrored";
-const std::string VideoSourceDefinition::k_videoFrameQueueSizePropertyId = "video_frame_queue_size";
+const std::string VideoSourceDefinition::k_intrinsicsTypePropertyId= "intrinsics_type";
+const std::string VideoSourceDefinition::k_isFrameMirroredPropertyId= "is_frame_mirrored";
+const std::string VideoSourceDefinition::k_isBufferMirroredPropertyId= "is_buffer_mirrored";
+const std::string VideoSourceDefinition::k_videoFrameQueueSizePropertyId= "video_frame_queue_size";
 
 VideoSourceDefinition::VideoSourceDefinition()
 	: MikanComponentDefinition()
 	, m_intrinsics()
-{}
+{
+}
 
 VideoSourceDefinition::VideoSourceDefinition(
 	MikanVideoSourceID videoSourceId)
 	: MikanComponentDefinition(videoSourceId, "")
 	, m_intrinsics()
-{}
+{
+}
 
 configuru::Config VideoSourceDefinition::writeToJSON()
 {
-	configuru::Config pt = MikanComponentDefinition::writeToJSON();
+	configuru::Config pt= MikanComponentDefinition::writeToJSON();
 
-	pt[VideoSourceDefinition::k_isFrameMirroredPropertyId] = m_bIsFrameMirrored;
-	pt[VideoSourceDefinition::k_isBufferMirroredPropertyId] = m_bIsBufferMirrored;
-	pt[VideoSourceDefinition::k_videoFrameQueueSizePropertyId] = m_videoFrameQueueSize;
+	pt[VideoSourceDefinition::k_isFrameMirroredPropertyId]= m_bIsFrameMirrored;
+	pt[VideoSourceDefinition::k_isBufferMirroredPropertyId]= m_bIsBufferMirrored;
+	pt[VideoSourceDefinition::k_videoFrameQueueSizePropertyId]= m_videoFrameQueueSize;
 
 	switch (m_intrinsics.intrinsics_type)
 	{
-		case MikanIntrinsicsType::MONO_CAMERA_INTRINSICS:
-			pt["intrinsics_type"] = std::string("mono");
-			CommonConfig::writeMonoTrackerIntrinsics(pt, m_intrinsics.getMonoIntrinsics());
-			break;
-		case MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS:
-			pt["intrinsics_type"] = std::string("stereo");
-			CommonConfig::writeStereoTrackerIntrinsics(pt, m_intrinsics.getStereoIntrinsics());
-			break;
+	case MikanIntrinsicsType::MONO_CAMERA_INTRINSICS:
+		pt["intrinsics_type"]= std::string("mono");
+		CommonConfig::writeMonoTrackerIntrinsics(pt, m_intrinsics.getMonoIntrinsics());
+		break;
+	case MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS:
+		pt["intrinsics_type"]= std::string("stereo");
+		CommonConfig::writeStereoTrackerIntrinsics(pt, m_intrinsics.getStereoIntrinsics());
+		break;
 	}
 
 	return pt;
@@ -56,29 +58,29 @@ void VideoSourceDefinition::readFromJSON(const configuru::Config& pt)
 {
 	MikanComponentDefinition::readFromJSON(pt);
 
-	m_bIsFrameMirrored = pt.get_or<bool>("is_frame_mirrored", false);
-	m_bIsBufferMirrored = pt.get_or<bool>("is_buffer_mirrored", false);
-	m_videoFrameQueueSize = pt.get_or<int>("video_frame_queue_size", 10);
+	m_bIsFrameMirrored= pt.get_or<bool>("is_frame_mirrored", false);
+	m_bIsBufferMirrored= pt.get_or<bool>("is_buffer_mirrored", false);
+	m_videoFrameQueueSize= pt.get_or<int>("video_frame_queue_size", 10);
 
-	std::string intrinsics_type = pt.get_or<std::string>("intrinsics_type", "");
+	std::string intrinsics_type= pt.get_or<std::string>("intrinsics_type", "");
 	if (intrinsics_type == "mono")
 	{
-		MikanMonoIntrinsics monoIntrinsics = {};
+		MikanMonoIntrinsics monoIntrinsics= {};
 		CommonConfig::readMonoTrackerIntrinsics(pt, monoIntrinsics);
 
-		m_intrinsics.makeMonoIntrinsics() = monoIntrinsics;
+		m_intrinsics.makeMonoIntrinsics()= monoIntrinsics;
 	}
 	else if (intrinsics_type == "stereo")
 	{
-		MikanStereoIntrinsics stereoIntrinsics = {};
+		MikanStereoIntrinsics stereoIntrinsics= {};
 		CommonConfig::readStereoTrackerIntrinsics(pt, stereoIntrinsics);
-		m_intrinsics.intrinsics_type = MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS;
+		m_intrinsics.intrinsics_type= MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS;
 
-		m_intrinsics.makeStereoIntrinsics() = stereoIntrinsics;
+		m_intrinsics.makeStereoIntrinsics()= stereoIntrinsics;
 	}
 	else
 	{
-		m_intrinsics = MikanVideoSourceIntrinsics();
+		m_intrinsics= MikanVideoSourceIntrinsics();
 	}
 }
 
@@ -89,14 +91,14 @@ bool VideoSourceDefinition::readFromInitParams(
 	if (!MikanComponentDefinition::readFromInitParams(ownerObjectSystem, initParams))
 		return false;
 
-	const auto* componentValues = initParams.getTypedPointer<MikanVideoSourceValues>();
+	const auto* componentValues= initParams.getTypedPointer<MikanVideoSourceValues>();
 	if (componentValues)
 	{
-		m_intrinsics.intrinsics_ptr = componentValues->intrinsics_ptr;
-		m_intrinsics.intrinsics_type = componentValues->intrinsics_type;
-		m_bIsFrameMirrored = componentValues->is_frame_mirrored;
-		m_bIsBufferMirrored = componentValues->is_buffer_mirrored;
-		m_videoFrameQueueSize = componentValues->video_frame_queue_size;
+		m_intrinsics.intrinsics_ptr= componentValues->intrinsics_ptr;
+		m_intrinsics.intrinsics_type= componentValues->intrinsics_type;
+		m_bIsFrameMirrored= componentValues->is_frame_mirrored;
+		m_bIsBufferMirrored= componentValues->is_buffer_mirrored;
+		m_videoFrameQueueSize= componentValues->video_frame_queue_size;
 	}
 
 	return true;
@@ -104,13 +106,13 @@ bool VideoSourceDefinition::readFromInitParams(
 
 void VideoSourceDefinition::setIsFrameMirrored(bool isFrameMirrored)
 {
-	m_bIsFrameMirrored = isFrameMirrored;
+	m_bIsFrameMirrored= isFrameMirrored;
 	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_isFrameMirroredPropertyId));
 }
 
 void VideoSourceDefinition::setIsBufferMirrored(bool isBufferMirrored)
 {
-	m_bIsBufferMirrored = isBufferMirrored;
+	m_bIsBufferMirrored= isBufferMirrored;
 	notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_isBufferMirroredPropertyId));
 }
 
@@ -118,7 +120,7 @@ void VideoSourceDefinition::setVideoFrameQueueSize(int videoFrameQueueSize)
 {
 	if (m_videoFrameQueueSize != videoFrameQueueSize)
 	{
-		m_videoFrameQueueSize = videoFrameQueueSize;
+		m_videoFrameQueueSize= videoFrameQueueSize;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_videoFrameQueueSizePropertyId));
 	}
 }
@@ -126,11 +128,11 @@ void VideoSourceDefinition::setVideoFrameQueueSize(int videoFrameQueueSize)
 void VideoSourceDefinition::setCameraIntrinsics(
 	const MikanVideoSourceIntrinsics& cameraIntrinsics)
 {
-	m_intrinsics = cameraIntrinsics;
+	m_intrinsics= cameraIntrinsics;
 	notifyPropertyChanged(
 		ConfigPropertyChangeSet()
-		.addPropertyName(k_videoSourceIntrinsicsPropertyId)
-		.addPropertyName(k_intrinsicsTypePropertyId));
+			.addPropertyName(k_videoSourceIntrinsicsPropertyId)
+			.addPropertyName(k_intrinsicsTypePropertyId));
 }
 
 // -- VideoSourceComponent -----
@@ -138,7 +140,7 @@ VideoSourceComponent::VideoSourceComponent(MikanObjectWeakPtr owner)
 	: MikanComponent(owner)
 	, m_projectionMatrix(glm::mat4(1.f))
 {
-	m_bWantsUpdate = true;
+	m_bWantsUpdate= true;
 }
 
 void VideoSourceComponent::startVideoStream(VideoFrameDistortionView* view)
@@ -155,12 +157,12 @@ void VideoSourceComponent::stopVideoStream(VideoFrameDistortionView* view)
 		std::lock_guard<std::mutex> lock(m_activeViewMutex);
 
 		m_activeViews.erase(view);
-		m_bHasAnyActiveViews = !m_activeViews.empty();
+		m_bHasAnyActiveViews= !m_activeViews.empty();
 	}
 
 	if (m_bHasAnyActiveViews)
 	{
-		const eVideoStreamingStatus status = getVideoStreamingStatus();
+		const eVideoStreamingStatus status= getVideoStreamingStatus();
 		if (status == eVideoStreamingStatus::started || status == eVideoStreamingStatus::pendingStart)
 			stopVideoStreamInternal();
 	}
@@ -172,7 +174,7 @@ void VideoSourceComponent::forceStopVideoStream()
 		std::lock_guard<std::mutex> lock(m_activeViewMutex);
 
 		m_activeViews.clear();
-		m_bHasAnyActiveViews = false;
+		m_bHasAnyActiveViews= false;
 	}
 
 	stopVideoStreamInternal();
@@ -182,7 +184,7 @@ void VideoSourceComponent::update(float deltaSeconds)
 {
 	if (m_bHasAnyActiveViews)
 	{
-		const eVideoStreamingStatus status = getVideoStreamingStatus();
+		const eVideoStreamingStatus status= getVideoStreamingStatus();
 		if (status != eVideoStreamingStatus::started && status != eVideoStreamingStatus::pendingStart)
 			startVideoStreamInternal();
 	}
@@ -198,7 +200,7 @@ void VideoSourceComponent::setDefinition(MikanComponentDefinitionPtr definition)
 {
 	MikanComponent::setDefinition(definition);
 
-	auto videoSourceDefinitionPtr = std::static_pointer_cast<VideoSourceDefinition>(definition);
+	auto videoSourceDefinitionPtr= std::static_pointer_cast<VideoSourceDefinition>(definition);
 }
 
 MikanVideoSourceID VideoSourceComponent::getVideoSourceId() const
@@ -230,7 +232,7 @@ bool VideoSourceComponent::getCameraIntrinsics(MikanVideoSourceIntrinsics& out_c
 {
 	if (areCameraIntrinsicsValid())
 	{
-		out_camera_intrinsics = getVideoSourceDefinition()->getCameraIntrinsics();
+		out_camera_intrinsics= getVideoSourceDefinition()->getCameraIntrinsics();
 
 		return true;
 	}
@@ -273,23 +275,25 @@ void VideoSourceComponent::recomputeCameraProjectionMatrix()
 	{
 		switch (intrinsics.intrinsics_type)
 		{
-			case MikanIntrinsicsType::MONO_CAMERA_INTRINSICS:
-			{
-				const MikanMonoIntrinsics& monoIntrinsics = intrinsics.getMonoIntrinsics();
+		case MikanIntrinsicsType::MONO_CAMERA_INTRINSICS:
+		{
+			const MikanMonoIntrinsics& monoIntrinsics= intrinsics.getMonoIntrinsics();
 
-				computeOpenGLProjMatFromCameraIntrinsics(
-					monoIntrinsics,
-					m_projectionMatrix);
-			} break;
-			case MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS:
-			{
-				const MikanStereoIntrinsics& stereoIntrinsics = intrinsics.getStereoIntrinsics();
+			computeOpenGLProjMatFromCameraIntrinsics(
+				monoIntrinsics,
+				m_projectionMatrix);
+		}
+		break;
+		case MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS:
+		{
+			const MikanStereoIntrinsics& stereoIntrinsics= intrinsics.getStereoIntrinsics();
 
-				computeOpenGLProjMatFromCameraIntrinsics(
-					stereoIntrinsics,
-					eStereoIntrinsicsSide::left,
-					m_projectionMatrix);
-			} break;
+			computeOpenGLProjMatFromCameraIntrinsics(
+				stereoIntrinsics,
+				eStereoIntrinsicsSide::left,
+				m_projectionMatrix);
+		}
+		break;
 		}
 	}
 }
@@ -300,12 +304,12 @@ size_t VideoSourceComponent::getActiveViews(
 {
 	std::lock_guard<std::mutex> lock(m_activeViewMutex);
 
-	size_t resultCount = 0;
+	size_t resultCount= 0;
 	for (VideoFrameDistortionView* activeView : m_activeViews)
 	{
 		if (resultCount < activeViewsMaxListSize)
 		{
-			outActiveViewsList[resultCount] = activeView;
+			outActiveViewsList[resultCount]= activeView;
 			++resultCount;
 		}
 		else
@@ -323,9 +327,9 @@ void VideoSourceComponent::writeVideoFrame(
 	const bool bIsFlipped)
 {
 	VideoFrameDistortionView* activeViews[k_maxActiveViews];
-	size_t activeViewCount = getActiveViews(activeViews, k_maxActiveViews);
+	size_t activeViewCount= getActiveViews(activeViews, k_maxActiveViews);
 
-	for (size_t viewIndex = 0; viewIndex < activeViewCount; ++viewIndex)
+	for (size_t viewIndex= 0; viewIndex < activeViewCount; ++viewIndex)
 	{
 		activeViews[viewIndex]->writeVideoFrame(videoBuffer, bufferDimensions, bIsFlipped);
 	}
@@ -339,9 +343,9 @@ void VideoSourceComponent::writeStereoVideoFrameSection(
 	const cv::Rect& bufferBounds)
 {
 	VideoFrameDistortionView* activeViews[k_maxActiveViews];
-	size_t activeViewCount = getActiveViews(activeViews, k_maxActiveViews);
+	size_t activeViewCount= getActiveViews(activeViews, k_maxActiveViews);
 
-	for (size_t viewIndex = 0; viewIndex < activeViewCount; ++viewIndex)
+	for (size_t viewIndex= 0; viewIndex < activeViewCount; ++viewIndex)
 	{
 		if (activeViews[viewIndex]->getVideoFrameSection() == section)
 		{
@@ -369,13 +373,13 @@ void VideoSourceComponent::getPropertyDescriptors(std::vector<PropertyDescriptor
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			VideoSourceDefinition::k_intrinsicsTypePropertyId, MikanVariantType::INT)
-		->setReadOnly()
-		->setUIHidden());
+			->setReadOnly()
+			->setUIHidden());
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			VideoSourceDefinition::k_videoSourceIntrinsicsPropertyId, MikanVariantType::POLYMORPHIC_OBJECT)
-		->setReadOnly()
-		->setUIHidden());
+			->setReadOnly()
+			->setUIHidden());
 }
 
 bool VideoSourceComponent::getPropertyValue(
@@ -384,27 +388,27 @@ bool VideoSourceComponent::getPropertyValue(
 {
 	if (propertyName == VideoSourceDefinition::k_isFrameMirroredPropertyId)
 	{
-		outValue = getVideoSourceDefinition()->getIsFrameMirrored();
+		outValue= getVideoSourceDefinition()->getIsFrameMirrored();
 		return true;
 	}
 	else if (propertyName == VideoSourceDefinition::k_isBufferMirroredPropertyId)
 	{
-		outValue = getVideoSourceDefinition()->getIsBufferMirrored();
+		outValue= getVideoSourceDefinition()->getIsBufferMirrored();
 		return true;
 	}
 	else if (propertyName == VideoSourceDefinition::k_videoFrameQueueSizePropertyId)
 	{
-		outValue = getVideoSourceDefinition()->getVideoFrameQueueSize();
+		outValue= getVideoSourceDefinition()->getVideoFrameQueueSize();
 		return true;
 	}
 	else if (propertyName == VideoSourceDefinition::k_intrinsicsTypePropertyId)
 	{
-		outValue = (int)getVideoSourceDefinition()->getCameraIntrinsicsType();
+		outValue= (int)getVideoSourceDefinition()->getCameraIntrinsicsType();
 		return true;
 	}
 	else if (propertyName == VideoSourceDefinition::k_videoSourceIntrinsicsPropertyId)
 	{
-		outValue = getVideoSourceDefinition()->getCameraIntrinsics().intrinsics_ptr;
+		outValue= getVideoSourceDefinition()->getCameraIntrinsics().intrinsics_ptr;
 		return true;
 	}
 
@@ -435,9 +439,9 @@ bool VideoSourceComponent::setPropertyValue(
 }
 
 // -- IFunctionInterface ----
-const std::string VideoSourceComponent::k_showVideoSourceSettingsFunctionId = "show_video_source_settings";
-const std::string VideoSourceComponent::k_calibrateIntrinsicsFunctionId = "calibrate_intrinsics";
-const std::string VideoSourceComponent::k_testIntrinsicsFunctionId = "test_intrinsics";
+const std::string VideoSourceComponent::k_showVideoSourceSettingsFunctionId= "show_video_source_settings";
+const std::string VideoSourceComponent::k_calibrateIntrinsicsFunctionId= "calibrate_intrinsics";
+const std::string VideoSourceComponent::k_testIntrinsicsFunctionId= "test_intrinsics";
 
 void VideoSourceComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
@@ -477,21 +481,19 @@ bool VideoSourceComponent::invokeFunction(const std::string& functionName)
 
 void VideoSourceComponent::showVideoSourceSettings()
 {
-	getOwnerEditorWindow()->pushAppStageOfType<AppStage_VideoSourceSettings>()
-		->setVideoSourceComponent(getSelfPtr<VideoSourceComponent>());
+	getOwnerEditorWindow()->pushAppStageOfType<AppStage_VideoSourceSettings>()->setVideoSourceComponent(getSelfPtr<VideoSourceComponent>());
 }
 
 void VideoSourceComponent::calibrateIntrinsics()
 {
-	auto* monoLensCalibration =
+	auto* monoLensCalibration=
 		getOwnerEditorWindow()->pushAppStageOfType<AppStage_MonoLensCalibration>();
 	monoLensCalibration->setVideoSourceComponent(getSelfPtr<VideoSourceComponent>());
-
 }
 
 void VideoSourceComponent::testIntrinsics()
 {
-	auto* monoLensCalibration = 
+	auto* monoLensCalibration=
 		getOwnerEditorWindow()->pushAppStageOfType<AppStage_MonoLensCalibration>();
 	monoLensCalibration->setBypassCalibrationFlag(true);
 	monoLensCalibration->setVideoSourceComponent(getSelfPtr<VideoSourceComponent>());

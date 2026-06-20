@@ -66,41 +66,41 @@ void AnchorComponent::init()
 	MikanComponent::init();
 
 	// Watch selection changes
-	m_selectionComponent = getOwnerObject()->getComponentOfType<SelectionComponent>();
+	m_selectionComponent= getOwnerObject()->getComponentOfType<SelectionComponent>();
 
 	// Push our world transform to all child scene components
 	propogateWorldTransformChange(eTransformChangeType::recomputeWorldTransformAndPropogate);
 }
 
 void AnchorComponent::customRender(
-	IMkGraphicsContext* graphicsContext, 
+	IMkGraphicsContext* graphicsContext,
 	MikanCameraPtr viewportCamera) const
-{	
-	TextStyle style = getDefaultTextStyle();
+{
+	TextStyle style= getDefaultTextStyle();
 
 	AnchorDefinitionPtr anchorDefinition= getAnchorDefinition();
 	wchar_t wszAnchorName[256];
 	StringUtils::convertMbsToWcs(anchorDefinition->getComponentName().c_str(), wszAnchorName, sizeof(wszAnchorName));
-	glm::mat4 anchorXform = getWorldTransform();
+	glm::mat4 anchorXform= getWorldTransform();
 	glm::vec3 anchorPos(anchorXform[3]);
 
-	glm::vec3 xColor = Colors::DarkRed;
-	glm::vec3 yColor = Colors::DarkGreen;
-	glm::vec3 zColor = Colors::DarkBlue;
-	SelectionComponentPtr selectionComponent = m_selectionComponent.lock();
+	glm::vec3 xColor= Colors::DarkRed;
+	glm::vec3 yColor= Colors::DarkGreen;
+	glm::vec3 zColor= Colors::DarkBlue;
+	SelectionComponentPtr selectionComponent= m_selectionComponent.lock();
 	if (selectionComponent)
 	{
 		if (selectionComponent->getIsSelected())
 		{
-			xColor = Colors::Red;
-			yColor = Colors::Green;
-			zColor = Colors::Blue;
+			xColor= Colors::Red;
+			yColor= Colors::Green;
+			zColor= Colors::Blue;
 		}
 		else if (selectionComponent->getIsHovered())
 		{
-			xColor = Colors::LightGreen;
-			yColor = Colors::LightGreen;
-			zColor = Colors::LightBlue;
+			xColor= Colors::LightGreen;
+			yColor= Colors::LightGreen;
+			zColor= Colors::LightBlue;
 		}
 	}
 
@@ -109,7 +109,7 @@ void AnchorComponent::customRender(
 }
 
 // -- IFunctionInterface ----
-const std::string AnchorComponent::k_editAnchorFunctionId = "edit_anchor";
+const std::string AnchorComponent::k_editAnchorFunctionId= "edit_anchor";
 
 void AnchorComponent::getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
 {
@@ -135,29 +135,28 @@ void AnchorComponent::editAnchor()
 {
 	AnchorDefinitionPtr definition= getAnchorDefinition();
 	MikanSpatialAnchorID anchorId= definition->getComponentId();
-	AnchorComponentPtr anchorComponent = 
+	AnchorComponentPtr anchorComponent=
 		getObjectSystemOfType<AnchorObjectSystem>()->getSpatialAnchorById(anchorId);
 	if (anchorComponent != nullptr)
 	{
-		AppStage* currentAppStage = getOwnerEditorWindow()->getCurrentAppStage();
+		AppStage* currentAppStage= getOwnerEditorWindow()->getCurrentAppStage();
 
 		ModalDialog_SelectCamera::selectCamera(
 			currentAppStage,
-			[this, definition](MikanCameraID cameraId) {
+			[this, definition](MikanCameraID cameraId)
+			{
 				// Show Anchor Triangulation Tool
-				AppStage_AnchorTriangulation* anchorTriangulation = 
+				AppStage_AnchorTriangulation* anchorTriangulation=
 					getOwnerEditorWindow()->pushAppStageOfType<AppStage_AnchorTriangulation>();
 
-				AnchorTriangulatorInfo anchorInfo = {
+				AnchorTriangulatorInfo anchorInfo= {
 					definition->getComponentId(),
 					definition->getRelativeTransform(),
-					definition->getComponentName()
-				};
+					definition->getComponentName()};
 				anchorTriangulation->setSourceCamera(
 					getObjectSystemOfType<CameraObjectSystem>()->getCameraById(cameraId));
 				anchorTriangulation->setTargetAnchor(anchorInfo);
 			});
-
 	}
 }
 
@@ -168,8 +167,9 @@ void AnchorComponent::bindLuaFunctions(struct lua_State* L)
 		.deriveClass<AnchorComponent, TransformComponent>(
 			AnchorComponent::k_componentClassName.c_str())
 		.addFunction("editAnchor",
-			[](AnchorComponent* c) {
-				c->editAnchor();
-			})
+					 [](AnchorComponent* c)
+					 {
+						 c->editAnchor();
+					 })
 		.endClass();
 }

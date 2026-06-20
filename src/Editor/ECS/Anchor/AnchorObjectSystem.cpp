@@ -24,7 +24,7 @@ AnchorObjectSystemDefinition::AnchorObjectSystemDefinition(
 
 configuru::Config AnchorObjectSystemDefinition::writeToJSON()
 {
-	configuru::Config pt = Super::writeToJSON();
+	configuru::Config pt= Super::writeToJSON();
 
 	return pt;
 }
@@ -42,10 +42,10 @@ AnchorObjectSystem::AnchorObjectSystem(ProjectManagerPtr ownerObjectSystem)
 
 bool AnchorObjectSystem::getSpatialAnchorWorldTransform(MikanSpatialAnchorID anchorId, glm::mat4& outXform) const
 {
-	AnchorComponentPtr anchorPtr = getSpatialAnchorById(anchorId);
+	AnchorComponentPtr anchorPtr= getSpatialAnchorById(anchorId);
 	if (anchorPtr)
 	{
-		outXform = anchorPtr->getWorldTransform();
+		outXform= anchorPtr->getWorldTransform();
 		return true;
 	}
 
@@ -56,15 +56,15 @@ void AnchorObjectSystem::additionalComponentFactory(
 	MikanObjectPtr ownerComponentObject,
 	ComponentDefinitionPtr componentDefinition)
 {
-	TransformComponentPtr rootComponent = ownerComponentObject->getRootComponent();
+	TransformComponentPtr rootComponent= ownerComponentObject->getRootComponent();
 	assert(rootComponent);
 
 	// Add a selection component
 	ownerComponentObject->addComponent<SelectionComponent>();
 
 	// Attach a box collider to anchor component
-	const float size = 0.1f;
-	BoxColliderComponentPtr boxColliderPtr = ownerComponentObject->addComponent<BoxColliderComponent>();
+	const float size= 0.1f;
+	BoxColliderComponentPtr boxColliderPtr= ownerComponentObject->addComponent<BoxColliderComponent>();
 	boxColliderPtr->setHalfExtents(glm::vec3(size * 0.5f, size * 0.5f, size * 0.5f));
 	boxColliderPtr->setRelativeTransform(GlmTransform(glm::vec3(size * 0.5f, size * 0.5f, size * 0.5f)));
 	boxColliderPtr->attachToComponent(rootComponent);
@@ -91,23 +91,28 @@ void AnchorObjectSystem::bindLuaFunctions(struct lua_State* L)
 	luabridge::getGlobalNamespace(L)
 		.beginClass<AnchorObjectSystem>("AnchorObjectSystem")
 		.addFunction("getAnchorById",
-			[](AnchorObjectSystem* s, int id) -> AnchorComponent* {
-				return s->getSpatialAnchorById(static_cast<MikanSpatialAnchorID>(id)).get();
-			})
+					 [](AnchorObjectSystem* s, int id) -> AnchorComponent*
+					 {
+						 return s->getSpatialAnchorById(static_cast<MikanSpatialAnchorID>(id)).get();
+					 })
 		.addFunction("getAnchorByName",
-			[](AnchorObjectSystem* s, const std::string& name) -> AnchorComponent* {
-				return s->getSpatialAnchorByName(name).get();
-			})
+					 [](AnchorObjectSystem* s, const std::string& name) -> AnchorComponent*
+					 {
+						 return s->getSpatialAnchorByName(name).get();
+					 })
 		.addFunction("getAnchorCount",
-			[](AnchorObjectSystem* s) -> int {
-				return static_cast<int>(s->getComponentMap().size());
-			})
+					 [](AnchorObjectSystem* s) -> int
+					 {
+						 return static_cast<int>(s->getComponentMap().size());
+					 })
 		.addFunction("getAnchorAtIndex",
-			[](AnchorObjectSystem* s, int i) -> AnchorComponent* {
-				int n = 0;
-				for (auto& [id, wp] : s->getComponentMap())
-					if (n++ == i) return wp.lock().get();
-				return nullptr;
-			})
+					 [](AnchorObjectSystem* s, int i) -> AnchorComponent*
+					 {
+						 int n= 0;
+						 for (auto& [id, wp] : s->getComponentMap())
+							 if (n++ == i)
+								 return wp.lock().get();
+						 return nullptr;
+					 })
 		.endClass();
 }

@@ -13,8 +13,7 @@
 #include <memory>
 #include <string>
 
-class TrackingMountDefinition : 
-	public MikanComponentDefinition
+class TrackingMountDefinition : public MikanComponentDefinition
 {
 public:
 	TrackingMountDefinition();
@@ -47,12 +46,14 @@ public:
 	TrackingMountComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
 
-	inline static const std::string k_componentClassName = "TrackingMountComponent";
+	inline static const std::string k_componentClassName= "TrackingMountComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	TrackingMountObjectSystemPtr getOwnerTrackingMountSystem() const;
 	inline TrackingMountDefinitionPtr getTrackingMountDefinition() const
-	{ return std::static_pointer_cast<TrackingMountDefinition>(m_definition); }
+	{
+		return std::static_pointer_cast<TrackingMountDefinition>(m_definition);
+	}
 	VRDeviceComponentPtr getVRDeviceComponent() const;
 
 	VRDevicePoseViewPtr makePoseView(eVRDevicePoseSpace space) const;
@@ -69,7 +70,9 @@ public:
 
 	// -- IFunctionInterface ----
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
-	{ MikanComponent::getFunctionDescriptors(outDescriptors); }
+	{
+		MikanComponent::getFunctionDescriptors(outDescriptors);
+	}
 
 protected:
 	virtual void onDefinitionMarkedDirty(CommonConfigPtr configPtr, const ConfigPropertyChangeSet& changedPropertySet) override;

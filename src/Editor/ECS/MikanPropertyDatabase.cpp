@@ -15,12 +15,12 @@ void MikanPropertyDatabase::registerProperty(
 	const std::string& componentClassName,
 	PropertyDescriptorConstPtr descriptor)
 {
-	const int propertyIndex = (int)m_properties.size();
+	const int propertyIndex= (int)m_properties.size();
 	m_properties.push_back(MikanPropertyEntry(propertyIndex, systemName, componentClassName, descriptor));
 
 	// Add to the lookup map for fast indexing
-	const std::string key = makePropertyKey(systemName, componentClassName, descriptor->getName());
-	m_propertyKeyToIndexMap[key] = propertyIndex;
+	const std::string key= makePropertyKey(systemName, componentClassName, descriptor->getName());
+	m_propertyKeyToIndexMap[key]= propertyIndex;
 }
 
 int MikanPropertyDatabase::findPropertyIndex(
@@ -29,8 +29,8 @@ int MikanPropertyDatabase::findPropertyIndex(
 	const std::string& propertyName) const
 {
 	// Use the hash map for O(1) lookup
-	const std::string key = makePropertyKey(systemName, componentClassName, propertyName);
-	auto it = m_propertyKeyToIndexMap.find(key);
+	const std::string key= makePropertyKey(systemName, componentClassName, propertyName);
+	auto it= m_propertyKeyToIndexMap.find(key);
 
 	if (it != m_propertyKeyToIndexMap.end())
 	{
@@ -65,10 +65,10 @@ PropertyDescriptorConstPtr MikanPropertyDatabase::findPropertyDescriptor(
 	const std::string& componentClassName,
 	const std::string& propertyName) const
 {
-	int propertyIndex = findPropertyIndex(systemName, componentClassName, propertyName);
+	int propertyIndex= findPropertyIndex(systemName, componentClassName, propertyName);
 	if (propertyIndex != -1)
 	{
-		const MikanPropertyEntry* entry = getPropertyByIndex(propertyIndex);
+		const MikanPropertyEntry* entry= getPropertyByIndex(propertyIndex);
 
 		if (entry)
 		{

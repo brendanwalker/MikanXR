@@ -12,7 +12,7 @@ bool NodeEvaluator::evaluateFlowPinChain(NodePtr startNode)
 	// * We encounter a node with now output FlowPin
 	// * Node evaluation returns an error
 	// * Node evaluation count hits infinite loop detection threshold
-	while (m_currentNode && 
+	while (m_currentNode &&
 		   !hasErrors() &&
 		   m_evaluatedNodeCount < kInifiniteLoopThreshold)
 	{

@@ -8,15 +8,15 @@
 struct MkStateStackData
 {
 	std::vector<IMkState*> stateStack;
-	class IMkGraphicsContext* ownerContext = nullptr;
-	bool bDebugPrint = false;
+	class IMkGraphicsContext* ownerContext= nullptr;
+	bool bDebugPrint= false;
 };
 
 MkStateStack::MkStateStack(IMkGraphicsContext* ownerContext)
 	: m_data(new MkStateStackData())
 {
-	m_data->ownerContext = ownerContext;
-	m_data->bDebugPrint = false;
+	m_data->ownerContext= ownerContext;
+	m_data->bDebugPrint= false;
 }
 
 MkStateStack::~MkStateStack()
@@ -32,7 +32,7 @@ MkStateStack::~MkStateStack()
 IMkState* MkStateStack::pushState(const std::string& scopeName)
 {
 	// Create a new GlState and initialize it from the parent state on this stack
-	IMkState* state = createMkState(*this, scopeName, (int)m_data->stateStack.size());
+	IMkState* state= createMkState(*this, scopeName, (int)m_data->stateStack.size());
 
 	// Add it to the top of the stack
 	m_data->stateStack.push_back(state);
@@ -47,15 +47,14 @@ int MkStateStack::getCurrentStackDepth() const
 
 IMkState* MkStateStack::getState(const int depth) const
 {
-	return 
-		(depth >= 0 && depth < (int)m_data->stateStack.size()) 
-		? m_data->stateStack[depth] 
-		: nullptr;
+	return (depth >= 0 && depth < (int)m_data->stateStack.size())
+			   ? m_data->stateStack[depth]
+			   : nullptr;
 }
 
-IMkState* MkStateStack::getCurrentState() const 
+IMkState* MkStateStack::getCurrentState() const
 {
-	return getState(getCurrentStackDepth()); 
+	return getState(getCurrentStackDepth());
 }
 
 IMkGraphicsContext* MkStateStack::getOwnerContext() const
@@ -65,17 +64,17 @@ IMkGraphicsContext* MkStateStack::getOwnerContext() const
 
 void MkStateStack::setDebugPrintEnabled(bool bDebugPrint)
 {
-	m_data->bDebugPrint = bDebugPrint; 
+	m_data->bDebugPrint= bDebugPrint;
 }
 
 bool MkStateStack::isDebugPrintEnabled() const
-{ 
-	return m_data->bDebugPrint; 
+{
+	return m_data->bDebugPrint;
 }
 
 void MkStateStack::popState()
 {
-	const int currentDepth = getCurrentStackDepth();
+	const int currentDepth= getCurrentStackDepth();
 
 	if (currentDepth >= 0)
 	{

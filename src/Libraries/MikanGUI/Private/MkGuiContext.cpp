@@ -9,31 +9,31 @@
 #include <GL/glew.h>
 
 #if defined(_WIN32)
-	#include <SDL.h>
-	#include <SDL_events.h>
-	#include <SDL_mouse.h>
-	#include <SDL_syswm.h>
-	#include <SDL_image.h>
-	#if defined(IMGUI_IMPL_OPENGL_ES2)
-		#include <SDL_opengles2.h>
-		#include <SDL_opengles2_gl2.h>
-	#else
-		#include <SDL_opengl.h>
-		#include <SDL_opengl_glext.h>
-	#endif
+#include <SDL.h>
+#include <SDL_events.h>
+#include <SDL_mouse.h>
+#include <SDL_syswm.h>
+#include <SDL_image.h>
+#if defined(IMGUI_IMPL_OPENGL_ES2)
+#include <SDL_opengles2.h>
+#include <SDL_opengles2_gl2.h>
 #else
-	#include <SDL2/SDL.h>
-	#include <SDL2/SDL_events.h>
-	#include <SDL2/SDL_mouse.h>
-	#include <SDL2/SDL_image.h>
-	#include <SDL2/SDL_syswm.h>
-	#if defined(IMGUI_IMPL_OPENGL_ES2)
-		#include <SDL2/SDL_opengles2.h>
-		#include <SDL2/SDL_opengles2_gl2.h>
-	#else
-		#include <SDL2/SDL_opengl.h>
-		#include <SDL2/SDL_opengl_glext.h>
-	#endif
+#include <SDL_opengl.h>
+#include <SDL_opengl_glext.h>
+#endif
+#else
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_events.h>
+#include <SDL2/SDL_mouse.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_syswm.h>
+#if defined(IMGUI_IMPL_OPENGL_ES2)
+#include <SDL2/SDL_opengles2.h>
+#include <SDL2/SDL_opengles2_gl2.h>
+#else
+#include <SDL2/SDL_opengl.h>
+#include <SDL2/SDL_opengl_glext.h>
+#endif
 #endif
 
 #include "imgui.h"
@@ -63,15 +63,15 @@ IMkTextureCache* MkGuiContext::getTextureCache() const
 
 bool MkGuiContext::startup()
 {
-	bool success = true;
+	bool success= true;
 
 	// Store previous contexts so we can restore them after we're done setting up our own contexts
-	ImGuiContext* prevImGuiContext = ImGui::GetCurrentContext();
-	ImNodesContext* prevImNodesContext = ImNodes::GetCurrentContext();
+	ImGuiContext* prevImGuiContext= ImGui::GetCurrentContext();
+	ImNodesContext* prevImNodesContext= ImNodes::GetCurrentContext();
 
 	// Setup ImGui context
 	IMGUI_CHECKVERSION();
-	m_imguiContext = ImGui::CreateContext();
+	m_imguiContext= ImGui::CreateContext();
 	if (m_imguiContext != nullptr)
 	{
 		// Set the current ImGui context to the one we just created
@@ -83,19 +83,18 @@ bool MkGuiContext::startup()
 	else
 	{
 		MIKAN_LOG_ERROR("MkGuiContext::startup") << "Unable to create imgui context";
-		success = false;
+		success= false;
 	}
-
 
 	// Setup ImGui window backend (e.g. SDL)
 	if (success)
 	{
-		bool bInitializedBackend = false;
+		bool bInitializedBackend= false;
 
 		switch (m_window->getWindowAPI())
 		{
 		case eWindowAPI::SDL:
-			success = initImGuiSDLBackend();
+			success= initImGuiSDLBackend();
 			break;
 		default:
 			MIKAN_LOG_ERROR("MkGuiContext::startup") << "Unsupported window API";
@@ -109,7 +108,7 @@ bool MkGuiContext::startup()
 		switch (m_window->getGraphicsContext()->getGraphicsAPI())
 		{
 		case eGraphicsAPI::OpenGL:
-			success = initImGuiOpenGlBackend();
+			success= initImGuiOpenGlBackend();
 			break;
 		default:
 			MIKAN_LOG_ERROR("MkGuiContext::startup") << "Unsupported graphics API";
@@ -120,7 +119,7 @@ bool MkGuiContext::startup()
 	// Setup the ImNodes context
 	if (success)
 	{
-		m_imnodesContext = ImNodes::CreateContext();
+		m_imnodesContext= ImNodes::CreateContext();
 		if (m_imnodesContext != nullptr)
 		{
 			// Set the current ImNodes context to the one we just created
@@ -132,7 +131,7 @@ bool MkGuiContext::startup()
 		else
 		{
 			MIKAN_LOG_ERROR("MkGuiContext::startup") << "Unable to create imnodes context";
-			success = false;
+			success= false;
 		}
 	}
 
@@ -145,17 +144,17 @@ bool MkGuiContext::startup()
 
 bool MkGuiContext::initImGuiSDLBackend()
 {
-	SDL_Window* sdlWindow = (SDL_Window*)m_window->getNativeWindowHandle();
-	bool success = false;
+	SDL_Window* sdlWindow= (SDL_Window*)m_window->getNativeWindowHandle();
+	bool success= false;
 
-	switch(m_window->getGraphicsContext()->getGraphicsAPI())
+	switch (m_window->getGraphicsContext()->getGraphicsAPI())
 	{
 	case eGraphicsAPI::OpenGL:
-		{
-			void* glContext = m_window->getGraphicsContext()->getNativeGraphicsContext();
-			success = ImGui_ImplSDL2_InitForOpenGL(sdlWindow, glContext);
-		}
-		break;
+	{
+		void* glContext= m_window->getGraphicsContext()->getNativeGraphicsContext();
+		success= ImGui_ImplSDL2_InitForOpenGL(sdlWindow, glContext);
+	}
+	break;
 	default:
 		MIKAN_LOG_ERROR("MkGuiContext::initImGuiSDLBackend") << "Unsupported graphics API";
 		break;
@@ -163,7 +162,7 @@ bool MkGuiContext::initImGuiSDLBackend()
 
 	if (success)
 	{
-		m_imguiWindowAPI = eWindowAPI::SDL;
+		m_imguiWindowAPI= eWindowAPI::SDL;
 	}
 	else
 	{
@@ -178,23 +177,23 @@ bool MkGuiContext::initImGuiOpenGlBackend()
 	// Decide GL+GLSL versions
 #if defined(IMGUI_IMPL_OPENGL_ES2)
 	// GL ES 2.0 + GLSL 100
-	const char* glsl_version = "#version 100";
+	const char* glsl_version= "#version 100";
 #elif defined(__APPLE__)
 	// GL 3.2 Core + GLSL 150
-	const char* glsl_version = "#version 150";
+	const char* glsl_version= "#version 150";
 #else
 	// GL 3.0 + GLSL 130
-	const char* glsl_version = "#version 130";
+	const char* glsl_version= "#version 130";
 #endif
 
 	if (ImGui_ImplOpenGL3_Init(glsl_version))
 	{
-		m_imguiGraphicsAPI = eGraphicsAPI::OpenGL;
+		m_imguiGraphicsAPI= eGraphicsAPI::OpenGL;
 		return true;
 	}
 	else
 	{
-		MIKAN_LOG_ERROR("MkGuiContext::startup") << "Unable to initialize imgui openGL backend";		
+		MIKAN_LOG_ERROR("MkGuiContext::startup") << "Unable to initialize imgui openGL backend";
 	}
 
 	return false;
@@ -205,14 +204,14 @@ bool MkGuiContext::onWindowEvent(const MkWindowEvent& event)
 	// Make sure this ImGui context is current when reading IO state
 	MkGuiScopedContext scopedContext(*this);
 
-	const SDL_Event* sdlEvent = (const SDL_Event*)event.getInternalWindowEvent();
+	const SDL_Event* sdlEvent= (const SDL_Event*)event.getInternalWindowEvent();
 	ImGui_ImplSDL2_ProcessEvent(sdlEvent);
 
 	// Only block the event from reaching the rest of the app if ImGui is actually
 	// consuming that input type. WantCaptureMouse/WantCaptureKeyboard reflect the
 	// previous frame's state, which is the standard ImGui approach for event-time
 	// filtering when events are processed before ImGui::NewFrame().
-	const ImGuiIO& io = ImGui::GetIO();
+	const ImGuiIO& io= ImGui::GetIO();
 	switch (event.getEventType())
 	{
 	case eMkWindowEventType::MouseButtonDown:
@@ -231,8 +230,8 @@ bool MkGuiContext::onWindowEvent(const MkWindowEvent& event)
 void MkGuiContext::shutdown()
 {
 	// Store previous contexts so we can restore them after we're done setting up our own contexts
-	ImGuiContext* prevImGuiContext = ImGui::GetCurrentContext();
-	ImNodesContext* prevImNodesContext = ImNodes::GetCurrentContext();
+	ImGuiContext* prevImGuiContext= ImGui::GetCurrentContext();
+	ImNodesContext* prevImNodesContext= ImNodes::GetCurrentContext();
 
 	// Tear down imnodes first, if valid
 	if (m_imnodesContext != nullptr)
@@ -242,7 +241,7 @@ void MkGuiContext::shutdown()
 		m_imnodesContext= nullptr;
 	}
 
-	// Set the current ImGui context to the one we are about to 
+	// Set the current ImGui context to the one we are about to
 	if (m_imguiContext != nullptr)
 	{
 		ImGui::SetCurrentContext(m_imguiContext);
@@ -252,7 +251,7 @@ void MkGuiContext::shutdown()
 		{
 		case eGraphicsAPI::OpenGL:
 			ImGui_ImplOpenGL3_Shutdown();
-			m_imguiGraphicsAPI = eGraphicsAPI::INVALID;
+			m_imguiGraphicsAPI= eGraphicsAPI::INVALID;
 			break;
 		}
 
@@ -261,12 +260,12 @@ void MkGuiContext::shutdown()
 		{
 		case eWindowAPI::SDL:
 			ImGui_ImplSDL2_Shutdown();
-			m_imguiWindowAPI = eWindowAPI::INVALID;
+			m_imguiWindowAPI= eWindowAPI::INVALID;
 			break;
 		}
-	
+
 		ImGui::DestroyContext(m_imguiContext);
-		m_imguiContext = nullptr;
+		m_imguiContext= nullptr;
 	}
 
 	// Restore previous contexts
@@ -296,46 +295,46 @@ void MkGuiContext::submitDrawData()
 
 void MkGuiContext::configImGui()
 {
-	ImGuiIO& io = ImGui::GetIO();
+	ImGuiIO& io= ImGui::GetIO();
 
 	io.Fonts->AddFontFromFileTTF(
 		getDefaultJapaneseFontPath().string().c_str(), 16, NULL, io.Fonts->GetGlyphRangesJapanese());
-	//TODO: Find these fonts
-	//io.Fonts->AddFontFromFileTTF(getDefaultKoreanFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesKorean();
-	//io.Fonts->AddFontFromFileTTF(getDefaultChineseFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesChineseFull();
-	//io.Fonts->AddFontFromFileTTF(getDefaultCyrillicFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesCyrillic();
-	//io.Fonts->AddFontFromFileTTF(getDefaultThaiFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesThai();
-	//io.Fonts->AddFontFromFileTTF(getDefaultVietnameseFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesVietnamese();
+	// TODO: Find these fonts
+	// io.Fonts->AddFontFromFileTTF(getDefaultKoreanFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesKorean();
+	// io.Fonts->AddFontFromFileTTF(getDefaultChineseFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesChineseFull();
+	// io.Fonts->AddFontFromFileTTF(getDefaultCyrillicFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesCyrillic();
+	// io.Fonts->AddFontFromFileTTF(getDefaultThaiFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesThai();
+	// io.Fonts->AddFontFromFileTTF(getDefaultVietnameseFontPath().c_str(), 16, NULL, io.Fonts->GetGlyphRangesVietnamese();
 
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
 
-	static const ImWchar icons_ranges[] = {ICON_MIN_FK, ICON_MAX_FK, 0};
+	static const ImWchar icons_ranges[]= {ICON_MIN_FK, ICON_MAX_FK, 0};
 	ImFontConfig icons_config;
-	icons_config.MergeMode = true;
-	icons_config.PixelSnapH = true;
-	
-	m_NormalIconFont = io.Fonts->AddFontFromFileTTF(
+	icons_config.MergeMode= true;
+	icons_config.PixelSnapH= true;
+
+	m_NormalIconFont= io.Fonts->AddFontFromFileTTF(
 		getForkAwesomeWebFontPath().string().c_str(),
 		14, &icons_config, icons_ranges);
 
-	icons_config.GlyphOffset.y += (22 - 17) * 0.5f;
-	m_BigIconFont = io.Fonts->AddFontFromFileTTF(
+	icons_config.GlyphOffset.y+= (22 - 17) * 0.5f;
+	m_BigIconFont= io.Fonts->AddFontFromFileTTF(
 		getForkAwesomeWebFontPath().string().c_str(),
 		22, &icons_config, icons_ranges);
 }
 
 void MkGuiContext::configImNodes()
 {
-	ImNodes::GetIO().AltMouseButton = ImGuiMouseButton_Right;
+	ImNodes::GetIO().AltMouseButton= ImGuiMouseButton_Right;
 
-	ImNodes::GetStyle().NodePadding = ImVec2(12.0f, 5.0f);
-	ImNodes::GetStyle().PinOffset = -16.0f;
-	ImNodes::GetStyle().PinCircleRadius = 5.0f;
-	ImNodes::GetStyle().NodeCornerRounding = 6.0f;
-	ImNodes::GetStyle().Colors[ImNodesCol_NodeBackground] = IM_COL32(24, 24, 24, 200);
-	ImNodes::GetStyle().Colors[ImNodesCol_NodeBackgroundHovered] = IM_COL32(24, 24, 24, 200);
-	ImNodes::GetStyle().Colors[ImNodesCol_NodeBackgroundSelected] = IM_COL32(24, 24, 24, 200);
-	ImNodes::GetStyle().Colors[ImNodesCol_GridBackground] = IM_COL32(38, 38, 38, 255);
-	ImNodes::GetStyle().Colors[ImNodesCol_GridLine] = IM_COL32(53, 53, 53, 255);
+	ImNodes::GetStyle().NodePadding= ImVec2(12.0f, 5.0f);
+	ImNodes::GetStyle().PinOffset= -16.0f;
+	ImNodes::GetStyle().PinCircleRadius= 5.0f;
+	ImNodes::GetStyle().NodeCornerRounding= 6.0f;
+	ImNodes::GetStyle().Colors[ImNodesCol_NodeBackground]= IM_COL32(24, 24, 24, 200);
+	ImNodes::GetStyle().Colors[ImNodesCol_NodeBackgroundHovered]= IM_COL32(24, 24, 24, 200);
+	ImNodes::GetStyle().Colors[ImNodesCol_NodeBackgroundSelected]= IM_COL32(24, 24, 24, 200);
+	ImNodes::GetStyle().Colors[ImNodesCol_GridBackground]= IM_COL32(38, 38, 38, 255);
+	ImNodes::GetStyle().Colors[ImNodesCol_GridLine]= IM_COL32(53, 53, 53, 255);
 }

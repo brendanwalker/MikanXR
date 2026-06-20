@@ -4,14 +4,14 @@
 
 enum class eAlignCameraByOriginMarkerMenuState : int
 {
-	INVALID = -1,
+	INVALID= -1,
 
-	inactive = 0,
-	pendingVideoStart = 1,
-	verifySetup = 2,
-	capturing = 3,
-	testCalibration = 4,
-	failedVideoStart = 5,
+	inactive= 0,
+	pendingVideoStart= 1,
+	verifySetup= 2,
+	capturing= 3,
+	testCalibration= 4,
+	failedVideoStart= 5,
 
 	COUNT
 };

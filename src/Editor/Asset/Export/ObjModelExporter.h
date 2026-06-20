@@ -5,8 +5,11 @@
 class ObjModelExporter : public IModelExporter
 {
 public:
-	ObjModelExporter() = default;
-	ObjModelExporter(class MikanModelResourceManager* ownerManager) : IModelExporter(ownerManager) {}
+	ObjModelExporter()= default;
+	ObjModelExporter(class MikanModelResourceManager* ownerManager)
+		: IModelExporter(ownerManager)
+	{
+	}
 
 	virtual bool exportModelToFile(
 		MikanRenderModelResourcePtr modelResource,

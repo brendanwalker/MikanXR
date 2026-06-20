@@ -1,6 +1,6 @@
 #include "NodePinConstants.h"
 
-const std::string g_nodePinDirectionStrings[(int)eNodePinDirection::COUNT] = {
+const std::string g_nodePinDirectionStrings[(int)eNodePinDirection::COUNT]= {
 	"input",
 	"output",
 };

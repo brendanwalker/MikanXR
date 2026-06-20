@@ -23,11 +23,11 @@ bool TestCameraRenderTarget::processCameraNewFrameEvent(
 	const MikanCameraNewFrameEvent& newFrameEvent)
 {
 	// Remember the frame index of the last frame we published
-	m_lastReceivedFrameIndex = newFrameEvent.frame;
+	m_lastReceivedFrameIndex= newFrameEvent.frame;
 
 	// Remember the latest z bounds for this camera
-	m_zNear = static_cast<float>(newFrameEvent.z_bounds.x);
-	m_zFar = static_cast<float>(newFrameEvent.z_bounds.y);
+	m_zNear= static_cast<float>(newFrameEvent.z_bounds.x);
+	m_zFar= static_cast<float>(newFrameEvent.z_bounds.y);
 
 	// Update the camera view matrix using the latest camera extrinsics
 	updateCameraViewMatrix(newFrameEvent);
@@ -36,8 +36,8 @@ bool TestCameraRenderTarget::processCameraNewFrameEvent(
 	updateCameraProjectionMatrix(newFrameEvent);
 
 	// Recreate the render target if the texture size changed
-	const int newWidth = newFrameEvent.pixel_size.x;
-	const int newHeight = newFrameEvent.pixel_size.y;
+	const int newWidth= newFrameEvent.pixel_size.x;
+	const int newHeight= newFrameEvent.pixel_size.y;
 	if (m_width != newWidth || m_height != newHeight)
 	{
 		if (reallocateRenderTarget(mikanAPI, newWidth, newHeight))
@@ -50,8 +50,8 @@ bool TestCameraRenderTarget::processCameraNewFrameEvent(
 				<< ").";
 
 			// Remember the size of the render target once created
-			m_width = newWidth;
-			m_height = newHeight;
+			m_width= newWidth;
+			m_height= newHeight;
 		}
 		else
 		{
@@ -85,27 +85,27 @@ bool TestCameraRenderTarget::processCameraNewFrameEvent(
 	if (m_cameraId != INVALID_MIKAN_ID)
 	{
 		// Write the color texture, if any, to the shared texture
-		void* colorTexture = getGraphicsApiColorTexturePtr();
+		void* colorTexture= getGraphicsApiColorTexturePtr();
 		if (colorTexture)
 		{
-			WriteCameraColorRenderTargetTexture writeTextureRequest = {};
+			WriteCameraColorRenderTargetTexture writeTextureRequest= {};
 
-			writeTextureRequest.camera_id = m_cameraId;
-			writeTextureRequest.api_color_texture_ptr = colorTexture;
+			writeTextureRequest.camera_id= m_cameraId;
+			writeTextureRequest.api_color_texture_ptr= colorTexture;
 
 			mikanAPI->sendRequest(writeTextureRequest);
 		}
 
 		// Write the depth texture, if any, to the shared texture
-		void* depthTexture = getGraphicsApiDepthTexturePtr();
+		void* depthTexture= getGraphicsApiDepthTexturePtr();
 		if (depthTexture)
 		{
-			WriteCameraDepthRenderTargetTexture writeTextureRequest = {};
+			WriteCameraDepthRenderTargetTexture writeTextureRequest= {};
 
-			writeTextureRequest.camera_id = m_cameraId;
-			writeTextureRequest.api_depth_texture_ptr = depthTexture;
-			writeTextureRequest.z_near = newFrameEvent.z_bounds.x;
-			writeTextureRequest.z_far = newFrameEvent.z_bounds.y;
+			writeTextureRequest.camera_id= m_cameraId;
+			writeTextureRequest.api_depth_texture_ptr= depthTexture;
+			writeTextureRequest.z_near= newFrameEvent.z_bounds.x;
+			writeTextureRequest.z_far= newFrameEvent.z_bounds.y;
 
 			mikanAPI->sendRequest(writeTextureRequest);
 		}
@@ -113,10 +113,10 @@ bool TestCameraRenderTarget::processCameraNewFrameEvent(
 		// Publish the new video frame back to Mikan
 		if (colorTexture || depthTexture)
 		{
-			PublishCameraRenderTargetTextures frameRendered = {};
+			PublishCameraRenderTargetTextures frameRendered= {};
 
-			frameRendered.camera_id = m_cameraId;
-			frameRendered.frame_index = newFrameEvent.frame;
+			frameRendered.camera_id= m_cameraId;
+			frameRendered.frame_index= newFrameEvent.frame;
 
 			mikanAPI->sendRequest(frameRendered);
 		}
@@ -127,9 +127,9 @@ bool TestCameraRenderTarget::processCameraNewFrameEvent(
 
 void TestCameraRenderTarget::dispose(IMikanAPIPtr mikanAPI)
 {
-	// Camera matrices aren't valid until we receive the 
-	m_bHasValidProjMatrix = false;
-	m_bHasValidViewMatrix = false;
+	// Camera matrices aren't valid until we receive the
+	m_bHasValidProjMatrix= false;
+	m_bHasValidViewMatrix= false;
 
 	// Clean up shared texture first
 	freeSharedTexture(mikanAPI);
@@ -140,17 +140,17 @@ void TestCameraRenderTarget::dispose(IMikanAPIPtr mikanAPI)
 
 bool TestCameraRenderTarget::reallocateRenderTarget(
 	IMikanAPIPtr mikanAPI,
-	int textureWidth, 
+	int textureWidth,
 	int textureHeight)
 {
-	// Clean up anything we had 
+	// Clean up anything we had
 	dispose(mikanAPI);
 
 	// Create a new render texture to render frames too
-	bool bSuccess= false; 
+	bool bSuccess= false;
 	if (createGraphicsAPIResources(textureWidth, textureHeight))
 	{
-		MIKAN_LOG_INFO("MikanCameraRenderTarget::allocateRenderTarget") 
+		MIKAN_LOG_INFO("MikanCameraRenderTarget::allocateRenderTarget")
 			<< "Successfully created render target texture resources "
 			<< "(size: " << textureWidth << "x" << textureHeight << ")";
 
@@ -160,11 +160,11 @@ bool TestCameraRenderTarget::reallocateRenderTarget(
 				<< "Successfully created shared texture "
 				<< " (camera id: " << m_cameraId << ")";
 
-			bSuccess = true;
+			bSuccess= true;
 		}
 		else
 		{
-			// Clean back up the graphics resources, since there is no point to making them if we can't allocate the shared texture 
+			// Clean back up the graphics resources, since there is no point to making them if we can't allocate the shared texture
 			freeGraphicsAPIResources();
 		}
 	}
@@ -173,32 +173,32 @@ bool TestCameraRenderTarget::reallocateRenderTarget(
 }
 
 bool TestCameraRenderTarget::createSharedTexture(
-	IMikanAPIPtr mikanAPI, 
-	int textureWidth, 
+	IMikanAPIPtr mikanAPI,
+	int textureWidth,
 	int textureHeight)
 {
 	assert(!m_bHasAllocatedRemoteTexture);
 
 	if (m_cameraId == INVALID_MIKAN_ID)
 	{
-		MIKAN_LOG_INFO("MikanCameraRenderTarget::allocateRenderTarget") 
+		MIKAN_LOG_INFO("MikanCameraRenderTarget::allocateRenderTarget")
 			<< "Skipping shared texture allocation for offline camera";
 		return true;
 	}
 
-	// Tell Mikan to create a shared BGRA32 texture for us to render frames to 
-	MikanRenderTargetDescriptor desc = {};
-	desc.width = textureWidth;
-	desc.height = textureHeight;
-	desc.color_buffer_type = MikanColorBuffer_BGRA32;
-	desc.depth_buffer_type = MikanDepthBuffer_FLOAT_DEVICE_DEPTH;
-	desc.graphicsAPI = m_ownerContext.lock()->getGraphicsApi();
+	// Tell Mikan to create a shared BGRA32 texture for us to render frames to
+	MikanRenderTargetDescriptor desc= {};
+	desc.width= textureWidth;
+	desc.height= textureHeight;
+	desc.color_buffer_type= MikanColorBuffer_BGRA32;
+	desc.depth_buffer_type= MikanDepthBuffer_FLOAT_DEVICE_DEPTH;
+	desc.graphicsAPI= m_ownerContext.lock()->getGraphicsApi();
 
 	AllocateCameraRenderTargetTextures allocateRequest;
-	allocateRequest.camera_id = m_cameraId;
-	allocateRequest.descriptor = desc;
+	allocateRequest.camera_id= m_cameraId;
+	allocateRequest.descriptor= desc;
 
-	auto response = mikanAPI->sendRequest(allocateRequest).fetchResponse();
+	auto response= mikanAPI->sendRequest(allocateRequest).fetchResponse();
 	if (response->resultCode == MikanAPIResult::Success)
 	{
 		MIKAN_LOG_INFO("MikanCameraRenderTarget::allocateRenderTarget") << "Successfully allocated shared texture";
@@ -207,9 +207,9 @@ bool TestCameraRenderTarget::createSharedTexture(
 	}
 	else
 	{
-		MIKAN_LOG_WARNING("MikanCameraRenderTarget::allocateRenderTarget") 
-			<< "Failed to allocate remote texture " 
-			<<"(error_code: " << (int)response->resultCode << ")";
+		MIKAN_LOG_WARNING("MikanCameraRenderTarget::allocateRenderTarget")
+			<< "Failed to allocate remote texture "
+			<< "(error_code: " << (int)response->resultCode << ")";
 		return false;
 	}
 
@@ -221,10 +221,10 @@ void TestCameraRenderTarget::freeSharedTexture(IMikanAPIPtr mikanAPI)
 	if (m_bHasAllocatedRemoteTexture)
 	{
 		// Tell mikan to clean up the shared texture on its side first
-		FreeCameraRenderTargetTextures freeRequest = {};
-		freeRequest.camera_id = m_cameraId;
+		FreeCameraRenderTargetTextures freeRequest= {};
+		freeRequest.camera_id= m_cameraId;
 
-		auto response = mikanAPI->sendRequest(freeRequest).fetchResponse();
+		auto response= mikanAPI->sendRequest(freeRequest).fetchResponse();
 		if (response->resultCode != MikanAPIResult::Success)
 		{
 			MIKAN_LOG_WARNING("MikanCameraRenderTarget::freeRenderTarget") << "Failed to free remote texture";

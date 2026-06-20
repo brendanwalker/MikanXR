@@ -40,7 +40,6 @@ public:
 	void renderApertureSpaceCalibrationState();
 
 protected:
-
 	float frameWidth;
 	float frameHeight;
 

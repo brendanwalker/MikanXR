@@ -7,9 +7,9 @@
 
 namespace vr
 {
-	struct RenderModel_t;
-	struct RenderModel_TextureMap_t;
-};
+struct RenderModel_t;
+struct RenderModel_TextureMap_t;
+}; // namespace vr
 
 class SteamVRRenderModelResource
 {
@@ -25,7 +25,7 @@ public:
 
 	void disposeRenderResources();
 
-	void setRenderModelName(const std::string& inRenderModelName) { m_renderModelName = inRenderModelName; }
+	void setRenderModelName(const std::string& inRenderModelName) { m_renderModelName= inRenderModelName; }
 	const std::string& getRenderModelName() const { return m_renderModelName; }
 	MkMaterialInstancePtr getMaterial() const { return m_mkMaterialInstance; }
 	const IMkTriangulatedMeshPtr getTriangulatedMesh() const { return m_mkTriangulatedMesh; }
@@ -45,14 +45,14 @@ protected:
 		const std::string& meshName,
 		const vr::RenderModel_t* steamVRRenderModel);
 
-	IMkGraphicsContext* m_ownerContext = nullptr;
+	IMkGraphicsContext* m_ownerContext= nullptr;
 	std::string m_renderModelName;
 
-	vr::RenderModel_t* m_steamVRRenderModel = nullptr;
-	vr::RenderModel_TextureMap_t* m_steamVRTextureMap = nullptr;
+	vr::RenderModel_t* m_steamVRRenderModel= nullptr;
+	vr::RenderModel_TextureMap_t* m_steamVRTextureMap= nullptr;
 
-	IMkTriangulatedMeshPtr m_mkTriangulatedMesh = nullptr;
-	IMkWireframeMeshPtr m_mkWireframeMesh = nullptr;
-	IMkTexturePtr m_mkDiffuseTexture = nullptr;
-	MkMaterialInstancePtr m_mkMaterialInstance = nullptr;
+	IMkTriangulatedMeshPtr m_mkTriangulatedMesh= nullptr;
+	IMkWireframeMeshPtr m_mkWireframeMesh= nullptr;
+	IMkTexturePtr m_mkDiffuseTexture= nullptr;
+	MkMaterialInstancePtr m_mkMaterialInstance= nullptr;
 };

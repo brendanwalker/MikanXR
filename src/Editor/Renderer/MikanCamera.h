@@ -19,9 +19,9 @@ class MikanCamera : public IMkCamera
 {
 public:
 	MikanCamera();
-	virtual ~MikanCamera() = default;
+	virtual ~MikanCamera()= default;
 
-	virtual void setName(const std::string& name) override { m_cameraName = name; }
+	virtual void setName(const std::string& name) override { m_cameraName= name; }
 	virtual const std::string& getName() const override { return m_cameraName; }
 
 	virtual const glm::mat4& getProjectionMatrix() const override { return m_projectionMatrix; }
@@ -63,7 +63,7 @@ public:
 	void adjustOrbitAngles(float deltaYaw, float deltaPitch);
 	void adjustOrbitRadius(float deltaRadius);
 	void adjustOrbitTargetPosition(const glm::vec3& deltaTarget);
-	
+
 	void computeCameraRayThruPixel(
 		MikanViewportConstPtr viewportPtr,
 		const glm::vec2& pixelLocation,
@@ -75,11 +75,11 @@ protected:
 	void applyFlyParamsToViewMatrix();
 	void applyOrbitParamsToViewMatrix();
 
-	const float k_default_aspect_ratio = 16.f / 9.f;
-	const float k_default_camera_vfov = 35.f;
-	const float k_default_camera_z_near = 0.1f;
-	const float k_default_camera_z_far = 5000.f;
-	const float k_camera_min_zoom = 0.01f;
+	const float k_default_aspect_ratio= 16.f / 9.f;
+	const float k_default_camera_vfov= 35.f;
+	const float k_default_camera_z_near= 0.1f;
+	const float k_default_camera_z_far= 5000.f;
+	const float k_camera_min_zoom= 0.01f;
 
 	std::string m_cameraName;
 
@@ -104,6 +104,6 @@ protected:
 	float m_orbitPitchDegrees;
 	float m_orbitRadius;
 	glm::vec3 m_orbitTargetPosition;
-	
+
 	eCameraMovementMode m_movementMode= eCameraMovementMode::orbit;
 };

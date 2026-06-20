@@ -67,33 +67,33 @@ public:
 	inline GuiPanel_VRTrackingVolumeComponent* getVRTrackingVolumePanel() const { return m_vrTrackingVolumePanel; }
 
 private:
-	class AppStage_Project* m_ownerAppStage = nullptr;
+	class AppStage_Project* m_ownerAppStage= nullptr;
 
 	// System Panels
-	GuiPanel_DMXObjectSystem* m_dmxSystemPanel = nullptr;
-	GuiPanel_MarkerObjectSystem* m_markerSystemPanel = nullptr;
+	GuiPanel_DMXObjectSystem* m_dmxSystemPanel= nullptr;
+	GuiPanel_MarkerObjectSystem* m_markerSystemPanel= nullptr;
 
 	// Component Panels
-	GuiPanel_AnchorComponent* m_anchorPanel = nullptr;
-	GuiPanel_BoxShapeComponent* m_boxShapePanel = nullptr;
-	GuiPanel_BoxStencilComponent* m_boxStencilPanel = nullptr;
-	GuiPanel_CameraComponent* m_cameraPanel = nullptr;
-	GuiPanel_ClientTextureSourceComponent* m_clientTextureSourcePanel = nullptr;
-	GuiPanel_CompositorComponent* m_compositorPanel = nullptr;
-	GuiPanel_MarkerComponent* m_markerPanel = nullptr;
-	GuiPanel_MarkerTrackingVolumeComponent* m_markerTrackingVolumePanel = nullptr;
-	GuiPanel_ModelShapeComponent* m_modelShapePanel = nullptr;
-	GuiPanel_ModelStencilComponent* m_modelStencilPanel = nullptr;
-	GuiPanel_NetworkVideoSourceComponent* m_networkVideoSourcePanel = nullptr;
-	GuiPanel_QuadShapeComponent* m_quadShapePanel = nullptr;
-	GuiPanel_QuadStencilComponent* m_quadStencilPanel = nullptr;
-	GuiPanel_RGBPixelGridComponent* m_pixelGridPanel = nullptr;
-	GuiPanel_RGBSpotLightComponent* m_spotLightPanel = nullptr;
-	GuiPanel_SceneComponent* m_scenePanel = nullptr;
-	GuiPanel_CEFTextureSourceComponent* m_cefTextureSourcePanel = nullptr;
-	GuiPanel_SpoutTextureSourceComponent* m_spoutTextureSourcePanel = nullptr;
-	GuiPanel_StageComponent* m_stagePanel = nullptr;
-	GuiPanel_TrackingMountComponent* m_trackingMountPanel = nullptr;
-	GuiPanel_USBVideoSourceComponent* m_usbVideoSourcePanel = nullptr;
-	GuiPanel_VRTrackingVolumeComponent* m_vrTrackingVolumePanel = nullptr;
+	GuiPanel_AnchorComponent* m_anchorPanel= nullptr;
+	GuiPanel_BoxShapeComponent* m_boxShapePanel= nullptr;
+	GuiPanel_BoxStencilComponent* m_boxStencilPanel= nullptr;
+	GuiPanel_CameraComponent* m_cameraPanel= nullptr;
+	GuiPanel_ClientTextureSourceComponent* m_clientTextureSourcePanel= nullptr;
+	GuiPanel_CompositorComponent* m_compositorPanel= nullptr;
+	GuiPanel_MarkerComponent* m_markerPanel= nullptr;
+	GuiPanel_MarkerTrackingVolumeComponent* m_markerTrackingVolumePanel= nullptr;
+	GuiPanel_ModelShapeComponent* m_modelShapePanel= nullptr;
+	GuiPanel_ModelStencilComponent* m_modelStencilPanel= nullptr;
+	GuiPanel_NetworkVideoSourceComponent* m_networkVideoSourcePanel= nullptr;
+	GuiPanel_QuadShapeComponent* m_quadShapePanel= nullptr;
+	GuiPanel_QuadStencilComponent* m_quadStencilPanel= nullptr;
+	GuiPanel_RGBPixelGridComponent* m_pixelGridPanel= nullptr;
+	GuiPanel_RGBSpotLightComponent* m_spotLightPanel= nullptr;
+	GuiPanel_SceneComponent* m_scenePanel= nullptr;
+	GuiPanel_CEFTextureSourceComponent* m_cefTextureSourcePanel= nullptr;
+	GuiPanel_SpoutTextureSourceComponent* m_spoutTextureSourcePanel= nullptr;
+	GuiPanel_StageComponent* m_stagePanel= nullptr;
+	GuiPanel_TrackingMountComponent* m_trackingMountPanel= nullptr;
+	GuiPanel_USBVideoSourceComponent* m_usbVideoSourcePanel= nullptr;
+	GuiPanel_VRTrackingVolumeComponent* m_vrTrackingVolumePanel= nullptr;
 };

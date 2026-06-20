@@ -25,7 +25,7 @@
 #include "imgui.h"
 
 //-- statics ----__
-const char* AppStage_TextureSourceSettings::APP_STAGE_NAME = "TextureSourceSettings";
+const char* AppStage_TextureSourceSettings::APP_STAGE_NAME= "TextureSourceSettings";
 
 //-- public methods -----
 AppStage_TextureSourceSettings::AppStage_TextureSourceSettings(IEditorWindow* ownerWindow)
@@ -40,7 +40,7 @@ void AppStage_TextureSourceSettings::enter()
 	TextureSourceComponentPtr textureSourceComponent= m_textureSourceComponent.lock();
 
 	// Cache the camera component for use in rendering the video frame in the app stage
-	m_cameraComponent = getObjectSystemOfType<CameraObjectSystem>()->getCameraById(m_cameraId);
+	m_cameraComponent= getObjectSystemOfType<CameraObjectSystem>()->getCameraById(m_cameraId);
 
 	// Pause all compositor components while in the texture source settings stage
 	getObjectSystemOfType<CompositorObjectSystem>()->setAllCompositorsPaused(true);
@@ -48,28 +48,28 @@ void AppStage_TextureSourceSettings::enter()
 	// Create app stage GUI panels
 	// (Auto cleaned up on app state exit)
 	{
-		m_clientTextureSourceComponentPanel = addGuiPanel<GuiPanel_ClientTextureSourceComponent>();
+		m_clientTextureSourceComponentPanel= addGuiPanel<GuiPanel_ClientTextureSourceComponent>();
 		m_clientTextureSourceComponentPanel->init();
-		if (auto clientTextureSourceComponent =
-			std::dynamic_pointer_cast<ClientTextureSourceComponent>(textureSourceComponent))
+		if (auto clientTextureSourceComponent=
+				std::dynamic_pointer_cast<ClientTextureSourceComponent>(textureSourceComponent))
 		{
 			m_clientTextureSourceComponentPanel->setComponent(clientTextureSourceComponent);
 		}
 
-		auto* spoutPanel = addGuiPanel<GuiPanel_SpoutTextureSourceComponent>();
+		auto* spoutPanel= addGuiPanel<GuiPanel_SpoutTextureSourceComponent>();
 		spoutPanel->init();
-		if (auto spoutTextureSourceComponent =
-			std::dynamic_pointer_cast<SpoutTextureSourceComponent>(textureSourceComponent))
+		if (auto spoutTextureSourceComponent=
+				std::dynamic_pointer_cast<SpoutTextureSourceComponent>(textureSourceComponent))
 		{
 			spoutPanel->setComponent(spoutTextureSourceComponent);
 		}
 	}
 
 	// Create a meshes used to render the video frame
-	IMkGraphicsContext* graphicsContext = m_ownerWindow->getGraphicsContext().get();
-	m_fullscreenRGBQuad = createFullscreenQuadMesh(graphicsContext, true, false);
-	m_fullscreenRGBAQuad = createFullscreenQuadMesh(graphicsContext, true, true);
-	m_fullscreenDepthUnpackQuad = 
+	IMkGraphicsContext* graphicsContext= m_ownerWindow->getGraphicsContext().get();
+	m_fullscreenRGBQuad= createFullscreenQuadMesh(graphicsContext, true, false);
+	m_fullscreenRGBAQuad= createFullscreenQuadMesh(graphicsContext, true, true);
+	m_fullscreenDepthUnpackQuad=
 		createFullscreenQuadMesh(
 			graphicsContext,
 			graphicsContext->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_UNPACK_RGBA_DEPTH_TEXTURE),
@@ -82,14 +82,14 @@ void AppStage_TextureSourceSettings::update(float deltaSeconds)
 
 	// Manually publish fake camera frame events that emulate new video frames.
 	// This forces a connected client to render new frames.
-	CameraComponentPtr cameraComponent = m_cameraComponent.lock();
+	CameraComponentPtr cameraComponent= m_cameraComponent.lock();
 	if (cameraComponent)
 	{
 		if (m_newFrameTimer <= 0.f)
 		{
 			if (MikanCameraNewFrameEvent newFrameEvent;
 				cameraComponent->makeNewCameraFrameEvent(
-					-1, // Skip video frame index
+					-1,        // Skip video frame index
 					1280, 720, // fallback render target size
 					newFrameEvent))
 			{
@@ -99,11 +99,11 @@ void AppStage_TextureSourceSettings::update(float deltaSeconds)
 					->publishCameraNewFrameEvent(newFrameEvent);
 			}
 
-			m_newFrameTimer = k_newFrameTimerDuration;
+			m_newFrameTimer= k_newFrameTimerDuration;
 		}
 		else
 		{
-			m_newFrameTimer -= deltaSeconds;
+			m_newFrameTimer-= deltaSeconds;
 		}
 	}
 }
@@ -112,22 +112,24 @@ void AppStage_TextureSourceSettings::onGui()
 {
 	AppStage::onGui();
 
-	constexpr float k_panelWidth = 415.f;
-	const float displayWidth = m_ownerWindow->getWidth();
-	const float displayHeight = m_ownerWindow->getHeight();
+	constexpr float k_panelWidth= 415.f;
+	const float displayWidth= m_ownerWindow->getWidth();
+	const float displayHeight= m_ownerWindow->getHeight();
 	ImGui::SetNextWindowPos(ImVec2(displayWidth - k_panelWidth, 0.f), ImGuiCond_Always);
 	ImGui::SetNextWindowSize(ImVec2(k_panelWidth, displayHeight), ImGuiCond_Always);
 
-	constexpr ImGuiWindowFlags k_flags =
+	constexpr ImGuiWindowFlags k_flags=
 		ImGuiWindowFlags_NoMove |
 		ImGuiWindowFlags_NoResize |
 		ImGuiWindowFlags_NoCollapse |
 		ImGuiWindowFlags_NoTitleBar;
 
 	MkGuiScopedWindow panel("##TextureSourceSettings", nullptr, k_flags);
-	if (!panel) return;
+	if (!panel)
+		return;
 
-	if (ImGui::Button("Return")) onReturnEvent();
+	if (ImGui::Button("Return"))
+		onReturnEvent();
 	ImGui::Separator();
 
 	for (IGuiPanel* guiPanel : m_guiPanels)
@@ -138,62 +140,64 @@ void AppStage_TextureSourceSettings::render(IMkViewportPtr targetViewport)
 {
 	AppStage::render(targetViewport);
 
-	TextureSourceComponentPtr textureSourceComponent = m_textureSourceComponent.lock();
+	TextureSourceComponentPtr textureSourceComponent= m_textureSourceComponent.lock();
 
 	IMkTriangulatedMeshPtr fullscreenQuad;
 	IMkTexturePtr videoTexture;
-	eUniformSemantic videoTextureSemantic = eUniformSemantic::INVALID;
+	eUniformSemantic videoTextureSemantic= eUniformSemantic::INVALID;
 
-	eTextureSourceDisplayBufferType displayBufferType = eTextureSourceDisplayBufferType::Color;
+	eTextureSourceDisplayBufferType displayBufferType= eTextureSourceDisplayBufferType::Color;
 	if (m_clientTextureSourceComponentPanel->getComponent() != nullptr)
 	{
-		displayBufferType = m_clientTextureSourceComponentPanel->getDisplayBufferType();
+		displayBufferType= m_clientTextureSourceComponentPanel->getDisplayBufferType();
 	}
-	
+
 	switch (displayBufferType)
 	{
-		case eTextureSourceDisplayBufferType::Color:
+	case eTextureSourceDisplayBufferType::Color:
+	{
+		videoTexture= textureSourceComponent->getClientColorSourceTexture(m_cameraId, eTextureSourceColorType::colorRGBA);
+		if (videoTexture)
 		{
-			videoTexture = textureSourceComponent->getClientColorSourceTexture(m_cameraId, eTextureSourceColorType::colorRGBA);
+			fullscreenQuad= m_fullscreenRGBAQuad;
+			videoTextureSemantic= eUniformSemantic::rgbaTexture;
+		}
+		else
+		{
+			videoTexture= textureSourceComponent->getClientColorSourceTexture(m_cameraId, eTextureSourceColorType::colorRGB);
 			if (videoTexture)
 			{
-				fullscreenQuad = m_fullscreenRGBAQuad;
-				videoTextureSemantic = eUniformSemantic::rgbaTexture;
+				fullscreenQuad= m_fullscreenRGBQuad;
+				videoTextureSemantic= eUniformSemantic::rgbTexture;
 			}
-			else
-			{
-				videoTexture = textureSourceComponent->getClientColorSourceTexture(m_cameraId, eTextureSourceColorType::colorRGB);
-				if (videoTexture)
-				{
-					fullscreenQuad = m_fullscreenRGBQuad;
-					videoTextureSemantic = eUniformSemantic::rgbTexture;
-				}
-			}
-		} break;
+		}
+	}
+	break;
 
-		case eTextureSourceDisplayBufferType::Depth:
+	case eTextureSourceDisplayBufferType::Depth:
+	{
+		videoTexture= textureSourceComponent->getClientDepthSourceTexture(m_cameraId, eTextureSourceDepthType::depthPackRGBA);
+		if (videoTexture)
 		{
-			videoTexture = textureSourceComponent->getClientDepthSourceTexture(m_cameraId, eTextureSourceDepthType::depthPackRGBA);
-			if (videoTexture)
-			{
-				fullscreenQuad = m_fullscreenDepthUnpackQuad;
-				videoTextureSemantic = eUniformSemantic::rgbaTexture;
-			}
-		} break;
+			fullscreenQuad= m_fullscreenDepthUnpackQuad;
+			videoTextureSemantic= eUniformSemantic::rgbaTexture;
+		}
+	}
+	break;
 	};
 
 	if (videoTexture && fullscreenQuad)
 	{
-		MkMaterialInstancePtr materialInstance = fullscreenQuad->getMaterialInstance();
-		MkMaterialConstPtr material = materialInstance->getMaterial();
+		MkMaterialInstancePtr materialInstance= fullscreenQuad->getMaterialInstance();
+		MkMaterialConstPtr material= materialInstance->getMaterial();
 
-		if (auto materialBinding = material->bindMaterial())
+		if (auto materialBinding= material->bindMaterial())
 		{
 			// Bind the color texture
 			materialInstance->setTextureBySemantic(videoTextureSemantic, videoTexture);
 
 			// Draw the color texture
-			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+			if (auto materialInstanceBinding= materialInstance->bindMaterialInstance(materialBinding))
 			{
 				fullscreenQuad->drawElements();
 			}
@@ -235,8 +239,8 @@ bool AppStage_TextureSourceSettings::handleRemoteControlCommand(
 bool AppStage_TextureSourceSettings::handleGetTextureSourceComponentId(
 	std::vector<std::string>& outResults)
 {
-	TextureSourceComponentPtr textureSource = m_textureSourceComponent.lock();
-	MikanTextureSourceID textureSourceId = textureSource ? textureSource->getComponentId() : INVALID_MIKAN_ID;
+	TextureSourceComponentPtr textureSource= m_textureSourceComponent.lock();
+	MikanTextureSourceID textureSourceId= textureSource ? textureSource->getComponentId() : INVALID_MIKAN_ID;
 	outResults.push_back(std::to_string(textureSourceId));
 
 	return true;

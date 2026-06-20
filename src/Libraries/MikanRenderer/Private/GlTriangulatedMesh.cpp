@@ -14,7 +14,8 @@ class GlTriangulatedMesh : public IMkTriangulatedMesh
 public:
 	GlTriangulatedMesh(class IMkGraphicsContext* ownerContext)
 		: m_ownerContext(ownerContext)
-	{}
+	{
+	}
 
 	GlTriangulatedMesh(
 		class IMkGraphicsContext* ownerContext,
@@ -35,7 +36,8 @@ public:
 		, m_indexSize(indexSize)
 		, m_triangleCount(triangleCount)
 		, m_bOwnsVertexData(bOwnsVertexData)
-	{}
+	{
+	}
 
 	virtual ~GlTriangulatedMesh()
 	{
@@ -56,7 +58,7 @@ public:
 		if (material &&
 			material->getProgram()->getVertexDefinition()->getVertexSize() == m_vertexSize)
 		{
-			m_materialInstance = createMkMaterialInstance(material);
+			m_materialInstance= createMkMaterialInstance(material);
 			return true;
 		}
 
@@ -68,7 +70,7 @@ public:
 		if (materialInstance &&
 			materialInstance->getMaterial()->getProgram()->getVertexDefinition()->getVertexSize() == m_vertexSize)
 		{
-			m_materialInstance = materialInstance;
+			m_materialInstance= materialInstance;
 			return true;
 		}
 
@@ -77,18 +79,18 @@ public:
 
 	virtual void drawElements() const override
 	{
-		GLenum indexType = GL_UNSIGNED_SHORT;
+		GLenum indexType= GL_UNSIGNED_SHORT;
 		switch (m_indexSize)
 		{
-			case 4:
-				indexType = GL_UNSIGNED_INT;
-				break;
-			case 2:
-				indexType = GL_UNSIGNED_SHORT;
-				break;
-			case 1:
-				indexType = GL_UNSIGNED_BYTE;
-				break;
+		case 4:
+			indexType= GL_UNSIGNED_INT;
+			break;
+		case 2:
+			indexType= GL_UNSIGNED_SHORT;
+			break;
+		case 1:
+			indexType= GL_UNSIGNED_BYTE;
+			break;
 		}
 
 		glBindVertexArray(m_glVertArray);
@@ -113,9 +115,9 @@ public:
 			return false;
 		}
 
-		MkMaterialConstPtr material = m_materialInstance->getMaterial();
-		IMkVertexDefinitionConstPtr vertexDefinition = material->getProgram()->getVertexDefinition();
-		const size_t vertexSize = vertexDefinition->getVertexSize();
+		MkMaterialConstPtr material= m_materialInstance->getMaterial();
+		IMkVertexDefinitionConstPtr vertexDefinition= material->getProgram()->getVertexDefinition();
+		const size_t vertexSize= vertexDefinition->getVertexSize();
 		if (vertexSize != m_vertexSize)
 		{
 			return false;
@@ -162,12 +164,11 @@ public:
 		if (m_glVertBuffer != 0)
 			glDeleteBuffers(1, &m_glVertBuffer);
 
-		m_glIndexBuffer = 0;
-		m_glVertArray = 0;
-		m_glVertBuffer = 0;
-		m_vertexCount = 0;
+		m_glIndexBuffer= 0;
+		m_glVertArray= 0;
+		m_glVertBuffer= 0;
+		m_vertexCount= 0;
 	}
-
 
 	virtual std::string getName() const override { return m_name; }
 	virtual std::shared_ptr<class MkMaterialInstance> getMaterialInstance() const { return m_materialInstance; };
@@ -181,21 +182,21 @@ public:
 	virtual const size_t getIndexSize() const override { return m_indexSize; }
 
 protected:
-	class IMkGraphicsContext* m_ownerContext = nullptr;
+	class IMkGraphicsContext* m_ownerContext= nullptr;
 	MkMaterialInstancePtr m_materialInstance;
 	std::string m_name;
 
-	const uint8_t* m_vertexData = nullptr;
-	size_t m_vertexSize = 0;
-	uint32_t m_vertexCount = 0;
-	const uint8_t* m_indexData = nullptr;
-	const size_t m_indexSize = sizeof(uint16_t);
-	uint32_t m_triangleCount = 0;
-	bool m_bOwnsVertexData = false;
+	const uint8_t* m_vertexData= nullptr;
+	size_t m_vertexSize= 0;
+	uint32_t m_vertexCount= 0;
+	const uint8_t* m_indexData= nullptr;
+	const size_t m_indexSize= sizeof(uint16_t);
+	uint32_t m_triangleCount= 0;
+	bool m_bOwnsVertexData= false;
 
-	uint32_t m_glVertArray = 0;
-	uint32_t m_glVertBuffer = 0;
-	uint32_t m_glIndexBuffer = 0;
+	uint32_t m_glVertArray= 0;
+	uint32_t m_glVertBuffer= 0;
+	uint32_t m_glIndexBuffer= 0;
 };
 
 IMkTriangulatedMeshPtr createMkTriangulatedMesh(class IMkGraphicsContext* ownerContext)
@@ -231,13 +232,11 @@ IMkTriangulatedMeshPtr createFullscreenQuadMesh(
 	bool vFlipped,
 	bool bHasAlpha)
 {
-	static uint16_t x_indices[] = {0, 1, 2, 0, 2, 3};
+	static uint16_t x_indices[]= {0, 1, 2, 0, 2, 3};
 
 	auto shaderCache= ownerContext->getShaderCache();
-	auto material = 
-		bHasAlpha ?
-		shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_FULLSCREEN_RGBA_TEXTURE) :
-		shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE);
+	auto material=
+		bHasAlpha ? shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_FULLSCREEN_RGBA_TEXTURE) : shaderCache->getMaterialByName(INTERNAL_MATERIAL_PT_FULLSCREEN_RGB_TEXTURE);
 	assert(material);
 
 	struct QuadVertex
@@ -245,27 +244,27 @@ IMkTriangulatedMeshPtr createFullscreenQuadMesh(
 		glm::vec2 aPos;
 		glm::vec2 aTexCoords;
 	};
-	size_t vertexSize = sizeof(QuadVertex);
+	size_t vertexSize= sizeof(QuadVertex);
 
 	// Create triangulated quad mesh to draw the layer on
-	static QuadVertex x_vertices[] = {
+	static QuadVertex x_vertices[]= {
 		//        positions                texCoords
-		{glm::vec2(-1.0f,  1.0f), glm::vec2(0.0f, 1.0f)},
+		{glm::vec2(-1.0f, 1.0f), glm::vec2(0.0f, 1.0f)},
 		{glm::vec2(-1.0f, -1.0f), glm::vec2(0.0f, 0.0f)},
-		{glm::vec2(1.0f, -1.0f),  glm::vec2(1.0f, 0.0f)},
-		{glm::vec2(1.0f,  1.0f),  glm::vec2(1.0f, 1.0f)},
+		{glm::vec2(1.0f, -1.0f), glm::vec2(1.0f, 0.0f)},
+		{glm::vec2(1.0f, 1.0f), glm::vec2(1.0f, 1.0f)},
 	};
 
-	static QuadVertex x_flippedVertices[] = {
+	static QuadVertex x_flippedVertices[]= {
 		//        positions                texCoords (flipped v coordinated)
-		{glm::vec2(-1.0f,  1.0f), glm::vec2(0.0f, 0.0f)},
+		{glm::vec2(-1.0f, 1.0f), glm::vec2(0.0f, 0.0f)},
 		{glm::vec2(-1.0f, -1.0f), glm::vec2(0.0f, 1.0f)},
-		{glm::vec2(1.0f, -1.0f),  glm::vec2(1.0f, 1.0f)},
-		{glm::vec2(1.0f,  1.0f),  glm::vec2(1.0f, 0.0f)},
+		{glm::vec2(1.0f, -1.0f), glm::vec2(1.0f, 1.0f)},
+		{glm::vec2(1.0f, 1.0f), glm::vec2(1.0f, 0.0f)},
 	};
 
 	QuadVertex* vertices= vFlipped ? x_flippedVertices : x_vertices;
-	auto fullscreenQuad =
+	auto fullscreenQuad=
 		createMkTriangulatedMesh(
 			ownerContext,
 			"layer_quad_mesh",
@@ -274,8 +273,8 @@ IMkTriangulatedMeshPtr createFullscreenQuadMesh(
 			4, // 4 verts
 			(const uint8_t*)x_indices,
 			sizeof(uint16_t), // 2 bytes per index
-			2, // 2 tris
-			false); // mesh doesn't own quad vert data
+			2,                // 2 tris
+			false);           // mesh doesn't own quad vert data
 
 	if (!fullscreenQuad->setMaterial(material) ||
 		!fullscreenQuad->createResources())
@@ -292,7 +291,7 @@ IMkTriangulatedMeshPtr createFullscreenQuadMesh(
 	MkMaterialConstPtr material,
 	bool vFlipped)
 {
-	static uint16_t x_indices[] = {0, 1, 2, 0, 2, 3};
+	static uint16_t x_indices[]= {0, 1, 2, 0, 2, 3};
 
 	assert(material);
 
@@ -301,27 +300,27 @@ IMkTriangulatedMeshPtr createFullscreenQuadMesh(
 		glm::vec2 aPos;
 		glm::vec2 aTexCoords;
 	};
-	size_t vertexSize = sizeof(QuadVertex);
+	size_t vertexSize= sizeof(QuadVertex);
 
 	// Create triangulated quad mesh to draw the layer on
-	static QuadVertex x_vertices[] = {
+	static QuadVertex x_vertices[]= {
 		//        positions                texCoords
-		{glm::vec2(-1.0f,  1.0f), glm::vec2(0.0f, 1.0f)},
+		{glm::vec2(-1.0f, 1.0f), glm::vec2(0.0f, 1.0f)},
 		{glm::vec2(-1.0f, -1.0f), glm::vec2(0.0f, 0.0f)},
-		{glm::vec2(1.0f, -1.0f),  glm::vec2(1.0f, 0.0f)},
-		{glm::vec2(1.0f,  1.0f),  glm::vec2(1.0f, 1.0f)},
+		{glm::vec2(1.0f, -1.0f), glm::vec2(1.0f, 0.0f)},
+		{glm::vec2(1.0f, 1.0f), glm::vec2(1.0f, 1.0f)},
 	};
 
-	static QuadVertex x_flippedVertices[] = {
+	static QuadVertex x_flippedVertices[]= {
 		//        positions                texCoords (flipped v coordinated)
-		{glm::vec2(-1.0f,  1.0f), glm::vec2(0.0f, 0.0f)},
+		{glm::vec2(-1.0f, 1.0f), glm::vec2(0.0f, 0.0f)},
 		{glm::vec2(-1.0f, -1.0f), glm::vec2(0.0f, 1.0f)},
-		{glm::vec2(1.0f, -1.0f),  glm::vec2(1.0f, 1.0f)},
-		{glm::vec2(1.0f,  1.0f),  glm::vec2(1.0f, 0.0f)},
+		{glm::vec2(1.0f, -1.0f), glm::vec2(1.0f, 1.0f)},
+		{glm::vec2(1.0f, 1.0f), glm::vec2(1.0f, 0.0f)},
 	};
 
 	QuadVertex* vertices= vFlipped ? x_flippedVertices : x_vertices;
-	auto fullscreenQuad =
+	auto fullscreenQuad=
 		createMkTriangulatedMesh(
 			ownerContext,
 			"custom_material_quad_mesh",
@@ -330,8 +329,8 @@ IMkTriangulatedMeshPtr createFullscreenQuadMesh(
 			4, // 4 verts
 			(const uint8_t*)x_indices,
 			sizeof(uint16_t), // 2 bytes per index
-			2, // 2 tris
-			false); // mesh doesn't own quad vert data
+			2,                // 2 tris
+			false);           // mesh doesn't own quad vert data
 
 	if (!fullscreenQuad->setMaterial(material) ||
 		!fullscreenQuad->createResources())
@@ -350,16 +349,16 @@ void drawTransformedTriangulatedMesh(
 {
 	if (camera != nullptr && triangulatedMesh != nullptr)
 	{
-		MkMaterialInstancePtr materialInstance = triangulatedMesh->getMaterialInstance();
-		MkMaterialConstPtr material = materialInstance->getMaterial();
+		MkMaterialInstancePtr materialInstance= triangulatedMesh->getMaterialInstance();
+		MkMaterialConstPtr material= materialInstance->getMaterial();
 
-		if (auto materialBinding = material->bindMaterial())
+		if (auto materialBinding= material->bindMaterial())
 		{
-			const glm::mat4 vpMatrix = camera->getViewProjectionMatrix();
+			const glm::mat4 vpMatrix= camera->getViewProjectionMatrix();
 
 			materialInstance->setMat4BySemantic(eUniformSemantic::modelViewProjectionMatrix, vpMatrix * transform);
 
-			if (auto materialInstanceBinding = materialInstance->bindMaterialInstance(materialBinding))
+			if (auto materialInstanceBinding= materialInstance->bindMaterialInstance(materialBinding))
 			{
 				triangulatedMesh->drawElements();
 			}

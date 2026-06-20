@@ -24,7 +24,8 @@
 //-- public methods -----
 SdlWindowContextManager::SdlWindowContextManager()
 	: m_sdlInitialized(false)
-{}
+{
+}
 
 SdlWindowContextManager::~SdlWindowContextManager()
 {
@@ -33,45 +34,45 @@ SdlWindowContextManager::~SdlWindowContextManager()
 
 bool SdlWindowContextManager::startup()
 {
-	bool success = true;
+	bool success= true;
 
 	MIKAN_LOG_INFO("SdlWindowContextManager::startup()") << "Initializing SDL Library";
 
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) == 0)
 	{
-		m_sdlInitialized = true;
+		m_sdlInitialized= true;
 	}
 	else
 	{
 		MIKAN_LOG_ERROR("SdlWindowContextManager::startup") << "Unable to initialize SDL: " << SDL_GetError();
-		success = false;
+		success= false;
 	}
 
 	if (success)
 	{
 		// Decide GL+GLSL versions
-	#if defined(IMGUI_IMPL_OPENGL_ES2)
+#if defined(IMGUI_IMPL_OPENGL_ES2)
 		// GL ES 2.0 + GLSL 100
-		m_glslVersion = "#version 100";
+		m_glslVersion= "#version 100";
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-	#elif defined(__APPLE__)
+#elif defined(__APPLE__)
 		// GL 3.2 Core + GLSL 150
-		m_glslVersion = "#version 150";
+		m_glslVersion= "#version 150";
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); // Always required on Mac
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-	#else
+#else
 		// GL 3.0 + GLSL 130
-		m_glslVersion = "#version 130";
+		m_glslVersion= "#version 130";
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
 		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-	#endif
+#endif
 
 		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
@@ -80,13 +81,13 @@ bool SdlWindowContextManager::startup()
 
 	if (success)
 	{
-		cursor_default = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
-		cursor_move = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEALL);
-		cursor_pointer = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
-		cursor_resize = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENWSE);
-		cursor_cross = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
-		cursor_text = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_IBEAM);
-		cursor_unavailable = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NO);
+		cursor_default= SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
+		cursor_move= SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZEALL);
+		cursor_pointer= SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+		cursor_resize= SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_SIZENWSE);
+		cursor_cross= SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_CROSSHAIR);
+		cursor_text= SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_IBEAM);
+		cursor_unavailable= SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NO);
 	}
 
 	return success;
@@ -98,43 +99,43 @@ void SdlWindowContextManager::shutdown()
 	if (cursor_default != nullptr)
 	{
 		SDL_FreeCursor(cursor_default);
-		cursor_default = nullptr;
+		cursor_default= nullptr;
 	}
 	if (cursor_move != nullptr)
 	{
 		SDL_FreeCursor(cursor_move);
-		cursor_move = nullptr;
+		cursor_move= nullptr;
 	}
 	if (cursor_pointer != nullptr)
 	{
 		SDL_FreeCursor(cursor_pointer);
-		cursor_pointer = nullptr;
+		cursor_pointer= nullptr;
 	}
 	if (cursor_resize != nullptr)
 	{
 		SDL_FreeCursor(cursor_resize);
-		cursor_resize = nullptr;
+		cursor_resize= nullptr;
 	}
 	if (cursor_cross != nullptr)
 	{
 		SDL_FreeCursor(cursor_cross);
-		cursor_cross = nullptr;
+		cursor_cross= nullptr;
 	}
 	if (cursor_text != nullptr)
 	{
 		SDL_FreeCursor(cursor_text);
-		cursor_text = nullptr;
+		cursor_text= nullptr;
 	}
 	if (cursor_unavailable != nullptr)
 	{
 		SDL_FreeCursor(cursor_unavailable);
-		cursor_unavailable = nullptr;
+		cursor_unavailable= nullptr;
 	}
 
 	if (m_sdlInitialized)
 	{
 		SDL_Quit();
-		m_sdlInitialized = false;
+		m_sdlInitialized= false;
 	}
 }
 
@@ -151,22 +152,22 @@ void SdlWindowContextManager::pollEvents()
 
 void SdlWindowContextManager::setMouseCursor(const std::string& cursor_name)
 {
-	SDL_Cursor* cursor = nullptr;
+	SDL_Cursor* cursor= nullptr;
 
 	if (cursor_name.empty() || cursor_name == "arrow")
-		cursor = cursor_default;
+		cursor= cursor_default;
 	else if (cursor_name == "move")
-		cursor = cursor_move;
+		cursor= cursor_move;
 	else if (cursor_name == "pointer")
-		cursor = cursor_pointer;
+		cursor= cursor_pointer;
 	else if (cursor_name == "resize")
-		cursor = cursor_resize;
+		cursor= cursor_resize;
 	else if (cursor_name == "cross")
-		cursor = cursor_cross;
+		cursor= cursor_cross;
 	else if (cursor_name == "text")
-		cursor = cursor_text;
+		cursor= cursor_text;
 	else if (cursor_name == "unavailable")
-		cursor = cursor_unavailable;
+		cursor= cursor_unavailable;
 
 	if (cursor)
 		SDL_SetCursor(cursor);

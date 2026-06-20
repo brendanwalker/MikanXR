@@ -5,7 +5,7 @@
 
 namespace vr
 {
-	struct HmdMatrix34_t;
+struct HmdMatrix34_t;
 };
 
 // SteamVR types to GLM types

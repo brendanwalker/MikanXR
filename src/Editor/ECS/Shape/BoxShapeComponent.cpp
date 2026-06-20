@@ -22,9 +22,9 @@
 #include "glm/gtc/matrix_transform.hpp"
 
 // -- BoxShapeDefinition ------
-const std::string BoxShapeDefinition::k_boxXSizePropertyId = "box_x_size";
-const std::string BoxShapeDefinition::k_boxYSizePropertyId = "box_y_size";
-const std::string BoxShapeDefinition::k_boxZSizePropertyId = "box_z_size";
+const std::string BoxShapeDefinition::k_boxXSizePropertyId= "box_x_size";
+const std::string BoxShapeDefinition::k_boxYSizePropertyId= "box_y_size";
+const std::string BoxShapeDefinition::k_boxZSizePropertyId= "box_z_size";
 
 BoxShapeDefinition::BoxShapeDefinition()
 	: ShapeComponentDefinition()
@@ -38,11 +38,11 @@ BoxShapeDefinition::BoxShapeDefinition(MikanShapeID shapeId)
 
 configuru::Config BoxShapeDefinition::writeToJSON()
 {
-	configuru::Config pt = ShapeComponentDefinition::writeToJSON();
+	configuru::Config pt= ShapeComponentDefinition::writeToJSON();
 
-	pt[k_boxXSizePropertyId] = m_xSize;
-	pt[k_boxYSizePropertyId] = m_ySize;
-	pt[k_boxZSizePropertyId] = m_zSize;
+	pt[k_boxXSizePropertyId]= m_xSize;
+	pt[k_boxYSizePropertyId]= m_ySize;
+	pt[k_boxZSizePropertyId]= m_zSize;
 
 	return pt;
 }
@@ -51,16 +51,16 @@ void BoxShapeDefinition::readFromJSON(const configuru::Config& pt)
 {
 	ShapeComponentDefinition::readFromJSON(pt);
 
-	m_xSize = pt.get_or<float>(k_boxXSizePropertyId, m_xSize);
-	m_ySize = pt.get_or<float>(k_boxYSizePropertyId, m_ySize);
-	m_zSize = pt.get_or<float>(k_boxZSizePropertyId, m_zSize);
+	m_xSize= pt.get_or<float>(k_boxXSizePropertyId, m_xSize);
+	m_ySize= pt.get_or<float>(k_boxYSizePropertyId, m_ySize);
+	m_zSize= pt.get_or<float>(k_boxZSizePropertyId, m_zSize);
 }
 
 void BoxShapeDefinition::setBoxXSize(float size)
 {
 	if (m_xSize != size)
 	{
-		m_xSize = size;
+		m_xSize= size;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_boxXSizePropertyId));
 	}
 }
@@ -69,7 +69,7 @@ void BoxShapeDefinition::setBoxYSize(float size)
 {
 	if (m_ySize != size)
 	{
-		m_ySize = size;
+		m_ySize= size;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_boxYSizePropertyId));
 	}
 }
@@ -78,7 +78,7 @@ void BoxShapeDefinition::setBoxZSize(float size)
 {
 	if (m_zSize != size)
 	{
-		m_zSize = size;
+		m_zSize= size;
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_boxZSizePropertyId));
 	}
 }
@@ -105,20 +105,20 @@ void BoxShapeComponent::update(float deltaSeconds)
 {
 	ShapeComponent::update(deltaSeconds);
 
-	auto meshInstance = std::dynamic_pointer_cast<IMkStaticMeshInstance>(m_sceneRenderable);
+	auto meshInstance= std::dynamic_pointer_cast<IMkStaticMeshInstance>(m_sceneRenderable);
 	if (!meshInstance)
 		return;
 
 	// Update model matrix: world transform * scale(xSize, ySize, zSize)
-	const auto def = getBoxShapeDefinition();
-	const float sx = def ? def->getBoxXSize() : 1.f;
-	const float sy = def ? def->getBoxYSize() : 1.f;
-	const float sz = def ? def->getBoxZSize() : 1.f;
-	const glm::mat4 scaledWorld = getWorldTransform() * glm::scale(glm::mat4(1.f), {sx, sy, sz});
+	const auto def= getBoxShapeDefinition();
+	const float sx= def ? def->getBoxXSize() : 1.f;
+	const float sy= def ? def->getBoxYSize() : 1.f;
+	const float sz= def ? def->getBoxZSize() : 1.f;
+	const glm::mat4 scaledWorld= getWorldTransform() * glm::scale(glm::mat4(1.f), {sx, sy, sz});
 	meshInstance->setModelMatrix(scaledWorld);
 
-	MkMaterialInstancePtr matInst = meshInstance->getMaterialInstance();
-	IMkTexturePtr colorTexture = getColorTexture();
+	MkMaterialInstancePtr matInst= meshInstance->getMaterialInstance();
+	IMkTexturePtr colorTexture= getColorTexture();
 	if (matInst && colorTexture)
 	{
 		matInst->setTextureBySemantic(eUniformSemantic::rgbTexture, colorTexture);
@@ -135,15 +135,15 @@ void BoxShapeComponent::openShape()
 {
 	closeShape();
 
-	IEditorWindow* ownerWindow = getOwnerEditorWindow();
+	IEditorWindow* ownerWindow= getOwnerEditorWindow();
 	if (!ownerWindow)
 		return;
 
-	IMkGraphicsContextPtr graphicsContext = ownerWindow->getGraphicsContext();
+	IMkGraphicsContextPtr graphicsContext= ownerWindow->getGraphicsContext();
 	if (!graphicsContext)
 		return;
 
-	MkMaterialConstPtr material =
+	MkMaterialConstPtr material=
 		graphicsContext->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PT_TEXTURED);
 	if (!material)
 		return;
@@ -151,51 +151,54 @@ void BoxShapeComponent::openShape()
 	// Unit cube: 6 faces, each a quad of 4 verts with position+texcoord.
 	// Each face uses a different UV orientation.
 	// Vertex layout: position (xyz) + texcoord (uv)
-	struct PTVertex { float x, y, z, u, v; };
+	struct PTVertex
+	{
+		float x, y, z, u, v;
+	};
 	// 6 faces × 4 vertices = 24 vertices
-	static const PTVertex vertices[24] = {
+	static const PTVertex vertices[24]= {
 		// +X face (right)
-		{ 0.5f, -0.5f, -0.5f, 0.f, 1.f },
-		{ 0.5f,  0.5f, -0.5f, 1.f, 1.f },
-		{ 0.5f,  0.5f,  0.5f, 1.f, 0.f },
-		{ 0.5f, -0.5f,  0.5f, 0.f, 0.f },
+		{0.5f, -0.5f, -0.5f, 0.f, 1.f},
+		{0.5f, 0.5f, -0.5f, 1.f, 1.f},
+		{0.5f, 0.5f, 0.5f, 1.f, 0.f},
+		{0.5f, -0.5f, 0.5f, 0.f, 0.f},
 		// -X face (left)
-		{-0.5f, -0.5f,  0.5f, 0.f, 1.f },
-		{-0.5f,  0.5f,  0.5f, 1.f, 1.f },
-		{-0.5f,  0.5f, -0.5f, 1.f, 0.f },
-		{-0.5f, -0.5f, -0.5f, 0.f, 0.f },
+		{-0.5f, -0.5f, 0.5f, 0.f, 1.f},
+		{-0.5f, 0.5f, 0.5f, 1.f, 1.f},
+		{-0.5f, 0.5f, -0.5f, 1.f, 0.f},
+		{-0.5f, -0.5f, -0.5f, 0.f, 0.f},
 		// +Y face (top)
-		{-0.5f,  0.5f, -0.5f, 0.f, 1.f },
-		{-0.5f,  0.5f,  0.5f, 1.f, 1.f },
-		{ 0.5f,  0.5f,  0.5f, 1.f, 0.f },
-		{ 0.5f,  0.5f, -0.5f, 0.f, 0.f },
+		{-0.5f, 0.5f, -0.5f, 0.f, 1.f},
+		{-0.5f, 0.5f, 0.5f, 1.f, 1.f},
+		{0.5f, 0.5f, 0.5f, 1.f, 0.f},
+		{0.5f, 0.5f, -0.5f, 0.f, 0.f},
 		// -Y face (bottom)
-		{-0.5f, -0.5f,  0.5f, 0.f, 1.f },
-		{-0.5f, -0.5f, -0.5f, 1.f, 1.f },
-		{ 0.5f, -0.5f, -0.5f, 1.f, 0.f },
-		{ 0.5f, -0.5f,  0.5f, 0.f, 0.f },
+		{-0.5f, -0.5f, 0.5f, 0.f, 1.f},
+		{-0.5f, -0.5f, -0.5f, 1.f, 1.f},
+		{0.5f, -0.5f, -0.5f, 1.f, 0.f},
+		{0.5f, -0.5f, 0.5f, 0.f, 0.f},
 		// +Z face (front)
-		{-0.5f, -0.5f,  0.5f, 0.f, 1.f },
-		{ 0.5f, -0.5f,  0.5f, 1.f, 1.f },
-		{ 0.5f,  0.5f,  0.5f, 1.f, 0.f },
-		{-0.5f,  0.5f,  0.5f, 0.f, 0.f },
+		{-0.5f, -0.5f, 0.5f, 0.f, 1.f},
+		{0.5f, -0.5f, 0.5f, 1.f, 1.f},
+		{0.5f, 0.5f, 0.5f, 1.f, 0.f},
+		{-0.5f, 0.5f, 0.5f, 0.f, 0.f},
 		// -Z face (back)
-		{ 0.5f, -0.5f, -0.5f, 0.f, 1.f },
-		{-0.5f, -0.5f, -0.5f, 1.f, 1.f },
-		{-0.5f,  0.5f, -0.5f, 1.f, 0.f },
-		{ 0.5f,  0.5f, -0.5f, 0.f, 0.f },
+		{0.5f, -0.5f, -0.5f, 0.f, 1.f},
+		{-0.5f, -0.5f, -0.5f, 1.f, 1.f},
+		{-0.5f, 0.5f, -0.5f, 1.f, 0.f},
+		{0.5f, 0.5f, -0.5f, 0.f, 0.f},
 	};
 	// 6 faces × 2 triangles × 3 indices = 36 indices
-	static const uint16_t indices[36] = {
-		 0,  1,  2,   0,  2,  3,  // +X
-		 4,  5,  6,   4,  6,  7,  // -X
-		 8,  9, 10,   8, 10, 11,  // +Y
-		12, 13, 14,  12, 14, 15,  // -Y
-		16, 17, 18,  16, 18, 19,  // +Z
-		20, 21, 22,  20, 22, 23,  // -Z
+	static const uint16_t indices[36]= {
+		0, 1, 2, 0, 2, 3,       // +X
+		4, 5, 6, 4, 6, 7,       // -X
+		8, 9, 10, 8, 10, 11,    // +Y
+		12, 13, 14, 12, 14, 15, // -Y
+		16, 17, 18, 16, 18, 19, // +Z
+		20, 21, 22, 20, 22, 23, // -Z
 	};
 
-	IMkTriangulatedMeshPtr boxMesh = createMkTriangulatedMesh(
+	IMkTriangulatedMeshPtr boxMesh= createMkTriangulatedMesh(
 		graphicsContext.get(),
 		"box_shape",
 		reinterpret_cast<const uint8_t*>(vertices),
@@ -203,7 +206,7 @@ void BoxShapeComponent::openShape()
 		24,
 		reinterpret_cast<const uint8_t*>(indices),
 		sizeof(uint16_t),
-		12,   // triangle count (6 faces × 2)
+		12,     // triangle count (6 faces × 2)
 		false); // mesh owns a copy of the vertex/index data
 
 	if (!boxMesh)
@@ -212,15 +215,15 @@ void BoxShapeComponent::openShape()
 	boxMesh->setMaterial(material);
 	boxMesh->createResources();
 
-	IMkStaticMeshInstancePtr meshInstance = createMkStaticMeshInstance("box_shape", boxMesh);
+	IMkStaticMeshInstancePtr meshInstance= createMkStaticMeshInstance("box_shape", boxMesh);
 	meshInstance->setVisible(true);
 
-	m_sceneRenderable = meshInstance;
+	m_sceneRenderable= meshInstance;
 }
 
 void BoxShapeComponent::closeShape()
 {
-	m_sceneRenderable = nullptr;
+	m_sceneRenderable= nullptr;
 }
 
 void BoxShapeComponent::onDefinitionMarkedDirty(
@@ -229,7 +232,7 @@ void BoxShapeComponent::onDefinitionMarkedDirty(
 {
 	ShapeComponent::onDefinitionMarkedDirty(configPtr, changedPropertySet);
 
-	const bool sizeChanged =
+	const bool sizeChanged=
 		changedPropertySet.hasPropertyName(BoxShapeDefinition::k_boxXSizePropertyId) ||
 		changedPropertySet.hasPropertyName(BoxShapeDefinition::k_boxYSizePropertyId) ||
 		changedPropertySet.hasPropertyName(BoxShapeDefinition::k_boxZSizePropertyId);
@@ -243,11 +246,11 @@ void BoxShapeComponent::onDefinitionMarkedDirty(
 
 void BoxShapeComponent::updateBoxColliderExtents()
 {
-	auto collider = m_boxCollider.lock();
+	auto collider= m_boxCollider.lock();
 	if (!collider)
 		return;
 
-	const auto def = getBoxShapeDefinition();
+	const auto def= getBoxShapeDefinition();
 	if (!def)
 		return;
 
@@ -263,36 +266,36 @@ void BoxShapeComponent::getPropertyDescriptors(std::vector<PropertyDescriptorCon
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			BoxShapeDefinition::k_boxXSizePropertyId, MikanVariantType::FLOAT)
-		->setDefaultValue(1.f));
+			->setDefaultValue(1.f));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			BoxShapeDefinition::k_boxYSizePropertyId, MikanVariantType::FLOAT)
-		->setDefaultValue(1.f));
+			->setDefaultValue(1.f));
 	outDescriptors.push_back(
 		std::make_shared<PropertyDescriptor>(
 			BoxShapeDefinition::k_boxZSizePropertyId, MikanVariantType::FLOAT)
-		->setDefaultValue(1.f));
+			->setDefaultValue(1.f));
 }
 
 bool BoxShapeComponent::getPropertyValue(
 	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	const auto def = getBoxShapeDefinition();
+	const auto def= getBoxShapeDefinition();
 
 	if (propertyName == BoxShapeDefinition::k_boxXSizePropertyId)
 	{
-		outValue = def->getBoxXSize();
+		outValue= def->getBoxXSize();
 		return true;
 	}
 	else if (propertyName == BoxShapeDefinition::k_boxYSizePropertyId)
 	{
-		outValue = def->getBoxYSize();
+		outValue= def->getBoxYSize();
 		return true;
 	}
 	else if (propertyName == BoxShapeDefinition::k_boxZSizePropertyId)
 	{
-		outValue = def->getBoxZSize();
+		outValue= def->getBoxZSize();
 		return true;
 	}
 
@@ -303,7 +306,7 @@ bool BoxShapeComponent::setPropertyValue(
 	const std::string& propertyName,
 	const MikanVariant& inValue)
 {
-	const auto def = getBoxShapeDefinition();
+	const auto def= getBoxShapeDefinition();
 
 	if (propertyName == BoxShapeDefinition::k_boxXSizePropertyId)
 	{
@@ -329,26 +332,14 @@ void BoxShapeComponent::bindLuaFunctions(lua_State* L)
 {
 	luabridge::getGlobalNamespace(L)
 		.deriveClass<BoxShapeComponent, ShapeComponent>(BoxShapeComponent::k_componentClassName.c_str())
-		.addProperty("boxXSize",
-			[](BoxShapeComponent* component) -> float {
-				return component->getBoxShapeDefinition()->getBoxXSize();
-			},
-			[](BoxShapeComponent* component, float value) {
-				component->getBoxShapeDefinition()->setBoxXSize(value);
-			})
-		.addProperty("boxYSize",
-			[](BoxShapeComponent* component) -> float {
-				return component->getBoxShapeDefinition()->getBoxYSize();
-			},
-			[](BoxShapeComponent* component, float value) {
-				component->getBoxShapeDefinition()->setBoxYSize(value);
-			})
-		.addProperty("boxZSize",
-			[](BoxShapeComponent* component) -> float {
-				return component->getBoxShapeDefinition()->getBoxZSize();
-			},
-			[](BoxShapeComponent* component, float value) {
-				component->getBoxShapeDefinition()->setBoxZSize(value);
-			})
+		.addProperty("boxXSize", [](BoxShapeComponent* component) -> float
+					 { return component->getBoxShapeDefinition()->getBoxXSize(); }, [](BoxShapeComponent* component, float value)
+					 { component->getBoxShapeDefinition()->setBoxXSize(value); })
+		.addProperty("boxYSize", [](BoxShapeComponent* component) -> float
+					 { return component->getBoxShapeDefinition()->getBoxYSize(); }, [](BoxShapeComponent* component, float value)
+					 { component->getBoxShapeDefinition()->setBoxYSize(value); })
+		.addProperty("boxZSize", [](BoxShapeComponent* component) -> float
+					 { return component->getBoxShapeDefinition()->getBoxZSize(); }, [](BoxShapeComponent* component, float value)
+					 { component->getBoxShapeDefinition()->setBoxZSize(value); })
 		.endClass();
 }

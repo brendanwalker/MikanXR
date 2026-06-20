@@ -9,8 +9,8 @@
 
 #include "tinyfiledialogs.h"
 
-const std::string GuiPanel_MikanComponent::k_defaultComponentStyleName = "default_component_panel";
-const std::string GuiPanel_MikanComponent::k_scriptPathStyleName = "script_path";
+const std::string GuiPanel_MikanComponent::k_defaultComponentStyleName= "default_component_panel";
+const std::string GuiPanel_MikanComponent::k_scriptPathStyleName= "script_path";
 
 GuiPanel_MikanComponent::GuiPanel_MikanComponent(AppStage* ownerAppStage)
 	: m_component()
@@ -19,7 +19,7 @@ GuiPanel_MikanComponent::GuiPanel_MikanComponent(AppStage* ownerAppStage)
 {
 	auto* styleManager= ownerAppStage->getOwnerWindow()->getMkGuiStyleManager();
 
-	m_defaultGuiStyle = styleManager->getStyle(k_defaultComponentStyleName);
+	m_defaultGuiStyle= styleManager->getStyle(k_defaultComponentStyleName);
 }
 
 ProjectManagerPtr GuiPanel_MikanComponent::getOwnerProject() const
@@ -34,7 +34,7 @@ MikanComponentPtr GuiPanel_MikanComponent::getComponent() const
 
 bool GuiPanel_MikanComponent::setComponent(MikanComponentPtr component)
 {
-	MikanComponentPtr oldComponent = m_component.lock();
+	MikanComponentPtr oldComponent= m_component.lock();
 
 	if (component != oldComponent || m_component.expired())
 	{
@@ -47,7 +47,7 @@ bool GuiPanel_MikanComponent::setComponent(MikanComponentPtr component)
 			m_entityAccessor->setEntityAccessor(nullptr);
 		}
 
-		m_component = component;
+		m_component= component;
 		return true;
 	}
 
@@ -60,46 +60,44 @@ void GuiPanel_MikanComponent::onConstruct()
 		MikanComponentDefinition::k_componentScriptPathPropertyId,
 		[this](const PropertyDescriptorConstPtr& desc) -> bool
 		{
-			MikanComponentPtr component = getComponent();
-			if (!component) return false;
+			MikanComponentPtr component= getComponent();
+			if (!component)
+				return false;
 
 			if (component->hasValidComponentScript())
 			{
-				const auto* assetMeta = desc->getMetaDataOfType<AssetReferenceFactoryMetaData>();
-				MikanComponentDefinitionPtr componentDef = component->getDefinition();
-				const std::string scriptPath = componentDef->getComponentScriptPath().generic_string();
+				const auto* assetMeta= desc->getMetaDataOfType<AssetReferenceFactoryMetaData>();
+				MikanComponentDefinitionPtr componentDef= component->getDefinition();
+				const std::string scriptPath= componentDef->getComponentScriptPath().generic_string();
 
 				if (MkGui::drawFilePathProperty(
 						m_defaultGuiStyle,
 						component->makePropertyUIIdentifier(MikanComponent::k_addNewScriptFunctionId),
-						"Script", 
+						"Script",
 						scriptPath))
 				{
-					addDeferredGuiEvent([component]() {
-						component->selectComponentScript();
-					});
+					addDeferredGuiEvent([component]()
+										{ component->selectComponentScript(); });
 				}
 
 				MkGui::drawStaticTextProperty(m_defaultGuiStyle, "", "");
 				ImGui::SameLine();
 				if (MkGui::drawImageButton(
-					m_defaultGuiStyle,
-					component->makePropertyUIIdentifier(MikanComponent::k_editScriptFunctionId),
-					"edit_component"))
+						m_defaultGuiStyle,
+						component->makePropertyUIIdentifier(MikanComponent::k_editScriptFunctionId),
+						"edit_component"))
 				{
-					addDeferredGuiEvent([component]() {
-						component->editComponentScript();
-					});
+					addDeferredGuiEvent([component]()
+										{ component->editComponentScript(); });
 				}
 				ImGui::SameLine();
 				if (MkGui::drawImageButton(
-						m_defaultGuiStyle, 
+						m_defaultGuiStyle,
 						component->makePropertyUIIdentifier(MikanComponent::k_reloadScriptFunctionId),
 						"reload_component"))
 				{
-					addDeferredGuiEvent([component]() {
-						component->reloadComponentScript();
-					});
+					addDeferredGuiEvent([component]()
+										{ component->reloadComponentScript(); });
 				}
 				ImGui::SameLine();
 				if (MkGui::drawImageButton(
@@ -107,9 +105,8 @@ void GuiPanel_MikanComponent::onConstruct()
 						component->makePropertyUIIdentifier(MikanComponent::k_removeScriptFunctionId),
 						"delete_component"))
 				{
-					addDeferredGuiEvent([component]() {
-						component->removeComponentScript();
-					});
+					addDeferredGuiEvent([component]()
+										{ component->removeComponentScript(); });
 				}
 			}
 			else
@@ -121,19 +118,17 @@ void GuiPanel_MikanComponent::onConstruct()
 						component->makePropertyUIIdentifier(MikanComponent::k_addNewScriptFunctionId),
 						"add_component"))
 				{
-					addDeferredGuiEvent([component]() {
-						component->addNewComponentScript();
-					});
+					addDeferredGuiEvent([component]()
+										{ component->addNewComponentScript(); });
 				}
 				ImGui::SameLine();
 				if (MkGui::drawImageButton(
-					m_defaultGuiStyle,
-					component->makePropertyUIIdentifier(MikanComponent::k_selectScriptFunctionId),
-					"select_component"))
+						m_defaultGuiStyle,
+						component->makePropertyUIIdentifier(MikanComponent::k_selectScriptFunctionId),
+						"select_component"))
 				{
-					addDeferredGuiEvent([component]() {
-						component->selectComponentScript();
-						});
+					addDeferredGuiEvent([component]()
+										{ component->selectComponentScript(); });
 				}
 			}
 
@@ -147,13 +142,13 @@ void GuiPanel_MikanComponent::onGui()
 	m_entityAccessor->onGui();
 
 	// Render script triggers as buttons
-	MikanComponentPtr component = m_component.lock();
+	MikanComponentPtr component= m_component.lock();
 	if (component)
 	{
-		ComponentScriptContextPtr scriptContext = component->getScriptContext();
+		ComponentScriptContextPtr scriptContext= component->getScriptContext();
 		if (scriptContext)
 		{
-			const std::vector<std::string>& triggers = scriptContext->getScriptTriggers();
+			const std::vector<std::string>& triggers= scriptContext->getScriptTriggers();
 			if (!triggers.empty())
 			{
 				ImGui::Separator();
@@ -162,9 +157,8 @@ void GuiPanel_MikanComponent::onGui()
 				{
 					if (ImGui::Button(triggerName.c_str()))
 					{
-						addDeferredGuiEvent([scriptContext, triggerName]() {
-							scriptContext->invokeScriptTrigger(triggerName);
-						});
+						addDeferredGuiEvent([scriptContext, triggerName]()
+											{ scriptContext->invokeScriptTrigger(triggerName); });
 					}
 				}
 			}
@@ -184,7 +178,7 @@ void GuiPanel_MikanComponent::processDeferredGuiEvents()
 
 void GuiPanel_MikanComponent::dispose()
 {
-	m_entityAccessor->OnEntityPropertyChanged -= MakeDelegate(
+	m_entityAccessor->OnEntityPropertyChanged-= MakeDelegate(
 		this,
 		&GuiPanel_MikanComponent::onComponentPropertyChanged);
 	m_entityAccessor->dispose();

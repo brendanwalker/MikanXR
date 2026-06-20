@@ -13,11 +13,11 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/quaternion.hpp>
 
-#define k_meters_to_millimeters		1000.0f
-#define k_millimeters_to_meters		(1.0f / k_meters_to_millimeters)
+#define k_meters_to_millimeters 1000.0f
+#define k_millimeters_to_meters (1.0f / k_meters_to_millimeters)
 
-#define k_meters_to_centimeters		100.0f
-#define k_centimeters_to_meters		(1.0f / k_meters_to_centimeters)
+#define k_meters_to_centimeters 100.0f
+#define k_centimeters_to_meters (1.0f / k_meters_to_centimeters)
 
 // pre-declarations
 class GlmTransform;

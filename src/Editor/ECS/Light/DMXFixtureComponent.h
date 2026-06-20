@@ -48,12 +48,12 @@ public:
 
 protected:
 	void setDMXChannelCount(uint16_t count);
-	
-	MikanStageID m_stageId = INVALID_MIKAN_ID;
-	uint16_t m_dmxUniverse = 1;
-	uint16_t m_dmxStartChannel = 1;
-	uint16_t m_dmxChannelCount = 3;
-	bool m_bIsDisabled = false;
+
+	MikanStageID m_stageId= INVALID_MIKAN_ID;
+	uint16_t m_dmxUniverse= 1;
+	uint16_t m_dmxStartChannel= 1;
+	uint16_t m_dmxChannelCount= 3;
+	bool m_bIsDisabled= false;
 };
 
 // -- DMXFixtureComponent -----
@@ -62,7 +62,7 @@ class DMXFixtureComponent : public TransformComponent
 public:
 	DMXFixtureComponent(MikanObjectWeakPtr owner);
 
-	inline static const std::string k_componentClassName = "DMXFixtureComponent";
+	inline static const std::string k_componentClassName= "DMXFixtureComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	inline DMXFixtureComponentDefinitionPtr getDMXFixtureDefinition() const
@@ -77,14 +77,14 @@ public:
 
 	/// Write this fixture's current channel values to the DMX manager.
 	/// Called each frame by the owning object system.
-	virtual void sendDMXData(IDMXManager* manager) const = 0;
+	virtual void sendDMXData(IDMXManager* manager) const= 0;
 
 	/// Get the current DMX channel data as a flat byte array.
-	virtual void getDMXData(MikanDMXData& outData) const = 0;
+	virtual void getDMXData(MikanDMXData& outData) const= 0;
 
 	/// Apply a flat byte array of DMX channel data to this fixture.
 	/// Implementations should notify DMXObjectSystem::OnDMXDataChanged after updating.
-	virtual void setDMXData(const MikanDMXData& data) = 0;
+	virtual void setDMXData(const MikanDMXData& data)= 0;
 
 	// -- Lua Binding --
 	static void bindLuaFunctions(struct lua_State* L);

@@ -28,7 +28,7 @@ bool FunctionDatabaseEnumerator::isValid() const
 	if (!m_database)
 		return false;
 
-	const int totalFunctionCount = (int)m_database->getAllFunctions().size();
+	const int totalFunctionCount= (int)m_database->getAllFunctions().size();
 	return m_currentIndex < totalFunctionCount;
 }
 
@@ -37,7 +37,7 @@ void FunctionDatabaseEnumerator::next()
 	if (!m_database)
 		return;
 
-	const int totalFunctionCount = (int)m_database->getAllFunctions().size();
+	const int totalFunctionCount= (int)m_database->getAllFunctions().size();
 
 	// Advance to the next index
 	m_currentIndex++;
@@ -58,7 +58,7 @@ bool FunctionDatabaseEnumerator::matchesFilters(int functionIndex) const
 	if (!m_database)
 		return false;
 
-	const MikanFunctionEntry* entry = m_database->getFunctionByIndex(functionIndex);
+	const MikanFunctionEntry* entry= m_database->getFunctionByIndex(functionIndex);
 	if (!entry)
 		return false;
 
@@ -84,13 +84,15 @@ bool FunctionDatabaseEnumerator::matchesFilter(const std::string& value, const s
 		return true;
 
 	// Convert both to lowercase for case-insensitive comparison
-	std::string lowerValue = value;
-	std::string lowerFilter = filter;
+	std::string lowerValue= value;
+	std::string lowerFilter= filter;
 
 	std::transform(lowerValue.begin(), lowerValue.end(), lowerValue.begin(),
-		[](unsigned char c) { return std::tolower(c); });
+				   [](unsigned char c)
+				   { return std::tolower(c); });
 	std::transform(lowerFilter.begin(), lowerFilter.end(), lowerFilter.begin(),
-		[](unsigned char c) { return std::tolower(c); });
+				   [](unsigned char c)
+				   { return std::tolower(c); });
 
 	return lowerValue == lowerFilter;
 }

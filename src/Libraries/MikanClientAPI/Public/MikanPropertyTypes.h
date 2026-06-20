@@ -31,8 +31,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyTypes")) Mika
 	Serialization::String fieldName;
 	FIELD()
 	MikanVariantType fieldType= MikanVariantType::INVALID;
-	FIELD()
-	bool isReadOnly= false;
+	FIELD() bool isReadOnly= false;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanPropertyDescriptor_GENERATED
@@ -46,16 +45,15 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanPropertyTypes")) Mika
 	Serialization::String ownerSystem;
 	FIELD()
 	Serialization::String ownerComponentClass;
-	FIELD()
-	int componentId= INVALID_MIKAN_ID;
+	FIELD() int componentId= INVALID_MIKAN_ID;
 	FIELD()
 	Serialization::String fieldName;
 	FIELD()
 	MikanVariant fieldValue;
 
-	#ifdef MIKANAPI_REFLECTION_ENABLED
+#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanPropertyValue_GENERATED
-	#endif // MIKANAPI_REFLECTION_ENABLED
+#endif // MIKANAPI_REFLECTION_ENABLED
 };
 
 /// Polymorphic Structure representing a system property values

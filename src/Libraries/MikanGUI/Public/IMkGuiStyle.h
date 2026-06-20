@@ -9,27 +9,27 @@
 class MIKAN_GUI_CLASS IMkGuiStyle
 {
 public:
-	static constexpr int k_defaultLabelWidth = 200;
-	static constexpr int k_defaultValueWidth = 150;
+	static constexpr int k_defaultLabelWidth= 200;
+	static constexpr int k_defaultValueWidth= 150;
 
-	virtual ~IMkGuiStyle() = default;
+	virtual ~IMkGuiStyle()= default;
 
-	virtual const std::string& getName() const = 0;
-	virtual int getLabelWidth() const = 0;
-	virtual int getValueWidth() const = 0;
-	virtual struct ImFont* getFont() const = 0;
+	virtual const std::string& getName() const= 0;
+	virtual int getLabelWidth() const= 0;
+	virtual int getValueWidth() const= 0;
+	virtual struct ImFont* getFont() const= 0;
 
-	virtual int getFloatVarCount() const = 0;
-	virtual const MkGuiStyleFloatEntry& getFloatVar(int index) const = 0;
+	virtual int getFloatVarCount() const= 0;
+	virtual const MkGuiStyleFloatEntry& getFloatVar(int index) const= 0;
 
-	virtual int getVec2VarCount() const = 0;
-	virtual const MkGuiStyleVec2Entry& getVec2Var(int index) const = 0;
+	virtual int getVec2VarCount() const= 0;
+	virtual const MkGuiStyleVec2Entry& getVec2Var(int index) const= 0;
 
-	virtual int getColorCount() const = 0;
-	virtual const MkGuiStyleColorEntry& getColor(int index) const = 0;
+	virtual int getColorCount() const= 0;
+	virtual const MkGuiStyleColorEntry& getColor(int index) const= 0;
 
-	virtual const MkGuiStyleTextureEntry* findTexture(const std::string& name) const = 0;
+	virtual const MkGuiStyleTextureEntry* findTexture(const std::string& name) const= 0;
 };
 
-using MkGuiStylePtr = std::shared_ptr<IMkGuiStyle>;
-using MkGuiStyleConstPtr = std::shared_ptr<const IMkGuiStyle>;
+using MkGuiStylePtr= std::shared_ptr<IMkGuiStyle>;
+using MkGuiStyleConstPtr= std::shared_ptr<const IMkGuiStyle>;

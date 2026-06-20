@@ -15,7 +15,7 @@ using namespace std::placeholders;
 
 bool LightRequestHandler::startup(MainWindow* mainWindow)
 {
-	IInterprocessMessageServer* messageServer = m_owner->getMessageServer();
+	IInterprocessMessageServer* messageServer= m_owner->getMessageServer();
 
 	// Register request handlers
 	messageServer->setRequestHandler(
@@ -29,9 +29,9 @@ bool LightRequestHandler::startup(MainWindow* mainWindow)
 		std::bind(&LightRequestHandler::getLightDMXDataHandler, this, _1, _2));
 
 	// Subscribe to the single DMXObjectSystem delegate for all fixture DMX data changes
-	if (auto dmxSystem = getObjectSystemOfType<DMXObjectSystem>())
+	if (auto dmxSystem= getObjectSystemOfType<DMXObjectSystem>())
 	{
-		dmxSystem->OnDMXDataChanged += MakeDelegate(this, &LightRequestHandler::onLightDMXDataChanged);
+		dmxSystem->OnDMXDataChanged+= MakeDelegate(this, &LightRequestHandler::onLightDMXDataChanged);
 	}
 
 	return true;
@@ -39,9 +39,9 @@ bool LightRequestHandler::startup(MainWindow* mainWindow)
 
 void LightRequestHandler::shutdown()
 {
-	if (auto dmxSystem = getObjectSystemOfType<DMXObjectSystem>())
+	if (auto dmxSystem= getObjectSystemOfType<DMXObjectSystem>())
 	{
-		dmxSystem->OnDMXDataChanged -= MakeDelegate(this, &LightRequestHandler::onLightDMXDataChanged);
+		dmxSystem->OnDMXDataChanged-= MakeDelegate(this, &LightRequestHandler::onLightDMXDataChanged);
 	}
 
 	m_lightSubscriptions.clear();
@@ -49,22 +49,22 @@ void LightRequestHandler::shutdown()
 
 void LightRequestHandler::onLightDMXDataChanged(MikanLightID lightId)
 {
-	auto it = m_lightSubscriptions.find(lightId);
+	auto it= m_lightSubscriptions.find(lightId);
 	if (it == m_lightSubscriptions.end() || it->second.empty())
 		return;
 
-	auto comp = findLightById(lightId);
+	auto comp= findLightById(lightId);
 	if (!comp)
 		return;
 
 	MikanLightDMXDataChangedEvent dmxChangedEvent;
-	dmxChangedEvent.light_id = lightId;
+	dmxChangedEvent.light_id= lightId;
 	comp->getDMXData(dmxChangedEvent.dmx_data);
 
-	const std::string eventJson = mikanTypeToJsonString(dmxChangedEvent);
+	const std::string eventJson= mikanTypeToJsonString(dmxChangedEvent);
 	for (const std::string& connectionId : it->second)
 	{
-		MikanClientConnectionStatePtr clientState = m_owner->getConnectedClientState(connectionId);
+		MikanClientConnectionStatePtr clientState= m_owner->getConnectedClientState(connectionId);
 		if (clientState)
 		{
 			clientState->publishMikanJsonEvent(eventJson);
@@ -83,14 +83,14 @@ void LightRequestHandler::setLightDMXDataSubscriptionHandler(
 		return;
 	}
 
-	const MikanLightID lightId = subscriptionRequest.light_id;
+	const MikanLightID lightId= subscriptionRequest.light_id;
 	if (subscriptionRequest.subscribe)
 	{
 		m_lightSubscriptions[lightId].insert(request.connectionId);
 	}
 	else
 	{
-		auto it = m_lightSubscriptions.find(lightId);
+		auto it= m_lightSubscriptions.find(lightId);
 		if (it != m_lightSubscriptions.end())
 		{
 			it->second.erase(request.connectionId);
@@ -111,7 +111,7 @@ void LightRequestHandler::setLightDMXDataHandler(
 		return;
 	}
 
-	auto comp = findLightById(setDataRequest.light_id);
+	auto comp= findLightById(setDataRequest.light_id);
 	if (!comp)
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
@@ -135,7 +135,7 @@ void LightRequestHandler::getLightDMXDataHandler(
 		return;
 	}
 
-	auto comp = findLightById(getDataRequest.light_id);
+	auto comp= findLightById(getDataRequest.light_id);
 	if (!comp)
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
@@ -143,7 +143,7 @@ void LightRequestHandler::getLightDMXDataHandler(
 	}
 
 	MikanLightDMXDataResponse dmxResponse;
-	dmxResponse.light_id = getDataRequest.light_id;
+	dmxResponse.light_id= getDataRequest.light_id;
 	comp->getDMXData(dmxResponse.dmx_data);
 
 	writeTypedJsonResponse(request.requestId, dmxResponse, response);
@@ -151,15 +151,15 @@ void LightRequestHandler::getLightDMXDataHandler(
 
 std::shared_ptr<DMXFixtureComponent> LightRequestHandler::findLightById(MikanLightID lightId) const
 {
-	if (auto spotSystem = getObjectSystemOfType<RGBSpotLightSystem>())
+	if (auto spotSystem= getObjectSystemOfType<RGBSpotLightSystem>())
 	{
-		if (auto light = spotSystem->getLightById(lightId))
+		if (auto light= spotSystem->getLightById(lightId))
 			return light;
 	}
 
-	if (auto gridSystem = getObjectSystemOfType<RGBPixelGridSystem>())
+	if (auto gridSystem= getObjectSystemOfType<RGBPixelGridSystem>())
 	{
-		if (auto grid = gridSystem->getGridById(lightId))
+		if (auto grid= gridSystem->getGridById(lightId))
 			return grid;
 	}
 

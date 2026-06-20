@@ -14,9 +14,9 @@
 // -- ArrayNode Config -----
 configuru::Config ArrayNodeConfig::writeToJSON()
 {
-	configuru::Config pt = NodeConfig::writeToJSON();
+	configuru::Config pt= NodeConfig::writeToJSON();
 
-	pt["element_class_name"] = elementClassName;
+	pt["element_class_name"]= elementClassName;
 
 	return pt;
 }
@@ -25,7 +25,7 @@ void ArrayNodeConfig::readFromJSON(const configuru::Config& pt)
 {
 	NodeConfig::readFromJSON(pt);
 
-	elementClassName = pt.get_or<std::string>("element_class_name", "");
+	elementClassName= pt.get_or<std::string>("element_class_name", "");
 }
 
 // -- EventNode -----
@@ -33,7 +33,7 @@ bool ArrayNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 {
 	if (Node::loadFromConfig(nodeConfig))
 	{
-		auto arrayNodeConfig = std::static_pointer_cast<const ArrayNodeConfig>(nodeConfig);
+		auto arrayNodeConfig= std::static_pointer_cast<const ArrayNodeConfig>(nodeConfig);
 
 		m_elementClassName= arrayNodeConfig->elementClassName;
 
@@ -48,7 +48,7 @@ bool ArrayNode::loadFromConfig(NodeConfigConstPtr nodeConfig)
 
 void ArrayNode::saveToConfig(NodeConfigPtr nodeConfig) const
 {
-	auto arrayNodeConfig = std::static_pointer_cast<ArrayNodeConfig>(nodeConfig);
+	auto arrayNodeConfig= std::static_pointer_cast<ArrayNodeConfig>(nodeConfig);
 
 	arrayNodeConfig->elementClassName= m_elementClassName;
 
@@ -73,14 +73,14 @@ void ArrayNode::editorRenderInputPins(const NodeEditorState& editorState)
 				pin->editorRenderInputPin(editorState);
 			}
 
-			const std::string buttonName = StringUtils::stringify(ICON_FK_PLUS_CIRCLE, "##add_pin");
+			const std::string buttonName= StringUtils::stringify(ICON_FK_PLUS_CIRCLE, "##add_pin");
 			if (ImGui::SmallButton(buttonName.c_str()))
 			{
-				const int pinIndex = (int)m_pinsIn.size();
+				const int pinIndex= (int)m_pinsIn.size();
 				char pinName[16];
 
 				StringUtils::formatString(pinName, sizeof(pinName), "[%d]", pinIndex);
-				auto newPin = addPin<PropertyPin>(pinName, eNodePinDirection::INPUT);
+				auto newPin= addPin<PropertyPin>(pinName, eNodePinDirection::INPUT);
 				newPin->setPropertyClassName(m_elementClassName);
 			}
 		}
@@ -99,21 +99,21 @@ void ArrayNode::onLinkConnected(NodeLinkPtr link, NodePinPtr pin)
 		if (pin == m_pinsOut[0])
 		{
 			// Get the element class from the array pin getting connected to the output
-			auto sourcePin = link->getConnectedPin(pin);
+			auto sourcePin= link->getConnectedPin(pin);
 			assert(sourcePin->getClassName() == ArrayPin::k_pinClassName);
-			auto sourceArrayPin = std::static_pointer_cast<ArrayPin>(sourcePin);
+			auto sourceArrayPin= std::static_pointer_cast<ArrayPin>(sourcePin);
 
-			elementClassName = sourceArrayPin->getElementClassName();
+			elementClassName= sourceArrayPin->getElementClassName();
 		}
 		// Otherwise it must have been an input pin
 		else
 		{
 			// Get the element class from the property pin getting connected to an input
-			auto sourcePin = link->getConnectedPin(pin);
+			auto sourcePin= link->getConnectedPin(pin);
 			assert(sourcePin->getClassName() == PropertyPin::k_pinClassName);
-			auto sourcePropertyPin = std::static_pointer_cast<PropertyPin>(sourcePin);
-			
-			elementClassName = sourcePropertyPin->getPropertyClassName();
+			auto sourcePropertyPin= std::static_pointer_cast<PropertyPin>(sourcePin);
+
+			elementClassName= sourcePropertyPin->getPropertyClassName();
 
 			// Update input pin value value from newly connected pin
 			pin->copyValueFromSourcePin();
@@ -155,7 +155,7 @@ void ArrayNode::setElementClassName(const std::string inElementClassName)
 
 		if (m_pinsOut.size() == 1)
 		{
-			auto arrayPin = std::static_pointer_cast<ArrayPin>(m_pinsOut[0]);
+			auto arrayPin= std::static_pointer_cast<ArrayPin>(m_pinsOut[0]);
 			arrayPin->setElementClassName(inElementClassName);
 		}
 	}
@@ -164,13 +164,13 @@ void ArrayNode::setElementClassName(const std::string inElementClassName)
 void ArrayNode::rebuildOutputArrayValue()
 {
 	assert(m_pinsOut.size() == 1);
-	auto arrayPin = std::static_pointer_cast<ArrayPin>(m_pinsOut[0]);
+	auto arrayPin= std::static_pointer_cast<ArrayPin>(m_pinsOut[0]);
 	auto& graphPropertyArray= arrayPin->getArrayMutable();
 
 	graphPropertyArray.clear();
 	for (const NodePinPtr& pin : m_pinsIn)
 	{
-		auto propPin = std::static_pointer_cast<PropertyPin>(pin);
+		auto propPin= std::static_pointer_cast<PropertyPin>(pin);
 		GraphPropertyPtr property= propPin->getValue();
 
 		// Only bother with non empty properties
@@ -185,14 +185,14 @@ void ArrayNode::rebuildOutputArrayValue()
 NodePtr ArrayNodeFactory::createNode(const NodeEditorState& editorState) const
 {
 	// Create the node and pins
-	NodePtr node = NodeFactory::createNode(editorState);
-	ArrayPinPtr outputPin = node->addPin<ArrayPin>("array", eNodePinDirection::OUTPUT);
-	//NOTE: output pin has no element class assigned until we connect our first link
-	// see onLinkConnected / onLinkDisconnected
+	NodePtr node= NodeFactory::createNode(editorState);
+	ArrayPinPtr outputPin= node->addPin<ArrayPin>("array", eNodePinDirection::OUTPUT);
+	// NOTE: output pin has no element class assigned until we connect our first link
+	//  see onLinkConnected / onLinkDisconnected
 
-	PropertyPinPtr firstInputPin = node->addPin<PropertyPin>("[0]", eNodePinDirection::INPUT);
-	//NOTE: input pin has no property class assigned until we connect our first link
-	// see onLinkConnected / onLinkDisconnected
+	PropertyPinPtr firstInputPin= node->addPin<PropertyPin>("[0]", eNodePinDirection::INPUT);
+	// NOTE: input pin has no property class assigned until we connect our first link
+	//  see onLinkConnected / onLinkDisconnected
 
 	// If spawned in an editor context from a dangling pin link
 	// auto-connect compatible pins

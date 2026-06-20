@@ -28,7 +28,7 @@ enum class ENUM(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanIntr
 
 enum class ENUM(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoSettingType
 {
-	INVALID ENUMVALUE_STRING("INVALID") = -1,
+	INVALID ENUMVALUE_STRING("INVALID")= -1,
 
 	BRIGHTNESS ENUMVALUE_STRING("Brightness"),
 	CONTRAST ENUMVALUE_STRING("Contrast"),
@@ -58,26 +58,18 @@ enum class ENUM(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVide
 /// See the [OpenCV Docs](http://docs.opencv.org/2.4/modules/calib3d/doc/camera_calibration_and_3d_reconstruction.html) for details
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanDistortionCoefficients
 {
-	FIELD()
-	double k1 = 0.0; ///< Radial Distortion Parameter 1 (r^2 numerator constant)
-	FIELD()
-	double k2 = 0.0; ///< Radial Distortion Parameter 2 (r^4 numerator constant)
-	FIELD()
-	double k3 = 0.0; ///< Radial Distortion Parameter 3 (r^6 numerator constant)
-	FIELD()
-	double k4 = 0.0; ///< Radial Distortion Parameter 4 (r^2 divisor constant)
-	FIELD()
-	double k5 = 0.0; ///< Radial Distortion Parameter 5 (r^4 divisor constant)
-	FIELD()
-	double k6 = 0.0; ///< Radial Distortion Parameter 6 (r^6 divisor constant)
-	FIELD()
-	double p1 = 0.0; ///< Tangential Distortion Parameter 1
-	FIELD()
-	double p2 = 0.0; ///< Tangential Distortion Parameter 2
+	FIELD() double k1= 0.0; ///< Radial Distortion Parameter 1 (r^2 numerator constant)
+	FIELD() double k2= 0.0; ///< Radial Distortion Parameter 2 (r^4 numerator constant)
+	FIELD() double k3= 0.0; ///< Radial Distortion Parameter 3 (r^6 numerator constant)
+	FIELD() double k4= 0.0; ///< Radial Distortion Parameter 4 (r^2 divisor constant)
+	FIELD() double k5= 0.0; ///< Radial Distortion Parameter 5 (r^4 divisor constant)
+	FIELD() double k6= 0.0; ///< Radial Distortion Parameter 6 (r^6 divisor constant)
+	FIELD() double p1= 0.0; ///< Tangential Distortion Parameter 1
+	FIELD() double p2= 0.0; ///< Tangential Distortion Parameter 2
 
-	#ifdef MIKANAPI_REFLECTION_ENABLED
+#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanDistortionCoefficients_GENERATED
-	#endif
+#endif
 };
 
 /// Camera intrinsic common properties
@@ -85,24 +77,17 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanBaseIntrinsics
 	: public Serialization::PolymorphicStruct
 {
-	FIELD()
-	double pixel_width = 0.0;  ///< Width of the camera buffer in pixels
-	FIELD()
-	double pixel_height = 0.0; ///< Height of the camera buffer in pixels
-	FIELD()
-	double aspect_ratio = 0.0; ///< The aspect ratio of each pixel (y focal length / x focal length)
-	FIELD()
-	double hfov = 0.0;         ///< The horizontal field of view camera in degrees
-	FIELD()
-	double vfov = 0.0;         ///< The vertical field of view camera in degrees
-	FIELD()
-	double znear = 0.0;        ///< The distance of the near clipping plane in meters
-	FIELD()
-	double zfar = 0.0;         ///< The distance of the far clipping plane in meters
+	FIELD() double pixel_width= 0.0;  ///< Width of the camera buffer in pixels
+	FIELD() double pixel_height= 0.0; ///< Height of the camera buffer in pixels
+	FIELD() double aspect_ratio= 0.0; ///< The aspect ratio of each pixel (y focal length / x focal length)
+	FIELD() double hfov= 0.0;         ///< The horizontal field of view camera in degrees
+	FIELD() double vfov= 0.0;         ///< The vertical field of view camera in degrees
+	FIELD() double znear= 0.0;        ///< The distance of the near clipping plane in meters
+	FIELD() double zfar= 0.0;         ///< The distance of the far clipping plane in meters
 
-	#ifdef MIKANAPI_REFLECTION_ENABLED
+#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanBaseIntrinsics_GENERATED
-	#endif
+#endif
 };
 
 /// Camera intrinsic properties for a monoscopic camera
@@ -121,9 +106,9 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 	FIELD()
 	MikanMatrix3d undistorted_camera_matrix;
 
-	#ifdef MIKANAPI_REFLECTION_ENABLED
+#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanMonoIntrinsics_GENERATED
-	#endif
+#endif
 };
 
 /// Camera intrinsic properties for a stereoscopic camera
@@ -157,11 +142,11 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 	FIELD()
 	MikanMatrix3d fundamental_matrix; ///< Transform relating points in pixel coordinates between cameras
 	FIELD()
-	MikanMatrix4d reprojection_matrix;  ///< Transform relating pixel x,y + disparity to distance from cameras
+	MikanMatrix4d reprojection_matrix; ///< Transform relating pixel x,y + disparity to distance from cameras
 
-	#ifdef MIKANAPI_REFLECTION_ENABLED
+#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanStereoIntrinsics_GENERATED
-	#endif
+#endif
 };
 
 /// Bundle containing all intrinsic video source properties
@@ -177,11 +162,12 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 	MikanVideoSourceIntrinsics()
 		: intrinsics_ptr()
 		, intrinsics_type(MikanIntrinsicsType::INVALID_CAMERA_INTRINSICS)
-	{}
+	{
+	}
 
 	const MikanMonoIntrinsics& getMonoIntrinsics() const
 	{
-		auto* monoIntrinsicsPtr = intrinsics_ptr.getTypedPointer<MikanMonoIntrinsics>();
+		auto* monoIntrinsicsPtr= intrinsics_ptr.getTypedPointer<MikanMonoIntrinsics>();
 
 		return *monoIntrinsicsPtr;
 	}
@@ -193,7 +179,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 
 	const MikanStereoIntrinsics& getStereoIntrinsics() const
 	{
-		auto stereoIntrinsicsPtr = intrinsics_ptr.getTypedPointer<MikanStereoIntrinsics>();
+		auto stereoIntrinsicsPtr= intrinsics_ptr.getTypedPointer<MikanStereoIntrinsics>();
 
 		return *stereoIntrinsicsPtr;
 	}
@@ -206,47 +192,42 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 #if defined(MIKANAPI_REFLECTION_ENABLED) && defined(SERIALIZATION_REFLECTION_ENABLED)
 	MikanMonoIntrinsics& makeMonoIntrinsics()
 	{
-		auto* monoIntrinsics = intrinsics_ptr.allocatedByType<MikanMonoIntrinsics>();
-		intrinsics_type = MikanIntrinsicsType::MONO_CAMERA_INTRINSICS;
+		auto* monoIntrinsics= intrinsics_ptr.allocatedByType<MikanMonoIntrinsics>();
+		intrinsics_type= MikanIntrinsicsType::MONO_CAMERA_INTRINSICS;
 
 		return *monoIntrinsics;
 	}
 
 	MikanStereoIntrinsics& makeStereoIntrinsics()
 	{
-		auto* stereoIntrinsics = intrinsics_ptr.allocatedByType<MikanStereoIntrinsics>();
-		intrinsics_type = MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS;
+		auto* stereoIntrinsics= intrinsics_ptr.allocatedByType<MikanStereoIntrinsics>();
+		intrinsics_type= MikanIntrinsicsType::STEREO_CAMERA_INTRINSICS;
 
 		return *stereoIntrinsics;
 	}
 #endif // MIKANAPI_REFLECTION_ENABLED && SERIALIZATION_REFLECTION_ENABLED
 
-	#ifdef MIKANAPI_REFLECTION_ENABLED
+#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVideoSourceIntrinsics_GENERATED
-	#endif // MIKANAPI_REFLECTION_ENABLED
+#endif // MIKANAPI_REFLECTION_ENABLED
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoSourceValues :
-	public MikanComponentValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanVideoSourceValues : public MikanComponentValues
 {
 	FIELD()
 	Serialization::PolymorphicObjectPtr intrinsics_ptr;
 	FIELD()
 	MikanIntrinsicsType intrinsics_type;
-	FIELD()
-	bool is_frame_mirrored;
-	FIELD()
-	bool is_buffer_mirrored;
-	FIELD()
-	int video_frame_queue_size;
+	FIELD() bool is_frame_mirrored;
+	FIELD() bool is_buffer_mirrored;
+	FIELD() int video_frame_queue_size;
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVideoSourceValues_GENERATED
 #endif // MIKANAPI_REFLECTION_ENABLED
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanNetworkVideoSourceValues :
-	public MikanVideoSourceValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanNetworkVideoSourceValues : public MikanVideoSourceValues
 {
 	static const char* k_componentClassName;
 	static const char* k_ownerSystemName;
@@ -255,18 +236,16 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 	Serialization::String protocol; ///< e.g., "RTMP", "RTSP"
 	FIELD()
 	Serialization::String ip_address; ///< IP address of the network video source
-	FIELD()
-	int port; ///< Port number of the network video source
+	FIELD() int port;                 ///< Port number of the network video source
 	FIELD()
 	Serialization::String path; ///< Path of the network video source on the server
 
-	#ifdef MIKANAPI_REFLECTION_ENABLED
+#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanNetworkVideoSourceValues_GENERATED
-	#endif // MIKANAPI_REFLECTION_ENABLED
+#endif // MIKANAPI_REFLECTION_ENABLED
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanUSBVideoSourceValues :
-	public MikanVideoSourceValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanUSBVideoSourceValues : public MikanVideoSourceValues
 {
 	static const char* k_componentClassName;
 	static const char* k_ownerSystemName;
@@ -284,117 +263,85 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) M
 	FIELD()
 	Serialization::String video_format; ///< Current video format (e.g., "YUY2")
 	FIELD()
-	Serialization::List<float> video_settings; ///< [0,1] Video Settings (See MikanVideoSettingType enum)
+	Serialization::List<float>
+		video_settings; ///< [0,1] Video Settings (See MikanVideoSettingType enum)
 	FIELD()
-	Serialization::List<Serialization::String> video_resolutions; ///< Current available video resolution options
+	Serialization::List<Serialization::String>
+		video_resolutions; ///< Current available video resolution options
 	FIELD()
-	Serialization::List<Serialization::String> video_frame_rates; ///< Current available video frame rate options
+	Serialization::List<Serialization::String>
+		video_frame_rates; ///< Current available video frame rate options
 	FIELD()
-	Serialization::List<Serialization::String> video_formats; ///< Current available video format options
+	Serialization::List<Serialization::String>
+		video_formats; ///< Current available video format options
 
 	// Video Setting Properties (All between [0,1])
-	FIELD()
-	bool brightness_valid;
-	FIELD()
-	float brightness_fraction;
+	FIELD() bool brightness_valid;
+	FIELD() float brightness_fraction;
 
-	FIELD()
-	bool contrast_valid;
-	FIELD()
-	float contrast_fraction;
+	FIELD() bool contrast_valid;
+	FIELD() float contrast_fraction;
 
-	FIELD()
-	bool hue_valid;
-	FIELD()
-	float hue_fraction;
+	FIELD() bool hue_valid;
+	FIELD() float hue_fraction;
 
-	FIELD()
-	bool saturation_valid;
-	FIELD()
-	float saturation_fraction;
+	FIELD() bool saturation_valid;
+	FIELD() float saturation_fraction;
 
-	FIELD()
-	bool sharpness_valid;
-	FIELD()
-	float sharpness_fraction;
+	FIELD() bool sharpness_valid;
+	FIELD() float sharpness_fraction;
 
-	FIELD()
-	bool gamma_valid;
-	FIELD()
-	float gamma_fraction;
+	FIELD() bool gamma_valid;
+	FIELD() float gamma_fraction;
 
-	FIELD()
-	bool white_balance_valid;
-	FIELD()
-	float white_balance_fraction;
+	FIELD() bool white_balance_valid;
+	FIELD() float white_balance_fraction;
 
-	FIELD()
-	bool red_balance_valid;
-	FIELD()
-	float red_balance_fraction;
+	FIELD() bool red_balance_valid;
+	FIELD() float red_balance_fraction;
 
-	FIELD()
-	bool green_balance_valid;
-	FIELD()
-	float green_balance_fraction;
+	FIELD() bool green_balance_valid;
+	FIELD() float green_balance_fraction;
 
-	FIELD()
-	bool blue_balance_valid;
-	FIELD()
-	float blue_balance_fraction;
+	FIELD() bool blue_balance_valid;
+	FIELD() float blue_balance_fraction;
 
-	FIELD()
-	bool gain_valid;
-	FIELD()
-	float gain_fraction;
+	FIELD() bool gain_valid;
+	FIELD() float gain_fraction;
 
-	FIELD()
-	bool pan_valid;
-	FIELD()
-	float pan_fraction;
+	FIELD() bool pan_valid;
+	FIELD() float pan_fraction;
 
-	FIELD()
-	bool tilt_valid;
-	FIELD()
-	float tilt_fraction;
+	FIELD() bool tilt_valid;
+	FIELD() float tilt_fraction;
 
-	FIELD()
-	bool roll_valid;
-	FIELD()
-	float roll_fraction;
+	FIELD() bool roll_valid;
+	FIELD() float roll_fraction;
 
-	FIELD()
-	bool zoom_valid;
-	FIELD()
-	float zoom_fraction;
+	FIELD() bool zoom_valid;
+	FIELD() float zoom_fraction;
 
-	FIELD()
-	bool exposure_valid;
-	FIELD()
-	float exposure_fraction;
+	FIELD() bool exposure_valid;
+	FIELD() float exposure_fraction;
 
-	FIELD()
-	bool iris_valid;
-	FIELD()
-	float iris_fraction;
+	FIELD() bool iris_valid;
+	FIELD() float iris_fraction;
 
-	FIELD()
-	bool focus_valid;
-	FIELD()
-	float focus_fraction;
+	FIELD() bool focus_valid;
+	FIELD() float focus_fraction;
 
-	#ifdef MIKANAPI_REFLECTION_ENABLED
+#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanUSBVideoSourceValues_GENERATED
-	#endif // MIKANAPI_REFLECTION_ENABLED
+#endif // MIKANAPI_REFLECTION_ENABLED
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanUSBVideoSourceSystemValues :
-	public MikanSystemValues
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVideoSourceTypes")) MikanUSBVideoSourceSystemValues : public MikanSystemValues
 {
 	static const char* k_systemName;
 
 	FIELD()
-	Serialization::Map<Serialization::String, Serialization::String> usb_device_map; ///< Map of device path -> friendly name
+	Serialization::Map<Serialization::String, Serialization::String>
+		usb_device_map; ///< Map of device path -> friendly name
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanUSBVideoSourceSystemValues_GENERATED

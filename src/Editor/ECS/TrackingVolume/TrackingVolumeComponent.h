@@ -14,8 +14,7 @@
 #include <memory>
 #include <string>
 
-class TrackingVolumeDefinition :
-	public MikanComponentDefinition
+class TrackingVolumeDefinition : public MikanComponentDefinition
 {
 public:
 	TrackingVolumeDefinition();
@@ -47,15 +46,21 @@ public:
 	TrackingVolumeComponent(MikanObjectWeakPtr owner);
 	virtual void init() override;
 
-	inline static const std::string k_componentClassName = "TrackingVolumeComponent";
+	inline static const std::string k_componentClassName= "TrackingVolumeComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	inline TrackingVolumeDefinitionPtr getTrackingVolumeDefinition() const
-	{ return std::static_pointer_cast<TrackingVolumeDefinition>(m_definition); }
+	{
+		return std::static_pointer_cast<TrackingVolumeDefinition>(m_definition);
+	}
 	inline eTrackingVolumeType getTrackingVolumeType() const
-	{ return getTrackingVolumeDefinition()->getTrackingVolumeType(); }
+	{
+		return getTrackingVolumeDefinition()->getTrackingVolumeType();
+	}
 	inline MikanMarkerID getOriginMarkerId() const
-	{ return getTrackingVolumeDefinition()->getOriginMarkerId(); }
+	{
+		return getTrackingVolumeDefinition()->getOriginMarkerId();
+	}
 
 	void deleteTrackingVolume();
 
@@ -69,5 +74,7 @@ public:
 
 	// -- IFunctionInterface ----
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
-	{ MikanComponent::getFunctionDescriptors(outDescriptors); }
+	{
+		MikanComponent::getFunctionDescriptors(outDescriptors);
+	}
 };

@@ -18,15 +18,15 @@
 
 struct EditorSettings
 {
-	bool bRenderOrigin = true;
-	bool bDebugRenderAnchors = true;
-	bool bDebugRenderQuadStencils = true;
-	bool bDebugRenderBoxStencils = true;
-	bool bDebugRenderModelStencils = true;
-	bool bDebugRenderQuadShapes = true;
-	bool bDebugRenderBoxShapes = true;
-	bool bDebugRenderModelShapes = true;
-	float cameraSpeed = 1.f;
+	bool bRenderOrigin= true;
+	bool bDebugRenderAnchors= true;
+	bool bDebugRenderQuadStencils= true;
+	bool bDebugRenderBoxStencils= true;
+	bool bDebugRenderModelStencils= true;
+	bool bDebugRenderQuadShapes= true;
+	bool bDebugRenderBoxShapes= true;
+	bool bDebugRenderModelShapes= true;
+	float cameraSpeed= 1.f;
 };
 
 class EditorObjectSystemDefinition : public MikanObjectSystemDefinition
@@ -35,7 +35,8 @@ public:
 	EditorObjectSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator)
 		: MikanObjectSystemDefinition(configName, idAllocator)
 		, m_editorSettings()
-	{}
+	{
+	}
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -85,14 +86,17 @@ private:
 class EditorObjectSystem : public MikanObjectSystem
 {
 public:
-	EditorObjectSystem(ProjectManagerPtr ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
+	EditorObjectSystem(ProjectManagerPtr ownerObjectSystem)
+		: MikanObjectSystem(ownerObjectSystem)
+	{
+	}
 
-	inline static const std::string k_objectSystemClassName = "EditorObjectSystem";
+	inline static const std::string k_objectSystemClassName= "EditorObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
 	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
 	virtual void dispose() override;
-	
+
 	void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera);
 
 	EditorObjectSystemDefinitionConstPtr getEditorSystemConfigConst() const;
@@ -131,7 +135,7 @@ public:
 
 protected:
 	std::vector<MikanViewportWeakPtr> m_viewports;
-	
+
 	std::set<const MikanObjectSystem*> m_objectSystemSelectionFilter;
 	ColliderRaycastHitResult m_lastestRaycastResult;
 	SelectionComponentWeakPtr m_hoverComponentWeakPtr;
@@ -163,7 +167,7 @@ protected:
 	void createSceneTransformGizmo(SceneComponentPtr ownerScene);
 	void disposeSceneTransformGizmo();
 	void createGizmoBoxCollider(
-		MikanObjectPtr gizmoObjectPtr, 
+		MikanObjectPtr gizmoObjectPtr,
 		const std::string& name,
 		const glm::vec3& center,
 		const glm::vec3& halfExtents,

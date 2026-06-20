@@ -7,7 +7,7 @@
 class GraphTexturePropertyConfig : public GraphPropertyConfig
 {
 public:
-	GraphTexturePropertyConfig() = default;
+	GraphTexturePropertyConfig()= default;
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -18,9 +18,9 @@ public:
 class GraphTextureProperty : public GraphProperty
 {
 public:
-	GraphTextureProperty() = default;
+	GraphTextureProperty()= default;
 
-	inline static const std::string k_propertyClassName = "GraphTextureProperty";
+	inline static const std::string k_propertyClassName= "GraphTextureProperty";
 	virtual std::string getClassName() const override { return k_propertyClassName; }
 
 	virtual bool loadFromConfig(GraphPropertyConfigConstPtr propConfig,
@@ -42,4 +42,4 @@ protected:
 	IMkTexturePtr m_texture;
 };
 
-using GraphTexturePropertyFactory = TypedGraphPropertyFactory<GraphTextureProperty, GraphTexturePropertyConfig>;
+using GraphTexturePropertyFactory= TypedGraphPropertyFactory<GraphTextureProperty, GraphTexturePropertyConfig>;

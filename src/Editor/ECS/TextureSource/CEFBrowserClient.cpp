@@ -10,13 +10,13 @@ CEFBrowserClient::CEFBrowserClient(std::weak_ptr<CEFTextureSourceComponent> owne
 
 void CEFBrowserClient::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
 {
-	if (auto comp = m_owner.lock())
+	if (auto comp= m_owner.lock())
 	{
 		comp->onCefGetViewRect(rect);
 	}
 	else
 	{
-		rect = CefRect(0, 0, 1280, 720);
+		rect= CefRect(0, 0, 1280, 720);
 	}
 }
 
@@ -31,7 +31,7 @@ void CEFBrowserClient::OnPaint(
 	if (type != PET_VIEW)
 		return;
 
-	if (auto comp = m_owner.lock())
+	if (auto comp= m_owner.lock())
 	{
 		comp->onCefPaint(buffer, width, height);
 	}
@@ -39,7 +39,7 @@ void CEFBrowserClient::OnPaint(
 
 void CEFBrowserClient::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
-	if (auto comp = m_owner.lock())
+	if (auto comp= m_owner.lock())
 	{
 		comp->onCefBrowserCreated(browser);
 	}
@@ -47,7 +47,7 @@ void CEFBrowserClient::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 
 void CEFBrowserClient::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 {
-	if (auto comp = m_owner.lock())
+	if (auto comp= m_owner.lock())
 	{
 		comp->onCefBrowserClosed();
 	}

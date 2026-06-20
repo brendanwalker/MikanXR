@@ -92,4 +92,3 @@ std::string client_log_get_timestamp_prefix();
 #define MIKAN_MT_LOG_WARNING(function_name) SELECT_MT_LOG_STREAM(ClientLogSeverityLevel::warning) << client_log_get_timestamp_prefix() << function_name << " - "
 #define MIKAN_MT_LOG_ERROR(function_name) SELECT_MT_LOG_STREAM(ClientLogSeverityLevel::error) << client_log_get_timestamp_prefix() << function_name << " - "
 #define MIKAN_MT_LOG_FATAL(function_name) SELECT_MT_LOG_STREAM(ClientLogSeverityLevel::fatal) << client_log_get_timestamp_prefix() << function_name << " - "
-

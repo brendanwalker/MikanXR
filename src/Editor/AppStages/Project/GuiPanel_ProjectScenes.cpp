@@ -39,106 +39,104 @@
 
 bool GuiPanel_ProjectScenes::init(ProjectGuiPanelContext* context)
 {
-	m_context = context;
-	AppStage_Project* ownerAppStage = context->getOwnerAppStage();
+	m_context= context;
+	AppStage_Project* ownerAppStage= context->getOwnerAppStage();
 
-	m_anchorSystem = ownerAppStage->getObjectSystemOfType<AnchorObjectSystem>();
-	m_compositorSystem = ownerAppStage->getObjectSystemOfType<CompositorObjectSystem>();
-	m_editorSystem = ownerAppStage->getObjectSystemOfType<EditorObjectSystem>();
-	m_sceneSystem = ownerAppStage->getObjectSystemOfType<SceneObjectSystem>();
-	m_stageSystem = ownerAppStage->getObjectSystemOfType<StageObjectSystem>();
-	m_quadStencilSystem = ownerAppStage->getObjectSystemOfType<QuadStencilSystem>();
-	m_boxStencilSystem = ownerAppStage->getObjectSystemOfType<BoxStencilSystem>();
-	m_modelStencilSystem = ownerAppStage->getObjectSystemOfType<ModelStencilSystem>();
-	m_quadShapeSystem = ownerAppStage->getObjectSystemOfType<QuadShapeSystem>();
-	m_boxShapeSystem = ownerAppStage->getObjectSystemOfType<BoxShapeSystem>();
-	m_modelShapeSystem = ownerAppStage->getObjectSystemOfType<ModelShapeSystem>();
+	m_anchorSystem= ownerAppStage->getObjectSystemOfType<AnchorObjectSystem>();
+	m_compositorSystem= ownerAppStage->getObjectSystemOfType<CompositorObjectSystem>();
+	m_editorSystem= ownerAppStage->getObjectSystemOfType<EditorObjectSystem>();
+	m_sceneSystem= ownerAppStage->getObjectSystemOfType<SceneObjectSystem>();
+	m_stageSystem= ownerAppStage->getObjectSystemOfType<StageObjectSystem>();
+	m_quadStencilSystem= ownerAppStage->getObjectSystemOfType<QuadStencilSystem>();
+	m_boxStencilSystem= ownerAppStage->getObjectSystemOfType<BoxStencilSystem>();
+	m_modelStencilSystem= ownerAppStage->getObjectSystemOfType<ModelStencilSystem>();
+	m_quadShapeSystem= ownerAppStage->getObjectSystemOfType<QuadShapeSystem>();
+	m_boxShapeSystem= ownerAppStage->getObjectSystemOfType<BoxShapeSystem>();
+	m_modelShapeSystem= ownerAppStage->getObjectSystemOfType<ModelShapeSystem>();
 
-	m_defaultGuiStyle = getGuiStyleManager()->getStyle("default_component_panel");
+	m_defaultGuiStyle= getGuiStyleManager()->getStyle("default_component_panel");
 
-	auto pm = ownerAppStage->getProjectManager();
-	m_sceneDataSource = std::make_unique<GuiDataSource_ComboBox>(pm,
-		std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
-			{ SceneObjectSystem::k_objectSystemClassName, SceneComponent::k_componentClassName }
-		});
+	auto pm= ownerAppStage->getProjectManager();
+	m_sceneDataSource= std::make_unique<GuiDataSource_ComboBox>(pm,
+																std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
+																	{SceneObjectSystem::k_objectSystemClassName, SceneComponent::k_componentClassName}});
 
-	m_compositorDataSource = std::make_unique<GuiDataSource_ComboBox>(pm,
-		std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
-			{ CompositorObjectSystem::k_objectSystemClassName, CompositorComponent::k_componentClassName }
-		});
-	m_compositorDataSource->setFilter([this](MikanComponentPtr comp) -> bool {
+	m_compositorDataSource= std::make_unique<GuiDataSource_ComboBox>(pm,
+																	 std::vector<GuiDataSource_ComboBox::SystemComponentPair>{
+																		 {CompositorObjectSystem::k_objectSystemClassName, CompositorComponent::k_componentClassName}});
+	m_compositorDataSource->setFilter([this](MikanComponentPtr comp) -> bool
+									  {
 		auto compositor = std::static_pointer_cast<CompositorComponent>(comp);
-		return compositor->getCompositorDefinition()->getOwnerSceneId() == m_selectedSceneId;
-	});
+		return compositor->getCompositorDefinition()->getOwnerSceneId() == m_selectedSceneId; });
 
 	// Listen for anchor changes
-	AnchorObjectSystemPtr anchorSystem = m_anchorSystem.lock();
-	anchorSystem->getTypedDefinition()->OnPropertyChanged +=
+	AnchorObjectSystemPtr anchorSystem= m_anchorSystem.lock();
+	anchorSystem->getTypedDefinition()->OnPropertyChanged+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onAnchorSystemConfigChanged);
-	anchorSystem->OnNewObjectFinalized +=
+	anchorSystem->OnNewObjectFinalized+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-	anchorSystem->OnObjectDisposed +=
+	anchorSystem->OnObjectDisposed+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 
 	// Listen for selection changes
-	m_editorSystem.lock()->OnSelectionChanged +=
+	m_editorSystem.lock()->OnSelectionChanged+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onSelectionChanged);
 
 	// Listen for stencil changes
-	QuadStencilSystemPtr quadStencilSystem = m_quadStencilSystem.lock();
-	quadStencilSystem->getTypedDefinition()->OnPropertyChanged +=
+	QuadStencilSystemPtr quadStencilSystem= m_quadStencilSystem.lock();
+	quadStencilSystem->getTypedDefinition()->OnPropertyChanged+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onStencilSystemConfigChanged);
-	quadStencilSystem->OnNewObjectFinalized +=
+	quadStencilSystem->OnNewObjectFinalized+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-	quadStencilSystem->OnObjectDisposed +=
+	quadStencilSystem->OnObjectDisposed+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 
-	BoxStencilSystemPtr boxStencilSystem = m_boxStencilSystem.lock();
-	boxStencilSystem->getTypedDefinition()->OnPropertyChanged +=
+	BoxStencilSystemPtr boxStencilSystem= m_boxStencilSystem.lock();
+	boxStencilSystem->getTypedDefinition()->OnPropertyChanged+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onStencilSystemConfigChanged);
-	boxStencilSystem->OnNewObjectFinalized +=
+	boxStencilSystem->OnNewObjectFinalized+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-	boxStencilSystem->OnObjectDisposed +=
+	boxStencilSystem->OnObjectDisposed+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 
-	ModelStencilSystemPtr modelStencilSystem = m_modelStencilSystem.lock();
-	modelStencilSystem->getTypedDefinition()->OnPropertyChanged +=
+	ModelStencilSystemPtr modelStencilSystem= m_modelStencilSystem.lock();
+	modelStencilSystem->getTypedDefinition()->OnPropertyChanged+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onStencilSystemConfigChanged);
-	modelStencilSystem->OnNewObjectFinalized +=
+	modelStencilSystem->OnNewObjectFinalized+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-	modelStencilSystem->OnObjectDisposed +=
+	modelStencilSystem->OnObjectDisposed+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 
 	// Listen for shape changes
-	QuadShapeSystemPtr quadShapeSystem = m_quadShapeSystem.lock();
-	quadShapeSystem->getTypedDefinition()->OnPropertyChanged +=
+	QuadShapeSystemPtr quadShapeSystem= m_quadShapeSystem.lock();
+	quadShapeSystem->getTypedDefinition()->OnPropertyChanged+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onShapeSystemConfigChanged);
-	quadShapeSystem->OnNewObjectFinalized +=
+	quadShapeSystem->OnNewObjectFinalized+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-	quadShapeSystem->OnObjectDisposed +=
+	quadShapeSystem->OnObjectDisposed+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 
-	BoxShapeSystemPtr boxShapeSystem = m_boxShapeSystem.lock();
-	boxShapeSystem->getTypedDefinition()->OnPropertyChanged +=
+	BoxShapeSystemPtr boxShapeSystem= m_boxShapeSystem.lock();
+	boxShapeSystem->getTypedDefinition()->OnPropertyChanged+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onShapeSystemConfigChanged);
-	boxShapeSystem->OnNewObjectFinalized +=
+	boxShapeSystem->OnNewObjectFinalized+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-	boxShapeSystem->OnObjectDisposed +=
+	boxShapeSystem->OnObjectDisposed+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 
-	ModelShapeSystemPtr modelShapeSystem = m_modelShapeSystem.lock();
-	modelShapeSystem->getTypedDefinition()->OnPropertyChanged +=
+	ModelShapeSystemPtr modelShapeSystem= m_modelShapeSystem.lock();
+	modelShapeSystem->getTypedDefinition()->OnPropertyChanged+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onShapeSystemConfigChanged);
-	modelShapeSystem->OnNewObjectFinalized +=
+	modelShapeSystem->OnNewObjectFinalized+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-	modelShapeSystem->OnObjectDisposed +=
+	modelShapeSystem->OnObjectDisposed+=
 		MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 
 	// Build initial state
 	rebuildSceneOutliner();
 
 	// Set initial selection to current scene
-	SceneComponentConstPtr currentScene = m_sceneSystem.lock()->getCurrentScene();
+	SceneComponentConstPtr currentScene= m_sceneSystem.lock()->getCurrentScene();
 	if (currentScene)
 	{
 		setSelectedSceneId(currentScene->getSceneId());
@@ -148,7 +146,7 @@ bool GuiPanel_ProjectScenes::init(ProjectGuiPanelContext* context)
 	m_compositorDataSource->refreshEntries();
 	if (m_compositorDataSource->getEntryCount() > 0)
 	{
-		if (MikanComponentPtr first = m_compositorDataSource->getEntryAtIndex(0))
+		if (MikanComponentPtr first= m_compositorDataSource->getEntryAtIndex(0))
 			setSelectedCompositorId((MikanCompositorID)first->getComponentId());
 	}
 
@@ -157,79 +155,79 @@ bool GuiPanel_ProjectScenes::init(ProjectGuiPanelContext* context)
 
 void GuiPanel_ProjectScenes::dispose()
 {
-	if (AnchorObjectSystemPtr sys = m_anchorSystem.lock())
+	if (AnchorObjectSystemPtr sys= m_anchorSystem.lock())
 	{
-		sys->getTypedDefinition()->OnPropertyChanged -=
+		sys->getTypedDefinition()->OnPropertyChanged-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onAnchorSystemConfigChanged);
-		sys->OnNewObjectFinalized -=
+		sys->OnNewObjectFinalized-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-		sys->OnObjectDisposed -=
+		sys->OnObjectDisposed-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 	}
 
-	if (EditorObjectSystemPtr sys = m_editorSystem.lock())
+	if (EditorObjectSystemPtr sys= m_editorSystem.lock())
 	{
-		sys->OnSelectionChanged -=
+		sys->OnSelectionChanged-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onSelectionChanged);
 	}
 
-	if (QuadStencilSystemPtr sys = m_quadStencilSystem.lock())
+	if (QuadStencilSystemPtr sys= m_quadStencilSystem.lock())
 	{
-		sys->getTypedDefinition()->OnPropertyChanged -=
+		sys->getTypedDefinition()->OnPropertyChanged-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onStencilSystemConfigChanged);
-		sys->OnNewObjectFinalized -=
+		sys->OnNewObjectFinalized-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-		sys->OnObjectDisposed -=
+		sys->OnObjectDisposed-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 	}
 
-	if (BoxStencilSystemPtr sys = m_boxStencilSystem.lock())
+	if (BoxStencilSystemPtr sys= m_boxStencilSystem.lock())
 	{
-		sys->getTypedDefinition()->OnPropertyChanged -=
+		sys->getTypedDefinition()->OnPropertyChanged-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onStencilSystemConfigChanged);
-		sys->OnNewObjectFinalized -=
+		sys->OnNewObjectFinalized-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-		sys->OnObjectDisposed -=
+		sys->OnObjectDisposed-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 	}
 
-	if (ModelStencilSystemPtr sys = m_modelStencilSystem.lock())
+	if (ModelStencilSystemPtr sys= m_modelStencilSystem.lock())
 	{
-		sys->getTypedDefinition()->OnPropertyChanged -=
+		sys->getTypedDefinition()->OnPropertyChanged-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onStencilSystemConfigChanged);
-		sys->OnNewObjectFinalized -=
+		sys->OnNewObjectFinalized-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-		sys->OnObjectDisposed -=
+		sys->OnObjectDisposed-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 	}
 
-	if (QuadShapeSystemPtr sys = m_quadShapeSystem.lock())
+	if (QuadShapeSystemPtr sys= m_quadShapeSystem.lock())
 	{
-		sys->getTypedDefinition()->OnPropertyChanged -=
+		sys->getTypedDefinition()->OnPropertyChanged-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onShapeSystemConfigChanged);
-		sys->OnNewObjectFinalized -=
+		sys->OnNewObjectFinalized-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-		sys->OnObjectDisposed -=
+		sys->OnObjectDisposed-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 	}
 
-	if (BoxShapeSystemPtr sys = m_boxShapeSystem.lock())
+	if (BoxShapeSystemPtr sys= m_boxShapeSystem.lock())
 	{
-		sys->getTypedDefinition()->OnPropertyChanged -=
+		sys->getTypedDefinition()->OnPropertyChanged-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onShapeSystemConfigChanged);
-		sys->OnNewObjectFinalized -=
+		sys->OnNewObjectFinalized-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-		sys->OnObjectDisposed -=
+		sys->OnObjectDisposed-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 	}
 
-	if (ModelShapeSystemPtr sys = m_modelShapeSystem.lock())
+	if (ModelShapeSystemPtr sys= m_modelShapeSystem.lock())
 	{
-		sys->getTypedDefinition()->OnPropertyChanged -=
+		sys->getTypedDefinition()->OnPropertyChanged-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onShapeSystemConfigChanged);
-		sys->OnNewObjectFinalized -=
+		sys->OnNewObjectFinalized-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectInitialized);
-		sys->OnObjectDisposed -=
+		sys->OnObjectDisposed-=
 			MakeDelegate(this, &GuiPanel_ProjectScenes::onObjectDisposed);
 	}
 
@@ -256,15 +254,15 @@ void GuiPanel_ProjectScenes::setSelectedSceneId(int sceneId)
 		return;
 
 	m_sceneSystem.lock()->setCurrentSceneById(sceneId);
-	m_selectedSceneId = sceneId;
+	m_selectedSceneId= sceneId;
 
-	if (SceneComponentPtr scene = getSelectedSceneComponent())
+	if (SceneComponentPtr scene= getSelectedSceneComponent())
 		m_context->getScenePanel()->setComponent(scene);
 	else
 		m_context->getScenePanel()->setComponent(nullptr);
 
 	// Reset compositor selection
-	m_selectedCompositorId = INVALID_MIKAN_ID;
+	m_selectedCompositorId= INVALID_MIKAN_ID;
 	m_context->getCompositorPanel()->setComponent(nullptr);
 
 	rebuildSceneOutliner();
@@ -275,9 +273,9 @@ void GuiPanel_ProjectScenes::setSelectedCompositorId(MikanCompositorID composito
 	if ((int)compositorId == m_selectedCompositorId)
 		return;
 
-	m_selectedCompositorId = (int)compositorId;
+	m_selectedCompositorId= (int)compositorId;
 
-	if (CompositorComponentPtr comp = getSelectedCompositor())
+	if (CompositorComponentPtr comp= getSelectedCompositor())
 		m_context->getCompositorPanel()->setComponent(comp);
 	else
 		m_context->getCompositorPanel()->setComponent(nullptr);
@@ -293,31 +291,31 @@ void GuiPanel_ProjectScenes::setSelectedSceneObject(MikanObjectPtr selectedObjec
 	m_context->getModelShapePanel()->setComponent(nullptr);
 	m_context->getQuadShapePanel()->setComponent(nullptr);
 
-	if (auto component = selectedObject->getComponentOfType<AnchorComponent>())
+	if (auto component= selectedObject->getComponentOfType<AnchorComponent>())
 	{
 		m_context->getAnchorPanel()->setComponent(component);
 	}
-	else if (auto component = selectedObject->getComponentOfType<BoxStencilComponent>())
+	else if (auto component= selectedObject->getComponentOfType<BoxStencilComponent>())
 	{
 		m_context->getBoxStencilPanel()->setComponent(component);
 	}
-	else if (auto component = selectedObject->getComponentOfType<ModelStencilComponent>())
+	else if (auto component= selectedObject->getComponentOfType<ModelStencilComponent>())
 	{
 		m_context->getModelStencilPanel()->setComponent(component);
 	}
-	else if (auto component = selectedObject->getComponentOfType<QuadStencilComponent>())
+	else if (auto component= selectedObject->getComponentOfType<QuadStencilComponent>())
 	{
 		m_context->getQuadStencilPanel()->setComponent(component);
 	}
-	else if (auto component = selectedObject->getComponentOfType<BoxShapeComponent>())
+	else if (auto component= selectedObject->getComponentOfType<BoxShapeComponent>())
 	{
 		m_context->getBoxShapePanel()->setComponent(component);
 	}
-	else if (auto component = selectedObject->getComponentOfType<ModelShapeComponent>())
+	else if (auto component= selectedObject->getComponentOfType<ModelShapeComponent>())
 	{
 		m_context->getModelShapePanel()->setComponent(component);
 	}
-	else if (auto component = selectedObject->getComponentOfType<QuadShapeComponent>())
+	else if (auto component= selectedObject->getComponentOfType<QuadShapeComponent>())
 	{
 		m_context->getQuadShapePanel()->setComponent(component);
 	}
@@ -378,7 +376,7 @@ void GuiPanel_ProjectScenes::rebuildSceneOutliner()
 {
 	m_sceneOutliner.clear();
 
-	SceneComponentPtr sceneComponent = getSelectedSceneComponent();
+	SceneComponentPtr sceneComponent= getSelectedSceneComponent();
 	if (sceneComponent)
 	{
 		addTransformComponent(sceneComponent, 0);
@@ -389,17 +387,17 @@ void GuiPanel_ProjectScenes::rebuildSceneOutliner()
 
 void GuiPanel_ProjectScenes::updateSelection()
 {
-	m_selectedSceneObjectListIndex = -1;
-	m_selectedTransformId = -1;
+	m_selectedSceneObjectListIndex= -1;
+	m_selectedTransformId= -1;
 
-	SelectionComponentPtr currentSelection = m_editorSystem.lock()->getSelectedSceneActor();
-	for (int i = 0; i < (int)m_sceneOutliner.size(); ++i)
+	SelectionComponentPtr currentSelection= m_editorSystem.lock()->getSelectedSceneActor();
+	for (int i= 0; i < (int)m_sceneOutliner.size(); ++i)
 	{
-		SelectionComponentPtr test = m_sceneOutliner[i].selectionComponent.lock();
+		SelectionComponentPtr test= m_sceneOutliner[i].selectionComponent.lock();
 		if (test && test == currentSelection)
 		{
-			m_selectedTransformId = test->getOwnerObject()->getRootComponent()->getComponentId();
-			m_selectedSceneObjectListIndex = i;
+			m_selectedTransformId= test->getOwnerObject()->getRootComponent()->getComponentId();
+			m_selectedSceneObjectListIndex= i;
 			break;
 		}
 	}
@@ -407,7 +405,7 @@ void GuiPanel_ProjectScenes::updateSelection()
 	if (m_selectedTransformId == -1)
 	{
 		// Use the selected scene itself as the transform to attach to
-		m_selectedTransformId = m_selectedSceneId;
+		m_selectedTransformId= m_selectedSceneId;
 	}
 }
 
@@ -416,26 +414,26 @@ void GuiPanel_ProjectScenes::addTransformComponent(TransformComponentPtr transfo
 	if (!transformComponentPtr || transformComponentPtr->getWasDisposed())
 		return;
 
-	MikanObjectPtr ownerObject = transformComponentPtr->getOwnerObject();
+	MikanObjectPtr ownerObject= transformComponentPtr->getOwnerObject();
 	if (ownerObject->getRootComponent() == transformComponentPtr)
 	{
-		const std::string& name = ownerObject->getRootComponent()->getName();
-		SelectionComponentPtr selectionComponent = ownerObject->getComponentOfType<SelectionComponent>();
+		const std::string& name= ownerObject->getRootComponent()->getName();
+		SelectionComponentPtr selectionComponent= ownerObject->getComponentOfType<SelectionComponent>();
 
 		SceneOutlinerEntry entry;
-		entry.name = name.empty() ? "<No Name>" : name;
-		entry.depth = depth;
-		entry.selectionComponent = selectionComponent;
+		entry.name= name.empty() ? "<No Name>" : name;
+		entry.depth= depth;
+		entry.selectionComponent= selectionComponent;
 		m_sceneOutliner.push_back(entry);
 	}
 
 	for (TransformComponentWeakPtr childWeakPtr : transformComponentPtr->getChildTransformComponents())
 	{
-		TransformComponentPtr child = childWeakPtr.lock();
+		TransformComponentPtr child= childWeakPtr.lock();
 		if (!child)
 			continue;
 
-		MikanObjectPtr childObject = child->getOwnerObject();
+		MikanObjectPtr childObject= child->getOwnerObject();
 		if (childObject != ownerObject)
 		{
 			// Only show AnchorComponent, StencilComponent, and ShapeComponent-derived objects in the outliner
@@ -455,7 +453,7 @@ void GuiPanel_ProjectScenes::addTransformComponent(TransformComponentPtr transfo
 
 void GuiPanel_ProjectScenes::onGui()
 {
-	SceneObjectSystemPtr sceneSystem = m_sceneSystem.lock();
+	SceneObjectSystemPtr sceneSystem= m_sceneSystem.lock();
 	if (!sceneSystem)
 		return;
 
@@ -468,16 +466,17 @@ void GuiPanel_ProjectScenes::onGui()
 		setSelectedSceneId(INVALID_MIKAN_ID);
 	}
 
-	int sceneIndex = m_sceneDataSource->getEntryIndexByComponentId(m_selectedSceneId);
+	int sceneIndex= m_sceneDataSource->getEntryIndexByComponentId(m_selectedSceneId);
 	if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectScene", "Scene",
-		m_sceneDataSource.get(), sceneIndex))
+									m_sceneDataSource.get(), sceneIndex))
 	{
 		if (sceneIndex >= 0)
 		{
-			if (MikanComponentPtr sel = m_sceneDataSource->getEntryAtIndex(sceneIndex))
+			if (MikanComponentPtr sel= m_sceneDataSource->getEntryAtIndex(sceneIndex))
 			{
-				int newId = sel->getComponentId();
-				addDeferredGuiEvent([this, newId]() { setSelectedSceneId(newId); });
+				int newId= sel->getComponentId();
+				addDeferredGuiEvent([this, newId]()
+									{ setSelectedSceneId(newId); });
 			}
 		}
 	}
@@ -485,7 +484,8 @@ void GuiPanel_ProjectScenes::onGui()
 	ImGui::SameLine();
 	if (MkGui::drawImageButton(m_defaultGuiStyle, "addScene", "add_component"))
 	{
-		addDeferredGuiEvent([this]() {
+		addDeferredGuiEvent([this]()
+							{
 			StageObjectSystemPtr stageSys = m_stageSystem.lock();
 			MikanStageID firstStageId = stageSys ? stageSys->getFirstComponentId() : INVALID_MIKAN_ID;
 			if (firstStageId != INVALID_MIKAN_ID)
@@ -495,8 +495,7 @@ void GuiPanel_ProjectScenes::onGui()
 						def->setParentStageId(firstStageId);
 						return true;
 					});
-			}
-			});
+			} });
 	}
 
 	if (m_selectedSceneId != INVALID_MIKAN_ID)
@@ -504,9 +503,8 @@ void GuiPanel_ProjectScenes::onGui()
 		ImGui::SameLine();
 		if (MkGui::drawImageButton(m_defaultGuiStyle, "removeScene", "delete_component"))
 		{
-			addDeferredGuiEvent([this]() {
-				m_sceneSystem.lock()->removeObjectByPrimaryComponentId(m_selectedSceneId);
-			});
+			addDeferredGuiEvent([this]()
+								{ m_sceneSystem.lock()->removeObjectByPrimaryComponentId(m_selectedSceneId); });
 		}
 
 		m_context->getScenePanel()->onGui();
@@ -515,7 +513,7 @@ void GuiPanel_ProjectScenes::onGui()
 	ImGui::Separator();
 
 	// Compositors combo (filtered by selected scene)
-	CompositorObjectSystemPtr compositorSystem = m_compositorSystem.lock();
+	CompositorObjectSystemPtr compositorSystem= m_compositorSystem.lock();
 	if (compositorSystem && m_selectedSceneId != INVALID_MIKAN_ID)
 	{
 		m_compositorDataSource->refreshEntries();
@@ -526,18 +524,17 @@ void GuiPanel_ProjectScenes::onGui()
 			setSelectedCompositorId(INVALID_MIKAN_ID);
 		}
 
-		int compositorIndex = m_compositorDataSource->getEntryIndexByComponentId(m_selectedCompositorId);
+		int compositorIndex= m_compositorDataSource->getEntryIndexByComponentId(m_selectedCompositorId);
 		if (MkGui::drawComboBoxProperty(m_defaultGuiStyle, "projectCompositor", "Compositor",
-			m_compositorDataSource.get(), compositorIndex))
+										m_compositorDataSource.get(), compositorIndex))
 		{
 			if (compositorIndex >= 0)
 			{
-				if (MikanComponentPtr sel = m_compositorDataSource->getEntryAtIndex(compositorIndex))
+				if (MikanComponentPtr sel= m_compositorDataSource->getEntryAtIndex(compositorIndex))
 				{
-					int newId = sel->getComponentId();
-					addDeferredGuiEvent([this, newId]() {
-						setSelectedCompositorId((MikanCompositorID)newId);
-					});
+					int newId= sel->getComponentId();
+					addDeferredGuiEvent([this, newId]()
+										{ setSelectedCompositorId((MikanCompositorID)newId); });
 				}
 			}
 		}
@@ -545,14 +542,14 @@ void GuiPanel_ProjectScenes::onGui()
 		ImGui::SameLine();
 		if (MkGui::drawImageButton(m_defaultGuiStyle, "addCompositor", "add_component"))
 		{
-			addDeferredGuiEvent([this]() {
+			addDeferredGuiEvent([this]()
+								{
 				int sceneId = m_selectedSceneId;
 				m_compositorSystem.lock()->addNewObjectByTypedDefinition(
 					[sceneId](auto def) {
 						def->setOwnerSceneId(sceneId);
 						return true;
-					});
-				});
+					}); });
 		}
 
 		if (m_selectedCompositorId != INVALID_MIKAN_ID)
@@ -560,9 +557,8 @@ void GuiPanel_ProjectScenes::onGui()
 			ImGui::SameLine();
 			if (MkGui::drawImageButton(m_defaultGuiStyle, "removeCompositor", "delete_component"))
 			{
-				addDeferredGuiEvent([this]() {
-					m_compositorSystem.lock()->removeObjectByPrimaryComponentId(m_selectedCompositorId);
-				});
+				addDeferredGuiEvent([this]()
+									{ m_compositorSystem.lock()->removeObjectByPrimaryComponentId(m_selectedCompositorId); });
 			}
 
 			m_context->getCompositorPanel()->onGui();
@@ -576,19 +572,20 @@ void GuiPanel_ProjectScenes::onGui()
 	{
 		if (MkGui::drawImageButton(m_defaultGuiStyle, "addAnchor", "add_anchor"))
 		{
-			addDeferredGuiEvent([this]() {
+			addDeferredGuiEvent([this]()
+								{
 				int parentTransformId = m_selectedTransformId;
 				m_anchorSystem.lock()->addNewObjectByTypedDefinition(
 					[parentTransformId](auto def) {
 						def->setParentTransformId(parentTransformId);
 						return true;
-					});
-			});
+					}); });
 		}
 		ImGui::SameLine();
 		if (MkGui::drawImageButton(m_defaultGuiStyle, "addQuadStencil", "add_quad_stencil"))
 		{
-			addDeferredGuiEvent([this]() {
+			addDeferredGuiEvent([this]()
+								{
 				int parentTransformId = m_selectedTransformId;
 				m_quadStencilSystem.lock()->addNewObjectByTypedDefinition(
 					[parentTransformId](auto def) {
@@ -599,13 +596,13 @@ void GuiPanel_ProjectScenes::onGui()
 						def->setParentTransformId(parentTransformId);
 						def->setIsDisabled(false);
 						return true;
-					});
-			});
+					}); });
 		}
 		ImGui::SameLine();
 		if (MkGui::drawImageButton(m_defaultGuiStyle, "addBoxStencil", "add_box_stencil"))
 		{
-			addDeferredGuiEvent([this]() {
+			addDeferredGuiEvent([this]()
+								{
 				int parentTransformId = m_selectedTransformId;
 				m_boxStencilSystem.lock()->addNewObjectByTypedDefinition(
 					[parentTransformId](auto def) {
@@ -616,13 +613,13 @@ void GuiPanel_ProjectScenes::onGui()
 						def->setParentTransformId(parentTransformId);
 						def->setIsDisabled(false);
 						return true;
-					});
-			});
+					}); });
 		}
 		ImGui::SameLine();
 		if (MkGui::drawImageButton(m_defaultGuiStyle, "addModelStencil", "add_model_stencil"))
 		{
-			addDeferredGuiEvent([this]() {
+			addDeferredGuiEvent([this]()
+								{
 				int parentTransformId = m_selectedTransformId;
 				m_modelStencilSystem.lock()->addNewObjectByTypedDefinition(
 					[parentTransformId](auto def) {
@@ -630,13 +627,13 @@ void GuiPanel_ProjectScenes::onGui()
 						def->setParentTransformId(parentTransformId);
 						def->setIsDisabled(false);
 						return true;
-					});
-			});
+					}); });
 		}
-		
+
 		if (MkGui::drawImageButton(m_defaultGuiStyle, "addQuadShape", "add_quad_shape"))
 		{
-			addDeferredGuiEvent([this]() {
+			addDeferredGuiEvent([this]()
+								{
 				int parentTransformId = m_selectedTransformId;
 				m_quadShapeSystem.lock()->addNewObjectByTypedDefinition(
 					[parentTransformId](auto def) {
@@ -646,13 +643,13 @@ void GuiPanel_ProjectScenes::onGui()
 						def->setRelativeTransform(GlmTransform());
 						def->setParentTransformId(parentTransformId);
 						return true;
-					});
-			});
+					}); });
 		}
 		ImGui::SameLine();
 		if (MkGui::drawImageButton(m_defaultGuiStyle, "addBoxShape", "add_box_shape"))
 		{
-			addDeferredGuiEvent([this]() {
+			addDeferredGuiEvent([this]()
+								{
 				int parentTransformId = m_selectedTransformId;
 				m_boxShapeSystem.lock()->addNewObjectByTypedDefinition(
 					[parentTransformId](auto def) {
@@ -662,42 +659,41 @@ void GuiPanel_ProjectScenes::onGui()
 						def->setRelativeTransform(GlmTransform());
 						def->setParentTransformId(parentTransformId);
 						return true;
-					});
-			});
+					}); });
 		}
 		ImGui::SameLine();
 		if (MkGui::drawImageButton(m_defaultGuiStyle, "addModelShape", "add_model_shape"))
 		{
-			addDeferredGuiEvent([this]() {
+			addDeferredGuiEvent([this]()
+								{
 				int parentTransformId = m_selectedTransformId;
 				m_modelShapeSystem.lock()->addNewObjectByTypedDefinition(
 					[parentTransformId](auto def) {
 						def->setRelativeTransform(GlmTransform());
 						def->setParentTransformId(parentTransformId);
 						return true;
-					});
-			});
+					}); });
 		}
 
 		ImGui::Text("Scene Objects");
 		if (ImGui::BeginListBox("##SceneOutliner", ImVec2(-1, 120)))
 		{
-			for (int i = 0; i < (int)m_sceneOutliner.size(); ++i)
+			for (int i= 0; i < (int)m_sceneOutliner.size(); ++i)
 			{
-				const SceneOutlinerEntry& entry = m_sceneOutliner[i];
+				const SceneOutlinerEntry& entry= m_sceneOutliner[i];
 				std::string indent(entry.depth * 2, ' ');
-				std::string label = indent + entry.name + "##obj" + std::to_string(i);
+				std::string label= indent + entry.name + "##obj" + std::to_string(i);
 
-				bool selected = (m_selectedSceneObjectListIndex == i);
+				bool selected= (m_selectedSceneObjectListIndex == i);
 				if (ImGui::Selectable(label.c_str(), selected))
 				{
-					SelectionComponentPtr selComp = entry.selectionComponent.lock();
+					SelectionComponentPtr selComp= entry.selectionComponent.lock();
 					if (selComp)
 					{
-						addDeferredGuiEvent([this, selComp]() {
+						addDeferredGuiEvent([this, selComp]()
+											{
 							m_editorSystem.lock()->setSelection(selComp);
-							setSelectedSceneObject(selComp->getOwnerObject());
-						});
+							setSelectedSceneObject(selComp->getOwnerObject()); });
 					}
 				}
 			}
@@ -710,16 +706,15 @@ void GuiPanel_ProjectScenes::onGui()
 		{
 			if (ImGui::Button("Remove Selected"))
 			{
-				SelectionComponentPtr selComp =
+				SelectionComponentPtr selComp=
 					m_sceneOutliner[m_selectedSceneObjectListIndex].selectionComponent.lock();
 				if (selComp)
 				{
-					MikanObjectPtr ownerObject = selComp->getOwnerObject();
-					MikanObjectSystemPtr ownerSystem = ownerObject->getOwnerSystem();
+					MikanObjectPtr ownerObject= selComp->getOwnerObject();
+					MikanObjectSystemPtr ownerSystem= ownerObject->getOwnerSystem();
 
-					addDeferredGuiEvent([ownerSystem, ownerObject]() {
-						ownerSystem->deleteObject(ownerObject);
-					});
+					addDeferredGuiEvent([ownerSystem, ownerObject]()
+										{ ownerSystem->deleteObject(ownerObject); });
 				}
 			}
 

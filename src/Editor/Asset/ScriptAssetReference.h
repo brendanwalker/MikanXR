@@ -5,15 +5,14 @@
 class ScriptAssetReference : public AssetReference
 {
 public:
-	ScriptAssetReference() = default;
+	ScriptAssetReference()= default;
 
-	inline static const std::string k_assetClassName = "ScriptAssetReference";
+	inline static const std::string k_assetClassName= "ScriptAssetReference";
 	virtual std::string getClassName() const override { return k_assetClassName; }
 	virtual std::string getAssetTypeName() const override { return "Script"; }
 };
 
-class ScriptAssetReferenceFactory : 
-	public TypedAssetReferenceFactory<ScriptAssetReference, AssetReferenceConfig>
+class ScriptAssetReferenceFactory : public TypedAssetReferenceFactory<ScriptAssetReference, AssetReferenceConfig>
 {
 public:
 	ScriptAssetReferenceFactory();
@@ -22,7 +21,7 @@ public:
 	virtual char const* getFileDialogTitle() const { return "Load Script"; }
 	virtual char const* const* getFilterPatterns() const
 	{
-		static const char* filterItems[1] = {"*.lua"};
+		static const char* filterItems[1]= {"*.lua"};
 		return filterItems;
 	}
 	virtual int getFilterPatternCount() const { return 1; }

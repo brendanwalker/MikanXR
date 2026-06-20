@@ -7,12 +7,12 @@
 
 #include <vector>
 
-using TrackingVolumeIdList = std::vector<MikanTrackingVolumeID>;
+using TrackingVolumeIdList= std::vector<MikanTrackingVolumeID>;
 
 namespace TrackingVolumeQueries
 {
-	TrackingVolumeIdList getTrackingVolumeIdList(ProjectManagerConstPtr projectManager);
-	TrackingVolumeComponentPtr getTrackingVolumeById(ProjectManagerConstPtr projectManager, MikanTrackingVolumeID trackingVolumeId);
-	eTrackingVolumeType getTrackingVolumeType(ProjectManagerConstPtr projectManager, MikanTrackingVolumeID trackingVolumeId);
-	bool removeTrackingVolume(ProjectManagerConstPtr projectManager, MikanTrackingVolumeID trackingVolumeId);
-}
+TrackingVolumeIdList getTrackingVolumeIdList(ProjectManagerConstPtr projectManager);
+TrackingVolumeComponentPtr getTrackingVolumeById(ProjectManagerConstPtr projectManager, MikanTrackingVolumeID trackingVolumeId);
+eTrackingVolumeType getTrackingVolumeType(ProjectManagerConstPtr projectManager, MikanTrackingVolumeID trackingVolumeId);
+bool removeTrackingVolume(ProjectManagerConstPtr projectManager, MikanTrackingVolumeID trackingVolumeId);
+} // namespace TrackingVolumeQueries

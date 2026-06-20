@@ -5,9 +5,9 @@
 class TextureAssetReference : public AssetReference
 {
 public:
-	TextureAssetReference() = default;
+	TextureAssetReference()= default;
 
-	inline static const std::string k_assetClassName = "TextureAssetReference";
+	inline static const std::string k_assetClassName= "TextureAssetReference";
 	virtual std::string getClassName() const override { return k_assetClassName; }
 	virtual std::string getAssetTypeName() const override { return "Texture"; }
 
@@ -19,8 +19,7 @@ protected:
 	virtual void rebuildPreview() override;
 };
 
-class TextureAssetReferenceFactory : 
-	public TypedAssetReferenceFactory<TextureAssetReference, AssetReferenceConfig>
+class TextureAssetReferenceFactory : public TypedAssetReferenceFactory<TextureAssetReference, AssetReferenceConfig>
 {
 public:
 	TextureAssetReferenceFactory();
@@ -39,11 +38,12 @@ public:
 	static std::string getDefaultTexturePath();
 	static char const* const* getTextureFilterPatterns()
 	{
-		static const char* filterItems[5] = {"*.jpg", "*.jpeg", "*.png", "*.bmp", "*.tga"};
+		static const char* filterItems[5]= {"*.jpg", "*.jpeg", "*.png", "*.bmp", "*.tga"};
 		return filterItems;
 	}
 	static int getTextureFilterPatternCount() { return 5; }
-	static char const* getTextureFilterDescription() { 
-		return "Image Files (*.jpg;*.jpeg;*.png;*.bmp;*.tga)"; 
+	static char const* getTextureFilterDescription()
+	{
+		return "Image Files (*.jpg;*.jpeg;*.png;*.bmp;*.tga)";
 	}
 };

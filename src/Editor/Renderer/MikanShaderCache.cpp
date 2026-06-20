@@ -32,7 +32,7 @@ MkMaterialPtr MikanShaderCache::loadMaterialAssetReference(MaterialAssetReferenc
 
 	if (materialAssetRef && materialAssetRef->isValid())
 	{
-		auto shaderFilePath = materialAssetRef->getAssetPath();
+		auto shaderFilePath= materialAssetRef->getAssetPath();
 
 		MikanShaderConfig programConfig;
 		if (programConfig.load(shaderFilePath))
@@ -41,7 +41,7 @@ MkMaterialPtr MikanShaderCache::loadMaterialAssetReference(MaterialAssetReferenc
 
 			if (programCode)
 			{
-				material = m_shaderCache->registerMaterial(programCode);
+				material= m_shaderCache->registerMaterial(programCode);
 			}
 			else
 			{
@@ -65,26 +65,26 @@ MkMaterialPtr MikanShaderCache::loadMaterialAssetReference(MaterialAssetReferenc
 
 IMkShaderCodeConstPtr MikanShaderCache::loadShaderCodeFromConfigData(const MikanShaderConfig& config)
 {
-	bool bSuccess = true;
+	bool bSuccess= true;
 
-	const std::filesystem::path& shaderConfigPath = config.getLoadedConfigPath();
+	const std::filesystem::path& shaderConfigPath= config.getLoadedConfigPath();
 
-	std::filesystem::path shaderFolderPath = shaderConfigPath;
+	std::filesystem::path shaderFolderPath= shaderConfigPath;
 	shaderFolderPath.remove_filename();
 
-	std::string programName = shaderConfigPath.stem().string();
+	std::string programName= shaderConfigPath.stem().string();
 
 	std::filesystem::path vertexShaderFilePath;
 	std::string vertexShaderCode;
 	try
 	{
-		vertexShaderFilePath = shaderFolderPath;
-		vertexShaderFilePath /= config.vertexShaderPath;
+		vertexShaderFilePath= shaderFolderPath;
+		vertexShaderFilePath/= config.vertexShaderPath;
 
 		std::ifstream t(vertexShaderFilePath.string());
 		std::stringstream buffer;
 		buffer << t.rdbuf();
-		vertexShaderCode = buffer.str();
+		vertexShaderCode= buffer.str();
 	}
 	catch (const std::ifstream::failure& e)
 	{
@@ -98,13 +98,13 @@ IMkShaderCodeConstPtr MikanShaderCache::loadShaderCodeFromConfigData(const Mikan
 	std::string fragmentShaderCode;
 	try
 	{
-		fragmentShaderFilePath = shaderFolderPath;
-		fragmentShaderFilePath /= config.fragmentShaderPath;
+		fragmentShaderFilePath= shaderFolderPath;
+		fragmentShaderFilePath/= config.fragmentShaderPath;
 
 		std::ifstream t(fragmentShaderFilePath.string());
 		std::stringstream buffer;
 		buffer << t.rdbuf();
-		fragmentShaderCode = buffer.str();
+		fragmentShaderCode= buffer.str();
 	}
 	catch (const std::ifstream::failure& e)
 	{
@@ -114,7 +114,7 @@ IMkShaderCodeConstPtr MikanShaderCache::loadShaderCodeFromConfigData(const Mikan
 		return IMkShaderCodeConstPtr();
 	}
 
-	IMkShaderCodePtr programCode = createIMkShaderCode(programName, vertexShaderCode, fragmentShaderCode);
+	IMkShaderCodePtr programCode= createIMkShaderCode(programName, vertexShaderCode, fragmentShaderCode);
 	programCode->setVertexShaderFilePath(shaderConfigPath);
 	programCode->setFragmentShaderFilePath(fragmentShaderFilePath);
 
@@ -140,14 +140,14 @@ IMkShaderCodeConstPtr MikanShaderCache::loadShaderCodeFromConfigData(const Mikan
 
 	for (const auto& [uniformName, semanticName] : config.uniformSemanticMap)
 	{
-		eUniformSemantic semantic = eUniformSemantic::INVALID;
-		for (int enumIntValue = 0; enumIntValue < (int)eUniformSemantic::COUNT; ++enumIntValue)
+		eUniformSemantic semantic= eUniformSemantic::INVALID;
+		for (int enumIntValue= 0; enumIntValue < (int)eUniformSemantic::COUNT; ++enumIntValue)
 		{
 			const std::string enumSemanticName= getUniformSemanticName((eUniformSemantic)enumIntValue);
 
 			if (enumSemanticName == semanticName)
 			{
-				semantic = (eUniformSemantic)enumIntValue;
+				semantic= (eUniformSemantic)enumIntValue;
 				break;
 			}
 		}

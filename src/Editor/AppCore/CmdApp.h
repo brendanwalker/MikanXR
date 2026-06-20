@@ -8,7 +8,7 @@
 //
 // Unlike the full GUI App (App.h), CmdApp does NOT create any window, graphics
 // context, CEF instance, or module manager. It initializes the logger, parses
-// the command line, and dispatches to a command handler. 
+// the command line, and dispatches to a command handler.
 //
 // Commands are selected by flags (e.g. "-runTests"). Add new commands by adding
 // a handler method and dispatching to it from exec().
@@ -20,7 +20,7 @@ public:
 private:
 	void parseCommandLine(int argc, char** argv);
 	bool hasCommandLineFlag(const std::string& flag) const;
-	std::string getCommandLineStringArg(const std::string& key, const std::string& defaultValue = "") const;
+	std::string getCommandLineStringArg(const std::string& key, const std::string& defaultValue= "") const;
 
 	void printUsage() const;
 

@@ -43,7 +43,7 @@ protected:
 	void onCancelEvent();
 
 private:
-	class GuiPanel_AnchorTriangulation* m_calibrationPanel = nullptr;
+	class GuiPanel_AnchorTriangulation* m_calibrationPanel= nullptr;
 
 	CameraComponentPtr m_currentSceneCameraComponent;
 	VideoSourceComponentPtr m_videoSourceComponent;
@@ -53,6 +53,6 @@ private:
 
 	AnchorTriangulatorInfo m_targetAnchor;
 
-	bool m_bypassCalibrationFlag = false;
+	bool m_bypassCalibrationFlag= false;
 	MikanCameraPtr m_mkCamera;
 };

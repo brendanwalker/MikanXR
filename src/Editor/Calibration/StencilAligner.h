@@ -33,7 +33,7 @@ public:
 	void renderVertexSamples();
 
 protected:
-	static const int DESIRED_SAMPLE_COUNT = 4;
+	static const int DESIRED_SAMPLE_COUNT= 4;
 
 	// Internal Calibration State
 	struct StencilAlignmentState* m_calibrationState;

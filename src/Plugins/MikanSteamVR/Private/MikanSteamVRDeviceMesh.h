@@ -9,7 +9,7 @@ class MikanSteamVRDeviceMesh : public IVRDeviceMesh
 public:
 	MikanSteamVRDeviceMesh(
 		MikanSteamVRDevice* ownerDevice,
-		const std::string& componentName, 
+		const std::string& componentName,
 		const std::string& renderModelName);
 
 	virtual const char* getName() const override;
@@ -18,8 +18,8 @@ public:
 	virtual IMkWireframeMeshConstPtr getWireframeMesh() const override;
 
 private:
-	MikanSteamVRDevice* m_ownerDevice = nullptr;
+	MikanSteamVRDevice* m_ownerDevice= nullptr;
 	std::string m_componentName;
 	std::string m_renderModelName;
-	class SteamVRRenderModelResource* m_renderModelResource = nullptr;
+	class SteamVRRenderModelResource* m_renderModelResource= nullptr;
 };

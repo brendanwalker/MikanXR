@@ -1,6 +1,6 @@
 #include "Constants_LightFixtureCalibration.h"
 
-static const std::string k_MenuStateStrings[(int)eLightFixtureCalibrationMenuState::COUNT] = {
+static const std::string k_MenuStateStrings[(int)eLightFixtureCalibrationMenuState::COUNT]= {
 	"inactive",
 	"pendingVideoStartStreamRequest",
 	"failedVideoStartStreamRequest",
@@ -12,4 +12,4 @@ static const std::string k_MenuStateStrings[(int)eLightFixtureCalibrationMenuSta
 	"calibrationComplete",
 };
 
-const std::string* k_LightFixtureCalibrationMenuStateStrings = k_MenuStateStrings;
+const std::string* k_LightFixtureCalibrationMenuStateStrings= k_MenuStateStrings;

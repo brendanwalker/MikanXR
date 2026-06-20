@@ -2,7 +2,7 @@
 
 #include "TextureSourceComponent.h"
 
-using SharedTextureReadAccessorPtr = std::shared_ptr<class SharedTextureReadAccessor>;
+using SharedTextureReadAccessorPtr= std::shared_ptr<class SharedTextureReadAccessor>;
 
 class SpoutTextureSourceDefinition : public TextureSourceDefinition
 {
@@ -37,12 +37,12 @@ public:
 	virtual void update(float deltaSeconds) override;
 	virtual void dispose() override;
 
-	inline static const std::string k_componentClassName = "SpoutTextureSourceComponent";
+	inline static const std::string k_componentClassName= "SpoutTextureSourceComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 	const std::string& getSpoutSourceName() const;
 
 	// Texture Source Interface
-	virtual IMkTexturePtr getClientColorSourceTexture(MikanCameraID cameraId, eTextureSourceColorType textureSourceColorType, int64_t frameIndex = -1) const;
+	virtual IMkTexturePtr getClientColorSourceTexture(MikanCameraID cameraId, eTextureSourceColorType textureSourceColorType, int64_t frameIndex= -1) const;
 
 	// -- IEntityAccessor ----
 	virtual rfk::Struct const* getClientAPIValuesStructType() const override;
@@ -54,7 +54,9 @@ public:
 
 	// -- IFunctionInterface ----
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
-	{ TextureSourceComponent::getFunctionDescriptors(outDescriptors); }
+	{
+		TextureSourceComponent::getFunctionDescriptors(outDescriptors);
+	}
 	virtual void showTextureSourceSettings() override;
 
 protected:

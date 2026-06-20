@@ -3,7 +3,6 @@
 #include "IMkWireframeMesh.h"
 #include "MikanRenderModelResource.h"
 
-
 MikanRenderModelResource::MikanRenderModelResource(IMkGraphicsContext* ownerGraphicsContext)
 	: m_ownerGraphicsContext(ownerGraphicsContext)
 {

@@ -4,7 +4,7 @@
 
 enum class eLightFixtureCalibrationMenuState : int
 {
-	INVALID = -1,
+	INVALID= -1,
 
 	inactive,
 	pendingVideoStartStreamRequest,

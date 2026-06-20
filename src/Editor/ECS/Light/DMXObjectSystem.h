@@ -18,7 +18,8 @@ class DMXObjectSystemDefinition : public MikanObjectSystemDefinition
 public:
 	DMXObjectSystemDefinition(const std::string& configName, IEntityIDAllocatorPtr idAllocator)
 		: MikanObjectSystemDefinition(configName, idAllocator)
-	{}
+	{
+	}
 
 	virtual configuru::Config writeToJSON();
 	virtual void readFromJSON(const configuru::Config& pt);
@@ -45,14 +46,17 @@ private:
 class DMXObjectSystem : public MikanObjectSystem
 {
 public:
-	DMXObjectSystem(ProjectManagerPtr ownerObjectSystem) : MikanObjectSystem(ownerObjectSystem) {}
+	DMXObjectSystem(ProjectManagerPtr ownerObjectSystem)
+		: MikanObjectSystem(ownerObjectSystem)
+	{
+	}
 
-	inline static const std::string k_objectSystemClassName = "DMXObjectSystem";
+	inline static const std::string k_objectSystemClassName= "DMXObjectSystem";
 	virtual std::string getObjectSystemClassName() const { return k_objectSystemClassName; }
 
 	virtual bool init(MikanObjectSystemDefinitionPtr definitionPtr) override;
 	virtual void dispose() override;
-	
+
 	DMXObjectSystemDefinitionConstPtr getDMXObjectSystemConfigConst() const;
 	DMXObjectSystemDefinitionPtr getDMXObjectSystemConfig();
 	const DMXManagerConfig& getDMXManagerConfig() const { return getDMXObjectSystemConfigConst()->getDMXManagerConfig(); }

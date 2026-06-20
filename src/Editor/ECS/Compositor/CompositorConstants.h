@@ -2,13 +2,13 @@
 
 #include <string>
 
-#define DEFAULT_COMPOSITOR_CONFIG_NAME			"Alpha Channel"
-#define MAX_CLIENT_SOURCES						8
-#define EMPTY_SOURCE_NAME						"empty"
+#define DEFAULT_COMPOSITOR_CONFIG_NAME "Alpha Channel"
+#define MAX_CLIENT_SOURCES 8
+#define EMPTY_SOURCE_NAME "empty"
 
 enum class eSupportedCodec : int
 {
-	INVALID = -1,
+	INVALID= -1,
 
 	MP4V,
 	MJPG,
@@ -22,7 +22,7 @@ extern const int* k_supportedCodecFourCC;
 
 enum class eCompositorLayerAlphaMode : int
 {
-	INVALID = -1,
+	INVALID= -1,
 
 	NoAlpha,
 	ColorKey,
@@ -35,7 +35,7 @@ extern const std::string* k_compositorLayerAlphaStrings;
 
 enum class eCompositorStencilMode : int
 {
-	INVALID = -1,
+	INVALID= -1,
 
 	noStencil,
 	insideStencil,
@@ -47,7 +47,7 @@ extern const std::string* k_compositorStencilModeStrings;
 
 enum class eCompositorBlendMode : int
 {
-	INVALID = -1,
+	INVALID= -1,
 
 	blendOff,
 	blendOn,
@@ -58,7 +58,7 @@ extern const std::string* k_compositorBlendModeStrings;
 
 enum class eStencilCullMode : int
 {
-	INVALID = -1,
+	INVALID= -1,
 
 	none,
 	zAxis,
@@ -71,7 +71,7 @@ extern const std::string* k_stencilCullModeStrings;
 
 enum class eTextureSourceColorType : int
 {
-	INVALID = -1,
+	INVALID= -1,
 
 	colorRGB,
 	colorRGBA,
@@ -82,7 +82,7 @@ extern const std::string* k_textureSourceColorTypeStrings;
 
 enum class eTextureSourceDepthType : int
 {
-	INVALID = -1,
+	INVALID= -1,
 
 	depthPackRGBA,
 
@@ -92,7 +92,7 @@ extern const std::string* k_textureSourceDepthTypeStrings;
 
 enum class eCompositorEvaluatorWindow : int
 {
-	INVALID = -1,
+	INVALID= -1,
 
 	mainWindow,
 	editorWindow,

@@ -5,7 +5,10 @@
 class TextureSourceRequestHandler : public IServerRequestHandler
 {
 public:
-	TextureSourceRequestHandler(class MikanServer* owner) : IServerRequestHandler(owner) {}
+	TextureSourceRequestHandler(class MikanServer* owner)
+		: IServerRequestHandler(owner)
+	{
+	}
 
 	virtual bool startup(class MainWindow* mainWindow) override;
 

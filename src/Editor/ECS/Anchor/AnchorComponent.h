@@ -36,7 +36,7 @@ public:
 	virtual void init() override;
 	virtual void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera) const override;
 
-	inline static const std::string k_componentClassName = "AnchorComponent";
+	inline static const std::string k_componentClassName= "AnchorComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	inline AnchorDefinitionPtr getAnchorDefinition() const

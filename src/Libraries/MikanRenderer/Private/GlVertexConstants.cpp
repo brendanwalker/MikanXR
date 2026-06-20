@@ -1,17 +1,16 @@
 #include "MkVertexConstants.h"
 #include "StringUtils.h"
 
-const std::string g_VertexSemanticNames[(int)eVertexSemantic::COUNT] = {
+const std::string g_VertexSemanticNames[(int)eVertexSemantic::COUNT]= {
 	"generic",
 	"position",
 	"normal",
 	"texCoord",
 	"color",
-	"colorAndSize"
-};
-const std::string* k_VertexSemanticNames = g_VertexSemanticNames;
+	"colorAndSize"};
+const std::string* k_VertexSemanticNames= g_VertexSemanticNames;
 
-const std::string g_VertexDataTypeNames[(int)eVertexDataType::COUNT] = {
+const std::string g_VertexDataTypeNames[(int)eVertexDataType::COUNT]= {
 	"ubyte",
 	"ubvec2",
 	"ubvec3",
@@ -33,37 +32,35 @@ const std::string g_VertexDataTypeNames[(int)eVertexDataType::COUNT] = {
 	"dvec3",
 	"dvec4",
 };
-const std::string* k_VertexDataTypeNames = g_VertexDataTypeNames;
+const std::string* k_VertexDataTypeNames= g_VertexDataTypeNames;
 
 namespace VertexConstantUtils
 {
-	const std::string& vertexSemanticToString(eVertexSemantic semantic)
-	{
-		static const std::string invalidSemantic = "INVALID";
+const std::string& vertexSemanticToString(eVertexSemantic semantic)
+{
+	static const std::string invalidSemantic= "INVALID";
 
-		return
-			semantic != eVertexSemantic::INVALID
-			? g_VertexSemanticNames[(int)semantic]
-			: invalidSemantic;
-	}
+	return semantic != eVertexSemantic::INVALID
+			   ? g_VertexSemanticNames[(int)semantic]
+			   : invalidSemantic;
+}
 
-	eVertexSemantic vertexSemanticFromString(const std::string& semanticName)
-	{
-		return StringUtils::FindEnumValue<eVertexSemantic>(semanticName, g_VertexSemanticNames);
-	}
+eVertexSemantic vertexSemanticFromString(const std::string& semanticName)
+{
+	return StringUtils::FindEnumValue<eVertexSemantic>(semanticName, g_VertexSemanticNames);
+}
 
-	const std::string& vertexDataTypeToString(eVertexDataType dataType)
-	{
-		static const std::string invalidDataType = "INVALID";
+const std::string& vertexDataTypeToString(eVertexDataType dataType)
+{
+	static const std::string invalidDataType= "INVALID";
 
-		return
-			dataType != eVertexDataType::INVALID
-			? g_VertexDataTypeNames[(int)dataType]
-			: invalidDataType;
-	}
+	return dataType != eVertexDataType::INVALID
+			   ? g_VertexDataTypeNames[(int)dataType]
+			   : invalidDataType;
+}
 
-	eVertexDataType vertexDataTypeFromString(const std::string& dataTypeName)
-	{
-		return StringUtils::FindEnumValue<eVertexDataType>(dataTypeName, g_VertexDataTypeNames);
-	}
-};
+eVertexDataType vertexDataTypeFromString(const std::string& dataTypeName)
+{
+	return StringUtils::FindEnumValue<eVertexDataType>(dataTypeName, g_VertexDataTypeNames);
+}
+}; // namespace VertexConstantUtils

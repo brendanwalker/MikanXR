@@ -19,13 +19,13 @@ public:
 	virtual ~EditorWindow();
 
 	// -- IEditorWindow ----
-	//virtual bool startup() = 0;
-	//virtual void update(float deltaSeconds) = 0;
-	//virtual void render() = 0;
-	//virtual void shutdown() = 0;
+	// virtual bool startup() = 0;
+	// virtual void update(float deltaSeconds) = 0;
+	// virtual void render() = 0;
+	// virtual void shutdown() = 0;
 
-	//virtual bool getIsRenderingStage() const = 0;
-	//virtual IMkViewportPtr getRenderingViewport() const = 0;
+	// virtual bool getIsRenderingStage() const = 0;
+	// virtual IMkViewportPtr getRenderingViewport() const = 0;
 	virtual const char* getTitle() const override;
 	virtual float getWidth() const override;
 	virtual float getHeight() const override;
@@ -34,23 +34,23 @@ public:
 
 	virtual MikanModelResourceManager* getModelResourceManager() override;
 	virtual MikanTextureCache* getTextureCache() override;
-	//virtual ProjectManagerPtr getProjectManager() const = 0;
-	//virtual class MikanServer* getMikanServer() const = 0;
-	//virtual class IMkFontManager* getFontManager() const = 0;
-	//virtual class InputManager* getInputManager() const = 0;
-	//virtual class OpenCVManager* getOpenCVManager() const = 0;
-	//virtual class ClientSourceManager* getClientSourceManager() const = 0;
-	//virtual class LocalizationManager* getLocalizationManager() const = 0;
-	//virtual class EventBus* getEventBus() const = 0;
+	// virtual ProjectManagerPtr getProjectManager() const = 0;
+	// virtual class MikanServer* getMikanServer() const = 0;
+	// virtual class IMkFontManager* getFontManager() const = 0;
+	// virtual class InputManager* getInputManager() const = 0;
+	// virtual class OpenCVManager* getOpenCVManager() const = 0;
+	// virtual class ClientSourceManager* getClientSourceManager() const = 0;
+	// virtual class LocalizationManager* getLocalizationManager() const = 0;
+	// virtual class EventBus* getEventBus() const = 0;
 	virtual class MkGuiStyleManager* getMkGuiStyleManager() const override;
 
 	virtual IMkGraphicsContextPtr getGraphicsContext() const override;
 	virtual IMkWindowContextPtr getMkWindowContext() const override;
 	virtual class App* getOwnerApp() const override;
-	//virtual class AppStage* getCurrentAppStage() const = 0;
-	//virtual class AppStage* getParentAppStage() const = 0;
-	//virtual class AppStage* pushAppStage(const std::string& appStageName) = 0;
-	//virtual void popAppState() = 0;
+	// virtual class AppStage* getCurrentAppStage() const = 0;
+	// virtual class AppStage* getParentAppStage() const = 0;
+	// virtual class AppStage* pushAppStage(const std::string& appStageName) = 0;
+	// virtual void popAppState() = 0;
 
 	// -- IMkWindowContext Helpers ----
 	eWindowAPI getWindowAPI() const;
@@ -77,7 +77,7 @@ protected:
 	void shutdownGuiContext();
 	void shutdownWindow();
 
-	class App* m_ownerApp = nullptr;
+	class App* m_ownerApp= nullptr;
 	IMkWindowContextPtr m_mkWindowContext;
 	IMkGraphicsContextPtr m_graphicsContext;
 	MikanTextureCacheUniquePtr m_textureCache;

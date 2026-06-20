@@ -48,7 +48,6 @@ public:
 	inline IMkTriangulatedMeshPtr getLayerMesh() const { return m_layerMesh; }
 
 protected:
-
 	bool bindEventNodes();
 
 	bool createLayerQuadMeshes();
@@ -79,7 +78,7 @@ protected:
 class CompositorNodeGraphFactory : public TypedNodeGraphFactory<CompositorNodeGraph>
 {
 public:
-	CompositorNodeGraphFactory() = default;
+	CompositorNodeGraphFactory()= default;
 
 	virtual NodeGraphPtr initialCreateNodeGraph(class IEditorWindow* ownerWindow) const override;
 };

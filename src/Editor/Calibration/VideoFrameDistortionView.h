@@ -21,7 +21,7 @@ public:
 	VideoFrameDistortionView(
 		VideoSourceComponentPtr view,
 		eVideoFrameProcessorMode processorMode,
-		unsigned int frameQueueSize=1,
+		unsigned int frameQueueSize= 1,
 		VideoFrameSection videoFramesection= VideoFrameSection::Primary);
 	virtual ~VideoFrameDistortionView();
 
@@ -63,7 +63,7 @@ public:
 
 	bool hasNewVideoFrame() const;
 	int64_t readAndProcessVideoFrame();
-	IMkTexturePtr getVideoTexture(int64_t desiredFrameIndex = -1) const;
+	IMkTexturePtr getVideoTexture(int64_t desiredFrameIndex= -1) const;
 	void applyMonoCameraIntrinsics(const struct MikanMonoIntrinsics* instrinsics);
 
 	void renderSelectedVideoBuffers();
@@ -109,10 +109,10 @@ protected:
 		IMkTexturePtr videoTexture;
 		int64_t frameIndex;
 	};
-	VideoFrameQueueEntry* m_videoFrameQueue = nullptr;
+	VideoFrameQueueEntry* m_videoFrameQueue= nullptr;
 	unsigned int m_videoFrameQueueSize= 0;
 	int m_videoFrameQueueLastWriteIndex= -1;
-	int m_videoFrameQueuePendingWriteIndex = 0;
+	int m_videoFrameQueuePendingWriteIndex= 0;
 
 	// FrameBuffer used for fullscreen video rendering
 	IMkTriangulatedMeshPtr m_fullscreenRGBVideoQuad;

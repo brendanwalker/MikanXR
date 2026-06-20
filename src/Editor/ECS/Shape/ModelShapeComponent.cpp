@@ -25,7 +25,7 @@
 #include "TransformComponent.h"
 
 // -- ModelShapeDefinition ------
-const std::string ModelShapeDefinition::k_modelPathPropertyId = "model_path";
+const std::string ModelShapeDefinition::k_modelPathPropertyId= "model_path";
 
 ModelShapeDefinition::ModelShapeDefinition()
 	: ShapeComponentDefinition()
@@ -39,11 +39,11 @@ ModelShapeDefinition::ModelShapeDefinition(MikanShapeID shapeId)
 
 configuru::Config ModelShapeDefinition::writeToJSON()
 {
-	configuru::Config pt = ShapeComponentDefinition::writeToJSON();
+	configuru::Config pt= ShapeComponentDefinition::writeToJSON();
 
 	if (m_modelAssetRefConfig)
 	{
-		pt[k_modelPathPropertyId] = m_modelAssetRefConfig->assetPath;
+		pt[k_modelPathPropertyId]= m_modelAssetRefConfig->assetPath;
 	}
 
 	return pt;
@@ -53,12 +53,12 @@ void ModelShapeDefinition::readFromJSON(const configuru::Config& pt)
 {
 	ShapeComponentDefinition::readFromJSON(pt);
 
-	const std::string pathStr = pt.get_or<std::string>(k_modelPathPropertyId, "");
+	const std::string pathStr= pt.get_or<std::string>(k_modelPathPropertyId, "");
 	if (!pathStr.empty())
 	{
 		if (!m_modelAssetRefConfig)
-			m_modelAssetRefConfig = std::make_shared<AssetReferenceConfig>();
-		m_modelAssetRefConfig->assetPath = pathStr;
+			m_modelAssetRefConfig= std::make_shared<AssetReferenceConfig>();
+		m_modelAssetRefConfig->assetPath= pathStr;
 	}
 }
 
@@ -77,11 +77,11 @@ const std::filesystem::path ModelShapeDefinition::getModelPath() const
 void ModelShapeDefinition::setModelPath(const std::filesystem::path& path, bool bForceDirty)
 {
 	if (!m_modelAssetRefConfig)
-		m_modelAssetRefConfig = std::make_shared<AssetReferenceConfig>();
+		m_modelAssetRefConfig= std::make_shared<AssetReferenceConfig>();
 
 	if (m_modelAssetRefConfig->assetPath != path || bForceDirty)
 	{
-		m_modelAssetRefConfig->assetPath = path.string();
+		m_modelAssetRefConfig->assetPath= path.string();
 		notifyPropertyChanged(ConfigPropertyChangeSet().addPropertyName(k_modelPathPropertyId));
 	}
 }
@@ -104,15 +104,15 @@ void ModelShapeComponent::update(float deltaSeconds)
 	ShapeComponent::update(deltaSeconds);
 
 	// Bind the texture from the texture source to all mesh material instances
-	IMkTexturePtr colorTexture = getColorTexture();
+	IMkTexturePtr colorTexture= getColorTexture();
 	if (colorTexture)
 	{
 		for (StaticMeshComponentPtr meshComp : m_triMeshComponents)
 		{
-			auto meshInstance = meshComp->getStaticMesh();
+			auto meshInstance= meshComp->getStaticMesh();
 			if (meshInstance)
 			{
-				MkMaterialInstancePtr matInst = meshInstance->getMaterialInstance();
+				MkMaterialInstancePtr matInst= meshInstance->getMaterialInstance();
 				if (matInst)
 				{
 					matInst->setTextureBySemantic(eUniformSemantic::rgbTexture, colorTexture);
@@ -143,7 +143,7 @@ void ModelShapeComponent::extractRenderGeometry(MikanStencilModelRenderGeometry&
 {
 	for (StaticMeshComponentPtr mesh : m_triMeshComponents)
 	{
-		MikanTriagulatedMesh mikanMesh = {};
+		MikanTriagulatedMesh mikanMesh= {};
 		mesh->extractRenderGeometry(mikanMesh);
 
 		outRenderGeometry.meshes.push_back(mikanMesh);
@@ -154,7 +154,7 @@ void ModelShapeComponent::disposeMeshComponents()
 {
 	while (m_meshComponents.size() > 0)
 	{
-		TransformComponentPtr componentPtr = m_meshComponents.back();
+		TransformComponentPtr componentPtr= m_meshComponents.back();
 		componentPtr->dispose();
 		m_meshComponents.pop_back();
 	}
@@ -165,44 +165,44 @@ void ModelShapeComponent::disposeMeshComponents()
 
 void ModelShapeComponent::rebuildMeshComponents()
 {
-	ModelShapeDefinitionPtr modelDef = getModelShapeDefinition();
-	MikanObjectPtr ownerObject = getOwnerObject();
-	ShapeComponentPtr shapeComponentPtr = getSelfPtr<ShapeComponent>();
+	ModelShapeDefinitionPtr modelDef= getModelShapeDefinition();
+	MikanObjectPtr ownerObject= getOwnerObject();
+	ShapeComponentPtr shapeComponentPtr= getSelfPtr<ShapeComponent>();
 
 	disposeMeshComponents();
 
 	if (!modelDef || !modelDef->hasModelPath())
 		return;
 
-	IEditorWindow* ownerWindow = getOwnerEditorWindow();
+	IEditorWindow* ownerWindow= getOwnerEditorWindow();
 	if (!ownerWindow)
 		return;
 
-	MikanModelResourceManager* modelResourceManager = ownerWindow->getModelResourceManager();
-	MkMaterialConstPtr shapeMaterial =
+	MikanModelResourceManager* modelResourceManager= ownerWindow->getModelResourceManager();
+	MkMaterialConstPtr shapeMaterial=
 		ownerWindow->getGraphicsContext()->getShaderCache()->getMaterialByName(INTERNAL_MATERIAL_PNT_TEXTURED);
-	MikanRenderModelResourcePtr modelResourcePtr =
+	MikanRenderModelResourcePtr modelResourcePtr=
 		modelResourceManager->fetchRenderModel(modelDef->getModelPath(), shapeMaterial);
 
 	if (!modelResourcePtr)
 		return;
 
-	for (int meshIndex = 0; meshIndex < modelResourcePtr->getTriangulatedMeshCount(); ++meshIndex)
+	for (int meshIndex= 0; meshIndex < modelResourcePtr->getTriangulatedMeshCount(); ++meshIndex)
 	{
-		IMkTriangulatedMeshPtr triMeshPtr = modelResourcePtr->getTriangulatedMesh(meshIndex);
+		IMkTriangulatedMeshPtr triMeshPtr= modelResourcePtr->getTriangulatedMesh(meshIndex);
 
-		IMkStaticMeshInstancePtr triMeshInstancePtr =
+		IMkStaticMeshInstancePtr triMeshInstancePtr=
 			createMkStaticMeshInstance(triMeshPtr->getName(), triMeshPtr);
 		triMeshInstancePtr->setVisible(true);
 
-		StaticMeshComponentPtr meshComponentPtr = ownerObject->addComponent<StaticMeshComponent>();
+		StaticMeshComponentPtr meshComponentPtr= ownerObject->addComponent<StaticMeshComponent>();
 		meshComponentPtr->setName(triMeshPtr->getName());
 		meshComponentPtr->setStaticMesh(triMeshInstancePtr);
 		meshComponentPtr->attachToComponent(shapeComponentPtr);
 		m_meshComponents.push_back(meshComponentPtr);
 		m_triMeshComponents.push_back(meshComponentPtr);
 
-		MeshColliderComponentPtr colliderPtr = ownerObject->addComponent<MeshColliderComponent>();
+		MeshColliderComponentPtr colliderPtr= ownerObject->addComponent<MeshColliderComponent>();
 		colliderPtr->setName(triMeshPtr->getName());
 		colliderPtr->setStaticMeshComponent(meshComponentPtr);
 		colliderPtr->attachToComponent(shapeComponentPtr);
@@ -237,11 +237,11 @@ bool ModelShapeComponent::getPropertyValue(
 	const std::string& propertyName,
 	MikanVariant& outValue) const
 {
-	const auto def = getModelShapeDefinition();
+	const auto def= getModelShapeDefinition();
 
 	if (propertyName == ModelShapeDefinition::k_modelPathPropertyId)
 	{
-		outValue = def->getModelPath().string();
+		outValue= def->getModelPath().string();
 		return true;
 	}
 
@@ -252,7 +252,7 @@ bool ModelShapeComponent::setPropertyValue(
 	const std::string& propertyName,
 	const MikanVariant& inValue)
 {
-	const auto def = getModelShapeDefinition();
+	const auto def= getModelShapeDefinition();
 
 	if (propertyName == ModelShapeDefinition::k_modelPathPropertyId)
 	{
@@ -269,8 +269,9 @@ void ModelShapeComponent::bindLuaFunctions(lua_State* L)
 	luabridge::getGlobalNamespace(L)
 		.deriveClass<ModelShapeComponent, ShapeComponent>(ModelShapeComponent::k_componentClassName.c_str())
 		.addProperty("modelPath",
-			[](ModelShapeComponent* component) -> std::string {
-				return component->getModelShapeDefinition()->getModelPath().string();
-			})
+					 [](ModelShapeComponent* component) -> std::string
+					 {
+						 return component->getModelShapeDefinition()->getModelPath().string();
+					 })
 		.endClass();
 }

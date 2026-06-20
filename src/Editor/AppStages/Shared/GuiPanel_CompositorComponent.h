@@ -19,4 +19,4 @@ private:
 	GuiDataSource_ComboBox m_cameraDataSource;
 };
 
-using GuiPanel_CompositorComponentPtr = std::shared_ptr<GuiPanel_CompositorComponent>;
+using GuiPanel_CompositorComponentPtr= std::shared_ptr<GuiPanel_CompositorComponent>;

@@ -13,7 +13,10 @@
 class GuiPanel_ProjectTracking : public GuiPanel
 {
 public:
-	GuiPanel_ProjectTracking(AppStage* ownerAppStage) : GuiPanel(ownerAppStage) {}
+	GuiPanel_ProjectTracking(AppStage* ownerAppStage)
+		: GuiPanel(ownerAppStage)
+	{
+	}
 
 	bool init(class ProjectGuiPanelContext* context);
 	virtual void onGui() override;
@@ -28,13 +31,13 @@ private:
 	void setSelectedTrackingVolumeId(MikanTrackingVolumeID volumeId);
 	void setSelectedTrackingMountId(MikanTrackingMountID mountId);
 
-	class ProjectGuiPanelContext* m_context = nullptr;
+	class ProjectGuiPanelContext* m_context= nullptr;
 	TrackingMountObjectSystemWeakPtr m_trackingMountSystem;
 	ProjectManagerWeakPtr m_projectManager;
 
-	int m_selectedTrackingVolumeId = INVALID_MIKAN_ID;
-	int m_selectedTrackingMountId = INVALID_MIKAN_ID;
-	bool m_isVRTrackingVolume = false;
+	int m_selectedTrackingVolumeId= INVALID_MIKAN_ID;
+	int m_selectedTrackingMountId= INVALID_MIKAN_ID;
+	bool m_isVRTrackingVolume= false;
 
 	MkGuiStyleConstPtr m_defaultGuiStyle;
 	std::unique_ptr<GuiDataSource_ComboBox> m_trackingVolumeDataSource;

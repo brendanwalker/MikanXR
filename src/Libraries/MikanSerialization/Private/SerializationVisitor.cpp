@@ -8,202 +8,217 @@
 
 namespace Serialization
 {
-	struct AccessorData
+struct AccessorData
+{
+	void* instance;
+	bool isConst;
+	rfk::Field const* field;
+	rfk::Type const& type;
+	std::string name;
+
+	AccessorData(const void* instance, rfk::Field const& field)
+		: instance(const_cast<void*>(instance))
+		, isConst(true)
+		, field(&field)
+		, type(field.getType())
+		, name(field.getName())
 	{
-		void* instance;
-		bool isConst;
-		rfk::Field const* field;
-		rfk::Type const& type;
-		std::string name;
-
-		AccessorData(const void* instance, rfk::Field const& field) :
-			instance(const_cast<void*>(instance)),
-			isConst(true),
-			field(&field),
-			type(field.getType()),
-			name(field.getName())
-		{}
-
-		AccessorData(const void* instance, rfk::Type const& type) :
-			instance(const_cast<void*>(instance)),
-			isConst(true),
-			field(nullptr),
-			type(type),
-			name(type.getArchetype()->getName())
-		{}
-
-		AccessorData(void* instance, rfk::Field const& field) :
-			instance(instance),
-			isConst(false),
-			field(&field),
-			type(field.getType()),
-			name(field.getName())
-		{}
-
-		AccessorData(void* instance, rfk::Type const& type) :
-			instance(instance),
-			isConst(false),
-			field(nullptr),
-			type(type),
-			name(type.getArchetype()->getName())
-		{}
-
-		AccessorData(const AccessorData& other) :
-			instance(other.instance),
-			isConst(other.isConst),
-			field(other.field),
-			type(other.type),
-			name(other.name)
-		{}
-
-		AccessorData(AccessorData&& other) :
-			instance(other.instance),
-			isConst(other.isConst),
-			field(other.field),
-			type(other.type),
-			name(other.name)
-		{}
-	};
-
-	struct VisitorData
-	{
-		bool hasError = false;
-		std::string errorMessage;
-	};
-
-	IVisitor::IVisitor() : m_pimpl(new VisitorData()) {}
-	IVisitor::~IVisitor() { delete m_pimpl; }
-
-	bool IVisitor::hasError() const { return m_pimpl->hasError; }
-	const std::string& IVisitor::getError() const { return m_pimpl->errorMessage; }
-	void IVisitor::setError(const std::string& msg)
-	{
-		if (!m_pimpl->hasError)
-		{
-			m_pimpl->hasError = true;
-			m_pimpl->errorMessage = msg;
-#ifdef _DEBUG
-			__debugbreak();
-#endif
-		}
 	}
 
-	ValueAccessor::ValueAccessor(const void* instance, rfk::Field const& field) :
-		m_pimpl(new AccessorData(instance, field))
-	{}
+	AccessorData(const void* instance, rfk::Type const& type)
+		: instance(const_cast<void*>(instance))
+		, isConst(true)
+		, field(nullptr)
+		, type(type)
+		, name(type.getArchetype()->getName())
+	{
+	}
 
-	ValueAccessor::ValueAccessor(const void* instance, rfk::Type const& type) :
-		m_pimpl(new AccessorData(instance, type))
-	{}
+	AccessorData(void* instance, rfk::Field const& field)
+		: instance(instance)
+		, isConst(false)
+		, field(&field)
+		, type(field.getType())
+		, name(field.getName())
+	{
+	}
 
-	ValueAccessor::ValueAccessor(void* instance, rfk::Field const& field) :
-		m_pimpl(new AccessorData(instance, field))
-	{}
+	AccessorData(void* instance, rfk::Type const& type)
+		: instance(instance)
+		, isConst(false)
+		, field(nullptr)
+		, type(type)
+		, name(type.getArchetype()->getName())
+	{
+	}
 
-	ValueAccessor::ValueAccessor(void* instance, rfk::Type const& type) :
-		m_pimpl(new AccessorData(instance, type))
-	{}
+	AccessorData(const AccessorData& other)
+		: instance(other.instance)
+		, isConst(other.isConst)
+		, field(other.field)
+		, type(other.type)
+		, name(other.name)
+	{
+	}
 
-	ValueAccessor::ValueAccessor(const ValueAccessor& other) :
-		m_pimpl(new AccessorData(*other.m_pimpl))
-	{ }
+	AccessorData(AccessorData&& other)
+		: instance(other.instance)
+		, isConst(other.isConst)
+		, field(other.field)
+		, type(other.type)
+		, name(other.name)
+	{
+	}
+};
 
-	ValueAccessor::ValueAccessor(ValueAccessor&& other) :
-		m_pimpl(new AccessorData(*other.m_pimpl))
-	{ }
+struct VisitorData
+{
+	bool hasError= false;
+	std::string errorMessage;
+};
 
-	ValueAccessor::~ValueAccessor()
+IVisitor::IVisitor()
+	: m_pimpl(new VisitorData())
+{
+}
+IVisitor::~IVisitor() { delete m_pimpl; }
+
+bool IVisitor::hasError() const { return m_pimpl->hasError; }
+const std::string& IVisitor::getError() const { return m_pimpl->errorMessage; }
+void IVisitor::setError(const std::string& msg)
+{
+	if (!m_pimpl->hasError)
+	{
+		m_pimpl->hasError= true;
+		m_pimpl->errorMessage= msg;
+#ifdef _DEBUG
+		__debugbreak();
+#endif
+	}
+}
+
+ValueAccessor::ValueAccessor(const void* instance, rfk::Field const& field)
+	: m_pimpl(new AccessorData(instance, field))
+{
+}
+
+ValueAccessor::ValueAccessor(const void* instance, rfk::Type const& type)
+	: m_pimpl(new AccessorData(instance, type))
+{
+}
+
+ValueAccessor::ValueAccessor(void* instance, rfk::Field const& field)
+	: m_pimpl(new AccessorData(instance, field))
+{
+}
+
+ValueAccessor::ValueAccessor(void* instance, rfk::Type const& type)
+	: m_pimpl(new AccessorData(instance, type))
+{
+}
+
+ValueAccessor::ValueAccessor(const ValueAccessor& other)
+	: m_pimpl(new AccessorData(*other.m_pimpl))
+{
+}
+
+ValueAccessor::ValueAccessor(ValueAccessor&& other)
+	: m_pimpl(new AccessorData(*other.m_pimpl))
+{
+}
+
+ValueAccessor::~ValueAccessor()
+{
+	delete m_pimpl;
+}
+
+ValueAccessor& ValueAccessor::operator=(const ValueAccessor& other)
+{
+	if (this != &other)
 	{
 		delete m_pimpl;
+		m_pimpl= new AccessorData(*other.m_pimpl);
 	}
 
-	ValueAccessor& ValueAccessor::operator=(const ValueAccessor& other)
+	return *this;
+}
+
+const void* ValueAccessor::getInstance() const
+{
+	return m_pimpl->instance;
+}
+
+void* ValueAccessor::getInstanceMutable() const
+{
+	assert(!m_pimpl->isConst);
+	return m_pimpl->instance;
+}
+
+rfk::Field const* ValueAccessor::getField() const
+{
+	return m_pimpl->field;
+}
+
+rfk::Type const& ValueAccessor::getType() const
+{
+	return m_pimpl->type;
+}
+
+std::string const& ValueAccessor::getName() const
+{
+	return m_pimpl->name;
+}
+
+rfk::Class const* ValueAccessor::getClassType() const
+{
+	return rfk::classCast(m_pimpl->type.getArchetype());
+}
+
+rfk::Struct const* ValueAccessor::getStructType() const
+{
+	return rfk::structCast(m_pimpl->type.getArchetype());
+}
+
+rfk::Enum const* ValueAccessor::getEnumType() const
+{
+	return rfk::enumCast(m_pimpl->type.getArchetype());
+}
+
+const void* ValueAccessor::getUntypedValuePtr() const
+{
+	assert(m_pimpl->type.isValue());
+	assert(m_pimpl->instance != nullptr);
+
+	if (m_pimpl->field)
 	{
-		if (this != &other)
-		{
-			delete m_pimpl;
-			m_pimpl = new AccessorData(*other.m_pimpl);
-		}
-
-		return *this;
+		return m_pimpl->field->getPtrUnsafe(m_pimpl->instance);
 	}
-
-	const void* ValueAccessor::getInstance() const
-	{ 
-		return m_pimpl->instance; 
-	}
-
-	void* ValueAccessor::getInstanceMutable() const 
-	{ 
-		assert(!m_pimpl->isConst);
-		return m_pimpl->instance; 
-	}
-
-	rfk::Field const* ValueAccessor::getField() const 
+	else
 	{
-		return m_pimpl->field; 
+		return m_pimpl->instance;
 	}
+}
 
-	rfk::Type const& ValueAccessor::getType() const
-	{
-		return m_pimpl->type; 
-	}
+void* ValueAccessor::getUntypedValueMutablePtr() const
+{
+	assert(!m_pimpl->isConst);
+	return const_cast<void*>(getUntypedValuePtr());
+}
 
-	std::string const& ValueAccessor::getName() const
-	{
-		return m_pimpl->name; 
-	}
-
-	rfk::Class const* ValueAccessor::getClassType() const
-	{
-		return rfk::classCast(m_pimpl->type.getArchetype());
-	}
-
-	rfk::Struct const* ValueAccessor::getStructType() const
-	{
-		return rfk::structCast(m_pimpl->type.getArchetype());
-	}
-
-	rfk::Enum const* ValueAccessor::getEnumType() const
-	{
-		return rfk::enumCast(m_pimpl->type.getArchetype());
-	}
-
-	const void* ValueAccessor::getUntypedValuePtr() const
-	{
-		assert(m_pimpl->type.isValue());
-		assert(m_pimpl->instance != nullptr);
-
-		if (m_pimpl->field)
-		{
-			return m_pimpl->field->getPtrUnsafe(m_pimpl->instance);
-		}
-		else
-		{
-			return m_pimpl->instance;
-		}
-	}
-
-	void* ValueAccessor::getUntypedValueMutablePtr() const
-	{
-		assert(!m_pimpl->isConst);
-		return const_cast<void*>(getUntypedValuePtr());
-	}
-
-	
-	void memoryOffsetSortStructFields(rfk::Struct const& structType, FieldList& outFields)
-	{
-		// Recurse into parent structs first, since they will be laid out in memory first
-		structType.foreachDirectParent([](rfk::ParentStruct const& parentStruct, void* userData) -> bool {
+void memoryOffsetSortStructFields(rfk::Struct const& structType, FieldList& outFields)
+{
+	// Recurse into parent structs first, since they will be laid out in memory first
+	structType.foreachDirectParent([](rfk::ParentStruct const& parentStruct, void* userData) -> bool
+								   {
 			FieldList* outSortedFieldsPtr = reinterpret_cast<FieldList*>(userData);
 			memoryOffsetSortStructFields(parentStruct.getArchetype(), *outSortedFieldsPtr);
-			return true;
-		},
-		&outFields);
+			return true; },
+								   &outFields);
 
-		// Gather all the public, non-static fields on this struct
-		FieldList fieldsOnThisStruct;
-		structType.foreachField([](rfk::Field const& field, void* userData) -> bool {
+	// Gather all the public, non-static fields on this struct
+	FieldList fieldsOnThisStruct;
+	structType.foreachField([](rfk::Field const& field, void* userData) -> bool
+							{
 			FieldList* sortedFieldsPtr = reinterpret_cast<FieldList*>(userData);
 
 			// Skip this field is it is non-public or is static
@@ -213,185 +228,188 @@ namespace Serialization
 			}
 
 			sortedFieldsPtr->push_back(&field);
-			return true;
-		},
-		&fieldsOnThisStruct,
-		false);
+			return true; },
+							&fieldsOnThisStruct,
+							false);
 
-		// Sort the fields on this struct by memory offset
-		if (fieldsOnThisStruct.size() > 1)
-		{
-			std::sort(fieldsOnThisStruct.begin(), fieldsOnThisStruct.end(),
-					  [](rfk::Field const* a, rfk::Field const* b) {
-				return a->getMemoryOffset() < b->getMemoryOffset();
-			});
-		}
-
-		// Append the sorted fields to the output list
-		outFields.insert(outFields.end(), fieldsOnThisStruct.begin(), fieldsOnThisStruct.end());
+	// Sort the fields on this struct by memory offset
+	if (fieldsOnThisStruct.size() > 1)
+	{
+		std::sort(fieldsOnThisStruct.begin(), fieldsOnThisStruct.end(),
+				  [](rfk::Field const* a, rfk::Field const* b)
+				  {
+					  return a->getMemoryOffset() < b->getMemoryOffset();
+				  });
 	}
 
-	void visitStruct(const void* instance, rfk::Struct const& structType, IVisitor *visitor)
-	{
-		FieldList fields;
-		memoryOffsetSortStructFields(structType, fields);
+	// Append the sorted fields to the output list
+	outFields.insert(outFields.end(), fieldsOnThisStruct.begin(), fieldsOnThisStruct.end());
+}
 
-		for (rfk::Field const* field : fields)
-		{
-			Serialization::visitField(instance, *field, visitor);
-			if (visitor->hasError()) break;
-		};
+void visitStruct(const void* instance, rfk::Struct const& structType, IVisitor* visitor)
+{
+	FieldList fields;
+	memoryOffsetSortStructFields(structType, fields);
+
+	for (rfk::Field const* field : fields)
+	{
+		Serialization::visitField(instance, *field, visitor);
+		if (visitor->hasError())
+			break;
+	};
+}
+
+void visitStruct(void* instance, rfk::Struct const& structType, IVisitor* visitor)
+{
+	FieldList fields;
+	memoryOffsetSortStructFields(structType, fields);
+
+	for (rfk::Field const* field : fields)
+	{
+		Serialization::visitField(instance, *field, visitor);
+		if (visitor->hasError())
+			break;
+	};
+}
+
+void visitField(const void* instance, rfk::Field const& field, IVisitor* visitor)
+{
+	// Error if this field is non-public or is static
+	if (field.getAccess() != rfk::EAccessSpecifier::Public)
+	{
+		visitor->setError(stringify("Field ", field.getName(), " was not public"));
+		return;
+	}
+	if (field.isStatic())
+	{
+		visitor->setError(stringify("Field ", field.getName(), " is static"));
+		return;
 	}
 
-	void visitStruct(void* instance, rfk::Struct const& structType, IVisitor* visitor)
-	{
-		FieldList fields;
-		memoryOffsetSortStructFields(structType, fields);
+	visitValue(ValueAccessor(instance, field), visitor);
+}
 
-		for (rfk::Field const* field : fields)
-		{
-			Serialization::visitField(instance, *field, visitor);
-			if (visitor->hasError()) break;
-		};
+void visitField(void* instance, rfk::Field const& field, IVisitor* visitor)
+{
+	// Error if this field is non-public or is static
+	if (field.getAccess() != rfk::EAccessSpecifier::Public)
+	{
+		visitor->setError(stringify("Field ", field.getName(), " was not public"));
+		return;
+	}
+	if (field.isStatic())
+	{
+		visitor->setError(stringify("Field ", field.getName(), " is static"));
+		return;
 	}
 
-	void visitField(const void* instance, rfk::Field const& field, IVisitor* visitor)
+	visitValue(ValueAccessor(instance, field), visitor);
+}
+
+void visitValue(ValueAccessor const& accessor, IVisitor* visitor)
+{
+	if (visitor->hasError())
+		return;
+
+	rfk::Type const& fieldType= accessor.getType();
+	rfk::Archetype const* fieldArchetype= fieldType.getArchetype();
+	rfk::EEntityKind fieldArchetypeKind= fieldArchetype ? fieldArchetype->getKind() : rfk::EEntityKind::Undefined;
+	const char* fieldArchetypeName= fieldArchetype ? fieldArchetype->getName() : "";
+	const std::string& fieldName= accessor.getName();
+
+	if (fieldArchetypeKind == rfk::EEntityKind::Class)
 	{
-		// Error if this field is non-public or is static
-		if (field.getAccess() != rfk::EAccessSpecifier::Public)
+		rfk::Class const* classType= rfk::classCast(fieldArchetype);
+
+		if (classType != nullptr)
 		{
-			visitor->setError(stringify("Field ", field.getName(), " was not public"));
-			return;
-		}
-		if (field.isStatic())
-		{
-			visitor->setError(stringify("Field ", field.getName(), " is static"));
-			return;
-		}
-
-		visitValue(ValueAccessor(instance, field), visitor);
-	}
-
-	void visitField(void* instance, rfk::Field const& field, IVisitor *visitor)
-	{
-		// Error if this field is non-public or is static
-		if (field.getAccess() != rfk::EAccessSpecifier::Public)
-		{
-			visitor->setError(stringify("Field ", field.getName(), " was not public"));
-			return;
-		}
-		if (field.isStatic())
-		{
-			visitor->setError(stringify("Field ", field.getName(), " is static"));
-			return;
-		}
-
-		visitValue(ValueAccessor(instance, field), visitor);
-	}
-
-	void visitValue(ValueAccessor const& accessor, IVisitor* visitor)
-	{
-		if (visitor->hasError()) return;
-
-		rfk::Type const& fieldType = accessor.getType();
-		rfk::Archetype const* fieldArchetype = fieldType.getArchetype();
-		rfk::EEntityKind fieldArchetypeKind = fieldArchetype ? fieldArchetype->getKind() : rfk::EEntityKind::Undefined;
-		const char* fieldArchetypeName = fieldArchetype ? fieldArchetype->getName() : "";
-		const std::string& fieldName = accessor.getName();
-
-		if (fieldArchetypeKind == rfk::EEntityKind::Class)
-		{
-			rfk::Class const* classType = rfk::classCast(fieldArchetype);
-
-			if (classType != nullptr)
-			{
-				visitor->visitClass(accessor);
-			}
-			else
-			{
-				visitor->setError(stringify("Accessor ", accessor.getName(), " was not an class type"));
-			}
-		}
-		else if (fieldArchetypeKind == rfk::EEntityKind::Struct)
-		{
-			rfk::Struct const* structType = rfk::structCast(fieldArchetype);
-
-			if (structType != nullptr)
-			{
-				visitor->visitStruct(accessor);
-			}
-			else
-			{
-				visitor->setError(stringify("Accessor ", accessor.getName(), " was not a struct type"));
-			}
-		}
-		else if (fieldArchetypeKind == rfk::EEntityKind::Enum)
-		{
-			rfk::Enum const* enumType = rfk::enumCast(fieldArchetype);
-
-			if (enumType != nullptr)
-			{
-				visitor->visitEnum(accessor);
-			}
-			else
-			{
-				visitor->setError(stringify("Accessor ", accessor.getName(), " was not an enum type"));
-			}
-		}
-		else if (fieldArchetypeKind == rfk::EEntityKind::FundamentalArchetype)
-		{
-			if (fieldType == rfk::getType<bool>())
-			{
-				visitor->visitBool(accessor);
-			}
-			else if (fieldType == rfk::getType<uint8_t>())
-			{
-				visitor->visitUByte(accessor);
-			}
-			else if (fieldType == rfk::getType<int8_t>())
-			{
-				visitor->visitByte(accessor);
-			}
-			else if (fieldType == rfk::getType<uint16_t>())
-			{
-				visitor->visitUShort(accessor);
-			}
-			else if (fieldType == rfk::getType<int16_t>())
-			{
-				visitor->visitShort(accessor);
-			}
-			else if (fieldType == rfk::getType<uint32_t>())
-			{
-				visitor->visitUInt(accessor);
-			}
-			else if (fieldType == rfk::getType<int32_t>())
-			{
-				visitor->visitInt(accessor);
-			}
-			else if (fieldType == rfk::getType<uint64_t>())
-			{
-				visitor->visitULong(accessor);
-			}
-			else if (fieldType == rfk::getType<int64_t>())
-			{
-				visitor->visitLong(accessor);
-			}
-			else if (fieldType == rfk::getType<float>())
-			{
-				visitor->visitFloat(accessor);
-			}
-			else if (fieldType == rfk::getType<double>())
-			{
-				visitor->visitDouble(accessor);
-			}
-			else
-			{
-				visitor->setError(stringify("Accessor ", accessor.getName(), " has unsupported type"));
-			}
+			visitor->visitClass(accessor);
 		}
 		else
 		{
-			visitor->setError(stringify("Unsupported archetype kind ", (int)fieldArchetypeKind));
+			visitor->setError(stringify("Accessor ", accessor.getName(), " was not an class type"));
 		}
 	}
+	else if (fieldArchetypeKind == rfk::EEntityKind::Struct)
+	{
+		rfk::Struct const* structType= rfk::structCast(fieldArchetype);
+
+		if (structType != nullptr)
+		{
+			visitor->visitStruct(accessor);
+		}
+		else
+		{
+			visitor->setError(stringify("Accessor ", accessor.getName(), " was not a struct type"));
+		}
+	}
+	else if (fieldArchetypeKind == rfk::EEntityKind::Enum)
+	{
+		rfk::Enum const* enumType= rfk::enumCast(fieldArchetype);
+
+		if (enumType != nullptr)
+		{
+			visitor->visitEnum(accessor);
+		}
+		else
+		{
+			visitor->setError(stringify("Accessor ", accessor.getName(), " was not an enum type"));
+		}
+	}
+	else if (fieldArchetypeKind == rfk::EEntityKind::FundamentalArchetype)
+	{
+		if (fieldType == rfk::getType<bool>())
+		{
+			visitor->visitBool(accessor);
+		}
+		else if (fieldType == rfk::getType<uint8_t>())
+		{
+			visitor->visitUByte(accessor);
+		}
+		else if (fieldType == rfk::getType<int8_t>())
+		{
+			visitor->visitByte(accessor);
+		}
+		else if (fieldType == rfk::getType<uint16_t>())
+		{
+			visitor->visitUShort(accessor);
+		}
+		else if (fieldType == rfk::getType<int16_t>())
+		{
+			visitor->visitShort(accessor);
+		}
+		else if (fieldType == rfk::getType<uint32_t>())
+		{
+			visitor->visitUInt(accessor);
+		}
+		else if (fieldType == rfk::getType<int32_t>())
+		{
+			visitor->visitInt(accessor);
+		}
+		else if (fieldType == rfk::getType<uint64_t>())
+		{
+			visitor->visitULong(accessor);
+		}
+		else if (fieldType == rfk::getType<int64_t>())
+		{
+			visitor->visitLong(accessor);
+		}
+		else if (fieldType == rfk::getType<float>())
+		{
+			visitor->visitFloat(accessor);
+		}
+		else if (fieldType == rfk::getType<double>())
+		{
+			visitor->visitDouble(accessor);
+		}
+		else
+		{
+			visitor->setError(stringify("Accessor ", accessor.getName(), " has unsupported type"));
+		}
+	}
+	else
+	{
+		visitor->setError(stringify("Unsupported archetype kind ", (int)fieldArchetypeKind));
+	}
 }
+} // namespace Serialization

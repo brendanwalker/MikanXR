@@ -21,9 +21,9 @@ using namespace std::placeholders;
 // -- FunctionRequestHandler -- //
 bool FunctionRequestHandler::startup(MainWindow* mainWindow)
 {
-	IInterprocessMessageServer* messageServer = m_owner->getMessageServer();
+	IInterprocessMessageServer* messageServer= m_owner->getMessageServer();
 
-	// Function Requests	
+	// Function Requests
 	messageServer->setRequestHandler(
 		InvokeSystemFunctionRequest::staticGetArchetype().getName(),
 		std::bind(&FunctionRequestHandler::invokeSystemFunctionRequestHandler, this, _1, _2));
@@ -49,8 +49,8 @@ void FunctionRequestHandler::invokeSystemFunctionRequestHandler(
 		return;
 	}
 
-	const std::string& ownerSystemName = invokeFunctionRequest.ownerSystem.getValue();
-	MikanObjectSystemPtr objectSystem = getProjectManager()->getSystemByName(ownerSystemName);
+	const std::string& ownerSystemName= invokeFunctionRequest.ownerSystem.getValue();
+	MikanObjectSystemPtr objectSystem= getProjectManager()->getSystemByName(ownerSystemName);
 	if (!objectSystem)
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
@@ -67,7 +67,7 @@ void FunctionRequestHandler::invokeSystemFunctionRequestHandler(
 }
 
 void FunctionRequestHandler::invokeComponentFunctionRequestHandler(
-	const ClientRequest& request, 
+	const ClientRequest& request,
 	ClientResponse& response)
 {
 	InvokeComponentFunctionRequest invokeFunctionRequest;
@@ -77,15 +77,15 @@ void FunctionRequestHandler::invokeComponentFunctionRequestHandler(
 		return;
 	}
 
-	const std::string& ownerSystemName = invokeFunctionRequest.ownerSystem.getValue();
-	MikanObjectSystemPtr objectSystem = getProjectManager()->getSystemByName(ownerSystemName);
+	const std::string& ownerSystemName= invokeFunctionRequest.ownerSystem.getValue();
+	MikanObjectSystemPtr objectSystem= getProjectManager()->getSystemByName(ownerSystemName);
 	if (!objectSystem)
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
 		return;
 	}
 
-	MikanComponentPtr componentPtr = objectSystem->getComponentById(invokeFunctionRequest.componentId);
+	MikanComponentPtr componentPtr= objectSystem->getComponentById(invokeFunctionRequest.componentId);
 	if (!componentPtr)
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
@@ -114,18 +114,18 @@ void FunctionRequestHandler::getFunctionListHandler(
 
 	FunctionDescriptorResponse propertyDescriptorResponse;
 
-	MikanFunctionDatabaseConstPtr propertyDatabase = getProjectManager()->getFunctionDatabaseConst();
+	MikanFunctionDatabaseConstPtr propertyDatabase= getProjectManager()->getFunctionDatabaseConst();
 	FunctionDatabaseEnumerator enumerator(
 		propertyDatabase,
 		getFunctionListRequest.systemFilter.getValue(),
-		getFunctionListRequest.componentFilter.getValue(), 
+		getFunctionListRequest.componentFilter.getValue(),
 		"");
 	while (enumerator.isValid())
 	{
-		int propertyIndex = enumerator.getCurrentFunctionIndex();
-		const MikanFunctionEntry* propertyEntry = propertyDatabase->getFunctionByIndex(propertyIndex);
+		int propertyIndex= enumerator.getCurrentFunctionIndex();
+		const MikanFunctionEntry* propertyEntry= propertyDatabase->getFunctionByIndex(propertyIndex);
 
-		MikanFunctionDescriptor descriptorResult = {};
+		MikanFunctionDescriptor descriptorResult= {};
 		descriptorResult.ownerSystemClass.setValue(propertyEntry->systemName.c_str());
 		descriptorResult.ownerComponentClass.setValue(propertyEntry->componentClassName.c_str());
 		descriptorResult.functionName.setValue(propertyEntry->descriptor->getFunctionName().c_str());

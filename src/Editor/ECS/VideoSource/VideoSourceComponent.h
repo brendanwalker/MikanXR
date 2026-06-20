@@ -54,14 +54,14 @@ public:
 private:
 	bool m_bIsFrameMirrored= false;
 	bool m_bIsBufferMirrored= false;
-	int m_videoFrameQueueSize = DEFAULT_VIDEO_FRAME_QUEUE_SIZE;
+	int m_videoFrameQueueSize= DEFAULT_VIDEO_FRAME_QUEUE_SIZE;
 	MikanVideoSourceIntrinsics m_intrinsics;
 };
 
 class VideoSourceComponent : public MikanComponent
 {
 public:
-	static constexpr int k_maxActiveViews = 32;
+	static constexpr int k_maxActiveViews= 32;
 
 	VideoSourceComponent(MikanObjectWeakPtr owner);
 
@@ -71,20 +71,20 @@ public:
 	}
 	virtual void setDefinition(MikanComponentDefinitionPtr definition) override;
 
-	inline static const std::string k_componentClassName = "VideoSourceComponent";
+	inline static const std::string k_componentClassName= "VideoSourceComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	MikanVideoSourceID getVideoSourceId() const;
-	
+
 	// Video Source Interface
-	virtual std::string getDevicePath() const = 0;
-	virtual std::string getDeviceAPI() const = 0;
-	virtual bool openVideoSource() = 0;
-	virtual void closeVideoSource() = 0;
+	virtual std::string getDevicePath() const= 0;
+	virtual std::string getDeviceAPI() const= 0;
+	virtual bool openVideoSource()= 0;
+	virtual void closeVideoSource()= 0;
 	void startVideoStream(class VideoFrameDistortionView* view);
 	void stopVideoStream(class VideoFrameDistortionView* view);
 	void forceStopVideoStream();
-	virtual eVideoStreamingStatus getVideoStreamingStatus() const = 0;
+	virtual eVideoStreamingStatus getVideoStreamingStatus() const= 0;
 
 	virtual void update(float deltaSeconds) override;
 
@@ -129,19 +129,19 @@ public:
 	void testIntrinsics();
 
 protected:
-	virtual eVideoStreamingStatus startVideoStreamInternal() = 0;
-	virtual void stopVideoStreamInternal() = 0;
+	virtual eVideoStreamingStatus startVideoStreamInternal()= 0;
+	virtual void stopVideoStreamInternal()= 0;
 
 	void recomputeCameraProjectionMatrix();
 
 	// Called by derived classes when raw video source frame is received in video receive thread
 	size_t getActiveViews(class VideoFrameDistortionView** outActiveViewsList, size_t activeViewsMaxListSize);
 	void writeVideoFrame(
-		const unsigned char* videoBuffer, 
-		const cv::Size& bufferDimensions, 
+		const unsigned char* videoBuffer,
+		const cv::Size& bufferDimensions,
 		const bool bIsFlipped);
 	void writeStereoVideoFrameSection(
-		const unsigned char* videoBuffer, 
+		const unsigned char* videoBuffer,
 		const cv::Size& bufferDimensions,
 		const bool bIsFlipped,
 		const VideoFrameSection section,

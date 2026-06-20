@@ -4,7 +4,7 @@
 
 enum class eAnchorTriangulationMenuState : int
 {
-	INVALID = -1,
+	INVALID= -1,
 
 	inactive,
 	verifyInitialCameraSetup,

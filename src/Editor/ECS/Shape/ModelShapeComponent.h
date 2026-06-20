@@ -25,7 +25,7 @@ public:
 	static const std::string k_modelPathPropertyId;
 	bool hasModelPath() const;
 	const std::filesystem::path getModelPath() const;
-	void setModelPath(const std::filesystem::path& path, bool bForceDirty = false);
+	void setModelPath(const std::filesystem::path& path, bool bForceDirty= false);
 
 private:
 	AssetReferenceConfigPtr m_modelAssetRefConfig;
@@ -44,7 +44,7 @@ public:
 		return std::static_pointer_cast<ModelShapeDefinition>(m_definition);
 	}
 
-	inline static const std::string k_componentClassName = "ModelShapeComponent";
+	inline static const std::string k_componentClassName= "ModelShapeComponent";
 	virtual std::string getComponentClassName() const override { return k_componentClassName; }
 
 	inline const std::vector<StaticMeshComponentPtr>& getTriangulatedMeshes() const
@@ -67,7 +67,9 @@ public:
 
 	// -- IFunctionInterface ----
 	static void getFunctionDescriptors(std::vector<FunctionDescriptorConstPtr>& outDescriptors)
-	{ ShapeComponent::getFunctionDescriptors(outDescriptors); }
+	{
+		ShapeComponent::getFunctionDescriptors(outDescriptors);
+	}
 
 	// -- Lua Binding ----
 	static void bindLuaFunctions(struct lua_State* L);

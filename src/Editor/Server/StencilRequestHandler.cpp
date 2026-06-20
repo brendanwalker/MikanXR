@@ -23,7 +23,7 @@ using namespace std::placeholders;
 // -- StencilRequestHandler -- //
 bool StencilRequestHandler::startup(MainWindow* mainWindow)
 {
-	IInterprocessMessageServer* messageServer = m_owner->getMessageServer();
+	IInterprocessMessageServer* messageServer= m_owner->getMessageServer();
 
 	// Stencil Requests
 	messageServer->setRequestHandler(
@@ -42,11 +42,11 @@ void StencilRequestHandler::getModelStencilRenderGeometryHandler(const ClientReq
 		return;
 	}
 
-	ModelStencilComponentPtr modelStencil =
+	ModelStencilComponentPtr modelStencil=
 		getObjectSystemOfType<ModelStencilSystem>()->getModelStencilById(stencilRequest.stencilId);
 	if (modelStencil)
 	{
-		MikanStencilModelRenderGeometryResponse renderGeometryResponse = {};
+		MikanStencilModelRenderGeometryResponse renderGeometryResponse= {};
 		modelStencil->extractRenderGeometry(renderGeometryResponse.render_geometry);
 
 		writeTypedBinaryResponse(request.requestId, renderGeometryResponse, response);

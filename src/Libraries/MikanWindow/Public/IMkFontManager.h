@@ -5,6 +5,6 @@
 
 #include <memory>
 
-using IMkFontManagerPtr = std::shared_ptr<IMkFontManager>;
+using IMkFontManagerPtr= std::shared_ptr<IMkFontManager>;
 
 MIKAN_WINDOW_FUNC(IMkFontManagerPtr) createMkFontManager();

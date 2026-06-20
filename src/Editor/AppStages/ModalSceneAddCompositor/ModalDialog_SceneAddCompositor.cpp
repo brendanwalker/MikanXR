@@ -23,7 +23,7 @@ bool ModalDialog_SceneAddCompositor::selectNewCompositor(
 	SelectCallback selectCallback,
 	CancelCallback cancelCallback)
 {
-	ModalDialog_SceneAddCompositor* dialog = appStage->pushModalDialog<ModalDialog_SceneAddCompositor>();
+	ModalDialog_SceneAddCompositor* dialog= appStage->pushModalDialog<ModalDialog_SceneAddCompositor>();
 
 	if (!dialog->init(ownerScene, selectCallback, cancelCallback))
 	{
@@ -39,29 +39,29 @@ bool ModalDialog_SceneAddCompositor::init(
 	SelectCallback selectCallback,
 	CancelCallback cancelCallback)
 {
-	m_selectCallback = selectCallback;
-	m_cancelCallback = cancelCallback;
+	m_selectCallback= selectCallback;
+	m_cancelCallback= cancelCallback;
 
-	CompositorObjectSystemPtr compositorSystem = m_ownerAppStage->getSystemOfType<CompositorObjectSystem>();
+	CompositorObjectSystemPtr compositorSystem= m_ownerAppStage->getSystemOfType<CompositorObjectSystem>();
 	if (!compositorSystem)
 		return false;
 
 	// Populate list: compositors belonging to the parent stage that aren't already in the scene
-	StageComponentPtr stageComponent = ownerScene->getParentStage();
+	StageComponentPtr stageComponent= ownerScene->getParentStage();
 	if (stageComponent)
 	{
-		const MikanStageID stageId = stageComponent->getStageId();
-		const std::vector<MikanCompositorID>& existingIDs = ownerScene->getOutputCompositorIDs();
-		const std::vector<MikanCompositorID> availableIDs = compositorSystem->getCompositorIdListForStage(stageId);
+		const MikanStageID stageId= stageComponent->getStageId();
+		const std::vector<MikanCompositorID>& existingIDs= ownerScene->getOutputCompositorIDs();
+		const std::vector<MikanCompositorID> availableIDs= compositorSystem->getCompositorIdListForStage(stageId);
 
 		for (const MikanCompositorID& id : availableIDs)
 		{
-			auto it = std::find(existingIDs.begin(), existingIDs.end(), id);
+			auto it= std::find(existingIDs.begin(), existingIDs.end(), id);
 			if (it == existingIDs.end())
 			{
 				m_compositorIds.push_back(id);
-				CompositorComponentPtr comp = compositorSystem->getCompositorById(id);
-				const std::string name = comp ? comp->getName() : "";
+				CompositorComponentPtr comp= compositorSystem->getCompositorById(id);
+				const std::string name= comp ? comp->getName() : "";
 				m_compositorNames.push_back(name.empty() ? ("Compositor " + std::to_string(id)) : name);
 			}
 		}
@@ -72,11 +72,11 @@ bool ModalDialog_SceneAddCompositor::init(
 
 void ModalDialog_SceneAddCompositor::onGui()
 {
-	static const char* k_popupId = "Add Compositor##SceneAddCompositorModal";
+	static const char* k_popupId= "Add Compositor##SceneAddCompositorModal";
 	if (m_bNeedsOpen)
 	{
 		ImGui::OpenPopup(k_popupId);
-		m_bNeedsOpen = false;
+		m_bNeedsOpen= false;
 	}
 
 	ImGui::SetNextWindowPos(
@@ -86,27 +86,41 @@ void ModalDialog_SceneAddCompositor::onGui()
 		ImGui::Text("Add Compositor To Scene");
 		ImGui::Separator();
 
-		auto itemGetter = [](void* data, int idx, const char** out) -> bool {
-			const auto* names = static_cast<std::vector<std::string>*>(data);
-			if (idx < 0 || idx >= (int)names->size()) return false;
-			*out = (*names)[idx].c_str();
+		auto itemGetter= [](void* data, int idx, const char** out) -> bool
+		{
+			const auto* names= static_cast<std::vector<std::string>*>(data);
+			if (idx < 0 || idx >= (int)names->size())
+				return false;
+			*out= (*names)[idx].c_str();
 			return true;
 		};
 		ImGui::ListBox("##compositors", &m_selectedIndex, itemGetter, &m_compositorNames, (int)m_compositorNames.size(), 8);
 
 		ImGui::Spacing();
 
-		bool selected = false, cancelled = false;
-		const bool hasSelection = !m_compositorIds.empty();
-		if (!hasSelection) ImGui::BeginDisabled();
-		if (ImGui::Button("Ok"))     { ImGui::CloseCurrentPopup(); selected = true; }
-		if (!hasSelection) ImGui::EndDisabled();
+		bool selected= false, cancelled= false;
+		const bool hasSelection= !m_compositorIds.empty();
+		if (!hasSelection)
+			ImGui::BeginDisabled();
+		if (ImGui::Button("Ok"))
+		{
+			ImGui::CloseCurrentPopup();
+			selected= true;
+		}
+		if (!hasSelection)
+			ImGui::EndDisabled();
 		ImGui::SameLine();
-		if (ImGui::Button("Cancel")) { ImGui::CloseCurrentPopup(); cancelled = true; }
+		if (ImGui::Button("Cancel"))
+		{
+			ImGui::CloseCurrentPopup();
+			cancelled= true;
+		}
 		ImGui::EndPopup();
 
-		if (selected) onSelectCompositor();
-		else if (cancelled) onCancel();
+		if (selected)
+			onSelectCompositor();
+		else if (cancelled)
+			onCancel();
 	}
 }
 

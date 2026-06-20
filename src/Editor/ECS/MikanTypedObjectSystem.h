@@ -19,24 +19,25 @@
 // TID: The ID type used to identify components (e.g., MikanSceneID)
 // TSystem: The system type (e.g., SceneObjectSystem)
 // TSystemDefinition: The system definition type (e.g., SceneObjectSystemDefinition)
-template<class TComponent, class TDefinition, typename TID, class TSystem, class TSystemDefinition>
+template <class TComponent, class TDefinition, typename TID, class TSystem, class TSystemDefinition>
 class MikanTypedObjectSystem : public MikanObjectSystem
 {
 public:
-	using ComponentPtr = std::shared_ptr<TComponent>;
-	using ComponentConstPtr = std::shared_ptr<const TComponent>;
-	using ComponentDefinitionPtr = std::shared_ptr<TDefinition>;
-	using SystemDefinitionPtr = std::shared_ptr<TSystemDefinition>;
-	using SystemDefinitionConstPtr = std::shared_ptr<const TSystemDefinition>;
-	using Pool = MikanTypedComponentPool<TComponent, TDefinition, TID>;
-	using DefinitionInitFunction = std::function<bool(ComponentDefinitionPtr)>;
+	using ComponentPtr= std::shared_ptr<TComponent>;
+	using ComponentConstPtr= std::shared_ptr<const TComponent>;
+	using ComponentDefinitionPtr= std::shared_ptr<TDefinition>;
+	using SystemDefinitionPtr= std::shared_ptr<TSystemDefinition>;
+	using SystemDefinitionConstPtr= std::shared_ptr<const TSystemDefinition>;
+	using Pool= MikanTypedComponentPool<TComponent, TDefinition, TID>;
+	using DefinitionInitFunction= std::function<bool(ComponentDefinitionPtr)>;
 
 	MikanTypedObjectSystem(
 		ProjectManagerPtr ownerObjectSystem)
 		: MikanObjectSystem(ownerObjectSystem)
 		, m_componentPool(
-			this,
-			[this](auto def) { return this->objectFactory(def); })
+			  this,
+			  [this](auto def)
+			  { return this->objectFactory(def); })
 	{
 	}
 
@@ -46,11 +47,11 @@ public:
 		MikanObjectSystem::init(definitionPtr);
 
 		// Create pool objects from definitions
-		SystemDefinitionConstPtr systemDefinition = getTypedDefinitionConst();
+		SystemDefinitionConstPtr systemDefinition= getTypedDefinitionConst();
 		m_componentPool.initializeFromDefinitions(systemDefinition->getAllDefinitions());
 
 		// Mark the system as initialized
-		m_bIsInitialzed = true;
+		m_bIsInitialzed= true;
 
 		return true;
 	}
@@ -96,7 +97,7 @@ public:
 	}
 
 	virtual bool getComponentList(
-		const std::string& componentClassName, 
+		const std::string& componentClassName,
 		std::vector<MikanComponentPtr>& outComponentList) const
 	{
 		if (componentClassName == TComponent::k_componentClassName)
@@ -108,7 +109,7 @@ public:
 	}
 
 	virtual bool getComponentIdList(
-		const std::string& componentClassName, 
+		const std::string& componentClassName,
 		std::vector<int>& outComponentIdList) const
 	{
 		if (componentClassName == TComponent::k_componentClassName)
@@ -121,7 +122,7 @@ public:
 
 	void getTypedComponentList(std::vector<MikanComponentPtr>& outComponentList) const
 	{
-		const typename Pool::ComponentMap& componentMap = m_componentPool.getAll();
+		const typename Pool::ComponentMap& componentMap= m_componentPool.getAll();
 		for (const auto& kvpair : componentMap)
 		{
 			outComponentList.push_back(kvpair.second.lock());
@@ -130,7 +131,7 @@ public:
 
 	void getTypedComponentIdList(std::vector<int>& outComponentIdList) const
 	{
-		const typename Pool::ComponentMap& componentMap = m_componentPool.getAll();
+		const typename Pool::ComponentMap& componentMap= m_componentPool.getAll();
 		for (const auto& kvpair : componentMap)
 		{
 			outComponentIdList.push_back(static_cast<int>(kvpair.first));
@@ -152,7 +153,7 @@ public:
 		return m_componentPool.getFirstComponentId();
 	}
 
-	using PredFunction = std::function<bool(ComponentConstPtr)>;
+	using PredFunction= std::function<bool(ComponentConstPtr)>;
 	ComponentPtr getTypedComponentByPredicate(PredFunction predicate) const
 	{
 		return m_componentPool.findByPredicate(predicate);
@@ -163,13 +164,13 @@ public:
 		return m_componentPool.getAll();
 	}
 
-	using VisitFunction = std::function<void(ComponentPtr)>;
-	using FilterFunction = std::function<bool(ComponentPtr)>;
-	void visitComponents(VisitFunction visitFunc, FilterFunction filterFunc = {}) const
+	using VisitFunction= std::function<void(ComponentPtr)>;
+	using FilterFunction= std::function<bool(ComponentPtr)>;
+	void visitComponents(VisitFunction visitFunc, FilterFunction filterFunc= {}) const
 	{
 		for (const auto& kvpair : getComponentMap())
 		{
-			ComponentPtr componentPtr = kvpair.second.lock();
+			ComponentPtr componentPtr= kvpair.second.lock();
 
 			if (componentPtr && (!filterFunc || filterFunc(componentPtr)))
 			{
@@ -186,10 +187,11 @@ public:
 		// Only support creating objects from definitions that match the primary component type of this system
 		if (primaryComponentClass == TComponent::k_componentClassName)
 		{
-			MikanObjectSystem* ownerObjectSystem = this;
+			MikanObjectSystem* ownerObjectSystem= this;
 
 			return addNewObjectByTypedDefinition(
-				[ownerObjectSystem, &initParams](ComponentDefinitionPtr definition) {
+				[ownerObjectSystem, &initParams](ComponentDefinitionPtr definition)
+				{
 					// Initialize the definition from the polymorphic object init params
 					return definition->readFromInitParams(ownerObjectSystem, initParams);
 				});
@@ -197,15 +199,14 @@ public:
 		return MikanComponentPtr();
 	}
 
-	ComponentPtr addNewObjectByTypedDefinition(DefinitionInitFunction definitionInit = {})
+	ComponentPtr addNewObjectByTypedDefinition(DefinitionInitFunction definitionInit= {})
 	{
-		SystemDefinitionPtr systemDefinition = getTypedDefinition();
+		SystemDefinitionPtr systemDefinition= getTypedDefinition();
 
 		// Allocate new component definition (doesn't add to pool yet)
-		ComponentDefinitionPtr componentDefinition = systemDefinition->allocateNewDefinition();
+		ComponentDefinitionPtr componentDefinition= systemDefinition->allocateNewDefinition();
 		componentDefinition->setComponentName(
-			TComponent::k_componentClassName
-			+ std::to_string(componentDefinition->getComponentId()));
+			TComponent::k_componentClassName + std::to_string(componentDefinition->getComponentId()));
 
 		// Allow caller to initialize definition before creating object
 		if (definitionInit)
@@ -225,7 +226,7 @@ public:
 		// Notify external listeners that the newly created object is fully setup
 		if (component)
 		{
-			MikanObjectPtr objectPtr = component->getOwnerObject();
+			MikanObjectPtr objectPtr= component->getOwnerObject();
 			assert(objectPtr);
 
 			if (OnNewObjectFinalized)
@@ -237,20 +238,20 @@ public:
 
 	bool removeObjectByPrimaryComponentId(TID componentId)
 	{
-		ComponentPtr component = getTypedComponentById(componentId);
+		ComponentPtr component= getTypedComponentById(componentId);
 		if (component)
 		{
-			SystemDefinitionPtr systemDefinition = getTypedDefinition();
+			SystemDefinitionPtr systemDefinition= getTypedDefinition();
 			assert(systemDefinition);
-			MikanObjectPtr objectPtr = component->getOwnerObject();
+			MikanObjectPtr objectPtr= component->getOwnerObject();
 			assert(objectPtr);
 
-			return 
+			return
 				// 1. Remove the object from the system first (fires object/component disposed events)
 				MikanObjectSystem::disposeObjectInternal(objectPtr) &&
 				// 2. Remove the component reference from the typed component pool
 				m_componentPool.dispose(componentId) &&
-				// 3. Remove the component definition from the system definition 
+				// 3. Remove the component definition from the system definition
 				// (fires system property change event, which is now safe to do now that the object is cleaned up)
 				systemDefinition->removeDefinition(componentId);
 		}
@@ -259,13 +260,13 @@ public:
 	}
 
 	// -- Rendering -----
-	void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera, FilterFunction filterFunc = {})
+	void customRender(IMkGraphicsContext* graphicsContext, MikanCameraPtr viewportCamera, FilterFunction filterFunc= {})
 	{
 		visitComponents(
-			[graphicsContext, viewportCamera](ComponentPtr component) 
+			[graphicsContext, viewportCamera](ComponentPtr component)
 			{
 				component->customRender(graphicsContext, viewportCamera);
-			}, 
+			},
 			filterFunc);
 	}
 
@@ -276,9 +277,9 @@ public:
 
 		outDescriptors.push_back(
 			std::make_shared<PropertyDescriptor>(TSystemDefinition::k_componentIdListPropertyId, MikanVariantType::INT_ARRAY)
-			->setReadOnly()
-			->setUIHidden()
-			->setClientAPIHidden()); // Exposed via GetComponentListRequest, not PropertyGetValueRequest
+				->setReadOnly()
+				->setUIHidden()
+				->setClientAPIHidden()); // Exposed via GetComponentListRequest, not PropertyGetValueRequest
 	}
 	virtual bool getPropertyValue(const std::string& propertyName, MikanVariant& outValue) const override
 	{
@@ -286,7 +287,7 @@ public:
 		{
 			std::vector<int> componentIdList;
 			getTypedDefinitionConst()->getAllComponentIds(componentIdList);
-			outValue = componentIdList;
+			outValue= componentIdList;
 			return true;
 		}
 
@@ -310,31 +311,34 @@ protected:
 private:
 	ComponentPtr objectFactory(ComponentDefinitionPtr componentDefinition)
 	{
-		SystemDefinitionPtr systemDefinition = getTypedDefinition();
-		const std::string systemName = getObjectSystemClassName();
-		const std::string compName = componentDefinition->getComponentName();
+		SystemDefinitionPtr systemDefinition= getTypedDefinition();
+		const std::string systemName= getObjectSystemClassName();
+		const std::string compName= componentDefinition->getComponentName();
 
-#define MIKAN_FACTORY_TIMED(label, expr) \
-		do { \
-			auto _t0 = std::chrono::high_resolution_clock::now(); \
-			expr; \
-			auto _ms = std::chrono::duration_cast<std::chrono::milliseconds>( \
-				std::chrono::high_resolution_clock::now() - _t0).count(); \
-			if (_ms >= 10) { \
-				MIKAN_LOG_INFO("MikanTypedObjectSystem::objectFactory") \
-					<< systemName << "[" << compName << "] " label ": " << _ms << "ms"; \
-			} \
-		} while (0)
+#define MIKAN_FACTORY_TIMED(label, expr)                                            \
+	do                                                                              \
+	{                                                                               \
+		auto _t0= std::chrono::high_resolution_clock::now();                        \
+		expr;                                                                       \
+		auto _ms= std::chrono::duration_cast<std::chrono::milliseconds>(            \
+					  std::chrono::high_resolution_clock::now() - _t0)              \
+					  .count();                                                     \
+		if (_ms >= 10)                                                              \
+		{                                                                           \
+			MIKAN_LOG_INFO("MikanTypedObjectSystem::objectFactory")                 \
+				<< systemName << "[" << compName << "] " label ": " << _ms << "ms"; \
+		}                                                                           \
+	} while (0)
 
-		MikanObjectPtr mikanObject = newEmptyObject();
+		MikanObjectPtr mikanObject= newEmptyObject();
 		mikanObject->setName(compName);
 
 		// Add the primary component to the object
-		ComponentPtr componentPtr = mikanObject->template addComponent<TComponent>();
+		ComponentPtr componentPtr= mikanObject->template addComponent<TComponent>();
 		componentPtr->setDefinition(componentDefinition);
 
 		// If this is a TransformComponent, set it as the root component
-		auto rootComponent = std::dynamic_pointer_cast<TransformComponent>(componentPtr);
+		auto rootComponent= std::dynamic_pointer_cast<TransformComponent>(componentPtr);
 		if (rootComponent)
 		{
 			mikanObject->setRootComponent(rootComponent);
@@ -342,7 +346,7 @@ private:
 
 		// Allow derived systems to add additional components
 		MIKAN_FACTORY_TIMED("additionalComponentFactory",
-			additionalComponentFactory(mikanObject, componentDefinition));
+							additionalComponentFactory(mikanObject, componentDefinition));
 
 		// Init the object once all components are added
 		MIKAN_FACTORY_TIMED("init", mikanObject->init());
@@ -362,6 +366,6 @@ private:
 	}
 
 private:
-	bool m_bIsInitialzed = false;
+	bool m_bIsInitialzed= false;
 	Pool m_componentPool;
 };

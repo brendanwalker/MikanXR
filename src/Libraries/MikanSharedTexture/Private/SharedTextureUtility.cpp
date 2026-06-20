@@ -12,10 +12,10 @@ bool makeSpoutSenderName(
 	switch (buffer_type)
 	{
 	case SharedTextureType::COLOR:
-		buffer_name = "color";
+		buffer_name= "color";
 		break;
 	case SharedTextureType::DEPTH:
-		buffer_name = "depth";
+		buffer_name= "depth";
 		break;
 	default:
 		return false;

@@ -16,25 +16,25 @@ class LuaDebugSocket
 {
 public:
 #if defined(_WIN32)
-	using SocketHandle = uintptr_t;
-	static constexpr SocketHandle k_invalidSocket = static_cast<SocketHandle>(~0ULL);
+	using SocketHandle= uintptr_t;
+	static constexpr SocketHandle k_invalidSocket= static_cast<SocketHandle>(~0ULL);
 #else
-	using SocketHandle = int;
-	static constexpr SocketHandle k_invalidSocket = -1;
+	using SocketHandle= int;
+	static constexpr SocketHandle k_invalidSocket= -1;
 #endif
 
-	explicit LuaDebugSocket(uint16_t port = 21110);
+	explicit LuaDebugSocket(uint16_t port= 21110);
 	~LuaDebugSocket();
 
 	// Non-copyable
-	LuaDebugSocket(const LuaDebugSocket&) = delete;
-	LuaDebugSocket& operator=(const LuaDebugSocket&) = delete;
+	LuaDebugSocket(const LuaDebugSocket&)= delete;
+	LuaDebugSocket& operator=(const LuaDebugSocket&)= delete;
 
 	// ---- Callbacks (set by lrdb::basic_server) ----
 	std::function<void(const std::string& data)> on_data; // complete line received
-	std::function<void()> on_connection; // client connected
-	std::function<void()> on_close; // client disconnected
-	std::function<void(const std::string&)> on_error; // error occurred
+	std::function<void()> on_connection;                  // client connected
+	std::function<void()> on_close;                       // client disconnected
+	std::function<void(const std::string&)> on_error;     // error occurred
 
 	// ---- Methods required by lrdb::basic_server ----
 
@@ -72,14 +72,14 @@ private:
 
 	/// Handle client disconnect: close client socket, fire on_close,
 	/// then resume listening for the next connection.
-	void handleDisconnect(const char* reason = nullptr);
+	void handleDisconnect(const char* reason= nullptr);
 
 	/// Service whichever sockets are readable according to the given
 	/// select() result. Returns true if any event was processed.
 	bool dispatchSelect(bool blocking);
 
-	uint16_t     m_port;
-	SocketHandle m_listenSocket = k_invalidSocket;
-	SocketHandle m_clientSocket = k_invalidSocket;
-	std::string  m_readBuffer;   // partial line accumulator
+	uint16_t m_port;
+	SocketHandle m_listenSocket= k_invalidSocket;
+	SocketHandle m_clientSocket= k_invalidSocket;
+	std::string m_readBuffer; // partial line accumulator
 };

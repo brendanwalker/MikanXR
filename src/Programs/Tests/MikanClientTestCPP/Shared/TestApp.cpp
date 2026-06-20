@@ -6,18 +6,18 @@
 #include "Logger.h"
 
 #if defined(_WIN32)
-	#include <SDL.h>
-	#include <SDL_events.h>
-	#include <SDL_syswm.h>
+#include <SDL.h>
+#include <SDL_events.h>
+#include <SDL_syswm.h>
 #else
-	#include <SDL2/SDL.h>
-	#include <SDL2/SDL_events.h>
-	#include <SDL2/SDL_syswm.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_events.h>
+#include <SDL2/SDL_syswm.h>
 #endif
 
-static const int k_window_pixel_width = 1280;
-static const int k_window_pixel_height = 720;
-static const char* k_window_title = "MikanTestApp";
+static const int k_window_pixel_width= 1280;
+static const int k_window_pixel_height= 720;
+static const char* k_window_title= "MikanTestApp";
 
 TestApp::TestApp()
 	: m_graphicsContext()
@@ -32,7 +32,7 @@ TestApp::~TestApp()
 
 int TestApp::exec(int argc, char** argv)
 {
-	int result = 0;
+	int result= 0;
 
 	if (startup(argc, argv))
 	{
@@ -40,15 +40,15 @@ int TestApp::exec(int argc, char** argv)
 
 		while (!m_bShutdownRequested)
 		{
-			SDL_Window* sdlWindow = m_graphicsContext->getSDLWindow();
+			SDL_Window* sdlWindow= m_graphicsContext->getSDLWindow();
 
 			// Update the frame rate
-			const uint32_t now = SDL_GetTicks();
-			const float deltaSeconds = fminf((float)(now - m_lastFrameTimestamp) / 1000.f, 0.1f);
-			m_lastFrameTimestamp = now;
+			const uint32_t now= SDL_GetTicks();
+			const float deltaSeconds= fminf((float)(now - m_lastFrameTimestamp) / 1000.f, 0.1f);
+			m_lastFrameTimestamp= now;
 
 			// Update the current time
-			m_timeSeconds += deltaSeconds;
+			m_timeSeconds+= deltaSeconds;
 
 			if (SDL_PollEvent(&e))
 			{
@@ -69,7 +69,7 @@ int TestApp::exec(int argc, char** argv)
 	else
 	{
 		MIKAN_LOG_ERROR("exec") << "Failed to initialize application!";
-		result = -1;
+		result= -1;
 	}
 
 	shutdown();
@@ -89,15 +89,15 @@ bool TestApp::startup(int argc, char** argv)
 	// Create the graphics context based on command line arguments (if provided)
 	if (argc > 1)
 	{
-		std::string graphicsApiArg = argv[1];
+		std::string graphicsApiArg= argv[1];
 
 		if (graphicsApiArg == "-gl")
 		{
-			m_graphicsContext = std::make_unique<TestGraphicsContext_GL>(this);
+			m_graphicsContext= std::make_unique<TestGraphicsContext_GL>(this);
 		}
 		else if (graphicsApiArg == "-dx")
 		{
-			m_graphicsContext = std::make_unique<TestGraphicsContext_DX>(this);
+			m_graphicsContext= std::make_unique<TestGraphicsContext_DX>(this);
 		}
 		else
 		{
@@ -108,7 +108,7 @@ bool TestApp::startup(int argc, char** argv)
 	// Create a default GL graphics context if one was not created based on command line arguments
 	if (m_graphicsContext == nullptr)
 	{
-		m_graphicsContext = std::make_unique<TestGraphicsContext_GL>(this);
+		m_graphicsContext= std::make_unique<TestGraphicsContext_GL>(this);
 	}
 
 	// Attempt to initialize the graphics context
@@ -118,7 +118,7 @@ bool TestApp::startup(int argc, char** argv)
 	}
 
 	// Initialize the Mikan API
-	m_mikanClient = std::make_shared<TestMikanClient>(m_graphicsContext.get());
+	m_mikanClient= std::make_shared<TestMikanClient>(m_graphicsContext.get());
 	if (!m_mikanClient->init(k_window_title))
 	{
 		MIKAN_LOG_ERROR("startup") << "Failed to initialize Mikan client";
@@ -152,7 +152,7 @@ IMikanAPIPtr TestApp::getMikanAPI() const
 
 void TestApp::onSDLEvent(SDL_Event& e)
 {
-	SDL_Window* sdlWindow = m_graphicsContext->getSDLWindow();
+	SDL_Window* sdlWindow= m_graphicsContext->getSDLWindow();
 
 	if (e.type == SDL_QUIT)
 	{
@@ -165,15 +165,15 @@ void TestApp::onSDLEvent(SDL_Event& e)
 		requestShutdown();
 	}
 	else if (e.type == SDL_WINDOWEVENT &&
-			e.window.event == SDL_WINDOWEVENT_CLOSE && 
-			e.window.windowID == SDL_GetWindowID(sdlWindow))
+			 e.window.event == SDL_WINDOWEVENT_CLOSE &&
+			 e.window.windowID == SDL_GetWindowID(sdlWindow))
 	{
 		MIKAN_LOG_INFO("exec") << "Window close message received.";
 		requestShutdown();
 	}
-	else if (e.type == SDL_WINDOWEVENT && 
-			e.window.event == SDL_WINDOWEVENT_RESIZED && 
-			e.window.windowID == SDL_GetWindowID(sdlWindow))
+	else if (e.type == SDL_WINDOWEVENT &&
+			 e.window.event == SDL_WINDOWEVENT_RESIZED &&
+			 e.window.windowID == SDL_GetWindowID(sdlWindow))
 	{
 		MIKAN_LOG_INFO("exec") << "Window resize event received.";
 		m_graphicsContext->recreateMainRenderTarget();
@@ -182,39 +182,39 @@ void TestApp::onSDLEvent(SDL_Event& e)
 	{
 		if (e.key.keysym.sym == SDLK_1)
 		{
-			m_renderMode = TestRenderMode::Color;
+			m_renderMode= TestRenderMode::Color;
 		}
 		else if (e.key.keysym.sym == SDLK_2)
 		{
-			m_renderMode = TestRenderMode::DepthNormalize;
+			m_renderMode= TestRenderMode::DepthNormalize;
 		}
 		else if (e.key.keysym.sym == SDLK_3)
 		{
-			m_renderMode = TestRenderMode::PackedDepth;
+			m_renderMode= TestRenderMode::PackedDepth;
 		}
 		else if (e.key.keysym.sym == SDLK_w)
 		{
-			m_cubeOffset.z += 0.1f;
+			m_cubeOffset.z+= 0.1f;
 		}
 		else if (e.key.keysym.sym == SDLK_s)
 		{
-			m_cubeOffset.z -= 0.1f;
+			m_cubeOffset.z-= 0.1f;
 		}
 		else if (e.key.keysym.sym == SDLK_a)
 		{
-			m_cubeOffset.x += 0.1f;
+			m_cubeOffset.x+= 0.1f;
 		}
 		else if (e.key.keysym.sym == SDLK_d)
 		{
-			m_cubeOffset.x -= 0.1f;
+			m_cubeOffset.x-= 0.1f;
 		}
 		else if (e.key.keysym.sym == SDLK_q)
 		{
-			m_cubeOffset.y += 0.1f;
+			m_cubeOffset.y+= 0.1f;
 		}
 		else if (e.key.keysym.sym == SDLK_e)
 		{
-			m_cubeOffset.y -= 0.1f;
+			m_cubeOffset.y-= 0.1f;
 		}
 	}
 }

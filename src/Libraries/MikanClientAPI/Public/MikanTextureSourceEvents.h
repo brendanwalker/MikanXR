@@ -10,30 +10,24 @@
 #include "MikanTextureSourceEvents.rfkh.h"
 #endif
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTextureSourceEvents")) MikanTextureSourceOpenedEvent : 
-	public MikanEvent
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTextureSourceEvents")) MikanTextureSourceOpenedEvent : public MikanEvent
 {
-	MikanTextureSourceOpenedEvent()
-	{
-		MIKAN_EVENT_TYPE_INFO_INIT(MikanTextureSourceOpenedEvent)
-	}
+	MikanTextureSourceOpenedEvent(){
+		MIKAN_EVENT_TYPE_INFO_INIT(MikanTextureSourceOpenedEvent)}
 
-	#ifdef MIKANAPI_REFLECTION_ENABLED
+#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanTextureSourceOpenedEvent_GENERATED
-	#endif
+#endif
 };
 
-struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTextureSourceEvents")) MikanTextureSourceClosedEvent : 
-	public MikanEvent
+struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanTextureSourceEvents")) MikanTextureSourceClosedEvent : public MikanEvent
 {
-	MikanTextureSourceClosedEvent()
-	{
-		MIKAN_EVENT_TYPE_INFO_INIT(MikanTextureSourceClosedEvent)
-	}
+	MikanTextureSourceClosedEvent(){
+		MIKAN_EVENT_TYPE_INFO_INIT(MikanTextureSourceClosedEvent)}
 
-	#ifdef MIKANAPI_REFLECTION_ENABLED
+#ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanTextureSourceClosedEvent_GENERATED
-	#endif
+#endif
 };
 
 #ifdef MIKANAPI_REFLECTION_ENABLED

@@ -12,22 +12,22 @@
 #include "imgui.h"
 #include "imnodes.h"
 
-const float k_pin_alpha_default = 1.f;
-const float k_pin_alpha_invalid = 0.2f;
+const float k_pin_alpha_default= 1.f;
+const float k_pin_alpha_invalid= 0.2f;
 
 // -- NodePinConfig -----
 configuru::Config NodePinConfig::writeToJSON()
 {
-	configuru::Config pt = CommonConfig::writeToJSON();
+	configuru::Config pt= CommonConfig::writeToJSON();
 
-	pt["class_name"] = className;
-	pt["pin_name"] = pinName;
-	pt["id"] = id;
-	pt["direction"] = k_nodePinDirectionStrings[(int)direction];
-	pt["owner_node_id"] = ownerNodeId;
+	pt["class_name"]= className;
+	pt["pin_name"]= pinName;
+	pt["id"]= id;
+	pt["direction"]= k_nodePinDirectionStrings[(int)direction];
+	pt["owner_node_id"]= ownerNodeId;
 	writeStdValueVector<t_node_link_id>(pt, "connected_links", connectedLinkIds);
-	pt["has_default_value"] = hasDefaultValue;
-	pt["is_dynamic"] = isDynamic;
+	pt["has_default_value"]= hasDefaultValue;
+	pt["is_dynamic"]= isDynamic;
 
 	return pt;
 }
@@ -36,25 +36,25 @@ void NodePinConfig::readFromJSON(const configuru::Config& pt)
 {
 	CommonConfig::readFromJSON(pt);
 
-	className = pt.get_or<std::string>("class_name", "Node");
-	pinName = pt.get_or<std::string>("pin_name", "");
-	id = pt.get_or<t_node_id>("id", -1);
-	const std::string directionString =
+	className= pt.get_or<std::string>("class_name", "Node");
+	pinName= pt.get_or<std::string>("pin_name", "");
+	id= pt.get_or<t_node_id>("id", -1);
+	const std::string directionString=
 		pt.get_or<std::string>(
 			"direction",
 			k_nodePinDirectionStrings[(int)eNodePinDirection::INPUT]);
-	direction =
+	direction=
 		StringUtils::FindEnumValue<eNodePinDirection>(
 			directionString,
 			k_nodePinDirectionStrings);
-	ownerNodeId = pt.get_or<t_node_id>("owner_node_id", -1);
+	ownerNodeId= pt.get_or<t_node_id>("owner_node_id", -1);
 	readStdValueVector<t_node_link_id>(pt, "connected_links", connectedLinkIds);
-	hasDefaultValue = pt.get_or<bool>("has_default_value", false);
-	isDynamic = pt.get_or<bool>("is_dynamic", false);
+	hasDefaultValue= pt.get_or<bool>("has_default_value", false);
+	isDynamic= pt.get_or<bool>("is_dynamic", false);
 }
 
 // -- NodePin -----
-NodePin::NodePin() 
+NodePin::NodePin()
 	: m_id(-1)
 	, m_direction(eNodePinDirection::INVALID)
 {
@@ -70,7 +70,7 @@ bool NodePin::loadFromConfig(NodeGraphPtr ownerGraph, NodePinConfigConstPtr conf
 	m_bHasDefaultValue= config->hasDefaultValue;
 	m_bIsDynamic= config->isDynamic;
 
-	NodePtr ownerNode = ownerGraph->getNodeById(config->ownerNodeId);
+	NodePtr ownerNode= ownerGraph->getNodeById(config->ownerNodeId);
 	if (ownerNode)
 	{
 		setOwnerNode(ownerNode);
@@ -78,7 +78,7 @@ bool NodePin::loadFromConfig(NodeGraphPtr ownerGraph, NodePinConfigConstPtr conf
 	else
 	{
 		MIKAN_LOG_INFO("NodePin::loadFromConfig")
-			<< "Missing owner node on pin id: " << m_id 
+			<< "Missing owner node on pin id: " << m_id
 			<< ", owner node id: " << config->ownerNodeId;
 		bSuccess= false;
 	}
@@ -104,13 +104,13 @@ bool NodePin::loadFromConfig(NodeGraphPtr ownerGraph, NodePinConfigConstPtr conf
 
 void NodePin::saveToConfig(NodePinConfigPtr config) const
 {
-	config->className = getClassName();
-	config->id = m_id;
-	config->direction = m_direction;
-	config->pinName = m_name;
-	config->ownerNodeId = m_ownerNode ? m_ownerNode->getId() : -1;
-	config->hasDefaultValue = m_bHasDefaultValue;
-	config->isDynamic = m_bIsDynamic;
+	config->className= getClassName();
+	config->id= m_id;
+	config->direction= m_direction;
+	config->pinName= m_name;
+	config->ownerNodeId= m_ownerNode ? m_ownerNode->getId() : -1;
+	config->hasDefaultValue= m_bHasDefaultValue;
+	config->isDynamic= m_bIsDynamic;
 
 	for (NodeLinkPtr linkPtr : m_connectedLinks)
 	{
@@ -155,7 +155,7 @@ NodePinPtr NodePin::getConnectedSourcePin() const
 
 	if (m_connectedLinks.size() == 0)
 		return NodePinPtr();
-	
+
 	NodeLinkPtr link= m_connectedLinks[0];
 	if (!link)
 		return NodePinPtr();
@@ -177,7 +177,7 @@ bool NodePin::connectLink(NodeLinkPtr linkPtr)
 
 			if (!getOwnerNode()->getOwnerGraph()->deleteLinkById(existingLinkId))
 			{
-				MIKAN_LOG_ERROR("NodePin::connectLink") 
+				MIKAN_LOG_ERROR("NodePin::connectLink")
 					<< "Failed to delete pre-existing link id: " << existingLinkId
 					<< ", from node pin id: " << getId()
 					<< ", of pin class: " << getClassName();
@@ -226,7 +226,7 @@ float NodePin::editorComputeNodeAlpha(const NodeEditorState& editorState) const
 	}
 	else
 	{
-		NodePinPtr startPinPtr = m_ownerNode->getOwnerGraph()->getPinById(editorState.startedLinkPinId);
+		NodePinPtr startPinPtr= m_ownerNode->getOwnerGraph()->getPinById(editorState.startedLinkPinId);
 
 		if (editorState.startedLinkPinId == m_id || this->canPinsBeConnected(startPinPtr))
 		{
@@ -246,8 +246,8 @@ void NodePin::editorRenderInputPin(const NodeEditorState& editorState)
 	MkGuiScopedStyleColor styleColor;
 	styleColor.push(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, alpha));
 
-	auto pinStyle = editorRenderMakePinStyle(alpha);
-	ImNodesPinShape pinShape = editorComputePinShape();
+	auto pinStyle= editorRenderMakePinStyle(alpha);
+	ImNodesPinShape pinShape= editorComputePinShape();
 
 	{
 		MkNodesScopedAttribute attr(m_id, MkNodesAttributeType::Input, (int)pinShape);
@@ -268,8 +268,8 @@ void NodePin::editorRenderOutputPin(const NodeEditorState& editorState, float pr
 	MkGuiScopedStyleColor styleColor;
 	styleColor.push(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 1.0f, alpha));
 
-	auto pinStyle = editorRenderMakePinStyle(alpha);
-	ImNodesPinShape pinShape = editorComputePinShape();
+	auto pinStyle= editorRenderMakePinStyle(alpha);
+	ImNodesPinShape pinShape= editorComputePinShape();
 
 	{
 		MkNodesScopedAttribute attr(m_id, MkNodesAttributeType::Output, (int)pinShape);
@@ -294,7 +294,7 @@ ImNodesPinShape NodePin::editorComputePinShape() const
 
 std::shared_ptr<MkNodesScopedColorStyle> NodePin::editorRenderMakePinStyle(float alpha)
 {
-	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_Pin, IM_COL32(252, 200, 35, (unsigned char)(alpha * 255)))
 		.push(ImNodesCol_PinHovered, IM_COL32(255, 217, 140, (unsigned char)(alpha * 255)));
 	return style;
@@ -302,7 +302,7 @@ std::shared_ptr<MkNodesScopedColorStyle> NodePin::editorRenderMakePinStyle(float
 
 std::shared_ptr<MkNodesScopedColorStyle> NodePin::editorRenderMakeLinkStyle(float alpha)
 {
-	auto style = std::make_shared<MkNodesScopedColorStyle>();
+	auto style= std::make_shared<MkNodesScopedColorStyle>();
 	style->push(ImNodesCol_Link, IM_COL32(252, 200, 35, (unsigned char)alpha))
 		.push(ImNodesCol_LinkHovered, IM_COL32(255, 217, 140, (unsigned char)alpha))
 		.push(ImNodesCol_LinkSelected, IM_COL32(255, 217, 140, 255));

@@ -15,17 +15,15 @@
 #include "SceneObjectSystem.h"
 #include "TransformComponent.h"
 
-GuiPanel_StencilComponent::GuiPanel_StencilComponent(AppStage* ownerAppStage) 
+GuiPanel_StencilComponent::GuiPanel_StencilComponent(AppStage* ownerAppStage)
 	: GuiPanel_MikanComponent(ownerAppStage)
 	, m_parentTransformDataSource(
-		ownerAppStage->getProjectManager(), 
-		{
-			{ AnchorObjectSystem::k_objectSystemClassName, AnchorComponent::k_componentClassName },
-			{ SceneObjectSystem::k_objectSystemClassName, SceneComponent::k_componentClassName },
-			{ QuadStencilSystem::k_objectSystemClassName, QuadStencilComponent::k_componentClassName },
-			{ BoxStencilSystem::k_objectSystemClassName, BoxStencilComponent::k_componentClassName },
-			{ ModelStencilSystem::k_objectSystemClassName, ModelStencilComponent::k_componentClassName }
-		})
+		  ownerAppStage->getProjectManager(),
+		  {{AnchorObjectSystem::k_objectSystemClassName, AnchorComponent::k_componentClassName},
+		   {SceneObjectSystem::k_objectSystemClassName, SceneComponent::k_componentClassName},
+		   {QuadStencilSystem::k_objectSystemClassName, QuadStencilComponent::k_componentClassName},
+		   {BoxStencilSystem::k_objectSystemClassName, BoxStencilComponent::k_componentClassName},
+		   {ModelStencilSystem::k_objectSystemClassName, ModelStencilComponent::k_componentClassName}})
 {
 }
 
@@ -37,7 +35,7 @@ void GuiPanel_StencilComponent::onConstruct()
 		TransformComponentDefinition::k_parentTransformIdPropertyId,
 		[this](const PropertyDescriptorConstPtr& /*desc*/) -> bool
 		{
-			StencilComponentPtr stencilComponent = getStencilComponent();
+			StencilComponentPtr stencilComponent= getStencilComponent();
 			if (!stencilComponent)
 				return false;
 
@@ -45,25 +43,24 @@ void GuiPanel_StencilComponent::onConstruct()
 			if (m_parentTransformDataSource.getEntryCount() == 0)
 				return false;
 
-			const MikanTransformID parentTransformId =
+			const MikanTransformID parentTransformId=
 				stencilComponent->getStencilComponentDefinition()->getParentTransformId();
-			int selectedIndex =
+			int selectedIndex=
 				m_parentTransformDataSource.getEntryIndexByComponentId(parentTransformId);
 
 			if (MkGui::drawComboBoxProperty(
-				m_defaultGuiStyle,
-				stencilComponent->makePropertyUIIdentifier(TransformComponentDefinition::k_parentTransformIdPropertyId),
-				"Parent",
-				&m_parentTransformDataSource,
-				selectedIndex))
+					m_defaultGuiStyle,
+					stencilComponent->makePropertyUIIdentifier(TransformComponentDefinition::k_parentTransformIdPropertyId),
+					"Parent",
+					&m_parentTransformDataSource,
+					selectedIndex))
 			{
-				MikanComponentPtr newParent = m_parentTransformDataSource.getEntryAtIndex(selectedIndex);
+				MikanComponentPtr newParent= m_parentTransformDataSource.getEntryAtIndex(selectedIndex);
 				if (newParent)
 				{
-					addDeferredGuiEvent([stencilComponent, newParent]() {
-						stencilComponent->getStencilComponentDefinition()->setParentTransformId(
-							newParent->getComponentId());
-					});
+					addDeferredGuiEvent([stencilComponent, newParent]()
+										{ stencilComponent->getStencilComponentDefinition()->setParentTransformId(
+											  newParent->getComponentId()); });
 				}
 			}
 			return true;
@@ -72,7 +69,7 @@ void GuiPanel_StencilComponent::onConstruct()
 
 StencilComponentPtr GuiPanel_StencilComponent::getStencilComponent() const
 {
-	MikanComponentPtr component = m_component.lock();
+	MikanComponentPtr component= m_component.lock();
 	if (component)
 	{
 		return std::static_pointer_cast<StencilComponent>(component);

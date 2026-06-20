@@ -21,8 +21,9 @@ void addAllRenderablesToMkScene(
 	MikanObjectSystemConstPtr objectSystem,
 	IMkScenePtr mkScene)
 {
-	objectSystem->visitAllObjects([mkScene](MikanObjectPtr objectPtr) {
-		objectPtr->visitAllComponents([mkScene](MikanComponentPtr componentPtr) {
+	objectSystem->visitAllObjects([mkScene](MikanObjectPtr objectPtr)
+								  { objectPtr->visitAllComponents([mkScene](MikanComponentPtr componentPtr)
+																  {
 			auto transformComponent = std::dynamic_pointer_cast<TransformComponent>(componentPtr);
 			if (transformComponent)
 			{
@@ -31,7 +32,5 @@ void addAllRenderablesToMkScene(
 				{
 					mkScene->addInstance(renderable);
 				}
-			}
-		});
-	});
+			} }); });
 }
