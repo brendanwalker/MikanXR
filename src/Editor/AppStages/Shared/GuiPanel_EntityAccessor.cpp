@@ -235,7 +235,7 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 		}
 		else if (variantType == MikanVariantType::STRING)
 		{
-			std::string v= value.getStringValue();
+			std::string v= value.getUtf8StringPointerValue();
 			const auto* assetMeta= desc->getMetaDataOfType<AssetReferenceFactoryMetaData>();
 			if (assetMeta)
 			{
@@ -251,7 +251,7 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 						0);
 					if (picked && picked[0] != '\0')
 					{
-						newValue= std::string(picked);
+						newValue= picked;
 						bValueChanged= true;
 					}
 				}
@@ -262,7 +262,7 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 				strncpy_s(buf, sizeof(buf), v.c_str(), _TRUNCATE);
 				if (MkGui::drawStringProperty(m_defaultGuiStyle, uiFieldId, propName, buf, sizeof(buf)))
 				{
-					newValue= std::string(buf);
+					newValue= buf;
 					bValueChanged= true;
 				}
 			}

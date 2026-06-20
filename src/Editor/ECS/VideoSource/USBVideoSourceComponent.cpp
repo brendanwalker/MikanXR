@@ -1641,13 +1641,13 @@ bool USBVideoSourceComponent::setPropertyValue(
 
 	if (propertyName == USBVideoSourceDefinition::k_desiredDevicePathPropertyId)
 	{
-		std::string devicePath= inValue.getStringValue();
+		const std::string devicePath= inValue.getUtf8StringPointerValue();
 		getUSBVideoSourceDefinition()->setDevicePath(devicePath);
 		return true;
 	}
 	else if (propertyName == USBVideoSourceDefinition::k_videoModePropertyId)
 	{
-		std::string videoMode= inValue.getStringValue();
+		const std::string videoMode= inValue.getUtf8StringPointerValue();
 		setVideoModeByName(videoMode);
 		return true;
 	}

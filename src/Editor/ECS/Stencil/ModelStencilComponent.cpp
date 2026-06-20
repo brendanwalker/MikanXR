@@ -9,6 +9,7 @@
 #include "IMkLineRenderer.h"
 #include "MkMaterialInstance.h"
 #include "MikanModelResourceManager.h"
+#include "PathUtils.h"
 #include "MikanRenderModelResource.h"
 #include "IMkTriangulatedMesh.h"
 #include "IMkTextRenderer.h"
@@ -464,9 +465,7 @@ bool ModelStencilComponent::getPropertyValue(
 {
 	if (propertyName == ModelStencilDefinition::k_modelStencilObjPathPropertyId)
 	{
-		std::string filepath= getModelStencilDefinition()->getModelPath().string();
-
-		outValue= filepath;
+		outValue= getModelStencilDefinition()->getModelPath();
 		return true;
 	}
 
@@ -479,7 +478,7 @@ bool ModelStencilComponent::setPropertyValue(
 {
 	if (propertyName == ModelStencilDefinition::k_modelStencilObjPathPropertyId)
 	{
-		const std::string fileString= inValue.getStringValue();
+		const std::string fileString= inValue.getUtf8StringPointerValue();
 		const std::filesystem::path filePath(fileString);
 
 		setModelPath(filePath);

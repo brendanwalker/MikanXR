@@ -405,7 +405,7 @@ void MikanServer::initClientHandler(const ClientRequest& request, ClientResponse
 {
 	InitClientRequest initClientRequest;
 	if (!readTypedRequest(request.utf8RequestString, initClientRequest) ||
-		initClientRequest.clientInfo.clientId.getValue().empty())
+		initClientRequest.clientInfo.clientId.isEmpty())
 	{
 		MIKAN_LOG_ERROR("connectHandler") << "Failed to parse client info";
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);

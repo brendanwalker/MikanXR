@@ -304,7 +304,7 @@ void PropertyRequestHandler::getComponentValuesHandler(const ClientRequest& requ
 	// Build the response
 	ComponentGetValuesResponse getValuesResponse= {};
 	getValuesResponse.ownerSystem= componentValuesRequest.ownerSystem;
-	getValuesResponse.componentClassName= componentPtr->getComponentClassName();
+	getValuesResponse.componentClassName= componentPtr->getComponentClassName().c_str();
 
 	// Extract the values into the response polymorphic object
 	std::string serializeError;

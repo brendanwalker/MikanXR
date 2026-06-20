@@ -124,12 +124,12 @@ void VideoSourceRequestHandler::getVideoSourceModeHandler(
 		{
 			MikanVideoSourceModeResponse info;
 
-			info.device_path= devicePath;
+			info.device_path= devicePath.c_str();
 			info.frame_rate= frameRate;
 			info.resolution_x= pixelWidth;
 			info.resolution_y= pixelHeight;
-			info.video_mode_name= videoModeName;
-			info.video_source_api= deviceAPI;
+			info.video_mode_name= videoModeName.c_str();
+			info.video_source_api= deviceAPI.c_str();
 			// TODO: For the moment we only support monoscopic cameras.
 			info.video_source_type= MikanVideoSourceType::MONO;
 

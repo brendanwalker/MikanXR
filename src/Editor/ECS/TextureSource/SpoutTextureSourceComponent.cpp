@@ -245,7 +245,7 @@ bool SpoutTextureSourceComponent::setPropertyValue(
 {
 	if (propertyName == SpoutTextureSourceDefinition::k_spoutSourcePropertyId)
 	{
-		std::string devicePath= inValue.getStringValue();
+		const std::string devicePath= inValue.getUtf8StringPointerValue();
 		getSpoutTextureSourceDefinition()->setSpoutSource(devicePath);
 		return true;
 	}

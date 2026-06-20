@@ -39,15 +39,15 @@ public:
 	MulticastDelegate<void(const std::string& clientId, MikanCameraID cameraId)> OnClientSourceDisconnected;
 
 protected:
-	static std::string makeClientSourceTableKey(const std::string& clientId, MikanCameraID cameraId);
-	ClientSource* getClientSource(const std::string& clientId, MikanCameraID cameraId) const;
-	bool addClientSource(const std::string& clientId, const MikanClientInfo& clientInfo, class SharedTextureReadAccessor* readAccessor);
-	bool removeClientSource(const std::string& clientId, class SharedTextureReadAccessor* readAccessor);
+	static std::string makeClientSourceTableKey(const char* clientId, MikanCameraID cameraId);
+	ClientSource* getClientSource(const char* clientId, MikanCameraID cameraId) const;
+	bool addClientSource(const char* clientId, const MikanClientInfo& clientInfo, class SharedTextureReadAccessor* readAccessor);
+	bool removeClientSource(const char* clientId, class SharedTextureReadAccessor* readAccessor);
 
 	// MikanServer Events
-	void onClientRenderTargetAllocated(const std::string& clientId, const MikanClientInfo& clientInfo, class SharedTextureReadAccessor* readAccessor);
-	void onClientRenderTargetReleased(const std::string& clientId, class SharedTextureReadAccessor* readAccessor);
-	void onClientRenderTargetUpdated(const std::string& clientId, MikanCameraID cameraId, int64_t frameIndex);
+	void onClientRenderTargetAllocated(const char* clientId, const MikanClientInfo& clientInfo, class SharedTextureReadAccessor* readAccessor);
+	void onClientRenderTargetReleased(const char* clientId, class SharedTextureReadAccessor* readAccessor);
+	void onClientRenderTargetUpdated(const char* clientId, MikanCameraID cameraId, int64_t frameIndex);
 
 private:
 	int m_textureQueueSize= 3;

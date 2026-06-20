@@ -300,7 +300,7 @@ public:
 		{
 			auto* variablePtr= accessor.getTypedValueMutablePtr<Serialization::String>();
 
-			variablePtr->setValue(sourcePropertyValue.getStringValue().c_str());
+			variablePtr->setValue(sourcePropertyValue.getUtf8StringPointerValue());
 		}
 		else
 		{

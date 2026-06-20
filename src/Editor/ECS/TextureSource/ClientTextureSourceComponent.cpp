@@ -143,7 +143,7 @@ bool ClientTextureSourceComponent::setPropertyValue(
 {
 	if (propertyName == ClientTextureSourceDefinition::k_clientSourcePropertyId)
 	{
-		std::string devicePath= inValue.getStringValue();
+		const std::string devicePath= inValue.getUtf8StringPointerValue();
 		getClientTextureSourceDefinition()->setClientSource(devicePath);
 		return true;
 	}

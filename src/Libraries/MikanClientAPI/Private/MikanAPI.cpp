@@ -249,7 +249,7 @@ public:
 		MikanClientInfo clientInfo= {};
 
 		// Stamp the request with the core sdk version and client id
-		clientInfo.clientId= getClientName();
+		clientInfo.clientId= getClientName().c_str();
 
 		return clientInfo;
 	}

@@ -186,12 +186,14 @@ bool TrackingMountComponent::setPropertyValue(
 {
 	if (propertyName == TrackingMountDefinition::k_devicePathPropertyId)
 	{
-		getTrackingMountDefinition()->setDevicePath(inValue.getStringValue());
+		const std::string devicePath= inValue.getUtf8StringPointerValue();
+		getTrackingMountDefinition()->setDevicePath(devicePath);
 		return true;
 	}
 	else if (propertyName == TrackingMountDefinition::k_socketNamePropertyId)
 	{
-		getTrackingMountDefinition()->setSocketName(inValue.getStringValue());
+		const std::string socketName= inValue.getUtf8StringPointerValue();
+		getTrackingMountDefinition()->setSocketName(socketName);
 		return true;
 	}
 

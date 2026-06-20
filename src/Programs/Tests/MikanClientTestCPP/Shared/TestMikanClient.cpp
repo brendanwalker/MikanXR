@@ -331,13 +331,13 @@ void TestMikanClient::handleMikanEvent(MikanEventPtr mikanEvent)
 void TestMikanClient::handlePropertyUpdateEvent(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
 	const MikanPropertyValue& propertyValue= propertyUpdateEvent.propertyValue;
-	const std::string& systemName= propertyValue.ownerSystem.getValue();
-	const std::string& fieldName= propertyValue.fieldName.getValue();
+	const char* systemName= propertyValue.ownerSystem.getValue();
+	const char* fieldName= propertyValue.fieldName.getValue();
 
 	if (propertyValue.componentId != INVALID_MIKAN_ID)
 	{
-		const std::string& componentClass= propertyValue.ownerComponentClass.getValue();
-		const std::string& componentName= propertyValue.fieldValue.getStringValue();
+		const char* componentClass= propertyValue.ownerComponentClass.getValue();
+		const char* componentName= propertyValue.fieldValue.getUtf8StringPointerValue();
 
 		MIKAN_LOG_INFO("handlePropertyUpdateEvent")
 			<< "Component Field Changed: "
@@ -378,7 +378,7 @@ void TestMikanClient::handlePropertyUpdateEvent(const MikanPropertyUpdateEvent& 
 
 void TestMikanClient::handleComponentPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
-	if (propertyUpdateEvent.propertyValue.fieldName.getValue() == "component_name")
+	if (propertyUpdateEvent.propertyValue.fieldName == "component_name")
 	{
 		handleComponentNameChanged(propertyUpdateEvent);
 	}
@@ -386,8 +386,8 @@ void TestMikanClient::handleComponentPropertyUpdate(const MikanPropertyUpdateEve
 
 void TestMikanClient::handleComponentNameChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
-	const std::string& componentClass= propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
-	const std::string& componentName= propertyUpdateEvent.propertyValue.fieldValue.getStringValue();
+	const char* componentClass= propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
+	const char* componentName= propertyUpdateEvent.propertyValue.fieldValue.getUtf8StringPointerValue();
 
 	MIKAN_LOG_INFO("HandleComponentNameChanged")
 		<< "Component(class: " << componentClass
@@ -398,15 +398,15 @@ void TestMikanClient::handleComponentNameChanged(const MikanPropertyUpdateEvent&
 // Transform Component Events
 void TestMikanClient::handleTransformPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
-	if (propertyUpdateEvent.propertyValue.fieldName.getValue() == "relative_scale")
+	if (propertyUpdateEvent.propertyValue.fieldName == "relative_scale")
 	{
 		handleTransformScaleChanged(propertyUpdateEvent);
 	}
-	else if (propertyUpdateEvent.propertyValue.fieldName.getValue() == "relative_quaternion")
+	else if (propertyUpdateEvent.propertyValue.fieldName == "relative_quaternion")
 	{
 		handleTransformOrientationChanged(propertyUpdateEvent);
 	}
-	else if (propertyUpdateEvent.propertyValue.fieldName.getValue() == "relative_position")
+	else if (propertyUpdateEvent.propertyValue.fieldName == "relative_position")
 	{
 		handleTransformPositionChanged(propertyUpdateEvent);
 	}
@@ -418,8 +418,8 @@ void TestMikanClient::handleTransformPropertyUpdate(const MikanPropertyUpdateEve
 
 void TestMikanClient::handleTransformScaleChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
-	const std::string& componentClass= propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
-	const std::string& componentName= propertyUpdateEvent.propertyValue.fieldValue.getStringValue();
+	const char* componentClass= propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
+	const char* componentName= propertyUpdateEvent.propertyValue.fieldValue.getUtf8StringPointerValue();
 	const MikanVector3f& s= propertyUpdateEvent.propertyValue.fieldValue.getVector3fValue();
 
 	MIKAN_LOG_INFO("handleTransformScaleChanged")
@@ -430,8 +430,8 @@ void TestMikanClient::handleTransformScaleChanged(const MikanPropertyUpdateEvent
 
 void TestMikanClient::handleTransformOrientationChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
-	const std::string& componentClass= propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
-	const std::string& componentName= propertyUpdateEvent.propertyValue.fieldValue.getStringValue();
+	const char* componentClass= propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
+	const char* componentName= propertyUpdateEvent.propertyValue.fieldValue.getUtf8StringPointerValue();
 	const MikanQuatf& q= propertyUpdateEvent.propertyValue.fieldValue.getQuaternionfValue();
 
 	MIKAN_LOG_INFO("handleTransformOrientationChanged")
@@ -442,8 +442,8 @@ void TestMikanClient::handleTransformOrientationChanged(const MikanPropertyUpdat
 
 void TestMikanClient::handleTransformPositionChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
-	const std::string& componentClass= propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
-	const std::string& componentName= propertyUpdateEvent.propertyValue.fieldValue.getStringValue();
+	const char* componentClass= propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
+	const char* componentName= propertyUpdateEvent.propertyValue.fieldValue.getUtf8StringPointerValue();
 	const MikanVector3f& v= propertyUpdateEvent.propertyValue.fieldValue.getVector3fValue();
 
 	MIKAN_LOG_INFO("handleTransformPositionChanged")
@@ -455,7 +455,7 @@ void TestMikanClient::handleTransformPositionChanged(const MikanPropertyUpdateEv
 // VR Device Events
 void TestMikanClient::handleVRDevicePropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
-	if (propertyUpdateEvent.propertyValue.fieldName.getValue() == "VRDeviceComponentIdList")
+	if (propertyUpdateEvent.propertyValue.fieldName == "VRDeviceComponentIdList")
 	{
 		handleComponentListChanged<MikanVRDeviceComponentValues>(m_mikanApi);
 	}
@@ -468,7 +468,7 @@ void TestMikanClient::handleVRDevicePropertyUpdate(const MikanPropertyUpdateEven
 // Anchor Events
 void TestMikanClient::handleAnchorPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
-	if (propertyUpdateEvent.propertyValue.fieldName.getValue() == "AnchorComponentIdList")
+	if (propertyUpdateEvent.propertyValue.fieldName == "AnchorComponentIdList")
 	{
 		handleComponentListChanged<MikanAnchorComponentValues>(m_mikanApi);
 	}
@@ -481,7 +481,7 @@ void TestMikanClient::handleAnchorPropertyUpdate(const MikanPropertyUpdateEvent&
 // Box Stencil Events
 void TestMikanClient::handleBoxStencilPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
-	if (propertyUpdateEvent.propertyValue.fieldName.getValue() == "BoxStencilComponentIdList")
+	if (propertyUpdateEvent.propertyValue.fieldName == "BoxStencilComponentIdList")
 	{
 		handleComponentListChanged<MikanBoxStencilComponentValues>(m_mikanApi);
 	}
@@ -494,7 +494,7 @@ void TestMikanClient::handleBoxStencilPropertyUpdate(const MikanPropertyUpdateEv
 // Quad Stencil Events
 void TestMikanClient::handleQuadStencilPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
-	if (propertyUpdateEvent.propertyValue.fieldName.getValue() == "QuadStencilComponentIdList")
+	if (propertyUpdateEvent.propertyValue.fieldName == "QuadStencilComponentIdList")
 	{
 		handleComponentListChanged<MikanQuadStencilComponentValues>(m_mikanApi);
 	}
@@ -507,7 +507,7 @@ void TestMikanClient::handleQuadStencilPropertyUpdate(const MikanPropertyUpdateE
 // Model Stencil Events
 void TestMikanClient::handleModelStencilPropertyUpdate(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
-	if (propertyUpdateEvent.propertyValue.fieldName.getValue() == "ModelStencilComponentIdList")
+	if (propertyUpdateEvent.propertyValue.fieldName == "ModelStencilComponentIdList")
 	{
 		handleComponentListChanged<MikanModelStencilComponentValues>(m_mikanApi);
 	}

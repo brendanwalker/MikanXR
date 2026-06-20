@@ -60,7 +60,7 @@ void ScriptRequestHandler::unbindScriptContect(CommonScriptContextPtr scriptCont
 void ScriptRequestHandler::publishScriptMessageEvent(const std::string& message)
 {
 	MikanScriptMessagePostedEvent messageInfo;
-	messageInfo.message= message;
+	messageInfo.message= message.c_str();
 
 	m_owner->publishMikanJsonEvent(mikanTypeToJsonString(messageInfo));
 }

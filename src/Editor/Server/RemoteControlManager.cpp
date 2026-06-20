@@ -109,7 +109,7 @@ void RemoteControlManager::getAppStageInfoHandler(
 	AppStage* currentAppStage= App::getInstance()->getMainWindow()->getCurrentAppStage();
 
 	MikanAppStageInfoResponse appStageInfoResult;
-	appStageInfoResult.app_stage_info.app_state_name= currentAppStage->getAppStageName();
+	appStageInfoResult.app_stage_info.app_state_name= currentAppStage->getAppStageName().c_str();
 
 	writeTypedJsonResponse(request.requestId, appStageInfoResult, response);
 }

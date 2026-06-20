@@ -1,6 +1,8 @@
 #include "SerializableString.h"
 #include "SerializableString.rfks.h"
 
+#include <string>
+
 namespace Serialization
 {
 struct StringData
@@ -9,15 +11,7 @@ struct StringData
 
 	StringData()= default;
 	StringData(const char* cstring)
-		: value{cstring}
-	{
-	}
-	StringData(std::string const& string)
-		: value{string}
-	{
-	}
-	StringData(std::string&& string)
-		: value{std::move(string)}
+		: value{cstring ? cstring : ""}
 	{
 	}
 };
@@ -30,33 +24,21 @@ String::String(const char* cstring)
 	: m_pimpl{new StringData(cstring)}
 {
 }
-String::String(std::string const& string)
-	: m_pimpl{new StringData(string)}
-{
-}
-String::String(std::string&& string)
-	: m_pimpl{new StringData(std::move(string))}
-{
-}
 String::String(const String& other)
-	: m_pimpl{new StringData(other.m_pimpl->value)}
+	: m_pimpl{new StringData()}
 {
+	m_pimpl->value= other.m_pimpl->value;
 }
 String::String(String&& other) noexcept
-	: m_pimpl{new StringData(other.m_pimpl->value)}
+	: m_pimpl{new StringData()}
 {
+	m_pimpl->value= std::move(other.m_pimpl->value);
 }
 String::~String() { delete m_pimpl; }
 
 String& String::operator=(const char* other)
 {
-	m_pimpl->value= other;
-	return *this;
-}
-
-String& String::operator=(const std::string& other)
-{
-	m_pimpl->value= other;
+	m_pimpl->value= other ? other : "";
 	return *this;
 }
 
@@ -71,19 +53,24 @@ void String::setValue(const char* str)
 	m_pimpl->value= str ? str : "";
 }
 
-const std::string& String::getValue() const
+const char* String::getValue() const
 {
-	return m_pimpl->value;
+	return m_pimpl->value.c_str();
 }
 
-bool String::operator==(std::string const& other) const
+bool String::isEmpty() const
 {
-	return m_pimpl->value == other;
+	return m_pimpl->value.empty();
 }
 
-bool String::operator!=(std::string const& other) const
+bool String::operator==(const char* other) const
 {
-	return m_pimpl->value != other;
+	return m_pimpl->value == (other ? other : "");
+}
+
+bool String::operator!=(const char* other) const
+{
+	return !(*this == other);
 }
 
 bool String::operator==(String const& other) const

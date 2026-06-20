@@ -598,25 +598,25 @@ bool NetworkVideoSourceComponent::setPropertyValue(
 {
 	if (propertyName == NetworkVideoSourceDefinition::k_addressPropertyId)
 	{
-		std::string url= inValue.getStringValue();
+		const std::string url= inValue.getUtf8StringPointerValue();
 		getNetworkVideoSourceDefinition()->setAddress(url);
 		return true;
 	}
 	else if (propertyName == NetworkVideoSourceDefinition::k_portPropertyId)
 	{
-		int port= inValue.getIntValue();
+		const int port= inValue.getIntValue();
 		getNetworkVideoSourceDefinition()->setPort(port);
 		return true;
 	}
 	else if (propertyName == NetworkVideoSourceDefinition::k_protocolPropertyId)
 	{
-		std::string protocolString= inValue.getStringValue();
+		const std::string protocolString= inValue.getUtf8StringPointerValue();
 		getNetworkVideoSourceDefinition()->setProtocol(protocolString);
 		return true;
 	}
 	else if (propertyName == NetworkVideoSourceDefinition::k_pathPropertyId)
 	{
-		std::string path= inValue.getStringValue();
+		const std::string path= inValue.getUtf8StringPointerValue();
 		getNetworkVideoSourceDefinition()->setPath(path);
 		return true;
 	}

@@ -46,4 +46,19 @@ MIKAN_UTILITY_FUNC(std::filesystem::path) makeTimestampedFilePath(
 // Create a string from a path but trims it to a max character limit
 // Prefixes the resulting string with "..." if max length is exceeded
 MIKAN_UTILITY_FUNC(std::string) createTrimmedPathString(const std::filesystem::path& path, const size_t maxLength);
+
+// Convert a filesystem path to a UTF-8 encoded std::string.
+// Use this (NOT path::string(), which yields the active code page on Windows) whenever a path
+// crosses a UTF-8 boundary, e.g. JSON/binary serialization or a Serialization::String/MikanVariant.
+// Keep using path::string() for OS file APIs (fopen, libharu, etc.) which expect the active code page.
+// Header-only so the std::u8string (C++20) vs std::string (C++17) handling resolves per translation unit.
+inline std::string pathToUtf8(const std::filesystem::path& path)
+{
+#if defined(__cpp_lib_char8_t)
+	const std::u8string utf8= path.u8string();
+	return std::string(utf8.begin(), utf8.end());
+#else
+	return path.u8string();
+#endif
+}
 }; // namespace PathUtils

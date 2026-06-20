@@ -9,6 +9,7 @@
 #include "MikanVariantTypes.h"
 #include "MikanObject.h"
 #include "NodeGraphAssetReference.h"
+#include "PathUtils.h"
 #include "ProjectManager.h"
 #include "PropertyInterface.h"
 #include "ShapeComponent.h"
@@ -291,7 +292,7 @@ bool ShapeComponent::getPropertyValue(
 {
 	if (propertyName == ShapeComponentDefinition::k_shapeGraphPathPropertyId)
 	{
-		outValue= getShapeComponentDefinition()->getShapeGraphPath().string();
+		outValue= getShapeComponentDefinition()->getShapeGraphPath();
 		return true;
 	}
 

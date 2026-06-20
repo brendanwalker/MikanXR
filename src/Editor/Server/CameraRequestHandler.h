@@ -51,9 +51,9 @@ public:
 
 	void publishCameraNewFrameEvent(const struct MikanCameraNewFrameEvent& newFrameEvent);
 
-	MulticastDelegate<void(const std::string& clientId, const struct MikanClientInfo& clientInfo, class SharedTextureReadAccessor* readAccessor)> OnClientRenderTargetAllocated;
-	MulticastDelegate<void(const std::string& clientId, class SharedTextureReadAccessor* readAccessor)> OnClientRenderTargetReleased;
-	MulticastDelegate<void(const std::string& clientId, MikanCameraID cameraId, int64_t frameIndex)> OnClientRenderTargetUpdated;
+	MulticastDelegate<void(const char* clientId, const struct MikanClientInfo& clientInfo, class SharedTextureReadAccessor* readAccessor)> OnClientRenderTargetAllocated;
+	MulticastDelegate<void(const char* clientId, class SharedTextureReadAccessor* readAccessor)> OnClientRenderTargetReleased;
+	MulticastDelegate<void(const char* clientId, MikanCameraID cameraId, int64_t frameIndex)> OnClientRenderTargetUpdated;
 
 protected:
 	void allocateRenderTargetTexturesHandler(const ClientRequest& request, ClientResponse& response);

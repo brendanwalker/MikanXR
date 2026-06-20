@@ -6,6 +6,7 @@
 #include "ClientSourceManager.h"
 #include "CompositorComponent.h"
 #include "CompositorObjectSystem.h"
+#include "PathUtils.h"
 #include "IMkState.h"
 #include "IMkTexture.h"
 #include "IMkTriangulatedMesh.h"
@@ -829,7 +830,7 @@ bool CompositorComponent::getPropertyValue(
 	}
 	else if (propertyName == CompositorDefinition::k_compositorGraphPathPropertyId)
 	{
-		outValue= getCompositorDefinition()->getCompositorGraphPath().string();
+		outValue= getCompositorDefinition()->getCompositorGraphPath();
 		return true;
 	}
 	else if (propertyName == CompositorDefinition::k_spoutEnableOutputNamePropertyId)
@@ -839,7 +840,7 @@ bool CompositorComponent::getPropertyValue(
 	}
 	else if (propertyName == CompositorDefinition::k_spoutOutputNamePropertyId)
 	{
-		outValue= getCompositorDefinition()->getSpoutOutputName();
+		outValue= getCompositorDefinition()->getSpoutOutputName().c_str();
 		return true;
 	}
 
@@ -864,7 +865,7 @@ bool CompositorComponent::setPropertyValue(
 	}
 	else if (propertyName == CompositorDefinition::k_compositorGraphPathPropertyId)
 	{
-		const std::string fileString= inValue.getStringValue();
+		const std::string fileString= inValue.getUtf8StringPointerValue();
 		const std::filesystem::path filePath(fileString);
 
 		getCompositorDefinition()->setCompositorGraphPath(filePath);
@@ -878,7 +879,7 @@ bool CompositorComponent::setPropertyValue(
 	}
 	else if (propertyName == CompositorDefinition::k_spoutOutputNamePropertyId)
 	{
-		const std::string spoutOutputName= inValue.getStringValue();
+		const std::string spoutOutputName= inValue.getUtf8StringPointerValue();
 		getCompositorDefinition()->setSpoutOutputName(spoutOutputName);
 		return true;
 	}

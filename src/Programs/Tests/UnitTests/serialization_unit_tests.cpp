@@ -190,7 +190,7 @@ void verify_serialization_test_struct(const SerializationTestStruct& actual, con
 	assert(actual.string_array.size() == expected.string_array.size());
 	for (size_t i= 0; i < actual.string_array.size(); ++i)
 	{
-		assert(actual.string_array[i].getValue() == expected.string_array[i].getValue());
+		assert(actual.string_array[i] == expected.string_array[i]);
 	}
 
 	assert(actual.point2d_array.size() == expected.point2d_array.size());

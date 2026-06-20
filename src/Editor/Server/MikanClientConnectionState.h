@@ -21,8 +21,8 @@ public:
 	inline class MikanServer* getOwnerServer() const { return m_ownerServer; }
 	inline const std::string& getConnectionId() const { return m_connectionId; }
 	inline const struct MikanClientInfo& getMikanClientInfo() const { return m_clientInfo; }
-	const std::string& getClientId() const;
-	bool isClientInfoValid() const { return !getClientId().empty(); }
+	const char* getClientId() const;
+	bool isClientInfoValid() const;
 	inline class RenderTargetClientState* getRenderTargetClientState() const { return m_renderTargetClientState; }
 
 	void setMikanClientInfo(const struct MikanClientInfo& clientInfo);

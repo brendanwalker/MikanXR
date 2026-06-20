@@ -71,7 +71,10 @@ public:
 	{
 		const auto* stringPtr= accessor.getTypedValuePtr<Serialization::String>();
 
-		to_binary(m_binaryWriter, stringPtr->getValue());
+		// Pass the String directly (not getValue()): a raw const char* would bind to the bool
+		// to_binary overload (standard pointer->bool beats the const char*->std::string
+		// user-defined conversion), serializing a single byte instead of the string.
+		to_binary(m_binaryWriter, *stringPtr);
 	}
 
 	void visitObjectPtr(ValueAccessor const& accessor)

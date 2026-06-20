@@ -1,6 +1,7 @@
 #include "MikanVariantTypes.h"
 #include "SerializationProperty.h"
 #include <Refureku/TypeInfo/Archetypes/EnumValue.h>
+
 #include <assert.h>
 
 const char* mikanVariantTypeToString(MikanVariantType variantType)
@@ -112,10 +113,15 @@ double MikanVariant::getDoubleValue() const
 	}
 }
 
-const std::string& MikanVariant::getStringValue() const
+const Serialization::String& MikanVariant::getSerializationStringValue() const
 {
 	assert(value_type == MikanVariantType::STRING);
-	return value_ptr.getTypedPointer<MikanStringValue>()->value.getValue();
+	return value_ptr.getTypedPointer<MikanStringValue>()->value;
+}
+
+const char* MikanVariant::getUtf8StringPointerValue() const
+{
+	return getSerializationStringValue().getValue();
 }
 
 const MikanVector2f& MikanVariant::getVector2fValue() const
@@ -244,7 +250,9 @@ const Serialization::PolymorphicObjectPtr& MikanVariant::getPolymorphicObjectVal
 	return value_ptr;
 }
 
-#if defined(MIKANAPI_REFLECTION_ENABLED) && defined(SERIALIZATION_REFLECTION_ENABLED)
+#if MIKAN_SETTER_API_ENABLED
+#include "PathUtils.h"
+
 void MikanVariant::setValue(const MikanVariant& other)
 {
 	switch (other.value_type)
@@ -271,7 +279,7 @@ void MikanVariant::setValue(const MikanVariant& other)
 		setValue(other.getDoubleValue());
 		break;
 	case MikanVariantType::STRING:
-		setValue(other.getStringValue());
+		setValue(other.getUtf8StringPointerValue());
 		break;
 	case MikanVariantType::VECTOR2F:
 		setValue(other.getVector2fValue());
@@ -368,14 +376,22 @@ void MikanVariant::setValue(double value)
 
 void MikanVariant::setValue(const char* value)
 {
-	std::string str_value(value);
-	setValue(str_value);
+	value_type= MikanVariantType::STRING;
+	value_ptr.allocatedByType<MikanStringValue>()->value.setValue(value);
 }
 
 void MikanVariant::setValue(const std::string& value)
 {
-	value_type= MikanVariantType::STRING;
-	value_ptr.allocatedByType<MikanStringValue>()->value.setValue(value.c_str());
+	const char* szStringValue= value.c_str();
+
+	setValue(szStringValue);
+}
+
+void MikanVariant::setValue(const std::filesystem::path& value)
+{
+	// path::string() is platform specific string encoding (using active string code page on Windows)
+	// so we need to explicitly convert this to a UTF-8 string to safely serialize this.
+	setValue(PathUtils::pathToUtf8(value));
 }
 
 void MikanVariant::setValue(const std::vector<bool>& value)
@@ -562,4 +578,4 @@ void MikanVariant::setValue(const Serialization::PolymorphicObjectPtr& value)
 	value_type= MikanVariantType::POLYMORPHIC_OBJECT;
 	value_ptr= value;
 }
-#endif // MIKANAPI_REFLECTION_ENABLED && SERIALIZATION_REFLECTION_ENABLED
+#endif // MIKAN_SETTER_API_ENABLED

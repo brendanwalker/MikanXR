@@ -6,6 +6,7 @@
 #include "LuaBridge/LuaBridge.h"
 
 #include "AssetReference.h"
+#include "PathUtils.h"
 #include "IEditorWindow.h"
 #include "IMkGraphicsContext.h"
 #include "IMkShaderCache.h"
@@ -241,7 +242,7 @@ bool ModelShapeComponent::getPropertyValue(
 
 	if (propertyName == ModelShapeDefinition::k_modelPathPropertyId)
 	{
-		outValue= def->getModelPath().string();
+		outValue= def->getModelPath();
 		return true;
 	}
 
@@ -256,7 +257,7 @@ bool ModelShapeComponent::setPropertyValue(
 
 	if (propertyName == ModelShapeDefinition::k_modelPathPropertyId)
 	{
-		def->setModelPath(inValue.getStringValue());
+		def->setModelPath(inValue.getUtf8StringPointerValue());
 		return true;
 	}
 

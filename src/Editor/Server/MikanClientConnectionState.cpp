@@ -23,9 +23,16 @@ MikanClientConnectionState::~MikanClientConnectionState()
 	delete m_renderTargetClientState;
 }
 
-const std::string& MikanClientConnectionState::getClientId() const
+const char* MikanClientConnectionState::getClientId() const
 {
 	return m_clientInfo.clientId.getValue();
+}
+
+bool MikanClientConnectionState::isClientInfoValid() const
+{
+	const char* szClientId= getClientId();
+
+	return szClientId != nullptr && szClientId[0] != '\0';
 }
 
 void MikanClientConnectionState::setMikanClientInfo(const MikanClientInfo& clientInfo)

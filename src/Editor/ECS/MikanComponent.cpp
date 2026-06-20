@@ -498,7 +498,7 @@ bool MikanComponent::getPropertyValue(const std::string& propertyName, MikanVari
 	}
 	else if (propertyName == MikanComponentDefinition::k_componentScriptPathPropertyId)
 	{
-		outValue= m_definition->getComponentScriptPath().string();
+		outValue= m_definition->getComponentScriptPath();
 		return true;
 	}
 
@@ -509,14 +509,14 @@ bool MikanComponent::setPropertyValue(const std::string& propertyName, const Mik
 {
 	if (propertyName == MikanComponentDefinition::k_componentNamePropertyId)
 	{
-		setName(inValue.getStringValue());
+		setName(inValue.getUtf8StringPointerValue());
 		return true;
 	}
 	else if (propertyName == MikanComponentDefinition::k_componentScriptPathPropertyId)
 	{
 		if (inValue.value_type == MikanVariantType::STRING)
 		{
-			std::filesystem::path scriptPath= inValue.getStringValue();
+			std::filesystem::path scriptPath= inValue.getUtf8StringPointerValue();
 			m_definition->setComponentScriptPath(scriptPath);
 			return true;
 		}

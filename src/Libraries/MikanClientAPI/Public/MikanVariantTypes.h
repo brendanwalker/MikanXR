@@ -13,9 +13,19 @@
 #include "MikanVariantTypes.rfkh.h"
 #endif
 
+#if defined(MIKANAPI_REFLECTION_ENABLED) && defined(SERIALIZATION_REFLECTION_ENABLED)
+#define MIKAN_SETTER_API_ENABLED 1
+#else
+#define MIKAN_SETTER_API_ENABLED 0
+#endif
+
+#if MIKAN_SETTER_API_ENABLED
+// Headers needed for the private setter API
+#include <filesystem>
 #include <string>
 #include <type_traits>
 #include <vector>
+#endif
 
 enum class ENUM(Serialization::CodeGenModule("MikanVariantTypes")) MikanVariantType : int
 {
@@ -94,7 +104,8 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	long getLongValue() const;
 	float getFloatValue() const;
 	double getDoubleValue() const;
-	const std::string& getStringValue() const;
+	const Serialization::String& getSerializationStringValue() const;
+	const char* getUtf8StringPointerValue() const;
 	const MikanVector2f& getVector2fValue() const;
 	const MikanVector3f& getVector3fValue() const;
 	const MikanVector4f& getVector4fValue() const;
@@ -113,7 +124,13 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	const Serialization::Map<Serialization::String, Serialization::String>& getStringMapValue() const;
 	const Serialization::PolymorphicObjectPtr& getPolymorphicObjectValue() const;
 
-#if defined(MIKANAPI_REFLECTION_ENABLED) && defined(SERIALIZATION_REFLECTION_ENABLED)
+	// These setters take std::string/std::vector by design. They are gated behind the reflection
+	// macros, which are PRIVATE to MikanClientAPI (see its CMakeLists.txt) and are never defined in
+	// non-reflection consumers such as the Unreal plugin. Those consumers compile this whole block
+	// out, so these std::string/std::vector signatures are only ever used within reflection-enabled,
+	// same-CRT targets (the DLL itself, the editor, tests) and never cross a Debug/Release CRT
+	// boundary. Do NOT move a setter out of this block without making its signature CRT-safe first.
+#if MIKAN_SETTER_API_ENABLED
 	void setValue(const MikanVariant& other);
 	void setValue(bool value);
 	void setValue(uint8_t value);
@@ -124,6 +141,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	void setValue(double value);
 	void setValue(const char* value);
 	void setValue(const std::string& value);
+	void setValue(const std::filesystem::path& value);
 	void setValue(const MikanVector2f& value);
 	void setValue(const MikanVector3f& value);
 	void setValue(const MikanVector4f& value);
@@ -135,19 +153,19 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	void setValue(const MikanQuatd& value);
 	void setVectorComponentValue(size_t index, float value);
 	void setValue(const std::vector<bool>& value);
-	void setValue(const Serialization::List<bool>& value);
 	void setValue(const std::vector<int>& value);
 	void setValue(const std::vector<float>& value);
 	void setValue(const std::vector<std::string>& value);
 	void setValue(const std::vector<Serialization::String>& value);
-	void setValue(const Serialization::List<uint8_t>& value);
 	void setValue(const std::vector<uint8_t>& value);
+	void setValue(const Serialization::List<uint8_t>& value);
+	void setValue(const Serialization::List<bool>& value);
 	void setValue(const Serialization::List<int>& value);
 	void setValue(const Serialization::List<float>& value);
 	void setValue(const Serialization::List<Serialization::String>& value);
 	void setValue(const Serialization::Map<Serialization::String, Serialization::String>& value);
 	void setValue(const Serialization::PolymorphicObjectPtr& value);
-#endif // MIKANAPI_REFLECTION_ENABLED && SERIALIZATION_REFLECTION_ENABLED
+#endif // MIKAN_SETTER_API_ENABLED
 
 #ifdef MIKANAPI_REFLECTION_ENABLED
 	MikanVariant_GENERATED

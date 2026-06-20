@@ -335,7 +335,8 @@ bool CEFTextureSourceComponent::setPropertyValue(
 
 	if (propertyName == CEFTextureSourceDefinition::k_urlPropertyId)
 	{
-		def->setUrl(inValue.getStringValue());
+		const std::string url= inValue.getUtf8StringPointerValue();
+		def->setUrl(url);
 		return true;
 	}
 	else if (propertyName == CEFTextureSourceDefinition::k_widthPropertyId)
