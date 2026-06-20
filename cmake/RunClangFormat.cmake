@@ -29,8 +29,19 @@ foreach(i RANGE 0 ${_argc_minus_1})
 endforeach()
 
 # -- Locate clang-format ----------------------------------------------------
+# clang-format is often not on PATH on Windows but ships with Visual Studio
+# under VC/Tools/Llvm/bin, so search there too.
 if(NOT CLANG_FORMAT_EXE)
-	find_program(CLANG_FORMAT_EXE NAMES clang-format)
+	file(GLOB _vs_llvm_dirs
+		"$ENV{ProgramFiles}/Microsoft Visual Studio/*/*/VC/Tools/Llvm/bin"
+		"$ENV{ProgramW6432}/Microsoft Visual Studio/*/*/VC/Tools/Llvm/bin"
+		"$ENV{ProgramFiles\(x86\)}/Microsoft Visual Studio/*/*/VC/Tools/Llvm/bin")
+	find_program(CLANG_FORMAT_EXE
+		NAMES clang-format
+		HINTS ${_vs_llvm_dirs}
+		PATHS
+			"$ENV{ProgramFiles}/LLVM/bin"
+			"$ENV{ProgramW6432}/LLVM/bin")
 endif()
 if(NOT CLANG_FORMAT_EXE)
 	message(FATAL_ERROR

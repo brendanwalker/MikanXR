@@ -13,7 +13,7 @@ You can download prebuilt releases (Windows only at the moment) from the [Releas
 If you want to make modifications to the service or want to debug it, you can build the project from source by following the  [Building-from-source](https://github.com/brendanwalker/MikanXR/wiki/Building-from-source) instructions. Currently the supported build platform is Win10 with Linux support hopefully coming in the near future.
 
 # Contributing
-Code under `src/` is formatted with clang-format and enforced by CI. See [CONTRIBUTING.md](CONTRIBUTING.md) for how to format your changes (`cmake --build build --target format`).
+Code under `src/` is formatted with clang-format and enforced by CI. See [CONTRIBUTING.md](CONTRIBUTING.md) for how to format your changes (`cmake --build build --target FormatFix`).
 
 # Documentation
 * General setup guides, troubleshooting and design docs can be found on the [wiki](https://github.com/brendanwalker/MikanXR/wiki)

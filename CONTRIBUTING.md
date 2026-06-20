@@ -23,14 +23,17 @@ Make sure the chosen `clang-format` is on your `PATH`.
 After configuring the project, reformat all sources in place with:
 
 ```sh
-cmake --build build --target format
+cmake --build build --target FormatFix
 ```
 
 To check formatting without modifying anything (this is what CI runs):
 
 ```sh
-cmake --build build --target format-check
+cmake --build build --target FormatCheck
 ```
+
+In Visual Studio these appear as the `FormatFix` and `FormatCheck` projects under
+the `CMakePredefinedTargets` solution folder; right-click → Build to run them.
 
 Both targets just wrap [`cmake/RunClangFormat.cmake`](cmake/RunClangFormat.cmake), which you
 can also run directly without a configured build tree:
