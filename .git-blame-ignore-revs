@@ -9,3 +9,6 @@
 # repo-wide reformat commit below once it has been made, e.g.:
 #   # clang-format: reformat repo
 #   0123456789abcdef0123456789abcdef01234567
+
+# Running FormatFix (clang-format repo-wide reformat)
+22765175523723b5619c3912e0b28c3e48e88527
