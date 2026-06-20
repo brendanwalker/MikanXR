@@ -6,6 +6,32 @@ on:
     branches: [ main, master ]
 
 jobs:
+  # -----------------------------------------------------------------
+  # Fast, standalone style gate. Only needs the source tree under src/
+  # and clang-format -- no MSVC toolchain, no deps, no submodules -- so
+  # it runs on Linux in well under a minute and is independent of the
+  # Windows build job below.
+  #
+  # The clang-format version is PINNED to match the copy bundled with
+  # Visual Studio 2022 (19.1.x). clang-format output changes between
+  # major versions, so local and CI must agree or a locally-formatted
+  # file could still fail here. cmake -P runs the exact same script that
+  # backs the local `format-check` target (cmake/RunClangFormat.cmake).
+  # -----------------------------------------------------------------
+  format-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Install pinned clang-format
+        run: pipx install clang-format==19.1.5
+
+      - name: Check source formatting
+        run: cmake -P cmake/RunClangFormat.cmake -- --check
+
   build:
     runs-on: windows-2022
 

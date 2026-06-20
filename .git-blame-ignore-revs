@@ -1,0 +1,11 @@
+# Revisions listed here are ignored by `git blame` (and by GitHub automatically).
+# Use this for large, purely-mechanical commits so blame keeps pointing at the
+# real authors of each line.
+#
+# To use locally, run once:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# Append the FULL 40-character commit hash of the one-time clang-format
+# repo-wide reformat commit below once it has been made, e.g.:
+#   # clang-format: reformat repo
+#   0123456789abcdef0123456789abcdef01234567

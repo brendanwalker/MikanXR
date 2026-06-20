@@ -1,0 +1,48 @@
+---
+# MikanXR code style.
+# Tuned to match the existing codebase (tabs, Allman braces, no space before '=').
+# Pinned tool: clang-format 19.x (matches the version bundled with Visual Studio 2022).
+Language: Cpp
+BasedOnStyle: Microsoft
+UseTab: ForContinuationAndIndentation
+TabWidth: 4
+IndentWidth: 4
+BreakBeforeBraces: Allman
+AccessModifierOffset: -4
+AllowShortFunctionsOnASingleLine: All
+AllowShortBlocksOnASingleLine: Empty
+PointerAlignment: Left
+ReferenceAlignment: Left
+SpaceBeforeAssignmentOperators: false
+ColumnLimit: 0
+BreakConstructorInitializers: BeforeComma
+SortIncludes: false
+# Refureku (rfk) reflection annotation macros. Treating them as attributes
+# stops clang-format from misparsing `namespace Foo NAMESPACE()` / `class CLASS() X`
+# (which otherwise makes formatting non-idempotent on the closing braces).
+AttributeMacros:
+  - NAMESPACE
+  - CLASS
+  - STRUCT
+  - ENUM
+  - ENUMVALUE
+  - VARIABLE
+  - FIELD
+  - METHOD
+  - FUNCTION
+  - PROPERTY
+# MIKAN_*_FUNC(ReturnType) macros expand to an export decoration plus the return
+# type, so clang-format must treat `MIKAN_X_FUNC(T)` as a type (otherwise it splits
+# the return-type macro onto its own line -- non-idempotent).
+TypenameMacros:
+  - MIKAN_API_FUNC
+  - MIKAN_COREAPP_FUNC
+  - MIKAN_DMX_FUNC
+  - MIKAN_GUI_FUNC
+  - MIKAN_MATH_FUNC
+  - MIKAN_RENDERER_FUNC
+  - MIKAN_SHAREDTEXTURE_FUNC
+  - MIKAN_STEAMVR_FUNC
+  - MIKAN_UTILITY_FUNC
+  - MIKAN_WINDOW_FUNC
+...
