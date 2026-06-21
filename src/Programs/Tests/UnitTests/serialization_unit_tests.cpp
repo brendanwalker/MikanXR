@@ -295,8 +295,8 @@ bool serialization_utility_test_remote_control()
 	assert(actual.parameters.size() == expected.parameters.size());
 	for (int i= 0; i < expected.parameters.size(); ++i)
 	{
-		const std::string& actualValue= actual.parameters[i].getValue();
-		const std::string& expectedValue= expected.parameters[i].getValue();
+		const Serialization::String& actualValue= actual.parameters[i];
+		const Serialization::String& expectedValue= expected.parameters[i];
 
 		assert(actualValue == expectedValue);
 	}

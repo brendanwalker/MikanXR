@@ -103,7 +103,7 @@ struct MIKAN_API STRUCT(Serialization::CodeGenModule("MikanVariantTypes")) Mikan
 	float getFloatValue() const;
 	double getDoubleValue() const;
 	const Serialization::String& getSerializationStringValue() const;
-	const char* getUtf8StringPointerValue() const;
+	const char* getUtf8Value() const;
 	const MikanVector2f& getVector2fValue() const;
 	const MikanVector3f& getVector3fValue() const;
 	const MikanVector4f& getVector4fValue() const;

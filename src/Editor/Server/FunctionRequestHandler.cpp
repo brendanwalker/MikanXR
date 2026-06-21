@@ -46,7 +46,7 @@ void FunctionRequestHandler::invokeSystemFunctionRequestHandler(const ClientRequ
 		return;
 	}
 
-	const std::string& ownerSystemName= invokeFunctionRequest.ownerSystem.getValue();
+	const char* ownerSystemName= invokeFunctionRequest.ownerSystem.getUtf8Value();
 	MikanObjectSystemPtr objectSystem= getProjectManager()->getSystemByName(ownerSystemName);
 	if (!objectSystem)
 	{
@@ -54,7 +54,7 @@ void FunctionRequestHandler::invokeSystemFunctionRequestHandler(const ClientRequ
 		return;
 	}
 
-	if (!objectSystem->invokeFunction(invokeFunctionRequest.functionName.getValue()))
+	if (!objectSystem->invokeFunction(invokeFunctionRequest.functionName.getUtf8Value()))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::UnknownFunction, response);
 		return;
@@ -73,7 +73,7 @@ void FunctionRequestHandler::invokeComponentFunctionRequestHandler(const ClientR
 		return;
 	}
 
-	const std::string& ownerSystemName= invokeFunctionRequest.ownerSystem.getValue();
+	const char* ownerSystemName= invokeFunctionRequest.ownerSystem.getUtf8Value();
 	MikanObjectSystemPtr objectSystem= getProjectManager()->getSystemByName(ownerSystemName);
 	if (!objectSystem)
 	{
@@ -88,7 +88,7 @@ void FunctionRequestHandler::invokeComponentFunctionRequestHandler(const ClientR
 		return;
 	}
 
-	if (!componentPtr->invokeFunction(invokeFunctionRequest.functionName.getValue()))
+	if (!componentPtr->invokeFunction(invokeFunctionRequest.functionName.getUtf8Value()))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::UnknownFunction, response);
 		return;
@@ -109,18 +109,18 @@ void FunctionRequestHandler::getFunctionListHandler(const ClientRequest& request
 	FunctionDescriptorResponse propertyDescriptorResponse;
 
 	MikanFunctionDatabaseConstPtr propertyDatabase= getProjectManager()->getFunctionDatabaseConst();
-	FunctionDatabaseEnumerator enumerator(propertyDatabase, getFunctionListRequest.systemFilter.getValue(),
-										  getFunctionListRequest.componentFilter.getValue(), "");
+	FunctionDatabaseEnumerator enumerator(propertyDatabase, getFunctionListRequest.systemFilter.getUtf8Value(),
+										  getFunctionListRequest.componentFilter.getUtf8Value(), "");
 	while (enumerator.isValid())
 	{
 		int propertyIndex= enumerator.getCurrentFunctionIndex();
 		const MikanFunctionEntry* propertyEntry= propertyDatabase->getFunctionByIndex(propertyIndex);
 
 		MikanFunctionDescriptor descriptorResult= {};
-		descriptorResult.ownerSystemClass.setValue(propertyEntry->systemName.c_str());
-		descriptorResult.ownerComponentClass.setValue(propertyEntry->componentClassName.c_str());
-		descriptorResult.functionName.setValue(propertyEntry->descriptor->getFunctionName().c_str());
-		descriptorResult.displayName.setValue(propertyEntry->descriptor->getDisplayName().c_str());
+		descriptorResult.ownerSystemClass.setUtf8Value(propertyEntry->systemName.c_str());
+		descriptorResult.ownerComponentClass.setUtf8Value(propertyEntry->componentClassName.c_str());
+		descriptorResult.functionName.setUtf8Value(propertyEntry->descriptor->getFunctionName().c_str());
+		descriptorResult.displayName.setUtf8Value(propertyEntry->descriptor->getDisplayName().c_str());
 
 		propertyDescriptorResponse.descriptor_list.push_back(descriptorResult);
 

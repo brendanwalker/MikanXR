@@ -90,7 +90,9 @@ bool ModelStencilDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSy
 	const auto* componentValues= initParams.getTypedPointer<MikanModelStencilComponentValues>();
 	if (componentValues)
 	{
-		setModelPath(std::filesystem::path(componentValues->model_path.getValue()));
+		const std::string utf8Path= componentValues->model_path.getUtf8Value();
+
+		setModelPath(PathUtils::utf8ToPath(utf8Path));
 	}
 
 	return true;
@@ -467,7 +469,7 @@ bool ModelStencilComponent::setPropertyValue(const std::string& propertyName, co
 {
 	if (propertyName == ModelStencilDefinition::k_modelStencilObjPathPropertyId)
 	{
-		const std::string fileString= inValue.getUtf8StringPointerValue();
+		const std::string fileString= inValue.getUtf8Value();
 		const std::filesystem::path filePath(fileString);
 
 		setModelPath(filePath);

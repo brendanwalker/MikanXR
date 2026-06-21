@@ -15,7 +15,8 @@ using json= nlohmann::json;
 
 namespace Serialization
 {
-inline void to_json(nlohmann::json& j, const String& s) { j= s.getValue(); }
+// Adapter used to convert a Serialization::String into a JSON string value
+inline void to_json(nlohmann::json& j, const String& s) { j= s.getUtf8Value(); }
 
 class JsonWriteVisitor : public IVisitor
 {
@@ -360,12 +361,12 @@ private:
 		{
 			char const* fieldName= field->getName();
 
-			m_jsonObject[fieldName]= stringPtr->getValue();
+			m_jsonObject[fieldName]= stringPtr->getUtf8Value();
 		}
 		else
 		{
 			// The json object should contain the value we want to deserialize
-			m_jsonObject= stringPtr->getValue();
+			m_jsonObject= stringPtr->getUtf8Value();
 		}
 	}
 

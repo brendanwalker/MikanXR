@@ -18,7 +18,6 @@
 #include "OSUtils.h"
 #include "PathUtils.h"
 #include "ProjectManager.h"
-#include <fstream>
 #include "ScriptRequestHandler.h"
 #include "StringUtils.h"
 
@@ -26,6 +25,7 @@
 #include "LuaBridge/LuaBridge.h"
 
 #include "tinyfiledialogs.h"
+#include <fstream>
 
 // -- MikanComponentConfig -----
 const std::string MikanComponentDefinition::k_componentIdPropertyId= "component_id";
@@ -82,10 +82,10 @@ bool MikanComponentDefinition::readFromInitParams(MikanObjectSystem* ownerObject
 		// Don't read the component ID since we already have an assigned component ID
 
 		// Assign a component ID if we don't already have one
-		const std::string& desiredName= componentValues->component_name.getValue();
+		const std::string desiredName= componentValues->component_name.getUtf8Value();
 		if (!desiredName.empty())
 		{
-			m_componentName= componentValues->component_name.getValue();
+			m_componentName= componentValues->component_name.getUtf8Value();
 		}
 
 		// Create the script asset ref config if we don't already have one
@@ -93,7 +93,8 @@ bool MikanComponentDefinition::readFromInitParams(MikanObjectSystem* ownerObject
 		{
 			m_componentScriptAssetRefConfig= ScriptAssetReferenceFactory().allocateAssetReferenceConfig();
 		}
-		m_componentScriptAssetRefConfig->assetPath= componentValues->component_script.getValue();
+		m_componentScriptAssetRefConfig->assetPath=
+			PathUtils::utf8CStrToPathString(componentValues->component_script.getUtf8Value());
 	}
 
 	return true;
@@ -479,14 +480,14 @@ bool MikanComponent::setPropertyValue(const std::string& propertyName, const Mik
 {
 	if (propertyName == MikanComponentDefinition::k_componentNamePropertyId)
 	{
-		setName(inValue.getUtf8StringPointerValue());
+		setName(inValue.getUtf8Value());
 		return true;
 	}
 	else if (propertyName == MikanComponentDefinition::k_componentScriptPathPropertyId)
 	{
 		if (inValue.value_type == MikanVariantType::STRING)
 		{
-			std::filesystem::path scriptPath= inValue.getUtf8StringPointerValue();
+			std::filesystem::path scriptPath= inValue.getUtf8Value();
 			m_definition->setComponentScriptPath(scriptPath);
 			return true;
 		}

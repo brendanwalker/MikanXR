@@ -60,8 +60,8 @@ MikanPropertyNotifyMode PropertyNotifyDatabase::getPropertyNotifyMode(const Mika
 	if (!m_propertyDatabase || !systemManager)
 		return MikanPropertyNotifyMode::NONE;
 
-	const std::string& systemName= propertyValue.ownerSystem.getValue();
-	const std::string& propertyName= propertyValue.fieldName.getValue();
+	const char* systemName= propertyValue.ownerSystem.getUtf8Value();
+	const char* propertyName= propertyValue.fieldName.getUtf8Value();
 	std::string componentClassName;
 
 	// If componentId is -1, this is a system property (no component class name)

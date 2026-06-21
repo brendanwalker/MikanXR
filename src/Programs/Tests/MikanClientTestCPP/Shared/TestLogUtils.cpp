@@ -21,7 +21,7 @@
 void TestLogUtils::logComponent(const MikanComponentValues& componentInfo)
 {
 	MIKAN_LOG_INFO("MikanComponent") << "Component ID: " << componentInfo.component_id;
-	MIKAN_LOG_INFO("MikanComponent") << "Component Name: " << componentInfo.component_name.getValue();
+	MIKAN_LOG_INFO("MikanComponent") << "Component Name: " << componentInfo.component_name.getUtf8Value();
 }
 
 void TestLogUtils::logComponent(const MikanTransformComponentValues& transformInfo)
@@ -74,12 +74,12 @@ void TestLogUtils::logComponent(const MikanModelStencilComponentValues& modelInf
 {
 	logComponent((const MikanStencilComponentValues&)modelInfo);
 
-	MIKAN_LOG_INFO("ModelStencilComponent") << "Model: " << modelInfo.model_path.getValue();
+	MIKAN_LOG_INFO("ModelStencilComponent") << "Model: " << modelInfo.model_path.getUtf8Value();
 }
 
 void TestLogUtils::logComponent(const MikanVRDeviceComponentValues& vrDeviceInfo)
 {
-	MIKAN_LOG_INFO("VRDeviceComponent") << "Device Name: " << vrDeviceInfo.vr_device_path.getValue();
+	MIKAN_LOG_INFO("VRDeviceComponent") << "Device Name: " << vrDeviceInfo.vr_device_path.getUtf8Value();
 }
 
 void TestLogUtils::logModelStencilGeometry(const MikanStencilModelRenderGeometry& geometry)

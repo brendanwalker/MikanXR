@@ -15,7 +15,8 @@ using json= nlohmann::json;
 
 namespace Serialization
 {
-inline void from_json(const nlohmann::json& j, String& s) { s.setValue(j.get<std::string>().c_str()); }
+// Adapter used to convert a JSON string value into a Serialization::String
+inline void from_json(const nlohmann::json& j, String& s) { s.setUtf8Value(j.get<std::string>().c_str()); }
 
 class JsonReadVisitor : public IVisitor
 {
@@ -80,7 +81,7 @@ public:
 				std::string value= fieldJsonObject.get<std::string>();
 				auto* variablePtr= accessor.getTypedValueMutablePtr<Serialization::String>();
 
-				variablePtr->setValue(value.c_str());
+				variablePtr->setUtf8Value(value.c_str());
 				return;
 			}
 			else

@@ -227,7 +227,7 @@ void GuiPanel_EntityAccessor::drawPropertiesGui(const std::set<std::string>& pro
 		}
 		else if (variantType == MikanVariantType::STRING)
 		{
-			std::string v= value.getUtf8StringPointerValue();
+			std::string v= value.getUtf8Value();
 			const auto* assetMeta= desc->getMetaDataOfType<AssetReferenceFactoryMetaData>();
 			if (assetMeta)
 			{

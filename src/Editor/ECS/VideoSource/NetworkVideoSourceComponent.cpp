@@ -83,11 +83,11 @@ bool NetworkVideoSourceDefinition::readFromInitParams(MikanObjectSystem* ownerOb
 	const auto* componentValues= initParams.getTypedPointer<MikanNetworkVideoSourceValues>();
 	if (componentValues)
 	{
-		const std::string protocolString= componentValues->protocol.getValue();
+		const std::string protocolString= componentValues->protocol.getUtf8Value();
 		m_protocol= StringUtils::FindEnumValue<eNetworkVideoProtocol>(protocolString, k_NetworkVideoProtocol);
-		m_address= componentValues->ip_address.getValue();
+		m_address= componentValues->ip_address.getUtf8Value();
 		m_port= componentValues->port;
-		m_path= componentValues->path.getValue();
+		m_path= componentValues->path.getUtf8Value();
 	}
 
 	return true;
@@ -555,7 +555,7 @@ bool NetworkVideoSourceComponent::setPropertyValue(const std::string& propertyNa
 {
 	if (propertyName == NetworkVideoSourceDefinition::k_addressPropertyId)
 	{
-		const std::string url= inValue.getUtf8StringPointerValue();
+		const std::string url= inValue.getUtf8Value();
 		getNetworkVideoSourceDefinition()->setAddress(url);
 		return true;
 	}
@@ -567,13 +567,13 @@ bool NetworkVideoSourceComponent::setPropertyValue(const std::string& propertyNa
 	}
 	else if (propertyName == NetworkVideoSourceDefinition::k_protocolPropertyId)
 	{
-		const std::string protocolString= inValue.getUtf8StringPointerValue();
+		const std::string protocolString= inValue.getUtf8Value();
 		getNetworkVideoSourceDefinition()->setProtocol(protocolString);
 		return true;
 	}
 	else if (propertyName == NetworkVideoSourceDefinition::k_pathPropertyId)
 	{
-		const std::string path= inValue.getUtf8StringPointerValue();
+		const std::string path= inValue.getUtf8Value();
 		getNetworkVideoSourceDefinition()->setPath(path);
 		return true;
 	}

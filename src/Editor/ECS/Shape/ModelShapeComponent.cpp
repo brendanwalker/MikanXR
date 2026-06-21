@@ -250,7 +250,7 @@ bool ModelShapeComponent::setPropertyValue(const std::string& propertyName, cons
 
 	if (propertyName == ModelShapeDefinition::k_modelPathPropertyId)
 	{
-		def->setModelPath(inValue.getUtf8StringPointerValue());
+		def->setModelPath(inValue.getUtf8Value());
 		return true;
 	}
 

@@ -116,14 +116,14 @@ bool CompositorDefinition::readFromInitParams(MikanObjectSystem* ownerObjectSyst
 		m_ownerSceneId= componentValues->owner_scene_id;
 		m_cameraId= componentValues->camera_id;
 
-		const std::string graphPathString= componentValues->compositor_graph_path.getValue();
+		const std::string graphPathString= componentValues->compositor_graph_path.getUtf8Value();
 		if (!graphPathString.empty())
 		{
 			setCompositorGraphPath(std::filesystem::path(graphPathString));
 		}
 
 		m_bIsSpoutOutputStreaming= componentValues->spout_enable_output;
-		m_spoutOutputName= componentValues->spout_output_name.getValue();
+		m_spoutOutputName= componentValues->spout_output_name.getUtf8Value();
 	}
 
 	if (componentValues->owner_scene_id == INVALID_MIKAN_ID)
@@ -821,7 +821,7 @@ bool CompositorComponent::setPropertyValue(const std::string& propertyName, cons
 	}
 	else if (propertyName == CompositorDefinition::k_compositorGraphPathPropertyId)
 	{
-		const std::string fileString= inValue.getUtf8StringPointerValue();
+		const std::string fileString= inValue.getUtf8Value();
 		const std::filesystem::path filePath(fileString);
 
 		getCompositorDefinition()->setCompositorGraphPath(filePath);
@@ -835,7 +835,7 @@ bool CompositorComponent::setPropertyValue(const std::string& propertyName, cons
 	}
 	else if (propertyName == CompositorDefinition::k_spoutOutputNamePropertyId)
 	{
-		const std::string spoutOutputName= inValue.getUtf8StringPointerValue();
+		const std::string spoutOutputName= inValue.getUtf8Value();
 		getCompositorDefinition()->setSpoutOutputName(spoutOutputName);
 		return true;
 	}

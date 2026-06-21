@@ -98,9 +98,9 @@ void PropertyRequestHandler::onObjectSystemDefinitionChanged(MikanObjectSystemDe
 		return;
 
 	MikanPropertyValue propertyValue= {};
-	propertyValue.ownerSystem.setValue(ownerSystem->getObjectSystemClassName().c_str());
+	propertyValue.ownerSystem.setUtf8Value(ownerSystem->getObjectSystemClassName().c_str());
 	propertyValue.componentId= -1; // System properties use -1 for componentId
-	propertyValue.fieldName.setValue(propertyName.c_str());
+	propertyValue.fieldName.setUtf8Value(propertyName.c_str());
 	if (!ownerSystem->getPropertyValue(propertyName, propertyValue.fieldValue))
 		return;
 
@@ -131,10 +131,10 @@ void PropertyRequestHandler::onComponentDefinitionChanged(MikanComponentDefiniti
 		return;
 
 	MikanPropertyValue propertyValue= {};
-	propertyValue.ownerSystem.setValue(ownerSystem->getObjectSystemClassName().c_str());
-	propertyValue.ownerComponentClass.setValue(ownerComponent->getComponentClassName().c_str());
+	propertyValue.ownerSystem.setUtf8Value(ownerSystem->getObjectSystemClassName().c_str());
+	propertyValue.ownerComponentClass.setUtf8Value(ownerComponent->getComponentClassName().c_str());
 	propertyValue.componentId= ownerComponent->getDefinition()->getComponentId();
-	propertyValue.fieldName.setValue(propertyName.c_str());
+	propertyValue.fieldName.setUtf8Value(propertyName.c_str());
 	if (!ownerComponent->getPropertyValue(propertyName, propertyValue.fieldValue))
 		return;
 
@@ -155,7 +155,7 @@ void PropertyRequestHandler::setPropertyValueHandler(const ClientRequest& reques
 		return;
 	}
 
-	const std::string& ownerSystemName= setValueRequest.ownerSystem.getValue();
+	const char* ownerSystemName= setValueRequest.ownerSystem.getUtf8Value();
 	MikanObjectSystemPtr objectSystem= getProjectManager()->getSystemByName(ownerSystemName);
 	if (!objectSystem)
 	{
@@ -163,7 +163,7 @@ void PropertyRequestHandler::setPropertyValueHandler(const ClientRequest& reques
 		return;
 	}
 
-	const std::string& propertyValueName= setValueRequest.fieldName.getValue();
+	const char* propertyValueName= setValueRequest.fieldName.getUtf8Value();
 	const MikanVariant& variantValue= setValueRequest.fieldValue;
 
 	if (setValueRequest.componentId != -1)
@@ -206,7 +206,7 @@ void PropertyRequestHandler::getPropertyValueHandler(const ClientRequest& reques
 		return;
 	}
 
-	const std::string& ownerSystemName= getValueRequest.ownerSystem.getValue();
+	const char* ownerSystemName= getValueRequest.ownerSystem.getUtf8Value();
 	MikanObjectSystemPtr objectSystem= getProjectManager()->getSystemByName(ownerSystemName);
 	if (!objectSystem)
 	{
@@ -220,7 +220,7 @@ void PropertyRequestHandler::getPropertyValueHandler(const ClientRequest& reques
 	getValueResponse.propertyValue.componentId= getValueRequest.componentId;
 	getValueResponse.propertyValue.fieldName= getValueRequest.fieldName;
 
-	const std::string& propertyValueName= getValueRequest.fieldName.getValue();
+	const char* propertyValueName= getValueRequest.fieldName.getUtf8Value();
 	if (getValueRequest.componentId != -1)
 	{
 		MikanComponentPtr componentPtr= objectSystem->getComponentById(getValueRequest.componentId);
@@ -259,7 +259,7 @@ void PropertyRequestHandler::getComponentValuesHandler(const ClientRequest& requ
 		return;
 	}
 
-	const std::string& ownerSystemName= componentValuesRequest.ownerSystem.getValue();
+	const char* ownerSystemName= componentValuesRequest.ownerSystem.getUtf8Value();
 	MikanObjectSystemPtr objectSystem= getProjectManager()->getSystemByName(ownerSystemName);
 	if (!objectSystem)
 	{
@@ -310,7 +310,7 @@ void PropertyRequestHandler::getComponentListHandler(const ClientRequest& reques
 		return;
 	}
 
-	const std::string& ownerSystemName= getComponentListRequest.ownerSystem.getValue();
+	const char* ownerSystemName= getComponentListRequest.ownerSystem.getUtf8Value();
 	MikanObjectSystemPtr objectSystem= getProjectManager()->getSystemByName(ownerSystemName);
 	if (!objectSystem)
 	{
@@ -320,7 +320,7 @@ void PropertyRequestHandler::getComponentListHandler(const ClientRequest& reques
 
 	// Build the response
 	ComponentListResponse componentListResponse= {};
-	const std::string& componentClassName= getComponentListRequest.componentClassName.getValue();
+	const char* componentClassName= getComponentListRequest.componentClassName.getUtf8Value();
 	std::vector<int> componentIdVector;
 	if (!objectSystem->getComponentIdList(componentClassName, componentIdVector))
 	{
@@ -342,7 +342,7 @@ void PropertyRequestHandler::getSystemValuesHandler(const ClientRequest& request
 		return;
 	}
 
-	const std::string& ownerSystemName= systemValuesRequest.ownerSystem.getValue();
+	const char* ownerSystemName= systemValuesRequest.ownerSystem.getUtf8Value();
 	MikanObjectSystemPtr objectSystem= getProjectManager()->getSystemByName(ownerSystemName);
 	if (!objectSystem)
 	{
@@ -387,7 +387,7 @@ void PropertyRequestHandler::createSystemObjectHandler(const ClientRequest& requ
 	}
 
 	// Find the object system to create the object in
-	const std::string& ownerSystemName= createObjectRequest.ownerSystem.getValue();
+	const char* ownerSystemName= createObjectRequest.ownerSystem.getUtf8Value();
 	MikanObjectSystemPtr objectSystem= getProjectManager()->getSystemByName(ownerSystemName);
 	if (!objectSystem)
 	{
@@ -396,7 +396,7 @@ void PropertyRequestHandler::createSystemObjectHandler(const ClientRequest& requ
 	}
 
 	// Attempt to create the object on the specified system
-	if (!objectSystem->addNewObjectByUntypedDefinition(createObjectRequest.componentClassName.getValue(),
+	if (!objectSystem->addNewObjectByUntypedDefinition(createObjectRequest.componentClassName.getUtf8Value(),
 													   createObjectRequest.initParams))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::MalformedParameters, response);
@@ -418,7 +418,7 @@ void PropertyRequestHandler::destroySystemObjectHandler(const ClientRequest& req
 	}
 
 	// Find the object system to destroy the object from
-	const std::string& ownerSystemName= destroyObjectRequest.ownerSystem.getValue();
+	const char* ownerSystemName= destroyObjectRequest.ownerSystem.getUtf8Value();
 	MikanObjectSystemPtr objectSystem= getProjectManager()->getSystemByName(ownerSystemName);
 	if (!objectSystem)
 	{
@@ -462,8 +462,8 @@ void PropertyRequestHandler::setPropertyNotifyModeHandler(const ClientRequest& r
 	}
 
 	if (!clientState->setPropertyNotifyMode(
-			setPropertyNotifyMode.systemFilter.getValue(), setPropertyNotifyMode.componentFilter.getValue(),
-			setPropertyNotifyMode.propertyFilter.getValue(), setPropertyNotifyMode.notifyMode))
+			setPropertyNotifyMode.systemFilter.getUtf8Value(), setPropertyNotifyMode.componentFilter.getUtf8Value(),
+			setPropertyNotifyMode.propertyFilter.getUtf8Value(), setPropertyNotifyMode.notifyMode))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::InvalidParam, response);
 		return;
@@ -484,18 +484,18 @@ void PropertyRequestHandler::getPropertyDescriptorsHandler(const ClientRequest& 
 	PropertyDescriptorResponse propertyDescriptorResponse;
 
 	MikanPropertyDatabaseConstPtr propertyDatabase= getProjectManager()->getPropertyDatabaseConst();
-	PropertyDatabaseEnumerator enumerator(propertyDatabase, getDescriptorsRequest.systemFilter.getValue(),
-										  getDescriptorsRequest.componentFilter.getValue(),
-										  getDescriptorsRequest.propertyFilter.getValue());
+	PropertyDatabaseEnumerator enumerator(propertyDatabase, getDescriptorsRequest.systemFilter.getUtf8Value(),
+										  getDescriptorsRequest.componentFilter.getUtf8Value(),
+										  getDescriptorsRequest.propertyFilter.getUtf8Value());
 	while (enumerator.isValid())
 	{
 		int propertyIndex= enumerator.getCurrentPropertyIndex();
 		const MikanPropertyEntry* propertyEntry= propertyDatabase->getPropertyByIndex(propertyIndex);
 
 		MikanPropertyDescriptor descriptorResult= {};
-		descriptorResult.ownerSystemClass.setValue(propertyEntry->systemName.c_str());
-		descriptorResult.ownerComponentClass.setValue(propertyEntry->componentClassName.c_str());
-		descriptorResult.fieldName.setValue(propertyEntry->descriptor->getName().c_str());
+		descriptorResult.ownerSystemClass.setUtf8Value(propertyEntry->systemName.c_str());
+		descriptorResult.ownerComponentClass.setUtf8Value(propertyEntry->componentClassName.c_str());
+		descriptorResult.fieldName.setUtf8Value(propertyEntry->descriptor->getName().c_str());
 		descriptorResult.fieldType= propertyEntry->descriptor->getDataType();
 		descriptorResult.isReadOnly= propertyEntry->descriptor->isReadOnly();
 

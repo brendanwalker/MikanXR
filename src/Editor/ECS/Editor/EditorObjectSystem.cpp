@@ -818,7 +818,7 @@ bool EditorObjectSystem::setPropertyValue(const std::string& propertyName, const
 	}
 	else if (propertyName == EditorObjectSystem::k_selectedLanguagePropertyId)
 	{
-		std::string langCode= inValue.getUtf8StringPointerValue();
+		std::string langCode= inValue.getUtf8Value();
 		getOwnerWindow()->getLocalizationManager()->setLanguage(langCode);
 		return true;
 	}

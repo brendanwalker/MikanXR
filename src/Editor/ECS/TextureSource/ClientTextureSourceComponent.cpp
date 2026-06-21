@@ -48,7 +48,7 @@ bool ClientTextureSourceDefinition::readFromInitParams(MikanObjectSystem* ownerO
 	const auto* componentValues= initParams.getTypedPointer<MikanClientTextureSourceValues>();
 	if (componentValues)
 	{
-		m_clientSource= componentValues->client_source.getValue();
+		m_clientSource= componentValues->client_source.getUtf8Value();
 	}
 
 	return true;
@@ -134,7 +134,7 @@ bool ClientTextureSourceComponent::setPropertyValue(const std::string& propertyN
 {
 	if (propertyName == ClientTextureSourceDefinition::k_clientSourcePropertyId)
 	{
-		const std::string devicePath= inValue.getUtf8StringPointerValue();
+		const std::string devicePath= inValue.getUtf8Value();
 		getClientTextureSourceDefinition()->setClientSource(devicePath);
 		return true;
 	}

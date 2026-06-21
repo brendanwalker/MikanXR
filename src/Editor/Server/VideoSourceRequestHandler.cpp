@@ -150,7 +150,7 @@ void VideoSourceRequestHandler::setUSBVideoSourceDeviceHandler(const ClientReque
 		getObjectSystemOfType<USBVideoSourceSystem>()->getTypedComponentById(deviceRequest.video_source_id);
 	if (videoSourceComponent)
 	{
-		if (videoSourceComponent->setDevicePath(deviceRequest.device_path.getValue()))
+		if (videoSourceComponent->setDevicePath(deviceRequest.device_path.getUtf8Value()))
 		{
 			writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 			publishVideoSourceModeChangedEvent();
@@ -186,7 +186,8 @@ void VideoSourceRequestHandler::setUSBVideoSourceResolutionHandler(const ClientR
 		videoSourceComponent->getVideoModeFrameRateName(frameRate);
 		videoSourceComponent->getVideoModeFormatName(format);
 
-		if (videoSourceComponent->setVideoModeToBestMatch(resolutionRequest.resolution.getValue(), frameRate, format))
+		const std::string resolution= resolutionRequest.resolution.getUtf8Value();
+		if (videoSourceComponent->setVideoModeToBestMatch(resolution, frameRate, format))
 		{
 			writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 			publishVideoSourceModeChangedEvent();
@@ -222,7 +223,8 @@ void VideoSourceRequestHandler::setUSBVideoSourceFrameRateHandler(const ClientRe
 		videoSourceComponent->getVideoModeResolutionName(resolution);
 		videoSourceComponent->getVideoModeFormatName(format);
 
-		if (videoSourceComponent->setVideoModeToBestMatch(resolution, frameRateRequest.frame_rate.getValue(), format))
+		const std::string frameRate= frameRateRequest.frame_rate.getUtf8Value();
+		if (videoSourceComponent->setVideoModeToBestMatch(resolution, frameRate, format))
 		{
 			writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 			publishVideoSourceModeChangedEvent();
@@ -251,11 +253,14 @@ void VideoSourceRequestHandler::setUSBVideoSourceFormatHandler(const ClientReque
 		getObjectSystemOfType<USBVideoSourceSystem>()->getTypedComponentById(formatRequest.video_source_id);
 	if (videoSourceComponent)
 	{
+		const std::string format= formatRequest.format.getUtf8Value();
+
 		std::string resolution;
 		std::string frameRate;
 		videoSourceComponent->getVideoModeResolutionName(resolution);
 		videoSourceComponent->getVideoModeFrameRateName(frameRate);
-		if (videoSourceComponent->setVideoModeToBestMatch(resolution, frameRate, formatRequest.format.getValue()))
+
+		if (videoSourceComponent->setVideoModeToBestMatch(resolution, frameRate, format))
 		{
 			writeSimpleJsonResponse(request.requestId, MikanAPIResult::Success, response);
 			publishVideoSourceModeChangedEvent();

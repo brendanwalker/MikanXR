@@ -54,7 +54,7 @@ bool CEFTextureSourceDefinition::readFromInitParams(MikanObjectSystem* ownerObje
 	const auto* componentValues= initParams.getTypedPointer<MikanCEFTextureSourceValues>();
 	if (componentValues)
 	{
-		m_url= componentValues->url.getValue();
+		m_url= componentValues->url.getUtf8Value();
 		m_width= componentValues->width;
 		m_height= componentValues->height;
 	}
@@ -318,7 +318,7 @@ bool CEFTextureSourceComponent::setPropertyValue(const std::string& propertyName
 
 	if (propertyName == CEFTextureSourceDefinition::k_urlPropertyId)
 	{
-		const std::string url= inValue.getUtf8StringPointerValue();
+		const std::string url= inValue.getUtf8Value();
 		def->setUrl(url);
 		return true;
 	}

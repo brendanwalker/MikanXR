@@ -52,9 +52,29 @@ inline std::string pathToUtf8(const std::filesystem::path& path)
 {
 #if defined(__cpp_lib_char8_t)
 	const std::u8string utf8= path.u8string();
-	return std::string(utf8.begin(), utf8.end());
+	return std::string(reinterpret_cast<const char*>(utf8.data()), utf8.length());
 #else
 	return path.u8string();
 #endif
 }
+
+inline std::filesystem::path utf8ToPath(const std::string& utf8)
+{
+#if defined(__cpp_lib_char8_t)
+	// C++20 and later: Convert std::string to std::u8string first
+	return std::filesystem::path(std::u8string(utf8.begin(), utf8.end()));
+#else
+	// C++17 fallback: Use the now-deprecated u8path
+	return std::filesystem::u8path(utf8);
+#endif
+}
+
+inline std::string utf8CStrToPathString(const char* utf8Value)
+{
+	const std::string utf8String(utf8Value);
+	std::filesystem::path path= utf8ToPath(utf8String);
+
+	return path.string();
+}
+
 }; // namespace PathUtils

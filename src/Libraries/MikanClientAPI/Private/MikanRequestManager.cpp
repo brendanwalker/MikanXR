@@ -36,7 +36,7 @@ MikanAPIResult MikanRequestManager::init(MikanContext context)
 MikanResponseFuture MikanRequestManager::sendRequest(MikanRequest& inRequest)
 {
 	rfk::Struct const* requestStruct=
-		Serialization::TypeRegistry::getStructByName(inRequest.requestTypeName.getValue());
+		Serialization::TypeRegistry::getStructByName(inRequest.requestTypeName.getUtf8Value());
 	assert(requestStruct != nullptr);
 
 	// Stamp the request with the next available request ID
@@ -163,7 +163,7 @@ MikanResponsePtr MikanRequestManager::parseResponseString(const char* utf8Respon
 											   parseHeaderError))
 		{
 			rfk::Struct const* responseStruct=
-				Serialization::TypeRegistry::getStructByName(responseHeader.responseTypeName.getValue());
+				Serialization::TypeRegistry::getStructByName(responseHeader.responseTypeName.getUtf8Value());
 			if (responseStruct != nullptr)
 			{
 				responsePtr= responseStruct->makeSharedInstance<MikanResponse>();
@@ -173,7 +173,7 @@ MikanResponsePtr MikanRequestManager::parseResponseString(const char* utf8Respon
 														parseResponseError))
 				{
 					MIKAN_MT_LOG_ERROR("MikanClient::parseResponseString()")
-						<< "Failed to parse struct of type " << responseHeader.responseTypeName.getValue() << ": "
+						<< "Failed to parse struct of type " << responseHeader.responseTypeName.getUtf8Value() << ": "
 						<< parseResponseError;
 					responsePtr= nullptr;
 				}
@@ -181,7 +181,7 @@ MikanResponsePtr MikanRequestManager::parseResponseString(const char* utf8Respon
 			else
 			{
 				MIKAN_MT_LOG_ERROR("MikanClient::parseResponseString()")
-					<< "Failed to find struct of type " << responseHeader.responseTypeName.getValue();
+					<< "Failed to find struct of type " << responseHeader.responseTypeName.getUtf8Value();
 			}
 		}
 		else
@@ -256,7 +256,7 @@ MikanResponsePtr MikanRequestManager::parseResponseBinaryReader(const MikanRespo
 	MikanResponsePtr responsePtr;
 
 	rfk::Struct const* responseStruct=
-		Serialization::TypeRegistry::getStructByName(responseHeader.responseTypeName.getValue());
+		Serialization::TypeRegistry::getStructByName(responseHeader.responseTypeName.getUtf8Value());
 	if (responseStruct != nullptr)
 	{
 		std::string parseError;
@@ -272,7 +272,7 @@ MikanResponsePtr MikanRequestManager::parseResponseBinaryReader(const MikanRespo
 	else
 	{
 		MIKAN_MT_LOG_WARNING("MikanClient::parseResponseBinaryReader()")
-			<< "Received response of unknown responseType: " << responseHeader.responseTypeName.getValue();
+			<< "Received response of unknown responseType: " << responseHeader.responseTypeName.getUtf8Value();
 	}
 
 	return responsePtr;

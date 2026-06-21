@@ -46,7 +46,7 @@ bool SpoutTextureSourceDefinition::readFromInitParams(MikanObjectSystem* ownerOb
 	const auto* componentValues= initParams.getTypedPointer<MikanSpoutTextureSourceValues>();
 	if (componentValues)
 	{
-		m_spoutSource= componentValues->spout_source.getValue();
+		m_spoutSource= componentValues->spout_source.getUtf8Value();
 	}
 
 	return true;
@@ -236,7 +236,7 @@ bool SpoutTextureSourceComponent::setPropertyValue(const std::string& propertyNa
 {
 	if (propertyName == SpoutTextureSourceDefinition::k_spoutSourcePropertyId)
 	{
-		const std::string devicePath= inValue.getUtf8StringPointerValue();
+		const std::string devicePath= inValue.getUtf8Value();
 		getSpoutTextureSourceDefinition()->setSpoutSource(devicePath);
 		return true;
 	}

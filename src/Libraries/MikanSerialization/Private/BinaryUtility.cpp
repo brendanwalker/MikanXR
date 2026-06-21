@@ -326,12 +326,12 @@ void to_binary(BinaryWriter& writer, const Serialization::String& inString)
 	// Wrap in std::string explicitly: passing the raw const char* would resolve to the bool
 	// overload (standard pointer->bool conversion outranks the const char*->std::string
 	// user-defined conversion), silently serializing a single byte instead of the string.
-	to_binary(writer, std::string(inString.getValue()));
+	to_binary(writer, std::string(inString.getUtf8Value()));
 }
 
 void from_binary(BinaryReader& reader, Serialization::String& outString)
 {
 	std::string tmp;
 	from_binary(reader, tmp);
-	outString.setValue(tmp.c_str());
+	outString.setUtf8Value(tmp.c_str());
 }

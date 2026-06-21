@@ -74,7 +74,7 @@ void MarkerRequestHandler::getArucoMarkerImageHandler(const ClientRequest& reque
 		}
 
 		ArucoMarkerImageResponse imageResponse;
-		imageResponse.imageData.setValue(StringUtils::base64Encode(pngBuffer).c_str());
+		imageResponse.imageData.setUtf8Value(StringUtils::base64Encode(pngBuffer).c_str());
 		writeTypedJsonResponse(request.requestId, imageResponse, response);
 	}
 	catch (const cv::Exception& e)

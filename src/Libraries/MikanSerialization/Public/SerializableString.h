@@ -32,8 +32,8 @@ public:
 	String& operator=(const char* other);
 	String& operator=(const String& other);
 
-	void setValue(const char* str);
-	const char* getValue() const;
+	void setUtf8Value(const char* str);
+	const char* getUtf8Value() const;
 	bool isEmpty() const;
 
 	bool operator==(const char* other) const;

@@ -17,7 +17,7 @@ MikanClientConnectionState::MikanClientConnectionState(MikanServer* ownerServer,
 
 MikanClientConnectionState::~MikanClientConnectionState() { delete m_renderTargetClientState; }
 
-const char* MikanClientConnectionState::getClientId() const { return m_clientInfo.clientId.getValue(); }
+const char* MikanClientConnectionState::getClientId() const { return m_clientInfo.clientId.getUtf8Value(); }
 
 bool MikanClientConnectionState::isClientInfoValid() const
 {

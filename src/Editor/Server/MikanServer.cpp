@@ -283,7 +283,7 @@ void MikanServer::disposeClientConnectionState(const std::string& connectionId)
 
 void MikanServer::initClientInfo(MikanClientConnectionStatePtr connectionState, const MikanClientInfo& clientInfo)
 {
-	const std::string& clientId= clientInfo.clientId.getValue();
+	const std::string clientId= clientInfo.clientId.getUtf8Value();
 
 	// Fill in the client info and allocate render target read accessor
 	// After this point, the connection can allocate render target textures
@@ -391,7 +391,7 @@ void MikanServer::initClientHandler(const ClientRequest& request, ClientResponse
 
 	const std::string& connectionId= request.connectionId;
 	const MikanClientInfo& clientInfo= initClientRequest.clientInfo;
-	const std::string& clientId= clientInfo.clientId.getValue();
+	const char* clientId= clientInfo.clientId.getUtf8Value();
 
 	auto connection_it= m_clientConnections.find(connectionId);
 	if (connection_it != m_clientConnections.end())

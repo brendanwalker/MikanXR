@@ -200,7 +200,7 @@ bool DMXObjectSystem::setPropertyValue(const std::string& propertyName, const Mi
 
 	if (propertyName == DMXObjectSystemDefinition::k_networkInterfaceIPPropertyId)
 	{
-		const std::string ip= inValue.getUtf8StringPointerValue();
+		const std::string ip= inValue.getUtf8Value();
 		def->setNetworkInterfaceIP(ip);
 		return true;
 	}

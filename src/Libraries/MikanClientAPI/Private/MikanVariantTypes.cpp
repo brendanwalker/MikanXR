@@ -119,7 +119,7 @@ const Serialization::String& MikanVariant::getSerializationStringValue() const
 	return value_ptr.getTypedPointer<MikanStringValue>()->value;
 }
 
-const char* MikanVariant::getUtf8StringPointerValue() const { return getSerializationStringValue().getValue(); }
+const char* MikanVariant::getUtf8Value() const { return getSerializationStringValue().getUtf8Value(); }
 
 const MikanVector2f& MikanVariant::getVector2fValue() const
 {
@@ -276,7 +276,7 @@ void MikanVariant::setValue(const MikanVariant& other)
 		setValue(other.getDoubleValue());
 		break;
 	case MikanVariantType::STRING:
-		setValue(other.getUtf8StringPointerValue());
+		setValue(other.getUtf8Value());
 		break;
 	case MikanVariantType::VECTOR2F:
 		setValue(other.getVector2fValue());
@@ -374,7 +374,7 @@ void MikanVariant::setValue(double value)
 void MikanVariant::setValue(const char* value)
 {
 	value_type= MikanVariantType::STRING;
-	value_ptr.allocatedByType<MikanStringValue>()->value.setValue(value);
+	value_ptr.allocatedByType<MikanStringValue>()->value.setUtf8Value(value);
 }
 
 void MikanVariant::setValue(const std::string& value)

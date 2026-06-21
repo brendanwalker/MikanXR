@@ -52,8 +52,8 @@ bool TrackingMountDefinition::readFromInitParams(MikanObjectSystem* ownerObjectS
 	const auto* componentValues= initParams.getTypedPointer<MikanTrackingMountComponentValues>();
 	if (componentValues)
 	{
-		m_devicePath= componentValues->device_path.getValue();
-		m_socketName= componentValues->socket_name.getValue();
+		m_devicePath= componentValues->device_path.getUtf8Value();
+		m_socketName= componentValues->socket_name.getUtf8Value();
 	}
 
 	return true;
@@ -174,13 +174,13 @@ bool TrackingMountComponent::setPropertyValue(const std::string& propertyName, c
 {
 	if (propertyName == TrackingMountDefinition::k_devicePathPropertyId)
 	{
-		const std::string devicePath= inValue.getUtf8StringPointerValue();
+		const std::string devicePath= inValue.getUtf8Value();
 		getTrackingMountDefinition()->setDevicePath(devicePath);
 		return true;
 	}
 	else if (propertyName == TrackingMountDefinition::k_socketNamePropertyId)
 	{
-		const std::string socketName= inValue.getUtf8StringPointerValue();
+		const std::string socketName= inValue.getUtf8Value();
 		getTrackingMountDefinition()->setSocketName(socketName);
 		return true;
 	}

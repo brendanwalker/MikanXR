@@ -64,7 +64,7 @@ bool mikan_api_test_type_registry_lookup()
 	// The returned struct must be usable for dynamic instantiation
 	auto instance= cmdStruct->makeSharedInstance<MikanRequest>();
 	assert(instance != nullptr);
-	assert(std::string(instance->requestTypeName.getValue()) == "MikanRemoteControlCommand");
+	assert(std::string(instance->requestTypeName.getUtf8Value()) == "MikanRemoteControlCommand");
 
 	UNIT_TEST_COMPLETE()
 }
@@ -89,17 +89,17 @@ bool mikan_api_test_type_name_set_on_construct()
 
 	// Base types set their own name
 	MikanRequest request;
-	assert(std::string(request.requestTypeName.getValue()) == "MikanRequest");
+	assert(std::string(request.requestTypeName.getUtf8Value()) == "MikanRequest");
 
 	MikanResponse response;
-	assert(std::string(response.responseTypeName.getValue()) == "MikanResponse");
+	assert(std::string(response.responseTypeName.getUtf8Value()) == "MikanResponse");
 
 	MikanEvent event;
-	assert(std::string(event.eventTypeName.getValue()) == "MikanEvent");
+	assert(std::string(event.eventTypeName.getUtf8Value()) == "MikanEvent");
 
 	// Derived types set the derived type name, not the base name
 	MikanRemoteControlCommand cmd;
-	assert(std::string(cmd.requestTypeName.getValue()) == "MikanRemoteControlCommand");
+	assert(std::string(cmd.requestTypeName.getUtf8Value()) == "MikanRemoteControlCommand");
 
 	UNIT_TEST_COMPLETE()
 }
@@ -153,7 +153,8 @@ bool mikan_api_test_response_round_trip()
 	assert(bHeader);
 
 	// Look up the concrete struct type by name and create an instance
-	rfk::Struct const* responseStruct= Serialization::TypeRegistry::getStructByName(header.responseTypeName.getValue());
+	rfk::Struct const* responseStruct=
+		Serialization::TypeRegistry::getStructByName(header.responseTypeName.getUtf8Value());
 	assert(responseStruct != nullptr);
 
 	auto instance= responseStruct->makeSharedInstance<MikanResponse>();
@@ -167,7 +168,7 @@ bool mikan_api_test_response_round_trip()
 	// Verify field values survived the round-trip
 	assert(instance->requestId == expected.requestId);
 	assert(instance->resultCode == expected.resultCode);
-	assert(std::string(instance->responseTypeName.getValue()) == std::string(expected.responseTypeName.getValue()));
+	assert(instance->responseTypeName == expected.responseTypeName);
 
 	UNIT_TEST_COMPLETE()
 }

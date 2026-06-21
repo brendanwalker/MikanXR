@@ -184,8 +184,8 @@ static void handleComponentListChanged(IMikanAPIPtr mikanApi)
 {
 	// Fetch the list of anchors from Mikan and apply them to the scene
 	GetComponentListRequest listRequest;
-	listRequest.ownerSystem.setValue(t_component_values::k_ownerSystemName);
-	listRequest.componentClassName.setValue(t_component_values::k_componentClassName);
+	listRequest.ownerSystem.setUtf8Value(t_component_values::k_ownerSystemName);
+	listRequest.componentClassName.setUtf8Value(t_component_values::k_componentClassName);
 
 	auto listResponse= mikanApi->sendRequest(listRequest).fetchResponse();
 	if (listResponse->resultCode == MikanAPIResult::Success)
@@ -202,7 +202,7 @@ static void handleComponentListChanged(IMikanAPIPtr mikanApi)
 
 			// TODO: Handle component creation and deletion
 			ComponentGetValuesRequest componentRequest;
-			componentRequest.ownerSystem.setValue(t_component_values::k_ownerSystemName);
+			componentRequest.ownerSystem.setUtf8Value(t_component_values::k_ownerSystemName);
 			componentRequest.componentId= componentId;
 
 			auto response= mikanApi->sendRequest(componentRequest).fetchResponse();
@@ -258,7 +258,7 @@ void TestMikanClient::handleMikanConnected()
 
 void TestMikanClient::handleMikanDisconnected(const MikanDisconnectedEvent& disconnectEvent)
 {
-	MIKAN_LOG_INFO("MikanDisconnectedEvent") << disconnectEvent.reason.getValue();
+	MIKAN_LOG_INFO("MikanDisconnectedEvent") << disconnectEvent.reason.getUtf8Value();
 
 	if (disconnectEvent.code == MikanDisconnectCode_IncompatibleVersion)
 	{
@@ -315,20 +315,20 @@ void TestMikanClient::handleCameraNewFrameEvent(const MikanCameraNewFrameEvent& 
 
 void TestMikanClient::handleMikanEvent(MikanEventPtr mikanEvent)
 {
-	MIKAN_LOG_INFO("handleMikanEvent") << "Received Event: " << mikanEvent->eventTypeName.getValue();
+	MIKAN_LOG_INFO("handleMikanEvent") << "Received Event: " << mikanEvent->eventTypeName.getUtf8Value();
 }
 
 // Generic Property Events
 void TestMikanClient::handlePropertyUpdateEvent(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
 	const MikanPropertyValue& propertyValue= propertyUpdateEvent.propertyValue;
-	const char* systemName= propertyValue.ownerSystem.getValue();
-	const char* fieldName= propertyValue.fieldName.getValue();
+	const char* systemName= propertyValue.ownerSystem.getUtf8Value();
+	const char* fieldName= propertyValue.fieldName.getUtf8Value();
 
 	if (propertyValue.componentId != INVALID_MIKAN_ID)
 	{
-		const char* componentClass= propertyValue.ownerComponentClass.getValue();
-		const char* componentName= propertyValue.fieldValue.getUtf8StringPointerValue();
+		const char* componentClass= propertyValue.ownerComponentClass.getUtf8Value();
+		const char* componentName= propertyValue.fieldValue.getUtf8Value();
 
 		MIKAN_LOG_INFO("handlePropertyUpdateEvent")
 			<< "Component Field Changed: "
@@ -373,8 +373,8 @@ void TestMikanClient::handleComponentPropertyUpdate(const MikanPropertyUpdateEve
 
 void TestMikanClient::handleComponentNameChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
-	const char* componentClass= propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
-	const char* componentName= propertyUpdateEvent.propertyValue.fieldValue.getUtf8StringPointerValue();
+	const char* componentClass= propertyUpdateEvent.propertyValue.ownerComponentClass.getUtf8Value();
+	const char* componentName= propertyUpdateEvent.propertyValue.fieldValue.getUtf8Value();
 
 	MIKAN_LOG_INFO("HandleComponentNameChanged")
 		<< "Component(class: " << componentClass << ", id: " << propertyUpdateEvent.propertyValue.componentId
@@ -404,8 +404,8 @@ void TestMikanClient::handleTransformPropertyUpdate(const MikanPropertyUpdateEve
 
 void TestMikanClient::handleTransformScaleChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
-	const char* componentClass= propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
-	const char* componentName= propertyUpdateEvent.propertyValue.fieldValue.getUtf8StringPointerValue();
+	const char* componentClass= propertyUpdateEvent.propertyValue.ownerComponentClass.getUtf8Value();
+	const char* componentName= propertyUpdateEvent.propertyValue.fieldValue.getUtf8Value();
 	const MikanVector3f& s= propertyUpdateEvent.propertyValue.fieldValue.getVector3fValue();
 
 	MIKAN_LOG_INFO("handleTransformScaleChanged")
@@ -415,8 +415,8 @@ void TestMikanClient::handleTransformScaleChanged(const MikanPropertyUpdateEvent
 
 void TestMikanClient::handleTransformOrientationChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
-	const char* componentClass= propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
-	const char* componentName= propertyUpdateEvent.propertyValue.fieldValue.getUtf8StringPointerValue();
+	const char* componentClass= propertyUpdateEvent.propertyValue.ownerComponentClass.getUtf8Value();
+	const char* componentName= propertyUpdateEvent.propertyValue.fieldValue.getUtf8Value();
 	const MikanQuatf& q= propertyUpdateEvent.propertyValue.fieldValue.getQuaternionfValue();
 
 	MIKAN_LOG_INFO("handleTransformOrientationChanged")
@@ -426,8 +426,8 @@ void TestMikanClient::handleTransformOrientationChanged(const MikanPropertyUpdat
 
 void TestMikanClient::handleTransformPositionChanged(const MikanPropertyUpdateEvent& propertyUpdateEvent)
 {
-	const char* componentClass= propertyUpdateEvent.propertyValue.ownerComponentClass.getValue();
-	const char* componentName= propertyUpdateEvent.propertyValue.fieldValue.getUtf8StringPointerValue();
+	const char* componentClass= propertyUpdateEvent.propertyValue.ownerComponentClass.getUtf8Value();
+	const char* componentName= propertyUpdateEvent.propertyValue.fieldValue.getUtf8Value();
 	const MikanVector3f& v= propertyUpdateEvent.propertyValue.fieldValue.getVector3fValue();
 
 	MIKAN_LOG_INFO("handleTransformPositionChanged")

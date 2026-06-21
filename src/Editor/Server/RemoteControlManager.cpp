@@ -53,7 +53,7 @@ void RemoteControlManager::pushAppStageHandler(const ClientRequest& request, Cli
 		return;
 	}
 
-	const std::string& desiredAppStageName= appStageRequest.app_state_name.getValue();
+	const std::string desiredAppStageName= appStageRequest.app_state_name.getUtf8Value();
 	MainWindow* mainWindow= App::getInstance()->getMainWindow();
 	if (mainWindow->getCurrentAppStage()->getAppStageName() != desiredAppStageName
 		&& mainWindow->pushAppStage(desiredAppStageName) == nullptr)
@@ -121,11 +121,11 @@ void RemoteControlManager::remoteControlCommandHandler(const ClientRequest& requ
 	if (remoteControllableAppStage != nullptr)
 	{
 		// Pull args out of Serialization types
-		const std::string& command= remoteControlCommand.command.getValue();
+		const std::string command= remoteControlCommand.command.getUtf8Value();
 		std::vector<std::string> parameters;
 		for (const auto& parameter : remoteControlCommand.parameters)
 		{
-			parameters.push_back(parameter.getValue());
+			parameters.push_back(parameter.getUtf8Value());
 		}
 
 		// Pass the command to the app stage
@@ -140,7 +140,7 @@ void RemoteControlManager::remoteControlCommandHandler(const ClientRequest& requ
 				commandResponse.results.resize(resultCount);
 				for (size_t i= 0; i < resultCount; i++)
 				{
-					commandResponse.results[i].setValue(results[i].c_str());
+					commandResponse.results[i].setUtf8Value(results[i].c_str());
 				}
 			}
 
@@ -182,8 +182,8 @@ void RemoteControlManager::publishAppStageChangedEvent(const std::string& oldApp
 													   const std::string& newAppStageName)
 {
 	MikanAppStageChangedEvent appStageChangedEvent= {};
-	appStageChangedEvent.old_app_state_name.setValue(oldAppStageName.c_str());
-	appStageChangedEvent.new_app_state_name.setValue(newAppStageName.c_str());
+	appStageChangedEvent.old_app_state_name.setUtf8Value(oldAppStageName.c_str());
+	appStageChangedEvent.new_app_state_name.setUtf8Value(newAppStageName.c_str());
 
 	std::string jsonStr;
 	std::string errorMsg;
@@ -201,7 +201,7 @@ void RemoteControlManager::publishAppStageChangedEvent(const std::string& oldApp
 void RemoteControlManager::sendRemoteControlEvent(const std::string& event, const std::vector<std::string>& parameters)
 {
 	MikanRemoteControlEvent remoteControlEvent= {};
-	remoteControlEvent.remoteControlEvent.setValue(event.c_str());
+	remoteControlEvent.remoteControlEvent.setUtf8Value(event.c_str());
 
 	const size_t parameterCount= parameters.size();
 	if (parameterCount > 0)
@@ -210,7 +210,7 @@ void RemoteControlManager::sendRemoteControlEvent(const std::string& event, cons
 
 		for (size_t i= 0; i < parameterCount; i++)
 		{
-			remoteControlEvent.parameters[i].setValue(parameters[i].c_str());
+			remoteControlEvent.parameters[i].setUtf8Value(parameters[i].c_str());
 		}
 	}
 

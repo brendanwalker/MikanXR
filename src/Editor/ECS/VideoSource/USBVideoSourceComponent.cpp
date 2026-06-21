@@ -81,8 +81,8 @@ bool USBVideoSourceDefinition::readFromInitParams(MikanObjectSystem* ownerObject
 	const auto* componentValues= initParams.getTypedPointer<MikanUSBVideoSourceValues>();
 	if (componentValues)
 	{
-		m_devicePath= componentValues->current_device_path.getValue();
-		m_videoMode= componentValues->video_mode.getValue();
+		m_devicePath= componentValues->current_device_path.getUtf8Value();
+		m_videoMode= componentValues->video_mode.getUtf8Value();
 
 		// Convert the video_settings list to the video settings array
 		const auto& settingsList= componentValues->video_settings;
@@ -1529,13 +1529,13 @@ bool USBVideoSourceComponent::setPropertyValue(const std::string& propertyName, 
 
 	if (propertyName == USBVideoSourceDefinition::k_desiredDevicePathPropertyId)
 	{
-		const std::string devicePath= inValue.getUtf8StringPointerValue();
+		const std::string devicePath= inValue.getUtf8Value();
 		getUSBVideoSourceDefinition()->setDevicePath(devicePath);
 		return true;
 	}
 	else if (propertyName == USBVideoSourceDefinition::k_videoModePropertyId)
 	{
-		const std::string videoMode= inValue.getUtf8StringPointerValue();
+		const std::string videoMode= inValue.getUtf8Value();
 		setVideoModeByName(videoMode);
 		return true;
 	}

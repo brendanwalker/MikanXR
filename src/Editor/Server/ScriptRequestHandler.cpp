@@ -72,7 +72,7 @@ void ScriptRequestHandler::invokeComponentScriptTriggerHandler(const ClientReque
 		return;
 	}
 
-	const std::string& ownerSystemName= scriptTriggerRequest.ownerSystem.getValue();
+	const char* ownerSystemName= scriptTriggerRequest.ownerSystem.getUtf8Value();
 	MikanObjectSystemPtr objectSystem= getProjectManager()->getSystemByName(ownerSystemName);
 	if (!objectSystem)
 	{
@@ -94,7 +94,8 @@ void ScriptRequestHandler::invokeComponentScriptTriggerHandler(const ClientReque
 		return;
 	}
 
-	if (!scriptContext->invokeScriptTrigger(scriptTriggerRequest.trigger_name.getValue()))
+	std::string scriptTrigger= scriptTriggerRequest.trigger_name.getUtf8Value();
+	if (!scriptContext->invokeScriptTrigger(scriptTrigger))
 	{
 		writeSimpleJsonResponse(request.requestId, MikanAPIResult::RequestFailed, response);
 		return;
@@ -119,7 +120,9 @@ void ScriptRequestHandler::invokeScriptMessageHandler(const ClientRequest& reque
 
 		if (scriptContext == scriptContext)
 		{
-			if (scriptContext->invokeScriptMessageHandler(scriptMessageRequest.message.content.getValue()))
+			const std::string message= scriptMessageRequest.message.content.getUtf8Value();
+
+			if (scriptContext->invokeScriptMessageHandler(message))
 			{
 				break;
 			}

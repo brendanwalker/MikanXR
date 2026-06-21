@@ -48,9 +48,9 @@ String& String::operator=(const String& other)
 	return *this;
 }
 
-void String::setValue(const char* str) { m_pimpl->value= str ? str : ""; }
+void String::setUtf8Value(const char* str) { m_pimpl->value= str ? str : ""; }
 
-const char* String::getValue() const { return m_pimpl->value.c_str(); }
+const char* String::getUtf8Value() const { return m_pimpl->value.c_str(); }
 
 bool String::isEmpty() const { return m_pimpl->value.empty(); }
 
